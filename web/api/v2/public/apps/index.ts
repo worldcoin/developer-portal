@@ -19,10 +19,13 @@ import {
 import { getSdk as getWebHighlightsSdk } from "./graphql/get-app-web-highlights.generated";
 
 import { formatAppMetadata, rankApps } from "@/api/helpers/app-store";
+import { compareVersions } from "@/lib/compare-versions";
 import {
   GetHighlightsQuery,
   getSdk as getHighlightsSdk,
 } from "./graphql/get-highlighted-apps.generated";
+
+const CONTACTS_APP_AVAILABLE_FROM = "2.8.78001";
 
 const queryParamsSchema = yup.object({
   page: yup.number().integer().min(1).default(1).notRequired(),
@@ -71,12 +74,8 @@ export const GET = async (request: NextRequest) => {
   }
   const headers = request.headers;
   const locale = parseLocale(headers.get("x-accept-language") ?? "");
+  const clientVersion: string | null = headers.get("client-version");
   let country: string | null = headers.get("CloudFront-Viewer-Country");
-
-  console.log({
-    cloudfrontCountry: country,
-    parsedCountry: parsedParams.override_country,
-  });
 
   if (parsedParams.override_country) {
     country = parsedParams.override_country;
@@ -144,6 +143,14 @@ export const GET = async (request: NextRequest) => {
         app.category.toLowerCase() !== "external" ||
         app.app_mode !== "external",
     );
+  }
+
+  if (
+    clientVersion &&
+    compareVersions(clientVersion, CONTACTS_APP_AVAILABLE_FROM) >= 0
+  ) {
+    topApps = topApps.filter((app) => app.app_id !== "contacts");
+    highlightsApps = highlightsApps.filter((app) => app.app_id !== "contacts");
   }
 
   // ANCHOR: Filter top apps by country
