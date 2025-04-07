@@ -25,7 +25,8 @@ import {
   getSdk as getHighlightsSdk,
 } from "./graphql/get-highlighted-apps.generated";
 
-const CONTACTS_APP_AVAILABLE_FROM = "2.8.78001";
+// TODO remove when min app is higher
+const CONTACTS_APP_AVAILABLE_FROM = "2.8.7801";
 
 const queryParamsSchema = yup.object({
   page: yup.number().integer().min(1).default(1).notRequired(),
@@ -146,8 +147,8 @@ export const GET = async (request: NextRequest) => {
   }
 
   if (
-    clientVersion &&
-    compareVersions(clientVersion, CONTACTS_APP_AVAILABLE_FROM) >= 0
+    !clientVersion ||
+    compareVersions(clientVersion, CONTACTS_APP_AVAILABLE_FROM) < 0
   ) {
     topApps = topApps.filter((app) => app.app_id !== "contacts");
     highlightsApps = highlightsApps.filter((app) => app.app_id !== "contacts");
