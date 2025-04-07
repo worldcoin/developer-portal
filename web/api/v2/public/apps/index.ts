@@ -20,13 +20,11 @@ import { getSdk as getWebHighlightsSdk } from "./graphql/get-app-web-highlights.
 
 import { formatAppMetadata, rankApps } from "@/api/helpers/app-store";
 import { compareVersions } from "@/lib/compare-versions";
+import { CONTACTS_APP_AVAILABLE_FROM } from "../constants";
 import {
   GetHighlightsQuery,
   getSdk as getHighlightsSdk,
 } from "./graphql/get-highlighted-apps.generated";
-
-// TODO remove when min app is higher
-const CONTACTS_APP_AVAILABLE_FROM = "2.8.7900";
 
 const queryParamsSchema = yup.object({
   page: yup.number().integer().min(1).default(1).notRequired(),
