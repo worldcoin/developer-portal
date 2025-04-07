@@ -1,6 +1,6 @@
 import { GET } from "@/api/v2/public/apps";
 import { AllCategory } from "@/lib/categories";
-import { Categories } from "@/lib/constants";
+import { Categories, NativeAppToAppIdMapping } from "@/lib/constants";
 import { NextRequest } from "next/server";
 import { getSdk as getAppsSdk } from "../../../../../api/v2/public/apps/graphql/get-app-rankings.generated";
 import { getSdk as getWebHighlightsSdk } from "../../../../../api/v2/public/apps/graphql/get-app-web-highlights.generated";
@@ -1231,7 +1231,7 @@ describe("/api/v2/public/apps", () => {
   describe("contacts app client version filtering", () => {
     const mockAppsWithContacts = [
       {
-        app_id: "contacts", // contacts app
+        app_id: NativeAppToAppIdMapping["production"].contacts, // contacts app
         name: "Contacts",
         short_name: "contacts",
         logo_img_url: "logo.png",
@@ -1408,15 +1408,15 @@ describe("/api/v2/public/apps", () => {
       const data = await response.json();
 
       expect(
-        data.app_rankings.top_apps.some(
+        data.app_rankings.top_apps.find(
           (app: any) => app.app_id === "contacts",
         ),
-      ).toBe(false);
+      ).toBe(undefined);
       expect(
-        data.app_rankings.highlights.some(
+        data.app_rankings.highlights.find(
           (app: any) => app.app_id === "contacts",
         ),
-      ).toBe(false);
+      ).toBe(undefined);
     });
   });
 });
