@@ -212,6 +212,7 @@ export type AppStoreMetadataFields = {
   verification_status: string;
   is_allowed_unlimited_notifications?: boolean | null;
   max_notifications_per_day?: number | null;
+  is_higher_risk?: boolean | null;
   app: {
     team: { name?: string | null; id: string };
     rating_sum: number;
