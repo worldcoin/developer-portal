@@ -86,10 +86,6 @@ export const AppStoreForm = (props: {
 
   const isEditable = appMetadata?.verification_status === "unverified";
 
-  //
-  // ADD WARN ABOUT INDO APPS!!
-  //
-
   // Anchor: Localisation Metadata
   const [
     getLocalisationText,

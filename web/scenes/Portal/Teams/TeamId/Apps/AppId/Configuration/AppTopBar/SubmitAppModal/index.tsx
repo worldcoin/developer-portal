@@ -6,6 +6,7 @@ import { DialogOverlay } from "@/components/DialogOverlay";
 import { DialogPanel } from "@/components/DialogPanel";
 import { CheckmarkBadge } from "@/components/Icons/CheckmarkBadge";
 import { WorldcoinIcon } from "@/components/Icons/WorldcoinIcon";
+import { Radio } from "@/components/Radio";
 import { TextArea } from "@/components/TextArea";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { appChangelogSchema } from "@/lib/schema";
@@ -22,9 +23,13 @@ import { RemainingCharacters } from "../../PageComponents/RemainingCharacters";
 import { validateAndSubmitAppForReviewFormServerSide } from "../server/submit";
 import { useValidateLocalisationMutation } from "./graphql/client/validate-localisations.generated";
 
-const schema = yup.object().shape({
+const schema = yup.object({
   is_developer_allow_listing: yup.boolean(),
   changelog: appChangelogSchema,
+  is_higher_risk: yup
+    .string()
+    .oneOf(["true", "false"], "Please select Yes or No")
+    .required("Please select Yes or No"),
 });
 
 type SubmitAppModalProps = {
@@ -37,7 +42,7 @@ type SubmitAppModalProps = {
   isDeveloperAllowListing: boolean;
 };
 
-export type SubmitAppFormValues = yup.Asserts<typeof schema>;
+export type SubmitAppFormValues = yup.InferType<typeof schema>;
 
 export const SubmitAppModal = (props: SubmitAppModalProps) => {
   const {
@@ -66,9 +71,11 @@ export const SubmitAppModal = (props: SubmitAppModalProps) => {
     formState: { errors },
   } = useForm<SubmitAppFormValues>({
     resolver: yupResolver(schema),
+    mode: "onChange",
     defaultValues: {
       is_developer_allow_listing: isDeveloperAllowListing,
       changelog: "",
+      is_higher_risk: undefined,
     },
   });
 
@@ -101,6 +108,7 @@ export const SubmitAppModal = (props: SubmitAppModalProps) => {
             team_id: teamId,
             is_developer_allow_listing: values.is_developer_allow_listing,
             changelog: values.changelog,
+            is_higher_risk: values.is_higher_risk === "true",
           },
         });
         await refetchAppMetadata();
@@ -175,12 +183,45 @@ export const SubmitAppModal = (props: SubmitAppModalProps) => {
               <Typography variant={TYPOGRAPHY.R3} className="text-grey-700">
                 Allow App Store listing
               </Typography>
-              <Typography variant={TYPOGRAPHY.R4} className="text-grey-400">
+              <Typography variant={TYPOGRAPHY.R4} className="text-grey-700">
                 Once you submit your app for review, it may be showcased in
                 Worldcoin App Store. Not all apps will be displayed.
               </Typography>
             </div>
           </label>
+          <div className="grid gap-y-4 rounded-xl border-[1px] border-grey-200 px-5 py-6">
+            <Typography variant={TYPOGRAPHY.R3} className="text-grey-700">
+              Does your app have any of these?
+            </Typography>
+            <Typography variant={TYPOGRAPHY.R4} className="text-grey-700">
+              <li>Gambling</li>
+            </Typography>
+            <Typography variant={TYPOGRAPHY.R4} className="text-grey-700">
+              <li>
+                In-app purchases of digital goods, consumables, subscriptions
+              </li>
+            </Typography>
+            <div className="mt-3 flex gap-x-6">
+              <Radio
+                label="Yes"
+                value="true"
+                register={register("is_higher_risk")}
+              />
+              <Radio
+                label="No"
+                value="false"
+                register={register("is_higher_risk")}
+              />
+            </div>
+            {errors.is_higher_risk && (
+              <Typography
+                variant={TYPOGRAPHY.R4}
+                className="mt-1 text-system-error-500"
+              >
+                {errors.is_higher_risk.message}
+              </Typography>
+            )}
+          </div>
           <TextArea
             label="Changelog"
             required
