@@ -320,6 +320,7 @@ export const AppStoreForm = (props: {
         ? appMetadata?.support_link.replace("mailto:", "")
         : "",
       support_link: isSupportEmail ? "" : appMetadata?.support_link,
+      is_higher_risk: appMetadata?.is_higher_risk ?? null,
     },
   });
 
@@ -462,6 +463,7 @@ export const AppStoreForm = (props: {
           app_website_url: data.app_website_url,
           supported_countries: data.supported_countries,
           category: data.category,
+          is_higher_risk: data.is_higher_risk,
         });
         await refetchAppMetadata();
         toast.success("App information updated successfully");
@@ -660,7 +662,49 @@ export const AppStoreForm = (props: {
               );
             }}
           />
+          <div className="grid gap-y-3">
+            <Typography variant={TYPOGRAPHY.H7} className="text-grey-700">
+              Does your app have any of these?{" "}
+              <span className="text-system-error-500">*</span>
+            </Typography>
 
+            <Typography variant={TYPOGRAPHY.R4} className="text-grey-500">
+              <li>Gambling</li>
+              <li>
+                In-app purchases of digital goods, consumables, subscriptions
+              </li>
+            </Typography>
+            <div className="mt-3 flex gap-x-6">
+              <Controller
+                name="is_higher_risk"
+                control={control}
+                render={({ field }) => (
+                  <>
+                    <Radio
+                      label="Yes"
+                      value="true"
+                      checked={field.value === true}
+                      onChange={() => field.onChange(true)}
+                    />
+                    <Radio
+                      label="No"
+                      value="false"
+                      checked={field.value === false}
+                      onChange={() => field.onChange(false)}
+                    />
+                  </>
+                )}
+              />
+            </div>
+            {errors.is_higher_risk && (
+              <Typography
+                variant={TYPOGRAPHY.R4}
+                className="mt-1 text-system-error-500"
+              >
+                {errors.is_higher_risk.message}
+              </Typography>
+            )}
+          </div>
           <div className="grid gap-y-5">
             <div className="grid gap-y-3">
               <Typography variant={TYPOGRAPHY.H7}>

@@ -38,7 +38,6 @@ export async function validateAndSubmitAppForReviewFormServerSide({
         parsedInput.is_developer_allow_listing ?? false,
       verification_status: "awaiting_review",
       changelog: parsedInput.changelog,
-      is_higher_risk: parsedInput.is_higher_risk ?? false,
     });
   } catch (error) {
     return errorFormAction({

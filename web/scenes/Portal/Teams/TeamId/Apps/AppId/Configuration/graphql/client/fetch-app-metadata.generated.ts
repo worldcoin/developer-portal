@@ -47,6 +47,7 @@ export type FetchAppMetadataQuery = {
       can_import_all_contacts: boolean;
       is_allowed_unlimited_notifications?: boolean | null;
       max_notifications_per_day?: number | null;
+      is_higher_risk?: boolean | null;
     }>;
     verified_app_metadata: Array<{
       __typename?: "app_metadata";
@@ -79,6 +80,7 @@ export type FetchAppMetadataQuery = {
       can_import_all_contacts: boolean;
       is_allowed_unlimited_notifications?: boolean | null;
       max_notifications_per_day?: number | null;
+      is_higher_risk?: boolean | null;
     }>;
   }>;
 };
@@ -120,6 +122,7 @@ export const FetchAppMetadataDocument = gql`
         can_import_all_contacts
         is_allowed_unlimited_notifications
         max_notifications_per_day
+        is_higher_risk
       }
       verified_app_metadata: app_metadata(
         where: { verification_status: { _eq: "verified" } }
@@ -153,6 +156,7 @@ export const FetchAppMetadataDocument = gql`
         can_import_all_contacts
         is_allowed_unlimited_notifications
         max_notifications_per_day
+        is_higher_risk
       }
     }
   }

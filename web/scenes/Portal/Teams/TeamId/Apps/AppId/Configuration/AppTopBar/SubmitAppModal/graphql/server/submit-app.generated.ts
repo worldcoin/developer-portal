@@ -34,7 +34,6 @@ export const SubmitAppDocument = gql`
         verification_status: $verification_status
         is_developer_allow_listing: $is_developer_allow_listing
         changelog: $changelog
-        is_higher_risk: $is_higher_risk
       }
     ) {
       id
