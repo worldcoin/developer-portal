@@ -191,8 +191,10 @@ export const SubmitAppModal = (props: SubmitAppModalProps) => {
           </label>
           <div className="grid gap-y-4 rounded-xl border-[1px] border-grey-200 px-5 py-6">
             <Typography variant={TYPOGRAPHY.R3} className="text-grey-700">
-              Does your app have any of these?
+              Does your app have any of these?{" "}
+              <span className="text-system-error-500">*</span>
             </Typography>
+
             <Typography variant={TYPOGRAPHY.R4} className="text-grey-700">
               <li>Gambling</li>
             </Typography>
