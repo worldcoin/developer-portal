@@ -9,7 +9,6 @@ export type SubmitAppMutationVariables = Types.Exact<{
   verification_status: Types.Scalars["String"]["input"];
   is_developer_allow_listing: Types.Scalars["Boolean"]["input"];
   changelog: Types.Scalars["String"]["input"];
-  is_higher_risk: Types.Scalars["Boolean"]["input"];
 }>;
 
 export type SubmitAppMutation = {
@@ -26,7 +25,6 @@ export const SubmitAppDocument = gql`
     $verification_status: String!
     $is_developer_allow_listing: Boolean!
     $changelog: String!
-    $is_higher_risk: Boolean!
   ) {
     update_app_metadata_by_pk(
       pk_columns: { id: $app_metadata_id }
