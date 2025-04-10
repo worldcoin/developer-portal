@@ -40,6 +40,7 @@ export type GetAppMetadataQuery = {
     verification_status: string;
     is_allowed_unlimited_notifications?: boolean | null;
     max_notifications_per_day?: number | null;
+    is_higher_risk?: boolean | null;
     localisations: Array<{
       __typename?: "localisations";
       name: string;
@@ -91,6 +92,7 @@ export const GetAppMetadataDocument = gql`
       verification_status
       is_allowed_unlimited_notifications
       max_notifications_per_day
+      is_higher_risk
       localisations(where: { locale: { _eq: $locale } }) {
         name
         world_app_button_text

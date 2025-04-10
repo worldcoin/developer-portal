@@ -238,6 +238,7 @@ export async function validateAndUpdateAppSupportInfoServerSide(
     app_website_url: params.app_website_url,
     supported_countries: params.supported_countries,
     category: params.category,
+    is_higher_risk: params.is_higher_risk,
   };
   let input: UpdateAppInfoMutationVariables = {
     app_metadata_id: params.app_metadata_id,
@@ -268,6 +269,7 @@ export async function validateAndUpdateAppSupportInfoServerSide(
         app_website_url: parsedInitialValues.app_website_url,
         supported_countries: parsedInitialValues.supported_countries,
         category: parsedInitialValues.category,
+        is_higher_risk: parsedInitialValues.is_higher_risk,
       },
     };
 
