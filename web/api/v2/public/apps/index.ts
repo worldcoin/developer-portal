@@ -33,9 +33,12 @@ const queryParamsSchema = yup.object({
     .string()
     .oneOf(["mini-app", "external", "native"])
     .notRequired(),
+  // bypasses cloudfront's geolocation header, returns a country's app store
   override_country: yup.string().notRequired(),
+  // includes apps with category external
   show_external: yup.boolean().notRequired().default(false),
-  exclude_defaults: yup.boolean().notRequired().default(false),
+  // moves native apps + learn to the bottom of top apps list
+  defaults_to_bottom: yup.boolean().notRequired().default(false),
 });
 
 export const GET = async (request: NextRequest) => {
@@ -159,9 +162,9 @@ export const GET = async (request: NextRequest) => {
       (app) => app.app_id !== nativeIdToActualId.contacts,
     );
   }
-  const excludeDefaults = parsedParams.exclude_defaults;
 
-  if (excludeDefaults) {
+  const defaultsToBottom = parsedParams.defaults_to_bottom;
+  if (defaultsToBottom) {
     topApps.sort((a, b) => {
       const aIsDefault =
         a.app_id in nativeIdToActualId || a.app_id === LEARN_APP_ID;
