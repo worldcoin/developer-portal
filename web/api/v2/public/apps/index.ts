@@ -20,7 +20,7 @@ import { getSdk as getWebHighlightsSdk } from "./graphql/get-app-web-highlights.
 
 import { formatAppMetadata, rankApps } from "@/api/helpers/app-store";
 import { compareVersions } from "@/lib/compare-versions";
-import { CONTACTS_APP_AVAILABLE_FROM } from "../constants";
+import { CONTACTS_APP_AVAILABLE_FROM, LEARN_APP_ID } from "../constants";
 import {
   GetHighlightsQuery,
   getSdk as getHighlightsSdk,
@@ -35,6 +35,7 @@ const queryParamsSchema = yup.object({
     .notRequired(),
   override_country: yup.string().notRequired(),
   show_external: yup.boolean().notRequired().default(false),
+  exclude_defaults: yup.boolean().notRequired().default(false),
 });
 
 export const GET = async (request: NextRequest) => {
@@ -157,6 +158,18 @@ export const GET = async (request: NextRequest) => {
     highlightsApps = highlightsApps.filter(
       (app) => app.app_id !== nativeIdToActualId.contacts,
     );
+  }
+  const excludeDefaults = parsedParams.exclude_defaults;
+
+  if (excludeDefaults) {
+    topApps.sort((a, b) => {
+      const aIsDefault =
+        a.app_id in nativeIdToActualId || a.app_id === LEARN_APP_ID;
+      const bIsDefault =
+        b.app_id in nativeIdToActualId || b.app_id == LEARN_APP_ID;
+      return aIsDefault === bIsDefault ? 0 : aIsDefault ? 1 : -1;
+    });
+    // leave highlights as is
   }
 
   // ANCHOR: Filter top apps by country
