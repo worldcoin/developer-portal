@@ -6,9 +6,9 @@ import {
 } from "@/legacy/backend/errors";
 import { verifyOIDCJWT } from "@/legacy/backend/jwts";
 import { authenticateOIDCEndpoint } from "@/legacy/backend/oidc";
+import { validateRequestSchema } from "@/legacy/backend/utils";
 import { NextApiRequest, NextApiResponse } from "next";
 import * as yup from "yup";
-import { validateRequestSchema } from "@/legacy/backend/utils";
 
 const schema = yup.object({
   token: yup.string().strict().required("This attribute is required."),
@@ -23,6 +23,7 @@ export default async function handler(
   }
 
   if (req.headers["content-type"] !== "application/x-www-form-urlencoded") {
+    console.warn("Invalid content type", req.headers["content-type"]);
     return errorValidation(
       "invalid_content_type",
       "Invalid content type. Only application/x-www-form-urlencoded is supported.",
