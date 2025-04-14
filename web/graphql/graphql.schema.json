@@ -13667,6 +13667,18 @@
             "deprecationReason": null
           },
           {
+            "name": "is_android_only",
+            "description": null,
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "Boolean",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "is_developer_allow_listing",
             "description": null,
             "args": [],
@@ -13678,18 +13690,6 @@
                 "name": "Boolean",
                 "ofType": null
               }
-            },
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
-            "name": "is_android_only",
-            "description": null,
-            "args": [],
-            "type": {
-              "kind": "SCALAR",
-              "name": "Boolean",
-              "ofType": null
             },
             "isDeprecated": false,
             "deprecationReason": null
@@ -15220,7 +15220,7 @@
             "deprecationReason": null
           },
           {
-            "name": "is_developer_allow_listing",
+            "name": "is_android_only",
             "description": null,
             "type": {
               "kind": "INPUT_OBJECT",
@@ -15232,7 +15232,7 @@
             "deprecationReason": null
           },
           {
-            "name": "is_android_only",
+            "name": "is_developer_allow_listing",
             "description": null,
             "type": {
               "kind": "INPUT_OBJECT",
@@ -15773,7 +15773,7 @@
             "deprecationReason": null
           },
           {
-            "name": "is_developer_allow_listing",
+            "name": "is_android_only",
             "description": null,
             "type": {
               "kind": "SCALAR",
@@ -15785,7 +15785,7 @@
             "deprecationReason": null
           },
           {
-            "name": "is_android_only",
+            "name": "is_developer_allow_listing",
             "description": null,
             "type": {
               "kind": "SCALAR",
@@ -18077,7 +18077,7 @@
             "deprecationReason": null
           },
           {
-            "name": "is_developer_allow_listing",
+            "name": "is_android_only",
             "description": null,
             "type": {
               "kind": "ENUM",
@@ -18089,7 +18089,7 @@
             "deprecationReason": null
           },
           {
-            "name": "is_android_only",
+            "name": "is_developer_allow_listing",
             "description": null,
             "type": {
               "kind": "ENUM",
@@ -18489,13 +18489,13 @@
             "deprecationReason": null
           },
           {
-            "name": "is_developer_allow_listing",
+            "name": "is_android_only",
             "description": "column name",
             "isDeprecated": false,
             "deprecationReason": null
           },
           {
-            "name": "is_android_only",
+            "name": "is_developer_allow_listing",
             "description": "column name",
             "isDeprecated": false,
             "deprecationReason": null
@@ -18650,13 +18650,13 @@
             "deprecationReason": null
           },
           {
-            "name": "is_developer_allow_listing",
+            "name": "is_android_only",
             "description": "column name",
             "isDeprecated": false,
             "deprecationReason": null
           },
           {
-            "name": "is_android_only",
+            "name": "is_developer_allow_listing",
             "description": "column name",
             "isDeprecated": false,
             "deprecationReason": null
@@ -18703,13 +18703,13 @@
             "deprecationReason": null
           },
           {
-            "name": "is_developer_allow_listing",
+            "name": "is_android_only",
             "description": "column name",
             "isDeprecated": false,
             "deprecationReason": null
           },
           {
-            "name": "is_android_only",
+            "name": "is_developer_allow_listing",
             "description": "column name",
             "isDeprecated": false,
             "deprecationReason": null
@@ -18926,7 +18926,7 @@
             "deprecationReason": null
           },
           {
-            "name": "is_developer_allow_listing",
+            "name": "is_android_only",
             "description": null,
             "type": {
               "kind": "SCALAR",
@@ -18938,7 +18938,7 @@
             "deprecationReason": null
           },
           {
-            "name": "is_android_only",
+            "name": "is_developer_allow_listing",
             "description": null,
             "type": {
               "kind": "SCALAR",
@@ -19650,7 +19650,7 @@
             "deprecationReason": null
           },
           {
-            "name": "is_developer_allow_listing",
+            "name": "is_android_only",
             "description": null,
             "type": {
               "kind": "SCALAR",
@@ -19662,7 +19662,7 @@
             "deprecationReason": null
           },
           {
-            "name": "is_android_only",
+            "name": "is_developer_allow_listing",
             "description": null,
             "type": {
               "kind": "SCALAR",
@@ -20121,13 +20121,13 @@
             "deprecationReason": null
           },
           {
-            "name": "is_developer_allow_listing",
+            "name": "is_android_only",
             "description": "column name",
             "isDeprecated": false,
             "deprecationReason": null
           },
           {
-            "name": "is_android_only",
+            "name": "is_developer_allow_listing",
             "description": "column name",
             "isDeprecated": false,
             "deprecationReason": null
@@ -72133,7 +72133,9 @@
         "name": "cached",
         "description": "whether this query should be cached (Hasura Cloud only)",
         "isRepeatable": false,
-        "locations": ["QUERY"],
+        "locations": [
+          "QUERY"
+        ],
         "args": [
           {
             "name": "refresh",
@@ -72173,7 +72175,11 @@
         "name": "include",
         "description": "whether this query should be included",
         "isRepeatable": false,
-        "locations": ["FIELD", "FRAGMENT_SPREAD", "INLINE_FRAGMENT"],
+        "locations": [
+          "FIELD",
+          "FRAGMENT_SPREAD",
+          "INLINE_FRAGMENT"
+        ],
         "args": [
           {
             "name": "if",
@@ -72197,7 +72203,11 @@
         "name": "skip",
         "description": "whether this query should be skipped",
         "isRepeatable": false,
-        "locations": ["FIELD", "FRAGMENT_SPREAD", "INLINE_FRAGMENT"],
+        "locations": [
+          "FIELD",
+          "FRAGMENT_SPREAD",
+          "INLINE_FRAGMENT"
+        ],
         "args": [
           {
             "name": "if",
