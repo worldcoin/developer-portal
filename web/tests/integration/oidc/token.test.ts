@@ -167,6 +167,73 @@ describe("/api/v1/oidc/token", () => {
     );
   });
 
+  test("form-urlencoded with UTF-8 charset is accepted", async () => {
+    const app_id = await testGetSignInApp();
+    const { client_secret } = await setClientSecret(app_id);
+
+    // Insert a valid auth code
+    await integrationDBExecuteQuery(
+      "INSERT INTO auth_code (app_id, auth_code, expires_at, nullifier_hash, scope, verification_level, redirect_uri) VALUES ($1, $2, $3, $4, $5, $6, $7)",
+      [
+        app_id,
+        "83a313c5939399ba017d2381",
+        "2030-09-01T00:00:00.000Z",
+        "0x000000000000000111111111111",
+        '["openid", "email"]',
+        "orb",
+        "http://localhost:3000/login",
+      ],
+    );
+
+    const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+      },
+      body: {
+        code: "83a313c5939399ba017d2381",
+        client_id: app_id,
+        client_secret,
+        grant_type: "authorization_code",
+        redirect_uri: "http://localhost:3000/login",
+      },
+    });
+
+    await handleOIDCToken(req, res);
+
+    expect(res._getStatusCode()).toBe(200);
+
+    const { access_token } = res._getJSONData();
+
+    const { payload } = await jose.jwtVerify(
+      access_token,
+      await jose.importJWK(publicJwk, "RS256"),
+      {
+        issuer: process.env.JWT_ISSUER,
+      },
+    );
+
+    expect(payload).toEqual(
+      expect.objectContaining({
+        sub: "0x000000000000000111111111111",
+        aud: app_id,
+        iss: process.env.JWT_ISSUER,
+        exp: expect.any(Number),
+        iat: expect.any(Number),
+        jti: expect.any(String),
+        scope: "openid email",
+        email: "0x000000000000000111111111111@id.worldcoin.org",
+        "https://id.worldcoin.org/beta": expect.objectContaining({
+          likely_human: "strong",
+          credential_type: "orb",
+        }),
+        "https://id.worldcoin.org/v1": {
+          verification_level: "orb",
+        },
+      }),
+    );
+  });
+
   test("successfully validates PKCE", async () => {
     const app_id = await testGetSignInApp();
     const { client_secret } = await setClientSecret(app_id);
