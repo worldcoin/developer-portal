@@ -130,6 +130,7 @@ export default async function handleOIDCToken(
   });
 
   if (!isValid) {
+    console.log("Invalid request", parsedParams, app_id);
     return handleError(req, res);
   }
 
