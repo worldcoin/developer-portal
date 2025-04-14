@@ -114,9 +114,13 @@ export async function GET(
     }
   }
 
+  const isMetadataVerified =
+    parsedAppMetadata.verification_status === "verified";
   const override_country = searchParams.get("override_country");
+
+  // do not restrict for drafts, so developers can work on the app
   if (
-    parsedAppMetadata.verification_status === "verified" &&
+    isMetadataVerified &&
     override_country &&
     !parsedAppMetadata.supported_countries?.includes(override_country)
   ) {
@@ -124,6 +128,14 @@ export async function GET(
       { error: "App not available in country" },
       { status: 404 },
     );
+  }
+
+  const platform = headers.get("client-name");
+  const isAndroidOnly = parsedAppMetadata.is_android_only;
+
+  // do not restrict for drafts, so developers can work on the app
+  if (isAndroidOnly && isMetadataVerified && platform === "ios") {
+    return NextResponse.json({ error: "App not available" }, { status: 451 });
   }
 
   const nativeIdToActualId =

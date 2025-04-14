@@ -75,6 +75,7 @@ export const GET = async (request: NextRequest) => {
   const locale = parseLocale(headers.get("x-accept-language") ?? "");
   const clientVersion: string | null = headers.get("client-version");
   let country: string | null = headers.get("CloudFront-Viewer-Country");
+  const platform = headers.get("client-name");
 
   if (parsedParams.override_country) {
     country = parsedParams.override_country;
@@ -141,6 +142,13 @@ export const GET = async (request: NextRequest) => {
       (app) =>
         app.category.toLowerCase() !== "external" ||
         app.app_mode !== "external",
+    );
+  }
+
+  if (platform === "ios") {
+    topApps = topApps.filter((app) => app.is_android_only !== false);
+    highlightsApps = highlightsApps.filter(
+      (app) => app.is_android_only !== false,
     );
   }
 

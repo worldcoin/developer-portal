@@ -34,6 +34,7 @@ query FetchAppMetadata($id: String!) {
       can_import_all_contacts
       is_allowed_unlimited_notifications
       max_notifications_per_day
+      is_android_only
     }
     verified_app_metadata: app_metadata(
       where: { verification_status: { _eq: "verified" } }
@@ -67,6 +68,7 @@ query FetchAppMetadata($id: String!) {
       can_import_all_contacts
       is_allowed_unlimited_notifications
       max_notifications_per_day
+      is_android_only
     }
   }
 }

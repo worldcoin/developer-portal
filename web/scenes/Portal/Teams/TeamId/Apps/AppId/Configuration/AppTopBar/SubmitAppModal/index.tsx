@@ -22,7 +22,7 @@ import { RemainingCharacters } from "../../PageComponents/RemainingCharacters";
 import { validateAndSubmitAppForReviewFormServerSide } from "../server/submit";
 import { useValidateLocalisationMutation } from "./graphql/client/validate-localisations.generated";
 
-const schema = yup.object().shape({
+const schema = yup.object({
   is_developer_allow_listing: yup.boolean(),
   changelog: appChangelogSchema,
 });
@@ -37,7 +37,7 @@ type SubmitAppModalProps = {
   isDeveloperAllowListing: boolean;
 };
 
-export type SubmitAppFormValues = yup.Asserts<typeof schema>;
+export type SubmitAppFormValues = yup.InferType<typeof schema>;
 
 export const SubmitAppModal = (props: SubmitAppModalProps) => {
   const {
@@ -66,6 +66,7 @@ export const SubmitAppModal = (props: SubmitAppModalProps) => {
     formState: { errors },
   } = useForm<SubmitAppFormValues>({
     resolver: yupResolver(schema),
+    mode: "onChange",
     defaultValues: {
       is_developer_allow_listing: isDeveloperAllowListing,
       changelog: "",
@@ -175,7 +176,7 @@ export const SubmitAppModal = (props: SubmitAppModalProps) => {
               <Typography variant={TYPOGRAPHY.R3} className="text-grey-700">
                 Allow App Store listing
               </Typography>
-              <Typography variant={TYPOGRAPHY.R4} className="text-grey-400">
+              <Typography variant={TYPOGRAPHY.R4} className="text-grey-700">
                 Once you submit your app for review, it may be showcased in
                 Worldcoin App Store. Not all apps will be displayed.
               </Typography>

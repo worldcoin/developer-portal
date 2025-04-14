@@ -34,5 +34,6 @@ export const submitAppSchema = yup.object().shape({
   team_id: yup.string().required("Team ID is required"),
   is_developer_allow_listing: yup.boolean(),
   changelog: appChangelogSchema,
+  is_android_only: yup.boolean(),
 });
 export type SubmitAppSchema = yup.Asserts<typeof submitAppSchema>;
