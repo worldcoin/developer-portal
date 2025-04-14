@@ -30,6 +30,7 @@ query GetAppMetadata($app_id: String!, $locale: String!) {
     is_allowed_unlimited_notifications
     max_notifications_per_day
     is_android_only
+    is_for_humans_only
     localisations(where: { locale: { _eq: $locale } }) {
       name
       world_app_button_text
