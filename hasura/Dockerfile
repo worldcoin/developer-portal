@@ -1,4 +1,4 @@
-FROM hasura/graphql-engine:v2.36.4.cli-migrations-v3
+FROM public.ecr.aws/q0d1m9s3/graphql-engine:v2.36.4.cli-migrations-v3
 
 COPY . /hasura
 
