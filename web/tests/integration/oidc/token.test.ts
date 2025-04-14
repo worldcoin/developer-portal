@@ -167,7 +167,7 @@ describe("/api/v1/oidc/token", () => {
     );
   });
 
-  test("access_token is valid with UTF-8 charset", async () => {
+  test("form-urlencoded with UTF-8 charset is accepted", async () => {
     const app_id = await testGetSignInApp();
     const { client_secret } = await setClientSecret(app_id);
 
