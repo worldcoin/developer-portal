@@ -66,7 +66,15 @@ export default async function handleOIDCToken(
     );
   }
 
-  if (req.headers["content-type"] !== "application/x-www-form-urlencoded") {
+  if (
+    req.headers["content-type"]?.toLowerCase() !==
+    "application/x-www-form-urlencoded"
+  ) {
+    const sanitizedContentType = req.headers["content-type"]?.replace(
+      /\n|\r/g,
+      "",
+    );
+    console.warn("Invalid content type", sanitizedContentType);
     return errorOIDCResponse(
       res,
       400,
