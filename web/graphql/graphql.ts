@@ -1796,7 +1796,7 @@ export type App_Metadata = {
   integration_url: Scalars["String"]["output"];
   is_allowed_unlimited_notifications?: Maybe<Scalars["Boolean"]["output"]>;
   is_developer_allow_listing: Scalars["Boolean"]["output"];
-  is_higher_risk?: Maybe<Scalars["Boolean"]["output"]>;
+  android_only?: Maybe<Scalars["Boolean"]["output"]>;
   is_reviewer_app_store_approved: Scalars["Boolean"]["output"];
   is_reviewer_world_app_approved: Scalars["Boolean"]["output"];
   is_row_verified: Scalars["Boolean"]["output"];
@@ -1955,7 +1955,7 @@ export type App_Metadata_Bool_Exp = {
   integration_url?: InputMaybe<String_Comparison_Exp>;
   is_allowed_unlimited_notifications?: InputMaybe<Boolean_Comparison_Exp>;
   is_developer_allow_listing?: InputMaybe<Boolean_Comparison_Exp>;
-  is_higher_risk?: InputMaybe<Boolean_Comparison_Exp>;
+  android_only?: InputMaybe<Boolean_Comparison_Exp>;
   is_reviewer_app_store_approved?: InputMaybe<Boolean_Comparison_Exp>;
   is_reviewer_world_app_approved?: InputMaybe<Boolean_Comparison_Exp>;
   is_row_verified?: InputMaybe<Boolean_Comparison_Exp>;
@@ -2012,7 +2012,7 @@ export type App_Metadata_Insert_Input = {
   integration_url?: InputMaybe<Scalars["String"]["input"]>;
   is_allowed_unlimited_notifications?: InputMaybe<Scalars["Boolean"]["input"]>;
   is_developer_allow_listing?: InputMaybe<Scalars["Boolean"]["input"]>;
-  is_higher_risk?: InputMaybe<Scalars["Boolean"]["input"]>;
+  android_only?: InputMaybe<Scalars["Boolean"]["input"]>;
   is_reviewer_app_store_approved?: InputMaybe<Scalars["Boolean"]["input"]>;
   is_reviewer_world_app_approved?: InputMaybe<Scalars["Boolean"]["input"]>;
   is_row_verified?: InputMaybe<Scalars["Boolean"]["input"]>;
@@ -2221,7 +2221,7 @@ export type App_Metadata_Order_By = {
   integration_url?: InputMaybe<Order_By>;
   is_allowed_unlimited_notifications?: InputMaybe<Order_By>;
   is_developer_allow_listing?: InputMaybe<Order_By>;
-  is_higher_risk?: InputMaybe<Order_By>;
+  android_only?: InputMaybe<Order_By>;
   is_reviewer_app_store_approved?: InputMaybe<Order_By>;
   is_reviewer_world_app_approved?: InputMaybe<Order_By>;
   is_row_verified?: InputMaybe<Order_By>;
@@ -2284,7 +2284,7 @@ export enum App_Metadata_Select_Column {
   /** column name */
   IsDeveloperAllowListing = "is_developer_allow_listing",
   /** column name */
-  IsHigherRisk = "is_higher_risk",
+  IsAndroidOnly = "android_only",
   /** column name */
   IsReviewerAppStoreApproved = "is_reviewer_app_store_approved",
   /** column name */
@@ -2338,7 +2338,7 @@ export enum App_Metadata_Select_Column_App_Metadata_Aggregate_Bool_Exp_Bool_And_
   /** column name */
   IsDeveloperAllowListing = "is_developer_allow_listing",
   /** column name */
-  IsHigherRisk = "is_higher_risk",
+  IsAndroidOnly = "android_only",
   /** column name */
   IsReviewerAppStoreApproved = "is_reviewer_app_store_approved",
   /** column name */
@@ -2356,7 +2356,7 @@ export enum App_Metadata_Select_Column_App_Metadata_Aggregate_Bool_Exp_Bool_Or_A
   /** column name */
   IsDeveloperAllowListing = "is_developer_allow_listing",
   /** column name */
-  IsHigherRisk = "is_higher_risk",
+  IsAndroidOnly = "android_only",
   /** column name */
   IsReviewerAppStoreApproved = "is_reviewer_app_store_approved",
   /** column name */
@@ -2382,7 +2382,7 @@ export type App_Metadata_Set_Input = {
   integration_url?: InputMaybe<Scalars["String"]["input"]>;
   is_allowed_unlimited_notifications?: InputMaybe<Scalars["Boolean"]["input"]>;
   is_developer_allow_listing?: InputMaybe<Scalars["Boolean"]["input"]>;
-  is_higher_risk?: InputMaybe<Scalars["Boolean"]["input"]>;
+  android_only?: InputMaybe<Scalars["Boolean"]["input"]>;
   is_reviewer_app_store_approved?: InputMaybe<Scalars["Boolean"]["input"]>;
   is_reviewer_world_app_approved?: InputMaybe<Scalars["Boolean"]["input"]>;
   is_row_verified?: InputMaybe<Scalars["Boolean"]["input"]>;
@@ -2470,7 +2470,7 @@ export type App_Metadata_Stream_Cursor_Value_Input = {
   integration_url?: InputMaybe<Scalars["String"]["input"]>;
   is_allowed_unlimited_notifications?: InputMaybe<Scalars["Boolean"]["input"]>;
   is_developer_allow_listing?: InputMaybe<Scalars["Boolean"]["input"]>;
-  is_higher_risk?: InputMaybe<Scalars["Boolean"]["input"]>;
+  android_only?: InputMaybe<Scalars["Boolean"]["input"]>;
   is_reviewer_app_store_approved?: InputMaybe<Scalars["Boolean"]["input"]>;
   is_reviewer_world_app_approved?: InputMaybe<Scalars["Boolean"]["input"]>;
   is_row_verified?: InputMaybe<Scalars["Boolean"]["input"]>;
@@ -2540,7 +2540,7 @@ export enum App_Metadata_Update_Column {
   /** column name */
   IsDeveloperAllowListing = "is_developer_allow_listing",
   /** column name */
-  IsHigherRisk = "is_higher_risk",
+  IsAndroidOnly = "android_only",
   /** column name */
   IsReviewerAppStoreApproved = "is_reviewer_app_store_approved",
   /** column name */

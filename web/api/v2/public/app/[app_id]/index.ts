@@ -131,10 +131,10 @@ export async function GET(
   }
 
   const platform = headers.get("client-name");
-  const isHigherRisk = parsedAppMetadata.is_higher_risk;
+  const isAndroidOnly = parsedAppMetadata.is_android_only;
 
   // do not restrict for drafts, so developers can work on the app
-  if (isHigherRisk && isMetadataVerified && platform === "ios") {
+  if (isAndroidOnly && isMetadataVerified && platform === "ios") {
     return NextResponse.json({ error: "App not available" }, { status: 451 });
   }
 

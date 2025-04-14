@@ -1,2 +1,2 @@
-alter table "public"."app_metadata" add column "is_higher_risk" boolean
+alter table "public"."app_metadata" add column "is_android_only" boolean
  null;

@@ -34,7 +34,7 @@ query GetApps($limit: Int!, $offset: Int!, $locale: String!) {
     verification_status
     is_allowed_unlimited_notifications
     max_notifications_per_day
-    is_higher_risk
+    is_android_only
     localisations(where: { locale: { _eq: $locale } }) {
       name
       world_app_button_text

@@ -320,7 +320,7 @@ export const AppStoreForm = (props: {
         ? appMetadata?.support_link.replace("mailto:", "")
         : "",
       support_link: isSupportEmail ? "" : appMetadata?.support_link,
-      is_higher_risk: appMetadata?.is_higher_risk ?? null,
+      is_android_only: appMetadata?.is_android_only ?? null,
     },
   });
 
@@ -463,7 +463,7 @@ export const AppStoreForm = (props: {
           app_website_url: data.app_website_url,
           supported_countries: data.supported_countries,
           category: data.category,
-          is_higher_risk: data.is_higher_risk,
+          is_android_only: data.is_android_only,
         });
         await refetchAppMetadata();
         toast.success("App information updated successfully");
@@ -676,7 +676,7 @@ export const AppStoreForm = (props: {
             </Typography>
             <div className="mt-3 flex gap-x-6">
               <Controller
-                name="is_higher_risk"
+                name="is_android_only"
                 control={control}
                 render={({ field }) => (
                   <>
@@ -696,12 +696,12 @@ export const AppStoreForm = (props: {
                 )}
               />
             </div>
-            {errors.is_higher_risk && (
+            {errors.is_android_only && (
               <Typography
                 variant={TYPOGRAPHY.R4}
                 className="mt-1 text-system-error-500"
               >
-                {errors.is_higher_risk.message}
+                {errors.is_android_only.message}
               </Typography>
             )}
           </div>

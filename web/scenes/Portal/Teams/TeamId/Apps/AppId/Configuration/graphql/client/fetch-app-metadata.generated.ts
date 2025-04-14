@@ -1,8 +1,8 @@
 /* eslint-disable */
 import * as Types from "@/graphql/graphql";
 
-import { gql } from "@apollo/client";
 import * as Apollo from "@apollo/client";
+import { gql } from "@apollo/client";
 const defaultOptions = {} as const;
 export type FetchAppMetadataQueryVariables = Types.Exact<{
   id: Types.Scalars["String"]["input"];
@@ -47,7 +47,7 @@ export type FetchAppMetadataQuery = {
       can_import_all_contacts: boolean;
       is_allowed_unlimited_notifications?: boolean | null;
       max_notifications_per_day?: number | null;
-      is_higher_risk?: boolean | null;
+      is_android_only?: boolean | null;
     }>;
     verified_app_metadata: Array<{
       __typename?: "app_metadata";
@@ -80,7 +80,7 @@ export type FetchAppMetadataQuery = {
       can_import_all_contacts: boolean;
       is_allowed_unlimited_notifications?: boolean | null;
       max_notifications_per_day?: number | null;
-      is_higher_risk?: boolean | null;
+      is_android_only?: boolean | null;
     }>;
   }>;
 };
@@ -122,7 +122,7 @@ export const FetchAppMetadataDocument = gql`
         can_import_all_contacts
         is_allowed_unlimited_notifications
         max_notifications_per_day
-        is_higher_risk
+        is_android_only
       }
       verified_app_metadata: app_metadata(
         where: { verification_status: { _eq: "verified" } }
@@ -156,7 +156,7 @@ export const FetchAppMetadataDocument = gql`
         can_import_all_contacts
         is_allowed_unlimited_notifications
         max_notifications_per_day
-        is_higher_risk
+        is_android_only
       }
     }
   }
