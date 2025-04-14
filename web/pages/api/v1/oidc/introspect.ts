@@ -23,7 +23,6 @@ export default async function handler(
   }
 
   if (req.headers["content-type"] !== "application/x-www-form-urlencoded") {
-    console.warn("Invalid content type", req.headers["content-type"]);
     return errorValidation(
       "invalid_content_type",
       "Invalid content type. Only application/x-www-form-urlencoded is supported.",
