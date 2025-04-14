@@ -44,6 +44,7 @@ export type GetHighlightsQuery = {
     is_allowed_unlimited_notifications?: boolean | null;
     max_notifications_per_day?: number | null;
     is_android_only?: boolean | null;
+    is_for_humans_only: boolean;
     localisations: Array<{
       __typename?: "localisations";
       name: string;
@@ -107,6 +108,7 @@ export const GetHighlightsDocument = gql`
       is_allowed_unlimited_notifications
       max_notifications_per_day
       is_android_only
+      is_for_humans_only
       localisations(where: { locale: { _eq: $locale } }) {
         name
         world_app_button_text

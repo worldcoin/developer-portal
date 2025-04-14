@@ -13695,6 +13695,22 @@
             "deprecationReason": null
           },
           {
+            "name": "is_for_humans_only",
+            "description": null,
+            "args": [],
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "SCALAR",
+                "name": "Boolean",
+                "ofType": null
+              }
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "is_reviewer_app_store_approved",
             "description": null,
             "args": [],
@@ -15244,6 +15260,18 @@
             "deprecationReason": null
           },
           {
+            "name": "is_for_humans_only",
+            "description": null,
+            "type": {
+              "kind": "INPUT_OBJECT",
+              "name": "Boolean_comparison_exp",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "is_reviewer_app_store_approved",
             "description": null,
             "type": {
@@ -15786,6 +15814,18 @@
           },
           {
             "name": "is_developer_allow_listing",
+            "description": null,
+            "type": {
+              "kind": "SCALAR",
+              "name": "Boolean",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "is_for_humans_only",
             "description": null,
             "type": {
               "kind": "SCALAR",
@@ -18101,6 +18141,18 @@
             "deprecationReason": null
           },
           {
+            "name": "is_for_humans_only",
+            "description": null,
+            "type": {
+              "kind": "ENUM",
+              "name": "order_by",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "is_reviewer_app_store_approved",
             "description": null,
             "type": {
@@ -18501,6 +18553,12 @@
             "deprecationReason": null
           },
           {
+            "name": "is_for_humans_only",
+            "description": "column name",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "is_reviewer_app_store_approved",
             "description": "column name",
             "isDeprecated": false,
@@ -18662,6 +18720,12 @@
             "deprecationReason": null
           },
           {
+            "name": "is_for_humans_only",
+            "description": "column name",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "is_reviewer_app_store_approved",
             "description": "column name",
             "isDeprecated": false,
@@ -18710,6 +18774,12 @@
           },
           {
             "name": "is_developer_allow_listing",
+            "description": "column name",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "is_for_humans_only",
             "description": "column name",
             "isDeprecated": false,
             "deprecationReason": null
@@ -18939,6 +19009,18 @@
           },
           {
             "name": "is_developer_allow_listing",
+            "description": null,
+            "type": {
+              "kind": "SCALAR",
+              "name": "Boolean",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "is_for_humans_only",
             "description": null,
             "type": {
               "kind": "SCALAR",
@@ -19674,6 +19756,18 @@
             "deprecationReason": null
           },
           {
+            "name": "is_for_humans_only",
+            "description": null,
+            "type": {
+              "kind": "SCALAR",
+              "name": "Boolean",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "is_reviewer_app_store_approved",
             "description": null,
             "type": {
@@ -20128,6 +20222,12 @@
           },
           {
             "name": "is_developer_allow_listing",
+            "description": "column name",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "is_for_humans_only",
             "description": "column name",
             "isDeprecated": false,
             "deprecationReason": null

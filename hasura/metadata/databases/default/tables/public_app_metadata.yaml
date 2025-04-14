@@ -74,8 +74,9 @@ insert_permissions:
         - hero_image_url
         - integration_url
         - is_allowed_unlimited_notifications
-        - is_developer_allow_listing
         - is_android_only
+        - is_developer_allow_listing
+        - is_for_humans_only
         - logo_img_url
         - max_notifications_per_day
         - name
@@ -213,8 +214,9 @@ select_permissions:
         - id
         - integration_url
         - is_allowed_unlimited_notifications
-        - is_developer_allow_listing
         - is_android_only
+        - is_developer_allow_listing
+        - is_for_humans_only
         - is_reviewer_app_store_approved
         - is_reviewer_world_app_approved
         - logo_img_url
@@ -249,8 +251,9 @@ select_permissions:
         - id
         - integration_url
         - is_allowed_unlimited_notifications
-        - is_developer_allow_listing
         - is_android_only
+        - is_developer_allow_listing
+        - is_for_humans_only
         - is_reviewer_app_store_approved
         - is_reviewer_world_app_approved
         - logo_img_url
@@ -363,8 +366,9 @@ update_permissions:
         - hero_image_url
         - integration_url
         - is_allowed_unlimited_notifications
-        - is_developer_allow_listing
         - is_android_only
+        - is_developer_allow_listing
+        - is_for_humans_only
         - is_reviewer_app_store_approved
         - is_reviewer_world_app_approved
         - is_row_verified
