@@ -270,10 +270,19 @@ export const GET = async (request: NextRequest) => {
     });
   }
 
+  const rankedApps = rankApps(formattedTopApps, metricsData);
+
+  const rankedAppsWithCategoryRanking = rankedApps.map((app) => {
+    const categoryApps = rankedApps.filter(
+      (a) => a.category.id === app.category.id,
+    );
+    return { ...app, category_ranking: categoryApps.indexOf(app) + 1 };
+  });
+
   return NextResponse.json(
     {
       app_rankings: {
-        top_apps: rankApps(formattedTopApps, metricsData),
+        top_apps: rankedAppsWithCategoryRanking,
         highlights: highlightedApps,
       },
       all_category: {
