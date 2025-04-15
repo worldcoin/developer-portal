@@ -22,7 +22,7 @@ import { getSdk as getAppMetadataSdk } from "./graphql/get-app-metadata.generate
 
 export async function GET(
   request: Request,
-  { params }: { params: { app_id: string } },
+  { params }: { params: { app_id: string; override_country?: string } },
 ) {
   if (
     !process.env.NEXT_PUBLIC_APP_ENV ||
@@ -119,7 +119,9 @@ export async function GET(
 
   const isMetadataVerified =
     parsedAppMetadata.verification_status === "verified";
-  const override_country = searchParams.get("override_country");
+
+  let country = headers.get("CloudFront-Viewer-Country");
+  const override_country = searchParams.get("override_country") || country;
 
   // do not restrict for drafts, so developers can work on the app
   if (
