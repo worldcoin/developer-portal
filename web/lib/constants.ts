@@ -61,12 +61,14 @@ export const NativeAppToAppIdMapping: Record<string, Record<string, string>> = {
     network: "app_a8309f030d83505a1632e1ed9dfb57cc",
     grants_native: "app_staging_39ccc5b13235e4227a7c38b23203e59f",
     contacts: "app_701d0e4883e350804a0811f7b2529425",
+    "starter-kit": "app_e13964d0026bacfa7acad4c7171f50a2",
   },
   production: {
     grants: "app_d2905e660b94ad24d6fc97816182ab35",
     invites: "app_432af83feb4051e72fd7ee682f365c39",
     network: "app_a23c6398432498825962a9b96294dde1",
     contacts: "app_32fa11ef4b55fc5865dcd6e45ef281f5",
+    "starter-kit": "app_d58451fa52f57ae1f3dd06ebe6269bfb",
   },
 };
 
@@ -104,6 +106,11 @@ export const NativeApps: Record<string, NativeAppsMap> = {
       integration_url: "worldapp://contacts",
       app_mode: "native",
     },
+    [NativeAppToAppIdMapping.staging["starter-kit"]]: {
+      app_id: "starter-kit",
+      integration_url: "worldapp://starter-kit",
+      app_mode: "native",
+    },
   },
   production: {
     [NativeAppToAppIdMapping.production.grants]: {
@@ -124,6 +131,11 @@ export const NativeApps: Record<string, NativeAppsMap> = {
     [NativeAppToAppIdMapping.production.contacts]: {
       app_id: "contacts",
       integration_url: "worldapp://contacts",
+      app_mode: "native",
+    },
+    [NativeAppToAppIdMapping.production["starter-kit"]]: {
+      app_id: "starter-kit",
+      integration_url: "worldapp://starter-kit",
       app_mode: "native",
     },
   },
