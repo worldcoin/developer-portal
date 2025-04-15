@@ -155,6 +155,9 @@ export const GET = async (request: NextRequest) => {
   const nativeIdToActualId =
     NativeAppToAppIdMapping[process.env.NEXT_PUBLIC_APP_ENV];
 
+  /**
+   * filter out contacts on versions that do not have the native code for it
+   */
   if (
     !clientVersion ||
     compareVersions(clientVersion, CONTACTS_APP_AVAILABLE_FROM) < 0
@@ -272,6 +275,11 @@ export const GET = async (request: NextRequest) => {
 
   const rankedApps = rankApps(formattedTopApps, metricsData);
 
+  /**
+   * add category_ranking field to each app
+   * this is to sort apps inside category,
+   * based on the overall ranking in app store
+   */
   const categoryAppsMap = new Map();
   rankedApps.forEach((app) => {
     const categoryId = app.category.id;
