@@ -22,7 +22,7 @@ import { getSdk as getAppMetadataSdk } from "./graphql/get-app-metadata.generate
 
 export async function GET(
   request: Request,
-  { params }: { params: { app_id: string; override_country?: string } },
+  { params }: { params: { app_id: string } },
 ) {
   if (
     !process.env.NEXT_PUBLIC_APP_ENV ||
