@@ -173,6 +173,9 @@ export const GET = async (request: NextRequest) => {
     );
   }
 
+  /**
+   * filter out starter-kit on versions that do not have the native code for it
+   */
   if (
     !clientVersion ||
     compareVersions(clientVersion, STARTER_KIT_APP_AVAILABLE_FROM) < 0
