@@ -272,10 +272,19 @@ export const GET = async (request: NextRequest) => {
 
   const rankedApps = rankApps(formattedTopApps, metricsData);
 
+  const categoryAppsMap = new Map();
+  rankedApps.forEach((app) => {
+    const categoryId = app.category.id;
+    if (!categoryAppsMap.has(categoryId)) {
+      categoryAppsMap.set(
+        categoryId,
+        rankedApps.filter((a) => a.category.id === categoryId),
+      );
+    }
+  });
+
   const rankedAppsWithCategoryRanking = rankedApps.map((app) => {
-    const categoryApps = rankedApps.filter(
-      (a) => a.category.id === app.category.id,
-    );
+    const categoryApps = categoryAppsMap.get(app.category.id);
     return { ...app, category_ranking: categoryApps.indexOf(app) + 1 };
   });
 
