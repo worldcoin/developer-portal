@@ -122,9 +122,12 @@ export async function GET(
 
   let country = headers.get("CloudFront-Viewer-Country");
   const override_country = searchParams.get("override_country") || country;
+  // this flag is used in app backend for transaction history
+  const skipCountryCheck = searchParams.get("skip_country_check");
 
   // do not restrict for drafts, so developers can work on the app
   if (
+    skipCountryCheck &&
     isMetadataVerified &&
     override_country &&
     !parsedAppMetadata.supported_countries?.includes(override_country)
