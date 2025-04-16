@@ -1042,7 +1042,7 @@ export const AppStoreForm = (props: {
                 disabled={isFormDisabled}
                 required
                 placeholder="Enter your short app name"
-                maxLength={10}
+                maxLength={11}
                 addOnRight={
                   <RemainingCharacters
                     text={watch("short_name")}
