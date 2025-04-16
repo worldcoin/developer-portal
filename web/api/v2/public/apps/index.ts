@@ -149,9 +149,9 @@ export const GET = async (request: NextRequest) => {
   }
 
   if (platform === "ios") {
-    topApps = topApps.filter((app) => app.is_android_only !== false);
+    topApps = topApps.filter((app) => app.is_android_only !== true);
     highlightsApps = highlightsApps.filter(
-      (app) => app.is_android_only !== false,
+      (app) => app.is_android_only !== true,
     );
   }
 
