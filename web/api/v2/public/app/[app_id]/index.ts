@@ -120,8 +120,7 @@ export async function GET(
   const isMetadataVerified =
     parsedAppMetadata.verification_status === "verified";
 
-  // let country = headers.get("CloudFront-Viewer-Country");
-  let country = null;
+  let country = headers.get("CloudFront-Viewer-Country");
   const override_country = searchParams.get("override_country") || country;
   // skip checking country, for example for transaction history or transaction prepare
   const skipCountryCheck = Boolean(searchParams.get("skip_country_check"));
