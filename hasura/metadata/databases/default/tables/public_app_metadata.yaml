@@ -131,10 +131,14 @@ select_permissions:
         - hero_image_url
         - id
         - integration_url
+        - is_allowed_unlimited_notifications
+        - is_android_only
         - is_developer_allow_listing
+        - is_for_humans_only
         - is_reviewer_app_store_approved
         - is_reviewer_world_app_approved
         - logo_img_url
+        - max_notifications_per_day
         - name
         - permit2_tokens
         - review_message
@@ -150,8 +154,6 @@ select_permissions:
         - whitelisted_addresses
         - world_app_button_text
         - world_app_description
-        - is_allowed_unlimited_notifications
-        - max_notifications_per_day
       filter:
         app:
           team:
@@ -174,8 +176,9 @@ select_permissions:
         - id
         - integration_url
         - is_allowed_unlimited_notifications
-        - is_developer_allow_listing
         - is_android_only
+        - is_developer_allow_listing
+        - is_for_humans_only
         - is_reviewer_app_store_approved
         - is_reviewer_world_app_approved
         - logo_img_url
@@ -329,6 +332,7 @@ update_permissions:
         - category
         - hero_image_url
         - is_android_only
+        - is_for_humans_only
         - is_reviewer_app_store_approved
         - is_reviewer_world_app_approved
         - logo_img_url

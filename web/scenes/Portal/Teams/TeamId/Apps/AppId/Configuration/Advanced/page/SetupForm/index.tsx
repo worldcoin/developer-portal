@@ -389,6 +389,7 @@ export const SetupForm = (props: LinksFormProps) => {
                     : field.value
                 }
                 onChange={field.onChange}
+                disabled={!isEditable || !isEnoughPermissions}
               >
                 <SelectButton className="min-w-[150px] rounded-lg border border-grey-200 px-4 py-2 md:w-fit">
                   {({ value }) => (
