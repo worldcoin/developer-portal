@@ -1350,7 +1350,7 @@ describe("/api/v2/public/apps", () => {
         {
           headers: {
             host: "cdn.test.com",
-            "client-version": "2.8.7900", // exactly the minimum version
+            "client-version": "2.8.7803", // exactly the minimum version
           },
         },
       );
