@@ -36920,6 +36920,12 @@
             "description": "unique or primary key constraint on columns \"id\"",
             "isDeprecated": false,
             "deprecationReason": null
+          },
+          {
+            "name": "unique_app_metadata_locale",
+            "description": "unique or primary key constraint on columns \"locale\", \"app_metadata_id\"",
+            "isDeprecated": false,
+            "deprecationReason": null
           }
         ],
         "possibleTypes": null

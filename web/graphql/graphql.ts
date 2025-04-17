@@ -5104,6 +5104,8 @@ export type Localisations_Bool_Exp = {
 export enum Localisations_Constraint {
   /** unique or primary key constraint on columns "id" */
   LocalisationsPkey = "localisations_pkey",
+  /** unique or primary key constraint on columns "locale", "app_metadata_id" */
+  UniqueAppMetadataLocale = "unique_app_metadata_locale",
 }
 
 /** input type for inserting data into table "localisations" */
