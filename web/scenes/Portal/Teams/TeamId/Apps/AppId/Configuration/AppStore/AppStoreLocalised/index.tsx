@@ -678,6 +678,7 @@ export const AppStoreForm = (props: {
               <Controller
                 name="is_android_only"
                 control={control}
+                disabled={!isEditable || !isEnoughPermissions}
                 render={({ field }) => (
                   <>
                     <Radio
@@ -685,12 +686,14 @@ export const AppStoreForm = (props: {
                       value="true"
                       checked={field.value === true}
                       onChange={() => field.onChange(true)}
+                      disabled={!isEditable || !isEnoughPermissions}
                     />
                     <Radio
                       label="No"
                       value="false"
                       checked={field.value === false}
                       onChange={() => field.onChange(false)}
+                      disabled={!isEditable || !isEnoughPermissions}
                     />
                   </>
                 )}
