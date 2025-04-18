@@ -85,7 +85,7 @@ export const GET = async (
   }
 
   if (!res.ok) {
-    const errorBody = await res.text();
+    const errorBody = await res.json();
 
     logger.warn("Error fetching transaction data", {
       status: res.status,
@@ -99,9 +99,9 @@ export const GET = async (
     return corsHandler(
       errorResponse({
         statusCode: res.status,
-        code: "internal_api_error",
-        detail: errorBody ?? "Transaction fetch to backend failed",
-        attribute: "transaction",
+        code: errorBody.code ?? "internal_api_error",
+        detail: errorBody.details ?? "Transaction fetch to backend failed",
+        attribute: errorBody.message ?? "transaction",
         req,
       }),
     );
