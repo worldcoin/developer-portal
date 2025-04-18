@@ -1,3 +1,4 @@
+import handleOIDCAuthorize from "@/api/v1/oidc/authorize";
 import {
   OIDCErrorCodes,
   OIDCScopes,
@@ -5,7 +6,6 @@ import {
   insertAuthCodeQuery,
 } from "@/legacy/backend/oidc";
 import { OIDCResponseType } from "@/legacy/lib/types";
-import handleOIDCAuthorize from "@/pages/api/v1/oidc/authorize";
 import { createPublicKey } from "crypto";
 import dayjs from "dayjs";
 import fetchMock from "jest-fetch-mock";

@@ -1,5 +1,5 @@
+import handleOIDCAuthorize from "@/api/v1/oidc/authorize";
 import { OIDCErrorCodes } from "@/legacy/backend/oidc";
-import handleOIDCAuthorize from "@/pages/api/v1/oidc/authorize";
 import { createHash } from "crypto";
 import fetchMock from "jest-fetch-mock";
 import { NextApiRequest, NextApiResponse } from "next";
