@@ -120,17 +120,17 @@ export async function GET(
   const isMetadataVerified =
     parsedAppMetadata.verification_status === "verified";
 
-  // let country = headers.get("CloudFront-Viewer-Country");
-  let country = null;
-  const override_country = searchParams.get("override_country") || country;
   // skip checking cf country, when coming from app-backend
   const skipCloudfrontCheck = Boolean(
     searchParams.get("skip_cloudfront_check"),
   );
+  const country = skipCloudfrontCheck
+    ? null
+    : headers.get("CloudFront-Viewer-Country");
+  const override_country = searchParams.get("override_country") || country;
 
   // do not restrict for drafts, so developers can work on the app
   if (
-    !skipCloudfrontCheck &&
     isMetadataVerified &&
     override_country &&
     !parsedAppMetadata.supported_countries?.includes(override_country)
