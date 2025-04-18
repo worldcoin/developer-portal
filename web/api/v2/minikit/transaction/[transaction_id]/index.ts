@@ -99,9 +99,9 @@ export const GET = async (
     return corsHandler(
       errorResponse({
         statusCode: res.status,
-        code: errorBody.code ?? "internal_api_error",
-        detail: errorBody.details ?? "Transaction fetch to backend failed",
-        attribute: errorBody.message ?? "transaction",
+        code: errorBody?.code ?? "internal_api_error",
+        detail: errorBody?.details ?? "Transaction fetch to backend failed",
+        attribute: errorBody?.message ?? "transaction",
         req,
       }),
     );
