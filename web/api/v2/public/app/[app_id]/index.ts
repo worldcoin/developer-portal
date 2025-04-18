@@ -123,12 +123,14 @@ export async function GET(
   // let country = headers.get("CloudFront-Viewer-Country");
   let country = null;
   const override_country = searchParams.get("override_country") || country;
-  // skip checking country, for example for transaction history or transaction prepare
-  const skipCountryCheck = Boolean(searchParams.get("skip_country_check"));
+  // skip checking cf country, when coming from app-backend
+  const skipCloudfrontCheck = Boolean(
+    searchParams.get("skip_cloudfront_check"),
+  );
 
   // do not restrict for drafts, so developers can work on the app
   if (
-    !skipCountryCheck &&
+    !skipCloudfrontCheck &&
     isMetadataVerified &&
     override_country &&
     !parsedAppMetadata.supported_countries?.includes(override_country)
