@@ -13,6 +13,7 @@ import utc from "dayjs/plugin/utc";
 import { useParams } from "next/navigation";
 import { useMemo } from "react";
 import Skeleton from "react-loading-skeleton";
+import { useGetMetrics } from "../StatCards/use-get-metrics";
 import { Stat } from "./stat";
 import { useGetAccumulativeTransactions } from "./use-get-accumulative-transactions";
 
@@ -20,6 +21,7 @@ dayjs.extend(utc);
 dayjs.extend(tz);
 
 const labelDateFormat = "MMM YYYY";
+const notificationOpenRateLabelDateFormat = "MMM DD";
 
 const defaultDatasetConfig: Partial<ChartData<"line">["datasets"][number]> = {
   pointRadius: 0,
@@ -50,6 +52,12 @@ const uniqueUsersDatasetConfig: Partial<ChartData<"line">["datasets"][number]> =
     backgroundColor: "#00C3B6",
   };
 
+const openRateDatasetConfig: Partial<ChartData<"line">["datasets"][number]> = {
+  ...defaultDatasetConfig,
+  borderColor: "#00C3B6",
+  backgroundColor: "#00C3B6",
+};
+
 const commonChartConfig: ChartOptions<"line"> = {
   scales: {
     y: {
@@ -68,6 +76,9 @@ const startsAt = new Date(0).toISOString();
 
 export const GraphsSection = () => {
   const { appId } = useParams() as { teamId: string; appId: string };
+  const { metrics, loading: metricsLoading } = useGetMetrics(
+    "app_f1e44837a5e3c2af4da8925b46027645",
+  );
 
   const { data: appStatsData, loading: appStatsLoading } =
     useFetchAppStatsQuery({
@@ -81,6 +92,9 @@ export const GraphsSection = () => {
   const { transactions: transactionsData, loading: transactionsLoading } =
     useGetAccumulativeTransactions(appId);
 
+  // ==================================================================================================
+  // ========================== Anchor: Helper Functions to get overall data ==========================
+  // ==================================================================================================
   const transactions = useMemo(
     () => transactionsData?.accumulativeTransactions,
     [transactionsData?.accumulativeTransactions],
@@ -117,6 +131,38 @@ export const GraphsSection = () => {
     () => appStatsData?.app?.[0]?.engine,
     [appStatsData?.app],
   );
+
+  // ==================================================================================================
+  // ================================= Anchor: Formatting Chart Data ==================================
+  // ==================================================================================================
+  const formattedNotificationOpenRateChartData = useMemo(() => {
+    if (
+      metricsLoading ||
+      !metrics?.open_rate_last_14_days ||
+      !metrics?.open_rate_last_14_days.length
+    ) {
+      return null;
+    }
+
+    const formattedData: ChartProps["data"] = {
+      y: [
+        {
+          ...openRateDatasetConfig,
+          data: [],
+        },
+      ],
+      x: [],
+    };
+
+    metrics.open_rate_last_14_days.forEach((stat) => {
+      formattedData.x.push(
+        dayjs(stat.date).format(notificationOpenRateLabelDateFormat),
+      );
+      formattedData.y[0].data.push(stat.value * 100);
+    });
+    console.log(formattedData);
+    return formattedData;
+  }, [metrics?.open_rate_last_14_days, metricsLoading]);
 
   const formattedVerificationsChartData = useMemo(() => {
     if (!stats || !stats.length) {
@@ -173,8 +219,39 @@ export const GraphsSection = () => {
     return formattedData;
   }, [transactions]);
 
+  // ==================================================================================================
+  // ========================== Anchor: Render Notification Graph Content ============================
+  // ==================================================================================================
+  const renderNotificationGraphContent = (
+    formattedData: ChartProps["data"],
+    options: ChartOptions<"line">,
+  ) => {
+    const notificationData = formattedData.y[0].data;
+    const lastDataPoint = notificationData[notificationData.length - 1];
+    const lastOpenRateValue =
+      typeof lastDataPoint === "number" ? lastDataPoint.toFixed(1) : "NA";
+
+    return (
+      <>
+        <div className="pl-6">
+          <Stat
+            title="Notifications open rate"
+            valueSuffix="%"
+            // TODO DEV-1153
+            // changePercentage={0}
+            value={lastOpenRateValue}
+          />
+        </div>
+        <Chart data={formattedData} options={options} />
+      </>
+    );
+  };
+
   return (
     <div className="grid flex-1 grid-cols-1 grid-rows-2 gap-2 lg:grid-cols-2 lg:grid-rows-1">
+      {/* ======================================================== */}
+      {/* ================== Verifications Graph ================== */}
+      {/* ======================================================== */}
       <div className="flex-1">
         {appStatsLoading && (
           <div className="aspect-[580/350] w-full rounded-2xl">
@@ -260,6 +337,9 @@ export const GraphsSection = () => {
           </div>
         )}
       </div>
+      {/* ======================================================== */}
+      {/* ====================== Payments Graph ================== */}
+      {/* ======================================================== */}
       <div className="flex-1">
         {transactionsLoading && (
           <div className="aspect-[580/350] w-full rounded-2xl">
@@ -270,26 +350,23 @@ export const GraphsSection = () => {
           <div
             className={clsx(
               {
-                "size-full": appStatsLoading || formattedVerificationsChartData,
+                "size-full":
+                  transactionsLoading || formattedTransactionsChartData,
                 "aspect-[580/350]":
-                  !appStatsLoading && !formattedVerificationsChartData,
+                  !transactionsLoading && !formattedTransactionsChartData,
               },
               "pointer-events-none grid w-full select-none content-center justify-center justify-items-center gap-y-1 rounded-2xl border border-grey-200 px-12",
             )}
           >
             <Typography variant={TYPOGRAPHY.H7} className="text-grey-500">
-              {engine === EngineType.OnChain
-                ? "Analytics are not available for on-chain apps yet"
-                : "No data available yet"}
+              No data available yet
             </Typography>
 
             <Typography
               variant={TYPOGRAPHY.R4}
               className="text-14 text-grey-400"
             >
-              {engine === EngineType.OnChain
-                ? "Please refer to your smart contract for transaction data"
-                : "Your transaction numbers will show up here."}
+              Your payment numbers will show up here.
             </Typography>
           </div>
         )}
@@ -297,7 +374,7 @@ export const GraphsSection = () => {
           <div className="block rounded-2xl border border-grey-200 py-5 pr-6 sm:hidden">
             <div className="pl-6">
               <Stat
-                title="Transactions"
+                title="Payments"
                 valuePrefix="$"
                 // TODO DEV-1153
                 // changePercentage={0}
@@ -307,7 +384,7 @@ export const GraphsSection = () => {
             <Chart
               data={formattedTransactionsChartData}
               options={{
-                aspectRatio: 580 / 380,
+                aspectRatio: 580 / 350,
                 ...commonChartConfig,
               }}
             />
@@ -317,7 +394,7 @@ export const GraphsSection = () => {
           <div className="hidden rounded-2xl border border-grey-200 py-5 sm:block ">
             <div className="pl-6">
               <Stat
-                title="Transactions"
+                title="Payments"
                 valuePrefix="$"
                 // TODO DEV-1153
                 // changePercentage={0}
@@ -328,6 +405,60 @@ export const GraphsSection = () => {
               data={formattedTransactionsChartData}
               options={commonChartConfig}
             />
+          </div>
+        )}
+      </div>
+
+      {/* ======================================================== */}
+      {/* ================== Notifications Graph ================== */}
+      {/* ======================================================== */}
+      <div className="flex-1">
+        {metricsLoading && (
+          <div className="aspect-[580/350] w-full rounded-2xl">
+            <Skeleton className="inset-0 size-full rounded-2xl" />
+          </div>
+        )}
+        {!metricsLoading && !formattedNotificationOpenRateChartData && (
+          <div
+            className={clsx(
+              {
+                "size-full":
+                  metricsLoading || formattedNotificationOpenRateChartData,
+                "aspect-[580/350]":
+                  !metricsLoading && !formattedNotificationOpenRateChartData,
+              },
+              "pointer-events-none grid w-full select-none content-center justify-center justify-items-center gap-y-1 rounded-2xl border border-grey-200 px-12",
+            )}
+          >
+            <Typography variant={TYPOGRAPHY.H7} className="text-grey-500">
+              No data available yet
+            </Typography>
+
+            <Typography
+              variant={TYPOGRAPHY.R4}
+              className="text-14 text-grey-400"
+            >
+              Your notification open rate will show up here.
+            </Typography>
+          </div>
+        )}
+        {!metricsLoading && formattedNotificationOpenRateChartData && (
+          <div className="block rounded-2xl border border-grey-200 py-5 pr-6 sm:hidden">
+            {renderNotificationGraphContent(
+              formattedNotificationOpenRateChartData,
+              {
+                aspectRatio: 580 / 350,
+                ...commonChartConfig,
+              },
+            )}
+          </div>
+        )}
+        {!metricsLoading && formattedNotificationOpenRateChartData && (
+          <div className="hidden rounded-2xl border border-grey-200 py-5 sm:block ">
+            {renderNotificationGraphContent(
+              formattedNotificationOpenRateChartData,
+              commonChartConfig,
+            )}
           </div>
         )}
       </div>
