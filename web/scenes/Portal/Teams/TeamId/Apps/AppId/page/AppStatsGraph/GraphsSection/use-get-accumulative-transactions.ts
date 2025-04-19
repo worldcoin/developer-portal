@@ -1,20 +1,26 @@
 import { useEffect, useState } from "react";
 import {
-  getAccumulativeTransactionData,
-  GetAccumulativeTransactionDataReturnType,
+  getAccumulativePaymentsData,
+  GetAccumulativePaymentsDataReturnType,
+  getAccumulativeTransactionsData,
+  GetAccumulativeTransactionsDataReturnType,
 } from "../../../Transactions/page/server/getAccumulativeTransactionData";
 
 export const useGetAccumulativeTransactions = (appId: string) => {
+  const [payments, setPayments] =
+    useState<GetAccumulativePaymentsDataReturnType | null>(null);
   const [transactions, setTransactions] =
-    useState<GetAccumulativeTransactionDataReturnType | null>(null);
+    useState<GetAccumulativeTransactionsDataReturnType | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<any>(null);
 
   useEffect(() => {
     const fetchTransactions = async () => {
       try {
-        const data = await getAccumulativeTransactionData(appId);
-        setTransactions(data);
+        const paymentsData = await getAccumulativePaymentsData(appId);
+        const transactionsData = await getAccumulativeTransactionsData(appId);
+        setPayments(paymentsData);
+        setTransactions(transactionsData);
       } catch (err) {
         setError(err);
       } finally {
@@ -25,5 +31,5 @@ export const useGetAccumulativeTransactions = (appId: string) => {
     fetchTransactions();
   }, [appId]);
 
-  return { transactions, loading, error };
+  return { payments, transactions, loading, error };
 };

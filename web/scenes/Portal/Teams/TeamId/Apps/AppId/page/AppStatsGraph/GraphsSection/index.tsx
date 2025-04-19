@@ -209,19 +209,19 @@ export const GraphsSection = () => {
       },
     });
 
-  const { transactions: transactionsData, loading: transactionsLoading } =
+  const { payments: paymentsData, transactions: transactionsData, loading: transactionsLoading } =
     useGetAccumulativeTransactions(appId);
 
   // ==================================================================================================
   // ========================== Anchor: Helper Functions to get overall data ==========================
   // ==================================================================================================
-  const transactions = useMemo(
-    () => transactionsData?.accumulativePayments,
-    [transactionsData?.accumulativePayments],
+  const payments = useMemo(
+    () => paymentsData?.accumulativePayments,
+    [paymentsData?.accumulativePayments],
   );
-  const accumulatedTransactionAmountUSD = useMemo(
-    () => transactionsData?.accumulatedTokenAmountUSD,
-    [transactionsData?.accumulatedTokenAmountUSD],
+  const accumulatedPaymentsAmountUSD = useMemo(
+    () => paymentsData?.accumulatedTokenAmountUSD,
+    [paymentsData?.accumulatedTokenAmountUSD],
   );
 
   const stats = useMemo(
@@ -314,7 +314,7 @@ export const GraphsSection = () => {
   }, [stats]);
 
   const formattedTransactionsChartData = useMemo(() => {
-    if (!transactions || !transactions.length) {
+    if (!payments || !payments.length) {
       return null;
     }
 
@@ -329,7 +329,7 @@ export const GraphsSection = () => {
       x: [],
     };
 
-    transactions?.forEach((stat) => {
+    payments?.forEach((stat) => {
       formattedData.x.push(dayjs(stat.updatedAt).format(labelDateFormat));
       if (stat.transactionStatus === TransactionStatus.Mined) {
         formattedData.y[0].data.push(Number(stat.inputTokenAmount));
@@ -337,7 +337,7 @@ export const GraphsSection = () => {
     });
 
     return formattedData;
-  }, [transactions]);
+  }, [payments]);
 
   // ==================================================================================================
   // ====================================== Anchor: Render Section ====================================
@@ -381,7 +381,7 @@ export const GraphsSection = () => {
           {
             title: "Payments",
             valuePrefix: "$",
-            value: accumulatedTransactionAmountUSD,
+            value: accumulatedPaymentsAmountUSD,
           },
         ]}
         chartOptions={commonChartConfig}
