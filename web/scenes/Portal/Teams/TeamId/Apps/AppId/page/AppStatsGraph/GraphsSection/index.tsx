@@ -153,12 +153,13 @@ const GraphCard: React.FC<GraphCardProps> = ({
         </div>
       )}
 
-      {/* Mobile View */}
+      {/* Combined Mobile & Desktop View */}
       {!isLoading && chartData && (
-        <div className="block rounded-2xl border border-grey-200 py-5 sm:hidden">
+        <div className="rounded-2xl border border-grey-200 py-5">
+          {/* Stats Section (Conditional Padding) */}
           <div
             className={clsx(
-              "grid px-6",
+              "grid px-6 sm:pr-0",
               stats.length > 1 ? "grid-cols-2" : "grid-cols-1",
             )}
           >
@@ -173,31 +174,16 @@ const GraphCard: React.FC<GraphCardProps> = ({
               />
             ))}
           </div>
-          <Chart data={chartData} options={mobileChartOptions} />
-        </div>
-      )}
 
-      {/* Desktop View */}
-      {!isLoading && chartData && (
-        <div className="hidden rounded-2xl border border-grey-200 py-5 sm:block ">
-          <div
-            className={clsx(
-              "grid pl-6",
-              stats.length > 1 ? "grid-cols-2" : "grid-cols-1",
-            )}
-          >
-            {stats.map((statProps, index) => (
-              <Stat
-                key={index}
-                title={statProps.title}
-                value={statProps.value}
-                valuePrefix={statProps.valuePrefix}
-                valueSuffix={statProps.valueSuffix}
-                mainColorClassName={statProps.mainColorClassName}
-              />
-            ))}
+          {/* Mobile Chart (Visible on sm and below) */}
+          <div className="block sm:hidden">
+            <Chart data={chartData} options={mobileChartOptions} />
           </div>
-          <Chart data={chartData} options={chartOptions} />
+
+          {/* Desktop Chart (Visible on sm and above) */}
+          <div className="hidden sm:block">
+            <Chart data={chartData} options={chartOptions} />
+          </div>
         </div>
       )}
     </div>
@@ -358,7 +344,7 @@ export const GraphsSection = () => {
   // ==================================================================================================
 
   return (
-    <div className="grid flex-1 grid-cols-1 grid-rows-3 gap-2 lg:grid-cols-3 lg:grid-rows-1">
+    <div className="grid flex-1 grid-cols-1 grid-rows-3 gap-2 lg:grid-cols-2 lg:grid-rows-1">
       {/* Verifications Graph */}
       <GraphCard
         isLoading={appStatsLoading}
