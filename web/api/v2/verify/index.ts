@@ -49,7 +49,7 @@ export async function POST(
   { params }: { params: { app_id: string } },
 ) {
   const body = await req.json();
-
+  let message = "Proof verified successfully";
   const { isValid, parsedParams, handleError } = await validateRequestSchema({
     schema,
     value: body,
@@ -94,13 +94,7 @@ export async function POST(
   }
 
   if (app.engine !== "cloud") {
-    return errorResponse({
-      statusCode: 400,
-      code: "invalid_engine",
-      detail: "This action runs on-chain and can't be verified here.",
-      attribute: "engine",
-      req,
-    });
+    message = "This action runs on-chain and can't be verified here.";
   }
 
   const { action, nullifier } = {
@@ -227,6 +221,7 @@ export async function POST(
           upsertResponse.update_nullifier.returning[0].nullifier_hash,
         created_at: upsertResponse.update_nullifier.returning[0].created_at,
         verification_level: parsedParams.verification_level,
+        message,
       },
       { status: 200 },
     );
