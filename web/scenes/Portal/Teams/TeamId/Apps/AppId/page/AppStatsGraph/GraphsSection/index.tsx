@@ -11,7 +11,7 @@ import dayjs from "dayjs";
 import tz from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
 import { useParams } from "next/navigation";
-import { useMemo } from "react";
+import React, { useMemo } from "react";
 import Skeleton from "react-loading-skeleton";
 import { useGetMetrics } from "../StatCards/use-get-metrics";
 import { Stat } from "./stat";
@@ -73,6 +73,140 @@ const commonChartConfig: ChartOptions<"line"> = {
 };
 
 const startsAt = new Date(0).toISOString();
+
+// ==================================================================================================
+// =================================== Anchor: Stat Props Interface =================================
+// ==================================================================================================
+
+// Define StatProps inline based on usage
+interface StatProps {
+  title: string;
+  value: string | number | null | undefined;
+  valuePrefix?: string;
+  valueSuffix?: string;
+  mainColorClassName?: string;
+  // changePercentage?: number; // Excluded as per Omit in GraphCardProps
+}
+
+// ==================================================================================================
+// =================================== Anchor: Graph Card Component =================================
+// ==================================================================================================
+
+interface GraphCardProps {
+  isLoading: boolean;
+  chartData: ChartProps["data"] | null | undefined;
+  stats: StatProps[]; // Use the inline StatProps
+  chartOptions: ChartOptions<"line">;
+  mobileAspectRatio?: number; // e.g., 580 / 350
+  emptyStateTitle: React.ReactNode;
+  emptyStateDescription: React.ReactNode;
+  className?: string;
+}
+
+const GraphCard: React.FC<GraphCardProps> = ({
+  isLoading,
+  chartData,
+  stats,
+  chartOptions,
+  mobileAspectRatio = 580 / 350, // Default aspect ratio
+  emptyStateTitle,
+  emptyStateDescription,
+  className,
+}) => {
+  const mobileChartOptions = {
+    ...chartOptions,
+    aspectRatio: mobileAspectRatio,
+  };
+
+  return (
+    <div className={clsx("flex-1", className)}>
+      {/* Loading Skeleton */}
+      {isLoading && (
+        <div
+          className="w-full rounded-2xl"
+          style={{ aspectRatio: mobileAspectRatio }}
+        >
+          <Skeleton className="inset-0 size-full rounded-2xl" />
+        </div>
+      )}
+
+      {/* Empty State */}
+      {!isLoading && !chartData && (
+        <div
+          className={clsx(
+            "pointer-events-none grid size-full select-none content-center justify-center justify-items-center gap-y-1 rounded-2xl border border-grey-200 px-12",
+          )}
+          style={{ aspectRatio: mobileAspectRatio }}
+        >
+          <Typography
+            variant={TYPOGRAPHY.H7}
+            className="text-center text-grey-500"
+          >
+            {emptyStateTitle}
+          </Typography>
+          <Typography
+            variant={TYPOGRAPHY.R4}
+            className="text-center text-14 text-grey-400"
+          >
+            {emptyStateDescription}
+          </Typography>
+        </div>
+      )}
+
+      {/* Mobile View */}
+      {!isLoading && chartData && (
+        <div className="block rounded-2xl border border-grey-200 py-5 sm:hidden">
+          <div
+            className={clsx(
+              "grid px-6",
+              stats.length > 1 ? "grid-cols-2" : "grid-cols-1",
+            )}
+          >
+            {stats.map((statProps, index) => (
+              <Stat
+                key={index}
+                title={statProps.title}
+                value={statProps.value}
+                valuePrefix={statProps.valuePrefix}
+                valueSuffix={statProps.valueSuffix}
+                mainColorClassName={statProps.mainColorClassName}
+              />
+            ))}
+          </div>
+          <Chart data={chartData} options={mobileChartOptions} />
+        </div>
+      )}
+
+      {/* Desktop View */}
+      {!isLoading && chartData && (
+        <div className="hidden rounded-2xl border border-grey-200 py-5 sm:block ">
+          <div
+            className={clsx(
+              "grid pl-6",
+              stats.length > 1 ? "grid-cols-2" : "grid-cols-1",
+            )}
+          >
+            {stats.map((statProps, index) => (
+              <Stat
+                key={index}
+                title={statProps.title}
+                value={statProps.value}
+                valuePrefix={statProps.valuePrefix}
+                valueSuffix={statProps.valueSuffix}
+                mainColorClassName={statProps.mainColorClassName}
+              />
+            ))}
+          </div>
+          <Chart data={chartData} options={chartOptions} />
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ==================================================================================================
+// ================================= Anchor: Graphs Section Component ================================
+// ==================================================================================================
 
 export const GraphsSection = () => {
   const { appId } = useParams() as { teamId: string; appId: string };
@@ -220,248 +354,77 @@ export const GraphsSection = () => {
   }, [transactions]);
 
   // ==================================================================================================
-  // ========================== Anchor: Render Notification Graph Content ============================
+  // ====================================== Anchor: Render Section ====================================
   // ==================================================================================================
-  const renderNotificationGraphContent = (
-    formattedData: ChartProps["data"],
-    options: ChartOptions<"line">,
-  ) => {
-    const notificationData = formattedData.y[0].data;
-    const lastDataPoint = notificationData[notificationData.length - 1];
-    const lastOpenRateValue =
-      typeof lastDataPoint === "number" ? lastDataPoint.toFixed(1) : "NA";
-
-    return (
-      <>
-        <div className="pl-6">
-          <Stat
-            title="Notifications open rate"
-            valueSuffix="%"
-            // TODO DEV-1153
-            // changePercentage={0}
-            value={lastOpenRateValue}
-          />
-        </div>
-        <Chart data={formattedData} options={options} />
-      </>
-    );
-  };
 
   return (
-    <div className="grid flex-1 grid-cols-1 grid-rows-2 gap-2 lg:grid-cols-2 lg:grid-rows-1">
-      {/* ======================================================== */}
-      {/* ================== Verifications Graph ================== */}
-      {/* ======================================================== */}
-      <div className="flex-1">
-        {appStatsLoading && (
-          <div className="aspect-[580/350] w-full rounded-2xl">
-            <Skeleton className="inset-0 size-full rounded-2xl" />
-          </div>
-        )}
-        {!appStatsLoading && !formattedVerificationsChartData && (
-          <div
-            className={clsx(
-              {
-                "size-full":
-                  transactionsLoading || formattedTransactionsChartData,
-                "aspect-[580/350]":
-                  !transactionsLoading && !formattedTransactionsChartData,
-              },
-              "pointer-events-none grid w-full select-none content-center justify-center justify-items-center gap-y-1 rounded-2xl border border-grey-200 px-12",
-            )}
-          >
-            <Typography variant={TYPOGRAPHY.H7} className="text-grey-500">
-              {engine === EngineType.OnChain
-                ? "Analytics are not available for on-chain apps yet"
-                : "No data available yet"}
-            </Typography>
-            <Typography
-              variant={TYPOGRAPHY.R4}
-              className="text-14 text-grey-400"
-            >
-              {engine === EngineType.OnChain
-                ? "Please refer to your smart contract for verification data"
-                : "Your verification numbers will show up here."}
-            </Typography>
-          </div>
-        )}
-        {!appStatsLoading && formattedVerificationsChartData && (
-          <div className="block rounded-2xl border border-grey-200 py-5 sm:hidden">
-            <div className="grid grid-cols-2 pl-6">
-              <Stat
-                title="Verifications"
-                mainColorClassName="bg-additional-blue-500"
-                // TODO DEV-1153
-                // changePercentage={0}
-                value={totalVerifications}
-              />
-              <Stat
-                title="Unique users"
-                mainColorClassName="bg-additional-sea-500"
-                // TODO DEV-1153
-                // changePercentage={0}
-                value={totalUniqueUsers}
-              />
-            </div>
-            <Chart
-              data={formattedVerificationsChartData}
-              options={{
-                aspectRatio: 580 / 350,
-                ...commonChartConfig,
-              }}
-            />
-          </div>
-        )}
-        {!appStatsLoading && formattedVerificationsChartData && (
-          <div className="hidden rounded-2xl border border-grey-200 py-5 sm:block ">
-            <div className="grid grid-cols-2 pl-6">
-              <Stat
-                title="Verifications"
-                mainColorClassName="bg-additional-blue-500"
-                // TODO DEV-1153
-                // changePercentage={0}
-                value={totalVerifications}
-              />
-              <Stat
-                title="Unique users"
-                mainColorClassName="bg-additional-sea-500"
-                // TODO DEV-1153
-                // changePercentage={0}
-                value={totalUniqueUsers}
-              />
-            </div>
-            <Chart
-              data={formattedVerificationsChartData}
-              options={commonChartConfig}
-            />
-          </div>
-        )}
-      </div>
-      {/* ======================================================== */}
-      {/* ====================== Payments Graph ================== */}
-      {/* ======================================================== */}
-      <div className="flex-1">
-        {transactionsLoading && (
-          <div className="aspect-[580/350] w-full rounded-2xl">
-            <Skeleton className="inset-0 size-full rounded-2xl" />
-          </div>
-        )}
-        {!transactionsLoading && !formattedTransactionsChartData && (
-          <div
-            className={clsx(
-              {
-                "size-full":
-                  transactionsLoading || formattedTransactionsChartData,
-                "aspect-[580/350]":
-                  !transactionsLoading && !formattedTransactionsChartData,
-              },
-              "pointer-events-none grid w-full select-none content-center justify-center justify-items-center gap-y-1 rounded-2xl border border-grey-200 px-12",
-            )}
-          >
-            <Typography variant={TYPOGRAPHY.H7} className="text-grey-500">
-              No data available yet
-            </Typography>
-
-            <Typography
-              variant={TYPOGRAPHY.R4}
-              className="text-14 text-grey-400"
-            >
-              Your payment numbers will show up here.
-            </Typography>
-          </div>
-        )}
-        {!transactionsLoading && formattedTransactionsChartData && (
-          <div className="block rounded-2xl border border-grey-200 py-5 pr-6 sm:hidden">
-            <div className="pl-6">
-              <Stat
-                title="Payments"
-                valuePrefix="$"
-                // TODO DEV-1153
-                // changePercentage={0}
-                value={accumulatedTransactionAmountUSD}
-              />
-            </div>
-            <Chart
-              data={formattedTransactionsChartData}
-              options={{
-                aspectRatio: 580 / 350,
-                ...commonChartConfig,
-              }}
-            />
-          </div>
-        )}
-        {!transactionsLoading && formattedTransactionsChartData && (
-          <div className="hidden rounded-2xl border border-grey-200 py-5 sm:block ">
-            <div className="pl-6">
-              <Stat
-                title="Payments"
-                valuePrefix="$"
-                // TODO DEV-1153
-                // changePercentage={0}
-                value={accumulatedTransactionAmountUSD}
-              />
-            </div>
-            <Chart
-              data={formattedTransactionsChartData}
-              options={commonChartConfig}
-            />
-          </div>
-        )}
-      </div>
-
-      {/* ======================================================== */}
-      {/* ================== Notifications Graph ================== */}
-      {/* ======================================================== */}
-      <div className="flex-1">
-        {metricsLoading && (
-          <div className="aspect-[580/350] w-full rounded-2xl">
-            <Skeleton className="inset-0 size-full rounded-2xl" />
-          </div>
-        )}
-        {!metricsLoading && !formattedNotificationOpenRateChartData && (
-          <div
-            className={clsx(
-              {
-                "size-full":
-                  metricsLoading || formattedNotificationOpenRateChartData,
-                "aspect-[580/350]":
-                  !metricsLoading && !formattedNotificationOpenRateChartData,
-              },
-              "pointer-events-none grid w-full select-none content-center justify-center justify-items-center gap-y-1 rounded-2xl border border-grey-200 px-12",
-            )}
-          >
-            <Typography variant={TYPOGRAPHY.H7} className="text-grey-500">
-              No data available yet
-            </Typography>
-
-            <Typography
-              variant={TYPOGRAPHY.R4}
-              className="text-14 text-grey-400"
-            >
-              Your notification open rate will show up here.
-            </Typography>
-          </div>
-        )}
-        {!metricsLoading && formattedNotificationOpenRateChartData && (
-          <div className="block rounded-2xl border border-grey-200 py-5 pr-6 sm:hidden">
-            {renderNotificationGraphContent(
-              formattedNotificationOpenRateChartData,
-              {
-                aspectRatio: 580 / 350,
-                ...commonChartConfig,
-              },
-            )}
-          </div>
-        )}
-        {!metricsLoading && formattedNotificationOpenRateChartData && (
-          <div className="hidden rounded-2xl border border-grey-200 py-5 sm:block ">
-            {renderNotificationGraphContent(
-              formattedNotificationOpenRateChartData,
-              commonChartConfig,
-            )}
-          </div>
-        )}
-      </div>
+    <div className="grid flex-1 grid-cols-1 grid-rows-3 gap-2 lg:grid-cols-3 lg:grid-rows-1">
+      {/* Verifications Graph */}
+      <GraphCard
+        isLoading={appStatsLoading}
+        chartData={formattedVerificationsChartData}
+        stats={[
+          {
+            title: "Verifications",
+            mainColorClassName: "bg-additional-blue-500",
+            value: totalVerifications,
+          },
+          {
+            title: "Unique users",
+            mainColorClassName: "bg-additional-sea-500",
+            value: totalUniqueUsers,
+          },
+        ]}
+        chartOptions={commonChartConfig}
+        emptyStateTitle={
+          engine === EngineType.OnChain
+            ? "Analytics are not available for on-chain apps yet"
+            : "No data available yet"
+        }
+        emptyStateDescription={
+          engine === EngineType.OnChain
+            ? "Please refer to your smart contract for verification data"
+            : "Your verification numbers will show up here."
+        }
+      />
+      {/* Payments Graph */}
+      <GraphCard
+        isLoading={transactionsLoading}
+        chartData={formattedTransactionsChartData}
+        stats={[
+          {
+            title: "Payments",
+            valuePrefix: "$",
+            value: accumulatedTransactionAmountUSD,
+          },
+        ]}
+        chartOptions={commonChartConfig}
+        emptyStateTitle="No data available yet"
+        emptyStateDescription="Your payment numbers will show up here."
+      />
+      {/* Notifications Graph */}
+      <GraphCard
+        isLoading={metricsLoading}
+        chartData={formattedNotificationOpenRateChartData}
+        stats={(() => {
+          if (!formattedNotificationOpenRateChartData) return [];
+          const notificationData =
+            formattedNotificationOpenRateChartData.y[0].data;
+          const lastDataPoint = notificationData[notificationData.length - 1];
+          const lastOpenRateValue =
+            typeof lastDataPoint === "number" ? lastDataPoint.toFixed(1) : "NA";
+          return [
+            {
+              title: "Notifications open rate",
+              valueSuffix: "%",
+              value: lastOpenRateValue,
+            },
+          ];
+        })()}
+        chartOptions={commonChartConfig}
+        emptyStateTitle="No data available yet"
+        emptyStateDescription="Your notification open rate will show up here."
+      />
     </div>
   );
 };
