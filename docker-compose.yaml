@@ -13,7 +13,7 @@ services:
 
   hasura:
     # remember to update developer-portal-deployment with the same image
-    image: hasura/graphql-engine:v2.36.4.cli-migrations-v3
+    image: hasura/graphql-engine:v2.47.0.cli-migrations-v3
     ports:
       - "8080:8080"
     depends_on:
