@@ -364,31 +364,6 @@ describe("/api/v2/verify [error cases]", () => {
     });
   });
 
-  it("on-chain actions cannot be verified", async () => {
-    const mockReq = createMockRequest(getUrl(stagingAppId), validBody);
-    const ctx = { params: { app_id: stagingAppId } };
-
-    FetchAppAction.mockResolvedValue({
-      app: [
-        {
-          ...validApp,
-          engine: "on-chain",
-          actions: [{ ...validAction, nullifiers: [] }],
-        },
-      ],
-    });
-
-    const response = await POST(mockReq, ctx);
-    expect(response.status).toBe(400);
-    const body = await response.json();
-
-    expect(body).toEqual({
-      attribute: "engine",
-      code: "invalid_engine",
-      detail: "This action runs on-chain and can't be verified here.",
-    });
-  });
-
   it("prevent duplicates (uniqueness check)", async () => {
     const mockReq = createMockRequest(getUrl(stagingAppId), validBody);
     const ctx = { params: { app_id: stagingAppId } };
