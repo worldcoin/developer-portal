@@ -108,7 +108,7 @@ const GraphCard: React.FC<GraphCardProps> = ({
   chartData,
   stats,
   chartOptions,
-  mobileAspectRatio = 580 / 350, // Default aspect ratio
+  mobileAspectRatio = 500 / 250, // 2:1
   emptyStateTitle,
   emptyStateDescription,
   className,
@@ -196,9 +196,7 @@ const GraphCard: React.FC<GraphCardProps> = ({
 
 export const GraphsSection = () => {
   const { appId } = useParams() as { teamId: string; appId: string };
-  const { metrics, loading: metricsLoading } = useGetMetrics(
-    "app_f1e44837a5e3c2af4da8925b46027645",
-  );
+  const { metrics, loading: metricsLoading } = useGetMetrics(appId);
 
   const { data: appStatsData, loading: appStatsLoading } =
     useFetchAppStatsQuery({

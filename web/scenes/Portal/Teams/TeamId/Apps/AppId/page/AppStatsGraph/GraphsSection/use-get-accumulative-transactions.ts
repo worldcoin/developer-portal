@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import {
   getAccumulativePaymentsData,
   GetAccumulativePaymentsDataReturnType,
-  getAccumulativeTransactionsData,
   GetAccumulativeTransactionsDataReturnType,
 } from "../../../Transactions/page/server/getAccumulativeTransactionData";
 
@@ -18,9 +17,10 @@ export const useGetAccumulativeTransactions = (appId: string) => {
     const fetchTransactions = async () => {
       try {
         const paymentsData = await getAccumulativePaymentsData(appId);
-        const transactionsData = await getAccumulativeTransactionsData(appId);
         setPayments(paymentsData);
-        setTransactions(transactionsData);
+        // TODO once we have metrics endpoint
+        // const transactionsData = await getAccumulativeTransactionsData(appId);
+        // setTransactions(transactionsData);
       } catch (err) {
         setError(err);
       } finally {

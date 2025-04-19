@@ -171,7 +171,7 @@ export const getAccumulativeTransactionsData = async (
   appId: string,
 ): Promise<{
   accumulativeTransactions: TransactionMetadata[];
-  accumulatedTokenAmountUSD: number;
+  accumulatedTransactionCount: number;
 }> => {
   try {
     if (!process.env.NEXT_SERVER_INTERNAL_PAYMENTS_ENDPOINT) {
@@ -185,6 +185,30 @@ export const getAccumulativeTransactionsData = async (
       appId,
       fetchTransactionsUrl,
     );
+
+    const sortedTransactions = (
+      transactionsData?.result?.transactions || []
+    ).sort(
+      (a: TransactionMetadata, b: TransactionMetadata) =>
+        new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
+    ) as TransactionMetadata[];
+
+    // We only count successful transactions
+    const accumulatedTransactionCount = sortedTransactions.reduce(
+      (acc, transaction) => {
+        if (transaction.transactionStatus !== TransactionStatus.Mined) {
+          return acc;
+        }
+
+        return acc + 1;
+      },
+      0,
+    );
+
+    return {
+      accumulativeTransactions: sortedTransactions,
+      accumulatedTransactionCount,
+    };
   } catch (error) {
     logger.warn("Error fetching transaction data", {
       error: JSON.stringify(error),
@@ -192,7 +216,7 @@ export const getAccumulativeTransactionsData = async (
 
     return {
       accumulativeTransactions: [],
-      accumulatedTokenAmountUSD: 0,
+      accumulatedTransactionCount: 0,
     };
   }
 };
