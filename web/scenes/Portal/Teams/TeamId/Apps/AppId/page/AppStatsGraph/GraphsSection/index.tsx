@@ -216,8 +216,8 @@ export const GraphsSection = () => {
   // ========================== Anchor: Helper Functions to get overall data ==========================
   // ==================================================================================================
   const transactions = useMemo(
-    () => transactionsData?.accumulativeTransactions,
-    [transactionsData?.accumulativeTransactions],
+    () => transactionsData?.accumulativePayments,
+    [transactionsData?.accumulativePayments],
   );
   const accumulatedTransactionAmountUSD = useMemo(
     () => transactionsData?.accumulatedTokenAmountUSD,
