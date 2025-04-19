@@ -25,10 +25,11 @@ const safelyAdd = (a: number, b: number) =>
 
 const roundToTwoDecimals = (num: number) => Math.round(num * 100) / 100;
 
+// This hook fetches both payment and transaction data for a given appId
 export const getAccumulativeTransactionData = async (
   appId: string,
 ): Promise<{
-  accumulativeTransactions: PaymentMetadata[];
+  accumulativePayments: PaymentMetadata[];
   accumulatedTokenAmountUSD: number;
 }> => {
   try {
@@ -78,7 +79,7 @@ export const getAccumulativeTransactionData = async (
       };
     };
 
-    const { accumulativeTransactions, accumulatedTokenAmountUSD } =
+    const { accumulativePayments, accumulatedTokenAmountUSD } =
       sortedTransactions.reduce(
         (acc, transaction) => {
           if (transaction.transactionStatus !== TransactionStatus.Mined) {
@@ -110,7 +111,7 @@ export const getAccumulativeTransactionData = async (
             ),
           );
 
-          acc.accumulativeTransactions.push({
+          acc.accumulativePayments.push({
             ...transaction,
             inputTokenAmount: String(acc.accumulatedTokenAmountUSD),
           });
@@ -121,12 +122,12 @@ export const getAccumulativeTransactionData = async (
           accumulatedTokenAmountWLD: 0,
           accumulatedTokenAmountUSDCE: 0,
           accumulatedTokenAmountUSD: 0,
-          accumulativeTransactions: [] as PaymentMetadata[],
+          accumulativePayments: [] as PaymentMetadata[],
         },
       );
 
     return {
-      accumulativeTransactions,
+      accumulativePayments,
       accumulatedTokenAmountUSD: roundToTwoDecimals(accumulatedTokenAmountUSD),
     };
   } catch (error) {
@@ -135,7 +136,7 @@ export const getAccumulativeTransactionData = async (
     });
 
     return {
-      accumulativeTransactions: [],
+      accumulativePayments: [],
       accumulatedTokenAmountUSD: 0,
     };
   }

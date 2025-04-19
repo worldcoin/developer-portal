@@ -7,14 +7,20 @@ export const Stat = (props: {
   title: string;
   value: number | string | undefined | null;
   valuePrefix?: string;
+  valueSuffix?: string;
   // TODO DEV-1153
   // changePercentage: number;
 }) => {
   const localizedValue = props.value?.toLocaleString();
 
-  const statValue = props?.valuePrefix
+  let statValue = props?.valuePrefix
     ? `${props.valuePrefix} ${localizedValue}`
     : localizedValue;
+
+  statValue = props?.valueSuffix
+    ? `${statValue} ${props.valueSuffix}`
+    : statValue;
+
   return (
     <div>
       <div className="grid grid-cols-auto/1fr items-center gap-x-1">
