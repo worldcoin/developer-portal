@@ -207,8 +207,11 @@ export const GraphsSection = () => {
       },
     });
 
-  const { payments: paymentsData, transactions: transactionsData, loading: transactionsLoading } =
-    useGetAccumulativeTransactions(appId);
+  const {
+    payments: paymentsData,
+    transactions: transactionsData,
+    loading: transactionsLoading,
+  } = useGetAccumulativeTransactions(appId);
 
   // ==================================================================================================
   // ========================== Anchor: Helper Functions to get overall data ==========================
