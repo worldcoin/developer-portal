@@ -86,11 +86,12 @@ export const GET = async (
 
   if (!res.ok) {
     const errorBody = await res.json();
+    // console.log("errorBody", JSON.parse(await res.text()));
 
     logger.warn("Error fetching transaction data", {
       status: res.status,
       statusText: res.statusText,
-      message: errorBody,
+      message: JSON.stringify(errorBody),
       appId,
       transactionId,
       type,
