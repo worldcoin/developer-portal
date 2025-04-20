@@ -108,7 +108,7 @@ const GraphCard: React.FC<GraphCardProps> = ({
   chartData,
   stats,
   chartOptions,
-  mobileAspectRatio = 580 / 350, // Default aspect ratio
+  mobileAspectRatio = 500 / 250, // 2:1
   emptyStateTitle,
   emptyStateDescription,
   className,
@@ -196,9 +196,7 @@ const GraphCard: React.FC<GraphCardProps> = ({
 
 export const GraphsSection = () => {
   const { appId } = useParams() as { teamId: string; appId: string };
-  const { metrics, loading: metricsLoading } = useGetMetrics(
-    "app_f1e44837a5e3c2af4da8925b46027645",
-  );
+  const { metrics, loading: metricsLoading } = useGetMetrics(appId);
 
   const { data: appStatsData, loading: appStatsLoading } =
     useFetchAppStatsQuery({
@@ -209,19 +207,22 @@ export const GraphsSection = () => {
       },
     });
 
-  const { transactions: transactionsData, loading: transactionsLoading } =
-    useGetAccumulativeTransactions(appId);
+  const {
+    payments: paymentsData,
+    transactions: transactionsData,
+    loading: transactionsLoading,
+  } = useGetAccumulativeTransactions(appId);
 
   // ==================================================================================================
   // ========================== Anchor: Helper Functions to get overall data ==========================
   // ==================================================================================================
-  const transactions = useMemo(
-    () => transactionsData?.accumulativePayments,
-    [transactionsData?.accumulativePayments],
+  const payments = useMemo(
+    () => paymentsData?.accumulativePayments,
+    [paymentsData?.accumulativePayments],
   );
-  const accumulatedTransactionAmountUSD = useMemo(
-    () => transactionsData?.accumulatedTokenAmountUSD,
-    [transactionsData?.accumulatedTokenAmountUSD],
+  const accumulatedPaymentsAmountUSD = useMemo(
+    () => paymentsData?.accumulatedTokenAmountUSD,
+    [paymentsData?.accumulatedTokenAmountUSD],
   );
 
   const stats = useMemo(
@@ -314,7 +315,7 @@ export const GraphsSection = () => {
   }, [stats]);
 
   const formattedTransactionsChartData = useMemo(() => {
-    if (!transactions || !transactions.length) {
+    if (!payments || !payments.length) {
       return null;
     }
 
@@ -329,7 +330,7 @@ export const GraphsSection = () => {
       x: [],
     };
 
-    transactions?.forEach((stat) => {
+    payments?.forEach((stat) => {
       formattedData.x.push(dayjs(stat.updatedAt).format(labelDateFormat));
       if (stat.transactionStatus === TransactionStatus.Mined) {
         formattedData.y[0].data.push(Number(stat.inputTokenAmount));
@@ -337,7 +338,7 @@ export const GraphsSection = () => {
     });
 
     return formattedData;
-  }, [transactions]);
+  }, [payments]);
 
   // ==================================================================================================
   // ====================================== Anchor: Render Section ====================================
@@ -381,7 +382,7 @@ export const GraphsSection = () => {
           {
             title: "Payments",
             valuePrefix: "$",
-            value: accumulatedTransactionAmountUSD,
+            value: accumulatedPaymentsAmountUSD,
           },
         ]}
         chartOptions={commonChartConfig}
