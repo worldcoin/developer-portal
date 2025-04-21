@@ -26,4 +26,16 @@ SET
       AND NOT (integration_url ~* '^https://([[:alnum:]_-]+\.)+[[:alnum:]_-]+(/[[:alnum:]_\-./?%&=]*)?$')
     THEN ''
     ELSE integration_url
+  END,
+
+  contracts = CASE
+    WHEN contracts IS NOT NULL AND 'all' = ANY (contracts)
+    THEN NULL
+    ELSE contracts
+  END,
+
+  permit2_tokens = CASE
+    WHEN permit2_tokens IS NOT NULL AND 'all' = ANY (permit2_tokens)
+    THEN NULL
+    ELSE permit2_tokens
   END;
