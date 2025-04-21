@@ -12,7 +12,7 @@ services:
       retries: 5
 
   hasura_test:
-    image: hasura/graphql-engine:v2.47.0.cli-migrations-v3
+    image: hasura/graphql-engine:v2.36.4.cli-migrations-v3
     ports:
       - "8081:8080"
     depends_on:
