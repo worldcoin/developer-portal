@@ -39,6 +39,7 @@ const queryParamsSchema = yup.object({
     .notRequired(),
   override_country: yup.string().notRequired(),
   show_external: yup.boolean().notRequired().default(false),
+  force_show_grants: yup.boolean().notRequired().default(false),
 });
 
 export const GET = async (request: NextRequest) => {
@@ -200,6 +201,8 @@ export const GET = async (request: NextRequest) => {
     : null;
 
   const isOfficeIp = cloudfrontIp === OFFICE_IP || forwardedForIp === OFFICE_IP;
+  /** sent from app-backend */
+  const forceShowGrants = parsedParams.force_show_grants;
 
   console.log({
     isOfficeIp,
@@ -219,6 +222,11 @@ export const GET = async (request: NextRequest) => {
       if (isGrants && !isCountrySupported) {
         return isOfficeIp;
       }
+
+      if (forceShowGrants && isGrants) {
+        return true;
+      }
+
       return isCountrySupported;
     });
   }
@@ -233,6 +241,11 @@ export const GET = async (request: NextRequest) => {
       if (isGrants && !isCountrySupported) {
         return isOfficeIp;
       }
+
+      if (forceShowGrants && isGrants) {
+        return true;
+      }
+
       return isCountrySupported;
     });
   }
