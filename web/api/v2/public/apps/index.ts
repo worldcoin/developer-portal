@@ -81,25 +81,6 @@ export const GET = async (request: NextRequest) => {
   let country: string | null = headers.get("CloudFront-Viewer-Country");
   const platform = headers.get("client-name");
 
-  // TEMP: internal grants testing
-  const cloudfrontViewerAddress = headers.get("CloudFront-Viewer-Address");
-  const cloudfrontIp = cloudfrontViewerAddress
-    ? cloudfrontViewerAddress.split(",")[0].trim()
-    : null;
-  const forwarderForHeader = headers.get("x-forwarded-for");
-  const forwardedForIp = forwarderForHeader
-    ? forwarderForHeader.split(",")[0].trim()
-    : null;
-
-  const isOfficeIp = cloudfrontIp === OFFICE_IP || forwardedForIp === OFFICE_IP;
-
-  console.log({
-    isOfficeIp,
-    cloudfrontViewerAddress,
-    cloudfrontIp,
-    forwarderForHeader,
-    forwardedForIp,
-  });
   if (parsedParams.override_country) {
     country = parsedParams.override_country;
   }
@@ -207,6 +188,26 @@ export const GET = async (request: NextRequest) => {
       (app) => app.app_id !== nativeIdToActualId["starter-kit"],
     );
   }
+
+  // TEMP: internal grants testing
+  const cloudfrontViewerAddress = headers.get("CloudFront-Viewer-Address");
+  const cloudfrontIp = cloudfrontViewerAddress
+    ? cloudfrontViewerAddress.split(",")[0].trim()
+    : null;
+  const forwarderForHeader = headers.get("x-forwarded-for");
+  const forwardedForIp = forwarderForHeader
+    ? forwarderForHeader.split(",")[0].trim()
+    : null;
+
+  const isOfficeIp = cloudfrontIp === OFFICE_IP || forwardedForIp === OFFICE_IP;
+
+  console.log({
+    isOfficeIp,
+    cloudfrontViewerAddress,
+    cloudfrontIp,
+    forwarderForHeader,
+    forwardedForIp,
+  });
 
   // ANCHOR: Filter top apps by country
   if (country && topApps.length > 0) {
