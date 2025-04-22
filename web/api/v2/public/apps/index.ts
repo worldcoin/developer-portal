@@ -81,25 +81,6 @@ export const GET = async (request: NextRequest) => {
   let country: string | null = headers.get("CloudFront-Viewer-Country");
   const platform = headers.get("client-name");
 
-  // TEMP: internal grants testing
-  const cloudfrontViewerAddress = headers.get("CloudFront-Viewer-Address");
-  const cloudfrontIp = cloudfrontViewerAddress
-    ? cloudfrontViewerAddress.split(",")[0].trim()
-    : null;
-  const forwarderForHeader = headers.get("x-forwarded-for");
-  const forwardedForIp = forwarderForHeader
-    ? forwarderForHeader.split(",")[0].trim()
-    : null;
-
-  const isOfficeIp = cloudfrontIp === OFFICE_IP || forwardedForIp === OFFICE_IP;
-
-  console.log({
-    isOfficeIp,
-    cloudfrontViewerAddress,
-    cloudfrontIp,
-    forwarderForHeader,
-    forwardedForIp,
-  });
   if (parsedParams.override_country) {
     country = parsedParams.override_country;
   }
@@ -208,21 +189,52 @@ export const GET = async (request: NextRequest) => {
     );
   }
 
+  // TEMP: internal grants testing
+  const cloudfrontViewerAddress = headers.get("CloudFront-Viewer-Address");
+  const cloudfrontIp = cloudfrontViewerAddress
+    ? cloudfrontViewerAddress.split(",")[0].trim()
+    : null;
+  const forwarderForHeader = headers.get("x-forwarded-for");
+  const forwardedForIp = forwarderForHeader
+    ? forwarderForHeader.split(",")[0].trim()
+    : null;
+
+  const isOfficeIp = cloudfrontIp === OFFICE_IP || forwardedForIp === OFFICE_IP;
+
+  console.log({
+    isOfficeIp,
+    cloudfrontViewerAddress,
+    cloudfrontIp,
+    forwarderForHeader,
+    forwardedForIp,
+  });
+
   // ANCHOR: Filter top apps by country
   if (country && topApps.length > 0) {
     topApps = topApps.filter((app) => {
-      if (app.app_id === nativeIdToActualId.grants) {
+      const isGrants = app.app_id === nativeIdToActualId.grants;
+      const isCountrySupported = app.supported_countries?.some(
+        (c: string) => c === country,
+      );
+      if (isGrants && !isCountrySupported) {
         return isOfficeIp;
       }
-      return app.supported_countries?.some((c: string) => c === country);
+      return isCountrySupported;
     });
   }
 
   // ANCHOR: Filter highlights apps by country
   if (country && highlightsApps.length > 0) {
-    highlightsApps = highlightsApps.filter((app) =>
-      app.supported_countries?.some((c: string) => c === country),
-    );
+    highlightsApps = highlightsApps.filter((app) => {
+      const isGrants = app.app_id === nativeIdToActualId.grants;
+      const isCountrySupported = app.supported_countries?.some(
+        (c: string) => c === country,
+      );
+      if (isGrants && !isCountrySupported) {
+        return isOfficeIp;
+      }
+      return isCountrySupported;
+    });
   }
 
   // ANCHOR: Fetch app stats from metrics service
