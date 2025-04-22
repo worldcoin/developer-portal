@@ -241,12 +241,13 @@ export const GET = async (request: NextRequest) => {
       const isCountrySupported = app.supported_countries?.some(
         (c: string) => c === country,
       );
-      if (isGrants && !isCountrySupported) {
-        return isOfficeIp;
-      }
-
+      // TEMP
       if (forceShowGrants && isGrants) {
         return true;
+      }
+
+      if (isGrants && !isCountrySupported) {
+        return isOfficeIp;
       }
 
       return isCountrySupported;
