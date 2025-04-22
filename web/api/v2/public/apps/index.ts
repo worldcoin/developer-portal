@@ -201,7 +201,8 @@ export const GET = async (request: NextRequest) => {
     : null;
 
   const isOfficeIp = cloudfrontIp === OFFICE_IP || forwardedForIp === OFFICE_IP;
-  /** sent from app-backend */
+
+  // TEMP
   const forceShowGrants = parsedParams.force_show_grants;
 
   console.log({
@@ -223,6 +224,7 @@ export const GET = async (request: NextRequest) => {
         return isOfficeIp;
       }
 
+      // TEMP
       if (forceShowGrants && isGrants) {
         return true;
       }
