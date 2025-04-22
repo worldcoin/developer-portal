@@ -211,7 +211,10 @@ export const GET = async (request: NextRequest) => {
   // ANCHOR: Filter top apps by country
   if (country && topApps.length > 0) {
     topApps = topApps.filter((app) => {
-      if (app.app_id === nativeIdToActualId.grants) {
+      if (
+        app.app_id === nativeIdToActualId.grants &&
+        !app.supported_countries?.some((c: string) => c === country)
+      ) {
         return isOfficeIp;
       }
       return app.supported_countries?.some((c: string) => c === country);
@@ -220,9 +223,16 @@ export const GET = async (request: NextRequest) => {
 
   // ANCHOR: Filter highlights apps by country
   if (country && highlightsApps.length > 0) {
-    highlightsApps = highlightsApps.filter((app) =>
-      app.supported_countries?.some((c: string) => c === country),
-    );
+    highlightsApps = highlightsApps.filter((app) => {
+      if (
+        app.app_id === nativeIdToActualId.grants &&
+        !app.supported_countries?.some((c: string) => c === country)
+      ) {
+        return isOfficeIp;
+      }
+
+      return app.supported_countries?.some((c: string) => c === country);
+    });
   }
 
   // ANCHOR: Fetch app stats from metrics service
