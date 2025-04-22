@@ -211,6 +211,7 @@ export const GET = async (request: NextRequest) => {
     cloudfrontIp,
     forwarderForHeader,
     forwardedForIp,
+    forceShowGrants,
   });
 
   // ANCHOR: Filter top apps by country
