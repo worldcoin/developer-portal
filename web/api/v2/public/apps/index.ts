@@ -39,6 +39,7 @@ const queryParamsSchema = yup.object({
     .notRequired(),
   override_country: yup.string().notRequired(),
   show_external: yup.boolean().notRequired().default(false),
+  force_show_grants: yup.boolean().notRequired().default(false),
 });
 
 export const GET = async (request: NextRequest) => {
@@ -201,12 +202,16 @@ export const GET = async (request: NextRequest) => {
 
   const isOfficeIp = cloudfrontIp === OFFICE_IP || forwardedForIp === OFFICE_IP;
 
+  // TEMP
+  const forceShowGrants = parsedParams.force_show_grants;
+
   console.log({
     isOfficeIp,
     cloudfrontViewerAddress,
     cloudfrontIp,
     forwarderForHeader,
     forwardedForIp,
+    forceShowGrants,
   });
 
   // ANCHOR: Filter top apps by country
@@ -216,9 +221,15 @@ export const GET = async (request: NextRequest) => {
       const isCountrySupported = app.supported_countries?.some(
         (c: string) => c === country,
       );
+      // TEMP
+      if (forceShowGrants && isGrants) {
+        return true;
+      }
+
       if (isGrants && !isCountrySupported) {
         return isOfficeIp;
       }
+
       return isCountrySupported;
     });
   }
@@ -230,9 +241,15 @@ export const GET = async (request: NextRequest) => {
       const isCountrySupported = app.supported_countries?.some(
         (c: string) => c === country,
       );
+      // TEMP
+      if (forceShowGrants && isGrants) {
+        return true;
+      }
+
       if (isGrants && !isCountrySupported) {
         return isOfficeIp;
       }
+
       return isCountrySupported;
     });
   }
