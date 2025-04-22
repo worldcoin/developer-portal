@@ -212,27 +212,28 @@ export const GET = async (request: NextRequest) => {
   // ANCHOR: Filter top apps by country
   if (country && topApps.length > 0) {
     topApps = topApps.filter((app) => {
-      if (
-        app.app_id === nativeIdToActualId.grants &&
-        !app.supported_countries?.some((c: string) => c === country)
-      ) {
+      const isGrants = app.app_id === nativeIdToActualId.grants;
+      const isCountrySupported = app.supported_countries?.some(
+        (c: string) => c === country,
+      );
+      if (isGrants && !isCountrySupported) {
         return isOfficeIp;
       }
-      return app.supported_countries?.some((c: string) => c === country);
+      return isCountrySupported;
     });
   }
 
   // ANCHOR: Filter highlights apps by country
   if (country && highlightsApps.length > 0) {
     highlightsApps = highlightsApps.filter((app) => {
-      if (
-        app.app_id === nativeIdToActualId.grants &&
-        !app.supported_countries?.some((c: string) => c === country)
-      ) {
+      const isGrants = app.app_id === nativeIdToActualId.grants;
+      const isCountrySupported = app.supported_countries?.some(
+        (c: string) => c === country,
+      );
+      if (isGrants && !isCountrySupported) {
         return isOfficeIp;
       }
-
-      return app.supported_countries?.some((c: string) => c === country);
+      return isCountrySupported;
     });
   }
 
