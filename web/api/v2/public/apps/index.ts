@@ -22,7 +22,7 @@ import { formatAppMetadata, rankApps } from "@/api/helpers/app-store";
 import { compareVersions } from "@/lib/compare-versions";
 import {
   CONTACTS_APP_AVAILABLE_FROM,
-  OFFICE_IP,
+  OFFICE_IPS,
   STARTER_KIT_APP_AVAILABLE_FROM,
 } from "../constants";
 import {
@@ -200,7 +200,9 @@ export const GET = async (request: NextRequest) => {
     ? forwarderForHeader.split(",")[0].trim()
     : null;
 
-  const isOfficeIp = cloudfrontIp === OFFICE_IP || forwardedForIp === OFFICE_IP;
+  const isOfficeIp =
+    (cloudfrontIp && OFFICE_IPS.includes(cloudfrontIp)) ||
+    (forwardedForIp && OFFICE_IPS.includes(forwardedForIp));
 
   // TEMP
   const forceShowGrants = parsedParams.force_show_grants;
