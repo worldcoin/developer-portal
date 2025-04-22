@@ -93,6 +93,13 @@ export const GET = async (request: NextRequest) => {
 
   const isOfficeIp = cloudfrontIp === OFFICE_IP || forwardedForIp === OFFICE_IP;
 
+  console.log({
+    isOfficeIp,
+    cloudfrontViewerAddress,
+    cloudfrontIp,
+    forwarderForHeader,
+    forwardedForIp,
+  });
   if (parsedParams.override_country) {
     country = parsedParams.override_country;
   }
