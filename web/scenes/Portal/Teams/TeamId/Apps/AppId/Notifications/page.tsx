@@ -11,7 +11,6 @@ import { ChangeEvent, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 
-
 type NotificationFormData = {
   walletAddresses: string;
   title?: string;
@@ -156,7 +155,6 @@ export const NotificationsPage = () => {
           teamId: params.teamId,
           appId: params.appId,
           recipient_count: walletAddresses.length,
-
         });
         toast.success(`Notification sent successfully`);
         reset();
