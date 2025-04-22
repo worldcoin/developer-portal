@@ -156,7 +156,7 @@ export const NotificationsPage = () => {
           teamId: params.teamId,
           appId: params.appId,
           recipient_count: walletAddresses.length,
-          has_title: !!data.title?.trim(),
+
         });
         toast.success(`Notification sent successfully`);
         reset();
