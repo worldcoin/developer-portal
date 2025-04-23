@@ -176,8 +176,8 @@ export const rankApps = (
     const bNormalizedNewUsers = bNewUsers / maxNewUsers;
     const bNormalizedUniqueUsers = bUniqueUsers / maxUniqueUsers;
 
-    // 30% new_users_last_7_days
-    // 70% unique_users
+    // 70% new_users_last_7_days
+    // 30% unique_users
     const aScore = aNormalizedNewUsers * 0.7 + aNormalizedUniqueUsers * 0.3;
     const bScore = bNormalizedNewUsers * 0.7 + bNormalizedUniqueUsers * 0.3;
 
