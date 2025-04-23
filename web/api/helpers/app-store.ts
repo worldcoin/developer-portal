@@ -178,8 +178,8 @@ export const rankApps = (
 
     // 30% new_users_last_7_days
     // 70% unique_users
-    const aScore = aNormalizedNewUsers * 0.3 + aNormalizedUniqueUsers * 0.7;
-    const bScore = bNormalizedNewUsers * 0.3 + bNormalizedUniqueUsers * 0.7;
+    const aScore = aNormalizedNewUsers * 0.7 + aNormalizedUniqueUsers * 0.3;
+    const bScore = bNormalizedNewUsers * 0.7 + bNormalizedUniqueUsers * 0.3;
 
     return bScore - aScore;
   });
