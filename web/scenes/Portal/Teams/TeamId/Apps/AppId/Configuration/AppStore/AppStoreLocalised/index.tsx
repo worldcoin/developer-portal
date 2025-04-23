@@ -725,9 +725,10 @@ export const AppStoreForm = (props: {
             </Typography>
 
             <Typography variant={TYPOGRAPHY.R4} className="text-grey-500">
-              A special &quot;Humans Only&quot; badge will be displayed on your
-              app&apos;s listings in the app store. This will prevent humans
-              that are not orb verified from using your app.
+              Checking this means your app is only useable by orb verified
+              users. This will prevent non verified users from downloading the
+              app but make you eligible for special feature opportunities in the
+              app store.
             </Typography>
             <div className="mt-3 flex gap-x-6">
               <Controller
