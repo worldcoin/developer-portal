@@ -1,5 +1,6 @@
 import { type Category, getLocalisedCategory } from "@/lib/categories";
 import {
+  NATIVE_MAPPED_APP_ID,
   whitelistedAppsContracts,
   whitelistedAppsPermit2,
 } from "@/lib/constants";
@@ -138,10 +139,11 @@ export const formatAppMetadata = async (
 
 const isDefaultPinnedNoGrants = (appId: string) => {
   return (
-    appId === "contacts" ||
     appId === "app_e8288209fbe1fc4a1b80619e925a79bd" || // learn
-    appId === "network" ||
-    appId === "invites"
+    appId === NATIVE_MAPPED_APP_ID.contacts ||
+    appId === NATIVE_MAPPED_APP_ID.network ||
+    appId === NATIVE_MAPPED_APP_ID["starter-kit"] ||
+    appId === NATIVE_MAPPED_APP_ID.invites
   );
 };
 
