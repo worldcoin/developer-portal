@@ -4,12 +4,17 @@ import { logger } from "@/lib/logger";
 import {
   PaymentMetadata,
   TokenPrecision,
+  TransactionMetadata,
   TransactionStatus,
 } from "@/lib/types";
 import { createSignedFetcher } from "aws-sigv4-fetch";
 
-export type GetAccumulativeTransactionDataReturnType = Awaited<
-  ReturnType<typeof getAccumulativeTransactionData>
+export type GetAccumulativePaymentsDataReturnType = Awaited<
+  ReturnType<typeof getAccumulativePaymentsData>
+>;
+
+export type GetAccumulativeTransactionsDataReturnType = Awaited<
+  ReturnType<typeof getAccumulativeTransactionsData>
 >;
 
 const calculateUSDAmount = (
@@ -25,10 +30,45 @@ const safelyAdd = (a: number, b: number) =>
 
 const roundToTwoDecimals = (num: number) => Math.round(num * 100) / 100;
 
-export const getAccumulativeTransactionData = async (
+/*
+  Helper function to fetch transaction data from the backend.
+*/
+const fetchTransactionData = async (
+  type: "payments" | "transactions",
+  appId: string,
+  url: string,
+) => {
+  const signedFetch = createSignedFetcher({
+    service: "execute-api",
+    region: process.env.TRANSACTION_BACKEND_REGION,
+  });
+
+  const response = await signedFetch(url, {
+    method: "GET",
+    headers: {
+      "User-Agent": "DevPortal/1.0",
+      "Content-Type": "application/json",
+    },
+  });
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(
+      `Failed to fetch ${type} data. Status: ${response.status}. Error: ${data}`,
+    );
+  }
+
+  return data;
+};
+
+/*
+  This function fetches both payment and transaction data for a given appId
+  and returns the accumulative transaction data.
+*/
+export const getAccumulativePaymentsData = async (
   appId: string,
 ): Promise<{
-  accumulativeTransactions: PaymentMetadata[];
+  accumulativePayments: PaymentMetadata[];
   accumulatedTokenAmountUSD: number;
 }> => {
   try {
@@ -36,28 +76,14 @@ export const getAccumulativeTransactionData = async (
       throw new Error("Internal payments endpoint must be set.");
     }
 
-    const signedFetch = createSignedFetcher({
-      service: "execute-api",
-      region: process.env.TRANSACTION_BACKEND_REGION,
-    });
+    let fetchPaymentsUrl = `${process.env.NEXT_SERVER_INTERNAL_PAYMENTS_ENDPOINT}/miniapp?miniapp-id=${appId}`;
 
-    let url = `${process.env.NEXT_SERVER_INTERNAL_PAYMENTS_ENDPOINT}/miniapp?miniapp-id=${appId}`;
-
-    const response = await signedFetch(url, {
-      method: "GET",
-      headers: {
-        "User-Agent": "DevPortal/1.0",
-        "Content-Type": "application/json",
-      },
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(
-        `Failed to fetch transaction data. Status: ${response.status}. Error: ${data}`,
-      );
-    }
+    // Anchor: Process Payments Data
+    const data = await fetchTransactionData(
+      "payments",
+      appId,
+      fetchPaymentsUrl,
+    );
 
     const sortedTransactions = (data?.result?.transactions || []).sort(
       (a: PaymentMetadata, b: PaymentMetadata) =>
@@ -78,7 +104,7 @@ export const getAccumulativeTransactionData = async (
       };
     };
 
-    const { accumulativeTransactions, accumulatedTokenAmountUSD } =
+    const { accumulativePayments, accumulatedTokenAmountUSD } =
       sortedTransactions.reduce(
         (acc, transaction) => {
           if (transaction.transactionStatus !== TransactionStatus.Mined) {
@@ -110,7 +136,7 @@ export const getAccumulativeTransactionData = async (
             ),
           );
 
-          acc.accumulativeTransactions.push({
+          acc.accumulativePayments.push({
             ...transaction,
             inputTokenAmount: String(acc.accumulatedTokenAmountUSD),
           });
@@ -121,12 +147,12 @@ export const getAccumulativeTransactionData = async (
           accumulatedTokenAmountWLD: 0,
           accumulatedTokenAmountUSDCE: 0,
           accumulatedTokenAmountUSD: 0,
-          accumulativeTransactions: [] as PaymentMetadata[],
+          accumulativePayments: [] as PaymentMetadata[],
         },
       );
 
     return {
-      accumulativeTransactions,
+      accumulativePayments,
       accumulatedTokenAmountUSD: roundToTwoDecimals(accumulatedTokenAmountUSD),
     };
   } catch (error) {
@@ -135,8 +161,62 @@ export const getAccumulativeTransactionData = async (
     });
 
     return {
-      accumulativeTransactions: [],
+      accumulativePayments: [],
       accumulatedTokenAmountUSD: 0,
+    };
+  }
+};
+
+export const getAccumulativeTransactionsData = async (
+  appId: string,
+): Promise<{
+  accumulativeTransactions: TransactionMetadata[];
+  accumulatedTransactionCount: number;
+}> => {
+  try {
+    if (!process.env.NEXT_SERVER_INTERNAL_PAYMENTS_ENDPOINT) {
+      throw new Error("Internal transactions endpoint must be set.");
+    }
+
+    let fetchTransactionsUrl = `${process.env.NEXT_SERVER_INTERNAL_PAYMENTS_ENDPOINT}/miniapp-actions?miniapp-id=${appId}`;
+
+    const transactionsData = await fetchTransactionData(
+      "transactions",
+      appId,
+      fetchTransactionsUrl,
+    );
+
+    const sortedTransactions = (
+      transactionsData?.result?.transactions || []
+    ).sort(
+      (a: TransactionMetadata, b: TransactionMetadata) =>
+        new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
+    ) as TransactionMetadata[];
+
+    // We only count successful transactions
+    const accumulatedTransactionCount = sortedTransactions.reduce(
+      (acc, transaction) => {
+        if (transaction.transactionStatus !== TransactionStatus.Mined) {
+          return acc;
+        }
+
+        return acc + 1;
+      },
+      0,
+    );
+
+    return {
+      accumulativeTransactions: sortedTransactions,
+      accumulatedTransactionCount,
+    };
+  } catch (error) {
+    logger.warn("Error fetching transaction data", {
+      error: JSON.stringify(error),
+    });
+
+    return {
+      accumulativeTransactions: [],
+      accumulatedTransactionCount: 0,
     };
   }
 };

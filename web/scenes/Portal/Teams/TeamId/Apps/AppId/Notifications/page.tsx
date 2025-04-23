@@ -6,6 +6,7 @@ import { Notification } from "@/components/Notification";
 import { TextArea } from "@/components/TextArea";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { useParams } from "next/navigation";
+import posthog from "posthog-js";
 import { ChangeEvent, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
@@ -150,6 +151,11 @@ export const NotificationsPage = () => {
       const result = await response.json();
 
       if (response.ok) {
+        posthog.capture("notification_sent", {
+          teamId: params.teamId,
+          appId: params.appId,
+          recipient_count: walletAddresses.length,
+        });
         toast.success(`Notification sent successfully`);
         reset();
       } else {
