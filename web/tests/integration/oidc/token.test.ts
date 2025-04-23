@@ -1,4 +1,4 @@
-import handleOIDCToken from "@/api/v1/oidc/token";
+import handleOIDCToken from "@/pages/api/v1/oidc/token";
 import { createHash } from "crypto";
 import * as jose from "jose";
 import { NextApiRequest, NextApiResponse } from "next";
