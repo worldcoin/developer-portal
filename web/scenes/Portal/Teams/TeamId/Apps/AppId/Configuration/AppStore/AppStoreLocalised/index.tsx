@@ -321,7 +321,8 @@ export const AppStoreForm = (props: {
         ? appMetadata?.support_link.replace("mailto:", "")
         : "",
       support_link: isSupportEmail ? "" : appMetadata?.support_link,
-      is_android_only: appMetadata?.is_android_only ?? null,
+      is_android_only: appMetadata?.is_android_only,
+      is_for_humans_only: appMetadata?.is_for_humans_only,
     },
   });
 
@@ -465,6 +466,7 @@ export const AppStoreForm = (props: {
           supported_countries: data.supported_countries,
           category: data.category,
           is_android_only: data.is_android_only,
+          is_for_humans_only: data.is_for_humans_only,
         });
         await refetchAppMetadata();
         toast.success("App information updated successfully");
@@ -665,7 +667,7 @@ export const AppStoreForm = (props: {
           />
           <div className="grid gap-y-3">
             <Typography variant={TYPOGRAPHY.H7} className="text-grey-700">
-              Compliance
+              Compliance <span className="text-system-error-500">*</span>
             </Typography>
             <Typography variant={TYPOGRAPHY.R4} className="text-grey-500">
               Does your app have functionality that might potentially be
@@ -678,7 +680,7 @@ export const AppStoreForm = (props: {
               >
                 defined by Apple here
               </Link>
-              ?<span className="text-system-error-500">*</span>
+              ?
             </Typography>
 
             <div className="mt-3 flex gap-x-6">
@@ -712,6 +714,52 @@ export const AppStoreForm = (props: {
                 className="mt-1 text-system-error-500"
               >
                 {errors.is_android_only.message}
+              </Typography>
+            )}
+          </div>
+
+          <div className="grid gap-y-3">
+            <Typography variant={TYPOGRAPHY.H7} className="text-grey-700">
+              Is your app for verified humans only?{" "}
+              <span className="text-system-error-500">*</span>
+            </Typography>
+
+            <Typography variant={TYPOGRAPHY.R4} className="text-grey-500">
+              A special &quot;Humans Only&quot; badge will be displayed on your
+              app&apos;s listings in the app store. This will prevent humans
+              that are not orb verified from using your app.
+            </Typography>
+            <div className="mt-3 flex gap-x-6">
+              <Controller
+                name="is_for_humans_only"
+                control={control}
+                disabled={!isEditable || !isEnoughPermissions}
+                render={({ field }) => (
+                  <>
+                    <Radio
+                      label="Yes"
+                      value="true"
+                      checked={field.value === true}
+                      onChange={() => field.onChange(true)}
+                      disabled={!isEditable || !isEnoughPermissions}
+                    />
+                    <Radio
+                      label="No"
+                      value="false"
+                      checked={field.value === false}
+                      onChange={() => field.onChange(false)}
+                      disabled={!isEditable || !isEnoughPermissions}
+                    />
+                  </>
+                )}
+              />
+            </div>
+            {errors.is_for_humans_only && (
+              <Typography
+                variant={TYPOGRAPHY.R4}
+                className="mt-1 text-system-error-500"
+              >
+                {errors.is_for_humans_only.message}
               </Typography>
             )}
           </div>
