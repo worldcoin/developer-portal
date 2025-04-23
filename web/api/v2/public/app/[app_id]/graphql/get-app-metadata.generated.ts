@@ -40,7 +40,7 @@ export type GetAppMetadataQuery = {
     verification_status: string;
     is_allowed_unlimited_notifications?: boolean | null;
     max_notifications_per_day?: number | null;
-    is_android_only?: boolean | null;
+    is_android_only: boolean;
     is_for_humans_only: boolean;
     localisations: Array<{
       __typename?: "localisations";
