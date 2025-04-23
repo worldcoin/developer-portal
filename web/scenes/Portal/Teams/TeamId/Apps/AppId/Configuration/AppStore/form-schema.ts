@@ -32,6 +32,10 @@ const isAndroidOnlySchema = yup
   .boolean()
   .typeError("This field is required")
   .required("This field is required");
+const isForHumansOnlySchema = yup
+  .boolean()
+  .typeError("This field is required")
+  .required("This field is required");
 
 export const schema = yup.object({
   name: appNameSchema,
@@ -46,6 +50,7 @@ export const schema = yup.object({
   support_link: supportLinkSchema,
   support_email: supportEmailSchema,
   is_android_only: isAndroidOnlySchema,
+  is_for_humans_only: isForHumansOnlySchema,
   supported_countries: supportedCountriesSchema,
   supported_languages: yup
     .array(yup.string().required("This field is required"))
@@ -92,6 +97,7 @@ export const updateAppSupportInfoInitialSchema = yup.object({
   supported_countries: supportedCountriesSchema,
   category: categorySchema,
   is_android_only: isAndroidOnlySchema,
+  is_for_humans_only: isForHumansOnlySchema,
 });
 
 export type UpdateAppSupportInfoInitialSchema = yup.Asserts<

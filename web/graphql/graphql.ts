@@ -466,7 +466,7 @@ export type Action_Bool_Exp = {
 export enum Action_Constraint {
   /** unique or primary key constraint on columns "action", "app_id" */
   ActionAppIdActionKey = "action_app_id_action_key",
-  /** unique or primary key constraint on columns "external_nullifier", "app_id" */
+  /** unique or primary key constraint on columns "app_id", "external_nullifier" */
   ActionAppIdExternalNullifierKey = "action_app_id_external_nullifier_key",
   /** unique or primary key constraint on columns "id" */
   ActionPkey = "action_pkey",
@@ -1795,7 +1795,7 @@ export type App_Metadata = {
   id: Scalars["String"]["output"];
   integration_url: Scalars["String"]["output"];
   is_allowed_unlimited_notifications?: Maybe<Scalars["Boolean"]["output"]>;
-  is_android_only?: Maybe<Scalars["Boolean"]["output"]>;
+  is_android_only: Scalars["Boolean"]["output"];
   is_developer_allow_listing: Scalars["Boolean"]["output"];
   is_for_humans_only: Scalars["Boolean"]["output"];
   is_reviewer_app_store_approved: Scalars["Boolean"]["output"];
