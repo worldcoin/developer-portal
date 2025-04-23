@@ -35,6 +35,7 @@ query FetchAppMetadata($id: String!) {
       is_allowed_unlimited_notifications
       max_notifications_per_day
       is_android_only
+      is_for_humans_only
     }
     verified_app_metadata: app_metadata(
       where: { verification_status: { _eq: "verified" } }
