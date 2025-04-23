@@ -141,12 +141,41 @@ export const rankApps = (
   apps: AppStoreFormattedFields[],
   appStats: AppStatsReturnType,
 ) => {
+  // find maximum values for normalization
+  let maxNewUsers = 0;
+  let maxUniqueUsers = 0;
+
+  // first pass to determine maximum values
+  appStats.forEach((stat) => {
+    maxNewUsers = Math.max(maxNewUsers, stat.new_users_last_7_days ?? 0);
+    maxUniqueUsers = Math.max(maxUniqueUsers, stat.unique_users ?? 0);
+  });
+
+  // ensure we don't divide by zero
+  maxNewUsers = maxNewUsers === 0 ? 1 : maxNewUsers;
+  maxUniqueUsers = maxUniqueUsers === 0 ? 1 : maxUniqueUsers;
+
   return apps.sort((a, b) => {
     const aStat = appStats.find((stat) => stat.app_id === a.app_id);
     const bStat = appStats.find((stat) => stat.app_id === b.app_id);
 
-    return (
-      (bStat?.new_users_last_7_days ?? 0) - (aStat?.new_users_last_7_days ?? 0)
-    );
+    // default to 0 if stats not found
+    const aNewUsers = aStat?.new_users_last_7_days ?? 0;
+    const aUniqueUsers = aStat?.unique_users ?? 0;
+    const bNewUsers = bStat?.new_users_last_7_days ?? 0;
+    const bUniqueUsers = bStat?.unique_users ?? 0;
+
+    // normalize values to 0-1 scale
+    const aNormalizedNewUsers = aNewUsers / maxNewUsers;
+    const aNormalizedUniqueUsers = aUniqueUsers / maxUniqueUsers;
+    const bNormalizedNewUsers = bNewUsers / maxNewUsers;
+    const bNormalizedUniqueUsers = bUniqueUsers / maxUniqueUsers;
+
+    // 30% new_users_last_7_days
+    // 70% unique_users
+    const aScore = aNormalizedNewUsers * 0.3 + aNormalizedUniqueUsers * 0.7;
+    const bScore = bNormalizedNewUsers * 0.3 + bNormalizedUniqueUsers * 0.7;
+
+    return bScore - aScore;
   });
 };
