@@ -51,6 +51,14 @@ export const loginErrors: Record<LoginErrorCode, string> = {
     "Your email has not been verified. Please check your email for a verification link.",
 };
 
+export const NATIVE_MAPPED_APP_ID = {
+  grants: "grants",
+  invites: "invites",
+  network: "network",
+  contacts: "contacts",
+  "starter-kit": "starter-kit",
+};
+
 export const NativeAppToAppIdMapping: Record<string, Record<string, string>> = {
   dev: {
     TEST_APP: "app_test_123",
