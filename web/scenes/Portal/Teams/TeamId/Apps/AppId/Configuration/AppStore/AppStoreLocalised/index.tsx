@@ -4,6 +4,7 @@ import { DecoratedButton } from "@/components/DecoratedButton";
 import { ChevronLeftIcon } from "@/components/Icons/ChevronLeftIcon";
 import { ChevronRightIcon } from "@/components/Icons/ChevronRightIcon";
 import { Input } from "@/components/Input";
+import { Link } from "@/components/Link";
 import { Notification } from "@/components/Notification";
 import { Radio } from "@/components/Radio";
 import { SelectMultiple } from "@/components/SelectMultiple";
@@ -664,16 +665,22 @@ export const AppStoreForm = (props: {
           />
           <div className="grid gap-y-3">
             <Typography variant={TYPOGRAPHY.H7} className="text-grey-700">
-              Does your app have any of these?{" "}
-              <span className="text-system-error-500">*</span>
+              Compliance
+            </Typography>
+            <Typography variant={TYPOGRAPHY.R4} className="text-grey-500">
+              Does your app have functionality that might potentially be
+              construed as gambling or the purchase of digital in game items as{" "}
+              <Link
+                href="https://developer.apple.com/app-store/review/guidelines/#business"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline"
+              >
+                defined by Apple here
+              </Link>
+              ?<span className="text-system-error-500">*</span>
             </Typography>
 
-            <Typography variant={TYPOGRAPHY.R4} className="text-grey-500">
-              <li>Gambling</li>
-              <li>
-                In-app purchases of digital goods, consumables, subscriptions
-              </li>
-            </Typography>
             <div className="mt-3 flex gap-x-6">
               <Controller
                 name="is_android_only"
@@ -786,13 +793,13 @@ export const AppStoreForm = (props: {
               <Notification variant="warning">
                 <div className="text-sm">
                   <h3 className="font-medium text-yellow-800">
-                    Gambling in certain SEA countries
+                    Gambling in certain countries
                   </h3>
                   <div className="mt-2 text-yellow-700">
-                    Please note that Indonesia, Malaysia, and Thailand do not
-                    allow chance-based/gambling mini apps. Make sure your app
-                    proposals and updates for these regions comply with local
-                    regulations.
+                    Please note that Indonesia, Malaysia, Thailand, United
+                    States and Poland do not allow chance-based/gambling mini
+                    apps. Make sure your app proposals and updates for these
+                    regions comply with local regulations.
                   </div>
                 </div>
               </Notification>
