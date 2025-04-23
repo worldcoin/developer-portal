@@ -136,6 +136,15 @@ export const formatAppMetadata = async (
   };
 };
 
+const isDefaultPinnedNoGrants = (appId: string) => {
+  return (
+    appId === "contacts" ||
+    appId === "app_e8288209fbe1fc4a1b80619e925a79bd" || // learn
+    appId === "network" ||
+    appId === "invites"
+  );
+};
+
 // Cached thus this is not that expensive
 export const rankApps = (
   apps: AppStoreFormattedFields[],
@@ -161,6 +170,20 @@ export const rankApps = (
   maxUniqueUsers = maxUniqueUsers === 0 ? 1 : maxUniqueUsers;
 
   return apps.sort((a, b) => {
+    // move specific apps to the end
+    if (
+      isDefaultPinnedNoGrants(a.app_id) &&
+      !isDefaultPinnedNoGrants(b.app_id)
+    ) {
+      return 1; // a goes after b
+    }
+    if (
+      !isDefaultPinnedNoGrants(a.app_id) &&
+      isDefaultPinnedNoGrants(b.app_id)
+    ) {
+      return -1; // a goes before b
+    }
+
     const aStat = appStoreAppStats.find((stat) => stat.app_id === a.app_id);
     const bStat = appStoreAppStats.find((stat) => stat.app_id === b.app_id);
 
@@ -176,8 +199,7 @@ export const rankApps = (
     const bNormalizedNewUsers = bNewUsers / maxNewUsers;
     const bNormalizedUniqueUsers = bUniqueUsers / maxUniqueUsers;
 
-    // 70% new_users_last_7_days
-    // 30% unique_users
+    // 50% new_users_last_7_days, 50% unique_users
     const aScore = aNormalizedNewUsers * 0.5 + aNormalizedUniqueUsers * 0.5;
     const bScore = bNormalizedNewUsers * 0.5 + bNormalizedUniqueUsers * 0.5;
 
