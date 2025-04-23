@@ -3,7 +3,7 @@ import { OIDCScopes } from "@/legacy/backend/oidc";
 import { VerificationLevel } from "@worldcoin/idkit-core";
 import { createMocks } from "node-mocks-http";
 
-import handleOIDCUserinfo from "@/api/v1/oidc/userinfo";
+import handleOIDCUserinfo from "@/pages/api/v1/oidc/userinfo";
 import { NextApiRequest, NextApiResponse } from "next";
 
 jest.mock("legacy/backend/kms", () =>

@@ -1,5 +1,5 @@
-import handleOIDCValidate from "@/api/v1/oidc/validate";
 import { OIDCErrorCodes } from "@/legacy/backend/oidc";
+import handleOIDCValidate from "@/pages/api/v1/oidc/validate";
 import { NextApiRequest, NextApiResponse } from "next";
 import { createMocks } from "node-mocks-http";
 
