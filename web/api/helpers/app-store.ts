@@ -141,12 +141,17 @@ export const rankApps = (
   apps: AppStoreFormattedFields[],
   appStats: AppStatsReturnType,
 ) => {
-  // find maximum values for normalization
   let maxNewUsers = 0;
   let maxUniqueUsers = 0;
 
-  // first pass to determine maximum values
-  appStats.forEach((stat) => {
+  // determine maximum values among apps that
+  // are present in the current app store
+  const appIdsSet = new Set<string>(apps.map((app) => app.app_id));
+  const appStoreAppStats = appStats.filter((stat) =>
+    appIdsSet.has(stat.app_id),
+  );
+
+  appStoreAppStats.forEach((stat) => {
     maxNewUsers = Math.max(maxNewUsers, stat.new_users_last_7_days ?? 0);
     maxUniqueUsers = Math.max(maxUniqueUsers, stat.unique_users ?? 0);
   });
@@ -156,8 +161,8 @@ export const rankApps = (
   maxUniqueUsers = maxUniqueUsers === 0 ? 1 : maxUniqueUsers;
 
   return apps.sort((a, b) => {
-    const aStat = appStats.find((stat) => stat.app_id === a.app_id);
-    const bStat = appStats.find((stat) => stat.app_id === b.app_id);
+    const aStat = appStoreAppStats.find((stat) => stat.app_id === a.app_id);
+    const bStat = appStoreAppStats.find((stat) => stat.app_id === b.app_id);
 
     // default to 0 if stats not found
     const aNewUsers = aStat?.new_users_last_7_days ?? 0;
