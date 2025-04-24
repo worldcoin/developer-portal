@@ -142,7 +142,7 @@ export const GET = async (req: NextRequest) => {
 
   const data = await res.json();
 
-  if (!data?.transactions || data.transactions.length === 0) {
+  if (!data?.result?.transactions || data.result.transactions.length === 0) {
     // TODO: Remove this once I see what the response is. Something is wrong with the response from the backend.
     console.log(JSON.stringify(data, null, 2));
     return corsHandler(
@@ -156,7 +156,7 @@ export const GET = async (req: NextRequest) => {
     );
   }
 
-  const response = NextResponse.json(data, { status: 200 });
+  const response = NextResponse.json(data.result, { status: 200 });
   return corsHandler(response);
 };
 
