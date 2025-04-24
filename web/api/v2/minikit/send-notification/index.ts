@@ -31,18 +31,20 @@ const sendNotificationBodySchema = yup.object({
     .strict()
     .required()
     .max(200)
-    .matches(
-      allowCommonCharactersAndEmojisRegex,
-      "Message can only contain letters, numbers, punctuation, and spaces",
+    .test(
+      "valid-message-with-emojis",
+      "Message can only contain letters, numbers, punctuation, emojis, and spaces",
+      allowCommonCharactersAndEmojisRegex.test,
     ),
   title: yup
     .string()
     .strict()
     .optional()
     .max(30)
-    .matches(
-      allowTitleAndEmojisRegex,
-      "Title can only contain letters, numbers, punctuation, and spaces",
+    .test(
+      "valid-title-with-emojis",
+      "Title can only contain letters, numbers, punctuation, emojis, and spaces",
+      allowTitleAndEmojisRegex.test,
     ),
   mini_app_path: yup.string().strict().required(),
 });

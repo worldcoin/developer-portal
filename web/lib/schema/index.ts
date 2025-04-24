@@ -1,5 +1,6 @@
 // a place for common schema definitions that should remain uniform across the app
 
+import getEmojiRegex from "emoji-regex";
 import * as yup from "yup";
 
 /** use for entity ids (gen_random_friendly_id) */
@@ -42,13 +43,43 @@ export const allowedCommonCharactersRegex =
 export const allowedTitleCharactersRegex =
   /^[\u3000-\u303F\u4E00-\u9FFF\u3040-\u309F\u30A0-\u30FF\uFF00-\uFFEF\p{Letter}\p{Mark}\s0-9!,:/+&$._-]+$/u;
 
-/** use for common characters and emojis */
-export const allowCommonCharactersAndEmojisRegex =
-  /^[\u{1F000}-\u{1F9FF}\u3000-\u303F\u4E00-\u9FFF\u3040-\u309F\u30A0-\u30FF\uFF00-\uFFEF\p{Letter}\p{Mark}\p{Punctuation}\s0-9+$]*[^{\\}]$/u;
+const emojiRegex = getEmojiRegex();
 
-/** use for titles with emojis */
-export const allowTitleAndEmojisRegex =
-  /^[\u{1F000}-\u{1F9FF}/^[\u3000-\u303F\u4E00-\u9FFF\u3040-\u309F\u30A0-\u30FF\uFF00-\uFFEF\p{Letter}\p{Mark}\s0-9!,:/+&$._-]+$/u;
+/** use for common characters and emojis */
+export const allowCommonCharactersAndEmojisRegex = {
+  test: function (value?: string | undefined) {
+    if (!value) return true;
+
+    // remove all emojis first
+    let str = value;
+    str = str.replace(emojiRegex, "");
+
+    // if string is empty after removing emojis, it's valid
+    if (str.length === 0) return true;
+
+    // check if remaining characters match allowed common characters
+    return allowedCommonCharactersRegex.test(str);
+  },
+};
+
+/**
+ * use for titles with emojis
+ */
+export const allowTitleAndEmojisRegex = {
+  test: function (value?: string | undefined) {
+    if (!value) return true;
+
+    // remove all emojis first
+    let str = value;
+    str = str.replace(emojiRegex, "");
+
+    // if string is empty after removing emojis, it's valid
+    if (str.length === 0) return true;
+
+    // check if remaining characters match allowed title characters
+    return allowedTitleCharactersRegex.test(str);
+  },
+};
 
 export const httpsLinkSchema = ({
   excludeEmptyString = false,
