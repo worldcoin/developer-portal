@@ -3,7 +3,7 @@ import { AppProfileGalleryPage } from "@/scenes/Portal/Teams/TeamId/Apps/AppId/C
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: generateMetaTitle({ left: "Miniapps" }),
+  title: generateMetaTitle({ left: "Mini Apps" }),
 };
 
 export default AppProfileGalleryPage;
