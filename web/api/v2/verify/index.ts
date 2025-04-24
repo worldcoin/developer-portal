@@ -93,8 +93,9 @@ export async function POST(
     });
   }
 
+  // We allow on-chain actions to be verified here, but we indicate to developers that they shouldn't be verified here
   if (app.engine !== "cloud") {
-    message = "This action runs on-chain and can't be verified here.";
+    message = "This action runs on-chain and shouldn't be verified here.";
   }
 
   const { action, nullifier } = {

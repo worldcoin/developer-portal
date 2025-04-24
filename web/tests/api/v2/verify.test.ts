@@ -110,6 +110,12 @@ const validApp = {
   actions: [validAction],
 };
 
+const validOnchainApp = {
+  id: stagingAppId,
+  is_staging: true,
+  engine: "onchain",
+};
+
 afterEach(() => {
   jest.resetAllMocks();
 });
@@ -161,6 +167,60 @@ describe("/api/v2/verify", () => {
     expect(body).toEqual({
       success: true,
       uses: 1,
+      message: "Proof verified successfully",
+      action: validBody.action,
+      created_at: validNullifier.created_at,
+      max_uses: 0,
+      verification_level: VerificationLevel.Orb,
+      nullifier_hash: semaphoreProofParamsMock.nullifier_hash,
+    });
+  });
+
+  it("can verify onchain action", async () => {
+    const mockReq = createMockRequest(getUrl(stagingAppId), validBody);
+    const ctx = { params: { app_id: stagingAppId } };
+
+    const fetchAppResponse = {
+      app: [
+        {
+          ...validOnchainApp,
+          actions: [{ ...validAction, nullifiers: [] }],
+        },
+      ],
+    };
+
+    // NOTE: mock for the fetch in verifyProof
+    mockFetch({
+      body: {
+        status: "mined",
+      },
+      ok: true,
+      status: 200,
+    });
+
+    FetchAppAction.mockResolvedValue(fetchAppResponse);
+
+    AtomicUpsertNullifier.mockResolvedValue({
+      update_nullifier: {
+        affected_rows: 1,
+        returning: [
+          {
+            nullifier_hash: semaphoreProofParamsMock.nullifier_hash,
+            created_at: validNullifier.created_at,
+            uses: 1,
+          },
+        ],
+      },
+    });
+
+    const response = await POST(mockReq, ctx);
+    expect(response.status).toBe(200);
+    const body = await response.json();
+
+    expect(body).toEqual({
+      success: true,
+      uses: 1,
+      message: "This action runs on-chain and shouldn't be verified here.",
       action: validBody.action,
       created_at: validNullifier.created_at,
       max_uses: 0,
@@ -218,6 +278,7 @@ describe("/api/v2/verify", () => {
       success: true,
       uses: 1,
       action: validBody.action,
+      message: "Proof verified successfully",
       created_at: validNullifier.created_at,
       max_uses: 0,
       verification_level: VerificationLevel.Orb,
@@ -275,6 +336,7 @@ describe("/api/v2/verify", () => {
     expect(body).toEqual({
       success: true,
       uses: 1,
+      message: "Proof verified successfully",
       action: validBody.action,
       created_at: validNullifier.created_at,
       max_uses: 0,
