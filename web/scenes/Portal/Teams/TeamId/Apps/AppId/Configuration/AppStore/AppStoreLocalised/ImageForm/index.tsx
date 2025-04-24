@@ -31,7 +31,9 @@ import {
 } from "../graphql/client/fetch-localisation.generated";
 import { useUpdateHeroImageMutation } from "./graphql/client/update-hero-image.generated";
 import { useUpdateLocalisationHeroImageMutation } from "./graphql/client/update-localisation-hero-image.generated";
+import { useUpdateLocalisationMetaTagImageMutation } from "./graphql/client/update-localisation-meta-tag-image.generated";
 import { useUpdateLocalisationShowcaseImagesMutation } from "./graphql/client/update-localisation-showcase-images.generated";
+import { useUpdateMetaTagImageMutation } from "./graphql/client/update-meta-tag-image.generated";
 import { useUpdateShowcaseImagesMutation } from "./graphql/client/update-showcase-image.generated";
 import { ImageDisplay } from "./ImageDisplay";
 import ImageLoader from "./ImageLoader";
@@ -54,6 +56,7 @@ const SHOWCASE_IMAGE_NAMES = [
 
 type ImageUpdateFunctions = {
   updateHeroImage: (heroImageUrl: string) => Promise<any>;
+  updateMetaTagImage: (metaTagImageUrl: string) => Promise<any>;
   updateShowcaseImages: (showcaseImgUrls: string[]) => Promise<any>;
 };
 
@@ -69,15 +72,19 @@ export const ImageForm = (props: ImageFormTypes) => {
   } = props;
   const [unverifiedImages, setUnverifiedImages] = useAtom(unverifiedImageAtom);
   const [heroImageUploading, setHeroImageUploading] = useState(false);
+  const [metaTagImageUploading, setMetaTagImageUploading] = useState(false);
   const [showcaseImageUploading, setShowcaseImageUploading] = useState(false);
   const [isAnyOperationInProgress, setIsAnyOperationInProgress] =
     useState(false);
   const [viewMode] = useAtom(viewModeAtom);
   const { user } = useUser() as Auth0SessionUser;
   const [updateHeroImageMutation] = useUpdateHeroImageMutation();
+  const [updateMetaTagImageMutation] = useUpdateMetaTagImageMutation();
   const [updateShowcaseImagesMutation] = useUpdateShowcaseImagesMutation();
   const [updateLocalisationHeroImageMutation] =
     useUpdateLocalisationHeroImageMutation();
+  const [updateLocalisationMetaTagImageMutation] =
+    useUpdateLocalisationMetaTagImageMutation();
   const [updateLocalisationShowcaseImagesMutation] =
     useUpdateLocalisationShowcaseImagesMutation();
   const { getImage, uploadViaPresignedPost, validateImageAspectRatio } =
@@ -118,6 +125,25 @@ export const ImageForm = (props: ImageFormTypes) => {
             variables: {
               app_metadata_id: appMetadataId,
               hero_image_url: heroImageUrl,
+            },
+            refetchQueries: [
+              {
+                query: FetchAppMetadataDocument,
+                variables: { id: appId },
+              },
+              {
+                query: FetchImagesDocument,
+                variables: { id: appId, team_id: teamId, locale },
+              },
+            ],
+            awaitRefetchQueries: true,
+          });
+        },
+        updateMetaTagImage: async (metaTagImageUrl: string) => {
+          return updateMetaTagImageMutation({
+            variables: {
+              app_metadata_id: appMetadataId,
+              meta_tag_image_url: metaTagImageUrl,
             },
             refetchQueries: [
               {
@@ -177,6 +203,28 @@ export const ImageForm = (props: ImageFormTypes) => {
             awaitRefetchQueries: true,
           });
         },
+        updateMetaTagImage: async (metaTagImageUrl: string) => {
+          return updateLocalisationMetaTagImageMutation({
+            variables: {
+              localisation_id: localisation?.id ?? "",
+              meta_tag_image_url: metaTagImageUrl,
+            },
+            refetchQueries: [
+              {
+                query: FetchLocalisationDocument,
+                variables: {
+                  id: appMetadataId,
+                  locale: locale,
+                },
+              },
+              {
+                query: FetchImagesDocument,
+                variables: { id: appId, team_id: teamId, locale },
+              },
+            ],
+            awaitRefetchQueries: true,
+          });
+        },
         updateShowcaseImages: async (showcaseImgUrls: string[]) => {
           return updateLocalisationShowcaseImagesMutation({
             variables: {
@@ -212,6 +260,8 @@ export const ImageForm = (props: ImageFormTypes) => {
     updateShowcaseImagesMutation,
     updateLocalisationHeroImageMutation,
     updateLocalisationShowcaseImagesMutation,
+    updateMetaTagImageMutation,
+    updateLocalisationMetaTagImageMutation,
   ]);
 
   const showcaseImgFileNames = useMemo(
@@ -254,6 +304,26 @@ export const ImageForm = (props: ImageFormTypes) => {
       });
 
       const result = await updateFunctions.updateHeroImage("");
+      if (result instanceof Error) {
+        throw result;
+      }
+    } catch (error) {
+      console.error("Error Deleting Image: ", error);
+      toast.error("Error deleting image");
+    } finally {
+      setIsAnyOperationInProgress(false);
+    }
+  }, [setUnverifiedImages, unverifiedImages, updateFunctions]);
+
+  const deleteMetaTagImage = useCallback(async () => {
+    try {
+      setIsAnyOperationInProgress(true);
+      setUnverifiedImages({
+        ...unverifiedImages,
+        meta_tag_image_url: "",
+      });
+
+      const result = await updateFunctions.updateMetaTagImage("");
       if (result instanceof Error) {
         throw result;
       }
@@ -315,9 +385,14 @@ export const ImageForm = (props: ImageFormTypes) => {
       const fileTypeEnding = file.type.split("/")[1];
 
       setIsAnyOperationInProgress(true);
-      imageType === "hero_image"
-        ? setHeroImageUploading(true)
-        : setShowcaseImageUploading(true);
+      if (imageType === "hero_image") {
+        setHeroImageUploading(true);
+      } else if (imageType === "meta_tag_image") {
+        setMetaTagImageUploading(true);
+      } else {
+        setShowcaseImageUploading(true);
+      }
+
       try {
         await validateImageAspectRatio(file, 1, 1);
 
@@ -357,6 +432,16 @@ export const ImageForm = (props: ImageFormTypes) => {
             [`${imageType}_url`]: imageUrl,
           });
           setHeroImageUploading(false);
+        } else if (imageType === "meta_tag_image") {
+          const result = await updateFunctions.updateMetaTagImage(fileName);
+          if (result instanceof Error) {
+            throw result;
+          }
+          setUnverifiedImages({
+            ...unverifiedImages,
+            [`${imageType}_url`]: imageUrl,
+          });
+          setMetaTagImageUploading(false);
         } else if (imageType.startsWith("showcase_img")) {
           const newShowcaseImgUrls = [...showcaseImgFileNames, fileName];
           const result =
@@ -427,6 +512,31 @@ export const ImageForm = (props: ImageFormTypes) => {
     locale,
   ]);
 
+  const metaTagImage = useMemo(() => {
+    if (appMetadata?.verification_status === "verified") {
+      const imageUrl = isEnglishLocale
+        ? appMetadata?.meta_tag_image_url
+        : localisation?.meta_tag_image_url;
+      if (!imageUrl) return null;
+      return getCDNImageUrl(
+        appId,
+        imageUrl,
+        true,
+        !isEnglishLocale ? locale : undefined,
+      );
+    } else {
+      return unverifiedImages.meta_tag_image_url;
+    }
+  }, [
+    appMetadata?.verification_status,
+    appMetadata?.meta_tag_image_url,
+    localisation?.meta_tag_image_url,
+    isEnglishLocale,
+    appId,
+    unverifiedImages.meta_tag_image_url,
+    locale,
+  ]);
+
   const showcaseImgUrls = useMemo(() => {
     if (appMetadata?.verification_status === "verified") {
       const urls = isEnglishLocale
@@ -459,18 +569,19 @@ export const ImageForm = (props: ImageFormTypes) => {
 
   return (
     <div className="grid gap-y-7">
+      {/* Featured image */}
       <div className="grid gap-y-3">
         <Typography variant={TYPOGRAPHY.H7} className="text-grey-900">
           Featured image
         </Typography>
         <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
           This image will be used for featuring your app on the homepage of
-          Worldcoin's app store.
+          Worldcoin&apos;s app store.
         </Typography>
       </div>
       {isLoadingImages && (
         <div className="size-fit">
-          <Skeleton className="h-32 w-32 rounded-lg" />
+          <Skeleton className="size-32 rounded-lg" />
         </div>
       )}
       {!isLoadingImages && !heroImage && !heroImageUploading && (
@@ -535,6 +646,84 @@ export const ImageForm = (props: ImageFormTypes) => {
         <ImageLoader name={"featured_image"} className="h-[132px]" />
       )}
 
+      {/* Meta tag image */}
+      <div className="grid gap-y-3">
+        <Typography variant={TYPOGRAPHY.H7} className="text-grey-900">
+          Meta tag image
+        </Typography>
+        <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
+          This image will be displayed as the OpenGraph meta tags image when
+          linking your app.
+        </Typography>
+      </div>
+      {isLoadingImages && (
+        <div className="size-fit">
+          <Skeleton className="size-32 rounded-lg" />
+        </div>
+      )}
+      {!isLoadingImages && !metaTagImage && !metaTagImageUploading && (
+        <ImageDropZone
+          width={1080}
+          height={1080}
+          disabled={
+            unverifiedImages.meta_tag_image_url !== "" ||
+            !isEnoughPermissions ||
+            !isEditable ||
+            isAnyOperationInProgress
+          }
+          uploadImage={uploadImage}
+          imageType={"meta_tag_image"}
+        >
+          <UploadIcon className="size-12 text-blue-500" />
+          <div className="gap-y-2">
+            <div className="text-center">
+              <Typography variant={TYPOGRAPHY.M3} className="text-blue-500">
+                Click to upload
+              </Typography>{" "}
+              <Typography variant={TYPOGRAPHY.R3} className="text-grey-700">
+                {" "}
+                or drag and drop
+              </Typography>
+            </div>
+            <Typography variant={TYPOGRAPHY.R5} className="text-grey-500">
+              {`JPG or PNG (max 500kB), required aspect ratio 2:1. \nRecommended size: ${1080}x${540}px`}
+            </Typography>
+          </div>
+        </ImageDropZone>
+      )}
+      {!isLoadingImages && metaTagImage && (
+        <div className="relative size-fit">
+          <ImageDisplay
+            src={metaTagImage}
+            type={viewMode}
+            width={300}
+            height={300}
+            className="h-auto w-32 rounded-lg"
+          />
+          <Button
+            type="button"
+            onClick={deleteMetaTagImage}
+            className={clsx(
+              "absolute -right-3 -top-3 flex size-8 items-center justify-center rounded-full bg-grey-100 hover:bg-grey-200",
+              {
+                hidden:
+                  !isEnoughPermissions ||
+                  !isEditable ||
+                  isAnyOperationInProgress,
+                "cursor-not-allowed opacity-50": isAnyOperationInProgress,
+              },
+            )}
+            disabled={isAnyOperationInProgress}
+          >
+            <TrashIcon />
+          </Button>
+        </div>
+      )}
+      {metaTagImageUploading && (
+        <ImageLoader name={"meta_tag_image"} className="h-[132px]" />
+      )}
+
+      {/* Showcase images */}
       <div className="grid gap-y-3">
         <Typography variant={TYPOGRAPHY.H7} className="text-grey-900">
           Showcase images
@@ -546,7 +735,7 @@ export const ImageForm = (props: ImageFormTypes) => {
       {isLoadingImages && (
         <div className="grid gap-4 md:grid-cols-3">
           {[1, 2, 3].map((index) => (
-            <Skeleton key={index} className="h-32 w-32 rounded-lg" />
+            <Skeleton key={index} className="size-32 rounded-lg" />
           ))}
         </div>
       )}

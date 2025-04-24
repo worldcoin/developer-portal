@@ -125,7 +125,7 @@ export const POST = async (req: NextRequest) => {
       );
     }
 
-    // For hero and showcase images, use localized versions if available and locale is not English
+    // For hero, meta tag and showcase images, use localized versions if available and locale is not English
     const heroImageUrl = localisation
       ? localisation.hero_image_url
       : app.hero_image_url;
@@ -163,6 +163,23 @@ export const POST = async (req: NextRequest) => {
       urlPromises.push({ showcase_img_urls: showcaseUrls });
     } else {
       urlPromises.push({ showcase_img_urls: [] });
+    }
+
+    const metaTagImageUrl = localisation
+      ? localisation.meta_tag_image_url
+      : app.meta_tag_image_url;
+
+    if (metaTagImageUrl) {
+      urlPromises.push(
+        getSignedUrl(
+          s3Client,
+          new GetObjectCommand({
+            Bucket: bucketName,
+            Key: `${objectKey}${localisation ? `${locale}/` : ""}${metaTagImageUrl}`,
+          }),
+          { expiresIn: 7200 },
+        ).then((url) => ({ meta_tag_image_url: url })),
+      );
     }
 
     const signedUrls = await Promise.all(urlPromises);
