@@ -1,20 +1,19 @@
 import { OIDCErrorCodes } from "@/api/helpers/oidc";
 import { POST } from "@/api/v1/oidc/authorize";
 import { createHash } from "crypto";
-import fetchMock from "jest-fetch-mock";
 import { NextRequest } from "next/server";
 import { semaphoreProofParamsMock } from "tests/api/__mocks__/proof.mock";
-import { validSemaphoreProofMock } from "tests/api/__mocks__/sequencer.mock";
 import { integrationDBClean, integrationDBExecuteQuery } from "../setup";
 import { testGetDefaultApp } from "../test-utils";
+
+// Mock the verifyProof function
+jest.mock("@/api/helpers/verify", () => ({
+  verifyProof: jest.fn().mockResolvedValue({ error: null }),
+}));
 
 beforeEach(async () => {
   await integrationDBClean();
   await global.RedisClient?.flushall();
-});
-
-beforeAll(() => {
-  fetchMock.enableMocks();
 });
 
 const pkceChallenge = (code_verifier: string) => {
@@ -57,11 +56,6 @@ describe("/api/v1/oidc/authorize", () => {
       },
       body: JSON.stringify(validParams(app_id)),
     });
-
-    // mocks sequencer response for proof verification
-    fetchMock
-      .mockIf(/^https:\/\/[a-z-]+\.crypto\.worldcoin\.org/)
-      .mockResponse(JSON.stringify(validSemaphoreProofMock));
 
     const response = await POST(req);
     const data = await response.json();
@@ -134,11 +128,6 @@ describe("/api/v1/oidc/authorize", () => {
       },
       body: JSON.stringify(validParams(app_id, true)),
     });
-
-    // mocks sequencer response for proof verification
-    fetchMock
-      .mockIf(/^https:\/\/[a-z-]+\.crypto\.worldcoin\.org/)
-      .mockResponse(JSON.stringify(validSemaphoreProofMock));
 
     const response = await POST(req);
     const data = await response.json();
