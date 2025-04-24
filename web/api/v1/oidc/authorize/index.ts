@@ -78,7 +78,33 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const body = await req.json();
+    let body;
+    try {
+      body = await req.json();
+    } catch (error) {
+      return corsHandler(
+        errorResponse({
+          statusCode: 400,
+          code: "invalid_request",
+          detail: "Invalid JSON body",
+          attribute: "body",
+          req,
+        }),
+      );
+    }
+
+    if (!body || typeof body !== "object") {
+      return corsHandler(
+        errorResponse({
+          statusCode: 400,
+          code: "invalid_request",
+          detail: "Request body must be a valid JSON object",
+          attribute: "body",
+          req,
+        }),
+      );
+    }
+
     const { isValid, parsedParams, handleError } = await validateRequestSchema({
       schema,
       value: body,
