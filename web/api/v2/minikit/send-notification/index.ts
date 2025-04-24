@@ -33,7 +33,7 @@ const sendNotificationBodySchema = yup.object({
     .max(200)
     .test(
       "valid-message-with-emojis",
-      "Message can only contain letters, numbers, punctuation, and spaces",
+      "Message can only contain letters, numbers, punctuation, emojis, and spaces",
       allowCommonCharactersAndEmojisRegex.test,
     ),
   title: yup
