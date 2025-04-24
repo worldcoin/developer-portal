@@ -22,6 +22,7 @@ export type FetchLocalisationQuery = {
     world_app_description: string;
     short_name: string;
     hero_image_url: string;
+    meta_tag_image_url?: string | null;
     showcase_img_urls?: Array<string> | null;
   }>;
 };
@@ -40,6 +41,7 @@ export const FetchLocalisationDocument = gql`
       world_app_description
       short_name
       hero_image_url
+      meta_tag_image_url
       showcase_img_urls
     }
   }

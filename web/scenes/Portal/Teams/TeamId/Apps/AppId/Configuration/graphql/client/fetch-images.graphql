@@ -6,6 +6,7 @@ query FetchImages($id: String!, $team_id: String!, $locale: String) {
   ) {
     logo_img_url
     hero_image_url
+    meta_tag_image_url
     showcase_img_urls
   }
 }

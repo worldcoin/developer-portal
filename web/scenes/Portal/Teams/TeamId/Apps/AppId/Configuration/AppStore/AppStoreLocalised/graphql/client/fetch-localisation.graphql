@@ -11,6 +11,7 @@ query FetchLocalisation($id: String!, $locale: String!) {
     world_app_description
     short_name
     hero_image_url
+    meta_tag_image_url
     showcase_img_urls
   }
 }

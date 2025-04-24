@@ -119,6 +119,7 @@ export type ImageGetAllUnverifiedImagesOutput = {
   __typename?: "ImageGetAllUnverifiedImagesOutput";
   hero_image_url?: Maybe<Scalars["String"]["output"]>;
   logo_img_url?: Maybe<Scalars["String"]["output"]>;
+  meta_tag_image_url?: Maybe<Scalars["String"]["output"]>;
   showcase_img_urls?: Maybe<Array<Scalars["String"]["output"]>>;
 };
 
