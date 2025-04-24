@@ -1,66 +1,32 @@
-import { OIDCErrorCodes, OIDCScopes } from "@/api/helpers/oidc";
-import { POST } from "@/api/v1/oidc/authorize";
-import { OIDCResponseType } from "@/lib/types";
+import {
+  OIDCErrorCodes,
+  OIDCScopes,
+  fetchOIDCAppQuery,
+  insertAuthCodeQuery,
+} from "@/legacy/backend/oidc";
+import { OIDCResponseType } from "@/legacy/lib/types";
+import handleOIDCAuthorize from "@/pages/api/v1/oidc/authorize";
 import { createPublicKey } from "crypto";
 import dayjs from "dayjs";
+import fetchMock from "jest-fetch-mock";
+import { when } from "jest-when";
 import { jwtVerify } from "jose";
-import { NextRequest } from "next/server";
-import { publicJwk } from "../../__mocks__/jwk";
-import { semaphoreProofParamsMock } from "../../__mocks__/proof.mock";
+import { NextApiRequest, NextApiResponse } from "next";
+import { createMocks } from "node-mocks-http";
+import { publicJwk } from "../__mocks__/jwk";
+import { semaphoreProofParamsMock } from "../__mocks__/proof.mock";
+import { validSemaphoreProofMock } from "../__mocks__/sequencer.mock";
 
-// Mock the external dependencies
-jest.mock("@/api/helpers/graphql", () => ({
-  getAPIServiceGraphqlClient: jest.fn(),
-}));
-
-jest.mock("@/api/helpers/kms", () =>
+jest.mock("legacy/backend/kms", () =>
   require("tests/api/__mocks__/kms.mock.ts"),
 );
 
-jest.mock("@/api/helpers/jwks", () =>
+jest.mock("legacy/backend/jwks", () =>
   require("tests/api/__mocks__/jwks.mock.ts"),
 );
 
-// Mock the GraphQL SDKs
-const FetchOIDCApp = jest.fn();
-const Nullifier = jest.fn();
-const UpsertNullifier = jest.fn();
-const InsertAuthCode = jest.fn();
-
-jest.mock("@/api/helpers/oidc/graphql/fetch-oidc-app.generated", () => ({
-  getSdk: () => ({
-    FetchOIDCApp,
-  }),
-}));
-
-jest.mock("@/api/v1/oidc/authorize/graphql/fetch-nullifier.generated", () => ({
-  getSdk: () => ({
-    Nullifier,
-  }),
-}));
-
-jest.mock("@/api/v1/oidc/authorize/graphql/upsert-nullifier.generated", () => ({
-  getSdk: () => ({
-    UpsertNullifier,
-  }),
-}));
-
-jest.mock("@/api/helpers/oidc/graphql/insert-auth-code.generated", () => ({
-  getSdk: () => ({
-    InsertAuthCode,
-  }),
-}));
-
-// Mock the verifyProof function
-jest.mock("@/api/helpers/verify", () => ({
-  verifyProof: jest.fn().mockResolvedValue({ error: null }),
-}));
-
-beforeEach(async () => {
-  await global.RedisClient?.flushall();
-
-  // Mock OIDC app fetch
-  FetchOIDCApp.mockResolvedValue({
+const fetchAppQueryResponse = () => ({
+  data: {
     app: [
       {
         id: "app_112233445566778",
@@ -81,18 +47,63 @@ beforeEach(async () => {
         ],
       },
     ],
-  });
+  },
+});
 
-  // Mock nullifier operations
-  Nullifier.mockResolvedValue({ nullifier: [] });
-  UpsertNullifier.mockResolvedValue({
-    insert_nullifier_one: { nullifier_hash: "0x123", id: "nil_123" },
-  });
+const requestReturnFn = jest.fn();
+const mutateReturnFn = jest.fn();
 
-  // Mock auth code insertion
-  InsertAuthCode.mockImplementation((args) => ({
-    insert_auth_code_one: { auth_code: args.auth_code },
-  }));
+jest.mock(
+  "legacy/backend/graphql",
+  jest.fn(() => ({
+    getAPIServiceClient: () => ({
+      query: requestReturnFn,
+      mutate: mutateReturnFn,
+    }),
+  })),
+);
+
+beforeEach(async () => {
+  await global.RedisClient?.flushall();
+
+  when(requestReturnFn)
+    .calledWith(
+      expect.objectContaining({
+        query: fetchOIDCAppQuery,
+      }),
+    )
+    .mockResolvedValue(fetchAppQueryResponse());
+
+  // Mock for nullifier insertion
+  when(mutateReturnFn)
+    .calledWith(
+      expect.objectContaining({
+        variables: {
+          object: {
+            nullifier_hash: expect.any(String),
+            merkle_root: expect.any(String),
+            verification_level: expect.any(String),
+            action_id: expect.any(String),
+          },
+        },
+      }),
+    )
+    .mockResolvedValue({
+      data: {
+        insert_nullifier_one: { nullifier_hash: "0x123", id: "nil_123" },
+      },
+    });
+
+  // Mock for auth code insertion for one-time use
+  when(mutateReturnFn)
+    .calledWith(expect.objectContaining({ mutation: insertAuthCodeQuery }))
+    .mockImplementation((args) => ({
+      data: { insert_auth_code_one: { auth_code: args.variables.auth_code } },
+    }));
+});
+
+beforeAll(() => {
+  fetchMock.enableMocks();
 });
 
 const VALID_REQUEST: Record<string, string> = {
@@ -113,24 +124,22 @@ describe("/api/v1/oidc/authorize [request validation]", () => {
       "app_id",
       "response_type",
       "redirect_uri",
+      // Scope is always required, but is validated in a separate test
     ];
     for (const attribute of required_attributes) {
       const body = { ...VALID_REQUEST, [attribute]: undefined };
       delete body[attribute];
-      const req = new NextRequest(
-        "http://localhost:3000/api/v1/oidc/authorize",
-        {
-          method: "POST",
-          body: JSON.stringify(body),
-        },
-      );
+      const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
+        method: "POST",
+        body,
+      });
 
-      const response = await POST(req);
-      const data = await response.json();
+      await handleOIDCAuthorize(req, res);
 
-      expect(response.status).toBe(400);
-      expect(data).toMatchObject({
-        code: "validation_error",
+      expect(res._getStatusCode()).toBe(400);
+      const response = res._getJSONData();
+      expect(response).toMatchObject({
+        code: "invalid",
         attribute,
         detail: "This attribute is required.",
       });
@@ -140,19 +149,16 @@ describe("/api/v1/oidc/authorize [request validation]", () => {
   test("openid scope is always required for OIDC requests", async () => {
     const invalid_scopes = ["invalid", "profile%20email", undefined, ""];
     for (const scope of invalid_scopes) {
-      const req = new NextRequest(
-        "http://localhost:3000/api/v1/oidc/authorize",
-        {
-          method: "POST",
-          body: JSON.stringify({ ...VALID_REQUEST, scope }),
-        },
-      );
+      const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
+        method: "POST",
+        body: { ...VALID_REQUEST, scope },
+      });
 
-      const response = await POST(req);
-      const data = await response.json();
+      await handleOIDCAuthorize(req, res);
 
-      expect(response.status).toBe(400);
-      expect(data).toMatchObject({
+      expect(res._getStatusCode()).toBe(400);
+      const response = res._getJSONData();
+      expect(response).toMatchObject({
         attribute: "scope",
         detail: "The openid scope is always required.",
       });
@@ -166,19 +172,16 @@ describe("/api/v1/oidc/authorize [request validation]", () => {
       "code invalid",
     ];
     for (const response_type of invalid_response_types) {
-      const req = new NextRequest(
-        "http://localhost:3000/api/v1/oidc/authorize",
-        {
-          method: "POST",
-          body: JSON.stringify({ ...VALID_REQUEST, response_type }),
-        },
-      );
+      const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
+        method: "POST",
+        body: { ...VALID_REQUEST, response_type },
+      });
 
-      const response = await POST(req);
-      const data = await response.json();
+      await handleOIDCAuthorize(req, res);
 
-      expect(response.status).toBe(400);
-      expect(data).toMatchObject({
+      expect(res._getStatusCode()).toBe(400);
+      const response = res._getJSONData();
+      expect(response).toMatchObject({
         attribute: "response_type",
         code: OIDCErrorCodes.UnsupportedResponseType,
       });
@@ -193,19 +196,16 @@ describe("/api/v1/oidc/authorize [request validation]", () => {
       "https://evil.com",
     ];
     for (const redirect_uri of invalid_redirect_uris) {
-      const req = new NextRequest(
-        "http://localhost:3000/api/v1/oidc/authorize",
-        {
-          method: "POST",
-          body: JSON.stringify({ ...VALID_REQUEST, redirect_uri }),
-        },
-      );
+      const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
+        method: "POST",
+        body: { ...VALID_REQUEST, redirect_uri },
+      });
 
-      const response = await POST(req);
-      const data = await response.json();
+      await handleOIDCAuthorize(req, res);
 
-      expect(response.status).toBe(400);
-      expect(data).toMatchObject({
+      expect(res._getStatusCode()).toBe(400);
+      const response = res._getJSONData();
+      expect(response).toMatchObject({
         attribute: "redirect_uri",
         detail: "Invalid redirect URI.",
         code: OIDCErrorCodes.InvalidRedirectURI,
@@ -216,43 +216,48 @@ describe("/api/v1/oidc/authorize [request validation]", () => {
 
 describe("/api/v1/oidc/authorize [authorization code flow]", () => {
   test("returns an authorization code", async () => {
-    const req = new NextRequest("http://localhost:3000/api/v1/oidc/authorize", {
+    const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
       method: "POST",
-      body: JSON.stringify({ ...VALID_REQUEST }),
+      body: { ...VALID_REQUEST },
     });
 
-    const response = await POST(req);
-    const data = await response.json();
+    fetchMock
+      .mockIf(/^https:\/\/[a-z-]+\.crypto\.worldcoin\.org/)
+      .mockResponse(JSON.stringify(validSemaphoreProofMock));
 
-    expect(response.status).toBe(200);
-    expect(data).toEqual({
+    await handleOIDCAuthorize(req, res);
+
+    expect(res._getStatusCode()).toBe(200);
+    const response = res._getJSONData();
+    expect(response).toEqual({
       code: expect.stringMatching(/^[a-f0-9]{16,30}$/),
     });
   });
-
   test("prevents replayed proofs", async () => {
-    const req1 = new NextRequest(
-      "http://localhost:3000/api/v1/oidc/authorize",
-      {
-        method: "POST",
-        body: JSON.stringify({ ...VALID_REQUEST }),
-      },
-    );
+    const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
+      method: "POST",
+      body: { ...VALID_REQUEST },
+    });
 
-    const req2 = new NextRequest(
-      "http://localhost:3000/api/v1/oidc/authorize",
-      {
-        method: "POST",
-        body: JSON.stringify({ ...VALID_REQUEST }),
-      },
-    );
+    const { req: req2, res: res2 } = createMocks<
+      NextApiRequest,
+      NextApiResponse
+    >({
+      method: "POST",
+      body: { ...VALID_REQUEST },
+    });
 
-    await POST(req1);
-    const response = await POST(req2);
-    const data = await response.json();
+    fetchMock
+      .mockIf(/^https:\/\/[a-z-]+\.crypto\.worldcoin\.org/)
+      .mockResponse(JSON.stringify(validSemaphoreProofMock));
 
-    expect(response.status).toBe(400);
-    expect(data).toMatchObject({
+    await handleOIDCAuthorize(req, res);
+    await handleOIDCAuthorize(req2, res2);
+
+    expect(res2._getStatusCode()).toBe(400);
+
+    const response = res2._getJSONData();
+    expect(response).toMatchObject({
       code: "invalid_proof",
       attribute: "proof",
       detail: "This proof has already been used. Please try again",
@@ -262,18 +267,22 @@ describe("/api/v1/oidc/authorize [authorization code flow]", () => {
 
 describe("/api/v1/oidc/authorize [implicit flow]", () => {
   test("returns a valid token", async () => {
-    const req = new NextRequest("http://localhost:3000/api/v1/oidc/authorize", {
+    const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
       method: "POST",
-      body: JSON.stringify({ ...VALID_REQUEST, response_type: "id_token" }),
+      body: { ...VALID_REQUEST, response_type: "id_token" },
     });
 
-    const response = await POST(req);
-    const data = await response.json();
+    fetchMock
+      .mockIf(/^https:\/\/[a-z-]+\.crypto\.worldcoin\.org/)
+      .mockResponse(JSON.stringify(validSemaphoreProofMock));
 
-    expect(response.status).toBe(200);
-    expect(data).toEqual({ id_token: expect.any(String) });
+    await handleOIDCAuthorize(req, res);
 
-    const jwt = data.id_token;
+    expect(res._getStatusCode()).toBe(200);
+    const response = res._getJSONData();
+    expect(response).toEqual({ id_token: expect.any(String) });
+
+    const jwt = response.id_token;
     const publicKey = createPublicKey({ format: "jwk", key: publicJwk });
     const { protectedHeader, payload } = await jwtVerify(jwt, publicKey);
 
@@ -289,6 +298,7 @@ describe("/api/v1/oidc/authorize [implicit flow]", () => {
       jti: expect.any(String),
       iat: expect.any(Number),
       exp: expect.any(Number),
+      sid: expect.any(String),
       aud: "app_112233445566778",
       scope: "openid",
       "https://id.worldcoin.org/beta": {
@@ -316,24 +326,25 @@ describe("/api/v1/oidc/authorize [implicit flow]", () => {
 
 describe("/api/v1/oidc/authorize [hybrid flow]", () => {
   test("returns a valid token and authorization code", async () => {
-    const req = new NextRequest("http://localhost:3000/api/v1/oidc/authorize", {
+    const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
       method: "POST",
-      body: JSON.stringify({
-        ...VALID_REQUEST,
-        response_type: "code id_token",
-      }),
+      body: { ...VALID_REQUEST, response_type: "code id_token" },
     });
 
-    const response = await POST(req);
-    const data = await response.json();
+    fetchMock
+      .mockIf(/^https:\/\/[a-z-]+\.crypto\.worldcoin\.org/)
+      .mockResponse(JSON.stringify(validSemaphoreProofMock));
 
-    expect(response.status).toBe(200);
-    expect(data).toEqual({
+    await handleOIDCAuthorize(req, res);
+
+    expect(res._getStatusCode()).toBe(200);
+    const response = res._getJSONData();
+    expect(response).toEqual({
       id_token: expect.any(String),
       code: expect.stringMatching(/^[a-f0-9]{16,30}$/),
     });
 
-    const jwt = data.id_token;
+    const jwt = response.id_token;
     const publicKey = createPublicKey({ format: "jwk", key: publicJwk });
     const { protectedHeader, payload } = await jwtVerify(jwt, publicKey);
 
@@ -349,6 +360,7 @@ describe("/api/v1/oidc/authorize [hybrid flow]", () => {
       jti: expect.any(String),
       iat: expect.any(Number),
       exp: expect.any(Number),
+      sid: expect.any(String),
       aud: "app_112233445566778",
       scope: "openid",
       "https://id.worldcoin.org/beta": {
