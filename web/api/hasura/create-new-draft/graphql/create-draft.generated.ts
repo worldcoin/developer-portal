@@ -47,6 +47,8 @@ export type CreateDraftMutationVariables = Types.Exact<{
   can_import_all_contacts: Types.Scalars["Boolean"]["input"];
   is_allowed_unlimited_notifications: Types.Scalars["Boolean"]["input"];
   max_notifications_per_day: Types.Scalars["Int"]["input"];
+  is_android_only: Types.Scalars["Boolean"]["input"];
+  is_for_humans_only: Types.Scalars["Boolean"]["input"];
 }>;
 
 export type CreateDraftMutation = {
@@ -82,6 +84,8 @@ export const CreateDraftDocument = gql`
     $can_import_all_contacts: Boolean!
     $is_allowed_unlimited_notifications: Boolean!
     $max_notifications_per_day: Int!
+    $is_android_only: Boolean!
+    $is_for_humans_only: Boolean!
   ) {
     insert_app_metadata_one(
       object: {
@@ -111,6 +115,8 @@ export const CreateDraftDocument = gql`
         can_import_all_contacts: $can_import_all_contacts
         is_allowed_unlimited_notifications: $is_allowed_unlimited_notifications
         max_notifications_per_day: $max_notifications_per_day
+        is_android_only: $is_android_only
+        is_for_humans_only: $is_for_humans_only
       }
     ) {
       id

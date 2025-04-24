@@ -25,6 +25,8 @@ mutation CreateDraft(
   $can_import_all_contacts: Boolean!
   $is_allowed_unlimited_notifications: Boolean!
   $max_notifications_per_day: Int!
+  $is_android_only: Boolean!
+  $is_for_humans_only: Boolean!
 ) {
   insert_app_metadata_one(
     object: {
@@ -54,6 +56,8 @@ mutation CreateDraft(
       can_import_all_contacts: $can_import_all_contacts
       is_allowed_unlimited_notifications: $is_allowed_unlimited_notifications
       max_notifications_per_day: $max_notifications_per_day
+      is_android_only: $is_android_only
+      is_for_humans_only: $is_for_humans_only
     }
   ) {
     id
