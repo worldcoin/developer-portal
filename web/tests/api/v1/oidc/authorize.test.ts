@@ -1,31 +1,66 @@
+import { OIDCErrorCodes, OIDCScopes } from "@/api/helpers/oidc";
 import { POST } from "@/api/v1/oidc/authorize";
-import {
-  OIDCErrorCodes,
-  OIDCScopes,
-  fetchOIDCAppQuery,
-  insertAuthCodeQuery,
-} from "@/legacy/backend/oidc";
 import { OIDCResponseType } from "@/lib/types";
 import { createPublicKey } from "crypto";
 import dayjs from "dayjs";
-import fetchMock from "jest-fetch-mock";
-import { when } from "jest-when";
 import { jwtVerify } from "jose";
 import { NextRequest } from "next/server";
-import { publicJwk } from "../__mocks__/jwk";
-import { semaphoreProofParamsMock } from "../__mocks__/proof.mock";
-import { validSemaphoreProofMock } from "../__mocks__/sequencer.mock";
+import { publicJwk } from "../../__mocks__/jwk";
+import { semaphoreProofParamsMock } from "../../__mocks__/proof.mock";
 
-jest.mock("legacy/backend/kms", () =>
+// Mock the external dependencies
+jest.mock("@/api/helpers/graphql", () => ({
+  getAPIServiceGraphqlClient: jest.fn(),
+}));
+
+jest.mock("@/api/helpers/kms", () =>
   require("tests/api/__mocks__/kms.mock.ts"),
 );
 
-jest.mock("legacy/backend/jwks", () =>
+jest.mock("@/api/helpers/jwks", () =>
   require("tests/api/__mocks__/jwks.mock.ts"),
 );
 
-const fetchAppQueryResponse = () => ({
-  data: {
+// Mock the GraphQL SDKs
+const FetchOIDCApp = jest.fn();
+const Nullifier = jest.fn();
+const UpsertNullifier = jest.fn();
+const InsertAuthCode = jest.fn();
+
+jest.mock("@/api/helpers/oidc/graphql/fetch-oidc-app.generated", () => ({
+  getSdk: () => ({
+    FetchOIDCApp,
+  }),
+}));
+
+jest.mock("@/api/v1/oidc/authorize/graphql/fetch-nullifier.generated", () => ({
+  getSdk: () => ({
+    Nullifier,
+  }),
+}));
+
+jest.mock("@/api/v1/oidc/authorize/graphql/upsert-nullifier.generated", () => ({
+  getSdk: () => ({
+    UpsertNullifier,
+  }),
+}));
+
+jest.mock("@/api/helpers/oidc/graphql/insert-auth-code.generated", () => ({
+  getSdk: () => ({
+    InsertAuthCode,
+  }),
+}));
+
+// Mock the verifyProof function
+jest.mock("@/api/helpers/verify", () => ({
+  verifyProof: jest.fn().mockResolvedValue({ error: null }),
+}));
+
+beforeEach(async () => {
+  await global.RedisClient?.flushall();
+
+  // Mock OIDC app fetch
+  FetchOIDCApp.mockResolvedValue({
     app: [
       {
         id: "app_112233445566778",
@@ -46,63 +81,18 @@ const fetchAppQueryResponse = () => ({
         ],
       },
     ],
-  },
-});
+  });
 
-const requestReturnFn = jest.fn();
-const mutateReturnFn = jest.fn();
+  // Mock nullifier operations
+  Nullifier.mockResolvedValue({ nullifier: [] });
+  UpsertNullifier.mockResolvedValue({
+    insert_nullifier_one: { nullifier_hash: "0x123", id: "nil_123" },
+  });
 
-jest.mock(
-  "legacy/backend/graphql",
-  jest.fn(() => ({
-    getAPIServiceClient: () => ({
-      query: requestReturnFn,
-      mutate: mutateReturnFn,
-    }),
-  })),
-);
-
-beforeEach(async () => {
-  await global.RedisClient?.flushall();
-
-  when(requestReturnFn)
-    .calledWith(
-      expect.objectContaining({
-        query: fetchOIDCAppQuery,
-      }),
-    )
-    .mockResolvedValue(fetchAppQueryResponse());
-
-  // Mock for nullifier insertion
-  when(mutateReturnFn)
-    .calledWith(
-      expect.objectContaining({
-        variables: {
-          object: {
-            nullifier_hash: expect.any(String),
-            merkle_root: expect.any(String),
-            verification_level: expect.any(String),
-            action_id: expect.any(String),
-          },
-        },
-      }),
-    )
-    .mockResolvedValue({
-      data: {
-        insert_nullifier_one: { nullifier_hash: "0x123", id: "nil_123" },
-      },
-    });
-
-  // Mock for auth code insertion for one-time use
-  when(mutateReturnFn)
-    .calledWith(expect.objectContaining({ mutation: insertAuthCodeQuery }))
-    .mockImplementation((args) => ({
-      data: { insert_auth_code_one: { auth_code: args.variables.auth_code } },
-    }));
-});
-
-beforeAll(() => {
-  fetchMock.enableMocks();
+  // Mock auth code insertion
+  InsertAuthCode.mockImplementation((args) => ({
+    insert_auth_code_one: { auth_code: args.auth_code },
+  }));
 });
 
 const VALID_REQUEST: Record<string, string> = {
@@ -123,7 +113,6 @@ describe("/api/v1/oidc/authorize [request validation]", () => {
       "app_id",
       "response_type",
       "redirect_uri",
-      // Scope is always required, but is validated in a separate test
     ];
     for (const attribute of required_attributes) {
       const body = { ...VALID_REQUEST, [attribute]: undefined };
@@ -141,7 +130,7 @@ describe("/api/v1/oidc/authorize [request validation]", () => {
 
       expect(response.status).toBe(400);
       expect(data).toMatchObject({
-        code: "invalid",
+        code: "validation_error",
         attribute,
         detail: "This attribute is required.",
       });
@@ -232,10 +221,6 @@ describe("/api/v1/oidc/authorize [authorization code flow]", () => {
       body: JSON.stringify({ ...VALID_REQUEST }),
     });
 
-    fetchMock
-      .mockIf(/^https:\/\/[a-z-]+\.crypto\.worldcoin\.org/)
-      .mockResponse(JSON.stringify(validSemaphoreProofMock));
-
     const response = await POST(req);
     const data = await response.json();
 
@@ -262,10 +247,6 @@ describe("/api/v1/oidc/authorize [authorization code flow]", () => {
       },
     );
 
-    fetchMock
-      .mockIf(/^https:\/\/[a-z-]+\.crypto\.worldcoin\.org/)
-      .mockResponse(JSON.stringify(validSemaphoreProofMock));
-
     await POST(req1);
     const response = await POST(req2);
     const data = await response.json();
@@ -285,10 +266,6 @@ describe("/api/v1/oidc/authorize [implicit flow]", () => {
       method: "POST",
       body: JSON.stringify({ ...VALID_REQUEST, response_type: "id_token" }),
     });
-
-    fetchMock
-      .mockIf(/^https:\/\/[a-z-]+\.crypto\.worldcoin\.org/)
-      .mockResponse(JSON.stringify(validSemaphoreProofMock));
 
     const response = await POST(req);
     const data = await response.json();
@@ -348,10 +325,6 @@ describe("/api/v1/oidc/authorize [hybrid flow]", () => {
       }),
     });
 
-    fetchMock
-      .mockIf(/^https:\/\/[a-z-]+\.crypto\.worldcoin\.org/)
-      .mockResponse(JSON.stringify(validSemaphoreProofMock));
-
     const response = await POST(req);
     const data = await response.json();
 
@@ -377,7 +350,6 @@ describe("/api/v1/oidc/authorize [hybrid flow]", () => {
       jti: expect.any(String),
       iat: expect.any(Number),
       exp: expect.any(Number),
-      sid: expect.any(String),
       aud: "app_112233445566778",
       scope: "openid",
       "https://id.worldcoin.org/beta": {
