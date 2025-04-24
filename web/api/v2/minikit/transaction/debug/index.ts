@@ -143,8 +143,6 @@ export const GET = async (req: NextRequest) => {
   const data = await res.json();
 
   if (!data?.result?.transactions || data.result.transactions.length === 0) {
-    // TODO: Remove this once I see what the response is. Something is wrong with the response from the backend.
-    console.log(JSON.stringify(data, null, 2));
     return corsHandler(
       errorResponse({
         statusCode: 404,
