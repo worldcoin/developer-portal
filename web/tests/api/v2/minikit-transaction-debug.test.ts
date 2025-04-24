@@ -24,16 +24,18 @@ jest.mock("aws-sigv4-fetch", () => ({
 }));
 
 const mockDebugResponse = {
-  transactions: [
-    {
-      debugUrl: "https://dashboard.tenderly.co/tx/...",
-      createdAt: "2024-03-21T10:30:00.000Z",
-      block: 12345678,
-      simulationRequestId: "sim_abc123def456",
-      simulationError: "Permit signature expired",
-      walletAddress: "0x1234...",
-    },
-  ],
+  result: {
+    transactions: [
+      {
+        debugUrl: "https://dashboard.tenderly.co/tx/...",
+        createdAt: "2024-03-21T10:30:00.000Z",
+        block: 12345678,
+        simulationRequestId: "sim_abc123def456",
+        simulationError: "Permit signature expired",
+        walletAddress: "0x1234...",
+      },
+    ],
+  },
 };
 
 // #endregion
@@ -114,7 +116,7 @@ describe("/api/v2/minikit/transaction/debug [success cases]", () => {
     expect(res.status).toBe(200);
     const body = await res.json();
 
-    expect(body).toEqual(mockDebugResponse);
+    expect(body).toEqual(mockDebugResponse.result);
     expect(signedFetch).toHaveBeenCalledWith(
       expect.stringContaining(
         `/miniapp-actions/debug?miniapp-id=${validAppId}`,
