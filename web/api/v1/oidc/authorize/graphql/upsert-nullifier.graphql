@@ -1,0 +1,9 @@
+mutation UpsertNullifier(
+  $object: nullifier_insert_input!
+  $on_conflict: nullifier_on_conflict!
+) {
+  insert_nullifier_one(object: $object, on_conflict: $on_conflict) {
+    id
+    nullifier_hash
+  }
+}

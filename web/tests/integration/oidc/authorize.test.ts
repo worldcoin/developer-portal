@@ -1,21 +1,19 @@
-import { OIDCErrorCodes } from "@/legacy/backend/oidc";
-import handleOIDCAuthorize from "@/pages/api/v1/oidc/authorize";
+import { OIDCErrorCodes } from "@/api/helpers/oidc";
+import { POST } from "@/api/v1/oidc/authorize";
 import { createHash } from "crypto";
-import fetchMock from "jest-fetch-mock";
-import { NextApiRequest, NextApiResponse } from "next";
-import { createMocks } from "node-mocks-http";
+import { NextRequest } from "next/server";
 import { semaphoreProofParamsMock } from "tests/api/__mocks__/proof.mock";
-import { validSemaphoreProofMock } from "tests/api/__mocks__/sequencer.mock";
 import { integrationDBClean, integrationDBExecuteQuery } from "../setup";
 import { testGetDefaultApp } from "../test-utils";
+
+// Mock the verifyProof function
+jest.mock("@/api/helpers/verify", () => ({
+  verifyProof: jest.fn().mockResolvedValue({ error: null }),
+}));
 
 beforeEach(async () => {
   await integrationDBClean();
   await global.RedisClient?.flushall();
-});
-
-beforeAll(() => {
-  fetchMock.enableMocks();
 });
 
 const pkceChallenge = (code_verifier: string) => {
@@ -51,23 +49,19 @@ describe("/api/v1/oidc/authorize", () => {
       "SELECT * FROM app JOIN app_metadata ON app.id = app_metadata.app_id WHERE app_metadata.name = 'Sign In App' LIMIT 1;",
     );
     const app_id = dbQuery.rows[0].app_id;
-    const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
+    const req = new NextRequest("http://localhost:3000/api/v1/oidc/authorize", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: validParams(app_id),
+      body: JSON.stringify(validParams(app_id)),
     });
 
-    // mocks sequencer response for proof verification
-    fetchMock
-      .mockIf(/^https:\/\/[a-z-]+\.crypto\.worldcoin\.org/)
-      .mockResponse(JSON.stringify(validSemaphoreProofMock));
+    const response = await POST(req);
+    const data = await response.json();
 
-    await handleOIDCAuthorize(req, res);
-
-    expect(res._getStatusCode()).toBe(200);
-    expect(res._getJSONData()).toEqual({
+    expect(response.status).toBe(200);
+    expect(data).toEqual({
       code: expect.stringMatching(/^[a-f0-9]{16,30}$/),
     });
   });
@@ -78,20 +72,21 @@ describe("/api/v1/oidc/authorize", () => {
     const params = validParams(app_id);
     delete params.redirect_uri;
 
-    const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
+    const req = new NextRequest("http://localhost:3000/api/v1/oidc/authorize", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: params,
+      body: JSON.stringify(params),
     });
 
-    await handleOIDCAuthorize(req, res);
+    const response = await POST(req);
+    const data = await response.json();
 
-    expect(res._getStatusCode()).toBe(400);
-    expect(res._getJSONData()).toEqual({
+    expect(response.status).toBe(400);
+    expect(data).toEqual({
       attribute: "redirect_uri",
-      code: "invalid",
+      code: "validation_error",
       detail: "This attribute is required.",
     });
   });
@@ -99,21 +94,22 @@ describe("/api/v1/oidc/authorize", () => {
   test("invalid `redirect_uri` is rejected", async () => {
     const app_id = await testGetDefaultApp();
 
-    const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
+    const req = new NextRequest("http://localhost:3000/api/v1/oidc/authorize", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: {
+      body: JSON.stringify({
         ...validParams(app_id),
         redirect_uri: "https://example.com/invalid",
-      },
+      }),
     });
 
-    await handleOIDCAuthorize(req, res);
+    const response = await POST(req);
+    const data = await response.json();
 
-    expect(res._getStatusCode()).toBe(400);
-    expect(res._getJSONData()).toEqual({
+    expect(response.status).toBe(400);
+    expect(data).toEqual({
       attribute: "redirect_uri",
       code: OIDCErrorCodes.InvalidRedirectURI,
       detail: "Invalid redirect URI.",
@@ -125,27 +121,23 @@ describe("/api/v1/oidc/authorize", () => {
       "SELECT * FROM app JOIN app_metadata ON app.id = app_metadata.app_id WHERE app_metadata.name = 'Sign In App' LIMIT 1;",
     );
     const app_id = dbQuery.rows[0].app_id;
-    const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
+    const req = new NextRequest("http://localhost:3000/api/v1/oidc/authorize", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: validParams(app_id, true),
+      body: JSON.stringify(validParams(app_id, true)),
     });
 
-    // mocks sequencer response for proof verification
-    fetchMock
-      .mockIf(/^https:\/\/[a-z-]+\.crypto\.worldcoin\.org/)
-      .mockResponse(JSON.stringify(validSemaphoreProofMock));
+    const response = await POST(req);
+    const data = await response.json();
 
-    await handleOIDCAuthorize(req, res);
-
-    expect(res._getStatusCode()).toBe(200);
-    expect(res._getJSONData()).toEqual({
+    expect(response.status).toBe(200);
+    expect(data).toEqual({
       code: expect.stringMatching(/^[a-f0-9]{16,30}$/),
     });
 
-    const code = res._getJSONData().code;
+    const code = data.code;
 
     const { rows } = await integrationDBExecuteQuery(
       `SELECT * FROM public.auth_code WHERE auth_code = '${code}' LIMIT 1;`,
