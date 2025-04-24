@@ -890,7 +890,7 @@ describe("/api/public/app/[app_id]", () => {
     expect(responseData.app_data.supported_countries).toEqual(["us", "ca"]);
   });
 
-  test("Returns app data when override_country is provided but app has no supported_countries", async () => {
+  test("Returns 403 when override_country is provided but app has no supported_countries", async () => {
     // Mock app metadata without supported_countries field
     jest.mocked(getAppMetadataSdk).mockImplementation(() => ({
       GetAppMetadata: jest.fn().mockResolvedValue({
@@ -931,10 +931,10 @@ describe("/api/public/app/[app_id]", () => {
 
     const response = await GET(request, { params: { app_id: "6" } });
 
-    // Should return 404 as the app has no supported_countries field
+    // Should return 403 as the app has no supported_countries field
     // and the code checks !parsedAppMetadata.supported_countries?.includes(override_country)
     // which evaluates to true when supported_countries is undefined
-    expect(response.status).toBe(404);
+    expect(response.status).toBe(403);
 
     expect(await response.json()).toEqual({
       error: "App not available in country",
