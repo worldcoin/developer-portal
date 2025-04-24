@@ -86,7 +86,7 @@ describe("/api/v1/oidc/authorize", () => {
     expect(response.status).toBe(400);
     expect(data).toEqual({
       attribute: "redirect_uri",
-      code: "invalid",
+      code: "validation_error",
       detail: "This attribute is required.",
     });
   });
