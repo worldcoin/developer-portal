@@ -741,7 +741,7 @@ describe("/api/public/app/[app_id]", () => {
     });
   });
 
-  test("Returns 404 when override_country is provided but not supported", async () => {
+  test("Returns 403 when override_country is provided but not supported", async () => {
     // Mock app metadata with only the US as a supported country
     jest.mocked(getAppMetadataSdk).mockImplementation(() => ({
       GetAppMetadata: jest.fn().mockResolvedValue({
@@ -782,7 +782,7 @@ describe("/api/public/app/[app_id]", () => {
 
     const response = await GET(request, { params: { app_id: "3" } });
 
-    expect(response.status).toBe(404);
+    expect(response.status).toBe(403);
     expect(await response.json()).toEqual({
       error: "App not available in country",
     });
