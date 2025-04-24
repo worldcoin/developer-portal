@@ -79,6 +79,7 @@ insert_permissions:
         - is_for_humans_only
         - logo_img_url
         - max_notifications_per_day
+        - meta_tag_image_url
         - name
         - permit2_tokens
         - short_name
@@ -183,6 +184,7 @@ select_permissions:
         - is_reviewer_world_app_approved
         - logo_img_url
         - max_notifications_per_day
+        - meta_tag_image_url
         - name
         - permit2_tokens
         - review_message
@@ -224,6 +226,7 @@ select_permissions:
         - is_reviewer_world_app_approved
         - logo_img_url
         - max_notifications_per_day
+        - meta_tag_image_url
         - name
         - permit2_tokens
         - short_name
@@ -261,6 +264,7 @@ select_permissions:
         - is_reviewer_world_app_approved
         - logo_img_url
         - max_notifications_per_day
+        - meta_tag_image_url
         - name
         - permit2_tokens
         - review_message
@@ -378,6 +382,7 @@ update_permissions:
         - is_row_verified
         - logo_img_url
         - max_notifications_per_day
+        - meta_tag_image_url
         - name
         - permit2_tokens
         - review_message
