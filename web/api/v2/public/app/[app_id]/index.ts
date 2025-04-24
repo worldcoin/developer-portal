@@ -136,8 +136,11 @@ export async function GET(
     !parsedAppMetadata.supported_countries?.includes(override_country)
   ) {
     return NextResponse.json(
-      { error: "App not available in country" },
-      { status: 404 },
+      {
+        error: "App not available in country",
+      },
+      // 403 causes app to show a "unavailable in country" modal
+      { status: 403 },
     );
   }
 
