@@ -91,7 +91,7 @@ export const SubmitAppModal = (props: SubmitAppModalProps) => {
 
         if (values.is_developer_allow_listing && !canSubmitAppStore) {
           toast.error(
-            "Featured and showcase images are required for an Mini Apps listing",
+            "Featured and showcase images are required for listing in Mini Apps",
           );
           return;
         }
@@ -174,7 +174,7 @@ export const SubmitAppModal = (props: SubmitAppModalProps) => {
             />
             <div className="grid gap-y-2">
               <Typography variant={TYPOGRAPHY.R3} className="text-grey-700">
-                Allow Mini Apps listing
+                Allow listing in Mini Apps
               </Typography>
               <Typography variant={TYPOGRAPHY.R4} className="text-grey-700">
                 Once you submit your app for review, it may be showcased in
