@@ -47,7 +47,8 @@ export type FetchAppMetadataQuery = {
       can_import_all_contacts: boolean;
       is_allowed_unlimited_notifications?: boolean | null;
       max_notifications_per_day?: number | null;
-      is_android_only?: boolean | null;
+      is_android_only: boolean;
+      is_for_humans_only: boolean;
     }>;
     verified_app_metadata: Array<{
       __typename?: "app_metadata";
@@ -80,7 +81,8 @@ export type FetchAppMetadataQuery = {
       can_import_all_contacts: boolean;
       is_allowed_unlimited_notifications?: boolean | null;
       max_notifications_per_day?: number | null;
-      is_android_only?: boolean | null;
+      is_android_only: boolean;
+      is_for_humans_only: boolean;
     }>;
   }>;
 };
@@ -123,6 +125,7 @@ export const FetchAppMetadataDocument = gql`
         is_allowed_unlimited_notifications
         max_notifications_per_day
         is_android_only
+        is_for_humans_only
       }
       verified_app_metadata: app_metadata(
         where: { verification_status: { _eq: "verified" } }
@@ -157,6 +160,7 @@ export const FetchAppMetadataDocument = gql`
         is_allowed_unlimited_notifications
         max_notifications_per_day
         is_android_only
+        is_for_humans_only
       }
     }
   }

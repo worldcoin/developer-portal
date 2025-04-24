@@ -51,6 +51,14 @@ export const loginErrors: Record<LoginErrorCode, string> = {
     "Your email has not been verified. Please check your email for a verification link.",
 };
 
+export const NATIVE_MAPPED_APP_ID = {
+  grants: "grants",
+  invites: "invites",
+  network: "network",
+  contacts: "contacts",
+  "starter-kit": "starter-kit",
+};
+
 export const NativeAppToAppIdMapping: Record<string, Record<string, string>> = {
   dev: {
     TEST_APP: "app_test_123",
@@ -149,6 +157,7 @@ export const whitelistedAppsPermit2 = [
   "app_8e407cfbae7ae51c19b07faff837aeeb", // DNA
   "app_7cf6a578c65c4b7db84bc6734fb0e165", // DNA Wallet
   "app_49fe40f83cfcdf67b7ba716d37e927e4", // Cash
+  "app_0d4b759921490adc1f2bd569fda9b53a", // Holdstation Wallet
 ];
 
 export const whitelistedAppsContracts = [

@@ -175,6 +175,7 @@ export async function validateAndUpdateAppSupportInfoServerSide(
     supported_countries: params.supported_countries,
     category: params.category,
     is_android_only: params.is_android_only,
+    is_for_humans_only: params.is_for_humans_only,
   };
   let input: UpdateAppInfoMutationVariables = {
     app_metadata_id: params.app_metadata_id,
@@ -206,6 +207,7 @@ export async function validateAndUpdateAppSupportInfoServerSide(
         supported_countries: parsedInitialValues.supported_countries,
         category: parsedInitialValues.category,
         is_android_only: parsedInitialValues.is_android_only,
+        is_for_humans_only: parsedInitialValues.is_for_humans_only,
       },
     };
 

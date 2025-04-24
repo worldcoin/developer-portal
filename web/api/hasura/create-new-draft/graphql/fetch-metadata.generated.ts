@@ -43,6 +43,8 @@ export type FetchAppMetadataQuery = {
       can_import_all_contacts: boolean;
       is_allowed_unlimited_notifications?: boolean | null;
       max_notifications_per_day?: number | null;
+      is_android_only: boolean;
+      is_for_humans_only: boolean;
     }>;
   }>;
 };
@@ -93,6 +95,8 @@ export const FetchAppMetadataDocument = gql`
         can_import_all_contacts
         is_allowed_unlimited_notifications
         max_notifications_per_day
+        is_android_only
+        is_for_humans_only
       }
     }
   }
