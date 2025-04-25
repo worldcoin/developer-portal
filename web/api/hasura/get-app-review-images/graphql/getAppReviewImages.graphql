@@ -2,10 +2,12 @@ query GetAppReviewImages($app_id: String!, $locale: String) {
   app(where: { id: { _eq: $app_id } }) {
     app_metadata(where: { verification_status: { _eq: "awaiting_review" } }) {
       logo_img_url
-      showcase_img_urls
       hero_image_url
+      meta_tag_image_url
+      showcase_img_urls
       localisations(where: { locale: { _eq: $locale } }) {
         hero_image_url
+        meta_tag_image_url
         showcase_img_urls
       }
     }
