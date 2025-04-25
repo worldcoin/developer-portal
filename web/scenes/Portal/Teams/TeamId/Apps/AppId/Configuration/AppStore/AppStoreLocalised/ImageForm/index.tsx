@@ -572,7 +572,7 @@ export const ImageForm = (props: ImageFormTypes) => {
       {/* Featured image */}
       <div className="grid gap-y-3">
         <Typography variant={TYPOGRAPHY.H7} className="text-grey-900">
-          Featured image
+          Featured image (required)
         </Typography>
         <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
           This image will be used for featuring your app on the homepage of
@@ -727,7 +727,7 @@ export const ImageForm = (props: ImageFormTypes) => {
       {/* Showcase images */}
       <div className="grid gap-y-3">
         <Typography variant={TYPOGRAPHY.H7} className="text-grey-900">
-          Showcase images
+          Showcase images (required)
         </Typography>
         <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
           Upload up to 3 images to showcase your application.

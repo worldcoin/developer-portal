@@ -19,6 +19,7 @@ jest.mock(
             app_id: "2",
             short_name: "test",
             logo_img_url: "logo.png",
+            meta_tag_image_url: "meta_tag_image.png",
             showcase_img_urls: ["showcase1.png", "showcase2.png"],
             hero_image_url: "hero.png",
             world_app_description:
@@ -69,6 +70,8 @@ describe("/api/public/app/[app_id]", () => {
         app_id: "2",
         short_name: "test",
         logo_img_url: "https://cdn.test.com/unverified/2/logo.png",
+        meta_tag_image_url:
+          "https://cdn.test.com/unverified/2/meta_tag_image.png",
         showcase_img_urls: [
           "https://cdn.test.com/unverified/2/showcase1.png",
           "https://cdn.test.com/unverified/2/showcase2.png",
@@ -120,6 +123,7 @@ describe("/api/public/app/[app_id]", () => {
             short_name: "test",
             logo_img_url: "logo.png",
             showcase_img_urls: ["showcase1.png", "showcase2.png"],
+            meta_tag_image_url: "meta_tag_image.png",
             hero_image_url: "hero.png",
             world_app_description:
               "This is an example app designed to showcase the capabilities of our platform.",
@@ -166,6 +170,7 @@ describe("/api/public/app/[app_id]", () => {
         app_rating: 3.33,
         short_name: "test",
         logo_img_url: "https://cdn.test.com/1/logo.png",
+        meta_tag_image_url: "https://cdn.test.com/1/meta_tag_image.png",
         showcase_img_urls: [
           "https://cdn.test.com/1/showcase1.png",
           "https://cdn.test.com/1/showcase2.png",
@@ -224,6 +229,7 @@ describe("/api/public/app/[app_id]", () => {
             app_id: "app_test_123",
             short_name: "test",
             logo_img_url: "logo.png",
+            meta_tag_image_url: "meta_tag_image.png",
             showcase_img_urls: ["showcase1.png", "showcase2.png"],
             hero_image_url: "hero.png",
             world_app_description:
@@ -265,6 +271,8 @@ describe("/api/public/app/[app_id]", () => {
         short_name: "test",
         logo_img_url: "https://cdn.test.com/unverified/app_test_123/logo.png",
         hero_image_url: "https://cdn.test.com/unverified/app_test_123/hero.png",
+        meta_tag_image_url:
+          "https://cdn.test.com/unverified/app_test_123/meta_tag_image.png",
         showcase_img_urls: [
           "https://cdn.test.com/unverified/app_test_123/showcase1.png",
           "https://cdn.test.com/unverified/app_test_123/showcase2.png",
