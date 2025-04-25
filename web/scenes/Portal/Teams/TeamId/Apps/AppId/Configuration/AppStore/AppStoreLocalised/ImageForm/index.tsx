@@ -378,8 +378,8 @@ export const ImageForm = (props: ImageFormTypes) => {
   const uploadImage = async (
     imageType: string,
     file: File,
-    height: number,
-    width: number,
+    requiredHeight = 1,
+    requiredWidth = 1,
   ) => {
     if (file && (file.type === "image/png" || file.type === "image/jpeg")) {
       const fileTypeEnding = file.type.split("/")[1];
@@ -394,7 +394,7 @@ export const ImageForm = (props: ImageFormTypes) => {
       }
 
       try {
-        await validateImageAspectRatio(file, 1, 1);
+        await validateImageAspectRatio(file, requiredHeight, requiredWidth);
 
         toast.info("Uploading image", {
           toastId: "upload_toast",
@@ -572,7 +572,7 @@ export const ImageForm = (props: ImageFormTypes) => {
       {/* Featured image */}
       <div className="grid gap-y-3">
         <Typography variant={TYPOGRAPHY.H7} className="text-grey-900">
-          Featured image
+          Featured image (required)
         </Typography>
         <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
           This image will be used for featuring your app on the homepage of
@@ -649,11 +649,12 @@ export const ImageForm = (props: ImageFormTypes) => {
       {/* Meta tag image */}
       <div className="grid gap-y-3">
         <Typography variant={TYPOGRAPHY.H7} className="text-grey-900">
-          Meta tag image
+          Meta tag image (optional)
         </Typography>
         <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
-          This image will be displayed as the OpenGraph meta tags image when
-          linking your app.
+          This image is optional and will be displayed as the OpenGraph meta
+          tags image when linking your app. Fallback to your app&apos;s logo
+          image if not provided.
         </Typography>
       </div>
       {isLoadingImages && (
@@ -663,8 +664,8 @@ export const ImageForm = (props: ImageFormTypes) => {
       )}
       {!isLoadingImages && !metaTagImage && !metaTagImageUploading && (
         <ImageDropZone
-          width={1080}
-          height={1080}
+          width={1200}
+          height={600}
           disabled={
             unverifiedImages.meta_tag_image_url !== "" ||
             !isEnoughPermissions ||
@@ -726,7 +727,7 @@ export const ImageForm = (props: ImageFormTypes) => {
       {/* Showcase images */}
       <div className="grid gap-y-3">
         <Typography variant={TYPOGRAPHY.H7} className="text-grey-900">
-          Showcase images
+          Showcase images (required)
         </Typography>
         <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
           Upload up to 3 images to showcase your application.
