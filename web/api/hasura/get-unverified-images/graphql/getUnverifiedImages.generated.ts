@@ -19,12 +19,12 @@ export type GetUnverifiedImagesQuery = {
       __typename?: "app_metadata";
       logo_img_url: string;
       hero_image_url: string;
-      meta_tag_image_url?: string | null;
+      meta_tag_image_url: string;
       showcase_img_urls?: Array<string> | null;
       localisations: Array<{
         __typename?: "localisations";
         hero_image_url: string;
-        meta_tag_image_url?: string | null;
+        meta_tag_image_url: string;
         showcase_img_urls?: Array<string> | null;
       }>;
     }>;

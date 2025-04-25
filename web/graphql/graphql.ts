@@ -1808,7 +1808,7 @@ export type App_Metadata = {
   localisations_aggregate: Localisations_Aggregate;
   logo_img_url: Scalars["String"]["output"];
   max_notifications_per_day?: Maybe<Scalars["Int"]["output"]>;
-  meta_tag_image_url?: Maybe<Scalars["String"]["output"]>;
+  meta_tag_image_url: Scalars["String"]["output"];
   name: Scalars["String"]["output"];
   permit2_tokens?: Maybe<Array<Scalars["String"]["output"]>>;
   review_message: Scalars["String"]["output"];
@@ -5041,7 +5041,7 @@ export type Localisations = {
   hero_image_url: Scalars["String"]["output"];
   id: Scalars["String"]["output"];
   locale: Scalars["String"]["output"];
-  meta_tag_image_url?: Maybe<Scalars["String"]["output"]>;
+  meta_tag_image_url: Scalars["String"]["output"];
   name: Scalars["String"]["output"];
   short_name: Scalars["String"]["output"];
   showcase_img_urls?: Maybe<Array<Scalars["String"]["output"]>>;
