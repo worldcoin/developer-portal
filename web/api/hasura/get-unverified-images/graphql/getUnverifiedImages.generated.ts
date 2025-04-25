@@ -18,11 +18,13 @@ export type GetUnverifiedImagesQuery = {
     app_metadata: Array<{
       __typename?: "app_metadata";
       logo_img_url: string;
-      showcase_img_urls?: Array<string> | null;
       hero_image_url: string;
+      meta_tag_image_url: string;
+      showcase_img_urls?: Array<string> | null;
       localisations: Array<{
         __typename?: "localisations";
         hero_image_url: string;
+        meta_tag_image_url: string;
         showcase_img_urls?: Array<string> | null;
       }>;
     }>;
@@ -55,10 +57,12 @@ export const GetUnverifiedImagesDocument = gql`
     ) {
       app_metadata(where: { verification_status: { _neq: "verified" } }) {
         logo_img_url
-        showcase_img_urls
         hero_image_url
+        meta_tag_image_url
+        showcase_img_urls
         localisations(where: { locale: { _eq: $locale } }) {
           hero_image_url
+          meta_tag_image_url
           showcase_img_urls
         }
       }

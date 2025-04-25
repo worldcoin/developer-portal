@@ -15,10 +15,12 @@ query GetUnverifiedImages(
   ) {
     app_metadata(where: { verification_status: { _neq: "verified" } }) {
       logo_img_url
-      showcase_img_urls
       hero_image_url
+      meta_tag_image_url
+      showcase_img_urls
       localisations(where: { locale: { _eq: $locale } }) {
         hero_image_url
+        meta_tag_image_url
         showcase_img_urls
       }
     }
