@@ -54,6 +54,7 @@ export type GetHighlightsQuery = {
       short_name: string;
       description: string;
       hero_image_url: string;
+      meta_tag_image_url: string;
       showcase_img_urls?: Array<string> | null;
     }>;
     app: {
@@ -118,6 +119,7 @@ export const GetHighlightsDocument = gql`
         short_name
         description
         hero_image_url
+        meta_tag_image_url
         showcase_img_urls
       }
       app {

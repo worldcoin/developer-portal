@@ -50,6 +50,7 @@ query GetHighlights(
       short_name
       description
       hero_image_url
+      meta_tag_image_url
       showcase_img_urls
     }
 
