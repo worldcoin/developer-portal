@@ -9,10 +9,11 @@ export type CreateDraftMutationVariables = Types.Exact<{
   name?: Types.InputMaybe<Types.Scalars["String"]["input"]>;
   short_name?: Types.InputMaybe<Types.Scalars["String"]["input"]>;
   logo_img_url?: Types.InputMaybe<Types.Scalars["String"]["input"]>;
+  hero_image_url?: Types.InputMaybe<Types.Scalars["String"]["input"]>;
+  meta_tag_image_url?: Types.InputMaybe<Types.Scalars["String"]["input"]>;
   showcase_img_urls?: Types.InputMaybe<
     Array<Types.Scalars["String"]["input"]> | Types.Scalars["String"]["input"]
   >;
-  hero_image_url?: Types.InputMaybe<Types.Scalars["String"]["input"]>;
   description?: Types.InputMaybe<Types.Scalars["String"]["input"]>;
   world_app_description?: Types.InputMaybe<Types.Scalars["String"]["input"]>;
   category?: Types.InputMaybe<Types.Scalars["String"]["input"]>;
@@ -62,8 +63,9 @@ export const CreateDraftDocument = gql`
     $name: String = ""
     $short_name: String = ""
     $logo_img_url: String = ""
-    $showcase_img_urls: [String!] = null
     $hero_image_url: String = ""
+    $meta_tag_image_url: String = ""
+    $showcase_img_urls: [String!] = null
     $description: String = ""
     $world_app_description: String = ""
     $category: String = ""
@@ -93,6 +95,7 @@ export const CreateDraftDocument = gql`
         name: $name
         logo_img_url: $logo_img_url
         showcase_img_urls: $showcase_img_urls
+        meta_tag_image_url: $meta_tag_image_url
         hero_image_url: $hero_image_url
         description: $description
         world_app_description: $world_app_description
