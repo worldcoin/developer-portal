@@ -397,7 +397,7 @@ export const ImageForm = (props: ImageFormTypes) => {
       }
 
       try {
-        await validateImageAspectRatio(file, requiredHeight, requiredWidth);
+        await validateImageAspectRatio(file, requiredWidth, requiredHeight);
 
         toast.info("Uploading image", {
           toastId: "upload_toast",
