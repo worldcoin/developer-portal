@@ -189,7 +189,6 @@ export type AppStoreMetadataFields = {
   app_id: string;
   logo_img_url: string;
   hero_image_url: string;
-  meta_tag_image_url: string;
   showcase_img_urls?: any | null;
   world_app_description: string;
   world_app_button_text: string;
@@ -228,7 +227,6 @@ export type LocalisedMetadata = {
   short_name: string;
   description: string;
   hero_image_url: string;
-  meta_tag_image_url: string;
   showcase_img_urls?: string[] | null;
 };
 
