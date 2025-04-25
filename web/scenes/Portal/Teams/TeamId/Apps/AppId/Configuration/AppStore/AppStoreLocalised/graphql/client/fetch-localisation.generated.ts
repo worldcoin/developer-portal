@@ -22,7 +22,7 @@ export type FetchLocalisationQuery = {
     world_app_description: string;
     short_name: string;
     hero_image_url: string;
-    meta_tag_image_url?: string | null;
+    meta_tag_image_url: string;
     showcase_img_urls?: Array<string> | null;
   }>;
 };

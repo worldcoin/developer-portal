@@ -78,7 +78,7 @@ export const insertLocalisationInitialSchema = yup.object({
   app_metadata_id: appMetadataIdSchema,
   locale: yup.string().required("Locale is required"),
   hero_image_url: appStoreImageSchema,
-  meta_tag_image_url: appStoreImageSchema.optional(),
+  meta_tag_image_url: appStoreImageSchema,
   showcase_img_urls: yup.array().of(appStoreImageSchema),
 });
 

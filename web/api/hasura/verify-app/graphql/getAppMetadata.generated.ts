@@ -18,7 +18,7 @@ export type GetAppMetadataQuery = {
       logo_img_url: string;
       showcase_img_urls?: Array<string> | null;
       hero_image_url: string;
-      meta_tag_image_url?: string | null;
+      meta_tag_image_url: string;
       verification_status: string;
       localisations: Array<{
         __typename?: "localisations";
@@ -26,7 +26,7 @@ export type GetAppMetadataQuery = {
         locale: string;
         hero_image_url: string;
         showcase_img_urls?: Array<string> | null;
-        meta_tag_image_url?: string | null;
+        meta_tag_image_url: string;
       }>;
     }>;
   }>;
