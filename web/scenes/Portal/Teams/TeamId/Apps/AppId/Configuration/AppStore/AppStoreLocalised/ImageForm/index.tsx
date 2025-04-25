@@ -106,6 +106,8 @@ export const ImageForm = (props: ImageFormTypes) => {
       setUnverifiedImages({
         logo_img_url: imagesData.unverified_images.logo_img_url ?? "",
         hero_image_url: imagesData.unverified_images.hero_image_url ?? "",
+        meta_tag_image_url:
+          imagesData.unverified_images.meta_tag_image_url ?? "",
         showcase_image_urls: imagesData.unverified_images.showcase_img_urls,
       });
     } else {
@@ -113,6 +115,7 @@ export const ImageForm = (props: ImageFormTypes) => {
         logo_img_url: "",
         hero_image_url: "",
         showcase_image_urls: [],
+        meta_tag_image_url: "",
       });
     }
   }, [locale, imagesData, setUnverifiedImages]);
@@ -566,7 +569,18 @@ export const ImageForm = (props: ImageFormTypes) => {
   useEffect(() => {
     onOperationStateChange?.(isAnyOperationInProgress);
   }, [isAnyOperationInProgress, onOperationStateChange]);
-
+  console.log(
+    unverifiedImages.meta_tag_image_url !== "" ||
+      !isEnoughPermissions ||
+      !isEditable ||
+      isAnyOperationInProgress,
+    {
+      meta_tag_image_url: unverifiedImages.meta_tag_image_url,
+      isEnoughPermissions: isEnoughPermissions,
+      isEditable: isEditable,
+      isAnyOperationInProgress: isAnyOperationInProgress,
+    },
+  );
   return (
     <div className="grid gap-y-7">
       {/* Featured image */}
