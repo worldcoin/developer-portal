@@ -569,18 +569,7 @@ export const ImageForm = (props: ImageFormTypes) => {
   useEffect(() => {
     onOperationStateChange?.(isAnyOperationInProgress);
   }, [isAnyOperationInProgress, onOperationStateChange]);
-  console.log(
-    unverifiedImages.meta_tag_image_url !== "" ||
-      !isEnoughPermissions ||
-      !isEditable ||
-      isAnyOperationInProgress,
-    {
-      meta_tag_image_url: unverifiedImages.meta_tag_image_url,
-      isEnoughPermissions: isEnoughPermissions,
-      isEditable: isEditable,
-      isAnyOperationInProgress: isAnyOperationInProgress,
-    },
-  );
+
   return (
     <div className="grid gap-y-7">
       {/* Featured image */}
