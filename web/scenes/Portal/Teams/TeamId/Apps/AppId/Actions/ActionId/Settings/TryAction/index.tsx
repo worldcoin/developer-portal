@@ -16,7 +16,11 @@ type TryActionProps = {
     description: string;
     action: string;
     app_id: string;
-    app: { is_staging: boolean; engine: string };
+    app: {
+      is_staging: boolean;
+      engine: string;
+      app_metadata: { app_mode: string }[];
+    };
   };
 };
 
@@ -55,6 +59,11 @@ export const TryAction = (props: TryActionProps) => {
             className={clsx(
               "flex size-11 items-center justify-center rounded-xl bg-white shadow-button hover:bg-grey-50",
               { "border border-grey-200": showCode },
+              {
+                hidden: action.app.app_metadata.some(
+                  ({ app_mode }) => app_mode === "mini-app",
+                ),
+              },
             )}
           >
             <CodeIcon
