@@ -6,8 +6,9 @@ query GetAppMetadata($app_id: String!, $locale: String!) {
     short_name
     app_id
     logo_img_url
-    showcase_img_urls
     hero_image_url
+    meta_tag_image_url
+    showcase_img_urls
     world_app_description
     world_app_button_text
     whitelisted_addresses
@@ -33,6 +34,7 @@ query GetAppMetadata($app_id: String!, $locale: String!) {
       short_name
       description
       hero_image_url
+      meta_tag_image_url
       showcase_img_urls
     }
     app {

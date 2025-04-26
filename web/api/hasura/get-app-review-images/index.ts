@@ -128,6 +128,24 @@ export const POST = async (req: NextRequest) => {
     );
   }
 
+  // For meta tag image, use localized versions if available and locale is not English
+  const metaTagImageUrl = localisation
+    ? localisation.meta_tag_image_url
+    : app.meta_tag_image_url;
+
+  if (metaTagImageUrl) {
+    urlPromises.push(
+      getSignedUrl(
+        s3Client,
+        new GetObjectCommand({
+          Bucket: bucketName,
+          Key: `${objectKey}${localisation ? `${locale}/` : ""}${metaTagImageUrl}`,
+        }),
+        { expiresIn: urlExpiration },
+      ).then((url) => ({ meta_tag_image_url: url })),
+    );
+  }
+
   const showcaseImgUrls = localisation
     ? localisation.showcase_img_urls
     : app.showcase_img_urls;

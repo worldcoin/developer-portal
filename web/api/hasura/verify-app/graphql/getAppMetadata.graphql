@@ -5,12 +5,14 @@ query GetAppMetadata($app_id: String!) {
       logo_img_url
       showcase_img_urls
       hero_image_url
+      meta_tag_image_url
       verification_status
       localisations {
         id
         locale
         hero_image_url
         showcase_img_urls
+        meta_tag_image_url
       }
     }
   }

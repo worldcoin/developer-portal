@@ -3,8 +3,9 @@ mutation CreateDraft(
   $name: String = ""
   $short_name: String = ""
   $logo_img_url: String = ""
-  $showcase_img_urls: [String!] = null
   $hero_image_url: String = ""
+  $meta_tag_image_url: String = ""
+  $showcase_img_urls: [String!] = null
   $description: String = ""
   $world_app_description: String = ""
   $category: String = ""
@@ -34,6 +35,7 @@ mutation CreateDraft(
       name: $name
       logo_img_url: $logo_img_url
       showcase_img_urls: $showcase_img_urls
+      meta_tag_image_url: $meta_tag_image_url
       hero_image_url: $hero_image_url
       description: $description
       world_app_description: $world_app_description

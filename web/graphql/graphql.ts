@@ -119,6 +119,7 @@ export type ImageGetAllUnverifiedImagesOutput = {
   __typename?: "ImageGetAllUnverifiedImagesOutput";
   hero_image_url?: Maybe<Scalars["String"]["output"]>;
   logo_img_url?: Maybe<Scalars["String"]["output"]>;
+  meta_tag_image_url?: Maybe<Scalars["String"]["output"]>;
   showcase_img_urls?: Maybe<Array<Scalars["String"]["output"]>>;
 };
 
@@ -1807,6 +1808,7 @@ export type App_Metadata = {
   localisations_aggregate: Localisations_Aggregate;
   logo_img_url: Scalars["String"]["output"];
   max_notifications_per_day?: Maybe<Scalars["Int"]["output"]>;
+  meta_tag_image_url: Scalars["String"]["output"];
   name: Scalars["String"]["output"];
   permit2_tokens?: Maybe<Array<Scalars["String"]["output"]>>;
   review_message: Scalars["String"]["output"];
@@ -1965,6 +1967,7 @@ export type App_Metadata_Bool_Exp = {
   localisations_aggregate?: InputMaybe<Localisations_Aggregate_Bool_Exp>;
   logo_img_url?: InputMaybe<String_Comparison_Exp>;
   max_notifications_per_day?: InputMaybe<Int_Comparison_Exp>;
+  meta_tag_image_url?: InputMaybe<String_Comparison_Exp>;
   name?: InputMaybe<String_Comparison_Exp>;
   permit2_tokens?: InputMaybe<String_Array_Comparison_Exp>;
   review_message?: InputMaybe<String_Comparison_Exp>;
@@ -2022,6 +2025,7 @@ export type App_Metadata_Insert_Input = {
   localisations?: InputMaybe<Localisations_Arr_Rel_Insert_Input>;
   logo_img_url?: InputMaybe<Scalars["String"]["input"]>;
   max_notifications_per_day?: InputMaybe<Scalars["Int"]["input"]>;
+  meta_tag_image_url?: InputMaybe<Scalars["String"]["input"]>;
   name?: InputMaybe<Scalars["String"]["input"]>;
   permit2_tokens?: InputMaybe<Array<Scalars["String"]["input"]>>;
   review_message?: InputMaybe<Scalars["String"]["input"]>;
@@ -2059,6 +2063,7 @@ export type App_Metadata_Max_Fields = {
   integration_url?: Maybe<Scalars["String"]["output"]>;
   logo_img_url?: Maybe<Scalars["String"]["output"]>;
   max_notifications_per_day?: Maybe<Scalars["Int"]["output"]>;
+  meta_tag_image_url?: Maybe<Scalars["String"]["output"]>;
   name?: Maybe<Scalars["String"]["output"]>;
   permit2_tokens?: Maybe<Array<Scalars["String"]["output"]>>;
   review_message?: Maybe<Scalars["String"]["output"]>;
@@ -2093,6 +2098,7 @@ export type App_Metadata_Max_Order_By = {
   integration_url?: InputMaybe<Order_By>;
   logo_img_url?: InputMaybe<Order_By>;
   max_notifications_per_day?: InputMaybe<Order_By>;
+  meta_tag_image_url?: InputMaybe<Order_By>;
   name?: InputMaybe<Order_By>;
   permit2_tokens?: InputMaybe<Order_By>;
   review_message?: InputMaybe<Order_By>;
@@ -2130,6 +2136,7 @@ export type App_Metadata_Min_Fields = {
   integration_url?: Maybe<Scalars["String"]["output"]>;
   logo_img_url?: Maybe<Scalars["String"]["output"]>;
   max_notifications_per_day?: Maybe<Scalars["Int"]["output"]>;
+  meta_tag_image_url?: Maybe<Scalars["String"]["output"]>;
   name?: Maybe<Scalars["String"]["output"]>;
   permit2_tokens?: Maybe<Array<Scalars["String"]["output"]>>;
   review_message?: Maybe<Scalars["String"]["output"]>;
@@ -2164,6 +2171,7 @@ export type App_Metadata_Min_Order_By = {
   integration_url?: InputMaybe<Order_By>;
   logo_img_url?: InputMaybe<Order_By>;
   max_notifications_per_day?: InputMaybe<Order_By>;
+  meta_tag_image_url?: InputMaybe<Order_By>;
   name?: InputMaybe<Order_By>;
   permit2_tokens?: InputMaybe<Order_By>;
   review_message?: InputMaybe<Order_By>;
@@ -2232,6 +2240,7 @@ export type App_Metadata_Order_By = {
   localisations_aggregate?: InputMaybe<Localisations_Aggregate_Order_By>;
   logo_img_url?: InputMaybe<Order_By>;
   max_notifications_per_day?: InputMaybe<Order_By>;
+  meta_tag_image_url?: InputMaybe<Order_By>;
   name?: InputMaybe<Order_By>;
   permit2_tokens?: InputMaybe<Order_By>;
   review_message?: InputMaybe<Order_By>;
@@ -2301,6 +2310,8 @@ export enum App_Metadata_Select_Column {
   LogoImgUrl = "logo_img_url",
   /** column name */
   MaxNotificationsPerDay = "max_notifications_per_day",
+  /** column name */
+  MetaTagImageUrl = "meta_tag_image_url",
   /** column name */
   Name = "name",
   /** column name */
@@ -2399,6 +2410,7 @@ export type App_Metadata_Set_Input = {
   is_row_verified?: InputMaybe<Scalars["Boolean"]["input"]>;
   logo_img_url?: InputMaybe<Scalars["String"]["input"]>;
   max_notifications_per_day?: InputMaybe<Scalars["Int"]["input"]>;
+  meta_tag_image_url?: InputMaybe<Scalars["String"]["input"]>;
   name?: InputMaybe<Scalars["String"]["input"]>;
   permit2_tokens?: InputMaybe<Array<Scalars["String"]["input"]>>;
   review_message?: InputMaybe<Scalars["String"]["input"]>;
@@ -2488,6 +2500,7 @@ export type App_Metadata_Stream_Cursor_Value_Input = {
   is_row_verified?: InputMaybe<Scalars["Boolean"]["input"]>;
   logo_img_url?: InputMaybe<Scalars["String"]["input"]>;
   max_notifications_per_day?: InputMaybe<Scalars["Int"]["input"]>;
+  meta_tag_image_url?: InputMaybe<Scalars["String"]["input"]>;
   name?: InputMaybe<Scalars["String"]["input"]>;
   permit2_tokens?: InputMaybe<Array<Scalars["String"]["input"]>>;
   review_message?: InputMaybe<Scalars["String"]["input"]>;
@@ -2565,6 +2578,8 @@ export enum App_Metadata_Update_Column {
   LogoImgUrl = "logo_img_url",
   /** column name */
   MaxNotificationsPerDay = "max_notifications_per_day",
+  /** column name */
+  MetaTagImageUrl = "meta_tag_image_url",
   /** column name */
   Name = "name",
   /** column name */
@@ -5026,6 +5041,7 @@ export type Localisations = {
   hero_image_url: Scalars["String"]["output"];
   id: Scalars["String"]["output"];
   locale: Scalars["String"]["output"];
+  meta_tag_image_url: Scalars["String"]["output"];
   name: Scalars["String"]["output"];
   short_name: Scalars["String"]["output"];
   showcase_img_urls?: Maybe<Array<Scalars["String"]["output"]>>;
@@ -5092,6 +5108,7 @@ export type Localisations_Bool_Exp = {
   hero_image_url?: InputMaybe<String_Comparison_Exp>;
   id?: InputMaybe<String_Comparison_Exp>;
   locale?: InputMaybe<String_Comparison_Exp>;
+  meta_tag_image_url?: InputMaybe<String_Comparison_Exp>;
   name?: InputMaybe<String_Comparison_Exp>;
   short_name?: InputMaybe<String_Comparison_Exp>;
   showcase_img_urls?: InputMaybe<String_Array_Comparison_Exp>;
@@ -5117,6 +5134,7 @@ export type Localisations_Insert_Input = {
   hero_image_url?: InputMaybe<Scalars["String"]["input"]>;
   id?: InputMaybe<Scalars["String"]["input"]>;
   locale?: InputMaybe<Scalars["String"]["input"]>;
+  meta_tag_image_url?: InputMaybe<Scalars["String"]["input"]>;
   name?: InputMaybe<Scalars["String"]["input"]>;
   short_name?: InputMaybe<Scalars["String"]["input"]>;
   showcase_img_urls?: InputMaybe<Array<Scalars["String"]["input"]>>;
@@ -5134,6 +5152,7 @@ export type Localisations_Max_Fields = {
   hero_image_url?: Maybe<Scalars["String"]["output"]>;
   id?: Maybe<Scalars["String"]["output"]>;
   locale?: Maybe<Scalars["String"]["output"]>;
+  meta_tag_image_url?: Maybe<Scalars["String"]["output"]>;
   name?: Maybe<Scalars["String"]["output"]>;
   short_name?: Maybe<Scalars["String"]["output"]>;
   showcase_img_urls?: Maybe<Array<Scalars["String"]["output"]>>;
@@ -5150,6 +5169,7 @@ export type Localisations_Max_Order_By = {
   hero_image_url?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   locale?: InputMaybe<Order_By>;
+  meta_tag_image_url?: InputMaybe<Order_By>;
   name?: InputMaybe<Order_By>;
   short_name?: InputMaybe<Order_By>;
   showcase_img_urls?: InputMaybe<Order_By>;
@@ -5167,6 +5187,7 @@ export type Localisations_Min_Fields = {
   hero_image_url?: Maybe<Scalars["String"]["output"]>;
   id?: Maybe<Scalars["String"]["output"]>;
   locale?: Maybe<Scalars["String"]["output"]>;
+  meta_tag_image_url?: Maybe<Scalars["String"]["output"]>;
   name?: Maybe<Scalars["String"]["output"]>;
   short_name?: Maybe<Scalars["String"]["output"]>;
   showcase_img_urls?: Maybe<Array<Scalars["String"]["output"]>>;
@@ -5183,6 +5204,7 @@ export type Localisations_Min_Order_By = {
   hero_image_url?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   locale?: InputMaybe<Order_By>;
+  meta_tag_image_url?: InputMaybe<Order_By>;
   name?: InputMaybe<Order_By>;
   short_name?: InputMaybe<Order_By>;
   showcase_img_urls?: InputMaybe<Order_By>;
@@ -5216,6 +5238,7 @@ export type Localisations_Order_By = {
   hero_image_url?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   locale?: InputMaybe<Order_By>;
+  meta_tag_image_url?: InputMaybe<Order_By>;
   name?: InputMaybe<Order_By>;
   short_name?: InputMaybe<Order_By>;
   showcase_img_urls?: InputMaybe<Order_By>;
@@ -5244,6 +5267,8 @@ export enum Localisations_Select_Column {
   /** column name */
   Locale = "locale",
   /** column name */
+  MetaTagImageUrl = "meta_tag_image_url",
+  /** column name */
   Name = "name",
   /** column name */
   ShortName = "short_name",
@@ -5265,6 +5290,7 @@ export type Localisations_Set_Input = {
   hero_image_url?: InputMaybe<Scalars["String"]["input"]>;
   id?: InputMaybe<Scalars["String"]["input"]>;
   locale?: InputMaybe<Scalars["String"]["input"]>;
+  meta_tag_image_url?: InputMaybe<Scalars["String"]["input"]>;
   name?: InputMaybe<Scalars["String"]["input"]>;
   short_name?: InputMaybe<Scalars["String"]["input"]>;
   showcase_img_urls?: InputMaybe<Array<Scalars["String"]["input"]>>;
@@ -5289,6 +5315,7 @@ export type Localisations_Stream_Cursor_Value_Input = {
   hero_image_url?: InputMaybe<Scalars["String"]["input"]>;
   id?: InputMaybe<Scalars["String"]["input"]>;
   locale?: InputMaybe<Scalars["String"]["input"]>;
+  meta_tag_image_url?: InputMaybe<Scalars["String"]["input"]>;
   name?: InputMaybe<Scalars["String"]["input"]>;
   short_name?: InputMaybe<Scalars["String"]["input"]>;
   showcase_img_urls?: InputMaybe<Array<Scalars["String"]["input"]>>;
@@ -5311,6 +5338,8 @@ export enum Localisations_Update_Column {
   Id = "id",
   /** column name */
   Locale = "locale",
+  /** column name */
+  MetaTagImageUrl = "meta_tag_image_url",
   /** column name */
   Name = "name",
   /** column name */

@@ -196,6 +196,24 @@ export const POST = async (req: NextRequest) => {
     );
   }
 
+  const currentMetaTagImgName = awaitingReviewAppMetadata?.meta_tag_image_url;
+  let newMetaTagImgName: string = "";
+
+  if (currentMetaTagImgName) {
+    const metaTagFileType = getFileExtension(currentMetaTagImgName);
+    newMetaTagImgName = randomUUID() + metaTagFileType;
+
+    copyPromises.push(
+      s3Client.send(
+        new CopyObjectCommand({
+          Bucket: bucketName,
+          CopySource: `${bucketName}/${sourcePrefix}${currentMetaTagImgName}`,
+          Key: `${destinationPrefix}${newMetaTagImgName}`,
+        }),
+      ),
+    );
+  }
+
   const showcaseImgUrls = awaitingReviewAppMetadata.showcase_img_urls;
   let showcaseImgUUIDs: string[] | null = null;
 
@@ -248,6 +266,24 @@ export const POST = async (req: NextRequest) => {
       }
     }
 
+    if (localisation.meta_tag_image_url) {
+      const metaTagFileType = getFileExtension(localisation.meta_tag_image_url);
+      const newLocalisationMetaTagImgName = randomUUID() + metaTagFileType;
+
+      copyPromises.push(
+        s3Client.send(
+          new CopyObjectCommand({
+            Bucket: bucketName,
+            CopySource: `${bucketName}/${sourcePrefix}${localisation.locale}/${localisation.meta_tag_image_url}`,
+            Key: `${destinationPrefix}${localisation.locale}/${newLocalisationMetaTagImgName}`,
+          }),
+        ),
+      );
+      if (update._set) {
+        update._set.meta_tag_image_url = newLocalisationMetaTagImgName;
+      }
+    }
+
     if (localisation.showcase_img_urls) {
       const showcaseFileTypes = localisation.showcase_img_urls.map(
         (url: string) => getFileExtension(url),
@@ -289,6 +325,7 @@ export const POST = async (req: NextRequest) => {
     verified_data_changes: {
       logo_img_url: newLogoImgName,
       hero_image_url: newHeroImgName,
+      meta_tag_image_url: newMetaTagImgName,
       showcase_img_urls: showcaseImgUUIDs,
       verification_status: "verified",
       verified_at: new Date().toISOString(),
