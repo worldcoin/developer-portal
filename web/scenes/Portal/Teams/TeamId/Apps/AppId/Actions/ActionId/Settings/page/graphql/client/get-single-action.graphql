@@ -13,6 +13,9 @@ query GetSingleAction($action_id: String!) {
       id
       is_staging
       engine
+      app_metadata {
+        app_mode
+      }
     }
   }
 }
