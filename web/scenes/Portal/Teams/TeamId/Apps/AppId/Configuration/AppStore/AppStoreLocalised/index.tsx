@@ -566,7 +566,7 @@ export const AppStoreForm = (props: {
         const currentData = getValues();
         if (hasImages(locale) && hasEmptyRequiredFields(currentData, locale)) {
           toast.warn(
-            "Your images are saved but will not be displayed in the App Store until you fill in all required fields",
+            "Your images are saved but will not be displayed in the listing until you fill in all required fields",
           );
         }
         updateLocalisationInForm(targetLang);
@@ -727,8 +727,8 @@ export const AppStoreForm = (props: {
             <Typography variant={TYPOGRAPHY.R4} className="text-grey-500">
               Checking this means your app is only useable by orb verified
               users. This will prevent non verified users from downloading the
-              app but make you eligible for special feature opportunities in the
-              app store.
+              app but make you eligible for special feature opportunities in
+              World Mini Apps.
             </Typography>
             <div className="mt-3 flex gap-x-6">
               <Controller
@@ -1115,7 +1115,7 @@ export const AppStoreForm = (props: {
                 label="App tag line"
                 disabled={isFormDisabled}
                 required
-                placeholder="Short app store tagline"
+                placeholder="Short app listing tagline"
                 maxLength={35}
                 addOnRight={
                   <RemainingCharacters
