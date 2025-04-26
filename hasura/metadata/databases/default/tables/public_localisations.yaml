@@ -14,6 +14,7 @@ insert_permissions:
         - description
         - hero_image_url
         - locale
+        - meta_tag_image_url
         - name
         - short_name
         - showcase_img_urls
@@ -43,6 +44,7 @@ insert_permissions:
         - description
         - hero_image_url
         - locale
+        - meta_tag_image_url
         - name
         - short_name
         - showcase_img_urls
@@ -59,6 +61,7 @@ select_permissions:
         - hero_image_url
         - id
         - locale
+        - meta_tag_image_url
         - name
         - short_name
         - showcase_img_urls
@@ -76,6 +79,7 @@ select_permissions:
         - hero_image_url
         - id
         - locale
+        - meta_tag_image_url
         - name
         - short_name
         - showcase_img_urls
@@ -93,6 +97,7 @@ select_permissions:
         - hero_image_url
         - id
         - locale
+        - meta_tag_image_url
         - name
         - short_name
         - showcase_img_urls
@@ -112,6 +117,7 @@ update_permissions:
     permission:
       columns:
         - hero_image_url
+        - meta_tag_image_url
         - showcase_img_urls
       filter: {}
       check: {}
@@ -123,6 +129,7 @@ update_permissions:
         - description
         - hero_image_url
         - locale
+        - meta_tag_image_url
         - name
         - short_name
         - showcase_img_urls
@@ -136,6 +143,7 @@ update_permissions:
       columns:
         - description
         - hero_image_url
+        - meta_tag_image_url
         - name
         - short_name
         - showcase_img_urls

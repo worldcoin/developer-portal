@@ -70,12 +70,26 @@ export const formatAppMetadata = async (
     isLocalisationComplete && localisedContent?.hero_image_url
       ? localisedContent.hero_image_url
       : appMetadata.hero_image_url;
+
+  // fallback to logo
+  const metaTagImageUrl =
+    isLocalisationComplete && localisedContent?.meta_tag_image_url
+      ? localisedContent.meta_tag_image_url
+      : appMetadata.meta_tag_image_url || appMetadata.logo_img_url;
+  //
   const showcaseImgUrls =
     isLocalisationComplete && localisedContent?.showcase_img_urls
       ? localisedContent.showcase_img_urls
       : appMetadata.showcase_img_urls;
+  //
   const heroImageLocale =
     isLocalisationComplete && localisedContent?.hero_image_url ? locale : "en";
+  //
+  const metaTagImageLocale =
+    isLocalisationComplete && localisedContent?.meta_tag_image_url
+      ? locale
+      : "en";
+  //
   const showcaseImgUrlsLocale =
     isLocalisationComplete && localisedContent?.showcase_img_urls
       ? locale
@@ -98,6 +112,18 @@ export const formatAppMetadata = async (
       appMetadata.logo_img_url,
       appMetadata.verification_status === "verified",
     ),
+    meta_tag_image_url: getCDNImageUrl(
+      appMetadata.app_id,
+      metaTagImageUrl,
+      appMetadata.verification_status === "verified",
+      metaTagImageLocale,
+    ),
+    hero_image_url: getCDNImageUrl(
+      appMetadata.app_id,
+      heroImageUrl,
+      appMetadata.verification_status === "verified",
+      heroImageLocale,
+    ),
     showcase_img_urls: showcaseImgUrls?.map((url: string) =>
       getCDNImageUrl(
         appMetadata.app_id,
@@ -105,12 +131,6 @@ export const formatAppMetadata = async (
         appMetadata.verification_status === "verified",
         showcaseImgUrlsLocale,
       ),
-    ),
-    hero_image_url: getCDNImageUrl(
-      appMetadata.app_id,
-      heroImageUrl,
-      appMetadata.verification_status === "verified",
-      heroImageLocale,
     ),
     // TODO: These fields are not used anymore, we can add them back if we want later
     description: {
@@ -142,7 +162,6 @@ const isDefaultPinnedNoGrants = (appId: string) => {
     appId === "app_e8288209fbe1fc4a1b80619e925a79bd" || // learn
     appId === NATIVE_MAPPED_APP_ID.contacts ||
     appId === NATIVE_MAPPED_APP_ID.network ||
-    appId === NATIVE_MAPPED_APP_ID["starter-kit"] ||
     appId === NATIVE_MAPPED_APP_ID.invites
   );
 };

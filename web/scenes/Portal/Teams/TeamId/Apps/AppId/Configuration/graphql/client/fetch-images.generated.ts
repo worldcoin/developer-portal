@@ -16,6 +16,7 @@ export type FetchImagesQuery = {
     __typename?: "ImageGetAllUnverifiedImagesOutput";
     logo_img_url?: string | null;
     hero_image_url?: string | null;
+    meta_tag_image_url?: string | null;
     showcase_img_urls?: Array<string> | null;
   } | null;
 };
@@ -29,6 +30,7 @@ export const FetchImagesDocument = gql`
     ) {
       logo_img_url
       hero_image_url
+      meta_tag_image_url
       showcase_img_urls
     }
   }

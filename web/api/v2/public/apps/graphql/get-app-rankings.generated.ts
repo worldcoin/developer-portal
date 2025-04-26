@@ -18,8 +18,9 @@ export type GetAppsQuery = {
     short_name: string;
     app_id: string;
     logo_img_url: string;
-    showcase_img_urls?: Array<string> | null;
     hero_image_url: string;
+    meta_tag_image_url: string;
+    showcase_img_urls?: Array<string> | null;
     world_app_description: string;
     world_app_button_text: string;
     whitelisted_addresses?: Array<string> | null;
@@ -50,6 +51,7 @@ export type GetAppsQuery = {
       short_name: string;
       description: string;
       hero_image_url: string;
+      meta_tag_image_url: string;
       showcase_img_urls?: Array<string> | null;
     }>;
     app: {
@@ -76,8 +78,9 @@ export const GetAppsDocument = gql`
       short_name
       app_id
       logo_img_url
-      showcase_img_urls
       hero_image_url
+      meta_tag_image_url
+      showcase_img_urls
       world_app_description
       world_app_button_text
       whitelisted_addresses
@@ -107,6 +110,7 @@ export const GetAppsDocument = gql`
         short_name
         description
         hero_image_url
+        meta_tag_image_url
         showcase_img_urls
       }
       app {

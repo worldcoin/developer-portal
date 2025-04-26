@@ -114,6 +114,9 @@ export const POST = async (req: NextRequest) => {
     hero_image_url: newAppMetadata?.hero_image_url
       ? `hero_image.${getImageEndpoint(newAppMetadata.hero_image_url)}`
       : "",
+    meta_tag_image_url: newAppMetadata?.meta_tag_image_url
+      ? `meta_tag_image.${getImageEndpoint(newAppMetadata.meta_tag_image_url)}`
+      : "",
     showcase_img_urls: newAppMetadata?.showcase_img_urls
       ? `{${newAppMetadata.showcase_img_urls
           ?.map(
@@ -156,6 +159,9 @@ export const POST = async (req: NextRequest) => {
           app_metadata_id: newAppMetadataId,
           hero_image_url: copiedLocalisation?.hero_image_url
             ? `hero_image.${getImageEndpoint(copiedLocalisation.hero_image_url)}`
+            : "",
+          meta_tag_image_url: copiedLocalisation?.meta_tag_image_url
+            ? `meta_tag_image.${getImageEndpoint(copiedLocalisation.meta_tag_image_url)}`
             : "",
           showcase_img_urls: copiedLocalisation?.showcase_img_urls
             ? copiedLocalisation.showcase_img_urls.map(

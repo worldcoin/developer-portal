@@ -22,8 +22,9 @@ export type FetchAppMetadataQuery = {
       app_id: string;
       name: string;
       logo_img_url: string;
-      showcase_img_urls?: Array<string> | null;
       hero_image_url: string;
+      meta_tag_image_url: string;
+      showcase_img_urls?: Array<string> | null;
       description: string;
       world_app_description: string;
       category: string;
@@ -56,8 +57,9 @@ export type FetchAppMetadataQuery = {
       app_id: string;
       name: string;
       logo_img_url: string;
-      showcase_img_urls?: Array<string> | null;
       hero_image_url: string;
+      meta_tag_image_url: string;
+      showcase_img_urls?: Array<string> | null;
       description: string;
       world_app_description: string;
       category: string;
@@ -99,8 +101,9 @@ export const FetchAppMetadataDocument = gql`
         app_id
         name
         logo_img_url
-        showcase_img_urls
         hero_image_url
+        meta_tag_image_url
+        showcase_img_urls
         description
         world_app_description
         category
@@ -134,8 +137,9 @@ export const FetchAppMetadataDocument = gql`
         app_id
         name
         logo_img_url
-        showcase_img_urls
         hero_image_url
+        meta_tag_image_url
+        showcase_img_urls
         description
         world_app_description
         category

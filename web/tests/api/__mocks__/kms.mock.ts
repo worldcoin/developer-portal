@@ -16,7 +16,7 @@ module.exports = {
       };
     }),
   })),
-  signJWTWithKMSKey: jest.requireActual("@/api/helpers/kms").signJWTWithKMSKey,
+  signJWTWithKMSKey: jest.requireActual("legacy/backend/kms").signJWTWithKMSKey,
   createKMSKey: jest.fn().mockImplementation(async () => {
     const key = createPublicKey({ format: "jwk", key: publicJwk });
     const pemKey = key.export({ type: "pkcs1", format: "pem" });

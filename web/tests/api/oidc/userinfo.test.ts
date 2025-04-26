@@ -1,16 +1,16 @@
-import { generateOIDCJWT } from "@/api/helpers/jwts";
-import { OIDCScopes } from "@/legacy/backend/oidc";
 import { VerificationLevel } from "@worldcoin/idkit-core";
 import { createMocks } from "node-mocks-http";
+import { generateOIDCJWT } from "@/legacy/backend/jwts";
+import { OIDCScopes } from "@/legacy/backend/oidc";
 
 import handleOIDCUserinfo from "@/pages/api/v1/oidc/userinfo";
 import { NextApiRequest, NextApiResponse } from "next";
 
-jest.mock("@/api/helpers/kms", () =>
+jest.mock("legacy/backend/kms", () =>
   require("tests/api/__mocks__/kms.mock.ts"),
 );
 
-jest.mock("@/api/helpers/jwks", () =>
+jest.mock("legacy/backend/jwks", () =>
   require("tests/api/__mocks__/jwks.mock.ts"),
 );
 
