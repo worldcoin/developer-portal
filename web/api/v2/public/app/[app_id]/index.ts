@@ -7,10 +7,7 @@ import { parseLocale } from "@/lib/languages";
 import { AppStatsReturnType } from "@/lib/types";
 import { isValidHostName } from "@/lib/utils";
 import { NextResponse } from "next/server";
-import {
-  CONTACTS_APP_AVAILABLE_FROM,
-  STARTER_KIT_APP_AVAILABLE_FROM,
-} from "../../constants";
+import { CONTACTS_APP_AVAILABLE_FROM } from "../../constants";
 import { getSdk as getAppMetadataSdk } from "./graphql/get-app-metadata.generated";
 
 /**
@@ -159,14 +156,6 @@ export async function GET(
     parsedAppMetadata.app_id === nativeIdToActualId.contacts &&
     (!clientVersion ||
       compareVersions(clientVersion, CONTACTS_APP_AVAILABLE_FROM) < 0)
-  ) {
-    return NextResponse.json({ error: "App not available" }, { status: 404 });
-  }
-
-  if (
-    parsedAppMetadata.app_id === nativeIdToActualId["starter-kit"] &&
-    (!clientVersion ||
-      compareVersions(clientVersion, STARTER_KIT_APP_AVAILABLE_FROM) < 0)
   ) {
     return NextResponse.json({ error: "App not available" }, { status: 404 });
   }

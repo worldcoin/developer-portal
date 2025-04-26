@@ -20,11 +20,7 @@ import { getSdk as getWebHighlightsSdk } from "./graphql/get-app-web-highlights.
 
 import { formatAppMetadata, rankApps } from "@/api/helpers/app-store";
 import { compareVersions } from "@/lib/compare-versions";
-import {
-  CONTACTS_APP_AVAILABLE_FROM,
-  OFFICE_IPS,
-  STARTER_KIT_APP_AVAILABLE_FROM,
-} from "../constants";
+import { CONTACTS_APP_AVAILABLE_FROM, OFFICE_IPS } from "../constants";
 import {
   GetHighlightsQuery,
   getSdk as getHighlightsSdk,
@@ -172,21 +168,6 @@ export const GET = async (request: NextRequest) => {
     );
     highlightsApps = highlightsApps.filter(
       (app) => app.app_id !== nativeIdToActualId.contacts,
-    );
-  }
-
-  /**
-   * filter out starter-kit on versions that do not have the native code for it
-   */
-  if (
-    !clientVersion ||
-    compareVersions(clientVersion, STARTER_KIT_APP_AVAILABLE_FROM) < 0
-  ) {
-    topApps = topApps.filter(
-      (app) => app.app_id !== nativeIdToActualId["starter-kit"],
-    );
-    highlightsApps = highlightsApps.filter(
-      (app) => app.app_id !== nativeIdToActualId["starter-kit"],
     );
   }
 
