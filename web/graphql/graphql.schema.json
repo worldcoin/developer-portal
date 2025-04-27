@@ -709,6 +709,18 @@
             "deprecationReason": null
           },
           {
+            "name": "meta_tag_image_url",
+            "description": null,
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "showcase_img_urls",
             "description": null,
             "args": [],
