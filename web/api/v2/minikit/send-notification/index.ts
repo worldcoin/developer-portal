@@ -138,6 +138,7 @@ export const POST = async (req: NextRequest) => {
   const { isValid, parsedParams, handleError } = await validateRequestSchema({
     schema: sendNotificationBodySchema,
     value: body,
+    app_id: body?.app_id,
   });
 
   if (!isValid) {

@@ -10,9 +10,11 @@ import { errorResponse } from "./errors";
 export const validateRequestSchema = async <T extends yup.Schema>({
   schema,
   value,
+  app_id,
 }: {
   schema: T;
   value: any;
+  app_id?: string;
 }): Promise<
   | {
       isValid: true;
@@ -44,6 +46,7 @@ export const validateRequestSchema = async <T extends yup.Schema>({
           detail: validationError.message,
           attribute: validationError.path,
           req,
+          app_id,
         });
       };
       return { isValid: false, handleError };
@@ -56,6 +59,7 @@ export const validateRequestSchema = async <T extends yup.Schema>({
         detail: "Something went wrong. Please try again.",
         attribute: null,
         req,
+        app_id,
       });
     };
 
