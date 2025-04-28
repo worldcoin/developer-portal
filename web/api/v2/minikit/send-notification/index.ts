@@ -138,15 +138,11 @@ export const POST = async (req: NextRequest) => {
   const { isValid, parsedParams, handleError } = await validateRequestSchema({
     schema: sendNotificationBodySchema,
     value: body,
+    app_id: body?.app_id,
   });
 
   if (!isValid) {
-    const error = handleError(req);
-    // Include app_id in the error
-    return {
-      app_id: body?.app_id,
-      ...error,
-    };
+    return handleError(req);
   }
 
   const { app_id, wallet_addresses, title, message, mini_app_path } = {
