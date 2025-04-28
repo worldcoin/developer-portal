@@ -141,7 +141,12 @@ export const POST = async (req: NextRequest) => {
   });
 
   if (!isValid) {
-    return handleError(req);
+    const error = handleError(req);
+    // Include app_id in the error
+    return {
+      app_id: body?.app_id,
+      ...error,
+    };
   }
 
   const { app_id, wallet_addresses, title, message, mini_app_path } = {
