@@ -159,7 +159,7 @@ export const AppStoreForm = (props: {
       (lang) => lang !== "en" && !existingLocales.has(lang),
     );
 
-    if (missingLocales.length > 0) {
+    if (missingLocales?.length > 0) {
       // Add missing locales to creating set
       setCreatingLocalisations((prev) => {
         const newSet = new Set(prev);
@@ -491,13 +491,13 @@ export const AppStoreForm = (props: {
         return !!(
           appMetadata?.hero_image_url ||
           (appMetadata?.showcase_img_urls &&
-            appMetadata.showcase_img_urls.length > 0)
+            appMetadata.showcase_img_urls?.length > 0)
         );
       } else {
         return !!(
           localisedData?.localisations?.[0]?.hero_image_url ||
           (localisedData?.localisations?.[0]?.showcase_img_urls &&
-            localisedData.localisations[0].showcase_img_urls.length > 0)
+            localisedData.localisations[0].showcase_img_urls?.length > 0)
         );
       }
     },
@@ -629,7 +629,7 @@ export const AppStoreForm = (props: {
 
     // If we've reached the beginning, start from the end
     if (!previousLocale) {
-      previousLocaleIdx = supportedLanguages.length - 1;
+      previousLocaleIdx = supportedLanguages?.length - 1;
       previousLocale = supportedLanguages[previousLocaleIdx];
       // Skip locales that are being created from the end
       while (previousLocale && creatingLocalisations.has(previousLocale)) {
@@ -1061,13 +1061,13 @@ export const AppStoreForm = (props: {
               disabled={
                 isImageOperationInProgress ||
                 isSubmitting ||
-                creatingLocalisations.size === supportedLanguages.length
+                creatingLocalisations.size === supportedLanguages?.length
               }
               className={clsx({
                 "cursor-not-allowed opacity-50":
                   isImageOperationInProgress ||
                   isSubmitting ||
-                  creatingLocalisations.size === supportedLanguages.length,
+                  creatingLocalisations.size === supportedLanguages?.length,
               })}
             >
               <ChevronLeftIcon className="mr-2 size-8" />
@@ -1147,13 +1147,13 @@ export const AppStoreForm = (props: {
               disabled={
                 isImageOperationInProgress ||
                 isSubmitting ||
-                creatingLocalisations.size === supportedLanguages.length
+                creatingLocalisations.size === supportedLanguages?.length
               }
               className={clsx({
                 "cursor-not-allowed opacity-50":
                   isImageOperationInProgress ||
                   isSubmitting ||
-                  creatingLocalisations.size === supportedLanguages.length,
+                  creatingLocalisations.size === supportedLanguages?.length,
               })}
             >
               <ChevronRightIcon className="ml-2 size-8" />
