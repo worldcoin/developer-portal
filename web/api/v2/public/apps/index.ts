@@ -256,7 +256,7 @@ export const GET = async (request: NextRequest) => {
   let metricsData: AppStatsReturnType = [];
 
   if (response.status == 200) {
-    metricsData = [await response.json()];
+    metricsData = await response.json();
   }
 
   const nativeAppMetadata = NativeApps[process.env.NEXT_PUBLIC_APP_ENV];
