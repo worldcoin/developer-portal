@@ -359,7 +359,7 @@ export const fetchWithRetry = async (
     }
 
     if (attempt < maxRetries - 1) {
-      const delay = initialRetryDelay * Math.pow(2, attempt);
+      const delay = initialRetryDelayinMS * Math.pow(2, attempt);
       await new Promise((resolve) => setTimeout(resolve, delay));
     }
   }
