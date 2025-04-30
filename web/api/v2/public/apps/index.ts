@@ -9,7 +9,7 @@ import {
 import { NativeApps, NativeAppToAppIdMapping } from "@/lib/constants";
 import { parseLocale } from "@/lib/languages";
 import { AppStatsReturnType } from "@/lib/types";
-import { isValidHostName } from "@/lib/utils";
+import { fetchWithRetry, isValidHostName } from "@/lib/utils";
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
 import {
@@ -238,7 +238,7 @@ export const GET = async (request: NextRequest) => {
   }
 
   // ANCHOR: Fetch app stats from metrics service
-  const response = await fetch(
+  const response = await fetchWithRetry(
     `${process.env.NEXT_PUBLIC_METRICS_SERVICE_ENDPOINT}/stats/data.json`,
     {
       cache: "no-store",
@@ -248,9 +248,17 @@ export const GET = async (request: NextRequest) => {
         Expires: "0",
       },
     },
+    3,
+    400,
+    false,
   );
 
-  const metricsData: AppStatsReturnType = await response.json();
+  let metricsData: AppStatsReturnType = [];
+
+  if (response.status == 200) {
+    metricsData = [await response.json()];
+  }
+
   const nativeAppMetadata = NativeApps[process.env.NEXT_PUBLIC_APP_ENV];
 
   // Format all apps concurrently using Promise.all
