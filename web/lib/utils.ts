@@ -342,7 +342,7 @@ export const fetchWithRetry = async (
   url: string,
   options: RequestInit,
   maxRetries: number = DEFAULT_MAX_RETRIES,
-  initialRetryDelay: number = DEFAULT_INITIAL_RETRY_DELAY,
+  initialRetryDelayinMS: number = DEFAULT_INITIAL_RETRY_DELAY,
   throwOnError: boolean = true,
 ): Promise<Response> => {
   let lastError: Error | null = null;
