@@ -334,3 +334,34 @@ export const checkIfPartnerTeam = (teamId: string) => {
 export const checkIfNotProduction = (): boolean => {
   return process.env.NEXT_PUBLIC_APP_ENV !== "production";
 };
+
+const DEFAULT_MAX_RETRIES = 3;
+const DEFAULT_INITIAL_RETRY_DELAY = 500;
+
+export const fetchWithRetry = async (
+  url: string,
+  options: RequestInit,
+  maxRetries: number = DEFAULT_MAX_RETRIES,
+  initialRetryDelay: number = DEFAULT_INITIAL_RETRY_DELAY,
+): Promise<Response> => {
+  let lastError: Error | null = null;
+
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      const response = await fetch(url, options);
+      if (response.ok) {
+        return response;
+      }
+      lastError = new Error(`HTTP status ${response.status}`);
+    } catch (error) {
+      lastError = error as Error;
+    }
+
+    if (attempt < maxRetries - 1) {
+      const delay = initialRetryDelay * Math.pow(2, attempt);
+      await new Promise((resolve) => setTimeout(resolve, delay));
+    }
+  }
+
+  throw lastError;
+};

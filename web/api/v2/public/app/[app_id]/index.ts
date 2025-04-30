@@ -5,7 +5,7 @@ import { compareVersions } from "@/lib/compare-versions";
 import { NativeAppToAppIdMapping, NativeApps } from "@/lib/constants";
 import { parseLocale } from "@/lib/languages";
 import { AppStatsReturnType } from "@/lib/types";
-import { isValidHostName } from "@/lib/utils";
+import { fetchWithRetry, isValidHostName } from "@/lib/utils";
 import { NextResponse } from "next/server";
 import { CONTACTS_APP_AVAILABLE_FROM } from "../../constants";
 import { getSdk as getAppMetadataSdk } from "./graphql/get-app-metadata.generated";
@@ -66,7 +66,7 @@ export async function GET(
   }
 
   // ANCHOR: Fetch app stats from metrics service
-  const response = await fetch(
+  const response = await fetchWithRetry(
     `${process.env.NEXT_PUBLIC_METRICS_SERVICE_ENDPOINT}/${app_id}.json`,
     { cache: "no-store" },
   );
