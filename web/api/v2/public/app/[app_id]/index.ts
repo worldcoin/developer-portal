@@ -69,6 +69,9 @@ export async function GET(
   const response = await fetchWithRetry(
     `${process.env.NEXT_PUBLIC_METRICS_SERVICE_ENDPOINT}/${app_id}.json`,
     { cache: "no-store" },
+    3,
+    400,
+    false,
   );
 
   let metricsData: AppStatsReturnType = [];

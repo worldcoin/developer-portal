@@ -343,6 +343,7 @@ export const fetchWithRetry = async (
   options: RequestInit,
   maxRetries: number = DEFAULT_MAX_RETRIES,
   initialRetryDelay: number = DEFAULT_INITIAL_RETRY_DELAY,
+  throwOnError: boolean = true,
 ): Promise<Response> => {
   let lastError: Error | null = null;
 
@@ -361,6 +362,17 @@ export const fetchWithRetry = async (
       const delay = initialRetryDelay * Math.pow(2, attempt);
       await new Promise((resolve) => setTimeout(resolve, delay));
     }
+  }
+
+  if (!throwOnError) {
+    // Return a Response-like object with failure info
+    return new Response(
+      JSON.stringify({ error: lastError?.message || "Unknown error" }),
+      {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      },
+    );
   }
 
   throw lastError;
