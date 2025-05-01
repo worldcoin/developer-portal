@@ -1,24 +1,15 @@
-import { errorNotAllowed } from "@/legacy/backend/errors";
-import { JWT_ISSUER } from "@/legacy/backend/jwts";
-import { OIDCScopes } from "@/legacy/backend/oidc";
-import { OIDC_BASE_URL } from "@/legacy/lib/constants";
-import { NextApiRequest, NextApiResponse } from "next";
+import { JWT_ISSUER } from "@/api/helpers/jwts";
+import { OIDCScopes } from "@/api/helpers/oidc";
+import { OIDC_BASE_URL } from "@/lib/constants";
+import { NextRequest, NextResponse } from "next/server";
 
 /**
  * Returns an OpenID Connect discovery document, according to spec
  * https://openid.net/specs/openid-connect-discovery-1_0.html
  * @param req
- * @param res
  */
-export default async function handleOidcConfig(
-  req: NextApiRequest,
-  res: NextApiResponse,
-) {
-  if (!req.method || !["GET", "OPTIONS"].includes(req.method)) {
-    return errorNotAllowed(req.method, res, req);
-  }
-
-  res.status(200).json({
+export async function GET(req: NextRequest) {
+  return NextResponse.json({
     issuer: JWT_ISSUER,
     jwks_uri: `${OIDC_BASE_URL}/jwks.json`,
     token_endpoint: `${OIDC_BASE_URL}/token`,
@@ -40,4 +31,8 @@ export default async function handleOidcConfig(
       "code id_token", // Hybrid flow
     ],
   });
+}
+
+export async function OPTIONS(req: NextRequest) {
+  return NextResponse.json(null, { status: 204 });
 }
