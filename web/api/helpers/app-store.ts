@@ -182,6 +182,9 @@ export const rankApps = (
   );
 
   appStoreAppStats.forEach((stat) => {
+    if (stat.app_id === NATIVE_MAPPED_APP_ID.grants) {
+      return;
+    }
     maxNewUsers = Math.max(maxNewUsers, stat.new_users_last_7_days ?? 0);
     maxUniqueUsers = Math.max(maxUniqueUsers, stat.unique_users ?? 0);
   });
