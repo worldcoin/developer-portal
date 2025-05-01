@@ -177,8 +177,9 @@ export const rankApps = (
   // determine maximum values among apps that
   // are present in the current app store
   const appIdsSet = new Set<string>(apps.map((app) => app.app_id));
-  const appStoreAppStats = appStats.filter((stat) =>
-    appIdsSet.has(stat.app_id),
+  const appStoreAppStats = appStats.filter(
+    (stat) =>
+      appIdsSet.has(stat.app_id) && stat.app_id !== NATIVE_MAPPED_APP_ID.grants,
   );
 
   appStoreAppStats.forEach((stat) => {
