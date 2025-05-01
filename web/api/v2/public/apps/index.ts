@@ -20,7 +20,7 @@ import { getSdk as getWebHighlightsSdk } from "./graphql/get-app-web-highlights.
 
 import { formatAppMetadata, rankApps } from "@/api/helpers/app-store";
 import { compareVersions } from "@/lib/compare-versions";
-import { CONTACTS_APP_AVAILABLE_FROM, OFFICE_IPS } from "../constants";
+import { CONTACTS_APP_AVAILABLE_FROM } from "../constants";
 import {
   GetHighlightsQuery,
   getSdk as getHighlightsSdk,
@@ -36,6 +36,7 @@ const queryParamsSchema = yup.object({
   override_country: yup.string().notRequired(),
   show_external: yup.boolean().notRequired().default(false),
   force_show_grants: yup.boolean().notRequired().default(false),
+  skip_country_check: yup.boolean().notRequired().default(false),
 });
 
 export const GET = async (request: NextRequest) => {
@@ -72,21 +73,18 @@ export const GET = async (request: NextRequest) => {
   if (!isValid) {
     return handleError(request);
   }
+
+  // ANCHOR: Get request headers
   const headers = request.headers;
   const locale = parseLocale(headers.get("x-accept-language") ?? "");
   const clientVersion: string | null = headers.get("client-version");
   let country: string | null = headers.get("CloudFront-Viewer-Country");
   const platform = headers.get("client-name");
 
-  if (parsedParams.override_country) {
-    country = parsedParams.override_country;
-  }
-
-  const { page, limit } = parsedParams;
   const client = await getAPIServiceGraphqlClient();
 
+  // ANCHOR: Get highlights
   let highlightsIds: string[] = [];
-
   try {
     const { app_rankings } = await getWebHighlightsSdk(client).GetHighlights();
     highlightsIds = app_rankings[0]?.rankings ?? [];
@@ -104,6 +102,8 @@ export const GET = async (request: NextRequest) => {
   let topApps: GetAppsQuery["top_apps"] = [];
   let highlightsApps: GetHighlightsQuery["highlights"] = [];
 
+  country = parsedParams.override_country ?? country;
+  const { page, limit } = parsedParams;
   const limitValue = limit ?? 500;
   const offset = page ? (page - 1) * limitValue : 0;
 
@@ -157,7 +157,7 @@ export const GET = async (request: NextRequest) => {
     NativeAppToAppIdMapping[process.env.NEXT_PUBLIC_APP_ENV];
 
   /**
-   * filter out contacts on versions that do not have the native code for it
+   * ANCHOR: Filter out contacts on versions that do not have the native code for it
    */
   if (
     !clientVersion ||
@@ -171,73 +171,37 @@ export const GET = async (request: NextRequest) => {
     );
   }
 
-  // TEMP: internal grants testing
-  const cloudfrontViewerAddress = headers.get("CloudFront-Viewer-Address");
-  const cloudfrontIp = cloudfrontViewerAddress
-    ? cloudfrontViewerAddress.split(",")[0].trim()
-    : null;
-  const forwarderForHeader = headers.get("x-forwarded-for");
-  const forwardedForIp = forwarderForHeader
-    ? forwarderForHeader.split(",")[0].trim()
-    : null;
-
-  const isOfficeIp =
-    (cloudfrontIp && OFFICE_IPS.includes(cloudfrontIp)) ||
-    (forwardedForIp && OFFICE_IPS.includes(forwardedForIp));
-
-  // TEMP
-  const forceShowGrants = parsedParams.force_show_grants;
-
-  console.log({
-    isOfficeIp,
-    cloudfrontViewerAddress,
-    cloudfrontIp,
-    forwarderForHeader,
-    forwardedForIp,
-    forceShowGrants,
-  });
-
-  // ANCHOR: Filter top apps by country
+  /**
+   * ANCHOR: Filter out apps by country
+   */
+  // NOTE: If skip_country_check is true, we will not filter by country
+  country = parsedParams.skip_country_check ? null : country;
   if (country && topApps.length > 0) {
     topApps = topApps.filter((app) => {
-      const isGrants = app.app_id === nativeIdToActualId.grants;
       const isCountrySupported = app.supported_countries?.some(
         (c: string) => c === country,
       );
-      // TEMP
-      if (forceShowGrants && isGrants) {
-        return true;
-      }
-
-      if (isGrants && !isCountrySupported) {
-        return isOfficeIp;
-      }
 
       return isCountrySupported;
     });
   }
 
-  // ANCHOR: Filter highlights apps by country
+  /**
+   * ANCHOR: Filter out highlighted apps by country
+   */
   if (country && highlightsApps.length > 0) {
     highlightsApps = highlightsApps.filter((app) => {
-      const isGrants = app.app_id === nativeIdToActualId.grants;
       const isCountrySupported = app.supported_countries?.some(
         (c: string) => c === country,
       );
-      // TEMP
-      if (forceShowGrants && isGrants) {
-        return true;
-      }
-
-      if (isGrants && !isCountrySupported) {
-        return isOfficeIp;
-      }
 
       return isCountrySupported;
     });
   }
 
-  // ANCHOR: Fetch app stats from metrics service
+  /**
+   * ANCHOR: Fetch app stats from metrics service
+   */
   const response = await fetchWithRetry(
     `${process.env.NEXT_PUBLIC_METRICS_SERVICE_ENDPOINT}/stats/data.json`,
     {
@@ -261,7 +225,9 @@ export const GET = async (request: NextRequest) => {
 
   const nativeAppMetadata = NativeApps[process.env.NEXT_PUBLIC_APP_ENV];
 
-  // Format all apps concurrently using Promise.all
+  /**
+   * ANCHOR: Format all app metadata
+   */
   let formattedTopApps = await Promise.all(
     topApps.map((app) => formatAppMetadata(app, metricsData, locale)),
   );
@@ -311,7 +277,9 @@ export const GET = async (request: NextRequest) => {
     return aIndex - bIndex;
   });
 
-  // validate all apps have valid categories
+  /**
+   * ANCHOR: Validate all apps have valid categories
+   */
   const categories = getAppStoreLocalisedCategoriesWithUrls(
     locale,
     parsedParams.show_external ?? false,
@@ -337,8 +305,8 @@ export const GET = async (request: NextRequest) => {
   const rankedApps = rankApps(formattedTopApps, metricsData);
 
   /**
-   * add category_ranking field to each app
-   * this is to sort apps inside category,
+   * ANCHOR: Add category_ranking field to each app
+   * This is to sort apps inside category,
    * based on the overall ranking in app store
    */
   const categoryAppsMap = new Map();
