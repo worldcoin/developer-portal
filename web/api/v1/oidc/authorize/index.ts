@@ -211,6 +211,7 @@ export async function POST(req: NextRequest) {
     await redis.set(proofKey, "1", "EX", 5400);
 
     let signalHash = signal;
+    // If the signal is not a valid hex string, hash it
     if (signal && !signal.match(/^0x[\dabcdef]{64,}$/)) {
       signalHash = hashToField(signal).digest;
     }
