@@ -177,12 +177,14 @@ export const rankApps = (
   // determine maximum values among apps that
   // are present in the current app store
   const appIdsSet = new Set<string>(apps.map((app) => app.app_id));
-  const appStoreAppStats = appStats.filter(
-    (stat) =>
-      appIdsSet.has(stat.app_id) && stat.app_id !== NATIVE_MAPPED_APP_ID.grants,
+  const appStoreAppStats = appStats.filter((stat) =>
+    appIdsSet.has(stat.app_id),
   );
 
   appStoreAppStats.forEach((stat) => {
+    if (stat.app_id === NATIVE_MAPPED_APP_ID.grants) {
+      return;
+    }
     maxNewUsers = Math.max(maxNewUsers, stat.new_users_last_7_days ?? 0);
     maxUniqueUsers = Math.max(maxUniqueUsers, stat.unique_users ?? 0);
   });
