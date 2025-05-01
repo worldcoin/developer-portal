@@ -115,6 +115,7 @@ insert_permissions:
         - app_mode
         - hero_image_url
         - logo_img_url
+        - meta_tag_image_url
         - showcase_img_urls
         - supported_languages
         - verification_status
@@ -417,8 +418,11 @@ update_permissions:
         - description
         - hero_image_url
         - integration_url
+        - is_allowed_unlimited_notifications
         - is_developer_allow_listing
         - logo_img_url
+        - max_notifications_per_day
+        - meta_tag_image_url
         - name
         - permit2_tokens
         - short_name
@@ -431,8 +435,6 @@ update_permissions:
         - whitelisted_addresses
         - world_app_button_text
         - world_app_description
-        - is_allowed_unlimited_notifications
-        - max_notifications_per_day
       filter:
         _and:
           - verification_status:

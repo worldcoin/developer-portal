@@ -579,7 +579,7 @@ export const ImageForm = (props: ImageFormTypes) => {
         </Typography>
         <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
           This image will be used for featuring your app on the homepage of
-          Worldcoin&apos;s app store.
+          World Mini Apps.
         </Typography>
       </div>
       {isLoadingImages && (

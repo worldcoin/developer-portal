@@ -5,7 +5,6 @@ import { Input } from "@/components/Input";
 import { Toggle } from "@/components/Toggle";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { reformatPem } from "@/lib/crypto.client";
-import { EngineType } from "@/lib/types";
 import { useRefetchQueries } from "@/lib/use-refetch-queries";
 import { checkIfNotProduction, checkIfPartnerTeam } from "@/lib/utils";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -148,7 +147,6 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
           required
           className="h-16"
         />
-
         <Input
           register={register("action")}
           errors={errors.action}
@@ -164,7 +162,6 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
           }
           className="h-16 text-grey-400"
         />
-
         <Input
           label="App ID"
           disabled
@@ -178,28 +175,26 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
           }
           className="h-16 text-grey-400"
         />
-
-        {action.app.engine !== EngineType.OnChain && (
-          <Controller
-            name="max_verifications"
-            control={control}
-            render={({ field }) => {
-              return (
-                <MaxVerificationsSelector
-                  value={field.value}
-                  onChange={field.onChange}
-                  errors={errors.max_verifications}
-                  showCustomInput
-                  required
-                  className="w-full " // border is 2 px
-                  label="Max verifications per user"
-                  helperText="The number of verifications the same person can do for this action"
-                />
-              );
-            }}
-          />
-        )}
-
+        (
+        <Controller
+          name="max_verifications"
+          control={control}
+          render={({ field }) => {
+            return (
+              <MaxVerificationsSelector
+                value={field.value}
+                onChange={field.onChange}
+                errors={errors.max_verifications}
+                showCustomInput
+                required
+                className="w-full " // border is 2 px
+                label="Max verifications per user"
+                helperText="The number of verifications the same person can do for this action"
+              />
+            );
+          }}
+        />
+        )
         <div className={clsx("mt-6 space-y-4", isPartnerTeam ? "" : "hidden")}>
           <div className="flex items-center justify-between">
             <Typography variant={TYPOGRAPHY.R3} className="font-medium">
@@ -262,7 +257,6 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
             </div>
           )}
         </div>
-
         <div className="flex w-full justify-start">
           <DecoratedButton
             variant="primary"

@@ -162,7 +162,6 @@ const isDefaultPinnedNoGrants = (appId: string) => {
     appId === "app_e8288209fbe1fc4a1b80619e925a79bd" || // learn
     appId === NATIVE_MAPPED_APP_ID.contacts ||
     appId === NATIVE_MAPPED_APP_ID.network ||
-    appId === NATIVE_MAPPED_APP_ID["starter-kit"] ||
     appId === NATIVE_MAPPED_APP_ID.invites
   );
 };
@@ -183,6 +182,9 @@ export const rankApps = (
   );
 
   appStoreAppStats.forEach((stat) => {
+    if (stat.app_id === NATIVE_MAPPED_APP_ID.grants) {
+      return;
+    }
     maxNewUsers = Math.max(maxNewUsers, stat.new_users_last_7_days ?? 0);
     maxUniqueUsers = Math.max(maxUniqueUsers, stat.unique_users ?? 0);
   });

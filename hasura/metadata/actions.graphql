@@ -269,6 +269,7 @@ type VerifyAppOutput {
 type ImageGetAppReviewImagesOutput {
   logo_img_url: String
   hero_image_url: String
+  meta_tag_image_url: String
   showcase_img_urls: [String!]
 }
 

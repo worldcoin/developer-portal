@@ -26,6 +26,7 @@ export type GetSingleActionQuery = {
       id: string;
       is_staging: boolean;
       engine: string;
+      app_metadata: Array<{ __typename?: "app_metadata"; app_mode: string }>;
     };
   }>;
 };
@@ -46,6 +47,9 @@ export const GetSingleActionDocument = gql`
         id
         is_staging
         engine
+        app_metadata {
+          app_mode
+        }
       }
     }
   }

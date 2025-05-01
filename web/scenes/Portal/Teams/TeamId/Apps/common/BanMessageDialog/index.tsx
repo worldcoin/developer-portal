@@ -42,7 +42,7 @@ export const BanMessageDialog = () => {
           >
             {`Due to user reports, or our own investigation your app was banned.
             This means it cannot be accessed by users anymore and it's not
-            listed on our App Store.`}
+            listed on World Mini Apps.`}
             <br />
             <b>Questions? Reach out on Telegram @MateoSauton</b>
           </Typography>

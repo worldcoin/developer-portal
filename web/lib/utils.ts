@@ -334,3 +334,46 @@ export const checkIfPartnerTeam = (teamId: string) => {
 export const checkIfNotProduction = (): boolean => {
   return process.env.NEXT_PUBLIC_APP_ENV !== "production";
 };
+
+const DEFAULT_MAX_RETRIES = 3;
+const DEFAULT_INITIAL_RETRY_DELAY = 500;
+
+export const fetchWithRetry = async (
+  url: string,
+  options: RequestInit,
+  maxRetries: number = DEFAULT_MAX_RETRIES,
+  initialRetryDelayinMS: number = DEFAULT_INITIAL_RETRY_DELAY,
+  throwOnError: boolean = true,
+): Promise<Response> => {
+  let lastError: Error | null = null;
+
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      const response = await fetch(url, options);
+      if (response.ok) {
+        return response;
+      }
+      lastError = new Error(`HTTP status ${response.status}`);
+    } catch (error) {
+      lastError = error as Error;
+    }
+
+    if (attempt < maxRetries - 1) {
+      const delay = initialRetryDelayinMS * Math.pow(2, attempt);
+      await new Promise((resolve) => setTimeout(resolve, delay));
+    }
+  }
+
+  if (!throwOnError) {
+    // Return a Response-like object with failure info
+    return new Response(
+      JSON.stringify({ error: lastError?.message || "Unknown error" }),
+      {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      },
+    );
+  }
+
+  throw lastError;
+};

@@ -8,6 +8,7 @@ export function errorResponse(params: {
   detail?: string;
   attribute?: string | null;
   req: NextRequest;
+  app_id?: string;
 }) {
   const {
     statusCode,
@@ -15,15 +16,25 @@ export function errorResponse(params: {
     detail = "Something went wrong",
     attribute = null,
     req,
+    app_id,
   } = params;
 
   if (statusCode >= 500) {
-    logger.error(detail, { req, error: { statusCode, code, attribute } });
+    logger.error(detail, {
+      req,
+      error: { statusCode, code, attribute, app_id },
+    });
   } else {
-    logger.warn(detail, { req, error: { statusCode, code, attribute } });
+    logger.warn(detail, {
+      req,
+      error: { statusCode, code, attribute, app_id },
+    });
   }
 
-  return NextResponse.json({ code, detail, attribute }, { status: statusCode });
+  return NextResponse.json(
+    { code, detail, attribute, app_id },
+    { status: statusCode },
+  );
 }
 
 export function errorNotAllowed(method: string = "", req: NextRequest) {
