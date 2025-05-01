@@ -1,12 +1,7 @@
-import { runCors } from "@/legacy/backend/cors";
-import {
-  errorNotAllowed,
-  errorResponse,
-  errorValidation,
-} from "@/legacy/backend/errors";
-import { getAPIServiceClient } from "@/legacy/backend/graphql";
-import { fetchActiveJWK } from "@/legacy/backend/jwks";
-import { generateOIDCJWT } from "@/legacy/backend/jwts";
+import { errorResponse } from "@/api/helpers/errors";
+import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
+import { fetchActiveJWK } from "@/api/helpers/jwks";
+import { generateOIDCJWT } from "@/api/helpers/jwts";
 import {
   OIDCErrorCodes,
   OIDCResponseTypeMapping,
@@ -14,37 +9,20 @@ import {
   checkFlowType,
   fetchOIDCApp,
   generateOIDCCode,
-} from "@/legacy/backend/oidc";
-import { validateRequestSchema } from "@/legacy/backend/utils";
-import { verifyProof } from "@/legacy/backend/verify";
-import { OIDCFlowType, OIDCResponseType } from "@/legacy/lib/types";
+} from "@/api/helpers/oidc";
+import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
+import { verifyProof } from "@/api/helpers/verify";
+import { Nullifier_Constraint } from "@/graphql/graphql";
 import { logger } from "@/lib/logger";
+import { OIDCFlowType, OIDCResponseType } from "@/lib/types";
 import { captureEvent } from "@/services/posthogClient";
-import { gql } from "@apollo/client";
 import { VerificationLevel } from "@worldcoin/idkit-core";
+import { hashToField } from "@worldcoin/idkit-core/hashing";
 import { createHash } from "crypto";
-import { NextApiRequest, NextApiResponse } from "next";
+import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
-
-const UpsertNullifier = gql`
-  mutation UpsertNullifier(
-    $object: nullifier_insert_input!
-    $on_conflict: nullifier_on_conflict!
-  ) {
-    insert_nullifier_one(object: $object, on_conflict: $on_conflict) {
-      id
-      nullifier_hash
-    }
-  }
-`;
-
-const Nullifier = gql`
-  query Nullifier($nullifier_hash: String!) {
-    nullifier(where: { nullifier_hash: { _eq: $nullifier_hash } }) {
-      id
-    }
-  }
-`;
+import { getSdk as getNullifierSdk } from "./graphql/fetch-nullifier.generated";
+import { getSdk as getUpsertNullifierSdk } from "./graphql/upsert-nullifier.generated";
 
 // NOTE: This endpoint should only be called from Sign in with Worldcoin, params follow World ID conventions. Sign in with Worldcoin handles OIDC requests.
 const schema = yup.object({
@@ -74,50 +52,41 @@ const schema = yup.object({
   redirect_uri: yup.string().strict().required("This attribute is required."),
 });
 
+function corsHandler(response: NextResponse) {
+  response.headers.set("Access-Control-Allow-Origin", "*");
+  response.headers.set("Access-Control-Allow-Methods", "POST, OPTIONS");
+  response.headers.set("Access-Control-Allow-Headers", "Content-Type");
+  return response;
+}
+
 /**
  * Authenticates a "Sign in with World ID" user with a ZKP and issues a JWT or a code (authorization code flow)
  * This endpoint is called by the Sign in with World ID page (or the app's own page if using IDKit [advanced])
- * @param req
- * @param res
  */
-export default async function handleOIDCAuthorize(
-  req: NextApiRequest,
-  res: NextApiResponse,
-) {
-  if (
-    req.method === "OPTIONS" ||
-    req.body.response_type === OIDCResponseType.JWT
-  ) {
-    // NOTE: Authorization code flow only should be called backend-side, no CORS (security reasons)
-    // OPTIONS always returns CORS because browsers send an OPTIONS request first with no payload
-    await runCors(req, res);
-  }
-
-  if (!req.method || !["POST", "OPTIONS"].includes(req.method)) {
-    return errorNotAllowed(req.method, res, req);
-  }
-
+export async function POST(req: NextRequest) {
   const redis = global.RedisClient;
 
   if (!redis) {
-    return errorResponse(
-      res,
-      500,
-      "internal_server_error",
-      "Redis client not found",
-      "server",
-      req,
+    return corsHandler(
+      errorResponse({
+        statusCode: 500,
+        code: "internal_server_error",
+        detail: "Redis client not found",
+        attribute: "server",
+        req,
+      }),
     );
   }
 
   try {
+    const body = await req.json();
     const { isValid, parsedParams, handleError } = await validateRequestSchema({
       schema,
-      value: req.body,
+      value: body,
     });
 
     if (!isValid) {
-      return handleError(req, res);
+      return handleError(req);
     }
 
     const {
@@ -140,23 +109,27 @@ export default async function handleOIDCAuthorize(
 
     for (const response_type of response_types) {
       if (!Object.keys(OIDCResponseTypeMapping).includes(response_type)) {
-        return errorValidation(
-          OIDCErrorCodes.UnsupportedResponseType,
-          `Invalid response type: ${response_type}.`,
-          "response_type",
-          res,
-          req,
+        return corsHandler(
+          errorResponse({
+            statusCode: 400,
+            code: OIDCErrorCodes.UnsupportedResponseType,
+            detail: `Invalid response type: ${response_type}.`,
+            attribute: "response_type",
+            req,
+          }),
         );
       }
     }
 
     if (code_challenge && code_challenge_method !== "S256") {
-      return errorValidation(
-        OIDCErrorCodes.InvalidRequest,
-        `Invalid code_challenge_method: ${code_challenge_method}.`,
-        "code_challenge_method",
-        res,
-        req,
+      return corsHandler(
+        errorResponse({
+          statusCode: 400,
+          code: OIDCErrorCodes.InvalidRequest,
+          detail: `Invalid code_challenge_method: ${code_challenge_method}.`,
+          attribute: "code_challenge_method",
+          req,
+        }),
       );
     }
 
@@ -176,12 +149,14 @@ export default async function handleOIDCAuthorize(
       !sanitizedScopes.length ||
       !sanitizedScopes.includes(OIDCScopes.OpenID)
     ) {
-      return errorValidation(
-        OIDCErrorCodes.InvalidScope,
-        `The ${OIDCScopes.OpenID} scope is always required.`,
-        "scope",
-        res,
-        req,
+      return corsHandler(
+        errorResponse({
+          statusCode: 400,
+          code: OIDCErrorCodes.InvalidScope,
+          detail: `The ${OIDCScopes.OpenID} scope is always required.`,
+          attribute: "scope",
+          req,
+        }),
       );
     }
 
@@ -191,24 +166,27 @@ export default async function handleOIDCAuthorize(
       redirect_uri,
     );
     if (!app || fetchAppError) {
-      return errorResponse(
-        res,
-        fetchAppError?.statusCode ?? 400,
-        fetchAppError?.code ?? "error",
-        fetchAppError?.message ?? "Error fetching app.",
-        fetchAppError?.attribute ?? "app_id",
-        req,
+      return corsHandler(
+        errorResponse({
+          statusCode: fetchAppError?.statusCode ?? 400,
+          code: fetchAppError?.code ?? "error",
+          detail: fetchAppError?.message ?? "Error fetching app.",
+          attribute: fetchAppError?.attribute ?? "app_id",
+          req,
+        }),
       );
     }
 
     // ANCHOR: Verify redirect URI is valid
     if (app.registered_redirect_uri !== redirect_uri) {
-      return errorValidation(
-        OIDCErrorCodes.InvalidRedirectURI,
-        "Invalid redirect URI.",
-        "redirect_uri",
-        res,
-        req,
+      return corsHandler(
+        errorResponse({
+          statusCode: 400,
+          code: OIDCErrorCodes.InvalidRedirectURI,
+          detail: "Invalid redirect URI.",
+          attribute: "redirect_uri",
+          req,
+        }),
       );
     }
 
@@ -218,18 +196,25 @@ export default async function handleOIDCAuthorize(
     const isProofReplayed = await redis.get(proofKey);
 
     if (isProofReplayed) {
-      return errorResponse(
-        res,
-        400,
-        "invalid_proof",
-        "This proof has already been used. Please try again",
-        "proof",
-        req,
+      return corsHandler(
+        errorResponse({
+          statusCode: 400,
+          code: "invalid_proof",
+          detail: "This proof has already been used. Please try again",
+          attribute: "proof",
+          req,
+        }),
       );
     }
 
     // Set the proof before continuing with other operations
     await redis.set(proofKey, "1", "EX", 5400);
+
+    let signalHash = signal;
+    // If the signal is not a valid hex string, hash it
+    if (signal && !signal.match(/^0x[\dabcdef]{64,}$/)) {
+      signalHash = hashToField(signal).digest;
+    }
 
     // ANCHOR: Verify the zero-knowledge proof
     const { error: verifyError } = await verifyProof(
@@ -237,7 +222,7 @@ export default async function handleOIDCAuthorize(
         proof,
         nullifier_hash,
         merkle_root,
-        signal,
+        signal_hash: signalHash,
         external_nullifier: app.external_nullifier,
       },
       {
@@ -248,13 +233,16 @@ export default async function handleOIDCAuthorize(
     );
 
     if (verifyError) {
-      return errorResponse(
-        res,
-        verifyError.statusCode ?? 400,
-        verifyError.code ?? "invalid_proof",
-        verifyError.message ?? "Verification request error. Please try again.",
-        verifyError.attribute,
-        req,
+      return corsHandler(
+        errorResponse({
+          statusCode: verifyError.statusCode ?? 400,
+          code: verifyError.code ?? "invalid_proof",
+          detail:
+            verifyError.message ??
+            "Verification request error. Please try again.",
+          attribute: verifyError.attribute,
+          req,
+        }),
       );
     }
 
@@ -294,7 +282,8 @@ export default async function handleOIDCAuthorize(
             verification_level,
             nonce: signal,
             scope: sanitizedScopes,
-            ...jwk,
+            kid: jwk.kid,
+            kms_id: jwk.kms_id ?? "",
           });
         }
 
@@ -302,27 +291,22 @@ export default async function handleOIDCAuthorize(
       }
     }
 
-    const client = await getAPIServiceClient();
+    const client = await getAPIServiceGraphqlClient();
+    const nullifierSdk = getNullifierSdk(client);
+    const upsertNullifierSdk = getUpsertNullifierSdk(client);
 
     let hasNullifier: boolean = false;
 
     try {
-      const fetchNullifierResult = await client.query<{
-        nullifier: {
-          id: string;
-        }[];
-      }>({
-        query: Nullifier,
-        variables: {
-          nullifier_hash,
-        },
+      const fetchNullifierResult = await nullifierSdk.Nullifier({
+        nullifier_hash,
       });
 
-      if (!fetchNullifierResult?.data?.nullifier) {
+      if (!fetchNullifierResult?.nullifier) {
         logger.warn("Error fetching nullifier.", fetchNullifierResult ?? {});
         hasNullifier = false;
       }
-      hasNullifier = Boolean(fetchNullifierResult.data.nullifier?.[0]?.id);
+      hasNullifier = Boolean(fetchNullifierResult.nullifier?.[0]?.id);
     } catch (error) {
       // Temp Fix to reduce on call alerts
       logger.warn("Query error nullifier.", {
@@ -334,28 +318,21 @@ export default async function handleOIDCAuthorize(
 
     if (!hasNullifier) {
       try {
-        const { data: insertNullifierResult } = await client.mutate<{
-          insert_nullifier_one: {
-            id: string;
-            nullifier_hash: string;
-          };
-        }>({
-          mutation: UpsertNullifier,
-          variables: {
+        const { insert_nullifier_one } =
+          await upsertNullifierSdk.UpsertNullifier({
             object: {
               nullifier_hash,
               action_id: app.action_id,
             },
             on_conflict: {
-              constraint: "nullifier_pkey",
+              constraint: Nullifier_Constraint.NullifierPkey,
             },
-          },
-        });
+          });
 
-        if (!insertNullifierResult?.insert_nullifier_one) {
+        if (!insert_nullifier_one) {
           logger.error(
             "Error inserting nullifier.",
-            insertNullifierResult ?? {},
+            insert_nullifier_one ?? {},
           );
         }
       } catch (error) {
@@ -371,21 +348,23 @@ export default async function handleOIDCAuthorize(
       },
     });
 
-    res.status(200).json(response);
+    return corsHandler(NextResponse.json(response, { status: 200 }));
   } catch (error) {
     // Handle any unexpected errors
     logger.error("Unexpected error in OIDC authorize", { error });
 
-    // If we haven't sent a response yet, send a generic error
-    if (!res.writableEnded) {
-      return errorResponse(
-        res,
-        500,
-        "internal_server_error",
-        "An unexpected error occurred",
-        "server",
+    return corsHandler(
+      errorResponse({
+        statusCode: 500,
+        code: "internal_server_error",
+        detail: "An unexpected error occurred",
+        attribute: "server",
         req,
-      );
-    }
+      }),
+    );
   }
+}
+
+export async function OPTIONS(req: NextRequest) {
+  return corsHandler(new NextResponse(null, { status: 204 }));
 }
