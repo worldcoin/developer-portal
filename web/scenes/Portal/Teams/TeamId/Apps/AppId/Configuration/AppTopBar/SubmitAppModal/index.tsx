@@ -174,11 +174,11 @@ export const SubmitAppModal = (props: SubmitAppModalProps) => {
             />
             <div className="grid gap-y-2">
               <Typography variant={TYPOGRAPHY.R3} className="text-grey-700">
-                Allow listing in Mini Apps
+                Allow listing in mini app store
               </Typography>
               <Typography variant={TYPOGRAPHY.R4} className="text-grey-700">
-                Once you submit your app for review, it may be showcased in
-                World Mini Apps. Not all apps will be displayed.
+                Checking this box means you would like your app to be available
+                in the mini app store.
               </Typography>
             </div>
           </label>
