@@ -1,13 +1,12 @@
-import handleOIDCToken from "@/pages/api/v1/oidc/token";
+import { POST } from "@/api/v1/oidc/token";
 import { createHash } from "crypto";
 import * as jose from "jose";
-import { NextApiRequest, NextApiResponse } from "next";
-import { createMocks } from "node-mocks-http";
+import { NextRequest, NextResponse } from "next/server";
 import { publicJwk } from "tests/api/__mocks__/jwk";
 import { integrationDBClean, integrationDBExecuteQuery } from "../setup";
 import { setClientSecret, testGetSignInApp } from "../test-utils";
 
-jest.mock("legacy/backend/kms", () =>
+jest.mock("@/api/helpers/kms", () =>
   require("tests/api/__mocks__/kms.mock.ts"),
 );
 
@@ -40,26 +39,25 @@ describe("/api/v1/oidc/token", () => {
       ],
     );
 
-    const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
+    const request = new NextRequest("http://localhost:3000/api/v1/oidc/token", {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
       },
-      body: {
+      body: new URLSearchParams({
         code: "83a313c5939399ba017d2381",
         client_id: app_id,
         client_secret,
         grant_type: "authorization_code",
         redirect_uri: "http://localhost:3000/login",
-      },
+      }),
     });
 
-    await handleOIDCToken(req, res);
+    const response = (await POST(request)) as NextResponse;
+    expect(response.status).toBe(200);
 
-    expect(res._getStatusCode()).toBe(200);
-
-    const { access_token, id_token, token_type, expires_in, scope } =
-      res._getJSONData();
+    const data = await response.json();
+    const { access_token, id_token, token_type, expires_in, scope } = data;
     expect(access_token).toBeTruthy();
     expect(id_token).toEqual(access_token);
     expect(token_type).toEqual("Bearer");
@@ -74,25 +72,27 @@ describe("/api/v1/oidc/token", () => {
     expect(result.rowCount).toEqual(0);
 
     // Make sure the proper error response is now sent
-    const { req: req2, res: res2 } = createMocks<
-      NextApiRequest,
-      NextApiResponse
-    >({
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
+    const request2 = new NextRequest(
+      "http://localhost:3000/api/v1/oidc/token",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: new URLSearchParams({
+          code: "83a313c5939399ba017d2381",
+          client_id: app_id,
+          client_secret,
+          grant_type: "authorization_code",
+          redirect_uri: "http://localhost:3000/login",
+        }),
       },
-      body: {
-        code: "83a313c5939399ba017d2381",
-        client_id: app_id,
-        client_secret,
-        grant_type: "authorization_code",
-        redirect_uri: "http://localhost:3000/login",
-      },
-    });
-    await handleOIDCToken(req2, res2);
-    expect(res2._getStatusCode()).toBe(400);
-    expect(res2._getJSONData()).toEqual(
+    );
+
+    const response2 = (await POST(request2)) as NextResponse;
+    expect(response2.status).toBe(400);
+    const errorData = await response2.json();
+    expect(errorData).toEqual(
       expect.objectContaining({
         detail: "Invalid authorization code.",
         code: "invalid_grant",
@@ -118,25 +118,24 @@ describe("/api/v1/oidc/token", () => {
       ],
     );
 
-    const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
+    const request = new NextRequest("http://localhost:3000/api/v1/oidc/token", {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
       },
-      body: {
+      body: new URLSearchParams({
         code: "83a313c5939399ba017d2381",
         client_id: app_id,
         client_secret,
         grant_type: "authorization_code",
         redirect_uri: "http://localhost:3000/login",
-      },
+      }),
     });
 
-    await handleOIDCToken(req, res);
+    const response = (await POST(request)) as NextResponse;
+    expect(response.status).toBe(200);
 
-    expect(res._getStatusCode()).toBe(200);
-
-    const { access_token } = res._getJSONData();
+    const { access_token } = await response.json();
 
     const { payload } = await jose.jwtVerify(
       access_token,
@@ -185,25 +184,24 @@ describe("/api/v1/oidc/token", () => {
       ],
     );
 
-    const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
+    const request = new NextRequest("http://localhost:3000/api/v1/oidc/token", {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
       },
-      body: {
+      body: new URLSearchParams({
         code: "83a313c5939399ba017d2381",
         client_id: app_id,
         client_secret,
         grant_type: "authorization_code",
         redirect_uri: "http://localhost:3000/login",
-      },
+      }),
     });
 
-    await handleOIDCToken(req, res);
+    const response = (await POST(request)) as NextResponse;
+    expect(response.status).toBe(200);
 
-    expect(res._getStatusCode()).toBe(200);
-
-    const { access_token } = res._getJSONData();
+    const { access_token } = await response.json();
 
     const { payload } = await jose.jwtVerify(
       access_token,
@@ -253,27 +251,26 @@ describe("/api/v1/oidc/token", () => {
       ],
     );
 
-    const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
+    const request = new NextRequest("http://localhost:3000/api/v1/oidc/token", {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
       },
-      body: {
+      body: new URLSearchParams({
         code: "83a313c5939399ba017d2381",
         client_id: app_id,
         client_secret,
         grant_type: "authorization_code",
         code_verifier: "my_code_challenge",
         redirect_uri: "http://localhost:3000/login",
-      },
+      }),
     });
 
-    await handleOIDCToken(req, res);
-
-    expect(res._getStatusCode()).toBe(200);
+    const response = (await POST(request)) as NextResponse;
+    expect(response.status).toBe(200);
 
     const { access_token, id_token, token_type, expires_in, scope } =
-      res._getJSONData();
+      await response.json();
     expect(access_token).toBeTruthy();
     expect(id_token).toEqual(access_token);
     expect(token_type).toEqual("Bearer");
@@ -307,25 +304,25 @@ describe("/api/v1/oidc/token", () => {
       ],
     );
 
-    const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
+    const request = new NextRequest("http://localhost:3000/api/v1/oidc/token", {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
       },
-      body: {
+      body: new URLSearchParams({
         code: "83a313c5939399ba017d2381",
         client_id: app_id,
         client_secret,
         grant_type: "authorization_code",
         code_verifier: "invalid_code_challenge",
         redirect_uri: "http://localhost:3000/login",
-      },
+      }),
     });
 
-    await handleOIDCToken(req, res);
-
-    expect(res._getStatusCode()).toBe(400);
-    expect(res._getJSONData()).toEqual({
+    const response = (await POST(request)) as NextResponse;
+    expect(response.status).toBe(400);
+    const errorData = await response.json();
+    expect(errorData).toEqual({
       attribute: "code_verifier",
       code: "invalid_request",
       detail: "Invalid code verifier.",
@@ -360,24 +357,24 @@ describe("/api/v1/oidc/token", () => {
       ],
     );
 
-    const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
+    const request = new NextRequest("http://localhost:3000/api/v1/oidc/token", {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
       },
-      body: {
+      body: new URLSearchParams({
         code: "83a313c5939399ba017d2381",
         client_id: app_id,
         client_secret,
         grant_type: "authorization_code",
         redirect_uri: "http://localhost:3000/login",
-      },
+      }),
     });
 
-    await handleOIDCToken(req, res);
-
-    expect(res._getStatusCode()).toBe(400);
-    expect(res._getJSONData()).toEqual({
+    const response = (await POST(request)) as NextResponse;
+    expect(response.status).toBe(400);
+    const errorData = await response.json();
+    expect(errorData).toEqual({
       attribute: "code_verifier",
       code: "invalid_request",
       detail: "Missing code verifier.",
@@ -410,25 +407,25 @@ describe("/api/v1/oidc/token", () => {
       ],
     );
 
-    const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
+    const request = new NextRequest("http://localhost:3000/api/v1/oidc/token", {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
       },
-      body: {
+      body: new URLSearchParams({
         code: "83a313c5939399ba017d2381",
         client_id: app_id,
         client_secret,
         grant_type: "authorization_code",
         code_verifier: "my_code_challenge",
         redirect_uri: "http://localhost:3000/login",
-      },
+      }),
     });
 
-    await handleOIDCToken(req, res);
-
-    expect(res._getStatusCode()).toBe(400);
-    expect(res._getJSONData()).toEqual({
+    const response = (await POST(request)) as NextResponse;
+    expect(response.status).toBe(400);
+    const errorData = await response.json();
+    expect(errorData).toEqual({
       code: "invalid_request",
       error: "invalid_request",
       attribute: "code_verifier",
@@ -463,51 +460,45 @@ describe("/api/v1/oidc/token", () => {
       ],
     );
 
-    const { req: notPKCEReq, res: NotPKCERes } = createMocks<
-      NextApiRequest,
-      NextApiResponse
-    >({
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
+    const notPKCERequest = new NextRequest(
+      "http://localhost:3000/api/v1/oidc/token",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: new URLSearchParams({
+          client_secret,
+          client_id: app_id,
+          code: "83a313c5939399ba017d2381",
+          grant_type: "authorization_code",
+          redirect_uri: "http://localhost:3000/login",
+        }),
       },
-      body: {
-        client_secret,
-        client_id: app_id,
-        code: "83a313c5939399ba017d2381",
-        grant_type: "authorization_code",
-        redirect_uri: "http://localhost:3000/login",
-      },
-    });
+    );
 
-    await handleOIDCToken(notPKCEReq, NotPKCERes);
-
+    const notPKCEResponse = (await POST(notPKCERequest)) as NextResponse;
     expect(
-      NotPKCERes._getHeaders()?.["access-control-allow-origin"],
-    ).toBeUndefined();
+      notPKCEResponse.headers.get("access-control-allow-origin"),
+    ).toBeNull();
 
-    const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
+    const request = new NextRequest("http://localhost:3000/api/v1/oidc/token", {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
       },
-      body: {
+      body: new URLSearchParams({
         code: "83a313c5939399ba017d2381",
         client_id: app_id,
         client_secret,
         grant_type: "authorization_code",
         code_verifier: "my_code_challenge",
         redirect_uri: "http://localhost:3000/login",
-      },
+      }),
     });
 
-    await handleOIDCToken(req, res);
-
-    expect(res._getHeaders()).toEqual(
-      expect.objectContaining({
-        "access-control-allow-origin": "*",
-      }),
-    );
+    const response = (await POST(request)) as NextResponse;
+    expect(response.headers.get("access-control-allow-origin")).toEqual("*");
   });
 
   test("successfully validates single redirect_uri", async () => {
@@ -527,26 +518,25 @@ describe("/api/v1/oidc/token", () => {
       ],
     );
 
-    const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
+    const request = new NextRequest("http://localhost:3000/api/v1/oidc/token", {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
       },
-      body: {
+      body: new URLSearchParams({
         code: "83a313c5939399ba017d2381",
         client_id: app_id,
         client_secret,
         grant_type: "authorization_code",
         redirect_uri: "http://localhost:3000/login",
-      },
+      }),
     });
 
-    await handleOIDCToken(req, res);
-
-    expect(res._getStatusCode()).toBe(200);
+    const response = (await POST(request)) as NextResponse;
+    expect(response.status).toBe(200);
 
     const { access_token, id_token, token_type, expires_in, scope } =
-      res._getJSONData();
+      await response.json();
     expect(access_token).toBeTruthy();
     expect(id_token).toEqual(access_token);
     expect(token_type).toEqual("Bearer");
@@ -578,25 +568,24 @@ describe("/api/v1/oidc/token", () => {
       ],
     );
 
-    const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
+    const request = new NextRequest("http://localhost:3000/api/v1/oidc/token", {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
       },
-      body: {
+      body: new URLSearchParams({
         code: "83a313c5939399ba017d2381",
         client_id: app_id,
         client_secret,
         grant_type: "authorization_code",
-      },
+      }),
     });
 
-    await handleOIDCToken(req, res);
-
-    expect(res._getStatusCode()).toBe(200);
+    const response = (await POST(request)) as NextResponse;
+    expect(response.status).toBe(200);
 
     const { access_token, id_token, token_type, expires_in, scope } =
-      res._getJSONData();
+      await response.json();
     expect(access_token).toBeTruthy();
     expect(id_token).toEqual(access_token);
     expect(token_type).toEqual("Bearer");
@@ -634,24 +623,23 @@ describe("/api/v1/oidc/token", () => {
       ],
     );
 
-    const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
+    const request = new NextRequest("http://localhost:3000/api/v1/oidc/token", {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
       },
-      body: {
+      body: new URLSearchParams({
         code: "83a313c5939399ba017d2381",
         client_id: app_id,
         client_secret,
         grant_type: "authorization_code",
-      },
+      }),
     });
 
-    await handleOIDCToken(req, res);
+    const response = (await POST(request)) as NextResponse;
+    expect(response.status).toBe(400);
 
-    expect(res._getStatusCode()).toBe(400);
-
-    const { code, detail, attribute } = res._getJSONData();
+    const { code, detail, attribute } = await response.json();
     expect(code).toEqual("invalid_request");
     expect(detail).toEqual("Missing redirect URI.");
     expect(attribute).toEqual("redirect_uri");
@@ -680,25 +668,24 @@ describe("/api/v1/oidc/token", () => {
       ],
     );
 
-    const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
+    const request = new NextRequest("http://localhost:3000/api/v1/oidc/token", {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
       },
-      body: {
+      body: new URLSearchParams({
         code: "83a313c5939399ba017d2381",
         client_id: app_id,
         client_secret,
         grant_type: "authorization_code",
         redirect_uri: "http://localhost:3000/login2",
-      },
+      }),
     });
 
-    await handleOIDCToken(req, res);
+    const response = (await POST(request)) as NextResponse;
+    expect(response.status).toBe(400);
 
-    expect(res._getStatusCode()).toBe(400);
-
-    const { code, detail, attribute } = res._getJSONData();
+    const { code, detail, attribute } = await response.json();
     expect(code).toEqual("invalid_request");
     expect(detail).toEqual("Invalid redirect URI.");
     expect(attribute).toEqual("redirect_uri");
@@ -727,26 +714,25 @@ describe("/api/v1/oidc/token", () => {
       ],
     );
 
-    const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
+    const request = new NextRequest("http://localhost:3000/api/v1/oidc/token", {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
       },
-      body: {
+      body: new URLSearchParams({
         code: "83a313c5939399ba017d2381",
         client_id: app_id,
         client_secret,
         grant_type: "authorization_code",
         redirect_uri: "http://localhost:3000/login",
-      },
+      }),
     });
 
-    await handleOIDCToken(req, res);
-
-    expect(res._getStatusCode()).toBe(200);
+    const response = (await POST(request)) as NextResponse;
+    expect(response.status).toBe(200);
 
     const { access_token, id_token, token_type, expires_in, scope } =
-      res._getJSONData();
+      await response.json();
     expect(access_token).toBeTruthy();
     expect(id_token).toEqual(access_token);
     expect(token_type).toEqual("Bearer");
