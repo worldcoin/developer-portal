@@ -82,26 +82,28 @@ export async function POST(req: NextRequest) {
   }
 
   if (!authToken) {
-    return errorOIDCResponse(
+    const response = errorOIDCResponse(
       401,
       "unauthorized_client",
       "Please provide your app authentication credentials.",
       null,
       req,
     );
+    return code_verifier ? corsHandler(response) : response;
   }
 
   let app_id: string | null;
   app_id = await authenticateOIDCEndpoint(authToken);
 
   if (!app_id) {
-    return errorOIDCResponse(
+    const response = errorOIDCResponse(
       401,
       "unauthorized_client",
       "Invalid authentication credentials",
       null,
       req,
     );
+    return code_verifier ? corsHandler(response) : response;
   }
 
   const client = await getAPIServiceGraphqlClient();
@@ -114,14 +116,18 @@ export async function POST(req: NextRequest) {
     now,
   });
 
-  if (!deleteAuthCodeResult?.delete_auth_code) {
-    return errorOIDCResponse(
+  if (
+    !deleteAuthCodeResult?.delete_auth_code ||
+    !deleteAuthCodeResult.delete_auth_code.returning.length
+  ) {
+    const response = errorOIDCResponse(
       400,
       "invalid_grant",
       "Invalid authorization code.",
       null,
       req,
     );
+    return code_verifier ? corsHandler(response) : response;
   }
 
   const authCode = deleteAuthCodeResult.delete_auth_code.returning[0];
@@ -132,29 +138,39 @@ export async function POST(req: NextRequest) {
         app_id,
       });
     if (
-      !redirectCountResult?.action?.[0]?.redirect_count ||
-      redirectCountResult.action[0].redirect_count > 1 ||
-      authCode.redirect_uri !== redirect_uri
+      redirectCountResult?.action?.[0]?.redirect_count &&
+      redirectCountResult?.action[0].redirect_count > 1
     ) {
-      return errorOIDCResponse(
+      const response = errorOIDCResponse(
         400,
         "invalid_request",
         "Missing redirect URI.",
         "redirect_uri",
         req,
       );
+      return code_verifier ? corsHandler(response) : response;
     }
+  } else if (authCode.redirect_uri !== redirect_uri) {
+    const response = errorOIDCResponse(
+      400,
+      "invalid_request",
+      "Invalid redirect URI.",
+      "redirect_uri",
+      req,
+    );
+    return code_verifier ? corsHandler(response) : response;
   }
 
   if (authCode.code_challenge) {
     if (!code_verifier) {
-      return errorOIDCResponse(
+      const response = errorOIDCResponse(
         400,
         "invalid_request",
         "Missing code verifier.",
         "code_verifier",
         req,
       );
+      return code_verifier ? corsHandler(response) : response;
     }
 
     // We only support S256 method
@@ -165,23 +181,25 @@ export async function POST(req: NextRequest) {
         now,
       });
 
-      return errorOIDCResponse(
+      const response = errorOIDCResponse(
         400,
         "invalid_request",
         "Invalid code verifier.",
         "code_verifier",
         req,
       );
+      return code_verifier ? corsHandler(response) : response;
     }
   } else {
     if (code_verifier) {
-      return errorOIDCResponse(
+      const response = errorOIDCResponse(
         400,
         "invalid_request",
         "Code verifier was not expected.",
         "code_verifier",
         req,
       );
+      return code_verifier ? corsHandler(response) : response;
     }
   }
 
@@ -196,13 +214,15 @@ export async function POST(req: NextRequest) {
     nonce: authCode.nonce || undefined,
   });
 
-  return NextResponse.json({
+  const response = NextResponse.json({
     access_token: token,
     token_type: "Bearer",
     expires_in: 3600,
     scope: authCode.scope?.join(" ") || "",
     id_token: token,
   });
+
+  return code_verifier ? corsHandler(response) : response;
 }
 
 const verifyChallenge = (challenge: string, verifier: string) => {

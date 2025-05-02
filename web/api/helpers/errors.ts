@@ -122,7 +122,7 @@ export function errorOIDCResponse(
     });
   }
 
-  NextResponse.json(
+  return NextResponse.json(
     {
       code,
       detail,
