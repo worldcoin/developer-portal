@@ -6,7 +6,7 @@ import { publicJwk } from "tests/api/__mocks__/jwk";
 import { integrationDBClean, integrationDBExecuteQuery } from "../setup";
 import { setClientSecret, testGetSignInApp } from "../test-utils";
 
-jest.mock("legacy/backend/kms", () =>
+jest.mock("@/api/helpers/kms", () =>
   require("tests/api/__mocks__/kms.mock.ts"),
 );
 
