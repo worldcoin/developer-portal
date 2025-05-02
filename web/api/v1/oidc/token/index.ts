@@ -50,7 +50,9 @@ export async function POST(req: NextRequest) {
   // ANCHOR: Authenticate the request
   let authToken = req.headers.get("authorization");
 
-  const body = await req.formData();
+  const rawBody = await req.text();
+  const params = new URLSearchParams(rawBody);
+  const body = Object.fromEntries(params.entries());
   const { isValid, parsedParams, handleError } = await validateRequestSchema({
     schema,
     value: body,
