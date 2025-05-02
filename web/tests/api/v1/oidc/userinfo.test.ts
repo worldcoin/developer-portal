@@ -1,10 +1,9 @@
 import { generateOIDCJWT } from "@/api/helpers/jwts";
 import { OIDCScopes } from "@/legacy/backend/oidc";
 import { VerificationLevel } from "@worldcoin/idkit-core";
-import { createMocks } from "node-mocks-http";
 
-import handleOIDCUserinfo from "@/pages/api/v1/oidc/userinfo";
-import { NextApiRequest, NextApiResponse } from "next";
+import { POST } from "@/api/v1/oidc/userinfo";
+import { NextRequest } from "next/server";
 
 jest.mock("@/api/helpers/kms", () =>
   require("tests/api/__mocks__/kms.mock.ts"),
@@ -28,18 +27,18 @@ describe("/api/v1/oidc/userinfo", () => {
     // Ensure we're actually generating a JWT
     expect(jwt).toMatch(/^[\w-]*\.[\w-]*\.[\w-]*$/);
 
-    const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
+    const req = new NextRequest("http://localhost:3000/api/v1/oidc/userinfo", {
       method: "POST",
       headers: {
         authorization: `Bearer ${jwt}`,
       },
     });
 
-    await handleOIDCUserinfo(req, res);
+    const response = await POST(req);
 
-    expect(res._getStatusCode()).toBe(401);
-    const response = res._getJSONData();
-    expect(response).toMatchObject({
+    expect(response.status).toBe(401);
+    const responseBody = await response.json();
+    expect(responseBody).toMatchObject({
       attribute: "token",
       code: "invalid_token",
     });
