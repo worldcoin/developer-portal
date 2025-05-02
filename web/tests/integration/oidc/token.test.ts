@@ -42,9 +42,9 @@ describe("/api/v1/oidc/token", () => {
     const request = new NextRequest("http://localhost:3000/api/v1/oidc/token", {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
+        "Content-Type": "application/x-www-form-urlencoded",
       },
-      body: JSON.stringify({
+      body: new URLSearchParams({
         code: "83a313c5939399ba017d2381",
         client_id: app_id,
         client_secret,
@@ -77,9 +77,9 @@ describe("/api/v1/oidc/token", () => {
       {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
+          "Content-Type": "application/x-www-form-urlencoded",
         },
-        body: JSON.stringify({
+        body: new URLSearchParams({
           code: "83a313c5939399ba017d2381",
           client_id: app_id,
           client_secret,
@@ -121,9 +121,9 @@ describe("/api/v1/oidc/token", () => {
     const request = new NextRequest("http://localhost:3000/api/v1/oidc/token", {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
+        "Content-Type": "application/x-www-form-urlencoded",
       },
-      body: JSON.stringify({
+      body: new URLSearchParams({
         code: "83a313c5939399ba017d2381",
         client_id: app_id,
         client_secret,
@@ -187,9 +187,9 @@ describe("/api/v1/oidc/token", () => {
     const request = new NextRequest("http://localhost:3000/api/v1/oidc/token", {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
+        "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
       },
-      body: JSON.stringify({
+      body: new URLSearchParams({
         code: "83a313c5939399ba017d2381",
         client_id: app_id,
         client_secret,
@@ -254,9 +254,9 @@ describe("/api/v1/oidc/token", () => {
     const request = new NextRequest("http://localhost:3000/api/v1/oidc/token", {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
+        "Content-Type": "application/x-www-form-urlencoded",
       },
-      body: JSON.stringify({
+      body: new URLSearchParams({
         code: "83a313c5939399ba017d2381",
         client_id: app_id,
         client_secret,
@@ -307,9 +307,9 @@ describe("/api/v1/oidc/token", () => {
     const request = new NextRequest("http://localhost:3000/api/v1/oidc/token", {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
+        "Content-Type": "application/x-www-form-urlencoded",
       },
-      body: JSON.stringify({
+      body: new URLSearchParams({
         code: "83a313c5939399ba017d2381",
         client_id: app_id,
         client_secret,
@@ -360,9 +360,9 @@ describe("/api/v1/oidc/token", () => {
     const request = new NextRequest("http://localhost:3000/api/v1/oidc/token", {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
+        "Content-Type": "application/x-www-form-urlencoded",
       },
-      body: JSON.stringify({
+      body: new URLSearchParams({
         code: "83a313c5939399ba017d2381",
         client_id: app_id,
         client_secret,
@@ -410,9 +410,9 @@ describe("/api/v1/oidc/token", () => {
     const request = new NextRequest("http://localhost:3000/api/v1/oidc/token", {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
+        "Content-Type": "application/x-www-form-urlencoded",
       },
-      body: JSON.stringify({
+      body: new URLSearchParams({
         code: "83a313c5939399ba017d2381",
         client_id: app_id,
         client_secret,
@@ -465,9 +465,9 @@ describe("/api/v1/oidc/token", () => {
       {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
+          "Content-Type": "application/x-www-form-urlencoded",
         },
-        body: JSON.stringify({
+        body: new URLSearchParams({
           client_secret,
           client_id: app_id,
           code: "83a313c5939399ba017d2381",
@@ -485,9 +485,9 @@ describe("/api/v1/oidc/token", () => {
     const request = new NextRequest("http://localhost:3000/api/v1/oidc/token", {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
+        "Content-Type": "application/x-www-form-urlencoded",
       },
-      body: JSON.stringify({
+      body: new URLSearchParams({
         code: "83a313c5939399ba017d2381",
         client_id: app_id,
         client_secret,
@@ -521,9 +521,9 @@ describe("/api/v1/oidc/token", () => {
     const request = new NextRequest("http://localhost:3000/api/v1/oidc/token", {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
+        "Content-Type": "application/x-www-form-urlencoded",
       },
-      body: JSON.stringify({
+      body: new URLSearchParams({
         code: "83a313c5939399ba017d2381",
         client_id: app_id,
         client_secret,
@@ -571,9 +571,9 @@ describe("/api/v1/oidc/token", () => {
     const request = new NextRequest("http://localhost:3000/api/v1/oidc/token", {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
+        "Content-Type": "application/x-www-form-urlencoded",
       },
-      body: JSON.stringify({
+      body: new URLSearchParams({
         code: "83a313c5939399ba017d2381",
         client_id: app_id,
         client_secret,
@@ -626,9 +626,9 @@ describe("/api/v1/oidc/token", () => {
     const request = new NextRequest("http://localhost:3000/api/v1/oidc/token", {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
+        "Content-Type": "application/x-www-form-urlencoded",
       },
-      body: JSON.stringify({
+      body: new URLSearchParams({
         code: "83a313c5939399ba017d2381",
         client_id: app_id,
         client_secret,
@@ -671,9 +671,9 @@ describe("/api/v1/oidc/token", () => {
     const request = new NextRequest("http://localhost:3000/api/v1/oidc/token", {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
+        "Content-Type": "application/x-www-form-urlencoded",
       },
-      body: JSON.stringify({
+      body: new URLSearchParams({
         code: "83a313c5939399ba017d2381",
         client_id: app_id,
         client_secret,
@@ -717,9 +717,9 @@ describe("/api/v1/oidc/token", () => {
     const request = new NextRequest("http://localhost:3000/api/v1/oidc/token", {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
+        "Content-Type": "application/x-www-form-urlencoded",
       },
-      body: JSON.stringify({
+      body: new URLSearchParams({
         code: "83a313c5939399ba017d2381",
         client_id: app_id,
         client_secret,
