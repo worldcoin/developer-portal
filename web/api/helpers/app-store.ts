@@ -224,8 +224,8 @@ export const rankApps = (
     const bNormalizedUniqueUsers = bUniqueUsers / maxUniqueUsers;
 
     // 50% new_users_last_7_days, 50% unique_users
-    const aScore = aNormalizedNewUsers * 0.5 + aNormalizedUniqueUsers * 0.5;
-    const bScore = bNormalizedNewUsers * 0.5 + bNormalizedUniqueUsers * 0.5;
+    const aScore = aNormalizedNewUsers * 0.4 + aNormalizedUniqueUsers * 0.6;
+    const bScore = bNormalizedNewUsers * 0.4 + bNormalizedUniqueUsers * 0.6;
 
     return bScore - aScore;
   });
