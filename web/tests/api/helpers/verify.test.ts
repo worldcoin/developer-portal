@@ -305,5 +305,16 @@ describe("verify helpers", () => {
       expect(result.error?.attribute).toBe("external_nullifier");
       expect(result.params).toBeUndefined();
     });
+
+    it("should return an error for invalid signal_hash", () => {
+      const result = parseProofInputs({
+        ...validInputParams,
+        signal_hash: "invalid-signal-hash",
+      });
+
+      expect(result.error).toBeDefined();
+      expect(result.error?.attribute).toBe("signal");
+      expect(result.params).toBeUndefined();
+    });
   });
 });
