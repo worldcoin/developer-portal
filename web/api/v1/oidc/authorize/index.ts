@@ -210,11 +210,8 @@ export async function POST(req: NextRequest) {
     // Set the proof before continuing with other operations
     await redis.set(proofKey, "1", "EX", 5400);
 
-    let signalHash = signal;
-    // If the signal is not a valid hex string, hash it
-    if (signal && !signal.match(/^0x[\dabcdef]{64,}$/)) {
-      signalHash = hashToField(signal).digest;
-    }
+    // For OIDC we should always hash the signal now.
+    let signalHash = hashToField(signal).digest;
 
     // ANCHOR: Verify the zero-knowledge proof
     const { error: verifyError } = await verifyProof(
