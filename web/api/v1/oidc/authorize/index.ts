@@ -17,6 +17,7 @@ import { logger } from "@/lib/logger";
 import { OIDCFlowType, OIDCResponseType } from "@/lib/types";
 import { captureEvent } from "@/services/posthogClient";
 import { VerificationLevel } from "@worldcoin/idkit-core";
+import { hashToField } from "@worldcoin/idkit-core/hashing";
 import { createHash } from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
@@ -209,13 +210,19 @@ export async function POST(req: NextRequest) {
     // Set the proof before continuing with other operations
     await redis.set(proofKey, "1", "EX", 5400);
 
+    let signalHash = signal;
+    // If the signal is not a valid hex string, hash it
+    if (signal && !signal.match(/^0x[\dabcdef]{64,}$/)) {
+      signalHash = hashToField(signal).digest;
+    }
+
     // ANCHOR: Verify the zero-knowledge proof
     const { error: verifyError } = await verifyProof(
       {
         proof,
         nullifier_hash,
         merkle_root,
-        signal_hash: signal,
+        signal_hash: signalHash,
         external_nullifier: app.external_nullifier,
       },
       {

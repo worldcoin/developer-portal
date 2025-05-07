@@ -3,7 +3,6 @@ import { logger } from "@/lib/logger";
 import { IInternalError } from "@/lib/types";
 import { sequencerMapping } from "@/lib/utils";
 import { VerificationLevel } from "@worldcoin/idkit-core";
-import { hashToField } from "@worldcoin/idkit-core/hashing";
 import { AbiCoder, toBeHex } from "ethers";
 import * as yup from "yup";
 
@@ -175,16 +174,6 @@ function ensureHexString(value: any): string {
 }
 
 /**
- * Validates whether a value is ABI-like encoded
- * @param value The value to validate
- * @returns True if the value is ABI-like encoded, false otherwise
- */
-function validateABILikeEncoding(value: string): boolean {
-  const ABI_REGEX = /^0x[\dabcdef]+$/;
-  return !!value.toString().match(ABI_REGEX) && value.length >= 66; // Because `0` contains 66 characters
-}
-
-/**
  * Decodes an ABI-encoded proof
  * @param encodedProof The ABI-encoded proof
  * @returns The decoded proof array
@@ -286,11 +275,7 @@ export const parseProofInputs = (params: IInputParams) => {
   }
 
   try {
-    if (validateABILikeEncoding(params.signal_hash)) {
-      signal_hash = decodeToHexString(params.signal_hash);
-    } else {
-      signal_hash = toBeHex(hashToField(params.signal_hash).hash as bigint);
-    }
+    signal_hash = decodeToHexString(params.signal_hash);
   } catch (error) {
     logger.error("Error create signal hash", { error });
     return {
