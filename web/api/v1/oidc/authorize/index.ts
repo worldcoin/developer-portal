@@ -213,7 +213,7 @@ export async function POST(req: NextRequest) {
 
     // For OIDC we should always hash the signal now.
     const signalHash = toBeHex(hashToField(signal).hash as bigint);
-    console.log("signalHash", signalHash, hashToField(signal).digest);
+
     // ANCHOR: Verify the zero-knowledge proof
     const { error: verifyError } = await verifyProof(
       {
