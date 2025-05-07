@@ -11,7 +11,7 @@ import {
   generateOIDCCode,
 } from "@/api/helpers/oidc";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
-import { verifyProof } from "@/api/helpers/verify";
+import { validateABILikeEncoding, verifyProof } from "@/api/helpers/verify";
 import { Nullifier_Constraint } from "@/graphql/graphql";
 import { logger } from "@/lib/logger";
 import { OIDCFlowType, OIDCResponseType } from "@/lib/types";
@@ -209,6 +209,7 @@ export async function POST(req: NextRequest) {
     // Set the proof before continuing with other operations
     await redis.set(proofKey, "1", "EX", 5400);
 
+    let isSignalEncoded = validateABILikeEncoding(signal);
     // ANCHOR: Verify the zero-knowledge proof
     const { error: verifyError } = await verifyProof(
       {
@@ -216,6 +217,7 @@ export async function POST(req: NextRequest) {
         nullifier_hash,
         merkle_root,
         signal_hash: signal,
+        isSignalEncoded,
         external_nullifier: app.external_nullifier,
       },
       {

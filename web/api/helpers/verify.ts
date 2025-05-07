@@ -50,6 +50,7 @@ export interface IInputParams {
   nullifier_hash: string;
   external_nullifier: string;
   proof: string;
+  isSignalEncoded?: boolean;
 }
 
 export interface IVerifyParams {
@@ -179,7 +180,7 @@ function ensureHexString(value: any): string {
  * @param value The value to validate
  * @returns True if the value is ABI-like encoded, false otherwise
  */
-function validateABILikeEncoding(value: string): boolean {
+export function validateABILikeEncoding(value: string): boolean {
   const ABI_REGEX = /^0x[\dabcdef]+$/;
   return !!value.toString().match(ABI_REGEX) && value.length >= 66; // Because `0` contains 66 characters
 }
@@ -286,7 +287,7 @@ export const parseProofInputs = (params: IInputParams) => {
   }
 
   try {
-    if (validateABILikeEncoding(params.signal_hash)) {
+    if (params.isSignalEncoded === undefined || params.isSignalEncoded) {
       signal_hash = decodeToHexString(params.signal_hash);
     } else {
       signal_hash = toBeHex(hashToField(params.signal_hash).hash as bigint);
