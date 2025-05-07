@@ -19,6 +19,7 @@ import { captureEvent } from "@/services/posthogClient";
 import { VerificationLevel } from "@worldcoin/idkit-core";
 import { hashToField } from "@worldcoin/idkit-core/hashing";
 import { createHash } from "crypto";
+import { toBeHex } from "ethers";
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
 import { getSdk as getNullifierSdk } from "./graphql/fetch-nullifier.generated";
@@ -211,8 +212,8 @@ export async function POST(req: NextRequest) {
     await redis.set(proofKey, "1", "EX", 5400);
 
     // For OIDC we should always hash the signal now.
-    let signalHash = hashToField(signal).digest;
-
+    const signalHash = toBeHex(hashToField(signal).hash as bigint);
+    console.log("signalHash", signalHash, hashToField(signal).digest);
     // ANCHOR: Verify the zero-knowledge proof
     const { error: verifyError } = await verifyProof(
       {
