@@ -175,7 +175,6 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
           }
           className="h-16 text-grey-400"
         />
-        (
         <Controller
           name="max_verifications"
           control={control}
@@ -194,7 +193,6 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
             );
           }}
         />
-        )
         <div className={clsx("mt-6 space-y-4", isPartnerTeam ? "" : "hidden")}>
           <div className="flex items-center justify-between">
             <Typography variant={TYPOGRAPHY.R3} className="font-medium">
