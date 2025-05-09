@@ -16,10 +16,7 @@ export const createUpdateActionSchema = (context: ActionContext) => {
         .number()
         .typeError("Max verifications must be a number")
         .required("This field is required"),
-      app_flow_on_complete: yup
-        .string()
-        .oneOf(["NONE", "VERIFY"])
-        .required("This field is required"),
+      app_flow_on_complete: yup.string().oneOf(["NONE", "VERIFY"]).nullable(),
       webhook_uri: yup
         .string()
         .optional()
