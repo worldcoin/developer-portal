@@ -18,8 +18,8 @@ export const formatAppMetadata = async (
   appData: AppStoreMetadataFields,
   appStats: AppStatsReturnType,
   locale: string = "en",
-  platform: string | null,
-  country: string | null,
+  platform?: string | null,
+  country?: string | null,
 ): Promise<AppStoreFormattedFields> => {
   const { app, ...appMetadata } = appData;
   const singleAppStats: AppStatsItem | undefined = appStats.find(
