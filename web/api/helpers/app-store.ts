@@ -18,11 +18,16 @@ export const formatAppMetadata = async (
   appData: AppStoreMetadataFields,
   appStats: AppStatsReturnType,
   locale: string = "en",
+  platform: string | null,
+  country: string | null,
 ): Promise<AppStoreFormattedFields> => {
   const { app, ...appMetadata } = appData;
   const singleAppStats: AppStatsItem | undefined = appStats.find(
     (stat) => stat.app_id === appMetadata.app_id,
   );
+
+  const compressCountryList =
+    country && (platform === "ios" || platform === "android");
 
   const appRating =
     appData.app.rating_count > 0
@@ -95,6 +100,10 @@ export const formatAppMetadata = async (
       ? locale
       : "en";
 
+  const supportedCountries = compressCountryList
+    ? [country.toUpperCase()]
+    : appMetadata.supported_countries;
+
   return {
     ...appMetadataWithoutLocalisations,
     name: name,
@@ -154,6 +163,7 @@ export const formatAppMetadata = async (
     team_name: app.team.name ?? "",
     permit2_tokens: permit2Tokens,
     contracts: contracts,
+    supported_countries: supportedCountries,
   };
 };
 
