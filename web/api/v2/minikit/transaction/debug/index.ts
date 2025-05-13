@@ -64,6 +64,7 @@ export const GET = async (req: NextRequest) => {
       detail: "API key not found.",
       attribute: "api_key",
       req,
+      app_id: appId,
     });
   }
 
@@ -74,6 +75,7 @@ export const GET = async (req: NextRequest) => {
       detail: "API key is inactive.",
       attribute: "api_key",
       req,
+      app_id: appId,
     });
   }
 
@@ -84,6 +86,7 @@ export const GET = async (req: NextRequest) => {
       detail: "API key is not valid for this app.",
       attribute: "api_key",
       req,
+      app_id: appId,
     });
   }
 
@@ -100,6 +103,7 @@ export const GET = async (req: NextRequest) => {
       detail: "API key is not valid.",
       attribute: "api_key",
       req,
+      app_id: appId,
     });
   }
 
@@ -126,7 +130,7 @@ export const GET = async (req: NextRequest) => {
       status: res.status,
       statusText: res.statusText,
       message: errorBody,
-      appId,
+      app_id: appId,
     });
 
     return corsHandler(
@@ -136,6 +140,7 @@ export const GET = async (req: NextRequest) => {
         detail: errorBody ?? "Debug URL data fetch to backend failed",
         attribute: "debug",
         req,
+        app_id: appId,
       }),
     );
   }
@@ -150,6 +155,7 @@ export const GET = async (req: NextRequest) => {
         detail: "Debug URL is not yet available. Please try again later.",
         attribute: "debug",
         req,
+        app_id: appId,
       }),
     );
   }

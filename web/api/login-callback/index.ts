@@ -189,7 +189,9 @@ export const loginCallback = withApiAuthRequired(async (req: NextRequest) => {
     }
 
     if (invite.email !== auth0User.email) {
-      logger.error("Invite email does not match logged in email");
+      logger.error("Invite email does not match logged in email", {
+        team_id: invite.team_id,
+      });
       return NextResponse.redirect(
         new URL(
           urls.unauthorized({
@@ -220,6 +222,7 @@ export const loginCallback = withApiAuthRequired(async (req: NextRequest) => {
         "Error while inserting membership for InsertMembershipSdk.",
         {
           error,
+          team_id: invite.team_id,
         },
       );
 
@@ -230,7 +233,9 @@ export const loginCallback = withApiAuthRequired(async (req: NextRequest) => {
     }
 
     if (!membership) {
-      logger.error("Membership not found after inserting.");
+      logger.error("Membership not found after inserting.", {
+        team_id: invite.team_id,
+      });
       return NextResponse.redirect(
         new URL(urls.logout(), process.env.NEXT_PUBLIC_APP_URL).toString(),
         307,
@@ -245,11 +250,15 @@ export const loginCallback = withApiAuthRequired(async (req: NextRequest) => {
       if (!deleteInviteResult.delete_invite_by_pk) {
         logger.error(
           `Error while deleting invite: ${invite_id}, invite not found.`,
+          {
+            team_id: invite.team_id,
+          },
         );
       }
     } catch (error) {
       logger.error("Error while deleting invite for DeleteInviteSdk.", {
         error,
+        team_id: invite.team_id,
       });
     }
   }

@@ -63,10 +63,12 @@ export async function POST(
     return errorRequiredAttribute("app_id", req);
   }
 
+  const app_id = params.app_id?.toString();
+
   const client = await getAPIServiceGraphqlClient();
 
   const appActionResponse = await getFetchAppActionSdk(client).FetchAppAction({
-    app_id: params.app_id?.toString(),
+    app_id,
     action: parsedParams.action,
     nullifier_hash: parsedParams.nullifier_hash,
   });
@@ -78,6 +80,7 @@ export async function POST(
       detail: "App not found. App may be no longer active.",
       attribute: null,
       req,
+      app_id,
     });
   }
 
@@ -90,6 +93,7 @@ export async function POST(
       detail: "Action not found.",
       attribute: "action",
       req,
+      app_id,
     });
   }
 
@@ -110,6 +114,7 @@ export async function POST(
       detail: "This action is inactive.",
       attribute: "status",
       req,
+      app_id,
     });
   }
 
@@ -120,7 +125,13 @@ export async function POST(
       action.max_verifications === 1
         ? "This person has already verified for this action."
         : `This person has already verified for this action the maximum number of times (${action.max_verifications}).`;
-    return errorValidation("max_verifications_reached", errorMsg, null, req);
+    return errorValidation(
+      "max_verifications_reached",
+      errorMsg,
+      null,
+      req,
+      app_id,
+    );
   }
 
   if (!action.external_nullifier) {
@@ -130,6 +141,7 @@ export async function POST(
       detail: "This action does not have a valid external nullifier set.",
       attribute: null,
       req,
+      app_id,
     });
   }
 
@@ -168,16 +180,18 @@ export async function POST(
         detail: error?.message || "There was an error verifying this proof.",
         attribute: error?.attribute || null,
         req,
+        app_id,
       });
     }
   } catch (e: any) {
-    console.warn("Error verifying proof", { error: e });
+    console.warn("Error verifying proof", { error: e, app_id });
     return errorResponse({
       statusCode: 400,
       code: "verification_error",
       detail: e.message,
       attribute: null,
       req,
+      app_id,
     });
   }
 
@@ -197,6 +211,7 @@ export async function POST(
         detail: "There was an error upserting the nullifier.",
         attribute: null,
         req,
+        app_id,
       });
     }
 
@@ -240,6 +255,7 @@ export async function POST(
         : e.message,
       attribute: null,
       req,
+      app_id,
     });
   }
 }

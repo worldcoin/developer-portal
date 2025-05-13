@@ -94,6 +94,7 @@ export const POST = async (
       detail: "API key not found.",
       attribute: "api_key",
       req,
+      app_id,
     });
   }
 
@@ -104,6 +105,7 @@ export const POST = async (
       detail: "API key is inactive.",
       attribute: "api_key",
       req,
+      app_id,
     });
   }
 
@@ -114,6 +116,7 @@ export const POST = async (
       detail: "API key is not valid for this app.",
       attribute: "api_key",
       req,
+      app_id,
     });
   }
 
@@ -130,6 +133,7 @@ export const POST = async (
       detail: "API key is not valid.",
       attribute: "api_key",
       req,
+      app_id,
     });
   }
 
@@ -169,6 +173,7 @@ export const POST = async (
         detail: "Action already exists.",
         attribute: "action",
         req,
+        app_id,
       });
     }
 
@@ -178,6 +183,7 @@ export const POST = async (
       code: "internal_server_error",
       detail: "Action can't be created.",
       req,
+      app_id,
     });
   }
 
@@ -188,6 +194,7 @@ export const POST = async (
       detail: "Action can't be created.",
       attribute: "action",
       req,
+      app_id,
     });
   }
 

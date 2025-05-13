@@ -61,11 +61,11 @@ export const POST = async (req: NextRequest) => {
     });
   }
 
-  const teamId = body.input.team_id;
-  if (!teamId) {
+  const team_id = body.input.team_id;
+  if (!team_id) {
     return errorHasuraQuery({
       req,
-      detail: "teamId must be set.",
+      detail: "team_id must be set.",
       code: "required",
     });
   }
@@ -79,6 +79,7 @@ export const POST = async (req: NextRequest) => {
       req,
       detail: "emails must be set.",
       code: "required",
+      team_id,
     });
   }
 
@@ -86,33 +87,35 @@ export const POST = async (req: NextRequest) => {
     query = await getUserAndTeamMembershipsSdk(
       client,
     ).GetUserAndTeamMemberships({
-      team_id: teamId,
+      team_id,
       user_id: userId,
     });
   } catch (error) {
-    logger.error("Cannot fetch memberships.", { error });
+    logger.error("Cannot fetch memberships.", { error, team_id, userId });
     return errorHasuraQuery({
       req,
       detail: "Cannot fetch memberships.",
       code: "required",
+      team_id,
     });
   }
 
   const invitingUser = query.user[0];
 
   const invitingUsersMembership = query.membership.find(
-    (membership) => membership.team.id === teamId,
+    (membership) => membership.team.id === team_id,
   );
 
   if (!invitingUser?.id) {
     logger.warn(
       "User or team not found. User may not have permissions for this team.",
-      { userId, teamId },
+      { userId, team_id },
     );
     return errorHasuraQuery({
       req,
       detail: "Insufficient Permissions",
       code: "insufficient_permissions",
+      team_id,
     });
   }
 
@@ -127,6 +130,7 @@ export const POST = async (req: NextRequest) => {
       req,
       detail: "Some emails are already in the team.",
       code: "already_in_team",
+      team_id,
     });
   }
 
@@ -135,7 +139,7 @@ export const POST = async (req: NextRequest) => {
   });
 
   const existingInvites = fetchInvitesResult.invite.filter((invite) => {
-    return emails.includes(invite.email) && invite.team_id === teamId;
+    return emails.includes(invite.email) && invite.team_id === team_id;
   });
 
   const emailsToCreate = emails.filter((email: string) => {
@@ -159,6 +163,7 @@ export const POST = async (req: NextRequest) => {
         req,
         detail: "Some invites could not be updated.",
         code: "invalid_emails",
+        team_id,
       });
     }
 
@@ -173,7 +178,7 @@ export const POST = async (req: NextRequest) => {
     const createInvitesRes = await getCreateInvitesSdk(client).CreateInvites({
       objects: emailsToCreate.map((email: string) => ({
         email,
-        team_id: teamId,
+        team_id,
       })),
     });
 
@@ -185,6 +190,7 @@ export const POST = async (req: NextRequest) => {
         req,
         detail: "Some emails could not be invited.",
         code: "invalid_emails",
+        team_id,
       });
     }
 
@@ -198,6 +204,7 @@ export const POST = async (req: NextRequest) => {
       req,
       detail: "No invites to send.",
       code: "invalid_emails",
+      team_id,
     });
   }
 
@@ -243,6 +250,7 @@ export const POST = async (req: NextRequest) => {
       logger.error("Cannot send invite(s)", {
         req,
         error: item.reason,
+        team_id,
       });
     }
   });

@@ -12,6 +12,7 @@ const schema = yup.object({
 });
 
 export const POST = async (req: NextRequest) => {
+  let app_id: string | undefined;
   try {
     if (!protectInternalEndpoint(req)) {
       return errorHasuraQuery({
@@ -52,7 +53,7 @@ export const POST = async (req: NextRequest) => {
       });
     }
 
-    const { app_id } = parsedParams;
+    app_id = parsedParams.app_id;
 
     if (!app_id) {
       return errorHasuraQuery({
@@ -73,17 +74,19 @@ export const POST = async (req: NextRequest) => {
         req,
         detail: "Failed to unban app",
         code: "unban_app_failed",
+        app_id,
       });
     }
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    logger.error("Error unbanning app.", { error });
+    logger.error("Error unbanning app.", { error, app_id });
 
     return errorHasuraQuery({
       req,
       detail: "Unable to unban app",
       code: "internal_error",
+      app_id,
     });
   }
 };

@@ -61,7 +61,8 @@ export const POST = async (req: NextRequest) => {
     });
   }
 
-  const { app_metadata_id, team_id } = parsedParams;
+  const app_metadata_id = parsedParams.app_metadata_id;
+  const team_id = parsedParams.team_id;
 
   if (!app_metadata_id) {
     return errorHasuraQuery({
@@ -74,7 +75,7 @@ export const POST = async (req: NextRequest) => {
   if (!team_id) {
     return errorHasuraQuery({
       req,
-      detail: "teamId must be set.",
+      detail: "team_id must be set.",
       code: "required",
     });
   }
@@ -82,7 +83,7 @@ export const POST = async (req: NextRequest) => {
   const client = await getAPIServiceGraphqlClient();
 
   const { localisations } = await getLocalisationsSdk(client).GetLocalisations({
-    app_metadata_id: app_metadata_id,
+    app_metadata_id,
   });
 
   const { app_metadata_by_pk: app_locales } = await getLocalesSdk(
@@ -117,6 +118,7 @@ export const POST = async (req: NextRequest) => {
         req,
         detail: "Missing localisation for language code",
         code: "missing_localisation",
+        team_id,
       });
     }
   }

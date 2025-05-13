@@ -79,6 +79,8 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  let app_id: string | undefined;
+
   try {
     const body = await req.json();
     const { isValid, parsedParams, handleError } = await validateRequestSchema({
@@ -90,6 +92,8 @@ export async function POST(req: NextRequest) {
       return handleError(req);
     }
 
+    app_id = parsedParams.app_id;
+
     const {
       proof,
       nullifier_hash,
@@ -97,7 +101,6 @@ export async function POST(req: NextRequest) {
       signal,
       verification_level,
       response_type,
-      app_id,
       scope,
       redirect_uri,
       code_challenge,
@@ -117,6 +120,7 @@ export async function POST(req: NextRequest) {
             detail: `Invalid response type: ${response_type}.`,
             attribute: "response_type",
             req,
+            app_id,
           }),
         );
       }
@@ -130,6 +134,7 @@ export async function POST(req: NextRequest) {
           detail: `Invalid code_challenge_method: ${code_challenge_method}.`,
           attribute: "code_challenge_method",
           req,
+          app_id,
         }),
       );
     }
@@ -157,6 +162,7 @@ export async function POST(req: NextRequest) {
           detail: `The ${OIDCScopes.OpenID} scope is always required.`,
           attribute: "scope",
           req,
+          app_id,
         }),
       );
     }
@@ -174,6 +180,7 @@ export async function POST(req: NextRequest) {
           detail: fetchAppError?.message ?? "Error fetching app.",
           attribute: fetchAppError?.attribute ?? "app_id",
           req,
+          app_id,
         }),
       );
     }
@@ -187,6 +194,7 @@ export async function POST(req: NextRequest) {
           detail: "Invalid redirect URI.",
           attribute: "redirect_uri",
           req,
+          app_id,
         }),
       );
     }
@@ -204,6 +212,7 @@ export async function POST(req: NextRequest) {
           detail: "This proof has already been used. Please try again",
           attribute: "proof",
           req,
+          app_id,
         }),
       );
     }
@@ -240,6 +249,7 @@ export async function POST(req: NextRequest) {
             "Verification request error. Please try again.",
           attribute: verifyError.attribute,
           req,
+          app_id,
         }),
       );
     }
@@ -301,7 +311,10 @@ export async function POST(req: NextRequest) {
       });
 
       if (!fetchNullifierResult?.nullifier) {
-        logger.warn("Error fetching nullifier.", fetchNullifierResult ?? {});
+        logger.warn("Error fetching nullifier.", {
+          fetchNullifierResult: fetchNullifierResult ?? {},
+          app_id,
+        });
         hasNullifier = false;
       }
       hasNullifier = Boolean(fetchNullifierResult.nullifier?.[0]?.id);
@@ -311,6 +324,7 @@ export async function POST(req: NextRequest) {
         nullifier_hash,
         errorMessage: error instanceof Error ? error.message : String(error),
         stack: error instanceof Error ? error.stack : undefined,
+        app_id,
       });
     }
 
@@ -328,13 +342,17 @@ export async function POST(req: NextRequest) {
           });
 
         if (!insert_nullifier_one) {
-          logger.error(
-            "Error inserting nullifier.",
-            insert_nullifier_one ?? {},
-          );
+          logger.error("Error inserting nullifier.", {
+            insert_nullifier_one: insert_nullifier_one ?? {},
+            app_id,
+          });
         }
       } catch (error) {
-        logger.error("Generic Error inserting nullifier", { req, error });
+        logger.error("Generic Error inserting nullifier", {
+          req,
+          error,
+          app_id,
+        });
       }
     }
 
@@ -349,7 +367,10 @@ export async function POST(req: NextRequest) {
     return corsHandler(NextResponse.json(response, { status: 200 }));
   } catch (error) {
     // Handle any unexpected errors
-    logger.error("Unexpected error in OIDC authorize", { error });
+    logger.error("Unexpected error in OIDC authorize", {
+      error,
+      app_id,
+    });
 
     return corsHandler(
       errorResponse({
@@ -358,6 +379,7 @@ export async function POST(req: NextRequest) {
         detail: "An unexpected error occurred",
         attribute: "server",
         req,
+        app_id,
       }),
     );
   }
