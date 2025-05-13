@@ -423,6 +423,7 @@ describe("/api/v2/verify [error cases]", () => {
       attribute: "action",
       code: "invalid_action",
       detail: "Action not found.",
+      app_id: stagingAppId,
     });
   });
 
@@ -459,6 +460,7 @@ describe("/api/v2/verify [error cases]", () => {
       attribute: null,
       code: "max_verifications_reached",
       detail: "This person has already verified for this action.",
+      app_id: stagingAppId,
     });
   });
 
@@ -496,6 +498,7 @@ describe("/api/v2/verify [error cases]", () => {
       code: "max_verifications_reached",
       detail:
         "This person has already verified for this action the maximum number of times (2).",
+      app_id: stagingAppId,
     });
   });
 
@@ -571,6 +574,7 @@ describe("/api/v2/verify [error cases]", () => {
       attribute: null,
       code: "verification_error",
       detail: "There was an error upserting the nullifier.",
+      app_id: stagingAppId,
     });
   });
 
@@ -606,6 +610,7 @@ describe("/api/v2/verify [error cases]", () => {
       code: "invalid_merkle_root",
       detail:
         "The provided Merkle root is invalid. User appears to be unverified.",
+      app_id: stagingAppId,
     });
   });
 
@@ -701,6 +706,7 @@ describe("/api/v2/verify [error cases]", () => {
       code: "invalid_proof",
       detail:
         "We couldn't verify the provided proof (error code invalid proof).",
+      app_id: stagingAppId,
     });
   });
 });
