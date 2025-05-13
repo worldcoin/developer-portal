@@ -1,0 +1,1 @@
+alter table "public"."app_metadata" drop column "should_uninstall_on_delist";

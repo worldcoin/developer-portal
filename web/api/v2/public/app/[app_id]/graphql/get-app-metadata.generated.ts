@@ -43,6 +43,7 @@ export type GetAppMetadataQuery = {
     max_notifications_per_day?: number | null;
     is_android_only: boolean;
     is_for_humans_only: boolean;
+    should_uninstall_on_delist: boolean;
     localisations: Array<{
       __typename?: "localisations";
       name: string;
@@ -98,6 +99,7 @@ export const GetAppMetadataDocument = gql`
       max_notifications_per_day
       is_android_only
       is_for_humans_only
+      should_uninstall_on_delist
       localisations(where: { locale: { _eq: $locale } }) {
         name
         world_app_button_text

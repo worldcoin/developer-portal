@@ -1815,6 +1815,7 @@ export type App_Metadata = {
   review_message: Scalars["String"]["output"];
   reviewed_by: Scalars["String"]["output"];
   short_name: Scalars["String"]["output"];
+  should_uninstall_on_delist: Scalars["Boolean"]["output"];
   showcase_img_urls?: Maybe<Array<Scalars["String"]["output"]>>;
   source_code_url: Scalars["String"]["output"];
   support_link: Scalars["String"]["output"];
@@ -1974,6 +1975,7 @@ export type App_Metadata_Bool_Exp = {
   review_message?: InputMaybe<String_Comparison_Exp>;
   reviewed_by?: InputMaybe<String_Comparison_Exp>;
   short_name?: InputMaybe<String_Comparison_Exp>;
+  should_uninstall_on_delist?: InputMaybe<Boolean_Comparison_Exp>;
   showcase_img_urls?: InputMaybe<String_Array_Comparison_Exp>;
   source_code_url?: InputMaybe<String_Comparison_Exp>;
   support_link?: InputMaybe<String_Comparison_Exp>;
@@ -2032,6 +2034,7 @@ export type App_Metadata_Insert_Input = {
   review_message?: InputMaybe<Scalars["String"]["input"]>;
   reviewed_by?: InputMaybe<Scalars["String"]["input"]>;
   short_name?: InputMaybe<Scalars["String"]["input"]>;
+  should_uninstall_on_delist?: InputMaybe<Scalars["Boolean"]["input"]>;
   showcase_img_urls?: InputMaybe<Array<Scalars["String"]["input"]>>;
   source_code_url?: InputMaybe<Scalars["String"]["input"]>;
   support_link?: InputMaybe<Scalars["String"]["input"]>;
@@ -2247,6 +2250,7 @@ export type App_Metadata_Order_By = {
   review_message?: InputMaybe<Order_By>;
   reviewed_by?: InputMaybe<Order_By>;
   short_name?: InputMaybe<Order_By>;
+  should_uninstall_on_delist?: InputMaybe<Order_By>;
   showcase_img_urls?: InputMaybe<Order_By>;
   source_code_url?: InputMaybe<Order_By>;
   support_link?: InputMaybe<Order_By>;
@@ -2324,6 +2328,8 @@ export enum App_Metadata_Select_Column {
   /** column name */
   ShortName = "short_name",
   /** column name */
+  ShouldUninstallOnDelist = "should_uninstall_on_delist",
+  /** column name */
   ShowcaseImgUrls = "showcase_img_urls",
   /** column name */
   SourceCodeUrl = "source_code_url",
@@ -2365,6 +2371,8 @@ export enum App_Metadata_Select_Column_App_Metadata_Aggregate_Bool_Exp_Bool_And_
   IsReviewerWorldAppApproved = "is_reviewer_world_app_approved",
   /** column name */
   IsRowVerified = "is_row_verified",
+  /** column name */
+  ShouldUninstallOnDelist = "should_uninstall_on_delist",
 }
 
 /** select "app_metadata_aggregate_bool_exp_bool_or_arguments_columns" columns of table "app_metadata" */
@@ -2385,6 +2393,8 @@ export enum App_Metadata_Select_Column_App_Metadata_Aggregate_Bool_Exp_Bool_Or_A
   IsReviewerWorldAppApproved = "is_reviewer_world_app_approved",
   /** column name */
   IsRowVerified = "is_row_verified",
+  /** column name */
+  ShouldUninstallOnDelist = "should_uninstall_on_delist",
 }
 
 /** input type for updating data in table "app_metadata" */
@@ -2417,6 +2427,7 @@ export type App_Metadata_Set_Input = {
   review_message?: InputMaybe<Scalars["String"]["input"]>;
   reviewed_by?: InputMaybe<Scalars["String"]["input"]>;
   short_name?: InputMaybe<Scalars["String"]["input"]>;
+  should_uninstall_on_delist?: InputMaybe<Scalars["Boolean"]["input"]>;
   showcase_img_urls?: InputMaybe<Array<Scalars["String"]["input"]>>;
   source_code_url?: InputMaybe<Scalars["String"]["input"]>;
   support_link?: InputMaybe<Scalars["String"]["input"]>;
@@ -2507,6 +2518,7 @@ export type App_Metadata_Stream_Cursor_Value_Input = {
   review_message?: InputMaybe<Scalars["String"]["input"]>;
   reviewed_by?: InputMaybe<Scalars["String"]["input"]>;
   short_name?: InputMaybe<Scalars["String"]["input"]>;
+  should_uninstall_on_delist?: InputMaybe<Scalars["Boolean"]["input"]>;
   showcase_img_urls?: InputMaybe<Array<Scalars["String"]["input"]>>;
   source_code_url?: InputMaybe<Scalars["String"]["input"]>;
   support_link?: InputMaybe<Scalars["String"]["input"]>;
@@ -2591,6 +2603,8 @@ export enum App_Metadata_Update_Column {
   ReviewedBy = "reviewed_by",
   /** column name */
   ShortName = "short_name",
+  /** column name */
+  ShouldUninstallOnDelist = "should_uninstall_on_delist",
   /** column name */
   ShowcaseImgUrls = "showcase_img_urls",
   /** column name */
