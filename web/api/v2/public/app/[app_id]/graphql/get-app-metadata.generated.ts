@@ -38,6 +38,7 @@ export type GetAppMetadataQuery = {
     permit2_tokens?: Array<string> | null;
     can_import_all_contacts: boolean;
     is_reviewer_world_app_approved: boolean;
+    is_reviewer_app_store_approved: boolean;
     verification_status: string;
     is_allowed_unlimited_notifications?: boolean | null;
     max_notifications_per_day?: number | null;
@@ -94,6 +95,7 @@ export const GetAppMetadataDocument = gql`
       permit2_tokens
       can_import_all_contacts
       is_reviewer_world_app_approved
+      is_reviewer_app_store_approved
       verification_status
       is_allowed_unlimited_notifications
       max_notifications_per_day
