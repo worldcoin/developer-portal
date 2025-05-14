@@ -229,11 +229,15 @@ export const GET = async (request: NextRequest) => {
    * ANCHOR: Format all app metadata
    */
   let formattedTopApps = await Promise.all(
-    topApps.map((app) => formatAppMetadata(app, metricsData, locale)),
+    topApps.map((app) =>
+      formatAppMetadata(app, metricsData, locale, platform, country),
+    ),
   );
 
   let highlightedApps = await Promise.all(
-    highlightsApps.map((app) => formatAppMetadata(app, metricsData, locale)),
+    highlightsApps.map((app) =>
+      formatAppMetadata(app, metricsData, locale, platform, country),
+    ),
   );
 
   formattedTopApps = formattedTopApps.map((app) => {
