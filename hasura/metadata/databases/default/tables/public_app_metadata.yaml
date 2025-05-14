@@ -192,6 +192,7 @@ select_permissions:
         - review_message
         - reviewed_by
         - short_name
+        - should_uninstall_on_delist
         - showcase_img_urls
         - source_code_url
         - support_link
@@ -232,6 +233,7 @@ select_permissions:
         - name
         - permit2_tokens
         - short_name
+        - should_uninstall_on_delist
         - showcase_img_urls
         - source_code_url
         - support_link
@@ -346,6 +348,7 @@ update_permissions:
         - meta_tag_image_url
         - review_message
         - reviewed_by
+        - should_uninstall_on_delist
         - showcase_img_urls
         - supported_countries
         - verification_status
@@ -392,6 +395,7 @@ update_permissions:
         - review_message
         - reviewed_by
         - short_name
+        - should_uninstall_on_delist
         - showcase_img_urls
         - source_code_url
         - support_link
