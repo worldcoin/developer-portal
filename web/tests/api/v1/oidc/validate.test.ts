@@ -2,43 +2,39 @@ import { OIDCErrorCodes } from "@/api/helpers/oidc";
 import { POST } from "@/api/v1/oidc/validate";
 import { NextRequest } from "next/server";
 
-const requestReturnFn = jest.fn();
-
-jest.mock(
-  "@/api/helpers/graphql",
-  jest.fn(() => ({
-    getAPIServiceGraphqlClient: () => ({
-      query: requestReturnFn,
-    }),
-  })),
-);
-
+jest.mock("@/api/helpers/graphql", () => ({
+  getAPIServiceGraphqlClient: jest.fn(),
+}));
+const FetchOIDCApp = jest.fn();
+jest.mock("@/api/helpers/oidc/graphql/fetch-oidc-app.generated", () => ({
+  getSdk: () => ({
+    FetchOIDCApp,
+  }),
+}));
 beforeEach(() => {
-  requestReturnFn.mockResolvedValue({
-    data: {
-      app: [
-        {
-          id: "app_0123456789",
-          is_staging: true,
-          actions: [
-            {
-              external_nullifier: "external_nullifier",
-              redirects: [
-                {
-                  redirect_uri: "https://example.com",
-                },
-              ],
-            },
-          ],
-        },
-      ],
-      cache: [
-        {
-          key: "staging.semaphore.wld.eth",
-          value: "0x000000000000000000000",
-        },
-      ],
-    },
+  FetchOIDCApp.mockResolvedValue({
+    app: [
+      {
+        id: "app_0123456789",
+        is_staging: true,
+        actions: [
+          {
+            external_nullifier: "external_nullifier",
+            redirects: [
+              {
+                redirect_uri: "https://example.com",
+              },
+            ],
+          },
+        ],
+      },
+    ],
+    cache: [
+      {
+        key: "staging.semaphore.wld.eth",
+        value: "0x000000000000000000000",
+      },
+    ],
   });
 });
 
@@ -71,16 +67,14 @@ describe("/api/v1/oidc/validate", () => {
       }),
     });
 
-    requestReturnFn.mockResolvedValueOnce({
-      data: {
-        app: [],
-        cache: [
-          {
-            key: "staging.semaphore.wld.eth",
-            value: "0x000000000000000000000",
-          },
-        ],
-      },
+    FetchOIDCApp.mockResolvedValueOnce({
+      app: [],
+      cache: [
+        {
+          key: "staging.semaphore.wld.eth",
+          value: "0x000000000000000000000",
+        },
+      ],
     });
 
     const response = await POST(req);
