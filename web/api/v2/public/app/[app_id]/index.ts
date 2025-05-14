@@ -128,9 +128,16 @@ export async function GET(
     ? null
     : headers.get("CloudFront-Viewer-Country");
   const override_country = searchParams.get("override_country") || country;
+  const shouldUninstallOnDelist = parsedAppMetadata.should_uninstall_on_delist;
+  const isDelisted = !parsedAppMetadata.is_reviewer_app_store_approved;
 
-  // do not restrict for drafts, so developers can work on the app
+  // only restrict based on country if app is delisted and should be uninstalled on delist
+  // this means that the only two cases where an app is not deeplinkable are:
+  // - if it's banned
+  // - if the uninstall flag is set and app is delisted
   if (
+    isDelisted &&
+    shouldUninstallOnDelist &&
     isMetadataVerified &&
     override_country &&
     !parsedAppMetadata.supported_countries?.includes(override_country)
