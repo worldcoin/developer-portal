@@ -26,7 +26,7 @@ export const formatAppMetadata = async (
     (stat) => stat.app_id === appMetadata.app_id,
   );
 
-  const compressCountryList =
+  const shouldCompressCountryList =
     country && (platform === "ios" || platform === "android");
 
   const appRating =
@@ -100,7 +100,7 @@ export const formatAppMetadata = async (
       ? locale
       : "en";
 
-  const supportedCountries = compressCountryList
+  const supportedCountries = shouldCompressCountryList
     ? [country.toUpperCase()]
     : appMetadata.supported_countries;
 
