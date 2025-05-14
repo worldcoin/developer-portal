@@ -1,14 +1,13 @@
-import { OIDCErrorCodes } from "@/legacy/backend/oidc";
-import handleOIDCValidate from "@/pages/api/v1/oidc/validate";
-import { NextApiRequest, NextApiResponse } from "next";
-import { createMocks } from "node-mocks-http";
+import { OIDCErrorCodes } from "@/api/helpers/oidc";
+import { POST } from "@/api/v1/oidc/validate";
+import { NextRequest } from "next/server";
 
 const requestReturnFn = jest.fn();
 
 jest.mock(
-  "legacy/backend/graphql",
+  "@/api/helpers/graphql",
   jest.fn(() => ({
-    getAPIServiceClient: () => ({
+    getAPIServiceGraphqlClient: () => ({
       query: requestReturnFn,
     }),
   })),
@@ -45,31 +44,31 @@ beforeEach(() => {
 
 describe("/api/v1/oidc/validate", () => {
   test("can validate app and redirect_uri", async () => {
-    const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
+    const req = new NextRequest("http://localhost:3000/api/v1/oidc/validate", {
       method: "POST",
-      body: {
+      body: JSON.stringify({
         app_id: "app_0123456789",
         redirect_uri: "https://example.com",
-      },
+      }),
     });
 
-    await handleOIDCValidate(req, res);
+    const response = await POST(req);
 
-    expect(res._getStatusCode()).toBe(200);
-    const response = res._getJSONData();
-    expect(response).toMatchObject({
+    expect(response.status).toBe(200);
+    const responseBody = await response.json();
+    expect(responseBody).toMatchObject({
       app_id: "app_0123456789",
       redirect_uri: "https://example.com",
     });
   });
 
   test("invalid app_id", async () => {
-    const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
+    const req = new NextRequest("http://localhost:3000/api/v1/oidc/validate", {
       method: "POST",
-      body: {
+      body: JSON.stringify({
         app_id: "app_invalid",
         redirect_uri: "https://example.com",
-      },
+      }),
     });
 
     requestReturnFn.mockResolvedValueOnce({
@@ -84,30 +83,30 @@ describe("/api/v1/oidc/validate", () => {
       },
     });
 
-    await handleOIDCValidate(req, res);
+    const response = await POST(req);
 
-    expect(res._getStatusCode()).toBe(404);
-    const response = res._getJSONData();
-    expect(response).toMatchObject({
+    expect(response.status).toBe(404);
+    const responseBody = await response.json();
+    expect(responseBody).toMatchObject({
       attribute: "app_id",
       code: "app_not_found",
     });
   });
 
   test("invalid redirect_uri", async () => {
-    const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
+    const req = new NextRequest("http://localhost:3000/api/v1/oidc/validate", {
       method: "POST",
-      body: {
+      body: JSON.stringify({
         app_id: "app_0123456789",
         redirect_uri: "https://invalid.com",
-      },
+      }),
     });
 
-    await handleOIDCValidate(req, res);
+    const response = await POST(req);
 
-    expect(res._getStatusCode()).toBe(400);
-    const response = res._getJSONData();
-    expect(response).toMatchObject({
+    expect(response.status).toBe(400);
+    const responseBody = await response.json();
+    expect(responseBody).toMatchObject({
       code: OIDCErrorCodes.InvalidRedirectURI,
       attribute: "redirect_uri",
     });
