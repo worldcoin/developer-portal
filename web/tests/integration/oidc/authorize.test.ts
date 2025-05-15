@@ -113,6 +113,7 @@ describe("/api/v1/oidc/authorize", () => {
       attribute: "redirect_uri",
       code: OIDCErrorCodes.InvalidRedirectURI,
       detail: "Invalid redirect URI.",
+      app_id,
     });
   });
 

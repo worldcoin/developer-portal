@@ -175,13 +175,17 @@ export const POST = withApiAuthRequired(async (req: NextRequest) => {
       },
     });
   } catch (error) {
-    logger.error("Error while inserting user on join team:", { error });
+    logger.error("Error while inserting user on join team:", {
+      error,
+      team_id: inviteData.team.id,
+    });
 
     return errorResponse({
       statusCode: 500,
       code: "server_error",
       detail: "Failed to join team",
       req,
+      team_id: inviteData.team.id,
     });
   }
 
@@ -212,13 +216,17 @@ export const POST = withApiAuthRequired(async (req: NextRequest) => {
       throw new Error("Failed to delete invite");
     }
   } catch (error) {
-    logger.error("Error while inserting membership on join team:", { error });
+    logger.error("Error while inserting membership on join team:", {
+      error,
+      team_id: inviteData.team.id,
+    });
 
     return errorResponse({
       statusCode: 500,
       code: "server_error",
       detail: "Failed to join team",
       req,
+      team_id: inviteData.team.id,
     });
   }
 
@@ -228,6 +236,7 @@ export const POST = withApiAuthRequired(async (req: NextRequest) => {
       code: "server_error",
       detail: "Failed to join team",
       req,
+      team_id: inviteData.team.id,
     });
   }
 

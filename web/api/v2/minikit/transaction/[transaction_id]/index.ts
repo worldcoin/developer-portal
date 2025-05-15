@@ -92,7 +92,7 @@ export const GET = async (
       status: res.status,
       statusText: res.statusText,
       message: JSON.stringify(errorBody),
-      appId,
+      app_id: appId,
       transactionId,
       type,
     });
@@ -105,6 +105,7 @@ export const GET = async (
           errorBody?.error?.details ?? "Transaction fetch to backend failed",
         attribute: errorBody?.error?.message ?? "transaction",
         req,
+        app_id: appId,
       }),
     );
   }
@@ -124,6 +125,7 @@ export const GET = async (
           "Transaction not found. Please double check your transaction ID and the transaction belongs to this app_id.",
         attribute: "transaction",
         req,
+        app_id: appId,
       }),
     );
   }

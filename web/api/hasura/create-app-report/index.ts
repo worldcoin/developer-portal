@@ -108,6 +108,8 @@ const transformAppReport = (values: CreateAppReport): CreateAppReport => {
 };
 
 export const POST = async (req: NextRequest) => {
+  let app_id: string | undefined;
+
   try {
     if (!protectInternalEndpoint(req)) {
       return errorHasuraQuery({
@@ -149,11 +151,13 @@ export const POST = async (req: NextRequest) => {
     }
     const transformed = transformAppReport(parsedParams);
 
+    app_id = transformed.app_id;
+
     const client = await getAPIServiceGraphqlClient();
 
     const { insert_app_report } = await getCreateAppSdk(client).CreateAppReport(
       {
-        app_id: transformed.app_id,
+        app_id,
         user_pkid: transformed.user_pkid,
         reporter_email: transformed.reporter_email,
         purpose: transformed.purpose,
@@ -171,17 +175,19 @@ export const POST = async (req: NextRequest) => {
         req,
         detail: "Failed to create app report",
         code: "create_app_report_failed",
+        app_id,
       });
     }
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    logger.error("Error creating app report", { error });
+    logger.error("Error creating app report", { error, app_id });
 
     return errorHasuraQuery({
       req,
       detail: "Unable to create app report",
       code: "internal_error",
+      app_id,
     });
   }
 };

@@ -68,7 +68,7 @@ export const POST = async (req: NextRequest) => {
   const client = await getAPIReviewerGraphqlClient();
 
   const { app: appInfo } = await getAppReviewImages(client).GetAppReviewImages({
-    app_id: app_id as string,
+    app_id,
     locale: locale || "en",
   });
 
@@ -78,6 +78,7 @@ export const POST = async (req: NextRequest) => {
       req,
       detail: "App not found",
       code: "not_found",
+      app_id,
     });
   }
 

@@ -69,6 +69,7 @@ export const logNotification = async (
   if (!wallet_addresses || !mini_app_path) {
     logger.warn(
       "NotificationLog - missing wallet_addresses or mini_app_path, skipping log",
+      { app_id },
     );
     return;
   }
@@ -96,6 +97,7 @@ export const logNotification = async (
   if (!notificationLogId) {
     logger.error(
       "NotificationLog - failed to create notification log, skipping wallet address log",
+      { app_id },
     );
     return;
   }
@@ -169,6 +171,7 @@ export const POST = async (req: NextRequest) => {
       detail: "Redis client not found",
       attribute: "server",
       req,
+      app_id,
     });
   }
 
@@ -179,6 +182,7 @@ export const POST = async (req: NextRequest) => {
       detail: "API key not found.",
       attribute: "api_key",
       req,
+      app_id,
     });
   }
 
@@ -189,6 +193,7 @@ export const POST = async (req: NextRequest) => {
       detail: "API key is inactive.",
       attribute: "api_key",
       req,
+      app_id,
     });
   }
 
@@ -199,6 +204,7 @@ export const POST = async (req: NextRequest) => {
       detail: "API key is not valid for this app.",
       attribute: "api_key",
       req,
+      app_id,
     });
   }
 
@@ -215,6 +221,7 @@ export const POST = async (req: NextRequest) => {
       detail: "API key is not valid.",
       attribute: "api_key",
       req,
+      app_id,
     });
   }
 
@@ -232,6 +239,7 @@ export const POST = async (req: NextRequest) => {
       detail: "App not found",
       attribute: "app",
       req,
+      app_id,
     });
   }
   // If app is verified we pull that app metadata
@@ -249,9 +257,13 @@ export const POST = async (req: NextRequest) => {
         detail: "Invalid app configuration",
         attribute: "app",
         req,
+        app_id,
       });
     }
   }
+
+  const appMetadata = app_metadata?.[0];
+  const teamId = appMetadata.app.team.id;
 
   // If app is not verified we allow max 40 notifications per 4 hours
   if (verifiedOrDefaultApp?.verification_status !== "verified") {
@@ -270,6 +282,8 @@ export const POST = async (req: NextRequest) => {
         detail: "Unverified app limit reached",
         attribute: "notifications",
         req,
+        app_id,
+        team_id: teamId,
       });
     }
 
@@ -290,9 +304,6 @@ export const POST = async (req: NextRequest) => {
     }
   }
 
-  const appMetadata = app_metadata?.[0];
-  const teamId = appMetadata.app.team.id;
-
   if (
     !appMetadata.is_allowed_unlimited_notifications &&
     appMetadata.max_notifications_per_day === 0
@@ -302,6 +313,8 @@ export const POST = async (req: NextRequest) => {
       code: "not_allowed",
       detail: "Notifications not enabled for this app",
       req,
+      app_id,
+      team_id: teamId,
     });
   }
 
@@ -333,7 +346,11 @@ export const POST = async (req: NextRequest) => {
   const data = await res.json();
 
   if (!res.ok) {
-    console.warn("Error sending notification", data);
+    console.warn("Error sending notification", {
+      data,
+      app_id,
+      team_id: teamId,
+    });
 
     let errorMessage;
     if (data && data.error) {
@@ -348,6 +365,8 @@ export const POST = async (req: NextRequest) => {
       detail: errorMessage,
       attribute: "notification",
       req,
+      app_id,
+      team_id: teamId,
     });
   }
   const response: SendNotificationResponse = data.result;
@@ -360,7 +379,10 @@ export const POST = async (req: NextRequest) => {
     message,
   );
 
-  logger.info(`Notification sent successfully, ${app_id}`);
+  logger.info(`Notification sent successfully, ${app_id}`, {
+    app_id,
+    team_id: teamId,
+  });
 
   return NextResponse.json({
     success: true,

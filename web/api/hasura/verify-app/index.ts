@@ -67,8 +67,9 @@ export const POST = async (req: NextRequest) => {
     });
   }
 
+  const app_id = parsedParams.app_id;
+
   const {
-    app_id,
     reviewer_name,
     is_reviewer_app_store_approved,
     is_reviewer_world_app_approved,
@@ -79,7 +80,7 @@ export const POST = async (req: NextRequest) => {
   const { app: appMetadata } = await getAppMetadataSDK(
     reviewer_client,
   ).GetAppMetadata({
-    app_id: app_id as string,
+    app_id,
   });
 
   const app = appMetadata[0];
@@ -100,6 +101,7 @@ export const POST = async (req: NextRequest) => {
       req,
       detail: "No app awaiting review.",
       code: "invalid_verification_status",
+      app_id,
     });
   }
 
@@ -118,6 +120,7 @@ export const POST = async (req: NextRequest) => {
       detail:
         "Hero and showcase images are required for app store and world app approval",
       code: "invalid_approval_permissions",
+      app_id,
     });
   }
 
@@ -341,6 +344,7 @@ export const POST = async (req: NextRequest) => {
       req,
       detail: "Unable to verify.",
       code: "verification_failed",
+      app_id,
     });
   }
 

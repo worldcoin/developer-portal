@@ -67,6 +67,7 @@ export async function POST(req: NextRequest) {
       detail: "Token is invalid or expired.",
       attribute: "token",
       req,
+      app_id,
     });
   }
 }

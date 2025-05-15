@@ -43,11 +43,11 @@ export const POST = async (req: NextRequest) => {
     });
   }
 
-  const teamId = body.input.team_id;
-  if (!teamId) {
+  const team_id = body.input.team_id;
+  if (!team_id) {
     return errorHasuraQuery({
       req,
-      detail: "teamId must be set.",
+      detail: "team_id must be set.",
       code: "required",
     });
   }
@@ -67,7 +67,7 @@ export const POST = async (req: NextRequest) => {
     client,
   ).CheckUserPermission({
     id: id,
-    team_id: teamId,
+    team_id,
     user_id: userId,
   });
 
@@ -76,6 +76,7 @@ export const POST = async (req: NextRequest) => {
       req,
       detail: "User does not have sufficient permissions.",
       code: "no_permission",
+      team_id,
     });
   }
 
@@ -95,6 +96,7 @@ export const POST = async (req: NextRequest) => {
       req,
       detail: "Failed to rotate the API key.",
       code: "rotate_failed",
+      team_id,
     });
   }
 
