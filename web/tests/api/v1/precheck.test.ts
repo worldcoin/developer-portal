@@ -1,9 +1,6 @@
+import { POST } from "@/api/v1/precheck/[app_id]/index";
 import { Nullifier } from "@/graphql/graphql";
-import handlePrecheck from "@/pages/api/v1/precheck/[app_id]";
-import { NextApiRequest, NextApiResponse } from "next";
-import { createMocks } from "node-mocks-http";
-
-const requestReturnFn = jest.fn();
+import { NextRequest } from "next/server";
 
 type _Nullifier = Pick<Nullifier, "nullifier_hash" | "uses" | "__typename">;
 const appPayload = {
@@ -42,34 +39,37 @@ const exampleValidRequestPayload = {
     "0x2a6f11552fe9073280e1dc38358aa6b23ec4c14ab56046d4d97695b21b166690",
 };
 
-jest.mock(
-  "legacy/backend/graphql",
-  jest.fn(() => ({
-    getAPIServiceClient: () => ({
-      query: requestReturnFn,
-    }),
-  })),
-);
+jest.mock("@/api/helpers/graphql", () => ({
+  getAPIServiceGraphqlClient: jest.fn(),
+}));
+const AppPrecheckQuery = jest.fn();
+jest.mock("@/api/v1/precheck/[app_id]/graphql/app-precheck.generated", () => ({
+  getSdk: () => ({
+    AppPrecheckQuery,
+  }),
+}));
 
 describe("/api/v1/precheck/[app_id]", () => {
   test("can fetch precheck response verified", async () => {
-    const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
-      method: "POST",
-      query: { app_id: "app_staging_6d1c9fb86751a40d952749022db1c1" },
-      body: exampleValidRequestPayload,
-    });
-
-    requestReturnFn.mockResolvedValue({
-      data: {
-        app: [{ ...appPayload }],
+    const request = new NextRequest(
+      "http://localhost:3000/api/v1/precheck/app_staging_6d1c9fb86751a40d952749022db1c1",
+      {
+        method: "POST",
+        body: JSON.stringify(exampleValidRequestPayload),
       },
+    );
+
+    AppPrecheckQuery.mockResolvedValue({
+      app: [{ ...appPayload }],
     });
 
-    await handlePrecheck(req, res);
+    const response = await POST(request, {
+      params: { app_id: "app_staging_6d1c9fb86751a40d952749022db1c1" },
+    });
 
-    expect(res._getStatusCode()).toBe(200);
-    const response = res._getJSONData();
-    expect(response).toMatchObject({
+    expect(response.status).toBe(200);
+    const responseBody = await response.json();
+    expect(responseBody).toMatchObject({
       id: "app_staging_6d1c9fb86751a40d952749022db1c1",
       name: "The Yellow App Verified",
       is_verified: true,
@@ -90,23 +90,25 @@ describe("/api/v1/precheck/[app_id]", () => {
   });
 
   test("can fetch precheck response unverified", async () => {
-    const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
-      method: "POST",
-      query: { app_id: "app_staging_6d1c9fb86751a40d952749022db1c1" },
-      body: exampleValidRequestPayload,
-    });
-
-    requestReturnFn.mockResolvedValue({
-      data: {
-        app: [{ ...appPayload, verified_app_metadata: [] }],
+    const request = new NextRequest(
+      "http://localhost:3000/api/v1/precheck/app_staging_6d1c9fb86751a40d952749022db1c1",
+      {
+        method: "POST",
+        body: JSON.stringify(exampleValidRequestPayload),
       },
+    );
+
+    AppPrecheckQuery.mockResolvedValue({
+      app: [{ ...appPayload, verified_app_metadata: [] }],
     });
 
-    await handlePrecheck(req, res);
+    const response = await POST(request, {
+      params: { app_id: "app_staging_6d1c9fb86751a40d952749022db1c1" },
+    });
 
-    expect(res._getStatusCode()).toBe(200);
-    const response = res._getJSONData();
-    expect(response).toMatchObject({
+    expect(response.status).toBe(200);
+    const responseBody = await response.json();
+    expect(responseBody).toMatchObject({
       id: "app_staging_6d1c9fb86751a40d952749022db1c1",
       name: "The Yellow App",
       is_verified: false,
@@ -131,27 +133,33 @@ describe("/api/v1/precheck/[app_id]", () => {
 
   test("can fetch precheck response with nullifier", async () => {
     // This is used to check if a specific person has already verified for an action
-    const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
-      method: "POST",
-      query: { app_id: "app_staging_6d1c9fb86751a40d952749022db1c1" },
-      body: { ...exampleValidRequestPayload, nullifier_hash: "0x123" },
-    });
+    const request = new NextRequest(
+      "http://localhost:3000/api/v1/precheck/app_staging_6d1c9fb86751a40d952749022db1c1",
+      {
+        method: "POST",
+        body: JSON.stringify({
+          ...exampleValidRequestPayload,
+          nullifier_hash: "0x123",
+        }),
+      },
+    );
 
     const mockedResponse = { ...appPayload };
     mockedResponse.actions[0].nullifiers = [
       { nullifier_hash: "0x123", uses: 1 },
     ];
 
-    requestReturnFn.mockResolvedValue({
-      data: {
-        app: [mockedResponse],
-      },
+    AppPrecheckQuery.mockResolvedValue({
+      app: [mockedResponse],
     });
-    await handlePrecheck(req, res);
 
-    expect(res._getStatusCode()).toBe(200);
-    const response = res._getJSONData();
-    expect(response).toMatchObject({
+    const response = await POST(request, {
+      params: { app_id: "app_staging_6d1c9fb86751a40d952749022db1c1" },
+    });
+
+    expect(response.status).toBe(200);
+    const responseBody = await response.json();
+    expect(responseBody).toMatchObject({
       id: "app_staging_6d1c9fb86751a40d952749022db1c1",
       engine: "cloud",
       sign_in_with_world_id: false,
@@ -164,25 +172,31 @@ describe("/api/v1/precheck/[app_id]", () => {
 
   test("can fetch precheck response without nullifier", async () => {
     // This is used to check if a specific person has already verified for an action
-    const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
-      method: "POST",
-      query: { app_id: "app_staging_6d1c9fb86751a40d952749022db1c1" },
-      body: { ...exampleValidRequestPayload, nullifier_hash: undefined },
-    });
+    const request = new NextRequest(
+      "http://localhost:3000/api/v1/precheck/app_staging_6d1c9fb86751a40d952749022db1c1",
+      {
+        method: "POST",
+        body: JSON.stringify({
+          ...exampleValidRequestPayload,
+          nullifier_hash: undefined,
+        }),
+      },
+    );
 
     const mockedResponse = { ...appPayload };
     mockedResponse.actions[0].nullifiers = [];
 
-    requestReturnFn.mockResolvedValue({
-      data: {
-        app: [mockedResponse],
-      },
+    AppPrecheckQuery.mockResolvedValue({
+      app: [mockedResponse],
     });
-    await handlePrecheck(req, res);
 
-    expect(res._getStatusCode()).toBe(200);
-    const response = res._getJSONData();
-    expect(response).toMatchObject({
+    const response = await POST(request, {
+      params: { app_id: "app_staging_6d1c9fb86751a40d952749022db1c1" },
+    });
+
+    expect(response.status).toBe(200);
+    const responseBody = await response.json();
+    expect(responseBody).toMatchObject({
       id: "app_staging_6d1c9fb86751a40d952749022db1c1",
       engine: "cloud",
       sign_in_with_world_id: false,
@@ -195,27 +209,33 @@ describe("/api/v1/precheck/[app_id]", () => {
 
   test("can fetch precheck response with external_nullifier=null", async () => {
     // For broader compatibility we accept empty strings as well as `null`. World App on Android in particular requires this.
-    const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
-      method: "POST",
-      query: { app_id: "app_staging_6d1c9fb86751a40d952749022db1c1" },
-      body: { ...exampleValidRequestPayload, external_nullifier: null },
-    });
+    const request = new NextRequest(
+      "http://localhost:3000/api/v1/precheck/app_staging_6d1c9fb86751a40d952749022db1c1",
+      {
+        method: "POST",
+        body: JSON.stringify({
+          ...exampleValidRequestPayload,
+          external_nullifier: null,
+        }),
+      },
+    );
 
     const mockedResponse = { ...appPayload };
     mockedResponse.actions[0].nullifiers = [
       { nullifier_hash: "0x123", uses: 1 },
     ];
 
-    requestReturnFn.mockResolvedValue({
-      data: {
-        app: [mockedResponse],
-      },
+    AppPrecheckQuery.mockResolvedValue({
+      app: [mockedResponse],
     });
-    await handlePrecheck(req, res);
 
-    expect(res._getStatusCode()).toBe(200);
-    const response = res._getJSONData();
-    expect(response).toMatchObject({
+    const response = await POST(request, {
+      params: { app_id: "app_staging_6d1c9fb86751a40d952749022db1c1" },
+    });
+
+    expect(response.status).toBe(200);
+    const responseBody = await response.json();
+    expect(responseBody).toMatchObject({
       id: "app_staging_6d1c9fb86751a40d952749022db1c1",
       engine: "cloud",
       sign_in_with_world_id: false,
@@ -228,11 +248,16 @@ describe("/api/v1/precheck/[app_id]", () => {
   });
 
   test("precheck with nullifier and below max number of verifications", async () => {
-    const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
-      method: "POST",
-      query: { app_id: "app_staging_6d1c9fb86751a40d952749022db1c1" },
-      body: { ...exampleValidRequestPayload, nullifier_hash: "0x123" },
-    });
+    const request = new NextRequest(
+      "http://localhost:3000/api/v1/precheck/app_staging_6d1c9fb86751a40d952749022db1c1",
+      {
+        method: "POST",
+        body: JSON.stringify({
+          ...exampleValidRequestPayload,
+          nullifier_hash: "0x123",
+        }),
+      },
+    );
 
     const mockedResponse = { ...appPayload };
     mockedResponse.actions[0].nullifiers = [
@@ -240,16 +265,17 @@ describe("/api/v1/precheck/[app_id]", () => {
     ];
     mockedResponse.actions[0].max_verifications = 2;
 
-    requestReturnFn.mockResolvedValue({
-      data: {
-        app: [mockedResponse],
-      },
+    AppPrecheckQuery.mockResolvedValue({
+      app: [mockedResponse],
     });
-    await handlePrecheck(req, res);
 
-    expect(res._getStatusCode()).toBe(200);
-    const response = res._getJSONData();
-    expect(response).toMatchObject({
+    const response = await POST(request, {
+      params: { app_id: "app_staging_6d1c9fb86751a40d952749022db1c1" },
+    });
+
+    expect(response.status).toBe(200);
+    const responseBody = await response.json();
+    expect(responseBody).toMatchObject({
       id: "app_staging_6d1c9fb86751a40d952749022db1c1",
       engine: "cloud",
       sign_in_with_world_id: false,
@@ -261,11 +287,16 @@ describe("/api/v1/precheck/[app_id]", () => {
   });
 
   test("precheck with nullifier and max number of verifications met", async () => {
-    const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
-      method: "POST",
-      query: { app_id: "app_staging_6d1c9fb86751a40d952749022db1c1" },
-      body: { ...exampleValidRequestPayload, nullifier_hash: "0x123" },
-    });
+    const request = new NextRequest(
+      "http://localhost:3000/api/v1/precheck/app_staging_6d1c9fb86751a40d952749022db1c1",
+      {
+        method: "POST",
+        body: JSON.stringify({
+          ...exampleValidRequestPayload,
+          nullifier_hash: "0x123",
+        }),
+      },
+    );
 
     const mockedResponse = { ...appPayload };
     mockedResponse.actions[0].nullifiers = [
@@ -273,16 +304,17 @@ describe("/api/v1/precheck/[app_id]", () => {
     ];
     mockedResponse.actions[0].max_verifications = 2;
 
-    requestReturnFn.mockResolvedValue({
-      data: {
-        app: [mockedResponse],
-      },
+    AppPrecheckQuery.mockResolvedValue({
+      app: [mockedResponse],
     });
-    await handlePrecheck(req, res);
 
-    expect(res._getStatusCode()).toBe(200);
-    const response = res._getJSONData();
-    expect(response).toMatchObject({
+    const response = await POST(request, {
+      params: { app_id: "app_staging_6d1c9fb86751a40d952749022db1c1" },
+    });
+
+    expect(response.status).toBe(200);
+    const responseBody = await response.json();
+    expect(responseBody).toMatchObject({
       id: "app_staging_6d1c9fb86751a40d952749022db1c1",
       engine: "cloud",
       sign_in_with_world_id: false,
@@ -296,22 +328,25 @@ describe("/api/v1/precheck/[app_id]", () => {
 
 describe("/api/v1/precheck/[action_id] [error cases]", () => {
   test("non-existent action", async () => {
-    const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
-      method: "POST",
-      query: { app_id: "app_id_do_not_exist" },
-      body: exampleValidRequestPayload,
-    });
-
-    requestReturnFn.mockResolvedValue({
-      data: {
-        app: [],
+    const request = new NextRequest(
+      "http://localhost:3000/api/v1/precheck/app_id_do_not_exist",
+      {
+        method: "POST",
+        body: JSON.stringify(exampleValidRequestPayload),
       },
+    );
+
+    AppPrecheckQuery.mockResolvedValue({
+      app: [],
     });
 
-    await handlePrecheck(req, res);
+    const response = await POST(request, {
+      params: { app_id: "app_staging_6d1c9fb86751a40d952749022db1c1" },
+    });
 
-    expect(res._getStatusCode()).toBe(404);
-    expect(res._getJSONData()).toEqual(
+    expect(response.status).toBe(404);
+    const responseBody = await response.json();
+    expect(responseBody).toEqual(
       expect.objectContaining({ code: "not_found" }),
     );
   });
