@@ -61,8 +61,7 @@ export const POST = async (req: NextRequest) => {
     });
   }
 
-  const app_metadata_id = parsedParams.app_metadata_id;
-  const team_id = parsedParams.team_id;
+  const { app_metadata_id, team_id } = parsedParams;
 
   if (!app_metadata_id) {
     return errorHasuraQuery({
