@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 function corsHandler(response: NextResponse) {
   response.headers.set("Access-Control-Allow-Origin", "*");
-  response.headers.set("Access-Control-Allow-Methods", "POST, OPTIONS");
+  response.headers.set("Access-Control-Allow-Methods", "POST, OPTIONS, GET");
   response.headers.set("Access-Control-Allow-Headers", "Content-Type");
   return response;
 }
