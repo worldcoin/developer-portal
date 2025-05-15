@@ -9,6 +9,7 @@ export function errorResponse(params: {
   attribute?: string | null;
   req: NextRequest;
   app_id?: string;
+  team_id?: string;
 }) {
   const {
     statusCode,
@@ -17,22 +18,23 @@ export function errorResponse(params: {
     attribute = null,
     req,
     app_id,
+    team_id,
   } = params;
 
   if (statusCode >= 500) {
     logger.error(detail, {
       req,
-      error: { statusCode, code, attribute, app_id },
+      error: { statusCode, code, attribute, app_id, team_id },
     });
   } else {
     logger.warn(detail, {
       req,
-      error: { statusCode, code, attribute, app_id },
+      error: { statusCode, code, attribute, app_id, team_id },
     });
   }
 
   return NextResponse.json(
-    { code, detail, attribute, app_id },
+    { code, detail, attribute, app_id, team_id },
     { status: statusCode },
   );
 }
@@ -84,6 +86,7 @@ export function errorForbidden(
 export function errorRequiredAttribute(
   attribute: string = "",
   req: NextRequest,
+  app_id?: string,
 ) {
   return errorResponse({
     statusCode: 400,
@@ -91,6 +94,7 @@ export function errorRequiredAttribute(
     detail: "This attribute is required.",
     attribute,
     req,
+    app_id,
   });
 }
 
@@ -99,8 +103,16 @@ export function errorValidation(
   detail: string = "This attribute is invalid.",
   attribute: string | null,
   req: NextRequest,
+  app_id?: string,
 ) {
-  return errorResponse({ statusCode: 400, code, detail, attribute, req });
+  return errorResponse({
+    statusCode: 400,
+    code,
+    detail,
+    attribute,
+    req,
+    app_id,
+  });
 }
 
 export function errorOIDCResponse(
@@ -109,16 +121,17 @@ export function errorOIDCResponse(
   detail: string = "Something went wrong",
   attribute: string | null = null,
   req: NextRequest,
+  app_id?: string,
 ) {
   if (statusCode >= 500) {
     logger.error(`OIDC Error ${detail}`, {
       req,
-      error: { statusCode, code, attribute },
+      error: { statusCode, code, attribute, app_id },
     });
   } else {
     logger.debug(`OIDC Error ${detail}`, {
       req,
-      error: { statusCode, code, attribute },
+      error: { statusCode, code, attribute, app_id },
     });
   }
 
@@ -138,12 +151,19 @@ export function errorHasuraQuery({
   req,
   code = "internal_api_error",
   detail = "Something went wrong.",
+  app_id,
+  team_id,
 }: {
   req: NextRequest;
   code?: string;
   detail?: string;
+  app_id?: string;
+  team_id?: string;
 }) {
-  logger.error(detail, { req, error: { code } });
+  logger.error(detail, {
+    req,
+    error: { code, app_id, team_id },
+  });
 
   return NextResponse.json(
     {

@@ -23,6 +23,9 @@ const schema = yup.object({
  */
 
 export const POST = async (req: NextRequest) => {
+  let app_id: string | undefined;
+  let team_id: string | undefined;
+
   try {
     if (!protectInternalEndpoint(req)) {
       return;
@@ -45,12 +48,12 @@ export const POST = async (req: NextRequest) => {
       });
     }
 
-    const teamId = body.input.team_id;
+    team_id = body.input.team_id;
 
-    if (!teamId) {
+    if (!team_id) {
       return errorHasuraQuery({
         req,
-        detail: "teamId must be set.",
+        detail: "team_id must be set.",
         code: "required",
       });
     }
@@ -65,18 +68,20 @@ export const POST = async (req: NextRequest) => {
         req,
         detail: "Invalid request body.",
         code: "invalid_request",
+        team_id,
       });
     }
 
-    const { app_id, image_type, content_type_ending, locale } = parsedParams;
+    const { image_type, content_type_ending, locale } = parsedParams;
+    app_id = parsedParams.app_id;
 
     const client = await getAPIServiceGraphqlClient();
 
     const { team: userTeam } = await checkUserInAppDocumentSDK(
       client,
     ).CheckUserInApp({
-      team_id: teamId,
-      app_id: app_id,
+      team_id,
+      app_id,
       user_id: userId,
     });
 
@@ -86,6 +91,8 @@ export const POST = async (req: NextRequest) => {
         req,
         detail: "App not found.",
         code: "not_found",
+        team_id,
+        app_id,
       });
     }
 
@@ -117,12 +124,14 @@ export const POST = async (req: NextRequest) => {
 
     return NextResponse.json({ url: signedUrl });
   } catch (error) {
-    logger.error("Error getting images.", { error });
+    logger.error("Error getting images.", { error, app_id, team_id });
 
     return errorHasuraQuery({
       req,
       detail: "Unable to get image",
       code: "internal_error",
+      team_id,
+      app_id,
     });
   }
 };

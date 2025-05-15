@@ -44,6 +44,8 @@ export const POST = async (req: NextRequest) => {
     return handleError(req);
   }
 
+  let app_id = parsedParams.app_id;
+
   if (!process.env.NEXT_PUBLIC_APP_ENV) {
     return errorResponse({
       statusCode: 400,
@@ -51,10 +53,9 @@ export const POST = async (req: NextRequest) => {
       detail: "Invalid Environment Configuration",
       attribute: null,
       req,
+      app_id,
     });
   }
-
-  let app_id = parsedParams.app_id;
 
   // If native app, map to app_id
   if (app_id in NativeAppToAppIdMapping[process.env.NEXT_PUBLIC_APP_ENV]) {
@@ -81,7 +82,7 @@ export const POST = async (req: NextRequest) => {
   );
 
   if (error || !success) {
-    logger.warn("App review failed");
+    logger.warn("App review failed", { app_id });
     return errorResponse({
       statusCode: error?.statusCode || 400,
       code: error?.code || AppErrorCodes.GenericError,
@@ -90,6 +91,7 @@ export const POST = async (req: NextRequest) => {
         "Review Failed: There was an error verifying this proof.",
       attribute: error?.attribute || null,
       req,
+      app_id,
     });
   }
 
@@ -117,6 +119,7 @@ export const POST = async (req: NextRequest) => {
       detail: "Failed to set app review.",
       attribute: null,
       req,
+      app_id,
     });
   }
 
@@ -139,7 +142,7 @@ export const POST = async (req: NextRequest) => {
   });
 
   if (!update_app) {
-    console.warn("Failed to update app review count");
+    console.warn("Failed to update app review count", { app_id });
   }
 
   await captureEvent({

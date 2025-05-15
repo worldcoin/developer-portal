@@ -62,7 +62,8 @@ export const POST = async (req: NextRequest) => {
     });
   }
 
-  const { app_id, team_id } = parsedParams;
+  const app_id = parsedParams.app_id;
+  const team_id = parsedParams.team_id;
 
   if (!app_id) {
     return errorHasuraQuery({
@@ -75,8 +76,9 @@ export const POST = async (req: NextRequest) => {
   if (!team_id) {
     return errorHasuraQuery({
       req,
-      detail: "teamId must be set.",
+      detail: "team_id must be set.",
       code: "required",
+      app_id: app_id,
     });
   }
 
@@ -84,8 +86,8 @@ export const POST = async (req: NextRequest) => {
 
   // Checks that the user is on the team
   const { app } = await getFetchMetadata(client).FetchAppMetadata({
-    app_id: app_id,
-    team_id: team_id,
+    app_id,
+    team_id,
     user_id: userId,
   });
 
@@ -94,6 +96,8 @@ export const POST = async (req: NextRequest) => {
       req,
       detail: "App not found",
       code: "app_not_found",
+      app_id,
+      team_id,
     });
   }
 
@@ -137,6 +141,8 @@ export const POST = async (req: NextRequest) => {
       req,
       detail: "Failed to create draft",
       code: "create_draft_failed",
+      app_id,
+      team_id,
     });
   }
 

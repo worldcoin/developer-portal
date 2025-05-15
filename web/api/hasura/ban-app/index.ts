@@ -12,6 +12,8 @@ const schema = yup.object({
 });
 
 export const POST = async (req: NextRequest) => {
+  let app_id: string | undefined;
+
   try {
     if (!protectInternalEndpoint(req)) {
       return errorHasuraQuery({
@@ -52,7 +54,7 @@ export const POST = async (req: NextRequest) => {
       });
     }
 
-    const { app_id } = parsedParams;
+    app_id = parsedParams.app_id;
 
     if (!app_id) {
       return errorHasuraQuery({
@@ -73,17 +75,19 @@ export const POST = async (req: NextRequest) => {
         req,
         detail: "Failed to ban app",
         code: "ban_app_failed",
+        app_id,
       });
     }
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    logger.error("Error banning app.", { error });
+    logger.error("Error banning app.", { error, app_id });
 
     return errorHasuraQuery({
       req,
       detail: "Unable to ban app",
       code: "internal_error",
+      app_id,
     });
   }
 };

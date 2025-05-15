@@ -42,21 +42,22 @@ export const POST = async (req: NextRequest) => {
     });
   }
 
-  const teamId = body.input.team_id;
-  if (!teamId) {
+  const team_id = body.input.team_id;
+  if (!team_id) {
     return errorHasuraQuery({
       req,
-      detail: "teamId must be set.",
+      detail: "team_id must be set.",
       code: "required",
     });
   }
 
-  const appId = body.input.app_id;
-  if (!appId) {
+  const app_id = body.input.app_id;
+  if (!app_id) {
     return errorHasuraQuery({
       req,
       detail: "`app_id` is a required input.",
       code: "required",
+      team_id,
     });
   }
 
@@ -67,8 +68,8 @@ export const POST = async (req: NextRequest) => {
     client,
   ).GetMembership({
     user_id: userId,
-    team_id: teamId,
-    app_id: appId,
+    team_id,
+    app_id,
   });
 
   if (!teamMembershipQuery || !teamMembershipQuery.length) {
@@ -76,14 +77,16 @@ export const POST = async (req: NextRequest) => {
       req,
       detail: "Insufficient Permissions",
       code: "insufficient_permissions",
+      team_id,
+      app_id,
     });
   }
 
-  const { secret: client_secret, hashed_secret } = generateHashedSecret(appId);
+  const { secret: client_secret, hashed_secret } = generateHashedSecret(app_id);
   const { update_action: updateResponse } = await updateSecretSDK(
     client,
   ).UpdateSecret({
-    app_id: appId,
+    app_id: app_id,
     hashed_secret,
   });
 
@@ -92,6 +95,8 @@ export const POST = async (req: NextRequest) => {
       req,
       detail: "Failed to reset the client secret.",
       code: "update_failed",
+      team_id,
+      app_id,
     });
   }
   return NextResponse.json({ client_secret });

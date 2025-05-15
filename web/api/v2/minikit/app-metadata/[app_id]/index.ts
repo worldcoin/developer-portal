@@ -51,6 +51,7 @@ export const GET = async (
       detail: "API key not found.",
       attribute: "api_key",
       req,
+      app_id: appId,
     });
   }
 
@@ -61,6 +62,7 @@ export const GET = async (
       detail: "API key is inactive.",
       attribute: "api_key",
       req,
+      app_id: appId,
     });
   }
 
@@ -71,6 +73,7 @@ export const GET = async (
       detail: "API key is not valid for this app.",
       attribute: "api_key",
       req,
+      app_id: appId,
     });
   }
 
@@ -87,6 +90,7 @@ export const GET = async (
       detail: "API key is not valid.",
       attribute: "api_key",
       req,
+      app_id: appId,
     });
   }
 
@@ -102,7 +106,14 @@ export const GET = async (
   });
 
   if (!app_metadata || app_metadata.length === 0) {
-    return NextResponse.json({ error: "App not found" }, { status: 404 });
+    return errorResponse({
+      statusCode: 404,
+      code: "not_found",
+      detail: "App not found",
+      attribute: "app_id",
+      req,
+      app_id: appId,
+    });
   }
 
   let appMetadata = app_metadata[0];

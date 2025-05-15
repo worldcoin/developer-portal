@@ -126,6 +126,7 @@ export async function POST(req: NextRequest) {
       "Invalid authorization code.",
       null,
       req,
+      app_id,
     );
     return code_verifier ? corsHandler(response) : response;
   }
@@ -147,6 +148,7 @@ export async function POST(req: NextRequest) {
         "Missing redirect URI.",
         "redirect_uri",
         req,
+        app_id,
       );
       return code_verifier ? corsHandler(response) : response;
     }
@@ -157,6 +159,7 @@ export async function POST(req: NextRequest) {
       "Invalid redirect URI.",
       "redirect_uri",
       req,
+      app_id,
     );
     return code_verifier ? corsHandler(response) : response;
   }
@@ -169,6 +172,7 @@ export async function POST(req: NextRequest) {
         "Missing code verifier.",
         "code_verifier",
         req,
+        app_id,
       );
       return code_verifier ? corsHandler(response) : response;
     }
@@ -187,6 +191,7 @@ export async function POST(req: NextRequest) {
         "Invalid code verifier.",
         "code_verifier",
         req,
+        app_id,
       );
       return code_verifier ? corsHandler(response) : response;
     }
@@ -198,6 +203,7 @@ export async function POST(req: NextRequest) {
         "Code verifier was not expected.",
         "code_verifier",
         req,
+        app_id,
       );
       return code_verifier ? corsHandler(response) : response;
     }

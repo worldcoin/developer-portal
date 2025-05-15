@@ -17,6 +17,9 @@ const schema = yup.object({
 });
 
 export const POST = async (req: NextRequest) => {
+  let app_id: string | undefined;
+  let team_id: string | undefined;
+
   try {
     if (!protectInternalEndpoint(req)) {
       return;
@@ -35,17 +38,17 @@ export const POST = async (req: NextRequest) => {
     if (!userId) {
       return errorHasuraQuery({
         req,
-        detail: "userId must be set.",
+        detail: "user_id must be set.",
         code: "required",
       });
     }
 
-    const teamId = body.input.team_id;
+    team_id = body.input.team_id;
 
-    if (!teamId) {
+    if (!team_id) {
       return errorHasuraQuery({
         req,
-        detail: "teamId must be set.",
+        detail: "team_id must be set.",
         code: "required",
       });
     }
@@ -60,16 +63,20 @@ export const POST = async (req: NextRequest) => {
         req,
         detail: "Invalid request params.",
         code: "invalid_request",
+        team_id,
       });
     }
 
-    const { app_id, image_type, content_type_ending, locale } = parsedParams;
+    const { image_type, content_type_ending, locale } = parsedParams;
+    app_id = parsedParams.app_id;
 
     if (!["png", "jpeg"].includes(content_type_ending)) {
       return errorHasuraQuery({
         req,
         detail: "Content Type is invalid",
         code: "invalid_input",
+        app_id,
+        team_id,
       });
     }
     const client = await getAPIServiceGraphqlClient();
@@ -77,8 +84,8 @@ export const POST = async (req: NextRequest) => {
     const { team: userTeam } = await checkUserInAppDocumentSDK(
       client,
     ).CheckUserInApp({
-      team_id: teamId,
-      app_id: app_id,
+      team_id,
+      app_id,
       user_id: userId,
     });
 
@@ -88,6 +95,8 @@ export const POST = async (req: NextRequest) => {
         req,
         detail: "App not found.",
         code: "not_found",
+        app_id,
+        team_id,
       });
     }
     if (!process.env.ASSETS_S3_REGION) {
@@ -127,12 +136,14 @@ export const POST = async (req: NextRequest) => {
       stringifiedFields: JSON.stringify(fields),
     });
   } catch (error) {
-    logger.error("Error uploading image.", { error });
+    logger.error("Error uploading image.", { error, app_id, team_id });
 
     return errorHasuraQuery({
       req,
       detail: "Unable to upload image",
       code: "internal_error",
+      app_id,
+      team_id,
     });
   }
 };
