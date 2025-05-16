@@ -152,6 +152,7 @@ export const whitelistedAppsContracts = [
   "app_8e407cfbae7ae51c19b07faff837aeeb", // DNA
   "app_7cf6a578c65c4b7db84bc6734fb0e165", // DNA Wallet
   "app_d4bce4c056d0cb5ec84c62c6729a66a8", // DNA NFT
+  "app_d7389cebfa78ca21072403a20135ae4d", // SurveyBull
 ];
 
 export const AppMode = {
