@@ -1,10 +1,11 @@
-import { runCors } from "@/legacy/backend/cors";
-import { errorNotAllowed, errorResponse } from "@/legacy/backend/errors";
-import { validateRequestSchema } from "@/legacy/backend/utils";
-import { verifyProof } from "@/legacy/backend/verify";
+import { errorResponse } from "@/api/helpers/errors";
+import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
+import { verifyProof } from "@/api/helpers/verify";
 import { generateExternalNullifier } from "@/lib/hashing";
 import { VerificationLevel } from "@worldcoin/idkit-core";
-import { NextApiRequest, NextApiResponse } from "next";
+import { hashToField } from "@worldcoin/idkit-core/hashing";
+import { toBeHex } from "ethers";
+import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
 
 const schema = yup.object({
@@ -32,22 +33,22 @@ const schema = yup.object({
     .required(),
 });
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse,
-) {
-  await runCors(req, res);
-  if (!req.method || !["POST", "OPTIONS"].includes(req.method)) {
-    return errorNotAllowed(req.method, res, req);
-  }
+function corsHandler(response: NextResponse) {
+  response.headers.set("Access-Control-Allow-Origin", "*");
+  response.headers.set("Access-Control-Allow-Methods", "POST, OPTIONS");
+  response.headers.set("Access-Control-Allow-Headers", "Content-Type");
+  return response;
+}
 
+export async function POST(req: NextRequest) {
+  const body = await req.json();
   const { isValid, parsedParams, handleError } = await validateRequestSchema({
     schema,
-    value: req.body,
+    value: body,
   });
 
   if (!isValid) {
-    return handleError(req, res);
+    return corsHandler(handleError(req));
   }
 
   const external_nullifier = generateExternalNullifier(
@@ -56,10 +57,11 @@ export default async function handler(
   ).digest;
 
   try {
+    const signalHash = toBeHex(hashToField(parsedParams.signal).hash as bigint);
     const result = await verifyProof(
       {
         merkle_root: parsedParams.merkle_root,
-        signal: parsedParams.signal,
+        signal_hash: signalHash,
         nullifier_hash: parsedParams.nullifier_hash,
         external_nullifier,
         proof: parsedParams.proof,
@@ -71,22 +73,36 @@ export default async function handler(
     );
 
     if (result.success) {
-      return res.status(200).json({ success: true, status: result.status });
+      return corsHandler(
+        NextResponse.json({ success: true, status: result.status }),
+      );
     }
 
     if (result.error) {
-      return res.status(400).json(result.error);
+      return corsHandler(
+        errorResponse({
+          statusCode: 400,
+          code: result.error.code,
+          detail: result.error.message,
+          req,
+        }),
+      );
     }
   } catch (e) {
     console.warn(e);
   }
 
-  return errorResponse(
-    res,
-    500,
-    "server_error",
-    "Unable to verify proof due to a server error. Please try again.",
-    null,
-    req,
+  return corsHandler(
+    errorResponse({
+      statusCode: 500,
+      code: "server_error",
+      detail: "Unable to verify proof due to a server error. Please try again.",
+      attribute: null,
+      req,
+    }),
   );
+}
+
+export async function OPTIONS(req: NextRequest) {
+  return corsHandler(new NextResponse(null, { status: 204 }));
 }
