@@ -1,5 +1,6 @@
 import { errorResponse } from "@/api/helpers/errors";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
+import { corsHandler } from "@/api/helpers/utils";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { canVerifyForAction } from "@/api/helpers/verify";
 import { generateExternalNullifier } from "@/lib/hashing";
@@ -29,12 +30,7 @@ const schema = yup.object().shape({
     }),
 });
 
-function corsHandler(response: NextResponse) {
-  response.headers.set("Access-Control-Allow-Origin", "*");
-  response.headers.set("Access-Control-Allow-Methods", "POST, OPTIONS");
-  response.headers.set("Access-Control-Allow-Headers", "Content-Type");
-  return response;
-}
+const corsMethods = ["POST", "OPTIONS"];
 
 /**
  * Fetches public metadata for an app & action.
@@ -54,7 +50,7 @@ export async function POST(
   });
 
   if (!isValid) {
-    return corsHandler(handleError(req));
+    return corsHandler(handleError(req), corsMethods);
   }
 
   const app_id = routeParams.app_id;
@@ -86,6 +82,7 @@ export async function POST(
         req,
         app_id,
       }),
+      corsMethods,
     );
   }
 
@@ -122,6 +119,7 @@ export async function POST(
         req,
         app_id,
       }),
+      corsMethods,
     );
   }
 
@@ -137,6 +135,7 @@ export async function POST(
         req,
         app_id,
       }),
+      corsMethods,
     );
   }
 
@@ -178,9 +177,9 @@ export async function POST(
     }
   }
 
-  return corsHandler(NextResponse.json(response, { status: 200 }));
+  return corsHandler(NextResponse.json(response, { status: 200 }), corsMethods);
 }
 
 export async function OPTIONS(req: NextRequest) {
-  return corsHandler(new NextResponse(null, { status: 204 }));
+  return corsHandler(new NextResponse(null, { status: 204 }), corsMethods);
 }

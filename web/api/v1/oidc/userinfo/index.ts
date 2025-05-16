@@ -1,13 +1,9 @@
 import { errorResponse, errorUnauthenticated } from "@/api/helpers/errors";
 import { verifyOIDCJWT } from "@/api/helpers/jwts";
+import { corsHandler } from "@/api/helpers/utils";
 import { NextRequest, NextResponse } from "next/server";
 
-function corsHandler(response: NextResponse) {
-  response.headers.set("Access-Control-Allow-Origin", "*");
-  response.headers.set("Access-Control-Allow-Methods", "POST, OPTIONS, GET");
-  response.headers.set("Access-Control-Allow-Headers", "Content-Type");
-  return response;
-}
+const corsMethods = ["GET", "POST", "OPTIONS"];
 
 /**
  * Handles GET requests for the userinfo endpoint
@@ -15,7 +11,10 @@ function corsHandler(response: NextResponse) {
 export async function GET(req: NextRequest) {
   const authorization = req.headers.get("authorization");
   if (!authorization) {
-    return corsHandler(errorUnauthenticated("Missing credentials.", req));
+    return corsHandler(
+      errorUnauthenticated("Missing credentials.", req),
+      corsMethods,
+    );
   }
 
   const token = authorization.replace("Bearer ", "");
@@ -39,7 +38,7 @@ export async function GET(req: NextRequest) {
       response.family_name = "User";
     }
 
-    return corsHandler(NextResponse.json(response));
+    return corsHandler(NextResponse.json(response), corsMethods);
   } catch {
     return corsHandler(
       errorResponse({
@@ -49,6 +48,7 @@ export async function GET(req: NextRequest) {
         attribute: "token",
         req,
       }),
+      corsMethods,
     );
   }
 }
@@ -59,7 +59,10 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   const authorization = req.headers.get("authorization");
   if (!authorization) {
-    return corsHandler(errorUnauthenticated("Missing credentials.", req));
+    return corsHandler(
+      errorUnauthenticated("Missing credentials.", req),
+      corsMethods,
+    );
   }
 
   const token = authorization.replace("Bearer ", "");
@@ -83,7 +86,7 @@ export async function POST(req: NextRequest) {
       response.family_name = "User";
     }
 
-    return corsHandler(NextResponse.json(response));
+    return corsHandler(NextResponse.json(response), corsMethods);
   } catch {
     return corsHandler(
       errorResponse({
@@ -93,6 +96,7 @@ export async function POST(req: NextRequest) {
         attribute: "token",
         req,
       }),
+      corsMethods,
     );
   }
 }
@@ -101,5 +105,5 @@ export async function POST(req: NextRequest) {
  * Handles OPTIONS requests
  */
 export async function OPTIONS(req: NextRequest) {
-  return corsHandler(new NextResponse(null, { status: 204 }));
+  return corsHandler(new NextResponse(null, { status: 204 }), corsMethods);
 }

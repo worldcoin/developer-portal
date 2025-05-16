@@ -3,6 +3,7 @@ import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { fetchActiveJWK } from "@/api/helpers/jwks";
 import { generateOIDCJWT } from "@/api/helpers/jwts";
 import { authenticateOIDCEndpoint } from "@/api/helpers/oidc";
+import { corsHandler } from "@/api/helpers/utils";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { VerificationLevel } from "@worldcoin/idkit-core";
 import { createHash, timingSafeEqual } from "crypto";
@@ -11,13 +12,7 @@ import * as yup from "yup";
 import { getSdk as getDeleteAuthCodeSdk } from "./graphql/delete-auth-code.generated";
 import { getSdk as getFetchRedirectCountSdk } from "./graphql/fetch-redirect-count.generated";
 
-function corsHandler(response: NextResponse) {
-  response.headers.set("Access-Control-Allow-Origin", "*");
-  response.headers.set("Access-Control-Allow-Methods", "POST, OPTIONS");
-  response.headers.set("Access-Control-Allow-Headers", "Content-Type");
-  return response;
-}
-
+const corsMethods = ["POST", "OPTIONS"];
 const schema = yup.object({
   grant_type: yup.string().default("authorization_code"),
   code: yup.string().strict().required("This attribute is required."),
@@ -89,7 +84,7 @@ export async function POST(req: NextRequest) {
       null,
       req,
     );
-    return code_verifier ? corsHandler(response) : response;
+    return code_verifier ? corsHandler(response, corsMethods) : response;
   }
 
   let app_id: string | null;
@@ -103,7 +98,7 @@ export async function POST(req: NextRequest) {
       null,
       req,
     );
-    return code_verifier ? corsHandler(response) : response;
+    return code_verifier ? corsHandler(response, corsMethods) : response;
   }
 
   const client = await getAPIServiceGraphqlClient();
@@ -128,7 +123,7 @@ export async function POST(req: NextRequest) {
       req,
       app_id,
     );
-    return code_verifier ? corsHandler(response) : response;
+    return code_verifier ? corsHandler(response, corsMethods) : response;
   }
 
   const authCode = deleteAuthCodeResult.delete_auth_code.returning[0];
@@ -150,7 +145,7 @@ export async function POST(req: NextRequest) {
         req,
         app_id,
       );
-      return code_verifier ? corsHandler(response) : response;
+      return code_verifier ? corsHandler(response, corsMethods) : response;
     }
   } else if (authCode.redirect_uri !== redirect_uri) {
     const response = errorOIDCResponse(
@@ -161,7 +156,7 @@ export async function POST(req: NextRequest) {
       req,
       app_id,
     );
-    return code_verifier ? corsHandler(response) : response;
+    return code_verifier ? corsHandler(response, corsMethods) : response;
   }
 
   if (authCode.code_challenge) {
@@ -174,7 +169,7 @@ export async function POST(req: NextRequest) {
         req,
         app_id,
       );
-      return code_verifier ? corsHandler(response) : response;
+      return code_verifier ? corsHandler(response, corsMethods) : response;
     }
 
     // We only support S256 method
@@ -193,7 +188,7 @@ export async function POST(req: NextRequest) {
         req,
         app_id,
       );
-      return code_verifier ? corsHandler(response) : response;
+      return code_verifier ? corsHandler(response, corsMethods) : response;
     }
   } else {
     if (code_verifier) {
@@ -205,7 +200,7 @@ export async function POST(req: NextRequest) {
         req,
         app_id,
       );
-      return code_verifier ? corsHandler(response) : response;
+      return code_verifier ? corsHandler(response, corsMethods) : response;
     }
   }
 
@@ -228,7 +223,7 @@ export async function POST(req: NextRequest) {
     id_token: token,
   });
 
-  return code_verifier ? corsHandler(response) : response;
+  return code_verifier ? corsHandler(response, corsMethods) : response;
 }
 
 const verifyChallenge = (challenge: string, verifier: string) => {
@@ -243,5 +238,5 @@ const verifyChallenge = (challenge: string, verifier: string) => {
 };
 
 export async function OPTIONS(req: NextRequest) {
-  return corsHandler(new NextResponse(null, { status: 204 }));
+  return corsHandler(new NextResponse(null, { status: 204 }), corsMethods);
 }
