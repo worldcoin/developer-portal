@@ -71,9 +71,10 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  let res = NextResponse.json({ success: true });
   if (!headers.get("authorization")) {
     // NOTE: Check if user data exists in auth0 session and create a temporary user JWT
-    const session = await getSession();
+    const session = await getSession(req, res);
     let token: string | null = null;
 
     if (session?.user.hasura?.id) {
@@ -94,7 +95,7 @@ export async function POST(req: NextRequest) {
     method: req.method,
     // @ts-ignore
     headers,
-    body,
+    body: JSON.stringify(body),
   });
 
   return NextResponse.json(await response.json(), { status: response.status });
