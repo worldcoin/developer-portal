@@ -1,0 +1,7 @@
+query ApiKeyQuery($key_id: String!) {
+  api_key(where: { id: { _eq: $key_id }, is_active: { _eq: true } }) {
+    id
+    team_id
+    api_key
+  }
+}
