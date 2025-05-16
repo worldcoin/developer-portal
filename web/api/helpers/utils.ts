@@ -4,7 +4,7 @@ import "server-only";
  * Contains shared utilities that are reused for the Next.js API (backend)
  */
 import crypto from "crypto";
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { errorForbidden } from "./errors";
 
 const GENERAL_SECRET_KEY = process.env.GENERAL_SECRET_KEY;
@@ -57,3 +57,16 @@ export const verifyHashedSecret = (
 export const getFileExtension = (filename: string): string => {
   return filename.slice(filename.lastIndexOf("."));
 };
+
+/**
+ * Adds CORS headers to a response
+ * @param response - The response to add CORS headers to
+ * @param methods - The methods to allow
+ * @returns The response with CORS headers added
+ */
+export function corsHandler(response: NextResponse, methods: string[]) {
+  response.headers.set("Access-Control-Allow-Origin", "*");
+  response.headers.set("Access-Control-Allow-Methods", methods.join(", "));
+  response.headers.set("Access-Control-Allow-Headers", "Content-Type");
+  return response;
+}
