@@ -71,10 +71,9 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  let res = NextResponse.json({ success: true });
   if (!headers.get("authorization")) {
     // NOTE: Check if user data exists in auth0 session and create a temporary user JWT
-    const session = await getSession(req, res);
+    const session = await getSession();
     let token: string | null = null;
 
     if (session?.user.hasura?.id) {
