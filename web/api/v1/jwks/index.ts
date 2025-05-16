@@ -3,6 +3,8 @@ import { corsHandler } from "@/api/helpers/utils";
 import { NextRequest, NextResponse } from "next/server";
 import { getSdk as getJWKsSdk } from "./graphql/get-jwks.generated";
 
+const corsMethods = ["GET", "OPTIONS"];
+
 /**
  * Retrieves JWKs to verify proofs
  * @param req
@@ -18,12 +20,9 @@ export async function GET(req: NextRequest) {
     keys.push({ ...key, kid: id });
   }
 
-  return corsHandler(NextResponse.json({ keys }), ["GET", "OPTIONS"]);
+  return corsHandler(NextResponse.json({ keys }), corsMethods);
 }
 
 export async function OPTIONS(req: NextRequest) {
-  return corsHandler(new NextResponse(null, { status: 204 }), [
-    "GET",
-    "OPTIONS",
-  ]);
+  return corsHandler(new NextResponse(null, { status: 204 }), corsMethods);
 }
