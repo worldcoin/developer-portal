@@ -112,13 +112,12 @@ export const POST = async (req: NextRequest) => {
   // Check if app is allowed to be app store and world app approved
   if (
     (is_reviewer_app_store_approved || is_reviewer_world_app_approved) &&
-    (awaitingReviewAppMetadata?.hero_image_url === "" ||
-      !awaitingReviewAppMetadata.showcase_img_urls)
+    !awaitingReviewAppMetadata.showcase_img_urls
   ) {
     return errorHasuraQuery({
       req,
       detail:
-        "Hero and showcase images are required for app store and world app approval",
+        "Showcase images are required for app store and world app approval",
       code: "invalid_approval_permissions",
       app_id,
     });
@@ -181,24 +180,6 @@ export const POST = async (req: NextRequest) => {
     ),
   );
 
-  const currentHeroImgName = awaitingReviewAppMetadata?.hero_image_url;
-  let newHeroImgName: string = "";
-
-  if (currentHeroImgName) {
-    const heroFileType = getFileExtension(currentHeroImgName);
-    newHeroImgName = randomUUID() + heroFileType;
-
-    copyPromises.push(
-      s3Client.send(
-        new CopyObjectCommand({
-          Bucket: bucketName,
-          CopySource: `${bucketName}/${sourcePrefix}${currentHeroImgName}`,
-          Key: `${destinationPrefix}${newHeroImgName}`,
-        }),
-      ),
-    );
-  }
-
   const currentMetaTagImgName = awaitingReviewAppMetadata?.meta_tag_image_url;
   let newMetaTagImgName: string = "";
 
@@ -250,24 +231,6 @@ export const POST = async (req: NextRequest) => {
       where: { id: { _eq: localisation.id } },
       _set: {},
     };
-
-    if (localisation.hero_image_url) {
-      const heroFileType = getFileExtension(localisation.hero_image_url);
-      const newLocalisationHeroImgName = randomUUID() + heroFileType;
-
-      copyPromises.push(
-        s3Client.send(
-          new CopyObjectCommand({
-            Bucket: bucketName,
-            CopySource: `${bucketName}/${sourcePrefix}${localisation.locale}/${localisation.hero_image_url}`,
-            Key: `${destinationPrefix}${localisation.locale}/${newLocalisationHeroImgName}`,
-          }),
-        ),
-      );
-      if (update._set) {
-        update._set.hero_image_url = newLocalisationHeroImgName;
-      }
-    }
 
     if (localisation.meta_tag_image_url) {
       const metaTagFileType = getFileExtension(localisation.meta_tag_image_url);
@@ -327,7 +290,7 @@ export const POST = async (req: NextRequest) => {
     idToDelete: verifiedAppMetadata ? verifiedAppMetadata?.id : "", // No app has id "" so this will delete nothing
     verified_data_changes: {
       logo_img_url: newLogoImgName,
-      hero_image_url: newHeroImgName,
+      hero_image_url: "",
       meta_tag_image_url: newMetaTagImgName,
       showcase_img_urls: showcaseImgUUIDs,
       verification_status: "verified",

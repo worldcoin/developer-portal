@@ -18,7 +18,6 @@ export const submitAppForReviewSchema = yup.object().shape({
   description_connect: appDescriptionConnectSchema,
   world_app_description: appWorldAppDescriptionSchema,
   logo_img_url: yup.string().required("A logo image is required"),
-  hero_image_url: yup.string().optional(),
   showcase_img_urls: yup.array().nullable().optional(),
   integration_url: urlSchema.required("App URL is required"),
   app_website_url: urlSchema.optional(),

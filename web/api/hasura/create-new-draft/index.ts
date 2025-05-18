@@ -115,9 +115,7 @@ export const POST = async (req: NextRequest) => {
     logo_img_url: newAppMetadata?.logo_img_url
       ? `logo_img.${getImageEndpoint(newAppMetadata.logo_img_url)}`
       : "",
-    hero_image_url: newAppMetadata?.hero_image_url
-      ? `hero_image.${getImageEndpoint(newAppMetadata.hero_image_url)}`
-      : "",
+    hero_image_url: "",
     meta_tag_image_url: newAppMetadata?.meta_tag_image_url
       ? `meta_tag_image.${getImageEndpoint(newAppMetadata.meta_tag_image_url)}`
       : "",
@@ -163,9 +161,7 @@ export const POST = async (req: NextRequest) => {
         input: {
           ...copiedLocalisation,
           app_metadata_id: newAppMetadataId,
-          hero_image_url: copiedLocalisation?.hero_image_url
-            ? `hero_image.${getImageEndpoint(copiedLocalisation.hero_image_url)}`
-            : "",
+          hero_image_url: "",
           meta_tag_image_url: copiedLocalisation?.meta_tag_image_url
             ? `meta_tag_image.${getImageEndpoint(copiedLocalisation.meta_tag_image_url)}`
             : "",

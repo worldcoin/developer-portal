@@ -70,9 +70,7 @@ export async function GET(
     ),
     category: createLocaliseCategory(appMetadataReturned.category),
     logo_img_url: getCDNImageUrl(app_id, appMetadataReturned.logo_img_url),
-    hero_image_url: appMetadataReturned.hero_image_url
-      ? getCDNImageUrl(app_id, appMetadataReturned?.hero_image_url)
-      : "",
+    hero_image_url: "",
     showcase_img_urls: appMetadataReturned.showcase_img_urls
       ? appMetadataReturned.showcase_img_urls?.map((showcase_img: string) =>
           getCDNImageUrl(app_id, showcase_img),

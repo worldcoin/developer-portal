@@ -1,8 +1,0 @@
-mutation UpdateHeroImage($app_metadata_id: String!, $hero_image_url: String!) {
-  update_app_metadata_by_pk(
-    pk_columns: { id: $app_metadata_id }
-    _set: { hero_image_url: $hero_image_url }
-  ) {
-    id
-  }
-}
