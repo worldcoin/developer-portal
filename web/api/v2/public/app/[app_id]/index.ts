@@ -151,14 +151,6 @@ export async function GET(
     );
   }
 
-  const platform = headers.get("client-name");
-  const isAndroidOnly = parsedAppMetadata.is_android_only;
-
-  // do not restrict for drafts, so developers can work on the app
-  if (isAndroidOnly && isMetadataVerified && platform === "ios") {
-    return NextResponse.json({ error: "App not available" }, { status: 451 });
-  }
-
   const nativeIdToActualId =
     NativeAppToAppIdMapping[process.env.NEXT_PUBLIC_APP_ENV];
 
