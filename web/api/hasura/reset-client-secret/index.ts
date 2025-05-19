@@ -10,8 +10,9 @@ import { getSdk as getMembershipSdk } from "./graphql/get-membership.generated";
 import { getSdk as updateSecretSDK } from "./graphql/update-secret.generated";
 
 export const POST = async (req: NextRequest) => {
-  if (!protectInternalEndpoint(req)) {
-    return;
+  const { isAuthenticated, errorResponse } = protectInternalEndpoint(req);
+  if (!isAuthenticated) {
+    return errorResponse;
   }
   const body = await req.json();
 

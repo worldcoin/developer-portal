@@ -7,8 +7,9 @@ import { getSdk as deleteExpiredNotificationLogsSdk } from "./graphql/delete-exp
 import { getSdk as getExpiredNotificationLogIdsBatchSdk } from "./graphql/get-expired-notification-log-ids-batch.generated";
 
 export const POST = async (req: NextRequest) => {
-  if (!protectInternalEndpoint(req)) {
-    return;
+  const { isAuthenticated, errorResponse } = protectInternalEndpoint(req);
+  if (!isAuthenticated) {
+    return errorResponse;
   }
 
   if (req.method !== "POST") {
