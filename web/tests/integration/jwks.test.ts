@@ -1,12 +1,8 @@
-import {
-  fetchActiveJWK,
-  generateJWK,
-  retrieveJWK,
-} from "@/legacy/backend/jwks";
-import { createKMSKey, getKMSClient } from "@/legacy/backend/kms";
+import { fetchActiveJWK, generateJWK, retrieveJWK } from "@/api/helpers/jwks";
+import { createKMSKey, getKMSClient } from "@/api/helpers/kms";
 import { integrationDBClean, integrationDBExecuteQuery } from "./setup";
 
-jest.mock("legacy/backend/kms", () => {
+jest.mock("@/api/helpers/kms", () => {
   return {
     getKMSClient: jest.fn(),
     createKMSKey: jest.fn(),
@@ -14,7 +10,7 @@ jest.mock("legacy/backend/kms", () => {
   };
 });
 
-jest.mock("legacy/backend/kms", () =>
+jest.mock("@/api/helpers/kms", () =>
   require("tests/api/__mocks__/kms.mock.ts"),
 );
 

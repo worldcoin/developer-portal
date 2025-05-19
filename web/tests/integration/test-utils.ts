@@ -1,6 +1,9 @@
-import { getAPIServiceClient } from "@/legacy/backend/graphql";
-import { generateAPIKeyJWT, generateUserJWT } from "@/legacy/backend/jwts";
-import { generateHashedSecret } from "@/legacy/backend/utils";
+import {
+  generateAPIKeyJWT,
+  generateServiceJWT,
+  generateUserJWT,
+} from "@/api/helpers/jwts";
+import { generateHashedSecret } from "@/api/helpers/utils";
 import {
   ApolloClient,
   InMemoryCache,
@@ -95,6 +98,30 @@ export const getAPIClient = async (params?: {
     headers: {
       ...headers,
       authorization: `Bearer ${await generateAPIKeyJWT(team_id)}`,
+    },
+  }));
+
+  return new ApolloClient({
+    link: authLink.concat(httpLink),
+    cache: new InMemoryCache(),
+    defaultOptions: {
+      query: {
+        fetchPolicy: "no-cache",
+      },
+    },
+  });
+};
+
+/**
+ * Returns an Apollo Client to interact with GraphQL's API with a service token
+ */
+export const getAPIServiceClient = async (): Promise<
+  ApolloClient<NormalizedCacheObject>
+> => {
+  const authLink = setContext(async (_, { headers }) => ({
+    headers: {
+      ...headers,
+      authorization: `Bearer ${await generateServiceJWT()}`,
     },
   }));
 

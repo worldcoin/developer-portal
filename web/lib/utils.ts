@@ -1,5 +1,5 @@
 import { Role_Enum } from "@/graphql/graphql";
-import { Auth0EmailUser, Auth0User } from "@/legacy/lib/types";
+import { Auth0EmailUser, Auth0User } from "@/lib/types";
 import { VerificationLevel } from "@worldcoin/idkit-core";
 import {
   DOCUMENT_SEQUENCER,

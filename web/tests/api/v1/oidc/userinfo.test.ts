@@ -1,5 +1,5 @@
 import { generateOIDCJWT } from "@/api/helpers/jwts";
-import { OIDCScopes } from "@/legacy/backend/oidc";
+import { OIDCScopes } from "@/api/helpers/oidc";
 import { VerificationLevel } from "@worldcoin/idkit-core";
 
 import { POST } from "@/api/v1/oidc/userinfo";

@@ -1,7 +1,6 @@
-import { getAPIServiceClient } from "@/legacy/backend/graphql";
 import { gql } from "@apollo/client";
 import { integrationDBClean, integrationDBExecuteQuery } from "./setup";
-import { getAPIUserClient } from "./test-utils";
+import { getAPIServiceClient, getAPIUserClient } from "./test-utils";
 
 // TODO: Consider moving this to a generalized jest environment
 beforeEach(integrationDBClean);
