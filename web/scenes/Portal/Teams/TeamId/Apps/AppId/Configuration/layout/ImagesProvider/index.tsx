@@ -5,7 +5,6 @@ import { useFetchImagesQuery } from "../../graphql/client/fetch-images.generated
 
 type Images = {
   logo_img_url?: string;
-  hero_image_url?: string;
   showcase_image_urls?: string[] | null;
   meta_tag_image_url?: string;
 };
@@ -15,14 +14,12 @@ export const showReviewStatusAtom = atom<boolean>(true);
 
 export const unverifiedImageAtom = atom<Images>({
   logo_img_url: "loading",
-  hero_image_url: "",
   showcase_image_urls: null,
   meta_tag_image_url: "",
 });
 
 export const verifiedImagesAtom = atom<Images>({
   logo_img_url: "",
-  hero_image_url: "",
   showcase_image_urls: null,
   meta_tag_image_url: "",
 });
@@ -46,7 +43,6 @@ export const ImagesProvider = (props: {
     onCompleted: (data) => {
       setUnverifiedImages({
         logo_img_url: data?.unverified_images?.logo_img_url ?? "",
-        hero_image_url: data?.unverified_images?.hero_image_url ?? "",
         showcase_image_urls: data?.unverified_images?.showcase_img_urls,
         meta_tag_image_url: data?.unverified_images?.meta_tag_image_url ?? "",
       });

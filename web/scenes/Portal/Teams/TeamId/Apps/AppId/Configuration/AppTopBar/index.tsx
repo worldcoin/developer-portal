@@ -107,11 +107,10 @@ export const AppTopBar = (props: AppTopBarProps) => {
 
   const hasRequiredImagesForAppStore = useMemo(() => {
     return Boolean(
-      appMetadata?.hero_image_url !== "" &&
-        appMetadata?.showcase_img_urls &&
+      appMetadata?.showcase_img_urls &&
         appMetadata?.showcase_img_urls?.length > 0,
     );
-  }, [appMetadata?.hero_image_url, appMetadata?.showcase_img_urls]);
+  }, [appMetadata?.showcase_img_urls]);
 
   const submitForReview = useCallback(async () => {
     if (appMetadata?.verification_status !== "unverified") return;
@@ -163,7 +162,6 @@ export const AppTopBar = (props: AppTopBarProps) => {
         onCompleted: (data) => {
           setUnverifiedImages({
             logo_img_url: data?.unverified_images?.logo_img_url ?? "",
-            hero_image_url: data?.unverified_images?.hero_image_url ?? "",
             showcase_image_urls: data?.unverified_images?.showcase_img_urls,
           });
         },
