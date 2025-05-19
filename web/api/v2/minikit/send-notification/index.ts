@@ -20,6 +20,7 @@ import { getSdk as fetchMetadataSdk } from "./graphql/fetch-metadata.generated";
 
 const sendNotificationBodySchema = yup.object({
   app_id: yup.string().strict().required(),
+  draft_id: yup.string().strict().optional(),
   wallet_addresses: yup
     .array()
     .of(yup.string())
@@ -147,9 +148,10 @@ export const POST = async (req: NextRequest) => {
     return handleError(req);
   }
 
-  const { app_id, wallet_addresses, title, message, mini_app_path } = {
-    ...parsedParams,
-  };
+  const { app_id, wallet_addresses, title, message, mini_app_path, draft_id } =
+    {
+      ...parsedParams,
+    };
 
   const keyValue = api_key.replace(/^api_/, "");
   const serviceClient = await getAPIServiceGraphqlClient();
@@ -265,6 +267,19 @@ export const POST = async (req: NextRequest) => {
   const appMetadata = app_metadata?.[0];
   const teamId = appMetadata.app.team.id;
 
+  if (draft_id && !app_metadata.find((app) => app.id === draft_id)) {
+    return errorResponse({
+      statusCode: 400,
+      code: "invalid_draft_id",
+      detail: "Invalid draft id",
+      attribute: "draft_id",
+      req,
+      app_id,
+    });
+  }
+
+  //TODO: Should we validation here and move it to app backend?
+
   // If app is not verified we allow max 40 notifications per 4 hours
   if (verifiedOrDefaultApp?.verification_status !== "verified") {
     const key = `app_notifications_${app_id}`;
@@ -340,6 +355,7 @@ export const POST = async (req: NextRequest) => {
         message,
         miniAppPath: mini_app_path,
         teamId: teamId,
+        draftId: draft_id,
       }),
     },
   );
