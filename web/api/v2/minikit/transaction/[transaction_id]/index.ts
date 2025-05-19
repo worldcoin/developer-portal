@@ -1,4 +1,5 @@
 import { errorResponse } from "@/api/helpers/errors";
+import { corsHandler } from "@/api/helpers/utils";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { logger } from "@/lib/logger";
 import { appIdSchema } from "@/lib/schema";
@@ -7,18 +8,14 @@ import { createSignedFetcher } from "aws-sigv4-fetch";
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
 
-function corsHandler(response: NextResponse) {
-  response.headers.set("Access-Control-Allow-Origin", "*");
-  response.headers.set("Access-Control-Allow-Methods", "GET, OPTIONS");
-  return response;
-}
-
 const transactionIdRegex = /^0x[a-f0-9]{64}$/;
 
 const schema = yup.object({
   app_id: appIdSchema,
   type: yup.string().oneOf(Object.values(TransactionTypes)).required(),
 });
+
+const corsMethods = ["GET", "OPTIONS"];
 
 export const GET = async (
   req: NextRequest,
@@ -37,6 +34,7 @@ export const GET = async (
         attribute: "transaction_id",
         req,
       }),
+      corsMethods,
     );
   }
 
@@ -107,6 +105,7 @@ export const GET = async (
         req,
         app_id: appId,
       }),
+      corsMethods,
     );
   }
 
@@ -115,7 +114,7 @@ export const GET = async (
   if (data?.result?.transactions.length !== 0) {
     const transaction = data?.result?.transactions[0];
     const response = NextResponse.json(transaction, { status: 200 });
-    return corsHandler(response);
+    return corsHandler(response, corsMethods);
   } else {
     return corsHandler(
       errorResponse({
@@ -127,10 +126,11 @@ export const GET = async (
         req,
         app_id: appId,
       }),
+      corsMethods,
     );
   }
 };
 
 export async function OPTIONS(request: NextRequest) {
-  return corsHandler(new NextResponse(null, { status: 204 }));
+  return corsHandler(new NextResponse(null, { status: 204 }), corsMethods);
 }
