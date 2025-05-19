@@ -24,8 +24,9 @@ import {
 } from "./graphql/updateInvitesExpiration.generated";
 
 export const POST = async (req: NextRequest) => {
-  if (!protectInternalEndpoint(req)) {
-    return;
+  const { isAuthenticated, errorResponse } = protectInternalEndpoint(req);
+  if (!isAuthenticated) {
+    return errorResponse;
   }
 
   if (!process.env.SENDGRID_TEAM_INVITE_TEMPLATE_ID) {

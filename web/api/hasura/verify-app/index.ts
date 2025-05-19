@@ -33,8 +33,9 @@ export const POST = async (req: NextRequest) => {
     });
   }
 
-  if (!protectInternalEndpoint(req)) {
-    return;
+  const { isAuthenticated, errorResponse } = protectInternalEndpoint(req);
+  if (!isAuthenticated) {
+    return errorResponse;
   }
 
   const body = await req.json();

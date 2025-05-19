@@ -7,10 +7,10 @@ import { NextRequest, NextResponse } from "next/server";
  * Deletes expired JWKs
  */
 export async function POST(request: NextRequest) {
-  if (!protectInternalEndpoint(request)) {
-    return;
+  const { isAuthenticated, errorResponse } = protectInternalEndpoint(request);
+  if (!isAuthenticated) {
+    return errorResponse;
   }
-
   logger.info("Starting deletion of expired jwks.");
 
   const response = await _deleteExpiredJWKs();

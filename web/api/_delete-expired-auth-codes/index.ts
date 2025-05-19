@@ -5,8 +5,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSdk as deleteExpiredAuthCodesSdk } from "./graphql/delete-expired-auth-codes.generated";
 
 export async function POST(request: NextRequest) {
-  if (!protectInternalEndpoint(request)) {
-    return;
+  const { isAuthenticated, errorResponse } = protectInternalEndpoint(request);
+  if (!isAuthenticated) {
+    return errorResponse;
   }
 
   logger.info("Starting deletion of expired auth codes.");
