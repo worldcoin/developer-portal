@@ -193,10 +193,12 @@ function decodeAbiEncodedProof(encodedProof: string): string[] {
  * @returns The decoded hex string
  */
 function decodeToHexString(value: string): string {
+  const normalized = value.toLowerCase().trim().replace(/^0x/, "");
+
   return toBeHex(
     AbiCoder.defaultAbiCoder().decode(
       ["uint256"],
-      `0x${value.slice(2).padStart(64, "0")}`,
+      `0x${normalized.padStart(64, "0")}`,
     )[0],
   );
 }
