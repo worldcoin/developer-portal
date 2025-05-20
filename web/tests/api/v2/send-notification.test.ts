@@ -1,5 +1,5 @@
+import { generateHashedSecret } from "@/api/helpers/utils";
 import { POST } from "@/api/v2/minikit/send-notification";
-import { generateHashedSecret } from "@/legacy/backend/utils";
 import { NextRequest } from "next/server";
 
 // #region Mocks

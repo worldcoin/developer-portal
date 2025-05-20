@@ -1,5 +1,5 @@
-import { getAPIServiceClient } from "@/legacy/backend/graphql";
 import { integrationDBClean } from "./setup";
+import { getAPIServiceClient } from "./test-utils";
 
 beforeEach(integrationDBClean);
 describe("/api/v1/graphql", () => {

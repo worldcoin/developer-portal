@@ -58,9 +58,11 @@ export async function POST(req: NextRequest) {
     headers.append("authorization", `Bearer ${authorization}`);
   }
 
-  const body = await req.json();
-
-  if (!body) {
+  let body;
+  try {
+    body = await req.json();
+  } catch (error) {
+    console.error("Error parsing request body:", error);
     return NextResponse.json(
       {
         code: "unsupported_media_type",
@@ -91,12 +93,38 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  const response = await fetch(process.env.NEXT_PUBLIC_GRAPHQL_API_URL, {
-    method: req.method,
-    // @ts-ignore
-    headers,
-    body: JSON.stringify(body),
-  });
+  let response;
+  try {
+    response = await fetch(process.env.NEXT_PUBLIC_GRAPHQL_API_URL, {
+      method: req.method,
+      // @ts-ignore
+      headers,
+      body: JSON.stringify(body),
+    });
+  } catch (error) {
+    console.error("Error making GraphQL request:", error);
+    return NextResponse.json(
+      {
+        code: "internal_error",
+        detail: "Failed to make GraphQL request",
+        attribute: null,
+      },
+      { status: 500 },
+    );
+  }
 
-  return NextResponse.json(await response.json(), { status: response.status });
+  try {
+    const responseJson = await response.json();
+    return NextResponse.json(responseJson, { status: response.status });
+  } catch (error) {
+    console.error("Error parsing GraphQL response:", error);
+    return NextResponse.json(
+      {
+        code: "internal_error",
+        detail: "Failed to parse GraphQL response as JSON",
+        attribute: null,
+      },
+      { status: 500 },
+    );
+  }
 }
