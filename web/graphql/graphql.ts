@@ -7300,6 +7300,7 @@ export type Nullifier = {
   created_at: Scalars["timestamptz"]["output"];
   id: Scalars["String"]["output"];
   nullifier_hash: Scalars["String"]["output"];
+  nullifier_hash_int?: Maybe<Scalars["numeric"]["output"]>;
   updated_at: Scalars["timestamptz"]["output"];
   uses: Scalars["Int"]["output"];
 };
@@ -7369,11 +7370,13 @@ export type Nullifier_Arr_Rel_Insert_Input = {
 /** aggregate avg on columns */
 export type Nullifier_Avg_Fields = {
   __typename?: "nullifier_avg_fields";
+  nullifier_hash_int?: Maybe<Scalars["Float"]["output"]>;
   uses?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** order by avg() on columns of table "nullifier" */
 export type Nullifier_Avg_Order_By = {
+  nullifier_hash_int?: InputMaybe<Order_By>;
   uses?: InputMaybe<Order_By>;
 };
 
@@ -7387,6 +7390,7 @@ export type Nullifier_Bool_Exp = {
   created_at?: InputMaybe<Timestamptz_Comparison_Exp>;
   id?: InputMaybe<String_Comparison_Exp>;
   nullifier_hash?: InputMaybe<String_Comparison_Exp>;
+  nullifier_hash_int?: InputMaybe<Numeric_Comparison_Exp>;
   updated_at?: InputMaybe<Timestamptz_Comparison_Exp>;
   uses?: InputMaybe<Int_Comparison_Exp>;
 };
@@ -7401,6 +7405,7 @@ export enum Nullifier_Constraint {
 
 /** input type for incrementing numeric columns in table "nullifier" */
 export type Nullifier_Inc_Input = {
+  nullifier_hash_int?: InputMaybe<Scalars["numeric"]["input"]>;
   uses?: InputMaybe<Scalars["Int"]["input"]>;
 };
 
@@ -7411,6 +7416,7 @@ export type Nullifier_Insert_Input = {
   created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
   id?: InputMaybe<Scalars["String"]["input"]>;
   nullifier_hash?: InputMaybe<Scalars["String"]["input"]>;
+  nullifier_hash_int?: InputMaybe<Scalars["numeric"]["input"]>;
   updated_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
   uses?: InputMaybe<Scalars["Int"]["input"]>;
 };
@@ -7422,6 +7428,7 @@ export type Nullifier_Max_Fields = {
   created_at?: Maybe<Scalars["timestamptz"]["output"]>;
   id?: Maybe<Scalars["String"]["output"]>;
   nullifier_hash?: Maybe<Scalars["String"]["output"]>;
+  nullifier_hash_int?: Maybe<Scalars["numeric"]["output"]>;
   updated_at?: Maybe<Scalars["timestamptz"]["output"]>;
   uses?: Maybe<Scalars["Int"]["output"]>;
 };
@@ -7432,6 +7439,7 @@ export type Nullifier_Max_Order_By = {
   created_at?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   nullifier_hash?: InputMaybe<Order_By>;
+  nullifier_hash_int?: InputMaybe<Order_By>;
   updated_at?: InputMaybe<Order_By>;
   uses?: InputMaybe<Order_By>;
 };
@@ -7443,6 +7451,7 @@ export type Nullifier_Min_Fields = {
   created_at?: Maybe<Scalars["timestamptz"]["output"]>;
   id?: Maybe<Scalars["String"]["output"]>;
   nullifier_hash?: Maybe<Scalars["String"]["output"]>;
+  nullifier_hash_int?: Maybe<Scalars["numeric"]["output"]>;
   updated_at?: Maybe<Scalars["timestamptz"]["output"]>;
   uses?: Maybe<Scalars["Int"]["output"]>;
 };
@@ -7453,6 +7462,7 @@ export type Nullifier_Min_Order_By = {
   created_at?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   nullifier_hash?: InputMaybe<Order_By>;
+  nullifier_hash_int?: InputMaybe<Order_By>;
   updated_at?: InputMaybe<Order_By>;
   uses?: InputMaybe<Order_By>;
 };
@@ -7480,6 +7490,7 @@ export type Nullifier_Order_By = {
   created_at?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   nullifier_hash?: InputMaybe<Order_By>;
+  nullifier_hash_int?: InputMaybe<Order_By>;
   updated_at?: InputMaybe<Order_By>;
   uses?: InputMaybe<Order_By>;
 };
@@ -7500,6 +7511,8 @@ export enum Nullifier_Select_Column {
   /** column name */
   NullifierHash = "nullifier_hash",
   /** column name */
+  NullifierHashInt = "nullifier_hash_int",
+  /** column name */
   UpdatedAt = "updated_at",
   /** column name */
   Uses = "uses",
@@ -7511,6 +7524,7 @@ export type Nullifier_Set_Input = {
   created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
   id?: InputMaybe<Scalars["String"]["input"]>;
   nullifier_hash?: InputMaybe<Scalars["String"]["input"]>;
+  nullifier_hash_int?: InputMaybe<Scalars["numeric"]["input"]>;
   updated_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
   uses?: InputMaybe<Scalars["Int"]["input"]>;
 };
@@ -7518,33 +7532,39 @@ export type Nullifier_Set_Input = {
 /** aggregate stddev on columns */
 export type Nullifier_Stddev_Fields = {
   __typename?: "nullifier_stddev_fields";
+  nullifier_hash_int?: Maybe<Scalars["Float"]["output"]>;
   uses?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** order by stddev() on columns of table "nullifier" */
 export type Nullifier_Stddev_Order_By = {
+  nullifier_hash_int?: InputMaybe<Order_By>;
   uses?: InputMaybe<Order_By>;
 };
 
 /** aggregate stddev_pop on columns */
 export type Nullifier_Stddev_Pop_Fields = {
   __typename?: "nullifier_stddev_pop_fields";
+  nullifier_hash_int?: Maybe<Scalars["Float"]["output"]>;
   uses?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** order by stddev_pop() on columns of table "nullifier" */
 export type Nullifier_Stddev_Pop_Order_By = {
+  nullifier_hash_int?: InputMaybe<Order_By>;
   uses?: InputMaybe<Order_By>;
 };
 
 /** aggregate stddev_samp on columns */
 export type Nullifier_Stddev_Samp_Fields = {
   __typename?: "nullifier_stddev_samp_fields";
+  nullifier_hash_int?: Maybe<Scalars["Float"]["output"]>;
   uses?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** order by stddev_samp() on columns of table "nullifier" */
 export type Nullifier_Stddev_Samp_Order_By = {
+  nullifier_hash_int?: InputMaybe<Order_By>;
   uses?: InputMaybe<Order_By>;
 };
 
@@ -7562,6 +7582,7 @@ export type Nullifier_Stream_Cursor_Value_Input = {
   created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
   id?: InputMaybe<Scalars["String"]["input"]>;
   nullifier_hash?: InputMaybe<Scalars["String"]["input"]>;
+  nullifier_hash_int?: InputMaybe<Scalars["numeric"]["input"]>;
   updated_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
   uses?: InputMaybe<Scalars["Int"]["input"]>;
 };
@@ -7569,11 +7590,13 @@ export type Nullifier_Stream_Cursor_Value_Input = {
 /** aggregate sum on columns */
 export type Nullifier_Sum_Fields = {
   __typename?: "nullifier_sum_fields";
+  nullifier_hash_int?: Maybe<Scalars["numeric"]["output"]>;
   uses?: Maybe<Scalars["Int"]["output"]>;
 };
 
 /** order by sum() on columns of table "nullifier" */
 export type Nullifier_Sum_Order_By = {
+  nullifier_hash_int?: InputMaybe<Order_By>;
   uses?: InputMaybe<Order_By>;
 };
 
@@ -7587,6 +7610,8 @@ export enum Nullifier_Update_Column {
   Id = "id",
   /** column name */
   NullifierHash = "nullifier_hash",
+  /** column name */
+  NullifierHashInt = "nullifier_hash_int",
   /** column name */
   UpdatedAt = "updated_at",
   /** column name */
@@ -7605,33 +7630,39 @@ export type Nullifier_Updates = {
 /** aggregate var_pop on columns */
 export type Nullifier_Var_Pop_Fields = {
   __typename?: "nullifier_var_pop_fields";
+  nullifier_hash_int?: Maybe<Scalars["Float"]["output"]>;
   uses?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** order by var_pop() on columns of table "nullifier" */
 export type Nullifier_Var_Pop_Order_By = {
+  nullifier_hash_int?: InputMaybe<Order_By>;
   uses?: InputMaybe<Order_By>;
 };
 
 /** aggregate var_samp on columns */
 export type Nullifier_Var_Samp_Fields = {
   __typename?: "nullifier_var_samp_fields";
+  nullifier_hash_int?: Maybe<Scalars["Float"]["output"]>;
   uses?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** order by var_samp() on columns of table "nullifier" */
 export type Nullifier_Var_Samp_Order_By = {
+  nullifier_hash_int?: InputMaybe<Order_By>;
   uses?: InputMaybe<Order_By>;
 };
 
 /** aggregate variance on columns */
 export type Nullifier_Variance_Fields = {
   __typename?: "nullifier_variance_fields";
+  nullifier_hash_int?: Maybe<Scalars["Float"]["output"]>;
   uses?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** order by variance() on columns of table "nullifier" */
 export type Nullifier_Variance_Order_By = {
+  nullifier_hash_int?: InputMaybe<Order_By>;
   uses?: InputMaybe<Order_By>;
 };
 

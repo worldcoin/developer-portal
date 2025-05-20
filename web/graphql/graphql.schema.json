@@ -49897,6 +49897,18 @@
             "deprecationReason": null
           },
           {
+            "name": "nullifier_hash_int",
+            "description": null,
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "numeric",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "updated_at",
             "description": null,
             "args": [],
@@ -50451,6 +50463,18 @@
         "description": "aggregate avg on columns",
         "fields": [
           {
+            "name": "nullifier_hash_int",
+            "description": null,
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "Float",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "uses",
             "description": null,
             "args": [],
@@ -50474,6 +50498,18 @@
         "description": "order by avg() on columns of table \"nullifier\"",
         "fields": null,
         "inputFields": [
+          {
+            "name": "nullifier_hash_int",
+            "description": null,
+            "type": {
+              "kind": "ENUM",
+              "name": "order_by",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
           {
             "name": "uses",
             "description": null,
@@ -50610,6 +50646,18 @@
             "deprecationReason": null
           },
           {
+            "name": "nullifier_hash_int",
+            "description": null,
+            "type": {
+              "kind": "INPUT_OBJECT",
+              "name": "numeric_comparison_exp",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "updated_at",
             "description": null,
             "type": {
@@ -50667,6 +50715,18 @@
         "description": "input type for incrementing numeric columns in table \"nullifier\"",
         "fields": null,
         "inputFields": [
+          {
+            "name": "nullifier_hash_int",
+            "description": null,
+            "type": {
+              "kind": "SCALAR",
+              "name": "numeric",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
           {
             "name": "uses",
             "description": null,
@@ -50744,6 +50804,18 @@
             "type": {
               "kind": "SCALAR",
               "name": "String",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "nullifier_hash_int",
+            "description": null,
+            "type": {
+              "kind": "SCALAR",
+              "name": "numeric",
               "ofType": null
             },
             "defaultValue": null,
@@ -50833,6 +50905,18 @@
             "deprecationReason": null
           },
           {
+            "name": "nullifier_hash_int",
+            "description": null,
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "numeric",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "updated_at",
             "description": null,
             "args": [],
@@ -50906,6 +50990,18 @@
           },
           {
             "name": "nullifier_hash",
+            "description": null,
+            "type": {
+              "kind": "ENUM",
+              "name": "order_by",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "nullifier_hash_int",
             "description": null,
             "type": {
               "kind": "ENUM",
@@ -50999,6 +51095,18 @@
             "deprecationReason": null
           },
           {
+            "name": "nullifier_hash_int",
+            "description": null,
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "numeric",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "updated_at",
             "description": null,
             "args": [],
@@ -51072,6 +51180,18 @@
           },
           {
             "name": "nullifier_hash",
+            "description": null,
+            "type": {
+              "kind": "ENUM",
+              "name": "order_by",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "nullifier_hash_int",
             "description": null,
             "type": {
               "kind": "ENUM",
@@ -51292,6 +51412,18 @@
             "deprecationReason": null
           },
           {
+            "name": "nullifier_hash_int",
+            "description": null,
+            "type": {
+              "kind": "ENUM",
+              "name": "order_by",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "updated_at",
             "description": null,
             "type": {
@@ -51380,6 +51512,12 @@
             "deprecationReason": null
           },
           {
+            "name": "nullifier_hash_int",
+            "description": "column name",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "updated_at",
             "description": "column name",
             "isDeprecated": false,
@@ -51449,6 +51587,18 @@
             "deprecationReason": null
           },
           {
+            "name": "nullifier_hash_int",
+            "description": null,
+            "type": {
+              "kind": "SCALAR",
+              "name": "numeric",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "updated_at",
             "description": null,
             "type": {
@@ -51483,6 +51633,18 @@
         "description": "aggregate stddev on columns",
         "fields": [
           {
+            "name": "nullifier_hash_int",
+            "description": null,
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "Float",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "uses",
             "description": null,
             "args": [],
@@ -51507,6 +51669,18 @@
         "fields": null,
         "inputFields": [
           {
+            "name": "nullifier_hash_int",
+            "description": null,
+            "type": {
+              "kind": "ENUM",
+              "name": "order_by",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "uses",
             "description": null,
             "type": {
@@ -51528,6 +51702,18 @@
         "name": "nullifier_stddev_pop_fields",
         "description": "aggregate stddev_pop on columns",
         "fields": [
+          {
+            "name": "nullifier_hash_int",
+            "description": null,
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "Float",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
           {
             "name": "uses",
             "description": null,
@@ -51553,6 +51739,18 @@
         "fields": null,
         "inputFields": [
           {
+            "name": "nullifier_hash_int",
+            "description": null,
+            "type": {
+              "kind": "ENUM",
+              "name": "order_by",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "uses",
             "description": null,
             "type": {
@@ -51574,6 +51772,18 @@
         "name": "nullifier_stddev_samp_fields",
         "description": "aggregate stddev_samp on columns",
         "fields": [
+          {
+            "name": "nullifier_hash_int",
+            "description": null,
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "Float",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
           {
             "name": "uses",
             "description": null,
@@ -51598,6 +51808,18 @@
         "description": "order by stddev_samp() on columns of table \"nullifier\"",
         "fields": null,
         "inputFields": [
+          {
+            "name": "nullifier_hash_int",
+            "description": null,
+            "type": {
+              "kind": "ENUM",
+              "name": "order_by",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
           {
             "name": "uses",
             "description": null,
@@ -51709,6 +51931,18 @@
             "deprecationReason": null
           },
           {
+            "name": "nullifier_hash_int",
+            "description": null,
+            "type": {
+              "kind": "SCALAR",
+              "name": "numeric",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "updated_at",
             "description": null,
             "type": {
@@ -51743,6 +51977,18 @@
         "description": "aggregate sum on columns",
         "fields": [
           {
+            "name": "nullifier_hash_int",
+            "description": null,
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "numeric",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "uses",
             "description": null,
             "args": [],
@@ -51766,6 +52012,18 @@
         "description": "order by sum() on columns of table \"nullifier\"",
         "fields": null,
         "inputFields": [
+          {
+            "name": "nullifier_hash_int",
+            "description": null,
+            "type": {
+              "kind": "ENUM",
+              "name": "order_by",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
           {
             "name": "uses",
             "description": null,
@@ -51811,6 +52069,12 @@
           },
           {
             "name": "nullifier_hash",
+            "description": "column name",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "nullifier_hash_int",
             "description": "column name",
             "isDeprecated": false,
             "deprecationReason": null
@@ -51887,6 +52151,18 @@
         "description": "aggregate var_pop on columns",
         "fields": [
           {
+            "name": "nullifier_hash_int",
+            "description": null,
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "Float",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "uses",
             "description": null,
             "args": [],
@@ -51911,6 +52187,18 @@
         "fields": null,
         "inputFields": [
           {
+            "name": "nullifier_hash_int",
+            "description": null,
+            "type": {
+              "kind": "ENUM",
+              "name": "order_by",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "uses",
             "description": null,
             "type": {
@@ -51932,6 +52220,18 @@
         "name": "nullifier_var_samp_fields",
         "description": "aggregate var_samp on columns",
         "fields": [
+          {
+            "name": "nullifier_hash_int",
+            "description": null,
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "Float",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
           {
             "name": "uses",
             "description": null,
@@ -51957,6 +52257,18 @@
         "fields": null,
         "inputFields": [
           {
+            "name": "nullifier_hash_int",
+            "description": null,
+            "type": {
+              "kind": "ENUM",
+              "name": "order_by",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "uses",
             "description": null,
             "type": {
@@ -51978,6 +52290,18 @@
         "name": "nullifier_variance_fields",
         "description": "aggregate variance on columns",
         "fields": [
+          {
+            "name": "nullifier_hash_int",
+            "description": null,
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "Float",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
           {
             "name": "uses",
             "description": null,
@@ -52002,6 +52326,18 @@
         "description": "order by variance() on columns of table \"nullifier\"",
         "fields": null,
         "inputFields": [
+          {
+            "name": "nullifier_hash_int",
+            "description": null,
+            "type": {
+              "kind": "ENUM",
+              "name": "order_by",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
           {
             "name": "uses",
             "description": null,
