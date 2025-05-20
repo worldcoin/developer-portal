@@ -12,6 +12,7 @@ import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
 import { getSdk as atomicUpsertNullifierSdk } from "./graphql/atomic-upsert-nullifier.generated";
 import { getSdk as getFetchAppActionSdk } from "./graphql/fetch-app-action.generated";
+import { nullifierHashToBigIntStr } from "./helpers";
 
 const schema = yup.object({
   action: yup
@@ -202,6 +203,7 @@ export async function POST(
     ).AtomicUpsertNullifier({
       action_id: action.id,
       nullifier_hash: parsedParams.nullifier_hash,
+      nullifier_hash_int: nullifierHashToBigIntStr(parsedParams.nullifier_hash),
     });
 
     if (!upsertResponse?.update_nullifier?.returning?.length) {
