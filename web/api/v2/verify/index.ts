@@ -5,7 +5,11 @@ import {
 } from "@/api/helpers/errors";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
-import { canVerifyForAction, verifyProof } from "@/api/helpers/verify";
+import {
+  canVerifyForAction,
+  nullifierHashToBigIntStr,
+  verifyProof,
+} from "@/api/helpers/verify";
 import { captureEvent } from "@/services/posthogClient";
 import { AppErrorCodes, VerificationLevel } from "@worldcoin/idkit-core";
 import { NextRequest, NextResponse } from "next/server";
@@ -202,6 +206,7 @@ export async function POST(
     ).AtomicUpsertNullifier({
       action_id: action.id,
       nullifier_hash: parsedParams.nullifier_hash,
+      nullifier_hash_int: nullifierHashToBigIntStr(parsedParams.nullifier_hash),
     });
 
     if (!upsertResponse?.update_nullifier?.returning?.length) {

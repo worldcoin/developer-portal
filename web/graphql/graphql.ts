@@ -7300,6 +7300,7 @@ export type Nullifier = {
   created_at: Scalars["timestamptz"]["output"];
   id: Scalars["String"]["output"];
   nullifier_hash: Scalars["String"]["output"];
+  nullifier_hash_int?: Maybe<Scalars["String"]["output"]>;
   updated_at: Scalars["timestamptz"]["output"];
   uses: Scalars["Int"]["output"];
 };
@@ -7387,6 +7388,7 @@ export type Nullifier_Bool_Exp = {
   created_at?: InputMaybe<Timestamptz_Comparison_Exp>;
   id?: InputMaybe<String_Comparison_Exp>;
   nullifier_hash?: InputMaybe<String_Comparison_Exp>;
+  nullifier_hash_int?: InputMaybe<String_Comparison_Exp>;
   updated_at?: InputMaybe<Timestamptz_Comparison_Exp>;
   uses?: InputMaybe<Int_Comparison_Exp>;
 };
@@ -7411,6 +7413,7 @@ export type Nullifier_Insert_Input = {
   created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
   id?: InputMaybe<Scalars["String"]["input"]>;
   nullifier_hash?: InputMaybe<Scalars["String"]["input"]>;
+  nullifier_hash_int?: InputMaybe<Scalars["String"]["input"]>;
   updated_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
   uses?: InputMaybe<Scalars["Int"]["input"]>;
 };
@@ -7422,6 +7425,7 @@ export type Nullifier_Max_Fields = {
   created_at?: Maybe<Scalars["timestamptz"]["output"]>;
   id?: Maybe<Scalars["String"]["output"]>;
   nullifier_hash?: Maybe<Scalars["String"]["output"]>;
+  nullifier_hash_int?: Maybe<Scalars["String"]["output"]>;
   updated_at?: Maybe<Scalars["timestamptz"]["output"]>;
   uses?: Maybe<Scalars["Int"]["output"]>;
 };
@@ -7432,6 +7436,7 @@ export type Nullifier_Max_Order_By = {
   created_at?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   nullifier_hash?: InputMaybe<Order_By>;
+  nullifier_hash_int?: InputMaybe<Order_By>;
   updated_at?: InputMaybe<Order_By>;
   uses?: InputMaybe<Order_By>;
 };
@@ -7443,6 +7448,7 @@ export type Nullifier_Min_Fields = {
   created_at?: Maybe<Scalars["timestamptz"]["output"]>;
   id?: Maybe<Scalars["String"]["output"]>;
   nullifier_hash?: Maybe<Scalars["String"]["output"]>;
+  nullifier_hash_int?: Maybe<Scalars["String"]["output"]>;
   updated_at?: Maybe<Scalars["timestamptz"]["output"]>;
   uses?: Maybe<Scalars["Int"]["output"]>;
 };
@@ -7453,6 +7459,7 @@ export type Nullifier_Min_Order_By = {
   created_at?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   nullifier_hash?: InputMaybe<Order_By>;
+  nullifier_hash_int?: InputMaybe<Order_By>;
   updated_at?: InputMaybe<Order_By>;
   uses?: InputMaybe<Order_By>;
 };
@@ -7480,6 +7487,7 @@ export type Nullifier_Order_By = {
   created_at?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   nullifier_hash?: InputMaybe<Order_By>;
+  nullifier_hash_int?: InputMaybe<Order_By>;
   updated_at?: InputMaybe<Order_By>;
   uses?: InputMaybe<Order_By>;
 };
@@ -7500,6 +7508,8 @@ export enum Nullifier_Select_Column {
   /** column name */
   NullifierHash = "nullifier_hash",
   /** column name */
+  NullifierHashInt = "nullifier_hash_int",
+  /** column name */
   UpdatedAt = "updated_at",
   /** column name */
   Uses = "uses",
@@ -7511,6 +7521,7 @@ export type Nullifier_Set_Input = {
   created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
   id?: InputMaybe<Scalars["String"]["input"]>;
   nullifier_hash?: InputMaybe<Scalars["String"]["input"]>;
+  nullifier_hash_int?: InputMaybe<Scalars["String"]["input"]>;
   updated_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
   uses?: InputMaybe<Scalars["Int"]["input"]>;
 };
@@ -7562,6 +7573,7 @@ export type Nullifier_Stream_Cursor_Value_Input = {
   created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
   id?: InputMaybe<Scalars["String"]["input"]>;
   nullifier_hash?: InputMaybe<Scalars["String"]["input"]>;
+  nullifier_hash_int?: InputMaybe<Scalars["String"]["input"]>;
   updated_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
   uses?: InputMaybe<Scalars["Int"]["input"]>;
 };
@@ -7587,6 +7599,8 @@ export enum Nullifier_Update_Column {
   Id = "id",
   /** column name */
   NullifierHash = "nullifier_hash",
+  /** column name */
+  NullifierHashInt = "nullifier_hash_int",
   /** column name */
   UpdatedAt = "updated_at",
   /** column name */
