@@ -7,6 +7,7 @@ type GraphQLClientRequestHeaders = RequestOptions["requestHeaders"];
 export type AtomicUpsertNullifierMutationVariables = Types.Exact<{
   action_id: Types.Scalars["String"]["input"];
   nullifier_hash: Types.Scalars["String"]["input"];
+  nullifier_hash_int: Types.Scalars["String"]["input"];
 }>;
 
 export type AtomicUpsertNullifierMutation = {
@@ -14,6 +15,7 @@ export type AtomicUpsertNullifierMutation = {
   insert_nullifier_one?: {
     __typename?: "nullifier";
     nullifier_hash: string;
+    nullifier_hash_int?: string | null;
   } | null;
   update_nullifier?: {
     __typename?: "nullifier_mutation_response";
@@ -23,6 +25,7 @@ export type AtomicUpsertNullifierMutation = {
       uses: number;
       created_at: string;
       nullifier_hash: string;
+      nullifier_hash_int?: string | null;
     }>;
   } | null;
 };
@@ -31,16 +34,19 @@ export const AtomicUpsertNullifierDocument = gql`
   mutation AtomicUpsertNullifier(
     $action_id: String!
     $nullifier_hash: String!
+    $nullifier_hash_int: String!
   ) {
     insert_nullifier_one(
       object: {
         action_id: $action_id
         nullifier_hash: $nullifier_hash
+        nullifier_hash_int: $nullifier_hash_int
         uses: 0
       }
       on_conflict: { constraint: unique_nullifier_hash, update_columns: [] }
     ) {
       nullifier_hash
+      nullifier_hash_int
     }
     update_nullifier(
       where: { nullifier_hash: { _eq: $nullifier_hash } }
@@ -51,6 +57,7 @@ export const AtomicUpsertNullifierDocument = gql`
         uses
         created_at
         nullifier_hash
+        nullifier_hash_int
       }
     }
   }
