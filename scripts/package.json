@@ -1,0 +1,21 @@
+{
+  "name": "developer-portal-scripts",
+  "version": "1.0.0",
+  "description": "Utility scripts for developer portal",
+  "private": true,
+  "scripts": {
+    "populate": "ts-node populate-nullifier-hash-int-column.ts"
+  },
+  "dependencies": {
+    "dotenv": "^16.3.1",
+    "pg": "^8.11.3",
+    "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.4",
+    "@types/pg": "^8.10.9",
+    "@types/uuid": "^9.0.7",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.3.3"
+  }
+}
