@@ -26,8 +26,8 @@ export const nullifierHashToBigIntStr = (nullifierHash: string): string => {
 dotenv.config();
 
 // Configuration
-const FETCH_BATCH_SIZE = 50; // How many rows to query at once
-const UPDATE_BATCH_SIZE = 10; // How many rows to update in a single query
+const FETCH_BATCH_SIZE = 1000; // How many rows to query at once
+const UPDATE_BATCH_SIZE = 100; // How many rows to update in a single query
 const STOP_AFTER_N_FAILED_BATCHES = 10; // Stop after this many batches fail to update
 
 interface UpdateRow {
