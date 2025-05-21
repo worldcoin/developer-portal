@@ -12,8 +12,9 @@ insert_permissions:
       columns:
         - action_id
         - id
-        - uses
         - nullifier_hash
+        - nullifier_hash_int
+        - uses
 select_permissions:
   - role: api_key
     permission:
@@ -33,8 +34,9 @@ select_permissions:
         - action_id
         - created_at
         - id
-        - uses
         - nullifier_hash
+        - nullifier_hash_int
+        - uses
       filter: {}
   - role: user
     permission:
