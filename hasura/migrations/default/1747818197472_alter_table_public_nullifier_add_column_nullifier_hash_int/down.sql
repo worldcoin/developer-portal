@@ -1,4 +1,1 @@
--- Could not auto-generate a down migration.
--- Please write an appropriate down migration for the SQL below:
--- alter table "public"."nullifier" add column "nullifier_hash_int" text
---  null;
+alter table "public"."nullifier" drop column "nullifier_hash_int";
