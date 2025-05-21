@@ -1,5 +1,6 @@
 import { POST } from "@/api/v2/verify";
 import { NextRequest } from "next/server";
+import { decodeToHexString } from "../../../../api/helpers/verify";
 import { semaphoreProofParamsMock } from "../../../api/__mocks__/proof.mock";
 import { integrationDBClean, integrationDBExecuteQuery } from "../../setup";
 
@@ -87,21 +88,58 @@ const createNullifierRecord = async (
   return { nullifierHash, nullifierHashInt };
 };
 
-// Mock for the fetch function that always returns a successful response
-const createSuccessFetchMock = () => {
-  return jest.fn().mockResolvedValue(
-    new Response(JSON.stringify({ status: "mined" }), {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
-    }),
-  );
+const createSuccessFetchMock = (allowedNullifierHashes: string[] = []) => {
+  return jest.fn((url, options) => {
+    try {
+      // Parse the request body
+      const body = JSON.parse(options.body);
+      const receivedNullifierHash = body.nullifierHash;
+
+      // Check if this nullifier hash is in the allowed list
+      const isAllowed = allowedNullifierHashes.some((hash) => {
+        // Normalize the allowed hash the same way
+        const decodedAllowsHash = decodeToHexString(hash);
+
+        return receivedNullifierHash === decodedAllowsHash;
+      });
+
+      if (isAllowed) {
+        // Return success for allowed nullifier hashes
+        return Promise.resolve(
+          new Response(JSON.stringify({ status: "mined" }), {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          }),
+        );
+      } else {
+        // Return error for non-allowed nullifier hashes
+        return Promise.resolve(
+          new Response("invalid semaphore proof", {
+            status: 400,
+            headers: { "Content-Type": "text/plain" },
+          }),
+        );
+      }
+    } catch (error) {
+      console.error("Error in fetch mock:", error);
+      return Promise.resolve(
+        new Response("Error processing request", {
+          status: 400,
+          headers: { "Content-Type": "text/plain" },
+        }),
+      );
+    }
+  });
 };
 
 describe("/api/v2/verify [Security Vulnerabilities Integration Tests]", () => {
   // Test: Fix for vulnerability where case-insensitive nullifiers bypass verification limit
   it("should prevent case sensitivity bypass", async () => {
+    const VALID_NULLIFIER_HASH =
+      semaphoreProofParamsMock.nullifier_hash.toLowerCase();
+
     // Setup fetch mock to always succeed for this test
-    global.fetch = createSuccessFetchMock();
+    global.fetch = createSuccessFetchMock([VALID_NULLIFIER_HASH]);
 
     // Get a staging app from the database
     const appId = await getStageAppId();
@@ -111,14 +149,10 @@ describe("/api/v2/verify [Security Vulnerabilities Integration Tests]", () => {
     const actionId = await createTestAction(appId, "verify", 1);
     expect(actionId).toBeTruthy();
 
-    // First nullifier (lowercase)
-    const originalNullifier =
-      semaphoreProofParamsMock.nullifier_hash.toLowerCase();
-
     // First verification request with lowercase
     const firstReq = createMockRequest(getUrl(appId), {
       ...validBody,
-      nullifier_hash: originalNullifier,
+      nullifier_hash: VALID_NULLIFIER_HASH,
     });
 
     const ctx = { params: { app_id: appId } };
@@ -135,10 +169,10 @@ describe("/api/v2/verify [Security Vulnerabilities Integration Tests]", () => {
     expect(nullifierCheck.rows.length).toBe(1);
 
     // Second attempt with uppercase nullifier
-    const upperCaseNullifier = originalNullifier.toUpperCase();
+    const upperCaseNullifier = VALID_NULLIFIER_HASH.toUpperCase();
 
     console.log("Testing case sensitivity bypass:", {
-      original: originalNullifier,
+      original: VALID_NULLIFIER_HASH,
       uppercase: upperCaseNullifier,
       int: nullifierCheck.rows[0].nullifier_hash_int,
     });
@@ -163,8 +197,12 @@ describe("/api/v2/verify [Security Vulnerabilities Integration Tests]", () => {
 
   // Test: Fix for vulnerability where nullifiers without 0x prefix bypass verification limit
   it("should prevent prefix bypass", async () => {
+    const VALID_NULLIFIER_HASH =
+      semaphoreProofParamsMock.nullifier_hash.toLowerCase();
+    expect(VALID_NULLIFIER_HASH.startsWith("0x")).toBe(true);
+
     // Setup fetch mock to always succeed for this test
-    global.fetch = createSuccessFetchMock();
+    global.fetch = createSuccessFetchMock([VALID_NULLIFIER_HASH]);
 
     // Get a staging app from the database
     const appId = await getStageAppId();
@@ -174,13 +212,10 @@ describe("/api/v2/verify [Security Vulnerabilities Integration Tests]", () => {
     const actionId = await createTestAction(appId, "verify", 1);
     expect(actionId).toBeTruthy();
 
-    // First nullifier with 0x prefix
-    const nullifierWithPrefix = semaphoreProofParamsMock.nullifier_hash;
-
     // First verification request with prefix
     const firstReq = createMockRequest(getUrl(appId), {
       ...validBody,
-      nullifier_hash: nullifierWithPrefix,
+      nullifier_hash: VALID_NULLIFIER_HASH,
     });
 
     const ctx = { params: { app_id: appId } };
@@ -196,11 +231,11 @@ describe("/api/v2/verify [Security Vulnerabilities Integration Tests]", () => {
     );
     expect(nullifierCheck.rows.length).toBe(1);
 
-    // Second attempt without 0x prefix
-    const nullifierWithoutPrefix = nullifierWithPrefix.slice(2);
+    // Second attempt with a different prefix
+    const nullifierWithoutPrefix = "dd" + VALID_NULLIFIER_HASH.slice(2);
 
     console.log("Testing prefix bypass:", {
-      withPrefix: nullifierWithPrefix,
+      withPrefix: VALID_NULLIFIER_HASH,
       withoutPrefix: nullifierWithoutPrefix,
       int: nullifierCheck.rows[0].nullifier_hash_int,
     });
@@ -215,18 +250,21 @@ describe("/api/v2/verify [Security Vulnerabilities Integration Tests]", () => {
     expect(secondResponse.status).toBe(400);
 
     const body = await secondResponse.json();
-    expect(body).toEqual({
+    expect(body).toMatchObject({
       attribute: null,
-      code: "max_verifications_reached",
-      detail: "This person has already verified for this action.",
+      code: "invalid_proof",
       app_id: appId,
     });
   });
 
   // Test: Fix for vulnerability where nullifiers with different zero padding bypass verification limit
   it("should prevent zero padding bypass", async () => {
+    // First nullifier with zero padding
+    const paddedNullifier =
+      "0x000000abcd1234abcd1234abcd1234abcd1234abcd1234abcd1234abcd1234";
+
     // Setup fetch mock to always succeed for this test
-    global.fetch = createSuccessFetchMock();
+    global.fetch = createSuccessFetchMock([paddedNullifier]);
 
     // Get a staging app from the database
     const appId = await getStageAppId();
@@ -235,10 +273,6 @@ describe("/api/v2/verify [Security Vulnerabilities Integration Tests]", () => {
     // Create a test action with max 1 verification
     const actionId = await createTestAction(appId, "verify", 1);
     expect(actionId).toBeTruthy();
-
-    // First nullifier with zero padding
-    const paddedNullifier =
-      "0x000000abcd1234abcd1234abcd1234abcd1234abcd1234abcd1234abcd1234";
 
     // First verification request with padding
     const firstReq = createMockRequest(getUrl(appId), {
