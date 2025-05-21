@@ -476,20 +476,3 @@ delete_permissions:
       filter:
         verification_status:
           _eq: verified
-  - role: user
-    permission:
-      filter:
-        _and:
-          - verification_status:
-              _neq: verified
-          - app:
-              team:
-                memberships:
-                  _and:
-                    - user_id:
-                        _eq: X-Hasura-User-Id
-                    - _or:
-                        - role:
-                            _eq: OWNER
-                        - role:
-                            _eq: ADMIN
