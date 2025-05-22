@@ -190,3 +190,31 @@ export const appStoreImageSchema = yup
     /^[a-zA-Z]{2}\/[a-zA-Z0-9_-]+\.[a-zA-Z0-9]+$/,
     "Invalid image format",
   );
+
+/** this should be allowed, later on replaced by actual username */
+const NOTIFICATION_USERNAME_SPECIAL_STRING = "${username}";
+
+/** use for common characters and emojis */
+export const notificationMessageSchema = yup
+  .string()
+  .strict()
+  .required()
+  .max(200)
+  .test(
+    "valid-message-with-emojis",
+    "Message can only contain letters, numbers, punctuation, emojis, spaces or special strings",
+    (value: string | undefined) => {
+      // fail on empty string
+      if (!value) return false;
+
+      // remove special string and check if the remainder is valid
+      const valueWithoutSpecialString = value.replace(
+        NOTIFICATION_USERNAME_SPECIAL_STRING,
+        "",
+      );
+
+      return allowCommonCharactersAndEmojisRegex.test(
+        valueWithoutSpecialString,
+      );
+    },
+  );

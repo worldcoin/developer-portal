@@ -4,8 +4,8 @@ import { verifyHashedSecret } from "@/api/helpers/utils";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { logger } from "@/lib/logger";
 import {
-  allowCommonCharactersAndEmojisRegex,
   allowTitleAndEmojisRegex,
+  notificationMessageSchema,
 } from "@/lib/schema";
 import { createSignedFetcher } from "aws-sigv4-fetch";
 import { GraphQLClient } from "graphql-request";
@@ -26,16 +26,7 @@ const sendNotificationBodySchema = yup.object({
     .min(1)
     .max(1000)
     .required("wallet_addresses is required"),
-  message: yup
-    .string()
-    .strict()
-    .required()
-    .max(200)
-    .test(
-      "valid-message-with-emojis",
-      "Message can only contain letters, numbers, punctuation, emojis, and spaces",
-      allowCommonCharactersAndEmojisRegex.test,
-    ),
+  message: notificationMessageSchema,
   title: yup
     .string()
     .strict()
