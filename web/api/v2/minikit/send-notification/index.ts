@@ -18,11 +18,11 @@ import {
 } from "./graphql/create-notification-log.generated";
 import { getSdk as fetchMetadataSdk } from "./graphql/fetch-metadata.generated";
 
-const sendNotificationBodySchema = yup.object({
+export const sendNotificationBodySchema = yup.object({
   app_id: yup.string().strict().required(),
   wallet_addresses: yup
     .array()
-    .of(yup.string())
+    .of(yup.string().length(42))
     .min(1)
     .max(1000)
     .required("wallet_addresses is required"),
@@ -37,7 +37,18 @@ const sendNotificationBodySchema = yup.object({
       "Title can only contain letters, numbers, punctuation, emojis, and spaces",
       allowTitleAndEmojisRegex.test,
     ),
-  mini_app_path: yup.string().strict().required(),
+  mini_app_path: yup
+    .string()
+    .strict()
+    .required()
+    .test(
+      "contains-app-id",
+      "mini_app_path must include the app_id",
+      function (value) {
+        const { app_id } = this.parent;
+        return value.includes(app_id);
+      },
+    ),
 });
 
 type NotificationResult = {
