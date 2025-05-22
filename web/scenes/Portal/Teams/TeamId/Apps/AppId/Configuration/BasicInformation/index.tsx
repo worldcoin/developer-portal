@@ -157,7 +157,7 @@ export const BasicInformation = (props: {
             addOnRight={<CopyButton fieldName="App ID" fieldValue={appId} />}
           />
 
-          {appMetaData?.verification_status === "unverified" && (
+          {appMetaData?.verification_status !== "verified" && (
             <Input
               label="Draft ID"
               disabled
