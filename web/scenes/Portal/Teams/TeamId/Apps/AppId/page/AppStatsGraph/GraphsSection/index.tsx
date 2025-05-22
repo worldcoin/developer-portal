@@ -38,12 +38,12 @@ const verificationsDatasetConfig: Partial<
 > = {
   ...defaultDatasetConfig,
   borderColor: "#4940E0",
+  backgroundColor: "#4940E0",
 };
-const transactionsDatasetConfig: Partial<
-  ChartData<"line">["datasets"][number]
-> = {
+const paymentsDatasetConfig: Partial<ChartData<"line">["datasets"][number]> = {
   ...defaultDatasetConfig,
   borderColor: "#4292F4",
+  backgroundColor: "#4292F4",
 };
 const uniqueUsersDatasetConfig: Partial<ChartData<"line">["datasets"][number]> =
   {
@@ -54,8 +54,8 @@ const uniqueUsersDatasetConfig: Partial<ChartData<"line">["datasets"][number]> =
 
 const openRateDatasetConfig: Partial<ChartData<"line">["datasets"][number]> = {
   ...defaultDatasetConfig,
-  borderColor: "#00C3B6",
-  backgroundColor: "#00C3B6",
+  borderColor: "#FFA048",
+  backgroundColor: "#FFA048",
 };
 
 const commonChartConfig: ChartOptions<"line"> = {
@@ -101,6 +101,8 @@ interface GraphCardProps {
   emptyStateTitle: React.ReactNode;
   emptyStateDescription: React.ReactNode;
   className?: string;
+  additionalStatTitle?: string | null;
+  additionalStatValue?: string | null;
 }
 
 const GraphCard: React.FC<GraphCardProps> = ({
@@ -112,6 +114,8 @@ const GraphCard: React.FC<GraphCardProps> = ({
   emptyStateTitle,
   emptyStateDescription,
   className,
+  additionalStatTitle,
+  additionalStatValue,
 }) => {
   const mobileChartOptions = {
     ...chartOptions,
@@ -160,7 +164,9 @@ const GraphCard: React.FC<GraphCardProps> = ({
           <div
             className={clsx(
               "grid px-6 sm:pr-0",
-              stats.length > 1 ? "grid-cols-2" : "grid-cols-1",
+              stats.length + (additionalStatTitle ? 1 : 0) > 1
+                ? "grid-rows-2 sm:grid-cols-2"
+                : "grid-cols-1",
             )}
           >
             {stats.map((statProps, index) => (
@@ -173,6 +179,9 @@ const GraphCard: React.FC<GraphCardProps> = ({
                 mainColorClassName={statProps.mainColorClassName}
               />
             ))}
+            {additionalStatTitle && additionalStatValue && (
+              <Stat title={additionalStatTitle} value={additionalStatValue} />
+            )}
           </div>
 
           {/* Mobile Chart (Visible on sm and below) */}
@@ -285,6 +294,14 @@ export const GraphsSection = () => {
     return formattedData;
   }, [metrics?.open_rate_last_14_days, metricsLoading]);
 
+  const formattedNotificationOptInRate = useMemo(() => {
+    if (metricsLoading || metrics?.notification_opt_in_rate == null) {
+      return null;
+    }
+
+    return (metrics.notification_opt_in_rate * 100).toFixed(2) + "%";
+  }, [metrics?.notification_opt_in_rate, metricsLoading]);
+
   const formattedVerificationsChartData = useMemo(() => {
     if (!stats || !stats.length) {
       return null;
@@ -314,7 +331,7 @@ export const GraphsSection = () => {
     return formattedData;
   }, [stats]);
 
-  const formattedTransactionsChartData = useMemo(() => {
+  const formattedPaymentsChartData = useMemo(() => {
     if (!payments || !payments.length) {
       return null;
     }
@@ -322,7 +339,7 @@ export const GraphsSection = () => {
     const formattedData: ChartProps["data"] = {
       y: [
         {
-          ...transactionsDatasetConfig,
+          ...paymentsDatasetConfig,
           data: [],
         },
       ],
@@ -353,7 +370,7 @@ export const GraphsSection = () => {
         stats={[
           {
             title: "Verifications",
-            mainColorClassName: "bg-additional-blue-500",
+            mainColorClassName: "bg-blue-500",
             value: totalVerifications,
           },
           {
@@ -377,19 +394,20 @@ export const GraphsSection = () => {
       {/* Payments Graph */}
       <GraphCard
         isLoading={transactionsLoading}
-        chartData={formattedTransactionsChartData}
+        chartData={formattedPaymentsChartData}
         stats={[
           {
             title: "Payments",
             valuePrefix: "$",
             value: accumulatedPaymentsAmountUSD,
+            mainColorClassName: "bg-additional-blue-500",
           },
         ]}
         chartOptions={commonChartConfig}
         emptyStateTitle="No data available yet"
         emptyStateDescription="Your payment numbers will show up here."
       />
-      {/* Notifications Graph */}
+      {/* Notifications Open Rate Graph */}
       <GraphCard
         isLoading={metricsLoading}
         chartData={formattedNotificationOpenRateChartData}
@@ -399,15 +417,20 @@ export const GraphsSection = () => {
             formattedNotificationOpenRateChartData.y[0].data;
           const lastDataPoint = notificationData[notificationData.length - 1];
           const lastOpenRateValue =
-            typeof lastDataPoint === "number" ? lastDataPoint.toFixed(1) : "NA";
+            typeof lastDataPoint === "number" ? lastDataPoint.toFixed(2) : "NA";
           return [
             {
               title: "Notifications open rate",
               valueSuffix: "%",
               value: lastOpenRateValue,
+              mainColorClassName: "bg-additional-lightOrange-500",
             },
           ];
         })()}
+        additionalStatTitle={
+          formattedNotificationOptInRate ? "Total opt-in rate" : null
+        }
+        additionalStatValue={formattedNotificationOptInRate}
         chartOptions={commonChartConfig}
         emptyStateTitle="No data available yet"
         emptyStateDescription="Your notification open rate will show up here."
