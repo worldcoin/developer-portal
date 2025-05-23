@@ -694,6 +694,7 @@ describe("/api/v2/public/apps", () => {
             is_allowed_unlimited_notifications: false,
             max_notifications_per_day: 10,
             category_ranking: 1,
+            should_show_notification_badge: true,
           },
           {
             app_id: "2",
@@ -729,6 +730,7 @@ describe("/api/v2/public/apps", () => {
             is_allowed_unlimited_notifications: false,
             max_notifications_per_day: 10,
             category_ranking: 2,
+            should_show_notification_badge: true,
           },
           {
             app_id: "3",
@@ -765,6 +767,7 @@ describe("/api/v2/public/apps", () => {
             is_allowed_unlimited_notifications: false,
             max_notifications_per_day: 10,
             category_ranking: 1,
+            should_show_notification_badge: true,
           },
         ],
       },
@@ -880,6 +883,7 @@ describe("/api/v2/public/apps", () => {
             is_allowed_unlimited_notifications: false,
             max_notifications_per_day: 10,
             category_ranking: 1,
+            should_show_notification_badge: true,
           },
         ],
         highlights: [],
