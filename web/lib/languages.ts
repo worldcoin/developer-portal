@@ -274,7 +274,7 @@ export const parseLocale = (locale: string) => {
   );
 
   // Handle Chinese -- Default to Simplified Chinese
-  if (major_locale === "zh" && secondary_locale === "TW") {
+  if (major_locale === "zh" && secondary_locale?.toUpperCase() === "TW") {
     return "zh_TW";
   } else if (major_locale === "zh") {
     return "zh_CN";
