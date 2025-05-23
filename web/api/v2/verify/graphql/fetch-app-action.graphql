@@ -1,7 +1,7 @@
 query FetchAppAction(
   $app_id: String!
   $action: String!
-  $nullifier_hash: String!
+  $nullifier_hash_int: String!
 ) {
   app(
     where: {
@@ -19,10 +19,11 @@ query FetchAppAction(
       max_verifications
       external_nullifier
       status
-      nullifiers(where: { nullifier_hash: { _eq: $nullifier_hash } }) {
+      nullifiers(where: { nullifier_hash_int: { _eq: $nullifier_hash_int } }) {
         uses
         created_at
         nullifier_hash
+        nullifier_hash_int
       }
     }
   }

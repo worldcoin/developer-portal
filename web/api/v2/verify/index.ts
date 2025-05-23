@@ -71,10 +71,15 @@ export async function POST(
 
   const client = await getAPIServiceGraphqlClient();
 
+  // Convert the nullifier hash to its integer representation for more robust comparison
+  const nullifier_hash_int = nullifierHashToBigIntStr(
+    parsedParams.nullifier_hash,
+  );
+
   const appActionResponse = await getFetchAppActionSdk(client).FetchAppAction({
     app_id,
     action: parsedParams.action,
-    nullifier_hash: parsedParams.nullifier_hash,
+    nullifier_hash_int,
   });
 
   if (!appActionResponse.app.length) {
@@ -206,7 +211,7 @@ export async function POST(
     ).AtomicUpsertNullifier({
       action_id: action.id,
       nullifier_hash: parsedParams.nullifier_hash,
-      nullifier_hash_int: nullifierHashToBigIntStr(parsedParams.nullifier_hash),
+      nullifier_hash_int: nullifier_hash_int,
     });
 
     if (!upsertResponse?.update_nullifier?.returning?.length) {
