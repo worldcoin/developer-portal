@@ -251,7 +251,7 @@ export const languageMap = {
   ms: { label: "Malay", country_code: "MY" },
   th: { label: "Thai", country_code: "TH" },
   id: { label: "Indonesian", country_code: "ID" },
-  zh_TW: { label: "Taiwanese Mandarin", country_code: "TW" },
+  zh_TW: { label: "Traditional Chinese (Taiwan)", country_code: "TW" },
 };
 
 export const formCountriesList = () =>
