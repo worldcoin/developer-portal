@@ -27,6 +27,7 @@ export type Scalars = {
   Int: { input: number; output: number };
   Float: { input: number; output: number };
   app_flow_on_complete_enum: { input: unknown; output: unknown };
+  date: { input: string; output: string };
   illegal_content_sub_category_enum: { input: unknown; output: unknown };
   jsonb: { input: any; output: any };
   numeric: { input: number; output: number };
@@ -3735,241 +3736,244 @@ export type App_Set_Input = {
   verified_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
 };
 
-export type App_Stats_Args = {
-  appId?: InputMaybe<Scalars["String"]["input"]>;
-  startsAt?: InputMaybe<Scalars["timestamptz"]["input"]>;
-  timespan?: InputMaybe<Scalars["String"]["input"]>;
-};
-
-/** Returning value of app_stats function */
-export type App_Stats_Returning = {
-  __typename?: "app_stats_returning";
-  /** An object relationship */
-  app: App;
+/** columns and relationships of "app_stats" */
+export type App_Stats = {
+  __typename?: "app_stats";
   app_id: Scalars["String"]["output"];
-  date: Scalars["timestamptz"]["output"];
-  unique_users: Scalars["numeric"]["output"];
-  verifications: Scalars["numeric"]["output"];
+  date: Scalars["date"]["output"];
+  nullifier_hashes: Array<Scalars["String"]["output"]>;
+  unique_users: Scalars["Int"]["output"];
+  verifications: Scalars["Int"]["output"];
 };
 
-export type App_Stats_Returning_Aggregate = {
-  __typename?: "app_stats_returning_aggregate";
-  aggregate?: Maybe<App_Stats_Returning_Aggregate_Fields>;
-  nodes: Array<App_Stats_Returning>;
+/** aggregated selection of "app_stats" */
+export type App_Stats_Aggregate = {
+  __typename?: "app_stats_aggregate";
+  aggregate?: Maybe<App_Stats_Aggregate_Fields>;
+  nodes: Array<App_Stats>;
 };
 
-/** aggregate fields of "app_stats_returning" */
-export type App_Stats_Returning_Aggregate_Fields = {
-  __typename?: "app_stats_returning_aggregate_fields";
-  avg?: Maybe<App_Stats_Returning_Avg_Fields>;
+/** aggregate fields of "app_stats" */
+export type App_Stats_Aggregate_Fields = {
+  __typename?: "app_stats_aggregate_fields";
+  avg?: Maybe<App_Stats_Avg_Fields>;
   count: Scalars["Int"]["output"];
-  max?: Maybe<App_Stats_Returning_Max_Fields>;
-  min?: Maybe<App_Stats_Returning_Min_Fields>;
-  stddev?: Maybe<App_Stats_Returning_Stddev_Fields>;
-  stddev_pop?: Maybe<App_Stats_Returning_Stddev_Pop_Fields>;
-  stddev_samp?: Maybe<App_Stats_Returning_Stddev_Samp_Fields>;
-  sum?: Maybe<App_Stats_Returning_Sum_Fields>;
-  var_pop?: Maybe<App_Stats_Returning_Var_Pop_Fields>;
-  var_samp?: Maybe<App_Stats_Returning_Var_Samp_Fields>;
-  variance?: Maybe<App_Stats_Returning_Variance_Fields>;
+  max?: Maybe<App_Stats_Max_Fields>;
+  min?: Maybe<App_Stats_Min_Fields>;
+  stddev?: Maybe<App_Stats_Stddev_Fields>;
+  stddev_pop?: Maybe<App_Stats_Stddev_Pop_Fields>;
+  stddev_samp?: Maybe<App_Stats_Stddev_Samp_Fields>;
+  sum?: Maybe<App_Stats_Sum_Fields>;
+  var_pop?: Maybe<App_Stats_Var_Pop_Fields>;
+  var_samp?: Maybe<App_Stats_Var_Samp_Fields>;
+  variance?: Maybe<App_Stats_Variance_Fields>;
 };
 
-/** aggregate fields of "app_stats_returning" */
-export type App_Stats_Returning_Aggregate_FieldsCountArgs = {
-  columns?: InputMaybe<Array<App_Stats_Returning_Select_Column>>;
+/** aggregate fields of "app_stats" */
+export type App_Stats_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<App_Stats_Select_Column>>;
   distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
 };
 
 /** aggregate avg on columns */
-export type App_Stats_Returning_Avg_Fields = {
-  __typename?: "app_stats_returning_avg_fields";
+export type App_Stats_Avg_Fields = {
+  __typename?: "app_stats_avg_fields";
   unique_users?: Maybe<Scalars["Float"]["output"]>;
   verifications?: Maybe<Scalars["Float"]["output"]>;
 };
 
-/** Boolean expression to filter rows from the table "app_stats_returning". All fields are combined with a logical 'AND'. */
-export type App_Stats_Returning_Bool_Exp = {
-  _and?: InputMaybe<Array<App_Stats_Returning_Bool_Exp>>;
-  _not?: InputMaybe<App_Stats_Returning_Bool_Exp>;
-  _or?: InputMaybe<Array<App_Stats_Returning_Bool_Exp>>;
-  app?: InputMaybe<App_Bool_Exp>;
+/** Boolean expression to filter rows from the table "app_stats". All fields are combined with a logical 'AND'. */
+export type App_Stats_Bool_Exp = {
+  _and?: InputMaybe<Array<App_Stats_Bool_Exp>>;
+  _not?: InputMaybe<App_Stats_Bool_Exp>;
+  _or?: InputMaybe<Array<App_Stats_Bool_Exp>>;
   app_id?: InputMaybe<String_Comparison_Exp>;
-  date?: InputMaybe<Timestamptz_Comparison_Exp>;
-  unique_users?: InputMaybe<Numeric_Comparison_Exp>;
-  verifications?: InputMaybe<Numeric_Comparison_Exp>;
+  date?: InputMaybe<Date_Comparison_Exp>;
+  nullifier_hashes?: InputMaybe<String_Array_Comparison_Exp>;
+  unique_users?: InputMaybe<Int_Comparison_Exp>;
+  verifications?: InputMaybe<Int_Comparison_Exp>;
 };
 
-/** unique or primary key constraints on table "app_stats_returning" */
-export enum App_Stats_Returning_Constraint {
-  /** unique or primary key constraint on columns "app_id" */
-  AppStatsReturningPkey = "app_stats_returning_pkey",
+/** unique or primary key constraints on table "app_stats" */
+export enum App_Stats_Constraint {
+  /** unique or primary key constraint on columns "date", "app_id" */
+  AppStatsPkey = "app_stats_pkey",
 }
 
-/** input type for incrementing numeric columns in table "app_stats_returning" */
-export type App_Stats_Returning_Inc_Input = {
-  unique_users?: InputMaybe<Scalars["numeric"]["input"]>;
-  verifications?: InputMaybe<Scalars["numeric"]["input"]>;
+/** input type for incrementing numeric columns in table "app_stats" */
+export type App_Stats_Inc_Input = {
+  unique_users?: InputMaybe<Scalars["Int"]["input"]>;
+  verifications?: InputMaybe<Scalars["Int"]["input"]>;
 };
 
-/** input type for inserting data into table "app_stats_returning" */
-export type App_Stats_Returning_Insert_Input = {
-  app?: InputMaybe<App_Obj_Rel_Insert_Input>;
+/** input type for inserting data into table "app_stats" */
+export type App_Stats_Insert_Input = {
   app_id?: InputMaybe<Scalars["String"]["input"]>;
-  date?: InputMaybe<Scalars["timestamptz"]["input"]>;
-  unique_users?: InputMaybe<Scalars["numeric"]["input"]>;
-  verifications?: InputMaybe<Scalars["numeric"]["input"]>;
+  date?: InputMaybe<Scalars["date"]["input"]>;
+  nullifier_hashes?: InputMaybe<Array<Scalars["String"]["input"]>>;
+  unique_users?: InputMaybe<Scalars["Int"]["input"]>;
+  verifications?: InputMaybe<Scalars["Int"]["input"]>;
 };
 
 /** aggregate max on columns */
-export type App_Stats_Returning_Max_Fields = {
-  __typename?: "app_stats_returning_max_fields";
+export type App_Stats_Max_Fields = {
+  __typename?: "app_stats_max_fields";
   app_id?: Maybe<Scalars["String"]["output"]>;
-  date?: Maybe<Scalars["timestamptz"]["output"]>;
-  unique_users?: Maybe<Scalars["numeric"]["output"]>;
-  verifications?: Maybe<Scalars["numeric"]["output"]>;
+  date?: Maybe<Scalars["date"]["output"]>;
+  nullifier_hashes?: Maybe<Array<Scalars["String"]["output"]>>;
+  unique_users?: Maybe<Scalars["Int"]["output"]>;
+  verifications?: Maybe<Scalars["Int"]["output"]>;
 };
 
 /** aggregate min on columns */
-export type App_Stats_Returning_Min_Fields = {
-  __typename?: "app_stats_returning_min_fields";
+export type App_Stats_Min_Fields = {
+  __typename?: "app_stats_min_fields";
   app_id?: Maybe<Scalars["String"]["output"]>;
-  date?: Maybe<Scalars["timestamptz"]["output"]>;
-  unique_users?: Maybe<Scalars["numeric"]["output"]>;
-  verifications?: Maybe<Scalars["numeric"]["output"]>;
+  date?: Maybe<Scalars["date"]["output"]>;
+  nullifier_hashes?: Maybe<Array<Scalars["String"]["output"]>>;
+  unique_users?: Maybe<Scalars["Int"]["output"]>;
+  verifications?: Maybe<Scalars["Int"]["output"]>;
 };
 
-/** response of any mutation on the table "app_stats_returning" */
-export type App_Stats_Returning_Mutation_Response = {
-  __typename?: "app_stats_returning_mutation_response";
+/** response of any mutation on the table "app_stats" */
+export type App_Stats_Mutation_Response = {
+  __typename?: "app_stats_mutation_response";
   /** number of rows affected by the mutation */
   affected_rows: Scalars["Int"]["output"];
   /** data from the rows affected by the mutation */
-  returning: Array<App_Stats_Returning>;
+  returning: Array<App_Stats>;
 };
 
-/** on_conflict condition type for table "app_stats_returning" */
-export type App_Stats_Returning_On_Conflict = {
-  constraint: App_Stats_Returning_Constraint;
-  update_columns?: Array<App_Stats_Returning_Update_Column>;
-  where?: InputMaybe<App_Stats_Returning_Bool_Exp>;
+/** on_conflict condition type for table "app_stats" */
+export type App_Stats_On_Conflict = {
+  constraint: App_Stats_Constraint;
+  update_columns?: Array<App_Stats_Update_Column>;
+  where?: InputMaybe<App_Stats_Bool_Exp>;
 };
 
-/** Ordering options when selecting data from "app_stats_returning". */
-export type App_Stats_Returning_Order_By = {
-  app?: InputMaybe<App_Order_By>;
+/** Ordering options when selecting data from "app_stats". */
+export type App_Stats_Order_By = {
   app_id?: InputMaybe<Order_By>;
   date?: InputMaybe<Order_By>;
+  nullifier_hashes?: InputMaybe<Order_By>;
   unique_users?: InputMaybe<Order_By>;
   verifications?: InputMaybe<Order_By>;
 };
 
-/** primary key columns input for table: app_stats_returning */
-export type App_Stats_Returning_Pk_Columns_Input = {
+/** primary key columns input for table: app_stats */
+export type App_Stats_Pk_Columns_Input = {
   app_id: Scalars["String"]["input"];
+  date: Scalars["date"]["input"];
 };
 
-/** select columns of table "app_stats_returning" */
-export enum App_Stats_Returning_Select_Column {
+/** select columns of table "app_stats" */
+export enum App_Stats_Select_Column {
   /** column name */
   AppId = "app_id",
   /** column name */
   Date = "date",
+  /** column name */
+  NullifierHashes = "nullifier_hashes",
   /** column name */
   UniqueUsers = "unique_users",
   /** column name */
   Verifications = "verifications",
 }
 
-/** input type for updating data in table "app_stats_returning" */
-export type App_Stats_Returning_Set_Input = {
+/** input type for updating data in table "app_stats" */
+export type App_Stats_Set_Input = {
   app_id?: InputMaybe<Scalars["String"]["input"]>;
-  date?: InputMaybe<Scalars["timestamptz"]["input"]>;
-  unique_users?: InputMaybe<Scalars["numeric"]["input"]>;
-  verifications?: InputMaybe<Scalars["numeric"]["input"]>;
+  date?: InputMaybe<Scalars["date"]["input"]>;
+  nullifier_hashes?: InputMaybe<Array<Scalars["String"]["input"]>>;
+  unique_users?: InputMaybe<Scalars["Int"]["input"]>;
+  verifications?: InputMaybe<Scalars["Int"]["input"]>;
 };
 
 /** aggregate stddev on columns */
-export type App_Stats_Returning_Stddev_Fields = {
-  __typename?: "app_stats_returning_stddev_fields";
+export type App_Stats_Stddev_Fields = {
+  __typename?: "app_stats_stddev_fields";
   unique_users?: Maybe<Scalars["Float"]["output"]>;
   verifications?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** aggregate stddev_pop on columns */
-export type App_Stats_Returning_Stddev_Pop_Fields = {
-  __typename?: "app_stats_returning_stddev_pop_fields";
+export type App_Stats_Stddev_Pop_Fields = {
+  __typename?: "app_stats_stddev_pop_fields";
   unique_users?: Maybe<Scalars["Float"]["output"]>;
   verifications?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** aggregate stddev_samp on columns */
-export type App_Stats_Returning_Stddev_Samp_Fields = {
-  __typename?: "app_stats_returning_stddev_samp_fields";
+export type App_Stats_Stddev_Samp_Fields = {
+  __typename?: "app_stats_stddev_samp_fields";
   unique_users?: Maybe<Scalars["Float"]["output"]>;
   verifications?: Maybe<Scalars["Float"]["output"]>;
 };
 
-/** Streaming cursor of the table "app_stats_returning" */
-export type App_Stats_Returning_Stream_Cursor_Input = {
+/** Streaming cursor of the table "app_stats" */
+export type App_Stats_Stream_Cursor_Input = {
   /** Stream column input with initial value */
-  initial_value: App_Stats_Returning_Stream_Cursor_Value_Input;
+  initial_value: App_Stats_Stream_Cursor_Value_Input;
   /** cursor ordering */
   ordering?: InputMaybe<Cursor_Ordering>;
 };
 
 /** Initial value of the column from where the streaming should start */
-export type App_Stats_Returning_Stream_Cursor_Value_Input = {
+export type App_Stats_Stream_Cursor_Value_Input = {
   app_id?: InputMaybe<Scalars["String"]["input"]>;
-  date?: InputMaybe<Scalars["timestamptz"]["input"]>;
-  unique_users?: InputMaybe<Scalars["numeric"]["input"]>;
-  verifications?: InputMaybe<Scalars["numeric"]["input"]>;
+  date?: InputMaybe<Scalars["date"]["input"]>;
+  nullifier_hashes?: InputMaybe<Array<Scalars["String"]["input"]>>;
+  unique_users?: InputMaybe<Scalars["Int"]["input"]>;
+  verifications?: InputMaybe<Scalars["Int"]["input"]>;
 };
 
 /** aggregate sum on columns */
-export type App_Stats_Returning_Sum_Fields = {
-  __typename?: "app_stats_returning_sum_fields";
-  unique_users?: Maybe<Scalars["numeric"]["output"]>;
-  verifications?: Maybe<Scalars["numeric"]["output"]>;
+export type App_Stats_Sum_Fields = {
+  __typename?: "app_stats_sum_fields";
+  unique_users?: Maybe<Scalars["Int"]["output"]>;
+  verifications?: Maybe<Scalars["Int"]["output"]>;
 };
 
-/** update columns of table "app_stats_returning" */
-export enum App_Stats_Returning_Update_Column {
+/** update columns of table "app_stats" */
+export enum App_Stats_Update_Column {
   /** column name */
   AppId = "app_id",
   /** column name */
   Date = "date",
+  /** column name */
+  NullifierHashes = "nullifier_hashes",
   /** column name */
   UniqueUsers = "unique_users",
   /** column name */
   Verifications = "verifications",
 }
 
-export type App_Stats_Returning_Updates = {
+export type App_Stats_Updates = {
   /** increments the numeric columns with given value of the filtered values */
-  _inc?: InputMaybe<App_Stats_Returning_Inc_Input>;
+  _inc?: InputMaybe<App_Stats_Inc_Input>;
   /** sets the columns of the filtered rows to the given values */
-  _set?: InputMaybe<App_Stats_Returning_Set_Input>;
+  _set?: InputMaybe<App_Stats_Set_Input>;
   /** filter the rows which have to be updated */
-  where: App_Stats_Returning_Bool_Exp;
+  where: App_Stats_Bool_Exp;
 };
 
 /** aggregate var_pop on columns */
-export type App_Stats_Returning_Var_Pop_Fields = {
-  __typename?: "app_stats_returning_var_pop_fields";
+export type App_Stats_Var_Pop_Fields = {
+  __typename?: "app_stats_var_pop_fields";
   unique_users?: Maybe<Scalars["Float"]["output"]>;
   verifications?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** aggregate var_samp on columns */
-export type App_Stats_Returning_Var_Samp_Fields = {
-  __typename?: "app_stats_returning_var_samp_fields";
+export type App_Stats_Var_Samp_Fields = {
+  __typename?: "app_stats_var_samp_fields";
   unique_users?: Maybe<Scalars["Float"]["output"]>;
   verifications?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** aggregate variance on columns */
-export type App_Stats_Returning_Variance_Fields = {
-  __typename?: "app_stats_returning_variance_fields";
+export type App_Stats_Variance_Fields = {
+  __typename?: "app_stats_variance_fields";
   unique_users?: Maybe<Scalars["Float"]["output"]>;
   verifications?: Maybe<Scalars["Float"]["output"]>;
 };
@@ -4616,6 +4620,19 @@ export enum Cursor_Ordering {
   /** descending ordering of the cursor */
   Desc = "DESC",
 }
+
+/** Boolean expression to compare columns of type "date". All fields are combined with logical 'AND'. */
+export type Date_Comparison_Exp = {
+  _eq?: InputMaybe<Scalars["date"]["input"]>;
+  _gt?: InputMaybe<Scalars["date"]["input"]>;
+  _gte?: InputMaybe<Scalars["date"]["input"]>;
+  _in?: InputMaybe<Array<Scalars["date"]["input"]>>;
+  _is_null?: InputMaybe<Scalars["Boolean"]["input"]>;
+  _lt?: InputMaybe<Scalars["date"]["input"]>;
+  _lte?: InputMaybe<Scalars["date"]["input"]>;
+  _neq?: InputMaybe<Scalars["date"]["input"]>;
+  _nin?: InputMaybe<Array<Scalars["date"]["input"]>>;
+};
 
 /** Boolean expression to compare columns of type "illegal_content_sub_category_enum". All fields are combined with logical 'AND'. */
 export type Illegal_Content_Sub_Category_Enum_Comparison_Exp = {
@@ -5654,10 +5671,10 @@ export type Mutation_Root = {
   delete_app_reviews?: Maybe<App_Reviews_Mutation_Response>;
   /** delete single row from the table: "app_reviews" */
   delete_app_reviews_by_pk?: Maybe<App_Reviews>;
-  /** delete data from the table: "app_stats_returning" */
-  delete_app_stats_returning?: Maybe<App_Stats_Returning_Mutation_Response>;
-  /** delete single row from the table: "app_stats_returning" */
-  delete_app_stats_returning_by_pk?: Maybe<App_Stats_Returning>;
+  /** delete data from the table: "app_stats" */
+  delete_app_stats?: Maybe<App_Stats_Mutation_Response>;
+  /** delete single row from the table: "app_stats" */
+  delete_app_stats_by_pk?: Maybe<App_Stats>;
   /** delete data from the table: "auth_code" */
   delete_auth_code?: Maybe<Auth_Code_Mutation_Response>;
   /** delete single row from the table: "auth_code" */
@@ -5747,10 +5764,10 @@ export type Mutation_Root = {
   insert_app_reviews?: Maybe<App_Reviews_Mutation_Response>;
   /** insert a single row into the table: "app_reviews" */
   insert_app_reviews_one?: Maybe<App_Reviews>;
-  /** insert data into the table: "app_stats_returning" */
-  insert_app_stats_returning?: Maybe<App_Stats_Returning_Mutation_Response>;
-  /** insert a single row into the table: "app_stats_returning" */
-  insert_app_stats_returning_one?: Maybe<App_Stats_Returning>;
+  /** insert data into the table: "app_stats" */
+  insert_app_stats?: Maybe<App_Stats_Mutation_Response>;
+  /** insert a single row into the table: "app_stats" */
+  insert_app_stats_one?: Maybe<App_Stats>;
   /** insert data into the table: "auth_code" */
   insert_auth_code?: Maybe<Auth_Code_Mutation_Response>;
   /** insert a single row into the table: "auth_code" */
@@ -5874,14 +5891,12 @@ export type Mutation_Root = {
   update_app_reviews_by_pk?: Maybe<App_Reviews>;
   /** update multiples rows of table: "app_reviews" */
   update_app_reviews_many?: Maybe<Array<Maybe<App_Reviews_Mutation_Response>>>;
-  /** update data of the table: "app_stats_returning" */
-  update_app_stats_returning?: Maybe<App_Stats_Returning_Mutation_Response>;
-  /** update single row of the table: "app_stats_returning" */
-  update_app_stats_returning_by_pk?: Maybe<App_Stats_Returning>;
-  /** update multiples rows of table: "app_stats_returning" */
-  update_app_stats_returning_many?: Maybe<
-    Array<Maybe<App_Stats_Returning_Mutation_Response>>
-  >;
+  /** update data of the table: "app_stats" */
+  update_app_stats?: Maybe<App_Stats_Mutation_Response>;
+  /** update single row of the table: "app_stats" */
+  update_app_stats_by_pk?: Maybe<App_Stats>;
+  /** update multiples rows of table: "app_stats" */
+  update_app_stats_many?: Maybe<Array<Maybe<App_Stats_Mutation_Response>>>;
   /** update data of the table: "auth_code" */
   update_auth_code?: Maybe<Auth_Code_Mutation_Response>;
   /** update single row of the table: "auth_code" */
@@ -6083,13 +6098,14 @@ export type Mutation_RootDelete_App_Reviews_By_PkArgs = {
 };
 
 /** mutation root */
-export type Mutation_RootDelete_App_Stats_ReturningArgs = {
-  where: App_Stats_Returning_Bool_Exp;
+export type Mutation_RootDelete_App_StatsArgs = {
+  where: App_Stats_Bool_Exp;
 };
 
 /** mutation root */
-export type Mutation_RootDelete_App_Stats_Returning_By_PkArgs = {
+export type Mutation_RootDelete_App_Stats_By_PkArgs = {
   app_id: Scalars["String"]["input"];
+  date: Scalars["date"]["input"];
 };
 
 /** mutation root */
@@ -6336,15 +6352,15 @@ export type Mutation_RootInsert_App_Reviews_OneArgs = {
 };
 
 /** mutation root */
-export type Mutation_RootInsert_App_Stats_ReturningArgs = {
-  objects: Array<App_Stats_Returning_Insert_Input>;
-  on_conflict?: InputMaybe<App_Stats_Returning_On_Conflict>;
+export type Mutation_RootInsert_App_StatsArgs = {
+  objects: Array<App_Stats_Insert_Input>;
+  on_conflict?: InputMaybe<App_Stats_On_Conflict>;
 };
 
 /** mutation root */
-export type Mutation_RootInsert_App_Stats_Returning_OneArgs = {
-  object: App_Stats_Returning_Insert_Input;
-  on_conflict?: InputMaybe<App_Stats_Returning_On_Conflict>;
+export type Mutation_RootInsert_App_Stats_OneArgs = {
+  object: App_Stats_Insert_Input;
+  on_conflict?: InputMaybe<App_Stats_On_Conflict>;
 };
 
 /** mutation root */
@@ -6690,22 +6706,22 @@ export type Mutation_RootUpdate_App_Reviews_ManyArgs = {
 };
 
 /** mutation root */
-export type Mutation_RootUpdate_App_Stats_ReturningArgs = {
-  _inc?: InputMaybe<App_Stats_Returning_Inc_Input>;
-  _set?: InputMaybe<App_Stats_Returning_Set_Input>;
-  where: App_Stats_Returning_Bool_Exp;
+export type Mutation_RootUpdate_App_StatsArgs = {
+  _inc?: InputMaybe<App_Stats_Inc_Input>;
+  _set?: InputMaybe<App_Stats_Set_Input>;
+  where: App_Stats_Bool_Exp;
 };
 
 /** mutation root */
-export type Mutation_RootUpdate_App_Stats_Returning_By_PkArgs = {
-  _inc?: InputMaybe<App_Stats_Returning_Inc_Input>;
-  _set?: InputMaybe<App_Stats_Returning_Set_Input>;
-  pk_columns: App_Stats_Returning_Pk_Columns_Input;
+export type Mutation_RootUpdate_App_Stats_By_PkArgs = {
+  _inc?: InputMaybe<App_Stats_Inc_Input>;
+  _set?: InputMaybe<App_Stats_Set_Input>;
+  pk_columns: App_Stats_Pk_Columns_Input;
 };
 
 /** mutation root */
-export type Mutation_RootUpdate_App_Stats_Returning_ManyArgs = {
-  updates: Array<App_Stats_Returning_Updates>;
+export type Mutation_RootUpdate_App_Stats_ManyArgs = {
+  updates: Array<App_Stats_Updates>;
 };
 
 /** mutation root */
@@ -7751,16 +7767,12 @@ export type Query_Root = {
   app_reviews_aggregate: App_Reviews_Aggregate;
   /** fetch data from the table: "app_reviews" using primary key columns */
   app_reviews_by_pk?: Maybe<App_Reviews>;
-  /** execute function "app_stats" which returns "app_stats_returning" */
-  app_stats: Array<App_Stats_Returning>;
-  /** execute function "app_stats" and query aggregates on result of table type "app_stats_returning" */
-  app_stats_aggregate: App_Stats_Returning_Aggregate;
-  /** fetch data from the table: "app_stats_returning" */
-  app_stats_returning: Array<App_Stats_Returning>;
-  /** fetch aggregated fields from the table: "app_stats_returning" */
-  app_stats_returning_aggregate: App_Stats_Returning_Aggregate;
-  /** fetch data from the table: "app_stats_returning" using primary key columns */
-  app_stats_returning_by_pk?: Maybe<App_Stats_Returning>;
+  /** fetch data from the table: "app_stats" */
+  app_stats: Array<App_Stats>;
+  /** fetch aggregated fields from the table: "app_stats" */
+  app_stats_aggregate: App_Stats_Aggregate;
+  /** fetch data from the table: "app_stats" using primary key columns */
+  app_stats_by_pk?: Maybe<App_Stats>;
   /** fetch data from the table: "auth_code" */
   auth_code: Array<Auth_Code>;
   /** fetch aggregated fields from the table: "auth_code" */
@@ -8047,41 +8059,24 @@ export type Query_RootApp_Reviews_By_PkArgs = {
 };
 
 export type Query_RootApp_StatsArgs = {
-  args: App_Stats_Args;
-  distinct_on?: InputMaybe<Array<App_Stats_Returning_Select_Column>>;
+  distinct_on?: InputMaybe<Array<App_Stats_Select_Column>>;
   limit?: InputMaybe<Scalars["Int"]["input"]>;
   offset?: InputMaybe<Scalars["Int"]["input"]>;
-  order_by?: InputMaybe<Array<App_Stats_Returning_Order_By>>;
-  where?: InputMaybe<App_Stats_Returning_Bool_Exp>;
+  order_by?: InputMaybe<Array<App_Stats_Order_By>>;
+  where?: InputMaybe<App_Stats_Bool_Exp>;
 };
 
 export type Query_RootApp_Stats_AggregateArgs = {
-  args: App_Stats_Args;
-  distinct_on?: InputMaybe<Array<App_Stats_Returning_Select_Column>>;
+  distinct_on?: InputMaybe<Array<App_Stats_Select_Column>>;
   limit?: InputMaybe<Scalars["Int"]["input"]>;
   offset?: InputMaybe<Scalars["Int"]["input"]>;
-  order_by?: InputMaybe<Array<App_Stats_Returning_Order_By>>;
-  where?: InputMaybe<App_Stats_Returning_Bool_Exp>;
+  order_by?: InputMaybe<Array<App_Stats_Order_By>>;
+  where?: InputMaybe<App_Stats_Bool_Exp>;
 };
 
-export type Query_RootApp_Stats_ReturningArgs = {
-  distinct_on?: InputMaybe<Array<App_Stats_Returning_Select_Column>>;
-  limit?: InputMaybe<Scalars["Int"]["input"]>;
-  offset?: InputMaybe<Scalars["Int"]["input"]>;
-  order_by?: InputMaybe<Array<App_Stats_Returning_Order_By>>;
-  where?: InputMaybe<App_Stats_Returning_Bool_Exp>;
-};
-
-export type Query_RootApp_Stats_Returning_AggregateArgs = {
-  distinct_on?: InputMaybe<Array<App_Stats_Returning_Select_Column>>;
-  limit?: InputMaybe<Scalars["Int"]["input"]>;
-  offset?: InputMaybe<Scalars["Int"]["input"]>;
-  order_by?: InputMaybe<Array<App_Stats_Returning_Order_By>>;
-  where?: InputMaybe<App_Stats_Returning_Bool_Exp>;
-};
-
-export type Query_RootApp_Stats_Returning_By_PkArgs = {
+export type Query_RootApp_Stats_By_PkArgs = {
   app_id: Scalars["String"]["input"];
+  date: Scalars["date"]["input"];
 };
 
 export type Query_RootAuth_CodeArgs = {
@@ -8832,18 +8827,14 @@ export type Subscription_Root = {
   app_reviews_by_pk?: Maybe<App_Reviews>;
   /** fetch data from the table in a streaming manner: "app_reviews" */
   app_reviews_stream: Array<App_Reviews>;
-  /** execute function "app_stats" which returns "app_stats_returning" */
-  app_stats: Array<App_Stats_Returning>;
-  /** execute function "app_stats" and query aggregates on result of table type "app_stats_returning" */
-  app_stats_aggregate: App_Stats_Returning_Aggregate;
-  /** fetch data from the table: "app_stats_returning" */
-  app_stats_returning: Array<App_Stats_Returning>;
-  /** fetch aggregated fields from the table: "app_stats_returning" */
-  app_stats_returning_aggregate: App_Stats_Returning_Aggregate;
-  /** fetch data from the table: "app_stats_returning" using primary key columns */
-  app_stats_returning_by_pk?: Maybe<App_Stats_Returning>;
-  /** fetch data from the table in a streaming manner: "app_stats_returning" */
-  app_stats_returning_stream: Array<App_Stats_Returning>;
+  /** fetch data from the table: "app_stats" */
+  app_stats: Array<App_Stats>;
+  /** fetch aggregated fields from the table: "app_stats" */
+  app_stats_aggregate: App_Stats_Aggregate;
+  /** fetch data from the table: "app_stats" using primary key columns */
+  app_stats_by_pk?: Maybe<App_Stats>;
+  /** fetch data from the table in a streaming manner: "app_stats" */
+  app_stats_stream: Array<App_Stats>;
   /** fetch data from the table in a streaming manner: "app" */
   app_stream: Array<App>;
   /** fetch data from the table: "auth_code" */
@@ -9199,47 +9190,30 @@ export type Subscription_RootApp_Reviews_StreamArgs = {
 };
 
 export type Subscription_RootApp_StatsArgs = {
-  args: App_Stats_Args;
-  distinct_on?: InputMaybe<Array<App_Stats_Returning_Select_Column>>;
+  distinct_on?: InputMaybe<Array<App_Stats_Select_Column>>;
   limit?: InputMaybe<Scalars["Int"]["input"]>;
   offset?: InputMaybe<Scalars["Int"]["input"]>;
-  order_by?: InputMaybe<Array<App_Stats_Returning_Order_By>>;
-  where?: InputMaybe<App_Stats_Returning_Bool_Exp>;
+  order_by?: InputMaybe<Array<App_Stats_Order_By>>;
+  where?: InputMaybe<App_Stats_Bool_Exp>;
 };
 
 export type Subscription_RootApp_Stats_AggregateArgs = {
-  args: App_Stats_Args;
-  distinct_on?: InputMaybe<Array<App_Stats_Returning_Select_Column>>;
+  distinct_on?: InputMaybe<Array<App_Stats_Select_Column>>;
   limit?: InputMaybe<Scalars["Int"]["input"]>;
   offset?: InputMaybe<Scalars["Int"]["input"]>;
-  order_by?: InputMaybe<Array<App_Stats_Returning_Order_By>>;
-  where?: InputMaybe<App_Stats_Returning_Bool_Exp>;
+  order_by?: InputMaybe<Array<App_Stats_Order_By>>;
+  where?: InputMaybe<App_Stats_Bool_Exp>;
 };
 
-export type Subscription_RootApp_Stats_ReturningArgs = {
-  distinct_on?: InputMaybe<Array<App_Stats_Returning_Select_Column>>;
-  limit?: InputMaybe<Scalars["Int"]["input"]>;
-  offset?: InputMaybe<Scalars["Int"]["input"]>;
-  order_by?: InputMaybe<Array<App_Stats_Returning_Order_By>>;
-  where?: InputMaybe<App_Stats_Returning_Bool_Exp>;
-};
-
-export type Subscription_RootApp_Stats_Returning_AggregateArgs = {
-  distinct_on?: InputMaybe<Array<App_Stats_Returning_Select_Column>>;
-  limit?: InputMaybe<Scalars["Int"]["input"]>;
-  offset?: InputMaybe<Scalars["Int"]["input"]>;
-  order_by?: InputMaybe<Array<App_Stats_Returning_Order_By>>;
-  where?: InputMaybe<App_Stats_Returning_Bool_Exp>;
-};
-
-export type Subscription_RootApp_Stats_Returning_By_PkArgs = {
+export type Subscription_RootApp_Stats_By_PkArgs = {
   app_id: Scalars["String"]["input"];
+  date: Scalars["date"]["input"];
 };
 
-export type Subscription_RootApp_Stats_Returning_StreamArgs = {
+export type Subscription_RootApp_Stats_StreamArgs = {
   batch_size: Scalars["Int"]["input"];
-  cursor: Array<InputMaybe<App_Stats_Returning_Stream_Cursor_Input>>;
-  where?: InputMaybe<App_Stats_Returning_Bool_Exp>;
+  cursor: Array<InputMaybe<App_Stats_Stream_Cursor_Input>>;
+  where?: InputMaybe<App_Stats_Bool_Exp>;
 };
 
 export type Subscription_RootApp_StreamArgs = {

@@ -202,8 +202,6 @@ export const GraphsSection = () => {
     useFetchAppStatsQuery({
       variables: {
         appId,
-        startsAt,
-        timeSpan: "day",
       },
     });
 

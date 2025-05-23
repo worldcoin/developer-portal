@@ -6,14 +6,12 @@ import * as Apollo from "@apollo/client";
 const defaultOptions = {} as const;
 export type FetchAppStatsQueryVariables = Types.Exact<{
   appId: Types.Scalars["String"]["input"];
-  startsAt: Types.Scalars["timestamptz"]["input"];
-  timeSpan: Types.Scalars["String"]["input"];
 }>;
 
 export type FetchAppStatsQuery = {
   __typename?: "query_root";
   app_stats: Array<{
-    __typename?: "app_stats_returning";
+    __typename?: "app_stats";
     app_id: string;
     date: string;
     verifications: number;
@@ -23,14 +21,8 @@ export type FetchAppStatsQuery = {
 };
 
 export const FetchAppStatsDocument = gql`
-  query FetchAppStats(
-    $appId: String!
-    $startsAt: timestamptz!
-    $timeSpan: String!
-  ) {
-    app_stats(
-      args: { appId: $appId, startsAt: $startsAt, timespan: $timeSpan }
-    ) {
+  query FetchAppStats($appId: String!) {
+    app_stats(where: { app_id: { _eq: $appId } }, order_by: { date: asc }) {
       app_id
       date
       verifications
@@ -56,8 +48,6 @@ export const FetchAppStatsDocument = gql`
  * const { data, loading, error } = useFetchAppStatsQuery({
  *   variables: {
  *      appId: // value for 'appId'
- *      startsAt: // value for 'startsAt'
- *      timeSpan: // value for 'timeSpan'
  *   },
  * });
  */

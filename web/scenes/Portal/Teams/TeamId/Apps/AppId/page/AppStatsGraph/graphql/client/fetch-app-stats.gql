@@ -1,9 +1,5 @@
-query FetchAppStats(
-  $appId: String!
-  $startsAt: timestamptz!
-  $timeSpan: String!
-) {
-  app_stats(args: { appId: $appId, startsAt: $startsAt, timespan: $timeSpan }) {
+query FetchAppStats($appId: String!) {
+  app_stats(where: { app_id: { _eq: $appId } }, order_by: { date: asc }) {
     app_id
     date
     verifications
