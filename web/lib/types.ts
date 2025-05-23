@@ -253,7 +253,7 @@ export type AppStoreFormattedFields = Omit<
     how_to_connect: string;
   };
   draft_id?: string;
-  should_show_notification_badge: boolean;
+  avg_notification_open_rate: number | null;
 };
 
 type NativeApp = {

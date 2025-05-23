@@ -109,7 +109,7 @@ describe("/api/public/app/[app_id]", () => {
         world_app_button_text: "Use Integration",
         world_app_description:
           "This is an example app designed to showcase the capabilities of our platform.",
-        should_show_notification_badge: true,
+        avg_notification_open_rate: null,
       },
     });
   });
@@ -208,7 +208,7 @@ describe("/api/public/app/[app_id]", () => {
         world_app_button_text: "Use Integration",
         world_app_description:
           "This is an example app designed to showcase the capabilities of our platform.",
-        should_show_notification_badge: true,
+        avg_notification_open_rate: null,
       },
     });
   });
@@ -307,7 +307,7 @@ describe("/api/public/app/[app_id]", () => {
         world_app_button_text: "Use Integration",
         world_app_description:
           "This is an example app designed to showcase the capabilities of our platform.",
-        should_show_notification_badge: true,
+        avg_notification_open_rate: null,
       },
     });
   });

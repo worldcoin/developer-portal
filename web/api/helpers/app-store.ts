@@ -164,25 +164,25 @@ export const formatAppMetadata = async (
     permit2_tokens: permit2Tokens,
     contracts: contracts,
     supported_countries: supportedCountries,
-    should_show_notification_badge: getShouldShowNotificationBadge(
+    avg_notification_open_rate: getAvgNotificationOpenRate(
       singleAppStats?.open_rate_last_14_days,
     ),
   };
 };
 
-const getShouldShowNotificationBadge = (
+const getAvgNotificationOpenRate = (
   openRateLast14Days: AppStatsItem["open_rate_last_14_days"] | null | undefined,
-): boolean => {
-  // if no data or less than 7 days, show badge
+): number | null => {
+  // if no data or less than 7 days, return null
   if (!openRateLast14Days || openRateLast14Days.length < 7) {
-    return true;
+    return null;
   }
-  // if avg open rate is more than 15%, show badge
+
   const avgOpenRate =
     openRateLast14Days.reduce((acc, curr) => acc + curr.value, 0) /
     openRateLast14Days.length;
 
-  return avgOpenRate >= 0.15;
+  return avgOpenRate;
 };
 
 const isDefaultPinnedNoGrants = (appId: string) => {
