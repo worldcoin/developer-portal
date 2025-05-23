@@ -12,6 +12,7 @@ export type AppMetricsData = {
   n_users_opened_last_14_days: NotificationData[];
   n_users_received_last_14_days: NotificationData[];
   open_rate_last_14_days: NotificationData[];
+  notification_opt_in_rate: number | null;
 };
 
 type NotificationData = {
@@ -56,6 +57,7 @@ export const getAppMetricsData = async (
       n_users_opened_last_14_days: [],
       n_users_received_last_14_days: [],
       open_rate_last_14_days: [],
+      notification_opt_in_rate: 0,
     };
   }
 
@@ -75,5 +77,6 @@ export const getAppMetricsData = async (
     n_users_opened_last_14_days: appMetrics.n_users_opened_last_14_days,
     n_users_received_last_14_days: appMetrics.n_users_received_last_14_days,
     open_rate_last_14_days: appMetrics.open_rate_last_14_days,
+    notification_opt_in_rate: appMetrics.notification_opt_in_rate,
   };
 };
