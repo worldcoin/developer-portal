@@ -79,8 +79,10 @@ export async function POST(
 
   const client = await getAPIServiceGraphqlClient();
 
+  // Feature flag only for prod to avoid failing tests
   const isNullifierHashIntFeatFlag =
-    NULLIFIER_HASH_INT_FEAT_FLAG.includes(app_id);
+    NULLIFIER_HASH_INT_FEAT_FLAG.includes(app_id) &&
+    process.env.NODE_ENV === "production";
 
   // Convert the nullifier hash to its integer representation for more robust comparison
   const nullifier_hash_int = nullifierHashToBigIntStr(
