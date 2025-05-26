@@ -23,7 +23,11 @@ export const Form = (props: { hasUser: boolean }) => {
     () =>
       yup.object({
         hasUser: yup.boolean().default(props.hasUser),
-        teamName: yup.string().required("Please enter a team name"),
+        teamName: yup
+          .string()
+          .required("Please enter a team name")
+          .max(128, "Team name must be 128 characters or less")
+          .matches(/^[^<>]*$/, "Team name cannot contain < or > characters"),
 
         termsAndConditions: yup.boolean().when("hasUser", {
           is: false,
