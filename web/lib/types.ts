@@ -214,6 +214,8 @@ export type AppStoreMetadataFields = {
   is_allowed_unlimited_notifications?: boolean | null;
   max_notifications_per_day?: number | null;
   is_android_only?: boolean | null;
+  notification_state?: string | null;
+  notification_state_changed_date?: string | null;
   app: {
     team: { name?: string | null; id: string };
     rating_sum: number;
@@ -265,6 +267,11 @@ export type NativeAppsMap = {
   [key: string]: NativeApp;
 };
 
+type MetricsTimeseries = {
+  date: string;
+  value: number;
+}[];
+
 export type AppStatsItem = {
   app_id: string;
   unique_users: number;
@@ -272,6 +279,7 @@ export type AppStatsItem = {
   unique_users_last_7_days: number | null;
   total_impressions: number;
   new_users_last_7_days: number | null;
+  open_rate_last_14_days: MetricsTimeseries | null;
 };
 
 export type AppStatsReturnType = Array<AppStatsItem>;

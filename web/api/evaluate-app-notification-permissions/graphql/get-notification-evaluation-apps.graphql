@@ -1,0 +1,16 @@
+query GetNotificationEvaluationApps($appIds: [String!]) {
+  app_metadata(
+    where: {
+      verification_status: { _eq: "verified" }
+      app_id: { _in: $appIds }
+    }
+    order_by: { created_at: asc }
+    limit: 1000
+  ) {
+    app_id
+    notification_state
+    notification_state_changed_date
+    is_allowed_unlimited_notifications
+    max_notifications_per_day
+  }
+}

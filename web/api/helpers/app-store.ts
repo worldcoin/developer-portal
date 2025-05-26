@@ -13,6 +13,7 @@ import {
   AppStoreMetadataFields,
 } from "@/lib/types";
 import { getCDNImageUrl, getLogoImgCDNUrl, tryParseJSON } from "@/lib/utils";
+import { getNotificationPermissions } from "./notifications";
 
 export const formatAppMetadata = async (
   appData: AppStoreMetadataFields,
@@ -164,6 +165,7 @@ export const formatAppMetadata = async (
     permit2_tokens: permit2Tokens,
     contracts: contracts,
     supported_countries: supportedCountries,
+    ...getNotificationPermissions(appMetadata),
   };
 };
 
