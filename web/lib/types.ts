@@ -214,8 +214,8 @@ export type AppStoreMetadataFields = {
   is_allowed_unlimited_notifications?: boolean | null;
   max_notifications_per_day?: number | null;
   is_android_only?: boolean | null;
-  notification_state?: string | null;
-  notification_state_changed_date?: string | null;
+  notification_permission_status?: string | null;
+  notification_permission_status_changed_date?: string | null;
   app: {
     team: { name?: string | null; id: string };
     rating_sum: number;

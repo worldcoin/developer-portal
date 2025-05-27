@@ -72,10 +72,12 @@ export const getNotificationPermissions = (
   }
 
   const notificationState =
-    (appMetadata.notification_state as NotificationState) || "normal";
-  const stateChangedDate = appMetadata.notification_state_changed_date
-    ? new Date(appMetadata.notification_state_changed_date)
-    : null;
+    (appMetadata.notification_permission_status as NotificationState) ||
+    "normal";
+  const stateChangedDate =
+    appMetadata.notification_permission_status_changed_date
+      ? new Date(appMetadata.notification_permission_status_changed_date)
+      : null;
   const now = new Date();
 
   const daysSinceStateChange = stateChangedDate
@@ -166,8 +168,8 @@ export const getNotificationPermissions = (
 export const safeUpdateNotificationState = async (
   app_id: string,
   updates: {
-    notification_state?: NotificationState;
-    notification_state_changed_date?: Date;
+    notification_permission_status?: NotificationState;
+    notification_permission_status_changed_date?: Date;
   },
 ): Promise<void> => {
   try {
@@ -176,9 +178,11 @@ export const safeUpdateNotificationState = async (
 
     await sdk.UpdateNotificationPermissionStatus({
       app_id: app_id,
-      notification_state: updates.notification_state ?? undefined,
-      notification_state_changed_date:
-        updates.notification_state_changed_date?.toISOString() ?? undefined,
+      notification_permission_status:
+        updates.notification_permission_status ?? undefined,
+      notification_permission_status_changed_date:
+        updates.notification_permission_status_changed_date?.toISOString() ??
+        undefined,
     });
 
     logger.info("notification state updated successfully", {
@@ -255,8 +259,9 @@ export const POST = async (req: NextRequest) => {
 
   const appsToEvaluate = appMetadata.app_metadata.map((app) => ({
     app_id: app.app_id,
-    notification_state: app.notification_state,
-    notification_state_changed_date: app.notification_state_changed_date,
+    notification_permission_status: app.notification_permission_status,
+    notification_permission_status_changed_date:
+      app.notification_permission_status_changed_date,
   }));
 
   for (const app of appsToEvaluate) {
@@ -271,8 +276,8 @@ export const POST = async (req: NextRequest) => {
     const evaluationResult = getNotificationPermissions(app, appStats);
     if (evaluationResult.should_update_state) {
       void safeUpdateNotificationState(app.app_id, {
-        notification_state: evaluationResult.new_state,
-        notification_state_changed_date:
+        notification_permission_status: evaluationResult.new_state,
+        notification_permission_status_changed_date:
           evaluationResult.new_state_changed_date,
       });
     }

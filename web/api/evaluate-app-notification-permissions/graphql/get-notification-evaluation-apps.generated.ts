@@ -15,8 +15,8 @@ export type GetNotificationEvaluationAppsQuery = {
   app_metadata: Array<{
     __typename?: "app_metadata";
     app_id: string;
-    notification_state: string;
-    notification_state_changed_date?: string | null;
+    notification_permission_status: string;
+    notification_permission_status_changed_date?: string | null;
     is_allowed_unlimited_notifications?: boolean | null;
     max_notifications_per_day?: number | null;
   }>;
@@ -33,8 +33,8 @@ export const GetNotificationEvaluationAppsDocument = gql`
       limit: 1000
     ) {
       app_id
-      notification_state
-      notification_state_changed_date
+      notification_permission_status
+      notification_permission_status_changed_date
       is_allowed_unlimited_notifications
       max_notifications_per_day
     }

@@ -294,11 +294,13 @@ export const POST = async (req: NextRequest) => {
       );
     }
   }
+  // either no notifications allowed or notifications are paused
+  const areNotificationsEnabled =
+    (!appMetadata.is_allowed_unlimited_notifications &&
+      appMetadata.max_notifications_per_day === 0) ||
+    appMetadata.notification_permission_status === "paused";
 
-  if (
-    !appMetadata.is_allowed_unlimited_notifications &&
-    appMetadata.max_notifications_per_day === 0
-  ) {
+  if (areNotificationsEnabled) {
     return errorResponse({
       statusCode: 400,
       code: "not_allowed",

@@ -14041,7 +14041,7 @@
             "deprecationReason": null
           },
           {
-            "name": "notification_state",
+            "name": "notification_permission_status",
             "description": null,
             "args": [],
             "type": {
@@ -14057,7 +14057,7 @@
             "deprecationReason": null
           },
           {
-            "name": "notification_state_changed_date",
+            "name": "notification_permission_status_changed_date",
             "description": null,
             "args": [],
             "type": {
@@ -15468,7 +15468,7 @@
             "deprecationReason": null
           },
           {
-            "name": "notification_state",
+            "name": "notification_permission_status",
             "description": null,
             "type": {
               "kind": "INPUT_OBJECT",
@@ -15480,7 +15480,7 @@
             "deprecationReason": null
           },
           {
-            "name": "notification_state_changed_date",
+            "name": "notification_permission_status_changed_date",
             "description": null,
             "type": {
               "kind": "INPUT_OBJECT",
@@ -16069,7 +16069,7 @@
             "deprecationReason": null
           },
           {
-            "name": "notification_state",
+            "name": "notification_permission_status",
             "description": null,
             "type": {
               "kind": "SCALAR",
@@ -16081,7 +16081,7 @@
             "deprecationReason": null
           },
           {
-            "name": "notification_state_changed_date",
+            "name": "notification_permission_status_changed_date",
             "description": null,
             "type": {
               "kind": "SCALAR",
@@ -16555,7 +16555,7 @@
             "deprecationReason": null
           },
           {
-            "name": "notification_state",
+            "name": "notification_permission_status",
             "description": null,
             "args": [],
             "type": {
@@ -16567,7 +16567,7 @@
             "deprecationReason": null
           },
           {
-            "name": "notification_state_changed_date",
+            "name": "notification_permission_status_changed_date",
             "description": null,
             "args": [],
             "type": {
@@ -17003,7 +17003,7 @@
             "deprecationReason": null
           },
           {
-            "name": "notification_state",
+            "name": "notification_permission_status",
             "description": null,
             "type": {
               "kind": "ENUM",
@@ -17015,7 +17015,7 @@
             "deprecationReason": null
           },
           {
-            "name": "notification_state_changed_date",
+            "name": "notification_permission_status_changed_date",
             "description": null,
             "type": {
               "kind": "ENUM",
@@ -17437,7 +17437,7 @@
             "deprecationReason": null
           },
           {
-            "name": "notification_state",
+            "name": "notification_permission_status",
             "description": null,
             "args": [],
             "type": {
@@ -17449,7 +17449,7 @@
             "deprecationReason": null
           },
           {
-            "name": "notification_state_changed_date",
+            "name": "notification_permission_status_changed_date",
             "description": null,
             "args": [],
             "type": {
@@ -17885,7 +17885,7 @@
             "deprecationReason": null
           },
           {
-            "name": "notification_state",
+            "name": "notification_permission_status",
             "description": null,
             "type": {
               "kind": "ENUM",
@@ -17897,7 +17897,7 @@
             "deprecationReason": null
           },
           {
-            "name": "notification_state_changed_date",
+            "name": "notification_permission_status_changed_date",
             "description": null,
             "type": {
               "kind": "ENUM",
@@ -18577,7 +18577,7 @@
             "deprecationReason": null
           },
           {
-            "name": "notification_state",
+            "name": "notification_permission_status",
             "description": null,
             "type": {
               "kind": "ENUM",
@@ -18589,7 +18589,7 @@
             "deprecationReason": null
           },
           {
-            "name": "notification_state_changed_date",
+            "name": "notification_permission_status_changed_date",
             "description": null,
             "type": {
               "kind": "ENUM",
@@ -18977,13 +18977,13 @@
             "deprecationReason": null
           },
           {
-            "name": "notification_state",
+            "name": "notification_permission_status",
             "description": "column name",
             "isDeprecated": false,
             "deprecationReason": null
           },
           {
-            "name": "notification_state_changed_date",
+            "name": "notification_permission_status_changed_date",
             "description": "column name",
             "isDeprecated": false,
             "deprecationReason": null
@@ -19528,7 +19528,7 @@
             "deprecationReason": null
           },
           {
-            "name": "notification_state",
+            "name": "notification_permission_status",
             "description": null,
             "type": {
               "kind": "SCALAR",
@@ -19540,7 +19540,7 @@
             "deprecationReason": null
           },
           {
-            "name": "notification_state_changed_date",
+            "name": "notification_permission_status_changed_date",
             "description": null,
             "type": {
               "kind": "SCALAR",
@@ -20312,7 +20312,7 @@
             "deprecationReason": null
           },
           {
-            "name": "notification_state",
+            "name": "notification_permission_status",
             "description": null,
             "type": {
               "kind": "SCALAR",
@@ -20324,7 +20324,7 @@
             "deprecationReason": null
           },
           {
-            "name": "notification_state_changed_date",
+            "name": "notification_permission_status_changed_date",
             "description": null,
             "type": {
               "kind": "SCALAR",
@@ -20783,13 +20783,13 @@
             "deprecationReason": null
           },
           {
-            "name": "notification_state",
+            "name": "notification_permission_status",
             "description": "column name",
             "isDeprecated": false,
             "deprecationReason": null
           },
           {
-            "name": "notification_state_changed_date",
+            "name": "notification_permission_status_changed_date",
             "description": "column name",
             "isDeprecated": false,
             "deprecationReason": null

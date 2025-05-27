@@ -6,8 +6,10 @@ import gql from "graphql-tag";
 type GraphQLClientRequestHeaders = RequestOptions["requestHeaders"];
 export type UpdateNotificationPermissionStatusMutationVariables = Types.Exact<{
   app_id: Types.Scalars["String"]["input"];
-  notification_state?: Types.InputMaybe<Types.Scalars["String"]["input"]>;
-  notification_state_changed_date?: Types.InputMaybe<
+  notification_permission_status?: Types.InputMaybe<
+    Types.Scalars["String"]["input"]
+  >;
+  notification_permission_status_changed_date?: Types.InputMaybe<
     Types.Scalars["timestamptz"]["input"]
   >;
 }>;
@@ -23,14 +25,14 @@ export type UpdateNotificationPermissionStatusMutation = {
 export const UpdateNotificationPermissionStatusDocument = gql`
   mutation UpdateNotificationPermissionStatus(
     $app_id: String!
-    $notification_state: String
-    $notification_state_changed_date: timestamptz
+    $notification_permission_status: String
+    $notification_permission_status_changed_date: timestamptz
   ) {
     update_app_metadata_by_pk(
       pk_columns: { id: $app_id }
       _set: {
-        notification_state: $notification_state
-        notification_state_changed_date: $notification_state_changed_date
+        notification_permission_status: $notification_permission_status
+        notification_permission_status_changed_date: $notification_permission_status_changed_date
       }
     ) {
       id
