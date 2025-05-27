@@ -7,7 +7,7 @@ type GraphQLClientRequestHeaders = RequestOptions["requestHeaders"];
 export type FetchAppActionQueryVariables = Types.Exact<{
   app_id: Types.Scalars["String"]["input"];
   action: Types.Scalars["String"]["input"];
-  nullifier_hash_int: Types.Scalars["String"]["input"];
+  nullifier_hash: Types.Scalars["String"]["input"];
 }>;
 
 export type FetchAppActionQuery = {
@@ -29,7 +29,6 @@ export type FetchAppActionQuery = {
         uses: number;
         created_at: string;
         nullifier_hash: string;
-        nullifier_hash_int?: string | null;
       }>;
     }>;
   }>;
@@ -39,7 +38,7 @@ export const FetchAppActionDocument = gql`
   query FetchAppAction(
     $app_id: String!
     $action: String!
-    $nullifier_hash_int: String!
+    $nullifier_hash: String!
   ) {
     app(
       where: {
@@ -57,13 +56,10 @@ export const FetchAppActionDocument = gql`
         max_verifications
         external_nullifier
         status
-        nullifiers(
-          where: { nullifier_hash_int: { _eq: $nullifier_hash_int } }
-        ) {
+        nullifiers(where: { nullifier_hash: { _eq: $nullifier_hash } }) {
           uses
           created_at
           nullifier_hash
-          nullifier_hash_int
         }
       }
     }
