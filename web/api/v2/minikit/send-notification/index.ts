@@ -295,17 +295,31 @@ export const POST = async (req: NextRequest) => {
     }
   }
 
-  // either no notifications allowed or notifications are paused
+  // notifications are allowed and not paused
   const areNotificationsEnabled =
-    (!appMetadata.is_allowed_unlimited_notifications &&
-      appMetadata.max_notifications_per_day === 0) ||
-    appMetadata.notification_permission_status === "paused";
+    appMetadata.is_allowed_unlimited_notifications ||
+    appMetadata.max_notifications_per_day !== 0;
 
-  if (areNotificationsEnabled) {
+  if (!areNotificationsEnabled) {
     return errorResponse({
       statusCode: 400,
       code: "not_allowed",
       detail: "Notifications not enabled for this app",
+      req,
+      app_id,
+      team_id: teamId,
+    });
+  }
+
+  const areNotificationsPaused =
+    appMetadata.notification_permission_status === "paused";
+  if (areNotificationsPaused) {
+    return errorResponse({
+      statusCode: 400,
+      code: "paused",
+      detail: `Notifications are paused for this app. 
+      Your app had average open rate below 10% which resulted in a 7day pause. 
+      Pause started at ${appMetadata.notification_permission_status_changed_date}`,
       req,
       app_id,
       team_id: teamId,

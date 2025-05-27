@@ -7,7 +7,6 @@
  *
  */
 
-import { errorNotAllowed } from "@/api/helpers/errors";
 import { protectInternalEndpoint } from "@/api/helpers/utils";
 import { logger } from "@/lib/logger";
 import { AppStatsItem, AppStatsReturnType } from "@/lib/types";
@@ -29,8 +28,8 @@ type InternalNotificationPermissionResult =
     }
   | {
       should_update_state: true;
-      new_state?: NotificationState;
-      new_state_changed_date?: Date;
+      new_state: NotificationState;
+      new_state_changed_date: Date;
     };
 
 const NOTIFICATION_OPEN_RATE_THRESHOLD = 0.1;
@@ -64,7 +63,8 @@ const calculateLast7DaysOpenRate = (
 const skipStateUpdate = {
   should_update_state: false,
 } as const;
-export const getNotificationPermissions = (
+
+const evaluateNotificationPermissions = (
   appMetadata: GetNotificationEvaluationAppsQuery["app_metadata"][number],
   appStats: AppStatsItem,
 ): InternalNotificationPermissionResult => {
@@ -101,13 +101,6 @@ export const getNotificationPermissions = (
 
   switch (notificationState) {
     case "normal": {
-      // if no data, allow current permissions
-      if (weeklyOpenRate === null) {
-        return {
-          should_update_state: true,
-        };
-      }
-
       // if open rate < 10%, pause notifications
       if (isUnderOpenRateThreshold) {
         return {
@@ -139,15 +132,6 @@ export const getNotificationPermissions = (
       // evaluate after 1 week of being enabled
       if (!hasOneWeekPassed) {
         return skipStateUpdate;
-      }
-
-      // if no data, allow current permissions and return to normal
-      if (weeklyOpenRate === null) {
-        return {
-          should_update_state: true,
-          new_state: "normal",
-          new_state_changed_date: now,
-        };
       }
 
       // if open rate still < 10%, pause again
@@ -246,10 +230,6 @@ export const POST = async (req: NextRequest) => {
     return errorResponse;
   }
 
-  if (req.method !== "POST") {
-    return errorNotAllowed(req.method, req);
-  }
-
   const metricsData = await fetchMetrics();
 
   const appIdsToEvaluate = metricsData
@@ -285,7 +265,7 @@ export const POST = async (req: NextRequest) => {
 
       continue;
     }
-    const evaluationResult = getNotificationPermissions(app, appStats);
+    const evaluationResult = evaluateNotificationPermissions(app, appStats);
     if (evaluationResult.should_update_state) {
       void safeUpdateNotificationState(app.app_id, {
         notification_permission_status: evaluationResult.new_state,
