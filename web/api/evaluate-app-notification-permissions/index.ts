@@ -104,9 +104,7 @@ export const getNotificationPermissions = (
       }
 
       // open rate is good, continue normal operation
-      return {
-        should_update_state: true,
-      };
+      return skipStateUpdate;
     }
 
     case "paused": {
