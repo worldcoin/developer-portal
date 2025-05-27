@@ -32,14 +32,7 @@ const schema = yup.object({
       "0x00c5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a4", // hashToField("")
     ),
   proof: yup.string().strict().required("This attribute is required."),
-  nullifier_hash: yup
-    .string()
-    .strict()
-    .matches(
-      /^(0x)?[\da-fA-F]+$/,
-      "Invalid nullifier_hash. Must be a hex string with optional 0x prefix.",
-    )
-    .required("This attribute is required."),
+  nullifier_hash: yup.string().strict().required("This attribute is required."),
   merkle_root: yup.string().strict().required("This attribute is required."),
   verification_level: yup
     .string()
