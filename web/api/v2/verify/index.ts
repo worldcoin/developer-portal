@@ -20,6 +20,7 @@ import {
   getSdk as getFetchAppActionSdk,
 } from "./graphql/fetch-app-action.generated";
 
+import { logger } from "@/lib/logger";
 import { getSdk as atomicUpsertNullifierOldSdk } from "./graphql/atomic-upsert-nullifier-old.generated";
 import { getSdk as getFetchAppActionOldSdk } from "./graphql/fetch-app-action-old.generated";
 
@@ -54,7 +55,10 @@ const schema = yup.object({
     .optional(),
 });
 
-const NULLIFIER_HASH_INT_FEAT_FLAG = ["app_020c82fbf3c087eb31600929a34990e4"];
+const NULLIFIER_HASH_INT_FEAT_FLAG = [
+  "app_020c82fbf3c087eb31600929a34990e4",
+  "app_fef4f277e1a6a5e32c3be8dac521da5d",
+];
 
 export async function POST(
   req: NextRequest,
@@ -88,6 +92,10 @@ export async function POST(
   const nullifier_hash_int = nullifierHashToBigIntStr(
     parsedParams.nullifier_hash,
   );
+
+  if (nullifier_hash_int) {
+    logger.info(`Using nullifer hash int column for ${app_id}`);
+  }
 
   let appActionResponse: FetchAppActionQuery;
   if (isNullifierHashIntFeatFlag) {
