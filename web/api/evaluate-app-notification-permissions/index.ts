@@ -12,7 +12,7 @@ import { protectInternalEndpoint } from "@/api/helpers/utils";
 import { logger } from "@/lib/logger";
 import { AppStatsItem, AppStatsReturnType } from "@/lib/types";
 import { fetchWithRetry } from "@/lib/utils";
-import { differenceInDays } from "date-fns";
+import { differenceInDays, differenceInMinutes } from "date-fns";
 import { NextRequest, NextResponse } from "next/server";
 import { getAPIServiceGraphqlClient } from "../helpers/graphql";
 import {
@@ -35,6 +35,8 @@ type InternalNotificationPermissionResult =
 
 const NOTIFICATION_OPEN_RATE_THRESHOLD = 0.1;
 const ONE_WEEK_IN_DAYS = 7;
+const ONE_WEEK_IN_MINUTES = ONE_WEEK_IN_DAYS * 24 * 60;
+const TIMING_LEEWAY_MINUTES = 5;
 
 const calculateLast7DaysOpenRate = (
   appStats: AppStatsItem,
@@ -66,7 +68,7 @@ export const getNotificationPermissions = (
   appMetadata: GetNotificationEvaluationAppsQuery["app_metadata"][number],
   appStats: AppStatsItem,
 ): InternalNotificationPermissionResult => {
-  // if unlimited notifications are already allowed, no need to evaluate
+  // if unlimited notifications are already allowed, skip evaluation
   if (appMetadata.is_allowed_unlimited_notifications) {
     return skipStateUpdate;
   }
@@ -80,12 +82,22 @@ export const getNotificationPermissions = (
       : null;
   const now = new Date();
 
-  const daysSinceStateChange = stateChangedDate
-    ? differenceInDays(now, stateChangedDate)
+  const minutesSinceStateChange = stateChangedDate
+    ? differenceInMinutes(now, stateChangedDate)
     : Infinity;
+
+  // check if at least one week has passed since state change (with 5 minute leeway)
+  const hasOneWeekPassed =
+    minutesSinceStateChange >= ONE_WEEK_IN_MINUTES - TIMING_LEEWAY_MINUTES;
 
   // calculate weekly open rate
   const weeklyOpenRate = calculateLast7DaysOpenRate(appStats, now);
+
+  // if equal to 0, most likely testing leftovers
+  const isUnderOpenRateThreshold =
+    weeklyOpenRate !== null &&
+    weeklyOpenRate !== 0 &&
+    weeklyOpenRate < NOTIFICATION_OPEN_RATE_THRESHOLD;
 
   switch (notificationState) {
     case "normal": {
@@ -97,7 +109,7 @@ export const getNotificationPermissions = (
       }
 
       // if open rate < 10%, pause notifications
-      if (weeklyOpenRate < NOTIFICATION_OPEN_RATE_THRESHOLD) {
+      if (isUnderOpenRateThreshold) {
         return {
           should_update_state: true,
           new_state: "paused",
@@ -111,7 +123,7 @@ export const getNotificationPermissions = (
 
     case "paused": {
       // stay paused for 1 week
-      if (daysSinceStateChange < ONE_WEEK_IN_DAYS) {
+      if (!hasOneWeekPassed) {
         return skipStateUpdate;
       }
 
@@ -125,7 +137,7 @@ export const getNotificationPermissions = (
 
     case "enabled_after_pause": {
       // evaluate after 1 week of being enabled
-      if (daysSinceStateChange < ONE_WEEK_IN_DAYS) {
+      if (!hasOneWeekPassed) {
         return skipStateUpdate;
       }
 
@@ -139,7 +151,7 @@ export const getNotificationPermissions = (
       }
 
       // if open rate still < 10%, pause again
-      if (weeklyOpenRate < NOTIFICATION_OPEN_RATE_THRESHOLD) {
+      if (isUnderOpenRateThreshold) {
         return {
           should_update_state: true,
           new_state: "paused",

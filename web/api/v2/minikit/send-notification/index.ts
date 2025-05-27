@@ -294,6 +294,7 @@ export const POST = async (req: NextRequest) => {
       );
     }
   }
+
   // either no notifications allowed or notifications are paused
   const areNotificationsEnabled =
     (!appMetadata.is_allowed_unlimited_notifications &&
