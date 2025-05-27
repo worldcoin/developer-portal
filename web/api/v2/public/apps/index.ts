@@ -35,7 +35,6 @@ const queryParamsSchema = yup.object({
     .notRequired(),
   override_country: yup.string().notRequired(),
   show_external: yup.boolean().notRequired().default(false),
-  force_show_grants: yup.boolean().notRequired().default(false),
   skip_country_check: yup.boolean().notRequired().default(false),
 });
 
