@@ -101,13 +101,13 @@ export const BasicInformation = (props: {
     [appMetaData?.id, refetchAppMetadata],
   );
 
-  const { url, showDeveloperFlag } = useMemo(() => {
+  const { url, showDraftMiniAppFlag } = useMemo(() => {
     let url = `https://worldcoin.org/mini-app?app_id=${appId}`;
-    let showDeveloperFlag = appMetaData?.verification_status !== "verified";
-    if (showDeveloperFlag) {
+    let showDraftMiniAppFlag = appMetaData?.verification_status !== "verified";
+    if (showDraftMiniAppFlag) {
       url += `&draft_id=${appMetaData?.id}`;
     }
-    return { url, showDeveloperFlag };
+    return { url, showDraftMiniAppFlag };
   }, [appId, appMetaData]);
 
   return (
@@ -167,7 +167,10 @@ export const BasicInformation = (props: {
           </DecoratedButton>
         </form>
         <div className="mt-7 flex justify-center sm:justify-start">
-          <QrQuickAction url={url} showDeveloperFlag={showDeveloperFlag} />
+          <QrQuickAction
+            url={url}
+            showDraftMiniAppFlag={showDraftMiniAppFlag}
+          />
         </div>
       </div>
     </div>
