@@ -218,3 +218,12 @@ export const notificationMessageSchema = yup
       );
     },
   );
+
+export const teamNameSchema = yup
+  .string()
+  .required("Please enter a team name")
+  .max(128, "Team name must be 128 characters or less")
+  .matches(/^[^<>]*$/, {
+    message: "Team name cannot contain < or > characters",
+    excludeEmptyString: true,
+  });
