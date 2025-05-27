@@ -15,14 +15,9 @@ import { AppErrorCodes, VerificationLevel } from "@worldcoin/idkit-core";
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
 import { getSdk as atomicUpsertNullifierSdk } from "./graphql/atomic-upsert-nullifier.generated";
-import {
-  FetchAppActionQuery,
-  getSdk as getFetchAppActionSdk,
-} from "./graphql/fetch-app-action.generated";
+import { getSdk as getFetchAppActionSdk } from "./graphql/fetch-app-action.generated";
 
 import { logger } from "@/lib/logger";
-import { getSdk as atomicUpsertNullifierOldSdk } from "./graphql/atomic-upsert-nullifier-old.generated";
-import { getSdk as getFetchAppActionOldSdk } from "./graphql/fetch-app-action-old.generated";
 
 const schema = yup.object({
   action: yup
@@ -55,11 +50,6 @@ const schema = yup.object({
     .optional(),
 });
 
-const NULLIFIER_HASH_INT_FEAT_FLAG = [
-  "app_020c82fbf3c087eb31600929a34990e4",
-  "app_fef4f277e1a6a5e32c3be8dac521da5d",
-];
-
 export async function POST(
   req: NextRequest,
   { params }: { params: { app_id: string } },
@@ -83,11 +73,6 @@ export async function POST(
 
   const client = await getAPIServiceGraphqlClient();
 
-  // Always allow for development to avoid failing tests
-  const isNullifierHashIntFeatFlag =
-    NULLIFIER_HASH_INT_FEAT_FLAG.includes(app_id) ||
-    ["test", "development"].includes(process.env.NODE_ENV || "");
-
   // Convert the nullifier hash to its integer representation for more robust comparison
   const nullifier_hash_int = nullifierHashToBigIntStr(
     parsedParams.nullifier_hash,
@@ -97,20 +82,11 @@ export async function POST(
     logger.info(`Using nullifer hash int column for ${app_id}`);
   }
 
-  let appActionResponse: FetchAppActionQuery;
-  if (isNullifierHashIntFeatFlag) {
-    appActionResponse = await getFetchAppActionSdk(client).FetchAppAction({
-      app_id,
-      action: parsedParams.action,
-      nullifier_hash_int,
-    });
-  } else {
-    appActionResponse = await getFetchAppActionOldSdk(client).FetchAppAction({
-      app_id,
-      action: parsedParams.action,
-      nullifier_hash: parsedParams.nullifier_hash,
-    });
-  }
+  let appActionResponse = await getFetchAppActionSdk(client).FetchAppAction({
+    app_id,
+    action: parsedParams.action,
+    nullifier_hash_int,
+  });
 
   if (!appActionResponse.app.length) {
     return errorResponse({
@@ -234,25 +210,14 @@ export async function POST(
     });
   }
 
-  let upsertResponse;
   try {
-    if (isNullifierHashIntFeatFlag) {
-      upsertResponse = await atomicUpsertNullifierSdk(
-        client,
-      ).AtomicUpsertNullifier({
-        action_id: action.id,
-        nullifier_hash: parsedParams.nullifier_hash,
-        nullifier_hash_int: nullifier_hash_int,
-      });
-    } else {
-      upsertResponse = await atomicUpsertNullifierOldSdk(
-        client,
-      ).AtomicUpsertNullifier({
-        action_id: action.id,
-        nullifier_hash: parsedParams.nullifier_hash,
-        nullifier_hash_int: nullifier_hash_int,
-      });
-    }
+    const upsertResponse = await atomicUpsertNullifierSdk(
+      client,
+    ).AtomicUpsertNullifier({
+      action_id: action.id,
+      nullifier_hash: parsedParams.nullifier_hash,
+      nullifier_hash_int: nullifier_hash_int,
+    });
 
     if (!upsertResponse?.update_nullifier?.returning?.length) {
       return errorResponse({
