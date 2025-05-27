@@ -101,6 +101,10 @@ export const BasicInformation = (props: {
     [appMetaData?.id, refetchAppMetadata],
   );
 
+  // Show QR quick action if the app has an integration URL
+  // New mini apps may have an empty integration URL
+  const showQrQuickAction = !!appMetaData?.integration_url;
+
   const { url, showDraftMiniAppFlag } = useMemo(() => {
     let url = `https://worldcoin.org/mini-app?app_id=${appId}`;
     let showDraftMiniAppFlag = appMetaData?.verification_status !== "verified";
@@ -167,10 +171,12 @@ export const BasicInformation = (props: {
           </DecoratedButton>
         </form>
         <div className="mt-7 flex justify-center sm:justify-start">
-          <QrQuickAction
-            url={url}
-            showDraftMiniAppFlag={showDraftMiniAppFlag}
-          />
+          {showQrQuickAction && (
+            <QrQuickAction
+              url={url}
+              showDraftMiniAppFlag={showDraftMiniAppFlag}
+            />
+          )}
         </div>
       </div>
     </div>
