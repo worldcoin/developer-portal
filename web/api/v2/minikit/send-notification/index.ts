@@ -43,7 +43,7 @@ export const sendNotificationBodySchema = yup.object({
     .required()
     .test(
       "contains-app-id",
-      "mini_app_path must include the app_id",
+      "mini_app_path must include the app_id and be a valid WorldApp deeplink",
       function (value) {
         const { app_id } = this.parent;
         return value.startsWith(`worldapp://mini-app?app_id=${app_id}`);
