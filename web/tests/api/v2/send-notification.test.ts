@@ -66,7 +66,7 @@ const createMockRequest = (params: {
       wallet_addresses: ["0x1234567890"],
       title: "Test Notification",
       message: "This is a test notification",
-      mini_app_path: "/test",
+      mini_app_path: `worldapp://mini-app?app_id=app_staging_9cdd0a714aec9ed17dca660bc9ffe72a`,
     }),
   });
 };
@@ -163,7 +163,7 @@ describe("/api/v2/minikit/send-notification [error cases]", () => {
           wallet_addresses: ["0x1234567890"],
           title: "Test Notification",
           message: "a" + "bet".repeat(200),
-          mini_app_path: "/test",
+          mini_app_path: "worldapp://mini-app?app_id=random",
         }),
       },
     );
@@ -221,7 +221,7 @@ describe("/api/v2/minikit/send-notification [error cases]", () => {
           wallet_addresses: ["0x1234567890"],
           title: "Test Notification",
           message: "This is a test notification",
-          mini_app_path: "/test",
+          mini_app_path: `worldapp://mini-app?app_id=random`,
         }),
       },
     );
@@ -351,7 +351,7 @@ describe("/api/v2/minikit/send-notification [error cases]", () => {
           ],
           title: "Test Notification",
           message: "This is a test notification",
-          mini_app_path: "/test",
+          mini_app_path: `worldapp://mini-app?app_id=app_staging_9cdd0a714aec9ed17dca660bc9ffe72a`,
         }),
       },
     );
@@ -372,7 +372,7 @@ describe("/api/v2/minikit/send-notification [error cases]", () => {
           wallet_addresses: ["0x1234567890"],
           title: "Test Notification",
           message: "This is a test notification",
-          mini_app_path: "/test",
+          mini_app_path: `worldapp://mini-app?app_id=app_staging_9cdd0a714aec9ed17dca660bc9ffe72a`,
         }),
       },
     );
