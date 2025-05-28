@@ -229,6 +229,10 @@ const supportedLanguages = [
     label: "Indonesian",
     value: "id",
   },
+  {
+    label: "Traditional Chinese (Taiwan)",
+    value: "zh_TW",
+  },
 ];
 
 export const languageMap = {
@@ -247,6 +251,7 @@ export const languageMap = {
   ms: { label: "Malay", country_code: "MY" },
   th: { label: "Thai", country_code: "TH" },
   id: { label: "Indonesian", country_code: "ID" },
+  zh_TW: { label: "Traditional Chinese (Taiwan)", country_code: "TW" },
 };
 
 export const formCountriesList = () =>
@@ -268,8 +273,10 @@ export const parseLocale = (locale: string) => {
     (lang) => lang.value === major_locale,
   );
 
-  // Handle Chinese
-  if (major_locale === "zh") {
+  // Handle Chinese -- Default to Simplified Chinese
+  if (major_locale === "zh" && secondary_locale?.toUpperCase() === "TW") {
+    return "zh_TW";
+  } else if (major_locale === "zh") {
     return "zh_CN";
   }
 

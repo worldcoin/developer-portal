@@ -17,6 +17,8 @@ import * as yup from "yup";
 import { getSdk as atomicUpsertNullifierSdk } from "./graphql/atomic-upsert-nullifier.generated";
 import { getSdk as getFetchAppActionSdk } from "./graphql/fetch-app-action.generated";
 
+import { logger } from "@/lib/logger";
+
 const schema = yup.object({
   action: yup
     .string()
@@ -71,10 +73,19 @@ export async function POST(
 
   const client = await getAPIServiceGraphqlClient();
 
-  const appActionResponse = await getFetchAppActionSdk(client).FetchAppAction({
+  // Convert the nullifier hash to its integer representation for more robust comparison
+  const nullifier_hash_int = nullifierHashToBigIntStr(
+    parsedParams.nullifier_hash,
+  );
+
+  if (nullifier_hash_int) {
+    logger.info(`Using nullifer hash int column for ${app_id}`);
+  }
+
+  let appActionResponse = await getFetchAppActionSdk(client).FetchAppAction({
     app_id,
     action: parsedParams.action,
-    nullifier_hash: parsedParams.nullifier_hash,
+    nullifier_hash_int,
   });
 
   if (!appActionResponse.app.length) {
@@ -199,14 +210,13 @@ export async function POST(
     });
   }
 
-  let upsertResponse;
   try {
-    upsertResponse = await atomicUpsertNullifierSdk(
+    const upsertResponse = await atomicUpsertNullifierSdk(
       client,
     ).AtomicUpsertNullifier({
       action_id: action.id,
       nullifier_hash: parsedParams.nullifier_hash,
-      nullifier_hash_int: nullifierHashToBigIntStr(parsedParams.nullifier_hash),
+      nullifier_hash_int: nullifier_hash_int,
     });
 
     if (!upsertResponse?.update_nullifier?.returning?.length) {

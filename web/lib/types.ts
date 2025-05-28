@@ -253,6 +253,7 @@ export type AppStoreFormattedFields = Omit<
     how_to_connect: string;
   };
   draft_id?: string;
+  avg_notification_open_rate: number | null;
 };
 
 type NativeApp = {
@@ -265,6 +266,11 @@ export type NativeAppsMap = {
   [key: string]: NativeApp;
 };
 
+type MetricsTimeseries = {
+  date: string;
+  value: number;
+}[];
+
 export type AppStatsItem = {
   app_id: string;
   unique_users: number;
@@ -272,6 +278,7 @@ export type AppStatsItem = {
   unique_users_last_7_days: number | null;
   total_impressions: number;
   new_users_last_7_days: number | null;
+  open_rate_last_14_days: MetricsTimeseries | null;
 };
 
 export type AppStatsReturnType = Array<AppStatsItem>;
