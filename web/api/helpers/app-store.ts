@@ -195,7 +195,7 @@ const isDefaultPinnedNoGrants = (appId: string) => {
   );
 };
 
-// logic responsible for setting this is in api/evaluate-app-notification-permissions
+// logic responsible for setting this is in api/_evaluate-app-notification-permissions
 const getNotificationPermissions = (
   appMetadata: Pick<
     AppStoreMetadataFields,
