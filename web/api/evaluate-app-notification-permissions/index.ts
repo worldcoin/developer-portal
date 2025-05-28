@@ -166,21 +166,18 @@ export const safeUpdateNotificationState = async (
   app_id: string,
   client: GraphQLClient,
   updates: {
-    notification_permission_status?: NotificationState;
-    notification_permission_status_changed_date?: Date;
+    notification_permission_status: NotificationState;
+    notification_permission_status_changed_date: Date;
   },
 ): Promise<void> => {
   try {
-    const client = await getAPIServiceGraphqlClient();
     const sdk = getUpdateNotificationPermissionStatusSdk(client);
 
     await sdk.UpdateNotificationPermissionStatus({
       app_id: app_id,
-      notification_permission_status:
-        updates.notification_permission_status ?? undefined,
+      notification_permission_status: updates.notification_permission_status,
       notification_permission_status_changed_date:
-        updates.notification_permission_status_changed_date?.toISOString() ??
-        undefined,
+        updates.notification_permission_status_changed_date?.toISOString(),
     });
 
     logger.info("Notification state updated successfully", {
