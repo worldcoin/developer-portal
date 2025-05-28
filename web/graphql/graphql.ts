@@ -3739,6 +3739,8 @@ export type App_Set_Input = {
 /** columns and relationships of "app_stats" */
 export type App_Stats = {
   __typename?: "app_stats";
+  /** An object relationship */
+  app: App;
   app_id: Scalars["String"]["output"];
   date: Scalars["date"]["output"];
   nullifier_hashes: Array<Scalars["String"]["output"]>;
@@ -3787,6 +3789,7 @@ export type App_Stats_Bool_Exp = {
   _and?: InputMaybe<Array<App_Stats_Bool_Exp>>;
   _not?: InputMaybe<App_Stats_Bool_Exp>;
   _or?: InputMaybe<Array<App_Stats_Bool_Exp>>;
+  app?: InputMaybe<App_Bool_Exp>;
   app_id?: InputMaybe<String_Comparison_Exp>;
   date?: InputMaybe<Date_Comparison_Exp>;
   nullifier_hashes?: InputMaybe<String_Array_Comparison_Exp>;
@@ -3808,6 +3811,7 @@ export type App_Stats_Inc_Input = {
 
 /** input type for inserting data into table "app_stats" */
 export type App_Stats_Insert_Input = {
+  app?: InputMaybe<App_Obj_Rel_Insert_Input>;
   app_id?: InputMaybe<Scalars["String"]["input"]>;
   date?: InputMaybe<Scalars["date"]["input"]>;
   nullifier_hashes?: InputMaybe<Array<Scalars["String"]["input"]>>;
@@ -3853,6 +3857,7 @@ export type App_Stats_On_Conflict = {
 
 /** Ordering options when selecting data from "app_stats". */
 export type App_Stats_Order_By = {
+  app?: InputMaybe<App_Order_By>;
   app_id?: InputMaybe<Order_By>;
   date?: InputMaybe<Order_By>;
   nullifier_hashes?: InputMaybe<Order_By>;
