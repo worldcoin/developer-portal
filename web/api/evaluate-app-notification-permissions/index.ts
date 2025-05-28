@@ -12,6 +12,7 @@ import { logger } from "@/lib/logger";
 import { AppStatsItem, AppStatsReturnType } from "@/lib/types";
 import { fetchWithRetry } from "@/lib/utils";
 import { differenceInDays, differenceInMinutes } from "date-fns";
+import { GraphQLClient } from "graphql-request";
 import { NextRequest, NextResponse } from "next/server";
 import { getAPIServiceGraphqlClient } from "../helpers/graphql";
 import {
@@ -163,6 +164,7 @@ const evaluateNotificationPermissions = (
 
 export const safeUpdateNotificationState = async (
   app_id: string,
+  client: GraphQLClient,
   updates: {
     notification_permission_status?: NotificationState;
     notification_permission_status_changed_date?: Date;
@@ -181,12 +183,12 @@ export const safeUpdateNotificationState = async (
         undefined,
     });
 
-    logger.info("notification state updated successfully", {
+    logger.info("Notification state updated successfully", {
       app_id,
       updates,
     });
   } catch (error) {
-    logger.error("failed to update notification state", {
+    logger.error("Failed to update notification state", {
       app_id,
       updates,
       error,
@@ -237,7 +239,7 @@ export const POST = async (req: NextRequest) => {
     .map((app) => app.app_id);
 
   if (appIdsToEvaluate.length > 600) {
-    logger.warn("notification permission list is getting too long", {
+    logger.warn("Notification permission list is getting too long", {
       listLength: appIdsToEvaluate.length,
     });
   }
@@ -259,7 +261,7 @@ export const POST = async (req: NextRequest) => {
   for (const app of appsToEvaluate) {
     const appStats = metricsData.find((app) => app.app_id === app.app_id);
     if (!appStats) {
-      logger.error("app stats not found", {
+      logger.error("App stats not found", {
         app_id: app.app_id,
       });
 
@@ -267,7 +269,9 @@ export const POST = async (req: NextRequest) => {
     }
     const evaluationResult = evaluateNotificationPermissions(app, appStats);
     if (evaluationResult.should_update_state) {
-      void safeUpdateNotificationState(app.app_id, {
+      const client = await getAPIServiceGraphqlClient();
+
+      void safeUpdateNotificationState(app.app_id, client, {
         notification_permission_status: evaluationResult.new_state,
         notification_permission_status_changed_date:
           evaluationResult.new_state_changed_date,
