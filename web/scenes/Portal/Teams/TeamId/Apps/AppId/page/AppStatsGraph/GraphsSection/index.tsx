@@ -2,7 +2,9 @@
 
 import { useFetchAppStatsQuery } from "../graphql/client/fetch-app-stats.generated";
 
+import { getAvgNotificationOpenRate } from "@/api/helpers/app-store";
 import { Chart, ChartProps } from "@/components/Chart";
+import { InformationCircleIcon } from "@/components/Icons/InformationCircleIcon";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { EngineType, TransactionStatus } from "@/lib/types";
 import { ChartData, ChartOptions } from "chart.js";
@@ -103,6 +105,7 @@ interface GraphCardProps {
   className?: string;
   additionalStatTitle?: string | null;
   additionalStatValue?: string | null;
+  tooltip?: React.ReactNode;
 }
 
 const GraphCard: React.FC<GraphCardProps> = ({
@@ -116,14 +119,35 @@ const GraphCard: React.FC<GraphCardProps> = ({
   className,
   additionalStatTitle,
   additionalStatValue,
+  tooltip,
 }) => {
+  const [isTooltipHovered, setIsTooltipHovered] = React.useState(false);
+
   const mobileChartOptions = {
     ...chartOptions,
     aspectRatio: mobileAspectRatio,
   };
 
   return (
-    <div className={clsx("flex-1", className)}>
+    <div className={clsx("relative flex-1", className)}>
+      {/* Info icon with tooltip on hover */}
+      {tooltip && (
+        <div className="absolute right-3 top-3 z-10">
+          <div
+            className="relative cursor-pointer"
+            onPointerEnter={() => setIsTooltipHovered(true)}
+            onPointerLeave={() => setIsTooltipHovered(false)}
+          >
+            <InformationCircleIcon className="size-4 text-grey-500" />
+            {isTooltipHovered && (
+              <div className="absolute right-0 top-6 min-w-32 max-w-64 whitespace-normal rounded border border-grey-200 bg-white px-3 py-2 text-12 text-grey-900 shadow-lg">
+                {tooltip}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Loading Skeleton */}
       {isLoading && (
         <div
@@ -199,6 +223,13 @@ const GraphCard: React.FC<GraphCardProps> = ({
   );
 };
 
+const isEligibleForNotificationBadge = (
+  avg_notification_open_rate: number | null,
+) => {
+  if (!avg_notification_open_rate) return false;
+  return avg_notification_open_rate > 0.15;
+};
+
 // ==================================================================================================
 // ================================ Anchor: Graphs Section Component ================================
 // ==================================================================================================
@@ -206,6 +237,11 @@ const GraphCard: React.FC<GraphCardProps> = ({
 export const GraphsSection = () => {
   const { appId } = useParams() as { teamId: string; appId: string };
   const { metrics, loading: metricsLoading } = useGetMetrics(appId);
+
+  const averageOpenRate = useMemo(
+    () => getAvgNotificationOpenRate(metrics?.open_rate_last_14_days),
+    [metrics?.open_rate_last_14_days],
+  );
 
   const { data: appStatsData, loading: appStatsLoading } =
     useFetchAppStatsQuery({
@@ -361,6 +397,9 @@ export const GraphsSection = () => {
   // ====================================== Anchor: Render Section ====================================
   // ==================================================================================================
 
+  // mock avg_notification_open_rate value for now
+  const avg_notification_open_rate = 0.18; // 18% - over the 0.15 threshold
+
   return (
     <div className="grid flex-1 grid-cols-1 grid-rows-3 gap-2 lg:grid-cols-2 lg:grid-rows-1">
       {/* Verifications Graph */}
@@ -434,6 +473,15 @@ export const GraphsSection = () => {
         chartOptions={commonChartConfig}
         emptyStateTitle="No data available yet"
         emptyStateDescription="Your notification open rate will show up here."
+        tooltip={
+          isEligibleForNotificationBadge(averageOpenRate) ? (
+            <span>
+              Your average open rate ({(averageOpenRate! * 100).toFixed(1)}%) is
+              above the 15% threshold. Your app is eligible for a notification
+              badge.
+            </span>
+          ) : null
+        }
       />
     </div>
   );
