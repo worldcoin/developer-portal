@@ -170,7 +170,7 @@ export const formatAppMetadata = async (
   };
 };
 
-const getAvgNotificationOpenRate = (
+export const getAvgNotificationOpenRate = (
   openRateLast14Days: AppStatsItem["open_rate_last_14_days"] | null | undefined,
 ): number | null => {
   // if no data or less than 7 days, return null
