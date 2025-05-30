@@ -192,11 +192,13 @@ function decodeAbiEncodedProof(encodedProof: string): string[] {
  * @param value The value to decode
  * @returns The decoded hex string
  */
-function decodeToHexString(value: string): string {
+export function decodeToHexString(value: string): string {
+  const normalized = value.toLowerCase().trim().replace(/^0x/, "");
+
   return toBeHex(
     AbiCoder.defaultAbiCoder().decode(
       ["uint256"],
-      `0x${value.slice(2).padStart(64, "0")}`,
+      `0x${normalized.padStart(64, "0")}`,
     )[0],
   );
 }
@@ -393,4 +395,19 @@ export const canVerifyForAction = (
 
   // Else, can only verify if the max number of verifications has not been met
   return nullifier.uses < max_verifications_per_person;
+};
+
+const normalizeNullifierHash = (nullifierHash: string): string => {
+  const normalized = nullifierHash.toLowerCase().trim().replace(/^0x/, "");
+
+  return `0x${normalized}`;
+};
+
+/**
+ * Converts a nullifier hash to its numeric representation for database storage and comparison
+ * This helps prevent case sensitivity, prefix, and padding bypass attacks
+ */
+export const nullifierHashToBigIntStr = (nullifierHash: string): string => {
+  const normalized = normalizeNullifierHash(nullifierHash);
+  return BigInt(normalized).toString();
 };

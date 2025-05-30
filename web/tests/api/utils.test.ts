@@ -1,4 +1,4 @@
-import { canVerifyForAction } from "@/legacy/backend/utils";
+import { canVerifyForAction } from "@/api/helpers/verify";
 import { validateUrl } from "@/lib/utils";
 
 describe("canVerifyForAction()", () => {

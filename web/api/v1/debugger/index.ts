@@ -1,4 +1,5 @@
 import { errorResponse } from "@/api/helpers/errors";
+import { corsHandler } from "@/api/helpers/utils";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { verifyProof } from "@/api/helpers/verify";
 import { generateExternalNullifier } from "@/lib/hashing";
@@ -33,12 +34,7 @@ const schema = yup.object({
     .required(),
 });
 
-function corsHandler(response: NextResponse) {
-  response.headers.set("Access-Control-Allow-Origin", "*");
-  response.headers.set("Access-Control-Allow-Methods", "POST, OPTIONS");
-  response.headers.set("Access-Control-Allow-Headers", "Content-Type");
-  return response;
-}
+const corsMethods = ["POST", "OPTIONS"];
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
@@ -48,7 +44,7 @@ export async function POST(req: NextRequest) {
   });
 
   if (!isValid) {
-    return corsHandler(handleError(req));
+    return corsHandler(handleError(req), corsMethods);
   }
 
   const external_nullifier = generateExternalNullifier(
@@ -75,6 +71,7 @@ export async function POST(req: NextRequest) {
     if (result.success) {
       return corsHandler(
         NextResponse.json({ success: true, status: result.status }),
+        corsMethods,
       );
     }
 
@@ -86,6 +83,7 @@ export async function POST(req: NextRequest) {
           detail: result.error.message,
           req,
         }),
+        corsMethods,
       );
     }
   } catch (e) {
@@ -100,9 +98,10 @@ export async function POST(req: NextRequest) {
       attribute: null,
       req,
     }),
+    corsMethods,
   );
 }
 
 export async function OPTIONS(req: NextRequest) {
-  return corsHandler(new NextResponse(null, { status: 204 }));
+  return corsHandler(new NextResponse(null, { status: 204 }), corsMethods);
 }

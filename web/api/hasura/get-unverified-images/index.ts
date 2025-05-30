@@ -19,8 +19,9 @@ export const POST = async (req: NextRequest) => {
   let team_id: string | undefined;
 
   try {
-    if (!protectInternalEndpoint(req)) {
-      return;
+    const { isAuthenticated, errorResponse } = protectInternalEndpoint(req);
+    if (!isAuthenticated) {
+      return errorResponse;
     }
 
     const body = await req.json();

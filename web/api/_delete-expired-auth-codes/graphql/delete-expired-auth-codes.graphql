@@ -1,0 +1,5 @@
+mutation DeleteExpiredAuthCodes($now: timestamptz!) {
+  delete_auth_code(where: { expires_at: { _lte: $now } }) {
+    affected_rows
+  }
+}

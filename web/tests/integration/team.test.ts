@@ -1,10 +1,13 @@
 import { POST } from "@/api/hasura/invite-team-members";
 import { Role_Enum } from "@/graphql/graphql";
-import { getAPIServiceClient } from "@/legacy/backend/graphql";
 import { gql } from "@apollo/client";
 import { NextRequest } from "next/server";
 import { integrationDBClean, integrationDBExecuteQuery } from "./setup";
-import { getAPIClient, getAPIUserClient } from "./test-utils";
+import {
+  getAPIClient,
+  getAPIServiceClient,
+  getAPIUserClient,
+} from "./test-utils";
 
 // TODO: Consider moving this to a generalized jest environment
 beforeEach(integrationDBClean);

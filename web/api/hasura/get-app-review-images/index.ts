@@ -28,8 +28,9 @@ export const POST = async (req: NextRequest) => {
       code: "invalid_config",
     });
   }
-  if (!protectInternalEndpoint(req)) {
-    return;
+  const { isAuthenticated, errorResponse } = protectInternalEndpoint(req);
+  if (!isAuthenticated) {
+    return errorResponse;
   }
 
   const body = await req.json();

@@ -1,6 +1,5 @@
-import { createMocks } from "node-mocks-http";
-import handleGenerateHashedActionId from "@/pages/api/_gen-external-nullifier";
-import { NextApiRequest, NextApiResponse } from "next";
+import { POST } from "@/api/_gen-external-nullifier";
+import { NextRequest } from "next/server";
 
 const HASURA_EVENT_TRIGGER_PAYLOAD = {
   event: {
@@ -50,14 +49,18 @@ const HASURA_EVENT_TRIGGER_PAYLOAD = {
 describe("/api/_gen-hashed-action-id", () => {
   test("generates hashed action ID upon action creation", async () => {});
   test("endpoint is only accessible with specific token (Hasura)", async () => {
-    const { req, res } = createMocks<NextApiRequest, NextApiResponse>({
-      method: "POST",
-    });
+    const request = new NextRequest(
+      "http://localhost:3000/api/_gen-external-nullifier",
+      {
+        method: "POST",
+        body: JSON.stringify(HASURA_EVENT_TRIGGER_PAYLOAD),
+      },
+    );
 
-    await handleGenerateHashedActionId(req, res);
+    const response = await POST(request);
 
-    expect(res._getStatusCode()).toBe(403);
-    expect(res._getJSONData()).toEqual({
+    expect(response?.status).toBe(403);
+    expect(await response?.json()).toEqual({
       code: "permission_denied",
       detail: "You do not have permission to perform this action.",
       attribute: null,

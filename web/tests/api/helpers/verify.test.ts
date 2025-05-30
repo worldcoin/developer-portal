@@ -1,4 +1,9 @@
-import { decodeProof, parseProofInputs } from "@/api/helpers/verify";
+import {
+  decodeProof,
+  decodeToHexString,
+  nullifierHashToBigIntStr,
+  parseProofInputs,
+} from "@/api/helpers/verify";
 import { toBeHex } from "ethers";
 
 jest.mock(
@@ -315,6 +320,112 @@ describe("verify helpers", () => {
       expect(result.error).toBeDefined();
       expect(result.error?.attribute).toBe("signal");
       expect(result.params).toBeUndefined();
+    });
+  });
+
+  describe("decodeToHexString", () => {
+    it("should normalize different input formats to the same hex output", () => {
+      // Create variations of the same value with different formats
+      const baseValue = "123abc";
+      const inputVariations = [
+        baseValue, // Plain value
+        `0x${baseValue}`, // With 0x prefix
+        ` ${baseValue} `, // With whitespace
+        ` 0x${baseValue} `, // With prefix and whitespace
+        `0X${baseValue}`, // With capitalized prefix
+        `${baseValue.toUpperCase()}`, // All uppercase
+        `0x${baseValue.toUpperCase()}`, // With prefix and uppercase
+      ];
+
+      // Get the expected output
+      const expectedOutput = decodeToHexString(baseValue);
+
+      // All variations should produce the same output
+      inputVariations.forEach((input) => {
+        const output = decodeToHexString(input);
+        expect(output).toBe(expectedOutput);
+      });
+    });
+
+    it("should NOT treat different prefixes as the same value due to ABI decoding", () => {
+      // This test demonstrates that while the function strips 0x prefixes,
+      // the ABI decoding treats the values as different numbers
+      const value1 = "1234abcd";
+      const value2 = "5678abcd";
+
+      // These should decode to different values
+      const output1 = decodeToHexString(value1);
+      const output2 = decodeToHexString(value2);
+      expect(output1).not.toBe(output2);
+
+      // When using 0x prefixes, they should still be different because
+      // the ABI decoder interprets them as different numbers
+      const prefixed1 = "0x1234abcd";
+      const prefixed2 = "0x5678abcd";
+
+      const prefixedOutput1 = decodeToHexString(prefixed1);
+      const prefixedOutput2 = decodeToHexString(prefixed2);
+
+      // Verify they're different (demonstrating that stripping 0x doesn't make them equal)
+      expect(prefixedOutput1).not.toBe(prefixedOutput2);
+
+      // Verify that prefixed and non-prefixed versions of the same value are equivalent
+      expect(output1).toBe(prefixedOutput1);
+      expect(output2).toBe(prefixedOutput2);
+    });
+
+    it("should demonstrate equivalent inputs due to normalization", () => {
+      // Create valid inputs that should be treated as different for security purposes
+      const value1 = "0xabcdef"; // With 0x prefix
+      const value2 = "abcdef"; // Without prefix
+      const value3 = " abcdef "; // With whitespace
+      const value4 = "ABCDEF"; // All uppercase
+
+      // All of these should produce the same output
+      const output1 = decodeToHexString(value1);
+      const output2 = decodeToHexString(value2);
+      const output3 = decodeToHexString(value3);
+      const output4 = decodeToHexString(value4);
+
+      // Check that all outputs are the same despite different inputs
+      expect(output1).toBe(output2);
+      expect(output2).toBe(output3);
+      expect(output3).toBe(output4);
+    });
+  });
+
+  describe("nullifierHashToBigIntStr", () => {
+    it("should convert a standard hash to BigInt string", () => {
+      const hash = "0x123abc";
+      const result = nullifierHashToBigIntStr(hash);
+      expect(result).toBe("1194684");
+    });
+
+    it("should normalize hash by removing 0x prefix and converting to lowercase", () => {
+      const hash = "0xABC123";
+      const result = nullifierHashToBigIntStr(hash);
+      expect(result).toBe("11256099");
+    });
+
+    it("should handle hash without 0x prefix", () => {
+      const hash = "abc123";
+      const result = nullifierHashToBigIntStr(hash);
+      expect(result).toBe("11256099");
+    });
+
+    it("should handle hash with whitespace", () => {
+      const hash = " 0xabc123 ";
+      const result = nullifierHashToBigIntStr(hash);
+      expect(result).toBe("11256099");
+    });
+
+    it("should handle real-world size nullifier hash", () => {
+      const hash =
+        "0x0447c1b95a5a808a36d3966216404ff4d522f1e66ecddf9c22439393f00cf616";
+      const result = nullifierHashToBigIntStr(hash);
+      // A 256-bit number is too large to check the exact value, so we verify it's a string of digits
+      expect(result).toMatch(/^\d+$/);
+      expect(result.length).toBeGreaterThan(70); // A 256-bit number in decimal is ~78 digits
     });
   });
 });

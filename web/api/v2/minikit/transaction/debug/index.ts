@@ -1,6 +1,6 @@
 import { errorResponse } from "@/api/helpers/errors";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
-import { verifyHashedSecret } from "@/api/helpers/utils";
+import { corsHandler, verifyHashedSecret } from "@/api/helpers/utils";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { logger } from "@/lib/logger";
 import { appIdSchema } from "@/lib/schema";
@@ -9,15 +9,11 @@ import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
 import { getSdk as fetchApiKeySdk } from "../../graphql/fetch-api-key.generated";
 
-function corsHandler(response: NextResponse) {
-  response.headers.set("Access-Control-Allow-Origin", "*");
-  response.headers.set("Access-Control-Allow-Methods", "GET, OPTIONS");
-  return response;
-}
-
 const schema = yup.object({
   app_id: appIdSchema,
 });
+
+const corsMethods = ["GET", "OPTIONS"];
 
 export const GET = async (req: NextRequest) => {
   const apiKey = req.headers.get("authorization")?.split(" ")[1];
@@ -142,6 +138,7 @@ export const GET = async (req: NextRequest) => {
         req,
         app_id: appId,
       }),
+      corsMethods,
     );
   }
 
@@ -157,13 +154,14 @@ export const GET = async (req: NextRequest) => {
         req,
         app_id: appId,
       }),
+      corsMethods,
     );
   }
 
   const response = NextResponse.json(data.result, { status: 200 });
-  return corsHandler(response);
+  return corsHandler(response, corsMethods);
 };
 
 export async function OPTIONS(request: NextRequest) {
-  return corsHandler(new NextResponse(null, { status: 204 }));
+  return corsHandler(new NextResponse(null, { status: 204 }), corsMethods);
 }

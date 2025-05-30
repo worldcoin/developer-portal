@@ -10,8 +10,9 @@ import {
   fetchOIDCApp,
   generateOIDCCode,
 } from "@/api/helpers/oidc";
+import { corsHandler } from "@/api/helpers/utils";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
-import { verifyProof } from "@/api/helpers/verify";
+import { nullifierHashToBigIntStr, verifyProof } from "@/api/helpers/verify";
 import { Nullifier_Constraint } from "@/graphql/graphql";
 import { logger } from "@/lib/logger";
 import { OIDCFlowType, OIDCResponseType } from "@/lib/types";
@@ -53,13 +54,7 @@ const schema = yup.object({
   redirect_uri: yup.string().strict().required("This attribute is required."),
 });
 
-function corsHandler(response: NextResponse) {
-  response.headers.set("Access-Control-Allow-Origin", "*");
-  response.headers.set("Access-Control-Allow-Methods", "POST, OPTIONS");
-  response.headers.set("Access-Control-Allow-Headers", "Content-Type");
-  return response;
-}
-
+const corsMethods = ["POST", "OPTIONS"];
 /**
  * Authenticates a "Sign in with World ID" user with a ZKP and issues a JWT or a code (authorization code flow)
  * This endpoint is called by the Sign in with World ID page (or the app's own page if using IDKit [advanced])
@@ -76,6 +71,7 @@ export async function POST(req: NextRequest) {
         attribute: "server",
         req,
       }),
+      corsMethods,
     );
   }
 
@@ -122,6 +118,7 @@ export async function POST(req: NextRequest) {
             req,
             app_id,
           }),
+          corsMethods,
         );
       }
     }
@@ -136,6 +133,7 @@ export async function POST(req: NextRequest) {
           req,
           app_id,
         }),
+        corsMethods,
       );
     }
 
@@ -164,6 +162,7 @@ export async function POST(req: NextRequest) {
           req,
           app_id,
         }),
+        corsMethods,
       );
     }
 
@@ -182,6 +181,7 @@ export async function POST(req: NextRequest) {
           req,
           app_id,
         }),
+        corsMethods,
       );
     }
 
@@ -196,6 +196,7 @@ export async function POST(req: NextRequest) {
           req,
           app_id,
         }),
+        corsMethods,
       );
     }
 
@@ -214,6 +215,7 @@ export async function POST(req: NextRequest) {
           req,
           app_id,
         }),
+        corsMethods,
       );
     }
 
@@ -251,6 +253,7 @@ export async function POST(req: NextRequest) {
           req,
           app_id,
         }),
+        corsMethods,
       );
     }
 
@@ -335,6 +338,7 @@ export async function POST(req: NextRequest) {
             object: {
               nullifier_hash,
               action_id: app.action_id,
+              nullifier_hash_int: nullifierHashToBigIntStr(nullifier_hash),
             },
             on_conflict: {
               constraint: Nullifier_Constraint.NullifierPkey,
@@ -364,7 +368,10 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    return corsHandler(NextResponse.json(response, { status: 200 }));
+    return corsHandler(NextResponse.json(response, { status: 200 }), [
+      "POST",
+      "OPTIONS",
+    ]);
   } catch (error) {
     // Handle any unexpected errors
     logger.error("Unexpected error in OIDC authorize", {
@@ -381,10 +388,11 @@ export async function POST(req: NextRequest) {
         req,
         app_id,
       }),
+      corsMethods,
     );
   }
 }
 
 export async function OPTIONS(req: NextRequest) {
-  return corsHandler(new NextResponse(null, { status: 204 }));
+  return corsHandler(new NextResponse(null, { status: 204 }), corsMethods);
 }

@@ -1,13 +1,23 @@
-mutation AtomicUpsertNullifier($action_id: String!, $nullifier_hash: String!) {
+mutation AtomicUpsertNullifier(
+  $action_id: String!
+  $nullifier_hash: String!
+  $nullifier_hash_int: String!
+) {
   insert_nullifier_one(
-    object: { action_id: $action_id, nullifier_hash: $nullifier_hash, uses: 0 }
+    object: {
+      action_id: $action_id
+      nullifier_hash: $nullifier_hash
+      nullifier_hash_int: $nullifier_hash_int
+      uses: 0
+    }
     on_conflict: { constraint: unique_nullifier_hash, update_columns: [] }
   ) {
     nullifier_hash
+    nullifier_hash_int
   }
 
   update_nullifier(
-    where: { nullifier_hash: { _eq: $nullifier_hash } }
+    where: { nullifier_hash_int: { _eq: $nullifier_hash_int } }
     _inc: { uses: 1 }
   ) {
     affected_rows
@@ -15,6 +25,7 @@ mutation AtomicUpsertNullifier($action_id: String!, $nullifier_hash: String!) {
       uses
       created_at
       nullifier_hash
+      nullifier_hash_int
     }
   }
 }

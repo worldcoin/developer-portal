@@ -1,0 +1,11 @@
+mutation SetExternalNullifier(
+  $action_id: String!
+  $external_nullifier: String!
+) {
+  update_action_by_pk(
+    pk_columns: { id: $action_id }
+    _set: { external_nullifier: $external_nullifier }
+  ) {
+    external_nullifier
+  }
+}

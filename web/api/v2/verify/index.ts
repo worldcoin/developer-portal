@@ -5,7 +5,11 @@ import {
 } from "@/api/helpers/errors";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
-import { canVerifyForAction, verifyProof } from "@/api/helpers/verify";
+import {
+  canVerifyForAction,
+  nullifierHashToBigIntStr,
+  verifyProof,
+} from "@/api/helpers/verify";
 import { captureEvent } from "@/services/posthogClient";
 import { AppErrorCodes, VerificationLevel } from "@worldcoin/idkit-core";
 import { NextRequest, NextResponse } from "next/server";
@@ -26,7 +30,14 @@ const schema = yup.object({
       "0x00c5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a4", // hashToField("")
     ),
   proof: yup.string().strict().required("This attribute is required."),
-  nullifier_hash: yup.string().strict().required("This attribute is required."),
+  nullifier_hash: yup
+    .string()
+    .strict()
+    .matches(
+      /^(0x)?[\da-fA-F]+$/,
+      "Invalid nullifier_hash. Must be a hex string with optional 0x prefix.",
+    )
+    .required("This attribute is required."),
   merkle_root: yup.string().strict().required("This attribute is required."),
   verification_level: yup
     .string()
@@ -67,10 +78,15 @@ export async function POST(
 
   const client = await getAPIServiceGraphqlClient();
 
-  const appActionResponse = await getFetchAppActionSdk(client).FetchAppAction({
+  // Convert the nullifier hash to its integer representation for more robust comparison
+  const nullifier_hash_int = nullifierHashToBigIntStr(
+    parsedParams.nullifier_hash,
+  );
+
+  let appActionResponse = await getFetchAppActionSdk(client).FetchAppAction({
     app_id,
     action: parsedParams.action,
-    nullifier_hash: parsedParams.nullifier_hash,
+    nullifier_hash_int,
   });
 
   if (!appActionResponse.app.length) {
@@ -195,13 +211,13 @@ export async function POST(
     });
   }
 
-  let upsertResponse;
   try {
-    upsertResponse = await atomicUpsertNullifierSdk(
+    const upsertResponse = await atomicUpsertNullifierSdk(
       client,
     ).AtomicUpsertNullifier({
       action_id: action.id,
       nullifier_hash: parsedParams.nullifier_hash,
+      nullifier_hash_int: nullifier_hash_int,
     });
 
     if (!upsertResponse?.update_nullifier?.returning?.length) {
