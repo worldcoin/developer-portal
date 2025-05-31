@@ -239,6 +239,7 @@ export const SetupForm = (props: LinksFormProps) => {
             onChange: formatArrayInput,
           })}
           enableResize={false}
+          rows={5}
           errors={errors.associated_domains}
         />
       </div>
@@ -280,6 +281,7 @@ export const SetupForm = (props: LinksFormProps) => {
               onChange: formatArrayInput,
             })}
             enableResize={false}
+            rows={5}
           />
         </div>
 
@@ -321,6 +323,7 @@ export const SetupForm = (props: LinksFormProps) => {
           placeholder="0xad312321..., 0xE901e312..."
           register={register("permit2_tokens", { onChange: formatArrayInput })}
           enableResize={false}
+          rows={5}
         />
         {errors?.permit2_tokens?.message && (
           <p className="mt-2 text-xs text-system-error-500">
@@ -343,6 +346,7 @@ export const SetupForm = (props: LinksFormProps) => {
           placeholder="0xb731d321..., 0xF2310312..."
           register={register("contracts", { onChange: formatArrayInput })}
           enableResize={false}
+          rows={5}
         />
         {errors?.contracts?.message && (
           <p className="mt-2 text-xs text-system-error-500">
