@@ -6,7 +6,7 @@ import {
   getAppStoreLocalisedCategoriesWithUrls,
   getLocalisedCategory,
 } from "@/lib/categories";
-import { NativeApps, NativeAppToAppIdMapping } from "@/lib/constants";
+import { NativeApps } from "@/lib/constants";
 import { parseLocale } from "@/lib/languages";
 import { AppStatsReturnType } from "@/lib/types";
 import { fetchWithRetry, isValidHostName } from "@/lib/utils";
@@ -19,8 +19,6 @@ import {
 import { getSdk as getWebHighlightsSdk } from "./graphql/get-app-web-highlights.generated";
 
 import { formatAppMetadata, rankApps } from "@/api/helpers/app-store";
-import { compareVersions } from "@/lib/compare-versions";
-import { CONTACTS_APP_AVAILABLE_FROM } from "../constants";
 import {
   GetHighlightsQuery,
   getSdk as getHighlightsSdk,
@@ -149,24 +147,6 @@ export const GET = async (request: NextRequest) => {
     topApps = topApps.filter((app) => app.is_android_only !== true);
     highlightsApps = highlightsApps.filter(
       (app) => app.is_android_only !== true,
-    );
-  }
-
-  const nativeIdToActualId =
-    NativeAppToAppIdMapping[process.env.NEXT_PUBLIC_APP_ENV];
-
-  /**
-   * ANCHOR: Filter out contacts on versions that do not have the native code for it
-   */
-  if (
-    !clientVersion ||
-    compareVersions(clientVersion, CONTACTS_APP_AVAILABLE_FROM) < 0
-  ) {
-    topApps = topApps.filter(
-      (app) => app.app_id !== nativeIdToActualId.contacts,
-    );
-    highlightsApps = highlightsApps.filter(
-      (app) => app.app_id !== nativeIdToActualId.contacts,
     );
   }
 
