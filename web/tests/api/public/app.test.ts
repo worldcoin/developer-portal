@@ -20,7 +20,7 @@ jest.mock(
             app_id: "1",
             logo_img_url: "logo.png",
             showcase_img_urls: ["showcase1.png", "showcase2.png"],
-            hero_image_url: "hero.png",
+            hero_image_url: "",
             world_app_description:
               "This is an example app designed to showcase the capabilities of our platform.",
             category: "Productivity",
@@ -64,7 +64,7 @@ describe("/api/public/app/[app_id]", () => {
           "https://cdn.test.com/1/showcase1.png",
           "https://cdn.test.com/1/showcase2.png",
         ],
-        hero_image_url: "https://cdn.test.com/1/hero.png",
+        hero_image_url: "",
         category: createLocaliseCategory("Productivity"),
         integration_url: "https://example.com/integration",
         app_website_url: "https://example.com",

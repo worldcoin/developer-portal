@@ -489,23 +489,17 @@ export const AppStoreForm = (props: {
     (locale: string) => {
       if (locale === "en") {
         return !!(
-          appMetadata?.hero_image_url ||
-          (appMetadata?.showcase_img_urls &&
-            appMetadata.showcase_img_urls?.length > 0)
+          appMetadata?.showcase_img_urls &&
+          appMetadata.showcase_img_urls?.length > 0
         );
       } else {
         return !!(
-          localisedData?.localisations?.[0]?.hero_image_url ||
-          (localisedData?.localisations?.[0]?.showcase_img_urls &&
-            localisedData.localisations[0].showcase_img_urls?.length > 0)
+          localisedData?.localisations?.[0]?.showcase_img_urls &&
+          localisedData.localisations[0].showcase_img_urls?.length > 0
         );
       }
     },
-    [
-      appMetadata?.hero_image_url,
-      appMetadata?.showcase_img_urls,
-      localisedData?.localisations,
-    ],
+    [appMetadata?.showcase_img_urls, localisedData?.localisations],
   );
 
   const hasEmptyRequiredFields = useCallback(

@@ -71,11 +71,6 @@ export const formatAppMetadata = async (
     localisedContent?.short_name &&
     localisedContent?.name;
 
-  const heroImageUrl =
-    isLocalisationComplete && localisedContent?.hero_image_url
-      ? localisedContent.hero_image_url
-      : appMetadata.hero_image_url;
-
   // fallback to logo
   const metaTagImageUrl =
     isLocalisationComplete && localisedContent?.meta_tag_image_url
@@ -86,9 +81,6 @@ export const formatAppMetadata = async (
     isLocalisationComplete && localisedContent?.showcase_img_urls
       ? localisedContent.showcase_img_urls
       : appMetadata.showcase_img_urls;
-  //
-  const heroImageLocale =
-    isLocalisationComplete && localisedContent?.hero_image_url ? locale : "en";
   //
   const metaTagImageLocale =
     isLocalisationComplete && localisedContent?.meta_tag_image_url
@@ -127,12 +119,7 @@ export const formatAppMetadata = async (
       appMetadata.verification_status === "verified",
       metaTagImageLocale,
     ),
-    hero_image_url: getCDNImageUrl(
-      appMetadata.app_id,
-      heroImageUrl,
-      appMetadata.verification_status === "verified",
-      heroImageLocale,
-    ),
+    hero_image_url: "",
     showcase_img_urls: showcaseImgUrls?.map((url: string) =>
       getCDNImageUrl(
         appMetadata.app_id,

@@ -29,8 +29,6 @@ import {
   FetchLocalisationDocument,
   FetchLocalisationQuery,
 } from "../graphql/client/fetch-localisation.generated";
-import { useUpdateHeroImageMutation } from "./graphql/client/update-hero-image.generated";
-import { useUpdateLocalisationHeroImageMutation } from "./graphql/client/update-localisation-hero-image.generated";
 import { useUpdateLocalisationMetaTagImageMutation } from "./graphql/client/update-localisation-meta-tag-image.generated";
 import { useUpdateLocalisationShowcaseImagesMutation } from "./graphql/client/update-localisation-showcase-images.generated";
 import { useUpdateMetaTagImageMutation } from "./graphql/client/update-meta-tag-image.generated";
@@ -55,7 +53,6 @@ const SHOWCASE_IMAGE_NAMES = [
 ];
 
 type ImageUpdateFunctions = {
-  updateHeroImage: (heroImageUrl: string) => Promise<any>;
   updateMetaTagImage: (metaTagImageUrl: string) => Promise<any>;
   updateShowcaseImages: (showcaseImgUrls: string[]) => Promise<any>;
 };
@@ -71,18 +68,14 @@ export const ImageForm = (props: ImageFormTypes) => {
     onOperationStateChange,
   } = props;
   const [unverifiedImages, setUnverifiedImages] = useAtom(unverifiedImageAtom);
-  const [heroImageUploading, setHeroImageUploading] = useState(false);
   const [metaTagImageUploading, setMetaTagImageUploading] = useState(false);
   const [showcaseImageUploading, setShowcaseImageUploading] = useState(false);
   const [isAnyOperationInProgress, setIsAnyOperationInProgress] =
     useState(false);
   const [viewMode] = useAtom(viewModeAtom);
   const { user } = useUser() as Auth0SessionUser;
-  const [updateHeroImageMutation] = useUpdateHeroImageMutation();
   const [updateMetaTagImageMutation] = useUpdateMetaTagImageMutation();
   const [updateShowcaseImagesMutation] = useUpdateShowcaseImagesMutation();
-  const [updateLocalisationHeroImageMutation] =
-    useUpdateLocalisationHeroImageMutation();
   const [updateLocalisationMetaTagImageMutation] =
     useUpdateLocalisationMetaTagImageMutation();
   const [updateLocalisationShowcaseImagesMutation] =
@@ -105,7 +98,6 @@ export const ImageForm = (props: ImageFormTypes) => {
     if (imagesData?.unverified_images) {
       setUnverifiedImages({
         logo_img_url: imagesData.unverified_images.logo_img_url ?? "",
-        hero_image_url: imagesData.unverified_images.hero_image_url ?? "",
         meta_tag_image_url:
           imagesData.unverified_images.meta_tag_image_url ?? "",
         showcase_image_urls: imagesData.unverified_images.showcase_img_urls,
@@ -113,7 +105,6 @@ export const ImageForm = (props: ImageFormTypes) => {
     } else {
       setUnverifiedImages({
         logo_img_url: "",
-        hero_image_url: "",
         showcase_image_urls: [],
         meta_tag_image_url: "",
       });
@@ -123,25 +114,6 @@ export const ImageForm = (props: ImageFormTypes) => {
   const updateFunctions: ImageUpdateFunctions = useMemo(() => {
     if (isEnglishLocale) {
       return {
-        updateHeroImage: async (heroImageUrl: string) => {
-          return updateHeroImageMutation({
-            variables: {
-              app_metadata_id: appMetadataId,
-              hero_image_url: heroImageUrl,
-            },
-            refetchQueries: [
-              {
-                query: FetchAppMetadataDocument,
-                variables: { id: appId },
-              },
-              {
-                query: FetchImagesDocument,
-                variables: { id: appId, team_id: teamId, locale },
-              },
-            ],
-            awaitRefetchQueries: true,
-          });
-        },
         updateMetaTagImage: async (metaTagImageUrl: string) => {
           return updateMetaTagImageMutation({
             variables: {
@@ -184,28 +156,6 @@ export const ImageForm = (props: ImageFormTypes) => {
       };
     } else {
       return {
-        updateHeroImage: async (heroImageUrl: string) => {
-          return updateLocalisationHeroImageMutation({
-            variables: {
-              localisation_id: localisation?.id ?? "",
-              hero_image_url: heroImageUrl,
-            },
-            refetchQueries: [
-              {
-                query: FetchLocalisationDocument,
-                variables: {
-                  id: appMetadataId,
-                  locale: locale,
-                },
-              },
-              {
-                query: FetchImagesDocument,
-                variables: { id: appId, team_id: teamId, locale },
-              },
-            ],
-            awaitRefetchQueries: true,
-          });
-        },
         updateMetaTagImage: async (metaTagImageUrl: string) => {
           return updateLocalisationMetaTagImageMutation({
             variables: {
@@ -259,9 +209,7 @@ export const ImageForm = (props: ImageFormTypes) => {
     teamId,
     locale,
     localisation?.id,
-    updateHeroImageMutation,
     updateShowcaseImagesMutation,
-    updateLocalisationHeroImageMutation,
     updateLocalisationShowcaseImagesMutation,
     updateMetaTagImageMutation,
     updateLocalisationMetaTagImageMutation,
@@ -297,26 +245,6 @@ export const ImageForm = (props: ImageFormTypes) => {
         ),
     );
   }, [showcaseImgFileNames]);
-
-  const deleteHeroImage = useCallback(async () => {
-    try {
-      setIsAnyOperationInProgress(true);
-      setUnverifiedImages({
-        ...unverifiedImages,
-        hero_image_url: "",
-      });
-
-      const result = await updateFunctions.updateHeroImage("");
-      if (result instanceof Error) {
-        throw result;
-      }
-    } catch (error) {
-      console.error("Error Deleting Image: ", error);
-      toast.error("Error deleting image");
-    } finally {
-      setIsAnyOperationInProgress(false);
-    }
-  }, [setUnverifiedImages, unverifiedImages, updateFunctions]);
 
   const deleteMetaTagImage = useCallback(async () => {
     try {
@@ -388,9 +316,7 @@ export const ImageForm = (props: ImageFormTypes) => {
       const fileTypeEnding = file.type.split("/")[1];
 
       setIsAnyOperationInProgress(true);
-      if (imageType === "hero_image") {
-        setHeroImageUploading(true);
-      } else if (imageType === "meta_tag_image") {
+      if (imageType === "meta_tag_image") {
         setMetaTagImageUploading(true);
       } else {
         setShowcaseImageUploading(true);
@@ -425,17 +351,7 @@ export const ImageForm = (props: ImageFormTypes) => {
         const saveFileType = fileTypeEnding === "jpeg" ? "jpg" : fileTypeEnding;
         const fileName = `${imageType}.${saveFileType}`;
 
-        if (imageType === "hero_image") {
-          const result = await updateFunctions.updateHeroImage(fileName);
-          if (result instanceof Error) {
-            throw result;
-          }
-          setUnverifiedImages({
-            ...unverifiedImages,
-            [`${imageType}_url`]: imageUrl,
-          });
-          setHeroImageUploading(false);
-        } else if (imageType === "meta_tag_image") {
+        if (imageType === "meta_tag_image") {
           const result = await updateFunctions.updateMetaTagImage(fileName);
           if (result instanceof Error) {
             throw result;
@@ -482,38 +398,12 @@ export const ImageForm = (props: ImageFormTypes) => {
           });
         }
 
-        setHeroImageUploading(false);
         setShowcaseImageUploading(false);
       } finally {
         setIsAnyOperationInProgress(false);
       }
     }
   };
-
-  const heroImage = useMemo(() => {
-    if (appMetadata?.verification_status === "verified") {
-      const imageUrl = isEnglishLocale
-        ? appMetadata?.hero_image_url
-        : localisation?.hero_image_url;
-      if (!imageUrl) return null;
-      return getCDNImageUrl(
-        appId,
-        imageUrl,
-        true,
-        !isEnglishLocale ? locale : undefined,
-      );
-    } else {
-      return unverifiedImages.hero_image_url;
-    }
-  }, [
-    appMetadata?.verification_status,
-    appMetadata?.hero_image_url,
-    localisation?.hero_image_url,
-    isEnglishLocale,
-    appId,
-    unverifiedImages.hero_image_url,
-    locale,
-  ]);
 
   const metaTagImage = useMemo(() => {
     if (appMetadata?.verification_status === "verified") {
@@ -572,83 +462,6 @@ export const ImageForm = (props: ImageFormTypes) => {
 
   return (
     <div className="grid gap-y-7">
-      {/* Featured image */}
-      <div className="grid gap-y-3">
-        <Typography variant={TYPOGRAPHY.H7} className="text-grey-900">
-          Featured image (required)
-        </Typography>
-        <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
-          This image will be used for featuring your app on the homepage of
-          World Mini Apps.
-        </Typography>
-      </div>
-      {isLoadingImages && (
-        <div className="size-fit">
-          <Skeleton className="size-32 rounded-lg" />
-        </div>
-      )}
-      {!isLoadingImages && !heroImage && !heroImageUploading && (
-        <ImageDropZone
-          width={1080}
-          height={1080}
-          disabled={
-            unverifiedImages.hero_image_url !== "" ||
-            !isEnoughPermissions ||
-            !isEditable ||
-            isAnyOperationInProgress
-          }
-          uploadImage={uploadImage}
-          imageType={"hero_image"}
-        >
-          <UploadIcon className="size-12 text-blue-500" />
-          <div className="gap-y-2">
-            <div className="text-center">
-              <Typography variant={TYPOGRAPHY.M3} className="text-blue-500">
-                Click to upload
-              </Typography>{" "}
-              <Typography variant={TYPOGRAPHY.R3} className="text-grey-700">
-                {" "}
-                or drag and drop
-              </Typography>
-            </div>
-            <Typography variant={TYPOGRAPHY.R5} className="text-grey-500">
-              {`JPG or PNG (max 500kB), required aspect ratio 1:1. \nRecommended size: ${1080}x${1080}px`}
-            </Typography>
-          </div>
-        </ImageDropZone>
-      )}
-      {!isLoadingImages && heroImage && (
-        <div className="relative size-fit">
-          <ImageDisplay
-            src={heroImage}
-            type={viewMode}
-            width={300}
-            height={300}
-            className="h-auto w-32 rounded-lg"
-          />
-          <Button
-            type="button"
-            onClick={deleteHeroImage}
-            className={clsx(
-              "absolute -right-3 -top-3 flex size-8 items-center justify-center rounded-full bg-grey-100 hover:bg-grey-200",
-              {
-                hidden:
-                  !isEnoughPermissions ||
-                  !isEditable ||
-                  isAnyOperationInProgress,
-                "cursor-not-allowed opacity-50": isAnyOperationInProgress,
-              },
-            )}
-            disabled={isAnyOperationInProgress}
-          >
-            <TrashIcon />
-          </Button>
-        </div>
-      )}
-      {heroImageUploading && (
-        <ImageLoader name={"featured_image"} className="h-[132px]" />
-      )}
-
       {/* Meta tag image */}
       <div className="grid gap-y-3">
         <Typography variant={TYPOGRAPHY.H7} className="text-grey-900">
