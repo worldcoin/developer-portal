@@ -12,6 +12,7 @@ export type GetAppMetadataQuery = {
   __typename?: "query_root";
   app_metadata: Array<{
     __typename?: "app_metadata";
+    id: string;
     name: string;
     app_id: string;
     is_reviewer_app_store_approved: boolean;
@@ -29,6 +30,7 @@ export const GetAppMetadataDocument = gql`
     app_metadata(
       where: { app_id: { _eq: $app_id }, app: { is_banned: { _eq: false } } }
     ) {
+      id
       name
       app_id
       is_reviewer_app_store_approved

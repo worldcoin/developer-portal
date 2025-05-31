@@ -20,6 +20,7 @@ import { getSdk as fetchMetadataSdk } from "./graphql/fetch-metadata.generated";
 
 const sendNotificationBodySchema = yup.object({
   app_id: yup.string().strict().required(),
+  draft_id: yup.string().strict().optional(),
   wallet_addresses: yup
     .array()
     .of(yup.string())
@@ -138,9 +139,10 @@ export const POST = async (req: NextRequest) => {
     return handleError(req);
   }
 
-  const { app_id, wallet_addresses, title, message, mini_app_path } = {
-    ...parsedParams,
-  };
+  const { app_id, wallet_addresses, title, message, mini_app_path, draft_id } =
+    {
+      ...parsedParams,
+    };
 
   const keyValue = api_key.replace(/^api_/, "");
   const serviceClient = await getAPIServiceGraphqlClient();
@@ -233,15 +235,32 @@ export const POST = async (req: NextRequest) => {
       app_id,
     });
   }
-  // If app is verified we pull that app metadata
-  let verifiedOrDefaultApp = app_metadata[0];
-  if (app_metadata.length > 1) {
-    const verifiedApp = app_metadata.find(
+
+  /**
+   * App metadata logic:
+   * - If draft_id is provided, we use the draft metadata
+   * - If there is only one app metadata entry, we use that
+   * - If there is more than one app metadata entries, we use the verified app we return an error
+   */
+  let appMetadata = app_metadata?.[0];
+  if (draft_id) {
+    const draftMetadata = app_metadata.find((app) => app.id === draft_id);
+    if (!draftMetadata) {
+      return errorResponse({
+        statusCode: 400,
+        code: "invalid_draft_id",
+        detail: "Invalid draft id",
+        attribute: "draft_id",
+        req,
+        app_id,
+      });
+    }
+    appMetadata = draftMetadata;
+  } else if (app_metadata.length > 1) {
+    const verifiedAppMetadata = app_metadata.find(
       (app) => app.verification_status === "verified",
     );
-    if (verifiedApp) {
-      verifiedOrDefaultApp = verifiedApp;
-    } else {
+    if (!verifiedAppMetadata) {
       return errorResponse({
         statusCode: 400,
         code: "duplicate_app",
@@ -251,13 +270,14 @@ export const POST = async (req: NextRequest) => {
         app_id,
       });
     }
+
+    appMetadata = verifiedAppMetadata;
   }
 
-  const appMetadata = app_metadata?.[0];
   const teamId = appMetadata.app.team.id;
 
   // If app is not verified we allow max 40 notifications per 4 hours
-  if (verifiedOrDefaultApp?.verification_status !== "verified") {
+  if (appMetadata?.verification_status !== "verified") {
     const key = `app_notifications_${app_id}`;
     const TTL_SECONDS = 14400; // 4 hours in seconds
 
@@ -348,6 +368,7 @@ export const POST = async (req: NextRequest) => {
         message,
         miniAppPath: mini_app_path,
         teamId: teamId,
+        draftId: draft_id,
       }),
     },
   );
