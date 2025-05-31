@@ -6,6 +6,7 @@ import { Checkbox } from "@/components/Checkbox";
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { Input } from "@/components/Input";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import { teamNameSchema } from "@/lib/schema";
 import { urls } from "@/lib/urls";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -23,8 +24,7 @@ export const Form = (props: { hasUser: boolean }) => {
     () =>
       yup.object({
         hasUser: yup.boolean().default(props.hasUser),
-        teamName: yup.string().required("Please enter a team name"),
-
+        teamName: teamNameSchema,
         termsAndConditions: yup.boolean().when("hasUser", {
           is: false,
           then: (schema) =>

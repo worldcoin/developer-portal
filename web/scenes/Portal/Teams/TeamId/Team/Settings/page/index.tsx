@@ -3,6 +3,8 @@ import { DecoratedButton } from "@/components/DecoratedButton";
 import { Input } from "@/components/Input";
 import { Section } from "@/components/Section";
 import { SizingWrapper } from "@/components/SizingWrapper";
+import { teamNameSchema } from "@/lib/schema";
+import { useRefetchQueries } from "@/lib/use-refetch-queries";
 import { FetchMeDocument } from "@/scenes/common/me-query/client/graphql/client/me-query.generated";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useParams } from "next/navigation";
@@ -11,14 +13,11 @@ import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import * as yup from "yup";
 import { TeamProfile } from "../../common/TeamProfile";
-import {
-  FetchTeamDocument,
-  useFetchTeamQuery,
-} from "../../common/TeamProfile/graphql/client/fetch-team.generated";
-import { useUpdateTeamMutation } from "./graphql/client/update-team.generated";
+import { useFetchTeamQuery } from "../../common/TeamProfile/graphql/client/fetch-team.generated";
+import { validateAndUpdateTeamServerSide } from "../server/submit";
 
 const schema = yup.object({
-  name: yup.string().required("This is a required field"),
+  name: teamNameSchema,
 });
 
 type FormValues = yup.InferType<typeof schema>;
@@ -26,7 +25,9 @@ type FormValues = yup.InferType<typeof schema>;
 export const TeamSettingsPage = () => {
   const { teamId } = useParams() as { teamId: string };
 
-  const fetchTeamQueryRes = useFetchTeamQuery({
+  const { refetch: refetchMe } = useRefetchQueries(FetchMeDocument);
+
+  const { data: fetchTeamQueryRes, refetch: refetchTeam } = useFetchTeamQuery({
     variables: {
       teamId: teamId,
     },
@@ -38,33 +39,24 @@ export const TeamSettingsPage = () => {
     formState: { isValid, errors, isSubmitting },
   } = useForm<FormValues>({
     values: {
-      name: fetchTeamQueryRes.data?.team_by_pk?.name ?? "",
+      name: fetchTeamQueryRes?.team_by_pk?.name ?? "",
     },
     resolver: yupResolver(schema),
     mode: "onChange",
   });
 
-  const [updateTeam] = useUpdateTeamMutation();
-
   const submit = useCallback(
     async (values: FormValues) => {
       try {
-        await updateTeam({
-          variables: {
-            id: teamId,
-            input: {
-              name: values.name,
-            },
-          },
-          refetchQueries: [FetchTeamDocument, FetchMeDocument],
-        });
+        await validateAndUpdateTeamServerSide(values.name, teamId);
         toast.success("Your team was successfully updated");
+        await Promise.all([refetchTeam(), refetchMe()]);
       } catch (error) {
         console.error("Failed to update team: ", error);
         toast.error("Error updating team");
       }
     },
-    [teamId, updateTeam],
+    [teamId, refetchTeam, refetchMe],
   );
 
   return (
