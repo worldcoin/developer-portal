@@ -58,6 +58,25 @@ export const NATIVE_MAPPED_APP_ID = {
   contacts: "contacts",
 };
 
+export const NativeAppToAppIdMapping: Record<string, Record<string, string>> = {
+  dev: {
+    TEST_APP: "app_test_123",
+  },
+  staging: {
+    grants: "app_2332482ec46485260714dba51b3ad511",
+    invites: "app_901d6025acb2a1492a2f2becb5c83d1d",
+    network: "app_a8309f030d83505a1632e1ed9dfb57cc",
+    grants_native: "app_staging_39ccc5b13235e4227a7c38b23203e59f",
+    contacts: "app_701d0e4883e350804a0811f7b2529425",
+  },
+  production: {
+    grants: "app_d2905e660b94ad24d6fc97816182ab35",
+    invites: "app_432af83feb4051e72fd7ee682f365c39",
+    network: "app_a23c6398432498825962a9b96294dde1",
+    contacts: "app_32fa11ef4b55fc5865dcd6e45ef281f5",
+  },
+};
+
 export const NativeApps: Record<string, NativeAppsMap> = {
   dev: {
     app_test_123: {
@@ -67,7 +86,6 @@ export const NativeApps: Record<string, NativeAppsMap> = {
     },
   },
 };
-
 // These are addresses that have been whitelisted from the permit2 restriction
 export const whitelistedAppsPermit2 = [
   "app_a4f7f3e62c1de0b9490a5260cb390b56", // UNO
