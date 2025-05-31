@@ -1,0 +1,15 @@
+mutation UpdateNotificationPermissionStatus(
+  $app_id: String!
+  $notification_permission_status: String
+  $notification_permission_status_changed_date: timestamptz
+) {
+  update_app_metadata_by_pk(
+    pk_columns: { id: $app_id }
+    _set: {
+      notification_permission_status: $notification_permission_status
+      notification_permission_status_changed_date: $notification_permission_status_changed_date
+    }
+  ) {
+    id
+  }
+}
