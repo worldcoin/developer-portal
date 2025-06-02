@@ -7,16 +7,37 @@ import {
   appStoreImageSchema,
   appWorldAppButtonTextSchema,
   appWorldAppDescriptionSchema,
-  httpsLinkSchema,
+  httpsLinkSchema as getHttpsLinkSchema,
 } from "@/lib/schema";
 import * as yup from "yup";
 
-const appWebsiteUrlSchema = httpsLinkSchema().required(
-  "This field is required",
-);
+const httpsLinkSchema = getHttpsLinkSchema();
+
+const appWebsiteUrlSchema = httpsLinkSchema.required("This field is required");
 const supportEmailSchema = yup.string().email("Invalid email address");
 
-const supportLinkSchema = httpsLinkSchema({ excludeEmptyString: true });
+const supportLinkSchema = yup
+  .string()
+  .test(
+    "is-valid-support-link",
+    "Must be a valid https URL or a miniapp deeplink (worldapp://mini-app?app_id=)",
+    (value) => {
+      if (!value) return false;
+
+      // miniapp deeplink
+      if (value.startsWith("worldapp://mini-app?app_id=")) {
+        return true;
+      }
+
+      // https url
+      if (httpsLinkSchema.isValidSync(value)) {
+        return true;
+      }
+
+      return false;
+    },
+  );
+
 const supportedCountriesSchema = yup
   .array(
     yup
@@ -77,7 +98,6 @@ export const insertLocalisationInitialSchema = yup.object({
   description_connect: appDescriptionConnectSchema,
   app_metadata_id: appMetadataIdSchema,
   locale: yup.string().required("Locale is required"),
-  hero_image_url: appStoreImageSchema,
   meta_tag_image_url: appStoreImageSchema,
   showcase_img_urls: yup.array().of(appStoreImageSchema),
 });

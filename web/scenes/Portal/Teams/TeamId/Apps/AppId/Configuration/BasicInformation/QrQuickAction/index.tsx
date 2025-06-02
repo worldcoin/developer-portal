@@ -19,9 +19,9 @@ const getQRCode = async (url: string): Promise<string | null> => {
 
 export const QrQuickAction = (props: {
   url: string;
-  showDeveloperFlag: boolean;
+  showDraftMiniAppFlag: boolean;
 }) => {
-  const { url, showDeveloperFlag } = props;
+  const { url, showDraftMiniAppFlag } = props;
   const [qrCodeDataURL, setQrCodeDataURL] = useState<string | null>(null);
 
   useEffect(() => {
@@ -34,7 +34,7 @@ export const QrQuickAction = (props: {
 
   return (
     <div className="grid gap-y-2">
-      {showDeveloperFlag && (
+      {showDraftMiniAppFlag && (
         <Notification variant="warning">
           <div className="text-sm">
             <h3 className="font-medium text-yellow-800">Developer Preview</h3>

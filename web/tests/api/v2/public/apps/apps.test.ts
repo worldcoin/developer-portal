@@ -56,7 +56,7 @@ describe("/api/v2/public/apps", () => {
         name: "Test App",
         short_name: "test",
         logo_img_url: "logo.png",
-        hero_image_url: "hero.png",
+        hero_image_url: "",
         meta_tag_image_url: "meta_tag_image.png",
         showcase_img_urls: ["showcase1.png"],
         category: "Social",
@@ -84,7 +84,7 @@ describe("/api/v2/public/apps", () => {
         name: "Test App",
         short_name: "test",
         logo_img_url: "logo.png",
-        hero_image_url: "hero.png",
+        hero_image_url: "",
         meta_tag_image_url: "meta_tag_image.png",
         showcase_img_urls: ["showcase1.png"],
         category: "Social",
@@ -205,7 +205,7 @@ describe("/api/v2/public/apps", () => {
         name: "Test App 1",
         short_name: "test1",
         logo_img_url: "logo.png",
-        hero_image_url: "hero.png",
+        hero_image_url: "",
         showcase_img_urls: ["showcase1.png"],
         category: "Social",
         world_app_button_text: "random",
@@ -231,7 +231,7 @@ describe("/api/v2/public/apps", () => {
         name: "Test App 2",
         short_name: "test2",
         logo_img_url: "logo.png",
-        hero_image_url: "hero.png",
+        hero_image_url: "",
         showcase_img_urls: ["showcase1.png"],
         category: "Social", // Not external category
         world_app_button_text: "random",
@@ -257,7 +257,7 @@ describe("/api/v2/public/apps", () => {
         name: "Test App 3",
         short_name: "test3",
         logo_img_url: "logo.png",
-        hero_image_url: "hero.png",
+        hero_image_url: "",
         showcase_img_urls: ["showcase1.png"],
         category: "External", // External category
         world_app_button_text: "random",
@@ -283,7 +283,7 @@ describe("/api/v2/public/apps", () => {
         name: "Test App 4",
         short_name: "test4",
         logo_img_url: "logo.png",
-        hero_image_url: "hero.png",
+        hero_image_url: "",
         showcase_img_urls: ["showcase1.png"],
         category: "External", // External category
         world_app_button_text: "random",
@@ -552,7 +552,7 @@ describe("/api/v2/public/apps", () => {
             name: "Test App",
             short_name: "test",
             logo_img_url: "logo.png",
-            hero_image_url: "hero1.png",
+            hero_image_url: "",
             meta_tag_image_url: "meta_tag_image.png",
             showcase_img_urls: ["showcase1.png"],
             category: "Social",
@@ -584,7 +584,7 @@ describe("/api/v2/public/apps", () => {
             name: "Test App2",
             short_name: "test",
             logo_img_url: "logo.png",
-            hero_image_url: "hero.png",
+            hero_image_url: "",
             meta_tag_image_url: "meta_tag_image.png",
             showcase_img_urls: ["showcase1.png", "showcase2.png"],
             category: "Social",
@@ -616,7 +616,7 @@ describe("/api/v2/public/apps", () => {
             name: "Test App3",
             short_name: "test",
             logo_img_url: "logo.png",
-            hero_image_url: "hero.png",
+            hero_image_url: "",
             meta_tag_image_url: "meta_tag_image.png",
             world_app_button_text: "random",
             world_app_description: "random",
@@ -670,7 +670,7 @@ describe("/api/v2/public/apps", () => {
             ratings_external_nullifier:
               "0x00051f128f73eec6f444e98dca57697f9cce04fb3f2e0e63dea5351ccde35b8e",
             logo_img_url: "https://cdn.test.com/1/logo.png",
-            hero_image_url: "https://cdn.test.com/1/hero1.png",
+            hero_image_url: "",
             meta_tag_image_url: "https://cdn.test.com/1/meta_tag_image.png",
             showcase_img_urls: ["https://cdn.test.com/1/showcase1.png"],
             team_name: "Example Team",
@@ -694,6 +694,7 @@ describe("/api/v2/public/apps", () => {
             is_allowed_unlimited_notifications: false,
             max_notifications_per_day: 10,
             category_ranking: 1,
+            avg_notification_open_rate: null,
           },
           {
             app_id: "2",
@@ -702,7 +703,7 @@ describe("/api/v2/public/apps", () => {
             ratings_external_nullifier:
               "0x00fc298ff1e90b9bcbd7635266377d41b389cf96426db379b5871dd85a837020",
             logo_img_url: "https://cdn.test.com/2/logo.png",
-            hero_image_url: "https://cdn.test.com/2/hero.png",
+            hero_image_url: "",
             meta_tag_image_url: "https://cdn.test.com/2/meta_tag_image.png",
             category: { id: "social", name: "Social" },
             whitelisted_addresses: ["0x1234", "0x5678"],
@@ -729,13 +730,14 @@ describe("/api/v2/public/apps", () => {
             is_allowed_unlimited_notifications: false,
             max_notifications_per_day: 10,
             category_ranking: 2,
+            avg_notification_open_rate: null,
           },
           {
             app_id: "3",
             name: "Test App3",
             short_name: "test",
             logo_img_url: "https://cdn.test.com/3/logo.png",
-            hero_image_url: "https://cdn.test.com/3/hero.png",
+            hero_image_url: "",
             meta_tag_image_url: "https://cdn.test.com/3/meta_tag_image.png",
             ratings_external_nullifier:
               "0x00a8ca23f766684e799bbbf19666342bb13b830c80aba71b9e25036990b539f1",
@@ -765,6 +767,7 @@ describe("/api/v2/public/apps", () => {
             is_allowed_unlimited_notifications: false,
             max_notifications_per_day: 10,
             category_ranking: 1,
+            avg_notification_open_rate: null,
           },
         ],
       },
@@ -795,7 +798,7 @@ describe("/api/v2/public/apps", () => {
             logo_img_url: "logo.png",
             meta_tag_image_url: "meta_tag_image.png",
             showcase_img_urls: ["showcase1.png", "showcase2.png"],
-            hero_image_url: "hero.png",
+            hero_image_url: "",
             world_app_description:
               "This is an example app designed to showcase the capabilities of our platform.",
             world_app_button_text: "Use Integration",
@@ -843,7 +846,7 @@ describe("/api/v2/public/apps", () => {
             app_id: "TEST_APP",
             short_name: "test",
             logo_img_url: "https://cdn.test.com/app_test_123/logo.png",
-            hero_image_url: "https://cdn.test.com/app_test_123/hero.png",
+            hero_image_url: "",
             meta_tag_image_url:
               "https://cdn.test.com/app_test_123/meta_tag_image.png",
             showcase_img_urls: [
@@ -880,6 +883,7 @@ describe("/api/v2/public/apps", () => {
             is_allowed_unlimited_notifications: false,
             max_notifications_per_day: 10,
             category_ranking: 1,
+            avg_notification_open_rate: null,
           },
         ],
         highlights: [],
@@ -910,7 +914,7 @@ describe("/api/v2/public/apps", () => {
             short_name: "test",
             logo_img_url: "logo.png",
             showcase_img_urls: ["showcase1.png", "showcase2.png"],
-            hero_image_url: "hero.png",
+            hero_image_url: "",
             world_app_description:
               "This is an example app designed to showcase the capabilities of our platform.",
             world_app_button_text: "Use Integration",
@@ -977,7 +981,7 @@ describe("/api/v2/public/apps", () => {
               logo_img_url: "logo.png",
               meta_tag_image_url: "meta_tag_image.png",
               showcase_img_urls: ["showcase1.png", "showcase2.png"],
-              hero_image_url: "hero.png",
+              hero_image_url: "",
               world_app_description: "Default description",
               world_app_button_text: "Default button",
               category: "Social",
@@ -1013,7 +1017,7 @@ describe("/api/v2/public/apps", () => {
                   short_name: "test-es",
                   description:
                     '{"description_overview":"español","description_how_it_works":"español","description_connect":"español"}',
-                  hero_image_url: "hero-es.png",
+                  hero_image_url: "",
                   meta_tag_image_url: "meta_tag_image-es.png",
                   showcase_img_urls: ["showcase1-es.png", "showcase2-es.png"],
                 },
@@ -1038,9 +1042,7 @@ describe("/api/v2/public/apps", () => {
 
       expect(data.app_rankings.top_apps[0].name).toBe("Aplicación de Ejemplo");
       expect(data.app_rankings.top_apps[0].short_name).toBe("test-es");
-      expect(data.app_rankings.top_apps[0].hero_image_url).toBe(
-        "https://cdn.test.com/1/es/hero-es.png",
-      );
+      expect(data.app_rankings.top_apps[0].hero_image_url).toBe("");
       expect(data.app_rankings.top_apps[0].meta_tag_image_url).toBe(
         "https://cdn.test.com/1/es/meta_tag_image-es.png",
       );
@@ -1079,7 +1081,7 @@ describe("/api/v2/public/apps", () => {
               short_name: "test",
               logo_img_url: "logo.png",
               showcase_img_urls: ["showcase1.png", "showcase2.png"],
-              hero_image_url: "hero.png",
+              hero_image_url: "",
               world_app_description: "Default description",
               world_app_button_text: "Default button",
               category: "Social",
@@ -1137,9 +1139,7 @@ describe("/api/v2/public/apps", () => {
 
       expect(data.app_rankings.top_apps[0].name).toBe("Aplicación de Ejemplo");
       expect(data.app_rankings.top_apps[0].short_name).toBe("test-es");
-      expect(data.app_rankings.top_apps[0].hero_image_url).toBe(
-        "https://cdn.test.com/1/hero.png",
-      );
+      expect(data.app_rankings.top_apps[0].hero_image_url).toBe("");
       expect(data.app_rankings.top_apps[0].showcase_img_urls).toEqual([
         "https://cdn.test.com/1/showcase1.png",
         "https://cdn.test.com/1/showcase2.png",
@@ -1175,7 +1175,7 @@ describe("/api/v2/public/apps", () => {
               short_name: "test",
               logo_img_url: "logo.png",
               showcase_img_urls: ["showcase1.png", "showcase2.png"],
-              hero_image_url: "hero.png",
+              hero_image_url: "",
               world_app_description: "Default description",
               world_app_button_text: "Default button",
               category: "Social",
@@ -1205,7 +1205,7 @@ describe("/api/v2/public/apps", () => {
               localisations: [
                 {
                   locale: "es",
-                  hero_image_url: "hero-es.png",
+                  hero_image_url: "",
                   showcase_img_urls: ["showcase1-es.png", "showcase2-es.png"],
                 },
               ],
@@ -1229,9 +1229,7 @@ describe("/api/v2/public/apps", () => {
 
       expect(data.app_rankings.top_apps[0].name).toBe("Example App");
       expect(data.app_rankings.top_apps[0].short_name).toBe("test");
-      expect(data.app_rankings.top_apps[0].hero_image_url).toBe(
-        "https://cdn.test.com/1/hero.png",
-      );
+      expect(data.app_rankings.top_apps[0].hero_image_url).toBe("");
       expect(data.app_rankings.top_apps[0].showcase_img_urls).toEqual([
         "https://cdn.test.com/1/showcase1.png",
         "https://cdn.test.com/1/showcase2.png",
@@ -1255,7 +1253,7 @@ describe("/api/v2/public/apps", () => {
         name: "Contacts",
         short_name: "contacts",
         logo_img_url: "logo.png",
-        hero_image_url: "hero.png",
+        hero_image_url: "",
         showcase_img_urls: ["showcase1.png"],
         category: "Social",
         world_app_button_text: "random",
@@ -1281,7 +1279,7 @@ describe("/api/v2/public/apps", () => {
         name: "Another App",
         short_name: "another",
         logo_img_url: "logo.png",
-        hero_image_url: "hero.png",
+        hero_image_url: "",
         showcase_img_urls: ["showcase1.png"],
         category: "Social",
         world_app_button_text: "random",

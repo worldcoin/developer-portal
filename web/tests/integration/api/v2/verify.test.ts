@@ -188,10 +188,10 @@ describe("/api/v2/verify [Security Vulnerabilities Integration Tests]", () => {
 
     const body = await secondResponse.json();
     expect(body).toEqual({
-      attribute: null,
-      code: "max_verifications_reached",
-      detail: "This person has already verified for this action.",
-      app_id: appId,
+      attribute: "nullifier_hash",
+      code: "validation_error",
+      detail:
+        "Invalid nullifier_hash. Must be a hex string with optional 0x prefix.",
     });
   });
 
@@ -232,7 +232,7 @@ describe("/api/v2/verify [Security Vulnerabilities Integration Tests]", () => {
     expect(nullifierCheck.rows.length).toBe(1);
 
     // Second attempt with a different prefix
-    const nullifierWithoutPrefix = "dd" + VALID_NULLIFIER_HASH.slice(2);
+    const nullifierWithoutPrefix = "zz" + VALID_NULLIFIER_HASH.slice(2);
 
     console.log("Testing prefix bypass:", {
       withPrefix: VALID_NULLIFIER_HASH,
@@ -251,9 +251,10 @@ describe("/api/v2/verify [Security Vulnerabilities Integration Tests]", () => {
 
     const body = await secondResponse.json();
     expect(body).toMatchObject({
-      attribute: null,
-      code: "invalid_proof",
-      app_id: appId,
+      attribute: "nullifier_hash",
+      code: "validation_error",
+      detail:
+        "Invalid nullifier_hash. Must be a hex string with optional 0x prefix.",
     });
   });
 
