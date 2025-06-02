@@ -64,6 +64,19 @@ const formatArrayInput = (e: ChangeEvent<HTMLTextAreaElement>) => {
   }
 };
 
+// calculate dynamic rows based on content
+const calculateRows = (
+  value: string | null | undefined,
+  minRows = 3,
+  maxRows = 10,
+) => {
+  if (!value) return minRows;
+
+  const lines = value.split(",").length;
+
+  return Math.max(minRows, Math.min(maxRows, lines + 1));
+};
+
 export const SetupForm = (props: LinksFormProps) => {
   const { appId, teamId, appMetadata } = props;
   const { user } = useUser() as Auth0SessionUser;
@@ -193,6 +206,20 @@ export const SetupForm = (props: LinksFormProps) => {
     name: "is_whitelist_disabled",
   });
 
+  // watch form values for dynamic row calculation
+  const watchedValues = useWatch({
+    control,
+    name: [
+      "associated_domains",
+      "whitelisted_addresses",
+      "permit2_tokens",
+      "contracts",
+    ],
+  });
+
+  const [associatedDomains, whitelistedAddresses, permit2Tokens, contracts] =
+    watchedValues;
+
   return (
     <form className="grid gap-y-9" onSubmit={handleSubmit(submit)}>
       <div className="grid gap-y-2">
@@ -239,7 +266,8 @@ export const SetupForm = (props: LinksFormProps) => {
             onChange: formatArrayInput,
           })}
           enableResize={false}
-          rows={5}
+          rows={calculateRows(associatedDomains)}
+          className="max-h-64 min-h-32"
           errors={errors.associated_domains}
         />
       </div>
@@ -281,7 +309,8 @@ export const SetupForm = (props: LinksFormProps) => {
               onChange: formatArrayInput,
             })}
             enableResize={false}
-            rows={5}
+            rows={calculateRows(whitelistedAddresses)}
+            className="max-h-64 min-h-32"
           />
         </div>
 
@@ -323,7 +352,8 @@ export const SetupForm = (props: LinksFormProps) => {
           placeholder="0xad312321..., 0xE901e312..."
           register={register("permit2_tokens", { onChange: formatArrayInput })}
           enableResize={false}
-          rows={5}
+          rows={calculateRows(permit2Tokens)}
+          className="max-h-64 min-h-32"
         />
         {errors?.permit2_tokens?.message && (
           <p className="mt-2 text-xs text-system-error-500">
@@ -346,7 +376,8 @@ export const SetupForm = (props: LinksFormProps) => {
           placeholder="0xb731d321..., 0xF2310312..."
           register={register("contracts", { onChange: formatArrayInput })}
           enableResize={false}
-          rows={5}
+          rows={calculateRows(contracts)}
+          className="max-h-64 min-h-32"
         />
         {errors?.contracts?.message && (
           <p className="mt-2 text-xs text-system-error-500">
