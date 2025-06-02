@@ -134,24 +134,6 @@ export const POST = async (req: NextRequest) => {
       );
     }
 
-    // For hero, meta tag and showcase images, use localized versions if available and locale is not English
-    const heroImageUrl = localisation
-      ? localisation.hero_image_url
-      : app.hero_image_url;
-
-    if (heroImageUrl) {
-      urlPromises.push(
-        getSignedUrl(
-          s3Client,
-          new GetObjectCommand({
-            Bucket: bucketName,
-            Key: `${objectKey}${localisation ? `${locale}/` : ""}${heroImageUrl}`,
-          }),
-          { expiresIn: 7200 },
-        ).then((url) => ({ hero_image_url: url })),
-      );
-    }
-
     const showcaseImgUrls = localisation
       ? localisation.showcase_img_urls
       : app.showcase_img_urls;

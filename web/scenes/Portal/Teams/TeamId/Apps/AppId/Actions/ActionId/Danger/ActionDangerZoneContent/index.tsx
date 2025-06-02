@@ -50,6 +50,7 @@ export const ActionDangerZoneContent = (props: {
             query: GetActionsDocument,
             variables: {
               app_id: appId,
+              condition: {},
             },
             fetchPolicy: "network-only", // No reason to pull cache as we deleted an action
           },
@@ -97,7 +98,7 @@ export const ActionDangerZoneContent = (props: {
 
           <div className="grid w-full gap-4 md:grid-cols-2">
             <DecoratedButton
-              type="submit"
+              type="button"
               variant="danger"
               className="order-2 w-full bg-system-error-100 py-3 md:order-1"
               onClick={deleteAction}
@@ -107,7 +108,7 @@ export const ActionDangerZoneContent = (props: {
             </DecoratedButton>
 
             <DecoratedButton
-              type="submit"
+              type="button"
               className="order-1 w-full py-3 md:order-2"
               onClick={() => setOpenDeleteModal(false)}
             >

@@ -94,10 +94,7 @@ export async function GET(request: Request) {
         appMetadata.app_id,
         appMetadata.logo_img_url,
       ),
-      hero_image_url: getCDNImageUrl(
-        appMetadata.app_id,
-        appMetadata.hero_image_url,
-      ),
+      hero_image_url: "",
       showcase_img_urls: appMetadata.showcase_img_urls
         ? appMetadata.showcase_img_urls?.map((showcase_img: string) =>
             getCDNImageUrl(appMetadata.app_id, showcase_img),
