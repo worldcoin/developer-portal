@@ -137,11 +137,9 @@ export const updateAppSupportInfoInitialSchema = yup
     "Either support link or support email must be provided",
     function (values) {
       const { support_link, support_email } = values || {};
-      const hasLink = !!support_link;
-      const hasEmail = !!support_email;
 
       // exactly one must be provided
-      return hasLink !== hasEmail;
+      return !!(support_link || support_email);
     },
   );
 
