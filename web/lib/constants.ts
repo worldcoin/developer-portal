@@ -85,7 +85,57 @@ export const NativeApps: Record<string, NativeAppsMap> = {
       app_mode: "native",
     },
   },
+  staging: {
+    [NativeAppToAppIdMapping.staging.grants]: {
+      app_id: "grants",
+      integration_url: "worldapp://grants",
+      app_mode: "native",
+    },
+    [NativeAppToAppIdMapping.staging.invites]: {
+      app_id: "invites",
+      integration_url: "worldapp://invites",
+      app_mode: "native",
+    },
+    [NativeAppToAppIdMapping.staging.network]: {
+      app_id: "network",
+      integration_url: "worldapp://network",
+      app_mode: "native",
+    },
+    [NativeAppToAppIdMapping.staging.grants_native]: {
+      app_id: "worldcoin",
+      integration_url: "worldapp://worldcoin",
+      app_mode: "native",
+    },
+    [NativeAppToAppIdMapping.staging.contacts]: {
+      app_id: "contacts",
+      integration_url: "worldapp://contacts",
+      app_mode: "native",
+    },
+  },
+  production: {
+    [NativeAppToAppIdMapping.production.grants]: {
+      app_id: "grants",
+      integration_url: "worldapp://grants",
+      app_mode: "native",
+    },
+    [NativeAppToAppIdMapping.production.invites]: {
+      app_id: "invites",
+      integration_url: "worldapp://invites",
+      app_mode: "native",
+    },
+    [NativeAppToAppIdMapping.production.network]: {
+      app_id: "network",
+      integration_url: "worldapp://network",
+      app_mode: "native",
+    },
+    [NativeAppToAppIdMapping.production.contacts]: {
+      app_id: "contacts",
+      integration_url: "worldapp://contacts",
+      app_mode: "native",
+    },
+  },
 };
+
 // These are addresses that have been whitelisted from the permit2 restriction
 export const whitelistedAppsPermit2 = [
   "app_a4f7f3e62c1de0b9490a5260cb390b56", // UNO
