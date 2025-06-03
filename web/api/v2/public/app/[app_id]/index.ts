@@ -78,7 +78,6 @@ export async function GET(
   }
 
   let parsedAppMetadata = app_metadata[0];
-  const nativeAppMetadata = NativeApps[process.env.NEXT_PUBLIC_APP_ENV];
 
   // Get query param for specific metadata if provided
   const { searchParams } = new URL(request.url);
@@ -161,6 +160,8 @@ export async function GET(
       draft_id: draft_id,
     };
   }
+
+  const nativeAppMetadata = NativeApps[process.env.NEXT_PUBLIC_APP_ENV];
 
   if (formattedMetadata.app_id in nativeAppMetadata) {
     const nativeAppItem = nativeAppMetadata[formattedMetadata.app_id];

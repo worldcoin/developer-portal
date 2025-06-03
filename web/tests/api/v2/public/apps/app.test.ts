@@ -1,4 +1,5 @@
 import { GET } from "@/api/v2/public/app/[app_id]";
+import { NativeAppToAppIdMapping } from "@/lib/constants";
 import { NextRequest } from "next/server";
 import { getSdk as getAppMetadataSdk } from "../../../../../api/v2/public/app/[app_id]/graphql/get-app-metadata.generated";
 
@@ -1151,5 +1152,68 @@ describe("/api/public/app/[app_id]", () => {
       expect(data.app_data.world_app_button_text).toBe("Default button");
       expect(data.app_data.description.overview).toBe("default");
     });
+  });
+
+  test("should apply native metadata mapping", async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      status: 200,
+      json: jest.fn().mockResolvedValue([]),
+    }) as jest.Mock;
+
+    process.env.NEXT_PUBLIC_APP_ENV = "production";
+    process.env.NEXT_PUBLIC_METRICS_SERVICE_ENDPOINT =
+      "https://metrics.example.com";
+    process.env.NEXT_PUBLIC_IMAGES_CDN_URL = "cdn.test.com";
+
+    jest.mocked(getAppMetadataSdk).mockImplementation(() => ({
+      GetAppMetadata: jest.fn().mockResolvedValue({
+        app_metadata: [
+          {
+            app_id: NativeAppToAppIdMapping["production"].grants, // this should be mapped to native metadata
+            name: "Test Native App",
+            short_name: "test",
+            logo_img_url: "logo.png",
+            hero_image_url: "",
+            meta_tag_image_url: "meta_tag_image.png",
+            showcase_img_urls: ["showcase1.png"],
+            category: "Social",
+            world_app_button_text: "Use Integration",
+            world_app_description: "Test native app",
+            whitelisted_addresses: ["0x1234"],
+            app_mode: "mini-app", // this should change to "native"
+            integration_url: "https://example.com", // this should change
+            verification_status: "verified",
+            is_allowed_unlimited_notifications: false,
+            max_notifications_per_day: 10,
+            description: JSON.stringify({
+              description_overview: "test",
+              description_how_it_works: "",
+              description_connect: "",
+            }),
+            app: {
+              team: { name: "Test Team" },
+              rating_sum: 10,
+              rating_count: 2,
+            },
+          },
+        ],
+      }),
+    }));
+
+    const request = new NextRequest(
+      "https://cdn.test.com/api/v2/public/app/grants",
+      {
+        headers: {
+          host: "cdn.test.com",
+        },
+      },
+    );
+
+    const response = await GET(request, { params: { app_id: "grants" } });
+    const data = await response.json();
+
+    expect(data.app_data.app_id).toBe("grants"); // mapped from grants app
+    expect(data.app_data.app_mode).toBe("native"); // changed from mini-app
+    expect(data.app_data.integration_url).toBe("worldapp://grants"); // changed from https://example.com
   });
 });
