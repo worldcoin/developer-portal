@@ -1,13 +1,11 @@
 import { formatAppMetadata } from "@/api/helpers/app-store";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { getAppStoreLocalisedCategoriesWithUrls } from "@/lib/categories";
-import { compareVersions } from "@/lib/compare-versions";
 import { NativeAppToAppIdMapping, NativeApps } from "@/lib/constants";
 import { parseLocale } from "@/lib/languages";
 import { AppStatsReturnType } from "@/lib/types";
 import { fetchWithRetry, isValidHostName } from "@/lib/utils";
 import { NextResponse } from "next/server";
-import { CONTACTS_APP_AVAILABLE_FROM } from "../../constants";
 import { getSdk as getAppMetadataSdk } from "./graphql/get-app-metadata.generated";
 
 /**
@@ -52,7 +50,6 @@ export async function GET(
 
   const headers = request.headers;
   const locale = parseLocale(headers.get("x-accept-language") ?? "");
-  const clientVersion = headers.get("client-version");
 
   const client = await getAPIServiceGraphqlClient();
   // Return the metadata
@@ -149,17 +146,6 @@ export async function GET(
       // 403 causes app to show a "unavailable in country" modal
       { status: 403 },
     );
-  }
-
-  const nativeIdToActualId =
-    NativeAppToAppIdMapping[process.env.NEXT_PUBLIC_APP_ENV];
-
-  if (
-    parsedAppMetadata.app_id === nativeIdToActualId.contacts &&
-    (!clientVersion ||
-      compareVersions(clientVersion, CONTACTS_APP_AVAILABLE_FROM) < 0)
-  ) {
-    return NextResponse.json({ error: "App not available" }, { status: 404 });
   }
 
   let formattedMetadata = await formatAppMetadata(
