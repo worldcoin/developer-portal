@@ -47,7 +47,10 @@ export const NotificationPauseMessageDialog = () => {
              you will be able to send notifications again. Please reevaluate your notification strategy.`}
             <br />
             Take a look at our{" "}
-            <Link href="https://docs.world.org/mini-apps/notifications/features-and-guidelines">
+            <Link
+              href="https://docs.world.org/mini-apps/notifications/features-and-guidelines"
+              className="underline"
+            >
               documentation
             </Link>{" "}
             for tips and more information.
