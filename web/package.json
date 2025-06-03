@@ -129,8 +129,6 @@
     "lint": "next lint",
     "lint:fix": "next lint --fix",
     "start": "next start",
-    "test:lib": "jest --testPathPattern=lib",
-    "test:scenes": "jest --testPathPattern=scenes",
     "test:api": "jest tests/api",
     "test:e2e": "playwright test",
     "test:integration": "node tests/verifyHasuraIsUp.js && jest tests/integration --runInBand",
