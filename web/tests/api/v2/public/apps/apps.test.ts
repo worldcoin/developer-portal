@@ -1437,4 +1437,152 @@ describe("/api/v2/public/apps", () => {
       ).toBe(undefined);
     });
   });
+
+  describe("native app metadata mapping", () => {
+    beforeEach(() => {
+      global.fetch = jest.fn().mockResolvedValue({
+        status: 200,
+        json: jest.fn().mockResolvedValue([]),
+      }) as jest.Mock;
+
+      process.env.NEXT_PUBLIC_APP_ENV = "production";
+      process.env.NEXT_PUBLIC_METRICS_SERVICE_ENDPOINT =
+        "https://metrics.example.com";
+      process.env.NEXT_PUBLIC_IMAGES_CDN_URL = "cdn.test.com";
+    });
+
+    test("should apply native metadata mapping to top apps", async () => {
+      jest.mocked(getWebHighlightsSdk).mockImplementation(() => ({
+        GetHighlights: jest.fn().mockResolvedValue({
+          app_rankings: [{ rankings: [] }],
+        }),
+      }));
+
+      jest.mocked(getHighlightsSdk).mockImplementation(() => ({
+        GetHighlights: jest.fn().mockResolvedValue({
+          highlights: [],
+        }),
+      }));
+
+      jest.mocked(getAppsSdk).mockImplementation(() => ({
+        GetApps: jest.fn().mockResolvedValue({
+          top_apps: [
+            {
+              app_id: NativeAppToAppIdMapping["production"].grants, // this should be mapped to native metadata
+              name: "Test Native App",
+              short_name: "test",
+              logo_img_url: "logo.png",
+              hero_image_url: "",
+              meta_tag_image_url: "meta_tag_image.png",
+              showcase_img_urls: ["showcase1.png"],
+              category: "Social",
+              world_app_button_text: "Use Integration",
+              world_app_description: "Test native app",
+              whitelisted_addresses: ["0x1234"],
+              app_mode: "mini-app", // this should change to "native"
+              integration_url: "https://example.com", // this should change
+              verification_status: "verified",
+              is_allowed_unlimited_notifications: false,
+              max_notifications_per_day: 10,
+              description: JSON.stringify({
+                description_overview: "test",
+                description_how_it_works: "",
+                description_connect: "",
+              }),
+              app: {
+                team: { name: "Test Team" },
+                rating_sum: 10,
+                rating_count: 2,
+              },
+            },
+          ],
+        }),
+      }));
+
+      const request = new NextRequest(
+        "https://cdn.test.com/api/v2/public/apps",
+        {
+          headers: {
+            host: "cdn.test.com",
+          },
+        },
+      );
+
+      const response = await GET(request);
+      const data = await response.json();
+
+      const topApp = data.app_rankings.top_apps[0];
+      expect(topApp.app_id).toBe("grants"); // mapped from grants app
+      expect(topApp.app_mode).toBe("native"); // changed from mini-app
+      expect(topApp.integration_url).toBe("worldapp://grants"); // changed from https://example.com
+    });
+
+    test("should apply native metadata mapping to highlighted apps", async () => {
+      jest.mocked(getWebHighlightsSdk).mockImplementation(() => ({
+        GetHighlights: jest.fn().mockResolvedValue({
+          app_rankings: [
+            { rankings: [NativeAppToAppIdMapping["production"].grants] },
+          ],
+        }),
+      }));
+
+      jest.mocked(getHighlightsSdk).mockImplementation(() => ({
+        GetHighlights: jest.fn().mockResolvedValue({
+          highlights: [
+            {
+              app_id: NativeAppToAppIdMapping["production"].grants, // this should be mapped to native metadata
+              name: "Test Native Highlighted App",
+              short_name: "test",
+              logo_img_url: "logo.png",
+              hero_image_url: "",
+              meta_tag_image_url: "meta_tag_image.png",
+              showcase_img_urls: ["showcase1.png"],
+              category: "Social",
+              world_app_button_text: "Use Integration",
+              world_app_description: "Test native highlighted app",
+              whitelisted_addresses: ["0x1234"],
+              app_mode: "mini-app", // this should change to "native"
+              integration_url: "https://example.com", // this should change
+              verification_status: "verified",
+              is_allowed_unlimited_notifications: false,
+              max_notifications_per_day: 10,
+              description: JSON.stringify({
+                description_overview: "test",
+                description_how_it_works: "",
+                description_connect: "",
+              }),
+              app: {
+                team: { name: "Test Team" },
+                rating_sum: 10,
+                rating_count: 2,
+              },
+            },
+          ],
+        }),
+      }));
+
+      jest.mocked(getAppsSdk).mockImplementation(() => ({
+        GetApps: jest.fn().mockResolvedValue({
+          top_apps: [],
+        }),
+      }));
+
+      const request = new NextRequest(
+        "https://cdn.test.com/api/v2/public/apps",
+        {
+          headers: {
+            host: "cdn.test.com",
+          },
+        },
+      );
+
+      const response = await GET(request);
+      const data = await response.json();
+
+      const highlightedApp = data.app_rankings.highlights[0];
+      expect(highlightedApp.app_id).toBe("grants"); // mapped from grants app
+      expect(highlightedApp.app_mode).toBe("native"); // changed from mini-app
+      expect(highlightedApp.integration_url).toBe("worldapp://grants"); // changed from https://example.com
+    });
+  });
 });
