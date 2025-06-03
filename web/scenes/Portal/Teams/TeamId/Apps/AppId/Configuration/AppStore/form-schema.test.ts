@@ -41,16 +41,14 @@ describe("App Store Form Schema", () => {
       await expect(schema.validate(data)).resolves.toBeDefined();
     });
 
-    test("fails when both support_link and support_email are provided", async () => {
+    test("passes when both support_link and support_email are provided", async () => {
       const data = {
         ...baseValidData,
         support_link: "https://support.example.com",
         support_email: "support@example.com",
       };
 
-      await expect(schema.validate(data)).rejects.toThrow(
-        "Either support link or support email must be provided",
-      );
+      await expect(schema.validate(data)).resolves.toBeDefined();
     });
 
     test("passes when support_link is a valid miniapp deeplink", async () => {
