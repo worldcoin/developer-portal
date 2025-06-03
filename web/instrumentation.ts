@@ -38,6 +38,7 @@ export async function register() {
         url: process.env.OPENSEARCH_ENDPOINT,
         indexName: "app_metadata",
       });
+      opensearch.createIndexIfNotExists();
 
       global.OpenSearchClient = opensearch;
     }
