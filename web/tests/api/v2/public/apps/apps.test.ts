@@ -1,6 +1,6 @@
 import { GET } from "@/api/v2/public/apps";
 import { AllCategory } from "@/lib/categories";
-import { Categories } from "@/lib/constants";
+import { Categories, NativeAppToAppIdMapping } from "@/lib/constants";
 import { NextRequest } from "next/server";
 import { getSdk as getAppsSdk } from "../../../../../api/v2/public/apps/graphql/get-app-rankings.generated";
 import { getSdk as getWebHighlightsSdk } from "../../../../../api/v2/public/apps/graphql/get-app-web-highlights.generated";
@@ -1243,6 +1243,198 @@ describe("/api/v2/public/apps", () => {
       expect(data.app_rankings.top_apps[0].description.overview).toBe(
         "default",
       );
+    });
+  });
+
+  describe("contacts app client version filtering", () => {
+    const mockAppsWithContacts = [
+      {
+        app_id: NativeAppToAppIdMapping["production"].contacts, // contacts app
+        name: "Contacts",
+        short_name: "contacts",
+        logo_img_url: "logo.png",
+        hero_image_url: "",
+        showcase_img_urls: ["showcase1.png"],
+        category: "Social",
+        world_app_button_text: "random",
+        world_app_description: "random",
+        whitelisted_addresses: ["0x1234"],
+        app_mode: "mini-app",
+        verification_status: "verified",
+        is_allowed_unlimited_notifications: false,
+        max_notifications_per_day: 10,
+        description: JSON.stringify({
+          description_overview: "test",
+          description_how_it_works: "",
+          description_connect: "",
+        }),
+        app: {
+          team: { name: "Test Team" },
+          rating_sum: 10,
+          rating_count: 2,
+        },
+      },
+      {
+        app_id: "another-app", // different app
+        name: "Another App",
+        short_name: "another",
+        logo_img_url: "logo.png",
+        hero_image_url: "",
+        showcase_img_urls: ["showcase1.png"],
+        category: "Social",
+        world_app_button_text: "random",
+        world_app_description: "random",
+        whitelisted_addresses: ["0x1234"],
+        app_mode: "mini-app",
+        verification_status: "verified",
+        is_allowed_unlimited_notifications: false,
+        max_notifications_per_day: 10,
+        description: JSON.stringify({
+          description_overview: "test",
+          description_how_it_works: "",
+          description_connect: "",
+        }),
+        app: {
+          team: { name: "Test Team" },
+          rating_sum: 10,
+          rating_count: 2,
+        },
+      },
+    ];
+
+    beforeEach(() => {
+      // setup for these tests
+      global.fetch = jest.fn().mockResolvedValue({
+        json: jest.fn().mockResolvedValue([]),
+      }) as jest.Mock;
+
+      process.env.NEXT_PUBLIC_APP_ENV = "production";
+      process.env.NEXT_PUBLIC_METRICS_SERVICE_ENDPOINT =
+        "https://metrics.example.com";
+      process.env.NEXT_PUBLIC_IMAGES_CDN_URL = "cdn.test.com";
+
+      jest.mocked(getWebHighlightsSdk).mockImplementation(() => ({
+        GetHighlights: jest.fn().mockResolvedValue({
+          app_rankings: [{ rankings: [] }],
+        }),
+      }));
+
+      jest.mocked(getHighlightsSdk).mockImplementation(() => ({
+        GetHighlights: jest.fn().mockResolvedValue({
+          highlights: mockAppsWithContacts, // same test data for highlights
+        }),
+      }));
+
+      jest.mocked(getAppsSdk).mockImplementation(() => ({
+        GetApps: jest.fn().mockResolvedValue({
+          top_apps: mockAppsWithContacts,
+        }),
+      }));
+    });
+
+    test("should not include contacts app when client version is below minimum version", async () => {
+      const request = new NextRequest(
+        "https://cdn.test.com/api/v2/public/apps",
+        {
+          headers: {
+            host: "cdn.test.com",
+            "client-version": "2.8.7800", // below the minimum version
+          },
+        },
+      );
+
+      const response = await GET(request);
+      const data = await response.json();
+
+      expect(
+        data.app_rankings.top_apps.some(
+          (app: any) => app.app_id === "contacts",
+        ),
+      ).toBe(false);
+      expect(
+        data.app_rankings.highlights.some(
+          (app: any) => app.app_id === "contacts",
+        ),
+      ).toBe(false);
+    });
+
+    test("should include contacts app when client version is at minimum version", async () => {
+      const request = new NextRequest(
+        "https://cdn.test.com/api/v2/public/apps",
+        {
+          headers: {
+            host: "cdn.test.com",
+            "client-version": "2.8.7803", // exactly the minimum version
+          },
+        },
+      );
+
+      const response = await GET(request);
+      const data = await response.json();
+
+      expect(
+        data.app_rankings.top_apps.some(
+          (app: any) => app.app_id === "contacts",
+        ),
+      ).toBe(true);
+      expect(
+        data.app_rankings.highlights.some(
+          (app: any) => app.app_id === "contacts",
+        ),
+      ).toBe(true);
+    });
+
+    test("should include contacts app when client version is above minimum version", async () => {
+      const request = new NextRequest(
+        "https://cdn.test.com/api/v2/public/apps",
+        {
+          headers: {
+            host: "cdn.test.com",
+            "client-version": "2.8.8000", // above the minimum version
+          },
+        },
+      );
+
+      const response = await GET(request);
+      const data = await response.json();
+
+      // contacts app should be filtered out from both top_apps and highlights
+      expect(
+        data.app_rankings.top_apps.some(
+          (app: any) => app.app_id === "contacts",
+        ),
+      ).toBe(true);
+      expect(
+        data.app_rankings.highlights.some(
+          (app: any) => app.app_id === "contacts",
+        ),
+      ).toBe(true);
+    });
+
+    test("should not include contacts app when client version header is missing", async () => {
+      const request = new NextRequest(
+        "https://cdn.test.com/api/v2/public/apps",
+        {
+          headers: {
+            host: "cdn.test.com",
+            // no client-version header
+          },
+        },
+      );
+
+      const response = await GET(request);
+      const data = await response.json();
+
+      expect(
+        data.app_rankings.top_apps.find(
+          (app: any) => app.app_id === "contacts",
+        ),
+      ).toBe(undefined);
+      expect(
+        data.app_rankings.highlights.find(
+          (app: any) => app.app_id === "contacts",
+        ),
+      ).toBe(undefined);
     });
   });
 });
