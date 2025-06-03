@@ -135,6 +135,7 @@ export const NativeApps: Record<string, NativeAppsMap> = {
     },
   },
 };
+
 // These are addresses that have been whitelisted from the permit2 restriction
 export const whitelistedAppsPermit2 = [
   "app_a4f7f3e62c1de0b9490a5260cb390b56", // UNO
