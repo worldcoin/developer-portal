@@ -71,11 +71,6 @@ export const formatAppMetadata = async (
     localisedContent?.short_name &&
     localisedContent?.name;
 
-  const heroImageUrl =
-    isLocalisationComplete && localisedContent?.hero_image_url
-      ? localisedContent.hero_image_url
-      : appMetadata.hero_image_url;
-
   // fallback to logo
   const metaTagImageUrl =
     isLocalisationComplete && localisedContent?.meta_tag_image_url
@@ -86,9 +81,6 @@ export const formatAppMetadata = async (
     isLocalisationComplete && localisedContent?.showcase_img_urls
       ? localisedContent.showcase_img_urls
       : appMetadata.showcase_img_urls;
-  //
-  const heroImageLocale =
-    isLocalisationComplete && localisedContent?.hero_image_url ? locale : "en";
   //
   const metaTagImageLocale =
     isLocalisationComplete && localisedContent?.meta_tag_image_url
@@ -127,12 +119,7 @@ export const formatAppMetadata = async (
       appMetadata.verification_status === "verified",
       metaTagImageLocale,
     ),
-    hero_image_url: getCDNImageUrl(
-      appMetadata.app_id,
-      heroImageUrl,
-      appMetadata.verification_status === "verified",
-      heroImageLocale,
-    ),
+    hero_image_url: "",
     showcase_img_urls: showcaseImgUrls?.map((url: string) =>
       getCDNImageUrl(
         appMetadata.app_id,
@@ -164,13 +151,14 @@ export const formatAppMetadata = async (
     permit2_tokens: permit2Tokens,
     contracts: contracts,
     supported_countries: supportedCountries,
+    ...getNotificationPermissions(appMetadata),
     avg_notification_open_rate: getAvgNotificationOpenRate(
       singleAppStats?.open_rate_last_14_days,
     ),
   };
 };
 
-const getAvgNotificationOpenRate = (
+export const getAvgNotificationOpenRate = (
   openRateLast14Days: AppStatsItem["open_rate_last_14_days"] | null | undefined,
 ): number | null => {
   // if no data or less than 7 days, return null
@@ -192,6 +180,32 @@ const isDefaultPinnedNoGrants = (appId: string) => {
     appId === NATIVE_MAPPED_APP_ID.network ||
     appId === NATIVE_MAPPED_APP_ID.invites
   );
+};
+
+// logic responsible for setting this is in api/_evaluate-app-notification-permissions
+const getNotificationPermissions = (
+  appMetadata: Pick<
+    AppStoreMetadataFields,
+    | "is_allowed_unlimited_notifications"
+    | "max_notifications_per_day"
+    | "notification_permission_status"
+  >,
+): {
+  is_allowed_unlimited_notifications: boolean | null | undefined;
+  max_notifications_per_day: number | null | undefined;
+} => {
+  if (appMetadata.notification_permission_status === "paused") {
+    return {
+      is_allowed_unlimited_notifications: false,
+      max_notifications_per_day: 0,
+    };
+  }
+
+  return {
+    is_allowed_unlimited_notifications:
+      appMetadata.is_allowed_unlimited_notifications,
+    max_notifications_per_day: appMetadata.max_notifications_per_day,
+  };
 };
 
 // Cached thus this is not that expensive

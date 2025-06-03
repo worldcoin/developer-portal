@@ -20,7 +20,7 @@ jest.mock(
             logo_img_url: "logo.png",
             meta_tag_image_url: "meta_tag_image.png",
             showcase_img_urls: ["showcase1.png", "showcase2.png"],
-            hero_image_url: "hero.png",
+            hero_image_url: "",
             world_app_description:
               "This is an example app designed to showcase the capabilities of our platform.",
             world_app_button_text: "Use Integration",
@@ -75,7 +75,7 @@ describe("/api/public/app/[app_id]", () => {
           "https://cdn.test.com/unverified/2/showcase1.png",
           "https://cdn.test.com/unverified/2/showcase2.png",
         ],
-        hero_image_url: "https://cdn.test.com/unverified/2/hero.png",
+        hero_image_url: "",
         category: {
           id: "productivity",
           name: "Productivity",
@@ -124,7 +124,7 @@ describe("/api/public/app/[app_id]", () => {
             logo_img_url: "logo.png",
             showcase_img_urls: ["showcase1.png", "showcase2.png"],
             meta_tag_image_url: "meta_tag_image.png",
-            hero_image_url: "hero.png",
+            hero_image_url: "",
             world_app_description:
               "This is an example app designed to showcase the capabilities of our platform.",
             world_app_button_text: "Use Integration",
@@ -175,7 +175,7 @@ describe("/api/public/app/[app_id]", () => {
           "https://cdn.test.com/1/showcase1.png",
           "https://cdn.test.com/1/showcase2.png",
         ],
-        hero_image_url: "https://cdn.test.com/1/hero.png",
+        hero_image_url: "",
         category: {
           id: "productivity",
           name: "Productivity",
@@ -232,7 +232,7 @@ describe("/api/public/app/[app_id]", () => {
             logo_img_url: "logo.png",
             meta_tag_image_url: "meta_tag_image.png",
             showcase_img_urls: ["showcase1.png", "showcase2.png"],
-            hero_image_url: "hero.png",
+            hero_image_url: "",
             world_app_description:
               "This is an example app designed to showcase the capabilities of our platform.",
             world_app_button_text: "Use Integration",
@@ -271,7 +271,7 @@ describe("/api/public/app/[app_id]", () => {
         app_id: "TEST_APP",
         short_name: "test",
         logo_img_url: "https://cdn.test.com/unverified/app_test_123/logo.png",
-        hero_image_url: "https://cdn.test.com/unverified/app_test_123/hero.png",
+        hero_image_url: "",
         meta_tag_image_url:
           "https://cdn.test.com/unverified/app_test_123/meta_tag_image.png",
         showcase_img_urls: [
@@ -327,7 +327,7 @@ describe("/api/public/app/[app_id]", () => {
               short_name: "test",
               logo_img_url: "logo.png",
               showcase_img_urls: ["showcase1.png", "showcase2.png"],
-              hero_image_url: "hero.png",
+              hero_image_url: "",
               world_app_description:
                 "This is an example app designed to showcase the capabilities of our platform.",
               world_app_button_text: "Use Integration",
@@ -364,7 +364,7 @@ describe("/api/public/app/[app_id]", () => {
               short_name: "test",
               logo_img_url: "logo.png",
               showcase_img_urls: ["showcase1.png", "showcase2.png"],
-              hero_image_url: "hero.png",
+              hero_image_url: "",
               world_app_description:
                 "This is an example app designed to showcase the capabilities of our platform.",
               world_app_button_text: "Use Integration",
@@ -427,7 +427,7 @@ describe("/api/public/app/[app_id]", () => {
               short_name: "test",
               logo_img_url: "logo.png",
               showcase_img_urls: ["showcase1.png", "showcase2.png"],
-              hero_image_url: "hero.png",
+              hero_image_url: "",
               world_app_description:
                 "This is an example app designed to showcase the capabilities of our platform.",
               world_app_button_text: "Use Integration",
@@ -464,7 +464,7 @@ describe("/api/public/app/[app_id]", () => {
               short_name: "test",
               logo_img_url: "logo.png",
               showcase_img_urls: ["showcase1.png", "showcase2.png"],
-              hero_image_url: "hero.png",
+              hero_image_url: "",
               world_app_description:
                 "This is an example app designed to showcase the capabilities of our platform.",
               world_app_button_text: "Use Integration",
@@ -527,7 +527,7 @@ describe("/api/public/app/[app_id]", () => {
               short_name: "test",
               logo_img_url: "logo.png",
               showcase_img_urls: ["showcase1.png", "showcase2.png"],
-              hero_image_url: "hero.png",
+              hero_image_url: "",
               world_app_description:
                 "This is an example app designed to showcase the capabilities of our platform.",
               world_app_button_text: "Use Integration",
@@ -593,7 +593,7 @@ describe("/api/public/app/[app_id]", () => {
               short_name: "test",
               logo_img_url: "logo.png",
               showcase_img_urls: ["showcase1.png", "showcase2.png"],
-              hero_image_url: "hero.png",
+              hero_image_url: "",
               world_app_description:
                 "This is an example app designed to showcase the capabilities of our platform.",
               world_app_button_text: "Use Integration",
@@ -642,7 +642,7 @@ describe("/api/public/app/[app_id]", () => {
               short_name: "test",
               logo_img_url: "logo.png",
               showcase_img_urls: ["showcase1.png", "showcase2.png"],
-              hero_image_url: "hero.png",
+              hero_image_url: "",
               world_app_description:
                 "This is an example app designed to showcase the capabilities of our platform.",
               world_app_button_text: "Use Integration",
@@ -702,7 +702,7 @@ describe("/api/public/app/[app_id]", () => {
               short_name: "test",
               logo_img_url: "logo.png",
               showcase_img_urls: ["showcase1.png", "showcase2.png"],
-              hero_image_url: "hero.png",
+              hero_image_url: "",
               world_app_description:
                 "This is an example app designed to showcase the capabilities of our platform.",
               world_app_button_text: "Use Integration",
@@ -760,7 +760,7 @@ describe("/api/public/app/[app_id]", () => {
         short_name: "test-app",
         logo_img_url: "logo.png",
         showcase_img_urls: ["showcase1.png", "showcase2.png"],
-        hero_image_url: "hero.png",
+        hero_image_url: "",
         category: "Productivity",
         description: '{"description_overview":"test"}',
         integration_url: "https://example.com/integration",
@@ -938,7 +938,7 @@ describe("/api/public/app/[app_id]", () => {
               short_name: "test",
               logo_img_url: "logo.png",
               showcase_img_urls: ["showcase1.png", "showcase2.png"],
-              hero_image_url: "hero.png",
+              hero_image_url: "",
               world_app_description: "Default description",
               world_app_button_text: "Default button",
               category: "Productivity",
@@ -974,7 +974,7 @@ describe("/api/public/app/[app_id]", () => {
                   short_name: "test-es",
                   description:
                     '{"description_overview":"español","description_how_it_works":"español","description_connect":"español"}',
-                  hero_image_url: "hero-es.png",
+                  hero_image_url: "",
                   showcase_img_urls: ["showcase1-es.png", "showcase2-es.png"],
                 },
               ],
@@ -994,9 +994,7 @@ describe("/api/public/app/[app_id]", () => {
 
       expect(data.app_data.name).toBe("Aplicación de Ejemplo");
       expect(data.app_data.short_name).toBe("test-es");
-      expect(data.app_data.hero_image_url).toBe(
-        "https://cdn.test.com/1/es/hero-es.png",
-      );
+      expect(data.app_data.hero_image_url).toBe("");
       expect(data.app_data.showcase_img_urls).toEqual([
         "https://cdn.test.com/1/es/showcase1-es.png",
         "https://cdn.test.com/1/es/showcase2-es.png",
@@ -1018,7 +1016,7 @@ describe("/api/public/app/[app_id]", () => {
               short_name: "test",
               logo_img_url: "logo.png",
               showcase_img_urls: ["showcase1.png", "showcase2.png"],
-              hero_image_url: "hero.png",
+              hero_image_url: "",
               world_app_description: "Default description",
               world_app_button_text: "Default button",
               category: "Productivity",
@@ -1072,9 +1070,7 @@ describe("/api/public/app/[app_id]", () => {
 
       expect(data.app_data.name).toBe("Aplicación de Ejemplo");
       expect(data.app_data.short_name).toBe("test-es");
-      expect(data.app_data.hero_image_url).toBe(
-        "https://cdn.test.com/1/hero.png",
-      );
+      expect(data.app_data.hero_image_url).toBe("");
       expect(data.app_data.showcase_img_urls).toEqual([
         "https://cdn.test.com/1/showcase1.png",
         "https://cdn.test.com/1/showcase2.png",
@@ -1096,7 +1092,7 @@ describe("/api/public/app/[app_id]", () => {
               short_name: "test",
               logo_img_url: "logo.png",
               showcase_img_urls: ["showcase1.png", "showcase2.png"],
-              hero_image_url: "hero.png",
+              hero_image_url: "",
               world_app_description: "Default description",
               world_app_button_text: "Default button",
               category: "Productivity",
@@ -1126,7 +1122,7 @@ describe("/api/public/app/[app_id]", () => {
               localisations: [
                 {
                   locale: "es",
-                  hero_image_url: "hero-es.png",
+                  hero_image_url: "",
                   showcase_img_urls: ["showcase1-es.png", "showcase2-es.png"],
                 },
               ],
@@ -1146,9 +1142,7 @@ describe("/api/public/app/[app_id]", () => {
 
       expect(data.app_data.name).toBe("Example App");
       expect(data.app_data.short_name).toBe("test");
-      expect(data.app_data.hero_image_url).toBe(
-        "https://cdn.test.com/1/hero.png",
-      );
+      expect(data.app_data.hero_image_url).toBe("");
       expect(data.app_data.showcase_img_urls).toEqual([
         "https://cdn.test.com/1/showcase1.png",
         "https://cdn.test.com/1/showcase2.png",
