@@ -16,6 +16,7 @@ type NotificationFormData = {
   title?: string;
   message: string;
   miniAppPath: string;
+  draftId?: string;
   apiKey: string;
 };
 
@@ -137,6 +138,7 @@ export const NotificationsPage = () => {
         title: data.title || undefined, // don't send if empty
         message: data.message,
         mini_app_path: data.miniAppPath,
+        draft_id: data.draftId || undefined, // don't send if empty
       };
 
       const response = await fetch("/api/v2/minikit/send-notification", {
@@ -291,6 +293,14 @@ export const NotificationsPage = () => {
             placeholder="Enter the path inside your mini app"
             errors={errors.miniAppPath}
             helperText="The path inside your mini app that will open when the notification is tapped"
+          />
+
+          <Input
+            label="Draft ID (Optional)"
+            register={register("draftId")}
+            placeholder="Enter draft ID"
+            errors={errors.draftId}
+            helperText="Use this to send notification to a draft mini app"
           />
 
           <Input

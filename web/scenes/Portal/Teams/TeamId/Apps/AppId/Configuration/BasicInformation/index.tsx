@@ -161,6 +161,17 @@ export const BasicInformation = (props: {
             addOnRight={<CopyButton fieldName="App ID" fieldValue={appId} />}
           />
 
+          {appMetaData?.verification_status !== "verified" && (
+            <Input
+              label="Draft ID"
+              disabled
+              placeholder={appMetaData.id}
+              addOnRight={
+                <CopyButton fieldName="Draft ID" fieldValue={appMetaData.id} />
+              }
+            />
+          )}
+
           <DecoratedButton
             type="submit"
             variant="primary"

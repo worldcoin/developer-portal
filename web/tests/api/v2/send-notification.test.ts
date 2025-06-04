@@ -53,21 +53,25 @@ jest.mock("aws-sigv4-fetch", () => ({
 const createMockRequest = (params: {
   url: URL | RequestInfo;
   api_key: string;
+  body?: object;
 }) => {
-  const { url, api_key } = params;
+  const { url, api_key, body } = params;
+
+  const defaultBody = {
+    app_id: "app_staging_9cdd0a714aec9ed17dca660bc9ffe72a",
+    wallet_addresses: ["0x1234567890"],
+    title: "Test Notification",
+    message: "This is a test notification",
+    mini_app_path: "/test",
+  };
+
   return new NextRequest(url, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${api_key}`,
     },
-    body: JSON.stringify({
-      app_id: "app_staging_9cdd0a714aec9ed17dca660bc9ffe72a",
-      wallet_addresses: ["0x1234567890"],
-      title: "Test Notification",
-      message: "This is a test notification",
-      mini_app_path: "/test",
-    }),
+    body: JSON.stringify(body || defaultBody),
   });
 };
 
@@ -95,6 +99,7 @@ const validAppMetadata = {
     {
       name: "Example App",
       app_id: "app_staging_9cdd0a714aec9ed17dca660bc9ffe72a",
+      id: "metadata_verified_123",
       is_reviewer_app_store_approved: true,
       verification_status: "verified",
       app: {
@@ -126,6 +131,235 @@ describe("/api/v2/minikit/send-notification [success cases]", () => {
 
     const res = await POST(mockReq);
     expect(res.status).toBe(200);
+  });
+});
+// #endregion
+
+// #region Draft ID app metadata resolution tests
+describe("/api/v2/minikit/send-notification [draft ID app metadata resolution]", () => {
+  beforeEach(async () => {
+    FetchAPIKey.mockResolvedValue(validApiKeyResponse);
+    await global.RedisClient?.flushall();
+  });
+
+  it("can use a draft ID to select the specific app metadata", async () => {
+    // Mock app metadata with multiple entries (verified + draft)
+    const appMetadataWithDraft = {
+      app_metadata: [
+        {
+          id: "metadata_verified_123",
+          name: "Example App - Verified",
+          app_id: "app_staging_9cdd0a714aec9ed17dca660bc9ffe72a",
+          is_reviewer_app_store_approved: true,
+          is_allowed_unlimited_notifications: true,
+          max_notifications_per_day: 1000,
+          verification_status: "verified",
+          app: {
+            team: {
+              id: "team_dd2ecd36c6c45f645e8e5d9a31abdee1",
+            },
+          },
+        },
+        {
+          id: "metadata_draft_456",
+          name: "Example App - Draft",
+          app_id: "app_staging_9cdd0a714aec9ed17dca660bc9ffe72a",
+          is_reviewer_app_store_approved: true,
+          is_allowed_unlimited_notifications: true,
+          max_notifications_per_day: 1000,
+          verification_status: "unverified",
+          app: {
+            team: {
+              id: "team_dd2ecd36c6c45f645e8e5d9a31abdee1",
+            },
+          },
+        },
+      ],
+    };
+
+    GetAppMetadata.mockResolvedValue(appMetadataWithDraft);
+
+    // Request with draft_id parameter
+    const mockReq = createMockRequest({
+      url: "http://localhost:3000/api/v2/minikit/send-notification",
+      api_key: validApiKey,
+      body: {
+        app_id: "app_staging_9cdd0a714aec9ed17dca660bc9ffe72a",
+        draft_id: "metadata_draft_456",
+        wallet_addresses: ["0x1234567890"],
+        title: "Test Notification",
+        message: "This is a draft notification",
+        mini_app_path: "/test",
+      },
+    });
+
+    const res = await POST(mockReq);
+    expect(res.status).toBe(200);
+  });
+
+  it("returns 400 if an invalid draft ID is provided", async () => {
+    // Mock app metadata with multiple entries but not containing the requested draft ID
+    const appMetadataWithDraft = {
+      app_metadata: [
+        {
+          id: "metadata_verified_123",
+          name: "Example App - Verified",
+          app_id: "app_staging_9cdd0a714aec9ed17dca660bc9ffe72a",
+          is_reviewer_app_store_approved: true,
+          is_allowed_unlimited_notifications: true,
+          max_notifications_per_day: 1000,
+          verification_status: "verified",
+          app: {
+            team: {
+              id: "team_dd2ecd36c6c45f645e8e5d9a31abdee1",
+            },
+          },
+        },
+        {
+          id: "metadata_draft_456",
+          name: "Example App - Draft",
+          app_id: "app_staging_9cdd0a714aec9ed17dca660bc9ffe72a",
+          is_reviewer_app_store_approved: true,
+          is_allowed_unlimited_notifications: true,
+          max_notifications_per_day: 1000,
+          verification_status: "unverified",
+          app: {
+            team: {
+              id: "team_dd2ecd36c6c45f645e8e5d9a31abdee1",
+            },
+          },
+        },
+      ],
+    };
+
+    GetAppMetadata.mockResolvedValue(appMetadataWithDraft);
+
+    // Request with an invalid draft_id parameter
+    const mockReq = createMockRequest({
+      url: "http://localhost:3000/api/v2/minikit/send-notification",
+      api_key: validApiKey,
+      body: {
+        app_id: "app_staging_9cdd0a714aec9ed17dca660bc9ffe72a",
+        draft_id: "nonexistent_draft_id",
+        wallet_addresses: ["0x1234567890"],
+        title: "Test Notification",
+        message: "This is a test notification",
+        mini_app_path: "/test",
+      },
+    });
+
+    const res = await POST(mockReq);
+    expect(res.status).toBe(400);
+    expect((await res.json()).detail).toBe("Invalid draft id");
+  });
+
+  it("uses verified app metadata when no draft ID is provided and multiple app metadata entries exist", async () => {
+    // Mock app metadata with multiple entries (verified + draft)
+    const appMetadataWithDraft = {
+      app_metadata: [
+        {
+          id: "metadata_verified_123",
+          name: "Example App - Verified",
+          app_id: "app_staging_9cdd0a714aec9ed17dca660bc9ffe72a",
+          is_reviewer_app_store_approved: true,
+          is_allowed_unlimited_notifications: true,
+          max_notifications_per_day: 1000,
+          verification_status: "verified",
+          app: {
+            team: {
+              id: "team_dd2ecd36c6c45f645e8e5d9a31abdee1",
+            },
+          },
+        },
+        {
+          id: "metadata_draft_456",
+          name: "Example App - Draft",
+          app_id: "app_staging_9cdd0a714aec9ed17dca660bc9ffe72a",
+          is_reviewer_app_store_approved: true,
+          is_allowed_unlimited_notifications: true,
+          max_notifications_per_day: 1000,
+          verification_status: "unverified",
+          app: {
+            team: {
+              id: "team_dd2ecd36c6c45f645e8e5d9a31abdee1",
+            },
+          },
+        },
+      ],
+    };
+
+    GetAppMetadata.mockResolvedValue(appMetadataWithDraft);
+
+    // Request without draft_id parameter
+    const mockReq = createMockRequest({
+      url: "http://localhost:3000/api/v2/minikit/send-notification",
+      api_key: validApiKey,
+      body: {
+        app_id: "app_staging_9cdd0a714aec9ed17dca660bc9ffe72a",
+        wallet_addresses: ["0x1234567890"],
+        title: "Test Notification",
+        message: "This is a test notification",
+        mini_app_path: "/test",
+      },
+    });
+
+    const res = await POST(mockReq);
+    expect(res.status).toBe(200);
+  });
+
+  it("returns 400 if no verified app metadata exists when no draft ID is provided", async () => {
+    // Mock app metadata with multiple unverified entries but no verified one
+    const appMetadataWithOnlyDrafts = {
+      app_metadata: [
+        {
+          id: "metadata_draft_456",
+          name: "Example App - Draft 1",
+          app_id: "app_staging_9cdd0a714aec9ed17dca660bc9ffe72a",
+          is_reviewer_app_store_approved: true,
+          is_allowed_unlimited_notifications: true,
+          max_notifications_per_day: 1000,
+          verification_status: "unverified",
+          app: {
+            team: {
+              id: "team_dd2ecd36c6c45f645e8e5d9a31abdee1",
+            },
+          },
+        },
+        {
+          id: "metadata_draft_789",
+          name: "Example App - Draft 2",
+          app_id: "app_staging_9cdd0a714aec9ed17dca660bc9ffe72a",
+          is_reviewer_app_store_approved: true,
+          is_allowed_unlimited_notifications: true,
+          max_notifications_per_day: 1000,
+          verification_status: "unverified",
+          app: {
+            team: {
+              id: "team_dd2ecd36c6c45f645e8e5d9a31abdee1",
+            },
+          },
+        },
+      ],
+    };
+
+    GetAppMetadata.mockResolvedValue(appMetadataWithOnlyDrafts);
+
+    // Request without draft_id parameter
+    const mockReq = createMockRequest({
+      url: "http://localhost:3000/api/v2/minikit/send-notification",
+      api_key: validApiKey,
+      body: {
+        app_id: "app_staging_9cdd0a714aec9ed17dca660bc9ffe72a",
+        wallet_addresses: ["0x1234567890"],
+        title: "Test Notification",
+        message: "This is a test notification",
+        mini_app_path: "/test",
+      },
+    });
+
+    const res = await POST(mockReq);
+    expect(res.status).toBe(400);
+    expect((await res.json()).detail).toBe("Invalid app configuration");
   });
 });
 // #endregion
