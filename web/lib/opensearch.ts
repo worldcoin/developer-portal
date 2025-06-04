@@ -1,6 +1,6 @@
 import { fromContainerMetadata } from "@aws-sdk/credential-providers";
 import { Client, type API } from "@opensearch-project/opensearch";
-import { AwsSigv4Signer } from "@opensearch-project/opensearch/aws";
+import { AwsSigv4Signer } from "@opensearch-project/opensearch/aws-v3";
 import { logger } from "./logger";
 
 /**
