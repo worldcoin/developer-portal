@@ -1,7 +1,7 @@
 import clsx from "clsx";
 import { ReactNode } from "react";
 
-type Variant = "error" | "info" | "success" | "muted";
+type Variant = "error" | "info" | "success" | "muted" | "warning";
 
 export type CircleIconContainerProps = {
   children: ReactNode;
@@ -36,6 +36,12 @@ export const CircleIconContainer = (props: CircleIconContainerProps) => {
     muted: {
       gradient: "#EBECEF",
       outline: "#EBECEF",
+      shadowMatrix:
+        "0 0 0 0 0.921569 0 0 0 0 0.92549 0 0 0 0 0.937255 0 0 0 0.45 0",
+    },
+    warning: {
+      gradient: "#FFE5E2",
+      outline: "#FFE5E2",
       shadowMatrix:
         "0 0 0 0 0.921569 0 0 0 0 0.92549 0 0 0 0 0.937255 0 0 0 0.45 0",
     },
@@ -141,12 +147,16 @@ export const CircleIconContainer = (props: CircleIconContainerProps) => {
       </svg>
 
       <div
-        className={clsx("absolute inset-0 flex items-center justify-center", {
-          "text-system-error-500": props.variant === "error",
-          "text-blue-500": props.variant === "info",
-          "text-system-success-500": props.variant === "success",
-          "text-grey-400": props.variant === "muted",
-        })}
+        className={clsx(
+          "absolute inset-0 flex max-h-[88px] max-w-[88px] items-center justify-center",
+          {
+            "text-system-error-500": props.variant === "error",
+            "text-blue-500": props.variant === "info",
+            "text-system-success-500": props.variant === "success",
+            "text-grey-400": props.variant === "muted",
+            "text-system-warning-600": props.variant === "warning",
+          },
+        )}
       >
         {props.children}
       </div>

@@ -5,8 +5,10 @@ import { ReviewMessageDialog } from "@/scenes/Portal/Teams/TeamId/Apps/common/Re
 import dayjs from "dayjs";
 import advancedFormat from "dayjs/plugin/advancedFormat";
 import { BanMessageDialog } from "../../common/BanMessageDialog";
+import { NotificationPauseMessageDialog } from "../../common/NotificationPauseMessageDialog";
 import { AppStatsGraph } from "./AppStatsGraph";
 import { BanStatusSection } from "./BanStatusSection";
+import { NotificationStatusSection } from "./NotificationPauseSection";
 import { QuickActionsSection } from "./QuickActionsSection";
 import { VerificationStatusSection } from "./VerificationStatusSection";
 
@@ -32,6 +34,7 @@ export const AppIdPage = (props: {
       <div className="grid gap-y-3">
         <VerificationStatusSection appId={appId} />
         <BanStatusSection appId={appId} />
+        <NotificationStatusSection appId={appId} />
 
         <div className="grid gap-y-3">
           <Typography as="h1" variant={TYPOGRAPHY.H5}>
@@ -47,6 +50,7 @@ export const AppIdPage = (props: {
         goTo={urls.configuration({ team_id: teamId, app_id: appId })}
       />
       <BanMessageDialog />
+      <NotificationPauseMessageDialog />
     </SizingWrapper>
   );
 };

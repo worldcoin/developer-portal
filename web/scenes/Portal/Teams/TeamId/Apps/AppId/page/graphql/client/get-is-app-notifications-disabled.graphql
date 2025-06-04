@@ -1,0 +1,10 @@
+query GetIsAppNotificationsDisabled($app_id: String!) {
+  app: app_metadata(
+    where: {
+      app_id: { _eq: $app_id }
+      notification_permission_status: { _neq: "normal" }
+    }
+  ) {
+    id
+  }
+}
