@@ -4696,6 +4696,12 @@ export type Illegal_Content_Sub_Category_Enum_Comparison_Exp = {
   >;
 };
 
+export type Increment_App_Stats_Args = {
+  _action_id?: InputMaybe<Scalars["String"]["input"]>;
+  _created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  _nullifier_hash?: InputMaybe<Scalars["String"]["input"]>;
+};
+
 /** Invites */
 export type Invite = {
   __typename?: "invite";
@@ -5773,6 +5779,8 @@ export type Mutation_Root = {
   delete_user?: Maybe<User_Mutation_Response>;
   /** delete single row from the table: "user" */
   delete_user_by_pk?: Maybe<User>;
+  /** execute VOLATILE function "increment_app_stats" which returns "app_stats" */
+  increment_app_stats: Array<App_Stats>;
   /** insert data into the table: "action" */
   insert_action?: Maybe<Action_Mutation_Response>;
   /** insert a single row into the table: "action" */
@@ -6286,6 +6294,16 @@ export type Mutation_RootDelete_UserArgs = {
 /** mutation root */
 export type Mutation_RootDelete_User_By_PkArgs = {
   id: Scalars["String"]["input"];
+};
+
+/** mutation root */
+export type Mutation_RootIncrement_App_StatsArgs = {
+  args: Increment_App_Stats_Args;
+  distinct_on?: InputMaybe<Array<App_Stats_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<App_Stats_Order_By>>;
+  where?: InputMaybe<App_Stats_Bool_Exp>;
 };
 
 /** mutation root */

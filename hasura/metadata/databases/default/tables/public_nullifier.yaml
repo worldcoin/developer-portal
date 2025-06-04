@@ -62,3 +62,17 @@ update_permissions:
         - uses
       filter: {}
       check: null
+event_triggers:
+  - name: increment_app_stats
+    definition:
+      enable_manual: false
+      insert:
+        columns: "*"
+    retry_conf:
+      interval_sec: 10
+      num_retries: 5
+      timeout_sec: 20
+    webhook: "{{NEXT_API_URL}}/_increment-app-stats"
+    headers:
+      - name: Authorization
+        value_from_env: INTERNAL_ENDPOINTS_SECRET

@@ -1,3 +1,6 @@
+DROP FUNCTION IF EXISTS increment_app_stats(TEXT, TIMESTAMPTZ, TEXT);
+DROP TYPE IF EXISTS increment_app_stats_result;
+
 -- Drop the new app_stats table and its index
 DROP INDEX IF EXISTS idx_app_stats_app_id;
 DROP TABLE IF EXISTS app_stats;

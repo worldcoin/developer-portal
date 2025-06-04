@@ -1,0 +1,18 @@
+mutation IncrementAppStats(
+  $nullifier_hash: String!
+  $created_at: timestamptz!
+  $action_id: String!
+) {
+  increment_app_stats(
+    args: {
+      _nullifier_hash: $nullifier_hash
+      _created_at: $created_at
+      _action_id: $action_id
+    }
+  ) {
+    app_id
+    date
+    verifications
+    unique_users
+  }
+}
