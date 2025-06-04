@@ -229,6 +229,8 @@ export const POST = async (req: NextRequest) => {
     return errorResponse;
   }
 
+  logger.info("_evaluate-app-notification-permissions - starting");
+
   const metricsData = await fetchMetrics();
 
   const appIdsToEvaluate = metricsData
@@ -266,7 +268,13 @@ export const POST = async (req: NextRequest) => {
     }
     const evaluationResult = evaluateNotificationPermissions(app, appStats);
     if (evaluationResult.should_update_state) {
-      const client = await getAPIServiceGraphqlClient();
+      logger.info(
+        "_evaluate-app-notification-permissions - updating notification state",
+        {
+          app_id: app.app_id,
+          new_state: evaluationResult.new_state,
+        },
+      );
 
       void safeUpdateNotificationState(app.app_id, client, {
         notification_permission_status: evaluationResult.new_state,
