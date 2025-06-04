@@ -43,8 +43,8 @@ export const NotificationPauseMessageDialog = () => {
             variant={TYPOGRAPHY.R3}
             className="text-center text-grey-500 "
           >
-            {`Your 7 day rolling average notification open rate is below 10%. After 7 days,
-             you will be able to send notifications again. Please reevaluate your notification strategy.`}
+            {`Your average notification open rate over the past 7 days is below 10%. After 7 days,
+             you will be able to send notifications again. Please re-evaluate your notification strategy.`}
             <br />
             Take a look at our{" "}
             <Link
