@@ -1,7 +1,3 @@
--- Drop the trigger and function related to the new table
-DROP TRIGGER IF EXISTS trg_after_nullifier_insert ON nullifier;
-DROP FUNCTION IF EXISTS trg_update_app_stats;
-
 -- Drop the new app_stats table and its index
 DROP INDEX IF EXISTS idx_app_stats_app_id;
 DROP TABLE IF EXISTS app_stats;
