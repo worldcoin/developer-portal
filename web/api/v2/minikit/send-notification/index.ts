@@ -387,11 +387,6 @@ export const POST = async (req: NextRequest) => {
     message,
   );
 
-  logger.info(`Notification sent successfully, ${app_id}`, {
-    app_id,
-    team_id: teamId,
-  });
-
   return NextResponse.json({
     success: true,
     status: 200,
