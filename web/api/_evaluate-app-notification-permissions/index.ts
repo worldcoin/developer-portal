@@ -275,7 +275,7 @@ export const POST = async (req: NextRequest) => {
   }));
 
   logger.info("_evaluate-app-notification-permissions - apps to evaluate", {
-    numberOfAppsToEvaluate: appMetadata.app_metadata.length,
+    numberOfAppsToEvaluate: appsToEvaluate.length,
   });
 
   for (const app of appsToEvaluate) {
