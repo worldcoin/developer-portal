@@ -54,7 +54,7 @@ const sendNotificationBodySchema = yup
   })
   .test(
     "title-length",
-    "Title with substituted username can be 16 characters long.",
+    "Title with substituted username cannot exceed 16 characters.",
     (value) => {
       // title can be 30 chars long max, username can be 14 chars long max
       if (value?.title?.includes(USERNAME_SPECIAL_STRING)) {
