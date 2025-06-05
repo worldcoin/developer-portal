@@ -1,4 +1,5 @@
 "use client";
+import clsx from "clsx";
 import { atom, useAtom } from "jotai";
 import { StatCard } from "../StatCard";
 import { Timespan, TimespanSelector } from "../TimespanSelector";
@@ -54,52 +55,76 @@ export const StatCards = ({ appId }: { appId: string }) => {
 
   const newUsersLast7Days = appMetrics?.new_users_last_7_days;
 
+  const impressionsValue = resolveStatValue({
+    allTimeValue: impressionsTotal,
+    weekValue: impressionsLast7Days,
+    timespanValue,
+  });
+
+  const sessionsValue = resolveStatValue({
+    allTimeValue: usersTotal,
+    weekValue: usersLast7Days,
+    timespanValue,
+  });
+
+  const usersValue = resolveStatValue({
+    allTimeValue: uniqueUsers,
+    weekValue: uniqueUsersLast7Days,
+    timespanValue,
+  });
+
+  const newUsersValue = resolveStatValue({
+    allTimeValue: uniqueUsers,
+    weekValue: newUsersLast7Days,
+    timespanValue,
+  });
+
+  const isAnyStatOver8Chars =
+    (impressionsValue || 0).toString().length > 8 ||
+    (sessionsValue || 0).toString().length > 8 ||
+    (usersValue || 0).toString().length > 8 ||
+    (newUsersValue || 0).toString().length > 8;
+
   return (
     <>
       <div className="flex flex-col items-end gap-y-6">
         <TimespanSelector options={timespans} atom={timespanAtom} />
 
-        <div className="grid w-full grid-cols-1 grid-rows-4 items-start justify-between gap-x-6 sm:grid-cols-2 sm:grid-rows-2 md:flex-row md:items-center lg:grid-cols-4 lg:grid-rows-1">
+        <div
+          className={clsx(
+            "grid w-full items-start justify-between gap-x-6 md:flex-row md:items-center",
+            {
+              "grid-cols-1 grid-rows-4 sm:grid-cols-2 sm:grid-rows-2 lg:grid-cols-4 lg:grid-rows-1":
+                !isAnyStatOver8Chars,
+              "grid-cols-1 grid-rows-4 md:grid-cols-2 md:grid-rows-2":
+                isAnyStatOver8Chars,
+            },
+          )}
+        >
           <StatCard
             mainColorClassName="bg-blue-500"
             title="Impressions"
-            value={resolveStatValue({
-              allTimeValue: impressionsTotal,
-              weekValue: impressionsLast7Days,
-              timespanValue,
-            })}
+            value={impressionsValue}
             changePercentage={impressionsPercentageChange}
             isLoading={isMetricsLoading}
           />
           <StatCard
             mainColorClassName="bg-blue-500"
             title="Sessions"
-            value={resolveStatValue({
-              allTimeValue: usersTotal,
-              weekValue: usersLast7Days,
-              timespanValue,
-            })}
+            value={sessionsValue}
             isLoading={isMetricsLoading}
           />
           <StatCard
             mainColorClassName="bg-blue-500"
             title="Users"
-            value={resolveStatValue({
-              allTimeValue: uniqueUsers,
-              weekValue: uniqueUsersLast7Days,
-              timespanValue,
-            })}
+            value={usersValue}
             isLoading={isMetricsLoading}
           />
           {timespanValue === "week" && (
             <StatCard
               mainColorClassName="bg-blue-500"
               title="New users"
-              value={resolveStatValue({
-                allTimeValue: uniqueUsers,
-                weekValue: newUsersLast7Days,
-                timespanValue,
-              })}
+              value={newUsersValue}
               isLoading={isMetricsLoading}
             />
           )}
