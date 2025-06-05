@@ -33,7 +33,9 @@ jest.mock(
   "@/api/v2/minikit/send-notification/graphql/create-notification-log.generated",
   () => ({
     getSdk: () => ({
-      CreateNotificationLog: jest.fn(),
+      CreateNotificationLog: jest.fn().mockResolvedValue({
+        id: "notification_log_123",
+      }),
       CreateWalletAdressNotificationLogs: jest.fn(),
     }),
   }),
