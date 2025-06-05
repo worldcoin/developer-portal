@@ -243,6 +243,11 @@ export const POST = async (req: NextRequest) => {
     });
   }
 
+  if (appIdsToEvaluate.length === 0) {
+    logger.info("No apps to evaluate");
+    return NextResponse.json({ success: true }, { status: 200 });
+  }
+
   const client = await getAPIServiceGraphqlClient();
   const sdk = getGetNotificationEvaluationAppsSdk(client);
 
@@ -284,6 +289,8 @@ export const POST = async (req: NextRequest) => {
     }
     continue;
   }
+
+  logger.info("_evaluate-app-notification-permissions - finish execution");
 
   return NextResponse.json(
     {

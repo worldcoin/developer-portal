@@ -29,7 +29,6 @@ export const GetNotificationEvaluationAppsDocument = gql`
         verification_status: { _eq: "verified" }
         app_id: { _in: $appIds }
       }
-      order_by: { created_at: asc }
       limit: 1000
     ) {
       app_id
