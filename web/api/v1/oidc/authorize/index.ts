@@ -78,16 +78,13 @@ export async function POST(req: NextRequest) {
   let app_id: string | undefined;
 
   try {
-    logger.info("Calling req.json() to parse request body");
     const body = await req.json();
-    logger.info("Calling validateRequestSchema");
     const { isValid, parsedParams, handleError } = await validateRequestSchema({
       schema,
       value: body,
     });
 
     if (!isValid) {
-      logger.info("Request schema invalid, calling handleError");
       return handleError(req);
     }
 
@@ -106,15 +103,12 @@ export async function POST(req: NextRequest) {
       code_challenge_method,
     } = parsedParams;
 
-    logger.info("Decoding response_types");
     const response_types = decodeURIComponent(
       (response_type as string | string[]).toString(),
     ).split(" ");
 
     for (const response_type of response_types) {
-      logger.info(`Checking response_type: ${response_type}`);
       if (!Object.keys(OIDCResponseTypeMapping).includes(response_type)) {
-        logger.info("Invalid response_type, calling errorResponse");
         return corsHandler(
           errorResponse({
             statusCode: 400,
@@ -130,7 +124,6 @@ export async function POST(req: NextRequest) {
     }
 
     if (code_challenge && code_challenge_method !== "S256") {
-      logger.info("Invalid code_challenge_method, calling errorResponse");
       return corsHandler(
         errorResponse({
           statusCode: 400,
@@ -144,7 +137,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    logger.info("Decoding scopes");
     const scopes = decodeURIComponent(
       (scope as string | string[])?.toString(),
     ).split(" ") as OIDCScopes[];
@@ -161,7 +153,6 @@ export async function POST(req: NextRequest) {
       !sanitizedScopes.length ||
       !sanitizedScopes.includes(OIDCScopes.OpenID)
     ) {
-      logger.info("Missing openid scope, calling errorResponse");
       return corsHandler(
         errorResponse({
           statusCode: 400,
@@ -176,13 +167,11 @@ export async function POST(req: NextRequest) {
     }
 
     // ANCHOR: Check the app is valid and fetch information
-    logger.info("Calling fetchOIDCApp", { app_id, redirect_uri });
     const { app, error: fetchAppError } = await fetchOIDCApp(
       app_id,
       redirect_uri,
     );
     if (!app || fetchAppError) {
-      logger.info("App not found or fetchAppError, calling errorResponse");
       return corsHandler(
         errorResponse({
           statusCode: fetchAppError?.statusCode ?? 400,
@@ -198,7 +187,6 @@ export async function POST(req: NextRequest) {
 
     // ANCHOR: Verify redirect URI is valid
     if (app.registered_redirect_uri !== redirect_uri) {
-      logger.info("Invalid redirect_uri, calling errorResponse");
       return corsHandler(
         errorResponse({
           statusCode: 400,
@@ -213,13 +201,11 @@ export async function POST(req: NextRequest) {
     }
 
     // Anchor: Check the proof hasn't been replayed
-    logger.info("Hashing proof and checking Redis for replay");
     const hashedProof = createHash("sha256").update(proof).digest("hex");
     const proofKey = `oidc:proof:${hashedProof}`;
     const isProofReplayed = await redis.get(proofKey);
 
     if (isProofReplayed) {
-      logger.info("Proof has already been used, calling errorResponse");
       return corsHandler(
         errorResponse({
           statusCode: 400,
@@ -234,15 +220,12 @@ export async function POST(req: NextRequest) {
     }
 
     // Set the proof before continuing with other operations
-    logger.info("Setting proof in Redis");
     await redis.set(proofKey, "1", "EX", 5400);
 
     // For OIDC we should always hash the signal now.
-    logger.info("Hashing signal");
     const signalHash = toBeHex(hashToField(signal).hash as bigint);
 
     // ANCHOR: Verify the zero-knowledge proof
-    logger.info("Calling verifyProof");
     const { error: verifyError } = await verifyProof(
       {
         proof,
@@ -259,7 +242,6 @@ export async function POST(req: NextRequest) {
     );
 
     if (verifyError) {
-      logger.info("verifyProof returned error, calling errorResponse");
       return corsHandler(
         errorResponse({
           statusCode: verifyError.statusCode ?? 400,
@@ -282,7 +264,7 @@ export async function POST(req: NextRequest) {
       const shouldStoreSignal =
         checkFlowType(response_types) === OIDCFlowType.AuthorizationCode &&
         signal;
-      logger.info("Calling generateOIDCCode");
+
       response.code = await generateOIDCCode(
         app.id,
         nullifier_hash,
@@ -303,10 +285,8 @@ export async function POST(req: NextRequest) {
         ] === OIDCResponseType.JWT
       ) {
         if (!jwt) {
-          logger.info("Calling fetchActiveJWK");
           const jwk = await fetchActiveJWK();
 
-          logger.info("Calling generateOIDCJWT");
           jwt = await generateOIDCJWT({
             app_id: app.id,
             nullifier_hash,
@@ -322,17 +302,13 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    logger.info("Calling getAPIServiceGraphqlClient");
     const client = await getAPIServiceGraphqlClient();
-    logger.info("Calling getNullifierSdk");
     const nullifierSdk = getNullifierSdk(client);
-    logger.info("Calling getUpsertNullifierSdk");
     const upsertNullifierSdk = getUpsertNullifierSdk(client);
 
     let hasNullifier: boolean = false;
 
     try {
-      logger.info("Calling nullifierSdk.Nullifier");
       const fetchNullifierResult = await nullifierSdk.Nullifier({
         nullifier_hash,
       });
@@ -357,7 +333,6 @@ export async function POST(req: NextRequest) {
 
     if (!hasNullifier) {
       try {
-        logger.info("Calling upsertNullifierSdk.UpsertNullifier");
         const { insert_nullifier_one } =
           await upsertNullifierSdk.UpsertNullifier({
             object: {
@@ -385,7 +360,6 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    logger.info("Calling captureEvent for world_id_sign_in_success");
     await captureEvent({
       event: "world_id_sign_in_success",
       distinctId: app.id,
@@ -394,7 +368,6 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    logger.info("Returning success response");
     return corsHandler(NextResponse.json(response, { status: 200 }), [
       "POST",
       "OPTIONS",
