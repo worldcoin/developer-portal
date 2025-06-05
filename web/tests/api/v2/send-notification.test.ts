@@ -5,7 +5,7 @@ import { NextRequest } from "next/server";
 // #region Mocks
 const FetchAPIKey = jest.fn();
 const GetAppMetadata = jest.fn();
-
+const LogNotification = jest.fn();
 jest.mock("@/lib/logger", () => ({
   logger: {
     error: jest.fn(),
@@ -29,9 +29,14 @@ jest.mock(
   }),
 );
 
-jest.mock("@/api/v2/minikit/send-notification/index", () => ({
-  logNotification: jest.fn(),
-}));
+jest.mock(
+  "@/api/v2/minikit/send-notification/graphql/create-notification-log.generated",
+  () => ({
+    getSdk: () => ({
+      LogNotification,
+    }),
+  }),
+);
 
 jest.mock("aws-sigv4-fetch", () => ({
   createSignedFetcher: () =>
