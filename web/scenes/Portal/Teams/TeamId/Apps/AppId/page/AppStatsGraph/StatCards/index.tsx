@@ -30,7 +30,6 @@ const resolveStatValue = ({
   weekValue: number | undefined | null;
   timespanValue: Timespan["value"];
 }) => {
-  return 12345678912;
   return timespanValue === "all-time" ? allTimeValue : weekValue;
 };
 
