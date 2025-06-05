@@ -212,6 +212,20 @@ export const CategoryTranslations: Record<
     ai: "AI",
     shopping: "Belanja",
   },
+  zh_TW: {
+    all: "全部",
+    social: "社群",
+    gaming: "遊戲",
+    business: "商務",
+    finance: "金融",
+    productivity: "生產力",
+    other: "其他",
+    tokens: "代幣",
+    external: "外部應用",
+    earn: "獲益",
+    ai: "AI",
+    shopping: "購物",
+  },
 };
 
 export const Categories = [
