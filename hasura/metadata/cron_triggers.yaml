@@ -45,4 +45,7 @@
   schedule: 0 14 * * 4
   include_in_metadata: true
   payload: {}
+  headers:
+    - name: Authorization
+      value_from_env: INTERNAL_ENDPOINTS_SECRET
   comment: This reevaluates notification permissions, per app, every week
