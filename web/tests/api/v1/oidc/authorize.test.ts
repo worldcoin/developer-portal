@@ -109,7 +109,6 @@ describe("/api/v1/oidc/authorize [hybrid flow]", () => {
       method: "POST",
       body: JSON.stringify({
         ...VALID_REQUEST,
-        response_type: "code id_token",
       }),
     });
 
