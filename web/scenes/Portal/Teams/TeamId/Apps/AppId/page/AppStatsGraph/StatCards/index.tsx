@@ -30,6 +30,7 @@ const resolveStatValue = ({
   weekValue: number | undefined | null;
   timespanValue: Timespan["value"];
 }) => {
+  return 12345678912;
   return timespanValue === "all-time" ? allTimeValue : weekValue;
 };
 
@@ -96,7 +97,7 @@ export const StatCards = ({ appId }: { appId: string }) => {
             {
               "grid-cols-1 grid-rows-4 sm:grid-cols-2 sm:grid-rows-2 lg:grid-cols-4 lg:grid-rows-1":
                 !isAnyStatOver8Chars,
-              "grid-cols-2 grid-rows-2 sm:grid-cols-1 sm:grid-rows-4":
+              "grid-cols-1 grid-rows-4 md:grid-cols-2 md:grid-rows-2":
                 isAnyStatOver8Chars,
             },
           )}
