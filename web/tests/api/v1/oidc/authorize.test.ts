@@ -364,6 +364,7 @@ describe("/api/v1/oidc/authorize [hybrid flow]", () => {
       },
       nonce: semaphoreProofParamsMock.signal,
     });
+    console.log("payload", payload);
 
     // Validate timestamps
     const iatDiff = Math.abs(dayjs().diff(dayjs.unix(payload.iat!), "second"));
@@ -373,5 +374,6 @@ describe("/api/v1/oidc/authorize [hybrid flow]", () => {
     expect(iatDiff).toBeLessThan(2); // 2 sec
     expect(expDiff).toBeLessThan(2); // 2 sec
     expect(payload.iat!.toString().length).toEqual(10); // timestamp in seconds has 10 digits
+    console.log("end");
   });
 });
