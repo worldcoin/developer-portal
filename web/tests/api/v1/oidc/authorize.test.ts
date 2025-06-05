@@ -103,23 +103,6 @@ const VALID_REQUEST: Record<string, string> = {
   redirect_uri: "https://example.com/cb",
 };
 
-describe("/api/v1/oidc/authorize [hybrid flow]", () => {
-  test("returns a valid token and authorization code", async () => {
-    const req = new NextRequest("http://localhost:3000/api/v1/oidc/authorize", {
-      method: "POST",
-      body: JSON.stringify({
-        ...VALID_REQUEST,
-        response_type: "code id_token",
-      }),
-    });
-
-    const response = await POST(req);
-    const data = await response.json();
-
-    console.log(data);
-  });
-});
-
 describe("/api/v1/oidc/authorize [request validation]", () => {
   test("validate required attributes", async () => {
     const required_attributes = [
@@ -289,6 +272,66 @@ describe("/api/v1/oidc/authorize [implicit flow]", () => {
 
     expect(response.status).toBe(200);
     expect(data).toEqual({ id_token: expect.any(String) });
+
+    const jwt = data.id_token;
+    const publicKey = createPublicKey({ format: "jwk", key: publicJwk });
+    const { protectedHeader, payload } = await jwtVerify(jwt, publicKey);
+
+    expect(protectedHeader).toEqual({
+      alg: "RS256",
+      kid: "kid_my_test_key",
+      typ: "JWT",
+    });
+
+    expect(payload).toEqual({
+      iss: "https://id.worldcoin.org",
+      sub: semaphoreProofParamsMock.nullifier_hash,
+      jti: expect.any(String),
+      iat: expect.any(Number),
+      exp: expect.any(Number),
+      aud: "app_112233445566778",
+      scope: "openid",
+      "https://id.worldcoin.org/beta": {
+        likely_human: "strong",
+        credential_type: "orb",
+        warning:
+          "DEPRECATED and will be removed soon. Use `https://id.worldcoin.org/v1` instead.",
+      },
+      "https://id.worldcoin.org/v1": {
+        verification_level: "orb",
+      },
+      nonce: semaphoreProofParamsMock.signal,
+    });
+
+    // Validate timestamps
+    const iatDiff = Math.abs(dayjs().diff(dayjs.unix(payload.iat!), "second"));
+    const oneHourFromNow = new Date().getTime() + 60 * 60 * 1000;
+
+    const expDiff = Math.abs(oneHourFromNow / 1000 - payload.exp!);
+    expect(iatDiff).toBeLessThan(2); // 2 sec
+    expect(expDiff).toBeLessThan(2); // 2 sec
+    expect(payload.iat!.toString().length).toEqual(10); // timestamp in seconds has 10 digits
+  });
+});
+
+describe("/api/v1/oidc/authorize [hybrid flow]", () => {
+  test("returns a valid token and authorization code", async () => {
+    const req = new NextRequest("http://localhost:3000/api/v1/oidc/authorize", {
+      method: "POST",
+      body: JSON.stringify({
+        ...VALID_REQUEST,
+        response_type: "code id_token",
+      }),
+    });
+
+    const response = await POST(req);
+    const data = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(data).toEqual({
+      id_token: expect.any(String),
+      code: expect.stringMatching(/^[a-f0-9]{16,30}$/),
+    });
 
     const jwt = data.id_token;
     const publicKey = createPublicKey({ format: "jwk", key: publicJwk });

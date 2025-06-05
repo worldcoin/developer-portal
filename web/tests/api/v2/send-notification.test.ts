@@ -6,7 +6,7 @@ import { NextRequest } from "next/server";
 const FetchAPIKey = jest.fn();
 const GetAppMetadata = jest.fn();
 
-jest.mock("../../../lib/logger", () => ({
+jest.mock("@/lib/logger", () => ({
   logger: {
     error: jest.fn(),
     warn: jest.fn(),
@@ -14,20 +14,24 @@ jest.mock("../../../lib/logger", () => ({
   },
 }));
 
-jest.mock("../../../api/v2/minikit/graphql/fetch-api-key.generated", () => ({
+jest.mock("@/api/v2/minikit/graphql/fetch-api-key.generated", () => ({
   getSdk: () => ({
     FetchAPIKey,
   }),
 }));
 
 jest.mock(
-  "../../../api/v2/minikit/send-notification/graphql/fetch-metadata.generated",
+  "@/api/v2/minikit/send-notification/graphql/fetch-metadata.generated",
   () => ({
     getSdk: () => ({
       GetAppMetadata,
     }),
   }),
 );
+
+jest.mock("@/api/v2/minikit/send-notification/index", () => ({
+  logNotification: jest.fn(),
+}));
 
 jest.mock("aws-sigv4-fetch", () => ({
   createSignedFetcher: () =>
