@@ -153,10 +153,13 @@ const evaluateNotificationPermissions = (
     }
 
     default: {
-      logger.error("Unknown notification state", {
-        appId: appMetadata.app_id,
-        state: notificationState,
-      });
+      logger.error(
+        "_evaluate-app-notification-permissions - unknown notification state",
+        {
+          appId: appMetadata.app_id,
+          state: notificationState,
+        },
+      );
       return skipStateUpdate;
     }
   }
@@ -180,16 +183,22 @@ export const safeUpdateNotificationState = async (
         updates.notification_permission_status_changed_date?.toISOString(),
     });
 
-    logger.info("Notification state updated successfully", {
-      app_id,
-      updates,
-    });
+    logger.info(
+      "_evaluate-app-notification-permissions - notification state updated successfully",
+      {
+        app_id,
+        updates,
+      },
+    );
   } catch (error) {
-    logger.error("Failed to update notification state", {
-      app_id,
-      updates,
-      error,
-    });
+    logger.error(
+      "_evaluate-app-notification-permissions - failed to update notification state",
+      {
+        app_id,
+        updates,
+        error,
+      },
+    );
   }
 };
 
@@ -238,13 +247,16 @@ export const POST = async (req: NextRequest) => {
     .map((app) => app.app_id);
 
   if (appIdsToEvaluate.length > 600) {
-    logger.warn("Notification permission list is getting too long", {
-      listLength: appIdsToEvaluate.length,
-    });
+    logger.warn(
+      "_evaluate-app-notification-permissions - notification permission list is getting too long",
+      {
+        listLength: appIdsToEvaluate.length,
+      },
+    );
   }
 
   if (appIdsToEvaluate.length === 0) {
-    logger.info("No apps to evaluate");
+    logger.info("_evaluate-app-notification-permissions - no apps to evaluate");
     return NextResponse.json({ success: true }, { status: 200 });
   }
 
@@ -262,12 +274,19 @@ export const POST = async (req: NextRequest) => {
       app.notification_permission_status_changed_date,
   }));
 
+  logger.info("_evaluate-app-notification-permissions - apps to evaluate", {
+    numberOfAppsToEvaluate: appMetadata.app_metadata.length,
+  });
+
   for (const app of appsToEvaluate) {
     const appStats = metricsData.find((app) => app.app_id === app.app_id);
     if (!appStats) {
-      logger.error("App stats not found", {
-        app_id: app.app_id,
-      });
+      logger.error(
+        "_evaluate-app-notification-permissions - app stats not found",
+        {
+          app_id: app.app_id,
+        },
+      );
 
       continue;
     }
@@ -290,7 +309,7 @@ export const POST = async (req: NextRequest) => {
     continue;
   }
 
-  logger.info("_evaluate-app-notification-permissions - finish execution");
+  logger.info("_evaluate-app-notification-permissions - finished execution");
 
   return NextResponse.json(
     {
