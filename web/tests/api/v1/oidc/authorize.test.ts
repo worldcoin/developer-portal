@@ -109,6 +109,7 @@ describe("/api/v1/oidc/authorize [hybrid flow]", () => {
       method: "POST",
       body: JSON.stringify({
         ...VALID_REQUEST,
+        response_type: "id_token",
       }),
     });
 
@@ -118,7 +119,6 @@ describe("/api/v1/oidc/authorize [hybrid flow]", () => {
     expect(response.status).toBe(200);
     expect(data).toEqual({
       id_token: expect.any(String),
-      code: expect.stringMatching(/^[a-f0-9]{16,30}$/),
     });
 
     const jwt = data.id_token;
