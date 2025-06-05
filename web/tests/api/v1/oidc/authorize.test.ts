@@ -333,6 +333,8 @@ describe("/api/v1/oidc/authorize [hybrid flow]", () => {
       code: expect.stringMatching(/^[a-f0-9]{16,30}$/),
     });
 
+    console.log(data);
+
     const jwt = data.id_token;
     const publicKey = createPublicKey({ format: "jwk", key: publicJwk });
     const { protectedHeader, payload } = await jwtVerify(jwt, publicKey);
