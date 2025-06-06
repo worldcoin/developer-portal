@@ -25,6 +25,22 @@ export async function register() {
       });
 
       global.RedisClient = redis;
+
+      const { OpenSearchClient } = await import("./lib/opensearch");
+
+      if (!process.env.OPENSEARCH_ENDPOINT) {
+        return console.error(
+          "🔴 Missing OpenSearch configuration in instrumentation.ts",
+        );
+      }
+
+      const opensearch = new OpenSearchClient({
+        url: process.env.OPENSEARCH_ENDPOINT,
+        indexName: "app_metadata",
+      });
+      opensearch.createIndexIfNotExists();
+
+      global.OpenSearchClient = opensearch;
     }
   } catch (error) {
     return console.error("🔴 Instrumentation registration error: ", error);
