@@ -73,7 +73,6 @@ const evaluateNotificationPermissions = (
   if (appMetadata.is_allowed_unlimited_notifications) {
     return skipStateUpdate;
   }
-
   const notificationState =
     (appMetadata.notification_permission_status as NotificationState) ||
     "normal";
@@ -279,7 +278,7 @@ export const POST = async (req: NextRequest) => {
   });
 
   for (const app of appsToEvaluate) {
-    const appStats = metricsData.find((app) => app.app_id === app.app_id);
+    const appStats = metricsData.find((metric) => metric.app_id === app.app_id);
     if (!appStats) {
       logger.error(
         "_evaluate-app-notification-permissions - app stats not found",
@@ -290,16 +289,10 @@ export const POST = async (req: NextRequest) => {
 
       continue;
     }
-    const evaluationResult = evaluateNotificationPermissions(app, appStats);
-    if (evaluationResult.should_update_state) {
-      logger.info(
-        "_evaluate-app-notification-permissions - updating notification state",
-        {
-          app_id: app.app_id,
-          new_state: evaluationResult.new_state,
-        },
-      );
 
+    const evaluationResult = evaluateNotificationPermissions(app, appStats);
+
+    if (evaluationResult.should_update_state) {
       void safeUpdateNotificationState(app.app_id, client, {
         notification_permission_status: evaluationResult.new_state,
         notification_permission_status_changed_date:
