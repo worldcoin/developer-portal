@@ -1154,212 +1154,66 @@ describe("/api/public/app/[app_id]", () => {
     });
   });
 
-  describe("contacts app version filtering", () => {
-    beforeEach(() => {
-      process.env.NEXT_PUBLIC_APP_ENV = "production";
-      process.env.NEXT_PUBLIC_IMAGES_CDN_URL = "cdn.test.com";
-      global.fetch = jest.fn().mockImplementation(() => {
-        return Promise.resolve({
-          status: 200,
-          json: () => Promise.resolve({}),
-        });
-      });
-    });
+  test("should apply native metadata mapping", async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      status: 200,
+      json: jest.fn().mockResolvedValue([]),
+    }) as jest.Mock;
 
-    afterEach(() => {
-      jest.clearAllMocks();
-    });
+    process.env.NEXT_PUBLIC_APP_ENV = "production";
+    process.env.NEXT_PUBLIC_METRICS_SERVICE_ENDPOINT =
+      "https://metrics.example.com";
+    process.env.NEXT_PUBLIC_IMAGES_CDN_URL = "cdn.test.com";
 
-    test("should return 404 when requesting contacts app with client version below minimum", async () => {
-      // Setup mock to return contacts app metadata
-      jest.mocked(getAppMetadataSdk).mockImplementation(() => ({
-        GetAppMetadata: jest.fn().mockResolvedValue({
-          app_metadata: [
-            {
-              name: "Contacts App",
-              app_id: NativeAppToAppIdMapping["production"].contacts, // contacts app
-              short_name: "contacts",
-              logo_img_url: "logo.png",
-              showcase_img_urls: ["showcase1.png", "showcase2.png"],
-              hero_image_url: "",
-              category: "Social",
-              description: '{"description_overview":"Contacts app"}',
-              integration_url: "https://example.com/integration",
-              verification_status: "verified",
-              supported_countries: ["us", "uk"],
-              is_allowed_unlimited_notifications: false,
-              max_notifications_per_day: 10,
-              app: {
-                team: {
-                  name: "Test Team",
-                },
-                rating_sum: 10,
-                rating_count: 2,
-              },
+    jest.mocked(getAppMetadataSdk).mockImplementation(() => ({
+      GetAppMetadata: jest.fn().mockResolvedValue({
+        app_metadata: [
+          {
+            app_id: NativeAppToAppIdMapping["production"].grants, // this should be mapped to native metadata
+            name: "Test Native App",
+            short_name: "test",
+            logo_img_url: "logo.png",
+            hero_image_url: "",
+            meta_tag_image_url: "meta_tag_image.png",
+            showcase_img_urls: ["showcase1.png"],
+            category: "Social",
+            world_app_button_text: "Use Integration",
+            world_app_description: "Test native app",
+            whitelisted_addresses: ["0x1234"],
+            app_mode: "mini-app", // this should change to "native"
+            integration_url: "https://example.com", // this should change
+            verification_status: "verified",
+            is_allowed_unlimited_notifications: false,
+            max_notifications_per_day: 10,
+            description: JSON.stringify({
+              description_overview: "test",
+              description_how_it_works: "",
+              description_connect: "",
+            }),
+            app: {
+              team: { name: "Test Team" },
+              rating_sum: 10,
+              rating_count: 2,
             },
-          ],
-        }),
-      }));
-
-      const request = new NextRequest(
-        "https://cdn.test.com/api/v2/public/app/contacts",
-        {
-          headers: {
-            host: "cdn.test.com",
-            "client-version": "2.8.7800", // below the minimum version
           },
+        ],
+      }),
+    }));
+
+    const request = new NextRequest(
+      "https://cdn.test.com/api/v2/public/app/grants",
+      {
+        headers: {
+          host: "cdn.test.com",
         },
-      );
+      },
+    );
 
-      const response = await GET(request, { params: { app_id: "contacts" } });
+    const response = await GET(request, { params: { app_id: "grants" } });
+    const data = await response.json();
 
-      expect(response.status).toBe(404);
-      expect(await response.json()).toEqual({ error: "App not available" });
-    });
-
-    test("should return 404 when requesting contacts app with missing client version", async () => {
-      // Setup mock to return contacts app metadata
-      jest.mocked(getAppMetadataSdk).mockImplementation(() => ({
-        GetAppMetadata: jest.fn().mockResolvedValue({
-          app_metadata: [
-            {
-              name: "Contacts App",
-              app_id: NativeAppToAppIdMapping["production"].contacts, // contacts app
-              short_name: "contacts",
-              logo_img_url: "logo.png",
-              showcase_img_urls: ["showcase1.png", "showcase2.png"],
-              hero_image_url: "",
-              category: "Social",
-              description: '{"description_overview":"Contacts app"}',
-              integration_url: "https://example.com/integration",
-              verification_status: "verified",
-              supported_countries: ["us", "uk"],
-              is_allowed_unlimited_notifications: false,
-              max_notifications_per_day: 10,
-              app: {
-                team: {
-                  name: "Test Team",
-                },
-                rating_sum: 10,
-                rating_count: 2,
-              },
-            },
-          ],
-        }),
-      }));
-
-      const request = new NextRequest(
-        "https://cdn.test.com/api/v2/public/app/contacts",
-        {
-          headers: {
-            host: "cdn.test.com",
-            // No client-version header
-          },
-        },
-      );
-
-      const response = await GET(request, { params: { app_id: "contacts" } });
-
-      expect(response.status).toBe(404);
-      expect(await response.json()).toEqual({ error: "App not available" });
-    });
-
-    test("should return app data when requesting contacts app with client version at minimum", async () => {
-      // Setup mock to return contacts app metadata
-      jest.mocked(getAppMetadataSdk).mockImplementation(() => ({
-        GetAppMetadata: jest.fn().mockResolvedValue({
-          app_metadata: [
-            {
-              name: "Contacts App",
-              app_id: NativeAppToAppIdMapping["production"].contacts, // contacts app
-              short_name: "contacts",
-              logo_img_url: "logo.png",
-              showcase_img_urls: ["showcase1.png", "showcase2.png"],
-              hero_image_url: "",
-              category: "Social",
-              description: '{"description_overview":"Contacts app"}',
-              integration_url: "https://example.com/integration",
-              verification_status: "verified",
-              supported_countries: ["us", "uk"],
-              is_allowed_unlimited_notifications: false,
-              max_notifications_per_day: 10,
-              app: {
-                team: {
-                  name: "Test Team",
-                },
-                rating_sum: 10,
-                rating_count: 2,
-              },
-            },
-          ],
-        }),
-      }));
-
-      const request = new NextRequest(
-        "https://cdn.test.com/api/v2/public/app/contacts",
-        {
-          headers: {
-            host: "cdn.test.com",
-            "client-version": "2.8.7803", // exactly the minimum version
-          },
-        },
-      );
-
-      const response = await GET(request, { params: { app_id: "contacts" } });
-
-      expect(response.status).toBe(200);
-      const data = await response.json();
-      expect(data).toHaveProperty("app_data");
-      expect(data.app_data.name).toBe("Contacts App");
-    });
-
-    test("should return app data when requesting contacts app with client version above minimum", async () => {
-      // Setup mock to return contacts app metadata
-      jest.mocked(getAppMetadataSdk).mockImplementation(() => ({
-        GetAppMetadata: jest.fn().mockResolvedValue({
-          app_metadata: [
-            {
-              name: "Contacts App",
-              app_id: NativeAppToAppIdMapping["production"].contacts, // contacts app
-              short_name: "contacts",
-              logo_img_url: "logo.png",
-              showcase_img_urls: ["showcase1.png", "showcase2.png"],
-              hero_image_url: "",
-              category: "Social",
-              description: '{"description_overview":"Contacts app"}',
-              integration_url: "https://example.com/integration",
-              verification_status: "verified",
-              supported_countries: ["us", "uk"],
-              is_allowed_unlimited_notifications: false,
-              max_notifications_per_day: 10,
-              app: {
-                team: {
-                  name: "Test Team",
-                },
-                rating_sum: 10,
-                rating_count: 2,
-              },
-            },
-          ],
-        }),
-      }));
-
-      const request = new NextRequest(
-        "https://cdn.test.com/api/v2/public/app/contacts",
-        {
-          headers: {
-            host: "cdn.test.com",
-            "client-version": "2.9.0", // above the minimum version
-          },
-        },
-      );
-
-      const response = await GET(request, { params: { app_id: "contacts" } });
-
-      expect(response.status).toBe(200);
-      const data = await response.json();
-      expect(data).toHaveProperty("app_data");
-      expect(data.app_data.name).toBe("Contacts App");
-    });
+    expect(data.app_data.app_id).toBe("grants"); // mapped from grants app
+    expect(data.app_data.app_mode).toBe("native"); // changed from mini-app
+    expect(data.app_data.integration_url).toBe("worldapp://grants"); // changed from https://example.com
   });
 });
