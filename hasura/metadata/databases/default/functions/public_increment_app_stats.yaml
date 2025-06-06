@@ -1,0 +1,6 @@
+function:
+  name: increment_app_stats
+  schema: public
+configuration:
+  custom_root_fields: {}
+  exposed_as: mutation

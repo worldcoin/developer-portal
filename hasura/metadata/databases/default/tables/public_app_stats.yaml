@@ -1,5 +1,5 @@
 table:
-  name: app_stats_returning
+  name: app_stats
   schema: public
 object_relationships:
   - name: app
@@ -9,14 +9,15 @@ select_permissions:
   - role: user
     permission:
       columns:
-        - app_id
+        - nullifier_hashes
         - date
         - unique_users
         - verifications
+        - app_id
       filter:
         app:
           team:
             memberships:
               user_id:
                 _eq: X-Hasura-User-Id
-      allow_aggregations: true
+    comment: ""
