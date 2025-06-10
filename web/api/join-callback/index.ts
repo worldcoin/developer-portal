@@ -130,12 +130,18 @@ export const POST = withApiAuthRequired(async (req: NextRequest) => {
       auth0User.email &&
       invite.email !== auth0User.email
     ) {
-      return errorResponse({
-        statusCode: 403,
-        code: "email_mismatch",
-        detail: "Invite email does not match user email",
-        req,
+      logger.error("Invite email does not match logged in email", {
+        team_id: invite.team.id,
       });
+      return NextResponse.redirect(
+        new URL(
+          urls.unauthorized({
+            message: "Invite email does not match logged in email.",
+          }),
+          process.env.NEXT_PUBLIC_APP_URL,
+        ).toString(),
+        307,
+      );
     }
 
     inviteData = invite;
