@@ -6,7 +6,7 @@ import { NextRequest } from "next/server";
 const FetchAPIKey = jest.fn();
 const GetAppMetadata = jest.fn();
 
-jest.mock("../../../lib/logger", () => ({
+jest.mock("@/lib/logger", () => ({
   logger: {
     error: jest.fn(),
     warn: jest.fn(),
@@ -14,17 +14,29 @@ jest.mock("../../../lib/logger", () => ({
   },
 }));
 
-jest.mock("../../../api/v2/minikit/graphql/fetch-api-key.generated", () => ({
+jest.mock("@/api/v2/minikit/graphql/fetch-api-key.generated", () => ({
   getSdk: () => ({
     FetchAPIKey,
   }),
 }));
 
 jest.mock(
-  "../../../api/v2/minikit/send-notification/graphql/fetch-metadata.generated",
+  "@/api/v2/minikit/send-notification/graphql/fetch-metadata.generated",
   () => ({
     getSdk: () => ({
       GetAppMetadata,
+    }),
+  }),
+);
+
+jest.mock(
+  "@/api/v2/minikit/send-notification/graphql/create-notification-log.generated",
+  () => ({
+    getSdk: () => ({
+      CreateNotificationLog: jest.fn().mockResolvedValue({
+        id: "notification_log_123",
+      }),
+      CreateWalletAdressNotificationLogs: jest.fn(),
     }),
   }),
 );
@@ -37,7 +49,8 @@ jest.mock("aws-sigv4-fetch", () => ({
           result: {
             results: [
               {
-                walletAddress: "0x1234567890abcdef1234567890abcdef12345678",
+                walletAddress:
+                  "0x0000000000000000000000000000000000000000abcdef1234567890abcdef12345678",
                 sent: true,
                 reason: "User has disabled notifications",
               },
@@ -63,10 +76,11 @@ const createMockRequest = (params: {
     },
     body: JSON.stringify({
       app_id: "app_staging_9cdd0a714aec9ed17dca660bc9ffe72a",
-      wallet_addresses: ["0x1234567890"],
+      wallet_addresses: ["0x0000000000000000000000000000000000000000"],
       title: "Test Notification",
       message: "This is a test notification",
-      mini_app_path: "/test",
+      mini_app_path:
+        "worldapp://mini-app?app_id=app_staging_9cdd0a714aec9ed17dca660bc9ffe72a",
     }),
   });
 };
@@ -160,10 +174,10 @@ describe("/api/v2/minikit/send-notification [error cases]", () => {
         },
         body: JSON.stringify({
           app_id: "random",
-          wallet_addresses: ["0x1234567890"],
+          wallet_addresses: ["0x0000000000000000000000000000000000000000"],
           title: "Test Notification",
           message: "a" + "bet".repeat(200),
-          mini_app_path: "/test",
+          mini_app_path: "worldapp://mini-app?app_id=random",
         }),
       },
     );
@@ -218,10 +232,10 @@ describe("/api/v2/minikit/send-notification [error cases]", () => {
         },
         body: JSON.stringify({
           app_id: "random",
-          wallet_addresses: ["0x1234567890"],
+          wallet_addresses: ["0x0000000000000000000000000000000000000000"],
           title: "Test Notification",
           message: "This is a test notification",
-          mini_app_path: "/test",
+          mini_app_path: "worldapp://mini-app?app_id=random",
         }),
       },
     );
@@ -308,50 +322,51 @@ describe("/api/v2/minikit/send-notification [error cases]", () => {
         body: JSON.stringify({
           app_id: "app_staging_9cdd0a714aec9ed17dca660bc9ffe72a",
           wallet_addresses: [
-            "0x1234567890",
-            "0x1234567890",
-            "0x1234567890",
-            "0x1234567890",
-            "0x1234567890",
-            "0x1234567890",
-            "0x1234567890",
-            "0x1234567890",
-            "0x1234567890",
-            "0x1234567890",
-            "0x1234567890",
-            "0x1234567890",
-            "0x1234567890",
-            "0x1234567890",
-            "0x1234567890",
-            "0x1234567890",
-            "0x1234567890",
-            "0x1234567890",
-            "0x1234567890",
-            "0x1234567890",
-            "0x1234567890",
-            "0x1234567890",
-            "0x1234567890",
-            "0x1234567890",
-            "0x1234567890",
-            "0x1234567890",
-            "0x1234567890",
-            "0x1234567890",
-            "0x1234567890",
-            "0x1234567890",
-            "0x1234567890",
-            "0x1234567890",
-            "0x1234567890",
-            "0x1234567890",
-            "0x1234567890",
-            "0x1234567890",
-            "0x1234567890",
-            "0x1234567890",
-            "0x1234567890",
-            "0x1234567890",
+            "0x0000000000000000000000000000000000000000",
+            "0x0000000000000000000000000000000000000000",
+            "0x0000000000000000000000000000000000000000",
+            "0x0000000000000000000000000000000000000000",
+            "0x0000000000000000000000000000000000000000",
+            "0x0000000000000000000000000000000000000000",
+            "0x0000000000000000000000000000000000000000",
+            "0x0000000000000000000000000000000000000000",
+            "0x0000000000000000000000000000000000000000",
+            "0x0000000000000000000000000000000000000000",
+            "0x0000000000000000000000000000000000000000",
+            "0x0000000000000000000000000000000000000000",
+            "0x0000000000000000000000000000000000000000",
+            "0x0000000000000000000000000000000000000000",
+            "0x0000000000000000000000000000000000000000",
+            "0x0000000000000000000000000000000000000000",
+            "0x0000000000000000000000000000000000000000",
+            "0x0000000000000000000000000000000000000000",
+            "0x0000000000000000000000000000000000000000",
+            "0x0000000000000000000000000000000000000000",
+            "0x0000000000000000000000000000000000000000",
+            "0x0000000000000000000000000000000000000000",
+            "0x0000000000000000000000000000000000000000",
+            "0x0000000000000000000000000000000000000000",
+            "0x0000000000000000000000000000000000000000",
+            "0x0000000000000000000000000000000000000000",
+            "0x0000000000000000000000000000000000000000",
+            "0x0000000000000000000000000000000000000000",
+            "0x0000000000000000000000000000000000000000",
+            "0x0000000000000000000000000000000000000000",
+            "0x0000000000000000000000000000000000000000",
+            "0x0000000000000000000000000000000000000000",
+            "0x0000000000000000000000000000000000000000",
+            "0x0000000000000000000000000000000000000000",
+            "0x0000000000000000000000000000000000000000",
+            "0x0000000000000000000000000000000000000000",
+            "0x0000000000000000000000000000000000000000",
+            "0x0000000000000000000000000000000000000000",
+            "0x0000000000000000000000000000000000000000",
+            "0x0000000000000000000000000000000000000000",
           ],
           title: "Test Notification",
           message: "This is a test notification",
-          mini_app_path: "/test",
+          mini_app_path:
+            "worldapp://mini-app?app_id=app_staging_9cdd0a714aec9ed17dca660bc9ffe72a",
         }),
       },
     );
@@ -369,10 +384,11 @@ describe("/api/v2/minikit/send-notification [error cases]", () => {
         },
         body: JSON.stringify({
           app_id: "app_staging_9cdd0a714aec9ed17dca660bc9ffe72a",
-          wallet_addresses: ["0x1234567890"],
+          wallet_addresses: ["0x0000000000000000000000000000000000000000"],
           title: "Test Notification",
           message: "This is a test notification",
-          mini_app_path: "/test",
+          mini_app_path:
+            "worldapp://mini-app?app_id=app_staging_9cdd0a714aec9ed17dca660bc9ffe72a",
         }),
       },
     );

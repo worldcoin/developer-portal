@@ -73,7 +73,6 @@ const evaluateNotificationPermissions = (
   if (appMetadata.is_allowed_unlimited_notifications) {
     return skipStateUpdate;
   }
-
   const notificationState =
     (appMetadata.notification_permission_status as NotificationState) ||
     "normal";
@@ -153,10 +152,13 @@ const evaluateNotificationPermissions = (
     }
 
     default: {
-      logger.error("Unknown notification state", {
-        appId: appMetadata.app_id,
-        state: notificationState,
-      });
+      logger.error(
+        "_evaluate-app-notification-permissions - unknown notification state",
+        {
+          appId: appMetadata.app_id,
+          state: notificationState,
+        },
+      );
       return skipStateUpdate;
     }
   }
@@ -180,16 +182,22 @@ export const safeUpdateNotificationState = async (
         updates.notification_permission_status_changed_date?.toISOString(),
     });
 
-    logger.info("Notification state updated successfully", {
-      app_id,
-      updates,
-    });
+    logger.info(
+      "_evaluate-app-notification-permissions - notification state updated successfully",
+      {
+        app_id,
+        updates,
+      },
+    );
   } catch (error) {
-    logger.error("Failed to update notification state", {
-      app_id,
-      updates,
-      error,
-    });
+    logger.error(
+      "_evaluate-app-notification-permissions - failed to update notification state",
+      {
+        app_id,
+        updates,
+        error,
+      },
+    );
   }
 };
 
@@ -229,6 +237,8 @@ export const POST = async (req: NextRequest) => {
     return errorResponse;
   }
 
+  logger.info("_evaluate-app-notification-permissions - starting");
+
   const metricsData = await fetchMetrics();
 
   const appIdsToEvaluate = metricsData
@@ -236,9 +246,17 @@ export const POST = async (req: NextRequest) => {
     .map((app) => app.app_id);
 
   if (appIdsToEvaluate.length > 600) {
-    logger.warn("Notification permission list is getting too long", {
-      listLength: appIdsToEvaluate.length,
-    });
+    logger.warn(
+      "_evaluate-app-notification-permissions - notification permission list is getting too long",
+      {
+        listLength: appIdsToEvaluate.length,
+      },
+    );
+  }
+
+  if (appIdsToEvaluate.length === 0) {
+    logger.info("_evaluate-app-notification-permissions - no apps to evaluate");
+    return NextResponse.json({ success: true }, { status: 200 });
   }
 
   const client = await getAPIServiceGraphqlClient();
@@ -255,19 +273,26 @@ export const POST = async (req: NextRequest) => {
       app.notification_permission_status_changed_date,
   }));
 
+  logger.info("_evaluate-app-notification-permissions - apps to evaluate", {
+    numberOfAppsToEvaluate: appsToEvaluate.length,
+  });
+
   for (const app of appsToEvaluate) {
-    const appStats = metricsData.find((app) => app.app_id === app.app_id);
+    const appStats = metricsData.find((metric) => metric.app_id === app.app_id);
     if (!appStats) {
-      logger.error("App stats not found", {
-        app_id: app.app_id,
-      });
+      logger.error(
+        "_evaluate-app-notification-permissions - app stats not found",
+        {
+          app_id: app.app_id,
+        },
+      );
 
       continue;
     }
-    const evaluationResult = evaluateNotificationPermissions(app, appStats);
-    if (evaluationResult.should_update_state) {
-      const client = await getAPIServiceGraphqlClient();
 
+    const evaluationResult = evaluateNotificationPermissions(app, appStats);
+
+    if (evaluationResult.should_update_state) {
       void safeUpdateNotificationState(app.app_id, client, {
         notification_permission_status: evaluationResult.new_state,
         notification_permission_status_changed_date:
@@ -276,6 +301,8 @@ export const POST = async (req: NextRequest) => {
     }
     continue;
   }
+
+  logger.info("_evaluate-app-notification-permissions - finished execution");
 
   return NextResponse.json(
     {
