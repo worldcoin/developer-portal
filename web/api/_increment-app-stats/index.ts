@@ -4,7 +4,9 @@ import { getAPIServiceGraphqlClient } from "../helpers/graphql";
 import { getSdk as getIncrementAppStatsSdk } from "./graphql/increment-app-stats.generated";
 
 /**
- * Handles Hasura event to increment app stats when a new nullifier is inserted.
+ * Handles Hasura event to increment app stats when a nullifier is inserted or updated.
+ * Assumes each insert is the first verification (per user/action), and each update is another usage.
+ * In both cases, stats are updated based on the current verification timestamp.
  */
 export async function POST(request: NextRequest) {
   const { isAuthenticated, errorResponse } = protectInternalEndpoint(request);
@@ -14,12 +16,10 @@ export async function POST(request: NextRequest) {
 
   const body = await request.json();
   const nullifier = body.event.data.new;
+  const timestamp =
+    body.event.data.new.updated_at || body.event.data.new.created_at;
 
-  if (
-    !nullifier?.nullifier_hash ||
-    !nullifier?.created_at ||
-    !nullifier?.action_id
-  ) {
+  if (!nullifier?.nullifier_hash || !timestamp || !nullifier?.action_id) {
     return NextResponse.json(
       { success: false, error: "Missing required nullifier fields." },
       { status: 400 },
@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
   try {
     const response = await incrementAppStatsSdk.IncrementAppStats({
       nullifier_hash: nullifier.nullifier_hash,
-      created_at: nullifier.created_at,
+      created_at: timestamp, // updated_at if present, fallback to created_at
       action_id: nullifier.action_id,
     });
 
@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         success: false,
-        error,
+        error: error instanceof Error ? error.message : String(error),
       },
       { status: 500 },
     );
