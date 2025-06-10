@@ -282,10 +282,10 @@ export const parseLocale = (locale: string) => {
   }
 
   // Handle spanish case
-  if (major_locale === "es" && !secondary_locale) {
-    return "es";
-  } else if (major_locale === "es" && secondary_locale) {
+  if (major_locale === "es" && secondary_locale === "419") {
     return "es_419";
+  } else if (major_locale === "es") {
+    return "es";
   }
 
   return language?.value || "en";
