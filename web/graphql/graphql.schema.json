@@ -34311,11 +34311,11 @@
             "deprecationReason": null
           },
           {
-            "name": "_created_at",
+            "name": "_nullifier_hash",
             "description": null,
             "type": {
               "kind": "SCALAR",
-              "name": "timestamptz",
+              "name": "String",
               "ofType": null
             },
             "defaultValue": null,
@@ -34323,11 +34323,11 @@
             "deprecationReason": null
           },
           {
-            "name": "_nullifier_hash",
+            "name": "_timestamp",
             "description": null,
             "type": {
               "kind": "SCALAR",
-              "name": "String",
+              "name": "timestamptz",
               "ofType": null
             },
             "defaultValue": null,

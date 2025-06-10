@@ -66,8 +66,6 @@ event_triggers:
   - name: increment_app_stats
     definition:
       enable_manual: false
-      insert:
-        columns: "*"
       update:
         columns:
           - uses

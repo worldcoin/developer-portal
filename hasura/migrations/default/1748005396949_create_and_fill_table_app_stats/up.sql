@@ -20,13 +20,13 @@ CREATE INDEX IF NOT EXISTS idx_app_stats_app_id ON app_stats (app_id);
 
 CREATE OR REPLACE FUNCTION increment_app_stats(
   _nullifier_hash TEXT,
-  _created_at TIMESTAMPTZ,
+  _timestamp TIMESTAMPTZ,
   _action_id TEXT
 )
 RETURNS SETOF app_stats AS $$
 DECLARE
   _app_id TEXT;
-  _date DATE := date_trunc('day', _created_at);
+  _date DATE := date_trunc('day', _timestamp);
   _already_exists BOOLEAN;
 BEGIN
   SELECT app_id INTO _app_id

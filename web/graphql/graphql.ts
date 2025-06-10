@@ -4698,8 +4698,8 @@ export type Illegal_Content_Sub_Category_Enum_Comparison_Exp = {
 
 export type Increment_App_Stats_Args = {
   _action_id?: InputMaybe<Scalars["String"]["input"]>;
-  _created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
   _nullifier_hash?: InputMaybe<Scalars["String"]["input"]>;
+  _timestamp?: InputMaybe<Scalars["timestamptz"]["input"]>;
 };
 
 /** Invites */

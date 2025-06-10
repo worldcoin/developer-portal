@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
   try {
     const response = await incrementAppStatsSdk.IncrementAppStats({
       nullifier_hash: nullifier.nullifier_hash,
-      created_at: timestamp, // updated_at if present, fallback to created_at
+      timestamp: timestamp,
       action_id: nullifier.action_id,
     });
 

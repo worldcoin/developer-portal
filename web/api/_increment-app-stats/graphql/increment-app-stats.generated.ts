@@ -6,7 +6,7 @@ import gql from "graphql-tag";
 type GraphQLClientRequestHeaders = RequestOptions["requestHeaders"];
 export type IncrementAppStatsMutationVariables = Types.Exact<{
   nullifier_hash: Types.Scalars["String"]["input"];
-  created_at: Types.Scalars["timestamptz"]["input"];
+  timestamp: Types.Scalars["timestamptz"]["input"];
   action_id: Types.Scalars["String"]["input"];
 }>;
 
@@ -24,13 +24,13 @@ export type IncrementAppStatsMutation = {
 export const IncrementAppStatsDocument = gql`
   mutation IncrementAppStats(
     $nullifier_hash: String!
-    $created_at: timestamptz!
+    $timestamp: timestamptz!
     $action_id: String!
   ) {
     increment_app_stats(
       args: {
         _nullifier_hash: $nullifier_hash
-        _created_at: $created_at
+        _timestamp: $timestamp
         _action_id: $action_id
       }
     ) {
