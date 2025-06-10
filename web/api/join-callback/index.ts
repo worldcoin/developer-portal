@@ -125,6 +125,19 @@ export const POST = withApiAuthRequired(async (req: NextRequest) => {
       });
     }
 
+    if (
+      auth0User.email_verified &&
+      auth0User.email &&
+      invite.email !== auth0User.email
+    ) {
+      return errorResponse({
+        statusCode: 403,
+        code: "email_mismatch",
+        detail: "Invite email does not match user email",
+        req,
+      });
+    }
+
     inviteData = invite;
   } catch (error) {
     logger.error("Error while fetching invite on team create", { error });
