@@ -328,24 +328,29 @@ export const GET = async (request: NextRequest) => {
     return { ...app, category_ranking: categoryApps.indexOf(app) + 1 };
   });
 
-  return NextResponse.json(
-    {
-      app_rankings: {
-        top_apps: rankedAppsWithCategoryRanking,
-        highlights: highlightedApps,
-      },
-      all_category: {
-        ...AllCategory,
-        name: getLocalisedCategory(AllCategory.name, locale).name,
-      },
-      categories,
+  const responseBody = {
+    app_rankings: {
+      top_apps: rankedAppsWithCategoryRanking,
+      highlights: highlightedApps,
     },
-    {
-      headers: {
-        // https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/Expiration.html#ExpirationDownloadDist
-        // https://aws.amazon.com/about-aws/whats-new/2023/05/amazon-cloudfront-stale-while-revalidate-stale-if-error-cache-control-directives/
-        "Cache-Control": "public, max-age=5, stale-if-error=86400",
-      },
+    all_category: {
+      ...AllCategory,
+      name: getLocalisedCategory(AllCategory.name, locale).name,
     },
-  );
+    categories,
+  };
+
+  const contentLength = Buffer.byteLength(
+    JSON.stringify(responseBody),
+    "utf-8",
+  ).toString();
+
+  return NextResponse.json(responseBody, {
+    headers: {
+      "Content-Length": contentLength,
+      // https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/Expiration.html#ExpirationDownloadDist
+      // https://aws.amazon.com/about-aws/whats-new/2023/05/amazon-cloudfront-stale-while-revalidate-stale-if-error-cache-control-directives/
+      "Cache-Control": "public, max-age=5, stale-if-error=86400",
+    },
+  });
 };
