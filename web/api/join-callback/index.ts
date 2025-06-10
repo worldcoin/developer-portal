@@ -96,8 +96,6 @@ export const POST = withApiAuthRequired(async (req: NextRequest) => {
       os,
     });
   } catch (error) {
-    logger.error("Failed to send acceptance", { error });
-
     return errorResponse({
       statusCode: 500,
       code: "Failed to send acceptance",
@@ -130,18 +128,22 @@ export const POST = withApiAuthRequired(async (req: NextRequest) => {
       auth0User.email &&
       invite.email !== auth0User.email
     ) {
-      return errorResponse({
-        statusCode: 403,
-        code: "email_mismatch",
-        detail: "Invite email does not match user email",
-        req,
+      logger.warn("Invite email does not match logged in email", {
+        team_id: invite.team.id,
       });
+      return NextResponse.redirect(
+        new URL(
+          urls.unauthorized({
+            message: "Invite email does not match logged in email.",
+          }),
+          process.env.NEXT_PUBLIC_APP_URL,
+        ).toString(),
+        307,
+      );
     }
 
     inviteData = invite;
   } catch (error) {
-    logger.error("Error while fetching invite on team create", { error });
-
     return errorResponse({
       statusCode: 500,
       code: "server_error",
@@ -188,11 +190,6 @@ export const POST = withApiAuthRequired(async (req: NextRequest) => {
       },
     });
   } catch (error) {
-    logger.error("Error while inserting user on join team:", {
-      error,
-      team_id: inviteData.team.id,
-    });
-
     return errorResponse({
       statusCode: 500,
       code: "server_error",
@@ -229,11 +226,6 @@ export const POST = withApiAuthRequired(async (req: NextRequest) => {
       throw new Error("Failed to delete invite");
     }
   } catch (error) {
-    logger.error("Error while inserting membership on join team:", {
-      error,
-      team_id: inviteData.team.id,
-    });
-
     return errorResponse({
       statusCode: 500,
       code: "server_error",
