@@ -5,7 +5,7 @@ describe("parseLocale", () => {
     expect(parseLocale("en-US")).toBe("en");
   });
 
-  it("should parse zh-TW", () => {
+  it("should parse zh-TW and zh_TW", () => {
     expect(parseLocale("zh-TW")).toBe("zh_TW");
     expect(parseLocale("zh_TW")).toBe("zh_TW");
   });
