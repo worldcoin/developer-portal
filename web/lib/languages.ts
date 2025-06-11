@@ -269,13 +269,21 @@ export const parseLocale = (locale: string) => {
   // Split on either - or _
   const major_locale = locale.split(/[-_]/)[0];
   const secondary_locale = locale.split(/[-_]/)?.[1];
+  const tertiary_locale = locale.split(/[-_]/)?.[2];
 
   const language = supportedLanguages.find(
     (lang) => lang.value === major_locale,
   );
 
   // Handle Chinese -- Default to Simplified Chinese
-  if (major_locale === "zh" && secondary_locale?.toUpperCase() === "TW") {
+  // Handle zh-Hant-TW and zh-TW as Traditional Chinese (TW)
+  const isZhHantTw =
+    major_locale === "zh" &&
+    secondary_locale?.toUpperCase() === "HANT" &&
+    tertiary_locale?.toUpperCase() === "TW";
+  const isZhTw =
+    major_locale === "zh" && secondary_locale?.toUpperCase() === "TW";
+  if (isZhHantTw || isZhTw) {
     return "zh_TW";
   } else if (major_locale === "zh") {
     return "zh_CN";

@@ -5,9 +5,10 @@ describe("parseLocale", () => {
     expect(parseLocale("en-US")).toBe("en");
   });
 
-  it("should parse zh-TW and zh_TW", () => {
+  it("should parse zh-TW and zh_TW and zh-Hant-TW", () => {
     expect(parseLocale("zh-TW")).toBe("zh_TW");
     expect(parseLocale("zh_TW")).toBe("zh_TW");
+    expect(parseLocale("zh-Hant-TW")).toBe("zh_TW");
   });
 
   it("should parse es-419 and es_419", () => {
