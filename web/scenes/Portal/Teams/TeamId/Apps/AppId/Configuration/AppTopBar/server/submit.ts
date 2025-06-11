@@ -16,7 +16,12 @@ export async function validateAndSubmitAppForReviewFormServerSide({
     const isUserAllowedToUpdateAppMetadata =
       await getIsUserAllowedToUpdateAppMetadata(input.app_metadata_id);
     if (!isUserAllowedToUpdateAppMetadata) {
-      throw new Error("Invalid permissions");
+      errorFormAction({
+        message:
+          "validateAndSubmitAppForReviewFormServerSide - invalid permissions",
+        additionalInfo: { input },
+        team_id: input.team_id,
+      });
     }
 
     const { isValid, parsedParams: parsedInput } = await validateRequestSchema({
@@ -25,9 +30,11 @@ export async function validateAndSubmitAppForReviewFormServerSide({
     });
 
     if (!isValid || !parsedInput) {
-      throw new Error(
-        "validateAndSubmitAppForReviewFormServerSide - invalid input",
-      );
+      errorFormAction({
+        message: "validateAndSubmitAppForReviewFormServerSide - invalid input",
+        additionalInfo: { input },
+        team_id: input.team_id,
+      });
     }
 
     const client = await getAPIServiceGraphqlClient();
@@ -40,11 +47,12 @@ export async function validateAndSubmitAppForReviewFormServerSide({
       changelog: parsedInput.changelog,
     });
   } catch (error) {
-    return errorFormAction({
+    errorFormAction({
       message:
         "validateAndSubmitAppForReviewFormServerSide - error submitting app for review",
-      error: error,
+      error: error as Error,
       additionalInfo: { input },
+      team_id: input.team_id,
     });
   }
 }

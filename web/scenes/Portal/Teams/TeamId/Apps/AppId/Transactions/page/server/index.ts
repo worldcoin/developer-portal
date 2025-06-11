@@ -1,6 +1,6 @@
 "use server";
 
-import { logger } from "@/lib/logger";
+import { errorFormAction } from "@/api/helpers/errors";
 import { PaymentMetadata } from "@/lib/types";
 import { createSignedFetcher } from "aws-sigv4-fetch";
 
@@ -10,7 +10,11 @@ export const getTransactionData = async (
 ): Promise<PaymentMetadata[]> => {
   try {
     if (!process.env.NEXT_SERVER_INTERNAL_PAYMENTS_ENDPOINT) {
-      throw new Error("Internal payments endpoint must be set.");
+      errorFormAction({
+        message: "getTransactionData - internal payments endpoint must be set",
+        additionalInfo: { transactionId },
+        app_id: appId,
+      });
     }
 
     const signedFetch = createSignedFetcher({
@@ -34,18 +38,22 @@ export const getTransactionData = async (
 
     const data = await response.json();
     if (!response.ok) {
-      throw new Error(
-        `Failed to fetch transaction data. Status: ${response.status}. Error: ${data}`,
-      );
+      errorFormAction({
+        message: "getTransactionData - failed to fetch transaction data",
+        additionalInfo: { transactionId, response, data },
+        app_id: appId,
+      });
     }
     return (data?.result?.transactions || []).sort(
       (a: PaymentMetadata, b: PaymentMetadata) =>
         new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
     );
   } catch (error) {
-    logger.warn("Error fetching transaction data", {
-      error: JSON.stringify(error),
+    errorFormAction({
+      message: "getTransactionData - failed to fetch transaction data",
+      error: error as Error,
+      additionalInfo: { transactionId },
+      app_id: appId,
     });
-    return [];
   }
 };
