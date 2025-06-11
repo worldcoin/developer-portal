@@ -18,10 +18,7 @@ export async function validateAndUpdateSetupServerSide(
     const isUserAllowedToUpdateAppMetadata =
       await getIsUserAllowedToUpdateAppMetadata(app_metadata_id);
     if (!isUserAllowedToUpdateAppMetadata) {
-      errorFormAction({
-        message: "validateAndUpdateSetupServerSide - invalid permissions",
-        additionalInfo: { initialValues, app_metadata_id },
-      });
+      throw new Error("Invalid permissions");
     }
 
     const { isValid, parsedParams: parsedInitialValues } =
@@ -31,10 +28,7 @@ export async function validateAndUpdateSetupServerSide(
       });
 
     if (!isValid || !parsedInitialValues) {
-      errorFormAction({
-        message: "validateAndUpdateSetupServerSide - invalid input",
-        additionalInfo: { initialValues, app_metadata_id },
-      });
+      throw new Error("Invalid input");
     }
 
     const associated_domains =
@@ -78,8 +72,8 @@ export async function validateAndUpdateSetupServerSide(
       max_notifications_per_day,
     });
   } catch (error) {
-    errorFormAction({
-      error: error as Error,
+    return errorFormAction({
+      error,
       message: "validateAndUpdateSetupServerSide - error updating setup",
       additionalInfo: { initialValues, app_metadata_id },
     });

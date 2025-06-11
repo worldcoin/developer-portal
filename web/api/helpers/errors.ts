@@ -24,16 +24,12 @@ export function errorResponse(params: {
   if (statusCode >= 500) {
     logger.error(detail, {
       req,
-      error: { statusCode, code, attribute },
-      app_id,
-      team_id,
+      error: { statusCode, code, attribute, app_id, team_id },
     });
   } else {
     logger.warn(detail, {
       req,
-      error: { statusCode, code, attribute },
-      app_id,
-      team_id,
+      error: { statusCode, code, attribute, app_id, team_id },
     });
   }
 
@@ -130,14 +126,12 @@ export function errorOIDCResponse(
   if (statusCode >= 500) {
     logger.error(`OIDC Error ${detail}`, {
       req,
-      error: { statusCode, code, attribute },
-      app_id,
+      error: { statusCode, code, attribute, app_id },
     });
   } else {
     logger.debug(`OIDC Error ${detail}`, {
       req,
-      error: { statusCode, code, attribute },
-      app_id,
+      error: { statusCode, code, attribute, app_id },
     });
   }
 
@@ -168,9 +162,7 @@ export function errorHasuraQuery({
 }) {
   logger.error(detail, {
     req,
-    error: { code },
-    app_id,
-    team_id,
+    error: { code, app_id, team_id },
   });
 
   return NextResponse.json(
@@ -184,27 +176,13 @@ export function errorHasuraQuery({
   );
 }
 
-export class ServerSideValidationError extends Error {
-  public additionalInfo: any;
-  public sourceError?: Error;
-  public app_id?: string;
-  public team_id?: string;
+export class ServerSideValidationError {
+  public message: string;
+  public additionalInfo: string;
 
-  constructor(
-    message: string,
-    additionalInfo: any,
-    sourceError?: Error,
-    app_id?: string,
-    team_id?: string,
-  ) {
-    super(message);
-    this.name = "ServerSideValidationError";
+  constructor(message: string, additionalInfo: any) {
+    this.message = message;
     this.additionalInfo = additionalInfo;
-    this.sourceError = sourceError;
-    this.app_id = app_id;
-    this.team_id = team_id;
-
-    Object.setPrototypeOf(this, ServerSideValidationError.prototype);
   }
 }
 
@@ -212,27 +190,16 @@ export function errorFormAction({
   error,
   message,
   additionalInfo,
-  app_id,
-  team_id,
 }: {
-  error?: Error;
+  error: unknown;
   message: string;
-  additionalInfo?: object;
-  app_id?: string;
-  team_id?: string;
-}): never {
-  logger.error(message, {
-    error,
-    additionalInfo,
-    app_id,
-    team_id,
-  });
-
-  throw new ServerSideValidationError(
-    message,
-    additionalInfo,
-    error,
-    app_id,
-    team_id,
-  );
+  additionalInfo: object;
+}) {
+  if (error instanceof Error) {
+    throw new ServerSideValidationError(message, {
+      sourceErrorMessage: error.message,
+      additionalInfo,
+    });
+  }
+  throw error;
 }

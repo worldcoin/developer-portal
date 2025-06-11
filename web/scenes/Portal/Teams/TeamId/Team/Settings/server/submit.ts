@@ -14,11 +14,7 @@ export async function validateAndUpdateTeamServerSide(
     const isUserAllowedToUpdateTeam =
       await getIsUserAllowedToUpdateTeam(teamId);
     if (!isUserAllowedToUpdateTeam) {
-      errorFormAction({
-        message: "validateAndUpdateTeamServerSide - invalid permissions",
-        additionalInfo: { teamName },
-        team_id: teamId,
-      });
+      throw new Error("Invalid permissions");
     }
 
     const { isValid, parsedParams: parsedTeamName } =
@@ -28,11 +24,7 @@ export async function validateAndUpdateTeamServerSide(
       });
 
     if (!isValid || !parsedTeamName) {
-      errorFormAction({
-        message: "validateAndUpdateTeamServerSide - invalid input",
-        additionalInfo: { teamName },
-        team_id: teamId,
-      });
+      throw new Error("Invalid input");
     }
 
     const client = await getAPIServiceGraphqlClient();
@@ -43,11 +35,10 @@ export async function validateAndUpdateTeamServerSide(
       },
     });
   } catch (error) {
-    errorFormAction({
-      error: error as Error,
+    return errorFormAction({
+      error,
       message: "validateAndUpdateTeamServerSide - error updating team",
-      additionalInfo: { teamName },
-      team_id: teamId,
+      additionalInfo: { teamName, teamId },
     });
   }
 }

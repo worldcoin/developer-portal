@@ -1,6 +1,6 @@
 "use server";
 
-import { errorFormAction } from "@/api/helpers/errors";
+import { logger } from "@/lib/logger";
 import {
   PaymentMetadata,
   TokenPrecision,
@@ -53,11 +53,9 @@ const fetchTransactionData = async (
   const data = await response.json();
 
   if (!response.ok) {
-    errorFormAction({
-      message: `Failed to fetch ${type} data`,
-      additionalInfo: { url, response, data },
-      app_id: appId,
-    });
+    throw new Error(
+      `Failed to fetch ${type} data. Status: ${response.status}. Error: ${data}`,
+    );
   }
 
   return data;
@@ -75,11 +73,7 @@ export const getAccumulativePaymentsData = async (
 }> => {
   try {
     if (!process.env.NEXT_SERVER_INTERNAL_PAYMENTS_ENDPOINT) {
-      errorFormAction({
-        message:
-          "getAccumulativePaymentsData - internal payments endpoint must be set",
-        app_id: appId,
-      });
+      throw new Error("Internal payments endpoint must be set.");
     }
 
     let fetchPaymentsUrl = `${process.env.NEXT_SERVER_INTERNAL_PAYMENTS_ENDPOINT}/miniapp?miniapp-id=${appId}`;
@@ -162,11 +156,14 @@ export const getAccumulativePaymentsData = async (
       accumulatedTokenAmountUSD: roundToTwoDecimals(accumulatedTokenAmountUSD),
     };
   } catch (error) {
-    errorFormAction({
-      message: "getAccumulativePaymentsData - error fetching transaction data",
-      error: error as Error,
-      app_id: appId,
+    logger.warn("Error fetching transaction data", {
+      error: JSON.stringify(error),
     });
+
+    return {
+      accumulativePayments: [],
+      accumulatedTokenAmountUSD: 0,
+    };
   }
 };
 
@@ -178,11 +175,7 @@ export const getAccumulativeTransactionsData = async (
 }> => {
   try {
     if (!process.env.NEXT_SERVER_INTERNAL_PAYMENTS_ENDPOINT) {
-      errorFormAction({
-        message:
-          "getAccumulativeTransactionsData - internal transactions endpoint must be set",
-        app_id: appId,
-      });
+      throw new Error("Internal transactions endpoint must be set.");
     }
 
     let fetchTransactionsUrl = `${process.env.NEXT_SERVER_INTERNAL_PAYMENTS_ENDPOINT}/miniapp-actions?miniapp-id=${appId}`;
@@ -217,11 +210,13 @@ export const getAccumulativeTransactionsData = async (
       accumulatedTransactionCount,
     };
   } catch (error) {
-    errorFormAction({
-      message:
-        "getAccumulativeTransactionsData - error fetching transaction data",
-      error: error as Error,
-      app_id: appId,
+    logger.warn("Error fetching transaction data", {
+      error: JSON.stringify(error),
     });
+
+    return {
+      accumulativeTransactions: [],
+      accumulatedTransactionCount: 0,
+    };
   }
 };

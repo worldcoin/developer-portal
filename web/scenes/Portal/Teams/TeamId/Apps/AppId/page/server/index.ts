@@ -1,7 +1,5 @@
 "use server";
 
-import { errorFormAction } from "@/api/helpers/errors";
-
 export type AppMetricsData = {
   total_impressions: number | null;
   total_impressions_last_7_days: number | null;
@@ -36,11 +34,9 @@ export const getAppMetricsData = async (
   );
 
   if (!metricsData.ok) {
-    errorFormAction({
-      message: "getAppMetricsData - failed to fetch metrics data",
-      additionalInfo: { status: metricsData.status },
-      app_id: appId,
-    });
+    throw new Error(
+      `Failed to fetch metrics data. Status: ${metricsData.status}.`,
+    );
   }
 
   const metricsDataJson = await metricsData.json();

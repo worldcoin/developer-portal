@@ -1,6 +1,5 @@
 "use server";
 
-import { errorFormAction } from "@/api/helpers/errors";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { normalizePublicKey } from "@/lib/crypto.server";
@@ -34,11 +33,7 @@ export async function updateActionServerSide(
   isNotProduction: boolean,
 ) {
   if (!(await getIsUserAllowedToUpdateAction(teamId))) {
-    errorFormAction({
-      message: "updateActionServerSide - invalid permissions",
-      additionalInfo: { initialValues },
-      team_id: teamId,
-    });
+    throw new Error("User is not authorized to insert action");
   }
 
   const updateActionSchema = createUpdateActionSchema({
@@ -52,11 +47,7 @@ export async function updateActionServerSide(
     });
 
   if (!isValid || !parsedInitialValues) {
-    errorFormAction({
-      message: "updateActionServerSide - invalid request",
-      additionalInfo: { initialValues },
-      team_id: teamId,
-    });
+    throw new Error("Invalid request");
   }
 
   // Do not allow webhook_uri, webhook_pem, and app_flow_on_complete to be set if the app is not a partner app

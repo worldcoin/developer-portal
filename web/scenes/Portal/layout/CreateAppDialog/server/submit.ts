@@ -13,11 +13,7 @@ export async function validateAndInsertAppServerSide(
   try {
     const isUserAllowedToInsertApp = await getIsUserAllowedToInsertApp(team_id);
     if (!isUserAllowedToInsertApp) {
-      errorFormAction({
-        message: "validateAndInsertAppServerSide - invalid permissions",
-        additionalInfo: { initialValues },
-        team_id,
-      });
+      throw new Error("Invalid permissions");
     }
 
     const { isValid, parsedParams: parsedInitialValues } =
@@ -27,11 +23,7 @@ export async function validateAndInsertAppServerSide(
       });
 
     if (!isValid || !parsedInitialValues) {
-      errorFormAction({
-        message: "validateAndInsertAppServerSide - invalid input",
-        additionalInfo: { initialValues },
-        team_id,
-      });
+      throw new Error("Invalid input");
     }
 
     const client = await getAPIServiceGraphqlClient();
@@ -46,11 +38,10 @@ export async function validateAndInsertAppServerSide(
       app_mode: parsedInitialValues.app_mode,
     });
   } catch (error) {
-    errorFormAction({
+    return errorFormAction({
       message: "validateAndInsertAppServerSide - error inserting app",
-      error: error as Error,
-      additionalInfo: { initialValues },
-      team_id,
+      error: JSON.stringify(error),
+      additionalInfo: { initialValues, team_id },
     });
   }
 }
