@@ -133,7 +133,7 @@ export const appWorldAppButtonTextSchema = yup
 
 export const appWorldAppDescriptionSchema = yup
   .string()
-  .max(35, "Annotation cannot exceed 35 characters")
+  .max(40, "Annotation cannot exceed 40 characters")
   .test("no-links", "Links not allowed here", noLinks)
   .matches(allowedCommonCharactersRegex, {
     message:

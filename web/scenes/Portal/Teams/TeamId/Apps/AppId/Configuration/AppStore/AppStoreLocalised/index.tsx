@@ -1110,11 +1110,11 @@ export const AppStoreForm = (props: {
                 disabled={isFormDisabled}
                 required
                 placeholder="Short app listing tagline"
-                maxLength={35}
+                maxLength={40}
                 addOnRight={
                   <RemainingCharacters
                     text={watch("world_app_description")}
-                    maxChars={35}
+                    maxChars={40}
                   />
                 }
               />
