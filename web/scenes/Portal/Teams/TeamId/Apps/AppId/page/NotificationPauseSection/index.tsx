@@ -9,7 +9,7 @@ export const NotificationStatusSection = ({ appId }: { appId: string }) => {
     },
   });
 
-  const isNotificationPaused = !!data?.app[0].id;
+  const isNotificationPaused = !!data?.app?.[0]?.id;
 
   return isNotificationPaused && <NotificationStatus />;
 };
