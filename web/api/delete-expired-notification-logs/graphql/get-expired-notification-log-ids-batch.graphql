@@ -1,8 +1,11 @@
-query GetExpiredNotificationLogIdsBatch($beforeDate: timestamptz!) {
+query GetExpiredNotificationLogIdsBatch(
+  $beforeDate: timestamptz!
+  $batchSize: Int!
+) {
   notification_log(
     where: { created_at: { _lte: $beforeDate } }
     order_by: { created_at: asc }
-    limit: 500
+    limit: $batchSize
   ) {
     id
   }

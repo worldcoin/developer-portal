@@ -6,6 +6,7 @@ import gql from "graphql-tag";
 type GraphQLClientRequestHeaders = RequestOptions["requestHeaders"];
 export type GetExpiredNotificationLogIdsBatchQueryVariables = Types.Exact<{
   beforeDate: Types.Scalars["timestamptz"]["input"];
+  batchSize: Types.Scalars["Int"]["input"];
 }>;
 
 export type GetExpiredNotificationLogIdsBatchQuery = {
@@ -14,11 +15,14 @@ export type GetExpiredNotificationLogIdsBatchQuery = {
 };
 
 export const GetExpiredNotificationLogIdsBatchDocument = gql`
-  query GetExpiredNotificationLogIdsBatch($beforeDate: timestamptz!) {
+  query GetExpiredNotificationLogIdsBatch(
+    $beforeDate: timestamptz!
+    $batchSize: Int!
+  ) {
     notification_log(
       where: { created_at: { _lte: $beforeDate } }
       order_by: { created_at: asc }
-      limit: 500
+      limit: $batchSize
     ) {
       id
     }
