@@ -6,7 +6,7 @@ import { getSdk as deleteExpiredNotificationLogsSdk } from "./graphql/delete-exp
 import { getSdk as getExpiredNotificationLogIdsBatchSdk } from "./graphql/get-expired-notification-log-ids-batch.generated";
 
 const BATCH_SIZE = 100;
-const DELAY_MS = 1000;
+const DELAY_MS = 10000;
 
 export const POST = async (req: NextRequest) => {
   const { isAuthenticated, errorResponse: authErrorResponse } =
