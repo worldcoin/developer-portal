@@ -4,8 +4,8 @@ import { verifyHashedSecret } from "@/api/helpers/utils";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { logger } from "@/lib/logger";
 import {
-  allowTitleAndEmojisRegex,
   notificationMessageSchema,
+  notificationTitleSchema,
 } from "@/lib/schema";
 import { createSignedFetcher } from "aws-sigv4-fetch";
 import { GraphQLClient } from "graphql-request";
@@ -29,16 +29,7 @@ const sendNotificationBodySchema = yup
       .max(1000)
       .required("wallet_addresses is required"),
     message: notificationMessageSchema,
-    title: yup
-      .string()
-      .strict()
-      .optional()
-      .max(30)
-      .test(
-        "valid-title-with-emojis",
-        "Title can only contain letters, numbers, punctuation, emojis, and spaces",
-        allowTitleAndEmojisRegex.test,
-      ),
+    title: notificationTitleSchema,
     mini_app_path: yup
       .string()
       .strict()
