@@ -56,7 +56,11 @@ export async function validateAndUpdateLocalisationServerSide(
     const isUserAllowedToUpdateLocalisation =
       await getIsUserAllowedToUpdateLocalisation(params.localisation_id);
     if (!isUserAllowedToUpdateLocalisation) {
-      throw new Error("Invalid permissions");
+      errorFormAction({
+        message:
+          "validateAndUpdateLocalisationServerSide - invalid permissions",
+        additionalInfo: { params },
+      });
     }
 
     const { isValid, parsedParams: parsedInitialValues } =
@@ -66,7 +70,10 @@ export async function validateAndUpdateLocalisationServerSide(
       });
 
     if (!isValid || !parsedInitialValues) {
-      throw new Error("Invalid input");
+      errorFormAction({
+        message: "validateAndUpdateLocalisationServerSide - invalid input",
+        additionalInfo: { params },
+      });
     }
 
     encodedInput = {
@@ -88,14 +95,14 @@ export async function validateAndUpdateLocalisationServerSide(
     const client = await getAPIServiceGraphqlClient();
     await getUpdateLocalisationSdk(client).UpdateLocalisation(encodedInput);
   } catch (error) {
-    console.warn(
-      "validateAndUpdateLocalisation - error updating localisation",
-      {
-        error: JSON.stringify(error),
-        arguments: { encodedInput: JSON.stringify(encodedInput, null, 2) },
+    errorFormAction({
+      error: error as Error,
+      message: "validateAndUpdateLocalisation - error updating localisation",
+      additionalInfo: {
+        encodedInput,
+        params,
       },
-    );
-    throw error;
+    });
   }
 }
 
@@ -120,7 +127,11 @@ export async function validateAndUpdateAppLocaleInfoServerSide(
     const isUserAllowedToUpdateAppMetadata =
       await getIsUserAllowedToUpdateAppMetadata(params.app_metadata_id);
     if (!isUserAllowedToUpdateAppMetadata) {
-      throw new Error("Invalid permissions");
+      errorFormAction({
+        message:
+          "validateAndUpdateAppLocaleInfoServerSide - invalid permissions",
+        additionalInfo: { params },
+      });
     }
 
     const { isValid, parsedParams: parsedInitialValues } =
@@ -130,7 +141,10 @@ export async function validateAndUpdateAppLocaleInfoServerSide(
       });
 
     if (!isValid || !parsedInitialValues) {
-      throw new Error("Invalid input");
+      errorFormAction({
+        message: "validateAndUpdateAppLocaleInfoServerSide - invalid input",
+        additionalInfo: { params },
+      });
     }
 
     encodedInput = {
@@ -151,8 +165,8 @@ export async function validateAndUpdateAppLocaleInfoServerSide(
     const client = await getAPIServiceGraphqlClient();
     await getUpdateAppInfoSdk(client).UpdateAppInfo(encodedInput);
   } catch (error) {
-    return errorFormAction({
-      error,
+    errorFormAction({
+      error: error as Error,
       message:
         "validateAndUpdateAppLocaleInfo - error updating app locale info",
       additionalInfo: {
@@ -184,7 +198,11 @@ export async function validateAndUpdateAppSupportInfoServerSide(
     const isUserAllowedToUpdateAppMetadata =
       await getIsUserAllowedToUpdateAppMetadata(params.app_metadata_id);
     if (!isUserAllowedToUpdateAppMetadata) {
-      throw new Error("Invalid permissions");
+      errorFormAction({
+        message:
+          "validateAndUpdateAppSupportInfoServerSide - invalid permissions",
+        additionalInfo: { params },
+      });
     }
 
     const { isValid, parsedParams: parsedInitialValues } =
@@ -194,7 +212,10 @@ export async function validateAndUpdateAppSupportInfoServerSide(
       });
 
     if (!isValid || !parsedInitialValues) {
-      throw new Error("Invalid input");
+      errorFormAction({
+        message: "validateAndUpdateAppSupportInfoServerSide - invalid input",
+        additionalInfo: { params },
+      });
     }
 
     input = {
@@ -214,8 +235,8 @@ export async function validateAndUpdateAppSupportInfoServerSide(
     const client = await getAPIServiceGraphqlClient();
     await getUpdateAppInfoSdk(client).UpdateAppInfo(input);
   } catch (error) {
-    return errorFormAction({
-      error,
+    errorFormAction({
+      error: error as Error,
       message:
         "validateAndUpdateAppSupportInfo - error updating app support info",
       additionalInfo: { input, initalValues },
@@ -229,13 +250,20 @@ export async function deleteLocalisationServerSide(
 ) {
   try {
     if (locale === "en") {
-      throw new Error("English localization cannot be removed");
+      errorFormAction({
+        message:
+          "deleteLocalisationServerSide - english localization cannot be removed",
+        additionalInfo: { appMetadataId, locale },
+      });
     }
 
     const isUserAllowedToDeleteLocalisation =
       await getIsUserAllowedToDeleteLocalisation(appMetadataId, locale);
     if (!isUserAllowedToDeleteLocalisation) {
-      throw new Error("Invalid permissions");
+      errorFormAction({
+        message: "deleteLocalisationServerSide - invalid permissions",
+        additionalInfo: { appMetadataId, locale },
+      });
     }
 
     const client = await getAPIServiceGraphqlClient();
@@ -244,8 +272,8 @@ export async function deleteLocalisationServerSide(
       locale,
     });
   } catch (error) {
-    return errorFormAction({
-      error,
+    errorFormAction({
+      error: error as Error,
       message: "deleteLocalisation - error deleting localisation",
       additionalInfo: { appMetadataId, locale },
     });
@@ -261,7 +289,11 @@ export async function addEmptyLocalisationServerSide(
     const isUserAllowedToInsertLocalisation =
       await getIsUserAllowedToInsertLocalisation(appId);
     if (!isUserAllowedToInsertLocalisation) {
-      throw new Error("Invalid permissions");
+      errorFormAction({
+        message: "addEmptyLocalisationServerSide - invalid permissions",
+        additionalInfo: { appMetadataId, locale },
+        app_id: appId,
+      });
     }
 
     // Check if localization already exists
@@ -286,10 +318,11 @@ export async function addEmptyLocalisationServerSide(
       },
     });
   } catch (error) {
-    return errorFormAction({
-      error,
+    errorFormAction({
+      error: error as Error,
       message: "addEmptyLocalisation - error adding empty localisation",
       additionalInfo: { appMetadataId, locale },
+      app_id: appId,
     });
   }
 }

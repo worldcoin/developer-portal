@@ -18,7 +18,11 @@ export async function validateAndSubmitServerSide(
     const isUserAllowedToUpdateAppMetadata =
       await getIsUserAllowedToUpdateAppMetadata(app_metadata_id);
     if (!isUserAllowedToUpdateAppMetadata) {
-      throw new Error("Invalid permissions");
+      errorFormAction({
+        message: "validateAndSubmitServerSide - invalid permissions",
+        additionalInfo: { app_metadata_id, input },
+        app_id: input?.app_id ?? undefined,
+      });
     }
 
     const { isValid, parsedParams: parsedInput } = await validateRequestSchema({
@@ -27,7 +31,11 @@ export async function validateAndSubmitServerSide(
     });
 
     if (!isValid || !parsedInput) {
-      throw new Error("Invalid input");
+      errorFormAction({
+        message: "validateAndSubmitServerSide - invalid input",
+        additionalInfo: { app_metadata_id, input },
+        app_id: input?.app_id ?? undefined,
+      });
     }
 
     const client = await getAPIServiceGraphqlClient();
@@ -38,8 +46,9 @@ export async function validateAndSubmitServerSide(
   } catch (error) {
     return errorFormAction({
       message: "Error updating app configuration basic form",
-      error,
+      error: error as Error,
       additionalInfo: { app_metadata_id, input },
+      app_id: input?.app_id ?? undefined,
     });
   }
 }
