@@ -2,6 +2,7 @@ import * as yup from "yup";
 import {
   allowCommonCharactersAndEmojisRegex,
   allowTitleAndEmojisRegex,
+  notificationTitleSchema,
 } from "./index";
 const emojiSuccessTestCases = [
   ["standard text", "This is standard text"],
@@ -58,5 +59,34 @@ describe("schema validators", () => {
     test.each(emojiFailureTestCases)("should reject %s", (_, input) => {
       expect(validator.isValidSync(input)).toBe(false);
     });
+  });
+});
+
+describe("notificationTitleSchema", () => {
+  // valid test cases
+  const validTestCases = [
+    ["standard text", "Hello World"],
+    ["text with emojis", "Hello 👋 World"],
+    ["with username placeholder", "${username} joined"],
+    ["username with emojis", "${username} 🎉 welcome"],
+    ["only username placeholder", "${username}"],
+    ["max length valid", "A".repeat(30)],
+    ["max length with username", "${username}" + "x".repeat(19)], // ${username} = 11 chars + 19 = 30
+  ];
+
+  // invalid test cases
+  const invalidTestCases = [
+    ["empty string", ""],
+    ["too long with username", "${username}" + "x".repeat(20)], // ${username} = 11 chars + 20 = 31
+    ["invalid characters", "${username} {invalid}"],
+    ["backslashes", "${username}\\invalid"],
+  ];
+
+  test.each(validTestCases)("should accept %s", (_, input) => {
+    expect(notificationTitleSchema.isValidSync(input)).toBe(true);
+  });
+
+  test.each(invalidTestCases)("should reject %s", (_, input) => {
+    expect(notificationTitleSchema.isValidSync(input)).toBe(false);
   });
 });

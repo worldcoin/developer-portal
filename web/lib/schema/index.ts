@@ -219,6 +219,27 @@ export const notificationMessageSchema = yup
     },
   );
 
+export const notificationTitleSchema = yup
+  .string()
+  .strict()
+  .optional()
+  .max(30)
+  .test(
+    "valid-title-with-emojis",
+    "Title can only contain letters, numbers, punctuation, emojis, and spaces",
+    (value: string | undefined) => {
+      if (!value) return false;
+
+      // remove special string and check if the remainder is valid
+      const valueWithoutSpecialString = value.replace(
+        NOTIFICATION_USERNAME_SPECIAL_STRING,
+        "",
+      );
+
+      return allowTitleAndEmojisRegex.test(valueWithoutSpecialString);
+    },
+  );
+
 export const teamNameSchema = yup
   .string()
   .required("Please enter a team name")
