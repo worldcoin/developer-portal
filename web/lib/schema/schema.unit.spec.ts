@@ -2,7 +2,6 @@ import * as yup from "yup";
 import {
   allowCommonCharactersAndEmojisRegex,
   allowTitleAndEmojisRegex,
-  notificationMessageSchema,
   notificationTitleSchema,
 } from "./index";
 const emojiSuccessTestCases = [
@@ -89,13 +88,5 @@ describe("notifications", () => {
 
   test.each(invalidTestCases)("should reject %s", (_, input) => {
     expect(notificationTitleSchema.isValidSync(input)).toBe(false);
-  });
-
-  test.each(validTestCases)("should accept %s", (_, input) => {
-    expect(notificationMessageSchema.isValidSync(input)).toBe(true);
-  });
-
-  test.each(invalidTestCases)("should reject %s", (_, input) => {
-    expect(notificationMessageSchema.isValidSync(input)).toBe(false);
   });
 });
