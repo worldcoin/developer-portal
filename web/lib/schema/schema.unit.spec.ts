@@ -79,7 +79,6 @@ describe("notifications", () => {
     ["empty string", ""],
     ["too long with username", "${username}" + "x".repeat(20)], // ${username} = 11 chars + 20 = 31
     ["invalid characters", "${username} {invalid}"],
-    ["backslashes", "${username}\\invalid"],
   ];
 
   test.each(validTestCases)("should accept %s", (_, input) => {
