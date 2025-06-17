@@ -4,7 +4,7 @@ import { errorFormAction } from "@/api/helpers/errors";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { getIsUserAllowedToUpdateAppMetadata } from "@/lib/permissions";
-import { extractIdsFromPath, getPathFromHeaders } from "@/lib/utils";
+import { extractIdsFromPath, getPathFromHeaders } from "@/lib/server-utils";
 import { schema } from "../form-schema";
 import {
   getSdk as getUpdateAppSdk,

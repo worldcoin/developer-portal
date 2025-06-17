@@ -9,7 +9,7 @@ import {
   getIsUserAllowedToUpdateAppMetadata,
   getIsUserAllowedToUpdateLocalisation,
 } from "@/lib/permissions";
-import { extractIdsFromPath, getPathFromHeaders } from "@/lib/utils";
+import { extractIdsFromPath, getPathFromHeaders } from "@/lib/server-utils";
 import { getSdk as getDeleteLocalisationSdk } from "../AppStoreLocalised/graphql/server/delete-localisation.generated";
 import { getSdk as getFetchLocalisationSdk } from "../AppStoreLocalised/graphql/server/fetch-localisation.generated";
 import { getSdk as getInsertLocalisationSdk } from "../AppStoreLocalised/graphql/server/insert-localisation.generated";
