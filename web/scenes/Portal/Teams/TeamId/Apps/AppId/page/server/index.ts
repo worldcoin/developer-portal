@@ -1,7 +1,7 @@
 "use server";
 
 import { errorFormAction } from "@/api/helpers/errors";
-import { extractIdsFromPath, getPathFromHeaders } from "@/lib/utils";
+import { extractIdsFromPath, getPathFromHeaders } from "@/lib/server-utils";
 
 export type AppMetricsData = {
   total_impressions: number | null;

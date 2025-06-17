@@ -4,11 +4,8 @@ import { errorFormAction } from "@/api/helpers/errors";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { normalizePublicKey } from "@/lib/crypto.server";
-import {
-  checkIfPartnerTeam,
-  extractIdsFromPath,
-  getPathFromHeaders,
-} from "@/lib/utils";
+import { extractIdsFromPath, getPathFromHeaders } from "@/lib/server-utils";
+import { checkIfPartnerTeam } from "@/lib/utils";
 import { getSession } from "@auth0/nextjs-auth0";
 import { getSdk as getActionUpdatePermissionsSdk } from "../graphql/server/get-action-update-permissions.generated";
 import { getSdk as getUpdateActionSdk } from "../graphql/server/update-action.generated";
