@@ -9,6 +9,7 @@ import {
   getIsUserAllowedToUpdateAppMetadata,
   getIsUserAllowedToUpdateLocalisation,
 } from "@/lib/permissions";
+import { extractIdsFromPath, getPathFromHeaders } from "@/lib/utils";
 import { getSdk as getDeleteLocalisationSdk } from "../AppStoreLocalised/graphql/server/delete-localisation.generated";
 import { getSdk as getFetchLocalisationSdk } from "../AppStoreLocalised/graphql/server/fetch-localisation.generated";
 import { getSdk as getInsertLocalisationSdk } from "../AppStoreLocalised/graphql/server/insert-localisation.generated";
@@ -32,10 +33,15 @@ import {
   UpdateLocalisationInitialSchema,
   updateLocalisationInitialSchema,
 } from "../form-schema";
-
 export async function validateAndUpdateLocalisationServerSide(
   params: UpdateLocalisationInitialSchema,
 ) {
+  const path = getPathFromHeaders() || "";
+  const { Apps: appId, Teams: teamId } = extractIdsFromPath(path, [
+    "Apps",
+    "Teams",
+  ]);
+
   const initalValues = {
     localisation_id: params.localisation_id,
     name: params.name,
@@ -59,7 +65,8 @@ export async function validateAndUpdateLocalisationServerSide(
       errorFormAction({
         message:
           "validateAndUpdateLocalisationServerSide - invalid permissions",
-        additionalInfo: { params },
+        team_id: teamId,
+        app_id: appId,
       });
     }
 
@@ -72,7 +79,9 @@ export async function validateAndUpdateLocalisationServerSide(
     if (!isValid || !parsedInitialValues) {
       errorFormAction({
         message: "validateAndUpdateLocalisationServerSide - invalid input",
-        additionalInfo: { params },
+        additionalInfo: { initalValues },
+        team_id: teamId,
+        app_id: appId,
       });
     }
 
@@ -100,8 +109,10 @@ export async function validateAndUpdateLocalisationServerSide(
       message: "validateAndUpdateLocalisation - error updating localisation",
       additionalInfo: {
         encodedInput,
-        params,
+        initalValues,
       },
+      team_id: teamId,
+      app_id: appId,
     });
   }
 }
@@ -109,6 +120,12 @@ export async function validateAndUpdateLocalisationServerSide(
 export async function validateAndUpdateAppLocaleInfoServerSide(
   params: UpdateAppLocaleInfoInitialSchema,
 ) {
+  const path = getPathFromHeaders() || "";
+  const { Apps: appId, Teams: teamId } = extractIdsFromPath(path, [
+    "Apps",
+    "Teams",
+  ]);
+
   const initalValues = {
     name: params.name,
     short_name: params.short_name,
@@ -130,7 +147,8 @@ export async function validateAndUpdateAppLocaleInfoServerSide(
       errorFormAction({
         message:
           "validateAndUpdateAppLocaleInfoServerSide - invalid permissions",
-        additionalInfo: { params },
+        team_id: teamId,
+        app_id: appId,
       });
     }
 
@@ -143,7 +161,9 @@ export async function validateAndUpdateAppLocaleInfoServerSide(
     if (!isValid || !parsedInitialValues) {
       errorFormAction({
         message: "validateAndUpdateAppLocaleInfoServerSide - invalid input",
-        additionalInfo: { params },
+        additionalInfo: { initalValues },
+        team_id: teamId,
+        app_id: appId,
       });
     }
 
@@ -173,6 +193,8 @@ export async function validateAndUpdateAppLocaleInfoServerSide(
         encodedInput,
         initalValues,
       },
+      team_id: teamId,
+      app_id: appId,
     });
   }
 }
@@ -180,6 +202,12 @@ export async function validateAndUpdateAppLocaleInfoServerSide(
 export async function validateAndUpdateAppSupportInfoServerSide(
   params: UpdateAppSupportInfoInitialSchema,
 ) {
+  const path = getPathFromHeaders() || "";
+  const { Apps: appId, Teams: teamId } = extractIdsFromPath(path, [
+    "Apps",
+    "Teams",
+  ]);
+
   const initalValues = {
     app_metadata_id: params.app_metadata_id,
     is_support_email: params.is_support_email,
@@ -201,7 +229,8 @@ export async function validateAndUpdateAppSupportInfoServerSide(
       errorFormAction({
         message:
           "validateAndUpdateAppSupportInfoServerSide - invalid permissions",
-        additionalInfo: { params },
+        team_id: teamId,
+        app_id: appId,
       });
     }
 
@@ -214,7 +243,9 @@ export async function validateAndUpdateAppSupportInfoServerSide(
     if (!isValid || !parsedInitialValues) {
       errorFormAction({
         message: "validateAndUpdateAppSupportInfoServerSide - invalid input",
-        additionalInfo: { params },
+        additionalInfo: { initalValues },
+        team_id: teamId,
+        app_id: appId,
       });
     }
 
@@ -240,6 +271,8 @@ export async function validateAndUpdateAppSupportInfoServerSide(
       message:
         "validateAndUpdateAppSupportInfo - error updating app support info",
       additionalInfo: { input, initalValues },
+      team_id: teamId,
+      app_id: appId,
     });
   }
 }
@@ -248,12 +281,20 @@ export async function deleteLocalisationServerSide(
   appMetadataId: string,
   locale: string,
 ) {
+  const path = getPathFromHeaders() || "";
+  const { Apps: appId, Teams: teamId } = extractIdsFromPath(path, [
+    "Apps",
+    "Teams",
+  ]);
+
   try {
     if (locale === "en") {
       errorFormAction({
         message:
           "deleteLocalisationServerSide - english localization cannot be removed",
         additionalInfo: { appMetadataId, locale },
+        team_id: teamId,
+        app_id: appId,
       });
     }
 
@@ -262,7 +303,8 @@ export async function deleteLocalisationServerSide(
     if (!isUserAllowedToDeleteLocalisation) {
       errorFormAction({
         message: "deleteLocalisationServerSide - invalid permissions",
-        additionalInfo: { appMetadataId, locale },
+        team_id: teamId,
+        app_id: appId,
       });
     }
 
@@ -276,6 +318,8 @@ export async function deleteLocalisationServerSide(
       error: error as Error,
       message: "deleteLocalisation - error deleting localisation",
       additionalInfo: { appMetadataId, locale },
+      team_id: teamId,
+      app_id: appId,
     });
   }
 }
@@ -285,13 +329,16 @@ export async function addEmptyLocalisationServerSide(
   locale: string,
   appId: string,
 ) {
+  const path = getPathFromHeaders() || "";
+  const { Teams: teamId } = extractIdsFromPath(path, ["Teams"]);
+
   try {
     const isUserAllowedToInsertLocalisation =
       await getIsUserAllowedToInsertLocalisation(appId);
     if (!isUserAllowedToInsertLocalisation) {
       errorFormAction({
         message: "addEmptyLocalisationServerSide - invalid permissions",
-        additionalInfo: { appMetadataId, locale },
+        team_id: teamId,
         app_id: appId,
       });
     }
@@ -322,6 +369,7 @@ export async function addEmptyLocalisationServerSide(
       error: error as Error,
       message: "addEmptyLocalisation - error adding empty localisation",
       additionalInfo: { appMetadataId, locale },
+      team_id: teamId,
       app_id: appId,
     });
   }

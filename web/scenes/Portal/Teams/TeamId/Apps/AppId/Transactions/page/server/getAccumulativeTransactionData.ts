@@ -7,6 +7,7 @@ import {
   TransactionMetadata,
   TransactionStatus,
 } from "@/lib/types";
+import { extractIdsFromPath, getPathFromHeaders } from "@/lib/utils";
 import { createSignedFetcher } from "aws-sigv4-fetch";
 
 export type GetAccumulativePaymentsDataReturnType = Awaited<
@@ -38,6 +39,9 @@ const fetchTransactionData = async (
   appId: string,
   url: string,
 ) => {
+  const path = getPathFromHeaders() || "";
+  const { Teams: teamId } = extractIdsFromPath(path, ["Teams"]);
+
   const signedFetch = createSignedFetcher({
     service: "execute-api",
     region: process.env.TRANSACTION_BACKEND_REGION,
@@ -56,6 +60,7 @@ const fetchTransactionData = async (
     errorFormAction({
       message: `Failed to fetch ${type} data`,
       additionalInfo: { url, response, data },
+      team_id: teamId,
       app_id: appId,
     });
   }
@@ -73,12 +78,16 @@ export const getAccumulativePaymentsData = async (
   accumulativePayments: PaymentMetadata[];
   accumulatedTokenAmountUSD: number;
 }> => {
+  const path = getPathFromHeaders() || "";
+  const { Teams: teamId } = extractIdsFromPath(path, ["Teams"]);
+
   try {
     if (!process.env.NEXT_SERVER_INTERNAL_PAYMENTS_ENDPOINT) {
       errorFormAction({
         message:
           "getAccumulativePaymentsData - internal payments endpoint must be set",
         app_id: appId,
+        team_id: teamId,
       });
     }
 
@@ -166,6 +175,7 @@ export const getAccumulativePaymentsData = async (
       message: "getAccumulativePaymentsData - error fetching transaction data",
       error: error as Error,
       app_id: appId,
+      team_id: teamId,
     });
   }
 };
@@ -176,12 +186,16 @@ export const getAccumulativeTransactionsData = async (
   accumulativeTransactions: TransactionMetadata[];
   accumulatedTransactionCount: number;
 }> => {
+  const path = getPathFromHeaders() || "";
+  const { Teams: teamId } = extractIdsFromPath(path, ["Teams"]);
+
   try {
     if (!process.env.NEXT_SERVER_INTERNAL_PAYMENTS_ENDPOINT) {
       errorFormAction({
         message:
           "getAccumulativeTransactionsData - internal transactions endpoint must be set",
         app_id: appId,
+        team_id: teamId,
       });
     }
 
@@ -222,6 +236,7 @@ export const getAccumulativeTransactionsData = async (
         "getAccumulativeTransactionsData - error fetching transaction data",
       error: error as Error,
       app_id: appId,
+      team_id: teamId,
     });
   }
 };

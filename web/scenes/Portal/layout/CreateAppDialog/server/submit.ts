@@ -15,7 +15,6 @@ export async function validateAndInsertAppServerSide(
     if (!isUserAllowedToInsertApp) {
       errorFormAction({
         message: "validateAndInsertAppServerSide - invalid permissions",
-        additionalInfo: { initialValues },
         team_id,
       });
     }

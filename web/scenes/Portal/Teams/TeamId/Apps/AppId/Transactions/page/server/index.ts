@@ -2,18 +2,22 @@
 
 import { errorFormAction } from "@/api/helpers/errors";
 import { PaymentMetadata } from "@/lib/types";
+import { extractIdsFromPath, getPathFromHeaders } from "@/lib/utils";
 import { createSignedFetcher } from "aws-sigv4-fetch";
-
 export const getTransactionData = async (
   appId: string,
   transactionId?: string,
 ): Promise<PaymentMetadata[]> => {
+  const path = getPathFromHeaders() || "";
+  const { Teams: teamId } = extractIdsFromPath(path, ["Teams"]);
+
   try {
     if (!process.env.NEXT_SERVER_INTERNAL_PAYMENTS_ENDPOINT) {
       errorFormAction({
         message: "getTransactionData - internal payments endpoint must be set",
         additionalInfo: { transactionId },
         app_id: appId,
+        team_id: teamId,
       });
     }
 
@@ -42,6 +46,7 @@ export const getTransactionData = async (
         message: "getTransactionData - failed to fetch transaction data",
         additionalInfo: { transactionId, response, data },
         app_id: appId,
+        team_id: teamId,
       });
     }
     return (data?.result?.transactions || []).sort(
@@ -54,6 +59,7 @@ export const getTransactionData = async (
       error: error as Error,
       additionalInfo: { transactionId },
       app_id: appId,
+      team_id: teamId,
     });
   }
 };

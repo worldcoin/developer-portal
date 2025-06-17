@@ -37,7 +37,6 @@ export async function createActionServerSide(
   if (!(await getIsUserAllowedToInsertAction(teamId))) {
     errorFormAction({
       message: "createActionServerSide - invalid permissions",
-      additionalInfo: { initialValues },
       team_id: teamId,
       app_id: appId,
     });

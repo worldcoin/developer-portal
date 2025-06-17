@@ -1,6 +1,7 @@
 "use server";
 
 import { errorFormAction } from "@/api/helpers/errors";
+import { extractIdsFromPath, getPathFromHeaders } from "@/lib/utils";
 
 export type AppMetricsData = {
   total_impressions: number | null;
@@ -25,6 +26,9 @@ type NotificationData = {
 export const getAppMetricsData = async (
   appId: string,
 ): Promise<AppMetricsData> => {
+  const path = getPathFromHeaders() || "";
+  const { Teams: teamId } = extractIdsFromPath(path, ["Teams"]);
+
   const metricsData = await fetch(
     `${process.env.NEXT_PUBLIC_METRICS_SERVICE_ENDPOINT}/stats/data.json`,
     {
@@ -39,6 +43,7 @@ export const getAppMetricsData = async (
     errorFormAction({
       message: "getAppMetricsData - failed to fetch metrics data",
       additionalInfo: { status: metricsData.status },
+      team_id: teamId,
       app_id: appId,
     });
   }

@@ -4,7 +4,11 @@ import { errorFormAction } from "@/api/helpers/errors";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { normalizePublicKey } from "@/lib/crypto.server";
-import { checkIfPartnerTeam } from "@/lib/utils";
+import {
+  checkIfPartnerTeam,
+  extractIdsFromPath,
+  getPathFromHeaders,
+} from "@/lib/utils";
 import { getSession } from "@auth0/nextjs-auth0";
 import { getSdk as getActionUpdatePermissionsSdk } from "../graphql/server/get-action-update-permissions.generated";
 import { getSdk as getUpdateActionSdk } from "../graphql/server/update-action.generated";
@@ -33,11 +37,14 @@ export async function updateActionServerSide(
   actionId: string,
   isNotProduction: boolean,
 ) {
+  const path = getPathFromHeaders() || "";
+  const { Apps: appId } = extractIdsFromPath(path, ["Apps"]);
+
   if (!(await getIsUserAllowedToUpdateAction(teamId))) {
     errorFormAction({
       message: "updateActionServerSide - invalid permissions",
-      additionalInfo: { initialValues },
       team_id: teamId,
+      app_id: appId,
     });
   }
 
@@ -56,6 +63,7 @@ export async function updateActionServerSide(
       message: "updateActionServerSide - invalid request",
       additionalInfo: { initialValues },
       team_id: teamId,
+      app_id: appId,
     });
   }
 

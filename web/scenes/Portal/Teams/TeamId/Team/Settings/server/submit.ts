@@ -16,7 +16,6 @@ export async function validateAndUpdateTeamServerSide(
     if (!isUserAllowedToUpdateTeam) {
       errorFormAction({
         message: "validateAndUpdateTeamServerSide - invalid permissions",
-        additionalInfo: { teamName },
         team_id: teamId,
       });
     }

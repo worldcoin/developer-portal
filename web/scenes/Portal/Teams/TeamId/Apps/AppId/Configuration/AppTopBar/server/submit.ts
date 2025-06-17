@@ -4,6 +4,7 @@ import { errorFormAction } from "@/api/helpers/errors";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { getIsUserAllowedToUpdateAppMetadata } from "@/lib/permissions";
+import { extractIdsFromPath, getPathFromHeaders } from "@/lib/utils";
 import { submitAppSchema as schema, SubmitAppSchema } from "../form-schema";
 import { getSdk as getSubmitAppSdk } from "../SubmitAppModal/graphql/server/submit-app.generated";
 
@@ -12,6 +13,9 @@ export async function validateAndSubmitAppForReviewFormServerSide({
 }: {
   input: SubmitAppSchema;
 }) {
+  const path = getPathFromHeaders() || "";
+  const { Apps: appId } = extractIdsFromPath(path, ["Apps"]);
+
   try {
     const isUserAllowedToUpdateAppMetadata =
       await getIsUserAllowedToUpdateAppMetadata(input.app_metadata_id);
@@ -19,8 +23,8 @@ export async function validateAndSubmitAppForReviewFormServerSide({
       errorFormAction({
         message:
           "validateAndSubmitAppForReviewFormServerSide - invalid permissions",
-        additionalInfo: { input },
         team_id: input.team_id,
+        app_id: appId,
       });
     }
 
@@ -34,6 +38,7 @@ export async function validateAndSubmitAppForReviewFormServerSide({
         message: "validateAndSubmitAppForReviewFormServerSide - invalid input",
         additionalInfo: { input },
         team_id: input.team_id,
+        app_id: appId,
       });
     }
 
@@ -53,6 +58,7 @@ export async function validateAndSubmitAppForReviewFormServerSide({
       error: error as Error,
       additionalInfo: { input },
       team_id: input.team_id,
+      app_id: appId,
     });
   }
 }
