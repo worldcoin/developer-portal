@@ -227,7 +227,7 @@ const isEligibleForNotificationBadge = (
   avg_notification_open_rate: number | null,
 ) => {
   if (!avg_notification_open_rate) return false;
-  return avg_notification_open_rate > 0.15;
+  return avg_notification_open_rate > 0.1;
 };
 
 // ==================================================================================================
@@ -477,7 +477,7 @@ export const GraphsSection = () => {
           isEligibleForNotificationBadge(averageOpenRate) ? (
             <span>
               Your average open rate ({(averageOpenRate! * 100).toFixed(1)}%) is
-              above the 15% threshold. Your app is eligible for a notification
+              above the 10% threshold. Your app is eligible for a notification
               badge.
             </span>
           ) : null

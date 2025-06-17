@@ -274,6 +274,7 @@ select_permissions:
         - max_notifications_per_day
         - meta_tag_image_url
         - name
+        - notification_permission_status
         - permit2_tokens
         - review_message
         - short_name
