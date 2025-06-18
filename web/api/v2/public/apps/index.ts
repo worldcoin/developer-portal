@@ -28,7 +28,7 @@ import {
 
 const queryParamsSchema = yup.object({
   page: yup.number().integer().min(1).default(1).notRequired(),
-  limit: yup.number().integer().min(1).max(500).notRequired().default(250),
+  limit: yup.number().integer().min(1).max(1000).notRequired().default(500),
   app_mode: yup
     .string()
     .oneOf(["mini-app", "external", "native"])
