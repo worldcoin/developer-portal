@@ -3,22 +3,32 @@ import { errorFormAction } from "@/api/helpers/errors";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { getIsUserAllowedToUpdateAppMetadata } from "@/lib/permissions";
+import { extractIdsFromPath, getPathFromHeaders } from "@/lib/server-utils";
 import { formatMultipleStringInput } from "@/lib/utils";
 import {
   updateSetupInitialSchema,
   UpdateSetupInitialSchema,
 } from "../form-schema";
 import { getSdk as getUpdateSetupSdk } from "../SetupForm/graphql/server/update-setup.generated";
-
 export async function validateAndUpdateSetupServerSide(
   initialValues: UpdateSetupInitialSchema,
   app_metadata_id: string,
 ) {
+  const path = getPathFromHeaders() || "";
+  const { Apps: appId, Teams: teamId } = extractIdsFromPath(path, [
+    "Apps",
+    "Teams",
+  ]);
+
   try {
     const isUserAllowedToUpdateAppMetadata =
       await getIsUserAllowedToUpdateAppMetadata(app_metadata_id);
     if (!isUserAllowedToUpdateAppMetadata) {
-      throw new Error("Invalid permissions");
+      errorFormAction({
+        message: "validateAndUpdateSetupServerSide - invalid permissions",
+        team_id: teamId,
+        app_id: appId,
+      });
     }
 
     const { isValid, parsedParams: parsedInitialValues } =
@@ -28,7 +38,12 @@ export async function validateAndUpdateSetupServerSide(
       });
 
     if (!isValid || !parsedInitialValues) {
-      throw new Error("Invalid input");
+      errorFormAction({
+        message: "validateAndUpdateSetupServerSide - invalid input",
+        team_id: teamId,
+        app_id: appId,
+        additionalInfo: { initialValues },
+      });
     }
 
     const associated_domains =
@@ -72,9 +87,11 @@ export async function validateAndUpdateSetupServerSide(
       max_notifications_per_day,
     });
   } catch (error) {
-    return errorFormAction({
-      error,
+    errorFormAction({
+      error: error as Error,
       message: "validateAndUpdateSetupServerSide - error updating setup",
+      team_id: teamId,
+      app_id: appId,
       additionalInfo: { initialValues, app_metadata_id },
     });
   }
