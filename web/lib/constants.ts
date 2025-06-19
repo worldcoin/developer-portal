@@ -56,9 +56,12 @@ export const NATIVE_MAPPED_APP_ID = {
   invites: "invites",
   network: "network",
   contacts: "contacts",
-};
+} as const;
 
-export const NativeAppToAppIdMapping: Record<string, Record<string, string>> = {
+export const NativeAppToAppIdMapping: Record<
+  "dev" | "staging" | "production",
+  Record<string, string>
+> = {
   dev: {
     TEST_APP: "app_test_123",
   },
@@ -77,7 +80,10 @@ export const NativeAppToAppIdMapping: Record<string, Record<string, string>> = {
   },
 };
 
-export const NativeApps: Record<string, NativeAppsMap> = {
+export const NativeApps: Record<
+  "dev" | "staging" | "production",
+  NativeAppsMap
+> = {
   dev: {
     app_test_123: {
       app_id: "TEST_APP",
