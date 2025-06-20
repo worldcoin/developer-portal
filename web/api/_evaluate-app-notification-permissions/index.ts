@@ -23,15 +23,18 @@ import { getSdk as getUpdateNotificationPermissionStatusSdk } from "./graphql/up
 
 type NotificationState = "normal" | "paused" | "enabled_after_pause";
 
+export type InternalNotificationPermissionShouldUpdateResult = {
+  should_update_state: true;
+  new_state: NotificationState;
+  new_state_changed_date: Date;
+};
+export type InternalNotificationPermissionShouldNotUpdateResult = {
+  should_update_state: false;
+};
+
 type InternalNotificationPermissionResult =
-  | {
-      should_update_state: false;
-    }
-  | {
-      should_update_state: true;
-      new_state: NotificationState;
-      new_state_changed_date: Date;
-    };
+  | InternalNotificationPermissionShouldUpdateResult
+  | InternalNotificationPermissionShouldNotUpdateResult;
 
 const NOTIFICATION_OPEN_RATE_THRESHOLD = 0.1;
 const ONE_WEEK_IN_DAYS = 7;
@@ -65,7 +68,7 @@ const skipStateUpdate = {
   should_update_state: false,
 } as const;
 
-const evaluateNotificationPermissions = (
+export const evaluateNotificationPermissions = (
   appMetadata: GetNotificationEvaluationAppsQuery["app_metadata"][number],
   appStats: AppStatsItem,
 ): InternalNotificationPermissionResult => {
@@ -86,9 +89,11 @@ const evaluateNotificationPermissions = (
     ? differenceInMinutes(now, stateChangedDate)
     : Infinity;
 
-  // check if at least one week has passed since state change (with 5 minute leeway)
+  // check if we're within the 5-minute window around one week, or if no date is set (null = infinite time)
   const hasOneWeekPassed =
-    minutesSinceStateChange >= ONE_WEEK_IN_MINUTES - TIMING_LEEWAY_MINUTES;
+    stateChangedDate === null ||
+    Math.abs(minutesSinceStateChange - ONE_WEEK_IN_MINUTES) <=
+      TIMING_LEEWAY_MINUTES;
 
   // calculate weekly open rate
   const weeklyOpenRate = calculateLast7DaysOpenRate(appStats, now);
@@ -143,7 +148,7 @@ const evaluateNotificationPermissions = (
         };
       }
 
-      // open rate is good, return to normal operation
+      // if no data or open rate >= 10%, return to normal operation
       return {
         should_update_state: true,
         new_state: "normal",

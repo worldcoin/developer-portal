@@ -111,6 +111,7 @@ const validAppMetadata = {
       app_id: "app_staging_9cdd0a714aec9ed17dca660bc9ffe72a",
       is_reviewer_app_store_approved: true,
       verification_status: "verified",
+      notification_permission_status: "normal",
       app: {
         team: {
           id: "team_dd2ecd36c6c45f645e8e5d9a31abdee1",
@@ -396,6 +397,41 @@ describe("/api/v2/minikit/send-notification [error cases]", () => {
     const res2 = await POST(mockReq2);
     expect(res2.status).toBe(400);
     expect((await res2.json()).detail).toBe("Unverified app limit reached");
+  });
+
+  it("returns 400 if app notifications are paused", async () => {
+    GetAppMetadata.mockResolvedValue({
+      app_metadata: [
+        {
+          ...validAppMetadata.app_metadata[0],
+          notification_permission_status: "paused",
+          notification_permission_status_changed_date: "2024-01-15T10:30:00Z",
+        },
+      ],
+    });
+
+    const mockReq = new NextRequest(
+      "http://localhost:3000/api/v2/minikit/send-notification",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${validApiKey}`,
+        },
+        body: JSON.stringify({
+          app_id: "app_staging_9cdd0a714aec9ed17dca660bc9ffe72a",
+          wallet_addresses: ["0x0000000000000000000000000000000000000000"],
+          title: "Test Notification",
+          message: "This is a test notification",
+          mini_app_path:
+            "worldapp://mini-app?app_id=app_staging_9cdd0a714aec9ed17dca660bc9ffe72a",
+        }),
+      },
+    );
+
+    const res = await POST(mockReq);
+    expect(res.status).toBe(400);
+    expect((await res.json()).code).toBe("paused");
   });
 });
 // #endregion
