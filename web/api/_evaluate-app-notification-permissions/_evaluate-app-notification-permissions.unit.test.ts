@@ -324,7 +324,7 @@ describe("_evaluate-app-notification-permissions", () => {
           notification_permission_status_changed_date: subMinutes(
             new Date(),
             ONE_WEEK_IN_MINUTES + TIMING_LEEWAY_MINUTES + 2,
-          ).toISOString(), // 7 minutes past one week (outside leeway - should not update)
+          ).toISOString(), // 7 minutes past one week
           is_allowed_unlimited_notifications: false,
         };
 
@@ -334,7 +334,7 @@ describe("_evaluate-app-notification-permissions", () => {
           appMetadataAfterLeeway,
           appStatsAfterLeeway,
         );
-        expect(resultAfterLeeway.should_update_state).toBe(false);
+        expect(resultAfterLeeway.should_update_state).toBe(true);
 
         // within leeway window check
         const appMetadataWithinLeeway = {
@@ -342,8 +342,8 @@ describe("_evaluate-app-notification-permissions", () => {
           notification_permission_status: "paused",
           notification_permission_status_changed_date: subMinutes(
             new Date(),
-            ONE_WEEK_IN_MINUTES - TIMING_LEEWAY_MINUTES + 1,
-          ).toISOString(), // 4 minutes before one week (within leeway - should update)
+            ONE_WEEK_IN_MINUTES - TIMING_LEEWAY_MINUTES - 2,
+          ).toISOString(), // 8 minutes before one week (outside leeway - should not update)
           is_allowed_unlimited_notifications: false,
         };
 
@@ -353,7 +353,7 @@ describe("_evaluate-app-notification-permissions", () => {
           appMetadataWithinLeeway,
           appStatsWithinLeeway,
         );
-        expect(resultWithinLeeway.should_update_state).toBe(true);
+        expect(resultWithinLeeway.should_update_state).toBe(false);
       });
     });
   });

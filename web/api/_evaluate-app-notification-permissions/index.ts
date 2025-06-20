@@ -92,8 +92,7 @@ export const evaluateNotificationPermissions = (
   // check if we're within the 5-minute window around one week, or if no date is set (null = infinite time)
   const hasOneWeekPassed =
     stateChangedDate === null ||
-    Math.abs(minutesSinceStateChange - ONE_WEEK_IN_MINUTES) <=
-      TIMING_LEEWAY_MINUTES;
+    minutesSinceStateChange >= ONE_WEEK_IN_MINUTES - TIMING_LEEWAY_MINUTES;
 
   // calculate weekly open rate
   const weeklyOpenRate = calculateLast7DaysOpenRate(appStats, now);
