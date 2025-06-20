@@ -42,7 +42,7 @@
   comment: Schedules all expired JWKS for deletion by KMS
 - name: Evaluate notification permissions
   webhook: "{{NEXT_API_URL}}/_evaluate-app-notification-permissions"
-  schedule: 10 12 * * 5
+  schedule: 10 14 * * 5
   include_in_metadata: true
   payload: {}
   headers:
