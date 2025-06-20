@@ -20,6 +20,7 @@ import { getSdk as getWebHighlightsSdk } from "./graphql/get-app-web-highlights.
 
 import { formatAppMetadata, rankApps } from "@/api/helpers/app-store";
 import { compareVersions } from "@/lib/compare-versions";
+import { logger } from "@/lib/logger";
 import { CONTACTS_APP_AVAILABLE_FROM } from "../constants";
 import {
   GetHighlightsQuery,
@@ -129,6 +130,14 @@ export const GET = async (request: NextRequest) => {
       detail: "Something went wrong. Please try again.",
       attribute: null,
       req: request,
+    });
+  }
+
+  // notify if length is close to limit
+  if (limitValue >= 500 && page === 1 && topApps.length > limitValue * 0.8) {
+    logger.warn("App store response length is close to limit", {
+      limit: limitValue,
+      topAppsLength: topApps.length,
     });
   }
 
