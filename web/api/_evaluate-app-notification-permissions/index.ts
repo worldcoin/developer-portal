@@ -23,15 +23,18 @@ import { getSdk as getUpdateNotificationPermissionStatusSdk } from "./graphql/up
 
 type NotificationState = "normal" | "paused" | "enabled_after_pause";
 
+export type InternalNotificationPermissionShouldUpdateResult = {
+  should_update_state: true;
+  new_state: NotificationState;
+  new_state_changed_date: Date;
+};
+export type InternalNotificationPermissionShouldNotUpdateResult = {
+  should_update_state: false;
+};
+
 type InternalNotificationPermissionResult =
-  | {
-      should_update_state: false;
-    }
-  | {
-      should_update_state: true;
-      new_state: NotificationState;
-      new_state_changed_date: Date;
-    };
+  | InternalNotificationPermissionShouldUpdateResult
+  | InternalNotificationPermissionShouldNotUpdateResult;
 
 const NOTIFICATION_OPEN_RATE_THRESHOLD = 0.1;
 const ONE_WEEK_IN_DAYS = 7;
