@@ -32,22 +32,6 @@ export const verifyApiKey = async (
 
   const api_key = req.headers.get("authorization")?.split(" ")[1];
 
-  if (
-    !process.env.NEXT_PUBLIC_APP_ENV ||
-    !["dev", "staging", "production"].includes(process.env.NEXT_PUBLIC_APP_ENV)
-  ) {
-    return {
-      success: false,
-      errorResponse: errorResponse({
-        statusCode: 400,
-        code: "invalid_request",
-        detail: "Invalid Environment Configuration",
-        attribute: "app_env",
-        req,
-      }),
-    };
-  }
-
   if (!api_key) {
     return {
       success: false,

@@ -30,7 +30,7 @@ const getUrl = (wallet_address?: string, required_app_id?: string) => {
   const params = new URLSearchParams();
   if (wallet_address) params.append("wallet_address", wallet_address);
   if (required_app_id) params.append("required_app_id", required_app_id);
-  
+
   return new URL(
     `/api/v2/minikit/user-grant-cycle${params.toString() ? `?${params.toString()}` : ""}`,
     "http://localhost:3000",
@@ -115,7 +115,9 @@ describe("/api/v2/minikit/user-grant-cycle [success cases]", () => {
     });
 
     expect(signedFetch).toHaveBeenCalledWith(
-      expect.stringContaining(`walletAddress=${validWalletAddress}&requiredAppId=${validAppId}`),
+      expect.stringContaining(
+        `walletAddress=${validWalletAddress}&requiredAppId=${validAppId}`,
+      ),
       expect.objectContaining({
         method: "GET",
         headers: expect.objectContaining({
@@ -142,7 +144,7 @@ describe("/api/v2/minikit/user-grant-cycle [error cases]", () => {
     const res = await GET(mockReq);
     expect(res.status).toBe(400);
     const body = await res.json();
-    expect(body.code).toBe("invalid_request");
+    expect(body.code).toBe("validation_error");
     expect(body.detail).toContain("wallet_address is required");
   });
 
@@ -155,7 +157,7 @@ describe("/api/v2/minikit/user-grant-cycle [error cases]", () => {
     const res = await GET(mockReq);
     expect(res.status).toBe(400);
     const body = await res.json();
-    expect(body.code).toBe("invalid_request");
+    expect(body.code).toBe("validation_error");
     expect(body.detail).toContain("must be exactly 42 characters");
   });
 
@@ -168,7 +170,7 @@ describe("/api/v2/minikit/user-grant-cycle [error cases]", () => {
     const res = await GET(mockReq);
     expect(res.status).toBe(400);
     const body = await res.json();
-    expect(body.code).toBe("invalid_request");
+    expect(body.code).toBe("validation_error");
     expect(body.detail).toContain("required_app_id is required");
   });
 
