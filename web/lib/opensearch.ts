@@ -128,20 +128,20 @@ export class OpenSearchClient {
     verificationStatus?: string,
     isReviewerWorldAppApproved?: boolean,
   ): Promise<string[]> {
-    const must = [];
+    const filter = [];
 
     // Add filters to the query if they are provided
     if (verificationStatus) {
-      must.push({
-        match: {
+      filter.push({
+        term: {
           verification_status: verificationStatus,
         },
       });
     }
 
     if (isReviewerWorldAppApproved) {
-      must.push({
-        match: {
+      filter.push({
+        term: {
           is_reviewer_world_app_approved: isReviewerWorldAppApproved,
         },
       });
@@ -171,7 +171,8 @@ export class OpenSearchClient {
               },
             },
           ],
-          must,
+          filter,
+          minimum_should_match: 1,
         },
       },
       sort: ["_score"],
