@@ -202,14 +202,18 @@ export async function GET(
   if (!isCategoryValid) {
     return NextResponse.json({ error: "Invalid category" }, { status: 404 });
   }
+  const responseBody = { app_data: formattedMetadata };
 
-  return NextResponse.json(
-    { app_data: formattedMetadata },
-    {
-      status: 200,
-      headers: {
-        "Cache-Control": "public, max-age=5, stale-if-error=86400",
-      },
+  const contentLength = Buffer.byteLength(
+    JSON.stringify(responseBody),
+    "utf-8",
+  ).toString();
+
+  return NextResponse.json(responseBody, {
+    status: 200,
+    headers: {
+      "Content-Length": contentLength,
+      "Cache-Control": "public, max-age=5, stale-if-error=86400",
     },
-  );
+  });
 }

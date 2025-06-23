@@ -131,6 +131,7 @@ export default withMiddlewareAuthRequired({
       const response = NextResponse.next({ request: { headers } });
       response.headers.set("content-security-policy", csp);
       response.headers.set("Permissions-Policy", "clipboard-write=(self)");
+      response.headers.set("x-current-path", request.nextUrl.pathname);
       return response;
     } catch (error) {
       console.warn("Error in middleware", { error });

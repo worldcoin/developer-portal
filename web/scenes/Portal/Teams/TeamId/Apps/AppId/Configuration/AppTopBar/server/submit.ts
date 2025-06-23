@@ -4,6 +4,7 @@ import { errorFormAction } from "@/api/helpers/errors";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { getIsUserAllowedToUpdateAppMetadata } from "@/lib/permissions";
+import { extractIdsFromPath, getPathFromHeaders } from "@/lib/server-utils";
 import { submitAppSchema as schema, SubmitAppSchema } from "../form-schema";
 import { getSdk as getSubmitAppSdk } from "../SubmitAppModal/graphql/server/submit-app.generated";
 
@@ -12,11 +13,19 @@ export async function validateAndSubmitAppForReviewFormServerSide({
 }: {
   input: SubmitAppSchema;
 }) {
+  const path = getPathFromHeaders() || "";
+  const { Apps: appId } = extractIdsFromPath(path, ["Apps"]);
+
   try {
     const isUserAllowedToUpdateAppMetadata =
       await getIsUserAllowedToUpdateAppMetadata(input.app_metadata_id);
     if (!isUserAllowedToUpdateAppMetadata) {
-      throw new Error("Invalid permissions");
+      errorFormAction({
+        message:
+          "validateAndSubmitAppForReviewFormServerSide - invalid permissions",
+        team_id: input.team_id,
+        app_id: appId,
+      });
     }
 
     const { isValid, parsedParams: parsedInput } = await validateRequestSchema({
@@ -25,9 +34,12 @@ export async function validateAndSubmitAppForReviewFormServerSide({
     });
 
     if (!isValid || !parsedInput) {
-      throw new Error(
-        "validateAndSubmitAppForReviewFormServerSide - invalid input",
-      );
+      errorFormAction({
+        message: "validateAndSubmitAppForReviewFormServerSide - invalid input",
+        additionalInfo: { input },
+        team_id: input.team_id,
+        app_id: appId,
+      });
     }
 
     const client = await getAPIServiceGraphqlClient();
@@ -40,11 +52,13 @@ export async function validateAndSubmitAppForReviewFormServerSide({
       changelog: parsedInput.changelog,
     });
   } catch (error) {
-    return errorFormAction({
+    errorFormAction({
       message:
         "validateAndSubmitAppForReviewFormServerSide - error submitting app for review",
-      error: error,
+      error: error as Error,
       additionalInfo: { input },
+      team_id: input.team_id,
+      app_id: appId,
     });
   }
 }

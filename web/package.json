@@ -131,12 +131,11 @@
     "lint": "next lint",
     "lint:fix": "next lint --fix",
     "start": "next start",
-    "test:lib": "jest --testPathPattern=lib",
     "test:api": "jest tests/api",
     "test:e2e": "playwright test",
     "test:integration": "node tests/verifyHasuraIsUp.js && jest tests/integration --runInBand",
     "test:integration:server": "docker compose -f ../docker-compose-test.yaml up --abort-on-container-exit",
-    "test:unit": "jest tests/unit",
+    "test:unit": "jest tests/unit && jest web/lib/schema",
     "typecheck": "tsc"
   },
   "version": "0.1.0"

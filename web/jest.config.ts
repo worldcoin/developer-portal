@@ -15,6 +15,7 @@ const customJestConfig: Config = {
   preset: "ts-jest",
   moduleNameMapper: {
     "^@/api/(.*)$": "<rootDir>/api/$1",
+    "^@/lib/(.*)$": "<rootDir>/lib/$1",
   },
 };
 

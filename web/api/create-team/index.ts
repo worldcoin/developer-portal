@@ -28,6 +28,7 @@ import {
   getSdk as getInsertUserSdk,
 } from "./graphql/insert-user.generated";
 
+import { teamNameSchema } from "@/lib/schema";
 import { captureEvent } from "@/services/posthogClient";
 import {
   getSession,
@@ -36,7 +37,7 @@ import {
 } from "@auth0/nextjs-auth0";
 
 const schema = yup.object({
-  team_name: yup.string().strict().required(),
+  team_name: teamNameSchema,
   hasUser: yup.boolean(),
 });
 

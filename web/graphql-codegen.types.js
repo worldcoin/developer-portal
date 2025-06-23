@@ -36,26 +36,6 @@ module.exports = {
       ],
     },
 
-    "legacy/api": {
-      documents: ["legacy/api/**/*.graphql", "legacy/api/**/*.gql"],
-      preset: "near-operation-file",
-      presetConfig: {
-        baseTypesPath: "~@/graphql/graphql",
-        extension: ".generated.ts",
-      },
-      plugins: [
-        {
-          add: {
-            placement: "prepend",
-            content:
-              "/* eslint-disable import/no-relative-parent-imports -- auto generated file */",
-          },
-        },
-        "typescript-operations",
-        "typescript-graphql-request",
-      ],
-    },
-
     api: {
       documents: ["api/**/*.graphql", "api/**/*.gql"],
       preset: "near-operation-file",

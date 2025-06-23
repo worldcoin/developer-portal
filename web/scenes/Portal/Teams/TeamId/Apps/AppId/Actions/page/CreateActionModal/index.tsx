@@ -88,6 +88,7 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
 
   const { refetch: refetchActions } = useRefetchQueries(GetActionsDocument, {
     app_id: appId,
+    condition: {},
   });
 
   const submit = useCallback(
