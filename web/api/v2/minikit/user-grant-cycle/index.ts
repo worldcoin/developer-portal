@@ -10,10 +10,7 @@ const userGrantCycleQuerySchema = yup.object({
     .string()
     .length(42)
     .required("wallet_address is required"),
-  required_app_id: yup
-    .string()
-    .strict()
-    .required("required_app_id is required"),
+  app_id: yup.string().strict().required("app_id is required"),
 });
 
 export const GET = async (req: NextRequest) => {
@@ -22,19 +19,19 @@ export const GET = async (req: NextRequest) => {
   const { isValid, parsedParams, handleError } = await validateRequestSchema({
     schema: userGrantCycleQuerySchema,
     value: params,
-    app_id: params?.required_app_id,
+    app_id: params?.app_id,
   });
 
   if (!isValid) {
     return handleError(req);
   }
 
-  const { wallet_address, required_app_id } = parsedParams;
+  const { wallet_address, app_id } = parsedParams;
 
   // Verify API key
   const apiKeyResult = await verifyApiKey({
     req,
-    appId: required_app_id,
+    appId: app_id,
   });
 
   if (!apiKeyResult.success) {
@@ -48,7 +45,7 @@ export const GET = async (req: NextRequest) => {
 
   try {
     const res = await signedFetch(
-      `${process.env.NEXT_SERVER_INTERNAL_USER_GRANT_CYCLE_ENDPOINT}?walletAddress=${wallet_address}&requiredAppId=${required_app_id}`,
+      `${process.env.NEXT_SERVER_INTERNAL_USER_GRANT_CYCLE_ENDPOINT}?walletAddress=${wallet_address}&requiredAppId=${app_id}`,
       {
         method: "GET",
         headers: {
@@ -79,7 +76,7 @@ export const GET = async (req: NextRequest) => {
         detail: errorMessage,
         attribute: "user_grant_cycle",
         req,
-        app_id: required_app_id,
+        app_id: app_id,
         team_id: apiKeyResult.teamId,
       });
     }
@@ -89,7 +86,7 @@ export const GET = async (req: NextRequest) => {
       success: true,
       status: 200,
       result: {
-        nextGrantClaimDate: data.nextGrantClaimDate,
+        nextGrantClaimUTCDate: data.nextGrantClaimUTCDate,
       },
     });
   } catch (error) {
@@ -100,7 +97,7 @@ export const GET = async (req: NextRequest) => {
       detail: "Failed to fetch user grant cycle",
       attribute: "server",
       req,
-      app_id: required_app_id,
+      app_id: app_id,
       team_id: apiKeyResult.teamId,
     });
   }

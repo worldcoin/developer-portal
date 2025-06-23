@@ -26,10 +26,10 @@ jest.mock("aws-sigv4-fetch", () => ({
 // #endregion
 
 // #region Test Data
-const getUrl = (wallet_address?: string, required_app_id?: string) => {
+const getUrl = (wallet_address?: string, app_id?: string) => {
   const params = new URLSearchParams();
   if (wallet_address) params.append("wallet_address", wallet_address);
-  if (required_app_id) params.append("required_app_id", required_app_id);
+  if (app_id) params.append("app_id", app_id);
 
   return new URL(
     `/api/v2/minikit/user-grant-cycle${params.toString() ? `?${params.toString()}` : ""}`,
@@ -78,7 +78,7 @@ const validWalletAddress = "0x1234567890123456789012345678901234567890";
 const validApiKey = `api_${apiKeyValue}`;
 
 const mockSuccessResponse = {
-  nextGrantClaimDate: "2024-12-31T23:59:59.999Z",
+  nextGrantClaimUTCDate: "2024-12-31T23:59:59.999Z",
 };
 
 // #endregion
@@ -110,7 +110,7 @@ describe("/api/v2/minikit/user-grant-cycle [success cases]", () => {
       success: true,
       status: 200,
       result: {
-        nextGrantClaimDate: mockSuccessResponse.nextGrantClaimDate,
+        nextGrantClaimUTCDate: mockSuccessResponse.nextGrantClaimUTCDate,
       },
     });
 
@@ -161,7 +161,7 @@ describe("/api/v2/minikit/user-grant-cycle [error cases]", () => {
     expect(body.detail).toContain("must be exactly 42 characters");
   });
 
-  it("returns 400 if required_app_id is missing", async () => {
+  it("returns 400 if app_id is missing", async () => {
     const mockReq = createMockRequest({
       url: getUrl(validWalletAddress, undefined),
       api_key: validApiKey,
@@ -171,7 +171,7 @@ describe("/api/v2/minikit/user-grant-cycle [error cases]", () => {
     expect(res.status).toBe(400);
     const body = await res.json();
     expect(body.code).toBe("validation_error");
-    expect(body.detail).toContain("required_app_id is required");
+    expect(body.detail).toContain("app_id is required");
   });
 
   it("returns 401 if API key is missing", async () => {
