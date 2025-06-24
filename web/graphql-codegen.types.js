@@ -15,6 +15,7 @@ module.exports = {
     scalars: {
       timestamp: "string",
       timestamptz: "string",
+      date: "string",
       jsonb: "any",
       json: "any",
       numeric: "number",

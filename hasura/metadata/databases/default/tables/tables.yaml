@@ -7,7 +7,7 @@
 - "!include public_app_report.yaml"
 - "!include public_app_report_appeal.yaml"
 - "!include public_app_reviews.yaml"
-- "!include public_app_stats_returning.yaml"
+- "!include public_app_stats.yaml"
 - "!include public_auth_code.yaml"
 - "!include public_cache.yaml"
 - "!include public_invite.yaml"

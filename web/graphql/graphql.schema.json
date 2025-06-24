@@ -28248,56 +28248,9 @@
         "possibleTypes": null
       },
       {
-        "kind": "INPUT_OBJECT",
-        "name": "app_stats_args",
-        "description": null,
-        "fields": null,
-        "inputFields": [
-          {
-            "name": "appId",
-            "description": null,
-            "type": {
-              "kind": "SCALAR",
-              "name": "String",
-              "ofType": null
-            },
-            "defaultValue": null,
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
-            "name": "startsAt",
-            "description": null,
-            "type": {
-              "kind": "SCALAR",
-              "name": "timestamptz",
-              "ofType": null
-            },
-            "defaultValue": null,
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
-            "name": "timespan",
-            "description": null,
-            "type": {
-              "kind": "SCALAR",
-              "name": "String",
-              "ofType": null
-            },
-            "defaultValue": null,
-            "isDeprecated": false,
-            "deprecationReason": null
-          }
-        ],
-        "interfaces": null,
-        "enumValues": null,
-        "possibleTypes": null
-      },
-      {
         "kind": "OBJECT",
-        "name": "app_stats_returning",
-        "description": "Returning value of app_stats function",
+        "name": "app_stats",
+        "description": "columns and relationships of \"app_stats\"",
         "fields": [
           {
             "name": "app",
@@ -28340,8 +28293,32 @@
               "name": null,
               "ofType": {
                 "kind": "SCALAR",
-                "name": "timestamptz",
+                "name": "date",
                 "ofType": null
+              }
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "nullifier_hashes",
+            "description": null,
+            "args": [],
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "LIST",
+                "name": null,
+                "ofType": {
+                  "kind": "NON_NULL",
+                  "name": null,
+                  "ofType": {
+                    "kind": "SCALAR",
+                    "name": "String",
+                    "ofType": null
+                  }
+                }
               }
             },
             "isDeprecated": false,
@@ -28356,7 +28333,7 @@
               "name": null,
               "ofType": {
                 "kind": "SCALAR",
-                "name": "numeric",
+                "name": "Int",
                 "ofType": null
               }
             },
@@ -28372,7 +28349,7 @@
               "name": null,
               "ofType": {
                 "kind": "SCALAR",
-                "name": "numeric",
+                "name": "Int",
                 "ofType": null
               }
             },
@@ -28387,8 +28364,8 @@
       },
       {
         "kind": "OBJECT",
-        "name": "app_stats_returning_aggregate",
-        "description": null,
+        "name": "app_stats_aggregate",
+        "description": "aggregated selection of \"app_stats\"",
         "fields": [
           {
             "name": "aggregate",
@@ -28396,7 +28373,7 @@
             "args": [],
             "type": {
               "kind": "OBJECT",
-              "name": "app_stats_returning_aggregate_fields",
+              "name": "app_stats_aggregate_fields",
               "ofType": null
             },
             "isDeprecated": false,
@@ -28417,7 +28394,7 @@
                   "name": null,
                   "ofType": {
                     "kind": "OBJECT",
-                    "name": "app_stats_returning",
+                    "name": "app_stats",
                     "ofType": null
                   }
                 }
@@ -28434,8 +28411,8 @@
       },
       {
         "kind": "OBJECT",
-        "name": "app_stats_returning_aggregate_fields",
-        "description": "aggregate fields of \"app_stats_returning\"",
+        "name": "app_stats_aggregate_fields",
+        "description": "aggregate fields of \"app_stats\"",
         "fields": [
           {
             "name": "avg",
@@ -28443,7 +28420,7 @@
             "args": [],
             "type": {
               "kind": "OBJECT",
-              "name": "app_stats_returning_avg_fields",
+              "name": "app_stats_avg_fields",
               "ofType": null
             },
             "isDeprecated": false,
@@ -28464,7 +28441,7 @@
                     "name": null,
                     "ofType": {
                       "kind": "ENUM",
-                      "name": "app_stats_returning_select_column",
+                      "name": "app_stats_select_column",
                       "ofType": null
                     }
                   }
@@ -28504,7 +28481,7 @@
             "args": [],
             "type": {
               "kind": "OBJECT",
-              "name": "app_stats_returning_max_fields",
+              "name": "app_stats_max_fields",
               "ofType": null
             },
             "isDeprecated": false,
@@ -28516,7 +28493,7 @@
             "args": [],
             "type": {
               "kind": "OBJECT",
-              "name": "app_stats_returning_min_fields",
+              "name": "app_stats_min_fields",
               "ofType": null
             },
             "isDeprecated": false,
@@ -28528,7 +28505,7 @@
             "args": [],
             "type": {
               "kind": "OBJECT",
-              "name": "app_stats_returning_stddev_fields",
+              "name": "app_stats_stddev_fields",
               "ofType": null
             },
             "isDeprecated": false,
@@ -28540,7 +28517,7 @@
             "args": [],
             "type": {
               "kind": "OBJECT",
-              "name": "app_stats_returning_stddev_pop_fields",
+              "name": "app_stats_stddev_pop_fields",
               "ofType": null
             },
             "isDeprecated": false,
@@ -28552,7 +28529,7 @@
             "args": [],
             "type": {
               "kind": "OBJECT",
-              "name": "app_stats_returning_stddev_samp_fields",
+              "name": "app_stats_stddev_samp_fields",
               "ofType": null
             },
             "isDeprecated": false,
@@ -28564,7 +28541,7 @@
             "args": [],
             "type": {
               "kind": "OBJECT",
-              "name": "app_stats_returning_sum_fields",
+              "name": "app_stats_sum_fields",
               "ofType": null
             },
             "isDeprecated": false,
@@ -28576,7 +28553,7 @@
             "args": [],
             "type": {
               "kind": "OBJECT",
-              "name": "app_stats_returning_var_pop_fields",
+              "name": "app_stats_var_pop_fields",
               "ofType": null
             },
             "isDeprecated": false,
@@ -28588,7 +28565,7 @@
             "args": [],
             "type": {
               "kind": "OBJECT",
-              "name": "app_stats_returning_var_samp_fields",
+              "name": "app_stats_var_samp_fields",
               "ofType": null
             },
             "isDeprecated": false,
@@ -28600,7 +28577,7 @@
             "args": [],
             "type": {
               "kind": "OBJECT",
-              "name": "app_stats_returning_variance_fields",
+              "name": "app_stats_variance_fields",
               "ofType": null
             },
             "isDeprecated": false,
@@ -28614,7 +28591,7 @@
       },
       {
         "kind": "OBJECT",
-        "name": "app_stats_returning_avg_fields",
+        "name": "app_stats_avg_fields",
         "description": "aggregate avg on columns",
         "fields": [
           {
@@ -28649,8 +28626,8 @@
       },
       {
         "kind": "INPUT_OBJECT",
-        "name": "app_stats_returning_bool_exp",
-        "description": "Boolean expression to filter rows from the table \"app_stats_returning\". All fields are combined with a logical 'AND'.",
+        "name": "app_stats_bool_exp",
+        "description": "Boolean expression to filter rows from the table \"app_stats\". All fields are combined with a logical 'AND'.",
         "fields": null,
         "inputFields": [
           {
@@ -28664,7 +28641,7 @@
                 "name": null,
                 "ofType": {
                   "kind": "INPUT_OBJECT",
-                  "name": "app_stats_returning_bool_exp",
+                  "name": "app_stats_bool_exp",
                   "ofType": null
                 }
               }
@@ -28678,7 +28655,7 @@
             "description": null,
             "type": {
               "kind": "INPUT_OBJECT",
-              "name": "app_stats_returning_bool_exp",
+              "name": "app_stats_bool_exp",
               "ofType": null
             },
             "defaultValue": null,
@@ -28696,7 +28673,7 @@
                 "name": null,
                 "ofType": {
                   "kind": "INPUT_OBJECT",
-                  "name": "app_stats_returning_bool_exp",
+                  "name": "app_stats_bool_exp",
                   "ofType": null
                 }
               }
@@ -28734,7 +28711,19 @@
             "description": null,
             "type": {
               "kind": "INPUT_OBJECT",
-              "name": "timestamptz_comparison_exp",
+              "name": "date_comparison_exp",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "nullifier_hashes",
+            "description": null,
+            "type": {
+              "kind": "INPUT_OBJECT",
+              "name": "String_array_comparison_exp",
               "ofType": null
             },
             "defaultValue": null,
@@ -28746,7 +28735,7 @@
             "description": null,
             "type": {
               "kind": "INPUT_OBJECT",
-              "name": "numeric_comparison_exp",
+              "name": "Int_comparison_exp",
               "ofType": null
             },
             "defaultValue": null,
@@ -28758,7 +28747,7 @@
             "description": null,
             "type": {
               "kind": "INPUT_OBJECT",
-              "name": "numeric_comparison_exp",
+              "name": "Int_comparison_exp",
               "ofType": null
             },
             "defaultValue": null,
@@ -28772,15 +28761,15 @@
       },
       {
         "kind": "ENUM",
-        "name": "app_stats_returning_constraint",
-        "description": "unique or primary key constraints on table \"app_stats_returning\"",
+        "name": "app_stats_constraint",
+        "description": "unique or primary key constraints on table \"app_stats\"",
         "fields": null,
         "inputFields": null,
         "interfaces": null,
         "enumValues": [
           {
-            "name": "app_stats_returning_pkey",
-            "description": "unique or primary key constraint on columns \"app_id\"",
+            "name": "app_stats_pkey",
+            "description": "unique or primary key constraint on columns \"date\", \"app_id\"",
             "isDeprecated": false,
             "deprecationReason": null
           }
@@ -28789,8 +28778,8 @@
       },
       {
         "kind": "INPUT_OBJECT",
-        "name": "app_stats_returning_inc_input",
-        "description": "input type for incrementing numeric columns in table \"app_stats_returning\"",
+        "name": "app_stats_inc_input",
+        "description": "input type for incrementing numeric columns in table \"app_stats\"",
         "fields": null,
         "inputFields": [
           {
@@ -28798,7 +28787,7 @@
             "description": null,
             "type": {
               "kind": "SCALAR",
-              "name": "numeric",
+              "name": "Int",
               "ofType": null
             },
             "defaultValue": null,
@@ -28810,7 +28799,7 @@
             "description": null,
             "type": {
               "kind": "SCALAR",
-              "name": "numeric",
+              "name": "Int",
               "ofType": null
             },
             "defaultValue": null,
@@ -28824,8 +28813,8 @@
       },
       {
         "kind": "INPUT_OBJECT",
-        "name": "app_stats_returning_insert_input",
-        "description": "input type for inserting data into table \"app_stats_returning\"",
+        "name": "app_stats_insert_input",
+        "description": "input type for inserting data into table \"app_stats\"",
         "fields": null,
         "inputFields": [
           {
@@ -28857,8 +28846,28 @@
             "description": null,
             "type": {
               "kind": "SCALAR",
-              "name": "timestamptz",
+              "name": "date",
               "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "nullifier_hashes",
+            "description": null,
+            "type": {
+              "kind": "LIST",
+              "name": null,
+              "ofType": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "String",
+                  "ofType": null
+                }
+              }
             },
             "defaultValue": null,
             "isDeprecated": false,
@@ -28869,7 +28878,7 @@
             "description": null,
             "type": {
               "kind": "SCALAR",
-              "name": "numeric",
+              "name": "Int",
               "ofType": null
             },
             "defaultValue": null,
@@ -28881,7 +28890,7 @@
             "description": null,
             "type": {
               "kind": "SCALAR",
-              "name": "numeric",
+              "name": "Int",
               "ofType": null
             },
             "defaultValue": null,
@@ -28895,7 +28904,7 @@
       },
       {
         "kind": "OBJECT",
-        "name": "app_stats_returning_max_fields",
+        "name": "app_stats_max_fields",
         "description": "aggregate max on columns",
         "fields": [
           {
@@ -28916,8 +28925,28 @@
             "args": [],
             "type": {
               "kind": "SCALAR",
-              "name": "timestamptz",
+              "name": "date",
               "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "nullifier_hashes",
+            "description": null,
+            "args": [],
+            "type": {
+              "kind": "LIST",
+              "name": null,
+              "ofType": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "String",
+                  "ofType": null
+                }
+              }
             },
             "isDeprecated": false,
             "deprecationReason": null
@@ -28928,7 +28957,7 @@
             "args": [],
             "type": {
               "kind": "SCALAR",
-              "name": "numeric",
+              "name": "Int",
               "ofType": null
             },
             "isDeprecated": false,
@@ -28940,7 +28969,7 @@
             "args": [],
             "type": {
               "kind": "SCALAR",
-              "name": "numeric",
+              "name": "Int",
               "ofType": null
             },
             "isDeprecated": false,
@@ -28954,7 +28983,7 @@
       },
       {
         "kind": "OBJECT",
-        "name": "app_stats_returning_min_fields",
+        "name": "app_stats_min_fields",
         "description": "aggregate min on columns",
         "fields": [
           {
@@ -28975,8 +29004,28 @@
             "args": [],
             "type": {
               "kind": "SCALAR",
-              "name": "timestamptz",
+              "name": "date",
               "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "nullifier_hashes",
+            "description": null,
+            "args": [],
+            "type": {
+              "kind": "LIST",
+              "name": null,
+              "ofType": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "String",
+                  "ofType": null
+                }
+              }
             },
             "isDeprecated": false,
             "deprecationReason": null
@@ -28987,7 +29036,7 @@
             "args": [],
             "type": {
               "kind": "SCALAR",
-              "name": "numeric",
+              "name": "Int",
               "ofType": null
             },
             "isDeprecated": false,
@@ -28999,7 +29048,7 @@
             "args": [],
             "type": {
               "kind": "SCALAR",
-              "name": "numeric",
+              "name": "Int",
               "ofType": null
             },
             "isDeprecated": false,
@@ -29013,8 +29062,8 @@
       },
       {
         "kind": "OBJECT",
-        "name": "app_stats_returning_mutation_response",
-        "description": "response of any mutation on the table \"app_stats_returning\"",
+        "name": "app_stats_mutation_response",
+        "description": "response of any mutation on the table \"app_stats\"",
         "fields": [
           {
             "name": "affected_rows",
@@ -29047,7 +29096,7 @@
                   "name": null,
                   "ofType": {
                     "kind": "OBJECT",
-                    "name": "app_stats_returning",
+                    "name": "app_stats",
                     "ofType": null
                   }
                 }
@@ -29064,8 +29113,8 @@
       },
       {
         "kind": "INPUT_OBJECT",
-        "name": "app_stats_returning_on_conflict",
-        "description": "on_conflict condition type for table \"app_stats_returning\"",
+        "name": "app_stats_on_conflict",
+        "description": "on_conflict condition type for table \"app_stats\"",
         "fields": null,
         "inputFields": [
           {
@@ -29076,7 +29125,7 @@
               "name": null,
               "ofType": {
                 "kind": "ENUM",
-                "name": "app_stats_returning_constraint",
+                "name": "app_stats_constraint",
                 "ofType": null
               }
             },
@@ -29098,7 +29147,7 @@
                   "name": null,
                   "ofType": {
                     "kind": "ENUM",
-                    "name": "app_stats_returning_update_column",
+                    "name": "app_stats_update_column",
                     "ofType": null
                   }
                 }
@@ -29113,7 +29162,7 @@
             "description": null,
             "type": {
               "kind": "INPUT_OBJECT",
-              "name": "app_stats_returning_bool_exp",
+              "name": "app_stats_bool_exp",
               "ofType": null
             },
             "defaultValue": null,
@@ -29127,8 +29176,8 @@
       },
       {
         "kind": "INPUT_OBJECT",
-        "name": "app_stats_returning_order_by",
-        "description": "Ordering options when selecting data from \"app_stats_returning\".",
+        "name": "app_stats_order_by",
+        "description": "Ordering options when selecting data from \"app_stats\".",
         "fields": null,
         "inputFields": [
           {
@@ -29168,6 +29217,18 @@
             "deprecationReason": null
           },
           {
+            "name": "nullifier_hashes",
+            "description": null,
+            "type": {
+              "kind": "ENUM",
+              "name": "order_by",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "unique_users",
             "description": null,
             "type": {
@@ -29198,8 +29259,8 @@
       },
       {
         "kind": "INPUT_OBJECT",
-        "name": "app_stats_returning_pk_columns_input",
-        "description": "primary key columns input for table: app_stats_returning",
+        "name": "app_stats_pk_columns_input",
+        "description": "primary key columns input for table: app_stats",
         "fields": null,
         "inputFields": [
           {
@@ -29217,6 +29278,22 @@
             "defaultValue": null,
             "isDeprecated": false,
             "deprecationReason": null
+          },
+          {
+            "name": "date",
+            "description": null,
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "SCALAR",
+                "name": "date",
+                "ofType": null
+              }
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
           }
         ],
         "interfaces": null,
@@ -29225,8 +29302,8 @@
       },
       {
         "kind": "ENUM",
-        "name": "app_stats_returning_select_column",
-        "description": "select columns of table \"app_stats_returning\"",
+        "name": "app_stats_select_column",
+        "description": "select columns of table \"app_stats\"",
         "fields": null,
         "inputFields": null,
         "interfaces": null,
@@ -29239,6 +29316,12 @@
           },
           {
             "name": "date",
+            "description": "column name",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "nullifier_hashes",
             "description": "column name",
             "isDeprecated": false,
             "deprecationReason": null
@@ -29260,8 +29343,8 @@
       },
       {
         "kind": "INPUT_OBJECT",
-        "name": "app_stats_returning_set_input",
-        "description": "input type for updating data in table \"app_stats_returning\"",
+        "name": "app_stats_set_input",
+        "description": "input type for updating data in table \"app_stats\"",
         "fields": null,
         "inputFields": [
           {
@@ -29281,8 +29364,28 @@
             "description": null,
             "type": {
               "kind": "SCALAR",
-              "name": "timestamptz",
+              "name": "date",
               "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "nullifier_hashes",
+            "description": null,
+            "type": {
+              "kind": "LIST",
+              "name": null,
+              "ofType": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "String",
+                  "ofType": null
+                }
+              }
             },
             "defaultValue": null,
             "isDeprecated": false,
@@ -29293,7 +29396,7 @@
             "description": null,
             "type": {
               "kind": "SCALAR",
-              "name": "numeric",
+              "name": "Int",
               "ofType": null
             },
             "defaultValue": null,
@@ -29305,7 +29408,7 @@
             "description": null,
             "type": {
               "kind": "SCALAR",
-              "name": "numeric",
+              "name": "Int",
               "ofType": null
             },
             "defaultValue": null,
@@ -29319,7 +29422,7 @@
       },
       {
         "kind": "OBJECT",
-        "name": "app_stats_returning_stddev_fields",
+        "name": "app_stats_stddev_fields",
         "description": "aggregate stddev on columns",
         "fields": [
           {
@@ -29354,7 +29457,7 @@
       },
       {
         "kind": "OBJECT",
-        "name": "app_stats_returning_stddev_pop_fields",
+        "name": "app_stats_stddev_pop_fields",
         "description": "aggregate stddev_pop on columns",
         "fields": [
           {
@@ -29389,7 +29492,7 @@
       },
       {
         "kind": "OBJECT",
-        "name": "app_stats_returning_stddev_samp_fields",
+        "name": "app_stats_stddev_samp_fields",
         "description": "aggregate stddev_samp on columns",
         "fields": [
           {
@@ -29424,8 +29527,8 @@
       },
       {
         "kind": "INPUT_OBJECT",
-        "name": "app_stats_returning_stream_cursor_input",
-        "description": "Streaming cursor of the table \"app_stats_returning\"",
+        "name": "app_stats_stream_cursor_input",
+        "description": "Streaming cursor of the table \"app_stats\"",
         "fields": null,
         "inputFields": [
           {
@@ -29436,7 +29539,7 @@
               "name": null,
               "ofType": {
                 "kind": "INPUT_OBJECT",
-                "name": "app_stats_returning_stream_cursor_value_input",
+                "name": "app_stats_stream_cursor_value_input",
                 "ofType": null
               }
             },
@@ -29463,7 +29566,7 @@
       },
       {
         "kind": "INPUT_OBJECT",
-        "name": "app_stats_returning_stream_cursor_value_input",
+        "name": "app_stats_stream_cursor_value_input",
         "description": "Initial value of the column from where the streaming should start",
         "fields": null,
         "inputFields": [
@@ -29484,8 +29587,28 @@
             "description": null,
             "type": {
               "kind": "SCALAR",
-              "name": "timestamptz",
+              "name": "date",
               "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "nullifier_hashes",
+            "description": null,
+            "type": {
+              "kind": "LIST",
+              "name": null,
+              "ofType": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "String",
+                  "ofType": null
+                }
+              }
             },
             "defaultValue": null,
             "isDeprecated": false,
@@ -29496,7 +29619,7 @@
             "description": null,
             "type": {
               "kind": "SCALAR",
-              "name": "numeric",
+              "name": "Int",
               "ofType": null
             },
             "defaultValue": null,
@@ -29508,7 +29631,7 @@
             "description": null,
             "type": {
               "kind": "SCALAR",
-              "name": "numeric",
+              "name": "Int",
               "ofType": null
             },
             "defaultValue": null,
@@ -29522,7 +29645,7 @@
       },
       {
         "kind": "OBJECT",
-        "name": "app_stats_returning_sum_fields",
+        "name": "app_stats_sum_fields",
         "description": "aggregate sum on columns",
         "fields": [
           {
@@ -29531,7 +29654,7 @@
             "args": [],
             "type": {
               "kind": "SCALAR",
-              "name": "numeric",
+              "name": "Int",
               "ofType": null
             },
             "isDeprecated": false,
@@ -29543,7 +29666,7 @@
             "args": [],
             "type": {
               "kind": "SCALAR",
-              "name": "numeric",
+              "name": "Int",
               "ofType": null
             },
             "isDeprecated": false,
@@ -29557,8 +29680,8 @@
       },
       {
         "kind": "ENUM",
-        "name": "app_stats_returning_update_column",
-        "description": "update columns of table \"app_stats_returning\"",
+        "name": "app_stats_update_column",
+        "description": "update columns of table \"app_stats\"",
         "fields": null,
         "inputFields": null,
         "interfaces": null,
@@ -29571,6 +29694,12 @@
           },
           {
             "name": "date",
+            "description": "column name",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "nullifier_hashes",
             "description": "column name",
             "isDeprecated": false,
             "deprecationReason": null
@@ -29592,7 +29721,7 @@
       },
       {
         "kind": "INPUT_OBJECT",
-        "name": "app_stats_returning_updates",
+        "name": "app_stats_updates",
         "description": null,
         "fields": null,
         "inputFields": [
@@ -29601,7 +29730,7 @@
             "description": "increments the numeric columns with given value of the filtered values",
             "type": {
               "kind": "INPUT_OBJECT",
-              "name": "app_stats_returning_inc_input",
+              "name": "app_stats_inc_input",
               "ofType": null
             },
             "defaultValue": null,
@@ -29613,7 +29742,7 @@
             "description": "sets the columns of the filtered rows to the given values",
             "type": {
               "kind": "INPUT_OBJECT",
-              "name": "app_stats_returning_set_input",
+              "name": "app_stats_set_input",
               "ofType": null
             },
             "defaultValue": null,
@@ -29628,7 +29757,7 @@
               "name": null,
               "ofType": {
                 "kind": "INPUT_OBJECT",
-                "name": "app_stats_returning_bool_exp",
+                "name": "app_stats_bool_exp",
                 "ofType": null
               }
             },
@@ -29643,7 +29772,7 @@
       },
       {
         "kind": "OBJECT",
-        "name": "app_stats_returning_var_pop_fields",
+        "name": "app_stats_var_pop_fields",
         "description": "aggregate var_pop on columns",
         "fields": [
           {
@@ -29678,7 +29807,7 @@
       },
       {
         "kind": "OBJECT",
-        "name": "app_stats_returning_var_samp_fields",
+        "name": "app_stats_var_samp_fields",
         "description": "aggregate var_samp on columns",
         "fields": [
           {
@@ -29713,7 +29842,7 @@
       },
       {
         "kind": "OBJECT",
-        "name": "app_stats_returning_variance_fields",
+        "name": "app_stats_variance_fields",
         "description": "aggregate variance on columns",
         "fields": [
           {
@@ -33875,6 +34004,151 @@
       },
       {
         "kind": "SCALAR",
+        "name": "date",
+        "description": null,
+        "fields": null,
+        "inputFields": null,
+        "interfaces": null,
+        "enumValues": null,
+        "possibleTypes": null
+      },
+      {
+        "kind": "INPUT_OBJECT",
+        "name": "date_comparison_exp",
+        "description": "Boolean expression to compare columns of type \"date\". All fields are combined with logical 'AND'.",
+        "fields": null,
+        "inputFields": [
+          {
+            "name": "_eq",
+            "description": null,
+            "type": {
+              "kind": "SCALAR",
+              "name": "date",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "_gt",
+            "description": null,
+            "type": {
+              "kind": "SCALAR",
+              "name": "date",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "_gte",
+            "description": null,
+            "type": {
+              "kind": "SCALAR",
+              "name": "date",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "_in",
+            "description": null,
+            "type": {
+              "kind": "LIST",
+              "name": null,
+              "ofType": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "date",
+                  "ofType": null
+                }
+              }
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "_is_null",
+            "description": null,
+            "type": {
+              "kind": "SCALAR",
+              "name": "Boolean",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "_lt",
+            "description": null,
+            "type": {
+              "kind": "SCALAR",
+              "name": "date",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "_lte",
+            "description": null,
+            "type": {
+              "kind": "SCALAR",
+              "name": "date",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "_neq",
+            "description": null,
+            "type": {
+              "kind": "SCALAR",
+              "name": "date",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "_nin",
+            "description": null,
+            "type": {
+              "kind": "LIST",
+              "name": null,
+              "ofType": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "SCALAR",
+                  "name": "date",
+                  "ofType": null
+                }
+              }
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          }
+        ],
+        "interfaces": null,
+        "enumValues": null,
+        "possibleTypes": null
+      },
+      {
+        "kind": "SCALAR",
         "name": "illegal_content_sub_category_enum",
         "description": null,
         "fields": null,
@@ -34008,6 +34282,53 @@
                   "ofType": null
                 }
               }
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          }
+        ],
+        "interfaces": null,
+        "enumValues": null,
+        "possibleTypes": null
+      },
+      {
+        "kind": "INPUT_OBJECT",
+        "name": "increment_app_stats_args",
+        "description": null,
+        "fields": null,
+        "inputFields": [
+          {
+            "name": "_action_id",
+            "description": null,
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "_nullifier_hash",
+            "description": null,
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "_timestamp",
+            "description": null,
+            "type": {
+              "kind": "SCALAR",
+              "name": "timestamptz",
+              "ofType": null
             },
             "defaultValue": null,
             "isDeprecated": false,
@@ -41562,8 +41883,8 @@
             "deprecationReason": null
           },
           {
-            "name": "delete_app_stats_returning",
-            "description": "delete data from the table: \"app_stats_returning\"",
+            "name": "delete_app_stats",
+            "description": "delete data from the table: \"app_stats\"",
             "args": [
               {
                 "name": "where",
@@ -41573,7 +41894,7 @@
                   "name": null,
                   "ofType": {
                     "kind": "INPUT_OBJECT",
-                    "name": "app_stats_returning_bool_exp",
+                    "name": "app_stats_bool_exp",
                     "ofType": null
                   }
                 },
@@ -41584,15 +41905,15 @@
             ],
             "type": {
               "kind": "OBJECT",
-              "name": "app_stats_returning_mutation_response",
+              "name": "app_stats_mutation_response",
               "ofType": null
             },
             "isDeprecated": false,
             "deprecationReason": null
           },
           {
-            "name": "delete_app_stats_returning_by_pk",
-            "description": "delete single row from the table: \"app_stats_returning\"",
+            "name": "delete_app_stats_by_pk",
+            "description": "delete single row from the table: \"app_stats\"",
             "args": [
               {
                 "name": "app_id",
@@ -41609,11 +41930,27 @@
                 "defaultValue": null,
                 "isDeprecated": false,
                 "deprecationReason": null
+              },
+              {
+                "name": "date",
+                "description": null,
+                "type": {
+                  "kind": "NON_NULL",
+                  "name": null,
+                  "ofType": {
+                    "kind": "SCALAR",
+                    "name": "date",
+                    "ofType": null
+                  }
+                },
+                "defaultValue": null,
+                "isDeprecated": false,
+                "deprecationReason": null
               }
             ],
             "type": {
               "kind": "OBJECT",
-              "name": "app_stats_returning",
+              "name": "app_stats",
               "ofType": null
             },
             "isDeprecated": false,
@@ -42398,6 +42735,123 @@
               "kind": "OBJECT",
               "name": "user",
               "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "increment_app_stats",
+            "description": "execute VOLATILE function \"increment_app_stats\" which returns \"app_stats\"",
+            "args": [
+              {
+                "name": "args",
+                "description": "input parameters for function \"increment_app_stats\"",
+                "type": {
+                  "kind": "NON_NULL",
+                  "name": null,
+                  "ofType": {
+                    "kind": "INPUT_OBJECT",
+                    "name": "increment_app_stats_args",
+                    "ofType": null
+                  }
+                },
+                "defaultValue": null,
+                "isDeprecated": false,
+                "deprecationReason": null
+              },
+              {
+                "name": "distinct_on",
+                "description": "distinct select on columns",
+                "type": {
+                  "kind": "LIST",
+                  "name": null,
+                  "ofType": {
+                    "kind": "NON_NULL",
+                    "name": null,
+                    "ofType": {
+                      "kind": "ENUM",
+                      "name": "app_stats_select_column",
+                      "ofType": null
+                    }
+                  }
+                },
+                "defaultValue": null,
+                "isDeprecated": false,
+                "deprecationReason": null
+              },
+              {
+                "name": "limit",
+                "description": "limit the number of rows returned",
+                "type": {
+                  "kind": "SCALAR",
+                  "name": "Int",
+                  "ofType": null
+                },
+                "defaultValue": null,
+                "isDeprecated": false,
+                "deprecationReason": null
+              },
+              {
+                "name": "offset",
+                "description": "skip the first n rows. Use only with order_by",
+                "type": {
+                  "kind": "SCALAR",
+                  "name": "Int",
+                  "ofType": null
+                },
+                "defaultValue": null,
+                "isDeprecated": false,
+                "deprecationReason": null
+              },
+              {
+                "name": "order_by",
+                "description": "sort the rows by one or more columns",
+                "type": {
+                  "kind": "LIST",
+                  "name": null,
+                  "ofType": {
+                    "kind": "NON_NULL",
+                    "name": null,
+                    "ofType": {
+                      "kind": "INPUT_OBJECT",
+                      "name": "app_stats_order_by",
+                      "ofType": null
+                    }
+                  }
+                },
+                "defaultValue": null,
+                "isDeprecated": false,
+                "deprecationReason": null
+              },
+              {
+                "name": "where",
+                "description": "filter the rows returned",
+                "type": {
+                  "kind": "INPUT_OBJECT",
+                  "name": "app_stats_bool_exp",
+                  "ofType": null
+                },
+                "defaultValue": null,
+                "isDeprecated": false,
+                "deprecationReason": null
+              }
+            ],
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "LIST",
+                "name": null,
+                "ofType": {
+                  "kind": "NON_NULL",
+                  "name": null,
+                  "ofType": {
+                    "kind": "OBJECT",
+                    "name": "app_stats",
+                    "ofType": null
+                  }
+                }
+              }
             },
             "isDeprecated": false,
             "deprecationReason": null
@@ -43213,8 +43667,8 @@
             "deprecationReason": null
           },
           {
-            "name": "insert_app_stats_returning",
-            "description": "insert data into the table: \"app_stats_returning\"",
+            "name": "insert_app_stats",
+            "description": "insert data into the table: \"app_stats\"",
             "args": [
               {
                 "name": "objects",
@@ -43230,7 +43684,7 @@
                       "name": null,
                       "ofType": {
                         "kind": "INPUT_OBJECT",
-                        "name": "app_stats_returning_insert_input",
+                        "name": "app_stats_insert_input",
                         "ofType": null
                       }
                     }
@@ -43245,7 +43699,7 @@
                 "description": "upsert condition",
                 "type": {
                   "kind": "INPUT_OBJECT",
-                  "name": "app_stats_returning_on_conflict",
+                  "name": "app_stats_on_conflict",
                   "ofType": null
                 },
                 "defaultValue": null,
@@ -43255,15 +43709,15 @@
             ],
             "type": {
               "kind": "OBJECT",
-              "name": "app_stats_returning_mutation_response",
+              "name": "app_stats_mutation_response",
               "ofType": null
             },
             "isDeprecated": false,
             "deprecationReason": null
           },
           {
-            "name": "insert_app_stats_returning_one",
-            "description": "insert a single row into the table: \"app_stats_returning\"",
+            "name": "insert_app_stats_one",
+            "description": "insert a single row into the table: \"app_stats\"",
             "args": [
               {
                 "name": "object",
@@ -43273,7 +43727,7 @@
                   "name": null,
                   "ofType": {
                     "kind": "INPUT_OBJECT",
-                    "name": "app_stats_returning_insert_input",
+                    "name": "app_stats_insert_input",
                     "ofType": null
                   }
                 },
@@ -43286,7 +43740,7 @@
                 "description": "upsert condition",
                 "type": {
                   "kind": "INPUT_OBJECT",
-                  "name": "app_stats_returning_on_conflict",
+                  "name": "app_stats_on_conflict",
                   "ofType": null
                 },
                 "defaultValue": null,
@@ -43296,7 +43750,7 @@
             ],
             "type": {
               "kind": "OBJECT",
-              "name": "app_stats_returning",
+              "name": "app_stats",
               "ofType": null
             },
             "isDeprecated": false,
@@ -45880,15 +46334,15 @@
             "deprecationReason": null
           },
           {
-            "name": "update_app_stats_returning",
-            "description": "update data of the table: \"app_stats_returning\"",
+            "name": "update_app_stats",
+            "description": "update data of the table: \"app_stats\"",
             "args": [
               {
                 "name": "_inc",
                 "description": "increments the numeric columns with given value of the filtered values",
                 "type": {
                   "kind": "INPUT_OBJECT",
-                  "name": "app_stats_returning_inc_input",
+                  "name": "app_stats_inc_input",
                   "ofType": null
                 },
                 "defaultValue": null,
@@ -45900,7 +46354,7 @@
                 "description": "sets the columns of the filtered rows to the given values",
                 "type": {
                   "kind": "INPUT_OBJECT",
-                  "name": "app_stats_returning_set_input",
+                  "name": "app_stats_set_input",
                   "ofType": null
                 },
                 "defaultValue": null,
@@ -45915,7 +46369,7 @@
                   "name": null,
                   "ofType": {
                     "kind": "INPUT_OBJECT",
-                    "name": "app_stats_returning_bool_exp",
+                    "name": "app_stats_bool_exp",
                     "ofType": null
                   }
                 },
@@ -45926,22 +46380,22 @@
             ],
             "type": {
               "kind": "OBJECT",
-              "name": "app_stats_returning_mutation_response",
+              "name": "app_stats_mutation_response",
               "ofType": null
             },
             "isDeprecated": false,
             "deprecationReason": null
           },
           {
-            "name": "update_app_stats_returning_by_pk",
-            "description": "update single row of the table: \"app_stats_returning\"",
+            "name": "update_app_stats_by_pk",
+            "description": "update single row of the table: \"app_stats\"",
             "args": [
               {
                 "name": "_inc",
                 "description": "increments the numeric columns with given value of the filtered values",
                 "type": {
                   "kind": "INPUT_OBJECT",
-                  "name": "app_stats_returning_inc_input",
+                  "name": "app_stats_inc_input",
                   "ofType": null
                 },
                 "defaultValue": null,
@@ -45953,7 +46407,7 @@
                 "description": "sets the columns of the filtered rows to the given values",
                 "type": {
                   "kind": "INPUT_OBJECT",
-                  "name": "app_stats_returning_set_input",
+                  "name": "app_stats_set_input",
                   "ofType": null
                 },
                 "defaultValue": null,
@@ -45968,7 +46422,7 @@
                   "name": null,
                   "ofType": {
                     "kind": "INPUT_OBJECT",
-                    "name": "app_stats_returning_pk_columns_input",
+                    "name": "app_stats_pk_columns_input",
                     "ofType": null
                   }
                 },
@@ -45979,15 +46433,15 @@
             ],
             "type": {
               "kind": "OBJECT",
-              "name": "app_stats_returning",
+              "name": "app_stats",
               "ofType": null
             },
             "isDeprecated": false,
             "deprecationReason": null
           },
           {
-            "name": "update_app_stats_returning_many",
-            "description": "update multiples rows of table: \"app_stats_returning\"",
+            "name": "update_app_stats_many",
+            "description": "update multiples rows of table: \"app_stats\"",
             "args": [
               {
                 "name": "updates",
@@ -46003,7 +46457,7 @@
                       "name": null,
                       "ofType": {
                         "kind": "INPUT_OBJECT",
-                        "name": "app_stats_returning_updates",
+                        "name": "app_stats_updates",
                         "ofType": null
                       }
                     }
@@ -46019,7 +46473,7 @@
               "name": null,
               "ofType": {
                 "kind": "OBJECT",
-                "name": "app_stats_returning_mutation_response",
+                "name": "app_stats_mutation_response",
                 "ofType": null
               }
             },
@@ -54996,24 +55450,8 @@
           },
           {
             "name": "app_stats",
-            "description": "execute function \"app_stats\" which returns \"app_stats_returning\"",
+            "description": "fetch data from the table: \"app_stats\"",
             "args": [
-              {
-                "name": "args",
-                "description": "input parameters for function \"app_stats\"",
-                "type": {
-                  "kind": "NON_NULL",
-                  "name": null,
-                  "ofType": {
-                    "kind": "INPUT_OBJECT",
-                    "name": "app_stats_args",
-                    "ofType": null
-                  }
-                },
-                "defaultValue": null,
-                "isDeprecated": false,
-                "deprecationReason": null
-              },
               {
                 "name": "distinct_on",
                 "description": "distinct select on columns",
@@ -55025,7 +55463,7 @@
                     "name": null,
                     "ofType": {
                       "kind": "ENUM",
-                      "name": "app_stats_returning_select_column",
+                      "name": "app_stats_select_column",
                       "ofType": null
                     }
                   }
@@ -55069,7 +55507,7 @@
                     "name": null,
                     "ofType": {
                       "kind": "INPUT_OBJECT",
-                      "name": "app_stats_returning_order_by",
+                      "name": "app_stats_order_by",
                       "ofType": null
                     }
                   }
@@ -55083,7 +55521,7 @@
                 "description": "filter the rows returned",
                 "type": {
                   "kind": "INPUT_OBJECT",
-                  "name": "app_stats_returning_bool_exp",
+                  "name": "app_stats_bool_exp",
                   "ofType": null
                 },
                 "defaultValue": null,
@@ -55102,7 +55540,7 @@
                   "name": null,
                   "ofType": {
                     "kind": "OBJECT",
-                    "name": "app_stats_returning",
+                    "name": "app_stats",
                     "ofType": null
                   }
                 }
@@ -55113,24 +55551,8 @@
           },
           {
             "name": "app_stats_aggregate",
-            "description": "execute function \"app_stats\" and query aggregates on result of table type \"app_stats_returning\"",
+            "description": "fetch aggregated fields from the table: \"app_stats\"",
             "args": [
-              {
-                "name": "args",
-                "description": "input parameters for function \"app_stats_aggregate\"",
-                "type": {
-                  "kind": "NON_NULL",
-                  "name": null,
-                  "ofType": {
-                    "kind": "INPUT_OBJECT",
-                    "name": "app_stats_args",
-                    "ofType": null
-                  }
-                },
-                "defaultValue": null,
-                "isDeprecated": false,
-                "deprecationReason": null
-              },
               {
                 "name": "distinct_on",
                 "description": "distinct select on columns",
@@ -55142,7 +55564,7 @@
                     "name": null,
                     "ofType": {
                       "kind": "ENUM",
-                      "name": "app_stats_returning_select_column",
+                      "name": "app_stats_select_column",
                       "ofType": null
                     }
                   }
@@ -55186,7 +55608,7 @@
                     "name": null,
                     "ofType": {
                       "kind": "INPUT_OBJECT",
-                      "name": "app_stats_returning_order_by",
+                      "name": "app_stats_order_by",
                       "ofType": null
                     }
                   }
@@ -55200,7 +55622,7 @@
                 "description": "filter the rows returned",
                 "type": {
                   "kind": "INPUT_OBJECT",
-                  "name": "app_stats_returning_bool_exp",
+                  "name": "app_stats_bool_exp",
                   "ofType": null
                 },
                 "defaultValue": null,
@@ -55213,7 +55635,7 @@
               "name": null,
               "ofType": {
                 "kind": "OBJECT",
-                "name": "app_stats_returning_aggregate",
+                "name": "app_stats_aggregate",
                 "ofType": null
               }
             },
@@ -55221,202 +55643,8 @@
             "deprecationReason": null
           },
           {
-            "name": "app_stats_returning",
-            "description": "fetch data from the table: \"app_stats_returning\"",
-            "args": [
-              {
-                "name": "distinct_on",
-                "description": "distinct select on columns",
-                "type": {
-                  "kind": "LIST",
-                  "name": null,
-                  "ofType": {
-                    "kind": "NON_NULL",
-                    "name": null,
-                    "ofType": {
-                      "kind": "ENUM",
-                      "name": "app_stats_returning_select_column",
-                      "ofType": null
-                    }
-                  }
-                },
-                "defaultValue": null,
-                "isDeprecated": false,
-                "deprecationReason": null
-              },
-              {
-                "name": "limit",
-                "description": "limit the number of rows returned",
-                "type": {
-                  "kind": "SCALAR",
-                  "name": "Int",
-                  "ofType": null
-                },
-                "defaultValue": null,
-                "isDeprecated": false,
-                "deprecationReason": null
-              },
-              {
-                "name": "offset",
-                "description": "skip the first n rows. Use only with order_by",
-                "type": {
-                  "kind": "SCALAR",
-                  "name": "Int",
-                  "ofType": null
-                },
-                "defaultValue": null,
-                "isDeprecated": false,
-                "deprecationReason": null
-              },
-              {
-                "name": "order_by",
-                "description": "sort the rows by one or more columns",
-                "type": {
-                  "kind": "LIST",
-                  "name": null,
-                  "ofType": {
-                    "kind": "NON_NULL",
-                    "name": null,
-                    "ofType": {
-                      "kind": "INPUT_OBJECT",
-                      "name": "app_stats_returning_order_by",
-                      "ofType": null
-                    }
-                  }
-                },
-                "defaultValue": null,
-                "isDeprecated": false,
-                "deprecationReason": null
-              },
-              {
-                "name": "where",
-                "description": "filter the rows returned",
-                "type": {
-                  "kind": "INPUT_OBJECT",
-                  "name": "app_stats_returning_bool_exp",
-                  "ofType": null
-                },
-                "defaultValue": null,
-                "isDeprecated": false,
-                "deprecationReason": null
-              }
-            ],
-            "type": {
-              "kind": "NON_NULL",
-              "name": null,
-              "ofType": {
-                "kind": "LIST",
-                "name": null,
-                "ofType": {
-                  "kind": "NON_NULL",
-                  "name": null,
-                  "ofType": {
-                    "kind": "OBJECT",
-                    "name": "app_stats_returning",
-                    "ofType": null
-                  }
-                }
-              }
-            },
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
-            "name": "app_stats_returning_aggregate",
-            "description": "fetch aggregated fields from the table: \"app_stats_returning\"",
-            "args": [
-              {
-                "name": "distinct_on",
-                "description": "distinct select on columns",
-                "type": {
-                  "kind": "LIST",
-                  "name": null,
-                  "ofType": {
-                    "kind": "NON_NULL",
-                    "name": null,
-                    "ofType": {
-                      "kind": "ENUM",
-                      "name": "app_stats_returning_select_column",
-                      "ofType": null
-                    }
-                  }
-                },
-                "defaultValue": null,
-                "isDeprecated": false,
-                "deprecationReason": null
-              },
-              {
-                "name": "limit",
-                "description": "limit the number of rows returned",
-                "type": {
-                  "kind": "SCALAR",
-                  "name": "Int",
-                  "ofType": null
-                },
-                "defaultValue": null,
-                "isDeprecated": false,
-                "deprecationReason": null
-              },
-              {
-                "name": "offset",
-                "description": "skip the first n rows. Use only with order_by",
-                "type": {
-                  "kind": "SCALAR",
-                  "name": "Int",
-                  "ofType": null
-                },
-                "defaultValue": null,
-                "isDeprecated": false,
-                "deprecationReason": null
-              },
-              {
-                "name": "order_by",
-                "description": "sort the rows by one or more columns",
-                "type": {
-                  "kind": "LIST",
-                  "name": null,
-                  "ofType": {
-                    "kind": "NON_NULL",
-                    "name": null,
-                    "ofType": {
-                      "kind": "INPUT_OBJECT",
-                      "name": "app_stats_returning_order_by",
-                      "ofType": null
-                    }
-                  }
-                },
-                "defaultValue": null,
-                "isDeprecated": false,
-                "deprecationReason": null
-              },
-              {
-                "name": "where",
-                "description": "filter the rows returned",
-                "type": {
-                  "kind": "INPUT_OBJECT",
-                  "name": "app_stats_returning_bool_exp",
-                  "ofType": null
-                },
-                "defaultValue": null,
-                "isDeprecated": false,
-                "deprecationReason": null
-              }
-            ],
-            "type": {
-              "kind": "NON_NULL",
-              "name": null,
-              "ofType": {
-                "kind": "OBJECT",
-                "name": "app_stats_returning_aggregate",
-                "ofType": null
-              }
-            },
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
-            "name": "app_stats_returning_by_pk",
-            "description": "fetch data from the table: \"app_stats_returning\" using primary key columns",
+            "name": "app_stats_by_pk",
+            "description": "fetch data from the table: \"app_stats\" using primary key columns",
             "args": [
               {
                 "name": "app_id",
@@ -55433,11 +55661,27 @@
                 "defaultValue": null,
                 "isDeprecated": false,
                 "deprecationReason": null
+              },
+              {
+                "name": "date",
+                "description": null,
+                "type": {
+                  "kind": "NON_NULL",
+                  "name": null,
+                  "ofType": {
+                    "kind": "SCALAR",
+                    "name": "date",
+                    "ofType": null
+                  }
+                },
+                "defaultValue": null,
+                "isDeprecated": false,
+                "deprecationReason": null
               }
             ],
             "type": {
               "kind": "OBJECT",
-              "name": "app_stats_returning",
+              "name": "app_stats",
               "ofType": null
             },
             "isDeprecated": false,
@@ -63925,24 +64169,8 @@
           },
           {
             "name": "app_stats",
-            "description": "execute function \"app_stats\" which returns \"app_stats_returning\"",
+            "description": "fetch data from the table: \"app_stats\"",
             "args": [
-              {
-                "name": "args",
-                "description": "input parameters for function \"app_stats\"",
-                "type": {
-                  "kind": "NON_NULL",
-                  "name": null,
-                  "ofType": {
-                    "kind": "INPUT_OBJECT",
-                    "name": "app_stats_args",
-                    "ofType": null
-                  }
-                },
-                "defaultValue": null,
-                "isDeprecated": false,
-                "deprecationReason": null
-              },
               {
                 "name": "distinct_on",
                 "description": "distinct select on columns",
@@ -63954,7 +64182,7 @@
                     "name": null,
                     "ofType": {
                       "kind": "ENUM",
-                      "name": "app_stats_returning_select_column",
+                      "name": "app_stats_select_column",
                       "ofType": null
                     }
                   }
@@ -63998,7 +64226,7 @@
                     "name": null,
                     "ofType": {
                       "kind": "INPUT_OBJECT",
-                      "name": "app_stats_returning_order_by",
+                      "name": "app_stats_order_by",
                       "ofType": null
                     }
                   }
@@ -64012,7 +64240,7 @@
                 "description": "filter the rows returned",
                 "type": {
                   "kind": "INPUT_OBJECT",
-                  "name": "app_stats_returning_bool_exp",
+                  "name": "app_stats_bool_exp",
                   "ofType": null
                 },
                 "defaultValue": null,
@@ -64031,7 +64259,7 @@
                   "name": null,
                   "ofType": {
                     "kind": "OBJECT",
-                    "name": "app_stats_returning",
+                    "name": "app_stats",
                     "ofType": null
                   }
                 }
@@ -64042,24 +64270,8 @@
           },
           {
             "name": "app_stats_aggregate",
-            "description": "execute function \"app_stats\" and query aggregates on result of table type \"app_stats_returning\"",
+            "description": "fetch aggregated fields from the table: \"app_stats\"",
             "args": [
-              {
-                "name": "args",
-                "description": "input parameters for function \"app_stats_aggregate\"",
-                "type": {
-                  "kind": "NON_NULL",
-                  "name": null,
-                  "ofType": {
-                    "kind": "INPUT_OBJECT",
-                    "name": "app_stats_args",
-                    "ofType": null
-                  }
-                },
-                "defaultValue": null,
-                "isDeprecated": false,
-                "deprecationReason": null
-              },
               {
                 "name": "distinct_on",
                 "description": "distinct select on columns",
@@ -64071,7 +64283,7 @@
                     "name": null,
                     "ofType": {
                       "kind": "ENUM",
-                      "name": "app_stats_returning_select_column",
+                      "name": "app_stats_select_column",
                       "ofType": null
                     }
                   }
@@ -64115,7 +64327,7 @@
                     "name": null,
                     "ofType": {
                       "kind": "INPUT_OBJECT",
-                      "name": "app_stats_returning_order_by",
+                      "name": "app_stats_order_by",
                       "ofType": null
                     }
                   }
@@ -64129,7 +64341,7 @@
                 "description": "filter the rows returned",
                 "type": {
                   "kind": "INPUT_OBJECT",
-                  "name": "app_stats_returning_bool_exp",
+                  "name": "app_stats_bool_exp",
                   "ofType": null
                 },
                 "defaultValue": null,
@@ -64142,7 +64354,7 @@
               "name": null,
               "ofType": {
                 "kind": "OBJECT",
-                "name": "app_stats_returning_aggregate",
+                "name": "app_stats_aggregate",
                 "ofType": null
               }
             },
@@ -64150,202 +64362,8 @@
             "deprecationReason": null
           },
           {
-            "name": "app_stats_returning",
-            "description": "fetch data from the table: \"app_stats_returning\"",
-            "args": [
-              {
-                "name": "distinct_on",
-                "description": "distinct select on columns",
-                "type": {
-                  "kind": "LIST",
-                  "name": null,
-                  "ofType": {
-                    "kind": "NON_NULL",
-                    "name": null,
-                    "ofType": {
-                      "kind": "ENUM",
-                      "name": "app_stats_returning_select_column",
-                      "ofType": null
-                    }
-                  }
-                },
-                "defaultValue": null,
-                "isDeprecated": false,
-                "deprecationReason": null
-              },
-              {
-                "name": "limit",
-                "description": "limit the number of rows returned",
-                "type": {
-                  "kind": "SCALAR",
-                  "name": "Int",
-                  "ofType": null
-                },
-                "defaultValue": null,
-                "isDeprecated": false,
-                "deprecationReason": null
-              },
-              {
-                "name": "offset",
-                "description": "skip the first n rows. Use only with order_by",
-                "type": {
-                  "kind": "SCALAR",
-                  "name": "Int",
-                  "ofType": null
-                },
-                "defaultValue": null,
-                "isDeprecated": false,
-                "deprecationReason": null
-              },
-              {
-                "name": "order_by",
-                "description": "sort the rows by one or more columns",
-                "type": {
-                  "kind": "LIST",
-                  "name": null,
-                  "ofType": {
-                    "kind": "NON_NULL",
-                    "name": null,
-                    "ofType": {
-                      "kind": "INPUT_OBJECT",
-                      "name": "app_stats_returning_order_by",
-                      "ofType": null
-                    }
-                  }
-                },
-                "defaultValue": null,
-                "isDeprecated": false,
-                "deprecationReason": null
-              },
-              {
-                "name": "where",
-                "description": "filter the rows returned",
-                "type": {
-                  "kind": "INPUT_OBJECT",
-                  "name": "app_stats_returning_bool_exp",
-                  "ofType": null
-                },
-                "defaultValue": null,
-                "isDeprecated": false,
-                "deprecationReason": null
-              }
-            ],
-            "type": {
-              "kind": "NON_NULL",
-              "name": null,
-              "ofType": {
-                "kind": "LIST",
-                "name": null,
-                "ofType": {
-                  "kind": "NON_NULL",
-                  "name": null,
-                  "ofType": {
-                    "kind": "OBJECT",
-                    "name": "app_stats_returning",
-                    "ofType": null
-                  }
-                }
-              }
-            },
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
-            "name": "app_stats_returning_aggregate",
-            "description": "fetch aggregated fields from the table: \"app_stats_returning\"",
-            "args": [
-              {
-                "name": "distinct_on",
-                "description": "distinct select on columns",
-                "type": {
-                  "kind": "LIST",
-                  "name": null,
-                  "ofType": {
-                    "kind": "NON_NULL",
-                    "name": null,
-                    "ofType": {
-                      "kind": "ENUM",
-                      "name": "app_stats_returning_select_column",
-                      "ofType": null
-                    }
-                  }
-                },
-                "defaultValue": null,
-                "isDeprecated": false,
-                "deprecationReason": null
-              },
-              {
-                "name": "limit",
-                "description": "limit the number of rows returned",
-                "type": {
-                  "kind": "SCALAR",
-                  "name": "Int",
-                  "ofType": null
-                },
-                "defaultValue": null,
-                "isDeprecated": false,
-                "deprecationReason": null
-              },
-              {
-                "name": "offset",
-                "description": "skip the first n rows. Use only with order_by",
-                "type": {
-                  "kind": "SCALAR",
-                  "name": "Int",
-                  "ofType": null
-                },
-                "defaultValue": null,
-                "isDeprecated": false,
-                "deprecationReason": null
-              },
-              {
-                "name": "order_by",
-                "description": "sort the rows by one or more columns",
-                "type": {
-                  "kind": "LIST",
-                  "name": null,
-                  "ofType": {
-                    "kind": "NON_NULL",
-                    "name": null,
-                    "ofType": {
-                      "kind": "INPUT_OBJECT",
-                      "name": "app_stats_returning_order_by",
-                      "ofType": null
-                    }
-                  }
-                },
-                "defaultValue": null,
-                "isDeprecated": false,
-                "deprecationReason": null
-              },
-              {
-                "name": "where",
-                "description": "filter the rows returned",
-                "type": {
-                  "kind": "INPUT_OBJECT",
-                  "name": "app_stats_returning_bool_exp",
-                  "ofType": null
-                },
-                "defaultValue": null,
-                "isDeprecated": false,
-                "deprecationReason": null
-              }
-            ],
-            "type": {
-              "kind": "NON_NULL",
-              "name": null,
-              "ofType": {
-                "kind": "OBJECT",
-                "name": "app_stats_returning_aggregate",
-                "ofType": null
-              }
-            },
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
-            "name": "app_stats_returning_by_pk",
-            "description": "fetch data from the table: \"app_stats_returning\" using primary key columns",
+            "name": "app_stats_by_pk",
+            "description": "fetch data from the table: \"app_stats\" using primary key columns",
             "args": [
               {
                 "name": "app_id",
@@ -64362,19 +64380,35 @@
                 "defaultValue": null,
                 "isDeprecated": false,
                 "deprecationReason": null
+              },
+              {
+                "name": "date",
+                "description": null,
+                "type": {
+                  "kind": "NON_NULL",
+                  "name": null,
+                  "ofType": {
+                    "kind": "SCALAR",
+                    "name": "date",
+                    "ofType": null
+                  }
+                },
+                "defaultValue": null,
+                "isDeprecated": false,
+                "deprecationReason": null
               }
             ],
             "type": {
               "kind": "OBJECT",
-              "name": "app_stats_returning",
+              "name": "app_stats",
               "ofType": null
             },
             "isDeprecated": false,
             "deprecationReason": null
           },
           {
-            "name": "app_stats_returning_stream",
-            "description": "fetch data from the table in a streaming manner: \"app_stats_returning\"",
+            "name": "app_stats_stream",
+            "description": "fetch data from the table in a streaming manner: \"app_stats\"",
             "args": [
               {
                 "name": "batch_size",
@@ -64403,7 +64437,7 @@
                     "name": null,
                     "ofType": {
                       "kind": "INPUT_OBJECT",
-                      "name": "app_stats_returning_stream_cursor_input",
+                      "name": "app_stats_stream_cursor_input",
                       "ofType": null
                     }
                   }
@@ -64417,7 +64451,7 @@
                 "description": "filter the rows returned",
                 "type": {
                   "kind": "INPUT_OBJECT",
-                  "name": "app_stats_returning_bool_exp",
+                  "name": "app_stats_bool_exp",
                   "ofType": null
                 },
                 "defaultValue": null,
@@ -64436,7 +64470,7 @@
                   "name": null,
                   "ofType": {
                     "kind": "OBJECT",
-                    "name": "app_stats_returning",
+                    "name": "app_stats",
                     "ofType": null
                   }
                 }
