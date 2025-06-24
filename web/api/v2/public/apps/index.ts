@@ -20,6 +20,7 @@ import { getSdk as getWebHighlightsSdk } from "./graphql/get-app-web-highlights.
 
 import { formatAppMetadata, rankApps } from "@/api/helpers/app-store";
 import { compareVersions } from "@/lib/compare-versions";
+import { logger } from "@/lib/logger";
 import { CONTACTS_APP_AVAILABLE_FROM } from "../constants";
 import {
   GetHighlightsQuery,
@@ -28,7 +29,7 @@ import {
 
 const queryParamsSchema = yup.object({
   page: yup.number().integer().min(1).default(1).notRequired(),
-  limit: yup.number().integer().min(1).max(500).notRequired().default(250),
+  limit: yup.number().integer().min(1).max(1000).notRequired().default(500),
   app_mode: yup
     .string()
     .oneOf(["mini-app", "external", "native"])
@@ -129,6 +130,14 @@ export const GET = async (request: NextRequest) => {
       detail: "Something went wrong. Please try again.",
       attribute: null,
       req: request,
+    });
+  }
+
+  // notify if length is close to limit
+  if (limitValue >= 500 && page === 1 && topApps.length > limitValue * 0.8) {
+    logger.warn("App store response length is close to limit", {
+      limit: limitValue,
+      topAppsLength: topApps.length,
     });
   }
 
@@ -328,24 +337,29 @@ export const GET = async (request: NextRequest) => {
     return { ...app, category_ranking: categoryApps.indexOf(app) + 1 };
   });
 
-  return NextResponse.json(
-    {
-      app_rankings: {
-        top_apps: rankedAppsWithCategoryRanking,
-        highlights: highlightedApps,
-      },
-      all_category: {
-        ...AllCategory,
-        name: getLocalisedCategory(AllCategory.name, locale).name,
-      },
-      categories,
+  const responseBody = {
+    app_rankings: {
+      top_apps: rankedAppsWithCategoryRanking,
+      highlights: highlightedApps,
     },
-    {
-      headers: {
-        // https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/Expiration.html#ExpirationDownloadDist
-        // https://aws.amazon.com/about-aws/whats-new/2023/05/amazon-cloudfront-stale-while-revalidate-stale-if-error-cache-control-directives/
-        "Cache-Control": "public, max-age=5, stale-if-error=86400",
-      },
+    all_category: {
+      ...AllCategory,
+      name: getLocalisedCategory(AllCategory.name, locale).name,
     },
-  );
+    categories,
+  };
+
+  const contentLength = Buffer.byteLength(
+    JSON.stringify(responseBody),
+    "utf-8",
+  ).toString();
+
+  return NextResponse.json(responseBody, {
+    headers: {
+      "Content-Length": contentLength,
+      // https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/Expiration.html#ExpirationDownloadDist
+      // https://aws.amazon.com/about-aws/whats-new/2023/05/amazon-cloudfront-stale-while-revalidate-stale-if-error-cache-control-directives/
+      "Cache-Control": "public, max-age=5, stale-if-error=86400",
+    },
+  });
 };

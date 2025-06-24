@@ -133,7 +133,7 @@ export const appWorldAppButtonTextSchema = yup
 
 export const appWorldAppDescriptionSchema = yup
   .string()
-  .max(35, "Annotation cannot exceed 35 characters")
+  .max(40, "Annotation cannot exceed 40 characters")
   .test("no-links", "Links not allowed here", noLinks)
   .matches(allowedCommonCharactersRegex, {
     message:
@@ -216,6 +216,27 @@ export const notificationMessageSchema = yup
       return allowCommonCharactersAndEmojisRegex.test(
         valueWithoutSpecialString,
       );
+    },
+  );
+
+export const notificationTitleSchema = yup
+  .string()
+  .strict()
+  .optional()
+  .max(30)
+  .test(
+    "valid-title-with-emojis",
+    "Title can only contain letters, numbers, punctuation, emojis, and spaces",
+    (value: string | undefined) => {
+      if (!value) return false;
+
+      // remove special string and check if the remainder is valid
+      const valueWithoutSpecialString = value.replace(
+        NOTIFICATION_USERNAME_SPECIAL_STRING,
+        "",
+      );
+
+      return allowTitleAndEmojisRegex.test(valueWithoutSpecialString);
     },
   );
 

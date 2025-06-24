@@ -19,6 +19,7 @@ export const GetIsAppNotificationsDisabledDocument = gql`
       where: {
         app_id: { _eq: $app_id }
         notification_permission_status: { _neq: "normal" }
+        verification_status: { _eq: "verified" }
       }
     ) {
       id
