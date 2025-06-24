@@ -64,7 +64,6 @@ update_permissions:
       columns:
         - is_active
         - name
-        - team_id
       filter:
         team:
           memberships:
