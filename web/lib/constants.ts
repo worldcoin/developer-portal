@@ -19,7 +19,7 @@ export const SECURE_DOCUMENT_SEQUENCER =
 export const ORB_SEQUENCER_STAGING =
   process.env.NEXT_PUBLIC_APP_ENV === "production"
     ? "https://signup-orb-ethereum.stage-crypto.worldcoin.org"
-    : "https://signup-app.stage-crypto.worldcoin.dev";
+    : "https://signup-orb-ethereum.stage-crypto.worldcoin.dev";
 export const PHONE_SEQUENCER_STAGING =
   "https://signup-phone-ethereum.stage-crypto.worldcoin.org";
 export const DOCUMENT_SEQUENCER_STAGING =
