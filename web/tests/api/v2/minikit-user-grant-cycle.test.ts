@@ -79,7 +79,9 @@ const validWalletAddress = "0x1234567890123456789012345678901234567890";
 const validApiKey = `api_${apiKeyValue}`;
 
 const mockSuccessResponse = {
-  nextGrantClaimUTCDate: "2024-12-31T23:59:59.999Z",
+  result: {
+    nextGrantClaimUTCDate: "2024-12-31T23:59:59.999Z",
+  },
 };
 
 // #endregion
@@ -111,7 +113,7 @@ describe("/api/v2/minikit/user-grant-cycle [success cases]", () => {
       success: true,
       status: 200,
       result: {
-        nextGrantClaimUTCDate: mockSuccessResponse.nextGrantClaimUTCDate,
+        nextGrantClaimUTCDate: mockSuccessResponse.result.nextGrantClaimUTCDate,
       },
     });
 
