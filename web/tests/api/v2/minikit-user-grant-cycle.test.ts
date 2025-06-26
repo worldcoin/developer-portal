@@ -9,6 +9,7 @@ const signedFetch = jest.fn();
 jest.mock("../../../lib/logger", () => ({
   logger: {
     error: jest.fn(),
+    info: jest.fn(),
     warn: jest.fn(),
   },
 }));
