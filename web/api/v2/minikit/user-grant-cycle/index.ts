@@ -5,6 +5,10 @@ import { createSignedFetcher } from "aws-sigv4-fetch";
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
 
+type UserGrantCycleResponse = {
+  nextGrantClaimUTCDate: string;
+};
+
 const userGrantCycleQuerySchema = yup.object({
   wallet_address: yup
     .string()
@@ -81,12 +85,14 @@ export const GET = async (req: NextRequest) => {
       });
     }
 
+    const response: UserGrantCycleResponse = data.result;
+
     // Success case - return the nextGrantClaimDate
     return NextResponse.json({
       success: true,
       status: 200,
       result: {
-        nextGrantClaimUTCDate: data.nextGrantClaimUTCDate,
+        nextGrantClaimUTCDate: response.nextGrantClaimUTCDate,
       },
     });
   } catch (error) {
