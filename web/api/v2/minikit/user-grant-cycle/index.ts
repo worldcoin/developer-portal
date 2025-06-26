@@ -1,6 +1,7 @@
 import { verifyApiKey } from "@/api/helpers/auth/verify-api-key";
 import { errorResponse } from "@/api/helpers/errors";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
+import { logger } from "@/lib/logger";
 import { createSignedFetcher } from "aws-sigv4-fetch";
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
@@ -58,6 +59,14 @@ export const GET = async (req: NextRequest) => {
     const data = await res.json();
 
     if (!res.ok) {
+      logger.error(
+        `Failed to fetch user grant cycle: ${data?.code} ${data?.message}`,
+        {
+          wallet_address,
+          app_id,
+          error: data,
+        },
+      );
       const isKnownErrorCode = [
         "user_not_found_for_wallet_address",
         "app_not_installed",
@@ -80,6 +89,16 @@ export const GET = async (req: NextRequest) => {
         team_id: apiKeyResult.teamId,
       });
     }
+
+    logger.info(
+      `Successfully fetched user grant cycle: ${data.nextGrantClaimUTCDate}`,
+      {
+        data,
+        wallet_address,
+        app_id,
+        team_id: apiKeyResult.teamId,
+      },
+    );
 
     // Success case - return the nextGrantClaimDate
     return NextResponse.json({
