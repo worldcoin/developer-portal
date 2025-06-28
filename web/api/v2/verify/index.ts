@@ -20,9 +20,10 @@ import { getSdk as atomicUpsertNullifierSdk } from "./graphql/atomic-upsert-null
 import { getSdk as getFetchAppActionSdk } from "./graphql/fetch-app-action.generated";
 
 // V2 verification whitelist - add app_ids here to use v2 verification
-const V2_ENABLED_APP_IDS = process.env.V2_VERIFICATION_APP_IDS
-  ? process.env.V2_VERIFICATION_APP_IDS.split(",")
-  : [];
+const V2_ENABLED_APP_IDS = [
+  "app_315057b8441a523e7a9b2416f1262a65",
+  "app_020c82fbf3c087eb31600929a34990e4",
+];
 
 const schema = yup.object({
   action: yup
