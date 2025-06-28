@@ -10,12 +10,19 @@ import {
   nullifierHashToBigIntStr,
   verifyProof,
 } from "@/api/helpers/verify";
+import { verifyProof as verifyProofV2 } from "@/api/helpers/verify.v2";
+import { logger } from "@/lib/logger";
 import { captureEvent } from "@/services/posthogClient";
 import { AppErrorCodes, VerificationLevel } from "@worldcoin/idkit-core";
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
 import { getSdk as atomicUpsertNullifierSdk } from "./graphql/atomic-upsert-nullifier.generated";
 import { getSdk as getFetchAppActionSdk } from "./graphql/fetch-app-action.generated";
+
+// V2 verification whitelist - add app_ids here to use v2 verification
+const V2_ENABLED_APP_IDS = process.env.V2_VERIFICATION_APP_IDS
+  ? process.env.V2_VERIFICATION_APP_IDS.split(",")
+  : [];
 
 const schema = yup.object({
   action: yup
@@ -163,7 +170,15 @@ export async function POST(
 
   try {
     // ANCHOR: Verify the proof with the World ID smart contract
-    const { error, success } = await verifyProof(
+    // Use v2 verification if app_id is in whitelist
+    const useV2 = V2_ENABLED_APP_IDS.includes(app_id);
+    const verifyFunction = useV2 ? verifyProofV2 : verifyProof;
+
+    if (useV2) {
+      logger.info(`Using v2 verification for app_id: ${app_id}`);
+    }
+
+    const { error, success } = await verifyFunction(
       {
         signal_hash: parsedParams.signal_hash,
         proof: parsedParams.proof,
