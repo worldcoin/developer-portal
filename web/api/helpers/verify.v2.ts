@@ -1,10 +1,6 @@
 import { IInternalError } from "@/lib/types";
 import { sequencerMapping } from "@/lib/utils";
-import {
-  IInputParams,
-  IVerifyParams,
-  parseProofInputs,
-} from "./verify";
+import { IInputParams, IVerifyParams, parseProofInputs } from "./verify";
 
 const KNOWN_ERROR_CODES = [
   // V2 API error mapping
@@ -126,7 +122,8 @@ export const verifyProof = async (
   } catch {
     return {
       error: {
-        message: "There was an internal issue processing the verification response.",
+        message:
+          "There was an internal issue processing the verification response.",
         code: "internal_error",
         statusCode: 500,
       },
