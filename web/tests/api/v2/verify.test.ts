@@ -715,18 +715,12 @@ describe("/api/v2/verify [error cases]", () => {
     const stagingAppId = "app_staging_558238f8f6380338449a552aeffccf29";
     const ctx = { params: { app_id: stagingAppId } };
 
-    const mockReq = new NextRequest(
-      new URL(`https://foo.bar/api/v2/verify/${stagingAppId}`),
-      {
-        method: "POST",
-        body: JSON.stringify({
-          ...semaphoreProofParamsMock,
-          action: "action_verify",
-          verification_level: VerificationLevel.Device,
-          // Note: max_age is not provided
-        }),
-      },
-    );
+    const mockReq = createMockRequest(getUrl(stagingAppId), {
+      ...semaphoreProofParamsMock,
+      action: "action_verify",
+      verification_level: VerificationLevel.Device,
+      // Note: max_age is not provided
+    });
 
     const fetchAppResponse = {
       app: [
@@ -737,15 +731,14 @@ describe("/api/v2/verify [error cases]", () => {
       ],
     };
 
-    // Mock to capture the URL that was called
-    const fetchMock = jest.fn(() =>
-      Promise.resolve({
-        json: jest.fn(() => Promise.resolve({})),
-        ok: true,
-        status: 200,
-      }),
-    );
-    global.fetch = fetchMock;
+    // Mock the fetch for verifyProof
+    mockFetch({
+      body: {
+        status: "mined",
+      },
+      ok: true,
+      status: 200,
+    });
 
     FetchAppAction.mockResolvedValue(fetchAppResponse);
     AtomicUpsertNullifier.mockResolvedValue({
@@ -764,7 +757,7 @@ describe("/api/v2/verify [error cases]", () => {
     expect(response.status).toBe(200);
 
     // Check that the fetch was called with the default max_age (7 days = 604800 seconds)
-    expect(fetchMock).toHaveBeenCalledWith(
+    expect(fetch).toHaveBeenCalledWith(
       expect.stringContaining("maxRootAgeSeconds=604800"),
       expect.any(Object),
     );
@@ -775,18 +768,12 @@ describe("/api/v2/verify [error cases]", () => {
     const ctx = { params: { app_id: stagingAppId } };
     const customMaxAge = 7200; // 2 hours
 
-    const mockReq = new NextRequest(
-      new URL(`https://foo.bar/api/v2/verify/${stagingAppId}`),
-      {
-        method: "POST",
-        body: JSON.stringify({
-          ...semaphoreProofParamsMock,
-          action: "action_verify",
-          verification_level: VerificationLevel.Device,
-          max_age: customMaxAge,
-        }),
-      },
-    );
+    const mockReq = createMockRequest(getUrl(stagingAppId), {
+      ...semaphoreProofParamsMock,
+      action: "action_verify",
+      verification_level: VerificationLevel.Device,
+      max_age: customMaxAge,
+    });
 
     const fetchAppResponse = {
       app: [
@@ -797,15 +784,14 @@ describe("/api/v2/verify [error cases]", () => {
       ],
     };
 
-    // Mock to capture the URL that was called
-    const fetchMock = jest.fn(() =>
-      Promise.resolve({
-        json: jest.fn(() => Promise.resolve({})),
-        ok: true,
-        status: 200,
-      }),
-    );
-    global.fetch = fetchMock;
+    // Mock the fetch for verifyProof
+    mockFetch({
+      body: {
+        status: "mined",
+      },
+      ok: true,
+      status: 200,
+    });
 
     FetchAppAction.mockResolvedValue(fetchAppResponse);
     AtomicUpsertNullifier.mockResolvedValue({
@@ -824,7 +810,7 @@ describe("/api/v2/verify [error cases]", () => {
     expect(response.status).toBe(200);
 
     // Check that the fetch was called with the provided max_age
-    expect(fetchMock).toHaveBeenCalledWith(
+    expect(fetch).toHaveBeenCalledWith(
       expect.stringContaining(`maxRootAgeSeconds=${customMaxAge}`),
       expect.any(Object),
     );
