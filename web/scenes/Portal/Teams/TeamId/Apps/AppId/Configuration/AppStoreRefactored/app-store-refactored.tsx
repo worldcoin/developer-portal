@@ -393,21 +393,33 @@ export const AppStoreFormRefactored = (props: {
           control={control}
           disabled={!isEditable || !isEnoughPermissions}
           render={({ field }) => (
-            <div className="flex gap-x-6">
-              <Radio
-                label="Yes"
-                value="true"
-                checked={field.value === true}
-                onChange={() => field.onChange(true)}
-                disabled={!isEditable || !isEnoughPermissions}
-              />
-              <Radio
-                label="No"
-                value="false"
-                checked={field.value === false}
-                onChange={() => field.onChange(false)}
-                disabled={!isEditable || !isEnoughPermissions}
-              />
+            <div>
+              <div className="flex gap-x-6">
+                <Radio
+                  label="Yes"
+                  value="true"
+                  checked={field.value === true}
+                  onChange={() => field.onChange(true)}
+                  disabled={!isEditable || !isEnoughPermissions}
+                  errors={errors.is_android_only}
+                />
+                <Radio
+                  label="No"
+                  value="false"
+                  checked={field.value === false}
+                  onChange={() => field.onChange(false)}
+                  disabled={!isEditable || !isEnoughPermissions}
+                  errors={errors.is_android_only}
+                />
+              </div>
+              {errors.is_android_only && (
+                <Typography
+                  variant={TYPOGRAPHY.R4}
+                  className="mt-1 text-system-error-500"
+                >
+                  {errors.is_android_only.message}
+                </Typography>
+              )}
             </div>
           )}
         />
@@ -430,22 +442,34 @@ export const AppStoreFormRefactored = (props: {
               control={control}
               disabled={!isEditable || !isEnoughPermissions}
               render={({ field }) => (
-                <>
-                  <Radio
-                    label="Yes"
-                    value="true"
-                    checked={field.value === true}
-                    onChange={() => field.onChange(true)}
-                    disabled={!isEditable || !isEnoughPermissions}
-                  />
-                  <Radio
-                    label="No"
-                    value="false"
-                    checked={field.value === false}
-                    onChange={() => field.onChange(false)}
-                    disabled={!isEditable || !isEnoughPermissions}
-                  />
-                </>
+                <div>
+                  <div className="flex gap-x-6">
+                    <Radio
+                      label="Yes"
+                      value="true"
+                      checked={field.value === true}
+                      onChange={() => field.onChange(true)}
+                      disabled={!isEditable || !isEnoughPermissions}
+                      errors={errors.is_for_humans_only}
+                    />
+                    <Radio
+                      label="No"
+                      value="false"
+                      checked={field.value === false}
+                      onChange={() => field.onChange(false)}
+                      disabled={!isEditable || !isEnoughPermissions}
+                      errors={errors.is_for_humans_only}
+                    />
+                  </div>
+                  {errors.is_for_humans_only && (
+                    <Typography
+                      variant={TYPOGRAPHY.R4}
+                      className="mt-1 text-system-error-500"
+                    >
+                      {errors.is_for_humans_only.message}
+                    </Typography>
+                  )}
+                </div>
               )}
             />
           </div>
@@ -712,8 +736,11 @@ export const AppStoreFormRefactored = (props: {
 
               return (
                 <div key={field.id} className="grid gap-y-4 p-4">
-                  <Typography variant={TYPOGRAPHY.H7} className="text-grey-700">
-                    {languageLabel} ({field.language})
+                  <Typography
+                    variant={TYPOGRAPHY.H7}
+                    className={"text-grey-700"}
+                  >
+                    {languageLabel}
                   </Typography>
 
                   <div className="grid gap-y-4">
