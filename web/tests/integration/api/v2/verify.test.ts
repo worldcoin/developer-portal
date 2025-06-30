@@ -114,13 +114,16 @@ const createSuccessFetchMock = (allowedNullifierHashes: string[] = []) => {
       } else {
         // Return error for non-allowed nullifier hashes
         return Promise.resolve(
-          new Response(JSON.stringify({ 
-            errorId: "decompressing_proof_error",
-            errorMessage: "Invalid proof"
-          }), {
-            status: 400,
-            headers: { "Content-Type": "application/json" },
-          }),
+          new Response(
+            JSON.stringify({
+              errorId: "decompressing_proof_error",
+              errorMessage: "Invalid proof",
+            }),
+            {
+              status: 400,
+              headers: { "Content-Type": "application/json" },
+            },
+          ),
         );
       }
     } catch (error) {

@@ -586,7 +586,7 @@ describe("/api/v2/verify [error cases]", () => {
     mockFetch({
       body: {
         errorId: "invalid_root",
-        errorMessage: "The provided Merkle root is invalid"
+        errorMessage: "The provided Merkle root is invalid",
       },
       ok: false,
       status: 400,
@@ -684,7 +684,7 @@ describe("/api/v2/verify [error cases]", () => {
     mockFetch({
       body: {
         errorId: "decompressing_proof_error",
-        errorMessage: "Invalid proof"
+        errorMessage: "Invalid proof",
       },
       ok: false,
       status: 400,
