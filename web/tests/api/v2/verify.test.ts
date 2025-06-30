@@ -710,5 +710,110 @@ describe("/api/v2/verify [error cases]", () => {
       app_id: stagingAppId,
     });
   });
+
+  it("uses default max_age when not provided", async () => {
+    const stagingAppId = "app_staging_558238f8f6380338449a552aeffccf29";
+    const ctx = { params: { app_id: stagingAppId } };
+
+    const mockReq = createMockRequest(getUrl(stagingAppId), {
+      ...semaphoreProofParamsMock,
+      action: "action_verify",
+      verification_level: VerificationLevel.Device,
+      // Note: max_age is not provided
+    });
+
+    const fetchAppResponse = {
+      app: [
+        {
+          ...validApp,
+          actions: [{ ...validAction, nullifiers: [] }],
+        },
+      ],
+    };
+
+    // Mock the fetch for verifyProof
+    mockFetch({
+      body: {
+        status: "mined",
+      },
+      ok: true,
+      status: 200,
+    });
+
+    FetchAppAction.mockResolvedValue(fetchAppResponse);
+    AtomicUpsertNullifier.mockResolvedValue({
+      update_nullifier: {
+        returning: [
+          {
+            uses: 1,
+            nullifier_hash: semaphoreProofParamsMock.nullifier_hash,
+            created_at: "2024-01-01T00:00:00.000Z",
+          },
+        ],
+      },
+    });
+
+    const response = await POST(mockReq, ctx);
+    expect(response.status).toBe(200);
+
+    // Check that the fetch was called with the default max_age (7 days = 604800 seconds)
+    expect(fetch).toHaveBeenCalledWith(
+      expect.stringContaining("maxRootAgeSeconds=604800"),
+      expect.any(Object),
+    );
+  });
+
+  it("uses provided max_age when specified", async () => {
+    const stagingAppId = "app_staging_558238f8f6380338449a552aeffccf29";
+    const ctx = { params: { app_id: stagingAppId } };
+    const customMaxAge = 7200; // 2 hours
+
+    const mockReq = createMockRequest(getUrl(stagingAppId), {
+      ...semaphoreProofParamsMock,
+      action: "action_verify",
+      verification_level: VerificationLevel.Device,
+      max_age: customMaxAge,
+    });
+
+    const fetchAppResponse = {
+      app: [
+        {
+          ...validApp,
+          actions: [{ ...validAction, nullifiers: [] }],
+        },
+      ],
+    };
+
+    // Mock the fetch for verifyProof
+    mockFetch({
+      body: {
+        status: "mined",
+      },
+      ok: true,
+      status: 200,
+    });
+
+    FetchAppAction.mockResolvedValue(fetchAppResponse);
+    AtomicUpsertNullifier.mockResolvedValue({
+      update_nullifier: {
+        returning: [
+          {
+            uses: 1,
+            nullifier_hash: semaphoreProofParamsMock.nullifier_hash,
+            created_at: "2024-01-01T00:00:00.000Z",
+          },
+        ],
+      },
+    });
+
+    const response = await POST(mockReq, ctx);
+    expect(response.status).toBe(200);
+
+    // Check that the fetch was called with the provided max_age
+    expect(fetch).toHaveBeenCalledWith(
+      expect.stringContaining(`maxRootAgeSeconds=${customMaxAge}`),
+      expect.any(Object),
+    );
+  });
 });
 // #endregion

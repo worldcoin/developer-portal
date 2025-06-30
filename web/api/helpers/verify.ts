@@ -6,6 +6,9 @@ import { VerificationLevel } from "@worldcoin/idkit-core";
 import { AbiCoder, toBeHex } from "ethers";
 import * as yup from "yup";
 
+// Default maximum root age in seconds (7 days)
+const DEFAULT_MAX_ROOT_AGE = 60 * 60 * 24 * 7;
+
 // Define the nested proof format type
 type NestedProof = [
   [string, string],
@@ -365,9 +368,7 @@ export const verifyProof = async (
     ];
 
   const response = await fetch(
-    verifyParams.max_age
-      ? `${sequencerUrl}/verifySemaphoreProof?maxRootAgeSeconds=${verifyParams.max_age}`
-      : `${sequencerUrl}/verifySemaphoreProof`,
+    `${sequencerUrl}/verifySemaphoreProof?maxRootAgeSeconds=${verifyParams.max_age ?? DEFAULT_MAX_ROOT_AGE}`,
     {
       method: "POST",
       headers: {
