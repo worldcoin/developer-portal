@@ -9,8 +9,8 @@ import {
   canVerifyForAction,
   nullifierHashToBigIntStr,
   verifyProof,
+  verifyProofV2,
 } from "@/api/helpers/verify";
-import { verifyProof as verifyProofV2 } from "@/api/helpers/verify.v2";
 import { logger } from "@/lib/logger";
 import { captureEvent } from "@/services/posthogClient";
 import { AppErrorCodes, VerificationLevel } from "@worldcoin/idkit-core";
