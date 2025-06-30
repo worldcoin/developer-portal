@@ -16,36 +16,6 @@ type NestedProof = [
   [string, string],
 ];
 
-const KNOWN_ERROR_CODES = [
-  // rawMessage: error text from sequencer. reference https://github.com/worldcoin/signup-sequencer/blob/main/src/server/error.rs
-  // code: error code to return to the client
-  // detail: error message to return to the client
-  {
-    rawMessage: "invalid root",
-    code: "invalid_merkle_root",
-    detail:
-      "The provided Merkle root is invalid. User appears to be unverified.",
-  },
-  {
-    rawMessage: "invalid semaphore proof",
-    code: "invalid_proof",
-    detail:
-      "The provided proof is invalid and it cannot be verified. Please check all inputs and try again.",
-  },
-  {
-    rawMessage: "Root provided in semaphore proof is too old.",
-    code: "root_too_old",
-    detail:
-      "The provided merkle root is too old. Please generate a new proof and try again.",
-  },
-  {
-    rawMessage: "prover error",
-    code: "prover_error",
-    detail:
-      "The prover encountered an error while verifying the proof. Please try again.",
-  },
-];
-
 const KNOWN_ERROR_CODES_V2 = [
   // V2 API error mapping
   // errorId from v2 API -> code returned to client
@@ -335,80 +305,6 @@ export const parseProofInputs = (params: IInputParams) => {
 };
 
 /**
- * Verifies a ZKP with the World ID smart contract
- */
-export const verifyProof = async (
-  proofParams: IInputParams,
-  verifyParams: IVerifyParams,
-): Promise<{
-  success?: true;
-  status?: string;
-  error?: IInternalError;
-}> => {
-  // Parse the inputs
-  const parsed = parseProofInputs(proofParams);
-  if (parsed.error || !parsed.params) {
-    return { error: parsed.error };
-  }
-
-  const { params: parsedParams } = parsed;
-
-  // Query the signup sequencer to verify the proof
-  const body = JSON.stringify({
-    root: parsedParams.merkle_root,
-    nullifierHash: parsedParams.nullifier_hash,
-    externalNullifierHash: parsedParams.external_nullifier,
-    signalHash: parsedParams.signal_hash,
-    proof: parsedParams.proof,
-  });
-
-  const sequencerUrl =
-    sequencerMapping[verifyParams.verification_level]?.[
-      verifyParams.is_staging.toString()
-    ];
-
-  const response = await fetch(
-    `${sequencerUrl}/verifySemaphoreProof?maxRootAgeSeconds=${verifyParams.max_age ?? DEFAULT_MAX_ROOT_AGE}`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body,
-    },
-  );
-
-  if (!response.ok) {
-    try {
-      const rawErrorMessage = await response.text();
-      const knownError = KNOWN_ERROR_CODES.find(
-        ({ rawMessage }) => rawMessage === rawErrorMessage,
-      );
-      return {
-        error: {
-          message:
-            knownError?.detail ||
-            `We couldn't verify the provided proof (error code ${rawErrorMessage}).`,
-          code: knownError?.code || "invalid_proof",
-          statusCode: 400,
-          attribute: null,
-        },
-      };
-    } catch {
-      return {
-        error: {
-          message: "There was an internal issue verifying this proof.",
-          code: "internal_error",
-          statusCode: 500,
-        },
-      };
-    }
-  }
-
-  return { success: true };
-};
-
-/**
  * Checks whether the person can be verified for a particular action based on the max number of verifications
  */
 export const canVerifyForAction = (
@@ -442,7 +338,7 @@ export const nullifierHashToBigIntStr = (nullifierHash: string): string => {
   return BigInt(normalized).toString();
 };
 
-export const verifyProofV2 = async (
+export const verifyProof = async (
   proofParams: IInputParams,
   verifyParams: IVerifyParams,
 ): Promise<{
