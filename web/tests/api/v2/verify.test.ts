@@ -139,9 +139,7 @@ describe("/api/v2/verify", () => {
 
     // NOTE: mock for the fetch in verifyProof
     mockFetch({
-      body: {
-        status: "mined",
-      },
+      body: { valid: true },
       ok: true,
       status: 200,
     });
@@ -192,9 +190,7 @@ describe("/api/v2/verify", () => {
 
     // NOTE: mock for the fetch in verifyProof
     mockFetch({
-      body: {
-        status: "mined",
-      },
+      body: { valid: true },
       ok: true,
       status: 200,
     });
@@ -251,9 +247,7 @@ describe("/api/v2/verify", () => {
 
     // NOTE: mock for the fetch in verifyProof
     mockFetch({
-      body: {
-        status: "mined",
-      },
+      body: { valid: true },
       ok: true,
       status: 200,
     });
@@ -310,9 +304,7 @@ describe("/api/v2/verify", () => {
 
     // NOTE: mock for the fetch in verifyProof
     mockFetch({
-      body: {
-        status: "mined",
-      },
+      body: { valid: true },
       ok: true,
       status: 200,
     });
@@ -360,9 +352,7 @@ describe("/api/v2/verify [error cases]", () => {
 
     // NOTE: mock for the fetch in verifyProof
     mockFetch({
-      body: {
-        status: "mined",
-      },
+      body: { valid: true },
       ok: true,
       status: 200,
     });
@@ -553,9 +543,7 @@ describe("/api/v2/verify [error cases]", () => {
 
     // NOTE: mock for the fetch in verifyProof
     mockFetch({
-      body: {
-        status: "mined",
-      },
+      body: { valid: true },
       ok: true,
       status: 200,
     });
@@ -596,10 +584,12 @@ describe("/api/v2/verify [error cases]", () => {
 
     // NOTE: mock for the fetch in verifyProof
     mockFetch({
-      body: {},
+      body: {
+        errorId: "invalid_root",
+        errorMessage: "The provided Merkle root is invalid"
+      },
       ok: false,
-      status: 500,
-      text: "invalid root",
+      status: 400,
     });
 
     const response = await POST(mockReq, ctx);
@@ -692,10 +682,12 @@ describe("/api/v2/verify [error cases]", () => {
 
     // NOTE: mock for the fetch in verifyProof
     mockFetch({
-      body: {},
+      body: {
+        errorId: "decompressing_proof_error",
+        errorMessage: "Invalid proof"
+      },
       ok: false,
-      status: 500,
-      text: "invalid proof",
+      status: 400,
     });
 
     const response = await POST(mockReq, ctx);
@@ -706,7 +698,7 @@ describe("/api/v2/verify [error cases]", () => {
       attribute: null,
       code: "invalid_proof",
       detail:
-        "We couldn't verify the provided proof (error code invalid proof).",
+        "The provided proof is invalid and it cannot be verified. Please check all inputs and try again.",
       app_id: stagingAppId,
     });
   });
@@ -733,9 +725,7 @@ describe("/api/v2/verify [error cases]", () => {
 
     // Mock the fetch for verifyProof
     mockFetch({
-      body: {
-        status: "mined",
-      },
+      body: { valid: true },
       ok: true,
       status: 200,
     });
@@ -758,8 +748,11 @@ describe("/api/v2/verify [error cases]", () => {
 
     // Check that the fetch was called with the default max_age (7 days = 604800 seconds)
     expect(fetch).toHaveBeenCalledWith(
-      expect.stringContaining("maxRootAgeSeconds=604800"),
-      expect.any(Object),
+      expect.stringContaining("/v2/semaphore-proof/verify"),
+      expect.objectContaining({
+        method: "POST",
+        body: expect.stringContaining('"maxRootAgeSeconds":604800'),
+      }),
     );
   });
 
@@ -786,9 +779,7 @@ describe("/api/v2/verify [error cases]", () => {
 
     // Mock the fetch for verifyProof
     mockFetch({
-      body: {
-        status: "mined",
-      },
+      body: { valid: true },
       ok: true,
       status: 200,
     });
@@ -811,8 +802,11 @@ describe("/api/v2/verify [error cases]", () => {
 
     // Check that the fetch was called with the provided max_age
     expect(fetch).toHaveBeenCalledWith(
-      expect.stringContaining(`maxRootAgeSeconds=${customMaxAge}`),
-      expect.any(Object),
+      expect.stringContaining("/v2/semaphore-proof/verify"),
+      expect.objectContaining({
+        method: "POST",
+        body: expect.stringContaining(`"maxRootAgeSeconds":${customMaxAge}`),
+      }),
     );
   });
 });

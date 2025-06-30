@@ -35,7 +35,7 @@ jest.mock(
 
 global.fetch = jest.fn(() =>
   Promise.resolve({
-    json: jest.fn(() => Promise.resolve({})),
+    json: jest.fn(() => Promise.resolve({ valid: true })),
     ok: true,
     status: 200,
   }),

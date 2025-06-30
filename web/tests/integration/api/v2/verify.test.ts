@@ -106,7 +106,7 @@ const createSuccessFetchMock = (allowedNullifierHashes: string[] = []) => {
       if (isAllowed) {
         // Return success for allowed nullifier hashes
         return Promise.resolve(
-          new Response(JSON.stringify({ status: "mined" }), {
+          new Response(JSON.stringify({ valid: true }), {
             status: 200,
             headers: { "Content-Type": "application/json" },
           }),
@@ -114,9 +114,12 @@ const createSuccessFetchMock = (allowedNullifierHashes: string[] = []) => {
       } else {
         // Return error for non-allowed nullifier hashes
         return Promise.resolve(
-          new Response("invalid semaphore proof", {
+          new Response(JSON.stringify({ 
+            errorId: "decompressing_proof_error",
+            errorMessage: "Invalid proof"
+          }), {
             status: 400,
-            headers: { "Content-Type": "text/plain" },
+            headers: { "Content-Type": "application/json" },
           }),
         );
       }
