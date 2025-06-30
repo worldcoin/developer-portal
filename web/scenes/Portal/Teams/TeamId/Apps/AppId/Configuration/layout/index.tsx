@@ -51,6 +51,16 @@ export const AppProfileLayout = async (props: AppProfileLayout) => {
 
             <Tab
               className="md:py-4"
+              href={`/teams/${params!.teamId}/apps/${params!.appId}/configuration/app-store-refactored`}
+              segment={"app-store-refactored"}
+            >
+              <Typography variant={TYPOGRAPHY.R4}>
+                Mini App Store Refactored
+              </Typography>
+            </Tab>
+
+            <Tab
+              className="md:py-4"
               href={`/teams/${params!.teamId}/apps/${params!.appId}/configuration/advanced`}
               segment={"advanced"}
             >
