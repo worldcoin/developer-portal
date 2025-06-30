@@ -465,8 +465,7 @@ export const verifyProofV2 = async (
     externalNullifierHash: parsedParams.external_nullifier,
     signalHash: parsedParams.signal_hash,
     proof: parsedParams.proof,
-    // V2 API: maxRootAgeSeconds is now in the request body
-    ...(verifyParams.max_age && { maxRootAgeSeconds: verifyParams.max_age }),
+    maxRootAgeSeconds: verifyParams.max_age ?? DEFAULT_MAX_ROOT_AGE,
   });
 
   const sequencerUrl =
