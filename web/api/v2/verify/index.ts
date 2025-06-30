@@ -9,9 +9,7 @@ import {
   canVerifyForAction,
   nullifierHashToBigIntStr,
   verifyProof,
-  verifyProofV2,
 } from "@/api/helpers/verify";
-import { logger } from "@/lib/logger";
 import { captureEvent } from "@/services/posthogClient";
 import { AppErrorCodes, VerificationLevel } from "@worldcoin/idkit-core";
 import { NextRequest, NextResponse } from "next/server";
@@ -171,15 +169,8 @@ export async function POST(
 
   try {
     // ANCHOR: Verify the proof with the World ID smart contract
-    // Use v2 verification if app_id is in whitelist
-    const useV2 = V2_ENABLED_APP_IDS.includes(app_id);
-    const verifyFunction = useV2 ? verifyProofV2 : verifyProof;
 
-    if (useV2) {
-      logger.info(`Using v2 verification for app_id: ${app_id}`);
-    }
-
-    const { error, success } = await verifyFunction(
+    const { error, success } = await verifyProof(
       {
         signal_hash: parsedParams.signal_hash,
         proof: parsedParams.proof,
