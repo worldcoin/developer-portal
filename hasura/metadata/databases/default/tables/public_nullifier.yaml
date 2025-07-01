@@ -6,6 +6,18 @@ object_relationships:
     using:
       foreign_key_constraint_on: action_id
 insert_permissions:
+  - role: qa
+    permission:
+      check: {}
+      columns:
+        - action_id
+        - id
+        - uses
+        - nullifier_hash
+        - nullifier_hash_int
+        - created_at
+        - updated_at
+    comment: ""
   - role: service
     permission:
       check: {}
@@ -28,6 +40,18 @@ select_permissions:
           app:
             team_id:
               _eq: X-Hasura-Team-Id
+  - role: qa
+    permission:
+      columns:
+        - action_id
+        - id
+        - uses
+        - nullifier_hash
+        - nullifier_hash_int
+        - created_at
+        - updated_at
+      filter: {}
+    comment: ""
   - role: service
     permission:
       columns:
@@ -56,12 +80,30 @@ select_permissions:
                   _eq: X-Hasura-User-Id
       allow_aggregations: true
 update_permissions:
+  - role: qa
+    permission:
+      columns:
+        - action_id
+        - id
+        - uses
+        - nullifier_hash
+        - nullifier_hash_int
+        - created_at
+        - updated_at
+      filter: {}
+      check: {}
+    comment: ""
   - role: service
     permission:
       columns:
         - uses
       filter: {}
       check: null
+delete_permissions:
+  - role: qa
+    permission:
+      filter: {}
+    comment: ""
 event_triggers:
   - name: increment_app_stats
     definition:
@@ -73,7 +115,7 @@ event_triggers:
       interval_sec: 10
       num_retries: 5
       timeout_sec: 20
-    webhook: "{{NEXT_API_URL}}/_increment-app-stats"
+    webhook: '{{NEXT_API_URL}}/_increment-app-stats'
     headers:
       - name: Authorization
         value_from_env: INTERNAL_ENDPOINTS_SECRET

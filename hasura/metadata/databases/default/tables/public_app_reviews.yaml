@@ -2,6 +2,18 @@ table:
   name: app_reviews
   schema: public
 insert_permissions:
+  - role: qa
+    permission:
+      check: {}
+      columns:
+        - app_id
+        - country
+        - id
+        - rating
+        - nullifier_hash
+        - created_at
+        - updated_at
+    comment: ""
   - role: service
     permission:
       check: {}
@@ -11,6 +23,18 @@ insert_permissions:
         - country
         - rating
 select_permissions:
+  - role: qa
+    permission:
+      columns:
+        - app_id
+        - country
+        - id
+        - rating
+        - nullifier_hash
+        - created_at
+        - updated_at
+      filter: {}
+    comment: ""
   - role: service
     permission:
       columns:
@@ -23,9 +47,27 @@ select_permissions:
         - updated_at
       filter: {}
 update_permissions:
+  - role: qa
+    permission:
+      columns:
+        - app_id
+        - country
+        - id
+        - rating
+        - nullifier_hash
+        - created_at
+        - updated_at
+      filter: {}
+      check: {}
+    comment: ""
   - role: service
     permission:
       columns:
         - rating
       filter: {}
       check: {}
+delete_permissions:
+  - role: qa
+    permission:
+      filter: {}
+    comment: ""

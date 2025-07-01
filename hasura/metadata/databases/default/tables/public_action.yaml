@@ -47,6 +47,30 @@ insert_permissions:
         - app_flow_on_complete
         - webhook_pem
         - webhook_uri
+  - role: qa
+    permission:
+      check: {}
+      columns:
+        - kiosk_enabled
+        - app_id
+        - client_secret
+        - creation_mode
+        - id
+        - status
+        - description
+        - privacy_policy_uri
+        - terms_uri
+        - created_at
+        - updated_at
+        - app_flow_on_complete
+        - external_nullifier
+        - name
+        - max_accounts_per_user
+        - max_verifications
+        - webhook_pem
+        - action
+        - webhook_uri
+    comment: ""
   - role: service
     permission:
       check: {}
@@ -88,6 +112,32 @@ select_permissions:
         app:
           team_id:
             _eq: X-Hasura-Team-Id
+  - role: qa
+    permission:
+      columns:
+        - kiosk_enabled
+        - app_id
+        - client_secret
+        - creation_mode
+        - id
+        - status
+        - description
+        - privacy_policy_uri
+        - terms_uri
+        - created_at
+        - updated_at
+        - app_flow_on_complete
+        - external_nullifier
+        - name
+        - max_accounts_per_user
+        - max_verifications
+        - webhook_pem
+        - action
+        - webhook_uri
+      computed_fields:
+        - redirect_count
+      filter: {}
+    comment: ""
   - role: service
     permission:
       columns:
@@ -160,6 +210,31 @@ update_permissions:
           team_id:
             _eq: X-Hasura-Team-Id
       check: null
+  - role: qa
+    permission:
+      columns:
+        - kiosk_enabled
+        - app_id
+        - client_secret
+        - creation_mode
+        - id
+        - status
+        - description
+        - privacy_policy_uri
+        - terms_uri
+        - created_at
+        - updated_at
+        - app_flow_on_complete
+        - external_nullifier
+        - name
+        - max_accounts_per_user
+        - max_verifications
+        - webhook_pem
+        - action
+        - webhook_uri
+      filter: {}
+      check: {}
+    comment: ""
   - role: service
     permission:
       columns:
@@ -209,6 +284,10 @@ delete_permissions:
         app:
           team_id:
             _eq: X-Hasura-Team-Id
+  - role: qa
+    permission:
+      filter: {}
+    comment: ""
   - role: user
     permission:
       filter:

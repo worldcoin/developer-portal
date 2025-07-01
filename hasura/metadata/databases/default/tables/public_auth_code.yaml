@@ -2,6 +2,24 @@ table:
   name: auth_code
   schema: public
 insert_permissions:
+  - role: qa
+    permission:
+      check: {}
+      columns:
+        - app_id
+        - auth_code
+        - code_challenge
+        - code_challenge_method
+        - id
+        - nonce
+        - redirect_uri
+        - verification_level
+        - scope
+        - nullifier_hash
+        - created_at
+        - expires_at
+        - updated_at
+    comment: ""
   - role: service
     permission:
       check: {}
@@ -17,6 +35,24 @@ insert_permissions:
         - scope
         - redirect_uri
 select_permissions:
+  - role: qa
+    permission:
+      columns:
+        - app_id
+        - auth_code
+        - code_challenge
+        - code_challenge_method
+        - id
+        - nonce
+        - redirect_uri
+        - verification_level
+        - scope
+        - nullifier_hash
+        - created_at
+        - expires_at
+        - updated_at
+      filter: {}
+    comment: ""
   - role: service
     permission:
       columns:
@@ -32,7 +68,31 @@ select_permissions:
         - scope
         - redirect_uri
       filter: {}
+update_permissions:
+  - role: qa
+    permission:
+      columns:
+        - app_id
+        - auth_code
+        - code_challenge
+        - code_challenge_method
+        - id
+        - nonce
+        - redirect_uri
+        - verification_level
+        - scope
+        - nullifier_hash
+        - created_at
+        - expires_at
+        - updated_at
+      filter: {}
+      check: {}
+    comment: ""
 delete_permissions:
+  - role: qa
+    permission:
+      filter: {}
+    comment: ""
   - role: service
     permission:
       filter: {}

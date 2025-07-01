@@ -6,6 +6,15 @@ object_relationships:
     using:
       foreign_key_constraint_on: app_report_id
 insert_permissions:
+  - role: qa
+    permission:
+      check: {}
+      columns:
+        - app_report_id
+        - id
+        - appeal_comment
+        - created_at
+    comment: ""
   - role: reviewer
     permission:
       check: {}
@@ -14,6 +23,15 @@ insert_permissions:
         - appeal_comment
     comment: ""
 select_permissions:
+  - role: qa
+    permission:
+      columns:
+        - app_report_id
+        - id
+        - appeal_comment
+        - created_at
+      filter: {}
+    comment: ""
   - role: reviewer
     permission:
       columns:
@@ -21,5 +39,21 @@ select_permissions:
         - appeal_comment
         - created_at
         - id
+      filter: {}
+    comment: ""
+update_permissions:
+  - role: qa
+    permission:
+      columns:
+        - app_report_id
+        - id
+        - appeal_comment
+        - created_at
+      filter: {}
+      check: {}
+    comment: ""
+delete_permissions:
+  - role: qa
+    permission:
       filter: {}
     comment: ""

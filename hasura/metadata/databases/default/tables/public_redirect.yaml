@@ -22,6 +22,16 @@ insert_permissions:
       columns:
         - redirect_uri
         - action_id
+  - role: qa
+    permission:
+      check: {}
+      columns:
+        - action_id
+        - id
+        - redirect_uri
+        - created_at
+        - updated_at
+    comment: ""
   - role: service
     permission:
       check: {}
@@ -60,6 +70,16 @@ select_permissions:
           app:
             team_id:
               _eq: X-Hasura-Team-Id
+  - role: qa
+    permission:
+      columns:
+        - action_id
+        - id
+        - redirect_uri
+        - created_at
+        - updated_at
+      filter: {}
+    comment: ""
   - role: service
     permission:
       columns:
@@ -94,6 +114,17 @@ update_permissions:
             team_id:
               _eq: X-Hasura-Team-Id
       check: null
+  - role: qa
+    permission:
+      columns:
+        - action_id
+        - id
+        - redirect_uri
+        - created_at
+        - updated_at
+      filter: {}
+      check: {}
+    comment: ""
   - role: user
     permission:
       columns:
@@ -120,6 +151,10 @@ delete_permissions:
           app:
             team_id:
               _eq: X-Hasura-Team-Id
+  - role: qa
+    permission:
+      filter: {}
+    comment: ""
   - role: user
     permission:
       filter:

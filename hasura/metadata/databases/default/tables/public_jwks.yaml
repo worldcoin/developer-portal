@@ -2,6 +2,17 @@ table:
   name: jwks
   schema: public
 insert_permissions:
+  - role: qa
+    permission:
+      check: {}
+      columns:
+        - id
+        - public_jwk
+        - kms_id
+        - created_at
+        - expires_at
+        - updated_at
+    comment: ""
   - role: service
     permission:
       check: {}
@@ -10,6 +21,17 @@ insert_permissions:
         - kms_id
         - public_jwk
 select_permissions:
+  - role: qa
+    permission:
+      columns:
+        - id
+        - public_jwk
+        - kms_id
+        - created_at
+        - expires_at
+        - updated_at
+      filter: {}
+    comment: ""
   - role: service
     permission:
       columns:
@@ -19,7 +41,24 @@ select_permissions:
         - kms_id
         - public_jwk
       filter: {}
+update_permissions:
+  - role: qa
+    permission:
+      columns:
+        - id
+        - public_jwk
+        - kms_id
+        - created_at
+        - expires_at
+        - updated_at
+      filter: {}
+      check: {}
+    comment: ""
 delete_permissions:
+  - role: qa
+    permission:
+      filter: {}
+    comment: ""
   - role: service
     permission:
       filter: {}

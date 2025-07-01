@@ -6,6 +6,18 @@ object_relationships:
     using:
       foreign_key_constraint_on: team_id
 insert_permissions:
+  - role: qa
+    permission:
+      check: {}
+      columns:
+        - is_active
+        - api_key
+        - id
+        - team_id
+        - name
+        - created_at
+        - updated_at
+    comment: ""
   - role: user
     permission:
       check:
@@ -21,6 +33,18 @@ insert_permissions:
         - name
         - team_id
 select_permissions:
+  - role: qa
+    permission:
+      columns:
+        - is_active
+        - api_key
+        - id
+        - team_id
+        - name
+        - created_at
+        - updated_at
+      filter: {}
+    comment: ""
   - role: service
     permission:
       columns:
@@ -53,6 +77,19 @@ select_permissions:
                   - role:
                       _eq: ADMIN
 update_permissions:
+  - role: qa
+    permission:
+      columns:
+        - is_active
+        - api_key
+        - id
+        - team_id
+        - name
+        - created_at
+        - updated_at
+      filter: {}
+      check: {}
+    comment: ""
   - role: service
     permission:
       columns:
@@ -74,6 +111,10 @@ update_permissions:
                   _eq: OWNER
       check: null
 delete_permissions:
+  - role: qa
+    permission:
+      filter: {}
+    comment: ""
   - role: user
     permission:
       filter:

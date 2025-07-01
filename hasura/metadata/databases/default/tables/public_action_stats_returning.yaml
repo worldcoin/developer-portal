@@ -5,7 +5,26 @@ object_relationships:
   - name: action
     using:
       foreign_key_constraint_on: action_id
+insert_permissions:
+  - role: qa
+    permission:
+      check: {}
+      columns:
+        - unique_users
+        - verifications
+        - action_id
+        - date
+    comment: ""
 select_permissions:
+  - role: qa
+    permission:
+      columns:
+        - unique_users
+        - verifications
+        - action_id
+        - date
+      filter: {}
+    comment: ""
   - role: user
     permission:
       columns:
@@ -21,3 +40,19 @@ select_permissions:
                 user_id:
                   _eq: X-Hasura-User-Id
       allow_aggregations: true
+update_permissions:
+  - role: qa
+    permission:
+      columns:
+        - unique_users
+        - verifications
+        - action_id
+        - date
+      filter: {}
+      check: {}
+    comment: ""
+delete_permissions:
+  - role: qa
+    permission:
+      filter: {}
+    comment: ""

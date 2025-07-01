@@ -6,6 +6,24 @@ object_relationships:
     using:
       foreign_key_constraint_on: app_metadata_id
 insert_permissions:
+  - role: qa
+    permission:
+      check: {}
+      columns:
+        - showcase_img_urls
+        - app_metadata_id
+        - description
+        - hero_image_url
+        - id
+        - locale
+        - name
+        - short_name
+        - world_app_button_text
+        - world_app_description
+        - meta_tag_image_url
+        - created_at
+        - updated_at
+    comment: ""
   - role: service
     permission:
       check: {}
@@ -52,6 +70,24 @@ insert_permissions:
         - world_app_description
     comment: ""
 select_permissions:
+  - role: qa
+    permission:
+      columns:
+        - showcase_img_urls
+        - app_metadata_id
+        - description
+        - hero_image_url
+        - id
+        - locale
+        - name
+        - short_name
+        - world_app_button_text
+        - world_app_description
+        - meta_tag_image_url
+        - created_at
+        - updated_at
+      filter: {}
+    comment: ""
   - role: reviewer
     permission:
       columns:
@@ -113,6 +149,25 @@ select_permissions:
                   _eq: X-Hasura-User-Id
     comment: ""
 update_permissions:
+  - role: qa
+    permission:
+      columns:
+        - showcase_img_urls
+        - app_metadata_id
+        - description
+        - hero_image_url
+        - id
+        - locale
+        - name
+        - short_name
+        - world_app_button_text
+        - world_app_description
+        - meta_tag_image_url
+        - created_at
+        - updated_at
+      filter: {}
+      check: {}
+    comment: ""
   - role: reviewer
     permission:
       columns:
@@ -175,6 +230,10 @@ update_permissions:
                   - awaiting_review
     comment: ""
 delete_permissions:
+  - role: qa
+    permission:
+      filter: {}
+    comment: ""
   - role: service
     permission:
       filter: {}

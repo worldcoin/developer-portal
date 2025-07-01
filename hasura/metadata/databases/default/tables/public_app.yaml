@@ -35,6 +35,26 @@ insert_permissions:
         - is_staging
         - name
         - status
+  - role: qa
+    permission:
+      check: {}
+      columns:
+        - is_archived
+        - is_banned
+        - is_staging
+        - id
+        - name
+        - team_id
+        - rating_count
+        - rating_sum
+        - description_internal
+        - engine
+        - logo_url
+        - status
+        - created_at
+        - updated_at
+        - verified_at
+    comment: ""
   - role: service
     permission:
       check: {}
@@ -68,6 +88,26 @@ select_permissions:
       filter:
         team_id:
           _eq: X-Hasura-Team-Id
+  - role: qa
+    permission:
+      columns:
+        - is_archived
+        - is_banned
+        - is_staging
+        - id
+        - name
+        - team_id
+        - rating_count
+        - rating_sum
+        - description_internal
+        - engine
+        - logo_url
+        - status
+        - created_at
+        - updated_at
+        - verified_at
+      filter: {}
+    comment: ""
   - role: reviewer
     permission:
       columns:
@@ -118,6 +158,27 @@ update_permissions:
         team_id:
           _eq: X-Hasura-Team-Id
       check: null
+  - role: qa
+    permission:
+      columns:
+        - is_archived
+        - is_banned
+        - is_staging
+        - id
+        - name
+        - team_id
+        - rating_count
+        - rating_sum
+        - description_internal
+        - engine
+        - logo_url
+        - status
+        - created_at
+        - updated_at
+        - verified_at
+      filter: {}
+      check: {}
+    comment: ""
   - role: reviewer
     permission:
       columns:
@@ -157,6 +218,10 @@ delete_permissions:
       filter:
         team_id:
           _eq: X-Hasura-Team-Id
+  - role: qa
+    permission:
+      filter: {}
+    comment: ""
   - role: user
     permission:
       filter:

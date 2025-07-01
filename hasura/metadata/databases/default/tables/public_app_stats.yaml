@@ -6,6 +6,16 @@ object_relationships:
     using:
       foreign_key_constraint_on: app_id
 insert_permissions:
+  - role: qa
+    permission:
+      check: {}
+      columns:
+        - nullifier_hashes
+        - date
+        - unique_users
+        - verifications
+        - app_id
+    comment: ""
   - role: service
     permission:
       check: {}
@@ -17,6 +27,16 @@ insert_permissions:
         - app_id
     comment: ""
 select_permissions:
+  - role: qa
+    permission:
+      columns:
+        - nullifier_hashes
+        - date
+        - unique_users
+        - verifications
+        - app_id
+      filter: {}
+    comment: ""
   - role: service
     permission:
       columns:
@@ -43,6 +63,17 @@ select_permissions:
                 _eq: X-Hasura-User-Id
     comment: ""
 update_permissions:
+  - role: qa
+    permission:
+      columns:
+        - nullifier_hashes
+        - date
+        - unique_users
+        - verifications
+        - app_id
+      filter: {}
+      check: {}
+    comment: ""
   - role: service
     permission:
       columns:
@@ -55,6 +86,10 @@ update_permissions:
       check: {}
     comment: ""
 delete_permissions:
+  - role: qa
+    permission:
+      filter: {}
+    comment: ""
   - role: service
     permission:
       filter: {}

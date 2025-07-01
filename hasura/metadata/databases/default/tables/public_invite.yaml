@@ -6,6 +6,15 @@ object_relationships:
     using:
       foreign_key_constraint_on: team_id
 insert_permissions:
+  - role: qa
+    permission:
+      check: {}
+      columns:
+        - id
+        - team_id
+        - email
+        - expires_at
+    comment: ""
   - role: service
     permission:
       check: {}
@@ -13,6 +22,15 @@ insert_permissions:
         - email
         - team_id
 select_permissions:
+  - role: qa
+    permission:
+      columns:
+        - id
+        - team_id
+        - email
+        - expires_at
+      filter: {}
+    comment: ""
   - role: service
     permission:
       columns:
@@ -37,6 +55,16 @@ select_permissions:
               - user_id:
                   _eq: X-Hasura-User-Id
 update_permissions:
+  - role: qa
+    permission:
+      columns:
+        - id
+        - team_id
+        - email
+        - expires_at
+      filter: {}
+      check: {}
+    comment: ""
   - role: service
     permission:
       columns:
@@ -44,6 +72,10 @@ update_permissions:
       filter: {}
       check: null
 delete_permissions:
+  - role: qa
+    permission:
+      filter: {}
+    comment: ""
   - role: service
     permission:
       filter: {}

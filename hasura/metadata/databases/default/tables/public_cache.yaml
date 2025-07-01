@@ -2,6 +2,16 @@ table:
   name: cache
   schema: public
 insert_permissions:
+  - role: qa
+    permission:
+      check: {}
+      columns:
+        - id
+        - key
+        - value
+        - created_at
+        - updated_at
+    comment: ""
   - role: service
     permission:
       check: {}
@@ -9,6 +19,16 @@ insert_permissions:
         - key
         - value
 select_permissions:
+  - role: qa
+    permission:
+      columns:
+        - id
+        - key
+        - value
+        - created_at
+        - updated_at
+      filter: {}
+    comment: ""
   - role: service
     permission:
       columns:
@@ -19,6 +39,17 @@ select_permissions:
         - id
       filter: {}
 update_permissions:
+  - role: qa
+    permission:
+      columns:
+        - id
+        - key
+        - value
+        - created_at
+        - updated_at
+      filter: {}
+      check: {}
+    comment: ""
   - role: service
     permission:
       columns:
@@ -26,6 +57,10 @@ update_permissions:
       filter: {}
       check: null
 delete_permissions:
+  - role: qa
+    permission:
+      filter: {}
+    comment: ""
   - role: service
     permission:
       filter: {}

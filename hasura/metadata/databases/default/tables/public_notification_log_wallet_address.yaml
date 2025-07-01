@@ -2,6 +2,15 @@ table:
   name: notification_log_wallet_address
   schema: public
 insert_permissions:
+  - role: qa
+    permission:
+      check: {}
+      columns:
+        - id
+        - notification_log_id
+        - wallet_address
+        - created_at
+    comment: ""
   - role: reviewer
     permission:
       check: {}
@@ -17,6 +26,15 @@ insert_permissions:
         - wallet_address
         - created_at
 select_permissions:
+  - role: qa
+    permission:
+      columns:
+        - id
+        - notification_log_id
+        - wallet_address
+        - created_at
+      filter: {}
+    comment: ""
   - role: reviewer
     permission:
       columns:
@@ -33,7 +51,22 @@ select_permissions:
         - wallet_address
         - created_at
       filter: {}
+update_permissions:
+  - role: qa
+    permission:
+      columns:
+        - id
+        - notification_log_id
+        - wallet_address
+        - created_at
+      filter: {}
+      check: {}
+    comment: ""
 delete_permissions:
+  - role: qa
+    permission:
+      filter: {}
+    comment: ""
   - role: reviewer
     permission:
       filter: {}

@@ -31,6 +31,15 @@ computed_fields:
         schema: public
     comment: A computed field that returns a quantity of team owners
 insert_permissions:
+  - role: qa
+    permission:
+      check: {}
+      columns:
+        - id
+        - name
+        - created_at
+        - updated_at
+    comment: ""
   - role: service
     permission:
       check: {}
@@ -48,6 +57,17 @@ select_permissions:
       filter:
         id:
           _eq: X-Hasura-Team-Id
+  - role: qa
+    permission:
+      columns:
+        - id
+        - name
+        - created_at
+        - updated_at
+      computed_fields:
+        - team_owners_count
+      filter: {}
+    comment: ""
   - role: reviewer
     permission:
       columns:
@@ -74,6 +94,16 @@ select_permissions:
           user_id:
             _eq: X-Hasura-User-Id
 update_permissions:
+  - role: qa
+    permission:
+      columns:
+        - id
+        - name
+        - created_at
+        - updated_at
+      filter: {}
+      check: {}
+    comment: ""
   - role: service
     permission:
       columns:
@@ -95,6 +125,10 @@ update_permissions:
                 _eq: OWNER
       check: null
 delete_permissions:
+  - role: qa
+    permission:
+      filter: {}
+    comment: ""
   - role: user
     permission:
       filter:

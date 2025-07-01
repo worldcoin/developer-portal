@@ -2,6 +2,15 @@ table:
   name: app_rankings
   schema: public
 insert_permissions:
+  - role: qa
+    permission:
+      check: {}
+      columns:
+        - rankings
+        - country
+        - id
+        - platform
+    comment: ""
   - role: reviewer
     permission:
       check: {}
@@ -11,6 +20,15 @@ insert_permissions:
         - platform
         - rankings
 select_permissions:
+  - role: qa
+    permission:
+      columns:
+        - rankings
+        - country
+        - id
+        - platform
+      filter: {}
+    comment: ""
   - role: reviewer
     permission:
       columns:
@@ -27,6 +45,16 @@ select_permissions:
         - rankings
       filter: {}
 update_permissions:
+  - role: qa
+    permission:
+      columns:
+        - rankings
+        - country
+        - id
+        - platform
+      filter: {}
+      check: {}
+    comment: ""
   - role: reviewer
     permission:
       columns:
@@ -36,3 +64,8 @@ update_permissions:
         - rankings
       filter: {}
       check: {}
+delete_permissions:
+  - role: qa
+    permission:
+      filter: {}
+    comment: ""
