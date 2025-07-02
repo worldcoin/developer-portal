@@ -12,142 +12,25 @@ import { Auth0SessionUser } from "@/lib/types";
 import { useRefetchQueries } from "@/lib/use-refetch-queries";
 import { checkUserPermissions } from "@/lib/utils";
 import { useUser } from "@auth0/nextjs-auth0/client";
-import { yupResolver } from "@hookform/resolvers/yup";
 import Image from "next/image";
 import { useCallback, useEffect, useMemo } from "react";
-import { Controller, useFieldArray, useForm, useWatch } from "react-hook-form";
+import {
+  Controller,
+  useFieldArray,
+  useFormContext,
+  useWatch,
+} from "react-hook-form";
 import { toast } from "react-toastify";
 import {
   FetchAppMetadataDocument,
   FetchAppMetadataQuery,
 } from "../graphql/client/fetch-app-metadata.generated";
-import {
-  AppStoreFormValues,
-  LocalisationFormSchema,
-  mainAppStoreFormSchema,
-} from "./form-schema";
+import { AppStoreFormValues } from "./form-schema";
 import { FetchLocalisationsDocument } from "./graphql/client/fetch-localisations.generated";
 import { MetaTagImageField } from "./ImageForm/MetaTagImageField";
 import { ShowcaseImagesField } from "./ImageForm/ShowcaseImagesField";
 import { LogoImageUpload } from "./LogoImageUpload";
 import { updateAppStoreMetadata } from "./server/update-app-store";
-import { parseDescription } from "./utils";
-
-const transformMailtoToRawEmail = (email: string) => {
-  return email.replace("mailto:", "");
-};
-
-const getParsedDescription = (
-  locale: string,
-  appMetadata: FetchAppMetadataQuery["app"][0]["app_metadata"][0],
-  localisationsData: Array<{
-    locale: string;
-    name?: string | null;
-    short_name?: string | null;
-    world_app_description?: string | null;
-    description?: string | null;
-    meta_tag_image_url?: string | null;
-    showcase_img_urls?: string[] | null;
-  }>,
-) => {
-  if (locale === "en") {
-    return parseDescription(appMetadata?.description ?? "");
-  } else {
-    return parseDescription(
-      localisationsData.find((obj) => obj.locale === locale)?.description ?? "",
-    );
-  }
-};
-const getAppMetadataFormValuesFromEnLocalisation = (
-  appMetadata: FetchAppMetadataQuery["app"][0]["app_metadata"][0],
-  localisationsData: Array<{
-    locale: string;
-    name?: string | null;
-    short_name?: string | null;
-    world_app_description?: string | null;
-    description?: string | null;
-    meta_tag_image_url?: string | null;
-    showcase_img_urls?: string[] | null;
-  }>,
-): LocalisationFormSchema => {
-  const enLocalisationData = localisationsData.find((l) => l.locale === "en");
-
-  const enLocalisationDescriptionOverview = getParsedDescription(
-    "en",
-    appMetadata,
-    localisationsData,
-  ).description_overview;
-
-  const enLocalisation: LocalisationFormSchema = {
-    language: "en",
-    name: enLocalisationData?.name || appMetadata.name,
-    short_name: enLocalisationData?.short_name || appMetadata.short_name,
-    world_app_description:
-      enLocalisationData?.world_app_description ||
-      appMetadata.world_app_description,
-    description_overview: enLocalisationDescriptionOverview,
-    meta_tag_image_url:
-      enLocalisationData?.meta_tag_image_url || appMetadata.meta_tag_image_url,
-    showcase_img_urls:
-      (enLocalisationData?.showcase_img_urls ||
-        appMetadata.showcase_img_urls) ??
-      [],
-  };
-
-  return {
-    ...enLocalisation,
-    description_overview: enLocalisation.description_overview,
-  };
-};
-
-const getLocalisationFormValues = (
-  appMetadata: FetchAppMetadataQuery["app"][0]["app_metadata"][0],
-  localisationsData: Array<{
-    locale: string;
-    name?: string | null;
-    short_name?: string | null;
-    world_app_description?: string | null;
-    description?: string | null;
-    meta_tag_image_url?: string | null;
-    showcase_img_urls?: string[] | null;
-  }>,
-) => {
-  const localisations: LocalisationFormSchema[] = [];
-
-  const enLocalisation = getAppMetadataFormValuesFromEnLocalisation(
-    appMetadata,
-    localisationsData,
-  );
-
-  // en is always present in the form
-  localisations.push(enLocalisation);
-
-  const hasManyLocalisations = localisationsData.length > 1;
-
-  if (!hasManyLocalisations) {
-    return localisations;
-  }
-
-  for (const localisation of localisationsData) {
-    const descriptionOverview = getParsedDescription(
-      localisation.locale,
-      appMetadata,
-      localisationsData,
-    ).description_overview;
-
-    localisations.push({
-      language: localisation.locale,
-      name: localisation.name || "",
-      short_name: localisation.short_name || "",
-      world_app_description: localisation.world_app_description || "",
-      description_overview: descriptionOverview || "",
-      meta_tag_image_url: localisation.meta_tag_image_url || "",
-      showcase_img_urls: localisation.showcase_img_urls || [],
-    });
-  }
-
-  return [...new Set([enLocalisation, ...localisations])];
-};
 
 export const AppStoreFormRefactored = (props: {
   appId: string;
@@ -175,42 +58,17 @@ export const AppStoreFormRefactored = (props: {
     { app_metadata_id: appMetadata.id },
   );
 
-  const { hash } = window.location;
-  const fragmentIdentifier = useMemo(() => {
-    if (typeof window !== "undefined") {
-      return hash.substring(1);
-    }
-    return null;
-  }, [hash]);
-
-  const isSupportEmailDefault =
-    appMetadata?.support_link?.startsWith("mailto:");
+  const fragmentIdentifier =
+    typeof window !== "undefined" ? window.location.hash.substring(1) : null;
 
   const {
     control,
     handleSubmit,
     watch,
     setValue,
-    formState: { errors, isSubmitting },
-  } = useForm({
-    resolver: yupResolver(mainAppStoreFormSchema),
-    defaultValues: {
-      ...appMetadata,
-      supported_countries: appMetadata.supported_countries || [],
-      supported_languages: appMetadata.supported_languages || ["en"],
-      support_email: isSupportEmailDefault
-        ? transformMailtoToRawEmail(appMetadata.support_link)
-        : undefined,
-      support_link: isSupportEmailDefault
-        ? undefined
-        : appMetadata.support_link,
-      support_type: isSupportEmailDefault ? "email" : "link",
-      localisations: getLocalisationFormValues(appMetadata, localisationsData),
-    },
-  });
-  //
-  console.log("formErrors", { errors, values: watch() });
-  //
+    formState: { errors, isSubmitting, isDirty: _isDirty },
+  } = useFormContext<AppStoreFormValues>();
+
   const {
     fields: localisations,
     append,
@@ -304,11 +162,11 @@ export const AppStoreFormRefactored = (props: {
   // handle clearing the unused field when support type changes
   const handleSupportTypeChange = useCallback(
     (newType: "email" | "link") => {
-      setValue("support_type", newType);
+      setValue("support_type", newType, { shouldDirty: true });
       if (newType === "email") {
-        setValue("support_link", "");
+        setValue("support_link", "", { shouldDirty: true });
       } else {
-        setValue("support_email", "");
+        setValue("support_email", "", { shouldDirty: true });
       }
     },
     [setValue],
@@ -824,6 +682,10 @@ export const AppStoreFormRefactored = (props: {
                           }
                           appMetadataId={appMetadata.id}
                           supportedLanguages={supportedLanguages}
+                          error={
+                            errors.localisations?.[index]?.meta_tag_image_url
+                              ?.message
+                          }
                           onAutosaveSuccess={() => {
                             refetchAppMetadata();
                             refetchLocalisations();
@@ -857,6 +719,10 @@ export const AppStoreFormRefactored = (props: {
                           }
                           appMetadataId={appMetadata.id}
                           supportedLanguages={supportedLanguages}
+                          error={
+                            errors.localisations?.[index]?.showcase_img_urls
+                              ?.message
+                          }
                           onAutosaveSuccess={() => {
                             refetchAppMetadata();
                             refetchLocalisations();

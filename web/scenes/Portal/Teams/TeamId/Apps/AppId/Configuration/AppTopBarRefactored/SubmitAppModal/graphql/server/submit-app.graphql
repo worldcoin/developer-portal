@@ -1,0 +1,17 @@
+mutation SubmitApp(
+  $app_metadata_id: String!
+  $verification_status: String!
+  $is_developer_allow_listing: Boolean!
+  $changelog: String!
+) {
+  update_app_metadata_by_pk(
+    pk_columns: { id: $app_metadata_id }
+    _set: {
+      verification_status: $verification_status
+      is_developer_allow_listing: $is_developer_allow_listing
+      changelog: $changelog
+    }
+  ) {
+    id
+  }
+}

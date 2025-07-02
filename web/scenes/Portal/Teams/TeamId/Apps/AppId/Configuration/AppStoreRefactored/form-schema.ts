@@ -54,10 +54,6 @@ const isForHumansOnlySchema = yup
   .typeError("This field is required")
   .required("This field is required");
 
-const appMetadataIdSchema = yup
-  .string()
-  .required("App metadata id is required");
-
 export const localisationFormSchema = yup.object({
   language: yup.string().required("Locale is required"),
   name: appNameSchema,
@@ -101,7 +97,7 @@ export const mainAppStoreFormSchema = yup
 
 export type AppStoreFormValues = yup.Asserts<typeof mainAppStoreFormSchema>;
 
-export const localisationFormFinalSchema = yup.object({
+export const localisationFormSubmitForReviewSchema = yup.object({
   language: yup.string().required("Locale is required"),
   name: appNameSchema.required("Name is required"),
   short_name: appShortNameSchema.required("Short name is required"),
@@ -120,7 +116,7 @@ export const localisationFormFinalSchema = yup.object({
 /**
  * for validating the final object before submitting for review
  */
-export const mainAppStoreFormFinalSchema = yup
+export const mainAppStoreFormReviewSubmitSchema = yup
   .object({
     name: appNameSchema.required("Name is required"),
     short_name: appShortNameSchema.required("Short name is required"),
@@ -129,11 +125,8 @@ export const mainAppStoreFormFinalSchema = yup
       "App tag line is required",
     ),
     app_website_url: appWebsiteUrlSchema.required("Website URL is required"),
-    description_overview: appDescriptionOverviewSchema.required(
-      "Description is required",
-    ),
-    support_link: supportLinkSchema, // tested later
-    support_email: supportEmailSchema, // tested later
+    support_link: supportLinkSchema, // additionally validated in test
+    support_email: supportEmailSchema, // additionally validated in test
     is_android_only: isAndroidOnlySchema.required("This field is required"),
     is_for_humans_only: isForHumansOnlySchema.required(
       "This field is required",
@@ -150,7 +143,7 @@ export const mainAppStoreFormFinalSchema = yup
       ),
     localisations: yup
       .array()
-      .of(localisationFormSchema)
+      .of(localisationFormSubmitForReviewSchema)
       .test(
         "has-english",
         "English is a required language",
@@ -176,3 +169,7 @@ export const mainAppStoreFormFinalSchema = yup
       return !!(support_link || support_email);
     },
   );
+
+export type MainAppStoreFormReviewSubmitSchema = yup.Asserts<
+  typeof mainAppStoreFormReviewSubmitSchema
+>;

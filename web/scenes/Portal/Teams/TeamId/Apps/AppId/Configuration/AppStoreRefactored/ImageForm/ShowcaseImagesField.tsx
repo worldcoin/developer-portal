@@ -24,6 +24,7 @@ interface ShowcaseImagesFieldProps {
   isAppVerified: boolean;
   appMetadataId?: string;
   supportedLanguages: string[];
+  error?: string | null;
   onAutosaveSuccess?: () => void;
   onAutosaveError?: (error: any) => void;
 }
@@ -39,6 +40,7 @@ export const ShowcaseImagesField = (props: ShowcaseImagesFieldProps) => {
     isAppVerified,
     appMetadataId,
     supportedLanguages,
+    error,
     onAutosaveSuccess,
     onAutosaveError,
   } = props;
@@ -314,23 +316,21 @@ export const ShowcaseImagesField = (props: ShowcaseImagesFieldProps) => {
           disabled={disabled || isUploading || !canUploadMore}
           uploadImage={uploadImage}
           imageType={`showcase_img_${value.length + 1}`}
+          error={error}
         >
           <UploadIcon className="size-12 text-blue-500" />
           <div className="gap-y-2">
             <div className="text-center">
               <Typography variant={TYPOGRAPHY.M3} className="text-blue-500">
-                click to upload
+                Click to upload
               </Typography>{" "}
               <Typography variant={TYPOGRAPHY.R3} className="text-grey-700">
                 or drag and drop
               </Typography>
             </div>
             <Typography variant={TYPOGRAPHY.R5} className="text-grey-500">
-              jpg or png (max 500kb), required aspect ratio 1:1.{"\n"}
-              recommended size: 1080x1080px
-            </Typography>
-            <Typography variant={TYPOGRAPHY.R5} className="text-grey-400">
-              {value.length}/3 images uploaded
+              JPG or PNG (max 500kb), required aspect ratio 1:1.{"\n"}
+              Recommended size: 1080x1080px
             </Typography>
           </div>
         </ImageDropZone>
