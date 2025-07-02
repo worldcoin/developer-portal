@@ -1,6 +1,6 @@
 - name: Cleanup notification logs
-  webhook: "{{NEXT_API_URL}}/delete-expired-notification-logs"
-  schedule: "*/15 * * * *"
+  webhook: '{{NEXT_API_URL}}/delete-expired-notification-logs'
+  schedule: '*/15 * * * *'
   include_in_metadata: true
   payload: {}
   retry_conf:
@@ -13,7 +13,7 @@
       value_from_env: INTERNAL_ENDPOINTS_SECRET
   comment: Delete notification logs that are at least 4 weeks old. Also deletes the corresponding notification_log_wallet_addresses
 - name: Delete expired auth codes
-  webhook: "{{NEXT_API_URL}}/_delete-expired-auth-codes"
+  webhook: '{{NEXT_API_URL}}/_delete-expired-auth-codes'
   schedule: 0 * * * *
   include_in_metadata: true
   payload: {}
@@ -27,7 +27,7 @@
       value_from_env: INTERNAL_ENDPOINTS_SECRET
   comment: ""
 - name: Delete expired jwks
-  webhook: "{{NEXT_API_URL}}/_delete-jwks"
+  webhook: '{{NEXT_API_URL}}/_delete-jwks'
   schedule: 0 * * * *
   include_in_metadata: true
   payload: {}
@@ -41,7 +41,7 @@
       value_from_env: INTERNAL_ENDPOINTS_SECRET
   comment: Schedules all expired JWKS for deletion by KMS
 - name: Evaluate notification permissions
-  webhook: "{{NEXT_API_URL}}/_evaluate-app-notification-permissions"
+  webhook: '{{NEXT_API_URL}}/_evaluate-app-notification-permissions'
   schedule: 0 15 * * 5
   include_in_metadata: true
   payload: {}
