@@ -21,7 +21,7 @@ import clsx from "clsx";
 import { useAtom, useSetAtom } from "jotai";
 import ErrorComponent from "next/error";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useFormContext } from "react-hook-form";
 import { toast } from "react-toastify";
 import * as yup from "yup";
@@ -60,6 +60,7 @@ export const AppTopBar = (props: AppTopBarProps) => {
   const { data: unverifiedImagesData } = useFetchImagesQuery({
     variables: { id: appId, team_id: teamId },
   });
+  const hasAutoSubmitted = useRef(false);
 
   const [showSubmitAppModal, setShowSubmitAppModal] = useState(false);
   const [_showReviewMessage] = useAtom(reviewMessageDialogOpenedAtom);
@@ -193,12 +194,14 @@ export const AppTopBar = (props: AppTopBarProps) => {
     }
   }, [appMetadata, pathname, router, teamId, appId, form]);
 
-  const shouldSubmitForReview = searchParams.get("submitForReview") === "true";
+  const shouldAutoSubmitForReview =
+    searchParams.get("submitForReview") === "true";
   useEffect(() => {
-    if (shouldSubmitForReview) {
+    if (shouldAutoSubmitForReview && !hasAutoSubmitted.current) {
       submitForReview();
+      hasAutoSubmitted.current = true;
     }
-  }, [shouldSubmitForReview, submitForReview]);
+  }, [shouldAutoSubmitForReview, submitForReview]);
 
   const [fetchImagesQuery] = useFetchImagesLazyQuery();
 
