@@ -13,6 +13,7 @@ import { useRefetchQueries } from "@/lib/use-refetch-queries";
 import { checkUserPermissions } from "@/lib/utils";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import Image from "next/image";
+import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo } from "react";
 import {
   Controller,
@@ -48,6 +49,7 @@ export const AppStoreFormRefactored = (props: {
 }) => {
   const { appId, teamId, appMetadata, localisationsData } = props;
   const { user } = useUser() as Auth0SessionUser;
+  const searchParams = useSearchParams();
 
   const { refetch: refetchAppMetadata } = useRefetchQueries(
     FetchAppMetadataDocument,
@@ -57,9 +59,6 @@ export const AppStoreFormRefactored = (props: {
     FetchLocalisationsDocument,
     { app_metadata_id: appMetadata.id },
   );
-
-  const fragmentIdentifier =
-    typeof window !== "undefined" ? window.location.hash.substring(1) : null;
 
   const {
     control,
@@ -158,6 +157,7 @@ export const AppStoreFormRefactored = (props: {
   const countries = useMemo(() => formCountriesList(), []);
   const allPossibleLanguages = formLanguagesList;
   const supportType = watch("support_type");
+  const shouldDefaultOpenLogoEditor = searchParams.get("editLogo") === "true";
 
   // handle clearing the unused field when support type changes
   const handleSupportTypeChange = useCallback(
@@ -191,7 +191,7 @@ export const AppStoreFormRefactored = (props: {
             editable={true}
             isError={false}
             logoFile={props.appMetadata.logo_img_url}
-            defaultOpen={fragmentIdentifier === "edit-logo"}
+            defaultOpen={shouldDefaultOpenLogoEditor}
           />
         </div>
         {/* category */}

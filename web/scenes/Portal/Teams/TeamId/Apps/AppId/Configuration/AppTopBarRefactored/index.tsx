@@ -306,7 +306,7 @@ export const AppTopBar = (props: AppTopBarProps) => {
               type="button"
               onClick={() => {
                 router.push(
-                  `/teams/${teamId}/apps/${appId}/configuration/app-store-refactored#edit-logo`,
+                  `/teams/${teamId}/apps/${appId}/configuration/app-store-refactored?editLogo=true`,
                 );
               }}
               className={clsx(
