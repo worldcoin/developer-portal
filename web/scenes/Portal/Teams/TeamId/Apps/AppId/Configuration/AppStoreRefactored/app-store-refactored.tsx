@@ -863,7 +863,8 @@ export const AppStoreFormRefactored = (props: {
         </div>
         {/* floating save button tab */}
         <div className="fixed inset-x-0 bottom-0 z-50 h-32 bg-transparent shadow-lg">
-          <div className="flex w-full items-center justify-end gap-3 px-8 pt-2 md:pt-8">
+          <div className="mx-auto grid max-w-[580px] grid-cols-1fr/auto px-8 pt-2 md:pt-8">
+            <div></div>
             <div className="flex justify-end">
               <DecoratedButton
                 type="submit"
@@ -877,6 +878,7 @@ export const AppStoreFormRefactored = (props: {
                 </Typography>
               </DecoratedButton>
             </div>
+            <div></div>
           </div>
         </div>
       </form>
