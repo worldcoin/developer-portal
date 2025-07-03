@@ -1,0 +1,23 @@
+query FetchVerifications(
+  $where: nullifier_bool_exp!
+  $limit: Int!
+  $offset: Int!
+) {
+  nullifier(
+    where: $where
+    limit: $limit
+    offset: $offset
+    order_by: { created_at: desc }
+  ) {
+    id
+    nullifier_hash
+    uses
+    created_at
+    action {
+      id
+      action
+      name
+      app_id
+    }
+  }
+}
