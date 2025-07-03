@@ -19,12 +19,13 @@ const createTestAppWithKey = async () => {
   const teamId = teamResult.rows[0].id;
 
   // Create a user and membership
+  const uniqueId = Math.random().toString(36).substring(7);
   const userResult = await integrationDBExecuteQuery(
     `INSERT INTO "user" (name, email, ironclad_id, is_subscribed) VALUES ($1, $2, $3, $4) RETURNING id;`,
     [
       "Test User",
-      "test@example.com",
-      `ironclad_test_${Math.random().toString(36).substring(7)}`,
+      `test_${uniqueId}@example.com`,
+      `ironclad_test_${uniqueId}`,
       false,
     ],
   );
@@ -89,6 +90,9 @@ const createTestData = async (appId: string) => {
   const oneMonthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
   const twoMonthsAgo = new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000);
 
+  // Generate unique nullifier hashes to avoid conflicts
+  const uniqueSuffix = Math.random().toString(36).substring(2, 8);
+
   // Action 1 nullifiers
   await integrationDBExecuteQuery(
     `INSERT INTO nullifier (action_id, nullifier_hash, uses, created_at, updated_at)
@@ -98,15 +102,15 @@ const createTestData = async (appId: string) => {
        ($1, $10, $11, $12, $13);`,
     [
       action1.rows[0].id,
-      "0x111111",
+      `0x111111${uniqueSuffix}`,
       5,
       oneWeekAgo,
       now,
-      "0x222222",
+      `0x222222${uniqueSuffix}`,
       2,
       oneMonthAgo,
       oneMonthAgo,
-      "0x333333",
+      `0x333333${uniqueSuffix}`,
       1,
       twoMonthsAgo,
       twoMonthsAgo,
@@ -121,11 +125,11 @@ const createTestData = async (appId: string) => {
        ($1, $6, $7, $8, $9);`,
     [
       action2.rows[0].id,
-      "0x444444",
+      `0x444444${uniqueSuffix}`,
       3,
       oneWeekAgo,
       oneWeekAgo,
-      "0x555555",
+      `0x555555${uniqueSuffix}`,
       10,
       oneMonthAgo,
       now,
@@ -318,6 +322,34 @@ describe("/api/v2/verifications [Integration Tests]", () => {
       expect(response.status).toBe(403);
       expect(data.code).toBe("invalid_api_key");
       expect(data.detail).toBe("API key is not valid.");
+    });
+
+    it("should return 403 when trying to access another app's action", async () => {
+      // Create Team A with app and action
+      const teamA = await createTestAppWithKey();
+      const { action1Id: actionA } = await createTestData(teamA.app_id);
+
+      // Create Team B with app and action
+      const teamB = await createTestAppWithKey();
+      const { action1Id: actionB } = await createTestData(teamB.app_id);
+
+      // Try to use Team A's API key to access Team B's action
+      const req = new NextRequest(
+        `http://localhost:3000/api/v2/verifications?app_id=${teamA.app_id}&action_id=${actionB}`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${teamA.api_key}`,
+          },
+        },
+      );
+
+      const response = await GET(req);
+      const data = await response.json();
+
+      expect(response.status).toBe(403);
+      expect(data.code).toBe("forbidden");
+      expect(data.detail).toBe("You don't have access to this action");
     });
 
     it("should return 403 when API key belongs to different team than the action", async () => {

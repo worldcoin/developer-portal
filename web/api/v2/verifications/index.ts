@@ -5,6 +5,7 @@ import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import dayjs from "dayjs";
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
+import { getSdk as fetchActionSdk } from "./graphql/fetch-action.generated";
 import { getSdk as fetchVerificationsSdk } from "./graphql/fetch-verifications.generated";
 
 // Default and max pagination limits
@@ -71,6 +72,26 @@ export const GET = async (req: NextRequest) => {
 
   const teamId = verifyResult.teamId;
 
+  // Get service client for GraphQL queries
+  const serviceClient = await getAPIServiceGraphqlClient();
+
+  // Verify the action belongs to the app
+  const { action } = await fetchActionSdk(serviceClient).FetchAction({
+    id: action_id,
+    app_id: app_id,
+  });
+
+  if (!action || action.length === 0) {
+    return errorResponse({
+      statusCode: 403,
+      code: "forbidden",
+      detail: "You don't have access to this action",
+      attribute: "action_id",
+      req,
+      team_id: teamId,
+    });
+  }
+
   // Validate date range if both dates provided
   if (start_date && end_date) {
     const startDate = dayjs(start_date);
@@ -89,8 +110,6 @@ export const GET = async (req: NextRequest) => {
   }
 
   try {
-    const serviceClient = await getAPIServiceGraphqlClient();
-
     // Build where clause dynamically
     const whereClause: any = {
       action_id: { _eq: action_id },
@@ -109,10 +128,6 @@ export const GET = async (req: NextRequest) => {
     if (dateFilters.length > 0) {
       whereClause._and = dateFilters;
     }
-
-    console.log("whereClause", JSON.stringify(whereClause, null, 2));
-    console.log("limit", limit);
-    console.log("offset", offset);
 
     const { nullifier } = await fetchVerificationsSdk(
       serviceClient,
@@ -159,8 +174,6 @@ export const GET = async (req: NextRequest) => {
       },
     });
   } catch (error) {
-    console.error("Error fetching verifications:", error);
-
     return errorResponse({
       statusCode: 500,
       code: "internal_error",
