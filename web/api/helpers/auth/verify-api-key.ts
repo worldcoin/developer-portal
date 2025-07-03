@@ -60,9 +60,9 @@ export const verifyApiKey = async (
     return {
       success: false,
       errorResponse: errorResponse({
-        statusCode: 404,
-        code: "not_found",
-        detail: "API key not found.",
+        statusCode: 403,
+        code: "invalid_api_key",
+        detail: "API key is not valid.",
         attribute: "api_key",
         req,
         app_id: appId,
@@ -74,9 +74,9 @@ export const verifyApiKey = async (
     return {
       success: false,
       errorResponse: errorResponse({
-        statusCode: 400,
-        code: "api_key_inactive",
-        detail: "API key is inactive.",
+        statusCode: 403,
+        code: "invalid_api_key",
+        detail: "API key is not valid.",
         attribute: "api_key",
         req,
         app_id: appId,
