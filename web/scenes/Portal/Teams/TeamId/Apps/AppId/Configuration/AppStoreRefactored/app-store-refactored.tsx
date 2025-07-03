@@ -30,6 +30,7 @@ import { AppStoreFormValues } from "./form-schema";
 import { FetchLocalisationsDocument } from "./graphql/client/fetch-localisations.generated";
 import { MetaTagImageField } from "./ImageForm/MetaTagImageField";
 import { ShowcaseImagesField } from "./ImageForm/ShowcaseImagesField";
+import { ImportExportJSON } from "./ImportExportJSON";
 import { LogoImageUpload } from "./LogoImageUpload";
 import { updateAppStoreMetadata } from "./server/update-app-store";
 
@@ -572,13 +573,24 @@ export const AppStoreFormRefactored = (props: {
         {/* localisations section */}
 
         <div className="grid gap-y-5">
-          <div className="grid gap-y-3">
-            <Typography variant={TYPOGRAPHY.H7}>
-              Localisations <span className="text-system-error-500">*</span>
-            </Typography>
-            <Typography variant={TYPOGRAPHY.R4} className="text-grey-500">
-              Provide localized content for each supported language.
-            </Typography>
+          <div className="flex items-start justify-between gap-2">
+            <div className="grid gap-y-3 ">
+              <Typography variant={TYPOGRAPHY.H7}>
+                Localisations <span className="text-system-error-500">*</span>
+              </Typography>
+              <Typography variant={TYPOGRAPHY.R4} className="text-grey-500">
+                Provide localized content for each supported language.
+              </Typography>
+            </div>
+            <div>
+              <ImportExportJSON
+                appId={appId}
+                appMetadataId={appMetadata.id}
+                teamId={teamId}
+                disabled={!isEditable || !isEnoughPermissions}
+                localisationsData={localisations}
+              />
+            </div>
           </div>
           <div className="max-h-[60vh] space-y-5 overflow-y-scroll rounded-lg border border-grey-200 p-4">
             {localisations.map((field, index) => {

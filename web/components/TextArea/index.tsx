@@ -14,6 +14,7 @@ export interface TextAreaInterface
   placeholder?: string;
   helperText?: string;
   addOn?: React.ReactElement;
+  topAddOn?: React.ReactElement;
   className?: string;
   rows?: number;
   enableResize?: boolean;
@@ -30,6 +31,7 @@ export const TextArea = memo(function TextArea(props: TextAreaInterface) {
     className,
     errors,
     addOn,
+    topAddOn,
     disabled,
     rows,
     enableResize = true,
@@ -94,6 +96,10 @@ export const TextArea = memo(function TextArea(props: TextAreaInterface) {
         <div className="absolute inset-y-0 bottom-3 right-2 flex items-end pr-2">
           {addOn && addOn}
         </div>
+
+        {topAddOn && (
+          <div className="absolute inset-y-0 right-2 top-3">{topAddOn}</div>
+        )}
 
         <legend className={labelClassNames}>
           {label} {required && <span className="text-system-error-500">*</span>}
