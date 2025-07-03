@@ -782,8 +782,8 @@ export const AppStoreFormRefactored = (props: {
                       name={`localisations.${index}.world_app_description`}
                       render={({ field: descField }) => (
                         <Input
-                          label="World App Description"
-                          placeholder="Enter description for World App"
+                          label="App Tag Line"
+                          placeholder="Enter app tag line"
                           value={descField.value || ""}
                           onChange={descField.onChange}
                           disabled={!isEditable || !isEnoughPermissions}
@@ -800,8 +800,8 @@ export const AppStoreFormRefactored = (props: {
                       name={`localisations.${index}.description_overview`}
                       render={({ field: overviewField }) => (
                         <Input
-                          label="Description Overview"
-                          placeholder="Enter overview description"
+                          label="Description"
+                          placeholder="Enter description"
                           value={overviewField.value || ""}
                           onChange={overviewField.onChange}
                           disabled={!isEditable || !isEnoughPermissions}
