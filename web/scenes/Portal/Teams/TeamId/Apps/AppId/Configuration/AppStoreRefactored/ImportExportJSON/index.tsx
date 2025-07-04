@@ -1,10 +1,9 @@
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { formLanguagesList } from "@/lib/languages";
-import { useState } from "react";
 import { toast } from "react-toastify";
 import * as yup from "yup";
 import { AppStoreFormValues } from "../form-schema";
-import { MAX_FILE_SIZE } from "./constants";
+import { useImportExportDialog, useJSONValidation } from "./hooks";
 import { ImportExportDialog } from "./import-export-dialog";
 
 type ImportExportJSONProps = {
@@ -21,17 +20,11 @@ type ImportExportJSONProps = {
   ) => void;
 };
 
-type ImportExportJSONLocalisation = yup.InferType<
+export type ImportExportJSONLocalisation = yup.InferType<
   typeof importExportJSONLocalisationsSchema
 >[number];
 
-type ValidationResult = {
-  isValid: boolean;
-  error: string | null;
-  data: ImportExportJSONLocalisation[] | null;
-};
-
-const importExportJSONLocalisationsSchema = yup
+export const importExportJSONLocalisationsSchema = yup
   .array()
   .of(
     yup
@@ -43,12 +36,10 @@ const importExportJSONLocalisationsSchema = yup
             (value) => `invalid language code - ${value.originalValue}`,
           )
           .required("Language is required"),
-        name: yup.string().required("Name is required"),
-        short_name: yup.string().required("Short name is required"),
-        app_tag_line: yup.string().required("App tag line is required"),
-        description_overview: yup
-          .string()
-          .required("Description overview is required"),
+        name: yup.string(),
+        short_name: yup.string(),
+        app_tag_line: yup.string(),
+        description_overview: yup.string(),
       })
       .required(),
   )
@@ -87,140 +78,45 @@ const transformLocalisationsDataToFormSchema = (
 > => {
   return localisationsData.map((item) => ({
     language: item.language,
-    name: item.name,
-    short_name: item.short_name,
-    world_app_description: item.app_tag_line,
-    description_overview: item.description_overview,
+    name: item.name ?? "",
+    short_name: item.short_name ?? "",
+    world_app_description: item.app_tag_line ?? "",
+    description_overview: item.description_overview ?? "",
   }));
 };
 
-const validateJSON = (jsonString: string): ValidationResult => {
-  try {
-    const parsed = JSON.parse(jsonString);
-    const validated = importExportJSONLocalisationsSchema.validateSync(parsed);
-    return { isValid: true, error: null, data: validated };
-  } catch (error) {
-    if (error instanceof SyntaxError) {
-      return { isValid: false, error: "Invalid JSON syntax", data: null };
-    }
-    if (error instanceof yup.ValidationError) {
-      return { isValid: false, error: error.message, data: null };
-    }
-    return { isValid: false, error: "Unknown validation error", data: null };
-  }
-};
-
-// custom hooks
-const useImportExportDialog = () => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [jsonInput, setJsonInput] = useState("");
-
-  const openDialog = (initialJson: string) => {
-    setJsonInput(initialJson);
-    setIsOpen(true);
-  };
-
-  const closeDialog = () => {
-    setIsOpen(false);
-    setJsonInput("");
-  };
-
-  return {
-    isOpen,
-    jsonInput,
-    setJsonInput,
-    openDialog,
-    closeDialog,
-  };
-};
-
-const useJSONValidation = () => {
-  const [validationState, setValidationState] = useState<ValidationResult>({
-    isValid: true,
-    error: null,
-    data: null,
-  });
-
-  const validateInput = (jsonString: string) => {
-    const result = validateJSON(jsonString);
-    setValidationState(result);
-    return result;
-  };
-
-  return {
-    validationState,
-    validateInput,
-  };
-};
-
-const useJSONFileUpload = () => {
-  const [isLoading, setIsLoading] = useState(false);
-
-  const uploadFile = async (file: File): Promise<string> => {
-    setIsLoading(true);
-
-    if (file.type !== "application/json") {
-      toast.error("Invalid file type");
-      setIsLoading(false);
-      throw new Error("Invalid file type");
-    }
-
-    if (file.size >= MAX_FILE_SIZE) {
-      toast.error(`File size must be under ${MAX_FILE_SIZE / 1024}kB`);
-      setIsLoading(false);
-      throw new Error("File too large");
-    }
-
+const useJSONFileDownload = () => {
+  const downloadFile = (
+    jsonContent: string,
+    filename: string = "localisations.json",
+  ) => {
     try {
-      toast.info("Uploading file", {
-        toastId: "upload_file_toast",
-        autoClose: 5000,
-      });
-
-      const json = await file.text();
-      const validation = validateJSON(json);
-
-      if (validation.isValid) {
-        toast.update("upload_file_toast", {
-          type: "success",
-          render: "File parsed successfully",
-          autoClose: 5000,
-        });
-        return json;
-      } else {
-        toast.update("upload_file_toast", {
-          type: "error",
-          render: `Error parsing file: ${validation.error}`,
-          autoClose: 5000,
-        });
-        throw new Error(validation.error || "Validation failed");
-      }
+      const blob = new Blob([jsonContent], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      toast.success("File downloaded successfully");
     } catch (error) {
-      console.error("File parsing Failed: ", error);
-      toast.update("upload_file_toast", {
-        type: "error",
-        render: "Error parsing file",
-        autoClose: 5000,
-      });
-      throw error;
-    } finally {
-      setIsLoading(false);
+      console.error("Error downloading file:", error);
+      toast.error("Error downloading file");
     }
   };
 
   return {
-    isLoading,
-    uploadFile,
+    downloadFile,
   };
 };
 
-// main orchestrator component
 export const ImportExportJSON = (props: ImportExportJSONProps) => {
   const { disabled, localisationsData, onLocalisationsUpdate } = props;
 
   const dialog = useImportExportDialog();
   const validation = useJSONValidation();
-  const fileUpload = useJSONFileUpload();
 
   const localisationsDataJSON =
     transformFormLocalisationsToJsonString(localisationsData);
@@ -233,16 +129,6 @@ export const ImportExportJSON = (props: ImportExportJSONProps) => {
   const handleJsonInputChange = (value: string) => {
     dialog.setJsonInput(value);
     validation.validateInput(value);
-  };
-
-  const handleFileUpload = async (file: File) => {
-    try {
-      const jsonContent = await fileUpload.uploadFile(file);
-      dialog.setJsonInput(jsonContent);
-      validation.validateInput(jsonContent);
-    } catch (error) {
-      // error handling is done in the hook
-    }
   };
 
   const handleApplyChanges = () => {
@@ -277,10 +163,8 @@ export const ImportExportJSON = (props: ImportExportJSONProps) => {
         jsonInput={dialog.jsonInput}
         onJsonInputChange={handleJsonInputChange}
         validationError={validation.validationState.error}
-        onFileUpload={handleFileUpload}
         onApplyChanges={handleApplyChanges}
         disabled={disabled}
-        isLoading={fileUpload.isLoading}
         hasChanges={hasChanges}
       />
 

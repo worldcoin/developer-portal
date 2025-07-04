@@ -1,12 +1,11 @@
 import { Button } from "@/components/Button";
 import { DecoratedButton } from "@/components/DecoratedButton";
+import { Dialog } from "@/components/Dialog";
 import { DialogOverlay } from "@/components/DialogOverlay";
 import { DialogPanel } from "@/components/DialogPanel";
 import { CloseIcon } from "@/components/Icons/CloseIcon";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import { Dialog } from "@headlessui/react";
 import { JSONEditor } from "./json-editor";
-import { JSONFileUpload } from "./json-file-upload";
 
 type ImportExportDialogProps = {
   isOpen: boolean;
@@ -14,10 +13,8 @@ type ImportExportDialogProps = {
   jsonInput: string;
   onJsonInputChange: (value: string) => void;
   validationError?: string | null;
-  onFileUpload: (file: File) => Promise<void>;
   onApplyChanges: () => void;
   disabled?: boolean;
-  isLoading?: boolean;
   hasChanges?: boolean;
 };
 
@@ -27,10 +24,8 @@ export const ImportExportDialog = ({
   jsonInput,
   onJsonInputChange,
   validationError,
-  onFileUpload,
   onApplyChanges,
   disabled,
-  isLoading,
   hasChanges,
 }: ImportExportDialogProps) => {
   return (
@@ -55,12 +50,6 @@ export const ImportExportDialog = ({
           onChange={onJsonInputChange}
           error={validationError}
           disabled={disabled}
-        />
-
-        <JSONFileUpload
-          onFileUpload={onFileUpload}
-          disabled={disabled}
-          isLoading={isLoading}
         />
 
         <div className="flex justify-end gap-x-3">

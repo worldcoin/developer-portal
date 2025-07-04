@@ -596,7 +596,9 @@ export const AppStoreFormRefactored = (props: {
                 Localisations <span className="text-system-error-500">*</span>
               </Typography>
               <Typography variant={TYPOGRAPHY.R4} className="text-grey-500">
-                Provide localized content for each supported language.
+                Provide localized content for each supported language. You may
+                also use the Import/Export button to use a JSON to set
+                localisations.
               </Typography>
             </div>
             <div>
