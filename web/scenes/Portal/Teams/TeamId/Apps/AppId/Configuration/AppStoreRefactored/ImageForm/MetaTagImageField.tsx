@@ -9,6 +9,8 @@ import Skeleton from "react-loading-skeleton";
 import { toast } from "react-toastify";
 import { useFetchImagesQuery } from "../../graphql/client/fetch-images.generated";
 import { ImageValidationError, useImage } from "../../hook/use-image";
+import { useUpsertLocalisedMetaTagImageMutation } from "../graphql/client/upsert-localised-meta-tag-image.generated";
+import { extractImagePathWithExtensionFromActualUrl } from "../utils";
 import { ImageDisplay } from "./ImageDisplay";
 import ImageLoader from "./ImageLoader";
 
@@ -20,6 +22,10 @@ interface MetaTagImageFieldProps {
   teamId: string;
   locale?: string; // for non-english localizations
   isAppVerified: boolean;
+  appMetadataId?: string;
+  supportedLanguages: string[];
+  onAutosaveSuccess?: () => void;
+  onAutosaveError?: (error: any) => void;
 }
 
 export const MetaTagImageField = (props: MetaTagImageFieldProps) => {
@@ -31,14 +37,71 @@ export const MetaTagImageField = (props: MetaTagImageFieldProps) => {
     teamId,
     locale,
     isAppVerified,
+    appMetadataId,
+    supportedLanguages,
+    onAutosaveSuccess,
+    onAutosaveError,
   } = props;
   const [isUploading, setIsUploading] = useState(false);
   const isMountedRef = useRef(true);
-  const { data: imagesData, loading: isImagesLoading } = useFetchImagesQuery({
-    variables: { id: appId, team_id: teamId, locale },
+  // en is not considered a localization, since we set english properties on app metadata
+  const isLocalized = locale !== "en";
+
+  const {
+    data: unverifiedImagesData,
+    loading: isImagesLoading,
+    refetch: refetchUnverifiedImages,
+  } = useFetchImagesQuery({
+    variables: {
+      id: appId,
+      team_id: teamId,
+      locale: isLocalized ? locale : undefined,
+    },
   });
   const { validateImageAspectRatio, uploadViaPresignedPost, getImage } =
     useImage();
+
+  const [upsertLocalisedMetaTagImage] = useUpsertLocalisedMetaTagImageMutation({
+    onCompleted: (data) => {
+      console.log("autosave successful", data);
+      toast.success("Meta tag image saved successfully");
+      onAutosaveSuccess?.();
+    },
+    onError: (error) => {
+      console.error("autosave failed:", error);
+      toast.error("Failed to auto-save meta tag image");
+      onAutosaveError?.(error);
+    },
+  });
+
+  const performAutosave = useCallback(
+    async (possiblyActualUrl: string | null) => {
+      if (!appMetadataId) return;
+      const newUrl =
+        extractImagePathWithExtensionFromActualUrl(possiblyActualUrl);
+      try {
+        await upsertLocalisedMetaTagImage({
+          variables: {
+            app_metadata_id: appMetadataId,
+            meta_tag_image_url: newUrl,
+            supported_languages: supportedLanguages,
+            locale: isLocalized ? locale : undefined,
+            is_localized: isLocalized,
+          },
+        });
+      } catch (error) {
+        // error is already handled by the mutation's onError callback
+        console.error("autosave error:", error);
+      }
+    },
+    [
+      appMetadataId,
+      upsertLocalisedMetaTagImage,
+      supportedLanguages,
+      isLocalized,
+      locale,
+    ],
+  );
 
   // cleanup on unmount
   const handleUnmount = useCallback(() => {
@@ -46,7 +109,7 @@ export const MetaTagImageField = (props: MetaTagImageFieldProps) => {
   }, []);
 
   const uploadImage = useCallback(
-    async (imageType: string, file: File, height: number, width: number) => {
+    async (_imageType: string, file: File, height: number, width: number) => {
       if (!file || !(file.type === "image/png" || file.type === "image/jpeg")) {
         return;
       }
@@ -72,7 +135,7 @@ export const MetaTagImageField = (props: MetaTagImageFieldProps) => {
           appId,
           teamId,
           "meta_tag_image",
-          locale,
+          isLocalized ? locale : undefined,
         );
 
         const imageUrl = await getImage(
@@ -80,7 +143,7 @@ export const MetaTagImageField = (props: MetaTagImageFieldProps) => {
           appId,
           teamId,
           "meta_tag_image",
-          locale,
+          isLocalized ? locale : undefined,
         );
 
         // check if component is still mounted/valid before updating
@@ -91,9 +154,11 @@ export const MetaTagImageField = (props: MetaTagImageFieldProps) => {
           });
           return;
         }
+        const newUrl = extractImagePathWithExtensionFromActualUrl(imageUrl);
 
-        onChange(imageUrl);
-
+        await performAutosave(newUrl);
+        await refetchUnverifiedImages();
+        onChange(newUrl);
         toast.update("upload_meta_tag_toast", {
           type: "success",
           render: "Meta tag image uploaded successfully",
@@ -120,17 +185,22 @@ export const MetaTagImageField = (props: MetaTagImageFieldProps) => {
     [
       validateImageAspectRatio,
       uploadViaPresignedPost,
-      getImage,
       appId,
       teamId,
+      isLocalized,
       locale,
+      getImage,
+      performAutosave,
+      refetchUnverifiedImages,
       onChange,
     ],
   );
 
-  const handleDelete = useCallback(() => {
+  const handleDelete = useCallback(async () => {
+    await performAutosave(null);
     onChange(null);
-  }, [onChange]);
+    await refetchUnverifiedImages();
+  }, [onChange, performAutosave, refetchUnverifiedImages]);
 
   // set cleanup function
   useEffect(() => {
@@ -139,20 +209,19 @@ export const MetaTagImageField = (props: MetaTagImageFieldProps) => {
 
   const metaTagImage = useMemo(() => {
     if (isAppVerified) {
-      const imageUrl =
-        locale === "en"
-          ? value
-          : imagesData?.unverified_images?.meta_tag_image_url;
-      if (!imageUrl) return null;
-      return getCDNImageUrl(appId, imageUrl, true, locale);
+      if (!value) return null;
+
+      return getCDNImageUrl(appId, value, true, locale);
     } else {
-      return imagesData?.unverified_images?.meta_tag_image_url;
+      return (
+        unverifiedImagesData?.unverified_images?.meta_tag_image_url || null
+      );
     }
   }, [
     isAppVerified,
     locale,
     value,
-    imagesData?.unverified_images?.meta_tag_image_url,
+    unverifiedImagesData?.unverified_images?.meta_tag_image_url,
     appId,
   ]);
 
@@ -167,7 +236,7 @@ export const MetaTagImageField = (props: MetaTagImageFieldProps) => {
         provided.
       </Typography>
 
-      {!metaTagImage && !isUploading && !isImagesLoading && (
+      {!value && !isUploading && !isImagesLoading && (
         <ImageDropZone
           width={1200}
           height={600}

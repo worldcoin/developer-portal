@@ -145,10 +145,8 @@ const getLocalisationFormValues = (
       showcase_img_urls: localisation.showcase_img_urls || [],
     });
   }
-  return [
-    enLocalisation,
-    ...localisations.sort((a, b) => a.language.localeCompare(b.language)),
-  ];
+
+  return [...new Set([enLocalisation, ...localisations])];
 };
 
 export const AppStoreFormRefactored = (props: {
@@ -198,9 +196,6 @@ export const AppStoreFormRefactored = (props: {
     resolver: yupResolver(mainAppStoreFormSchema),
     defaultValues: {
       ...appMetadata,
-      // don't set these boolean fields from appMetadata so they start unchecked
-      is_android_only: undefined,
-      is_for_humans_only: undefined,
       supported_countries: appMetadata.supported_countries || [],
       supported_languages: appMetadata.supported_languages || ["en"],
       support_email: isSupportEmailDefault
@@ -823,12 +818,22 @@ export const AppStoreFormRefactored = (props: {
                           disabled={!isEditable || !isEnoughPermissions}
                           appId={appId}
                           teamId={teamId}
-                          locale={
-                            field.language !== "en" ? field.language : undefined
-                          }
+                          locale={field.language}
                           isAppVerified={
                             appMetadata?.verification_status === "verified"
                           }
+                          appMetadataId={appMetadata.id}
+                          supportedLanguages={supportedLanguages}
+                          onAutosaveSuccess={() => {
+                            refetchAppMetadata();
+                            refetchLocalisations();
+                          }}
+                          onAutosaveError={(error) => {
+                            console.error(
+                              "showcase images autosave failed:",
+                              error,
+                            );
+                          }}
                         />
                       )}
                     />
@@ -846,12 +851,22 @@ export const AppStoreFormRefactored = (props: {
                           disabled={!isEditable || !isEnoughPermissions}
                           appId={appId}
                           teamId={teamId}
-                          locale={
-                            field.language !== "en" ? field.language : undefined
-                          }
+                          locale={field.language}
                           isAppVerified={
                             appMetadata?.verification_status === "verified"
                           }
+                          appMetadataId={appMetadata.id}
+                          supportedLanguages={supportedLanguages}
+                          onAutosaveSuccess={() => {
+                            refetchAppMetadata();
+                            refetchLocalisations();
+                          }}
+                          onAutosaveError={(error) => {
+                            console.error(
+                              "showcase images autosave failed:",
+                              error,
+                            );
+                          }}
                         />
                       )}
                     />

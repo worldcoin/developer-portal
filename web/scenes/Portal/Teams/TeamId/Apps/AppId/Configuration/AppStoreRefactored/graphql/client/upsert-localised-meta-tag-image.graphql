@@ -1,0 +1,39 @@
+mutation UpsertLocalisedMetaTagImage(
+  $app_metadata_id: String!
+  $meta_tag_image_url: String!
+  $supported_languages: [String!]!
+  $locale: String
+  $is_localized: Boolean!
+) {
+  update_supported_languages: update_app_metadata_by_pk(
+    pk_columns: { id: $app_metadata_id }
+    _set: { supported_languages: $supported_languages }
+  ) {
+    id
+    supported_languages
+  }
+
+  update_app_metadata_by_pk(
+    pk_columns: { id: $app_metadata_id }
+    _set: { meta_tag_image_url: $meta_tag_image_url }
+  ) @skip(if: $is_localized) {
+    id
+    meta_tag_image_url
+  }
+
+  insert_localisations(
+    objects: [
+      {
+        app_metadata_id: $app_metadata_id
+        locale: $locale
+        meta_tag_image_url: $meta_tag_image_url
+      }
+    ]
+    on_conflict: {
+      constraint: unique_app_metadata_locale
+      update_columns: meta_tag_image_url
+    }
+  ) @include(if: $is_localized) {
+    affected_rows
+  }
+}

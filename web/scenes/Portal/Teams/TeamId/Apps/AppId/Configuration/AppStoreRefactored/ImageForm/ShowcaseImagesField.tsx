@@ -9,6 +9,8 @@ import Skeleton from "react-loading-skeleton";
 import { toast } from "react-toastify";
 import { useFetchImagesQuery } from "../../graphql/client/fetch-images.generated";
 import { ImageValidationError, useImage } from "../../hook/use-image";
+import { useUpsertLocalisedShowcaseImagesMutation } from "../graphql/client/upsert-localised-showcase-images.generated";
+import { extractImagePathWithExtensionFromActualUrl } from "../utils";
 import { ImageDisplay } from "./ImageDisplay";
 import ImageLoader from "./ImageLoader";
 
@@ -18,8 +20,12 @@ interface ShowcaseImagesFieldProps {
   disabled?: boolean;
   appId: string;
   teamId: string;
-  locale?: string; // for non-english localizations
+  locale: string; // for non-english localizations
   isAppVerified: boolean;
+  appMetadataId?: string;
+  supportedLanguages: string[];
+  onAutosaveSuccess?: () => void;
+  onAutosaveError?: (error: any) => void;
 }
 
 export const ShowcaseImagesField = (props: ShowcaseImagesFieldProps) => {
@@ -31,16 +37,73 @@ export const ShowcaseImagesField = (props: ShowcaseImagesFieldProps) => {
     teamId,
     locale,
     isAppVerified,
+    appMetadataId,
+    supportedLanguages,
+    onAutosaveSuccess,
+    onAutosaveError,
   } = props;
   const [isUploading, setIsUploading] = useState(false);
   const isMountedRef = useRef(true);
+  // en is not considered a localization, since we set english properties on app metadata
+  const isLocalized = locale !== "en";
 
   const { validateImageAspectRatio, uploadViaPresignedPost, getImage } =
     useImage();
 
-  const { data: imagesData, loading: isImagesLoading } = useFetchImagesQuery({
-    variables: { id: appId, team_id: teamId, locale },
+  const {
+    data: unverifiedImagesData,
+    loading: isImagesLoading,
+    refetch: refetchUnverifiedImages,
+  } = useFetchImagesQuery({
+    variables: {
+      id: appId,
+      team_id: teamId,
+      locale: isLocalized ? locale : undefined,
+    },
   });
+
+  const [upsertShowcaseImages] = useUpsertLocalisedShowcaseImagesMutation({
+    onCompleted: (data) => {
+      console.log("autosave successful", data);
+      toast.success("Showcase images saved successfully");
+      onAutosaveSuccess?.();
+    },
+    onError: (error) => {
+      console.error("autosave failed:", error);
+      toast.error("Failed to auto-save showcase images");
+      onAutosaveError?.(error);
+    },
+  });
+
+  const performAutosave = useCallback(
+    async (possiblyActualUrls: string[]) => {
+      if (!appMetadataId) return;
+      const newUrls = possiblyActualUrls.map((url) =>
+        extractImagePathWithExtensionFromActualUrl(url),
+      );
+      try {
+        await upsertShowcaseImages({
+          variables: {
+            app_metadata_id: appMetadataId,
+            showcase_img_urls: newUrls,
+            supported_languages: supportedLanguages,
+            locale: isLocalized ? locale : undefined,
+            is_localized: isLocalized,
+          },
+        });
+      } catch (error) {
+        // error is already handled by the mutation's onError callback
+        console.error("autosave error:", error);
+      }
+    },
+    [
+      appMetadataId,
+      locale,
+      upsertShowcaseImages,
+      supportedLanguages,
+      isLocalized,
+    ],
+  );
 
   // cleanup on unmount
   const handleUnmount = useCallback(() => {
@@ -67,7 +130,7 @@ export const ShowcaseImagesField = (props: ShowcaseImagesFieldProps) => {
         // only start showing progress after validation passes
         setIsUploading(true);
 
-        toast.info("uploading showcase image", {
+        toast.info("Uploading showcase image", {
           toastId: "upload_showcase_toast",
           autoClose: false,
         });
@@ -82,7 +145,7 @@ export const ShowcaseImagesField = (props: ShowcaseImagesFieldProps) => {
           appId,
           teamId,
           showcaseImageType,
-          locale,
+          isLocalized ? locale : undefined,
         );
 
         const imageUrl = await getImage(
@@ -90,7 +153,7 @@ export const ShowcaseImagesField = (props: ShowcaseImagesFieldProps) => {
           appId,
           teamId,
           showcaseImageType,
-          locale,
+          isLocalized ? locale : undefined,
         );
 
         // check if component is still mounted/valid before updating
@@ -101,9 +164,13 @@ export const ShowcaseImagesField = (props: ShowcaseImagesFieldProps) => {
           });
           return;
         }
+        const extractedPath =
+          extractImagePathWithExtensionFromActualUrl(imageUrl);
+        const newUrls = [...value, extractedPath];
 
-        onChange([...value, imageUrl]);
-
+        await performAutosave(newUrls);
+        await refetchUnverifiedImages();
+        onChange(newUrls);
         toast.update("upload_showcase_toast", {
           type: "success",
           render: "Showcase image uploaded successfully",
@@ -128,23 +195,29 @@ export const ShowcaseImagesField = (props: ShowcaseImagesFieldProps) => {
       }
     },
     [
+      value,
       validateImageAspectRatio,
       uploadViaPresignedPost,
-      getImage,
       appId,
       teamId,
+      isLocalized,
       locale,
-      value,
+      getImage,
+      performAutosave,
+      refetchUnverifiedImages,
       onChange,
     ],
   );
 
   const handleDelete = useCallback(
-    (indexToDelete: number) => {
-      const newUrls = value.filter((_, index) => index !== indexToDelete);
+    async (imagePath: string) => {
+      const newUrls = value.filter((url) => !url.includes(imagePath));
       onChange(newUrls);
+
+      await performAutosave(newUrls);
+      await refetchUnverifiedImages();
     },
-    [value, onChange],
+    [value, onChange, performAutosave, refetchUnverifiedImages],
   );
 
   // set cleanup function
@@ -156,21 +229,18 @@ export const ShowcaseImagesField = (props: ShowcaseImagesFieldProps) => {
 
   const showcaseImgUrls = useMemo(() => {
     if (isAppVerified) {
-      const urls =
-        locale === "en"
-          ? value
-          : imagesData?.unverified_images?.showcase_img_urls;
-      return urls?.map((url: string) => {
-        return getCDNImageUrl(appId, url, true, locale);
-      });
+      const urls = value;
+      return urls?.map((url: string) =>
+        getCDNImageUrl(appId, url, true, locale),
+      );
     } else {
-      return imagesData?.unverified_images?.showcase_img_urls;
+      return unverifiedImagesData?.unverified_images?.showcase_img_urls || [];
     }
   }, [
     isAppVerified,
     locale,
     value,
-    imagesData?.unverified_images?.showcase_img_urls,
+    unverifiedImagesData?.unverified_images?.showcase_img_urls,
     appId,
   ]);
 
@@ -186,25 +256,32 @@ export const ShowcaseImagesField = (props: ShowcaseImagesFieldProps) => {
       {/* existing images */}
       {value.length > 0 && !isImagesLoading && (
         <div className="grid gap-4 md:grid-cols-3">
-          {value.map((url, index) => (
-            <div key={`${url}-${index}`} className="relative size-fit">
-              <ImageDisplay
-                src={showcaseImgUrls?.[index] || ""}
-                type="original"
-                width={150}
-                height={150}
-                className="h-auto w-32 rounded-lg"
-              />
-              <Button
-                type="button"
-                onClick={() => handleDelete(index)}
-                disabled={disabled}
-                className="absolute -right-3 -top-3 flex size-8 items-center justify-center rounded-full bg-grey-100 hover:bg-grey-200 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                <TrashIcon />
-              </Button>
-            </div>
-          ))}
+          {value.map((url) => {
+            const imagePath = extractImagePathWithExtensionFromActualUrl(url);
+            return (
+              <div key={imagePath} className="relative size-fit">
+                <ImageDisplay
+                  src={
+                    showcaseImgUrls?.find((showcaseImg) =>
+                      showcaseImg.includes(imagePath),
+                    ) || ""
+                  }
+                  type="original"
+                  width={150}
+                  height={150}
+                  className="h-auto w-32 rounded-lg"
+                />
+                <Button
+                  type="button"
+                  onClick={() => handleDelete(imagePath)}
+                  disabled={disabled}
+                  className="absolute -right-3 -top-3 flex size-8 items-center justify-center rounded-full bg-grey-100 hover:bg-grey-200 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <TrashIcon />
+                </Button>
+              </div>
+            );
+          })}
 
           {/* upload loader */}
           {isUploading && (
