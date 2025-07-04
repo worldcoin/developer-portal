@@ -24,6 +24,7 @@ interface MetaTagImageFieldProps {
   isAppVerified: boolean;
   appMetadataId?: string;
   supportedLanguages: string[];
+  error?: string | null;
   onAutosaveSuccess?: () => void;
   onAutosaveError?: (error: any) => void;
 }
@@ -41,6 +42,7 @@ export const MetaTagImageField = (props: MetaTagImageFieldProps) => {
     supportedLanguages,
     onAutosaveSuccess,
     onAutosaveError,
+    error,
   } = props;
   const [isUploading, setIsUploading] = useState(false);
   const isMountedRef = useRef(true);
@@ -243,20 +245,21 @@ export const MetaTagImageField = (props: MetaTagImageFieldProps) => {
           disabled={disabled || isUploading}
           uploadImage={uploadImage}
           imageType="meta_tag_image"
+          error={error}
         >
           <UploadIcon className="size-12 text-blue-500" />
           <div className="gap-y-2">
             <div className="text-center">
               <Typography variant={TYPOGRAPHY.M3} className="text-blue-500">
-                click to upload
+                Click to upload
               </Typography>{" "}
               <Typography variant={TYPOGRAPHY.R3} className="text-grey-700">
                 or drag and drop
               </Typography>
             </div>
             <Typography variant={TYPOGRAPHY.R5} className="text-grey-500">
-              jpg or png (max 500kb), required aspect ratio 2:1.{"\n"}
-              recommended size: 1200x600px
+              JPG or PNG (max 500kb), required aspect ratio 2:1.{"\n"}
+              Recommended size: 1200x600px
             </Typography>
           </div>
         </ImageDropZone>
