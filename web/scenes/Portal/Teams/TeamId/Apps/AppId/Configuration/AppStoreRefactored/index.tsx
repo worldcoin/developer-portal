@@ -4,8 +4,10 @@ import { useAtom } from "jotai";
 import Error from "next/error";
 import { useMemo } from "react";
 import Skeleton from "react-loading-skeleton";
-import { AppTopBar } from "../AppTopBarRefactored";
+import { AppTopBar as AppTopBarOld } from "../AppTopBar";
+import { AppTopBarRefactored } from "../AppTopBarRefactored";
 import { useFetchAppMetadataQuery } from "../graphql/client/fetch-app-metadata.generated";
+import { INTERNAL_TEAM_IDS } from "../layout/constants-temp";
 import { viewModeAtom } from "../layout/ImagesProvider";
 import { AppStoreFormProvider } from "./app-store-form-provider";
 import { AppStoreFormRefactored } from "./app-store-refactored";
@@ -50,6 +52,10 @@ export const AppProfileGalleryPage = ({ params }: AppProfileGalleryProps) => {
     });
 
   const isLoading = isMetadataLoading || isLocalisationsLoading;
+
+  // temp
+  const isInternalTeam = INTERNAL_TEAM_IDS.includes(teamId);
+  const AppTopBar = isInternalTeam ? AppTopBarRefactored : AppTopBarOld;
 
   if (isLoading) {
     return (
