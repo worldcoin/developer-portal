@@ -73,6 +73,7 @@ export const AppStoreFormRefactored = (props: {
     fields: localisations,
     append,
     remove,
+    update,
   } = useFieldArray({
     control,
     name: "localisations",
@@ -172,6 +173,22 @@ export const AppStoreFormRefactored = (props: {
     },
     [setValue],
   );
+
+  const handleLocalisationsJSONUpdate = (
+    newLocalisations: AppStoreFormValues["localisations"],
+  ) => {
+    localisations.forEach((oldLocalisation, index) => {
+      const newLocalisation = newLocalisations.find(
+        (newLocalisation) =>
+          newLocalisation.language === oldLocalisation.language,
+      );
+      if (newLocalisation) {
+        update(index, newLocalisation);
+        return;
+      }
+      return;
+    });
+  };
 
   return (
     <div className="mb-24 grid max-w-[580px] grid-cols-1fr/auto">
@@ -589,6 +606,7 @@ export const AppStoreFormRefactored = (props: {
                 teamId={teamId}
                 disabled={!isEditable || !isEnoughPermissions}
                 localisationsData={localisations}
+                onLocalisationsUpdate={handleLocalisationsJSONUpdate}
               />
             </div>
           </div>

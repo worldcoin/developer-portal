@@ -1,17 +1,11 @@
-import { Button } from "@/components/Button";
-import { CopyButton } from "@/components/CopyButton";
 import { DecoratedButton } from "@/components/DecoratedButton";
-import { Dialog } from "@/components/Dialog";
-import { DialogOverlay } from "@/components/DialogOverlay";
-import { DialogPanel } from "@/components/DialogPanel";
-import { CloseIcon } from "@/components/Icons/CloseIcon";
-import { TextArea } from "@/components/TextArea";
-import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import clsx from "clsx";
-import { ChangeEvent, useState } from "react";
+import { formLanguagesList } from "@/lib/languages";
+import { useState } from "react";
 import { toast } from "react-toastify";
-import { ImageValidationError } from "../../hook/use-image";
+import * as yup from "yup";
 import { AppStoreFormValues } from "../form-schema";
+import { MAX_FILE_SIZE } from "./constants";
+import { ImportExportDialog } from "./import-export-dialog";
 
 type ImportExportJSONProps = {
   appId: string;
@@ -19,9 +13,50 @@ type ImportExportJSONProps = {
   teamId: string;
   disabled: boolean;
   localisationsData: AppStoreFormValues["localisations"];
+  onLocalisationsUpdate: (
+    localisations: Omit<
+      AppStoreFormValues["localisations"],
+      "meta_tag_image_url" | "showcase_img_urls"
+    >,
+  ) => void;
 };
 
-const getLocalisationsDataJSON = (
+type ImportExportJSONLocalisation = yup.InferType<
+  typeof importExportJSONLocalisationsSchema
+>[number];
+
+type ValidationResult = {
+  isValid: boolean;
+  error: string | null;
+  data: ImportExportJSONLocalisation[] | null;
+};
+
+const importExportJSONLocalisationsSchema = yup
+  .array()
+  .of(
+    yup
+      .object({
+        language: yup
+          .string()
+          .oneOf(
+            formLanguagesList.map((lang) => lang.value),
+            (value) => `invalid language code - ${value.originalValue}`,
+          )
+          .required("Language is required"),
+        name: yup.string().required("Name is required"),
+        short_name: yup.string().required("Short name is required"),
+        app_tag_line: yup.string().required("App tag line is required"),
+        description_overview: yup
+          .string()
+          .required("Description overview is required"),
+      })
+      .required(),
+  )
+  .required()
+  .strict();
+
+// utility functions
+const transformFormLocalisationsToJsonString = (
   localisationsData: AppStoreFormValues["localisations"],
 ) => {
   try {
@@ -44,98 +79,216 @@ const getLocalisationsDataJSON = (
   }
 };
 
-export const ImportExportJSON = (props: ImportExportJSONProps) => {
-  const { appId, appMetadataId, teamId, disabled, localisationsData } = props;
-  const [showDialog, setShowDialog] = useState(false);
+const transformLocalisationsDataToFormSchema = (
+  localisationsData: ImportExportJSONLocalisation[],
+): Omit<
+  AppStoreFormValues["localisations"],
+  "meta_tag_image_url" | "showcase_img_urls"
+> => {
+  return localisationsData.map((item) => ({
+    language: item.language,
+    name: item.name,
+    short_name: item.short_name,
+    world_app_description: item.app_tag_line,
+    description_overview: item.description_overview,
+  }));
+};
 
-  const handleFileInput = async (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files ? e.target.files[0] : null;
+const validateJSON = (jsonString: string): ValidationResult => {
+  try {
+    const parsed = JSON.parse(jsonString);
+    const validated = importExportJSONLocalisationsSchema.validateSync(parsed);
+    return { isValid: true, error: null, data: validated };
+  } catch (error) {
+    if (error instanceof SyntaxError) {
+      return { isValid: false, error: "Invalid JSON syntax", data: null };
+    }
+    if (error instanceof yup.ValidationError) {
+      return { isValid: false, error: error.message, data: null };
+    }
+    return { isValid: false, error: "Unknown validation error", data: null };
+  }
+};
 
-    if (file && file.type === "application/json") {
-      try {
-        toast.info("Uploading image", {
-          toastId: "upload_toast",
-          autoClose: false,
-        });
+// custom hooks
+const useImportExportDialog = () => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [jsonInput, setJsonInput] = useState("");
 
-        toast.dismiss("ImageValidationError");
+  const openDialog = (initialJson: string) => {
+    setJsonInput(initialJson);
+    setIsOpen(true);
+  };
 
-        toast.update("upload_toast", {
+  const closeDialog = () => {
+    setIsOpen(false);
+    setJsonInput("");
+  };
+
+  return {
+    isOpen,
+    jsonInput,
+    setJsonInput,
+    openDialog,
+    closeDialog,
+  };
+};
+
+const useJSONValidation = () => {
+  const [validationState, setValidationState] = useState<ValidationResult>({
+    isValid: true,
+    error: null,
+    data: null,
+  });
+
+  const validateInput = (jsonString: string) => {
+    const result = validateJSON(jsonString);
+    setValidationState(result);
+    return result;
+  };
+
+  return {
+    validationState,
+    validateInput,
+  };
+};
+
+const useJSONFileUpload = () => {
+  const [isLoading, setIsLoading] = useState(false);
+
+  const uploadFile = async (file: File): Promise<string> => {
+    setIsLoading(true);
+
+    if (file.type !== "application/json") {
+      toast.error("Invalid file type");
+      setIsLoading(false);
+      throw new Error("Invalid file type");
+    }
+
+    if (file.size >= MAX_FILE_SIZE) {
+      toast.error(`File size must be under ${MAX_FILE_SIZE / 1024}kB`);
+      setIsLoading(false);
+      throw new Error("File too large");
+    }
+
+    try {
+      toast.info("Uploading file", {
+        toastId: "upload_file_toast",
+        autoClose: 5000,
+      });
+
+      const json = await file.text();
+      const validation = validateJSON(json);
+
+      if (validation.isValid) {
+        toast.update("upload_file_toast", {
           type: "success",
-          render: "Image uploaded and saved",
+          render: "File parsed successfully",
           autoClose: 5000,
         });
-        setShowDialog(false);
-      } catch (error) {
-        console.error("Logo Upload Failed: ", error);
-
-        if (error instanceof ImageValidationError) {
-          toast.dismiss("upload_toast");
-        } else {
-          toast.update("upload_toast", {
-            type: "error",
-            render: "Error uploading image",
-            autoClose: 5000,
-          });
-        }
+        return json;
+      } else {
+        toast.update("upload_file_toast", {
+          type: "error",
+          render: `Error parsing file: ${validation.error}`,
+          autoClose: 5000,
+        });
+        throw new Error(validation.error || "Validation failed");
       }
+    } catch (error) {
+      console.error("File parsing Failed: ", error);
+      toast.update("upload_file_toast", {
+        type: "error",
+        render: "Error parsing file",
+        autoClose: 5000,
+      });
+      throw error;
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const localisationsDataJSON = getLocalisationsDataJSON(localisationsData);
-  const textAreaRows = localisationsDataJSON.split("\n").length + 2;
+  return {
+    isLoading,
+    uploadFile,
+  };
+};
+
+// main orchestrator component
+export const ImportExportJSON = (props: ImportExportJSONProps) => {
+  const { disabled, localisationsData, onLocalisationsUpdate } = props;
+
+  const dialog = useImportExportDialog();
+  const validation = useJSONValidation();
+  const fileUpload = useJSONFileUpload();
+
+  const localisationsDataJSON =
+    transformFormLocalisationsToJsonString(localisationsData);
+
+  const handleDialogOpen = () => {
+    dialog.openDialog(localisationsDataJSON);
+    validation.validateInput(localisationsDataJSON);
+  };
+
+  const handleJsonInputChange = (value: string) => {
+    dialog.setJsonInput(value);
+    validation.validateInput(value);
+  };
+
+  const handleFileUpload = async (file: File) => {
+    try {
+      const jsonContent = await fileUpload.uploadFile(file);
+      dialog.setJsonInput(jsonContent);
+      validation.validateInput(jsonContent);
+    } catch (error) {
+      // error handling is done in the hook
+    }
+  };
+
+  const handleApplyChanges = () => {
+    if (
+      !validation.validationState.isValid ||
+      !validation.validationState.data
+    ) {
+      toast.error("Please fix validation errors before applying changes");
+      return;
+    }
+
+    try {
+      const transformedData = transformLocalisationsDataToFormSchema(
+        validation.validationState.data,
+      );
+      onLocalisationsUpdate(transformedData);
+      toast.success("Localisations updated successfully");
+      dialog.closeDialog();
+    } catch (error) {
+      console.error("Error applying changes:", error);
+      toast.error("Error applying changes");
+    }
+  };
+
+  const hasChanges = dialog.jsonInput !== localisationsDataJSON;
+
   return (
     <>
-      <div
-        className={clsx(
-          "relative flex w-20 flex-col items-center justify-center",
-        )}
-      >
-        <Dialog open={showDialog} onClose={() => setShowDialog(false)}>
-          <DialogOverlay />
-          <DialogPanel className="grid gap-y-10 md:max-w-[40rem]">
-            <div className="grid w-full grid-cols-1fr/auto justify-between gap-x-2">
-              <Typography variant={TYPOGRAPHY.H6}>
-                Import/Export localisations JSON
-              </Typography>
-              <Button
-                type="button"
-                onClick={() => setShowDialog(false)}
-                className="flex size-7 items-center justify-center rounded-full bg-grey-100 hover:bg-grey-200"
-              >
-                <CloseIcon className="size-4" />
-              </Button>
-            </div>
-            {/* copy-only textarea */}
-            <div className="grid gap-y-3">
-              <Typography variant={TYPOGRAPHY.R4} className="text-grey-500">
-                Copy the JSON content from the file you want to import.
-              </Typography>
-              <TextArea
-                register={{} as any}
-                label=""
-                value={localisationsDataJSON}
-                disabled
-                rows={textAreaRows}
-                enableResize={false}
-                topAddOn={
-                  <CopyButton
-                    fieldName="JSON"
-                    fieldValue={localisationsDataJSON}
-                  />
-                }
-                onChange={() => {}}
-                className="max-h-[50svh] w-full"
-              />
-            </div>
-          </DialogPanel>
-        </Dialog>
-      </div>
+      <ImportExportDialog
+        isOpen={dialog.isOpen}
+        onClose={dialog.closeDialog}
+        jsonInput={dialog.jsonInput}
+        onJsonInputChange={handleJsonInputChange}
+        validationError={validation.validationState.error}
+        onFileUpload={handleFileUpload}
+        onApplyChanges={handleApplyChanges}
+        disabled={disabled}
+        isLoading={fileUpload.isLoading}
+        hasChanges={hasChanges}
+      />
+
       <DecoratedButton
         variant="primary"
         type="button"
         disabled={disabled}
-        onClick={() => setShowDialog(true)}
+        onClick={handleDialogOpen}
       >
         Import/Export
       </DecoratedButton>
