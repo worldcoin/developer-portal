@@ -10,10 +10,8 @@ import clsx from "clsx";
 import { useAtom } from "jotai";
 import Error from "next/error";
 import { useMemo, useState } from "react";
-import { AppTopBar as AppTopBarOld } from "../../AppTopBar";
-import { AppTopBarRefactored } from "../../AppTopBarRefactored";
+import { AppTopBar } from "../../AppTopBarRefactored";
 import { useFetchAppMetadataQuery } from "../../graphql/client/fetch-app-metadata.generated";
-import { INTERNAL_TEAM_IDS } from "../../layout/constants-temp";
 import { viewModeAtom } from "../../layout/ImagesProvider";
 import { DeleteModal } from "./DeleteModal";
 
@@ -50,10 +48,6 @@ export const AppProfileDangerPage = ({ params }: AppProfileDangerPageProps) => {
       return app?.app_metadata?.[0] ?? app?.verified_app_metadata[0];
     }
   }, [app, viewMode]);
-
-  // temp
-  const isInternalTeam = INTERNAL_TEAM_IDS.includes(teamId);
-  const AppTopBar = isInternalTeam ? AppTopBarRefactored : AppTopBarOld;
 
   if (loading) {
     return <div></div>;
