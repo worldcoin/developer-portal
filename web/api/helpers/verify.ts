@@ -6,8 +6,8 @@ import { VerificationLevel } from "@worldcoin/idkit-core";
 import { AbiCoder, toBeHex } from "ethers";
 import * as yup from "yup";
 
-// Default maximum root age in seconds (7 days)
-const DEFAULT_MAX_ROOT_AGE = 60 * 60 * 24 * 7;
+// Default maximum root age in seconds (2 hours)
+const DEFAULT_MAX_ROOT_AGE = 60 * 60 * 2;
 
 // Define the nested proof format type
 type NestedProof = [
