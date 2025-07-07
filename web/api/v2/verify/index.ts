@@ -10,6 +10,7 @@ import {
   nullifierHashToBigIntStr,
   verifyProof,
 } from "@/api/helpers/verify";
+import { logger } from "@/lib/logger";
 import { captureEvent } from "@/services/posthogClient";
 import { AppErrorCodes, VerificationLevel } from "@worldcoin/idkit-core";
 import { NextRequest, NextResponse } from "next/server";
@@ -75,6 +76,9 @@ export async function POST(
   try {
     body = await req.json();
   } catch (error) {
+    const body = await req.text();
+    logger.warn("Invalid JSON in request body", { error, app_id, body });
+
     return errorResponse({
       statusCode: 400,
       code: "invalid_request",
