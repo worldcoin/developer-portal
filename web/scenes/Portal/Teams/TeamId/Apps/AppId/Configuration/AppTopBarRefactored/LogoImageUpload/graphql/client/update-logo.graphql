@@ -1,0 +1,8 @@
+mutation UpdateLogo($id: String!, $fileName: String!) {
+  update_app_metadata_by_pk(
+    pk_columns: { id: $id }
+    _set: { logo_img_url: $fileName }
+  ) {
+    id
+  }
+}

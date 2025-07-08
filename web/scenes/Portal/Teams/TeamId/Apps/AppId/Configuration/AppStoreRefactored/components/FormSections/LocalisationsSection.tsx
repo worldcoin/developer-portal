@@ -156,6 +156,10 @@ export const LocalisationsSection = ({
                       }
                       appMetadataId={appMetadata.id}
                       supportedLanguages={supportedLanguages}
+                      error={
+                        errors.localisations?.[index]?.meta_tag_image_url
+                          ?.message
+                      }
                       onAutosaveSuccess={() => {
                         refetchAppMetadata();
                         refetchLocalisations();
@@ -186,6 +190,10 @@ export const LocalisationsSection = ({
                       }
                       appMetadataId={appMetadata.id}
                       supportedLanguages={supportedLanguages}
+                      error={
+                        errors.localisations?.[index]?.showcase_img_urls
+                          ?.message
+                      }
                       onAutosaveSuccess={() => {
                         refetchAppMetadata();
                         refetchLocalisations();

@@ -92,9 +92,9 @@ export const getLocalisationFormValues = (
   // en is always present in the form
   localisations.push(enLocalisation);
 
-  const hasManyLocalisations = localisationsData.length > 1;
+  const hasLocalisations = localisationsData.length > 0;
 
-  if (!hasManyLocalisations) {
+  if (!hasLocalisations) {
     return localisations;
   }
 

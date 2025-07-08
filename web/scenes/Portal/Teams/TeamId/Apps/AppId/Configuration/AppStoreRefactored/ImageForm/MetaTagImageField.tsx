@@ -15,6 +15,7 @@ interface MetaTagImageFieldProps {
   isAppVerified: boolean;
   appMetadataId?: string;
   supportedLanguages: string[];
+  error?: string | null;
   onAutosaveSuccess?: () => void;
   onAutosaveError?: (error: any) => void;
 }
@@ -34,6 +35,7 @@ export const MetaTagImageField = (props: MetaTagImageFieldProps) => {
     supportedLanguages,
     onAutosaveSuccess,
     onAutosaveError,
+    error,
   } = props;
 
   // en is not considered a localization, since we set english properties on app metadata
@@ -169,6 +171,7 @@ export const MetaTagImageField = (props: MetaTagImageFieldProps) => {
       onUploadStart={handleUploadStart}
       onUploadSuccess={handleUploadSuccess}
       onUploadError={handleUploadError}
+      error={error}
     />
   );
 };

@@ -43,6 +43,7 @@ interface ImageUploadFieldProps extends ImageUploadFieldConfig {
   unverifiedImageUrls: string[];
   isImagesLoading: boolean;
   onRefetchImages: () => Promise<void>;
+  error?: string | null;
 }
 
 export const ImageUploadField = (props: ImageUploadFieldProps) => {
@@ -67,6 +68,7 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
     onUploadStart,
     onUploadSuccess,
     onUploadError,
+    error,
   } = props;
 
   const [isUploading, setIsUploading] = useState(false);
@@ -278,6 +280,7 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
           disabled={disabled || isUploading || !canUploadMore}
           uploadImage={uploadImage}
           imageType={imageTypeNamer(value.length)}
+          error={error}
         >
           <UploadIcon className="size-12 text-blue-500" />
           <div className="gap-y-2">

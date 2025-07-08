@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useSearchParams } from "next/navigation";
 import { LogoImageUpload } from "../../LogoImageUpload";
 import { AppMetadata } from "../../types/AppStoreFormTypes";
 import { FormSection } from "../FormFields/FormSection";
@@ -14,14 +14,8 @@ export const LogoSection = ({
   teamId,
   appMetadata,
 }: LogoSectionProps) => {
-  const { hash } = window.location;
-  const fragmentIdentifier = useMemo(() => {
-    if (typeof window !== "undefined") {
-      return hash.substring(1);
-    }
-    return null;
-  }, [hash]);
-
+  const searchParams = useSearchParams();
+  const shouldDefaultOpenLogoEditor = searchParams.get("editLogo") === "true";
   return (
     <FormSection
       title="Logo image *"
@@ -34,7 +28,7 @@ export const LogoSection = ({
         editable={true}
         isError={false}
         logoFile={appMetadata.logo_img_url}
-        defaultOpen={fragmentIdentifier === "edit-logo"}
+        defaultOpen={shouldDefaultOpenLogoEditor}
       />
     </FormSection>
   );

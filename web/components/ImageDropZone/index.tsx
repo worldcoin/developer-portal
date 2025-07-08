@@ -2,6 +2,7 @@
 import clsx from "clsx";
 import { useCallback } from "react";
 import { useDropzone } from "react-dropzone";
+import { TYPOGRAPHY, Typography } from "../Typography";
 
 type ImageDropZoneProps = {
   disabled?: boolean;
@@ -15,6 +16,7 @@ type ImageDropZoneProps = {
   ) => void;
   imageType?: string;
   children?: React.ReactNode;
+  error?: string | null;
 };
 
 export const ImageDropZone = (props: ImageDropZoneProps) => {
@@ -25,6 +27,7 @@ export const ImageDropZone = (props: ImageDropZoneProps) => {
     uploadImage,
     imageType,
     children,
+    error,
     ...otherProps
   } = props;
 
@@ -45,7 +48,7 @@ export const ImageDropZone = (props: ImageDropZoneProps) => {
   return (
     <label
       className={clsx(
-        "grid w-full justify-items-center gap-y-4 rounded-xl border-[1px]  border-dashed border-blue-150 p-8",
+        "grid w-full justify-items-center gap-y-4 rounded-xl  border-blue-150 p-8",
         {
           "cursor-pointer hover:border-solid hover:border-blue-500 hover:bg-blue-50":
             !disabled,
@@ -54,6 +57,10 @@ export const ImageDropZone = (props: ImageDropZoneProps) => {
           "border-solid border-blue-500 bg-blue-50": !disabled && isDragActive,
         },
         { "cursor-not-allowed opacity-50": disabled },
+        { "border-[1px] border-dashed": !error },
+        {
+          "border-2 border-solid border-red-200 hover:border-red-500": error,
+        },
       )}
       {...getRootProps()}
     >
@@ -67,6 +74,11 @@ export const ImageDropZone = (props: ImageDropZoneProps) => {
         className="hidden"
       />
       {children}
+      {error && (
+        <Typography variant={TYPOGRAPHY.R5} className="text-red-500">
+          {error}
+        </Typography>
+      )}
     </label>
   );
 };
