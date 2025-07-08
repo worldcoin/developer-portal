@@ -80,8 +80,6 @@ export const AppProfileGalleryPage = ({ params }: AppProfileGalleryProps) => {
               appId={appId}
               teamId={teamId}
               appMetadata={appMetadata}
-              // or empty array is safe because of previous loading checks
-              localisationsData={localisationsData?.localisations || []}
             />
           </div>
         </SizingWrapper>
