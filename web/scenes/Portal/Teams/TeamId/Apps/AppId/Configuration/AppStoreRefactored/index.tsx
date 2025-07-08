@@ -6,7 +6,6 @@ import { useMemo } from "react";
 import Skeleton from "react-loading-skeleton";
 import { useFetchAppMetadataQuery } from "../graphql/client/fetch-app-metadata.generated";
 import { viewModeAtom } from "../layout/ImagesProvider";
-import { AppStoreFormRefactored } from "./app-store-refactored";
 import { useFetchLocalisationsQuery } from "./graphql/client/fetch-localisations.generated";
 // TODO sub with
 // import { AppTopBar } from "../AppTopBarRefactored";
@@ -74,13 +73,13 @@ export const AppProfileGalleryPage = ({ params }: AppProfileGalleryProps) => {
         </SizingWrapper>
         <SizingWrapper gridClassName="order-2 pb-8 pt-4">
           <div className="grid max-w-[580px] grid-cols-1">
-            <AppStoreFormRefactored
+            {/* <AppStoreFormRefactored
               appId={appId}
               teamId={teamId}
               appMetadata={appMetadata}
               // or empty array is safe because of previous loading checks
               localisationsData={localisationsData?.localisations || []}
-            />
+            /> */}
           </div>
         </SizingWrapper>
       </>
