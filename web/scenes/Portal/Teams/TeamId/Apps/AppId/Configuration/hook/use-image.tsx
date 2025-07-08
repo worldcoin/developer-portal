@@ -4,9 +4,11 @@ import { useGetUploadedImageLazyQuery } from "./graphql/client/get-uploaded-imag
 import { useUploadImageLazyQuery } from "./graphql/client/upload-image.generated";
 
 export class ImageValidationError extends Error {
+  public readonly toastId: string;
   constructor(message: string) {
     super(message);
     this.name = "ImageValidationError";
+    this.toastId = "ImageValidationError";
   }
 }
 
@@ -52,7 +54,7 @@ export const useImage = () => {
 
         if (!["image/jpeg", "image/png"].includes(file.type)) {
           toast("Image must be a jpeg or png", {
-            toastId: "ImageValidationError",
+            toastId: ImageValidationError.prototype.toastId,
             type: "error",
           });
           reject(new ImageValidationError(`Image must be a jpeg or png`));
@@ -63,7 +65,7 @@ export const useImage = () => {
 
         if (Math.abs(imageAspectRatio - targetAspectRatio) > 0.01) {
           toast(`Image must have an aspect ratio of ${width}:${height}`, {
-            toastId: "ImageValidationError",
+            toastId: ImageValidationError.prototype.toastId,
             type: "error",
           });
           reject(new ImageValidationError(`Image aspect ratio is incorrect`));
@@ -71,7 +73,7 @@ export const useImage = () => {
 
         if (file.size >= 500 * 1024) {
           toast("Image size must be under 500kB", {
-            toastId: "ImageValidationError",
+            toastId: ImageValidationError.prototype.toastId,
             type: "error",
           });
           reject(new ImageValidationError(`Image size must be under 500kB`));
