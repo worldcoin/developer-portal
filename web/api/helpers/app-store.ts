@@ -95,14 +95,20 @@ export const formatAppMetadata = async (
   const supportedCountries = shouldCompressCountryList
     ? [country.toUpperCase()]
     : appMetadata.supported_countries;
-
+  let buttonTextOverride =
+    localisedContent?.world_app_button_text ??
+    appMetadata.world_app_button_text;
+  if (
+    buttonTextOverride === "Use Integration" &&
+    appMetadata.app_mode !== "external"
+  ) {
+    buttonTextOverride = "Get Mini App";
+  }
   return {
     ...appMetadataWithoutLocalisations,
     name: name,
     app_rating: appRating ?? 0,
-    world_app_button_text:
-      localisedContent?.world_app_button_text ??
-      appMetadata.world_app_button_text,
+    world_app_button_text: buttonTextOverride,
     world_app_description:
       localisedContent?.world_app_description ??
       appMetadata.world_app_description,
