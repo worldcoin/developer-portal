@@ -6,11 +6,11 @@ import { useMemo } from "react";
 import Skeleton from "react-loading-skeleton";
 import { useFetchAppMetadataQuery } from "../graphql/client/fetch-app-metadata.generated";
 import { viewModeAtom } from "../layout/ImagesProvider";
-import { AppStoreFormRefactored } from "./app-store-refactored";
 import { useFetchLocalisationsQuery } from "./graphql/client/fetch-localisations.generated";
 // TODO sub with
 // import { AppTopBar } from "../AppTopBarRefactored";
 import { AppTopBar } from "../AppTopBar";
+import { AppStoreFormRefactored } from "./app-store-refactored";
 
 type AppProfileGalleryProps = {
   params: Record<string, string> | null | undefined;
