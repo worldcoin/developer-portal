@@ -75,7 +75,7 @@ export const ShowcaseImagesField = (props: ShowcaseImagesFieldProps) => {
     },
   });
 
-  const performAutosave = useCallback(
+  const autosaveImages = useCallback(
     async (possiblyActualUrls: string[]) => {
       if (!appMetadataId) return;
       const newUrls = possiblyActualUrls.map((url) =>
@@ -168,7 +168,7 @@ export const ShowcaseImagesField = (props: ShowcaseImagesFieldProps) => {
           extractImagePathWithExtensionFromActualUrl(imageUrl);
         const newUrls = [...value, extractedPath];
 
-        await performAutosave(newUrls);
+        await autosaveImages(newUrls);
         await refetchUnverifiedImages();
         onChange(newUrls);
         toast.update("upload_showcase_toast", {
@@ -203,7 +203,7 @@ export const ShowcaseImagesField = (props: ShowcaseImagesFieldProps) => {
       isLocalized,
       locale,
       getImage,
-      performAutosave,
+      autosaveImages,
       refetchUnverifiedImages,
       onChange,
     ],
@@ -214,10 +214,10 @@ export const ShowcaseImagesField = (props: ShowcaseImagesFieldProps) => {
       const newUrls = value.filter((url) => !url.includes(imagePath));
       onChange(newUrls);
 
-      await performAutosave(newUrls);
+      await autosaveImages(newUrls);
       await refetchUnverifiedImages();
     },
-    [value, onChange, performAutosave, refetchUnverifiedImages],
+    [value, onChange, autosaveImages, refetchUnverifiedImages],
   );
 
   // set cleanup function

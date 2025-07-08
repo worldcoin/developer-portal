@@ -74,7 +74,7 @@ export const MetaTagImageField = (props: MetaTagImageFieldProps) => {
     },
   });
 
-  const performAutosave = useCallback(
+  const autosaveImages = useCallback(
     async (possiblyActualUrl: string | null) => {
       if (!appMetadataId) return;
       const newUrl =
@@ -156,7 +156,7 @@ export const MetaTagImageField = (props: MetaTagImageFieldProps) => {
         }
         const newUrl = extractImagePathWithExtensionFromActualUrl(imageUrl);
 
-        await performAutosave(newUrl);
+        await autosaveImages(newUrl);
         await refetchUnverifiedImages();
         onChange(newUrl);
         toast.update("upload_meta_tag_toast", {
@@ -190,17 +190,17 @@ export const MetaTagImageField = (props: MetaTagImageFieldProps) => {
       isLocalized,
       locale,
       getImage,
-      performAutosave,
+      autosaveImages,
       refetchUnverifiedImages,
       onChange,
     ],
   );
 
   const handleDelete = useCallback(async () => {
-    await performAutosave(null);
+    await autosaveImages(null);
     onChange(null);
     await refetchUnverifiedImages();
-  }, [onChange, performAutosave, refetchUnverifiedImages]);
+  }, [onChange, autosaveImages, refetchUnverifiedImages]);
 
   // set cleanup function
   useEffect(() => {
