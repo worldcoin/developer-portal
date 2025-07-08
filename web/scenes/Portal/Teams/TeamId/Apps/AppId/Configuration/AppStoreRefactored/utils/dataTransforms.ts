@@ -115,8 +115,5 @@ export const getLocalisationFormValues = (
       showcase_img_urls: localisation.showcase_img_urls || [],
     });
   }
-  return [
-    enLocalisation,
-    ...localisations.sort((a, b) => a.language.localeCompare(b.language)),
-  ];
+  return [...new Set([enLocalisation, ...localisations])];
 };

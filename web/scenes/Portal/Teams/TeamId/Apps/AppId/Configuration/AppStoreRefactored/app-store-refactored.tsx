@@ -105,6 +105,9 @@ export const AppStoreFormRefactored = ({
           localisations={localisations}
           isEditable={isEditable}
           isEnoughPermissions={isEnoughPermissions}
+          appId={appId}
+          teamId={teamId}
+          appMetadata={appMetadata}
         />
 
         <SaveButton

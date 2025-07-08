@@ -68,7 +68,7 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
           autoClose: false,
         });
 
-        toast.dismiss("ImageValidationError");
+        toast.dismiss(ImageValidationError.prototype.toastId);
         await uploadViaPresignedPost(file, appId, teamId, imageType);
 
         const imageUrl = await getImage(
