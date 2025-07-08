@@ -106,7 +106,7 @@ describe("/api/public/app/[app_id]", () => {
           how_to_connect: "",
           overview: "fewf",
         },
-        world_app_button_text: "Use Integration",
+        world_app_button_text: "Get Mini App",
         world_app_description:
           "This is an example app designed to showcase the capabilities of our platform.",
         avg_notification_open_rate: null,
@@ -205,7 +205,7 @@ describe("/api/public/app/[app_id]", () => {
           how_to_connect: "",
           overview: "fewf",
         },
-        world_app_button_text: "Use Integration",
+        world_app_button_text: "Get Mini App",
         world_app_description:
           "This is an example app designed to showcase the capabilities of our platform.",
         avg_notification_open_rate: null,
@@ -236,7 +236,7 @@ describe("/api/public/app/[app_id]", () => {
             hero_image_url: "",
             world_app_description:
               "This is an example app designed to showcase the capabilities of our platform.",
-            world_app_button_text: "Use Integration",
+            world_app_button_text: "Get Mini App",
             category: "Social",
             description:
               '{"description_overview":"fewf","description_how_it_works":"few","description_connect":"fewf"}',
@@ -304,7 +304,7 @@ describe("/api/public/app/[app_id]", () => {
           how_to_connect: "",
           overview: "fewf",
         },
-        world_app_button_text: "Use Integration",
+        world_app_button_text: "Get Mini App",
         world_app_description:
           "This is an example app designed to showcase the capabilities of our platform.",
         avg_notification_open_rate: null,
