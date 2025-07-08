@@ -49,7 +49,7 @@ type AppTopBarProps = {
   app: FetchAppMetadataQuery["app"][0];
 };
 
-export const AppTopBar = (props: AppTopBarProps) => {
+export const AppTopBarRefactored = (props: AppTopBarProps) => {
   const { appId, teamId, app } = props;
   const router = useRouter();
   const pathname = usePathname();
