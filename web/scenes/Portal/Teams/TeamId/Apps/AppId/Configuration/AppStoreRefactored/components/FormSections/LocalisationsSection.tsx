@@ -8,18 +8,13 @@ import {
   FieldErrors,
 } from "react-hook-form";
 import { AppStoreFormValues } from "../../form-schema";
-import { MetaTagImageField } from "../../ImageForm/MetaTagImageField";
-import { ShowcaseImagesField } from "../../ImageForm/ShowcaseImagesField";
-import { AppMetadata, FormSectionProps } from "../../types/AppStoreFormTypes";
+import { FormSectionProps } from "../../types/AppStoreFormTypes";
 import { FormSection } from "../FormFields/FormSection";
 
 type LocalisationsSectionProps = FormSectionProps & {
   control: Control<AppStoreFormValues>;
   errors: FieldErrors<AppStoreFormValues>;
   localisations: FieldArrayWithId<AppStoreFormValues, "localisations", "id">[];
-  appId: string;
-  teamId: string;
-  appMetadata: AppMetadata;
 };
 
 export const LocalisationsSection = ({
@@ -28,9 +23,6 @@ export const LocalisationsSection = ({
   localisations,
   isEditable,
   isEnoughPermissions,
-  appId,
-  teamId,
-  appMetadata,
 }: LocalisationsSectionProps) => {
   const allPossibleLanguages = formLanguagesList;
 
@@ -125,44 +117,14 @@ export const LocalisationsSection = ({
                 <Controller
                   control={control}
                   name={`localisations.${index}.meta_tag_image_url`}
-                  render={({ field: imageField }) => (
-                    <MetaTagImageField
-                      value={imageField.value}
-                      onChange={imageField.onChange}
-                      disabled={!isEditable || !isEnoughPermissions}
-                      appId={appId}
-                      teamId={teamId}
-                      locale={
-                        field.language !== "en" ? field.language : undefined
-                      }
-                      isAppVerified={
-                        appMetadata?.verification_status === "verified"
-                      }
-                    />
-                  )}
+                  render={({ field: imageField }) => <>placeholder</>}
                 />
 
                 {/* showcase_img_urls */}
                 <Controller
                   control={control}
                   name={`localisations.${index}.showcase_img_urls`}
-                  render={({ field: showcaseField }) => (
-                    <ShowcaseImagesField
-                      value={(showcaseField.value || []).filter(
-                        (url): url is string => Boolean(url),
-                      )}
-                      onChange={showcaseField.onChange}
-                      disabled={!isEditable || !isEnoughPermissions}
-                      appId={appId}
-                      teamId={teamId}
-                      locale={
-                        field.language !== "en" ? field.language : undefined
-                      }
-                      isAppVerified={
-                        appMetadata?.verification_status === "verified"
-                      }
-                    />
-                  )}
+                  render={({ field: showcaseField }) => <>placeholder</>}
                 />
               </div>
             </div>
