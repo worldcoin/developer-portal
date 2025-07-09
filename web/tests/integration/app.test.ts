@@ -144,7 +144,7 @@ describe("user role", () => {
         }
         `);
 
-      const response = client.mutate({
+      const response = await client.mutate({
         mutation: query,
 
         variables: {
@@ -152,7 +152,7 @@ describe("user role", () => {
         },
       });
 
-      expect(response).rejects.toThrow();
+      expect(response.errors?.length).toBeGreaterThan(0);
     });
   });
 
