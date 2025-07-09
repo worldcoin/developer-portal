@@ -138,7 +138,7 @@ describe("user role", () => {
       });
 
       const query = gql(`mutation DeleteApp($team_id: String!) {
-          delete_app(where: {team_id: {_eq: $team_id}}) {
+          update_app(where: {team_id: {_eq: $team_id}}, _set: {deleted_at: "now()"}) {
             affected_rows
           }
         }
@@ -152,7 +152,7 @@ describe("user role", () => {
         },
       });
 
-      expect(response.data.delete_app.affected_rows).toEqual(0);
+      expect(response.data.update_app.affected_rows).toEqual(0);
     });
   });
 
@@ -356,7 +356,10 @@ describe("api_key role", () => {
     const client = await getAPIClient({ team_id: tokenTeamId });
     const mutation = gql`
       mutation DeleteApp($team_id: String!) {
-        delete_app(where: { team_id: { _eq: $team_id } }) {
+        update_app(
+          where: { team_id: { _eq: $team_id } }
+          _set: { deleted_at: "now()" }
+        ) {
           affected_rows
         }
       }
@@ -365,6 +368,6 @@ describe("api_key role", () => {
       mutation,
       variables: { team_id: teams.find((t) => t.id !== tokenTeamId)?.id },
     });
-    expect(response.data.delete_app.affected_rows).toEqual(0);
+    expect(response.data.update_app.affected_rows).toEqual(0);
   });
 });
