@@ -28,6 +28,9 @@ insert_permissions:
           - verification_status:
               _eq: unverified
           - app:
+              deleted_at:
+                _is_null: true
+          - app:
               team:
                 id:
                   _eq: X-Hasura-Team-Id
@@ -60,7 +63,11 @@ insert_permissions:
         - max_notifications_per_day
   - role: service
     permission:
-      check: {}
+      check:
+        _and:
+          - app:
+              deleted_at:
+                _is_null: true
       columns:
         - app_id
         - app_mode
@@ -101,6 +108,9 @@ insert_permissions:
         _and:
           - verification_status:
               _eq: unverified
+          - app:
+              deleted_at:
+                _is_null: true
           - app:
               team:
                 memberships:
@@ -293,6 +303,8 @@ select_permissions:
         - app_rating
       filter:
         app:
+          deleted_at:
+            _is_null: true
           team:
             memberships:
               user_id:
@@ -331,6 +343,9 @@ update_permissions:
           - verification_status:
               _neq: verified
           - app:
+              deleted_at:
+                _is_null: true
+          - app:
               team:
                 id:
                   _eq: X-Hasura-Team-Id
@@ -364,6 +379,9 @@ update_permissions:
               _in:
                 - awaiting_review
                 - verified
+          - app:
+              deleted_at:
+                _is_null: true
       check:
         _and:
           - verification_status:
@@ -414,7 +432,10 @@ update_permissions:
         - whitelisted_addresses
         - world_app_button_text
         - world_app_description
-      filter: {}
+      filter:
+        app:
+          deleted_at:
+            _is_null: true
       check: null
     comment: ""
   - role: user
@@ -448,6 +469,9 @@ update_permissions:
         - world_app_description
       filter:
         _and:
+          - app:
+              deleted_at:
+                _is_null: true
           - verification_status:
               _neq: verified
           - app:
@@ -475,11 +499,19 @@ delete_permissions:
           - verification_status:
               _neq: verified
           - app:
+              deleted_at:
+                _is_null: true
+          - app:
               team:
                 id:
                   _eq: X-Hasura-Team-Id
   - role: reviewer
     permission:
       filter:
+        _and:
+          - app:
+              deleted_at:
+                _is_null: true
+          - app:
         verification_status:
           _eq: verified

@@ -112,7 +112,7 @@ select_permissions:
                 user_id:
                   _eq: X-Hasura-User-Id
           - deleted_at:
-              _is_null: false
+              _is_null: true
 update_permissions:
   - role: api_key
     permission:
@@ -128,7 +128,9 @@ update_permissions:
       columns:
         - is_banned
       filter: {}
-      check: null
+      check:
+        deleted_at:
+          _is_null: true
     comment: ""
   - role: service
     permission:
@@ -137,7 +139,9 @@ update_permissions:
         - rating_count
         - rating_sum
       filter: {}
-      check: null
+      check:
+        deleted_at:
+          _is_null: true
     comment: ""
   - role: user
     permission:
@@ -146,16 +150,17 @@ update_permissions:
         - is_archived
         - status
       filter:
-        team:
-          memberships:
-            _and:
-              - deleted_at:
-                  _is_null: false
-              - user_id:
-                  _eq: X-Hasura-User-Id
-              - _or:
-                  - role:
-                      _eq: OWNER
-                  - role:
-                      _eq: ADMIN
+        _and:
+          - deleted_at:
+              _is_null: true
+          - team:
+              memberships:
+                _and:
+                  - user_id:
+                      _eq: X-Hasura-User-Id
+                  - _or:
+                      - role:
+                          _eq: OWNER
+                      - role:
+                          _eq: ADMIN
       check: null
