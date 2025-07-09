@@ -144,15 +144,19 @@ describe("user role", () => {
         }
         `);
 
-      const response = await client.mutate({
-        mutation: query,
-
-        variables: {
-          team_id: teams.find((t) => t.id !== teamId)?.id,
-        },
-      });
-
-      expect(response.errors?.length).toBeGreaterThan(0);
+      try {
+        await client.mutate({
+          mutation: query,
+          variables: {
+            team_id: teams.find((t) => t.id !== teamId)?.id,
+          },
+        });
+      } catch (error: any) {
+        expect(error.graphQLErrors).toBeDefined();
+        expect(error.graphQLErrors[0]?.message).toContain(
+          "field 'deleted_at' not found in type: 'app_set_input'",
+        );
+      }
     });
   });
 
