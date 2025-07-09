@@ -132,7 +132,8 @@ describe("user role", () => {
       users[team.id] = fetchedUsers[0];
     }
 
-    Object.entries(users).forEach(async ([teamId, user]) => {
+    // use for...of to properly handle async operations
+    for (const [teamId, user] of Object.entries(users)) {
       const client = await getAPIUserClient({
         user_id: user.user_id,
       });
@@ -157,7 +158,7 @@ describe("user role", () => {
           "field 'deleted_at' not found in type: 'app_set_input'",
         );
       }
-    });
+    }
   });
 
   test("cannot reset client secret as a member", async () => {
