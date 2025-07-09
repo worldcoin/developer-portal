@@ -161,7 +161,6 @@ export const formatAppMetadata = async (
     avg_notification_open_rate: getAvgNotificationOpenRate(
       singleAppStats?.open_rate_last_14_days,
     ),
-    deleted_at: app.deleted_at ?? null,
   };
 };
 

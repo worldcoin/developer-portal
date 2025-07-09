@@ -220,7 +220,6 @@ export type AppStoreMetadataFields = {
     team: { name?: string | null; id: string };
     rating_sum: number;
     rating_count: number;
-    deleted_at?: string | null;
   };
 };
 
@@ -257,7 +256,7 @@ export type AppStoreFormattedFields = Omit<
   };
   draft_id?: string;
   avg_notification_open_rate: number | null;
-  deleted_at: string | null;
+  deleted_at?: string | null;
 };
 
 type NativeApp = {

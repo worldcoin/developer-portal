@@ -48,6 +48,7 @@ jest.mock(
               },
               rating_sum: 10,
               rating_count: 3,
+              deleted_at: null,
             },
           },
         ],
@@ -110,6 +111,7 @@ describe("/api/public/app/[app_id]", () => {
         world_app_description:
           "This is an example app designed to showcase the capabilities of our platform.",
         avg_notification_open_rate: null,
+        deleted_at: null,
       },
     });
   });
@@ -152,6 +154,7 @@ describe("/api/public/app/[app_id]", () => {
               },
               rating_sum: 10,
               rating_count: 3,
+              deleted_at: null,
             },
           },
         ],
@@ -209,6 +212,108 @@ describe("/api/public/app/[app_id]", () => {
         world_app_description:
           "This is an example app designed to showcase the capabilities of our platform.",
         avg_notification_open_rate: null,
+        deleted_at: null,
+      },
+    });
+  });
+
+  test("Returns correct value for deleted app", async () => {
+    jest.mocked(getAppMetadataSdk).mockImplementation(() => ({
+      GetAppMetadata: jest.fn().mockResolvedValue({
+        app_metadata: [
+          {
+            name: "Example App",
+            app_id: "1",
+            short_name: "test",
+            logo_img_url: "logo.png",
+            showcase_img_urls: ["showcase1.png", "showcase2.png"],
+            meta_tag_image_url: "meta_tag_image.png",
+            hero_image_url: "",
+            world_app_description:
+              "This is an example app designed to showcase the capabilities of our platform.",
+            world_app_button_text: "Use Integration",
+            category: "Productivity",
+            description:
+              '{"description_overview":"fewf","description_how_it_works":"few","description_connect":"fewf"}',
+            integration_url: "https://example.com/integration",
+            app_website_url: "https://example.com",
+            source_code_url: "https://github.com/example/app",
+            whitelisted_addresses: ["0x1234", "0x5678"],
+            app_mode: "mini-app",
+            support_link: "andy@gmail.com",
+            supported_countries: ["us"],
+            associated_domains: ["https://worldcoin.org"],
+            contracts: ["0x0c892815f0B058E69987920A23FBb33c834289cf"],
+            permit2_tokens: ["0x0c892815f0B058E69987920A23FBb33c834289cf"],
+            supported_languages: ["en", "es"],
+            verification_status: "verified",
+            is_allowed_unlimited_notifications: false,
+            max_notifications_per_day: 10,
+            app: {
+              team: {
+                name: "Example Team",
+              },
+              rating_sum: 10,
+              rating_count: 3,
+              deleted_at: "2016-01-25T10:10:10.555555",
+            },
+          },
+        ],
+      }),
+    }));
+
+    const request = new NextRequest("https://cdn.test.com/api/public/app/1", {
+      headers: {
+        host: "cdn.test.com",
+      },
+    });
+    const response = await GET(request, { params: { app_id: "1" } });
+    expect(await response.json()).toEqual({
+      app_data: {
+        name: "Example App",
+        app_id: "1",
+        app_rating: 3.33,
+        short_name: "test",
+        logo_img_url: "https://cdn.test.com/1/logo.png",
+        meta_tag_image_url: "https://cdn.test.com/1/meta_tag_image.png",
+        showcase_img_urls: [
+          "https://cdn.test.com/1/showcase1.png",
+          "https://cdn.test.com/1/showcase2.png",
+        ],
+        hero_image_url: "",
+        category: {
+          id: "productivity",
+          name: "Productivity",
+        },
+        integration_url: "https://example.com/integration",
+        app_website_url: "https://example.com",
+        source_code_url: "https://github.com/example/app",
+        team_name: "Example Team",
+        whitelisted_addresses: ["0x1234", "0x5678"],
+        app_mode: "mini-app",
+        associated_domains: ["https://worldcoin.org"],
+        contracts: ["0x0c892815f0B058E69987920A23FBb33c834289cf"],
+        permit2_tokens: ["0x0c892815f0B058E69987920A23FBb33c834289cf"],
+        ratings_external_nullifier:
+          "0x00051f128f73eec6f444e98dca57697f9cce04fb3f2e0e63dea5351ccde35b8e",
+        support_link: "andy@gmail.com",
+        supported_countries: ["us"],
+        supported_languages: ["en", "es"],
+        unique_users: 0,
+        impressions: 0,
+        verification_status: "verified",
+        is_allowed_unlimited_notifications: false,
+        max_notifications_per_day: 10,
+        description: {
+          how_it_works: "",
+          how_to_connect: "",
+          overview: "fewf",
+        },
+        world_app_button_text: "Get Mini App",
+        world_app_description:
+          "This is an example app designed to showcase the capabilities of our platform.",
+        avg_notification_open_rate: null,
+        deleted_at: "2016-01-25T10:10:10.555555",
       },
     });
   });
@@ -308,6 +413,7 @@ describe("/api/public/app/[app_id]", () => {
         world_app_description:
           "This is an example app designed to showcase the capabilities of our platform.",
         avg_notification_open_rate: null,
+        deleted_at: null,
       },
     });
   });

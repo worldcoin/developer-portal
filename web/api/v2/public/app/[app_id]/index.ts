@@ -168,6 +168,11 @@ export async function GET(
     locale,
   );
 
+  formattedMetadata = {
+    ...formattedMetadata,
+    deleted_at: parsedAppMetadata.app.deleted_at ?? null,
+  };
+
   // Add the draft_id to the response if it exists in the parsed metadata
   if (parsedAppMetadata.id === draft_id) {
     formattedMetadata = {
