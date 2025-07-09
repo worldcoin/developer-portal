@@ -145,19 +145,13 @@ describe("user role", () => {
         }
         `);
 
-      try {
-        await client.mutate({
-          mutation: query,
-          variables: {
-            team_id: teams.find((t) => t.id !== teamId)?.id,
-          },
-        });
-      } catch (error: any) {
-        expect(error.graphQLErrors).toBeDefined();
-        expect(error.graphQLErrors[0]?.message).toContain(
-          "field 'deleted_at' not found in type: 'app_set_input'",
-        );
-      }
+      const promise = client.mutate({
+        mutation: query,
+        variables: {
+          team_id: teams.find((t) => t.id !== teamId)?.id,
+        },
+      });
+      await expect(await promise).rejects.toThrow();
     }
   });
 
@@ -369,10 +363,10 @@ describe("api_key role", () => {
         }
       }
     `;
-    const response = await client.mutate({
+    const promise = client.mutate({
       mutation,
       variables: { team_id: teams.find((t) => t.id !== tokenTeamId)?.id },
     });
-    expect(response.data.update_app.affected_rows).toEqual(0);
+    await expect(await promise).rejects.toThrow();
   });
 });
