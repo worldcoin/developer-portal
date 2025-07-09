@@ -12,8 +12,8 @@ export type AppMetricsData = {
   unique_users_last_7_days: number | null;
   new_users_last_7_days: number | null;
   appRanking: `${number} / ${number}` | "-- / --";
-  n_users_opened_last_14_days: NotificationData[];
-  n_users_received_last_14_days: NotificationData[];
+  n_users_opened_last_14_days: NotificationData[] | null;
+  n_users_received_last_14_days: NotificationData[] | null;
   open_rate_last_14_days: NotificationData[];
   notification_opt_in_rate: number | null;
 };
