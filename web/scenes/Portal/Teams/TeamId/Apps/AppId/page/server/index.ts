@@ -12,8 +12,6 @@ export type AppMetricsData = {
   unique_users_last_7_days: number | null;
   new_users_last_7_days: number | null;
   appRanking: `${number} / ${number}` | "-- / --";
-  n_users_opened_last_14_days: NotificationData[] | null;
-  n_users_received_last_14_days: NotificationData[] | null;
   open_rate_last_14_days: NotificationData[];
   notification_opt_in_rate: number | null;
 };
@@ -63,8 +61,6 @@ export const getAppMetricsData = async (
       unique_users_last_7_days: 0,
       new_users_last_7_days: 0,
       appRanking: "-- / --",
-      n_users_opened_last_14_days: [],
-      n_users_received_last_14_days: [],
       open_rate_last_14_days: [],
       notification_opt_in_rate: 0,
     };
@@ -83,8 +79,6 @@ export const getAppMetricsData = async (
     unique_users_last_7_days: appMetrics.unique_users_last_7_days,
     new_users_last_7_days: appMetrics.new_users_last_7_days,
     appRanking,
-    n_users_opened_last_14_days: appMetrics.n_users_opened_last_14_days,
-    n_users_received_last_14_days: appMetrics.n_users_received_last_14_days,
     open_rate_last_14_days: appMetrics.open_rate_last_14_days,
     notification_opt_in_rate: appMetrics.notification_opt_in_rate,
   };
