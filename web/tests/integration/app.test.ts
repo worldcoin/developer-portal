@@ -152,7 +152,7 @@ describe("user role", () => {
         },
       });
 
-      expect(response.errors).toBeDefined();
+      expect(response.data.update_app.affected_rows).toEqual(0);
     }
   });
 
@@ -368,6 +368,6 @@ describe("api_key role", () => {
       mutation,
       variables: { team_id: teams.find((t) => t.id !== tokenTeamId)?.id },
     });
-    expect(response.errors).toBeDefined();
+    expect(response.data.update_app.affected_rows).toEqual(0);
   });
 });
