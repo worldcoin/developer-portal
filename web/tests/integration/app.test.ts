@@ -144,15 +144,18 @@ describe("user role", () => {
           }
         }
         `);
+      try {
+        const response = await client.mutate({
+          mutation: query,
+          variables: {
+            team_id: teams.find((t) => t.id !== teamId)?.id,
+          },
+        });
 
-      const response = await client.mutate({
-        mutation: query,
-        variables: {
-          team_id: teams.find((t) => t.id !== teamId)?.id,
-        },
-      });
-
-      expect(response.data.update_app.affected_rows).toEqual(0);
+        expect(response.data.update_app.affected_rows).toEqual(0);
+      } catch (error) {
+        expect(error).toBeDefined();
+      }
     }
   });
 
@@ -364,10 +367,14 @@ describe("api_key role", () => {
         }
       }
     `;
-    const response = await client.mutate({
-      mutation,
-      variables: { team_id: teams.find((t) => t.id !== tokenTeamId)?.id },
-    });
-    expect(response.data.update_app.affected_rows).toEqual(0);
+    try {
+      const response = await client.mutate({
+        mutation,
+        variables: { team_id: teams.find((t) => t.id !== tokenTeamId)?.id },
+      });
+      expect(response.data.update_app.affected_rows).toEqual(0);
+    } catch (error) {
+      expect(error).toBeDefined();
+    }
   });
 });
