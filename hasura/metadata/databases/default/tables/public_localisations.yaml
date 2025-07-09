@@ -119,10 +119,10 @@ select_permissions:
                 deleted_at:
                   _is_null: true
             - app:
-              team:
-                memberships:
-                  user_id:
-                    _eq: X-Hasura-User-Id
+                team:
+                  memberships:
+                    user_id:
+                      _eq: X-Hasura-User-Id
     comment: ""
 update_permissions:
   - role: reviewer

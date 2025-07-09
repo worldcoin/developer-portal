@@ -512,6 +512,5 @@ delete_permissions:
           - app:
               deleted_at:
                 _is_null: true
-          - app:
-        verification_status:
-          _eq: verified
+          - verification_status:
+              _eq: verified
