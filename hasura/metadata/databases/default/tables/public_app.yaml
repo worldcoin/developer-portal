@@ -71,6 +71,7 @@ select_permissions:
   - role: reviewer
     permission:
       columns:
+        - deleted_at
         - id
         - is_banned
       filter:
@@ -81,6 +82,7 @@ select_permissions:
     permission:
       columns:
         - created_at
+        - deleted_at
         - description_internal
         - engine
         - id
@@ -104,10 +106,13 @@ select_permissions:
         - status
         - team_id
       filter:
-        team:
-          memberships:
-            user_id:
-              _eq: X-Hasura-User-Id
+        _and:
+          - team:
+              memberships:
+                user_id:
+                  _eq: X-Hasura-User-Id
+          - deleted_at:
+              _is_null: true
 update_permissions:
   - role: api_key
     permission:
@@ -123,7 +128,9 @@ update_permissions:
       columns:
         - is_banned
       filter: {}
-      check: null
+      check:
+        deleted_at:
+          _is_null: true
     comment: ""
   - role: service
     permission:
@@ -132,38 +139,28 @@ update_permissions:
         - rating_count
         - rating_sum
       filter: {}
-      check: null
+      check:
+        deleted_at:
+          _is_null: true
     comment: ""
   - role: user
     permission:
       columns:
+        - deleted_at
         - is_archived
         - status
       filter:
-        team:
-          memberships:
-            _and:
-              - user_id:
-                  _eq: X-Hasura-User-Id
-              - _or:
-                  - role:
-                      _eq: OWNER
-                  - role:
-                      _eq: ADMIN
+        _and:
+          - deleted_at:
+              _is_null: true
+          - team:
+              memberships:
+                _and:
+                  - user_id:
+                      _eq: X-Hasura-User-Id
+                  - _or:
+                      - role:
+                          _eq: OWNER
+                      - role:
+                          _eq: ADMIN
       check: null
-delete_permissions:
-  - role: api_key
-    permission:
-      filter:
-        team_id:
-          _eq: X-Hasura-Team-Id
-  - role: user
-    permission:
-      filter:
-        team:
-          memberships:
-            _and:
-              - user_id:
-                  _eq: X-Hasura-User-Id
-              - role:
-                  _eq: OWNER

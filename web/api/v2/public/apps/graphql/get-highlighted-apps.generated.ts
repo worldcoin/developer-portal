@@ -78,7 +78,12 @@ export const GetHighlightsDocument = gql`
         app_id: { _in: $highlightsIds }
         verification_status: { _eq: "verified" }
         is_reviewer_world_app_approved: { _eq: true }
-        app: { is_banned: { _eq: false } }
+        app: {
+          _and: [
+            { is_banned: { _eq: false } }
+            { deleted_at: { _is_null: true } }
+          ]
+        }
       }
       limit: $limit
       offset: $offset

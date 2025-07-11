@@ -51,6 +51,7 @@ query GetAppMetadata($app_id: String!, $locale: String!) {
       }
       rating_sum
       rating_count
+      deleted_at
     }
   }
 }
