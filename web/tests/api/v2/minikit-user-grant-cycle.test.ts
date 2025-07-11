@@ -191,7 +191,7 @@ describe("/api/v2/minikit/user-grant-cycle [error cases]", () => {
     expect(body.detail).toBe("API key is required.");
   });
 
-  it("returns 404 if API key not found", async () => {
+  it("returns 403 if API key not found", async () => {
     const mockReq = createMockRequest({
       url: getUrl(validWalletAddress, validAppId),
       api_key: validApiKey,
@@ -200,13 +200,13 @@ describe("/api/v2/minikit/user-grant-cycle [error cases]", () => {
     FetchAPIKey.mockResolvedValue({ api_key_by_pk: null });
 
     const res = await GET(mockReq);
-    expect(res.status).toBe(404);
+    expect(res.status).toBe(403);
     const body = await res.json();
-    expect(body.code).toBe("not_found");
-    expect(body.detail).toBe("API key not found.");
+    expect(body.code).toBe("invalid_api_key");
+    expect(body.detail).toBe("API key is not valid.");
   });
 
-  it("returns 400 if API key is inactive", async () => {
+  it("returns 403 if API key is inactive", async () => {
     const mockReq = createMockRequest({
       url: getUrl(validWalletAddress, validAppId),
       api_key: validApiKey,
@@ -220,10 +220,10 @@ describe("/api/v2/minikit/user-grant-cycle [error cases]", () => {
     });
 
     const res = await GET(mockReq);
-    expect(res.status).toBe(400);
+    expect(res.status).toBe(403);
     const body = await res.json();
-    expect(body.code).toBe("api_key_inactive");
-    expect(body.detail).toBe("API key is inactive.");
+    expect(body.code).toBe("invalid_api_key");
+    expect(body.detail).toBe("API key is not valid.");
   });
 
   it("returns 403 if API key is not valid for app", async () => {
