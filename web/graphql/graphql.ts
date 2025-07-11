@@ -1525,6 +1525,7 @@ export type App = {
   /** An aggregate relationship */
   app_metadata_aggregate: App_Metadata_Aggregate;
   created_at: Scalars["timestamptz"]["output"];
+  deleted_at?: Maybe<Scalars["timestamptz"]["output"]>;
   description_internal: Scalars["String"]["output"];
   engine: Scalars["String"]["output"];
   id: Scalars["String"]["output"];
@@ -1680,6 +1681,7 @@ export type App_Bool_Exp = {
   app_metadata?: InputMaybe<App_Metadata_Bool_Exp>;
   app_metadata_aggregate?: InputMaybe<App_Metadata_Aggregate_Bool_Exp>;
   created_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+  deleted_at?: InputMaybe<Timestamptz_Comparison_Exp>;
   description_internal?: InputMaybe<String_Comparison_Exp>;
   engine?: InputMaybe<String_Comparison_Exp>;
   id?: InputMaybe<String_Comparison_Exp>;
@@ -1727,6 +1729,7 @@ export type App_Insert_Input = {
   actions?: InputMaybe<Action_Arr_Rel_Insert_Input>;
   app_metadata?: InputMaybe<App_Metadata_Arr_Rel_Insert_Input>;
   created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  deleted_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
   description_internal?: InputMaybe<Scalars["String"]["input"]>;
   engine?: InputMaybe<Scalars["String"]["input"]>;
   id?: InputMaybe<Scalars["String"]["input"]>;
@@ -1748,6 +1751,7 @@ export type App_Insert_Input = {
 export type App_Max_Fields = {
   __typename?: "app_max_fields";
   created_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  deleted_at?: Maybe<Scalars["timestamptz"]["output"]>;
   description_internal?: Maybe<Scalars["String"]["output"]>;
   engine?: Maybe<Scalars["String"]["output"]>;
   id?: Maybe<Scalars["String"]["output"]>;
@@ -1764,6 +1768,7 @@ export type App_Max_Fields = {
 /** order by max() on columns of table "app" */
 export type App_Max_Order_By = {
   created_at?: InputMaybe<Order_By>;
+  deleted_at?: InputMaybe<Order_By>;
   description_internal?: InputMaybe<Order_By>;
   engine?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
@@ -2722,6 +2727,7 @@ export type App_Metadata_Variance_Order_By = {
 export type App_Min_Fields = {
   __typename?: "app_min_fields";
   created_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  deleted_at?: Maybe<Scalars["timestamptz"]["output"]>;
   description_internal?: Maybe<Scalars["String"]["output"]>;
   engine?: Maybe<Scalars["String"]["output"]>;
   id?: Maybe<Scalars["String"]["output"]>;
@@ -2738,6 +2744,7 @@ export type App_Min_Fields = {
 /** order by min() on columns of table "app" */
 export type App_Min_Order_By = {
   created_at?: InputMaybe<Order_By>;
+  deleted_at?: InputMaybe<Order_By>;
   description_internal?: InputMaybe<Order_By>;
   engine?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
@@ -2779,6 +2786,7 @@ export type App_Order_By = {
   actions_aggregate?: InputMaybe<Action_Aggregate_Order_By>;
   app_metadata_aggregate?: InputMaybe<App_Metadata_Aggregate_Order_By>;
   created_at?: InputMaybe<Order_By>;
+  deleted_at?: InputMaybe<Order_By>;
   description_internal?: InputMaybe<Order_By>;
   engine?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
@@ -3708,6 +3716,8 @@ export enum App_Select_Column {
   /** column name */
   CreatedAt = "created_at",
   /** column name */
+  DeletedAt = "deleted_at",
+  /** column name */
   DescriptionInternal = "description_internal",
   /** column name */
   Engine = "engine",
@@ -3760,6 +3770,7 @@ export enum App_Select_Column_App_Aggregate_Bool_Exp_Bool_Or_Arguments_Columns {
 /** input type for updating data in table "app" */
 export type App_Set_Input = {
   created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  deleted_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
   description_internal?: InputMaybe<Scalars["String"]["input"]>;
   engine?: InputMaybe<Scalars["String"]["input"]>;
   id?: InputMaybe<Scalars["String"]["input"]>;
@@ -4073,6 +4084,7 @@ export type App_Stream_Cursor_Input = {
 /** Initial value of the column from where the streaming should start */
 export type App_Stream_Cursor_Value_Input = {
   created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  deleted_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
   description_internal?: InputMaybe<Scalars["String"]["input"]>;
   engine?: InputMaybe<Scalars["String"]["input"]>;
   id?: InputMaybe<Scalars["String"]["input"]>;
@@ -4106,6 +4118,8 @@ export type App_Sum_Order_By = {
 export enum App_Update_Column {
   /** column name */
   CreatedAt = "created_at",
+  /** column name */
+  DeletedAt = "deleted_at",
   /** column name */
   DescriptionInternal = "description_internal",
   /** column name */

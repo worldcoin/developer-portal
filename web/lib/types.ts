@@ -256,6 +256,7 @@ export type AppStoreFormattedFields = Omit<
   };
   draft_id?: string;
   avg_notification_open_rate: number | null;
+  deleted_at?: string | null;
 };
 
 type NativeApp = {
