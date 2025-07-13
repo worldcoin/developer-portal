@@ -13,5 +13,5 @@ export const schema = yup
       })
       .required("This field is required"),
   })
-  .noUnknown(true);
+  .noUnknown();
 export type BasicInformationFormValues = yup.Asserts<typeof schema>;
