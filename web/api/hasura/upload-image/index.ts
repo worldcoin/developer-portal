@@ -9,12 +9,14 @@ import { createPresignedPost } from "@aws-sdk/s3-presigned-post";
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
 
-const schema = yup.object({
-  app_id: yup.string().strict().required(),
-  image_type: yup.string().strict().required(),
-  content_type_ending: yup.string().required(),
-  locale: yup.string(),
-});
+const schema = yup
+  .object({
+    app_id: yup.string().strict().required(),
+    image_type: yup.string().strict().required(),
+    content_type_ending: yup.string().required(),
+    locale: yup.string(),
+  })
+  .noUnknown();
 
 export const POST = async (req: NextRequest) => {
   let app_id: string | undefined;

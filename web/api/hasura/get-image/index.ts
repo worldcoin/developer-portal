@@ -9,12 +9,14 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
 
-const schema = yup.object({
-  app_id: yup.string().strict().required(),
-  image_type: yup.string().strict().required(),
-  content_type_ending: yup.string().required(),
-  locale: yup.string(),
-});
+const schema = yup
+  .object({
+    app_id: yup.string().strict().required(),
+    image_type: yup.string().strict().required(),
+    content_type_ending: yup.string().required(),
+    locale: yup.string(),
+  })
+  .noUnknown();
 
 /**
  * Returns a single signed url to get the recently uploaded image from S3
