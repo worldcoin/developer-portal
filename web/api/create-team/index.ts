@@ -36,10 +36,13 @@ import {
   withApiAuthRequired,
 } from "@auth0/nextjs-auth0";
 
-const schema = yup.object({
-  team_name: teamNameSchema,
-  hasUser: yup.boolean(),
-});
+const schema = yup
+  .object({
+    team_name: teamNameSchema,
+    hasUser: yup.boolean(),
+  })
+  .noUnknown()
+  .strict();
 
 export type CreateTeamBody = yup.InferType<typeof schema>;
 
