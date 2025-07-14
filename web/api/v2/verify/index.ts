@@ -24,43 +24,45 @@ const V2_ENABLED_APP_IDS = [
   "app_020c82fbf3c087eb31600929a34990e4",
 ];
 
-const schema = yup.object({
-  action: yup
-    .string()
-    .strict()
-    .nonNullable()
-    .required("This attribute is required."),
-  signal_hash: yup
-    .string()
-    .matches(/^0x[\dabcdef]+$/, "Invalid signal_hash.")
-    .default(
-      "0x00c5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a4", // hashToField("")
-    ),
-  proof: yup.string().strict().required("This attribute is required."),
-  nullifier_hash: yup
-    .string()
-    .strict()
-    .matches(
-      /^(0x)?[\da-fA-F]+$/,
-      "Invalid nullifier_hash. Must be a hex string with optional 0x prefix.",
-    )
-    .required("This attribute is required."),
-  merkle_root: yup.string().strict().required("This attribute is required."),
-  verification_level: yup
-    .string()
-    .oneOf(Object.values(VerificationLevel))
-    .required("This attribute is required."),
-  max_age: yup
-    .number()
-    .integer()
-    .min(3600, "Maximum root age cannot be less than 3600 seconds (1 hour).")
-    .max(
-      604800,
-      "Maximum root age cannot be more than 604800 seconds (7 days).",
-    )
-    .strict()
-    .optional(),
-});
+const schema = yup
+  .object({
+    action: yup
+      .string()
+      .strict()
+      .nonNullable()
+      .required("This attribute is required."),
+    signal_hash: yup
+      .string()
+      .matches(/^0x[\dabcdef]+$/, "Invalid signal_hash.")
+      .default(
+        "0x00c5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a4", // hashToField("")
+      ),
+    proof: yup.string().strict().required("This attribute is required."),
+    nullifier_hash: yup
+      .string()
+      .strict()
+      .matches(
+        /^(0x)?[\da-fA-F]+$/,
+        "Invalid nullifier_hash. Must be a hex string with optional 0x prefix.",
+      )
+      .required("This attribute is required."),
+    merkle_root: yup.string().strict().required("This attribute is required."),
+    verification_level: yup
+      .string()
+      .oneOf(Object.values(VerificationLevel))
+      .required("This attribute is required."),
+    max_age: yup
+      .number()
+      .integer()
+      .min(3600, "Maximum root age cannot be less than 3600 seconds (1 hour).")
+      .max(
+        604800,
+        "Maximum root age cannot be more than 604800 seconds (7 days).",
+      )
+      .strict()
+      .optional(),
+  })
+  .noUnknown();
 
 export async function POST(
   req: NextRequest,

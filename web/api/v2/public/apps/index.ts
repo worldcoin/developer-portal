@@ -27,17 +27,19 @@ import {
   getSdk as getHighlightsSdk,
 } from "./graphql/get-highlighted-apps.generated";
 
-const queryParamsSchema = yup.object({
-  page: yup.number().integer().min(1).default(1).notRequired(),
-  limit: yup.number().integer().min(1).max(1000).notRequired().default(500),
-  app_mode: yup
-    .string()
-    .oneOf(["mini-app", "external", "native"])
-    .notRequired(),
-  override_country: yup.string().notRequired(),
-  show_external: yup.boolean().notRequired().default(false),
-  skip_country_check: yup.boolean().notRequired().default(false),
-});
+const queryParamsSchema = yup
+  .object({
+    page: yup.number().integer().min(1).default(1).notRequired(),
+    limit: yup.number().integer().min(1).max(1000).notRequired().default(500),
+    app_mode: yup
+      .string()
+      .oneOf(["mini-app", "external", "native"])
+      .notRequired(),
+    override_country: yup.string().notRequired(),
+    show_external: yup.boolean().notRequired().default(false),
+    skip_country_check: yup.boolean().notRequired().default(false),
+  })
+  .noUnknown();
 
 export const GET = async (request: NextRequest) => {
   // NOTE: We only accept requests through the distribution origin
