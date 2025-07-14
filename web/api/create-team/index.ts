@@ -41,8 +41,7 @@ const schema = yup
     team_name: teamNameSchema,
     hasUser: yup.boolean(),
   })
-  .noUnknown()
-  .strict();
+  .noUnknown();
 
 export type CreateTeamBody = yup.InferType<typeof schema>;
 
