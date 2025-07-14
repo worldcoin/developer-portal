@@ -23,12 +23,15 @@ type DeleteModalProps = {
   teamId: string;
 };
 
-const schema = yup.object().shape({
-  app_name: yup
-    .string()
-    .oneOf(["DELETE"], "Please check if the input is correct")
-    .required("This field is required"),
-});
+const schema = yup
+  .object()
+  .shape({
+    app_name: yup
+      .string()
+      .oneOf(["DELETE"], "Please check if the input is correct")
+      .required("This field is required"),
+  })
+  .noUnknown();
 
 export const DeleteModal = (props: DeleteModalProps) => {
   const { openDeleteModal, setOpenDeleteModal, appName, appId, teamId } = props;

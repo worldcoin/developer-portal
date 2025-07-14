@@ -14,23 +14,28 @@ import { getSdk as fetchAppReview } from "./graphql/fetch-current-app-review.gen
 import { getSdk as updateReviewCount } from "./graphql/update-review-counter.generated";
 import { getSdk as upsertAppReview } from "./graphql/upsert-app-review.generated";
 
-const schema = yup.object({
-  proof: yup.string().strict().required("This attribute is required."),
-  nullifier_hash: yup.string().strict().required("This attribute is required."),
-  merkle_root: yup.string().strict().required("This attribute is required."),
-  verification_level: yup
-    .string()
-    .oneOf(Object.values(VerificationLevel))
-    .required("This attribute is required."),
-  rating: yup
-    .number()
-    .min(1, "Min rating is 1")
-    .max(5, "Max rating is 5")
-    .strict()
-    .required(),
-  app_id: yup.string().strict().required(),
-  country: yup.string().max(2).strict().optional(),
-});
+const schema = yup
+  .object({
+    proof: yup.string().strict().required("This attribute is required."),
+    nullifier_hash: yup
+      .string()
+      .strict()
+      .required("This attribute is required."),
+    merkle_root: yup.string().strict().required("This attribute is required."),
+    verification_level: yup
+      .string()
+      .oneOf(Object.values(VerificationLevel))
+      .required("This attribute is required."),
+    rating: yup
+      .number()
+      .min(1, "Min rating is 1")
+      .max(5, "Max rating is 5")
+      .strict()
+      .required(),
+    app_id: yup.string().strict().required(),
+    country: yup.string().max(2).strict().optional(),
+  })
+  .noUnknown();
 
 export const POST = async (req: NextRequest) => {
   const body = await req.json();

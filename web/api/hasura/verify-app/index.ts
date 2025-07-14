@@ -16,12 +16,14 @@ import { randomUUID } from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
 
-const schema = yup.object({
-  app_id: yup.string().strict().required(),
-  reviewer_name: yup.string().strict().required(),
-  is_reviewer_app_store_approved: yup.boolean().required(),
-  is_reviewer_world_app_approved: yup.boolean().required(),
-});
+const schema = yup
+  .object({
+    app_id: yup.string().strict().required(),
+    reviewer_name: yup.string().strict().required(),
+    is_reviewer_app_store_approved: yup.boolean().required(),
+    is_reviewer_world_app_approved: yup.boolean().required(),
+  })
+  .noUnknown();
 
 export const POST = async (req: NextRequest) => {
   if (!process.env.ASSETS_S3_BUCKET_NAME || !process.env.ASSETS_S3_REGION) {

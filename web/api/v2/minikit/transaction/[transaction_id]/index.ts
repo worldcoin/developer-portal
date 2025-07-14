@@ -10,10 +10,12 @@ import * as yup from "yup";
 
 const transactionIdRegex = /^0x[a-f0-9]{64}$/;
 
-const schema = yup.object({
-  app_id: appIdSchema,
-  type: yup.string().oneOf(Object.values(TransactionTypes)).required(),
-});
+const schema = yup
+  .object({
+    app_id: appIdSchema,
+    type: yup.string().oneOf(Object.values(TransactionTypes)).required(),
+  })
+  .noUnknown();
 
 const corsMethods = ["GET", "OPTIONS"];
 

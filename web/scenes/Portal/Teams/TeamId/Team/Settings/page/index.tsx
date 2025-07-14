@@ -16,9 +16,11 @@ import { TeamProfile } from "../../common/TeamProfile";
 import { useFetchTeamQuery } from "../../common/TeamProfile/graphql/client/fetch-team.generated";
 import { validateAndUpdateTeamServerSide } from "../server/submit";
 
-const schema = yup.object({
-  name: teamNameSchema,
-});
+const schema = yup
+  .object({
+    name: teamNameSchema,
+  })
+  .noUnknown();
 
 type FormValues = yup.InferType<typeof schema>;
 
