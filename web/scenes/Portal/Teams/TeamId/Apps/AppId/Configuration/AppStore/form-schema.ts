@@ -99,19 +99,21 @@ const appMetadataIdSchema = yup
   .string()
   .required("App metadata id is required");
 
-export const insertLocalisationInitialSchema = yup.object({
-  name: appNameSchema,
-  short_name: appShortNameSchema,
-  world_app_description: appWorldAppDescriptionSchema,
-  world_app_button_text: appWorldAppButtonTextSchema,
-  description_overview: appDescriptionOverviewSchema,
-  description_how_it_works: appDescriptionHowItWorksSchema,
-  description_connect: appDescriptionConnectSchema,
-  app_metadata_id: appMetadataIdSchema,
-  locale: yup.string().required("Locale is required"),
-  meta_tag_image_url: appStoreImageSchema,
-  showcase_img_urls: yup.array().of(appStoreImageSchema),
-});
+export const insertLocalisationInitialSchema = yup
+  .object({
+    name: appNameSchema,
+    short_name: appShortNameSchema,
+    world_app_description: appWorldAppDescriptionSchema,
+    world_app_button_text: appWorldAppButtonTextSchema,
+    description_overview: appDescriptionOverviewSchema,
+    description_how_it_works: appDescriptionHowItWorksSchema,
+    description_connect: appDescriptionConnectSchema,
+    app_metadata_id: appMetadataIdSchema,
+    locale: yup.string().required("Locale is required"),
+    meta_tag_image_url: appStoreImageSchema,
+    showcase_img_urls: yup.array().of(appStoreImageSchema),
+  })
+  .noUnknown();
 
 export type InsertLocalisationInitialSchema = yup.Asserts<
   typeof insertLocalisationInitialSchema
