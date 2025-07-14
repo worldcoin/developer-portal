@@ -9,10 +9,12 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
 
-const schema = yup.object({
-  app_id: yup.string().strict().required(),
-  locale: yup.string(),
-});
+const schema = yup
+  .object({
+    app_id: yup.string().strict().required(),
+    locale: yup.string(),
+  })
+  .noUnknown();
 
 export const POST = async (req: NextRequest) => {
   let app_id: string | undefined;

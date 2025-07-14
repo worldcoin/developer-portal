@@ -7,9 +7,11 @@ import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
 import { getSdk as getUnbanAppSdk } from "./graphql/unban-app.generated";
 
-const schema = yup.object({
-  app_id: yup.string().strict().required(),
-});
+const schema = yup
+  .object({
+    app_id: yup.string().strict().required(),
+  })
+  .noUnknown();
 
 export const POST = async (req: NextRequest) => {
   let app_id: string | undefined;
