@@ -5,9 +5,14 @@ import { QuickAction } from "@/components/QuickAction";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { SIMULATOR_URL } from "@/lib/constants";
 import { urls } from "@/lib/urls";
-import { teamId } from "@/tests/e2e/helpers/constants";
 
-export const QuickActionsSection = ({ appId }: { appId: string }) => {
+export const QuickActionsSection = ({
+  appId,
+  teamId,
+}: {
+  appId: string;
+  teamId: string;
+}) => {
   return (
     <div className="grid gap-y-6">
       <Typography variant={TYPOGRAPHY.H7}>Quick actions</Typography>
