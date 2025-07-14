@@ -57,6 +57,7 @@ export const createActionSchema = (context: ActionContext) => {
           },
         }),
     })
+    .noUnknown()
     .test(
       "webhook-fields",
       "Both webhook URL and PEM must be provided or removed",

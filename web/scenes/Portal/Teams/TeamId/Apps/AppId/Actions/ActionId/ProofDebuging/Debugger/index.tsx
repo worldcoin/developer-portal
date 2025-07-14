@@ -17,10 +17,12 @@ import { useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import * as yup from "yup";
 
-const testProofSchema = yup.object({
-  signal: yup.string().optional(),
-  verification_response: yup.string().required("This field is required"),
-});
+const testProofSchema = yup
+  .object({
+    signal: yup.string().optional(),
+    verification_response: yup.string().required("This field is required"),
+  })
+  .noUnknown();
 
 type TestProofFormValues = yup.Asserts<typeof testProofSchema>;
 

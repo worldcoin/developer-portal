@@ -14,9 +14,12 @@ import * as yup from "yup";
 import { FetchKeysDocument } from "../graphql/client/fetch-keys.generated";
 import { useInsertKeyMutation } from "./graphql/client/create-key.generated";
 
-const schema = yup.object().shape({
-  name: yup.string().required("A key name is required"),
-});
+const schema = yup
+  .object()
+  .shape({
+    name: yup.string().required("A key name is required"),
+  })
+  .noUnknown();
 
 type CreateKeyModal = {
   teamId: string;
