@@ -4,7 +4,7 @@ import { formCountriesList } from "@/lib/languages";
 import Image from "next/image";
 import { useMemo } from "react";
 import { Control, Controller, FieldErrors } from "react-hook-form";
-import { AppStoreFormValues } from "../../form-schema";
+import { AppStoreFormValues } from "../../FormSchema/types";
 import { FormSectionProps } from "../../types/AppStoreFormTypes";
 import { FormSection } from "../FormFields/FormSection";
 
@@ -30,12 +30,12 @@ export const CountriesSection = ({
       <Notification variant="warning">
         <div className="text-sm">
           <h3 className="font-medium text-yellow-800">
-            Gambling in certain countries
+            Regulations in certain countries
           </h3>
           <div className="mt-2 text-yellow-700">
             Please note that Indonesia, Malaysia, Thailand, United States and
-            Poland do not allow chance-based/gambling mini apps. Make sure your
-            app proposals and updates for these regions comply with local
+            Poland do not allow chance-based mini apps. Make sure your app
+            proposals and updates for these regions comply with local
             regulations.
           </div>
         </div>

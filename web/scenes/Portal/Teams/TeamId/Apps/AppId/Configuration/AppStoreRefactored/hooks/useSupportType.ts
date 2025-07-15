@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 import { UseFormSetValue } from "react-hook-form";
-import { AppStoreFormValues } from "../form-schema";
+import { AppStoreFormValues } from "../FormSchema/types";
 import { SupportType } from "../types/AppStoreFormTypes";
 
 export const useSupportType = (

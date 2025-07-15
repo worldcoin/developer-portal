@@ -25,10 +25,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useFormContext } from "react-hook-form";
 import { toast } from "react-toastify";
 import * as yup from "yup";
-import {
-  AppStoreFormValues,
-  mainAppStoreFormReviewSubmitSchema,
-} from "../AppStoreRefactored/form-schema";
+import { mainAppStoreFormReviewSubmitSchema } from "../AppStoreRefactored/FormSchema/form-schema";
+import { AppStoreFormValues } from "../AppStoreRefactored/FormSchema/types";
 import { updateAppStoreMetadata } from "../AppStoreRefactored/server/update-app-store";
 import {
   FetchAppMetadataDocument,

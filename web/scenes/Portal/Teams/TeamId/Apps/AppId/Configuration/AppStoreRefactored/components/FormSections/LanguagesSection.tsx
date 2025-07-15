@@ -1,7 +1,7 @@
 import { SelectMultiple } from "@/components/SelectMultiple";
 import { formLanguagesList } from "@/lib/languages";
 import { Control, Controller, FieldErrors } from "react-hook-form";
-import { AppStoreFormValues } from "../../form-schema";
+import { AppStoreFormValues } from "../../FormSchema/types";
 import { FormSectionProps } from "../../types/AppStoreFormTypes";
 import { FormSection } from "../FormFields/FormSection";
 

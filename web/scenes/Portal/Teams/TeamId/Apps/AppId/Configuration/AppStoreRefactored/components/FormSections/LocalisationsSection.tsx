@@ -10,7 +10,7 @@ import {
   useWatch,
 } from "react-hook-form";
 import { FetchAppMetadataDocument } from "../../../graphql/client/fetch-app-metadata.generated";
-import { AppStoreFormValues } from "../../form-schema";
+import { AppStoreFormValues } from "../../FormSchema/types";
 import { FetchLocalisationsDocument } from "../../graphql/client/fetch-localisations.generated";
 import { MetaTagImageField } from "../../ImageForm/MetaTagImageField";
 import { ShowcaseImagesField } from "../../ImageForm/ShowcaseImagesField";

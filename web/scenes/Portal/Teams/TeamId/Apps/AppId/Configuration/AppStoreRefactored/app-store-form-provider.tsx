@@ -1,9 +1,9 @@
 import { yupResolver } from "@hookform/resolvers/yup";
 import { FormProvider, useForm } from "react-hook-form";
-import { FetchAppMetadataQuery } from "../graphql/client/fetch-app-metadata.generated";
-import { AppStoreFormValues, mainAppStoreFormSchema } from "./form-schema";
-import { FetchLocalisationsQuery } from "./graphql/client/fetch-localisations.generated";
+import { mainAppStoreFormSchema } from "./FormSchema/form-schema";
+import { AppStoreFormValues } from "./FormSchema/types";
 import { useFormData } from "./hooks/useFormData";
+import { AppMetadata, LocalisationData } from "./types/AppStoreFormTypes";
 
 export const AppStoreFormProvider = ({
   children,
@@ -11,10 +11,8 @@ export const AppStoreFormProvider = ({
   localisationsData,
 }: {
   children: React.ReactNode;
-  appMetadata:
-    | FetchAppMetadataQuery["app"][0]["verified_app_metadata"][0]
-    | FetchAppMetadataQuery["app"][0]["app_metadata"][0];
-  localisationsData: FetchLocalisationsQuery["localisations"];
+  appMetadata: AppMetadata;
+  localisationsData: LocalisationData;
 }) => {
   const { defaultValues } = useFormData(appMetadata, localisationsData);
 

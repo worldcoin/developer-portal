@@ -12,6 +12,7 @@ import { viewModeAtom } from "../layout/ImagesProvider";
 import { AppStoreFormProvider } from "./app-store-form-provider";
 import { AppStoreFormRefactored } from "./app-store-refactored";
 import { useFetchLocalisationsQuery } from "./graphql/client/fetch-localisations.generated";
+import { AppMetadata, LocalisationData } from "./types/AppStoreFormTypes";
 
 type AppProfileGalleryProps = {
   params: Record<string, string> | null | undefined;
@@ -73,8 +74,10 @@ export const AppProfileGalleryPage = ({ params }: AppProfileGalleryProps) => {
   } else {
     return (
       <AppStoreFormProvider
-        appMetadata={appMetadata}
-        localisationsData={localisationsData?.localisations || []}
+        appMetadata={appMetadata as AppMetadata}
+        localisationsData={
+          (localisationsData?.localisations || []) as LocalisationData
+        }
       >
         <SizingWrapper gridClassName="order-1 pt-8">
           <AppTopBar appId={appId} teamId={teamId} app={app!} />
@@ -85,7 +88,7 @@ export const AppProfileGalleryPage = ({ params }: AppProfileGalleryProps) => {
             <AppStoreFormRefactored
               appId={appId}
               teamId={teamId}
-              appMetadata={appMetadata}
+              appMetadata={appMetadata as AppMetadata}
             />
           </div>
         </SizingWrapper>

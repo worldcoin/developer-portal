@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { AppStoreFormValues } from "../form-schema";
+import { AppStoreFormValues } from "../FormSchema/types";
 import { AppMetadata, LocalisationData } from "../types/AppStoreFormTypes";
 import {
   getLocalisationFormValues,
