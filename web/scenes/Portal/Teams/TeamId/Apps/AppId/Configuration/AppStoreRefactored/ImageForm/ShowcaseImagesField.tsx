@@ -15,6 +15,7 @@ interface ShowcaseImagesFieldProps {
   isAppVerified: boolean;
   appMetadataId?: string;
   supportedLanguages: string[];
+  error?: string | null;
   onAutosaveSuccess?: () => void;
   onAutosaveError?: (error: any) => void;
 }
@@ -32,6 +33,7 @@ export const ShowcaseImagesField = (props: ShowcaseImagesFieldProps) => {
     isAppVerified,
     appMetadataId,
     supportedLanguages,
+    error,
     onAutosaveSuccess,
     onAutosaveError,
   } = props;
@@ -160,6 +162,7 @@ export const ShowcaseImagesField = (props: ShowcaseImagesFieldProps) => {
       onUploadStart={handleUploadStart}
       onUploadSuccess={handleUploadSuccess}
       onUploadError={handleUploadError}
+      error={error}
     />
   );
 };

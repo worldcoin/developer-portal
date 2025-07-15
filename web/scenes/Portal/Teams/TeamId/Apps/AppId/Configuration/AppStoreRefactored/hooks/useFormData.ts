@@ -29,10 +29,7 @@ export const useFormData = (
     };
   }, [appMetadata, localisationsData]);
 
-  const isEditable = appMetadata?.verification_status === "unverified";
-
   return {
     defaultValues,
-    isEditable,
   };
 };
