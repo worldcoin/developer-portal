@@ -24,7 +24,7 @@ const sendNotificationBodySchema = yup
     app_id: yup.string().strict().required(),
     wallet_addresses: yup
       .array()
-      .of(yup.string().length(42))
+      .of(yup.string().length(42).required())
       .min(1)
       .max(1000)
       .required("wallet_addresses is required"),
@@ -58,7 +58,8 @@ const sendNotificationBodySchema = yup
       }
       return true;
     },
-  );
+  )
+  .noUnknown();
 
 type NotificationResult = {
   walletAddress: string;
@@ -346,6 +347,10 @@ export const POST = async (req: NextRequest) => {
     });
   }
 
+  const lowercaseWalletAddresses = wallet_addresses.map((wallet_address) =>
+    wallet_address.toLowerCase(),
+  );
+
   // Anchor: Send notification
 
   const signedFetch = createSignedFetcher({
@@ -363,7 +368,7 @@ export const POST = async (req: NextRequest) => {
       },
       body: JSON.stringify({
         appId: app_id,
-        walletAddresses: wallet_addresses,
+        walletAddresses: lowercaseWalletAddresses,
         title,
         message,
         miniAppPath: mini_app_path,
