@@ -30,12 +30,12 @@ export const CountriesSection = ({
       <Notification variant="warning">
         <div className="text-sm">
           <h3 className="font-medium text-yellow-800">
-            Gambling in certain countries
+            Regulations in certain countries
           </h3>
           <div className="mt-2 text-yellow-700">
             Please note that Indonesia, Malaysia, Thailand, United States and
-            Poland do not allow chance-based/gambling mini apps. Make sure your
-            app proposals and updates for these regions comply with local
+            Poland do not allow chance-based mini apps. Make sure your app
+            proposals and updates for these regions comply with local
             regulations.
           </div>
         </div>

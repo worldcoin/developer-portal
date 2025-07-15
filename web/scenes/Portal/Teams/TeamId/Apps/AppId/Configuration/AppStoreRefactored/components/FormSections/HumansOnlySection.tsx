@@ -18,7 +18,7 @@ export const HumansOnlySection = ({
   return (
     <FormSection
       title="Is your app for verified humans only? *"
-      description="Answering yes means your app leverages WorldID in a way that allows only unique human users to use the app. This will prevent non verified users from downloading the app but make you eligible for a special badge in the Mini App Store."
+      description="Answering yes means your app leverages WorldID in a way that allows only unique human users to use the app. This will make you eligible for a special badge in the Mini App Store."
       className="mt-3"
     >
       <Controller
