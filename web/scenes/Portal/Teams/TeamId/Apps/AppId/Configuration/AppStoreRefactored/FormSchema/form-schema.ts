@@ -59,6 +59,9 @@ export const mainAppStoreFormSchema = yup
     },
   );
 
+/**
+ * for validating the final object when submitting for review
+ */
 export const localisationFormFinalSchema = yup
   .object({
     language: yup.string().required("Locale is required"),
@@ -77,8 +80,9 @@ export const localisationFormFinalSchema = yup
       .min(1, "Showcase images are required"),
   })
   .noUnknown();
+
 /**
- * for validating the final object before submitting for review
+ * for validating the final object when submitting for review
  */
 export const mainAppStoreFormFinalSchema = yup
   .object({
