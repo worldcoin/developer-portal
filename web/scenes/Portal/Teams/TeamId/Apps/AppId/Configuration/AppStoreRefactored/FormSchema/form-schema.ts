@@ -3,71 +3,30 @@ import {
   appNameSchema,
   appShortNameSchema,
   appWorldAppDescriptionSchema,
-  httpsLinkSchema as getHttpsLinkSchema,
 } from "@/lib/schema";
 import * as yup from "yup";
+import {
+  appWebsiteUrlSchema,
+  categorySchema,
+  isAndroidOnlySchema,
+  isForHumansOnlySchema,
+  supportedCountriesSchema,
+  supportEmailSchema,
+  supportLinkSchema,
+} from "./field-schema";
 
-const httpsLinkSchema = getHttpsLinkSchema();
+export const localisationFormSchema = yup
+  .object({
+    language: yup.string().required("Locale is required"),
+    name: appNameSchema,
+    short_name: appShortNameSchema,
+    world_app_description: appWorldAppDescriptionSchema,
+    description_overview: appDescriptionOverviewSchema,
+    meta_tag_image_url: yup.string().notRequired(),
+    showcase_img_urls: yup.array().of(yup.string().notRequired()),
+  })
+  .noUnknown();
 
-const appWebsiteUrlSchema = httpsLinkSchema.required("This field is required");
-const supportEmailSchema = yup.string().email("Invalid email address");
-
-const supportLinkSchema = yup
-  .string()
-  .test(
-    "is-valid-support-link",
-    "Must be a valid https URL or a miniapp deeplink (worldapp://mini-app?app_id=)",
-    (value) => {
-      if (!value) return true;
-
-      // miniapp deeplink
-      if (value.startsWith("worldapp://mini-app?app_id=")) {
-        return true;
-      }
-
-      // https url
-      if (httpsLinkSchema.isValidSync(value)) {
-        return true;
-      }
-
-      return false;
-    },
-  );
-
-const supportedCountriesSchema = yup
-  .array(
-    yup
-      .string()
-      .required("This field is required")
-      .length(2, "Invalid country code"),
-  )
-  .min(1, "This field is required")
-  .required("This field is required")
-  .default([]);
-const categorySchema = yup.string().optional();
-const isAndroidOnlySchema = yup
-  .boolean()
-  .typeError("This field is required")
-  .required("This field is required");
-const isForHumansOnlySchema = yup
-  .boolean()
-  .typeError("This field is required")
-  .required("This field is required");
-
-const appMetadataIdSchema = yup
-  .string()
-  .required("App metadata id is required");
-
-export const localisationFormSchema = yup.object({
-  language: yup.string().required("Locale is required"),
-  name: appNameSchema,
-  short_name: appShortNameSchema,
-  world_app_description: appWorldAppDescriptionSchema,
-  description_overview: appDescriptionOverviewSchema,
-  meta_tag_image_url: yup.string().notRequired(),
-  showcase_img_urls: yup.array().of(yup.string().notRequired()),
-});
-export type LocalisationFormSchema = yup.Asserts<typeof localisationFormSchema>;
 export const mainAppStoreFormSchema = yup
   .object({
     category: categorySchema,
@@ -88,6 +47,7 @@ export const mainAppStoreFormSchema = yup
       ),
     localisations: yup.array().of(localisationFormSchema).default([]),
   })
+  .noUnknown()
   .test(
     "support-contact-required",
     "Either support link or support email must be provided",
@@ -99,24 +59,24 @@ export const mainAppStoreFormSchema = yup
     },
   );
 
-export type AppStoreFormValues = yup.Asserts<typeof mainAppStoreFormSchema>;
-
-export const localisationFormFinalSchema = yup.object({
-  language: yup.string().required("Locale is required"),
-  name: appNameSchema.required("Name is required"),
-  short_name: appShortNameSchema.required("Short name is required"),
-  world_app_description: appWorldAppDescriptionSchema.required(
-    "App tag line is required",
-  ),
-  description_overview: appDescriptionOverviewSchema.required(
-    "Description is required",
-  ),
-  meta_tag_image_url: yup.string().notRequired(),
-  showcase_img_urls: yup
-    .array()
-    .of(yup.string())
-    .min(1, "Showcase images are required"),
-});
+export const localisationFormFinalSchema = yup
+  .object({
+    language: yup.string().required("Locale is required"),
+    name: appNameSchema.required("Name is required"),
+    short_name: appShortNameSchema.required("Short name is required"),
+    world_app_description: appWorldAppDescriptionSchema.required(
+      "App tag line is required",
+    ),
+    description_overview: appDescriptionOverviewSchema.required(
+      "Description is required",
+    ),
+    meta_tag_image_url: yup.string().notRequired(),
+    showcase_img_urls: yup
+      .array()
+      .of(yup.string())
+      .min(1, "Showcase images are required"),
+  })
+  .noUnknown();
 /**
  * for validating the final object before submitting for review
  */
@@ -166,6 +126,7 @@ export const mainAppStoreFormFinalSchema = yup
         },
       ),
   })
+  .noUnknown()
   .test(
     "support-contact-required",
     "Either support link or support email must be provided",
