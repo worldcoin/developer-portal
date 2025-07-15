@@ -1,16 +1,24 @@
 import { Categories } from "@/lib/categories";
 import { languageMap } from "@/lib/languages";
 import { FetchAppMetadataQuery } from "../../graphql/client/fetch-app-metadata.generated";
+import { FetchLocalisationsQuery } from "../graphql/client/fetch-localisations.generated";
 
-export type LocalisationData = Array<{
-  locale: keyof typeof languageMap;
-  name?: string | null;
-  short_name?: string | null;
-  world_app_description?: string | null;
-  description?: string | null;
-  meta_tag_image_url?: string | null;
-  showcase_img_urls?: string[] | null;
-}>;
+export type LocalisationData = Readonly<
+  Array<
+    Pick<
+      FetchLocalisationsQuery["localisations"][0],
+      | "locale"
+      | "name"
+      | "short_name"
+      | "world_app_description"
+      | "description"
+      | "meta_tag_image_url"
+      | "showcase_img_urls"
+    > & {
+      locale: keyof typeof languageMap;
+    }
+  >
+>;
 
 export type AppMetadata = Readonly<
   Pick<
@@ -47,14 +55,14 @@ export type AppMetadata = Readonly<
     | "max_notifications_per_day"
     | "is_android_only"
     | "is_for_humans_only"
-  >
-> & {
-  // stricter type overrides
-  verification_status: "unverified" | "verified" | "awaiting_review";
-  app_mode: "external" | "mini-app" | "native";
-  category: (typeof Categories)[number]["name"];
-  supported_languages: (keyof typeof languageMap)[];
-};
+  > & {
+    // stricter type overrides
+    verification_status: "unverified" | "verified" | "awaiting_review";
+    app_mode: "external" | "mini-app" | "native";
+    category: (typeof Categories)[number]["name"];
+    supported_languages: (keyof typeof languageMap)[];
+  }
+>;
 
 export type AppStoreFormProps = {
   appId: string;
