@@ -41,7 +41,7 @@ export const allowedCommonCharactersRegex =
 
 /** use for titles */
 export const allowedTitleCharactersRegex =
-  /^[\u3000-\u303F\u4E00-\u9FFF\u3040-\u309F\u30A0-\u30FF\uFF00-\uFFEF\p{Letter}\p{Mark}\s0-9!,:/+&$._-]+$/u;
+  /^[\u3000-\u303F\u4E00-\u9FFF\u3040-\u309F\u30A0-\u30FF\uFF00-\uFFEF\p{Letter}\p{Mark}\s0-9!,:/+&$.'?_-]+$/u;
 
 const emojiRegex = getEmojiRegex();
 
