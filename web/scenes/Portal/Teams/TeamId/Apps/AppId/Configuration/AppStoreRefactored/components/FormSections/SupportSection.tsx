@@ -2,7 +2,7 @@ import { Input } from "@/components/Input";
 import { Radio } from "@/components/Radio";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Control, Controller, FieldErrors } from "react-hook-form";
-import { AppStoreFormValues } from "../../form-schema";
+import { AppStoreFormValues } from "../../FormSchema/types";
 import { FormSectionProps, SupportType } from "../../types/AppStoreFormTypes";
 import { FormSection } from "../FormFields/FormSection";
 

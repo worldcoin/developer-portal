@@ -11,6 +11,7 @@ import { useFetchLocalisationsQuery } from "./graphql/client/fetch-localisations
 // import { AppTopBar } from "../AppTopBarRefactored";
 import { AppTopBar } from "../AppTopBar";
 import { AppStoreFormRefactored } from "./app-store-refactored";
+import { AppMetadata, LocalisationData } from "./types/AppStoreFormTypes";
 
 type AppProfileGalleryProps = {
   params: Record<string, string> | null | undefined;
@@ -77,9 +78,11 @@ export const AppProfileGalleryPage = ({ params }: AppProfileGalleryProps) => {
             <AppStoreFormRefactored
               appId={appId}
               teamId={teamId}
-              appMetadata={appMetadata}
+              appMetadata={appMetadata as AppMetadata}
               // or empty array is safe because of previous loading checks
-              localisationsData={localisationsData?.localisations || []}
+              localisationsData={
+                (localisationsData?.localisations || []) as LocalisationData
+              }
             />
           </div>
         </SizingWrapper>
