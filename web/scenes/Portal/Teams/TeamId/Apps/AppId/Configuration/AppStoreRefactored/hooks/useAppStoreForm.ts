@@ -4,7 +4,8 @@ import { useCallback, useEffect } from "react";
 import { useFieldArray, useForm, useWatch } from "react-hook-form";
 import { toast } from "react-toastify";
 import { FetchAppMetadataDocument } from "../../graphql/client/fetch-app-metadata.generated";
-import { AppStoreFormValues, mainAppStoreFormSchema } from "../form-schema";
+import { mainAppStoreFormSchema } from "../FormSchema/form-schema";
+import { AppStoreFormValues } from "../FormSchema/types";
 import { FetchLocalisationsDocument } from "../graphql/client/fetch-localisations.generated";
 import { updateAppStoreMetadata } from "../server/update-app-store";
 import {

@@ -1,5 +1,5 @@
 import { FetchAppMetadataQuery } from "../../graphql/client/fetch-app-metadata.generated";
-import { LocalisationFormSchema } from "../form-schema";
+import { LocalisationFormSchema } from "../FormSchema/types";
 import { parseDescription } from "../utils";
 
 export const transformMailtoToRawEmail = (email: string) => {
@@ -41,7 +41,6 @@ export const getAppMetadataFormValuesFromEnLocalisation = (
   }>,
 ): LocalisationFormSchema => {
   const enLocalisationData = localisationsData.find((l) => l.locale === "en");
-
   const enLocalisationDescriptionOverview = getParsedDescription(
     "en",
     appMetadata,
@@ -83,7 +82,6 @@ export const getLocalisationFormValues = (
   }>,
 ) => {
   const localisations: LocalisationFormSchema[] = [];
-
   const enLocalisation = getAppMetadataFormValuesFromEnLocalisation(
     appMetadata,
     localisationsData,
@@ -93,7 +91,6 @@ export const getLocalisationFormValues = (
   localisations.push(enLocalisation);
 
   const hasManyLocalisations = localisationsData.length > 1;
-
   if (!hasManyLocalisations) {
     return localisations;
   }

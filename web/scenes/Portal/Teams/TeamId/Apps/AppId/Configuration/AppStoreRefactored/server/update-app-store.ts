@@ -4,7 +4,8 @@ import { errorFormAction } from "@/api/helpers/errors";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { getIsUserAllowedToUpdateAppMetadata } from "@/lib/permissions";
 import { extractIdsFromPath, getPathFromHeaders } from "@/lib/server-utils";
-import { AppStoreFormValues, mainAppStoreFormSchema } from "../form-schema";
+import { mainAppStoreFormSchema } from "../FormSchema/form-schema";
+import { AppStoreFormValues } from "../FormSchema/types";
 import { getSdk as getDeleteUnusedSdk } from "../graphql/server/delete-unused-localisations.generated";
 import { getSdk as getUpdateAppStoreSdk } from "../graphql/server/update-app-store-complete.generated";
 import {
