@@ -250,15 +250,6 @@ export const POST = async (req: NextRequest) => {
     .filter((app) => (app.open_rate_last_14_days?.length ?? 0) > 0)
     .map((app) => app.app_id);
 
-  if (appIdsToEvaluate.length > 600) {
-    logger.warn(
-      "_evaluate-app-notification-permissions - notification permission list is getting too long",
-      {
-        listLength: appIdsToEvaluate.length,
-      },
-    );
-  }
-
   if (appIdsToEvaluate.length === 0) {
     logger.info("_evaluate-app-notification-permissions - no apps to evaluate");
     return NextResponse.json({ success: true }, { status: 200 });
@@ -277,6 +268,15 @@ export const POST = async (req: NextRequest) => {
     notification_permission_status_changed_date:
       app.notification_permission_status_changed_date,
   }));
+
+  if (appsToEvaluate.length > 600) {
+    logger.warn(
+      "_evaluate-app-notification-permissions - app list is getting too long",
+      {
+        listLength: appIdsToEvaluate.length,
+      },
+    );
+  }
 
   logger.info("_evaluate-app-notification-permissions - apps to evaluate", {
     numberOfAppsToEvaluate: appsToEvaluate.length,
