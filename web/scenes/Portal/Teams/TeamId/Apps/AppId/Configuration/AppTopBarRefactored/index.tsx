@@ -167,6 +167,7 @@ export const AppTopBarRefactored = (props: AppTopBarProps) => {
       await mainAppStoreFormReviewSubmitSchema.validate(form.getValues(), {
         abortEarly: false,
         strict: true,
+        stripUnknown: true,
       });
 
       // if all passed show submission modal

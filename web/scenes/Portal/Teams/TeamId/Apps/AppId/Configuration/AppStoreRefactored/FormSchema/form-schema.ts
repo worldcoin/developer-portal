@@ -83,6 +83,8 @@ export const localisationFormReviewSubmitSchema = yup
 
 /**
  * for validating the final object when submitting for review
+ * this object does not specify .notUnknown() because it's strictly validated
+ * when calling .validate(), specify stripUnknown: true
  */
 export const mainAppStoreFormReviewSubmitSchema = yup
   .object({
@@ -127,7 +129,6 @@ export const mainAppStoreFormReviewSubmitSchema = yup
         },
       ),
   })
-  .noUnknown()
   .test(
     "support-contact-required",
     "Either support link or support email must be provided",
