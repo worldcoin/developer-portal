@@ -54,7 +54,7 @@ export const LocalisationsSection = ({
 
   return (
     <FormSection
-      title="Localisations *"
+      title="Localisations"
       description="Provide localized content for each supported language."
       className="grid gap-y-5"
     >

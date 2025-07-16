@@ -14,9 +14,9 @@ export const SaveButton = ({
 }: SaveButtonProps) => {
   return (
     <div className="fixed inset-x-0 bottom-0 z-50 h-32 bg-transparent shadow-lg">
-      <div className="mx-auto grid max-w-[580px] grid-cols-1fr/auto px-8 pt-2 md:pt-8">
-        <div></div>
-        <div className="flex justify-end">
+      {/* copied from sizing wrapper */}
+      <div className="grid grid-cols-[minmax(24px,1fr)_minmax(0,calc(1440px-9vw*2))_minmax(24px,1fr)] pr-3 pt-2 md:pt-8">
+        <div className="col-start-2 flex justify-self-end">
           <DecoratedButton
             type="submit"
             variant="primary"
@@ -29,7 +29,6 @@ export const SaveButton = ({
             </Typography>
           </DecoratedButton>
         </div>
-        <div></div>
       </div>
     </div>
   );

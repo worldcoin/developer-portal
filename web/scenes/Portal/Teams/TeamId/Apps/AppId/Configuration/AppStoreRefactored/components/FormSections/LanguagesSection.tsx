@@ -20,7 +20,7 @@ export const LanguagesSection = ({
 
   return (
     <FormSection
-      title="Supported Languages *"
+      title="Supported Languages"
       description="Select a list of languages your app supports."
       className="grid gap-y-5"
     >

@@ -23,7 +23,7 @@ export const CountriesSection = ({
 
   return (
     <FormSection
-      title="Supported Countries *"
+      title="Supported Countries"
       description="List of countries where your app is available."
       className="grid gap-y-5"
     >

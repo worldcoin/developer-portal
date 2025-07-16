@@ -17,7 +17,7 @@ export const WebsiteSection = ({
 }: WebsiteSectionProps) => {
   return (
     <FormSection
-      title="App website *"
+      title="App website"
       description="Enter the URL of your App's website, e.g. a landing page."
     >
       <Controller

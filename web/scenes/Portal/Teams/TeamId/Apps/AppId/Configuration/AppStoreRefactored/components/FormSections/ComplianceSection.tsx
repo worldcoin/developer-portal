@@ -18,7 +18,7 @@ export const ComplianceSection = ({
 }: ComplianceSectionProps) => {
   return (
     <FormSection
-      title="Compliance *"
+      title="Compliance"
       description={
         <>
           Does your app have functionality that might potentially be construed

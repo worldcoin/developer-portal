@@ -17,7 +17,7 @@ export const CategorySection = ({
 }: CategorySectionProps) => {
   return (
     <FormSection
-      title="App category *"
+      title="App category"
       description="What category does your app fall into? Select the most relevant category. This affects display in the Mini App Store."
     >
       <div className="grid gap-y-7">
