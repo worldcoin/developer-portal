@@ -8,11 +8,11 @@ export const useSupportType = (
 ) => {
   const handleSupportTypeChange = useCallback(
     (newType: SupportType) => {
-      setValue("support_type", newType);
+      setValue("support_type", newType, { shouldDirty: true });
       if (newType === "email") {
-        setValue("support_link", "");
+        setValue("support_link", "", { shouldDirty: true });
       } else {
-        setValue("support_email", "");
+        setValue("support_email", "", { shouldDirty: true });
       }
     },
     [setValue],

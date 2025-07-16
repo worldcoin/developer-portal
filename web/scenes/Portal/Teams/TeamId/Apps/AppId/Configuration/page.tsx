@@ -2,11 +2,13 @@
 import { SizingWrapper } from "@/components/SizingWrapper";
 import Error from "next/error";
 import Skeleton from "react-loading-skeleton";
-import { AppTopBar } from "./AppTopBar";
-import { FormSkeleton } from "./AppTopBar/FormSkeleton";
+import { AppTopBar as AppTopBarOld } from "./AppTopBar";
+import { AppTopBarRefactored } from "./AppTopBarRefactored";
+import { FormSkeleton } from "./AppTopBarRefactored/FormSkeleton";
 import { BasicInformation } from "./BasicInformation";
 import { useFetchAppMetadataQuery } from "./graphql/client/fetch-app-metadata.generated";
 import { useFetchTeamNameQuery } from "./graphql/client/fetch-team-name.generated";
+import { INTERNAL_TEAM_IDS } from "./layout/constants-temp";
 
 type AppProfilePageProps = {
   params: Record<string, string> | null | undefined;
@@ -30,6 +32,9 @@ export const AppProfilePage = ({ params }: AppProfilePageProps) => {
 
   const app = data?.app[0];
   const teamName = teamData?.team[0]?.name;
+  // temp
+  const isInternalTeam = INTERNAL_TEAM_IDS.includes(teamId);
+  const AppTopBar = isInternalTeam ? AppTopBarRefactored : AppTopBarOld;
 
   if (!loading && (error || !app)) {
     return <Error statusCode={404} title="App not found" />;

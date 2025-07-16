@@ -4,12 +4,15 @@ import { useAtom } from "jotai";
 import Error from "next/error";
 import { useMemo } from "react";
 import Skeleton from "react-loading-skeleton";
+import { AppTopBar as AppTopBarOld } from "../AppTopBar";
+import { AppTopBarRefactored } from "../AppTopBarRefactored";
 import { useFetchAppMetadataQuery } from "../graphql/client/fetch-app-metadata.generated";
+import { INTERNAL_TEAM_IDS } from "../layout/constants-temp";
 import { viewModeAtom } from "../layout/ImagesProvider";
+import { AppStoreFormProvider } from "./app-store-form-provider";
+import { AppStoreFormRefactored } from "./app-store-refactored";
 import { useFetchLocalisationsQuery } from "./graphql/client/fetch-localisations.generated";
-// TODO sub with
-// import { AppTopBar } from "../AppTopBarRefactored";
-import { AppTopBar } from "../AppTopBar";
+import { AppMetadata, LocalisationData } from "./types/AppStoreFormTypes";
 
 type AppProfileGalleryProps = {
   params: Record<string, string> | null | undefined;
@@ -49,9 +52,13 @@ export const AppProfileGalleryPage = ({ params }: AppProfileGalleryProps) => {
       skip: !appMetadata?.id,
     });
 
-  const loading = isMetadataLoading || isLocalisationsLoading;
+  const isLoading = isMetadataLoading || isLocalisationsLoading;
 
-  if (loading) {
+  // temp
+  const isInternalTeam = INTERNAL_TEAM_IDS.includes(teamId);
+  const AppTopBar = isInternalTeam ? AppTopBarRefactored : AppTopBarOld;
+
+  if (isLoading) {
     return (
       <SizingWrapper gridClassName="order-1 pt-8">
         <div className="grid gap-y-10">
@@ -66,23 +73,26 @@ export const AppProfileGalleryPage = ({ params }: AppProfileGalleryProps) => {
     return <Error statusCode={404} title="App not found" />;
   } else {
     return (
-      <>
+      <AppStoreFormProvider
+        appMetadata={appMetadata as AppMetadata}
+        localisationsData={
+          (localisationsData?.localisations || []) as LocalisationData
+        }
+      >
         <SizingWrapper gridClassName="order-1 pt-8">
           <AppTopBar appId={appId} teamId={teamId} app={app!} />
           <hr className="my-5 w-full border-dashed text-grey-200 " />
         </SizingWrapper>
         <SizingWrapper gridClassName="order-2 pb-8 pt-4">
           <div className="grid max-w-[580px] grid-cols-1">
-            {/* <AppStoreFormRefactored
+            <AppStoreFormRefactored
               appId={appId}
               teamId={teamId}
-              appMetadata={appMetadata}
-              // or empty array is safe because of previous loading checks
-              localisationsData={localisationsData?.localisations || []}
-            /> */}
+              appMetadata={appMetadata as AppMetadata}
+            />
           </div>
         </SizingWrapper>
-      </>
+      </AppStoreFormProvider>
     );
   }
 };

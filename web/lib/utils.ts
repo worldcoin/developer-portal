@@ -113,6 +113,10 @@ export const getCDNImageUrl = (
     ? `${process.env.NEXT_PUBLIC_IMAGES_CDN_URL}/${app_id}${locale && locale !== "en" ? `/${locale}` : ""}/${path}`
     : `${process.env.NEXT_PUBLIC_IMAGES_CDN_URL}/unverified/${app_id}${locale && locale !== "en" ? `/${locale}` : ""}/${path}`;
 
+export const getDefaultLogoImgCDNUrl = () => {
+  return `${process.env.NEXT_PUBLIC_IMAGES_CDN_URL}/default/default-logo-image.png`;
+};
+
 /**
  * Gets the logo image CDN URL
  * @param app_id - The ID of the app
@@ -126,7 +130,7 @@ export const getLogoImgCDNUrl = (
   isAppVerified = true,
 ) => {
   if (!path) {
-    return `${process.env.NEXT_PUBLIC_IMAGES_CDN_URL}/default/default-logo-image.png`;
+    return getDefaultLogoImgCDNUrl();
   }
   return getCDNImageUrl(app_id, path, isAppVerified);
 };
