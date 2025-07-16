@@ -18,7 +18,7 @@ export const LogoSection = ({
   const shouldDefaultOpenLogoEditor = searchParams.get("editLogo") === "true";
   return (
     <FormSection
-      title="Logo image *"
+      title="Logo image"
       description="Specify the logo image for your app. Image has to have a 1:1 aspect ratio."
     >
       <LogoImageUpload
