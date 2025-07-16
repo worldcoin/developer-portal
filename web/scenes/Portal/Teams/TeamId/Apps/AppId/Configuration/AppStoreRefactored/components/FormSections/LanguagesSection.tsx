@@ -36,6 +36,7 @@ export const LanguagesSection = ({
             errors={errors.supported_languages}
             showSelectedList
             searchPlaceholder="Start by typing language..."
+            selectAllLabel="Add all languages"
             canDelete={(item) => item.value !== "en"}
             onRemove={async (value) => {
               if (value === "en") return;

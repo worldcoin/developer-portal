@@ -58,6 +58,7 @@ export const CountriesSection = ({
             clearAll={() => field.onChange([])}
             showSelectedList
             searchPlaceholder="Start by typing country..."
+            selectAllLabel="Add all countries"
           >
             {(item, index) => (
               <SelectMultiple.Item
