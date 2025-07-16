@@ -68,7 +68,6 @@ export type AppStoreFormProps = {
   appId: string;
   teamId: string;
   appMetadata: AppMetadata;
-  localisationsData: LocalisationData;
 };
 
 export type FormSectionProps = {

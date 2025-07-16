@@ -4,6 +4,7 @@ import { errorFormAction } from "@/api/helpers/errors";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { getIsUserAllowedToUpdateAppMetadata } from "@/lib/permissions";
 import { extractIdsFromPath, getPathFromHeaders } from "@/lib/server-utils";
+import * as yup from "yup";
 import { mainAppStoreFormSchema } from "../FormSchema/form-schema";
 import { AppStoreFormValues } from "../FormSchema/types";
 import { getSdk as getDeleteUnusedSdk } from "../graphql/server/delete-unused-localisations.generated";
@@ -18,12 +19,18 @@ type FormActionResult = {
   message: string;
 };
 
+const schema = mainAppStoreFormSchema.concat(
+  yup.object({
+    app_metadata_id: yup.string().required("App metadata id is required"),
+  }),
+);
+type Schema = yup.Asserts<typeof schema>;
+
 const formatEmailLink = (email: string): string => {
   return `mailto:${email}`;
 };
-
 export async function updateAppStoreMetadata(
-  formData: AppStoreFormValues & { app_metadata_id: string },
+  formData: Schema,
 ): Promise<FormActionResult> {
   const path = getPathFromHeaders() || "";
   const { Apps: appId, Teams: teamId } = extractIdsFromPath(path, [
@@ -45,7 +52,7 @@ export async function updateAppStoreMetadata(
     let parsedParams: AppStoreFormValues;
 
     try {
-      parsedParams = await mainAppStoreFormSchema.validate(formData, {
+      parsedParams = await schema.validate(formData, {
         abortEarly: false,
       });
     } catch (validationError) {

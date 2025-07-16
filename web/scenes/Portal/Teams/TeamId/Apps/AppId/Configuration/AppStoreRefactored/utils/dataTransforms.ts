@@ -67,8 +67,9 @@ export const getLocalisationFormValues = (
   // en is always present in the form
   localisations.push(enLocalisation);
 
-  const hasManyLocalisations = localisationsData.length > 1;
-  if (!hasManyLocalisations) {
+  const hasLocalisations = localisationsData.length > 0;
+
+  if (!hasLocalisations) {
     return localisations;
   }
 
@@ -89,8 +90,5 @@ export const getLocalisationFormValues = (
       showcase_img_urls: localisation.showcase_img_urls || [],
     });
   }
-  return [
-    enLocalisation,
-    ...localisations.sort((a, b) => a.language.localeCompare(b.language)),
-  ];
+  return [...new Set([enLocalisation, ...localisations])];
 };

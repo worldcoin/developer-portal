@@ -1,30 +1,16 @@
 import { useRefetchQueries } from "@/lib/use-refetch-queries";
-import { yupResolver } from "@hookform/resolvers/yup";
 import { useCallback, useEffect } from "react";
-import { useFieldArray, useForm, useWatch } from "react-hook-form";
+import { useFieldArray, useFormContext, useWatch } from "react-hook-form";
 import { toast } from "react-toastify";
 import { FetchAppMetadataDocument } from "../../graphql/client/fetch-app-metadata.generated";
-import { mainAppStoreFormSchema } from "../FormSchema/form-schema";
 import { AppStoreFormValues } from "../FormSchema/types";
 import { FetchLocalisationsDocument } from "../graphql/client/fetch-localisations.generated";
 import { updateAppStoreMetadata } from "../server/update-app-store";
-import {
-  AppMetadata,
-  LocalisationData,
-  SupportType,
-} from "../types/AppStoreFormTypes";
-import { useFormData } from "./useFormData";
+import { AppMetadata, SupportType } from "../types/AppStoreFormTypes";
 import { useSupportType } from "./useSupportType";
 
-export const useAppStoreForm = (
-  appId: string,
-  appMetadata: AppMetadata,
-  localisationsData: LocalisationData,
-) => {
-  const { defaultValues, isEditable } = useFormData(
-    appMetadata,
-    localisationsData,
-  );
+export const useAppStoreForm = (appId: string, appMetadata: AppMetadata) => {
+  const isEditable = appMetadata?.verification_status === "unverified";
 
   const { refetch: refetchAppMetadata } = useRefetchQueries(
     FetchAppMetadataDocument,
@@ -40,11 +26,8 @@ export const useAppStoreForm = (
     handleSubmit,
     watch,
     setValue,
-    formState: { errors, isSubmitting },
-  } = useForm<AppStoreFormValues>({
-    resolver: yupResolver(mainAppStoreFormSchema),
-    defaultValues: defaultValues as AppStoreFormValues,
-  });
+    formState: { errors, isSubmitting, isDirty: _isDirty },
+  } = useFormContext<AppStoreFormValues>();
 
   const {
     fields: localisations,

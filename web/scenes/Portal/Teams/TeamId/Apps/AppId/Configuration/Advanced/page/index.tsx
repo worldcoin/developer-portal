@@ -4,9 +4,11 @@ import { useAtom } from "jotai";
 import Error from "next/error";
 import { useMemo } from "react";
 import Skeleton from "react-loading-skeleton";
-import { AppTopBar } from "../../AppTopBar";
-import { FormSkeleton } from "../../AppTopBar/FormSkeleton";
+import { AppTopBar as AppTopBarOld } from "../../AppTopBar";
+import { AppTopBarRefactored } from "../../AppTopBarRefactored";
+import { FormSkeleton } from "../../AppTopBarRefactored/FormSkeleton";
 import { useFetchAppMetadataQuery } from "../../graphql/client/fetch-app-metadata.generated";
+import { INTERNAL_TEAM_IDS } from "../../layout/constants-temp";
 import { viewModeAtom } from "../../layout/ImagesProvider";
 import { SetupForm } from "./SetupForm";
 
@@ -34,6 +36,10 @@ export const AppProfileSetupPage = ({ params }: AppProfileSetupPageProps) => {
       return app?.app_metadata?.[0] ?? app?.verified_app_metadata[0];
     }
   }, [app, viewMode]);
+
+  // temp
+  const isInternalTeam = INTERNAL_TEAM_IDS.includes(teamId);
+  const AppTopBar = isInternalTeam ? AppTopBarRefactored : AppTopBarOld;
 
   if (!loading && (error || !app)) {
     return <Error statusCode={404} title="App not found" />;

@@ -20,7 +20,6 @@ export const AppStoreFormRefactored = ({
   appId,
   teamId,
   appMetadata,
-  localisationsData,
 }: AppStoreFormProps) => {
   const { user } = useUser() as Auth0SessionUser;
 
@@ -34,7 +33,7 @@ export const AppStoreFormRefactored = ({
     handleSupportTypeChange,
     submit,
     isEditable,
-  } = useAppStoreForm(appId, appMetadata, localisationsData);
+  } = useAppStoreForm(appId, appMetadata);
 
   const isEnoughPermissions = useMemo(() => {
     return checkUserPermissions(user, teamId ?? "", [
@@ -105,6 +104,9 @@ export const AppStoreFormRefactored = ({
           localisations={localisations}
           isEditable={isEditable}
           isEnoughPermissions={isEnoughPermissions}
+          appId={appId}
+          teamId={teamId}
+          appMetadata={appMetadata}
         />
 
         <SaveButton

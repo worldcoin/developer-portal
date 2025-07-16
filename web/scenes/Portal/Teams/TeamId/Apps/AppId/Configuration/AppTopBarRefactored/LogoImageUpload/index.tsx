@@ -26,19 +26,10 @@ type LogoImageUploadProps = {
   editable: boolean;
   isError: boolean;
   logoFile?: string;
-  defaultOpen?: boolean;
 };
 export const LogoImageUpload = (props: LogoImageUploadProps) => {
-  const {
-    appId,
-    appMetadataId,
-    teamId,
-    editable,
-    isError,
-    logoFile,
-    defaultOpen,
-  } = props;
-  const [showDialog, setShowDialog] = useState(defaultOpen ?? false);
+  const { appId, appMetadataId, teamId, editable, isError, logoFile } = props;
+  const [showDialog, setShowDialog] = useState(false);
   const [verifiedImageError, setVerifiedImageError] = useState(false);
   const [isSecondUpload, setIsSecondUpload] = useState(false);
   const [disabled] = useState(false);
@@ -68,7 +59,7 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
           autoClose: false,
         });
 
-        toast.dismiss(ImageValidationError.prototype.toastId);
+        toast.dismiss("ImageValidationError");
         await uploadViaPresignedPost(file, appId, teamId, imageType);
 
         const imageUrl = await getImage(
@@ -141,15 +132,10 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
 
   const verifiedImageURL = useMemo(() => {
     if (viewMode === "unverified" || !logoFile) {
-      // return getDefaultLogoImgCDNUrl();
       return "";
     }
     return getCDNImageUrl(appId, logoFile);
   }, [appId, logoFile, viewMode]);
-
-  if (unverifiedImages?.logo_img_url === "loading") {
-    return <Skeleton className="size-20" />;
-  }
 
   return (
     <div
@@ -241,13 +227,17 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
         ))}
       {viewMode === "unverified" &&
         (unverifiedImages?.logo_img_url ? (
-          <Image
-            alt="logo"
-            src={unverifiedImages?.logo_img_url}
-            className="size-20 rounded-2xl drop-shadow-lg"
-            width={512}
-            height={512}
-          />
+          unverifiedImages?.logo_img_url === "loading" ? (
+            <Skeleton className="size-20" />
+          ) : (
+            <Image
+              alt="logo"
+              src={unverifiedImages?.logo_img_url}
+              className="size-20 rounded-2xl drop-shadow-lg"
+              width={512}
+              height={512}
+            />
+          )
         ) : (
           <div
             className={clsx(

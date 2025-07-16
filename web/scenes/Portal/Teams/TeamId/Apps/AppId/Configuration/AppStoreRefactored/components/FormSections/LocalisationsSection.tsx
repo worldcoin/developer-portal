@@ -1,20 +1,29 @@
 import { Input } from "@/components/Input";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { formLanguagesList } from "@/lib/languages";
+import { useRefetchQueries } from "@/lib/use-refetch-queries";
 import {
   Control,
   Controller,
   FieldArrayWithId,
   FieldErrors,
+  useWatch,
 } from "react-hook-form";
+import { FetchAppMetadataDocument } from "../../../graphql/client/fetch-app-metadata.generated";
 import { AppStoreFormValues } from "../../FormSchema/types";
-import { FormSectionProps } from "../../types/AppStoreFormTypes";
+import { FetchLocalisationsDocument } from "../../graphql/client/fetch-localisations.generated";
+import { MetaTagImageField } from "../../ImageForm/MetaTagImageField";
+import { ShowcaseImagesField } from "../../ImageForm/ShowcaseImagesField";
+import { AppMetadata, FormSectionProps } from "../../types/AppStoreFormTypes";
 import { FormSection } from "../FormFields/FormSection";
 
 type LocalisationsSectionProps = FormSectionProps & {
   control: Control<AppStoreFormValues>;
   errors: FieldErrors<AppStoreFormValues>;
   localisations: FieldArrayWithId<AppStoreFormValues, "localisations", "id">[];
+  appId: string;
+  teamId: string;
+  appMetadata: AppMetadata;
 };
 
 export const LocalisationsSection = ({
@@ -23,8 +32,25 @@ export const LocalisationsSection = ({
   localisations,
   isEditable,
   isEnoughPermissions,
+  appId,
+  teamId,
+  appMetadata,
 }: LocalisationsSectionProps) => {
   const allPossibleLanguages = formLanguagesList;
+
+  const { refetch: refetchAppMetadata } = useRefetchQueries(
+    FetchAppMetadataDocument,
+    { id: appId },
+  );
+  const { refetch: refetchLocalisations } = useRefetchQueries(
+    FetchLocalisationsDocument,
+    { app_metadata_id: appMetadata.id },
+  );
+
+  const supportedLanguages = useWatch({
+    control,
+    name: "supported_languages",
+  });
 
   return (
     <FormSection
@@ -117,14 +143,69 @@ export const LocalisationsSection = ({
                 <Controller
                   control={control}
                   name={`localisations.${index}.meta_tag_image_url`}
-                  render={({ field: imageField }) => <>placeholder</>}
+                  render={({ field: imageField }) => (
+                    <MetaTagImageField
+                      value={imageField.value}
+                      onChange={imageField.onChange}
+                      disabled={!isEditable || !isEnoughPermissions}
+                      appId={appId}
+                      teamId={teamId}
+                      locale={field.language}
+                      isAppVerified={
+                        appMetadata?.verification_status === "verified"
+                      }
+                      appMetadataId={appMetadata.id}
+                      supportedLanguages={supportedLanguages}
+                      error={
+                        errors.localisations?.[index]?.meta_tag_image_url
+                          ?.message
+                      }
+                      onAutosaveSuccess={() => {
+                        refetchAppMetadata();
+                        refetchLocalisations();
+                      }}
+                      onAutosaveError={(error) => {
+                        console.error("Meta tag image autosave failed:", error);
+                      }}
+                    />
+                  )}
                 />
 
                 {/* showcase_img_urls */}
                 <Controller
                   control={control}
                   name={`localisations.${index}.showcase_img_urls`}
-                  render={({ field: showcaseField }) => <>placeholder</>}
+                  render={({ field: showcaseField }) => (
+                    <ShowcaseImagesField
+                      value={(showcaseField.value || []).filter(
+                        (url): url is string => Boolean(url),
+                      )}
+                      onChange={showcaseField.onChange}
+                      disabled={!isEditable || !isEnoughPermissions}
+                      appId={appId}
+                      teamId={teamId}
+                      locale={field.language}
+                      isAppVerified={
+                        appMetadata?.verification_status === "verified"
+                      }
+                      appMetadataId={appMetadata.id}
+                      supportedLanguages={supportedLanguages}
+                      error={
+                        errors.localisations?.[index]?.showcase_img_urls
+                          ?.message
+                      }
+                      onAutosaveSuccess={() => {
+                        refetchAppMetadata();
+                        refetchLocalisations();
+                      }}
+                      onAutosaveError={(error) => {
+                        console.error(
+                          "Showcase images autosave failed:",
+                          error,
+                        );
+                      }}
+                    />
+                  )}
                 />
               </div>
             </div>
