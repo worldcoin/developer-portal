@@ -11,10 +11,12 @@ import { getSdk as getCreateLocalisation } from "./graphql/create-localisation.g
 import { getSdk as getFetchLocalisations } from "./graphql/fetch-localisations.generated";
 import { getSdk as getFetchMetadata } from "./graphql/fetch-metadata.generated";
 
-const schema = yup.object({
-  app_id: yup.string().strict().required(),
-  team_id: yup.string().strict().required(),
-});
+const schema = yup
+  .object({
+    app_id: yup.string().strict().required(),
+    team_id: yup.string().strict().required(),
+  })
+  .noUnknown();
 
 export const POST = async (req: NextRequest) => {
   const { isAuthenticated, errorResponse } = protectInternalEndpoint(req);

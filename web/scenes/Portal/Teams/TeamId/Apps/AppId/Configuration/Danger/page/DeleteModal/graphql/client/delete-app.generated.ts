@@ -10,12 +10,12 @@ export type DeleteAppMutationVariables = Types.Exact<{
 
 export type DeleteAppMutation = {
   __typename?: "mutation_root";
-  delete_app_by_pk?: { __typename?: "app"; id: string } | null;
+  update_app_by_pk?: { __typename?: "app"; id: string } | null;
 };
 
 export const DeleteAppDocument = gql`
   mutation DeleteApp($id: String!) {
-    delete_app_by_pk(id: $id) {
+    update_app_by_pk(pk_columns: { id: $id }, _set: { deleted_at: "now()" }) {
       id
     }
   }

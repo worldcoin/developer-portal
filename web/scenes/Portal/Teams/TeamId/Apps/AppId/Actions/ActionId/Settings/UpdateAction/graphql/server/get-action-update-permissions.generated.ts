@@ -7,6 +7,7 @@ type GraphQLClientRequestHeaders = RequestOptions["requestHeaders"];
 export type GetIsUserPermittedToUpdateActionQueryVariables = Types.Exact<{
   userId: Types.Scalars["String"]["input"];
   teamId: Types.Scalars["String"]["input"];
+  actionId: Types.Scalars["String"]["input"];
 }>;
 
 export type GetIsUserPermittedToUpdateActionQuery = {
@@ -23,8 +24,17 @@ export type GetIsUserPermittedToUpdateActionQuery = {
 };
 
 export const GetIsUserPermittedToUpdateActionDocument = gql`
-  query GetIsUserPermittedToUpdateAction($userId: String!, $teamId: String!) {
-    team(where: { id: { _eq: $teamId } }) {
+  query GetIsUserPermittedToUpdateAction(
+    $userId: String!
+    $teamId: String!
+    $actionId: String!
+  ) {
+    team(
+      where: {
+        id: { _eq: $teamId }
+        apps: { actions: { id: { _eq: $actionId } } }
+      }
+    ) {
       id
       memberships(
         where: {

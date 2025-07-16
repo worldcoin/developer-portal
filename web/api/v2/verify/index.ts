@@ -10,6 +10,7 @@ import {
   nullifierHashToBigIntStr,
   verifyProof,
 } from "@/api/helpers/verify";
+import { logger } from "@/lib/logger";
 import { captureEvent } from "@/services/posthogClient";
 import { AppErrorCodes, VerificationLevel } from "@worldcoin/idkit-core";
 import { NextRequest, NextResponse } from "next/server";
@@ -23,50 +24,73 @@ const V2_ENABLED_APP_IDS = [
   "app_020c82fbf3c087eb31600929a34990e4",
 ];
 
-const schema = yup.object({
-  action: yup
-    .string()
-    .strict()
-    .nonNullable()
-    .required("This attribute is required."),
-  signal_hash: yup
-    .string()
-    .matches(/^0x[\dabcdef]+$/, "Invalid signal_hash.")
-    .default(
-      "0x00c5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a4", // hashToField("")
-    ),
-  proof: yup.string().strict().required("This attribute is required."),
-  nullifier_hash: yup
-    .string()
-    .strict()
-    .matches(
-      /^(0x)?[\da-fA-F]+$/,
-      "Invalid nullifier_hash. Must be a hex string with optional 0x prefix.",
-    )
-    .required("This attribute is required."),
-  merkle_root: yup.string().strict().required("This attribute is required."),
-  verification_level: yup
-    .string()
-    .oneOf(Object.values(VerificationLevel))
-    .required("This attribute is required."),
-  max_age: yup
-    .number()
-    .integer()
-    .min(3600, "Maximum root age cannot be less than 3600 seconds (1 hour).")
-    .max(
-      604800,
-      "Maximum root age cannot be more than 604800 seconds (7 days).",
-    )
-    .strict()
-    .optional(),
-});
+const schema = yup
+  .object({
+    action: yup
+      .string()
+      .strict()
+      .nonNullable()
+      .required("This attribute is required."),
+    signal_hash: yup
+      .string()
+      .matches(/^0x[\dabcdef]+$/, "Invalid signal_hash.")
+      .default(
+        "0x00c5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a4", // hashToField("")
+      ),
+    proof: yup.string().strict().required("This attribute is required."),
+    nullifier_hash: yup
+      .string()
+      .strict()
+      .matches(
+        /^(0x)?[\da-fA-F]+$/,
+        "Invalid nullifier_hash. Must be a hex string with optional 0x prefix.",
+      )
+      .required("This attribute is required."),
+    merkle_root: yup.string().strict().required("This attribute is required."),
+    verification_level: yup
+      .string()
+      .oneOf(Object.values(VerificationLevel))
+      .required("This attribute is required."),
+    max_age: yup
+      .number()
+      .integer()
+      .min(3600, "Maximum root age cannot be less than 3600 seconds (1 hour).")
+      .max(
+        604800,
+        "Maximum root age cannot be more than 604800 seconds (7 days).",
+      )
+      .strict()
+      .optional(),
+  })
+  .noUnknown();
 
 export async function POST(
   req: NextRequest,
   { params }: { params: { app_id: string } },
 ) {
-  const body = await req.json();
-  let message = "Proof verified successfully";
+  if (!params.app_id) {
+    return errorRequiredAttribute("app_id", req);
+  }
+
+  const app_id = params.app_id?.toString();
+
+  let body;
+  try {
+    body = await req.json();
+  } catch (error) {
+    const body = await req.text();
+    logger.warn("Invalid JSON in request body", { error, app_id, body });
+
+    return errorResponse({
+      statusCode: 400,
+      code: "invalid_request",
+      detail: "Invalid JSON in request body",
+      attribute: null,
+      req,
+      app_id,
+    });
+  }
+
   const { isValid, parsedParams, handleError } = await validateRequestSchema({
     schema,
     value: body,
@@ -75,12 +99,6 @@ export async function POST(
   if (!isValid) {
     return handleError(req);
   }
-
-  if (!params.app_id) {
-    return errorRequiredAttribute("app_id", req);
-  }
-
-  const app_id = params.app_id?.toString();
 
   const client = await getAPIServiceGraphqlClient();
 
@@ -120,6 +138,7 @@ export async function POST(
   }
 
   // We allow on-chain actions to be verified here, but we indicate to developers that they shouldn't be verified here
+  let message = "Proof verified successfully";
   if (app.engine !== "cloud") {
     message = "This action runs on-chain and shouldn't be verified here.";
   }

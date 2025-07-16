@@ -11,7 +11,10 @@ import { getSdk as getActionUpdatePermissionsSdk } from "../graphql/server/get-a
 import { getSdk as getUpdateActionSdk } from "../graphql/server/update-action.generated";
 import { createUpdateActionSchema, UpdateActionSchema } from "./form-schema";
 
-export const getIsUserAllowedToUpdateAction = async (teamId: string) => {
+export const getIsUserAllowedToUpdateAction = async (
+  teamId: string,
+  actionId: string,
+) => {
   const session = await getSession();
   if (!session) {
     return false;
@@ -20,7 +23,7 @@ export const getIsUserAllowedToUpdateAction = async (teamId: string) => {
   const userId = session.user.hasura.id;
   const response = await getActionUpdatePermissionsSdk(
     await getAPIServiceGraphqlClient(),
-  ).GetIsUserPermittedToUpdateAction({ userId, teamId });
+  ).GetIsUserPermittedToUpdateAction({ userId, teamId, actionId });
 
   if (response.team.find((team) => team.id === teamId)?.memberships.length) {
     return true;
@@ -37,7 +40,7 @@ export async function updateActionServerSide(
   const path = getPathFromHeaders() || "";
   const { Apps: appId } = extractIdsFromPath(path, ["Apps"]);
 
-  if (!(await getIsUserAllowedToUpdateAction(teamId))) {
+  if (!(await getIsUserAllowedToUpdateAction(teamId, actionId))) {
     errorFormAction({
       message: "updateActionServerSide - invalid permissions",
       team_id: teamId,

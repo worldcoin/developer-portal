@@ -11,7 +11,10 @@ import { getSdk as getActionInsertPermissionsSdk } from "../graphql/server/get-a
 import { getSdk as getCreateActionSdk } from "../graphql/server/insert-action.generated";
 import { createActionSchema, CreateActionSchema } from "./form-schema";
 
-export const getIsUserAllowedToInsertAction = async (teamId: string) => {
+export const getIsUserAllowedToInsertAction = async (
+  teamId: string,
+  appId: string,
+) => {
   const session = await getSession();
   if (!session) {
     return false;
@@ -20,7 +23,7 @@ export const getIsUserAllowedToInsertAction = async (teamId: string) => {
   const userId = session.user.hasura.id;
   const response = await getActionInsertPermissionsSdk(
     await getAPIServiceGraphqlClient(),
-  ).GetIsUserPermittedToInsertAction({ userId, teamId });
+  ).GetIsUserPermittedToInsertAction({ userId, teamId, appId });
 
   if (response.team.find((team) => team.id === teamId)?.memberships.length) {
     return true;
@@ -34,7 +37,7 @@ export async function createActionServerSide(
   appId: string,
   isNotProduction: boolean,
 ) {
-  if (!(await getIsUserAllowedToInsertAction(teamId))) {
+  if (!(await getIsUserAllowedToInsertAction(teamId, appId))) {
     errorFormAction({
       message: "createActionServerSide - invalid permissions",
       team_id: teamId,

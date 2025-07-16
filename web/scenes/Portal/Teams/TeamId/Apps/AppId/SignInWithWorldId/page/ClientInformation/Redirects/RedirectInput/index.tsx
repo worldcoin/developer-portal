@@ -33,14 +33,16 @@ export const RedirectInput = memo(function Input(props: InputInterface) {
 
   const schema = useMemo(
     () =>
-      yup.object({
-        url: yup
-          .string()
-          .required("A valid url is required")
-          .test("is-url", "Must be a valid URL", (value) => {
-            return value != null ? validateUrl(value, isStaging) : true;
-          }),
-      }),
+      yup
+        .object({
+          url: yup
+            .string()
+            .required("A valid url is required")
+            .test("is-url", "Must be a valid URL", (value) => {
+              return value != null ? validateUrl(value, isStaging) : true;
+            }),
+        })
+        .noUnknown(),
     [isStaging],
   );
 

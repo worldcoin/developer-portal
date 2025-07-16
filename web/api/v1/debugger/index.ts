@@ -9,30 +9,35 @@ import { toBeHex } from "ethers";
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
 
-const schema = yup.object({
-  app_id: yup
-    .string<`app_${string}`>()
-    .strict()
-    .required("This attribute is required."),
-  action: yup
-    .string()
-    .strict()
-    .nonNullable()
-    .defined("This attribute is required."),
-  signal: yup
-    .string()
-    .strict()
-    .nonNullable()
-    .defined("This attribute is required."),
-  proof: yup.string().strict().required("This attribute is required."),
-  merkle_root: yup.string().strict().required("This attribute is required."),
-  nullifier_hash: yup.string().strict().required("This attribute is required."),
-  is_staging: yup.boolean().strict().required("This attribute is required."),
-  verification_level: yup
-    .string()
-    .oneOf(Object.values(VerificationLevel))
-    .required(),
-});
+const schema = yup
+  .object({
+    app_id: yup
+      .string<`app_${string}`>()
+      .strict()
+      .required("This attribute is required."),
+    action: yup
+      .string()
+      .strict()
+      .nonNullable()
+      .defined("This attribute is required."),
+    signal: yup
+      .string()
+      .strict()
+      .nonNullable()
+      .defined("This attribute is required."),
+    proof: yup.string().strict().required("This attribute is required."),
+    merkle_root: yup.string().strict().required("This attribute is required."),
+    nullifier_hash: yup
+      .string()
+      .strict()
+      .required("This attribute is required."),
+    is_staging: yup.boolean().strict().required("This attribute is required."),
+    verification_level: yup
+      .string()
+      .oneOf(Object.values(VerificationLevel))
+      .required(),
+  })
+  .noUnknown();
 
 const corsMethods = ["POST", "OPTIONS"];
 

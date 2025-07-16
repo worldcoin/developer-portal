@@ -15,10 +15,13 @@ import * as yup from "yup";
 import { FetchKeysDocument } from "../../graphql/client/fetch-keys.generated";
 import { useUpdateKeyMutation } from "./graphql/client/update-key.generated";
 
-const schema = yup.object().shape({
-  name: yup.string().required("A key name is required"),
-  isActive: yup.boolean().default(true),
-});
+const schema = yup
+  .object()
+  .shape({
+    name: yup.string().required("A key name is required"),
+    isActive: yup.boolean().default(true),
+  })
+  .noUnknown();
 
 type ViewDetailsModalProps = {
   teamId?: string;

@@ -9,13 +9,15 @@ type UserGrantCycleResponse = {
   nextGrantClaimUTCDate: string;
 };
 
-const userGrantCycleQuerySchema = yup.object({
-  wallet_address: yup
-    .string()
-    .length(42)
-    .required("wallet_address is required"),
-  app_id: yup.string().strict().required("app_id is required"),
-});
+const userGrantCycleQuerySchema = yup
+  .object({
+    wallet_address: yup
+      .string()
+      .length(42)
+      .required("wallet_address is required"),
+    app_id: yup.string().strict().required("app_id is required"),
+  })
+  .noUnknown();
 
 export const GET = async (req: NextRequest) => {
   const params = Object.fromEntries(new URL(req.url).searchParams);

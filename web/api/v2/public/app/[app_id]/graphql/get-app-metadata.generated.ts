@@ -60,6 +60,7 @@ export type GetAppMetadataQuery = {
       __typename?: "app";
       rating_sum: number;
       rating_count: number;
+      deleted_at?: string | null;
       team: { __typename?: "team"; name?: string | null; id: string };
     };
   }>;
@@ -119,6 +120,7 @@ export const GetAppMetadataDocument = gql`
         }
         rating_sum
         rating_count
+        deleted_at
       }
     }
   }

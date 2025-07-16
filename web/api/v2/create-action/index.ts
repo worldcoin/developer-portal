@@ -15,16 +15,20 @@ import {
 } from "./graphql/create-dynamic-action.generated";
 import { getSdk as fetchApiKeySdk } from "./graphql/fetch-api-key.generated";
 
-const createActionBodySchema = yup.object({
-  action: yup.string().strict().required(),
-  name: yup.string().optional().default(""),
-  description: yup.string().optional().default(""),
-  max_verifications: yup.number().optional().default(1),
-});
+const createActionBodySchema = yup
+  .object({
+    action: yup.string().strict().required(),
+    name: yup.string().optional().default(""),
+    description: yup.string().optional().default(""),
+    max_verifications: yup.number().optional().default(1),
+  })
+  .noUnknown();
 
-const createActionParamsSchema = yup.object({
-  app_id: yup.string().strict().required(),
-});
+const createActionParamsSchema = yup
+  .object({
+    app_id: yup.string().strict().required(),
+  })
+  .noUnknown();
 
 export const POST = async (
   req: NextRequest,

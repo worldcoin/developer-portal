@@ -2,30 +2,32 @@
 
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { MagnifierIcon } from "@/components/Icons/MagnifierIcon";
+import { PlusIcon } from "@/components/Icons/PlusIcon";
 import { Input } from "@/components/Input";
+import { Section } from "@/components/Section";
 import { Role_Enum } from "@/graphql/graphql";
 import { Auth0SessionUser } from "@/lib/types";
 import { checkUserPermissions } from "@/lib/utils";
+import { FetchMeDocument } from "@/scenes/common/me-query/client/graphql/client/me-query.generated";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useAtom } from "jotai";
 import { useEffect, useMemo } from "react";
 import { useForm, useWatch } from "react-hook-form";
+import Skeleton from "react-loading-skeleton";
 import * as yup from "yup";
+import { useFetchTeamMembersQuery } from "./graphql/client/fetch-team-members.generated";
 import {
   InviteTeamMemberDialog,
   inviteTeamMemberDialogAtom,
 } from "./InviteTeamMemberDialog";
 import { List } from "./List";
-import { PlusIcon } from "@/components/Icons/PlusIcon";
-import { Section } from "@/components/Section";
-import Skeleton from "react-loading-skeleton";
-import { useFetchTeamMembersQuery } from "./graphql/client/fetch-team-members.generated";
-import { FetchMeDocument } from "@/scenes/common/me-query/client/graphql/client/me-query.generated";
 
-const schema = yup.object({
-  search: yup.string(),
-});
+const schema = yup
+  .object({
+    search: yup.string(),
+  })
+  .noUnknown();
 
 export const Members = (props: { teamId: string }) => {
   const { teamId } = props;
