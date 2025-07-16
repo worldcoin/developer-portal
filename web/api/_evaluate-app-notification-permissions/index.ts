@@ -179,7 +179,7 @@ export const safeUpdateNotificationState = async (
   try {
     const sdk = getUpdateNotificationPermissionStatusSdk(client);
 
-    await sdk.UpdateNotificationPermissionStatus({
+    const result = await sdk.UpdateNotificationPermissionStatus({
       app_id: app_id,
       notification_permission_status: updates.notification_permission_status,
       notification_permission_status_changed_date:
@@ -191,6 +191,7 @@ export const safeUpdateNotificationState = async (
       {
         app_id,
         updates,
+        affected_rows: result.update_app_metadata?.affected_rows,
       },
     );
   } catch (error) {
