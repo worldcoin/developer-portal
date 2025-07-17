@@ -5,14 +5,21 @@ import {
   whitelistedAppsPermit2,
 } from "@/lib/constants";
 import { generateExternalNullifier } from "@/lib/hashing";
+import { logger } from "@/lib/logger";
 import {
   AppStatsItem,
   AppStatsReturnType,
   AppStoreFormattedFields,
   AppStoreMetadataDescription,
   AppStoreMetadataFields,
+  MetricsServiceAppData,
 } from "@/lib/types";
-import { getCDNImageUrl, getLogoImgCDNUrl, tryParseJSON } from "@/lib/utils";
+import {
+  fetchWithRetry,
+  getCDNImageUrl,
+  getLogoImgCDNUrl,
+  tryParseJSON,
+} from "@/lib/utils";
 
 export const formatAppMetadata = async (
   appData: AppStoreMetadataFields,
@@ -214,14 +221,18 @@ const getNotificationPermissions = (
   };
 };
 
-// Cached thus this is not that expensive
+/**
+ * Rank apps based on their new users and unique users, this will be unique per country
+ * @param apps - The apps to rank
+ * @param appStats - The app stats to use for ranking
+ * @returns The ranked apps
+ */
 export const rankApps = (
   apps: AppStoreFormattedFields[],
   appStats: AppStatsReturnType,
 ) => {
   let maxNewUsers = 0;
   let maxUniqueUsers = 0;
-
   // determine maximum values among apps that
   // are present in the current app store
   const appIdsSet = new Set<string>(apps.map((app) => app.app_id));
@@ -277,4 +288,93 @@ export const rankApps = (
 
     return bScore - aScore;
   });
+};
+
+/**
+ * Fetch metrics from the metrics service
+ * @param expirationTime - The time to cache the data for in seconds
+ * @param country - The country to fetch data for
+ * @returns The metrics data with the country data if specified, otherwise sum all values
+ */
+export const fetchMetrics = async (
+  expirationTime: number = 3600, // Default to 1 hour (3600 seconds)
+  country?: string | null,
+): Promise<AppStatsReturnType> => {
+  // Configure caching based on expirationTime
+  const fetchOptions: RequestInit = {};
+
+  if (expirationTime <= 0) {
+    // No cache - force fresh data
+    fetchOptions.cache = "no-store";
+    fetchOptions.headers = {
+      "Cache-Control": "no-cache, no-store, must-revalidate",
+      Pragma: "no-cache",
+      Expires: "0",
+    };
+  } else {
+    // Cache for specified time
+    fetchOptions.headers = {
+      "Cache-Control": `max-age=${expirationTime}`,
+    };
+  }
+
+  const response = await fetchWithRetry(
+    `${process.env.NEXT_PUBLIC_METRICS_SERVICE_ENDPOINT}/stats/data.json`,
+    fetchOptions,
+    3,
+    400,
+    false,
+  );
+
+  if (response.status !== 200) {
+    logger.error("Failed to fetch metrics", {
+      status: response.status,
+      statusText: response.statusText,
+    });
+    return [];
+  }
+
+  const responseData: MetricsServiceAppData[] = await response.json();
+  let metricsData: AppStatsReturnType = [];
+
+  if (country) {
+    // If country is specified return the value for that Country code
+    // for unique_users_last_7_days, new_users_last_7_days, and total_users
+    metricsData = responseData.map((app) => {
+      return {
+        ...app,
+        unique_users_last_7_days: app.unique_users_last_7_days?.find(
+          (user) => user.country === country,
+        )?.value,
+        new_users_last_7_days: app.new_users_last_7_days?.find(
+          (user) => user.country === country,
+        )?.value,
+        total_users_last_7_days: app.total_users_last_7_days?.find(
+          (user) => user.country === country,
+        )?.value,
+      };
+    });
+  } else {
+    // If no country is specified for
+    // unique_users_last_7_days, new_users_last_7_days, and total_users sum all values
+    metricsData = responseData.map((app) => {
+      return {
+        ...app,
+        unique_users_last_7_days: app.unique_users_last_7_days?.reduce(
+          (acc, curr) => acc + Number(curr.value),
+          0,
+        ),
+        new_users_last_7_days: app.new_users_last_7_days?.reduce(
+          (acc, curr) => acc + Number(curr.value),
+          0,
+        ),
+        total_users_last_7_days: app.total_users_last_7_days?.reduce(
+          (acc, curr) => acc + Number(curr),
+          0,
+        ),
+      };
+    });
+  }
+
+  return metricsData;
 };

@@ -8,8 +8,7 @@ import {
 } from "@/lib/categories";
 import { NativeApps, NativeAppToAppIdMapping } from "@/lib/constants";
 import { parseLocale } from "@/lib/languages";
-import { AppStatsReturnType } from "@/lib/types";
-import { fetchWithRetry, isValidHostName } from "@/lib/utils";
+import { isValidHostName } from "@/lib/utils";
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
 import {
@@ -18,7 +17,11 @@ import {
 } from "./graphql/get-app-rankings.generated";
 import { getSdk as getWebHighlightsSdk } from "./graphql/get-app-web-highlights.generated";
 
-import { formatAppMetadata, rankApps } from "@/api/helpers/app-store";
+import {
+  fetchMetrics,
+  formatAppMetadata,
+  rankApps,
+} from "@/api/helpers/app-store";
 import { compareVersions } from "@/lib/compare-versions";
 import { logger } from "@/lib/logger";
 import { CONTACTS_APP_AVAILABLE_FROM } from "../constants";
@@ -209,35 +212,12 @@ export const GET = async (request: NextRequest) => {
     });
   }
 
-  /**
-   * ANCHOR: Fetch app stats from metrics service
-   */
-  const response = await fetchWithRetry(
-    `${process.env.NEXT_PUBLIC_METRICS_SERVICE_ENDPOINT}/stats/data.json`,
-    {
-      cache: "no-store",
-      headers: {
-        "Cache-Control": "no-cache, no-store, must-revalidate",
-        Pragma: "no-cache",
-        Expires: "0",
-      },
-    },
-    3,
-    400,
-    false,
-  );
-
-  let metricsData: AppStatsReturnType = [];
-
-  if (response.status == 200) {
-    metricsData = await response.json();
-  }
+  // ANCHOR: Fetch app stats from metrics service, no cache as this endpoint is already cached by CloudFront
+  const metricsData = await fetchMetrics(0, country);
 
   const nativeAppMetadata = NativeApps[process.env.NEXT_PUBLIC_APP_ENV];
 
-  /**
-   * ANCHOR: Format all app metadata
-   */
+  // ANCHOR: Format all app metadata
   let formattedTopApps = await Promise.all(
     topApps.map((app) =>
       formatAppMetadata(app, metricsData, locale, platform, country),

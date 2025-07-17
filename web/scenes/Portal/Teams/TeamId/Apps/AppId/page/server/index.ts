@@ -2,6 +2,7 @@
 
 import { errorFormAction } from "@/api/helpers/errors";
 import { extractIdsFromPath, getPathFromHeaders } from "@/lib/server-utils";
+import { DataByCountry } from "@/lib/types";
 
 export type AppMetricsData = {
   total_impressions: number | null;
@@ -27,11 +28,6 @@ type MetricsServiceAppData = {
   new_users_last_7_days: DataByCountry[] | null;
   open_rate_last_14_days: NotificationData[];
   notification_opt_in_rate: number | null;
-};
-
-type DataByCountry = {
-  country: string;
-  value: string;
 };
 
 type NotificationData = {
