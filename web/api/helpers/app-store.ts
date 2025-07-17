@@ -342,13 +342,13 @@ export const fetchMetrics = async (
       return {
         ...app,
         unique_users_last_7_days: app.unique_users_last_7_days?.find(
-          (user) => user.country.toUpperCase() === country.toUpperCase(),
+          (user) => user.country?.toUpperCase() === country.toUpperCase(),
         )?.value,
         new_users_last_7_days: app.new_users_last_7_days?.find(
-          (user) => user.country.toUpperCase() === country.toUpperCase(),
+          (user) => user.country?.toUpperCase() === country.toUpperCase(),
         )?.value,
         total_users_last_7_days: app.total_users_last_7_days?.find(
-          (user) => user.country.toUpperCase() === country.toUpperCase(),
+          (user) => user.country?.toUpperCase() === country.toUpperCase(),
         )?.value,
       };
     });
