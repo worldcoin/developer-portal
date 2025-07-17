@@ -1,0 +1,17 @@
+mutation DeleteUnusedLocalisations(
+  $app_metadata_id: String!
+  $languages_to_keep: [String!]!
+) {
+  delete_localisations(
+    where: {
+      app_metadata_id: { _eq: $app_metadata_id }
+      locale: { _nin: $languages_to_keep }
+    }
+  ) {
+    affected_rows
+    returning {
+      id
+      locale
+    }
+  }
+}

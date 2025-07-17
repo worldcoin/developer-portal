@@ -246,9 +246,7 @@ export const POST = async (req: NextRequest) => {
 
   const metricsData = await fetchMetrics();
 
-  const appIdsToEvaluate = metricsData
-    .filter((app) => (app.open_rate_last_14_days?.length ?? 0) > 0)
-    .map((app) => app.app_id);
+  const appIdsToEvaluate = metricsData.map((app) => app.app_id);
 
   if (appIdsToEvaluate.length === 0) {
     logger.info("_evaluate-app-notification-permissions - no apps to evaluate");

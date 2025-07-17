@@ -252,7 +252,7 @@ export const languageMap = {
   th: { label: "Thai", country_code: "TH" },
   id: { label: "Indonesian", country_code: "ID" },
   zh_TW: { label: "Traditional Chinese (Taiwan)", country_code: "TW" },
-};
+} as const;
 
 export const formCountriesList = () =>
   Object.entries(countries)
