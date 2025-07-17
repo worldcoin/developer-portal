@@ -90,8 +90,8 @@ importers:
         specifier: ^1.11.13
         version: 1.11.13
       dd-trace:
-        specifier: 5.58.0
-        version: 5.58.0
+        specifier: 5.59.0
+        version: 5.59.0
       dompurify:
         specifier: ^3.1.7
         version: 3.1.7
@@ -1033,8 +1033,8 @@ packages:
   '@datadog/libdatadog@0.7.0':
     resolution: {integrity: sha512-VVZLspzQcfEU47gmGCVoRkngn7RgFRR4CHjw4YaX8eWT+xz4Q4l6PvA45b7CMk9nlt3MNN5MtGdYttYMIpo6Sg==}
 
-  '@datadog/native-appsec@9.0.0':
-    resolution: {integrity: sha512-C7v16pP4p4Y+Cx0jcxTYmhZTptfVs8TYbn6LH/aQgTkwx2tWsWN5lss7fjBYjWyZoPMwVh2UX/yDm4ES25hJnQ==}
+  '@datadog/native-appsec@10.0.0':
+    resolution: {integrity: sha512-1veYkp5DRy3RnqFRQGGIfX6ON8UibIq6YOXa+oJ0n5TRQFd1v6qWPzfonO31W4rDJ5qjxNRV6lX33m8JfaYnag==}
     engines: {node: '>=16'}
 
   '@datadog/native-iast-taint-tracking@4.0.0':
@@ -3428,8 +3428,8 @@ packages:
     resolution: {integrity: sha512-D5mJThEEk9hf+CJPwTf9JFsrWdlWp8Pccjxkhf7uUT/E/cU9Mx3ebWe2Bz2OawRmJ6WS9eaDPBkeBE4uOKq9uw==}
     engines: {node: '>=12.17'}
 
-  dd-trace@5.58.0:
-    resolution: {integrity: sha512-DiogPbR2Sv96jBOBTfvoyLqGZoGYERH9d5Ym1oHgJIleWzwXxlAO7g43MAmx0DgdglLsorg2OMZNvlmgHXrcjw==}
+  dd-trace@5.59.0:
+    resolution: {integrity: sha512-N0SG1N6WZKymzXvoZiQRMb9HcPWpyL7oA6Ws2yjb+RfD5xUrkWjdqZW5mT/MoIkmeh/3KPzoldDa6iu+LOeACg==}
     engines: {node: '>=18'}
 
   debounce@1.2.1:
@@ -4186,6 +4186,10 @@ packages:
     resolution: {integrity: sha512-5Fytz/IraMjqpwfd34ke28PTVMjZjJG2MPn5t7OE4eUCUNf8BAa7b5WUS9/Qvr6mwOQS7Mk6vdsMno5he+T8Xw==}
     engines: {node: '>= 4'}
 
+  ignore@7.0.5:
+    resolution: {integrity: sha512-Hs59xBNfUIunMFgWAbGX5cq6893IbWg4KnrjbYwX3tx0ztorVgTDA6B2sxf8ejHJ4wz8BqGUMYlnzNBer5NvGg==}
+    engines: {node: '>= 4'}
+
   immutable@3.7.6:
     resolution: {integrity: sha512-AizQPcaofEtO11RZhPPHBOJRdo/20MKQF9mBLnVkBoyHi1/zXK8fzVdnEpSV9gxqtnh6Qomfp3F0xT5qP/vThw==}
     engines: {node: '>=0.8.0'}
@@ -4826,6 +4830,9 @@ packages:
   lru-cache@10.2.0:
     resolution: {integrity: sha512-2bIM8x+VAf6JT4bKAljS1qUWgMsqZRPGJS6FSahIMPVvctcNhyVp7AJu7quxOW9jwkryBReKZY5tY5JYv2n/7Q==}
     engines: {node: 14 || >=16.14}
+
+  lru-cache@10.4.3:
+    resolution: {integrity: sha512-JNAzZcXrCt42VGLuYz0zfAzDfAvJWW6AfYlDBQyDV5DClI2m5sAmK+OIO7s59XfsRsWHp02jAJrRadPRGTt6SQ==}
 
   lru-cache@5.1.1:
     resolution: {integrity: sha512-KpNARQA3Iwv+jTA0utUVVbrh+Jlrr1Fv0e56GGzAFOXN7dk/FviaDW8LHmK52DlcH4WP2n6gI8vN1aesBFgo9w==}
@@ -8074,7 +8081,7 @@ snapshots:
 
   '@datadog/libdatadog@0.7.0': {}
 
-  '@datadog/native-appsec@9.0.0':
+  '@datadog/native-appsec@10.0.0':
     dependencies:
       node-gyp-build: 3.9.0
 
@@ -11179,10 +11186,10 @@ snapshots:
 
   dc-polyfill@0.1.9: {}
 
-  dd-trace@5.58.0:
+  dd-trace@5.59.0:
     dependencies:
       '@datadog/libdatadog': 0.7.0
-      '@datadog/native-appsec': 9.0.0
+      '@datadog/native-appsec': 10.0.0
       '@datadog/native-iast-taint-tracking': 4.0.0
       '@datadog/native-metrics': 3.1.1
       '@datadog/pprof': 5.9.0
@@ -11193,7 +11200,7 @@ snapshots:
       '@opentelemetry/core': 1.30.1(@opentelemetry/api@1.8.0)
       crypto-randomuuid: 1.0.0
       dc-polyfill: 0.1.9
-      ignore: 5.3.1
+      ignore: 7.0.5
       import-in-the-middle: 1.14.2
       istanbul-lib-coverage: 3.2.2
       jest-docblock: 29.7.0
@@ -11201,7 +11208,7 @@ snapshots:
       koalas: 1.0.2
       limiter: 1.1.5
       lodash.sortby: 4.7.0
-      lru-cache: 7.18.3
+      lru-cache: 10.4.3
       module-details-from-path: 1.0.4
       mutexify: 1.4.0
       opentracing: 0.14.7
@@ -12116,6 +12123,8 @@ snapshots:
 
   ignore@5.3.1: {}
 
+  ignore@7.0.5: {}
+
   immutable@3.7.6: {}
 
   import-fresh@3.3.0:
@@ -12994,6 +13003,8 @@ snapshots:
       highlight.js: 10.7.3
 
   lru-cache@10.2.0: {}
+
+  lru-cache@10.4.3: {}
 
   lru-cache@5.1.1:
     dependencies:
