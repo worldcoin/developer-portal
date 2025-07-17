@@ -16,6 +16,24 @@ export type AppMetricsData = {
   notification_opt_in_rate: number | null;
 };
 
+type MetricsServiceAppData = {
+  last_updated_at: string | null;
+  total_impressions: number | null;
+  total_impressions_last_7_days: number | null;
+  total_users: DataByCountry[] | null;
+  total_users_last_7_days: number | null;
+  unique_users: number | null;
+  unique_users_last_7_days: DataByCountry[] | null;
+  new_users_last_7_days: DataByCountry[] | null;
+  open_rate_last_14_days: NotificationData[];
+  notification_opt_in_rate: number | null;
+};
+
+type DataByCountry = {
+  country: string;
+  value: string;
+};
+
 type NotificationData = {
   date: string;
   value: number;
@@ -47,7 +65,7 @@ export const getAppMetricsData = async (
   }
 
   const metricsDataJson = await metricsData.json();
-  const appMetrics = metricsDataJson.find(
+  const appMetrics: MetricsServiceAppData = metricsDataJson.find(
     (metrics: any) => metrics.app_id === appId,
   );
 
@@ -70,14 +88,27 @@ export const getAppMetricsData = async (
   const appIndex = metricsDataJson.indexOf(appMetrics);
   const appRanking = `${appIndex + 1} / ${totalApps}` as const;
 
+  // For now we just sum all the countries and don't do anything by country
   return {
     total_impressions: appMetrics.total_impressions,
     total_impressions_last_7_days: appMetrics.total_impressions_last_7_days,
-    total_users: appMetrics.total_users,
+    total_users:
+      appMetrics.total_users?.reduce(
+        (acc, curr) => acc + Number(curr.value),
+        0,
+      ) || null,
     total_users_last_7_days: appMetrics.total_users_last_7_days,
     unique_users: appMetrics.unique_users,
-    unique_users_last_7_days: appMetrics.unique_users_last_7_days,
-    new_users_last_7_days: appMetrics.new_users_last_7_days,
+    unique_users_last_7_days:
+      appMetrics.unique_users_last_7_days?.reduce(
+        (acc, curr) => acc + Number(curr.value),
+        0,
+      ) || null,
+    new_users_last_7_days:
+      appMetrics.new_users_last_7_days?.reduce(
+        (acc, curr) => acc + Number(curr.value),
+        0,
+      ) || null,
     appRanking,
     open_rate_last_14_days: appMetrics.open_rate_last_14_days,
     notification_opt_in_rate: appMetrics.notification_opt_in_rate,
