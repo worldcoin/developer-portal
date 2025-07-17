@@ -338,7 +338,7 @@ export const fetchMetrics = async (
 
   if (country) {
     // If country is specified return the value for that Country code
-    // for unique_users_last_7_days, new_users_last_7_days, and total_users
+    // for unique_users_last_7_days, new_users_last_7_days, and total_users_last_7_days
     metricsData = responseData.map((app) => {
       return {
         ...app,
@@ -355,7 +355,7 @@ export const fetchMetrics = async (
     });
   } else {
     // If no country is specified for
-    // unique_users_last_7_days, new_users_last_7_days, and total_users sum all values
+    // unique_users_last_7_days, new_users_last_7_days, and total_users_last_7_days sum all values
     metricsData = responseData.map((app) => {
       return {
         ...app,
