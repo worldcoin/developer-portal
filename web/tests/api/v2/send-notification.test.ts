@@ -41,26 +41,32 @@ jest.mock(
   }),
 );
 
-jest.mock("aws-sigv4-fetch", () => ({
-  createSignedFetcher: () =>
-    jest.fn(() =>
-      Promise.resolve({
-        json: () => ({
-          result: {
-            results: [
-              {
-                walletAddress:
-                  "0x0000000000000000000000000000000000000000abcdef1234567890abcdef12345678",
-                sent: true,
-                reason: "User has disabled notifications",
-              },
-            ],
+let capturedRequestBody: {
+  walletAddresses: string[];
+};
+
+const mockSignedFetch = jest.fn((_url, options) => {
+  capturedRequestBody = JSON.parse(options.body);
+  return Promise.resolve({
+    json: () => ({
+      result: {
+        results: [
+          {
+            walletAddress:
+              "0x0000000000000000000000000000000000000000abcdef1234567890abcdef12345678",
+            sent: true,
+            reason: "User has disabled notifications",
           },
-        }),
-        ok: true,
-        status: 201,
-      }),
-    ),
+        ],
+      },
+    }),
+    ok: true,
+    status: 201,
+  });
+});
+
+jest.mock("aws-sigv4-fetch", () => ({
+  createSignedFetcher: () => mockSignedFetch,
 }));
 
 const createMockRequest = (params: {
@@ -76,7 +82,12 @@ const createMockRequest = (params: {
     },
     body: JSON.stringify({
       app_id: "app_staging_9cdd0a714aec9ed17dca660bc9ffe72a",
-      wallet_addresses: ["0x0000000000000000000000000000000000000000"],
+      wallet_addresses: [
+        "0x0000000000000000000000000000000000000000",
+        "0x00000000000000000000000000000000000asdff",
+        "0x000000000000000000000000000000000000gE11",
+        "0x77777777777777777777777POLSKA77777777777",
+      ],
       title: "Test Notification",
       message: "This is a test notification",
       mini_app_path:
@@ -141,6 +152,25 @@ describe("/api/v2/minikit/send-notification [success cases]", () => {
 
     const res = await POST(mockReq);
     expect(res.status).toBe(200);
+  });
+
+  it("transforms all wallet addresses to be lowercase", async () => {
+    const mockReq = createMockRequest({
+      url: "http://localhost:3000/api/v2/minikit/send-notification",
+      api_key: validApiKey,
+    });
+
+    await POST(mockReq);
+
+    expect(mockSignedFetch).toHaveBeenCalled();
+
+    expect(capturedRequestBody).toBeDefined();
+    expect(capturedRequestBody.walletAddresses).toBeDefined();
+    expect(capturedRequestBody.walletAddresses).toHaveLength(4);
+
+    capturedRequestBody.walletAddresses.forEach((address) => {
+      expect(address).toBe(address.toLowerCase());
+    });
   });
 });
 // #endregion
