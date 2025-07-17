@@ -16,9 +16,9 @@ export type UpdateNotificationPermissionStatusMutationVariables = Types.Exact<{
 
 export type UpdateNotificationPermissionStatusMutation = {
   __typename?: "mutation_root";
-  update_app_metadata_by_pk?: {
-    __typename?: "app_metadata";
-    id: string;
+  update_app_metadata?: {
+    __typename?: "app_metadata_mutation_response";
+    affected_rows: number;
   } | null;
 };
 
@@ -28,14 +28,14 @@ export const UpdateNotificationPermissionStatusDocument = gql`
     $notification_permission_status: String
     $notification_permission_status_changed_date: timestamptz
   ) {
-    update_app_metadata_by_pk(
-      pk_columns: { id: $app_id }
+    update_app_metadata(
+      where: { app_id: { _eq: $app_id } }
       _set: {
         notification_permission_status: $notification_permission_status
         notification_permission_status_changed_date: $notification_permission_status_changed_date
       }
     ) {
-      id
+      affected_rows
     }
   }
 `;

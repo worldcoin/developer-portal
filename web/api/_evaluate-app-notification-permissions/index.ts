@@ -179,7 +179,7 @@ export const safeUpdateNotificationState = async (
   try {
     const sdk = getUpdateNotificationPermissionStatusSdk(client);
 
-    await sdk.UpdateNotificationPermissionStatus({
+    const result = await sdk.UpdateNotificationPermissionStatus({
       app_id: app_id,
       notification_permission_status: updates.notification_permission_status,
       notification_permission_status_changed_date:
@@ -191,6 +191,7 @@ export const safeUpdateNotificationState = async (
       {
         app_id,
         updates,
+        affected_rows: result.update_app_metadata?.affected_rows,
       },
     );
   } catch (error) {
@@ -249,15 +250,6 @@ export const POST = async (req: NextRequest) => {
     .filter((app) => (app.open_rate_last_14_days?.length ?? 0) > 0)
     .map((app) => app.app_id);
 
-  if (appIdsToEvaluate.length > 600) {
-    logger.warn(
-      "_evaluate-app-notification-permissions - notification permission list is getting too long",
-      {
-        listLength: appIdsToEvaluate.length,
-      },
-    );
-  }
-
   if (appIdsToEvaluate.length === 0) {
     logger.info("_evaluate-app-notification-permissions - no apps to evaluate");
     return NextResponse.json({ success: true }, { status: 200 });
@@ -276,6 +268,15 @@ export const POST = async (req: NextRequest) => {
     notification_permission_status_changed_date:
       app.notification_permission_status_changed_date,
   }));
+
+  if (appsToEvaluate.length > 600) {
+    logger.warn(
+      "_evaluate-app-notification-permissions - app list is getting too long",
+      {
+        listLength: appIdsToEvaluate.length,
+      },
+    );
+  }
 
   logger.info("_evaluate-app-notification-permissions - apps to evaluate", {
     numberOfAppsToEvaluate: appsToEvaluate.length,
