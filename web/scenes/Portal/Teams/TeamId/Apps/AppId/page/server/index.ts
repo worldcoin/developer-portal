@@ -2,6 +2,7 @@
 
 import { errorFormAction } from "@/api/helpers/errors";
 import { extractIdsFromPath, getPathFromHeaders } from "@/lib/server-utils";
+import { DataByCountry } from "@/lib/types";
 
 export type AppMetricsData = {
   total_impressions: number | null;
@@ -27,11 +28,6 @@ type MetricsServiceAppData = {
   new_users_last_7_days: DataByCountry[] | null;
   open_rate_last_14_days: NotificationData[];
   notification_opt_in_rate: number | null;
-};
-
-type DataByCountry = {
-  country: string;
-  value: string;
 };
 
 type NotificationData = {
@@ -93,20 +89,18 @@ export const getAppMetricsData = async (
     total_impressions: appMetrics.total_impressions,
     total_impressions_last_7_days: appMetrics.total_impressions_last_7_days,
     total_users:
-      appMetrics.total_users?.reduce(
-        (acc, curr) => acc + Number(curr.value),
-        0,
-      ) || null,
+      appMetrics.total_users?.reduce((acc, curr) => acc + curr.value, 0) ||
+      null,
     total_users_last_7_days: appMetrics.total_users_last_7_days,
     unique_users: appMetrics.unique_users,
     unique_users_last_7_days:
       appMetrics.unique_users_last_7_days?.reduce(
-        (acc, curr) => acc + Number(curr.value),
+        (acc, curr) => acc + curr.value,
         0,
       ) || null,
     new_users_last_7_days:
       appMetrics.new_users_last_7_days?.reduce(
-        (acc, curr) => acc + Number(curr.value),
+        (acc, curr) => acc + curr.value,
         0,
       ) || null,
     appRanking,

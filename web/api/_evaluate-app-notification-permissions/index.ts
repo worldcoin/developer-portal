@@ -9,11 +9,11 @@
 
 import { protectInternalEndpoint } from "@/api/helpers/utils";
 import { logger } from "@/lib/logger";
-import { AppStatsItem, AppStatsReturnType } from "@/lib/types";
-import { fetchWithRetry } from "@/lib/utils";
+import { AppStatsItem } from "@/lib/types";
 import { differenceInDays, differenceInMinutes } from "date-fns";
 import { GraphQLClient } from "graphql-request";
 import { NextRequest, NextResponse } from "next/server";
+import { fetchMetrics } from "../helpers/app-store";
 import { getAPIServiceGraphqlClient } from "../helpers/graphql";
 import {
   getSdk as getGetNotificationEvaluationAppsSdk,
@@ -204,30 +204,6 @@ export const safeUpdateNotificationState = async (
       },
     );
   }
-};
-
-const fetchMetrics = async (): Promise<AppStatsReturnType> => {
-  const response = await fetchWithRetry(
-    `${process.env.NEXT_PUBLIC_METRICS_SERVICE_ENDPOINT}/stats/data.json`,
-    {
-      cache: "no-store",
-      headers: {
-        "Cache-Control": "no-cache, no-store, must-revalidate",
-        Pragma: "no-cache",
-        Expires: "0",
-      },
-    },
-    3,
-    400,
-    false,
-  );
-
-  let metricsData: AppStatsReturnType = [];
-
-  if (response.status == 200) {
-    metricsData = await response.json();
-  }
-  return metricsData;
 };
 
 /** This is designed to run once a week
