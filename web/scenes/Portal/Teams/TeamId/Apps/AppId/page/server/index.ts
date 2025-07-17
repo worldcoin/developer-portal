@@ -21,8 +21,8 @@ type MetricsServiceAppData = {
   last_updated_at: string | null;
   total_impressions: number | null;
   total_impressions_last_7_days: number | null;
-  total_users: DataByCountry[] | null;
-  total_users_last_7_days: number | null;
+  total_users: number | null;
+  total_users_last_7_days: DataByCountry[] | null;
   unique_users: number | null;
   unique_users_last_7_days: DataByCountry[] | null;
   new_users_last_7_days: DataByCountry[] | null;
@@ -88,10 +88,12 @@ export const getAppMetricsData = async (
   return {
     total_impressions: appMetrics.total_impressions,
     total_impressions_last_7_days: appMetrics.total_impressions_last_7_days,
-    total_users:
-      appMetrics.total_users?.reduce((acc, curr) => acc + curr.value, 0) ||
-      null,
-    total_users_last_7_days: appMetrics.total_users_last_7_days,
+    total_users: appMetrics.total_users,
+    total_users_last_7_days:
+      appMetrics.total_users_last_7_days?.reduce(
+        (acc, curr) => acc + curr.value,
+        0,
+      ) || null,
     unique_users: appMetrics.unique_users,
     unique_users_last_7_days:
       appMetrics.unique_users_last_7_days?.reduce(
