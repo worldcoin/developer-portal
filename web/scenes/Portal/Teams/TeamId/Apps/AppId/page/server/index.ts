@@ -89,20 +89,18 @@ export const getAppMetricsData = async (
     total_impressions: appMetrics.total_impressions,
     total_impressions_last_7_days: appMetrics.total_impressions_last_7_days,
     total_users:
-      appMetrics.total_users?.reduce(
-        (acc, curr) => acc + Number(curr.value),
-        0,
-      ) || null,
+      appMetrics.total_users?.reduce((acc, curr) => acc + curr.value, 0) ||
+      null,
     total_users_last_7_days: appMetrics.total_users_last_7_days,
     unique_users: appMetrics.unique_users,
     unique_users_last_7_days:
       appMetrics.unique_users_last_7_days?.reduce(
-        (acc, curr) => acc + Number(curr.value),
+        (acc, curr) => acc + curr.value,
         0,
       ) || null,
     new_users_last_7_days:
       appMetrics.new_users_last_7_days?.reduce(
-        (acc, curr) => acc + Number(curr.value),
+        (acc, curr) => acc + curr.value,
         0,
       ) || null,
     appRanking,
