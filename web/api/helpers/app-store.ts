@@ -5,7 +5,6 @@ import {
   whitelistedAppsPermit2,
 } from "@/lib/constants";
 import { generateExternalNullifier } from "@/lib/hashing";
-import { logger } from "@/lib/logger";
 import {
   AppStatsItem,
   AppStatsReturnType,
@@ -327,7 +326,7 @@ export const fetchMetrics = async (
   );
 
   if (response.status !== 200) {
-    logger.error("Failed to fetch metrics", {
+    console.error("Failed to fetch metrics", {
       status: response.status,
       statusText: response.statusText,
     });
