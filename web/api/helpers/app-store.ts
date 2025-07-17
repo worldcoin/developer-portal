@@ -307,13 +307,12 @@ export const fetchMetrics = async (
     fetchOptions.cache = "no-store";
     fetchOptions.headers = {
       "Cache-Control": "no-cache, no-store, must-revalidate",
-      Pragma: "no-cache",
       Expires: "0",
     };
   } else {
     // Cache for specified time
     fetchOptions.headers = {
-      "Cache-Control": `max-age=${expirationTime}`,
+      "Cache-Control": `max-age=${Math.floor(expirationTime)}`,
     };
   }
 
@@ -343,13 +342,13 @@ export const fetchMetrics = async (
       return {
         ...app,
         unique_users_last_7_days: app.unique_users_last_7_days?.find(
-          (user) => user.country === country,
+          (user) => user.country.toUpperCase() === country.toUpperCase(),
         )?.value,
         new_users_last_7_days: app.new_users_last_7_days?.find(
-          (user) => user.country === country,
+          (user) => user.country.toUpperCase() === country.toUpperCase(),
         )?.value,
         total_users_last_7_days: app.total_users_last_7_days?.find(
-          (user) => user.country === country,
+          (user) => user.country.toUpperCase() === country.toUpperCase(),
         )?.value,
       };
     });
