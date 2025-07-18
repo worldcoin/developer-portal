@@ -98,7 +98,6 @@ export const fetchMetrics = async (
         });
       } else {
         metricsData = responseData.map((app) => {
-          // Initialize accumulators
           let uniqueUsersSum = 0;
           let newUsersSum = 0;
           let totalUsersSum = 0;
