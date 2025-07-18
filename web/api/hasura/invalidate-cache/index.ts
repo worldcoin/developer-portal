@@ -43,6 +43,8 @@ export const POST = async (req: NextRequest) => {
     return errorHasuraQuery({ req });
   }
 
+  const debounceKey = `invalidate_cache_lock`;
+
   // Add a redis debounce to prevent multiple requests invalidating the cache
   const redis = global.RedisClient;
   if (!redis) {
@@ -53,32 +55,43 @@ export const POST = async (req: NextRequest) => {
     });
   }
 
-  const debounceKey = `invalidate_cache_lock`;
-  const debounceValue = await redis.get(debounceKey);
+  try {
+    const debounceValue = await redis.get(debounceKey);
 
-  if (debounceValue) {
-    return NextResponse.json({ success: true });
-  } else {
-    await redis.set(debounceKey, "true", "EX", 60); // Can only be requested every minute
-  }
+    if (debounceValue) {
+      return NextResponse.json({ success: true });
+    } else {
+      await redis.set(debounceKey, "true", "EX", 60); // Can only be requested every minute
+    }
 
-  const client = new CloudFrontClient({
-    region: process.env.ASSETS_S3_REGION,
-  });
+    const client = new CloudFrontClient({
+      region: process.env.ASSETS_S3_REGION,
+    });
 
-  const input = {
-    DistributionId: process.env.CLOUDFRONT_DISTRIBUTION_ID,
-    InvalidationBatch: {
-      Paths: {
-        Quantity: 2,
-        Items: ["/api/v2/public/app/*", "/api/v2/public/apps*"],
+    const input = {
+      DistributionId: process.env.CLOUDFRONT_DISTRIBUTION_ID,
+      InvalidationBatch: {
+        Paths: {
+          Quantity: 2,
+          Items: ["/api/v2/public/app/*", "/api/v2/public/apps*"],
+        },
+        CallerReference: Date.now().toString(),
       },
-      CallerReference: Date.now().toString(),
-    },
-  };
+    };
 
-  const command = new CreateInvalidationCommand(input);
-  await client.send(command);
+    const command = new CreateInvalidationCommand(input);
+    await client.send(command);
 
-  return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    logger.error("Error invalidating cache.", { error });
+
+    // Also delete the key so we can try again
+    await redis.del(debounceKey);
+    return errorHasuraQuery({
+      req,
+      detail: "Error invalidating cache.",
+      code: "internal_server_error",
+    });
+  }
 };
