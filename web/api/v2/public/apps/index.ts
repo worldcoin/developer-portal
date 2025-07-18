@@ -17,10 +17,7 @@ import {
 } from "./graphql/get-app-rankings.generated";
 import { getSdk as getWebHighlightsSdk } from "./graphql/get-app-web-highlights.generated";
 
-import {
-  formatAppMetadata,
-  rankApps,
-} from "@/api/helpers/app-store";
+import { formatAppMetadata, rankApps } from "@/api/helpers/app-store";
 import { fetchMetrics } from "@/api/helpers/fetch-metrics";
 import { compareVersions } from "@/lib/compare-versions";
 import { logger } from "@/lib/logger";
