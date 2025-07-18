@@ -18,6 +18,8 @@ const emojiSuccessTestCases = [
 const emojiFailureTestCases = [
   ["script tags", "Invalid <script>alert('xss')</script>"],
   ["HTML tags with emojis", "<div>Hello 👋</div>"],
+  ["JS code", "<script>alert('obj = {}')</script>"],
+  ["JS code", "<script>alert('xss const')</script>"],
 ];
 
 describe("schema validators", () => {
@@ -73,6 +75,7 @@ describe("notifications", () => {
     ["only username placeholder", "${username}"],
     ["max length valid", "A".repeat(30)],
     ["max length with username", "${username}" + "x".repeat(19)], // ${username} = 11 chars + 19 = 30
+    ["punctuation", "¿We're, asking a q? No. ¡Yes!"],
   ];
 
   // invalid test cases
