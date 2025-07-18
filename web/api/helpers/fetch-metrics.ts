@@ -7,18 +7,10 @@ interface ProcessedMetricsCache {
   timestamp: number;
 }
 
-interface RedisMetricsCache {
-  byCountry: Record<string, AppStatsReturnType>; // Use Record for Redis JSON serialization
-  global: AppStatsReturnType;
-  timestamp: number;
-}
-
 let memoryCache: ProcessedMetricsCache | null = null;
 let pendingFetch: Promise<ProcessedMetricsCache | null> | null = null;
 
-const redis = global.RedisClient;
-const REDIS_CACHE_KEY = "metrics_processed_cache";
-const MEMORY_CACHE_TTL = 30 * 60 * 1000; // 30 minutes
+const MEMORY_CACHE_TTL = 2 * 60 * 60 * 1000; // 2 hours
 
 /**
  * Fetch and process raw metrics data, caching results for all countries
@@ -29,7 +21,7 @@ const fetchAndProcessMetrics =
       `${process.env.NEXT_PUBLIC_METRICS_SERVICE_ENDPOINT}/stats/data.json`,
       {
         headers: {
-          "Cache-Control": "max-age=600", // 10 minutes, since metrics only updates every few hours
+          "Cache-Control": "max-age=300", // 5 minutes, same as CloudFront
         },
       },
       3,
@@ -43,11 +35,6 @@ const fetchAndProcessMetrics =
         statusText: response.statusText,
       });
       throw new Error("Failed to fetch metrics");
-    }
-
-    if (!redis) {
-      console.error("Redis client not available");
-      return null;
     }
 
     const rawData: MetricsServiceAppData[] = await response.json();
@@ -89,37 +76,56 @@ const fetchAndProcessMetrics =
       };
     });
 
-    // Cache the processed data in memory
-    memoryCache = {
+    // Process country-specific data
+    for (const country of countries) {
+      const countryData = rawData.map((app) => {
+        let uniqueUsers: number | undefined;
+        let newUsers: number | undefined;
+        let totalUsers: number | undefined;
+
+        if (app.unique_users_last_7_days) {
+          uniqueUsers = app.unique_users_last_7_days.find(
+            (user) => user.country?.toUpperCase() === country,
+          )?.value;
+        }
+
+        if (app.new_users_last_7_days) {
+          newUsers = app.new_users_last_7_days.find(
+            (user) => user.country?.toUpperCase() === country,
+          )?.value;
+        }
+
+        if (app.total_users_last_7_days) {
+          totalUsers = app.total_users_last_7_days.find(
+            (user) => user.country?.toUpperCase() === country,
+          )?.value;
+        }
+
+        return {
+          ...app,
+          unique_users_last_7_days: uniqueUsers,
+          new_users_last_7_days: newUsers,
+          total_users_last_7_days: totalUsers,
+        };
+      });
+
+      byCountry.set(country, countryData);
+    }
+
+    return {
       byCountry,
       global,
       timestamp: Date.now(),
     };
-
-    // Also cache in Redis for persistence across deployments
-    const redisData: RedisMetricsCache = {
-      byCountry: Object.fromEntries(byCountry.entries()), // Convert Map to Record
-      global,
-      timestamp: Date.now(),
-    };
-
-    await redis.setex(
-      REDIS_CACHE_KEY,
-      72 * 60 * 60, // 72 hours, since metrics only updates every few hours
-      JSON.stringify(redisData),
-    );
-
-    return memoryCache;
   };
 
 /**
- * Fetch metrics from the metrics service with 10-minute caching for all countries.
- * While fetching, we return the stalecached data.
+ * Fetch metrics from the metrics service with in-memory caching and request deduplication.
  *
  * This function processes metrics data once and caches it for all countries.
- * Subsequent requests for any country or global data use the cached processed data.
+ * Multiple concurrent requests share the same fetch operation to avoid duplicate
+ * downloads and processing.
  *
- * @param expirationTime - Not used anymore, kept for API compatibility
  * @param country - The country to fetch data for
  * @returns The metrics data with the country data if specified, otherwise sum all values
  */
@@ -138,45 +144,17 @@ export const fetchMetrics = async (
     }
   }
 
-  // Memory cache is stale or doesn't exist, check Redis
-  if (!redis) {
-    console.warn("Redis client not available, fetching fresh data");
-  } else {
-    try {
-      const cached = await redis.get(REDIS_CACHE_KEY);
-      if (cached) {
-        const redisData: RedisMetricsCache = JSON.parse(cached);
-        const age = now - redisData.timestamp;
-
-        memoryCache = {
-          byCountry: new Map(Object.entries(redisData.byCountry)),
-          global: redisData.global,
-          timestamp: redisData.timestamp,
-        };
-
-        // We will return this data but not immediately since we want to trigger a new fetch in the background
-        if (age < MEMORY_CACHE_TTL) {
-          return country
-            ? memoryCache.byCountry.get(country.toUpperCase()) || []
-            : memoryCache.global;
-        }
-      }
-    } catch (error) {
-      console.error("Error reading from Redis cache:", error);
-    }
-  }
-
+  // Cache is stale or doesn't exist, need to fetch fresh data
+  // If there's already a pending fetch, await it (request deduplication)
   if (pendingFetch) {
-    if (memoryCache) {
-      return country
-        ? memoryCache.byCountry.get(country.toUpperCase()) || []
-        : memoryCache.global;
-    } else {
-      await pendingFetch;
-      return country
-        ? memoryCache!.byCountry.get(country.toUpperCase()) || []
-        : memoryCache!.global;
+    const result = await pendingFetch;
+    if (!result) {
+      console.error("Failed to fetch metrics data");
+      return [];
     }
+    return country
+      ? result.byCountry.get(country.toUpperCase()) || []
+      : result.global;
   }
 
   // No pending fetch, start a new one
@@ -192,24 +170,23 @@ export const fetchMetrics = async (
     }
   })();
 
-  // If we have stale data, return it immediately while background fetch completes
-  if (memoryCache) {
-    pendingFetch.catch((error) => {
-      console.error("Error fetching metrics", { error });
-    });
-    return country
-      ? memoryCache.byCountry.get(country.toUpperCase()) || []
-      : memoryCache.global;
-  } else {
-    const result = await pendingFetch;
-
-    if (!result) {
-      console.error("Failed to fetch metrics data");
-      return [];
-    }
-
-    return country
-      ? result.byCountry.get(country.toUpperCase()) || []
-      : result.global;
+  // Await the fetch and return the result
+  const result = await pendingFetch;
+  if (!result) {
+    console.error("Failed to fetch metrics data");
+    return [];
   }
+
+  return country
+    ? result.byCountry.get(country.toUpperCase()) || []
+    : result.global;
+};
+
+/**
+ * Clear metrics cache
+ * Useful for invalidating the cache when app data changes
+ */
+export const clearMetricsCache = () => {
+  memoryCache = null;
+  console.log("Metrics cache cleared");
 };
