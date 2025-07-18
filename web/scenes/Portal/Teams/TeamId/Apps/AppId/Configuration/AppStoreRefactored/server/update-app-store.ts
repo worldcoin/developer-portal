@@ -19,11 +19,13 @@ type FormActionResult = {
   message: string;
 };
 
-const schema = mainAppStoreFormSchema.concat(
-  yup.object({
-    app_metadata_id: yup.string().required("App metadata id is required"),
-  }),
-);
+const schema = mainAppStoreFormSchema
+  .concat(
+    yup.object({
+      app_metadata_id: yup.string().required("App metadata id is required"),
+    }),
+  )
+  .noUnknown();
 type Schema = yup.Asserts<typeof schema>;
 
 const formatEmailLink = (email: string): string => {

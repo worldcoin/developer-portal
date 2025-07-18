@@ -83,6 +83,7 @@ export const schema = yup
         langs.includes("en"),
       ),
   })
+  .noUnknown()
   .test(
     "support-contact-required",
     "Either support link or support email must be provided",
@@ -134,6 +135,7 @@ export const updateAppSupportInfoInitialSchema = yup
     is_android_only: isAndroidOnlySchema,
     is_for_humans_only: isForHumansOnlySchema,
   })
+  .noUnknown()
   .test(
     "support-contact-required",
     "Either support link or support email must be provided",
