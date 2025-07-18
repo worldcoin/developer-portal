@@ -10,10 +10,12 @@ import * as yup from "yup";
 import { SignInActionQuery } from "../../graphql/server/fetch-signin.generated";
 import { useUpdateSignInActionMutation } from "../graphql/client/update-sign-in-action.generated";
 
-const schema = yup.object({
-  privacy_policy_uri: yup.string().url("Must be a valid URL").optional(),
-  terms_uri: yup.string().url("Must be a valid URL").optional(),
-});
+const schema = yup
+  .object({
+    privacy_policy_uri: yup.string().url("Must be a valid URL").optional(),
+    terms_uri: yup.string().url("Must be a valid URL").optional(),
+  })
+  .noUnknown();
 
 type ClientInformation = yup.InferType<typeof schema>;
 

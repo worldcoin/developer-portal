@@ -22,14 +22,18 @@ import { toast } from "react-toastify";
 import * as yup from "yup";
 import { colorAtom } from "../../layout";
 
-const schema = yup.object({
-  name: yup.string().required("This is a required field"),
-  isAllowTracking: yup.boolean(),
-  color: yup.object<Color>({
-    "100": yup.string().required(),
-    "500": yup.string().required(),
-  }),
-});
+const schema = yup
+  .object({
+    name: yup.string().required("This is a required field"),
+    isAllowTracking: yup.boolean(),
+    color: yup
+      .object<Color>({
+        "100": yup.string().required(),
+        "500": yup.string().required(),
+      })
+      .noUnknown(),
+  })
+  .noUnknown();
 
 type FormValues = yup.InferType<typeof schema>;
 

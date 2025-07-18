@@ -10,25 +10,28 @@ import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
 import { getSdk } from "./graphql/app-precheck.generated";
 
-const schema = yup.object().shape({
-  action: yup.string().strict().default(""),
+const schema = yup
+  .object()
+  .shape({
+    action: yup.string().strict().default(""),
 
-  nullifier_hash: yup
-    .string()
-    .nullable()
-    .default("")
-    .transform((value) => (value === null ? "" : value)),
+    nullifier_hash: yup
+      .string()
+      .nullable()
+      .default("")
+      .transform((value) => (value === null ? "" : value)),
 
-  external_nullifier: yup
-    .string()
-    .strict()
-    .nullable()
-    .when("action", {
-      is: (action: unknown) => action === null,
-      then: (s) =>
-        s.required("This attribute is required when action is not provided."),
-    }),
-});
+    external_nullifier: yup
+      .string()
+      .strict()
+      .nullable()
+      .when("action", {
+        is: (action: unknown) => action === null,
+        then: (s) =>
+          s.required("This attribute is required when action is not provided."),
+      }),
+  })
+  .noUnknown();
 
 const corsMethods = ["POST", "OPTIONS"];
 

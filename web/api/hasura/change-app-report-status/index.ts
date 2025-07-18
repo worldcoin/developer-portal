@@ -11,16 +11,18 @@ import { getSdk as getChangeAppReportStatusSdk } from "./graphql/change-app-repo
 
 const reviewStatusIterable = Object.values(ReviewStatusEnum);
 
-export const schema = yup.object({
-  app_report_id: yup.string().required(),
-  reviewed_by: yup.string().nullable(),
-  review_status: yup.mixed().oneOf(reviewStatusIterable).required(),
-  review_conclusion_reason: yup
-    .string()
-    .matches(allowedCommonCharactersRegex)
-    .nullable()
-    .max(3000),
-});
+export const schema = yup
+  .object({
+    app_report_id: yup.string().required(),
+    reviewed_by: yup.string().nullable(),
+    review_status: yup.mixed().oneOf(reviewStatusIterable).required(),
+    review_conclusion_reason: yup
+      .string()
+      .matches(allowedCommonCharactersRegex)
+      .nullable()
+      .max(3000),
+  })
+  .noUnknown();
 
 export const POST = async (req: NextRequest) => {
   try {

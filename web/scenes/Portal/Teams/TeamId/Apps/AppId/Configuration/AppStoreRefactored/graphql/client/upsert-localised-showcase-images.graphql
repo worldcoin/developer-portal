@@ -1,0 +1,39 @@
+mutation UpsertLocalisedShowcaseImages(
+  $app_metadata_id: String!
+  $showcase_img_urls: [String!]
+  $supported_languages: [String!]!
+  $locale: String
+  $is_localized: Boolean!
+) {
+  update_supported_languages: update_app_metadata_by_pk(
+    pk_columns: { id: $app_metadata_id }
+    _set: { supported_languages: $supported_languages }
+  ) {
+    id
+    supported_languages
+  }
+
+  update_app_metadata_by_pk(
+    pk_columns: { id: $app_metadata_id }
+    _set: { showcase_img_urls: $showcase_img_urls }
+  ) @skip(if: $is_localized) {
+    id
+    showcase_img_urls
+  }
+
+  insert_localisations(
+    objects: [
+      {
+        app_metadata_id: $app_metadata_id
+        locale: $locale
+        showcase_img_urls: $showcase_img_urls
+      }
+    ]
+    on_conflict: {
+      constraint: unique_app_metadata_locale
+      update_columns: [showcase_img_urls]
+    }
+  ) @include(if: $is_localized) {
+    affected_rows
+  }
+}

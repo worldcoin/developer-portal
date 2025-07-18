@@ -9,9 +9,11 @@ import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
 import { getSdk as fetchApiKeySdk } from "../../graphql/fetch-api-key.generated";
 
-const schema = yup.object({
-  app_id: appIdSchema,
-});
+const schema = yup
+  .object({
+    app_id: appIdSchema,
+  })
+  .noUnknown();
 
 const corsMethods = ["GET", "OPTIONS"];
 

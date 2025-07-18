@@ -7,6 +7,7 @@ type GraphQLClientRequestHeaders = RequestOptions["requestHeaders"];
 export type GetIsUserPermittedToInsertActionQueryVariables = Types.Exact<{
   userId: Types.Scalars["String"]["input"];
   teamId: Types.Scalars["String"]["input"];
+  appId: Types.Scalars["String"]["input"];
 }>;
 
 export type GetIsUserPermittedToInsertActionQuery = {
@@ -23,8 +24,12 @@ export type GetIsUserPermittedToInsertActionQuery = {
 };
 
 export const GetIsUserPermittedToInsertActionDocument = gql`
-  query GetIsUserPermittedToInsertAction($userId: String!, $teamId: String!) {
-    team(where: { id: { _eq: $teamId } }) {
+  query GetIsUserPermittedToInsertAction(
+    $userId: String!
+    $teamId: String!
+    $appId: String!
+  ) {
+    team(where: { id: { _eq: $teamId }, apps: { id: { _eq: $appId } } }) {
       id
       memberships(
         where: {

@@ -8,10 +8,12 @@ import * as yup from "yup";
 import { getSdk as getLocalesSdk } from "./graphql/get-locales.generated";
 import { getSdk as getLocalisationsSdk } from "./graphql/get-localisations.generated";
 
-const schema = yup.object({
-  app_metadata_id: yup.string().strict().required(),
-  team_id: yup.string().strict().required(),
-});
+const schema = yup
+  .object({
+    app_metadata_id: yup.string().strict().required(),
+    team_id: yup.string().strict().required(),
+  })
+  .noUnknown();
 
 export const POST = async (req: NextRequest) => {
   const { isAuthenticated, errorResponse } = protectInternalEndpoint(req);

@@ -1,0 +1,5 @@
+mutation ValidateLocalisation($app_metadata_id: String!, $team_id: String!) {
+  validate_localisation(app_metadata_id: $app_metadata_id, team_id: $team_id) {
+    success
+  }
+}

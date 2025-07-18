@@ -1,0 +1,13 @@
+query FetchLocalisations($app_metadata_id: String!) {
+  localisations(where: { app_metadata_id: { _eq: $app_metadata_id } }) {
+    locale
+    name
+    description
+    world_app_button_text
+    world_app_description
+    short_name
+    hero_image_url
+    meta_tag_image_url
+    showcase_img_urls
+  }
+}

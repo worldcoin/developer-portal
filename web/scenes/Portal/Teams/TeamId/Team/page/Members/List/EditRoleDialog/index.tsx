@@ -19,31 +19,35 @@ import {
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Role_Enum } from "@/graphql/graphql";
 import { yupResolver } from "@hookform/resolvers/yup";
+import clsx from "clsx";
 import { atom, useAtom } from "jotai";
 import { useParams } from "next/navigation";
 import { useCallback, useEffect, useMemo } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import * as yup from "yup";
-import { permissionsDialogAtom } from "../PermissionsDialog";
 import {
   FetchTeamMembersDocument,
   FetchTeamMembersQuery,
 } from "../../graphql/client/fetch-team-members.generated";
+import { permissionsDialogAtom } from "../PermissionsDialog";
 import { useEditRoleMutation } from "./graphql/client/edit-role.generated";
-import clsx from "clsx";
 
 const roles = [Role_Enum.Owner, Role_Enum.Admin, Role_Enum.Member];
 
 export const editRoleDialogAtom = atom(false);
 
-const schema = yup.object({
-  email: yup.string().nullable(),
-  role: yup.object({
-    label: yup.string(),
-    value: yup.string().oneOf(Object.values(Role_Enum)),
-  }),
-});
+const schema = yup
+  .object({
+    email: yup.string().nullable(),
+    role: yup
+      .object({
+        label: yup.string(),
+        value: yup.string().oneOf(Object.values(Role_Enum)),
+      })
+      .noUnknown(),
+  })
+  .noUnknown();
 
 type FormValues = yup.InferType<typeof schema>;
 

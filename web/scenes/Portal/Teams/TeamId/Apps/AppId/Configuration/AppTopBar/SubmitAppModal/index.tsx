@@ -22,10 +22,12 @@ import { RemainingCharacters } from "../../PageComponents/RemainingCharacters";
 import { validateAndSubmitAppForReviewFormServerSide } from "../server/submit";
 import { useValidateLocalisationMutation } from "./graphql/client/validate-localisations.generated";
 
-const schema = yup.object({
-  is_developer_allow_listing: yup.boolean(),
-  changelog: appChangelogSchema,
-});
+const schema = yup
+  .object({
+    is_developer_allow_listing: yup.boolean(),
+    changelog: appChangelogSchema,
+  })
+  .noUnknown();
 
 type SubmitAppModalProps = {
   open: boolean;
