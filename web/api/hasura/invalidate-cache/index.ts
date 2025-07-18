@@ -80,10 +80,10 @@ export const POST = async (req: NextRequest) => {
       },
     };
 
+    await clearMetricsCache();
+
     const command = new CreateInvalidationCommand(input);
     await client.send(command);
-
-    await clearMetricsCache();
 
     return NextResponse.json({ success: true });
   } catch (error) {
