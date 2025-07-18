@@ -801,7 +801,7 @@ describe("/api/v2/public/apps", () => {
             hero_image_url: "",
             world_app_description:
               "This is an example app designed to showcase the capabilities of our platform.",
-            world_app_button_text: "Use Integration",
+            world_app_button_text: "Get Mini App",
             category: "Social",
             description:
               '{"description_overview":"fewf","description_how_it_works":"few","description_connect":"fewf"}',
@@ -876,7 +876,7 @@ describe("/api/v2/public/apps", () => {
               how_to_connect: "",
               overview: "fewf",
             },
-            world_app_button_text: "Use Integration",
+            world_app_button_text: "Get Mini App",
             world_app_description:
               "This is an example app designed to showcase the capabilities of our platform.",
             verification_status: "verified",
@@ -917,7 +917,7 @@ describe("/api/v2/public/apps", () => {
             hero_image_url: "",
             world_app_description:
               "This is an example app designed to showcase the capabilities of our platform.",
-            world_app_button_text: "Use Integration",
+            world_app_button_text: "Get Mini App",
             category: "INVALID!!",
             description:
               '{"description_overview":"fewf","description_how_it_works":"few","description_connect":"fewf"}',

@@ -20,12 +20,14 @@ import { useDeleteAccountMutation } from "./graphql/client/delete-account.genera
 
 const DELETE_WORD = "DELETE";
 
-const schema = yup.object({
-  confirmation: yup
-    .string()
-    .oneOf([DELETE_WORD], "Please check if the input is correct")
-    .required("This field is required"),
-});
+const schema = yup
+  .object({
+    confirmation: yup
+      .string()
+      .oneOf([DELETE_WORD], "Please check if the input is correct")
+      .required("This field is required"),
+  })
+  .noUnknown();
 
 type FormValues = yup.InferType<typeof schema>;
 

@@ -40,6 +40,7 @@ export type SelectMultipleProps<T extends FieldValues> = {
   searchPlaceholder?: string;
   canClearAll?: boolean;
   canDelete?: (item: Item) => boolean;
+  selectAllLabel: string;
 };
 
 export const SelectMultiple = <T extends FieldValues>(
@@ -58,6 +59,7 @@ export const SelectMultiple = <T extends FieldValues>(
     selectAll,
     clearAll,
     searchPlaceholder,
+    selectAllLabel,
   } = props;
 
   const [open, setOpen] = useState(false);
@@ -253,7 +255,7 @@ export const SelectMultiple = <T extends FieldValues>(
                 <PlusCircleIcon variant="secondary" />
 
                 <Typography variant={TYPOGRAPHY.R3}>
-                  Add all countries
+                  {selectAllLabel}
                 </Typography>
               </Button>
             )}

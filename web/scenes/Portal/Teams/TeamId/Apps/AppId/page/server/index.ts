@@ -2,6 +2,7 @@
 
 import { errorFormAction } from "@/api/helpers/errors";
 import { extractIdsFromPath, getPathFromHeaders } from "@/lib/server-utils";
+import { DataByCountry } from "@/lib/types";
 
 export type AppMetricsData = {
   total_impressions: number | null;
@@ -12,8 +13,19 @@ export type AppMetricsData = {
   unique_users_last_7_days: number | null;
   new_users_last_7_days: number | null;
   appRanking: `${number} / ${number}` | "-- / --";
-  n_users_opened_last_14_days: NotificationData[];
-  n_users_received_last_14_days: NotificationData[];
+  open_rate_last_14_days: NotificationData[];
+  notification_opt_in_rate: number | null;
+};
+
+type MetricsServiceAppData = {
+  last_updated_at: string | null;
+  total_impressions: number | null;
+  total_impressions_last_7_days: number | null;
+  total_users: number | null;
+  total_users_last_7_days: DataByCountry[] | null;
+  unique_users: number | null;
+  unique_users_last_7_days: DataByCountry[] | null;
+  new_users_last_7_days: DataByCountry[] | null;
   open_rate_last_14_days: NotificationData[];
   notification_opt_in_rate: number | null;
 };
@@ -49,7 +61,7 @@ export const getAppMetricsData = async (
   }
 
   const metricsDataJson = await metricsData.json();
-  const appMetrics = metricsDataJson.find(
+  const appMetrics: MetricsServiceAppData = metricsDataJson.find(
     (metrics: any) => metrics.app_id === appId,
   );
 
@@ -63,8 +75,6 @@ export const getAppMetricsData = async (
       unique_users_last_7_days: 0,
       new_users_last_7_days: 0,
       appRanking: "-- / --",
-      n_users_opened_last_14_days: [],
-      n_users_received_last_14_days: [],
       open_rate_last_14_days: [],
       notification_opt_in_rate: 0,
     };
@@ -74,17 +84,28 @@ export const getAppMetricsData = async (
   const appIndex = metricsDataJson.indexOf(appMetrics);
   const appRanking = `${appIndex + 1} / ${totalApps}` as const;
 
+  // For now we just sum all the countries and don't do anything by country
   return {
     total_impressions: appMetrics.total_impressions,
     total_impressions_last_7_days: appMetrics.total_impressions_last_7_days,
     total_users: appMetrics.total_users,
-    total_users_last_7_days: appMetrics.total_users_last_7_days,
+    total_users_last_7_days:
+      appMetrics.total_users_last_7_days?.reduce(
+        (acc, curr) => acc + curr.value,
+        0,
+      ) || null,
     unique_users: appMetrics.unique_users,
-    unique_users_last_7_days: appMetrics.unique_users_last_7_days,
-    new_users_last_7_days: appMetrics.new_users_last_7_days,
+    unique_users_last_7_days:
+      appMetrics.unique_users_last_7_days?.reduce(
+        (acc, curr) => acc + curr.value,
+        0,
+      ) || null,
+    new_users_last_7_days:
+      appMetrics.new_users_last_7_days?.reduce(
+        (acc, curr) => acc + curr.value,
+        0,
+      ) || null,
     appRanking,
-    n_users_opened_last_14_days: appMetrics.n_users_opened_last_14_days,
-    n_users_received_last_14_days: appMetrics.n_users_received_last_14_days,
     open_rate_last_14_days: appMetrics.open_rate_last_14_days,
     notification_opt_in_rate: appMetrics.notification_opt_in_rate,
   };

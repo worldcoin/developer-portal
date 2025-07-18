@@ -8,7 +8,12 @@ object_relationships:
 insert_permissions:
   - role: service
     permission:
-      check: {}
+      check:
+        _and:
+          - app_metadata:
+              app:
+                deleted_at:
+                  _is_null: true
       columns:
         - app_metadata_id
         - description
@@ -28,6 +33,9 @@ insert_permissions:
           _and:
             - verification_status:
                 _eq: unverified
+            - app:
+                deleted_at:
+                  _is_null: true
             - app:
                 team:
                   memberships:
@@ -106,11 +114,15 @@ select_permissions:
         - world_app_description
       filter:
         app_metadata:
-          app:
-            team:
-              memberships:
-                user_id:
-                  _eq: X-Hasura-User-Id
+          _and:
+            - app:
+                deleted_at:
+                  _is_null: true
+            - app:
+                team:
+                  memberships:
+                    user_id:
+                      _eq: X-Hasura-User-Id
     comment: ""
 update_permissions:
   - role: reviewer
@@ -120,7 +132,11 @@ update_permissions:
         - meta_tag_image_url
         - showcase_img_urls
       filter: {}
-      check: {}
+      check:
+        app_metadata:
+          app:
+            deleted_at:
+              _is_null: true
     comment: ""
   - role: service
     permission:
@@ -136,7 +152,12 @@ update_permissions:
         - world_app_button_text
         - world_app_description
       filter: {}
-      check: null
+      check:
+        _and:
+          - app_metadata:
+              app:
+                deleted_at:
+                  _is_null: true
     comment: ""
   - role: user
     permission:
@@ -155,6 +176,9 @@ update_permissions:
           _and:
             - verification_status:
                 _neq: verified
+            - app:
+                deleted_at:
+                  _is_null: true
             - app:
                 team:
                   memberships:
@@ -186,6 +210,9 @@ delete_permissions:
           _and:
             - verification_status:
                 _neq: verified
+            - app:
+                deleted_at:
+                  _is_null: true
             - app:
                 team:
                   memberships:

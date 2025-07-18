@@ -22,21 +22,23 @@ export const Form = (props: { hasUser: boolean }) => {
 
   const schema = useMemo(
     () =>
-      yup.object({
-        hasUser: yup.boolean().default(props.hasUser),
-        teamName: teamNameSchema,
-        termsAndConditions: yup.boolean().when("hasUser", {
-          is: false,
-          then: (schema) =>
-            schema
-              .isTrue("Please, accept terms and conditions")
-              .required("Please, accept terms and conditions"),
-          otherwise: (schema) => schema.notRequired(),
-        }),
+      yup
+        .object({
+          hasUser: yup.boolean().default(props.hasUser),
+          teamName: teamNameSchema,
+          termsAndConditions: yup.boolean().when("hasUser", {
+            is: false,
+            then: (schema) =>
+              schema
+                .isTrue("Please, accept terms and conditions")
+                .required("Please, accept terms and conditions"),
+            otherwise: (schema) => schema.notRequired(),
+          }),
 
-        // FIXME: Return when we have product updates
-        // productUpdates: yup.boolean().optional(),
-      }),
+          // FIXME: Return when we have product updates
+          // productUpdates: yup.boolean().optional(),
+        })
+        .noUnknown(),
     [props.hasUser],
   );
 

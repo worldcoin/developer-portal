@@ -5,10 +5,12 @@ import { validateUrl } from "@/lib/utils";
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
 
-const schema = yup.object({
-  app_id: yup.string().strict().required("This attribute is required."),
-  redirect_uri: yup.string().strict().required("This attribute is required."),
-});
+const schema = yup
+  .object({
+    app_id: yup.string().strict().required("This attribute is required."),
+    redirect_uri: yup.string().strict().required("This attribute is required."),
+  })
+  .noUnknown();
 
 /**
  * Prevalidates app_id & redirect_uri is valid for Sign in with World ID for early user feedback

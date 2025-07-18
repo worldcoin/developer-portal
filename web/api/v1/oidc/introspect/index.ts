@@ -9,9 +9,11 @@ import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
 
-const schema = yup.object({
-  token: yup.string().strict().required("This attribute is required."),
-});
+const schema = yup
+  .object({
+    token: yup.string().strict().required("This attribute is required."),
+  })
+  .noUnknown();
 
 export async function POST(req: NextRequest) {
   if (req.headers.get("content-type") !== "application/x-www-form-urlencoded") {

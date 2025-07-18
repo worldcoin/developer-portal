@@ -48,6 +48,7 @@ jest.mock(
               },
               rating_sum: 10,
               rating_count: 3,
+              deleted_at: null,
             },
           },
         ],
@@ -106,10 +107,11 @@ describe("/api/public/app/[app_id]", () => {
           how_to_connect: "",
           overview: "fewf",
         },
-        world_app_button_text: "Use Integration",
+        world_app_button_text: "Get Mini App",
         world_app_description:
           "This is an example app designed to showcase the capabilities of our platform.",
         avg_notification_open_rate: null,
+        deleted_at: null,
       },
     });
   });
@@ -152,6 +154,7 @@ describe("/api/public/app/[app_id]", () => {
               },
               rating_sum: 10,
               rating_count: 3,
+              deleted_at: null,
             },
           },
         ],
@@ -205,10 +208,11 @@ describe("/api/public/app/[app_id]", () => {
           how_to_connect: "",
           overview: "fewf",
         },
-        world_app_button_text: "Use Integration",
+        world_app_button_text: "Get Mini App",
         world_app_description:
           "This is an example app designed to showcase the capabilities of our platform.",
         avg_notification_open_rate: null,
+        deleted_at: null,
       },
     });
   });
@@ -236,7 +240,7 @@ describe("/api/public/app/[app_id]", () => {
             hero_image_url: "",
             world_app_description:
               "This is an example app designed to showcase the capabilities of our platform.",
-            world_app_button_text: "Use Integration",
+            world_app_button_text: "Get Mini App",
             category: "Social",
             description:
               '{"description_overview":"fewf","description_how_it_works":"few","description_connect":"fewf"}',
@@ -304,10 +308,11 @@ describe("/api/public/app/[app_id]", () => {
           how_to_connect: "",
           overview: "fewf",
         },
-        world_app_button_text: "Use Integration",
+        world_app_button_text: "Get Mini App",
         world_app_description:
           "This is an example app designed to showcase the capabilities of our platform.",
         avg_notification_open_rate: null,
+        deleted_at: null,
       },
     });
   });
@@ -1360,6 +1365,77 @@ describe("/api/public/app/[app_id]", () => {
       const data = await response.json();
       expect(data).toHaveProperty("app_data");
       expect(data.app_data.name).toBe("Contacts App");
+    });
+  });
+
+  describe("show_deleted parameter behavior", () => {
+    beforeEach(() => {
+      jest.mocked(getAppMetadataSdk).mockImplementation(() => ({
+        GetAppMetadata: jest.fn().mockResolvedValue({
+          app_metadata: [
+            {
+              name: "Deleted App",
+              app_id: "deleted-app-1",
+              short_name: "deleted",
+              logo_img_url: "logo.png",
+              showcase_img_urls: ["showcase1.png"],
+              hero_image_url: "",
+              category: "Social",
+              description: '{"description_overview":"Deleted app"}',
+              integration_url: "https://example.com/integration",
+              verification_status: "verified",
+              is_allowed_unlimited_notifications: false,
+              max_notifications_per_day: 10,
+              app: {
+                team: {
+                  name: "Test Team",
+                },
+                rating_sum: 10,
+                rating_count: 2,
+                deleted_at: "2024-01-01T10:00:00.000Z", // app is deleted
+              },
+            },
+          ],
+        }),
+      }));
+    });
+
+    test("should return 404 when app is deleted and show_deleted is not set", async () => {
+      const request = new NextRequest(
+        "https://cdn.test.com/api/v2/public/app/deleted-app-1",
+        {
+          headers: {
+            host: "cdn.test.com",
+          },
+        },
+      );
+
+      const response = await GET(request, {
+        params: { app_id: "deleted-app-1" },
+      });
+
+      expect(response.status).toBe(404);
+      expect(await response.json()).toEqual({ error: "App not found" });
+    });
+
+    test("should return app data when app is deleted but show_deleted=true", async () => {
+      const request = new NextRequest(
+        "https://cdn.test.com/api/v2/public/app/deleted-app-1?show_deleted=true",
+        {
+          headers: {
+            host: "cdn.test.com",
+          },
+        },
+      );
+
+      const response = await GET(request, {
+        params: { app_id: "deleted-app-1" },
+      });
+
+      expect(response.status).toBe(200);
+      const data = await response.json();
+      expect(data.app_data.name).toBe("Deleted App");
+      expect(data.app_data.deleted_at).toBe("2024-01-01T10:00:00.000Z");
     });
   });
 });

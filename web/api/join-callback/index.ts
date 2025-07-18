@@ -35,9 +35,11 @@ import {
   getSdk as getInsertUserSdk,
 } from "./graphql/insert-user.generated";
 
-const schema = yup.object({
-  invite_id: yup.string().strict().required(),
-});
+const schema = yup
+  .object({
+    invite_id: yup.string().strict().required(),
+  })
+  .noUnknown();
 
 export type JoinBody = yup.InferType<typeof schema>;
 

@@ -8,8 +8,7 @@ import {
 } from "@/lib/categories";
 import { NativeApps, NativeAppToAppIdMapping } from "@/lib/constants";
 import { parseLocale } from "@/lib/languages";
-import { AppStatsReturnType } from "@/lib/types";
-import { fetchWithRetry, isValidHostName } from "@/lib/utils";
+import { isValidHostName } from "@/lib/utils";
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
 import {
@@ -19,6 +18,7 @@ import {
 import { getSdk as getWebHighlightsSdk } from "./graphql/get-app-web-highlights.generated";
 
 import { formatAppMetadata, rankApps } from "@/api/helpers/app-store";
+import { fetchMetrics } from "@/api/helpers/fetch-metrics";
 import { compareVersions } from "@/lib/compare-versions";
 import { logger } from "@/lib/logger";
 import { CONTACTS_APP_AVAILABLE_FROM } from "../constants";
@@ -27,17 +27,19 @@ import {
   getSdk as getHighlightsSdk,
 } from "./graphql/get-highlighted-apps.generated";
 
-const queryParamsSchema = yup.object({
-  page: yup.number().integer().min(1).default(1).notRequired(),
-  limit: yup.number().integer().min(1).max(1000).notRequired().default(500),
-  app_mode: yup
-    .string()
-    .oneOf(["mini-app", "external", "native"])
-    .notRequired(),
-  override_country: yup.string().notRequired(),
-  show_external: yup.boolean().notRequired().default(false),
-  skip_country_check: yup.boolean().notRequired().default(false),
-});
+const queryParamsSchema = yup
+  .object({
+    page: yup.number().integer().min(1).default(1).notRequired(),
+    limit: yup.number().integer().min(1).max(1000).notRequired().default(500),
+    app_mode: yup
+      .string()
+      .oneOf(["mini-app", "external", "native"])
+      .notRequired(),
+    override_country: yup.string().notRequired(),
+    show_external: yup.boolean().notRequired().default(false),
+    skip_country_check: yup.boolean().notRequired().default(false),
+  })
+  .noUnknown();
 
 export const GET = async (request: NextRequest) => {
   // NOTE: We only accept requests through the distribution origin
@@ -207,35 +209,12 @@ export const GET = async (request: NextRequest) => {
     });
   }
 
-  /**
-   * ANCHOR: Fetch app stats from metrics service
-   */
-  const response = await fetchWithRetry(
-    `${process.env.NEXT_PUBLIC_METRICS_SERVICE_ENDPOINT}/stats/data.json`,
-    {
-      cache: "no-store",
-      headers: {
-        "Cache-Control": "no-cache, no-store, must-revalidate",
-        Pragma: "no-cache",
-        Expires: "0",
-      },
-    },
-    3,
-    400,
-    false,
-  );
-
-  let metricsData: AppStatsReturnType = [];
-
-  if (response.status == 200) {
-    metricsData = await response.json();
-  }
+  // ANCHOR: Fetch app stats from metrics service, no cache as this endpoint is already cached by CloudFront
+  const metricsData = await fetchMetrics(0, country);
 
   const nativeAppMetadata = NativeApps[process.env.NEXT_PUBLIC_APP_ENV];
 
-  /**
-   * ANCHOR: Format all app metadata
-   */
+  // ANCHOR: Format all app metadata
   let formattedTopApps = await Promise.all(
     topApps.map((app) =>
       formatAppMetadata(app, metricsData, locale, platform, country),

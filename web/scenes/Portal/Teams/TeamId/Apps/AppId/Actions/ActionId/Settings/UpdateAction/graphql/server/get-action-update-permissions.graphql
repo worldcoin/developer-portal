@@ -1,5 +1,14 @@
-query GetIsUserPermittedToUpdateAction($userId: String!, $teamId: String!) {
-  team(where: { id: { _eq: $teamId } }) {
+query GetIsUserPermittedToUpdateAction(
+  $userId: String!
+  $teamId: String!
+  $actionId: String!
+) {
+  team(
+    where: {
+      id: { _eq: $teamId }
+      apps: { actions: { id: { _eq: $actionId } } }
+    }
+  ) {
     id
     memberships(
       where: {

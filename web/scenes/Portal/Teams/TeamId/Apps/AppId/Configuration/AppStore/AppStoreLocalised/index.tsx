@@ -867,6 +867,7 @@ export const AppStoreForm = (props: {
                   clearAll={() => field.onChange([])}
                   showSelectedList
                   searchPlaceholder="Start by typing country..."
+                  selectAllLabel="Add all countries"
                 >
                   {(item, index) => (
                     <SelectMultiple.Item
@@ -964,6 +965,7 @@ export const AppStoreForm = (props: {
                     field.onChange(newLanguages);
                   }}
                   canClearAll={creatingLocalisations.size === 0}
+                  selectAllLabel="Add all languages"
                 >
                   {(item, index) => (
                     <SelectMultiple.Item

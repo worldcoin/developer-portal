@@ -27,32 +27,43 @@ import { getSdk as getNullifierSdk } from "./graphql/fetch-nullifier.generated";
 import { getSdk as getUpsertNullifierSdk } from "./graphql/upsert-nullifier.generated";
 
 // NOTE: This endpoint should only be called from Sign in with Worldcoin, params follow World ID conventions. Sign in with Worldcoin handles OIDC requests.
-const schema = yup.object({
-  proof: yup.string().strict().required("This attribute is required."),
-  nullifier_hash: yup.string().strict().required("This attribute is required."),
-  merkle_root: yup.string().strict().required("This attribute is required."),
-  verification_level: yup
-    .string()
-    .oneOf(Object.values(VerificationLevel))
-    .required("This attribute is required."),
-  app_id: yup.string().strict().required("This attribute is required."),
-  signal: yup // `signal` in the context of World ID; `nonce` in the context of OIDC
-    .string()
-    .ensure()
-    .when("response_type", {
-      is: (response_type: string) =>
-        !["code", "code token"].includes(response_type),
-      then: (nonce) =>
-        nonce.required(
-          "`nonce` required for all response types except `code` and `code token`.",
-        ),
-    }), // NOTE: nonce is required for all response types except `code` and `code token`
-  code_challenge: yup.string(),
-  code_challenge_method: yup.string(),
-  scope: yup.string().strict().required("The openid scope is always required."),
-  response_type: yup.string().strict().required("This attribute is required."),
-  redirect_uri: yup.string().strict().required("This attribute is required."),
-});
+const schema = yup
+  .object({
+    proof: yup.string().strict().required("This attribute is required."),
+    nullifier_hash: yup
+      .string()
+      .strict()
+      .required("This attribute is required."),
+    merkle_root: yup.string().strict().required("This attribute is required."),
+    verification_level: yup
+      .string()
+      .oneOf(Object.values(VerificationLevel))
+      .required("This attribute is required."),
+    app_id: yup.string().strict().required("This attribute is required."),
+    signal: yup // `signal` in the context of World ID; `nonce` in the context of OIDC
+      .string()
+      .ensure()
+      .when("response_type", {
+        is: (response_type: string) =>
+          !["code", "code token"].includes(response_type),
+        then: (nonce) =>
+          nonce.required(
+            "`nonce` required for all response types except `code` and `code token`.",
+          ),
+      }), // NOTE: nonce is required for all response types except `code` and `code token`
+    code_challenge: yup.string(),
+    code_challenge_method: yup.string(),
+    scope: yup
+      .string()
+      .strict()
+      .required("The openid scope is always required."),
+    response_type: yup
+      .string()
+      .strict()
+      .required("This attribute is required."),
+    redirect_uri: yup.string().strict().required("This attribute is required."),
+  })
+  .noUnknown();
 
 const corsMethods = ["POST", "OPTIONS"];
 /**

@@ -117,8 +117,12 @@ export async function GET(
     }
   }
 
-  const isMetadataVerified =
-    parsedAppMetadata.verification_status === "verified";
+  const shouldShowDeleted = searchParams.get("show_deleted") === "true";
+  const isAppDeleted = parsedAppMetadata.app.deleted_at != null;
+
+  if (isAppDeleted && !shouldShowDeleted) {
+    return NextResponse.json({ error: "App not found" }, { status: 404 });
+  }
 
   // skip checking cf country, when coming from app-backend
   const skipCloudfrontCheck = Boolean(
@@ -130,6 +134,8 @@ export async function GET(
   const override_country = searchParams.get("override_country") || country;
   const shouldUninstallOnDelist = parsedAppMetadata.should_uninstall_on_delist;
   const isDelisted = !parsedAppMetadata.is_reviewer_app_store_approved;
+  const isMetadataVerified =
+    parsedAppMetadata.verification_status === "verified";
 
   // only restrict based on country if app is delisted and should be uninstalled on delist
   // this means that the only two cases where an app is not deeplinkable are:
@@ -167,6 +173,11 @@ export async function GET(
     metricsData,
     locale,
   );
+
+  formattedMetadata = {
+    ...formattedMetadata,
+    deleted_at: parsedAppMetadata.app.deleted_at ?? null,
+  };
 
   // Add the draft_id to the response if it exists in the parsed metadata
   if (parsedAppMetadata.id === draft_id) {

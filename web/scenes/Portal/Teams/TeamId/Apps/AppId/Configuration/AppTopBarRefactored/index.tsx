@@ -25,10 +25,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useFormContext } from "react-hook-form";
 import { toast } from "react-toastify";
 import * as yup from "yup";
-import {
-  AppStoreFormValues,
-  mainAppStoreFormReviewSubmitSchema,
-} from "../AppStoreRefactored/form-schema";
+import { mainAppStoreFormReviewSubmitSchema } from "../AppStoreRefactored/FormSchema/form-schema";
+import { AppStoreFormValues } from "../AppStoreRefactored/FormSchema/types";
 import { updateAppStoreMetadata } from "../AppStoreRefactored/server/update-app-store";
 import {
   FetchAppMetadataDocument,
@@ -49,7 +47,7 @@ type AppTopBarProps = {
   app: FetchAppMetadataQuery["app"][0];
 };
 
-export const AppTopBar = (props: AppTopBarProps) => {
+export const AppTopBarRefactored = (props: AppTopBarProps) => {
   const { appId, teamId, app } = props;
   const router = useRouter();
   const pathname = usePathname();
@@ -169,6 +167,7 @@ export const AppTopBar = (props: AppTopBarProps) => {
       await mainAppStoreFormReviewSubmitSchema.validate(form.getValues(), {
         abortEarly: false,
         strict: true,
+        stripUnknown: true,
       });
 
       // if all passed show submission modal

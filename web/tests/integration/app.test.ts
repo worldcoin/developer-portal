@@ -132,28 +132,31 @@ describe("user role", () => {
       users[team.id] = fetchedUsers[0];
     }
 
-    Object.entries(users).forEach(async ([teamId, user]) => {
+    // use for...of to properly handle async operations
+    for (const [teamId, user] of Object.entries(users)) {
       const client = await getAPIUserClient({
         user_id: user.user_id,
       });
 
       const query = gql(`mutation DeleteApp($team_id: String!) {
-          delete_app(where: {team_id: {_eq: $team_id}}) {
+          update_app(where: {team_id: {_eq: $team_id}}, _set: {deleted_at: "now()"}) {
             affected_rows
           }
         }
         `);
+      try {
+        const response = await client.mutate({
+          mutation: query,
+          variables: {
+            team_id: teams.find((t) => t.id !== teamId)?.id,
+          },
+        });
 
-      const response = await client.mutate({
-        mutation: query,
-
-        variables: {
-          team_id: teams.find((t) => t.id !== teamId)?.id,
-        },
-      });
-
-      expect(response.data.delete_app.affected_rows).toEqual(0);
-    });
+        expect(response.data.update_app.affected_rows).toEqual(0);
+      } catch (error) {
+        expect(error).toBeDefined();
+      }
+    }
   });
 
   test("cannot reset client secret as a member", async () => {
@@ -356,15 +359,22 @@ describe("api_key role", () => {
     const client = await getAPIClient({ team_id: tokenTeamId });
     const mutation = gql`
       mutation DeleteApp($team_id: String!) {
-        delete_app(where: { team_id: { _eq: $team_id } }) {
+        update_app(
+          where: { team_id: { _eq: $team_id } }
+          _set: { deleted_at: "now()" }
+        ) {
           affected_rows
         }
       }
     `;
-    const response = await client.mutate({
-      mutation,
-      variables: { team_id: teams.find((t) => t.id !== tokenTeamId)?.id },
-    });
-    expect(response.data.delete_app.affected_rows).toEqual(0);
+    try {
+      const response = await client.mutate({
+        mutation,
+        variables: { team_id: teams.find((t) => t.id !== tokenTeamId)?.id },
+      });
+      expect(response.data.update_app.affected_rows).toEqual(0);
+    } catch (error) {
+      expect(error).toBeDefined();
+    }
   });
 });

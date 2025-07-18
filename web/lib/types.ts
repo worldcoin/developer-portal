@@ -256,6 +256,7 @@ export type AppStoreFormattedFields = Omit<
   };
   draft_id?: string;
   avg_notification_open_rate: number | null;
+  deleted_at?: string | null;
 };
 
 type NativeApp = {
@@ -273,14 +274,34 @@ type MetricsTimeseries = {
   value: number;
 }[];
 
+// This is the data returned by the metric service
+// https://metrics.worldcoin.org/miniapps/stats/data.json
+export type MetricsServiceAppData = {
+  app_id: string;
+  unique_users: number;
+  last_updated_at: string;
+  total_impressions: number;
+  unique_users_last_7_days?: DataByCountry[];
+  new_users_last_7_days?: DataByCountry[];
+  open_rate_last_14_days?: MetricsTimeseries;
+  total_users_last_7_days?: DataByCountry[];
+};
+
+export type DataByCountry = {
+  country: string;
+  value: number;
+};
+
+// This is the parsed data we use to calculate app rankings
 export type AppStatsItem = {
   app_id: string;
   unique_users: number;
   last_updated_at: string;
-  unique_users_last_7_days: number | null;
   total_impressions: number;
-  new_users_last_7_days: number | null;
-  open_rate_last_14_days: MetricsTimeseries | null;
+  unique_users_last_7_days?: number;
+  new_users_last_7_days?: number;
+  open_rate_last_14_days?: MetricsTimeseries;
+  total_users_last_7_days?: number;
 };
 
 export type AppStatsReturnType = Array<AppStatsItem>;

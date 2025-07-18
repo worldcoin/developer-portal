@@ -9,11 +9,11 @@
 
 import { protectInternalEndpoint } from "@/api/helpers/utils";
 import { logger } from "@/lib/logger";
-import { AppStatsItem, AppStatsReturnType } from "@/lib/types";
-import { fetchWithRetry } from "@/lib/utils";
+import { AppStatsItem } from "@/lib/types";
 import { differenceInDays, differenceInMinutes } from "date-fns";
 import { GraphQLClient } from "graphql-request";
 import { NextRequest, NextResponse } from "next/server";
+import { fetchMetrics } from "../helpers/fetch-metrics";
 import { getAPIServiceGraphqlClient } from "../helpers/graphql";
 import {
   getSdk as getGetNotificationEvaluationAppsSdk,
@@ -179,7 +179,7 @@ export const safeUpdateNotificationState = async (
   try {
     const sdk = getUpdateNotificationPermissionStatusSdk(client);
 
-    await sdk.UpdateNotificationPermissionStatus({
+    const result = await sdk.UpdateNotificationPermissionStatus({
       app_id: app_id,
       notification_permission_status: updates.notification_permission_status,
       notification_permission_status_changed_date:
@@ -191,6 +191,7 @@ export const safeUpdateNotificationState = async (
       {
         app_id,
         updates,
+        affected_rows: result.update_app_metadata?.affected_rows,
       },
     );
   } catch (error) {
@@ -203,30 +204,6 @@ export const safeUpdateNotificationState = async (
       },
     );
   }
-};
-
-const fetchMetrics = async (): Promise<AppStatsReturnType> => {
-  const response = await fetchWithRetry(
-    `${process.env.NEXT_PUBLIC_METRICS_SERVICE_ENDPOINT}/stats/data.json`,
-    {
-      cache: "no-store",
-      headers: {
-        "Cache-Control": "no-cache, no-store, must-revalidate",
-        Pragma: "no-cache",
-        Expires: "0",
-      },
-    },
-    3,
-    400,
-    false,
-  );
-
-  let metricsData: AppStatsReturnType = [];
-
-  if (response.status == 200) {
-    metricsData = await response.json();
-  }
-  return metricsData;
 };
 
 /** This is designed to run once a week
@@ -245,18 +222,7 @@ export const POST = async (req: NextRequest) => {
 
   const metricsData = await fetchMetrics();
 
-  const appIdsToEvaluate = metricsData
-    .filter((app) => (app.open_rate_last_14_days?.length ?? 0) > 0)
-    .map((app) => app.app_id);
-
-  if (appIdsToEvaluate.length > 600) {
-    logger.warn(
-      "_evaluate-app-notification-permissions - notification permission list is getting too long",
-      {
-        listLength: appIdsToEvaluate.length,
-      },
-    );
-  }
+  const appIdsToEvaluate = metricsData.map((app) => app.app_id);
 
   if (appIdsToEvaluate.length === 0) {
     logger.info("_evaluate-app-notification-permissions - no apps to evaluate");
@@ -276,6 +242,15 @@ export const POST = async (req: NextRequest) => {
     notification_permission_status_changed_date:
       app.notification_permission_status_changed_date,
   }));
+
+  if (appsToEvaluate.length > 600) {
+    logger.warn(
+      "_evaluate-app-notification-permissions - app list is getting too long",
+      {
+        listLength: appIdsToEvaluate.length,
+      },
+    );
+  }
 
   logger.info("_evaluate-app-notification-permissions - apps to evaluate", {
     numberOfAppsToEvaluate: appsToEvaluate.length,

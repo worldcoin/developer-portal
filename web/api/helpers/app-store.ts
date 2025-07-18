@@ -76,17 +76,17 @@ export const formatAppMetadata = async (
     isLocalisationComplete && localisedContent?.meta_tag_image_url
       ? localisedContent.meta_tag_image_url
       : appMetadata.meta_tag_image_url || appMetadata.logo_img_url;
-  //
+
   const showcaseImgUrls =
     isLocalisationComplete && localisedContent?.showcase_img_urls
       ? localisedContent.showcase_img_urls
       : appMetadata.showcase_img_urls;
-  //
+
   const metaTagImageLocale =
     isLocalisationComplete && localisedContent?.meta_tag_image_url
       ? locale
       : "en";
-  //
+
   const showcaseImgUrlsLocale =
     isLocalisationComplete && localisedContent?.showcase_img_urls
       ? locale
@@ -95,14 +95,20 @@ export const formatAppMetadata = async (
   const supportedCountries = shouldCompressCountryList
     ? [country.toUpperCase()]
     : appMetadata.supported_countries;
-
+  let buttonTextOverride =
+    localisedContent?.world_app_button_text ??
+    appMetadata.world_app_button_text;
+  if (
+    buttonTextOverride === "Use Integration" &&
+    appMetadata.app_mode !== "external"
+  ) {
+    buttonTextOverride = "Get Mini App";
+  }
   return {
     ...appMetadataWithoutLocalisations,
     name: name,
     app_rating: appRating ?? 0,
-    world_app_button_text:
-      localisedContent?.world_app_button_text ??
-      appMetadata.world_app_button_text,
+    world_app_button_text: buttonTextOverride,
     world_app_description:
       localisedContent?.world_app_description ??
       appMetadata.world_app_description,
@@ -208,14 +214,18 @@ const getNotificationPermissions = (
   };
 };
 
-// Cached thus this is not that expensive
+/**
+ * Rank apps based on their new users and unique users, this will be unique per country
+ * @param apps - The apps to rank
+ * @param appStats - The app stats to use for ranking
+ * @returns The ranked apps
+ */
 export const rankApps = (
   apps: AppStoreFormattedFields[],
   appStats: AppStatsReturnType,
 ) => {
   let maxNewUsers = 0;
   let maxUniqueUsers = 0;
-
   // determine maximum values among apps that
   // are present in the current app store
   const appIdsSet = new Set<string>(apps.map((app) => app.app_id));

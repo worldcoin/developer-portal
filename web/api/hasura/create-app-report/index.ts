@@ -50,6 +50,7 @@ export const schema = yup
       .max(1500),
     illegal_content_country_code: yup.string().nullable().max(2),
   })
+  .noUnknown()
   .test("final-validation", "Invalid input", (values) => {
     if (
       (values.purpose === PurposeEnum.TosViolation ||

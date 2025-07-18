@@ -4,12 +4,15 @@ import { useAtom } from "jotai";
 import Error from "next/error";
 import { useMemo } from "react";
 import Skeleton from "react-loading-skeleton";
-import { AppTopBar } from "../AppTopBarRefactored";
+import { AppTopBar as AppTopBarOld } from "../AppTopBar";
+import { AppTopBarRefactored } from "../AppTopBarRefactored";
 import { useFetchAppMetadataQuery } from "../graphql/client/fetch-app-metadata.generated";
+import { INTERNAL_TEAM_IDS } from "../layout/constants-temp";
 import { viewModeAtom } from "../layout/ImagesProvider";
 import { AppStoreFormProvider } from "./app-store-form-provider";
 import { AppStoreFormRefactored } from "./app-store-refactored";
 import { useFetchLocalisationsQuery } from "./graphql/client/fetch-localisations.generated";
+import { AppMetadata, LocalisationData } from "./types/AppStoreFormTypes";
 
 type AppProfileGalleryProps = {
   params: Record<string, string> | null | undefined;
@@ -51,6 +54,10 @@ export const AppProfileGalleryPage = ({ params }: AppProfileGalleryProps) => {
 
   const isLoading = isMetadataLoading || isLocalisationsLoading;
 
+  // temp
+  const isInternalTeam = INTERNAL_TEAM_IDS.includes(teamId);
+  const AppTopBar = isInternalTeam ? AppTopBarRefactored : AppTopBarOld;
+
   if (isLoading) {
     return (
       <SizingWrapper gridClassName="order-1 pt-8">
@@ -67,8 +74,10 @@ export const AppProfileGalleryPage = ({ params }: AppProfileGalleryProps) => {
   } else {
     return (
       <AppStoreFormProvider
-        appMetadata={appMetadata}
-        localisationsData={localisationsData?.localisations || []}
+        appMetadata={appMetadata as AppMetadata}
+        localisationsData={
+          (localisationsData?.localisations || []) as LocalisationData
+        }
       >
         <SizingWrapper gridClassName="order-1 pt-8">
           <AppTopBar appId={appId} teamId={teamId} app={app!} />
@@ -79,9 +88,7 @@ export const AppProfileGalleryPage = ({ params }: AppProfileGalleryProps) => {
             <AppStoreFormRefactored
               appId={appId}
               teamId={teamId}
-              appMetadata={appMetadata}
-              // or empty array is safe because of previous loading checks
-              localisationsData={localisationsData?.localisations || []}
+              appMetadata={appMetadata as AppMetadata}
             />
           </div>
         </SizingWrapper>

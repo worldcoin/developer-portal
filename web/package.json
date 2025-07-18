@@ -27,7 +27,7 @@
     "countries-list": "^3.1.0",
     "date-fns": "^3.3.1",
     "dayjs": "^1.11.13",
-    "dd-trace": "5.12.0",
+    "dd-trace": "5.59.0",
     "dompurify": "^3.1.7",
     "emoji-regex": "^10.4.0",
     "ethers": "^6.13.3",
