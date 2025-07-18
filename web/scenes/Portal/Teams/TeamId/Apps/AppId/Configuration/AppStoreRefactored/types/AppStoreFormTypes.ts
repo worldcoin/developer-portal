@@ -57,7 +57,11 @@ export type AppMetadata = Readonly<
     | "is_for_humans_only"
   > & {
     // stricter type overrides
-    verification_status: "unverified" | "verified" | "awaiting_review";
+    verification_status:
+      | "unverified"
+      | "verified"
+      | "awaiting_review"
+      | "changes_requested";
     app_mode: "external" | "mini-app" | "native";
     category: (typeof Categories)[number]["name"];
     supported_languages: (keyof typeof languageMap)[];
