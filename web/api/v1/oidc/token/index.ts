@@ -13,14 +13,16 @@ import { getSdk as getDeleteAuthCodeSdk } from "./graphql/delete-auth-code.gener
 import { getSdk as getFetchRedirectCountSdk } from "./graphql/fetch-redirect-count.generated";
 
 const corsMethods = ["POST", "OPTIONS"];
-const schema = yup.object({
-  grant_type: yup.string().default("authorization_code"),
-  code: yup.string().strict().required("This attribute is required."),
-  redirect_uri: yup.string().notRequired(),
-  client_id: yup.string().notRequired(),
-  client_secret: yup.string().notRequired(),
-  code_verifier: yup.string().notRequired(),
-});
+const schema = yup
+  .object({
+    grant_type: yup.string().default("authorization_code"),
+    code: yup.string().strict().required("This attribute is required."),
+    redirect_uri: yup.string().notRequired(),
+    client_id: yup.string().notRequired(),
+    client_secret: yup.string().notRequired(),
+    code_verifier: yup.string().notRequired(),
+  })
+  .noUnknown();
 
 export async function POST(req: NextRequest) {
   if (
