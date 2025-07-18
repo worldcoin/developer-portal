@@ -36,63 +36,9 @@ const fetchAndProcessMetrics = async (): Promise<void> => {
 
   const rawData: MetricsServiceAppData[] = await response.json();
 
-  // Process data for all countries in one pass
   const byCountry = new Map<string, AppStatsReturnType>();
   const countries = new Set<string>();
 
-  // Collect all countries
-  rawData.forEach((app) => {
-    app.unique_users_last_7_days?.forEach((user) => {
-      if (user.country) countries.add(user.country.toUpperCase());
-    });
-    app.new_users_last_7_days?.forEach((user) => {
-      if (user.country) countries.add(user.country.toUpperCase());
-    });
-    app.total_users_last_7_days?.forEach((user) => {
-      if (user.country) countries.add(user.country.toUpperCase());
-    });
-  });
-
-  // Process data for each country
-  countries.forEach((country) => {
-    const countryData = rawData.map((app) => {
-      let uniqueUsers: number | undefined;
-      let newUsers: number | undefined;
-      let totalUsers: number | undefined;
-
-      if (app.unique_users_last_7_days) {
-        const userData = app.unique_users_last_7_days.find(
-          (user) => user.country?.toUpperCase() === country,
-        );
-        uniqueUsers = userData?.value;
-      }
-
-      if (app.new_users_last_7_days) {
-        const userData = app.new_users_last_7_days.find(
-          (user) => user.country?.toUpperCase() === country,
-        );
-        newUsers = userData?.value;
-      }
-
-      if (app.total_users_last_7_days) {
-        const userData = app.total_users_last_7_days.find(
-          (user) => user.country?.toUpperCase() === country,
-        );
-        totalUsers = userData?.value;
-      }
-
-      return {
-        ...app,
-        unique_users_last_7_days: uniqueUsers,
-        new_users_last_7_days: newUsers,
-        total_users_last_7_days: totalUsers,
-      };
-    });
-
-    byCountry.set(country, countryData);
-  });
-
-  // Process global data (sum all countries)
   const global = rawData.map((app) => {
     let uniqueUsersSum = 0;
     let newUsersSum = 0;
@@ -100,18 +46,21 @@ const fetchAndProcessMetrics = async (): Promise<void> => {
 
     if (app.unique_users_last_7_days) {
       for (const user of app.unique_users_last_7_days) {
+        if (user.country) countries.add(user.country.toUpperCase());
         uniqueUsersSum += Number(user.value) || 0;
       }
     }
 
     if (app.new_users_last_7_days) {
       for (const user of app.new_users_last_7_days) {
+        if (user.country) countries.add(user.country.toUpperCase());
         newUsersSum += Number(user.value) || 0;
       }
     }
 
     if (app.total_users_last_7_days) {
       for (const user of app.total_users_last_7_days) {
+        if (user.country) countries.add(user.country.toUpperCase());
         totalUsersSum += Number(user.value) || 0;
       }
     }
@@ -123,6 +72,42 @@ const fetchAndProcessMetrics = async (): Promise<void> => {
       total_users_last_7_days: totalUsersSum || undefined,
     };
   });
+
+  // Process country-specific data in a single pass per country
+  for (const country of countries) {
+    const countryData = rawData.map((app) => {
+      let uniqueUsers: number | undefined;
+      let newUsers: number | undefined;
+      let totalUsers: number | undefined;
+
+      if (app.unique_users_last_7_days) {
+        uniqueUsers = app.unique_users_last_7_days.find(
+          (user) => user.country?.toUpperCase() === country,
+        )?.value;
+      }
+
+      if (app.new_users_last_7_days) {
+        newUsers = app.new_users_last_7_days.find(
+          (user) => user.country?.toUpperCase() === country,
+        )?.value;
+      }
+
+      if (app.total_users_last_7_days) {
+        totalUsers = app.total_users_last_7_days.find(
+          (user) => user.country?.toUpperCase() === country,
+        )?.value;
+      }
+
+      return {
+        ...app,
+        unique_users_last_7_days: uniqueUsers,
+        new_users_last_7_days: newUsers,
+        total_users_last_7_days: totalUsers,
+      };
+    });
+
+    byCountry.set(country, countryData);
+  }
 
   // Cache the processed data
   processedCache = {
