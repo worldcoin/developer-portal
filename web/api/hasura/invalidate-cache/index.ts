@@ -43,6 +43,25 @@ export const POST = async (req: NextRequest) => {
     return errorHasuraQuery({ req });
   }
 
+  // Add a redis debounce to prevent multiple requests invalidating the cache
+  const redis = global.RedisClient;
+  if (!redis) {
+    return errorHasuraQuery({
+      req,
+      detail: "Redis client not found",
+      code: "internal_server_error",
+    });
+  }
+
+  const debounceKey = `invalidate_cache_lock`;
+  const debounceValue = await redis.get(debounceKey);
+
+  if (debounceValue) {
+    return NextResponse.json({ success: true });
+  } else {
+    await redis.set(debounceKey, "true", "EX", 60); // Can only be requested every minute
+  }
+
   const client = new CloudFrontClient({
     region: process.env.ASSETS_S3_REGION,
   });
