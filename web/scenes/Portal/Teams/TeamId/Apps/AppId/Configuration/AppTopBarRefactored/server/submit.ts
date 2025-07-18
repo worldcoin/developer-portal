@@ -8,12 +8,16 @@ import { extractIdsFromPath, getPathFromHeaders } from "@/lib/server-utils";
 import * as yup from "yup";
 import { getSdk as getSubmitAppSdk } from "../SubmitAppModal/graphql/server/submit-app.generated";
 
-const schema = yup.object({
-  app_metadata_id: yup.string().required("App metadata id is required"),
-  team_id: yup.string().required("Team id is required"),
-  changelog: yup.string().required("Changelog is required"),
-  is_developer_allow_listing: yup.boolean().required("This field is required"),
-});
+const schema = yup
+  .object({
+    app_metadata_id: yup.string().required("App metadata id is required"),
+    team_id: yup.string().required("Team id is required"),
+    changelog: yup.string().required("Changelog is required"),
+    is_developer_allow_listing: yup
+      .boolean()
+      .required("This field is required"),
+  })
+  .noUnknown();
 
 export type SubmitAppForReviewSchema = yup.Asserts<typeof schema>;
 
