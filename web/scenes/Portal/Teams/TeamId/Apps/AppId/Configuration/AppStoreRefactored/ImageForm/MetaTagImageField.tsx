@@ -37,7 +37,6 @@ export const MetaTagImageField = (props: MetaTagImageFieldProps) => {
     onAutosaveError,
     error,
   } = props;
-
   // en is not considered a localization, since we set english properties on app metadata
   const isLocalized = locale !== "en";
 
