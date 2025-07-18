@@ -11,14 +11,8 @@ import {
   AppStoreFormattedFields,
   AppStoreMetadataDescription,
   AppStoreMetadataFields,
-  MetricsServiceAppData,
 } from "@/lib/types";
-import {
-  fetchWithRetry,
-  getCDNImageUrl,
-  getLogoImgCDNUrl,
-  tryParseJSON,
-} from "@/lib/utils";
+import { getCDNImageUrl, getLogoImgCDNUrl, tryParseJSON } from "@/lib/utils";
 
 export const formatAppMetadata = async (
   appData: AppStoreMetadataFields,
@@ -82,17 +76,17 @@ export const formatAppMetadata = async (
     isLocalisationComplete && localisedContent?.meta_tag_image_url
       ? localisedContent.meta_tag_image_url
       : appMetadata.meta_tag_image_url || appMetadata.logo_img_url;
-  //
+
   const showcaseImgUrls =
     isLocalisationComplete && localisedContent?.showcase_img_urls
       ? localisedContent.showcase_img_urls
       : appMetadata.showcase_img_urls;
-  //
+
   const metaTagImageLocale =
     isLocalisationComplete && localisedContent?.meta_tag_image_url
       ? locale
       : "en";
-  //
+
   const showcaseImgUrlsLocale =
     isLocalisationComplete && localisedContent?.showcase_img_urls
       ? locale

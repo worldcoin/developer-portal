@@ -18,10 +18,10 @@ import {
 import { getSdk as getWebHighlightsSdk } from "./graphql/get-app-web-highlights.generated";
 
 import {
-  fetchMetrics,
   formatAppMetadata,
   rankApps,
 } from "@/api/helpers/app-store";
+import { fetchMetrics } from "@/api/helpers/fetch-metrics";
 import { compareVersions } from "@/lib/compare-versions";
 import { logger } from "@/lib/logger";
 import { CONTACTS_APP_AVAILABLE_FROM } from "../constants";
