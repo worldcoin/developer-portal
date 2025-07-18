@@ -13,7 +13,7 @@ import { AppStatsItem } from "@/lib/types";
 import { differenceInDays, differenceInMinutes } from "date-fns";
 import { GraphQLClient } from "graphql-request";
 import { NextRequest, NextResponse } from "next/server";
-import { fetchMetrics } from "../helpers/app-store";
+import { fetchMetrics } from "../helpers/fetch-metrics";
 import { getAPIServiceGraphqlClient } from "../helpers/graphql";
 import {
   getSdk as getGetNotificationEvaluationAppsSdk,
