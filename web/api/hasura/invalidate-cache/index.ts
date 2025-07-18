@@ -1,4 +1,5 @@
 import { errorHasuraQuery } from "@/api/helpers/errors";
+import { clearMetricsCache } from "@/api/helpers/fetch-metrics";
 import { protectInternalEndpoint } from "@/api/helpers/utils";
 import { logger } from "@/lib/logger";
 import {
@@ -78,6 +79,8 @@ export const POST = async (req: NextRequest) => {
         CallerReference: Date.now().toString(),
       },
     };
+
+    await clearMetricsCache();
 
     const command = new CreateInvalidationCommand(input);
     await client.send(command);

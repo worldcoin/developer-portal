@@ -1,141 +1,189 @@
 import { AppStatsReturnType, MetricsServiceAppData } from "@/lib/types";
 import { fetchWithRetry } from "@/lib/utils";
 
-const pendingRequests = new Map<string, Promise<AppStatsReturnType>>();
+interface ProcessedMetricsCache {
+  byCountry: Map<string, AppStatsReturnType>;
+  global: AppStatsReturnType;
+  timestamp: number;
+}
+
+let memoryCache: ProcessedMetricsCache | null = null;
+let pendingFetch: Promise<ProcessedMetricsCache> | null = null;
+
+const MEMORY_CACHE_TTL = 10 * 60 * 1000; // 10 minutes
 
 /**
- * Fetch metrics from the metrics service with request deduplication
+ * Fetch and process raw metrics data, caching results for all countries
+ */
+const fetchAndProcessMetrics = async (): Promise<ProcessedMetricsCache> => {
+  const response = await fetchWithRetry(
+    `${process.env.NEXT_PUBLIC_METRICS_SERVICE_ENDPOINT}/stats/data.json`,
+    {
+      headers: {
+        "Cache-Control": "max-age=300", // 5 minutes, same as CloudFront
+      },
+    },
+    3,
+    400,
+    false,
+  );
+
+  if (response.status !== 200) {
+    console.error("Failed to fetch metrics", {
+      status: response.status,
+      statusText: response.statusText,
+    });
+    throw new Error("Failed to fetch metrics");
+  }
+
+  const rawData: MetricsServiceAppData[] = await response.json();
+
+  const byCountry = new Map<string, AppStatsReturnType>();
+  const countries = new Set<string>();
+
+  const global = rawData.map((app) => {
+    let uniqueUsersSum = 0;
+    let newUsersSum = 0;
+    let totalUsersSum = 0;
+
+    if (app.unique_users_last_7_days) {
+      for (const user of app.unique_users_last_7_days) {
+        if (user.country) countries.add(user.country.toUpperCase());
+        uniqueUsersSum += user.value || 0;
+      }
+    }
+
+    if (app.new_users_last_7_days) {
+      for (const user of app.new_users_last_7_days) {
+        if (user.country) countries.add(user.country.toUpperCase());
+        newUsersSum += user.value || 0;
+      }
+    }
+
+    if (app.total_users_last_7_days) {
+      for (const user of app.total_users_last_7_days) {
+        if (user.country) countries.add(user.country.toUpperCase());
+        totalUsersSum += user.value || 0;
+      }
+    }
+
+    return {
+      ...app,
+      unique_users_last_7_days: uniqueUsersSum || undefined,
+      new_users_last_7_days: newUsersSum || undefined,
+      total_users_last_7_days: totalUsersSum || undefined,
+    };
+  });
+
+  // Process country-specific data
+  for (const country of countries) {
+    const countryData = rawData.map((app) => {
+      let uniqueUsers: number | undefined;
+      let newUsers: number | undefined;
+      let totalUsers: number | undefined;
+
+      if (app.unique_users_last_7_days) {
+        uniqueUsers = app.unique_users_last_7_days.find(
+          (user) => user.country?.toUpperCase() === country,
+        )?.value;
+      }
+
+      if (app.new_users_last_7_days) {
+        newUsers = app.new_users_last_7_days.find(
+          (user) => user.country?.toUpperCase() === country,
+        )?.value;
+      }
+
+      if (app.total_users_last_7_days) {
+        totalUsers = app.total_users_last_7_days.find(
+          (user) => user.country?.toUpperCase() === country,
+        )?.value;
+      }
+
+      return {
+        ...app,
+        unique_users_last_7_days: uniqueUsers,
+        new_users_last_7_days: newUsers,
+        total_users_last_7_days: totalUsers,
+      };
+    });
+
+    byCountry.set(country, countryData);
+  }
+
+  return {
+    byCountry,
+    global,
+    timestamp: Date.now(),
+  };
+};
+
+/**
+ * Fetch metrics from the metrics service with in-memory caching and request deduplication.
  *
- * This function ensures that multiple concurrent requests for the same data
- * (same country) will share a single network request and JSON parsing operation.
+ * This function processes metrics data once and caches it for all countries.
+ * Multiple concurrent requests share the same fetch operation to avoid duplicate
+ * downloads and processing.
  *
- * @param expirationTime - The time to cache the data for in seconds (passed to HTTP headers)
  * @param country - The country to fetch data for
  * @returns The metrics data with the country data if specified, otherwise sum all values
  */
 export const fetchMetrics = async (
-  expirationTime: number = 3600, // Default to 1 hour (3600 seconds)
   country?: string | null,
 ): Promise<AppStatsReturnType> => {
-  const requestKey = `metrics_${country || "all"}`;
+  const now = Date.now();
 
-  const pendingRequest = pendingRequests.get(requestKey);
-  if (pendingRequest) {
-    return pendingRequest;
+  // Check in-memory cache first
+  if (memoryCache) {
+    const age = now - memoryCache.timestamp;
+    if (age < MEMORY_CACHE_TTL) {
+      return country
+        ? memoryCache.byCountry.get(country.toUpperCase()) || []
+        : memoryCache.global;
+    } else {
+      console.log("Memory cache is stale, fetching fresh data");
+    }
   }
 
-  const requestPromise = (async () => {
+  // Cache is stale or doesn't exist, need to fetch fresh data
+  // If there's already a pending fetch, await it (request deduplication)
+  if (pendingFetch) {
+    const result = await pendingFetch;
+
+    return country
+      ? result.byCountry.get(country.toUpperCase()) || []
+      : result.global;
+  }
+
+  // No pending fetch, start a new one
+  pendingFetch = (async () => {
     try {
-      const fetchOptions: RequestInit = {};
-
-      if (expirationTime <= 0) {
-        fetchOptions.cache = "no-store";
-        fetchOptions.headers = {
-          "Cache-Control": "no-cache, no-store, must-revalidate",
-          Expires: "0",
-        };
-      } else {
-        fetchOptions.headers = {
-          "Cache-Control": `max-age=${Math.floor(expirationTime)}`,
-        };
+      const result = await fetchAndProcessMetrics();
+      if (result) {
+        memoryCache = result;
       }
-
-      const response = await fetchWithRetry(
-        `${process.env.NEXT_PUBLIC_METRICS_SERVICE_ENDPOINT}/stats/data.json`,
-        fetchOptions,
-        3,
-        400,
-        false,
-      );
-
-      if (response.status !== 200) {
-        console.error("Failed to fetch metrics", {
-          status: response.status,
-          statusText: response.statusText,
-        });
-        return [];
-      }
-
-      const responseData: MetricsServiceAppData[] = await response.json();
-      let metricsData: AppStatsReturnType = [];
-
-      if (country) {
-        // If country is specified return the value for that Country code
-        // for unique_users_last_7_days, new_users_last_7_days, and total_users_last_7_days
-        const upperCountry = country.toUpperCase();
-        metricsData = responseData.map((app) => {
-          let uniqueUsers: number | undefined;
-          let newUsers: number | undefined;
-          let totalUsers: number | undefined;
-
-          if (app.unique_users_last_7_days) {
-            const userData = app.unique_users_last_7_days.find(
-              (user) => user.country?.toUpperCase() === upperCountry,
-            );
-            uniqueUsers = userData?.value;
-          }
-
-          if (app.new_users_last_7_days) {
-            const userData = app.new_users_last_7_days.find(
-              (user) => user.country?.toUpperCase() === upperCountry,
-            );
-            newUsers = userData?.value;
-          }
-
-          if (app.total_users_last_7_days) {
-            const userData = app.total_users_last_7_days.find(
-              (user) => user.country?.toUpperCase() === upperCountry,
-            );
-            totalUsers = userData?.value;
-          }
-
-          return {
-            ...app,
-            unique_users_last_7_days: uniqueUsers,
-            new_users_last_7_days: newUsers,
-            total_users_last_7_days: totalUsers,
-          };
-        });
-      } else {
-        metricsData = responseData.map((app) => {
-          let uniqueUsersSum = 0;
-          let newUsersSum = 0;
-          let totalUsersSum = 0;
-
-          if (app.unique_users_last_7_days) {
-            for (const user of app.unique_users_last_7_days) {
-              uniqueUsersSum += Number(user.value) || 0;
-            }
-          }
-
-          if (app.new_users_last_7_days) {
-            for (const user of app.new_users_last_7_days) {
-              newUsersSum += Number(user.value) || 0;
-            }
-          }
-
-          if (app.total_users_last_7_days) {
-            for (const user of app.total_users_last_7_days) {
-              totalUsersSum += Number(user.value) || 0;
-            }
-          }
-
-          return {
-            ...app,
-            unique_users_last_7_days: uniqueUsersSum || undefined,
-            new_users_last_7_days: newUsersSum || undefined,
-            total_users_last_7_days: totalUsersSum || undefined,
-          };
-        });
-      }
-
-      return metricsData;
+      return result;
     } finally {
-      pendingRequests.delete(requestKey);
+      pendingFetch = null;
     }
   })();
 
-  pendingRequests.set(requestKey, requestPromise);
+  // Await the fetch and return the result
+  const result = await pendingFetch;
+  if (!result) {
+    console.error("Failed to fetch metrics data");
+    return [];
+  }
 
-  return requestPromise;
+  return country
+    ? result.byCountry.get(country.toUpperCase()) || []
+    : result.global;
+};
+
+/**
+ * Clear metrics cache
+ * Useful for invalidating the cache when app data changes
+ */
+export const clearMetricsCache = () => {
+  memoryCache = null;
 };
