@@ -116,7 +116,7 @@ export const fetchMetrics = async (
 
           if (app.total_users_last_7_days) {
             for (const user of app.total_users_last_7_days) {
-              totalUsersSum += Number(user) || 0;
+              totalUsersSum += Number(user.value) || 0;
             }
           }
 
