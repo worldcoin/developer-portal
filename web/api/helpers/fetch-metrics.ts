@@ -7,8 +7,10 @@ interface ProcessedMetricsCache {
   timestamp: number;
 }
 
-let processedCache: ProcessedMetricsCache | null = null;
 let pendingFetch: Promise<void> | null = null;
+
+const redis = global.RedisClient;
+const REDIS_CACHE_KEY = "metrics_processed_cache";
 
 /**
  * Fetch and process raw metrics data, caching results for all countries
@@ -32,6 +34,11 @@ const fetchAndProcessMetrics = async (): Promise<void> => {
       statusText: response.statusText,
     });
     throw new Error("Failed to fetch metrics");
+  }
+
+  if (!redis) {
+    console.error("Redis client not available");
+    return;
   }
 
   const rawData: MetricsServiceAppData[] = await response.json();
@@ -110,11 +117,15 @@ const fetchAndProcessMetrics = async (): Promise<void> => {
   }
 
   // Cache the processed data
-  processedCache = {
-    byCountry,
-    global,
-    timestamp: Date.now(),
-  };
+  await redis.setex(
+    REDIS_CACHE_KEY,
+    72 * 60 * 60, // 72 hours, since metrics only updates every few hours and we should refresh this every 24 hours anyways
+    JSON.stringify({
+      byCountry,
+      global,
+      timestamp: Date.now(),
+    }),
+  );
 };
 
 /**
@@ -132,12 +143,24 @@ export const fetchMetrics = async (
   country?: string | null,
 ): Promise<AppStatsReturnType> => {
   const now = Date.now();
-  const TEN_MINUTES_IN_MS = 10 * 60 * 1000; // 10 minutes in milliseconds
+  const THIRTY_MINUTES_IN_MS = 30 * 60 * 1000; // 30 minutes in milliseconds
+
+  if (!redis) {
+    console.error("Redis client not available");
+    return [];
+  }
+
+  const cached = await redis.get(REDIS_CACHE_KEY);
+  let processedCache: ProcessedMetricsCache | null = null;
+
+  if (cached) {
+    processedCache = JSON.parse(cached) as ProcessedMetricsCache;
+  }
 
   // Check if we have fresh cached data
   if (processedCache) {
     const age = now - processedCache.timestamp;
-    if (age < TEN_MINUTES_IN_MS) {
+    if (age < THIRTY_MINUTES_IN_MS) {
       return country
         ? processedCache.byCountry.get(country.toUpperCase()) || []
         : processedCache.global;
