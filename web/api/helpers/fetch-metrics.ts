@@ -141,6 +141,8 @@ export const fetchMetrics = async (
       return country
         ? memoryCache.byCountry.get(country.toUpperCase()) || []
         : memoryCache.global;
+    } else {
+      console.log("Memory cache is stale, fetching fresh data");
     }
   }
 
@@ -188,5 +190,4 @@ export const fetchMetrics = async (
  */
 export const clearMetricsCache = () => {
   memoryCache = null;
-  console.log("Metrics cache cleared");
 };
