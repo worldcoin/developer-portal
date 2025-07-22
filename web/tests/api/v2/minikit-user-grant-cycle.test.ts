@@ -252,7 +252,7 @@ describe("/api/v2/minikit/user-grant-cycle [error cases]", () => {
       ok: false,
       status: 400,
       json: async () => ({
-        code: "user_not_found_for_wallet_address",
+        errorCode: "user_not_found_for_wallet_address",
         message: "User not found for the provided wallet address",
       }),
     });
@@ -275,7 +275,7 @@ describe("/api/v2/minikit/user-grant-cycle [error cases]", () => {
       ok: false,
       status: 400,
       json: async () => ({
-        code: "app_not_installed",
+        errorCode: "app_not_installed",
         message: "App is not installed for this user",
       }),
     });
@@ -298,7 +298,7 @@ describe("/api/v2/minikit/user-grant-cycle [error cases]", () => {
       ok: false,
       status: 400,
       json: async () => ({
-        code: "no_active_grant_cycles",
+        errorCode: "no_active_grant_cycles",
         message: "No active grant cycles found",
       }),
     });
@@ -321,7 +321,7 @@ describe("/api/v2/minikit/user-grant-cycle [error cases]", () => {
       ok: false,
       status: 503,
       json: async () => ({
-        code: "service_unavailable",
+        errorCode: "service_unavailable",
         message: "Service is temporarily unavailable",
       }),
     });
