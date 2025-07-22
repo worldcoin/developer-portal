@@ -73,9 +73,10 @@ export const GET = async (req: NextRequest) => {
       const errorMessage = isKnownErrorCode
         ? data?.message
         : "Failed to fetch user grant cycle";
-      const errorCode = isKnownErrorCode ? data?.code : "internal_api_error";
+      const errorCode = isKnownErrorCode
+        ? data?.errorCode
+        : "internal_api_error";
       const statusCode = isKnownErrorCode ? 400 : res.status;
-      console.log("Backend response data:", JSON.stringify(data, null, 2));
 
       return errorResponse({
         statusCode,
