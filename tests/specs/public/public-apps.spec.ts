@@ -5,7 +5,7 @@ const API_BASE_URL = process.env.API_BASE_URL;
 
 describe('Public API Endpoints', () => {
   describe('GET /api/v2/public/apps and GET /api/v2/public/app/[app_id]', () => {
-    test('should get apps list and then fetch specific app details', async () => {
+    it('should get apps list and then fetch specific app details', async () => {
       // First, get the list of public apps
       const appsResponse = await axios.get(`${API_BASE_URL}/api/v2/public/apps`);
       
@@ -69,7 +69,7 @@ describe('Public API Endpoints', () => {
       );
     });
 
-    test('should return 404 for non-existent app_id', async () => {
+    it('should return 404 for non-existent app_id', async () => {
       const nonExistentAppId = 'non_existent_app_12345';
       try {
         await axios.get(`${API_BASE_URL}/api/v2/public/app/${nonExistentAppId}`);
@@ -86,7 +86,7 @@ describe('Public API Endpoints', () => {
   });
 
   describe('GET /api/v2/public/apps/search/[search_term]', () => {
-    test('should return apps matching search term', async () => {
+    it('should return apps matching search term', async () => {
       const searchTerm = 'grants'; // real search term that should exist in staging
       const response = await axios.get(`${API_BASE_URL}/api/v2/public/apps/search/${searchTerm}`);
       
@@ -107,7 +107,7 @@ describe('Public API Endpoints', () => {
       );
     });
 
-    test('should return empty results for non-matching term', async () => {
+    it('should return empty results for non-matching term', async () => {
       const searchTerm = 'non_existing_search_term_12345';
       const response = await axios.get(`${API_BASE_URL}/api/v2/public/apps/search/${searchTerm}`);
       
