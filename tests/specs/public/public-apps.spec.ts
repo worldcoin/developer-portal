@@ -1,10 +1,13 @@
-import { getPublicApp, getPublicApps, searchPublicApps } from '../../helpers/api-helpers';
+
+import axios from 'axios';
+
+const API_BASE_URL = process.env.API_BASE_URL;
 
 describe('Public API Endpoints', () => {
   describe('GET /api/v2/public/apps and GET /api/v2/public/app/[app_id]', () => {
     test('should get apps list and then fetch specific app details', async () => {
       // First, get the list of public apps
-      const appsResponse = await getPublicApps();
+      const appsResponse = await axios.get(`${API_BASE_URL}/api/v2/public/apps`);
       
       expect(appsResponse.status).toBe(200);
       expect(appsResponse.data).toEqual(
@@ -43,7 +46,7 @@ describe('Public API Endpoints', () => {
       const appId = firstApp.app_id;
       
       // Now test the specific app endpoint with the obtained app_id
-      const appResponse = await getPublicApp(appId);
+      const appResponse = await axios.get(`${API_BASE_URL}/api/v2/public/app/${appId}`);
       
       expect(appResponse.status).toBe(200);
       expect(appResponse.data).toEqual(
@@ -69,7 +72,7 @@ describe('Public API Endpoints', () => {
     test('should return 404 for non-existent app_id', async () => {
       const nonExistentAppId = 'non_existent_app_12345';
       try {
-        await getPublicApp(nonExistentAppId);
+        await axios.get(`${API_BASE_URL}/api/v2/public/app/${nonExistentAppId}`);
         // If we reach here, the test should fail
         expect(true).toBe(false);
       } catch (error: any) {
@@ -85,7 +88,7 @@ describe('Public API Endpoints', () => {
   describe('GET /api/v2/public/apps/search/[search_term]', () => {
     test('should return apps matching search term', async () => {
       const searchTerm = 'grants'; // real search term that should exist in staging
-      const response = await searchPublicApps(searchTerm);
+      const response = await axios.get(`${API_BASE_URL}/api/v2/public/apps/search/${searchTerm}`);
       
       expect(response.status).toBe(200);
       expect(response.data).toEqual(
@@ -106,7 +109,7 @@ describe('Public API Endpoints', () => {
 
     test('should return empty results for non-matching term', async () => {
       const searchTerm = 'non_existing_search_term_12345';
-      const response = await searchPublicApps(searchTerm);
+      const response = await axios.get(`${API_BASE_URL}/api/v2/public/apps/search/${searchTerm}`);
       
       expect(response.status).toBe(200);
       expect(response.data).toEqual(

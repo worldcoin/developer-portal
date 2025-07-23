@@ -12,9 +12,6 @@ tests/
 ├── tsconfig.json             # TypeScript configuration
 ├── .env.test                 # Environment variables for tests
 ├── global.d.ts               # Global types
-├── helpers/                  # Helper functions
-│   ├── index.ts              # Export all helpers
-│   └── api-helpers.ts        # API request helpers
 └── specs/                    # Test files
     └── public/               # Public endpoints tests
         └── public-apps.spec.ts
@@ -65,37 +62,38 @@ npm test -- --testNamePattern="should return list of public apps"
 
 ### GET /api/v2/public/apps
 
-- Get list of public applications
-- Validate response structure
-- Check CORS headers
+- Get list of public applications with rankings and categories
+- Validate response structure with app_rankings, all_category, and categories
+- Check response headers
 
 ### GET /api/v2/public/app/[app_id]
 
-- Get details of specific application
+- Get details of specific application using app_id from apps list
 - Handle non-existent app_id (404)
-- Validate data structure
+- Validate app_data structure with description object
 
 ### GET /api/v2/public/apps/search/[search_term]
 
 - Search applications by term
-- Handle empty results
-- Handle special characters
-- Handle empty search query
+- Return app_ids array for matching results
+- Handle empty results for non-matching terms
 
 ## Adding New Tests
 
 1. Create new file in `specs/` folder
-2. Import required helpers from `helpers/api-helpers.ts`
+2. Import axios and use direct API calls
 3. Write tests using Jest API
 
 Example:
 
 ```typescript
-import { getPublicApps } from "../helpers/api-helpers";
+import axios from "axios";
+
+const API_BASE_URL = process.env.API_BASE_URL;
 
 describe("New API Endpoint", () => {
   test("should work correctly", async () => {
-    const response = await getPublicApps();
+    const response = await axios.get(`${API_BASE_URL}/api/v2/public/apps`);
     expect(response.status).toBe(200);
   });
 });
