@@ -11,7 +11,7 @@
     "types": ["node", "jest"],
     "baseUrl": ".",
     "paths": {
-      "web/*": ["../web/*"]
+      "web/*": ["../../web/*"]
     }
   },
   "include": [
