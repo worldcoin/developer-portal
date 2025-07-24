@@ -5,7 +5,7 @@ This project contains end-to-end tests for public API endpoints of Developer Por
 ## Project Structure
 
 ```
-tests/
+tests/api
 ├── package.json              # Dependencies for e2e tests
 ├── jest.config.ts            # Jest configuration for e2e
 ├── jest.setup.ts             # Jest setup
