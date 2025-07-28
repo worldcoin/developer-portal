@@ -41,6 +41,9 @@ export async function register() {
       opensearch.createIndexIfNotExists();
 
       global.OpenSearchClient = opensearch;
+
+      const { ParameterStore } = await import("./lib/parameter-store");
+      global.ParameterStore = new ParameterStore("developer-portal");
     }
   } catch (error) {
     return console.error("🔴 Instrumentation registration error: ", error);
