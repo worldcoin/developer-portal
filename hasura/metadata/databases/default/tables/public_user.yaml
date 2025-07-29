@@ -14,6 +14,23 @@ array_relationships:
           name: membership
           schema: public
 insert_permissions:
+  - role: qa
+    permission:
+      check: {}
+      columns:
+        - is_allow_tracking
+        - is_subscribed
+        - auth0Id
+        - email
+        - id
+        - ironclad_id
+        - name
+        - posthog_id
+        - team_id
+        - world_id_nullifier
+        - created_at
+        - updated_at
+    comment: ""
   - role: service
     permission:
       check: {}
@@ -26,6 +43,23 @@ insert_permissions:
         - team_id
         - world_id_nullifier
 select_permissions:
+  - role: qa
+    permission:
+      columns:
+        - is_allow_tracking
+        - is_subscribed
+        - auth0Id
+        - email
+        - id
+        - ironclad_id
+        - name
+        - posthog_id
+        - team_id
+        - world_id_nullifier
+        - created_at
+        - updated_at
+      filter: {}
+    comment: ""
   - role: reviewer
     permission:
       columns:
@@ -69,6 +103,24 @@ select_permissions:
                   user_id:
                     _eq: X-Hasura-User-Id
 update_permissions:
+  - role: qa
+    permission:
+      columns:
+        - is_allow_tracking
+        - is_subscribed
+        - auth0Id
+        - email
+        - id
+        - ironclad_id
+        - name
+        - posthog_id
+        - team_id
+        - world_id_nullifier
+        - created_at
+        - updated_at
+      filter: {}
+      check: {}
+    comment: ""
   - role: service
     permission:
       columns:
@@ -87,6 +139,10 @@ update_permissions:
           _eq: X-Hasura-User-Id
       check: null
 delete_permissions:
+  - role: qa
+    permission:
+      filter: {}
+    comment: ""
   - role: user
     permission:
       filter:
