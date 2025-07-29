@@ -6,36 +6,7 @@ import {
   SSMClient,
 } from "@aws-sdk/client-ssm";
 import NodeCache from "node-cache";
-
-export class ParameterStoreError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = "ParameterStoreError";
-  }
-}
-
-export class ParameterNotFoundError extends ParameterStoreError {
-  constructor(parameterName: string) {
-    super(`Parameter not found: ${parameterName}`);
-    this.name = "ParameterNotFoundError";
-  }
-}
-
-export class ParameterAlreadyExistsError extends ParameterStoreError {
-  constructor(parameterName: string) {
-    super(
-      `Parameter already exists and overwrite is disabled: ${parameterName}`,
-    );
-    this.name = "ParameterAlreadyExistsError";
-  }
-}
-
-export class ParameterPutError extends ParameterStoreError {
-  constructor(parameterName: string, cause: unknown) {
-    super(`Failed to put parameter ${parameterName}: ${String(cause)}`);
-    this.name = "ParameterPutError";
-  }
-}
+import { logger } from "./logger";
 
 export type SSMParameterType = "String" | "StringList" | "SecureString";
 
@@ -96,16 +67,16 @@ export class ParameterStore {
   async getParameter<T = string | string[]>(
     name: string,
     defaultValue?: T,
-  ): Promise<T> {
-    const paramName = normalizeParameterName(name, this.prefix);
+  ): Promise<T | undefined> {
+    const parameterName = normalizeParameterName(name, this.prefix);
 
-    const cachedValue = this.cache.get(paramName);
+    const cachedValue = this.cache.get(parameterName);
     if (cachedValue) {
       return cachedValue as T;
     }
 
     const input: GetParameterCommandInput = {
-      Name: paramName,
+      Name: parameterName,
       WithDecryption: true,
     };
 
@@ -121,17 +92,30 @@ export class ParameterStore {
         value = rawValue as T;
       }
 
-      this.cache.set(paramName, value);
+      this.cache.set(parameterName, value);
 
       return value;
-    } catch (error: any) {
-      if (error.name === "ParameterNotFound") {
-        if (defaultValue !== undefined) {
-          return defaultValue;
-        }
-        throw new ParameterNotFoundError(paramName);
+    } catch (error) {
+      if (defaultValue !== undefined) {
+        logger.warn(
+          `Error getting parameter ${parameterName} from Parameter Store, falling back to default value`,
+          {
+            parameterName,
+            error,
+          },
+        );
+        return defaultValue;
       }
-      throw error;
+
+      logger.error(
+        `Error getting parameter ${parameterName} from Parameter Store`,
+        {
+          parameterName,
+          error,
+        },
+      );
+
+      return undefined;
     }
   }
 
