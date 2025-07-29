@@ -42,8 +42,12 @@ export const getTransactionData = async (
 
     const data = await response.json();
     if (!response.ok) {
+      console.warn(
+        "fetch transaction metadata error",
+        JSON.stringify(data, null, 2),
+      );
       errorFormAction({
-        message: "getTransactionData - failed to fetch transaction data",
+        message: "getTransactionData - response not ok",
         additionalInfo: { transactionId, response, data },
         app_id: appId,
         team_id: teamId,
