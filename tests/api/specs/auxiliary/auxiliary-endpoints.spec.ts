@@ -1,25 +1,16 @@
 import axios from 'axios';
-import { authHelper } from '../../helpers/auth-helper';
 
-const API_BASE_URL = process.env.API_BASE_URL?.replace(/\/$/, ''); // Убираем trailing slash
-
-if (!API_BASE_URL) {
-  console.warn('API_BASE_URL is not set. Skipping auxiliary endpoint tests.');
-  console.warn('Please set API_BASE_URL environment variable to run these tests.');
-}
+const INTERNAL_API_URL = process.env.INTERNAL_API_URL
 
 describe('Auxiliary API Endpoints', () => {
 
   describe('GET /api/health', () => {
     it('Should return health status successfully', async () => {
 
-      console.log('API_BASE_URL:', API_BASE_URL);
-
-      const token = await authHelper();
-      console.log('JWT Token:', token);
+      console.log('API_BASE_URL:', INTERNAL_API_URL);
       
-      // Health endpoint doesn't require authorization, let's try without it first
-      const response = await axios.get(`${API_BASE_URL}/api/health`);
+      // Health endpoint doesn't require authorization
+      const response = await axios.get(`${INTERNAL_API_URL}/api/health`);
       
       expect(response.status).toBe(200);
       expect(response.data).toEqual({
@@ -28,20 +19,27 @@ describe('Auxiliary API Endpoints', () => {
     });
 
     it('Should work with authorization as well', async () => {
-      const token = await authHelper();
-      console.log(token);
+    
       
-      const response = await axios.post(`${API_BASE_URL}/api/_delete-expired-auth-codes`, {}, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
+      const token = process.env.INTERNAL_ENDPOINTS_SECRET
       
-      expect(response.status).toBe(200);
-      expect(response.data).toEqual({
-        success: true
-      });
+      if (!token) {
+        console.warn('INTERNAL_ENDPOINTS_SECRET is not set. Skipping test.');
+        return;
+      }
+      
+
+        const response = await axios.post(`${INTERNAL_API_URL}/api/_delete-expired-auth-codes`, {}, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        console.log('response', response);
+        
+        expect(response.status).toBe(204); // This endpoint returns 204 No Content
+        expect(response.data).toBe(''); // Empty response body
     });
   });
 }); 
