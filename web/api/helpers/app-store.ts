@@ -1,9 +1,5 @@
 import { type Category, getLocalisedCategory } from "@/lib/categories";
-import {
-  NATIVE_MAPPED_APP_ID,
-  whitelistedAppsContracts,
-  whitelistedAppsPermit2,
-} from "@/lib/constants";
+import { NATIVE_MAPPED_APP_ID } from "@/lib/constants";
 import { generateExternalNullifier } from "@/lib/hashing";
 import {
   AppStatsItem,
@@ -55,13 +51,23 @@ export const formatAppMetadata = async (
 
   const name = localisedContent?.name ?? appMetadata.name;
 
+  const whitelistedAppsPermit2 = await global.ParameterStore?.getParameter(
+    "whitelisted-apps/permit2",
+    [] as string[],
+  );
+
+  const whitelistedAppsContracts = await global.ParameterStore?.getParameter(
+    "whitelisted-apps/contracts",
+    [] as string[],
+  );
+
   // Check if the app is whitelisted for permit2
-  const permit2Tokens = whitelistedAppsPermit2.includes(appMetadata.app_id)
+  const permit2Tokens = whitelistedAppsPermit2?.includes(appMetadata.app_id)
     ? ["all"]
     : appMetadata.permit2_tokens;
 
   // Check if the app is whitelisted for permit2
-  const contracts = whitelistedAppsContracts.includes(appMetadata.app_id)
+  const contracts = whitelistedAppsContracts?.includes(appMetadata.app_id)
     ? ["all"]
     : appMetadata.contracts;
 
