@@ -25,7 +25,7 @@ cp .env.test .env
 
 2. Edit any environment variables for which you have real credentials.
 3. AWS access (for KMS) is required to run the Developer Portal locally. KMS is used to sign/encrypt, particularly for Sign in with World ID. You will need to have AWS credentials in your env with relevant permissions to run KMS. Here is an [IAM sample policy](web/aws-role-sample-policy.json) for this.
-   1. If you are a core contributor with AWS access to TFH, follow the instructions [here](https://github.com/worldcoin/developer-portal-deployment#local-development) instead.
+   1. If you are a core contributor with AWS access to TFH, follow the instructions [here](https://github.com/worldcoin/developer-portal) instead.
 
 ### Starting the app
 
