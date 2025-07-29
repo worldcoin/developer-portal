@@ -1,0 +1,17 @@
+query GetAppRankings($platform: String!, $country: String!) {
+  app_rankings(
+    where: { platform: { _eq: $platform }, country: { _eq: $country } }
+  ) {
+    rankings
+  }
+  default_app_rankings: app_rankings(
+    where: { platform: { _eq: $platform }, country: { _eq: "default" } }
+  ) {
+    rankings
+  }
+  featured_app_rankings: app_rankings(
+    where: { platform: { _eq: "web" }, country: { _eq: "featured" } }
+  ) {
+    rankings
+  }
+}
