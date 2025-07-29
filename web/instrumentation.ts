@@ -6,6 +6,9 @@ export async function register() {
       typeof window === "undefined" &&
       process.env.NEXT_RUNTIME === "nodejs"
     ) {
+      const { ParameterStore } = await import("./lib/parameter-store");
+      global.ParameterStore = new ParameterStore("developer-portal");
+
       const { createRedisClient } = await import("./lib/redis");
 
       if (
@@ -41,9 +44,6 @@ export async function register() {
       opensearch.createIndexIfNotExists();
 
       global.OpenSearchClient = opensearch;
-
-      const { ParameterStore } = await import("./lib/parameter-store");
-      global.ParameterStore = new ParameterStore("developer-portal");
     }
   } catch (error) {
     return console.error("🔴 Instrumentation registration error: ", error);
