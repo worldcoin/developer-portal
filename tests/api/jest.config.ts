@@ -1,8 +1,8 @@
 import dotenv from 'dotenv';
 
 // Load environment variables for tests
-dotenv.config({ path: '.env' });
-dotenv.config({ path: '.env.development', override: true });
+dotenv.config({ path: '.env'});
+dotenv.config({ path: '.env.development'});
 
 console.log('Test environment setup complete');
 
