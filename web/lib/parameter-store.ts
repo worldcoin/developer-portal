@@ -3,8 +3,6 @@ import {
   DescribeParametersCommandInput,
   GetParameterCommand,
   GetParameterCommandInput,
-  PutParameterCommand,
-  PutParameterCommandInput,
   SSMClient,
 } from "@aws-sdk/client-ssm";
 
@@ -116,44 +114,6 @@ export class ParameterStore {
         throw new ParameterNotFoundError(paramName);
       }
       throw error;
-    }
-  }
-
-  /**
-   * Create or update a parameter.
-   *
-   * @param name - The name of the parameter to create or update.
-   * @param value - The value of the parameter to create or update.
-   * @param type - The type of the parameter to create or update.
-   * @param overwrite - Whether to overwrite if already exists.
-   */
-  async putParameter(
-    name: string,
-    value: string | string[],
-    type: SSMParameterType = "String",
-    overwrite = false,
-  ): Promise<void> {
-    const paramName = normalizeParameterName(name, this.prefix);
-
-    const stringValue =
-      Array.isArray(value) && type === "StringList"
-        ? value.join(",")
-        : String(value);
-
-    const input: PutParameterCommandInput = {
-      Name: paramName,
-      Value: stringValue,
-      Type: type,
-      Overwrite: overwrite,
-    };
-
-    try {
-      await this.client.send(new PutParameterCommand(input));
-    } catch (error: any) {
-      if (!overwrite && error.name === "ParameterAlreadyExists") {
-        throw new ParameterAlreadyExistsError(paramName);
-      }
-      throw new ParameterPutError(paramName, error);
     }
   }
 
