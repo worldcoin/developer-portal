@@ -33,6 +33,7 @@ export const AppStoreFormRefactored = ({
     handleSupportTypeChange,
     submit,
     isEditable,
+    update,
   } = useAppStoreForm(appId, appMetadata);
 
   const isEnoughPermissions = useMemo(() => {
@@ -107,6 +108,7 @@ export const AppStoreFormRefactored = ({
           appId={appId}
           teamId={teamId}
           appMetadata={appMetadata}
+          updateLocalisation={update}
         />
 
         <SaveButton
