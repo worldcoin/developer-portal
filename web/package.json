@@ -43,6 +43,7 @@
     "next": "14.2.25",
     "next-safe": "^3.5.0",
     "next-useragent": "^2.8.0",
+    "node-cache": "^5.1.2",
     "playwright-qase-reporter": "^2.0.17",
     "posthog-js": "^1.166.1",
     "posthog-node": "^4.2.0",

@@ -5,6 +5,7 @@ import {
   GetParameterCommandInput,
   SSMClient,
 } from "@aws-sdk/client-ssm";
+import NodeCache from "node-cache";
 
 export class ParameterStoreError extends Error {
   constructor(message: string) {
@@ -75,10 +76,15 @@ function normalizeParameterName(rawName: string, prefix: string): string {
 export class ParameterStore {
   private client: SSMClient;
   private prefix: string;
+  private cache: NodeCache;
 
   constructor(serviceName: string, region = "eu-west-1") {
     this.client = new SSMClient({ region });
     this.prefix = `/${serviceName}`;
+    this.cache = new NodeCache({
+      stdTTL: 60 * 30, // All parameters are cached for 30 minutes
+      checkperiod: 60, // Check for expired items every 1 minute
+    });
   }
 
   /**
@@ -92,6 +98,12 @@ export class ParameterStore {
     defaultValue?: T,
   ): Promise<T> {
     const paramName = normalizeParameterName(name, this.prefix);
+
+    const cachedValue = this.cache.get(paramName);
+    if (cachedValue) {
+      return cachedValue as T;
+    }
+
     const input: GetParameterCommandInput = {
       Name: paramName,
       WithDecryption: true,
@@ -101,11 +113,17 @@ export class ParameterStore {
       const result = await this.client.send(new GetParameterCommand(input));
       const rawValue = result.Parameter?.Value;
 
+      let value: T;
+
       if (result.Parameter?.Type === "StringList") {
-        return rawValue?.split(",") as T;
+        value = rawValue?.split(",") as T;
+      } else {
+        value = rawValue as T;
       }
 
-      return rawValue as T;
+      this.cache.set(paramName, value);
+
+      return value;
     } catch (error: any) {
       if (error.name === "ParameterNotFound") {
         if (defaultValue !== undefined) {
