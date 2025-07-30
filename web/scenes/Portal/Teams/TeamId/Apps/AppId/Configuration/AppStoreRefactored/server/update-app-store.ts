@@ -50,6 +50,7 @@ export async function updateAppStoreMetadata(
           "The user does not have permission to update this app metadata",
         team_id: teamId,
         app_id: appId,
+        logLevel: "warn",
       });
     }
 
@@ -66,6 +67,7 @@ export async function updateAppStoreMetadata(
         additionalInfo: { formData },
         team_id: teamId,
         app_id: appId,
+        logLevel: "warn",
       });
     }
 
@@ -148,6 +150,7 @@ export async function updateAppStoreMetadata(
       additionalInfo: { formData },
       team_id: teamId,
       app_id: appId,
+      logLevel: "error",
     });
   }
 }

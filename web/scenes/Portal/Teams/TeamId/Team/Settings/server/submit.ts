@@ -17,6 +17,7 @@ export async function validateAndUpdateTeamServerSide(
       errorFormAction({
         message: "The user does not have permission to update this team",
         team_id: teamId,
+        logLevel: "warn",
       });
     }
 
@@ -31,6 +32,7 @@ export async function validateAndUpdateTeamServerSide(
         message: "The provided team data is invalid",
         additionalInfo: { teamName },
         team_id: teamId,
+        logLevel: "warn",
       });
     }
 
@@ -47,6 +49,7 @@ export async function validateAndUpdateTeamServerSide(
       message: "An error occurred while updating the team",
       additionalInfo: { teamName },
       team_id: teamId,
+      logLevel: "error",
     });
   }
 }

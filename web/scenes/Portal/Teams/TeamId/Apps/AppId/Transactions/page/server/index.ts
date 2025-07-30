@@ -18,6 +18,7 @@ export const getTransactionData = async (
         additionalInfo: { transactionId },
         app_id: appId,
         team_id: teamId,
+        logLevel: "error",
       });
     }
 
@@ -47,6 +48,7 @@ export const getTransactionData = async (
         additionalInfo: { transactionId, response, data },
         app_id: appId,
         team_id: teamId,
+        logLevel: "error",
       });
     }
     return (data?.result?.transactions || []).sort(
@@ -60,6 +62,7 @@ export const getTransactionData = async (
       additionalInfo: { transactionId },
       app_id: appId,
       team_id: teamId,
+      logLevel: "error",
     });
   }
 };

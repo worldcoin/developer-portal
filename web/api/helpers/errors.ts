@@ -214,14 +214,16 @@ export function errorFormAction({
   additionalInfo,
   app_id,
   team_id,
+  logLevel,
 }: {
   error?: Error;
   message: string;
   additionalInfo?: object;
   app_id?: string;
   team_id?: string;
+  logLevel?: "error" | "warn";
 }): never {
-  logger.error(message, {
+  logger[logLevel || "error"](message, {
     error,
     additionalInfo,
     app_id,

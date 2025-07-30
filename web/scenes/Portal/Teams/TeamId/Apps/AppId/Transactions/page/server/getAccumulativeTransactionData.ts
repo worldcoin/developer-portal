@@ -62,6 +62,7 @@ const fetchTransactionData = async (
       additionalInfo: { url, response, data },
       team_id: teamId,
       app_id: appId,
+      logLevel: "error",
     });
   }
 
@@ -87,6 +88,7 @@ export const getAccumulativePaymentsData = async (
         message: "The internal payments endpoint is not set",
         app_id: appId,
         team_id: teamId,
+        logLevel: "error",
       });
     }
 
@@ -175,6 +177,7 @@ export const getAccumulativePaymentsData = async (
       error: error as Error,
       app_id: appId,
       team_id: teamId,
+      logLevel: "error",
     });
   }
 };
@@ -194,6 +197,7 @@ export const getAccumulativeTransactionsData = async (
         message: "The internal transactions endpoint is not set",
         app_id: appId,
         team_id: teamId,
+        logLevel: "error",
       });
     }
 
@@ -234,6 +238,7 @@ export const getAccumulativeTransactionsData = async (
       error: error as Error,
       app_id: appId,
       team_id: teamId,
+      logLevel: "error",
     });
   }
 };

@@ -25,6 +25,7 @@ export async function validateAndSubmitAppForReviewFormServerSide({
           "The user does not have permission to submit this app for review",
         team_id: input.team_id,
         app_id: appId,
+        logLevel: "warn",
       });
     }
 
@@ -39,6 +40,7 @@ export async function validateAndSubmitAppForReviewFormServerSide({
         additionalInfo: { input },
         team_id: input.team_id,
         app_id: appId,
+        logLevel: "warn",
       });
     }
 
@@ -59,6 +61,7 @@ export async function validateAndSubmitAppForReviewFormServerSide({
       additionalInfo: { input },
       team_id: input.team_id,
       app_id: appId,
+      logLevel: "error",
     });
   }
 }

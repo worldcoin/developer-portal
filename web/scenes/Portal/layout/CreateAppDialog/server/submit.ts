@@ -16,6 +16,7 @@ export async function validateAndInsertAppServerSide(
       errorFormAction({
         message: "The user does not have permission to create apps",
         team_id,
+        logLevel: "warn",
       });
     }
 
@@ -30,6 +31,7 @@ export async function validateAndInsertAppServerSide(
         message: "The provided app data is invalid",
         additionalInfo: { initialValues },
         team_id,
+        logLevel: "warn",
       });
     }
 
@@ -50,6 +52,7 @@ export async function validateAndInsertAppServerSide(
       error: error as Error,
       additionalInfo: { initialValues },
       team_id,
+      logLevel: "error",
     });
   }
 }

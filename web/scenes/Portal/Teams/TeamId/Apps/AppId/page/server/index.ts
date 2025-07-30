@@ -57,6 +57,7 @@ export const getAppMetricsData = async (
       additionalInfo: { status: metricsData.status },
       team_id: teamId,
       app_id: appId,
+      logLevel: "error",
     });
   }
 

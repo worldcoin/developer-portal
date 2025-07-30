@@ -44,6 +44,7 @@ export async function createActionServerSide(
           "The user does not have permission to create actions for this app",
         team_id: teamId,
         app_id: appId,
+        logLevel: "warn",
       });
     }
 
@@ -61,6 +62,7 @@ export async function createActionServerSide(
         additionalInfo: { initialValues },
         team_id: teamId,
         app_id: appId,
+        logLevel: "warn",
       });
     }
 
@@ -98,6 +100,7 @@ export async function createActionServerSide(
       additionalInfo: { initialValues },
       team_id: teamId,
       app_id: appId,
+      logLevel: "error",
     });
   }
 }

@@ -48,6 +48,7 @@ export async function updateActionServerSide(
         message: "The user does not have permission to update this action",
         team_id: teamId,
         app_id: appId,
+        logLevel: "warn",
       });
     }
 
@@ -67,6 +68,7 @@ export async function updateActionServerSide(
         additionalInfo: { initialValues },
         team_id: teamId,
         app_id: appId,
+        logLevel: "warn",
       });
     }
 
@@ -101,6 +103,7 @@ export async function updateActionServerSide(
       additionalInfo: { initialValues },
       team_id: teamId,
       app_id: appId,
+      logLevel: "error",
     });
   }
 }

@@ -67,6 +67,7 @@ export async function validateAndUpdateLocalisationServerSide(
           "The user does not have permission to update this localisation",
         team_id: teamId,
         app_id: appId,
+        logLevel: "warn",
       });
     }
 
@@ -82,6 +83,7 @@ export async function validateAndUpdateLocalisationServerSide(
         additionalInfo: { initalValues },
         team_id: teamId,
         app_id: appId,
+        logLevel: "warn",
       });
     }
 
@@ -113,6 +115,7 @@ export async function validateAndUpdateLocalisationServerSide(
       },
       team_id: teamId,
       app_id: appId,
+      logLevel: "error",
     });
   }
 }
@@ -149,6 +152,7 @@ export async function validateAndUpdateAppLocaleInfoServerSide(
           "The user does not have permission to update this app metadata",
         team_id: teamId,
         app_id: appId,
+        logLevel: "warn",
       });
     }
 
@@ -164,6 +168,7 @@ export async function validateAndUpdateAppLocaleInfoServerSide(
         additionalInfo: { initalValues },
         team_id: teamId,
         app_id: appId,
+        logLevel: "warn",
       });
     }
 
@@ -194,6 +199,7 @@ export async function validateAndUpdateAppLocaleInfoServerSide(
       },
       team_id: teamId,
       app_id: appId,
+      logLevel: "error",
     });
   }
 }
@@ -230,6 +236,7 @@ export async function validateAndUpdateAppSupportInfoServerSide(
           "The user does not have permission to update this app metadata",
         team_id: teamId,
         app_id: appId,
+        logLevel: "warn",
       });
     }
 
@@ -245,6 +252,7 @@ export async function validateAndUpdateAppSupportInfoServerSide(
         additionalInfo: { initalValues },
         team_id: teamId,
         app_id: appId,
+        logLevel: "warn",
       });
     }
 
@@ -271,6 +279,7 @@ export async function validateAndUpdateAppSupportInfoServerSide(
       additionalInfo: { input, initalValues },
       team_id: teamId,
       app_id: appId,
+      logLevel: "error",
     });
   }
 }
@@ -292,6 +301,7 @@ export async function deleteLocalisationServerSide(
         additionalInfo: { appMetadataId, locale },
         team_id: teamId,
         app_id: appId,
+        logLevel: "warn",
       });
     }
 
@@ -303,6 +313,7 @@ export async function deleteLocalisationServerSide(
           "The user does not have permission to delete this localisation",
         team_id: teamId,
         app_id: appId,
+        logLevel: "warn",
       });
     }
 
@@ -318,6 +329,7 @@ export async function deleteLocalisationServerSide(
       additionalInfo: { appMetadataId, locale },
       team_id: teamId,
       app_id: appId,
+      logLevel: "error",
     });
   }
 }
@@ -339,6 +351,7 @@ export async function addEmptyLocalisationServerSide(
           "The user does not have permission to create localisations for this app",
         team_id: teamId,
         app_id: appId,
+        logLevel: "warn",
       });
     }
 
@@ -370,6 +383,7 @@ export async function addEmptyLocalisationServerSide(
       additionalInfo: { appMetadataId, locale },
       team_id: teamId,
       app_id: appId,
+      logLevel: "error",
     });
   }
 }

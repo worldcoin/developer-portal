@@ -29,6 +29,7 @@ export async function validateAndUpdateSetupServerSide(
           "The user does not have permission to update this app metadata",
         team_id: teamId,
         app_id: appId,
+        logLevel: "warn",
       });
     }
 
@@ -44,6 +45,7 @@ export async function validateAndUpdateSetupServerSide(
         team_id: teamId,
         app_id: appId,
         additionalInfo: { initialValues },
+        logLevel: "warn",
       });
     }
 
@@ -94,6 +96,7 @@ export async function validateAndUpdateSetupServerSide(
       team_id: teamId,
       app_id: appId,
       additionalInfo: { initialValues, app_metadata_id },
+      logLevel: "error",
     });
   }
 }

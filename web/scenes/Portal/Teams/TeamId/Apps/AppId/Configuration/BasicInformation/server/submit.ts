@@ -27,6 +27,7 @@ export async function validateAndSubmitServerSide(
           "The user does not have permission to update this app metadata",
         app_id: input?.app_id ?? undefined,
         team_id: teamId,
+        logLevel: "warn",
       });
     }
 
@@ -41,6 +42,7 @@ export async function validateAndSubmitServerSide(
         additionalInfo: { app_metadata_id, input },
         team_id: teamId,
         app_id: input?.app_id ?? undefined,
+        logLevel: "warn",
       });
     }
 
@@ -60,6 +62,7 @@ export async function validateAndSubmitServerSide(
       additionalInfo: { app_metadata_id, input },
       team_id: teamId,
       app_id: input?.app_id ?? undefined,
+      logLevel: "error",
     });
   }
 }
