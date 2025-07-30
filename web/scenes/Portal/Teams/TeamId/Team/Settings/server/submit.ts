@@ -15,7 +15,7 @@ export async function validateAndUpdateTeamServerSide(
       await getIsUserAllowedToUpdateTeam(teamId);
     if (!isUserAllowedToUpdateTeam) {
       errorFormAction({
-        message: "validateAndUpdateTeamServerSide - invalid permissions",
+        message: "The user does not have permission to update this team",
         team_id: teamId,
       });
     }
@@ -28,7 +28,7 @@ export async function validateAndUpdateTeamServerSide(
 
     if (!isValid || !parsedTeamName) {
       errorFormAction({
-        message: "validateAndUpdateTeamServerSide - invalid input",
+        message: "The provided team data is invalid",
         additionalInfo: { teamName },
         team_id: teamId,
       });
@@ -44,7 +44,7 @@ export async function validateAndUpdateTeamServerSide(
   } catch (error) {
     errorFormAction({
       error: error as Error,
-      message: "validateAndUpdateTeamServerSide - error updating team",
+      message: "An error occurred while updating the team",
       additionalInfo: { teamName },
       team_id: teamId,
     });

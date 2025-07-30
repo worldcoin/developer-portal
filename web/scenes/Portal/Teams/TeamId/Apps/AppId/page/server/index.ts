@@ -53,7 +53,7 @@ export const getAppMetricsData = async (
 
   if (!metricsData.ok) {
     errorFormAction({
-      message: "getAppMetricsData - failed to fetch metrics data",
+      message: "Failed to fetch metrics data",
       additionalInfo: { status: metricsData.status },
       team_id: teamId,
       app_id: appId,

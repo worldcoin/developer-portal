@@ -64,7 +64,7 @@ export async function validateAndUpdateLocalisationServerSide(
     if (!isUserAllowedToUpdateLocalisation) {
       errorFormAction({
         message:
-          "validateAndUpdateLocalisationServerSide - invalid permissions",
+          "The user does not have permission to update this localisation",
         team_id: teamId,
         app_id: appId,
       });
@@ -78,7 +78,7 @@ export async function validateAndUpdateLocalisationServerSide(
 
     if (!isValid || !parsedInitialValues) {
       errorFormAction({
-        message: "validateAndUpdateLocalisationServerSide - invalid input",
+        message: "The provided localisation data is invalid",
         additionalInfo: { initalValues },
         team_id: teamId,
         app_id: appId,
@@ -106,7 +106,7 @@ export async function validateAndUpdateLocalisationServerSide(
   } catch (error) {
     errorFormAction({
       error: error as Error,
-      message: "validateAndUpdateLocalisation - error updating localisation",
+      message: "An error occurred while updating the localisation",
       additionalInfo: {
         encodedInput,
         initalValues,
@@ -146,7 +146,7 @@ export async function validateAndUpdateAppLocaleInfoServerSide(
     if (!isUserAllowedToUpdateAppMetadata) {
       errorFormAction({
         message:
-          "validateAndUpdateAppLocaleInfoServerSide - invalid permissions",
+          "The user does not have permission to update this app metadata",
         team_id: teamId,
         app_id: appId,
       });
@@ -160,7 +160,7 @@ export async function validateAndUpdateAppLocaleInfoServerSide(
 
     if (!isValid || !parsedInitialValues) {
       errorFormAction({
-        message: "validateAndUpdateAppLocaleInfoServerSide - invalid input",
+        message: "The provided app locale info is invalid",
         additionalInfo: { initalValues },
         team_id: teamId,
         app_id: appId,
@@ -187,8 +187,7 @@ export async function validateAndUpdateAppLocaleInfoServerSide(
   } catch (error) {
     errorFormAction({
       error: error as Error,
-      message:
-        "validateAndUpdateAppLocaleInfo - error updating app locale info",
+      message: "An error occurred while updating the app locale info",
       additionalInfo: {
         encodedInput,
         initalValues,
@@ -228,7 +227,7 @@ export async function validateAndUpdateAppSupportInfoServerSide(
     if (!isUserAllowedToUpdateAppMetadata) {
       errorFormAction({
         message:
-          "validateAndUpdateAppSupportInfoServerSide - invalid permissions",
+          "The user does not have permission to update this app metadata",
         team_id: teamId,
         app_id: appId,
       });
@@ -242,7 +241,7 @@ export async function validateAndUpdateAppSupportInfoServerSide(
 
     if (!isValid || !parsedInitialValues) {
       errorFormAction({
-        message: "validateAndUpdateAppSupportInfoServerSide - invalid input",
+        message: "The provided app support info is invalid",
         additionalInfo: { initalValues },
         team_id: teamId,
         app_id: appId,
@@ -268,8 +267,7 @@ export async function validateAndUpdateAppSupportInfoServerSide(
   } catch (error) {
     errorFormAction({
       error: error as Error,
-      message:
-        "validateAndUpdateAppSupportInfo - error updating app support info",
+      message: "An error occurred while updating the app support info",
       additionalInfo: { input, initalValues },
       team_id: teamId,
       app_id: appId,
@@ -290,8 +288,7 @@ export async function deleteLocalisationServerSide(
   try {
     if (locale === "en") {
       errorFormAction({
-        message:
-          "deleteLocalisationServerSide - english localization cannot be removed",
+        message: "English localization cannot be removed",
         additionalInfo: { appMetadataId, locale },
         team_id: teamId,
         app_id: appId,
@@ -302,7 +299,8 @@ export async function deleteLocalisationServerSide(
       await getIsUserAllowedToDeleteLocalisation(appMetadataId, locale);
     if (!isUserAllowedToDeleteLocalisation) {
       errorFormAction({
-        message: "deleteLocalisationServerSide - invalid permissions",
+        message:
+          "The user does not have permission to delete this localisation",
         team_id: teamId,
         app_id: appId,
       });
@@ -316,7 +314,7 @@ export async function deleteLocalisationServerSide(
   } catch (error) {
     errorFormAction({
       error: error as Error,
-      message: "deleteLocalisation - error deleting localisation",
+      message: "An error occurred while deleting the localisation",
       additionalInfo: { appMetadataId, locale },
       team_id: teamId,
       app_id: appId,
@@ -337,7 +335,8 @@ export async function addEmptyLocalisationServerSide(
       await getIsUserAllowedToInsertLocalisation(appId);
     if (!isUserAllowedToInsertLocalisation) {
       errorFormAction({
-        message: "addEmptyLocalisationServerSide - invalid permissions",
+        message:
+          "The user does not have permission to create localisations for this app",
         team_id: teamId,
         app_id: appId,
       });
@@ -367,7 +366,7 @@ export async function addEmptyLocalisationServerSide(
   } catch (error) {
     errorFormAction({
       error: error as Error,
-      message: "addEmptyLocalisation - error adding empty localisation",
+      message: "An error occurred while creating the localisation",
       additionalInfo: { appMetadataId, locale },
       team_id: teamId,
       app_id: appId,

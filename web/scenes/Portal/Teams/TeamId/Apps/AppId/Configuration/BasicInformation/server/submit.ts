@@ -23,7 +23,8 @@ export async function validateAndSubmitServerSide(
       await getIsUserAllowedToUpdateAppMetadata(app_metadata_id);
     if (!isUserAllowedToUpdateAppMetadata) {
       errorFormAction({
-        message: "validateAndSubmitServerSide - invalid permissions",
+        message:
+          "The user does not have permission to update this app metadata",
         app_id: input?.app_id ?? undefined,
         team_id: teamId,
       });
@@ -36,7 +37,7 @@ export async function validateAndSubmitServerSide(
 
     if (!isValid || !parsedInput) {
       errorFormAction({
-        message: "validateAndSubmitServerSide - invalid input",
+        message: "The provided app metadata basic information is invalid",
         additionalInfo: { app_metadata_id, input },
         team_id: teamId,
         app_id: input?.app_id ?? undefined,
@@ -53,7 +54,8 @@ export async function validateAndSubmitServerSide(
     });
   } catch (error) {
     return errorFormAction({
-      message: "Error updating app configuration basic form",
+      message:
+        "An error occurred while updating the app metadata basic information",
       error: error as Error,
       additionalInfo: { app_metadata_id, input },
       team_id: teamId,

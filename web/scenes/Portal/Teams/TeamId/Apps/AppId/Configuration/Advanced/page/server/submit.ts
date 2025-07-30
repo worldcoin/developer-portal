@@ -25,7 +25,8 @@ export async function validateAndUpdateSetupServerSide(
       await getIsUserAllowedToUpdateAppMetadata(app_metadata_id);
     if (!isUserAllowedToUpdateAppMetadata) {
       errorFormAction({
-        message: "validateAndUpdateSetupServerSide - invalid permissions",
+        message:
+          "The user does not have permission to update this app metadata",
         team_id: teamId,
         app_id: appId,
       });
@@ -39,7 +40,7 @@ export async function validateAndUpdateSetupServerSide(
 
     if (!isValid || !parsedInitialValues) {
       errorFormAction({
-        message: "validateAndUpdateSetupServerSide - invalid input",
+        message: "The provided app metadata is invalid",
         team_id: teamId,
         app_id: appId,
         additionalInfo: { initialValues },
@@ -89,7 +90,7 @@ export async function validateAndUpdateSetupServerSide(
   } catch (error) {
     errorFormAction({
       error: error as Error,
-      message: "validateAndUpdateSetupServerSide - error updating setup",
+      message: "An error occurred while updating the app metadata",
       team_id: teamId,
       app_id: appId,
       additionalInfo: { initialValues, app_metadata_id },

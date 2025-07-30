@@ -14,7 +14,7 @@ export async function validateAndInsertAppServerSide(
     const isUserAllowedToInsertApp = await getIsUserAllowedToInsertApp(team_id);
     if (!isUserAllowedToInsertApp) {
       errorFormAction({
-        message: "validateAndInsertAppServerSide - invalid permissions",
+        message: "The user does not have permission to create apps",
         team_id,
       });
     }
@@ -27,7 +27,7 @@ export async function validateAndInsertAppServerSide(
 
     if (!isValid || !parsedInitialValues) {
       errorFormAction({
-        message: "validateAndInsertAppServerSide - invalid input",
+        message: "The provided app data is invalid",
         additionalInfo: { initialValues },
         team_id,
       });
@@ -46,7 +46,7 @@ export async function validateAndInsertAppServerSide(
     });
   } catch (error) {
     errorFormAction({
-      message: "validateAndInsertAppServerSide - error inserting app",
+      message: "An error occurred while creating the app",
       error: error as Error,
       additionalInfo: { initialValues },
       team_id,

@@ -22,7 +22,7 @@ export async function validateAndSubmitAppForReviewFormServerSide({
     if (!isUserAllowedToUpdateAppMetadata) {
       errorFormAction({
         message:
-          "validateAndSubmitAppForReviewFormServerSide - invalid permissions",
+          "The user does not have permission to submit this app for review",
         team_id: input.team_id,
         app_id: appId,
       });
@@ -35,7 +35,7 @@ export async function validateAndSubmitAppForReviewFormServerSide({
 
     if (!isValid || !parsedInput) {
       errorFormAction({
-        message: "validateAndSubmitAppForReviewFormServerSide - invalid input",
+        message: "The provided review data is invalid",
         additionalInfo: { input },
         team_id: input.team_id,
         app_id: appId,

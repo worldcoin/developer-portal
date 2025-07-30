@@ -37,58 +37,70 @@ export async function updateActionServerSide(
   actionId: string,
   isNotProduction: boolean,
 ) {
-  const path = getPathFromHeaders() || "";
-  const { Apps: appId } = extractIdsFromPath(path, ["Apps"]);
+  let appId: string | undefined;
+  try {
+    const path = getPathFromHeaders() || "";
+    const { Apps: appIdFromPath } = extractIdsFromPath(path, ["Apps"]);
+    appId = appIdFromPath;
 
-  if (!(await getIsUserAllowedToUpdateAction(teamId, actionId))) {
-    errorFormAction({
-      message: "updateActionServerSide - invalid permissions",
-      team_id: teamId,
-      app_id: appId,
-    });
-  }
+    if (!(await getIsUserAllowedToUpdateAction(teamId, actionId))) {
+      errorFormAction({
+        message: "The user does not have permission to update this action",
+        team_id: teamId,
+        app_id: appId,
+      });
+    }
 
-  const updateActionSchema = createUpdateActionSchema({
-    is_not_production: isNotProduction,
-  });
-
-  const { isValid, parsedParams: parsedInitialValues } =
-    await validateRequestSchema({
-      schema: updateActionSchema,
-      value: initialValues,
+    const updateActionSchema = createUpdateActionSchema({
+      is_not_production: isNotProduction,
     });
 
-  if (!isValid || !parsedInitialValues) {
+    const { isValid, parsedParams: parsedInitialValues } =
+      await validateRequestSchema({
+        schema: updateActionSchema,
+        value: initialValues,
+      });
+
+    if (!isValid || !parsedInitialValues) {
+      errorFormAction({
+        message: "The provided action data is invalid",
+        additionalInfo: { initialValues },
+        team_id: teamId,
+        app_id: appId,
+      });
+    }
+
+    // Do not allow webhook_uri, webhook_pem, and app_flow_on_complete to be set if the app is not a partner app
+    if (!checkIfPartnerTeam(teamId)) {
+      parsedInitialValues.webhook_uri = undefined;
+      parsedInitialValues.webhook_pem = undefined;
+      parsedInitialValues.app_flow_on_complete = "NONE";
+    }
+
+    // Normalize the public key before saving
+    if (parsedInitialValues.webhook_pem) {
+      parsedInitialValues.webhook_pem = await normalizePublicKey(
+        parsedInitialValues.webhook_pem,
+      );
+    }
+
+    const client = await getAPIServiceGraphqlClient();
+    const { action, ...queryParams } = parsedInitialValues;
+    const result = await getUpdateActionSdk(client).UpdateAction({
+      id: actionId,
+      input: queryParams,
+    });
+
+    return {
+      action_id: result.update_action_by_pk?.id,
+    };
+  } catch (error) {
     errorFormAction({
-      message: "updateActionServerSide - invalid request",
+      message: "An error occurred while updating the action",
+      error: error as Error,
       additionalInfo: { initialValues },
       team_id: teamId,
       app_id: appId,
     });
   }
-
-  // Do not allow webhook_uri, webhook_pem, and app_flow_on_complete to be set if the app is not a partner app
-  if (!checkIfPartnerTeam(teamId)) {
-    parsedInitialValues.webhook_uri = undefined;
-    parsedInitialValues.webhook_pem = undefined;
-    parsedInitialValues.app_flow_on_complete = "NONE";
-  }
-
-  // Normalize the public key before saving
-  if (parsedInitialValues.webhook_pem) {
-    parsedInitialValues.webhook_pem = await normalizePublicKey(
-      parsedInitialValues.webhook_pem,
-    );
-  }
-
-  const client = await getAPIServiceGraphqlClient();
-  const { action, ...queryParams } = parsedInitialValues;
-  const result = await getUpdateActionSdk(client).UpdateAction({
-    id: actionId,
-    input: queryParams,
-  });
-
-  return {
-    action_id: result.update_action_by_pk?.id,
-  };
 }

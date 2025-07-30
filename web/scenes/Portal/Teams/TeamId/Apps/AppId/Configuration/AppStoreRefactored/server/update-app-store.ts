@@ -45,10 +45,12 @@ export async function updateAppStoreMetadata(
       await getIsUserAllowedToUpdateAppMetadata(formData.app_metadata_id);
 
     if (!isUserAllowedToUpdateAppMetadata) {
-      return {
-        success: false,
-        message: "insufficient permissions to update app metadata",
-      };
+      return errorFormAction({
+        message:
+          "The user does not have permission to update this app metadata",
+        team_id: teamId,
+        app_id: appId,
+      });
     }
 
     let parsedParams: AppStoreFormValues;
@@ -60,7 +62,7 @@ export async function updateAppStoreMetadata(
     } catch (validationError) {
       return errorFormAction({
         error: validationError as Error,
-        message: "validation failed",
+        message: "The provided app metadata is invalid",
         additionalInfo: { formData },
         team_id: teamId,
         app_id: appId,
@@ -140,11 +142,9 @@ export async function updateAppStoreMetadata(
       message: "app store information updated successfully",
     };
   } catch (error) {
-    console.error("GraphQL error updating app store metadata:", error);
-
     return errorFormAction({
       error: error as Error,
-      message: "updateAppStoreMetadata - unexpected error",
+      message: "An error occurred while updating the app metadata",
       additionalInfo: { formData },
       team_id: teamId,
       app_id: appId,

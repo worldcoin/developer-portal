@@ -14,7 +14,7 @@ export const getTransactionData = async (
   try {
     if (!process.env.NEXT_SERVER_INTERNAL_PAYMENTS_ENDPOINT) {
       errorFormAction({
-        message: "getTransactionData - internal payments endpoint must be set",
+        message: "The internal payments endpoint is not set",
         additionalInfo: { transactionId },
         app_id: appId,
         team_id: teamId,
@@ -43,7 +43,7 @@ export const getTransactionData = async (
     const data = await response.json();
     if (!response.ok) {
       errorFormAction({
-        message: "getTransactionData - failed to fetch transaction data",
+        message: "Failed to fetch transaction data",
         additionalInfo: { transactionId, response, data },
         app_id: appId,
         team_id: teamId,
@@ -55,7 +55,7 @@ export const getTransactionData = async (
     );
   } catch (error) {
     errorFormAction({
-      message: "getTransactionData - failed to fetch transaction data",
+      message: "Failed to fetch transaction data",
       error: error as Error,
       additionalInfo: { transactionId },
       app_id: appId,

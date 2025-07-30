@@ -84,8 +84,7 @@ export const getAccumulativePaymentsData = async (
   try {
     if (!process.env.NEXT_SERVER_INTERNAL_PAYMENTS_ENDPOINT) {
       errorFormAction({
-        message:
-          "getAccumulativePaymentsData - internal payments endpoint must be set",
+        message: "The internal payments endpoint is not set",
         app_id: appId,
         team_id: teamId,
       });
@@ -172,7 +171,7 @@ export const getAccumulativePaymentsData = async (
     };
   } catch (error) {
     errorFormAction({
-      message: "getAccumulativePaymentsData - error fetching transaction data",
+      message: "Failed to fetch transaction data",
       error: error as Error,
       app_id: appId,
       team_id: teamId,
@@ -192,8 +191,7 @@ export const getAccumulativeTransactionsData = async (
   try {
     if (!process.env.NEXT_SERVER_INTERNAL_PAYMENTS_ENDPOINT) {
       errorFormAction({
-        message:
-          "getAccumulativeTransactionsData - internal transactions endpoint must be set",
+        message: "The internal transactions endpoint is not set",
         app_id: appId,
         team_id: teamId,
       });
@@ -232,8 +230,7 @@ export const getAccumulativeTransactionsData = async (
     };
   } catch (error) {
     errorFormAction({
-      message:
-        "getAccumulativeTransactionsData - error fetching transaction data",
+      message: "Failed to fetch transaction data",
       error: error as Error,
       app_id: appId,
       team_id: teamId,
