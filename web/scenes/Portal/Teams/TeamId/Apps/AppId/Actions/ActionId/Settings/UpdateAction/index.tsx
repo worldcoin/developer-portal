@@ -76,40 +76,31 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
 
   const submit = useCallback(
     async (values: UpdateActionSchema) => {
-      try {
-        setIsSubmitting(true);
+      setIsSubmitting(true);
 
-        // Reformat PEM client-side before submission
-        if (values.webhook_pem) {
-          values.webhook_pem = reformatPem(values.webhook_pem);
-        }
+      // Reformat PEM client-side before submission
+      if (values.webhook_pem) {
+        values.webhook_pem = reformatPem(values.webhook_pem);
+      }
 
-        const result = await updateActionServerSide(
-          values,
-          teamId,
-          action.id,
-          isNotProduction,
-        );
+      const result = await updateActionServerSide(
+        values,
+        teamId,
+        action.id,
+        isNotProduction,
+      );
 
-        if (result instanceof Error) {
-          throw result;
-        }
+      if (!result.success) {
+        console.error("Update action failed: ", result.message);
+        toast.error(result.message);
+      } else {
         toast.success(`Action "${values.name}" updated.`);
-
         await refetchAction();
         await refetchSingleAction();
-
         reset(values);
-      } catch (error) {
-        console.error("Update Action: ", error);
-        toast.error(
-          error instanceof Error
-            ? error.message
-            : "Error occurred while updating action.",
-        );
-      } finally {
-        setIsSubmitting(false);
       }
+
+      setIsSubmitting(false);
     },
     [
       teamId,

@@ -1,13 +1,17 @@
 "use server";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import Skeleton from "react-loading-skeleton";
-import { getAppMetricsData } from "../../server";
+import { AppMetricsData, getAppMetricsData } from "../../server";
 
 const title = "Global ranking";
 
 export const StatCardGlobalRanking = async (props: { appId: string }) => {
-  const value = await getAppMetricsData(props.appId);
-  const splitValue = value.appRanking.split(" / ") as [string, string];
+  let splitValue: [string, string] | undefined;
+  const result = await getAppMetricsData(props.appId);
+  if (result.success) {
+    const value = result.data as AppMetricsData;
+    splitValue = value.appRanking.split(" / ") as [string, string];
+  }
 
   return (
     <div className="flex flex-col gap-y-2">
@@ -15,7 +19,7 @@ export const StatCardGlobalRanking = async (props: { appId: string }) => {
         {title}
       </Typography>
       <div className="flex items-center gap-x-2">
-        {value ? (
+        {splitValue ? (
           <Typography variant={TYPOGRAPHY.H3} className="text-grey-700">
             <span>{splitValue[0]}</span>
             <span className="text-grey-300"> / {splitValue[1]}</span>

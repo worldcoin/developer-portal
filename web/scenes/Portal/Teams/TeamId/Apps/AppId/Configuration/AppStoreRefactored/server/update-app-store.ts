@@ -4,6 +4,7 @@ import { errorFormAction } from "@/api/helpers/errors";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { getIsUserAllowedToUpdateAppMetadata } from "@/lib/permissions";
 import { extractIdsFromPath, getPathFromHeaders } from "@/lib/server-utils";
+import { FormActionResult } from "@/lib/types";
 import * as yup from "yup";
 import { mainAppStoreFormSchema } from "../FormSchema/form-schema";
 import { AppStoreFormValues } from "../FormSchema/types";
@@ -13,11 +14,6 @@ import {
   encodeDescription,
   extractImagePathWithExtensionFromActualUrl,
 } from "../utils";
-
-type FormActionResult = {
-  success: boolean;
-  message: string;
-};
 
 const schema = mainAppStoreFormSchema
   .concat(
@@ -31,6 +27,7 @@ type Schema = yup.Asserts<typeof schema>;
 const formatEmailLink = (email: string): string => {
   return `mailto:${email}`;
 };
+
 export async function updateAppStoreMetadata(
   formData: Schema,
 ): Promise<FormActionResult> {

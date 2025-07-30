@@ -4,17 +4,18 @@ import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { getIsUserAllowedToUpdateTeam } from "@/lib/permissions";
 import { teamNameSchema } from "@/lib/schema";
+import { FormActionResult } from "@/lib/types";
 import { getSdk as getUpdateTeamSdk } from "../graphql/server/update-team.generated";
 
 export async function validateAndUpdateTeamServerSide(
   teamName: string,
   teamId: string,
-) {
+): Promise<FormActionResult> {
   try {
     const isUserAllowedToUpdateTeam =
       await getIsUserAllowedToUpdateTeam(teamId);
     if (!isUserAllowedToUpdateTeam) {
-      errorFormAction({
+      return errorFormAction({
         message: "The user does not have permission to update this team",
         team_id: teamId,
         logLevel: "warn",
@@ -28,7 +29,7 @@ export async function validateAndUpdateTeamServerSide(
       });
 
     if (!isValid || !parsedTeamName) {
-      errorFormAction({
+      return errorFormAction({
         message: "The provided team data is invalid",
         additionalInfo: { teamName },
         team_id: teamId,
@@ -43,8 +44,13 @@ export async function validateAndUpdateTeamServerSide(
         name: parsedTeamName,
       },
     });
+
+    return {
+      success: true,
+      message: "Team updated successfully",
+    };
   } catch (error) {
-    errorFormAction({
+    return errorFormAction({
       error: error as Error,
       message: "An error occurred while updating the team",
       additionalInfo: { teamName },

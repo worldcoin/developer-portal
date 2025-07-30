@@ -1,4 +1,5 @@
 import { logger } from "@/lib/logger";
+import { FormActionResult } from "@/lib/types";
 import { NextRequest, NextResponse } from "next/server";
 import "server-only";
 
@@ -184,30 +185,6 @@ export function errorHasuraQuery({
   );
 }
 
-export class ServerSideValidationError extends Error {
-  public additionalInfo: any;
-  public sourceError?: Error;
-  public app_id?: string;
-  public team_id?: string;
-
-  constructor(
-    message: string,
-    additionalInfo: any,
-    sourceError?: Error,
-    app_id?: string,
-    team_id?: string,
-  ) {
-    super(message);
-    this.name = "ServerSideValidationError";
-    this.additionalInfo = additionalInfo;
-    this.sourceError = sourceError;
-    this.app_id = app_id;
-    this.team_id = team_id;
-
-    Object.setPrototypeOf(this, ServerSideValidationError.prototype);
-  }
-}
-
 export function errorFormAction({
   error,
   message,
@@ -222,7 +199,7 @@ export function errorFormAction({
   app_id?: string;
   team_id?: string;
   logLevel?: "error" | "warn";
-}): never {
+}): FormActionResult {
   logger[logLevel || "error"](message, {
     error,
     additionalInfo,
@@ -230,11 +207,5 @@ export function errorFormAction({
     team_id,
   });
 
-  throw new ServerSideValidationError(
-    message,
-    additionalInfo,
-    error,
-    app_id,
-    team_id,
-  );
+  return { success: false, message, error };
 }

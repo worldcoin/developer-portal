@@ -88,14 +88,16 @@ export const BasicInformation = (props: {
 
   const submit = useCallback(
     async (data: BasicInformationFormValues) => {
-      try {
-        await validateAndSubmitServerSide(appMetaData?.id, data);
+      const result = await validateAndSubmitServerSide(appMetaData?.id, data);
+      if (!result.success) {
+        console.error(
+          "Failed to update app basic information: ",
+          result.message,
+        );
+        toast.error(result.message);
+      } else {
         await refetchAppMetadata();
-
         toast.success("App information updated successfully");
-      } catch (e) {
-        console.error("Basic Info Failed to Update: ", e);
-        toast.error("Failed to update app information");
       }
     },
     [appMetaData?.id, refetchAppMetadata],

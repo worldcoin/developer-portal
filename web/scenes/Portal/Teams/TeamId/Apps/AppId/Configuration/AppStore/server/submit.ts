@@ -10,6 +10,7 @@ import {
   getIsUserAllowedToUpdateLocalisation,
 } from "@/lib/permissions";
 import { extractIdsFromPath, getPathFromHeaders } from "@/lib/server-utils";
+import { FormActionResult } from "@/lib/types";
 import { getSdk as getDeleteLocalisationSdk } from "../AppStoreLocalised/graphql/server/delete-localisation.generated";
 import { getSdk as getFetchLocalisationSdk } from "../AppStoreLocalised/graphql/server/fetch-localisation.generated";
 import { getSdk as getInsertLocalisationSdk } from "../AppStoreLocalised/graphql/server/insert-localisation.generated";
@@ -33,9 +34,10 @@ import {
   UpdateLocalisationInitialSchema,
   updateLocalisationInitialSchema,
 } from "../form-schema";
+
 export async function validateAndUpdateLocalisationServerSide(
   params: UpdateLocalisationInitialSchema,
-) {
+): Promise<FormActionResult> {
   const path = getPathFromHeaders() || "";
   const { Apps: appId, Teams: teamId } = extractIdsFromPath(path, [
     "Apps",
@@ -62,7 +64,7 @@ export async function validateAndUpdateLocalisationServerSide(
     const isUserAllowedToUpdateLocalisation =
       await getIsUserAllowedToUpdateLocalisation(params.localisation_id);
     if (!isUserAllowedToUpdateLocalisation) {
-      errorFormAction({
+      return errorFormAction({
         message:
           "The user does not have permission to update this localisation",
         team_id: teamId,
@@ -78,7 +80,7 @@ export async function validateAndUpdateLocalisationServerSide(
       });
 
     if (!isValid || !parsedInitialValues) {
-      errorFormAction({
+      return errorFormAction({
         message: "The provided localisation data is invalid",
         additionalInfo: { initalValues },
         team_id: teamId,
@@ -105,8 +107,13 @@ export async function validateAndUpdateLocalisationServerSide(
 
     const client = await getAPIServiceGraphqlClient();
     await getUpdateLocalisationSdk(client).UpdateLocalisation(encodedInput);
+
+    return {
+      success: true,
+      message: "Localisation updated successfully",
+    };
   } catch (error) {
-    errorFormAction({
+    return errorFormAction({
       error: error as Error,
       message: "An error occurred while updating the localisation",
       additionalInfo: {
@@ -122,7 +129,7 @@ export async function validateAndUpdateLocalisationServerSide(
 
 export async function validateAndUpdateAppLocaleInfoServerSide(
   params: UpdateAppLocaleInfoInitialSchema,
-) {
+): Promise<FormActionResult> {
   const path = getPathFromHeaders() || "";
   const { Apps: appId, Teams: teamId } = extractIdsFromPath(path, [
     "Apps",
@@ -147,7 +154,7 @@ export async function validateAndUpdateAppLocaleInfoServerSide(
     const isUserAllowedToUpdateAppMetadata =
       await getIsUserAllowedToUpdateAppMetadata(params.app_metadata_id);
     if (!isUserAllowedToUpdateAppMetadata) {
-      errorFormAction({
+      return errorFormAction({
         message:
           "The user does not have permission to update this app metadata",
         team_id: teamId,
@@ -163,7 +170,7 @@ export async function validateAndUpdateAppLocaleInfoServerSide(
       });
 
     if (!isValid || !parsedInitialValues) {
-      errorFormAction({
+      return errorFormAction({
         message: "The provided app locale info is invalid",
         additionalInfo: { initalValues },
         team_id: teamId,
@@ -189,8 +196,13 @@ export async function validateAndUpdateAppLocaleInfoServerSide(
 
     const client = await getAPIServiceGraphqlClient();
     await getUpdateAppInfoSdk(client).UpdateAppInfo(encodedInput);
+
+    return {
+      success: true,
+      message: "App locale info updated successfully",
+    };
   } catch (error) {
-    errorFormAction({
+    return errorFormAction({
       error: error as Error,
       message: "An error occurred while updating the app locale info",
       additionalInfo: {
@@ -206,7 +218,7 @@ export async function validateAndUpdateAppLocaleInfoServerSide(
 
 export async function validateAndUpdateAppSupportInfoServerSide(
   params: UpdateAppSupportInfoInitialSchema,
-) {
+): Promise<FormActionResult> {
   const path = getPathFromHeaders() || "";
   const { Apps: appId, Teams: teamId } = extractIdsFromPath(path, [
     "Apps",
@@ -231,7 +243,7 @@ export async function validateAndUpdateAppSupportInfoServerSide(
     const isUserAllowedToUpdateAppMetadata =
       await getIsUserAllowedToUpdateAppMetadata(params.app_metadata_id);
     if (!isUserAllowedToUpdateAppMetadata) {
-      errorFormAction({
+      return errorFormAction({
         message:
           "The user does not have permission to update this app metadata",
         team_id: teamId,
@@ -247,7 +259,7 @@ export async function validateAndUpdateAppSupportInfoServerSide(
       });
 
     if (!isValid || !parsedInitialValues) {
-      errorFormAction({
+      return errorFormAction({
         message: "The provided app support info is invalid",
         additionalInfo: { initalValues },
         team_id: teamId,
@@ -272,8 +284,13 @@ export async function validateAndUpdateAppSupportInfoServerSide(
 
     const client = await getAPIServiceGraphqlClient();
     await getUpdateAppInfoSdk(client).UpdateAppInfo(input);
+
+    return {
+      success: true,
+      message: "App support info updated successfully",
+    };
   } catch (error) {
-    errorFormAction({
+    return errorFormAction({
       error: error as Error,
       message: "An error occurred while updating the app support info",
       additionalInfo: { input, initalValues },
@@ -287,7 +304,7 @@ export async function validateAndUpdateAppSupportInfoServerSide(
 export async function deleteLocalisationServerSide(
   appMetadataId: string,
   locale: string,
-) {
+): Promise<FormActionResult> {
   const path = getPathFromHeaders() || "";
   const { Apps: appId, Teams: teamId } = extractIdsFromPath(path, [
     "Apps",
@@ -296,7 +313,7 @@ export async function deleteLocalisationServerSide(
 
   try {
     if (locale === "en") {
-      errorFormAction({
+      return errorFormAction({
         message: "English localization cannot be removed",
         additionalInfo: { appMetadataId, locale },
         team_id: teamId,
@@ -308,7 +325,7 @@ export async function deleteLocalisationServerSide(
     const isUserAllowedToDeleteLocalisation =
       await getIsUserAllowedToDeleteLocalisation(appMetadataId, locale);
     if (!isUserAllowedToDeleteLocalisation) {
-      errorFormAction({
+      return errorFormAction({
         message:
           "The user does not have permission to delete this localisation",
         team_id: teamId,
@@ -322,8 +339,13 @@ export async function deleteLocalisationServerSide(
       app_metadata_id: appMetadataId,
       locale,
     });
+
+    return {
+      success: true,
+      message: "Localisation deleted successfully",
+    };
   } catch (error) {
-    errorFormAction({
+    return errorFormAction({
       error: error as Error,
       message: "An error occurred while deleting the localisation",
       additionalInfo: { appMetadataId, locale },
@@ -338,7 +360,7 @@ export async function addEmptyLocalisationServerSide(
   appMetadataId: string,
   locale: string,
   appId: string,
-) {
+): Promise<FormActionResult> {
   const path = getPathFromHeaders() || "";
   const { Teams: teamId } = extractIdsFromPath(path, ["Teams"]);
 
@@ -346,7 +368,7 @@ export async function addEmptyLocalisationServerSide(
     const isUserAllowedToInsertLocalisation =
       await getIsUserAllowedToInsertLocalisation(appId);
     if (!isUserAllowedToInsertLocalisation) {
-      errorFormAction({
+      return errorFormAction({
         message:
           "The user does not have permission to create localisations for this app",
         team_id: teamId,
@@ -366,7 +388,10 @@ export async function addEmptyLocalisationServerSide(
 
     if (localisations.length > 0) {
       // Localization already exists, return early
-      return;
+      return {
+        success: true,
+        message: "Localisation already exists",
+      };
     }
 
     // Create new localization
@@ -376,8 +401,13 @@ export async function addEmptyLocalisationServerSide(
         locale,
       },
     });
+
+    return {
+      success: true,
+      message: "Localisation created successfully",
+    };
   } catch (error) {
-    errorFormAction({
+    return errorFormAction({
       error: error as Error,
       message: "An error occurred while creating the localisation",
       additionalInfo: { appMetadataId, locale },

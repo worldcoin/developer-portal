@@ -49,13 +49,13 @@ export const TeamSettingsPage = () => {
 
   const submit = useCallback(
     async (values: FormValues) => {
-      try {
-        await validateAndUpdateTeamServerSide(values.name, teamId);
+      const result = await validateAndUpdateTeamServerSide(values.name, teamId);
+      if (!result.success) {
+        console.error("Failed to update team: ", result.message);
+        toast.error(result.message);
+      } else {
         toast.success("Your team was successfully updated");
         await Promise.all([refetchTeam(), refetchMe()]);
-      } catch (error) {
-        console.error("Failed to update team: ", error);
-        toast.error("Error updating team");
       }
     },
     [teamId, refetchTeam, refetchMe],

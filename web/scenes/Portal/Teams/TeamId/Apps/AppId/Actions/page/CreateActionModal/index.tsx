@@ -13,7 +13,6 @@ import { reformatPem } from "@/lib/crypto.client";
 import { EngineType } from "@/lib/types";
 import { useRefetchQueries } from "@/lib/use-refetch-queries";
 import { checkIfNotProduction, checkIfPartnerTeam } from "@/lib/utils";
-import { ApolloError } from "@apollo/client";
 import { yupResolver } from "@hookform/resolvers/yup";
 import clsx from "clsx";
 import { useParams, usePathname, useRouter } from "next/navigation";
@@ -93,26 +92,31 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
 
   const submit = useCallback(
     async (values: CreateActionSchema) => {
-      try {
-        setIsSubmitting(true);
+      setIsSubmitting(true);
 
-        // Reformat PEM client-side before submission
-        if (values.webhook_pem) {
-          values.webhook_pem = reformatPem(values.webhook_pem);
-        }
+      // Reformat PEM client-side before submission
+      if (values.webhook_pem) {
+        values.webhook_pem = reformatPem(values.webhook_pem);
+      }
 
-        const result = await createActionServerSide(
-          values,
-          teamId,
-          appId,
-          isNotProduction,
-        );
+      const result = await createActionServerSide(
+        values,
+        teamId,
+        appId,
+        isNotProduction,
+      );
 
-        if (result instanceof Error) {
-          throw result;
-        }
+      if (!result.success) {
+        console.error("Create action failed: ", result.message);
+        posthog.capture("action_creation_failed", {
+          name: values.name,
+          app_id: appId,
+          is_first_action: firstAction,
+          error: result?.error,
+        });
+        toast.error(result.message);
+      } else {
         const action_id = result.action_id;
-
         posthog.capture("action_created", {
           name: values.name,
           app_id: appId,
@@ -122,8 +126,8 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
 
         await refetchActions();
         router.refresh();
-
         reset();
+
         if (firstAction) {
           router.prefetch(`${pathname}/${action_id}/settings`);
           router.replace(`${pathname}/${action_id}/settings`);
@@ -131,31 +135,11 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
           router.prefetch(pathname);
           router.replace(pathname);
         }
-      } catch (error) {
-        posthog.capture("action_creation_failed", {
-          name: values.name,
-          app_id: appId,
-          is_first_action: firstAction,
-          error: error,
-        });
 
-        if (
-          (error as ApolloError).graphQLErrors[0].extensions.code ===
-          "constraint-violation"
-        ) {
-          setError("action", {
-            type: "custom",
-            message: "This action already exists.",
-          });
-          return toast.error(
-            "An action with this identifier already exists for this app. Please change the 'action' identifier.",
-          );
-        }
-        return toast.error("Error occurred while creating action.");
-      } finally {
-        setIsSubmitting(false);
+        toast.success(`Action "${values.name}" created.`);
       }
-      toast.success(`Action "${values.name}" created.`);
+
+      setIsSubmitting(false);
     },
     [
       appId,
@@ -166,7 +150,6 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
       reset,
       router,
       pathname,
-      setError,
     ],
   );
 

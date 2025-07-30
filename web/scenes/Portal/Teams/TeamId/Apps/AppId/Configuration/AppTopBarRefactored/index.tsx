@@ -136,23 +136,20 @@ export const AppTopBarRefactored = (props: AppTopBarProps) => {
         await new Promise<void>((resolve, reject) => {
           form.handleSubmit(
             async (data) => {
-              try {
-                // This should call the updateAppStoreMetadata action
-                const result = await updateAppStoreMetadata({
-                  ...data,
-                  app_metadata_id: appMetadata.id,
-                });
+              const result = await updateAppStoreMetadata({
+                ...data,
+                app_metadata_id: appMetadata.id,
+              });
 
-                if (!result.success) {
-                  toast.error("Failed to save app information");
-                  return;
-                }
-
+              if (!result.success) {
+                toast.error(result.message);
+                console.error(
+                  "Failed to save app information: ",
+                  result.message,
+                );
+              } else {
                 toast.success("App information saved");
                 resolve();
-              } catch (e) {
-                toast.error("Failed to save app information");
-                reject(e);
               }
             },
             (errors) => {

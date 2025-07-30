@@ -5,6 +5,7 @@ import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { normalizePublicKey } from "@/lib/crypto.server";
 import { extractIdsFromPath, getPathFromHeaders } from "@/lib/server-utils";
+import { FormActionResult } from "@/lib/types";
 import { checkIfPartnerTeam } from "@/lib/utils";
 import { getSession } from "@auth0/nextjs-auth0";
 import { getSdk as getActionUpdatePermissionsSdk } from "../graphql/server/get-action-update-permissions.generated";
@@ -36,7 +37,7 @@ export async function updateActionServerSide(
   teamId: string,
   actionId: string,
   isNotProduction: boolean,
-) {
+): Promise<FormActionResult> {
   let appId: string | undefined;
   try {
     const path = getPathFromHeaders() || "";
@@ -44,7 +45,7 @@ export async function updateActionServerSide(
     appId = appIdFromPath;
 
     if (!(await getIsUserAllowedToUpdateAction(teamId, actionId))) {
-      errorFormAction({
+      return errorFormAction({
         message: "The user does not have permission to update this action",
         team_id: teamId,
         app_id: appId,
@@ -63,7 +64,7 @@ export async function updateActionServerSide(
       });
 
     if (!isValid || !parsedInitialValues) {
-      errorFormAction({
+      return errorFormAction({
         message: "The provided action data is invalid",
         additionalInfo: { initialValues },
         team_id: teamId,
@@ -94,10 +95,12 @@ export async function updateActionServerSide(
     });
 
     return {
+      success: true,
+      message: "Action updated successfully",
       action_id: result.update_action_by_pk?.id,
     };
   } catch (error) {
-    errorFormAction({
+    return errorFormAction({
       message: "An error occurred while updating the action",
       error: error as Error,
       additionalInfo: { initialValues },

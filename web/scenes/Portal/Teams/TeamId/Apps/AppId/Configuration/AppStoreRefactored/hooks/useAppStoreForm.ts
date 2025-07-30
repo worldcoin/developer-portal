@@ -85,26 +85,18 @@ export const useAppStoreForm = (appId: string, appMetadata: AppMetadata) => {
 
   const submit = useCallback(
     async (data: AppStoreFormValues) => {
-      try {
-        console.log("submit", data);
-        const result = await updateAppStoreMetadata({
-          ...data,
-          app_metadata_id: appMetadata.id,
-        });
+      const result = await updateAppStoreMetadata({
+        ...data,
+        app_metadata_id: appMetadata.id,
+      });
 
-        if (!result.success) {
-          toast.error(result.message);
-          return;
-        }
-
-        toast.success(result.message);
+      if (!result.success) {
+        toast.error(result.message);
+      } else {
         await Promise.all([refetchAppMetadata(), refetchLocalisations()]);
         toast.success("App information updated successfully");
-      } catch (e) {
-        toast.error("Failed to update app information");
-      } finally {
-        toast.update("formState", { autoClose: 0 });
       }
+      toast.update("formState", { autoClose: 0 });
     },
     [appMetadata.id, refetchAppMetadata, refetchLocalisations],
   );
