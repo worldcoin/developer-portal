@@ -865,6 +865,7 @@ export const AppStoreForm = (props: {
                     field.onChange(countries.map((c) => c.value))
                   }
                   clearAll={() => field.onChange([])}
+                  canClearAll={field.value.length > 0}
                   showSelectedList
                   searchPlaceholder="Start by typing country..."
                   selectAllLabel="Add all countries"
