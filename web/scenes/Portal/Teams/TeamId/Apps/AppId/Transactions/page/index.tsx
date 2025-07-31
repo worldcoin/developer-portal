@@ -18,7 +18,6 @@ export const TransactionsPage = async (props: TransactionsPageProps) => {
   const result = await getTransactionData(appId);
   let transactionData: PaymentMetadata[] = [];
   if (!result.success) {
-    console.error("Failed to fetch transaction data: ", result.message);
     toast.error(result.message);
   } else {
     transactionData = result.data as PaymentMetadata[];

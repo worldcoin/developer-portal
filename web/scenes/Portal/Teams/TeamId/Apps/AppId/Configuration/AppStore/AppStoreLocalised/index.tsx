@@ -232,7 +232,6 @@ export const AppStoreForm = (props: {
             lang,
           );
           if (!result.success) {
-            console.error("Delete localisation failed: ", result.message);
             toast.error(result.message);
           }
           // Remove from deleting set when done or on error
@@ -419,7 +418,6 @@ export const AppStoreForm = (props: {
       const result =
         await validateAndUpdateAppLocaleInfoServerSide(commonProperties);
       if (!result.success) {
-        console.error("Update app locale info failed: ", result.message);
         toast.error(result.message);
       } else {
         await refetchAppMetadata();
@@ -433,7 +431,6 @@ export const AppStoreForm = (props: {
       });
 
       if (!result.success) {
-        console.error("Update localisation failed: ", result.message);
         toast.error(result.message);
       } else {
         await refetchLocalisation({
@@ -468,7 +465,6 @@ export const AppStoreForm = (props: {
         is_for_humans_only: data.is_for_humans_only,
       });
       if (!result.success) {
-        console.error("Update app support info failed: ", result.message);
         toast.error(result.message);
       } else {
         await refetchAppMetadata();

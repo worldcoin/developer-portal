@@ -112,7 +112,6 @@ export const SubmitAppModal = (props: SubmitAppModalProps) => {
         },
       });
       if (!result.success) {
-        console.error("Failed to submit app for review: ", result.message);
         toast.error(result.message);
         return;
       }

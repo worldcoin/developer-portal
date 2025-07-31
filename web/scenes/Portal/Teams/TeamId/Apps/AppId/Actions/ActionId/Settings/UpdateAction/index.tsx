@@ -89,7 +89,6 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
       );
 
       if (!result.success) {
-        console.error("Update action failed: ", result.message);
         toast.error(result.message);
       } else {
         toast.success(`Action "${values.name}" updated.`);

@@ -90,10 +90,6 @@ export const BasicInformation = (props: {
     async (data: BasicInformationFormValues) => {
       const result = await validateAndSubmitServerSide(appMetaData?.id, data);
       if (!result.success) {
-        console.error(
-          "Failed to update app basic information: ",
-          result.message,
-        );
         toast.error(result.message);
       } else {
         await refetchAppMetadata();

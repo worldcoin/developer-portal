@@ -143,10 +143,6 @@ export const AppTopBarRefactored = (props: AppTopBarProps) => {
 
               if (!result.success) {
                 toast.error(result.message);
-                console.error(
-                  "Failed to save app information: ",
-                  result.message,
-                );
               } else {
                 toast.success("App information saved");
                 resolve();

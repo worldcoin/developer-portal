@@ -65,7 +65,6 @@ export const CreateAppDialog = (props: DialogProps) => {
       }
       const result = await validateAndInsertAppServerSide(values, teamId);
       if (!result.success) {
-        console.error("Create app failed: ", result.message);
         toast.error(result.message);
         posthog.capture("app_creation_failed", {
           team_id: teamId,

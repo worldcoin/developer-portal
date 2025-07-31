@@ -51,7 +51,6 @@ export const TeamSettingsPage = () => {
     async (values: FormValues) => {
       const result = await validateAndUpdateTeamServerSide(values.name, teamId);
       if (!result.success) {
-        console.error("Failed to update team: ", result.message);
         toast.error(result.message);
       } else {
         toast.success("Your team was successfully updated");
