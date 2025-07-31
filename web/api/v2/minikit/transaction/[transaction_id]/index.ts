@@ -4,6 +4,7 @@ import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { logger } from "@/lib/logger";
 import { appIdSchema } from "@/lib/schema";
 import { TransactionTypes } from "@/lib/types";
+import { fetchWithRetry } from "@/lib/utils";
 import { createSignedFetcher } from "aws-sigv4-fetch";
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
@@ -59,34 +60,38 @@ export const GET = async (
     region: process.env.TRANSACTION_BACKEND_REGION,
   });
 
-  let res;
-  if (type === TransactionTypes.Payment) {
-    res = await signedFetch(
-      `${process.env.NEXT_SERVER_INTERNAL_PAYMENTS_ENDPOINT}/miniapp?miniapp-id=${appId}&transaction-id=${transactionId}`,
-      {
-        method: "GET",
-        headers: {
-          "User-Agent": req.headers.get("user-agent") ?? "DevPortal/1.0",
-          "Content-Type": "application/json",
-        },
+  const url =
+    type === TransactionTypes.Payment
+      ? `${process.env.NEXT_SERVER_INTERNAL_PAYMENTS_ENDPOINT}/miniapp?miniapp-id=${appId}&transaction-id=${transactionId}`
+      : `${process.env.NEXT_SERVER_INTERNAL_PAYMENTS_ENDPOINT}/miniapp-actions?miniapp-id=${appId}&transaction-id=${transactionId}`;
+
+  const res = await fetchWithRetry(
+    url,
+    {
+      method: "GET",
+      headers: {
+        "User-Agent": req.headers.get("user-agent") ?? "DevPortal/1.0",
+        "Content-Type": "application/json",
       },
-    );
-  } else {
-    res = await signedFetch(
-      `${process.env.NEXT_SERVER_INTERNAL_PAYMENTS_ENDPOINT}/miniapp-actions?miniapp-id=${appId}&transaction-id=${transactionId}`,
-      {
-        method: "GET",
-        headers: {
-          "User-Agent": req.headers.get("user-agent") ?? "DevPortal/1.0",
-          "Content-Type": "application/json",
-        },
-      },
-    );
-  }
+      signal: AbortSignal.timeout(5000), // 5 seconds timeout
+    },
+    3, // max retries
+    400, // initial retry delay in ms
+    false, // don't throw on error
+    signedFetch,
+  );
 
   if (!res.ok) {
-    const errorBody = await res.json();
-    // console.log("errorBody", JSON.parse(await res.text()));
+    let errorBody: any = {};
+    try {
+      if (res.headers.get("content-type")?.includes("application/json")) {
+        errorBody = await res.json();
+      }
+    } catch (e) {
+      logger.warn("Error parsing transaction response body", {
+        error: e,
+      });
+    }
 
     logger.warn("Error fetching transaction data", {
       status: res.status,
