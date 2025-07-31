@@ -110,7 +110,6 @@ export const AppStoreForm = (props: {
         appId,
       );
       if (!result.success) {
-        console.error("Add localisation failed: ", result.message);
         toast.error(result.message);
       } else {
         await refetchLocalisation({

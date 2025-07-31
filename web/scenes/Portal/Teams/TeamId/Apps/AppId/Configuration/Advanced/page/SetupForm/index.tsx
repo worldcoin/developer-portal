@@ -176,7 +176,6 @@ export const SetupForm = (props: LinksFormProps) => {
       );
 
       if (!result.success) {
-        console.error("Update app metadata failed: ", result.message);
         toast.error(result.message);
       } else {
         refetchAppMetadata();

@@ -105,7 +105,6 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
       );
 
       if (!result.success) {
-        console.error("Create action failed: ", result.message);
         posthog.capture("action_creation_failed", {
           name: values.name,
           app_id: appId,
