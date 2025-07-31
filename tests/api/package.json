@@ -15,6 +15,18 @@
     "jest": "^29.7.0",
     "ts-jest": "^29.2.5",
     "ts-node": "^10.9.2",
-    "typescript": "^5.3.3"
+    "typescript": "^5.3.3",
+    "@ethersproject/bignumber": "5.7.0",
+    "@ethersproject/bytes": "5.7.0",
+    "@safe-global/protocol-kit": "3.1.1",
+    "@safe-global/safe-core-sdk-types": "4.1.1",
+    "@semaphore-protocol/group": "3.11.0",
+    "@semaphore-protocol/identity": "3.11.0",
+    "@semaphore-protocol/proof": "3.11.0",
+    "@zk-kit/incremental-merkle-tree": "1.1.0",
+    "snarkjs": "0.7.4",
+    "ethers": "^6.13.5",
+    "viem": "^2.26.2",
+    "jose": "^5.10.0"
   }
 }
