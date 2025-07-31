@@ -24,15 +24,15 @@ import clsx from "clsx";
 import { ChangeEvent, useCallback, useEffect, useMemo } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { toast } from "react-toastify";
-import * as yup from "yup";
 import {
   FetchAppMetadataDocument,
   FetchAppMetadataQuery,
 } from "../../../graphql/client/fetch-app-metadata.generated";
-import { schema } from "../form-schema";
+import {
+  updateSetupInitialSchema,
+  UpdateSetupInitialSchema,
+} from "../form-schema";
 import { validateAndUpdateSetupServerSide } from "../server/submit";
-
-type LinksFormValues = yup.Asserts<typeof schema>;
 
 type LinksFormProps = {
   appId: string;
@@ -103,8 +103,8 @@ export const SetupForm = (props: LinksFormProps) => {
     formState: { errors, isDirty, isValid, dirtyFields },
     setError,
     control,
-  } = useForm<LinksFormValues>({
-    resolver: yupResolver(schema),
+  } = useForm<UpdateSetupInitialSchema>({
+    resolver: yupResolver(updateSetupInitialSchema),
     mode: "onChange",
 
     defaultValues: {
@@ -152,7 +152,7 @@ export const SetupForm = (props: LinksFormProps) => {
   ]);
 
   const submit = useCallback(
-    async (values: LinksFormValues) => {
+    async (values: UpdateSetupInitialSchema) => {
       // Check if app_mode is true and whitelisted_addresses is not provided or empty
       if (
         values.app_mode &&
@@ -171,18 +171,7 @@ export const SetupForm = (props: LinksFormProps) => {
       }
 
       const result = await validateAndUpdateSetupServerSide(
-        {
-          is_whitelist_disabled: values.is_whitelist_disabled,
-          whitelisted_addresses: values.whitelisted_addresses,
-          app_mode: values.app_mode as keyof typeof AppMode,
-          associated_domains: values.associated_domains,
-          contracts: values.contracts,
-          permit2_tokens: values.permit2_tokens,
-          can_import_all_contacts: values.can_import_all_contacts,
-          max_notifications_per_day: values.max_notifications_per_day,
-          is_allowed_unlimited_notifications:
-            values.is_allowed_unlimited_notifications,
-        },
+        values,
         appMetadata?.id ?? "",
       );
 
