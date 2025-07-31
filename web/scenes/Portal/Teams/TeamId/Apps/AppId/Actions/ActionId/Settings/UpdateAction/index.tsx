@@ -6,7 +6,7 @@ import { Toggle } from "@/components/Toggle";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { reformatPem } from "@/lib/crypto.client";
 import { useRefetchQueries } from "@/lib/use-refetch-queries";
-import { checkIfNotProduction, checkIfPartnerTeam } from "@/lib/utils";
+import { checkIfPartnerTeam, checkIfProduction } from "@/lib/utils";
 import { yupResolver } from "@hookform/resolvers/yup";
 import clsx from "clsx";
 import { useCallback, useState } from "react";
@@ -32,7 +32,7 @@ type UpdateActionProps = {
 
 export const UpdateActionForm = (props: UpdateActionProps) => {
   const { action, teamId } = props;
-  const isNotProduction = checkIfNotProduction();
+  const isProduction = checkIfProduction();
   const isPartnerTeam = checkIfPartnerTeam(teamId);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -44,9 +44,7 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
     watch,
     reset,
   } = useForm<UpdateActionSchema>({
-    resolver: yupResolver(
-      createUpdateActionSchema({ is_not_production: isNotProduction }),
-    ),
+    resolver: yupResolver(createUpdateActionSchema({ isProduction })),
     mode: "onChange",
     defaultValues: {
       name: action.name,
@@ -87,7 +85,7 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
         values,
         teamId,
         action.id,
-        isNotProduction,
+        isProduction,
       );
 
       if (!result.success) {
@@ -105,7 +103,7 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
     [
       teamId,
       action.id,
-      isNotProduction,
+      isProduction,
       refetchAction,
       refetchSingleAction,
       reset,

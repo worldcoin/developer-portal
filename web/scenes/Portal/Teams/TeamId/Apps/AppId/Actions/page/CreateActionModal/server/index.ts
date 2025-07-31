@@ -37,7 +37,7 @@ export async function createActionServerSide(
   initialValues: CreateActionSchema,
   teamId: string,
   appId: string,
-  isNotProduction: boolean,
+  isProduction: boolean,
 ): Promise<FormActionResult> {
   try {
     if (!(await getIsUserAllowedToInsertAction(teamId, appId))) {
@@ -50,7 +50,7 @@ export async function createActionServerSide(
       });
     }
 
-    const schema = createActionSchema({ is_not_production: isNotProduction });
+    const schema = createActionSchema({ isProduction });
 
     const { isValid, parsedParams: parsedInitialValues } =
       await validateRequestSchema({

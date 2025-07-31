@@ -36,7 +36,7 @@ export async function updateActionServerSide(
   initialValues: UpdateActionSchema,
   teamId: string,
   actionId: string,
-  isNotProduction: boolean,
+  isProduction: boolean,
 ): Promise<FormActionResult> {
   let appId: string | undefined;
   try {
@@ -44,7 +44,11 @@ export async function updateActionServerSide(
     const { Apps: appIdFromPath } = extractIdsFromPath(path, ["Apps"]);
     appId = appIdFromPath;
 
-    if (!(await getIsUserAllowedToUpdateAction(teamId, actionId))) {
+    const isUserAllowedToUpdateAction = await getIsUserAllowedToUpdateAction(
+      teamId,
+      actionId,
+    );
+    if (!isUserAllowedToUpdateAction) {
       return errorFormAction({
         message: "The user does not have permission to update this action",
         team_id: teamId,
@@ -54,7 +58,7 @@ export async function updateActionServerSide(
     }
 
     const updateActionSchema = createUpdateActionSchema({
-      is_not_production: isNotProduction,
+      isProduction,
     });
 
     const { isValid, parsedParams: parsedInitialValues } =

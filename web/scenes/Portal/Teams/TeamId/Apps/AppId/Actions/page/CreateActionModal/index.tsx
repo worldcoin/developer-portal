@@ -12,7 +12,7 @@ import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { reformatPem } from "@/lib/crypto.client";
 import { EngineType } from "@/lib/types";
 import { useRefetchQueries } from "@/lib/use-refetch-queries";
-import { checkIfNotProduction, checkIfPartnerTeam } from "@/lib/utils";
+import { checkIfPartnerTeam, checkIfProduction } from "@/lib/utils";
 import { yupResolver } from "@hookform/resolvers/yup";
 import clsx from "clsx";
 import { useParams, usePathname, useRouter } from "next/navigation";
@@ -41,7 +41,7 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
   const router = useRouter();
   const appId = params?.appId as `app_${string}`;
   const teamId = params?.teamId as string;
-  const isNotProduction = checkIfNotProduction();
+  const isProduction = checkIfProduction();
   const isPartnerTeam = checkIfPartnerTeam(teamId);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -56,9 +56,7 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
     reset,
     setFocus,
   } = useForm<CreateActionSchema>({
-    resolver: yupResolver(
-      createActionSchema({ is_not_production: isNotProduction }),
-    ),
+    resolver: yupResolver(createActionSchema({ isProduction })),
     mode: "onChange",
     defaultValues: {
       max_verifications: 1,
@@ -103,7 +101,7 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
         values,
         teamId,
         appId,
-        isNotProduction,
+        isProduction,
       );
 
       if (!result.success) {
@@ -145,7 +143,7 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
       appId,
       firstAction,
       teamId,
-      isNotProduction,
+      isProduction,
       refetchActions,
       reset,
       router,
