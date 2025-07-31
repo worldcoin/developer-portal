@@ -136,25 +136,6 @@ export const NativeApps: Record<string, NativeAppsMap> = {
   },
 };
 
-// These are addresses that have been whitelisted from the permit2 restriction
-export const whitelistedAppsPermit2 = [
-  "app_a4f7f3e62c1de0b9490a5260cb390b56", // UNO
-  "app_013bbbd7b5803a25c8d10d10299608e7", // MEME.Factory
-  "app_15daccf5b7d4ec9b7dbba044a8fdeab5", // Poop
-  "app_8e407cfbae7ae51c19b07faff837aeeb", // DNA
-  "app_7cf6a578c65c4b7db84bc6734fb0e165", // DNA Wallet
-  "app_49fe40f83cfcdf67b7ba716d37e927e4", // Cash
-  "app_0d4b759921490adc1f2bd569fda9b53a", // Holdstation Wallet
-];
-
-export const whitelistedAppsContracts = [
-  "app_a4f7f3e62c1de0b9490a5260cb390b56", // UNO
-  "app_8e407cfbae7ae51c19b07faff837aeeb", // DNA
-  "app_7cf6a578c65c4b7db84bc6734fb0e165", // DNA Wallet
-  "app_d4bce4c056d0cb5ec84c62c6729a66a8", // DNA NFT
-  "app_d7389cebfa78ca21072403a20135ae4d", // SurveyBull
-];
-
 export const AppMode = {
   external: "external",
   ["mini-app"]: "mini-app",
