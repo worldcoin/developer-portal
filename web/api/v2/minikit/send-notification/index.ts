@@ -381,17 +381,17 @@ export const POST = async (req: NextRequest) => {
 
   let data: any = {};
 
-  if (!res.ok) {
-    try {
-      if (res.headers.get("content-type")?.includes("application/json")) {
-        data = await res.json();
-      }
-    } catch (e) {
-      logger.warn("Error parsing send notification response body", {
-        error: e,
-      });
+  try {
+    if (res.headers.get("content-type")?.includes("application/json")) {
+      data = await res.json();
     }
+  } catch (e) {
+    logger.warn("Error parsing send notification response body", {
+      error: e,
+    });
+  }
 
+  if (!res.ok) {
     logger.warn("Error sending notification", {
       data,
       app_id,
