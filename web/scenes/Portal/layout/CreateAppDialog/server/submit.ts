@@ -3,19 +3,21 @@ import { errorFormAction } from "@/api/helpers/errors";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { getIsUserAllowedToInsertApp } from "@/lib/permissions";
+import { FormActionResult } from "@/lib/types";
 import { createAppSchema, CreateAppSchema } from "../form-schema";
 import { getSdk as getInsertAppSdk } from "../graphql/server/insert-app.generated";
 
 export async function validateAndInsertAppServerSide(
   initialValues: CreateAppSchema,
   team_id: string,
-) {
+): Promise<FormActionResult> {
   try {
     const isUserAllowedToInsertApp = await getIsUserAllowedToInsertApp(team_id);
     if (!isUserAllowedToInsertApp) {
-      errorFormAction({
-        message: "validateAndInsertAppServerSide - invalid permissions",
+      return errorFormAction({
+        message: "The user does not have permission to create apps",
         team_id,
+        logLevel: "warn",
       });
     }
 
@@ -26,10 +28,11 @@ export async function validateAndInsertAppServerSide(
       });
 
     if (!isValid || !parsedInitialValues) {
-      errorFormAction({
-        message: "validateAndInsertAppServerSide - invalid input",
+      return errorFormAction({
+        message: "The provided app data is invalid",
         additionalInfo: { initialValues },
         team_id,
+        logLevel: "warn",
       });
     }
 
@@ -44,12 +47,18 @@ export async function validateAndInsertAppServerSide(
         parsedInitialValues.integration_url ?? "https://docs.world.org/",
       app_mode: parsedInitialValues.app_mode,
     });
+
+    return {
+      success: true,
+      message: "App created successfully",
+    };
   } catch (error) {
-    errorFormAction({
-      message: "validateAndInsertAppServerSide - error inserting app",
+    return errorFormAction({
+      message: "An error occurred while creating the app",
       error: error as Error,
       additionalInfo: { initialValues },
       team_id,
+      logLevel: "error",
     });
   }
 }

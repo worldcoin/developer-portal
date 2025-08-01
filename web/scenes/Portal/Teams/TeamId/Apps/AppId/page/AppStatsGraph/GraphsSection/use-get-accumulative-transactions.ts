@@ -15,17 +15,17 @@ export const useGetAccumulativeTransactions = (appId: string) => {
 
   useEffect(() => {
     const fetchTransactions = async () => {
-      try {
-        const paymentsData = await getAccumulativePaymentsData(appId);
-        setPayments(paymentsData);
-        // TODO once we have metrics endpoint
-        // const transactionsData = await getAccumulativeTransactionsData(appId);
-        // setTransactions(transactionsData);
-      } catch (err) {
-        setError(err);
-      } finally {
-        setLoading(false);
+      const result = await getAccumulativePaymentsData(appId);
+      if (!result.success) {
+        setError(result.message);
+        console.error("Failed to fetch payments data: ", result.message);
+      } else {
+        setPayments(result.data as GetAccumulativePaymentsDataReturnType);
       }
+      // TODO once we have metrics endpoint
+      // const transactionsData = await getAccumulativeTransactionsData(appId);
+      // setTransactions(transactionsData);
+      setLoading(false);
     };
 
     fetchTransactions();

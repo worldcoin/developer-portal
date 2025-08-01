@@ -6,7 +6,7 @@ import { Toggle } from "@/components/Toggle";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { reformatPem } from "@/lib/crypto.client";
 import { useRefetchQueries } from "@/lib/use-refetch-queries";
-import { checkIfNotProduction, checkIfPartnerTeam } from "@/lib/utils";
+import { checkIfPartnerTeam, checkIfProduction } from "@/lib/utils";
 import { yupResolver } from "@hookform/resolvers/yup";
 import clsx from "clsx";
 import { useCallback, useState } from "react";
@@ -32,7 +32,7 @@ type UpdateActionProps = {
 
 export const UpdateActionForm = (props: UpdateActionProps) => {
   const { action, teamId } = props;
-  const isNotProduction = checkIfNotProduction();
+  const isProduction = checkIfProduction();
   const isPartnerTeam = checkIfPartnerTeam(teamId);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -44,9 +44,7 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
     watch,
     reset,
   } = useForm<UpdateActionSchema>({
-    resolver: yupResolver(
-      createUpdateActionSchema({ is_not_production: isNotProduction }),
-    ),
+    resolver: yupResolver(createUpdateActionSchema({ isProduction })),
     mode: "onChange",
     defaultValues: {
       name: action.name,
@@ -76,45 +74,35 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
 
   const submit = useCallback(
     async (values: UpdateActionSchema) => {
-      try {
-        setIsSubmitting(true);
+      setIsSubmitting(true);
 
-        // Reformat PEM client-side before submission
-        if (values.webhook_pem) {
-          values.webhook_pem = reformatPem(values.webhook_pem);
-        }
+      // Reformat PEM client-side before submission
+      if (values.webhook_pem) {
+        values.webhook_pem = reformatPem(values.webhook_pem);
+      }
 
-        const result = await updateActionServerSide(
-          values,
-          teamId,
-          action.id,
-          isNotProduction,
-        );
+      const result = await updateActionServerSide(
+        values,
+        teamId,
+        action.id,
+        isProduction,
+      );
 
-        if (result instanceof Error) {
-          throw result;
-        }
+      if (!result.success) {
+        toast.error(result.message);
+      } else {
         toast.success(`Action "${values.name}" updated.`);
-
         await refetchAction();
         await refetchSingleAction();
-
         reset(values);
-      } catch (error) {
-        console.error("Update Action: ", error);
-        toast.error(
-          error instanceof Error
-            ? error.message
-            : "Error occurred while updating action.",
-        );
-      } finally {
-        setIsSubmitting(false);
       }
+
+      setIsSubmitting(false);
     },
     [
       teamId,
       action.id,
-      isNotProduction,
+      isProduction,
       refetchAction,
       refetchSingleAction,
       reset,

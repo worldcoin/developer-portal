@@ -333,10 +333,10 @@ export const checkIfPartnerTeam = (teamId: string) => {
 };
 
 /**
- * Checks if the app is not in a production environment
+ * Checks if the app is in a production environment
  */
-export const checkIfNotProduction = (): boolean => {
-  return process.env.NEXT_PUBLIC_APP_ENV !== "production";
+export const checkIfProduction = (): boolean => {
+  return process.env.NEXT_PUBLIC_APP_ENV === "production";
 };
 
 const DEFAULT_MAX_RETRIES = 3;

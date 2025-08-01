@@ -8,14 +8,14 @@ export const useGetMetrics = (appId: string) => {
 
   useEffect(() => {
     const fetchMetrics = async () => {
-      try {
-        const data = await getAppMetricsData(appId);
-        setMetrics(data);
-      } catch (err) {
-        setError(err);
-      } finally {
-        setLoading(false);
+      const result = await getAppMetricsData(appId);
+      if (!result.success) {
+        console.error("Failed to fetch app metrics data: ", result.message);
+        setError(result.error);
+      } else {
+        setMetrics(result.data as AppMetricsData);
       }
+      setLoading(false);
     };
 
     fetchMetrics();

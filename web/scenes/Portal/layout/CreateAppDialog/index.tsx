@@ -63,15 +63,14 @@ export const CreateAppDialog = (props: DialogProps) => {
       if (!teamId) {
         return toast.error("Failed to create app");
       }
-      try {
-        await validateAndInsertAppServerSide(values, teamId);
-      } catch (error) {
-        toast.error("Error while creating app");
-
+      const result = await validateAndInsertAppServerSide(values, teamId);
+      if (!result.success) {
+        toast.error(result.message);
         posthog.capture("app_creation_failed", {
           team_id: teamId,
           environment: values.build,
           engine: values.verification,
+          error: result?.error,
         });
       }
       const [refetched] = await refetchApps();

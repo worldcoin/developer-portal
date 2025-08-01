@@ -3,6 +3,7 @@
 import { errorFormAction } from "@/api/helpers/errors";
 import { extractIdsFromPath, getPathFromHeaders } from "@/lib/server-utils";
 import {
+  FormActionResult,
   PaymentMetadata,
   TokenPrecision,
   TransactionMetadata,
@@ -10,13 +11,15 @@ import {
 } from "@/lib/types";
 import { createSignedFetcher } from "aws-sigv4-fetch";
 
-export type GetAccumulativePaymentsDataReturnType = Awaited<
-  ReturnType<typeof getAccumulativePaymentsData>
->;
+export type GetAccumulativePaymentsDataReturnType = {
+  accumulativePayments: PaymentMetadata[];
+  accumulatedTokenAmountUSD: number;
+};
 
-export type GetAccumulativeTransactionsDataReturnType = Awaited<
-  ReturnType<typeof getAccumulativeTransactionsData>
->;
+export type GetAccumulativeTransactionsDataReturnType = {
+  accumulativeTransactions: TransactionMetadata[];
+  accumulatedTransactionCount: number;
+};
 
 const calculateUSDAmount = (
   tokenAmount: number,
@@ -62,6 +65,7 @@ const fetchTransactionData = async (
       additionalInfo: { url, response, data },
       team_id: teamId,
       app_id: appId,
+      logLevel: "error",
     });
   }
 
@@ -74,20 +78,17 @@ const fetchTransactionData = async (
 */
 export const getAccumulativePaymentsData = async (
   appId: string,
-): Promise<{
-  accumulativePayments: PaymentMetadata[];
-  accumulatedTokenAmountUSD: number;
-}> => {
+): Promise<FormActionResult> => {
   const path = getPathFromHeaders() || "";
   const { Teams: teamId } = extractIdsFromPath(path, ["Teams"]);
 
   try {
     if (!process.env.NEXT_SERVER_INTERNAL_PAYMENTS_ENDPOINT) {
-      errorFormAction({
-        message:
-          "getAccumulativePaymentsData - internal payments endpoint must be set",
+      return errorFormAction({
+        message: "The internal payments endpoint is not set",
         app_id: appId,
         team_id: teamId,
+        logLevel: "error",
       });
     }
 
@@ -167,35 +168,39 @@ export const getAccumulativePaymentsData = async (
       );
 
     return {
-      accumulativePayments,
-      accumulatedTokenAmountUSD: roundToTwoDecimals(accumulatedTokenAmountUSD),
+      success: true,
+      message: "Transaction data fetched successfully",
+      data: {
+        accumulativePayments,
+        accumulatedTokenAmountUSD: roundToTwoDecimals(
+          accumulatedTokenAmountUSD,
+        ),
+      },
     };
   } catch (error) {
-    errorFormAction({
-      message: "getAccumulativePaymentsData - error fetching transaction data",
+    return errorFormAction({
+      message: "Failed to fetch transaction data",
       error: error as Error,
       app_id: appId,
       team_id: teamId,
+      logLevel: "error",
     });
   }
 };
 
 export const getAccumulativeTransactionsData = async (
   appId: string,
-): Promise<{
-  accumulativeTransactions: TransactionMetadata[];
-  accumulatedTransactionCount: number;
-}> => {
+): Promise<FormActionResult> => {
   const path = getPathFromHeaders() || "";
   const { Teams: teamId } = extractIdsFromPath(path, ["Teams"]);
 
   try {
     if (!process.env.NEXT_SERVER_INTERNAL_PAYMENTS_ENDPOINT) {
-      errorFormAction({
-        message:
-          "getAccumulativeTransactionsData - internal transactions endpoint must be set",
+      return errorFormAction({
+        message: "The internal transactions endpoint is not set",
         app_id: appId,
         team_id: teamId,
+        logLevel: "error",
       });
     }
 
@@ -227,16 +232,20 @@ export const getAccumulativeTransactionsData = async (
     );
 
     return {
-      accumulativeTransactions: sortedTransactions,
-      accumulatedTransactionCount,
+      success: true,
+      message: "Transaction data fetched successfully",
+      data: {
+        accumulativeTransactions: sortedTransactions,
+        accumulatedTransactionCount,
+      },
     };
   } catch (error) {
-    errorFormAction({
-      message:
-        "getAccumulativeTransactionsData - error fetching transaction data",
+    return errorFormAction({
+      message: "Failed to fetch transaction data",
       error: error as Error,
       app_id: appId,
       team_id: teamId,
+      logLevel: "error",
     });
   }
 };

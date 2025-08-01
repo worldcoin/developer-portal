@@ -316,3 +316,9 @@ export enum TokenPrecision {
   WLD = 18,
   USDCE = 6,
 }
+
+export interface FormActionResult {
+  success: boolean;
+  message: string;
+  [key: string]: unknown;
+}
