@@ -25,6 +25,7 @@ const fetchAndProcessMetrics = async (): Promise<ProcessedMetricsCache> => {
     },
     3,
     400,
+    5000,
     false,
   );
 

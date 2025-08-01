@@ -7,6 +7,7 @@ import {
   notificationMessageSchema,
   notificationTitleSchema,
 } from "@/lib/schema";
+import { fetchWithRetry } from "@/lib/utils";
 import { createSignedFetcher } from "aws-sigv4-fetch";
 import { GraphQLClient } from "graphql-request";
 import { NextRequest, NextResponse } from "next/server";
@@ -17,6 +18,7 @@ import {
   getSdk as createNotificationLogSdk,
 } from "./graphql/create-notification-log.generated";
 import { getSdk as fetchMetadataSdk } from "./graphql/fetch-metadata.generated";
+
 const USERNAME_SPECIAL_STRING = "${username}";
 
 const sendNotificationBodySchema = yup
@@ -353,7 +355,7 @@ export const POST = async (req: NextRequest) => {
     region: process.env.TRANSACTION_BACKEND_REGION,
   });
 
-  const res = await signedFetch(
+  const res = await fetchWithRetry(
     `${process.env.NEXT_PUBLIC_SEND_NOTIFICATION_ENDPOINT}`,
     {
       method: "POST",
@@ -370,11 +372,25 @@ export const POST = async (req: NextRequest) => {
         teamId: teamId,
       }),
     },
+    3,
+    400,
+    3000,
+    false,
+    signedFetch,
   );
-  const data = await res.json();
+
+  let data: any = {};
+
+  try {
+    data = await res.json();
+  } catch (e) {
+    logger.warn("Error parsing send notification response body", {
+      error: e,
+    });
+  }
 
   if (!res.ok) {
-    console.warn("Error sending notification", {
+    logger.warn("Error sending notification", {
       data,
       app_id,
       team_id: teamId,
