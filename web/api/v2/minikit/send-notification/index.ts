@@ -382,9 +382,7 @@ export const POST = async (req: NextRequest) => {
   let data: any = {};
 
   try {
-    if (res.headers.get("content-type")?.includes("application/json")) {
-      data = await res.json();
-    }
+    data = await res.json();
   } catch (e) {
     logger.warn("Error parsing send notification response body", {
       error: e,
