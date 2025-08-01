@@ -348,18 +348,24 @@ export const fetchWithRetry = async (
   maxRetries: number = DEFAULT_MAX_RETRIES,
   initialRetryDelayinMS: number = DEFAULT_INITIAL_RETRY_DELAY,
   throwOnError: boolean = true,
+  fetchFunction: (
+    url: string,
+    options: RequestInit,
+  ) => Promise<Response> = fetch,
 ): Promise<Response> => {
   let lastError: Error | null = null;
+  let lastResponse: Response | null = null;
 
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     try {
-      const response = await fetch(url, options);
-      if (response.ok) {
-        return response;
+      const lastResponse = await fetchFunction(url, options);
+      if (lastResponse.ok) {
+        return lastResponse;
       }
-      lastError = new Error(`HTTP status ${response.status}`);
+      lastError = new Error(`HTTP status ${lastResponse.status}`);
     } catch (error) {
       lastError = error as Error;
+      lastResponse = null;
     }
 
     if (attempt < maxRetries - 1) {
@@ -370,12 +376,15 @@ export const fetchWithRetry = async (
 
   if (!throwOnError) {
     // Return a Response-like object with failure info
-    return new Response(
-      JSON.stringify({ error: lastError?.message || "Unknown error" }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      },
+    return (
+      lastResponse ||
+      new Response(
+        JSON.stringify({ error: lastError?.message || "Unknown error" }),
+        {
+          status: 500,
+          headers: { "Content-Type": "application/json" },
+        },
+      )
     );
   }
 
