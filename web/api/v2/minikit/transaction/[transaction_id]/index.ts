@@ -73,10 +73,10 @@ export const GET = async (
         "User-Agent": req.headers.get("user-agent") ?? "DevPortal/1.0",
         "Content-Type": "application/json",
       },
-      signal: AbortSignal.timeout(3000), // 3 seconds timeout
     },
     3, // max retries
     400, // initial retry delay in ms
+    3000, // fetch timeout in ms
     false, // don't throw on error
     signedFetch,
   );

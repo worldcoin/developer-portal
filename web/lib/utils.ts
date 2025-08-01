@@ -341,12 +341,14 @@ export const checkIfProduction = (): boolean => {
 
 const DEFAULT_MAX_RETRIES = 3;
 const DEFAULT_INITIAL_RETRY_DELAY = 500;
+const DEFAULT_FETCH_TIMEOUT = 5000;
 
 export const fetchWithRetry = async (
   url: string,
   options: RequestInit,
   maxRetries: number = DEFAULT_MAX_RETRIES,
-  initialRetryDelayinMS: number = DEFAULT_INITIAL_RETRY_DELAY,
+  initialRetryDelayInMS: number = DEFAULT_INITIAL_RETRY_DELAY,
+  fetchTimeoutInMS: number = DEFAULT_FETCH_TIMEOUT,
   throwOnError: boolean = true,
   fetchFunction: (
     url: string,
@@ -358,7 +360,10 @@ export const fetchWithRetry = async (
 
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     try {
-      const lastResponse = await fetchFunction(url, options);
+      const lastResponse = await fetchFunction(url, {
+        ...options,
+        signal: AbortSignal.timeout(fetchTimeoutInMS),
+      });
       if (lastResponse.ok) {
         return lastResponse;
       }
@@ -369,7 +374,7 @@ export const fetchWithRetry = async (
     }
 
     if (attempt < maxRetries - 1) {
-      const delay = initialRetryDelayinMS * Math.pow(2, attempt);
+      const delay = initialRetryDelayInMS * Math.pow(2, attempt);
       await new Promise((resolve) => setTimeout(resolve, delay));
     }
   }
