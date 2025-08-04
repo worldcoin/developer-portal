@@ -339,6 +339,32 @@ export const checkIfProduction = (): boolean => {
   return process.env.NEXT_PUBLIC_APP_ENV === "production";
 };
 
+/**
+ * Fetch request with timeout
+ * @param url - The URL to fetch
+ * @param options - The options to pass to the fetch request
+ * @param fetchTimeoutInMS - The timeout in milliseconds
+ * @param fetchFunction - The function to use to fetch the request
+ * @returns
+ */
+export const fetchTimeout = async (
+  url: string,
+  options: RequestInit,
+  fetchTimeoutInMS: number,
+  fetchFunction: (
+    url: string,
+    options: RequestInit,
+  ) => Promise<Response> = fetch,
+): Promise<Response> => {
+  const controller = new AbortController();
+  const promise = fetchFunction(url, {
+    signal: controller.signal,
+    ...options,
+  });
+  const timeout = setTimeout(() => controller.abort(), fetchTimeoutInMS);
+  return promise.finally(() => clearTimeout(timeout));
+};
+
 const DEFAULT_MAX_RETRIES = 3;
 const DEFAULT_INITIAL_RETRY_DELAY = 500;
 const DEFAULT_FETCH_TIMEOUT = 5000;
@@ -360,10 +386,12 @@ export const fetchWithRetry = async (
 
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     try {
-      const lastResponse = await fetchFunction(url, {
-        ...options,
-        signal: AbortSignal.timeout(fetchTimeoutInMS),
-      });
+      const lastResponse = await fetchTimeout(
+        url,
+        options,
+        fetchTimeoutInMS,
+        fetchFunction,
+      );
       if (lastResponse.ok) {
         return lastResponse;
       }
