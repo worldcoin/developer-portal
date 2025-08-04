@@ -212,7 +212,22 @@ export async function POST(req: NextRequest) {
     }
 
     // Anchor: Check the proof hasn't been replayed
-    const hashedProof = createHash("sha256").update(proof).digest("hex");
+    let hashedProof: string;
+    try {
+      hashedProof = createHash("sha256").update(proof).digest("hex");
+    } catch (error) {
+      return corsHandler(
+        errorResponse({
+          statusCode: 400,
+          code: "invalid_proof",
+          detail: "Provided proof is invalid.",
+          attribute: "proof",
+          req,
+          app_id,
+        }),
+        corsMethods,
+      );
+    }
     const proofKey = `oidc:proof:${hashedProof}`;
     const isProofReplayed = await redis.get(proofKey);
 
