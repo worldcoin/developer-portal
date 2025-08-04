@@ -7,7 +7,7 @@ import {
   notificationMessageSchema,
   notificationTitleSchema,
 } from "@/lib/schema";
-import { fetchWithRetry } from "@/lib/utils";
+import { fetchWithTimeout } from "@/lib/utils";
 import { createSignedFetcher } from "aws-sigv4-fetch";
 import { GraphQLClient } from "graphql-request";
 import { NextRequest, NextResponse } from "next/server";
@@ -355,29 +355,49 @@ export const POST = async (req: NextRequest) => {
     region: process.env.TRANSACTION_BACKEND_REGION,
   });
 
-  const res = await fetchWithRetry(
-    `${process.env.NEXT_PUBLIC_SEND_NOTIFICATION_ENDPOINT}`,
-    {
-      method: "POST",
-      headers: {
-        "User-Agent": req.headers.get("user-agent") ?? "DevPortal/1.0",
-        "Content-Type": "application/json",
+  let res: Response;
+
+  try {
+    res = await fetchWithTimeout(
+      `${process.env.NEXT_PUBLIC_SEND_NOTIFICATION_ENDPOINT}`,
+      {
+        method: "POST",
+        headers: {
+          "User-Agent": req.headers.get("user-agent") ?? "DevPortal/1.0",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          appId: app_id,
+          walletAddresses: wallet_addresses,
+          title,
+          message,
+          miniAppPath: mini_app_path,
+          teamId: teamId,
+        }),
       },
-      body: JSON.stringify({
-        appId: app_id,
-        walletAddresses: wallet_addresses,
-        title,
-        message,
-        miniAppPath: mini_app_path,
-        teamId: teamId,
-      }),
-    },
-    3,
-    400,
-    3000,
-    false,
-    signedFetch,
-  );
+      3000,
+      signedFetch,
+    );
+  } catch (error) {
+    let message = "Server error occurred";
+    if (error instanceof Error && error.name === "AbortError") {
+      message = "Notification request timed out";
+    }
+    logger.warn("Error sending notification", {
+      error: error,
+      app_id,
+      team_id: teamId,
+    });
+    return errorResponse({
+      statusCode: 500,
+      code: "internal_server_error",
+      detail: message,
+      attribute: "notification",
+      req,
+      app_id,
+      team_id: teamId,
+    });
+  }
 
   let data: any = {};
 

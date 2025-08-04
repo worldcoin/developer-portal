@@ -347,10 +347,10 @@ export const checkIfProduction = (): boolean => {
  * @param fetchFunction - The function to use to fetch the request
  * @returns
  */
-export const fetchTimeout = async (
+export const fetchWithTimeout = async (
   url: string,
   options: RequestInit,
-  fetchTimeoutInMS: number,
+  fetchTimeoutInMS: number = DEFAULT_FETCH_TIMEOUT,
   fetchFunction: (
     url: string,
     options: RequestInit,
@@ -386,7 +386,7 @@ export const fetchWithRetry = async (
 
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     try {
-      const lastResponse = await fetchTimeout(
+      const lastResponse = await fetchWithTimeout(
         url,
         options,
         fetchTimeoutInMS,
