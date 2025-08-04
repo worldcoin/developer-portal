@@ -20,7 +20,7 @@ const createActionBodySchema = yup
     action: yup.string().strict().required(),
     name: yup.string().optional().default(""),
     description: yup.string().optional().default(""),
-    max_verifications: yup.number().optional().default(1),
+    max_verifications: yup.number().integer().min(1).optional().default(1),
   })
   .noUnknown();
 
