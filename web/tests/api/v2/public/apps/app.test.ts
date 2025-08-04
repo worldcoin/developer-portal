@@ -1530,12 +1530,13 @@ describe("/api/public/app/[app_id]", () => {
       });
 
       expect(response.status).toBe(200);
-      expect(response.headers.get("Content-Type")).toContain("application/json");
+      expect(response.headers.get("Content-Type")).toContain(
+        "application/json",
+      );
       const data = await response.json();
       expect(data).toHaveProperty("app_data");
       expect(data.app_data).toHaveProperty("name", "Test App");
       expect(data.app_data).toHaveProperty("category");
     });
   });
-  
 });
