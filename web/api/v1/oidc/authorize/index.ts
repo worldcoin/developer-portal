@@ -249,7 +249,22 @@ export async function POST(req: NextRequest) {
     await redis.set(proofKey, "1", "EX", 5400);
 
     // For OIDC we should always hash the signal now.
-    const signalHash = toBeHex(hashToField(signal).hash as bigint);
+    let signalHash: string;
+    try {
+      signalHash = toBeHex(hashToField(signal).hash as bigint);
+    } catch (error) {
+      return corsHandler(
+        errorResponse({
+          statusCode: 400,
+          code: "invalid_signal",
+          detail: "Provided signal is invalid.",
+          attribute: "signal",
+          req,
+          app_id,
+        }),
+        corsMethods,
+      );
+    }
 
     // ANCHOR: Verify the zero-knowledge proof
     const { error: verifyError } = await verifyProof(
