@@ -386,7 +386,7 @@ export const fetchWithRetry = async (
 
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     try {
-      const lastResponse = await fetchWithTimeout(
+      lastResponse = await fetchWithTimeout(
         url,
         options,
         fetchTimeoutInMS,
