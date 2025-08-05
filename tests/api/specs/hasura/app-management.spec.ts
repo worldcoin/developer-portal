@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { createTestApp, createTestTeam, deleteTestApp, deleteTestTeam, getAppById } from '../../helpers/hasura-setup';
+import { createTestApp, createTestTeam, deleteTestApp, deleteTestTeam, getAppById } from '../../helpers/hasura-helper';
 
 describe('Hasura API Endpoints', () => {
   describe('POST /api/hasura/ban-app and /api/hasura/unban-app', () => {

@@ -16,6 +16,7 @@
     "ts-jest": "^29.2.5",
     "ts-node": "^10.9.2",
     "typescript": "^5.3.3",
-    "graphql-request": "^6.1.0"
+    "graphql-request": "^6.1.0",
+    "@aws-sdk/client-s3": "^3.664.0"
   }
 }

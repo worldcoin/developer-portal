@@ -75,6 +75,25 @@ const DELETE_USER_MUTATION = `
   }
 `;
 
+// Simple GraphQL mutation for creating app_metadata
+const CREATE_APP_METADATA_MUTATION = `
+  mutation CreateAppMetadata($object: app_metadata_insert_input!) {
+    insert_app_metadata_one(object: $object) {
+      id
+      verification_status
+    }
+  }
+`;
+
+// Simple GraphQL mutation for deleting app_metadata
+const DELETE_APP_METADATA_MUTATION = `
+  mutation DeleteAppMetadata($id: String!) {
+    delete_app_metadata_by_pk(id: $id) {
+      id
+    }
+  }
+`;
+
 // Helper for creating test app
 export const createTestApp = async (name: string, teamId: string) => {
   try {
@@ -177,5 +196,44 @@ export const deleteTestUser = async (userId: string) => {
     return response.delete_user_by_pk?.id;
   } catch (error) {
     throw new Error(`Failed to delete test user ${userId}: ${JSON.stringify(error)}`);
+  }
+};
+
+// Helper for creating test app_metadata
+export const createTestAppMetadata = async (
+  appId: string, 
+  name: string, 
+  verificationStatus: 'unverified' | 'verified' | 'awaiting_review' | 'changes_requested' = 'awaiting_review',
+  showcaseImgUrls?: string[]
+) => {
+  try {
+    const response = await adminGraphqlClient.request(CREATE_APP_METADATA_MUTATION, {
+      object: {
+        app_id: appId,
+        name,
+        description: 'Test app description',
+        logo_img_url: 'test-logo.png',
+        verification_status: verificationStatus,
+        showcase_img_urls: showcaseImgUrls,
+        // Use only required fields, others will be filled with defaults
+      },
+    }) as any;
+    
+    return response.insert_app_metadata_one;
+  } catch (error) {
+    throw new Error(`Failed to create test app metadata: ${JSON.stringify(error)}`);
+  }
+};
+
+// Helper for deleting test app_metadata
+export const deleteTestAppMetadata = async (metadataId: string) => {
+  try {
+    const response = await adminGraphqlClient.request(DELETE_APP_METADATA_MUTATION, {
+      id: metadataId,
+    }) as any;
+    
+    return response.delete_app_metadata_by_pk?.id;
+  } catch (error) {
+    throw new Error(`Failed to delete test app metadata ${metadataId}: ${JSON.stringify(error)}`);
   }
 }; 
