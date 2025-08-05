@@ -21,7 +21,7 @@ export const LanguagesSection = ({
   return (
     <FormSection
       title="Supported Languages"
-      description="Select languages you want to provide Mini App Store localisations for. This will allow users to view your Mini App in their preferred language."
+      description="Choose the languages you want to localize your Mini App Store listing in. Users will then see your Mini App in their preferred language, in the App Store. After selecting languages, you'll be required to fill out the additional sections below."
       className="grid gap-y-5"
     >
       <Controller
