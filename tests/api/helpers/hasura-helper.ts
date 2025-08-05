@@ -94,6 +94,27 @@ const DELETE_APP_METADATA_MUTATION = `
   }
 `;
 
+// Simple GraphQL mutation for creating membership
+const CREATE_MEMBERSHIP_MUTATION = `
+  mutation CreateMembership($object: membership_insert_input!) {
+    insert_membership_one(object: $object) {
+      id
+      user_id
+      team_id
+      role
+    }
+  }
+`;
+
+// Simple GraphQL mutation for deleting membership
+const DELETE_MEMBERSHIP_MUTATION = `
+  mutation DeleteMembership($id: String!) {
+    delete_membership_by_pk(id: $id) {
+      id
+    }
+  }
+`;
+
 // Helper for creating test app
 export const createTestApp = async (name: string, teamId: string) => {
   try {
@@ -151,6 +172,8 @@ export const createTestUser = async (email: string, teamId: string) => {
         email,
         auth0Id: `auth0|test_${Date.now()}`,
         team_id: teamId,
+        ironclad_id: `ironclad_test_${Date.now()}`,
+        world_id_nullifier: `0x${Date.now().toString(16)}`,
       },
     }) as any;
     
@@ -235,5 +258,35 @@ export const deleteTestAppMetadata = async (metadataId: string) => {
     return response.delete_app_metadata_by_pk?.id;
   } catch (error) {
     throw new Error(`Failed to delete test app metadata ${metadataId}: ${JSON.stringify(error)}`);
+  }
+};
+
+// Helper for creating test membership
+export const createTestMembership = async (userId: string, teamId: string, role: 'OWNER' | 'ADMIN' | 'MEMBER' = 'OWNER') => {
+  try {
+    const response = await adminGraphqlClient.request(CREATE_MEMBERSHIP_MUTATION, {
+      object: {
+        user_id: userId,
+        team_id: teamId,
+        role: role,
+      },
+    }) as any;
+    
+    return response.insert_membership_one?.id;
+  } catch (error) {
+    throw new Error(`Failed to create test membership: ${JSON.stringify(error)}`);
+  }
+};
+
+// Helper for deleting test membership
+export const deleteTestMembership = async (membershipId: string) => {
+  try {
+    const response = await adminGraphqlClient.request(DELETE_MEMBERSHIP_MUTATION, {
+      id: membershipId,
+    }) as any;
+    
+    return response.delete_membership_by_pk?.id;
+  } catch (error) {
+    throw new Error(`Failed to delete test membership ${membershipId}: ${JSON.stringify(error)}`);
   }
 }; 
