@@ -24,7 +24,7 @@ import { TYPOGRAPHY, Typography } from "../Typography";
 type Item = { label: string; value: string };
 
 export type SelectMultipleProps<T extends FieldValues> = {
-  items: Item[] | undefined;
+  items: Readonly<Item[]> | undefined;
   values: PathValue<T, Path<T>>;
   onRemove: (value: string) => void;
   label: string;

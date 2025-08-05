@@ -2,6 +2,7 @@ import { Input } from "@/components/Input";
 import { Radio } from "@/components/Radio";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Control, Controller, FieldErrors } from "react-hook-form";
+import { SUPPORT_CONTACT_TEST_NAME } from "../../FormSchema/form-schema";
 import { AppStoreFormValues } from "../../FormSchema/types";
 import { FormSectionProps, SupportType } from "../../types/AppStoreFormTypes";
 import { FormSection } from "../FormFields/FormSection";
@@ -21,6 +22,10 @@ export const SupportSection = ({
   supportType,
   onSupportTypeChange,
 }: SupportSectionProps) => {
+  const specialFieldError = Object.entries(errors).find(
+    ([_, value]) => value?.type === SUPPORT_CONTACT_TEST_NAME,
+  )?.[1]?.message;
+
   return (
     <FormSection
       title="Support"
@@ -82,6 +87,9 @@ export const SupportSection = ({
             )}
           />
         </div>
+        <span className="mt-2 text-xs text-system-error-500">
+          {specialFieldError}
+        </span>
       </div>
     </FormSection>
   );

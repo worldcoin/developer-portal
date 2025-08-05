@@ -19,6 +19,7 @@ export const AppStoreFormProvider = ({
   const form = useForm<AppStoreFormValues>({
     resolver: yupResolver(mainAppStoreFormSchema),
     defaultValues,
+    mode: "onChange",
   });
 
   return <FormProvider {...form}>{children}</FormProvider>;

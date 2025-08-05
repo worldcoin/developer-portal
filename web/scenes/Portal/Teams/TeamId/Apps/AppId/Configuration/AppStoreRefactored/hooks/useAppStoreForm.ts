@@ -96,7 +96,6 @@ export const useAppStoreForm = (appId: string, appMetadata: AppMetadata) => {
         await Promise.all([refetchAppMetadata(), refetchLocalisations()]);
         toast.success("App information updated successfully");
       }
-      toast.update("formState", { autoClose: 0 });
     },
     [appMetadata.id, refetchAppMetadata, refetchLocalisations],
   );

@@ -15,6 +15,8 @@ import {
   supportLinkSchema,
 } from "./field-schema";
 
+export const SUPPORT_CONTACT_TEST_NAME = "support-contact-required";
+
 export const localisationFormSchema = yup
   .object({
     language: yup.string().required("Locale is required"),
@@ -49,7 +51,7 @@ export const mainAppStoreFormSchema = yup
   })
   .noUnknown()
   .test(
-    "support-contact-required",
+    SUPPORT_CONTACT_TEST_NAME,
     "Either support link or support email must be provided",
     function (values) {
       const { support_link, support_email } = values || {};
