@@ -1,5 +1,5 @@
 import { DecoratedButton } from "@/components/DecoratedButton";
-import { MultiplePlusIcon } from "@/components/Icons/MultiplePlusIcon";
+import { CodeFolderIcon } from "@/components/Icons/CodeFolderIcon";
 import { formLanguagesList } from "@/lib/languages";
 import { useState } from "react";
 import { toast } from "react-toastify";
@@ -153,7 +153,7 @@ export const ImportExportJSON = (props: ImportExportJSONProps) => {
           onPointerEnter={() => setIsTooltipHovered(true)}
           onPointerLeave={() => setIsTooltipHovered(false)}
         >
-          <MultiplePlusIcon className="size-5" />
+          <CodeFolderIcon className="size-5" />
         </DecoratedButton>
 
         {isTooltipHovered && !disabled && (
