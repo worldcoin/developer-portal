@@ -233,7 +233,7 @@ const supportedLanguages = [
     label: "Traditional Chinese (Taiwan)",
     value: "zh_TW",
   },
-];
+] as const;
 
 export const languageMap = {
   en: { label: "English", country_code: "GB" },

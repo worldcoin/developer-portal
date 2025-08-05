@@ -104,12 +104,19 @@ export const AppStoreForm = (props: {
 
   const createLocalisation = useCallback(
     async (lang: string) => {
-      try {
-        await addEmptyLocalisationServerSide(appMetadata.id, lang, appId);
+      const result = await addEmptyLocalisationServerSide(
+        appMetadata.id,
+        lang,
+        appId,
+      );
+      if (!result.success) {
+        toast.error(result.message);
+      } else {
         await refetchLocalisation({
           id: appMetadata.id,
           locale: lang,
         });
+
         client.cache.evict({
           fieldName: "get_all_unverified_images",
           args: {
@@ -119,22 +126,13 @@ export const AppStoreForm = (props: {
           },
         });
         client.cache.gc();
-        // Remove from creating set when done
-        setCreatingLocalisations((prev) => {
-          const newSet = new Set(prev);
-          newSet.delete(lang);
-          return newSet;
-        });
-      } catch (error) {
-        console.error("Failed to add localisation:", error);
-        toast.error("Failed to add localisation");
-        // Remove from creating set on error
-        setCreatingLocalisations((prev) => {
-          const newSet = new Set(prev);
-          newSet.delete(lang);
-          return newSet;
-        });
       }
+      // Remove from creating set when done
+      setCreatingLocalisations((prev) => {
+        const newSet = new Set(prev);
+        newSet.delete(lang);
+        return newSet;
+      });
     },
     [appMetadata.id, appId, refetchLocalisation],
   );
@@ -229,24 +227,19 @@ export const AppStoreForm = (props: {
         });
 
         const removePromises = languagesToRemove.map(async (lang) => {
-          try {
-            await deleteLocalisationServerSide(appMetadata.id, lang);
-            // Remove from deleting set when done
-            setDeletingLocalisations((prev) => {
-              const newSet = new Set(prev);
-              newSet.delete(lang);
-              return newSet;
-            });
-          } catch (error) {
-            console.error("Failed to delete localisation:", error);
-            toast.error("Failed to delete localisation");
-            // Remove from deleting set on error
-            setDeletingLocalisations((prev) => {
-              const newSet = new Set(prev);
-              newSet.delete(lang);
-              return newSet;
-            });
+          const result = await deleteLocalisationServerSide(
+            appMetadata.id,
+            lang,
+          );
+          if (!result.success) {
+            toast.error(result.message);
           }
+          // Remove from deleting set when done or on error
+          setDeletingLocalisations((prev) => {
+            const newSet = new Set(prev);
+            newSet.delete(lang);
+            return newSet;
+          });
         });
 
         // Execute all promises in parallel
@@ -420,27 +413,31 @@ export const AppStoreForm = (props: {
       world_app_description,
     } as const;
 
-    try {
-      // if locale is en, set the data on app_metadata directly
-      if (locale === "en") {
+    // if locale is en, set the data on app_metadata directly
+    if (locale === "en") {
+      const result =
         await validateAndUpdateAppLocaleInfoServerSide(commonProperties);
+      if (!result.success) {
+        toast.error(result.message);
+      } else {
         await refetchAppMetadata();
-        return;
       }
-
+    } else {
       const localisation = localisedData?.localisations?.[0];
 
-      await validateAndUpdateLocalisationServerSide({
+      const result = await validateAndUpdateLocalisationServerSide({
         localisation_id: localisation?.id ?? "",
         ...commonProperties,
       });
-      await refetchLocalisation({
-        id: appMetadata.id,
-        locale: locale,
-      });
-    } catch (e) {
-      console.error("App information failed to update: ", e);
-      toast.error("Failed to save localisation");
+
+      if (!result.success) {
+        toast.error(result.message);
+      } else {
+        await refetchLocalisation({
+          id: appMetadata.id,
+          locale: locale,
+        });
+      }
     }
   }, [
     appId,
@@ -454,28 +451,28 @@ export const AppStoreForm = (props: {
   // Anchor: Submit Form
   const submit = useCallback(
     async (data: AppStoreLocalisedForm) => {
-      try {
-        setIsSubmitting(true);
-        await saveLocalisation();
-        await validateAndUpdateAppSupportInfoServerSide({
-          app_metadata_id: appMetadata?.id,
-          is_support_email: isSupportEmail,
-          support_link: data.support_link,
-          support_email: data.support_email,
-          app_website_url: data.app_website_url,
-          supported_countries: data.supported_countries,
-          category: data.category,
-          is_android_only: data.is_android_only,
-          is_for_humans_only: data.is_for_humans_only,
-        });
+      setIsSubmitting(true);
+      await saveLocalisation();
+      const result = await validateAndUpdateAppSupportInfoServerSide({
+        app_metadata_id: appMetadata?.id,
+        is_support_email: isSupportEmail,
+        support_link: data.support_link,
+        support_email: data.support_email,
+        app_website_url: data.app_website_url,
+        supported_countries: data.supported_countries,
+        category: data.category,
+        is_android_only: data.is_android_only,
+        is_for_humans_only: data.is_for_humans_only,
+      });
+      if (!result.success) {
+        toast.error(result.message);
+      } else {
         await refetchAppMetadata();
         toast.success("App information updated successfully");
-      } catch (e) {
-        toast.error("Failed to update app information");
-      } finally {
-        setIsSubmitting(false);
-        toast.update("formState", { autoClose: 0 });
       }
+
+      setIsSubmitting(false);
+      toast.update("formState", { autoClose: 0 });
     },
     [appMetadata?.id, isSupportEmail, refetchAppMetadata, saveLocalisation],
   );
@@ -865,6 +862,7 @@ export const AppStoreForm = (props: {
                     field.onChange(countries.map((c) => c.value))
                   }
                   clearAll={() => field.onChange([])}
+                  canClearAll={field.value.length > 0}
                   showSelectedList
                   searchPlaceholder="Start by typing country..."
                   selectAllLabel="Add all countries"

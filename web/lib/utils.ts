@@ -333,49 +333,91 @@ export const checkIfPartnerTeam = (teamId: string) => {
 };
 
 /**
- * Checks if the app is not in a production environment
+ * Checks if the app is in a production environment
  */
-export const checkIfNotProduction = (): boolean => {
-  return process.env.NEXT_PUBLIC_APP_ENV !== "production";
+export const checkIfProduction = (): boolean => {
+  return process.env.NEXT_PUBLIC_APP_ENV === "production";
+};
+
+/**
+ * Fetch request with timeout
+ * @param url - The URL to fetch
+ * @param options - The options to pass to the fetch request
+ * @param fetchTimeoutInMS - The timeout in milliseconds
+ * @param fetchFunction - The function to use to fetch the request
+ * @returns
+ */
+export const fetchWithTimeout = async (
+  url: string,
+  options: RequestInit,
+  fetchTimeoutInMS: number = DEFAULT_FETCH_TIMEOUT,
+  fetchFunction: (
+    url: string,
+    options: RequestInit,
+  ) => Promise<Response> = fetch,
+): Promise<Response> => {
+  const controller = new AbortController();
+  const promise = fetchFunction(url, {
+    signal: controller.signal,
+    ...options,
+  });
+  const timeout = setTimeout(() => controller.abort(), fetchTimeoutInMS);
+  return promise.finally(() => clearTimeout(timeout));
 };
 
 const DEFAULT_MAX_RETRIES = 3;
 const DEFAULT_INITIAL_RETRY_DELAY = 500;
+const DEFAULT_FETCH_TIMEOUT = 5000;
 
 export const fetchWithRetry = async (
   url: string,
   options: RequestInit,
   maxRetries: number = DEFAULT_MAX_RETRIES,
-  initialRetryDelayinMS: number = DEFAULT_INITIAL_RETRY_DELAY,
+  initialRetryDelayInMS: number = DEFAULT_INITIAL_RETRY_DELAY,
+  fetchTimeoutInMS: number = DEFAULT_FETCH_TIMEOUT,
   throwOnError: boolean = true,
+  fetchFunction: (
+    url: string,
+    options: RequestInit,
+  ) => Promise<Response> = fetch,
 ): Promise<Response> => {
   let lastError: Error | null = null;
+  let lastResponse: Response | null = null;
 
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     try {
-      const response = await fetch(url, options);
-      if (response.ok) {
-        return response;
+      lastResponse = await fetchWithTimeout(
+        url,
+        options,
+        fetchTimeoutInMS,
+        fetchFunction,
+      );
+      if (lastResponse.ok) {
+        return lastResponse;
       }
-      lastError = new Error(`HTTP status ${response.status}`);
+      lastError = new Error(`HTTP status ${lastResponse.status}`);
     } catch (error) {
       lastError = error as Error;
+      lastResponse = null;
     }
 
     if (attempt < maxRetries - 1) {
-      const delay = initialRetryDelayinMS * Math.pow(2, attempt);
+      const delay = initialRetryDelayInMS * Math.pow(2, attempt);
       await new Promise((resolve) => setTimeout(resolve, delay));
     }
   }
 
   if (!throwOnError) {
     // Return a Response-like object with failure info
-    return new Response(
-      JSON.stringify({ error: lastError?.message || "Unknown error" }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      },
+    return (
+      lastResponse ||
+      new Response(
+        JSON.stringify({ error: lastError?.message || "Unknown error" }),
+        {
+          status: 500,
+          headers: { "Content-Type": "application/json" },
+        },
+      )
     );
   }
 

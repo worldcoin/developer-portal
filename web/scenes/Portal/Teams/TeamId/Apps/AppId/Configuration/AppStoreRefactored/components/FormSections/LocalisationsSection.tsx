@@ -88,7 +88,7 @@ export const LocalisationsSection = ({
           onLocalisationsUpdate={handleLocalisationsJSONUpdate}
         />
       </div>
-      <div className="max-h-[60vh] space-y-5 overflow-y-scroll rounded-lg border border-grey-200 p-4">
+      <div className="max-h-[70vh] space-y-5 overflow-y-scroll rounded-lg border border-grey-200 p-4">
         {localisations.map((field, index) => {
           const languageLabel =
             allPossibleLanguages.find((lang) => lang.value === field.language)

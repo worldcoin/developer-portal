@@ -8,7 +8,7 @@ import * as yup from "yup";
 
 // Check if not in production
 export type ActionContext = {
-  is_not_production: boolean;
+  isProduction: boolean;
 };
 
 // Create a schema factory function that accepts the context
@@ -42,8 +42,8 @@ export const createActionSchema = (context: ActionContext) => {
         .string()
         .optional()
         .test("is-url", "Must be a valid URL", (value) => {
-          if (!value || context.is_not_production) return true;
-          return validateUrl(value, context.is_not_production);
+          if (!value || !context.isProduction) return true;
+          return validateUrl(value, !context.isProduction);
         }),
       webhook_pem: yup
         .string()

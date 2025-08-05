@@ -4,6 +4,7 @@ import { errorFormAction } from "@/api/helpers/errors";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { getIsUserAllowedToUpdateAppMetadata } from "@/lib/permissions";
 import { extractIdsFromPath, getPathFromHeaders } from "@/lib/server-utils";
+import { FormActionResult } from "@/lib/types";
 import * as yup from "yup";
 import { mainAppStoreFormSchema } from "../FormSchema/form-schema";
 import { AppStoreFormValues } from "../FormSchema/types";
@@ -13,11 +14,6 @@ import {
   encodeDescription,
   extractImagePathWithExtensionFromActualUrl,
 } from "../utils";
-
-type FormActionResult = {
-  success: boolean;
-  message: string;
-};
 
 const schema = mainAppStoreFormSchema
   .concat(
@@ -31,6 +27,7 @@ type Schema = yup.Asserts<typeof schema>;
 const formatEmailLink = (email: string): string => {
   return `mailto:${email}`;
 };
+
 export async function updateAppStoreMetadata(
   formData: Schema,
 ): Promise<FormActionResult> {
@@ -45,10 +42,13 @@ export async function updateAppStoreMetadata(
       await getIsUserAllowedToUpdateAppMetadata(formData.app_metadata_id);
 
     if (!isUserAllowedToUpdateAppMetadata) {
-      return {
-        success: false,
-        message: "insufficient permissions to update app metadata",
-      };
+      return errorFormAction({
+        message:
+          "The user does not have permission to update this app metadata",
+        team_id: teamId,
+        app_id: appId,
+        logLevel: "warn",
+      });
     }
 
     let parsedParams: AppStoreFormValues;
@@ -60,10 +60,11 @@ export async function updateAppStoreMetadata(
     } catch (validationError) {
       return errorFormAction({
         error: validationError as Error,
-        message: "validation failed",
+        message: "The provided app metadata is invalid",
         additionalInfo: { formData },
         team_id: teamId,
         app_id: appId,
+        logLevel: "warn",
       });
     }
 
@@ -140,14 +141,13 @@ export async function updateAppStoreMetadata(
       message: "app store information updated successfully",
     };
   } catch (error) {
-    console.error("GraphQL error updating app store metadata:", error);
-
     return errorFormAction({
       error: error as Error,
-      message: "updateAppStoreMetadata - unexpected error",
+      message: "An error occurred while updating the app metadata",
       additionalInfo: { formData },
       team_id: teamId,
       app_id: appId,
+      logLevel: "error",
     });
   }
 }

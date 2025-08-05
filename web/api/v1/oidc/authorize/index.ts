@@ -212,7 +212,22 @@ export async function POST(req: NextRequest) {
     }
 
     // Anchor: Check the proof hasn't been replayed
-    const hashedProof = createHash("sha256").update(proof).digest("hex");
+    let hashedProof: string;
+    try {
+      hashedProof = createHash("sha256").update(proof).digest("hex");
+    } catch (error) {
+      return corsHandler(
+        errorResponse({
+          statusCode: 400,
+          code: "invalid_proof",
+          detail: "Provided proof is invalid.",
+          attribute: "proof",
+          req,
+          app_id,
+        }),
+        corsMethods,
+      );
+    }
     const proofKey = `oidc:proof:${hashedProof}`;
     const isProofReplayed = await redis.get(proofKey);
 
@@ -234,7 +249,22 @@ export async function POST(req: NextRequest) {
     await redis.set(proofKey, "1", "EX", 5400);
 
     // For OIDC we should always hash the signal now.
-    const signalHash = toBeHex(hashToField(signal).hash as bigint);
+    let signalHash: string;
+    try {
+      signalHash = toBeHex(hashToField(signal).hash as bigint);
+    } catch (error) {
+      return corsHandler(
+        errorResponse({
+          statusCode: 400,
+          code: "invalid_signal",
+          detail: "Provided signal is invalid.",
+          attribute: "signal",
+          req,
+          app_id,
+        }),
+        corsMethods,
+      );
+    }
 
     // ANCHOR: Verify the zero-knowledge proof
     const { error: verifyError } = await verifyProof(

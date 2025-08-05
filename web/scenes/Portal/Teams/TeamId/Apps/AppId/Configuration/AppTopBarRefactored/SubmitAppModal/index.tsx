@@ -90,36 +90,41 @@ export const SubmitAppModal = (props: SubmitAppModalProps) => {
           toast.error("Localisation not set for all languages");
           return;
         }
+      } catch (error) {
+        console.error("Failed to validate localisation: ", error);
+        toast.error("Failed to validate localisation");
+        return;
+      }
 
-        if (values.is_developer_allow_listing && !canSubmitAppStore) {
-          toast.error(
-            "Featured and showcase images are required for listing in Mini Apps",
-          );
-          return;
-        }
+      if (values.is_developer_allow_listing && !canSubmitAppStore) {
+        toast.error(
+          "Featured and showcase images are required for listing in Mini Apps",
+        );
+        return;
+      }
 
-        await submitAppForReviewFormServerSide({
-          input: {
-            app_metadata_id: appMetadataId,
-            team_id: teamId,
-            is_developer_allow_listing: values.is_developer_allow_listing,
-            changelog: values.changelog,
-          },
-        });
-        await refetchAppMetadata();
-
-        posthog.capture("app_submitted_for_review", {
-          app_id: appId,
+      const result = await submitAppForReviewFormServerSide({
+        input: {
+          app_metadata_id: appMetadataId,
           team_id: teamId,
           is_developer_allow_listing: values.is_developer_allow_listing,
-        });
-
-        toast.success("App submitted for review");
-        setOpen(false);
-      } catch (error: any) {
-        console.error("Submit App Modal Failed: ", error);
-        toast.error("Failed to submit app for review");
+          changelog: values.changelog,
+        },
+      });
+      if (!result.success) {
+        toast.error(result.message);
+        return;
       }
+      await refetchAppMetadata();
+
+      posthog.capture("app_submitted_for_review", {
+        app_id: appId,
+        team_id: teamId,
+        is_developer_allow_listing: values.is_developer_allow_listing,
+      });
+
+      toast.success("App submitted for review");
+      setOpen(false);
     },
     [
       appId,

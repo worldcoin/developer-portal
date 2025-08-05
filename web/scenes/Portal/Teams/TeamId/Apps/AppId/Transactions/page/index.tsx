@@ -1,7 +1,9 @@
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import { PaymentMetadata } from "@/lib/types";
 import { Suspense } from "react";
 import Skeleton from "react-loading-skeleton";
+import { toast } from "react-toastify";
 import { TransactionsTable } from "./TransactionsTable";
 import { getTransactionData } from "./server";
 
@@ -13,7 +15,13 @@ export const TransactionsPage = async (props: TransactionsPageProps) => {
   const { params } = props;
   const appId = params?.appId as `app_${string}`;
 
-  const transactionData = await getTransactionData(appId);
+  const result = await getTransactionData(appId);
+  let transactionData: PaymentMetadata[] = [];
+  if (!result.success) {
+    toast.error(result.message);
+  } else {
+    transactionData = result.data as PaymentMetadata[];
+  }
 
   return (
     <div className="my-6 min-h-[100dvh]">

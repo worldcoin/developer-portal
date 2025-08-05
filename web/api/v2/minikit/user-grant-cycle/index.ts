@@ -68,12 +68,15 @@ export const GET = async (req: NextRequest) => {
         "user_not_found_for_wallet_address",
         "app_not_installed",
         "no_active_grant_cycles",
-      ].includes(data?.code ?? "");
+      ].includes(data?.error.code ?? "");
+      console.warn("debug_logging", JSON.stringify(data, null, 2));
 
       const errorMessage = isKnownErrorCode
-        ? data?.message
+        ? data?.error.message
         : "Failed to fetch user grant cycle";
-      const errorCode = isKnownErrorCode ? data?.code : "internal_api_error";
+      const errorCode = isKnownErrorCode
+        ? data?.error.code
+        : "internal_api_error";
       const statusCode = isKnownErrorCode ? 400 : res.status;
 
       return errorResponse({

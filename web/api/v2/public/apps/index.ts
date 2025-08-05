@@ -209,8 +209,8 @@ export const GET = async (request: NextRequest) => {
     });
   }
 
-  // ANCHOR: Fetch app stats from metrics service, no cache as this endpoint is already cached by CloudFront
-  const metricsData = await fetchMetrics(0, country);
+  // ANCHOR: Fetch app stats from metrics service, keep a cache since metrics doesn't update that often
+  const metricsData = await fetchMetrics(country);
 
   const nativeAppMetadata = NativeApps[process.env.NEXT_PUBLIC_APP_ENV];
 

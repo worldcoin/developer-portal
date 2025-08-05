@@ -14,6 +14,7 @@ import Image from "next/image";
 import { ChangeEvent, useMemo, useRef, useState } from "react";
 import Skeleton from "react-loading-skeleton";
 import { toast } from "react-toastify";
+import { LOGO_IMAGE_UPLOAD_TOAST_ID } from "../../constants";
 import { FetchAppMetadataDocument } from "../../graphql/client/fetch-app-metadata.generated";
 import { ImageValidationError, useImage } from "../../hook/use-image";
 import { unverifiedImageAtom, viewModeAtom } from "../../layout/ImagesProvider";
@@ -64,7 +65,7 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
         await validateImageAspectRatio(file, 1, 1);
 
         toast.info("Uploading image", {
-          toastId: "upload_toast",
+          toastId: LOGO_IMAGE_UPLOAD_TOAST_ID,
           autoClose: false,
         });
 
@@ -94,7 +95,7 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
           refetchQueries: [FetchAppMetadataDocument],
         });
 
-        toast.update("upload_toast", {
+        toast.update(LOGO_IMAGE_UPLOAD_TOAST_ID, {
           type: "success",
           render: "Image uploaded and saved",
           autoClose: 5000,
@@ -111,9 +112,9 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
         console.error("Logo Upload Failed: ", error);
 
         if (error instanceof ImageValidationError) {
-          toast.dismiss("upload_toast");
+          toast.dismiss(LOGO_IMAGE_UPLOAD_TOAST_ID);
         } else {
-          toast.update("upload_toast", {
+          toast.update(LOGO_IMAGE_UPLOAD_TOAST_ID, {
             type: "error",
             render: "Error uploading image",
             autoClose: 5000,

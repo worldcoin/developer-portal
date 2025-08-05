@@ -2,7 +2,7 @@
 
 import { errorFormAction } from "@/api/helpers/errors";
 import { extractIdsFromPath, getPathFromHeaders } from "@/lib/server-utils";
-import { DataByCountry } from "@/lib/types";
+import { DataByCountry, FormActionResult } from "@/lib/types";
 
 export type AppMetricsData = {
   total_impressions: number | null;
@@ -37,7 +37,7 @@ type NotificationData = {
 
 export const getAppMetricsData = async (
   appId: string,
-): Promise<AppMetricsData> => {
+): Promise<FormActionResult> => {
   const path = getPathFromHeaders() || "";
   const { Teams: teamId } = extractIdsFromPath(path, ["Teams"]);
 
@@ -52,11 +52,12 @@ export const getAppMetricsData = async (
   );
 
   if (!metricsData.ok) {
-    errorFormAction({
-      message: "getAppMetricsData - failed to fetch metrics data",
+    return errorFormAction({
+      message: "Failed to fetch metrics data",
       additionalInfo: { status: metricsData.status },
       team_id: teamId,
       app_id: appId,
+      logLevel: "error",
     });
   }
 
@@ -67,16 +68,20 @@ export const getAppMetricsData = async (
 
   if (!appMetrics) {
     return {
-      total_impressions: 0,
-      total_impressions_last_7_days: 0,
-      total_users: 0,
-      total_users_last_7_days: 0,
-      unique_users: 0,
-      unique_users_last_7_days: 0,
-      new_users_last_7_days: 0,
-      appRanking: "-- / --",
-      open_rate_last_14_days: [],
-      notification_opt_in_rate: 0,
+      success: true,
+      message: "App metrics data is empty",
+      data: {
+        total_impressions: 0,
+        total_impressions_last_7_days: 0,
+        total_users: 0,
+        total_users_last_7_days: 0,
+        unique_users: 0,
+        unique_users_last_7_days: 0,
+        new_users_last_7_days: 0,
+        appRanking: "-- / --",
+        open_rate_last_14_days: [],
+        notification_opt_in_rate: 0,
+      },
     };
   }
 
@@ -86,27 +91,31 @@ export const getAppMetricsData = async (
 
   // For now we just sum all the countries and don't do anything by country
   return {
-    total_impressions: appMetrics.total_impressions,
-    total_impressions_last_7_days: appMetrics.total_impressions_last_7_days,
-    total_users: appMetrics.total_users,
-    total_users_last_7_days:
-      appMetrics.total_users_last_7_days?.reduce(
-        (acc, curr) => acc + curr.value,
-        0,
-      ) || null,
-    unique_users: appMetrics.unique_users,
-    unique_users_last_7_days:
-      appMetrics.unique_users_last_7_days?.reduce(
-        (acc, curr) => acc + curr.value,
-        0,
-      ) || null,
-    new_users_last_7_days:
-      appMetrics.new_users_last_7_days?.reduce(
-        (acc, curr) => acc + curr.value,
-        0,
-      ) || null,
-    appRanking,
-    open_rate_last_14_days: appMetrics.open_rate_last_14_days,
-    notification_opt_in_rate: appMetrics.notification_opt_in_rate,
+    success: true,
+    message: "App metrics data fetched successfully",
+    data: {
+      total_impressions: appMetrics.total_impressions,
+      total_impressions_last_7_days: appMetrics.total_impressions_last_7_days,
+      total_users: appMetrics.total_users,
+      total_users_last_7_days:
+        appMetrics.total_users_last_7_days?.reduce(
+          (acc, curr) => acc + curr.value,
+          0,
+        ) || null,
+      unique_users: appMetrics.unique_users,
+      unique_users_last_7_days:
+        appMetrics.unique_users_last_7_days?.reduce(
+          (acc, curr) => acc + curr.value,
+          0,
+        ) || null,
+      new_users_last_7_days:
+        appMetrics.new_users_last_7_days?.reduce(
+          (acc, curr) => acc + curr.value,
+          0,
+        ) || null,
+      appRanking,
+      open_rate_last_14_days: appMetrics.open_rate_last_14_days,
+      notification_opt_in_rate: appMetrics.notification_opt_in_rate,
+    },
   };
 };

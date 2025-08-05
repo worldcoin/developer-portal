@@ -7,6 +7,7 @@ import {
   notificationMessageSchema,
   notificationTitleSchema,
 } from "@/lib/schema";
+import { fetchWithTimeout } from "@/lib/utils";
 import { createSignedFetcher } from "aws-sigv4-fetch";
 import { GraphQLClient } from "graphql-request";
 import { NextRequest, NextResponse } from "next/server";
@@ -17,6 +18,7 @@ import {
   getSdk as createNotificationLogSdk,
 } from "./graphql/create-notification-log.generated";
 import { getSdk as fetchMetadataSdk } from "./graphql/fetch-metadata.generated";
+
 const USERNAME_SPECIAL_STRING = "${username}";
 
 const sendNotificationBodySchema = yup
@@ -353,28 +355,62 @@ export const POST = async (req: NextRequest) => {
     region: process.env.TRANSACTION_BACKEND_REGION,
   });
 
-  const res = await signedFetch(
-    `${process.env.NEXT_PUBLIC_SEND_NOTIFICATION_ENDPOINT}`,
-    {
-      method: "POST",
-      headers: {
-        "User-Agent": req.headers.get("user-agent") ?? "DevPortal/1.0",
-        "Content-Type": "application/json",
+  let res: Response;
+
+  try {
+    res = await fetchWithTimeout(
+      `${process.env.NEXT_PUBLIC_SEND_NOTIFICATION_ENDPOINT}`,
+      {
+        method: "POST",
+        headers: {
+          "User-Agent": req.headers.get("user-agent") ?? "DevPortal/1.0",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          appId: app_id,
+          walletAddresses: wallet_addresses,
+          title,
+          message,
+          miniAppPath: mini_app_path,
+          teamId: teamId,
+        }),
       },
-      body: JSON.stringify({
-        appId: app_id,
-        walletAddresses: wallet_addresses,
-        title,
-        message,
-        miniAppPath: mini_app_path,
-        teamId: teamId,
-      }),
-    },
-  );
-  const data = await res.json();
+      3000,
+      signedFetch,
+    );
+  } catch (error) {
+    let message = "Server error occurred";
+    if (error instanceof Error && error.name === "AbortError") {
+      message = "Notification request timed out";
+    }
+    logger.warn("Error sending notification", {
+      error: error,
+      app_id,
+      team_id: teamId,
+    });
+    return errorResponse({
+      statusCode: 500,
+      code: "internal_server_error",
+      detail: message,
+      attribute: "notification",
+      req,
+      app_id,
+      team_id: teamId,
+    });
+  }
+
+  let data: any = {};
+
+  try {
+    data = await res.json();
+  } catch (e) {
+    logger.warn("Error parsing send notification response body", {
+      error: e,
+    });
+  }
 
   if (!res.ok) {
-    console.warn("Error sending notification", {
+    logger.warn("Error sending notification", {
       data,
       app_id,
       team_id: teamId,

@@ -2,22 +2,24 @@
 
 import { errorFormAction } from "@/api/helpers/errors";
 import { extractIdsFromPath, getPathFromHeaders } from "@/lib/server-utils";
-import { PaymentMetadata } from "@/lib/types";
+import { FormActionResult, PaymentMetadata } from "@/lib/types";
 import { createSignedFetcher } from "aws-sigv4-fetch";
+
 export const getTransactionData = async (
   appId: string,
   transactionId?: string,
-): Promise<PaymentMetadata[]> => {
+): Promise<FormActionResult> => {
   const path = getPathFromHeaders() || "";
   const { Teams: teamId } = extractIdsFromPath(path, ["Teams"]);
 
   try {
     if (!process.env.NEXT_SERVER_INTERNAL_PAYMENTS_ENDPOINT) {
-      errorFormAction({
-        message: "getTransactionData - internal payments endpoint must be set",
+      return errorFormAction({
+        message: "The internal payments endpoint is not set",
         additionalInfo: { transactionId },
         app_id: appId,
         team_id: teamId,
+        logLevel: "error",
       });
     }
 
@@ -42,24 +44,30 @@ export const getTransactionData = async (
 
     const data = await response.json();
     if (!response.ok) {
-      errorFormAction({
-        message: "getTransactionData - failed to fetch transaction data",
+      return errorFormAction({
+        message: "Failed to fetch transaction data",
         additionalInfo: { transactionId, response, data },
         app_id: appId,
         team_id: teamId,
+        logLevel: "error",
       });
     }
-    return (data?.result?.transactions || []).sort(
-      (a: PaymentMetadata, b: PaymentMetadata) =>
-        new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
-    );
+    return {
+      success: true,
+      message: "Transaction data fetched successfully",
+      data: (data?.result?.transactions || []).sort(
+        (a: PaymentMetadata, b: PaymentMetadata) =>
+          new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
+      ),
+    };
   } catch (error) {
-    errorFormAction({
-      message: "getTransactionData - failed to fetch transaction data",
+    return errorFormAction({
+      message: "Failed to fetch transaction data",
       error: error as Error,
       additionalInfo: { transactionId },
       app_id: appId,
       team_id: teamId,
+      logLevel: "error",
     });
   }
 };

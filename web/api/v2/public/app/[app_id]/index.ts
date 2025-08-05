@@ -71,6 +71,7 @@ export async function GET(
     { cache: "no-store" },
     3,
     400,
+    5000,
     false,
   );
 
