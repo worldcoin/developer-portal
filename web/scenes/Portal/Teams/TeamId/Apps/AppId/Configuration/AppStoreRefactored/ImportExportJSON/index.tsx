@@ -1,5 +1,7 @@
 import { DecoratedButton } from "@/components/DecoratedButton";
+import { MultiplePlusIcon } from "@/components/Icons/MultiplePlusIcon";
 import { formLanguagesList } from "@/lib/languages";
+import { useState } from "react";
 import { toast } from "react-toastify";
 import * as yup from "yup";
 import { AppStoreFormValues } from "../form-schema";
@@ -85,35 +87,10 @@ const transformLocalisationsDataToFormSchema = (
   }));
 };
 
-const useJSONFileDownload = () => {
-  const downloadFile = (
-    jsonContent: string,
-    filename: string = "localisations.json",
-  ) => {
-    try {
-      const blob = new Blob([jsonContent], { type: "application/json" });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = filename;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-      toast.success("File downloaded successfully");
-    } catch (error) {
-      console.error("Error downloading file:", error);
-      toast.error("Error downloading file");
-    }
-  };
-
-  return {
-    downloadFile,
-  };
-};
-
 export const ImportExportJSON = (props: ImportExportJSONProps) => {
   const { disabled, localisationsData, onLocalisationsUpdate } = props;
+
+  const [isTooltipHovered, setIsTooltipHovered] = useState(false);
 
   const dialog = useImportExportDialog();
   const validation = useJSONValidation();
@@ -167,15 +144,24 @@ export const ImportExportJSON = (props: ImportExportJSONProps) => {
         disabled={disabled}
         hasChanges={hasChanges}
       />
+      <div className="relative inline-block">
+        <DecoratedButton
+          variant="secondary"
+          type="button"
+          disabled={disabled}
+          onClick={handleDialogOpen}
+          onPointerEnter={() => setIsTooltipHovered(true)}
+          onPointerLeave={() => setIsTooltipHovered(false)}
+        >
+          <MultiplePlusIcon className="size-5" />
+        </DecoratedButton>
 
-      <DecoratedButton
-        variant="primary"
-        type="button"
-        disabled={disabled}
-        onClick={handleDialogOpen}
-      >
-        Import/Export
-      </DecoratedButton>
+        {isTooltipHovered && !disabled && (
+          <div className="absolute bottom-full left-1/2 mb-2 -translate-x-1/2 whitespace-pre rounded-lg border border-grey-200 bg-white px-3 py-2 text-12 text-grey-900 shadow-lg">
+            {`Use a JSON to import/export \nlocalisation data.`}
+          </div>
+        )}
+      </div>
     </>
   );
 };

@@ -78,7 +78,7 @@ export const LocalisationsSection = ({
       description="Provide localized content for each supported language."
       className="grid gap-y-5"
     >
-      <div>
+      <div className="flex justify-end">
         <ImportExportJSON
           appId={appId}
           appMetadataId={appMetadata.id}
