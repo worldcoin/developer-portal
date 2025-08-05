@@ -61,7 +61,11 @@ export async function GET(
   }
 
   const headers = request.headers;
-  const locale = parseLocale(headers.get("x-accept-language") ?? "");
+  const { searchParams } = new URL(request.url);
+  const languageParam = searchParams.get("language_override");
+  const locale = parseLocale(
+    languageParam ?? headers.get("x-accept-language") ?? "",
+  );
   const clientVersion = headers.get("client-version");
 
   const client = await getAPIServiceGraphqlClient();
@@ -95,7 +99,6 @@ export async function GET(
   const nativeAppMetadata = NativeApps[process.env.NEXT_PUBLIC_APP_ENV];
 
   // Get query param for specific metadata if provided
-  const { searchParams } = new URL(request.url);
   const draft_id = searchParams.get("draft_id");
 
   if (draft_id) {
