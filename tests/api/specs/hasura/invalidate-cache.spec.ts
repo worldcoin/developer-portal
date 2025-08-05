@@ -1,0 +1,160 @@
+import axios from 'axios';
+
+describe('Hasura API - Invalidate Cache', () => {
+  describe('POST /api/hasura/invalidate-cache', () => {
+    it('Should Successfully Invalidate Cache with Reviewer Role', async () => {
+      const internalApiUrl = process.env.INTERNAL_API_URL;
+      const headers = {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${process.env.INTERNAL_ENDPOINTS_SECRET}`
+      };
+
+      const response = await axios.post(
+        `${internalApiUrl}/api/hasura/invalidate-cache`,
+        {
+          action: {
+            name: "invalidate_cache"
+          },
+          input: {},
+          session_variables: {
+            "x-hasura-role": "reviewer",
+            "x-hasura-user-id": "test-user-id"
+          }
+        },
+        { headers }
+      );
+
+      expect(response.status).toBe(200);
+      expect(response.data.success).toBe(true);
+    });
+
+    it('Should Successfully Invalidate Cache with Admin Role', async () => {
+      const internalApiUrl = process.env.INTERNAL_API_URL;
+      const headers = {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${process.env.INTERNAL_ENDPOINTS_SECRET}`
+      };
+
+      const response = await axios.post(
+        `${internalApiUrl}/api/hasura/invalidate-cache`,
+        {
+          action: {
+            name: "invalidate_cache"
+          },
+          input: {},
+          session_variables: {
+            "x-hasura-role": "admin",
+            "x-hasura-user-id": "test-user-id"
+          }
+        },
+        { headers }
+      );
+
+      expect(response.status).toBe(200);
+      expect(response.data.success).toBe(true);
+    });
+
+    it('Should Return Error When Invalid Action Name', async () => {
+      const internalApiUrl = process.env.INTERNAL_API_URL;
+      const headers = {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${process.env.INTERNAL_ENDPOINTS_SECRET}`
+      };
+
+      try {
+        await axios.post(
+          `${internalApiUrl}/api/hasura/invalidate-cache`,
+          {
+            action: {
+              name: "invalid_action"
+            },
+            input: {},
+            session_variables: {
+              "x-hasura-role": "reviewer",
+              "x-hasura-user-id": "test-user-id"
+            }
+          },
+          { headers }
+        );
+        fail('Expected request to fail');
+      } catch (error: any) {
+        expect(error.response.status).toBe(400);
+        expect(error.response.data.extensions.code).toBe('invalid_action');
+      }
+    });
+
+    it('Should Return Error When User Role Is Not Authorized', async () => {
+      const internalApiUrl = process.env.INTERNAL_API_URL;
+      const headers = {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${process.env.INTERNAL_ENDPOINTS_SECRET}`
+      };
+
+      try {
+        await axios.post(
+          `${internalApiUrl}/api/hasura/invalidate-cache`,
+          {
+            action: {
+              name: "invalidate_cache"
+            },
+            input: {},
+            session_variables: {
+              "x-hasura-role": "user",
+              "x-hasura-user-id": "test-user-id"
+            }
+          },
+          { headers }
+        );
+        fail('Expected request to fail');
+      } catch (error: any) {
+        expect(error.response.status).toBe(400);
+      }
+    });
+
+    it('Should Return Success on Subsequent Requests Within Debounce Period', async () => {
+      const internalApiUrl = process.env.INTERNAL_API_URL;
+      const headers = {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${process.env.INTERNAL_ENDPOINTS_SECRET}`
+      };
+
+      // First request should succeed
+      const firstResponse = await axios.post(
+        `${internalApiUrl}/api/hasura/invalidate-cache`,
+        {
+          action: {
+            name: "invalidate_cache"
+          },
+          input: {},
+          session_variables: {
+            "x-hasura-role": "reviewer",
+            "x-hasura-user-id": "test-user-id"
+          }
+        },
+        { headers }
+      );
+
+      expect(firstResponse.status).toBe(200);
+      expect(firstResponse.data.success).toBe(true);
+
+      // Second request within debounce period should also succeed (due to debounce logic)
+      const secondResponse = await axios.post(
+        `${internalApiUrl}/api/hasura/invalidate-cache`,
+        {
+          action: {
+            name: "invalidate_cache"
+          },
+          input: {},
+          session_variables: {
+            "x-hasura-role": "reviewer",
+            "x-hasura-user-id": "test-user-id"
+          }
+        },
+        { headers }
+      );
+
+      expect(secondResponse.status).toBe(200);
+      expect(secondResponse.data.success).toBe(true);
+    });
+  });
+}); 
