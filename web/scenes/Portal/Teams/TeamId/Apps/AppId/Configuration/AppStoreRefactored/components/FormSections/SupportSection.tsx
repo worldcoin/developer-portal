@@ -24,7 +24,7 @@ export const SupportSection = ({
   return (
     <FormSection
       title="Support"
-      description="Please include a support link where users can reach out to you for help."
+      description="Please include support information. Users will be able to reach out to you for help."
       className="grid gap-y-5"
     >
       <div className="grid grid-cols-2 gap-x-4">
