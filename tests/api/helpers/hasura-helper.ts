@@ -115,6 +115,29 @@ const DELETE_MEMBERSHIP_MUTATION = `
   }
 `;
 
+// Simple GraphQL mutation for creating localisation
+const CREATE_LOCALISATION_MUTATION = `
+  mutation CreateLocalisation($object: localisations_insert_input!) {
+    insert_localisations_one(object: $object) {
+      id
+      locale
+      name
+      short_name
+      description
+      world_app_description
+    }
+  }
+`;
+
+// Simple GraphQL mutation for deleting localisation
+const DELETE_LOCALISATION_MUTATION = `
+  mutation DeleteLocalisation($id: String!) {
+    delete_localisations_by_pk(id: $id) {
+      id
+    }
+  }
+`;
+
 // Helper for creating test app
 export const createTestApp = async (name: string, teamId: string) => {
   try {
@@ -227,7 +250,8 @@ export const createTestAppMetadata = async (
   appId: string, 
   name: string, 
   verificationStatus: 'unverified' | 'verified' | 'awaiting_review' | 'changes_requested' = 'awaiting_review',
-  showcaseImgUrls?: string[]
+  showcaseImgUrls?: string[],
+  supportedLanguages?: string[]
 ) => {
   try {
     const response = await adminGraphqlClient.request(CREATE_APP_METADATA_MUTATION, {
@@ -238,6 +262,7 @@ export const createTestAppMetadata = async (
         logo_img_url: 'test-logo.png',
         verification_status: verificationStatus,
         showcase_img_urls: showcaseImgUrls,
+        supported_languages: supportedLanguages,
         // Use only required fields, others will be filled with defaults
       },
     }) as any;
@@ -288,5 +313,45 @@ export const deleteTestMembership = async (membershipId: string) => {
     return response.delete_membership_by_pk?.id;
   } catch (error) {
     throw new Error(`Failed to delete test membership ${membershipId}: ${JSON.stringify(error)}`);
+  }
+};
+
+// Helper for creating test localisation
+export const createTestLocalisation = async (
+  appMetadataId: string,
+  locale: string,
+  name: string,
+  shortName: string,
+  description: string,
+  worldAppDescription: string
+) => {
+  try {
+    const response = await adminGraphqlClient.request(CREATE_LOCALISATION_MUTATION, {
+      object: {
+        app_metadata_id: appMetadataId,
+        locale,
+        name,
+        short_name: shortName,
+        description,
+        world_app_description: worldAppDescription,
+      },
+    }) as any;
+    
+    return response.insert_localisations_one?.id;
+  } catch (error) {
+    throw new Error(`Failed to create test localisation: ${JSON.stringify(error)}`);
+  }
+};
+
+// Helper for deleting test localisation
+export const deleteTestLocalisation = async (localisationId: string) => {
+  try {
+    const response = await adminGraphqlClient.request(DELETE_LOCALISATION_MUTATION, {
+      id: localisationId,
+    }) as any;
+    
+    return response.delete_localisations_by_pk?.id;
+  } catch (error) {
+    throw new Error(`Failed to delete test localisation ${localisationId}: ${JSON.stringify(error)}`);
   }
 }; 
