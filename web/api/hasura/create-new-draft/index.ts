@@ -102,6 +102,16 @@ export const POST = async (req: NextRequest) => {
 
   const appMetadata = app[0];
 
+  if (appMetadata.verified_app_metadata.length === 0) {
+    return errorHasuraQuery({
+      req,
+      detail: "Verified app metadata not found",
+      code: "verified_app_metadata_not_found",
+      app_id,
+      team_id,
+    });
+  }
+
   // Anchor: Create Draft
   const { id, __typename, ...newAppMetadata } =
     appMetadata.verified_app_metadata[0];
