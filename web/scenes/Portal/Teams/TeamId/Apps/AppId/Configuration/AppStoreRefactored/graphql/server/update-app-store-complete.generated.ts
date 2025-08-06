@@ -14,23 +14,9 @@ export type UpdateAppStoreCompleteMutationVariables = Types.Exact<{
 
 export type UpdateAppStoreCompleteMutation = {
   __typename?: "mutation_root";
-  update_app_metadata_by_pk?: {
-    __typename?: "app_metadata";
-    id: string;
-    name: string;
-    short_name: string;
-    world_app_description: string;
-    description: string;
-    category: string;
-    is_android_only: boolean;
-    is_for_humans_only: boolean;
-    support_link: string;
-    app_website_url: string;
-    supported_countries?: Array<string> | null;
-    supported_languages?: Array<string> | null;
-    meta_tag_image_url: string;
-    showcase_img_urls?: Array<string> | null;
-    hero_image_url: string;
+  update_app_metadata?: {
+    __typename?: "app_metadata_mutation_response";
+    affected_rows: number;
   } | null;
   insert_localisations?: {
     __typename?: "localisations_mutation_response";
@@ -44,25 +30,16 @@ export const UpdateAppStoreCompleteDocument = gql`
     $app_metadata_input: app_metadata_set_input!
     $localisations_to_upsert: [localisations_insert_input!]!
   ) {
-    update_app_metadata_by_pk(
-      pk_columns: { id: $app_metadata_id }
+    update_app_metadata(
+      where: {
+        _and: [
+          { id: { _eq: $app_metadata_id } }
+          { verification_status: { _eq: "unverified" } }
+        ]
+      }
       _set: $app_metadata_input
     ) {
-      id
-      name
-      short_name
-      world_app_description
-      description
-      category
-      is_android_only
-      is_for_humans_only
-      support_link
-      app_website_url
-      supported_countries
-      supported_languages
-      meta_tag_image_url
-      showcase_img_urls
-      hero_image_url
+      affected_rows
     }
     insert_localisations(
       objects: $localisations_to_upsert

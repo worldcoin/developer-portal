@@ -3,25 +3,16 @@ mutation UpdateAppStoreComplete(
   $app_metadata_input: app_metadata_set_input!
   $localisations_to_upsert: [localisations_insert_input!]!
 ) {
-  update_app_metadata_by_pk(
-    pk_columns: { id: $app_metadata_id }
+  update_app_metadata(
+    where: {
+      _and: [
+        { id: { _eq: $app_metadata_id } }
+        { verification_status: { _eq: "unverified" } }
+      ]
+    }
     _set: $app_metadata_input
   ) {
-    id
-    name
-    short_name
-    world_app_description
-    description
-    category
-    is_android_only
-    is_for_humans_only
-    support_link
-    app_website_url
-    supported_countries
-    supported_languages
-    meta_tag_image_url
-    showcase_img_urls
-    hero_image_url
+    affected_rows
   }
 
   # Upsert localisations (insert or update based on unique constraint)
