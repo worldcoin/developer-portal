@@ -1490,7 +1490,9 @@ describe("/api/public/app/[app_id]", () => {
       });
 
       expect(response.status).toBe(200);
-      expect(response.headers.get("Content-Type")).toBe("text/plain");
+      expect(response.headers.get("Content-Type")).toBe(
+        "text/plain; charset=utf-8",
+      );
       const data = await response.text();
       expect(data).toBe("Test App");
     });
@@ -1510,7 +1512,9 @@ describe("/api/public/app/[app_id]", () => {
       });
 
       expect(response.status).toBe(200);
-      expect(response.headers.get("Content-Type")).toBe("application/json");
+      expect(response.headers.get("Content-Type")).toBe(
+        "application/json; charset=utf-8",
+      );
       const data = await response.json();
       expect(data).toEqual(["us", "uk"]);
     });
