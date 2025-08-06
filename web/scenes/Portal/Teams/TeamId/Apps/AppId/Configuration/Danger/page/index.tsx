@@ -10,8 +10,10 @@ import clsx from "clsx";
 import { useAtom } from "jotai";
 import Error from "next/error";
 import { useMemo, useState } from "react";
+import { AppTopBar as AppTopBarOld } from "../../AppTopBar";
 import { AppTopBarRefactored } from "../../AppTopBarRefactored";
 import { useFetchAppMetadataQuery } from "../../graphql/client/fetch-app-metadata.generated";
+import { INTERNAL_TEAM_IDS } from "../../layout/constants-temp";
 import { viewModeAtom } from "../../layout/ImagesProvider";
 import { DeleteModal } from "./DeleteModal";
 
@@ -49,6 +51,10 @@ export const AppProfileDangerPage = ({ params }: AppProfileDangerPageProps) => {
     }
   }, [app, viewMode]);
 
+  // temp
+  const isInternalTeam = INTERNAL_TEAM_IDS.includes(teamId);
+  const AppTopBar = isInternalTeam ? AppTopBarRefactored : AppTopBarOld;
+
   if (loading) {
     return <div></div>;
   } else if (!app) {
@@ -57,7 +63,7 @@ export const AppProfileDangerPage = ({ params }: AppProfileDangerPageProps) => {
     return (
       <>
         <SizingWrapper gridClassName="order-1 pt-8">
-          <AppTopBarRefactored appId={appId} teamId={teamId} app={app} />
+          <AppTopBar appId={appId} teamId={teamId} app={app} />
 
           <hr className="my-5 w-full border-dashed text-grey-200 " />
         </SizingWrapper>

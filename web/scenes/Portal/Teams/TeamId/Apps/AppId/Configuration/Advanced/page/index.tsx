@@ -4,9 +4,11 @@ import { useAtom } from "jotai";
 import Error from "next/error";
 import { useMemo } from "react";
 import Skeleton from "react-loading-skeleton";
+import { AppTopBar as AppTopBarOld } from "../../AppTopBar";
 import { AppTopBarRefactored } from "../../AppTopBarRefactored";
 import { FormSkeleton } from "../../AppTopBarRefactored/FormSkeleton";
 import { useFetchAppMetadataQuery } from "../../graphql/client/fetch-app-metadata.generated";
+import { INTERNAL_TEAM_IDS } from "../../layout/constants-temp";
 import { viewModeAtom } from "../../layout/ImagesProvider";
 import { SetupForm } from "./SetupForm";
 
@@ -35,6 +37,10 @@ export const AppProfileSetupPage = ({ params }: AppProfileSetupPageProps) => {
     }
   }, [app, viewMode]);
 
+  // temp
+  const isInternalTeam = INTERNAL_TEAM_IDS.includes(teamId);
+  const AppTopBar = isInternalTeam ? AppTopBarRefactored : AppTopBarOld;
+
   if (!loading && (error || !app)) {
     return <Error statusCode={404} title="App not found" />;
   } else {
@@ -44,7 +50,7 @@ export const AppProfileSetupPage = ({ params }: AppProfileSetupPageProps) => {
           {loading ? (
             <Skeleton count={2} height={50} />
           ) : (
-            <AppTopBarRefactored appId={appId} teamId={teamId} app={app!} />
+            <AppTopBar appId={appId} teamId={teamId} app={app!} />
           )}
 
           <hr className="my-5 w-full border-dashed text-grey-200" />
