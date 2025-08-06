@@ -142,13 +142,15 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
 
   const verifiedImageURL = useMemo(() => {
     if (viewMode === "unverified" || !logoFile) {
-      // return getDefaultLogoImgCDNUrl();
       return "";
     }
     return getCDNImageUrl(appId, logoFile);
   }, [appId, logoFile, viewMode]);
 
-  if (unverifiedImages?.logo_img_url === "loading") {
+  if (
+    viewMode === "unverified" &&
+    unverifiedImages?.logo_img_url === "loading"
+  ) {
     return <Skeleton className="size-20" />;
   }
 
