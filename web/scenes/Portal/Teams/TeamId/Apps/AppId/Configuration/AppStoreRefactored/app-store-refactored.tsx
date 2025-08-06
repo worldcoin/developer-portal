@@ -45,7 +45,12 @@ export const AppStoreFormRefactored = ({
   return (
     <div className="mb-24 grid max-w-[580px] grid-cols-1fr/auto">
       <form className="grid gap-y-6" onSubmit={handleSubmit(submit)}>
-        <LogoSection appId={appId} teamId={teamId} appMetadata={appMetadata} />
+        <LogoSection
+          appId={appId}
+          teamId={teamId}
+          appMetadata={appMetadata}
+          isEditable={isEditable}
+        />
 
         <CategorySection
           control={control}
