@@ -58,6 +58,7 @@ export const ALLOWED_IMAGE_EXTENSIONS = ["jpg", "png"] as const;
 type ImagePath =
   | `${(typeof SHOWCASE_IMAGE_NAMES)[number]}.${(typeof ALLOWED_IMAGE_EXTENSIONS)[number]}`
   | `${typeof META_TAG_IMAGE_NAME}.${(typeof ALLOWED_IMAGE_EXTENSIONS)[number]}`
+  | `${string}.${(typeof ALLOWED_IMAGE_EXTENSIONS)[number]}`
   | "";
 
 /**
@@ -87,5 +88,20 @@ export const extractImagePathWithExtensionFromActualUrl = (
   if (url.includes(META_TAG_IMAGE_NAME)) {
     return `${META_TAG_IMAGE_NAME}.${extension}` as const;
   }
+
+  // handle verified images with UUID names
+  // extract the filename from the URL path
+  const urlParts = url.split("/");
+  const filename = urlParts[urlParts.length - 1];
+
+  // check if it's a valid image filename with an extension
+  if (
+    filename &&
+    filename.includes(".") &&
+    ALLOWED_IMAGE_EXTENSIONS.some((ext) => filename.endsWith(`.${ext}`))
+  ) {
+    return filename as ImagePath;
+  }
+
   return "" as const;
 };
