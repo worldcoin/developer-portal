@@ -267,7 +267,7 @@ export const formLanguagesList = supportedLanguages;
 // Since Android isn't using a standardized list of locales to return we need to normalize the locale
 export const parseLocale = (locale: string) => {
   // Split on either - or _
-  const major_locale = locale.split(/[-_]/)[0];
+  const major_locale = locale.split(/[-_]/)[0].toLowerCase();
   const secondary_locale = locale.split(/[-_]/)?.[1];
   const tertiary_locale = locale.split(/[-_]/)?.[2];
 

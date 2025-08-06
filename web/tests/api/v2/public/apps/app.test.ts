@@ -1438,4 +1438,105 @@ describe("/api/public/app/[app_id]", () => {
       expect(data.app_data.deleted_at).toBe("2024-01-01T10:00:00.000Z");
     });
   });
+
+  describe("metadata_field parameter behavior", () => {
+    beforeEach(() => {
+      jest.mocked(getAppMetadataSdk).mockImplementation(() => ({
+        GetAppMetadata: jest.fn().mockResolvedValue({
+          app_metadata: [
+            {
+              name: "Test App",
+              app_id: "test-app-1",
+              short_name: "test",
+              logo_img_url: "logo.png",
+              showcase_img_urls: ["showcase1.png", "showcase2.png"],
+              hero_image_url: "",
+              world_app_description: "Test description",
+              world_app_button_text: "Get App",
+              category: "Social",
+              description: '{"description_overview":"Test app"}',
+              integration_url: "https://example.com/integration",
+              verification_status: "verified",
+              supported_countries: ["us", "uk"],
+              supported_languages: ["en", "es"],
+              is_allowed_unlimited_notifications: false,
+              max_notifications_per_day: 10,
+              app: {
+                team: {
+                  name: "Test Team",
+                },
+                rating_sum: 10,
+                rating_count: 2,
+                deleted_at: null,
+              },
+            },
+          ],
+        }),
+      }));
+    });
+
+    test("should return only the requested field when metadata_field is in independentFieldsToFetch", async () => {
+      const request = new NextRequest(
+        "https://cdn.test.com/api/v2/public/app/test-app-1?metadata_field=name",
+        {
+          headers: {
+            host: "cdn.test.com",
+          },
+        },
+      );
+
+      const response = await GET(request, {
+        params: { app_id: "test-app-1" },
+      });
+
+      expect(response.status).toBe(200);
+      expect(response.headers.get("Content-Type")).toBe("text/plain");
+      const data = await response.text();
+      expect(data).toBe("Test App");
+    });
+
+    test("should return array field as JSON when metadata_field is supported_countries", async () => {
+      const request = new NextRequest(
+        "https://cdn.test.com/api/v2/public/app/test-app-1?metadata_field=supported_countries",
+        {
+          headers: {
+            host: "cdn.test.com",
+          },
+        },
+      );
+
+      const response = await GET(request, {
+        params: { app_id: "test-app-1" },
+      });
+
+      expect(response.status).toBe(200);
+      expect(response.headers.get("Content-Type")).toBe("application/json");
+      const data = await response.json();
+      expect(data).toEqual(["us", "uk"]);
+    });
+
+    test("should ignore metadata_field and return full response when field is not in independentFieldsToFetch", async () => {
+      const request = new NextRequest(
+        "https://cdn.test.com/api/v2/public/app/test-app-1?metadata_field=category",
+        {
+          headers: {
+            host: "cdn.test.com",
+          },
+        },
+      );
+
+      const response = await GET(request, {
+        params: { app_id: "test-app-1" },
+      });
+
+      expect(response.status).toBe(200);
+      expect(response.headers.get("Content-Type")).toContain(
+        "application/json",
+      );
+      const data = await response.json();
+      expect(data).toHaveProperty("app_data");
+      expect(data.app_data).toHaveProperty("name", "Test App");
+      expect(data.app_data).toHaveProperty("category");
+    });
+  });
 });
