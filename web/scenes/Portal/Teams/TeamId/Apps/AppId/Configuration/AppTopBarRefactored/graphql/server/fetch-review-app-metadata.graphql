@@ -1,0 +1,30 @@
+query FetchAppMetadataById($app_metadata_id: String!) {
+  app_metadata_by_pk(id: $app_metadata_id) {
+    id
+    app_id
+    name
+    short_name
+    logo_img_url
+    showcase_img_urls
+    meta_tag_image_url
+    world_app_description
+    description
+    category
+    app_website_url
+    support_link
+    supported_countries
+    supported_languages
+    is_android_only
+    is_for_humans_only
+    verification_status
+  }
+  localisations(where: { app_metadata_id: { _eq: $app_metadata_id } }) {
+    locale
+    name
+    short_name
+    world_app_description
+    description
+    meta_tag_image_url
+    showcase_img_urls
+  }
+}
