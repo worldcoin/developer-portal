@@ -94,7 +94,7 @@ export async function submitAppForReviewFormServerSide({
       const supportType = getSupportType(data.app_metadata[0].support_link);
       const supportLink =
         supportType === "link" ? data.app_metadata[0].support_link : "";
-      const supportEmail =
+      const rawSupportEmail =
         supportType === "email"
           ? transformMailtoToRawEmail(data.app_metadata[0].support_link)
           : "";
@@ -104,7 +104,7 @@ export async function submitAppForReviewFormServerSide({
           ...data.app_metadata[0],
           support_type: supportType,
           support_link: supportLink,
-          support_email: supportEmail,
+          support_email: rawSupportEmail,
           localisations,
         },
         {
