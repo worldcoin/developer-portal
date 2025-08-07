@@ -24,17 +24,18 @@ type LogoImageUploadProps = {
   appId: string;
   appMetadataId: string;
   teamId: string;
-  editable: boolean;
+  isEditable: boolean;
   isError: boolean;
   logoFile?: string;
   defaultOpen?: boolean;
 };
+
 export const LogoImageUpload = (props: LogoImageUploadProps) => {
   const {
     appId,
     appMetadataId,
     teamId,
-    editable,
+    isEditable,
     isError,
     logoFile,
     defaultOpen,
@@ -142,13 +143,15 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
 
   const verifiedImageURL = useMemo(() => {
     if (viewMode === "unverified" || !logoFile) {
-      // return getDefaultLogoImgCDNUrl();
       return "";
     }
     return getCDNImageUrl(appId, logoFile);
   }, [appId, logoFile, viewMode]);
 
-  if (unverifiedImages?.logo_img_url === "loading") {
+  if (
+    viewMode === "unverified" &&
+    unverifiedImages?.logo_img_url === "loading"
+  ) {
     return <Skeleton className="size-20" />;
   }
 
@@ -266,7 +269,7 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
         onClick={() => setShowDialog(true)}
         className={clsx(
           "absolute -bottom-2 -right-2 rounded-full border-2 border-grey-200 bg-white p-2 text-grey-500 hover:bg-grey-50",
-          { hidden: !editable || viewMode === "verified" },
+          { hidden: !isEditable || viewMode === "verified" },
           { "bottom-7": isError },
         )}
       >

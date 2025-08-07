@@ -157,11 +157,17 @@ export const AppTopBarRefactored = (props: AppTopBarProps) => {
         });
       }
 
-      await mainAppStoreFormReviewSubmitSchema.validate(form.getValues(), {
-        abortEarly: false,
-        strict: true,
-        stripUnknown: true,
-      });
+      await mainAppStoreFormReviewSubmitSchema.validate(
+        {
+          ...form.getValues(),
+          logo_img_url: appMetadata.logo_img_url,
+        },
+        {
+          abortEarly: false,
+          strict: true,
+          stripUnknown: true,
+        },
+      );
 
       // if all passed show submission modal
       setShowSubmitAppModal(true);
@@ -172,6 +178,13 @@ export const AppTopBarRefactored = (props: AppTopBarProps) => {
         error.inner.forEach((error) => {
           const message = error.message;
           const path = error.params?.path;
+
+          if (path === "logo_img_url") {
+            toast.error(
+              "Logo image is required. Please upload a logo before submitting for review.",
+            );
+          }
+
           if (path) {
             form.setError(path as keyof AppStoreFormValues, { message });
             return;

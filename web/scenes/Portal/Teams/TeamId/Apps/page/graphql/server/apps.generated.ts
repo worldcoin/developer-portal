@@ -15,7 +15,10 @@ export type InitialAppQuery = {
 
 export const InitialAppDocument = gql`
   query InitialApp($teamId: String!) {
-    app(where: { team: { id: { _eq: $teamId } } }, limit: 1) {
+    app(
+      where: { team: { id: { _eq: $teamId } }, deleted_at: { _is_null: true } }
+      limit: 1
+    ) {
       id
     }
   }

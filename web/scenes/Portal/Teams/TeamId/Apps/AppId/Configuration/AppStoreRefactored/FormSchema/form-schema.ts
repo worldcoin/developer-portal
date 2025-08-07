@@ -96,6 +96,7 @@ export const mainAppStoreFormReviewSubmitSchema = yup
   .object({
     name: appNameSchema.required("Name is required"),
     short_name: appShortNameSchema.required("Short name is required"),
+    logo_img_url: yup.string().required("Logo image is required"),
     category: categorySchema.required("Category is required"),
     world_app_description: appWorldAppDescriptionSchema.required(
       "App tag line is required",
@@ -145,7 +146,3 @@ export const mainAppStoreFormReviewSubmitSchema = yup
       return !!(support_link || support_email);
     },
   );
-
-export type MainAppStoreFormReviewSubmitSchema = yup.Asserts<
-  typeof mainAppStoreFormReviewSubmitSchema
->;
