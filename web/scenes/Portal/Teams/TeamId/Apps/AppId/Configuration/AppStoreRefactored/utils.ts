@@ -109,12 +109,7 @@ export const extractImagePathWithExtensionFromActualUrl = (
 /**
  * @param supportLink - support link or support email
  * @returns support type
- * @default "link"
  */
 export const getSupportType = (
   supportLink: string | undefined,
-): "email" | "link" => {
-  if (!supportLink) return "link";
-  if (supportLink.startsWith("mailto:")) return "email";
-  return "link";
-};
+): "email" | "link" => (supportLink?.startsWith("mailto:") ? "email" : "link");

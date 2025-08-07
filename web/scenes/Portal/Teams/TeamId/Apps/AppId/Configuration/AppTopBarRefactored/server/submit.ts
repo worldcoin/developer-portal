@@ -91,12 +91,14 @@ export async function submitAppForReviewFormServerSide({
         data.localisations as LocalisationData,
       );
 
-      const supportType = getSupportType(data.app_metadata[0].support_link);
-      const supportLink =
-        supportType === "link" ? data.app_metadata[0].support_link : "";
+      // either a https:// link or a mailto: email
+      const supportLinkOrEmail = data.app_metadata[0].support_link;
+
+      const supportType = getSupportType(supportLinkOrEmail);
+      const supportLink = supportType === "link" ? supportLinkOrEmail : "";
       const rawSupportEmail =
         supportType === "email"
-          ? transformMailtoToRawEmail(data.app_metadata[0].support_link)
+          ? transformMailtoToRawEmail(supportLinkOrEmail)
           : "";
 
       await mainAppStoreFormReviewSubmitSchema.validate(
