@@ -10,7 +10,7 @@ import {
 import { cleanupTestS3Files, createTestS3Files } from '../../helpers/s3-setup';
 
 // TODO: Fix S3 setup
-describe.skip('Hasura API - App Verification', () => {
+describe('Hasura API - App Verification', () => {
   describe('POST /api/hasura/verify-app', () => {
     let testAppId: string;
     let testTeamId: string;
@@ -20,7 +20,7 @@ describe.skip('Hasura API - App Verification', () => {
 
     beforeAll(async () => {
       // Set required AWS environment variables for tests
-      process.env.ASSETS_S3_BUCKET_NAME = 'test-bucket';
+      process.env.ASSETS_S3_BUCKET_NAME = 'world-id-assets-staging';
       process.env.ASSETS_S3_REGION = 'us-east-1';
 
       // Create test app and metadata

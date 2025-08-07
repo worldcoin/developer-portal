@@ -53,5 +53,4 @@ export const cleanupTestS3Files = async (
   });
 
   await Promise.all(deletePromises);
-  console.log(`Cleaned up test files from S3 for app ${appId}:`, files);
 }; 

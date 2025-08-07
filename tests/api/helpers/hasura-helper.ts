@@ -259,9 +259,9 @@ export const createTestAppMetadata = async (
         app_id: appId,
         name,
         description: 'Test app description',
-        logo_img_url: 'test-logo.png',
+        logo_img_url: 'logo_img.png',
         verification_status: verificationStatus,
-        showcase_img_urls: showcaseImgUrls,
+        ...(showcaseImgUrls && { showcase_img_urls: showcaseImgUrls }),
         supported_languages: supportedLanguages,
         // Use only required fields, others will be filled with defaults
       },
