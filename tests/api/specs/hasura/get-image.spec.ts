@@ -1,17 +1,17 @@
 import axios from 'axios';
 import {
-    createTestApp,
-    createTestAppMetadata,
-    createTestLocalisation,
-    createTestMembership,
-    createTestTeam,
-    createTestUser,
-    deleteTestApp,
-    deleteTestAppMetadata,
-    deleteTestLocalisation,
-    deleteTestMembership,
-    deleteTestTeam,
-    deleteTestUser
+  createTestApp,
+  createTestAppMetadata,
+  createTestLocalisation,
+  createTestMembership,
+  createTestTeam,
+  createTestUser,
+  deleteTestApp,
+  deleteTestAppMetadata,
+  deleteTestLocalisation,
+  deleteTestMembership,
+  deleteTestTeam,
+  deleteTestUser
 } from '../../helpers/hasura-helper';
 import { cleanupTestS3Files, createTestS3Files } from '../../helpers/s3-setup';
 
@@ -25,6 +25,13 @@ describe('Hasura API - Get Image', () => {
     let testLocalisationId: string | undefined;
     let testTeamName: string = 'Test Team for Get Image';
     let testFiles: string[] = ['logo.png', 'hero.jpg', 'showcase_img_1.jpg'];
+    
+    // Environment variables
+    const internalApiUrl = process.env.INTERNAL_API_URL;
+    const headers = {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${process.env.INTERNAL_ENDPOINTS_SECRET}`
+    };
 
     beforeAll(async () => {
       // Set required AWS environment variables for tests
@@ -74,13 +81,7 @@ describe('Hasura API - Get Image', () => {
        );
     });
 
-    it('Should Successfully Get English Logo Image', async () => {
-      const internalApiUrl = process.env.INTERNAL_API_URL;
-      const headers = {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.INTERNAL_ENDPOINTS_SECRET}`
-      };
-
+    it('Get English Logo Image Successfully', async () => {
       const response = await axios.post(
         `${internalApiUrl}/api/hasura/get-image?app_id=${testAppId}&image_type=logo_image&content_type_ending=png`,
         {
@@ -104,13 +105,7 @@ describe('Hasura API - Get Image', () => {
       expect(response.data.url).toContain('logo_image.png');
     });
 
-    it('Should Successfully Get English Hero Image', async () => {
-      const internalApiUrl = process.env.INTERNAL_API_URL;
-      const headers = {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.INTERNAL_ENDPOINTS_SECRET}`
-      };
-
+    it('Get English Hero Image Successfully', async () => {
       const response = await axios.post(
         `${internalApiUrl}/api/hasura/get-image?app_id=${testAppId}&image_type=hero_image&content_type_ending=jpeg`,
         {
@@ -134,13 +129,7 @@ describe('Hasura API - Get Image', () => {
       expect(response.data.url).toContain('hero_image.jpg');
     });
 
-    it('Should Successfully Get Localized Spanish Logo Image', async () => {
-      const internalApiUrl = process.env.INTERNAL_API_URL;
-      const headers = {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.INTERNAL_ENDPOINTS_SECRET}`
-      };
-
+    it('Get Localized Spanish Logo Image Successfully', async () => {
       const response = await axios.post(
         `${internalApiUrl}/api/hasura/get-image?app_id=${testAppId}&image_type=logo_image&content_type_ending=png&locale=es`,
         {

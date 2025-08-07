@@ -1,15 +1,15 @@
 import axios from 'axios';
 import {
-    createTestApp,
-    createTestAppMetadata,
-    createTestMembership,
-    createTestTeam,
-    createTestUser,
-    deleteTestApp,
-    deleteTestAppMetadata,
-    deleteTestMembership,
-    deleteTestTeam,
-    deleteTestUser
+  createTestApp,
+  createTestAppMetadata,
+  createTestMembership,
+  createTestTeam,
+  createTestUser,
+  deleteTestApp,
+  deleteTestAppMetadata,
+  deleteTestMembership,
+  deleteTestTeam,
+  deleteTestUser
 } from '../../helpers/hasura-helper';
 import { cleanupTestS3Files, createTestS3Files } from '../../helpers/s3-setup';
 
@@ -22,6 +22,13 @@ describe('Hasura API - Get Unverified Images', () => {
     let testMetadataId: string | undefined;
     let testTeamName: string = 'Test Team for Get Unverified Images';
     let testFiles: string[] = ['logo.png', 'hero.jpg', 'showcase_img_1.jpg'];
+    
+    // Environment variables
+    const internalApiUrl = process.env.INTERNAL_API_URL;
+    const headers = {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${process.env.INTERNAL_ENDPOINTS_SECRET}`
+    };
 
     beforeAll(async () => {
       // Set required AWS environment variables for tests
@@ -63,13 +70,7 @@ describe('Hasura API - Get Unverified Images', () => {
       );
     });
 
-    it('Should Successfully Get English Unverified Images', async () => {
-      const internalApiUrl = process.env.INTERNAL_API_URL;
-      const headers = {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.INTERNAL_ENDPOINTS_SECRET}`
-      };
-
+    it('Get English Unverified Images Successfully', async () => {
       const response = await axios.post(
         `${internalApiUrl}/api/hasura/get-unverified-images?app_id=${testAppId}&locale=en`,
         {

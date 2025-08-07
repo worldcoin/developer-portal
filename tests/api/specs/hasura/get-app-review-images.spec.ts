@@ -1,17 +1,17 @@
 import axios from 'axios';
 import {
-    createTestApp,
-    createTestAppMetadata,
-    createTestLocalisation,
-    createTestMembership,
-    createTestTeam,
-    createTestUser,
-    deleteTestApp,
-    deleteTestAppMetadata,
-    deleteTestLocalisation,
-    deleteTestMembership,
-    deleteTestTeam,
-    deleteTestUser
+  createTestApp,
+  createTestAppMetadata,
+  createTestLocalisation,
+  createTestMembership,
+  createTestTeam,
+  createTestUser,
+  deleteTestApp,
+  deleteTestAppMetadata,
+  deleteTestLocalisation,
+  deleteTestMembership,
+  deleteTestTeam,
+  deleteTestUser
 } from '../../helpers/hasura-helper';
 
 describe('Hasura API - Get App Review Images', () => {
@@ -56,7 +56,7 @@ describe('Hasura API - Get App Review Images', () => {
       );
     });
 
-    it('Should Successfully Get Review Images for English Locale', async () => {
+    it('Get Review Images for English Locale Successfully', async () => {
       const internalApiUrl = process.env.INTERNAL_API_URL;
       const headers = {
         'Content-Type': 'application/json',
@@ -83,7 +83,7 @@ describe('Hasura API - Get App Review Images', () => {
       expect(Array.isArray(response.data.showcase_img_urls)).toBe(true);
     });
 
-    it('Should Successfully Get Review Images with Admin Role', async () => {
+    it('Get Review Images with Admin Role Successfully', async () => {
       const internalApiUrl = process.env.INTERNAL_API_URL;
       const headers = {
         'Content-Type': 'application/json',

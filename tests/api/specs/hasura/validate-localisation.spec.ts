@@ -67,7 +67,7 @@ describe('Hasura API - Validate Localisation', () => {
       testLocalisationIds.push(frenchLocalisationId);
     });
 
-    it('Should Successfully Validate Complete Localisations', async () => {
+    it('Validate Complete Localisations Successfully', async () => {
       const internalApiUrl = process.env.INTERNAL_API_URL;
       const headers = {
         'Content-Type': 'application/json',
@@ -93,7 +93,7 @@ describe('Hasura API - Validate Localisation', () => {
       expect(response.data.success).toBe(true);
     });
 
-    it('Should Return Error When App Metadata ID Is Missing', async () => {
+    it('Return Error When App Metadata ID Is Missing', async () => {
       const internalApiUrl = process.env.INTERNAL_API_URL;
       const headers = {
         'Content-Type': 'application/json',
@@ -122,7 +122,7 @@ describe('Hasura API - Validate Localisation', () => {
       }
     });
 
-    it('Should Return Error When Team ID Is Missing', async () => {
+    it('Return Error When Team ID Is Missing', async () => {
       const internalApiUrl = process.env.INTERNAL_API_URL;
       const headers = {
         'Content-Type': 'application/json',

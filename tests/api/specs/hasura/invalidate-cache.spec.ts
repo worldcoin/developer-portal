@@ -2,7 +2,7 @@ import axios from 'axios';
 
 describe('Hasura API - Invalidate Cache', () => {
   describe('POST /api/hasura/invalidate-cache', () => {
-    it('Should Successfully Invalidate Cache with Reviewer Role', async () => {
+    it('Invalidate Cache with Reviewer Role Successfully', async () => {
       const internalApiUrl = process.env.INTERNAL_API_URL;
       const headers = {
         'Content-Type': 'application/json',
@@ -28,7 +28,7 @@ describe('Hasura API - Invalidate Cache', () => {
       expect(response.data.success).toBe(true);
     });
 
-    it('Should Successfully Invalidate Cache with Admin Role', async () => {
+    it('Invalidate Cache with Admin Role Successfully', async () => {
       const internalApiUrl = process.env.INTERNAL_API_URL;
       const headers = {
         'Content-Type': 'application/json',
@@ -54,7 +54,7 @@ describe('Hasura API - Invalidate Cache', () => {
       expect(response.data.success).toBe(true);
     });
 
-    it('Should Return Error When Invalid Action Name', async () => {
+    it('Return Error When Invalid Action Name', async () => {
       const internalApiUrl = process.env.INTERNAL_API_URL;
       const headers = {
         'Content-Type': 'application/json',
@@ -83,7 +83,7 @@ describe('Hasura API - Invalidate Cache', () => {
       }
     });
 
-    it('Should Return Error When User Role Is Not Authorized', async () => {
+    it('Return Error When User Role Is Not Authorized', async () => {
       const internalApiUrl = process.env.INTERNAL_API_URL;
       const headers = {
         'Content-Type': 'application/json',
@@ -111,7 +111,7 @@ describe('Hasura API - Invalidate Cache', () => {
       }
     });
 
-    it('Should Return Success on Subsequent Requests Within Debounce Period', async () => {
+    it('Return Success on Subsequent Requests Within Debounce Period', async () => {
       const internalApiUrl = process.env.INTERNAL_API_URL;
       const headers = {
         'Content-Type': 'application/json',

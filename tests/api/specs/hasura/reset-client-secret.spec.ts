@@ -1,15 +1,15 @@
 import axios from 'axios';
 import {
-    createTestApp,
-    createTestAppMetadata,
-    createTestMembership,
-    createTestTeam,
-    createTestUser,
-    deleteTestApp,
-    deleteTestAppMetadata,
-    deleteTestMembership,
-    deleteTestTeam,
-    deleteTestUser
+  createTestApp,
+  createTestAppMetadata,
+  createTestMembership,
+  createTestTeam,
+  createTestUser,
+  deleteTestApp,
+  deleteTestAppMetadata,
+  deleteTestMembership,
+  deleteTestTeam,
+  deleteTestUser
 } from '../../helpers/hasura-helper';
 
 describe('Hasura API - Reset Client Secret', () => {
@@ -20,6 +20,13 @@ describe('Hasura API - Reset Client Secret', () => {
     let testMembershipId: string | undefined;
     let testMetadataId: string | undefined;
     let testTeamName: string = 'Test Team for Reset Client Secret';
+    
+    // Environment variables
+    const internalApiUrl = process.env.INTERNAL_API_URL;
+    const headers = {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${process.env.INTERNAL_ENDPOINTS_SECRET}`
+    };
 
     beforeAll(async () => {
       // Create test team and user
@@ -43,13 +50,7 @@ describe('Hasura API - Reset Client Secret', () => {
       testMetadataId = metadata.id;
     });
 
-    it('Should Successfully Reset Client Secret', async () => {
-      const internalApiUrl = process.env.INTERNAL_API_URL;
-      const headers = {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.INTERNAL_ENDPOINTS_SECRET}`
-      };
-
+    it('Reset Client Secret Successfully', async () => {
       const response = await axios.post(
         `${internalApiUrl}/api/hasura/reset-client-secret`,
         {

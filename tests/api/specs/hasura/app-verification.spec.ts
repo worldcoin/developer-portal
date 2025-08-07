@@ -44,7 +44,7 @@ describe('Hasura API - App Verification', () => {
       testMetadataId = metadata.id;
     });
 
-    it('Should Successfully Verify App Without App Store Approval', async () => {
+    it('Verify App Without App Store Approval Successfully', async () => {
       const internalApiUrl = process.env.INTERNAL_API_URL;
       const headers = {
         'Content-Type': 'application/json',

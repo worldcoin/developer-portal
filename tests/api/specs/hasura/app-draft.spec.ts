@@ -1,15 +1,15 @@
 import axios from 'axios';
 import {
-    createTestApp,
-    createTestAppMetadata,
-    createTestMembership,
-    createTestTeam,
-    createTestUser,
-    deleteTestApp,
-    deleteTestAppMetadata,
-    deleteTestMembership,
-    deleteTestTeam,
-    deleteTestUser
+  createTestApp,
+  createTestAppMetadata,
+  createTestMembership,
+  createTestTeam,
+  createTestUser,
+  deleteTestApp,
+  deleteTestAppMetadata,
+  deleteTestMembership,
+  deleteTestTeam,
+  deleteTestUser
 } from '../../helpers/hasura-helper';
 
 describe('Hasura API - App Draft Management', () => {
@@ -41,7 +41,7 @@ describe('Hasura API - App Draft Management', () => {
       testMetadataId = metadata.id;
     });
 
-    it('Should Successfully Create New Draft From Verified App', async () => {
+    it('Create New Draft From Verified App Successfully', async () => {
       const internalApiUrl = process.env.INTERNAL_API_URL;
       const headers = {
         'Content-Type': 'application/json',

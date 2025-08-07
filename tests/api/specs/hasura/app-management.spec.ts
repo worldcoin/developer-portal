@@ -13,7 +13,7 @@ describe('Hasura API Endpoints', () => {
       testAppId = await createTestApp('Test App for Ban/Unban', testTeamId);
     });
 
-    it('Ban And Then Unban An App Successfully', async () => {
+    it('Ban And Then Unban App Successfully', async () => {
       const internalApiUrl = process.env.INTERNAL_API_URL;
       const headers = {
         'Content-Type': 'application/json',

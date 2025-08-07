@@ -1,13 +1,13 @@
 import axios from 'axios';
 import {
-    createTestApp,
-    createTestMembership,
-    createTestTeam,
-    createTestUser,
-    deleteTestApp,
-    deleteTestMembership,
-    deleteTestTeam,
-    deleteTestUser
+  createTestApp,
+  createTestMembership,
+  createTestTeam,
+  createTestUser,
+  deleteTestApp,
+  deleteTestMembership,
+  deleteTestTeam,
+  deleteTestUser
 } from '../../helpers/hasura-helper';
 
 describe('Hasura API - Upload Image', () => {
@@ -30,7 +30,7 @@ describe('Hasura API - Upload Image', () => {
       testAppId = await createTestApp('Test App for Image Upload', testTeamId);
     });
 
-    it('Should Successfully Generate Presigned URL for PNG Image', async () => {
+    it('Generate Presigned URL for PNG Image Successfully', async () => {
       const internalApiUrl = process.env.INTERNAL_API_URL;
       const headers = {
         'Content-Type': 'application/json',
@@ -61,7 +61,7 @@ describe('Hasura API - Upload Image', () => {
       expect(typeof response.data.stringifiedFields).toBe('string');
     });
 
-    it('Should Successfully Generate Presigned URL with Locale', async () => {
+    it('Generate Presigned URL with Locale Successfully', async () => {
       const internalApiUrl = process.env.INTERNAL_API_URL;
       const headers = {
         'Content-Type': 'application/json',
@@ -90,7 +90,7 @@ describe('Hasura API - Upload Image', () => {
       expect(response.data.stringifiedFields).toBeDefined();
     });
 
-    it('Should Return Error When App Not Found', async () => {
+    it('Return Error When App Not Found', async () => {
       const internalApiUrl = process.env.INTERNAL_API_URL;
       const headers = {
         'Content-Type': 'application/json',
@@ -123,7 +123,7 @@ describe('Hasura API - Upload Image', () => {
       }
     });
 
-    it('Should Return Error When User Has Insufficient Permissions', async () => {
+    it('Return Error When User Has Insufficient Permissions', async () => {
       const internalApiUrl = process.env.INTERNAL_API_URL;
       const headers = {
         'Content-Type': 'application/json',

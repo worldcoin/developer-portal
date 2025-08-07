@@ -1,11 +1,11 @@
 import axios from 'axios';
 import {
-    createTestMembership,
-    createTestTeam,
-    createTestUser,
-    deleteTestMembership,
-    deleteTestTeam,
-    deleteTestUser
+  createTestMembership,
+  createTestTeam,
+  createTestUser,
+  deleteTestMembership,
+  deleteTestTeam,
+  deleteTestUser
 } from '../../helpers/hasura-helper';
 
 describe('Hasura API - Invite Team Members', () => {
@@ -24,7 +24,7 @@ describe('Hasura API - Invite Team Members', () => {
       testMembershipId = await createTestMembership(testUserId, testTeamId, 'OWNER');
     });
 
-    it('Should Successfully Invite New Team Members', async () => {
+    it('Invite New Team Members Successfully', async () => {
       const internalApiUrl = process.env.INTERNAL_API_URL;
       const headers = {
         'Content-Type': 'application/json',
@@ -55,7 +55,7 @@ describe('Hasura API - Invite Team Members', () => {
       expect(response.data.emails).toEqual(emailsToInvite);
     });
 
-    it('Should Return Error When Inviting Existing Team Members', async () => {
+    it('Return Error When Inviting Existing Team Members', async () => {
       const internalApiUrl = process.env.INTERNAL_API_URL;
       const headers = {
         'Content-Type': 'application/json',
@@ -97,7 +97,7 @@ describe('Hasura API - Invite Team Members', () => {
       await deleteTestUser(existingUserId);
     });
 
-    it('Should Return Error When User Has Insufficient Permissions', async () => {
+    it('Return Error When User Has Insufficient Permissions', async () => {
       const internalApiUrl = process.env.INTERNAL_API_URL;
       const headers = {
         'Content-Type': 'application/json',
@@ -137,7 +137,7 @@ describe('Hasura API - Invite Team Members', () => {
       await deleteTestUser(unauthorizedUserId);
     });
 
-    it('Should Return Error When Admin Role Is Used', async () => {
+    it('Return Error When Admin Role Is Used', async () => {
       const internalApiUrl = process.env.INTERNAL_API_URL;
       const headers = {
         'Content-Type': 'application/json',
