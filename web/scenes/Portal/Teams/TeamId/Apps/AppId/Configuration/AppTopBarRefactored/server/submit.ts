@@ -72,14 +72,24 @@ export async function submitAppForReviewFormServerSide({
         },
       );
 
+      if (!data.app_metadata[0]) {
+        return errorFormAction({
+          message: "App metadata not found or not in unverified state",
+          additionalInfo: { input },
+          team_id: input.team_id,
+          app_id: appId,
+          logLevel: "warn",
+        });
+      }
+
       const localisations = getLocalisationFormValues(
-        data.app_metadata_by_pk!,
+        data.app_metadata[0],
         data.localisations as LocalisationData,
       );
 
       await mainAppStoreFormReviewSubmitSchema.validate(
         {
-          ...data.app_metadata_by_pk,
+          ...data.app_metadata[0],
           localisations,
         },
         {

@@ -10,7 +10,7 @@ export type FetchAppMetadataByIdQueryVariables = Types.Exact<{
 
 export type FetchAppMetadataByIdQuery = {
   __typename?: "query_root";
-  app_metadata_by_pk?: {
+  app_metadata: Array<{
     __typename?: "app_metadata";
     id: string;
     app_id: string;
@@ -29,7 +29,7 @@ export type FetchAppMetadataByIdQuery = {
     is_android_only: boolean;
     is_for_humans_only: boolean;
     verification_status: string;
-  } | null;
+  }>;
   localisations: Array<{
     __typename?: "localisations";
     locale: string;
@@ -44,7 +44,15 @@ export type FetchAppMetadataByIdQuery = {
 
 export const FetchAppMetadataByIdDocument = gql`
   query FetchAppMetadataById($app_metadata_id: String!) {
-    app_metadata_by_pk(id: $app_metadata_id) {
+    app_metadata(
+      where: {
+        _and: [
+          { app: { deleted_at: { _is_null: true } } }
+          { id: { _eq: $app_metadata_id } }
+          { verification_status: { _eq: "unverified" } }
+        ]
+      }
+    ) {
       id
       app_id
       name

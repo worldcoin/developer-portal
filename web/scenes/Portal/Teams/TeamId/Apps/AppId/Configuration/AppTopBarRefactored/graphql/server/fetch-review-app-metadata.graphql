@@ -1,5 +1,13 @@
 query FetchAppMetadataById($app_metadata_id: String!) {
-  app_metadata_by_pk(id: $app_metadata_id) {
+  app_metadata(
+    where: {
+      _and: [
+        { app: { deleted_at: { _is_null: true } } }
+        { id: { _eq: $app_metadata_id } }
+        { verification_status: { _eq: "unverified" } }
+      ]
+    }
+  ) {
     id
     app_id
     name
