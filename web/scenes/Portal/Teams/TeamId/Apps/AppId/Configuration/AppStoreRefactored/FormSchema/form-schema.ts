@@ -102,8 +102,18 @@ export const mainAppStoreFormReviewSubmitSchema = yup
       "App tag line is required",
     ),
     app_website_url: appWebsiteUrlSchema.required("Website URL is required"),
-    support_link: supportLinkSchema, // additionally validated in test
-    support_email: supportEmailSchema, // additionally validated in test
+    support_type: yup.string().oneOf(["email", "link"]),
+    support_link: yup.string().when("support_type", {
+      is: "link",
+      then: (_schema) => supportLinkSchema.required("Support link is required"),
+      otherwise: (_schema) => yup.string().length(0),
+    }),
+    support_email: yup.string().when("support_type", {
+      is: "email",
+      then: (_schema) =>
+        supportEmailSchema.required("Support email is required"),
+      otherwise: (_schema) => yup.string().length(0),
+    }),
     is_android_only: isAndroidOnlySchema.required("This field is required"),
     is_for_humans_only: isForHumansOnlySchema.required(
       "This field is required",
