@@ -1,20 +1,62 @@
+import { errorResponse } from "@/api/helpers/errors";
 import { protectInternalEndpoint } from "@/api/helpers/utils";
+import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { generateExternalNullifier } from "@/lib/hashing";
+import { logger } from "@/lib/logger";
 import { NextRequest, NextResponse } from "next/server";
+import * as yup from "yup";
 import { getAPIServiceGraphqlClient } from "../helpers/graphql";
 import { getSdk as getSetExternalNullifierSdk } from "./graphql/set-external-nulifier.generated";
+
+const schema = yup.object({
+  event: yup.object({
+    data: yup.object({
+      new: yup.object({
+        app_id: yup.string().required(),
+        action: yup.string().optional(),
+        external_nullifier: yup.string().optional(),
+        id: yup.string().required(),
+      }),
+    }),
+  }),
+});
+
 /**
  * Generates the external nullifier for actions created in the Developer Portal.
  */
 export async function POST(request: NextRequest) {
-  const { isAuthenticated, errorResponse } = protectInternalEndpoint(request);
+  const { isAuthenticated, errorResponse: unauthenticatedError } =
+    protectInternalEndpoint(request);
   if (!isAuthenticated) {
-    return errorResponse;
+    return unauthenticatedError;
   }
 
-  const body = await request.json();
+  let body;
+  try {
+    body = await request.json();
+  } catch (error) {
+    const body = await request.text();
+    logger.warn("Invalid JSON in request body", { error, body });
 
-  const action = body.event.data.new;
+    return errorResponse({
+      statusCode: 400,
+      code: "invalid_request",
+      detail: "Invalid JSON in request body",
+      attribute: null,
+      req: request,
+    });
+  }
+
+  const { isValid, parsedParams, handleError } = await validateRequestSchema({
+    schema,
+    value: body,
+  });
+
+  if (!isValid) {
+    return handleError(request);
+  }
+
+  const action = parsedParams.event.data.new;
 
   if (
     action.external_nullifier &&

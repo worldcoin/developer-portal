@@ -17,6 +17,16 @@ import { getSdk as getAppMetadataSdk } from "./graphql/get-app-metadata.generate
  * @param res
  */
 
+const independentFieldsToFetch = [
+  "name",
+  "short_name",
+  "supported_countries",
+  "world_app_description",
+  "unique_users",
+  "impressions",
+  "logo_img_url",
+];
+
 export async function GET(
   request: Request,
   { params }: { params: { app_id: string } },
@@ -51,7 +61,11 @@ export async function GET(
   }
 
   const headers = request.headers;
-  const locale = parseLocale(headers.get("x-accept-language") ?? "");
+  const { searchParams } = new URL(request.url);
+  const languageParam = searchParams.get("language_override");
+  const locale = parseLocale(
+    languageParam ?? headers.get("x-accept-language") ?? "",
+  );
   const clientVersion = headers.get("client-version");
 
   const client = await getAPIServiceGraphqlClient();
@@ -71,6 +85,7 @@ export async function GET(
     { cache: "no-store" },
     3,
     400,
+    5000,
     false,
   );
 
@@ -84,7 +99,6 @@ export async function GET(
   const nativeAppMetadata = NativeApps[process.env.NEXT_PUBLIC_APP_ENV];
 
   // Get query param for specific metadata if provided
-  const { searchParams } = new URL(request.url);
   const draft_id = searchParams.get("draft_id");
 
   if (draft_id) {
@@ -132,6 +146,7 @@ export async function GET(
     ? null
     : headers.get("CloudFront-Viewer-Country");
   const override_country = searchParams.get("override_country") || country;
+  const metadata_field = searchParams.get("metadata_field");
   const shouldUninstallOnDelist = parsedAppMetadata.should_uninstall_on_delist;
   const isDelisted = !parsedAppMetadata.is_reviewer_app_store_approved;
   const isMetadataVerified =
@@ -213,8 +228,49 @@ export async function GET(
   if (!isCategoryValid) {
     return NextResponse.json({ error: "Invalid category" }, { status: 404 });
   }
-  const responseBody = { app_data: formattedMetadata };
 
+  // For purposes of promotion campaigns, we allow fetching some fields independently.
+  if (metadata_field && independentFieldsToFetch.includes(metadata_field)) {
+    const fieldValue =
+      formattedMetadata[metadata_field as keyof typeof formattedMetadata];
+
+    // Return raw value as text/plain for primitive types
+    if (
+      typeof fieldValue === "string" ||
+      typeof fieldValue === "number" ||
+      typeof fieldValue === "boolean"
+    ) {
+      const responseText = String(fieldValue);
+      const contentLength = Buffer.byteLength(responseText, "utf-8").toString();
+
+      return new NextResponse(responseText, {
+        status: 200,
+        headers: {
+          "Content-Type": "text/plain; charset=utf-8",
+          "Content-Length": contentLength,
+          "Cache-Control": "public, max-age=5, stale-if-error=86400",
+        },
+      });
+    }
+
+    // For arrays and objects, return as JSON
+    if (Array.isArray(fieldValue) || typeof fieldValue === "object") {
+      const jsonResponse = JSON.stringify(fieldValue);
+      const contentLength = Buffer.byteLength(jsonResponse, "utf-8").toString();
+
+      return new NextResponse(jsonResponse, {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json; charset=utf-8",
+          "Content-Length": contentLength,
+          "Cache-Control": "public, max-age=5, stale-if-error=86400",
+        },
+      });
+    }
+  }
+
+  // Default behavior - return full app_data as JSON
+  const responseBody = { app_data: formattedMetadata };
   const contentLength = Buffer.byteLength(
     JSON.stringify(responseBody),
     "utf-8",

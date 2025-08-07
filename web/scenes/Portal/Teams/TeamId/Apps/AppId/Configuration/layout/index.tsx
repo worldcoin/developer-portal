@@ -7,7 +7,6 @@ import { checkUserPermissions } from "@/lib/utils";
 import { getSession } from "@auth0/nextjs-auth0";
 import { ReactNode } from "react";
 import { ImagesProvider } from "./ImagesProvider";
-import { INTERNAL_TEAM_IDS } from "./constants-temp";
 
 type Params = {
   teamId?: string;
@@ -29,8 +28,6 @@ export const AppProfileLayout = async (props: AppProfileLayout) => {
     Role_Enum.Owner,
   ]);
 
-  const isInternalTeam = INTERNAL_TEAM_IDS.includes(params.teamId ?? "");
-
   return (
     <div className="flex flex-col items-start">
       <div className="order-2 md:order-1 md:w-full md:border-b md:border-grey-100 md:bg-grey-50">
@@ -46,23 +43,11 @@ export const AppProfileLayout = async (props: AppProfileLayout) => {
 
             <Tab
               className="md:py-4"
-              href={`/teams/${params!.teamId}/apps/${params!.appId}/configuration/app-store`}
-              segment={"app-store"}
+              href={`/teams/${params!.teamId}/apps/${params!.appId}/configuration/app-store-refactored`}
+              segment={"app-store-refactored"}
             >
               <Typography variant={TYPOGRAPHY.R4}>Mini App Store</Typography>
             </Tab>
-            {isInternalTeam && (
-              <Tab
-                className="md:py-4"
-                href={`/teams/${params!.teamId}/apps/${params!.appId}/configuration/app-store-refactored`}
-                segment={"app-store-refactored"}
-              >
-                <Typography variant={TYPOGRAPHY.R4}>Mini App Store</Typography>{" "}
-                <Typography variant={TYPOGRAPHY.M4} className="text-grey-400">
-                  (beta)
-                </Typography>
-              </Tab>
-            )}
 
             <Tab
               className="md:py-4"

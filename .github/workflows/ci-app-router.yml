@@ -148,7 +148,7 @@ jobs:
 
   e2e-tests:
     name: End-to-end Tests
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-24.04-16core
     environment: development
 
     defaults:

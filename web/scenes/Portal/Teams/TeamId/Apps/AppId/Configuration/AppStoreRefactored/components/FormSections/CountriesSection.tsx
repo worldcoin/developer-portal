@@ -24,7 +24,7 @@ export const CountriesSection = ({
   return (
     <FormSection
       title="Supported Countries"
-      description="List of countries where your app is available."
+      description="List of countries where your app is available. This setting allows you to display your App in the Mini App Store in selected countries only."
       className="grid gap-y-5"
     >
       <Notification variant="warning">

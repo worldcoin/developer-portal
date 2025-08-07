@@ -10,6 +10,7 @@ import {
   getIsUserAllowedToUpdateLocalisation,
 } from "@/lib/permissions";
 import { extractIdsFromPath, getPathFromHeaders } from "@/lib/server-utils";
+import { FormActionResult } from "@/lib/types";
 import { getSdk as getDeleteLocalisationSdk } from "../AppStoreLocalised/graphql/server/delete-localisation.generated";
 import { getSdk as getFetchLocalisationSdk } from "../AppStoreLocalised/graphql/server/fetch-localisation.generated";
 import { getSdk as getInsertLocalisationSdk } from "../AppStoreLocalised/graphql/server/insert-localisation.generated";
@@ -33,9 +34,10 @@ import {
   UpdateLocalisationInitialSchema,
   updateLocalisationInitialSchema,
 } from "../form-schema";
+
 export async function validateAndUpdateLocalisationServerSide(
   params: UpdateLocalisationInitialSchema,
-) {
+): Promise<FormActionResult> {
   const path = getPathFromHeaders() || "";
   const { Apps: appId, Teams: teamId } = extractIdsFromPath(path, [
     "Apps",
@@ -62,11 +64,12 @@ export async function validateAndUpdateLocalisationServerSide(
     const isUserAllowedToUpdateLocalisation =
       await getIsUserAllowedToUpdateLocalisation(params.localisation_id);
     if (!isUserAllowedToUpdateLocalisation) {
-      errorFormAction({
+      return errorFormAction({
         message:
-          "validateAndUpdateLocalisationServerSide - invalid permissions",
+          "The user does not have permission to update this localisation",
         team_id: teamId,
         app_id: appId,
+        logLevel: "warn",
       });
     }
 
@@ -77,11 +80,12 @@ export async function validateAndUpdateLocalisationServerSide(
       });
 
     if (!isValid || !parsedInitialValues) {
-      errorFormAction({
-        message: "validateAndUpdateLocalisationServerSide - invalid input",
+      return errorFormAction({
+        message: "The provided localisation data is invalid",
         additionalInfo: { initalValues },
         team_id: teamId,
         app_id: appId,
+        logLevel: "warn",
       });
     }
 
@@ -103,23 +107,29 @@ export async function validateAndUpdateLocalisationServerSide(
 
     const client = await getAPIServiceGraphqlClient();
     await getUpdateLocalisationSdk(client).UpdateLocalisation(encodedInput);
+
+    return {
+      success: true,
+      message: "Localisation updated successfully",
+    };
   } catch (error) {
-    errorFormAction({
+    return errorFormAction({
       error: error as Error,
-      message: "validateAndUpdateLocalisation - error updating localisation",
+      message: "An error occurred while updating the localisation",
       additionalInfo: {
         encodedInput,
         initalValues,
       },
       team_id: teamId,
       app_id: appId,
+      logLevel: "error",
     });
   }
 }
 
 export async function validateAndUpdateAppLocaleInfoServerSide(
   params: UpdateAppLocaleInfoInitialSchema,
-) {
+): Promise<FormActionResult> {
   const path = getPathFromHeaders() || "";
   const { Apps: appId, Teams: teamId } = extractIdsFromPath(path, [
     "Apps",
@@ -144,11 +154,12 @@ export async function validateAndUpdateAppLocaleInfoServerSide(
     const isUserAllowedToUpdateAppMetadata =
       await getIsUserAllowedToUpdateAppMetadata(params.app_metadata_id);
     if (!isUserAllowedToUpdateAppMetadata) {
-      errorFormAction({
+      return errorFormAction({
         message:
-          "validateAndUpdateAppLocaleInfoServerSide - invalid permissions",
+          "The user does not have permission to update this app metadata",
         team_id: teamId,
         app_id: appId,
+        logLevel: "warn",
       });
     }
 
@@ -159,11 +170,12 @@ export async function validateAndUpdateAppLocaleInfoServerSide(
       });
 
     if (!isValid || !parsedInitialValues) {
-      errorFormAction({
-        message: "validateAndUpdateAppLocaleInfoServerSide - invalid input",
+      return errorFormAction({
+        message: "The provided app locale info is invalid",
         additionalInfo: { initalValues },
         team_id: teamId,
         app_id: appId,
+        logLevel: "warn",
       });
     }
 
@@ -184,24 +196,29 @@ export async function validateAndUpdateAppLocaleInfoServerSide(
 
     const client = await getAPIServiceGraphqlClient();
     await getUpdateAppInfoSdk(client).UpdateAppInfo(encodedInput);
+
+    return {
+      success: true,
+      message: "App locale info updated successfully",
+    };
   } catch (error) {
-    errorFormAction({
+    return errorFormAction({
       error: error as Error,
-      message:
-        "validateAndUpdateAppLocaleInfo - error updating app locale info",
+      message: "An error occurred while updating the app locale info",
       additionalInfo: {
         encodedInput,
         initalValues,
       },
       team_id: teamId,
       app_id: appId,
+      logLevel: "error",
     });
   }
 }
 
 export async function validateAndUpdateAppSupportInfoServerSide(
   params: UpdateAppSupportInfoInitialSchema,
-) {
+): Promise<FormActionResult> {
   const path = getPathFromHeaders() || "";
   const { Apps: appId, Teams: teamId } = extractIdsFromPath(path, [
     "Apps",
@@ -226,11 +243,12 @@ export async function validateAndUpdateAppSupportInfoServerSide(
     const isUserAllowedToUpdateAppMetadata =
       await getIsUserAllowedToUpdateAppMetadata(params.app_metadata_id);
     if (!isUserAllowedToUpdateAppMetadata) {
-      errorFormAction({
+      return errorFormAction({
         message:
-          "validateAndUpdateAppSupportInfoServerSide - invalid permissions",
+          "The user does not have permission to update this app metadata",
         team_id: teamId,
         app_id: appId,
+        logLevel: "warn",
       });
     }
 
@@ -241,11 +259,12 @@ export async function validateAndUpdateAppSupportInfoServerSide(
       });
 
     if (!isValid || !parsedInitialValues) {
-      errorFormAction({
-        message: "validateAndUpdateAppSupportInfoServerSide - invalid input",
+      return errorFormAction({
+        message: "The provided app support info is invalid",
         additionalInfo: { initalValues },
         team_id: teamId,
         app_id: appId,
+        logLevel: "warn",
       });
     }
 
@@ -265,14 +284,19 @@ export async function validateAndUpdateAppSupportInfoServerSide(
 
     const client = await getAPIServiceGraphqlClient();
     await getUpdateAppInfoSdk(client).UpdateAppInfo(input);
+
+    return {
+      success: true,
+      message: "App support info updated successfully",
+    };
   } catch (error) {
-    errorFormAction({
+    return errorFormAction({
       error: error as Error,
-      message:
-        "validateAndUpdateAppSupportInfo - error updating app support info",
+      message: "An error occurred while updating the app support info",
       additionalInfo: { input, initalValues },
       team_id: teamId,
       app_id: appId,
+      logLevel: "error",
     });
   }
 }
@@ -280,7 +304,7 @@ export async function validateAndUpdateAppSupportInfoServerSide(
 export async function deleteLocalisationServerSide(
   appMetadataId: string,
   locale: string,
-) {
+): Promise<FormActionResult> {
   const path = getPathFromHeaders() || "";
   const { Apps: appId, Teams: teamId } = extractIdsFromPath(path, [
     "Apps",
@@ -289,22 +313,24 @@ export async function deleteLocalisationServerSide(
 
   try {
     if (locale === "en") {
-      errorFormAction({
-        message:
-          "deleteLocalisationServerSide - english localization cannot be removed",
+      return errorFormAction({
+        message: "English localization cannot be removed",
         additionalInfo: { appMetadataId, locale },
         team_id: teamId,
         app_id: appId,
+        logLevel: "warn",
       });
     }
 
     const isUserAllowedToDeleteLocalisation =
       await getIsUserAllowedToDeleteLocalisation(appMetadataId, locale);
     if (!isUserAllowedToDeleteLocalisation) {
-      errorFormAction({
-        message: "deleteLocalisationServerSide - invalid permissions",
+      return errorFormAction({
+        message:
+          "The user does not have permission to delete this localisation",
         team_id: teamId,
         app_id: appId,
+        logLevel: "warn",
       });
     }
 
@@ -313,13 +339,19 @@ export async function deleteLocalisationServerSide(
       app_metadata_id: appMetadataId,
       locale,
     });
+
+    return {
+      success: true,
+      message: "Localisation deleted successfully",
+    };
   } catch (error) {
-    errorFormAction({
+    return errorFormAction({
       error: error as Error,
-      message: "deleteLocalisation - error deleting localisation",
+      message: "An error occurred while deleting the localisation",
       additionalInfo: { appMetadataId, locale },
       team_id: teamId,
       app_id: appId,
+      logLevel: "error",
     });
   }
 }
@@ -328,7 +360,7 @@ export async function addEmptyLocalisationServerSide(
   appMetadataId: string,
   locale: string,
   appId: string,
-) {
+): Promise<FormActionResult> {
   const path = getPathFromHeaders() || "";
   const { Teams: teamId } = extractIdsFromPath(path, ["Teams"]);
 
@@ -336,10 +368,12 @@ export async function addEmptyLocalisationServerSide(
     const isUserAllowedToInsertLocalisation =
       await getIsUserAllowedToInsertLocalisation(appId);
     if (!isUserAllowedToInsertLocalisation) {
-      errorFormAction({
-        message: "addEmptyLocalisationServerSide - invalid permissions",
+      return errorFormAction({
+        message:
+          "The user does not have permission to create localisations for this app",
         team_id: teamId,
         app_id: appId,
+        logLevel: "warn",
       });
     }
 
@@ -354,7 +388,10 @@ export async function addEmptyLocalisationServerSide(
 
     if (localisations.length > 0) {
       // Localization already exists, return early
-      return;
+      return {
+        success: true,
+        message: "Localisation already exists",
+      };
     }
 
     // Create new localization
@@ -364,13 +401,19 @@ export async function addEmptyLocalisationServerSide(
         locale,
       },
     });
+
+    return {
+      success: true,
+      message: "Localisation created successfully",
+    };
   } catch (error) {
-    errorFormAction({
+    return errorFormAction({
       error: error as Error,
-      message: "addEmptyLocalisation - error adding empty localisation",
+      message: "An error occurred while creating the localisation",
       additionalInfo: { appMetadataId, locale },
       team_id: teamId,
       app_id: appId,
+      logLevel: "error",
     });
   }
 }

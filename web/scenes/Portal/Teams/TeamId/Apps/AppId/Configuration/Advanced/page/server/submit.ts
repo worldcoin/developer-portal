@@ -4,16 +4,18 @@ import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { getIsUserAllowedToUpdateAppMetadata } from "@/lib/permissions";
 import { extractIdsFromPath, getPathFromHeaders } from "@/lib/server-utils";
+import { FormActionResult } from "@/lib/types";
 import { formatMultipleStringInput } from "@/lib/utils";
 import {
   updateSetupInitialSchema,
   UpdateSetupInitialSchema,
 } from "../form-schema";
 import { getSdk as getUpdateSetupSdk } from "../SetupForm/graphql/server/update-setup.generated";
+
 export async function validateAndUpdateSetupServerSide(
   initialValues: UpdateSetupInitialSchema,
   app_metadata_id: string,
-) {
+): Promise<FormActionResult> {
   const path = getPathFromHeaders() || "";
   const { Apps: appId, Teams: teamId } = extractIdsFromPath(path, [
     "Apps",
@@ -24,10 +26,12 @@ export async function validateAndUpdateSetupServerSide(
     const isUserAllowedToUpdateAppMetadata =
       await getIsUserAllowedToUpdateAppMetadata(app_metadata_id);
     if (!isUserAllowedToUpdateAppMetadata) {
-      errorFormAction({
-        message: "validateAndUpdateSetupServerSide - invalid permissions",
+      return errorFormAction({
+        message:
+          "The user does not have permission to update this app metadata",
         team_id: teamId,
         app_id: appId,
+        logLevel: "warn",
       });
     }
 
@@ -38,11 +42,12 @@ export async function validateAndUpdateSetupServerSide(
       });
 
     if (!isValid || !parsedInitialValues) {
-      errorFormAction({
-        message: "validateAndUpdateSetupServerSide - invalid input",
+      return errorFormAction({
+        message: "The provided app metadata is invalid",
         team_id: teamId,
         app_id: appId,
         additionalInfo: { initialValues },
+        logLevel: "warn",
       });
     }
 
@@ -86,13 +91,19 @@ export async function validateAndUpdateSetupServerSide(
       is_allowed_unlimited_notifications,
       max_notifications_per_day,
     });
+
+    return {
+      success: true,
+      message: "App metadata updated successfully",
+    };
   } catch (error) {
-    errorFormAction({
+    return errorFormAction({
       error: error as Error,
-      message: "validateAndUpdateSetupServerSide - error updating setup",
+      message: "An error occurred while updating the app metadata",
       team_id: teamId,
       app_id: appId,
       additionalInfo: { initialValues, app_metadata_id },
+      logLevel: "error",
     });
   }
 }

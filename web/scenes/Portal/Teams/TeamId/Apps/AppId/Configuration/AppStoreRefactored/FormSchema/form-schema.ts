@@ -31,8 +31,24 @@ export const mainAppStoreFormSchema = yup
   .object({
     category: categorySchema,
     app_website_url: appWebsiteUrlSchema,
-    support_link: supportLinkSchema,
-    support_email: supportEmailSchema,
+    support_link: supportLinkSchema.test({
+      message: "Either support link or support email must be provided",
+      test: function (this, _, ctx) {
+        const { support_link, support_email } = ctx.parent || {};
+
+        // exactly one must be provided
+        return !!(support_link || support_email);
+      },
+    }),
+    support_email: supportEmailSchema.test({
+      message: "Either support link or support email must be provided",
+      test: function (this, _, ctx) {
+        const { support_link, support_email } = ctx.parent || {};
+
+        // exactly one must be provided
+        return !!(support_link || support_email);
+      },
+    }),
     support_type: yup.string().oneOf(["email", "link"]),
     is_android_only: isAndroidOnlySchema,
     is_for_humans_only: isForHumansOnlySchema,
@@ -47,17 +63,7 @@ export const mainAppStoreFormSchema = yup
       ),
     localisations: yup.array().of(localisationFormSchema).default([]),
   })
-  .noUnknown()
-  .test(
-    "support-contact-required",
-    "Either support link or support email must be provided",
-    function (values) {
-      const { support_link, support_email } = values || {};
-
-      // exactly one must be provided
-      return !!(support_link || support_email);
-    },
-  );
+  .noUnknown();
 
 /**
  * for validating the final object when submitting for review
@@ -90,6 +96,7 @@ export const mainAppStoreFormReviewSubmitSchema = yup
   .object({
     name: appNameSchema.required("Name is required"),
     short_name: appShortNameSchema.required("Short name is required"),
+    logo_img_url: yup.string().required("Logo image is required"),
     category: categorySchema.required("Category is required"),
     world_app_description: appWorldAppDescriptionSchema.required(
       "App tag line is required",
@@ -139,7 +146,3 @@ export const mainAppStoreFormReviewSubmitSchema = yup
       return !!(support_link || support_email);
     },
   );
-
-export type MainAppStoreFormReviewSubmitSchema = yup.Asserts<
-  typeof mainAppStoreFormReviewSubmitSchema
->;

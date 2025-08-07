@@ -5,6 +5,7 @@ import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { getIsUserAllowedToUpdateAppMetadata } from "@/lib/permissions";
 import { extractIdsFromPath, getPathFromHeaders } from "@/lib/server-utils";
+import { FormActionResult } from "@/lib/types";
 import { schema } from "../form-schema";
 import {
   getSdk as getUpdateAppSdk,
@@ -14,7 +15,7 @@ import {
 export async function validateAndSubmitServerSide(
   app_metadata_id: string,
   input: UpdateAppInfoMutationVariables["input"],
-) {
+): Promise<FormActionResult> {
   const path = getPathFromHeaders() || "";
   const { Teams: teamId } = extractIdsFromPath(path, ["Teams"]);
 
@@ -22,10 +23,12 @@ export async function validateAndSubmitServerSide(
     const isUserAllowedToUpdateAppMetadata =
       await getIsUserAllowedToUpdateAppMetadata(app_metadata_id);
     if (!isUserAllowedToUpdateAppMetadata) {
-      errorFormAction({
-        message: "validateAndSubmitServerSide - invalid permissions",
+      return errorFormAction({
+        message:
+          "The user does not have permission to update this app metadata",
         app_id: input?.app_id ?? undefined,
         team_id: teamId,
+        logLevel: "warn",
       });
     }
 
@@ -35,11 +38,12 @@ export async function validateAndSubmitServerSide(
     });
 
     if (!isValid || !parsedInput) {
-      errorFormAction({
-        message: "validateAndSubmitServerSide - invalid input",
+      return errorFormAction({
+        message: "The provided app metadata basic information is invalid",
         additionalInfo: { app_metadata_id, input },
         team_id: teamId,
         app_id: input?.app_id ?? undefined,
+        logLevel: "warn",
       });
     }
 
@@ -51,13 +55,20 @@ export async function validateAndSubmitServerSide(
         integration_url: parsedInput.integration_url,
       },
     });
+
+    return {
+      success: true,
+      message: "App metadata basic information updated successfully",
+    };
   } catch (error) {
     return errorFormAction({
-      message: "Error updating app configuration basic form",
+      message:
+        "An error occurred while updating the app metadata basic information",
       error: error as Error,
       additionalInfo: { app_metadata_id, input },
       team_id: teamId,
       app_id: input?.app_id ?? undefined,
+      logLevel: "error",
     });
   }
 }

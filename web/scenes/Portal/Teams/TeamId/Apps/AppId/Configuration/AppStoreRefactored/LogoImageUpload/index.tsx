@@ -14,6 +14,7 @@ import Image from "next/image";
 import { ChangeEvent, useMemo, useRef, useState } from "react";
 import Skeleton from "react-loading-skeleton";
 import { toast } from "react-toastify";
+import { LOGO_IMAGE_UPLOAD_TOAST_ID } from "../../constants";
 import { FetchAppMetadataDocument } from "../../graphql/client/fetch-app-metadata.generated";
 import { ImageValidationError, useImage } from "../../hook/use-image";
 import { unverifiedImageAtom, viewModeAtom } from "../../layout/ImagesProvider";
@@ -23,17 +24,18 @@ type LogoImageUploadProps = {
   appId: string;
   appMetadataId: string;
   teamId: string;
-  editable: boolean;
+  isEditable: boolean;
   isError: boolean;
   logoFile?: string;
   defaultOpen?: boolean;
 };
+
 export const LogoImageUpload = (props: LogoImageUploadProps) => {
   const {
     appId,
     appMetadataId,
     teamId,
-    editable,
+    isEditable,
     isError,
     logoFile,
     defaultOpen,
@@ -64,7 +66,7 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
         await validateImageAspectRatio(file, 1, 1);
 
         toast.info("Uploading image", {
-          toastId: "upload_toast",
+          toastId: LOGO_IMAGE_UPLOAD_TOAST_ID,
           autoClose: false,
         });
 
@@ -94,7 +96,7 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
           refetchQueries: [FetchAppMetadataDocument],
         });
 
-        toast.update("upload_toast", {
+        toast.update(LOGO_IMAGE_UPLOAD_TOAST_ID, {
           type: "success",
           render: "Image uploaded and saved",
           autoClose: 5000,
@@ -111,9 +113,9 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
         console.error("Logo Upload Failed: ", error);
 
         if (error instanceof ImageValidationError) {
-          toast.dismiss("upload_toast");
+          toast.dismiss(LOGO_IMAGE_UPLOAD_TOAST_ID);
         } else {
-          toast.update("upload_toast", {
+          toast.update(LOGO_IMAGE_UPLOAD_TOAST_ID, {
             type: "error",
             render: "Error uploading image",
             autoClose: 5000,
@@ -141,13 +143,15 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
 
   const verifiedImageURL = useMemo(() => {
     if (viewMode === "unverified" || !logoFile) {
-      // return getDefaultLogoImgCDNUrl();
       return "";
     }
     return getCDNImageUrl(appId, logoFile);
   }, [appId, logoFile, viewMode]);
 
-  if (unverifiedImages?.logo_img_url === "loading") {
+  if (
+    viewMode === "unverified" &&
+    unverifiedImages?.logo_img_url === "loading"
+  ) {
     return <Skeleton className="size-20" />;
   }
 
@@ -265,7 +269,7 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
         onClick={() => setShowDialog(true)}
         className={clsx(
           "absolute -bottom-2 -right-2 rounded-full border-2 border-grey-200 bg-white p-2 text-grey-500 hover:bg-grey-50",
-          { hidden: !editable || viewMode === "verified" },
+          { hidden: !isEditable || viewMode === "verified" },
           { "bottom-7": isError },
         )}
       >
