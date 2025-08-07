@@ -157,9 +157,18 @@ export const AppTopBarRefactored = (props: AppTopBarProps) => {
         });
       }
 
+      const formValues = form.getValues();
+      const enLocalization = formValues.localisations.find(
+        (l) => l.language === "en",
+      );
+
       await mainAppStoreFormReviewSubmitSchema.validate(
         {
-          ...form.getValues(),
+          ...formValues,
+          name: enLocalization?.name,
+          short_name: enLocalization?.short_name,
+          world_app_description: enLocalization?.world_app_description,
+          description_overview: enLocalization?.description_overview,
           logo_img_url: appMetadata.logo_img_url,
         },
         {
