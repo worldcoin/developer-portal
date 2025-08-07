@@ -7,12 +7,14 @@ type LogoSectionProps = {
   appId: string;
   teamId: string;
   appMetadata: AppMetadata;
+  isEditable: boolean;
 };
 
 export const LogoSection = ({
   appId,
   teamId,
   appMetadata,
+  isEditable,
 }: LogoSectionProps) => {
   const searchParams = useSearchParams();
   const shouldDefaultOpenLogoEditor = searchParams.get("editLogo") === "true";
@@ -25,7 +27,7 @@ export const LogoSection = ({
         appId={appId}
         appMetadataId={appMetadata.id}
         teamId={teamId}
-        editable={true}
+        isEditable={isEditable}
         isError={false}
         logoFile={appMetadata.logo_img_url}
         defaultOpen={shouldDefaultOpenLogoEditor}
