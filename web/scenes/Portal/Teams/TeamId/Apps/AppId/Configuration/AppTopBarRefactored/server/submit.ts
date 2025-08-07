@@ -9,7 +9,11 @@ import { FormActionResult } from "@/lib/types";
 import * as yup from "yup";
 import { mainAppStoreFormReviewSubmitSchema } from "../../AppStoreRefactored/FormSchema/form-schema";
 import { LocalisationData } from "../../AppStoreRefactored/types/AppStoreFormTypes";
-import { getLocalisationFormValues } from "../../AppStoreRefactored/utils/dataTransforms";
+import { getSupportType } from "../../AppStoreRefactored/utils";
+import {
+  getLocalisationFormValues,
+  transformMailtoToRawEmail,
+} from "../../AppStoreRefactored/utils/dataTransforms";
 import { getSdk as getSubmitAppSdk } from "../SubmitAppModal/graphql/server/submit-app.generated";
 import { getSdk as fetchReviewAppMetadataSdk } from "../graphql/server/fetch-review-app-metadata.generated";
 
@@ -87,9 +91,20 @@ export async function submitAppForReviewFormServerSide({
         data.localisations as LocalisationData,
       );
 
+      const supportType = getSupportType(data.app_metadata[0].support_link);
+      const supportLink =
+        supportType === "link" ? data.app_metadata[0].support_link : "";
+      const supportEmail =
+        supportType === "email"
+          ? transformMailtoToRawEmail(data.app_metadata[0].support_link)
+          : "";
+
       await mainAppStoreFormReviewSubmitSchema.validate(
         {
           ...data.app_metadata[0],
+          support_type: supportType,
+          support_link: supportLink,
+          support_email: supportEmail,
           localisations,
         },
         {
