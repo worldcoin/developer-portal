@@ -14,6 +14,13 @@ describe('Hasura API - Invite Team Members', () => {
     let testUserId: string;
     let testMembershipId: string;
     let testTeamName: string = 'Test Team for Invites';
+    
+    // Environment variables
+    const internalApiUrl = process.env.INTERNAL_API_URL;
+    const headers = {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${process.env.INTERNAL_ENDPOINTS_SECRET}`
+    };
 
     beforeAll(async () => {
       // Create test team and user
@@ -25,12 +32,6 @@ describe('Hasura API - Invite Team Members', () => {
     });
 
     it('Invite New Team Members Successfully', async () => {
-      const internalApiUrl = process.env.INTERNAL_API_URL;
-      const headers = {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.INTERNAL_ENDPOINTS_SECRET}`
-      };
-
       const emailsToInvite = ['newmember1@example.com', 'newmember2@example.com'];
 
       const response = await axios.post(
@@ -56,12 +57,6 @@ describe('Hasura API - Invite Team Members', () => {
     });
 
     it('Return Error When Inviting Existing Team Members', async () => {
-      const internalApiUrl = process.env.INTERNAL_API_URL;
-      const headers = {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.INTERNAL_ENDPOINTS_SECRET}`
-      };
-
       // Create another user and add them to the team
       const existingEmail = `existing_${Date.now()}@example.com`;
       const existingUserId = await createTestUser(existingEmail, testTeamId);
@@ -69,105 +64,98 @@ describe('Hasura API - Invite Team Members', () => {
 
       const emailsToInvite = [existingEmail];
 
-      try {
-        await axios.post(
-          `${internalApiUrl}/api/hasura/invite-team-members`,
-          {
-            action: {
-              name: "invite_team_members"
-            },
-            input: {
-              team_id: testTeamId,
-              emails: emailsToInvite
-            },
-            session_variables: {
-              "x-hasura-role": "user",
-              "x-hasura-user-id": testUserId
-            }
+      await expect(axios.post(
+        `${internalApiUrl}/api/hasura/invite-team-members`,
+        {
+          action: {
+            name: "invite_team_members"
           },
-          { headers }
-        );
-        fail('Expected request to fail');
-      } catch (error: any) {
-        expect(error.response.status).toBe(400);
-        expect(error.response.data.extensions.code).toBe('already_in_team');
-      }
+          input: {
+            team_id: testTeamId,
+            emails: emailsToInvite
+          },
+          session_variables: {
+            "x-hasura-role": "user",
+            "x-hasura-user-id": testUserId
+          }
+        },
+        { headers }
+      )).rejects.toMatchObject({
+        response: {
+          status: 400,
+          data: {
+            extensions: {
+              code: 'already_in_team'
+            }
+          }
+        }
+      });
 
       // Clean up
       await deleteTestUser(existingUserId);
     });
 
     it('Return Error When User Has Insufficient Permissions', async () => {
-      const internalApiUrl = process.env.INTERNAL_API_URL;
-      const headers = {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.INTERNAL_ENDPOINTS_SECRET}`
-      };
-
       // Create a user without team membership
       const unauthorizedUserId = await createTestUser(`unauthorized_${Date.now()}@example.com`, testTeamId);
 
       const emailsToInvite = ['newmember@example.com'];
 
-      try {
-        await axios.post(
-          `${internalApiUrl}/api/hasura/invite-team-members`,
-          {
-            action: {
-              name: "invite_team_members"
-            },
-            input: {
-              team_id: testTeamId,
-              emails: emailsToInvite
-            },
-            session_variables: {
-              "x-hasura-role": "user",
-              "x-hasura-user-id": unauthorizedUserId
-            }
+      await expect(axios.post(
+        `${internalApiUrl}/api/hasura/invite-team-members`,
+        {
+          action: {
+            name: "invite_team_members"
           },
-          { headers }
-        );
-        fail('Expected request to fail');
-      } catch (error: any) {
-        expect(error.response.status).toBe(400);
-        expect(error.response.data.extensions.code).toBe('insufficient_permissions');
-      }
+          input: {
+            team_id: testTeamId,
+            emails: emailsToInvite
+          },
+          session_variables: {
+            "x-hasura-role": "user",
+            "x-hasura-user-id": unauthorizedUserId
+          }
+        },
+        { headers }
+      )).rejects.toMatchObject({
+        response: {
+          status: 400,
+          data: {
+            extensions: {
+              code: 'insufficient_permissions'
+            }
+          }
+        }
+      });
 
       // Clean up
       await deleteTestUser(unauthorizedUserId);
     });
 
     it('Return Error When Admin Role Is Used', async () => {
-      const internalApiUrl = process.env.INTERNAL_API_URL;
-      const headers = {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.INTERNAL_ENDPOINTS_SECRET}`
-      };
-
       const emailsToInvite = ['newmember@example.com'];
 
-      try {
-        await axios.post(
-          `${internalApiUrl}/api/hasura/invite-team-members`,
-          {
-            action: {
-              name: "invite_team_members"
-            },
-            input: {
-              team_id: testTeamId,
-              emails: emailsToInvite
-            },
-            session_variables: {
-              "x-hasura-role": "admin",
-              "x-hasura-user-id": testUserId
-            }
+      await expect(axios.post(
+        `${internalApiUrl}/api/hasura/invite-team-members`,
+        {
+          action: {
+            name: "invite_team_members"
           },
-          { headers }
-        );
-        fail('Expected request to fail');
-      } catch (error: any) {
-        expect(error.response.status).toBe(400);
-      }
+          input: {
+            team_id: testTeamId,
+            emails: emailsToInvite
+          },
+          session_variables: {
+            "x-hasura-role": "admin",
+            "x-hasura-user-id": testUserId
+          }
+        },
+        { headers }
+      )).rejects.toMatchObject({
+        response: {
+          status: 400
+        }
+      });
     });
 
     afterAll(async () => {

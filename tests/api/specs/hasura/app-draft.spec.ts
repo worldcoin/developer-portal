@@ -20,6 +20,13 @@ describe('Hasura API - App Draft Management', () => {
     let testUserId: string;
     let testMembershipId: string;
     let testTeamName: string = 'Test Team for App Draft';
+    
+    // Environment variables
+    const internalApiUrl = process.env.INTERNAL_API_URL;
+    const headers = {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${process.env.INTERNAL_ENDPOINTS_SECRET}`
+    };
 
     beforeAll(async () => {
       // Create test team and user
@@ -42,12 +49,6 @@ describe('Hasura API - App Draft Management', () => {
     });
 
     it('Create New Draft From Verified App Successfully', async () => {
-      const internalApiUrl = process.env.INTERNAL_API_URL;
-      const headers = {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.INTERNAL_ENDPOINTS_SECRET}`
-      };
-
       const response = await axios.post(
         `${internalApiUrl}/api/hasura/create-new-draft?app_id=${testAppId}&team_id=${testTeamId}`,
         {

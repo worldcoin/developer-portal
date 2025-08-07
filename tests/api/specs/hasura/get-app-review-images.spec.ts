@@ -23,6 +23,13 @@ describe('Hasura API - Get App Review Images', () => {
     let testMetadataId: string;
     let testLocalisationId: string;
     let testTeamName: string = 'Test Team for Review Images';
+    
+    // Environment variables
+    const internalApiUrl = process.env.INTERNAL_API_URL;
+    const headers = {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${process.env.INTERNAL_ENDPOINTS_SECRET}`
+    };
 
     beforeAll(async () => {
       // Create test team and user
@@ -57,12 +64,6 @@ describe('Hasura API - Get App Review Images', () => {
     });
 
     it('Get Review Images for English Locale Successfully', async () => {
-      const internalApiUrl = process.env.INTERNAL_API_URL;
-      const headers = {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.INTERNAL_ENDPOINTS_SECRET}`
-      };
-
       const response = await axios.post(
         `${internalApiUrl}/api/hasura/get-app-review-images?app_id=${testAppId}&locale=en`,
         {
@@ -84,12 +85,6 @@ describe('Hasura API - Get App Review Images', () => {
     });
 
     it('Get Review Images with Admin Role Successfully', async () => {
-      const internalApiUrl = process.env.INTERNAL_API_URL;
-      const headers = {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.INTERNAL_ENDPOINTS_SECRET}`
-      };
-
       const response = await axios.post(
         `${internalApiUrl}/api/hasura/get-app-review-images?app_id=${testAppId}&locale=en`,
         {

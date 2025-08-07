@@ -17,6 +17,13 @@ describe('Hasura API - Upload Image', () => {
     let testUserId: string;
     let testMembershipId: string;
     let testTeamName: string = 'Test Team for Image Upload';
+    
+    // Environment variables
+    const internalApiUrl = process.env.INTERNAL_API_URL;
+    const headers = {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${process.env.INTERNAL_ENDPOINTS_SECRET}`
+    };
 
     beforeAll(async () => {
       // Create test team and user
@@ -31,12 +38,6 @@ describe('Hasura API - Upload Image', () => {
     });
 
     it('Generate Presigned URL for PNG Image Successfully', async () => {
-      const internalApiUrl = process.env.INTERNAL_API_URL;
-      const headers = {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.INTERNAL_ENDPOINTS_SECRET}`
-      };
-
       const response = await axios.post(
         `${internalApiUrl}/api/hasura/upload-image?app_id=${testAppId}&image_type=logo&content_type_ending=png`,
         {
@@ -62,12 +63,6 @@ describe('Hasura API - Upload Image', () => {
     });
 
     it('Generate Presigned URL with Locale Successfully', async () => {
-      const internalApiUrl = process.env.INTERNAL_API_URL;
-      const headers = {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.INTERNAL_ENDPOINTS_SECRET}`
-      };
-
       const response = await axios.post(
         `${internalApiUrl}/api/hasura/upload-image?app_id=${testAppId}&image_type=logo&content_type_ending=png&locale=es`,
         {
@@ -91,70 +86,64 @@ describe('Hasura API - Upload Image', () => {
     });
 
     it('Return Error When App Not Found', async () => {
-      const internalApiUrl = process.env.INTERNAL_API_URL;
-      const headers = {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.INTERNAL_ENDPOINTS_SECRET}`
-      };
-
       const nonExistentAppId = 'app_nonexistent123';
 
-      try {
-        await axios.post(
-          `${internalApiUrl}/api/hasura/upload-image?app_id=${nonExistentAppId}&image_type=logo&content_type_ending=png`,
-          {
-            action: {
-              name: "upload_image"
-            },
-            input: {
-              team_id: testTeamId
-            },
-            session_variables: {
-              "x-hasura-role": "user",
-              "x-hasura-user-id": testUserId
-            }
+      await expect(axios.post(
+        `${internalApiUrl}/api/hasura/upload-image?app_id=${nonExistentAppId}&image_type=logo&content_type_ending=png`,
+        {
+          action: {
+            name: "upload_image"
           },
-          { headers }
-        );
-        fail('Expected request to fail');
-      } catch (error: any) {
-        expect(error.response.status).toBe(400);
-        expect(error.response.data.extensions.code).toBe('not_found');
-      }
+          input: {
+            team_id: testTeamId
+          },
+          session_variables: {
+            "x-hasura-role": "user",
+            "x-hasura-user-id": testUserId
+          }
+        },
+        { headers }
+      )).rejects.toMatchObject({
+        response: {
+          status: 400,
+          data: {
+            extensions: {
+              code: 'not_found'
+            }
+          }
+        }
+      });
     });
 
     it('Return Error When User Has Insufficient Permissions', async () => {
-      const internalApiUrl = process.env.INTERNAL_API_URL;
-      const headers = {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.INTERNAL_ENDPOINTS_SECRET}`
-      };
-
       // Create a user without proper team membership
       const unauthorizedUserId = await createTestUser(`unauthorized_${Date.now()}@example.com`, testTeamId);
 
-      try {
-        await axios.post(
-          `${internalApiUrl}/api/hasura/upload-image?app_id=${testAppId}&image_type=logo&content_type_ending=png`,
-          {
-            action: {
-              name: "upload_image"
-            },
-            input: {
-              team_id: testTeamId
-            },
-            session_variables: {
-              "x-hasura-role": "user",
-              "x-hasura-user-id": unauthorizedUserId
-            }
+      await expect(axios.post(
+        `${internalApiUrl}/api/hasura/upload-image?app_id=${testAppId}&image_type=logo&content_type_ending=png`,
+        {
+          action: {
+            name: "upload_image"
           },
-          { headers }
-        );
-        fail('Expected request to fail');
-      } catch (error: any) {
-        expect(error.response.status).toBe(400);
-        expect(error.response.data.extensions.code).toBe('not_found');
-      }
+          input: {
+            team_id: testTeamId
+          },
+          session_variables: {
+            "x-hasura-role": "user",
+            "x-hasura-user-id": unauthorizedUserId
+          }
+        },
+        { headers }
+      )).rejects.toMatchObject({
+        response: {
+          status: 400,
+          data: {
+            extensions: {
+              code: 'not_found'
+            }
+          }
+        }
+      });
 
       // Clean up
       await deleteTestUser(unauthorizedUserId);

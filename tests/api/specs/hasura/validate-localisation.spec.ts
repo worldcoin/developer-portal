@@ -1,17 +1,17 @@
 import axios from 'axios';
 import {
-    createTestApp,
-    createTestAppMetadata,
-    createTestLocalisation,
-    createTestMembership,
-    createTestTeam,
-    createTestUser,
-    deleteTestApp,
-    deleteTestAppMetadata,
-    deleteTestLocalisation,
-    deleteTestMembership,
-    deleteTestTeam,
-    deleteTestUser
+  createTestApp,
+  createTestAppMetadata,
+  createTestLocalisation,
+  createTestMembership,
+  createTestTeam,
+  createTestUser,
+  deleteTestApp,
+  deleteTestAppMetadata,
+  deleteTestLocalisation,
+  deleteTestMembership,
+  deleteTestTeam,
+  deleteTestUser
 } from '../../helpers/hasura-helper';
 
 describe('Hasura API - Validate Localisation', () => {
@@ -23,6 +23,13 @@ describe('Hasura API - Validate Localisation', () => {
     let testMetadataId: string;
     let testLocalisationIds: string[] = [];
     let testTeamName: string = 'Test Team for Localisation';
+    
+    // Environment variables
+    const internalApiUrl = process.env.INTERNAL_API_URL;
+    const headers = {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${process.env.INTERNAL_ENDPOINTS_SECRET}`
+    };
 
     beforeAll(async () => {
       // Create test team and user
@@ -68,12 +75,6 @@ describe('Hasura API - Validate Localisation', () => {
     });
 
     it('Validate Complete Localisations Successfully', async () => {
-      const internalApiUrl = process.env.INTERNAL_API_URL;
-      const headers = {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.INTERNAL_ENDPOINTS_SECRET}`
-      };
-
       const response = await axios.post(
         `${internalApiUrl}/api/hasura/validate-localisation?app_metadata_id=${testMetadataId}&team_id=${testTeamId}`,
         {
@@ -94,61 +95,55 @@ describe('Hasura API - Validate Localisation', () => {
     });
 
     it('Return Error When App Metadata ID Is Missing', async () => {
-      const internalApiUrl = process.env.INTERNAL_API_URL;
-      const headers = {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.INTERNAL_ENDPOINTS_SECRET}`
-      };
-
-      try {
-        await axios.post(
-          `${internalApiUrl}/api/hasura/validate-localisation?team_id=${testTeamId}`,
-          {
-            action: {
-              name: "validate_localisation"
-            },
-            input: {},
-            session_variables: {
-              "x-hasura-role": "user",
-              "x-hasura-user-id": testUserId
-            }
+      await expect(axios.post(
+        `${internalApiUrl}/api/hasura/validate-localisation?team_id=${testTeamId}`,
+        {
+          action: {
+            name: "validate_localisation"
           },
-          { headers }
-        );
-        fail('Expected request to fail');
-      } catch (error: any) {
-        expect(error.response.status).toBe(400);
-        expect(error.response.data.extensions.code).toBe('invalid_request');
-      }
+          input: {},
+          session_variables: {
+            "x-hasura-role": "user",
+            "x-hasura-user-id": testUserId
+          }
+        },
+        { headers }
+      )).rejects.toMatchObject({
+        response: {
+          status: 400,
+          data: {
+            extensions: {
+              code: 'invalid_request'
+            }
+          }
+        }
+      });
     });
 
     it('Return Error When Team ID Is Missing', async () => {
-      const internalApiUrl = process.env.INTERNAL_API_URL;
-      const headers = {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.INTERNAL_ENDPOINTS_SECRET}`
-      };
-
-      try {
-        await axios.post(
-          `${internalApiUrl}/api/hasura/validate-localisation?app_metadata_id=${testMetadataId}`,
-          {
-            action: {
-              name: "validate_localisation"
-            },
-            input: {},
-            session_variables: {
-              "x-hasura-role": "user",
-              "x-hasura-user-id": testUserId
-            }
+      await expect(axios.post(
+        `${internalApiUrl}/api/hasura/validate-localisation?app_metadata_id=${testMetadataId}`,
+        {
+          action: {
+            name: "validate_localisation"
           },
-          { headers }
-        );
-        fail('Expected request to fail');
-      } catch (error: any) {
-        expect(error.response.status).toBe(400);
-        expect(error.response.data.extensions.code).toBe('invalid_request');
-      }
+          input: {},
+          session_variables: {
+            "x-hasura-role": "user",
+            "x-hasura-user-id": testUserId
+          }
+        },
+        { headers }
+      )).rejects.toMatchObject({
+        response: {
+          status: 400,
+          data: {
+            extensions: {
+              code: 'invalid_request'
+            }
+          }
+        }
+      });
     });
 
     afterAll(async () => {
