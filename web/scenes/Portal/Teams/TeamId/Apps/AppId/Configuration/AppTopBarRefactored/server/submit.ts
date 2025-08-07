@@ -89,7 +89,6 @@ export async function submitAppForReviewFormServerSide({
         },
       );
     } catch (error) {
-      console.log(error);
       const isYupError = error instanceof yup.ValidationError;
 
       return errorFormAction({
