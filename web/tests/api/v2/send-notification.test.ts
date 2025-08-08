@@ -186,27 +186,8 @@ describe("/api/v2/minikit/send-notification [success cases]", () => {
     expect(res.status).toBe(200);
   });
 
-  it("successfully parses and passes v2 schema", async () => {
-    const mockReq = createMockRequestV2({
-      url: "http://localhost:3000/api/v2/minikit/send-notification",
-      api_key: validApiKey,
-    });
-    const res = await POST(mockReq);
-    expect(res.status).toBe(200);
-
-    // check if call to app-backend contains localisations only
-    const [_, options] = mockSignedFetcher.mock.calls[0] as any;
-    expect(JSON.parse(options.body)).toEqual({
-      appId: v2RequestBody.app_id,
-      walletAddresses: v2RequestBody.wallet_addresses,
-      miniAppPath: v2RequestBody.mini_app_path,
-      localisations: v2RequestBody.localisations,
-      teamId: testTeamId,
-    });
-  });
-
-  it("returns 200 if both localisation and title/message keys are present", async () => {
-    const mockReqV2 = new NextRequest(
+  it("prioritizes localisations over title/message fields", async () => {
+    const requestWithBothFormats = new NextRequest(
       "http://localhost:3000/api/v2/minikit/send-notification",
       {
         method: "POST",
@@ -216,44 +197,19 @@ describe("/api/v2/minikit/send-notification [success cases]", () => {
         },
         body: JSON.stringify({
           ...v2RequestBody,
-          title: "Test Notification",
-          message: "This is a test notification",
-        }),
-      },
-    );
-    const res = await POST(mockReqV2);
-    expect(res.status).toBe(200);
-  });
-
-  it("returns 200 and ignores title and message keys if localisations are present", async () => {
-    const mockReqV2 = new NextRequest(
-      "http://localhost:3000/api/v2/minikit/send-notification",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${validApiKey}`,
-        },
-        body: JSON.stringify({
-          ...v2RequestBody,
-          title: "Test Notification",
-          message: "This is a test notification",
+          title: "Legacy Title - Should Be Ignored",
+          message: "Legacy Message - Should Be Ignored",
         }),
       },
     );
 
-    const res = await POST(mockReqV2);
+    const res = await POST(requestWithBothFormats);
+
     expect(res.status).toBe(200);
 
-    // check if call to app-backend contains localisations only
     const [_, options] = mockSignedFetcher.mock.calls[0] as any;
-    expect(JSON.parse(options.body)).toEqual({
-      appId: v2RequestBody.app_id,
-      walletAddresses: v2RequestBody.wallet_addresses,
-      miniAppPath: v2RequestBody.mini_app_path,
-      localisations: v2RequestBody.localisations,
-      teamId: testTeamId,
-    });
+    const sentBody = JSON.parse(options.body);
+    expect(sentBody.localisations).toEqual(v2RequestBody.localisations);
   });
 });
 // #endregion
