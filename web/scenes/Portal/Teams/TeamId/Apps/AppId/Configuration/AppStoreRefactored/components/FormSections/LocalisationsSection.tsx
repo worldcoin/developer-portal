@@ -14,6 +14,7 @@ import { AppStoreFormValues } from "../../FormSchema/types";
 import { FetchLocalisationsDocument } from "../../graphql/client/fetch-localisations.generated";
 import { MetaTagImageField } from "../../ImageForm/MetaTagImageField";
 import { ShowcaseImagesField } from "../../ImageForm/ShowcaseImagesField";
+import { ImportExportJSON } from "../../ImportExportJSON";
 import { AppMetadata, FormSectionProps } from "../../types/AppStoreFormTypes";
 import { FormSection } from "../FormFields/FormSection";
 
@@ -24,6 +25,7 @@ type LocalisationsSectionProps = FormSectionProps & {
   appId: string;
   teamId: string;
   appMetadata: AppMetadata;
+  updateLocalisation: (index: number, value: any) => void;
 };
 
 export const LocalisationsSection = ({
@@ -35,6 +37,7 @@ export const LocalisationsSection = ({
   appId,
   teamId,
   appMetadata,
+  updateLocalisation,
 }: LocalisationsSectionProps) => {
   const allPossibleLanguages = formLanguagesList;
 
@@ -52,12 +55,39 @@ export const LocalisationsSection = ({
     name: "supported_languages",
   });
 
+  const handleLocalisationsJSONUpdate = (
+    newLocalisations: AppStoreFormValues["localisations"],
+  ) => {
+    localisations.forEach((oldLocalisation, index) => {
+      const newLocalisation = newLocalisations.find(
+        (newLoc) => newLoc.language === oldLocalisation.language,
+      );
+
+      if (newLocalisation) {
+        updateLocalisation(index, {
+          ...oldLocalisation,
+          ...newLocalisation,
+        });
+      }
+    });
+  };
+
   return (
     <FormSection
       title="Localisations"
       description="Provide localized content for each supported language."
       className="grid gap-y-5"
     >
+      <div className="flex justify-end">
+        <ImportExportJSON
+          appId={appId}
+          appMetadataId={appMetadata.id}
+          teamId={teamId}
+          disabled={!isEditable || !isEnoughPermissions}
+          localisationsData={localisations}
+          onLocalisationsUpdate={handleLocalisationsJSONUpdate}
+        />
+      </div>
       <div className="max-h-[70vh] space-y-5 overflow-y-scroll rounded-lg border border-grey-200 p-4">
         {localisations.map((field, index) => {
           const languageLabel =

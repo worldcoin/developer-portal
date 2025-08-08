@@ -33,6 +33,7 @@ export const useAppStoreForm = (appId: string, appMetadata: AppMetadata) => {
     fields: localisations,
     append,
     remove,
+    update,
   } = useFieldArray({
     control,
     name: "localisations",
@@ -112,5 +113,6 @@ export const useAppStoreForm = (appId: string, appMetadata: AppMetadata) => {
     handleSupportTypeChange,
     submit,
     isEditable,
+    update,
   };
 };
