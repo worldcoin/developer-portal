@@ -246,7 +246,7 @@ export async function GET(
       return new NextResponse(responseText, {
         status: 200,
         headers: {
-          "Content-Type": "text/plain",
+          "Content-Type": "text/plain; charset=utf-8",
           "Content-Length": contentLength,
           "Cache-Control": "public, max-age=5, stale-if-error=86400",
         },
@@ -261,7 +261,7 @@ export async function GET(
       return new NextResponse(jsonResponse, {
         status: 200,
         headers: {
-          "Content-Type": "application/json",
+          "Content-Type": "application/json; charset=utf-8",
           "Content-Length": contentLength,
           "Cache-Control": "public, max-age=5, stale-if-error=86400",
         },

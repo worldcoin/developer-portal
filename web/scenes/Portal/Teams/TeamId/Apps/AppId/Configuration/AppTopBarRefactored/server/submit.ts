@@ -7,7 +7,15 @@ import { getIsUserAllowedToUpdateAppMetadata } from "@/lib/permissions";
 import { extractIdsFromPath, getPathFromHeaders } from "@/lib/server-utils";
 import { FormActionResult } from "@/lib/types";
 import * as yup from "yup";
+import { mainAppStoreFormReviewSubmitSchema } from "../../AppStoreRefactored/FormSchema/form-schema";
+import { LocalisationData } from "../../AppStoreRefactored/types/AppStoreFormTypes";
+import { getSupportType } from "../../AppStoreRefactored/utils";
+import {
+  getLocalisationFormValues,
+  transformMailtoToRawEmail,
+} from "../../AppStoreRefactored/utils/dataTransforms";
 import { getSdk as getSubmitAppSdk } from "../SubmitAppModal/graphql/server/submit-app.generated";
+import { getSdk as fetchReviewAppMetadataSdk } from "../graphql/server/fetch-review-app-metadata.generated";
 
 const schema = yup
   .object({
@@ -59,6 +67,65 @@ export async function submitAppForReviewFormServerSide({
     }
 
     const client = await getAPIServiceGraphqlClient();
+
+    // validate metadata completeness server side
+    try {
+      const data = await fetchReviewAppMetadataSdk(client).FetchAppMetadataById(
+        {
+          app_metadata_id: parsedInput.app_metadata_id,
+        },
+      );
+
+      if (!data.app_metadata[0]) {
+        return errorFormAction({
+          message: "App metadata not found or not in unverified state",
+          additionalInfo: { input },
+          team_id: input.team_id,
+          app_id: appId,
+          logLevel: "warn",
+        });
+      }
+
+      const localisations = getLocalisationFormValues(
+        data.app_metadata[0],
+        data.localisations as LocalisationData,
+      );
+
+      // either a https:// link or a mailto: email
+      const supportLinkOrEmail = data.app_metadata[0].support_link;
+
+      const supportType = getSupportType(supportLinkOrEmail);
+      const supportLink = supportType === "link" ? supportLinkOrEmail : "";
+      const rawSupportEmail =
+        supportType === "email"
+          ? transformMailtoToRawEmail(supportLinkOrEmail)
+          : "";
+
+      await mainAppStoreFormReviewSubmitSchema.validate(
+        {
+          ...data.app_metadata[0],
+          support_type: supportType,
+          support_link: supportLink,
+          support_email: rawSupportEmail,
+          localisations,
+        },
+        {
+          abortEarly: false,
+          strict: true,
+          stripUnknown: true,
+        },
+      );
+    } catch (error) {
+      const isYupError = error instanceof yup.ValidationError;
+
+      return errorFormAction({
+        message: isYupError ? error.errors[0] : "App metadata is not complete",
+        additionalInfo: { input },
+        team_id: input.team_id,
+        app_id: appId,
+        logLevel: "warn",
+      });
+    }
 
     await getSubmitAppSdk(client).SubmitApp({
       app_metadata_id: parsedInput.app_metadata_id,

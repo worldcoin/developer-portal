@@ -1,6 +1,5 @@
-import { FetchAppMetadataQuery } from "../../graphql/client/fetch-app-metadata.generated";
 import { LocalisationFormSchema } from "../FormSchema/types";
-import { LocalisationData } from "../types/AppStoreFormTypes";
+import { AppMetadata, LocalisationData } from "../types/AppStoreFormTypes";
 import { parseDescription } from "../utils";
 
 export const transformMailtoToRawEmail = (email: string) => {
@@ -9,7 +8,15 @@ export const transformMailtoToRawEmail = (email: string) => {
 
 export const getParsedDescription = (
   locale: string,
-  appMetadata: FetchAppMetadataQuery["app"][0]["app_metadata"][0],
+  appMetadata: Pick<
+    AppMetadata,
+    | "description"
+    | "world_app_description"
+    | "meta_tag_image_url"
+    | "short_name"
+    | "name"
+    | "showcase_img_urls"
+  >,
   localisationsData: LocalisationData,
 ) => {
   if (locale === "en") {
@@ -22,7 +29,15 @@ export const getParsedDescription = (
 };
 
 export const getAppMetadataFormValuesFromEnLocalisation = (
-  appMetadata: FetchAppMetadataQuery["app"][0]["app_metadata"][0],
+  appMetadata: Pick<
+    AppMetadata,
+    | "description"
+    | "world_app_description"
+    | "meta_tag_image_url"
+    | "short_name"
+    | "name"
+    | "showcase_img_urls"
+  >,
   localisationsData: LocalisationData,
 ): LocalisationFormSchema => {
   const enLocalisationData = localisationsData.find((l) => l.locale === "en");
@@ -55,7 +70,15 @@ export const getAppMetadataFormValuesFromEnLocalisation = (
 };
 
 export const getLocalisationFormValues = (
-  appMetadata: FetchAppMetadataQuery["app"][0]["app_metadata"][0],
+  appMetadata: Pick<
+    AppMetadata,
+    | "description"
+    | "world_app_description"
+    | "meta_tag_image_url"
+    | "short_name"
+    | "name"
+    | "showcase_img_urls"
+  >,
   localisationsData: LocalisationData,
 ) => {
   const localisations: LocalisationFormSchema[] = [];
