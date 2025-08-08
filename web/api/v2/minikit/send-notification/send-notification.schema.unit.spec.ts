@@ -87,6 +87,18 @@ describe("notifications", () => {
       } as yup.InferType<typeof sendNotificationBodySchemaV2>,
     ],
     [
+      "too long title",
+      {
+        ...notificationBody,
+        localisations: {
+          en: {
+            title: "x".repeat(45),
+            message: "x".repeat(45),
+          },
+        },
+      },
+    ],
+    [
       "too long with username",
       {
         ...notificationBody,
