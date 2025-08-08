@@ -12,22 +12,12 @@ const notificationBody = {
     "0x000000000000000000000000000000000002dead",
   ],
 };
-const allSupportedLocalisations = formLanguagesList.reduce(
-  (acc, { value }) => {
-    acc[value] = {
-      title: "This is a title",
-      message: "This is a message",
-    };
-    return acc;
-  },
-  {} as Record<
-    (typeof formLanguagesList)[number]["value"],
-    {
-      title: string;
-      message: string;
-    }
-  >,
-);
+const allSupportedLocalisations = formLanguagesList.map(({ value }) => ({
+  language: value,
+  title: "This is a title",
+  message: "This is a message",
+}));
+
 describe("notifications", () => {
   const validTestCases: [
     string,
@@ -37,52 +27,59 @@ describe("notifications", () => {
       "en language notification",
       {
         ...notificationBody,
-        localisations: {
-          en: {
+        localisations: [
+          {
+            language: "en",
             title: "This is a title ${username}",
             message: "This is a message ${username}",
           },
-        },
+        ],
       },
     ],
     [
       "multiple language notification",
       {
         ...notificationBody,
-        localisations: {
-          en: {
+        localisations: [
+          {
+            language: "en",
             title: "This is a title",
             message: "This is a message",
           },
-          pl: {
+          {
+            language: "pl",
             title: "To jest tytuł",
             message: "To jest wiadomość",
           },
-          fr: {
+          {
+            language: "fr",
             title: "Tämä on otsikko",
             message: "Tämä on tekstiviesti",
           },
-        },
+        ],
       },
     ],
     [
       "with username placeholder in title",
       {
         ...notificationBody,
-        localisations: {
-          en: {
+        localisations: [
+          {
+            language: "en",
             title: "This is a title ${username}",
             message: "This is a message",
           },
-          pl: {
+          {
+            language: "pl",
             title: "To jest tytuł",
             message: "To jest wiadomość ${username}",
           },
-          fr: {
+          {
+            language: "fr",
             title: "Tämä on otsikko ${username}",
             message: "Tämä on tekstiviesti ${username}",
           },
-        },
+        ],
       },
     ],
     [
@@ -105,61 +102,70 @@ describe("notifications", () => {
       "missing en localisation",
       {
         ...notificationBody,
-        localisations: {
-          pl: { title: "To jest tytuł", message: "To jest wiadomość" },
-        },
+        localisations: [
+          {
+            language: "pl",
+            title: "To jest tytuł",
+            message: "To jest wiadomość",
+          },
+        ],
       } as yup.InferType<typeof sendNotificationBodySchemaV2>,
     ],
     [
       "too long title",
       {
         ...notificationBody,
-        localisations: {
-          en: {
+        localisations: [
+          {
+            language: "en",
             title: "x".repeat(45),
             message: "x".repeat(45),
           },
-        },
+        ],
       },
     ],
     [
       "too long with username",
       {
         ...notificationBody,
-        localisations: {
-          en: {
+        localisations: [
+          {
+            language: "en",
             title: "${username}" + "x".repeat(20),
             message: "${username}" + "x".repeat(20),
           },
-        },
+        ],
       },
     ],
     [
       "invalid characters",
       {
         ...notificationBody,
-        localisations: {
-          en: {
+        localisations: [
+          {
+            language: "en",
             title: "${username} {invalid}",
             message: "${username}",
           },
-        },
+        ],
       },
     ],
     [
       "unsupported localisation",
       {
         ...notificationBody,
-        localisations: {
-          en: {
+        localisations: [
+          {
+            language: "en",
             title: "This is a title",
             message: "This is a message",
           },
-          xx: {
+          {
+            language: "xx",
             title: "This is a title",
             message: "This is a message",
           },
-        },
+        ],
       } as any,
     ],
   ];

@@ -49,41 +49,6 @@ export const sendNotificationBodySchemaV1 = yup
   )
   .noUnknown();
 
-const notificationLocalizedDataSchema = yup
-  .object({
-    title: notificationTitleSchema.test(
-      "title-length",
-      "Title with substituted username cannot exceed 16 characters.",
-      (value) => {
-        // title can be 30 chars long max, username can be 14 chars long max
-        if (value?.includes(USERNAME_SPECIAL_STRING)) {
-          const titleWithoutUsername = value.replace(
-            USERNAME_SPECIAL_STRING,
-            "",
-          );
-
-          return titleWithoutUsername.length <= 16;
-        }
-        return true;
-      },
-    ),
-    message: notificationMessageSchema,
-  })
-  .optional()
-  .strict();
-
-const supportedLanguages = formLanguagesList.map(({ value }) => value);
-const sendNotificationLocalisationsDataMap = supportedLanguages.reduce(
-  (acc, language) => {
-    acc[language] = notificationLocalizedDataSchema;
-    return acc;
-  },
-  {} as Record<
-    (typeof supportedLanguages)[number],
-    typeof notificationLocalizedDataSchema
-  >,
-);
-
 /** this validator is strict and will throw on unknown keys
  */
 export const sendNotificationBodySchemaV2 = yup
@@ -109,12 +74,37 @@ export const sendNotificationBodySchemaV2 = yup
         },
       ),
     localisations: yup
-      .object(sendNotificationLocalisationsDataMap)
+      .array()
+      .of(
+        yup.object({
+          language: yup
+            .string()
+            .oneOf(formLanguagesList.map(({ value }) => value))
+            .strict()
+            .required(),
+          title: notificationTitleSchema.test(
+            "title-length",
+            "Title with substituted username cannot exceed 16 characters.",
+            (value) => {
+              // title can be 30 chars long max, username can be 14 chars long max
+              if (value?.includes(USERNAME_SPECIAL_STRING)) {
+                const titleWithoutUsername = value.replace(
+                  USERNAME_SPECIAL_STRING,
+                  "",
+                );
+
+                return titleWithoutUsername.length <= 16;
+              }
+              return true;
+            },
+          ),
+          message: notificationMessageSchema,
+        }),
+      )
       .strict()
-      .noUnknown()
       .required()
       .test("contains-en", "localisations must contain en locale", (value) => {
-        return Boolean(value?.en?.title && value?.en?.message);
+        return Boolean(value?.find(({ language }) => language === "en"));
       }),
   })
   .noUnknown();

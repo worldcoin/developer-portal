@@ -88,12 +88,13 @@ const createMockRequest = (params: {
   });
 };
 const v2RequestBody = {
-  localisations: {
-    en: {
+  localisations: [
+    {
+      language: "en",
       title: "Test Notification",
       message: "This is a test notification",
     },
-  },
+  ],
   app_id: "app_staging_9cdd0a714aec9ed17dca660bc9ffe72a",
   wallet_addresses: ["0x0000000000000000000000000000000000000000"],
   mini_app_path:
