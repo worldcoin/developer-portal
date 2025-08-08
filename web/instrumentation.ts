@@ -14,6 +14,8 @@ export async function register() {
 
       // Monitor HTTP requests
       tracer.use("http", {
+        // Should block requests to Next internal endpoints
+        blocklist: [/\/_next\//],
         hooks: {
           request(span, req, res) {
             if (span && req) {
