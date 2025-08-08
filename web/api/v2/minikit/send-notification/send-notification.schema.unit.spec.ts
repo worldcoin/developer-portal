@@ -1,3 +1,4 @@
+import { formLanguagesList } from "@/lib/languages";
 import * as yup from "yup";
 import { sendNotificationBodySchemaV2 } from "./schema";
 
@@ -11,6 +12,22 @@ const notificationBody = {
     "0x000000000000000000000000000000000002dead",
   ],
 };
+const allSupportedLocalisations = formLanguagesList.reduce(
+  (acc, { value }) => {
+    acc[value] = {
+      title: "This is a title",
+      message: "This is a message",
+    };
+    return acc;
+  },
+  {} as Record<
+    (typeof formLanguagesList)[number]["value"],
+    {
+      title: string;
+      message: string;
+    }
+  >,
+);
 describe("notifications", () => {
   const validTestCases: [
     string,
@@ -68,6 +85,13 @@ describe("notifications", () => {
         },
       },
     ],
+    [
+      "all supported languages",
+      {
+        ...notificationBody,
+        localisations: allSupportedLocalisations,
+      },
+    ],
   ];
 
   const invalidTestCases = [
@@ -121,6 +145,22 @@ describe("notifications", () => {
           },
         },
       },
+    ],
+    [
+      "unsupported localisation",
+      {
+        ...notificationBody,
+        localisations: {
+          en: {
+            title: "This is a title",
+            message: "This is a message",
+          },
+          xx: {
+            title: "This is a title",
+            message: "This is a message",
+          },
+        },
+      } as any,
     ],
   ];
 
