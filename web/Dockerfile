@@ -75,7 +75,7 @@ COPY --from=server_deps --chown=nextjs:nodejs /app/node_modules/. ./node_modules
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
 # Source maps are enabled to provide helpful error stacks
-ENV NODE_OPTIONS='--enable-source-maps -r dd-trace -r next-logger'
+ENV NODE_OPTIONS='--enable-source-maps -r dd-trace/init -r next-logger'
 ENV NODE_ENV=production
 
 # Final config
