@@ -20,7 +20,7 @@ describe("notifications", () => {
       "en language notification",
       {
         ...notificationBody,
-        localized_data: {
+        localisations: {
           en: {
             title: "This is a title ${username}",
             message: "This is a message ${username}",
@@ -32,7 +32,7 @@ describe("notifications", () => {
       "multiple language notification",
       {
         ...notificationBody,
-        localized_data: {
+        localisations: {
           en: {
             title: "This is a title",
             message: "This is a message",
@@ -52,7 +52,7 @@ describe("notifications", () => {
       "with username placeholder in title",
       {
         ...notificationBody,
-        localized_data: {
+        localisations: {
           en: {
             title: "This is a title ${username}",
             message: "This is a message",
@@ -68,32 +68,29 @@ describe("notifications", () => {
         },
       },
     ],
-    [
-      "only username placeholder",
-      {
-        ...notificationBody,
-        localized_data: {
-          en: {
-            title: "${username}",
-            message: "${username}",
-          },
-        },
-      },
-    ],
   ];
 
   const invalidTestCases = [
     [
-      "empty localized_data",
-      { ...notificationBody, localized_data: {} } as yup.InferType<
+      "empty localisations",
+      { ...notificationBody, localisations: {} } as yup.InferType<
         typeof sendNotificationBodySchemaV2
       >,
+    ],
+    [
+      "missing en localisation",
+      {
+        ...notificationBody,
+        localisations: {
+          pl: { title: "To jest tytuł", message: "To jest wiadomość" },
+        },
+      } as yup.InferType<typeof sendNotificationBodySchemaV2>,
     ],
     [
       "too long with username",
       {
         ...notificationBody,
-        localized_data: {
+        localisations: {
           en: {
             title: "${username}" + "x".repeat(20),
             message: "${username}" + "x".repeat(20),
@@ -105,7 +102,7 @@ describe("notifications", () => {
       "invalid characters",
       {
         ...notificationBody,
-        localized_data: {
+        localisations: {
           en: {
             title: "${username} {invalid}",
             message: "${username}",

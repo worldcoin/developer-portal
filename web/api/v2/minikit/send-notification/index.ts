@@ -3,10 +3,6 @@ import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { verifyHashedSecret } from "@/api/helpers/utils";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { logger } from "@/lib/logger";
-import {
-  notificationMessageSchema,
-  notificationTitleSchema,
-} from "@/lib/schema";
 import { fetchWithTimeout } from "@/lib/utils";
 import { createSignedFetcher } from "aws-sigv4-fetch";
 import { GraphQLClient } from "graphql-request";
@@ -18,49 +14,10 @@ import {
   getSdk as createNotificationLogSdk,
 } from "./graphql/create-notification-log.generated";
 import { getSdk as fetchMetadataSdk } from "./graphql/fetch-metadata.generated";
-
-const USERNAME_SPECIAL_STRING = "${username}";
-
-const sendNotificationBodySchema = yup
-  .object({
-    app_id: yup.string().strict().required(),
-    wallet_addresses: yup
-      .array()
-      .of(yup.string().length(42))
-      .min(1)
-      .max(1000)
-      .required("wallet_addresses is required"),
-    message: notificationMessageSchema,
-    title: notificationTitleSchema,
-    mini_app_path: yup
-      .string()
-      .strict()
-      .required()
-      .test(
-        "contains-app-id",
-        "mini_app_path must include the app_id and be a valid WorldApp deeplink",
-        function (value) {
-          const { app_id } = this.parent;
-          return value.startsWith(`worldapp://mini-app?app_id=${app_id}`);
-        },
-      ),
-  })
-  .test(
-    "title-length",
-    "Title with substituted username cannot exceed 16 characters.",
-    (value) => {
-      // title can be 30 chars long max, username can be 14 chars long max
-      if (value?.title?.includes(USERNAME_SPECIAL_STRING)) {
-        const titleWithoutUsername = value.title.replace(
-          USERNAME_SPECIAL_STRING,
-          "",
-        );
-
-        return titleWithoutUsername.length <= 16;
-      }
-      return true;
-    },
-  );
+import {
+  sendNotificationBodySchemaV1,
+  sendNotificationBodySchemaV2,
+} from "./schema";
 
 type NotificationResult = {
   walletAddress: string;
@@ -71,6 +28,12 @@ type NotificationResult = {
 type SendNotificationResponse = {
   results: NotificationResult[];
 };
+type SendNotificationBodyV1 = yup.InferType<
+  typeof sendNotificationBodySchemaV1
+>;
+type SendNotificationBodyV2 = yup.InferType<
+  typeof sendNotificationBodySchemaV2
+>;
 
 export const logNotification = async (
   serviceClient: GraphQLClient,
@@ -123,6 +86,10 @@ export const logNotification = async (
   });
 };
 
+const getSchemaVersion = (body: any) => {
+  return body?.title || body?.message ? ("v1" as const) : ("v2" as const);
+};
+
 export const POST = async (req: NextRequest) => {
   const api_key = req.headers.get("authorization")?.split(" ")[1];
 
@@ -150,8 +117,14 @@ export const POST = async (req: NextRequest) => {
   }
   const body = await req.json();
 
+  const schemaVersion = getSchemaVersion(body);
+  const schema =
+    schemaVersion === "v1"
+      ? sendNotificationBodySchemaV1
+      : sendNotificationBodySchemaV2;
+
   const { isValid, parsedParams, handleError } = await validateRequestSchema({
-    schema: sendNotificationBodySchema,
+    schema,
     value: body,
     app_id: body?.app_id,
   });
@@ -160,7 +133,7 @@ export const POST = async (req: NextRequest) => {
     return handleError(req);
   }
 
-  const { app_id, wallet_addresses, title, message, mini_app_path } = {
+  const { app_id, wallet_addresses, mini_app_path } = {
     ...parsedParams,
   };
 
@@ -349,6 +322,23 @@ export const POST = async (req: NextRequest) => {
   }
 
   // Anchor: Send notification
+  const internalSendNotificationRequestBody =
+    schemaVersion === "v1"
+      ? {
+          appId: app_id,
+          walletAddresses: wallet_addresses,
+          title: (parsedParams as SendNotificationBodyV1).title!,
+          message: (parsedParams as SendNotificationBodyV1).message!,
+          miniAppPath: mini_app_path,
+          teamId: teamId,
+        }
+      : {
+          appId: app_id,
+          walletAddresses: wallet_addresses,
+          miniAppPath: mini_app_path,
+          teamId: teamId,
+          localisations: (parsedParams as SendNotificationBodyV2).localisations,
+        };
 
   const signedFetch = createSignedFetcher({
     service: "execute-api",
@@ -366,14 +356,7 @@ export const POST = async (req: NextRequest) => {
           "User-Agent": req.headers.get("user-agent") ?? "DevPortal/1.0",
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          appId: app_id,
-          walletAddresses: wallet_addresses,
-          title,
-          message,
-          miniAppPath: mini_app_path,
-          teamId: teamId,
-        }),
+        body: JSON.stringify(internalSendNotificationRequestBody),
       },
       3000,
       signedFetch,
@@ -434,14 +417,15 @@ export const POST = async (req: NextRequest) => {
     });
   }
   const response: SendNotificationResponse = data.result;
-
-  logNotification(
-    serviceClient,
-    app_id,
-    wallet_addresses,
-    mini_app_path,
-    message,
-  );
+  if (schemaVersion === "v1") {
+    logNotification(
+      serviceClient,
+      app_id,
+      wallet_addresses,
+      mini_app_path,
+      (parsedParams as SendNotificationBodyV1).message,
+    );
+  }
 
   return NextResponse.json({
     success: true,

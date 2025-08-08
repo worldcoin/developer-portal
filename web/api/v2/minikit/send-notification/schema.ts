@@ -7,7 +7,7 @@ import * as yup from "yup";
 
 const USERNAME_SPECIAL_STRING = "${username}";
 
-export const sendNotificationBodySchema = yup
+export const sendNotificationBodySchemaV1 = yup
   .object({
     app_id: yup.string().strict().required(),
     wallet_addresses: yup
@@ -15,10 +15,7 @@ export const sendNotificationBodySchema = yup
       .of(yup.string().length(42).required())
       .min(1)
       .max(1000)
-      .required("wallet_addresses is required")
-      .test("unique-addresses", "wallet_addresses must be unique", (value) => {
-        return new Set(value).size === value.length;
-      }),
+      .required("wallet_addresses is required"),
     message: notificationMessageSchema,
     title: notificationTitleSchema,
     mini_app_path: yup
@@ -53,14 +50,29 @@ export const sendNotificationBodySchema = yup
 
 const notificationLocalizedDataSchema = yup
   .object({
-    title: notificationTitleSchema,
+    title: notificationTitleSchema.test(
+      "title-length",
+      "Title with substituted username cannot exceed 16 characters.",
+      (value) => {
+        // title can be 30 chars long max, username can be 14 chars long max
+        if (value?.includes(USERNAME_SPECIAL_STRING)) {
+          const titleWithoutUsername = value.replace(
+            USERNAME_SPECIAL_STRING,
+            "",
+          );
+
+          return titleWithoutUsername.length <= 16;
+        }
+        return true;
+      },
+    ),
     message: notificationMessageSchema,
   })
   .optional()
   .strict();
 
 const supportedLanguages = formLanguagesList.map(({ value }) => value);
-const sendNotificationLocalizedDataMap = supportedLanguages.reduce(
+const sendNotificationLocalisationsDataMap = supportedLanguages.reduce(
   (acc, language) => {
     acc[language] = notificationLocalizedDataSchema;
     return acc;
@@ -75,15 +87,6 @@ const sendNotificationLocalizedDataMap = supportedLanguages.reduce(
  */
 export const sendNotificationBodySchemaV2 = yup
   .object({
-    localized_data: yup
-      .object(sendNotificationLocalizedDataMap)
-      .strict()
-      .optional()
-      .noUnknown()
-      .required()
-      .test("contains-en", "localized_data must contain en locale", (value) => {
-        return Boolean(value?.en?.title && value?.en?.message);
-      }),
     app_id: yup.string().strict().required(),
     wallet_addresses: yup
       .array()
@@ -104,40 +107,14 @@ export const sendNotificationBodySchemaV2 = yup
           return value.startsWith(`worldapp://mini-app?app_id=${app_id}`);
         },
       ),
+    localisations: yup
+      .object(sendNotificationLocalisationsDataMap)
+      .strict()
+      .noUnknown()
+      .required()
+      .test("contains-en", "localisations must contain en locale", (value) => {
+        return Boolean(value?.en?.title && value?.en?.message);
+      }),
   })
-  .test(
-    "titles-length",
-    "Title with substituted username cannot exceed 16 characters.",
-    function (this, value) {
-      const localizedData = value?.localized_data ?? {};
-      const keys = Object.keys(localizedData) as (keyof typeof localizedData)[];
-
-      for (const key of keys) {
-        const title = localizedData[key]?.title;
-
-        // title can be 30 chars long max, username can be 14 chars long max
-        if (title?.includes(USERNAME_SPECIAL_STRING)) {
-          const titleWithoutUsername = title.replace(
-            USERNAME_SPECIAL_STRING,
-            "",
-          );
-
-          if (!titleWithoutUsername) {
-            return;
-          }
-
-          if (titleWithoutUsername?.length > 16) {
-            this.createError({
-              message:
-                "Titles with substituted username cannot exceed 16 characters.",
-              path: `localized_data.${key}.title`,
-            });
-            return;
-          }
-        }
-      }
-      return true;
-    },
-  )
   .noUnknown()
   .strict();
