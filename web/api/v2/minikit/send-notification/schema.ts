@@ -46,7 +46,8 @@ export const sendNotificationBodySchemaV1 = yup
       }
       return true;
     },
-  );
+  )
+  .noUnknown();
 
 const notificationLocalizedDataSchema = yup
   .object({
@@ -116,5 +117,4 @@ export const sendNotificationBodySchemaV2 = yup
         return Boolean(value?.en?.title && value?.en?.message);
       }),
   })
-  .noUnknown()
-  .strict();
+  .noUnknown();

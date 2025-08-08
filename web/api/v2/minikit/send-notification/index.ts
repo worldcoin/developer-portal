@@ -87,7 +87,7 @@ export const logNotification = async (
 };
 
 const getSchemaVersion = (body: any) => {
-  return body?.title || body?.message ? ("v1" as const) : ("v2" as const);
+  return body?.localisations ? ("v2" as const) : ("v1" as const);
 };
 
 export const POST = async (req: NextRequest) => {
