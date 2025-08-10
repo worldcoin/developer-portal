@@ -211,6 +211,8 @@ describe("/api/v2/minikit/send-notification [success cases]", () => {
     const [_, options] = mockSignedFetcher.mock.calls[0] as any;
     const sentBody = JSON.parse(options.body);
     expect(sentBody.localisations).toEqual(v2RequestBody.localisations);
+    expect(sentBody.title).toBeUndefined();
+    expect(sentBody.message).toBeUndefined();
   });
 });
 // #endregion
