@@ -56,7 +56,7 @@ export const sendNotificationBodySchemaV2 = yup
     app_id: yup.string().strict().required(),
     wallet_addresses: yup
       .array()
-      .of(yup.string().length(42).strict())
+      .of(yup.string().length(42).required().strict())
       .min(1)
       .max(1000)
       .strict()

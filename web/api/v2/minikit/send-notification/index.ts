@@ -38,7 +38,7 @@ type SendNotificationBodyV2 = yup.InferType<
 export const logNotification = async (
   serviceClient: GraphQLClient,
   app_id: string,
-  wallet_addresses: (string | undefined)[] | undefined,
+  wallet_addresses: string[] | undefined,
   mini_app_path: string | undefined,
   message?: string | undefined,
 ) => {
@@ -50,10 +50,8 @@ export const logNotification = async (
     return;
   }
 
-  const walletAddresses = wallet_addresses?.filter((w) => w) as string[];
-
   // skip if few addresses because of privacy concerns
-  if (walletAddresses.length < 10) {
+  if (wallet_addresses.length < 10) {
     return;
   }
 
@@ -79,7 +77,7 @@ export const logNotification = async (
   }
 
   createNotificationLogSdk(serviceClient).CreateWalletAdressNotificationLogs({
-    objects: walletAddresses.map((wallet_address) => ({
+    objects: wallet_addresses.map((wallet_address) => ({
       wallet_address,
       notification_log_id: notificationLogId,
     })),
@@ -425,6 +423,19 @@ export const POST = async (req: NextRequest) => {
       mini_app_path,
       (parsedParams as SendNotificationBodyV1).message,
     );
+  } else if (schemaVersion === "v2") {
+    const localisations = (parsedParams as SendNotificationBodyV2)
+      .localisations;
+
+    for (const localisation of localisations) {
+      logNotification(
+        serviceClient,
+        app_id,
+        wallet_addresses,
+        mini_app_path,
+        localisation.message,
+      );
+    }
   }
 
   return NextResponse.json({
