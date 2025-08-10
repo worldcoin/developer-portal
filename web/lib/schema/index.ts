@@ -222,7 +222,6 @@ export const notificationMessageSchema = yup
 export const notificationTitleSchema = yup
   .string()
   .strict()
-  .optional()
   .max(30)
   .test(
     "valid-title-with-emojis",
