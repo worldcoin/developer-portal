@@ -260,6 +260,30 @@ describe("/api/v2/minikit/send-notification [error cases]", () => {
     );
   });
 
+  it("returns 400 if neither localisations nor title/message are specified", async () => {
+    const mockReq = new NextRequest(
+      "http://localhost:3000/api/v2/minikit/send-notification",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${validApiKey}`,
+        },
+        body: JSON.stringify({
+          app_id: "random",
+          wallet_addresses: ["0x0000000000000000000000000000000000000000"],
+          mini_app_path: "worldapp://mini-app?app_id=random",
+        }),
+      },
+    );
+
+    const res = await POST(mockReq);
+    expect(res.status).toBe(400);
+    expect((await res.json()).detail).toBe(
+      "Neither localisations nor title and message are specified",
+    );
+  });
+
   it("returns 404 if api key not exists", async () => {
     const mockReq = createMockRequest({
       url: "http://localhost:3000/api/v2/minikit/send-notification",

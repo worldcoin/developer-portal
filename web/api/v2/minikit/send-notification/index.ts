@@ -84,8 +84,14 @@ export const logNotification = async (
   });
 };
 
-const getSchemaVersion = (body: any) => {
-  return body?.localisations ? ("v2" as const) : ("v1" as const);
+const getSchemaVersion = (body: object) => {
+  if ("localisations" in body) {
+    return "v2";
+  }
+  if ("title" in body && "message" in body) {
+    return "v1";
+  }
+  return null;
 };
 
 export const POST = async (req: NextRequest) => {
@@ -116,6 +122,16 @@ export const POST = async (req: NextRequest) => {
   const body = await req.json();
 
   const schemaVersion = getSchemaVersion(body);
+  if (schemaVersion === null) {
+    return errorResponse({
+      statusCode: 400,
+      code: "validation_error",
+      detail: "Neither localisations nor title and message are specified",
+      attribute: "request_body",
+      req,
+    });
+  }
+
   const schema =
     schemaVersion === "v1"
       ? sendNotificationBodySchemaV1
