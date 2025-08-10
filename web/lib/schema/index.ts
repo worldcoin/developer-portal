@@ -221,8 +221,9 @@ export const notificationMessageSchema = yup
 
 export const notificationTitleSchema = yup
   .string()
-  .strict()
+  .required()
   .max(30)
+  .strict()
   .test(
     "valid-title-with-emojis",
     "Title can only contain letters, numbers, punctuation, emojis, and spaces",
