@@ -145,7 +145,7 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
         console.error("error uploading image:", error);
 
         if (error instanceof Error && error.name === "AbortError") {
-          toast.error("Upload was cancelled");
+          toast.error("Upload was cancelled", { autoClose: 5000 });
           return;
         }
 
