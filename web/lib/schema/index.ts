@@ -137,10 +137,10 @@ export const appWorldAppDescriptionSchema = yup
   .test("no-links", "Links not allowed here", noLinks)
   .matches(allowedCommonCharactersRegex, {
     message:
-      "Description can only contain letters, numbers and certain special characters.",
+      "App Tag Line can only contain letters, numbers and certain special characters.",
     excludeEmptyString: true,
   })
-  .required();
+  .required("App Tag Line is a required field");
 
 export const appDescriptionOverviewSchema = yup
   .string()
