@@ -73,6 +73,7 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
 
   const [isUploading, setIsUploading] = useState(false);
   const isMountedRef = useRef(true);
+  const abortControllerRef = useRef<AbortController | null>(null);
   const isLocalized = locale !== "en";
 
   const { validateImageAspectRatio, uploadViaPresignedPost, getImage } =
@@ -90,6 +91,9 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
         );
         return;
       }
+
+      const abortController = new AbortController();
+      abortControllerRef.current = abortController;
 
       const fileTypeEnding = file.type.split("/")[1];
 
@@ -111,6 +115,7 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
           teamId,
           imageType,
           isLocalized ? locale : undefined,
+          abortController.signal,
         );
 
         const imageUrl = await getImage(
@@ -139,12 +144,17 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
       } catch (error) {
         console.error("error uploading image:", error);
 
+        if (error instanceof Error && error.name === "AbortError") {
+          toast.error("Upload was cancelled");
+          return;
+        }
+
         if (error instanceof ImageValidationError) {
-          // validation errors are already handled by the hook
         } else {
           onUploadError?.(error);
         }
       } finally {
+        abortControllerRef.current = null;
         if (isMountedRef.current) {
           setIsUploading(false);
         }
@@ -192,13 +202,14 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
     }
   }, [isAppVerified, value, unverifiedImageUrls, appId, locale]);
 
-  const handleUnmount = useCallback(() => {
-    isMountedRef.current = false;
-  }, []);
-
   useEffect(() => {
-    return handleUnmount;
-  }, [handleUnmount]);
+    return () => {
+      isMountedRef.current = false;
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
+  }, []);
 
   return (
     <div className="grid gap-y-3">
