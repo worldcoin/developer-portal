@@ -71,7 +71,7 @@ export const LocalisationFields = ({
             value={field.value || ""}
             onChange={field.onChange}
             disabled={disabled}
-            errors={fieldErrors?.name}
+            errors={fieldErrors?.short_name}
           />
         )}
       />
