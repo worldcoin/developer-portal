@@ -69,7 +69,6 @@ export const GET = async (req: NextRequest) => {
         "app_not_installed",
         "no_active_grant_cycles",
       ].includes(data?.error.code ?? "");
-      console.warn("debug_logging", JSON.stringify(data, null, 2));
 
       const errorMessage = isKnownErrorCode
         ? data?.error.message
