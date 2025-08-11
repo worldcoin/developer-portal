@@ -110,7 +110,7 @@ export const LocalisationFields = ({
         )}
       />
 
-      {/* meta tag image field */}
+      {/* meta_tag_image_url */}
       <Controller
         control={control}
         name={`localisations.${selectedIndex}.meta_tag_image_url`}
@@ -132,7 +132,7 @@ export const LocalisationFields = ({
         )}
       />
 
-      {/* showcase images field */}
+      {/* showcase_img_urls */}
       <Controller
         control={control}
         name={`localisations.${selectedIndex}.showcase_img_urls`}
