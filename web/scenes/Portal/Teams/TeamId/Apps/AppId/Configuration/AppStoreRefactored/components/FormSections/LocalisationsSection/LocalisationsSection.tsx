@@ -1,5 +1,4 @@
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import { formLanguagesList } from "@/lib/languages";
 import { useRefetchQueries } from "@/lib/use-refetch-queries";
 import { useCallback } from "react";
 import {
@@ -28,13 +27,6 @@ interface LocalisationsSectionProps extends FormSectionProps {
   teamId: string;
   appMetadata: AppMetadata;
 }
-
-// get language label for header
-const getLanguageLabel = (language: string) => {
-  return (
-    formLanguagesList.find((lang) => lang.value === language)?.label || language
-  );
-};
 
 export const LocalisationsSection = ({
   control,
@@ -99,7 +91,6 @@ export const LocalisationsSection = ({
       description="Provide localized content for each supported language."
       className="grid gap-y-5"
     >
-      {/* language selection tabs */}
       <LanguageTabs
         localisations={localisations}
         selectedLanguage={selectedLanguage}
@@ -107,7 +98,6 @@ export const LocalisationsSection = ({
         errors={errors}
       />
 
-      {/* selected language content */}
       {selectedField && selectedIndex !== -1 && (
         <div key={selectedLanguage} className="grid gap-y-4">
           <LocalisationFields
