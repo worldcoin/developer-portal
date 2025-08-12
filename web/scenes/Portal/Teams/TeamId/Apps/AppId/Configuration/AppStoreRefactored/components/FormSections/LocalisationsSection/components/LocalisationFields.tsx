@@ -1,10 +1,12 @@
 import { Input } from "@/components/Input";
+import { TextArea } from "@/components/TextArea";
 import {
   Control,
   Controller,
   FieldArrayWithId,
   FieldErrors,
 } from "react-hook-form";
+import { RemainingCharacters } from "../../../../../PageComponents/RemainingCharacters";
 import { AppStoreFormValues } from "../../../../FormSchema/types";
 import { MetaTagImageField } from "../../../../ImageForm/MetaTagImageField";
 import { ShowcaseImagesField } from "../../../../ImageForm/ShowcaseImagesField";
@@ -99,9 +101,17 @@ export const LocalisationFields = ({
         control={control}
         name={`localisations.${selectedIndex}.description_overview`}
         render={({ field: overviewField }) => (
-          <Input
-            label="Description"
-            placeholder="Enter description"
+          <TextArea
+            label="Overview"
+            required
+            rows={7}
+            maxLength={1500}
+            addOn={
+              <RemainingCharacters
+                text={overviewField.value || ""}
+                maxChars={1500}
+              />
+            }
             value={overviewField.value || ""}
             onChange={overviewField.onChange}
             disabled={!isEditable || !isEnoughPermissions}

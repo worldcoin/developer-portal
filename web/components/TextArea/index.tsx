@@ -6,7 +6,7 @@ import { twMerge } from "tailwind-merge";
 
 export interface TextAreaInterface
   extends TextareaHTMLAttributes<HTMLTextAreaElement> {
-  register: UseFormRegisterReturn;
+  register?: UseFormRegisterReturn;
   required?: boolean;
   currentValue?: string;
   errors?: FieldError;
