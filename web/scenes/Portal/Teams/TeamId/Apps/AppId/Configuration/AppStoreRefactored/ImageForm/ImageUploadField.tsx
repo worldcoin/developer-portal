@@ -149,8 +149,7 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
           return;
         }
 
-        if (error instanceof ImageValidationError) {
-        } else {
+        if (!(error instanceof ImageValidationError)) {
           onUploadError?.(error);
         }
       } finally {
