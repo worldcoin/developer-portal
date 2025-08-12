@@ -28,7 +28,10 @@ import * as yup from "yup";
 import { mainAppStoreFormReviewSubmitSchema } from "../AppStoreRefactored/FormSchema/form-schema";
 import { AppStoreFormValues } from "../AppStoreRefactored/FormSchema/types";
 import { updateAppStoreMetadata } from "../AppStoreRefactored/server/update-app-store";
-import { getFirstFormError } from "../AppStoreRefactored/utils/form-error-utils";
+import {
+  getFirstFormError,
+  MULTIPLE_ERRORS_TOAST_MESSAGE,
+} from "../AppStoreRefactored/utils/form-error-utils";
 import {
   FetchAppMetadataDocument,
   FetchAppMetadataQuery,
@@ -191,7 +194,6 @@ export const AppTopBarRefactored = (props: AppTopBarProps) => {
       // if all validation passed, show submission modal
       setShowSubmitAppModal(true);
     } catch (error) {
-      console.log("submit for review error", { error });
       let errorMessage = "Error occurred while submitting app for review";
 
       if (error instanceof yup.ValidationError) {
@@ -212,6 +214,11 @@ export const AppTopBarRefactored = (props: AppTopBarProps) => {
             });
           }
         });
+
+        // check for multiple errors after setting them on form
+        if (error.inner.length > 1) {
+          errorMessage = MULTIPLE_ERRORS_TOAST_MESSAGE;
+        }
 
         toast.error(errorMessage);
         return;

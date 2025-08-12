@@ -2,6 +2,9 @@ import { FormLanguage, languageMap } from "@/lib/languages";
 import { FieldError, FieldErrors } from "react-hook-form";
 import { AppStoreFormValues } from "../FormSchema/types";
 
+export const MULTIPLE_ERRORS_TOAST_MESSAGE =
+  "There are multiple errors in the form";
+
 /**
  * extracts the localisation index from a react-hook-form ref name
  * @example "localisations.2.name" -> 2
@@ -47,15 +50,19 @@ function extractLocalisationError(
     return null;
   }
 
+  // filters out undefined elements
+  if (localisationErrors.filter(Boolean).length > 1) {
+    return MULTIPLE_ERRORS_TOAST_MESSAGE;
+  }
+
   for (const localisationError of localisationErrors) {
     if (!localisationError || typeof localisationError !== "object") {
       continue;
     }
-
     const errorFields = Object.keys(localisationError);
 
     if (errorFields.length > 1) {
-      return "There are multiple errors in the form";
+      return MULTIPLE_ERRORS_TOAST_MESSAGE;
     }
 
     for (const field of errorFields) {
@@ -92,7 +99,7 @@ export const getFirstFormError = (
   ][];
 
   if (errorsIterable.length > 1) {
-    return "There are multiple errors in the form";
+    return MULTIPLE_ERRORS_TOAST_MESSAGE;
   }
 
   for (const [field, error] of errorsIterable) {
