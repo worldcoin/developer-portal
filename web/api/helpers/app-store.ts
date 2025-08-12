@@ -239,8 +239,9 @@ export const rankApps = (
     appIdsSet.has(stat.app_id),
   );
 
+  const nativeAppIds = Object.values(NATIVE_MAPPED_APP_ID);
   appStoreAppStats.forEach((stat) => {
-    if (stat.app_id === NATIVE_MAPPED_APP_ID.grants) {
+    if (nativeAppIds.includes(stat.app_id)) {
       return;
     }
     maxNewUsers = Math.max(maxNewUsers, stat.new_users_last_7_days ?? 0);
