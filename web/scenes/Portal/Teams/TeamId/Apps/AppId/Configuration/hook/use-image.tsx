@@ -102,6 +102,7 @@ export const useImage = () => {
     teamId: string,
     imageType: string,
     locale?: string,
+    signal?: AbortSignal,
   ) => {
     const response = await uploadImage({
       variables: {
@@ -137,6 +138,7 @@ export const useImage = () => {
     const uploadResponse = await fetch(url, {
       method: "POST",
       body: formData,
+      signal,
     });
 
     if (!uploadResponse.ok) {
