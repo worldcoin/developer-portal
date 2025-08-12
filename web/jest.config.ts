@@ -17,6 +17,13 @@ const customJestConfig: Config = {
     "^@/api/(.*)$": "<rootDir>/api/$1",
     "^@/lib/(.*)$": "<rootDir>/lib/$1",
   },
+  transform: {
+    "^.+\\.tsx?$": ["ts-jest", { tsconfig: "<rootDir>/src/tsconfig.json" }],
+    "^.+/serialize-error/.+\\.js$": [
+      "ts-jest",
+      { tsconfig: "<rootDir>/src/tsconfig.json" },
+    ],
+  },
   transformIgnorePatterns: ["node_modules/(?!(serialize-error)/)"],
 };
 
