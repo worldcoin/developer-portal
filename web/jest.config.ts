@@ -17,6 +17,7 @@ const customJestConfig: Config = {
     "^@/api/(.*)$": "<rootDir>/api/$1",
     "^@/lib/(.*)$": "<rootDir>/lib/$1",
   },
+  transformIgnorePatterns: ["node_modules/(?!(serialize-error)/)"],
 };
 
 const config = createJestConfig(customJestConfig);
