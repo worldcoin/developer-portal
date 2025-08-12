@@ -18,7 +18,7 @@ export const Stat = (props: {
     : localizedValue;
 
   statValue = props?.valueSuffix
-    ? `${statValue} ${props.valueSuffix}`
+    ? `${statValue}${props.valueSuffix}`
     : statValue;
 
   return (
