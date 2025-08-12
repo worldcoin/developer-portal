@@ -28,6 +28,7 @@ import * as yup from "yup";
 import { mainAppStoreFormReviewSubmitSchema } from "../AppStoreRefactored/FormSchema/form-schema";
 import { AppStoreFormValues } from "../AppStoreRefactored/FormSchema/types";
 import { updateAppStoreMetadata } from "../AppStoreRefactored/server/update-app-store";
+import { getFirstFormError } from "../AppStoreRefactored/utils/form-error-utils";
 import {
   FetchAppMetadataDocument,
   FetchAppMetadataQuery,
@@ -63,6 +64,7 @@ export const AppTopBarRefactored = (props: AppTopBarProps) => {
   const [showSubmitAppModal, setShowSubmitAppModal] = useState(false);
   const [_showReviewMessage] = useAtom(reviewMessageDialogOpenedAtom);
   const setUnverifiedImages = useSetAtom(unverifiedImageAtom);
+  const [isSubmittingForReview, setIsSubmittingForReview] = useState(false);
 
   const isEnoughPermissions = useMemo(() => {
     const membership = user?.hasura.memberships.find(
@@ -114,7 +116,10 @@ export const AppTopBarRefactored = (props: AppTopBarProps) => {
   }, [appMetadata?.showcase_img_urls]);
 
   const submitForReview = useCallback(async () => {
-    if (appMetadata?.verification_status !== "unverified") return;
+    if (appMetadata?.verification_status !== "unverified") {
+      toast.error("Only unverified apps can be submitted for review");
+      return;
+    }
 
     // only this route has the form context with up to date form data
     if (!pathname.includes("configuration/app-store-refactored")) {
@@ -126,10 +131,14 @@ export const AppTopBarRefactored = (props: AppTopBarProps) => {
 
     // Check if form context is available
     if (!form) {
+      toast.error(
+        "Unable to submit for review. Please refresh the page and try again.",
+      );
       console.error("Form context not available");
       return;
     }
 
+    setIsSubmittingForReview(true);
     try {
       // autosave
       if (form.formState.isDirty) {
@@ -142,21 +151,22 @@ export const AppTopBarRefactored = (props: AppTopBarProps) => {
               });
 
               if (!result.success) {
-                toast.error(result.message);
+                reject(new Error(result.message));
               } else {
                 toast.success("App information saved");
                 resolve();
               }
             },
             (errors) => {
-              console.error("Form validation errors:", errors);
-              toast.error("Please fix form errors before submitting");
-              reject(new Error("Form validation failed"));
+              const errorMessage = getFirstFormError(
+                errors,
+                form.getValues("localisations"),
+              );
+              reject(new Error(errorMessage ?? "Form validation failed"));
             },
           )();
         });
       }
-
       const formValues = form.getValues();
       const enLocalization = formValues.localisations.find(
         (l) => l.language === "en",
@@ -178,33 +188,44 @@ export const AppTopBarRefactored = (props: AppTopBarProps) => {
         },
       );
 
-      // if all passed show submission modal
+      // if all validation passed, show submission modal
       setShowSubmitAppModal(true);
     } catch (error) {
+      console.log("submit for review error", { error });
+      let errorMessage = "Error occurred while submitting app for review";
+
       if (error instanceof yup.ValidationError) {
-        console.log({ error });
-
-        error.inner.forEach((error) => {
-          const message = error.message;
-          const path = error.params?.path;
-
+        error.inner.forEach((yupError) => {
+          const path = yupError.path;
+          const yupErrorMessage = yupError.message;
           if (path === "logo_img_url") {
-            toast.error(
-              "Logo image is required. Please upload a logo before submitting for review.",
-            );
+            errorMessage =
+              "Logo image is required. Please upload a logo before submitting for review.";
+          } else {
+            errorMessage = yupErrorMessage;
           }
 
+          // still set form errors for field highlighting
           if (path) {
-            form.setError(path as keyof AppStoreFormValues, { message });
-            return;
+            form.setError(path as keyof AppStoreFormValues, {
+              message: yupErrorMessage,
+            });
           }
-          toast.error(message);
         });
+
+        toast.error(errorMessage);
         return;
-      } else {
-        console.error("Submitting App Failed: ", error);
-        toast.error("Error occurred while submitting app for review");
       }
+
+      if (error instanceof Error) {
+        toast.error(error.message);
+        return;
+      }
+
+      console.error("Submitting App Failed: ", error);
+      toast.error("An unexpected error occurred. Please try again.");
+    } finally {
+      setIsSubmittingForReview(false);
     }
   }, [appMetadata, pathname, router, teamId, appId, form]);
 
@@ -369,14 +390,16 @@ export const AppTopBarRefactored = (props: AppTopBarProps) => {
                     appMetadata.app_id?.includes("staging") &&
                     process.env.NEXT_PUBLIC_APP_ENV === "production",
                 })}
-                disabled={viewMode === "verified"}
+                disabled={viewMode === "verified" || isSubmittingForReview}
                 onClick={submitForReview}
               >
                 <Typography
                   variant={TYPOGRAPHY.M3}
                   className={clsx("whitespace-nowrap")}
                 >
-                  Submit for review
+                  {isSubmittingForReview
+                    ? "Processing..."
+                    : "Submit for review"}
                 </Typography>
               </DecoratedButton>
             ) : app?.app_metadata?.length === 0 ? (

@@ -55,6 +55,7 @@ export const CountriesSection = ({
             errors={errors.supported_countries}
             required
             selectAll={() => field.onChange(countries.map((c) => c.value))}
+            canClearAll={field.value?.length > 0}
             clearAll={() => field.onChange([])}
             showSelectedList
             searchPlaceholder="Start by typing country..."

@@ -33,6 +33,7 @@ export const AppStoreFormRefactored = ({
     handleSupportTypeChange,
     submit,
     isEditable,
+    onInvalid,
   } = useAppStoreForm(appId, appMetadata);
 
   const isEnoughPermissions = useMemo(() => {
@@ -44,12 +45,14 @@ export const AppStoreFormRefactored = ({
 
   return (
     <div className="mb-24 grid max-w-[580px] grid-cols-1fr/auto">
-      <form className="grid gap-y-6" onSubmit={handleSubmit(submit)}>
+      <form className="grid gap-y-6" onSubmit={handleSubmit(submit, onInvalid)}>
         <LogoSection
           appId={appId}
           teamId={teamId}
           appMetadata={appMetadata}
           isEditable={isEditable}
+          isEnoughPermissions={isEnoughPermissions}
+          errors={errors}
         />
 
         <CategorySection
@@ -117,7 +120,7 @@ export const AppStoreFormRefactored = ({
         <SaveButton
           isSubmitting={isSubmitting}
           isDisabled={!isEditable || !isEnoughPermissions || isSubmitting}
-          onSubmit={handleSubmit(submit)}
+          onSubmit={handleSubmit(submit, onInvalid)}
         />
       </form>
     </div>

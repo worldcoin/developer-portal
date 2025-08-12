@@ -1,12 +1,18 @@
 import { useRefetchQueries } from "@/lib/use-refetch-queries";
 import { useCallback, useEffect } from "react";
-import { useFieldArray, useFormContext, useWatch } from "react-hook-form";
+import {
+  FieldErrors,
+  useFieldArray,
+  useFormContext,
+  useWatch,
+} from "react-hook-form";
 import { toast } from "react-toastify";
 import { FetchAppMetadataDocument } from "../../graphql/client/fetch-app-metadata.generated";
 import { AppStoreFormValues } from "../FormSchema/types";
 import { FetchLocalisationsDocument } from "../graphql/client/fetch-localisations.generated";
 import { updateAppStoreMetadata } from "../server/update-app-store";
 import { AppMetadata, SupportType } from "../types/AppStoreFormTypes";
+import { getFirstFormError } from "../utils/form-error-utils";
 import { useSupportType } from "./useSupportType";
 
 export const useAppStoreForm = (appId: string, appMetadata: AppMetadata) => {
@@ -100,6 +106,16 @@ export const useAppStoreForm = (appId: string, appMetadata: AppMetadata) => {
     [appMetadata.id, refetchAppMetadata, refetchLocalisations],
   );
 
+  const onInvalid = useCallback(
+    (errors: FieldErrors<AppStoreFormValues>) => {
+      const errorMessage = getFirstFormError(errors, localisations);
+      if (errorMessage) {
+        toast.error(errorMessage);
+      }
+    },
+    [localisations],
+  );
+
   return {
     control,
     handleSubmit,
@@ -111,6 +127,7 @@ export const useAppStoreForm = (appId: string, appMetadata: AppMetadata) => {
     supportType,
     handleSupportTypeChange,
     submit,
+    onInvalid,
     isEditable,
   };
 };
