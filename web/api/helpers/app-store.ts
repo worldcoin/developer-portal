@@ -1,5 +1,5 @@
 import { type Category, getLocalisedCategory } from "@/lib/categories";
-import { NATIVE_MAPPED_APP_ID } from "@/lib/constants";
+import { NATIVE_MAPPED_APP_ID, NativeAppToAppIdMapping } from "@/lib/constants";
 import { generateExternalNullifier } from "@/lib/hashing";
 import {
   AppStatsItem,
@@ -239,8 +239,17 @@ export const rankApps = (
     appIdsSet.has(stat.app_id),
   );
 
+  const nativeAppConstants = Object.values(NATIVE_MAPPED_APP_ID);
+  const nativeAppIds = Object.values(
+    NativeAppToAppIdMapping[process.env.NEXT_PUBLIC_APP_ENV ?? "dev"],
+  );
+  const combinedNativeAppIds = new Set([
+    ...nativeAppConstants,
+    ...nativeAppIds,
+  ]);
+
   appStoreAppStats.forEach((stat) => {
-    if (stat.app_id === NATIVE_MAPPED_APP_ID.grants) {
+    if (combinedNativeAppIds.has(stat.app_id)) {
       return;
     }
     maxNewUsers = Math.max(maxNewUsers, stat.new_users_last_7_days ?? 0);
