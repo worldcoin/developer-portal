@@ -200,12 +200,8 @@ export const AppTopBarRefactored = (props: AppTopBarProps) => {
         error.inner.forEach((yupError) => {
           const path = yupError.path;
           const yupErrorMessage = yupError.message;
-          if (path === "logo_img_url") {
-            errorMessage =
-              "Logo image is required. Please upload a logo before submitting for review.";
-          } else {
-            errorMessage = yupErrorMessage;
-          }
+
+          errorMessage = yupErrorMessage;
 
           // still set form errors for field highlighting
           if (path) {
