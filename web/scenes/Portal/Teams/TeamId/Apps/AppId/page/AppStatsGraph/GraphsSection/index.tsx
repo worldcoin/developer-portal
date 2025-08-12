@@ -2,7 +2,6 @@
 
 import { useFetchAppStatsQuery } from "../graphql/client/fetch-app-stats.generated";
 
-import { getAvgNotificationOpenRate } from "@/api/helpers/app-store";
 import { Chart, ChartProps } from "@/components/Chart";
 import { InformationCircleIcon } from "@/components/Icons/InformationCircleIcon";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
@@ -225,9 +224,10 @@ const GraphCard: React.FC<GraphCardProps> = ({
 
 const isEligibleForNotificationBadge = (
   avg_notification_open_rate: number | null,
+  is7DaysOfNotificationOpenRateData: boolean,
 ) => {
   if (!avg_notification_open_rate) return false;
-  return avg_notification_open_rate > 0.1;
+  return avg_notification_open_rate > 0.1 && !is7DaysOfNotificationOpenRateData;
 };
 
 // ==================================================================================================
@@ -237,11 +237,6 @@ const isEligibleForNotificationBadge = (
 export const GraphsSection = () => {
   const { appId } = useParams() as { teamId: string; appId: string };
   const { metrics, loading: metricsLoading } = useGetMetrics(appId);
-
-  const averageOpenRate = useMemo(
-    () => getAvgNotificationOpenRate(metrics?.open_rate_last_14_days),
-    [metrics?.open_rate_last_14_days],
-  );
 
   const { data: appStatsData, loading: appStatsLoading } =
     useFetchAppStatsQuery({
@@ -391,12 +386,38 @@ export const GraphsSection = () => {
     return formattedData;
   }, [payments]);
 
+  const averageOpenRate = useMemo(() => {
+    if (
+      metricsLoading ||
+      !metrics?.open_rate_last_14_days ||
+      !metrics?.open_rate_last_14_days.length
+    ) {
+      return null;
+    }
+
+    return (
+      metrics?.open_rate_last_14_days?.reduce(
+        (acc, curr) => acc + curr.value,
+        0,
+      ) / metrics?.open_rate_last_14_days?.length
+    );
+  }, [metrics?.open_rate_last_14_days, metricsLoading]);
+
+  const is7DaysOfNotificationOpenRateData = useMemo(
+    () =>
+      metricsLoading ||
+      !metrics?.open_rate_last_14_days ||
+      metrics?.open_rate_last_14_days?.length >= 7,
+    [metrics?.open_rate_last_14_days, metricsLoading],
+  );
+
+  const formattedAverageOpenRate = useMemo(
+    () => (averageOpenRate == null ? null : (averageOpenRate * 100).toFixed(2)),
+    [averageOpenRate],
+  );
   // ==================================================================================================
   // ====================================== Anchor: Render Section ====================================
   // ==================================================================================================
-
-  // mock avg_notification_open_rate value for now
-  const avg_notification_open_rate = 0.18; // 18% - over the 0.15 threshold
 
   return (
     <div className="grid flex-1 grid-cols-1 grid-rows-3 gap-2 lg:grid-cols-2 lg:grid-rows-1">
@@ -450,16 +471,12 @@ export const GraphsSection = () => {
         chartData={formattedNotificationOpenRateChartData}
         stats={(() => {
           if (!formattedNotificationOpenRateChartData) return [];
-          const notificationData =
-            formattedNotificationOpenRateChartData.y[0].data;
-          const lastDataPoint = notificationData[notificationData.length - 1];
-          const lastOpenRateValue =
-            typeof lastDataPoint === "number" ? lastDataPoint.toFixed(2) : "NA";
+
           return [
             {
               title: "Notifications open rate",
               valueSuffix: "%",
-              value: lastOpenRateValue,
+              value: formattedAverageOpenRate,
               mainColorClassName: "bg-additional-lightOrange-500",
             },
           ];
@@ -472,11 +489,13 @@ export const GraphsSection = () => {
         emptyStateTitle="No data available yet"
         emptyStateDescription="Your notification open rate will show up here."
         tooltip={
-          isEligibleForNotificationBadge(averageOpenRate) ? (
+          isEligibleForNotificationBadge(
+            averageOpenRate,
+            is7DaysOfNotificationOpenRateData,
+          ) ? (
             <span>
-              Your average open rate ({(averageOpenRate! * 100).toFixed(1)}%) is
-              above the 10% threshold. Your app is eligible for a notification
-              badge.
+              Your average open rate ({formattedAverageOpenRate}%) is above the
+              10% threshold. Your app is eligible for a notification badge.
             </span>
           ) : null
         }
