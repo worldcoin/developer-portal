@@ -3,7 +3,7 @@ import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { PaymentMetadata } from "@/lib/types";
 import { Suspense } from "react";
 import Skeleton from "react-loading-skeleton";
-import { toast } from "react-toastify";
+import { ErrorState } from "./ErrorState";
 import { TransactionsTable } from "./TransactionsTable";
 import { getTransactionData } from "./server";
 
@@ -17,9 +17,7 @@ export const TransactionsPage = async (props: TransactionsPageProps) => {
 
   const result = await getTransactionData(appId);
   let transactionData: PaymentMetadata[] = [];
-  if (!result.success) {
-    toast.error(result.message);
-  } else {
+  if (result.success) {
     transactionData = result.data as PaymentMetadata[];
   }
 
@@ -30,7 +28,11 @@ export const TransactionsPage = async (props: TransactionsPageProps) => {
       </div>
       <hr className="mt-5 w-full border-dashed text-grey-200" />
 
-      {transactionData.length === 0 ? (
+      {!result.success ? (
+        // Error state - API request failed
+        <ErrorState />
+      ) : transactionData.length === 0 ? (
+        // Empty state - API succeeded but no data
         <div className="grid grid-cols-1 justify-items-center gap-y-8 pt-12">
           <div className="grid justify-items-center gap-y-5 ">
             <Typography variant={TYPOGRAPHY.H6}>No payments yet</Typography>
@@ -53,6 +55,7 @@ export const TransactionsPage = async (props: TransactionsPageProps) => {
           </DecoratedButton>
         </div>
       ) : (
+        // Success state - API succeeded and has data
         <Suspense fallback={<Skeleton />}>
           <TransactionsTable transactionData={transactionData} />
         </Suspense>

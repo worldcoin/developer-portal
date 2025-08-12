@@ -1,6 +1,7 @@
 import { logger } from "@/lib/logger";
 import { FormActionResult } from "@/lib/types";
 import { NextRequest, NextResponse } from "next/server";
+import { serializeError } from "serialize-error";
 import "server-only";
 
 export function errorResponse(params: {
@@ -207,5 +208,7 @@ export function errorFormAction({
     team_id,
   });
 
-  return { success: false, message, error };
+  const serializedError = error ? serializeError(error) : undefined;
+
+  return { success: false, message, error: serializedError };
 }
