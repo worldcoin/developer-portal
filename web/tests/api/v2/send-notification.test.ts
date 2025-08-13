@@ -6,6 +6,31 @@ import { NextRequest } from "next/server";
 const FetchAPIKey = jest.fn();
 const GetAppMetadata = jest.fn();
 
+const mockSignedFetcher = jest.fn(() =>
+  Promise.resolve({
+    json: () =>
+      Promise.resolve({
+        result: {
+          results: [
+            {
+              walletAddress:
+                "0x0000000000000000000000000000000000000000abcdef1234567890abcdef12345678",
+              sent: true,
+              reason: "User has disabled notifications",
+            },
+          ],
+        },
+      }),
+    ok: true,
+    status: 201,
+  }),
+);
+
+// mock aws-sigv4-fetch at the top level
+jest.mock("aws-sigv4-fetch", () => ({
+  createSignedFetcher: jest.fn(() => mockSignedFetcher),
+}));
+
 jest.mock("@/lib/logger", () => ({
   logger: {
     error: jest.fn(),
@@ -41,28 +66,6 @@ jest.mock(
   }),
 );
 
-jest.mock("aws-sigv4-fetch", () => ({
-  createSignedFetcher: () =>
-    jest.fn(() =>
-      Promise.resolve({
-        json: () => ({
-          result: {
-            results: [
-              {
-                walletAddress:
-                  "0x0000000000000000000000000000000000000000abcdef1234567890abcdef12345678",
-                sent: true,
-                reason: "User has disabled notifications",
-              },
-            ],
-          },
-        }),
-        ok: true,
-        status: 201,
-      }),
-    ),
-}));
-
 const createMockRequest = (params: {
   url: URL | RequestInfo;
   api_key: string;
@@ -84,6 +87,33 @@ const createMockRequest = (params: {
     }),
   });
 };
+const v2RequestBody = {
+  localisations: [
+    {
+      language: "en",
+      title: "Test Notification",
+      message: "This is a test notification",
+    },
+  ],
+  app_id: "app_staging_9cdd0a714aec9ed17dca660bc9ffe72a",
+  wallet_addresses: ["0x0000000000000000000000000000000000000000"],
+  mini_app_path:
+    "worldapp://mini-app?app_id=app_staging_9cdd0a714aec9ed17dca660bc9ffe72a",
+};
+const createMockRequestV2 = (params: {
+  url: URL | RequestInfo;
+  api_key: string;
+}) => {
+  const { url, api_key } = params;
+  return new NextRequest(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${api_key}`,
+    },
+    body: JSON.stringify(v2RequestBody),
+  });
+};
 
 const validApiKeyId = "key_667f5fbd4ad943622b4b2d3eb258f89c";
 const testHashedSecret = generateHashedSecret(validApiKeyId);
@@ -92,13 +122,15 @@ const apiKeyValue = Buffer.from(`${validApiKeyId}:${testHashedSecret.secret}`)
   .toString("base64")
   .replace(/=/g, "");
 
+const testTeamId = "team_dd2ecd36c6c45f645e8e5d9a31abdee1";
+
 const validApiKeyResponse = {
   api_key_by_pk: {
     id: validApiKeyId,
     api_key: testHashedSecret.hashed_secret,
     is_active: true,
     team: {
-      id: "team_dd2ecd36c6c45f645e8e5d9a31abdee1",
+      id: testTeamId,
       apps: [{ id: "app_staging_9cdd0a714aec9ed17dca660bc9ffe72a" }],
     },
   },
@@ -114,7 +146,7 @@ const validAppMetadata = {
       notification_permission_status: "normal",
       app: {
         team: {
-          id: "team_dd2ecd36c6c45f645e8e5d9a31abdee1",
+          id: testTeamId,
         },
       },
     },
@@ -128,12 +160,14 @@ const validApiKey = `api_${apiKeyValue}`;
 // #region Success cases tests
 describe("/api/v2/minikit/send-notification [success cases]", () => {
   beforeEach(async () => {
+    mockSignedFetcher.mockClear();
+
     FetchAPIKey.mockResolvedValue(validApiKeyResponse);
     GetAppMetadata.mockResolvedValue(validAppMetadata);
     await global.RedisClient?.flushall();
   });
 
-  it("can send a notification", async () => {
+  it("can send a notification with v1 schema", async () => {
     const mockReq = createMockRequest({
       url: "http://localhost:3000/api/v2/minikit/send-notification",
       api_key: validApiKey,
@@ -141,6 +175,44 @@ describe("/api/v2/minikit/send-notification [success cases]", () => {
 
     const res = await POST(mockReq);
     expect(res.status).toBe(200);
+  });
+
+  it("can send a notification with v2 schema", async () => {
+    const mockReq = createMockRequestV2({
+      url: "http://localhost:3000/api/v2/minikit/send-notification",
+      api_key: validApiKey,
+    });
+
+    const res = await POST(mockReq);
+    expect(res.status).toBe(200);
+  });
+
+  it("prioritizes localisations over title/message fields", async () => {
+    const requestWithBothFormats = new NextRequest(
+      "http://localhost:3000/api/v2/minikit/send-notification",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${validApiKey}`,
+        },
+        body: JSON.stringify({
+          ...v2RequestBody,
+          title: "Legacy Title - Should Be Ignored",
+          message: "Legacy Message - Should Be Ignored",
+        }),
+      },
+    );
+
+    const res = await POST(requestWithBothFormats);
+
+    expect(res.status).toBe(200);
+
+    const [_, options] = mockSignedFetcher.mock.calls[0] as any;
+    const sentBody = JSON.parse(options.body);
+    expect(sentBody.localisations).toEqual(v2RequestBody.localisations);
+    expect(sentBody.title).toBeUndefined();
+    expect(sentBody.message).toBeUndefined();
   });
 });
 // #endregion
@@ -187,6 +259,30 @@ describe("/api/v2/minikit/send-notification [error cases]", () => {
     expect(res.status).toBe(400);
     expect((await res.json()).detail).toBe(
       "message must be at most 200 characters",
+    );
+  });
+
+  it("returns 400 if neither localisations nor title/message are specified", async () => {
+    const mockReq = new NextRequest(
+      "http://localhost:3000/api/v2/minikit/send-notification",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${validApiKey}`,
+        },
+        body: JSON.stringify({
+          app_id: "random",
+          wallet_addresses: ["0x0000000000000000000000000000000000000000"],
+          mini_app_path: "worldapp://mini-app?app_id=random",
+        }),
+      },
+    );
+
+    const res = await POST(mockReq);
+    expect(res.status).toBe(400);
+    expect((await res.json()).detail).toBe(
+      "Neither localisations nor title and message are specified",
     );
   });
 

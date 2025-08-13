@@ -256,7 +256,7 @@ export const NotificationsPage = () => {
           </div>
 
           <Input
-            label="Title (Optional)"
+            label="Title"
             register={register("title", {
               maxLength: {
                 value: 30,
