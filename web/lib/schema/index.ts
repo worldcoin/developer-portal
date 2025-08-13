@@ -117,7 +117,7 @@ export const appNameSchema = yup
 export const appShortNameSchema = yup
   .string()
   .required("Short name is required")
-  .max(11)
+  .max(11, "Short name cannot exceed 11 characters")
   .matches(allowedTitleCharactersRegex, {
     message: "App name can only contain letters, numbers and spaces",
     excludeEmptyString: true,

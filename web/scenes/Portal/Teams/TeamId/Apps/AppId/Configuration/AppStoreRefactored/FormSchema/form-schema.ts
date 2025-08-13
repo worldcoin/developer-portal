@@ -31,7 +31,7 @@ export const mainAppStoreFormSchema = yup
   .object({
     category: categorySchema,
     app_website_url: appWebsiteUrlSchema,
-    support_type: yup.string().oneOf(["email", "link"]),
+    support_type: yup.string().oneOf(["email", "link"], "Invalid support type"),
     support_link: yup.string().when("support_type", {
       is: "link",
       then: (_schema) => supportLinkSchema.required("Support link is required"),
