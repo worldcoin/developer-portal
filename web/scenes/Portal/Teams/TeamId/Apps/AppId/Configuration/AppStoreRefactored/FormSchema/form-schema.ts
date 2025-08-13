@@ -31,25 +31,18 @@ export const mainAppStoreFormSchema = yup
   .object({
     category: categorySchema,
     app_website_url: appWebsiteUrlSchema,
-    support_link: supportLinkSchema.test({
-      message: "Either support link or support email must be provided",
-      test: function (this, _, ctx) {
-        const { support_link, support_email } = ctx.parent || {};
-
-        // exactly one must be provided
-        return !!(support_link || support_email);
-      },
-    }),
-    support_email: supportEmailSchema.test({
-      message: "Either support link or support email must be provided",
-      test: function (this, _, ctx) {
-        const { support_link, support_email } = ctx.parent || {};
-
-        // exactly one must be provided
-        return !!(support_link || support_email);
-      },
-    }),
     support_type: yup.string().oneOf(["email", "link"]),
+    support_link: yup.string().when("support_type", {
+      is: "link",
+      then: (_schema) => supportLinkSchema.required("Support link is required"),
+      otherwise: (_schema) => yup.string().length(0),
+    }),
+    support_email: yup.string().when("support_type", {
+      is: "email",
+      then: (_schema) =>
+        supportEmailSchema.required("Support email is required"),
+      otherwise: (_schema) => yup.string().length(0),
+    }),
     is_android_only: isAndroidOnlySchema,
     is_for_humans_only: isForHumansOnlySchema,
     supported_countries: supportedCountriesSchema,
@@ -77,7 +70,7 @@ export const localisationFormReviewSubmitSchema = yup
       "App tag line is required",
     ),
     description_overview: appDescriptionOverviewSchema.required(
-      "Description is required",
+      "Overview is required",
     ),
     meta_tag_image_url: yup.string().notRequired(),
     showcase_img_urls: yup
