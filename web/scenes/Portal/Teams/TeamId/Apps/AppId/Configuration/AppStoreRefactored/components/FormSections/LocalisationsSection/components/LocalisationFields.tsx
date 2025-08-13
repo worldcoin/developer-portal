@@ -102,7 +102,7 @@ export const LocalisationFields = ({
         name={`localisations.${selectedIndex}.description_overview`}
         render={({ field: overviewField }) => (
           <TextArea
-            label="Description"
+            label="Overview"
             required
             rows={7}
             maxLength={1500}
