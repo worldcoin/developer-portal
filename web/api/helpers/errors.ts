@@ -207,5 +207,9 @@ export function errorFormAction({
     team_id,
   });
 
-  return { success: false, message, error };
+  const serializedError = error
+    ? JSON.parse(JSON.stringify(error, Object.getOwnPropertyNames(error)))
+    : undefined;
+
+  return { success: false, message, error: serializedError };
 }
