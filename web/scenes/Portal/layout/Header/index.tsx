@@ -29,7 +29,7 @@ export const Header = (props: { color: Color | null }) => {
       return urls.app({ team_id: teamId, app_id: appId });
     }
     if (teamId) {
-      return urls.apps({ team_id: teamId });
+      return urls.teams({ team_id: teamId });
     }
     return "/";
   }, [teamId, appId]);
