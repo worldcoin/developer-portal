@@ -1,11 +1,10 @@
 import { httpsLinkSchema as getHttpsLinkSchema } from "@/lib/schema";
 import * as yup from "yup";
 
-const httpsLinkSchema = getHttpsLinkSchema();
+export const appWebsiteUrlSchema = getHttpsLinkSchema({
+  message: "App Website URL must be a valid https URL",
+}).required("App Website URL is required");
 
-export const appWebsiteUrlSchema = httpsLinkSchema.required(
-  "This field is required",
-);
 export const supportEmailSchema = yup.string().email("Invalid email address");
 
 export const supportLinkSchema = yup
@@ -22,7 +21,11 @@ export const supportLinkSchema = yup
       }
 
       // https url
-      if (httpsLinkSchema.isValidSync(value)) {
+      if (
+        getHttpsLinkSchema({
+          message: "Support Link must be a valid https URL",
+        }).isValidSync(value)
+      ) {
         return true;
       }
 
@@ -34,11 +37,11 @@ export const supportedCountriesSchema = yup
   .array(
     yup
       .string()
-      .required("This field is required")
+      .required("This field is required required")
       .length(2, "Invalid country code"),
   )
-  .min(1, "This field is required")
-  .required("This field is required")
+  .min(1, "Supported Countries is required")
+  .required("Supported Countries is required")
   .default([]);
 export const categorySchema = yup.string().optional();
 export const isAndroidOnlySchema = yup

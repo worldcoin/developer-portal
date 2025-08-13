@@ -83,14 +83,16 @@ export const allowTitleAndEmojisRegex = {
 
 export const httpsLinkSchema = ({
   excludeEmptyString = false,
+  message = "Must be a valid https URL",
 }: {
   excludeEmptyString?: boolean;
+  message?: string;
 } = {}) =>
   yup
     .string()
     .url("Invalid URL")
     .matches(/^https:\/\/[\w-]+(\.\w+)+([\/\w\-\+._/?%&#=]*)?$/, {
-      message: "Must be a valid https URL",
+      message,
       excludeEmptyString,
     });
 
@@ -151,7 +153,7 @@ export const appDescriptionOverviewSchema = yup
       "Overview can only contain letters, numbers and certain special characters.",
     excludeEmptyString: true,
   })
-  .required("This section is required");
+  .required("Description is required");
 
 export const appDescriptionHowItWorksSchema = yup
   .string()
