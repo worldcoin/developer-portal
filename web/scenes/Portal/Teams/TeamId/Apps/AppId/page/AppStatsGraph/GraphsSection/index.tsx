@@ -224,10 +224,12 @@ const GraphCard: React.FC<GraphCardProps> = ({
 
 const isEligibleForNotificationBadge = (
   avg_notification_open_rate: number | null,
-  is7DaysOfNotificationOpenRateData: boolean,
+  has7DaysOfNotificationOpenRateData: boolean,
 ) => {
   if (!avg_notification_open_rate) return false;
-  return avg_notification_open_rate > 0.1 && !is7DaysOfNotificationOpenRateData;
+  if (!has7DaysOfNotificationOpenRateData) return false;
+
+  return avg_notification_open_rate > 0.1;
 };
 
 // ==================================================================================================
@@ -403,7 +405,7 @@ export const GraphsSection = () => {
     );
   }, [metrics?.open_rate_last_14_days, metricsLoading]);
 
-  const is7DaysOfNotificationOpenRateData = useMemo(
+  const has7DaysOfNotificationOpenRateData = useMemo(
     () =>
       metricsLoading ||
       !metrics?.open_rate_last_14_days ||
@@ -491,7 +493,7 @@ export const GraphsSection = () => {
         tooltip={
           isEligibleForNotificationBadge(
             averageOpenRate,
-            is7DaysOfNotificationOpenRateData,
+            has7DaysOfNotificationOpenRateData,
           ) ? (
             <span>
               Your average open rate ({formattedAverageOpenRate}%) is above the
