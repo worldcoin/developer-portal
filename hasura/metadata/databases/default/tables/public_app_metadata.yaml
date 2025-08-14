@@ -187,6 +187,8 @@ select_permissions:
         - contracts
         - created_at
         - description
+        - dev_rewards_approved
+        - has_airdrop_component
         - hero_image_url
         - id
         - integration_url
@@ -359,6 +361,8 @@ update_permissions:
     permission:
       columns:
         - category
+        - dev_rewards_approved
+        - has_airdrop_component
         - hero_image_url
         - is_android_only
         - is_for_humans_only
