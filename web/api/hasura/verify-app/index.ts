@@ -287,6 +287,15 @@ export const POST = async (req: NextRequest) => {
   await Promise.all(copyPromises);
 
   // Update app metadata unverified to reflect new verified images, change verification_status to verified, verified_at, reviewed_by etc.
+  // Also update app.first_verified_at if it's not set yet
+
+  const currentTimestamp = new Date().toISOString();
+
+  // Set first_verified_at only if it's not already set
+  const appUpdates: any = {};
+  if (!app.first_verified_at) {
+    appUpdates.first_verified_at = currentTimestamp;
+  }
 
   const updateAppMetadata = await verifyAppSDK(reviewer_client).verifyApp({
     idToVerify: awaitingReviewAppMetadata.id,
@@ -297,12 +306,14 @@ export const POST = async (req: NextRequest) => {
       meta_tag_image_url: newMetaTagImgName,
       showcase_img_urls: showcaseImgUUIDs,
       verification_status: "verified",
-      verified_at: new Date().toISOString(),
+      verified_at: currentTimestamp,
       reviewed_by: reviewer_name,
       is_reviewer_app_store_approved: is_reviewer_app_store_approved,
       is_reviewer_world_app_approved: is_reviewer_world_app_approved,
     },
     localisation_updates: localisationUpdates,
+    app_id: app_id,
+    app_updates: appUpdates,
   });
 
   if (!updateAppMetadata.update_app_metadata_by_pk) {

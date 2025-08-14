@@ -12,6 +12,7 @@ export type GetAppMetadataQuery = {
   __typename?: "query_root";
   app: Array<{
     __typename?: "app";
+    first_verified_at?: string | null;
     app_metadata: Array<{
       __typename?: "app_metadata";
       id: string;
@@ -35,6 +36,7 @@ export type GetAppMetadataQuery = {
 export const GetAppMetadataDocument = gql`
   query GetAppMetadata($app_id: String!) {
     app(where: { id: { _eq: $app_id } }) {
+      first_verified_at
       app_metadata {
         id
         logo_img_url

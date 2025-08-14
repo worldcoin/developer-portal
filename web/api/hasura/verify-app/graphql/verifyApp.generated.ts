@@ -11,6 +11,8 @@ export type VerifyAppMutationVariables = Types.Exact<{
   localisation_updates:
     | Array<Types.Localisations_Updates>
     | Types.Localisations_Updates;
+  app_id: Types.Scalars["String"]["input"];
+  app_updates?: Types.InputMaybe<Types.App_Set_Input>;
 }>;
 
 export type VerifyAppMutation = {
@@ -23,6 +25,7 @@ export type VerifyAppMutation = {
     __typename?: "app_metadata";
     id: string;
   } | null;
+  update_app_by_pk?: { __typename?: "app"; id: string } | null;
   update_localisations_many?: Array<{
     __typename?: "localisations_mutation_response";
     affected_rows: number;
@@ -35,6 +38,8 @@ export const VerifyAppDocument = gql`
     $idToDelete: String!
     $verified_data_changes: app_metadata_set_input
     $localisation_updates: [localisations_updates!]!
+    $app_id: String!
+    $app_updates: app_set_input
   ) {
     delete_app_metadata_by_pk(id: $idToDelete) {
       id
@@ -43,6 +48,9 @@ export const VerifyAppDocument = gql`
       pk_columns: { id: $idToVerify }
       _set: $verified_data_changes
     ) {
+      id
+    }
+    update_app_by_pk(pk_columns: { id: $app_id }, _set: $app_updates) {
       id
     }
     update_localisations_many(updates: $localisation_updates) {

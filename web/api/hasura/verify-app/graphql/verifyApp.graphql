@@ -3,6 +3,8 @@ mutation verifyApp(
   $idToDelete: String!
   $verified_data_changes: app_metadata_set_input
   $localisation_updates: [localisations_updates!]!
+  $app_id: String!
+  $app_updates: app_set_input
 ) {
   delete_app_metadata_by_pk(id: $idToDelete) {
     id
@@ -11,6 +13,9 @@ mutation verifyApp(
     pk_columns: { id: $idToVerify }
     _set: $verified_data_changes
   ) {
+    id
+  }
+  update_app_by_pk(pk_columns: { id: $app_id }, _set: $app_updates) {
     id
   }
   update_localisations_many(updates: $localisation_updates) {

@@ -40,6 +40,7 @@ insert_permissions:
       check: {}
       columns:
         - engine
+        - first_verified_at
         - is_staging
         - name
         - team_id
@@ -72,6 +73,7 @@ select_permissions:
     permission:
       columns:
         - deleted_at
+        - first_verified_at
         - id
         - is_banned
       filter:
@@ -85,6 +87,7 @@ select_permissions:
         - deleted_at
         - description_internal
         - engine
+        - first_verified_at
         - id
         - is_archived
         - is_banned
@@ -126,6 +129,7 @@ update_permissions:
   - role: reviewer
     permission:
       columns:
+        - first_verified_at
         - is_banned
       filter: {}
       check:
@@ -135,6 +139,7 @@ update_permissions:
   - role: service
     permission:
       columns:
+        - first_verified_at
         - is_banned
         - rating_count
         - rating_sum

@@ -1,5 +1,6 @@
 query GetAppMetadata($app_id: String!) {
   app(where: { id: { _eq: $app_id } }) {
+    first_verified_at
     app_metadata {
       id
       logo_img_url
