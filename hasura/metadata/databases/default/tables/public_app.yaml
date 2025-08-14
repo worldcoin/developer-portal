@@ -40,7 +40,6 @@ insert_permissions:
       check: {}
       columns:
         - engine
-        - first_verified_at
         - is_staging
         - name
         - team_id
