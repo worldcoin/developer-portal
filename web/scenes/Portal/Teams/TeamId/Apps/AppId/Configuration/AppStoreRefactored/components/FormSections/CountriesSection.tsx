@@ -30,13 +30,12 @@ export const CountriesSection = ({
       <Notification variant="warning">
         <div className="text-sm">
           <h3 className="font-medium text-yellow-800">
-            Regulations in certain countries
+            Restrictions in certain countries
           </h3>
           <div className="mt-2 text-yellow-700">
-            Please note that Indonesia, Malaysia, Thailand, United States and
-            Poland do not allow chance-based mini apps. Make sure your app
-            proposals and updates for these regions comply with local
-            regulations.
+            Laws and regulations governing mini apps vary by country and region.
+            Before launching, ensure your app complies with all relevant local
+            rules, especially regarding chance-based or gambling-like features.
           </div>
         </div>
       </Notification>
