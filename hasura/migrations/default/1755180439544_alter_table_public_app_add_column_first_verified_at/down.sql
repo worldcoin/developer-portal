@@ -1,0 +1,1 @@
+alter table "public"."app" drop column "first_verified_at";
