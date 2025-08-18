@@ -1,8 +1,0 @@
-mutation AddLocale($app_metadata_id: String!, $supported_languages: [String!]) {
-  update_app_metadata_by_pk(
-    pk_columns: { id: $app_metadata_id }
-    _set: { supported_languages: $supported_languages }
-  ) {
-    id
-  }
-}
