@@ -16,7 +16,7 @@ import { SaveButton } from "./components/SaveButton";
 import { useAppStoreForm } from "./hooks/useAppStoreForm";
 import { AppStoreFormProps } from "./types/AppStoreFormTypes";
 
-export const AppStoreFormRefactored = ({
+export const AppStoreForm = ({
   appId,
   teamId,
   appMetadata,

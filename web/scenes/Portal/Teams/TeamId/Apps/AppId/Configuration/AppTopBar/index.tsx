@@ -51,7 +51,7 @@ type AppTopBarProps = {
   app: FetchAppMetadataQuery["app"][0];
 };
 
-export const AppTopBarRefactored = (props: AppTopBarProps) => {
+export const AppTopBar = (props: AppTopBarProps) => {
   const { appId, teamId, app } = props;
   const router = useRouter();
   const pathname = usePathname();
@@ -125,9 +125,9 @@ export const AppTopBarRefactored = (props: AppTopBarProps) => {
     }
 
     // only this route has the form context with up to date form data
-    if (!pathname.includes("configuration/app-store-refactored")) {
+    if (!pathname.includes("configuration/app-store")) {
       router.push(
-        `/teams/${teamId}/apps/${appId}/configuration/app-store-refactored?submitForReview=true`,
+        `/teams/${teamId}/apps/${appId}/configuration/app-store?submitForReview=true`,
       );
       return;
     }
@@ -342,12 +342,12 @@ export const AppTopBarRefactored = (props: AppTopBarProps) => {
             alt="logo"
             className="size-20 rounded-2xl drop-shadow-lg"
           />
-          {!pathname.includes("configuration/app-store-refactored") && (
+          {!pathname.includes("configuration/app-store") && (
             <Button
               type="button"
               onClick={() => {
                 router.push(
-                  `/teams/${teamId}/apps/${appId}/configuration/app-store-refactored?editLogo=true`,
+                  `/teams/${teamId}/apps/${appId}/configuration/app-store?editLogo=true`,
                 );
               }}
               className={clsx(
