@@ -7,13 +7,13 @@ import { getIsUserAllowedToUpdateAppMetadata } from "@/lib/permissions";
 import { extractIdsFromPath, getPathFromHeaders } from "@/lib/server-utils";
 import { FormActionResult } from "@/lib/types";
 import * as yup from "yup";
-import { mainAppStoreFormReviewSubmitSchema } from "../../AppStoreRefactored/FormSchema/form-schema";
-import { LocalisationData } from "../../AppStoreRefactored/types/AppStoreFormTypes";
-import { getSupportType } from "../../AppStoreRefactored/utils";
+import { mainAppStoreFormReviewSubmitSchema } from "../../AppStore/FormSchema/form-schema";
+import { LocalisationData } from "../../AppStore/types/AppStoreFormTypes";
+import { getSupportType } from "../../AppStore/utils";
 import {
   getLocalisationFormValues,
   transformMailtoToRawEmail,
-} from "../../AppStoreRefactored/utils/dataTransforms";
+} from "../../AppStore/utils/dataTransforms";
 import { getSdk as getSubmitAppSdk } from "../SubmitAppModal/graphql/server/submit-app.generated";
 import { getSdk as fetchReviewAppMetadataSdk } from "../graphql/server/fetch-review-app-metadata.generated";
 

@@ -25,13 +25,13 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useFormContext } from "react-hook-form";
 import { toast } from "react-toastify";
 import * as yup from "yup";
-import { mainAppStoreFormReviewSubmitSchema } from "../AppStoreRefactored/FormSchema/form-schema";
-import { AppStoreFormValues } from "../AppStoreRefactored/FormSchema/types";
-import { updateAppStoreMetadata } from "../AppStoreRefactored/server/update-app-store";
+import { mainAppStoreFormReviewSubmitSchema } from "../AppStore/FormSchema/form-schema";
+import { AppStoreFormValues } from "../AppStore/FormSchema/types";
+import { updateAppStoreMetadata } from "../AppStore/server/update-app-store";
 import {
   getFirstFormError,
   MULTIPLE_ERRORS_TOAST_MESSAGE,
-} from "../AppStoreRefactored/utils/form-error-utils";
+} from "../AppStore/utils/form-error-utils";
 import {
   FetchAppMetadataDocument,
   FetchAppMetadataQuery,

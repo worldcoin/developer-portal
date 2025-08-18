@@ -10,7 +10,7 @@ import clsx from "clsx";
 import { useAtom } from "jotai";
 import Error from "next/error";
 import { useMemo, useState } from "react";
-import { AppTopBarRefactored } from "../../AppTopBarRefactored";
+import { AppTopBarRefactored } from "../../AppTopBar";
 import { useFetchAppMetadataQuery } from "../../graphql/client/fetch-app-metadata.generated";
 import { viewModeAtom } from "../../layout/ImagesProvider";
 import { DeleteModal } from "./DeleteModal";

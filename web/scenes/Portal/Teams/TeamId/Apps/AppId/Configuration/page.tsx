@@ -2,8 +2,8 @@
 import { SizingWrapper } from "@/components/SizingWrapper";
 import Error from "next/error";
 import Skeleton from "react-loading-skeleton";
-import { AppTopBarRefactored } from "./AppTopBarRefactored";
-import { FormSkeleton } from "./AppTopBarRefactored/FormSkeleton";
+import { AppTopBarRefactored } from "./AppTopBar";
+import { FormSkeleton } from "./AppTopBar/FormSkeleton";
 import { BasicInformation } from "./BasicInformation";
 import { useFetchAppMetadataQuery } from "./graphql/client/fetch-app-metadata.generated";
 import { useFetchTeamNameQuery } from "./graphql/client/fetch-team-name.generated";

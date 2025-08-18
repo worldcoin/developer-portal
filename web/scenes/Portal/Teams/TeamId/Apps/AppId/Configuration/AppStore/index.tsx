@@ -4,7 +4,7 @@ import { useAtom } from "jotai";
 import Error from "next/error";
 import { useMemo } from "react";
 import Skeleton from "react-loading-skeleton";
-import { AppTopBarRefactored } from "../AppTopBarRefactored";
+import { AppTopBarRefactored } from "../AppTopBar";
 import { useFetchAppMetadataQuery } from "../graphql/client/fetch-app-metadata.generated";
 import { viewModeAtom } from "../layout/ImagesProvider";
 import { AppStoreFormProvider } from "./app-store-form-provider";
