@@ -7,6 +7,7 @@ jobs:
   lint:
     name: Code formatting & linting
     runs-on: ubuntu-24.04
+    timeout-minutes: 3
     defaults:
       run:
         working-directory: web
@@ -38,6 +39,7 @@ jobs:
   build:
     name: Test build
     runs-on: ubuntu-24.04
+    timeout-minutes: 10
     defaults:
       run:
         working-directory: web
@@ -67,6 +69,7 @@ jobs:
   docker-build:
     name: Test Docker build
     runs-on: ubuntu-24.04
+    timeout-minutes: 10
     defaults:
       run:
         working-directory: web
@@ -89,6 +92,7 @@ jobs:
   api-tests:
     name: API Tests
     runs-on: ubuntu-24.04
+    timeout-minutes: 3
     defaults:
       run:
         working-directory: web
@@ -115,6 +119,7 @@ jobs:
   integration-tests:
     name: Integration Tests
     runs-on: ubuntu-24.04
+    timeout-minutes: 3
     defaults:
       run:
         working-directory: web
@@ -149,6 +154,7 @@ jobs:
   e2e-tests:
     name: End-to-end Tests
     runs-on: ubuntu-24.04-16core
+    timeout-minutes: 10
     environment: development
 
     defaults:
@@ -206,6 +212,7 @@ jobs:
   unit-tests:
     name: Unit Tests
     runs-on: ubuntu-24.04
+    timeout-minutes: 3
     defaults:
       run:
         working-directory: web
