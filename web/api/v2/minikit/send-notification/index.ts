@@ -372,7 +372,7 @@ export const POST = async (req: NextRequest) => {
         },
         body: JSON.stringify(internalSendNotificationRequestBody),
       },
-      3000,
+      5000,
       signedFetch,
     );
   } catch (error) {
