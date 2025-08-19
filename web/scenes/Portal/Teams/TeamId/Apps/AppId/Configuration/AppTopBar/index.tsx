@@ -25,13 +25,13 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useFormContext } from "react-hook-form";
 import { toast } from "react-toastify";
 import * as yup from "yup";
-import { mainAppStoreFormReviewSubmitSchema } from "../AppStoreRefactored/FormSchema/form-schema";
-import { AppStoreFormValues } from "../AppStoreRefactored/FormSchema/types";
-import { updateAppStoreMetadata } from "../AppStoreRefactored/server/update-app-store";
+import { mainAppStoreFormReviewSubmitSchema } from "../AppStore/FormSchema/form-schema";
+import { AppStoreFormValues } from "../AppStore/FormSchema/types";
+import { updateAppStoreMetadata } from "../AppStore/server/update-app-store";
 import {
   getFirstFormError,
   MULTIPLE_ERRORS_TOAST_MESSAGE,
-} from "../AppStoreRefactored/utils/form-error-utils";
+} from "../AppStore/utils/form-error-utils";
 import {
   FetchAppMetadataDocument,
   FetchAppMetadataQuery,
@@ -51,7 +51,7 @@ type AppTopBarProps = {
   app: FetchAppMetadataQuery["app"][0];
 };
 
-export const AppTopBarRefactored = (props: AppTopBarProps) => {
+export const AppTopBar = (props: AppTopBarProps) => {
   const { appId, teamId, app } = props;
   const router = useRouter();
   const pathname = usePathname();
@@ -125,9 +125,9 @@ export const AppTopBarRefactored = (props: AppTopBarProps) => {
     }
 
     // only this route has the form context with up to date form data
-    if (!pathname.includes("configuration/app-store-refactored")) {
+    if (!pathname.includes("configuration/app-store")) {
       router.push(
-        `/teams/${teamId}/apps/${appId}/configuration/app-store-refactored?submitForReview=true`,
+        `/teams/${teamId}/apps/${appId}/configuration/app-store?submitForReview=true`,
       );
       return;
     }
@@ -342,12 +342,12 @@ export const AppTopBarRefactored = (props: AppTopBarProps) => {
             alt="logo"
             className="size-20 rounded-2xl drop-shadow-lg"
           />
-          {!pathname.includes("configuration/app-store-refactored") && (
+          {!pathname.includes("configuration/app-store") && (
             <Button
               type="button"
               onClick={() => {
                 router.push(
-                  `/teams/${teamId}/apps/${appId}/configuration/app-store-refactored?editLogo=true`,
+                  `/teams/${teamId}/apps/${appId}/configuration/app-store?editLogo=true`,
                 );
               }}
               className={clsx(

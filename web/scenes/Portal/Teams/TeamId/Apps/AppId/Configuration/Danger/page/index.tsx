@@ -10,7 +10,7 @@ import clsx from "clsx";
 import { useAtom } from "jotai";
 import Error from "next/error";
 import { useMemo, useState } from "react";
-import { AppTopBarRefactored } from "../../AppTopBarRefactored";
+import { AppTopBar } from "../../AppTopBar";
 import { useFetchAppMetadataQuery } from "../../graphql/client/fetch-app-metadata.generated";
 import { viewModeAtom } from "../../layout/ImagesProvider";
 import { DeleteModal } from "./DeleteModal";
@@ -57,7 +57,7 @@ export const AppProfileDangerPage = ({ params }: AppProfileDangerPageProps) => {
     return (
       <>
         <SizingWrapper gridClassName="order-1 pt-8">
-          <AppTopBarRefactored appId={appId} teamId={teamId} app={app} />
+          <AppTopBar appId={appId} teamId={teamId} app={app} />
 
           <hr className="my-5 w-full border-dashed text-grey-200 " />
         </SizingWrapper>
