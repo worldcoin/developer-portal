@@ -71,7 +71,7 @@ export const POST = async (req: NextRequest) => {
     });
   }
 
-  const emails = body.input.emails as string[];
+  let emails = body.input.emails as string[];
   let query: GetUserAndTeamMembershipsQuery | null = null;
   const client = await getAPIServiceGraphqlClient();
 
@@ -83,6 +83,8 @@ export const POST = async (req: NextRequest) => {
       team_id,
     });
   }
+
+  emails = emails.map((email) => email.toLowerCase().trim());
 
   try {
     query = await getUserAndTeamMembershipsSdk(
