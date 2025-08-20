@@ -4,11 +4,13 @@ import { useAtom } from "jotai";
 import Error from "next/error";
 import { useMemo } from "react";
 import Skeleton from "react-loading-skeleton";
-import { AppTopBar } from "../../AppTopBar";
-import { useFetchAppMetadataQuery } from "../../graphql/client/fetch-app-metadata.generated";
-import { viewModeAtom } from "../../layout/ImagesProvider";
-import { AppStoreForm } from "../AppStoreLocalised";
-import { FormSubmitStateProvider } from "../AppStoreLocalised/FormSubmitStateProvider";
+import { AppTopBar } from "../AppTopBar";
+import { useFetchAppMetadataQuery } from "../graphql/client/fetch-app-metadata.generated";
+import { viewModeAtom } from "../layout/ImagesProvider";
+import { AppStoreForm } from "./app-store";
+import { AppStoreFormProvider } from "./app-store-form-provider";
+import { useFetchLocalisationsQuery } from "./graphql/client/fetch-localisations.generated";
+import { AppMetadata, LocalisationData } from "./types/AppStoreFormTypes";
 
 type AppProfileGalleryProps = {
   params: Record<string, string> | null | undefined;
@@ -19,7 +21,11 @@ export const AppProfileGalleryPage = ({ params }: AppProfileGalleryProps) => {
   const teamId = params?.teamId as `team_${string}`;
   const [viewMode] = useAtom(viewModeAtom);
 
-  const { data, loading, error } = useFetchAppMetadataQuery({
+  const {
+    data,
+    loading: isMetadataLoading,
+    error,
+  } = useFetchAppMetadataQuery({
     variables: {
       id: appId,
     },
@@ -36,7 +42,17 @@ export const AppProfileGalleryPage = ({ params }: AppProfileGalleryProps) => {
     }
   }, [app, viewMode]);
 
-  if (loading) {
+  const { data: localisationsData, loading: isLocalisationsLoading } =
+    useFetchLocalisationsQuery({
+      variables: {
+        app_metadata_id: appMetadata?.id || "",
+      },
+      skip: !appMetadata?.id,
+    });
+
+  const isLoading = isMetadataLoading || isLocalisationsLoading;
+
+  if (isLoading) {
     return (
       <SizingWrapper gridClassName="order-1 pt-8">
         <div className="grid gap-y-10">
@@ -51,7 +67,12 @@ export const AppProfileGalleryPage = ({ params }: AppProfileGalleryProps) => {
     return <Error statusCode={404} title="App not found" />;
   } else {
     return (
-      <FormSubmitStateProvider>
+      <AppStoreFormProvider
+        appMetadata={appMetadata as AppMetadata}
+        localisationsData={
+          (localisationsData?.localisations || []) as LocalisationData
+        }
+      >
         <SizingWrapper gridClassName="order-1 pt-8">
           <AppTopBar appId={appId} teamId={teamId} app={app!} />
           <hr className="my-5 w-full border-dashed text-grey-200 " />
@@ -61,11 +82,11 @@ export const AppProfileGalleryPage = ({ params }: AppProfileGalleryProps) => {
             <AppStoreForm
               appId={appId}
               teamId={teamId}
-              appMetadata={appMetadata}
+              appMetadata={appMetadata as AppMetadata}
             />
           </div>
         </SizingWrapper>
-      </FormSubmitStateProvider>
+      </AppStoreFormProvider>
     );
   }
 };

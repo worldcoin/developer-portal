@@ -1,5 +1,0 @@
-mutation CreateEditableRow($app_id: String!, $team_id: String!) {
-  create_new_draft(app_id: $app_id, team_id: $team_id) {
-    success
-  }
-}

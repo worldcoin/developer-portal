@@ -1,7 +1,0 @@
-query FetchLocalisation($id: String!, $locale: String!) {
-  localisations(
-    where: { app_metadata_id: { _eq: $id }, locale: { _eq: $locale } }
-  ) {
-    id
-  }
-}

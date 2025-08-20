@@ -19,12 +19,12 @@ import { toast } from "react-toastify";
 import * as yup from "yup";
 import { FetchAppMetadataDocument } from "../../graphql/client/fetch-app-metadata.generated";
 import { RemainingCharacters } from "../../PageComponents/RemainingCharacters";
-import { validateAndSubmitAppForReviewFormServerSide } from "../server/submit";
+import { submitAppForReviewFormServerSide } from "../server/submit";
 import { useValidateLocalisationMutation } from "./graphql/client/validate-localisations.generated";
 
 const schema = yup
   .object({
-    is_developer_allow_listing: yup.boolean(),
+    is_developer_allow_listing: yup.boolean().default(false),
     changelog: appChangelogSchema,
   })
   .noUnknown();
@@ -90,9 +90,10 @@ export const SubmitAppModal = (props: SubmitAppModalProps) => {
           toast.error("Localisation not set for all languages");
           return;
         }
-      } catch (error: any) {
-        console.error("Submit App Modal Failed: ", error);
-        toast.error("Failed to submit app for review");
+      } catch (error) {
+        console.error("Failed to validate localisation: ", error);
+        toast.error("Failed to validate localisation");
+        return;
       }
 
       if (values.is_developer_allow_listing && !canSubmitAppStore) {
@@ -102,7 +103,7 @@ export const SubmitAppModal = (props: SubmitAppModalProps) => {
         return;
       }
 
-      const result = await validateAndSubmitAppForReviewFormServerSide({
+      const result = await submitAppForReviewFormServerSide({
         input: {
           app_metadata_id: appMetadataId,
           team_id: teamId,
@@ -114,7 +115,6 @@ export const SubmitAppModal = (props: SubmitAppModalProps) => {
         toast.error(result.message);
         return;
       }
-
       await refetchAppMetadata();
 
       posthog.capture("app_submitted_for_review", {
