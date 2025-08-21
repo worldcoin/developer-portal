@@ -1,40 +1,47 @@
+import { useRefetchQueries } from "@/lib/use-refetch-queries";
 import { useParams } from "next/navigation";
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
+import { toast } from "react-toastify";
 import { FetchAppMetadataDocument } from "../../AppId/Configuration/graphql/client/fetch-app-metadata.generated";
 import { GetVerificationDataDocument } from "../../AppId/page/graphql/client/get-verification-data.generated";
-import { useUpdateAppVerificationStatusMutation } from "./graphql/client/update-app-verification-status.generated";
+import { updateAppVerificationStatus } from "./server";
 
 export const useRemoveFromReview = (props: {
   metadataId: string | undefined;
 }) => {
-  const { teamId, appId } = useParams() as { teamId: string; appId: string };
+  const { appId } = useParams() as { appId: string };
+  const [loading, setLoading] = useState(false);
 
-  const [updateAppVerificationStatusMutation, { loading }] =
-    useUpdateAppVerificationStatusMutation();
+  const { refetch: refetchAppMetadata } = useRefetchQueries(
+    FetchAppMetadataDocument,
+    {},
+  );
+
+  const { refetch: refetchVerificationData } = useRefetchQueries(
+    GetVerificationDataDocument,
+    { id: appId },
+  );
 
   const removeFromReview = useCallback(async () => {
     if (loading || !props.metadataId) {
       return;
     }
 
-    const appMetadataId = props.metadataId;
+    setLoading(true);
 
-    await updateAppVerificationStatusMutation({
-      variables: {
-        app_metadata_id: appMetadataId,
-        verification_status: "unverified",
-      },
+    const result = await updateAppVerificationStatus(
+      props.metadataId,
+      "unverified",
+    );
 
-      refetchQueries: [
-        FetchAppMetadataDocument,
-        {
-          query: GetVerificationDataDocument,
-          variables: { id: appId },
-        },
-      ],
-      awaitRefetchQueries: true,
-    });
-  }, [loading, props.metadataId, updateAppVerificationStatusMutation, appId]);
+    if (result.success) {
+      await Promise.all([refetchAppMetadata(), refetchVerificationData()]);
+    } else {
+      toast.error(result.message);
+    }
+
+    setLoading(false);
+  }, [loading, props.metadataId, refetchAppMetadata, refetchVerificationData]);
 
   return { removeFromReview, loading };
 };
