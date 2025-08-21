@@ -14,7 +14,7 @@ export const useRemoveFromReview = (props: {
 
   const { refetch: refetchAppMetadata } = useRefetchQueries(
     FetchAppMetadataDocument,
-    {},
+    { id: appId },
   );
 
   const { refetch: refetchVerificationData } = useRefetchQueries(
