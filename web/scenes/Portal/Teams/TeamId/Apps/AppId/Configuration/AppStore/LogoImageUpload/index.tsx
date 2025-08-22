@@ -5,7 +5,7 @@ import { DialogOverlay } from "@/components/DialogOverlay";
 import { DialogPanel } from "@/components/DialogPanel";
 import { CloseIcon } from "@/components/Icons/CloseIcon";
 import { EditIcon } from "@/components/Icons/EditIcon";
-import { WorldcoinIcon } from "@/components/Icons/WorldcoinIcon";
+import { WorldIcon } from "@/components/Icons/WorldIcon";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { getCDNImageUrl } from "@/lib/utils";
 import clsx from "clsx";
@@ -188,7 +188,7 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
               </div>
             ) : (
               <div className="flex size-24 items-center justify-center rounded-2xl bg-blue-100">
-                <WorldcoinIcon className="size-10 text-blue-500" />
+                <WorldIcon className="size-10 text-blue-500" />
               </div>
             )}
             <input
@@ -233,7 +233,7 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
       {viewMode === "verified" &&
         (verifiedImageError ? (
           <div className="flex size-full items-center justify-center rounded-2xl bg-blue-100">
-            <WorldcoinIcon className="size-10  text-blue-500" />
+            <WorldIcon className="size-10  text-blue-500" />
           </div>
         ) : (
           // eslint-disable-next-line @next/next/no-img-element
@@ -262,7 +262,7 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
               },
             )}
           >
-            <WorldcoinIcon className="size-10  text-blue-500" />
+            <WorldIcon className="size-10  text-blue-500" />
           </div>
         ))}
       <Button

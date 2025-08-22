@@ -10,7 +10,7 @@ import { integrationDBClean, integrationDBExecuteQuery } from "../setup";
 // TODO: Consider moving this to a generalized jest environment
 beforeEach(integrationDBClean);
 const validEmailSessionUser = {
-  email: "test@worldcoin.org",
+  email: "test@world.org",
   email_verified: true,
   sub: "email|1234567890",
   name: "Test User",

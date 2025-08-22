@@ -10,7 +10,7 @@ import { integrationDBClean, integrationDBExecuteQuery } from "../setup";
 // TODO: Consider moving this to a generalized jest environment
 beforeEach(integrationDBClean);
 const validSessionUser = {
-  email: "test@worldcoin.org",
+  email: "test@world.org",
   email_verified: true,
   sub: "email|1234567890",
   name: "Test User",
@@ -90,7 +90,7 @@ describe("test /join-callback", () => {
   });
 
   it("should send acceptance if user does not exist", async () => {
-    const email = "new-email-test@worldcoin.org";
+    const email = "new-email-test@world.org";
     const team_id = "team_d7cde14f17eda7e0ededba7ded6b4467";
 
     const { rows: insertedInvite } = (await integrationDBExecuteQuery(
@@ -104,8 +104,8 @@ describe("test /join-callback", () => {
     const mockSession = {
       user: {
         ...validSessionUser,
-        email: "new-email-test@worldcoin.org",
-        sub: "email|new-email-test@worldcoin.org",
+        email: "new-email-test@world.org",
+        sub: "email|new-email-test@world.org",
       },
     };
 
@@ -126,7 +126,7 @@ describe("test /join-callback", () => {
   });
 
   it("should throw 400 if invite is expired", async () => {
-    const email = "new-email-test@worldcoin.org";
+    const email = "new-email-test@world.org";
     const team_id = "team_d7cde14f17eda7e0ededba7ded6b4467";
 
     const { rows: insertedInvite } = (await integrationDBExecuteQuery(
@@ -140,8 +140,8 @@ describe("test /join-callback", () => {
     const mockSession = {
       user: {
         ...validSessionUser,
-        email: "new-email-test@worldcoin.org",
-        sub: "email|new-email-test@worldcoin.org",
+        email: "new-email-test@world.org",
+        sub: "email|new-email-test@world.org",
       },
     };
 
@@ -158,8 +158,8 @@ describe("test /join-callback", () => {
     const mockSession = {
       user: {
         ...validSessionUser,
-        email: "new-email-test@worldcoin.org",
-        sub: "email|new-email-test@worldcoin.org",
+        email: "new-email-test@world.org",
+        sub: "email|new-email-test@world.org",
       },
     };
 
@@ -169,7 +169,7 @@ describe("test /join-callback", () => {
   });
 
   it("should update session successfully", async () => {
-    const email = "new-email-test2@worldcoin.org";
+    const email = "new-email-test2@world.org";
     const team_id = "team_d7cde14f17eda7e0ededba7ded6b4467";
 
     const { rows: insertedInvite } = (await integrationDBExecuteQuery(

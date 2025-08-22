@@ -5,7 +5,7 @@ import { DecoratedButton } from "@/components/DecoratedButton";
 import { CheckIcon } from "@/components/Icons/CheckIcon";
 import { CloseIcon } from "@/components/Icons/CloseIcon";
 import { OutgoingLinkIcon } from "@/components/Icons/OutgoingLink";
-import { WorldcoinIcon } from "@/components/Icons/WorldcoinIcon";
+import { WorldIcon } from "@/components/Icons/WorldIcon";
 import { Input } from "@/components/Input";
 import { TextArea } from "@/components/TextArea";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
@@ -243,7 +243,7 @@ export const Debugger = (props: DebuggerProps) => {
                   : "error"
             }
           >
-            {status === Status.IDLE && <WorldcoinIcon />}
+            {status === Status.IDLE && <WorldIcon />}
             {status === Status.SUCCESS && <CheckIcon size="28" />}
             {status === Status.ERROR && <CloseIcon className="size-5" />}
           </CircleIconContainer>

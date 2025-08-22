@@ -5,7 +5,7 @@ const cdnURLObject = new URL(
 );
 
 const publicAppURL =
-  process.env.NEXT_PUBLIC_APP_URL || "https://developer.worldcoin.org";
+  process.env.NEXT_PUBLIC_APP_URL || "https://developer.world.org";
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {

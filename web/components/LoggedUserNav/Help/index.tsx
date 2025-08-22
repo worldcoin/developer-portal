@@ -4,14 +4,14 @@ import { LockIcon } from "@/components/Icons/LockIcon";
 import { SecurityIcon } from "@/components/Icons/SecurityIcon";
 import { SubtractIcon } from "@/components/Icons/SubtractIcon";
 import { TelegramIcon } from "@/components/Icons/TelegramIcon";
-import { WorldcoinIcon } from "@/components/Icons/WorldcoinIcon";
+import { WorldIcon } from "@/components/Icons/WorldIcon";
 import {
   DISCORD_URL,
   FAQ_URL,
   TELEGRAM_DEVELOPERS_GROUP_URL,
   TELEGRAM_MATEO_URL,
-  WORLDCOIN_PRIVACY_URL,
-  WORLDCOIN_STATUS_URL,
+  WORLD_PRIVACY_URL,
+  WORLD_STATUS_URL,
 } from "@/lib/constants";
 import { urls } from "@/lib/urls";
 import { Dropdown } from "components/Dropdown";
@@ -41,8 +41,8 @@ export const Help = () => {
 
       <Dropdown.ListItem asChild>
         <Link
-          href={WORLDCOIN_PRIVACY_URL}
-          onClick={() => trackHelpClick("worldcoin_privacy")}
+          href={WORLD_PRIVACY_URL}
+          onClick={() => trackHelpClick("world_privacy")}
         >
           <Dropdown.ListItemIcon asChild>
             <SecurityIcon />
@@ -54,14 +54,14 @@ export const Help = () => {
 
       <Dropdown.ListItem asChild>
         <Link
-          href={WORLDCOIN_STATUS_URL}
-          onClick={() => trackHelpClick("worldcoin_status")}
+          href={WORLD_STATUS_URL}
+          onClick={() => trackHelpClick("world_status")}
         >
           <Dropdown.ListItemIcon asChild>
             <SubtractIcon />
           </Dropdown.ListItemIcon>
 
-          <Dropdown.ListItemText>Worldcoin Status</Dropdown.ListItemText>
+          <Dropdown.ListItemText>World Status</Dropdown.ListItemText>
         </Link>
       </Dropdown.ListItem>
 
@@ -132,7 +132,7 @@ export const Help = () => {
       <Dropdown.ListItem asChild>
         <Link href={urls.tos()} target="_blank">
           <Dropdown.ListItemIcon asChild>
-            <WorldcoinIcon />
+            <WorldIcon />
           </Dropdown.ListItemIcon>
 
           <Dropdown.ListItemText>Terms of service</Dropdown.ListItemText>

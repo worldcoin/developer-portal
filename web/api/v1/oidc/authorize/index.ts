@@ -26,7 +26,7 @@ import * as yup from "yup";
 import { getSdk as getNullifierSdk } from "./graphql/fetch-nullifier.generated";
 import { getSdk as getUpsertNullifierSdk } from "./graphql/upsert-nullifier.generated";
 
-// NOTE: This endpoint should only be called from Sign in with Worldcoin, params follow World ID conventions. Sign in with Worldcoin handles OIDC requests.
+// NOTE: This endpoint should only be called from Sign in with World, params follow World ID conventions. Sign in with Worldcoin handles OIDC requests.
 const schema = yup
   .object({
     proof: yup.string().strict().required("This attribute is required."),

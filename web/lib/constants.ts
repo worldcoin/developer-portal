@@ -38,10 +38,10 @@ export const JWK_TTL_USABLE = 7; // days; duration before a JWK is rotated
 export const SIMULATOR_URL = "https://simulator.worldcoin.org";
 export const TELEGRAM_DEVELOPERS_GROUP_URL = "https://t.me/worldcoindevelopers";
 export const TELEGRAM_MATEO_URL = "https://t.me/MateoSauton";
-export const DISCORD_URL = "https://worldcoin.org/discord";
-export const WORLDCOIN_STATUS_URL = "https://status.worldcoin.org/";
-export const WORLDCOIN_PRIVACY_URL = "https://worldcoin.org/privacy";
-export const FAQ_URL = "https://worldcoin.org/faqs";
+export const DISCORD_URL = "https://world.org/discord";
+export const WORLD_STATUS_URL = "https://status.world.org/";
+export const WORLD_PRIVACY_URL = "https://world.org/privacy";
+export const FAQ_URL = "https://world.org/faqs";
 
 export const loginErrors: Record<LoginErrorCode, string> = {
   [LoginErrorCode.Generic]:
