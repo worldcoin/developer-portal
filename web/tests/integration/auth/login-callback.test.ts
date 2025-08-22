@@ -186,7 +186,7 @@ describe("test /login-callback", () => {
 
   it("Should redirect new invited user to /join-callback", async () => {
     const team_id = "team_d7cde14f17eda7e0ededba7ded6b4467";
-    const email = "new-test-email@worldcoin.org";
+    const email = "new-test-email@world.org";
 
     const { rows: insertedInvite } = (await integrationDBExecuteQuery(
       `INSERT INTO public.invite (team_id, expires_at, email) VALUES ('${team_id}', '2030-01-01 00:00:00+00', '${email}') RETURNING  id, team_id, email`,
