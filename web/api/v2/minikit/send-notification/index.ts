@@ -5,6 +5,7 @@ import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { logger } from "@/lib/logger";
 import { fetchWithRetry } from "@/lib/utils";
 import { createSignedFetcher } from "aws-sigv4-fetch";
+import { createHash } from "crypto";
 import { GraphQLClient } from "graphql-request";
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
@@ -361,6 +362,11 @@ export const POST = async (req: NextRequest) => {
 
   let res: Response;
 
+  const sortedWalletAddresses = wallet_addresses.sort();
+  const idempotencyKey = createHash("sha256")
+    .update(`${app_id}:${sortedWalletAddresses.join(",")}`)
+    .digest("hex");
+
   try {
     res = await fetchWithRetry(
       `${process.env.NEXT_PUBLIC_SEND_NOTIFICATION_ENDPOINT}`,
@@ -369,6 +375,7 @@ export const POST = async (req: NextRequest) => {
         headers: {
           "User-Agent": req.headers.get("user-agent") ?? "DevPortal/1.0",
           "Content-Type": "application/json",
+          "Idempotency-Key": idempotencyKey,
         },
         body: JSON.stringify(internalSendNotificationRequestBody),
       },
