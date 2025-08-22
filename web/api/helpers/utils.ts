@@ -71,3 +71,27 @@ export function corsHandler(response: NextResponse, methods: string[]) {
   response.headers.set("Access-Control-Allow-Headers", "Content-Type");
   return response;
 }
+
+/**
+ * Extracts the app URL from the request headers, supporting multiple domains
+ * Falls back to NEXT_PUBLIC_APP_URL if unable to determine from request
+ * @param req - The NextRequest object
+ * @returns The app URL (protocol + host)
+ */
+export function getAppUrlFromRequest(req: NextRequest): string {
+  const host =
+    req.headers.get("x-forwarded-host") ||
+    req.headers.get("host") ||
+    req.nextUrl.host;
+
+  const protocol =
+    req.headers.get("x-forwarded-proto") ||
+    req.headers.get("x-forwarded-protocol") ||
+    (req.nextUrl.protocol === "https:" ? "https" : "http");
+
+  if (host) {
+    return `${protocol}://${host}`;
+  }
+
+  return process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+}
