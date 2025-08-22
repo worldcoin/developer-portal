@@ -1,4 +1,5 @@
 import { deleteAccount } from "@/api/delete-account";
+import { getAppUrlFromRequest } from "@/api/helpers/utils";
 import { loginCallback } from "@/api/login-callback";
 import { urls } from "@/lib/urls";
 
@@ -17,19 +18,43 @@ export const GET = handleAuth({
   login: (req: NextRequest, ctx: AppRouteHandlerFnContext) => {
     const invite_id = req.nextUrl.searchParams.get("invite_id") ?? undefined;
     const returnTo = req.nextUrl.searchParams.get("returnTo") ?? undefined;
+    const appUrl = getAppUrlFromRequest(req);
+    const redirect_uri = `${appUrl}/api/auth/callback`;
+    const authReturnTo = new URL(
+      urls.api.loginCallback({ invite_id, returnTo }),
+      appUrl,
+    ).toString();
 
     return handleLogin(req, ctx, {
-      returnTo: urls.api.loginCallback({ invite_id, returnTo }),
+      returnTo: authReturnTo,
+      authorizationParams: {
+        redirect_uri: redirect_uri,
+      },
     });
   },
 
-  callback: handleCallback,
+  callback: (req: NextRequest, ctx: AppRouteHandlerFnContext) => {
+    const appUrl = getAppUrlFromRequest(req);
+    const redirect_uri = `${appUrl}/api/auth/callback`;
+
+    return handleCallback(req, ctx, {
+      authorizationParams: {
+        redirect_uri: redirect_uri,
+      },
+      redirectUri: redirect_uri,
+    });
+  },
+
   "login-callback": loginCallback,
   "delete-account": deleteAccount,
 
-  logout: handleLogout({
-    returnTo: urls.login(),
-  }),
+  logout: (req: NextRequest, ctx: AppRouteHandlerFnContext) => {
+    const appUrl = getAppUrlFromRequest(req);
+    const logoutReturnTo = new URL(urls.login(), appUrl).toString();
+    return handleLogout(req, ctx, {
+      returnTo: logoutReturnTo,
+    });
+  },
 
   onError: (_req: NextRequest, error: HandlerError) => {
     NextResponse.json({

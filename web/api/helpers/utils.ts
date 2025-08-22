@@ -79,7 +79,7 @@ export function corsHandler(response: NextResponse, methods: string[]) {
  * @returns The app URL (protocol + host)
  */
 export function getAppUrlFromRequest(req: NextRequest): string {
-  const host =
+  let host =
     req.headers.get("x-forwarded-host") ||
     req.headers.get("host") ||
     req.nextUrl.host;
@@ -89,7 +89,14 @@ export function getAppUrlFromRequest(req: NextRequest): string {
     req.headers.get("x-forwarded-protocol") ||
     (req.nextUrl.protocol === "https:" ? "https" : "http");
 
+  // Strip default ports (80 for http, 443 for https)
   if (host) {
+    if (
+      (protocol === "https" && host.endsWith(":443")) ||
+      (protocol === "http" && host.endsWith(":80"))
+    ) {
+      host = host.split(":")[0];
+    }
     return `${protocol}://${host}`;
   }
 
