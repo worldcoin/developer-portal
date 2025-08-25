@@ -99,7 +99,7 @@ export type Auth0EmailUser = {
   email_verified: boolean;
 };
 
-export type Auth0WorldcoinUser = {
+export type Auth0WorldUser = {
   nickname: string;
   name: string;
   picture: string;
@@ -121,7 +121,7 @@ export type Auth0PasswordUser = {
   email_verified: boolean;
 };
 
-export type Auth0User = Auth0EmailUser | Auth0WorldcoinUser | Auth0PasswordUser;
+export type Auth0User = Auth0EmailUser | Auth0WorldUser | Auth0PasswordUser;
 
 export enum LoginErrorCode {
   Generic = "generic",

@@ -20,8 +20,8 @@ export async function GET(req: NextRequest) {
     authorization_endpoint: `${OIDC_BASE_URL}/authorize`,
     grant_types_supported: ["authorization_code", "implicit"],
     service_documentation: "https://docs.world.org/world-id",
-    op_policy_uri: "https://developer.worldcoin.org/privacy-statement",
-    op_tos_uri: "https://developer.worldcoin.org/tos",
+    op_policy_uri: "https://developer.world.org/privacy-statement",
+    op_tos_uri: "https://developer.world.org/tos",
     subject_types_supported: ["pairwise"], // subject is unique to each application, cannot be used across
     response_modes_supported: ["query", "fragment", "form_post"],
     response_types_supported: [

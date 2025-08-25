@@ -1,5 +1,5 @@
 import { DecoratedButton } from "@/components/DecoratedButton";
-import { WorldcoinIcon } from "@/components/Icons/WorldcoinIcon";
+import { WorldIcon } from "@/components/Icons/WorldIcon";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { urls } from "@/lib/urls";
 import { ReactNode } from "react";
@@ -10,7 +10,7 @@ export const LoginLayout = (props: { children: ReactNode }) => {
       <header className="border-b border-grey-100">
         <SizingWrapper>
           <div className="flex items-center justify-between py-2.5">
-            <WorldcoinIcon />
+            <WorldIcon />
 
             <DecoratedButton
               href={urls.api.authLogin()}

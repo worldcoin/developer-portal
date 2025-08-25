@@ -117,7 +117,7 @@
     "pnpm": ">=8.15.8"
   },
   "license": "MIT",
-  "name": "worldcoin-developer-portal",
+  "name": "world-developer-portal",
   "overrides": {
     "cross-spawn": "^7.0.5",
     "form-data": "^4.0.4",

@@ -1,3 +1,3 @@
 # Web
 
-This folder contains the frontend code and API code for Worldcoin's Developer Portal.
+This folder contains the frontend code and API code for World's Developer Portal.

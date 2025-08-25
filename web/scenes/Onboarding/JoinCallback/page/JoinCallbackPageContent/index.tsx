@@ -1,6 +1,6 @@
 "use client";
 
-import { WorldcoinIcon } from "@/components/Icons/WorldcoinIcon";
+import { WorldIcon } from "@/components/Icons/WorldIcon";
 import { urls } from "@/lib/urls";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { useRouter } from "next/navigation";
@@ -49,7 +49,7 @@ export const JoinCallbackPageContent = (props: { invite_id: string }) => {
 
   return (
     <div className="flex min-h-[100dvh] w-full items-center justify-center">
-      <WorldcoinIcon className="animate-ping" />
+      <WorldIcon className="animate-ping" />
     </div>
   );
 };

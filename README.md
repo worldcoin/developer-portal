@@ -1,14 +1,14 @@
-<a href="https://developer.worldcoin.org">
+<a href="https://developer.world.org">
   <img src="https://raw.githubusercontent.com/worldcoin/world-id-docs/main/public/images/shared-readme/readme-header.png" alt="" />
 </a>
 
 # Developer Portal
 
-The Worldcoin Developer Portal provides tools to interact with the [World ID Protocol](https://worldcoin.org/world-id). Along with [IDKit](https://github.com/worldcoin/idkit-js), it's the fastest way to get started with proof of personhood 🚀
+The World Developer Portal provides tools to interact with the [World ID Protocol](https://world.org/world-id). Along with [IDKit](https://github.com/worldcoin/idkit-js), it's the fastest way to get started with proof of personhood 🚀
 
 ## 📄 Documentation
 
-All the technical docs for the Worldcoin SDK, World ID Protocol, examples, guides can be found at https://docs.world.org/
+All the technical docs for the World SDK, World ID Protocol, examples, guides can be found at https://docs.world.org/
 
 ## 🧑‍💻 Developing Locally
 

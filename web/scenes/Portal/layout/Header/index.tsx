@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/Button";
-import { WorldcoinIcon } from "@/components/Icons/WorldcoinIcon";
+import { WorldIcon } from "@/components/Icons/WorldIcon";
 import { LoggedUserNav } from "@/components/LoggedUserNav";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { urls } from "@/lib/urls";
@@ -43,7 +43,7 @@ export const Header = (props: { color: Color | null }) => {
       >
         <div className="grid grid-cols-auto/1fr gap-x-4 md:gap-x-8">
           <Button href={logoHref}>
-            <WorldcoinIcon />
+            <WorldIcon />
           </Button>
 
           <AppSelector />

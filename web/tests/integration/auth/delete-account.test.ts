@@ -5,7 +5,7 @@ import { getSession, updateSession } from "@auth0/nextjs-auth0";
 import { NextRequest } from "next/server";
 
 const validSessionUser = {
-  email: "test@worldcoin.org",
+  email: "test@world.org",
   email_verified: true,
   sub: "email|1234567890",
   name: "Test User",

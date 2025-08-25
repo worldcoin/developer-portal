@@ -1,4 +1,4 @@
-import { WorldcoinIcon } from "@/components/Icons/WorldcoinIcon";
+import { WorldIcon } from "@/components/Icons/WorldIcon";
 import clsx from "clsx";
 import NextImage from "next/image";
 import { useState } from "react";
@@ -29,7 +29,7 @@ export const Image = (props: {
         />
       )}
 
-      {!src && <WorldcoinIcon className="size-9 text-blue-500" />}
+      {!src && <WorldIcon className="size-9 text-blue-500" />}
     </div>
   );
 };
