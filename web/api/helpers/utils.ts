@@ -3,6 +3,7 @@ import "server-only";
 /**
  * Contains shared utilities that are reused for the Next.js API (backend)
  */
+import { DEFAULT_APP_URL } from "@/lib/constants";
 import crypto from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { errorForbidden } from "./errors";
@@ -78,7 +79,12 @@ export function corsHandler(response: NextResponse, methods: string[]) {
  * @param req - The NextRequest object
  * @returns The app URL (protocol + host)
  */
-export function getAppUrlFromRequest(req: NextRequest): string {
+export async function getAppUrlFromRequest(req: NextRequest): Promise<string> {
+  const allowedHosts = await global.ParameterStore?.getParameter(
+    "allowed-hosts",
+    [] as string[],
+  );
+
   let host =
     req.headers.get("x-forwarded-host") ||
     req.headers.get("host") ||
@@ -97,8 +103,11 @@ export function getAppUrlFromRequest(req: NextRequest): string {
     ) {
       host = host.split(":")[0];
     }
-    return `${protocol}://${host}`;
+
+    if (allowedHosts?.includes(host)) {
+      return `${protocol}://${host}`;
+    }
   }
 
-  return process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+  return process.env.NEXT_PUBLIC_APP_URL || DEFAULT_APP_URL;
 }

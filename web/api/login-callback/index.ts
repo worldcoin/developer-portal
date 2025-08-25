@@ -40,7 +40,7 @@ import { getSdk as updateUserSdk } from "./graphql/update-user.generated";
 
 export const loginCallback = withApiAuthRequired(async (req: NextRequest) => {
   const session = await getSession();
-  const appUrl = getAppUrlFromRequest(req);
+  const appUrl = await getAppUrlFromRequest(req);
 
   if (!session) {
     logger.warn("No session found in auth0Login callback.");

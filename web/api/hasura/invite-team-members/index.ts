@@ -225,7 +225,7 @@ export const POST = async (req: NextRequest) => {
   const promises = [];
 
   for (const invite of invites) {
-    const appUrl = getAppUrlFromRequest(req);
+    const appUrl = await getAppUrlFromRequest(req);
     const link = new URL("/join", appUrl);
     link.searchParams.append("invite_id", invite.id);
 

@@ -47,7 +47,7 @@ export type JoinBody = yup.InferType<typeof schema>;
 export const POST = withApiAuthRequired(async (req: NextRequest) => {
   const session = await getSession();
   const auth0User = session?.user as Auth0User | Auth0SessionUser["user"];
-  const appUrl = getAppUrlFromRequest(req);
+  const appUrl = await getAppUrlFromRequest(req);
 
   if (!auth0User) {
     return errorResponse({

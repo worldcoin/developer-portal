@@ -15,10 +15,10 @@ import {
 import { NextRequest, NextResponse } from "next/server";
 
 export const GET = handleAuth({
-  login: (req: NextRequest, ctx: AppRouteHandlerFnContext) => {
+  login: async (req: NextRequest, ctx: AppRouteHandlerFnContext) => {
     const invite_id = req.nextUrl.searchParams.get("invite_id") ?? undefined;
     const returnTo = req.nextUrl.searchParams.get("returnTo") ?? undefined;
-    const appUrl = getAppUrlFromRequest(req);
+    const appUrl = await getAppUrlFromRequest(req);
     const redirect_uri = new URL("/api/auth/callback", appUrl).toString();
     const authReturnTo = new URL(
       urls.api.loginCallback({ invite_id, returnTo }),
@@ -33,8 +33,8 @@ export const GET = handleAuth({
     });
   },
 
-  callback: (req: NextRequest, ctx: AppRouteHandlerFnContext) => {
-    const appUrl = getAppUrlFromRequest(req);
+  callback: async (req: NextRequest, ctx: AppRouteHandlerFnContext) => {
+    const appUrl = await getAppUrlFromRequest(req);
     const redirect_uri = new URL("/api/auth/callback", appUrl).toString();
 
     return handleCallback(req, ctx, {
@@ -48,8 +48,8 @@ export const GET = handleAuth({
   "login-callback": loginCallback,
   "delete-account": deleteAccount,
 
-  logout: (req: NextRequest, ctx: AppRouteHandlerFnContext) => {
-    const appUrl = getAppUrlFromRequest(req);
+  logout: async (req: NextRequest, ctx: AppRouteHandlerFnContext) => {
+    const appUrl = await getAppUrlFromRequest(req);
     const logoutReturnTo = new URL(urls.login(), appUrl).toString();
     return handleLogout(req, ctx, {
       returnTo: logoutReturnTo,

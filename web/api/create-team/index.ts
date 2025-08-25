@@ -96,7 +96,7 @@ export const POST = withApiAuthRequired(async (req: NextRequest) => {
     ironCladUserId = crypto.randomUUID();
 
     try {
-      const appUrl = getAppUrlFromRequest(req);
+      const appUrl = await getAppUrlFromRequest(req);
       const url = new URL(urls.signUp(), appUrl);
       const headersList = nextHeaders();
       let headers: Record<string, string> = {};

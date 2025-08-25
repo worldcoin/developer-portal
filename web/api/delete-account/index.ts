@@ -7,7 +7,7 @@ import { NextRequest } from "next/server";
 import { getAppUrlFromRequest } from "../helpers/utils";
 
 export const deleteAccount = withApiAuthRequired(async (req: NextRequest) => {
-  const appUrl = getAppUrlFromRequest(req);
+  const appUrl = await getAppUrlFromRequest(req);
   if (
     !process.env.AUTH0_CLIENT_ID ||
     !process.env.AUTH0_CLIENT_SECRET ||
