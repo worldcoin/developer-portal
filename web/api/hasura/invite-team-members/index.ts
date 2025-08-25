@@ -1,5 +1,8 @@
 import { errorHasuraQuery } from "@/api/helpers/errors";
-import { protectInternalEndpoint } from "@/api/helpers/utils";
+import {
+  getAppUrlFromRequest,
+  protectInternalEndpoint,
+} from "@/api/helpers/utils";
 import { logger } from "@/lib/logger";
 import dayjs from "dayjs";
 import createDOMPurify from "dompurify";
@@ -222,7 +225,9 @@ export const POST = async (req: NextRequest) => {
   const promises = [];
 
   for (const invite of invites) {
-    const link = `${process.env.NEXT_PUBLIC_APP_URL}/join?invite_id=${invite.id}`;
+    const appUrl = await getAppUrlFromRequest(req);
+    const link = new URL("/join", appUrl);
+    link.searchParams.append("invite_id", invite.id);
 
     const inviter = DOMPurify.sanitize(
       invitingUser.name || invitingUser.email || "Someone",
@@ -242,7 +247,7 @@ export const POST = async (req: NextRequest) => {
         templateData: {
           inviter,
           team,
-          inviteLink: link,
+          inviteLink: link.toString(),
         },
       }),
     );

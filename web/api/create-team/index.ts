@@ -12,6 +12,7 @@ import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
 import { getAPIServiceGraphqlClient } from "../helpers/graphql";
 import { isEmailUser } from "../helpers/is-email-user";
+import { getAppUrlFromRequest } from "../helpers/utils";
 
 import {
   InsertTeamMutation,
@@ -95,7 +96,8 @@ export const POST = withApiAuthRequired(async (req: NextRequest) => {
     ironCladUserId = crypto.randomUUID();
 
     try {
-      const url = new URL(`${process.env.NEXT_PUBLIC_APP_URL}/signup`);
+      const appUrl = await getAppUrlFromRequest(req);
+      const url = new URL(urls.signUp(), appUrl);
       const headersList = nextHeaders();
       let headers: Record<string, string> = {};
 

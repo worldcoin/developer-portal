@@ -11,6 +11,7 @@ import * as yup from "yup";
 import { errorResponse } from "../helpers/errors";
 import { getAPIServiceGraphqlClient } from "../helpers/graphql";
 import { isEmailUser } from "../helpers/is-email-user";
+import { getAppUrlFromRequest } from "../helpers/utils";
 import { validateRequestSchema } from "../helpers/validate-request-schema";
 
 import {
@@ -46,6 +47,7 @@ export type JoinBody = yup.InferType<typeof schema>;
 export const POST = withApiAuthRequired(async (req: NextRequest) => {
   const session = await getSession();
   const auth0User = session?.user as Auth0User | Auth0SessionUser["user"];
+  const appUrl = await getAppUrlFromRequest(req);
 
   if (!auth0User) {
     return errorResponse({
@@ -75,7 +77,7 @@ export const POST = withApiAuthRequired(async (req: NextRequest) => {
   ironCladUserId = crypto.randomUUID();
 
   try {
-    const url = new URL(`${process.env.NEXT_PUBLIC_APP_URL}/signup`);
+    const url = new URL(urls.signUp(), appUrl);
     const headersList = nextHeaders();
     let headers: Record<string, string> = {};
 
@@ -138,7 +140,7 @@ export const POST = withApiAuthRequired(async (req: NextRequest) => {
           urls.unauthorized({
             message: "Invite email does not match logged in email.",
           }),
-          process.env.NEXT_PUBLIC_APP_URL,
+          appUrl,
         ).toString(),
         307,
       );
