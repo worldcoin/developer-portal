@@ -20,6 +20,8 @@ export const urls = {
   signInWorldId: (params: { team_id: string; app_id?: string }): string =>
     `/teams/${params.team_id}/apps/${params.app_id}/sign-in-with-world-id`,
 
+  signUp: (): "/signup" => "/signup",
+
   login: (params?: { invite_id: string }): string =>
     `/login${params?.invite_id ? `?invite_id=${params?.invite_id}` : ""}`,
 

@@ -19,7 +19,7 @@ export const GET = handleAuth({
     const invite_id = req.nextUrl.searchParams.get("invite_id") ?? undefined;
     const returnTo = req.nextUrl.searchParams.get("returnTo") ?? undefined;
     const appUrl = getAppUrlFromRequest(req);
-    const redirect_uri = `${appUrl}/api/auth/callback`;
+    const redirect_uri = new URL("/api/auth/callback", appUrl).toString();
     const authReturnTo = new URL(
       urls.api.loginCallback({ invite_id, returnTo }),
       appUrl,
@@ -35,7 +35,7 @@ export const GET = handleAuth({
 
   callback: (req: NextRequest, ctx: AppRouteHandlerFnContext) => {
     const appUrl = getAppUrlFromRequest(req);
-    const redirect_uri = `${appUrl}/api/auth/callback`;
+    const redirect_uri = new URL("/api/auth/callback", appUrl).toString();
 
     return handleCallback(req, ctx, {
       authorizationParams: {

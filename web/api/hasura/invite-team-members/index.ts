@@ -226,7 +226,8 @@ export const POST = async (req: NextRequest) => {
 
   for (const invite of invites) {
     const appUrl = getAppUrlFromRequest(req);
-    const link = `${appUrl}/join?invite_id=${invite.id}`;
+    const link = new URL("/join", appUrl);
+    link.searchParams.append("invite_id", invite.id);
 
     const inviter = DOMPurify.sanitize(
       invitingUser.name || invitingUser.email || "Someone",
@@ -246,7 +247,7 @@ export const POST = async (req: NextRequest) => {
         templateData: {
           inviter,
           team,
-          inviteLink: link,
+          inviteLink: link.toString(),
         },
       }),
     );
