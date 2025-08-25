@@ -1,0 +1,27 @@
+query GetIsUserPermittedToUpdateVerificationStatus(
+  $appMetadataId: String!
+  $userId: String!
+) {
+  app_metadata(
+    where: {
+      id: { _eq: $appMetadataId }
+      verification_status: { _in: ["awaiting_review", "changes_requested"] }
+    }
+  ) {
+    app {
+      team {
+        memberships(
+          where: {
+            _or: [
+              { user_id: { _eq: $userId }, role: { _eq: OWNER } }
+              { user_id: { _eq: $userId }, role: { _eq: ADMIN } }
+            ]
+          }
+        ) {
+          user_id
+          role
+        }
+      }
+    }
+  }
+}
