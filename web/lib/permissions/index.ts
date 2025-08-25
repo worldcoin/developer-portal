@@ -10,6 +10,8 @@ import { getSdk as getLocalisationsDeletePermissionsSdk } from "./graphql/server
 import { getSdk as getLocalisationsInsertPermissionsSdk } from "./graphql/server/get-localisations-insert-permissions.generated";
 import { getSdk as getLocalisationsUpdatePermissionsSdk } from "./graphql/server/get-localisations-update-permissions.generated";
 import { getSdk as getTeamUpdatePermissionsSdk } from "./graphql/server/get-team-update-permissions.generated";
+import { getSdk as getVerificationStatusUpdatePermissionsSdk } from "./graphql/server/get-verification-status-update-permissions.generated";
+
 const getIsIdValid = async (id: string) => {
   try {
     await entityIdSchema.validate(id);
@@ -52,6 +54,35 @@ export const getIsUserAllowedToUpdateApp = async (appId: string) => {
   ).GetIsUserPermittedToModifyApp({ appId, userId });
 
   if (response.app_by_pk?.team.memberships.length) {
+    return true;
+  }
+  return false;
+};
+
+export const getIsUserAllowedToUpdateVerificationStatus = async (
+  appMetadataId: string,
+) => {
+  if (!getIsIdValid(appMetadataId)) {
+    return false;
+  }
+
+  const session = await getSession();
+  if (!session) {
+    return false;
+  }
+
+  const userId = session.user.hasura.id;
+  const response = await getVerificationStatusUpdatePermissionsSdk(
+    await getAPIServiceGraphqlClient(),
+  ).GetIsUserPermittedToUpdateVerificationStatus({
+    appMetadataId,
+    userId,
+  });
+
+  if (
+    response.app_metadata.length &&
+    response.app_metadata[0].app.team.memberships.length
+  ) {
     return true;
   }
   return false;

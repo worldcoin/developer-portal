@@ -4,8 +4,10 @@ import { urls } from "@/lib/urls";
 import { getSession, withApiAuthRequired } from "@auth0/nextjs-auth0";
 import { ManagementClient } from "auth0";
 import { NextRequest } from "next/server";
+import { getAppUrlFromRequest } from "../helpers/utils";
 
 export const deleteAccount = withApiAuthRequired(async (req: NextRequest) => {
+  const appUrl = await getAppUrlFromRequest(req);
   if (
     !process.env.AUTH0_CLIENT_ID ||
     !process.env.AUTH0_CLIENT_SECRET ||
@@ -54,8 +56,5 @@ export const deleteAccount = withApiAuthRequired(async (req: NextRequest) => {
     });
   }
 
-  return Response.redirect(
-    new URL(urls.logout(), process.env.NEXT_PUBLIC_APP_URL),
-    307,
-  );
+  return Response.redirect(new URL(urls.logout(), appUrl), 307);
 });
