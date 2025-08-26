@@ -7,13 +7,15 @@ import { AlertIcon } from "@/components/Icons/AlertIcon";
 import { WarningErrorIcon } from "@/components/Icons/WarningErrorIcon";
 import { Input } from "@/components/Input";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import { useRefetchQueries } from "@/lib/use-refetch-queries";
 import { FetchAppsDocument } from "@/scenes/Portal/layout/AppSelector/graphql/client/fetch-apps.generated";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import * as yup from "yup";
-import { useDeleteAppMutation } from "./graphql/client/delete-app.generated";
+import { deleteApp } from "./server";
 
 type DeleteModalProps = {
   openDeleteModal: boolean;
@@ -35,27 +37,34 @@ const schema = yup
 
 export const DeleteModal = (props: DeleteModalProps) => {
   const { openDeleteModal, setOpenDeleteModal, appName, appId, teamId } = props;
-  const [deleteAppMutation, { loading: deletingApp }] = useDeleteAppMutation();
+  const [deletingApp, setDeletingApp] = useState(false);
   const router = useRouter();
+  const { refetch: refetchApps } = useRefetchQueries(FetchAppsDocument);
 
-  const deleteApp = async () => {
+  const handleDeleteApp = async () => {
     if (deletingApp) {
       return;
     }
 
+    setDeletingApp(true);
     toast.info("Deleting app", { toastId: "deleting_app" });
 
     try {
       setOpenDeleteModal(false);
 
-      await deleteAppMutation({
-        variables: {
-          id: appId,
-        },
+      const result = await deleteApp(appId);
 
-        refetchQueries: [FetchAppsDocument],
-        awaitRefetchQueries: true,
-      });
+      if (!result.success) {
+        toast.update("deleting_app", {
+          type: "error",
+          render: result.message || "Failed to delete app",
+          autoClose: 5000,
+        });
+        setDeletingApp(false);
+        return;
+      }
+
+      await refetchApps();
 
       toast.update("deleting_app", {
         type: "success",
@@ -72,6 +81,8 @@ export const DeleteModal = (props: DeleteModalProps) => {
         render: "Failed to delete app",
         autoClose: 5000,
       });
+    } finally {
+      setDeletingApp(false);
     }
   };
 
@@ -128,7 +139,7 @@ export const DeleteModal = (props: DeleteModalProps) => {
 
         <form
           className="grid w-full gap-y-7"
-          onSubmit={handleSubmit(deleteApp)}
+          onSubmit={handleSubmit(handleDeleteApp)}
         >
           <Input
             register={register("app_name")}
