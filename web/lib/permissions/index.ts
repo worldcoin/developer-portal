@@ -200,7 +200,7 @@ export const getIsUserAllowedToUpdateTeam = async (teamId: string) => {
     await getAPIServiceGraphqlClient(),
   ).GetIsUserPermittedToModifyTeam({ teamId, userId });
 
-  if (response.team.length === 1 && response.team[0].id === teamId) {
+  if (response.team.length && response.team[0].memberships.length) {
     return true;
   }
   return false;
