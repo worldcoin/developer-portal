@@ -154,19 +154,19 @@ export class OpenSearchClient {
         bool: {
           should: [
             {
+              match_phrase_prefix: {
+                name: {
+                  query: searchTerm,
+                  boost: 2,
+                },
+              },
+            },
+            {
               match: {
                 name: {
                   query: searchTerm,
                   fuzziness: "AUTO",
                   prefix_length: 1,
-                },
-              },
-            },
-            {
-              prefix: {
-                name: {
-                  value: searchTerm,
-                  boost: 2,
                 },
               },
             },
