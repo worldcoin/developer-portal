@@ -379,8 +379,8 @@ export const POST = async (req: NextRequest) => {
         },
         body: JSON.stringify(internalSendNotificationRequestBody),
       },
-      5, // max retries
-      1000, // initial retry delay in ms
+      10, // max retries
+      300, // initial retry delay in ms
       5000, // fetch timeout in ms
       false, // throw on error
       signedFetch,
