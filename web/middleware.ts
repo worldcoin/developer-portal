@@ -90,7 +90,7 @@ const checkRouteRolesRestrictions = async (request: NextRequest) => {
 
   // Route Subset Restriction
   const ownerOnlyRoutes = [
-    "/teams/[a-zA-Z0-9_]+/apps/[a-zA-Z0-9_]+/danger$",
+    "/teams/[a-zA-Z0-9_]+/apps/[a-zA-Z0-9_]+/configuration/danger$",
     "/teams/[a-zA-Z0-9_]+/danger$",
     "/teams/[a-zA-Z0-9_]+/settings$",
   ];
