@@ -138,19 +138,17 @@ update_permissions:
   - role: service
     permission:
       columns:
+        - deleted_at
         - first_verified_at
         - is_banned
         - rating_count
         - rating_sum
       filter: {}
-      check:
-        deleted_at:
-          _is_null: true
+      check: {}
     comment: ""
   - role: user
     permission:
       columns:
-        - deleted_at
         - is_archived
         - status
       filter:

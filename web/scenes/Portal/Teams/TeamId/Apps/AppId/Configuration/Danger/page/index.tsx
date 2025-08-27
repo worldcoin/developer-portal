@@ -27,10 +27,7 @@ export const AppProfileDangerPage = ({ params }: AppProfileDangerPageProps) => {
   const { user } = useUser() as Auth0SessionUser;
 
   const isEnoughPermissions = useMemo(() => {
-    return checkUserPermissions(user, teamId ?? "", [
-      Role_Enum.Owner,
-      Role_Enum.Admin,
-    ]);
+    return checkUserPermissions(user, teamId ?? "", [Role_Enum.Owner]);
   }, [user, teamId]);
 
   const { data, loading } = useFetchAppMetadataQuery({
