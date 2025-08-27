@@ -11,27 +11,25 @@ export type GetIsUserPermittedToModifyTeamQueryVariables = Types.Exact<{
 
 export type GetIsUserPermittedToModifyTeamQuery = {
   __typename?: "query_root";
-  team: Array<{ __typename?: "team"; id: string }>;
+  team: Array<{
+    __typename?: "team";
+    id: string;
+    memberships: Array<{
+      __typename?: "membership";
+      user_id: string;
+      role: Types.Role_Enum;
+    }>;
+  }>;
 };
 
 export const GetIsUserPermittedToModifyTeamDocument = gql`
   query GetIsUserPermittedToModifyTeam($teamId: String!, $userId: String!) {
-    team(
-      where: {
-        _and: [
-          { id: { _eq: $teamId } }
-          {
-            memberships: {
-              _and: [
-                { user_id: { _eq: $userId } }
-                { _or: [{ role: { _eq: OWNER } }, { role: { _eq: ADMIN } }] }
-              ]
-            }
-          }
-        ]
-      }
-    ) {
+    team(where: { id: { _eq: $teamId } }) {
       id
+      memberships(where: { user_id: { _eq: $userId }, role: { _eq: OWNER } }) {
+        user_id
+        role
+      }
     }
   }
 `;
