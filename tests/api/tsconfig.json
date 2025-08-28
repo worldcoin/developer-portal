@@ -8,8 +8,11 @@
     "isolatedModules": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
     "baseUrl": ".",
     "paths": {
+      "helpers/*": ["helpers/*"],
+      "helpers": ["helpers/index.ts"],
       "web/*": ["../../web/*"]
     }
   }
