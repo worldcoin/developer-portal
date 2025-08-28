@@ -4,12 +4,12 @@ import * as Types from "@/graphql/graphql";
 import { GraphQLClient, RequestOptions } from "graphql-request";
 import gql from "graphql-tag";
 type GraphQLClientRequestHeaders = RequestOptions["requestHeaders"];
-export type GetIsUserPermittedToInsertAppQueryVariables = Types.Exact<{
-  userId: Types.Scalars["String"]["input"];
+export type GetIsUserPermittedToDeleteTeamQueryVariables = Types.Exact<{
   teamId: Types.Scalars["String"]["input"];
+  userId: Types.Scalars["String"]["input"];
 }>;
 
-export type GetIsUserPermittedToInsertAppQuery = {
+export type GetIsUserPermittedToDeleteTeamQuery = {
   __typename?: "query_root";
   team: Array<{
     __typename?: "team";
@@ -22,18 +22,11 @@ export type GetIsUserPermittedToInsertAppQuery = {
   }>;
 };
 
-export const GetIsUserPermittedToInsertAppDocument = gql`
-  query GetIsUserPermittedToInsertApp($userId: String!, $teamId: String!) {
+export const GetIsUserPermittedToDeleteTeamDocument = gql`
+  query GetIsUserPermittedToDeleteTeam($teamId: String!, $userId: String!) {
     team(where: { id: { _eq: $teamId }, deleted_at: { _is_null: true } }) {
       id
-      memberships(
-        where: {
-          _or: [
-            { user_id: { _eq: $userId }, role: { _eq: OWNER } }
-            { user_id: { _eq: $userId }, role: { _eq: ADMIN } }
-          ]
-        }
-      ) {
+      memberships(where: { user_id: { _eq: $userId }, role: { _eq: OWNER } }) {
         user_id
         role
       }
@@ -60,18 +53,18 @@ export function getSdk(
   withWrapper: SdkFunctionWrapper = defaultWrapper,
 ) {
   return {
-    GetIsUserPermittedToInsertApp(
-      variables: GetIsUserPermittedToInsertAppQueryVariables,
+    GetIsUserPermittedToDeleteTeam(
+      variables: GetIsUserPermittedToDeleteTeamQueryVariables,
       requestHeaders?: GraphQLClientRequestHeaders,
-    ): Promise<GetIsUserPermittedToInsertAppQuery> {
+    ): Promise<GetIsUserPermittedToDeleteTeamQuery> {
       return withWrapper(
         (wrappedRequestHeaders) =>
-          client.request<GetIsUserPermittedToInsertAppQuery>(
-            GetIsUserPermittedToInsertAppDocument,
+          client.request<GetIsUserPermittedToDeleteTeamQuery>(
+            GetIsUserPermittedToDeleteTeamDocument,
             variables,
             { ...requestHeaders, ...wrappedRequestHeaders },
           ),
-        "GetIsUserPermittedToInsertApp",
+        "GetIsUserPermittedToDeleteTeam",
         "query",
         variables,
       );

@@ -9697,6 +9697,7 @@ export type Team = {
   /** An aggregate relationship */
   apps_aggregate: App_Aggregate;
   created_at: Scalars["timestamptz"]["output"];
+  deleted_at?: Maybe<Scalars["timestamptz"]["output"]>;
   id: Scalars["String"]["output"];
   /** An array relationship */
   memberships: Array<Membership>;
@@ -9808,6 +9809,7 @@ export type Team_Bool_Exp = {
   apps?: InputMaybe<App_Bool_Exp>;
   apps_aggregate?: InputMaybe<App_Aggregate_Bool_Exp>;
   created_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+  deleted_at?: InputMaybe<Timestamptz_Comparison_Exp>;
   id?: InputMaybe<String_Comparison_Exp>;
   memberships?: InputMaybe<Membership_Bool_Exp>;
   memberships_aggregate?: InputMaybe<Membership_Aggregate_Bool_Exp>;
@@ -9827,6 +9829,7 @@ export type Team_Insert_Input = {
   api_keys?: InputMaybe<Api_Key_Arr_Rel_Insert_Input>;
   apps?: InputMaybe<App_Arr_Rel_Insert_Input>;
   created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  deleted_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
   id?: InputMaybe<Scalars["String"]["input"]>;
   memberships?: InputMaybe<Membership_Arr_Rel_Insert_Input>;
   name?: InputMaybe<Scalars["String"]["input"]>;
@@ -9837,6 +9840,7 @@ export type Team_Insert_Input = {
 export type Team_Max_Fields = {
   __typename?: "team_max_fields";
   created_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  deleted_at?: Maybe<Scalars["timestamptz"]["output"]>;
   id?: Maybe<Scalars["String"]["output"]>;
   name?: Maybe<Scalars["String"]["output"]>;
   /** A computed field that returns a quantity of team owners */
@@ -9848,6 +9852,7 @@ export type Team_Max_Fields = {
 export type Team_Min_Fields = {
   __typename?: "team_min_fields";
   created_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  deleted_at?: Maybe<Scalars["timestamptz"]["output"]>;
   id?: Maybe<Scalars["String"]["output"]>;
   name?: Maybe<Scalars["String"]["output"]>;
   /** A computed field that returns a quantity of team owners */
@@ -9883,6 +9888,7 @@ export type Team_Order_By = {
   api_keys_aggregate?: InputMaybe<Api_Key_Aggregate_Order_By>;
   apps_aggregate?: InputMaybe<App_Aggregate_Order_By>;
   created_at?: InputMaybe<Order_By>;
+  deleted_at?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   memberships_aggregate?: InputMaybe<Membership_Aggregate_Order_By>;
   name?: InputMaybe<Order_By>;
@@ -9900,6 +9906,8 @@ export enum Team_Select_Column {
   /** column name */
   CreatedAt = "created_at",
   /** column name */
+  DeletedAt = "deleted_at",
+  /** column name */
   Id = "id",
   /** column name */
   Name = "name",
@@ -9910,6 +9918,7 @@ export enum Team_Select_Column {
 /** input type for updating data in table "team" */
 export type Team_Set_Input = {
   created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  deleted_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
   id?: InputMaybe<Scalars["String"]["input"]>;
   name?: InputMaybe<Scalars["String"]["input"]>;
   updated_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
@@ -9947,6 +9956,7 @@ export type Team_Stream_Cursor_Input = {
 /** Initial value of the column from where the streaming should start */
 export type Team_Stream_Cursor_Value_Input = {
   created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  deleted_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
   id?: InputMaybe<Scalars["String"]["input"]>;
   name?: InputMaybe<Scalars["String"]["input"]>;
   updated_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
@@ -9963,6 +9973,8 @@ export type Team_Sum_Fields = {
 export enum Team_Update_Column {
   /** column name */
   CreatedAt = "created_at",
+  /** column name */
+  DeletedAt = "deleted_at",
   /** column name */
   Id = "id",
   /** column name */
