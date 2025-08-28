@@ -5,7 +5,7 @@ import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { logger } from "@/lib/logger";
 import { fetchWithRetry } from "@/lib/utils";
 import { createSignedFetcher } from "aws-sigv4-fetch";
-import { createHash } from "crypto";
+import { randomUUID } from "crypto";
 import { GraphQLClient } from "graphql-request";
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
@@ -362,10 +362,7 @@ export const POST = async (req: NextRequest) => {
 
   let res: Response;
 
-  const sortedWalletAddresses = wallet_addresses.sort();
-  const idempotencyKey = createHash("sha256")
-    .update(`${app_id}:${sortedWalletAddresses.join(",")}`)
-    .digest("hex");
+  const idempotencyKey = randomUUID();
 
   try {
     res = await fetchWithRetry(
