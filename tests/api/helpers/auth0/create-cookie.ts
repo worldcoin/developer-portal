@@ -1,7 +1,7 @@
-import cookie from "cookie";
+import { serialize } from "cookie";
 
 export const createCookie = (sessionToken: string, expiration: number) =>
-  cookie.serialize("appSession", sessionToken, {
+  serialize("appSession", sessionToken, {
     domain: "staging-developer.worldcoin.org",
     path: "/",
     httpOnly: true,
