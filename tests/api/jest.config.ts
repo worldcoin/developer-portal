@@ -1,21 +1,22 @@
-import dotenv from 'dotenv';
+import dotenv from "dotenv";
+import type { Config } from "jest";
 
 // Load environment variables for tests
-dotenv.config({ path: '.env'});
-dotenv.config({ path: '.env.development'});
+dotenv.config({ path: ".env" });
+dotenv.config({ path: ".env.development" });
 
-console.log('Test environment setup complete');
+console.log("Test environment setup complete");
 
-export default {
-  preset: 'ts-jest',
-  testEnvironment: 'node',
-  testMatch: ['<rootDir>/specs/**/*.spec.ts'],
-  testTimeout: 30000,
-  moduleNameMapper: {
-    '^@/(.*)$': '<rootDir>/../../web/$1'
+const config: Config = {
+  preset: "ts-jest",
+  transform: {
+    "^.+\\.(js|ts)$": "babel-jest",
   },
+  transformIgnorePatterns: ["node_modules/auth0/(?!(nextjs-auth0)/)"],
+  testMatch: ["<rootDir>/specs/**/*.spec.ts"],
+  testTimeout: 30000,
+  moduleDirectories: ["node_modules", "<rootDir>/../../web"],
   verbose: true,
-  collectCoverage: false,
-  coverageDirectory: 'coverage',
-  coverageReporters: ['text', 'lcov', 'html']
-}; 
+};
+
+export default config;
