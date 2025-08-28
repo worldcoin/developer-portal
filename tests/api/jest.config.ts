@@ -13,9 +13,11 @@ const config: Config = {
     "^.+\\.(js|ts)$": "babel-jest",
   },
   transformIgnorePatterns: ["node_modules/auth0/(?!(nextjs-auth0)/)"],
+  setupFilesAfterEnv: ["jest-expect-message"],
   testMatch: ["<rootDir>/specs/**/*.spec.ts"],
   testTimeout: 30000,
-  moduleDirectories: ["node_modules", "<rootDir>/../../web"],
+  moduleDirectories: ["node_modules", "<rootDir>", "<rootDir>/../../web"],
+  modulePaths: ["./"],
   verbose: true,
 };
 
