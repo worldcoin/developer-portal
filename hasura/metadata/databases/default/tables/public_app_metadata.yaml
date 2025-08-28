@@ -467,7 +467,6 @@ update_permissions:
         - support_link
         - supported_countries
         - supported_languages
-        - verification_status
         - whitelisted_addresses
         - world_app_button_text
         - world_app_description
@@ -477,7 +476,7 @@ update_permissions:
               deleted_at:
                 _is_null: true
           - verification_status:
-              _neq: verified
+              _eq: unverified
           - app:
               team:
                 memberships:
@@ -489,12 +488,7 @@ update_permissions:
                             _eq: OWNER
                         - role:
                             _eq: ADMIN
-      check:
-        _and:
-          - verification_status:
-              _in:
-                - unverified
-                - awaiting_review
+      check: {}
 delete_permissions:
   - role: api_key
     permission:

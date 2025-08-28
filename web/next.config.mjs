@@ -4,9 +4,6 @@ const cdnURLObject = new URL(
   process.env.NEXT_PUBLIC_IMAGES_CDN_URL || "https://world-id-assets.com",
 );
 
-const publicAppURL =
-  process.env.NEXT_PUBLIC_APP_URL || "https://developer.world.org";
-
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: false,

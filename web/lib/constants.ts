@@ -153,3 +153,5 @@ export const PARTNER_TEAM_IDS = {
     "team_9b50d04b36a7aa4d2562604f67277376",
   ], // TFH, Test Partner
 };
+
+export const DEFAULT_APP_URL = "https://developer.world.org";

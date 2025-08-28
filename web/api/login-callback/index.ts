@@ -34,18 +34,17 @@ import { Auth0User } from "@/lib/types";
 import { urls } from "@/lib/urls";
 import { isEmailUser } from "../helpers/is-email-user";
 import { isPasswordUser } from "../helpers/is-password-user";
+import { getAppUrlFromRequest } from "../helpers/utils";
 import { getSdk as DeleteInviteSdk } from "./graphql/delete-invite.generated";
 import { getSdk as updateUserSdk } from "./graphql/update-user.generated";
 
 export const loginCallback = withApiAuthRequired(async (req: NextRequest) => {
   const session = await getSession();
+  const appUrl = await getAppUrlFromRequest(req);
 
   if (!session) {
     logger.warn("No session found in auth0Login callback.");
-    return NextResponse.redirect(
-      new URL("/login", process.env.NEXT_PUBLIC_APP_URL),
-      307,
-    );
+    return NextResponse.redirect(new URL("/login", appUrl), 307);
   }
 
   const client = await getAPIServiceGraphqlClient();
@@ -90,7 +89,7 @@ export const loginCallback = withApiAuthRequired(async (req: NextRequest) => {
       });
 
       return NextResponse.redirect(
-        new URL(urls.logout(), process.env.NEXT_PUBLIC_APP_URL).toString(),
+        new URL(urls.logout(), appUrl).toString(),
         307,
       );
     }
@@ -105,7 +104,7 @@ export const loginCallback = withApiAuthRequired(async (req: NextRequest) => {
       );
 
       return NextResponse.redirect(
-        new URL(urls.logout(), process.env.NEXT_PUBLIC_APP_URL).toString(),
+        new URL(urls.logout(), appUrl).toString(),
         307,
       );
     }
@@ -132,7 +131,7 @@ export const loginCallback = withApiAuthRequired(async (req: NextRequest) => {
       });
 
       return NextResponse.redirect(
-        new URL(urls.logout(), process.env.NEXT_PUBLIC_APP_URL).toString(),
+        new URL(urls.logout(), appUrl).toString(),
         307,
       );
     }
@@ -144,7 +143,7 @@ export const loginCallback = withApiAuthRequired(async (req: NextRequest) => {
     return NextResponse.redirect(
       new URL(
         invite_id ? urls.joinCallback({ invite_id }) : urls.createTeam(),
-        process.env.NEXT_PUBLIC_APP_URL,
+        appUrl,
       ).toString(),
       307,
     );
@@ -171,7 +170,7 @@ export const loginCallback = withApiAuthRequired(async (req: NextRequest) => {
       });
 
       return NextResponse.redirect(
-        new URL(urls.logout(), process.env.NEXT_PUBLIC_APP_URL).toString(),
+        new URL(urls.logout(), appUrl).toString(),
         307,
       );
     }
@@ -183,7 +182,7 @@ export const loginCallback = withApiAuthRequired(async (req: NextRequest) => {
     ) {
       logger.error("Invite not found or team_id is missing.");
       return NextResponse.redirect(
-        new URL(urls.logout(), process.env.NEXT_PUBLIC_APP_URL).toString(),
+        new URL(urls.logout(), appUrl).toString(),
         307,
       );
     }
@@ -198,7 +197,7 @@ export const loginCallback = withApiAuthRequired(async (req: NextRequest) => {
             message:
               "Invite email does not match logged in email. Please log out and try again.",
           }),
-          process.env.NEXT_PUBLIC_APP_URL,
+          appUrl,
         ).toString(),
         307,
       );
@@ -227,7 +226,7 @@ export const loginCallback = withApiAuthRequired(async (req: NextRequest) => {
       );
 
       return NextResponse.redirect(
-        new URL(urls.logout(), process.env.NEXT_PUBLIC_APP_URL).toString(),
+        new URL(urls.logout(), appUrl).toString(),
         307,
       );
     }
@@ -237,7 +236,7 @@ export const loginCallback = withApiAuthRequired(async (req: NextRequest) => {
         team_id: invite.team_id,
       });
       return NextResponse.redirect(
-        new URL(urls.logout(), process.env.NEXT_PUBLIC_APP_URL).toString(),
+        new URL(urls.logout(), appUrl).toString(),
         307,
       );
     }
@@ -296,7 +295,7 @@ export const loginCallback = withApiAuthRequired(async (req: NextRequest) => {
       });
 
       return NextResponse.redirect(
-        new URL(urls.logout(), process.env.NEXT_PUBLIC_APP_URL).toString(),
+        new URL(urls.logout(), appUrl).toString(),
         307,
       );
     }
@@ -318,10 +317,7 @@ export const loginCallback = withApiAuthRequired(async (req: NextRequest) => {
     url = urls.createTeam();
   }
 
-  const res = NextResponse.redirect(
-    new URL(url, process.env.NEXT_PUBLIC_APP_URL),
-    307,
-  );
+  const res = NextResponse.redirect(new URL(url, appUrl), 307);
 
   // NOTE: User's internal ID & team_id are used to query Hasura in subsequent requests
   await updateSession(req, res, {

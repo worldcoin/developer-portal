@@ -3,6 +3,7 @@ import "server-only";
 /**
  * Contains shared utilities that are reused for the Next.js API (backend)
  */
+import { DEFAULT_APP_URL } from "@/lib/constants";
 import crypto from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { errorForbidden } from "./errors";
@@ -70,4 +71,43 @@ export function corsHandler(response: NextResponse, methods: string[]) {
   response.headers.set("Access-Control-Allow-Methods", methods.join(", "));
   response.headers.set("Access-Control-Allow-Headers", "Content-Type");
   return response;
+}
+
+/**
+ * Extracts the app URL from the request headers, supporting multiple domains
+ * Falls back to NEXT_PUBLIC_APP_URL if unable to determine from request
+ * @param req - The NextRequest object
+ * @returns The app URL (protocol + host)
+ */
+export async function getAppUrlFromRequest(req: NextRequest): Promise<string> {
+  const allowedHosts = await global.ParameterStore?.getParameter(
+    "allowed-hosts",
+    [] as string[],
+  );
+
+  let host =
+    req?.headers?.get("x-forwarded-host") ||
+    req?.headers?.get("host") ||
+    req?.nextUrl?.host;
+
+  const protocol =
+    req?.headers?.get("x-forwarded-proto") ||
+    req?.headers?.get("x-forwarded-protocol") ||
+    (req?.nextUrl?.protocol === "https:" ? "https" : "http");
+
+  // Strip default ports (80 for http, 443 for https)
+  if (host) {
+    if (
+      (protocol === "https" && host.endsWith(":443")) ||
+      (protocol === "http" && host.endsWith(":80"))
+    ) {
+      host = host.split(":")[0];
+    }
+
+    if (allowedHosts?.includes(host)) {
+      return `${protocol}://${host}`;
+    }
+  }
+
+  return process.env.NEXT_PUBLIC_APP_URL || DEFAULT_APP_URL;
 }

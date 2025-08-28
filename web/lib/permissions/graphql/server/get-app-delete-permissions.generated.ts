@@ -4,31 +4,38 @@ import * as Types from "@/graphql/graphql";
 import { GraphQLClient, RequestOptions } from "graphql-request";
 import gql from "graphql-tag";
 type GraphQLClientRequestHeaders = RequestOptions["requestHeaders"];
-export type GetIsUserPermittedToModifyTeamQueryVariables = Types.Exact<{
-  teamId: Types.Scalars["String"]["input"];
+export type GetIsUserPermittedToDeleteAppQueryVariables = Types.Exact<{
+  appId: Types.Scalars["String"]["input"];
   userId: Types.Scalars["String"]["input"];
 }>;
 
-export type GetIsUserPermittedToModifyTeamQuery = {
+export type GetIsUserPermittedToDeleteAppQuery = {
   __typename?: "query_root";
-  team: Array<{
-    __typename?: "team";
-    id: string;
-    memberships: Array<{
-      __typename?: "membership";
-      user_id: string;
-      role: Types.Role_Enum;
-    }>;
-  }>;
+  app_by_pk?: {
+    __typename?: "app";
+    team: {
+      __typename?: "team";
+      memberships: Array<{
+        __typename?: "membership";
+        user_id: string;
+        role: Types.Role_Enum;
+      }>;
+    };
+  } | null;
 };
 
-export const GetIsUserPermittedToModifyTeamDocument = gql`
-  query GetIsUserPermittedToModifyTeam($teamId: String!, $userId: String!) {
-    team(where: { id: { _eq: $teamId } }) {
-      id
-      memberships(where: { user_id: { _eq: $userId }, role: { _eq: OWNER } }) {
-        user_id
-        role
+export const GetIsUserPermittedToDeleteAppDocument = gql`
+  query GetIsUserPermittedToDeleteApp($appId: String!, $userId: String!) {
+    app_by_pk(id: $appId) {
+      team {
+        memberships(
+          where: {
+            _and: [{ user_id: { _eq: $userId } }, { role: { _eq: OWNER } }]
+          }
+        ) {
+          user_id
+          role
+        }
       }
     }
   }
@@ -53,18 +60,18 @@ export function getSdk(
   withWrapper: SdkFunctionWrapper = defaultWrapper,
 ) {
   return {
-    GetIsUserPermittedToModifyTeam(
-      variables: GetIsUserPermittedToModifyTeamQueryVariables,
+    GetIsUserPermittedToDeleteApp(
+      variables: GetIsUserPermittedToDeleteAppQueryVariables,
       requestHeaders?: GraphQLClientRequestHeaders,
-    ): Promise<GetIsUserPermittedToModifyTeamQuery> {
+    ): Promise<GetIsUserPermittedToDeleteAppQuery> {
       return withWrapper(
         (wrappedRequestHeaders) =>
-          client.request<GetIsUserPermittedToModifyTeamQuery>(
-            GetIsUserPermittedToModifyTeamDocument,
+          client.request<GetIsUserPermittedToDeleteAppQuery>(
+            GetIsUserPermittedToDeleteAppDocument,
             variables,
             { ...requestHeaders, ...wrappedRequestHeaders },
           ),
-        "GetIsUserPermittedToModifyTeam",
+        "GetIsUserPermittedToDeleteApp",
         "query",
         variables,
       );

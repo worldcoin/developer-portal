@@ -3,8 +3,9 @@ import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { verifyHashedSecret } from "@/api/helpers/utils";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { logger } from "@/lib/logger";
-import { fetchWithTimeout } from "@/lib/utils";
+import { fetchWithRetry } from "@/lib/utils";
 import { createSignedFetcher } from "aws-sigv4-fetch";
+import { createHash } from "crypto";
 import { GraphQLClient } from "graphql-request";
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
@@ -361,26 +362,31 @@ export const POST = async (req: NextRequest) => {
 
   let res: Response;
 
+  const sortedWalletAddresses = wallet_addresses.sort();
+  const idempotencyKey = createHash("sha256")
+    .update(`${app_id}:${sortedWalletAddresses.join(",")}`)
+    .digest("hex");
+
   try {
-    res = await fetchWithTimeout(
+    res = await fetchWithRetry(
       `${process.env.NEXT_PUBLIC_SEND_NOTIFICATION_ENDPOINT}`,
       {
         method: "POST",
         headers: {
           "User-Agent": req.headers.get("user-agent") ?? "DevPortal/1.0",
           "Content-Type": "application/json",
+          "Idempotency-Key": idempotencyKey,
         },
         body: JSON.stringify(internalSendNotificationRequestBody),
       },
-      5000,
+      10, // max retries
+      300, // initial retry delay in ms
+      5000, // fetch timeout in ms
+      false, // throw on error
       signedFetch,
     );
   } catch (error) {
-    let message = "Server error occurred";
-    if (error instanceof Error && error.name === "AbortError") {
-      message = "Notification request timed out";
-    }
-    logger.warn("Error sending notification", {
+    logger.error("Error sending notification", {
       error: error,
       app_id,
       team_id: teamId,
@@ -388,7 +394,7 @@ export const POST = async (req: NextRequest) => {
     return errorResponse({
       statusCode: 500,
       code: "internal_server_error",
-      detail: message,
+      detail: "Server error occurred",
       attribute: "notification",
       req,
       app_id,
@@ -417,12 +423,12 @@ export const POST = async (req: NextRequest) => {
     if (data && data.error) {
       errorMessage = data.error.message;
     } else {
-      errorMessage = "Server Error Occurred";
+      errorMessage = "Server error occurred";
     }
 
     return errorResponse({
-      statusCode: res.status,
-      code: data.error.code ?? "internal_api_error",
+      statusCode: res.status === 429 ? 500 : res.status, // If we get a 429 from the backend, we return a 500 to the client
+      code: data.error.code ?? "internal_server_error",
       detail: errorMessage,
       attribute: "notification",
       req,
