@@ -1,6 +1,6 @@
 "use client";
 
-import { WorldcoinBlueprintIcon } from "@/components/Icons/WorldcoinBlueprintIcon";
+import { WorldBlueprintIcon } from "@/components/Icons/WorldBlueprintIcon";
 import clsx from "clsx";
 import Image from "next/image";
 import { useState } from "react";
@@ -30,7 +30,7 @@ export const Logo = (props: {
         />
       )}
 
-      {!image && <WorldcoinBlueprintIcon className="size-full" />}
+      {!image && <WorldBlueprintIcon className="size-full" />}
     </div>
   );
 };

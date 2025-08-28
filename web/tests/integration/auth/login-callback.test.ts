@@ -10,7 +10,7 @@ import { integrationDBClean, integrationDBExecuteQuery } from "../setup";
 // TODO: Consider moving this to a generalized jest environment
 beforeEach(integrationDBClean);
 const validEmailSessionUser = {
-  email: "test@worldcoin.org",
+  email: "test@world.org",
   email_verified: true,
   sub: "email|1234567890",
   name: "Test User",
@@ -186,7 +186,7 @@ describe("test /login-callback", () => {
 
   it("Should redirect new invited user to /join-callback", async () => {
     const team_id = "team_d7cde14f17eda7e0ededba7ded6b4467";
-    const email = "new-test-email@worldcoin.org";
+    const email = "new-test-email@world.org";
 
     const { rows: insertedInvite } = (await integrationDBExecuteQuery(
       `INSERT INTO public.invite (team_id, expires_at, email) VALUES ('${team_id}', '2030-01-01 00:00:00+00', '${email}') RETURNING  id, team_id, email`,

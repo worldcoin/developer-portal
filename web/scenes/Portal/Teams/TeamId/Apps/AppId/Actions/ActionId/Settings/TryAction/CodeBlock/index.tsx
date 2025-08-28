@@ -49,7 +49,7 @@ const onSuccess = () => {
 const verifyProof = async (proof) => {
   console.log('proof', proof);
   const response = await fetch(
-    'https://developer.worldcoin.org/api/v2/verify/app_staging_129259332fd6f93d4fabaadcc5e4ff9d',
+    'https://developer.world.org/api/v2/verify/app_staging_129259332fd6f93d4fabaadcc5e4ff9d',
     {
       method: 'POST',
       headers: {

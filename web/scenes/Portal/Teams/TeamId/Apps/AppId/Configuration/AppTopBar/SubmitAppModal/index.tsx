@@ -5,7 +5,7 @@ import { Dialog } from "@/components/Dialog";
 import { DialogOverlay } from "@/components/DialogOverlay";
 import { DialogPanel } from "@/components/DialogPanel";
 import { CheckmarkBadge } from "@/components/Icons/CheckmarkBadge";
-import { WorldcoinIcon } from "@/components/Icons/WorldcoinIcon";
+import { WorldIcon } from "@/components/Icons/WorldIcon";
 import { TextArea } from "@/components/TextArea";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { appChangelogSchema } from "@/lib/schema";
@@ -142,7 +142,7 @@ export const SubmitAppModal = (props: SubmitAppModalProps) => {
       <DialogOverlay />
       <DialogPanel className="gap-y-5 md:max-w-[36rem]">
         <CircleIconContainer variant={"info"}>
-          <WorldcoinIcon className=" text-blue-500" />
+          <WorldIcon className=" text-blue-500" />
         </CircleIconContainer>
         <form className="grid gap-y-10" onSubmit={handleSubmit(submit)}>
           <div className="grid grid-cols-1 justify-items-center gap-y-4">
