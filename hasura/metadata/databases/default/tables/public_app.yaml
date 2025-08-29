@@ -47,15 +47,17 @@ insert_permissions:
     permission:
       check:
         team:
-          memberships:
-            _and:
-              - user_id:
-                  _eq: X-Hasura-User-Id
-              - _or:
+          _and:
+            - memberships:
+                _and:
+                  - user_id:
+                      _eq: X-Hasura-User-Id
                   - role:
-                      _eq: OWNER
-                  - role:
-                      _eq: ADMIN
+                      _in:
+                        - OWNER
+                        - ADMIN
+            - deleted_at:
+                _is_null: true
       columns:
         - team_id
 select_permissions:

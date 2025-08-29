@@ -1,5 +1,0 @@
-mutation DeleteTeam($id: String!) {
-  delete_team_by_pk(id: $id) {
-    id
-  }
-}

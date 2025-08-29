@@ -10,6 +10,7 @@ import { getSdk as getAppUpdatePermissionsSdk } from "./graphql/server/get-app-u
 import { getSdk as getLocalisationsDeletePermissionsSdk } from "./graphql/server/get-localisations-delete-permissions.generated";
 import { getSdk as getLocalisationsInsertPermissionsSdk } from "./graphql/server/get-localisations-insert-permissions.generated";
 import { getSdk as getLocalisationsUpdatePermissionsSdk } from "./graphql/server/get-localisations-update-permissions.generated";
+import { getSdk as getTeamDeletePermissionsSdk } from "./graphql/server/get-team-delete-permissions.generated";
 import { getSdk as getTeamUpdatePermissionsSdk } from "./graphql/server/get-team-update-permissions.generated";
 import { getSdk as getVerificationStatusUpdatePermissionsSdk } from "./graphql/server/get-verification-status-update-permissions.generated";
 
@@ -221,6 +222,27 @@ export const getIsUserAllowedToUpdateTeam = async (teamId: string) => {
   const response = await getTeamUpdatePermissionsSdk(
     await getAPIServiceGraphqlClient(),
   ).GetIsUserPermittedToModifyTeam({ teamId, userId });
+
+  if (response.team.length && response.team[0].memberships.length) {
+    return true;
+  }
+  return false;
+};
+
+export const getIsUserAllowedToDeleteTeam = async (teamId: string) => {
+  if (!getIsIdValid(teamId)) {
+    return false;
+  }
+
+  const session = await getSession();
+  if (!session) {
+    return false;
+  }
+
+  const userId = session.user.hasura.id;
+  const response = await getTeamDeletePermissionsSdk(
+    await getAPIServiceGraphqlClient(),
+  ).GetIsUserPermittedToDeleteTeam({ teamId, userId });
 
   if (response.team.length && response.team[0].memberships.length) {
     return true;

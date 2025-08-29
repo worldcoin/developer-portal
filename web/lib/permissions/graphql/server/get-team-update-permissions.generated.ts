@@ -24,7 +24,7 @@ export type GetIsUserPermittedToModifyTeamQuery = {
 
 export const GetIsUserPermittedToModifyTeamDocument = gql`
   query GetIsUserPermittedToModifyTeam($teamId: String!, $userId: String!) {
-    team(where: { id: { _eq: $teamId } }) {
+    team(where: { id: { _eq: $teamId }, deleted_at: { _is_null: true } }) {
       id
       memberships(where: { user_id: { _eq: $userId }, role: { _eq: OWNER } }) {
         user_id

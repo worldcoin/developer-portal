@@ -15,7 +15,7 @@ export type FetchTeamNameQuery = {
 
 export const FetchTeamNameDocument = gql`
   query FetchTeamName($id: String!) {
-    team(where: { id: { _eq: $id } }) {
+    team(where: { id: { _eq: $id }, deleted_at: { _is_null: true } }) {
       name
     }
   }

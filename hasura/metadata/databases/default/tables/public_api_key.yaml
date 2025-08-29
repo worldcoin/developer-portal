@@ -10,12 +10,15 @@ insert_permissions:
     permission:
       check:
         team:
-          memberships:
-            _and:
-              - user_id:
-                  _eq: X-Hasura-User-Id
-              - role:
-                  _eq: OWNER
+          _and:
+            - memberships:
+                _and:
+                  - user_id:
+                      _eq: X-Hasura-User-Id
+                  - role:
+                      _eq: OWNER
+            - deleted_at:
+                _is_null: true
       columns:
         - is_active
         - name
@@ -74,6 +77,10 @@ update_permissions:
                   _eq: OWNER
       check: null
 delete_permissions:
+  - role: service
+    permission:
+      filter: {}
+    comment: ""
   - role: user
     permission:
       filter:
