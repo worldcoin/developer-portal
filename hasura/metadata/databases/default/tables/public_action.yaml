@@ -51,13 +51,8 @@ insert_permissions:
     permission:
       check:
         app:
-          _and:
-            - team:
-                memberships:
-                  user_id:
-                    _eq: X-Hasura-User-Id
-            - deleted_at:
-                _is_null: true
+          deleted_at:
+            _is_null: true
       columns:
         - action
         - app_id
@@ -128,13 +123,8 @@ select_permissions:
               is_archived:
                 _eq: false
           - app:
-              _and:
-                - team:
-                    memberships:
-                      user_id:
-                        _eq: X-Hasura-User-Id
-                - deleted_at:
-                    _is_null: true
+              deleted_at:
+                _is_null: true
   - role: user
     permission:
       columns:
@@ -197,18 +187,8 @@ update_permissions:
         - webhook_uri
       filter:
         app:
-          _and:
-            - team:
-                memberships:
-                  _and:
-                    - user_id:
-                        _eq: X-Hasura-User-Id
-                    - role:
-                        _in:
-                          - ADMIN
-                          - OWNER
-            - deleted_at:
-                _is_null: true
+          deleted_at:
+            _is_null: true
       check: null
   - role: user
     permission:
