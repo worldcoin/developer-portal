@@ -49,7 +49,15 @@ insert_permissions:
         - webhook_uri
   - role: service
     permission:
-      check: {}
+      check:
+        app:
+          _and:
+            - team:
+                memberships:
+                  user_id:
+                    _eq: X-Hasura-User-Id
+            - deleted_at:
+                _is_null: true
       columns:
         - action
         - app_id
@@ -119,6 +127,14 @@ select_permissions:
           - app:
               is_archived:
                 _eq: false
+          - app:
+              _and:
+                - team:
+                    memberships:
+                      user_id:
+                        _eq: X-Hasura-User-Id
+                - deleted_at:
+                    _is_null: true
   - role: user
     permission:
       columns:
@@ -142,10 +158,13 @@ select_permissions:
         - webhook_pem
       filter:
         app:
-          team:
-            memberships:
-              user_id:
-                _eq: X-Hasura-User-Id
+          _and:
+            - team:
+                memberships:
+                  user_id:
+                    _eq: X-Hasura-User-Id
+            - deleted_at:
+                _is_null: true
 update_permissions:
   - role: api_key
     permission:
@@ -176,7 +195,20 @@ update_permissions:
         - terms_uri
         - webhook_pem
         - webhook_uri
-      filter: {}
+      filter:
+        app:
+          _and:
+            - team:
+                memberships:
+                  _and:
+                    - user_id:
+                        _eq: X-Hasura-User-Id
+                    - role:
+                        _in:
+                          - ADMIN
+                          - OWNER
+            - deleted_at:
+                _is_null: true
       check: null
   - role: user
     permission:
@@ -191,16 +223,18 @@ update_permissions:
         - terms_uri
       filter:
         app:
-          team:
-            memberships:
-              _and:
-                - user_id:
-                    _eq: X-Hasura-User-Id
-                - _or:
+          _and:
+            - team:
+                memberships:
+                  _and:
+                    - user_id:
+                        _eq: X-Hasura-User-Id
                     - role:
-                        _eq: OWNER
-                    - role:
-                        _eq: ADMIN
+                        _in:
+                          - ADMIN
+                          - OWNER
+            - deleted_at:
+                _is_null: true
       check: null
 delete_permissions:
   - role: api_key
@@ -212,20 +246,19 @@ delete_permissions:
   - role: user
     permission:
       filter:
-        _and:
-          - action:
-              _neq: ""
-          - app:
-              team:
+        app:
+          _and:
+            - team:
                 memberships:
                   _and:
                     - user_id:
                         _eq: X-Hasura-User-Id
-                    - _or:
-                        - role:
-                            _eq: OWNER
-                        - role:
-                            _eq: ADMIN
+                    - role:
+                        _in:
+                          - ADMIN
+                          - OWNER
+            - deleted_at:
+                _is_null: true
 event_triggers:
   - name: generate_external_nullifier
     definition:

@@ -8,7 +8,11 @@ object_relationships:
 insert_permissions:
   - role: service
     permission:
-      check: {}
+      check:
+        action:
+          app:
+            deleted_at:
+              _is_null: true
       columns:
         - action_id
         - id
@@ -37,7 +41,11 @@ select_permissions:
         - nullifier_hash
         - nullifier_hash_int
         - uses
-      filter: {}
+      filter:
+        action:
+          app:
+            deleted_at:
+              _is_null: true
   - role: user
     permission:
       columns:
@@ -50,17 +58,24 @@ select_permissions:
       filter:
         action:
           app:
-            team:
-              memberships:
-                user_id:
-                  _eq: X-Hasura-User-Id
+            _and:
+              - team:
+                  memberships:
+                    user_id:
+                      _eq: X-Hasura-User-Id
+              - deleted_at:
+                  _is_null: true
       allow_aggregations: true
 update_permissions:
   - role: service
     permission:
       columns:
         - uses
-      filter: {}
+      filter:
+        action:
+          app:
+            deleted_at:
+              _is_null: true
       check: null
 event_triggers:
   - name: increment_app_stats
