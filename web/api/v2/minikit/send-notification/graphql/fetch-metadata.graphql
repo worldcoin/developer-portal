@@ -8,8 +8,6 @@ query GetAppMetadata($app_id: String!) {
     is_allowed_unlimited_notifications
     max_notifications_per_day
     verification_status
-    notification_permission_status
-    notification_permission_status_changed_date
     app {
       team {
         id
