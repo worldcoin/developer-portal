@@ -228,7 +228,7 @@ delete_permissions:
       filter:
         _and:
           - action:
-              _neq: '""'
+              _neq: ""
           - app:
               _and:
                 - deleted_at:
