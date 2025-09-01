@@ -94,8 +94,8 @@ describe("Auxiliary API Endpoints", () => {
         },
       };
 
-      await expect(
-        axios.post(
+      try {
+        await axios.post(
           `${INTERNAL_API_URL}/api/_gen-external-nullifier`,
           invalidData,
           {
@@ -104,8 +104,12 @@ describe("Auxiliary API Endpoints", () => {
               "Content-Type": "application/json",
             },
           }
-        )
-      ).rejects.toHaveProperty("response.status", 400);
+        );
+        // If we reach here, the test should fail
+        expect(true).toBe(false);
+      } catch (error: any) {
+        expect(error.response?.status).toBe(400);
+      }
     });
   });
 
@@ -151,8 +155,8 @@ describe("Auxiliary API Endpoints", () => {
         },
       };
 
-      await expect(
-        axios.post(
+      try {
+        await axios.post(
           `${INTERNAL_API_URL}/api/_increment-app-stats`,
           invalidData,
           {
@@ -161,8 +165,12 @@ describe("Auxiliary API Endpoints", () => {
               "Content-Type": "application/json",
             },
           }
-        )
-      ).rejects.toHaveProperty("response.status", 400);
+        );
+        // If we reach here, the test should fail
+        expect(true).toBe(false);
+      } catch (error: any) {
+        expect(error.response?.status).toBe(400);
+      }
     });
   });
 

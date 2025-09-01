@@ -88,62 +88,58 @@ describe('Hasura API - Upload Image', () => {
     it('Return Error When App Not Found', async () => {
       const nonExistentAppId = 'app_nonexistent123';
 
-      await expect(axios.post(
-        `${internalApiUrl}/api/hasura/upload-image?app_id=${nonExistentAppId}&image_type=logo&content_type_ending=png`,
-        {
-          action: {
-            name: "upload_image"
-          },
-          input: {
-            team_id: testTeamId
-          },
-          session_variables: {
-            "x-hasura-role": "user",
-            "x-hasura-user-id": testUserId
-          }
-        },
-        { headers }
-      )).rejects.toMatchObject({
-        response: {
-          status: 400,
-          data: {
-            extensions: {
-              code: 'not_found'
+      try {
+        await axios.post(
+          `${internalApiUrl}/api/hasura/upload-image?app_id=${nonExistentAppId}&image_type=logo&content_type_ending=png`,
+          {
+            action: {
+              name: "upload_image"
+            },
+            input: {
+              team_id: testTeamId
+            },
+            session_variables: {
+              "x-hasura-role": "user",
+              "x-hasura-user-id": testUserId
             }
-          }
-        }
-      });
+          },
+          { headers }
+        );
+        // If we reach here, the test should fail
+        expect(true).toBe(false);
+      } catch (error: any) {
+        expect(error.response?.status).toBe(400);
+        expect(error.response?.data?.extensions?.code).toBe('not_found');
+      }
     });
 
     it('Return Error When User Has Insufficient Permissions', async () => {
       // Create a user without proper team membership
       const unauthorizedUserId = await createTestUser(`unauthorized_${Date.now()}@example.com`, testTeamId);
 
-      await expect(axios.post(
-        `${internalApiUrl}/api/hasura/upload-image?app_id=${testAppId}&image_type=logo&content_type_ending=png`,
-        {
-          action: {
-            name: "upload_image"
-          },
-          input: {
-            team_id: testTeamId
-          },
-          session_variables: {
-            "x-hasura-role": "user",
-            "x-hasura-user-id": unauthorizedUserId
-          }
-        },
-        { headers }
-      )).rejects.toMatchObject({
-        response: {
-          status: 400,
-          data: {
-            extensions: {
-              code: 'not_found'
+      try {
+        await axios.post(
+          `${internalApiUrl}/api/hasura/upload-image?app_id=${testAppId}&image_type=logo&content_type_ending=png`,
+          {
+            action: {
+              name: "upload_image"
+            },
+            input: {
+              team_id: testTeamId
+            },
+            session_variables: {
+              "x-hasura-role": "user",
+              "x-hasura-user-id": unauthorizedUserId
             }
-          }
-        }
-      });
+          },
+          { headers }
+        );
+        // If we reach here, the test should fail
+        expect(true).toBe(false);
+      } catch (error: any) {
+        expect(error.response?.status).toBe(400);
+        expect(error.response?.data?.extensions?.code).toBe('not_found');
+      }
 
       // Clean up
       await deleteTestUser(unauthorizedUserId);
