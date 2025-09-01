@@ -49,50 +49,50 @@ describe('Hasura API - Invalidate Cache', () => {
     });
 
     it('Return Error When Invalid Action Name', async () => {
-      await expect(axios.post(
-        `${internalApiUrl}/api/hasura/invalidate-cache`,
-        {
-          action: {
-            name: "invalid_action"
-          },
-          input: {},
-          session_variables: {
-            "x-hasura-role": "reviewer",
-            "x-hasura-user-id": "test-user-id"
-          }
-        },
-        { headers }
-      )).rejects.toMatchObject({
-        response: {
-          status: 400,
-          data: {
-            extensions: {
-              code: 'invalid_action'
+      try {
+        await axios.post(
+          `${internalApiUrl}/api/hasura/invalidate-cache`,
+          {
+            action: {
+              name: "invalid_action"
+            },
+            input: {},
+            session_variables: {
+              "x-hasura-role": "reviewer",
+              "x-hasura-user-id": "test-user-id"
             }
-          }
-        }
-      });
+          },
+          { headers }
+        );
+        // If we reach here, the test should fail
+        expect(true).toBe(false);
+      } catch (error: any) {
+        expect(error.response?.status).toBe(400);
+        expect(error.response?.data?.extensions?.code).toBe('invalid_action');
+      }
     });
 
     it('Return Error When User Role Is Not Authorized', async () => {
-      await expect(axios.post(
-        `${internalApiUrl}/api/hasura/invalidate-cache`,
-        {
-          action: {
-            name: "invalidate_cache"
+      try {
+        await axios.post(
+          `${internalApiUrl}/api/hasura/invalidate-cache`,
+          {
+            action: {
+              name: "invalidate_cache"
+            },
+            input: {},
+            session_variables: {
+              "x-hasura-role": "user",
+              "x-hasura-user-id": "test-user-id"
+            }
           },
-          input: {},
-          session_variables: {
-            "x-hasura-role": "user",
-            "x-hasura-user-id": "test-user-id"
-          }
-        },
-        { headers }
-      )).rejects.toMatchObject({
-        response: {
-          status: 400
-        }
-      });
+          { headers }
+        );
+        // If we reach here, the test should fail
+        expect(true).toBe(false);
+      } catch (error: any) {
+        expect(error.response?.status).toBe(400);
+      }
     });
 
     it('Return Success on Subsequent Requests Within Debounce Period', async () => {

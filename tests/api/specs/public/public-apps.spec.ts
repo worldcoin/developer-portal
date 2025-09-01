@@ -82,11 +82,7 @@ describe("Public API Endpoints", () => {
         // If we reach here, the test should fail
         expect(true).toBe(false);
       } catch (error: any) {
-        expect(error.response).toEqual(
-          expect.objectContaining({
-            status: 404,
-          })
-        );
+        expect(error.response?.status).toBe(404);
       }
     });
   });
