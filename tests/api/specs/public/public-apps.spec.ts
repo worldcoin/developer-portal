@@ -97,7 +97,7 @@ describe("Public API Endpoints", () => {
       `${PUBLIC_API_URL}/api/v2/public/app/${appId}?metadata_field=name`
     );
     expect(response.status).toBe(200);
-    expect(response.data).toEqual("grants");
+    expect(response.data).toEqual("Worldcoin");
   });
 
   describe("GET /api/v2/public/apps/search/[search_term]", () => {
