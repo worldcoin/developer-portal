@@ -163,7 +163,6 @@ export const formatAppMetadata = async (
     permit2_tokens: permit2Tokens,
     contracts: contracts,
     supported_countries: supportedCountries,
-    ...getNotificationPermissions(appMetadata),
     avg_notification_open_rate: getAvgNotificationOpenRate(
       singleAppStats?.open_rate_last_14_days,
     ),
@@ -192,32 +191,6 @@ const isDefaultPinnedNoGrants = (appId: string) => {
     appId === NATIVE_MAPPED_APP_ID.network ||
     appId === NATIVE_MAPPED_APP_ID.invites
   );
-};
-
-// logic responsible for setting this is in api/_evaluate-app-notification-permissions
-const getNotificationPermissions = (
-  appMetadata: Pick<
-    AppStoreMetadataFields,
-    | "is_allowed_unlimited_notifications"
-    | "max_notifications_per_day"
-    | "notification_permission_status"
-  >,
-): {
-  is_allowed_unlimited_notifications: boolean | null | undefined;
-  max_notifications_per_day: number | null | undefined;
-} => {
-  if (appMetadata.notification_permission_status === "paused") {
-    return {
-      is_allowed_unlimited_notifications: false,
-      max_notifications_per_day: 0,
-    };
-  }
-
-  return {
-    is_allowed_unlimited_notifications:
-      appMetadata.is_allowed_unlimited_notifications,
-    max_notifications_per_day: appMetadata.max_notifications_per_day,
-  };
 };
 
 /**
