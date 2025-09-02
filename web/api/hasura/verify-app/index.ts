@@ -180,7 +180,7 @@ export const POST = async (req: NextRequest) => {
       new CopyObjectCommand({
         Bucket: bucketName,
         CopySource: `${bucketName}/${sourcePrefix}${currentLogoImgName}`,
-        Key: `${destinationPrefix}${newLogoImgName}_original.${logoFileType}`,
+        Key: `${destinationPrefix}${newLogoImgName}_original${logoFileType}`,
       }),
     ),
   );
@@ -190,7 +190,7 @@ export const POST = async (req: NextRequest) => {
     s3Client,
     bucketName,
     `${sourcePrefix}${currentLogoImgName}`,
-    `${destinationPrefix}${newLogoImgName}.${logoFileType}`,
+    `${destinationPrefix}${newLogoImgName}${logoFileType}`,
     88,
     88,
     logoFileType,
@@ -316,7 +316,7 @@ export const POST = async (req: NextRequest) => {
     idToVerify: awaitingReviewAppMetadata.id,
     idToDelete: verifiedAppMetadata ? verifiedAppMetadata?.id : "", // No app has id "" so this will delete nothing
     verified_data_changes: {
-      logo_img_url: `${newLogoImgName}.${logoFileType}`,
+      logo_img_url: `${newLogoImgName}${logoFileType}`,
       hero_image_url: "",
       meta_tag_image_url: newMetaTagImgName,
       showcase_img_urls: showcaseImgUUIDs,
