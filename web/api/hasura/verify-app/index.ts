@@ -191,8 +191,8 @@ export const POST = async (req: NextRequest) => {
     bucketName,
     `${sourcePrefix}${currentLogoImgName}`,
     `${destinationPrefix}${newLogoImgName}.${logoFileType}`,
-    50,
-    50,
+    88,
+    88,
     logoFileType,
   );
 
