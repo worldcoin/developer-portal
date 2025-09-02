@@ -16,7 +16,10 @@ describe("Auxiliary API Endpoints", () => {
     it("Return Health Status Successfully", async () => {
       const response = await axios.get(`${INTERNAL_API_URL}/api/health`);
 
-      expect(response.status).toBe(200);
+      expect(
+        response.status,
+        `Health check request resolved with a wrong code:\n${JSON.stringify(response.data, null, 2)}`
+      ).toBe(200);
       expect(response.data).toEqual({
         success: true,
       });
@@ -36,7 +39,10 @@ describe("Auxiliary API Endpoints", () => {
         }
       );
 
-      expect(response.status).toBe(204); // This endpoint returns 204 No Content
+      expect(
+        response.status,
+        `Delete expired auth codes request resolved with a wrong code:\n${JSON.stringify(response.data, null, 2)}`
+      ).toBe(204); // This endpoint returns 204 No Content
       expect(response.data).toBe(""); // Empty response body
     });
   });
@@ -54,7 +60,10 @@ describe("Auxiliary API Endpoints", () => {
         }
       );
 
-      expect(response.status).toBe(204); // This endpoint returns 204 No Content
+      expect(
+        response.status,
+        `Delete expired JWKs request resolved with a wrong code:\n${JSON.stringify(response.data, null, 2)}`
+      ).toBe(204); // This endpoint returns 204 No Content
       expect(response.data).toBe(""); // Empty response body
     });
   });
@@ -103,7 +112,10 @@ describe("Auxiliary API Endpoints", () => {
         }
       );
 
-      expect(response.status).toBe(200);
+      expect(
+        response.status,
+        `Generate external nullifier request resolved with a wrong code:\n${JSON.stringify(response.data, null, 2)}`
+      ).toBe(200);
       // Check that response has success property, but don't enforce true/false
       expect(response.data).toHaveProperty("success");
     });
@@ -161,7 +173,10 @@ describe("Auxiliary API Endpoints", () => {
         }
       );
 
-      expect(response.status).toBe(200);
+      expect(
+        response.status,
+        `Increment app stats request resolved with a wrong code:\n${JSON.stringify(response.data, null, 2)}`
+      ).toBe(200);
       // Check that response has success property, but don't enforce true/false
       expect(response.data).toHaveProperty("success");
     });
@@ -205,7 +220,10 @@ describe("Auxiliary API Endpoints", () => {
         }
       );
 
-      expect(response.status).toBe(200);
+      expect(
+        response.status,
+        `Delete expired notification logs request resolved with a wrong code:\n${JSON.stringify(response.data, null, 2)}`
+      ).toBe(200);
       expect(response.data).toEqual({
         success: true,
       });

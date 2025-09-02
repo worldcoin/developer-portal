@@ -75,7 +75,10 @@ describe('Hasura API - Reset API Key', () => {
         { headers }
       );
 
-      expect(response.status).toBe(200);
+      expect(
+        response.status,
+        `Reset API key request resolved with a wrong code:\n${JSON.stringify(response.data, null, 2)}`
+      ).toBe(200);
       expect(response.data.api_key).toBeDefined();
       expect(typeof response.data.api_key).toBe('string');
       expect(response.data.api_key).toContain('api_');

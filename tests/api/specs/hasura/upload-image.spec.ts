@@ -55,7 +55,10 @@ describe('Hasura API - Upload Image', () => {
         { headers }
       );
 
-      expect(response.status).toBe(200);
+      expect(
+        response.status,
+        `Upload image request resolved with a wrong code:\n${JSON.stringify(response.data, null, 2)}`
+      ).toBe(200);
       expect(response.data.url).toBeDefined();
       expect(response.data.stringifiedFields).toBeDefined();
       expect(typeof response.data.url).toBe('string');
@@ -80,7 +83,10 @@ describe('Hasura API - Upload Image', () => {
         { headers }
       );
 
-      expect(response.status).toBe(200);
+      expect(
+        response.status,
+        `Upload image request resolved with a wrong code:\n${JSON.stringify(response.data, null, 2)}`
+      ).toBe(200);
       expect(response.data.url).toBeDefined();
       expect(response.data.stringifiedFields).toBeDefined();
     });
