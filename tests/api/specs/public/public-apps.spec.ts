@@ -11,7 +11,10 @@ describe("Public API Endpoints", () => {
         `${PUBLIC_API_URL}/api/v2/public/apps`
       );
 
-      expect(appsResponse.status).toBe(200);
+      expect(
+        appsResponse.status,
+        `Get public apps request resolved with a wrong code:\n${JSON.stringify(appsResponse.data, null, 2)}`
+      ).toBe(200);
       expect(appsResponse.data).toEqual(
         expect.objectContaining({
           app_rankings: expect.objectContaining({
@@ -52,7 +55,10 @@ describe("Public API Endpoints", () => {
         `${PUBLIC_API_URL}/api/v2/public/app/${appId}`
       );
 
-      expect(appResponse.status).toBe(200);
+      expect(
+        appResponse.status,
+        `Get specific app request resolved with a wrong code:\n${JSON.stringify(appResponse.data, null, 2)}`
+      ).toBe(200);
       expect(appResponse.data).toEqual(
         expect.objectContaining({
           app_data: expect.objectContaining({
@@ -96,8 +102,11 @@ describe("Public API Endpoints", () => {
     const response = await axios.get(
       `${PUBLIC_API_URL}/api/v2/public/app/${appId}?metadata_field=name`
     );
-    expect(response.status).toBe(200);
-    expect(response.data).toEqual("grants");
+    expect(
+      response.status,
+      `Get app details by ID request resolved with a wrong code:\n${JSON.stringify(response.data, null, 2)}`
+    ).toBe(200);
+    expect(response.data).toEqual("Worldcoin");
   });
 
   describe("GET /api/v2/public/apps/search/[search_term]", () => {
@@ -107,7 +116,10 @@ describe("Public API Endpoints", () => {
         `${PUBLIC_API_URL}/api/v2/public/apps/search/${searchTerm}`
       );
 
-      expect(response.status).toBe(200);
+      expect(
+        response.status,
+        `Search apps request resolved with a wrong code:\n${JSON.stringify(response.data, null, 2)}`
+      ).toBe(200);
       expect(response.data).toEqual(
         expect.objectContaining({
           app_ids: expect.arrayContaining([expect.any(String)]),
@@ -128,7 +140,10 @@ describe("Public API Endpoints", () => {
         `${PUBLIC_API_URL}/api/v2/public/apps/search/${searchTerm}`
       );
 
-      expect(response.status).toBe(200);
+      expect(
+        response.status,
+        `Search non-existent apps request resolved with a wrong code:\n${JSON.stringify(response.data, null, 2)}`
+      ).toBe(200);
       expect(response.data).toEqual(
         expect.objectContaining({
           app_ids: expect.any(Array),

@@ -1,10 +1,12 @@
 import axios from 'axios';
 import {
+  createTestApiKey,
   createTestApp,
   createTestAppMetadata,
   createTestMembership,
   createTestTeam,
   createTestUser,
+  deleteTestApiKey,
   deleteTestApp,
   deleteTestAppMetadata,
   deleteTestMembership,
@@ -19,6 +21,7 @@ describe('Hasura API - Reset API Key', () => {
     let testUserId: string | undefined;
     let testMembershipId: string | undefined;
     let testMetadataId: string | undefined;
+    let testApiKeyId: string | undefined;
     let testTeamName: string = 'Test Team for Reset API Key';
     
     // Environment variables
@@ -48,6 +51,9 @@ describe('Hasura API - Reset API Key', () => {
         ['en']
       );
       testMetadataId = metadata.id;
+      
+      // Create test API key
+      testApiKeyId = await createTestApiKey(testTeamId!, 'Test API Key for Reset');
     });
 
     it('Reset API Key Successfully', async () => {
@@ -59,7 +65,7 @@ describe('Hasura API - Reset API Key', () => {
           },
           input: {
             team_id: testTeamId,
-            id: testAppId
+            id: testApiKeyId
           },
           session_variables: {
             "x-hasura-role": "user",
@@ -69,7 +75,10 @@ describe('Hasura API - Reset API Key', () => {
         { headers }
       );
 
-      expect(response.status).toBe(200);
+      expect(
+        response.status,
+        `Reset API key request resolved with a wrong code:\n${JSON.stringify(response.data, null, 2)}`
+      ).toBe(200);
       expect(response.data.api_key).toBeDefined();
       expect(typeof response.data.api_key).toBe('string');
       expect(response.data.api_key).toContain('api_');
@@ -77,6 +86,7 @@ describe('Hasura API - Reset API Key', () => {
     
     afterAll(async () => {
       // Clean up test data
+      testApiKeyId && await deleteTestApiKey(testApiKeyId);
       testMetadataId && await deleteTestAppMetadata(testMetadataId);
       testAppId && await deleteTestApp(testAppId);
       testMembershipId && await deleteTestMembership(testMembershipId);

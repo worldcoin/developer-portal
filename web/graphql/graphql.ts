@@ -1824,10 +1824,6 @@ export type App_Metadata = {
   max_notifications_per_day?: Maybe<Scalars["Int"]["output"]>;
   meta_tag_image_url: Scalars["String"]["output"];
   name: Scalars["String"]["output"];
-  notification_permission_status: Scalars["String"]["output"];
-  notification_permission_status_changed_date?: Maybe<
-    Scalars["timestamptz"]["output"]
-  >;
   permit2_tokens?: Maybe<Array<Scalars["String"]["output"]>>;
   review_message: Scalars["String"]["output"];
   reviewed_by: Scalars["String"]["output"];
@@ -1990,8 +1986,6 @@ export type App_Metadata_Bool_Exp = {
   max_notifications_per_day?: InputMaybe<Int_Comparison_Exp>;
   meta_tag_image_url?: InputMaybe<String_Comparison_Exp>;
   name?: InputMaybe<String_Comparison_Exp>;
-  notification_permission_status?: InputMaybe<String_Comparison_Exp>;
-  notification_permission_status_changed_date?: InputMaybe<Timestamptz_Comparison_Exp>;
   permit2_tokens?: InputMaybe<String_Array_Comparison_Exp>;
   review_message?: InputMaybe<String_Comparison_Exp>;
   reviewed_by?: InputMaybe<String_Comparison_Exp>;
@@ -2053,10 +2047,6 @@ export type App_Metadata_Insert_Input = {
   max_notifications_per_day?: InputMaybe<Scalars["Int"]["input"]>;
   meta_tag_image_url?: InputMaybe<Scalars["String"]["input"]>;
   name?: InputMaybe<Scalars["String"]["input"]>;
-  notification_permission_status?: InputMaybe<Scalars["String"]["input"]>;
-  notification_permission_status_changed_date?: InputMaybe<
-    Scalars["timestamptz"]["input"]
-  >;
   permit2_tokens?: InputMaybe<Array<Scalars["String"]["input"]>>;
   review_message?: InputMaybe<Scalars["String"]["input"]>;
   reviewed_by?: InputMaybe<Scalars["String"]["input"]>;
@@ -2096,10 +2086,6 @@ export type App_Metadata_Max_Fields = {
   max_notifications_per_day?: Maybe<Scalars["Int"]["output"]>;
   meta_tag_image_url?: Maybe<Scalars["String"]["output"]>;
   name?: Maybe<Scalars["String"]["output"]>;
-  notification_permission_status?: Maybe<Scalars["String"]["output"]>;
-  notification_permission_status_changed_date?: Maybe<
-    Scalars["timestamptz"]["output"]
-  >;
   permit2_tokens?: Maybe<Array<Scalars["String"]["output"]>>;
   review_message?: Maybe<Scalars["String"]["output"]>;
   reviewed_by?: Maybe<Scalars["String"]["output"]>;
@@ -2135,8 +2121,6 @@ export type App_Metadata_Max_Order_By = {
   max_notifications_per_day?: InputMaybe<Order_By>;
   meta_tag_image_url?: InputMaybe<Order_By>;
   name?: InputMaybe<Order_By>;
-  notification_permission_status?: InputMaybe<Order_By>;
-  notification_permission_status_changed_date?: InputMaybe<Order_By>;
   permit2_tokens?: InputMaybe<Order_By>;
   review_message?: InputMaybe<Order_By>;
   reviewed_by?: InputMaybe<Order_By>;
@@ -2175,10 +2159,6 @@ export type App_Metadata_Min_Fields = {
   max_notifications_per_day?: Maybe<Scalars["Int"]["output"]>;
   meta_tag_image_url?: Maybe<Scalars["String"]["output"]>;
   name?: Maybe<Scalars["String"]["output"]>;
-  notification_permission_status?: Maybe<Scalars["String"]["output"]>;
-  notification_permission_status_changed_date?: Maybe<
-    Scalars["timestamptz"]["output"]
-  >;
   permit2_tokens?: Maybe<Array<Scalars["String"]["output"]>>;
   review_message?: Maybe<Scalars["String"]["output"]>;
   reviewed_by?: Maybe<Scalars["String"]["output"]>;
@@ -2214,8 +2194,6 @@ export type App_Metadata_Min_Order_By = {
   max_notifications_per_day?: InputMaybe<Order_By>;
   meta_tag_image_url?: InputMaybe<Order_By>;
   name?: InputMaybe<Order_By>;
-  notification_permission_status?: InputMaybe<Order_By>;
-  notification_permission_status_changed_date?: InputMaybe<Order_By>;
   permit2_tokens?: InputMaybe<Order_By>;
   review_message?: InputMaybe<Order_By>;
   reviewed_by?: InputMaybe<Order_By>;
@@ -2287,8 +2265,6 @@ export type App_Metadata_Order_By = {
   max_notifications_per_day?: InputMaybe<Order_By>;
   meta_tag_image_url?: InputMaybe<Order_By>;
   name?: InputMaybe<Order_By>;
-  notification_permission_status?: InputMaybe<Order_By>;
-  notification_permission_status_changed_date?: InputMaybe<Order_By>;
   permit2_tokens?: InputMaybe<Order_By>;
   review_message?: InputMaybe<Order_By>;
   reviewed_by?: InputMaybe<Order_By>;
@@ -2366,10 +2342,6 @@ export enum App_Metadata_Select_Column {
   MetaTagImageUrl = "meta_tag_image_url",
   /** column name */
   Name = "name",
-  /** column name */
-  NotificationPermissionStatus = "notification_permission_status",
-  /** column name */
-  NotificationPermissionStatusChangedDate = "notification_permission_status_changed_date",
   /** column name */
   Permit2Tokens = "permit2_tokens",
   /** column name */
@@ -2484,10 +2456,6 @@ export type App_Metadata_Set_Input = {
   max_notifications_per_day?: InputMaybe<Scalars["Int"]["input"]>;
   meta_tag_image_url?: InputMaybe<Scalars["String"]["input"]>;
   name?: InputMaybe<Scalars["String"]["input"]>;
-  notification_permission_status?: InputMaybe<Scalars["String"]["input"]>;
-  notification_permission_status_changed_date?: InputMaybe<
-    Scalars["timestamptz"]["input"]
-  >;
   permit2_tokens?: InputMaybe<Array<Scalars["String"]["input"]>>;
   review_message?: InputMaybe<Scalars["String"]["input"]>;
   reviewed_by?: InputMaybe<Scalars["String"]["input"]>;
@@ -2581,10 +2549,6 @@ export type App_Metadata_Stream_Cursor_Value_Input = {
   max_notifications_per_day?: InputMaybe<Scalars["Int"]["input"]>;
   meta_tag_image_url?: InputMaybe<Scalars["String"]["input"]>;
   name?: InputMaybe<Scalars["String"]["input"]>;
-  notification_permission_status?: InputMaybe<Scalars["String"]["input"]>;
-  notification_permission_status_changed_date?: InputMaybe<
-    Scalars["timestamptz"]["input"]
-  >;
   permit2_tokens?: InputMaybe<Array<Scalars["String"]["input"]>>;
   review_message?: InputMaybe<Scalars["String"]["input"]>;
   reviewed_by?: InputMaybe<Scalars["String"]["input"]>;
@@ -2670,10 +2634,6 @@ export enum App_Metadata_Update_Column {
   MetaTagImageUrl = "meta_tag_image_url",
   /** column name */
   Name = "name",
-  /** column name */
-  NotificationPermissionStatus = "notification_permission_status",
-  /** column name */
-  NotificationPermissionStatusChangedDate = "notification_permission_status_changed_date",
   /** column name */
   Permit2Tokens = "permit2_tokens",
   /** column name */
@@ -9697,6 +9657,7 @@ export type Team = {
   /** An aggregate relationship */
   apps_aggregate: App_Aggregate;
   created_at: Scalars["timestamptz"]["output"];
+  deleted_at?: Maybe<Scalars["timestamptz"]["output"]>;
   id: Scalars["String"]["output"];
   /** An array relationship */
   memberships: Array<Membership>;
@@ -9808,6 +9769,7 @@ export type Team_Bool_Exp = {
   apps?: InputMaybe<App_Bool_Exp>;
   apps_aggregate?: InputMaybe<App_Aggregate_Bool_Exp>;
   created_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+  deleted_at?: InputMaybe<Timestamptz_Comparison_Exp>;
   id?: InputMaybe<String_Comparison_Exp>;
   memberships?: InputMaybe<Membership_Bool_Exp>;
   memberships_aggregate?: InputMaybe<Membership_Aggregate_Bool_Exp>;
@@ -9827,6 +9789,7 @@ export type Team_Insert_Input = {
   api_keys?: InputMaybe<Api_Key_Arr_Rel_Insert_Input>;
   apps?: InputMaybe<App_Arr_Rel_Insert_Input>;
   created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  deleted_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
   id?: InputMaybe<Scalars["String"]["input"]>;
   memberships?: InputMaybe<Membership_Arr_Rel_Insert_Input>;
   name?: InputMaybe<Scalars["String"]["input"]>;
@@ -9837,6 +9800,7 @@ export type Team_Insert_Input = {
 export type Team_Max_Fields = {
   __typename?: "team_max_fields";
   created_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  deleted_at?: Maybe<Scalars["timestamptz"]["output"]>;
   id?: Maybe<Scalars["String"]["output"]>;
   name?: Maybe<Scalars["String"]["output"]>;
   /** A computed field that returns a quantity of team owners */
@@ -9848,6 +9812,7 @@ export type Team_Max_Fields = {
 export type Team_Min_Fields = {
   __typename?: "team_min_fields";
   created_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  deleted_at?: Maybe<Scalars["timestamptz"]["output"]>;
   id?: Maybe<Scalars["String"]["output"]>;
   name?: Maybe<Scalars["String"]["output"]>;
   /** A computed field that returns a quantity of team owners */
@@ -9883,6 +9848,7 @@ export type Team_Order_By = {
   api_keys_aggregate?: InputMaybe<Api_Key_Aggregate_Order_By>;
   apps_aggregate?: InputMaybe<App_Aggregate_Order_By>;
   created_at?: InputMaybe<Order_By>;
+  deleted_at?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   memberships_aggregate?: InputMaybe<Membership_Aggregate_Order_By>;
   name?: InputMaybe<Order_By>;
@@ -9900,6 +9866,8 @@ export enum Team_Select_Column {
   /** column name */
   CreatedAt = "created_at",
   /** column name */
+  DeletedAt = "deleted_at",
+  /** column name */
   Id = "id",
   /** column name */
   Name = "name",
@@ -9910,6 +9878,7 @@ export enum Team_Select_Column {
 /** input type for updating data in table "team" */
 export type Team_Set_Input = {
   created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  deleted_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
   id?: InputMaybe<Scalars["String"]["input"]>;
   name?: InputMaybe<Scalars["String"]["input"]>;
   updated_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
@@ -9947,6 +9916,7 @@ export type Team_Stream_Cursor_Input = {
 /** Initial value of the column from where the streaming should start */
 export type Team_Stream_Cursor_Value_Input = {
   created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  deleted_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
   id?: InputMaybe<Scalars["String"]["input"]>;
   name?: InputMaybe<Scalars["String"]["input"]>;
   updated_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
@@ -9963,6 +9933,8 @@ export type Team_Sum_Fields = {
 export enum Team_Update_Column {
   /** column name */
   CreatedAt = "created_at",
+  /** column name */
+  DeletedAt = "deleted_at",
   /** column name */
   Id = "id",
   /** column name */
