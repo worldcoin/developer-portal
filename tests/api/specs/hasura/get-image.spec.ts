@@ -99,7 +99,10 @@ describe('Hasura API - Get Image', () => {
         { headers }
       );
 
-      expect(response.status).toBe(200);
+      expect(
+        response.status,
+        `Get image request resolved with a wrong code:\n${JSON.stringify(response.data, null, 2)}`
+      ).toBe(200);
       expect(response.data.url).toBeDefined();
       expect(typeof response.data.url).toBe('string');
       expect(response.data.url).toContain('logo_image.png');
@@ -123,7 +126,10 @@ describe('Hasura API - Get Image', () => {
         { headers }
       );
 
-      expect(response.status).toBe(200);
+      expect(
+        response.status,
+        `Get image request resolved with a wrong code:\n${JSON.stringify(response.data, null, 2)}`
+      ).toBe(200);
       expect(response.data.url).toBeDefined();
       expect(typeof response.data.url).toBe('string');
       expect(response.data.url).toContain('hero_image.jpg');
@@ -147,7 +153,10 @@ describe('Hasura API - Get Image', () => {
         { headers }
       );
 
-      expect(response.status).toBe(200);
+      expect(
+        response.status,
+        `Get image request resolved with a wrong code:\n${JSON.stringify(response.data, null, 2)}`
+      ).toBe(200);
       expect(response.data.url).toBeDefined();
       expect(typeof response.data.url).toBe('string');
       expect(response.data.url).toContain('logo_image.png');

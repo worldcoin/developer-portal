@@ -79,7 +79,10 @@ describe('Hasura API - Get App Review Images', () => {
         { headers }
       );
 
-      expect(response.status).toBe(200);
+      expect(
+        response.status,
+        `Get app review images request resolved with a wrong code:\n${JSON.stringify(response.data, null, 2)}`
+      ).toBe(200);
       expect(response.data).toBeDefined();
       expect(Array.isArray(response.data.showcase_img_urls)).toBe(true);
     });
@@ -100,7 +103,10 @@ describe('Hasura API - Get App Review Images', () => {
         { headers }
       );
 
-      expect(response.status).toBe(200);
+      expect(
+        response.status,
+        `Get app review images request resolved with a wrong code:\n${JSON.stringify(response.data, null, 2)}`
+      ).toBe(200);
       expect(response.data).toBeDefined();
     });
 
