@@ -14,7 +14,7 @@ import sharp from "sharp";
  * @param destinationKey - The destination key for the resized image
  * @param width - Target width for resizing
  * @param height - Target height for resizing
- * @param fileExtension - The file extension (png, jpg, jpeg) to determine output format
+ * @param fileExtension - The file extension (.png, .jpg, .jpeg) to determine output format
  * @returns Promise<void>
  */
 export const resizeAndUploadImage = async (
@@ -44,7 +44,7 @@ export const resizeAndUploadImage = async (
     let contentType: string;
     const normalizedExtension = fileExtension.toLowerCase();
 
-    if (normalizedExtension === "png") {
+    if (normalizedExtension === ".png") {
       outputBuffer = await sharp(imageBuffer)
         .resize(width, height, {
           fit: "cover",
