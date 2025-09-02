@@ -1,4 +1,12 @@
 import axios from "axios";
+import {
+  createTestAction,
+  createTestApp,
+  createTestTeam,
+  deleteTestAction,
+  deleteTestApp,
+  deleteTestTeam
+} from '../../helpers/hasura-helper';
 
 const INTERNAL_API_URL = process.env.INTERNAL_API_URL;
 const token = process.env.INTERNAL_ENDPOINTS_SECRET;
@@ -52,15 +60,33 @@ describe("Auxiliary API Endpoints", () => {
   });
 
   describe("POST /api/_gen-external-nullifier", () => {
+    let testTeamId: string | undefined;
+    let testAppId: string | undefined;
+    let testActionId: string | undefined;
+
+    beforeAll(async () => {
+      // Create test data chain: team -> app -> action
+      testTeamId = await createTestTeam('Test Team for Gen External Nullifier');
+      testAppId = await createTestApp('Test App for Gen External Nullifier', testTeamId!);
+      testActionId = await createTestAction(testAppId!, 'test-action', 'Test Action for External Nullifier');
+    });
+
+    afterAll(async () => {
+      // Clean up test data in reverse order
+      testActionId && await deleteTestAction(testActionId);
+      testAppId && await deleteTestApp(testAppId);
+      testTeamId && await deleteTestTeam(testTeamId);
+    });
+
     it("Generate External Nullifier With Valid Data", async () => {
       const validData = {
         event: {
           data: {
             new: {
-              id: "test-action-id",
-              app_id: "test-app-id",
+              id: testActionId,
+              app_id: testAppId,
               action: "test-action",
-              external_nullifier: null,
+              external_nullifier: undefined, // undefined instead of null
             },
           },
         },

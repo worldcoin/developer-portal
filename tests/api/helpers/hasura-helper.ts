@@ -138,6 +138,48 @@ const DELETE_LOCALISATION_MUTATION = `
   }
 `;
 
+// Simple GraphQL mutation for creating api_key
+const CREATE_API_KEY_MUTATION = `
+  mutation CreateApiKey($object: api_key_insert_input!) {
+    insert_api_key_one(object: $object) {
+      id
+      team_id
+      api_key
+    }
+  }
+`;
+
+// Simple GraphQL mutation for deleting api_key
+const DELETE_API_KEY_MUTATION = `
+  mutation DeleteApiKey($id: String!) {
+    delete_api_key_by_pk(id: $id) {
+      id
+    }
+  }
+`;
+
+// Simple GraphQL mutation for creating action
+const CREATE_ACTION_MUTATION = `
+  mutation CreateAction($object: action_insert_input!) {
+    insert_action_one(object: $object) {
+      id
+      app_id
+      action
+      name
+      external_nullifier
+    }
+  }
+`;
+
+// Simple GraphQL mutation for deleting action
+const DELETE_ACTION_MUTATION = `
+  mutation DeleteAction($id: String!) {
+    delete_action_by_pk(id: $id) {
+      id
+    }
+  }
+`;
+
 // Helper for creating test app
 export const createTestApp = async (name: string, teamId: string) => {
   try {
@@ -366,5 +408,72 @@ export const deleteTestLocalisation = async (localisationId: string) => {
   } catch (error: any) {
     const errorMessage = error?.response?.data?.message || error?.message || 'Unknown error';
     throw new Error(`Failed to delete test localisation ${localisationId}: ${errorMessage}`);
+  }
+};
+
+// Helper for creating test API key
+export const createTestApiKey = async (teamId: string, name: string = 'Test API Key') => {
+  try {
+    const response = await adminGraphqlClient.request(CREATE_API_KEY_MUTATION, {
+      object: {
+        team_id: teamId,
+        name,
+        api_key: 'test_hashed_secret_value',
+        is_active: true,
+      },
+    }) as any;
+    
+    return response.insert_api_key_one?.id;
+  } catch (error: any) {
+    const errorMessage = error?.response?.data?.message || error?.message || 'Unknown error';
+    throw new Error(`Failed to create test API key: ${errorMessage}`);
+  }
+};
+
+// Helper for deleting test API key
+export const deleteTestApiKey = async (apiKeyId: string) => {
+  try {
+    const response = await adminGraphqlClient.request(DELETE_API_KEY_MUTATION, {
+      id: apiKeyId,
+    }) as any;
+    
+    return response.delete_api_key_by_pk?.id;
+  } catch (error: any) {
+    const errorMessage = error?.response?.data?.message || error?.message || 'Unknown error';
+    throw new Error(`Failed to delete test API key ${apiKeyId}: ${errorMessage}`);
+  }
+};
+
+// Helper for creating test action
+export const createTestAction = async (appId: string, actionName: string, name: string = 'Test Action') => {
+  try {
+    const response = await adminGraphqlClient.request(CREATE_ACTION_MUTATION, {
+      object: {
+        app_id: appId,
+        action: actionName,
+        name,
+        description: 'Test action description',
+        external_nullifier: '', // Start with empty external_nullifier
+      },
+    }) as any;
+    
+    return response.insert_action_one?.id;
+  } catch (error: any) {
+    const errorMessage = error?.response?.data?.message || error?.message || 'Unknown error';
+    throw new Error(`Failed to create test action: ${errorMessage}`);
+  }
+};
+
+// Helper for deleting test action
+export const deleteTestAction = async (actionId: string) => {
+  try {
+    const response = await adminGraphqlClient.request(DELETE_ACTION_MUTATION, {
+      id: actionId,
+    }) as any;
+    
+    return response.delete_action_by_pk?.id;
+  } catch (error: any) {
+    const errorMessage = error?.response?.data?.message || error?.message || 'Unknown error';
+    throw new Error(`Failed to delete test action ${actionId}: ${errorMessage}`);
   }
 }; 

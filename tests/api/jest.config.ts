@@ -17,5 +17,6 @@ export default {
   verbose: true,
   collectCoverage: false,
   coverageDirectory: 'coverage',
-  coverageReporters: ['text', 'lcov', 'html']
+  coverageReporters: ['text', 'lcov', 'html'],
+  maxWorkers: 1
 }; 

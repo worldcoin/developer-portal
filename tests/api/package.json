@@ -6,7 +6,7 @@
   "scripts": {
     "lint": "eslint . --ext .ts,.tsx",
     "lint:fix": "eslint . --ext .ts,.tsx --fix",
-    "test": "echo 'Tests are skipped'",
+    "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage"
   },
