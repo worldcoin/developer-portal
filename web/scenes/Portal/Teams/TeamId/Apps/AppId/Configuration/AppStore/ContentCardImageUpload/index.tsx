@@ -1,0 +1,292 @@
+import { Button } from "@/components/Button";
+import { DecoratedButton } from "@/components/DecoratedButton";
+import { Dialog } from "@/components/Dialog";
+import { DialogOverlay } from "@/components/DialogOverlay";
+import { DialogPanel } from "@/components/DialogPanel";
+import { CloseIcon } from "@/components/Icons/CloseIcon";
+import { EditIcon } from "@/components/Icons/EditIcon";
+import { WorldIcon } from "@/components/Icons/WorldIcon";
+import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import { getCDNImageUrl } from "@/lib/utils";
+import clsx from "clsx";
+import { useAtom } from "jotai";
+import Image from "next/image";
+import { ChangeEvent, useMemo, useRef, useState } from "react";
+import Skeleton from "react-loading-skeleton";
+import { toast } from "react-toastify";
+import { CONTENT_CARD_IMAGE_UPLOAD_TOAST_ID } from "../../constants";
+import { FetchAppMetadataDocument } from "../../graphql/client/fetch-app-metadata.generated";
+import { ImageValidationError, useImage } from "../../hook/use-image";
+import { unverifiedImageAtom, viewModeAtom } from "../../layout/ImagesProvider";
+import { useUpdateContentCardImageMutation } from "./graphql/client/update-content-card-image.generated";
+
+type ContentCardImageUploadProps = {
+  appId: string;
+  appMetadataId: string;
+  teamId: string;
+  isEditable: boolean;
+  isError: boolean;
+  contentCardImageFile?: string;
+  defaultOpen?: boolean;
+};
+
+export const ContentCardImageUpload = (props: ContentCardImageUploadProps) => {
+  const {
+    appId,
+    appMetadataId,
+    teamId,
+    isEditable,
+    isError,
+    contentCardImageFile,
+    defaultOpen,
+  } = props;
+  const [showDialog, setShowDialog] = useState(defaultOpen ?? false);
+  const [verifiedImageError, setVerifiedImageError] = useState(false);
+  const [isSecondUpload, setIsSecondUpload] = useState(false);
+  const [disabled] = useState(false);
+  const [viewMode] = useAtom(viewModeAtom);
+  const [unverifiedImages, setUnverifiedImages] = useAtom(unverifiedImageAtom);
+  const [updateContentCardImageMutation, { loading }] =
+    useUpdateContentCardImageMutation();
+  const imageInputRef = useRef<HTMLInputElement>(null);
+  const { getImage, uploadViaPresignedPost, validateImageAspectRatio } =
+    useImage();
+  const handleUpload = () => {
+    imageInputRef.current?.click();
+  };
+
+  const handleFileInput = async (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files ? e.target.files[0] : null;
+    const imageType = "content_card_image";
+
+    if (file && (file.type === "image/png" || file.type === "image/jpeg")) {
+      const fileTypeEnding = file.type.split("/")[1];
+
+      try {
+        // Aspect ratio of 345px width and 240px height
+        await validateImageAspectRatio(file, 345, 240);
+
+        toast.info("Uploading image", {
+          toastId: CONTENT_CARD_IMAGE_UPLOAD_TOAST_ID,
+          autoClose: false,
+        });
+
+        toast.dismiss(ImageValidationError.prototype.toastId);
+        await uploadViaPresignedPost(file, appId, teamId, imageType);
+
+        const imageUrl = await getImage(
+          fileTypeEnding,
+          appId,
+          teamId,
+          imageType,
+        );
+
+        setUnverifiedImages({
+          ...unverifiedImages,
+          content_card_image_url: imageUrl,
+        });
+
+        const saveFileType = fileTypeEnding === "jpeg" ? "jpg" : fileTypeEnding;
+
+        await updateContentCardImageMutation({
+          variables: {
+            id: appMetadataId,
+            fileName: `${imageType}.${saveFileType}`,
+          },
+
+          refetchQueries: [FetchAppMetadataDocument],
+        });
+
+        toast.update(CONTENT_CARD_IMAGE_UPLOAD_TOAST_ID, {
+          type: "success",
+          render: "Image uploaded and saved",
+          autoClose: 5000,
+        });
+        // TODO: This is a hotfix since the path names are fixed the browser caches the image and doesn't update it.
+        // Will be fixed after the dev-portal update is done to avoid large backend changes for now.
+        if (isSecondUpload) {
+          window.location.reload();
+        } else {
+          setIsSecondUpload(true);
+        }
+        setShowDialog(false);
+      } catch (error) {
+        console.error("Content Card Image Upload Failed: ", error);
+
+        if (error instanceof ImageValidationError) {
+          toast.dismiss(CONTENT_CARD_IMAGE_UPLOAD_TOAST_ID);
+        } else {
+          toast.update(CONTENT_CARD_IMAGE_UPLOAD_TOAST_ID, {
+            type: "error",
+            render: "Error uploading image",
+            autoClose: 5000,
+          });
+        }
+      }
+    }
+  };
+
+  const removeImage = async () => {
+    setUnverifiedImages({
+      ...unverifiedImages,
+      content_card_image_url: "",
+    });
+
+    await updateContentCardImageMutation({
+      variables: {
+        id: appMetadataId,
+        fileName: "",
+      },
+
+      refetchQueries: [FetchAppMetadataDocument],
+    });
+  };
+
+  const verifiedImageURL = useMemo(() => {
+    if (viewMode === "unverified" || !contentCardImageFile) {
+      return "";
+    }
+    return getCDNImageUrl(appId, contentCardImageFile);
+  }, [appId, contentCardImageFile, viewMode]);
+
+  if (
+    viewMode === "unverified" &&
+    unverifiedImages?.content_card_image_url === "loading"
+  ) {
+    return <Skeleton className="size-20" />;
+  }
+
+  return (
+    <div
+      className={clsx(
+        "relative flex w-20 flex-col items-center justify-center",
+        isError && "mb-4",
+      )}
+    >
+      <Dialog open={showDialog} onClose={() => setShowDialog(false)}>
+        <DialogOverlay />
+        <DialogPanel className="grid gap-y-10 md:max-w-[28rem]">
+          <div className="grid w-full grid-cols-1fr/auto justify-between">
+            <Typography variant={TYPOGRAPHY.H6}>
+              Update Content Card Image
+            </Typography>
+            <Button
+              type="button"
+              onClick={() => setShowDialog(false)}
+              className="flex size-7 items-center justify-center rounded-full bg-grey-100 hover:bg-grey-200"
+            >
+              <CloseIcon className="size-4" />
+            </Button>
+          </div>
+          <div className="grid gap-y-6 rounded-xl border border-grey-200 p-6">
+            {unverifiedImages?.content_card_image_url ? (
+              <div>
+                <Image
+                  src={unverifiedImages?.content_card_image_url}
+                  alt="Uploaded"
+                  className="size-28 rounded-2xl object-contain drop-shadow-lg"
+                  width={512}
+                  height={512}
+                />
+              </div>
+            ) : (
+              <div className="flex size-24 items-center justify-center rounded-2xl bg-blue-100">
+                <WorldIcon className="size-10 text-blue-500" />
+              </div>
+            )}
+            <input
+              ref={imageInputRef}
+              type="file"
+              accept=".png,.jpg,.jpeg"
+              disabled={disabled}
+              onChange={handleFileInput}
+              style={{ display: "none" }}
+            />
+            <Typography variant={TYPOGRAPHY.R3} className="text-grey-900">
+              Image requirements
+            </Typography>
+            <Typography variant={TYPOGRAPHY.R4} className="text-grey-500">
+              Upload a PNG or JPG image smaller than 500 kb. Required aspect
+              dimension 345px width and 240px height.
+            </Typography>
+          </div>
+          <div className="grid w-full grid-cols-2 gap-x-4">
+            <DecoratedButton
+              type="button"
+              variant="secondary"
+              disabled={loading}
+              onClick={removeImage}
+              className="w-full bg-grey-100 hover:bg-grey-200"
+            >
+              Remove
+            </DecoratedButton>
+            <DecoratedButton
+              type="button"
+              variant="secondary"
+              disabled={loading}
+              className="w-full"
+              onClick={handleUpload}
+            >
+              Upload
+            </DecoratedButton>
+          </div>
+        </DialogPanel>
+      </Dialog>
+      {/* Using img here since CDN caches for us and measured load time, Next/Image is actually slower */}
+      {viewMode === "verified" &&
+        (verifiedImageError ? (
+          <div className="flex size-full items-center justify-center rounded-2xl bg-blue-100">
+            <WorldIcon className="h-[240px] w-[345px]  text-blue-500" />
+          </div>
+        ) : (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={verifiedImageURL}
+            alt="content card image"
+            className="rounded-2xl drop-shadow-lg"
+            onError={() => setVerifiedImageError(true)}
+          />
+        ))}
+      {viewMode === "unverified" &&
+        (unverifiedImages?.content_card_image_url ? (
+          <Image
+            alt="content card image"
+            src={unverifiedImages?.content_card_image_url}
+            className="rounded-2xl drop-shadow-lg"
+            width={345}
+            height={240}
+          />
+        ) : (
+          <div
+            className={clsx(
+              "flex size-20 items-center justify-center rounded-2xl bg-blue-100",
+              {
+                "border-2 border-system-error-500": isError,
+              },
+            )}
+          >
+            <WorldIcon className="size-10  text-blue-500" />
+          </div>
+        ))}
+      <Button
+        type="button"
+        onClick={() => setShowDialog(true)}
+        className={clsx(
+          "absolute -bottom-2 -right-2 rounded-full border-2 border-grey-200 bg-white p-2 text-grey-500 hover:bg-grey-50",
+          { hidden: !isEditable || viewMode === "verified" },
+        )}
+      >
+        <EditIcon className="size-3" />
+      </Button>
+      {isError && (
+        <Typography
+          variant={TYPOGRAPHY.R5}
+          className="absolute left-0 top-[84px] mt-4 flex w-max shrink text-red-500"
+        >
+          Content card image is required. Required aspect ratio is 345px width
+          and 240px height.
+        </Typography>
+      )}
+    </div>
+  );
+};

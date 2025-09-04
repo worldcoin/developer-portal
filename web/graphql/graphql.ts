@@ -118,6 +118,7 @@ export enum IllegalContentSubCategoryEnum {
 
 export type ImageGetAllUnverifiedImagesOutput = {
   __typename?: "ImageGetAllUnverifiedImagesOutput";
+  content_card_image_url?: Maybe<Scalars["String"]["output"]>;
   hero_image_url?: Maybe<Scalars["String"]["output"]>;
   logo_img_url?: Maybe<Scalars["String"]["output"]>;
   meta_tag_image_url?: Maybe<Scalars["String"]["output"]>;
@@ -126,6 +127,7 @@ export type ImageGetAllUnverifiedImagesOutput = {
 
 export type ImageGetAppReviewImagesOutput = {
   __typename?: "ImageGetAppReviewImagesOutput";
+  content_card_image_url?: Maybe<Scalars["String"]["output"]>;
   hero_image_url?: Maybe<Scalars["String"]["output"]>;
   logo_img_url?: Maybe<Scalars["String"]["output"]>;
   meta_tag_image_url?: Maybe<Scalars["String"]["output"]>;
@@ -1801,6 +1803,7 @@ export type App_Metadata = {
   can_import_all_contacts: Scalars["Boolean"]["output"];
   category: Scalars["String"]["output"];
   changelog?: Maybe<Scalars["String"]["output"]>;
+  content_card_image_url: Scalars["String"]["output"];
   contracts?: Maybe<Array<Scalars["String"]["output"]>>;
   created_at: Scalars["timestamptz"]["output"];
   description: Scalars["String"]["output"];
@@ -1965,6 +1968,7 @@ export type App_Metadata_Bool_Exp = {
   can_import_all_contacts?: InputMaybe<Boolean_Comparison_Exp>;
   category?: InputMaybe<String_Comparison_Exp>;
   changelog?: InputMaybe<String_Comparison_Exp>;
+  content_card_image_url?: InputMaybe<String_Comparison_Exp>;
   contracts?: InputMaybe<String_Array_Comparison_Exp>;
   created_at?: InputMaybe<Timestamptz_Comparison_Exp>;
   description?: InputMaybe<String_Comparison_Exp>;
@@ -2027,6 +2031,7 @@ export type App_Metadata_Insert_Input = {
   can_import_all_contacts?: InputMaybe<Scalars["Boolean"]["input"]>;
   category?: InputMaybe<Scalars["String"]["input"]>;
   changelog?: InputMaybe<Scalars["String"]["input"]>;
+  content_card_image_url?: InputMaybe<Scalars["String"]["input"]>;
   contracts?: InputMaybe<Array<Scalars["String"]["input"]>>;
   created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
   description?: InputMaybe<Scalars["String"]["input"]>;
@@ -2076,6 +2081,7 @@ export type App_Metadata_Max_Fields = {
   associated_domains?: Maybe<Array<Scalars["String"]["output"]>>;
   category?: Maybe<Scalars["String"]["output"]>;
   changelog?: Maybe<Scalars["String"]["output"]>;
+  content_card_image_url?: Maybe<Scalars["String"]["output"]>;
   contracts?: Maybe<Array<Scalars["String"]["output"]>>;
   created_at?: Maybe<Scalars["timestamptz"]["output"]>;
   description?: Maybe<Scalars["String"]["output"]>;
@@ -2111,6 +2117,7 @@ export type App_Metadata_Max_Order_By = {
   associated_domains?: InputMaybe<Order_By>;
   category?: InputMaybe<Order_By>;
   changelog?: InputMaybe<Order_By>;
+  content_card_image_url?: InputMaybe<Order_By>;
   contracts?: InputMaybe<Order_By>;
   created_at?: InputMaybe<Order_By>;
   description?: InputMaybe<Order_By>;
@@ -2149,6 +2156,7 @@ export type App_Metadata_Min_Fields = {
   associated_domains?: Maybe<Array<Scalars["String"]["output"]>>;
   category?: Maybe<Scalars["String"]["output"]>;
   changelog?: Maybe<Scalars["String"]["output"]>;
+  content_card_image_url?: Maybe<Scalars["String"]["output"]>;
   contracts?: Maybe<Array<Scalars["String"]["output"]>>;
   created_at?: Maybe<Scalars["timestamptz"]["output"]>;
   description?: Maybe<Scalars["String"]["output"]>;
@@ -2184,6 +2192,7 @@ export type App_Metadata_Min_Order_By = {
   associated_domains?: InputMaybe<Order_By>;
   category?: InputMaybe<Order_By>;
   changelog?: InputMaybe<Order_By>;
+  content_card_image_url?: InputMaybe<Order_By>;
   contracts?: InputMaybe<Order_By>;
   created_at?: InputMaybe<Order_By>;
   description?: InputMaybe<Order_By>;
@@ -2245,6 +2254,7 @@ export type App_Metadata_Order_By = {
   can_import_all_contacts?: InputMaybe<Order_By>;
   category?: InputMaybe<Order_By>;
   changelog?: InputMaybe<Order_By>;
+  content_card_image_url?: InputMaybe<Order_By>;
   contracts?: InputMaybe<Order_By>;
   created_at?: InputMaybe<Order_By>;
   description?: InputMaybe<Order_By>;
@@ -2304,6 +2314,8 @@ export enum App_Metadata_Select_Column {
   Category = "category",
   /** column name */
   Changelog = "changelog",
+  /** column name */
+  ContentCardImageUrl = "content_card_image_url",
   /** column name */
   Contracts = "contracts",
   /** column name */
@@ -2437,6 +2449,7 @@ export type App_Metadata_Set_Input = {
   can_import_all_contacts?: InputMaybe<Scalars["Boolean"]["input"]>;
   category?: InputMaybe<Scalars["String"]["input"]>;
   changelog?: InputMaybe<Scalars["String"]["input"]>;
+  content_card_image_url?: InputMaybe<Scalars["String"]["input"]>;
   contracts?: InputMaybe<Array<Scalars["String"]["input"]>>;
   created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
   description?: InputMaybe<Scalars["String"]["input"]>;
@@ -2530,6 +2543,7 @@ export type App_Metadata_Stream_Cursor_Value_Input = {
   can_import_all_contacts?: InputMaybe<Scalars["Boolean"]["input"]>;
   category?: InputMaybe<Scalars["String"]["input"]>;
   changelog?: InputMaybe<Scalars["String"]["input"]>;
+  content_card_image_url?: InputMaybe<Scalars["String"]["input"]>;
   contracts?: InputMaybe<Array<Scalars["String"]["input"]>>;
   created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
   description?: InputMaybe<Scalars["String"]["input"]>;
@@ -2596,6 +2610,8 @@ export enum App_Metadata_Update_Column {
   Category = "category",
   /** column name */
   Changelog = "changelog",
+  /** column name */
+  ContentCardImageUrl = "content_card_image_url",
   /** column name */
   Contracts = "contracts",
   /** column name */
