@@ -191,6 +191,7 @@ export type AppStoreMetadataFields = {
   hero_image_url: string;
   meta_tag_image_url: string;
   showcase_img_urls?: any | null;
+  content_card_image_url?: string | null;
   world_app_description: string;
   world_app_button_text: string;
   whitelisted_addresses?: any | null;

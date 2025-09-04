@@ -140,6 +140,13 @@ export const formatAppMetadata = async (
         showcaseImgUrlsLocale,
       ),
     ),
+    content_card_image_url: appMetadata.content_card_image_url
+      ? getCDNImageUrl(
+          appMetadata.app_id,
+          appMetadata.content_card_image_url,
+          appMetadata.verification_status === "verified",
+        )
+      : "",
     // TODO: These fields are not used anymore, we can add them back if we want later
     description: {
       overview: description?.description_overview ?? "",
