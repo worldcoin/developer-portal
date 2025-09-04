@@ -138,6 +138,7 @@ select_permissions:
         - associated_domains
         - can_import_all_contacts
         - category
+        - content_card_image_url
         - contracts
         - description
         - hero_image_url
@@ -182,6 +183,7 @@ select_permissions:
         - can_import_all_contacts
         - category
         - changelog
+        - content_card_image_url
         - contracts
         - created_at
         - description
@@ -228,6 +230,7 @@ select_permissions:
         - associated_domains
         - can_import_all_contacts
         - category
+        - content_card_image_url
         - contracts
         - description
         - hero_image_url
@@ -267,6 +270,7 @@ select_permissions:
         - associated_domains
         - can_import_all_contacts
         - category
+        - content_card_image_url
         - contracts
         - description
         - hero_image_url
@@ -356,6 +360,7 @@ update_permissions:
     permission:
       columns:
         - category
+        - content_card_image_url
         - dev_rewards_approved
         - has_airdrop_component
         - hero_image_url
@@ -397,6 +402,7 @@ update_permissions:
         - can_import_all_contacts
         - category
         - changelog
+        - content_card_image_url
         - contracts
         - created_at
         - description
@@ -443,6 +449,7 @@ update_permissions:
         - associated_domains
         - can_import_all_contacts
         - category
+        - content_card_image_url
         - contracts
         - description
         - hero_image_url
