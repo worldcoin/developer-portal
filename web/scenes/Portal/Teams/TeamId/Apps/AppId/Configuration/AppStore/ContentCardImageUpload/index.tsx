@@ -153,13 +153,13 @@ export const ContentCardImageUpload = (props: ContentCardImageUploadProps) => {
     viewMode === "unverified" &&
     unverifiedImages?.content_card_image_url === "loading"
   ) {
-    return <Skeleton className="size-20" />;
+    return <Skeleton className="h-[240px] w-[345px]" />;
   }
 
   return (
     <div
       className={clsx(
-        "relative flex w-20 flex-col items-center justify-center",
+        "relative flex w-[345px] flex-col items-center justify-center",
         isError && "mb-4",
       )}
     >
@@ -184,14 +184,14 @@ export const ContentCardImageUpload = (props: ContentCardImageUploadProps) => {
                 <Image
                   src={unverifiedImages?.content_card_image_url}
                   alt="Uploaded"
-                  className="size-28 rounded-2xl object-contain drop-shadow-lg"
-                  width={512}
-                  height={512}
+                  className="rounded-2xl object-contain drop-shadow-lg"
+                  width={345}
+                  height={240}
                 />
               </div>
             ) : (
-              <div className="flex size-24 items-center justify-center rounded-2xl bg-blue-100">
-                <WorldIcon className="size-10 text-blue-500" />
+              <div className="flex items-center justify-center rounded-2xl bg-blue-100">
+                <WorldIcon className="h-[240px] w-[345px] text-blue-500" />
               </div>
             )}
             <input
@@ -259,13 +259,13 @@ export const ContentCardImageUpload = (props: ContentCardImageUploadProps) => {
         ) : (
           <div
             className={clsx(
-              "flex size-20 items-center justify-center rounded-2xl bg-blue-100",
+              "flex items-center justify-center rounded-2xl bg-blue-100",
               {
                 "border-2 border-system-error-500": isError,
               },
             )}
           >
-            <WorldIcon className="size-10  text-blue-500" />
+            <WorldIcon className="h-[240px] w-[345px] text-blue-500" />
           </div>
         ))}
       <Button
