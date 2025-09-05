@@ -1,4 +1,1 @@
--- Could not auto-generate a down migration.
--- Please write an appropriate down migration for the SQL below:
--- alter table "public"."app_metadata" add column "content_card_image_url" varchar
---  not null default ''::character varying;
+alter table "public"."app_metadata" drop column "content_card_image_url";

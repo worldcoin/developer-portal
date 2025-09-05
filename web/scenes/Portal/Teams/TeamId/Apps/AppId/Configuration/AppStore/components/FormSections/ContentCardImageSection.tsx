@@ -1,4 +1,3 @@
-import { useSearchParams } from "next/navigation";
 import { FieldErrors } from "react-hook-form";
 import { ContentCardImageUpload } from "../../ContentCardImageUpload";
 import { AppStoreFormValues } from "../../FormSchema/types";
@@ -21,16 +20,12 @@ export const ContentCardImageSection = ({
   isEditable,
   errors,
 }: ContentCardImageSectionProps) => {
-  const searchParams = useSearchParams();
-  const shouldDefaultOpenContentCardEditor =
-    searchParams.get("editContentCard") === "true";
-
   const hasContentCardError = Boolean(errors?.content_card_image_url);
 
   return (
     <FormSection
       title="Content card image"
-      description="This image will be used in the App Store recommendations as a banner. Required aspect ratio is 345px width and 240px height."
+      description="This image will be used when featuring your app in the Mini App Store. Required aspect ratio is 345px width and 240px height."
     >
       <ContentCardImageUpload
         appId={appId}
@@ -39,7 +34,7 @@ export const ContentCardImageSection = ({
         isEditable={isEditable}
         isError={hasContentCardError}
         contentCardImageFile={appMetadata.content_card_image_url}
-        defaultOpen={shouldDefaultOpenContentCardEditor}
+        defaultOpen={false}
       />
     </FormSection>
   );
