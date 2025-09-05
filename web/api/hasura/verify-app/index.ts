@@ -216,6 +216,25 @@ export const POST = async (req: NextRequest) => {
     );
   }
 
+  const currentContentCardImgName =
+    awaitingReviewAppMetadata?.content_card_image_url;
+  let newContentCardImgName: string = "";
+
+  if (currentContentCardImgName) {
+    const contentCardFileType = getFileExtension(currentContentCardImgName);
+    newContentCardImgName = randomUUID() + contentCardFileType;
+
+    copyPromises.push(
+      s3Client.send(
+        new CopyObjectCommand({
+          Bucket: bucketName,
+          CopySource: `${bucketName}/${sourcePrefix}${currentContentCardImgName}`,
+          Key: `${destinationPrefix}${newContentCardImgName}`,
+        }),
+      ),
+    );
+  }
+
   const showcaseImgUrls = awaitingReviewAppMetadata.showcase_img_urls;
   let showcaseImgUUIDs: string[] | null = null;
 
@@ -320,6 +339,7 @@ export const POST = async (req: NextRequest) => {
       hero_image_url: "",
       meta_tag_image_url: newMetaTagImgName,
       showcase_img_urls: showcaseImgUUIDs,
+      content_card_image_url: newContentCardImgName,
       verification_status: "verified",
       verified_at: currentTimestamp,
       reviewed_by: reviewer_name,

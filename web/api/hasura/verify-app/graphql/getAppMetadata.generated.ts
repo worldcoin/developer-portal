@@ -20,6 +20,7 @@ export type GetAppMetadataQuery = {
       showcase_img_urls?: Array<string> | null;
       hero_image_url: string;
       meta_tag_image_url: string;
+      content_card_image_url: string;
       verification_status: string;
       localisations: Array<{
         __typename?: "localisations";
@@ -43,6 +44,7 @@ export const GetAppMetadataDocument = gql`
         showcase_img_urls
         hero_image_url
         meta_tag_image_url
+        content_card_image_url
         verification_status
         localisations {
           id
