@@ -78,6 +78,7 @@ describe("/api/public/app/[app_id]", () => {
           "https://cdn.test.com/unverified/2/showcase2.png",
         ],
         hero_image_url: "",
+        content_card_image_url: "",
         category: {
           id: "productivity",
           name: "Productivity",
@@ -180,6 +181,7 @@ describe("/api/public/app/[app_id]", () => {
           "https://cdn.test.com/1/showcase2.png",
         ],
         hero_image_url: "",
+        content_card_image_url: "",
         category: {
           id: "productivity",
           name: "Productivity",
@@ -300,6 +302,7 @@ describe("/api/public/app/[app_id]", () => {
         unique_users: 0,
         impressions: 0,
         whitelisted_addresses: ["0x1234", "0x5678"],
+        content_card_image_url: "",
         category: { id: "social", name: "Social" },
         is_allowed_unlimited_notifications: false,
         max_notifications_per_day: 10,

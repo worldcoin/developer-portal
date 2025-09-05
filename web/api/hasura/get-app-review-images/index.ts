@@ -99,18 +99,18 @@ export const POST = async (req: NextRequest) => {
   const urlExpiration = 7200;
   const urlPromises = [];
 
-  const command = new GetObjectCommand({
-    Bucket: bucketName,
-    Key: `${objectKey}${app.logo_img_url}`,
-  });
-
   if (app.logo_img_url) {
     urlPromises.push(
-      getSignedUrl(s3Client, command, { expiresIn: urlExpiration }).then(
-        (url) => ({
-          logo_img_url: url,
+      getSignedUrl(
+        s3Client,
+        new GetObjectCommand({
+          Bucket: bucketName,
+          Key: `${objectKey}${app.logo_img_url}`,
         }),
-      ),
+        { expiresIn: urlExpiration },
+      ).then((url) => ({
+        logo_img_url: url,
+      })),
     );
   }
 
@@ -151,6 +151,19 @@ export const POST = async (req: NextRequest) => {
     urlPromises.push({ showcase_img_urls: showcaseUrls });
   } else {
     urlPromises.push({ showcase_img_urls: [] });
+  }
+
+  if (app.content_card_image_url) {
+    urlPromises.push(
+      getSignedUrl(
+        s3Client,
+        new GetObjectCommand({
+          Bucket: bucketName,
+          Key: `${objectKey}${app.content_card_image_url}`,
+        }),
+        { expiresIn: urlExpiration },
+      ).then((url) => ({ content_card_image_url: url })),
+    );
   }
 
   const signedUrls = await Promise.all(urlPromises);

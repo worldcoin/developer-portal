@@ -1,0 +1,8 @@
+mutation UpdateContentCardImage($id: String!, $fileName: String!) {
+  update_app_metadata_by_pk(
+    pk_columns: { id: $id }
+    _set: { content_card_image_url: $fileName }
+  ) {
+    id
+  }
+}

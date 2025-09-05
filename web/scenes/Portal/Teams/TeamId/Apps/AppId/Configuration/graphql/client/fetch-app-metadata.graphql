@@ -37,6 +37,7 @@ query FetchAppMetadata($id: String!) {
       max_notifications_per_day
       is_android_only
       is_for_humans_only
+      content_card_image_url
     }
     verified_app_metadata: app_metadata(
       where: { verification_status: { _eq: "verified" } }
@@ -73,6 +74,7 @@ query FetchAppMetadata($id: String!) {
       max_notifications_per_day
       is_android_only
       is_for_humans_only
+      content_card_image_url
     }
   }
 }

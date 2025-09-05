@@ -50,6 +50,7 @@ export type FetchAppMetadataQuery = {
       max_notifications_per_day?: number | null;
       is_android_only: boolean;
       is_for_humans_only: boolean;
+      content_card_image_url: string;
     }>;
     verified_app_metadata: Array<{
       __typename?: "app_metadata";
@@ -85,6 +86,7 @@ export type FetchAppMetadataQuery = {
       max_notifications_per_day?: number | null;
       is_android_only: boolean;
       is_for_humans_only: boolean;
+      content_card_image_url: string;
     }>;
   }>;
 };
@@ -129,6 +131,7 @@ export const FetchAppMetadataDocument = gql`
         max_notifications_per_day
         is_android_only
         is_for_humans_only
+        content_card_image_url
       }
       verified_app_metadata: app_metadata(
         where: { verification_status: { _eq: "verified" } }
@@ -165,6 +168,7 @@ export const FetchAppMetadataDocument = gql`
         max_notifications_per_day
         is_android_only
         is_for_humans_only
+        content_card_image_url
       }
     }
   }

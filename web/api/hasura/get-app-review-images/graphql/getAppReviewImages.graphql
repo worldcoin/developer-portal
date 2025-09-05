@@ -5,6 +5,7 @@ query GetAppReviewImages($app_id: String!, $locale: String) {
       hero_image_url
       meta_tag_image_url
       showcase_img_urls
+      content_card_image_url
       localisations(where: { locale: { _eq: $locale } }) {
         hero_image_url
         meta_tag_image_url

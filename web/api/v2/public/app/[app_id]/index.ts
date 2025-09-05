@@ -25,6 +25,7 @@ const independentFieldsToFetch = [
   "unique_users",
   "impressions",
   "logo_img_url",
+  "content_card_image_url",
 ];
 
 export async function GET(

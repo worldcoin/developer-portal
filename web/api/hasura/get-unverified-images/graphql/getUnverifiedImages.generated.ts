@@ -21,6 +21,7 @@ export type GetUnverifiedImagesQuery = {
       hero_image_url: string;
       meta_tag_image_url: string;
       showcase_img_urls?: Array<string> | null;
+      content_card_image_url: string;
       localisations: Array<{
         __typename?: "localisations";
         hero_image_url: string;
@@ -60,6 +61,7 @@ export const GetUnverifiedImagesDocument = gql`
         hero_image_url
         meta_tag_image_url
         showcase_img_urls
+        content_card_image_url
         localisations(where: { locale: { _eq: $locale } }) {
           hero_image_url
           meta_tag_image_url

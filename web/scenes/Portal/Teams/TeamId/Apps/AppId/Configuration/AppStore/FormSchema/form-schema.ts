@@ -90,6 +90,9 @@ export const mainAppStoreFormReviewSubmitSchema = yup
     name: appNameSchema.required("Name is required"),
     short_name: appShortNameSchema.required("Short name is required"),
     logo_img_url: yup.string().required("Logo image is required"),
+    content_card_image_url: yup
+      .string()
+      .required("Content card image is required"),
     category: categorySchema.required("Category is required"),
     world_app_description: appWorldAppDescriptionSchema.required(
       "App tag line is required",
