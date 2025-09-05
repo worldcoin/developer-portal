@@ -30,7 +30,7 @@ import {
 const queryParamsSchema = yup
   .object({
     page: yup.number().integer().min(1).default(1).notRequired(),
-    limit: yup.number().integer().min(1).max(1000).notRequired().default(500),
+    limit: yup.number().integer().min(1).max(1000).notRequired().default(750),
     app_mode: yup
       .string()
       .oneOf(["mini-app", "external", "native"])
@@ -106,7 +106,7 @@ export const GET = async (request: NextRequest) => {
 
   country = parsedParams.override_country ?? country;
   const { page, limit } = parsedParams;
-  const limitValue = limit ?? 500;
+  const limitValue = limit ?? 750;
   const offset = page ? (page - 1) * limitValue : 0;
 
   // ANCHOR: Fetch app rankings
@@ -136,7 +136,7 @@ export const GET = async (request: NextRequest) => {
   }
 
   // notify if length is close to limit
-  if (limitValue >= 500 && page === 1 && topApps.length > limitValue * 0.8) {
+  if (limitValue >= 750 && page === 1 && topApps.length > limitValue * 0.8) {
     logger.warn("App store response length is close to limit", {
       limit: limitValue,
       topAppsLength: topApps.length,
