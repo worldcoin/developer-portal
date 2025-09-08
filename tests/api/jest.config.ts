@@ -5,15 +5,13 @@ import type { Config } from "jest";
 dotenv.config({ path: ".env" });
 dotenv.config({ path: ".env.development" });
 
-console.log("Test environment setup complete");
-
 const config: Config = {
   preset: "ts-jest",
   transform: {
     "^.+\\.(js|ts)$": "babel-jest",
   },
   transformIgnorePatterns: ["node_modules/auth0/(?!(nextjs-auth0)/)"],
-  setupFilesAfterEnv: ["<rootDir>/jest.setup.ts", "jest-expect-message"],
+  setupFilesAfterEnv: ["<rootDir>/jest.setup.ts"],
   testMatch: ["<rootDir>/specs/**/*.spec.ts"],
   testTimeout: 30000,
   moduleDirectories: ["node_modules", "<rootDir>", "<rootDir>/../../web"],
