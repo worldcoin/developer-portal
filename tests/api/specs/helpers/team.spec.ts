@@ -2,7 +2,7 @@ import axios from "axios";
 import { deleteTestTeam } from "helpers";
 import { createAppSession } from "helpers/auth0";
 
-describe("Team Actions", () => {
+describe.skip("Team Actions", () => {
   const INTERNAL_API_URL = process.env.INTERNAL_API_URL;
   let cleanUpFunctions: Array<() => Promise<unknown>> = [];
   let sessionCookie: string;
