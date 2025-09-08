@@ -3,7 +3,7 @@
 import clsx from "clsx";
 import { ReactNode } from "react";
 import { LogoLinesIcon } from "../Icons/LogoLines";
-import { WorldcoinBlueprintIcon } from "../Icons/WorldcoinBlueprintIcon";
+import { WorldBlueprintIcon } from "../Icons/WorldBlueprintIcon";
 import { Typography, TYPOGRAPHY } from "../Typography";
 
 export enum StepEnum {
@@ -25,7 +25,7 @@ export const InitialSteps = (props: {
     >
       <div className="relative min-h-[60px] max-w-full">
         <LogoLinesIcon className="z-0 w-full" />
-        <WorldcoinBlueprintIcon className="absolute inset-0 m-auto size-[60px] rounded-2xl" />
+        <WorldBlueprintIcon className="absolute inset-0 m-auto size-[60px] rounded-2xl" />
       </div>
 
       <div className="grid w-full max-w-[320px] grid-cols-1 gap-y-2 text-center md:max-w-full">

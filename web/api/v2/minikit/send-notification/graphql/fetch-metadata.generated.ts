@@ -18,8 +18,6 @@ export type GetAppMetadataQuery = {
     is_allowed_unlimited_notifications?: boolean | null;
     max_notifications_per_day?: number | null;
     verification_status: string;
-    notification_permission_status: string;
-    notification_permission_status_changed_date?: string | null;
     app: { __typename?: "app"; team: { __typename?: "team"; id: string } };
   }>;
 };
@@ -35,8 +33,6 @@ export const GetAppMetadataDocument = gql`
       is_allowed_unlimited_notifications
       max_notifications_per_day
       verification_status
-      notification_permission_status
-      notification_permission_status_changed_date
       app {
         team {
           id

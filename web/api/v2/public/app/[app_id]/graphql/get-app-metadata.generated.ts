@@ -21,6 +21,7 @@ export type GetAppMetadataQuery = {
     hero_image_url: string;
     meta_tag_image_url: string;
     showcase_img_urls?: Array<string> | null;
+    content_card_image_url: string;
     world_app_description: string;
     world_app_button_text: string;
     whitelisted_addresses?: Array<string> | null;
@@ -79,6 +80,7 @@ export const GetAppMetadataDocument = gql`
       hero_image_url
       meta_tag_image_url
       showcase_img_urls
+      content_card_image_url
       world_app_description
       world_app_button_text
       whitelisted_addresses

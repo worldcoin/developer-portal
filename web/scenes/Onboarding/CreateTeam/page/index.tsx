@@ -1,5 +1,5 @@
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
-import { WorldcoinBlueprintIcon } from "@/components/Icons/WorldcoinBlueprintIcon";
+import { WorldBlueprintIcon } from "@/components/Icons/WorldBlueprintIcon";
 import { LayersIconFrame } from "@/components/LayersIconFrame";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
@@ -43,7 +43,7 @@ export const CreateTeamPage = async (props: CreateTeamPage) => {
       <div className="flex h-full items-center justify-center">
         <div className="grid w-full max-w-[580px] gap-y-8">
           <LayersIconFrame>
-            <WorldcoinBlueprintIcon />
+            <WorldBlueprintIcon />
           </LayersIconFrame>
 
           <Typography as="h1" variant={TYPOGRAPHY.H6} className="text-center">

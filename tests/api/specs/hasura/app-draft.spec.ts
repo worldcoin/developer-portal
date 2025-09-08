@@ -74,7 +74,10 @@ describe("Hasura API - App Draft Management", () => {
         { headers }
       );
 
-      expect(response.status).toBe(200);
+      expect(
+        response.status,
+        `Create new draft request resolved with a wrong code:\n${JSON.stringify(response.data, null, 2)}`
+      ).toBe(200);
       expect(response.data.success).toBe(true);
     });
 

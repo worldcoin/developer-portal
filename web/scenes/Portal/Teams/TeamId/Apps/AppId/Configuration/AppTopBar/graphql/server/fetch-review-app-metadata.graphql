@@ -25,6 +25,7 @@ query FetchAppMetadataById($app_metadata_id: String!) {
     is_android_only
     is_for_humans_only
     verification_status
+    content_card_image_url
   }
   localisations(where: { app_metadata_id: { _eq: $app_metadata_id } }) {
     locale

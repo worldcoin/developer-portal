@@ -5,6 +5,7 @@ import { useUser } from "@auth0/nextjs-auth0/client";
 import { useMemo } from "react";
 import { CategorySection } from "./components/FormSections/CategorySection";
 import { ComplianceSection } from "./components/FormSections/ComplianceSection";
+import { ContentCardImageSection } from "./components/FormSections/ContentCardImageSection";
 import { CountriesSection } from "./components/FormSections/CountriesSection";
 import { HumansOnlySection } from "./components/FormSections/HumansOnlySection";
 import { LanguagesSection } from "./components/FormSections/LanguagesSection";
@@ -47,6 +48,15 @@ export const AppStoreForm = ({
     <div className="mb-24 grid max-w-[580px] grid-cols-1fr/auto">
       <form className="grid gap-y-6" onSubmit={handleSubmit(submit, onInvalid)}>
         <LogoSection
+          appId={appId}
+          teamId={teamId}
+          appMetadata={appMetadata}
+          isEditable={isEditable}
+          isEnoughPermissions={isEnoughPermissions}
+          errors={errors}
+        />
+
+        <ContentCardImageSection
           appId={appId}
           teamId={teamId}
           appMetadata={appMetadata}

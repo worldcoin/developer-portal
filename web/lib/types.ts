@@ -99,7 +99,7 @@ export type Auth0EmailUser = {
   email_verified: boolean;
 };
 
-export type Auth0WorldcoinUser = {
+export type Auth0WorldUser = {
   nickname: string;
   name: string;
   picture: string;
@@ -121,7 +121,7 @@ export type Auth0PasswordUser = {
   email_verified: boolean;
 };
 
-export type Auth0User = Auth0EmailUser | Auth0WorldcoinUser | Auth0PasswordUser;
+export type Auth0User = Auth0EmailUser | Auth0WorldUser | Auth0PasswordUser;
 
 export enum LoginErrorCode {
   Generic = "generic",
@@ -191,6 +191,7 @@ export type AppStoreMetadataFields = {
   hero_image_url: string;
   meta_tag_image_url: string;
   showcase_img_urls?: any | null;
+  content_card_image_url?: string | null;
   world_app_description: string;
   world_app_button_text: string;
   whitelisted_addresses?: any | null;
@@ -214,8 +215,6 @@ export type AppStoreMetadataFields = {
   is_allowed_unlimited_notifications?: boolean | null;
   max_notifications_per_day?: number | null;
   is_android_only?: boolean | null;
-  notification_permission_status?: string | null;
-  notification_permission_status_changed_date?: string | null;
   app: {
     team: { name?: string | null; id: string };
     rating_sum: number;

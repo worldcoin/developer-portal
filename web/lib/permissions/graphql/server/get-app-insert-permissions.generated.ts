@@ -24,7 +24,7 @@ export type GetIsUserPermittedToInsertAppQuery = {
 
 export const GetIsUserPermittedToInsertAppDocument = gql`
   query GetIsUserPermittedToInsertApp($userId: String!, $teamId: String!) {
-    team(where: { id: { _eq: $teamId } }) {
+    team(where: { id: { _eq: $teamId }, deleted_at: { _is_null: true } }) {
       id
       memberships(
         where: {

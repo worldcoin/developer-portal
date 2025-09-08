@@ -65,7 +65,7 @@ const generateCsp = () => {
         "'self'",
         "blob:", // Used to enforce image width and height
         "data:",
-        "https://worldcoin.org",
+        "https://world.org",
         ...(s3BucketUrl ? [s3BucketUrl] : []),
         ...(cdnURLObject ? [cdnURLObject.hostname] : []),
       ],
@@ -90,7 +90,7 @@ const checkRouteRolesRestrictions = async (request: NextRequest) => {
 
   // Route Subset Restriction
   const ownerOnlyRoutes = [
-    "/teams/[a-zA-Z0-9_]+/apps/[a-zA-Z0-9_]+/danger$",
+    "/teams/[a-zA-Z0-9_]+/apps/[a-zA-Z0-9_]+/configuration/danger$",
     "/teams/[a-zA-Z0-9_]+/danger$",
     "/teams/[a-zA-Z0-9_]+/settings$",
   ];

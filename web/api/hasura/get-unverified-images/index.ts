@@ -122,15 +122,17 @@ export const POST = async (req: NextRequest) => {
     const bucketName = process.env.ASSETS_S3_BUCKET_NAME;
     const urlPromises = [];
 
-    const command = new GetObjectCommand({
-      Bucket: bucketName,
-      Key: `${objectKey}${app.logo_img_url}`,
-    });
-
     // We check for any image values that are defined in the unverified row and generate a signed URL for that image
     if (app.logo_img_url) {
       urlPromises.push(
-        getSignedUrl(s3Client, command, { expiresIn: 7200 }).then((url) => ({
+        getSignedUrl(
+          s3Client,
+          new GetObjectCommand({
+            Bucket: bucketName,
+            Key: `${objectKey}${app.logo_img_url}`,
+          }),
+          { expiresIn: 7200 },
+        ).then((url) => ({
           logo_img_url: url,
         })),
       );
@@ -172,6 +174,19 @@ export const POST = async (req: NextRequest) => {
           }),
           { expiresIn: 7200 },
         ).then((url) => ({ meta_tag_image_url: url })),
+      );
+    }
+
+    if (app.content_card_image_url) {
+      urlPromises.push(
+        getSignedUrl(
+          s3Client,
+          new GetObjectCommand({
+            Bucket: bucketName,
+            Key: `${objectKey}${app.content_card_image_url}`,
+          }),
+          { expiresIn: 7200 },
+        ).then((url) => ({ content_card_image_url: url })),
       );
     }
 

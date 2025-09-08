@@ -1,6 +1,6 @@
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { DecoratedButton } from "@/components/DecoratedButton";
-import { WorldcoinBlueprintIcon } from "@/components/Icons/WorldcoinBlueprintIcon";
+import { WorldBlueprintIcon } from "@/components/Icons/WorldBlueprintIcon";
 import { LayersIconFrame } from "@/components/LayersIconFrame";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { logger } from "@/lib/logger";
@@ -50,7 +50,7 @@ export const LoginPage = async () => {
     <div className="flex size-full items-center justify-center">
       <div className="grid max-w-[360px] gap-y-10">
         <LayersIconFrame>
-          <WorldcoinBlueprintIcon />
+          <WorldBlueprintIcon />
         </LayersIconFrame>
 
         <div className="grid gap-y-3">
@@ -63,8 +63,8 @@ export const LoginPage = async () => {
             variant={TYPOGRAPHY.R3}
             className="text-center text-grey-500"
           >
-            The Worldcoin Protocol will enable a new class of applications built
-            on top of proof of personhood
+            The World Protocol will enable a new class of applications built on
+            top of proof of personhood
           </Typography>
         </div>
 

@@ -251,6 +251,7 @@ type ImageGetAllUnverifiedImagesOutput {
   hero_image_url: String
   meta_tag_image_url: String
   showcase_img_urls: [String!]
+  content_card_image_url: String
 }
 
 type PresignedPostOutput {
@@ -271,6 +272,7 @@ type ImageGetAppReviewImagesOutput {
   hero_image_url: String
   meta_tag_image_url: String
   showcase_img_urls: [String!]
+  content_card_image_url: String
 }
 
 type InvalidateCacheOutput {

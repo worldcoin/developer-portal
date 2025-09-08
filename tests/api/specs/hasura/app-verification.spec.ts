@@ -65,7 +65,10 @@ describe.skip("Hasura API - App Verification", () => {
         { headers }
       );
 
-      expect(response.status).toBe(200);
+      expect(
+        response.status,
+        `Verify app request resolved with a wrong code:\n${JSON.stringify(response.data, null, 2)}`
+      ).toBe(200);
       expect(response.data).toEqual(
         expect.objectContaining({
           success: true,

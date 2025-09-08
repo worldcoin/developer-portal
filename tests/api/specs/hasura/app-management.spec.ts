@@ -47,7 +47,10 @@ describe("Hasura API Endpoints", () => {
         { headers }
       );
 
-      expect(banResponse.status).toBe(200);
+      expect(
+        banResponse.status,
+        `Ban app request resolved with a wrong code:\n${JSON.stringify(banResponse.data, null, 2)}`
+      ).toBe(200);
       expect(banResponse.data.success).toBe(true);
 
       // Verify app is now banned
@@ -71,7 +74,10 @@ describe("Hasura API Endpoints", () => {
         { headers }
       );
 
-      expect(unbanResponse.status).toBe(200);
+      expect(
+        unbanResponse.status,
+        `Unban app request resolved with a wrong code:\n${JSON.stringify(unbanResponse.data, null, 2)}`
+      ).toBe(200);
       expect(unbanResponse.data.success).toBe(true);
 
       // Verify app is now unbanned

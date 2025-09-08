@@ -18,6 +18,7 @@ export type FetchImagesQuery = {
     hero_image_url?: string | null;
     meta_tag_image_url?: string | null;
     showcase_img_urls?: Array<string> | null;
+    content_card_image_url?: string | null;
   } | null;
 };
 
@@ -32,6 +33,7 @@ export const FetchImagesDocument = gql`
       hero_image_url
       meta_tag_image_url
       showcase_img_urls
+      content_card_image_url
     }
   }
 `;

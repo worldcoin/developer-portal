@@ -51,6 +51,7 @@ select_permissions:
   - role: reviewer
     permission:
       columns:
+        - deleted_at
         - id
         - name
       filter: {}
@@ -58,6 +59,7 @@ select_permissions:
     permission:
       columns:
         - created_at
+        - deleted_at
         - id
         - name
         - updated_at
@@ -70,13 +72,17 @@ select_permissions:
         - name
         - updated_at
       filter:
-        memberships:
-          user_id:
-            _eq: X-Hasura-User-Id
+        _and:
+          - memberships:
+              user_id:
+                _eq: X-Hasura-User-Id
+          - deleted_at:
+              _is_null: true
 update_permissions:
   - role: service
     permission:
       columns:
+        - deleted_at
         - name
         - updated_at
       filter: {}
@@ -87,20 +93,13 @@ update_permissions:
       columns:
         - name
       filter:
-        memberships:
-          _and:
-            - user_id:
-                _eq: X-Hasura-User-Id
-            - role:
-                _eq: OWNER
+        _and:
+          - memberships:
+              _and:
+                - user_id:
+                    _eq: X-Hasura-User-Id
+                - role:
+                    _eq: OWNER
+          - deleted_at:
+              _is_null: true
       check: null
-delete_permissions:
-  - role: user
-    permission:
-      filter:
-        memberships:
-          _and:
-            - user_id:
-                _eq: X-Hasura-User-Id
-            - role:
-                _eq: OWNER

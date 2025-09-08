@@ -183,6 +183,7 @@ export const AppTopBar = (props: AppTopBarProps) => {
           world_app_description: enLocalization?.world_app_description,
           description_overview: enLocalization?.description_overview,
           logo_img_url: appMetadata.logo_img_url,
+          content_card_image_url: appMetadata.content_card_image_url,
         },
         {
           abortEarly: false,

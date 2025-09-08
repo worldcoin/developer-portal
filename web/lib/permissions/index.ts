@@ -3,12 +3,14 @@
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { getSession } from "@auth0/nextjs-auth0";
 import { entityIdSchema } from "../schema";
+import { getSdk as getAppDeletePermissionsSdk } from "./graphql/server/get-app-delete-permissions.generated";
 import { getSdk as getAppInsertPermissionsSdk } from "./graphql/server/get-app-insert-permissions.generated";
 import { getSdk as getAppMetadataPermissionsSdk } from "./graphql/server/get-app-metadata-update-permissions.generated";
 import { getSdk as getAppUpdatePermissionsSdk } from "./graphql/server/get-app-update-permissions.generated";
 import { getSdk as getLocalisationsDeletePermissionsSdk } from "./graphql/server/get-localisations-delete-permissions.generated";
 import { getSdk as getLocalisationsInsertPermissionsSdk } from "./graphql/server/get-localisations-insert-permissions.generated";
 import { getSdk as getLocalisationsUpdatePermissionsSdk } from "./graphql/server/get-localisations-update-permissions.generated";
+import { getSdk as getTeamDeletePermissionsSdk } from "./graphql/server/get-team-delete-permissions.generated";
 import { getSdk as getTeamUpdatePermissionsSdk } from "./graphql/server/get-team-update-permissions.generated";
 import { getSdk as getVerificationStatusUpdatePermissionsSdk } from "./graphql/server/get-verification-status-update-permissions.generated";
 
@@ -52,6 +54,27 @@ export const getIsUserAllowedToUpdateApp = async (appId: string) => {
   const response = await getAppUpdatePermissionsSdk(
     await getAPIServiceGraphqlClient(),
   ).GetIsUserPermittedToModifyApp({ appId, userId });
+
+  if (response.app_by_pk?.team.memberships.length) {
+    return true;
+  }
+  return false;
+};
+
+export const getIsUserAllowedToDeleteApp = async (appId: string) => {
+  if (!getIsIdValid(appId)) {
+    return false;
+  }
+
+  const session = await getSession();
+  if (!session) {
+    return false;
+  }
+
+  const userId = session.user.hasura.id;
+  const response = await getAppDeletePermissionsSdk(
+    await getAPIServiceGraphqlClient(),
+  ).GetIsUserPermittedToDeleteApp({ appId, userId });
 
   if (response.app_by_pk?.team.memberships.length) {
     return true;
@@ -200,7 +223,28 @@ export const getIsUserAllowedToUpdateTeam = async (teamId: string) => {
     await getAPIServiceGraphqlClient(),
   ).GetIsUserPermittedToModifyTeam({ teamId, userId });
 
-  if (response.team.length === 1 && response.team[0].id === teamId) {
+  if (response.team.length && response.team[0].memberships.length) {
+    return true;
+  }
+  return false;
+};
+
+export const getIsUserAllowedToDeleteTeam = async (teamId: string) => {
+  if (!getIsIdValid(teamId)) {
+    return false;
+  }
+
+  const session = await getSession();
+  if (!session) {
+    return false;
+  }
+
+  const userId = session.user.hasura.id;
+  const response = await getTeamDeletePermissionsSdk(
+    await getAPIServiceGraphqlClient(),
+  ).GetIsUserPermittedToDeleteTeam({ teamId, userId });
+
+  if (response.team.length && response.team[0].memberships.length) {
     return true;
   }
   return false;

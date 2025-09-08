@@ -106,7 +106,10 @@ describe("Hasura API - Get Image", () => {
         { headers }
       );
 
-      expect(response.status).toBe(200);
+      expect(
+        response.status,
+        `Get image request resolved with a wrong code:\n${JSON.stringify(response.data, null, 2)}`
+      ).toBe(200);
       expect(response.data.url).toBeDefined();
       expect(typeof response.data.url).toBe("string");
       expect(response.data.url).toContain("logo_image.png");
@@ -130,7 +133,10 @@ describe("Hasura API - Get Image", () => {
         { headers }
       );
 
-      expect(response.status).toBe(200);
+      expect(
+        response.status,
+        `Get image request resolved with a wrong code:\n${JSON.stringify(response.data, null, 2)}`
+      ).toBe(200);
       expect(response.data.url).toBeDefined();
       expect(typeof response.data.url).toBe("string");
       expect(response.data.url).toContain("hero_image.jpg");
@@ -154,7 +160,10 @@ describe("Hasura API - Get Image", () => {
         { headers }
       );
 
-      expect(response.status).toBe(200);
+      expect(
+        response.status,
+        `Get image request resolved with a wrong code:\n${JSON.stringify(response.data, null, 2)}`
+      ).toBe(200);
       expect(response.data.url).toBeDefined();
       expect(typeof response.data.url).toBe("string");
       expect(response.data.url).toContain("logo_image.png");
@@ -164,15 +173,17 @@ describe("Hasura API - Get Image", () => {
 
     afterAll(async () => {
       // Clean up test data
-      testLocalisationId && (await deleteTestLocalisation(testLocalisationId));
-      testMetadataId && (await deleteTestAppMetadata(testMetadataId));
-      testAppId && (await deleteTestApp(testAppId));
-      testMembershipId && (await deleteTestMembership(testMembershipId));
-      testUserId && (await deleteTestUser(testUserId));
-      testTeamId && (await deleteTestTeam(testTeamId));
+      void (
+        testLocalisationId && (await deleteTestLocalisation(testLocalisationId))
+      );
+      void (testMetadataId && (await deleteTestAppMetadata(testMetadataId)));
+      void (testAppId && (await deleteTestApp(testAppId)));
+      void (testMembershipId && (await deleteTestMembership(testMembershipId)));
+      void (testUserId && (await deleteTestUser(testUserId)));
+      void (testTeamId && (await deleteTestTeam(testTeamId)));
 
       // Clean up test files from S3
-      Promise.all([
+      await Promise.all([
         cleanupTestS3Files(
           process.env.ASSETS_S3_BUCKET_NAME!,
           testAppId!,

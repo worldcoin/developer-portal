@@ -4,7 +4,7 @@ import { Dropdown } from "@/components/Dropdown";
 import { ArrowRightIcon } from "@/components/Icons/ArrowRightIcon";
 import { CaretIcon } from "@/components/Icons/CaretIcon";
 import { CheckmarkCircleIcon } from "@/components/Icons/CheckmarkCircleIcon";
-import { WorldcoinTextLogo } from "@/components/Icons/WorldcoinTextLogo";
+import { WorldTextLogo } from "@/components/Icons/WorldTextLogo";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { restAPIRequest } from "@/lib/frontend-api";
 import { KioskScreen } from "@/lib/types";
@@ -182,7 +182,7 @@ export const ActiveKioskPage = (props: ActiveKioskPageProps) => {
           </div>
 
           <div className="flex w-1/3 items-center justify-center">
-            <WorldcoinTextLogo className="h-6" />
+            <WorldTextLogo className="h-6" />
           </div>
 
           <div className="z-[100] flex w-1/3 flex-col items-center justify-end md:flex-row md:gap-x-4 md:pr-6">

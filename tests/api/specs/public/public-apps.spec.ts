@@ -11,7 +11,14 @@ describe("Public API Endpoints", () => {
         `${PUBLIC_API_URL}/api/v2/public/apps`
       );
 
-      expect(appsResponse.status).toBe(200);
+      expect(
+        appsResponse.status,
+        `Get public apps request resolved with a wrong code:\n${JSON.stringify(
+          appsResponse.data,
+          null,
+          2
+        )}`
+      ).toBe(200);
       expect(appsResponse.data).toEqual(
         expect.objectContaining({
           app_rankings: expect.objectContaining({
@@ -52,7 +59,14 @@ describe("Public API Endpoints", () => {
         `${PUBLIC_API_URL}/api/v2/public/app/${appId}`
       );
 
-      expect(appResponse.status).toBe(200);
+      expect(
+        appResponse.status,
+        `Get specific app request resolved with a wrong code:\n${JSON.stringify(
+          appResponse.data,
+          null,
+          2
+        )}`
+      ).toBe(200);
       expect(appResponse.data).toEqual(
         expect.objectContaining({
           app_data: expect.objectContaining({
@@ -96,8 +110,67 @@ describe("Public API Endpoints", () => {
     const response = await axios.get(
       `${PUBLIC_API_URL}/api/v2/public/app/${appId}?metadata_field=name`
     );
-    expect(response.status).toBe(200);
-    expect(response.data).toEqual("grants");
+    expect(
+      response.status,
+      `Get app details by ID request resolved with a wrong code:\n${JSON.stringify(
+        response.data,
+        null,
+        2
+      )}`
+    ).toBe(200);
+    expect(response.data).toEqual("Worldcoin");
+  });
+
+  it("Get Content Card Image URL Field", async () => {
+    const appId = APP_ENV === "staging" ? "grants" : "grants";
+
+    // First test the full app response to see if content_card_image_url is included
+    const fullAppResponse = await axios.get(
+      `${PUBLIC_API_URL}/api/v2/public/app/${appId}`
+    );
+    expect(
+      fullAppResponse.status,
+      `Get full app data request resolved with a wrong code:\n${JSON.stringify(
+        fullAppResponse.data,
+        null,
+        2
+      )}`
+    ).toBe(200);
+
+    console.log(
+      "Full app response content_card_image_url:",
+      fullAppResponse.data.app_data.content_card_image_url
+    );
+
+    expect(fullAppResponse.data).toEqual(
+      expect.objectContaining({
+        app_data: expect.objectContaining({
+          content_card_image_url: expect.any(String),
+        }),
+      })
+    );
+
+    // Test that content_card_image_url field is available independently
+    const contentCardResponse = await axios.get(
+      `${PUBLIC_API_URL}/api/v2/public/app/${appId}?metadata_field=content_card_image_url`
+    );
+    expect(
+      contentCardResponse.status,
+      `Get content card image URL request resolved with a wrong code:\n${JSON.stringify(
+        contentCardResponse.data,
+        null,
+        2
+      )}`
+    ).toBe(200);
+
+    // The individual field should return a string (URL or empty string)
+    console.log(
+      "Individual field response:",
+      contentCardResponse.data,
+      "Type:",
+      typeof contentCardResponse.data
+    );
+    expect(typeof contentCardResponse.data).toBe("string");
   });
 
   describe("GET /api/v2/public/apps/search/[search_term]", () => {
@@ -107,7 +180,14 @@ describe("Public API Endpoints", () => {
         `${PUBLIC_API_URL}/api/v2/public/apps/search/${searchTerm}`
       );
 
-      expect(response.status).toBe(200);
+      expect(
+        response.status,
+        `Search apps request resolved with a wrong code:\n${JSON.stringify(
+          response.data,
+          null,
+          2
+        )}`
+      ).toBe(200);
       expect(response.data).toEqual(
         expect.objectContaining({
           app_ids: expect.arrayContaining([expect.any(String)]),
@@ -128,7 +208,14 @@ describe("Public API Endpoints", () => {
         `${PUBLIC_API_URL}/api/v2/public/apps/search/${searchTerm}`
       );
 
-      expect(response.status).toBe(200);
+      expect(
+        response.status,
+        `Search non-existent apps request resolved with a wrong code:\n${JSON.stringify(
+          response.data,
+          null,
+          2
+        )}`
+      ).toBe(200);
       expect(response.data).toEqual(
         expect.objectContaining({
           app_ids: expect.any(Array),

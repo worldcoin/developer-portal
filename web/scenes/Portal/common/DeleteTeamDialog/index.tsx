@@ -10,7 +10,6 @@ import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Auth0SessionUser } from "@/lib/types";
 import { urls } from "@/lib/urls";
 import { useMeQuery } from "@/scenes/common/me-query/client";
-import { FetchMeDocument } from "@/scenes/common/me-query/client/graphql/client/me-query.generated";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { usePathname, useRouter } from "next/navigation";
@@ -18,7 +17,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import * as yup from "yup";
-import { useDeleteTeamMutation } from "./graphql/client/delete-team.generated";
+import { deleteTeamServerSide } from "./server";
 
 type DeleteTeamDialogProps = DialogProps & {
   team: {
@@ -61,12 +60,7 @@ export const DeleteTeamDialog = (props: DeleteTeamDialogProps) => {
     props.onClose(false);
   }, [props, reset, setDeleteFinished]);
 
-  const [deleteTeam] = useDeleteTeamMutation({
-    refetchQueries: [FetchMeDocument],
-    awaitRefetchQueries: true,
-  });
-
-  const { user, loading } = useMeQuery();
+  const { user, loading, refetch } = useMeQuery();
 
   const submit = useCallback(async () => {
     if (!team?.id || !auth0User?.hasura?.id) {
@@ -74,19 +68,20 @@ export const DeleteTeamDialog = (props: DeleteTeamDialogProps) => {
     }
 
     try {
-      await deleteTeam({
-        variables: {
-          id: team?.id,
-        },
-      });
+      const result = await deleteTeamServerSide(team.id);
 
-      toast.success("Team deleted!");
-      setDeleteFinished(true);
+      if (result.success) {
+        await refetch();
+        toast.success("Team deleted!");
+        setDeleteFinished(true);
+      } else {
+        toast.error(result.message || "Error deleting team");
+      }
     } catch (e) {
       console.error("Delete Team Dialog: ", e);
       toast.error("Error deleting team");
     }
-  }, [team?.id, auth0User?.hasura?.id, deleteTeam]);
+  }, [team?.id, auth0User?.hasura?.id, refetch]);
 
   useEffect(() => {
     if (!deleteFinished || loading) {

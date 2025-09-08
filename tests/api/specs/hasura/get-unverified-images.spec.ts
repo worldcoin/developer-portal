@@ -96,7 +96,10 @@ describe("Hasura API - Get Unverified Images", () => {
         { headers }
       );
 
-      expect(response.status).toBe(200);
+      expect(
+        response.status,
+        `Get unverified images request resolved with a wrong code:\n${JSON.stringify(response.data, null, 2)}`
+      ).toBe(200);
       expect(response.data).toBeDefined();
       expect(response.data.logo_img_url).toBeDefined();
       expect(typeof response.data.logo_img_url).toBe("string");

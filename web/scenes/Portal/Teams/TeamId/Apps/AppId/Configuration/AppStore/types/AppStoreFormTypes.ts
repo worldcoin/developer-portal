@@ -55,6 +55,7 @@ export type AppMetadata = Readonly<
     | "max_notifications_per_day"
     | "is_android_only"
     | "is_for_humans_only"
+    | "content_card_image_url"
   > & {
     // stricter type overrides
     verification_status:

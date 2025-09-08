@@ -40,12 +40,3 @@
     - name: Authorization
       value_from_env: INTERNAL_ENDPOINTS_SECRET
   comment: Schedules all expired JWKS for deletion by KMS
-- name: Evaluate notification permissions
-  webhook: '{{NEXT_API_URL}}/_evaluate-app-notification-permissions'
-  schedule: 0 15 * * 5
-  include_in_metadata: true
-  payload: {}
-  headers:
-    - name: Authorization
-      value_from_env: INTERNAL_ENDPOINTS_SECRET
-  comment: This reevaluates notification permissions, per app, every week

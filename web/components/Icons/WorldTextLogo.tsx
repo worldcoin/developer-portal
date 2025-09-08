@@ -1,6 +1,6 @@
 import { ComponentProps } from "react";
 
-export const WorldcoinTextLogo = (props: ComponentProps<"svg">) => {
+export const WorldTextLogo = (props: ComponentProps<"svg">) => {
   return (
     <svg
       width="141"

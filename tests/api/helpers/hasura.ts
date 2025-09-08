@@ -138,6 +138,48 @@ const DELETE_LOCALISATION_MUTATION = `
   }
 `;
 
+// Simple GraphQL mutation for creating api_key
+const CREATE_API_KEY_MUTATION = `
+  mutation CreateApiKey($object: api_key_insert_input!) {
+    insert_api_key_one(object: $object) {
+      id
+      team_id
+      api_key
+    }
+  }
+`;
+
+// Simple GraphQL mutation for deleting api_key
+const DELETE_API_KEY_MUTATION = `
+  mutation DeleteApiKey($id: String!) {
+    delete_api_key_by_pk(id: $id) {
+      id
+    }
+  }
+`;
+
+// Simple GraphQL mutation for creating action
+const CREATE_ACTION_MUTATION = `
+  mutation CreateAction($object: action_insert_input!) {
+    insert_action_one(object: $object) {
+      id
+      app_id
+      action
+      name
+      external_nullifier
+    }
+  }
+`;
+
+// Simple GraphQL mutation for deleting action
+const DELETE_ACTION_MUTATION = `
+  mutation DeleteAction($id: String!) {
+    delete_action_by_pk(id: $id) {
+      id
+    }
+  }
+`;
+
 // Helper for creating test app
 export const createTestApp = async (name: string, teamId: string) => {
   try {
@@ -153,8 +195,10 @@ export const createTestApp = async (name: string, teamId: string) => {
     })) as any;
 
     return response.insert_app_one?.id;
-  } catch (error) {
-    throw new Error(`Failed to create test app: ${JSON.stringify(error)}`);
+  } catch (error: any) {
+    const errorMessage =
+      error?.response?.data?.message || error?.message || "Unknown error";
+    throw new Error(`Failed to create test app: ${errorMessage}`);
   }
 };
 
@@ -166,8 +210,10 @@ export const getAppById = async (appId: string) => {
     })) as any;
 
     return response.app_by_pk;
-  } catch (error) {
-    throw new Error(`Failed to get app ${appId}: ${JSON.stringify(error)}`);
+  } catch (error: any) {
+    const errorMessage =
+      error?.response?.data?.message || error?.message || "Unknown error";
+    throw new Error(`Failed to get app ${appId}: ${errorMessage}`);
   }
 };
 
@@ -181,8 +227,10 @@ export const createTestTeam = async (name: string) => {
     })) as any;
 
     return response.insert_team_one?.id;
-  } catch (error) {
-    throw new Error(`Failed to create test team: ${JSON.stringify(error)}`);
+  } catch (error: any) {
+    const errorMessage =
+      error?.response?.data?.message || error?.message || "Unknown error";
+    throw new Error(`Failed to create test team: ${errorMessage}`);
   }
 };
 
@@ -200,8 +248,10 @@ export const createTestUser = async (email: string, teamId: string) => {
     })) as any;
 
     return response.insert_user_one?.id;
-  } catch (error) {
-    throw new Error(`Failed to create test user: ${JSON.stringify(error)}`);
+  } catch (error: any) {
+    const errorMessage =
+      error?.response?.data?.message || error?.message || "Unknown error";
+    throw new Error(`Failed to create test user: ${errorMessage}`);
   }
 };
 
@@ -213,10 +263,10 @@ export const deleteTestApp = async (appId: string) => {
     })) as any;
 
     return response.delete_app_by_pk?.id;
-  } catch (error) {
-    throw new Error(
-      `Failed to delete test app ${appId}: ${JSON.stringify(error)}`
-    );
+  } catch (error: any) {
+    const errorMessage =
+      error?.response?.data?.message || error?.message || "Unknown error";
+    throw new Error(`Failed to delete test app ${appId}: ${errorMessage}`);
   }
 };
 
@@ -228,10 +278,10 @@ export const deleteTestTeam = async (teamId: string) => {
     })) as any;
 
     return response.delete_team_by_pk?.id;
-  } catch (error) {
-    throw new Error(
-      `Failed to delete test team ${teamId}: ${JSON.stringify(error)}`
-    );
+  } catch (error: any) {
+    const errorMessage =
+      error?.response?.data?.message || error?.message || "Unknown error";
+    throw new Error(`Failed to delete test team ${teamId}: ${errorMessage}`);
   }
 };
 
@@ -243,10 +293,10 @@ export const deleteTestUser = async (userId: string) => {
     })) as any;
 
     return response.delete_user_by_pk?.id;
-  } catch (error) {
-    throw new Error(
-      `Failed to delete test user ${userId}: ${JSON.stringify(error)}`
-    );
+  } catch (error: any) {
+    const errorMessage =
+      error?.response?.data?.message || error?.message || "Unknown error";
+    throw new Error(`Failed to delete test user ${userId}: ${errorMessage}`);
   }
 };
 
@@ -280,10 +330,10 @@ export const createTestAppMetadata = async (
     )) as any;
 
     return response.insert_app_metadata_one;
-  } catch (error) {
-    throw new Error(
-      `Failed to create test app metadata: ${JSON.stringify(error)}`
-    );
+  } catch (error: any) {
+    const errorMessage =
+      error?.response?.data?.message || error?.message || "Unknown error";
+    throw new Error(`Failed to create test app metadata: ${errorMessage}`);
   }
 };
 
@@ -298,9 +348,11 @@ export const deleteTestAppMetadata = async (metadataId: string) => {
     )) as any;
 
     return response.delete_app_metadata_by_pk?.id;
-  } catch (error) {
+  } catch (error: any) {
+    const errorMessage =
+      error?.response?.data?.message || error?.message || "Unknown error";
     throw new Error(
-      `Failed to delete test app metadata ${metadataId}: ${JSON.stringify(error)}`
+      `Failed to delete test app metadata ${metadataId}: ${errorMessage}`
     );
   }
 };
@@ -324,10 +376,10 @@ export const createTestMembership = async (
     )) as any;
 
     return response.insert_membership_one?.id;
-  } catch (error) {
-    throw new Error(
-      `Failed to create test membership: ${JSON.stringify(error)}`
-    );
+  } catch (error: any) {
+    const errorMessage =
+      error?.response?.data?.message || error?.message || "Unknown error";
+    throw new Error(`Failed to create test membership: ${errorMessage}`);
   }
 };
 
@@ -342,9 +394,11 @@ export const deleteTestMembership = async (membershipId: string) => {
     )) as any;
 
     return response.delete_membership_by_pk?.id;
-  } catch (error) {
+  } catch (error: any) {
+    const errorMessage =
+      error?.response?.data?.message || error?.message || "Unknown error";
     throw new Error(
-      `Failed to delete test membership ${membershipId}: ${JSON.stringify(error)}`
+      `Failed to delete test membership ${membershipId}: ${errorMessage}`
     );
   }
 };
@@ -374,10 +428,10 @@ export const createTestLocalisation = async (
     )) as any;
 
     return response.insert_localisations_one?.id;
-  } catch (error) {
-    throw new Error(
-      `Failed to create test localisation: ${JSON.stringify(error)}`
-    );
+  } catch (error: any) {
+    const errorMessage =
+      error?.response?.data?.message || error?.message || "Unknown error";
+    throw new Error(`Failed to create test localisation: ${errorMessage}`);
   }
 };
 
@@ -392,9 +446,99 @@ export const deleteTestLocalisation = async (localisationId: string) => {
     )) as any;
 
     return response.delete_localisations_by_pk?.id;
-  } catch (error) {
+  } catch (error: any) {
+    const errorMessage =
+      error?.response?.data?.message || error?.message || "Unknown error";
     throw new Error(
-      `Failed to delete test localisation ${localisationId}: ${JSON.stringify(error)}`
+      `Failed to delete test localisation ${localisationId}: ${errorMessage}`
+    );
+  }
+};
+
+// Helper for creating test API key
+export const createTestApiKey = async (
+  teamId: string,
+  name: string = "Test API Key"
+) => {
+  try {
+    const response = (await adminGraphqlClient.request(
+      CREATE_API_KEY_MUTATION,
+      {
+        object: {
+          team_id: teamId,
+          name,
+          api_key: "test_hashed_secret_value",
+          is_active: true,
+        },
+      }
+    )) as any;
+
+    return response.insert_api_key_one?.id;
+  } catch (error: any) {
+    const errorMessage =
+      error?.response?.data?.message || error?.message || "Unknown error";
+    throw new Error(`Failed to create test API key: ${errorMessage}`);
+  }
+};
+
+// Helper for deleting test API key
+export const deleteTestApiKey = async (apiKeyId: string) => {
+  try {
+    const response = (await adminGraphqlClient.request(
+      DELETE_API_KEY_MUTATION,
+      {
+        id: apiKeyId,
+      }
+    )) as any;
+
+    return response.delete_api_key_by_pk?.id;
+  } catch (error: any) {
+    const errorMessage =
+      error?.response?.data?.message || error?.message || "Unknown error";
+    throw new Error(
+      `Failed to delete test API key ${apiKeyId}: ${errorMessage}`
+    );
+  }
+};
+
+// Helper for creating test action
+export const createTestAction = async (
+  appId: string,
+  actionName: string,
+  name: string = "Test Action"
+) => {
+  try {
+    const response = (await adminGraphqlClient.request(CREATE_ACTION_MUTATION, {
+      object: {
+        app_id: appId,
+        action: actionName,
+        name,
+        description: "Test action description",
+        external_nullifier: "", // Start with empty external_nullifier
+      },
+    })) as any;
+
+    return response.insert_action_one?.id;
+  } catch (error: any) {
+    const errorMessage =
+      error?.response?.data?.message || error?.message || "Unknown error";
+    throw new Error(`Failed to create test action: ${errorMessage}`);
+  }
+};
+
+// Helper for deleting test action
+export const deleteTestAction = async (actionId: string) => {
+  try {
+    const response = (await adminGraphqlClient.request(DELETE_ACTION_MUTATION, {
+      id: actionId,
+    })) as any;
+
+    return response.delete_action_by_pk?.id;
+  } catch (error: any) {
+    const errorMessage =
+      error?.response?.data?.message || error?.message || "Unknown error";
+    throw new Error(
+      `Failed to delete test action ${actionId}: ${errorMessage}`
     );
   }
 };
