@@ -5,8 +5,8 @@ import {
   createTestTeam,
   deleteTestAction,
   deleteTestApp,
-  deleteTestTeam
-} from '../../helpers/hasura-helper';
+  deleteTestTeam,
+} from "helpers";
 
 const INTERNAL_API_URL = process.env.INTERNAL_API_URL;
 const token = process.env.INTERNAL_ENDPOINTS_SECRET;
@@ -75,16 +75,23 @@ describe("Auxiliary API Endpoints", () => {
 
     beforeAll(async () => {
       // Create test data chain: team -> app -> action
-      testTeamId = await createTestTeam('Test Team for Gen External Nullifier');
-      testAppId = await createTestApp('Test App for Gen External Nullifier', testTeamId!);
-      testActionId = await createTestAction(testAppId!, 'test-action', 'Test Action for External Nullifier');
+      testTeamId = await createTestTeam("Test Team for Gen External Nullifier");
+      testAppId = await createTestApp(
+        "Test App for Gen External Nullifier",
+        testTeamId!
+      );
+      testActionId = await createTestAction(
+        testAppId!,
+        "test-action",
+        "Test Action for External Nullifier"
+      );
     });
 
     afterAll(async () => {
       // Clean up test data in reverse order
-      testActionId && await deleteTestAction(testActionId);
-      testAppId && await deleteTestApp(testAppId);
-      testTeamId && await deleteTestTeam(testTeamId);
+      testActionId && (await deleteTestAction(testActionId));
+      testAppId && (await deleteTestApp(testAppId));
+      testTeamId && (await deleteTestTeam(testTeamId));
     });
 
     it("Generate External Nullifier With Valid Data", async () => {
