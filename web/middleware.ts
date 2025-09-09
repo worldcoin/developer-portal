@@ -57,6 +57,7 @@ const generateCsp = () => {
         "https://bridge.worldcoin.org",
         "https://us.i.posthog.com",
         ...(s3BucketUrl ? [s3BucketUrl] : []),
+        process.env.NEXT_PUBLIC_APP_URL,
       ],
     },
     {
@@ -68,6 +69,7 @@ const generateCsp = () => {
         "https://world.org",
         ...(s3BucketUrl ? [s3BucketUrl] : []),
         ...(cdnURLObject ? [cdnURLObject.hostname] : []),
+        process.env.NEXT_PUBLIC_APP_URL,
       ],
     },
   ];
