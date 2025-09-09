@@ -20,6 +20,7 @@ module.exports = {
       json: "any",
       numeric: "number",
       _text: "any",
+      bigint: "number",
     },
   },
 

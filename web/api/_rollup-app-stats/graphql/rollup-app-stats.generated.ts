@@ -4,15 +4,14 @@ import * as Types from "@/graphql/graphql";
 import { GraphQLClient, RequestOptions } from "graphql-request";
 import gql from "graphql-tag";
 type GraphQLClientRequestHeaders = RequestOptions["requestHeaders"];
-export type IncrementAppStatsMutationVariables = Types.Exact<{
-  nullifier_hash: Types.Scalars["String"]["input"];
-  timestamp: Types.Scalars["timestamptz"]["input"];
-  action_id: Types.Scalars["String"]["input"];
+export type RollupAppStatsMutationVariables = Types.Exact<{
+  since?: Types.InputMaybe<Types.Scalars["timestamptz"]["input"]>;
+  until?: Types.InputMaybe<Types.Scalars["timestamptz"]["input"]>;
 }>;
 
-export type IncrementAppStatsMutation = {
+export type RollupAppStatsMutation = {
   __typename?: "mutation_root";
-  increment_app_stats: Array<{
+  rollup_app_stats: Array<{
     __typename?: "app_stats";
     app_id: string;
     date: string;
@@ -21,19 +20,9 @@ export type IncrementAppStatsMutation = {
   }>;
 };
 
-export const IncrementAppStatsDocument = gql`
-  mutation IncrementAppStats(
-    $nullifier_hash: String!
-    $timestamp: timestamptz!
-    $action_id: String!
-  ) {
-    increment_app_stats(
-      args: {
-        _nullifier_hash: $nullifier_hash
-        _timestamp: $timestamp
-        _action_id: $action_id
-      }
-    ) {
+export const RollupAppStatsDocument = gql`
+  mutation RollupAppStats($since: timestamptz, $until: timestamptz) {
+    rollup_app_stats(args: { _since: $since, _until: $until }) {
       app_id
       date
       verifications
@@ -61,18 +50,18 @@ export function getSdk(
   withWrapper: SdkFunctionWrapper = defaultWrapper,
 ) {
   return {
-    IncrementAppStats(
-      variables: IncrementAppStatsMutationVariables,
+    RollupAppStats(
+      variables?: RollupAppStatsMutationVariables,
       requestHeaders?: GraphQLClientRequestHeaders,
-    ): Promise<IncrementAppStatsMutation> {
+    ): Promise<RollupAppStatsMutation> {
       return withWrapper(
         (wrappedRequestHeaders) =>
-          client.request<IncrementAppStatsMutation>(
-            IncrementAppStatsDocument,
+          client.request<RollupAppStatsMutation>(
+            RollupAppStatsDocument,
             variables,
             { ...requestHeaders, ...wrappedRequestHeaders },
           ),
-        "IncrementAppStats",
+        "RollupAppStats",
         "mutation",
         variables,
       );
