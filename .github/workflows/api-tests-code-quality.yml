@@ -33,7 +33,7 @@ jobs:
         run: pnpm lint
 
   typecheck:
-    name: Code formatting & linting
+    name: Code typechecking
     runs-on: ubuntu-24.04
     timeout-minutes: 3
     defaults:
