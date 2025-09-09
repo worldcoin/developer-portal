@@ -34,7 +34,7 @@ describe("Hasura API - Upload Image", () => {
       testMembershipId = await createTestMembership(
         testUserId,
         testTeamId,
-        "OWNER"
+        "OWNER",
       );
 
       // Create test app
@@ -56,12 +56,12 @@ describe("Hasura API - Upload Image", () => {
             "x-hasura-user-id": testUserId,
           },
         },
-        { headers }
+        { headers },
       );
 
       expect(
         response.status,
-        `Upload image request resolved with a wrong code:\n${JSON.stringify(response.data, null, 2)}`
+        `Upload image request resolved with a wrong code:\n${JSON.stringify(response.data, null, 2)}`,
       ).toBe(200);
       expect(response.data.url).toBeDefined();
       expect(response.data.stringifiedFields).toBeDefined();
@@ -84,12 +84,12 @@ describe("Hasura API - Upload Image", () => {
             "x-hasura-user-id": testUserId,
           },
         },
-        { headers }
+        { headers },
       );
 
       expect(
         response.status,
-        `Upload image request resolved with a wrong code:\n${JSON.stringify(response.data, null, 2)}`
+        `Upload image request resolved with a wrong code:\n${JSON.stringify(response.data, null, 2)}`,
       ).toBe(200);
       expect(response.data.url).toBeDefined();
       expect(response.data.stringifiedFields).toBeDefined();
@@ -113,8 +113,8 @@ describe("Hasura API - Upload Image", () => {
               "x-hasura-user-id": testUserId,
             },
           },
-          { headers }
-        )
+          { headers },
+        ),
       ).rejects.toMatchObject({
         response: {
           status: 400,
@@ -131,7 +131,7 @@ describe("Hasura API - Upload Image", () => {
       // Create a user without proper team membership
       const unauthorizedUserId = await createTestUser(
         `unauthorized_${Date.now()}@example.com`,
-        testTeamId
+        testTeamId,
       );
 
       await expect(
@@ -149,8 +149,8 @@ describe("Hasura API - Upload Image", () => {
               "x-hasura-user-id": unauthorizedUserId,
             },
           },
-          { headers }
-        )
+          { headers },
+        ),
       ).rejects.toMatchObject({
         response: {
           status: 400,

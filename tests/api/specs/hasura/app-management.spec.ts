@@ -44,12 +44,12 @@ describe("Hasura API Endpoints", () => {
             "x-hasura-role": "admin",
           },
         },
-        { headers }
+        { headers },
       );
 
       expect(
         banResponse.status,
-        `Ban app request resolved with a wrong code:\n${JSON.stringify(banResponse.data, null, 2)}`
+        `Ban app request resolved with a wrong code:\n${JSON.stringify(banResponse.data, null, 2)}`,
       ).toBe(200);
       expect(banResponse.data.success).toBe(true);
 
@@ -71,12 +71,12 @@ describe("Hasura API Endpoints", () => {
             "x-hasura-role": "admin",
           },
         },
-        { headers }
+        { headers },
       );
 
       expect(
         unbanResponse.status,
-        `Unban app request resolved with a wrong code:\n${JSON.stringify(unbanResponse.data, null, 2)}`
+        `Unban app request resolved with a wrong code:\n${JSON.stringify(unbanResponse.data, null, 2)}`,
       ).toBe(200);
       expect(unbanResponse.data.success).toBe(true);
 

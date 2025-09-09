@@ -33,20 +33,20 @@ describe("Hasura API - Reset Client Secret", () => {
       testTeamId = await createTestTeam(testTeamName);
       testUserId = await createTestUser(
         `resetclient_${Date.now()}@example.com`,
-        testTeamId!
+        testTeamId!,
       );
 
       // Create membership for user in team with OWNER role
       testMembershipId = await createTestMembership(
         testUserId!,
         testTeamId!,
-        "OWNER"
+        "OWNER",
       );
 
       // Create test app
       testAppId = await createTestApp(
         "Test App for Reset Client Secret",
-        testTeamId!
+        testTeamId!,
       );
 
       // Create test app metadata
@@ -55,7 +55,7 @@ describe("Hasura API - Reset Client Secret", () => {
         "Test App for Reset Client Secret",
         "unverified",
         ["showcase_img_1.jpg"],
-        ["en"]
+        ["en"],
       );
       testMetadataId = metadata.id;
     });
@@ -76,12 +76,12 @@ describe("Hasura API - Reset Client Secret", () => {
             "x-hasura-user-id": testUserId,
           },
         },
-        { headers }
+        { headers },
       );
 
       expect(
         response.status,
-        `Reset client secret request resolved with a wrong code:\n${JSON.stringify(response.data, null, 2)}`
+        `Reset client secret request resolved with a wrong code:\n${JSON.stringify(response.data, null, 2)}`,
       ).toBe(200);
       expect(response.data.client_secret).toBeDefined();
       expect(typeof response.data.client_secret).toBe("string");
@@ -89,11 +89,13 @@ describe("Hasura API - Reset Client Secret", () => {
 
     afterAll(async () => {
       // Clean up test data
+      /* eslint-disable @typescript-eslint/no-unused-expressions */
       testMetadataId && (await deleteTestAppMetadata(testMetadataId));
       testAppId && (await deleteTestApp(testAppId));
       testMembershipId && (await deleteTestMembership(testMembershipId));
       testUserId && (await deleteTestUser(testUserId));
       testTeamId && (await deleteTestTeam(testTeamId));
+      /* eslint-enable @typescript-eslint/no-unused-expressions */
     });
   });
 });

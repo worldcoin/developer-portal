@@ -1,3 +1,4 @@
+/* eslint-disable @cspell/spellchecker -- foreign words used */
 import axios from "axios";
 import {
   createTestApp,
@@ -40,7 +41,7 @@ describe("Hasura API - Validate Localisation", () => {
       testMembershipId = await createTestMembership(
         testUserId,
         testTeamId,
-        "OWNER"
+        "OWNER",
       );
 
       // Create test app
@@ -52,7 +53,7 @@ describe("Hasura API - Validate Localisation", () => {
         "Test App for Localisation",
         "awaiting_review",
         undefined,
-        ["en", "es", "fr"] // Supported languages
+        ["en", "es", "fr"], // Supported languages
       );
       testMetadataId = metadata.id;
 
@@ -63,7 +64,7 @@ describe("Hasura API - Validate Localisation", () => {
         "Aplicación de Prueba para Localización",
         "App Localización",
         "Descripción de la aplicación de prueba para localización",
-        "Descripción de la aplicación de prueba para localización en español"
+        "Descripción de la aplicación de prueba para localización en español",
       );
       testLocalisationIds.push(spanishLocalisationId);
 
@@ -73,7 +74,7 @@ describe("Hasura API - Validate Localisation", () => {
         "Application de Test pour Localisation",
         "App Localisation",
         "Description de l'application de test pour localisation",
-        "Description de l'application de test pour localisation en français"
+        "Description de l'application de test pour localisation en français",
       );
       testLocalisationIds.push(frenchLocalisationId);
     });
@@ -91,12 +92,12 @@ describe("Hasura API - Validate Localisation", () => {
             "x-hasura-user-id": testUserId,
           },
         },
-        { headers }
+        { headers },
       );
 
       expect(
         response.status,
-        `Validate localisation request resolved with a wrong code:\n${JSON.stringify(response.data, null, 2)}`
+        `Validate localisation request resolved with a wrong code:\n${JSON.stringify(response.data, null, 2)}`,
       ).toBe(200);
       expect(response.data.success).toBe(true);
     });
@@ -115,8 +116,8 @@ describe("Hasura API - Validate Localisation", () => {
               "x-hasura-user-id": testUserId,
             },
           },
-          { headers }
-        )
+          { headers },
+        ),
       ).rejects.toMatchObject({
         response: {
           status: 400,
@@ -143,8 +144,8 @@ describe("Hasura API - Validate Localisation", () => {
               "x-hasura-user-id": testUserId,
             },
           },
-          { headers }
-        )
+          { headers },
+        ),
       ).rejects.toMatchObject({
         response: {
           status: 400,

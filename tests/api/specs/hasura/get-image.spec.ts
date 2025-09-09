@@ -1,3 +1,4 @@
+/* eslint-disable @cspell/spellchecker -- foreign words used */
 import axios from "axios";
 import {
   createTestApp,
@@ -13,7 +14,7 @@ import {
   deleteTestTeam,
   deleteTestUser,
 } from "helpers";
-import { cleanupTestS3Files, createTestS3Files } from "../../helpers/s3-setup";
+import { cleanupTestS3Files, createTestS3Files } from "helpers/s3-setup";
 
 describe("Hasura API - Get Image", () => {
   describe("POST /api/hasura/get-image", () => {
@@ -42,14 +43,14 @@ describe("Hasura API - Get Image", () => {
       testTeamId = await createTestTeam(testTeamName);
       testUserId = await createTestUser(
         `getimage_${Date.now()}@example.com`,
-        testTeamId!
+        testTeamId!,
       );
 
       // Create membership for user in team with OWNER role
       testMembershipId = await createTestMembership(
         testUserId!,
         testTeamId!,
-        "OWNER"
+        "OWNER",
       );
 
       // Create test app
@@ -61,7 +62,7 @@ describe("Hasura API - Get Image", () => {
         "Test App for Get Image",
         "unverified",
         ["showcase_img_1.jpg"], // Only showcase images
-        ["en", "es"] // Supported languages
+        ["en", "es"], // Supported languages
       );
       testMetadataId = metadata.id;
 
@@ -72,19 +73,19 @@ describe("Hasura API - Get Image", () => {
         "Aplicación de Prueba para Obtener Imagen",
         "App Imagen",
         "Descripción de la aplicación de prueba para obtener imagen",
-        "Descripción de la aplicación de prueba para obtener imagen en español"
+        "Descripción de la aplicación de prueba para obtener imagen en español",
       );
 
       // Create test files in S3 for both English and Spanish
       await createTestS3Files(
         process.env.ASSETS_S3_BUCKET_NAME!,
         testAppId!,
-        testFiles
+        testFiles,
       );
       await createTestS3Files(
         process.env.ASSETS_S3_BUCKET_NAME!,
         `${testAppId!}/es`,
-        testFiles
+        testFiles,
       );
     });
 
@@ -103,12 +104,12 @@ describe("Hasura API - Get Image", () => {
             "x-hasura-user-id": testUserId,
           },
         },
-        { headers }
+        { headers },
       );
 
       expect(
         response.status,
-        `Get image request resolved with a wrong code:\n${JSON.stringify(response.data, null, 2)}`
+        `Get image request resolved with a wrong code:\n${JSON.stringify(response.data, null, 2)}`,
       ).toBe(200);
       expect(response.data.url).toBeDefined();
       expect(typeof response.data.url).toBe("string");
@@ -130,12 +131,12 @@ describe("Hasura API - Get Image", () => {
             "x-hasura-user-id": testUserId,
           },
         },
-        { headers }
+        { headers },
       );
 
       expect(
         response.status,
-        `Get image request resolved with a wrong code:\n${JSON.stringify(response.data, null, 2)}`
+        `Get image request resolved with a wrong code:\n${JSON.stringify(response.data, null, 2)}`,
       ).toBe(200);
       expect(response.data.url).toBeDefined();
       expect(typeof response.data.url).toBe("string");
@@ -157,12 +158,12 @@ describe("Hasura API - Get Image", () => {
             "x-hasura-user-id": testUserId,
           },
         },
-        { headers }
+        { headers },
       );
 
       expect(
         response.status,
-        `Get image request resolved with a wrong code:\n${JSON.stringify(response.data, null, 2)}`
+        `Get image request resolved with a wrong code:\n${JSON.stringify(response.data, null, 2)}`,
       ).toBe(200);
       expect(response.data.url).toBeDefined();
       expect(typeof response.data.url).toBe("string");
@@ -187,12 +188,12 @@ describe("Hasura API - Get Image", () => {
         cleanupTestS3Files(
           process.env.ASSETS_S3_BUCKET_NAME!,
           testAppId!,
-          testFiles
+          testFiles,
         ),
         cleanupTestS3Files(
           process.env.ASSETS_S3_BUCKET_NAME!,
           `${testAppId!}/es`,
-          testFiles
+          testFiles,
         ),
       ]);
     });

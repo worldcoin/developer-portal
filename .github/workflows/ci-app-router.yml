@@ -1,7 +1,15 @@
 name: CI
 
 on:
-  - pull_request
+  pull_request:
+    paths-ignore:
+      - "README.md"
+      - "CODEOWNERS"
+      - ".github/pull_request_template.md"
+      - ".github/dependabot.yml"
+      - ".github/workflows/relyance-sci.yml"
+      - ".vscode/**"
+      - "tests/**"
 
 jobs:
   lint:
