@@ -31,7 +31,7 @@ describe("Hasura API - Invite Team Members", () => {
       testMembershipId = await createTestMembership(
         testUserId,
         testTeamId,
-        "OWNER"
+        "OWNER",
       );
     });
 
@@ -56,12 +56,12 @@ describe("Hasura API - Invite Team Members", () => {
             "x-hasura-user-id": testUserId,
           },
         },
-        { headers }
+        { headers },
       );
 
       expect(
         response.status,
-        `Invite team members request resolved with a wrong code:\n${JSON.stringify(response.data, null, 2)}`
+        `Invite team members request resolved with a wrong code:\n${JSON.stringify(response.data, null, 2)}`,
       ).toBe(200);
       expect(response.data.emails).toEqual(emailsToInvite);
     });
@@ -90,8 +90,8 @@ describe("Hasura API - Invite Team Members", () => {
               "x-hasura-user-id": testUserId,
             },
           },
-          { headers }
-        )
+          { headers },
+        ),
       ).rejects.toMatchObject({
         response: {
           status: 400,
@@ -111,7 +111,7 @@ describe("Hasura API - Invite Team Members", () => {
       // Create a user without team membership
       const unauthorizedUserId = await createTestUser(
         `unauthorized_${Date.now()}@example.com`,
-        testTeamId
+        testTeamId,
       );
 
       const emailsToInvite = ["newmember@example.com"];
@@ -132,8 +132,8 @@ describe("Hasura API - Invite Team Members", () => {
               "x-hasura-user-id": unauthorizedUserId,
             },
           },
-          { headers }
-        )
+          { headers },
+        ),
       ).rejects.toMatchObject({
         response: {
           status: 400,
@@ -168,8 +168,8 @@ describe("Hasura API - Invite Team Members", () => {
               "x-hasura-user-id": testUserId,
             },
           },
-          { headers }
-        )
+          { headers },
+        ),
       ).rejects.toMatchObject({
         response: {
           status: 400,

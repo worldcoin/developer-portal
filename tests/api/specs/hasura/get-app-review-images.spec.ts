@@ -1,3 +1,4 @@
+/* eslint-disable @cspell/spellchecker -- foreign words used */
 import axios from "axios";
 import {
   createTestApp,
@@ -40,7 +41,7 @@ describe("Hasura API - Get App Review Images", () => {
       testMembershipId = await createTestMembership(
         testUserId,
         testTeamId,
-        "OWNER"
+        "OWNER",
       );
 
       // Create test app
@@ -52,7 +53,7 @@ describe("Hasura API - Get App Review Images", () => {
         "Test App for Review Images",
         "awaiting_review",
         ["showcase1.png", "showcase2.png"], // showcase images
-        ["en", "es"] // supported languages
+        ["en", "es"], // supported languages
       );
       testMetadataId = metadata.id;
 
@@ -63,7 +64,7 @@ describe("Hasura API - Get App Review Images", () => {
         "Aplicación de Prueba para Imágenes de Revisión",
         "App Revisión",
         "Descripción de la aplicación de prueba para imágenes de revisión",
-        "Descripción de la aplicación de prueba para imágenes de revisión en español"
+        "Descripción de la aplicación de prueba para imágenes de revisión en español",
       );
     });
 
@@ -80,12 +81,12 @@ describe("Hasura API - Get App Review Images", () => {
             "x-hasura-user-id": testUserId,
           },
         },
-        { headers }
+        { headers },
       );
 
       expect(
         response.status,
-        `Get app review images request resolved with a wrong code:\n${JSON.stringify(response.data, null, 2)}`
+        `Get app review images request resolved with a wrong code:\n${JSON.stringify(response.data, null, 2)}`,
       ).toBe(200);
       expect(response.data).toBeDefined();
       expect(Array.isArray(response.data.showcase_img_urls)).toBe(true);
@@ -104,12 +105,12 @@ describe("Hasura API - Get App Review Images", () => {
             "x-hasura-user-id": testUserId,
           },
         },
-        { headers }
+        { headers },
       );
 
       expect(
         response.status,
-        `Get app review images request resolved with a wrong code:\n${JSON.stringify(response.data, null, 2)}`
+        `Get app review images request resolved with a wrong code:\n${JSON.stringify(response.data, null, 2)}`,
       ).toBe(200);
       expect(response.data).toBeDefined();
     });

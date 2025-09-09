@@ -25,7 +25,7 @@ describe.skip("Team Actions", () => {
   afterEach(async () => {
     await cleanUpFunctions.reduce<Promise<unknown>>(
       (promise, callback) => promise.then(() => callback()),
-      Promise.resolve()
+      Promise.resolve(),
     );
 
     cleanUpFunctions = [];
@@ -44,13 +44,13 @@ describe.skip("Team Actions", () => {
           Cookie: sessionCookie,
         },
         validateStatus: () => true,
-      }
+      },
     );
 
     const body = response.data;
     expect(
       response.status,
-      `Create Team response body: ${JSON.stringify(body)}`
+      `Create Team response body: ${JSON.stringify(body)}`,
     ).toBe(200);
 
     if (body.returnTo && typeof body.returnTo === "string") {

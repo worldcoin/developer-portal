@@ -10,14 +10,14 @@ export async function encrypt(
     iat: number;
     uat: number;
     exp: number;
-  }
+  },
 ) {
   const encryptionSecret = await hkdf(
     DIGEST,
     secret,
     "",
     ENCRYPTION_INFO,
-    BYTE_LENGTH
+    BYTE_LENGTH,
   );
 
   const encryptedCookie = await new EncryptJWT(payload)

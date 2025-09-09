@@ -8,7 +8,7 @@ describe("Public API Endpoints", () => {
     it("Get Apps List And Fetch Specific App Details", async () => {
       // First, get the list of public apps
       const appsResponse = await axios.get(
-        `${PUBLIC_API_URL}/api/v2/public/apps`
+        `${PUBLIC_API_URL}/api/v2/public/apps`,
       );
 
       expect(
@@ -16,8 +16,8 @@ describe("Public API Endpoints", () => {
         `Get public apps request resolved with a wrong code:\n${JSON.stringify(
           appsResponse.data,
           null,
-          2
-        )}`
+          2,
+        )}`,
       ).toBe(200);
       expect(appsResponse.data).toEqual(
         expect.objectContaining({
@@ -37,7 +37,7 @@ describe("Public API Endpoints", () => {
               icon_url: expect.stringMatching(/^https?:\/\/.*\.png$/),
             }),
           ]),
-        })
+        }),
       );
 
       // Get an app_id from the top_apps array
@@ -49,14 +49,14 @@ describe("Public API Endpoints", () => {
       expect(firstApp).toEqual(
         expect.objectContaining({
           app_id: expect.any(String),
-        })
+        }),
       );
 
       const appId = firstApp.app_id;
 
       // Now test the specific app endpoint with the obtained app_id
       const appResponse = await axios.get(
-        `${PUBLIC_API_URL}/api/v2/public/app/${appId}`
+        `${PUBLIC_API_URL}/api/v2/public/app/${appId}`,
       );
 
       expect(
@@ -64,8 +64,8 @@ describe("Public API Endpoints", () => {
         `Get specific app request resolved with a wrong code:\n${JSON.stringify(
           appResponse.data,
           null,
-          2
-        )}`
+          2,
+        )}`,
       ).toBe(200);
       expect(appResponse.data).toEqual(
         expect.objectContaining({
@@ -76,14 +76,14 @@ describe("Public API Endpoints", () => {
               overview: expect.any(String),
             }),
           }),
-        })
+        }),
       );
 
       // Check headers for specific app
       expect(appResponse.headers).toEqual(
         expect.objectContaining({
           "content-type": expect.stringContaining("application/json"),
-        })
+        }),
       );
     });
 
@@ -91,7 +91,7 @@ describe("Public API Endpoints", () => {
       const nonExistentAppId = "non_existent_app_12345";
       try {
         await axios.get(
-          `${PUBLIC_API_URL}/api/v2/public/app/${nonExistentAppId}`
+          `${PUBLIC_API_URL}/api/v2/public/app/${nonExistentAppId}`,
         );
         // If we reach here, the test should fail
         expect(true).toBe(false);
@@ -99,7 +99,7 @@ describe("Public API Endpoints", () => {
         expect(error.response).toEqual(
           expect.objectContaining({
             status: 404,
-          })
+          }),
         );
       }
     });
@@ -108,15 +108,15 @@ describe("Public API Endpoints", () => {
   it("Get App Details By App ID", async () => {
     const appId = APP_ENV === "staging" ? "grants" : "grants";
     const response = await axios.get(
-      `${PUBLIC_API_URL}/api/v2/public/app/${appId}?metadata_field=name`
+      `${PUBLIC_API_URL}/api/v2/public/app/${appId}?metadata_field=name`,
     );
     expect(
       response.status,
       `Get app details by ID request resolved with a wrong code:\n${JSON.stringify(
         response.data,
         null,
-        2
-      )}`
+        2,
+      )}`,
     ).toBe(200);
     expect(response.data).toEqual("Worldcoin");
   });
@@ -126,20 +126,20 @@ describe("Public API Endpoints", () => {
 
     // First test the full app response to see if content_card_image_url is included
     const fullAppResponse = await axios.get(
-      `${PUBLIC_API_URL}/api/v2/public/app/${appId}`
+      `${PUBLIC_API_URL}/api/v2/public/app/${appId}`,
     );
     expect(
       fullAppResponse.status,
       `Get full app data request resolved with a wrong code:\n${JSON.stringify(
         fullAppResponse.data,
         null,
-        2
-      )}`
+        2,
+      )}`,
     ).toBe(200);
 
     console.log(
       "Full app response content_card_image_url:",
-      fullAppResponse.data.app_data.content_card_image_url
+      fullAppResponse.data.app_data.content_card_image_url,
     );
 
     expect(fullAppResponse.data).toEqual(
@@ -147,20 +147,20 @@ describe("Public API Endpoints", () => {
         app_data: expect.objectContaining({
           content_card_image_url: expect.any(String),
         }),
-      })
+      }),
     );
 
     // Test that content_card_image_url field is available independently
     const contentCardResponse = await axios.get(
-      `${PUBLIC_API_URL}/api/v2/public/app/${appId}?metadata_field=content_card_image_url`
+      `${PUBLIC_API_URL}/api/v2/public/app/${appId}?metadata_field=content_card_image_url`,
     );
     expect(
       contentCardResponse.status,
       `Get content card image URL request resolved with a wrong code:\n${JSON.stringify(
         contentCardResponse.data,
         null,
-        2
-      )}`
+        2,
+      )}`,
     ).toBe(200);
 
     // The individual field should return a string (URL or empty string)
@@ -168,7 +168,7 @@ describe("Public API Endpoints", () => {
       "Individual field response:",
       contentCardResponse.data,
       "Type:",
-      typeof contentCardResponse.data
+      typeof contentCardResponse.data,
     );
     expect(typeof contentCardResponse.data).toBe("string");
   });
@@ -177,7 +177,7 @@ describe("Public API Endpoints", () => {
     it("Return Apps Matching Search Term", async () => {
       const searchTerm = "grants"; // real search term that should exist in staging
       const response = await axios.get(
-        `${PUBLIC_API_URL}/api/v2/public/apps/search/${searchTerm}`
+        `${PUBLIC_API_URL}/api/v2/public/apps/search/${searchTerm}`,
       );
 
       expect(
@@ -185,27 +185,27 @@ describe("Public API Endpoints", () => {
         `Search apps request resolved with a wrong code:\n${JSON.stringify(
           response.data,
           null,
-          2
-        )}`
+          2,
+        )}`,
       ).toBe(200);
       expect(response.data).toEqual(
         expect.objectContaining({
           app_ids: expect.arrayContaining([expect.any(String)]),
-        })
+        }),
       );
 
       // Check headers separately
       expect(response.headers).toEqual(
         expect.objectContaining({
           "content-type": expect.stringContaining("application/json"),
-        })
+        }),
       );
     });
 
     it("Return Empty Results For Non-Matching Search Term", async () => {
       const searchTerm = "non_existing_search_term_12345";
       const response = await axios.get(
-        `${PUBLIC_API_URL}/api/v2/public/apps/search/${searchTerm}`
+        `${PUBLIC_API_URL}/api/v2/public/apps/search/${searchTerm}`,
       );
 
       expect(
@@ -213,13 +213,13 @@ describe("Public API Endpoints", () => {
         `Search non-existent apps request resolved with a wrong code:\n${JSON.stringify(
           response.data,
           null,
-          2
-        )}`
+          2,
+        )}`,
       ).toBe(200);
       expect(response.data).toEqual(
         expect.objectContaining({
           app_ids: expect.any(Array),
-        })
+        }),
       );
 
       // Check that app_ids array is empty for non-matching search
@@ -229,7 +229,7 @@ describe("Public API Endpoints", () => {
       expect(response.headers).toEqual(
         expect.objectContaining({
           "content-type": expect.stringContaining("application/json"),
-        })
+        }),
       );
     });
   });

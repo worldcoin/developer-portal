@@ -37,20 +37,20 @@ describe("Hasura API - App Draft Management", () => {
       testMembershipId = await createTestMembership(
         testUserId,
         testTeamId,
-        "OWNER"
+        "OWNER",
       );
 
       // Create test app
       testAppId = await createTestApp(
         "Test App for Draft Creation",
-        testTeamId
+        testTeamId,
       );
 
       // Create verified app_metadata (required for draft creation)
       const metadata = await createTestAppMetadata(
         testAppId,
         "Test App for Draft Creation",
-        "verified" // Verified status required for draft creation
+        "verified", // Verified status required for draft creation
       );
       testMetadataId = metadata.id;
     });
@@ -71,12 +71,12 @@ describe("Hasura API - App Draft Management", () => {
             "x-hasura-user-id": testUserId,
           },
         },
-        { headers }
+        { headers },
       );
 
       expect(
         response.status,
-        `Create new draft request resolved with a wrong code:\n${JSON.stringify(response.data, null, 2)}`
+        `Create new draft request resolved with a wrong code:\n${JSON.stringify(response.data, null, 2)}`,
       ).toBe(200);
       expect(response.data.success).toBe(true);
     });

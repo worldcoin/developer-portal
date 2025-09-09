@@ -36,20 +36,20 @@ describe("Hasura API - Reset API Key", () => {
       testTeamId = await createTestTeam(testTeamName);
       testUserId = await createTestUser(
         `resetapikey_${Date.now()}@example.com`,
-        testTeamId!
+        testTeamId!,
       );
 
       // Create membership for user in team with OWNER role
       testMembershipId = await createTestMembership(
         testUserId!,
         testTeamId!,
-        "OWNER"
+        "OWNER",
       );
 
       // Create test app
       testAppId = await createTestApp(
         "Test App for Reset API Key",
-        testTeamId!
+        testTeamId!,
       );
 
       // Create test app metadata
@@ -58,14 +58,14 @@ describe("Hasura API - Reset API Key", () => {
         "Test App for Reset API Key",
         "unverified",
         ["showcase_img_1.jpg"],
-        ["en"]
+        ["en"],
       );
       testMetadataId = metadata.id;
 
       // Create test API key
       testApiKeyId = await createTestApiKey(
         testTeamId!,
-        "Test API Key for Reset"
+        "Test API Key for Reset",
       );
     });
 
@@ -85,12 +85,12 @@ describe("Hasura API - Reset API Key", () => {
             "x-hasura-user-id": testUserId,
           },
         },
-        { headers }
+        { headers },
       );
 
       expect(
         response.status,
-        `Reset API key request resolved with a wrong code:\n${JSON.stringify(response.data, null, 2)}`
+        `Reset API key request resolved with a wrong code:\n${JSON.stringify(response.data, null, 2)}`,
       ).toBe(200);
       expect(response.data.api_key).toBeDefined();
       expect(typeof response.data.api_key).toBe("string");
@@ -99,12 +99,14 @@ describe("Hasura API - Reset API Key", () => {
 
     afterAll(async () => {
       // Clean up test data
+      /* eslint-disable @typescript-eslint/no-unused-expressions */
       testApiKeyId && (await deleteTestApiKey(testApiKeyId));
       testMetadataId && (await deleteTestAppMetadata(testMetadataId));
       testAppId && (await deleteTestApp(testAppId));
       testMembershipId && (await deleteTestMembership(testMembershipId));
       testUserId && (await deleteTestUser(testUserId));
       testTeamId && (await deleteTestTeam(testTeamId));
+      /* eslint-enable @typescript-eslint/no-unused-expressions */
     });
   });
 });

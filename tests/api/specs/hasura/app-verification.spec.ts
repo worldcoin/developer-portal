@@ -7,7 +7,7 @@ import {
   deleteTestAppMetadata,
   deleteTestTeam,
 } from "helpers";
-import { cleanupTestS3Files, createTestS3Files } from "../../helpers/s3-setup";
+import { cleanupTestS3Files, createTestS3Files } from "helpers/s3-setup";
 
 // TODO: Fix S3 setup
 describe.skip("Hasura API - App Verification", () => {
@@ -31,7 +31,7 @@ describe.skip("Hasura API - App Verification", () => {
       await createTestS3Files(
         process.env.ASSETS_S3_BUCKET_NAME!,
         testAppId,
-        testFiles
+        testFiles,
       );
 
       // Create app_metadata with awaiting_review status and showcase images
@@ -39,7 +39,7 @@ describe.skip("Hasura API - App Verification", () => {
         testAppId,
         "Test App for Verification",
         "awaiting_review",
-        testFiles // Add showcase images for app store approval
+        testFiles, // Add showcase images for app store approval
       );
       testMetadataId = metadata.id;
     });
@@ -62,17 +62,17 @@ describe.skip("Hasura API - App Verification", () => {
             "x-hasura-role": "admin",
           },
         },
-        { headers }
+        { headers },
       );
 
       expect(
         response.status,
-        `Verify app request resolved with a wrong code:\n${JSON.stringify(response.data, null, 2)}`
+        `Verify app request resolved with a wrong code:\n${JSON.stringify(response.data, null, 2)}`,
       ).toBe(200);
       expect(response.data).toEqual(
         expect.objectContaining({
           success: true,
-        })
+        }),
       );
     });
 
@@ -86,7 +86,7 @@ describe.skip("Hasura API - App Verification", () => {
       await cleanupTestS3Files(
         process.env.ASSETS_S3_BUCKET_NAME!,
         testAppId,
-        testFiles
+        testFiles,
       );
     });
   });
