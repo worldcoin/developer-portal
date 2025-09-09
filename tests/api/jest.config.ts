@@ -1,15 +1,18 @@
-export default {
-  preset: 'ts-jest',
-  testEnvironment: 'node',
-  testMatch: ['<rootDir>/specs/**/*.spec.ts'],
-  setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
+import dotenv from "dotenv";
+import type { Config } from "jest";
+
+// Load environment variables for tests
+dotenv.config({ path: ".env" });
+dotenv.config({ path: ".env.development" });
+
+const config: Config = {
+  preset: "ts-jest",
+  setupFilesAfterEnv: ["jest-expect-message"],
+  testMatch: ["<rootDir>/specs/**/*.spec.ts"],
   testTimeout: 30000,
-  moduleNameMapper: {
-    '^@/(.*)$': '<rootDir>/../../web/$1'
-  },
+  moduleDirectories: ["node_modules", "<rootDir>", "<rootDir>/../../web"],
+  modulePaths: ["./"],
   verbose: true,
-  collectCoverage: false,
-  coverageDirectory: 'coverage',
-  coverageReporters: ['text', 'lcov', 'html'],
-  maxWorkers: 1
-}; 
+};
+
+export default config;

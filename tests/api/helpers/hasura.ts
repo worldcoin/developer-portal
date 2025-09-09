@@ -2,12 +2,12 @@ import { GraphQLClient } from "graphql-request";
 
 // GraphQL client with admin privileges for creating test data
 export const adminGraphqlClient = new GraphQLClient(
-  process.env.NEXT_PUBLIC_GRAPHQL_API_URL!,
+  process.env.HASURA_GRAPHQL_URL!,
   {
     headers: {
       "x-hasura-admin-secret": process.env.HASURA_GRAPHQL_ADMIN_SECRET!,
     },
-  },
+  }
 );
 
 // Simple GraphQL mutation for creating app
@@ -183,7 +183,7 @@ const DELETE_ACTION_MUTATION = `
 // Helper for creating test app
 export const createTestApp = async (name: string, teamId: string) => {
   try {
-    const response = await adminGraphqlClient.request(CREATE_APP_MUTATION, {
+    const response = (await adminGraphqlClient.request(CREATE_APP_MUTATION, {
       object: {
         name,
         team_id: teamId,
@@ -192,11 +192,12 @@ export const createTestApp = async (name: string, teamId: string) => {
         status: "active",
         // Use only required fields, others will be filled with defaults
       },
-    }) as any;
-    
+    })) as any;
+
     return response.insert_app_one?.id;
   } catch (error: any) {
-    const errorMessage = error?.response?.data?.message || error?.message || 'Unknown error';
+    const errorMessage =
+      error?.response?.data?.message || error?.message || "Unknown error";
     throw new Error(`Failed to create test app: ${errorMessage}`);
   }
 };
@@ -204,13 +205,14 @@ export const createTestApp = async (name: string, teamId: string) => {
 // Helper for getting app by ID
 export const getAppById = async (appId: string) => {
   try {
-    const response = await adminGraphqlClient.request(GET_APP_QUERY, {
+    const response = (await adminGraphqlClient.request(GET_APP_QUERY, {
       id: appId,
-    }) as any;
-    
+    })) as any;
+
     return response.app_by_pk;
   } catch (error: any) {
-    const errorMessage = error?.response?.data?.message || error?.message || 'Unknown error';
+    const errorMessage =
+      error?.response?.data?.message || error?.message || "Unknown error";
     throw new Error(`Failed to get app ${appId}: ${errorMessage}`);
   }
 };
@@ -218,15 +220,16 @@ export const getAppById = async (appId: string) => {
 // Helper for creating test team
 export const createTestTeam = async (name: string) => {
   try {
-    const response = await adminGraphqlClient.request(CREATE_TEAM_MUTATION, {
+    const response = (await adminGraphqlClient.request(CREATE_TEAM_MUTATION, {
       object: {
         name,
       },
-    }) as any;
-    
+    })) as any;
+
     return response.insert_team_one?.id;
   } catch (error: any) {
-    const errorMessage = error?.response?.data?.message || error?.message || 'Unknown error';
+    const errorMessage =
+      error?.response?.data?.message || error?.message || "Unknown error";
     throw new Error(`Failed to create test team: ${errorMessage}`);
   }
 };
@@ -234,8 +237,7 @@ export const createTestTeam = async (name: string) => {
 // Helper for creating test user
 export const createTestUser = async (email: string, teamId: string) => {
   try {
-    
-    const response = await adminGraphqlClient.request(CREATE_USER_MUTATION, {
+    const response = (await adminGraphqlClient.request(CREATE_USER_MUTATION, {
       object: {
         email,
         auth0Id: `auth0|test_${Date.now()}`,
@@ -243,11 +245,12 @@ export const createTestUser = async (email: string, teamId: string) => {
         ironclad_id: `ironclad_test_${Date.now()}`,
         world_id_nullifier: `0x${Date.now().toString(16)}`,
       },
-    }) as any;
-    
+    })) as any;
+
     return response.insert_user_one?.id;
   } catch (error: any) {
-    const errorMessage = error?.response?.data?.message || error?.message || 'Unknown error';
+    const errorMessage =
+      error?.response?.data?.message || error?.message || "Unknown error";
     throw new Error(`Failed to create test user: ${errorMessage}`);
   }
 };
@@ -255,13 +258,14 @@ export const createTestUser = async (email: string, teamId: string) => {
 // Helper for deleting test app
 export const deleteTestApp = async (appId: string) => {
   try {
-    const response = await adminGraphqlClient.request(DELETE_APP_MUTATION, {
+    const response = (await adminGraphqlClient.request(DELETE_APP_MUTATION, {
       id: appId,
-    }) as any;
-    
+    })) as any;
+
     return response.delete_app_by_pk?.id;
   } catch (error: any) {
-    const errorMessage = error?.response?.data?.message || error?.message || 'Unknown error';
+    const errorMessage =
+      error?.response?.data?.message || error?.message || "Unknown error";
     throw new Error(`Failed to delete test app ${appId}: ${errorMessage}`);
   }
 };
@@ -269,13 +273,14 @@ export const deleteTestApp = async (appId: string) => {
 // Helper for deleting test team
 export const deleteTestTeam = async (teamId: string) => {
   try {
-    const response = await adminGraphqlClient.request(DELETE_TEAM_MUTATION, {
+    const response = (await adminGraphqlClient.request(DELETE_TEAM_MUTATION, {
       id: teamId,
-    }) as any;
-    
+    })) as any;
+
     return response.delete_team_by_pk?.id;
   } catch (error: any) {
-    const errorMessage = error?.response?.data?.message || error?.message || 'Unknown error';
+    const errorMessage =
+      error?.response?.data?.message || error?.message || "Unknown error";
     throw new Error(`Failed to delete test team ${teamId}: ${errorMessage}`);
   }
 };
@@ -283,42 +288,51 @@ export const deleteTestTeam = async (teamId: string) => {
 // Helper for deleting test user
 export const deleteTestUser = async (userId: string) => {
   try {
-    const response = await adminGraphqlClient.request(DELETE_USER_MUTATION, {
+    const response = (await adminGraphqlClient.request(DELETE_USER_MUTATION, {
       id: userId,
-    }) as any;
-    
+    })) as any;
+
     return response.delete_user_by_pk?.id;
   } catch (error: any) {
-    const errorMessage = error?.response?.data?.message || error?.message || 'Unknown error';
+    const errorMessage =
+      error?.response?.data?.message || error?.message || "Unknown error";
     throw new Error(`Failed to delete test user ${userId}: ${errorMessage}`);
   }
 };
 
 // Helper for creating test app_metadata
 export const createTestAppMetadata = async (
-  appId: string, 
-  name: string, 
-  verificationStatus: 'unverified' | 'verified' | 'awaiting_review' | 'changes_requested' = 'awaiting_review',
+  appId: string,
+  name: string,
+  verificationStatus:
+    | "unverified"
+    | "verified"
+    | "awaiting_review"
+    | "changes_requested" = "awaiting_review",
   showcaseImgUrls?: string[],
   supportedLanguages?: string[]
 ) => {
   try {
-    const response = await adminGraphqlClient.request(CREATE_APP_METADATA_MUTATION, {
-      object: {
-        app_id: appId,
-        name,
-        description: 'Test app description',
-        logo_img_url: 'logo_img.png',
-        verification_status: verificationStatus,
-        ...(showcaseImgUrls && { showcase_img_urls: showcaseImgUrls }),
-        supported_languages: supportedLanguages,
-        // Use only required fields, others will be filled with defaults
-      },
-    }) as any;
-    
+    const response = (await adminGraphqlClient.request(
+      CREATE_APP_METADATA_MUTATION,
+      {
+        object: {
+          app_id: appId,
+          name,
+          description: "Test app description",
+          logo_img_url: "logo_img.png",
+          verification_status: verificationStatus,
+          ...(showcaseImgUrls && { showcase_img_urls: showcaseImgUrls }),
+          supported_languages: supportedLanguages,
+          // Use only required fields, others will be filled with defaults
+        },
+      }
+    )) as any;
+
     return response.insert_app_metadata_one;
   } catch (error: any) {
-    const errorMessage = error?.response?.data?.message || error?.message || 'Unknown error';
+    const errorMessage =
+      error?.response?.data?.message || error?.message || "Unknown error";
     throw new Error(`Failed to create test app metadata: ${errorMessage}`);
   }
 };
@@ -326,31 +340,45 @@ export const createTestAppMetadata = async (
 // Helper for deleting test app_metadata
 export const deleteTestAppMetadata = async (metadataId: string) => {
   try {
-    const response = await adminGraphqlClient.request(DELETE_APP_METADATA_MUTATION, {
-      id: metadataId,
-    }) as any;
-    
+    const response = (await adminGraphqlClient.request(
+      DELETE_APP_METADATA_MUTATION,
+      {
+        id: metadataId,
+      }
+    )) as any;
+
     return response.delete_app_metadata_by_pk?.id;
   } catch (error: any) {
-    const errorMessage = error?.response?.data?.message || error?.message || 'Unknown error';
-    throw new Error(`Failed to delete test app metadata ${metadataId}: ${errorMessage}`);
+    const errorMessage =
+      error?.response?.data?.message || error?.message || "Unknown error";
+    throw new Error(
+      `Failed to delete test app metadata ${metadataId}: ${errorMessage}`
+    );
   }
 };
 
 // Helper for creating test membership
-export const createTestMembership = async (userId: string, teamId: string, role: 'OWNER' | 'ADMIN' | 'MEMBER' = 'OWNER') => {
+export const createTestMembership = async (
+  userId: string,
+  teamId: string,
+  role: "OWNER" | "ADMIN" | "MEMBER" = "OWNER"
+) => {
   try {
-    const response = await adminGraphqlClient.request(CREATE_MEMBERSHIP_MUTATION, {
-      object: {
-        user_id: userId,
-        team_id: teamId,
-        role: role,
-      },
-    }) as any;
-    
+    const response = (await adminGraphqlClient.request(
+      CREATE_MEMBERSHIP_MUTATION,
+      {
+        object: {
+          user_id: userId,
+          team_id: teamId,
+          role: role,
+        },
+      }
+    )) as any;
+
     return response.insert_membership_one?.id;
   } catch (error: any) {
-    const errorMessage = error?.response?.data?.message || error?.message || 'Unknown error';
+    const errorMessage =
+      error?.response?.data?.message || error?.message || "Unknown error";
     throw new Error(`Failed to create test membership: ${errorMessage}`);
   }
 };
@@ -358,14 +386,20 @@ export const createTestMembership = async (userId: string, teamId: string, role:
 // Helper for deleting test membership
 export const deleteTestMembership = async (membershipId: string) => {
   try {
-    const response = await adminGraphqlClient.request(DELETE_MEMBERSHIP_MUTATION, {
-      id: membershipId,
-    }) as any;
-    
+    const response = (await adminGraphqlClient.request(
+      DELETE_MEMBERSHIP_MUTATION,
+      {
+        id: membershipId,
+      }
+    )) as any;
+
     return response.delete_membership_by_pk?.id;
   } catch (error: any) {
-    const errorMessage = error?.response?.data?.message || error?.message || 'Unknown error';
-    throw new Error(`Failed to delete test membership ${membershipId}: ${errorMessage}`);
+    const errorMessage =
+      error?.response?.data?.message || error?.message || "Unknown error";
+    throw new Error(
+      `Failed to delete test membership ${membershipId}: ${errorMessage}`
+    );
   }
 };
 
@@ -379,20 +413,24 @@ export const createTestLocalisation = async (
   worldAppDescription: string
 ) => {
   try {
-    const response = await adminGraphqlClient.request(CREATE_LOCALISATION_MUTATION, {
-      object: {
-        app_metadata_id: appMetadataId,
-        locale,
-        name,
-        short_name: shortName,
-        description,
-        world_app_description: worldAppDescription,
-      },
-    }) as any;
-    
+    const response = (await adminGraphqlClient.request(
+      CREATE_LOCALISATION_MUTATION,
+      {
+        object: {
+          app_metadata_id: appMetadataId,
+          locale,
+          name,
+          short_name: shortName,
+          description,
+          world_app_description: worldAppDescription,
+        },
+      }
+    )) as any;
+
     return response.insert_localisations_one?.id;
   } catch (error: any) {
-    const errorMessage = error?.response?.data?.message || error?.message || 'Unknown error';
+    const errorMessage =
+      error?.response?.data?.message || error?.message || "Unknown error";
     throw new Error(`Failed to create test localisation: ${errorMessage}`);
   }
 };
@@ -400,32 +438,45 @@ export const createTestLocalisation = async (
 // Helper for deleting test localisation
 export const deleteTestLocalisation = async (localisationId: string) => {
   try {
-    const response = await adminGraphqlClient.request(DELETE_LOCALISATION_MUTATION, {
-      id: localisationId,
-    }) as any;
-    
+    const response = (await adminGraphqlClient.request(
+      DELETE_LOCALISATION_MUTATION,
+      {
+        id: localisationId,
+      }
+    )) as any;
+
     return response.delete_localisations_by_pk?.id;
   } catch (error: any) {
-    const errorMessage = error?.response?.data?.message || error?.message || 'Unknown error';
-    throw new Error(`Failed to delete test localisation ${localisationId}: ${errorMessage}`);
+    const errorMessage =
+      error?.response?.data?.message || error?.message || "Unknown error";
+    throw new Error(
+      `Failed to delete test localisation ${localisationId}: ${errorMessage}`
+    );
   }
 };
 
 // Helper for creating test API key
-export const createTestApiKey = async (teamId: string, name: string = 'Test API Key') => {
+export const createTestApiKey = async (
+  teamId: string,
+  name: string = "Test API Key"
+) => {
   try {
-    const response = await adminGraphqlClient.request(CREATE_API_KEY_MUTATION, {
-      object: {
-        team_id: teamId,
-        name,
-        api_key: 'test_hashed_secret_value',
-        is_active: true,
-      },
-    }) as any;
-    
+    const response = (await adminGraphqlClient.request(
+      CREATE_API_KEY_MUTATION,
+      {
+        object: {
+          team_id: teamId,
+          name,
+          api_key: "test_hashed_secret_value",
+          is_active: true,
+        },
+      }
+    )) as any;
+
     return response.insert_api_key_one?.id;
   } catch (error: any) {
-    const errorMessage = error?.response?.data?.message || error?.message || 'Unknown error';
+    const errorMessage =
+      error?.response?.data?.message || error?.message || "Unknown error";
     throw new Error(`Failed to create test API key: ${errorMessage}`);
   }
 };
@@ -433,33 +484,44 @@ export const createTestApiKey = async (teamId: string, name: string = 'Test API 
 // Helper for deleting test API key
 export const deleteTestApiKey = async (apiKeyId: string) => {
   try {
-    const response = await adminGraphqlClient.request(DELETE_API_KEY_MUTATION, {
-      id: apiKeyId,
-    }) as any;
-    
+    const response = (await adminGraphqlClient.request(
+      DELETE_API_KEY_MUTATION,
+      {
+        id: apiKeyId,
+      }
+    )) as any;
+
     return response.delete_api_key_by_pk?.id;
   } catch (error: any) {
-    const errorMessage = error?.response?.data?.message || error?.message || 'Unknown error';
-    throw new Error(`Failed to delete test API key ${apiKeyId}: ${errorMessage}`);
+    const errorMessage =
+      error?.response?.data?.message || error?.message || "Unknown error";
+    throw new Error(
+      `Failed to delete test API key ${apiKeyId}: ${errorMessage}`
+    );
   }
 };
 
 // Helper for creating test action
-export const createTestAction = async (appId: string, actionName: string, name: string = 'Test Action') => {
+export const createTestAction = async (
+  appId: string,
+  actionName: string,
+  name: string = "Test Action"
+) => {
   try {
-    const response = await adminGraphqlClient.request(CREATE_ACTION_MUTATION, {
+    const response = (await adminGraphqlClient.request(CREATE_ACTION_MUTATION, {
       object: {
         app_id: appId,
         action: actionName,
         name,
-        description: 'Test action description',
-        external_nullifier: '', // Start with empty external_nullifier
+        description: "Test action description",
+        external_nullifier: "", // Start with empty external_nullifier
       },
-    }) as any;
-    
+    })) as any;
+
     return response.insert_action_one?.id;
   } catch (error: any) {
-    const errorMessage = error?.response?.data?.message || error?.message || 'Unknown error';
+    const errorMessage =
+      error?.response?.data?.message || error?.message || "Unknown error";
     throw new Error(`Failed to create test action: ${errorMessage}`);
   }
 };
@@ -467,13 +529,16 @@ export const createTestAction = async (appId: string, actionName: string, name: 
 // Helper for deleting test action
 export const deleteTestAction = async (actionId: string) => {
   try {
-    const response = await adminGraphqlClient.request(DELETE_ACTION_MUTATION, {
+    const response = (await adminGraphqlClient.request(DELETE_ACTION_MUTATION, {
       id: actionId,
-    }) as any;
-    
+    })) as any;
+
     return response.delete_action_by_pk?.id;
   } catch (error: any) {
-    const errorMessage = error?.response?.data?.message || error?.message || 'Unknown error';
-    throw new Error(`Failed to delete test action ${actionId}: ${errorMessage}`);
+    const errorMessage =
+      error?.response?.data?.message || error?.message || "Unknown error";
+    throw new Error(
+      `Failed to delete test action ${actionId}: ${errorMessage}`
+    );
   }
-}; 
+};

@@ -1,0 +1,15 @@
+{
+  "version": "0.2",
+  "language": "en",
+  "allowCompoundWords": true,
+  "ignorePaths": [".env", ".env.development", "package.json", "pnpm-lock.yaml"],
+  "dictionaries": [
+    "typescript",
+    "node",
+    "npm",
+    "aws",
+    "markdown",
+    "cryptocurrencies"
+  ],
+  "words": []
+}
