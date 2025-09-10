@@ -1529,8 +1529,10 @@ export type App = {
   created_at: Scalars["timestamptz"]["output"];
   deleted_at?: Maybe<Scalars["timestamptz"]["output"]>;
   description_internal: Scalars["String"]["output"];
+  dev_rewards_approved: Scalars["Boolean"]["output"];
   engine: Scalars["String"]["output"];
   first_verified_at?: Maybe<Scalars["timestamp"]["output"]>;
+  has_airdrop_component: Scalars["Boolean"]["output"];
   id: Scalars["String"]["output"];
   is_archived: Scalars["Boolean"]["output"];
   is_banned: Scalars["Boolean"]["output"];
@@ -1686,8 +1688,10 @@ export type App_Bool_Exp = {
   created_at?: InputMaybe<Timestamptz_Comparison_Exp>;
   deleted_at?: InputMaybe<Timestamptz_Comparison_Exp>;
   description_internal?: InputMaybe<String_Comparison_Exp>;
+  dev_rewards_approved?: InputMaybe<Boolean_Comparison_Exp>;
   engine?: InputMaybe<String_Comparison_Exp>;
   first_verified_at?: InputMaybe<Timestamp_Comparison_Exp>;
+  has_airdrop_component?: InputMaybe<Boolean_Comparison_Exp>;
   id?: InputMaybe<String_Comparison_Exp>;
   is_archived?: InputMaybe<Boolean_Comparison_Exp>;
   is_banned?: InputMaybe<Boolean_Comparison_Exp>;
@@ -1735,8 +1739,10 @@ export type App_Insert_Input = {
   created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
   deleted_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
   description_internal?: InputMaybe<Scalars["String"]["input"]>;
+  dev_rewards_approved?: InputMaybe<Scalars["Boolean"]["input"]>;
   engine?: InputMaybe<Scalars["String"]["input"]>;
   first_verified_at?: InputMaybe<Scalars["timestamp"]["input"]>;
+  has_airdrop_component?: InputMaybe<Scalars["Boolean"]["input"]>;
   id?: InputMaybe<Scalars["String"]["input"]>;
   is_archived?: InputMaybe<Scalars["Boolean"]["input"]>;
   is_banned?: InputMaybe<Scalars["Boolean"]["input"]>;
@@ -1807,8 +1813,6 @@ export type App_Metadata = {
   contracts?: Maybe<Array<Scalars["String"]["output"]>>;
   created_at: Scalars["timestamptz"]["output"];
   description: Scalars["String"]["output"];
-  dev_rewards_approved: Scalars["Boolean"]["output"];
-  has_airdrop_component: Scalars["Boolean"]["output"];
   hero_image_url: Scalars["String"]["output"];
   id: Scalars["String"]["output"];
   integration_url: Scalars["String"]["output"];
@@ -1972,8 +1976,6 @@ export type App_Metadata_Bool_Exp = {
   contracts?: InputMaybe<String_Array_Comparison_Exp>;
   created_at?: InputMaybe<Timestamptz_Comparison_Exp>;
   description?: InputMaybe<String_Comparison_Exp>;
-  dev_rewards_approved?: InputMaybe<Boolean_Comparison_Exp>;
-  has_airdrop_component?: InputMaybe<Boolean_Comparison_Exp>;
   hero_image_url?: InputMaybe<String_Comparison_Exp>;
   id?: InputMaybe<String_Comparison_Exp>;
   integration_url?: InputMaybe<String_Comparison_Exp>;
@@ -2035,8 +2037,6 @@ export type App_Metadata_Insert_Input = {
   contracts?: InputMaybe<Array<Scalars["String"]["input"]>>;
   created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
   description?: InputMaybe<Scalars["String"]["input"]>;
-  dev_rewards_approved?: InputMaybe<Scalars["Boolean"]["input"]>;
-  has_airdrop_component?: InputMaybe<Scalars["Boolean"]["input"]>;
   hero_image_url?: InputMaybe<Scalars["String"]["input"]>;
   id?: InputMaybe<Scalars["String"]["input"]>;
   integration_url?: InputMaybe<Scalars["String"]["input"]>;
@@ -2258,8 +2258,6 @@ export type App_Metadata_Order_By = {
   contracts?: InputMaybe<Order_By>;
   created_at?: InputMaybe<Order_By>;
   description?: InputMaybe<Order_By>;
-  dev_rewards_approved?: InputMaybe<Order_By>;
-  has_airdrop_component?: InputMaybe<Order_By>;
   hero_image_url?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   integration_url?: InputMaybe<Order_By>;
@@ -2322,10 +2320,6 @@ export enum App_Metadata_Select_Column {
   CreatedAt = "created_at",
   /** column name */
   Description = "description",
-  /** column name */
-  DevRewardsApproved = "dev_rewards_approved",
-  /** column name */
-  HasAirdropComponent = "has_airdrop_component",
   /** column name */
   HeroImageUrl = "hero_image_url",
   /** column name */
@@ -2393,10 +2387,6 @@ export enum App_Metadata_Select_Column_App_Metadata_Aggregate_Bool_Exp_Bool_And_
   /** column name */
   CanImportAllContacts = "can_import_all_contacts",
   /** column name */
-  DevRewardsApproved = "dev_rewards_approved",
-  /** column name */
-  HasAirdropComponent = "has_airdrop_component",
-  /** column name */
   IsAllowedUnlimitedNotifications = "is_allowed_unlimited_notifications",
   /** column name */
   IsAndroidOnly = "is_android_only",
@@ -2418,10 +2408,6 @@ export enum App_Metadata_Select_Column_App_Metadata_Aggregate_Bool_Exp_Bool_And_
 export enum App_Metadata_Select_Column_App_Metadata_Aggregate_Bool_Exp_Bool_Or_Arguments_Columns {
   /** column name */
   CanImportAllContacts = "can_import_all_contacts",
-  /** column name */
-  DevRewardsApproved = "dev_rewards_approved",
-  /** column name */
-  HasAirdropComponent = "has_airdrop_component",
   /** column name */
   IsAllowedUnlimitedNotifications = "is_allowed_unlimited_notifications",
   /** column name */
@@ -2453,8 +2439,6 @@ export type App_Metadata_Set_Input = {
   contracts?: InputMaybe<Array<Scalars["String"]["input"]>>;
   created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
   description?: InputMaybe<Scalars["String"]["input"]>;
-  dev_rewards_approved?: InputMaybe<Scalars["Boolean"]["input"]>;
-  has_airdrop_component?: InputMaybe<Scalars["Boolean"]["input"]>;
   hero_image_url?: InputMaybe<Scalars["String"]["input"]>;
   id?: InputMaybe<Scalars["String"]["input"]>;
   integration_url?: InputMaybe<Scalars["String"]["input"]>;
@@ -2547,8 +2531,6 @@ export type App_Metadata_Stream_Cursor_Value_Input = {
   contracts?: InputMaybe<Array<Scalars["String"]["input"]>>;
   created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
   description?: InputMaybe<Scalars["String"]["input"]>;
-  dev_rewards_approved?: InputMaybe<Scalars["Boolean"]["input"]>;
-  has_airdrop_component?: InputMaybe<Scalars["Boolean"]["input"]>;
   hero_image_url?: InputMaybe<Scalars["String"]["input"]>;
   id?: InputMaybe<Scalars["String"]["input"]>;
   integration_url?: InputMaybe<Scalars["String"]["input"]>;
@@ -2618,10 +2600,6 @@ export enum App_Metadata_Update_Column {
   CreatedAt = "created_at",
   /** column name */
   Description = "description",
-  /** column name */
-  DevRewardsApproved = "dev_rewards_approved",
-  /** column name */
-  HasAirdropComponent = "has_airdrop_component",
   /** column name */
   HeroImageUrl = "hero_image_url",
   /** column name */
@@ -2799,8 +2777,10 @@ export type App_Order_By = {
   created_at?: InputMaybe<Order_By>;
   deleted_at?: InputMaybe<Order_By>;
   description_internal?: InputMaybe<Order_By>;
+  dev_rewards_approved?: InputMaybe<Order_By>;
   engine?: InputMaybe<Order_By>;
   first_verified_at?: InputMaybe<Order_By>;
+  has_airdrop_component?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   is_archived?: InputMaybe<Order_By>;
   is_banned?: InputMaybe<Order_By>;
@@ -3732,9 +3712,13 @@ export enum App_Select_Column {
   /** column name */
   DescriptionInternal = "description_internal",
   /** column name */
+  DevRewardsApproved = "dev_rewards_approved",
+  /** column name */
   Engine = "engine",
   /** column name */
   FirstVerifiedAt = "first_verified_at",
+  /** column name */
+  HasAirdropComponent = "has_airdrop_component",
   /** column name */
   Id = "id",
   /** column name */
@@ -3764,6 +3748,10 @@ export enum App_Select_Column {
 /** select "app_aggregate_bool_exp_bool_and_arguments_columns" columns of table "app" */
 export enum App_Select_Column_App_Aggregate_Bool_Exp_Bool_And_Arguments_Columns {
   /** column name */
+  DevRewardsApproved = "dev_rewards_approved",
+  /** column name */
+  HasAirdropComponent = "has_airdrop_component",
+  /** column name */
   IsArchived = "is_archived",
   /** column name */
   IsBanned = "is_banned",
@@ -3773,6 +3761,10 @@ export enum App_Select_Column_App_Aggregate_Bool_Exp_Bool_And_Arguments_Columns 
 
 /** select "app_aggregate_bool_exp_bool_or_arguments_columns" columns of table "app" */
 export enum App_Select_Column_App_Aggregate_Bool_Exp_Bool_Or_Arguments_Columns {
+  /** column name */
+  DevRewardsApproved = "dev_rewards_approved",
+  /** column name */
+  HasAirdropComponent = "has_airdrop_component",
   /** column name */
   IsArchived = "is_archived",
   /** column name */
@@ -3786,8 +3778,10 @@ export type App_Set_Input = {
   created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
   deleted_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
   description_internal?: InputMaybe<Scalars["String"]["input"]>;
+  dev_rewards_approved?: InputMaybe<Scalars["Boolean"]["input"]>;
   engine?: InputMaybe<Scalars["String"]["input"]>;
   first_verified_at?: InputMaybe<Scalars["timestamp"]["input"]>;
+  has_airdrop_component?: InputMaybe<Scalars["Boolean"]["input"]>;
   id?: InputMaybe<Scalars["String"]["input"]>;
   is_archived?: InputMaybe<Scalars["Boolean"]["input"]>;
   is_banned?: InputMaybe<Scalars["Boolean"]["input"]>;
@@ -4101,8 +4095,10 @@ export type App_Stream_Cursor_Value_Input = {
   created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
   deleted_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
   description_internal?: InputMaybe<Scalars["String"]["input"]>;
+  dev_rewards_approved?: InputMaybe<Scalars["Boolean"]["input"]>;
   engine?: InputMaybe<Scalars["String"]["input"]>;
   first_verified_at?: InputMaybe<Scalars["timestamp"]["input"]>;
+  has_airdrop_component?: InputMaybe<Scalars["Boolean"]["input"]>;
   id?: InputMaybe<Scalars["String"]["input"]>;
   is_archived?: InputMaybe<Scalars["Boolean"]["input"]>;
   is_banned?: InputMaybe<Scalars["Boolean"]["input"]>;
@@ -4139,9 +4135,13 @@ export enum App_Update_Column {
   /** column name */
   DescriptionInternal = "description_internal",
   /** column name */
+  DevRewardsApproved = "dev_rewards_approved",
+  /** column name */
   Engine = "engine",
   /** column name */
   FirstVerifiedAt = "first_verified_at",
+  /** column name */
+  HasAirdropComponent = "has_airdrop_component",
   /** column name */
   Id = "id",
   /** column name */
