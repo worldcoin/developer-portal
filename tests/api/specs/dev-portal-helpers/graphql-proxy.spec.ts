@@ -1,12 +1,21 @@
-import axios from 'axios';
-import { createAppSession } from '../../helpers/auth0';
-import { createTestApiKey, createTestApp, createTestTeam, createTestUser, deleteTestApiKey, deleteTestApp, deleteTestTeam, deleteTestUser } from '../../helpers/hasura';
+import axios from "axios";
+import { createAppSession } from "../../helpers/auth0";
+import {
+  createTestApiKey,
+  createTestApp,
+  createTestTeam,
+  createTestUser,
+  deleteTestApiKey,
+  deleteTestApp,
+  deleteTestTeam,
+  deleteTestUser,
+} from "../../helpers/hasura";
 
 const INTERNAL_API_URL = process.env.INTERNAL_API_URL;
 const INTERNAL_ENDPOINTS_SECRET = process.env.INTERNAL_ENDPOINTS_SECRET;
 
-describe('Dev Portal Helpers API Endpoints', () => {
-  describe('POST /api/v1/graphql', () => {
+describe("Dev Portal Helpers API Endpoints", () => {
+  describe("POST /api/v1/graphql", () => {
     let cleanUpFunctions: Array<() => Promise<unknown>> = [];
 
     afterEach(async () => {
@@ -18,21 +27,24 @@ describe('Dev Portal Helpers API Endpoints', () => {
       cleanUpFunctions = [];
     });
 
-    describe('API Key Authentication', () => {
-      it('Should authenticate with API key and proxy GraphQL request', async () => {
+    describe("API Key Authentication", () => {
+      it("Should authenticate with API key and proxy GraphQL request", async () => {
         // Setup test data
-        const teamId = await createTestTeam('Test Team GraphQL');
+        const teamId = await createTestTeam("Test Team GraphQL");
         cleanUpFunctions.push(async () => await deleteTestTeam(teamId));
-        
+
         const userEmail = `testuser_${Date.now()}@example.com`;
         const userId = await createTestUser(userEmail, teamId);
         cleanUpFunctions.push(async () => await deleteTestUser(userId));
 
-        const appId = await createTestApp('Test App GraphQL', teamId);
+        const appId = await createTestApp("Test App GraphQL", teamId);
         cleanUpFunctions.push(async () => await deleteTestApp(appId));
 
         // Create API key for authentication
-        const { apiKeyId, apiKeyHeader } = await createTestApiKey(teamId, "Test Key for GraphQL");
+        const { apiKeyId, apiKeyHeader } = await createTestApiKey(
+          teamId,
+          "Test Key for GraphQL",
+        );
         cleanUpFunctions.push(async () => await deleteTestApiKey(apiKeyId));
 
         // Test GraphQL query - simple query to get teams
@@ -43,7 +55,7 @@ describe('Dev Portal Helpers API Endpoints', () => {
                 id
               }
             }
-          `
+          `,
         };
 
         const response = await axios.post(
@@ -51,22 +63,24 @@ describe('Dev Portal Helpers API Endpoints', () => {
           graphqlQuery,
           {
             headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${apiKeyHeader}`
-            }
-          }
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${apiKeyHeader}`,
+            },
+          },
         );
 
         expect(response.status).toBe(200);
-        const returnedTeamIds = response.data.data.team.map((team: any) => team.id);
+        const returnedTeamIds = response.data.data.team.map(
+          (team: any) => team.id,
+        );
         expect(returnedTeamIds).toContain(teamId);
       });
     });
 
-    describe('Auth0 Session Authentication', () => {
-      it('Should authenticate with Auth0 session cookie and proxy GraphQL request', async () => {
+    describe("Auth0 Session Authentication", () => {
+      it("Should authenticate with Auth0 session cookie and proxy GraphQL request", async () => {
         // Setup test data for Auth0 user
-        const teamId = await createTestTeam('Test Team Auth0 GraphQL');
+        const teamId = await createTestTeam("Test Team Auth0 GraphQL");
         cleanUpFunctions.push(async () => await deleteTestTeam(teamId));
 
         const userEmail = `auth0user_${Date.now()}@example.com`;
@@ -78,9 +92,9 @@ describe('Dev Portal Helpers API Endpoints', () => {
           user: {
             sub: `auth0|test_${Date.now()}`,
             hasura: {
-              id: userId
-            }
-          }
+              id: userId,
+            },
+          },
         };
 
         const sessionCookie = await createAppSession(mockAuth0Session);
@@ -96,8 +110,8 @@ describe('Dev Portal Helpers API Endpoints', () => {
             }
           `,
           variables: {
-            userId: userId
-          }
+            userId: userId,
+          },
         };
 
         const response = await axios.post(
@@ -105,18 +119,18 @@ describe('Dev Portal Helpers API Endpoints', () => {
           graphqlQuery,
           {
             headers: {
-              'Content-Type': 'application/json',
-              'Cookie': sessionCookie
-            }
-          }
+              "Content-Type": "application/json",
+              Cookie: sessionCookie,
+            },
+          },
         );
 
         expect(response.status).toBe(200);
-        expect(response.data).toHaveProperty('data');
-        expect(response.data.data).toHaveProperty('user_by_pk');
+        expect(response.data).toHaveProperty("data");
+        expect(response.data.data).toHaveProperty("user_by_pk");
         expect(response.data.data.user_by_pk).toMatchObject({
           id: userId,
-          email: userEmail
+          email: userEmail,
         });
       });
     });
