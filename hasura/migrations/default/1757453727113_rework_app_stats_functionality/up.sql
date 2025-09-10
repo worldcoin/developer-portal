@@ -30,8 +30,8 @@ CREATE TABLE IF NOT EXISTS public.nullifier_uses_seen (
 );
 
 -- 4) Helpful indexes for the rollup
-CREATE INDEX IF NOT EXISTS idx_nullifier_action_id  ON public.nullifier (action_id);
-CREATE INDEX IF NOT EXISTS idx_nullifier_updated_at ON public.nullifier (updated_at);
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_nullifier_action_id  ON public.nullifier (action_id);
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_nullifier_updated_at ON public.nullifier (updated_at);
 
 -- 5) Rollup function: attributes ALL deltas to day(updated_at)
 CREATE OR REPLACE FUNCTION public.rollup_app_stats(
@@ -70,7 +70,7 @@ BEGIN
       c.action_id,
       c.updated_at,
       c.uses,
-      GREATEST(c.uses - COALESCE(c.last_seen_uses, 0), 0)::BIGINT AS delta_uses
+      (c.uses - COALESCE(c.last_seen_uses, 0))::BIGINT AS delta_uses
     FROM candidates c
     WHERE c.uses > COALESCE(c.last_seen_uses, 0)
   ),
@@ -130,13 +130,3 @@ BEGIN
   SELECT * FROM upsert_stats;
 END;
 $$;
-
--- 6) ONE-TIME SEED (inline)
---    This captures current "uses" so the first cron run starts from now.
---    If you plan to backfill history, COMMENT OUT this block before applying.
-INSERT INTO public.nullifier_uses_seen (nullifier_hash, last_seen_uses, last_seen_at)
-SELECT n.nullifier_hash, n.uses, now()
-FROM public.nullifier n
-ON CONFLICT (nullifier_hash) DO UPDATE
-  SET last_seen_uses = EXCLUDED.last_seen_uses,
-      last_seen_at   = EXCLUDED.last_seen_at;
