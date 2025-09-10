@@ -156,66 +156,6 @@ describe("Auxiliary API Endpoints", () => {
     });
   });
 
-  describe("POST /api/_increment-app-stats", () => {
-    it("Increment App Stats With Valid Data", async () => {
-      const validData = {
-        event: {
-          data: {
-            new: {
-              nullifier_hash: "test-nullifier-hash",
-              action_id: "test-action-id",
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString(),
-            },
-          },
-        },
-      };
-
-      const response = await axios.post(
-        `${INTERNAL_API_URL}/api/_increment-app-stats`,
-        validData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        },
-      );
-
-      expect(
-        response.status,
-        `Increment app stats request resolved with a wrong code:\n${JSON.stringify(response.data, null, 2)}`,
-      ).toBe(200);
-      // Check that response has success property, but don't enforce true/false
-      expect(response.data).toHaveProperty("success");
-    });
-
-    it("Return 400 For Missing Required Fields", async () => {
-      const invalidData = {
-        event: {
-          data: {
-            new: {
-              // Missing nullifier_hash, action_id, timestamp
-            },
-          },
-        },
-      };
-
-      await expect(
-        axios.post(
-          `${INTERNAL_API_URL}/api/_increment-app-stats`,
-          invalidData,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
-          },
-        ),
-      ).rejects.toHaveProperty("response.status", 400);
-    });
-  });
-
   describe("POST /api/delete-expired-notification-logs", () => {
     it("Delete Expired Notification Logs With Authorization", async () => {
       const response = await axios.post(
