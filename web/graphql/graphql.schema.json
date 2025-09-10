@@ -11468,6 +11468,22 @@
             "deprecationReason": null
           },
           {
+            "name": "dev_rewards_approved",
+            "description": null,
+            "args": [],
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "SCALAR",
+                "name": "Boolean",
+                "ofType": null
+              }
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "engine",
             "description": null,
             "args": [],
@@ -11491,6 +11507,22 @@
               "kind": "SCALAR",
               "name": "timestamp",
               "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "has_airdrop_component",
+            "description": null,
+            "args": [],
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "SCALAR",
+                "name": "Boolean",
+                "ofType": null
+              }
             },
             "isDeprecated": false,
             "deprecationReason": null
@@ -12587,6 +12619,18 @@
             "deprecationReason": null
           },
           {
+            "name": "dev_rewards_approved",
+            "description": null,
+            "type": {
+              "kind": "INPUT_OBJECT",
+              "name": "Boolean_comparison_exp",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "engine",
             "description": null,
             "type": {
@@ -12604,6 +12648,18 @@
             "type": {
               "kind": "INPUT_OBJECT",
               "name": "timestamp_comparison_exp",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "has_airdrop_component",
+            "description": null,
+            "type": {
+              "kind": "INPUT_OBJECT",
+              "name": "Boolean_comparison_exp",
               "ofType": null
             },
             "defaultValue": null,
@@ -13932,6 +13988,18 @@
             "deprecationReason": null
           },
           {
+            "name": "dev_rewards_approved",
+            "description": null,
+            "type": {
+              "kind": "SCALAR",
+              "name": "Boolean",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "engine",
             "description": null,
             "type": {
@@ -13949,6 +14017,18 @@
             "type": {
               "kind": "SCALAR",
               "name": "timestamp",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "has_airdrop_component",
+            "description": null,
+            "type": {
+              "kind": "SCALAR",
+              "name": "Boolean",
               "ofType": null
             },
             "defaultValue": null,
@@ -14681,38 +14761,6 @@
               "ofType": {
                 "kind": "SCALAR",
                 "name": "String",
-                "ofType": null
-              }
-            },
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
-            "name": "dev_rewards_approved",
-            "description": null,
-            "args": [],
-            "type": {
-              "kind": "NON_NULL",
-              "name": null,
-              "ofType": {
-                "kind": "SCALAR",
-                "name": "Boolean",
-                "ofType": null
-              }
-            },
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
-            "name": "has_airdrop_component",
-            "description": null,
-            "args": [],
-            "type": {
-              "kind": "NON_NULL",
-              "name": null,
-              "ofType": {
-                "kind": "SCALAR",
-                "name": "Boolean",
                 "ofType": null
               }
             },
@@ -16349,30 +16397,6 @@
             "deprecationReason": null
           },
           {
-            "name": "dev_rewards_approved",
-            "description": null,
-            "type": {
-              "kind": "INPUT_OBJECT",
-              "name": "Boolean_comparison_exp",
-              "ofType": null
-            },
-            "defaultValue": null,
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
-            "name": "has_airdrop_component",
-            "description": null,
-            "type": {
-              "kind": "INPUT_OBJECT",
-              "name": "Boolean_comparison_exp",
-              "ofType": null
-            },
-            "defaultValue": null,
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
             "name": "hero_image_url",
             "description": null,
             "type": {
@@ -16967,30 +16991,6 @@
             "type": {
               "kind": "SCALAR",
               "name": "String",
-              "ofType": null
-            },
-            "defaultValue": null,
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
-            "name": "dev_rewards_approved",
-            "description": null,
-            "type": {
-              "kind": "SCALAR",
-              "name": "Boolean",
-              "ofType": null
-            },
-            "defaultValue": null,
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
-            "name": "has_airdrop_component",
-            "description": null,
-            "type": {
-              "kind": "SCALAR",
-              "name": "Boolean",
               "ofType": null
             },
             "defaultValue": null,
@@ -19446,30 +19446,6 @@
             "deprecationReason": null
           },
           {
-            "name": "dev_rewards_approved",
-            "description": null,
-            "type": {
-              "kind": "ENUM",
-              "name": "order_by",
-              "ofType": null
-            },
-            "defaultValue": null,
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
-            "name": "has_airdrop_component",
-            "description": null,
-            "type": {
-              "kind": "ENUM",
-              "name": "order_by",
-              "ofType": null
-            },
-            "defaultValue": null,
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
             "name": "hero_image_url",
             "description": null,
             "type": {
@@ -19948,18 +19924,6 @@
             "deprecationReason": null
           },
           {
-            "name": "dev_rewards_approved",
-            "description": "column name",
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
-            "name": "has_airdrop_component",
-            "description": "column name",
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
             "name": "hero_image_url",
             "description": "column name",
             "isDeprecated": false,
@@ -20157,18 +20121,6 @@
             "deprecationReason": null
           },
           {
-            "name": "dev_rewards_approved",
-            "description": "column name",
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
-            "name": "has_airdrop_component",
-            "description": "column name",
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
             "name": "is_allowed_unlimited_notifications",
             "description": "column name",
             "isDeprecated": false,
@@ -20229,18 +20181,6 @@
         "enumValues": [
           {
             "name": "can_import_all_contacts",
-            "description": "column name",
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
-            "name": "dev_rewards_approved",
-            "description": "column name",
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
-            "name": "has_airdrop_component",
             "description": "column name",
             "isDeprecated": false,
             "deprecationReason": null
@@ -20444,30 +20384,6 @@
             "type": {
               "kind": "SCALAR",
               "name": "String",
-              "ofType": null
-            },
-            "defaultValue": null,
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
-            "name": "dev_rewards_approved",
-            "description": null,
-            "type": {
-              "kind": "SCALAR",
-              "name": "Boolean",
-              "ofType": null
-            },
-            "defaultValue": null,
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
-            "name": "has_airdrop_component",
-            "description": null,
-            "type": {
-              "kind": "SCALAR",
-              "name": "Boolean",
               "ofType": null
             },
             "defaultValue": null,
@@ -21247,30 +21163,6 @@
             "deprecationReason": null
           },
           {
-            "name": "dev_rewards_approved",
-            "description": null,
-            "type": {
-              "kind": "SCALAR",
-              "name": "Boolean",
-              "ofType": null
-            },
-            "defaultValue": null,
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
-            "name": "has_airdrop_component",
-            "description": null,
-            "type": {
-              "kind": "SCALAR",
-              "name": "Boolean",
-              "ofType": null
-            },
-            "defaultValue": null,
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
             "name": "hero_image_url",
             "description": null,
             "type": {
@@ -21803,18 +21695,6 @@
           },
           {
             "name": "description",
-            "description": "column name",
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
-            "name": "dev_rewards_approved",
-            "description": "column name",
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
-            "name": "has_airdrop_component",
             "description": "column name",
             "isDeprecated": false,
             "deprecationReason": null
@@ -22805,6 +22685,18 @@
             "deprecationReason": null
           },
           {
+            "name": "dev_rewards_approved",
+            "description": null,
+            "type": {
+              "kind": "ENUM",
+              "name": "order_by",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "engine",
             "description": null,
             "type": {
@@ -22818,6 +22710,18 @@
           },
           {
             "name": "first_verified_at",
+            "description": null,
+            "type": {
+              "kind": "ENUM",
+              "name": "order_by",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "has_airdrop_component",
             "description": null,
             "type": {
               "kind": "ENUM",
@@ -29105,6 +29009,12 @@
             "deprecationReason": null
           },
           {
+            "name": "dev_rewards_approved",
+            "description": "column name",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "engine",
             "description": "column name",
             "isDeprecated": false,
@@ -29112,6 +29022,12 @@
           },
           {
             "name": "first_verified_at",
+            "description": "column name",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "has_airdrop_component",
             "description": "column name",
             "isDeprecated": false,
             "deprecationReason": null
@@ -29200,6 +29116,18 @@
         "interfaces": null,
         "enumValues": [
           {
+            "name": "dev_rewards_approved",
+            "description": "column name",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "has_airdrop_component",
+            "description": "column name",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "is_archived",
             "description": "column name",
             "isDeprecated": false,
@@ -29228,6 +29156,18 @@
         "inputFields": null,
         "interfaces": null,
         "enumValues": [
+          {
+            "name": "dev_rewards_approved",
+            "description": "column name",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "has_airdrop_component",
+            "description": "column name",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
           {
             "name": "is_archived",
             "description": "column name",
@@ -29292,6 +29232,18 @@
             "deprecationReason": null
           },
           {
+            "name": "dev_rewards_approved",
+            "description": null,
+            "type": {
+              "kind": "SCALAR",
+              "name": "Boolean",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "engine",
             "description": null,
             "type": {
@@ -29309,6 +29261,18 @@
             "type": {
               "kind": "SCALAR",
               "name": "timestamp",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "has_airdrop_component",
+            "description": null,
+            "type": {
+              "kind": "SCALAR",
+              "name": "Boolean",
               "ofType": null
             },
             "defaultValue": null,
@@ -31224,6 +31188,18 @@
             "deprecationReason": null
           },
           {
+            "name": "dev_rewards_approved",
+            "description": null,
+            "type": {
+              "kind": "SCALAR",
+              "name": "Boolean",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "engine",
             "description": null,
             "type": {
@@ -31241,6 +31217,18 @@
             "type": {
               "kind": "SCALAR",
               "name": "timestamp",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "has_airdrop_component",
+            "description": null,
+            "type": {
+              "kind": "SCALAR",
+              "name": "Boolean",
               "ofType": null
             },
             "defaultValue": null,
@@ -31493,6 +31481,12 @@
             "deprecationReason": null
           },
           {
+            "name": "dev_rewards_approved",
+            "description": "column name",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "engine",
             "description": "column name",
             "isDeprecated": false,
@@ -31500,6 +31494,12 @@
           },
           {
             "name": "first_verified_at",
+            "description": "column name",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "has_airdrop_component",
             "description": "column name",
             "isDeprecated": false,
             "deprecationReason": null

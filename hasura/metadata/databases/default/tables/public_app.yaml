@@ -74,7 +74,9 @@ select_permissions:
     permission:
       columns:
         - deleted_at
+        - dev_rewards_approved
         - first_verified_at
+        - has_airdrop_component
         - id
         - is_banned
       filter:
@@ -130,7 +132,9 @@ update_permissions:
   - role: reviewer
     permission:
       columns:
+        - dev_rewards_approved
         - first_verified_at
+        - has_airdrop_component
         - is_banned
       filter: {}
       check:
