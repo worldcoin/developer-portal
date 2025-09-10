@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { createAppSession } from '../../helpers/auth0';
-import { createTestApiKeyWithCredentials, createTestApp, createTestTeam, createTestUser, deleteTestApiKey, deleteTestApp, deleteTestTeam, deleteTestUser } from '../../helpers/hasura';
+import { createTestApiKey, createTestApp, createTestTeam, createTestUser, deleteTestApiKey, deleteTestApp, deleteTestTeam, deleteTestUser } from '../../helpers/hasura';
 
 const INTERNAL_API_URL = process.env.INTERNAL_API_URL;
 const INTERNAL_ENDPOINTS_SECRET = process.env.INTERNAL_ENDPOINTS_SECRET;
@@ -32,7 +32,7 @@ describe('Dev Portal Helpers API Endpoints', () => {
         cleanUpFunctions.push(async () => await deleteTestApp(appId));
 
         // Create API key for authentication
-        const { apiKeyId, apiKeyHeader } = await createTestApiKeyWithCredentials(teamId, "Test Key for GraphQL");
+        const { apiKeyId, apiKeyHeader } = await createTestApiKey(teamId, "Test Key for GraphQL");
         cleanUpFunctions.push(async () => await deleteTestApiKey(apiKeyId));
 
         // Test GraphQL query - simple query to get teams

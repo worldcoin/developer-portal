@@ -63,10 +63,11 @@ describe("Hasura API - Reset API Key", () => {
       testMetadataId = metadata.id;
 
       // Create test API key
-      testApiKeyId = await createTestApiKey(
+      const apiKeyData = await createTestApiKey(
         testTeamId!,
         "Test API Key for Reset"
       );
+      testApiKeyId = apiKeyData.apiKeyId;
     });
 
     it("Reset API Key Successfully", async () => {

@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { createTestApiKeyWithCredentials, createTestApp, createTestTeam, createTestUser, deleteTestApiKey, deleteTestApp, deleteTestTeam, deleteTestUser } from '../../helpers/hasura';
+import { createTestApiKey, createTestApp, createTestTeam, createTestUser, deleteTestApiKey, deleteTestApp, deleteTestTeam, deleteTestUser } from '../../helpers/hasura';
 
 const INTERNAL_API_URL = process.env.INTERNAL_API_URL;
 
@@ -29,7 +29,7 @@ describe('Dev Portal Helpers API Endpoints', () => {
       cleanUpFunctions.push(async () => await deleteTestApp(appId));
 
       // Create API key for authentication
-      const { apiKeyId, apiKeyHeader } = await createTestApiKeyWithCredentials(teamId, "Test Key for Create Action");
+      const { apiKeyId, apiKeyHeader } = await createTestApiKey(teamId, "Test Key for Create Action");
       cleanUpFunctions.push(async () => await deleteTestApiKey(apiKeyId));
 
       // Test data

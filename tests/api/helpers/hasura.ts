@@ -455,54 +455,8 @@ export const deleteTestLocalisation = async (localisationId: string) => {
   }
 };
 
-// Helper for creating test API key
-export const createTestApiKey = async (
-  teamId: string,
-  name: string = "Test API Key"
-) => {
-  try {
-    const response = (await adminGraphqlClient.request(
-      CREATE_API_KEY_MUTATION,
-      {
-        object: {
-          team_id: teamId,
-          name,
-          api_key: "test_hashed_secret_value",
-          is_active: true,
-        },
-      }
-    )) as any;
-
-    return response.insert_api_key_one?.id;
-  } catch (error: any) {
-    const errorMessage =
-      error?.response?.data?.message || error?.message || "Unknown error";
-    throw new Error(`Failed to create test API key: ${errorMessage}`);
-  }
-};
-
-// Helper for deleting test API key
-export const deleteTestApiKey = async (apiKeyId: string) => {
-  try {
-    const response = (await adminGraphqlClient.request(
-      DELETE_API_KEY_MUTATION,
-      {
-        id: apiKeyId,
-      }
-    )) as any;
-
-    return response.delete_api_key_by_pk?.id;
-  } catch (error: any) {
-    const errorMessage =
-      error?.response?.data?.message || error?.message || "Unknown error";
-    throw new Error(
-      `Failed to delete test API key ${apiKeyId}: ${errorMessage}`
-    );
-  }
-};
-
-// Enhanced version of createTestApiKey that generates real credentials for HTTP auth
-export const createTestApiKeyWithCredentials = async (teamId: string, name: string = "Test API Key") => {
+// Helper for creating test API key with real credentials for HTTP auth
+export const createTestApiKey = async (teamId: string, name: string = "Test API Key") => {
   const GENERAL_SECRET_KEY = process.env.GENERAL_SECRET_KEY;
   if (!GENERAL_SECRET_KEY) {
     throw new Error("GENERAL_SECRET_KEY env var must be set for tests");
@@ -553,6 +507,26 @@ export const createTestApiKeyWithCredentials = async (teamId: string, name: stri
     secret,
     apiKeyHeader
   };
+};
+
+// Helper for deleting test API key
+export const deleteTestApiKey = async (apiKeyId: string) => {
+  try {
+    const response = (await adminGraphqlClient.request(
+      DELETE_API_KEY_MUTATION,
+      {
+        id: apiKeyId,
+      }
+    )) as any;
+
+    return response.delete_api_key_by_pk?.id;
+  } catch (error: any) {
+    const errorMessage =
+      error?.response?.data?.message || error?.message || "Unknown error";
+    throw new Error(
+      `Failed to delete test API key ${apiKeyId}: ${errorMessage}`
+    );
+  }
 };
 
 // Helper for creating test action
