@@ -9,7 +9,7 @@ ALTER TABLE public.app_stats
   ALTER COLUMN verifications TYPE BIGINT USING verifications::BIGINT,
   ALTER COLUMN unique_users  TYPE BIGINT USING unique_users::BIGINT;
 
--- 2) Per-day unique-user dedupe table
+-- 3) Per-day unique-user dedupe table
 CREATE TABLE IF NOT EXISTS public.app_daily_users (
   app_id         TEXT NOT NULL,
   date           DATE NOT NULL,
@@ -22,16 +22,12 @@ CREATE TABLE IF NOT EXISTS public.app_daily_users (
 CREATE INDEX IF NOT EXISTS idx_app_daily_users_app_date
   ON public.app_daily_users (app_id, date);
 
--- 3) Last-seen snapshot per nullifier (so we apply only deltas)
+-- 4) Last-seen snapshot per nullifier (so we apply only deltas)
 CREATE TABLE IF NOT EXISTS public.nullifier_uses_seen (
   nullifier_hash  TEXT PRIMARY KEY,
   last_seen_uses  INTEGER NOT NULL,
   last_seen_at    TIMESTAMPTZ NOT NULL DEFAULT now()
 );
-
--- 4) Helpful indexes for the rollup
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_nullifier_action_id  ON public.nullifier (action_id);
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_nullifier_updated_at ON public.nullifier (updated_at);
 
 -- 5) Rollup function: attributes ALL deltas to day(updated_at)
 CREATE OR REPLACE FUNCTION public.rollup_app_stats(
