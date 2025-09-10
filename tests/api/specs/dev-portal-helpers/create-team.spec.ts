@@ -1,11 +1,11 @@
 import axios from "axios";
-import { createAppSession } from "../../helpers/auth0";
 import {
   createTestTeam,
   createTestUser,
   deleteTestTeam,
   deleteTestUser,
-} from "../../helpers/hasura";
+} from "helpers";
+import { createAppSession } from "helpers/auth0";
 
 const INTERNAL_API_URL = process.env.INTERNAL_API_URL;
 

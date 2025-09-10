@@ -1,15 +1,15 @@
 import axios from "axios";
-import { createAppSession } from "../../helpers/auth0";
 import {
-  createTestApiKey,
-  createTestApp,
-  createTestTeam,
-  createTestUser,
-  deleteTestApiKey,
-  deleteTestApp,
-  deleteTestTeam,
-  deleteTestUser,
-} from "../../helpers/hasura";
+    createTestApiKey,
+    createTestApp,
+    createTestTeam,
+    createTestUser,
+    deleteTestApiKey,
+    deleteTestApp,
+    deleteTestTeam,
+    deleteTestUser,
+} from "helpers";
+import { createAppSession } from "helpers/auth0";
 
 const INTERNAL_API_URL = process.env.INTERNAL_API_URL;
 const INTERNAL_ENDPOINTS_SECRET = process.env.INTERNAL_ENDPOINTS_SECRET;

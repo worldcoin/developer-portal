@@ -8,7 +8,7 @@ import {
   deleteTestApp,
   deleteTestTeam,
   deleteTestUser,
-} from "../../helpers/hasura";
+} from "helpers";
 
 const INTERNAL_API_URL = process.env.INTERNAL_API_URL;
 
