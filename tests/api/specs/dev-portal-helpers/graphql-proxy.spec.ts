@@ -1,13 +1,13 @@
 import axios from "axios";
 import {
-    createTestApiKey,
-    createTestApp,
-    createTestTeam,
-    createTestUser,
-    deleteTestApiKey,
-    deleteTestApp,
-    deleteTestTeam,
-    deleteTestUser,
+  createTestApiKey,
+  createTestApp,
+  createTestTeam,
+  createTestUser,
+  deleteTestApiKey,
+  deleteTestApp,
+  deleteTestTeam,
+  deleteTestUser,
 } from "helpers";
 import { createAppSession } from "helpers/auth0";
 
