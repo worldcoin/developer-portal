@@ -1,0 +1,3 @@
+table:
+  name: nullifier_uses_seen
+  schema: public

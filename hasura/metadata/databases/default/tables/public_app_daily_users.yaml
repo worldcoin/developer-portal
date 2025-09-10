@@ -1,0 +1,3 @@
+table:
+  name: app_daily_users
+  schema: public

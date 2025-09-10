@@ -27,6 +27,7 @@ export type Scalars = {
   Int: { input: number; output: number };
   Float: { input: number; output: number };
   app_flow_on_complete_enum: { input: unknown; output: unknown };
+  bigint: { input: number; output: number };
   date: { input: string; output: string };
   illegal_content_sub_category_enum: { input: unknown; output: unknown };
   jsonb: { input: any; output: any };
@@ -1712,6 +1713,153 @@ export enum App_Constraint {
   /** unique or primary key constraint on columns "id" */
   AppPkey = "app_pkey",
 }
+
+/** columns and relationships of "app_daily_users" */
+export type App_Daily_Users = {
+  __typename?: "app_daily_users";
+  app_id: Scalars["String"]["output"];
+  date: Scalars["date"]["output"];
+  nullifier_hash: Scalars["String"]["output"];
+};
+
+/** aggregated selection of "app_daily_users" */
+export type App_Daily_Users_Aggregate = {
+  __typename?: "app_daily_users_aggregate";
+  aggregate?: Maybe<App_Daily_Users_Aggregate_Fields>;
+  nodes: Array<App_Daily_Users>;
+};
+
+/** aggregate fields of "app_daily_users" */
+export type App_Daily_Users_Aggregate_Fields = {
+  __typename?: "app_daily_users_aggregate_fields";
+  count: Scalars["Int"]["output"];
+  max?: Maybe<App_Daily_Users_Max_Fields>;
+  min?: Maybe<App_Daily_Users_Min_Fields>;
+};
+
+/** aggregate fields of "app_daily_users" */
+export type App_Daily_Users_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<App_Daily_Users_Select_Column>>;
+  distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
+};
+
+/** Boolean expression to filter rows from the table "app_daily_users". All fields are combined with a logical 'AND'. */
+export type App_Daily_Users_Bool_Exp = {
+  _and?: InputMaybe<Array<App_Daily_Users_Bool_Exp>>;
+  _not?: InputMaybe<App_Daily_Users_Bool_Exp>;
+  _or?: InputMaybe<Array<App_Daily_Users_Bool_Exp>>;
+  app_id?: InputMaybe<String_Comparison_Exp>;
+  date?: InputMaybe<Date_Comparison_Exp>;
+  nullifier_hash?: InputMaybe<String_Comparison_Exp>;
+};
+
+/** unique or primary key constraints on table "app_daily_users" */
+export enum App_Daily_Users_Constraint {
+  /** unique or primary key constraint on columns "date", "app_id", "nullifier_hash" */
+  AppDailyUsersPkey = "app_daily_users_pkey",
+}
+
+/** input type for inserting data into table "app_daily_users" */
+export type App_Daily_Users_Insert_Input = {
+  app_id?: InputMaybe<Scalars["String"]["input"]>;
+  date?: InputMaybe<Scalars["date"]["input"]>;
+  nullifier_hash?: InputMaybe<Scalars["String"]["input"]>;
+};
+
+/** aggregate max on columns */
+export type App_Daily_Users_Max_Fields = {
+  __typename?: "app_daily_users_max_fields";
+  app_id?: Maybe<Scalars["String"]["output"]>;
+  date?: Maybe<Scalars["date"]["output"]>;
+  nullifier_hash?: Maybe<Scalars["String"]["output"]>;
+};
+
+/** aggregate min on columns */
+export type App_Daily_Users_Min_Fields = {
+  __typename?: "app_daily_users_min_fields";
+  app_id?: Maybe<Scalars["String"]["output"]>;
+  date?: Maybe<Scalars["date"]["output"]>;
+  nullifier_hash?: Maybe<Scalars["String"]["output"]>;
+};
+
+/** response of any mutation on the table "app_daily_users" */
+export type App_Daily_Users_Mutation_Response = {
+  __typename?: "app_daily_users_mutation_response";
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars["Int"]["output"];
+  /** data from the rows affected by the mutation */
+  returning: Array<App_Daily_Users>;
+};
+
+/** on_conflict condition type for table "app_daily_users" */
+export type App_Daily_Users_On_Conflict = {
+  constraint: App_Daily_Users_Constraint;
+  update_columns?: Array<App_Daily_Users_Update_Column>;
+  where?: InputMaybe<App_Daily_Users_Bool_Exp>;
+};
+
+/** Ordering options when selecting data from "app_daily_users". */
+export type App_Daily_Users_Order_By = {
+  app_id?: InputMaybe<Order_By>;
+  date?: InputMaybe<Order_By>;
+  nullifier_hash?: InputMaybe<Order_By>;
+};
+
+/** primary key columns input for table: app_daily_users */
+export type App_Daily_Users_Pk_Columns_Input = {
+  app_id: Scalars["String"]["input"];
+  date: Scalars["date"]["input"];
+  nullifier_hash: Scalars["String"]["input"];
+};
+
+/** select columns of table "app_daily_users" */
+export enum App_Daily_Users_Select_Column {
+  /** column name */
+  AppId = "app_id",
+  /** column name */
+  Date = "date",
+  /** column name */
+  NullifierHash = "nullifier_hash",
+}
+
+/** input type for updating data in table "app_daily_users" */
+export type App_Daily_Users_Set_Input = {
+  app_id?: InputMaybe<Scalars["String"]["input"]>;
+  date?: InputMaybe<Scalars["date"]["input"]>;
+  nullifier_hash?: InputMaybe<Scalars["String"]["input"]>;
+};
+
+/** Streaming cursor of the table "app_daily_users" */
+export type App_Daily_Users_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: App_Daily_Users_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type App_Daily_Users_Stream_Cursor_Value_Input = {
+  app_id?: InputMaybe<Scalars["String"]["input"]>;
+  date?: InputMaybe<Scalars["date"]["input"]>;
+  nullifier_hash?: InputMaybe<Scalars["String"]["input"]>;
+};
+
+/** update columns of table "app_daily_users" */
+export enum App_Daily_Users_Update_Column {
+  /** column name */
+  AppId = "app_id",
+  /** column name */
+  Date = "date",
+  /** column name */
+  NullifierHash = "nullifier_hash",
+}
+
+export type App_Daily_Users_Updates = {
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<App_Daily_Users_Set_Input>;
+  /** filter the rows which have to be updated */
+  where: App_Daily_Users_Bool_Exp;
+};
 
 /** Boolean expression to compare columns of type "app_flow_on_complete_enum". All fields are combined with logical 'AND'. */
 export type App_Flow_On_Complete_Enum_Comparison_Exp = {
@@ -3803,9 +3951,8 @@ export type App_Stats = {
   app: App;
   app_id: Scalars["String"]["output"];
   date: Scalars["date"]["output"];
-  nullifier_hashes: Array<Scalars["String"]["output"]>;
-  unique_users: Scalars["Int"]["output"];
-  verifications: Scalars["Int"]["output"];
+  unique_users: Scalars["bigint"]["output"];
+  verifications: Scalars["bigint"]["output"];
 };
 
 /** aggregated selection of "app_stats" */
@@ -3852,9 +3999,8 @@ export type App_Stats_Bool_Exp = {
   app?: InputMaybe<App_Bool_Exp>;
   app_id?: InputMaybe<String_Comparison_Exp>;
   date?: InputMaybe<Date_Comparison_Exp>;
-  nullifier_hashes?: InputMaybe<String_Array_Comparison_Exp>;
-  unique_users?: InputMaybe<Int_Comparison_Exp>;
-  verifications?: InputMaybe<Int_Comparison_Exp>;
+  unique_users?: InputMaybe<Bigint_Comparison_Exp>;
+  verifications?: InputMaybe<Bigint_Comparison_Exp>;
 };
 
 /** unique or primary key constraints on table "app_stats" */
@@ -3865,8 +4011,8 @@ export enum App_Stats_Constraint {
 
 /** input type for incrementing numeric columns in table "app_stats" */
 export type App_Stats_Inc_Input = {
-  unique_users?: InputMaybe<Scalars["Int"]["input"]>;
-  verifications?: InputMaybe<Scalars["Int"]["input"]>;
+  unique_users?: InputMaybe<Scalars["bigint"]["input"]>;
+  verifications?: InputMaybe<Scalars["bigint"]["input"]>;
 };
 
 /** input type for inserting data into table "app_stats" */
@@ -3874,9 +4020,8 @@ export type App_Stats_Insert_Input = {
   app?: InputMaybe<App_Obj_Rel_Insert_Input>;
   app_id?: InputMaybe<Scalars["String"]["input"]>;
   date?: InputMaybe<Scalars["date"]["input"]>;
-  nullifier_hashes?: InputMaybe<Array<Scalars["String"]["input"]>>;
-  unique_users?: InputMaybe<Scalars["Int"]["input"]>;
-  verifications?: InputMaybe<Scalars["Int"]["input"]>;
+  unique_users?: InputMaybe<Scalars["bigint"]["input"]>;
+  verifications?: InputMaybe<Scalars["bigint"]["input"]>;
 };
 
 /** aggregate max on columns */
@@ -3884,9 +4029,8 @@ export type App_Stats_Max_Fields = {
   __typename?: "app_stats_max_fields";
   app_id?: Maybe<Scalars["String"]["output"]>;
   date?: Maybe<Scalars["date"]["output"]>;
-  nullifier_hashes?: Maybe<Array<Scalars["String"]["output"]>>;
-  unique_users?: Maybe<Scalars["Int"]["output"]>;
-  verifications?: Maybe<Scalars["Int"]["output"]>;
+  unique_users?: Maybe<Scalars["bigint"]["output"]>;
+  verifications?: Maybe<Scalars["bigint"]["output"]>;
 };
 
 /** aggregate min on columns */
@@ -3894,9 +4038,8 @@ export type App_Stats_Min_Fields = {
   __typename?: "app_stats_min_fields";
   app_id?: Maybe<Scalars["String"]["output"]>;
   date?: Maybe<Scalars["date"]["output"]>;
-  nullifier_hashes?: Maybe<Array<Scalars["String"]["output"]>>;
-  unique_users?: Maybe<Scalars["Int"]["output"]>;
-  verifications?: Maybe<Scalars["Int"]["output"]>;
+  unique_users?: Maybe<Scalars["bigint"]["output"]>;
+  verifications?: Maybe<Scalars["bigint"]["output"]>;
 };
 
 /** response of any mutation on the table "app_stats" */
@@ -3920,7 +4063,6 @@ export type App_Stats_Order_By = {
   app?: InputMaybe<App_Order_By>;
   app_id?: InputMaybe<Order_By>;
   date?: InputMaybe<Order_By>;
-  nullifier_hashes?: InputMaybe<Order_By>;
   unique_users?: InputMaybe<Order_By>;
   verifications?: InputMaybe<Order_By>;
 };
@@ -3938,8 +4080,6 @@ export enum App_Stats_Select_Column {
   /** column name */
   Date = "date",
   /** column name */
-  NullifierHashes = "nullifier_hashes",
-  /** column name */
   UniqueUsers = "unique_users",
   /** column name */
   Verifications = "verifications",
@@ -3949,9 +4089,8 @@ export enum App_Stats_Select_Column {
 export type App_Stats_Set_Input = {
   app_id?: InputMaybe<Scalars["String"]["input"]>;
   date?: InputMaybe<Scalars["date"]["input"]>;
-  nullifier_hashes?: InputMaybe<Array<Scalars["String"]["input"]>>;
-  unique_users?: InputMaybe<Scalars["Int"]["input"]>;
-  verifications?: InputMaybe<Scalars["Int"]["input"]>;
+  unique_users?: InputMaybe<Scalars["bigint"]["input"]>;
+  verifications?: InputMaybe<Scalars["bigint"]["input"]>;
 };
 
 /** aggregate stddev on columns */
@@ -3987,16 +4126,15 @@ export type App_Stats_Stream_Cursor_Input = {
 export type App_Stats_Stream_Cursor_Value_Input = {
   app_id?: InputMaybe<Scalars["String"]["input"]>;
   date?: InputMaybe<Scalars["date"]["input"]>;
-  nullifier_hashes?: InputMaybe<Array<Scalars["String"]["input"]>>;
-  unique_users?: InputMaybe<Scalars["Int"]["input"]>;
-  verifications?: InputMaybe<Scalars["Int"]["input"]>;
+  unique_users?: InputMaybe<Scalars["bigint"]["input"]>;
+  verifications?: InputMaybe<Scalars["bigint"]["input"]>;
 };
 
 /** aggregate sum on columns */
 export type App_Stats_Sum_Fields = {
   __typename?: "app_stats_sum_fields";
-  unique_users?: Maybe<Scalars["Int"]["output"]>;
-  verifications?: Maybe<Scalars["Int"]["output"]>;
+  unique_users?: Maybe<Scalars["bigint"]["output"]>;
+  verifications?: Maybe<Scalars["bigint"]["output"]>;
 };
 
 /** update columns of table "app_stats" */
@@ -4005,8 +4143,6 @@ export enum App_Stats_Update_Column {
   AppId = "app_id",
   /** column name */
   Date = "date",
-  /** column name */
-  NullifierHashes = "nullifier_hashes",
   /** column name */
   UniqueUsers = "unique_users",
   /** column name */
@@ -4519,6 +4655,19 @@ export type Auth_Code_Updates = {
   where: Auth_Code_Bool_Exp;
 };
 
+/** Boolean expression to compare columns of type "bigint". All fields are combined with logical 'AND'. */
+export type Bigint_Comparison_Exp = {
+  _eq?: InputMaybe<Scalars["bigint"]["input"]>;
+  _gt?: InputMaybe<Scalars["bigint"]["input"]>;
+  _gte?: InputMaybe<Scalars["bigint"]["input"]>;
+  _in?: InputMaybe<Array<Scalars["bigint"]["input"]>>;
+  _is_null?: InputMaybe<Scalars["Boolean"]["input"]>;
+  _lt?: InputMaybe<Scalars["bigint"]["input"]>;
+  _lte?: InputMaybe<Scalars["bigint"]["input"]>;
+  _neq?: InputMaybe<Scalars["bigint"]["input"]>;
+  _nin?: InputMaybe<Array<Scalars["bigint"]["input"]>>;
+};
+
 /** columns and relationships of "cache" */
 export type Cache = {
   __typename?: "cache";
@@ -4726,12 +4875,6 @@ export type Illegal_Content_Sub_Category_Enum_Comparison_Exp = {
   _nin?: InputMaybe<
     Array<Scalars["illegal_content_sub_category_enum"]["input"]>
   >;
-};
-
-export type Increment_App_Stats_Args = {
-  _action_id?: InputMaybe<Scalars["String"]["input"]>;
-  _nullifier_hash?: InputMaybe<Scalars["String"]["input"]>;
-  _timestamp?: InputMaybe<Scalars["timestamptz"]["input"]>;
 };
 
 /** Invites */
@@ -5734,6 +5877,10 @@ export type Mutation_Root = {
   delete_app?: Maybe<App_Mutation_Response>;
   /** delete single row from the table: "app" */
   delete_app_by_pk?: Maybe<App>;
+  /** delete data from the table: "app_daily_users" */
+  delete_app_daily_users?: Maybe<App_Daily_Users_Mutation_Response>;
+  /** delete single row from the table: "app_daily_users" */
+  delete_app_daily_users_by_pk?: Maybe<App_Daily_Users>;
   /** delete data from the table: "app_metadata" */
   delete_app_metadata?: Maybe<App_Metadata_Mutation_Response>;
   /** delete single row from the table: "app_metadata" */
@@ -5794,6 +5941,10 @@ export type Mutation_Root = {
   delete_nullifier?: Maybe<Nullifier_Mutation_Response>;
   /** delete single row from the table: "nullifier" */
   delete_nullifier_by_pk?: Maybe<Nullifier>;
+  /** delete data from the table: "nullifier_uses_seen" */
+  delete_nullifier_uses_seen?: Maybe<Nullifier_Uses_Seen_Mutation_Response>;
+  /** delete single row from the table: "nullifier_uses_seen" */
+  delete_nullifier_uses_seen_by_pk?: Maybe<Nullifier_Uses_Seen>;
   /** delete data from the table: "redirect" */
   delete_redirect?: Maybe<Redirect_Mutation_Response>;
   /** delete single row from the table: "redirect" */
@@ -5811,8 +5962,6 @@ export type Mutation_Root = {
   delete_user?: Maybe<User_Mutation_Response>;
   /** delete single row from the table: "user" */
   delete_user_by_pk?: Maybe<User>;
-  /** execute VOLATILE function "increment_app_stats" which returns "app_stats" */
-  increment_app_stats: Array<App_Stats>;
   /** insert data into the table: "action" */
   insert_action?: Maybe<Action_Mutation_Response>;
   /** insert a single row into the table: "action" */
@@ -5827,6 +5976,10 @@ export type Mutation_Root = {
   insert_api_key_one?: Maybe<Api_Key>;
   /** insert data into the table: "app" */
   insert_app?: Maybe<App_Mutation_Response>;
+  /** insert data into the table: "app_daily_users" */
+  insert_app_daily_users?: Maybe<App_Daily_Users_Mutation_Response>;
+  /** insert a single row into the table: "app_daily_users" */
+  insert_app_daily_users_one?: Maybe<App_Daily_Users>;
   /** insert data into the table: "app_metadata" */
   insert_app_metadata?: Maybe<App_Metadata_Mutation_Response>;
   /** insert a single row into the table: "app_metadata" */
@@ -5889,6 +6042,10 @@ export type Mutation_Root = {
   insert_nullifier?: Maybe<Nullifier_Mutation_Response>;
   /** insert a single row into the table: "nullifier" */
   insert_nullifier_one?: Maybe<Nullifier>;
+  /** insert data into the table: "nullifier_uses_seen" */
+  insert_nullifier_uses_seen?: Maybe<Nullifier_Uses_Seen_Mutation_Response>;
+  /** insert a single row into the table: "nullifier_uses_seen" */
+  insert_nullifier_uses_seen_one?: Maybe<Nullifier_Uses_Seen>;
   /** insert data into the table: "redirect" */
   insert_redirect?: Maybe<Redirect_Mutation_Response>;
   /** insert a single row into the table: "redirect" */
@@ -5912,6 +6069,8 @@ export type Mutation_Root = {
   reset_api_key?: Maybe<ResetApiOutput>;
   /** Reset the client secret for a Sign in with World ID application */
   reset_client_secret?: Maybe<ResetClientOutput>;
+  /** execute VOLATILE function "rollup_app_stats" which returns "app_stats" */
+  rollup_app_stats: Array<App_Stats>;
   /** Unbans an app */
   unban_app?: Maybe<UnbanAppOutput>;
   /** update data of the table: "action" */
@@ -5938,6 +6097,14 @@ export type Mutation_Root = {
   update_app?: Maybe<App_Mutation_Response>;
   /** update single row of the table: "app" */
   update_app_by_pk?: Maybe<App>;
+  /** update data of the table: "app_daily_users" */
+  update_app_daily_users?: Maybe<App_Daily_Users_Mutation_Response>;
+  /** update single row of the table: "app_daily_users" */
+  update_app_daily_users_by_pk?: Maybe<App_Daily_Users>;
+  /** update multiples rows of table: "app_daily_users" */
+  update_app_daily_users_many?: Maybe<
+    Array<Maybe<App_Daily_Users_Mutation_Response>>
+  >;
   /** update multiples rows of table: "app" */
   update_app_many?: Maybe<Array<Maybe<App_Mutation_Response>>>;
   /** update data of the table: "app_metadata" */
@@ -6042,6 +6209,14 @@ export type Mutation_Root = {
   update_nullifier_by_pk?: Maybe<Nullifier>;
   /** update multiples rows of table: "nullifier" */
   update_nullifier_many?: Maybe<Array<Maybe<Nullifier_Mutation_Response>>>;
+  /** update data of the table: "nullifier_uses_seen" */
+  update_nullifier_uses_seen?: Maybe<Nullifier_Uses_Seen_Mutation_Response>;
+  /** update single row of the table: "nullifier_uses_seen" */
+  update_nullifier_uses_seen_by_pk?: Maybe<Nullifier_Uses_Seen>;
+  /** update multiples rows of table: "nullifier_uses_seen" */
+  update_nullifier_uses_seen_many?: Maybe<
+    Array<Maybe<Nullifier_Uses_Seen_Mutation_Response>>
+  >;
   /** update data of the table: "redirect" */
   update_redirect?: Maybe<Redirect_Mutation_Response>;
   /** update single row of the table: "redirect" */
@@ -6130,6 +6305,18 @@ export type Mutation_RootDelete_AppArgs = {
 /** mutation root */
 export type Mutation_RootDelete_App_By_PkArgs = {
   id: Scalars["String"]["input"];
+};
+
+/** mutation root */
+export type Mutation_RootDelete_App_Daily_UsersArgs = {
+  where: App_Daily_Users_Bool_Exp;
+};
+
+/** mutation root */
+export type Mutation_RootDelete_App_Daily_Users_By_PkArgs = {
+  app_id: Scalars["String"]["input"];
+  date: Scalars["date"]["input"];
+  nullifier_hash: Scalars["String"]["input"];
 };
 
 /** mutation root */
@@ -6284,6 +6471,16 @@ export type Mutation_RootDelete_Nullifier_By_PkArgs = {
 };
 
 /** mutation root */
+export type Mutation_RootDelete_Nullifier_Uses_SeenArgs = {
+  where: Nullifier_Uses_Seen_Bool_Exp;
+};
+
+/** mutation root */
+export type Mutation_RootDelete_Nullifier_Uses_Seen_By_PkArgs = {
+  nullifier_hash: Scalars["String"]["input"];
+};
+
+/** mutation root */
 export type Mutation_RootDelete_RedirectArgs = {
   where: Redirect_Bool_Exp;
 };
@@ -6329,16 +6526,6 @@ export type Mutation_RootDelete_User_By_PkArgs = {
 };
 
 /** mutation root */
-export type Mutation_RootIncrement_App_StatsArgs = {
-  args: Increment_App_Stats_Args;
-  distinct_on?: InputMaybe<Array<App_Stats_Select_Column>>;
-  limit?: InputMaybe<Scalars["Int"]["input"]>;
-  offset?: InputMaybe<Scalars["Int"]["input"]>;
-  order_by?: InputMaybe<Array<App_Stats_Order_By>>;
-  where?: InputMaybe<App_Stats_Bool_Exp>;
-};
-
-/** mutation root */
 export type Mutation_RootInsert_ActionArgs = {
   objects: Array<Action_Insert_Input>;
   on_conflict?: InputMaybe<Action_On_Conflict>;
@@ -6378,6 +6565,18 @@ export type Mutation_RootInsert_Api_Key_OneArgs = {
 export type Mutation_RootInsert_AppArgs = {
   objects: Array<App_Insert_Input>;
   on_conflict?: InputMaybe<App_On_Conflict>;
+};
+
+/** mutation root */
+export type Mutation_RootInsert_App_Daily_UsersArgs = {
+  objects: Array<App_Daily_Users_Insert_Input>;
+  on_conflict?: InputMaybe<App_Daily_Users_On_Conflict>;
+};
+
+/** mutation root */
+export type Mutation_RootInsert_App_Daily_Users_OneArgs = {
+  object: App_Daily_Users_Insert_Input;
+  on_conflict?: InputMaybe<App_Daily_Users_On_Conflict>;
 };
 
 /** mutation root */
@@ -6567,6 +6766,18 @@ export type Mutation_RootInsert_Nullifier_OneArgs = {
 };
 
 /** mutation root */
+export type Mutation_RootInsert_Nullifier_Uses_SeenArgs = {
+  objects: Array<Nullifier_Uses_Seen_Insert_Input>;
+  on_conflict?: InputMaybe<Nullifier_Uses_Seen_On_Conflict>;
+};
+
+/** mutation root */
+export type Mutation_RootInsert_Nullifier_Uses_Seen_OneArgs = {
+  object: Nullifier_Uses_Seen_Insert_Input;
+  on_conflict?: InputMaybe<Nullifier_Uses_Seen_On_Conflict>;
+};
+
+/** mutation root */
 export type Mutation_RootInsert_RedirectArgs = {
   objects: Array<Redirect_Insert_Input>;
   on_conflict?: InputMaybe<Redirect_On_Conflict>;
@@ -6630,6 +6841,16 @@ export type Mutation_RootReset_Api_KeyArgs = {
 export type Mutation_RootReset_Client_SecretArgs = {
   app_id: Scalars["String"]["input"];
   team_id: Scalars["String"]["input"];
+};
+
+/** mutation root */
+export type Mutation_RootRollup_App_StatsArgs = {
+  args?: InputMaybe<Rollup_App_Stats_Args>;
+  distinct_on?: InputMaybe<Array<App_Stats_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<App_Stats_Order_By>>;
+  where?: InputMaybe<App_Stats_Bool_Exp>;
 };
 
 /** mutation root */
@@ -6704,6 +6925,23 @@ export type Mutation_RootUpdate_App_By_PkArgs = {
   _inc?: InputMaybe<App_Inc_Input>;
   _set?: InputMaybe<App_Set_Input>;
   pk_columns: App_Pk_Columns_Input;
+};
+
+/** mutation root */
+export type Mutation_RootUpdate_App_Daily_UsersArgs = {
+  _set?: InputMaybe<App_Daily_Users_Set_Input>;
+  where: App_Daily_Users_Bool_Exp;
+};
+
+/** mutation root */
+export type Mutation_RootUpdate_App_Daily_Users_By_PkArgs = {
+  _set?: InputMaybe<App_Daily_Users_Set_Input>;
+  pk_columns: App_Daily_Users_Pk_Columns_Input;
+};
+
+/** mutation root */
+export type Mutation_RootUpdate_App_Daily_Users_ManyArgs = {
+  updates: Array<App_Daily_Users_Updates>;
 };
 
 /** mutation root */
@@ -6992,6 +7230,25 @@ export type Mutation_RootUpdate_Nullifier_By_PkArgs = {
 /** mutation root */
 export type Mutation_RootUpdate_Nullifier_ManyArgs = {
   updates: Array<Nullifier_Updates>;
+};
+
+/** mutation root */
+export type Mutation_RootUpdate_Nullifier_Uses_SeenArgs = {
+  _inc?: InputMaybe<Nullifier_Uses_Seen_Inc_Input>;
+  _set?: InputMaybe<Nullifier_Uses_Seen_Set_Input>;
+  where: Nullifier_Uses_Seen_Bool_Exp;
+};
+
+/** mutation root */
+export type Mutation_RootUpdate_Nullifier_Uses_Seen_By_PkArgs = {
+  _inc?: InputMaybe<Nullifier_Uses_Seen_Inc_Input>;
+  _set?: InputMaybe<Nullifier_Uses_Seen_Set_Input>;
+  pk_columns: Nullifier_Uses_Seen_Pk_Columns_Input;
+};
+
+/** mutation root */
+export type Mutation_RootUpdate_Nullifier_Uses_Seen_ManyArgs = {
+  updates: Array<Nullifier_Uses_Seen_Updates>;
 };
 
 /** mutation root */
@@ -7727,6 +7984,214 @@ export type Nullifier_Updates = {
   where: Nullifier_Bool_Exp;
 };
 
+/** columns and relationships of "nullifier_uses_seen" */
+export type Nullifier_Uses_Seen = {
+  __typename?: "nullifier_uses_seen";
+  last_seen_at: Scalars["timestamptz"]["output"];
+  last_seen_uses: Scalars["Int"]["output"];
+  nullifier_hash: Scalars["String"]["output"];
+};
+
+/** aggregated selection of "nullifier_uses_seen" */
+export type Nullifier_Uses_Seen_Aggregate = {
+  __typename?: "nullifier_uses_seen_aggregate";
+  aggregate?: Maybe<Nullifier_Uses_Seen_Aggregate_Fields>;
+  nodes: Array<Nullifier_Uses_Seen>;
+};
+
+/** aggregate fields of "nullifier_uses_seen" */
+export type Nullifier_Uses_Seen_Aggregate_Fields = {
+  __typename?: "nullifier_uses_seen_aggregate_fields";
+  avg?: Maybe<Nullifier_Uses_Seen_Avg_Fields>;
+  count: Scalars["Int"]["output"];
+  max?: Maybe<Nullifier_Uses_Seen_Max_Fields>;
+  min?: Maybe<Nullifier_Uses_Seen_Min_Fields>;
+  stddev?: Maybe<Nullifier_Uses_Seen_Stddev_Fields>;
+  stddev_pop?: Maybe<Nullifier_Uses_Seen_Stddev_Pop_Fields>;
+  stddev_samp?: Maybe<Nullifier_Uses_Seen_Stddev_Samp_Fields>;
+  sum?: Maybe<Nullifier_Uses_Seen_Sum_Fields>;
+  var_pop?: Maybe<Nullifier_Uses_Seen_Var_Pop_Fields>;
+  var_samp?: Maybe<Nullifier_Uses_Seen_Var_Samp_Fields>;
+  variance?: Maybe<Nullifier_Uses_Seen_Variance_Fields>;
+};
+
+/** aggregate fields of "nullifier_uses_seen" */
+export type Nullifier_Uses_Seen_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<Nullifier_Uses_Seen_Select_Column>>;
+  distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
+};
+
+/** aggregate avg on columns */
+export type Nullifier_Uses_Seen_Avg_Fields = {
+  __typename?: "nullifier_uses_seen_avg_fields";
+  last_seen_uses?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** Boolean expression to filter rows from the table "nullifier_uses_seen". All fields are combined with a logical 'AND'. */
+export type Nullifier_Uses_Seen_Bool_Exp = {
+  _and?: InputMaybe<Array<Nullifier_Uses_Seen_Bool_Exp>>;
+  _not?: InputMaybe<Nullifier_Uses_Seen_Bool_Exp>;
+  _or?: InputMaybe<Array<Nullifier_Uses_Seen_Bool_Exp>>;
+  last_seen_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+  last_seen_uses?: InputMaybe<Int_Comparison_Exp>;
+  nullifier_hash?: InputMaybe<String_Comparison_Exp>;
+};
+
+/** unique or primary key constraints on table "nullifier_uses_seen" */
+export enum Nullifier_Uses_Seen_Constraint {
+  /** unique or primary key constraint on columns "nullifier_hash" */
+  NullifierUsesSeenPkey = "nullifier_uses_seen_pkey",
+}
+
+/** input type for incrementing numeric columns in table "nullifier_uses_seen" */
+export type Nullifier_Uses_Seen_Inc_Input = {
+  last_seen_uses?: InputMaybe<Scalars["Int"]["input"]>;
+};
+
+/** input type for inserting data into table "nullifier_uses_seen" */
+export type Nullifier_Uses_Seen_Insert_Input = {
+  last_seen_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  last_seen_uses?: InputMaybe<Scalars["Int"]["input"]>;
+  nullifier_hash?: InputMaybe<Scalars["String"]["input"]>;
+};
+
+/** aggregate max on columns */
+export type Nullifier_Uses_Seen_Max_Fields = {
+  __typename?: "nullifier_uses_seen_max_fields";
+  last_seen_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  last_seen_uses?: Maybe<Scalars["Int"]["output"]>;
+  nullifier_hash?: Maybe<Scalars["String"]["output"]>;
+};
+
+/** aggregate min on columns */
+export type Nullifier_Uses_Seen_Min_Fields = {
+  __typename?: "nullifier_uses_seen_min_fields";
+  last_seen_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  last_seen_uses?: Maybe<Scalars["Int"]["output"]>;
+  nullifier_hash?: Maybe<Scalars["String"]["output"]>;
+};
+
+/** response of any mutation on the table "nullifier_uses_seen" */
+export type Nullifier_Uses_Seen_Mutation_Response = {
+  __typename?: "nullifier_uses_seen_mutation_response";
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars["Int"]["output"];
+  /** data from the rows affected by the mutation */
+  returning: Array<Nullifier_Uses_Seen>;
+};
+
+/** on_conflict condition type for table "nullifier_uses_seen" */
+export type Nullifier_Uses_Seen_On_Conflict = {
+  constraint: Nullifier_Uses_Seen_Constraint;
+  update_columns?: Array<Nullifier_Uses_Seen_Update_Column>;
+  where?: InputMaybe<Nullifier_Uses_Seen_Bool_Exp>;
+};
+
+/** Ordering options when selecting data from "nullifier_uses_seen". */
+export type Nullifier_Uses_Seen_Order_By = {
+  last_seen_at?: InputMaybe<Order_By>;
+  last_seen_uses?: InputMaybe<Order_By>;
+  nullifier_hash?: InputMaybe<Order_By>;
+};
+
+/** primary key columns input for table: nullifier_uses_seen */
+export type Nullifier_Uses_Seen_Pk_Columns_Input = {
+  nullifier_hash: Scalars["String"]["input"];
+};
+
+/** select columns of table "nullifier_uses_seen" */
+export enum Nullifier_Uses_Seen_Select_Column {
+  /** column name */
+  LastSeenAt = "last_seen_at",
+  /** column name */
+  LastSeenUses = "last_seen_uses",
+  /** column name */
+  NullifierHash = "nullifier_hash",
+}
+
+/** input type for updating data in table "nullifier_uses_seen" */
+export type Nullifier_Uses_Seen_Set_Input = {
+  last_seen_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  last_seen_uses?: InputMaybe<Scalars["Int"]["input"]>;
+  nullifier_hash?: InputMaybe<Scalars["String"]["input"]>;
+};
+
+/** aggregate stddev on columns */
+export type Nullifier_Uses_Seen_Stddev_Fields = {
+  __typename?: "nullifier_uses_seen_stddev_fields";
+  last_seen_uses?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** aggregate stddev_pop on columns */
+export type Nullifier_Uses_Seen_Stddev_Pop_Fields = {
+  __typename?: "nullifier_uses_seen_stddev_pop_fields";
+  last_seen_uses?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** aggregate stddev_samp on columns */
+export type Nullifier_Uses_Seen_Stddev_Samp_Fields = {
+  __typename?: "nullifier_uses_seen_stddev_samp_fields";
+  last_seen_uses?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** Streaming cursor of the table "nullifier_uses_seen" */
+export type Nullifier_Uses_Seen_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: Nullifier_Uses_Seen_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type Nullifier_Uses_Seen_Stream_Cursor_Value_Input = {
+  last_seen_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  last_seen_uses?: InputMaybe<Scalars["Int"]["input"]>;
+  nullifier_hash?: InputMaybe<Scalars["String"]["input"]>;
+};
+
+/** aggregate sum on columns */
+export type Nullifier_Uses_Seen_Sum_Fields = {
+  __typename?: "nullifier_uses_seen_sum_fields";
+  last_seen_uses?: Maybe<Scalars["Int"]["output"]>;
+};
+
+/** update columns of table "nullifier_uses_seen" */
+export enum Nullifier_Uses_Seen_Update_Column {
+  /** column name */
+  LastSeenAt = "last_seen_at",
+  /** column name */
+  LastSeenUses = "last_seen_uses",
+  /** column name */
+  NullifierHash = "nullifier_hash",
+}
+
+export type Nullifier_Uses_Seen_Updates = {
+  /** increments the numeric columns with given value of the filtered values */
+  _inc?: InputMaybe<Nullifier_Uses_Seen_Inc_Input>;
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<Nullifier_Uses_Seen_Set_Input>;
+  /** filter the rows which have to be updated */
+  where: Nullifier_Uses_Seen_Bool_Exp;
+};
+
+/** aggregate var_pop on columns */
+export type Nullifier_Uses_Seen_Var_Pop_Fields = {
+  __typename?: "nullifier_uses_seen_var_pop_fields";
+  last_seen_uses?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** aggregate var_samp on columns */
+export type Nullifier_Uses_Seen_Var_Samp_Fields = {
+  __typename?: "nullifier_uses_seen_var_samp_fields";
+  last_seen_uses?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** aggregate variance on columns */
+export type Nullifier_Uses_Seen_Variance_Fields = {
+  __typename?: "nullifier_uses_seen_variance_fields";
+  last_seen_uses?: Maybe<Scalars["Float"]["output"]>;
+};
+
 /** aggregate var_pop on columns */
 export type Nullifier_Var_Pop_Fields = {
   __typename?: "nullifier_var_pop_fields";
@@ -7832,6 +8297,12 @@ export type Query_Root = {
   app_aggregate: App_Aggregate;
   /** fetch data from the table: "app" using primary key columns */
   app_by_pk?: Maybe<App>;
+  /** fetch data from the table: "app_daily_users" */
+  app_daily_users: Array<App_Daily_Users>;
+  /** fetch aggregated fields from the table: "app_daily_users" */
+  app_daily_users_aggregate: App_Daily_Users_Aggregate;
+  /** fetch data from the table: "app_daily_users" using primary key columns */
+  app_daily_users_by_pk?: Maybe<App_Daily_Users>;
   /** An array relationship */
   app_metadata: Array<App_Metadata>;
   /** An aggregate relationship */
@@ -7927,6 +8398,12 @@ export type Query_Root = {
   nullifier_aggregate: Nullifier_Aggregate;
   /** fetch data from the table: "nullifier" using primary key columns */
   nullifier_by_pk?: Maybe<Nullifier>;
+  /** fetch data from the table: "nullifier_uses_seen" */
+  nullifier_uses_seen: Array<Nullifier_Uses_Seen>;
+  /** fetch aggregated fields from the table: "nullifier_uses_seen" */
+  nullifier_uses_seen_aggregate: Nullifier_Uses_Seen_Aggregate;
+  /** fetch data from the table: "nullifier_uses_seen" using primary key columns */
+  nullifier_uses_seen_by_pk?: Maybe<Nullifier_Uses_Seen>;
   /** fetch data from the table: "redirect" */
   redirect: Array<Redirect>;
   /** fetch aggregated fields from the table: "redirect" */
@@ -8051,6 +8528,28 @@ export type Query_RootApp_AggregateArgs = {
 
 export type Query_RootApp_By_PkArgs = {
   id: Scalars["String"]["input"];
+};
+
+export type Query_RootApp_Daily_UsersArgs = {
+  distinct_on?: InputMaybe<Array<App_Daily_Users_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<App_Daily_Users_Order_By>>;
+  where?: InputMaybe<App_Daily_Users_Bool_Exp>;
+};
+
+export type Query_RootApp_Daily_Users_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<App_Daily_Users_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<App_Daily_Users_Order_By>>;
+  where?: InputMaybe<App_Daily_Users_Bool_Exp>;
+};
+
+export type Query_RootApp_Daily_Users_By_PkArgs = {
+  app_id: Scalars["String"]["input"];
+  date: Scalars["date"]["input"];
+  nullifier_hash: Scalars["String"]["input"];
 };
 
 export type Query_RootApp_MetadataArgs = {
@@ -8375,6 +8874,26 @@ export type Query_RootNullifier_AggregateArgs = {
 
 export type Query_RootNullifier_By_PkArgs = {
   id: Scalars["String"]["input"];
+};
+
+export type Query_RootNullifier_Uses_SeenArgs = {
+  distinct_on?: InputMaybe<Array<Nullifier_Uses_Seen_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Nullifier_Uses_Seen_Order_By>>;
+  where?: InputMaybe<Nullifier_Uses_Seen_Bool_Exp>;
+};
+
+export type Query_RootNullifier_Uses_Seen_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Nullifier_Uses_Seen_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Nullifier_Uses_Seen_Order_By>>;
+  where?: InputMaybe<Nullifier_Uses_Seen_Bool_Exp>;
+};
+
+export type Query_RootNullifier_Uses_Seen_By_PkArgs = {
+  nullifier_hash: Scalars["String"]["input"];
 };
 
 export type Query_RootRedirectArgs = {
@@ -8846,6 +9365,11 @@ export type Role_Updates = {
   where: Role_Bool_Exp;
 };
 
+export type Rollup_App_Stats_Args = {
+  _since?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  _until?: InputMaybe<Scalars["timestamptz"]["input"]>;
+};
+
 export type Subscription_Root = {
   __typename?: "subscription_root";
   /** fetch data from the table: "action" */
@@ -8882,6 +9406,14 @@ export type Subscription_Root = {
   app_aggregate: App_Aggregate;
   /** fetch data from the table: "app" using primary key columns */
   app_by_pk?: Maybe<App>;
+  /** fetch data from the table: "app_daily_users" */
+  app_daily_users: Array<App_Daily_Users>;
+  /** fetch aggregated fields from the table: "app_daily_users" */
+  app_daily_users_aggregate: App_Daily_Users_Aggregate;
+  /** fetch data from the table: "app_daily_users" using primary key columns */
+  app_daily_users_by_pk?: Maybe<App_Daily_Users>;
+  /** fetch data from the table in a streaming manner: "app_daily_users" */
+  app_daily_users_stream: Array<App_Daily_Users>;
   /** An array relationship */
   app_metadata: Array<App_Metadata>;
   /** An aggregate relationship */
@@ -9004,6 +9536,14 @@ export type Subscription_Root = {
   nullifier_by_pk?: Maybe<Nullifier>;
   /** fetch data from the table in a streaming manner: "nullifier" */
   nullifier_stream: Array<Nullifier>;
+  /** fetch data from the table: "nullifier_uses_seen" */
+  nullifier_uses_seen: Array<Nullifier_Uses_Seen>;
+  /** fetch aggregated fields from the table: "nullifier_uses_seen" */
+  nullifier_uses_seen_aggregate: Nullifier_Uses_Seen_Aggregate;
+  /** fetch data from the table: "nullifier_uses_seen" using primary key columns */
+  nullifier_uses_seen_by_pk?: Maybe<Nullifier_Uses_Seen>;
+  /** fetch data from the table in a streaming manner: "nullifier_uses_seen" */
+  nullifier_uses_seen_stream: Array<Nullifier_Uses_Seen>;
   /** fetch data from the table: "redirect" */
   redirect: Array<Redirect>;
   /** fetch aggregated fields from the table: "redirect" */
@@ -9152,6 +9692,34 @@ export type Subscription_RootApp_AggregateArgs = {
 
 export type Subscription_RootApp_By_PkArgs = {
   id: Scalars["String"]["input"];
+};
+
+export type Subscription_RootApp_Daily_UsersArgs = {
+  distinct_on?: InputMaybe<Array<App_Daily_Users_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<App_Daily_Users_Order_By>>;
+  where?: InputMaybe<App_Daily_Users_Bool_Exp>;
+};
+
+export type Subscription_RootApp_Daily_Users_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<App_Daily_Users_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<App_Daily_Users_Order_By>>;
+  where?: InputMaybe<App_Daily_Users_Bool_Exp>;
+};
+
+export type Subscription_RootApp_Daily_Users_By_PkArgs = {
+  app_id: Scalars["String"]["input"];
+  date: Scalars["date"]["input"];
+  nullifier_hash: Scalars["String"]["input"];
+};
+
+export type Subscription_RootApp_Daily_Users_StreamArgs = {
+  batch_size: Scalars["Int"]["input"];
+  cursor: Array<InputMaybe<App_Daily_Users_Stream_Cursor_Input>>;
+  where?: InputMaybe<App_Daily_Users_Bool_Exp>;
 };
 
 export type Subscription_RootApp_MetadataArgs = {
@@ -9555,6 +10123,32 @@ export type Subscription_RootNullifier_StreamArgs = {
   batch_size: Scalars["Int"]["input"];
   cursor: Array<InputMaybe<Nullifier_Stream_Cursor_Input>>;
   where?: InputMaybe<Nullifier_Bool_Exp>;
+};
+
+export type Subscription_RootNullifier_Uses_SeenArgs = {
+  distinct_on?: InputMaybe<Array<Nullifier_Uses_Seen_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Nullifier_Uses_Seen_Order_By>>;
+  where?: InputMaybe<Nullifier_Uses_Seen_Bool_Exp>;
+};
+
+export type Subscription_RootNullifier_Uses_Seen_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Nullifier_Uses_Seen_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Nullifier_Uses_Seen_Order_By>>;
+  where?: InputMaybe<Nullifier_Uses_Seen_Bool_Exp>;
+};
+
+export type Subscription_RootNullifier_Uses_Seen_By_PkArgs = {
+  nullifier_hash: Scalars["String"]["input"];
+};
+
+export type Subscription_RootNullifier_Uses_Seen_StreamArgs = {
+  batch_size: Scalars["Int"]["input"];
+  cursor: Array<InputMaybe<Nullifier_Uses_Seen_Stream_Cursor_Input>>;
+  where?: InputMaybe<Nullifier_Uses_Seen_Bool_Exp>;
 };
 
 export type Subscription_RootRedirectArgs = {
