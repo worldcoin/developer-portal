@@ -18,7 +18,7 @@ describe("Auxiliary API Endpoints", () => {
 
       expect(
         response.status,
-        `Health check request resolved with a wrong code:\n${JSON.stringify(response.data, null, 2)}`
+        `Health check request resolved with a wrong code:\n${JSON.stringify(response.data, null, 2)}`,
       ).toBe(200);
       expect(response.data).toEqual({
         success: true,
@@ -36,12 +36,12 @@ describe("Auxiliary API Endpoints", () => {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
-        }
+        },
       );
 
       expect(
         response.status,
-        `Delete expired auth codes request resolved with a wrong code:\n${JSON.stringify(response.data, null, 2)}`
+        `Delete expired auth codes request resolved with a wrong code:\n${JSON.stringify(response.data, null, 2)}`,
       ).toBe(204); // This endpoint returns 204 No Content
       expect(response.data).toBe(""); // Empty response body
     });
@@ -57,12 +57,12 @@ describe("Auxiliary API Endpoints", () => {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
-        }
+        },
       );
 
       expect(
         response.status,
-        `Delete expired JWKs request resolved with a wrong code:\n${JSON.stringify(response.data, null, 2)}`
+        `Delete expired JWKs request resolved with a wrong code:\n${JSON.stringify(response.data, null, 2)}`,
       ).toBe(204); // This endpoint returns 204 No Content
       expect(response.data).toBe(""); // Empty response body
     });
@@ -78,20 +78,22 @@ describe("Auxiliary API Endpoints", () => {
       testTeamId = await createTestTeam("Test Team for Gen External Nullifier");
       testAppId = await createTestApp(
         "Test App for Gen External Nullifier",
-        testTeamId!
+        testTeamId!,
       );
       testActionId = await createTestAction(
         testAppId!,
         "test-action",
-        "Test Action for External Nullifier"
+        "Test Action for External Nullifier",
       );
     });
 
     afterAll(async () => {
       // Clean up test data in reverse order
+      /* eslint-disable @typescript-eslint/no-unused-expressions */
       testActionId && (await deleteTestAction(testActionId));
       testAppId && (await deleteTestApp(testAppId));
       testTeamId && (await deleteTestTeam(testTeamId));
+      /* eslint-enable @typescript-eslint/no-unused-expressions */
     });
 
     it("Generate External Nullifier With Valid Data", async () => {
@@ -116,12 +118,12 @@ describe("Auxiliary API Endpoints", () => {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
-        }
+        },
       );
 
       expect(
         response.status,
-        `Generate external nullifier request resolved with a wrong code:\n${JSON.stringify(response.data, null, 2)}`
+        `Generate external nullifier request resolved with a wrong code:\n${JSON.stringify(response.data, null, 2)}`,
       ).toBe(200);
       // Check that response has success property, but don't enforce true/false
       expect(response.data).toHaveProperty("success");
@@ -148,8 +150,8 @@ describe("Auxiliary API Endpoints", () => {
               Authorization: `Bearer ${token}`,
               "Content-Type": "application/json",
             },
-          }
-        )
+          },
+        ),
       ).rejects.toHaveProperty("response.status", 400);
     });
   });
@@ -177,12 +179,12 @@ describe("Auxiliary API Endpoints", () => {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
-        }
+        },
       );
 
       expect(
         response.status,
-        `Increment app stats request resolved with a wrong code:\n${JSON.stringify(response.data, null, 2)}`
+        `Increment app stats request resolved with a wrong code:\n${JSON.stringify(response.data, null, 2)}`,
       ).toBe(200);
       // Check that response has success property, but don't enforce true/false
       expect(response.data).toHaveProperty("success");
@@ -208,8 +210,8 @@ describe("Auxiliary API Endpoints", () => {
               Authorization: `Bearer ${token}`,
               "Content-Type": "application/json",
             },
-          }
-        )
+          },
+        ),
       ).rejects.toHaveProperty("response.status", 400);
     });
   });
@@ -224,12 +226,12 @@ describe("Auxiliary API Endpoints", () => {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
-        }
+        },
       );
 
       expect(
         response.status,
-        `Delete expired notification logs request resolved with a wrong code:\n${JSON.stringify(response.data, null, 2)}`
+        `Delete expired notification logs request resolved with a wrong code:\n${JSON.stringify(response.data, null, 2)}`,
       ).toBe(200);
       expect(response.data).toEqual({
         success: true,

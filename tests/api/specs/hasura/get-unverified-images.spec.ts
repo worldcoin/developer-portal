@@ -11,7 +11,7 @@ import {
   deleteTestTeam,
   deleteTestUser,
 } from "helpers";
-import { cleanupTestS3Files, createTestS3Files } from "../../helpers/s3-setup";
+import { cleanupTestS3Files, createTestS3Files } from "helpers/s3-setup";
 
 describe("Hasura API - Get Unverified Images", () => {
   describe("POST /api/hasura/get-unverified-images", () => {
@@ -39,20 +39,20 @@ describe("Hasura API - Get Unverified Images", () => {
       testTeamId = await createTestTeam(testTeamName);
       testUserId = await createTestUser(
         `getunverified_${Date.now()}@example.com`,
-        testTeamId!
+        testTeamId!,
       );
 
       // Create membership for user in team with OWNER role
       testMembershipId = await createTestMembership(
         testUserId!,
         testTeamId!,
-        "OWNER"
+        "OWNER",
       );
 
       // Create test app
       testAppId = await createTestApp(
         "Test App for Get Unverified Images",
-        testTeamId!
+        testTeamId!,
       );
 
       // Create test app metadata with unverified status
@@ -61,7 +61,7 @@ describe("Hasura API - Get Unverified Images", () => {
         "Test App for Get Unverified Images",
         "unverified",
         ["showcase_img_1.jpg"], // Only showcase images
-        ["en", "es"] // Supported languages
+        ["en", "es"], // Supported languages
       );
       testMetadataId = metadata.id;
 
@@ -69,12 +69,12 @@ describe("Hasura API - Get Unverified Images", () => {
       await createTestS3Files(
         process.env.ASSETS_S3_BUCKET_NAME!,
         testAppId!,
-        testFiles
+        testFiles,
       );
       await createTestS3Files(
         process.env.ASSETS_S3_BUCKET_NAME!,
         `${testAppId!}/es`,
-        testFiles
+        testFiles,
       );
     });
 
@@ -93,12 +93,12 @@ describe("Hasura API - Get Unverified Images", () => {
             "x-hasura-user-id": testUserId,
           },
         },
-        { headers }
+        { headers },
       );
 
       expect(
         response.status,
-        `Get unverified images request resolved with a wrong code:\n${JSON.stringify(response.data, null, 2)}`
+        `Get unverified images request resolved with a wrong code:\n${JSON.stringify(response.data, null, 2)}`,
       ).toBe(200);
       expect(response.data).toBeDefined();
       expect(response.data.logo_img_url).toBeDefined();
@@ -109,23 +109,25 @@ describe("Hasura API - Get Unverified Images", () => {
 
     afterAll(async () => {
       // Clean up test data
+      /* eslint-disable @typescript-eslint/no-unused-expressions */
       testMetadataId && (await deleteTestAppMetadata(testMetadataId));
       testAppId && (await deleteTestApp(testAppId));
       testMembershipId && (await deleteTestMembership(testMembershipId));
       testUserId && (await deleteTestUser(testUserId));
       testTeamId && (await deleteTestTeam(testTeamId));
+      /* eslint-enable @typescript-eslint/no-unused-expressions */
 
       // Clean up test files from S3
       Promise.all([
         cleanupTestS3Files(
           process.env.ASSETS_S3_BUCKET_NAME!,
           testAppId!,
-          testFiles
+          testFiles,
         ),
         cleanupTestS3Files(
           process.env.ASSETS_S3_BUCKET_NAME!,
           `${testAppId!}/es`,
-          testFiles
+          testFiles,
         ),
       ]);
     });

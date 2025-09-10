@@ -5,7 +5,7 @@ import { BYTE_LENGTH, DIGEST, ENCRYPTION_INFO } from "./constants";
 export async function decrypt(
   cookieValue: string,
   secret: string,
-  options?: JWTDecryptOptions
+  options?: JWTDecryptOptions,
 ) {
   try {
     const encryptionSecret = await hkdf(
@@ -13,7 +13,7 @@ export async function decrypt(
       secret,
       "",
       ENCRYPTION_INFO,
-      BYTE_LENGTH
+      BYTE_LENGTH,
     );
     const cookie = await jwtDecrypt(cookieValue, encryptionSecret, {
       ...options,

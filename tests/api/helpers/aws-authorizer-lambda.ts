@@ -5,11 +5,11 @@ export const authHelper = async () => {
   console.log("AWS_ACCESS_KEY_ID:", process.env.AWS_ACCESS_KEY_ID);
   console.log(
     "AWS_SECRET_ACCESS_KEY:",
-    process.env.AWS_SECRET_ACCESS_KEY ? "***SET***" : "NOT SET"
+    process.env.AWS_SECRET_ACCESS_KEY ? "***SET***" : "NOT SET",
   );
   console.log(
     "AWS_SESSION_TOKEN:",
-    process.env.AWS_SESSION_TOKEN ? "***SET***" : "NOT SET"
+    process.env.AWS_SESSION_TOKEN ? "***SET***" : "NOT SET",
   );
   console.log("AWS_REGION:", process.env.AWS_REGION);
 
@@ -20,6 +20,7 @@ export const authHelper = async () => {
 
   // Lambda ARN and event
   const lambdaArn =
+    // eslint-disable-next-line @cspell/spellchecker -- arn
     "arn:aws:lambda:eu-west-1:505538374473:function:developer-portal-pipeline-JwtIssuerJwtIssuerLambda-yRWHJkKzbtt6";
 
   // Working event format

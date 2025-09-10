@@ -1,0 +1,59 @@
+name: API Tests Code Quality
+
+on:
+  pull_request:
+    paths:
+      - "tests/api/**"
+
+jobs:
+  lint:
+    name: Code formatting & linting
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    defaults:
+      run:
+        working-directory: tests/api
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: "pnpm"
+          cache-dependency-path: tests/api/pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Check formatting and linting
+        run: pnpm lint
+
+  typecheck:
+    name: Code typechecking
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    defaults:
+      run:
+        working-directory: tests/api
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: "pnpm"
+          cache-dependency-path: tests/api/pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Check TypeScript typechecking
+        run: pnpm typecheck
