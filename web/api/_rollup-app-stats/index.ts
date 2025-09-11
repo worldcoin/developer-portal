@@ -1,6 +1,7 @@
 // app/api/cron/rollup-app-stats/route.ts
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { protectInternalEndpoint } from "@/api/helpers/utils";
+import { logger } from "@/lib/logger";
 import { NextRequest, NextResponse } from "next/server";
 import { getSdk as getRollupAppStatsSdk } from "./graphql/rollup-app-stats.generated";
 
@@ -37,12 +38,14 @@ export async function POST(request: NextRequest) {
     });
 
     const rows = res.rollup_app_stats ?? [];
+    logger.info("Rolled up app stats", { rows });
     return NextResponse.json({
       success: true,
       window: { since: since.toISOString(), until: until.toISOString() },
       updated_rows: rows.length,
     });
   } catch (error) {
+    logger.error("Error rolling up app stats", { error });
     return NextResponse.json(
       {
         success: false,
