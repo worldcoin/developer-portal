@@ -75,6 +75,14 @@ const DELETE_USER_MUTATION = `
   }
 `;
 
+const FIND_USER_BY_AUTH0_QUERY = `
+  query FindUserByAuth0Id($auth0Id: String!) {
+    user(where: {auth0Id: {_eq: $auth0Id}}) {
+      id
+    }
+  }
+`;
+
 // Simple GraphQL mutation for creating app_metadata
 const CREATE_APP_METADATA_MUTATION = `
   mutation CreateAppMetadata($object: app_metadata_insert_input!) {
@@ -235,13 +243,13 @@ export const createTestTeam = async (name: string) => {
 };
 
 // Helper for creating test user
-export const createTestUser = async (email: string, teamId: string) => {
+export const createTestUser = async (email: string, teamId?: string) => {
   try {
     const response = (await adminGraphqlClient.request(CREATE_USER_MUTATION, {
       object: {
         email,
         auth0Id: `auth0|test_${Date.now()}`,
-        team_id: teamId,
+        ...(teamId && { team_id: teamId }),
         ironclad_id: `ironclad_test_${Date.now()}`,
         world_id_nullifier: `0x${Date.now().toString(16)}`,
       },
@@ -282,6 +290,26 @@ export const deleteTestTeam = async (teamId: string) => {
     const errorMessage =
       error?.response?.data?.message || error?.message || "Unknown error";
     throw new Error(`Failed to delete test team ${teamId}: ${errorMessage}`);
+  }
+};
+
+// Helper for finding user by auth0Id
+export const findUserByAuth0Id = async (auth0Id: string) => {
+  try {
+    const response = (await adminGraphqlClient.request(
+      FIND_USER_BY_AUTH0_QUERY,
+      {
+        auth0Id,
+      },
+    )) as any;
+
+    return response.user?.[0]?.id || null;
+  } catch (error: any) {
+    const errorMessage =
+      error?.response?.data?.message || error?.message || "Unknown error";
+    throw new Error(
+      `Failed to find user by auth0Id ${auth0Id}: ${errorMessage}`,
+    );
   }
 };
 
@@ -460,9 +488,9 @@ export const createTestApiKey = async (
   teamId: string,
   name: string = "Test API Key",
 ) => {
-  const GENERAL_SECRET_KEY = process.env.GENERAL_SECRET_KEY;
-  if (!GENERAL_SECRET_KEY) {
-    throw new Error("GENERAL_SECRET_KEY env var must be set for tests");
+  const AUTH0_SECRET = process.env.AUTH0_SECRET;
+  if (!AUTH0_SECRET) {
+    throw new Error("AUTH0_SECRET env var must be set for tests");
   }
 
   // Step 1: Create API key record to get UUID
@@ -485,7 +513,7 @@ export const createTestApiKey = async (
 
   // Step 2: Generate real secret and hash using UUID as key_id
   const secret = `sk_${require("crypto").randomBytes(24).toString("hex")}`;
-  const hmac = require("crypto").createHmac("sha256", GENERAL_SECRET_KEY);
+  const hmac = require("crypto").createHmac("sha256", AUTH0_SECRET);
   hmac.update(`${uuid_id}.${secret}`);
   const hashed_secret = hmac.digest("hex");
 

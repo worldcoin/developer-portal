@@ -13,6 +13,7 @@ import { createAppSession } from "helpers/auth0";
 
 const INTERNAL_API_URL = process.env.INTERNAL_API_URL;
 const INTERNAL_ENDPOINTS_SECRET = process.env.INTERNAL_ENDPOINTS_SECRET;
+const NAME_SLUG = process.env.NAME_SLUG;
 
 describe("Dev Portal Helpers API Endpoints", () => {
   describe("POST /api/v1/graphql", () => {
@@ -33,7 +34,7 @@ describe("Dev Portal Helpers API Endpoints", () => {
         const teamId = await createTestTeam("Test Team GraphQL");
         cleanUpFunctions.push(async () => await deleteTestTeam(teamId));
 
-        const userEmail = `testuser_${Date.now()}@example.com`;
+        const userEmail = `qa+${NAME_SLUG}+${Date.now()}@toolsforhumanity.com`;
         const userId = await createTestUser(userEmail, teamId);
         cleanUpFunctions.push(async () => await deleteTestUser(userId));
 
@@ -83,7 +84,7 @@ describe("Dev Portal Helpers API Endpoints", () => {
         const teamId = await createTestTeam("Test Team Auth0 GraphQL");
         cleanUpFunctions.push(async () => await deleteTestTeam(teamId));
 
-        const userEmail = `auth0user_${Date.now()}@example.com`;
+        const userEmail = `qa+${NAME_SLUG}+${Date.now()}@toolsforhumanity.com`;
         const userId = await createTestUser(userEmail, teamId);
         cleanUpFunctions.push(async () => await deleteTestUser(userId));
 

@@ -4,6 +4,7 @@ import {
   createTestApp,
   createTestTeam,
   createTestUser,
+  deleteTestAction,
   deleteTestApiKey,
   deleteTestApp,
   deleteTestTeam,
@@ -11,6 +12,7 @@ import {
 } from "helpers";
 
 const INTERNAL_API_URL = process.env.INTERNAL_API_URL;
+const NAME_SLUG = process.env.NAME_SLUG;
 
 describe("Dev Portal Helpers API Endpoints", () => {
   describe("POST /api/v2/create-action/[app_id]", () => {
@@ -30,7 +32,7 @@ describe("Dev Portal Helpers API Endpoints", () => {
       const teamId = await createTestTeam("Test Team");
       cleanUpFunctions.push(async () => await deleteTestTeam(teamId));
 
-      const userEmail = `testuser_${Date.now()}@example.com`;
+      const userEmail = `qa+${NAME_SLUG}+${Date.now()}@toolsforhumanity.com`;
       const userId = await createTestUser(userEmail, teamId);
       cleanUpFunctions.push(async () => await deleteTestUser(userId));
 
@@ -76,6 +78,12 @@ describe("Dev Portal Helpers API Endpoints", () => {
             status: "active",
           }),
         }),
+      );
+
+      // Extract action_id from response for cleanup
+      const createdActionId = response.data.action.id;
+      cleanUpFunctions.push(
+        async () => await deleteTestAction(createdActionId),
       );
     });
   });
