@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import { GraphQLClient } from "graphql-request";
 
 // GraphQL client with admin privileges for creating test data
@@ -493,51 +494,41 @@ export const createTestApiKey = async (
     throw new Error("AUTH0_SECRET env var must be set for tests");
   }
 
-  // Step 1: Create API key record to get UUID
+  // Step 1: Generate friendly ID in Hasura format (key_xxxxxxxxxx)
+  const randomId = crypto.randomBytes(8).toString("hex");
+  const keyId = `key_${randomId}`;
+
+  // Step 2: Generate secret and hash using the pre-generated ID
+  const secret = `sk_${crypto.randomBytes(24).toString("hex")}`;
+  const hmac = crypto.createHmac("sha256", AUTH0_SECRET);
+  hmac.update(`${keyId}.${secret}`);
+  const hashed_secret = hmac.digest("hex");
+
+  // Step 3: Create API key record with the generated ID and hash in one operation
   const createResponse = (await adminGraphqlClient.request(
     CREATE_API_KEY_MUTATION,
     {
       object: {
+        id: keyId, // Use our pre-generated ID
         team_id: teamId,
-        api_key: "temp_hash", // Temporary hash, will be updated
+        api_key: hashed_secret,
         name,
         is_active: true,
       },
     },
   )) as any;
 
-  const uuid_id = createResponse.insert_api_key_one?.id;
-  if (!uuid_id) {
+  if (!createResponse.insert_api_key_one?.id) {
     throw new Error("Failed to create API key record");
   }
 
-  // Step 2: Generate real secret and hash using UUID as key_id
-  const secret = `sk_${require("crypto").randomBytes(24).toString("hex")}`;
-  const hmac = require("crypto").createHmac("sha256", AUTH0_SECRET);
-  hmac.update(`${uuid_id}.${secret}`);
-  const hashed_secret = hmac.digest("hex");
-
-  // Step 3: Update with real hash
-  const updateMutation = `
-    mutation UpdateApiKey($id: String!, $api_key: String!) {
-      update_api_key_by_pk(pk_columns: {id: $id}, _set: {api_key: $api_key}) {
-        id
-      }
-    }
-  `;
-
-  await adminGraphqlClient.request(updateMutation, {
-    id: uuid_id,
-    api_key: hashed_secret,
-  });
-
   // Step 4: Create proper API key header format for HTTP auth
-  const credentials = `${uuid_id}:${secret}`;
+  const credentials = `${keyId}:${secret}`;
   const encodedCredentials = Buffer.from(credentials).toString("base64");
   const apiKeyHeader = `api_${encodedCredentials}`;
 
   return {
-    apiKeyId: uuid_id,
+    apiKeyId: keyId,
     secret,
     apiKeyHeader,
   };
