@@ -340,10 +340,13 @@ export const POST = async (req: NextRequest) => {
           localisations: (parsedParams as SendNotificationBodyV2).localisations,
         };
 
-  const signedFetch = createSignedFetcher({
-    service: "execute-api",
-    region: process.env.TRANSACTION_BACKEND_REGION,
-  });
+  let signedFetch = global.TransactionSignedFetcher;
+  if (!signedFetch) {
+    signedFetch = createSignedFetcher({
+      service: "execute-api",
+      region: process.env.TRANSACTION_BACKEND_REGION,
+    });
+  }
 
   let res: Response;
 

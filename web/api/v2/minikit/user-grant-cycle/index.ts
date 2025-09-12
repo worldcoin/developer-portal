@@ -44,10 +44,13 @@ export const GET = async (req: NextRequest) => {
     return apiKeyResult.errorResponse;
   }
 
-  const signedFetch = createSignedFetcher({
-    service: "execute-api",
-    region: process.env.TRANSACTION_BACKEND_REGION,
-  });
+  let signedFetch = global.TransactionSignedFetcher;
+  if (!signedFetch) {
+    signedFetch = createSignedFetcher({
+      service: "execute-api",
+      region: process.env.TRANSACTION_BACKEND_REGION,
+    });
+  }
 
   try {
     const res = await signedFetch(
