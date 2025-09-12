@@ -7,7 +7,7 @@ dotenv.config({ path: ".env.development" });
 
 const config: Config = {
   preset: "ts-jest",
-  setupFilesAfterEnv: ["jest-expect-message"],
+  setupFilesAfterEnv: ["jest-expect-message", "<rootDir>/jest.setup.ts"],
   testMatch: ["<rootDir>/specs/**/*.spec.ts"],
   testTimeout: 30000,
   moduleDirectories: ["node_modules", "<rootDir>", "<rootDir>/../../web"],
