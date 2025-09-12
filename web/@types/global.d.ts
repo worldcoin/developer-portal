@@ -8,4 +8,5 @@ declare global {
   var RedisClient: Redis | RedisCluster | undefined;
   var OpenSearchClient: OpenSearchClient | undefined;
   var ParameterStore: ParameterStore | undefined;
+  var TransactionSignedFetcher: typeof fetch | undefined;
 }

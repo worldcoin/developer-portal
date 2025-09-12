@@ -45,10 +45,13 @@ const fetchTransactionData = async (
   const path = getPathFromHeaders() || "";
   const { Teams: teamId } = extractIdsFromPath(path, ["Teams"]);
 
-  const signedFetch = createSignedFetcher({
-    service: "execute-api",
-    region: process.env.TRANSACTION_BACKEND_REGION,
-  });
+  let signedFetch = global.TransactionSignedFetcher;
+  if (!signedFetch) {
+    signedFetch = createSignedFetcher({
+      service: "execute-api",
+      region: process.env.TRANSACTION_BACKEND_REGION,
+    });
+  }
 
   const response = await signedFetch(url, {
     method: "GET",

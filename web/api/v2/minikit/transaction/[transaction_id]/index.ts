@@ -55,11 +55,13 @@ export const GET = async (
 
   const { app_id: appId, type } = parsedParams;
 
-  const signedFetch = createSignedFetcher({
-    service: "execute-api",
-    region: process.env.TRANSACTION_BACKEND_REGION,
-  });
-
+  let signedFetch = global.TransactionSignedFetcher;
+  if (!signedFetch) {
+    signedFetch = createSignedFetcher({
+      service: "execute-api",
+      region: process.env.TRANSACTION_BACKEND_REGION,
+    });
+  }
   const url =
     type === TransactionTypes.Payment
       ? `${process.env.NEXT_SERVER_INTERNAL_PAYMENTS_ENDPOINT}/miniapp?miniapp-id=${appId}&transaction-id=${transactionId}`
