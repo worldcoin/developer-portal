@@ -76,7 +76,7 @@ export const GET = async (
         "Content-Type": "application/json",
       },
     },
-    3, // max retries
+    1, // max retries
     400, // initial retry delay in ms
     3000, // fetch timeout in ms
     false, // don't throw on error
