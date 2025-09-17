@@ -25,7 +25,11 @@ array_relationships:
 insert_permissions:
   - role: qa
     permission:
-      check: {}
+      check:
+        team:
+          memberships:
+            user_id:
+              _eq: X-Hasura-User-Id
       columns:
         - description_internal
         - dev_rewards_approved

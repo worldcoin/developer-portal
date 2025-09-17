@@ -25,8 +25,13 @@ insert_permissions:
     permission:
       check:
         app:
-          deleted_at:
-            _is_null: true
+          _and:
+            - team:
+                memberships:
+                  user_id:
+                    _eq: X-Hasura-User-Id
+            - deleted_at:
+                _is_null: true
       columns:
         - app_id
         - app_mode
