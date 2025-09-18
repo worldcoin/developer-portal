@@ -31,6 +31,13 @@ computed_fields:
         schema: public
     comment: A computed field that returns a quantity of team owners
 insert_permissions:
+  - role: qa
+    permission:
+      check: {}
+      columns:
+        - id
+        - name
+    comment: ""
   - role: service
     permission:
       check: {}
