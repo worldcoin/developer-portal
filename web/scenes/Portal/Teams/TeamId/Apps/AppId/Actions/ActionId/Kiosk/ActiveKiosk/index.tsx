@@ -7,7 +7,7 @@ import { CheckmarkCircleIcon } from "@/components/Icons/CheckmarkCircleIcon";
 import { WorldTextLogo } from "@/components/Icons/WorldTextLogo";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { restAPIRequest } from "@/lib/frontend-api";
-import { KioskScreen } from "@/lib/types";
+import { EngineType, KioskScreen } from "@/lib/types";
 import { getCDNImageUrl } from "@/lib/utils";
 import {
   ISuccessResult,
@@ -64,6 +64,7 @@ export const ActiveKioskPage = (props: ActiveKioskPageProps) => {
   const router = useRouter();
 
   const action = data?.action[0];
+  const app = data?.app[0];
   const logo = data?.app_metadata[0]?.logo_img_url;
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -104,11 +105,11 @@ export const ActiveKioskPage = (props: ActiveKioskPageProps) => {
 
   // Reset kiosk if the action changes
   useEffect(() => {
-    if (!action) {
+    resetKiosk();
+    if (!action || app?.engine === EngineType.OnChain) {
       setScreen(KioskScreen.InvalidRequest);
     }
-    resetKiosk();
-  }, [action, resetKiosk, setScreen]);
+  }, [action, resetKiosk, setScreen, app?.engine]);
 
   const verifyProof = useCallback(
     async (result: ISuccessResult) => {
@@ -318,7 +319,15 @@ export const ActiveKioskPage = (props: ActiveKioskPageProps) => {
               <KioskError title="This request is invalid." reset={resetKiosk} />
             )}
 
-            {action && (
+            {action && app?.engine === EngineType.OnChain && (
+              <KioskError
+                title="Kiosk is not available"
+                description="Kiosk is not available for on-chain app actions"
+                reset={resetKiosk}
+              />
+            )}
+
+            {action && app?.engine === EngineType.Cloud && (
               <IDKitBridge
                 app_id={appId}
                 action={action.action}

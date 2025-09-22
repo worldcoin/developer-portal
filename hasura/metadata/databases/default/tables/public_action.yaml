@@ -215,7 +215,13 @@ update_permissions:
                           - OWNER
             - deleted_at:
                 _is_null: true
-      check: null
+      check:
+        _or:
+          - kiosk_enabled:
+              _neq: true
+          - app:
+              engine:
+                _neq: on-chain
 delete_permissions:
   - role: api_key
     permission:
