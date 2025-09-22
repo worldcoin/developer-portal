@@ -24,7 +24,7 @@ export type GetKioskActionQuery = {
     webhook_uri?: string | null;
     webhook_pem?: string | null;
   }>;
-  app: Array<{ __typename?: "app"; engine: string }>;
+  app_by_pk?: { __typename?: "app"; engine: string } | null;
   app_metadata: Array<{ __typename?: "app_metadata"; logo_img_url: string }>;
 };
 
@@ -42,7 +42,7 @@ export const GetKioskActionDocument = gql`
       webhook_uri
       webhook_pem
     }
-    app {
+    app_by_pk(id: $app_id) {
       engine
     }
     app_metadata(

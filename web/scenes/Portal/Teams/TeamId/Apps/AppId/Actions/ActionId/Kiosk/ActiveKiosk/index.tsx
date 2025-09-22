@@ -64,7 +64,7 @@ export const ActiveKioskPage = (props: ActiveKioskPageProps) => {
   const router = useRouter();
 
   const action = data?.action[0];
-  const app = data?.app[0];
+  const app = data?.app_by_pk;
   const logo = data?.app_metadata[0]?.logo_img_url;
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 

@@ -50,7 +50,7 @@ export const ActionIdKioskPage = (props: ActionIdKioskPageProps) => {
     });
   };
   const kioskAction = data?.action[0];
-  const kioskApp = data?.app[0];
+  const kioskApp = data?.app_by_pk;
 
   return (
     <>
