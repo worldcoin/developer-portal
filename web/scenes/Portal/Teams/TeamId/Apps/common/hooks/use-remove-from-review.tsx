@@ -4,7 +4,7 @@ import { useCallback, useState } from "react";
 import { toast } from "react-toastify";
 import { FetchAppMetadataDocument } from "../../AppId/Configuration/graphql/client/fetch-app-metadata.generated";
 import { GetVerificationDataDocument } from "../../AppId/page/graphql/client/get-verification-data.generated";
-import { updateAppVerificationStatus } from "./server";
+import { removeAppFromReview } from "./server";
 
 export const useRemoveFromReview = (props: {
   metadataId: string | undefined;
@@ -29,10 +29,7 @@ export const useRemoveFromReview = (props: {
 
     setLoading(true);
 
-    const result = await updateAppVerificationStatus(
-      props.metadataId,
-      "unverified",
-    );
+    const result = await removeAppFromReview(props.metadataId);
 
     if (result.success) {
       await Promise.all([refetchAppMetadata(), refetchVerificationData()]);

@@ -4,12 +4,11 @@ import * as Types from "@/graphql/graphql";
 import { GraphQLClient, RequestOptions } from "graphql-request";
 import gql from "graphql-tag";
 type GraphQLClientRequestHeaders = RequestOptions["requestHeaders"];
-export type UpdateAppVerificationStatusMutationVariables = Types.Exact<{
+export type RemoveAppFromReviewMutationVariables = Types.Exact<{
   app_metadata_id: Types.Scalars["String"]["input"];
-  verification_status: Types.Scalars["String"]["input"];
 }>;
 
-export type UpdateAppVerificationStatusMutation = {
+export type RemoveAppFromReviewMutation = {
   __typename?: "mutation_root";
   update_app_metadata_by_pk?: {
     __typename?: "app_metadata";
@@ -17,14 +16,11 @@ export type UpdateAppVerificationStatusMutation = {
   } | null;
 };
 
-export const UpdateAppVerificationStatusDocument = gql`
-  mutation UpdateAppVerificationStatus(
-    $app_metadata_id: String!
-    $verification_status: String!
-  ) {
+export const RemoveAppFromReviewDocument = gql`
+  mutation RemoveAppFromReview($app_metadata_id: String!) {
     update_app_metadata_by_pk(
       pk_columns: { id: $app_metadata_id }
-      _set: { verification_status: $verification_status }
+      _set: { verification_status: "unverified" }
     ) {
       id
     }
@@ -50,18 +46,18 @@ export function getSdk(
   withWrapper: SdkFunctionWrapper = defaultWrapper,
 ) {
   return {
-    UpdateAppVerificationStatus(
-      variables: UpdateAppVerificationStatusMutationVariables,
+    RemoveAppFromReview(
+      variables: RemoveAppFromReviewMutationVariables,
       requestHeaders?: GraphQLClientRequestHeaders,
-    ): Promise<UpdateAppVerificationStatusMutation> {
+    ): Promise<RemoveAppFromReviewMutation> {
       return withWrapper(
         (wrappedRequestHeaders) =>
-          client.request<UpdateAppVerificationStatusMutation>(
-            UpdateAppVerificationStatusDocument,
+          client.request<RemoveAppFromReviewMutation>(
+            RemoveAppFromReviewDocument,
             variables,
             { ...requestHeaders, ...wrappedRequestHeaders },
           ),
-        "UpdateAppVerificationStatus",
+        "RemoveAppFromReview",
         "mutation",
         variables,
       );
