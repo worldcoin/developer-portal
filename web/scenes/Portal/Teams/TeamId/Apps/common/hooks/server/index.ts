@@ -5,11 +5,10 @@ import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { getIsUserAllowedToUpdateVerificationStatus } from "@/lib/permissions";
 import { extractIdsFromPath, getPathFromHeaders } from "@/lib/server-utils";
 import { FormActionResult } from "@/lib/types";
-import { getSdk as getUpdateAppVerificationStatusSdk } from "../graphql/server/update-app-verification-status.generated";
+import { getSdk as getRemoveAppFromReviewSdk } from "../graphql/server/remove-app-from-review.generated";
 
-export async function updateAppVerificationStatus(
+export async function removeAppFromReview(
   app_metadata_id: string,
-  verification_status: string,
 ): Promise<FormActionResult> {
   const path = getPathFromHeaders() || "";
   const { Apps: appId, Teams: teamId } = extractIdsFromPath(path, [
@@ -24,7 +23,7 @@ export async function updateAppVerificationStatus(
     if (!isUserAllowedToUpdateVerificationStatus) {
       return errorFormAction({
         message:
-          "The user does not have permission to update this app verification status",
+          "The user does not have permission to remove this app from review",
         team_id: teamId,
         app_id: appId,
         logLevel: "warn",
@@ -32,23 +31,21 @@ export async function updateAppVerificationStatus(
     }
 
     const client = await getAPIServiceGraphqlClient();
-    const updateAppVerificationStatusSdk =
-      getUpdateAppVerificationStatusSdk(client);
+    const removeAppFromReviewSdk = getRemoveAppFromReviewSdk(client);
 
-    await updateAppVerificationStatusSdk.UpdateAppVerificationStatus({
+    await removeAppFromReviewSdk.RemoveAppFromReview({
       app_metadata_id: app_metadata_id,
-      verification_status: verification_status,
     });
 
     return {
       success: true,
-      message: "App verification status updated successfully",
+      message: "App removed from review successfully",
     };
   } catch (error) {
     return errorFormAction({
       error: error as Error,
-      message: "An error occurred while updating the app verification status",
-      additionalInfo: { app_metadata_id, verification_status },
+      message: "An error occurred while removing the app from review",
+      additionalInfo: { app_metadata_id },
       team_id: teamId,
       app_id: appId,
       logLevel: "error",
