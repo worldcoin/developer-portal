@@ -17,32 +17,31 @@ insert_permissions:
       check:
         action:
           app:
-            team_id:
-              _eq: X-Hasura-Team-Id
+            _and:
+              - team_id:
+                  _eq: X-Hasura-Team-Id
+              - created_at:
+                  _lte: "2025-09-25T00:00:00.000000+00:00"
       columns:
         - redirect_uri
         - action_id
-  - role: service
-    permission:
-      check: {}
-      columns:
-        - action_id
-        - redirect_uri
   - role: user
     permission:
       check:
         action:
           app:
-            team:
-              memberships:
-                _and:
-                  - user_id:
-                      _eq: X-Hasura-User-Id
-                  - _or:
+            _and:
+              - team:
+                  memberships:
+                    _and:
+                      - user_id:
+                          _eq: X-Hasura-User-Id
                       - role:
-                          _eq: OWNER
-                      - role:
-                          _eq: ADMIN
+                          _in:
+                            - ADMIN
+                            - OWNER
+              - created_at:
+                  _lte: "2025-09-25T00:00:00.000000+00:00"
       columns:
         - redirect_uri
         - action_id
@@ -91,8 +90,11 @@ update_permissions:
       filter:
         action:
           app:
-            team_id:
-              _eq: X-Hasura-Team-Id
+            _and:
+              - team_id:
+                  _eq: X-Hasura-Team-Id
+              - created_at:
+                  _lte: "2025-09-25T00:00:00.000000+00:00"
       check: null
   - role: user
     permission:
@@ -101,16 +103,18 @@ update_permissions:
       filter:
         action:
           app:
-            team:
-              memberships:
-                _and:
-                  - user_id:
-                      _eq: X-Hasura-User-Id
-                  - _or:
+            _and:
+              - team:
+                  memberships:
+                    _and:
+                      - user_id:
+                          _eq: X-Hasura-User-Id
                       - role:
-                          _eq: OWNER
-                      - role:
-                          _eq: ADMIN
+                          _in:
+                            - ADMIN
+                            - OWNER
+              - created_at:
+                  _lte: "2025-09-25T00:00:00.000000+00:00"
       check: null
 delete_permissions:
   - role: api_key
