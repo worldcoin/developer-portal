@@ -41,10 +41,10 @@ export const ClientInformationPage = (props: {
   const isStaging = data?.app[0]?.is_staging;
   const createdAt = data?.app[0]?.created_at;
 
-  // Check if app was created after September 25, 2025
+  // Check if app was created after September 29, 2025
   const isAppCreatedAfterCutoff = useMemo(() => {
     if (!createdAt) return false;
-    const cutoffDate = new Date("2025-09-25T00:00:00Z");
+    const cutoffDate = new Date("2025-09-29T00:00:00Z");
     const appCreatedDate = new Date(createdAt);
     return appCreatedDate > cutoffDate;
   }, [createdAt]);
