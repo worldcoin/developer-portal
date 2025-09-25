@@ -39,7 +39,7 @@ describe("service role", () => {
       }
     }
 
-    expect(signInWithWorldIDCount).toEqual(8); // 8 apps are created (non-archived)
+    expect(signInWithWorldIDCount).toEqual(1); // only one app with sign in with world id
   });
 
   test("cannot delete actions", async () => {

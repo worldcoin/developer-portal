@@ -84,7 +84,7 @@ export const SignInWithWorldIdPage = async (
                 <span className="font-bold">December 2025</span>.
               </div>
               <div className="mt-1 font-medium">
-                New apps created after September 25, 2025 cannot enable this
+                New apps created after September 29, 2025 cannot enable this
                 feature.
               </div>
               <div className="mt-2 font-semibold text-orange-900 underline">

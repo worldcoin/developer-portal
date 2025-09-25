@@ -31,30 +31,5 @@ VALUES
         )
     ),
     'http://localhost:3000/login'
-  ),
-  (
-    (
-      SELECT
-        id
-      FROM
-        "public"."action"
-      WHERE
-        action = ''
-      LIMIT
-        1
-    ),
-    'https://worldcoin.org'
-  ),
-  (
-    (
-      SELECT
-        id
-      FROM
-        "public"."action"
-      WHERE
-        action = ''
-      LIMIT
-        1
-    ),
-    'https://example.com'
+
   )
