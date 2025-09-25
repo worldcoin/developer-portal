@@ -69,10 +69,6 @@ export const ClientInformationPage = (props: {
     }
   }, [resetClientSecretMutation]);
 
-  if (!fetchingAction && !signInAction) {
-    return <Error statusCode={404} title="Action not found" />;
-  }
-
   if (fetchingAction) {
     return (
       <div className="grid w-full gap-y-10 pb-10 pt-5">
@@ -94,6 +90,10 @@ export const ClientInformationPage = (props: {
         </div>
       </div>
     );
+  }
+
+  if (!fetchingAction && !signInAction) {
+    return <Error statusCode={404} title="Action not found" />;
   }
 
   return (
