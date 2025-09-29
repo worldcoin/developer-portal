@@ -8,5 +8,6 @@ query FetchSignInAction($app_id: String!) {
   }
   app(where: { id: { _eq: $app_id } }) {
     is_staging
+    created_at
   }
 }

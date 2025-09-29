@@ -39,6 +39,15 @@ export const ClientInformationPage = (props: {
 
   const signInAction = data?.action[0];
   const isStaging = data?.app[0]?.is_staging;
+  const createdAt = data?.app[0]?.created_at;
+
+  // Check if app was created after September 29, 2025
+  const isAppCreatedAfterCutoff = useMemo(() => {
+    if (!createdAt) return false;
+    const cutoffDate = new Date("2025-09-29T00:00:00Z");
+    const appCreatedDate = new Date(createdAt);
+    return appCreatedDate > cutoffDate;
+  }, [createdAt]);
 
   const [resetClientSecretMutation] = useResetClientSecretMutation({
     variables: { app_id: appID, team_id: teamID },
@@ -60,119 +69,123 @@ export const ClientInformationPage = (props: {
     }
   }, [resetClientSecretMutation]);
 
-  if (!fetchingAction && !signInAction) {
-    return <Error statusCode={404} title="Action not found" />;
-  } else {
+  if (fetchingAction) {
     return (
       <div className="grid w-full gap-y-10 pb-10 pt-5">
-        <div className="grid gap-y-5">
-          <div className="grid gap-y-3">
-            <Typography variant={TYPOGRAPHY.H7}>Client information</Typography>
-
-            <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
-              Use these attributes to configure Sign in with World ID in your
-              app
-            </Typography>
-          </div>
-
-          {fetchingAction ? (
-            <Skeleton count={2} />
-          ) : (
-            <div className="grid w-full gap-y-2">
-              <Input
-                placeholder={appID}
-                label="Client ID"
-                disabled
-                className="h-16"
-                addOnRight={
-                  <CopyButton fieldName="Client ID" fieldValue={appID} />
-                }
-              />
-
-              <Input
-                placeholder={
-                  clientSecret == ""
-                    ? "Locked (reset to generate a new secret)"
-                    : clientSecret
-                }
-                label="Client secret"
-                disabled
-                className="h-16"
-                helperText="Save the generated client secret. You won't be able to see it again."
-                addOnLeft={
-                  clientSecret == "" ? (
-                    <LockIcon className="w-8 pl-1 text-grey-400" />
-                  ) : (
-                    <></>
-                  )
-                }
-                addOnRight={
-                  <div
-                    className={clsx(
-                      "grid grid-cols-1fr/auto justify-items-end gap-x-3",
-                      { hidden: !isEnoughPermissions },
-                    )}
-                  >
-                    <DecoratedButton
-                      type="button"
-                      variant="secondary"
-                      className="h-9"
-                      onClick={handleReset}
-                    >
-                      Reset
-                    </DecoratedButton>
-
-                    {clientSecret !== "" && (
-                      <CopyButton
-                        fieldName="Client secret"
-                        fieldValue={clientSecret}
-                      />
-                    )}
-                  </div>
-                }
-              />
-            </div>
-          )}
-        </div>
-
-        <div className="grid gap-y-5">
-          <div className="grid gap-y-3">
-            <Typography as="h6" variant={TYPOGRAPHY.H7}>
-              Redirects
-            </Typography>
-
-            <Typography
-              as="p"
-              variant={TYPOGRAPHY.R3}
-              className="text-grey-500"
-            >
-              You must specify at least one URL for authentication to work
-            </Typography>
-          </div>
-
-          {fetchingAction ? (
-            <Skeleton count={2} />
-          ) : (
-            <Redirects
-              actionId={signInAction?.id!}
-              teamId={teamID}
-              isStaging={isStaging ?? false}
-              appId={appID}
-              canEdit={isEnoughPermissions}
-            />
-          )}
-        </div>
-
-        {fetchingAction ? (
-          <Skeleton height={150} />
-        ) : (
-          <LinksForm
-            signInAction={signInAction!}
-            teamId={teamID}
-            canEdit={isEnoughPermissions}
-          />
-        )}
+        <Skeleton height={200} />
       </div>
     );
   }
+
+  if (isAppCreatedAfterCutoff) {
+    return (
+      <div className="grid w-full gap-y-10 pb-10 pt-5">
+        <div className="grid gap-y-3">
+          <Typography variant={TYPOGRAPHY.H7}>Feature Not Available</Typography>
+          <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
+            Your app was created after Sign in with World ID was deprecated and
+            is not eligible for this feature. Please read the announcement
+            above.
+          </Typography>
+        </div>
+      </div>
+    );
+  }
+
+  if (!fetchingAction && !signInAction) {
+    return <Error statusCode={404} title="Action not found" />;
+  }
+
+  return (
+    <div className="grid w-full gap-y-10 pb-10 pt-5">
+      <div className="grid gap-y-5">
+        <div className="grid gap-y-3">
+          <Typography variant={TYPOGRAPHY.H7}>Client information</Typography>
+
+          <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
+            Use these attributes to configure Sign in with World ID in your app
+          </Typography>
+        </div>
+
+        <div className="grid w-full gap-y-2">
+          <Input
+            placeholder={appID}
+            label="Client ID"
+            disabled
+            className="h-16"
+            addOnRight={<CopyButton fieldName="Client ID" fieldValue={appID} />}
+          />
+
+          <Input
+            placeholder={
+              clientSecret == ""
+                ? "Locked (reset to generate a new secret)"
+                : clientSecret
+            }
+            label="Client secret"
+            disabled
+            className="h-16"
+            helperText="Save the generated client secret. You won't be able to see it again."
+            addOnLeft={
+              clientSecret == "" ? (
+                <LockIcon className="w-8 pl-1 text-grey-400" />
+              ) : (
+                <></>
+              )
+            }
+            addOnRight={
+              <div
+                className={clsx(
+                  "grid grid-cols-1fr/auto justify-items-end gap-x-3",
+                  { hidden: !isEnoughPermissions },
+                )}
+              >
+                <DecoratedButton
+                  type="button"
+                  variant="secondary"
+                  className="h-9"
+                  onClick={handleReset}
+                >
+                  Reset
+                </DecoratedButton>
+
+                {clientSecret !== "" && (
+                  <CopyButton
+                    fieldName="Client secret"
+                    fieldValue={clientSecret}
+                  />
+                )}
+              </div>
+            }
+          />
+        </div>
+      </div>
+
+      <div className="grid gap-y-5">
+        <div className="grid gap-y-3">
+          <Typography as="h6" variant={TYPOGRAPHY.H7}>
+            Redirects
+          </Typography>
+
+          <Typography as="p" variant={TYPOGRAPHY.R3} className="text-grey-500">
+            You must specify at least one URL for authentication to work
+          </Typography>
+        </div>
+
+        <Redirects
+          actionId={signInAction?.id!}
+          teamId={teamID}
+          isStaging={isStaging ?? false}
+          appId={appID}
+          canEdit={isEnoughPermissions}
+        />
+      </div>
+
+      <LinksForm
+        signInAction={signInAction!}
+        teamId={teamID}
+        canEdit={isEnoughPermissions}
+      />
+    </div>
+  );
 };
