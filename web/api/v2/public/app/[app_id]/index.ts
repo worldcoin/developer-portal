@@ -236,8 +236,11 @@ export async function GET(
     if (metadata_field === "rounded_logo_img_url") {
       const logo_img_url = formattedMetadata.logo_img_url;
       // rounded logo img url is the logo img url with _rounded suffix before the extension
-      const logo_img_url_parts = logo_img_url.split(".");
-      const responseText = `${logo_img_url_parts[0]}_rounded.${logo_img_url_parts[1]}`;
+      const lastDotIndex = logo_img_url.lastIndexOf(".");
+      const responseText =
+        lastDotIndex !== -1
+          ? `${logo_img_url.substring(0, lastDotIndex)}_rounded${logo_img_url.substring(lastDotIndex)}`
+          : logo_img_url;
       const contentLength = Buffer.byteLength(responseText, "utf-8").toString();
 
       return new NextResponse(responseText, {

@@ -1,6 +1,5 @@
 import { logger } from "@/lib/logger";
 import {
-  CopyObjectCommand,
   GetObjectCommand,
   PutObjectCommand,
   S3Client,
@@ -50,10 +49,7 @@ export const processLogoImage = async (
     const contentType = "image/png";
     const imageBuffer = await streamToBuffer(getObjectResponse.Body);
 
-    let minimizedImageBuffer: Buffer;
-    let roundedImageBuffer: Buffer;
-
-    minimizedImageBuffer = await sharp(imageBuffer)
+    const minimizedImageBuffer = await sharp(imageBuffer)
       .resize(width, height, {
         fit: "cover",
         position: "center",
@@ -67,7 +63,7 @@ export const processLogoImage = async (
       </svg>
     `;
 
-    roundedImageBuffer = await sharp(imageBuffer)
+    const roundedImageBuffer = await sharp(imageBuffer)
       .resize(width, height, {
         fit: "cover",
         position: "center",
@@ -80,6 +76,8 @@ export const processLogoImage = async (
       ])
       .png({ quality })
       .toBuffer();
+
+    const originalImageBuffer = await sharp(imageBuffer).png().toBuffer();
 
     const originalImageKey = `${destinationFolder}${imageKey}_original.png`;
     const minimizedImageKey = `${destinationFolder}${imageKey}.png`;
@@ -95,10 +93,10 @@ export const processLogoImage = async (
     );
 
     const putOriginalImagePromise = s3Client.send(
-      new CopyObjectCommand({
+      new PutObjectCommand({
         Bucket: bucketName,
         Key: originalImageKey,
-        CopySource: `${bucketName}/${sourceKey}`,
+        Body: originalImageBuffer,
         ContentType: contentType,
       }),
     );
