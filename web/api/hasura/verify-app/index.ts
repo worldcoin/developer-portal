@@ -2,7 +2,10 @@ import { getSdk as getAppMetadataSDK } from "@/api/hasura/verify-app/graphql/get
 import { getSdk as verifyAppSDK } from "@/api/hasura/verify-app/graphql/verifyApp.generated";
 import { errorHasuraQuery } from "@/api/helpers/errors";
 import { getAPIReviewerGraphqlClient } from "@/api/helpers/graphql";
-import { processLogoImage } from "@/api/helpers/image-processing";
+import {
+  processContentCardImage,
+  processLogoImage,
+} from "@/api/helpers/image-processing";
 import { getFileExtension, protectInternalEndpoint } from "@/api/helpers/utils";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import * as Types from "@/graphql/graphql";
@@ -175,6 +178,7 @@ export const POST = async (req: NextRequest) => {
   // 200x200, 30px rounded corners, 80% quality - rounded logo image, has _rounded suffix
   // original dimensions, 100% quality - original logo image, has _original suffix
   const currentLogoImgName = awaitingReviewAppMetadata.logo_img_url;
+  const logoFileType = getFileExtension(currentLogoImgName);
   const newLogoImgName = randomUUID();
   const logoProcessingPromise = processLogoImage(
     s3Client,
@@ -186,6 +190,7 @@ export const POST = async (req: NextRequest) => {
     200,
     30,
     80,
+    logoFileType.replace(".", ""),
   );
 
   copyPromises.push(logoProcessingPromise);
@@ -217,12 +222,12 @@ export const POST = async (req: NextRequest) => {
     newContentCardImgName = randomUUID() + contentCardFileType;
 
     copyPromises.push(
-      s3Client.send(
-        new CopyObjectCommand({
-          Bucket: bucketName,
-          CopySource: `${bucketName}/${sourcePrefix}${currentContentCardImgName}`,
-          Key: `${destinationPrefix}${newContentCardImgName}`,
-        }),
+      processContentCardImage(
+        s3Client,
+        bucketName,
+        `${sourcePrefix}${currentContentCardImgName}`,
+        `${destinationPrefix}${newContentCardImgName}`,
+        contentCardFileType.replace(".", ""),
       ),
     );
   }
