@@ -239,7 +239,7 @@ export async function GET(
       const lastDotIndex = logo_img_url.lastIndexOf(".");
       const responseText =
         lastDotIndex !== -1
-          ? `${logo_img_url.substring(0, lastDotIndex)}_rounded${logo_img_url.substring(lastDotIndex)}`
+          ? `${logo_img_url.substring(0, lastDotIndex)}_rounded.png`
           : logo_img_url;
       const contentLength = Buffer.byteLength(responseText, "utf-8").toString();
 
