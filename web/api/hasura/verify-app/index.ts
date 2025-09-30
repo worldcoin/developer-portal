@@ -332,7 +332,7 @@ export const POST = async (req: NextRequest) => {
     idToVerify: awaitingReviewAppMetadata.id,
     idToDelete: verifiedAppMetadata ? verifiedAppMetadata?.id : "", // No app has id "" so this will delete nothing
     verified_data_changes: {
-      logo_img_url: `${newLogoImgName}.png`,
+      logo_img_url: `${newLogoImgName}${logoFileType}`,
       hero_image_url: "",
       meta_tag_image_url: newMetaTagImgName,
       showcase_img_urls: showcaseImgUUIDs,
