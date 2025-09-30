@@ -11,20 +11,28 @@ import sharp from "sharp";
  * @param s3Client - The S3 client instance
  * @param bucketName - The S3 bucket name
  * @param sourceKey - The source image key in S3
- * @param destinationKey - The destination key for the resized image
- * @param width - Target width for resizing
- * @param height - Target height for resizing
- * @param fileExtension - The file extension (.png, .jpg, .jpeg) to determine output format
- * @returns Promise<void>
+ * @param destinationFolder - The destination folder for the resized image
+ * @param imageKey - The image key in the destination folder
+ * @param width - The width of the resized image
+ * @param height - The height of the resized image
+ * @param cornerRadius - The radius of the rounded corners
+ * @param quality - The quality of the resized image
+ * @returns Promise<{
+ *   originalImageKey: string; // The key of the original image
+ *   minimizedImageKey: string; // The key of the minimized image
+ *   roundedImageKey: string; // The key of the rounded image
+ * }>
  */
-export const resizeAndUploadImage = async (
+export const processLogoImage = async (
   s3Client: S3Client,
   bucketName: string,
   sourceKey: string,
-  destinationKey: string,
+  destinationFolder: string,
+  imageKey: string,
   width: number,
   height: number,
-  fileExtension: string,
+  cornerRadius: number,
+  quality: number,
 ): Promise<void> => {
   try {
     const getObjectResponse = await s3Client.send(
@@ -38,51 +46,92 @@ export const resizeAndUploadImage = async (
       throw new Error(`Failed to download image from S3: ${sourceKey}`);
     }
 
+    const contentType = "image/png";
     const imageBuffer = await streamToBuffer(getObjectResponse.Body);
 
-    let outputBuffer: Buffer;
-    let contentType: string;
-    const normalizedExtension = fileExtension.toLowerCase();
+    const minimizedImageBuffer = await sharp(imageBuffer)
+      .resize(width, height, {
+        fit: "cover",
+        position: "center",
+      })
+      .png({ quality })
+      .toBuffer();
 
-    if (normalizedExtension === ".png") {
-      outputBuffer = await sharp(imageBuffer)
-        .resize(width, height, {
-          fit: "cover",
-          position: "center",
-        })
-        .png()
-        .toBuffer();
-      contentType = "image/png";
-    } else {
-      outputBuffer = await sharp(imageBuffer)
-        .resize(width, height, {
-          fit: "cover",
-          position: "center",
-        })
-        .jpeg({ quality: 100 })
-        .toBuffer();
-      contentType = "image/jpeg";
-    }
+    const roundedCornerSvg = `
+      <svg width="${width}" height="${height}">
+        <rect x="0" y="0" width="${width}" height="${height}" rx="${cornerRadius}" ry="${cornerRadius}" fill="white"/>
+      </svg>
+    `;
 
-    await s3Client.send(
+    const roundedImageBuffer = await sharp(imageBuffer)
+      .resize(width, height, {
+        fit: "cover",
+        position: "center",
+      })
+      .composite([
+        {
+          input: Buffer.from(roundedCornerSvg),
+          blend: "dest-in",
+        },
+      ])
+      .png({ quality })
+      .toBuffer();
+
+    const originalImageBuffer = await sharp(imageBuffer).png().toBuffer();
+
+    const originalImageKey = `${destinationFolder}${imageKey}_original.png`;
+    const minimizedImageKey = `${destinationFolder}${imageKey}.png`;
+    const roundedImageKey = `${destinationFolder}${imageKey}_rounded.png`;
+
+    const putMinifiedImagePromise = s3Client.send(
       new PutObjectCommand({
         Bucket: bucketName,
-        Key: destinationKey,
-        Body: outputBuffer,
+        Key: minimizedImageKey,
+        Body: minimizedImageBuffer,
         ContentType: contentType,
       }),
     );
 
-    logger.info(`Successfully resized and uploaded image: ${destinationKey}`, {
-      fileExtension,
-      outputFormat: normalizedExtension === "png" ? "png" : "jpeg",
-    });
-  } catch (error) {
-    logger.error(`Failed to resize and upload image: ${error}`, {
-      sourceKey,
-      destinationKey,
+    const putOriginalImagePromise = s3Client.send(
+      new PutObjectCommand({
+        Bucket: bucketName,
+        Key: originalImageKey,
+        Body: originalImageBuffer,
+        ContentType: contentType,
+      }),
+    );
+
+    const putRoundedImagePromise = s3Client.send(
+      new PutObjectCommand({
+        Bucket: bucketName,
+        Key: roundedImageKey,
+        Body: roundedImageBuffer,
+        ContentType: contentType,
+      }),
+    );
+
+    await Promise.all([
+      putMinifiedImagePromise,
+      putOriginalImagePromise,
+      putRoundedImagePromise,
+    ]);
+
+    logger.info(`Successfully processed and uploaded logo images`, {
+      originalImageKey,
+      minimizedImageKey,
+      roundedImageKey,
       width,
       height,
+      cornerRadius,
+    });
+  } catch (error) {
+    logger.error(`Failed to process logo image: ${error}`, {
+      sourceKey,
+      destinationFolder,
+      imageKey,
+      width,
+      height,
+      cornerRadius,
     });
     throw error;
   }
