@@ -6,6 +6,7 @@ mutation CreateDraft(
   $hero_image_url: String = ""
   $meta_tag_image_url: String = ""
   $showcase_img_urls: [String!] = null
+  $content_card_image_url: String = ""
   $description: String = ""
   $world_app_description: String = ""
   $category: String = ""
@@ -37,6 +38,7 @@ mutation CreateDraft(
       showcase_img_urls: $showcase_img_urls
       meta_tag_image_url: $meta_tag_image_url
       hero_image_url: $hero_image_url
+      content_card_image_url: $content_card_image_url
       description: $description
       world_app_description: $world_app_description
       category: $category

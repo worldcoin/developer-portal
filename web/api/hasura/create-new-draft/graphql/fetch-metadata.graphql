@@ -19,6 +19,7 @@ query FetchAppMetadata($team_id: String!, $app_id: String!, $user_id: String!) {
       hero_image_url
       meta_tag_image_url
       showcase_img_urls
+      content_card_image_url
       description
       world_app_description
       category
