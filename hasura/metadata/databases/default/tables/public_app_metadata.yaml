@@ -86,6 +86,7 @@ insert_permissions:
         - can_import_all_contacts
         - category
         - changelog
+        - content_card_image_url
         - contracts
         - description
         - hero_image_url
