@@ -4,7 +4,7 @@ import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { logger } from "@/lib/logger";
 import { appIdSchema } from "@/lib/schema";
 import { TransactionTypes } from "@/lib/types";
-import { fetchWithRetry } from "@/lib/utils";
+import { fetchWithTimeout } from "@/lib/utils";
 import { createSignedFetcher } from "aws-sigv4-fetch";
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
@@ -67,21 +67,33 @@ export const GET = async (
       ? `${process.env.NEXT_SERVER_INTERNAL_PAYMENTS_ENDPOINT}/miniapp?miniapp-id=${appId}&transaction-id=${transactionId}`
       : `${process.env.NEXT_SERVER_INTERNAL_PAYMENTS_ENDPOINT}/miniapp-actions?miniapp-id=${appId}&transaction-id=${transactionId}`;
 
-  const res = await fetchWithRetry(
-    url,
-    {
-      method: "GET",
-      headers: {
-        "User-Agent": req.headers.get("user-agent") ?? "DevPortal/1.0",
-        "Content-Type": "application/json",
+  let res: Response;
+  try {
+    res = await fetchWithTimeout(
+      url,
+      {
+        method: "GET",
+        headers: {
+          "User-Agent": req.headers.get("user-agent") ?? "DevPortal/1.0",
+          "Content-Type": "application/json",
+        },
       },
-    },
-    1, // max retries
-    400, // initial retry delay in ms
-    3000, // fetch timeout in ms
-    false, // don't throw on error
-    signedFetch,
-  );
+      5000, // fetch timeout in ms
+      signedFetch,
+    );
+  } catch (error) {
+    return corsHandler(
+      errorResponse({
+        statusCode: 500,
+        code: "internal_api_error",
+        detail: "Transaction fetch to backend failed",
+        attribute: "transaction",
+        req,
+        app_id: appId,
+      }),
+      corsMethods,
+    );
+  }
 
   if (!res.ok) {
     let errorBody: any = {};
@@ -95,22 +107,13 @@ export const GET = async (
       });
     }
 
-    logger.warn("Error fetching transaction data", {
-      status: res.status,
-      statusText: res.statusText,
-      message: JSON.stringify(errorBody),
-      app_id: appId,
-      transactionId,
-      type,
-    });
-
     return corsHandler(
       errorResponse({
         statusCode: res.status,
         code: errorBody?.error?.code ?? "internal_api_error",
         detail:
-          errorBody?.error?.details ?? "Transaction fetch to backend failed",
-        attribute: errorBody?.error?.message ?? "transaction",
+          errorBody?.error?.message ?? "Transaction fetch to backend failed",
+        attribute: "transaction",
         req,
         app_id: appId,
       }),
