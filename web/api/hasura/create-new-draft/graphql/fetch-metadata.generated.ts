@@ -23,6 +23,7 @@ export type FetchAppMetadataQuery = {
       hero_image_url: string;
       meta_tag_image_url: string;
       showcase_img_urls?: Array<string> | null;
+      content_card_image_url: string;
       description: string;
       world_app_description: string;
       category: string;
@@ -76,6 +77,7 @@ export const FetchAppMetadataDocument = gql`
         hero_image_url
         meta_tag_image_url
         showcase_img_urls
+        content_card_image_url
         description
         world_app_description
         category

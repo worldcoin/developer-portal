@@ -128,6 +128,9 @@ export const POST = async (req: NextRequest) => {
     meta_tag_image_url: newAppMetadata?.meta_tag_image_url
       ? `meta_tag_image.${getImageEndpoint(newAppMetadata.meta_tag_image_url)}`
       : "",
+    content_card_image_url: newAppMetadata?.content_card_image_url
+      ? `content_card_image.${getImageEndpoint(newAppMetadata.content_card_image_url)}`
+      : "",
     showcase_img_urls: newAppMetadata?.showcase_img_urls
       ? `{${newAppMetadata.showcase_img_urls
           ?.map(
