@@ -52,7 +52,7 @@ export const POST = async (req: NextRequest) => {
     }
 
     const { isValid, parsedParams } = await validateRequestSchema({
-      value: body.input.input,
+      value: body.input.input.updates,
       schema,
     });
 
