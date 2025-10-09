@@ -68,6 +68,7 @@ export const AppProfileGalleryPage = ({ params }: AppProfileGalleryProps) => {
   } else {
     return (
       <AppStoreFormProvider
+        key={`${appMetadata.id}-${viewMode}`} // Force remount when metadata or view mode changes
         appMetadata={appMetadata as AppMetadata}
         localisationsData={
           (localisationsData?.localisations || []) as LocalisationData
