@@ -1,19 +1,9 @@
-mutation ChangeAppReportStatus(
-  $app_report_id: String!
-  $reviewed_by: String
-  $review_status: review_status_enum!
-  $review_conclusion_reason: String
-  $reviewed_at: timestamptz
-) {
-  update_app_report_by_pk(
-    pk_columns: { id: $app_report_id }
-    _set: {
-      reviewed_at: $reviewed_at
-      reviewed_by: $reviewed_by
-      review_status: $review_status
-      review_conclusion_reason: $review_conclusion_reason
+mutation ChangeAppReportStatus($updates: [app_report_updates!]!) {
+  update_app_report_many(updates: $updates) {
+    affected_rows
+    returning {
+      id
+      __typename
     }
-  ) {
-    __typename
   }
 }
