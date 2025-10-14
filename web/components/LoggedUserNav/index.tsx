@@ -17,6 +17,7 @@ import { CSSProperties, useCallback, useMemo } from "react";
 import { Button } from "../Button";
 import { Dropdown } from "../Dropdown";
 import { LogoutIcon } from "../Icons/LogoutIcon";
+import { MailIcon } from "../Icons/MailIcon";
 import { SettingsIcon } from "../Icons/SettingsIcon";
 import { UserCircleIcon } from "../Icons/UserCircleIcon";
 import { UserMultipleIcon } from "../Icons/UserMultipleIcon";
@@ -165,6 +166,16 @@ export const LoggedUserNav = () => {
                   </Link>
                 </Dropdown.ListItem>
               )}
+
+              <Dropdown.ListItem asChild>
+                <Link href={`/teams/${teamId}/affiliate-program`}>
+                  <Dropdown.ListItemIcon asChild>
+                    <MailIcon />
+                  </Dropdown.ListItemIcon>
+
+                  <Dropdown.ListItemText>Affiliate program</Dropdown.ListItemText>
+                </Link>
+              </Dropdown.ListItem>
 
               <Dropdown.ListSeparator />
             </>

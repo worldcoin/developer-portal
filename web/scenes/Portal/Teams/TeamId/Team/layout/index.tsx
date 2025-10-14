@@ -89,6 +89,16 @@ export const TeamIdLayout = async (props: TeamIdLayoutProps) => {
                 <Typography variant={TYPOGRAPHY.R4}>Danger zone</Typography>
               </Tab>
             )}
+
+            {/*TODO: ask what role check should be here*/}
+            <Tab
+                className="md:py-4"
+                href={`/teams/${params!.teamId}/affiliate-program`}
+                segment={"affiliate-program"}
+                underlined
+            >
+              <Typography variant={TYPOGRAPHY.R4}>Affiliate program</Typography>
+            </Tab>
           </Tabs>
         </SizingWrapper>
       </div>
