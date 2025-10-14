@@ -174,8 +174,8 @@ export const POST = async (req: NextRequest) => {
   const copyPromises = [];
 
   // Create and upload 3 versions of the logo image
-  // 200x200, 80% quality - used as a main logo image
-  // 200x200, 30px rounded corners, 80% quality - rounded logo image, has _rounded suffix
+  // 400x400, 80% quality - used as a main logo image
+  // 400x400, 60px rounded corners, 80% quality - rounded logo image, has _rounded suffix
   // original dimensions, 100% quality - original logo image, has _original suffix
   const currentLogoImgName = awaitingReviewAppMetadata.logo_img_url;
   const logoFileType = getFileExtension(currentLogoImgName);
@@ -186,9 +186,9 @@ export const POST = async (req: NextRequest) => {
     `${sourcePrefix}${currentLogoImgName}`,
     destinationPrefix,
     newLogoImgName,
-    200,
-    200,
-    30,
+    400,
+    400,
+    60,
     80,
     logoFileType.replace(".", ""),
   );
