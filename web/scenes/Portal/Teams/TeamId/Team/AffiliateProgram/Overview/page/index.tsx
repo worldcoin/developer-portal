@@ -10,6 +10,7 @@ import { IconFrame } from "@/components/InitialSteps/IconFrame";
 import { TeamAffiliateProfile } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Overview/page/TeamAffiliateProfile";
 import { InviteUserDialog } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Overview/page/InviteUserDialog";
 import clsx from "clsx";
+import {AppStatsGraph} from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Overview/page/AppStatsGraph";
 
 type TeamApiKeysPageProps = {
   params: {
@@ -84,7 +85,7 @@ export const AffiliateProgramPage = (props: TeamApiKeysPageProps) => {
               <TeamAffiliateProfile />
             </SizingWrapper>
 
-            {/*<AppStatsGraph appId={"app_80f9f559216f596e5355066edfd7f58b"} />*/}
+            {/*<AppStatsGraph appId="app_80f9f559216f596e5355066edfd7f58b" />*/}
 
             <div className="order-2 md:pb-8">
               {/*{loading ? (*/}

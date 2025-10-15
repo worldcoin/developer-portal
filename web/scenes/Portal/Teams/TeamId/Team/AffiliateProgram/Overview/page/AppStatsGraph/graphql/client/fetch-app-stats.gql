@@ -1,0 +1,12 @@
+query FetchAppStats($appId: String!) {
+  app_stats(where: { app_id: { _eq: $appId } }, order_by: { date: asc }) {
+    app_id
+    date
+    verifications
+    unique_users
+  }
+  app(where: { id: { _eq: $appId } }) {
+    id
+    engine
+  }
+}
