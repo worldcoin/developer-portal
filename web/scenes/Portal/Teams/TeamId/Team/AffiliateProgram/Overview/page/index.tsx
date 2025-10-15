@@ -1,0 +1,100 @@
+"use client";
+import {DecoratedButton} from "@/components/DecoratedButton";
+import {IdentificationIcon} from "@/components/Icons/IdentificationIcon";
+import {MailWithLines} from "@/components/Icons/MailWithLines";
+import {Section} from "@/components/Section";
+import {SizingWrapper} from "@/components/SizingWrapper";
+import {TYPOGRAPHY, Typography} from "@/components/Typography";
+// import Skeleton from "react-loading-skeleton";
+import {IconFrame} from "@/components/InitialSteps/IconFrame";
+import {
+  TeamAffiliateProfile
+} from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Overview/page/TeamAffiliateProfile";
+import {InviteUserDialog} from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Overview/page/InviteUserDialog";
+import clsx from "clsx";
+
+type TeamApiKeysPageProps = {
+  params: {
+    teamId: string;
+  }
+};
+
+export const AffiliateProgramPage = (props: TeamApiKeysPageProps) => {
+  const { params } = props;
+  const teamId = params?.teamId;
+  const isUserPassedKyc = true;
+
+  return (
+    <>
+      <SizingWrapper gridClassName="order-2 grow" className={clsx("flex flex-col", {
+        "place-content-center": !isUserPassedKyc
+      })}>
+        <InviteUserDialog />
+
+        {!isUserPassedKyc ? (
+          <div className="grid grid-cols-1 justify-items-center pt-12">
+                          <MailWithLines className="md:max-w-[380px]" />
+
+            <div className="grid justify-items-center gap-y-2 mt-4 ">
+              <Typography variant={TYPOGRAPHY.H6}>Invite humans and earn rewards</Typography>
+
+              <Typography
+                variant={TYPOGRAPHY.R4}
+                className="text-center text-grey-500"
+              >
+                  Receive rewards for each human that uses your code and gets verified
+              </Typography>
+            </div>
+
+            <div className="flex items-center gap-3 border border-grey-200 p-6 rounded-2xl mt-10">
+              <IconFrame className="bg-blue-500 text-grey-0">
+                <IdentificationIcon />
+              </IconFrame>
+
+              <div className="text-start">
+                <Typography
+                    as="p"
+                    variant={TYPOGRAPHY.M3}
+                >
+                  Complete KYB
+                </Typography>
+                <Typography
+                    as="p"
+                    variant={TYPOGRAPHY.R5}
+                    className="text-grey-500"
+                >
+                  To unlock affiliate program
+                </Typography>
+              </div>
+              <DecoratedButton
+                  type="button"
+                  onClick={() => {
+                    // TODO: call api to start verification
+                  }}
+                  className="h-9"
+              >
+                Complete
+              </DecoratedButton>
+            </div>
+          </div>
+        ) : (
+            <Section>
+              <SizingWrapper gridClassName="order-1">
+                <TeamAffiliateProfile />
+              </SizingWrapper>
+
+              {/*<AppStatsGraph appId={"app_80f9f559216f596e5355066edfd7f58b"} />*/}
+
+              <div className="order-2 md:pb-8">
+              {/*{loading ? (*/}
+              {/*  <Skeleton count={5} />*/}
+              {/*) : (*/}
+              {/*  <ApiKeysTable teamId={teamId} apiKeys={apiKeys} />*/}
+              {/*)}*/}
+            </div>
+          </Section>
+        )}
+      </SizingWrapper>
+    </>
+  );
+};
