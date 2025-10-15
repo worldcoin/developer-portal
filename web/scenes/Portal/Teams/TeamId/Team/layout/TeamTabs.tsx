@@ -11,7 +11,7 @@ type TabsWrapperProps = {
   hasOwnerAndAdminPermission: boolean;
 };
 
-export const TabsWrapper = ({ teamId, hasOwnerPermission, hasOwnerAndAdminPermission }: TabsWrapperProps) => {
+export const TeamTabs = ({ teamId, hasOwnerPermission, hasOwnerAndAdminPermission }: TabsWrapperProps) => {
   const pathname = usePathname();
   const isAffiliateProgram = pathname.includes('affiliate-program');
 
