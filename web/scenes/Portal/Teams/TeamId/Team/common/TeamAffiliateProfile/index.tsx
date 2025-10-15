@@ -1,19 +1,19 @@
 "use client";
-import { UserMultipleIcon } from "@/components/Icons/UserMultipleIcon";
-import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import { useParams } from "next/navigation";
-import { useEffect } from "react";
+import {TYPOGRAPHY, Typography} from "@/components/Typography";
+import {useParams} from "next/navigation";
+import {useEffect} from "react";
 import Skeleton from "react-loading-skeleton";
-import { Image } from "./Image";
-import { useFetchTeamLazyQuery } from "./graphql/client/fetch-team.generated";
+import {Image} from "./Image";
+import {useFetchTeamLazyQuery} from "./graphql/client/fetch-team.generated";
 import {DecoratedButton} from "@/components/DecoratedButton";
-import {PlusIcon} from "@/components/Icons/PlusIcon";
-import {MailIcon} from "@/components/Icons/MailIcon";
 import {GmailIcon} from "@/components/Icons/GmailIcon";
+import {useAtom} from "jotai/index";
+import {inviteUserDialogAtom} from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/page/InviteUserDialog";
 
 export const TeamAffiliateProfile = (props: { className?: string }) => {
   const [fetchTeam, { data }] = useFetchTeamLazyQuery();
   const { teamId } = useParams() as { teamId: string };
+  const [isOpened, setIsOpened] = useAtom(inviteUserDialogAtom);
 
   useEffect(() => {
     if (!teamId) {
@@ -75,7 +75,7 @@ export const TeamAffiliateProfile = (props: { className?: string }) => {
           <DecoratedButton
               type="button"
               variant="primary"
-              onClick={() => {}}
+              onClick={() => setIsOpened(true)}
               className="h-12"
           >
             <GmailIcon className="size-5 text-white" /> Invite members
