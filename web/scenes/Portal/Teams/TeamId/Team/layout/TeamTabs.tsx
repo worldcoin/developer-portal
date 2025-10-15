@@ -11,9 +11,13 @@ type TabsWrapperProps = {
   hasOwnerAndAdminPermission: boolean;
 };
 
-export const TeamTabs = ({ teamId, hasOwnerPermission, hasOwnerAndAdminPermission }: TabsWrapperProps) => {
+export const TeamTabs = ({
+  teamId,
+  hasOwnerPermission,
+  hasOwnerAndAdminPermission,
+}: TabsWrapperProps) => {
   const pathname = usePathname();
-  const isAffiliateProgram = pathname.includes('affiliate-program');
+  const isAffiliateProgram = pathname.includes("affiliate-program");
 
   const getTabs = () => {
     if (isAffiliateProgram) {
@@ -114,9 +118,5 @@ export const TeamTabs = ({ teamId, hasOwnerPermission, hasOwnerAndAdminPermissio
     );
   };
 
-  return (
-      <Tabs className="px-6 py-4 font-gta md:py-0">
-          {getTabs()}
-      </Tabs>
-  );
+  return <Tabs className="px-6 py-4 font-gta md:py-0">{getTabs()}</Tabs>;
 };

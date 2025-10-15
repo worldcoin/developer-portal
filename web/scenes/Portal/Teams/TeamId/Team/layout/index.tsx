@@ -4,7 +4,7 @@ import { checkUserPermissions } from "@/lib/utils";
 import { getSession } from "@auth0/nextjs-auth0";
 import { ReactNode } from "react";
 import { TeamTabs } from "./TeamTabs";
-import {SizingWrapper} from "@/components/SizingWrapper";
+import { SizingWrapper } from "@/components/SizingWrapper";
 
 type Params = {
   teamId?: string;
@@ -35,9 +35,9 @@ export const TeamIdLayout = async (props: TeamIdLayoutProps) => {
       <div className="order-2 md:order-1 md:w-full md:border-b md:border-grey-100">
         <SizingWrapper variant="nav">
           <TeamTabs
-              teamId={params.teamId!}
-              hasOwnerPermission={hasOwnerPermission}
-              hasOwnerAndAdminPermission={hasOwnerAndAdminPermission}
+            teamId={params.teamId!}
+            hasOwnerPermission={hasOwnerPermission}
+            hasOwnerAndAdminPermission={hasOwnerAndAdminPermission}
           />
         </SizingWrapper>
       </div>

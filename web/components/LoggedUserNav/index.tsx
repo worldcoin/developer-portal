@@ -173,7 +173,9 @@ export const LoggedUserNav = () => {
                     <MailIcon />
                   </Dropdown.ListItemIcon>
 
-                  <Dropdown.ListItemText>Affiliate program</Dropdown.ListItemText>
+                  <Dropdown.ListItemText>
+                    Affiliate program
+                  </Dropdown.ListItemText>
                 </Link>
               </Dropdown.ListItem>
 
