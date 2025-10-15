@@ -55,7 +55,7 @@ export interface IInputParams {
 
 export interface IVerifyParams {
   is_staging: boolean;
-  verification_level: VerificationLevel;
+  verification_level: VerificationLevel | "face";
   max_age?: number;
 }
 
