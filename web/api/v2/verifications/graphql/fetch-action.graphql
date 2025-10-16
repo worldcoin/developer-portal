@@ -1,0 +1,6 @@
+query FetchAction($id: String!, $app_id: String!) {
+  action(where: { id: { _eq: $id }, app_id: { _eq: $app_id } }) {
+    id
+    app_id
+  }
+}
