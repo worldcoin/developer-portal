@@ -5,12 +5,14 @@ import { MailWithLines } from "@/components/Icons/MailWithLines";
 import { Section } from "@/components/Section";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
-// import Skeleton from "react-loading-skeleton";
 import { IconFrame } from "@/components/InitialSteps/IconFrame";
 import { TeamAffiliateProfile } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Overview/page/TeamAffiliateProfile";
 import { InviteUserDialog } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Overview/page/InviteUserDialog";
 import clsx from "clsx";
-import {AppStatsGraph} from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Overview/page/AppStatsGraph";
+import { AppStatsGraph } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Overview/page/AppStatsGraph";
+import { useGetAffiliateOverview } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Overview/page/hooks/use-get-affiliate-overview";
+import { useGetAffiliateMetadata } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Overview/page/hooks/use-get-affiliate-metadata";
+import Skeleton from "react-loading-skeleton";
 
 type TeamApiKeysPageProps = {
   params: {
@@ -19,9 +21,15 @@ type TeamApiKeysPageProps = {
 };
 
 export const AffiliateProgramPage = (props: TeamApiKeysPageProps) => {
-  const { params } = props;
-  const teamId = params?.teamId;
-  const isUserPassedKyc = true;
+  const {
+    data: affiliateOverview,
+    loading: isAffiliateOverviewLoading,
+    error,
+  } = useGetAffiliateOverview();
+  const { data: metadata, loading: isMetadataLoading } =
+    useGetAffiliateMetadata();
+  const isUserPassedKyc =
+    !isMetadataLoading && metadata?.identityVerificationStatus === "approved";
 
   return (
     <>
@@ -31,9 +39,9 @@ export const AffiliateProgramPage = (props: TeamApiKeysPageProps) => {
           "place-content-center": !isUserPassedKyc,
         })}
       >
-        <InviteUserDialog />
+        <InviteUserDialog data={metadata} />
 
-        {!isUserPassedKyc ? (
+        {metadata && !isUserPassedKyc ? (
           <div className="grid grid-cols-1 justify-items-center pt-12">
             <MailWithLines className="md:max-w-[380px]" />
 
@@ -82,18 +90,14 @@ export const AffiliateProgramPage = (props: TeamApiKeysPageProps) => {
         ) : (
           <Section>
             <SizingWrapper gridClassName="order-1">
-              <TeamAffiliateProfile />
+              <TeamAffiliateProfile data={metadata} />
             </SizingWrapper>
 
-            {/*<AppStatsGraph appId="app_80f9f559216f596e5355066edfd7f58b" />*/}
-
-            <div className="order-2 md:pb-8">
-              {/*{loading ? (*/}
-              {/*  <Skeleton count={5} />*/}
-              {/*) : (*/}
-              {/*  <ApiKeysTable teamId={teamId} apiKeys={apiKeys} />*/}
-              {/*)}*/}
-            </div>
+            {isAffiliateOverviewLoading ? (
+              <Skeleton count={5} />
+            ) : (
+              <AppStatsGraph appId="app_80f9f559216f596e5355066edfd7f58b" />
+            )}
           </Section>
         )}
       </SizingWrapper>

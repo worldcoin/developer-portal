@@ -9,11 +9,17 @@ import { DecoratedButton } from "@/components/DecoratedButton";
 import { GmailIcon } from "@/components/Icons/GmailIcon";
 import { useAtom } from "jotai/index";
 import { inviteUserDialogAtom } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Overview/page/InviteUserDialog";
+import { AffiliateMetadataResponse } from "@/lib/types";
 
-export const TeamAffiliateProfile = (props: { className?: string }) => {
+type Props = {
+  data: AffiliateMetadataResponse | null;
+};
+
+export const TeamAffiliateProfile = (props: Props) => {
+  const affiliateMetadata = props.data;
   const [fetchTeam, { data }] = useFetchTeamLazyQuery();
   const { teamId } = useParams() as { teamId: string };
-  const [isOpened, setIsOpened] = useAtom(inviteUserDialogAtom);
+  const [_, setIsOpened] = useAtom(inviteUserDialogAtom);
 
   useEffect(() => {
     if (!teamId) {
@@ -59,13 +65,11 @@ export const TeamAffiliateProfile = (props: { className?: string }) => {
           variant={TYPOGRAPHY.R4}
           className="max-md:text-base max-md:leading-6"
         >
-          {!data?.team_by_pk?.memberships && (
-            <Skeleton className="max-w-[120px]" />
-          )}
+          {!affiliateMetadata && <Skeleton className="max-w-[120px]" />}
 
-          {data?.team_by_pk?.memberships && (
+          {affiliateMetadata?.totalInvites && (
             <div className="grid grid-cols-auto/1fr items-center gap-x-2 truncate text-grey-500">
-              {data?.team_by_pk?.memberships.length} codes applied
+              {affiliateMetadata?.totalInvites} codes applied
             </div>
           )}
         </Typography>

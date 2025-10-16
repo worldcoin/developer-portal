@@ -8,13 +8,17 @@ import { atom, useAtom } from "jotai";
 import { toast } from "react-toastify";
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { GmailIcon } from "@/components/Icons/GmailIcon";
+import { AffiliateMetadataResponse } from "@/lib/types";
 
 export const inviteUserDialogAtom = atom(false);
 
-export const InviteUserDialog = () => {
+type Props = {
+  data: AffiliateMetadataResponse | null;
+};
+export const InviteUserDialog = (props: Props) => {
   const [isOpened, setIsOpened] = useAtom(inviteUserDialogAtom);
   // TODO: use dynamic invite code here
-  const inviteCode = "ABC123";
+  const inviteCode = props.data?.inviteCode;
   const inviteLink = `https://world.org/join/${inviteCode}`;
 
   return (

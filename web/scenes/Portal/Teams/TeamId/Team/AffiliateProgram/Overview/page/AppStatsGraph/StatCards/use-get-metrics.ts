@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react";
-import {AppMetricsData, getAppMetricsData} from "@/scenes/Portal/Teams/TeamId/Apps/AppId/page/server";
+import {
+  AppMetricsData,
+  getAppMetricsData,
+} from "@/scenes/Portal/Teams/TeamId/Apps/AppId/page/server";
 
 export const useGetMetrics = (appId: string) => {
   const [metrics, setMetrics] = useState<AppMetricsData | null>(null);

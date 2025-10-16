@@ -6,20 +6,14 @@ import { Timespan, TimespanSelector } from "../TimespanSelector";
 import { useGetMetrics } from "./use-get-metrics";
 
 export const timespans: Timespan[] = [
+  { label: "Daily", value: "day" },
   { label: "Weekly", value: "week" },
-  { label: "All time", value: "all-time" },
+  { label: "Monthly", value: "month" },
+  { label: "Yearly", value: "year" },
+  { label: "All time", value: "" },
 ];
 
-export const timespanAtom = atom(timespans[0]);
-const calculatePercentChange = (
-  current: number | undefined | null,
-  previous: number | undefined | null,
-) => {
-  if (!current || !previous) {
-    return 0;
-  }
-  return ((current - previous) / previous) * 100;
-};
+export const timespanAtom = atom(timespans[timespans.length - 1]);
 
 const resolveStatValue = ({
   allTimeValue,
@@ -42,10 +36,6 @@ export const StatCards = ({ appId }: { appId: string }) => {
 
   const impressionsTotal = appMetrics?.total_impressions;
   const impressionsLast7Days = appMetrics?.total_impressions_last_7_days;
-  const impressionsPercentageChange = calculatePercentChange(
-    impressionsTotal,
-    impressionsLast7Days,
-  );
 
   const uniqueUsers = appMetrics?.unique_users;
   const uniqueUsersLast7Days = appMetrics?.unique_users_last_7_days;
@@ -103,31 +93,16 @@ export const StatCards = ({ appId }: { appId: string }) => {
         >
           <StatCard
             mainColorClassName="bg-blue-500"
-            title="Impressions"
+            title="Orb verifications"
             value={impressionsValue}
-            changePercentage={impressionsPercentageChange}
             isLoading={isMetricsLoading}
           />
           <StatCard
             mainColorClassName="bg-blue-500"
-            title="Sessions"
+            title="ID verifications"
             value={sessionsValue}
             isLoading={isMetricsLoading}
           />
-          <StatCard
-            mainColorClassName="bg-blue-500"
-            title="Users"
-            value={usersValue}
-            isLoading={isMetricsLoading}
-          />
-          {timespanValue === "week" && (
-            <StatCard
-              mainColorClassName="bg-blue-500"
-              title="New users"
-              value={newUsersValue}
-              isLoading={isMetricsLoading}
-            />
-          )}
         </div>
       </div>
     </>

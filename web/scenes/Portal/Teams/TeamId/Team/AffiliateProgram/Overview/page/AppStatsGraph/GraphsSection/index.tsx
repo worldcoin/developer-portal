@@ -1,11 +1,8 @@
 "use client";
 
-import { useFetchAppStatsQuery } from "../graphql/client/fetch-app-stats.generated";
-
 import { Chart, ChartProps } from "@/components/Chart";
 import { InformationCircleIcon } from "@/components/Icons/InformationCircleIcon";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import { EngineType, TransactionStatus } from "@/lib/types";
 import { ChartData, ChartOptions } from "chart.js";
 import clsx from "clsx";
 import dayjs from "dayjs";
@@ -14,9 +11,8 @@ import utc from "dayjs/plugin/utc";
 import { useParams } from "next/navigation";
 import React, { useMemo } from "react";
 import Skeleton from "react-loading-skeleton";
-import { useGetMetrics } from "../StatCards/use-get-metrics";
 import { Stat } from "./stat";
-import { useGetAccumulativeTransactions } from "./use-get-accumulative-transactions";
+import { useGetAffiliateOverview } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Overview/page/hooks/use-get-affiliate-overview";
 
 dayjs.extend(utc);
 dayjs.extend(tz);
@@ -34,7 +30,7 @@ const defaultDatasetConfig: Partial<ChartData<"line">["datasets"][number]> = {
   fill: false,
 };
 
-const verificationsDatasetConfig: Partial<
+const orbVerificationsDatasetConfig: Partial<
   ChartData<"line">["datasets"][number]
 > = {
   ...defaultDatasetConfig,
@@ -46,12 +42,13 @@ const paymentsDatasetConfig: Partial<ChartData<"line">["datasets"][number]> = {
   borderColor: "#4292F4",
   backgroundColor: "#4292F4",
 };
-const uniqueUsersDatasetConfig: Partial<ChartData<"line">["datasets"][number]> =
-  {
-    ...defaultDatasetConfig,
-    borderColor: "#00C3B6",
-    backgroundColor: "#00C3B6",
-  };
+const idVerificationsDatasetConfig: Partial<
+  ChartData<"line">["datasets"][number]
+> = {
+  ...defaultDatasetConfig,
+  borderColor: "#00C3B6",
+  backgroundColor: "#00C3B6",
+};
 
 const openRateDatasetConfig: Partial<ChartData<"line">["datasets"][number]> = {
   ...defaultDatasetConfig,
@@ -222,130 +219,116 @@ const GraphCard: React.FC<GraphCardProps> = ({
   );
 };
 
-const isEligibleForNotificationBadge = (
-  avg_notification_open_rate: number | null,
-  has7DaysOfNotificationOpenRateData: boolean,
-) => {
-  if (!avg_notification_open_rate) return false;
-  if (!has7DaysOfNotificationOpenRateData) return false;
-
-  return avg_notification_open_rate > 0.1;
-};
+// const isEligibleForNotificationBadge = (
+//   avg_notification_open_rate: number | null,
+//   has7DaysOfNotificationOpenRateData: boolean,
+// ) => {
+//   if (!avg_notification_open_rate) return false;
+//   if (!has7DaysOfNotificationOpenRateData) return false;
+//
+//   return avg_notification_open_rate > 0.1;
+// };
 
 // ==================================================================================================
 // ================================ Anchor: Graphs Section Component ================================
 // ==================================================================================================
 
 export const GraphsSection = () => {
-  const { appId } = useParams() as { teamId: string; appId: string };
-  const { metrics, loading: metricsLoading } = useGetMetrics(appId);
-
+  useParams() as { teamId: string; appId: string };
   const { data: appStatsData, loading: appStatsLoading } =
-    useFetchAppStatsQuery({
-      variables: {
-        appId,
-      },
-    });
-
-  const {
-    payments: paymentsData,
-    transactions: transactionsData,
-    loading: transactionsLoading,
-  } = useGetAccumulativeTransactions(appId);
-
+    useGetAffiliateOverview();
   // ==================================================================================================
   // ========================== Anchor: Helper Functions to get overall data ==========================
   // ==================================================================================================
-  const payments = useMemo(
-    () => paymentsData?.accumulativePayments,
-    [paymentsData?.accumulativePayments],
-  );
-  const accumulatedPaymentsAmountUSD = useMemo(
-    () => paymentsData?.accumulatedTokenAmountUSD,
-    [paymentsData?.accumulatedTokenAmountUSD],
-  );
+  // const payments = useMemo(
+  //   () => paymentsData?.accumulativePayments,
+  //   [paymentsData?.accumulativePayments],
+  // );
+  // const accumulatedPaymentsAmountUSD = useMemo(
+  //   () => paymentsData?.accumulatedTokenAmountUSD,
+  //   [paymentsData?.accumulatedTokenAmountUSD],
+  // );
 
-  const stats = useMemo(
-    () => appStatsData?.app_stats,
-    [appStatsData?.app_stats],
-  );
+  // const stats = useMemo(
+  //   () => appStatsData?.app_stats,
+  //   [appStatsData?.app_stats],
+  // );
 
-  const totalVerifications = useMemo(() => {
-    const appStatsLength = appStatsData?.app_stats.length;
-    if (!appStatsLength) return 0;
+  const totalOrbVerifications = useMemo(() => {
+    return appStatsData?.verifications.orb ?? 0;
+  }, [appStatsData]);
 
-    const verifications =
-      appStatsData?.app_stats[appStatsLength - 1].verifications ?? 0;
-    return verifications;
-  }, [appStatsData?.app_stats]);
+  const totalIdVerifications = useMemo(() => {
+    return appStatsData?.verifications.nfc ?? 0;
+  }, [appStatsData]);
 
-  const totalUniqueUsers = useMemo(() => {
-    const appStatsLength = appStatsData?.app_stats.length;
-    if (!appStatsLength) return 0;
+  // const totalUniqueUsers = useMemo(() => {
+  //   const appStatsLength = appStatsData?.app_stats.length;
+  //   if (!appStatsLength) return 0;
+  //
+  //   const unique_users =
+  //     appStatsData?.app_stats[appStatsLength - 1].unique_users ?? 0;
+  //   return unique_users;
+  // }, [appStatsData?.app_stats]);
 
-    const unique_users =
-      appStatsData?.app_stats[appStatsLength - 1].unique_users ?? 0;
-    return unique_users;
-  }, [appStatsData?.app_stats]);
-
-  const engine = useMemo(
-    () => appStatsData?.app?.[0]?.engine,
-    [appStatsData?.app],
-  );
+  // const engine = useMemo(
+  //   () => appStatsData?.app?.[0]?.engine,
+  //   [appStatsData?.app],
+  // );
 
   // ==================================================================================================
   // ================================= Anchor: Formatting Chart Data ==================================
   // ==================================================================================================
-  const formattedNotificationOpenRateChartData = useMemo(() => {
-    if (
-      metricsLoading ||
-      !metrics?.open_rate_last_14_days ||
-      !metrics?.open_rate_last_14_days.length
-    ) {
-      return null;
-    }
+  // const formattedNotificationOpenRateChartData = useMemo(() => {
+  //   if (
+  //     metricsLoading ||
+  //     !metrics?.open_rate_last_14_days ||
+  //     !metrics?.open_rate_last_14_days.length
+  //   ) {
+  //     return null;
+  //   }
+  //
+  //   const formattedData: ChartProps["data"] = {
+  //     y: [
+  //       {
+  //         ...openRateDatasetConfig,
+  //         data: [],
+  //       },
+  //     ],
+  //     x: [],
+  //   };
+  //
+  //   metrics.open_rate_last_14_days.forEach((stat) => {
+  //     formattedData.x.push(
+  //       dayjs(stat.date).format(notificationOpenRateLabelDateFormat),
+  //     );
+  //     formattedData.y[0].data.push(stat.value * 100);
+  //   });
+  //   console.log(formattedData);
+  //   return formattedData;
+  // }, [metrics?.open_rate_last_14_days, metricsLoading]);
 
-    const formattedData: ChartProps["data"] = {
-      y: [
-        {
-          ...openRateDatasetConfig,
-          data: [],
-        },
-      ],
-      x: [],
-    };
-
-    metrics.open_rate_last_14_days.forEach((stat) => {
-      formattedData.x.push(
-        dayjs(stat.date).format(notificationOpenRateLabelDateFormat),
-      );
-      formattedData.y[0].data.push(stat.value * 100);
-    });
-    console.log(formattedData);
-    return formattedData;
-  }, [metrics?.open_rate_last_14_days, metricsLoading]);
-
-  const formattedNotificationOptInRate = useMemo(() => {
-    if (metricsLoading || metrics?.notification_opt_in_rate == null) {
-      return null;
-    }
-
-    return (metrics.notification_opt_in_rate * 100).toFixed(2) + "%";
-  }, [metrics?.notification_opt_in_rate, metricsLoading]);
+  // const formattedNotificationOptInRate = useMemo(() => {
+  //   if (metricsLoading || metrics?.notification_opt_in_rate == null) {
+  //     return null;
+  //   }
+  //
+  //   return (metrics.notification_opt_in_rate * 100).toFixed(2) + "%";
+  // }, [metrics?.notification_opt_in_rate, metricsLoading]);
 
   const formattedVerificationsChartData = useMemo(() => {
-    if (!stats || !stats.length) {
+    if (!appStatsData) {
       return null;
     }
 
     const formattedData: ChartProps["data"] = {
       y: [
         {
-          ...verificationsDatasetConfig,
+          ...orbVerificationsDatasetConfig,
           data: [],
         },
         {
-          ...uniqueUsersDatasetConfig,
+          ...idVerificationsDatasetConfig,
           data: [],
         },
       ],
@@ -353,106 +336,73 @@ export const GraphsSection = () => {
       x: [],
     };
 
-    stats.forEach((stat) => {
-      formattedData.x.push(dayjs(stat.date).format(labelDateFormat));
-      formattedData.y[0].data.push(stat.verifications);
-      formattedData.y[1].data.push(stat.unique_users);
+    appStatsData.verifications.periods.forEach((stat) => {
+      formattedData.x.push(dayjs(stat.start).format(labelDateFormat));
+      formattedData.y[0].data.push(stat.orb);
+      formattedData.y[1].data.push(stat.nfc);
     });
 
     return formattedData;
-  }, [stats]);
+  }, [appStatsData]);
 
-  const formattedPaymentsChartData = useMemo(() => {
-    if (!payments || !payments.length) {
-      return null;
-    }
+  // const averageOpenRate = useMemo(() => {
+  //   if (
+  //     metricsLoading ||
+  //     !metrics?.open_rate_last_14_days ||
+  //     !metrics?.open_rate_last_14_days.length
+  //   ) {
+  //     return null;
+  //   }
+  //
+  //   return (
+  //     metrics?.open_rate_last_14_days?.reduce(
+  //       (acc, curr) => acc + curr.value,
+  //       0,
+  //     ) / metrics?.open_rate_last_14_days?.length
+  //   );
+  // }, [metrics?.open_rate_last_14_days, metricsLoading]);
 
-    const formattedData: ChartProps["data"] = {
-      y: [
-        {
-          ...paymentsDatasetConfig,
-          data: [],
-        },
-      ],
-
-      x: [],
-    };
-
-    payments?.forEach((stat) => {
-      formattedData.x.push(dayjs(stat.updatedAt).format(labelDateFormat));
-      if (stat.transactionStatus === TransactionStatus.Mined) {
-        formattedData.y[0].data.push(Number(stat.inputTokenAmount));
-      }
-    });
-
-    return formattedData;
-  }, [payments]);
-
-  const averageOpenRate = useMemo(() => {
-    if (
-      metricsLoading ||
-      !metrics?.open_rate_last_14_days ||
-      !metrics?.open_rate_last_14_days.length
-    ) {
-      return null;
-    }
-
-    return (
-      metrics?.open_rate_last_14_days?.reduce(
-        (acc, curr) => acc + curr.value,
-        0,
-      ) / metrics?.open_rate_last_14_days?.length
-    );
-  }, [metrics?.open_rate_last_14_days, metricsLoading]);
-
-  const has7DaysOfNotificationOpenRateData = useMemo(
-    () =>
-      metricsLoading ||
-      !metrics?.open_rate_last_14_days ||
-      metrics?.open_rate_last_14_days?.length >= 7,
-    [metrics?.open_rate_last_14_days, metricsLoading],
-  );
-
-  const formattedAverageOpenRate = useMemo(
-    () => (averageOpenRate == null ? null : (averageOpenRate * 100).toFixed(2)),
-    [averageOpenRate],
-  );
+  // const has7DaysOfNotificationOpenRateData = useMemo(
+  //   () =>
+  //     metricsLoading ||
+  //     !metrics?.open_rate_last_14_days ||
+  //     metrics?.open_rate_last_14_days?.length >= 7,
+  //   [metrics?.open_rate_last_14_days, metricsLoading],
+  // );
+  //
+  // const formattedAverageOpenRate = useMemo(
+  //   () => (averageOpenRate == null ? null : (averageOpenRate * 100).toFixed(2)),
+  //   [averageOpenRate],
+  // );
   // ==================================================================================================
   // ====================================== Anchor: Render Section ====================================
   // ==================================================================================================
 
   return (
-    <div className="grid flex-1 grid-cols-1 grid-rows-3 gap-2 lg:grid-cols-2 lg:grid-rows-1">
+    <div className="grid flex-1 grid-cols-1 grid-rows-3 gap-2 lg:grid-rows-1">
       {/* Verifications Graph */}
       <GraphCard
         isLoading={appStatsLoading}
         chartData={formattedVerificationsChartData}
         stats={[
           {
-            title: "Verifications",
+            title: "Orb verifications",
             mainColorClassName: "bg-blue-500",
-            value: totalVerifications,
+            value: totalOrbVerifications,
           },
           {
-            title: "Unique users",
+            title: "ID verifications",
             mainColorClassName: "bg-additional-sea-500",
-            value: totalUniqueUsers,
+            value: totalIdVerifications,
           },
         ]}
         chartOptions={commonChartConfig}
-        emptyStateTitle={
-          engine === EngineType.OnChain
-            ? "Analytics are not available for on-chain apps yet"
-            : "No data available yet"
-        }
-        emptyStateDescription={
-          engine === EngineType.OnChain
-            ? "Please refer to your smart contract for verification data"
-            : "Your verification numbers will show up here."
-        }
+        emptyStateTitle={"No data available yet"}
+        emptyStateDescription={"Your verification numbers will show up here."}
       />
+
       {/* Payments Graph */}
-      <GraphCard
+      {/*      <GraphCard
         isLoading={transactionsLoading}
         chartData={formattedPaymentsChartData}
         stats={[
@@ -466,9 +416,9 @@ export const GraphsSection = () => {
         chartOptions={commonChartConfig}
         emptyStateTitle="No data available yet"
         emptyStateDescription="Your payment numbers will show up here."
-      />
+      />*/}
       {/* Notifications Open Rate Graph */}
-      <GraphCard
+      {/*      <GraphCard
         isLoading={metricsLoading}
         chartData={formattedNotificationOpenRateChartData}
         stats={(() => {
@@ -501,7 +451,7 @@ export const GraphsSection = () => {
             </span>
           ) : null
         }
-      />
+      />*/}
     </div>
   );
 };
