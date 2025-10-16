@@ -17,8 +17,7 @@ import { useGetAffiliateOverview } from "@/scenes/Portal/Teams/TeamId/Team/Affil
 dayjs.extend(utc);
 dayjs.extend(tz);
 
-const labelDateFormat = "MMM YYYY";
-const notificationOpenRateLabelDateFormat = "MMM DD";
+const labelDateFormat = "DD.MM";
 
 const defaultDatasetConfig: Partial<ChartData<"line">["datasets"][number]> = {
   pointRadius: 0,
@@ -37,11 +36,7 @@ const orbVerificationsDatasetConfig: Partial<
   borderColor: "#4940E0",
   backgroundColor: "#4940E0",
 };
-const paymentsDatasetConfig: Partial<ChartData<"line">["datasets"][number]> = {
-  ...defaultDatasetConfig,
-  borderColor: "#4292F4",
-  backgroundColor: "#4292F4",
-};
+
 const idVerificationsDatasetConfig: Partial<
   ChartData<"line">["datasets"][number]
 > = {
@@ -50,27 +45,19 @@ const idVerificationsDatasetConfig: Partial<
   backgroundColor: "#00C3B6",
 };
 
-const openRateDatasetConfig: Partial<ChartData<"line">["datasets"][number]> = {
-  ...defaultDatasetConfig,
-  borderColor: "#FFA048",
-  backgroundColor: "#FFA048",
-};
-
 const commonChartConfig: ChartOptions<"line"> = {
   scales: {
     y: {
-      ticks: { display: false },
+      ticks: { display: true },
       grid: {
-        lineWidth: 0,
+        lineWidth: 1,
       },
     },
     x: {
-      ticks: { maxTicksLimit: 3, crossAlign: "center" },
+      ticks: { maxTicksLimit: 10, crossAlign: "center" },
     },
   },
 };
-
-const startsAt = new Date(0).toISOString();
 
 // ==================================================================================================
 // =================================== Anchor: Stat Props Interface =================================
@@ -179,7 +166,7 @@ const GraphCard: React.FC<GraphCardProps> = ({
 
       {/* Combined Mobile & Desktop View */}
       {!isLoading && chartData && (
-        <div className="rounded-2xl border border-grey-200 py-5">
+        <div>
           {/* Stats Section (Conditional Padding) */}
           <div
             className={clsx(
@@ -379,7 +366,7 @@ export const GraphsSection = () => {
   // ==================================================================================================
 
   return (
-    <div className="grid flex-1 grid-cols-1 grid-rows-3 gap-2 lg:grid-rows-1">
+    <div className="grid flex-1">
       {/* Verifications Graph */}
       <GraphCard
         isLoading={appStatsLoading}

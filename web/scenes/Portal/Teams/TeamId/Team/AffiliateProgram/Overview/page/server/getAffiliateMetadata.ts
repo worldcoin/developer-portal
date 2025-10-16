@@ -7,7 +7,7 @@ import { createSignedFetcher } from "aws-sigv4-fetch";
 
 export const getAffiliateMetadata = async (): Promise<FormActionResult> => {
   const path = getPathFromHeaders() || "";
-  const { Teams: teamId } = extractIdsFromPath(path, ["Teams"]);
+  const { teams: teamId } = extractIdsFromPath(path, ["teams"]);
 
   try {
     if (!teamId) {
