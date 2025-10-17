@@ -6,8 +6,8 @@ import {
   SelectOptions,
 } from "@/components/Select";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import { WritableAtom, useAtom } from "jotai";
 import { AffiliateOverviewResponse } from "@/lib/types";
+import { WritableAtom, useAtom } from "jotai";
 
 export const TimespanSelector = <
   T extends { label: string; value: AffiliateOverviewResponse["period"] },

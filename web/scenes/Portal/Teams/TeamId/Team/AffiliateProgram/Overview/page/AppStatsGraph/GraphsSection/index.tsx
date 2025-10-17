@@ -143,16 +143,6 @@ const GraphCard: React.FC<GraphCardProps> = ({
         </div>
       )}
 
-      {/* Loading Skeleton */}
-      {isLoading && (
-        <div
-          className="w-full rounded-2xl"
-          style={{ aspectRatio: mobileAspectRatio }}
-        >
-          <Skeleton className="inset-0 size-full rounded-2xl" />
-        </div>
-      )}
-
       {/* Empty State */}
       {!isLoading && !chartData && (
         <div
@@ -177,7 +167,7 @@ const GraphCard: React.FC<GraphCardProps> = ({
       )}
 
       {/* Combined Mobile & Desktop View */}
-      {!isLoading && chartData && (
+      {(isLoading || chartData) && (
         <div>
           {/* Stats Section (Conditional Padding) */}
 
@@ -195,6 +185,7 @@ const GraphCard: React.FC<GraphCardProps> = ({
                 >
                   <Stat
                     key={index}
+                    loading={isLoading}
                     title={statProps.title}
                     value={statProps.value}
                     valuePrefix={statProps.valuePrefix}
@@ -208,15 +199,23 @@ const GraphCard: React.FC<GraphCardProps> = ({
             <TimespanSelector options={timespans} atom={timespanAtom} />
           </div>
 
-          {/* Mobile Chart (Visible on sm and below) */}
-          <div className="block sm:hidden">
-            <Chart data={chartData} options={mobileChartOptions} />
-          </div>
+          {isLoading && !chartData && (
+              <Skeleton height={400} />
+          )}
 
-          {/* Desktop Chart (Visible on sm and above) */}
-          <div className="hidden sm:block">
-            <Chart data={chartData} options={chartOptions} />
-          </div>
+          {!isLoading && chartData && (
+              <>
+                {/* Mobile Chart (Visible on sm and below) */}
+                <div className="block sm:hidden">
+                  <Chart data={chartData} options={mobileChartOptions} />
+                </div>
+
+                {/* Desktop Chart (Visible on sm and above) */}
+                <div className="hidden sm:block">
+                  <Chart data={chartData} options={chartOptions} />
+                </div>
+              </>
+          )}
         </div>
       )}
     </div>

@@ -1,6 +1,6 @@
 import { GraphsSection } from "./GraphsSection";
 
-export const AppStatsGraph = ({ appId }: { appId: string }) => {
+export const AppStatsGraph = () => {
   return (
     <div className="grid gap-y-6">
       <GraphsSection />

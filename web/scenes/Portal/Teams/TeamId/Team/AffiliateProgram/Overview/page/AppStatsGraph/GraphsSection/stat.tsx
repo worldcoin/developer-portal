@@ -3,6 +3,7 @@ import clsx from "clsx";
 import Skeleton from "react-loading-skeleton";
 
 export const Stat = (props: {
+  loading?: boolean;
   mainColorClassName?: string;
   title: string;
   value: number | string | undefined | null;
@@ -11,6 +12,14 @@ export const Stat = (props: {
   // TODO DEV-1153
   // changePercentage: number;
 }) => {
+  if (props.loading) {
+    return (
+      <div className="flex flex-col gap-1/2"  >
+          <Skeleton width={120} />
+          <Skeleton width={30} />
+      </div>
+    );
+  }
   const localizedValue = props.value?.toLocaleString();
 
   let statValue = props?.valuePrefix
