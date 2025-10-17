@@ -12,6 +12,7 @@ import { inviteUserDialogAtom } from "@/scenes/Portal/Teams/TeamId/Team/Affiliat
 import { AffiliateMetadataResponse } from "@/lib/types";
 
 type Props = {
+  loading: boolean;
   data: AffiliateMetadataResponse | null;
 };
 
@@ -76,14 +77,18 @@ export const TeamAffiliateProfile = (props: Props) => {
       </div>
 
       <div className="grid w-full grid-cols-1 items-center gap-3 sm:grid-cols-auto/1fr">
-        <DecoratedButton
-          type="button"
-          variant="primary"
-          onClick={() => setIsOpened(true)}
-          className="h-12"
-        >
-          <GmailIcon className="size-5 text-white" /> Invite members
-        </DecoratedButton>
+        {props.loading ? (
+          <Skeleton width={193} height={48} className="rounded-xl" />
+        ) : (
+          <DecoratedButton
+            type="button"
+            variant="primary"
+            onClick={() => setIsOpened(true)}
+            className="h-12"
+          >
+            <GmailIcon className="size-5 text-white" /> Invite members
+          </DecoratedButton>
+        )}
       </div>
     </div>
   );

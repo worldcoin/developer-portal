@@ -4,13 +4,16 @@ import { errorFormAction } from "@/api/helpers/errors";
 import { extractIdsFromPath, getPathFromHeaders } from "@/lib/server-utils";
 import { AffiliateOverviewResponse, FormActionResult } from "@/lib/types";
 import { createSignedFetcher } from "aws-sigv4-fetch";
-import {headers} from "next/headers";
+import { headers } from "next/headers";
 
-export const getAffiliateOverview = async (): Promise<FormActionResult> => {
+export const getAffiliateOverview = async ({
+  period,
+}: {
+  period?: AffiliateOverviewResponse["period"];
+}): Promise<FormActionResult> => {
   const headersData = await headers();
   const path = getPathFromHeaders() || "";
   const { teams: teamId } = extractIdsFromPath(path, ["teams"]);
-  console.log('path', teamId)
 
   try {
     if (!teamId) {
@@ -30,18 +33,10 @@ export const getAffiliateOverview = async (): Promise<FormActionResult> => {
     }
 
     // If the request host is localhost, return a mock object. Otherwise fetch as normal.
-    const requestHost =
-      typeof headers !== "undefined"
-        ? headersData.get?.("host")
-        : typeof globalThis !== "undefined" && globalThis?.process?.env?.HOST;
-
-    const isLocalhost =
-      (typeof requestHost === "string" &&
-        (requestHost.includes("localhost") || requestHost.includes("127.0.0.1"))) ||
-      (process.env.NEXT_SERVER_APP_BACKEND_BASE_URL?.includes("localhost") ||
-        process.env.NEXT_SERVER_APP_BACKEND_BASE_URL?.includes("127.0.0.1"));
+    const isLocalhost = headersData.get?.("host")?.includes("localhost");
 
     if (isLocalhost) {
+      // TODO: remove mock response
       const data: AffiliateOverviewResponse = {
         period: "week",
         verifications: {
@@ -118,7 +113,7 @@ export const getAffiliateOverview = async (): Promise<FormActionResult> => {
       });
     }
 
-    let url = `${process.env.NEXT_SERVER_APP_BACKEND_BASE_URL}/internal/v1/affiliate/overview`;
+    let url = `${process.env.NEXT_SERVER_APP_BACKEND_BASE_URL}/internal/v1/affiliate/overview${period ? `?period=${period}` : ""}`;
 
     const response = await signedFetch(url, {
       method: "GET",

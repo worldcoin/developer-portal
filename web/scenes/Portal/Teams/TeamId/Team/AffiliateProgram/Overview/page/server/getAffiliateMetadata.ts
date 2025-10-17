@@ -4,6 +4,7 @@ import { errorFormAction } from "@/api/helpers/errors";
 import { extractIdsFromPath, getPathFromHeaders } from "@/lib/server-utils";
 import { AffiliateMetadataResponse, FormActionResult } from "@/lib/types";
 import { createSignedFetcher } from "aws-sigv4-fetch";
+import { headers } from "next/headers";
 
 export const getAffiliateMetadata = async (): Promise<FormActionResult> => {
   const path = getPathFromHeaders() || "";
@@ -24,6 +25,45 @@ export const getAffiliateMetadata = async (): Promise<FormActionResult> => {
         team_id: teamId,
         logLevel: "error",
       });
+    }
+
+    // If the request host is localhost, return a mock object. Otherwise fetch as normal.
+    const isLocalhost = headers().get?.("host")?.includes("localhost");
+
+    if (isLocalhost) {
+      // TODO: remove mock response
+      const data: AffiliateMetadataResponse = {
+        inviteCode: "AFFLT12",
+        identityVerificationStatus: "approved",
+        identityVerifiedAt: "2025-09-01T10:00:00Z",
+        verificationType: "kyc",
+        totalInvites: 150,
+        pendingInvites: 5, // Applied code, but not verified
+        verifiedInvites: {
+          total: 145,
+          orb: 100, // ORB verifications
+          nfc: 45, // NFC verifications
+        },
+        totalEarnings: {
+          total: "290000000000000000000", // Total WLD earned
+          orb: "200000000000000000000", // From ORB verifications
+          nfc: "90000000000000000000", // From NFC verifications
+        },
+        rewards: {
+          orb: {
+            AR: { asset: "USD", amount: 2 },
+            DE: { asset: "USD", amount: 2 },
+          },
+          nfc: {
+            Global: { asset: "USD", amount: 1 },
+          },
+        },
+      };
+      return {
+        success: true,
+        message: "Mock Affiliate overview (localhost) returned",
+        data,
+      };
     }
 
     let signedFetch = global.TransactionSignedFetcher;

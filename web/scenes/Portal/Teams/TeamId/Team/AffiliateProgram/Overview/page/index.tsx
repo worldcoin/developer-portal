@@ -36,7 +36,9 @@ export const AffiliateProgramPage = (props: TeamApiKeysPageProps) => {
       <SizingWrapper
         gridClassName="order-2 grow"
         className={clsx("flex flex-col", {
-          "place-content-center": !isUserPassedKyc,
+          "place-content-center":
+            !isMetadataLoading &&
+            metadata?.identityVerificationStatus !== "approved",
         })}
       >
         <InviteUserDialog data={metadata} />
@@ -90,7 +92,10 @@ export const AffiliateProgramPage = (props: TeamApiKeysPageProps) => {
         ) : (
           <Section>
             <SizingWrapper gridClassName="order-1">
-              <TeamAffiliateProfile data={metadata} />
+              <TeamAffiliateProfile
+                loading={isMetadataLoading}
+                data={metadata}
+              />
             </SizingWrapper>
 
             {isAffiliateOverviewLoading ? (

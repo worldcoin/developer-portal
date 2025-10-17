@@ -58,6 +58,7 @@ export const InviteUserDialog = (props: Props) => {
               type="button"
               variant="secondary"
               onClick={() => {
+                if (!inviteCode) return;
                 navigator.clipboard.writeText(inviteCode);
                 toast.success(`invite code copied to clipboard`);
               }}

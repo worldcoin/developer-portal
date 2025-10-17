@@ -7,13 +7,11 @@ import {
 } from "@/components/Select";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { WritableAtom, useAtom } from "jotai";
+import { AffiliateOverviewResponse } from "@/lib/types";
 
-export type Timespan = {
-  label: string;
-  value: "all-time" | "week";
-};
-
-export const TimespanSelector = <T extends Timespan>(props: {
+export const TimespanSelector = <
+  T extends { label: string; value: AffiliateOverviewResponse["period"] },
+>(props: {
   options: Array<T>;
   atom: WritableAtom<T, [T], void>;
 }) => {
