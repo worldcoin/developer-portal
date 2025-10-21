@@ -1,10 +1,8 @@
-import { useEffect, useState } from "react";
+import {useEffect, useState} from "react";
+import {AffiliateMetadataResponse,} from "@/lib/types";
 import {
-  AffiliateMetadataResponse,
-  AffiliateOverviewResponse,
-} from "@/lib/types";
-import { getAffiliateOverview } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Overview/page/server/getAffiliateOverview";
-import { getAffiliateMetadata } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Overview/page/server/getAffiliateMetadata";
+  getAffiliateMetadata
+} from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Overview/page/server/getAffiliateMetadata";
 
 export const useGetAffiliateMetadata = () => {
   const [data, setMetrics] = useState<AffiliateMetadataResponse | null>(null);

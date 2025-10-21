@@ -14,9 +14,9 @@ export const Stat = (props: {
 }) => {
   if (props.loading) {
     return (
-      <div className="flex flex-col gap-1/2"  >
-          <Skeleton width={120} />
-          <Skeleton width={30} />
+      <div className="gap-1/2 flex flex-col">
+        <Skeleton width={120} />
+        <Skeleton width={30} />
       </div>
     );
   }

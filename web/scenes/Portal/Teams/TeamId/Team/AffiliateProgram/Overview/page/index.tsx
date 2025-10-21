@@ -1,28 +1,24 @@
 "use client";
-import {DecoratedButton} from "@/components/DecoratedButton";
-import {IdentificationIcon} from "@/components/Icons/IdentificationIcon";
-import {MailWithLines} from "@/components/Icons/MailWithLines";
-import {Section} from "@/components/Section";
-import {SizingWrapper} from "@/components/SizingWrapper";
-import {TYPOGRAPHY, Typography} from "@/components/Typography";
-import {IconFrame} from "@/components/InitialSteps/IconFrame";
-import {
-    TeamAffiliateProfile
-} from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Overview/page/TeamAffiliateProfile";
-import {InviteUserDialog} from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Overview/page/InviteUserDialog";
+import { DecoratedButton } from "@/components/DecoratedButton";
+import { IdentificationIcon } from "@/components/Icons/IdentificationIcon";
+import { MailWithLines } from "@/components/Icons/MailWithLines";
+import { Section } from "@/components/Section";
+import { SizingWrapper } from "@/components/SizingWrapper";
+import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import { IconFrame } from "@/components/InitialSteps/IconFrame";
+import { TeamAffiliateProfile } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Overview/page/TeamAffiliateProfile";
+import { InviteUserDialog } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Overview/page/InviteUserDialog";
 import clsx from "clsx";
-import {AppStatsGraph} from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Overview/page/AppStatsGraph";
-import {
-    useGetAffiliateMetadata
-} from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Overview/page/hooks/use-get-affiliate-metadata";
+import { AppStatsGraph } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Overview/page/AppStatsGraph";
+import { useGetAffiliateMetadata } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Overview/page/hooks/use-get-affiliate-metadata";
 
-type TeamApiKeysPageProps = {
+type Props = {
   params: {
     teamId: string;
   };
 };
 
-export const AffiliateProgramPage = (props: TeamApiKeysPageProps) => {
+export const AffiliateProgramPage = (props: Props) => {
   const { data: metadata, loading: isMetadataLoading } =
     useGetAffiliateMetadata();
   const isUserPassedKyc =
@@ -88,12 +84,9 @@ export const AffiliateProgramPage = (props: TeamApiKeysPageProps) => {
           </div>
         ) : (
           <Section>
-              <TeamAffiliateProfile
-                  loading={isMetadataLoading}
-                  data={metadata}
-              />
+            <TeamAffiliateProfile loading={isMetadataLoading} data={metadata} />
 
-              <AppStatsGraph  />
+            <AppStatsGraph />
           </Section>
         )}
       </SizingWrapper>

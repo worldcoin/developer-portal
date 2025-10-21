@@ -1,9 +1,10 @@
 "use server";
 
-import { errorFormAction } from "@/api/helpers/errors";
-import { extractIdsFromPath, getPathFromHeaders } from "@/lib/server-utils";
-import { AffiliateBalanceResponse, FormActionResult } from "@/lib/types";
-import { createSignedFetcher } from "aws-sigv4-fetch";
+import {errorFormAction} from "@/api/helpers/errors";
+import {extractIdsFromPath, getPathFromHeaders} from "@/lib/server-utils";
+import {AffiliateBalanceResponse, FormActionResult,} from "@/lib/types";
+import {createSignedFetcher} from "aws-sigv4-fetch";
+import {headers} from "next/headers";
 
 export const getAffiliateBalance = async (): Promise<FormActionResult> => {
   const path = getPathFromHeaders() || "";
@@ -24,6 +25,25 @@ export const getAffiliateBalance = async (): Promise<FormActionResult> => {
         team_id: teamId,
         logLevel: "error",
       });
+    }
+
+    // If the request host is localhost, return a mock object. Otherwise fetch as normal.
+    const isLocalhost = headers().get?.("host")?.includes("localhost");
+
+    if (isLocalhost) {
+      // TODO: remove mock response
+      const data: AffiliateBalanceResponse = {
+        availableBalance: "50000000000000000000", // 50 WLD (can withdraw)
+        pendingBalance: "4000000000000000000", // 4 WLD (waiting 24h)
+        totalEarned: "100000000000000000000", // 100 WLD (lifetime)
+        lastAccumulatedAt: "2025-10-06T10:00:00Z",
+        minimumWithdrawal: "10000000000000000000", // 10 WLD minimum
+      };
+      return {
+        success: true,
+        message: "Mock Affiliate overview (localhost) returned",
+        data,
+      };
     }
 
     let signedFetch = global.TransactionSignedFetcher;

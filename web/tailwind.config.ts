@@ -154,6 +154,7 @@ const config: Config = {
         12: "calc(12 * 1rem / 16)",
         13: "calc(13 * 1rem / 16)",
         14: "calc(14 * 1rem / 16)",
+        15: "calc(15 * 1rem / 16)",
         16: "calc(16 * 1rem / 16)",
         18: "calc(18 * 1rem / 16)",
         20: "calc(20 * 1rem / 16)",
@@ -164,6 +165,7 @@ const config: Config = {
       },
 
       spacing: {
+        15: "3.75rem",
         30: "7.5rem",
         136: "34rem",
       },
