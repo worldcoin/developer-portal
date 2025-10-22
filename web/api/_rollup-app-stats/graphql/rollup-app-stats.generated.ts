@@ -1,32 +1,32 @@
-/* eslint-disable */
+/* eslint-disable import/no-relative-parent-imports -- auto generated file */
 import * as Types from "@/graphql/graphql";
 
 import { GraphQLClient, RequestOptions } from "graphql-request";
 import gql from "graphql-tag";
 type GraphQLClientRequestHeaders = RequestOptions["requestHeaders"];
-export type UpdateAppVerificationStatusMutationVariables = Types.Exact<{
-  app_metadata_id: Types.Scalars["String"]["input"];
-  verification_status: Types.Scalars["String"]["input"];
+export type RollupAppStatsMutationVariables = Types.Exact<{
+  since?: Types.InputMaybe<Types.Scalars["timestamptz"]["input"]>;
+  until?: Types.InputMaybe<Types.Scalars["timestamptz"]["input"]>;
 }>;
 
-export type UpdateAppVerificationStatusMutation = {
+export type RollupAppStatsMutation = {
   __typename?: "mutation_root";
-  update_app_metadata_by_pk?: {
-    __typename?: "app_metadata";
-    id: string;
-  } | null;
+  rollup_app_stats: Array<{
+    __typename?: "app_stats";
+    app_id: string;
+    date: string;
+    verifications: number;
+    unique_users: number;
+  }>;
 };
 
-export const UpdateAppVerificationStatusDocument = gql`
-  mutation UpdateAppVerificationStatus(
-    $app_metadata_id: String!
-    $verification_status: String!
-  ) {
-    update_app_metadata_by_pk(
-      pk_columns: { id: $app_metadata_id }
-      _set: { verification_status: $verification_status }
-    ) {
-      id
+export const RollupAppStatsDocument = gql`
+  mutation RollupAppStats($since: timestamptz, $until: timestamptz) {
+    rollup_app_stats(args: { _since: $since, _until: $until }) {
+      app_id
+      date
+      verifications
+      unique_users
     }
   }
 `;
@@ -50,18 +50,18 @@ export function getSdk(
   withWrapper: SdkFunctionWrapper = defaultWrapper,
 ) {
   return {
-    UpdateAppVerificationStatus(
-      variables: UpdateAppVerificationStatusMutationVariables,
+    RollupAppStats(
+      variables?: RollupAppStatsMutationVariables,
       requestHeaders?: GraphQLClientRequestHeaders,
-    ): Promise<UpdateAppVerificationStatusMutation> {
+    ): Promise<RollupAppStatsMutation> {
       return withWrapper(
         (wrappedRequestHeaders) =>
-          client.request<UpdateAppVerificationStatusMutation>(
-            UpdateAppVerificationStatusDocument,
+          client.request<RollupAppStatsMutation>(
+            RollupAppStatsDocument,
             variables,
             { ...requestHeaders, ...wrappedRequestHeaders },
           ),
-        "UpdateAppVerificationStatus",
+        "RollupAppStats",
         "mutation",
         variables,
       );

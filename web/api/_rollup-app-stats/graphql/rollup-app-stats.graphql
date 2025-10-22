@@ -1,0 +1,8 @@
+mutation RollupAppStats($since: timestamptz, $until: timestamptz) {
+  rollup_app_stats(args: { _since: $since, _until: $until }) {
+    app_id
+    date
+    verifications
+    unique_users
+  }
+}

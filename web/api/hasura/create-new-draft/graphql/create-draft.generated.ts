@@ -14,6 +14,7 @@ export type CreateDraftMutationVariables = Types.Exact<{
   showcase_img_urls?: Types.InputMaybe<
     Array<Types.Scalars["String"]["input"]> | Types.Scalars["String"]["input"]
   >;
+  content_card_image_url?: Types.InputMaybe<Types.Scalars["String"]["input"]>;
   description?: Types.InputMaybe<Types.Scalars["String"]["input"]>;
   world_app_description?: Types.InputMaybe<Types.Scalars["String"]["input"]>;
   category?: Types.InputMaybe<Types.Scalars["String"]["input"]>;
@@ -66,6 +67,7 @@ export const CreateDraftDocument = gql`
     $hero_image_url: String = ""
     $meta_tag_image_url: String = ""
     $showcase_img_urls: [String!] = null
+    $content_card_image_url: String = ""
     $description: String = ""
     $world_app_description: String = ""
     $category: String = ""
@@ -97,6 +99,7 @@ export const CreateDraftDocument = gql`
         showcase_img_urls: $showcase_img_urls
         meta_tag_image_url: $meta_tag_image_url
         hero_image_url: $hero_image_url
+        content_card_image_url: $content_card_image_url
         description: $description
         world_app_description: $world_app_description
         category: $category

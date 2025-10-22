@@ -26,6 +26,7 @@ const independentFieldsToFetch = [
   "impressions",
   "logo_img_url",
   "content_card_image_url",
+  "rounded_logo_img_url",
 ];
 
 export async function GET(
@@ -232,6 +233,26 @@ export async function GET(
 
   // For purposes of promotion campaigns, we allow fetching some fields independently.
   if (metadata_field && independentFieldsToFetch.includes(metadata_field)) {
+    if (metadata_field === "rounded_logo_img_url") {
+      const logo_img_url = formattedMetadata.logo_img_url;
+      // rounded logo img url is the logo img url with _rounded suffix before the extension
+      const lastDotIndex = logo_img_url.lastIndexOf(".");
+      const responseText =
+        lastDotIndex !== -1
+          ? `${logo_img_url.substring(0, lastDotIndex)}_rounded.png`
+          : logo_img_url;
+      const contentLength = Buffer.byteLength(responseText, "utf-8").toString();
+
+      return new NextResponse(responseText, {
+        status: 200,
+        headers: {
+          "Content-Type": "text/plain; charset=utf-8",
+          "Content-Length": contentLength,
+          "Cache-Control": "public, max-age=5, stale-if-error=86400",
+        },
+      });
+    }
+
     const fieldValue =
       formattedMetadata[metadata_field as keyof typeof formattedMetadata];
 

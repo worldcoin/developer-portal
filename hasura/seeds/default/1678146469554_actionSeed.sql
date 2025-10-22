@@ -23,6 +23,17 @@ WITH
       app_metadata.name = 'Custom Action App'
     LIMIT
       1
+  ),
+  sign_in_app AS (
+    SELECT
+      app.id
+    FROM
+      "public"."app"
+      JOIN "public"."app_metadata" ON app.id = app_metadata.app_id
+    WHERE
+      app_metadata.name = 'Sign In App'
+    LIMIT
+      1
   )
 INSERT INTO
   "public"."action" (
@@ -97,6 +108,27 @@ VALUES
         "id"
       from
         "custom_action_app"
+    ),
+    1,
+    0,
+    'developer_portal',
+    '',
+    'true',
+    'active'
+  ),
+    (
+    'action_bad7149fad76ee1109f044dc58aea7a1',
+    '2023-02-28T20:44:01.1748+00:00',
+    '2023-03-06T23:24:31.438404+00:00',
+    'Sign in with World ID',
+    'Sign in with World ID',
+    '',
+    '0x00c4ecd22f8a6b28b2a24b09ad04b4ac7f07ba6d05b3a7a1dc96ddea00a4ea65',
+    (
+      select
+        "id"
+      from
+        "sign_in_app"
     ),
     1,
     0,

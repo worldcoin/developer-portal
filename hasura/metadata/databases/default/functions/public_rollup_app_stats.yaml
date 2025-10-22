@@ -1,0 +1,8 @@
+function:
+  name: rollup_app_stats
+  schema: public
+configuration:
+  custom_root_fields: {}
+  exposed_as: mutation
+permissions:
+  - role: service

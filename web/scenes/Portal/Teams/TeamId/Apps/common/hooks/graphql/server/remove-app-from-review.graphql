@@ -1,0 +1,8 @@
+mutation RemoveAppFromReview($app_metadata_id: String!) {
+  update_app_metadata_by_pk(
+    pk_columns: { id: $app_metadata_id }
+    _set: { verification_status: "unverified" }
+  ) {
+    id
+  }
+}

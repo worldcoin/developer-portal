@@ -2,7 +2,10 @@ import { getSdk as getAppMetadataSDK } from "@/api/hasura/verify-app/graphql/get
 import { getSdk as verifyAppSDK } from "@/api/hasura/verify-app/graphql/verifyApp.generated";
 import { errorHasuraQuery } from "@/api/helpers/errors";
 import { getAPIReviewerGraphqlClient } from "@/api/helpers/graphql";
-import { resizeAndUploadImage } from "@/api/helpers/image-processing";
+import {
+  processContentCardImage,
+  processLogoImage,
+} from "@/api/helpers/image-processing";
 import { getFileExtension, protectInternalEndpoint } from "@/api/helpers/utils";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import * as Types from "@/graphql/graphql";
@@ -170,33 +173,27 @@ export const POST = async (req: NextRequest) => {
   // Copy unverified images to verified images with random names
   const copyPromises = [];
 
+  // Create and upload 3 versions of the logo image
+  // 400x400, 100% quality - used as a main logo image
+  // 400x400, 30px rounded corners, 100% quality - rounded logo image, has _rounded suffix
+  // original dimensions, 100% quality - original logo image, has _original suffix
   const currentLogoImgName = awaitingReviewAppMetadata.logo_img_url;
   const logoFileType = getFileExtension(currentLogoImgName);
   const newLogoImgName = randomUUID();
-
-  // Copy original logo image with _original suffix
-  copyPromises.push(
-    s3Client.send(
-      new CopyObjectCommand({
-        Bucket: bucketName,
-        CopySource: `${bucketName}/${sourcePrefix}${currentLogoImgName}`,
-        Key: `${destinationPrefix}${newLogoImgName}_original${logoFileType}`,
-      }),
-    ),
-  );
-
-  // Create and upload 50x50 resized version of the logo
-  const resizePromise = resizeAndUploadImage(
+  const logoProcessingPromise = processLogoImage(
     s3Client,
     bucketName,
     `${sourcePrefix}${currentLogoImgName}`,
-    `${destinationPrefix}${newLogoImgName}${logoFileType}`,
+    destinationPrefix,
+    newLogoImgName,
+    400,
+    400,
+    30,
     100,
-    100,
-    logoFileType,
+    logoFileType.replace(".", ""),
   );
 
-  copyPromises.push(resizePromise);
+  copyPromises.push(logoProcessingPromise);
 
   const currentMetaTagImgName = awaitingReviewAppMetadata?.meta_tag_image_url;
   let newMetaTagImgName: string = "";
@@ -225,12 +222,12 @@ export const POST = async (req: NextRequest) => {
     newContentCardImgName = randomUUID() + contentCardFileType;
 
     copyPromises.push(
-      s3Client.send(
-        new CopyObjectCommand({
-          Bucket: bucketName,
-          CopySource: `${bucketName}/${sourcePrefix}${currentContentCardImgName}`,
-          Key: `${destinationPrefix}${newContentCardImgName}`,
-        }),
+      processContentCardImage(
+        s3Client,
+        bucketName,
+        `${sourcePrefix}${currentContentCardImgName}`,
+        `${destinationPrefix}${newContentCardImgName}`,
+        contentCardFileType.replace(".", ""),
       ),
     );
   }

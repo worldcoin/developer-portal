@@ -2,10 +2,12 @@
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import { EngineType } from "@/lib/types";
 import { VerificationLevel } from "@worldcoin/idkit-core";
 import clsx from "clsx";
 import { useState } from "react";
 import { ActionsHeader } from "../Components/ActionsHeader";
+import { KioskError } from "../Components/Kiosk/KioskError";
 import { VerificationLevelPicker } from "../Components/Kiosk/VerificationLevelPicker";
 import {
   GetKioskActionDocument,
@@ -48,6 +50,7 @@ export const ActionIdKioskPage = (props: ActionIdKioskPageProps) => {
     });
   };
   const kioskAction = data?.action[0];
+  const kioskApp = data?.app_by_pk;
 
   return (
     <>
@@ -73,55 +76,64 @@ export const ActionIdKioskPage = (props: ActionIdKioskPageProps) => {
               </Typography>
             </div>
 
-            <div className="grid gap-y-5">
-              <Typography variant={TYPOGRAPHY.R3} className="text-grey-700">
-                This action&apos;s kiosk is currently:{" "}
-                <span
-                  className={clsx("text-system-error-500", {
-                    "text-system-success-500": kioskAction?.kiosk_enabled,
-                  })}
-                >
-                  {kioskAction?.kiosk_enabled ? "Enabled" : "Disabled"}
-                </span>
-              </Typography>
+            {kioskApp?.engine === EngineType.OnChain && (
+              <KioskError
+                title="Kiosk is not available"
+                description="Kiosk is not available for on-chain app actions"
+              />
+            )}
 
-              {kioskAction?.kiosk_enabled && (
-                <VerificationLevelPicker
-                  verificationLevel={kioskVerificationLevel}
-                  resetKioskAndUpdateVerificationLevel={
-                    setKioskVerificationLevel
-                  }
-                  className="justify-start"
-                />
-              )}
+            {kioskApp?.engine === EngineType.Cloud && (
+              <div className="grid gap-y-5">
+                <Typography variant={TYPOGRAPHY.R3} className="text-grey-700">
+                  This action&apos;s kiosk is currently:{" "}
+                  <span
+                    className={clsx("text-system-error-500", {
+                      "text-system-success-500": kioskAction?.kiosk_enabled,
+                    })}
+                  >
+                    {kioskAction?.kiosk_enabled ? "Enabled" : "Disabled"}
+                  </span>
+                </Typography>
 
-              {!kioskAction?.kiosk_enabled ? (
-                <DecoratedButton
-                  type="button"
-                  variant="primary"
-                  onClick={() => handleToggleKiosk(true)}
-                >
-                  Activate Kiosk
-                </DecoratedButton>
-              ) : (
-                <DecoratedButton
-                  variant="primary"
-                  href={`/kiosk/${appId}/${actionId}?verification-level=${kioskVerificationLevel}`}
-                >
-                  Open Kiosk
-                </DecoratedButton>
-              )}
+                {kioskAction?.kiosk_enabled && (
+                  <VerificationLevelPicker
+                    verificationLevel={kioskVerificationLevel}
+                    resetKioskAndUpdateVerificationLevel={
+                      setKioskVerificationLevel
+                    }
+                    className="justify-start"
+                  />
+                )}
 
-              {kioskAction?.kiosk_enabled && (
-                <DecoratedButton
-                  type="button"
-                  variant="danger"
-                  onClick={() => handleToggleKiosk(false)}
-                >
-                  Deactivate Kiosk
-                </DecoratedButton>
-              )}
-            </div>
+                {!kioskAction?.kiosk_enabled ? (
+                  <DecoratedButton
+                    type="button"
+                    variant="primary"
+                    onClick={() => handleToggleKiosk(true)}
+                  >
+                    Activate Kiosk
+                  </DecoratedButton>
+                ) : (
+                  <DecoratedButton
+                    variant="primary"
+                    href={`/kiosk/${appId}/${actionId}?verification-level=${kioskVerificationLevel}`}
+                  >
+                    Open Kiosk
+                  </DecoratedButton>
+                )}
+
+                {kioskAction?.kiosk_enabled && (
+                  <DecoratedButton
+                    type="button"
+                    variant="danger"
+                    onClick={() => handleToggleKiosk(false)}
+                  >
+                    Deactivate Kiosk
+                  </DecoratedButton>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </SizingWrapper>

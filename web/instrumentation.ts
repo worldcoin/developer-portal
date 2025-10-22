@@ -44,6 +44,12 @@ export async function register() {
       opensearch.createIndexIfNotExists();
 
       global.OpenSearchClient = opensearch;
+
+      const { createSignedFetcher } = await import("aws-sigv4-fetch");
+      global.TransactionSignedFetcher = createSignedFetcher({
+        service: "execute-api",
+        region: process.env.TRANSACTION_BACKEND_REGION,
+      });
     }
   } catch (error) {
     return console.error("🔴 Instrumentation registration error: ", error);

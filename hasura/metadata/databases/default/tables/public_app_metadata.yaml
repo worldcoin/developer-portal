@@ -21,19 +21,17 @@ computed_fields:
         schema: public
     comment: A computed field that returns the rating of an app
 insert_permissions:
-  - role: api_key
+  - role: qa
     permission:
       check:
-        _and:
-          - verification_status:
-              _eq: unverified
-          - app:
-              deleted_at:
+        app:
+          _and:
+            - team:
+                memberships:
+                  user_id:
+                    _eq: X-Hasura-User-Id
+            - deleted_at:
                 _is_null: true
-          - app:
-              team:
-                id:
-                  _eq: X-Hasura-Team-Id
       columns:
         - app_id
         - app_mode
@@ -41,15 +39,28 @@ insert_permissions:
         - associated_domains
         - can_import_all_contacts
         - category
+        - changelog
+        - content_card_image_url
         - contracts
         - description
         - hero_image_url
         - integration_url
+        - is_allowed_unlimited_notifications
+        - is_android_only
         - is_developer_allow_listing
+        - is_for_humans_only
+        - is_reviewer_app_store_approved
+        - is_reviewer_world_app_approved
+        - is_row_verified
         - logo_img_url
+        - max_notifications_per_day
+        - meta_tag_image_url
         - name
         - permit2_tokens
+        - review_message
+        - reviewed_by
         - short_name
+        - should_uninstall_on_delist
         - showcase_img_urls
         - source_code_url
         - support_link
@@ -59,8 +70,7 @@ insert_permissions:
         - whitelisted_addresses
         - world_app_button_text
         - world_app_description
-        - is_allowed_unlimited_notifications
-        - max_notifications_per_day
+    comment: ""
   - role: service
     permission:
       check:
@@ -76,6 +86,7 @@ insert_permissions:
         - can_import_all_contacts
         - category
         - changelog
+        - content_card_image_url
         - contracts
         - description
         - hero_image_url
@@ -100,35 +111,6 @@ insert_permissions:
         - world_app_button_text
         - world_app_description
     comment: ""
-  - role: user
-    permission:
-      check:
-        _and:
-          - verification_status:
-              _eq: unverified
-          - app:
-              deleted_at:
-                _is_null: true
-          - app:
-              team:
-                memberships:
-                  _and:
-                    - user_id:
-                        _eq: X-Hasura-User-Id
-                    - _or:
-                        - role:
-                            _eq: OWNER
-                        - role:
-                            _eq: ADMIN
-      columns:
-        - app_id
-        - app_mode
-        - hero_image_url
-        - logo_img_url
-        - meta_tag_image_url
-        - showcase_img_urls
-        - supported_languages
-        - verification_status
 select_permissions:
   - role: api_key
     permission:
@@ -187,8 +169,6 @@ select_permissions:
         - contracts
         - created_at
         - description
-        - dev_rewards_approved
-        - has_airdrop_component
         - hero_image_url
         - id
         - integration_url
@@ -361,8 +341,6 @@ update_permissions:
       columns:
         - category
         - content_card_image_url
-        - dev_rewards_approved
-        - has_airdrop_component
         - hero_image_url
         - is_android_only
         - is_for_humans_only

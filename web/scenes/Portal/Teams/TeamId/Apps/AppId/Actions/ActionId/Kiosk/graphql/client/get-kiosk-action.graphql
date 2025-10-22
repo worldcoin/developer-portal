@@ -11,6 +11,9 @@ query GetKioskAction($action_id: String!, $app_id: String!) {
     webhook_uri
     webhook_pem
   }
+  app_by_pk(id: $app_id) {
+    engine
+  }
   app_metadata(
     where: {
       app_id: { _eq: $app_id }

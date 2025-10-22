@@ -105,10 +105,13 @@ export const GET = async (req: NextRequest) => {
     });
   }
 
-  const signedFetch = createSignedFetcher({
-    service: "execute-api",
-    region: process.env.TRANSACTION_BACKEND_REGION,
-  });
+  let signedFetch = global.TransactionSignedFetcher;
+  if (!signedFetch) {
+    signedFetch = createSignedFetcher({
+      service: "execute-api",
+      region: process.env.TRANSACTION_BACKEND_REGION,
+    });
+  }
 
   const res = await signedFetch(
     `${process.env.NEXT_SERVER_INTERNAL_PAYMENTS_ENDPOINT}/miniapp-actions/debug?miniapp-id=${appId}`,

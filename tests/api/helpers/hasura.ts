@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import { GraphQLClient } from "graphql-request";
 
 // GraphQL client with admin privileges for creating test data
@@ -70,6 +71,14 @@ const DELETE_TEAM_MUTATION = `
 const DELETE_USER_MUTATION = `
   mutation DeleteUser($id: String!) {
     delete_user_by_pk(id: $id) {
+      id
+    }
+  }
+`;
+
+const FIND_USER_BY_AUTH0_QUERY = `
+  query FindUserByAuth0Id($auth0Id: String!) {
+    user(where: {auth0Id: {_eq: $auth0Id}}) {
       id
     }
   }
@@ -235,13 +244,13 @@ export const createTestTeam = async (name: string) => {
 };
 
 // Helper for creating test user
-export const createTestUser = async (email: string, teamId: string) => {
+export const createTestUser = async (email: string, teamId?: string) => {
   try {
     const response = (await adminGraphqlClient.request(CREATE_USER_MUTATION, {
       object: {
         email,
         auth0Id: `auth0|test_${Date.now()}`,
-        team_id: teamId,
+        ...(teamId && { team_id: teamId }),
         ironclad_id: `ironclad_test_${Date.now()}`,
         world_id_nullifier: `0x${Date.now().toString(16)}`,
       },
@@ -282,6 +291,26 @@ export const deleteTestTeam = async (teamId: string) => {
     const errorMessage =
       error?.response?.data?.message || error?.message || "Unknown error";
     throw new Error(`Failed to delete test team ${teamId}: ${errorMessage}`);
+  }
+};
+
+// Helper for finding user by auth0Id
+export const findUserByAuth0Id = async (auth0Id: string) => {
+  try {
+    const response = (await adminGraphqlClient.request(
+      FIND_USER_BY_AUTH0_QUERY,
+      {
+        auth0Id,
+      },
+    )) as any;
+
+    return response.user?.[0]?.id || null;
+  } catch (error: any) {
+    const errorMessage =
+      error?.response?.data?.message || error?.message || "Unknown error";
+    throw new Error(
+      `Failed to find user by auth0Id ${auth0Id}: ${errorMessage}`,
+    );
   }
 };
 
@@ -455,30 +484,54 @@ export const deleteTestLocalisation = async (localisationId: string) => {
   }
 };
 
-// Helper for creating test API key
+// Helper for creating test API key with real credentials for HTTP auth
 export const createTestApiKey = async (
   teamId: string,
   name: string = "Test API Key",
 ) => {
-  try {
-    const response = (await adminGraphqlClient.request(
-      CREATE_API_KEY_MUTATION,
-      {
-        object: {
-          team_id: teamId,
-          name,
-          api_key: "test_hashed_secret_value",
-          is_active: true,
-        },
-      },
-    )) as any;
-
-    return response.insert_api_key_one?.id;
-  } catch (error: any) {
-    const errorMessage =
-      error?.response?.data?.message || error?.message || "Unknown error";
-    throw new Error(`Failed to create test API key: ${errorMessage}`);
+  const AUTH0_SECRET = process.env.AUTH0_SECRET;
+  if (!AUTH0_SECRET) {
+    throw new Error("AUTH0_SECRET env var must be set for tests");
   }
+
+  // Step 1: Generate friendly ID in Hasura format (key_xxxxxxxxxx)
+  const randomId = crypto.randomBytes(8).toString("hex");
+  const keyId = `key_${randomId}`;
+
+  // Step 2: Generate secret and hash using the pre-generated ID
+  const secret = `sk_${crypto.randomBytes(24).toString("hex")}`;
+  const hmac = crypto.createHmac("sha256", AUTH0_SECRET);
+  hmac.update(`${keyId}.${secret}`);
+  const hashed_secret = hmac.digest("hex");
+
+  // Step 3: Create API key record with the generated ID and hash in one operation
+  const createResponse = (await adminGraphqlClient.request(
+    CREATE_API_KEY_MUTATION,
+    {
+      object: {
+        id: keyId, // Use our pre-generated ID
+        team_id: teamId,
+        api_key: hashed_secret,
+        name,
+        is_active: true,
+      },
+    },
+  )) as any;
+
+  if (!createResponse.insert_api_key_one?.id) {
+    throw new Error("Failed to create API key record");
+  }
+
+  // Step 4: Create proper API key header format for HTTP auth
+  const credentials = `${keyId}:${secret}`;
+  const encodedCredentials = Buffer.from(credentials).toString("base64");
+  const apiKeyHeader = `api_${encodedCredentials}`;
+
+  return {
+    apiKeyId: keyId,
+    secret,
+    apiKeyHeader,
+  };
 };
 
 // Helper for deleting test API key

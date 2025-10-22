@@ -4,6 +4,8 @@ import { VerificationLevel } from "@worldcoin/idkit-core";
 import {
   DOCUMENT_SEQUENCER,
   DOCUMENT_SEQUENCER_STAGING,
+  FACE_SEQUENCER,
+  FACE_SEQUENCER_STAGING,
   ORB_SEQUENCER,
   ORB_SEQUENCER_STAGING,
   PARTNER_TEAM_IDS,
@@ -20,7 +22,7 @@ import { Auth0SessionUser } from "./types";
  * @returns The sequencer for the verification level
  */
 export const sequencerMapping: Record<
-  VerificationLevel,
+  VerificationLevel | "face",
   { [key: string]: string | undefined }
 > = {
   [VerificationLevel.Orb]: {
@@ -39,6 +41,7 @@ export const sequencerMapping: Record<
     true: SECURE_DOCUMENT_SEQUENCER_STAGING,
     false: SECURE_DOCUMENT_SEQUENCER,
   },
+  ["face"]: { true: FACE_SEQUENCER_STAGING, false: FACE_SEQUENCER },
 };
 
 /**

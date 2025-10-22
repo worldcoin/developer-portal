@@ -23,18 +23,29 @@ array_relationships:
           name: app_metadata
           schema: public
 insert_permissions:
-  - role: api_key
+  - role: qa
     permission:
-      check: {}
-      set:
-        team_id: x-hasura-Team-Id
+      check:
+        team:
+          memberships:
+            user_id:
+              _eq: X-Hasura-User-Id
       columns:
         - description_internal
+        - dev_rewards_approved
         - engine
+        - has_airdrop_component
         - is_archived
+        - is_banned
         - is_staging
+        - logo_url
         - name
+        - rating_count
+        - rating_sum
         - status
+        - team_id
+        - verified_at
+    comment: ""
   - role: service
     permission:
       check: {}
@@ -42,23 +53,6 @@ insert_permissions:
         - engine
         - is_staging
         - name
-        - team_id
-  - role: user
-    permission:
-      check:
-        team:
-          _and:
-            - memberships:
-                _and:
-                  - user_id:
-                      _eq: X-Hasura-User-Id
-                  - role:
-                      _in:
-                        - OWNER
-                        - ADMIN
-            - deleted_at:
-                _is_null: true
-      columns:
         - team_id
 select_permissions:
   - role: api_key
@@ -74,7 +68,9 @@ select_permissions:
     permission:
       columns:
         - deleted_at
+        - dev_rewards_approved
         - first_verified_at
+        - has_airdrop_component
         - id
         - is_banned
       filter:
@@ -130,7 +126,9 @@ update_permissions:
   - role: reviewer
     permission:
       columns:
+        - dev_rewards_approved
         - first_verified_at
+        - has_airdrop_component
         - is_banned
       filter: {}
       check:

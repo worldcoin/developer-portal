@@ -18,7 +18,7 @@ export type FetchSignInActionQuery = {
     privacy_policy_uri?: string | null;
     terms_uri?: string | null;
   }>;
-  app: Array<{ __typename?: "app"; is_staging: boolean }>;
+  app: Array<{ __typename?: "app"; is_staging: boolean; created_at: string }>;
 };
 
 export const FetchSignInActionDocument = gql`
@@ -32,6 +32,7 @@ export const FetchSignInActionDocument = gql`
     }
     app(where: { id: { _eq: $app_id } }) {
       is_staging
+      created_at
     }
   }
 `;

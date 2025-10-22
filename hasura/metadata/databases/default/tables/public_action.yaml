@@ -31,9 +31,12 @@ insert_permissions:
   - role: api_key
     permission:
       check:
-        app:
-          team_id:
-            _eq: X-Hasura-Team-Id
+        _and:
+          - action:
+              _neq: ""
+          - app:
+              team_id:
+                _eq: X-Hasura-Team-Id
       columns:
         - action
         - app_id
@@ -50,9 +53,12 @@ insert_permissions:
   - role: service
     permission:
       check:
-        app:
-          deleted_at:
-            _is_null: true
+        _and:
+          - action:
+              _neq: ""
+          - app:
+              deleted_at:
+                _is_null: true
       columns:
         - action
         - app_id
@@ -165,9 +171,16 @@ update_permissions:
         - max_verifications
         - name
       filter:
-        app:
-          team_id:
-            _eq: X-Hasura-Team-Id
+        _and:
+          - app:
+              team_id:
+                _eq: X-Hasura-Team-Id
+          - _or:
+              - action:
+                  _neq: ""
+              - app:
+                  created_at:
+                    _lte: "2025-09-29T00:00:00.000000+00:00"
       check: null
   - role: service
     permission:
@@ -186,9 +199,16 @@ update_permissions:
         - webhook_pem
         - webhook_uri
       filter:
-        app:
-          deleted_at:
-            _is_null: true
+        _and:
+          - _or:
+              - action:
+                  _neq: ""
+              - app:
+                  created_at:
+                    _lte: "2025-09-29T00:00:00.000000+00:00"
+          - app:
+              deleted_at:
+                _is_null: true
       check: null
   - role: user
     permission:
@@ -202,27 +222,43 @@ update_permissions:
         - status
         - terms_uri
       filter:
-        app:
-          _and:
-            - team:
-                memberships:
-                  _and:
-                    - user_id:
-                        _eq: X-Hasura-User-Id
-                    - role:
-                        _in:
-                          - ADMIN
-                          - OWNER
-            - deleted_at:
-                _is_null: true
-      check: null
+        _and:
+          - app:
+              _and:
+                - team:
+                    memberships:
+                      _and:
+                        - user_id:
+                            _eq: X-Hasura-User-Id
+                        - role:
+                            _in:
+                              - ADMIN
+                              - OWNER
+                - deleted_at:
+                    _is_null: true
+          - _or:
+              - action:
+                  _neq: ""
+              - app:
+                  created_at:
+                    _lte: "2025-09-29T00:00:00.000000+00:00"
+      check:
+        _or:
+          - kiosk_enabled:
+              _neq: true
+          - app:
+              engine:
+                _neq: on-chain
 delete_permissions:
   - role: api_key
     permission:
       filter:
-        app:
-          team_id:
-            _eq: X-Hasura-Team-Id
+        _and:
+          - action:
+              _neq: ""
+          - app:
+              team_id:
+                _eq: X-Hasura-Team-Id
   - role: user
     permission:
       filter:

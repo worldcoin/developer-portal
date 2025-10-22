@@ -151,14 +151,12 @@ export const POST = async (req: NextRequest) => {
   }
 
   await captureEvent({
-    event: "action_verify_success",
+    event: "app_review_success",
     distinctId: `app_review_${app_id}`,
     properties: {
       action_id: "app_review",
       app_id: app_id,
-      verification_level: parsedParams.verification_level,
       environment: "production",
-      type: "unlimited",
     },
   });
 
