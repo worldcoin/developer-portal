@@ -3,7 +3,7 @@ import { EarningsPage } from "scenes/Portal/Teams/TeamId/Team/AffiliateProgram/E
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-    title: generateMetaTitle({ left: "Earnings" }),
+  title: generateMetaTitle({ left: "Earnings" }),
 };
 
 export default EarningsPage;

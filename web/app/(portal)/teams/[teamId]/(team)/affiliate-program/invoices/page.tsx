@@ -3,7 +3,7 @@ import { InvoicesPage } from "scenes/Portal/Teams/TeamId/Team/AffiliateProgram/I
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-    title: generateMetaTitle({ left: "Invoices" }),
+  title: generateMetaTitle({ left: "Invoices" }),
 };
 
 export default InvoicesPage;

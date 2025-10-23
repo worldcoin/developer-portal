@@ -2,7 +2,6 @@
 import { Chart, ChartProps } from "@/components/Chart";
 import { InformationCircleIcon } from "@/components/Icons/InformationCircleIcon";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import { useGetAffiliateOverview } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/common/hooks/use-get-affiliate-overview";
 import { ChartData, ChartOptions } from "chart.js";
 import clsx from "clsx";
 import dayjs from "dayjs";
@@ -15,6 +14,7 @@ import { Stat } from "./stat";
 import { TimespanSelector } from "./TimespanSelector";
 import { atom, useAtom } from "jotai/index";
 import { AffiliateOverviewResponse } from "@/lib/types";
+import { useGetAffiliateOverview } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Overview/page/hooks/use-get-affiliate-overview";
 
 dayjs.extend(utc);
 dayjs.extend(tz);

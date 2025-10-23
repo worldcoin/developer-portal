@@ -3,7 +3,7 @@ import { HowItWorksPage } from "scenes/Portal/Teams/TeamId/Team/AffiliateProgram
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-    title: generateMetaTitle({ left: "How it works" }),
+  title: generateMetaTitle({ left: "How it works" }),
 };
 
 export default HowItWorksPage;

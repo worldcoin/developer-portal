@@ -1,5 +1,5 @@
 "use client";
-import {SizingWrapper} from "@/components/SizingWrapper";
+import { SizingWrapper } from "@/components/SizingWrapper";
 
 type PageProps = {
   params: {
@@ -13,9 +13,7 @@ export const EarningsPage = (props: PageProps) => {
 
   return (
     <>
-      <SizingWrapper
-        gridClassName="order-2 grow"
-        className="flex flex-col">
+      <SizingWrapper gridClassName="order-2 grow" className="flex flex-col">
         Earnings
       </SizingWrapper>
     </>

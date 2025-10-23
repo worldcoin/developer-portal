@@ -1,15 +1,15 @@
 "use client";
-import {TYPOGRAPHY, Typography} from "@/components/Typography";
-import {useParams} from "next/navigation";
-import {useEffect} from "react";
+import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import { useParams } from "next/navigation";
+import { useEffect } from "react";
 import Skeleton from "react-loading-skeleton";
-import {useFetchTeamLazyQuery} from "./graphql/client/fetch-team.generated";
-import {DecoratedButton} from "@/components/DecoratedButton";
-import {GmailIcon} from "@/components/Icons/GmailIcon";
-import {useAtom} from "jotai/index";
-import {inviteUserDialogAtom} from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Overview/page/InviteUserDialog";
-import {AffiliateMetadataResponse} from "@/lib/types";
-import {EnvelopeIcon} from "@/components/Icons/EnvelopeIcon";
+import { useFetchTeamLazyQuery } from "./graphql/client/fetch-team.generated";
+import { DecoratedButton } from "@/components/DecoratedButton";
+import { GmailIcon } from "@/components/Icons/GmailIcon";
+import { useAtom } from "jotai/index";
+import { inviteUserDialogAtom } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Overview/page/InviteUserDialog";
+import { AffiliateMetadataResponse } from "@/lib/types";
+import { EnvelopeIcon } from "@/components/Icons/EnvelopeIcon";
 
 type Props = {
   loading: boolean;
