@@ -5,8 +5,6 @@ import { AffiliateTransactionsResponse } from "@/lib/types";
 import { clsx } from "clsx";
 import { useMemo } from "react";
 import { SpinnerIcon } from "@/components/Icons/SpinnerIcon";
-import { Success } from "@/scenes/Portal/Teams/TeamId/Apps/AppId/Actions/ActionId/Components/Kiosk/Success";
-import { SuccessIcon } from "@/components/Icons/SuccessIcon";
 import { FailedIcon } from "@/components/Icons/FailedIcon";
 import { SuccessCheckIcon } from "@/components/Icons/SuccessCheckIcon";
 

@@ -7,8 +7,6 @@ import { formatTokenAmount } from "@/lib/utils";
 import tokenWalletImage from "public/images/token-wallet.png";
 import { useMemo } from "react";
 import Skeleton from "react-loading-skeleton";
-import { useAtom } from "jotai/index";
-import { transactionDetailsDialogAtom } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Earnings/TransactionsTable/TransactionDetailsDialog";
 import { useParams, useRouter } from "next/navigation";
 
 type Props = {

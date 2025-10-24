@@ -1,8 +1,6 @@
-import { ComponentProps, memo } from "react";
+import { ComponentProps } from "react";
 
-export const WalletIcon = memo(function WLDTokenIcon(
-  props: ComponentProps<"svg">,
-) {
+export const WalletIcon = (props: ComponentProps<"svg">) => {
   return (
     <svg
       width={27}
@@ -18,4 +16,4 @@ export const WalletIcon = memo(function WLDTokenIcon(
       />
     </svg>
   );
-});
+};

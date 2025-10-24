@@ -1,7 +1,4 @@
-import {
-  AffiliateOverviewResponse,
-  AffiliateTransactionsResponse,
-} from "@/lib/types";
+import { AffiliateTransactionsResponse } from "@/lib/types";
 import { useEffect, useState } from "react";
 import { getAffiliateTransactions } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Earnings/server/getAffiliateTransactions";
 
