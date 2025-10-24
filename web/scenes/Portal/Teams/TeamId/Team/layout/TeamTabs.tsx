@@ -1,6 +1,5 @@
 "use client";
 
-import { SizingWrapper } from "@/components/SizingWrapper";
 import { Tab, Tabs } from "@/components/Tabs";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { usePathname } from "next/navigation";
