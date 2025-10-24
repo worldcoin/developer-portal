@@ -229,7 +229,6 @@ const GraphCard: React.FC<GraphCardProps> = ({
 // ==================================================================================================
 
 export const GraphsSection = () => {
-  useParams() as { teamId: string; appId: string };
   const [timespan] = useAtom(timespanAtom);
   const { data: appStatsData, loading: appStatsLoading } =
     useGetAffiliateOverview({ period: timespan.value });
