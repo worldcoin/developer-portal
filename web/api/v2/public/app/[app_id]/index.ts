@@ -2,7 +2,11 @@ import { formatAppMetadata } from "@/api/helpers/app-store";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { getAppStoreLocalisedCategoriesWithUrls } from "@/lib/categories";
 import { compareVersions } from "@/lib/compare-versions";
-import { NativeAppToAppIdMapping, NativeApps } from "@/lib/constants";
+import {
+  APP_STORE_METADATA,
+  NativeAppToAppIdMapping,
+  NativeApps,
+} from "@/lib/constants";
 import { parseLocale } from "@/lib/languages";
 import { AppStatsReturnType } from "@/lib/types";
 import { fetchWithRetry, isValidHostName } from "@/lib/utils";
@@ -56,6 +60,22 @@ export async function GET(
   }
 
   let app_id = params.app_id;
+
+  if (app_id === "app-store") {
+    const responseBody = { app_data: APP_STORE_METADATA };
+    const contentLength = Buffer.byteLength(
+      JSON.stringify(responseBody),
+      "utf-8",
+    ).toString();
+
+    return NextResponse.json(responseBody, {
+      status: 200,
+      headers: {
+        "Content-Length": contentLength,
+        "Cache-Control": "public, max-age=5, stale-if-error=86400",
+      },
+    });
+  }
 
   // Native Apps have substituted app_ids so we pull their constant ID to get the metadata
   if (app_id in NativeAppToAppIdMapping[process.env.NEXT_PUBLIC_APP_ENV]) {
