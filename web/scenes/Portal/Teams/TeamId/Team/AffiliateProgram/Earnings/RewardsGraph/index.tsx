@@ -29,7 +29,7 @@ const timespans: {
   { label: "Monthly", value: "month" },
   { label: "Yearly", value: "year" },
 ];
-const timespanAtom = atom(timespans[timespans.length - 1]);
+const timespanAtom = atom(timespans[timespans.length - 2]);
 
 const defaultDatasetConfig: Partial<ChartData<"line">["datasets"][number]> = {
   pointRadius: 0,
@@ -205,7 +205,7 @@ const GraphCard: React.FC<GraphCardProps> = ({
             )}
           </div>
 
-          {isLoading && !chartData && <Skeleton height={400} />}
+          {isLoading && !chartData && <Skeleton height={210} />}
 
           {!isLoading && chartData && (
             <>
@@ -226,7 +226,7 @@ const GraphCard: React.FC<GraphCardProps> = ({
   );
 };
 
-export const GraphsSection = () => {
+export const RewardsGraph = () => {
   const [timespan] = useAtom(timespanAtom);
   const { data: appStatsData, loading: appStatsLoading } =
     useGetAffiliateOverview({ period: timespan.value });

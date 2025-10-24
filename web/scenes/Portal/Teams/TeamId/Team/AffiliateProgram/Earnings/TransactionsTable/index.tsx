@@ -56,7 +56,12 @@ export const TransactionsTable = () => {
   }, [transactionData, currentPage, rowsPerPage]);
 
   if (loading) {
-    return <Skeleton count={5} height={80} />;
+    return (
+      <div>
+        <Skeleton height={41} />
+        <Skeleton count={5} height={75} />
+      </div>
+    );
   }
 
   return (
@@ -80,17 +85,19 @@ export const TransactionsTable = () => {
             </tr>
           </thead>
 
-          {paginatedTransactions.map((transaction, index) => (
-            <TransactionRow
-              transaction={transaction}
-              key={index}
-              index={index}
-              onClick={() => {
-                setIsOpened(true);
-                setSelectedTransaction(transaction);
-              }}
-            />
-          ))}
+          <tbody>
+            {paginatedTransactions.map((transaction, index) => (
+              <TransactionRow
+                transaction={transaction}
+                key={index}
+                index={index}
+                onClick={() => {
+                  setIsOpened(true);
+                  setSelectedTransaction(transaction);
+                }}
+              />
+            ))}
+          </tbody>
         </table>
       </div>
 
