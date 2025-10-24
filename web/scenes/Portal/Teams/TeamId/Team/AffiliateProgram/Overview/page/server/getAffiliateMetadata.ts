@@ -88,7 +88,7 @@ export const getAffiliateMetadata = async (): Promise<FormActionResult> => {
     const data = (await response.json()) as AffiliateMetadataResponse;
     if (!response.ok) {
       return errorFormAction({
-        message: "Failed to fetch affiliate metdata",
+        message: "Failed to fetch affiliate metadata",
         additionalInfo: { response, data },
         team_id: teamId,
         logLevel: "error",
