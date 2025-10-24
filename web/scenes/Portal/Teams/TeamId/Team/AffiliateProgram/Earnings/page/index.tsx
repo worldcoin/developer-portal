@@ -9,7 +9,6 @@ type PageProps = {
 
 export const EarningsPage = (props: PageProps) => {
   const { params } = props;
-  const teamId = params?.teamId;
 
   return (
     <>
