@@ -7,6 +7,7 @@ import { createSignedFetcher } from "aws-sigv4-fetch";
 import { headers } from "next/headers";
 
 export const getAffiliateBalance = async (): Promise<FormActionResult> => {
+  const headersData = headers();
   const path = getPathFromHeaders() || "";
   const { teams: teamId } = extractIdsFromPath(path, ["teams"]);
 
@@ -28,7 +29,7 @@ export const getAffiliateBalance = async (): Promise<FormActionResult> => {
     }
 
     // If the request host is localhost, return a mock object. Otherwise fetch as normal.
-    const isLocalhost = headers().get?.("host")?.includes("localhost");
+    const isLocalhost = headersData.get?.("host")?.includes("localhost");
 
     if (isLocalhost) {
       // TODO: remove mock response
