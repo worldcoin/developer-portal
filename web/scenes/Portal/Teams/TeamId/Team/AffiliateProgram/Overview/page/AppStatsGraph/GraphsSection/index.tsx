@@ -7,14 +7,13 @@ import clsx from "clsx";
 import dayjs from "dayjs";
 import tz from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
-import { useParams } from "next/navigation";
 import React, { useMemo } from "react";
 import Skeleton from "react-loading-skeleton";
 import { Stat } from "./stat";
 import { TimespanSelector } from "./TimespanSelector";
 import { atom, useAtom } from "jotai/index";
 import { AffiliateOverviewResponse } from "@/lib/types";
-import { useGetAffiliateOverview } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Overview/page/hooks/use-get-affiliate-overview";
+import { useGetAffiliateOverview } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/common/hooks/use-get-affiliate-overview";
 
 dayjs.extend(utc);
 dayjs.extend(tz);
