@@ -9,8 +9,6 @@ type PageProps = {
 
 export const HowItWorksPage = (props: PageProps) => {
   const { params } = props;
-  const teamId = params?.teamId;
-
   return (
     <>
       <SizingWrapper gridClassName="order-2 grow" className="flex flex-col">
