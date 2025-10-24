@@ -429,4 +429,31 @@ export type AffiliateTransactionsResponse = {
   network?: "worldchain"; // Only for affiliateWithdrawal
 }[];
 
+export interface InitiateWithdrawRequest {
+  amountInWld: string;
+  toWallet: string;
+}
+
+export interface InitiateWithdrawResponse {
+  withdrawalId: string;
+  amountInWld: string;
+  toWallet: string;
+  email: string;
+  codeExpiresAt: string; // ISO 8601 timestamp
+  status: "pending_confirmation";
+}
+
+export interface ConfirmWithdrawRequest {
+  withdrawalRequestId: string;
+  emailConfirmationCode: string;
+}
+
+export interface ConfirmWithdrawResponse {
+  withdrawalId: string;
+  amountInWld: string;
+  estimatedCompletionTime: string;
+  newAvailableBalance: string;
+  toWallet: string;
+  status: "confirmed";
+}
 /* Affiliate program types END */
