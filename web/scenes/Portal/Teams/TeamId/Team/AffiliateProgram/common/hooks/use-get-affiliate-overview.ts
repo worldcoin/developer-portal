@@ -1,5 +1,5 @@
 import { AffiliateOverviewResponse } from "@/lib/types";
-import { getAffiliateOverview } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Overview/page/server/getAffiliateOverview";
+import { getAffiliateOverview } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/common/server/getAffiliateOverview";
 import { useEffect, useState } from "react";
 
 export const useGetAffiliateOverview = (params?: {

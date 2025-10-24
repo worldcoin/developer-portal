@@ -3,6 +3,7 @@ import { ComponentPropsWithoutRef, ElementType, ReactNode } from "react";
 import { twMerge } from "tailwind-merge";
 
 // NOTE: these namings come from Figma
+// TODO: review typography styles, they doesn't match figma, especially font-family and some of them are missing, i.e. s3, b3
 export enum TYPOGRAPHY {
   H3 = "h3",
   H4 = "h4",
@@ -20,8 +21,10 @@ export enum TYPOGRAPHY {
   R5 = "r5",
   R0 = "r0", // Custom typography for input synced with @lisa
 
+  S2 = "s2",
   S3 = "s3",
 
+  B3 = "b3",
   B4 = "b4",
 }
 
@@ -58,7 +61,7 @@ export const Typography = <T extends ElementType = "span">(
           "font-twk text-lg font-medium leading-[1.3]":
             variant === TYPOGRAPHY.H7,
 
-          "font-gta text-2xl font-medium leading-[1.5]":
+          "font-gta text-lg font-medium leading-[1.5]":
             variant === TYPOGRAPHY.M2,
           "font-gta text-base font-medium leading-[1.5]":
             variant === TYPOGRAPHY.M3,
@@ -76,9 +79,12 @@ export const Typography = <T extends ElementType = "span">(
           "font-gta text-xs font-normal leading-[1.3]":
             variant === TYPOGRAPHY.R5,
 
+          "font-rubik text-sm leading-[1.3]": variant === TYPOGRAPHY.B3,
           "font-rubik text-xs font-normal leading-[1.3]":
             variant === TYPOGRAPHY.B4,
 
+          "font-rubik text-base font-semibold leading-[1.25]":
+            variant === TYPOGRAPHY.S2,
           "font-rubik text-sm font-medium leading-[1.4]":
             variant === TYPOGRAPHY.S3,
         }),

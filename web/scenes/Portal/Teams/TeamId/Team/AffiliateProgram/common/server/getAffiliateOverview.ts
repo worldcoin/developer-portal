@@ -11,7 +11,7 @@ export const getAffiliateOverview = async ({
 }: {
   period?: AffiliateOverviewResponse["period"];
 }): Promise<FormActionResult> => {
-  const headersData = await headers();
+  const headersData = headers();
   const path = getPathFromHeaders() || "";
   const { teams: teamId } = extractIdsFromPath(path, ["teams"]);
 
@@ -96,7 +96,54 @@ export const getAffiliateOverview = async ({
             // ... more periods as needed for local development
           ],
         },
-        earnings: null as any, // set to null as requested
+        earnings: {
+          total: {
+            value: "290000000000000000000",
+            decimals: 18,
+            asset: "WLD",
+            symbol: "WLD",
+          },
+          totalInCurrency: 290.0,
+          totalByType: {
+            orb: {
+              inWLD: "200000000000000000000", // ORB earnings
+              inCurrency: 200.0,
+            },
+            nfc: {
+              inWLD: "90000000000000000000", // NFC earnings
+              inCurrency: 90.0,
+            },
+          },
+          periods: [
+            {
+              start: "2025-10-01T00:00:00Z",
+              end: "2025-10-02T00:00:00Z",
+              amount: {
+                inWLD: "50000000000000000000",
+                inCurrency: 50.0,
+              },
+              amountInCurrency: 60.0,
+              amountByType: {
+                orb: { inWLD: "36000000000000000000", inCurrency: 36.0 },
+                nfc: { inWLD: "14000000000000000000", inCurrency: 14.0 },
+              },
+            },
+            {
+              start: "2025-10-02T00:00:00Z",
+              end: "2025-10-03T00:00:00Z",
+              amount: {
+                inWLD: "60000000000000000000",
+                inCurrency: 60.0,
+              },
+              amountInCurrency: 60.0,
+              amountByType: {
+                orb: { inWLD: "40000000000000000000", inCurrency: 40.0 },
+                nfc: { inWLD: "20000000000000000000", inCurrency: 20.0 },
+              },
+            },
+            // ... more periods
+          ],
+        },
       };
       return {
         success: true,
