@@ -321,3 +321,97 @@ export interface FormActionResult {
   message: string;
   [key: string]: unknown;
 }
+
+/* Affiliate program types START */
+export type AffiliateBalanceResponse = {
+  availableBalance: string; // Can withdraw (in WLD, as string, wei units)
+  pendingBalance: string; // Waiting 24h (in WLD, as string, wei units)
+  totalEarned: string; // Lifetime earned (in WLD, as string, wei units)
+  lastAccumulatedAt: string; // ISO date string
+  minimumWithdrawal: string; // Minimum withdrawal amount (in WLD, as string, wei units)
+};
+
+export type AffiliateMetadataResponse = {
+  inviteCode: string;
+  identityVerificationStatus: "approved" | "none";
+  identityVerifiedAt: string;
+  verificationType: "kyb" | "kyc";
+  totalInvites: number;
+  pendingInvites: number; // Applied code, but not verified
+  verifiedInvites: {
+    total: number;
+    orb: number; // ORB verifications
+    nfc: number; // NFC verifications
+  };
+  totalEarnings: {
+    total: string; // Total WLD earned (in WLD, as string, wei units)
+    orb: string; // From ORB verifications (in WLD, as string, wei units)
+    nfc: string; // From NFC verifications (in WLD, as string, wei units)
+  };
+  rewards: {
+    orb: {
+      [country: string]: { asset: string; amount: number };
+    };
+    nfc: {
+      Global: { asset: string; amount: number };
+    };
+  };
+};
+
+export type AffiliateOverviewResponse = {
+  period: "day" | "week" | "month" | "year"; // e.g., "week"
+  verifications: {
+    total: number;
+    orb: number;
+    nfc: number;
+    periods: Array<{
+      start: string; // ISO date string
+      end: string; // ISO date string
+      count: number;
+      orb: number;
+      nfc: number;
+    }>;
+  };
+  earnings: {
+    total: {
+      value: string;
+      decimals: number;
+      asset: string;
+      symbol: string;
+    };
+    totalInCurrency: number;
+    totalByType: {
+      orb: {
+        inWLD: string;
+        inCurrency: number;
+      };
+      nfc: {
+        inWLD: string;
+        inCurrency: number;
+      };
+    };
+    periods: Array<{
+      start: string;
+      end: string;
+      amount: {
+        value: string;
+        decimals: number;
+        asset: string;
+        symbol: string;
+      };
+      amountInCurrency: number;
+      amountByType: {
+        orb: {
+          inWLD: string;
+          inCurrency: number;
+        };
+        nfc: {
+          inWLD: string;
+          inCurrency: number;
+        };
+      };
+    }>;
+  };
+};
+
+/* Affiliate program types END */
