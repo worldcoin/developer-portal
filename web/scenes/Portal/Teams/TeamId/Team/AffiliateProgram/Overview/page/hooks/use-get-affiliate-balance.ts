@@ -4,8 +4,6 @@ import {
   AffiliateMetadataResponse,
   AffiliateOverviewResponse,
 } from "@/lib/types";
-import { getAffiliateOverview } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Overview/page/server/getAffiliateOverview";
-import { getAffiliateMetadata } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Overview/page/server/getAffiliateMetadata";
 import { getAffiliateBalance } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Overview/page/server/getAffiliateBalance";
 
 export const useGetAffiliateBalance = () => {
