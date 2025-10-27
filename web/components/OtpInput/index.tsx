@@ -41,7 +41,7 @@ type OTPFieldProps = Omit<
   mode?: keyof typeof patternDictionary;
   value?: string;
   onChange?: (newValue: string) => unknown;
-  onComplete?: (...args: any[]) => unknown;
+  onComplete?: (...args: unknown[]) => unknown;
   pasteTransformer?: (pastedText: string) => string;
 };
 
@@ -110,3 +110,5 @@ export const OtpInput = React.forwardRef<
     );
   },
 );
+
+OtpInput.displayName = "OtpInput";
