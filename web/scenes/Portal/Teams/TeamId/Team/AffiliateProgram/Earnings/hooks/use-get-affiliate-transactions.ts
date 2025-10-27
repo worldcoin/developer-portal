@@ -24,7 +24,7 @@ export const useGetAffiliateTransactions = (params?: {
     };
 
     fetchData();
-  }, []);
+  }, [params?.period]);
 
   return { data, loading, error };
 };

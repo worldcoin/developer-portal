@@ -15,7 +15,7 @@ import { TransactionRow } from "./TransactionRow";
 
 export const TransactionsTable = () => {
   const { data, loading } = useGetAffiliateTransactions();
-  const [_, setIsOpened] = useAtom(transactionDetailsDialogAtom);
+  const [, setIsOpened] = useAtom(transactionDetailsDialogAtom);
   const [selectedTransaction, setSelectedTransaction] = useState<
     AffiliateTransactionsResponse[0] | null
   >(null);
@@ -42,7 +42,6 @@ export const TransactionsTable = () => {
     setCurrentPage(1); // Reset to first page when rows per page changes
   };
 
-  console.log("transactionData", data, loading);
   const paginatedTransactions = useMemo(() => {
     if (!transactionData) {
       return [];

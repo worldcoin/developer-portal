@@ -236,7 +236,7 @@ export const RewardsGraph = () => {
   }, [appStatsData]);
 
   const totalIdRewards = useMemo(() => {
-    return appStatsData?.earnings.totalByType.orb.inCurrency ?? 0;
+    return appStatsData?.earnings.totalByType.nfc.inCurrency ?? 0;
   }, [appStatsData]);
 
   const formattedVerificationsChartData = useMemo(() => {
