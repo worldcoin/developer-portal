@@ -2,15 +2,21 @@
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { IdentificationIcon } from "@/components/Icons/IdentificationIcon";
 import { MailWithLines } from "@/components/Icons/MailWithLines";
+import { IconFrame } from "@/components/InitialSteps/IconFrame";
 import { Section } from "@/components/Section";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import { IconFrame } from "@/components/InitialSteps/IconFrame";
-import { TeamAffiliateProfile } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Overview/page/TeamAffiliateProfile";
-import { InviteUserDialog } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Overview/page/InviteUserDialog";
+import { AppStatsGraph } from "./AppStatsGraph";
+import { useGetAffiliateMetadata } from "./hooks/use-get-affiliate-metadata";
+import { InviteUserDialog } from "./InviteUserDialog";
+import { TeamAffiliateProfile } from "./OverviewProfile";
 import clsx from "clsx";
-import { AppStatsGraph } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Overview/page/AppStatsGraph";
-import { useGetAffiliateMetadata } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Overview/page/hooks/use-get-affiliate-metadata";
+import { useState } from "react";
+import { toast } from "react-toastify";
+import {
+  getIdentityVerificationLink,
+  GetIdentityVerificationLinkResponse,
+} from "../server/getIdentityVerificationLink";
 
 type Props = {
   params: {
@@ -23,6 +29,33 @@ export const AffiliateProgramPage = (props: Props) => {
     useGetAffiliateMetadata();
   const isUserPassedKyc =
     !isMetadataLoading && metadata?.identityVerificationStatus === "approved";
+
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleCompleteKyb = async () => {
+    setIsLoading(true);
+
+    try {
+      const result = await getIdentityVerificationLink({
+        type: "kyb",
+        redirectUri: window.location.origin,
+      });
+
+      if (result.success && result.data) {
+        // Navigate to verification link
+        window.location.href = (
+          result.data as GetIdentityVerificationLinkResponse
+        ).link;
+      } else {
+        throw new Error(result.message || "Failed to get verification link");
+      }
+    } catch (error) {
+      console.error("Failed to get verification link:", error);
+      toast.error("Failed to start verification. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <>
@@ -73,12 +106,11 @@ export const AffiliateProgramPage = (props: Props) => {
               </div>
               <DecoratedButton
                 type="button"
-                onClick={() => {
-                  // TODO: call api to start verification
-                }}
+                onClick={handleCompleteKyb}
                 className="h-9"
+                disabled={isLoading}
               >
-                Complete
+                {isLoading ? "Completing..." : "Complete"}
               </DecoratedButton>
             </div>
           </div>

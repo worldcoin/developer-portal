@@ -1,9 +1,6 @@
 "use client";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import { useParams } from "next/navigation";
-import { useEffect } from "react";
 import Skeleton from "react-loading-skeleton";
-import { useFetchTeamLazyQuery } from "./graphql/client/fetch-team.generated";
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { GmailIcon } from "@/components/Icons/GmailIcon";
 import { useAtom } from "jotai/index";
@@ -18,19 +15,7 @@ type Props = {
 
 export const TeamAffiliateProfile = (props: Props) => {
   const affiliateMetadata = props.data;
-  const [fetchTeam, { data }] = useFetchTeamLazyQuery();
-  const { teamId } = useParams() as { teamId: string };
   const [_, setIsOpened] = useAtom(inviteUserDialogAtom);
-
-  useEffect(() => {
-    if (!teamId) {
-      return;
-    }
-
-    fetchTeam({
-      variables: { teamId },
-    });
-  }, [fetchTeam, teamId]);
 
   return (
     <div className="grid items-center justify-items-center gap-y-4 py-10 sm:grid-cols-auto/1fr/auto sm:justify-items-start sm:gap-x-6">
