@@ -424,7 +424,7 @@ export type AffiliateTransactionsResponse = {
     inWLD: string; // WLD in wei
     inCurrency: number;
   };
-  walletAddress?: string; //// Only for affiliateWithdrawal
+  walletAddress?: string; // Only for affiliateWithdrawal
   transactionHash?: string; // Only for affiliateWithdrawal
   network?: "worldchain"; // Only for affiliateWithdrawal
 }[];
