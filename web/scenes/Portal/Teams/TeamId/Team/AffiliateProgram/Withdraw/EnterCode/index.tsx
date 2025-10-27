@@ -15,6 +15,8 @@ export type Props = {
   isLoading: boolean; // Add this prop
 };
 
+const MAX_RETRY_ATTEMPTS = 3;
+
 export const EnterCode = (props: Props) => {
   const { user } = useUser() as Auth0SessionUser;
   const { onRetry, isLoading } = props;
@@ -47,7 +49,7 @@ export const EnterCode = (props: Props) => {
   );
 
   const handleRetry = useCallback(async () => {
-    if (retryCount >= 3) {
+    if (retryCount >= MAX_RETRY_ATTEMPTS) {
       toast.error("Maximum retry attempts reached");
       return;
     }
@@ -96,7 +98,7 @@ export const EnterCode = (props: Props) => {
       </DecoratedButton>
 
       <Typography variant={TYPOGRAPHY.R4} className="mt-6">
-        {retryCount < 3 ? (
+        {retryCount < MAX_RETRY_ATTEMPTS ? (
           <>
             Didn't receive the code?{" "}
             <button
@@ -107,7 +109,8 @@ export const EnterCode = (props: Props) => {
             >
               Resend
             </button>
-            {retryCount > 0 && ` (${retryCount}/3 attempts)`}
+            {retryCount > 0 &&
+              ` (${retryCount}/${MAX_RETRY_ATTEMPTS} attempts)`}
           </>
         ) : (
           "Maximum retry attempts reached. Please contact support if you need assistance."

@@ -7,10 +7,12 @@ import { parseTokenAmount } from "@/lib/utils";
 import { useMemo } from "react";
 import { useFormContext } from "react-hook-form";
 import { WithdrawFormData } from "../common/types";
+import Skeleton from "react-loading-skeleton";
 
 export type Props = {
   balance: AffiliateBalanceResponse;
   onConfirm: () => void;
+  loading: boolean;
 };
 
 export const EnterAmount = (props: Props) => {
@@ -44,6 +46,7 @@ export const EnterAmount = (props: Props) => {
         errors={errors.amount}
         className="mt-10"
         formNoValidate={true}
+        disabled={props.loading}
       />
 
       <div className="mt-4 flex w-full gap-3">
@@ -57,6 +60,7 @@ export const EnterAmount = (props: Props) => {
               shouldDirty: true,
             })
           }
+          disabled={props.loading}
         >
           25 WLD
         </DecoratedButton>
@@ -70,6 +74,7 @@ export const EnterAmount = (props: Props) => {
               shouldDirty: true,
             })
           }
+          disabled={props.loading}
         >
           50 WLD
         </DecoratedButton>
@@ -77,26 +82,34 @@ export const EnterAmount = (props: Props) => {
           type="button"
           variant="secondary"
           className="w-full"
-          onClick={() =>
+          onClick={() => {
+            if (!availableBalance) {
+              return;
+            }
             setValue("amount", availableBalance, {
               shouldValidate: true,
               shouldDirty: true,
-            })
-          }
+            });
+          }}
+          disabled={props.loading}
         >
           Max
         </DecoratedButton>
       </div>
 
-      <DecoratedButton
-        type="button"
-        variant="primary"
-        className="mt-8 w-full"
-        disabled={!isAmountValid}
-        onClick={props.onConfirm}
-      >
-        Confirm
-      </DecoratedButton>
+      {props.loading ? (
+        <Skeleton height={48} width={380} className="mt-8 rounded-xl" />
+      ) : (
+        <DecoratedButton
+          type="button"
+          variant="primary"
+          className="mt-8 w-full"
+          disabled={!isAmountValid}
+          onClick={props.onConfirm}
+        >
+          Confirm
+        </DecoratedButton>
+      )}
     </div>
   );
 };

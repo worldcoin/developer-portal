@@ -329,6 +329,8 @@ export type AffiliateBalanceResponse = {
   totalEarned: string; // Lifetime earned (in WLD, as string, wei units)
   lastAccumulatedAt: string; // ISO date string
   minimumWithdrawal: string; // Minimum withdrawal amount (in WLD, as string, wei units)
+  maximumWithdrawal: string; // Maximum withdrawal amount (in WLD, as string, wei units)
+  withdrawalWallet: string; // Most recent withdrawal wallet address
 };
 
 export type AffiliateMetadataResponse = {

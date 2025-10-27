@@ -2,45 +2,29 @@
 import { CaretIcon } from "@/components/Icons/CaretIcon";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import { InitiateWithdrawResponse } from "@/lib/types";
+import { convertAmountToWei, parseTokenAmount } from "@/lib/utils";
 import { useGetAffiliateBalance } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/common/hooks/use-get-affiliate-balance";
+import { yupResolver } from "@hookform/resolvers/yup";
+import clsx from "clsx";
+import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
+import { FormProvider, useForm } from "react-hook-form";
+import { toast } from "react-toastify";
+import * as yup from "yup";
 import { AffiliateWithdrawStep } from "./common/types";
 import { ConfirmTransaction } from "./ConfirmTransaction";
 import { EnterAmount } from "./EnterAmount";
 import { EnterCode } from "./EnterCode";
-import { EnterWalletAddress } from "./EnterWalletAddress";
-import { WithdrawSuccess } from "./WithdrawSuccess";
-import { WorldChainDialog, worldChainDialogAtom } from "./WorldChainDialog";
-import clsx from "clsx";
-import { useAtom } from "jotai/index";
-import Link from "next/link";
-import { useState } from "react";
-import { InitiateWithdrawResponse } from "@/lib/types";
-import { yupResolver } from "@hookform/resolvers/yup";
-import { FormProvider, useForm } from "react-hook-form";
-import * as yup from "yup";
 import { confirmWithdraw } from "./server/confirmWithdraw";
 import { initiateWithdraw } from "./server/initiateWithdraw";
-import { toast } from "react-toastify";
+import { WithdrawSuccess } from "./WithdrawSuccess";
 
-// Define form schema
-const withdrawSchema = yup.object({
-  walletAddress: yup
-    .string()
-    .required("Wallet address is required")
-    .matches(/^0x[a-fA-F0-9]{40}$/, "Incorrect address"),
-  amount: yup
-    .number()
-    .required("Amount is required")
-    .min(0.01, "Minimum amount is 0.01 WLD")
-    .typeError("Please enter a valid number"),
-  otpCode: yup
-    .string()
-    .required("OTP code is required")
-    .length(6, "OTP code must be 6 digits")
-    .matches(/^\d{6}$/, "OTP code must be 6 digits"),
-});
-
-type WithdrawFormData = yup.InferType<typeof withdrawSchema>;
+type WithdrawFormData = {
+  walletAddress: string;
+  amount: number;
+  otpCode: string;
+};
 
 type PageProps = {
   params: {
@@ -53,38 +37,78 @@ export const WithdrawPage = (props: PageProps) => {
   const teamId = params?.teamId;
   const { data: balanceData, loading: isBalanceLoading } =
     useGetAffiliateBalance();
+
   const [currentStep, setCurrentStep] = useState<AffiliateWithdrawStep>(
-    AffiliateWithdrawStep.ENTER_WALLET_ADDRESS,
+    AffiliateWithdrawStep.ENTER_AMOUNT,
   );
-  const [_, setIsOpened] = useAtom(worldChainDialogAtom);
   const [withdrawalResponse, setWithdrawalResponse] =
     useState<InitiateWithdrawResponse | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Setup form
+  // Create dynamic schema based on balance data
+  const withdrawSchema = useMemo(() => {
+    return yup.object({
+      walletAddress: yup.string().required("Wallet address is required"),
+      amount: yup
+        .number()
+        .required("Amount is required")
+        .when([], {
+          is: () => !!balanceData,
+          then: (schema) => {
+            if (!balanceData) return schema;
+            const minWithdrawWLD = parseTokenAmount(
+              balanceData?.minimumWithdrawal,
+              "WLD",
+            );
+            const maxWithdrawWLD = parseTokenAmount(
+              balanceData?.maximumWithdrawal,
+              "WLD",
+            );
+            if (!minWithdrawWLD || !maxWithdrawWLD) return schema;
+            return schema
+              .min(minWithdrawWLD, `Minimum amount is ${minWithdrawWLD} WLD`)
+              .max(maxWithdrawWLD, `Maximum amount is ${maxWithdrawWLD} WLD`)
+              .typeError("Please enter a valid number");
+          },
+        })
+        .typeError("Please enter a valid number"),
+      otpCode: yup
+        .string()
+        .required("OTP code is required")
+        .length(6, "OTP code must be 6 digits")
+        .matches(/^\d{6}$/, "OTP code must be 6 digits"),
+    });
+  }, [balanceData?.minimumWithdrawal, balanceData?.maximumWithdrawal]);
+
+  // Setup form with dynamic schema
   const methods = useForm<WithdrawFormData>({
     resolver: yupResolver(withdrawSchema),
-    defaultValues: {
-      walletAddress: "",
-      amount: 0,
-      otpCode: "",
-    },
-    mode: "onBlur",
+    mode: "onChange",
   });
 
   const { watch } = methods;
+
+  // When balanceData is fetched, set walletAddress in the form if present
+  useEffect(() => {
+    if (balanceData?.withdrawalWallet) {
+      methods.setValue("walletAddress", balanceData.withdrawalWallet);
+    }
+  }, [balanceData?.withdrawalWallet]);
 
   const onWithdrawInitiate = async () => {
     setIsLoading(true);
 
     try {
       const data = watch();
-      // Convert amount to Wei
-      const amountInWld = (data.amount * Math.pow(10, 18)).toString();
+      const amountInWldWei = convertAmountToWei(data.amount, "WLD");
+      if (!balanceData?.withdrawalWallet || !amountInWldWei) {
+        toast.error("Unable to initiate withdrawal. Please contact support.");
+        return;
+      }
 
       const result = await initiateWithdraw({
-        amountInWld,
-        toWallet: data.walletAddress,
+        amountInWld: amountInWldWei,
+        toWallet: balanceData?.withdrawalWallet,
       });
 
       setWithdrawalResponse(result.data as InitiateWithdrawResponse);
@@ -141,24 +165,12 @@ export const WithdrawPage = (props: PageProps) => {
               currentStep === AffiliateWithdrawStep.SUCCESS,
           })}
         >
-          <WorldChainDialog
-            onConfirm={() => {
-              setCurrentStep(AffiliateWithdrawStep.ENTER_AMOUNT);
-              setIsOpened(false);
-            }}
-            onClose={() => setIsOpened(false)}
-          />
-          {currentStep === AffiliateWithdrawStep.ENTER_WALLET_ADDRESS && (
-            <EnterWalletAddress
-              onConfirm={() => setIsOpened(true)}
-              loading={isBalanceLoading}
-            />
-          )}
           {currentStep === AffiliateWithdrawStep.ENTER_AMOUNT &&
             balanceData && (
               <EnterAmount
                 balance={balanceData}
                 onConfirm={() => setCurrentStep(AffiliateWithdrawStep.CONFIRM)}
+                loading={isLoading}
               />
             )}
           {currentStep === AffiliateWithdrawStep.CONFIRM && (
