@@ -5,9 +5,7 @@ import { getAffiliateTransactions } from "@/scenes/Portal/Teams/TeamId/Team/Affi
 export const useGetAffiliateTransactions = (params?: {
   period?: "day" | "week" | "month" | "year";
 }) => {
-  const [data, setMetrics] = useState<AffiliateTransactionsResponse | null>(
-    null,
-  );
+  const [data, setData] = useState<AffiliateTransactionsResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<unknown>(null);
 
@@ -18,7 +16,7 @@ export const useGetAffiliateTransactions = (params?: {
         console.error("Failed to fetch data: ", result.message);
         setError(result.error);
       } else {
-        setMetrics(result.data as AffiliateTransactionsResponse);
+        setData(result.data as AffiliateTransactionsResponse);
       }
       setLoading(false);
     };
