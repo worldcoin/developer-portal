@@ -51,7 +51,8 @@ type PageProps = {
 export const WithdrawPage = (props: PageProps) => {
   const { params } = props;
   const teamId = params?.teamId;
-  const { data: balanceData } = useGetAffiliateBalance();
+  const { data: balanceData, loading: isBalanceLoading } =
+    useGetAffiliateBalance();
   const [currentStep, setCurrentStep] = useState<AffiliateWithdrawStep>(
     AffiliateWithdrawStep.ENTER_WALLET_ADDRESS,
   );
@@ -148,7 +149,10 @@ export const WithdrawPage = (props: PageProps) => {
             onClose={() => setIsOpened(false)}
           />
           {currentStep === AffiliateWithdrawStep.ENTER_WALLET_ADDRESS && (
-            <EnterWalletAddress onConfirm={() => setIsOpened(true)} />
+            <EnterWalletAddress
+              onConfirm={() => setIsOpened(true)}
+              loading={isBalanceLoading}
+            />
           )}
           {currentStep === AffiliateWithdrawStep.ENTER_AMOUNT &&
             balanceData && (

@@ -4,9 +4,11 @@ import { Input } from "@/components/Input";
 import { Typography, TYPOGRAPHY } from "@/components/Typography";
 import { useFormContext } from "react-hook-form";
 import { WithdrawFormData } from "../common/types";
+import Skeleton from "react-loading-skeleton";
 
 export type Props = {
   onConfirm: () => void;
+  loading: boolean;
 };
 
 export const EnterWalletAddress = (props: Props) => {
@@ -34,15 +36,19 @@ export const EnterWalletAddress = (props: Props) => {
         placeholder="0x..."
       />
 
-      <DecoratedButton
-        type="button"
-        variant="primary"
-        className="mt-8 w-full"
-        disabled={!isWalletAddressValid}
-        onClick={props.onConfirm}
-      >
-        Confirm
-      </DecoratedButton>
+      {props.loading ? (
+        <Skeleton height={48} width={380} className="mt-8 rounded-xl" />
+      ) : (
+        <DecoratedButton
+          type="button"
+          variant="primary"
+          className="mt-8 w-full"
+          disabled={!isWalletAddressValid}
+          onClick={props.onConfirm}
+        >
+          Confirm
+        </DecoratedButton>
+      )}
     </div>
   );
 };
