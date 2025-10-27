@@ -450,9 +450,22 @@ export const formatTokenAmount = (
 /**
  * Convert raw token amount to number
  */
-export const parseTokenAmount = (amount: string, token: TokenType): number => {
+export const parseTokenAmount = (
+  amount: string | null | undefined,
+  token: TokenType,
+): number | null => {
+  if (!amount) return null;
   const tokenDecimals = TOKEN_DECIMALS[token];
-  return parseFloat(amount) / Math.pow(10, tokenDecimals);
+  return parseFloat(amount) / Math.pow(10, tokenDecimals) || null;
+};
+
+export const convertAmountToWei = (
+  amount: number | null | undefined,
+  token: TokenType,
+): string | null => {
+  if (!amount) return null;
+  const tokenDecimals = TOKEN_DECIMALS[token];
+  return (amount * Math.pow(10, tokenDecimals)).toString();
 };
 
 export const formatWalletAddress = (address: string) => {

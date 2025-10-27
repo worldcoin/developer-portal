@@ -2,11 +2,18 @@
 
 import { errorFormAction } from "@/api/helpers/errors";
 import { extractIdsFromPath, getPathFromHeaders } from "@/lib/server-utils";
-import { AffiliateBalanceResponse, FormActionResult } from "@/lib/types";
+import {
+  FormActionResult,
+  InitiateWithdrawRequest,
+  InitiateWithdrawResponse,
+} from "@/lib/types";
 import { createSignedFetcher } from "aws-sigv4-fetch";
 import { headers } from "next/headers";
 
-export const getAffiliateBalance = async (): Promise<FormActionResult> => {
+export const initiateWithdraw = async ({
+  amountInWld,
+  toWallet,
+}: InitiateWithdrawRequest): Promise<FormActionResult> => {
   const headersData = headers();
   const path = getPathFromHeaders() || "";
   const { teams: teamId } = extractIdsFromPath(path, ["teams"]);
@@ -28,23 +35,31 @@ export const getAffiliateBalance = async (): Promise<FormActionResult> => {
       });
     }
 
+    // Validate wallet address format
+    if (!/^0x[a-fA-F0-9]{40}$/.test(toWallet)) {
+      return errorFormAction({
+        message: "Invalid wallet address format",
+        team_id: teamId,
+        logLevel: "error",
+      });
+    }
+
     // If the request host is localhost, return a mock object. Otherwise fetch as normal.
     const isLocalhost = headersData.get?.("host")?.includes("localhost");
 
     if (isLocalhost) {
       // TODO: remove mock response
-      const data: AffiliateBalanceResponse = {
-        availableBalance: "50000000000000000000", // 50 WLD (can withdraw)
-        pendingBalance: "4000000000000000000", // 4 WLD (waiting 24h)
-        totalEarned: "100000000000000000000", // 100 WLD (lifetime)
-        lastAccumulatedAt: "2025-10-06T10:00:00Z",
-        minimumWithdrawal: "10000000000000000000", // 10 WLD minimum
-        maximumWithdrawal: "100000000000000000000", // 100 WLD maximum
-        withdrawalWallet: "0x1234567890123456789012345678901234567890", // Most recent withdrawal wallet address
+      const data: InitiateWithdrawResponse = {
+        withdrawalId: "123e4567-e89b-12d3-a456-426614174000",
+        amountInWld,
+        toWallet,
+        email: "a***e@example.com",
+        codeExpiresAt: new Date(Date.now() + 15 * 60 * 1000).toISOString(), // 15 minutes from now
+        status: "pending_confirmation",
       };
       return {
         success: true,
-        message: "Mock Affiliate overview (localhost) returned",
+        message: "Mock withdrawal initiation (localhost) returned",
         data,
       };
     }
@@ -57,21 +72,25 @@ export const getAffiliateBalance = async (): Promise<FormActionResult> => {
       });
     }
 
-    let url = `${process.env.NEXT_SERVER_APP_BACKEND_BASE_URL}/internal/v1/affiliate/balance`;
+    const url = `${process.env.NEXT_SERVER_APP_BACKEND_BASE_URL}/internal/v1/affiliate/withdraw/initiate`;
 
     const response = await signedFetch(url, {
-      method: "GET",
+      method: "POST",
       headers: {
         "User-Agent": "DevPortal/1.0",
         "Content-Type": "application/json",
         "X-Dev-Portal-User-Id": `team_${teamId}`,
       },
+      body: JSON.stringify({
+        amountInWld,
+        toWallet,
+      }),
     });
 
-    const data = (await response.json()) as AffiliateBalanceResponse;
+    const data = (await response.json()) as InitiateWithdrawResponse;
     if (!response.ok) {
       return errorFormAction({
-        message: "Failed to fetch affiliate balance",
+        message: "Failed to initiate withdrawal",
         additionalInfo: { response, data },
         team_id: teamId,
         logLevel: "error",
@@ -79,12 +98,12 @@ export const getAffiliateBalance = async (): Promise<FormActionResult> => {
     }
     return {
       success: true,
-      message: "Affiliate balance fetched successfully",
+      message: "Withdrawal initiated successfully",
       data,
     };
   } catch (error) {
     return errorFormAction({
-      message: "Failed to fetch affiliate balance",
+      message: "Failed to initiate withdrawal",
       error: error as Error,
       team_id: teamId,
       logLevel: "error",

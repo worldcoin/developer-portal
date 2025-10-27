@@ -123,7 +123,6 @@ export const TransactionDetailsDialog = (props: Props) => {
                 variant={TYPOGRAPHY.S3}
                 className="flex items-center gap-1"
               >
-                {/* TODO: use wallet address */}
                 {formatAddress(props.data.walletAddress || "")}
                 <button
                   type="button"

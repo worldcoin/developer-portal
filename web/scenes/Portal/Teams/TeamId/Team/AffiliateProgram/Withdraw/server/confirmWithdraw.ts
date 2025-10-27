@@ -1,12 +1,18 @@
 "use server";
-
 import { errorFormAction } from "@/api/helpers/errors";
 import { extractIdsFromPath, getPathFromHeaders } from "@/lib/server-utils";
-import { AffiliateBalanceResponse, FormActionResult } from "@/lib/types";
+import {
+  ConfirmWithdrawRequest,
+  ConfirmWithdrawResponse,
+  FormActionResult,
+} from "@/lib/types";
 import { createSignedFetcher } from "aws-sigv4-fetch";
 import { headers } from "next/headers";
 
-export const getAffiliateBalance = async (): Promise<FormActionResult> => {
+export const confirmWithdraw = async ({
+  withdrawalRequestId,
+  emailConfirmationCode,
+}: ConfirmWithdrawRequest): Promise<FormActionResult> => {
   const headersData = headers();
   const path = getPathFromHeaders() || "";
   const { teams: teamId } = extractIdsFromPath(path, ["teams"]);
@@ -28,23 +34,33 @@ export const getAffiliateBalance = async (): Promise<FormActionResult> => {
       });
     }
 
+    // Validate OTP code format
+    if (!/^\d{6}$/.test(emailConfirmationCode)) {
+      return errorFormAction({
+        message: "Invalid OTP code format",
+        team_id: teamId,
+        logLevel: "error",
+      });
+    }
+
     // If the request host is localhost, return a mock object. Otherwise fetch as normal.
     const isLocalhost = headersData.get?.("host")?.includes("localhost");
 
     if (isLocalhost) {
       // TODO: remove mock response
-      const data: AffiliateBalanceResponse = {
-        availableBalance: "50000000000000000000", // 50 WLD (can withdraw)
-        pendingBalance: "4000000000000000000", // 4 WLD (waiting 24h)
-        totalEarned: "100000000000000000000", // 100 WLD (lifetime)
-        lastAccumulatedAt: "2025-10-06T10:00:00Z",
-        minimumWithdrawal: "10000000000000000000", // 10 WLD minimum
-        maximumWithdrawal: "100000000000000000000", // 100 WLD maximum
-        withdrawalWallet: "0x1234567890123456789012345678901234567890", // Most recent withdrawal wallet address
+      const data: ConfirmWithdrawResponse = {
+        withdrawalId: withdrawalRequestId,
+        amountInWld: "50000000000000000000",
+        estimatedCompletionTime: new Date(
+          Date.now() + 24 * 60 * 60 * 1000,
+        ).toISOString(), // 24 hours from now
+        newAvailableBalance: "10000000000000000000",
+        toWallet: "0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6",
+        status: "confirmed",
       };
       return {
         success: true,
-        message: "Mock Affiliate overview (localhost) returned",
+        message: "Mock withdrawal confirmation (localhost) returned",
         data,
       };
     }
@@ -57,21 +73,25 @@ export const getAffiliateBalance = async (): Promise<FormActionResult> => {
       });
     }
 
-    let url = `${process.env.NEXT_SERVER_APP_BACKEND_BASE_URL}/internal/v1/affiliate/balance`;
+    const url = `${process.env.NEXT_SERVER_APP_BACKEND_BASE_URL}/internal/v1/affiliate/withdraw/confirm`;
 
     const response = await signedFetch(url, {
-      method: "GET",
+      method: "POST",
       headers: {
         "User-Agent": "DevPortal/1.0",
         "Content-Type": "application/json",
         "X-Dev-Portal-User-Id": `team_${teamId}`,
       },
+      body: JSON.stringify({
+        withdrawalRequestId,
+        emailConfirmationCode,
+      }),
     });
 
-    const data = (await response.json()) as AffiliateBalanceResponse;
+    const data = (await response.json()) as ConfirmWithdrawResponse;
     if (!response.ok) {
       return errorFormAction({
-        message: "Failed to fetch affiliate balance",
+        message: "Failed to confirm withdrawal",
         additionalInfo: { response, data },
         team_id: teamId,
         logLevel: "error",
@@ -79,12 +99,12 @@ export const getAffiliateBalance = async (): Promise<FormActionResult> => {
     }
     return {
       success: true,
-      message: "Affiliate balance fetched successfully",
+      message: "Withdrawal confirmed successfully",
       data,
     };
   } catch (error) {
     return errorFormAction({
-      message: "Failed to fetch affiliate balance",
+      message: "Failed to confirm withdrawal",
       error: error as Error,
       team_id: teamId,
       logLevel: "error",
