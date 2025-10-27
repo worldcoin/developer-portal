@@ -15,7 +15,7 @@ import { TransactionRow } from "./TransactionRow";
 
 export const TransactionsTable = () => {
   const { data, loading } = useGetAffiliateTransactions();
-  const [_, setIsOpened] = useAtom(transactionDetailsDialogAtom);
+  const [, setIsOpened] = useAtom(transactionDetailsDialogAtom);
   const [selectedTransaction, setSelectedTransaction] = useState<
     AffiliateTransactionsResponse[0] | null
   >(null);
