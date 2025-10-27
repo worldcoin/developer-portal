@@ -42,7 +42,6 @@ export const TransactionsTable = () => {
     setCurrentPage(1); // Reset to first page when rows per page changes
   };
 
-  console.log("transactionData", data, loading);
   const paginatedTransactions = useMemo(() => {
     if (!transactionData) {
       return [];
