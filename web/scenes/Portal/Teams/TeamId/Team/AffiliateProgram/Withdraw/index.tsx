@@ -101,14 +101,14 @@ export const WithdrawPage = (props: PageProps) => {
     try {
       const data = watch();
       const amountInWldWei = convertAmountToWei(data.amount, "WLD");
-      if (!balanceData?.withdrawalWallet || !amountInWldWei) {
+      if (!data.walletAddress || !amountInWldWei) {
         toast.error("Unable to initiate withdrawal. Please contact support.");
         return;
       }
 
       const result = await initiateWithdraw({
         amountInWld: amountInWldWei,
-        toWallet: balanceData?.withdrawalWallet,
+        toWallet: data.walletAddress,
       });
 
       setWithdrawalResponse(result.data as InitiateWithdrawResponse);
