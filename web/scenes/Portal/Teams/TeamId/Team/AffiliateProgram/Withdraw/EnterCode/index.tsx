@@ -25,7 +25,7 @@ export const EnterCode = (props: Props) => {
 
   // Use form context from parent
   const {
-    formState: { errors, isSubmitting },
+    formState: { errors },
     watch,
     setValue,
   } = useFormContext<WithdrawFormData>();
@@ -57,7 +57,7 @@ export const EnterCode = (props: Props) => {
       // Call the parent's onSubmit function
       await onRetry();
       setRetryCount((prev) => prev + 1);
-      toast.success("New confirmation code sent");
+      toast.success("New OTP code is sent");
     } catch (error) {
       console.error("Retry failed:", error);
       toast.error("Failed to resend code. Please try again.");
@@ -65,23 +65,6 @@ export const EnterCode = (props: Props) => {
       setIsRetrying(false);
     }
   }, [onRetry, retryCount]);
-
-  const submit = useCallback(async () => {
-    if (!user?.hasura) return;
-
-    // Only proceed if OTP is valid
-    if (!isOtpValid) {
-      toast.error("Please enter a valid 6-digit code");
-      return;
-    }
-
-    try {
-      props.onConfirm();
-    } catch (e) {
-      console.error("Enter Code: ", e);
-      toast.error("Error entering code");
-    }
-  }, [user?.hasura, props, isOtpValid]);
 
   return (
     <div className="grid w-full max-w-[380px] place-items-center justify-self-center py-8">
@@ -106,8 +89,8 @@ export const EnterCode = (props: Props) => {
         type="button"
         variant="primary"
         className="w-full"
-        disabled={!isOtpValid || isSubmitting || isLoading} // Add isLoading
-        onClick={submit}
+        disabled={!isOtpValid || isLoading}
+        onClick={props.onConfirm}
       >
         Confirm
       </DecoratedButton>
@@ -120,7 +103,7 @@ export const EnterCode = (props: Props) => {
               type="button"
               className="cursor-pointer underline"
               onClick={handleRetry}
-              disabled={isRetrying || isLoading} // Add isLoading
+              disabled={isRetrying || isLoading}
             >
               Resend
             </button>

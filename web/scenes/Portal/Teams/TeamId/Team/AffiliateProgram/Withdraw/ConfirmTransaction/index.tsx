@@ -19,7 +19,7 @@ export const ConfirmTransaction = (props: Props) => {
   const { onConfirm, isLoading } = props;
   const {
     watch,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useFormContext<WithdrawFormData>();
   const walletAddress = watch("walletAddress");
   const amount = watch("amount");
@@ -35,7 +35,6 @@ export const ConfirmTransaction = (props: Props) => {
       <div className="grid w-full gap-1.5">
         <div className="flex items-center gap-3">
           <div className="flex size-12 items-center justify-center rounded-full bg-[#00C230]">
-            {/*TODO: use primary-green-500*/}
             <WalletIcon className="size-[26px] text-white" />
           </div>
           <div>
@@ -134,7 +133,7 @@ export const ConfirmTransaction = (props: Props) => {
           type="button"
           variant="primary"
           className="w-full"
-          disabled={!isFormValid || isSubmitting || isLoading}
+          disabled={!isFormValid || isLoading}
           onClick={onConfirm}
         >
           Confirm

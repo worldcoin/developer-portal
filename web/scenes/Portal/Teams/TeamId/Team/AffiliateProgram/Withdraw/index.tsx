@@ -20,7 +20,7 @@ import { FormProvider, useForm } from "react-hook-form";
 import * as yup from "yup";
 import { confirmWithdraw } from "./server/confirmWithdraw";
 import { initiateWithdraw } from "./server/initiateWithdraw";
-import {toast} from "react-toastify";
+import { toast } from "react-toastify";
 
 // Define form schema
 const withdrawSchema = yup.object({
@@ -51,15 +51,11 @@ type PageProps = {
 export const WithdrawPage = (props: PageProps) => {
   const { params } = props;
   const teamId = params?.teamId;
-  const { data: balanceData, loading: isBalanceLoading } =
-    useGetAffiliateBalance();
-  console.log("balanceData", balanceData, isBalanceLoading);
+  const { data: balanceData } = useGetAffiliateBalance();
   const [currentStep, setCurrentStep] = useState<AffiliateWithdrawStep>(
     AffiliateWithdrawStep.ENTER_WALLET_ADDRESS,
   );
   const [_, setIsOpened] = useAtom(worldChainDialogAtom);
-
-  // Add state for withdrawal response
   const [withdrawalResponse, setWithdrawalResponse] =
     useState<InitiateWithdrawResponse | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -75,13 +71,13 @@ export const WithdrawPage = (props: PageProps) => {
     mode: "onBlur",
   });
 
-  const { handleSubmit } = methods;
+  const { watch } = methods;
 
-  // Handle withdrawal initiation
-  const onSubmit = async (data: WithdrawFormData) => {
+  const onWithdrawInitiate = async () => {
     setIsLoading(true);
 
     try {
+      const data = watch();
       // Convert amount to Wei
       const amountInWld = (data.amount * Math.pow(10, 18)).toString();
 
@@ -100,15 +96,15 @@ export const WithdrawPage = (props: PageProps) => {
   };
 
   // Add confirmation handler
-  const onConfirmWithdraw = async (data: WithdrawFormData) => {
+  const onWithdrawConfirm = async () => {
     if (!withdrawalResponse) {
       toast.error("No withdrawal request found");
       return;
     }
 
-    setIsLoading(true);
-
     try {
+      setIsLoading(true);
+      const data = watch();
       await confirmWithdraw({
         withdrawalRequestId: withdrawalResponse.withdrawalId,
         emailConfirmationCode: data.otpCode,
@@ -163,14 +159,14 @@ export const WithdrawPage = (props: PageProps) => {
             )}
           {currentStep === AffiliateWithdrawStep.CONFIRM && (
             <ConfirmTransaction
-              onConfirm={handleSubmit(onSubmit)}
+              onConfirm={onWithdrawInitiate}
               isLoading={isLoading}
             />
           )}
           {currentStep === AffiliateWithdrawStep.ENTER_CODE && (
             <EnterCode
-              onConfirm={handleSubmit(onConfirmWithdraw)}
-              onRetry={handleSubmit(onSubmit)}
+              onConfirm={onWithdrawConfirm}
+              onRetry={onWithdrawInitiate}
               isLoading={isLoading}
             />
           )}
