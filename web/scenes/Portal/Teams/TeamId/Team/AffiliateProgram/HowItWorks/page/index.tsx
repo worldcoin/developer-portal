@@ -63,7 +63,7 @@ export const HowItWorksPage = (props: PageProps) => {
   return (
     <>
       <SizingWrapper
-        gridClassName="order-2 grow mt-10"
+        gridClassName="order-2 grow mt-6 md:mt-10"
         className="flex flex-col"
       >
         <div className="grid grid-cols-1 gap-12 md:grid-cols-2 md:gap-0 md:divide-x md:divide-gray-200">

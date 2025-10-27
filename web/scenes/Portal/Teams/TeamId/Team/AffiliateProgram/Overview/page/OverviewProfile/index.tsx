@@ -18,8 +18,8 @@ export const TeamAffiliateProfile = (props: Props) => {
   const [_, setIsOpened] = useAtom(inviteUserDialogAtom);
 
   return (
-    <div className="grid items-center justify-items-center gap-y-4 py-10 sm:grid-cols-auto/1fr/auto sm:justify-items-start sm:gap-x-6">
-      <EnvelopeIcon className="size-15" />
+    <div className="grid items-center gap-y-4 py-10 sm:grid-cols-auto/1fr/auto sm:gap-x-6">
+      <EnvelopeIcon className="hidden size-15 md:block" />
 
       <div className="grid grid-cols-1 gap-y-1">
         <Typography

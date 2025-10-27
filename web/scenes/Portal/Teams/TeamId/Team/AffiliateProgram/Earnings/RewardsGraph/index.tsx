@@ -176,6 +176,7 @@ const GraphCard: React.FC<GraphCardProps> = ({
             <div className={clsx("flex items-center divide-x divide-gray-200")}>
               {stats.map((statProps, index) => (
                 <div
+                  key={index}
                   className={clsx(
                     index === 0
                       ? "pr-6"
@@ -185,7 +186,6 @@ const GraphCard: React.FC<GraphCardProps> = ({
                   )}
                 >
                   <Stat
-                    key={index}
                     loading={isLoading}
                     title={statProps.title}
                     value={statProps.value}

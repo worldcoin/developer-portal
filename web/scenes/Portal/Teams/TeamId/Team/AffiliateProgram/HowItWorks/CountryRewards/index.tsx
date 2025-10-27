@@ -17,7 +17,6 @@ type PageProps = {
 
 export const RewardsPage = (props: PageProps) => {
   const { params } = props;
-  const teamId = params?.teamId;
   const [selectedType, setSelectedType] = useState<"orb" | "id">("orb");
   const { data: metadata, loading: isMetadataLoading } =
     useGetAffiliateMetadata();
@@ -37,7 +36,7 @@ export const RewardsPage = (props: PageProps) => {
   return (
     <>
       <SizingWrapper
-        gridClassName="order-2 grow mt-10"
+        gridClassName="order-2 grow mt-6 md:mt-10"
         className="flex flex-col"
       >
         <Link

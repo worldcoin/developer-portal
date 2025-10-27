@@ -6,10 +6,6 @@ import { IconFrame } from "@/components/InitialSteps/IconFrame";
 import { Section } from "@/components/Section";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import { AppStatsGraph } from "./AppStatsGraph";
-import { useGetAffiliateMetadata } from "./hooks/use-get-affiliate-metadata";
-import { InviteUserDialog } from "./InviteUserDialog";
-import { TeamAffiliateProfile } from "./OverviewProfile";
 import clsx from "clsx";
 import { useState } from "react";
 import { toast } from "react-toastify";
@@ -17,6 +13,10 @@ import {
   getIdentityVerificationLink,
   GetIdentityVerificationLinkResponse,
 } from "../server/getIdentityVerificationLink";
+import { AppStatsGraph } from "./AppStatsGraph";
+import { useGetAffiliateMetadata } from "./hooks/use-get-affiliate-metadata";
+import { InviteUserDialog } from "./InviteUserDialog";
+import { TeamAffiliateProfile } from "./OverviewProfile";
 
 type Props = {
   params: {
@@ -87,7 +87,7 @@ export const AffiliateProgramPage = (props: Props) => {
               </Typography>
             </div>
 
-            <div className="mt-10 flex items-center gap-3 rounded-2xl border border-grey-200 p-6">
+            <div className="mt-6 flex items-center gap-3 rounded-2xl border border-grey-200 p-6 md:mt-10">
               <IconFrame className="bg-blue-500 text-grey-0">
                 <IdentificationIcon />
               </IconFrame>

@@ -146,7 +146,7 @@ export const WithdrawPage = (props: PageProps) => {
   return (
     <FormProvider {...methods}>
       <SizingWrapper
-        gridClassName="order-2 grow mt-10"
+        gridClassName="order-2 grow mt-6 md:mt-10"
         className="gap flex flex-col"
       >
         <Link

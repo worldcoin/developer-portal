@@ -20,7 +20,7 @@ export const EarningsPage = () => {
         <Section>
           <EarningsHeader loading={isMetadataLoading} data={data} />
 
-          <div className="mt-10 grid grid-cols-1 items-start gap-10 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] lg:gap-30">
+          <div className="mt-6 grid grid-cols-1 items-start gap-10 md:mt-10 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] lg:gap-30">
             <div className="flex flex-col gap-8">
               <Typography variant={TYPOGRAPHY.H7}>Earnings</Typography>
               <RewardsGraph />
