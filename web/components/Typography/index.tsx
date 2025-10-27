@@ -3,7 +3,7 @@ import { ComponentPropsWithoutRef, ElementType, ReactNode } from "react";
 import { twMerge } from "tailwind-merge";
 
 // NOTE: these namings come from Figma
-// TODO: review typography styles, they doesn't match figma, especially font-family and some of them are missing, i.e. s3, b3
+// TODO: review typography styles, they don't match figma, especially font-family and some of them are missing, i.e. s3, b3
 export enum TYPOGRAPHY {
   H3 = "h3",
   H4 = "h4",
