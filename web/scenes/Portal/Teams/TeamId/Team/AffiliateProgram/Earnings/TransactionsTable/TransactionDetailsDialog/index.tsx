@@ -124,13 +124,13 @@ export const TransactionDetailsDialog = (props: Props) => {
                 className="flex items-center gap-1"
               >
                 {/* TODO: use wallet address */}
-                {formatAddress(props.data.transactionHash || "")}
+                {formatAddress(props.data.walletAddress || "")}
                 <button
                   type="button"
                   className="outline-0"
                   onClick={() => {
-                    if (!props.data.transactionHash) return;
-                    navigator.clipboard.writeText(props.data.transactionHash);
+                    if (!props.data.walletAddress) return;
+                    navigator.clipboard.writeText(props.data.walletAddress);
                     toast.success(`wallet address copied to clipboard`);
                   }}
                 >
