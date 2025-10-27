@@ -1,10 +1,6 @@
 import { useEffect, useState } from "react";
-import {
-  AffiliateBalanceResponse,
-  AffiliateMetadataResponse,
-  AffiliateOverviewResponse,
-} from "@/lib/types";
-import { getAffiliateBalance } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Overview/page/server/getAffiliateBalance";
+import { AffiliateBalanceResponse } from "@/lib/types";
+import { getAffiliateBalance } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/common/server/getAffiliateBalance";
 
 export const useGetAffiliateBalance = () => {
   const [data, setMetrics] = useState<AffiliateBalanceResponse | null>(null);

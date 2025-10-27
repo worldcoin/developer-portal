@@ -394,10 +394,8 @@ export type AffiliateOverviewResponse = {
       start: string;
       end: string;
       amount: {
-        value: string;
-        decimals: number;
-        asset: string;
-        symbol: string;
+        inWLD: string;
+        inCurrency: number;
       };
       amountInCurrency: number;
       amountByType: {
@@ -413,5 +411,22 @@ export type AffiliateOverviewResponse = {
     }>;
   };
 };
+
+export type AffiliateTransactionsResponse = {
+  id: string;
+  date: string; // ISO date string
+  type:
+    | "affiliateAccumulationNfc"
+    | "affiliateAccumulationOrb"
+    | "affiliateWithdrawal";
+  status: "pending" | "mined" | "failed";
+  amount: {
+    inWLD: string; // WLD in wei
+    inCurrency: number;
+  };
+  walletAddress?: string; // Only for affiliateWithdrawal
+  transactionHash?: string; // Only for affiliateWithdrawal
+  network?: "worldchain"; // Only for affiliateWithdrawal
+}[];
 
 /* Affiliate program types END */

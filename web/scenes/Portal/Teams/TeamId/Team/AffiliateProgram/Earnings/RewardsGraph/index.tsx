@@ -2,18 +2,19 @@
 import { Chart, ChartProps } from "@/components/Chart";
 import { InformationCircleIcon } from "@/components/Icons/InformationCircleIcon";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import { useGetAffiliateOverview } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/common/hooks/use-get-affiliate-overview";
 import { ChartData, ChartOptions } from "chart.js";
 import clsx from "clsx";
 import dayjs from "dayjs";
 import tz from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
-import React, { useMemo } from "react";
+import React, { ReactNode, useMemo } from "react";
 import Skeleton from "react-loading-skeleton";
 import { Stat } from "./stat";
 import { TimespanSelector } from "./TimespanSelector";
 import { atom, useAtom } from "jotai/index";
 import { AffiliateOverviewResponse } from "@/lib/types";
-import { useGetAffiliateOverview } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/common/hooks/use-get-affiliate-overview";
+import { WorldIcon } from "@/components/Icons/WorldIcon";
 
 dayjs.extend(utc);
 dayjs.extend(tz);
@@ -28,7 +29,7 @@ const timespans: {
   { label: "Monthly", value: "month" },
   { label: "Yearly", value: "year" },
 ];
-const timespanAtom = atom(timespans[timespans.length - 1]);
+const timespanAtom = atom(timespans[timespans.length - 2]);
 
 const defaultDatasetConfig: Partial<ChartData<"line">["datasets"][number]> = {
   pointRadius: 0,
@@ -44,16 +45,16 @@ const orbVerificationsDatasetConfig: Partial<
   ChartData<"line">["datasets"][number]
 > = {
   ...defaultDatasetConfig,
-  borderColor: "#4940E0",
-  backgroundColor: "#4940E0",
+  borderColor: "#00B800",
+  backgroundColor: "#00B800",
 };
 
 const idVerificationsDatasetConfig: Partial<
   ChartData<"line">["datasets"][number]
 > = {
   ...defaultDatasetConfig,
-  borderColor: "#00C3B6",
-  backgroundColor: "#00C3B6",
+  borderColor: "#008000",
+  backgroundColor: "#008000",
 };
 
 const commonChartConfig: ChartOptions<"line"> = {
@@ -77,6 +78,7 @@ const commonChartConfig: ChartOptions<"line"> = {
 // Define StatProps inline based on usage
 interface StatProps {
   title: string;
+  icon?: ReactNode;
   value: string | number | null | undefined;
   valuePrefix?: string;
   valueSuffix?: string;
@@ -187,6 +189,7 @@ const GraphCard: React.FC<GraphCardProps> = ({
                     loading={isLoading}
                     title={statProps.title}
                     value={statProps.value}
+                    icon={statProps.icon}
                     valuePrefix={statProps.valuePrefix}
                     valueSuffix={statProps.valueSuffix}
                     mainColorClassName={statProps.mainColorClassName}
@@ -202,7 +205,7 @@ const GraphCard: React.FC<GraphCardProps> = ({
             )}
           </div>
 
-          {isLoading && !chartData && <Skeleton height={400} />}
+          {isLoading && !chartData && <Skeleton height={210} />}
 
           {!isLoading && chartData && (
             <>
@@ -223,24 +226,17 @@ const GraphCard: React.FC<GraphCardProps> = ({
   );
 };
 
-// ==================================================================================================
-// ================================ Anchor: Graphs Section Component ================================
-// ==================================================================================================
-
-export const GraphsSection = () => {
+export const RewardsGraph = () => {
   const [timespan] = useAtom(timespanAtom);
   const { data: appStatsData, loading: appStatsLoading } =
     useGetAffiliateOverview({ period: timespan.value });
 
-  // ==================================================================================================
-  // ========================== Anchor: Helper Functions to get overall data ==========================
-  // ==================================================================================================
-  const totalOrbVerifications = useMemo(() => {
-    return appStatsData?.verifications.orb ?? 0;
+  const totalOrbRewards = useMemo(() => {
+    return appStatsData?.earnings.totalByType.orb.inCurrency ?? 0;
   }, [appStatsData]);
 
-  const totalIdVerifications = useMemo(() => {
-    return appStatsData?.verifications.nfc ?? 0;
+  const totalIdRewards = useMemo(() => {
+    return appStatsData?.earnings.totalByType.nfc.inCurrency ?? 0;
   }, [appStatsData]);
 
   const formattedVerificationsChartData = useMemo(() => {
@@ -263,10 +259,10 @@ export const GraphsSection = () => {
       x: [],
     };
 
-    appStatsData.verifications.periods.forEach((stat) => {
+    appStatsData.earnings.periods.forEach((stat) => {
       formattedData.x.push(dayjs(stat.start).format(labelDateFormat));
-      formattedData.y[0].data.push(stat.orb);
-      formattedData.y[1].data.push(stat.nfc);
+      formattedData.y[0].data.push(stat.amountByType.orb.inCurrency);
+      formattedData.y[1].data.push(stat.amountByType.nfc.inCurrency);
     });
 
     return formattedData;
@@ -274,25 +270,26 @@ export const GraphsSection = () => {
 
   return (
     <div className="grid flex-1">
-      {/* Verifications Graph */}
       <GraphCard
         isLoading={appStatsLoading}
         chartData={formattedVerificationsChartData}
         stats={[
           {
-            title: "Orb verifications",
-            mainColorClassName: "bg-blue-500",
-            value: totalOrbVerifications,
+            title: "Orb rewards",
+            mainColorClassName: "bg-system-success-500",
+            value: totalOrbRewards,
+            icon: <WorldIcon className="size-5" />,
           },
           {
-            title: "ID verifications",
-            mainColorClassName: "bg-additional-sea-500",
-            value: totalIdVerifications,
+            title: "ID rewards",
+            mainColorClassName: "bg-system-success-600",
+            value: totalIdRewards,
+            icon: <WorldIcon className="size-5" />,
           },
         ]}
         chartOptions={commonChartConfig}
         emptyStateTitle={"No data available yet"}
-        emptyStateDescription={"Your verification numbers will show up here."}
+        emptyStateDescription={"Your rewards numbers will show up here."}
       />
     </div>
   );
