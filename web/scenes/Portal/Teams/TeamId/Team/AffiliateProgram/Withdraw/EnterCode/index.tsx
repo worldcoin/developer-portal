@@ -97,7 +97,7 @@ export const EnterCode = (props: Props) => {
         Confirm
       </DecoratedButton>
 
-      <Typography variant={TYPOGRAPHY.R4} className="mt-6">
+      <Typography variant={TYPOGRAPHY.R4} className="mt-6 text-center">
         {retryCount < MAX_RETRY_ATTEMPTS ? (
           <>
             Didn't receive the code?{" "}
