@@ -8,11 +8,11 @@ import { WLDIcon } from "@/components/Icons/WLDIcon";
 import { WorldIcon } from "@/components/Icons/WorldIcon";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { AffiliateTransactionsResponse } from "@/lib/types";
-import { createTransactionHashUrl, formatTokenAmount } from "@/lib/utils";
+import {createTransactionHashUrl, formatTokenAmount, formatWalletAddress} from "@/lib/utils";
 import { atom, useAtom } from "jotai";
 import Link from "next/link";
-import { TransactionBadge } from "../TransactionBadge";
 import { toast } from "react-toastify";
+import { TransactionBadge } from "../TransactionBadge";
 
 const statusMap: Record<AffiliateTransactionsResponse[0]["status"], string> = {
   pending: "Processing",
@@ -34,10 +34,6 @@ type Props = {
 };
 export const TransactionDetailsDialog = (props: Props) => {
   const [isOpened, setIsOpened] = useAtom(transactionDetailsDialogAtom);
-
-  const formatAddress = (address: string) => {
-    return `${address.slice(0, 6)}...${address.slice(-4)}`;
-  };
 
   return (
     <Dialog
@@ -115,28 +111,30 @@ export const TransactionDetailsDialog = (props: Props) => {
               <Typography variant={TYPOGRAPHY.S3}>Free</Typography>
             </div>
 
-            <div className="flex justify-between gap-2">
-              <Typography variant={TYPOGRAPHY.B3} className="text-gray-500">
-                Wallet address
-              </Typography>
-              <Typography
-                variant={TYPOGRAPHY.S3}
-                className="flex items-center gap-1"
-              >
-                {formatAddress(props.data.walletAddress || "")}
-                <button
-                  type="button"
-                  className="outline-0"
-                  onClick={() => {
-                    if (!props.data.walletAddress) return;
-                    navigator.clipboard.writeText(props.data.walletAddress);
-                    toast.success(`wallet address copied to clipboard`);
-                  }}
-                >
-                  <CopySquareIcon className="size-5 text-gray-500" />
-                </button>
-              </Typography>
-            </div>
+            {props.data.walletAddress && (
+                <div className="flex justify-between gap-2">
+                  <Typography variant={TYPOGRAPHY.B3} className="text-gray-500">
+                    Wallet address
+                  </Typography>
+                  <Typography
+                      variant={TYPOGRAPHY.S3}
+                      className="flex items-center gap-1"
+                  >
+                    {formatWalletAddress(props.data.walletAddress)}
+                    <button
+                        type="button"
+                        className="outline-0"
+                        onClick={() => {
+                          if (!props.data.walletAddress) return;
+                          navigator.clipboard.writeText(props.data.walletAddress);
+                          toast.success(`wallet address copied to clipboard`);
+                        }}
+                    >
+                      <CopySquareIcon className="size-5 text-gray-500"/>
+                    </button>
+                  </Typography>
+                </div>
+            )}
 
             <div className="flex justify-between gap-2">
               <Typography variant={TYPOGRAPHY.B3} className="text-gray-500">
@@ -144,23 +142,23 @@ export const TransactionDetailsDialog = (props: Props) => {
               </Typography>
 
               <div className="flex items-center gap-1">
-                <WLDIcon className="size-5" />
+                <WLDIcon className="size-5"/>
                 <Typography variant={TYPOGRAPHY.S3}>World Chain</Typography>
               </div>
             </div>
 
             {props.data?.transactionHash && props.data.network && (
-              <div className="flex justify-between gap-2">
-                <Typography variant={TYPOGRAPHY.B3} className="text-gray-500">
-                  Hash
-                </Typography>
-                <Link
-                  href={createTransactionHashUrl(
-                    props.data?.transactionHash,
-                    props.data?.network,
-                  )}
-                  target="_blank"
-                  className="flex items-center gap-x-2 text-gray-400 outline-0"
+                <div className="flex justify-between gap-2">
+                  <Typography variant={TYPOGRAPHY.B3} className="text-gray-500">
+                    Hash
+                  </Typography>
+                  <Link
+                      href={createTransactionHashUrl(
+                          props.data?.transactionHash,
+                          props.data?.network,
+                      )}
+                      target="_blank"
+                      className="flex items-center gap-x-2 text-gray-400 outline-0"
                 >
                   <Typography variant={TYPOGRAPHY.S3} className="truncate">
                     Details on blockchain
