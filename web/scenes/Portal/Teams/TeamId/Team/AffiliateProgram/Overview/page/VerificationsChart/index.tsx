@@ -2,23 +2,22 @@
 import { Chart, ChartProps } from "@/components/Chart";
 import { InformationCircleIcon } from "@/components/Icons/InformationCircleIcon";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import { AffiliateOverviewResponse } from "@/lib/types";
+import { useGetAffiliateOverview } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/common/hooks/use-get-affiliate-overview";
 import { ChartData, ChartOptions } from "chart.js";
 import clsx from "clsx";
 import dayjs from "dayjs";
 import tz from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
+import { atom, useAtom } from "jotai/index";
 import React, { useMemo } from "react";
 import Skeleton from "react-loading-skeleton";
 import { Stat } from "./stat";
 import { TimespanSelector } from "./TimespanSelector";
-import { atom, useAtom } from "jotai/index";
-import { AffiliateOverviewResponse } from "@/lib/types";
-import { useGetAffiliateOverview } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/common/hooks/use-get-affiliate-overview";
 
 dayjs.extend(utc);
 dayjs.extend(tz);
 
-const labelDateFormat = "DD.MM";
 const timespans: {
   label: string;
   value: AffiliateOverviewResponse["period"];
@@ -264,7 +263,9 @@ export const VerificationsChart = () => {
     };
 
     appStatsData.verifications.periods.forEach((stat) => {
-      formattedData.x.push(dayjs(stat.start).format(labelDateFormat));
+      formattedData.x.push(
+        dayjs(stat.start).format(timespan.value === "day" ? "HH:mm" : "DD.MM"),
+      );
       formattedData.y[0].data.push(stat.orb);
       formattedData.y[1].data.push(stat.nfc);
     });
