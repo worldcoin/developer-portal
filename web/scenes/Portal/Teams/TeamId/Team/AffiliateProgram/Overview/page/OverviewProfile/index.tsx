@@ -13,7 +13,7 @@ type Props = {
   data: AffiliateMetadataResponse | null;
 };
 
-export const TeamAffiliateProfile = (props: Props) => {
+export const OverviewProfile = (props: Props) => {
   const affiliateMetadata = props.data;
   const [_, setIsOpened] = useAtom(inviteUserDialogAtom);
 
