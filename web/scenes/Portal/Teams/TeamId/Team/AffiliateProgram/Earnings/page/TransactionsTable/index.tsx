@@ -3,11 +3,11 @@
 import { Pagination } from "@/components/Pagination";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { AffiliateTransactionsResponse } from "@/lib/types";
-import { useGetAffiliateTransactions } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Earnings/hooks/use-get-affiliate-transactions";
+import { useGetAffiliateTransactions } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Earnings/page/hooks/use-get-affiliate-transactions";
 import {
   TransactionDetailsDialog,
   transactionDetailsDialogAtom,
-} from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Earnings/TransactionsTable/TransactionDetailsDialog";
+} from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Earnings/page/TransactionsTable/TransactionDetailsDialog";
 import { useAtom } from "jotai/index";
 import { useEffect, useMemo, useState } from "react";
 import Skeleton from "react-loading-skeleton";

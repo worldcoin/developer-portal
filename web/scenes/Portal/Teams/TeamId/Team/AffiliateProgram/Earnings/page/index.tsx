@@ -3,7 +3,7 @@ import { Section } from "@/components/Section";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { EarningsHeader } from "./EarningsHeader";
 import clsx from "clsx";
-import { useGetAffiliateBalance } from "../common/hooks/use-get-affiliate-balance";
+import { useGetAffiliateBalance } from "../../common/hooks/use-get-affiliate-balance";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { TransactionsTable } from "./TransactionsTable";
 import { RewardsChart } from "./RewardsChart";

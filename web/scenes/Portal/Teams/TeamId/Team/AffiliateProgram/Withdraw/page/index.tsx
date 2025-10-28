@@ -16,8 +16,8 @@ import { AffiliateWithdrawStep } from "./common/types";
 import { ConfirmTransaction } from "./ConfirmTransaction";
 import { EnterAmount } from "./EnterAmount";
 import { EnterCode } from "./EnterCode";
-import { confirmWithdraw } from "./server/confirmWithdraw";
-import { initiateWithdraw } from "./server/initiateWithdraw";
+import { confirmWithdraw } from "../server/confirmWithdraw";
+import { initiateWithdraw } from "../server/initiateWithdraw";
 import { WithdrawSuccess } from "./WithdrawSuccess";
 
 type WithdrawFormData = {
