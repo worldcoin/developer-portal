@@ -2,13 +2,15 @@
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { WorldIcon } from "@/components/Icons/WorldIcon";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import { AffiliateBalanceResponse } from "@/lib/types";
-import { formatTokenAmount } from "@/lib/utils";
+import { AffiliateBalanceResponse, Auth0SessionUser } from "@/lib/types";
+import { checkUserPermissions, formatTokenAmount } from "@/lib/utils";
 import tokenWalletImage from "public/images/token-wallet.png";
 import { useMemo } from "react";
 import Skeleton from "react-loading-skeleton";
 import { useParams, useRouter } from "next/navigation";
 import NextImage from "next/image";
+import { useUser } from "@auth0/nextjs-auth0/client";
+import { Role_Enum } from "@/graphql/graphql";
 
 type Props = {
   loading: boolean;
@@ -19,6 +21,14 @@ export const EarningsHeader = (props: Props) => {
   const { data, loading } = props;
   const { teamId } = useParams() as { teamId: string };
   const router = useRouter();
+  const { user: auth0User } = useUser() as Auth0SessionUser;
+
+  const hasWithdrawPermissions = useMemo(() => {
+    return checkUserPermissions(auth0User, teamId ?? "", [
+      Role_Enum.Owner,
+      Role_Enum.Admin,
+    ]);
+  }, [auth0User, teamId]);
 
   const formattedWldAmount = useMemo(() => {
     if (!data?.availableBalance) return null;
@@ -64,22 +74,24 @@ export const EarningsHeader = (props: Props) => {
         </Typography>
       </div>
 
-      <div className="grid w-full grid-cols-1 items-center gap-3 sm:grid-cols-auto/1fr">
-        {props.loading ? (
-          <Skeleton width={122} height={48} className="rounded-xl" />
-        ) : (
-          <DecoratedButton
-            type="button"
-            variant="primary"
-            onClick={() =>
-              router.push(`/teams/${teamId}/affiliate-program/withdraw`)
-            }
-            className="h-12"
-          >
-            Withdraw
-          </DecoratedButton>
-        )}
-      </div>
+      {hasWithdrawPermissions && (
+        <div className="flex items-center gap-3 sm:grid-cols-auto/1fr">
+          {props.loading ? (
+            <Skeleton width={122} height={48} className="rounded-xl" />
+          ) : (
+            <DecoratedButton
+              type="button"
+              variant="primary"
+              onClick={() =>
+                router.push(`/teams/${teamId}/affiliate-program/withdraw`)
+              }
+              className="h-12"
+            >
+              Withdraw
+            </DecoratedButton>
+          )}
+        </div>
+      )}
     </div>
   );
 };
