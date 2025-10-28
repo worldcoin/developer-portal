@@ -13,10 +13,12 @@ import {
   getIdentityVerificationLink,
   GetIdentityVerificationLinkResponse,
 } from "../server/getIdentityVerificationLink";
-import { AppStatsGraph } from "./AppStatsGraph";
 import { useGetAffiliateMetadata } from "./hooks/use-get-affiliate-metadata";
 import { InviteUserDialog } from "./InviteUserDialog";
 import { TeamAffiliateProfile } from "./OverviewProfile";
+import {
+  VerificationsChart
+} from "./VerificationsChart";
 
 type Props = {
   params: {
@@ -115,11 +117,11 @@ export const AffiliateProgramPage = (props: Props) => {
             </div>
           </div>
         ) : (
-          <Section>
-            <TeamAffiliateProfile loading={isMetadataLoading} data={metadata} />
+            <Section>
+              <TeamAffiliateProfile loading={isMetadataLoading} data={metadata}/>
 
-            <AppStatsGraph />
-          </Section>
+              <VerificationsChart/>
+            </Section>
         )}
       </SizingWrapper>
     </>

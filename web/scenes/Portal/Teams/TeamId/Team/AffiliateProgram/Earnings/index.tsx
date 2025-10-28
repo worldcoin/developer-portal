@@ -6,7 +6,7 @@ import clsx from "clsx";
 import { useGetAffiliateBalance } from "../common/hooks/use-get-affiliate-balance";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { TransactionsTable } from "./TransactionsTable";
-import { RewardsGraph } from "./RewardsGraph";
+import { RewardsChart } from "./RewardsChart";
 
 export const EarningsPage = () => {
   const { data, loading: isMetadataLoading } = useGetAffiliateBalance();
@@ -23,7 +23,7 @@ export const EarningsPage = () => {
           <div className="mt-6 grid grid-cols-1 items-start gap-10 md:mt-10 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] lg:gap-30">
             <div className="flex flex-col gap-8">
               <Typography variant={TYPOGRAPHY.H7}>Earnings</Typography>
-              <RewardsGraph />
+              <RewardsChart />
             </div>
             <div className="flex flex-col gap-8">
               <Typography variant={TYPOGRAPHY.H7}>Transactions</Typography>

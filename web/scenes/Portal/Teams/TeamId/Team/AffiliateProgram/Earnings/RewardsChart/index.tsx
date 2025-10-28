@@ -226,7 +226,7 @@ const GraphCard: React.FC<GraphCardProps> = ({
   );
 };
 
-export const RewardsGraph = () => {
+export const RewardsChart = () => {
   const [timespan] = useAtom(timespanAtom);
   const { data: appStatsData, loading: appStatsLoading } =
     useGetAffiliateOverview({ period: timespan.value });

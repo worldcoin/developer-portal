@@ -28,7 +28,7 @@ const timespans: {
   { label: "Monthly", value: "month" },
   { label: "Yearly", value: "year" },
 ];
-const timespanAtom = atom(timespans[timespans.length - 1]);
+const timespanAtom = atom(timespans[timespans.length - 2]);
 
 const defaultDatasetConfig: Partial<ChartData<"line">["datasets"][number]> = {
   pointRadius: 0,
@@ -227,7 +227,7 @@ const GraphCard: React.FC<GraphCardProps> = ({
 // ================================ Anchor: Graphs Section Component ================================
 // ==================================================================================================
 
-export const GraphsSection = () => {
+export const VerificationsChart = () => {
   const [timespan] = useAtom(timespanAtom);
   const { data: appStatsData, loading: appStatsLoading } =
     useGetAffiliateOverview({ period: timespan.value });
