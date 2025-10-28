@@ -1,9 +1,9 @@
 "use client";
-import { IdentificationIcon } from "@/components/Icons/IdentificationIcon";
 import { IconFrame } from "@/components/InitialSteps/IconFrame";
 import { Typography, TYPOGRAPHY } from "@/components/Typography";
 import Image from "next/image";
 import Skeleton from "react-loading-skeleton";
+import { GlobeIcon } from "@/components/Icons/GlobeIcon";
 
 type Props = {
   countries: { countryCode: string; asset: string; amount: number }[];
@@ -20,7 +20,7 @@ export const CountryList = (props: Props) => {
             className="flex items-center justify-between gap-3 py-2.5"
           >
             <div className="flex h-6 items-center gap-3">
-              <Skeleton width={24} height={24} className="rounded-full" />
+              <Skeleton width={32} height={32} className="rounded-full" />
               <Skeleton width={80} />
             </div>
             <Skeleton width={44} />
@@ -37,10 +37,10 @@ export const CountryList = (props: Props) => {
           className="flex items-center justify-between gap-3 py-2.5"
         >
           <div className="flex items-center gap-3">
-            <div className="h-6 w-6 flex-shrink-0 overflow-hidden rounded-full">
+            <div className="size-8 flex-shrink-0 overflow-hidden rounded-full">
               {country.countryCode === "Global" ? (
-                <IconFrame className="bg-blue-500 text-grey-0">
-                  <IdentificationIcon />
+                <IconFrame className="flex h-full w-full items-center justify-center bg-blue-500 text-grey-0">
+                  <GlobeIcon className="size-5" />
                 </IconFrame>
               ) : (
                 <Image
@@ -56,9 +56,7 @@ export const CountryList = (props: Props) => {
               {country.countryCode}
             </Typography>
           </div>
-          <Typography variant={TYPOGRAPHY.M3}>
-            {country.amount} {country.asset}
-          </Typography>
+          <Typography variant={TYPOGRAPHY.M3}>${country.amount}</Typography>
         </div>
       ))}
     </div>

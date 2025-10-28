@@ -6,7 +6,8 @@ import { Typography, TYPOGRAPHY } from "@/components/Typography";
 import { useGetAffiliateMetadata } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Overview/page/hooks/use-get-affiliate-metadata";
 import clsx from "clsx";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { useMemo } from "react";
 import { CountryList } from "./CountryList";
 
 type PageProps = {
@@ -17,13 +18,15 @@ type PageProps = {
 
 export const RewardsPage = (props: PageProps) => {
   const { params } = props;
-  const [selectedType, setSelectedType] = useState<"orb" | "id">("orb");
+  const searchParams = useSearchParams();
+  const type = searchParams.get("type") || "orb";
+
   const { data: metadata, loading: isMetadataLoading } =
     useGetAffiliateMetadata();
 
   const countryRewardsList = useMemo(() => {
     const rewardsObj =
-      selectedType === "orb" ? metadata?.rewards.orb : metadata?.rewards.nfc;
+      type === "orb" ? metadata?.rewards.orb : metadata?.rewards.nfc;
     return rewardsObj
       ? Object.entries(rewardsObj).map(([countryCode, value]) => ({
           countryCode,
@@ -31,7 +34,7 @@ export const RewardsPage = (props: PageProps) => {
           amount: value.amount,
         }))
       : [];
-  }, [metadata?.rewards]);
+  }, [metadata?.rewards, type]);
 
   return (
     <>
@@ -65,14 +68,16 @@ export const RewardsPage = (props: PageProps) => {
                 href={`/teams/${params!.teamId}/affiliate-program/how-it-works/rewards?type=orb`}
                 underlined
                 segment={null}
+                active={type === "orb"}
               >
                 <Typography variant={TYPOGRAPHY.R4}>Orb rewards</Typography>
               </Tab>
 
               <Tab
-                href={`/teams/${params!.teamId}/affiliate-program/how-it-works/rewards?type=id`}
+                href={`/teams/${params!.teamId}/affiliate-program/how-it-works/rewards?type=nfc`}
                 underlined
                 segment={null}
+                active={type === "nfc"}
               >
                 <Typography variant={TYPOGRAPHY.R4}>ID rewards</Typography>
               </Tab>

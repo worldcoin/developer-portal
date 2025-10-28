@@ -95,7 +95,7 @@ export const HowItWorksPage = (props: PageProps) => {
                   Orb verified human
                 </Typography>
                 {isMetadataLoading ? (
-                  <Skeleton width={120} height={19} />
+                  <Skeleton width={120} />
                 ) : (
                   <Typography variant={TYPOGRAPHY.M4} className="font-medium">
                     up to {maxOrbReward?.amount} {maxOrbReward?.asset} in WLD
@@ -108,7 +108,7 @@ export const HowItWorksPage = (props: PageProps) => {
                   ID verified human
                 </Typography>
                 {isMetadataLoading ? (
-                  <Skeleton width={120} height={19} />
+                  <Skeleton width={120} />
                 ) : (
                   <Typography variant={TYPOGRAPHY.M4} className="font-medium">
                     up to {maxNfcReward?.amount} {maxNfcReward?.asset} in WLD
