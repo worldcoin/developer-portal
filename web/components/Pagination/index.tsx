@@ -87,13 +87,13 @@ export const Pagination: React.FC<FooterProps> = ({
         </Button>
       </div>
       {rowsPerPageOptions && (
-          <div className="flex w-full justify-end ">
-            <PaginationSelect
-                rowsPerPageOptions={rowsPerPageOptions}
-                value={rowsPerPage}
-                handleSelect={handleRowsPerPageChange}
-            />
-          </div>
+        <div className="flex w-full justify-end ">
+          <PaginationSelect
+            rowsPerPageOptions={rowsPerPageOptions}
+            value={rowsPerPage}
+            handleSelect={handleRowsPerPageChange}
+          />
+        </div>
       )}
     </div>
   );
@@ -105,7 +105,7 @@ const PaginationSelect = (props: {
   handleSelect: (value: number) => void;
   className?: string;
 }) => {
-  const {value, rowsPerPageOptions, handleSelect, className } = props;
+  const { value, rowsPerPageOptions, handleSelect, className } = props;
   return (
     <Select
       value={value}

@@ -59,23 +59,25 @@ export const RewardsPage = (props: PageProps) => {
             on country
           </Typography>
 
-          <Tabs className="m-auto font-gta">
-            <Tab
-              href={`/teams/${params!.teamId}/affiliate-program/how-it-works/rewards?type=orb`}
-              underlined
-              segment={null}
-            >
-              <Typography variant={TYPOGRAPHY.R4}>Orb rewards</Typography>
-            </Tab>
+          <div className="w-full">
+            <Tabs className="m-auto w-full justify-center border-gray-100 font-gta md:border-b">
+              <Tab
+                href={`/teams/${params!.teamId}/affiliate-program/how-it-works/rewards?type=orb`}
+                underlined
+                segment={null}
+              >
+                <Typography variant={TYPOGRAPHY.R4}>Orb rewards</Typography>
+              </Tab>
 
-            <Tab
-              href={`/teams/${params!.teamId}/affiliate-program/how-it-works/rewards?type=id`}
-              underlined
-              segment={null}
-            >
-              <Typography variant={TYPOGRAPHY.R4}>ID rewards</Typography>
-            </Tab>
-          </Tabs>
+              <Tab
+                href={`/teams/${params!.teamId}/affiliate-program/how-it-works/rewards?type=id`}
+                underlined
+                segment={null}
+              >
+                <Typography variant={TYPOGRAPHY.R4}>ID rewards</Typography>
+              </Tab>
+            </Tabs>
+          </div>
 
           <CountryList
             loading={isMetadataLoading}
