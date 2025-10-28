@@ -22,9 +22,8 @@ export const TransactionsTable = () => {
 
   const transactionData = data || [];
 
-  const rowsPerPageOptions = [10, 25, 50]; // Rows per page options
   const [currentPage, setCurrentPage] = useState(1);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
   const [totalResultsCount, setTotalResultsCount] = useState(
     transactionData.length,
   );
@@ -104,7 +103,6 @@ export const TransactionsTable = () => {
         totalResults={totalResultsCount}
         currentPage={currentPage}
         rowsPerPage={rowsPerPage}
-        rowsPerPageOptions={rowsPerPageOptions}
         handlePageChange={handlePageChange}
         handleRowsPerPageChange={handleRowsPerPageChange}
       />

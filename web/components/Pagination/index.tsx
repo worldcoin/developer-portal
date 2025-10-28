@@ -12,7 +12,7 @@ import { twMerge } from "tailwind-merge";
 type FooterProps = {
   totalResults: number;
   currentPage: number;
-  rowsPerPageOptions: number[];
+  rowsPerPageOptions?: number[];
   rowsPerPage: number;
   handlePageChange: (page: number) => void;
   handleRowsPerPageChange: (rowsPerPage: number) => void;
@@ -86,13 +86,15 @@ export const Pagination: React.FC<FooterProps> = ({
           />
         </Button>
       </div>
-      <div className="flex w-full justify-end ">
-        <PaginationSelect
-          rowsPerPageOptions={rowsPerPageOptions}
-          value={rowsPerPage}
-          handleSelect={handleRowsPerPageChange}
-        />
-      </div>
+      {rowsPerPageOptions && (
+          <div className="flex w-full justify-end ">
+            <PaginationSelect
+                rowsPerPageOptions={rowsPerPageOptions}
+                value={rowsPerPage}
+                handleSelect={handleRowsPerPageChange}
+            />
+          </div>
+      )}
     </div>
   );
 };
@@ -103,7 +105,7 @@ const PaginationSelect = (props: {
   handleSelect: (value: number) => void;
   className?: string;
 }) => {
-  const { value, rowsPerPageOptions, handleSelect, className } = props;
+  const {value, rowsPerPageOptions, handleSelect, className } = props;
   return (
     <Select
       value={value}
