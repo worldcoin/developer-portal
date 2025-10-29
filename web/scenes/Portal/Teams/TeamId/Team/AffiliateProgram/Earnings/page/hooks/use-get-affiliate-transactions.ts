@@ -65,7 +65,7 @@ export const useGetAffiliateTransactions = (
 
   useEffect(() => {
     fetchData();
-  }, [params?.limit, params?.currency]);
+  }, [fetchData]);
 
   // Load more when navigating to a page that needs more data
   useEffect(() => {

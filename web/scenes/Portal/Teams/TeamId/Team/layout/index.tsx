@@ -2,11 +2,11 @@ import { SizingWrapper } from "@/components/SizingWrapper";
 import { Tab, Tabs } from "@/components/Tabs";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Role_Enum } from "@/graphql/graphql";
+import { getPathFromHeaders } from "@/lib/server-utils";
 import { Auth0SessionUser } from "@/lib/types";
 import { checkUserPermissions } from "@/lib/utils";
 import { getSession } from "@auth0/nextjs-auth0";
 import { ReactNode } from "react";
-import { getPathFromHeaders } from "@/lib/server-utils";
 
 type Params = {
   teamId?: string;
@@ -48,10 +48,7 @@ export const TeamIdLayout = async (props: TeamIdLayoutProps) => {
               segment={null}
               underlined
             >
-              <Typography variant={TYPOGRAPHY.R4}>
-                <span className="max-md:hidden">Members</span>
-                <span className="md:hidden">Members</span>
-              </Typography>
+              <Typography variant={TYPOGRAPHY.R4}>Members</Typography>
             </Tab>
 
             <Tab

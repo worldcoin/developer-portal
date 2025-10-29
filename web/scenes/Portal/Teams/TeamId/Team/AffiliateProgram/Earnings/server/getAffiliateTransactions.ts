@@ -210,7 +210,7 @@ export const getAffiliateTransactions = async (
     }
 
     const searchParams = Object.entries(params ?? {})
-      .filter(([_, v]) => Boolean(v))
+      .filter(([_, v]) => v !== undefined && v !== null)
       .reduce((acc, [k, v]) => {
         acc.append(k, String(v));
         return acc;
