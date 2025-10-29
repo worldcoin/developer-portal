@@ -1,5 +1,4 @@
 "use client";
-
 import { Pagination } from "@/components/Pagination";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { AffiliateTransactionsResponse } from "@/lib/types";
@@ -9,49 +8,24 @@ import {
   transactionDetailsDialogAtom,
 } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Earnings/page/TransactionsTable/TransactionDetailsDialog";
 import { useAtom } from "jotai/index";
-import { useEffect, useMemo, useState } from "react";
+import { useState } from "react";
 import Skeleton from "react-loading-skeleton";
 import { TransactionRow } from "./TransactionRow";
 
 export const TransactionsTable = () => {
-  const { data, loading } = useGetAffiliateTransactions();
+  const {
+    transactions,
+    totalCount,
+    currentPage,
+    loading,
+    loadingMore,
+    handlePageChange,
+  } = useGetAffiliateTransactions({ limit: 100 });
+
   const [, setIsOpened] = useAtom(transactionDetailsDialogAtom);
   const [selectedTransaction, setSelectedTransaction] = useState<
-    AffiliateTransactionsResponse[0] | null
+    AffiliateTransactionsResponse["transactions"][0] | null
   >(null);
-
-  const transactionData = data || [];
-
-  const [currentPage, setCurrentPage] = useState(1);
-  const [rowsPerPage, setRowsPerPage] = useState(5);
-  const [totalResultsCount, setTotalResultsCount] = useState(
-    transactionData.length,
-  );
-
-  useEffect(() => {
-    setTotalResultsCount(transactionData.length);
-  }, [transactionData]);
-
-  const handlePageChange = (newPage: number) => {
-    setCurrentPage(newPage);
-  };
-
-  const handleRowsPerPageChange = (newRowsPerPage: number) => {
-    setRowsPerPage(newRowsPerPage);
-    setCurrentPage(1); // Reset to first page when rows per page changes
-  };
-
-  const paginatedTransactions = useMemo(() => {
-    if (!transactionData) {
-      return [];
-    }
-
-    let filteredTransactions = transactionData;
-    const startIndex = (currentPage - 1) * rowsPerPage;
-    const endIndex = startIndex + rowsPerPage;
-
-    return filteredTransactions.slice(startIndex, endIndex);
-  }, [transactionData, currentPage, rowsPerPage]);
 
   if (loading) {
     return (
@@ -84,11 +58,10 @@ export const TransactionsTable = () => {
           </thead>
 
           <tbody>
-            {paginatedTransactions.map((transaction, index) => (
+            {transactions.map((transaction) => (
               <TransactionRow
                 transaction={transaction}
-                key={index}
-                index={index}
+                key={transaction.id}
                 onClick={() => {
                   setIsOpened(true);
                   setSelectedTransaction(transaction);
@@ -99,12 +72,18 @@ export const TransactionsTable = () => {
         </table>
       </div>
 
+      {loadingMore && (
+        <div className="py-4 text-center text-sm text-grey-500">
+          Loading transactions...
+        </div>
+      )}
+
       <Pagination
-        totalResults={totalResultsCount}
+        totalResults={totalCount}
         currentPage={currentPage}
-        rowsPerPage={rowsPerPage}
+        rowsPerPage={5}
         handlePageChange={handlePageChange}
-        handleRowsPerPageChange={handleRowsPerPageChange}
+        handleRowsPerPageChange={() => {}}
       />
     </div>
   );

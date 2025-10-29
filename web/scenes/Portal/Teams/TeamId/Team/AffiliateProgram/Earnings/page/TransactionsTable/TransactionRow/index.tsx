@@ -3,18 +3,20 @@ import { AffiliateTransactionsResponse } from "@/lib/types";
 import dayjs from "dayjs";
 import { TransactionBadge } from "../TransactionBadge";
 
-const TITLE_MAP: Record<AffiliateTransactionsResponse[0]["type"], string> = {
+const TITLE_MAP: Record<
+  AffiliateTransactionsResponse["transactions"][0]["type"],
+  string
+> = {
   affiliateAccumulationOrb: "Orb reward",
   affiliateAccumulationNfc: "ID reward",
   affiliateWithdrawal: "Withdrawal",
 };
 
 export const TransactionRow = (props: {
-  transaction: AffiliateTransactionsResponse[0];
-  index: number;
+  transaction: AffiliateTransactionsResponse["transactions"][0];
   onClick: () => void;
 }) => {
-  const { transaction, index } = props;
+  const { transaction } = props;
 
   const formatAmount = (amount: string, token: string) => {
     if (token === "USDCE") {
@@ -26,7 +28,7 @@ export const TransactionRow = (props: {
 
   return (
     <tr onClick={props.onClick}>
-      <td key={`transaction_${index}_0`} className="border-b border-grey-200">
+      <td className="border-b border-grey-200">
         <div className="flex items-center gap-x-4 px-2 py-3">
           <TransactionBadge
             transaction={transaction}
@@ -44,7 +46,7 @@ export const TransactionRow = (props: {
         </div>
       </td>
 
-      <td key={`transaction_${index}_1`} className="border-b border-grey-200">
+      <td className="border-b border-grey-200">
         <div className="flex flex-col items-end px-2 py-3">
           <Typography variant={TYPOGRAPHY.R3}>
             {formatAmount(transaction.amount.inWLD, "WLD")} WLD

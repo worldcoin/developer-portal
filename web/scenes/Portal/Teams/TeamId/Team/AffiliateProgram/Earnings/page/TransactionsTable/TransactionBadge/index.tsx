@@ -9,7 +9,7 @@ import { FailedIcon } from "@/components/Icons/FailedIcon";
 import { SuccessCheckIcon } from "@/components/Icons/SuccessCheckIcon";
 
 export const TransactionBadge = (props: {
-  transaction: AffiliateTransactionsResponse[0] | null;
+  transaction: AffiliateTransactionsResponse["transactions"][0] | null;
   className?: string;
   iconClassName?: string;
 }) => {

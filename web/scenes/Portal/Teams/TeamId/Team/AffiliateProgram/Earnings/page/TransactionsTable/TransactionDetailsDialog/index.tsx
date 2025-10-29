@@ -18,13 +18,19 @@ import Link from "next/link";
 import { toast } from "react-toastify";
 import { TransactionBadge } from "../TransactionBadge";
 
-const statusMap: Record<AffiliateTransactionsResponse[0]["status"], string> = {
+const statusMap: Record<
+  AffiliateTransactionsResponse["transactions"][0]["status"],
+  string
+> = {
   pending: "Processing",
   mined: "Completed",
   failed: "Failed",
 };
 
-const TITLE_MAP: Record<AffiliateTransactionsResponse[0]["type"], string> = {
+const TITLE_MAP: Record<
+  AffiliateTransactionsResponse["transactions"][0]["type"],
+  string
+> = {
   affiliateAccumulationOrb: "Orb reward",
   affiliateAccumulationNfc: "ID reward",
   affiliateWithdrawal: "Withdrawal",
@@ -33,7 +39,7 @@ const TITLE_MAP: Record<AffiliateTransactionsResponse[0]["type"], string> = {
 export const transactionDetailsDialogAtom = atom(false);
 
 type Props = {
-  data: AffiliateTransactionsResponse[0];
+  data: AffiliateTransactionsResponse["transactions"][0];
   onClose: () => void;
 };
 export const TransactionDetailsDialog = (props: Props) => {
