@@ -9,6 +9,7 @@ import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { AffiliateOverviewResponse } from "@/lib/types";
 import { WritableAtom, useAtom } from "jotai";
 
+// TODO: extract to separate component to reduce code duplication
 export const TimespanSelector = <
   T extends { label: string; value: AffiliateOverviewResponse["period"] },
 >(props: {
