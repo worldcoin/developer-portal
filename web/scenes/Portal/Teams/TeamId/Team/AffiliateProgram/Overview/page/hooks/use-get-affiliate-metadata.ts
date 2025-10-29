@@ -3,7 +3,7 @@ import { AffiliateMetadataResponse } from "@/lib/types";
 import { getAffiliateMetadata } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Overview/page/server/getAffiliateMetadata";
 
 export const useGetAffiliateMetadata = () => {
-  const [data, setMetrics] = useState<AffiliateMetadataResponse | null>(null);
+  const [data, setData] = useState<AffiliateMetadataResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<unknown>(null);
 
@@ -14,7 +14,7 @@ export const useGetAffiliateMetadata = () => {
         console.error("Failed to fetch data: ", result.message);
         setError(result.error);
       } else {
-        setMetrics(result.data as AffiliateMetadataResponse);
+        setData(result.data as AffiliateMetadataResponse);
       }
       setLoading(false);
     };

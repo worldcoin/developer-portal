@@ -414,22 +414,34 @@ export type AffiliateOverviewResponse = {
   };
 };
 
+export type AffiliateTransactionsRequestParams = {
+  limit?: number;
+  cursor?: string;
+  currency?: string;
+};
+
 export type AffiliateTransactionsResponse = {
-  id: string;
-  date: string; // ISO date string
-  type:
-    | "affiliateAccumulationNfc"
-    | "affiliateAccumulationOrb"
-    | "affiliateWithdrawal";
-  status: "pending" | "mined" | "failed";
-  amount: {
-    inWLD: string; // WLD in wei
-    inCurrency: number;
+  transactions: {
+    id: string;
+    date: string; // ISO date string
+    type:
+      | "affiliateAccumulationNfc"
+      | "affiliateAccumulationOrb"
+      | "affiliateWithdrawal";
+    status: "pending" | "mined" | "failed";
+    amount: {
+      inWLD: string; // WLD in wei
+      inCurrency: number;
+    };
+    walletAddress?: string; // Only for affiliateWithdrawal
+    transactionHash?: string; // Only for affiliateWithdrawal
+    network?: "worldchain"; // Only for affiliateWithdrawal
+  }[];
+  paginationMeta: {
+    nextCursor: string | null;
+    totalCount: number;
   };
-  walletAddress?: string; // Only for affiliateWithdrawal
-  transactionHash?: string; // Only for affiliateWithdrawal
-  network?: "worldchain"; // Only for affiliateWithdrawal
-}[];
+};
 
 export interface InitiateWithdrawRequest {
   amountInWld: string;

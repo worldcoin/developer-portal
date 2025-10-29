@@ -58,6 +58,9 @@ export const urls = {
 
   tos: (): "/tos" => "/tos",
 
+  affiliateProgram: (params: { team_id?: string }): string =>
+    `/teams/${params.team_id ? params.team_id : ""}/affiliate-program`,
+
   unauthorized: (params?: { message: string }): string => {
     const searchParams = new URLSearchParams(params);
     return `/unauthorized?${searchParams.toString()}`;

@@ -17,7 +17,6 @@ type Props = {
 };
 export const InviteUserDialog = (props: Props) => {
   const [isOpened, setIsOpened] = useAtom(inviteUserDialogAtom);
-  // TODO: use dynamic invite code here
   const inviteCode = props.data?.inviteCode;
   const inviteLink = `https://world.org/join/${inviteCode}`;
 
@@ -49,7 +48,6 @@ export const InviteUserDialog = (props: Props) => {
             <Typography variant={TYPOGRAPHY.R3} className="text-gray-500">
               Code
             </Typography>
-            {/*TODO: use dynamic invite code here*/}
             <Typography variant={TYPOGRAPHY.M3} className="flex-1 text-end">
               {inviteCode}
             </Typography>

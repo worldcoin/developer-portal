@@ -22,7 +22,7 @@ export const useGetAffiliateOverview = (params?: {
     };
 
     fetchData();
-  }, []);
+  }, [params?.period]);
 
   return { data, loading, error };
 };
