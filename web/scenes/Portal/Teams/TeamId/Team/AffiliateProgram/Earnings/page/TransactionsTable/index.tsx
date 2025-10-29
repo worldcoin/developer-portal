@@ -27,7 +27,7 @@ export const TransactionsTable = () => {
     AffiliateTransactionsResponse["transactions"][0] | null
   >(null);
 
-  if (loading) {
+  if (loading || loadingMore) {
     return (
       <div>
         <Skeleton height={41} />
@@ -71,12 +71,6 @@ export const TransactionsTable = () => {
           </tbody>
         </table>
       </div>
-
-      {loadingMore && (
-        <div className="py-4 text-center text-sm text-grey-500">
-          Loading transactions...
-        </div>
-      )}
 
       <Pagination
         totalResults={totalCount}
