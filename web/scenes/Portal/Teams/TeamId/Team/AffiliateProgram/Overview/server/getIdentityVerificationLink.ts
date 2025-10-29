@@ -74,10 +74,7 @@ export const getIdentityVerificationLink = async ({
 
     const url = `${process.env.NEXT_SERVER_APP_BACKEND_BASE_URL}/internal/v1/affiliate/identity-verification/get-link`;
 
-    const requestBody: any = { type };
-    if (redirectUri) {
-      requestBody.redirectUri = redirectUri;
-    }
+    const requestBody = { type, redirectUri };
 
     const response = await signedFetch(url, {
       method: "POST",

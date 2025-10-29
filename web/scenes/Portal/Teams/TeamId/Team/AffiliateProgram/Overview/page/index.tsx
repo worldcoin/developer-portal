@@ -27,7 +27,7 @@ export const AffiliateProgramPage = () => {
         <InviteUserDialog data={metadata} />
 
         {metadata && !isUserPassedKyc ? (
-          <NotVerified />
+          <NotVerified data={metadata} />
         ) : (
           <Section>
             <OverviewProfile loading={isMetadataLoading} data={metadata} />

@@ -10,8 +10,13 @@ import {
 } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Overview/server/getIdentityVerificationLink";
 import { toast } from "react-toastify";
 import { useState } from "react";
+import { AffiliateMetadataResponse } from "@/lib/types";
 
-export const NotVerified = () => {
+type Props = {
+  data: AffiliateMetadataResponse;
+};
+
+export const NotVerified = (props: Props) => {
   const [isLoading, setIsLoading] = useState(false);
 
   const handleCompleteKyb = async () => {
@@ -19,7 +24,7 @@ export const NotVerified = () => {
 
     try {
       const result = await getIdentityVerificationLink({
-        type: "kyb",
+        type: props.data.verificationType,
         redirectUri: window.location.origin,
       });
 
