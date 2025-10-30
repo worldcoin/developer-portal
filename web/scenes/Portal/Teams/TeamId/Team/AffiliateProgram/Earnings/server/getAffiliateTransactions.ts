@@ -12,17 +12,21 @@ import {
   secondMockTransactionsPage,
   thirdMockTransactionsPage,
 } from "./mocks/mock-transactions";
+import { logger } from "@/lib/logger";
 
 export const getAffiliateTransactions = async (
   params?: AffiliateTransactionsRequestParams,
 ): Promise<FormActionResult> => {
+  logger.info("getAffiliateTransactions");
   const path = getPathFromHeaders() || "";
   const { teams: teamId } = extractIdsFromPath(path, ["teams"]);
-  console.log("getAffiliateTransactions", teamId);
+  logger.info("getAffiliateTransactions", {
+    teamId,
+  });
 
   try {
     if (!teamId) {
-      console.log("getAffiliateTransactions exit");
+      logger.info("getAffiliateTransactions exit");
       return errorFormAction({
         message: "team id is not set",
         team_id: teamId,
@@ -41,17 +45,17 @@ export const getAffiliateTransactions = async (
       };
 
       if (!params?.cursor) {
-        console.log("return first page");
+        logger.info("return first page");
         data = firstMockTransactionsPage;
       }
 
       if (params?.cursor === "2") {
-        console.log("return second page");
+        logger.info("return second page");
         data = secondMockTransactionsPage;
       }
 
       if (params?.cursor === "3") {
-        console.log("return third page");
+        logger.info("return third page");
         data = thirdMockTransactionsPage;
       }
 
