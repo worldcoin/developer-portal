@@ -83,7 +83,7 @@ export const WithdrawPage = (props: PageProps) => {
   // Setup form with dynamic schema
   const methods = useForm<WithdrawFormData>({
     resolver: yupResolver(withdrawSchema),
-    mode: "onChange",
+    mode: "onBlur",
   });
 
   const { watch } = methods;
