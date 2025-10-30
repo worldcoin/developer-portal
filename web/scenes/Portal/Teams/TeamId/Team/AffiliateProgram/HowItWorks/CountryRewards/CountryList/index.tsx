@@ -30,7 +30,7 @@ export const CountryList = (props: Props) => {
     );
   }
   return (
-    <div className="w-full">
+    <div className="mb-6 w-full">
       {props.countries.map((country) => (
         <div
           key={country.countryCode}
