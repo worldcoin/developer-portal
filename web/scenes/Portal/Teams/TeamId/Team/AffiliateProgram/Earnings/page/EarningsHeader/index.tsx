@@ -49,7 +49,7 @@ export const EarningsHeader = (props: Props) => {
   }, [loading, formattedWldAmount]);
 
   return (
-    <div className="grid items-center gap-y-4 border-b border-dashed border-gray-200 py-10 sm:grid-cols-auto/1fr/auto sm:justify-items-start sm:gap-x-6">
+    <div className="grid items-center gap-y-4 border-b border-dashed border-grey-200 py-10 sm:grid-cols-auto/1fr/auto sm:justify-items-start sm:gap-x-6">
       <NextImage
         src={tokenWalletImage}
         alt="wallet"
@@ -71,7 +71,7 @@ export const EarningsHeader = (props: Props) => {
 
         <Typography
           variant={TYPOGRAPHY.R3}
-          className="text-gray-500 max-md:text-base max-md:leading-6"
+          className="text-grey-500 max-md:text-base max-md:leading-6"
         >
           {formattedUsdAmount}
         </Typography>

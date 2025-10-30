@@ -63,7 +63,7 @@ export const RewardsPage = (props: PageProps) => {
           </Typography>
 
           <div className="w-full">
-            <Tabs className="m-auto w-full justify-center border-gray-100 font-gta md:border-b">
+            <Tabs className="m-auto w-full justify-center border-grey-100 font-gta md:border-b">
               <Tab
                 href={`/teams/${params!.teamId}/affiliate-program/how-it-works/rewards?type=orb`}
                 underlined

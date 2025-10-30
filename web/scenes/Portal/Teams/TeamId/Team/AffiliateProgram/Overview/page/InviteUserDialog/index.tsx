@@ -36,7 +36,7 @@ export const InviteUserDialog = (props: Props) => {
 
           <Typography
             variant={TYPOGRAPHY.R3}
-            className="text-center text-gray-500"
+            className="text-center text-grey-500"
           >
             Receive rewards for each human that use
             <br /> your code and gets verified
@@ -44,8 +44,8 @@ export const InviteUserDialog = (props: Props) => {
         </div>
 
         <div className="grid gap-4">
-          <div className="flex items-center gap-4 rounded-2xl bg-gray-50 p-4">
-            <Typography variant={TYPOGRAPHY.R3} className="text-gray-500">
+          <div className="flex items-center gap-4 rounded-2xl bg-grey-50 p-4">
+            <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
               Code
             </Typography>
             <Typography variant={TYPOGRAPHY.M3} className="flex-1 text-end">
@@ -65,8 +65,8 @@ export const InviteUserDialog = (props: Props) => {
             </DecoratedButton>
           </div>
 
-          <div className="flex items-center gap-4 overflow-hidden rounded-2xl bg-gray-50 p-4">
-            <Typography variant={TYPOGRAPHY.R3} className="text-gray-500">
+          <div className="flex items-center gap-4 overflow-hidden rounded-2xl bg-grey-50 p-4">
+            <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
               Link
             </Typography>
             <Typography

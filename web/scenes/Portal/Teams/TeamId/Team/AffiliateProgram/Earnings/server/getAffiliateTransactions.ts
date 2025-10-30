@@ -76,6 +76,7 @@ export const getAffiliateTransactions = async (
                 inWLD: "1000000000000000000", // 1 WLD
                 inCurrency: 1.0,
               },
+              walletAddress: "0x1234567890123456789012345678901234567890",
               transactionHash: "0xabc123def45678900001",
               network: "worldchain",
             },
@@ -98,6 +99,7 @@ export const getAffiliateTransactions = async (
                 inWLD: "1200000000000000000", // 1.2 WLD
                 inCurrency: 1.2,
               },
+              walletAddress: "0x1234567890123456789012345678901234567890",
               transactionHash: "0xbeefbeefbeefbeefbeef",
               network: "worldchain",
             },
@@ -131,6 +133,7 @@ export const getAffiliateTransactions = async (
                 inWLD: "900000000000000000", // 0.9 WLD
                 inCurrency: 0.9,
               },
+              walletAddress: "0x1234567890123456789012345678901234567890",
               transactionHash: "0xfeedfeedfeedfeedfeed",
               network: "worldchain",
             },
@@ -163,6 +166,7 @@ export const getAffiliateTransactions = async (
                 inWLD: "1600000000000000000", // 1.6 WLD
                 inCurrency: 1.6,
               },
+              walletAddress: "0x1234567890123456789012345678901234567890",
               transactionHash: "0xdeaddeaddeaddeaddead",
               network: "worldchain",
             },

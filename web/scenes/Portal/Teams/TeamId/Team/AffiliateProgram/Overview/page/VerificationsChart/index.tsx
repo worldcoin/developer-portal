@@ -170,7 +170,7 @@ const GraphCard: React.FC<GraphCardProps> = ({
           {/* Stats Section (Conditional Padding) */}
 
           <div className="flex flex-wrap items-center justify-between gap-6">
-            <div className={clsx("flex items-center divide-x divide-gray-200")}>
+            <div className={clsx("flex items-center divide-x divide-grey-200")}>
               {stats.map((statProps, index) => (
                 <div
                   key={index}

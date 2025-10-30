@@ -66,7 +66,7 @@ export const HowItWorksPage = (props: PageProps) => {
         gridClassName="order-2 grow mt-6 md:mt-10"
         className="flex flex-col"
       >
-        <div className="grid grid-cols-1 gap-12 md:grid-cols-2 md:gap-0 md:divide-x md:divide-gray-200">
+        <div className="grid grid-cols-1 gap-12 md:grid-cols-2 md:gap-0 md:divide-x md:divide-grey-200">
           {/* How it works section */}
           <div className="space-y-6 md:space-y-8 md:pr-30">
             <Typography variant={TYPOGRAPHY.H6}>How it works</Typography>
@@ -82,16 +82,16 @@ export const HowItWorksPage = (props: PageProps) => {
               <Typography
                 as="p"
                 variant={TYPOGRAPHY.R4}
-                className="text-gray-500"
+                className="text-grey-500"
               >
                 Amount that you can receive is based on a user's <br /> country
                 and type of verification they complete
               </Typography>
             </div>
 
-            <div className="grid space-y-5 border-y border-gray-100 pt-6 md:py-8">
+            <div className="grid space-y-5 border-y border-grey-100 pt-6 md:py-8">
               <div className="flex items-center justify-between">
-                <Typography variant={TYPOGRAPHY.R4} className="text-gray-500">
+                <Typography variant={TYPOGRAPHY.R4} className="text-grey-500">
                   Orb verified human
                 </Typography>
                 {isMetadataLoading ? (
@@ -105,7 +105,7 @@ export const HowItWorksPage = (props: PageProps) => {
               </div>
 
               <div className="flex items-center justify-between">
-                <Typography variant={TYPOGRAPHY.R4} className="text-gray-500">
+                <Typography variant={TYPOGRAPHY.R4} className="text-grey-500">
                   ID verified human
                 </Typography>
                 {isMetadataLoading ? (

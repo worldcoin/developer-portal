@@ -8,6 +8,7 @@ export const MailIcon = (props: ComponentProps<"svg">) => {
       height="16"
       fill="none"
       viewBox="0 0 16 16"
+      {...props}
     >
       <path
         fill="#9BA3AE"

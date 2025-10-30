@@ -15,7 +15,7 @@ type Props = {
   children: ReactNode;
 };
 
-export const WithdrawLayout = async (props: Props) => {
+export const AffiliateAccountLayout = async (props: Props) => {
   const params = props.params;
   const teamId = params?.teamId;
   const session = await getSession();

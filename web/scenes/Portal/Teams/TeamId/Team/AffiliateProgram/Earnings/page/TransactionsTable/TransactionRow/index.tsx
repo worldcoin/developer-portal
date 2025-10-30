@@ -45,7 +45,7 @@ export const TransactionRow = (props: {
             <Typography variant={TYPOGRAPHY.R3}>
               {TITLE_MAP[transaction.type]}
             </Typography>
-            <Typography variant={TYPOGRAPHY.R5} className="text-gray-400">
+            <Typography variant={TYPOGRAPHY.R5} className="text-grey-400">
               {dayjs(transaction.date).format("DD MMM, HH:mm")}
             </Typography>
           </div>
@@ -63,7 +63,7 @@ export const TransactionRow = (props: {
             {isIncome && <span>+</span>}
             {formatAmount(transaction.amount.inWLD, "WLD")} WLD
           </Typography>
-          <Typography variant={TYPOGRAPHY.R5} className="text-gray-400">
+          <Typography variant={TYPOGRAPHY.R5} className="text-grey-400">
             ${transaction.amount.inCurrency}
           </Typography>
         </div>

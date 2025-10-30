@@ -35,7 +35,7 @@ export const EnterAmount = (props: Props) => {
     <div className="grid w-full max-w-[380px] place-items-center justify-self-center py-8">
       <Typography variant={TYPOGRAPHY.H5}>Enter amount</Typography>
 
-      <Typography variant={TYPOGRAPHY.R4} className="mt-2 text-gray-500">
+      <Typography variant={TYPOGRAPHY.R4} className="mt-2 text-grey-500">
         Enter amount that you want to withdraw
       </Typography>
 

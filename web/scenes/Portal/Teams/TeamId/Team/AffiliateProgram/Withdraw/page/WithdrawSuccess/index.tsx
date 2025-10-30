@@ -19,7 +19,7 @@ export const WithdrawSuccess = () => {
         Withdrawal processing
       </Typography>
 
-      <Typography variant={TYPOGRAPHY.R4} className="mt-3 text-gray-500">
+      <Typography variant={TYPOGRAPHY.R4} className="mt-3 text-grey-500">
         The transaction may take approximately 3 hours
       </Typography>
 

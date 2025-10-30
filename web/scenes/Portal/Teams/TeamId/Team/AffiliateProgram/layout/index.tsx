@@ -54,6 +54,14 @@ export const AffiliateProgramLayout = async (props: TeamIdLayoutProps) => {
             >
               <Typography variant={TYPOGRAPHY.R4}>How it works</Typography>
             </Tab>
+            <Tab
+              className="md:py-4"
+              href={`/teams/${teamId}/affiliate-program/account`}
+              segment={"account"}
+              underlined
+            >
+              <Typography variant={TYPOGRAPHY.R4}>Account</Typography>
+            </Tab>
           </Tabs>
         </SizingWrapper>
       </div>
