@@ -2,8 +2,8 @@ import { AffiliateOverviewResponse } from "@/lib/types";
 import { getAffiliateOverview } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/common/server/getAffiliateOverview";
 import { useEffect, useState } from "react";
 
-export const useGetAffiliateOverview = (params?: {
-  period?: AffiliateOverviewResponse["period"];
+export const useGetAffiliateOverview = (params: {
+  period: AffiliateOverviewResponse["period"];
 }) => {
   const [data, setMetrics] = useState<AffiliateOverviewResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -11,7 +11,7 @@ export const useGetAffiliateOverview = (params?: {
 
   useEffect(() => {
     const fetchData = async () => {
-      const result = await getAffiliateOverview({ period: params?.period });
+      const result = await getAffiliateOverview({ period: params.period });
       if (!result.success) {
         console.error("Failed to fetch data: ", result.message);
         setError(result.error);
