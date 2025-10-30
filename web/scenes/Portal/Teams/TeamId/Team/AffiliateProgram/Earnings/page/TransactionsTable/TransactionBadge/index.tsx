@@ -1,17 +1,18 @@
 import { BankIcon } from "@/components/Icons/BankIcon";
+import { FailedIcon } from "@/components/Icons/FailedIcon";
+import { SpinnerIcon } from "@/components/Icons/SpinnerIcon";
+import { SuccessCheckIcon } from "@/components/Icons/SuccessCheckIcon";
 import { WorldIcon } from "@/components/Icons/WorldIcon";
 import { IconFrame } from "@/components/InitialSteps/IconFrame";
 import { AffiliateTransactionsResponse } from "@/lib/types";
 import { clsx } from "clsx";
 import { useMemo } from "react";
-import { SpinnerIcon } from "@/components/Icons/SpinnerIcon";
-import { FailedIcon } from "@/components/Icons/FailedIcon";
-import { SuccessCheckIcon } from "@/components/Icons/SuccessCheckIcon";
 
 export const TransactionBadge = (props: {
   transaction: AffiliateTransactionsResponse["transactions"][0] | null;
   className?: string;
   iconClassName?: string;
+  hideStatusIcon?: boolean;
 }) => {
   const { transaction } = props;
 
@@ -26,18 +27,25 @@ export const TransactionBadge = (props: {
   }, [transaction, props.iconClassName]);
 
   const statusIcon = useMemo(() => {
-    if (props.transaction?.type !== "affiliateWithdrawal") return null;
-    switch (props.transaction?.status) {
-      case "mined":
-        return <SuccessCheckIcon className="size-5 text-green-500" />;
-      case "pending":
-        return <SpinnerIcon className="size-5 animate-spin" />;
-      case "failed":
-        return <FailedIcon className="size-5" />;
-      default:
-        return null;
+    if (
+      props.transaction?.type !== "affiliateWithdrawal" ||
+      (props.hideStatusIcon && props.transaction?.status !== "pending")
+    ) {
+      return null;
+    } else if (props.transaction?.status === "pending") {
+      return <SpinnerIcon className="size-5 animate-spin" />;
+    } else if (props.transaction?.status === "mined") {
+      return <SuccessCheckIcon className="size-5 text-green-500" />;
+    } else if (props.transaction?.status === "failed") {
+      return <FailedIcon className="size-5" />;
+    } else {
+      return null;
     }
-  }, [props.transaction?.status, props.transaction?.type]);
+  }, [
+    props.transaction?.status,
+    props.transaction?.type,
+    props.hideStatusIcon,
+  ]);
 
   if (!icon || !transaction) return null;
 

@@ -62,31 +62,31 @@ export const TransactionDetailsDialog = (props: Props) => {
           iconClassName="size-8"
         />
 
-        <div className="mt-6 grid justify-items-center gap-1.5">
-          <Typography variant={TYPOGRAPHY.H4}>
+        <div className="mt-6 grid justify-items-center gap-1">
+          <Typography variant={TYPOGRAPHY.H6}>
             {TITLE_MAP[props.data.type]}
           </Typography>
 
           <div className="flex items-center gap-0.5">
             <WorldIcon className="size-[38px]" />
-            <Typography variant={TYPOGRAPHY.H4}>
+            <Typography variant={TYPOGRAPHY.H3}>
               {formatTokenAmount(props.data.amount.inWLD, "WLD")}
             </Typography>
           </div>
 
           <Typography
-            variant={TYPOGRAPHY.S2}
-            className="text-center text-gray-500"
+            variant={TYPOGRAPHY.M2}
+            className="text-center text-grey-500"
           >
-            ${props.data.amount.inCurrency}
+            ${props.data.amount.inCurrency.toFixed(2)}
           </Typography>
         </div>
 
-        <div className="my-10 w-full border-t border-gray-100" />
+        <div className="my-10 w-full border-t border-grey-100" />
         {props.data.type === "affiliateAccumulationOrb" && (
           <Typography
             variant={TYPOGRAPHY.R3}
-            className="text-center text-gray-500"
+            className="text-center text-grey-500"
           >
             Reward received for inviting a human
             <br />
@@ -97,7 +97,7 @@ export const TransactionDetailsDialog = (props: Props) => {
         {props.data.type === "affiliateAccumulationNfc" && (
           <Typography
             variant={TYPOGRAPHY.R3}
-            className="text-center text-gray-500"
+            className="text-center text-grey-500"
           >
             Reward received for inviting a human
             <br /> who verified with an ID
@@ -106,28 +106,28 @@ export const TransactionDetailsDialog = (props: Props) => {
         {props.data.type === "affiliateWithdrawal" && (
           <div className="grid w-full gap-5">
             <div className="flex justify-between gap-2">
-              <Typography variant={TYPOGRAPHY.B3} className="text-gray-500">
+              <Typography variant={TYPOGRAPHY.R4} className="text-grey-500">
                 Status
               </Typography>
-              <Typography variant={TYPOGRAPHY.S3}>
+              <Typography variant={TYPOGRAPHY.M4}>
                 {statusMap[props.data.status]}
               </Typography>
             </div>
 
             <div className="flex justify-between gap-2">
-              <Typography variant={TYPOGRAPHY.B3} className="text-gray-500">
+              <Typography variant={TYPOGRAPHY.R4} className="text-grey-500">
                 Provider fee
               </Typography>
-              <Typography variant={TYPOGRAPHY.S3}>Free</Typography>
+              <Typography variant={TYPOGRAPHY.M4}>Free</Typography>
             </div>
 
             {props.data.walletAddress && (
               <div className="flex justify-between gap-2">
-                <Typography variant={TYPOGRAPHY.B3} className="text-gray-500">
+                <Typography variant={TYPOGRAPHY.R4} className="text-grey-500">
                   Wallet address
                 </Typography>
                 <Typography
-                  variant={TYPOGRAPHY.S3}
+                  variant={TYPOGRAPHY.M4}
                   className="flex items-center gap-1"
                 >
                   {formatWalletAddress(props.data.walletAddress)}
@@ -140,26 +140,26 @@ export const TransactionDetailsDialog = (props: Props) => {
                       toast.success(`wallet address copied to clipboard`);
                     }}
                   >
-                    <CopySquareIcon className="size-5 text-gray-500" />
+                    <CopySquareIcon className="size-5 text-grey-500" />
                   </button>
                 </Typography>
               </div>
             )}
 
             <div className="flex justify-between gap-2">
-              <Typography variant={TYPOGRAPHY.B3} className="text-gray-500">
+              <Typography variant={TYPOGRAPHY.R4} className="text-grey-500">
                 Network
               </Typography>
 
               <div className="flex items-center gap-1">
                 <WLDIcon className="size-5" />
-                <Typography variant={TYPOGRAPHY.S3}>World Chain</Typography>
+                <Typography variant={TYPOGRAPHY.M4}>World Chain</Typography>
               </div>
             </div>
 
             {props.data?.transactionHash && props.data.network && (
               <div className="flex justify-between gap-2">
-                <Typography variant={TYPOGRAPHY.B3} className="text-gray-500">
+                <Typography variant={TYPOGRAPHY.R4} className="text-grey-500">
                   Hash
                 </Typography>
                 <Link
@@ -168,12 +168,12 @@ export const TransactionDetailsDialog = (props: Props) => {
                     props.data?.network,
                   )}
                   target="_blank"
-                  className="flex items-center gap-x-2 text-gray-400 outline-0"
+                  className="flex items-center gap-x-2 text-grey-500 outline-0"
                 >
-                  <Typography variant={TYPOGRAPHY.S3} className="truncate">
+                  <Typography variant={TYPOGRAPHY.M4} className="truncate">
                     Details on blockchain
                   </Typography>
-                  <OpenNewWindowIcon className="size-5 text-gray-400" />
+                  <OpenNewWindowIcon className="size-5 text-grey-500" />
                 </Link>
               </div>
             )}

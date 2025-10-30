@@ -6,6 +6,7 @@ import { WLDIcon } from "@/components/Icons/WLDIcon";
 import { WLDTokenIcon } from "@/components/Icons/WLDTokenIcon";
 import { Typography, TYPOGRAPHY } from "@/components/Typography";
 import { formatWalletAddress } from "@/lib/utils";
+import { useMemo } from "react";
 import { useFormContext } from "react-hook-form";
 import { toast } from "react-toastify";
 import { WithdrawFormData } from "../common/types";
@@ -28,9 +29,19 @@ export const ConfirmTransaction = (props: Props) => {
   const isFormValid =
     walletAddress && amount && !errors.walletAddress && !errors.amount;
 
+  const formattedWalletAddress = useMemo(
+    () => formatWalletAddress(walletAddress),
+    [walletAddress],
+  );
+
+  const formattedAmount = useMemo(
+    () => (amount ? `${Number(amount).toFixed(2)} WLD` : "0.00 WLD"),
+    [amount],
+  );
+
   return (
     <div className="mt-8 grid w-full max-w-[380px] place-items-center gap-8 justify-self-center">
-      <Typography variant={TYPOGRAPHY.H6}>Confirm withdrawal</Typography>
+      <Typography variant={TYPOGRAPHY.H5}>Confirm withdrawal</Typography>
 
       <div className="grid w-full gap-1.5">
         <div className="flex items-center gap-3">
@@ -50,7 +61,7 @@ export const ConfirmTransaction = (props: Props) => {
             </Typography>
           </div>
           <Typography variant={TYPOGRAPHY.M2} className="flex-1 text-right">
-            {amount ? `${amount} WLD` : "0 WLD"}
+            {formattedAmount}
           </Typography>
         </div>
 
@@ -68,11 +79,11 @@ export const ConfirmTransaction = (props: Props) => {
               variant={TYPOGRAPHY.R4}
               className="text-gray-500"
             >
-              to World App
+              to {formattedWalletAddress}
             </Typography>
           </div>
           <Typography variant={TYPOGRAPHY.M2} className="flex-1 text-right">
-            {amount ? `${amount} WLD` : "0 WLD"}
+            {formattedAmount}
           </Typography>
         </div>
       </div>
@@ -93,7 +104,7 @@ export const ConfirmTransaction = (props: Props) => {
             variant={TYPOGRAPHY.M4}
             className="flex items-center gap-1"
           >
-            {formatWalletAddress(walletAddress)}
+            {formattedWalletAddress}
             <button
               type="button"
               className="outline-0"

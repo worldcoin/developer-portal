@@ -5,7 +5,7 @@ import { useFetchTeamQuery } from "@/components/LoggedUserNav/graphql/client/fet
 import { Role_Enum } from "@/graphql/graphql";
 import { DOCS_URL } from "@/lib/constants";
 import { Auth0SessionUser } from "@/lib/types";
-import { checkUserPermissions } from "@/lib/utils";
+import { checkIfProduction, checkUserPermissions } from "@/lib/utils";
 import { colorAtom } from "@/scenes/Portal/layout";
 import { useMeQuery } from "@/scenes/common/me-query/client";
 import { useUser } from "@auth0/nextjs-auth0/client";
@@ -31,6 +31,7 @@ import { LoginSquareIcon } from "@/components/Icons/LoginSquareIcon";
 export const LoggedUserNav = () => {
   const [color] = useAtom(colorAtom);
   const { user: auth0User } = useUser() as Auth0SessionUser;
+  const isProduction = checkIfProduction();
 
   const { teamId, appId, actionId } = useParams() as {
     teamId?: string;
@@ -167,17 +168,19 @@ export const LoggedUserNav = () => {
                 </Dropdown.ListItem>
               )}
 
-              <Dropdown.ListItem asChild>
-                <Link href={`/teams/${teamId}/affiliate-program`}>
-                  <Dropdown.ListItemIcon asChild>
-                    <MailIcon />
-                  </Dropdown.ListItemIcon>
+              {!isProduction && (
+                <Dropdown.ListItem asChild>
+                  <Link href={`/teams/${teamId}/affiliate-program`}>
+                    <Dropdown.ListItemIcon asChild>
+                      <MailIcon />
+                    </Dropdown.ListItemIcon>
 
-                  <Dropdown.ListItemText>
-                    Affiliate program
-                  </Dropdown.ListItemText>
-                </Link>
-              </Dropdown.ListItem>
+                    <Dropdown.ListItemText>
+                      Affiliate program
+                    </Dropdown.ListItemText>
+                  </Link>
+                </Dropdown.ListItem>
+              )}
 
               <Dropdown.ListSeparator />
             </>

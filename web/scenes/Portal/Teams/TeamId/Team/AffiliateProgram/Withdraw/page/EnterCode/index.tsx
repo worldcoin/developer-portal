@@ -70,7 +70,7 @@ export const EnterCode = (props: Props) => {
 
   return (
     <div className="grid w-full max-w-[380px] place-items-center justify-self-center py-8">
-      <Typography variant={TYPOGRAPHY.H6}>Enter code</Typography>
+      <Typography variant={TYPOGRAPHY.H5}>Check email template</Typography>
 
       <Typography
         variant={TYPOGRAPHY.R4}

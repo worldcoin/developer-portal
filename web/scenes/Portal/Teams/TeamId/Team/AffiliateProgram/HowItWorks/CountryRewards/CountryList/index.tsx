@@ -30,7 +30,7 @@ export const CountryList = (props: Props) => {
     );
   }
   return (
-    <div className="w-full">
+    <div className="mb-6 w-full">
       {props.countries.map((country) => (
         <div
           key={country.countryCode}
@@ -56,7 +56,9 @@ export const CountryList = (props: Props) => {
               {country.countryCode}
             </Typography>
           </div>
-          <Typography variant={TYPOGRAPHY.M3}>${country.amount}</Typography>
+          <Typography variant={TYPOGRAPHY.M3}>
+            ${country.amount?.toFixed(2)}
+          </Typography>
         </div>
       ))}
     </div>

@@ -41,7 +41,7 @@ export const Stepper = ({ steps, className = "" }: StepperProps) => {
               <div>
                 {step.isFinal ? (
                   <IconFrame className="ml-0.5 mr-[12px] size-8 shrink-0 bg-blue-500 text-white">
-                    {step.icon ?? <TrophyIcon className="h-4 w-4" />}
+                    {step.icon ?? <TrophyIcon className="size-4" />}
                   </IconFrame>
                 ) : (
                   <span

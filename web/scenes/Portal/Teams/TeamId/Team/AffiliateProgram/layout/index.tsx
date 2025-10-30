@@ -2,6 +2,9 @@ import { ReactNode } from "react";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { Tab, Tabs } from "@/components/Tabs";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import { checkIfProduction } from "@/lib/utils";
+import { redirect } from "next/navigation";
+import { urls } from "@/lib/urls";
 
 type Params = {
   teamId?: string;
@@ -15,6 +18,12 @@ type TeamIdLayoutProps = {
 export const AffiliateProgramLayout = async (props: TeamIdLayoutProps) => {
   const params = props.params;
   const teamId = params.teamId!;
+  const isProduction = checkIfProduction();
+
+  // Disable affiliate program for production
+  if (isProduction) {
+    return redirect(urls.teams({ team_id: teamId }));
+  }
 
   return (
     <div className="flex flex-col">

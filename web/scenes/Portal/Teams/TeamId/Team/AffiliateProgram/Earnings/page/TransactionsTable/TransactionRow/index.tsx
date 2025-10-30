@@ -2,6 +2,7 @@ import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { AffiliateTransactionsResponse } from "@/lib/types";
 import dayjs from "dayjs";
 import { TransactionBadge } from "../TransactionBadge";
+import clsx from "clsx";
 
 const TITLE_MAP: Record<
   AffiliateTransactionsResponse["transactions"][0]["type"],
@@ -26,6 +27,10 @@ export const TransactionRow = (props: {
     }
   };
 
+  const isIncome =
+    transaction.type === "affiliateAccumulationNfc" ||
+    transaction.type === "affiliateAccumulationOrb";
+
   return (
     <tr onClick={props.onClick}>
       <td className="border-b border-grey-200">
@@ -34,6 +39,7 @@ export const TransactionRow = (props: {
             transaction={transaction}
             className="size-12"
             iconClassName="size-6"
+            hideStatusIcon
           />
           <div className="flex flex-col">
             <Typography variant={TYPOGRAPHY.R3}>
@@ -48,7 +54,13 @@ export const TransactionRow = (props: {
 
       <td className="border-b border-grey-200">
         <div className="flex flex-col items-end px-2 py-3">
-          <Typography variant={TYPOGRAPHY.R3}>
+          <Typography
+            variant={TYPOGRAPHY.R3}
+            className={clsx({
+              "text-system-success-700": isIncome,
+            })}
+          >
+            {isIncome && <span>+</span>}
             {formatAmount(transaction.amount.inWLD, "WLD")} WLD
           </Typography>
           <Typography variant={TYPOGRAPHY.R5} className="text-gray-400">
