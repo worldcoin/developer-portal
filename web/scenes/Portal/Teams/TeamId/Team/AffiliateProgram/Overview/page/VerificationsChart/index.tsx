@@ -271,7 +271,7 @@ export const VerificationsChart = () => {
     });
 
     return formattedData;
-  }, [appStatsData]);
+  }, [appStatsData, timespan.value]);
 
   return (
     <div className="grid flex-1">

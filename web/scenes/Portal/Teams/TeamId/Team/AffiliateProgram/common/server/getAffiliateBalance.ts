@@ -4,11 +4,9 @@ import { errorFormAction } from "@/api/helpers/errors";
 import { extractIdsFromPath, getPathFromHeaders } from "@/lib/server-utils";
 import { AffiliateBalanceResponse, FormActionResult } from "@/lib/types";
 import { createSignedFetcher } from "aws-sigv4-fetch";
-import { headers } from "next/headers";
 import { affiliateBalanceMock } from "./mocks/balance";
 
 export const getAffiliateBalance = async (): Promise<FormActionResult> => {
-  const headersData = headers();
   const path = getPathFromHeaders() || "";
   const { teams: teamId } = extractIdsFromPath(path, ["teams"]);
 

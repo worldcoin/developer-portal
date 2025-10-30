@@ -7,12 +7,10 @@ import {
   FormActionResult,
 } from "@/lib/types";
 import { createSignedFetcher } from "aws-sigv4-fetch";
-import { headers } from "next/headers";
 
 export const getAffiliateTransactions = async (
   params?: AffiliateTransactionsRequestParams,
 ): Promise<FormActionResult> => {
-  const headersData = headers();
   const path = getPathFromHeaders() || "";
   const { teams: teamId } = extractIdsFromPath(path, ["teams"]);
 

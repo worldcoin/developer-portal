@@ -7,7 +7,7 @@ import {
 } from "@/components/Select";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { AffiliateOverviewResponse } from "@/lib/types";
-import { WritableAtom, useAtom } from "jotai";
+import { useAtom, WritableAtom } from "jotai";
 
 // TODO: extract to separate component to reduce code duplication
 export const TimespanSelector = <

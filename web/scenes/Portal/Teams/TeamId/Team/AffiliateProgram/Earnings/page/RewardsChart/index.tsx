@@ -267,7 +267,7 @@ export const RewardsChart = () => {
     });
 
     return formattedData;
-  }, [appStatsData]);
+  }, [appStatsData, timespan.value]);
 
   return (
     <div className="grid flex-1">

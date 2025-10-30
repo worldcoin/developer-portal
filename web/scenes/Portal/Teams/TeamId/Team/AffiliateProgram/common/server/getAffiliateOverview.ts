@@ -4,7 +4,6 @@ import { errorFormAction } from "@/api/helpers/errors";
 import { extractIdsFromPath, getPathFromHeaders } from "@/lib/server-utils";
 import { AffiliateOverviewResponse, FormActionResult } from "@/lib/types";
 import { createSignedFetcher } from "aws-sigv4-fetch";
-import { headers } from "next/headers";
 import { getAffiliateOverviewMock } from "./mocks/overview";
 
 export const getAffiliateOverview = async ({
@@ -12,7 +11,6 @@ export const getAffiliateOverview = async ({
 }: {
   period: AffiliateOverviewResponse["period"];
 }): Promise<FormActionResult> => {
-  const headersData = headers();
   const path = getPathFromHeaders() || "";
   const { teams: teamId } = extractIdsFromPath(path, ["teams"]);
 

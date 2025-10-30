@@ -15,7 +15,7 @@ type FooterProps = {
   rowsPerPageOptions?: number[];
   rowsPerPage: number;
   handlePageChange: (page: number) => void;
-  handleRowsPerPageChange: (rowsPerPage: number) => void;
+  handleRowsPerPageChange?: (rowsPerPage: number) => void;
   className?: string;
 };
 
@@ -92,7 +92,7 @@ export const Pagination: React.FC<FooterProps> = ({
           />
         </Button>
       </div>
-      {rowsPerPageOptions && (
+      {rowsPerPageOptions && handleRowsPerPageChange && (
         <div className="flex w-full justify-end ">
           <PaginationSelect
             rowsPerPageOptions={rowsPerPageOptions}

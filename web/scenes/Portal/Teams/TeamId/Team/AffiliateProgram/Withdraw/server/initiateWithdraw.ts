@@ -8,13 +8,11 @@ import {
   InitiateWithdrawResponse,
 } from "@/lib/types";
 import { createSignedFetcher } from "aws-sigv4-fetch";
-import { headers } from "next/headers";
 
 export const initiateWithdraw = async ({
   amountInWld,
   toWallet,
 }: InitiateWithdrawRequest): Promise<FormActionResult> => {
-  const headersData = headers();
   const path = getPathFromHeaders() || "";
   const { teams: teamId } = extractIdsFromPath(path, ["teams"]);
 

@@ -456,7 +456,8 @@ export const parseTokenAmount = (
 ): number | null => {
   if (!amount) return null;
   const tokenDecimals = TOKEN_DECIMALS[token];
-  return parseFloat(amount) / Math.pow(10, tokenDecimals) || null;
+  const result = parseFloat(amount) / Math.pow(10, tokenDecimals);
+  return Number.isNaN(result) ? null : result; // preserves 0
 };
 
 export const convertAmountToWei = (

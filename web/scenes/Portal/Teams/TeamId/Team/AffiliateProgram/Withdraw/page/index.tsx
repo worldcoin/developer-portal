@@ -170,7 +170,7 @@ export const WithdrawPage = (props: PageProps) => {
               <EnterAmount
                 balance={balanceData}
                 onConfirm={() => setCurrentStep(AffiliateWithdrawStep.CONFIRM)}
-                loading={isLoading}
+                loading={isLoading || isBalanceLoading}
               />
             )}
           {currentStep === AffiliateWithdrawStep.CONFIRM && (
