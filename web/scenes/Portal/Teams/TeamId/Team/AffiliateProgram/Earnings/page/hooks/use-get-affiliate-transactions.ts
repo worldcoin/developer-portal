@@ -4,6 +4,7 @@ import {
 } from "@/lib/types";
 import { getAffiliateTransactions } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Earnings/server/getAffiliateTransactions";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { firstMockTransactionsPageFailed } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Earnings/server/mocks/mock-transactions";
 
 type TransactionItem = AffiliateTransactionsResponse["transactions"][0];
 
@@ -26,21 +27,22 @@ export const useGetAffiliateTransactions = (
   const fetchData = useCallback(
     async (data?: AffiliateTransactionsRequestParams, append = false) => {
       console.log("fetchData");
-      if (isRequestingRef.current) {
-        console.log("Request already in progress, skipping...");
-        return;
-      }
-
-      isRequestingRef.current = true;
-
-      // Add loading states
-      if (append) {
-        setLoadingMore(true);
-      } else {
-        setLoading(true);
-      }
 
       try {
+        if (isRequestingRef.current) {
+          console.log("Request already in progress, skipping...");
+          return;
+        }
+
+        isRequestingRef.current = true;
+
+        // Add loading states
+        if (append) {
+          setLoadingMore(true);
+        } else {
+          setLoading(true);
+        }
+
         const result = await getAffiliateTransactions(data);
         if (!result.success) {
           console.error("Failed to fetch data: ", result.message);
@@ -59,7 +61,12 @@ export const useGetAffiliateTransactions = (
           setNextCursor(response.paginationMeta.nextCursor);
         }
       } catch (err) {
+        console.error(err);
         setError(err);
+        setTotalCount(
+          firstMockTransactionsPageFailed.paginationMeta.totalCount,
+        );
+        setAllTransactions(firstMockTransactionsPageFailed.transactions);
       } finally {
         setLoading(false);
         setLoadingMore(false);

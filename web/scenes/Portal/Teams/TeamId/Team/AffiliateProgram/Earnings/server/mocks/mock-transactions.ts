@@ -66,6 +66,14 @@ export const firstMockTransactionsPage: AffiliateTransactionsResponse = {
   },
 };
 
+export const firstMockTransactionsPageFailed: AffiliateTransactionsResponse = {
+  ...firstMockTransactionsPage,
+  paginationMeta: {
+    totalCount: 5,
+    nextCursor: null,
+  },
+};
+
 export const secondMockTransactionsPage: AffiliateTransactionsResponse = {
   transactions: [
     {
