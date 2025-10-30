@@ -17,7 +17,7 @@ export type Props = {
 
 export const EnterAmount = (props: Props) => {
   const availableBalance = useMemo(
-    () => parseTokenAmount(props.balance.availableBalance, "WLD"),
+    () => parseTokenAmount(props.balance.availableBalance.inWLD, "WLD"),
     [props.balance.availableBalance],
   );
 

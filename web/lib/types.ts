@@ -324,9 +324,14 @@ export interface FormActionResult {
 
 /* Affiliate program types START */
 export type AffiliateBalanceResponse = {
-  availableBalance: string; // Can withdraw (in WLD, as string, wei units)
-  pendingBalance: string; // Waiting 24h (in WLD, as string, wei units)
-  totalEarned: string; // Lifetime earned (in WLD, as string, wei units)
+  availableBalance: {
+    inWLD: string; // Can withdraw (in WLD, as string, wei units)
+    inCurrency: number; // Can withdraw (in USD)
+  };
+  pendingBalance: {
+    inWLD: string; // Can withdraw (in WLD, as string, wei units)
+    inCurrency: number; // Can withdraw (in USD)
+  };
   lastAccumulatedAt: string; // ISO date string
   minimumWithdrawal: string; // Minimum withdrawal amount (in WLD, as string, wei units)
   maximumWithdrawal: string; // Maximum withdrawal amount (in WLD, as string, wei units)

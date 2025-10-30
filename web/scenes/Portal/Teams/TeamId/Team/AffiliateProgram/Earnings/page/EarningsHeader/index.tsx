@@ -32,15 +32,18 @@ export const EarningsHeader = (props: Props) => {
 
   const formattedWldAmount = useMemo(() => {
     if (!data?.availableBalance) return null;
-    return formatTokenAmount(data?.availableBalance, "WLD");
+    return formatTokenAmount(data?.availableBalance.inWLD, "WLD");
   }, [data?.availableBalance]);
 
-  const amountText = useMemo(() => {
+  const formattedUsdAmount = useMemo(() => {
     if (loading) {
       return <Skeleton width={200} />;
     }
-    if (formattedWldAmount != null) {
-      return "Available to withdraw · " + formattedWldAmount + " WLD";
+    if (data?.availableBalance.inCurrency != null) {
+      return (
+        "Available to withdraw · $" +
+        data?.availableBalance.inCurrency.toFixed(2)
+      );
     }
     return "No funds to withdraw";
   }, [loading, formattedWldAmount]);
@@ -70,7 +73,7 @@ export const EarningsHeader = (props: Props) => {
           variant={TYPOGRAPHY.R3}
           className="text-gray-500 max-md:text-base max-md:leading-6"
         >
-          {amountText}
+          {formattedUsdAmount}
         </Typography>
       </div>
 
