@@ -27,14 +27,6 @@ export const initiateWithdraw = async ({
       });
     }
 
-    if (!process.env.NEXT_SERVER_APP_BACKEND_BASE_URL) {
-      return errorFormAction({
-        message: "The app backend base url env is not set",
-        team_id: teamId,
-        logLevel: "error",
-      });
-    }
-
     // Validate wallet address format
     if (!/^0x[a-fA-F0-9]{40}$/.test(toWallet)) {
       return errorFormAction({
@@ -44,10 +36,10 @@ export const initiateWithdraw = async ({
       });
     }
 
-    // If the request host is localhost, return a mock object. Otherwise fetch as normal.
-    const isLocalhost = true;
+    //TODO: add check for process.env.NEXT_SERVER_APP_BACKEND_BASE_URL and remove mocks after backend will be ready
+    const shouldReturnMocks = true;
 
-    if (isLocalhost) {
+    if (shouldReturnMocks) {
       // TODO: remove mock response
       const data: InitiateWithdrawResponse = {
         withdrawalId: "123e4567-e89b-12d3-a456-426614174000",

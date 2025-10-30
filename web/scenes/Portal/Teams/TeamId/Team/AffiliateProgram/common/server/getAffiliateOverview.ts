@@ -25,18 +25,10 @@ export const getAffiliateOverview = async ({
       });
     }
 
-    if (!process.env.NEXT_SERVER_APP_BACKEND_BASE_URL) {
-      return errorFormAction({
-        message: "The app backend base url env is not set",
-        team_id: teamId,
-        logLevel: "error",
-      });
-    }
+    //TODO: add check for process.env.NEXT_SERVER_APP_BACKEND_BASE_URL and remove mocks after backend will be ready
+    const shouldReturnMocks = true;
 
-    // If the request host is localhost, return a mock object. Otherwise fetch as normal.
-    const isLocalhost = true;
-
-    if (isLocalhost) {
+    if (shouldReturnMocks) {
       // TODO: remove mock response
       const data = getAffiliateOverviewMock(period);
       return {
