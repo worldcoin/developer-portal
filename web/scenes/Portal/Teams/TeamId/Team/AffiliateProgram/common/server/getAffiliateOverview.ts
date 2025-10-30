@@ -34,7 +34,7 @@ export const getAffiliateOverview = async ({
     }
 
     // If the request host is localhost, return a mock object. Otherwise fetch as normal.
-    const isLocalhost = headersData.get?.("host")?.includes("localhost");
+    const isLocalhost = true;
 
     if (isLocalhost) {
       // TODO: remove mock response

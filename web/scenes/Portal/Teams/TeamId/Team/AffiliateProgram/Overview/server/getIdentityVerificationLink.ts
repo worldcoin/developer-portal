@@ -45,7 +45,7 @@ export const getIdentityVerificationLink = async ({
       });
     }
 
-    const isLocalhost = headersData.get?.("host")?.includes("localhost");
+    const isLocalhost = true;
 
     if (isLocalhost) {
       // TODO: remove mock response
