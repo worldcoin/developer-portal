@@ -15,6 +15,7 @@ import React, { ReactNode, useMemo } from "react";
 import Skeleton from "react-loading-skeleton";
 import { Stat } from "./stat";
 import { TimespanSelector } from "./TimespanSelector";
+import { getXAxisLabels } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/common/utils";
 
 dayjs.extend(utc);
 dayjs.extend(tz);
@@ -260,7 +261,7 @@ export const RewardsChart = () => {
 
     appStatsData.earnings.periods.forEach((stat) => {
       formattedData.x.push(
-        dayjs(stat.start).format(timespan.value === "day" ? "HH:mm" : "DD.MM"),
+        dayjs(stat.start).format(getXAxisLabels(timespan.value)),
       );
       formattedData.y[0].data.push(stat.amountByType.orb.inCurrency);
       formattedData.y[1].data.push(stat.amountByType.nfc.inCurrency);
