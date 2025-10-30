@@ -24,10 +24,10 @@ const timespans: {
   label: string;
   value: AffiliateOverviewResponse["period"];
 }[] = [
-  { label: "Daily", value: "day" },
-  { label: "Weekly", value: "week" },
-  { label: "Monthly", value: "month" },
-  { label: "Yearly", value: "year" },
+  { label: "Day", value: "day" },
+  { label: "Week", value: "week" },
+  { label: "Month", value: "month" },
+  { label: "Year", value: "year" },
 ];
 const timespanAtom = atom(timespans[timespans.length - 2]);
 
@@ -67,6 +67,19 @@ const commonChartConfig: ChartOptions<"line"> = {
     },
     x: {
       ticks: { maxTicksLimit: 10, crossAlign: "center" },
+    },
+  },
+  plugins: {
+    tooltip: {
+      titleColor: "#9BA3AE",
+      callbacks: {
+        title: function (context) {
+          return context[0].label;
+        },
+        label: function (context) {
+          return context.formattedValue;
+        },
+      },
     },
   },
 };
