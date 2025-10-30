@@ -25,10 +25,7 @@ export const EarningsPage = () => {
               <Typography variant={TYPOGRAPHY.H7}>Earnings</Typography>
               <RewardsChart />
             </div>
-            <div className="flex flex-col gap-8">
-              <Typography variant={TYPOGRAPHY.H7}>Transactions</Typography>
-              <TransactionsTable />
-            </div>
+            <TransactionsTable />
           </div>
         </Section>
       </SizingWrapper>

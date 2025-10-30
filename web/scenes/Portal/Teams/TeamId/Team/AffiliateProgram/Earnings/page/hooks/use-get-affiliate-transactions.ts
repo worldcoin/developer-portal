@@ -3,7 +3,7 @@ import {
   AffiliateTransactionsResponse,
 } from "@/lib/types";
 import { getAffiliateTransactions } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Earnings/server/getAffiliateTransactions";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 type TransactionItem = AffiliateTransactionsResponse["transactions"][0];
 
@@ -21,8 +21,19 @@ export const useGetAffiliateTransactions = (
   const [currentPage, setCurrentPage] = useState(1);
   const rowsPerPage = 5;
 
+  const isRequestingRef = useRef(false);
+
   const fetchData = useCallback(
     async (data?: AffiliateTransactionsRequestParams, append = false) => {
+      console.log("fetchData");
+      if (isRequestingRef.current) {
+        console.log("Request already in progress, skipping...");
+        return;
+      }
+
+      isRequestingRef.current = true;
+
+      // Add loading states
       if (append) {
         setLoadingMore(true);
       } else {
@@ -52,6 +63,7 @@ export const useGetAffiliateTransactions = (
       } finally {
         setLoading(false);
         setLoadingMore(false);
+        isRequestingRef.current = false;
       }
     },
     [],
@@ -76,7 +88,7 @@ export const useGetAffiliateTransactions = (
         fetchData({ cursor: nextCursor, limit: 100 }, true);
       }
     },
-    [allTransactions.length, nextCursor, loading, loadingMore, fetchData],
+    [allTransactions.length, nextCursor, loading, loadingMore],
   );
 
   // Calculate paginated transactions

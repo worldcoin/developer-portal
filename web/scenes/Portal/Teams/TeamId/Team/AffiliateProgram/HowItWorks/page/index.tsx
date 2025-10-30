@@ -40,7 +40,7 @@ export const HowItWorksPage = (props: PageProps) => {
     },
     {
       id: "reward",
-      title: "You will receive your reward",
+      title: "Reward is added to your account",
       isFinal: true,
     },
   ];
@@ -84,8 +84,9 @@ export const HowItWorksPage = (props: PageProps) => {
                 variant={TYPOGRAPHY.R4}
                 className="text-grey-500"
               >
-                Amount that you can receive is based on a user's <br /> country
-                and type of verification they complete
+                Amount you can receive is based on each user's
+                <br />
+                country and verification type
               </Typography>
             </div>
 
