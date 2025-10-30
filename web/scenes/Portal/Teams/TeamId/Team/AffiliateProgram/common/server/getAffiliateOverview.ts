@@ -5,11 +5,12 @@ import { extractIdsFromPath, getPathFromHeaders } from "@/lib/server-utils";
 import { AffiliateOverviewResponse, FormActionResult } from "@/lib/types";
 import { createSignedFetcher } from "aws-sigv4-fetch";
 import { headers } from "next/headers";
+import { getAffiliateOverviewMock } from "./mocks/overview";
 
 export const getAffiliateOverview = async ({
   period,
 }: {
-  period?: AffiliateOverviewResponse["period"];
+  period: AffiliateOverviewResponse["period"];
 }): Promise<FormActionResult> => {
   const headersData = headers();
   const path = getPathFromHeaders() || "";
@@ -37,114 +38,7 @@ export const getAffiliateOverview = async ({
 
     if (isLocalhost) {
       // TODO: remove mock response
-      const data: AffiliateOverviewResponse = {
-        period: "week",
-        verifications: {
-          total: 145,
-          orb: 100,
-          nfc: 45,
-          periods: [
-            {
-              start: "2025-10-01T00:00:00Z",
-              end: "2025-10-02T00:00:00Z",
-              count: 25,
-              orb: 18,
-              nfc: 7,
-            },
-            {
-              start: "2025-10-02T00:00:00Z",
-              end: "2025-10-03T00:00:00Z",
-              count: 30,
-              orb: 20,
-              nfc: 10,
-            },
-            {
-              start: "2025-10-03T00:00:00Z",
-              end: "2025-10-04T00:00:00Z",
-              count: 18,
-              orb: 12,
-              nfc: 6,
-            },
-            {
-              start: "2025-10-04T00:00:00Z",
-              end: "2025-10-05T00:00:00Z",
-              count: 20,
-              orb: 14,
-              nfc: 6,
-            },
-            {
-              start: "2025-10-05T00:00:00Z",
-              end: "2025-10-06T00:00:00Z",
-              count: 15,
-              orb: 10,
-              nfc: 5,
-            },
-            {
-              start: "2025-10-06T00:00:00Z",
-              end: "2025-10-07T00:00:00Z",
-              count: 22,
-              orb: 14,
-              nfc: 8,
-            },
-            {
-              start: "2025-10-07T00:00:00Z",
-              end: "2025-10-08T00:00:00Z",
-              count: 15,
-              orb: 12,
-              nfc: 3,
-            },
-            // ... more periods as needed for local development
-          ],
-        },
-        earnings: {
-          total: {
-            value: "290000000000000000000",
-            decimals: 18,
-            asset: "WLD",
-            symbol: "WLD",
-          },
-          totalInCurrency: 290.0,
-          totalByType: {
-            orb: {
-              inWLD: "200000000000000000000", // ORB earnings
-              inCurrency: 200.0,
-            },
-            nfc: {
-              inWLD: "90000000000000000000", // NFC earnings
-              inCurrency: 90.0,
-            },
-          },
-          periods: [
-            {
-              start: "2025-10-01T00:00:00Z",
-              end: "2025-10-02T00:00:00Z",
-              amount: {
-                inWLD: "50000000000000000000",
-                inCurrency: 50.0,
-              },
-              amountInCurrency: 60.0,
-              amountByType: {
-                orb: { inWLD: "36000000000000000000", inCurrency: 36.0 },
-                nfc: { inWLD: "14000000000000000000", inCurrency: 14.0 },
-              },
-            },
-            {
-              start: "2025-10-02T00:00:00Z",
-              end: "2025-10-03T00:00:00Z",
-              amount: {
-                inWLD: "60000000000000000000",
-                inCurrency: 60.0,
-              },
-              amountInCurrency: 60.0,
-              amountByType: {
-                orb: { inWLD: "40000000000000000000", inCurrency: 40.0 },
-                nfc: { inWLD: "20000000000000000000", inCurrency: 20.0 },
-              },
-            },
-            // ... more periods
-          ],
-        },
-      };
+      const data = getAffiliateOverviewMock(period);
       return {
         success: true,
         message: "Mock Affiliate overview (localhost) returned",

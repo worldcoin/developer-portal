@@ -41,7 +41,11 @@ export const TransactionBadge = (props: {
     } else {
       return null;
     }
-  }, [props.transaction?.status, props.transaction?.type, props.hideStatusIcon]);
+  }, [
+    props.transaction?.status,
+    props.transaction?.type,
+    props.hideStatusIcon,
+  ]);
 
   if (!icon || !transaction) return null;
 
