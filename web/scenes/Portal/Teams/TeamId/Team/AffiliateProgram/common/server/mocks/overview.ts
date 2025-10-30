@@ -25,50 +25,50 @@ export const weeklyOverviewMock: AffiliateOverviewResponse = {
     nfc: 43, // 40% of 108
     periods: [
       {
-        start: "2025-01-20T00:00:00Z",
-        end: "2025-01-21T00:00:00Z",
+        start: "2025-10-20T00:00:00Z",
+        end: "2025-10-21T00:00:00Z",
         count: 15,
         orb: 9,
         nfc: 6,
       },
       {
-        start: "2025-01-21T00:00:00Z",
-        end: "2025-01-22T00:00:00Z",
+        start: "2025-10-21T00:00:00Z",
+        end: "2025-10-22T00:00:00Z",
         count: 33, // 15 + 18
         orb: 20, // 9 + 11
         nfc: 13, // 6 + 7
       },
       {
-        start: "2025-01-22T00:00:00Z",
-        end: "2025-01-23T00:00:00Z",
+        start: "2025-10-22T00:00:00Z",
+        end: "2025-10-23T00:00:00Z",
         count: 45, // 33 + 12
         orb: 27, // 20 + 7
         nfc: 18, // 13 + 5
       },
       {
-        start: "2025-01-23T00:00:00Z",
-        end: "2025-01-24T00:00:00Z",
+        start: "2025-10-23T00:00:00Z",
+        end: "2025-10-24T00:00:00Z",
         count: 65, // 45 + 20
         orb: 39, // 27 + 12
         nfc: 26, // 18 + 8
       },
       {
-        start: "2025-01-24T00:00:00Z",
-        end: "2025-01-25T00:00:00Z",
+        start: "2025-10-24T00:00:00Z",
+        end: "2025-10-25T00:00:00Z",
         count: 81, // 65 + 16
         orb: 49, // 39 + 10
         nfc: 32, // 26 + 6
       },
       {
-        start: "2025-01-25T00:00:00Z",
-        end: "2025-01-26T00:00:00Z",
+        start: "2025-10-25T00:00:00Z",
+        end: "2025-10-26T00:00:00Z",
         count: 95, // 81 + 14
         orb: 57, // 49 + 8
         nfc: 38, // 32 + 6
       },
       {
-        start: "2025-01-26T00:00:00Z",
-        end: "2025-01-27T00:00:00Z",
+        start: "2025-10-26T00:00:00Z",
+        end: "2025-10-27T00:00:00Z",
         count: 108, // 95 + 13
         orb: 65, // 57 + 8
         nfc: 43, // 38 + 5
@@ -95,8 +95,8 @@ export const weeklyOverviewMock: AffiliateOverviewResponse = {
     },
     periods: [
       {
-        start: "2025-01-20T00:00:00Z",
-        end: "2025-01-21T00:00:00Z",
+        start: "2025-10-20T00:00:00Z",
+        end: "2025-10-21T00:00:00Z",
         amount: {
           inWLD: "15000000000000000000", // 15 WLD
           inCurrency: 15.0,
@@ -108,8 +108,8 @@ export const weeklyOverviewMock: AffiliateOverviewResponse = {
         },
       },
       {
-        start: "2025-01-21T00:00:00Z",
-        end: "2025-01-22T00:00:00Z",
+        start: "2025-10-21T00:00:00Z",
+        end: "2025-10-22T00:00:00Z",
         amount: {
           inWLD: "33000000000000000000", // 15 + 18 = 33 WLD
           inCurrency: 33.0,
@@ -121,8 +121,8 @@ export const weeklyOverviewMock: AffiliateOverviewResponse = {
         },
       },
       {
-        start: "2025-01-22T00:00:00Z",
-        end: "2025-01-23T00:00:00Z",
+        start: "2025-10-22T00:00:00Z",
+        end: "2025-10-23T00:00:00Z",
         amount: {
           inWLD: "45000000000000000000", // 33 + 12 = 45 WLD
           inCurrency: 45.0,
@@ -134,8 +134,8 @@ export const weeklyOverviewMock: AffiliateOverviewResponse = {
         },
       },
       {
-        start: "2025-01-23T00:00:00Z",
-        end: "2025-01-24T00:00:00Z",
+        start: "2025-10-23T00:00:00Z",
+        end: "2025-10-24T00:00:00Z",
         amount: {
           inWLD: "65000000000000000000", // 45 + 20 = 65 WLD
           inCurrency: 65.0,
@@ -147,8 +147,8 @@ export const weeklyOverviewMock: AffiliateOverviewResponse = {
         },
       },
       {
-        start: "2025-01-24T00:00:00Z",
-        end: "2025-01-25T00:00:00Z",
+        start: "2025-10-24T00:00:00Z",
+        end: "2025-10-25T00:00:00Z",
         amount: {
           inWLD: "81000000000000000000", // 65 + 16 = 81 WLD
           inCurrency: 81.0,
