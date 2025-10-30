@@ -351,8 +351,9 @@ export const POST = async (req: NextRequest) => {
   let res: Response;
 
   const sortedWalletAddresses = wallet_addresses.sort();
+  const generatedAt = new Date().toISOString();
   const idempotencyKey = createHash("sha256")
-    .update(`${app_id}:${sortedWalletAddresses.join(",")}`)
+    .update(`${app_id}:${sortedWalletAddresses.join(",")}:${generatedAt}`)
     .digest("hex");
 
   try {
