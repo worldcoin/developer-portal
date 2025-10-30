@@ -21,13 +21,11 @@ export const WithdrawLayout = async (props: Props) => {
   const session = await getSession();
   const user = session?.user as Auth0SessionUser["user"];
 
-  const ownerAndAdminPermission = checkUserPermissions(
-    user,
-    params.teamId ?? "",
-    [Role_Enum.Owner, Role_Enum.Admin],
-  );
+  const hasOwnerPermission = checkUserPermissions(user, params.teamId ?? "", [
+    Role_Enum.Owner,
+  ]);
 
-  if (!ownerAndAdminPermission) {
+  if (!hasOwnerPermission) {
     return redirect(urls.affiliateProgram({ team_id: teamId }));
   }
 
