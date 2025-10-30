@@ -12,6 +12,7 @@ const cdnURLObject = new URL(
   process.env.NEXT_PUBLIC_IMAGES_CDN_URL || "https://world-id-assets.com",
 );
 const s3BucketUrl = `https://${process.env.ASSETS_S3_BUCKET_NAME}.s3.${process.env.ASSETS_S3_REGION}.amazonaws.com`;
+const appUrl = process.env.NEXT_PUBLIC_APP_URL;
 const isDev = process.env.NODE_ENV === "development";
 const generateCsp = () => {
   const nonce = crypto.randomUUID();
@@ -57,6 +58,7 @@ const generateCsp = () => {
         "https://bridge.worldcoin.org",
         "https://us.i.posthog.com",
         ...(s3BucketUrl ? [s3BucketUrl] : []),
+        ...(appUrl ? [appUrl] : []),
       ],
     },
     {
@@ -68,6 +70,7 @@ const generateCsp = () => {
         "https://world.org",
         ...(s3BucketUrl ? [s3BucketUrl] : []),
         ...(cdnURLObject ? [cdnURLObject.hostname] : []),
+        ...(appUrl ? [appUrl] : []),
       ],
     },
   ];

@@ -18,11 +18,10 @@ import * as yup from "yup";
 import { getSdk as atomicUpsertNullifierSdk } from "./graphql/atomic-upsert-nullifier.generated";
 import { getSdk as getFetchAppActionSdk } from "./graphql/fetch-app-action.generated";
 
-// V2 verification whitelist - add app_ids here to use v2 verification
-const V2_ENABLED_APP_IDS = [
-  "app_315057b8441a523e7a9b2416f1262a65",
-  "app_020c82fbf3c087eb31600929a34990e4",
-];
+const VerificationLevelWithFace = {
+  ...VerificationLevel,
+  Face: "face" as const,
+};
 
 const schema = yup
   .object({
@@ -49,7 +48,7 @@ const schema = yup
     merkle_root: yup.string().strict().required("This attribute is required."),
     verification_level: yup
       .string()
-      .oneOf(Object.values(VerificationLevel))
+      .oneOf(Object.values(VerificationLevelWithFace))
       .required("This attribute is required."),
     max_age: yup
       .number()

@@ -50,8 +50,19 @@ export const processLogoImage = async (
 
     const imageBuffer = await streamToBuffer(getObjectResponse.Body);
 
+    // Get original image dimensions
+    const metadata = await sharp(imageBuffer).metadata();
+    const originalWidth = metadata.width ?? 0;
+    const originalHeight = metadata.height ?? 0;
+
+    // Calculate dimensions: use original if smaller and valid, otherwise use provided dimensions
+    const targetWidth =
+      originalWidth > 0 ? Math.min(originalWidth, width) : width;
+    const targetHeight =
+      originalHeight > 0 ? Math.min(originalHeight, height) : height;
+
     // Create minimized image in original format
-    const resizedImage = sharp(imageBuffer).resize(width, height, {
+    const resizedImage = sharp(imageBuffer).resize(targetWidth, targetHeight, {
       fit: "cover",
       position: "center",
     });
@@ -63,13 +74,13 @@ export const processLogoImage = async (
     ).toBuffer();
 
     const roundedCornerSvg = `
-      <svg width="${width}" height="${height}">
-        <rect x="0" y="0" width="${width}" height="${height}" rx="${cornerRadius}" ry="${cornerRadius}" fill="white"/>
+      <svg width="${targetWidth}" height="${targetHeight}">
+        <rect x="0" y="0" width="${targetWidth}" height="${targetHeight}" rx="${cornerRadius}" ry="${cornerRadius}" fill="white"/>
       </svg>
     `;
 
     const roundedImageBuffer = await sharp(imageBuffer)
-      .resize(width, height, {
+      .resize(targetWidth, targetHeight, {
         fit: "cover",
         position: "center",
       })
@@ -122,8 +133,10 @@ export const processLogoImage = async (
       originalImageKey,
       minimizedImageKey,
       roundedImageKey,
-      width,
-      height,
+      originalWidth,
+      originalHeight,
+      targetWidth,
+      targetHeight,
       cornerRadius,
     });
   } catch (error) {
@@ -131,8 +144,8 @@ export const processLogoImage = async (
       sourceKey,
       destinationFolder,
       imageKey,
-      width,
-      height,
+      maxWidth: width,
+      maxHeight: height,
       cornerRadius,
     });
     throw error;

@@ -104,7 +104,7 @@ export const BasicInformation = (props: {
   const showQrQuickAction = Boolean(appMetaData?.integration_url);
 
   const { url, showDraftMiniAppFlag } = useMemo(() => {
-    let url = `https://world.org/mini-app?app_id=${appId}`;
+    let url = `https://world.org/mini-app?app_id=${appId}&path=`;
     let showDraftMiniAppFlag = appMetaData?.verification_status !== "verified";
     if (showDraftMiniAppFlag) {
       url += `&draft_id=${appMetaData?.id}`;

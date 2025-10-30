@@ -5,36 +5,26 @@ import { GraphQLClient, RequestOptions } from "graphql-request";
 import gql from "graphql-tag";
 type GraphQLClientRequestHeaders = RequestOptions["requestHeaders"];
 export type ChangeAppReportStatusMutationVariables = Types.Exact<{
-  app_report_id: Types.Scalars["String"]["input"];
-  reviewed_by?: Types.InputMaybe<Types.Scalars["String"]["input"]>;
-  review_status: Types.Scalars["review_status_enum"]["input"];
-  review_conclusion_reason?: Types.InputMaybe<Types.Scalars["String"]["input"]>;
-  reviewed_at?: Types.InputMaybe<Types.Scalars["timestamptz"]["input"]>;
+  updates: Array<Types.App_Report_Updates> | Types.App_Report_Updates;
 }>;
 
 export type ChangeAppReportStatusMutation = {
   __typename?: "mutation_root";
-  update_app_report_by_pk?: { __typename: "app_report" } | null;
+  update_app_report_many?: Array<{
+    __typename?: "app_report_mutation_response";
+    affected_rows: number;
+    returning: Array<{ __typename: "app_report"; id: string }>;
+  } | null> | null;
 };
 
 export const ChangeAppReportStatusDocument = gql`
-  mutation ChangeAppReportStatus(
-    $app_report_id: String!
-    $reviewed_by: String
-    $review_status: review_status_enum!
-    $review_conclusion_reason: String
-    $reviewed_at: timestamptz
-  ) {
-    update_app_report_by_pk(
-      pk_columns: { id: $app_report_id }
-      _set: {
-        reviewed_at: $reviewed_at
-        reviewed_by: $reviewed_by
-        review_status: $review_status
-        review_conclusion_reason: $review_conclusion_reason
+  mutation ChangeAppReportStatus($updates: [app_report_updates!]!) {
+    update_app_report_many(updates: $updates) {
+      affected_rows
+      returning {
+        id
+        __typename
       }
-    ) {
-      __typename
     }
   }
 `;

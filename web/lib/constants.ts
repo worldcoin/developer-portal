@@ -2,7 +2,11 @@
  * Constants available to both backend and frontend.
  */
 
-import { LoginErrorCode, NativeAppsMap } from "./types";
+import {
+  AppStoreFormattedFields,
+  LoginErrorCode,
+  NativeAppsMap,
+} from "./types";
 
 export { Categories } from "./categories";
 
@@ -159,3 +163,53 @@ export const PARTNER_TEAM_IDS = {
 };
 
 export const DEFAULT_APP_URL = "https://developer.world.org";
+
+export const APP_STORE_FORMATTED_DEFAULTS: AppStoreFormattedFields = {
+  name: "",
+  app_id: "",
+  logo_img_url: "",
+  hero_image_url: "",
+  meta_tag_image_url: "",
+  showcase_img_urls: [],
+  content_card_image_url: "",
+  world_app_description: "",
+  world_app_button_text: "",
+  whitelisted_addresses: [],
+  app_mode: AppMode.external,
+  integration_url: "",
+  app_website_url: "",
+  source_code_url: "",
+  short_name: "",
+  support_link: "",
+  supported_countries: [],
+  supported_languages: [],
+  associated_domains: [] as string[],
+  contracts: [] as string[],
+  permit2_tokens: [] as string[],
+  can_import_all_contacts: null,
+  verification_status: "",
+  is_allowed_unlimited_notifications: false,
+  max_notifications_per_day: null,
+  is_android_only: false,
+  app_rating: 0,
+  impressions: 0,
+  ratings_external_nullifier: "",
+  show_in_app_store: false,
+  unique_users: 0,
+  team_name: "",
+  category: { id: "other", name: "Other" },
+  description: { overview: "", how_it_works: "", how_to_connect: "" },
+  avg_notification_open_rate: null,
+  deleted_at: null,
+};
+
+// App store metadata isn't used. This is defined on the client side
+// We are adding a placeholder here to define an image to show wherever app store metadata is used.
+export const APP_STORE_METADATA: AppStoreFormattedFields = {
+  ...APP_STORE_FORMATTED_DEFAULTS,
+  integration_url:
+    "https://staging.world-id-assets.com/app-store/app-store-banner.png",
+  showcase_img_urls: [
+    "https://staging.world-id-assets.com/app-store/app-store-banner.png",
+  ],
+};
