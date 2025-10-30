@@ -28,16 +28,28 @@ type TabProps = HTMLAttributes<HTMLAnchorElement> &
   LinkProps & {
     underlined?: boolean;
     segment: string | null;
+    active?: boolean;
   };
 
 export const Tab = (props: TabProps) => {
-  const { className, children, style = {}, underlined, ...otherProps } = props;
+  const {
+    className,
+    children,
+    style = {},
+    underlined,
+    active: manualActive,
+    ...otherProps
+  } = props;
   const selectedLayoutSegment = useSelectedLayoutSegment();
 
-  const active = useMemo(
-    () => props.segment === selectedLayoutSegment,
-    [props.segment, selectedLayoutSegment],
-  );
+  const active = useMemo(() => {
+    // If active is manually provided, use it; otherwise compute from segment
+    if (manualActive !== undefined) {
+      return manualActive;
+    }
+
+    return props.segment === selectedLayoutSegment;
+  }, [manualActive, props.segment, selectedLayoutSegment]);
 
   return (
     <Link

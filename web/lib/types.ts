@@ -321,3 +321,158 @@ export interface FormActionResult {
   message: string;
   [key: string]: unknown;
 }
+
+/* Affiliate program types START */
+export type AffiliateBalanceResponse = {
+  availableBalance: {
+    inWLD: string; // Can withdraw (in WLD, as string, wei units)
+    inCurrency: number; // Can withdraw (in USD)
+  };
+  pendingBalance: {
+    inWLD: string; // Can withdraw (in WLD, as string, wei units)
+    inCurrency: number; // Can withdraw (in USD)
+  };
+  lastAccumulatedAt: string; // ISO date string
+  minimumWithdrawal: string; // Minimum withdrawal amount (in WLD, as string, wei units)
+  maximumWithdrawal: string; // Maximum withdrawal amount (in WLD, as string, wei units)
+  withdrawalWallet: string; // Most recent withdrawal wallet address
+};
+
+export type AffiliateMetadataResponse = {
+  inviteCode: string;
+  identityVerificationStatus: "approved" | "none";
+  identityVerifiedAt: string;
+  verificationType: "kyb" | "kyc";
+  totalInvites: number;
+  pendingInvites: number; // Applied code, but not verified
+  verifiedInvites: {
+    total: number;
+    orb: number; // ORB verifications
+    nfc: number; // NFC verifications
+  };
+  totalEarnings: {
+    total: string; // Total WLD earned (in WLD, as string, wei units)
+    orb: string; // From ORB verifications (in WLD, as string, wei units)
+    nfc: string; // From NFC verifications (in WLD, as string, wei units)
+  };
+  rewards: {
+    orb: {
+      [country: string]: { asset: string; amount: number };
+    };
+    nfc: {
+      Global: { asset: string; amount: number };
+    };
+  };
+};
+
+export type AffiliateOverviewResponse = {
+  period: "day" | "week" | "month" | "year"; // e.g., "week"
+  verifications: {
+    total: number;
+    orb: number;
+    nfc: number;
+    periods: Array<{
+      start: string; // ISO date string
+      end: string; // ISO date string
+      count: number;
+      orb: number;
+      nfc: number;
+    }>;
+  };
+  earnings: {
+    total: {
+      value: string;
+      decimals: number;
+      asset: string;
+      symbol: string;
+    };
+    totalInCurrency: number;
+    totalByType: {
+      orb: {
+        inWLD: string;
+        inCurrency: number;
+      };
+      nfc: {
+        inWLD: string;
+        inCurrency: number;
+      };
+    };
+    periods: Array<{
+      start: string;
+      end: string;
+      amount: {
+        inWLD: string;
+        inCurrency: number;
+      };
+      amountInCurrency: number;
+      amountByType: {
+        orb: {
+          inWLD: string;
+          inCurrency: number;
+        };
+        nfc: {
+          inWLD: string;
+          inCurrency: number;
+        };
+      };
+    }>;
+  };
+};
+
+export type AffiliateTransactionsRequestParams = {
+  limit?: number;
+  cursor?: string;
+  currency?: string;
+};
+
+export type AffiliateTransactionsResponse = {
+  transactions: {
+    id: string;
+    date: string; // ISO date string
+    type:
+      | "affiliateAccumulationNfc"
+      | "affiliateAccumulationOrb"
+      | "affiliateWithdrawal";
+    status: "pending" | "mined" | "failed";
+    amount: {
+      inWLD: string; // WLD in wei
+      inCurrency: number;
+    };
+    walletAddress?: string; // Only for affiliateWithdrawal
+    transactionHash?: string; // Only for affiliateWithdrawal
+    network?: "worldchain"; // Only for affiliateWithdrawal
+  }[];
+  paginationMeta: {
+    nextCursor: string | null;
+    totalCount: number;
+  };
+};
+
+export interface InitiateWithdrawRequest {
+  amountInWld: string;
+  toWallet: string;
+}
+
+export interface InitiateWithdrawResponse {
+  withdrawalId: string;
+  amountInWld: string;
+  toWallet: string;
+  email: string;
+  codeExpiresAt: string; // ISO 8601 timestamp
+  status: "pending_confirmation";
+}
+
+export interface ConfirmWithdrawRequest {
+  withdrawalRequestId: string;
+  emailConfirmationCode: string;
+}
+
+export interface ConfirmWithdrawResponse {
+  withdrawalId: string;
+  amountInWld: string;
+  estimatedCompletionTime: string;
+  newAvailableBalance: string;
+  toWallet: string;
+  status: "confirmed";
+}
+/* Affiliate program types END */

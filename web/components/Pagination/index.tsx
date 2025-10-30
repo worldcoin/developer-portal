@@ -12,10 +12,10 @@ import { twMerge } from "tailwind-merge";
 type FooterProps = {
   totalResults: number;
   currentPage: number;
-  rowsPerPageOptions: number[];
+  rowsPerPageOptions?: number[];
   rowsPerPage: number;
   handlePageChange: (page: number) => void;
-  handleRowsPerPageChange: (rowsPerPage: number) => void;
+  handleRowsPerPageChange?: (rowsPerPage: number) => void;
   className?: string;
 };
 
@@ -34,13 +34,19 @@ export const Pagination: React.FC<FooterProps> = ({
     <div
       className={twMerge(
         clsx(
-          "sticky bottom-0 grid w-full grid-cols-3 items-center justify-between gap-x-4 bg-white py-4 text-xs",
+          "sticky bottom-0 grid w-full items-center justify-between gap-x-4 bg-white py-4 text-xs",
+          Boolean(rowsPerPageOptions) ? "grid-cols-3" : "grid-cols-2",
           className,
         ),
       )}
     >
       <div className="text-grey-400">{totalResults} results</div>
-      <div className="flex items-center justify-center gap-x-4">
+      <div
+        className={clsx(
+          "flex items-center gap-x-4",
+          Boolean(rowsPerPageOptions) ? "justify-center" : "justify-end",
+        )}
+      >
         <Button
           type="button"
           onClick={() => handlePageChange(currentPage - 1)}
@@ -86,13 +92,15 @@ export const Pagination: React.FC<FooterProps> = ({
           />
         </Button>
       </div>
-      <div className="flex w-full justify-end ">
-        <PaginationSelect
-          rowsPerPageOptions={rowsPerPageOptions}
-          value={rowsPerPage}
-          handleSelect={handleRowsPerPageChange}
-        />
-      </div>
+      {rowsPerPageOptions && handleRowsPerPageChange && (
+        <div className="flex w-full justify-end ">
+          <PaginationSelect
+            rowsPerPageOptions={rowsPerPageOptions}
+            value={rowsPerPage}
+            handleSelect={handleRowsPerPageChange}
+          />
+        </div>
+      )}
     </div>
   );
 };

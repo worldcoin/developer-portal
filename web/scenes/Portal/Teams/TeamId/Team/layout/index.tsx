@@ -2,6 +2,7 @@ import { SizingWrapper } from "@/components/SizingWrapper";
 import { Tab, Tabs } from "@/components/Tabs";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Role_Enum } from "@/graphql/graphql";
+import { getPathFromHeaders } from "@/lib/server-utils";
 import { Auth0SessionUser } from "@/lib/types";
 import { checkUserPermissions } from "@/lib/utils";
 import { getSession } from "@auth0/nextjs-auth0";
@@ -19,6 +20,8 @@ type TeamIdLayoutProps = {
 export const TeamIdLayout = async (props: TeamIdLayoutProps) => {
   const params = props.params;
   const session = await getSession();
+  const pathname = getPathFromHeaders() || "";
+  const isAffiliateProgram = pathname.includes("affiliate-program");
 
   const user = session?.user as Auth0SessionUser["user"];
   const ownerPermission = checkUserPermissions(user, params.teamId ?? "", [
@@ -31,6 +34,9 @@ export const TeamIdLayout = async (props: TeamIdLayoutProps) => {
     [Role_Enum.Owner, Role_Enum.Admin],
   );
 
+  if (isAffiliateProgram) {
+    return props.children;
+  }
   return (
     <div className="flex flex-col">
       <div className="order-2 md:order-1 md:w-full md:border-b md:border-grey-100">
@@ -42,10 +48,7 @@ export const TeamIdLayout = async (props: TeamIdLayoutProps) => {
               segment={null}
               underlined
             >
-              <Typography variant={TYPOGRAPHY.R4}>
-                <span className="max-md:hidden">Members</span>
-                <span className="md:hidden">Members</span>
-              </Typography>
+              <Typography variant={TYPOGRAPHY.R4}>Members</Typography>
             </Tab>
 
             <Tab

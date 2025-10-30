@@ -426,3 +426,50 @@ export const fetchWithRetry = async (
 
   throw lastError;
 };
+
+type TokenType = "USDCE" | "WLD";
+
+const TOKEN_DECIMALS: Record<TokenType, number> = {
+  USDCE: 6,
+  WLD: 18,
+};
+
+/**
+ * Convert raw token amount to human-readable format
+ */
+export const formatTokenAmount = (
+  amount: string | null | undefined,
+  token: TokenType,
+  decimals: number = 2,
+): string => {
+  if (!amount) return "";
+  const tokenDecimals = TOKEN_DECIMALS[token];
+  return (parseFloat(amount) / Math.pow(10, tokenDecimals)).toFixed(decimals);
+};
+
+/**
+ * Convert raw token amount to number
+ */
+export const parseTokenAmount = (
+  amount: string | null | undefined,
+  token: TokenType,
+): number | null => {
+  if (!amount) return null;
+  const tokenDecimals = TOKEN_DECIMALS[token];
+  const result = parseFloat(amount) / Math.pow(10, tokenDecimals);
+  return Number.isNaN(result) ? null : result; // preserves 0
+};
+
+export const convertAmountToWei = (
+  amount: number | null | undefined,
+  token: TokenType,
+): string | null => {
+  if (!amount) return null;
+  const tokenDecimals = TOKEN_DECIMALS[token];
+  return (amount * Math.pow(10, tokenDecimals)).toString();
+};
+
+export const formatWalletAddress = (address: string) => {
+  if (!address) return "";
+  return `${address.slice(0, 6)}...${address.slice(-4)}`;
+};
