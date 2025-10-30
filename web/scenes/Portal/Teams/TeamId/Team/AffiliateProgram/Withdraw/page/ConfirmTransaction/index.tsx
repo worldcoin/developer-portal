@@ -6,10 +6,10 @@ import { WLDIcon } from "@/components/Icons/WLDIcon";
 import { WLDTokenIcon } from "@/components/Icons/WLDTokenIcon";
 import { Typography, TYPOGRAPHY } from "@/components/Typography";
 import { formatWalletAddress } from "@/lib/utils";
+import { useMemo } from "react";
 import { useFormContext } from "react-hook-form";
 import { toast } from "react-toastify";
 import { WithdrawFormData } from "../common/types";
-import { useMemo } from "react";
 
 export type Props = {
   onConfirm: () => void;
@@ -34,6 +34,11 @@ export const ConfirmTransaction = (props: Props) => {
     [walletAddress],
   );
 
+  const formattedAmount = useMemo(
+    () => (amount ? `${Number(amount).toFixed(2)} WLD` : "0.00 WLD"),
+    [amount],
+  );
+
   return (
     <div className="mt-8 grid w-full max-w-[380px] place-items-center gap-8 justify-self-center">
       <Typography variant={TYPOGRAPHY.H5}>Confirm withdrawal</Typography>
@@ -56,7 +61,7 @@ export const ConfirmTransaction = (props: Props) => {
             </Typography>
           </div>
           <Typography variant={TYPOGRAPHY.M2} className="flex-1 text-right">
-            {amount ? `${amount} WLD` : "0 WLD"}
+            {formattedAmount}
           </Typography>
         </div>
 
@@ -78,7 +83,7 @@ export const ConfirmTransaction = (props: Props) => {
             </Typography>
           </div>
           <Typography variant={TYPOGRAPHY.M2} className="flex-1 text-right">
-            {amount ? `${amount} WLD` : "0 WLD"}
+            {formattedAmount}
           </Typography>
         </div>
       </div>

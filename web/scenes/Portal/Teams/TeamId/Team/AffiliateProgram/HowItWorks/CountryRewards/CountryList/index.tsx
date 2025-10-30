@@ -56,7 +56,9 @@ export const CountryList = (props: Props) => {
               {country.countryCode}
             </Typography>
           </div>
-          <Typography variant={TYPOGRAPHY.M3}>${country.amount}</Typography>
+          <Typography variant={TYPOGRAPHY.M3}>
+            ${country.amount?.toFixed(2)}
+          </Typography>
         </div>
       ))}
     </div>

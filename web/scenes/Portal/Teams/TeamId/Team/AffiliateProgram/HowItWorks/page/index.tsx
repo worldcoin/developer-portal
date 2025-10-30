@@ -98,7 +98,8 @@ export const HowItWorksPage = (props: PageProps) => {
                   <Skeleton width={120} />
                 ) : (
                   <Typography variant={TYPOGRAPHY.M4} className="font-medium">
-                    up to {maxOrbReward?.amount} {maxOrbReward?.asset} in WLD
+                    up to {maxOrbReward?.amount.toFixed(2)}{" "}
+                    {maxOrbReward?.asset} in WLD
                   </Typography>
                 )}
               </div>
@@ -111,7 +112,8 @@ export const HowItWorksPage = (props: PageProps) => {
                   <Skeleton width={120} />
                 ) : (
                   <Typography variant={TYPOGRAPHY.M4} className="font-medium">
-                    up to {maxNfcReward?.amount} {maxNfcReward?.asset} in WLD
+                    up to {maxNfcReward?.amount.toFixed(2)}{" "}
+                    {maxNfcReward?.asset} in WLD
                   </Typography>
                 )}
               </div>

@@ -78,7 +78,7 @@ export const TransactionDetailsDialog = (props: Props) => {
             variant={TYPOGRAPHY.M2}
             className="text-center text-grey-500"
           >
-            ${props.data.amount.inCurrency}
+            ${props.data.amount.inCurrency.toFixed(2)}
           </Typography>
         </div>
 
