@@ -34,7 +34,7 @@ export const Stepper = ({ steps, className = "" }: StepperProps) => {
               {!isLast && (
                 <span
                   aria-hidden
-                  className="absolute bottom-0 left-[17px] top-[26px] w-0.5 border-l-2 border-gray-200"
+                  className="absolute bottom-0 left-[17px] top-[26px] w-0.5 border-l-2 border-grey-200"
                 />
               )}
 
@@ -46,7 +46,7 @@ export const Stepper = ({ steps, className = "" }: StepperProps) => {
                 ) : (
                   <span
                     className={`ml-[14px] mr-[26px] mt-2 block size-2 shrink-0 rounded-full ${
-                      step.isFinal ? "bg-blue-500" : "bg-gray-200"
+                      step.isFinal ? "bg-blue-500" : "bg-grey-200"
                     }`}
                   />
                 )}
@@ -56,7 +56,7 @@ export const Stepper = ({ steps, className = "" }: StepperProps) => {
               <Typography
                 variant={step.isFinal ? TYPOGRAPHY.M4 : TYPOGRAPHY.R4}
                 className={clsx("flex-1", {
-                  "text-gray-500": !step.isFinal,
+                  "text-grey-500": !step.isFinal,
                 })}
               >
                 {step.title}

@@ -55,7 +55,7 @@ export const ConfirmTransaction = (props: Props) => {
             <Typography
               as="p"
               variant={TYPOGRAPHY.R4}
-              className="text-gray-500"
+              className="text-grey-500"
             >
               from earnings
             </Typography>
@@ -66,7 +66,7 @@ export const ConfirmTransaction = (props: Props) => {
         </div>
 
         {/* Connecting line between the two boxes */}
-        <div className="ml-6 h-6 w-[1px] bg-gray-300"></div>
+        <div className="ml-6 h-6 w-[1px] bg-grey-300"></div>
 
         <div className="flex items-center gap-3">
           <WLDTokenIcon className="size-12" />
@@ -77,7 +77,7 @@ export const ConfirmTransaction = (props: Props) => {
             <Typography
               as="p"
               variant={TYPOGRAPHY.R4}
-              className="text-gray-500"
+              className="text-grey-500"
             >
               to {formattedWalletAddress}
             </Typography>
@@ -88,16 +88,16 @@ export const ConfirmTransaction = (props: Props) => {
         </div>
       </div>
 
-      <div className="flex w-full flex-col gap-5 border-y border-gray-100 py-6">
+      <div className="flex w-full flex-col gap-5 border-y border-grey-100 py-6">
         <div className="flex justify-between gap-2">
-          <Typography variant={TYPOGRAPHY.R4} className="text-gray-500">
+          <Typography variant={TYPOGRAPHY.R4} className="text-grey-500">
             Provider fee
           </Typography>
           <Typography variant={TYPOGRAPHY.M4}>Free</Typography>
         </div>
 
         <div className="flex justify-between gap-2">
-          <Typography variant={TYPOGRAPHY.R4} className="text-gray-500">
+          <Typography variant={TYPOGRAPHY.R4} className="text-grey-500">
             Wallet address
           </Typography>
           <Typography
@@ -114,13 +114,13 @@ export const ConfirmTransaction = (props: Props) => {
                 toast.success(`wallet address copied to clipboard`);
               }}
             >
-              <CopySquareIcon className="size-5 text-gray-500" />
+              <CopySquareIcon className="size-5 text-grey-500" />
             </button>
           </Typography>
         </div>
 
         <div className="flex justify-between gap-2">
-          <Typography variant={TYPOGRAPHY.R4} className="text-gray-500">
+          <Typography variant={TYPOGRAPHY.R4} className="text-grey-500">
             Network
           </Typography>
 
@@ -134,7 +134,7 @@ export const ConfirmTransaction = (props: Props) => {
       <div className="flex w-full flex-col gap-6">
         <Typography
           variant={TYPOGRAPHY.R5}
-          className="text-center text-gray-500"
+          className="text-center text-grey-500"
         >
           Please verify that all information supplied is correct,
           <br />
