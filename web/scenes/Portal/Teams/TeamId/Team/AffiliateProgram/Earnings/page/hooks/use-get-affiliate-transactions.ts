@@ -22,13 +22,7 @@ export const useGetAffiliateTransactions = (
   const rowsPerPage = 5;
 
   const fetchData = useCallback(
-    async (cursor?: string, append = false) => {
-      const fetchParams = {
-        ...params,
-        cursor: cursor || params?.cursor,
-        limit: params?.limit || 100,
-      };
-
+    async (data?: AffiliateTransactionsRequestParams, append = false) => {
       if (append) {
         setLoadingMore(true);
       } else {
@@ -36,7 +30,7 @@ export const useGetAffiliateTransactions = (
       }
 
       try {
-        const result = await getAffiliateTransactions(fetchParams);
+        const result = await getAffiliateTransactions(data);
         if (!result.success) {
           console.error("Failed to fetch data: ", result.message);
           setError(result.error);
@@ -60,24 +54,30 @@ export const useGetAffiliateTransactions = (
         setLoadingMore(false);
       }
     },
-    [params],
+    [],
   );
 
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    fetchData(params);
+  }, [params?.cursor, params?.limit, params?.currency]);
 
-  // Load more when navigating to a page that needs more data
-  useEffect(() => {
-    const endIndex = currentPage * rowsPerPage;
-    if (endIndex > allTransactions.length && nextCursor && !loadingMore) {
-      fetchData(nextCursor, true);
-    }
-  }, [currentPage, allTransactions.length, nextCursor, loadingMore, fetchData]);
+  const handlePageChange = useCallback(
+    (newPage: number) => {
+      setCurrentPage(newPage);
 
-  const handlePageChange = useCallback((newPage: number) => {
-    setCurrentPage(newPage);
-  }, []);
+      // Check if we need to fetch more data for this page
+      const endIndex = newPage * rowsPerPage;
+      if (
+        endIndex > allTransactions.length &&
+        nextCursor &&
+        !loading &&
+        !loadingMore
+      ) {
+        fetchData({ cursor: nextCursor, limit: 100 }, true);
+      }
+    },
+    [allTransactions.length, nextCursor, loading, loadingMore, fetchData],
+  );
 
   // Calculate paginated transactions
   const transactions = useMemo(() => {
