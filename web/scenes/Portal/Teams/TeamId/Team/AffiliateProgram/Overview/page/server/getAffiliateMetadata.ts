@@ -51,8 +51,33 @@ export const getAffiliateMetadata = async (): Promise<FormActionResult> => {
         },
         rewards: {
           orb: {
-            AR: { asset: "USD", amount: 2 },
-            DE: { asset: "USD", amount: 2 },
+            // $0.50 tier
+            CO: { asset: "USD", amount: 0.5 }, // Colombia
+            GT: { asset: "USD", amount: 0.5 }, // Guatemala
+            PE: { asset: "USD", amount: 0.5 }, // Peru
+            PH: { asset: "USD", amount: 0.5 }, // Philippines
+            ID: { asset: "USD", amount: 0.5 }, // Indonesia
+            TH: { asset: "USD", amount: 0.5 }, // Thailand
+
+            // $1.00 tier
+            BR: { asset: "USD", amount: 1 }, // Brazil
+            CL: { asset: "USD", amount: 1 }, // Chile
+            MX: { asset: "USD", amount: 1 }, // Mexico
+            CR: { asset: "USD", amount: 1 }, // Costa Rica
+            MY: { asset: "USD", amount: 1 }, // Malaysia
+            PA: { asset: "USD", amount: 1 }, // Panama
+            AR: { asset: "USD", amount: 1 }, // Argentina
+
+            // $1.50 tier
+            AT: { asset: "USD", amount: 1.5 }, // Austria
+            DE: { asset: "USD", amount: 1.5 }, // Germany
+            GB: { asset: "USD", amount: 1.5 }, // United Kingdom
+            JP: { asset: "USD", amount: 1.5 }, // Japan
+            KR: { asset: "USD", amount: 1.5 }, // South Korea
+            PL: { asset: "USD", amount: 1.5 }, // Poland
+            SG: { asset: "USD", amount: 1.5 }, // Singapore
+            TW: { asset: "USD", amount: 1.5 }, // Taiwan
+            US: { asset: "USD", amount: 1.5 }, // United States
           },
           nfc: {
             Global: { asset: "USD", amount: 1 },
