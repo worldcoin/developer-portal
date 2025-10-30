@@ -5,6 +5,7 @@ import { type ReactNode } from "react";
 import { twMerge } from "tailwind-merge";
 import { ArrowUpIcon } from "../Icons/ArrowUpIcon";
 
+// TODO: prevent title and description overflow
 export const QuickAction = (
   props: CommonButtonProps & {
     icon: ReactNode;
