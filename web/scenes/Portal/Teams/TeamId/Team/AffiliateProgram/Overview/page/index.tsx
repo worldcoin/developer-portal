@@ -23,6 +23,7 @@ export const AffiliateProgramPage = () => {
             !isMetadataLoading &&
             metadata?.identityVerificationStatus !== "approved",
         })}
+        variant="nav"
       >
         <InviteUserDialog data={metadata} />
 

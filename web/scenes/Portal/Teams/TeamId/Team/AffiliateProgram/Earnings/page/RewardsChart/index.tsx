@@ -16,6 +16,7 @@ import Skeleton from "react-loading-skeleton";
 import { Stat } from "./stat";
 import { TimespanSelector } from "./TimespanSelector";
 import { getXAxisLabels } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/common/utils";
+import { toFixedAmount } from "@/lib/utils";
 
 dayjs.extend(utc);
 dayjs.extend(tz);
@@ -245,11 +246,15 @@ export const RewardsChart = () => {
     useGetAffiliateOverview({ period: timespan.value });
 
   const totalOrbRewards = useMemo(() => {
-    return appStatsData?.earnings.totalByType.orb.inCurrency ?? 0;
+    return (
+      toFixedAmount(appStatsData?.earnings.totalByType.orb.inCurrency) ?? 0
+    );
   }, [appStatsData]);
 
   const totalIdRewards = useMemo(() => {
-    return appStatsData?.earnings.totalByType.nfc.inCurrency ?? 0;
+    return (
+      toFixedAmount(appStatsData?.earnings.totalByType.nfc.inCurrency) ?? 0
+    );
   }, [appStatsData]);
 
   const formattedVerificationsChartData = useMemo(() => {
