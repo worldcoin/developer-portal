@@ -19,7 +19,11 @@ export const EmailDialog = (props: Props) => {
     <Dialog open={isOpened} onClose={setIsOpened}>
       <DialogOverlay />
 
-      <DialogPanel className="grid gap-y-8 md:max-w-[30rem]">
+      <DialogPanel
+        className="grid gap-y-8 md:max-w-[30rem]"
+        onClose={() => setIsOpened(false)}
+        showCloseIcon={true}
+      >
         <CircleIconContainer variant="info">
           <GmailIcon className="size-7" />
         </CircleIconContainer>
