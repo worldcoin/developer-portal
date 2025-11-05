@@ -12,12 +12,12 @@ import { useEffect, useMemo, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import * as yup from "yup";
+import { confirmWithdraw } from "../server/confirmWithdraw";
+import { initiateWithdraw } from "../server/initiateWithdraw";
 import { AffiliateWithdrawStep } from "./common/types";
 import { ConfirmTransaction } from "./ConfirmTransaction";
 import { EnterAmount } from "./EnterAmount";
 import { EnterCode } from "./EnterCode";
-import { confirmWithdraw } from "../server/confirmWithdraw";
-import { initiateWithdraw } from "../server/initiateWithdraw";
 import { WithdrawSuccess } from "./WithdrawSuccess";
 
 type WithdrawFormData = {
@@ -159,12 +159,7 @@ export const WithdrawPage = (props: PageProps) => {
           </Typography>
         </Link>
 
-        <div
-          className={clsx({
-            "grid h-full place-items-center":
-              currentStep === AffiliateWithdrawStep.SUCCESS,
-          })}
-        >
+        <div className="flex h-full min-h-0 items-center justify-center">
           {currentStep === AffiliateWithdrawStep.ENTER_AMOUNT &&
             balanceData && (
               <EnterAmount
