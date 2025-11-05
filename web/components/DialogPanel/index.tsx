@@ -4,7 +4,7 @@ import {
   DialogPanelProps as DialogPanelPropsBase,
   Transition,
 } from "@headlessui/react";
-import { Fragment } from "react";
+import { Fragment, ReactNode } from "react";
 import { twMerge } from "tailwind-merge";
 
 type DialogPanelProps = Omit<DialogPanelPropsBase<"div">, "className"> & {
@@ -12,6 +12,7 @@ type DialogPanelProps = Omit<DialogPanelPropsBase<"div">, "className"> & {
   contentClassName?: string;
   showCloseIcon?: boolean;
   onClose?: () => void;
+  children?: ReactNode;
 };
 
 export const DialogPanel = (props: DialogPanelProps) => {
