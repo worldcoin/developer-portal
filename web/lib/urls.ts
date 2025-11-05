@@ -61,6 +61,15 @@ export const urls = {
   affiliateProgram: (params: { team_id?: string }): string =>
     `/teams/${params.team_id ? params.team_id : ""}/affiliate-program`,
 
+  affiliateWithdrawal: (params: { team_id?: string }): string =>
+    `/teams/${params.team_id ? params.team_id : ""}/affiliate-program/withdraw`,
+
+  affiliateRewards: (params: { team_id?: string }): string =>
+    `/teams/${params.team_id ? params.team_id : ""}/affiliate-program/how-it-works/rewards`,
+
+  affiliateTerms: (params: { team_id?: string }): string =>
+    `/teams/${params.team_id ? params.team_id : ""}/affiliate-program/terms`,
+
   unauthorized: (params?: { message: string }): string => {
     const searchParams = new URLSearchParams(params);
     return `/unauthorized?${searchParams.toString()}`;

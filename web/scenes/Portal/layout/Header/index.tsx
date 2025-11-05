@@ -4,9 +4,11 @@ import { Button } from "@/components/Button";
 import { WorldIcon } from "@/components/Icons/WorldIcon";
 import { LoggedUserNav } from "@/components/LoggedUserNav";
 import { SizingWrapper } from "@/components/SizingWrapper";
+import { Typography, TYPOGRAPHY } from "@/components/Typography";
 import { urls } from "@/lib/urls";
+import { CloseButton } from "@/scenes/Onboarding/CreateTeam/layout/CloseButton";
 import { atom, useAtom, useSetAtom } from "jotai";
-import { useParams } from "next/navigation";
+import { useParams, usePathname } from "next/navigation";
 import { useEffect, useMemo } from "react";
 import { colorAtom } from "..";
 import { Color } from "../../Profile/types";
@@ -33,6 +35,25 @@ export const Header = (props: { color: Color | null }) => {
     }
     return "/";
   }, [teamId, appId]);
+  const path = usePathname();
+
+  const showCloseButton = useMemo(() => {
+    return (
+      path.includes(urls.affiliateWithdrawal({ team_id: teamId })) ||
+      path.includes(urls.affiliateRewards({ team_id: teamId }))
+    );
+  }, [path, teamId]);
+
+  const pageName = useMemo(() => {
+    if (!showCloseButton) return null;
+    if (path.includes(urls.affiliateWithdrawal({ team_id: teamId }))) {
+      return "Withdraw";
+    }
+    if (path.includes(urls.affiliateRewards({ team_id: teamId }))) {
+      return "Rewards";
+    }
+    return null;
+  }, [path, showCloseButton, teamId]);
 
   return (
     <header className="max-md:sticky max-md:top-0 max-md:z-10 max-md:mb-6 max-md:border-b max-md:border-gray-200 max-md:bg-grey-0">
@@ -41,13 +62,27 @@ export const Header = (props: { color: Color | null }) => {
         gridClassName="py-4"
         variant="nav"
       >
-        <div className="grid grid-cols-auto/1fr gap-x-4 md:gap-x-8">
-          <Button href={logoHref}>
-            <WorldIcon />
-          </Button>
+        {showCloseButton && (
+          <div className="flex items-center gap-x-3">
+            <CloseButton />
 
-          <AppSelector />
-        </div>
+            {pageName && (
+              <>
+                <span className="text-grey-200">|</span>
+                <Typography variant={TYPOGRAPHY.M4}>{pageName}</Typography>
+              </>
+            )}
+          </div>
+        )}
+        {!showCloseButton && (
+          <div className="grid grid-cols-auto/1fr gap-x-4 md:gap-x-8">
+            <Button href={logoHref}>
+              <WorldIcon />
+            </Button>
+
+            <AppSelector />
+          </div>
+        )}
 
         <LoggedUserNav />
       </SizingWrapper>

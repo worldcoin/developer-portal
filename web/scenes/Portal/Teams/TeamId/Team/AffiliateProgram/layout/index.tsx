@@ -1,10 +1,11 @@
-import { ReactNode } from "react";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { Tab, Tabs } from "@/components/Tabs";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import { checkIfProduction } from "@/lib/utils";
-import { redirect } from "next/navigation";
 import { urls } from "@/lib/urls";
+import { checkIfProduction } from "@/lib/utils";
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
+import { ReactNode } from "react";
 
 type Params = {
   teamId?: string;
@@ -19,10 +20,19 @@ export const AffiliateProgramLayout = async (props: TeamIdLayoutProps) => {
   const params = props.params;
   const teamId = params.teamId!;
   const isProduction = checkIfProduction();
+  const headersList = headers();
+  const path = headersList.get("x-current-path");
 
   // Disable affiliate program for production
   if (isProduction) {
     return redirect(urls.teams({ team_id: teamId }));
+  }
+
+  if (
+    path === urls.affiliateWithdrawal({ team_id: teamId }) ||
+    path === urls.affiliateRewards({ team_id: teamId })
+  ) {
+    return props.children;
   }
 
   return (

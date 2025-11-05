@@ -149,16 +149,6 @@ export const WithdrawPage = (props: PageProps) => {
         gridClassName="order-2 grow mt-6 md:mt-10"
         className="gap flex flex-col"
       >
-        <Link
-          href={`/teams/${teamId}/affiliate-program/earnings`}
-          className="flex flex-row items-center gap-x-2"
-        >
-          <CaretIcon className="size-3 rotate-90 text-grey-400" />
-          <Typography variant={TYPOGRAPHY.R5} className="text-grey-700">
-            Back to Earnings
-          </Typography>
-        </Link>
-
         <div className="flex h-full min-h-0 items-center justify-center">
           {currentStep === AffiliateWithdrawStep.ENTER_AMOUNT &&
             balanceData && (
