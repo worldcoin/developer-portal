@@ -46,6 +46,13 @@ export const AffiliateProgramLayout = async (props: TeamIdLayoutProps) => {
   }
 
   if (
+      path?.includes("/verify") &&
+      metadata.identityVerificationStatus === IdentityVerificationStatus.SUCCESS
+  ) {
+    return redirect(urls.affiliateProgram({ team_id: teamId }));
+  }
+
+  if (
     metadata.identityVerificationStatus !==
       IdentityVerificationStatus.SUCCESS ||
     path === urls.affiliateWithdrawal({ team_id: teamId }) ||
