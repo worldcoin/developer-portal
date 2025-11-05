@@ -2,17 +2,21 @@
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { IdentificationIcon } from "@/components/Icons/IdentificationIcon";
 import { MailWithLines } from "@/components/Icons/MailWithLines";
+import { RemoveCustomIcon } from "@/components/Icons/RemoveCustomIcon";
 import { SpinnerIcon } from "@/components/Icons/SpinnerIcon";
 import { IconFrame } from "@/components/InitialSteps/IconFrame";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import { AffiliateMetadataResponse } from "@/lib/types";
-import { AcceptTerms } from "./AcceptTerms";
-import { useMemo, useState } from "react";
+import {
+  AffiliateMetadataResponse,
+  IdentityVerificationStatus,
+} from "@/lib/types";
 import {
   getIdentityVerificationLink,
   GetIdentityVerificationLinkResponse,
 } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Overview/server/getIdentityVerificationLink";
+import { useMemo, useState } from "react";
 import { toast } from "react-toastify";
+import { AcceptTerms } from "./AcceptTerms";
 
 type Props = {
   data: AffiliateMetadataResponse;
@@ -23,22 +27,50 @@ export const NotVerified = (props: Props) => {
   const [showAcceptTerms, setShowAcceptTerms] = useState(false);
 
   const title = useMemo(() => {
-    if (!isLoading) {
-      return props.data.verificationType === "kyb"
-        ? "Complete KYB"
-        : "Complete KYC";
+    const status = props.data.identityVerificationStatus;
+    const type = props.data.verificationType === "kyb" ? "KYB" : "KYC";
+
+    if (status === IdentityVerificationStatus.SUCCESS) {
+      return null;
     }
-    return props.data.verificationType === "kyb"
-      ? "KYB processing"
-      : "KYC processing";
-  }, [props.data.verificationType, isLoading]);
+
+    if (status === IdentityVerificationStatus.PENDING) {
+      return `${type} processing`;
+    }
+
+    if (status === IdentityVerificationStatus.FAILED) {
+      return `${type} failed`;
+    }
+
+    // fallback for undefined || not_started || created || timeout - Complete KYB
+    return `Complete ${type}`;
+  }, [props.data.identityVerificationStatus, props.data.verificationType]);
 
   const description = useMemo(() => {
-    if (!isLoading) {
-      return "To unlock affiliate program";
+    const status = props.data.identityVerificationStatus;
+
+    if (status === IdentityVerificationStatus.SUCCESS) {
+      return null;
     }
-    return "It can take 1-3 days";
-  }, [isLoading]);
+
+    if (status === IdentityVerificationStatus.PENDING) {
+      return "It can take 1-3 days";
+    }
+
+    if (status === IdentityVerificationStatus.FAILED) {
+      return "Verification failed, try again";
+    }
+
+    // fallback for undefined || not_started || created || timeout - Complete KYB
+    return "To unlock affiliate program";
+  }, [props.data.identityVerificationStatus]);
+
+  const actionButton = useMemo(() => {
+    return props.data.identityVerificationStatus ===
+      IdentityVerificationStatus.FAILED
+      ? "Try again"
+      : "Complete";
+  }, [props.data.identityVerificationStatus]);
 
   const handleCompleteKyb = async () => {
     setShowAcceptTerms(false);
@@ -88,9 +120,16 @@ export const NotVerified = (props: Props) => {
       </div>
 
       <div className="mt-6 flex w-full items-center gap-3 rounded-2xl border border-grey-200 p-6 md:mt-10">
-        <IconFrame className="bg-blue-500 text-grey-0">
-          <IdentificationIcon />
-        </IconFrame>
+        {props.data.identityVerificationStatus ===
+        IdentityVerificationStatus.FAILED ? (
+          <IconFrame className="bg-system-error-50 text-system-error-500">
+            <RemoveCustomIcon className="size-5" />
+          </IconFrame>
+        ) : (
+          <IconFrame className="bg-blue-500 text-grey-0">
+            <IdentificationIcon className="size-5" />
+          </IconFrame>
+        )}
 
         <div className="text-start">
           <Typography as="p" variant={TYPOGRAPHY.M3}>
@@ -108,7 +147,7 @@ export const NotVerified = (props: Props) => {
             onClick={() => setShowAcceptTerms(true)}
             className="ml-auto h-9"
           >
-            Complete
+            {actionButton}
           </DecoratedButton>
         )}
       </div>

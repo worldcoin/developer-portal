@@ -7,12 +7,14 @@ import { InviteUserDialog } from "./InviteUserDialog";
 import { NotVerified } from "./NotVerified";
 import { OverviewProfile } from "./OverviewProfile";
 import { VerificationsChart } from "./VerificationsChart";
+import { IdentityVerificationStatus } from "@/lib/types";
 
 export const AffiliateProgramPage = () => {
   const { data: metadata, loading: isMetadataLoading } =
     useGetAffiliateMetadata();
   const isUserPassedKyc =
-    !isMetadataLoading && metadata?.identityVerificationStatus === "approved";
+    !isMetadataLoading &&
+    metadata?.identityVerificationStatus === IdentityVerificationStatus.SUCCESS;
 
   return (
     <>
@@ -21,7 +23,8 @@ export const AffiliateProgramPage = () => {
         className={clsx("flex flex-col", {
           "place-content-center items-center":
             !isMetadataLoading &&
-            metadata?.identityVerificationStatus !== "approved",
+            metadata?.identityVerificationStatus !==
+              IdentityVerificationStatus.SUCCESS,
         })}
         variant="nav"
       >

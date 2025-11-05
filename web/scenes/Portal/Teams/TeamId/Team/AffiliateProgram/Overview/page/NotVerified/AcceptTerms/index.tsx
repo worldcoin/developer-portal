@@ -1,8 +1,8 @@
 "use client";
-import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import { CircleIconContainer } from "@/components/CircleIconContainer";
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { LegalIcon } from "@/components/Icons/LegalIcon";
-import { CircleIconContainer } from "@/components/CircleIconContainer";
+import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { acceptTermsText } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Overview/page/NotVerified/AcceptTerms/doc";
 
 type Props = {
@@ -32,9 +32,9 @@ export const AcceptTerms = (props: Props) => {
       </div>
 
       <Typography
-        as="pre"
+        as="p"
         variant={TYPOGRAPHY.R5}
-        className="mt-8 h-[300px] w-full overflow-auto rounded-2xl bg-grey-50 p-4 text-grey-500"
+        className="mt-8 h-[300px] w-full overflow-auto whitespace-pre-wrap rounded-2xl bg-grey-50 p-4 text-grey-500"
       >
         {acceptTermsText}
       </Typography>

@@ -338,9 +338,19 @@ export type AffiliateBalanceResponse = {
   withdrawalWallet: string; // Most recent withdrawal wallet address
 };
 
+export enum IdentityVerificationStatus {
+  NOT_STARTED = "not_started",
+  CREATED = "created",
+  PENDING = "pending",
+  SUCCESS = "success",
+  FAILED = "failed",
+  TIMEOUT = "timeout",
+  UNDEFINED = "undefined",
+}
+
 export type AffiliateMetadataResponse = {
   inviteCode: string;
-  identityVerificationStatus: "approved" | "none";
+  identityVerificationStatus: IdentityVerificationStatus;
   identityVerifiedAt: string;
   verificationType: "kyb" | "kyc";
   totalInvites: number;
