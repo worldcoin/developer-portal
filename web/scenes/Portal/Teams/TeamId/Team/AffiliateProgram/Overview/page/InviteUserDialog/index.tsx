@@ -30,7 +30,7 @@ export const InviteUserDialog = (props: Props) => {
         showCloseIcon={true}
       >
         <CircleIconContainer variant="info">
-          <GmailIcon />
+          <GmailIcon className="size-8" />
         </CircleIconContainer>
 
         <div className="grid justify-items-center gap-y-4">
