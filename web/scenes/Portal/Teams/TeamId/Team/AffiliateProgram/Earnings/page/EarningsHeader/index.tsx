@@ -3,7 +3,11 @@ import { DecoratedButton } from "@/components/DecoratedButton";
 import { WorldIcon } from "@/components/Icons/WorldIcon";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { AffiliateBalanceResponse, Auth0SessionUser } from "@/lib/types";
-import { checkUserPermissions, formatTokenAmount } from "@/lib/utils";
+import {
+  checkUserPermissions,
+  formatTokenAmount,
+  toFixedAmount,
+} from "@/lib/utils";
 import tokenWalletImage from "@/public/images/token-wallet.png";
 import { useMemo } from "react";
 import Skeleton from "react-loading-skeleton";
@@ -42,7 +46,7 @@ export const EarningsHeader = (props: Props) => {
     if (data?.availableBalance.inCurrency != null) {
       return (
         "Available to withdraw · $" +
-        data?.availableBalance.inCurrency.toFixed(2)
+        toFixedAmount(data?.availableBalance.inCurrency)
       );
     }
     return "No funds to withdraw";
