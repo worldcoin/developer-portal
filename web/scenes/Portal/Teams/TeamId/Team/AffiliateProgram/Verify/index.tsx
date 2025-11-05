@@ -16,7 +16,7 @@ import {
 import { useMemo, useState } from "react";
 import Skeleton from "react-loading-skeleton";
 import { toast } from "react-toastify";
-import { AcceptTerms } from "./AcceptTerms";
+import { AcceptTermsDialog } from "./AcceptTerms";
 import { Button } from "@/components/Button";
 import { ArrowDownSharpIcon } from "@/components/Icons/ArrowDownSharp";
 
@@ -104,16 +104,18 @@ export const VerifyPage = () => {
     }
   };
 
-  if (showAcceptTerms) {
-    return <AcceptTerms loading={isLoading} onConfirm={handleCompleteKyb} />;
-  }
-
   return (
     <SizingWrapper
       gridClassName="order-2 grow"
       className="flex flex-col place-content-center items-center"
       variant="nav"
     >
+      <AcceptTermsDialog
+        open={showAcceptTerms}
+        onConfirm={handleCompleteKyb}
+        onClose={() => setShowAcceptTerms(false)}
+      />
+
       <div className="grid max-w-[480px] grid-cols-1 justify-items-center pt-12">
         <MailWithLines className="md:max-w-[380px]" />
 
