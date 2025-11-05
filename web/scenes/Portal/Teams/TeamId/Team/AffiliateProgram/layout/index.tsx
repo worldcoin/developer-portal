@@ -6,6 +6,11 @@ import { checkIfProduction } from "@/lib/utils";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { ReactNode } from "react";
+import { getAffiliateMetadata } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Overview/page/server/getAffiliateMetadata";
+import {
+  AffiliateMetadataResponse,
+  IdentityVerificationStatus,
+} from "@/lib/types";
 
 type Params = {
   teamId?: string;
@@ -22,6 +27,11 @@ export const AffiliateProgramLayout = async (props: TeamIdLayoutProps) => {
   const isProduction = checkIfProduction();
   const headersList = headers();
   const path = headersList.get("x-current-path");
+  const result = await getAffiliateMetadata();
+  if (!result.success) {
+    return redirect(urls.teams({ team_id: teamId }));
+  }
+  const metadata = result.data as AffiliateMetadataResponse;
 
   // Disable affiliate program for production
   if (isProduction) {
@@ -29,6 +39,15 @@ export const AffiliateProgramLayout = async (props: TeamIdLayoutProps) => {
   }
 
   if (
+    !path?.includes("/verify") &&
+    metadata.identityVerificationStatus !== IdentityVerificationStatus.SUCCESS
+  ) {
+    return redirect(urls.affiliateProgramVerify({ team_id: teamId }));
+  }
+
+  if (
+    metadata.identityVerificationStatus !==
+      IdentityVerificationStatus.SUCCESS ||
     path === urls.affiliateWithdrawal({ team_id: teamId }) ||
     path === urls.affiliateRewards({ team_id: teamId })
   ) {

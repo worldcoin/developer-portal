@@ -4,7 +4,6 @@ import { SizingWrapper } from "@/components/SizingWrapper";
 import clsx from "clsx";
 import { useGetAffiliateMetadata } from "./hooks/use-get-affiliate-metadata";
 import { InviteUserDialog } from "./InviteUserDialog";
-import { NotVerified } from "./NotVerified";
 import { OverviewProfile } from "./OverviewProfile";
 import { VerificationsChart } from "./VerificationsChart";
 import { IdentityVerificationStatus } from "@/lib/types";
@@ -30,14 +29,10 @@ export const AffiliateProgramPage = () => {
       >
         <InviteUserDialog data={metadata} />
 
-        {metadata && !isUserPassedKyc ? (
-          <NotVerified data={metadata} />
-        ) : (
-          <Section>
-            <OverviewProfile loading={isMetadataLoading} data={metadata} />
-            <VerificationsChart />
-          </Section>
-        )}
+        <Section>
+          <OverviewProfile loading={isMetadataLoading} data={metadata} />
+          <VerificationsChart />
+        </Section>
       </SizingWrapper>
     </>
   );

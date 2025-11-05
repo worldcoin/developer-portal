@@ -3,7 +3,7 @@ import { CircleIconContainer } from "@/components/CircleIconContainer";
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { LegalIcon } from "@/components/Icons/LegalIcon";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import { acceptTermsText } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Overview/page/NotVerified/AcceptTerms/doc";
+import { acceptTermsText } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Verify/AcceptTerms/doc";
 
 type Props = {
   loading: boolean;

@@ -61,6 +61,9 @@ export const urls = {
   affiliateProgram: (params: { team_id?: string }): string =>
     `/teams/${params.team_id ? params.team_id : ""}/affiliate-program`,
 
+  affiliateProgramVerify: (params: { team_id?: string }): string =>
+    `/teams/${params.team_id ? params.team_id : ""}/affiliate-program/verify`,
+
   affiliateWithdrawal: (params: { team_id?: string }): string =>
     `/teams/${params.team_id ? params.team_id : ""}/affiliate-program/withdraw`,
 
