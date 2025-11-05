@@ -4,9 +4,9 @@ import { SizingWrapper } from "@/components/SizingWrapper";
 import clsx from "clsx";
 import { useGetAffiliateMetadata } from "./hooks/use-get-affiliate-metadata";
 import { InviteUserDialog } from "./InviteUserDialog";
+import { NotVerified } from "./NotVerified";
 import { OverviewProfile } from "./OverviewProfile";
 import { VerificationsChart } from "./VerificationsChart";
-import { NotVerified } from "./NotVerified";
 
 export const AffiliateProgramPage = () => {
   const { data: metadata, loading: isMetadataLoading } =
@@ -19,7 +19,7 @@ export const AffiliateProgramPage = () => {
       <SizingWrapper
         gridClassName="order-2 grow"
         className={clsx("flex flex-col", {
-          "place-content-center":
+          "place-content-center items-center":
             !isMetadataLoading &&
             metadata?.identityVerificationStatus !== "approved",
         })}

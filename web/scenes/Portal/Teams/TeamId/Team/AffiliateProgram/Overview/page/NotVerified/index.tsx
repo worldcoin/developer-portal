@@ -1,16 +1,18 @@
 "use client";
-import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { DecoratedButton } from "@/components/DecoratedButton";
-import { MailWithLines } from "@/components/Icons/MailWithLines";
-import { IconFrame } from "@/components/InitialSteps/IconFrame";
 import { IdentificationIcon } from "@/components/Icons/IdentificationIcon";
+import { MailWithLines } from "@/components/Icons/MailWithLines";
+import { SpinnerIcon } from "@/components/Icons/SpinnerIcon";
+import { IconFrame } from "@/components/InitialSteps/IconFrame";
+import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import { AffiliateMetadataResponse } from "@/lib/types";
+import { AcceptTerms } from "./AcceptTerms";
+import { useMemo, useState } from "react";
 import {
   getIdentityVerificationLink,
   GetIdentityVerificationLinkResponse,
 } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Overview/server/getIdentityVerificationLink";
 import { toast } from "react-toastify";
-import { useState } from "react";
-import { AffiliateMetadataResponse } from "@/lib/types";
 
 type Props = {
   data: AffiliateMetadataResponse;
@@ -18,8 +20,28 @@ type Props = {
 
 export const NotVerified = (props: Props) => {
   const [isLoading, setIsLoading] = useState(false);
+  const [showAcceptTerms, setShowAcceptTerms] = useState(false);
+
+  const title = useMemo(() => {
+    if (!isLoading) {
+      return props.data.verificationType === "kyb"
+        ? "Complete KYB"
+        : "Complete KYC";
+    }
+    return props.data.verificationType === "kyb"
+      ? "KYB processing"
+      : "KYC processing";
+  }, [props.data.verificationType, isLoading]);
+
+  const description = useMemo(() => {
+    if (!isLoading) {
+      return "To unlock affiliate program";
+    }
+    return "It can take 1-3 days";
+  }, [isLoading]);
 
   const handleCompleteKyb = async () => {
+    setShowAcceptTerms(false);
     setIsLoading(true);
 
     try {
@@ -44,8 +66,12 @@ export const NotVerified = (props: Props) => {
     }
   };
 
+  if (showAcceptTerms) {
+    return <AcceptTerms loading={isLoading} onConfirm={handleCompleteKyb} />;
+  }
+
   return (
-    <div className="grid grid-cols-1 justify-items-center pt-12">
+    <div className="grid max-w-[480px] grid-cols-1 justify-items-center pt-12">
       <MailWithLines className="md:max-w-[380px]" />
 
       <div className="mt-4 grid justify-items-center gap-y-2 ">
@@ -61,27 +87,30 @@ export const NotVerified = (props: Props) => {
         </Typography>
       </div>
 
-      <div className="mt-6 flex items-center gap-3 rounded-2xl border border-grey-200 p-6 md:mt-10">
+      <div className="mt-6 flex w-full items-center gap-3 rounded-2xl border border-grey-200 p-6 md:mt-10">
         <IconFrame className="bg-blue-500 text-grey-0">
           <IdentificationIcon />
         </IconFrame>
 
         <div className="text-start">
           <Typography as="p" variant={TYPOGRAPHY.M3}>
-            Complete KYB
+            {title}
           </Typography>
           <Typography as="p" variant={TYPOGRAPHY.R5} className="text-grey-500">
-            To unlock affiliate program
+            {description}
           </Typography>
         </div>
-        <DecoratedButton
-          type="button"
-          onClick={handleCompleteKyb}
-          className="h-9"
-          disabled={isLoading}
-        >
-          {isLoading ? "Completing..." : "Complete"}
-        </DecoratedButton>
+        {isLoading ? (
+          <SpinnerIcon className="ml-auto size-6 animate-spin" />
+        ) : (
+          <DecoratedButton
+            type="button"
+            onClick={() => setShowAcceptTerms(true)}
+            className="ml-auto h-9"
+          >
+            Complete
+          </DecoratedButton>
+        )}
       </div>
     </div>
   );
