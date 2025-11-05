@@ -9,7 +9,6 @@ import {
 import { createSignedFetcher } from "aws-sigv4-fetch";
 
 export const confirmWithdraw = async ({
-  withdrawalRequestId,
   emailConfirmationCode,
 }: ConfirmWithdrawRequest): Promise<FormActionResult> => {
   const path = getPathFromHeaders() || "";
@@ -39,14 +38,12 @@ export const confirmWithdraw = async ({
     if (shouldReturnMocks) {
       // TODO: remove mock response
       const data: ConfirmWithdrawResponse = {
-        withdrawalId: withdrawalRequestId,
         amountInWld: "50000000000000000000",
         estimatedCompletionTime: new Date(
           Date.now() + 24 * 60 * 60 * 1000,
         ).toISOString(), // 24 hours from now
         newAvailableBalance: "10000000000000000000",
         toWallet: "0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6",
-        status: "confirmed",
       };
       return {
         success: true,
@@ -73,7 +70,6 @@ export const confirmWithdraw = async ({
         "X-Dev-Portal-User-Id": `team_${teamId}`,
       },
       body: JSON.stringify({
-        withdrawalRequestId,
         emailConfirmationCode,
       }),
     });

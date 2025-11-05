@@ -1,13 +1,8 @@
 "use client";
-import { CaretIcon } from "@/components/Icons/CaretIcon";
 import { SizingWrapper } from "@/components/SizingWrapper";
-import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import { InitiateWithdrawResponse } from "@/lib/types";
 import { convertAmountToWei, parseTokenAmount } from "@/lib/utils";
 import { useGetAffiliateBalance } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/common/hooks/use-get-affiliate-balance";
 import { yupResolver } from "@hookform/resolvers/yup";
-import clsx from "clsx";
-import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { toast } from "react-toastify";
@@ -33,16 +28,12 @@ type PageProps = {
 };
 
 export const WithdrawPage = (props: PageProps) => {
-  const { params } = props;
-  const teamId = params?.teamId;
   const { data: balanceData, loading: isBalanceLoading } =
     useGetAffiliateBalance();
 
   const [currentStep, setCurrentStep] = useState<AffiliateWithdrawStep>(
     AffiliateWithdrawStep.ENTER_AMOUNT,
   );
-  const [withdrawalResponse, setWithdrawalResponse] =
-    useState<InitiateWithdrawResponse | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   // Create dynamic schema based on balance data
@@ -101,17 +92,15 @@ export const WithdrawPage = (props: PageProps) => {
     try {
       const data = watch();
       const amountInWldWei = convertAmountToWei(data.amount, "WLD");
-      if (!data.walletAddress || !amountInWldWei) {
+      if (!amountInWldWei) {
         toast.error("Unable to initiate withdrawal. Please contact support.");
         return;
       }
 
-      const result = await initiateWithdraw({
+      await initiateWithdraw({
         amountInWld: amountInWldWei,
-        toWallet: data.walletAddress,
       });
 
-      setWithdrawalResponse(result.data as InitiateWithdrawResponse);
       setCurrentStep(AffiliateWithdrawStep.ENTER_CODE);
     } catch (error) {
       console.error("Withdrawal initiation failed:", error);
@@ -122,16 +111,10 @@ export const WithdrawPage = (props: PageProps) => {
 
   // Add confirmation handler
   const onWithdrawConfirm = async () => {
-    if (!withdrawalResponse) {
-      toast.error("No withdrawal request found");
-      return;
-    }
-
     try {
       setIsLoading(true);
       const data = watch();
       await confirmWithdraw({
-        withdrawalRequestId: withdrawalResponse.withdrawalId,
         emailConfirmationCode: data.otpCode,
       });
 

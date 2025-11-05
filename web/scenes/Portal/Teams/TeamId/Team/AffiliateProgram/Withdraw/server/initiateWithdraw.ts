@@ -11,7 +11,6 @@ import { createSignedFetcher } from "aws-sigv4-fetch";
 
 export const initiateWithdraw = async ({
   amountInWld,
-  toWallet,
 }: InitiateWithdrawRequest): Promise<FormActionResult> => {
   const path = getPathFromHeaders() || "";
   const { teams: teamId } = extractIdsFromPath(path, ["teams"]);
@@ -25,27 +24,16 @@ export const initiateWithdraw = async ({
       });
     }
 
-    // Validate wallet address format
-    if (!/^0x[a-fA-F0-9]{40}$/.test(toWallet)) {
-      return errorFormAction({
-        message: "Invalid wallet address format",
-        team_id: teamId,
-        logLevel: "error",
-      });
-    }
-
     //TODO: add check for process.env.NEXT_SERVER_APP_BACKEND_BASE_URL and remove mocks after backend will be ready
     const shouldReturnMocks = true;
 
     if (shouldReturnMocks) {
       // TODO: remove mock response
       const data: InitiateWithdrawResponse = {
-        withdrawalId: "123e4567-e89b-12d3-a456-426614174000",
         amountInWld,
-        toWallet,
         email: "a***e@example.com",
         codeExpiresAt: new Date(Date.now() + 15 * 60 * 1000).toISOString(), // 15 minutes from now
-        status: "pending_confirmation",
+        toWallet: "asdalsdklasmdklasmdlaksdmasdlkasd",
       };
       return {
         success: true,
@@ -73,7 +61,6 @@ export const initiateWithdraw = async ({
       },
       body: JSON.stringify({
         amountInWld,
-        toWallet,
       }),
     });
 
