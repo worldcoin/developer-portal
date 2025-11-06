@@ -32,7 +32,7 @@ export const getAffiliateBalance = async (): Promise<FormActionResult> => {
       };
     }
 
-    let url = `${process.env.NEXT_SERVER_APP_BACKEND_BASE_URL}/affiliate/balance`;
+    let url = `/internal/v1/affiliate/balance`;
     const response = await appBackendFetcher(url, {
       method: "GET",
       teamId,

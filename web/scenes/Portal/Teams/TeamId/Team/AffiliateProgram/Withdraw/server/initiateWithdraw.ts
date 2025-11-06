@@ -44,7 +44,7 @@ export const initiateWithdraw = async ({
       };
     }
 
-    const url = `${process.env.NEXT_SERVER_APP_BACKEND_BASE_URL}/affiliate/withdraw/initiate`;
+    const url = `/internal/v1/affiliate/withdraw/initiate`;
 
     const response = await appBackendFetcher(url, {
       method: "POST",

@@ -36,7 +36,7 @@ export const getAffiliateOverview = async ({
       };
     }
 
-    let url = `${process.env.NEXT_SERVER_APP_BACKEND_BASE_URL}/affiliate/overview${period ? `?period=${period}` : ""}`;
+    let url = `/internal/v1/affiliate/overview${period ? `?period=${period}` : ""}`;
     const response = await appBackendFetcher(url, {
       method: "GET",
       teamId,

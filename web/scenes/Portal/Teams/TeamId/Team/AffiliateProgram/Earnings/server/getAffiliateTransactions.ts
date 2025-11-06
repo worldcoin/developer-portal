@@ -75,7 +75,7 @@ export const getAffiliateTransactions = async (
         return acc;
       }, new URLSearchParams());
 
-    const url = `${process.env.NEXT_SERVER_APP_BACKEND_BASE_URL}/affiliate/transactions${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
+    const url = `/internal/v1/affiliate/transactions${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
 
     const response = await appBackendFetcher(url, {
       method: "GET",

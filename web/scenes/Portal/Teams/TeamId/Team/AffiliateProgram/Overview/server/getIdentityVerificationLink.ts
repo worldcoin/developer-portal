@@ -46,7 +46,7 @@ export const getIdentityVerificationLink = async ({
       };
     }
 
-    const url = `${process.env.NEXT_SERVER_APP_BACKEND_BASE_URL}/affiliate/identity-verification/verification-link`;
+    const url = `/internal/v1/affiliate/identity-verification/verification-link`;
     // NOTE: set kyb because app backend doesn't if it's kyc or kyb
     const requestBody = { type: "kyb", redirectUri };
 

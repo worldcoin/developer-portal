@@ -32,9 +32,7 @@ export const getAffiliateMetadata = async (): Promise<FormActionResult> => {
       };
     }
 
-    let url = `${process.env.NEXT_SERVER_APP_BACKEND_BASE_URL}/affiliate/metadata`;
-
-    const response = await appBackendFetcher(url, {
+    const response = await appBackendFetcher('/internal/v1/affiliate/metadata', {
       method: "GET",
       teamId,
     });
