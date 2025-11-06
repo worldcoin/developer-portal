@@ -323,6 +323,16 @@ export interface FormActionResult {
 }
 
 /* Affiliate program types START */
+export interface GetIdentityVerificationLinkRequest {
+  type: "kyc" | "kyb";
+  redirectUri: string;
+}
+
+export interface GetIdentityVerificationLinkResponse {
+  link: string;
+  isLimitReached: boolean;
+}
+
 export type AffiliateBalanceResponse = {
   availableBalance: {
     inWLD: string; // Can withdraw (in WLD, as string, wei units)
@@ -349,6 +359,7 @@ export enum IdentityVerificationStatus {
 }
 
 export type AffiliateMetadataResponse = {
+  email: string;
   inviteCode: string;
   identityVerificationStatus: IdentityVerificationStatus;
   identityVerifiedAt: string;
@@ -391,10 +402,8 @@ export type AffiliateOverviewResponse = {
   };
   earnings: {
     total: {
-      value: string;
-      decimals: number;
-      asset: string;
-      symbol: string;
+      inWLD: string;
+      inCurrency: number;
     };
     totalInCurrency: number;
     totalByType: {
@@ -464,7 +473,7 @@ export interface InitiateWithdrawRequest {
 
 export interface InitiateWithdrawResponse {
   amountInWld: string;
-  toWallet: string;
+  toWalletAddress: string;
   email: string;
   codeExpiresAt: string; // ISO 8601 timestamp
 }
@@ -472,10 +481,11 @@ export interface InitiateWithdrawResponse {
 export interface ConfirmWithdrawRequest {
   emailConfirmationCode: string;
 }
+
 export interface ConfirmWithdrawResponse {
   amountInWld: string;
   estimatedCompletionTime: string;
   newAvailableBalance: string;
-  toWallet: string;
+  toWalletAddress: string;
 }
 /* Affiliate program types END */

@@ -33,7 +33,7 @@ export const initiateWithdraw = async ({
         amountInWld,
         email: "a***e@example.com",
         codeExpiresAt: new Date(Date.now() + 15 * 60 * 1000).toISOString(), // 15 minutes from now
-        toWallet: "0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6",
+        toWalletAddress: "0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6",
       };
       return {
         success: true,

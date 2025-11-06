@@ -77,10 +77,8 @@ export const weeklyOverviewMock: AffiliateOverviewResponse = {
   },
   earnings: {
     total: {
-      value: "108000000000000000000", // 108 WLD in wei
-      decimals: 18,
-      asset: "WLD",
-      symbol: "WLD",
+      inWLD: "108000000000000000000", // 108 WLD in wei
+      inCurrency: 108,
     },
     totalInCurrency: 108.0,
     totalByType: {
@@ -284,10 +282,8 @@ export const dailyOverviewMock: AffiliateOverviewResponse = {
   },
   earnings: {
     total: {
-      value: "12000000000000000000", // 12 WLD in wei
-      decimals: 18,
-      asset: "WLD",
-      symbol: "WLD",
+      inWLD: "12000000000000000000",
+      inCurrency: 18,
     },
     totalInCurrency: 12.0,
     totalByType: {
@@ -640,10 +636,8 @@ export const monthlyOverviewMock: AffiliateOverviewResponse = {
   },
   earnings: {
     total: {
-      value: "528000000000000000000", // 528 WLD in wei
-      decimals: 18,
-      asset: "WLD",
-      symbol: "WLD",
+      inWLD: "528000000000000000000",
+      inCurrency: 528,
     },
     totalInCurrency: 528.0,
     totalByType: {
@@ -1068,10 +1062,8 @@ export const yearlyOverviewMock: AffiliateOverviewResponse = {
   },
   earnings: {
     total: {
-      value: "3000000000000000000000", // 3000 WLD in wei
-      decimals: 18,
-      asset: "WLD",
-      symbol: "WLD",
+      inWLD: "3000000000000000000000", // 3000 WLD in wei
+      inCurrency: 3000,
     },
     totalInCurrency: 3000.0,
     totalByType: {

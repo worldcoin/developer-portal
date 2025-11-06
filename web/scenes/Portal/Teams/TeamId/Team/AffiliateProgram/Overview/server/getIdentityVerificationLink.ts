@@ -2,22 +2,12 @@
 
 import { errorFormAction } from "@/api/helpers/errors";
 import { extractIdsFromPath, getPathFromHeaders } from "@/lib/server-utils";
-import { FormActionResult } from "@/lib/types";
+import {
+  FormActionResult,
+  GetIdentityVerificationLinkRequest,
+  GetIdentityVerificationLinkResponse,
+} from "@/lib/types";
 import { createSignedFetcher } from "aws-sigv4-fetch";
-
-export interface GetIdentityVerificationLinkRequest {
-  type: "kyc" | "kyb";
-  redirectUri: string;
-}
-
-export interface GetIdentityVerificationLinkResponse {
-  link: string;
-  customerId: string;
-  verificationType: "kyc" | "kyb";
-  timestamp: string;
-  status: "not_started" | "pending" | "success" | "failed";
-  isLimitReached: boolean;
-}
 
 export const getIdentityVerificationLink = async ({
   type,
@@ -42,10 +32,6 @@ export const getIdentityVerificationLink = async ({
       // TODO: remove mock response
       const data: GetIdentityVerificationLinkResponse = {
         link: "https://aiprise.com/verify/mock-verification-id",
-        customerId: "customer_123",
-        verificationType: type,
-        timestamp: new Date().toISOString(),
-        status: "pending",
         isLimitReached: false,
       };
       return {
@@ -63,7 +49,7 @@ export const getIdentityVerificationLink = async ({
       });
     }
 
-    const url = `${process.env.NEXT_SERVER_APP_BACKEND_BASE_URL}/internal/v1/affiliate/identity-verification/get-link`;
+    const url = `${process.env.NEXT_SERVER_APP_BACKEND_BASE_URL}/internal/v1/affiliate/identity-verification/verification-link`;
 
     const requestBody = { type, redirectUri };
 

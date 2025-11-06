@@ -4,6 +4,7 @@ import {
 } from "@/lib/types";
 
 export const afilliateMetadataMock: AffiliateMetadataResponse = {
+  email: "test@mail.com",
   inviteCode: "AFFLT12",
   identityVerificationStatus: IdentityVerificationStatus.SUCCESS,
   identityVerifiedAt: "2025-09-01T10:00:00Z",
