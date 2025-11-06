@@ -7,7 +7,7 @@ import {
   InitiateWithdrawRequest,
   InitiateWithdrawResponse,
 } from "@/lib/types";
-import { appBackendFetcher } from "@/lib/app-backend-fetcher";
+import { createSignedFetcher } from "aws-sigv4-fetch";
 
 export const initiateWithdraw = async ({
   amountInWld,
@@ -44,14 +44,23 @@ export const initiateWithdraw = async ({
       };
     }
 
-    const url = `/internal/v1/affiliate/withdraw/initiate`;
+    let signedFetch = global.TransactionSignedFetcher;
+    if (!signedFetch) {
+      signedFetch = createSignedFetcher({
+        service: "execute-api",
+        region: process.env.TRANSACTION_BACKEND_REGION,
+      });
+    }
 
-    const response = await appBackendFetcher(url, {
+    const url = `${process.env.NEXT_SERVER_APP_BACKEND_BASE_URL}/internal/v1/affiliate/withdraw/initiate`;
+
+    const response = await signedFetch(url, {
       method: "POST",
-      teamId,
       headers: {
         Accept: "application/json",
+        "User-Agent": "DevPortal/1.0",
         "Content-Type": "application/json",
+        "X-Dev-Portal-User-Id": `team_${teamId}`,
       },
       body: JSON.stringify({
         amountInWld,

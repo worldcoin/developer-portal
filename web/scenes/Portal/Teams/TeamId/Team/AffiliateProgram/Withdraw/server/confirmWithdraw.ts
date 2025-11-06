@@ -6,7 +6,7 @@ import {
   ConfirmWithdrawResponse,
   FormActionResult,
 } from "@/lib/types";
-import { appBackendFetcher } from "@/lib/app-backend-fetcher";
+import { createSignedFetcher } from "aws-sigv4-fetch";
 
 export const confirmWithdraw = async ({
   emailConfirmationCode,
@@ -54,14 +54,22 @@ export const confirmWithdraw = async ({
       };
     }
 
-    const url = `/internal/v1/affiliate/withdraw/confirm`;
+    let signedFetch = global.TransactionSignedFetcher;
+    if (!signedFetch) {
+      signedFetch = createSignedFetcher({
+        service: "execute-api",
+        region: process.env.TRANSACTION_BACKEND_REGION,
+      });
+    }
+    const url = `${process.env.NEXT_SERVER_APP_BACKEND_BASE_URL}/internal/v1/affiliate/withdraw/confirm`;
 
-    const response = await appBackendFetcher(url, {
+    const response = await signedFetch(url, {
       method: "POST",
-      teamId,
       headers: {
         Accept: "application/json",
         "Content-Type": "application/json",
+        "User-Agent": "DevPortal/1.0",
+        "X-Dev-Portal-User-Id": `team_${teamId}`,
       },
       body: JSON.stringify({
         emailConfirmationCode,

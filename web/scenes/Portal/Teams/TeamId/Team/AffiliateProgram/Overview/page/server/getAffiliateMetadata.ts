@@ -3,8 +3,8 @@
 import { errorFormAction } from "@/api/helpers/errors";
 import { extractIdsFromPath, getPathFromHeaders } from "@/lib/server-utils";
 import { AffiliateMetadataResponse, FormActionResult } from "@/lib/types";
+import { createSignedFetcher } from "aws-sigv4-fetch";
 import { afilliateMetadataMock } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Overview/page/server/mock";
-import { appBackendFetcher } from "@/lib/app-backend-fetcher";
 
 export const getAffiliateMetadata = async (): Promise<FormActionResult> => {
   const path = getPathFromHeaders() || "";
@@ -32,13 +32,24 @@ export const getAffiliateMetadata = async (): Promise<FormActionResult> => {
       };
     }
 
-    const response = await appBackendFetcher(
-      "/internal/v1/affiliate/metadata",
-      {
-        method: "GET",
-        teamId,
+    let signedFetch = global.TransactionSignedFetcher;
+    if (!signedFetch) {
+      signedFetch = createSignedFetcher({
+        service: "execute-api",
+        region: process.env.TRANSACTION_BACKEND_REGION,
+      });
+    }
+
+    let url = `${process.env.NEXT_SERVER_APP_BACKEND_BASE_URL}/internal/v1/affiliate/metadata`;
+
+    const response = await signedFetch(url, {
+      method: "GET",
+      headers: {
+        "User-Agent": "DevPortal/1.0",
+        "Content-Type": "application/json",
+        "X-Dev-Portal-User-Id": `team_${teamId}`,
       },
-    );
+    });
 
     const data = (await response.json()) as AffiliateMetadataResponse;
     if (!response.ok) {

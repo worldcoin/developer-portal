@@ -7,8 +7,8 @@ import {
   GetIdentityVerificationLinkRequest,
   GetIdentityVerificationLinkResponse,
 } from "@/lib/types";
-import { appBackendFetcher } from "@/lib/app-backend-fetcher";
 import { logger } from "@/lib/logger";
+import { createSignedFetcher } from "aws-sigv4-fetch";
 
 export const getIdentityVerificationLink = async ({
   redirectUri,
@@ -46,21 +46,29 @@ export const getIdentityVerificationLink = async ({
       };
     }
 
+    let signedFetch = global.TransactionSignedFetcher;
+    if (!signedFetch) {
+      signedFetch = createSignedFetcher({
+        service: "execute-api",
+        region: process.env.TRANSACTION_BACKEND_REGION,
+      });
+    }
     const url = `/internal/v1/affiliate/identity-verification/verification-link`;
     // NOTE: set kyb because app backend doesn't if it's kyc or kyb
     const requestBody = { type: "kyb", redirectUri };
 
-    const response = await appBackendFetcher(url, {
+    const response = await signedFetch(url, {
       method: "POST",
-      teamId,
       headers: {
         Accept: "application/json",
+        "User-Agent": "DevPortal/1.0",
         "Content-Type": "application/json",
+        "X-Dev-Portal-User-Id": `team_${teamId}`,
       },
       body: JSON.stringify(requestBody),
     });
 
-    const data = await response.json();
+    const data = (await response.json()) as GetIdentityVerificationLinkResponse;
 
     logger.info("verification link", { response, data });
 
