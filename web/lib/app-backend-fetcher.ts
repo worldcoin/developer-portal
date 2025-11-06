@@ -1,5 +1,5 @@
 "use server";
-import {createSignedFetcher} from "aws-sigv4-fetch";
+import { createSignedFetcher } from "aws-sigv4-fetch";
 
 const isLocalhost = (url: string): boolean => {
   try {
