@@ -219,12 +219,14 @@ const GraphCard: React.FC<GraphCardProps> = ({
             )}
           </div>
 
-          {isLoading && !chartData && <Skeleton className="size-full" />}
+          {isLoading && !chartData && (
+            <Skeleton className="size-full min-h-[245px]" />
+          )}
 
           {!isLoading && chartData && (
             <>
               {/* Mobile Chart (Visible on sm and below) */}
-              <div className="block sm:hidden">
+              <div className="block min-h-[245px] sm:hidden">
                 <Chart data={chartData} options={mobileChartOptions} />
               </div>
 
