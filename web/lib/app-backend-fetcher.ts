@@ -1,10 +1,6 @@
 "use server";
+import {createSignedFetcher} from "aws-sigv4-fetch";
 
-import { createSignedFetcher } from "aws-sigv4-fetch";
-
-/**
- * Checks if a URL is for API calls from localhost
- */
 const isLocalhost = (url: string): boolean => {
   try {
     const parsedUrl = new URL(url);
@@ -25,6 +21,12 @@ export const appBackendFetcher = async (
     teamId: string;
   },
 ): Promise<Response> => {
+  // Validate URL to prevent SSRF - only allow URLs from the configured backend
+  const allowedBaseUrl = process.env.NEXT_SERVER_APP_BACKEND_BASE_URL;
+  if (!allowedBaseUrl || !url.startsWith(allowedBaseUrl)) {
+    throw new Error("Invalid backend URL");
+  }
+
   const isLocal = isLocalhost(url);
   const { teamId, ...reqOptions } = options;
 
