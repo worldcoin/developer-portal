@@ -64,8 +64,14 @@ export const urls = {
   affiliateProgramVerify: (params: { team_id?: string }): string =>
     `/teams/${params.team_id ? params.team_id : ""}/affiliate-program/verify`,
 
+  affiliateEarnings: (params: { team_id?: string }): string =>
+    `/teams/${params.team_id ? params.team_id : ""}/affiliate-program/earnings`,
+
   affiliateWithdrawal: (params: { team_id?: string }): string =>
     `/teams/${params.team_id ? params.team_id : ""}/affiliate-program/withdraw`,
+
+  affiliateHowItWorks: (params: { team_id?: string }): string =>
+    `/teams/${params.team_id ? params.team_id : ""}/affiliate-program/how-it-works`,
 
   affiliateRewards: (params: { team_id?: string }): string =>
     `/teams/${params.team_id ? params.team_id : ""}/affiliate-program/how-it-works/rewards`,

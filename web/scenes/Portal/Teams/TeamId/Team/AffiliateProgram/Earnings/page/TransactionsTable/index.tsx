@@ -41,7 +41,8 @@ export const TransactionsTable = () => {
       {loading || loadingMore ? (
         <div>
           <Skeleton height={41} />
-          <Skeleton count={5} height={75} />
+          <Skeleton count={5} height={73} />
+          <Skeleton height={63} />
         </div>
       ) : (
         <div>

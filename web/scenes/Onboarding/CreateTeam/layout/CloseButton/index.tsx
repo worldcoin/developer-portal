@@ -8,7 +8,10 @@ import { useUser } from "@auth0/nextjs-auth0/client";
 import { useRouter } from "next/navigation";
 import { Fragment, useCallback, useMemo } from "react";
 
-export const CloseButton = () => {
+type Props = {
+  href?: string;
+};
+export const CloseButton = (props: Props) => {
   const { user } = useUser() as Auth0SessionUser;
   const router = useRouter();
   const hasUser = useMemo(() => Boolean(user?.hasura?.id), [user?.hasura?.id]);
@@ -16,6 +19,10 @@ export const CloseButton = () => {
   const closeCreateTeam = useCallback(() => {
     if (!hasUser) {
       return router.push(urls.logout());
+    }
+
+    if (props.href) {
+      return router.push(props.href);
     }
 
     return router.back();

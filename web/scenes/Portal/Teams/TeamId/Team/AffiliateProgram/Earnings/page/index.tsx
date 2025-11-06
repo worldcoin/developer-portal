@@ -21,12 +21,14 @@ export const EarningsPage = () => {
         <Section>
           <EarningsHeader loading={isMetadataLoading} data={data} />
 
-          <div className="mt-6 grid auto-rows-min grid-cols-1 items-start gap-10 lg:mt-10 lg:grid-cols-12 lg:gap-0">
-            <div className="col-span-full row-span-1 flex min-w-0 flex-col gap-8 lg:col-span-6">
+          <div className="mt-6 grid grid-cols-1 items-stretch gap-10 md:mt-10 md:grid-cols-12 md:gap-0">
+            <div className="col-span-full flex min-w-0 flex-col gap-8 md:col-span-6 md:mb-10">
               <Typography variant={TYPOGRAPHY.H7}>Earnings</Typography>
-              <RewardsChart />
+              <div className="flex min-h-0 flex-1 flex-col">
+                <RewardsChart />
+              </div>
             </div>
-            <div className="col-span-full row-span-1 min-w-0 lg:col-span-5 lg:col-start-8">
+            <div className="col-span-full flex min-w-0 flex-col md:col-span-5 md:col-start-8">
               <TransactionsTable />
             </div>
           </div>

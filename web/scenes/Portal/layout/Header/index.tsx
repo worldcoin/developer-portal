@@ -44,13 +44,19 @@ export const Header = (props: { color: Color | null }) => {
     );
   }, [path, teamId]);
 
-  const pageName = useMemo(() => {
+  const pageConfig = useMemo(() => {
     if (!showCloseButton) return null;
     if (path.includes(urls.affiliateWithdrawal({ team_id: teamId }))) {
-      return "Withdraw";
+      return {
+        title: "Withdraw",
+        href: urls.affiliateEarnings({ team_id: teamId }),
+      };
     }
     if (path.includes(urls.affiliateRewards({ team_id: teamId }))) {
-      return "Rewards";
+      return {
+        title: "Rewards",
+        href: urls.affiliateHowItWorks({ team_id: teamId }),
+      };
     }
     return null;
   }, [path, showCloseButton, teamId]);
@@ -64,12 +70,14 @@ export const Header = (props: { color: Color | null }) => {
       >
         {showCloseButton && (
           <div className="flex items-center gap-x-3">
-            <CloseButton />
+            <CloseButton href={pageConfig?.href} />
 
-            {pageName && (
+            {pageConfig?.title && (
               <>
                 <span className="text-grey-200">|</span>
-                <Typography variant={TYPOGRAPHY.M4}>{pageName}</Typography>
+                <Typography variant={TYPOGRAPHY.M4}>
+                  {pageConfig.title}
+                </Typography>
               </>
             )}
           </div>
