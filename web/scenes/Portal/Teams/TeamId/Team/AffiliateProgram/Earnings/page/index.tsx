@@ -7,9 +7,12 @@ import { useGetAffiliateBalance } from "../../common/hooks/use-get-affiliate-bal
 import { EarningsHeader } from "./EarningsHeader";
 import { RewardsChart } from "./RewardsChart";
 import { TransactionsTable } from "./TransactionsTable";
+import { useGetAffiliateTransactions } from "./hooks/use-get-affiliate-transactions";
 
 export const EarningsPage = () => {
   const { data, loading: isMetadataLoading } = useGetAffiliateBalance();
+  const transactionsData = useGetAffiliateTransactions({ limit: 100 });
+  const hasTransactions = transactionsData.loading || transactionsData.transactions.length > 0;
 
   return (
     <>
@@ -22,15 +25,20 @@ export const EarningsPage = () => {
           <EarningsHeader loading={isMetadataLoading} data={data} />
 
           <div className="mt-6 grid grid-cols-1 items-stretch gap-10 md:mt-10 md:grid-cols-12 md:gap-0">
-            <div className="col-span-full flex min-w-0 flex-col gap-8 md:col-span-6 md:mb-10">
+            <div className={clsx(
+              "col-span-full flex min-w-0 flex-col gap-8 md:mb-10",
+              hasTransactions ? "md:col-span-6" : "md:col-span-12"
+            )}>
               <Typography variant={TYPOGRAPHY.H7}>Earnings</Typography>
               <div className="flex min-h-0 flex-1 flex-col">
                 <RewardsChart />
               </div>
             </div>
-            <div className="col-span-full flex min-w-0 flex-col md:col-span-5 md:col-start-8">
-              <TransactionsTable />
-            </div>
+            {hasTransactions && (
+              <div className="col-span-full flex min-w-0 flex-col md:col-span-5 md:col-start-8">
+                <TransactionsTable {...transactionsData} />
+              </div>
+            )}
           </div>
         </Section>
       </SizingWrapper>
