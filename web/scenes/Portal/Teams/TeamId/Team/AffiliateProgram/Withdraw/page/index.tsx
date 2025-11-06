@@ -97,9 +97,10 @@ export const WithdrawPage = (props: PageProps) => {
         return;
       }
 
-      await initiateWithdraw({
+      const result = await initiateWithdraw({
         amountInWld: amountInWldWei,
       });
+      console.log("initiateWithdraw data", result, result.data);
 
       setCurrentStep(AffiliateWithdrawStep.ENTER_CODE);
     } catch (error) {
@@ -114,9 +115,10 @@ export const WithdrawPage = (props: PageProps) => {
     try {
       setIsLoading(true);
       const data = watch();
-      await confirmWithdraw({
+      const result = await confirmWithdraw({
         emailConfirmationCode: data.otpCode,
       });
+      console.log("confirmWithdraw data", result, result.data);
 
       setCurrentStep(AffiliateWithdrawStep.SUCCESS);
     } catch (error) {

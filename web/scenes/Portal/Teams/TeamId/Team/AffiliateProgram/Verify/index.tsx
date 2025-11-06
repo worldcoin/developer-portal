@@ -87,6 +87,7 @@ export const VerifyPage = () => {
         type: data.verificationType,
         redirectUri: window.location.origin,
       });
+      console.log("getIdentityVerificationLink data: ", result.data);
 
       if (result.success && result.data) {
         // Navigate to verification link

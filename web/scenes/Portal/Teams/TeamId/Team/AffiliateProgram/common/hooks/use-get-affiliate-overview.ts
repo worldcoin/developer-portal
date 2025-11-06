@@ -12,6 +12,7 @@ export const useGetAffiliateOverview = (params: {
   useEffect(() => {
     const fetchData = async () => {
       const result = await getAffiliateOverview({ period: params.period });
+      console.log("useGetAffiliateOverview data: ", result, result.data);
       if (!result.success) {
         console.error("Failed to fetch data: ", result.message);
         setError(result.error);

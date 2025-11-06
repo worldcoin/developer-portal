@@ -10,6 +10,7 @@ export const useGetAffiliateBalance = () => {
   useEffect(() => {
     const fetchData = async () => {
       const result = await getAffiliateBalance();
+      console.log("useGetAffiliateBalance data: ", result, result.data);
       if (!result.success) {
         console.error("Failed to fetch data: ", result.message);
         setError(result.error);

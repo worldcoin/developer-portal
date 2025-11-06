@@ -35,7 +35,7 @@ export const getAffiliateTransactions = async (
     }
 
     //TODO: add check for process.env.NEXT_SERVER_APP_BACKEND_BASE_URL and remove mocks after backend will be ready
-    const shouldReturnMocks = true;
+    const shouldReturnMocks = false;
 
     if (shouldReturnMocks) {
       // TODO: remove mock response
