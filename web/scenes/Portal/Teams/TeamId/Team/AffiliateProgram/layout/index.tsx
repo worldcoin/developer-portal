@@ -3,7 +3,6 @@ import { Tab, Tabs } from "@/components/Tabs";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { urls } from "@/lib/urls";
 import { checkIfProduction, checkUserPermissions } from "@/lib/utils";
-import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { ReactNode } from "react";
 import { getAffiliateMetadata } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Overview/page/server/getAffiliateMetadata";
@@ -14,6 +13,7 @@ import {
 } from "@/lib/types";
 import { Role_Enum } from "@/graphql/graphql";
 import { getSession } from "@auth0/nextjs-auth0";
+import { getPathFromHeaders } from "@/lib/server-utils";
 
 type Params = {
   teamId?: string;
@@ -30,8 +30,7 @@ export const AffiliateProgramLayout = async (props: TeamIdLayoutProps) => {
   const session = await getSession();
   const user = session?.user as Auth0SessionUser["user"];
   const isProduction = checkIfProduction();
-  const headersList = headers();
-  const path = headersList.get("x-current-path");
+  const path = getPathFromHeaders() || "";
   const hasOwnerPermission = checkUserPermissions(user, params.teamId ?? "", [
     Role_Enum.Owner,
   ]);
@@ -47,7 +46,7 @@ export const AffiliateProgramLayout = async (props: TeamIdLayoutProps) => {
   }
 
   if (
-    !path?.includes("/verify") &&
+    path !== urls.affiliateProgramVerify({ team_id: teamId }) &&
     metadata.identityVerificationStatus !== IdentityVerificationStatus.SUCCESS
   ) {
     return redirect(urls.affiliateProgramVerify({ team_id: teamId }));
