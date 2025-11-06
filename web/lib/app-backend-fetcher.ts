@@ -26,7 +26,6 @@ export const appBackendFetcher = async (
   },
 ): Promise<Response> => {
   const isLocal = isLocalhost(url);
-  console.log("isLocal", isLocal, url);
   const { teamId, ...reqOptions } = options;
 
   const defaultHeaders = {
@@ -37,17 +36,19 @@ export const appBackendFetcher = async (
   };
 
   if (isLocal) {
+    const accessToken = `SET_TOKEN_HERE`;
     // Use regular fetch for localhost
     return fetch(url, {
+      ...reqOptions,
       method: options.method || "GET",
       headers: {
         // NOTE: some required api calls for dev
         "client-name": "android",
         "client-version": "999.9.9",
         ...defaultHeaders,
-        Authorization:
-          "Bearer eyJhbGciOiJFQ0RILUVTK0EyNTZLVyIsImVuYyI6IkEyNTZHQ00iLCJraWQiOiJlMmQwMjY2ZS1lMDM0LTQ2YzMtOWNlOC1hYjRkNjM5ZjBmMWUiLCJ0eXBlIjoiYWNjZXNzX3Rva2VuIiwiZXBrIjp7IngiOiJfa21QMWlPUXRHdkdndlVMeml4WGZJZFRKcldralBwYk52Y2NVcVNxdTFNOEhPTFppenNKSHR4eE5vYk1iX3htSGk0dEItWkhNZFUiLCJjcnYiOiJYNDQ4Iiwia3R5IjoiT0tQIn19.ISk5OhCBgVBqGUWQK1VFxU01rtsJcJCaojdMJ2U46X_RWJKKjb3xtQ.Rw5PY-h3TJQIBBC_.8vm0uLL-tv4H06Qc4bmuO86punmbTRCcV8MjuzH74nTCZWMohaFPI6EUF4aPcWsiUFReoFPavSEBE172NbfTb_SYWN9inWMw_hzi-M2Jbn8Olt_wl6FiWCiPmqoelCjHe5CqrRnNMDQ1D4xWK_wmom8HVsYfwDgd2-VHM40I621ym9T-e_8LBTmSCJIjLfHOIIzZ8hwYCdOX80nyGeY9HGsSOS27Idpg8hwELpm9mBeufo_A1NtJGq3jLagr0Tyn_Vq3LNiAGizXHvbk49Si9VzrjwPtMUFnue1x6Bv6EZG5_sqx_X7Rim36eS3l85yblEVdQ0_MqY1XmUToyfOBDtc03k_D0lq9yXNRnj7QZQFNMp07mf9scvK7oF2kW-tIzuQMBwQ2-hXXCb7pGESM0bs.OR71etksu5R-LlSTO26YGQ",
+        Authorization: `Bearer ${accessToken}`,
       },
+      body: reqOptions.body || undefined,
     });
   }
 
