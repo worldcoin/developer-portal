@@ -10,9 +10,7 @@ import { useAtom } from "jotai/index";
 import { useState } from "react";
 import Skeleton from "react-loading-skeleton";
 import { TransactionRow } from "./TransactionRow";
-import {
-  useGetAffiliateTransactions
-} from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Earnings/page/hooks/use-get-affiliate-transactions";
+import { useGetAffiliateTransactions } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Earnings/page/hooks/use-get-affiliate-transactions";
 
 type TransactionsTableProps = ReturnType<typeof useGetAffiliateTransactions>;
 
