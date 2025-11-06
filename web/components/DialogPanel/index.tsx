@@ -37,7 +37,7 @@ export const DialogPanel = (props: DialogPanelProps) => {
           )}
           {...otherProps}
         >
-          {showCloseIcon && (
+          {showCloseIcon && onClose && (
             <button
               type="button"
               onClick={onClose}

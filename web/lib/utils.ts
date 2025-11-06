@@ -454,7 +454,7 @@ export const toFixedAmount = (
   amount: number | string | null | undefined,
   decimals: number = 2,
 ): string => {
-  if (!amount) return "";
+  if (amount == null) return "";
   return Number(amount).toFixed(decimals);
 };
 

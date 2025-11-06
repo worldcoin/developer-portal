@@ -70,7 +70,7 @@ export const Header = (props: { color: Color | null }) => {
       >
         {showCloseButton && (
           <div className="flex items-center gap-x-3">
-            <CloseButton href={pageConfig?.href} />
+            <CloseButton href={pageConfig?.href ?? undefined} />
 
             {pageConfig?.title && (
               <>

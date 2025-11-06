@@ -26,7 +26,7 @@ export const CloseButton = (props: Props) => {
     }
 
     return router.back();
-  }, [hasUser, router]);
+  }, [hasUser, router, props.href]);
 
   return (
     <Fragment>
