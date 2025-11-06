@@ -2,15 +2,18 @@ import { SizingWrapper } from "@/components/SizingWrapper";
 import { Tab, Tabs } from "@/components/Tabs";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { urls } from "@/lib/urls";
-import { checkIfProduction } from "@/lib/utils";
+import { checkIfProduction, checkUserPermissions } from "@/lib/utils";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { ReactNode } from "react";
 import { getAffiliateMetadata } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Overview/page/server/getAffiliateMetadata";
 import {
   AffiliateMetadataResponse,
+  Auth0SessionUser,
   IdentityVerificationStatus,
 } from "@/lib/types";
+import { Role_Enum } from "@/graphql/graphql";
+import { getSession } from "@auth0/nextjs-auth0";
 
 type Params = {
   teamId?: string;
@@ -24,9 +27,14 @@ type TeamIdLayoutProps = {
 export const AffiliateProgramLayout = async (props: TeamIdLayoutProps) => {
   const params = props.params;
   const teamId = params.teamId!;
+  const session = await getSession();
+  const user = session?.user as Auth0SessionUser["user"];
   const isProduction = checkIfProduction();
   const headersList = headers();
   const path = headersList.get("x-current-path");
+  const hasOwnerPermission = checkUserPermissions(user, params.teamId ?? "", [
+    Role_Enum.Owner,
+  ]);
   const result = await getAffiliateMetadata();
   if (!result.success) {
     return redirect(urls.teams({ team_id: teamId }));
@@ -46,8 +54,12 @@ export const AffiliateProgramLayout = async (props: TeamIdLayoutProps) => {
   }
 
   if (
-    path?.includes("/verify") &&
-    metadata.identityVerificationStatus === IdentityVerificationStatus.SUCCESS
+    (!hasOwnerPermission &&
+      (path === urls.affiliateWithdrawal({ team_id: teamId }) ||
+        path === urls.affiliateAccount({ team_id: teamId }))) ||
+    (path === urls.affiliateProgramVerify({ team_id: teamId }) &&
+      metadata.identityVerificationStatus ===
+        IdentityVerificationStatus.SUCCESS)
   ) {
     return redirect(urls.affiliateProgram({ team_id: teamId }));
   }
@@ -90,14 +102,16 @@ export const AffiliateProgramLayout = async (props: TeamIdLayoutProps) => {
             >
               <Typography variant={TYPOGRAPHY.R4}>How it works</Typography>
             </Tab>
-            <Tab
-              className="md:py-4"
-              href={`/teams/${teamId}/affiliate-program/account`}
-              segment={"account"}
-              underlined
-            >
-              <Typography variant={TYPOGRAPHY.R4}>Account</Typography>
-            </Tab>
+            {hasOwnerPermission && (
+              <Tab
+                className="md:py-4"
+                href={`/teams/${teamId}/affiliate-program/account`}
+                segment={"account"}
+                underlined
+              >
+                <Typography variant={TYPOGRAPHY.R4}>Account</Typography>
+              </Tab>
+            )}
           </Tabs>
         </SizingWrapper>
       </div>
