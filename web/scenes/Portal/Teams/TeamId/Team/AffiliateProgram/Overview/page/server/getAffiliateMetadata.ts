@@ -29,7 +29,7 @@ export const getAffiliateMetadata = async (): Promise<FormActionResult> => {
       // TODO: remove mock response
       const data: AffiliateMetadataResponse = {
         inviteCode: "AFFLT12",
-        identityVerificationStatus: IdentityVerificationStatus.FAILED,
+        identityVerificationStatus: IdentityVerificationStatus.SUCCESS,
         identityVerifiedAt: "2025-09-01T10:00:00Z",
         verificationType: "kyc",
         totalInvites: 528,

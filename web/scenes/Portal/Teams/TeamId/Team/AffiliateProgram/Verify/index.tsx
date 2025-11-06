@@ -166,7 +166,9 @@ export const VerifyPage = () => {
                   {description}
                 </Typography>
               </div>
-              {isLoading || data?.identityVerificationStatus === IdentityVerificationStatus.PENDING ? (
+              {isLoading ||
+              data?.identityVerificationStatus ===
+                IdentityVerificationStatus.PENDING ? (
                 <SpinnerIcon className="ml-auto size-6 animate-spin" />
               ) : (
                 <>
