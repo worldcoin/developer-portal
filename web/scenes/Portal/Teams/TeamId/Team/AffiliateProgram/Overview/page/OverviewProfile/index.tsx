@@ -10,7 +10,7 @@ import { EnvelopeIcon } from "@/components/Icons/EnvelopeIcon";
 
 type Props = {
   loading: boolean;
-  data: AffiliateMetadataResponse | null;
+  data: AffiliateMetadataResponse["result"] | null;
 };
 
 export const OverviewProfile = (props: Props) => {

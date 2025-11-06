@@ -4,9 +4,9 @@ import {
 } from "@/lib/types";
 import { getAffiliateTransactions } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Earnings/server/getAffiliateTransactions";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { firstMockTransactionsPageFailed } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Earnings/server/mocks/mock-transactions";
 
-type TransactionItem = AffiliateTransactionsResponse["transactions"][0];
+type TransactionItem =
+  AffiliateTransactionsResponse["result"]["transactions"][0];
 
 export const useGetAffiliateTransactions = (
   params?: AffiliateTransactionsRequestParams,
@@ -49,7 +49,8 @@ export const useGetAffiliateTransactions = (
           console.error("Failed to fetch data: ", result.message);
           setError(result.error);
         } else {
-          const response = result.data as AffiliateTransactionsResponse;
+          const response = (result.data as AffiliateTransactionsResponse)
+            .result;
 
           if (append) {
             setAllTransactions((prev) => [...prev, ...response.transactions]);
@@ -64,10 +65,10 @@ export const useGetAffiliateTransactions = (
       } catch (err) {
         console.error(err);
         setError(err);
-        setTotalCount(
-          firstMockTransactionsPageFailed.paginationMeta.totalCount,
-        );
-        setAllTransactions(firstMockTransactionsPageFailed.transactions);
+        // setTotalCount(
+        //   firstMockTransactionsPageFailed.result.paginationMeta.totalCount,
+        // );
+        // setAllTransactions(firstMockTransactionsPageFailed.transactions);
       } finally {
         setLoading(false);
         setLoadingMore(false);

@@ -6,7 +6,7 @@ import clsx from "clsx";
 import { formatTokenAmount, toFixedAmount } from "@/lib/utils";
 
 const TITLE_MAP: Record<
-  AffiliateTransactionsResponse["transactions"][0]["type"],
+  AffiliateTransactionsResponse["result"]["transactions"][0]["type"],
   string
 > = {
   affiliateAccumulationOrb: "Orb reward",
@@ -15,7 +15,7 @@ const TITLE_MAP: Record<
 };
 
 export const TransactionRow = (props: {
-  transaction: AffiliateTransactionsResponse["transactions"][0];
+  transaction: AffiliateTransactionsResponse["result"]["transactions"][0];
   onClick: () => void;
 }) => {
   const { transaction } = props;

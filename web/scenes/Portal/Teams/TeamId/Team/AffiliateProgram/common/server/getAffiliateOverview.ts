@@ -9,7 +9,7 @@ import { appBackendFetcher } from "@/lib/app-backend-fetcher";
 export const getAffiliateOverview = async ({
   period,
 }: {
-  period: AffiliateOverviewResponse["period"];
+  period: AffiliateOverviewResponse["result"]["period"];
 }): Promise<FormActionResult> => {
   const path = getPathFromHeaders() || "";
   const { teams: teamId } = extractIdsFromPath(path, ["teams"]);

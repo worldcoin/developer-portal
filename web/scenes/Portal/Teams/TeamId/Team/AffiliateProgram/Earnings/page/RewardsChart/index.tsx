@@ -23,7 +23,7 @@ dayjs.extend(tz);
 
 const timespans: {
   label: string;
-  value: AffiliateOverviewResponse["period"];
+  value: AffiliateOverviewResponse["result"]["period"];
 }[] = [
   { label: "Day", value: "day" },
   { label: "Week", value: "week" },

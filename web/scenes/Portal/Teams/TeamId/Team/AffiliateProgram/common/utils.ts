@@ -1,6 +1,8 @@
 import { AffiliateOverviewResponse } from "@/lib/types";
 
-export const getXAxisLabels = (period: AffiliateOverviewResponse["period"]) => {
+export const getXAxisLabels = (
+  period: AffiliateOverviewResponse["result"]["period"],
+) => {
   if (period === "day") {
     return "HH:mm";
   } else if (period === "week" || period === "month") {

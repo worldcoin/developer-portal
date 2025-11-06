@@ -34,11 +34,11 @@ export const AffiliateProgramLayout = async (props: TeamIdLayoutProps) => {
   const hasOwnerPermission = checkUserPermissions(user, params.teamId ?? "", [
     Role_Enum.Owner,
   ]);
-  const result = await getAffiliateMetadata();
-  if (!result.success) {
+  const metadataResponse = await getAffiliateMetadata();
+  if (!metadataResponse.success) {
     return redirect(urls.teams({ team_id: teamId }));
   }
-  const metadata = result.data as AffiliateMetadataResponse;
+  const metadata = (metadataResponse.data as AffiliateMetadataResponse).result;
 
   // Disable affiliate program for production
   if (isProduction) {

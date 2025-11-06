@@ -17,7 +17,7 @@ import { WalletPocketIcon } from "@/components/Icons/WallenPocketIcon";
 
 type Props = {
   loading: boolean;
-  data: AffiliateBalanceResponse | null;
+  data: AffiliateBalanceResponse["result"] | null;
 };
 
 export const EarningsHeader = (props: Props) => {

@@ -9,7 +9,9 @@ import { clsx } from "clsx";
 import { useMemo } from "react";
 
 export const TransactionBadge = (props: {
-  transaction: AffiliateTransactionsResponse["transactions"][0] | null;
+  transaction:
+    | AffiliateTransactionsResponse["result"]["transactions"][0]
+    | null;
   className?: string;
   iconClassName?: string;
   hideStatusIcon?: boolean;

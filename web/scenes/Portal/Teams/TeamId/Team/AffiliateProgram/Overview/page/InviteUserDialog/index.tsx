@@ -13,7 +13,7 @@ import { AffiliateMetadataResponse } from "@/lib/types";
 export const inviteUserDialogAtom = atom(false);
 
 type Props = {
-  data: AffiliateMetadataResponse | null;
+  data: AffiliateMetadataResponse["result"] | null;
 };
 export const InviteUserDialog = (props: Props) => {
   const [isOpened, setIsOpened] = useAtom(inviteUserDialogAtom);

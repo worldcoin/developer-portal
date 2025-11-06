@@ -3,9 +3,11 @@ import { getAffiliateOverview } from "@/scenes/Portal/Teams/TeamId/Team/Affiliat
 import { useEffect, useState } from "react";
 
 export const useGetAffiliateOverview = (params: {
-  period: AffiliateOverviewResponse["period"];
+  period: AffiliateOverviewResponse["result"]["period"];
 }) => {
-  const [data, setMetrics] = useState<AffiliateOverviewResponse | null>(null);
+  const [data, setMetrics] = useState<
+    AffiliateOverviewResponse["result"] | null
+  >(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<unknown>(null);
 
@@ -17,7 +19,7 @@ export const useGetAffiliateOverview = (params: {
         console.error("Failed to fetch data: ", result.message);
         setError(result.error);
       } else {
-        setMetrics(result.data as AffiliateOverviewResponse);
+        setMetrics((result.data as AffiliateOverviewResponse).result);
       }
       setLoading(false);
     };

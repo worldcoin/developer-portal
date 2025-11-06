@@ -38,12 +38,14 @@ export const confirmWithdraw = async ({
     if (shouldReturnMocks) {
       // TODO: remove mock response
       const data: ConfirmWithdrawResponse = {
-        amountInWld: "50000000000000000000",
-        estimatedCompletionTime: new Date(
-          Date.now() + 24 * 60 * 60 * 1000,
-        ).toISOString(), // 24 hours from now
-        newAvailableBalance: "10000000000000000000",
-        toWalletAddress: "0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6",
+        result: {
+          amountInWld: "50000000000000000000",
+          estimatedCompletionTime: new Date(
+            Date.now() + 24 * 60 * 60 * 1000,
+          ).toISOString(), // 24 hours from now
+          newAvailableBalance: "10000000000000000000",
+          toWalletAddress: "0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6",
+        },
       };
       return {
         success: true,
@@ -57,6 +59,10 @@ export const confirmWithdraw = async ({
     const response = await appBackendFetcher(url, {
       method: "POST",
       teamId,
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
       body: JSON.stringify({
         emailConfirmationCode,
       }),

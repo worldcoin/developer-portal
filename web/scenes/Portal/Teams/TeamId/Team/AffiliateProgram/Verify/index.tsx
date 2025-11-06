@@ -29,22 +29,21 @@ export const VerifyPage = () => {
     if (!data) return null;
 
     const status = data.identityVerificationStatus;
-    const type = data.verificationType === "kyb" ? "KYB" : "KYC";
 
     if (status === IdentityVerificationStatus.SUCCESS) {
       return null;
     }
 
     if (status === IdentityVerificationStatus.PENDING) {
-      return `${type} processing`;
+      return `KYB processing`;
     }
 
     if (status === IdentityVerificationStatus.FAILED) {
-      return `${type} failed`;
+      return `KYB failed`;
     }
 
     // fallback for undefined || not_started || created || timeout - Complete KYB
-    return `Complete ${type}`;
+    return `Complete KYB`;
   }, [data]);
 
   const description = useMemo(() => {
@@ -84,16 +83,16 @@ export const VerifyPage = () => {
 
     try {
       const result = await getIdentityVerificationLink({
-        type: data.verificationType,
-        redirectUri: window.location.origin,
+        redirectUri: window.location.href.replace("/verify", ""),
       });
-      console.log("getIdentityVerificationLink data: ", result.data);
+      console.log("getIdentityVerificationLink data: ", result);
 
       if (result.success && result.data) {
         // Navigate to verification link
-        window.location.href = (
-          result.data as GetIdentityVerificationLinkResponse
-        ).link;
+        const redirectUrl = (result.data as GetIdentityVerificationLinkResponse)
+          .result.link;
+        console.log("getIdentityVerificationLink url", redirectUrl);
+        window.location.href = redirectUrl;
       } else {
         throw new Error(result.message || "Failed to get verification link");
       }

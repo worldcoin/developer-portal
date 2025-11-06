@@ -8,11 +8,14 @@ import {
   GetIdentityVerificationLinkResponse,
 } from "@/lib/types";
 import { appBackendFetcher } from "@/lib/app-backend-fetcher";
+import { logger } from "@/lib/logger";
 
 export const getIdentityVerificationLink = async ({
-  type,
   redirectUri,
-}: GetIdentityVerificationLinkRequest): Promise<FormActionResult> => {
+}: Pick<
+  GetIdentityVerificationLinkRequest,
+  "redirectUri"
+>): Promise<FormActionResult> => {
   const path = getPathFromHeaders() || "";
   const { teams: teamId } = extractIdsFromPath(path, ["teams"]);
 
@@ -31,8 +34,10 @@ export const getIdentityVerificationLink = async ({
     if (shouldReturnMocks) {
       // TODO: remove mock response
       const data: GetIdentityVerificationLinkResponse = {
-        link: "https://aiprise.com/verify/mock-verification-id",
-        isLimitReached: false,
+        result: {
+          link: "https://aiprise.com/verify/mock-verification-id",
+          isLimitReached: false,
+        },
       };
       return {
         success: true,
@@ -42,15 +47,23 @@ export const getIdentityVerificationLink = async ({
     }
 
     const url = `${process.env.NEXT_SERVER_APP_BACKEND_BASE_URL}/affiliate/identity-verification/verification-link`;
-    const requestBody = { type, redirectUri };
+    // NOTE: set kyb because app backend doesn't if it's kyc or kyb
+    const requestBody = { type: "kyb", redirectUri };
 
     const response = await appBackendFetcher(url, {
       method: "POST",
       teamId,
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
       body: JSON.stringify(requestBody),
     });
 
-    const data = (await response.json()) as GetIdentityVerificationLinkResponse;
+    const data = await response.json();
+
+    logger.info("verification link", { response, data });
+
     if (!response.ok) {
       return errorFormAction({
         message: "Failed to get verification link",

@@ -26,7 +26,7 @@ export const TransactionsTable = (props: TransactionsTableProps) => {
 
   const [, setIsOpened] = useAtom(transactionDetailsDialogAtom);
   const [selectedTransaction, setSelectedTransaction] = useState<
-    AffiliateTransactionsResponse["transactions"][0] | null
+    AffiliateTransactionsResponse["result"]["transactions"][0] | null
   >(null);
 
   if (!loading && transactions.length === 0) return null;
