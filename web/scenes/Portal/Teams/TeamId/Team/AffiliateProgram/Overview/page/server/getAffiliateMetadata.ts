@@ -32,10 +32,13 @@ export const getAffiliateMetadata = async (): Promise<FormActionResult> => {
       };
     }
 
-    const response = await appBackendFetcher('/internal/v1/affiliate/metadata', {
-      method: "GET",
-      teamId,
-    });
+    const response = await appBackendFetcher(
+      "/internal/v1/affiliate/metadata",
+      {
+        method: "GET",
+        teamId,
+      },
+    );
 
     const data = (await response.json()) as AffiliateMetadataResponse;
     if (!response.ok) {
