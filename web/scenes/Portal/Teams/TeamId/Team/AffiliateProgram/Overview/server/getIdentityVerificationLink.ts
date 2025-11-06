@@ -7,7 +7,7 @@ import {
   GetIdentityVerificationLinkRequest,
   GetIdentityVerificationLinkResponse,
 } from "@/lib/types";
-import { createSignedFetcher } from "aws-sigv4-fetch";
+import { appBackendFetcher } from "@/lib/app-backend-fetcher";
 
 export const getIdentityVerificationLink = async ({
   type,
@@ -41,25 +41,12 @@ export const getIdentityVerificationLink = async ({
       };
     }
 
-    let signedFetch = global.TransactionSignedFetcher;
-    if (!signedFetch) {
-      signedFetch = createSignedFetcher({
-        service: "execute-api",
-        region: process.env.TRANSACTION_BACKEND_REGION,
-      });
-    }
-
-    const url = `${process.env.NEXT_SERVER_APP_BACKEND_BASE_URL}/internal/v1/affiliate/identity-verification/verification-link`;
-
+    const url = `${process.env.NEXT_SERVER_APP_BACKEND_BASE_URL}/affiliate/identity-verification/verification-link`;
     const requestBody = { type, redirectUri };
 
-    const response = await signedFetch(url, {
+    const response = await appBackendFetcher(url, {
       method: "POST",
-      headers: {
-        "User-Agent": "DevPortal/1.0",
-        "Content-Type": "application/json",
-        "X-Dev-Portal-User-Id": `team_${teamId}`,
-      },
+      teamId,
       body: JSON.stringify(requestBody),
     });
 

@@ -6,13 +6,13 @@ import {
   AffiliateTransactionsResponse,
   FormActionResult,
 } from "@/lib/types";
-import { createSignedFetcher } from "aws-sigv4-fetch";
 import {
   firstMockTransactionsPage,
   secondMockTransactionsPage,
   thirdMockTransactionsPage,
 } from "./mocks/mock-transactions";
 import { logger } from "@/lib/logger";
+import { appBackendFetcher } from "@/lib/app-backend-fetcher";
 
 export const getAffiliateTransactions = async (
   params?: AffiliateTransactionsRequestParams,
@@ -66,14 +66,6 @@ export const getAffiliateTransactions = async (
       };
     }
 
-    let signedFetch = global.TransactionSignedFetcher;
-    if (!signedFetch) {
-      signedFetch = createSignedFetcher({
-        service: "execute-api",
-        region: process.env.TRANSACTION_BACKEND_REGION,
-      });
-    }
-
     const searchParams = Object.entries(params ?? {})
       .filter(([_, v]) => v !== undefined && v !== null)
       .reduce((acc, [k, v]) => {
@@ -81,15 +73,11 @@ export const getAffiliateTransactions = async (
         return acc;
       }, new URLSearchParams());
 
-    const url = `${process.env.NEXT_SERVER_APP_BACKEND_BASE_URL}/internal/v1/affiliate/transactions${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
+    const url = `${process.env.NEXT_SERVER_APP_BACKEND_BASE_URL}/affiliate/transactions${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
 
-    const response = await signedFetch(url, {
+    const response = await appBackendFetcher(url, {
       method: "GET",
-      headers: {
-        "User-Agent": "DevPortal/1.0",
-        "Content-Type": "application/json",
-        "X-Dev-Portal-User-Id": `team_${teamId}`,
-      },
+      teamId,
     });
 
     const data = (await response.json()) as AffiliateTransactionsResponse;

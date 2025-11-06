@@ -3,8 +3,8 @@
 import { errorFormAction } from "@/api/helpers/errors";
 import { extractIdsFromPath, getPathFromHeaders } from "@/lib/server-utils";
 import { AffiliateBalanceResponse, FormActionResult } from "@/lib/types";
-import { createSignedFetcher } from "aws-sigv4-fetch";
 import { affiliateBalanceMock } from "./mocks/balance";
+import { appBackendFetcher } from "@/lib/app-backend-fetcher";
 
 export const getAffiliateBalance = async (): Promise<FormActionResult> => {
   const path = getPathFromHeaders() || "";
@@ -32,23 +32,10 @@ export const getAffiliateBalance = async (): Promise<FormActionResult> => {
       };
     }
 
-    let signedFetch = global.TransactionSignedFetcher;
-    if (!signedFetch) {
-      signedFetch = createSignedFetcher({
-        service: "execute-api",
-        region: process.env.TRANSACTION_BACKEND_REGION,
-      });
-    }
-
-    let url = `${process.env.NEXT_SERVER_APP_BACKEND_BASE_URL}/internal/v1/affiliate/balance`;
-
-    const response = await signedFetch(url, {
+    let url = `${process.env.NEXT_SERVER_APP_BACKEND_BASE_URL}/affiliate/balance`;
+    const response = await appBackendFetcher(url, {
       method: "GET",
-      headers: {
-        "User-Agent": "DevPortal/1.0",
-        "Content-Type": "application/json",
-        "X-Dev-Portal-User-Id": `team_${teamId}`,
-      },
+      teamId,
     });
 
     const data = (await response.json()) as AffiliateBalanceResponse;
