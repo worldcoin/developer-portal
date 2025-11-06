@@ -1,35 +1,40 @@
 "use server";
 import { createSignedFetcher } from "aws-sigv4-fetch";
 
-const isLocalhost = (url: string): boolean => {
-  try {
-    const parsedUrl = new URL(url);
-    return parsedUrl.hostname === "app-backend.worldcoin.dev";
-  } catch {
-    return false;
-  }
-};
+const BASE = new URL(process.env.NEXT_SERVER_APP_BACKEND_BASE_URL ?? "");
 
-/**
- * Fetches from the app backend.
- * If the URL is localhost, uses regular fetch.
- * Otherwise, uses signed fetch with AWS SigV4.
- */
+function assertAndBuildBackendUrl(path: string): URL {
+  if (!process.env.NEXT_SERVER_APP_BACKEND_BASE_URL) {
+    throw new Error("Missing NEXT_SERVER_APP_BACKEND_BASE_URL env");
+  }
+
+  // 1) Only allow relative paths
+  if (/^https?:\/\//i.test(path)) {
+    throw new Error("Absolute URLs are not allowed");
+  }
+
+  // Normalize leading slash to avoid “//”
+  const safePath = path.replace(/^\/+/, "");
+
+  // 2) Build structurally using URL, not string concat
+  const url = new URL(safePath, BASE);
+
+  // 3) Enforce strict allowlist
+  if (url.origin !== BASE.origin) throw new Error("Origin not allowed");
+  if (url.protocol !== "https:") throw new Error("HTTPS required");
+  if (url.username || url.password)
+    throw new Error("URL credentials not allowed");
+
+  return url;
+}
+
 export const appBackendFetcher = async (
-  url: string,
-  options: RequestInit & {
-    teamId: string;
-  },
+  path: string,
+  options: RequestInit & { teamId: string },
 ): Promise<Response> => {
-  // Validate URL to prevent SSRF - only allow URLs from the configured backend
-  const allowedBaseUrl = process.env.NEXT_SERVER_APP_BACKEND_BASE_URL;
-  if (!allowedBaseUrl || !url.startsWith(allowedBaseUrl)) {
-    throw new Error("Invalid backend URL");
-  }
+  const urlObj = assertAndBuildBackendUrl(path);
 
-  const isLocal = isLocalhost(url);
   const { teamId, ...reqOptions } = options;
-
   const defaultHeaders = {
     "User-Agent": "DevPortal/1.0",
     "Content-Type": "application/json",
@@ -37,32 +42,32 @@ export const appBackendFetcher = async (
     ...reqOptions.headers,
   };
 
-  if (isLocal) {
-    // Use regular fetch for localhost
-    return fetch(url, {
+  // Treat dev backend as “local” behavior if needed
+  const isDevBackend = urlObj.hostname === "app-backend.worldcoin.dev";
+
+  if (isDevBackend) {
+    return fetch(urlObj.toString(), {
       ...reqOptions,
       method: options.method || "GET",
       headers: {
-        // NOTE: some required api calls for dev
         "client-name": "android",
         "client-version": "999.9.9",
         ...defaultHeaders,
-        // NOTE: add Authorization bearer here
       },
-      body: reqOptions.body || undefined,
+      body: reqOptions.body ?? undefined,
     });
   }
 
-  // Use signed fetch for non-localhost
-  let signedFetch = global.TransactionSignedFetcher;
+  let signedFetch = globalThis.TransactionSignedFetcher;
   if (!signedFetch) {
     signedFetch = createSignedFetcher({
       service: "execute-api",
       region: process.env.TRANSACTION_BACKEND_REGION,
     });
+    globalThis.TransactionSignedFetcher = signedFetch;
   }
 
-  return signedFetch(url, {
+  return signedFetch(urlObj.toString(), {
     method: options.method || "GET",
     headers: defaultHeaders,
   });
