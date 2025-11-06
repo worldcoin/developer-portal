@@ -3,13 +3,13 @@
 import { errorFormAction } from "@/api/helpers/errors";
 import { extractIdsFromPath, getPathFromHeaders } from "@/lib/server-utils";
 import { AffiliateOverviewResponse, FormActionResult } from "@/lib/types";
-import { createSignedFetcher } from "aws-sigv4-fetch";
 import { getAffiliateOverviewMock } from "./mocks/overview";
+import { createSignedFetcher } from "aws-sigv4-fetch";
 
 export const getAffiliateOverview = async ({
   period,
 }: {
-  period: AffiliateOverviewResponse["period"];
+  period: AffiliateOverviewResponse["result"]["period"];
 }): Promise<FormActionResult> => {
   const path = getPathFromHeaders() || "";
   const { teams: teamId } = extractIdsFromPath(path, ["teams"]);

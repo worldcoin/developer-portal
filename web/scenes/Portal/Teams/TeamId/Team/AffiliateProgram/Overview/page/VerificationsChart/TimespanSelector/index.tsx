@@ -11,7 +11,10 @@ import { useAtom, WritableAtom } from "jotai";
 
 // TODO: extract to separate component to reduce code duplication
 export const TimespanSelector = <
-  T extends { label: string; value: AffiliateOverviewResponse["period"] },
+  T extends {
+    label: string;
+    value: AffiliateOverviewResponse["result"]["period"];
+  },
 >(props: {
   options: Array<T>;
   atom: WritableAtom<T, [T], void>;

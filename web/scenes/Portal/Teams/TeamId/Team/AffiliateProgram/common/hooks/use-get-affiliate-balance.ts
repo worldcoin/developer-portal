@@ -3,7 +3,9 @@ import { AffiliateBalanceResponse } from "@/lib/types";
 import { getAffiliateBalance } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/common/server/getAffiliateBalance";
 
 export const useGetAffiliateBalance = () => {
-  const [data, setMetrics] = useState<AffiliateBalanceResponse | null>(null);
+  const [data, setMetrics] = useState<
+    AffiliateBalanceResponse["result"] | null
+  >(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<unknown>(null);
 
@@ -15,7 +17,7 @@ export const useGetAffiliateBalance = () => {
         console.error("Failed to fetch data: ", result.message);
         setError(result.error);
       } else {
-        setMetrics(result.data as AffiliateBalanceResponse);
+        setMetrics((result.data as AffiliateBalanceResponse).result);
       }
       setLoading(false);
     };

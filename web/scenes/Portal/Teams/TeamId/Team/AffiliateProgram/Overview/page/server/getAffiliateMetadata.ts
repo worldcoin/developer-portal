@@ -67,7 +67,7 @@ export const getAffiliateMetadata = async (): Promise<FormActionResult> => {
     };
   } catch (error) {
     return errorFormAction({
-      message: "Failed to fetch affiliate overview",
+      message: "Failed to fetch affiliate metadata",
       error: error as Error,
       team_id: teamId,
       logLevel: "error",

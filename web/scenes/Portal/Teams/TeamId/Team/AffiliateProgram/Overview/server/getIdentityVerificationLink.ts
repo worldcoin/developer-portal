@@ -2,27 +2,20 @@
 
 import { errorFormAction } from "@/api/helpers/errors";
 import { extractIdsFromPath, getPathFromHeaders } from "@/lib/server-utils";
-import { FormActionResult } from "@/lib/types";
+import {
+  FormActionResult,
+  GetIdentityVerificationLinkRequest,
+  GetIdentityVerificationLinkResponse,
+} from "@/lib/types";
+import { logger } from "@/lib/logger";
 import { createSignedFetcher } from "aws-sigv4-fetch";
 
-export interface GetIdentityVerificationLinkRequest {
-  type: "kyc" | "kyb";
-  redirectUri: string;
-}
-
-export interface GetIdentityVerificationLinkResponse {
-  link: string;
-  customerId: string;
-  verificationType: "kyc" | "kyb";
-  timestamp: string;
-  status: "not_started" | "pending" | "success" | "failed";
-  isLimitReached: boolean;
-}
-
 export const getIdentityVerificationLink = async ({
-  type,
   redirectUri,
-}: GetIdentityVerificationLinkRequest): Promise<FormActionResult> => {
+}: Pick<
+  GetIdentityVerificationLinkRequest,
+  "redirectUri"
+>): Promise<FormActionResult> => {
   const path = getPathFromHeaders() || "";
   const { teams: teamId } = extractIdsFromPath(path, ["teams"]);
 
@@ -41,12 +34,10 @@ export const getIdentityVerificationLink = async ({
     if (shouldReturnMocks) {
       // TODO: remove mock response
       const data: GetIdentityVerificationLinkResponse = {
-        link: "https://aiprise.com/verify/mock-verification-id",
-        customerId: "customer_123",
-        verificationType: type,
-        timestamp: new Date().toISOString(),
-        status: "pending",
-        isLimitReached: false,
+        result: {
+          link: "https://aiprise.com/verify/mock-verification-id",
+          isLimitReached: false,
+        },
       };
       return {
         success: true,
@@ -62,14 +53,14 @@ export const getIdentityVerificationLink = async ({
         region: process.env.TRANSACTION_BACKEND_REGION,
       });
     }
-
-    const url = `${process.env.NEXT_SERVER_APP_BACKEND_BASE_URL}/internal/v1/affiliate/identity-verification/get-link`;
-
-    const requestBody = { type, redirectUri };
+    const url = `${process.env.NEXT_SERVER_APP_BACKEND_BASE_URL}/internal/v1/affiliate/identity-verification/verification-link`;
+    // NOTE: set kyb because app backend doesn't if it's kyc or kyb
+    const requestBody = { type: "kyb", redirectUri };
 
     const response = await signedFetch(url, {
       method: "POST",
       headers: {
+        Accept: "application/json",
         "User-Agent": "DevPortal/1.0",
         "Content-Type": "application/json",
         "X-Dev-Portal-User-Id": `team_${teamId}`,
@@ -78,6 +69,9 @@ export const getIdentityVerificationLink = async ({
     });
 
     const data = (await response.json()) as GetIdentityVerificationLinkResponse;
+
+    logger.info("verification link", { response, data });
+
     if (!response.ok) {
       return errorFormAction({
         message: "Failed to get verification link",

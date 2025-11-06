@@ -19,7 +19,7 @@ import { toast } from "react-toastify";
 import { TransactionBadge } from "../TransactionBadge";
 
 const statusMap: Record<
-  AffiliateTransactionsResponse["transactions"][0]["status"],
+  AffiliateTransactionsResponse["result"]["transactions"][0]["status"],
   string
 > = {
   pending: "Processing",
@@ -28,7 +28,7 @@ const statusMap: Record<
 };
 
 const TITLE_MAP: Record<
-  AffiliateTransactionsResponse["transactions"][0]["type"],
+  AffiliateTransactionsResponse["result"]["transactions"][0]["type"],
   string
 > = {
   affiliateAccumulationOrb: "Orb reward",
@@ -39,7 +39,7 @@ const TITLE_MAP: Record<
 export const transactionDetailsDialogAtom = atom(false);
 
 type Props = {
-  data: AffiliateTransactionsResponse["transactions"][0];
+  data: AffiliateTransactionsResponse["result"]["transactions"][0];
   onClose: () => void;
 };
 export const TransactionDetailsDialog = (props: Props) => {

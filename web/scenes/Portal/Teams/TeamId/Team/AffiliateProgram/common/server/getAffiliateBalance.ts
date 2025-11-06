@@ -3,8 +3,8 @@
 import { errorFormAction } from "@/api/helpers/errors";
 import { extractIdsFromPath, getPathFromHeaders } from "@/lib/server-utils";
 import { AffiliateBalanceResponse, FormActionResult } from "@/lib/types";
-import { createSignedFetcher } from "aws-sigv4-fetch";
 import { affiliateBalanceMock } from "./mocks/balance";
+import { createSignedFetcher } from "aws-sigv4-fetch";
 
 export const getAffiliateBalance = async (): Promise<FormActionResult> => {
   const path = getPathFromHeaders() || "";

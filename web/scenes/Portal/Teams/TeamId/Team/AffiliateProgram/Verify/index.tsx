@@ -7,12 +7,12 @@ import { SpinnerIcon } from "@/components/Icons/SpinnerIcon";
 import { IconFrame } from "@/components/InitialSteps/IconFrame";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import { IdentityVerificationStatus } from "@/lib/types";
-import { useGetAffiliateMetadata } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Overview/page/hooks/use-get-affiliate-metadata";
 import {
-  getIdentityVerificationLink,
   GetIdentityVerificationLinkResponse,
-} from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Overview/server/getIdentityVerificationLink";
+  IdentityVerificationStatus,
+} from "@/lib/types";
+import { useGetAffiliateMetadata } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Overview/page/hooks/use-get-affiliate-metadata";
+import { getIdentityVerificationLink } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Overview/server/getIdentityVerificationLink";
 import { useMemo, useState } from "react";
 import Skeleton from "react-loading-skeleton";
 import { toast } from "react-toastify";
@@ -29,22 +29,21 @@ export const VerifyPage = () => {
     if (!data) return null;
 
     const status = data.identityVerificationStatus;
-    const type = data.verificationType === "kyb" ? "KYB" : "KYC";
 
     if (status === IdentityVerificationStatus.SUCCESS) {
       return null;
     }
 
     if (status === IdentityVerificationStatus.PENDING) {
-      return `${type} processing`;
+      return `KYB processing`;
     }
 
     if (status === IdentityVerificationStatus.FAILED) {
-      return `${type} failed`;
+      return `KYB failed`;
     }
 
     // fallback for undefined || not_started || created || timeout - Complete KYB
-    return `Complete ${type}`;
+    return `Complete KYB`;
   }, [data]);
 
   const description = useMemo(() => {
@@ -84,16 +83,16 @@ export const VerifyPage = () => {
 
     try {
       const result = await getIdentityVerificationLink({
-        type: data.verificationType,
-        redirectUri: window.location.origin,
+        redirectUri: window.location.href.replace("/verify", ""),
       });
-      console.log("getIdentityVerificationLink data: ", result.data);
+      console.log("getIdentityVerificationLink data: ", result);
 
       if (result.success && result.data) {
         // Navigate to verification link
-        window.location.href = (
-          result.data as GetIdentityVerificationLinkResponse
-        ).link;
+        const redirectUrl = (result.data as GetIdentityVerificationLinkResponse)
+          .result.link;
+        console.log("getIdentityVerificationLink url", redirectUrl);
+        window.location.href = redirectUrl;
       } else {
         throw new Error(result.message || "Failed to get verification link");
       }

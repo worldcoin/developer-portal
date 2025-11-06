@@ -76,8 +76,8 @@ export const urls = {
   affiliateRewards: (params: { team_id?: string }): string =>
     `/teams/${params.team_id ? params.team_id : ""}/affiliate-program/how-it-works/rewards`,
 
-  affiliateTerms: (params: { team_id?: string }): string =>
-    `/teams/${params.team_id ? params.team_id : ""}/affiliate-program/terms`,
+  affiliateAccount: (params: { team_id?: string }): string =>
+    `/teams/${params.team_id ? params.team_id : ""}/affiliate-program/account`,
 
   unauthorized: (params?: { message: string }): string => {
     const searchParams = new URLSearchParams(params);

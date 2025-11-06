@@ -38,12 +38,14 @@ export const confirmWithdraw = async ({
     if (shouldReturnMocks) {
       // TODO: remove mock response
       const data: ConfirmWithdrawResponse = {
-        amountInWld: "50000000000000000000",
-        estimatedCompletionTime: new Date(
-          Date.now() + 24 * 60 * 60 * 1000,
-        ).toISOString(), // 24 hours from now
-        newAvailableBalance: "10000000000000000000",
-        toWallet: "0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6",
+        result: {
+          amountInWld: "50000000000000000000",
+          estimatedCompletionTime: new Date(
+            Date.now() + 24 * 60 * 60 * 1000,
+          ).toISOString(), // 24 hours from now
+          newAvailableBalance: "10000000000000000000",
+          toWalletAddress: "0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6",
+        },
       };
       return {
         success: true,
@@ -59,14 +61,14 @@ export const confirmWithdraw = async ({
         region: process.env.TRANSACTION_BACKEND_REGION,
       });
     }
-
     const url = `${process.env.NEXT_SERVER_APP_BACKEND_BASE_URL}/internal/v1/affiliate/withdraw/confirm`;
 
     const response = await signedFetch(url, {
       method: "POST",
       headers: {
-        "User-Agent": "DevPortal/1.0",
+        Accept: "application/json",
         "Content-Type": "application/json",
+        "User-Agent": "DevPortal/1.0",
         "X-Dev-Portal-User-Id": `team_${teamId}`,
       },
       body: JSON.stringify({

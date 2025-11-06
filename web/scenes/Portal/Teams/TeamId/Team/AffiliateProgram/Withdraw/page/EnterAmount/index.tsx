@@ -10,7 +10,7 @@ import { WithdrawFormData } from "../common/types";
 import Skeleton from "react-loading-skeleton";
 
 export type Props = {
-  balance: AffiliateBalanceResponse;
+  balance: AffiliateBalanceResponse["result"];
   onConfirm: () => void;
   loading: boolean;
 };

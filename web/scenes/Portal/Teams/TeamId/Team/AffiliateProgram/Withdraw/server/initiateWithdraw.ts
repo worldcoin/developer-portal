@@ -30,10 +30,12 @@ export const initiateWithdraw = async ({
     if (shouldReturnMocks) {
       // TODO: remove mock response
       const data: InitiateWithdrawResponse = {
-        amountInWld,
-        email: "a***e@example.com",
-        codeExpiresAt: new Date(Date.now() + 15 * 60 * 1000).toISOString(), // 15 minutes from now
-        toWallet: "0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6",
+        result: {
+          amountInWld,
+          email: "a***e@example.com",
+          codeExpiresAt: new Date(Date.now() + 15 * 60 * 1000).toISOString(), // 15 minutes from now
+          toWalletAddress: "0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6",
+        },
       };
       return {
         success: true,
@@ -55,6 +57,7 @@ export const initiateWithdraw = async ({
     const response = await signedFetch(url, {
       method: "POST",
       headers: {
+        Accept: "application/json",
         "User-Agent": "DevPortal/1.0",
         "Content-Type": "application/json",
         "X-Dev-Portal-User-Id": `team_${teamId}`,

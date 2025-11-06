@@ -40,8 +40,10 @@ export const getAffiliateTransactions = async (
     if (shouldReturnMocks) {
       // TODO: remove mock response
       let data: AffiliateTransactionsResponse = {
-        transactions: [],
-        paginationMeta: { totalCount: 11, nextCursor: null },
+        result: {
+          transactions: [],
+          paginationMeta: { totalCount: 11, nextCursor: null },
+        },
       };
 
       if (!params?.cursor) {
