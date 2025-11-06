@@ -36,7 +36,6 @@ export const appBackendFetcher = async (
   };
 
   if (isLocal) {
-    const accessToken = `SET_TOKEN_HERE`;
     // Use regular fetch for localhost
     return fetch(url, {
       ...reqOptions,
@@ -46,7 +45,7 @@ export const appBackendFetcher = async (
         "client-name": "android",
         "client-version": "999.9.9",
         ...defaultHeaders,
-        Authorization: `Bearer ${accessToken}`,
+        // NOTE: add Authorization bearer here
       },
       body: reqOptions.body || undefined,
     });
