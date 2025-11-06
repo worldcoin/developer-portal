@@ -13,6 +13,11 @@ function assertAndBuildBackendUrl(path: string): URL {
     throw new Error("Absolute URLs are not allowed");
   }
 
+  // 1.5) Forbid path traversal and dangerous input
+  if (/(\.\.\/|%2e%2e%2f|\\)/i.test(path)) {
+    throw new Error("Path traversal or backslash not allowed in URL");
+  }
+
   // Normalize leading slash to avoid “//”
   const safePath = path.replace(/^\/+/, "");
 
