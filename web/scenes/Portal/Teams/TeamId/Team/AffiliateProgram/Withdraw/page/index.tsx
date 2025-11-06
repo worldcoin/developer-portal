@@ -1,23 +1,18 @@
 "use client";
-import { CaretIcon } from "@/components/Icons/CaretIcon";
 import { SizingWrapper } from "@/components/SizingWrapper";
-import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import { InitiateWithdrawResponse } from "@/lib/types";
 import { convertAmountToWei, parseTokenAmount } from "@/lib/utils";
 import { useGetAffiliateBalance } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/common/hooks/use-get-affiliate-balance";
 import { yupResolver } from "@hookform/resolvers/yup";
-import clsx from "clsx";
-import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import * as yup from "yup";
+import { confirmWithdraw } from "../server/confirmWithdraw";
+import { initiateWithdraw } from "../server/initiateWithdraw";
 import { AffiliateWithdrawStep } from "./common/types";
 import { ConfirmTransaction } from "./ConfirmTransaction";
 import { EnterAmount } from "./EnterAmount";
 import { EnterCode } from "./EnterCode";
-import { confirmWithdraw } from "../server/confirmWithdraw";
-import { initiateWithdraw } from "../server/initiateWithdraw";
 import { WithdrawSuccess } from "./WithdrawSuccess";
 
 type WithdrawFormData = {
@@ -33,16 +28,12 @@ type PageProps = {
 };
 
 export const WithdrawPage = (props: PageProps) => {
-  const { params } = props;
-  const teamId = params?.teamId;
   const { data: balanceData, loading: isBalanceLoading } =
     useGetAffiliateBalance();
 
   const [currentStep, setCurrentStep] = useState<AffiliateWithdrawStep>(
     AffiliateWithdrawStep.ENTER_AMOUNT,
   );
-  const [withdrawalResponse, setWithdrawalResponse] =
-    useState<InitiateWithdrawResponse | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   // Create dynamic schema based on balance data
@@ -101,17 +92,16 @@ export const WithdrawPage = (props: PageProps) => {
     try {
       const data = watch();
       const amountInWldWei = convertAmountToWei(data.amount, "WLD");
-      if (!data.walletAddress || !amountInWldWei) {
+      if (!amountInWldWei) {
         toast.error("Unable to initiate withdrawal. Please contact support.");
         return;
       }
 
       const result = await initiateWithdraw({
         amountInWld: amountInWldWei,
-        toWallet: data.walletAddress,
       });
+      console.log("initiateWithdraw data", result, result.data);
 
-      setWithdrawalResponse(result.data as InitiateWithdrawResponse);
       setCurrentStep(AffiliateWithdrawStep.ENTER_CODE);
     } catch (error) {
       console.error("Withdrawal initiation failed:", error);
@@ -122,18 +112,13 @@ export const WithdrawPage = (props: PageProps) => {
 
   // Add confirmation handler
   const onWithdrawConfirm = async () => {
-    if (!withdrawalResponse) {
-      toast.error("No withdrawal request found");
-      return;
-    }
-
     try {
       setIsLoading(true);
       const data = watch();
-      await confirmWithdraw({
-        withdrawalRequestId: withdrawalResponse.withdrawalId,
+      const result = await confirmWithdraw({
         emailConfirmationCode: data.otpCode,
       });
+      console.log("confirmWithdraw data", result, result.data);
 
       setCurrentStep(AffiliateWithdrawStep.SUCCESS);
     } catch (error) {
@@ -149,22 +134,7 @@ export const WithdrawPage = (props: PageProps) => {
         gridClassName="order-2 grow mt-6 md:mt-10"
         className="gap flex flex-col"
       >
-        <Link
-          href={`/teams/${teamId}/affiliate-program/earnings`}
-          className="flex flex-row items-center gap-x-2"
-        >
-          <CaretIcon className="size-3 rotate-90 text-grey-400" />
-          <Typography variant={TYPOGRAPHY.R5} className="text-grey-700">
-            Back to Earnings
-          </Typography>
-        </Link>
-
-        <div
-          className={clsx({
-            "grid h-full place-items-center":
-              currentStep === AffiliateWithdrawStep.SUCCESS,
-          })}
-        >
+        <div className="flex h-full min-h-0 items-center justify-center">
           {currentStep === AffiliateWithdrawStep.ENTER_AMOUNT &&
             balanceData && (
               <EnterAmount

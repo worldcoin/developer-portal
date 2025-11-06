@@ -3,6 +3,7 @@ import { AffiliateTransactionsResponse } from "@/lib/types";
 import dayjs from "dayjs";
 import { TransactionBadge } from "../TransactionBadge";
 import clsx from "clsx";
+import { formatTokenAmount, toFixedAmount } from "@/lib/utils";
 
 const TITLE_MAP: Record<
   AffiliateTransactionsResponse["transactions"][0]["type"],
@@ -18,14 +19,6 @@ export const TransactionRow = (props: {
   onClick: () => void;
 }) => {
   const { transaction } = props;
-
-  const formatAmount = (amount: string, token: string) => {
-    if (token === "USDCE") {
-      return (parseFloat(amount) / 10 ** 6).toFixed(2);
-    } else if (token === "WLD") {
-      return (parseFloat(amount) / 10 ** 18).toFixed(2);
-    }
-  };
 
   const isIncome =
     transaction.type === "affiliateAccumulationNfc" ||
@@ -61,10 +54,10 @@ export const TransactionRow = (props: {
             })}
           >
             {isIncome && <span>+</span>}
-            {formatAmount(transaction.amount.inWLD, "WLD")} WLD
+            {formatTokenAmount(transaction.amount.inWLD, "WLD")} WLD
           </Typography>
           <Typography variant={TYPOGRAPHY.R5} className="text-grey-400">
-            ${transaction.amount.inCurrency}
+            ${toFixedAmount(transaction.amount.inCurrency)}
           </Typography>
         </div>
       </td>

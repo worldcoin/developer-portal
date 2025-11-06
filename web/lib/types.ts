@@ -338,9 +338,19 @@ export type AffiliateBalanceResponse = {
   withdrawalWallet: string; // Most recent withdrawal wallet address
 };
 
+export enum IdentityVerificationStatus {
+  NOT_STARTED = "not_started",
+  CREATED = "created",
+  PENDING = "pending",
+  SUCCESS = "success",
+  FAILED = "failed",
+  TIMEOUT = "timeout",
+  UNDEFINED = "undefined",
+}
+
 export type AffiliateMetadataResponse = {
   inviteCode: string;
-  identityVerificationStatus: "approved" | "none";
+  identityVerificationStatus: IdentityVerificationStatus;
   identityVerifiedAt: string;
   verificationType: "kyb" | "kyc";
   totalInvites: number;
@@ -450,29 +460,22 @@ export type AffiliateTransactionsResponse = {
 
 export interface InitiateWithdrawRequest {
   amountInWld: string;
-  toWallet: string;
 }
 
 export interface InitiateWithdrawResponse {
-  withdrawalId: string;
   amountInWld: string;
   toWallet: string;
   email: string;
   codeExpiresAt: string; // ISO 8601 timestamp
-  status: "pending_confirmation";
 }
 
 export interface ConfirmWithdrawRequest {
-  withdrawalRequestId: string;
   emailConfirmationCode: string;
 }
-
 export interface ConfirmWithdrawResponse {
-  withdrawalId: string;
   amountInWld: string;
   estimatedCompletionTime: string;
   newAvailableBalance: string;
   toWallet: string;
-  status: "confirmed";
 }
 /* Affiliate program types END */

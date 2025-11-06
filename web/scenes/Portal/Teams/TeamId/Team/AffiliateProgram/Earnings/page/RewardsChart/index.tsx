@@ -4,7 +4,9 @@ import { InformationCircleIcon } from "@/components/Icons/InformationCircleIcon"
 import { WorldIcon } from "@/components/Icons/WorldIcon";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { AffiliateOverviewResponse } from "@/lib/types";
+import { toFixedAmount } from "@/lib/utils";
 import { useGetAffiliateOverview } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/common/hooks/use-get-affiliate-overview";
+import { getXAxisLabels } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/common/utils";
 import { ChartData, ChartOptions } from "chart.js";
 import clsx from "clsx";
 import dayjs from "dayjs";
@@ -15,7 +17,6 @@ import React, { ReactNode, useMemo } from "react";
 import Skeleton from "react-loading-skeleton";
 import { Stat } from "./stat";
 import { TimespanSelector } from "./TimespanSelector";
-import { getXAxisLabels } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/common/utils";
 
 dayjs.extend(utc);
 dayjs.extend(tz);
@@ -58,6 +59,8 @@ const idVerificationsDatasetConfig: Partial<
 };
 
 const commonChartConfig: ChartOptions<"line"> = {
+  responsive: true,
+  maintainAspectRatio: false, // Add this to allow chart to fill container
   scales: {
     y: {
       ticks: { display: true },
@@ -134,7 +137,7 @@ const GraphCard: React.FC<GraphCardProps> = ({
 
   const mobileChartOptions = {
     ...chartOptions,
-    aspectRatio: mobileAspectRatio,
+    maintainAspectRatio: false,
   };
 
   return (
@@ -163,7 +166,6 @@ const GraphCard: React.FC<GraphCardProps> = ({
           className={clsx(
             "pointer-events-none grid size-full select-none content-center justify-center justify-items-center gap-y-1 rounded-2xl border border-grey-200 px-12",
           )}
-          style={{ aspectRatio: mobileAspectRatio }}
         >
           <Typography
             variant={TYPOGRAPHY.H7}
@@ -182,9 +184,8 @@ const GraphCard: React.FC<GraphCardProps> = ({
 
       {/* Combined Mobile & Desktop View */}
       {(isLoading || chartData) && (
-        <div className="grid gap-6">
-          {/* Stats Section (Conditional Padding) */}
-
+        <div className="grid h-full grid-rows-auto/1fr gap-6">
+          {/* Stats Section */}
           <div className="flex flex-wrap items-center justify-between gap-6">
             <div className={clsx("flex items-center divide-x divide-grey-200")}>
               {stats.map((statProps, index) => (
@@ -218,12 +219,14 @@ const GraphCard: React.FC<GraphCardProps> = ({
             )}
           </div>
 
-          {isLoading && !chartData && <Skeleton height={210} />}
+          {isLoading && !chartData && (
+            <Skeleton className="size-full min-h-[245px]" />
+          )}
 
           {!isLoading && chartData && (
             <>
               {/* Mobile Chart (Visible on sm and below) */}
-              <div className="block sm:hidden">
+              <div className="block min-h-[245px] sm:hidden">
                 <Chart data={chartData} options={mobileChartOptions} />
               </div>
 
@@ -245,11 +248,15 @@ export const RewardsChart = () => {
     useGetAffiliateOverview({ period: timespan.value });
 
   const totalOrbRewards = useMemo(() => {
-    return appStatsData?.earnings.totalByType.orb.inCurrency ?? 0;
+    return (
+      toFixedAmount(appStatsData?.earnings.totalByType.orb.inCurrency) ?? 0
+    );
   }, [appStatsData]);
 
   const totalIdRewards = useMemo(() => {
-    return appStatsData?.earnings.totalByType.nfc.inCurrency ?? 0;
+    return (
+      toFixedAmount(appStatsData?.earnings.totalByType.nfc.inCurrency) ?? 0
+    );
   }, [appStatsData]);
 
   const formattedVerificationsChartData = useMemo(() => {

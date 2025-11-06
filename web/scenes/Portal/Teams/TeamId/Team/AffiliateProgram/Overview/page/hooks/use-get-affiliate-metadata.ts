@@ -10,6 +10,7 @@ export const useGetAffiliateMetadata = () => {
   useEffect(() => {
     const fetchData = async () => {
       const result = await getAffiliateMetadata();
+      console.log("useGetAffiliateMetadata data: ", result, result.data);
       if (!result.success) {
         console.error("Failed to fetch data: ", result.message);
         setError(result.error);

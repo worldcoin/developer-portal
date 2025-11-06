@@ -38,32 +38,23 @@ export const RewardsPage = (props: PageProps) => {
 
   return (
     <>
-      <SizingWrapper
-        gridClassName="order-2 grow mt-6 md:mt-10"
-        className="flex flex-col"
-      >
-        <Link
-          href={`/teams/${params!.teamId}/affiliate-program/how-it-works`}
-          className="flex flex-row items-center gap-x-2"
-        >
-          <CaretIcon className="size-3 rotate-90 text-grey-400" />
-          <Typography variant={TYPOGRAPHY.R5} className="text-grey-700">
-            Back to How it works
-          </Typography>
-        </Link>
+      <SizingWrapper gridClassName="order-2 grow" className="flex flex-col">
         <div
           className={clsx(
-            "mx-auto mt-8 grid w-full max-w-[380px] items-center justify-items-center gap-y-6 text-center ",
+            "mx-auto grid w-full max-w-[380px] items-center justify-items-start gap-y-6 text-center md:justify-items-center ",
           )}
         >
-          <Typography variant={TYPOGRAPHY.H5}>
+          <Typography
+            variant={TYPOGRAPHY.H5}
+            className="text-start md:text-center"
+          >
             Rewards based
             <br />
             on country
           </Typography>
 
-          <div className="w-full">
-            <Tabs className="m-auto w-full justify-center border-grey-100 font-gta md:border-b">
+          <div className="mx-6 w-full md:mx-0">
+            <Tabs className="m-auto w-full border-grey-100 font-gta md:justify-center md:border-b">
               <Tab
                 href={`/teams/${params!.teamId}/affiliate-program/how-it-works/rewards?type=orb`}
                 underlined

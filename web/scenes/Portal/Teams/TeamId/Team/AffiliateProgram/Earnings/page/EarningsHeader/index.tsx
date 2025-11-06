@@ -3,14 +3,17 @@ import { DecoratedButton } from "@/components/DecoratedButton";
 import { WorldIcon } from "@/components/Icons/WorldIcon";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { AffiliateBalanceResponse, Auth0SessionUser } from "@/lib/types";
-import { checkUserPermissions, formatTokenAmount } from "@/lib/utils";
-import tokenWalletImage from "@/public/images/token-wallet.png";
+import {
+  checkUserPermissions,
+  formatTokenAmount,
+  toFixedAmount,
+} from "@/lib/utils";
 import { useMemo } from "react";
 import Skeleton from "react-loading-skeleton";
 import { useParams, useRouter } from "next/navigation";
-import NextImage from "next/image";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { Role_Enum } from "@/graphql/graphql";
+import { WalletPocketIcon } from "@/components/Icons/WallenPocketIcon";
 
 type Props = {
   loading: boolean;
@@ -42,7 +45,7 @@ export const EarningsHeader = (props: Props) => {
     if (data?.availableBalance.inCurrency != null) {
       return (
         "Available to withdraw · $" +
-        data?.availableBalance.inCurrency.toFixed(2)
+        toFixedAmount(data?.availableBalance.inCurrency)
       );
     }
     return "No funds to withdraw";
@@ -50,13 +53,7 @@ export const EarningsHeader = (props: Props) => {
 
   return (
     <div className="grid items-center gap-y-4 border-b border-dashed border-grey-200 py-10 sm:grid-cols-auto/1fr/auto sm:justify-items-start sm:gap-x-6">
-      <NextImage
-        src={tokenWalletImage}
-        alt="wallet"
-        width={60}
-        height={60}
-        className="hidden md:block"
-      />
+      <WalletPocketIcon className="hidden size-15 md:block" />
 
       <div className="flex flex-col gap-y-1">
         <div className="flex items-center gap-0.5">

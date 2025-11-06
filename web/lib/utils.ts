@@ -448,6 +448,17 @@ export const formatTokenAmount = (
 };
 
 /**
+ * Convert raw token amount to human-readable format
+ */
+export const toFixedAmount = (
+  amount: number | string | null | undefined,
+  decimals: number = 2,
+): string => {
+  if (amount == null) return "";
+  return Number(amount).toFixed(decimals);
+};
+
+/**
  * Convert raw token amount to number
  */
 export const parseTokenAmount = (

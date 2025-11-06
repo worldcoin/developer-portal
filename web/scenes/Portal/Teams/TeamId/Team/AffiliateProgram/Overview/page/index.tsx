@@ -6,34 +6,33 @@ import { useGetAffiliateMetadata } from "./hooks/use-get-affiliate-metadata";
 import { InviteUserDialog } from "./InviteUserDialog";
 import { OverviewProfile } from "./OverviewProfile";
 import { VerificationsChart } from "./VerificationsChart";
-import { NotVerified } from "./NotVerified";
+import { IdentityVerificationStatus } from "@/lib/types";
 
 export const AffiliateProgramPage = () => {
   const { data: metadata, loading: isMetadataLoading } =
     useGetAffiliateMetadata();
   const isUserPassedKyc =
-    !isMetadataLoading && metadata?.identityVerificationStatus === "approved";
+    !isMetadataLoading &&
+    metadata?.identityVerificationStatus === IdentityVerificationStatus.SUCCESS;
 
   return (
     <>
       <SizingWrapper
         gridClassName="order-2 grow"
         className={clsx("flex flex-col", {
-          "place-content-center":
+          "place-content-center items-center":
             !isMetadataLoading &&
-            metadata?.identityVerificationStatus !== "approved",
+            metadata?.identityVerificationStatus !==
+              IdentityVerificationStatus.SUCCESS,
         })}
+        variant="nav"
       >
         <InviteUserDialog data={metadata} />
 
-        {metadata && !isUserPassedKyc ? (
-          <NotVerified data={metadata} />
-        ) : (
-          <Section>
-            <OverviewProfile loading={isMetadataLoading} data={metadata} />
-            <VerificationsChart />
-          </Section>
-        )}
+        <Section>
+          <OverviewProfile loading={isMetadataLoading} data={metadata} />
+          <VerificationsChart />
+        </Section>
       </SizingWrapper>
     </>
   );

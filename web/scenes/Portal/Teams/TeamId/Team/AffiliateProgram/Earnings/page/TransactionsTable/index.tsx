@@ -2,7 +2,6 @@
 import { Pagination } from "@/components/Pagination";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { AffiliateTransactionsResponse } from "@/lib/types";
-import { useGetAffiliateTransactions } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Earnings/page/hooks/use-get-affiliate-transactions";
 import {
   TransactionDetailsDialog,
   transactionDetailsDialogAtom,
@@ -11,8 +10,11 @@ import { useAtom } from "jotai/index";
 import { useState } from "react";
 import Skeleton from "react-loading-skeleton";
 import { TransactionRow } from "./TransactionRow";
+import { useGetAffiliateTransactions } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Earnings/page/hooks/use-get-affiliate-transactions";
 
-export const TransactionsTable = () => {
+type TransactionsTableProps = ReturnType<typeof useGetAffiliateTransactions>;
+
+export const TransactionsTable = (props: TransactionsTableProps) => {
   const {
     transactions,
     totalCount,
@@ -20,7 +22,7 @@ export const TransactionsTable = () => {
     loading,
     loadingMore,
     handlePageChange,
-  } = useGetAffiliateTransactions({ limit: 100 });
+  } = props;
 
   const [, setIsOpened] = useAtom(transactionDetailsDialogAtom);
   const [selectedTransaction, setSelectedTransaction] = useState<
@@ -41,7 +43,8 @@ export const TransactionsTable = () => {
       {loading || loadingMore ? (
         <div>
           <Skeleton height={41} />
-          <Skeleton count={5} height={75} />
+          <Skeleton count={5} height={73} />
+          <Skeleton height={63} />
         </div>
       ) : (
         <div>

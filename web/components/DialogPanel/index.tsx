@@ -1,17 +1,22 @@
+import { RemoveCustomIcon } from "@/components/Icons/RemoveCustomIcon";
 import {
   Dialog,
   DialogPanelProps as DialogPanelPropsBase,
   Transition,
 } from "@headlessui/react";
-import { Fragment } from "react";
+import { Fragment, ReactNode } from "react";
 import { twMerge } from "tailwind-merge";
 
 type DialogPanelProps = Omit<DialogPanelPropsBase<"div">, "className"> & {
   className?: string;
+  contentClassName?: string;
+  showCloseIcon?: boolean;
+  onClose?: () => void;
+  children?: ReactNode;
 };
 
 export const DialogPanel = (props: DialogPanelProps) => {
-  const { className, children, ...otherProps } = props;
+  const { className, children, showCloseIcon, onClose, ...otherProps } = props;
 
   return (
     <Transition.Child
@@ -27,10 +32,21 @@ export const DialogPanel = (props: DialogPanelProps) => {
         <Dialog.Panel
           className={twMerge(
             "relative z-50 grid w-full justify-items-center rounded-32 bg-grey-0 p-7 md:w-auto md:min-w-[25rem] md:rounded-20",
+            showCloseIcon && "pt-[78px]",
             className,
           )}
           {...otherProps}
         >
+          {showCloseIcon && onClose && (
+            <button
+              type="button"
+              onClick={onClose}
+              className="absolute right-7 top-7 flex size-8 items-center justify-center rounded-full bg-grey-100 transition-colors hover:bg-grey-200 focus:outline-none focus:ring-grey-300"
+              aria-label="Close dialog"
+            >
+              <RemoveCustomIcon className="size-4" />
+            </button>
+          )}
           {children}
         </Dialog.Panel>
       </div>

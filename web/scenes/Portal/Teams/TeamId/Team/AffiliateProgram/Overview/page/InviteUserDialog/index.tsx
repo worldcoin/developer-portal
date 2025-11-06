@@ -24,9 +24,13 @@ export const InviteUserDialog = (props: Props) => {
     <Dialog open={isOpened} onClose={setIsOpened}>
       <DialogOverlay />
 
-      <DialogPanel className="grid gap-y-8 md:max-w-[30rem]">
+      <DialogPanel
+        className="grid gap-y-8 md:max-w-[30rem]"
+        onClose={() => setIsOpened(false)}
+        showCloseIcon={true}
+      >
         <CircleIconContainer variant="info">
-          <GmailIcon />
+          <GmailIcon className="size-8" />
         </CircleIconContainer>
 
         <div className="grid justify-items-center gap-y-4">

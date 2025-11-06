@@ -55,7 +55,11 @@ export const TransactionDetailsDialog = (props: Props) => {
     >
       <DialogOverlay />
 
-      <DialogPanel className="grid w-full md:w-[480px]">
+      <DialogPanel
+        className="grid w-full md:w-[480px]"
+        onClose={() => setIsOpened(false)}
+        showCloseIcon={true}
+      >
         <TransactionBadge
           transaction={props.data!}
           className="size-16"
