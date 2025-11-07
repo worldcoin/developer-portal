@@ -262,7 +262,7 @@ const GraphCard: React.FC<GraphCardProps> = ({
               </div>
 
               {/* Desktop Chart (Visible on sm and above) */}
-              <div className="hidden sm:block">
+              <div className="hidden min-h-[350px] sm:block">
                 <Chart data={chartData} options={chartOptions} />
               </div>
             </>

@@ -371,6 +371,7 @@ export enum IdentityVerificationStatus {
 export type AffiliateMetadataResponse = {
   result: {
     email: string;
+    withdrawalWallet: string;
     inviteCode: string;
     identityVerificationStatus: IdentityVerificationStatus;
     identityVerifiedAt: string;

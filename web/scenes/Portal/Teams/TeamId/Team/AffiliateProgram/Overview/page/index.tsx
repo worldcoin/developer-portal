@@ -1,7 +1,6 @@
 "use client";
 import { Section } from "@/components/Section";
 import { SizingWrapper } from "@/components/SizingWrapper";
-import clsx from "clsx";
 import { useGetAffiliateMetadata } from "./hooks/use-get-affiliate-metadata";
 import { InviteUserDialog } from "./InviteUserDialog";
 import { OverviewProfile } from "./OverviewProfile";
@@ -11,20 +10,17 @@ import { IdentityVerificationStatus } from "@/lib/types";
 export const AffiliateProgramPage = () => {
   const { data: metadata, loading: isMetadataLoading } =
     useGetAffiliateMetadata();
-  const isUserPassedKyc =
-    !isMetadataLoading &&
-    metadata?.identityVerificationStatus === IdentityVerificationStatus.SUCCESS;
+
+  if (
+    metadata?.identityVerificationStatus !== IdentityVerificationStatus.SUCCESS
+  )
+    return null;
 
   return (
     <>
       <SizingWrapper
         gridClassName="order-2 grow"
-        className={clsx("flex flex-col", {
-          "place-content-center items-center":
-            !isMetadataLoading &&
-            metadata?.identityVerificationStatus !==
-              IdentityVerificationStatus.SUCCESS,
-        })}
+        className="flex flex-col"
         variant="nav"
       >
         <InviteUserDialog data={metadata} />

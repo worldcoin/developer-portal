@@ -83,7 +83,7 @@ export const getAffiliateTransactions = async (
         return acc;
       }, new URLSearchParams());
 
-    const url = `${process.env.NEXT_SERVER_APP_BACKEND_BASE_URL}/internal/v1/affiliate/transactions${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
+    const url = `${process.env.NEXT_SERVER_APP_BACKEND_BASE_URL}/internal/v1/affiliate/transactions/history${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
 
     const response = await signedFetch(url, {
       method: "GET",

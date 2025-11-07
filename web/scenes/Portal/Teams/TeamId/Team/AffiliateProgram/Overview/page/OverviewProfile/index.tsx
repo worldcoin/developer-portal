@@ -18,7 +18,7 @@ export const OverviewProfile = (props: Props) => {
   const [_, setIsOpened] = useAtom(inviteUserDialogAtom);
 
   return (
-    <div className="grid items-center gap-y-4 py-10 sm:grid-cols-auto/1fr/auto sm:gap-x-6">
+    <div className="grid items-center gap-y-4 border-b border-dashed border-grey-200 py-10 sm:grid-cols-auto/1fr/auto sm:justify-items-start sm:gap-x-6">
       <EnvelopeIcon className="hidden size-15 md:block" />
 
       <div className="grid grid-cols-1 gap-y-1">
@@ -34,12 +34,10 @@ export const OverviewProfile = (props: Props) => {
           variant={TYPOGRAPHY.R4}
           className="max-md:text-base max-md:leading-6"
         >
-          {!affiliateMetadata && <Skeleton className="max-w-[120px]" />}
-
-          {affiliateMetadata?.totalInvites && (
-            <div className="grid grid-cols-auto/1fr items-center gap-x-2 truncate text-grey-500">
-              {affiliateMetadata?.totalInvites} codes applied
-            </div>
+          {affiliateMetadata ? (
+            `${affiliateMetadata?.totalInvites || 0} codes applied`
+          ) : (
+            <Skeleton className="max-w-[120px]" />
           )}
         </Typography>
       </div>

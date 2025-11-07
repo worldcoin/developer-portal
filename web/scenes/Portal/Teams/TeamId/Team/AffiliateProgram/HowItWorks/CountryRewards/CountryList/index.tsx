@@ -1,9 +1,10 @@
 "use client";
+import { GlobeIcon } from "@/components/Icons/GlobeIcon";
 import { IconFrame } from "@/components/InitialSteps/IconFrame";
 import { Typography, TYPOGRAPHY } from "@/components/Typography";
 import Image from "next/image";
+import { useMemo } from "react";
 import Skeleton from "react-loading-skeleton";
-import { GlobeIcon } from "@/components/Icons/GlobeIcon";
 
 type Props = {
   countries: { countryCode: string; asset: string; amount: number }[];
@@ -11,10 +12,15 @@ type Props = {
 };
 
 export const CountryList = (props: Props) => {
+  const sortedCountries = useMemo(
+    () => [...props.countries].sort((a, b) => b.amount - a.amount),
+    [props.countries],
+  );
+
   if (props.loading) {
     return (
       <div className="w-full">
-        {Array.from({ length: 8 }).map((_, i) => (
+        {Array.from({ length: 20 }).map((_, i) => (
           <div
             key={i}
             className="flex items-center justify-between gap-3 py-2.5"
@@ -29,17 +35,18 @@ export const CountryList = (props: Props) => {
       </div>
     );
   }
+
   return (
     <div className="mb-6 w-full">
-      {props.countries.map((country) => (
+      {sortedCountries.map((country) => (
         <div
           key={country.countryCode}
           className="flex items-center justify-between gap-3 py-2.5"
         >
           <div className="flex items-center gap-3">
-            <div className="size-8 flex-shrink-0 overflow-hidden rounded-full">
+            <div className="size-8 shrink-0 overflow-hidden rounded-full">
               {country.countryCode === "Global" ? (
-                <IconFrame className="flex h-full w-full items-center justify-center bg-blue-500 text-grey-0">
+                <IconFrame className="flex size-full items-center justify-center bg-blue-500 text-grey-0">
                   <GlobeIcon className="size-5" />
                 </IconFrame>
               ) : (
@@ -48,7 +55,7 @@ export const CountryList = (props: Props) => {
                   alt={`${country.countryCode} flag`}
                   width={32}
                   height={32}
-                  className="h-full w-full object-cover"
+                  className="size-full object-cover"
                 />
               )}
             </div>

@@ -38,7 +38,10 @@ export const RewardsPage = (props: PageProps) => {
 
   return (
     <>
-      <SizingWrapper gridClassName="order-2 grow" className="flex flex-col">
+      <SizingWrapper
+        gridClassName="order-2 grow mt-6 md:mt-10"
+        className="flex flex-col"
+      >
         <div
           className={clsx(
             "mx-auto grid w-full max-w-[380px] items-center justify-items-start gap-y-6 text-center md:justify-items-center ",

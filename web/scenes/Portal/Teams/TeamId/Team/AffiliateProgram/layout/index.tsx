@@ -6,10 +6,11 @@ import { Role_Enum } from "@/graphql/graphql";
 import { Auth0SessionUser, IdentityVerificationStatus } from "@/lib/types";
 import { urls } from "@/lib/urls";
 import { checkIfProduction, checkUserPermissions } from "@/lib/utils";
+import { useGetAffiliateMetadata } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Overview/page/hooks/use-get-affiliate-metadata";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { useParams, usePathname, useRouter } from "next/navigation";
-import { ReactNode, useEffect, useMemo } from "react";
-import { useGetAffiliateMetadata } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Overview/page/hooks/use-get-affiliate-metadata";
+import { ReactNode, useEffect, useMemo, useState } from "react";
+import { getParameter } from "../common/server/getParameter";
 
 type TeamIdLayoutProps = {
   children: ReactNode;
@@ -29,6 +30,30 @@ export const AffiliateProgramLayout = (props: TeamIdLayoutProps) => {
     () => checkUserPermissions(auth0User, teamId ?? "", [Role_Enum.Owner]),
     [auth0User, teamId],
   );
+  const [isEnabled, setIsEnabled] = useState<boolean>(false);
+
+  useEffect(() => {
+    const fetchParameters = async () => {
+      const isAffiliateProgramEnabled = await getParameter<boolean>(
+        "affiliate-program/enabled",
+        false,
+      );
+      const enabledTeams = await getParameter<string[]>(
+        "affiliate-program/enabled-teams",
+        [],
+      );
+      console.log("fetched params", isAffiliateProgramEnabled, enabledTeams);
+      if (
+        isAffiliateProgramEnabled ||
+        enabledTeams?.includes(teamId as string)
+      ) {
+        setIsEnabled(true);
+      } else {
+        router.push(urls.teams({ team_id: teamId }));
+      }
+    };
+    fetchParameters();
+  }, [teamId]);
 
   // Step 3: Define page types (deterministic categorization)
   const isVerifyPage = useMemo(
@@ -47,7 +72,8 @@ export const AffiliateProgramLayout = (props: TeamIdLayoutProps) => {
     () => pathname === urls.affiliateRewards({ team_id: teamId }),
     [pathname, teamId],
   );
-  const isOwnerOnlyPage = isWithdrawPage || isAccountPage || isRewardsPage;
+  const isOwnerOnlyPage = isWithdrawPage || isAccountPage;
+  const hideTabs = isWithdrawPage || isRewardsPage;
   const isVerificationRequired = useMemo(
     () =>
       metadata?.identityVerificationStatus !==
@@ -59,12 +85,6 @@ export const AffiliateProgramLayout = (props: TeamIdLayoutProps) => {
   useEffect(() => {
     // Wait for metadata to load
     if (isMetadataLoading || !metadata) {
-      return;
-    }
-
-    // Check production flag (environment-level restriction)
-    if (isProduction) {
-      router.push(urls.teams({ team_id: teamId }));
       return;
     }
 
@@ -97,56 +117,51 @@ export const AffiliateProgramLayout = (props: TeamIdLayoutProps) => {
     router,
   ]);
 
-  if (
-    metadata?.identityVerificationStatus !==
-      IdentityVerificationStatus.SUCCESS ||
-    isWithdrawPage ||
-    isVerifyPage
-  ) {
-    return props.children;
-  }
+  if (!metadata || isMetadataLoading || !isEnabled) return null;
 
   return (
     <div className="flex flex-col">
       <div className="order-2 md:order-1 md:w-full md:border-b md:border-grey-100">
-        <SizingWrapper variant="nav">
-          <Tabs className="px-6 py-4 font-gta md:py-0">
-            <Tab
-              className="md:py-4"
-              href={`/teams/${teamId}/affiliate-program`}
-              segment={null}
-              underlined
-            >
-              <Typography variant={TYPOGRAPHY.R4}>Overview</Typography>
-            </Tab>
-            <Tab
-              className="md:py-4"
-              href={`/teams/${teamId}/affiliate-program/earnings`}
-              segment={"earnings"}
-              underlined
-            >
-              <Typography variant={TYPOGRAPHY.R4}>Earnings</Typography>
-            </Tab>
-            <Tab
-              className="md:py-4"
-              href={`/teams/${teamId}/affiliate-program/how-it-works`}
-              segment={"how-it-works"}
-              underlined
-            >
-              <Typography variant={TYPOGRAPHY.R4}>How it works</Typography>
-            </Tab>
-            {hasOwnerPermission && (
+        {!hideTabs && (
+          <SizingWrapper variant="nav">
+            <Tabs className="px-6 py-4 font-gta md:py-0">
               <Tab
                 className="md:py-4"
-                href={`/teams/${teamId}/affiliate-program/account`}
-                segment={"account"}
+                href={`/teams/${teamId}/affiliate-program`}
+                segment={null}
                 underlined
               >
-                <Typography variant={TYPOGRAPHY.R4}>Account</Typography>
+                <Typography variant={TYPOGRAPHY.R4}>Overview</Typography>
               </Tab>
-            )}
-          </Tabs>
-        </SizingWrapper>
+              <Tab
+                className="md:py-4"
+                href={`/teams/${teamId}/affiliate-program/earnings`}
+                segment={"earnings"}
+                underlined
+              >
+                <Typography variant={TYPOGRAPHY.R4}>Earnings</Typography>
+              </Tab>
+              <Tab
+                className="md:py-4"
+                href={`/teams/${teamId}/affiliate-program/how-it-works`}
+                segment={"how-it-works"}
+                underlined
+              >
+                <Typography variant={TYPOGRAPHY.R4}>How it works</Typography>
+              </Tab>
+              {hasOwnerPermission && (
+                <Tab
+                  className="md:py-4"
+                  href={`/teams/${teamId}/affiliate-program/account`}
+                  segment={"account"}
+                  underlined
+                >
+                  <Typography variant={TYPOGRAPHY.R4}>Account</Typography>
+                </Tab>
+              )}
+            </Tabs>
+          </SizingWrapper>
+        )}
       </div>
 
       {props.children}
