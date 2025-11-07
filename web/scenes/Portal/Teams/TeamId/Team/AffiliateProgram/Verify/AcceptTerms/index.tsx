@@ -11,6 +11,9 @@ import { SizingWrapper } from "@/components/SizingWrapper";
 import { Button } from "@/components/Button";
 import { CloseIcon } from "@/components/Icons/CloseIcon";
 import { LoggedUserNav } from "@/components/LoggedUserNav";
+import { toast } from "react-toastify";
+import { executeAcceptTerms } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Overview/server/executeAcceptTerms";
+import { useState } from "react";
 
 type Props = DialogProps & {
   onClose: () => void;
@@ -18,6 +21,27 @@ type Props = DialogProps & {
 };
 
 export const AcceptTermsDialog = (props: Props) => {
+  const [isLoading, setIsLoading] = useState(false);
+  const handleAcceptTerms = async () => {
+    setIsLoading(true);
+
+    try {
+      console.log("execute accept terms");
+      const result = await executeAcceptTerms();
+      if (result.success) {
+        console.log("accepted terms url", result);
+        props.onConfirm();
+      } else {
+        throw new Error(result.message || "Failed to accept terms");
+      }
+    } catch (error) {
+      console.error("Failed to accept terms:", error);
+      toast.error("Failed request on accept terms. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <Dialog open={props.open} onClose={props.onClose} className="z-50 ">
       <DialogPanel
@@ -73,8 +97,9 @@ export const AcceptTermsDialog = (props: Props) => {
 
               <DecoratedButton
                 type="button"
-                onClick={props.onConfirm}
+                onClick={handleAcceptTerms}
                 className="mt-10 w-full"
+                disabled={isLoading}
               >
                 I agree
               </DecoratedButton>

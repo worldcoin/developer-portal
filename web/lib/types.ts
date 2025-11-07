@@ -335,6 +335,12 @@ export interface GetIdentityVerificationLinkResponse {
   };
 }
 
+export interface AcceptTermsResponse {
+  result: {
+    termsAcceptedAt: string;
+  };
+}
+
 export type AffiliateBalanceResponse = {
   result: {
     availableBalance: {
@@ -389,6 +395,7 @@ export type AffiliateMetadataResponse = {
         Global: { asset: string; amount: number };
       };
     };
+    termsAcceptedAt: string;
   };
 };
 

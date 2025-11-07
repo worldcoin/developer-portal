@@ -21,14 +21,15 @@ import { Button } from "@/components/Button";
 import { ArrowDownSharpIcon } from "@/components/Icons/ArrowDownSharp";
 
 export const VerifyPage = () => {
-  const { data, loading: isMetadataLoading } = useGetAffiliateMetadata();
+  const { data: metadata, loading: isMetadataLoading } =
+    useGetAffiliateMetadata();
   const [isLoading, setIsLoading] = useState(false);
   const [showAcceptTerms, setShowAcceptTerms] = useState(false);
 
   const title = useMemo(() => {
-    if (!data) return null;
+    if (!metadata) return null;
 
-    const status = data.identityVerificationStatus;
+    const status = metadata.identityVerificationStatus;
 
     if (status === IdentityVerificationStatus.SUCCESS) {
       return null;
@@ -44,12 +45,12 @@ export const VerifyPage = () => {
 
     // fallback for undefined || not_started || created || timeout - Complete KYB
     return `Complete KYB`;
-  }, [data]);
+  }, [metadata]);
 
   const description = useMemo(() => {
-    if (!data) return null;
+    if (!metadata) return null;
 
-    const status = data.identityVerificationStatus;
+    const status = metadata.identityVerificationStatus;
 
     if (status === IdentityVerificationStatus.SUCCESS) {
       return null;
@@ -65,18 +66,19 @@ export const VerifyPage = () => {
 
     // fallback for undefined || not_started || created || timeout - Complete KYB
     return "To unlock affiliate program";
-  }, [data]);
+  }, [metadata]);
 
   const actionButton = useMemo(() => {
-    if (!data) return "Complete";
+    if (!metadata) return "Complete";
 
-    return data.identityVerificationStatus === IdentityVerificationStatus.FAILED
+    return metadata.identityVerificationStatus ===
+      IdentityVerificationStatus.FAILED
       ? "Try again"
       : "Complete";
-  }, [data]);
+  }, [metadata]);
 
-  const handleCompleteKyb = async () => {
-    if (!data) return;
+  const handleGetVerificationLink = async () => {
+    if (!metadata) return;
 
     setShowAcceptTerms(false);
     setIsLoading(true);
@@ -85,12 +87,13 @@ export const VerifyPage = () => {
       const result = await getIdentityVerificationLink({
         redirectUri: window.location.href.replace("/verify", ""),
       });
-      console.log("getIdentityVerificationLink data: ", result);
+      console.log("getIdentityVerificationLink metadta: ", result);
 
-      if (result.success && result.data) {
+      if (result.success && result.metadta) {
         // Navigate to verification link
-        const redirectUrl = (result.data as GetIdentityVerificationLinkResponse)
-          .result.link;
+        const redirectUrl = (
+          result.metadta as GetIdentityVerificationLinkResponse
+        ).result.link;
         console.log("getIdentityVerificationLink url", redirectUrl);
         window.location.href = redirectUrl;
       } else {
@@ -104,6 +107,14 @@ export const VerifyPage = () => {
     }
   };
 
+  const handleComplete = () => {
+    if (metadata?.termsAcceptedAt) {
+      handleGetVerificationLink();
+      return;
+    }
+    setShowAcceptTerms(true);
+  };
+
   return (
     <SizingWrapper
       gridClassName="order-2 grow"
@@ -112,7 +123,7 @@ export const VerifyPage = () => {
     >
       <AcceptTermsDialog
         open={showAcceptTerms}
-        onConfirm={handleCompleteKyb}
+        onConfirm={handleGetVerificationLink}
         onClose={() => setShowAcceptTerms(false)}
       />
 
@@ -143,7 +154,7 @@ export const VerifyPage = () => {
             </>
           ) : (
             <>
-              {data?.identityVerificationStatus ===
+              {metadata?.identityVerificationStatus ===
               IdentityVerificationStatus.FAILED ? (
                 <IconFrame className="flex-shrink-0 bg-system-error-50 text-system-error-500">
                   <RemoveCustomIcon className="size-5" />
@@ -167,21 +178,21 @@ export const VerifyPage = () => {
                 </Typography>
               </div>
               {isLoading ||
-              data?.identityVerificationStatus ===
+              metadata?.identityVerificationStatus ===
                 IdentityVerificationStatus.PENDING ? (
                 <SpinnerIcon className="ml-auto size-6 animate-spin" />
               ) : (
                 <>
                   <Button
                     type="button"
-                    onClick={() => setShowAcceptTerms(true)}
+                    onClick={handleComplete}
                     className="ml-auto flex size-6 items-center justify-center rounded-full bg-grey-900 md:hidden"
                   >
                     <ArrowDownSharpIcon className="size-3 text-grey-0" />
                   </Button>
                   <DecoratedButton
                     type="button"
-                    onClick={() => setShowAcceptTerms(true)}
+                    onClick={handleComplete}
                     className="ml-auto hidden md:block"
                   >
                     {actionButton}
