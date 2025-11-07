@@ -1,11 +1,15 @@
 "use client";
 
+import { CodeFolderIcon } from "@/components/Icons/CodeFolderIcon";
+import { HelpSquareIcon } from "@/components/Icons/HelpSquareIcon";
+import { LoginSquareIcon } from "@/components/Icons/LoginSquareIcon";
 import { TeamLogo } from "@/components/LoggedUserNav/Teams/TeamLogo";
 import { useFetchTeamQuery } from "@/components/LoggedUserNav/graphql/client/fetch-team.generated";
 import { Role_Enum } from "@/graphql/graphql";
 import { DOCS_URL } from "@/lib/constants";
 import { Auth0SessionUser } from "@/lib/types";
-import { checkIfProduction, checkUserPermissions } from "@/lib/utils";
+import { checkUserPermissions } from "@/lib/utils";
+import { getParameter } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/common/server/getParameter";
 import { colorAtom } from "@/scenes/Portal/layout";
 import { useMeQuery } from "@/scenes/common/me-query/client";
 import { useUser } from "@auth0/nextjs-auth0/client";
@@ -13,7 +17,7 @@ import { useAtom } from "jotai";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import posthog from "posthog-js";
-import { CSSProperties, useCallback, useMemo } from "react";
+import { CSSProperties, useCallback, useEffect, useMemo } from "react";
 import { Button } from "../Button";
 import { Dropdown } from "../Dropdown";
 import { LogoutIcon } from "../Icons/LogoutIcon";
@@ -24,14 +28,12 @@ import { UserMultipleIcon } from "../Icons/UserMultipleIcon";
 import { TYPOGRAPHY, Typography } from "../Typography";
 import { Help } from "./Help";
 import { Teams } from "./Teams";
-import { CodeFolderIcon } from "@/components/Icons/CodeFolderIcon";
-import { HelpSquareIcon } from "@/components/Icons/HelpSquareIcon";
-import { LoginSquareIcon } from "@/components/Icons/LoginSquareIcon";
+import { affiliateEnabledAtom } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/common/affiliate-enabled-atom";
 
 export const LoggedUserNav = () => {
   const [color] = useAtom(colorAtom);
   const { user: auth0User } = useUser() as Auth0SessionUser;
-  const isProduction = checkIfProduction();
+  const [affiliateConfig, setAffiliateConfig] = useAtom(affiliateEnabledAtom);
 
   const { teamId, appId, actionId } = useParams() as {
     teamId?: string;
@@ -67,6 +69,38 @@ export const LoggedUserNav = () => {
         },
     skip: !teamId,
   });
+
+  useEffect(() => {
+    const fetchParameters = async () => {
+      try {
+        const isAffiliateProgramEnabled = await getParameter<boolean>(
+          "affiliate-program/enabled",
+          true,
+        );
+        const enabledTeams = await getParameter<string[]>(
+          "affiliate-program/enabled-teams",
+          [],
+        );
+        console.log(
+          "fetched params",
+          isAffiliateProgramEnabled,
+          enabledTeams,
+          teamId,
+        );
+        setAffiliateConfig({
+          isFetched: true,
+          value:
+            (isAffiliateProgramEnabled ||
+              enabledTeams?.includes(teamId as string)) ??
+            false,
+        });
+      } catch (error) {
+        console.error(error);
+        setAffiliateConfig({ isFetched: true, value: false });
+      }
+    };
+    fetchParameters();
+  }, [teamId]);
 
   return (
     <div
@@ -168,7 +202,7 @@ export const LoggedUserNav = () => {
                 </Dropdown.ListItem>
               )}
 
-              {!isProduction && (
+              {affiliateConfig.value && (
                 <Dropdown.ListItem asChild>
                   <Link href={`/teams/${teamId}/affiliate-program`}>
                     <Dropdown.ListItemIcon asChild>
