@@ -8,6 +8,8 @@ import { EarningsHeader } from "./EarningsHeader";
 import { RewardsChart } from "./RewardsChart";
 import { TransactionsTable } from "./TransactionsTable";
 import { useGetAffiliateTransactions } from "./hooks/use-get-affiliate-transactions";
+import { useEffect } from "react";
+import { getAffiliateTransactions } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Earnings/server/getAffiliateTransactions";
 
 export const EarningsPage = () => {
   const { data, loading: isBalanceLoading } = useGetAffiliateBalance();
@@ -15,6 +17,15 @@ export const EarningsPage = () => {
   const hasTransactions =
     transactionsData.loading || transactionsData.transactions.length > 0;
 
+  // TODO: check if it's working on staging
+  useEffect(() => {
+    const loadData = async () => {
+      await getAffiliateTransactions({
+        limit: 70,
+      });
+    };
+    loadData();
+  }, []);
   return (
     <>
       <SizingWrapper
