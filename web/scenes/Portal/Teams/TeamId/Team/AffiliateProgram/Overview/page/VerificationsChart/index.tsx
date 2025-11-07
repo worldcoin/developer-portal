@@ -367,7 +367,7 @@ export const VerificationsChart = () => {
   const chartConfig = getChartConfig(isEmpty);
 
   return (
-    <div className="grid flex-1">
+    <div className="mt-6 grid flex-1 md:mt-10">
       <GraphCard
         isLoading={appStatsLoading}
         chartData={formattedVerificationsChartData}

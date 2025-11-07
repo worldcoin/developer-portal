@@ -17,15 +17,10 @@ export const EarningsPage = () => {
   const hasTransactions =
     transactionsData.loading || transactionsData.transactions.length > 0;
 
-  // TODO: check if it's working on staging
-  useEffect(() => {
-    const loadData = async () => {
-      await getAffiliateTransactions({
-        limit: 70,
-      });
-    };
-    loadData();
-  }, []);
+  if (isBalanceLoading || transactionsData.loading) {
+    return null;
+  }
+
   return (
     <>
       <SizingWrapper
