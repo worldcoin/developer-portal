@@ -73,9 +73,9 @@ export const LoggedUserNav = () => {
   useEffect(() => {
     const fetchParameters = async () => {
       try {
-        const isAffiliateProgramEnabled = await getParameter<boolean>(
+        const isAffiliateProgramEnabled = await getParameter<string>(
           "affiliate-program/enabled",
-          true,
+          "false",
         );
         const enabledTeams = await getParameter<string[]>(
           "affiliate-program/enabled-teams",
@@ -90,7 +90,7 @@ export const LoggedUserNav = () => {
         setAffiliateConfig({
           isFetched: true,
           value:
-            (isAffiliateProgramEnabled ||
+            (isAffiliateProgramEnabled === "true" ||
               enabledTeams?.includes(teamId as string)) ??
             false,
         });
