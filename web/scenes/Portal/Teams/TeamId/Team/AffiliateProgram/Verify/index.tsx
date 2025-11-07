@@ -87,13 +87,12 @@ export const VerifyPage = () => {
       const result = await getIdentityVerificationLink({
         redirectUri: window.location.href.replace("/verify", ""),
       });
-      console.log("getIdentityVerificationLink metadta: ", result);
+      console.log("getIdentityVerificationLink: ", result);
 
-      if (result.success && result.metadta) {
+      if (result.success && result.data) {
         // Navigate to verification link
-        const redirectUrl = (
-          result.metadta as GetIdentityVerificationLinkResponse
-        ).result.link;
+        const redirectUrl = (result.data as GetIdentityVerificationLinkResponse)
+          .result.link;
         console.log("getIdentityVerificationLink url", redirectUrl);
         window.location.href = redirectUrl;
       } else {

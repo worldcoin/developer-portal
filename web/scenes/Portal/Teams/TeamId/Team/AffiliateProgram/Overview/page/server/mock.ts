@@ -7,7 +7,7 @@ export const afilliateMetadataMock: AffiliateMetadataResponse = {
   result: {
     email: "test@mail.com",
     inviteCode: "AFFLT12",
-    identityVerificationStatus: IdentityVerificationStatus.SUCCESS,
+    identityVerificationStatus: IdentityVerificationStatus.NOT_STARTED,
     identityVerifiedAt: "2025-09-01T10:00:00Z",
     verificationType: "kyc",
     totalInvites: 528,
@@ -56,5 +56,6 @@ export const afilliateMetadataMock: AffiliateMetadataResponse = {
         Global: { asset: "USD", amount: 1 },
       },
     },
+    termsAcceptedAt: "",
   },
 };

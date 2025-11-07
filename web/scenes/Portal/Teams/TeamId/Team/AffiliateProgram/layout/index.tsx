@@ -93,6 +93,12 @@ export const AffiliateProgramLayout = (props: TeamIdLayoutProps) => {
     router,
   ]);
 
+  if (
+    metadata?.identityVerificationStatus !== IdentityVerificationStatus.SUCCESS
+  ) {
+    return props.children;
+  }
+
   return (
     <div className="flex flex-col">
       <div className="order-2 md:order-1 md:w-full md:border-b md:border-grey-100">
