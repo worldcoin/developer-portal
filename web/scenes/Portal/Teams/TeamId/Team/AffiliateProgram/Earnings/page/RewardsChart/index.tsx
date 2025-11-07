@@ -306,7 +306,7 @@ export const RewardsChart = () => {
       x: [],
     };
 
-    const hasData = appStatsData && appStatsData?.earnings?.periods?.length > 0
+    const hasData = appStatsData && appStatsData?.earnings?.periods?.length > 0;
 
     if (hasData) {
       // Use real data

@@ -302,7 +302,8 @@ export const VerificationsChart = () => {
       x: [],
     };
 
-    const hasData = appStatsData && appStatsData?.verifications?.periods?.length > 0;
+    const hasData =
+      appStatsData && appStatsData?.verifications?.periods?.length > 0;
 
     if (hasData) {
       // Use real data

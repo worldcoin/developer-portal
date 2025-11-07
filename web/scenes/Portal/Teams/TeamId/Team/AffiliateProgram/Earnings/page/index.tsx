@@ -10,7 +10,7 @@ import { TransactionsTable } from "./TransactionsTable";
 import { useGetAffiliateTransactions } from "./hooks/use-get-affiliate-transactions";
 
 export const EarningsPage = () => {
-  const { data, loading: isMetadataLoading } = useGetAffiliateBalance();
+  const { data, loading: isBalanceLoading } = useGetAffiliateBalance();
   const transactionsData = useGetAffiliateTransactions({ limit: 100 });
   const hasTransactions =
     transactionsData.loading || transactionsData.transactions.length > 0;
@@ -23,7 +23,7 @@ export const EarningsPage = () => {
         variant="nav"
       >
         <Section>
-          <EarningsHeader loading={isMetadataLoading} data={data} />
+          <EarningsHeader loading={isBalanceLoading} data={data} />
 
           <div className="mt-6 grid grid-cols-1 items-stretch gap-10 md:mt-10 md:grid-cols-12 md:gap-0">
             <div
