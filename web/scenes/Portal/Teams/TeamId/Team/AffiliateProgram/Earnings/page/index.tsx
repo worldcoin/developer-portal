@@ -8,8 +8,6 @@ import { EarningsHeader } from "./EarningsHeader";
 import { RewardsChart } from "./RewardsChart";
 import { TransactionsTable } from "./TransactionsTable";
 import { useGetAffiliateTransactions } from "./hooks/use-get-affiliate-transactions";
-import { useEffect } from "react";
-import { getAffiliateTransactions } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Earnings/server/getAffiliateTransactions";
 
 export const EarningsPage = () => {
   const { data, loading: isBalanceLoading } = useGetAffiliateBalance();
@@ -38,7 +36,9 @@ export const EarningsPage = () => {
                 hasTransactions ? "md:col-span-6" : "md:col-span-12",
               )}
             >
-              <Typography variant={TYPOGRAPHY.H7}>Earnings</Typography>
+              {hasTransactions && (
+                <Typography variant={TYPOGRAPHY.H7}>Earnings</Typography>
+              )}
               <div className="flex min-h-0 flex-1 flex-col">
                 <RewardsChart />
               </div>
