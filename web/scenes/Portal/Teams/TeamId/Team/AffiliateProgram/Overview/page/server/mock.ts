@@ -7,7 +7,7 @@ export const afilliateMetadataMock: AffiliateMetadataResponse = {
   result: {
     email: "test@mail.com",
     inviteCode: "AFFLT12",
-    identityVerificationStatus: IdentityVerificationStatus.NOT_STARTED,
+    identityVerificationStatus: IdentityVerificationStatus.SUCCESS,
     identityVerifiedAt: "2025-09-01T10:00:00Z",
     verificationType: "kyc",
     totalInvites: 528,

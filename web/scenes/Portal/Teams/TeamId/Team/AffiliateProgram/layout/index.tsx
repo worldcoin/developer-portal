@@ -43,7 +43,11 @@ export const AffiliateProgramLayout = (props: TeamIdLayoutProps) => {
     () => pathname === urls.affiliateAccount({ team_id: teamId }),
     [pathname, teamId],
   );
-  const isOwnerOnlyPage = isWithdrawPage || isAccountPage;
+  const isRewardsPage = useMemo(
+    () => pathname === urls.affiliateRewards({ team_id: teamId }),
+    [pathname, teamId],
+  );
+  const isOwnerOnlyPage = isWithdrawPage || isAccountPage || isRewardsPage;
   const isVerificationRequired = useMemo(
     () =>
       metadata?.identityVerificationStatus !==
@@ -94,7 +98,10 @@ export const AffiliateProgramLayout = (props: TeamIdLayoutProps) => {
   ]);
 
   if (
-    metadata?.identityVerificationStatus !== IdentityVerificationStatus.SUCCESS
+    metadata?.identityVerificationStatus !==
+      IdentityVerificationStatus.SUCCESS ||
+    isWithdrawPage ||
+    isVerifyPage
   ) {
     return props.children;
   }
