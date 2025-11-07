@@ -6,10 +6,11 @@ import { Role_Enum } from "@/graphql/graphql";
 import { Auth0SessionUser, IdentityVerificationStatus } from "@/lib/types";
 import { urls } from "@/lib/urls";
 import { checkIfProduction, checkUserPermissions } from "@/lib/utils";
+import { useGetAffiliateMetadata } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Overview/page/hooks/use-get-affiliate-metadata";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { useParams, usePathname, useRouter } from "next/navigation";
-import { ReactNode, useEffect, useMemo } from "react";
-import { useGetAffiliateMetadata } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Overview/page/hooks/use-get-affiliate-metadata";
+import { ReactNode, useEffect, useMemo, useState } from "react";
+import { getParameter } from "../common/server/getParameter";
 
 type TeamIdLayoutProps = {
   children: ReactNode;
@@ -29,6 +30,30 @@ export const AffiliateProgramLayout = (props: TeamIdLayoutProps) => {
     () => checkUserPermissions(auth0User, teamId ?? "", [Role_Enum.Owner]),
     [auth0User, teamId],
   );
+  const [isEnabled, setIsEnabled] = useState<boolean>(false);
+
+  useEffect(() => {
+    const fetchParameters = async () => {
+      const isAffiliateProgramEnabled = await getParameter<boolean>(
+        "/affiliate-program/enabled",
+        false,
+      );
+      const enabledTeams = await getParameter<string[]>(
+        "/affiliate-program/enabled",
+        [],
+      );
+      console.log("fetched params", isAffiliateProgramEnabled, enabledTeams);
+      if (
+        isAffiliateProgramEnabled ||
+        enabledTeams?.includes(teamId as string)
+      ) {
+        setIsEnabled(true);
+      } else {
+        router.push(urls.teams({ team_id: teamId }));
+      }
+    };
+    fetchParameters();
+  }, [teamId]);
 
   // Step 3: Define page types (deterministic categorization)
   const isVerifyPage = useMemo(
@@ -63,12 +88,6 @@ export const AffiliateProgramLayout = (props: TeamIdLayoutProps) => {
       return;
     }
 
-    // Check production flag (environment-level restriction)
-    if (isProduction) {
-      router.push(urls.teams({ team_id: teamId }));
-      return;
-    }
-
     // Check owner permissions for owner-only pages (most restrictive check first)
     if (isOwnerOnlyPage && !hasOwnerPermission) {
       router.push(urls.affiliateProgram({ team_id: teamId }));
@@ -98,7 +117,7 @@ export const AffiliateProgramLayout = (props: TeamIdLayoutProps) => {
     router,
   ]);
 
-  if (!metadata || isMetadataLoading) return null;
+  if (!metadata || isMetadataLoading || !isEnabled) return null;
 
   return (
     <div className="flex flex-col">
