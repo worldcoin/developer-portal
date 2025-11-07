@@ -8,13 +8,24 @@ import { EarningsHeader } from "./EarningsHeader";
 import { RewardsChart } from "./RewardsChart";
 import { TransactionsTable } from "./TransactionsTable";
 import { useGetAffiliateTransactions } from "./hooks/use-get-affiliate-transactions";
+import { useEffect } from "react";
+import { getAffiliateTransactions } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Earnings/server/getAffiliateTransactions";
 
 export const EarningsPage = () => {
-  const { data, loading: isMetadataLoading } = useGetAffiliateBalance();
+  const { data, loading: isBalanceLoading } = useGetAffiliateBalance();
   const transactionsData = useGetAffiliateTransactions({ limit: 100 });
   const hasTransactions =
     transactionsData.loading || transactionsData.transactions.length > 0;
 
+  // TODO: check if it's working on staging
+  useEffect(() => {
+    const loadData = async () => {
+      await getAffiliateTransactions({
+        limit: 70,
+      });
+    };
+    loadData();
+  }, []);
   return (
     <>
       <SizingWrapper
@@ -23,7 +34,7 @@ export const EarningsPage = () => {
         variant="nav"
       >
         <Section>
-          <EarningsHeader loading={isMetadataLoading} data={data} />
+          <EarningsHeader loading={isBalanceLoading} data={data} />
 
           <div className="mt-6 grid grid-cols-1 items-stretch gap-10 md:mt-10 md:grid-cols-12 md:gap-0">
             <div

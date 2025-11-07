@@ -56,5 +56,6 @@ export const afilliateMetadataMock: AffiliateMetadataResponse = {
         Global: { asset: "USD", amount: 1 },
       },
     },
+    termsAcceptedAt: "",
   },
 };

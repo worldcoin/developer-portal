@@ -57,6 +57,8 @@ const idVerificationsDatasetConfig: Partial<
 };
 
 const commonChartConfig: ChartOptions<"line"> = {
+  responsive: true,
+  maintainAspectRatio: false,
   scales: {
     y: {
       ticks: { display: true },
@@ -81,6 +83,37 @@ const commonChartConfig: ChartOptions<"line"> = {
       },
     },
   },
+};
+
+// Create a function to get chart config based on whether data is empty
+const getChartConfig = (isEmpty: boolean): ChartOptions<"line"> => {
+  if (!isEmpty) {
+    return commonChartConfig;
+  }
+
+  return {
+    ...commonChartConfig,
+    scales: {
+      ...commonChartConfig.scales,
+      y: {
+        ...commonChartConfig.scales?.y,
+        ticks: {
+          display: true,
+          //@ts-ignore - ts says stepSize is not a valid property of CartesianTickOptions, but it is working
+          stepSize: 250,
+          callback: function (value) {
+            if (value === 1000) return "1k";
+            return value.toString();
+          },
+        },
+        min: 0,
+        max: 1000,
+        grid: {
+          lineWidth: 1,
+        },
+      },
+    },
+  };
 };
 
 // ==================================================================================================
@@ -132,7 +165,7 @@ const GraphCard: React.FC<GraphCardProps> = ({
 
   const mobileChartOptions = {
     ...chartOptions,
-    aspectRatio: mobileAspectRatio,
+    maintainAspectRatio: false,
   };
 
   return (
@@ -161,7 +194,6 @@ const GraphCard: React.FC<GraphCardProps> = ({
           className={clsx(
             "pointer-events-none grid size-full select-none content-center justify-center justify-items-center gap-y-1 rounded-2xl border border-grey-200 px-12",
           )}
-          style={{ aspectRatio: mobileAspectRatio }}
         >
           <Typography
             variant={TYPOGRAPHY.H7}
@@ -180,9 +212,8 @@ const GraphCard: React.FC<GraphCardProps> = ({
 
       {/* Combined Mobile & Desktop View */}
       {(isLoading || chartData) && (
-        <div className="grid gap-6">
-          {/* Stats Section (Conditional Padding) */}
-
+        <div className="grid h-full grid-rows-auto/1fr gap-6">
+          {/* Stats Section */}
           <div className="flex flex-wrap items-center justify-between gap-6">
             <div className={clsx("flex items-center divide-x divide-grey-200")}>
               {stats.map((statProps, index) => (
@@ -215,7 +246,9 @@ const GraphCard: React.FC<GraphCardProps> = ({
             )}
           </div>
 
-          {isLoading && !chartData && <Skeleton height={400} />}
+          {isLoading && !chartData && (
+            <Skeleton className="size-full min-h-[350px]" />
+          )}
 
           {!isLoading && chartData && (
             <>
@@ -225,7 +258,7 @@ const GraphCard: React.FC<GraphCardProps> = ({
               </div>
 
               {/* Desktop Chart (Visible on sm and above) */}
-              <div className="hidden sm:block">
+              <div className="hidden min-h-[350px] sm:block">
                 <Chart data={chartData} options={chartOptions} />
               </div>
             </>
@@ -245,9 +278,6 @@ export const VerificationsChart = () => {
   const { data: appStatsData, loading: appStatsLoading } =
     useGetAffiliateOverview({ period: timespan.value });
 
-  // ==================================================================================================
-  // ========================== Anchor: Helper Functions to get overall data ==========================
-  // ==================================================================================================
   const totalOrbVerifications = useMemo(() => {
     return appStatsData?.verifications.orb ?? 0;
   }, [appStatsData]);
@@ -257,10 +287,7 @@ export const VerificationsChart = () => {
   }, [appStatsData]);
 
   const formattedVerificationsChartData = useMemo(() => {
-    if (!appStatsData) {
-      return null;
-    }
-
+    // Always return chart data structure, even when empty
     const formattedData: ChartProps["data"] = {
       y: [
         {
@@ -272,24 +299,75 @@ export const VerificationsChart = () => {
           data: [],
         },
       ],
-
       x: [],
     };
 
-    appStatsData.verifications.periods.forEach((stat) => {
-      formattedData.x.push(
-        dayjs(stat.start).format(getXAxisLabels(timespan.value)),
-      );
-      formattedData.y[0].data.push(stat.orb);
-      formattedData.y[1].data.push(stat.nfc);
-    });
+    const hasData =
+      appStatsData && appStatsData?.verifications?.periods?.length > 0;
+
+    if (hasData) {
+      // Use real data
+      appStatsData.verifications.periods.forEach((stat) => {
+        formattedData.x.push(
+          dayjs(stat.start).format(getXAxisLabels(timespan.value)),
+        );
+        formattedData.y[0].data.push(stat.orb);
+        formattedData.y[1].data.push(stat.nfc);
+      });
+    } else {
+      // Generate empty state with dates and zero values
+      const now = dayjs();
+      let startDate: dayjs.Dayjs;
+      let increment: dayjs.ManipulateType;
+      let count: number;
+
+      switch (timespan.value) {
+        case "day":
+          startDate = now.subtract(23, "hours");
+          increment = "hour";
+          count = 24;
+          break;
+        case "week":
+          startDate = now.subtract(6, "days");
+          increment = "day";
+          count = 7;
+          break;
+        case "month":
+          startDate = now.subtract(29, "days");
+          increment = "day";
+          count = 30;
+          break;
+        case "year":
+          startDate = now.subtract(11, "months");
+          increment = "month";
+          count = 12;
+          break;
+        default:
+          startDate = now.subtract(29, "days");
+          increment = "day";
+          count = 30;
+      }
+
+      for (let i = 0; i < count; i++) {
+        const date = startDate.add(i, increment);
+        formattedData.x.push(date.format(getXAxisLabels(timespan.value)));
+        formattedData.y[0].data.push(0);
+        formattedData.y[1].data.push(0);
+      }
+
+      // Hide lines when empty
+      formattedData.y[0].borderWidth = 0;
+      formattedData.y[1].borderWidth = 0;
+    }
 
     return formattedData;
   }, [appStatsData, timespan.value]);
 
+  const isEmpty = !appStatsData?.verifications?.periods?.length;
+  const chartConfig = getChartConfig(isEmpty);
+
   return (
     <div className="grid flex-1">
-      {/* Verifications Graph */}
       <GraphCard
         isLoading={appStatsLoading}
         chartData={formattedVerificationsChartData}
@@ -305,7 +383,7 @@ export const VerificationsChart = () => {
             value: totalIdVerifications,
           },
         ]}
-        chartOptions={commonChartConfig}
+        chartOptions={chartConfig}
         emptyStateTitle={"No data available yet"}
         emptyStateDescription={"Your verification numbers will show up here."}
       />

@@ -87,6 +87,37 @@ const commonChartConfig: ChartOptions<"line"> = {
   },
 };
 
+// Create a function to get chart config based on whether data is empty
+const getChartConfig = (isEmpty: boolean): ChartOptions<"line"> => {
+  if (!isEmpty) {
+    return commonChartConfig;
+  }
+
+  return {
+    ...commonChartConfig,
+    scales: {
+      ...commonChartConfig.scales,
+      y: {
+        ...commonChartConfig.scales?.y,
+        ticks: {
+          display: true,
+          //@ts-ignore - ts says stepSize is not a valid property of CartesianTickOptions, but it is working
+          stepSize: 250,
+          callback: function (value) {
+            if (value === 1000) return "1k";
+            return value.toString();
+          },
+        },
+        min: 0,
+        max: 1000,
+        grid: {
+          lineWidth: 1,
+        },
+      },
+    },
+  };
+};
+
 // ==================================================================================================
 // =================================== Anchor: Stat Props Interface =================================
 // ==================================================================================================
@@ -260,10 +291,7 @@ export const RewardsChart = () => {
   }, [appStatsData]);
 
   const formattedVerificationsChartData = useMemo(() => {
-    if (!appStatsData) {
-      return null;
-    }
-
+    // Always return chart data structure, even when empty
     const formattedData: ChartProps["data"] = {
       y: [
         {
@@ -275,20 +303,71 @@ export const RewardsChart = () => {
           data: [],
         },
       ],
-
       x: [],
     };
 
-    appStatsData.earnings.periods.forEach((stat) => {
-      formattedData.x.push(
-        dayjs(stat.start).format(getXAxisLabels(timespan.value)),
-      );
-      formattedData.y[0].data.push(stat.amountByType.orb.inCurrency);
-      formattedData.y[1].data.push(stat.amountByType.nfc.inCurrency);
-    });
+    const hasData = appStatsData && appStatsData?.earnings?.periods?.length > 0;
+
+    if (hasData) {
+      // Use real data
+      appStatsData.earnings.periods.forEach((stat) => {
+        formattedData.x.push(
+          dayjs(stat.start).format(getXAxisLabels(timespan.value)),
+        );
+        formattedData.y[0].data.push(stat.amountByType.orb.inCurrency);
+        formattedData.y[1].data.push(stat.amountByType.nfc.inCurrency);
+      });
+    } else {
+      // Generate empty state with dates and zero values
+      const now = dayjs();
+      let startDate: dayjs.Dayjs;
+      let increment: dayjs.ManipulateType;
+      let count: number;
+
+      switch (timespan.value) {
+        case "day":
+          startDate = now.subtract(23, "hours");
+          increment = "hour";
+          count = 24;
+          break;
+        case "week":
+          startDate = now.subtract(6, "days");
+          increment = "day";
+          count = 7;
+          break;
+        case "month":
+          startDate = now.subtract(29, "days");
+          increment = "day";
+          count = 30;
+          break;
+        case "year":
+          startDate = now.subtract(11, "months");
+          increment = "month";
+          count = 12;
+          break;
+        default:
+          startDate = now.subtract(29, "days");
+          increment = "day";
+          count = 30;
+      }
+
+      for (let i = 0; i < count; i++) {
+        const date = startDate.add(i, increment);
+        formattedData.x.push(date.format(getXAxisLabels(timespan.value)));
+        formattedData.y[0].data.push(0);
+        formattedData.y[1].data.push(0);
+      }
+
+      // Hide lines when empty
+      formattedData.y[0].borderWidth = 0;
+      formattedData.y[1].borderWidth = 0;
+    }
 
     return formattedData;
   }, [appStatsData, timespan.value]);
+
+  const isEmpty = !appStatsData?.earnings?.periods?.length;
+  const chartConfig = getChartConfig(isEmpty);
 
   return (
     <div className="grid flex-1">
@@ -309,7 +388,7 @@ export const RewardsChart = () => {
             icon: <WorldIcon className="size-5" />,
           },
         ]}
-        chartOptions={commonChartConfig}
+        chartOptions={chartConfig}
         emptyStateTitle={"No data available yet"}
         emptyStateDescription={"Your rewards numbers will show up here."}
       />
