@@ -35,11 +35,11 @@ export const AffiliateProgramLayout = (props: TeamIdLayoutProps) => {
   useEffect(() => {
     const fetchParameters = async () => {
       const isAffiliateProgramEnabled = await getParameter<boolean>(
-        "/affiliate-program/enabled",
+        "affiliate-program/enabled",
         false,
       );
       const enabledTeams = await getParameter<string[]>(
-        "/affiliate-program/enabled",
+        "affiliate-program/enabled-teams",
         [],
       );
       console.log("fetched params", isAffiliateProgramEnabled, enabledTeams);
