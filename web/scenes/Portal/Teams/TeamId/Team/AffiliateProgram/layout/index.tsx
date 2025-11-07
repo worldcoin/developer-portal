@@ -50,7 +50,7 @@ export const AffiliateProgramLayout = (props: TeamIdLayoutProps) => {
     [pathname, teamId],
   );
   const isOwnerOnlyPage = isWithdrawPage || isAccountPage;
-  const hideTabs = isWithdrawPage || isRewardsPage;
+  const hideTabs = isWithdrawPage || isRewardsPage || isVerifyPage;
   const isVerificationRequired = useMemo(
     () =>
       metadata?.identityVerificationStatus !==
