@@ -1,76 +1,97 @@
+"use client";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { Tab, Tabs } from "@/components/Tabs";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import { Role_Enum } from "@/graphql/graphql";
+import { Auth0SessionUser, IdentityVerificationStatus } from "@/lib/types";
 import { urls } from "@/lib/urls";
 import { checkIfProduction, checkUserPermissions } from "@/lib/utils";
-import { redirect } from "next/navigation";
-import { ReactNode } from "react";
-import { getAffiliateMetadata } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Overview/page/server/getAffiliateMetadata";
-import {
-  AffiliateMetadataResponse,
-  Auth0SessionUser,
-  IdentityVerificationStatus,
-} from "@/lib/types";
-import { Role_Enum } from "@/graphql/graphql";
-import { getSession } from "@auth0/nextjs-auth0";
-import { getPathFromHeaders } from "@/lib/server-utils";
-
-type Params = {
-  teamId?: string;
-};
+import { useUser } from "@auth0/nextjs-auth0/client";
+import { useParams, usePathname, useRouter } from "next/navigation";
+import { ReactNode, useEffect, useMemo } from "react";
+import { useGetAffiliateMetadata } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Overview/page/hooks/use-get-affiliate-metadata";
 
 type TeamIdLayoutProps = {
-  params: Params;
   children: ReactNode;
 };
 
-export const AffiliateProgramLayout = async (props: TeamIdLayoutProps) => {
-  const params = props.params;
-  const teamId = params.teamId!;
-  const session = await getSession();
-  const user = session?.user as Auth0SessionUser["user"];
+export const AffiliateProgramLayout = (props: TeamIdLayoutProps) => {
+  const params = useParams();
+  const teamId = params.teamId as string;
+  const pathname = usePathname();
+  const router = useRouter();
+  const { user: auth0User } = useUser() as Auth0SessionUser;
+  const { data: metadata, loading: isMetadataLoading } =
+    useGetAffiliateMetadata();
+
   const isProduction = checkIfProduction();
-  const path = getPathFromHeaders() || "";
-  const hasOwnerPermission = checkUserPermissions(user, params.teamId ?? "", [
-    Role_Enum.Owner,
+  const hasOwnerPermission = useMemo(
+    () => checkUserPermissions(auth0User, teamId ?? "", [Role_Enum.Owner]),
+    [auth0User, teamId],
+  );
+
+  // Step 3: Define page types (deterministic categorization)
+  const isVerifyPage = useMemo(
+    () => pathname === urls.affiliateProgramVerify({ team_id: teamId }),
+    [pathname, teamId],
+  );
+  const isWithdrawPage = useMemo(
+    () => pathname === urls.affiliateWithdrawal({ team_id: teamId }),
+    [pathname, teamId],
+  );
+  const isAccountPage = useMemo(
+    () => pathname === urls.affiliateAccount({ team_id: teamId }),
+    [pathname, teamId],
+  );
+  const isOwnerOnlyPage = isWithdrawPage || isAccountPage;
+  const isVerificationRequired = useMemo(
+    () =>
+      metadata?.identityVerificationStatus !==
+      IdentityVerificationStatus.SUCCESS,
+    [metadata?.identityVerificationStatus],
+  );
+
+  // Handle redirects client-side
+  useEffect(() => {
+    // Wait for metadata to load
+    if (isMetadataLoading || !metadata) {
+      return;
+    }
+
+    // Check production flag (environment-level restriction)
+    if (isProduction) {
+      router.push(urls.teams({ team_id: teamId }));
+      return;
+    }
+
+    // Check owner permissions for owner-only pages (most restrictive check first)
+    if (isOwnerOnlyPage && !hasOwnerPermission) {
+      router.push(urls.affiliateProgram({ team_id: teamId }));
+      return;
+    }
+
+    // Check verification status (but allow verify page itself)
+    if (!isVerifyPage && isVerificationRequired) {
+      router.push(urls.affiliateProgramVerify({ team_id: teamId }));
+      return;
+    }
+
+    // If on verify page but already verified, redirect to overview
+    if (isVerifyPage && !isVerificationRequired) {
+      router.push(urls.affiliateProgram({ team_id: teamId }));
+      return;
+    }
+  }, [
+    isMetadataLoading,
+    metadata,
+    isProduction,
+    isOwnerOnlyPage,
+    hasOwnerPermission,
+    isVerifyPage,
+    isVerificationRequired,
+    teamId,
+    router,
   ]);
-  const metadataResponse = await getAffiliateMetadata();
-  if (!metadataResponse.success) {
-    return redirect(urls.teams({ team_id: teamId }));
-  }
-  const metadata = (metadataResponse.data as AffiliateMetadataResponse).result;
-
-  // Disable affiliate program for production
-  if (isProduction) {
-    return redirect(urls.teams({ team_id: teamId }));
-  }
-
-  if (
-    path !== urls.affiliateProgramVerify({ team_id: teamId }) &&
-    metadata.identityVerificationStatus !== IdentityVerificationStatus.SUCCESS
-  ) {
-    return redirect(urls.affiliateProgramVerify({ team_id: teamId }));
-  }
-
-  if (
-    (!hasOwnerPermission &&
-      (path === urls.affiliateWithdrawal({ team_id: teamId }) ||
-        path === urls.affiliateAccount({ team_id: teamId }))) ||
-    (path === urls.affiliateProgramVerify({ team_id: teamId }) &&
-      metadata.identityVerificationStatus ===
-        IdentityVerificationStatus.SUCCESS)
-  ) {
-    return redirect(urls.affiliateProgram({ team_id: teamId }));
-  }
-
-  if (
-    metadata.identityVerificationStatus !==
-      IdentityVerificationStatus.SUCCESS ||
-    path === urls.affiliateWithdrawal({ team_id: teamId }) ||
-    path === urls.affiliateRewards({ team_id: teamId })
-  ) {
-    return props.children;
-  }
 
   return (
     <div className="flex flex-col">
