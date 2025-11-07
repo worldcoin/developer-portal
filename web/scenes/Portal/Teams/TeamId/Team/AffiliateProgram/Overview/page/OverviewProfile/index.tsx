@@ -34,12 +34,10 @@ export const OverviewProfile = (props: Props) => {
           variant={TYPOGRAPHY.R4}
           className="max-md:text-base max-md:leading-6"
         >
-          {!affiliateMetadata && <Skeleton className="max-w-[120px]" />}
-
-          {affiliateMetadata?.totalInvites && (
-            <div className="grid grid-cols-auto/1fr items-center gap-x-2 truncate text-grey-500">
-              {affiliateMetadata?.totalInvites} codes applied
-            </div>
+          {affiliateMetadata ? (
+            `${affiliateMetadata?.totalInvites || 0} codes applied`
+          ) : (
+            <Skeleton className="max-w-[120px]" />
           )}
         </Typography>
       </div>

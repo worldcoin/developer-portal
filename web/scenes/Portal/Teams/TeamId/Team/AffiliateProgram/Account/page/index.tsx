@@ -5,13 +5,13 @@ import { QuickAction } from "@/components/QuickAction";
 import { useAtom } from "jotai/index";
 import { WalletDialog, walletDialogAtom } from "./WalletDialog";
 import { EmailDialog, emailDialogAtom } from "./EmailDialog";
-import { useGetAffiliateBalance } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/common/hooks/use-get-affiliate-balance";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { Auth0SessionUser } from "@/lib/types";
 import { GmailIcon } from "@/components/Icons/GmailIcon";
 import { WalletIcon } from "@/components/Icons/WalletIcon";
 import { formatWalletAddress } from "@/lib/utils";
 import Skeleton from "react-loading-skeleton";
+import { useGetAffiliateMetadata } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Overview/page/hooks/use-get-affiliate-metadata";
 
 type PageProps = {
   params: {
@@ -21,7 +21,8 @@ type PageProps = {
 
 export const AffiliateAccountPage = (props: PageProps) => {
   const { user, isLoading: isEmailLoading } = useUser() as Auth0SessionUser;
-  const { data: balance, loading: isWalletLoading } = useGetAffiliateBalance();
+  const { data: metadata, loading: isWalletLoading } =
+    useGetAffiliateMetadata();
 
   const [, setIsWalletDialogOpened] = useAtom(walletDialogAtom);
   const [, setIsEmailDialogOpened] = useAtom(emailDialogAtom);
@@ -33,7 +34,7 @@ export const AffiliateAccountPage = (props: PageProps) => {
         className="flex flex-col"
       >
         <EmailDialog email={user?.email || ""} />
-        <WalletDialog walletAddress={balance?.withdrawalWallet || ""} />
+        <WalletDialog walletAddress={metadata?.withdrawalWallet || ""} />
         <div className="grid gap-y-8">
           <Typography variant={TYPOGRAPHY.H6}>Account</Typography>
 
@@ -45,23 +46,27 @@ export const AffiliateAccountPage = (props: PageProps) => {
               </>
             ) : (
               <>
-                <QuickAction
-                  type="button"
-                  icon={<GmailIcon className="size-5.5" />}
-                  title="Email address"
-                  description={user?.email || ""}
-                  onClick={() => setIsEmailDialogOpened(true)}
-                />
+                {metadata?.email && (
+                  <QuickAction
+                    type="button"
+                    icon={<GmailIcon className="size-5.5" />}
+                    title="Email address"
+                    description={metadata?.email || ""}
+                    onClick={() => setIsEmailDialogOpened(true)}
+                  />
+                )}
 
-                <QuickAction
-                  type="button"
-                  icon={<WalletIcon className="size-5.5" />}
-                  title="Wallet address"
-                  description={formatWalletAddress(
-                    balance?.withdrawalWallet || "",
-                  )}
-                  onClick={() => setIsWalletDialogOpened(true)}
-                />
+                {metadata?.withdrawalWallet && (
+                  <QuickAction
+                    type="button"
+                    icon={<WalletIcon className="size-5.5" />}
+                    title="Wallet address"
+                    description={formatWalletAddress(
+                      metadata?.withdrawalWallet || "",
+                    )}
+                    onClick={() => setIsWalletDialogOpened(true)}
+                  />
+                )}
               </>
             )}
           </div>
