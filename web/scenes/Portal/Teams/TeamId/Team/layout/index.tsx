@@ -7,9 +7,6 @@ import { Auth0SessionUser } from "@/lib/types";
 import { checkUserPermissions } from "@/lib/utils";
 import { getSession } from "@auth0/nextjs-auth0";
 import { ReactNode } from "react";
-import {getParameter} from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/common/server/getParameter";
-import {redirect} from "next/navigation";
-import {urls} from "@/lib/urls";
 
 type Params = {
   teamId?: string;
@@ -38,7 +35,7 @@ export const TeamIdLayout = async (props: TeamIdLayoutProps) => {
   );
 
   if (isAffiliateProgram) {
-    return props.children
+    return props.children;
   }
   return (
     <div className="flex flex-col">
