@@ -44,8 +44,9 @@ export const executeAcceptTerms = async (): Promise<FormActionResult> => {
         Accept: "application/json",
         "User-Agent": "DevPortal/1.0",
         "Content-Type": "application/json",
-        "X-Dev-Portal-User-Id": `team_${teamId}`,
+        "X-Dev-Portal-User-Id": teamId,
       },
+      body: JSON.stringify({}),
     });
 
     const data = (await response.json()) as AcceptTermsResponse;

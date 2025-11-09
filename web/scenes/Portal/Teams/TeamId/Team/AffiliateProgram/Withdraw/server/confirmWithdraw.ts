@@ -69,7 +69,7 @@ export const confirmWithdraw = async ({
         Accept: "application/json",
         "Content-Type": "application/json",
         "User-Agent": "DevPortal/1.0",
-        "X-Dev-Portal-User-Id": `team_${teamId}`,
+        "X-Dev-Portal-User-Id": teamId,
       },
       body: JSON.stringify({
         emailConfirmationCode,
