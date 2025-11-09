@@ -47,7 +47,7 @@ export const getAffiliateBalance = async (): Promise<FormActionResult> => {
       headers: {
         "User-Agent": "DevPortal/1.0",
         "Content-Type": "application/json",
-        "X-Dev-Portal-User-Id": `team_${teamId}`,
+        "X-Dev-Portal-User-Id": teamId,
       },
     });
 
