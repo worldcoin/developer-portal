@@ -226,6 +226,20 @@ export const CategoryTranslations: Record<
     ai: "AI",
     shopping: "購物",
   },
+  it: {
+    all: "Tutte",
+    social: "Social",
+    gaming: "Gaming",
+    business: "Business",
+    finance: "Finanza",
+    productivity: "Produttività",
+    other: "Altre",
+    tokens: "Token",
+    external: "Esterne",
+    earn: "Guadagna",
+    ai: "IA",
+    shopping: "Shopping",
+  },
 };
 
 export const Categories = [
