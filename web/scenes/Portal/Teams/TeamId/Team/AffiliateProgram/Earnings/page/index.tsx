@@ -11,7 +11,8 @@ import { useGetAffiliateTransactions } from "./hooks/use-get-affiliate-transacti
 
 export const EarningsPage = () => {
   const { data, loading: isBalanceLoading } = useGetAffiliateBalance();
-  const transactionsData = useGetAffiliateTransactions({ limit: 100 });
+  const transactionsData = useGetAffiliateTransactions();
+
   const hasTransactions =
     transactionsData.loading || transactionsData.transactions.length > 0;
 
@@ -32,7 +33,7 @@ export const EarningsPage = () => {
           <div className="mt-6 grid grid-cols-1 items-stretch gap-10 md:mt-10 md:grid-cols-12 md:gap-0">
             <div
               className={clsx(
-                "col-span-full flex min-w-0 flex-col gap-8 md:mb-10",
+                "col-span-full flex min-w-0 flex-col gap-4 md:mb-10 md:gap-8",
                 hasTransactions ? "md:col-span-6" : "md:col-span-12",
               )}
             >
