@@ -76,10 +76,7 @@ export const EarningsHeader = (props: Props) => {
           )}
         </div>
 
-        <Typography
-            variant={TYPOGRAPHY.R3}
-            className="text-grey-500"
-        >
+        <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
           {formattedUsdAmount}
         </Typography>
       </div>
