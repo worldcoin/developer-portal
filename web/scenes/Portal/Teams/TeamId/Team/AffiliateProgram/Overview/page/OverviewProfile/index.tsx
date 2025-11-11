@@ -18,7 +18,7 @@ export const OverviewProfile = (props: Props) => {
   const [_, setIsOpened] = useAtom(inviteUserDialogAtom);
 
   return (
-    <div className="grid items-center gap-y-4 border-b border-dashed border-grey-200 py-10 sm:grid-cols-auto/1fr/auto sm:justify-items-start sm:gap-x-6">
+    <div className="grid items-center gap-y-4 border-b border-dashed border-grey-200 pb-8 pt-4 sm:grid-cols-auto/1fr/auto sm:justify-items-start sm:gap-x-6 md:pt-10">
       <EnvelopeIcon className="hidden size-15 md:block" />
 
       <div className="grid grid-cols-1 gap-y-1">
