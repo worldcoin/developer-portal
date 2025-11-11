@@ -43,7 +43,7 @@ export const useGetAffiliateTransactions = (
           setLoading(true);
         }
 
-        const result = await getAffiliateTransactions(data);
+        const result = await getAffiliateTransactions();
         console.log("getAffiliateTransactions data: ", result, result.data);
         if (!result.success) {
           console.error("Failed to fetch data: ", result.message);
