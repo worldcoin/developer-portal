@@ -36,14 +36,13 @@ export const useGetAffiliateTransactions = (
 
         isRequestingRef.current = true;
 
-        // Add loading states
         if (append) {
           setLoadingMore(true);
         } else {
           setLoading(true);
         }
 
-        const result = await getAffiliateTransactions(data);
+        const result = await getAffiliateTransactions();
         console.log("getAffiliateTransactions data: ", result, result.data);
         if (!result.success) {
           console.error("Failed to fetch data: ", result.message);
@@ -65,10 +64,6 @@ export const useGetAffiliateTransactions = (
       } catch (err) {
         console.error(err);
         setError(err);
-        // setTotalCount(
-        //   firstMockTransactionsPageFailed.result.paginationMeta.totalCount,
-        // );
-        // setAllTransactions(firstMockTransactionsPageFailed.transactions);
       } finally {
         setLoading(false);
         setLoadingMore(false);

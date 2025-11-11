@@ -212,7 +212,7 @@ const GraphCard: React.FC<GraphCardProps> = ({
 
       {/* Combined Mobile & Desktop View */}
       {(isLoading || chartData) && (
-        <div className="grid h-full grid-rows-auto/1fr gap-6">
+        <div className="grid h-full grid-rows-auto/1fr">
           {/* Stats Section */}
           <div className="flex flex-wrap items-center justify-between gap-6">
             <div className={clsx("flex items-center divide-x divide-grey-200")}>

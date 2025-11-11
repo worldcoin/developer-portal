@@ -32,7 +32,7 @@ export const TransactionsTable = (props: TransactionsTableProps) => {
   if (!loading && transactions.length === 0) return null;
 
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-4 md:gap-8">
       <Typography variant={TYPOGRAPHY.H7}>Transactions</Typography>
       {selectedTransaction && (
         <TransactionDetailsDialog
@@ -81,6 +81,7 @@ export const TransactionsTable = (props: TransactionsTableProps) => {
             currentPage={currentPage}
             rowsPerPage={5}
             handlePageChange={handlePageChange}
+            className="static"
           />
         </div>
       )}

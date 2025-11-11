@@ -1,4 +1,5 @@
 "use server";
+
 import { errorFormAction } from "@/api/helpers/errors";
 import { extractIdsFromPath, getPathFromHeaders } from "@/lib/server-utils";
 import {
@@ -83,7 +84,7 @@ export const getAffiliateTransactions = async (
         return acc;
       }, new URLSearchParams());
 
-    const url = `${process.env.NEXT_SERVER_APP_BACKEND_BASE_URL}/internal/v1/affiliate/transactions/history${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
+    const url = `${process.env.NEXT_SERVER_APP_BACKEND_BASE_URL}/internal/v1/affiliate/transactions/history`;
 
     const response = await signedFetch(url, {
       method: "GET",

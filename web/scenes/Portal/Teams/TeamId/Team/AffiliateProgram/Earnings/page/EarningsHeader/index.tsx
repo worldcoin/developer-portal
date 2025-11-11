@@ -62,7 +62,7 @@ export const EarningsHeader = (props: Props) => {
   }, [loading, data?.availableBalance?.inCurrency]);
 
   return (
-    <div className="grid items-center gap-y-4 border-b border-dashed border-grey-200 py-10 sm:grid-cols-auto/1fr/auto sm:justify-items-start sm:gap-x-6">
+    <div className="grid items-center gap-y-4 border-b border-dashed border-grey-200 pb-8 pt-4 sm:grid-cols-auto/1fr/auto sm:justify-items-start sm:gap-x-6 md:pt-10">
       <WalletPocketIcon className="hidden size-15 md:block" />
 
       <div className="flex flex-col gap-y-1">
@@ -76,10 +76,7 @@ export const EarningsHeader = (props: Props) => {
           )}
         </div>
 
-        <Typography
-          variant={TYPOGRAPHY.R3}
-          className="text-grey-500 max-md:text-base max-md:leading-6"
-        >
+        <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
           {formattedUsdAmount}
         </Typography>
       </div>
@@ -95,7 +92,7 @@ export const EarningsHeader = (props: Props) => {
               onClick={() =>
                 router.push(`/teams/${teamId}/affiliate-program/withdraw`)
               }
-              className="h-12"
+              className="w-full"
             >
               Withdraw
             </DecoratedButton>

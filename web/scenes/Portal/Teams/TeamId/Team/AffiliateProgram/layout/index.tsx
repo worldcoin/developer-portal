@@ -96,7 +96,13 @@ export const AffiliateProgramLayout = (props: TeamIdLayoutProps) => {
     affiliateEnabled,
   ]);
 
-  if (!metadata || isMetadataLoading || !affiliateEnabled?.value) return null;
+  if (
+    !metadata ||
+    isMetadataLoading ||
+    !affiliateEnabled?.value ||
+    (!isVerifyPage && isVerificationRequired)
+  )
+    return null;
 
   return (
     <div className="flex flex-col">
