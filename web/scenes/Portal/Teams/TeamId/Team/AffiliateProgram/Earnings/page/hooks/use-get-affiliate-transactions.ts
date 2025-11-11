@@ -36,7 +36,6 @@ export const useGetAffiliateTransactions = (
 
         isRequestingRef.current = true;
 
-        // Add loading states
         if (append) {
           setLoadingMore(true);
         } else {
@@ -65,10 +64,6 @@ export const useGetAffiliateTransactions = (
       } catch (err) {
         console.error(err);
         setError(err);
-        // setTotalCount(
-        //   firstMockTransactionsPageFailed.result.paginationMeta.totalCount,
-        // );
-        // setAllTransactions(firstMockTransactionsPageFailed.transactions);
       } finally {
         setLoading(false);
         setLoadingMore(false);

@@ -81,6 +81,7 @@ export const TransactionsTable = (props: TransactionsTableProps) => {
             currentPage={currentPage}
             rowsPerPage={5}
             handlePageChange={handlePageChange}
+            className="static"
           />
         </div>
       )}

@@ -92,7 +92,7 @@ export const EarningsHeader = (props: Props) => {
               onClick={() =>
                 router.push(`/teams/${teamId}/affiliate-program/withdraw`)
               }
-              className="h-12"
+              className="w-full"
             >
               Withdraw
             </DecoratedButton>

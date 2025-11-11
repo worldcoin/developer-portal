@@ -14,7 +14,7 @@ export const EarningsPage = () => {
   const transactionsData = useGetAffiliateTransactions();
 
   const hasTransactions =
-    transactionsData.loading || transactionsData.transactions.length > 0;
+    transactionsData.loading || transactionsData.totalCount > 0;
 
   if (isBalanceLoading || transactionsData.loading) {
     return null;

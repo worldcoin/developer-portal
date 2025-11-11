@@ -47,7 +47,7 @@ export const OverviewProfile = (props: Props) => {
             type="button"
             variant="primary"
             onClick={() => setIsOpened(true)}
-            className="h-12"
+            className="w-full"
           >
             <GmailIcon className="size-5 text-white" /> Invite members
           </DecoratedButton>
