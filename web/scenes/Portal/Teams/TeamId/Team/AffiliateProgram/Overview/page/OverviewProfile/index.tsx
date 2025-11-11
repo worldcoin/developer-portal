@@ -31,8 +31,8 @@ export const OverviewProfile = (props: Props) => {
         </Typography>
 
         <Typography
-          variant={TYPOGRAPHY.R4}
-          className="max-md:text-base max-md:leading-6"
+          variant={TYPOGRAPHY.R3}
+          className="text-grey-500"
         >
           {affiliateMetadata ? (
             `${affiliateMetadata?.totalInvites || 0} codes applied`
