@@ -92,7 +92,7 @@ export const useGetAffiliateTransactions = () => {
         fetchData({ cursor: nextCursor }, true);
       }
     },
-    [allTransactions.length, nextCursor, loading, loadingMore],
+    [allTransactions.length, nextCursor, loading, loadingMore, fetchData],
   );
 
   // Calculate paginated transactions
