@@ -91,10 +91,9 @@ export const VerifyPage = () => {
 
       if (result.success && result.data) {
         // Navigate to verification link
-        const redirectUrl = (result.data as GetIdentityVerificationLinkResponse)
-          .result.link;
-        console.log("getIdentityVerificationLink url", redirectUrl);
-        window.location.href = redirectUrl;
+        window.location.href = (
+          result.data as GetIdentityVerificationLinkResponse
+        ).result.link;
       } else {
         throw new Error(result.message || "Failed to get verification link");
       }
