@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { AffiliateMetadataResponse } from "@/lib/types";
 import { getAffiliateMetadata } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Overview/page/server/getAffiliateMetadata";
+import { toast } from "react-toastify";
 
 export const useGetAffiliateMetadata = () => {
   const [data, setData] = useState<AffiliateMetadataResponse["result"] | null>(
@@ -15,6 +16,7 @@ export const useGetAffiliateMetadata = () => {
       console.log("useGetAffiliateMetadata data: ", result, result.data);
       if (!result.success) {
         console.error("Failed to fetch data: ", result.message);
+        toast.error("Failed to fetch metadata. Please try later.");
         setError(result.error);
       } else {
         setData((result.data as AffiliateMetadataResponse).result);

@@ -4,6 +4,7 @@ import {
 } from "@/lib/types";
 import { getAffiliateTransactions } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Earnings/server/getAffiliateTransactions";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { toast } from "react-toastify";
 
 type TransactionItem =
   AffiliateTransactionsResponse["result"]["transactions"][0];
@@ -44,6 +45,7 @@ export const useGetAffiliateTransactions = () => {
         console.log("useGetAffiliateTransactions data: ", result, result.data);
         if (!result.success) {
           console.error("Failed to fetch data: ", result.message);
+          toast.error("Failed to fetch transactions. Please try later.");
           setError(result.error);
         } else {
           const response = (result.data as AffiliateTransactionsResponse)
