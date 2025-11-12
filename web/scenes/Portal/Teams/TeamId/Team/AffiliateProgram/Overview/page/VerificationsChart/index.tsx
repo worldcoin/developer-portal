@@ -275,7 +275,7 @@ const GraphCard: React.FC<GraphCardProps> = ({
 
 export const VerificationsChart = () => {
   const [timespan] = useAtom(timespanAtom);
-  const { data: appStatsData, loading: appStatsLoading } =
+  const { data: appStatsData, loading: isDataLoading } =
     useGetAffiliateOverview({ period: timespan.value });
 
   const totalOrbVerifications = useMemo(() => {
@@ -369,7 +369,7 @@ export const VerificationsChart = () => {
   return (
     <div className="mt-6 grid flex-1 md:mt-10">
       <GraphCard
-        isLoading={appStatsLoading}
+        isLoading={isDataLoading}
         chartData={formattedVerificationsChartData}
         stats={[
           {

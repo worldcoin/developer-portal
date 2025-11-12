@@ -105,6 +105,7 @@ export const WithdrawPage = (props: PageProps) => {
       setCurrentStep(AffiliateWithdrawStep.ENTER_CODE);
     } catch (error) {
       console.error("Withdrawal initiation failed:", error);
+      toast.error("Failed to initiate withdraw. Please try later.");
     } finally {
       setIsLoading(false);
     }
@@ -123,6 +124,7 @@ export const WithdrawPage = (props: PageProps) => {
       setCurrentStep(AffiliateWithdrawStep.SUCCESS);
     } catch (error) {
       console.error("Withdrawal confirmation failed:", error);
+      toast.error("Failed to withdraw. Please try later.");
     } finally {
       setIsLoading(false);
     }

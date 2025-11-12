@@ -27,21 +27,16 @@ export const EarningsHeader = (props: Props) => {
   const { user: auth0User } = useUser() as Auth0SessionUser;
 
   const isAllowedToWithdraw = useMemo(() => {
+    return checkUserPermissions(auth0User, teamId ?? "", [Role_Enum.Owner]);
+  }, [auth0User, teamId]);
+
+  const isWithdrawDisabled = useMemo(() => {
     return (
-      checkUserPermissions(auth0User, teamId ?? "", [
-        Role_Enum.Owner,
-        Role_Enum.Admin,
-      ]) &&
-      data?.minimumWithdrawal &&
-      data?.availableBalance?.inWLD &&
-      BigInt(data?.availableBalance?.inWLD) >= BigInt(data?.minimumWithdrawal)
+      !!data?.minimumWithdrawal &&
+      !!data?.availableBalance?.inWLD &&
+      BigInt(data?.availableBalance?.inWLD) < BigInt(data?.minimumWithdrawal)
     );
-  }, [
-    auth0User,
-    teamId,
-    data?.minimumWithdrawal,
-    data?.availableBalance?.inWLD,
-  ]);
+  }, []);
 
   const formattedWldAmount = useMemo(() => {
     if (!data?.availableBalance) return null;
@@ -93,6 +88,7 @@ export const EarningsHeader = (props: Props) => {
                 router.push(`/teams/${teamId}/affiliate-program/withdraw`)
               }
               className="w-full"
+              disabled={isWithdrawDisabled}
             >
               Withdraw
             </DecoratedButton>

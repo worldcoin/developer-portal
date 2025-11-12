@@ -16,18 +16,13 @@ import {
 import { logger } from "@/lib/logger";
 
 export const getAffiliateTransactions = async (
-  params?: AffiliateTransactionsRequestParams,
+  params?: Pick<AffiliateTransactionsRequestParams, "cursor">,
 ): Promise<FormActionResult> => {
-  logger.info("getAffiliateTransactions");
   const path = getPathFromHeaders() || "";
   const { teams: teamId } = extractIdsFromPath(path, ["teams"]);
-  logger.info("getAffiliateTransactions", {
-    teamId,
-  });
 
   try {
     if (!teamId) {
-      logger.info("getAffiliateTransactions exit");
       return errorFormAction({
         message: "team id is not set",
         team_id: teamId,
@@ -39,7 +34,6 @@ export const getAffiliateTransactions = async (
     const shouldReturnMocks = false;
 
     if (shouldReturnMocks) {
-      // TODO: remove mock response
       let data: AffiliateTransactionsResponse = {
         result: {
           transactions: [],
@@ -77,14 +71,20 @@ export const getAffiliateTransactions = async (
       });
     }
 
-    const searchParams = Object.entries(params ?? {})
+    const reqParams: AffiliateTransactionsRequestParams = {
+      cursor: params?.cursor,
+      pageSize: 100,
+      currency: "USD",
+    };
+
+    const searchParams = Object.entries(reqParams)
       .filter(([_, v]) => v !== undefined && v !== null)
       .reduce((acc, [k, v]) => {
         acc.append(k, String(v));
         return acc;
       }, new URLSearchParams());
 
-    const url = `${process.env.NEXT_SERVER_APP_BACKEND_BASE_URL}/internal/v1/affiliate/transactions/history`;
+    const url = `${process.env.NEXT_SERVER_APP_BACKEND_BASE_URL}/internal/v1/affiliate/transactions/history?${searchParams.toString()}`;
 
     const response = await signedFetch(url, {
       method: "GET",

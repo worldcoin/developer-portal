@@ -90,7 +90,7 @@ export const HowItWorksPage = (props: PageProps) => {
               </Typography>
             </div>
 
-            <div className="grid space-y-5 border-y border-grey-100 pt-6 md:py-8">
+            <div className="grid space-y-5 border-t border-grey-100 pt-6 md:border-y md:py-8">
               <div className="flex items-center justify-between">
                 <Typography variant={TYPOGRAPHY.R4} className="text-grey-500">
                   Orb verified human

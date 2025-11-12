@@ -4,13 +4,12 @@ import {
 } from "@/lib/types";
 import { getAffiliateTransactions } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Earnings/server/getAffiliateTransactions";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { toast } from "react-toastify";
 
 type TransactionItem =
   AffiliateTransactionsResponse["result"]["transactions"][0];
 
-export const useGetAffiliateTransactions = (
-  params?: AffiliateTransactionsRequestParams,
-) => {
+export const useGetAffiliateTransactions = () => {
   const [allTransactions, setAllTransactions] = useState<TransactionItem[]>([]);
   const [totalCount, setTotalCount] = useState(0);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
@@ -18,16 +17,16 @@ export const useGetAffiliateTransactions = (
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<unknown>(null);
 
-  // Client-side pagination state
   const [currentPage, setCurrentPage] = useState(1);
-  const rowsPerPage = 5;
+  const tableRowsPerPage = 5;
 
   const isRequestingRef = useRef(false);
 
   const fetchData = useCallback(
-    async (data?: AffiliateTransactionsRequestParams, append = false) => {
-      console.log("fetchData");
-
+    async (
+      data?: Pick<AffiliateTransactionsRequestParams, "cursor">,
+      append = false,
+    ) => {
       try {
         if (isRequestingRef.current) {
           console.log("Request already in progress, skipping...");
@@ -42,10 +41,11 @@ export const useGetAffiliateTransactions = (
           setLoading(true);
         }
 
-        const result = await getAffiliateTransactions();
-        console.log("getAffiliateTransactions data: ", result, result.data);
+        const result = await getAffiliateTransactions(data);
+        console.log("useGetAffiliateTransactions data: ", result, result.data);
         if (!result.success) {
           console.error("Failed to fetch data: ", result.message);
+          toast.error("Failed to fetch transactions. Please try later.");
           setError(result.error);
         } else {
           const response = (result.data as AffiliateTransactionsResponse)
@@ -74,32 +74,32 @@ export const useGetAffiliateTransactions = (
   );
 
   useEffect(() => {
-    fetchData(params);
-  }, [params?.cursor, params?.limit, params?.currency]);
+    fetchData();
+  }, []);
 
   const handlePageChange = useCallback(
     (newPage: number) => {
       setCurrentPage(newPage);
 
       // Check if we need to fetch more data for this page
-      const endIndex = newPage * rowsPerPage;
+      const endIndex = newPage * tableRowsPerPage;
       if (
         endIndex > allTransactions.length &&
         nextCursor &&
         !loading &&
         !loadingMore
       ) {
-        fetchData({ cursor: nextCursor, limit: 100 }, true);
+        fetchData({ cursor: nextCursor }, true);
       }
     },
-    [allTransactions.length, nextCursor, loading, loadingMore],
+    [allTransactions.length, nextCursor, loading, loadingMore, fetchData],
   );
 
   // Calculate paginated transactions
   const transactions = useMemo(() => {
-    const startIndex = (currentPage - 1) * rowsPerPage;
-    return allTransactions.slice(startIndex, startIndex + rowsPerPage);
-  }, [allTransactions, currentPage, rowsPerPage]);
+    const startIndex = (currentPage - 1) * tableRowsPerPage;
+    return allTransactions.slice(startIndex, startIndex + tableRowsPerPage);
+  }, [allTransactions, currentPage, tableRowsPerPage]);
 
   return {
     transactions,

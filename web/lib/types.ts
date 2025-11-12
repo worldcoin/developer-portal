@@ -455,7 +455,7 @@ export type AffiliateOverviewResponse = {
 };
 
 export type AffiliateTransactionsRequestParams = {
-  limit?: number;
+  pageSize?: number;
   cursor?: string;
   currency?: string;
 };
