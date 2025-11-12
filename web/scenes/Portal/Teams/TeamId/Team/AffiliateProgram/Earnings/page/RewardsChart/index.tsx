@@ -217,7 +217,7 @@ const GraphCard: React.FC<GraphCardProps> = ({
       {(isLoading || chartData) && (
         <div className="grid h-full grid-rows-auto/1fr gap-6">
           {/* Stats Section */}
-          <div className="flex flex-wrap items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-6">
             <div className={clsx("flex items-center divide-x divide-grey-200")}>
               {stats.map((statProps, index) => (
                 <div
@@ -275,7 +275,7 @@ const GraphCard: React.FC<GraphCardProps> = ({
 
 export const RewardsChart = () => {
   const [timespan] = useAtom(timespanAtom);
-  const { data: appStatsData, loading: appStatsLoading } =
+  const { data: appStatsData, loading: isOverviewDataLoading } =
     useGetAffiliateOverview({ period: timespan.value });
 
   const totalOrbRewards = useMemo(() => {
@@ -372,7 +372,7 @@ export const RewardsChart = () => {
   return (
     <div className="grid flex-1">
       <GraphCard
-        isLoading={appStatsLoading}
+        isLoading={isOverviewDataLoading}
         chartData={formattedVerificationsChartData}
         stats={[
           {

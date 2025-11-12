@@ -44,7 +44,7 @@ export const RewardsPage = (props: PageProps) => {
       >
         <div
           className={clsx(
-            "mx-auto grid w-full max-w-[380px] items-center justify-items-start gap-y-6 text-center md:justify-items-center ",
+            "mx-auto grid w-full max-w-[380px] items-center justify-items-start text-center md:justify-items-center ",
           )}
         >
           <Typography
@@ -57,7 +57,7 @@ export const RewardsPage = (props: PageProps) => {
           </Typography>
 
           <div className="mx-6 w-full md:mx-0">
-            <Tabs className="m-auto w-full border-grey-100 font-gta md:justify-center md:border-b">
+            <Tabs className="m-auto w-full border-grey-100 py-8 pb-6 font-gta md:justify-center md:border-b md:pb-8">
               <Tab
                 href={`/teams/${params!.teamId}/affiliate-program/how-it-works/rewards?type=orb`}
                 underlined
