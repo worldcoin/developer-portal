@@ -1,91 +1,120 @@
-export const acceptTermsText = `World Affiliates Program Terms — Outline (v0.1)
+export const acceptTermsText = `World Affiliates Program Terms 
 
-Date: October 31, 2025
+Last Update: November 17, 2025
+0) Purpose & Participation.
+Purpose. These Program Terms govern the participation of entities and organizations (“Affiliates”) that refer new users to complete identity verification with World (the “Program”). The Program is designed to encourage verified user growth through authorized Affiliate activities, subject to the terms, conditions, and policies established by WF.
+
+Acceptance and Participation. By accessing or participating in the Program, each Affiliate acknowledges and agrees to access through the Developer Portal and to be bound by these Program Terms, as may be updated or amended by WF from time to time at its sole discretion. Any revisions to the Program Terms will automatically apply to your continued participation and obligations under the Program. You are responsible for regularly reviewing the Program Terms and any related policies to ensure ongoing compliance. All Program Terms and incorporated policies published by WF are binding upon you, and failure to review them does not excuse non-compliance. WF reserves the right to suspend or terminate your participation in the Program, with or without notice, if you fail to comply with the Program Terms or any updates thereto.
  
-0) Purpose & Relationship to Existing Terms
-These Program Terms govern incentives for entities (“Affiliates”) who refer new users to verify with World. They incorporate by reference World User Terms (v4.0) and Tools for Humanity (TFH) User Terms. In the event of a conflict, these Program Terms control for referral incentive mechanics.
-·       Rewarding Party: World Assets Ltd. (WLD economics).
-·       Program Operator: World Foundation (governance & enforcement).
-·       App Operator: Tools for Humanity (World App UX; promotions framework).
-1) Definitions
-·       Affiliate: An entity (or sole proprietor) enrolled in the Program that has completed KYB or a materially equivalent KYC to WF/TFH’s satisfaction.
-·       New User: A natural person who has never completed a World verification and does not control an account previously used to verify.
-·       Qualified Referral (QR): A New User who (i) signs up via an Affiliate code or link, (ii) completes verification (Orb/NFC per product availability), (iii) passes fraud and abuse checks, and (iv) is located in an eligible jurisdiction.
-·       Affiliate Reward: A USD-denominated amount, payable in WLD subject to these Terms.
-·       Attribution Window: The period (e.g., 30 days) between first code binding/click and verification within which an Affiliate may earn a reward.
-·       Restricted Territories / Persons: New York State and Brazil (and any other territories designated by WF/TFH), and sanctioned or otherwise ineligible persons.
-2) Eligibility & Onboarding
-·       KYB/KYC: Affiliate must complete KYB or a meaningful KYC and ongoing sanctions/PEP screening.
-·       Marketing law compliance: Affiliate must comply with applicable advertising, consumer protection, and disclosure rules in its markets.
-·       Suspension/Termination: WF/TFH may suspend, withhold rewards, or terminate for risk, non-compliance, or policy violation.
-3) Reward Schedule, Caps & Budgeting
-·       Rate Card: Up to US$3 per Qualified Referral (QR). Program may vary by geography or campaign.
-·       Caps: WF may set per-Affiliate and global caps and adjust them at any time.
-·       No Double-Dipping: A New User cannot stack an Affiliate referral code with a user-referral code.
-·       Change Rights: TFH/WF may modify or cancel promotions consistent with the underlying User Terms.
-4) Attribution & Non-Stacking
-A New User may apply one referral code. If multiple codes are presented, the first code successfully bound to the account prior to verification controls; later codes are rejected. If an Affiliate code and a user-referral code are both present, the first-bound code controls. Attribution expires after the Attribution Window if verification is not completed.
-Fraud Nullification: Any QR tied to device-farming, self-referrals, fabricated identities, pay-for-verification schemes, or geo-evasion (VPN/proxy) is void. WF/TFH may withhold, reverse, or claw back rewards associated with such activity.
-5) Reward Currency, Conversion & Balances
-USD-Denominated; WLD Paid. For each QR, the Affiliate earns a USD-denominated amount per the active rate card. Rewards accrue to the Affiliate’s account in USD terms. Upon a valid withdrawal request, the accrued USD amount is converted into WLD using a Reference Rate determined at the time of the withdrawal request, and the resulting WLD amount is transferred to the linked wallet.
-·       Reference Rate: A WF-published rate or methodology (e.g., time-weighted WLD/USD across designated venues) applied at the time of withdrawal.
-·       Volatility: The WLD amount delivered will vary with market conditions; USD figures are informational only and not guaranteed.
-·       No Value Guarantee: World makes no representation regarding the value or future value of WLD.
-6) Vesting / Holdbacks / Clawbacks
-·       Holdback: Rewards are provisional for a review window (e.g., 14–30 days) after verification to allow fraud and abuse review.
-·       Clawback: WF may reverse, offset, or freeze balances upon evidence of fraud, policy breach, jurisdictional ineligibility, or identity re-use.
-7) Withdrawals & Wallet Linking
-·       Wallet: Affiliate must link a supported, self-custody wallet to receive WLD payouts.
-·       Thresholds: WF may set minimum withdrawal thresholds and scheduling for operational efficiency.
-·       Fees: On-chain fees are borne by Affiliate unless explicitly subsidized.
-·       Third-Party Rails: WF/TFH are not responsible for third-party network or exchange failures or delays.
-8) Territories, Sanctions & Compliance
-Restricted Territories: WLD via World App is not available in New York State and Brazil. Any traffic routed from restricted territories is ineligible. Affiliates must not encourage VPN or proxy circumvention to access the Program.
-Sanctions: Affiliate represents that it is not owned or controlled by, and will not target, pay, or route rewards to, sanctioned persons. WF/TFH may conduct screening and suspend participation on risk signals.
-9) Marketing Standards & Brand Use
-·       Truthful Promotion: Claims must be accurate, not misleading, and compliant with local law. Include required disclosures (e.g., “paid promotion”).
-·       No Investment Promises: No statements suggesting WLD is an investment or will appreciate in value.
-·       Brand Use: Use of World’s marks requires adherence to the Trademark Use Policy and prior written approval for logo use; nominative text use permitted with required disclaimers.
-·       Channels: No spam or deceptive UX. Do not pay individuals to spoof identities or otherwise circumvent verification integrity.
-10) Data & Privacy
-Affiliates must not collect or store personal data from prospective users beyond what is necessary for lawful attribution and must comply with applicable data protection laws. In-app data processing is governed by TFH’s privacy notice; off-app processing is the Affiliate’s independent obligation.
-11) Taxes & Fees
-Affiliates are responsible for all taxes arising from rewards. WF/TFH may issue informational tax reports where required by law and may withhold to the extent required.
-12) WF Authority & Discretion
-·       WF may modify or cancel referral rewards at any time.
-·       WF may modify eligibility or qualification criteria at its sole discretion.
-13) Token Grant Terms Applicability
-Payments are subject to, and conditioned upon compliance with, the WLD Token Grant Terms and Conditions, available at: https://world.org/token-grant-terms. By requesting withdrawal or accepting WLD rewards, Affiliate acknowledges and agrees to be bound by those terms.
-14) Disclaimers & Risk
-Tokens are experimental and volatile. Features and availability may change, and WF/TFH disclaim warranties to the maximum extent permitted by law. Nothing in these Terms constitutes investment advice.
-15) IP; No Agency
-No license is granted to World IP beyond permitted nominative use. These Terms do not create a partnership, joint venture, franchise, or agency relationship.
-16) Governing Law; Venue; Dispute Resolution
-Governing Law: Cayman Islands. Dispute Resolution: Binding arbitration consistent with the structure used in World User Terms v4.0, subject to commercial-party adaptations as designated by WF.
-17) Notices; Entire Agreement; Survival
-·       Notices: Via email to Affiliate’s onboarding address or through the Affiliate dashboard.
-·       Entire Agreement: These Terms (and incorporated policies) constitute the entire agreement governing the Program.
-·       Survival: Fraud, clawback, taxes, IP, dispute resolution, and restricted territories provisions survive termination.
-Appendix A — Compliance & Operations Recommendations
-·       Holdback Window: 14–30 days; extendable on risk flags.
-·       Attribution Telemetry: Deterministic first-bound code; prevent code stacking in-app.
-·       Fraud Heuristics: Device fingerprint mismatches, SIM clusters, velocity limits, geo-evasion indicators, identical wallet reuse.
-·       Rate Management: Publish a canonical Program Rate Card page and maintain a change log with effective dates.
-·       Brand Guardrails: Default to nominative text; pre-approval flow for logos and paid ads; periodic audits.
-Appendix B — Open Questions for Product & Legal
-·       Attribution Model: Confirm first-touch (first-bound code) vs. last-touch preference.
-·       Holdback & Clawback: Confirm 14, 21, or 30 days and events that extend the window.
-·       Caps: Per-Affiliate monthly caps (count or USD) and a global monthly budget guardrail.
-·       Geo Map: Beyond New York and Brazil, identify pilot-included and excluded countries.
-·       Ad Channels: Permit paid search/social? Any pre-approval or copy repository requirements?
-·       Sub-Affiliates: Allowed or prohibited? If allowed, define disclosure, flow-down obligations, and audit rights.
-·       Reference Rate: Specify the source and window for USD→WLD conversion at withdrawal (e.g., 1-hour VWAP, daily fix, or oracle).
-·       Dispute Resolution Seat: Mirror World §13–14 or designate a bespoke commercial seat and rules?
-Appendix C — Reference Policies & URLs
-·       World User Terms & Conditions v4.0: https://world.org/legal/user-terms-and-conditions/4.0
-·       TFH User Terms & Conditions: https://www.toolsforhumanity.com/legal/user-terms-and-conditions
-·       WLD Token Grant Terms: https://world.org/token-grant-terms
-·       World Risk Disclosures: https://world.org/risks
-·       World Trademark Use Policy: https://world.org/trademark
+1) Definitions.
+Affiliate: An entity (or sole proprietor) enrolled in the Program that has completed KYB (Know Your Business) or a materially equivalent KYC (Know Your Client) to our satisfaction.
+Affiliate Reward: A USD-denominated amount, payable in WLD subject to these Terms.
+Attribution Window: The 180 day period between first code binding/click and verification within which an Affiliate may earn a reward.
+App Operator: Tools for Humanity (“TFH”). 
+Holdback Period: shall mean the period established in Section 6.1.
+Qualified Referral: A New User who (i) signs up via an Affiliate code or link, (ii) completes verification (Orb or NFC per product availability), and (iii) claims their first WLD grant.
+New User: A natural person who is located in an eligible jurisdiction and has never completed a World verification and does not control an account previously used to verify.
+Program Operator: World Foundation (“WF”, “we”, “our”, “us”).
+Restricted Territories / Persons: New York State and Brazil (and any other territories designated by us), and sanctioned or otherwise ineligible persons.
+Rewarding Party: World Assets Ltd.
+Tools For Humanity / TFH: a Delaware corporation and core contributor to the World protocol.
+World Foundation / WF: a Cayman Islands exempted limited‑guarantee foundation company responsible for supporting, growing, and maintaining the World protocol and its global ecosystem.
+ \t
+2) Eligibility & Onboarding.
+KYB/KYC. The Affiliate must complete KYB or KYC, including ongoing sanctions and PEP screening. The scope, depth, and sufficiency of any such KYB or KYC process shall be determined by us in our absolute discretion. TFH may conduct KYB or KYC on behalf of WF, and request updated or additional verification at any time as a condition for continued participation in the Program.
+
+Marketing Law Compliance. The Affiliate shall also comply with all applicable marketing, advertising, consumer protection, and disclosure regulations in each jurisdiction where it operates. 
+
+Suspension / Termination. WF reserves at our sole discretion and at any time, to suspend, modify or replace any provision of these Program Terms or terminate the Program (including any referral rewards, payment terms, or related benefits under the Program, with or without notice) or any Affiliate’s participation in the Program (including amendment of eligibility, qualification or participation criteria at any time), without prior notice and without any obligation, liability, or entitlement to payment or compensation of any kind to any party, participant, Affiliate, or any other person. Such changes shall be effective immediately upon publication or communication, without requiring the consent of any party, participant, Affiliate, or any other person. No modification, suspension, or cancellation shall give rise to any liability, compensation, or obligation on the part of WF, and no Affiliate shall acquire any vested right or entitlement to any reward prior to WF’s final verification and approval.
+
+3) Reward Schedule; Caps & Budgeting.
+Rate Card. WF will publish an official rate card showing the applicable reward rates and terms in the developer portal. WF may change the rate card at any time, and updates take effect as of the published effective date. The specific rate, structure, and eligibility criteria may vary depending on geography, campaign type, or other program parameters established by WF. Only the rates listed on the current official rate card are valid, and WF is not responsible for reliance on outdated or unofficial information .
+
+Caps. WF reserves the right to establish individual and aggregate caps on referral rewards and withdrawals, and may modify such limits at any time, at its sole discretion.
+
+No Double-Dipping. A New User may not apply or combine multiple referral codes. In particular, an Affiliate referral code cannot be used together with any user-referral or other promotional code.
+
+Attribution & Change Rights. Referral attribution under the Program Terms shall operate on a deterministic, first-bound basis, meaning that each New User may use only one referral code. If multiple codes are submitted, the first valid code successfully linked to the user’s account before verification will control, and all others will be disregarded. If both an Affiliate code and a user-referral code are present, the first-bound code prevails. Attribution will automatically expire if the New User fails to complete verification within the applicable Attribution Window. WF’s attribution systems, records, and telemetry data shall be final, conclusive, and binding for all purposes of determining eligibility and reward allocation. Affiliates are strictly prohibited from implementing, encouraging, or enabling “code stacking”, multi-code attribution, or any mechanism intended to manipulate referral crediting or inflate referral counts. WF reserves the right to review, adjust, or revoke any referral credit, at its sole discretion, if any attribution irregularity or technical inconsistency is detected and to modify, suspend, or cancel any promotion or incentive program at any time, in a manner consistent with the underlying User Terms and applicable policies.
+
+4) Fraud Nullification. 
+
+4.1\tFraud Nullification. Any Qualified Referra tied to device-farming, self-referrals, fabricated identities, pay-for-verification schemes, or geo-evasion (VPN/proxy) is void. WF may withhold, reverse, or claw back rewards associated with such activity. WF reserves the right to monitor, review, and investigate all Program activity for fraud, abuse, or non-compliance. This includes, without limitation, the use of fraud-detection heuristics such as device fingerprint mismatches, SIM clustering, excessive referral velocity, geo-evasion patterns, or reuse of identical wallets across multiple accounts. WF may, in its sole discretion, delay, withhold, adjust, or revoke any rewards or terminate participation if any suspicious, invalid, or irregular activity is detected or reasonably suspected. WF’s determinations in connection with fraud review and attribution shall be final and binding. Affiliates agree to cooperate fully with any compliance or verification request and acknowledge that failure to do so may result in forfeiture of all pending rewards.
+
+5) Reward Currency; Conversion & Balances.
+USD-Denominated; WLD Paid. For each Qualified Referral, the Affiliate earns a USD-denominated amount according to the applicable rate card. Rewards accrue to the Affiliate’s account in WLD, calculated based on the USD/WLD conversion rate at the moment each referral is validated (i.e., verification is successful, including a 24 hour cooldown and the inviter user has claimed their first grant). WLD is distributed to a KYB or KYC approved World Chain wallet when a withdrawal request is submitted. All transfers of WLD are subject to the Token Grant Terms & Conditions. Payments will be made  in arrears and only after the completion of the Holdback Period described in Section 6.1. Once this period has elapsed and a valid withdrawal request is submitted, the accrued WLD amount will be transferred to the Affiliate’s linked wallet. The amount of WLD ultimately delivered may vary according to market conditions. Any USD figures are provided solely for reference and do not represent a guaranteed or fixed value. 
+
+No Value Guarantee. WF provides WLD rewards as-is and assume no obligation regarding their market price, stability, or convertibility. The value of WLD may fluctuate, and Affiliates accept all associated risks. WF shall have no responsibility for any variation in value or market conditions affecting WLD.
+
+6) Holdbacks & Clawbacks.
+Holdback. All rewards are provisional and subject to full review and verification by WF. No reward shall be deemed earned, vested, or payable until successfully verified and approved by WFin our sole discretion. A review period of 30 days (extendable on risk flags or longer, if necessary) may apply to allow for fraud, compliance, and abuse checks. WF reserves the right to delay, withhold, adjust, or revoke any reward at any time if suspicious, invalid, or non-compliant activity is detected or reasonably suspected.
+
+Clawback. WF reserves the right to reverse, offset, or freeze any balance if there is evidence or reasonable suspicion of fraud, policy violation, jurisdictional ineligibility, or repeated or improper identity use. Any such action may be taken at WF’s sole discretion and without prior notice.
+
+7) Withdrawals & Wallet Linking.
+Wallet. To receive WLD or any other token payouts, the Affiliate must connect and maintain a compatible, self-custody wallet that meets WF’s technical and compliance requirements. WF shall have no obligation to process or reissue any payment that fails due to an incorrect, unsupported, or compromised wallet address provided by the Affiliate.
+
+Thresholds. WF may, at its sole discretion, establish or modify maximum withdrawal thresholds, payout schedules, or other operational parameters related to the distribution of rewards. Payments below such thresholds may be deferred or aggregated until the applicable minimum is met.
+
+Fees. All network, gas, or transaction fees incurred in connection with the transfer of WLD rewards shall be borne exclusively by the Affiliate, unless WF expressly agrees in writing to subsidize such costs. WF shall have no responsibility for fluctuations or increases in network fees.
+
+Third-Party Rails. WF shall not be responsible or liable for any delay, loss, or failure in transmission, settlement, or receipt of tokens caused by third-party networks, exchanges, wallet providers, or blockchain infrastructure. All such systems operate independently of WF, and participation in the Program implies acceptance of these inherent operational risks.
+
+8) Territories; Sanctions & Compliance.
+Restricted Territories. Rewards are not available in the Restricted Territories. Any traffic routed from restricted territories is ineligible. Affiliates must not encourage VPN or proxy circumvention to access the Program.
+
+Sanctions. Affiliate represents that it is not owned or controlled by, and will not target, pay, or route rewards to, sanctioned persons. WF may conduct screening and suspend participation on risk signals.
+9) Marketing Standards & Brand Use.
+Truthful Promotion. Claims made by the Affiliate must be accurate, not misleading, and compliant with local respective law and must include required disclosures (e.g., “paid promotion”). 
+
+Misleading Advertising. Affiliate or any related party to such Affiliate may not engage in false or misleading advertising or any promotional activities regarding the WLD token or WF or TFH activities that could reasonably be seen as harming the reputation of World, WF, THF, the Program or the World Protocol.
+
+No Investment Promises & Token Promotion. Affiliate shall not make any statements suggesting WLD is an investment or will appreciate in value. Affiliate or any related party to such Affiliate may not promote WLD or engage in any Speculative Activities related to the value or trading of WLD Tokens or any other crypto asset in connection with its performance under this Agreement. “Speculative Activities” refer to any actions or communications that involve promoting, encouraging, or facilitating the purchase, sale, or trading of the WLD token based on anticipated future value, market performance, or investment potential. This includes but is not limited to offering investment advice, making price predictions, discussing market trends related to the WLD token, or creating content that suggests that the WLD token are investments subject to profit expectations. 
+
+Brand Use. Use of World’s marks requires adherence to the Trademark Use Policy and prior written approval for logo use; nominative text use permitted with required disclaimers.
+
+Channels. Affiliate shall not engage in spam, misleading practices, or any deceptive user experience, nor shall Affiliate pay or incentivize any individual to spoof identities or otherwise circumvent verification integrity.
+10) Data Privacy; Information & Confidentiality. 
+Data Privacy. Affiliates must not collect or store personal data from prospective users or New Users beyond what is necessary for lawful attribution and must comply with applicable data protection laws. In-app data processing is governed by TFH’s Privacy Policy; off-app processing of personal data is the Affiliate’s independent obligation.
+
+No Access or Transfer by Affiliates. Affiliates shall not receive, access, store, process, or transfer any personal data collected or controlled by WF or THF, nor shall they engage in or be responsible for any cross-border transfer, sharing, or disclosure of such data. All personal data associated with the Program or the Program Terms remains under the exclusive control of WF and THF as applicable, and Affiliates are strictly prohibited from using or attempting to use such data for any purpose other than as expressly authorized in writing by WF. WF shall have no obligation to provide any personal data to Affiliates under these Program Terms, unless otherwise established in these Program Terms. 
+
+Information Availability. WF may, at its sole discretion and when available, provide the Affiliate with data or reports regarding the number of referrals and other related metrics. Any such information is provided for informational purposes only, without any guarantee of accuracy, completeness, or continuity, and shall not create any obligation or liability for WF.
+
+Confidentiality. All information related to the Program, including these Program Terms and any communications, data, materials, or documents provided by WF orTHF or otherwise made available in connection with the Program or the Program Terms, shall be deemed confidential (the “Confidential Information”). The Affiliate or any related party shall keep all Confidential Information strictly confidential and shall not disclose, reproduce, or use it for any purpose other than participation in the Program or within the Program Terms without WF’s prior written consent. The Affiliate shall ensure that its employees, contractors, and related parties comply with these confidentiality obligations. Disclosure of any Confidential Information is permitted only with WF’s express prior authorization or as required by law, in which case the Affiliate shall provide prompt notice to WF. These confidentiality obligations shall survive termination or expiration of the Affiliate’s participation in the Program.
+11) Taxes & Fees.
+Affiliates are solely responsible for determining, reporting, and paying any and all taxes, duties, levies, or similar governmental assessments arising from their participation in the Program Terms or the receipt of any rewards. WF makes no representations regarding tax treatment or obligations. WF may, where required by applicable law, withhold taxes or file informational tax reports with relevant authorities. Any such withholding or reporting by WF shall not give rise to any liability or obligation beyond what is required by law. Affiliates are advised to consult their own tax advisors regarding the tax consequences of participation in the Program and receipt of rewards.
+12) Token Grant Terms Applicability & Currency.
+Token Grant Terms Applicability. All payments and rewards are subject to, and expressly conditioned upon, full compliance with the WLD Token Grant Terms and Conditions, available at https://world.org/token-grant-terms. By requesting or accepting any WLD rewards, the Affiliate acknowledges, represents, and agrees to be bound by such terms, as amended from time to time. WF reserves the right to withhold, delay, or revoke any payment in the event of non-compliance with the WLD Token Grant Terms or these Program Terms.
+
+Currency. WF shall determine, at its sole discretion, the form, method, timing, and currency or token used to make any payments or rewards under the Program Terms. WF may choose to settle any payable amounts in fiat currency, digital assets, or other instruments of value, and may change the payment method at any time without notice or liability. Affiliates acknowledge and agree that they have no right to select or dispute the form, timing, or medium of payment, nor to demand any specific currency, token, or conversion rate. All payments are subject to verification, compliance review, and WF’s final approval.
+13) Disclaimers & Risk.
+Disclaimer of Warranty. All products and services provided by WF are offered “as is” and “as available”. WF makes no warranties or representations, express or implied, including any warranties of merchantability, non-infringement, title, or fitness for a particular purpose. WF does not guarantee that the Program, these Program Terms, its features, or any Tokens will be error-free, uninterrupted, or available at all times. Affiliate shall not make any representations or warranties regarding the Program, the Program Terms, Products, or Services unless expressly authorized in writing by WF. To the maximum extent permitted by law, all warranties are hereby disclaimed.
+
+Risk. Tokens distributed under the Program Terms and/or the Program are experimental, volatile, and may fluctuate in value or functionality. WF makes no representations or warranties, express or implied, regarding the Tokens or their future performance, utility, or availability. WF reserves the right to modify, suspend, or discontinue any Token-related features at any time, without notice or liability. To the fullest extent permitted by law, WF disclaims all warranties, conditions, and representations, including any implied warranties of merchantability, fitness for a particular purpose, or non-infringement. Nothing in these Program Terms constitutes or shall be construed as investment, legal, or financial advice.
+14) IP & Independent Contractor.
+Trademarks and Brand Use. WF grants the Affiliate a limited, non-exclusive, revocable, non-transferable right to use WF’s name, logo, and related marks (“WF Marks”) solely as expressly permitted by WF and only for participation in the Program. Any such use must comply with WF’s brand guidelines and is subject to WF’s prior review and approval. All rights, title, and goodwill in the WF Marks remain exclusively with WF. WF may revoke this permission at any time, at its sole discretion.
+
+Reservation of Rights. All intellectual property, technology, content, and materials provided or made available by WF remain the exclusive property of WF and its affiliates. Except as expressly allowed under these Program Terms, no license or right is granted to the Affiliate, whether by implication or otherwise.
+
+Public References and Communications. WF authorizes the Affiliate to use WF’s name, logo, and related marks solely for the limited purpose of promoting participation in the WF Affiliate or Referral Program, in a truthful and accurate manner, and only within reasonable limits consistent with WF’s brand integrity and reputation. The Affiliate shall not use WF’s marks or make any public reference to WF in a misleading, disparaging, or inappropriate context, or in any way that could harm WF or its business. WF reserves the right to revoke this authorization at any time, at its sole discretion, and to require the Affiliate to remove or cease any use of WF’s marks or references immediately upon notice.
+
+Independent Contractor. Affiliate is an independent contractor. Notwithstanding the use of the term “Affiliate” which the Parties agree is for convenience only, nothing in this Agreement creates an employment or agency relationship between the involved Parties. Affiliate has no authority to bind WF in any way. These Program Terms do not create a partnership, joint venture, franchise, or agency relationship.
+15) Miscellaneous. 
+Effect of Termination for Convenience. WF may terminate these Program Terms or the Affiliate’s participation in the Program Terms at any time, for any reason or no reason, upon notice. Such termination shall not give rise to any compensation, indemnity, or credit of any kind in favor of the Affiliate. Any amounts or rewards not yet verified or approved by WF as of the effective date of termination pursuant to this Section shall be deemed unearned and shall not be payable. All amounts previously paid and duly earned shall remain non-refundable.
+
+Governing Law; Venue; Dispute Resolution. These Program Terms shall be governed by and construed in accordance with the laws of the Cayman Islands, without regard to its conflict of laws principles. Any dispute, controversy, or claim arising out of or in connection with these Program Terms shall be finally settled by binding arbitration, consistent with the framework applied in the World User Terms v4.0, as may be adapted by WF for commercial-party arrangements. The language of arbitration shall be English, and the arbitration award shall be final and binding upon the parties.
+
+No Assignment. Affiliate may not assign, delegate, or otherwise transfer any of its rights or obligations under these Program Terms, whether by operation of law or otherwise, without WF’s prior written consent. Any attempted assignment in violation of the foregoing shall be null and void. WF may assign or transfer these Program Terms, in whole or in part, at any time and without notice, including to any affiliate or successor in connection with a merger, acquisition, reorganization, or sale of assets. These Program Terms shall be binding upon and inure to the benefit of WF and its permitted successors and assigns.
+
+Notices. Any notices or communications under these Program Terms may be provided by either Party via email to the other Party’s designated contact address or through the Affiliate dashboard (in the case of WF communications). Notices shall be deemed received upon successful transmission.
+
+Entire Agreement. These Program Terms, together with any incorporated policies or guidelines issued by WF, constitute the entire agreement between WF and the Affiliate with respect to participation in the Program and supersede any prior or contemporaneous communications, representations, or understandings.
+
+Incorporated Documents (Policies & URLs). The Program Terms incorporate by reference World User Terms (v4.0) and Tools for Humanity (TFH) User Terms. In the event of any conflict or inconsistency of these Program Terms with World User Terms (v4.0) and Tools for Humanity (TFH) User Terms, these Program Terms control for referral incentive mechanics shall prevail.
+
+Additionally, the following documents, policies, and terms (collectively, the “Incorporated Documents”) are hereby incorporated into and form an integral part of these Program Terms. By participating in the Program and the Program Terms, the Affiliate agrees to comply with and be bound by all such Incorporated Documents, as may be amended from time to time by WF at its sole discretion. In the event of any conflict between these Program Terms and any Incorporated Document, WF’s determination shall prevail. The Incorporated Documents are: (i) World User Terms & Conditions v4.0 (https://world.org/legal/user-terms-and-conditions/4.0); (ii) TFH User Terms & Conditions (https://www.toolsforhumanity.com/legal/user-terms-and-conditions); (iii) WLD Token Grant Terms (https://world.org/token-grant-terms); (iv) World Risk Disclosures (https://world.org/risks); and (v) World Trademark Use Policy (https://world.org/trademark). 
+
+Survival. All provisions that by their nature should survive termination shall remain in effect, including those relating to Confidentiality, Fraud, Clawback, Taxes, Intellectual Property, Governing Law, Dispute Resolution, and Restricted Territories.
+*****
 
 `;
