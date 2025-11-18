@@ -61,7 +61,7 @@ export async function GET(
 
   let app_id = params.app_id;
 
-  if (app_id === "app-store") {
+  if (app_id === "app_store") {
     const responseBody = { app_data: APP_STORE_METADATA };
     const contentLength = Buffer.byteLength(
       JSON.stringify(responseBody),
