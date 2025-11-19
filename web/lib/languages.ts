@@ -233,6 +233,10 @@ const supportedLanguages = [
     label: "Traditional Chinese (Taiwan)",
     value: "zh_TW",
   },
+  {
+    label: "Dutch",
+    value: "nl",
+  },
 ] as const;
 
 export const languageMap = {
@@ -253,6 +257,7 @@ export const languageMap = {
   id: { label: "Indonesian", country_code: "ID" },
   zh_TW: { label: "Traditional Chinese (Taiwan)", country_code: "TW" },
   it: { label: "Italian", country_code: "IT" },
+  nl: { label: "Dutch", country_code: "NL" },
 } as const;
 
 export const formCountriesList = () =>
