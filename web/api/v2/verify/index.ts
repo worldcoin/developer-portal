@@ -73,12 +73,18 @@ export async function POST(
 
   const app_id = params.app_id?.toString();
 
+  // Read the body as text first to avoid "Body is unusable" error
+  const rawBody = await req.text();
+
   let body;
   try {
-    body = await req.json();
+    body = JSON.parse(rawBody);
   } catch (error) {
-    const body = await req.text();
-    logger.warn("Invalid JSON in request body", { error, app_id, body });
+    logger.warn("Invalid JSON in request body", {
+      error,
+      app_id,
+      body: rawBody,
+    });
 
     return errorResponse({
       statusCode: 400,
