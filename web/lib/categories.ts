@@ -240,6 +240,20 @@ export const CategoryTranslations: Record<
     ai: "IA",
     shopping: "Shopping",
   },
+  nl: {
+    all: "Alle",
+    social: "Sociaal",
+    gaming: "Games",
+    business: "Zakelijk",
+    finance: "Financieel",
+    productivity: "Productiviteit",
+    other: "Overig",
+    tokens: "Tokens",
+    external: "Extern",
+    earn: "Earn",
+    ai: "AI",
+    shopping: "Shoppen",
+  },
 };
 
 export const Categories = [
