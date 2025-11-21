@@ -29,7 +29,7 @@ const schema = yup
       .string()
       .strict()
       .nonNullable()
-      .required("This attribute is required."),
+      .defined("This attribute is required."),
     signal_hash: yup
       .string()
       .matches(/^0x[\dabcdef]+$/, "Invalid signal_hash.")

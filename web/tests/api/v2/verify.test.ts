@@ -342,56 +342,6 @@ describe("/api/v2/verify", () => {
 
 // #region Error cases
 describe("/api/v2/verify [error cases]", () => {
-  it("return error if action is empty", async () => {
-    const mockReq = createMockRequest(getUrl(stagingAppId), {
-      ...validBody,
-      action: "",
-    });
-
-    const ctx = { params: { app_id: stagingAppId } };
-
-    // NOTE: mock for the fetch in verifyProof
-    mockFetch({
-      body: { valid: true },
-      ok: true,
-      status: 200,
-    });
-
-    const fetchAppResponse = {
-      app: [
-        {
-          ...validApp,
-          actions: [{ ...validAction, nullifiers: [] }],
-        },
-      ],
-    };
-
-    FetchAppAction.mockResolvedValue(fetchAppResponse);
-
-    AtomicUpsertNullifier.mockResolvedValue({
-      update_nullifier: {
-        affected_rows: 1,
-        returning: [
-          {
-            nullifier_hash: semaphoreProofParamsMock.nullifier_hash,
-            created_at: validNullifier.created_at,
-            uses: 1,
-          },
-        ],
-      },
-    });
-
-    const response = await POST(mockReq, ctx);
-    expect(response.status).toBe(400);
-    const body = await response.json();
-
-    expect(body).toEqual({
-      attribute: "action",
-      code: "validation_error",
-      detail: "This attribute is required.",
-    });
-  });
-
   it("action inactive or not found", async () => {
     const mockReq = createMockRequest(getUrl(stagingAppId), validBody);
     const ctx = { params: { app_id: stagingAppId } };
