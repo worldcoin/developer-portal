@@ -340,4 +340,424 @@ describe("/api/v2/verify", () => {
 });
 // #endregion
 
+// #region Error cases
+describe("/api/v2/verify [error cases]", () => {
+  it("action inactive or not found", async () => {
+    const mockReq = createMockRequest(getUrl(stagingAppId), validBody);
+    const ctx = { params: { app_id: stagingAppId } };
+
+    const fetchAppResponse = {
+      app: [
+        {
+          ...validApp,
+          actions: [],
+        },
+      ],
+    };
+
+    FetchAppAction.mockResolvedValue(fetchAppResponse);
+    const response = await POST(mockReq, ctx);
+    expect(response.status).toBe(400);
+    const body = await response.json();
+
+    expect(body).toEqual({
+      attribute: "action",
+      code: "invalid_action",
+      detail: "Action not found.",
+      app_id: stagingAppId,
+    });
+  });
+
+  it("prevent duplicates (uniqueness check)", async () => {
+    const mockReq = createMockRequest(getUrl(stagingAppId), validBody);
+    const ctx = { params: { app_id: stagingAppId } };
+
+    const fetchAppResponse = {
+      app: [
+        {
+          ...validApp,
+          actions: [
+            {
+              ...validAction,
+              max_verifications: 1,
+              nullifiers: [
+                {
+                  ...validNullifier,
+                  uses: 1,
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    };
+
+    FetchAppAction.mockResolvedValue(fetchAppResponse);
+    const response = await POST(mockReq, ctx);
+    expect(response.status).toBe(400);
+    const body = await response.json();
+
+    expect(body).toEqual({
+      attribute: null,
+      code: "max_verifications_reached",
+      detail: "This person has already verified for this action.",
+      app_id: stagingAppId,
+    });
+  });
+
+  it("cannot verify if reached max number of verifications", async () => {
+    const mockReq = createMockRequest(getUrl(stagingAppId), validBody);
+    const ctx = { params: { app_id: stagingAppId } };
+
+    const fetchAppResponse = {
+      app: [
+        {
+          ...validApp,
+          actions: [
+            {
+              ...validAction,
+              max_verifications: 2,
+              nullifiers: [
+                {
+                  ...validNullifier,
+                  uses: 2,
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    };
+
+    FetchAppAction.mockResolvedValue(fetchAppResponse);
+    const response = await POST(mockReq, ctx);
+    expect(response.status).toBe(400);
+    const body = await response.json();
+
+    expect(body).toEqual({
+      attribute: null,
+      code: "max_verifications_reached",
+      detail:
+        "This person has already verified for this action the maximum number of times (2).",
+      app_id: stagingAppId,
+    });
+  });
+
+  it("cannot verify without required parameters", async () => {
+    const mockReq = createMockRequest(getUrl(stagingAppId), {
+      ...validBody,
+      nullifier_hash: undefined,
+    });
+
+    const ctx = { params: { app_id: stagingAppId } };
+
+    const response = await POST(mockReq, ctx);
+    expect(response.status).toBe(400);
+    const body = await response.json();
+
+    expect(body).toEqual({
+      attribute: "nullifier_hash",
+      code: "validation_error",
+      detail: "This attribute is required.",
+    });
+  });
+
+  it("parameter parsing error", async () => {
+    const mockReq = createMockRequest(getUrl(stagingAppId), validBody);
+    const ctx = { params: { app_id: "" } };
+    const response = await POST(mockReq, ctx);
+    expect(response.status).toBe(400);
+    const body = await response.json();
+
+    expect(body).toEqual({
+      attribute: "app_id",
+      code: "required",
+      detail: "This attribute is required.",
+    });
+  });
+
+  it("throws error if proof is valid but nullifier cannot be inserted", async () => {
+    const mockReq = createMockRequest(getUrl(stagingAppId), validBody);
+    const ctx = { params: { app_id: stagingAppId } };
+
+    const fetchAppResponse = {
+      app: [
+        {
+          ...validApp,
+          actions: [{ ...validAction, nullifiers: [] }],
+        },
+      ],
+    };
+
+    FetchAppAction.mockResolvedValue(fetchAppResponse);
+
+    // NOTE: mock for the fetch in verifyProof
+    mockFetch({
+      body: { valid: true },
+      ok: true,
+      status: 200,
+    });
+
+    AtomicUpsertNullifier.mockResolvedValue({
+      update_nullifier: {
+        affected_rows: 1,
+        returning: null,
+      },
+    });
+
+    const response = await POST(mockReq, ctx);
+    expect(response.status).toBe(400);
+    const body = await response.json();
+
+    expect(body).toEqual({
+      attribute: null,
+      code: "verification_error",
+      detail: "There was an error upserting the nullifier.",
+      app_id: stagingAppId,
+    });
+  });
+
+  it("invalid merkle root", async () => {
+    const mockReq = createMockRequest(getUrl(stagingAppId), validBody);
+    const ctx = { params: { app_id: stagingAppId } };
+
+    const fetchAppResponse = {
+      app: [
+        {
+          ...validApp,
+          actions: [{ ...validAction, nullifiers: [] }],
+        },
+      ],
+    };
+
+    FetchAppAction.mockResolvedValue(fetchAppResponse);
+
+    // NOTE: mock for the fetch in verifyProof
+    mockFetch({
+      body: {
+        errorId: "invalid_root",
+        errorMessage: "The provided Merkle root is invalid",
+      },
+      ok: false,
+      status: 400,
+    });
+
+    const response = await POST(mockReq, ctx);
+    expect(response.status).toBe(400);
+    const body = await response.json();
+
+    expect(body).toEqual({
+      attribute: null,
+      code: "invalid_merkle_root",
+      detail:
+        "The provided Merkle root is invalid. User appears to be unverified.",
+      app_id: stagingAppId,
+    });
+  });
+
+  it("should return error if signal_hash format is invalid", async () => {
+    const invalidVariants = [
+      "0x12345678901234567890123456789012345678901234567890123456789012__",
+    ];
+
+    let bodies: Array<Record<"attribute" | "code" | "detail", string>> = [];
+
+    for (const signal_hash of invalidVariants) {
+      const mockReq = createMockRequest(getUrl(stagingAppId), {
+        ...validBody,
+        signal_hash,
+      });
+
+      const ctx = { params: { app_id: stagingAppId } };
+
+      const fetchAppResponse = {
+        app: [
+          {
+            ...validApp,
+            actions: [{ ...validAction, nullifiers: [] }],
+          },
+        ],
+      };
+
+      FetchAppAction.mockResolvedValue(fetchAppResponse);
+
+      // NOTE: mock for the fetch in verifyProof
+      mockFetch({
+        body: {
+          status: "mined",
+        },
+        ok: true,
+        status: 200,
+      });
+
+      AtomicUpsertNullifier.mockResolvedValue({
+        update_nullifier: {
+          affected_rows: 1,
+          returning: [
+            {
+              nullifier_hash: semaphoreProofParamsMock.nullifier_hash,
+              created_at: validNullifier.created_at,
+            },
+          ],
+        },
+      });
+
+      const response = await POST(mockReq, ctx);
+      expect(response.status).toBe(400);
+      const body = await response.json();
+      bodies.push(body);
+    }
+
+    expect(bodies[0]).toEqual({
+      code: "validation_error",
+      detail: "Invalid signal_hash.",
+      attribute: "signal_hash",
+    });
+  });
+
+  it("invalid proof", async () => {
+    const mockReq = createMockRequest(getUrl(stagingAppId), validBody);
+    const ctx = { params: { app_id: stagingAppId } };
+
+    const fetchAppResponse = {
+      app: [
+        {
+          ...validApp,
+          actions: [{ ...validAction, nullifiers: [] }],
+        },
+      ],
+    };
+
+    FetchAppAction.mockResolvedValue(fetchAppResponse);
+
+    // NOTE: mock for the fetch in verifyProof
+    mockFetch({
+      body: {
+        errorId: "decompressing_proof_error",
+        errorMessage: "Invalid proof",
+      },
+      ok: false,
+      status: 400,
+    });
+
+    const response = await POST(mockReq, ctx);
+    expect(response.status).toBe(400);
+    const body = await response.json();
+
+    expect(body).toEqual({
+      attribute: null,
+      code: "invalid_proof",
+      detail:
+        "The provided proof is invalid and it cannot be verified. Please check all inputs and try again.",
+      app_id: stagingAppId,
+    });
+  });
+
+  it("uses default max_age when not provided", async () => {
+    const stagingAppId = "app_staging_558238f8f6380338449a552aeffccf29";
+    const ctx = { params: { app_id: stagingAppId } };
+
+    const mockReq = createMockRequest(getUrl(stagingAppId), {
+      ...semaphoreProofParamsMock,
+      action: "action_verify",
+      verification_level: VerificationLevel.Device,
+      // Note: max_age is not provided
+    });
+
+    const fetchAppResponse = {
+      app: [
+        {
+          ...validApp,
+          actions: [{ ...validAction, nullifiers: [] }],
+        },
+      ],
+    };
+
+    // Mock the fetch for verifyProof
+    mockFetch({
+      body: { valid: true },
+      ok: true,
+      status: 200,
+    });
+
+    FetchAppAction.mockResolvedValue(fetchAppResponse);
+    AtomicUpsertNullifier.mockResolvedValue({
+      update_nullifier: {
+        returning: [
+          {
+            uses: 1,
+            nullifier_hash: semaphoreProofParamsMock.nullifier_hash,
+            created_at: "2024-01-01T00:00:00.000Z",
+          },
+        ],
+      },
+    });
+
+    const response = await POST(mockReq, ctx);
+    expect(response.status).toBe(200);
+
+    // Check that the fetch was called with the default max_age (7 days = 604800 seconds)
+    expect(fetch).toHaveBeenCalledWith(
+      expect.stringContaining("/v2/semaphore-proof/verify"),
+      expect.objectContaining({
+        method: "POST",
+        body: expect.stringContaining('"maxRootAgeSeconds":604800'),
+      }),
+    );
+  });
+
+  it("uses provided max_age when specified", async () => {
+    const stagingAppId = "app_staging_558238f8f6380338449a552aeffccf29";
+    const ctx = { params: { app_id: stagingAppId } };
+    const customMaxAge = 7200; // 2 hours
+
+    const mockReq = createMockRequest(getUrl(stagingAppId), {
+      ...semaphoreProofParamsMock,
+      action: "action_verify",
+      verification_level: VerificationLevel.Device,
+      max_age: customMaxAge,
+    });
+
+    const fetchAppResponse = {
+      app: [
+        {
+          ...validApp,
+          actions: [{ ...validAction, nullifiers: [] }],
+        },
+      ],
+    };
+
+    // Mock the fetch for verifyProof
+    mockFetch({
+      body: { valid: true },
+      ok: true,
+      status: 200,
+    });
+
+    FetchAppAction.mockResolvedValue(fetchAppResponse);
+    AtomicUpsertNullifier.mockResolvedValue({
+      update_nullifier: {
+        returning: [
+          {
+            uses: 1,
+            nullifier_hash: semaphoreProofParamsMock.nullifier_hash,
+            created_at: "2024-01-01T00:00:00.000Z",
+          },
+        ],
+      },
+    });
+
+    const response = await POST(mockReq, ctx);
+    expect(response.status).toBe(200);
+
+    // Check that the fetch was called with the provided max_age
+    expect(fetch).toHaveBeenCalledWith(
+      expect.stringContaining("/v2/semaphore-proof/verify"),
+      expect.objectContaining({
+        method: "POST",
+        body: expect.stringContaining(`"maxRootAgeSeconds":${customMaxAge}`),
+      }),
+    );
+  });
+});
 // #endregion
