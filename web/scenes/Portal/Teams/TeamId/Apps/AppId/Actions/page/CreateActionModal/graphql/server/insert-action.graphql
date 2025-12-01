@@ -8,6 +8,8 @@ mutation InsertAction(
   $app_flow_on_complete: app_flow_on_complete_enum!
   $webhook_uri: String
   $webhook_pem: String
+  $post_action_deep_link_ios: String
+  $post_action_deep_link_android: String
 ) {
   insert_action_one(
     object: {
@@ -20,6 +22,8 @@ mutation InsertAction(
       app_flow_on_complete: $app_flow_on_complete
       webhook_uri: $webhook_uri
       webhook_pem: $webhook_pem
+      post_action_deep_link_ios: $post_action_deep_link_ios
+      post_action_deep_link_android: $post_action_deep_link_android
     }
   ) {
     id

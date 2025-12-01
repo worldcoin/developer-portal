@@ -8,5 +8,7 @@ mutation UpdateAction($id: String!, $input: action_set_input) {
     app_flow_on_complete
     webhook_uri
     webhook_pem
+    post_action_deep_link_ios
+    post_action_deep_link_android
   }
 }

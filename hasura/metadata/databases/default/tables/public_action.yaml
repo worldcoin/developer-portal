@@ -50,6 +50,8 @@ insert_permissions:
         - app_flow_on_complete
         - webhook_pem
         - webhook_uri
+        - post_action_deep_link_ios
+        - post_action_deep_link_android
   - role: service
     permission:
       check:
@@ -71,6 +73,8 @@ insert_permissions:
         - app_flow_on_complete
         - webhook_pem
         - webhook_uri
+        - post_action_deep_link_ios
+        - post_action_deep_link_android
 select_permissions:
   - role: api_key
     permission:
@@ -91,6 +95,8 @@ select_permissions:
         - app_flow_on_complete
         - webhook_pem
         - webhook_uri
+        - post_action_deep_link_ios
+        - post_action_deep_link_android
       computed_fields:
         - redirect_count
       filter:
@@ -118,6 +124,8 @@ select_permissions:
         - app_flow_on_complete
         - webhook_uri
         - webhook_pem
+        - post_action_deep_link_ios
+        - post_action_deep_link_android
       computed_fields:
         - redirect_count
       filter:
@@ -152,6 +160,8 @@ select_permissions:
         - app_flow_on_complete
         - webhook_uri
         - webhook_pem
+        - post_action_deep_link_ios
+        - post_action_deep_link_android
       filter:
         app:
           _and:
@@ -197,6 +207,8 @@ update_permissions:
         - max_verifications
         - name
         - privacy_policy_uri
+        - post_action_deep_link_ios
+        - post_action_deep_link_android
         - status
         - terms_uri
         - webhook_pem

@@ -61,6 +61,8 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
     defaultValues: {
       max_verifications: 1,
       app_flow_on_complete: "NONE",
+      post_action_deep_link_ios: undefined,
+      post_action_deep_link_android: undefined,
     },
   });
 
@@ -288,6 +290,24 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
                       />
                     </div>
                   )}
+
+                  <Input
+                    register={register("post_action_deep_link_ios")}
+                    errors={errors.post_action_deep_link_ios}
+                    label="Post-action deep link (iOS)"
+                    placeholder="e.g. worldapp:// or https://world.org"
+                    helperText="If specified, after action completion, allow users to continue to the iOS app specified by the deep link."
+                    className="h-16"
+                  />
+
+                  <Input
+                    register={register("post_action_deep_link_android")}
+                    errors={errors.post_action_deep_link_android}
+                    label="Post-action deep link (Android)"
+                    placeholder="e.g. worldapp:// or https://world.org"
+                    helperText="If specified, after action completion, allow users to continue to the Android app specified by the deep link."
+                    className="h-16"
+                  />
                 </div>
               )}
             </div>

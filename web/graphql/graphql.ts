@@ -287,6 +287,10 @@ export type Action = {
   nullifiers: Array<Nullifier>;
   /** An aggregate relationship */
   nullifiers_aggregate: Nullifier_Aggregate;
+  /** If specified, after action completion, allow users to continue to the Android app specified by the deep link */
+  post_action_deep_link_android?: Maybe<Scalars["String"]["output"]>;
+  /** If specified, after action completion, allow users to continue to the iOS app specified by the deep link */
+  post_action_deep_link_ios?: Maybe<Scalars["String"]["output"]>;
   privacy_policy_uri?: Maybe<Scalars["String"]["output"]>;
   /** a computed field listing how many redirect_uris are added */
   redirect_count?: Maybe<Scalars["Int"]["output"]>;
@@ -457,6 +461,8 @@ export type Action_Bool_Exp = {
   name?: InputMaybe<String_Comparison_Exp>;
   nullifiers?: InputMaybe<Nullifier_Bool_Exp>;
   nullifiers_aggregate?: InputMaybe<Nullifier_Aggregate_Bool_Exp>;
+  post_action_deep_link_android?: InputMaybe<String_Comparison_Exp>;
+  post_action_deep_link_ios?: InputMaybe<String_Comparison_Exp>;
   privacy_policy_uri?: InputMaybe<String_Comparison_Exp>;
   redirect_count?: InputMaybe<Int_Comparison_Exp>;
   redirects?: InputMaybe<Redirect_Bool_Exp>;
@@ -510,6 +516,10 @@ export type Action_Insert_Input = {
   /** Friendly name given to an action in the Developer Portal. */
   name?: InputMaybe<Scalars["String"]["input"]>;
   nullifiers?: InputMaybe<Nullifier_Arr_Rel_Insert_Input>;
+  /** If specified, after action completion, allow users to continue to the Android app specified by the deep link */
+  post_action_deep_link_android?: InputMaybe<Scalars["String"]["input"]>;
+  /** If specified, after action completion, allow users to continue to the iOS app specified by the deep link */
+  post_action_deep_link_ios?: InputMaybe<Scalars["String"]["input"]>;
   privacy_policy_uri?: InputMaybe<Scalars["String"]["input"]>;
   redirects?: InputMaybe<Redirect_Arr_Rel_Insert_Input>;
   status?: InputMaybe<Scalars["String"]["input"]>;
@@ -541,6 +551,10 @@ export type Action_Max_Fields = {
   max_verifications?: Maybe<Scalars["Int"]["output"]>;
   /** Friendly name given to an action in the Developer Portal. */
   name?: Maybe<Scalars["String"]["output"]>;
+  /** If specified, after action completion, allow users to continue to the Android app specified by the deep link */
+  post_action_deep_link_android?: Maybe<Scalars["String"]["output"]>;
+  /** If specified, after action completion, allow users to continue to the iOS app specified by the deep link */
+  post_action_deep_link_ios?: Maybe<Scalars["String"]["output"]>;
   privacy_policy_uri?: Maybe<Scalars["String"]["output"]>;
   /** a computed field listing how many redirect_uris are added */
   redirect_count?: Maybe<Scalars["Int"]["output"]>;
@@ -572,6 +586,10 @@ export type Action_Max_Order_By = {
   max_verifications?: InputMaybe<Order_By>;
   /** Friendly name given to an action in the Developer Portal. */
   name?: InputMaybe<Order_By>;
+  /** If specified, after action completion, allow users to continue to the Android app specified by the deep link */
+  post_action_deep_link_android?: InputMaybe<Order_By>;
+  /** If specified, after action completion, allow users to continue to the iOS app specified by the deep link */
+  post_action_deep_link_ios?: InputMaybe<Order_By>;
   privacy_policy_uri?: InputMaybe<Order_By>;
   status?: InputMaybe<Order_By>;
   terms_uri?: InputMaybe<Order_By>;
@@ -602,6 +620,10 @@ export type Action_Min_Fields = {
   max_verifications?: Maybe<Scalars["Int"]["output"]>;
   /** Friendly name given to an action in the Developer Portal. */
   name?: Maybe<Scalars["String"]["output"]>;
+  /** If specified, after action completion, allow users to continue to the Android app specified by the deep link */
+  post_action_deep_link_android?: Maybe<Scalars["String"]["output"]>;
+  /** If specified, after action completion, allow users to continue to the iOS app specified by the deep link */
+  post_action_deep_link_ios?: Maybe<Scalars["String"]["output"]>;
   privacy_policy_uri?: Maybe<Scalars["String"]["output"]>;
   /** a computed field listing how many redirect_uris are added */
   redirect_count?: Maybe<Scalars["Int"]["output"]>;
@@ -633,6 +655,10 @@ export type Action_Min_Order_By = {
   max_verifications?: InputMaybe<Order_By>;
   /** Friendly name given to an action in the Developer Portal. */
   name?: InputMaybe<Order_By>;
+  /** If specified, after action completion, allow users to continue to the Android app specified by the deep link */
+  post_action_deep_link_android?: InputMaybe<Order_By>;
+  /** If specified, after action completion, allow users to continue to the iOS app specified by the deep link */
+  post_action_deep_link_ios?: InputMaybe<Order_By>;
   privacy_policy_uri?: InputMaybe<Order_By>;
   status?: InputMaybe<Order_By>;
   terms_uri?: InputMaybe<Order_By>;
@@ -683,6 +709,8 @@ export type Action_Order_By = {
   max_verifications?: InputMaybe<Order_By>;
   name?: InputMaybe<Order_By>;
   nullifiers_aggregate?: InputMaybe<Nullifier_Aggregate_Order_By>;
+  post_action_deep_link_android?: InputMaybe<Order_By>;
+  post_action_deep_link_ios?: InputMaybe<Order_By>;
   privacy_policy_uri?: InputMaybe<Order_By>;
   redirect_count?: InputMaybe<Order_By>;
   redirects_aggregate?: InputMaybe<Redirect_Aggregate_Order_By>;
@@ -726,6 +754,10 @@ export enum Action_Select_Column {
   MaxVerifications = "max_verifications",
   /** column name */
   Name = "name",
+  /** column name */
+  PostActionDeepLinkAndroid = "post_action_deep_link_android",
+  /** column name */
+  PostActionDeepLinkIos = "post_action_deep_link_ios",
   /** column name */
   PrivacyPolicyUri = "privacy_policy_uri",
   /** column name */
@@ -774,6 +806,10 @@ export type Action_Set_Input = {
   max_verifications?: InputMaybe<Scalars["Int"]["input"]>;
   /** Friendly name given to an action in the Developer Portal. */
   name?: InputMaybe<Scalars["String"]["input"]>;
+  /** If specified, after action completion, allow users to continue to the Android app specified by the deep link */
+  post_action_deep_link_android?: InputMaybe<Scalars["String"]["input"]>;
+  /** If specified, after action completion, allow users to continue to the iOS app specified by the deep link */
+  post_action_deep_link_ios?: InputMaybe<Scalars["String"]["input"]>;
   privacy_policy_uri?: InputMaybe<Scalars["String"]["input"]>;
   status?: InputMaybe<Scalars["String"]["input"]>;
   terms_uri?: InputMaybe<Scalars["String"]["input"]>;
@@ -1110,6 +1146,10 @@ export type Action_Stream_Cursor_Value_Input = {
   max_verifications?: InputMaybe<Scalars["Int"]["input"]>;
   /** Friendly name given to an action in the Developer Portal. */
   name?: InputMaybe<Scalars["String"]["input"]>;
+  /** If specified, after action completion, allow users to continue to the Android app specified by the deep link */
+  post_action_deep_link_android?: InputMaybe<Scalars["String"]["input"]>;
+  /** If specified, after action completion, allow users to continue to the iOS app specified by the deep link */
+  post_action_deep_link_ios?: InputMaybe<Scalars["String"]["input"]>;
   privacy_policy_uri?: InputMaybe<Scalars["String"]["input"]>;
   status?: InputMaybe<Scalars["String"]["input"]>;
   terms_uri?: InputMaybe<Scalars["String"]["input"]>;
@@ -1167,6 +1207,10 @@ export enum Action_Update_Column {
   MaxVerifications = "max_verifications",
   /** column name */
   Name = "name",
+  /** column name */
+  PostActionDeepLinkAndroid = "post_action_deep_link_android",
+  /** column name */
+  PostActionDeepLinkIos = "post_action_deep_link_ios",
   /** column name */
   PrivacyPolicyUri = "privacy_policy_uri",
   /** column name */

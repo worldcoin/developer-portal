@@ -35,6 +35,20 @@ export const createUpdateActionSchema = (context: ActionContext) => {
             return validatePublicKey(value);
           },
         }),
+      post_action_deep_link_ios: yup
+        .string()
+        .optional()
+        .test("is-url", "Must be a valid URL", (value) => {
+          if (!value || !context.isProduction) return true;
+          return validateUrl(value, !context.isProduction);
+        }),
+      post_action_deep_link_android: yup
+        .string()
+        .optional()
+        .test("is-url", "Must be a valid URL", (value) => {
+          if (!value || !context.isProduction) return true;
+          return validateUrl(value, !context.isProduction);
+        }),
     })
     .noUnknown()
     .test(

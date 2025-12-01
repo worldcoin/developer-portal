@@ -17,6 +17,8 @@ query GetActions($app_id: String!, $condition: [action_bool_exp!]) {
     app_flow_on_complete
     webhook_uri
     webhook_pem
+    post_action_deep_link_ios
+    post_action_deep_link_android
     updated_at
     nullifiers: nullifiers_aggregate {
       aggregate {

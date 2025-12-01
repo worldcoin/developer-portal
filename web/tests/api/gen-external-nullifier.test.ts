@@ -21,7 +21,6 @@ const HASURA_EVENT_TRIGGER_PAYLOAD = {
         created_at: "2022-06-18T17:06:12.77282+00:00",
         id: "wid_staging_f8f9f14036672d4132e0b14e8f256179",
         public_description: "",
-        return_url: "",
         description: "",
       },
     },

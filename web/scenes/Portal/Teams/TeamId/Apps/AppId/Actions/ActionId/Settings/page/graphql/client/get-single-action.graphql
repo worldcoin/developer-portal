@@ -9,6 +9,8 @@ query GetSingleAction($action_id: String!) {
     app_flow_on_complete
     webhook_uri
     webhook_pem
+    post_action_deep_link_ios
+    post_action_deep_link_android
     app {
       id
       is_staging

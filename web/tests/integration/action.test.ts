@@ -42,6 +42,38 @@ describe("service role", () => {
     expect(signInWithWorldIDCount).toEqual(1); // only one app with sign in with world id
   });
 
+  test("can query return_to fields from actions", async () => {
+    const client = await getAPIServiceClient();
+    const query = gql(`query GetActionsWithReturnUrl {
+      action(limit: 5) {
+        id
+        name
+        action
+        post_action_deep_link_android
+        post_action_deep_link_ios
+      }
+    }`);
+
+    const response = await client.query({ query });
+
+    expect(response.data.action.length).toBeGreaterThan(0);
+    // Verify return_to fields exist in response (may be null or string)
+    response.data.action.forEach((action: { [key: string]: string | null }) => {
+      expect(action).toHaveProperty("post_action_deep_link_android");
+      expect(action).toHaveProperty("post_action_deep_link_ios");
+      expect(
+        action.post_action_deep_link_android === null ||
+          action.post_action_deep_link_android === undefined ||
+          typeof action.post_action_deep_link_android === "string",
+      ).toBe(true);
+      expect(
+        action.post_action_deep_link_ios === null ||
+          action.post_action_deep_link_ios === undefined ||
+          typeof action.post_action_deep_link_ios === "string",
+      ).toBe(true);
+    });
+  });
+
   test("cannot delete actions", async () => {
     const client = await getAPIServiceClient();
     const query = gql(`mutation DeleteActionMutation {
@@ -328,5 +360,186 @@ describe("user role", () => {
         },
       }),
     ).rejects.toThrow();
+  });
+
+  test("Service role can update return_to fields", async () => {
+    const serviceClient = await getAPIServiceClient();
+
+    // Get an action
+    const query = gql(`query GetAction {
+      action(where: {action: {_eq: ""}}, limit: 1) {
+        id
+        post_action_deep_link_android
+        post_action_deep_link_ios
+      }
+    }`);
+
+    const queryRes = await serviceClient.query({ query });
+    const actionId = queryRes.data.action[0].id;
+    const originalReturnUrlAndroid =
+      queryRes.data.action[0].post_action_deep_link_android;
+    const originalReturnUrlIos =
+      queryRes.data.action[0].post_action_deep_link_ios;
+
+    const newReturnUrlAndroid = "https://example.com/return/android";
+    const newReturnUrlIos = "https://example.com/return/ios";
+
+    // Update return_to fields
+    const mutation = gql`
+      mutation UpdateAction(
+        $id: String!
+        $returnUrlAndroid: String
+        $returnUrlIos: String
+      ) {
+        update_action_by_pk(
+          pk_columns: { id: $id }
+          _set: {
+            post_action_deep_link_android: $returnUrlAndroid
+            post_action_deep_link_ios: $returnUrlIos
+          }
+        ) {
+          id
+          post_action_deep_link_android
+          post_action_deep_link_ios
+        }
+      }
+    `;
+
+    const response = await serviceClient.mutate({
+      mutation,
+      variables: {
+        id: actionId,
+        returnUrlAndroid: newReturnUrlAndroid,
+        returnUrlIos: newReturnUrlIos,
+      },
+    });
+
+    expect(
+      response.data.update_action_by_pk.post_action_deep_link_android,
+    ).toEqual(newReturnUrlAndroid);
+    expect(response.data.update_action_by_pk.post_action_deep_link_ios).toEqual(
+      newReturnUrlIos,
+    );
+
+    // Restore original value
+    await serviceClient.mutate({
+      mutation,
+      variables: {
+        id: actionId,
+        returnUrlAndroid: originalReturnUrlAndroid,
+        returnUrlIos: originalReturnUrlIos,
+      },
+    });
+  });
+
+  test("Service role can set return_to fields to null", async () => {
+    const serviceClient = await getAPIServiceClient();
+
+    // Get an action
+    const query = gql(`query GetAction {
+      action(where: {action: {_eq: ""}}, limit: 1) {
+        id
+        post_action_deep_link_android
+        post_action_deep_link_ios
+      }
+    }`);
+
+    const queryRes = await serviceClient.query({ query });
+    const actionId = queryRes.data.action[0].id;
+    const originalReturnUrlAndroid =
+      queryRes.data.action[0].post_action_deep_link_android;
+    const originalReturnUrlIos =
+      queryRes.data.action[0].post_action_deep_link_ios;
+
+    // Set return_to fields to null
+    const mutation = gql`
+      mutation UpdateAction($id: String!) {
+        update_action_by_pk(
+          pk_columns: { id: $id }
+          _set: {
+            post_action_deep_link_android: null
+            post_action_deep_link_ios: null
+          }
+        ) {
+          id
+          post_action_deep_link_android
+          post_action_deep_link_ios
+        }
+      }
+    `;
+
+    const response = await serviceClient.mutate({
+      mutation,
+      variables: {
+        id: actionId,
+      },
+    });
+
+    expect(
+      response.data.update_action_by_pk.post_action_deep_link_android,
+    ).toBeNull();
+    expect(
+      response.data.update_action_by_pk.post_action_deep_link_ios,
+    ).toBeNull();
+
+    // Restore original value
+    await serviceClient.mutate({
+      mutation: gql`
+        mutation UpdateAction(
+          $id: String!
+          $returnUrlAndroid: String
+          $returnUrlIos: String
+        ) {
+          update_action_by_pk(
+            pk_columns: { id: $id }
+            _set: {
+              post_action_deep_link_android: $returnUrlAndroid
+              post_action_deep_link_ios: $returnUrlIos
+            }
+          ) {
+            id
+            post_action_deep_link_android
+            post_action_deep_link_ios
+          }
+        }
+      `,
+      variables: {
+        id: actionId,
+        returnUrlAndroid: originalReturnUrlAndroid,
+        returnUrlIos: originalReturnUrlIos,
+      },
+    });
+  });
+
+  test("Service role can query return_to fields from action", async () => {
+    const serviceClient = await getAPIServiceClient();
+
+    const query = gql(`query GetActionWithReturnUrl {
+      action(where: {action: {_eq: ""}}, limit: 1) {
+        id
+        name
+        action
+        post_action_deep_link_android
+        post_action_deep_link_ios
+      }
+    }`);
+
+    const response = await serviceClient.query({ query });
+
+    expect(response.data.action[0]).toHaveProperty(
+      "post_action_deep_link_android",
+    );
+    expect(response.data.action[0]).toHaveProperty("post_action_deep_link_ios");
+    expect(
+      response.data.action[0].post_action_deep_link_android === null ||
+        response.data.action[0].post_action_deep_link_android === undefined ||
+        typeof response.data.action[0].post_action_deep_link_android ===
+          "string",
+    ).toBe(true);
+    expect(
+      response.data.action[0].post_action_deep_link_ios === null ||
+        response.data.action[0].post_action_deep_link_ios === undefined ||
+        typeof response.data.action[0].post_action_deep_link_ios === "string",
+    ).toBe(true);
   });
 });

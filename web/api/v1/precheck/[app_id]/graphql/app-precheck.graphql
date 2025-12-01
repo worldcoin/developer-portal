@@ -37,6 +37,9 @@ query AppPrecheckQuery(
       app_flow_on_complete
       webhook_uri
       webhook_pem
+      return_url: post_action_deep_link_ios # temporary support of iOS 2.9.1200, 2.9.1201, 2.9.1202
+      post_action_deep_link_ios
+      post_action_deep_link_android
       nullifiers(where: { nullifier_hash: { _eq: $nullifier_hash } }) {
         uses
         nullifier_hash
