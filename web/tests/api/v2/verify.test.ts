@@ -696,12 +696,12 @@ describe("/api/v2/verify [error cases]", () => {
     const response = await POST(mockReq, ctx);
     expect(response.status).toBe(200);
 
-    // Check that the fetch was called with the default max_age (7 days = 604800 seconds)
+    // Check that the fetch was called with the default max_age (2 hours = 7200 seconds)
     expect(fetch).toHaveBeenCalledWith(
       expect.stringContaining("/v2/semaphore-proof/verify"),
       expect.objectContaining({
         method: "POST",
-        body: expect.stringContaining('"maxRootAgeSeconds":604800'),
+        body: expect.stringContaining('"maxRootAgeSeconds":7200'),
       }),
     );
   });
