@@ -148,6 +148,8 @@ export const AppMode = {
   ["mini-app"]: "mini-app",
 } as const;
 
+export const CORE_APP_TEAM_ID = "team_90a0b1944f38dd67417c3f09e9e7c21b";
+
 export const PARTNER_TEAM_IDS = {
   dev: ["team_4851dd041eee090a180124a5ade0dfdf"],
   staging: [

@@ -337,6 +337,7 @@ custom_types:
     - name: TmpInsertAppReport
     - name: ConcludeAppReportInvestigationInput
     - name: SetAppReportAppealInput
+    - name: ChangeAppReportStatusUpdate
     - name: ChangeAppReportStatusInput
   objects:
     - name: ResetClientOutput

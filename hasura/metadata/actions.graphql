@@ -1,5 +1,7 @@
 type Mutation {
-  ban_app(app_id: String!): BanAppOutput!
+  ban_app(
+    app_id: String!
+  ): BanAppOutput!
 }
 
 type Mutation {
@@ -9,15 +11,22 @@ type Mutation {
 }
 
 type Mutation {
-  create_app_report(input: CreateAppReportInput!): CreateAppReportOutput
+  create_app_report(
+    input: CreateAppReportInput!
+  ): CreateAppReportOutput
 }
 
 type Mutation {
-  create_new_draft(app_id: String!, team_id: String!): CreateNewDraftOutput
+  create_new_draft(
+    app_id: String!
+    team_id: String!
+  ): CreateNewDraftOutput
 }
 
 type Mutation {
-  delete_unverified_images(app_id: String!): DeleteImageOutput
+  delete_unverified_images(
+    app_id: String!
+  ): DeleteImageOutput
 }
 
 type Query {
@@ -57,15 +66,23 @@ type Mutation {
 }
 
 type Mutation {
-  reset_api_key(id: String!, team_id: String!): ResetAPIOutput
+  reset_api_key(
+    id: String!
+    team_id: String!
+  ): ResetAPIOutput
 }
 
 type Mutation {
-  reset_client_secret(app_id: String!, team_id: String!): ResetClientOutput
+  reset_client_secret(
+    app_id: String!
+    team_id: String!
+  ): ResetClientOutput
 }
 
 type Mutation {
-  unban_app(app_id: String!): UnbanAppOutput
+  unban_app(
+    app_id: String!
+  ): UnbanAppOutput
 }
 
 type Query {
@@ -305,3 +322,4 @@ type SetAppReportAppealOutput {
 type ChangeAppReportStatusOutput {
   success: Boolean!
 }
+
