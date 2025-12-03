@@ -6,12 +6,12 @@ import { Role_Enum } from "@/graphql/graphql";
 import { Auth0SessionUser, IdentityVerificationStatus } from "@/lib/types";
 import { urls } from "@/lib/urls";
 import { checkIfProduction, checkUserPermissions } from "@/lib/utils";
+import { affiliateEnabledAtom } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/common/affiliate-enabled-atom";
 import { useGetAffiliateMetadata } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Overview/page/hooks/use-get-affiliate-metadata";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { useAtom } from "jotai/index";
 import { useParams, usePathname, useRouter } from "next/navigation";
 import { ReactNode, useEffect, useMemo } from "react";
-import { affiliateEnabledAtom } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/common/affiliate-enabled-atom";
 
 type TeamIdLayoutProps = {
   children: ReactNode;
@@ -24,8 +24,12 @@ export const AffiliateProgramLayout = (props: TeamIdLayoutProps) => {
   const router = useRouter();
   const { user: auth0User } = useUser() as Auth0SessionUser;
   const [affiliateEnabled] = useAtom(affiliateEnabledAtom);
+  
+  // Skip fetching metadata if affiliate program is not enabled
   const { data: metadata, loading: isMetadataLoading } =
-    useGetAffiliateMetadata();
+    useGetAffiliateMetadata({ 
+      skip: !affiliateEnabled.isFetched || !affiliateEnabled.value
+    });
 
   const isProduction = checkIfProduction();
   const hasOwnerPermission = useMemo(
@@ -99,8 +103,8 @@ export const AffiliateProgramLayout = (props: TeamIdLayoutProps) => {
   if (
     !metadata ||
     isMetadataLoading ||
-    !affiliateEnabled?.value ||
-    (!isVerifyPage && isVerificationRequired)
+    !affiliateEnabled?.value || !affiliateEnabled.isFetched ||
+    (!isVerifyPage && isVerificationRequired) 
   )
     return null;
 

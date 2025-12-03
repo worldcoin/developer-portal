@@ -9,6 +9,7 @@ import { Role_Enum } from "@/graphql/graphql";
 import { DOCS_URL } from "@/lib/constants";
 import { Auth0SessionUser } from "@/lib/types";
 import { checkUserPermissions } from "@/lib/utils";
+import { affiliateEnabledAtom } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/common/affiliate-enabled-atom";
 import { getParameter } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/common/server/getParameter";
 import { colorAtom } from "@/scenes/Portal/layout";
 import { useMeQuery } from "@/scenes/common/me-query/client";
@@ -28,7 +29,6 @@ import { UserMultipleIcon } from "../Icons/UserMultipleIcon";
 import { TYPOGRAPHY, Typography } from "../Typography";
 import { Help } from "./Help";
 import { Teams } from "./Teams";
-import { affiliateEnabledAtom } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/common/affiliate-enabled-atom";
 
 export const LoggedUserNav = () => {
   const [color] = useAtom(colorAtom);
@@ -71,6 +71,16 @@ export const LoggedUserNav = () => {
   });
 
   useEffect(() => {
+    // Guard: Don't refetch if already fetched
+    if (affiliateConfig.isFetched) {
+      return;
+    }
+
+    // Guard: Don't fetch if no teamId
+    if (!teamId) {
+      return;
+    }
+
     const fetchParameters = async () => {
       try {
         const isAffiliateProgramEnabled = await getParameter<string>(
@@ -87,12 +97,14 @@ export const LoggedUserNav = () => {
           enabledTeams,
           teamId,
         );
+        
+        const shouldEnable = 
+          isAffiliateProgramEnabled === "true" ||
+          enabledTeams?.includes(teamId) || false
+        
         setAffiliateConfig({
           isFetched: true,
-          value:
-            (isAffiliateProgramEnabled === "true" ||
-              enabledTeams?.includes(teamId as string)) ??
-            false,
+          value: shouldEnable,
         });
       } catch (error) {
         console.error(error);
@@ -100,7 +112,7 @@ export const LoggedUserNav = () => {
       }
     };
     fetchParameters();
-  }, [teamId]);
+  }, [teamId, affiliateConfig.isFetched, setAffiliateConfig]);
 
   return (
     <div
