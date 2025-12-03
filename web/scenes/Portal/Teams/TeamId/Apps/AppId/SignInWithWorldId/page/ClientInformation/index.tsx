@@ -5,6 +5,7 @@ import { LockIcon } from "@/components/Icons/LockIcon";
 import { Input } from "@/components/Input";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Role_Enum } from "@/graphql/graphql";
+import { ORB_APP_TEAM_ID } from "@/lib/constants";
 import { Auth0SessionUser } from "@/lib/types";
 import { checkUserPermissions } from "@/lib/utils";
 import { useUser } from "@auth0/nextjs-auth0/client";
@@ -43,11 +44,12 @@ export const ClientInformationPage = (props: {
 
   // Check if app was created after September 29, 2025
   const isAppCreatedAfterCutoff = useMemo(() => {
+    if (teamID === ORB_APP_TEAM_ID) return false;
     if (!createdAt) return false;
     const cutoffDate = new Date("2025-09-29T00:00:00Z");
     const appCreatedDate = new Date(createdAt);
     return appCreatedDate > cutoffDate;
-  }, [createdAt]);
+  }, [createdAt, teamID]);
 
   const [resetClientSecretMutation] = useResetClientSecretMutation({
     variables: { app_id: appID, team_id: teamID },

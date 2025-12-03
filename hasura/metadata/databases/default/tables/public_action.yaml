@@ -181,6 +181,9 @@ update_permissions:
               - app:
                   created_at:
                     _lte: "2025-09-29T00:00:00.000000+00:00"
+              - app:
+                  team_id:
+                    _eq: team_90a0b1944f38dd67417c3f09e9e7c21b
       check: null
   - role: service
     permission:
@@ -206,6 +209,9 @@ update_permissions:
               - app:
                   created_at:
                     _lte: "2025-09-29T00:00:00.000000+00:00"
+              - app:
+                  team_id:
+                    _eq: team_90a0b1944f38dd67417c3f09e9e7c21b
           - app:
               deleted_at:
                 _is_null: true
@@ -242,6 +248,9 @@ update_permissions:
               - app:
                   created_at:
                     _lte: "2025-09-29T00:00:00.000000+00:00"
+              - app:
+                  team_id:
+                    _eq: team_90a0b1944f38dd67417c3f09e9e7c21b
       check:
         _or:
           - kiosk_enabled:
