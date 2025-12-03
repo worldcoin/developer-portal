@@ -2,9 +2,10 @@
 
 import { errorFormAction } from "@/api/helpers/errors";
 import { extractIdsFromPath, getPathFromHeaders } from "@/lib/server-utils";
-import { AffiliateOverviewResponse, FormActionResult } from "@/lib/types";
-import { getAffiliateOverviewMock } from "./mocks/overview";
+import { AffiliateOverviewResponse, Auth0SessionUser, FormActionResult } from "@/lib/types";
+import { getSession } from "@auth0/nextjs-auth0";
 import { createSignedFetcher } from "aws-sigv4-fetch";
+import { getAffiliateOverviewMock } from "./mocks/overview";
 
 export const getAffiliateOverview = async ({
   period,
@@ -18,6 +19,17 @@ export const getAffiliateOverview = async ({
     if (!teamId) {
       return errorFormAction({
         message: "team id is not set",
+        team_id: teamId,
+        logLevel: "error",
+      });
+    }
+    
+    const session = await getSession();
+    const user = session?.user as Auth0SessionUser["user"];
+
+    if (!user) {
+      return errorFormAction({
+        message: "user is not authenticated",
         team_id: teamId,
         logLevel: "error",
       });

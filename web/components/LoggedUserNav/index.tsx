@@ -70,14 +70,10 @@ export const LoggedUserNav = () => {
     skip: !teamId,
   });
 
+  // First useEffect: Fetch parameters once
   useEffect(() => {
-    // Guard: Don't refetch if already fetched
-    if (affiliateConfig.isFetched) {
-      return;
-    }
-
-    // Guard: Don't fetch if no teamId
-    if (!teamId) {
+    // Guard: Don't fetch if already fetched or no teamId
+    if (affiliateConfig.isFetched || !teamId) {
       return;
     }
 
@@ -91,28 +87,63 @@ export const LoggedUserNav = () => {
           "affiliate-program/enabled-teams",
           [],
         );
-        console.log(
-          "fetched params",
-          isAffiliateProgramEnabled,
-          enabledTeams,
-          teamId,
-        );
-        
-        const shouldEnable = 
+
+        const shouldEnable =
           isAffiliateProgramEnabled === "true" ||
-          enabledTeams?.includes(teamId) || false
-        
+          (enabledTeams &&  enabledTeams.includes(teamId));
+
         setAffiliateConfig({
           isFetched: true,
-          value: shouldEnable,
+          value: shouldEnable ?? false,
+          // Store parameters for future teamId changes
+          enabled: isAffiliateProgramEnabled === "true",
+          enabledTeams: enabledTeams ?? [],
         });
       } catch (error) {
         console.error(error);
         setAffiliateConfig({ isFetched: true, value: false });
       }
     };
+
     fetchParameters();
   }, [teamId, affiliateConfig.isFetched, setAffiliateConfig]);
+
+  // Second useEffect: Recalculate value when teamId changes (only if already fetched)
+  useEffect(() => {
+    // Guard: Only recalculate if parameters are already fetched and we have a teamId
+    if (!affiliateConfig.isFetched || !teamId) {
+      return;
+    }
+
+    // Logic: enabled must be true OR team is in the enabled teams list
+    const shouldEnable =
+      affiliateConfig.enabled ||
+      affiliateConfig.enabledTeams?.includes(teamId) || false;
+
+       console.log(
+        "check params",
+        {
+          ...affiliateConfig,
+          value: shouldEnable ?? false,
+          enabled: affiliateConfig.enabled,
+          enabledTeams: affiliateConfig.enabledTeams,
+        },
+      );
+    // Only update if the value actually changed to avoid unnecessary re-renders
+    if (affiliateConfig.value !== shouldEnable) {
+      setAffiliateConfig({
+        ...affiliateConfig,
+        value: shouldEnable,
+      });
+    }
+  }, [
+    teamId, 
+    affiliateConfig.isFetched, 
+    affiliateConfig.enabled, 
+    affiliateConfig.enabledTeams, 
+    setAffiliateConfig
+    // NOTE: Do NOT include affiliateConfig.value - we're updating it!
+  ]);
 
   return (
     <div
