@@ -3,7 +3,6 @@
 import { errorFormAction } from "@/api/helpers/errors";
 import { AffiliateOverviewResponse, FormActionResult } from "@/lib/types";
 import { createSignedFetcher } from "aws-sigv4-fetch";
-import { getAffiliateOverviewMock } from "./mocks/overview";
 import { validateAffiliateRequest } from "./validate-affiliate-request";
 
 export const getAffiliateOverview = async ({
@@ -12,7 +11,7 @@ export const getAffiliateOverview = async ({
   period: AffiliateOverviewResponse["result"]["period"];
 }): Promise<FormActionResult> => {
   const validation = await validateAffiliateRequest();
-  
+
   if (!validation.success) {
     return validation.error;
   }
@@ -20,19 +19,6 @@ export const getAffiliateOverview = async ({
   const { teamId } = validation.data;
 
   try {
-    //TODO: add check for process.env.NEXT_SERVER_APP_BACKEND_BASE_URL and remove mocks after backend will be ready
-    const shouldReturnMocks = true;
-
-    if (shouldReturnMocks) {
-      // TODO: remove mock response
-      const data = getAffiliateOverviewMock(period);
-      return {
-        success: true,
-        message: "Mock Affiliate overview (localhost) returned",
-        data,
-      };
-    }
-
     let signedFetch = global.TransactionSignedFetcher;
     if (!signedFetch) {
       signedFetch = createSignedFetcher({

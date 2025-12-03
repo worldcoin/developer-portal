@@ -1,7 +1,6 @@
 "use server";
 
 import { errorFormAction } from "@/api/helpers/errors";
-import { logger } from "@/lib/logger";
 import {
   AffiliateTransactionsRequestParams,
   AffiliateTransactionsResponse,
@@ -9,17 +8,12 @@ import {
 } from "@/lib/types";
 import { createSignedFetcher } from "aws-sigv4-fetch";
 import { validateAffiliateRequest } from "../../common/server/validate-affiliate-request";
-import {
-  firstMockTransactionsPage,
-  secondMockTransactionsPage,
-  thirdMockTransactionsPage,
-} from "./mocks/mock-transactions";
 
 export const getAffiliateTransactions = async (
   params?: Pick<AffiliateTransactionsRequestParams, "cursor">,
 ): Promise<FormActionResult> => {
   const validation = await validateAffiliateRequest();
-  
+
   if (!validation.success) {
     return validation.error;
   }
@@ -27,39 +21,6 @@ export const getAffiliateTransactions = async (
   const { teamId } = validation.data;
 
   try {
-    //TODO: add check for process.env.NEXT_SERVER_APP_BACKEND_BASE_URL and remove mocks after backend will be ready
-    const shouldReturnMocks = true;
-
-    if (shouldReturnMocks) {
-      let data: AffiliateTransactionsResponse = {
-        result: {
-          transactions: [],
-          paginationMeta: { totalCount: 11, nextCursor: null },
-        },
-      };
-
-      if (!params?.cursor) {
-        logger.info("return first page");
-        data = firstMockTransactionsPage;
-      }
-
-      if (params?.cursor === "2") {
-        logger.info("return second page");
-        data = secondMockTransactionsPage;
-      }
-
-      if (params?.cursor === "3") {
-        logger.info("return third page");
-        data = thirdMockTransactionsPage;
-      }
-
-      return {
-        success: true,
-        message: "Mock Affiliate overview (localhost) returned",
-        data,
-      };
-    }
-
     let signedFetch = global.TransactionSignedFetcher;
     if (!signedFetch) {
       signedFetch = createSignedFetcher({

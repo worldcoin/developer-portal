@@ -2,13 +2,12 @@
 
 import { errorFormAction } from "@/api/helpers/errors";
 import { AffiliateMetadataResponse, FormActionResult } from "@/lib/types";
-import { afilliateMetadataMock } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Overview/page/server/mock";
 import { createSignedFetcher } from "aws-sigv4-fetch";
 import { validateAffiliateRequest } from "../../../common/server/validate-affiliate-request";
 
 export const getAffiliateMetadata = async (): Promise<FormActionResult> => {
   const validation = await validateAffiliateRequest();
-  
+
   if (!validation.success) {
     return validation.error;
   }
@@ -16,19 +15,6 @@ export const getAffiliateMetadata = async (): Promise<FormActionResult> => {
   const { teamId } = validation.data;
 
   try {
-    //TODO: add check for process.env.NEXT_SERVER_APP_BACKEND_BASE_URL and remove mocks after backend will be ready
-    const shouldReturnMocks = true;
-
-    if (shouldReturnMocks) {
-      // TODO: remove mock response
-      const data: AffiliateMetadataResponse = afilliateMetadataMock;
-      return {
-        success: true,
-        message: "Mock Affiliate overview (localhost) returned",
-        data,
-      };
-    }
-
     let signedFetch = global.TransactionSignedFetcher;
     if (!signedFetch) {
       signedFetch = createSignedFetcher({

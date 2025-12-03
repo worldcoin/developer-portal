@@ -8,7 +8,7 @@ import { validateAffiliateRequest } from "../../common/server/validate-affiliate
 
 export const executeAcceptTerms = async (): Promise<FormActionResult> => {
   const validation = await validateAffiliateRequest();
-  
+
   if (!validation.success) {
     return validation.error;
   }
@@ -16,16 +16,6 @@ export const executeAcceptTerms = async (): Promise<FormActionResult> => {
   const { teamId } = validation.data;
 
   try {
-    //TODO: add check for process.env.NEXT_SERVER_APP_BACKEND_BASE_URL and remove mocks after backend will be ready
-    const shouldReturnMocks = true;
-
-    if (shouldReturnMocks) {
-      return {
-        success: true,
-        message: "Mock accept terms (localhost) returned",
-      };
-    }
-
     let signedFetch = global.TransactionSignedFetcher;
     if (!signedFetch) {
       signedFetch = createSignedFetcher({

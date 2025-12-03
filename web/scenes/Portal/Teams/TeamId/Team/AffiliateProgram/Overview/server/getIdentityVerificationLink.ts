@@ -17,7 +17,7 @@ export const getIdentityVerificationLink = async ({
   "redirectUri"
 >): Promise<FormActionResult> => {
   const validation = await validateAffiliateRequest();
-  
+
   if (!validation.success) {
     return validation.error;
   }
@@ -25,24 +25,6 @@ export const getIdentityVerificationLink = async ({
   const { teamId } = validation.data;
 
   try {
-    //TODO: add check for process.env.NEXT_SERVER_APP_BACKEND_BASE_URL and remove mocks after backend will be ready
-    const shouldReturnMocks = true;
-
-    if (shouldReturnMocks) {
-      // TODO: remove mock response
-      const data: GetIdentityVerificationLinkResponse = {
-        result: {
-          link: "https://aiprise.com/verify/mock-verification-id",
-          isLimitReached: false,
-        },
-      };
-      return {
-        success: true,
-        message: "Mock verification link (localhost) returned",
-        data,
-      };
-    }
-
     let signedFetch = global.TransactionSignedFetcher;
     if (!signedFetch) {
       signedFetch = createSignedFetcher({

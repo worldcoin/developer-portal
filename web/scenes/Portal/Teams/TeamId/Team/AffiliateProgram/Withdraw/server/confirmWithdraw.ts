@@ -12,7 +12,7 @@ export const confirmWithdraw = async ({
   emailConfirmationCode,
 }: ConfirmWithdrawRequest): Promise<FormActionResult> => {
   const validation = await validateAffiliateRequest();
-  
+
   if (!validation.success) {
     return validation.error;
   }
@@ -27,28 +27,6 @@ export const confirmWithdraw = async ({
         team_id: teamId,
         logLevel: "error",
       });
-    }
-
-    //TODO: add check for process.env.NEXT_SERVER_APP_BACKEND_BASE_URL and remove mocks after backend will be ready
-    const shouldReturnMocks = true;
-
-    if (shouldReturnMocks) {
-      // TODO: remove mock response
-      const data: ConfirmWithdrawResponse = {
-        result: {
-          amountInWld: "50000000000000000000",
-          estimatedCompletionTime: new Date(
-            Date.now() + 24 * 60 * 60 * 1000,
-          ).toISOString(), // 24 hours from now
-          newAvailableBalance: "10000000000000000000",
-          toWalletAddress: "0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6",
-        },
-      };
-      return {
-        success: true,
-        message: "Mock withdrawal confirmation (localhost) returned",
-        data,
-      };
     }
 
     let signedFetch = global.TransactionSignedFetcher;
