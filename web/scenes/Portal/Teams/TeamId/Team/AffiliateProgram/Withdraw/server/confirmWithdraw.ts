@@ -1,28 +1,25 @@
 "use server";
 import { errorFormAction } from "@/api/helpers/errors";
-import { extractIdsFromPath, getPathFromHeaders } from "@/lib/server-utils";
 import {
   ConfirmWithdrawRequest,
   ConfirmWithdrawResponse,
   FormActionResult,
 } from "@/lib/types";
 import { createSignedFetcher } from "aws-sigv4-fetch";
+import { validateAffiliateRequest } from "../../common/server/validate-affiliate-request";
 
 export const confirmWithdraw = async ({
   emailConfirmationCode,
 }: ConfirmWithdrawRequest): Promise<FormActionResult> => {
-  const path = getPathFromHeaders() || "";
-  const { teams: teamId } = extractIdsFromPath(path, ["teams"]);
+  const validation = await validateAffiliateRequest();
+  
+  if (!validation.success) {
+    return validation.error;
+  }
+
+  const { teamId } = validation.data;
 
   try {
-    if (!teamId) {
-      return errorFormAction({
-        message: "team id is not set",
-        team_id: teamId,
-        logLevel: "error",
-      });
-    }
-
     // Validate OTP code format
     if (!/^\d{6}$/.test(emailConfirmationCode)) {
       return errorFormAction({
