@@ -24,11 +24,11 @@ export const AffiliateProgramLayout = (props: TeamIdLayoutProps) => {
   const router = useRouter();
   const { user: auth0User } = useUser() as Auth0SessionUser;
   const [affiliateEnabled] = useAtom(affiliateEnabledAtom);
-  
+
   // Skip fetching metadata if affiliate program is not enabled
   const { data: metadata, loading: isMetadataLoading } =
-    useGetAffiliateMetadata({ 
-      skip: !affiliateEnabled.isFetched || !affiliateEnabled.value
+    useGetAffiliateMetadata({
+      skip: !affiliateEnabled.isFetched || !affiliateEnabled.value,
     });
 
   const isProduction = checkIfProduction();
@@ -103,8 +103,9 @@ export const AffiliateProgramLayout = (props: TeamIdLayoutProps) => {
   if (
     !metadata ||
     isMetadataLoading ||
-    !affiliateEnabled?.value || !affiliateEnabled.isFetched ||
-    (!isVerifyPage && isVerificationRequired) 
+    !affiliateEnabled?.value ||
+    !affiliateEnabled.isFetched ||
+    (!isVerifyPage && isVerificationRequired)
   )
     return null;
 

@@ -90,7 +90,7 @@ export const LoggedUserNav = () => {
 
         const shouldEnable =
           isAffiliateProgramEnabled === "true" ||
-          (enabledTeams &&  enabledTeams.includes(teamId));
+          (enabledTeams && enabledTeams.includes(teamId));
 
         setAffiliateConfig({
           isFetched: true,
@@ -118,17 +118,15 @@ export const LoggedUserNav = () => {
     // Logic: enabled must be true OR team is in the enabled teams list
     const shouldEnable =
       affiliateConfig.enabled ||
-      affiliateConfig.enabledTeams?.includes(teamId) || false;
+      affiliateConfig.enabledTeams?.includes(teamId) ||
+      false;
 
-       console.log(
-        "check params",
-        {
-          ...affiliateConfig,
-          value: shouldEnable ?? false,
-          enabled: affiliateConfig.enabled,
-          enabledTeams: affiliateConfig.enabledTeams,
-        },
-      );
+    console.log("check params", {
+      ...affiliateConfig,
+      value: shouldEnable ?? false,
+      enabled: affiliateConfig.enabled,
+      enabledTeams: affiliateConfig.enabledTeams,
+    });
     // Only update if the value actually changed to avoid unnecessary re-renders
     if (affiliateConfig.value !== shouldEnable) {
       setAffiliateConfig({
@@ -137,11 +135,11 @@ export const LoggedUserNav = () => {
       });
     }
   }, [
-    teamId, 
-    affiliateConfig.isFetched, 
-    affiliateConfig.enabled, 
-    affiliateConfig.enabledTeams, 
-    setAffiliateConfig
+    teamId,
+    affiliateConfig.isFetched,
+    affiliateConfig.enabled,
+    affiliateConfig.enabledTeams,
+    setAffiliateConfig,
     // NOTE: Do NOT include affiliateConfig.value - we're updating it!
   ]);
 

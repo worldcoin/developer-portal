@@ -2,7 +2,11 @@
 
 import { errorFormAction } from "@/api/helpers/errors";
 import { extractIdsFromPath, getPathFromHeaders } from "@/lib/server-utils";
-import { AffiliateOverviewResponse, Auth0SessionUser, FormActionResult } from "@/lib/types";
+import {
+  AffiliateOverviewResponse,
+  Auth0SessionUser,
+  FormActionResult,
+} from "@/lib/types";
 import { getSession } from "@auth0/nextjs-auth0";
 import { createSignedFetcher } from "aws-sigv4-fetch";
 import { getAffiliateOverviewMock } from "./mocks/overview";
@@ -23,7 +27,7 @@ export const getAffiliateOverview = async ({
         logLevel: "error",
       });
     }
-    
+
     const session = await getSession();
     const user = session?.user as Auth0SessionUser["user"];
 
