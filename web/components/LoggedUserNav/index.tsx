@@ -121,12 +121,6 @@ export const LoggedUserNav = () => {
       affiliateConfig.enabledTeams?.includes(teamId) ||
       false;
 
-    console.log("check params", {
-      ...affiliateConfig,
-      value: shouldEnable ?? false,
-      enabled: affiliateConfig.enabled,
-      enabledTeams: affiliateConfig.enabledTeams,
-    });
     // Only update if the value actually changed to avoid unnecessary re-renders
     if (affiliateConfig.value !== shouldEnable) {
       setAffiliateConfig({
