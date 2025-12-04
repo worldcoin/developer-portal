@@ -48,6 +48,26 @@ export const validateAffiliateRequest = async (): Promise<ValidationResult> => {
     };
   }
 
+  const isAffiliateProgramEnabled = await getParameter<string>(
+    "affiliate-program/enabled",
+    "false",
+  );
+  const enabledTeams = await getParameter<string[]>(
+    "affiliate-program/enabled-teams",
+    [],
+  );
+
+  if (isAffiliateProgramEnabled === "false" && !enabledTeams?.includes(teamId)) {
+    return {
+      success: false,
+      error: errorFormAction({
+        message: "affiliate program is not enabled for this team",
+        team_id: teamId,
+        logLevel: "error",
+      }),
+    };
+  }
+  
   return {
     success: true,
     data: { teamId, user },
