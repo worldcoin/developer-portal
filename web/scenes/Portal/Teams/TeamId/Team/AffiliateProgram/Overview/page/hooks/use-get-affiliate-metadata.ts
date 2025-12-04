@@ -17,6 +17,10 @@ export const useGetAffiliateMetadata = (options?: { skip?: boolean }) => {
       return;
     }
 
+    // Set loading to true before starting the fetch
+    setLoading(true);
+    setError(null); // Clear previous errors
+
     const fetchData = async () => {
       const result = await getAffiliateMetadata();
       console.log("useGetAffiliateMetadata data: ", result, result.data);

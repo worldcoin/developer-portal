@@ -4,6 +4,7 @@ import { errorFormAction } from "@/api/helpers/errors";
 import { extractIdsFromPath, getPathFromHeaders } from "@/lib/server-utils";
 import { Auth0SessionUser, FormActionResult } from "@/lib/types";
 import { getSession } from "@auth0/nextjs-auth0";
+import { getParameter } from "./getParameter";
 
 type ValidatedRequest = {
   teamId: string;

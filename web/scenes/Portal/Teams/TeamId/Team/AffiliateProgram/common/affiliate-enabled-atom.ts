@@ -2,12 +2,26 @@ import { atom } from "jotai";
 
 export const affiliateEnabledAtom = atom<{
   isFetched: boolean;
-  value: boolean;
-  enabled?: boolean;
-  enabledTeams?: string[];
+  enabledParameter: boolean;
+  enabledTeamsParameter: string[];
 }>({
   isFetched: false,
-  value: false,
-  enabled: true,
-  enabledTeams: [],
+  enabledParameter: false,
+  enabledTeamsParameter: [],
 });
+
+/**
+ * Helper function to calculate if affiliate program is enabled for a specific team
+ */
+export const isAffiliateEnabledForTeam = (
+  config: { enabledParameter: boolean; enabledTeamsParameter: string[] },
+  teamId: string | undefined,
+): boolean => {
+  if (!teamId) return false;
+
+  return (
+    config.enabledParameter ||
+    (config.enabledTeamsParameter.length > 0 &&
+      config.enabledTeamsParameter.includes(teamId))
+  );
+};

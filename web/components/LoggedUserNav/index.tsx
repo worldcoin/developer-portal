@@ -9,7 +9,10 @@ import { Role_Enum } from "@/graphql/graphql";
 import { DOCS_URL } from "@/lib/constants";
 import { Auth0SessionUser } from "@/lib/types";
 import { checkUserPermissions } from "@/lib/utils";
-import { affiliateEnabledAtom } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/common/affiliate-enabled-atom";
+import {
+  affiliateEnabledAtom,
+  isAffiliateEnabledForTeam,
+} from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/common/affiliate-enabled-atom";
 import { getParameter } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/common/server/getParameter";
 import { colorAtom } from "@/scenes/Portal/layout";
 import { useMeQuery } from "@/scenes/common/me-query/client";
@@ -88,54 +91,27 @@ export const LoggedUserNav = () => {
           [],
         );
 
-        const shouldEnable =
-          isAffiliateProgramEnabled === "true" ||
-          (enabledTeams && enabledTeams.includes(teamId));
-
         setAffiliateConfig({
           isFetched: true,
-          value: shouldEnable ?? false,
           // Store parameters for future teamId changes
-          enabled: isAffiliateProgramEnabled === "true",
-          enabledTeams: enabledTeams ?? [],
+          enabledParameter: isAffiliateProgramEnabled === "true",
+          enabledTeamsParameter: enabledTeams ?? [],
         });
       } catch (error) {
         console.error(error);
-        setAffiliateConfig({ isFetched: true, value: false });
+        setAffiliateConfig({ ...affiliateConfig, isFetched: true });
       }
     };
 
     fetchParameters();
-  }, [teamId, affiliateConfig.isFetched, setAffiliateConfig]);
+  }, [teamId, affiliateConfig, setAffiliateConfig]);
 
-  // Second useEffect: Recalculate value when teamId changes (only if already fetched)
-  useEffect(() => {
-    // Guard: Only recalculate if parameters are already fetched and we have a teamId
-    if (!affiliateConfig.isFetched || !teamId) {
-      return;
-    }
-
-    // Logic: enabled must be true OR team is in the enabled teams list
-    const shouldEnable =
-      affiliateConfig.enabled ||
-      affiliateConfig.enabledTeams?.includes(teamId) ||
-      false;
-
-    // Only update if the value actually changed to avoid unnecessary re-renders
-    if (affiliateConfig.value !== shouldEnable) {
-      setAffiliateConfig({
-        ...affiliateConfig,
-        value: shouldEnable,
-      });
-    }
-  }, [
-    teamId,
-    affiliateConfig.isFetched,
-    affiliateConfig.enabled,
-    affiliateConfig.enabledTeams,
-    setAffiliateConfig,
-    // NOTE: Do NOT include affiliateConfig.value - we're updating it!
-  ]);
+  const isAffiliateEnabled = useMemo(
+    () =>
+      affiliateConfig.isFetched &&
+      isAffiliateEnabledForTeam(affiliateConfig, teamId),
+    [affiliateConfig, teamId],
+  );
 
   return (
     <div
@@ -237,7 +213,7 @@ export const LoggedUserNav = () => {
                 </Dropdown.ListItem>
               )}
 
-              {affiliateConfig.value && (
+              {isAffiliateEnabled && (
                 <Dropdown.ListItem asChild>
                   <Link href={`/teams/${teamId}/affiliate-program`}>
                     <Dropdown.ListItemIcon asChild>
