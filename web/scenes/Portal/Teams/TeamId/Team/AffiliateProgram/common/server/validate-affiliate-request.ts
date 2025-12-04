@@ -48,11 +48,11 @@ export const validateAffiliateRequest = async (): Promise<ValidationResult> => {
     };
   }
 
-  const isAffiliateProgramEnabled = await getParameter<string>(
+  const isAffiliateProgramEnabled = await global.ParameterStore?.getParameter<string>(
     "affiliate-program/enabled",
     "false",
   );
-  const enabledTeams = await getParameter<string[]>(
+  const enabledTeams = await global.ParameterStore?.getParameter<string[]>(
     "affiliate-program/enabled-teams",
     [],
   );
