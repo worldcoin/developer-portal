@@ -73,6 +73,11 @@ export const AffiliateProgramLayout = (props: TeamIdLayoutProps) => {
 
   // Handle redirects client-side
   useEffect(() => {
+    // Wait for affiliateEnabled to be fetched before making decisions
+    if (!affiliateEnabled.isFetched) {
+      return; // Don't redirect while still fetching
+    }
+
     if (!isAffiliateEnabled) {
       return router.push(urls.teams({ team_id: teamId }));
     }
@@ -97,6 +102,7 @@ export const AffiliateProgramLayout = (props: TeamIdLayoutProps) => {
       return router.push(urls.affiliateProgram({ team_id: teamId }));
     }
   }, [
+    affiliateEnabled.isFetched,
     isMetadataLoading,
     metadata,
     isAffiliateEnabled,
