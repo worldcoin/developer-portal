@@ -64,11 +64,6 @@ export const AffiliateProgramLayout = (props: TeamIdLayoutProps) => {
 
   // Handle redirects client-side
   useEffect(() => {
-    // Wait for metadata to load
-    if (isMetadataLoading || !metadata) {
-      return;
-    }
-
     if (affiliateEnabled.isFetched && !affiliateEnabled.value) {
       return router.push(urls.teams({ team_id: teamId }));
     }
@@ -76,6 +71,11 @@ export const AffiliateProgramLayout = (props: TeamIdLayoutProps) => {
     // Check owner permissions for owner-only pages (most restrictive check first)
     if (isOwnerOnlyPage && !hasOwnerPermission) {
       return router.push(urls.affiliateProgram({ team_id: teamId }));
+    }
+
+    // Wait for metadata to load
+    if (!metadata || isMetadataLoading) {
+      return;
     }
 
     // Check verification status (but allow verify page itself)
