@@ -11,15 +11,17 @@ import { validateAffiliateRequest } from "../../common/server/validate-affiliate
 export const confirmWithdraw = async ({
   emailConfirmationCode,
 }: ConfirmWithdrawRequest): Promise<FormActionResult> => {
-  const validation = await validateAffiliateRequest();
-
-  if (!validation.success) {
-    return validation.error;
-  }
-
-  const { teamId } = validation.data;
+  let teamId: string | undefined;
 
   try {
+    const validation = await validateAffiliateRequest();
+    
+    if (!validation.success) {
+      return validation.error;
+    }
+
+    teamId = validation.data.teamId;
+    
     // Validate OTP code format
     if (!/^\d{6}$/.test(emailConfirmationCode)) {
       return errorFormAction({
