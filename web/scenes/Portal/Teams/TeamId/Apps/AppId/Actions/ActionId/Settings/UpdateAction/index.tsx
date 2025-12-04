@@ -207,17 +207,7 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
                 render={({ field }) => (
                   <AppFlowOnCompleteTypeSelector
                     value={field.value ?? "NONE"}
-                    onChange={(value) => {
-                      field.onChange(value);
-                      // If changing to NONE, don't hide the fields if they have values
-                      if (
-                        value === "NONE" &&
-                        !watch("webhook_uri") &&
-                        !watch("webhook_pem")
-                      ) {
-                        setShowAdvancedConfig(false);
-                      }
-                    }}
+                    onChange={field.onChange}
                     errors={errors.app_flow_on_complete}
                     label="App Flow on Complete"
                     helperText="Select what happens when the action is completed"
