@@ -20,8 +20,11 @@ insert_permissions:
             _and:
               - team_id:
                   _eq: X-Hasura-Team-Id
-              - created_at:
-                  _lte: "2025-09-29T00:00:00.000000+00:00"
+              - _or:
+                  - created_at:
+                      _lte: "2025-09-29T00:00:00.000000+00:00"
+                  - team_id:
+                      _eq: team_90a0b1944f38dd67417c3f09e9e7c21b
       columns:
         - redirect_uri
         - action_id
@@ -47,8 +50,11 @@ insert_permissions:
                           _in:
                             - ADMIN
                             - OWNER
-              - created_at:
-                  _lte: "2025-09-29T00:00:00.000000+00:00"
+              - _or:
+                  - created_at:
+                      _lte: "2025-09-29T00:00:00.000000+00:00"
+                  - team_id:
+                      _eq: team_90a0b1944f38dd67417c3f09e9e7c21b
       columns:
         - redirect_uri
         - action_id
@@ -100,8 +106,11 @@ update_permissions:
             _and:
               - team_id:
                   _eq: X-Hasura-Team-Id
-              - created_at:
-                  _lte: "2025-09-29T00:00:00.000000+00:00"
+              - _or:
+                  - created_at:
+                      _lte: "2025-09-29T00:00:00.000000+00:00"
+                  - team_id:
+                      _eq: team_90a0b1944f38dd67417c3f09e9e7c21b
       check: null
   - role: user
     permission:
@@ -120,8 +129,11 @@ update_permissions:
                           _in:
                             - ADMIN
                             - OWNER
-              - created_at:
-                  _lte: "2025-09-29T00:00:00.000000+00:00"
+              - _or:
+                  - created_at:
+                      _lte: "2025-09-29T00:00:00.000000+00:00"
+                  - team_id:
+                      _eq: team_90a0b1944f38dd67417c3f09e9e7c21b
       check: null
 delete_permissions:
   - role: api_key
