@@ -20,13 +20,13 @@ export const getIdentityVerificationLink = async ({
 
   try {
     const validation = await validateAffiliateRequest();
-    
+
     if (!validation.success) {
       return validation.error;
     }
 
     teamId = validation.data.teamId;
-    
+
     let signedFetch = global.TransactionSignedFetcher;
     if (!signedFetch) {
       signedFetch = createSignedFetcher({

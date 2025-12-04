@@ -15,13 +15,13 @@ export const confirmWithdraw = async ({
 
   try {
     const validation = await validateAffiliateRequest();
-    
+
     if (!validation.success) {
       return validation.error;
     }
 
     teamId = validation.data.teamId;
-    
+
     // Validate OTP code format
     if (!/^\d{6}$/.test(emailConfirmationCode)) {
       return errorFormAction({

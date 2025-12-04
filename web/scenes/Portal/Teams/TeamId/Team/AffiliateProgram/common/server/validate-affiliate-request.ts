@@ -49,7 +49,7 @@ export const validateAffiliateRequest = async (): Promise<ValidationResult> => {
   }
 
   const isTeamMember = user?.hasura?.memberships?.some(
-      (membership) => membership.team?.id === teamId,
+    (membership) => membership.team?.id === teamId,
   );
 
   if (!isTeamMember) {

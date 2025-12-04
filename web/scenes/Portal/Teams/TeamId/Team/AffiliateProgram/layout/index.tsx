@@ -29,7 +29,7 @@ export const AffiliateProgramLayout = (props: TeamIdLayoutProps) => {
   const [affiliateEnabled] = useAtom(affiliateEnabledAtom);
 
   const isTeamMember = auth0User?.hasura?.memberships?.some(
-      (membership) => membership.team?.id === teamId,
+    (membership) => membership.team?.id === teamId,
   );
 
   const isAffiliateEnabled = useMemo(

@@ -98,10 +98,10 @@ export const LoggedUserNav = () => {
           enabledTeamsParameter: enabledTeams ?? [],
         });
 
-        console.log('params', {
+        console.log("params", {
           enabledParameter: isAffiliateProgramEnabled === "true",
           enabledTeamsParameter: enabledTeams ?? [],
-        })
+        });
       } catch (error) {
         console.error(error);
         setAffiliateConfig({ ...affiliateConfig, isFetched: true });

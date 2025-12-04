@@ -11,13 +11,13 @@ export const executeAcceptTerms = async (): Promise<FormActionResult> => {
 
   try {
     const validation = await validateAffiliateRequest();
-    
+
     if (!validation.success) {
       return validation.error;
     }
 
     teamId = validation.data.teamId;
-    
+
     let signedFetch = global.TransactionSignedFetcher;
     if (!signedFetch) {
       signedFetch = createSignedFetcher({
