@@ -5,13 +5,16 @@ import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Role_Enum } from "@/graphql/graphql";
 import { Auth0SessionUser, IdentityVerificationStatus } from "@/lib/types";
 import { urls } from "@/lib/urls";
-import { checkIfProduction, checkUserPermissions } from "@/lib/utils";
+import { checkUserPermissions } from "@/lib/utils";
+import {
+  affiliateEnabledAtom,
+  isAffiliateEnabledForTeam,
+} from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/common/affiliate-enabled-atom";
 import { useGetAffiliateMetadata } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Overview/page/hooks/use-get-affiliate-metadata";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { useAtom } from "jotai/index";
 import { useParams, usePathname, useRouter } from "next/navigation";
 import { ReactNode, useEffect, useMemo } from "react";
-import { affiliateEnabledAtom } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/common/affiliate-enabled-atom";
 
 type TeamIdLayoutProps = {
   children: ReactNode;
@@ -24,10 +27,20 @@ export const AffiliateProgramLayout = (props: TeamIdLayoutProps) => {
   const router = useRouter();
   const { user: auth0User } = useUser() as Auth0SessionUser;
   const [affiliateEnabled] = useAtom(affiliateEnabledAtom);
-  const { data: metadata, loading: isMetadataLoading } =
-    useGetAffiliateMetadata();
 
-  const isProduction = checkIfProduction();
+  const isAffiliateEnabled = useMemo(
+    () =>
+      affiliateEnabled.isFetched &&
+      isAffiliateEnabledForTeam(affiliateEnabled, teamId),
+    [affiliateEnabled, teamId],
+  );
+
+  // Skip fetching metadata if affiliate program is not enabled
+  const { data: metadata, loading: isMetadataLoading } =
+    useGetAffiliateMetadata({
+      skip: !isAffiliateEnabled,
+    });
+
   const hasOwnerPermission = useMemo(
     () => checkUserPermissions(auth0User, teamId ?? "", [Role_Enum.Owner]),
     [auth0User, teamId],
@@ -60,18 +73,23 @@ export const AffiliateProgramLayout = (props: TeamIdLayoutProps) => {
 
   // Handle redirects client-side
   useEffect(() => {
-    // Wait for metadata to load
-    if (isMetadataLoading || !metadata) {
-      return;
+    // Wait for affiliateEnabled to be fetched before making decisions
+    if (!affiliateEnabled.isFetched) {
+      return; // Don't redirect while still fetching
     }
 
-    if (affiliateEnabled.isFetched && !affiliateEnabled.value) {
+    if (!isAffiliateEnabled) {
       return router.push(urls.teams({ team_id: teamId }));
     }
 
     // Check owner permissions for owner-only pages (most restrictive check first)
     if (isOwnerOnlyPage && !hasOwnerPermission) {
       return router.push(urls.affiliateProgram({ team_id: teamId }));
+    }
+
+    // Wait for metadata to load
+    if (!metadata || isMetadataLoading) {
+      return;
     }
 
     // Check verification status (but allow verify page itself)
@@ -84,22 +102,22 @@ export const AffiliateProgramLayout = (props: TeamIdLayoutProps) => {
       return router.push(urls.affiliateProgram({ team_id: teamId }));
     }
   }, [
+    affiliateEnabled.isFetched,
     isMetadataLoading,
     metadata,
-    isProduction,
+    isAffiliateEnabled,
     isOwnerOnlyPage,
     hasOwnerPermission,
     isVerifyPage,
     isVerificationRequired,
     teamId,
     router,
-    affiliateEnabled,
   ]);
 
   if (
     !metadata ||
     isMetadataLoading ||
-    !affiliateEnabled?.value ||
+    !isAffiliateEnabled ||
     (!isVerifyPage && isVerificationRequired)
   )
     return null;

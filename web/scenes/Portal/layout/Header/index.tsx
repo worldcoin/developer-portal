@@ -85,7 +85,7 @@ export const Header = (props: { color: Color | null }) => {
         {!showCloseButton && (
           <div className="grid grid-cols-auto/1fr gap-x-4 md:gap-x-8">
             <Button href={logoHref}>
-              <WorldIcon />
+              <WorldIcon className="size-6" />
             </Button>
 
             <AppSelector />

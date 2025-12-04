@@ -1,14 +1,14 @@
 "use server";
 
 import { errorFormAction } from "@/api/helpers/errors";
-import { extractIdsFromPath, getPathFromHeaders } from "@/lib/server-utils";
+import { logger } from "@/lib/logger";
 import {
   FormActionResult,
   GetIdentityVerificationLinkRequest,
   GetIdentityVerificationLinkResponse,
 } from "@/lib/types";
-import { logger } from "@/lib/logger";
 import { createSignedFetcher } from "aws-sigv4-fetch";
+import { validateAffiliateRequest } from "../../common/server/validate-affiliate-request";
 
 export const getIdentityVerificationLink = async ({
   redirectUri,
@@ -16,36 +16,15 @@ export const getIdentityVerificationLink = async ({
   GetIdentityVerificationLinkRequest,
   "redirectUri"
 >): Promise<FormActionResult> => {
-  const path = getPathFromHeaders() || "";
-  const { teams: teamId } = extractIdsFromPath(path, ["teams"]);
+  const validation = await validateAffiliateRequest();
+
+  if (!validation.success) {
+    return validation.error;
+  }
+
+  const { teamId } = validation.data;
 
   try {
-    if (!teamId) {
-      return errorFormAction({
-        message: "team id is not set",
-        team_id: teamId,
-        logLevel: "error",
-      });
-    }
-
-    //TODO: add check for process.env.NEXT_SERVER_APP_BACKEND_BASE_URL and remove mocks after backend will be ready
-    const shouldReturnMocks = false;
-
-    if (shouldReturnMocks) {
-      // TODO: remove mock response
-      const data: GetIdentityVerificationLinkResponse = {
-        result: {
-          link: "https://aiprise.com/verify/mock-verification-id",
-          isLimitReached: false,
-        },
-      };
-      return {
-        success: true,
-        message: "Mock verification link (localhost) returned",
-        data,
-      };
-    }
-
     let signedFetch = global.TransactionSignedFetcher;
     if (!signedFetch) {
       signedFetch = createSignedFetcher({

@@ -9,6 +9,10 @@ import { Role_Enum } from "@/graphql/graphql";
 import { DOCS_URL } from "@/lib/constants";
 import { Auth0SessionUser } from "@/lib/types";
 import { checkUserPermissions } from "@/lib/utils";
+import {
+  affiliateEnabledAtom,
+  isAffiliateEnabledForTeam,
+} from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/common/affiliate-enabled-atom";
 import { getParameter } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/common/server/getParameter";
 import { colorAtom } from "@/scenes/Portal/layout";
 import { useMeQuery } from "@/scenes/common/me-query/client";
@@ -28,7 +32,6 @@ import { UserMultipleIcon } from "../Icons/UserMultipleIcon";
 import { TYPOGRAPHY, Typography } from "../Typography";
 import { Help } from "./Help";
 import { Teams } from "./Teams";
-import { affiliateEnabledAtom } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/common/affiliate-enabled-atom";
 
 export const LoggedUserNav = () => {
   const [color] = useAtom(colorAtom);
@@ -70,7 +73,13 @@ export const LoggedUserNav = () => {
     skip: !teamId,
   });
 
+  // First useEffect: Fetch parameters once
   useEffect(() => {
+    // Guard: Don't fetch if already fetched or no teamId
+    if (affiliateConfig.isFetched) {
+      return;
+    }
+
     const fetchParameters = async () => {
       try {
         const isAffiliateProgramEnabled = await getParameter<string>(
@@ -81,26 +90,28 @@ export const LoggedUserNav = () => {
           "affiliate-program/enabled-teams",
           [],
         );
-        console.log(
-          "fetched params",
-          isAffiliateProgramEnabled,
-          enabledTeams,
-          teamId,
-        );
+
         setAffiliateConfig({
           isFetched: true,
-          value:
-            (isAffiliateProgramEnabled === "true" ||
-              enabledTeams?.includes(teamId as string)) ??
-            false,
+          // Store parameters for future teamId changes
+          enabledParameter: isAffiliateProgramEnabled === "true",
+          enabledTeamsParameter: enabledTeams ?? [],
         });
       } catch (error) {
         console.error(error);
-        setAffiliateConfig({ isFetched: true, value: false });
+        setAffiliateConfig({ ...affiliateConfig, isFetched: true });
       }
     };
+
     fetchParameters();
-  }, [teamId]);
+  }, [affiliateConfig, setAffiliateConfig]);
+
+  const isAffiliateEnabled = useMemo(
+    () =>
+      affiliateConfig.isFetched &&
+      isAffiliateEnabledForTeam(affiliateConfig, teamId),
+    [affiliateConfig, teamId],
+  );
 
   return (
     <div
@@ -202,7 +213,7 @@ export const LoggedUserNav = () => {
                 </Dropdown.ListItem>
               )}
 
-              {affiliateConfig.value && (
+              {isAffiliateEnabled && (
                 <Dropdown.ListItem asChild>
                   <Link href={`/teams/${teamId}/affiliate-program`}>
                     <Dropdown.ListItemIcon asChild>

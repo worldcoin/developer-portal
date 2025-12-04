@@ -1,49 +1,26 @@
 "use server";
 
-import { errorFormAction } from "@/api/helpers/errors";
-import { extractIdsFromPath, getPathFromHeaders } from "@/lib/server-utils";
 import {
   FormActionResult,
   InitiateWithdrawRequest,
   InitiateWithdrawResponse,
 } from "@/lib/types";
 import { createSignedFetcher } from "aws-sigv4-fetch";
+import { validateAffiliateRequest } from "../../common/server/validate-affiliate-request";
+import { errorFormAction } from "@/api/helpers/errors";
 
 export const initiateWithdraw = async ({
   amountInWld,
 }: InitiateWithdrawRequest): Promise<FormActionResult> => {
-  const path = getPathFromHeaders() || "";
-  const { teams: teamId } = extractIdsFromPath(path, ["teams"]);
+  const validation = await validateAffiliateRequest();
+
+  if (!validation.success) {
+    return validation.error;
+  }
+
+  const { teamId } = validation.data;
 
   try {
-    if (!teamId) {
-      return errorFormAction({
-        message: "team id is not set",
-        team_id: teamId,
-        logLevel: "error",
-      });
-    }
-
-    //TODO: add check for process.env.NEXT_SERVER_APP_BACKEND_BASE_URL and remove mocks after backend will be ready
-    const shouldReturnMocks = false;
-
-    if (shouldReturnMocks) {
-      // TODO: remove mock response
-      const data: InitiateWithdrawResponse = {
-        result: {
-          amountInWld,
-          email: "a***e@example.com",
-          codeExpiresAt: new Date(Date.now() + 15 * 60 * 1000).toISOString(), // 15 minutes from now
-          toWalletAddress: "0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6",
-        },
-      };
-      return {
-        success: true,
-        message: "Mock withdrawal initiation (localhost) returned",
-        data,
-      };
-    }
-
     let signedFetch = global.TransactionSignedFetcher;
     if (!signedFetch) {
       signedFetch = createSignedFetcher({
