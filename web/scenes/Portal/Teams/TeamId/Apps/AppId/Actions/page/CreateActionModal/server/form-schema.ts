@@ -3,7 +3,7 @@ import {
   allowedCommonCharactersRegex,
   allowedTitleCharactersRegex,
 } from "@/lib/schema";
-import { validateUrl } from "@/lib/utils";
+import { validateUri, validateUrl } from "@/lib/utils";
 import * as yup from "yup";
 
 // Check if not in production
@@ -59,16 +59,16 @@ export const createActionSchema = (context: ActionContext) => {
       post_action_deep_link_ios: yup
         .string()
         .optional()
-        .test("is-url", "Must be a valid URL", (value) => {
-          if (!value || !context.isProduction) return true;
-          return validateUrl(value, !context.isProduction);
+        .test("is-uri", "Must be a valid URI", (value) => {
+          if (!value) return true;
+          return validateUri(value, !context.isProduction);
         }),
       post_action_deep_link_android: yup
         .string()
         .optional()
-        .test("is-url", "Must be a valid URL", (value) => {
-          if (!value || !context.isProduction) return true;
-          return validateUrl(value, !context.isProduction);
+        .test("is-uri", "Must be a valid URI", (value) => {
+          if (!value) return true;
+          return validateUri(value, !context.isProduction);
         }),
     })
     .noUnknown()

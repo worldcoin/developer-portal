@@ -86,6 +86,58 @@ export const validateEmail = (candidate: string): boolean => {
   );
 };
 
+const URI_SCHEME_REGEX = /^([a-z][a-z0-9+.-]*):/i;
+const DISALLOWED_SCHEMES = new Set([
+  // iOS/Android-specific schemes that can lead to system UI or settings
+  "intent",
+  "market",
+  "itms",
+  "itmss",
+  "itms-apps",
+  "itms-services",
+  "itms-beta",
+  // Web/execution vectors to prevent XSS-style payloads
+  "javascript",
+  "data",
+  "vbscript",
+]);
+
+/**
+ * Validates generic URIs, supporting custom schemes while blocking known-dangerous ones.
+ * Mirrors validateUrl() for https/http, but is permissive of allowlisted custom schemes.
+ */
+export const validateUri = (candidate: string, isStaging: boolean): boolean => {
+  const value = candidate?.trim();
+  if (!value) return false;
+
+  // Reject control characters/newlines to avoid smuggling
+  if (/[\u0000-\u001F\u007F]/.test(value)) return false;
+
+  const match = value.match(URI_SCHEME_REGEX);
+  if (!match) return false;
+
+  const scheme = match[1].toLowerCase();
+  if (DISALLOWED_SCHEMES.has(scheme)) return false;
+
+  let parsed: URL;
+  try {
+    parsed = new URL(value);
+  } catch {
+    return false;
+  }
+
+  const protocol = parsed.protocol.toLowerCase();
+  const isHttps = protocol === "https:";
+  const isHttp = protocol === "http:";
+  const isLocalhost = parsed.hostname === "localhost";
+
+  if (isHttps) return true;
+  if (isHttp) return isStaging && isLocalhost;
+
+  // Custom scheme: scheme grammar already enforced; allow any target (host or path)
+  return true;
+};
+
 /**
  * Checks if the code is running in the server
  * @returns True if the code is running in the server, false otherwise
