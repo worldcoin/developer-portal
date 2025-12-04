@@ -76,7 +76,7 @@ export const LoggedUserNav = () => {
   // First useEffect: Fetch parameters once
   useEffect(() => {
     // Guard: Don't fetch if already fetched or no teamId
-    if (affiliateConfig.isFetched || !teamId) {
+    if (affiliateConfig.isFetched) {
       return;
     }
 
@@ -104,7 +104,7 @@ export const LoggedUserNav = () => {
     };
 
     fetchParameters();
-  }, [teamId, affiliateConfig, setAffiliateConfig]);
+  }, [affiliateConfig, setAffiliateConfig]);
 
   const isAffiliateEnabled = useMemo(
     () =>
