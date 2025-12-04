@@ -48,16 +48,20 @@ export const validateAffiliateRequest = async (): Promise<ValidationResult> => {
     };
   }
 
-  const isAffiliateProgramEnabled = await global.ParameterStore?.getParameter<string>(
-    "affiliate-program/enabled",
-    "false",
-  );
+  const isAffiliateProgramEnabled =
+    await global.ParameterStore?.getParameter<string>(
+      "affiliate-program/enabled",
+      "false",
+    );
   const enabledTeams = await global.ParameterStore?.getParameter<string[]>(
     "affiliate-program/enabled-teams",
     [],
   );
 
-  if (isAffiliateProgramEnabled === "false" && !enabledTeams?.includes(teamId)) {
+  if (
+    isAffiliateProgramEnabled === "false" &&
+    !enabledTeams?.includes(teamId)
+  ) {
     return {
       success: false,
       error: errorFormAction({
@@ -67,7 +71,7 @@ export const validateAffiliateRequest = async (): Promise<ValidationResult> => {
       }),
     };
   }
-  
+
   return {
     success: true,
     data: { teamId, user },
