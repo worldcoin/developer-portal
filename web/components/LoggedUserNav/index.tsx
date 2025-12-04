@@ -97,6 +97,8 @@ export const LoggedUserNav = () => {
           enabledParameter: isAffiliateProgramEnabled === "true",
           enabledTeamsParameter: enabledTeams ?? [],
         });
+
+        console.log('params', affiliateConfig)
       } catch (error) {
         console.error(error);
         setAffiliateConfig({ ...affiliateConfig, isFetched: true });
@@ -109,8 +111,8 @@ export const LoggedUserNav = () => {
   const isAffiliateEnabled = useMemo(
     () =>
       affiliateConfig.isFetched &&
-      isAffiliateEnabledForTeam(affiliateConfig, teamId),
-    [affiliateConfig, teamId],
+      isAffiliateEnabledForTeam(affiliateConfig, teamId, auth0User),
+    [affiliateConfig, teamId, auth0User],
   );
 
   return (

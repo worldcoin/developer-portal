@@ -1,4 +1,5 @@
 import { atom } from "jotai";
+import {Auth0SessionUser} from "@/lib/types";
 
 export const affiliateEnabledAtom = atom<{
   isFetched: boolean;
@@ -16,12 +17,19 @@ export const affiliateEnabledAtom = atom<{
 export const isAffiliateEnabledForTeam = (
   config: { enabledParameter: boolean; enabledTeamsParameter: string[] },
   teamId: string | undefined,
+  user: Auth0SessionUser['user'],
 ): boolean => {
   if (!teamId) return false;
 
+  const isTeamMember = user?.hasura?.memberships?.some(
+      (membership) => membership.team?.id === teamId,
+  );
+
   return (
-    config.enabledParameter ||
-    (config.enabledTeamsParameter.length > 0 &&
-      config.enabledTeamsParameter.includes(teamId))
+      Boolean(isTeamMember) && (
+          config.enabledParameter ||
+          (config.enabledTeamsParameter.length > 0 &&
+              config.enabledTeamsParameter.includes(teamId))
+      )
   );
 };
