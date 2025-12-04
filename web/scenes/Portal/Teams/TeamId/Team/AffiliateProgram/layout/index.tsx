@@ -82,7 +82,7 @@ export const AffiliateProgramLayout = (props: TeamIdLayoutProps) => {
       return; // Don't redirect while still fetching
     }
 
-    if (!isAffiliateEnabled || !isTeamMember) {
+    if (!isAffiliateEnabled) {
       return router.push(urls.teams({ team_id: teamId }));
     }
 
@@ -122,7 +122,7 @@ export const AffiliateProgramLayout = (props: TeamIdLayoutProps) => {
   if (
     !metadata ||
     isMetadataLoading ||
-    !isAffiliateEnabled || !isTeamMember ||
+    !isAffiliateEnabled ||
     (!isVerifyPage && isVerificationRequired)
   )
     return null;
