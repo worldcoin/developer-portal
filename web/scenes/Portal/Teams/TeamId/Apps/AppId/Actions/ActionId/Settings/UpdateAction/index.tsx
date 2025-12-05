@@ -54,11 +54,16 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
       app_flow_on_complete: action.app_flow_on_complete as "NONE" | "VERIFY",
       webhook_uri: action.webhook_uri ?? undefined,
       webhook_pem: action.webhook_pem ?? undefined,
+      post_action_deep_link_ios: action.post_action_deep_link_ios ?? undefined,
+      post_action_deep_link_android:
+        action.post_action_deep_link_android ?? undefined,
     },
   });
 
   const [showAdvancedConfig, setShowAdvancedConfig] = useState(
-    action.app_flow_on_complete === "VERIFY",
+    action.app_flow_on_complete === "VERIFY" ||
+      !!action.post_action_deep_link_ios ||
+      !!action.post_action_deep_link_android,
   );
 
   const { refetch: refetchAction } = useRefetchQueries(GetActionNameDocument, {
@@ -202,17 +207,7 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
                 render={({ field }) => (
                   <AppFlowOnCompleteTypeSelector
                     value={field.value ?? "NONE"}
-                    onChange={(value) => {
-                      field.onChange(value);
-                      // If changing to NONE, don't hide the fields if they have values
-                      if (
-                        value === "NONE" &&
-                        !watch("webhook_uri") &&
-                        !watch("webhook_pem")
-                      ) {
-                        setShowAdvancedConfig(false);
-                      }
-                    }}
+                    onChange={field.onChange}
                     errors={errors.app_flow_on_complete}
                     label="App Flow on Complete"
                     helperText="Select what happens when the action is completed"
@@ -242,6 +237,24 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
                   />
                 </div>
               )}
+
+              <Input
+                register={register("post_action_deep_link_ios")}
+                errors={errors.post_action_deep_link_ios}
+                label="Post-action deep link (iOS)"
+                placeholder="e.g. worldapp:// or https://world.org"
+                helperText="If specified, after action completion, allow users to continue to the iOS app specified by the deep link."
+                className="h-16"
+              />
+
+              <Input
+                register={register("post_action_deep_link_android")}
+                errors={errors.post_action_deep_link_android}
+                label="Post-action deep link (Android)"
+                placeholder="e.g. worldapp:// or https://world.org"
+                helperText="If specified, after action completion, allow users to continue to the Android app specified by the deep link."
+                className="h-16"
+              />
             </div>
           )}
         </div>

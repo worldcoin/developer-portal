@@ -68,11 +68,13 @@ export async function createActionServerSide(
       });
     }
 
-    // Do not allow webhook_uri, webhook_pem, and app_flow_on_complete to be set if the app is not a partner app
+    // Do not allow webhook_uri, webhook_pem, app_flow_on_complete, and post_action_deep_link_* to be set if the app is not a partner app
     if (!checkIfPartnerTeam(teamId)) {
       parsedInitialValues.webhook_uri = undefined;
       parsedInitialValues.webhook_pem = undefined;
       parsedInitialValues.app_flow_on_complete = "NONE";
+      parsedInitialValues.post_action_deep_link_ios = undefined;
+      parsedInitialValues.post_action_deep_link_android = undefined;
     }
 
     if (parsedInitialValues.webhook_pem) {

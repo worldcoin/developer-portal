@@ -29,6 +29,8 @@ const appPayload = {
       max_verifications: 1,
       max_accounts_per_user: 1,
       nullifiers: [] as [_Nullifier] | [],
+      post_action_deep_link_android: null as string | null | undefined,
+      post_action_deep_link_ios: null as string | null | undefined,
     },
   ],
 };
@@ -323,6 +325,139 @@ describe("/api/v1/precheck/[app_id]", () => {
         max_verifications: 2,
       },
     });
+  });
+
+  test("precheck response includes return_to fields when action has them", async () => {
+    const request = new NextRequest(
+      "http://localhost:3000/api/v1/precheck/app_staging_6d1c9fb86751a40d952749022db1c1",
+      {
+        method: "POST",
+        body: JSON.stringify(exampleValidRequestPayload),
+      },
+    );
+
+    const mockedResponse = {
+      ...appPayload,
+      actions: [
+        {
+          ...appPayload.actions[0],
+          max_verifications: 1,
+          post_action_deep_link_android: "https://example.com/return/android",
+          post_action_deep_link_ios: "https://example.com/return/ios",
+        },
+      ],
+    };
+
+    AppPrecheckQuery.mockResolvedValue({
+      app: [mockedResponse],
+    });
+
+    const response = await POST(request, {
+      params: { app_id: "app_staging_6d1c9fb86751a40d952749022db1c1" },
+    });
+
+    expect(response.status).toBe(200);
+    const responseBody = await response.json();
+    expect(responseBody).toMatchObject({
+      id: "app_staging_6d1c9fb86751a40d952749022db1c1",
+      action: {
+        action: "swag_pack_2022",
+        name: "Swag Pack 2022",
+        description: "Receive our Swag Pack 2022",
+        max_verifications: 1,
+        max_accounts_per_user: 1,
+        post_action_deep_link_android: "https://example.com/return/android",
+        post_action_deep_link_ios: "https://example.com/return/ios",
+      },
+    });
+  });
+
+  test("precheck response handles null return_to fields", async () => {
+    const request = new NextRequest(
+      "http://localhost:3000/api/v1/precheck/app_staging_6d1c9fb86751a40d952749022db1c1",
+      {
+        method: "POST",
+        body: JSON.stringify(exampleValidRequestPayload),
+      },
+    );
+
+    const mockedResponse = {
+      ...appPayload,
+      actions: [
+        {
+          ...appPayload.actions[0],
+          max_verifications: 1,
+          post_action_deep_link_android: null,
+          post_action_deep_link_ios: null,
+        },
+      ],
+    };
+
+    AppPrecheckQuery.mockResolvedValue({
+      app: [mockedResponse],
+    });
+
+    const response = await POST(request, {
+      params: { app_id: "app_staging_6d1c9fb86751a40d952749022db1c1" },
+    });
+
+    expect(response.status).toBe(200);
+    const responseBody = await response.json();
+    expect(responseBody).toMatchObject({
+      id: "app_staging_6d1c9fb86751a40d952749022db1c1",
+      action: {
+        action: "swag_pack_2022",
+        name: "Swag Pack 2022",
+        description: "Receive our Swag Pack 2022",
+        max_verifications: 1,
+        max_accounts_per_user: 1,
+        post_action_deep_link_android: null,
+        post_action_deep_link_ios: null,
+      },
+    });
+  });
+
+  test("precheck response handles undefined return_to fields", async () => {
+    const request = new NextRequest(
+      "http://localhost:3000/api/v1/precheck/app_staging_6d1c9fb86751a40d952749022db1c1",
+      {
+        method: "POST",
+        body: JSON.stringify(exampleValidRequestPayload),
+      },
+    );
+
+    const mockedResponse = {
+      ...appPayload,
+      actions: [
+        {
+          ...appPayload.actions[0],
+          max_verifications: 1,
+          post_action_deep_link_android: undefined,
+          post_action_deep_link_ios: undefined,
+        },
+      ],
+    };
+
+    AppPrecheckQuery.mockResolvedValue({
+      app: [mockedResponse],
+    });
+
+    const response = await POST(request, {
+      params: { app_id: "app_staging_6d1c9fb86751a40d952749022db1c1" },
+    });
+
+    expect(response.status).toBe(200);
+    const responseBody = await response.json();
+    // When undefined, fields may be omitted or null depending on GraphQL serialization
+    const action = responseBody.action || {};
+    expect(
+      action.post_action_deep_link_android === undefined ||
+        action.post_action_deep_link_android === null,
+    ).toBe(true);
+    expect(
+      action.post_action_deep_link_ios === undefined ||
+        action.post_action_deep_link_ios === null,
+    ).toBe(true);
   });
 });
 

@@ -1,5 +1,5 @@
 import { validatePublicKey } from "@/lib/crypto.server";
-import { validateUrl } from "@/lib/utils";
+import { validateUri, validateUrl } from "@/lib/utils";
 import * as yup from "yup";
 
 export type ActionContext = {
@@ -34,6 +34,20 @@ export const createUpdateActionSchema = (context: ActionContext) => {
             if (!value) return true;
             return validatePublicKey(value);
           },
+        }),
+      post_action_deep_link_ios: yup
+        .string()
+        .optional()
+        .test("is-uri", "Must be a valid URI", (value) => {
+          if (!value) return true;
+          return validateUri(value, !context.isProduction);
+        }),
+      post_action_deep_link_android: yup
+        .string()
+        .optional()
+        .test("is-uri", "Must be a valid URI", (value) => {
+          if (!value) return true;
+          return validateUri(value, !context.isProduction);
         }),
     })
     .noUnknown()

@@ -3075,6 +3075,30 @@
             "deprecationReason": null
           },
           {
+            "name": "post_action_deep_link_android",
+            "description": "If specified, after action completion, allow users to continue to the Android app specified by the deep link",
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "post_action_deep_link_ios",
+            "description": "If specified, after action completion, allow users to continue to the iOS app specified by the deep link",
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "privacy_policy_uri",
             "description": null,
             "args": [],
@@ -4368,6 +4392,30 @@
             "deprecationReason": null
           },
           {
+            "name": "post_action_deep_link_android",
+            "description": null,
+            "type": {
+              "kind": "INPUT_OBJECT",
+              "name": "String_comparison_exp",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "post_action_deep_link_ios",
+            "description": null,
+            "type": {
+              "kind": "INPUT_OBJECT",
+              "name": "String_comparison_exp",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "privacy_policy_uri",
             "description": null,
             "type": {
@@ -4731,6 +4779,30 @@
             "deprecationReason": null
           },
           {
+            "name": "post_action_deep_link_android",
+            "description": "If specified, after action completion, allow users to continue to the Android app specified by the deep link",
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "post_action_deep_link_ios",
+            "description": "If specified, after action completion, allow users to continue to the iOS app specified by the deep link",
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "privacy_policy_uri",
             "description": null,
             "type": {
@@ -4959,6 +5031,30 @@
           {
             "name": "name",
             "description": "Friendly name given to an action in the Developer Portal.",
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "post_action_deep_link_android",
+            "description": "If specified, after action completion, allow users to continue to the Android app specified by the deep link",
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "post_action_deep_link_ios",
+            "description": "If specified, after action completion, allow users to continue to the iOS app specified by the deep link",
             "args": [],
             "type": {
               "kind": "SCALAR",
@@ -5209,6 +5305,30 @@
             "deprecationReason": null
           },
           {
+            "name": "post_action_deep_link_android",
+            "description": "If specified, after action completion, allow users to continue to the Android app specified by the deep link",
+            "type": {
+              "kind": "ENUM",
+              "name": "order_by",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "post_action_deep_link_ios",
+            "description": "If specified, after action completion, allow users to continue to the iOS app specified by the deep link",
+            "type": {
+              "kind": "ENUM",
+              "name": "order_by",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "privacy_policy_uri",
             "description": null,
             "type": {
@@ -5425,6 +5545,30 @@
           {
             "name": "name",
             "description": "Friendly name given to an action in the Developer Portal.",
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "post_action_deep_link_android",
+            "description": "If specified, after action completion, allow users to continue to the Android app specified by the deep link",
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "post_action_deep_link_ios",
+            "description": "If specified, after action completion, allow users to continue to the iOS app specified by the deep link",
             "args": [],
             "type": {
               "kind": "SCALAR",
@@ -5665,6 +5809,30 @@
           {
             "name": "name",
             "description": "Friendly name given to an action in the Developer Portal.",
+            "type": {
+              "kind": "ENUM",
+              "name": "order_by",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "post_action_deep_link_android",
+            "description": "If specified, after action completion, allow users to continue to the Android app specified by the deep link",
+            "type": {
+              "kind": "ENUM",
+              "name": "order_by",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "post_action_deep_link_ios",
+            "description": "If specified, after action completion, allow users to continue to the iOS app specified by the deep link",
             "type": {
               "kind": "ENUM",
               "name": "order_by",
@@ -6091,6 +6259,30 @@
             "deprecationReason": null
           },
           {
+            "name": "post_action_deep_link_android",
+            "description": null,
+            "type": {
+              "kind": "ENUM",
+              "name": "order_by",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "post_action_deep_link_ios",
+            "description": null,
+            "type": {
+              "kind": "ENUM",
+              "name": "order_by",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "privacy_policy_uri",
             "description": null,
             "type": {
@@ -6300,6 +6492,18 @@
           },
           {
             "name": "name",
+            "description": "column name",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "post_action_deep_link_android",
+            "description": "column name",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "post_action_deep_link_ios",
             "description": "column name",
             "isDeprecated": false,
             "deprecationReason": null
@@ -6530,6 +6734,30 @@
           {
             "name": "name",
             "description": "Friendly name given to an action in the Developer Portal.",
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "post_action_deep_link_android",
+            "description": "If specified, after action completion, allow users to continue to the Android app specified by the deep link",
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "post_action_deep_link_ios",
+            "description": "If specified, after action completion, allow users to continue to the iOS app specified by the deep link",
             "type": {
               "kind": "SCALAR",
               "name": "String",
@@ -8563,6 +8791,30 @@
             "deprecationReason": null
           },
           {
+            "name": "post_action_deep_link_android",
+            "description": "If specified, after action completion, allow users to continue to the Android app specified by the deep link",
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "post_action_deep_link_ios",
+            "description": "If specified, after action completion, allow users to continue to the iOS app specified by the deep link",
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "privacy_policy_uri",
             "description": null,
             "type": {
@@ -8803,6 +9055,18 @@
           },
           {
             "name": "name",
+            "description": "column name",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "post_action_deep_link_android",
+            "description": "column name",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "post_action_deep_link_ios",
             "description": "column name",
             "isDeprecated": false,
             "deprecationReason": null

@@ -21,6 +21,8 @@ export type GetSingleActionQuery = {
     app_flow_on_complete?: unknown | null;
     webhook_uri?: string | null;
     webhook_pem?: string | null;
+    post_action_deep_link_ios?: string | null;
+    post_action_deep_link_android?: string | null;
     app: {
       __typename?: "app";
       id: string;
@@ -43,6 +45,8 @@ export const GetSingleActionDocument = gql`
       app_flow_on_complete
       webhook_uri
       webhook_pem
+      post_action_deep_link_ios
+      post_action_deep_link_android
       app {
         id
         is_staging

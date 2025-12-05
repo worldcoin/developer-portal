@@ -14,6 +14,12 @@ export type InsertActionMutationVariables = Types.Exact<{
   app_flow_on_complete: Types.Scalars["app_flow_on_complete_enum"]["input"];
   webhook_uri?: Types.InputMaybe<Types.Scalars["String"]["input"]>;
   webhook_pem?: Types.InputMaybe<Types.Scalars["String"]["input"]>;
+  post_action_deep_link_ios?: Types.InputMaybe<
+    Types.Scalars["String"]["input"]
+  >;
+  post_action_deep_link_android?: Types.InputMaybe<
+    Types.Scalars["String"]["input"]
+  >;
 }>;
 
 export type InsertActionMutation = {
@@ -32,6 +38,8 @@ export const InsertActionDocument = gql`
     $app_flow_on_complete: app_flow_on_complete_enum!
     $webhook_uri: String
     $webhook_pem: String
+    $post_action_deep_link_ios: String
+    $post_action_deep_link_android: String
   ) {
     insert_action_one(
       object: {
@@ -44,6 +52,8 @@ export const InsertActionDocument = gql`
         app_flow_on_complete: $app_flow_on_complete
         webhook_uri: $webhook_uri
         webhook_pem: $webhook_pem
+        post_action_deep_link_ios: $post_action_deep_link_ios
+        post_action_deep_link_android: $post_action_deep_link_android
       }
     ) {
       id
