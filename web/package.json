@@ -85,7 +85,7 @@
     "@types/jest": "^29.5.14",
     "@types/jest-when": "^3.5.5",
     "@types/jsdom": "^21.1.7",
-    "@types/node": "^20.15.0",
+    "@types/node": "^24.10.1",
     "@types/pg": "^8.11.6",
     "@types/qrcode": "^1.5.5",
     "@types/react": "^18.3.1",
