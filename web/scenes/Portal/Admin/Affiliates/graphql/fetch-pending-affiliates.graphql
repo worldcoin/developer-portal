@@ -1,0 +1,12 @@
+query FetchPendingAffiliates {
+  teams: team(
+    where: { affiliate_status: { _eq: "pending" }, deleted_at: { _is_null: true } }
+    order_by: { created_at: desc }
+  ) {
+    id
+    name
+    affiliate_status
+    created_at
+  }
+}
+

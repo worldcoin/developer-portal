@@ -103,6 +103,13 @@ type Mutation {
 }
 
 type Mutation {
+  update_affiliate_status(
+    team_id: String!
+    status: String!
+  ): UpdateAffiliateStatusOutput
+}
+
+type Mutation {
   verify_app(
     app_id: String!
     reviewer_name: String!
@@ -321,5 +328,10 @@ type SetAppReportAppealOutput {
 
 type ChangeAppReportStatusOutput {
   success: Boolean!
+}
+
+type UpdateAffiliateStatusOutput {
+  success: Boolean!
+  team_id: String
 }
 

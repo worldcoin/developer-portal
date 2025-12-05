@@ -1,0 +1,9 @@
+mutation UpdateAffiliateStatus($team_id: String!, $status: String!) {
+  update_team_by_pk(
+    pk_columns: { id: $team_id }
+    _set: { affiliate_status: $status }
+  ) {
+    id
+    affiliate_status
+  }
+}

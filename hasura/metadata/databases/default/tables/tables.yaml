@@ -1,3 +1,4 @@
+- "!include public_affiliate_status.yaml"
 - "!include public_action.yaml"
 - "!include public_action_stats_returning.yaml"
 - "!include public_api_key.yaml"

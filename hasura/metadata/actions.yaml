@@ -159,6 +159,23 @@ actions:
     permissions:
       - role: reviewer
     comment: Unbans an app
+  - name: update_affiliate_status
+    definition:
+      kind: synchronous
+      handler: '{{NEXT_API_URL}}/hasura/update-affiliate-status'
+      headers:
+        - name: Authorization
+          value_from_env: INTERNAL_ENDPOINTS_SECRET
+      request_transform:
+        method: POST
+        query_params:
+          team_id: '{{$body.input.team_id}}'
+          status: '{{$body.input.status}}'
+        template_engine: Kriti
+        version: 2
+    permissions:
+      - role: reviewer
+    comment: Update affiliate status for a team (approve/reject)
   - name: upload_image
     definition:
       kind: ""
@@ -363,4 +380,5 @@ custom_types:
     - name: ConcludeAppReportInvestigationOutput
     - name: SetAppReportAppealOutput
     - name: ChangeAppReportStatusOutput
+    - name: UpdateAffiliateStatusOutput
   scalars: []

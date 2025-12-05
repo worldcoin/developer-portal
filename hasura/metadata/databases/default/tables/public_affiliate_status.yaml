@@ -1,0 +1,22 @@
+table:
+  name: affiliate_status
+  schema: public
+is_enum: true
+select_permissions:
+  - role: user
+    permission:
+      columns:
+        - value
+      filter: {}
+  - role: reviewer
+    permission:
+      columns:
+        - value
+      filter: {}
+  - role: service
+    permission:
+      columns:
+        - value
+        - comment
+      filter: {}
+
