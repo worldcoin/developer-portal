@@ -31,7 +31,7 @@ export const POST = async (req: NextRequest) => {
 
     const body = await req.json();
 
-    if (body?.action.name !== "update_affiliate_status") {
+    if (body?.action.name !== "update_team_affiliate_status") {
       return errorHasuraQuery({
         req,
         detail: "Invalid action.",

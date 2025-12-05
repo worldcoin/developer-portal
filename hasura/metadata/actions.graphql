@@ -103,7 +103,7 @@ type Mutation {
 }
 
 type Mutation {
-  update_affiliate_status(
+  update_team_affiliate_status(
     team_id: String!
     status: String!
   ): UpdateAffiliateStatusOutput

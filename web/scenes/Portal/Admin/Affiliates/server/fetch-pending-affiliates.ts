@@ -42,4 +42,3 @@ export async function fetchPendingAffiliates(): Promise<FetchPendingAffiliatesRe
     };
   }
 }
-
