@@ -7,15 +7,17 @@ import { createSignedFetcher } from "aws-sigv4-fetch";
 import { validateAffiliateRequest } from "../../common/server/validate-affiliate-request";
 
 export const executeAcceptTerms = async (): Promise<FormActionResult> => {
-  const validation = await validateAffiliateRequest();
-
-  if (!validation.success) {
-    return validation.error;
-  }
-
-  const { teamId } = validation.data;
+  let teamId: string | undefined;
 
   try {
+    const validation = await validateAffiliateRequest();
+
+    if (!validation.success) {
+      return validation.error;
+    }
+
+    teamId = validation.data.teamId;
+
     let signedFetch = global.TransactionSignedFetcher;
     if (!signedFetch) {
       signedFetch = createSignedFetcher({

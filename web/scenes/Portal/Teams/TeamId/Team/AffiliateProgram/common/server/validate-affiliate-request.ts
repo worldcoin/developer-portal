@@ -48,6 +48,21 @@ export const validateAffiliateRequest = async (): Promise<ValidationResult> => {
     };
   }
 
+  const isTeamMember = user?.hasura?.memberships?.some(
+    (membership) => membership.team?.id === teamId,
+  );
+
+  if (!isTeamMember) {
+    return {
+      success: false,
+      error: errorFormAction({
+        message: "user is not a team member",
+        team_id: teamId,
+        logLevel: "error",
+      }),
+    };
+  }
+
   const isAffiliateProgramEnabled =
     await global.ParameterStore?.getParameter<string>(
       "affiliate-program/enabled",

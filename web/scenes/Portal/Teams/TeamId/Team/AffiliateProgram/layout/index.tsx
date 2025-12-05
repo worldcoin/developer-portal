@@ -28,11 +28,15 @@ export const AffiliateProgramLayout = (props: TeamIdLayoutProps) => {
   const { user: auth0User } = useUser() as Auth0SessionUser;
   const [affiliateEnabled] = useAtom(affiliateEnabledAtom);
 
+  const isTeamMember = auth0User?.hasura?.memberships?.some(
+    (membership) => membership.team?.id === teamId,
+  );
+
   const isAffiliateEnabled = useMemo(
     () =>
       affiliateEnabled.isFetched &&
-      isAffiliateEnabledForTeam(affiliateEnabled, teamId),
-    [affiliateEnabled, teamId],
+      isAffiliateEnabledForTeam(affiliateEnabled, teamId, auth0User),
+    [affiliateEnabled, teamId, auth0User],
   );
 
   // Skip fetching metadata if affiliate program is not enabled
@@ -103,6 +107,7 @@ export const AffiliateProgramLayout = (props: TeamIdLayoutProps) => {
     }
   }, [
     affiliateEnabled.isFetched,
+    isTeamMember,
     isMetadataLoading,
     metadata,
     isAffiliateEnabled,
