@@ -32,13 +32,20 @@ export const KybStep = ({ metadata, isLoading, onComplete }: Props) => {
     if (!metadata) return null;
 
     const status = metadata.identityVerificationStatus;
-
+    const defaultConfig = {
+      icon: (
+        <IconFrame className="flex-shrink-0 bg-blue-500 text-grey-0">
+          <IdentificationIcon className="size-5" />
+        </IconFrame>
+      ),
+    };
     if (status === IdentityVerificationStatus.SUCCESS) {
       return null;
     }
 
     if (status === IdentityVerificationStatus.PENDING) {
       return {
+        ...defaultConfig,
         title: "KYB processing",
         description: "It can take 1-3 days",
         loading: true,
@@ -47,6 +54,12 @@ export const KybStep = ({ metadata, isLoading, onComplete }: Props) => {
 
     if (status === IdentityVerificationStatus.FAILED) {
       return {
+        ...defaultConfig,
+        icon: (
+          <IconFrame className="flex-shrink-0 bg-system-error-50 text-system-error-500">
+            <RemoveCustomIcon className="size-5" />
+          </IconFrame>
+        ),
         title: "KYB failed",
         description: "Verification failed, try again",
         buttonTxt: "Try again",
@@ -55,6 +68,7 @@ export const KybStep = ({ metadata, isLoading, onComplete }: Props) => {
 
     // fallback for undefined || not_started || created || timeout - Complete KYB
     return {
+      ...defaultConfig,
       title: "Complete KYB",
       description: "To unlock affiliate program",
       buttonTxt: "Complete",
@@ -63,16 +77,7 @@ export const KybStep = ({ metadata, isLoading, onComplete }: Props) => {
 
   return (
     <>
-      {metadata?.identityVerificationStatus ===
-      IdentityVerificationStatus.FAILED ? (
-        <IconFrame className="flex-shrink-0 bg-system-error-50 text-system-error-500">
-          <RemoveCustomIcon className="size-5" />
-        </IconFrame>
-      ) : (
-        <IconFrame className="flex-shrink-0 bg-blue-500 text-grey-0">
-          <IdentificationIcon className="size-5" />
-        </IconFrame>
-      )}
+      {requestConfig?.icon}
 
       <div className="text-start">
         <Typography as="p" variant={TYPOGRAPHY.M3}>

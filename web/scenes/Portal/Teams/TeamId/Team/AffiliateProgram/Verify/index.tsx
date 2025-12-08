@@ -9,8 +9,8 @@ import { useState } from "react";
 import Skeleton from "react-loading-skeleton";
 import { toast } from "react-toastify";
 import { AcceptTermsDialog } from "./AcceptTerms";
-import { RequestStep } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Verify/RequestStep";
-import { KybStep } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Verify/KybStep";
+import { RequestStep } from "./RequestStep";
+import { KybStep } from "./KybStep";
 
 export const VerifyPage = () => {
   const { data: metadata, loading: isMetadataLoading } =
