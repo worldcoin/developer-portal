@@ -2,7 +2,10 @@
 import { MailWithLines } from "@/components/Icons/MailWithLines";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import { GetIdentityVerificationLinkResponse } from "@/lib/types";
+import {
+  GetIdentityVerificationLinkResponse,
+  ParticipationStatus,
+} from "@/lib/types";
 import { useGetAffiliateMetadata } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Overview/page/hooks/use-get-affiliate-metadata";
 import { getIdentityVerificationLink } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Overview/server/getIdentityVerificationLink";
 import { useState } from "react";
@@ -13,8 +16,11 @@ import { RequestStep } from "./RequestStep";
 import { KybStep } from "./KybStep";
 
 export const VerifyPage = () => {
-  const { data: metadata, loading: isMetadataLoading } =
-    useGetAffiliateMetadata();
+  const {
+    data: metadata,
+    loading: isMetadataLoading,
+    refetch: refetchMetadata,
+  } = useGetAffiliateMetadata();
   const [isLoading, setIsLoading] = useState(false);
   const [showAcceptTerms, setShowAcceptTerms] = useState(false);
 
@@ -117,7 +123,9 @@ export const VerifyPage = () => {
               <RequestStep
                 metadata={metadata}
                 isMetadataLoading={isLoading}
-                onComplete={handleComplete}
+                onComplete={() => {
+                  refetchMetadata();
+                }}
               />
             )
           )}
@@ -139,6 +147,9 @@ export const VerifyPage = () => {
                 metadata={metadata}
                 isLoading={isLoading}
                 onComplete={handleComplete}
+                disabled={
+                  metadata.participationStatus !== ParticipationStatus.APPROVED
+                }
               />
             )
           )}

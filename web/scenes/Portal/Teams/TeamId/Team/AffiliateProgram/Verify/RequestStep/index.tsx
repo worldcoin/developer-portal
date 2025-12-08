@@ -10,6 +10,7 @@ import { RemoveCustomIcon } from "@/components/Icons/RemoveCustomIcon";
 import { SpinnerIcon } from "@/components/Icons/SpinnerIcon";
 import { ArrowDownSharpIcon } from "@/components/Icons/ArrowDownSharp";
 import { NoteEditIcon } from "@/components/Icons/NoteEditIcon";
+import { CheckIcon } from "@/components/Icons/CheckIcon";
 
 type StepConfig = {
   icon?: ReactNode;
@@ -48,6 +49,11 @@ export const RequestStep = ({
     if (status === ParticipationStatus.APPROVED) {
       return {
         ...defaultConfig,
+        icon: (
+          <IconFrame className="flex-shrink-0 bg-system-error-50 text-system-error-500">
+            <CheckIcon size="16" />
+          </IconFrame>
+        ),
         title: "Request approved",
       };
     }
@@ -93,8 +99,7 @@ export const RequestStep = ({
       console.log("requestParticipation: ", result);
 
       if (result.success && result.data) {
-        // Navigate to verification link
-        //
+        onComplete();
       } else {
         throw new Error(result.message || "Failed to request participation");
       }

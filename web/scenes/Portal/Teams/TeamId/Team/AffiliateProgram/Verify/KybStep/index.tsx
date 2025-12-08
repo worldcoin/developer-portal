@@ -25,9 +25,15 @@ type Props = {
   metadata: AffiliateMetadataResponse["result"];
   isLoading: boolean;
   onComplete: () => void;
+  disabled: boolean;
 };
 
-export const KybStep = ({ metadata, isLoading, onComplete }: Props) => {
+export const KybStep = ({
+  metadata,
+  isLoading,
+  onComplete,
+  disabled,
+}: Props) => {
   const requestConfig: StepConfig | null = useMemo(() => {
     if (!metadata) return null;
 
@@ -61,7 +67,6 @@ export const KybStep = ({ metadata, isLoading, onComplete }: Props) => {
           </IconFrame>
         ),
         title: "KYB failed",
-        description: "Verification failed, try again",
         buttonTxt: "Try again",
       };
     }
@@ -70,7 +75,6 @@ export const KybStep = ({ metadata, isLoading, onComplete }: Props) => {
     return {
       ...defaultConfig,
       title: "Complete KYB",
-      description: "To unlock affiliate program",
       buttonTxt: "Complete",
     };
   }, [metadata]);
@@ -87,7 +91,7 @@ export const KybStep = ({ metadata, isLoading, onComplete }: Props) => {
           {requestConfig?.description}
         </Typography>
       </div>
-      {requestConfig?.loading ? (
+      {disabled ? null : requestConfig?.loading ? (
         <SpinnerIcon className="ml-auto size-6 animate-spin" />
       ) : (
         <>
