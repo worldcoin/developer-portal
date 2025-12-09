@@ -50,7 +50,7 @@ export const RequestStep = ({
       return {
         ...defaultConfig,
         icon: (
-          <IconFrame className="flex-shrink-0 bg-system-error-50 text-system-error-500">
+          <IconFrame className="flex-shrink-0 bg-system-success-50 text-system-success-500">
             <CheckIcon size="16" />
           </IconFrame>
         ),
@@ -111,13 +111,6 @@ export const RequestStep = ({
     }
   };
 
-  const handleRequest = () => {
-    if (metadata?.termsAcceptedAt) {
-      handleRequestAccess();
-      return;
-    }
-  };
-
   return (
     <>
       {requestConfig?.icon}
@@ -131,27 +124,28 @@ export const RequestStep = ({
         </Typography>
       </div>
 
-      {isRequestLoading ||
-      metadata?.participationStatus === ParticipationStatus.PENDING ? (
-        <SpinnerIcon className="ml-auto size-6 animate-spin" />
-      ) : (
-        <>
-          <Button
-            type="button"
-            onClick={handleRequestAccess}
-            className="ml-auto flex size-6 items-center justify-center rounded-full bg-grey-900 md:hidden"
-          >
-            <ArrowDownSharpIcon className="size-3 text-grey-0" />
-          </Button>
-          <DecoratedButton
-            type="button"
-            onClick={handleRequestAccess}
-            className="ml-auto hidden md:block"
-          >
-            {requestConfig?.buttonTxt}
-          </DecoratedButton>
-        </>
-      )}
+      {requestConfig?.buttonTxt &&
+        (isRequestLoading ||
+        metadata?.participationStatus === ParticipationStatus.PENDING ? (
+          <SpinnerIcon className="ml-auto size-6 animate-spin" />
+        ) : (
+          <>
+            <Button
+              type="button"
+              onClick={handleRequestAccess}
+              className="ml-auto flex size-6 items-center justify-center rounded-full bg-grey-900 md:hidden"
+            >
+              <ArrowDownSharpIcon className="size-3 text-grey-0" />
+            </Button>
+            <DecoratedButton
+              type="button"
+              onClick={handleRequestAccess}
+              className="ml-auto hidden max-h-9 md:flex"
+            >
+              {requestConfig?.buttonTxt}
+            </DecoratedButton>
+          </>
+        ))}
     </>
   );
 };

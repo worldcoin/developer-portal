@@ -4,6 +4,7 @@ import { SizingWrapper } from "@/components/SizingWrapper";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import {
   GetIdentityVerificationLinkResponse,
+  IdentityVerificationStatus,
   ParticipationStatus,
 } from "@/lib/types";
 import { useGetAffiliateMetadata } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Overview/page/hooks/use-get-affiliate-metadata";
@@ -14,6 +15,12 @@ import { toast } from "react-toastify";
 import { AcceptTermsDialog } from "./AcceptTerms";
 import { RequestStep } from "./RequestStep";
 import { KybStep } from "./KybStep";
+import { twMerge } from "tailwind-merge";
+import clsx from "clsx";
+import { IconFrame } from "@/components/InitialSteps/IconFrame";
+import { RemoveCustomIcon } from "@/components/Icons/RemoveCustomIcon";
+import { IdentificationIcon } from "@/components/Icons/IdentificationIcon";
+import { Step } from "@/components/InitialSteps/Step";
 
 export const VerifyPage = () => {
   const {
@@ -102,58 +109,81 @@ export const VerifyPage = () => {
         {/*          </IconFrame>*/}
         {/*      )*/}
         {/*    }*/}
-        {/*    title={requestConfig?.title || ""}*/}
-        {/*    description={requestConfig?.description || ""}*/}
-        {/*    buttonText={requestConfig?.buttonTxt || ""}*/}
+        {/*    title={"title" || ""}*/}
+        {/*    buttonText={"try" || ""}*/}
         {/*    disabled={false}*/}
         {/*/>*/}
 
-        <div className="mt-6 flex w-full items-center gap-3 rounded-2xl border border-grey-200 p-6 md:mt-10">
-          {isMetadataLoading ? (
-            <>
-              <Skeleton circle className="size-10" />
-              <div className="h-10 flex-1 text-start">
-                <Skeleton height={20} width={100} />
-                <Skeleton height={16} width={150} />
-              </div>
-              <Skeleton height={36} width={100} />
-            </>
-          ) : (
-            metadata && (
-              <RequestStep
-                metadata={metadata}
-                isMetadataLoading={isLoading}
-                onComplete={() => {
-                  refetchMetadata();
-                }}
-              />
-            )
-          )}
-        </div>
+        {/*<Step*/}
+        {/*    key={`apps-tutorial-step-2`}*/}
+        {/*    href="?createAction=true"*/}
+        {/*    icon={*/}
+        {/*      metadata?.identityVerificationStatus ===*/}
+        {/*      IdentityVerificationStatus.FAILED ? (*/}
+        {/*          <IconFrame className="flex-shrink-0 bg-system-error-50 text-system-error-500">*/}
+        {/*            <RemoveCustomIcon className="size-5"/>*/}
+        {/*          </IconFrame>*/}
+        {/*      ) : (*/}
+        {/*          <IconFrame className="flex-shrink-0 bg-blue-500 text-grey-0">*/}
+        {/*            <IdentificationIcon className="size-5"/>*/}
+        {/*          </IconFrame>*/}
+        {/*      )*/}
+        {/*    }*/}
+        {/*    title={"title" || ""}*/}
+        {/*    buttonText={"try" || ""}*/}
+        {/*    disabled={false}*/}
+        {/*/>*/}
 
-        <div className="mt-6 flex w-full items-center gap-3 rounded-2xl border border-grey-200 p-6 md:mt-10">
-          {isMetadataLoading ? (
-            <>
-              <Skeleton circle className="size-10" />
-              <div className="h-10 flex-1 text-start">
-                <Skeleton height={20} width={100} />
-                <Skeleton height={16} width={150} />
-              </div>
-              <Skeleton height={36} width={100} />
-            </>
-          ) : (
-            metadata && (
-              <KybStep
-                metadata={metadata}
-                isLoading={isLoading}
-                onComplete={handleComplete}
-                disabled={
-                  metadata.participationStatus !== ParticipationStatus.APPROVED
-                }
-              />
-            )
-          )}
+        <div className="mt-10">
+          <div className="grid w-full grid-cols-auto/1fr/auto items-center gap-x-4 border-x border-t-[1px] p-6 first-of-type:rounded-t-2xl last-of-type:rounded-b-2xl md:min-w-[480px]">
+            {isMetadataLoading ? (
+              <>
+                <Skeleton circle className="size-10" />
+                <div className="h-10 flex-1 text-start">
+                  <Skeleton height={20} width={100} />
+                  <Skeleton height={16} width={150} />
+                </div>
+                <Skeleton height={36} width={100} />
+              </>
+            ) : (
+              metadata && (
+                <RequestStep
+                  metadata={metadata}
+                  isMetadataLoading={isLoading}
+                  onComplete={() => {
+                    refetchMetadata();
+                  }}
+                />
+              )
+            )}
+          </div>
+
+          <div className="grid w-full grid-cols-auto/1fr/auto items-center gap-x-4 border-x border-y-[1px] p-6 first-of-type:rounded-t-2xl first-of-type:border-t-0 last-of-type:rounded-b-2xl md:min-w-[480px]">
+            {isMetadataLoading ? (
+              <>
+                <Skeleton circle className="size-10" />
+                <div className="h-10 flex-1 text-start">
+                  <Skeleton height={20} width={100} />
+                  <Skeleton height={16} width={150} />
+                </div>
+                <Skeleton height={36} width={100} />
+              </>
+            ) : (
+              metadata && (
+                <KybStep
+                  metadata={metadata}
+                  isLoading={isLoading}
+                  onComplete={handleComplete}
+                  disabled={
+                    metadata.participationStatus !==
+                    ParticipationStatus.APPROVED
+                  }
+                />
+              )
+            )}
+          </div>
         </div>
+        {/*<div className="mt-6 flex w-full items-center gap-3 rounded-2xl border border-grey-200 p-6 md:mt-10">*/}
       </div>
     </SizingWrapper>
   );

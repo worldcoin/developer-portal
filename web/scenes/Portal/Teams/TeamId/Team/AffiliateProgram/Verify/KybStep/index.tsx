@@ -91,26 +91,28 @@ export const KybStep = ({
           {requestConfig?.description}
         </Typography>
       </div>
-      {disabled ? null : requestConfig?.loading ? (
-        <SpinnerIcon className="ml-auto size-6 animate-spin" />
-      ) : (
-        <>
-          <Button
-            type="button"
-            onClick={onComplete}
-            className="ml-auto flex size-6 items-center justify-center rounded-full bg-grey-900 md:hidden"
-          >
-            <ArrowDownSharpIcon className="size-3 text-grey-0" />
-          </Button>
-          <DecoratedButton
-            type="button"
-            onClick={onComplete}
-            className="ml-auto hidden md:block"
-          >
-            {requestConfig?.buttonTxt}
-          </DecoratedButton>
-        </>
-      )}
+
+      {requestConfig?.buttonTxt &&
+        (requestConfig?.loading ? (
+          <SpinnerIcon className="ml-auto size-6 animate-spin" />
+        ) : (
+          <>
+            <Button
+              type="button"
+              onClick={onComplete}
+              className="ml-auto flex size-6 items-center justify-center rounded-full bg-grey-900 md:hidden"
+            >
+              <ArrowDownSharpIcon className="size-3 text-grey-0" />
+            </Button>
+            <DecoratedButton
+              type="button"
+              onClick={onComplete}
+              className="ml-auto hidden max-h-9 md:flex"
+            >
+              {requestConfig?.buttonTxt}
+            </DecoratedButton>
+          </>
+        ))}
     </>
   );
 };
