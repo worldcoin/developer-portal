@@ -91,7 +91,7 @@ export const LoggedUserNav = () => {
       try {
         const isAffiliateProgramEnabled = await getParameter<string>(
           "affiliate-program/enabled",
-          "true",
+          "false",
         );
         const enabledTeams = await getParameter<string[]>(
           "affiliate-program/enabled-teams",

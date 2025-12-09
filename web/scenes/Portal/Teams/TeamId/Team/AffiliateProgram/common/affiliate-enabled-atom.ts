@@ -10,7 +10,7 @@ type AffiliateEnabledType = {
 
 export const affiliateEnabledAtom = atom<AffiliateEnabledType>({
   isFetched: false,
-  enabledParameter: true,
+  enabledParameter: false,
   enabledTeamsParameter: [],
   teamVerifiedAppsCount: 0,
 });
