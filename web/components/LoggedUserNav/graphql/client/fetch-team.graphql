@@ -2,5 +2,12 @@ query FetchTeam($id: String!) {
   team: team_by_pk(id: $id) {
     id
     name
+    verified_apps: apps_aggregate(
+      where: { verified_at: { _is_null: false }, is_banned: { _eq: false } }
+    ) {
+      aggregate {
+        count
+      }
+    }
   }
 }

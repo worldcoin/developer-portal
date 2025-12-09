@@ -71,6 +71,13 @@ export const LoggedUserNav = () => {
           id: teamId,
         },
     skip: !teamId,
+    onCompleted: (data) => {
+      console.log("fetched team", data);
+      setAffiliateConfig({
+        ...affiliateConfig,
+        teamVerifiedAppsCount: data.team?.verified_apps.aggregate?.count || 0,
+      });
+    },
   });
 
   // First useEffect: Fetch parameters once
@@ -84,7 +91,7 @@ export const LoggedUserNav = () => {
       try {
         const isAffiliateProgramEnabled = await getParameter<string>(
           "affiliate-program/enabled",
-          "false",
+          "true",
         );
         const enabledTeams = await getParameter<string[]>(
           "affiliate-program/enabled-teams",
@@ -92,6 +99,7 @@ export const LoggedUserNav = () => {
         );
 
         setAffiliateConfig({
+          ...affiliateConfig,
           isFetched: true,
           // Store parameters for future teamId changes
           enabledParameter: isAffiliateProgramEnabled === "true",
@@ -110,6 +118,18 @@ export const LoggedUserNav = () => {
 
     fetchParameters();
   }, [affiliateConfig, setAffiliateConfig]);
+
+  // useEffect(() => {
+  //   const loadVerifiedApp = async () => {
+  //     const client = await getAPIServiceGraphqlClient();
+  //     const data =  await getSdk(client).GetTeamVerifiedApp({
+  //       team_id: teamId
+  //     })
+  //     if()
+  //       data.app.length > 0
+  //   }
+  //   loadVerifiedApp()
+  // }, [teamId]);
 
   const isAffiliateEnabled = useMemo(
     () =>
