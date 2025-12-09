@@ -55,6 +55,9 @@ ENV JWT_ISSUER=invalid.localhost
 
 RUN corepack enable pnpm && pnpm run build
 
+# Remove the development dependencies and clean up the cache to reduce image size
+RUN pnpm prune --prod
+
 # Production image, copy all the files and run next
 FROM base AS runner
 WORKDIR /app
