@@ -1,21 +1,25 @@
 import { atom } from "jotai";
 import { Auth0SessionUser } from "@/lib/types";
 
-export const affiliateEnabledAtom = atom<{
+type AffiliateEnabledType = {
   isFetched: boolean;
   enabledParameter: boolean;
   enabledTeamsParameter: string[];
-}>({
+  teamVerifiedAppsCount: number;
+};
+
+export const affiliateEnabledAtom = atom<AffiliateEnabledType>({
   isFetched: false,
-  enabledParameter: false,
+  enabledParameter: true,
   enabledTeamsParameter: [],
+  teamVerifiedAppsCount: 0,
 });
 
 /**
  * Helper function to calculate if affiliate program is enabled for a specific team
  */
 export const isAffiliateEnabledForTeam = (
-  config: { enabledParameter: boolean; enabledTeamsParameter: string[] },
+  config: AffiliateEnabledType,
   teamId: string | undefined,
   user: Auth0SessionUser["user"],
 ): boolean => {
@@ -28,6 +32,7 @@ export const isAffiliateEnabledForTeam = (
   return (
     Boolean(isTeamMember) &&
     (config.enabledParameter ||
+      config.teamVerifiedAppsCount > 0 ||
       (config.enabledTeamsParameter.length > 0 &&
         config.enabledTeamsParameter.includes(teamId)))
   );

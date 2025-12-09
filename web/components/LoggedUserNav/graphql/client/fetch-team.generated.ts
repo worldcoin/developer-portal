@@ -27,7 +27,11 @@ export const FetchTeamDocument = gql`
       id
       name
       verified_apps: apps_aggregate(
-        where: { verified_at: { _is_null: false }, is_banned: { _eq: false } }
+        where: {
+          team_id: { _eq: $id }
+          is_banned: { _eq: false }
+          verified_at: { _is_null: false }
+        }
       ) {
         aggregate {
           count
