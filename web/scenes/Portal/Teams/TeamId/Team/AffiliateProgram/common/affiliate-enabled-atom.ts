@@ -3,15 +3,11 @@ import { Auth0SessionUser } from "@/lib/types";
 
 type AffiliateEnabledType = {
   isFetched: boolean;
-  enabledParameter: boolean;
-  enabledTeamsParameter: string[];
   teamVerifiedAppsCount: number;
 };
 
 export const affiliateEnabledAtom = atom<AffiliateEnabledType>({
   isFetched: false,
-  enabledParameter: false,
-  enabledTeamsParameter: [],
   teamVerifiedAppsCount: 0,
 });
 
@@ -29,11 +25,5 @@ export const isAffiliateEnabledForTeam = (
     (membership) => membership.team?.id === teamId,
   );
 
-  return (
-    Boolean(isTeamMember) &&
-    (config.enabledParameter ||
-      config.teamVerifiedAppsCount > 0 ||
-      (config.enabledTeamsParameter.length > 0 &&
-        config.enabledTeamsParameter.includes(teamId)))
-  );
+  return Boolean(isTeamMember) && config.teamVerifiedAppsCount > 0;
 };

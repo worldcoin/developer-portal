@@ -71,21 +71,7 @@ export const validateAffiliateRequest = async (): Promise<ValidationResult> => {
   });
   const hasVerifiedApps = (data.app.length || 0) > 0;
 
-  const isAffiliateProgramEnabled =
-    await global.ParameterStore?.getParameter<string>(
-      "affiliate-program/enabled",
-      "false",
-    );
-  const enabledTeams = await global.ParameterStore?.getParameter<string[]>(
-    "affiliate-program/enabled-teams",
-    [],
-  );
-
-  if (
-    isAffiliateProgramEnabled === "false" &&
-    !enabledTeams?.includes(teamId) &&
-    !hasVerifiedApps
-  ) {
+  if (!hasVerifiedApps) {
     return {
       success: false,
       error: errorFormAction({
