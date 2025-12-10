@@ -64,16 +64,6 @@ export const validateAffiliateRequest = async (): Promise<ValidationResult> => {
     };
   }
 
-  const shouldReturnMocks = true;
-
-  if (shouldReturnMocks) {
-    // TODO: remove mock response
-    return {
-      success: true,
-      data: { teamId, user },
-    };
-  }
-
   const client = await getAPIServiceGraphqlClient();
 
   const data = await getSdk(client).GetTeamVerifiedApps({

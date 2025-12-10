@@ -23,23 +23,6 @@ export const requestParticipation = async (): Promise<FormActionResult> => {
 
     teamId = validation.data.teamId;
 
-    //TODO: add check for process.env.NEXT_SERVER_APP_BACKEND_BASE_URL and remove mocks after backend will be ready
-    const shouldReturnMocks = true;
-
-    if (shouldReturnMocks) {
-      // TODO: remove mock response
-      const data: RequestParticipationResponse = {
-        result: {
-          participationStatus: ParticipationStatus.APPROVED,
-        },
-      };
-      return {
-        success: true,
-        message: "Mock participation returned",
-        data,
-      };
-    }
-
     let signedFetch = global.TransactionSignedFetcher;
     if (!signedFetch) {
       signedFetch = createSignedFetcher({
