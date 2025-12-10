@@ -18,8 +18,8 @@ export const GetTeamVerifiedAppsDocument = gql`
     app(
       where: {
         team_id: { _eq: $teamId }
+        app_metadata: { verification_status: { _eq: "verified" } }
         is_banned: { _eq: false }
-        verified_at: { _is_null: false }
       }
     ) {
       id
