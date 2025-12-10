@@ -35,6 +35,7 @@ export const requestParticipation = async (): Promise<FormActionResult> => {
         "Content-Type": "application/json",
         "X-Dev-Portal-User-Id": teamId,
       },
+      body: JSON.stringify({}),
     });
 
     const data = (await response.json()) as RequestParticipationResponse;
