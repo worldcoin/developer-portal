@@ -119,18 +119,6 @@ export const LoggedUserNav = () => {
     fetchParameters();
   }, [affiliateConfig, setAffiliateConfig]);
 
-  // useEffect(() => {
-  //   const loadVerifiedApp = async () => {
-  //     const client = await getAPIServiceGraphqlClient();
-  //     const data =  await getSdk(client).GetTeamVerifiedApp({
-  //       team_id: teamId
-  //     })
-  //     if()
-  //       data.app.length > 0
-  //   }
-  //   loadVerifiedApp()
-  // }, [teamId]);
-
   const isAffiliateEnabled = useMemo(
     () =>
       affiliateConfig.isFetched &&
