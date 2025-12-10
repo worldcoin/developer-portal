@@ -30,7 +30,7 @@ export const FetchTeamDocument = gql`
         where: {
           team_id: { _eq: $id }
           is_banned: { _eq: false }
-          verified_at: { _is_null: false }
+          app_metadata: { verification_status: { _eq: "verified" } }
         }
       ) {
         aggregate {
