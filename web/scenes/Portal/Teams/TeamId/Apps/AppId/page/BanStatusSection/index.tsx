@@ -9,7 +9,8 @@ export const BanStatusSection = ({ appId }: { appId: string }) => {
     },
   });
 
-  const isAppBanned = !!data?.app[0].id;
+  // NOTE: it's possible app array is empty
+  const isAppBanned = !!data?.app[0]?.id;
 
   return isAppBanned && <BanStatus />;
 };
