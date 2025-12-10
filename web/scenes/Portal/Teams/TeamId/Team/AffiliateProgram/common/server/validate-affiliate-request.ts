@@ -4,7 +4,8 @@ import { errorFormAction } from "@/api/helpers/errors";
 import { extractIdsFromPath, getPathFromHeaders } from "@/lib/server-utils";
 import { Auth0SessionUser, FormActionResult } from "@/lib/types";
 import { getSession } from "@auth0/nextjs-auth0";
-import { getParameter } from "./getParameter";
+import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
+import { getSdk } from "./graphql/getTeamVerifiedApps.generated";
 
 type ValidatedRequest = {
   teamId: string;
@@ -63,20 +64,14 @@ export const validateAffiliateRequest = async (): Promise<ValidationResult> => {
     };
   }
 
-  const isAffiliateProgramEnabled =
-    await global.ParameterStore?.getParameter<string>(
-      "affiliate-program/enabled",
-      "false",
-    );
-  const enabledTeams = await global.ParameterStore?.getParameter<string[]>(
-    "affiliate-program/enabled-teams",
-    [],
-  );
+  const client = await getAPIServiceGraphqlClient();
 
-  if (
-    isAffiliateProgramEnabled === "false" &&
-    !enabledTeams?.includes(teamId)
-  ) {
+  const data = await getSdk(client).GetTeamVerifiedApps({
+    teamId: teamId,
+  });
+  const hasVerifiedApps = data.app.length > 0;
+
+  if (!hasVerifiedApps) {
     return {
       success: false,
       error: errorFormAction({

@@ -71,45 +71,15 @@ export const LoggedUserNav = () => {
           id: teamId,
         },
     skip: !teamId,
+    onCompleted: (data) => {
+      console.log("fetched team", data);
+      setAffiliateConfig((prev) => ({
+        ...prev,
+        isFetched: true,
+        teamVerifiedAppsCount: data.team?.verified_apps.aggregate?.count || 0,
+      }));
+    },
   });
-
-  // First useEffect: Fetch parameters once
-  useEffect(() => {
-    // Guard: Don't fetch if already fetched or no teamId
-    if (affiliateConfig.isFetched) {
-      return;
-    }
-
-    const fetchParameters = async () => {
-      try {
-        const isAffiliateProgramEnabled = await getParameter<string>(
-          "affiliate-program/enabled",
-          "false",
-        );
-        const enabledTeams = await getParameter<string[]>(
-          "affiliate-program/enabled-teams",
-          [],
-        );
-
-        setAffiliateConfig({
-          isFetched: true,
-          // Store parameters for future teamId changes
-          enabledParameter: isAffiliateProgramEnabled === "true",
-          enabledTeamsParameter: enabledTeams ?? [],
-        });
-
-        console.log("params", {
-          enabledParameter: isAffiliateProgramEnabled === "true",
-          enabledTeamsParameter: enabledTeams ?? [],
-        });
-      } catch (error) {
-        console.error(error);
-        setAffiliateConfig({ ...affiliateConfig, isFetched: true });
-      }
-    };
-
-    fetchParameters();
-  }, [affiliateConfig, setAffiliateConfig]);
 
   const isAffiliateEnabled = useMemo(
     () =>

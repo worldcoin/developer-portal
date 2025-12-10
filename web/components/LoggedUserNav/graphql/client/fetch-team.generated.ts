@@ -10,7 +10,15 @@ export type FetchTeamQueryVariables = Types.Exact<{
 
 export type FetchTeamQuery = {
   __typename?: "query_root";
-  team?: { __typename?: "team"; id: string; name?: string | null } | null;
+  team?: {
+    __typename?: "team";
+    id: string;
+    name?: string | null;
+    verified_apps: {
+      __typename?: "app_aggregate";
+      aggregate?: { __typename?: "app_aggregate_fields"; count: number } | null;
+    };
+  } | null;
 };
 
 export const FetchTeamDocument = gql`
@@ -18,6 +26,17 @@ export const FetchTeamDocument = gql`
     team: team_by_pk(id: $id) {
       id
       name
+      verified_apps: apps_aggregate(
+        where: {
+          team_id: { _eq: $id }
+          is_banned: { _eq: false }
+          verified_at: { _is_null: false }
+        }
+      ) {
+        aggregate {
+          count
+        }
+      }
     }
   }
 `;

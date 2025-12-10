@@ -105,6 +105,8 @@ select_permissions:
         - is_staging
         - status
         - team_id
+        - is_banned
+        - verified_at
       filter:
         _and:
           - team:
@@ -113,6 +115,7 @@ select_permissions:
                   _eq: X-Hasura-User-Id
           - deleted_at:
               _is_null: true
+      allow_aggregations: true
 update_permissions:
   - role: api_key
     permission:
