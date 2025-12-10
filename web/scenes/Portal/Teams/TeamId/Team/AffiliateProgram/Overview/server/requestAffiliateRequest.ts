@@ -32,7 +32,6 @@ export const requestParticipation = async (): Promise<FormActionResult> => {
       headers: {
         Accept: "application/json",
         "User-Agent": "DevPortal/1.0",
-        "Content-Type": "application/json",
         "X-Dev-Portal-User-Id": teamId,
       },
     });
