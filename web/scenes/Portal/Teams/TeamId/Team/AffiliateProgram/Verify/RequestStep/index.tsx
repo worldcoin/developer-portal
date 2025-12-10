@@ -23,15 +23,10 @@ type StepConfig = {
 
 type Props = {
   metadata: AffiliateMetadataResponse["result"];
-  isMetadataLoading: boolean;
   onComplete: () => void;
 };
 
-export const RequestStep = ({
-  metadata,
-  isMetadataLoading,
-  onComplete,
-}: Props) => {
+export const RequestStep = ({ metadata, onComplete }: Props) => {
   const [isRequestLoading, setIsRequestLoading] = useState(false);
 
   const requestConfig: StepConfig | null = useMemo(() => {

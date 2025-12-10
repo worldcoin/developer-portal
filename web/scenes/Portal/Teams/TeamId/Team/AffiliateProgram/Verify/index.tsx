@@ -15,12 +15,6 @@ import { toast } from "react-toastify";
 import { AcceptTermsDialog } from "./AcceptTerms";
 import { RequestStep } from "./RequestStep";
 import { KybStep } from "./KybStep";
-import { twMerge } from "tailwind-merge";
-import clsx from "clsx";
-import { IconFrame } from "@/components/InitialSteps/IconFrame";
-import { RemoveCustomIcon } from "@/components/Icons/RemoveCustomIcon";
-import { IdentificationIcon } from "@/components/Icons/IdentificationIcon";
-import { Step } from "@/components/InitialSteps/Step";
 
 export const VerifyPage = () => {
   const {
@@ -94,46 +88,6 @@ export const VerifyPage = () => {
           </Typography>
         </div>
 
-        {/*<Step*/}
-        {/*    key={`apps-tutorial-step-2`}*/}
-        {/*    href="?createAction=true"*/}
-        {/*    icon={*/}
-        {/*      metadata?.identityVerificationStatus ===*/}
-        {/*      IdentityVerificationStatus.FAILED ? (*/}
-        {/*          <IconFrame className="flex-shrink-0 bg-system-error-50 text-system-error-500">*/}
-        {/*            <RemoveCustomIcon className="size-5"/>*/}
-        {/*          </IconFrame>*/}
-        {/*      ) : (*/}
-        {/*          <IconFrame className="flex-shrink-0 bg-blue-500 text-grey-0">*/}
-        {/*            <IdentificationIcon className="size-5"/>*/}
-        {/*          </IconFrame>*/}
-        {/*      )*/}
-        {/*    }*/}
-        {/*    title={"title" || ""}*/}
-        {/*    buttonText={"try" || ""}*/}
-        {/*    disabled={false}*/}
-        {/*/>*/}
-
-        {/*<Step*/}
-        {/*    key={`apps-tutorial-step-2`}*/}
-        {/*    href="?createAction=true"*/}
-        {/*    icon={*/}
-        {/*      metadata?.identityVerificationStatus ===*/}
-        {/*      IdentityVerificationStatus.FAILED ? (*/}
-        {/*          <IconFrame className="flex-shrink-0 bg-system-error-50 text-system-error-500">*/}
-        {/*            <RemoveCustomIcon className="size-5"/>*/}
-        {/*          </IconFrame>*/}
-        {/*      ) : (*/}
-        {/*          <IconFrame className="flex-shrink-0 bg-blue-500 text-grey-0">*/}
-        {/*            <IdentificationIcon className="size-5"/>*/}
-        {/*          </IconFrame>*/}
-        {/*      )*/}
-        {/*    }*/}
-        {/*    title={"title" || ""}*/}
-        {/*    buttonText={"try" || ""}*/}
-        {/*    disabled={false}*/}
-        {/*/>*/}
-
         <div className="mt-10">
           <div className="grid w-full grid-cols-auto/1fr/auto items-center gap-x-4 border-x border-t-[1px] p-6 first-of-type:rounded-t-2xl last-of-type:rounded-b-2xl md:min-w-[480px]">
             {isMetadataLoading ? (
@@ -149,7 +103,6 @@ export const VerifyPage = () => {
               metadata && (
                 <RequestStep
                   metadata={metadata}
-                  isMetadataLoading={isLoading}
                   onComplete={() => {
                     refetchMetadata();
                   }}
@@ -183,7 +136,6 @@ export const VerifyPage = () => {
             )}
           </div>
         </div>
-        {/*<div className="mt-6 flex w-full items-center gap-3 rounded-2xl border border-grey-200 p-6 md:mt-10">*/}
       </div>
     </SizingWrapper>
   );
