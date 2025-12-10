@@ -1,7 +1,8 @@
 import { ReactNode, useMemo } from "react";
 import {
   AffiliateMetadataResponse,
-  IdentityVerificationStatus, ParticipationStatus,
+  IdentityVerificationStatus,
+  ParticipationStatus,
 } from "@/lib/types";
 import { IconFrame } from "@/components/InitialSteps/IconFrame";
 import { RemoveCustomIcon } from "@/components/Icons/RemoveCustomIcon";
@@ -15,6 +16,7 @@ type StepConfig = {
   buttonTxt?: string;
   onClick?: () => void;
   loading?: boolean;
+  disabled?: boolean;
 };
 
 type Props = {
@@ -35,6 +37,20 @@ export const KybStep = ({ metadata, onComplete, isLoading }: Props) => {
         </IconFrame>
       ),
     };
+
+    if (metadata.participationStatus !== ParticipationStatus.APPROVED) {
+      return {
+        ...defaultConfig,
+        icon: (
+          <IconFrame className="flex-shrink-0 bg-grey-100 text-grey-500">
+            <IdentificationIcon className="size-5" />
+          </IconFrame>
+        ),
+        title: "Complete KYB",
+        disabled: true,
+      };
+    }
+
     if (status === IdentityVerificationStatus.SUCCESS) {
       return null;
     }
@@ -78,7 +94,7 @@ export const KybStep = ({ metadata, onComplete, isLoading }: Props) => {
       showButtonSpinner={requestConfig?.loading || isLoading}
       loading={!requestConfig}
       onClick={onComplete}
-      disabled={metadata?.participationStatus !== ParticipationStatus.APPROVED}
+      disabled={requestConfig?.disabled}
     />
   );
 };

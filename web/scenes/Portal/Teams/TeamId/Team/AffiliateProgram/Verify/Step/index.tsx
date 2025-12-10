@@ -39,7 +39,7 @@ export const Step = (props: {
       "grid w-full grid-cols-auto/1fr/auto items-center gap-x-4 border-t border-x p-6 md:min-w-[480px]",
       "first-of-type:rounded-t-2xl last-of-type:rounded-b-2xl last-of-type:border-b",
       {
-        "cursor-not-allowed select-none grayscale": disabled,
+        "cursor-not-allowed select-none text-grey-500": disabled,
       },
       className,
     ),
@@ -59,11 +59,8 @@ export const Step = (props: {
     <div className={rootClassName}>
       {icon}
 
-      <div className={clsx("grid grid-cols-1", { "opacity-25": disabled })}>
-        <Typography
-          variant={TYPOGRAPHY.M3}
-          className="max-w-full truncate text-grey-900"
-        >
+      <div className={clsx("grid grid-cols-1")}>
+        <Typography variant={TYPOGRAPHY.M3} className="max-w-full truncate">
           {title}
         </Typography>
 
