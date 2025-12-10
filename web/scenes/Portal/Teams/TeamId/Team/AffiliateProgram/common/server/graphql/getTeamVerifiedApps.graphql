@@ -1,0 +1,11 @@
+query GetTeamVerifiedApps($teamId: String!) {
+  app(
+    where: {
+      team_id: { _eq: $teamId }
+      is_banned: { _eq: false }
+      verified_at: { _is_null: false }
+    }
+  ) {
+    id
+  }
+}
