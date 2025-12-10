@@ -73,11 +73,11 @@ export const LoggedUserNav = () => {
     skip: !teamId,
     onCompleted: (data) => {
       console.log("fetched team", data);
-      setAffiliateConfig({
-        ...affiliateConfig,
+      setAffiliateConfig((prev) => ({
+        ...prev,
         isFetched: true,
         teamVerifiedAppsCount: data.team?.verified_apps.aggregate?.count || 0,
-      });
+      }));
     },
   });
 

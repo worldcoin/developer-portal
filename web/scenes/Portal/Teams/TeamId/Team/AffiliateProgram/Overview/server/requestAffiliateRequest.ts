@@ -2,12 +2,7 @@
 
 import { errorFormAction } from "@/api/helpers/errors";
 import { logger } from "@/lib/logger";
-import {
-  FormActionResult,
-  GetIdentityVerificationLinkResponse,
-  ParticipationStatus,
-  RequestParticipationResponse,
-} from "@/lib/types";
+import { FormActionResult, RequestParticipationResponse } from "@/lib/types";
 import { createSignedFetcher } from "aws-sigv4-fetch";
 import { validateAffiliateRequest } from "../../common/server/validate-affiliate-request";
 
@@ -42,7 +37,7 @@ export const requestParticipation = async (): Promise<FormActionResult> => {
       },
     });
 
-    const data = (await response.json()) as GetIdentityVerificationLinkResponse;
+    const data = (await response.json()) as RequestParticipationResponse;
 
     logger.info("request participation", { response, data });
 

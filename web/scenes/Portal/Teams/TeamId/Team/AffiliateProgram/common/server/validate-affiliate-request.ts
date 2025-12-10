@@ -69,7 +69,7 @@ export const validateAffiliateRequest = async (): Promise<ValidationResult> => {
   const data = await getSdk(client).GetTeamVerifiedApps({
     teamId: teamId,
   });
-  const hasVerifiedApps = (data.app.length || 0) > 0;
+  const hasVerifiedApps = data.app.length > 0;
 
   if (!hasVerifiedApps) {
     return {

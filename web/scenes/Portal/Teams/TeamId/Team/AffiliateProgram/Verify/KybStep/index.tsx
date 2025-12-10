@@ -26,7 +26,7 @@ type Props = {
 };
 
 export const KybStep = ({ metadata, onComplete, isLoading }: Props) => {
-  const requestConfig: StepConfig | null = useMemo(() => {
+  const stepConfig: StepConfig | null = useMemo(() => {
     if (!metadata) return null;
 
     const status = metadata.identityVerificationStatus;
@@ -87,14 +87,14 @@ export const KybStep = ({ metadata, onComplete, isLoading }: Props) => {
 
   return (
     <Step
-      icon={requestConfig?.icon}
-      title={requestConfig?.title}
-      description={requestConfig?.description}
-      buttonText={requestConfig?.buttonTxt}
-      showButtonSpinner={requestConfig?.loading || isLoading}
-      loading={!requestConfig}
+      icon={stepConfig?.icon}
+      title={stepConfig?.title}
+      description={stepConfig?.description}
+      buttonText={stepConfig?.buttonTxt}
+      showButtonSpinner={stepConfig?.loading || isLoading}
+      loading={!stepConfig}
       onClick={onComplete}
-      disabled={requestConfig?.disabled}
+      disabled={stepConfig?.disabled}
     />
   );
 };

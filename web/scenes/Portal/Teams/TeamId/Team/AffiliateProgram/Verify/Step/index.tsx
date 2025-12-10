@@ -80,6 +80,7 @@ export const Step = (props: {
           <Button
             type="button"
             onClick={onClick}
+            disabled={disabled}
             className="ml-auto flex size-6 items-center justify-center rounded-full bg-grey-900 md:hidden"
           >
             <ArrowDownSharpIcon className="size-3 text-grey-0" />
@@ -87,6 +88,7 @@ export const Step = (props: {
           <DecoratedButton
             type="button"
             onClick={onClick}
+            disabled={disabled}
             className="ml-auto hidden max-h-9 md:flex"
           >
             {buttonText}

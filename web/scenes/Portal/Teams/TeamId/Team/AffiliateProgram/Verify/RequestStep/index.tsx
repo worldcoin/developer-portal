@@ -25,7 +25,7 @@ type Props = {
 export const RequestStep = ({ metadata, onComplete }: Props) => {
   const [isRequestLoading, setIsRequestLoading] = useState(false);
 
-  const requestConfig: StepConfig | null = useMemo(() => {
+  const stepConfig: StepConfig | null = useMemo(() => {
     if (!metadata) return null;
 
     const status = metadata.participationStatus;
@@ -105,12 +105,12 @@ export const RequestStep = ({ metadata, onComplete }: Props) => {
   return (
     <>
       <Step
-        icon={requestConfig?.icon}
-        title={requestConfig?.title}
-        description={requestConfig?.description}
-        buttonText={requestConfig?.buttonTxt}
-        showButtonSpinner={requestConfig?.loading || isRequestLoading}
-        loading={!requestConfig}
+        icon={stepConfig?.icon}
+        title={stepConfig?.title}
+        description={stepConfig?.description}
+        buttonText={stepConfig?.buttonTxt}
+        showButtonSpinner={stepConfig?.loading || isRequestLoading}
+        loading={!stepConfig}
         onClick={handleRequestAccess}
       />
     </>

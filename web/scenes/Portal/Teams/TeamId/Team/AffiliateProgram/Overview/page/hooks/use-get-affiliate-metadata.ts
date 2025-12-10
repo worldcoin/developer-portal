@@ -1,6 +1,6 @@
 import { AffiliateMetadataResponse } from "@/lib/types";
 import { getAffiliateMetadata } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Overview/page/server/getAffiliateMetadata";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { toast } from "react-toastify";
 
 export const useGetAffiliateMetadata = (options?: { skip?: boolean }) => {
@@ -10,7 +10,7 @@ export const useGetAffiliateMetadata = (options?: { skip?: boolean }) => {
   const [loading, setLoading] = useState(!options?.skip);
   const [error, setError] = useState<unknown>(null);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     // Set loading to true before starting the fetch
     setLoading(true);
     setError(null); // Clear previous errors
@@ -25,7 +25,7 @@ export const useGetAffiliateMetadata = (options?: { skip?: boolean }) => {
       setData((result.data as AffiliateMetadataResponse).result);
     }
     setLoading(false);
-  };
+  }, []);
 
   useEffect(() => {
     // Skip fetching if skip is true
@@ -35,7 +35,7 @@ export const useGetAffiliateMetadata = (options?: { skip?: boolean }) => {
     }
 
     fetchData();
-  }, [options?.skip]);
+  }, [options?.skip, fetchData]);
 
   return { data, loading, error, refetch: fetchData };
 };
