@@ -1,16 +1,12 @@
-import { Button } from "@/components/Button";
-import { DecoratedButton } from "@/components/DecoratedButton";
-import { Typography, TYPOGRAPHY } from "@/components/Typography";
 import { ReactNode, useMemo, useState } from "react";
 import { AffiliateMetadataResponse, ParticipationStatus } from "@/lib/types";
 import { requestParticipation } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Overview/server/requestAffiliateRequest";
 import { toast } from "react-toastify";
 import { IconFrame } from "@/components/InitialSteps/IconFrame";
 import { RemoveCustomIcon } from "@/components/Icons/RemoveCustomIcon";
-import { SpinnerIcon } from "@/components/Icons/SpinnerIcon";
-import { ArrowDownSharpIcon } from "@/components/Icons/ArrowDownSharp";
 import { NoteEditIcon } from "@/components/Icons/NoteEditIcon";
 import { CheckIcon } from "@/components/Icons/CheckIcon";
+import { Step } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Verify/Step";
 
 type StepConfig = {
   icon?: ReactNode;
@@ -22,7 +18,7 @@ type StepConfig = {
 };
 
 type Props = {
-  metadata: AffiliateMetadataResponse["result"];
+  metadata: AffiliateMetadataResponse["result"] | null;
   onComplete: () => void;
 };
 
@@ -85,7 +81,7 @@ export const RequestStep = ({ metadata, onComplete }: Props) => {
   }, [metadata]);
 
   const handleRequestAccess = async () => {
-    if (!metadata) return;
+    if (!metadata || isRequestLoading) return;
 
     setIsRequestLoading(true);
 
@@ -108,39 +104,15 @@ export const RequestStep = ({ metadata, onComplete }: Props) => {
 
   return (
     <>
-      {requestConfig?.icon}
-
-      <div className="text-start">
-        <Typography as="p" variant={TYPOGRAPHY.M3}>
-          {requestConfig?.title}
-        </Typography>
-        <Typography as="p" variant={TYPOGRAPHY.R5} className="text-grey-500">
-          {requestConfig?.description}
-        </Typography>
-      </div>
-
-      {requestConfig?.buttonTxt &&
-        (isRequestLoading ||
-        metadata?.participationStatus === ParticipationStatus.PENDING ? (
-          <SpinnerIcon className="ml-auto size-6 animate-spin" />
-        ) : (
-          <>
-            <Button
-              type="button"
-              onClick={handleRequestAccess}
-              className="ml-auto flex size-6 items-center justify-center rounded-full bg-grey-900 md:hidden"
-            >
-              <ArrowDownSharpIcon className="size-3 text-grey-0" />
-            </Button>
-            <DecoratedButton
-              type="button"
-              onClick={handleRequestAccess}
-              className="ml-auto hidden max-h-9 md:flex"
-            >
-              {requestConfig?.buttonTxt}
-            </DecoratedButton>
-          </>
-        ))}
+      <Step
+        icon={requestConfig?.icon}
+        title={requestConfig?.title}
+        description={requestConfig?.description}
+        buttonText={requestConfig?.buttonTxt}
+        showButtonSpinner={requestConfig?.loading || isRequestLoading}
+        loading={!requestConfig}
+        onClick={handleRequestAccess}
+      />
     </>
   );
 };

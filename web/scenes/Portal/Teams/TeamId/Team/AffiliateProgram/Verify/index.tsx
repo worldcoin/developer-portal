@@ -4,24 +4,19 @@ import { SizingWrapper } from "@/components/SizingWrapper";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import {
   GetIdentityVerificationLinkResponse,
-  IdentityVerificationStatus,
   ParticipationStatus,
 } from "@/lib/types";
 import { useGetAffiliateMetadata } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Overview/page/hooks/use-get-affiliate-metadata";
 import { getIdentityVerificationLink } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Overview/server/getIdentityVerificationLink";
 import { useState } from "react";
-import Skeleton from "react-loading-skeleton";
 import { toast } from "react-toastify";
 import { AcceptTermsDialog } from "./AcceptTerms";
 import { RequestStep } from "./RequestStep";
 import { KybStep } from "./KybStep";
 
 export const VerifyPage = () => {
-  const {
-    data: metadata,
-    loading: isMetadataLoading,
-    refetch: refetchMetadata,
-  } = useGetAffiliateMetadata();
+  const { data: metadata, refetch: refetchMetadata } =
+    useGetAffiliateMetadata();
   const [isLoading, setIsLoading] = useState(false);
   const [showAcceptTerms, setShowAcceptTerms] = useState(false);
 
@@ -89,46 +84,18 @@ export const VerifyPage = () => {
         </div>
 
         <div className="mt-10">
-          <div className="grid w-full grid-cols-auto/1fr/auto items-center gap-x-4 border-x border-t-[1px] p-6 first-of-type:rounded-t-2xl last-of-type:rounded-b-2xl md:min-w-[480px]">
-            {isMetadataLoading ? (
-              <>
-                <Skeleton circle className="size-10" />
-                <Skeleton height={40} width={150} />
-                <Skeleton height={36} width={100} />
-              </>
-            ) : (
-              metadata && (
-                <RequestStep
-                  metadata={metadata}
-                  onComplete={() => {
-                    refetchMetadata();
-                  }}
-                />
-              )
-            )}
-          </div>
+          <RequestStep
+            metadata={metadata}
+            onComplete={() => {
+              refetchMetadata();
+            }}
+          />
 
-          <div className="grid w-full grid-cols-auto/1fr/auto items-center gap-x-4 border-x border-y-[1px] p-6 first-of-type:rounded-t-2xl first-of-type:border-t-0 last-of-type:rounded-b-2xl md:min-w-[480px]">
-            {isMetadataLoading ? (
-              <>
-                <Skeleton circle className="size-10" />
-                <Skeleton height={40} width={150} />
-                <Skeleton height={36} width={100} />
-              </>
-            ) : (
-              metadata && (
-                <KybStep
-                  metadata={metadata}
-                  isLoading={isLoading}
-                  onComplete={handleComplete}
-                  disabled={
-                    metadata.participationStatus !==
-                    ParticipationStatus.APPROVED
-                  }
-                />
-              )
-            )}
-          </div>
+          <KybStep
+            metadata={metadata}
+            onComplete={handleComplete}
+            isLoading={isLoading}
+          />
         </div>
       </div>
     </SizingWrapper>

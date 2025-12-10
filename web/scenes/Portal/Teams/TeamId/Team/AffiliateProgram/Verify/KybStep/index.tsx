@@ -1,16 +1,12 @@
-import { Button } from "@/components/Button";
-import { DecoratedButton } from "@/components/DecoratedButton";
-import { Typography, TYPOGRAPHY } from "@/components/Typography";
 import { ReactNode, useMemo } from "react";
 import {
   AffiliateMetadataResponse,
-  IdentityVerificationStatus,
+  IdentityVerificationStatus, ParticipationStatus,
 } from "@/lib/types";
 import { IconFrame } from "@/components/InitialSteps/IconFrame";
 import { RemoveCustomIcon } from "@/components/Icons/RemoveCustomIcon";
 import { IdentificationIcon } from "@/components/Icons/IdentificationIcon";
-import { SpinnerIcon } from "@/components/Icons/SpinnerIcon";
-import { ArrowDownSharpIcon } from "@/components/Icons/ArrowDownSharp";
+import { Step } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Verify/Step";
 
 type StepConfig = {
   icon?: ReactNode;
@@ -22,18 +18,12 @@ type StepConfig = {
 };
 
 type Props = {
-  metadata: AffiliateMetadataResponse["result"];
-  isLoading: boolean;
+  metadata: AffiliateMetadataResponse["result"] | null;
   onComplete: () => void;
-  disabled: boolean;
+  isLoading: boolean;
 };
 
-export const KybStep = ({
-  metadata,
-  isLoading,
-  onComplete,
-  disabled,
-}: Props) => {
+export const KybStep = ({ metadata, onComplete, isLoading }: Props) => {
   const requestConfig: StepConfig | null = useMemo(() => {
     if (!metadata) return null;
 
@@ -80,39 +70,15 @@ export const KybStep = ({
   }, [metadata]);
 
   return (
-    <>
-      {requestConfig?.icon}
-
-      <div className="text-start">
-        <Typography as="p" variant={TYPOGRAPHY.M3}>
-          {requestConfig?.title}
-        </Typography>
-        <Typography as="p" variant={TYPOGRAPHY.R5} className="text-grey-500">
-          {requestConfig?.description}
-        </Typography>
-      </div>
-
-      {requestConfig?.buttonTxt &&
-        (requestConfig?.loading ? (
-          <SpinnerIcon className="ml-auto size-6 animate-spin" />
-        ) : (
-          <>
-            <Button
-              type="button"
-              onClick={onComplete}
-              className="ml-auto flex size-6 items-center justify-center rounded-full bg-grey-900 md:hidden"
-            >
-              <ArrowDownSharpIcon className="size-3 text-grey-0" />
-            </Button>
-            <DecoratedButton
-              type="button"
-              onClick={onComplete}
-              className="ml-auto hidden max-h-9 md:flex"
-            >
-              {requestConfig?.buttonTxt}
-            </DecoratedButton>
-          </>
-        ))}
-    </>
+    <Step
+      icon={requestConfig?.icon}
+      title={requestConfig?.title}
+      description={requestConfig?.description}
+      buttonText={requestConfig?.buttonTxt}
+      showButtonSpinner={requestConfig?.loading || isLoading}
+      loading={!requestConfig}
+      onClick={onComplete}
+      disabled={metadata?.participationStatus !== ParticipationStatus.APPROVED}
+    />
   );
 };
