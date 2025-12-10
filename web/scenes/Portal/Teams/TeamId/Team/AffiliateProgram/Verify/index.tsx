@@ -93,10 +93,7 @@ export const VerifyPage = () => {
             {isMetadataLoading ? (
               <>
                 <Skeleton circle className="size-10" />
-                <div className="h-10 flex-1 text-start">
-                  <Skeleton height={20} width={100} />
-                  <Skeleton height={16} width={150} />
-                </div>
+                <Skeleton height={40} width={150} />
                 <Skeleton height={36} width={100} />
               </>
             ) : (
@@ -115,10 +112,7 @@ export const VerifyPage = () => {
             {isMetadataLoading ? (
               <>
                 <Skeleton circle className="size-10" />
-                <div className="h-10 flex-1 text-start">
-                  <Skeleton height={20} width={100} />
-                  <Skeleton height={16} width={150} />
-                </div>
+                <Skeleton height={40} width={150} />
                 <Skeleton height={36} width={100} />
               </>
             ) : (
