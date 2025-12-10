@@ -63,7 +63,7 @@ export const LoginPage = async () => {
             variant={TYPOGRAPHY.R3}
             className="text-center text-grey-500"
           >
-            he World protocol is enabling a new class of applications built on
+            The World protocol is enabling a new class of applications built on
             top of anonymous proof of human
           </Typography>
         </div>
