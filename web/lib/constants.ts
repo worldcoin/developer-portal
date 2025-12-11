@@ -162,7 +162,8 @@ export const PARTNER_TEAM_IDS = {
     "team_4e67539b4bb0f6dfabeba48793cf747d",
     "team_9b50d04b36a7aa4d2562604f67277376",
     "team_47d749c71e3627c69f3a59fc1b21b2ae", // Tinder
-    "team_56592d0d26de476126ae29a3904df44e", // TFH Deep Face
+    "team_56592d0d26de476126ae29a3904df44e", // Deep Face
+    "team_f8bdaaa2da5b9779b9dbd6ab82a705a2", // World ID
   ], // TFH, Test Partner
 };
 
