@@ -53,7 +53,7 @@ export const RequestStep = ({ metadata, onComplete }: Props) => {
       return {
         ...defaultConfig,
         title: "Request in review",
-        description: "It will take up to 48 hours",
+        description: "Check back later",
         loading: true,
       };
     }
