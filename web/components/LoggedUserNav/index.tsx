@@ -196,7 +196,7 @@ export const LoggedUserNav = () => {
                     </Dropdown.ListItemIcon>
 
                     <Dropdown.ListItemText>
-                      Affiliate program
+                      World Grow (affiliate)
                     </Dropdown.ListItemText>
                   </Link>
                 </Dropdown.ListItem>
