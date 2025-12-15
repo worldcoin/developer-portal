@@ -3,7 +3,7 @@ import { AffiliateProgramPage } from "scenes/Portal/Teams/TeamId/Team/AffiliateP
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: generateMetaTitle({ left: "Affiliate program" }),
+  title: generateMetaTitle({ left: "World Grow (affiliate)" }),
 };
 
 export default AffiliateProgramPage;
