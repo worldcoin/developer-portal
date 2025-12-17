@@ -8,7 +8,8 @@ on:
 jobs:
   lint:
     name: Code formatting & linting
-    runs-on: ubuntu-24.04
+    runs-on:
+      group: arc-public-large-amd64-runner
     timeout-minutes: 3
     defaults:
       run:
@@ -34,7 +35,8 @@ jobs:
 
   typecheck:
     name: Code typechecking
-    runs-on: ubuntu-24.04
+    runs-on:
+      group: arc-public-large-amd64-runner
     timeout-minutes: 3
     defaults:
       run:
