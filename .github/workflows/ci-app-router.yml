@@ -48,7 +48,7 @@ jobs:
   build:
     name: Test build
     runs-on:
-      group: arc-public-large-amd64-runner
+      group: arc-public-xlarge-amd64-runner
     timeout-minutes: 10
     defaults:
       run:
@@ -198,8 +198,8 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Install Chromium
-        run: pnpm exec playwright install chromium
+      - name: Install Chromium with dependencies
+        run: pnpm exec playwright install --with-deps chromium
 
       - name: Run end-to-end tests
         run: pnpm test:e2e
