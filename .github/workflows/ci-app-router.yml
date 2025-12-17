@@ -14,7 +14,8 @@ on:
 jobs:
   lint:
     name: Code formatting & linting
-    runs-on: ubuntu-24.04
+    runs-on:
+      group: arc-public-large-amd64-runner
     timeout-minutes: 3
     defaults:
       run:
@@ -46,7 +47,8 @@ jobs:
 
   build:
     name: Test build
-    runs-on: ubuntu-24.04
+    runs-on:
+      group: arc-public-large-amd64-runner
     timeout-minutes: 10
     defaults:
       run:
@@ -76,7 +78,8 @@ jobs:
 
   docker-build:
     name: Test Docker build
-    runs-on: ubuntu-24.04
+    runs-on:
+      group: arc-public-large-amd64-runner
     timeout-minutes: 10
     defaults:
       run:
@@ -99,7 +102,8 @@ jobs:
 
   api-tests:
     name: API Tests
-    runs-on: ubuntu-24.04
+    runs-on:
+      group: arc-public-large-amd64-runner
     timeout-minutes: 3
     defaults:
       run:
@@ -126,7 +130,8 @@ jobs:
 
   integration-tests:
     name: Integration Tests
-    runs-on: ubuntu-24.04
+    runs-on:
+      group: arc-public-large-amd64-runner
     timeout-minutes: 3
     defaults:
       run:
@@ -161,7 +166,8 @@ jobs:
 
   e2e-tests:
     name: End-to-end Tests
-    runs-on: ubuntu-24.04-16core
+    runs-on:
+      group: arc-public-large-amd64-runner
     timeout-minutes: 10
     environment: development
 
@@ -219,7 +225,8 @@ jobs:
 
   unit-tests:
     name: Unit Tests
-    runs-on: ubuntu-24.04
+    runs-on:
+      group: arc-public-large-amd64-runner
     timeout-minutes: 3
     defaults:
       run:
