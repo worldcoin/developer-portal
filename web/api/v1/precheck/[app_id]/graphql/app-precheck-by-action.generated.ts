@@ -44,7 +44,7 @@ export type AppPrecheckByActionQueryQuery = {
       webhook_pem?: string | null;
       post_action_deep_link_ios?: string | null;
       post_action_deep_link_android?: string | null;
-      return_url?: string | null;
+      return_uri?: string | null;
       nullifiers: Array<{
         __typename?: "nullifier";
         uses: number;
@@ -94,7 +94,7 @@ export const AppPrecheckByActionQueryDocument = gql`
         app_flow_on_complete
         webhook_uri
         webhook_pem
-        return_url: post_action_deep_link_ios
+        return_uri: post_action_deep_link_ios
         post_action_deep_link_ios
         post_action_deep_link_android
         nullifiers(where: { nullifier_hash: { _eq: $nullifier_hash } }) {
