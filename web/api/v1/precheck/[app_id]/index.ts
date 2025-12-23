@@ -8,7 +8,18 @@ import { CanUserVerifyType, EngineType } from "@/lib/types";
 import { getCDNImageUrl } from "@/lib/utils";
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
-import { getSdk } from "./graphql/app-precheck.generated";
+import { getSdk as getAppPrecheckSdk } from "./graphql/app-precheck.generated";
+import { getSdk as getAppPrecheckByActionSdk } from "./graphql/app-precheck-by-action.generated";
+
+/**
+ * Apps that use custom external_nullifier values (not computed from app_id + action).
+ * For these apps, we query by action name instead of computed external_nullifier.
+ * This supports legacy integrations that need specific external_nullifier values
+ * to maintain nullifier_hash compatibility.
+ */
+const APPS_WITH_CUSTOM_EXTERNAL_NULLIFIER = [
+  "app_1f7f2c379f20307a414f6cf8b544ec8a", // Grants app - uses 0xB16B00B5 for humanity verification
+];
 
 const schema = yup
   .object()
@@ -59,19 +70,39 @@ export async function POST(
   const app_id = routeParams.app_id;
   const action = parsedParams.action ?? "";
   const nullifier_hash = parsedParams.nullifier_hash;
-  const external_nullifier =
-    parsedParams.external_nullifier ??
-    generateExternalNullifier(app_id, action).digest;
+
+  // Check if this app uses custom external_nullifier values
+  const useCustomExternalNullifier =
+    APPS_WITH_CUSTOM_EXTERNAL_NULLIFIER.includes(app_id) && action !== "";
 
   const client = await getAPIServiceGraphqlClient();
-  const sdk = getSdk(client);
 
   // ANCHOR: Fetch app from Hasura
-  const appQueryResult = await sdk.AppPrecheckQuery({
-    app_id,
-    nullifier_hash,
-    external_nullifier,
-  });
+  // For apps with custom external_nullifier, query by action name to return the stored value
+  // For other apps, compute the external_nullifier from app_id + action (standard behavior)
+  let appQueryResult;
+
+  if (useCustomExternalNullifier) {
+    // Query by action name for apps with custom external_nullifier
+    const sdk = getAppPrecheckByActionSdk(client);
+    appQueryResult = await sdk.AppPrecheckByActionQuery({
+      app_id,
+      action,
+      nullifier_hash,
+    });
+  } else {
+    // Standard behavior: compute external_nullifier and query by it
+    const external_nullifier =
+      parsedParams.external_nullifier ??
+      generateExternalNullifier(app_id, action).digest;
+
+    const sdk = getAppPrecheckSdk(client);
+    appQueryResult = await sdk.AppPrecheckQuery({
+      app_id,
+      nullifier_hash,
+      external_nullifier,
+    });
+  }
 
   const rawAppValues = appQueryResult.app?.[0];
 
