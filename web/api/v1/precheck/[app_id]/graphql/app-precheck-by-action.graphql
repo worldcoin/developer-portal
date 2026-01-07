@@ -1,0 +1,49 @@
+query AppPrecheckByActionQuery(
+  $app_id: String!
+  $action: String!
+  $nullifier_hash: String
+) {
+  app(
+    where: {
+      id: { _eq: $app_id }
+      status: { _eq: "active" }
+      is_archived: { _eq: false }
+    }
+  ) {
+    id
+    is_staging
+    engine
+    app_metadata(where: { verification_status: { _neq: "verified" } }) {
+      name
+      integration_url
+    }
+    verified_app_metadata: app_metadata(
+      where: { verification_status: { _eq: "verified" } }
+    ) {
+      name
+      logo_img_url
+      integration_url
+    }
+    actions(where: { action: { _eq: $action } }) {
+      external_nullifier
+      name
+      action
+      description
+      max_verifications
+      max_accounts_per_user
+      status
+      privacy_policy_uri
+      terms_uri
+      app_flow_on_complete
+      webhook_uri
+      webhook_pem
+      return_uri: post_action_deep_link_ios # temporary support of iOS 2.9.1200, 2.9.1201, 2.9.1202
+      post_action_deep_link_ios
+      post_action_deep_link_android
+      nullifiers(where: { nullifier_hash: { _eq: $nullifier_hash } }) {
+        uses
+        nullifier_hash
+      }
+    }
+  }
+}
