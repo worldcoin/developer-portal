@@ -46,6 +46,15 @@ export const AppSelector = () => {
     skip: !teamId,
   });
 
+  const sortedApps = useMemo(() => {
+    if (!data?.app) return [];
+    return [...data.app].sort((a, b) => {
+      const nameA = a.app_metadata[0]?.name ?? "";
+      const nameB = b.app_metadata[0]?.name ?? "";
+      return nameA.localeCompare(nameB, undefined, { sensitivity: "base" });
+    });
+  }, [data?.app]);
+
   const onChange = useCallback(
     (app: FetchAppsQuery["app"][number] | null) => {
       // NOTE: null is value for "Create new app" option
@@ -62,13 +71,13 @@ export const AppSelector = () => {
     [router, setCreateAppDialogOpen, teamId],
   );
 
-  if (!data || loading || error || data.app.length === 0 || !teamId) {
+  if (!data || loading || error || sortedApps.length === 0 || !teamId) {
     return null;
   }
 
   return (
     <Select
-      value={data.app.find((app) => app.id === appId) ?? null}
+      value={sortedApps.find((app) => app.id === appId) ?? null}
       onChange={onChange}
       by={(
         a: FetchAppsQuery["app"][number],
@@ -110,7 +119,7 @@ export const AppSelector = () => {
       </SelectButton>
 
       <SelectOptions className="max-h-[50vh] max-w-[200px]">
-        {data.app.map((app) => (
+        {sortedApps.map((app) => (
           <SelectOption key={app.id} value={app}>
             {({ selected }) => (
               <div className="grid grid-cols-auto/1fr/auto items-center gap-x-2 truncate">
