@@ -170,8 +170,12 @@ const allowedCountries = [
 
 const supportedLanguages = [
   {
-    label: "English",
+    label: "English (US)",
     value: "en",
+  },
+  {
+    label: "English (UK)",
+    value: "en_GB",
   },
   {
     label: "Catalan",
@@ -240,7 +244,8 @@ const supportedLanguages = [
 ] as const;
 
 export const languageMap = {
-  en: { label: "English", country_code: "GB" },
+  en: { label: "English (US)", country_code: "US" },
+  en_GB: { label: "English (UK)", country_code: "GB" },
   ca: { label: "Catalan", country_code: "AD" },
   zh_CN: { label: "Chinese Simplified", country_code: "CN" },
   fr: { label: "French", country_code: "FR" },
@@ -301,6 +306,11 @@ export const parseLocale = (locale: string) => {
     return "es_419";
   } else if (major_locale === "es") {
     return "es";
+  }
+
+  // Handle British English case
+  if (major_locale === "en" && secondary_locale?.toUpperCase() === "GB") {
+    return "en_GB";
   }
 
   return language?.value || "en";
