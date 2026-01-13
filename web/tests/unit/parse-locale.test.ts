@@ -5,6 +5,11 @@ describe("parseLocale", () => {
     expect(parseLocale("en-US")).toBe("en");
   });
 
+  it("should parse en-GB and en_GB", () => {
+    expect(parseLocale("en-GB")).toBe("en_GB");
+    expect(parseLocale("en_GB")).toBe("en_GB");
+  });
+
   it("should parse zh-TW and zh_TW and zh-Hant-TW", () => {
     expect(parseLocale("zh-TW")).toBe("zh_TW");
     expect(parseLocale("zh_TW")).toBe("zh_TW");
