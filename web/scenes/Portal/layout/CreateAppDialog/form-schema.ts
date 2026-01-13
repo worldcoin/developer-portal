@@ -9,7 +9,14 @@ export const createAppSchema = yup
     name: yup.string().required("This field is required"),
     build: yup.string().oneOf(BUILD_TYPES).default("production"),
     category: yup.string().oneOf(CategoryNameIterable).required(),
-    integration_url: yup.string().url("Must be a valid URL").optional(),
+    integration_url: yup
+      .string()
+      .url("Must be a valid URL")
+      .matches(/^https:\/\/(\w+-)*\w+(\.\w+)+([\/\w\-._/?%&#=]*)?$/, {
+        message: "URL must use HTTPS (e.g., https://example.com)",
+        excludeEmptyString: true,
+      })
+      .optional(),
     verification: yup.string().oneOf(VERIFICATION_TYPES).default("cloud"),
     app_mode: yup
       .string()
