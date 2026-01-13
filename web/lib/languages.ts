@@ -230,6 +230,10 @@ const supportedLanguages = [
     value: "id",
   },
   {
+    label: "Italian",
+    value: "it",
+  },
+  {
     label: "Traditional Chinese (Taiwan)",
     value: "zh_TW",
   },
