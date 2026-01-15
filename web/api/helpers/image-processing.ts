@@ -1,6 +1,7 @@
 import { logger } from "@/lib/logger";
 import {
   CopyObjectCommand,
+  DeleteObjectCommand,
   GetObjectCommand,
   PutObjectCommand,
   S3Client,
@@ -252,4 +253,59 @@ const addFooter = async (
       ? compositeImage.png({ quality: 100 })
       : compositeImage.jpeg({ quality: 100 })
   ).toBuffer();
+};
+
+/**
+ * Deletes an unverified image from S3
+ * @param s3Client - The S3 client instance
+ * @param bucketName - The S3 bucket name
+ * @param appId - The app ID
+ * @param imagePath - The image path (e.g., "meta_tag_image.png", "showcase_img_1.png")
+ * @param locale - Optional locale for localized images (e.g., "es", "fr"). If not provided, assumes English (no locale prefix)
+ * @returns Promise<boolean> - Returns true if deletion was successful or image didn't exist, false on error
+ */
+export const deleteUnverifiedImage = async (
+  s3Client: S3Client,
+  bucketName: string,
+  appId: string,
+  imagePath: string,
+  locale?: string,
+): Promise<boolean> => {
+  if (!imagePath || imagePath.trim() === "") {
+    logger.warn("Attempted to delete image with empty path", { appId, locale });
+    return true; // Not an error, just nothing to delete
+  }
+
+  try {
+    // Construct the S3 key path
+    // English images: unverified/{app_id}/{image_path}
+    // Localized images: unverified/{app_id}/{locale}/{image_path}
+    const s3Key = `unverified/${appId}${locale && locale !== "en" ? `/${locale}` : ""
+      }/${imagePath}`;
+
+    await s3Client.send(
+      new DeleteObjectCommand({
+        Bucket: bucketName,
+        Key: s3Key,
+      }),
+    );
+
+    logger.info("Successfully deleted unverified image from S3", {
+      appId,
+      locale,
+      imagePath,
+      s3Key,
+    });
+
+    return true;
+  } catch (error) {
+    // Log error but don't throw - we don't want image deletion failures to break the update flow
+    logger.error("Failed to delete unverified image from S3", {
+      error,
+      appId,
+      locale,
+      imagePath,
+    });
+    return false;
+  }
 };
