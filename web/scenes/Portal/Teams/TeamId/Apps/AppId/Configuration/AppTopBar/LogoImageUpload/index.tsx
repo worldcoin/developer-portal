@@ -14,6 +14,7 @@ import Image from "next/image";
 import { ChangeEvent, useMemo, useRef, useState } from "react";
 import Skeleton from "react-loading-skeleton";
 import { toast } from "react-toastify";
+import { cleanupRemovedImage } from "../../AppStore/server/cleanup-removed-image";
 import { LOGO_IMAGE_UPLOAD_TOAST_ID } from "../../constants";
 import { FetchAppMetadataDocument } from "../../graphql/client/fetch-app-metadata.generated";
 import { ImageValidationError, useImage } from "../../hook/use-image";
@@ -52,6 +53,9 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
       const fileTypeEnding = file.type.split("/")[1];
 
       try {
+        // Store the current image path before replacement for cleanup
+        const currentImagePath = logoFile || null;
+
         // Aspect ratio of 1:1
         await validateImageAspectRatio(file, 1, 1);
 
@@ -76,15 +80,26 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
         });
 
         const saveFileType = fileTypeEnding === "jpeg" ? "jpg" : fileTypeEnding;
+        const newFileName = `${imageType}.${saveFileType}`;
 
         await updateLogoMutation({
           variables: {
             id: appMetadataId,
-            fileName: `${imageType}.${saveFileType}`,
+            fileName: newFileName,
           },
 
           refetchQueries: [FetchAppMetadataDocument],
         });
+
+        // Clean up the old image from S3 if it was replaced (different filename)
+        if (currentImagePath && currentImagePath !== newFileName) {
+          await cleanupRemovedImage(
+            appId,
+            appMetadataId,
+            "logo_img",
+            currentImagePath,
+          );
+        }
 
         toast.update(LOGO_IMAGE_UPLOAD_TOAST_ID, {
           type: "success",
@@ -116,19 +131,37 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
   };
 
   const removeImage = async () => {
+    // Store the current image path before removal for cleanup
+    const currentImagePath = logoFile || null;
+
     setUnverifiedImages({
       ...unverifiedImages,
       logo_img_url: "",
     });
 
-    await updateLogoMutation({
-      variables: {
-        id: appMetadataId,
-        fileName: "",
-      },
+    try {
+      await updateLogoMutation({
+        variables: {
+          id: appMetadataId,
+          fileName: "",
+        },
 
-      refetchQueries: [FetchAppMetadataDocument],
-    });
+        refetchQueries: [FetchAppMetadataDocument],
+      });
+
+      // Clean up the old image from S3 after successful removal
+      if (currentImagePath) {
+        await cleanupRemovedImage(
+          appId,
+          appMetadataId,
+          "logo_img",
+          currentImagePath,
+        );
+      }
+    } catch (error) {
+      // Error is already handled by the mutation, but log cleanup if it fails
+      console.error("Error removing logo image:", error);
+    }
   };
 
   const verifiedImageURL = useMemo(() => {

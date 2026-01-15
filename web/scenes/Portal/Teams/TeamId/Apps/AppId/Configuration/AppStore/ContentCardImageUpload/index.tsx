@@ -18,6 +18,7 @@ import { CONTENT_CARD_IMAGE_UPLOAD_TOAST_ID } from "../../constants";
 import { FetchAppMetadataDocument } from "../../graphql/client/fetch-app-metadata.generated";
 import { ImageValidationError, useImage } from "../../hook/use-image";
 import { unverifiedImageAtom, viewModeAtom } from "../../layout/ImagesProvider";
+import { cleanupRemovedImage } from "../server/cleanup-removed-image";
 import { useUpdateContentCardImageMutation } from "./graphql/client/update-content-card-image.generated";
 
 type ContentCardImageUploadProps = {
@@ -63,6 +64,9 @@ export const ContentCardImageUpload = (props: ContentCardImageUploadProps) => {
       const fileTypeEnding = file.type.split("/")[1];
 
       try {
+        // Store the current image path before replacement for cleanup
+        const currentImagePath = contentCardImageFile || null;
+
         // Aspect ratio of 345px width and 240px height
         await validateImageAspectRatio(file, 345, 240);
 
@@ -87,15 +91,26 @@ export const ContentCardImageUpload = (props: ContentCardImageUploadProps) => {
         });
 
         const saveFileType = fileTypeEnding === "jpeg" ? "jpg" : fileTypeEnding;
+        const newFileName = `${imageType}.${saveFileType}`;
 
         await updateContentCardImageMutation({
           variables: {
             id: appMetadataId,
-            fileName: `${imageType}.${saveFileType}`,
+            fileName: newFileName,
           },
 
           refetchQueries: [FetchAppMetadataDocument],
         });
+
+        // Clean up the old image from S3 if it was replaced (different filename)
+        if (currentImagePath && currentImagePath !== newFileName) {
+          await cleanupRemovedImage(
+            appId,
+            appMetadataId,
+            "content_card_image",
+            currentImagePath,
+          );
+        }
 
         toast.update(CONTENT_CARD_IMAGE_UPLOAD_TOAST_ID, {
           type: "success",
@@ -127,19 +142,37 @@ export const ContentCardImageUpload = (props: ContentCardImageUploadProps) => {
   };
 
   const removeImage = async () => {
+    // Store the current image path before removal for cleanup
+    const currentImagePath = contentCardImageFile || null;
+
     setUnverifiedImages({
       ...unverifiedImages,
       content_card_image_url: "",
     });
 
-    await updateContentCardImageMutation({
-      variables: {
-        id: appMetadataId,
-        fileName: "",
-      },
+    try {
+      await updateContentCardImageMutation({
+        variables: {
+          id: appMetadataId,
+          fileName: "",
+        },
 
-      refetchQueries: [FetchAppMetadataDocument],
-    });
+        refetchQueries: [FetchAppMetadataDocument],
+      });
+
+      // Clean up the old image from S3 after successful removal
+      if (currentImagePath) {
+        await cleanupRemovedImage(
+          appId,
+          appMetadataId,
+          "content_card_image",
+          currentImagePath,
+        );
+      }
+    } catch (error) {
+      // Error is already handled by the mutation, but log cleanup if it fails
+      console.error("Error removing content card image:", error);
+    }
   };
 
   const verifiedImageURL = useMemo(() => {
