@@ -54,7 +54,7 @@ jest.mock(
       debug: jest.fn(),
     },
   }),
-  { virtual: true }
+  { virtual: true },
 );
 
 describe("kms-manager", () => {
@@ -117,7 +117,9 @@ describe("kms-manager", () => {
         },
       });
 
-      mockGetEthAddressFromKMS.mockRejectedValueOnce(new Error("Address error"));
+      mockGetEthAddressFromKMS.mockRejectedValueOnce(
+        new Error("Address error"),
+      );
 
       const result = await createManagerKey(mockClient, "rp-123");
 
@@ -183,7 +185,7 @@ describe("kms-manager", () => {
       const result = await signWithManagerKey(
         mockClient,
         "test-key-id",
-        invalidDigest
+        invalidDigest,
       );
 
       expect(result).toBeUndefined();
@@ -200,7 +202,11 @@ describe("kms-manager", () => {
 
       mockSignDigest.mockResolvedValueOnce(mockSignature);
 
-      const result = await signWithManagerKey(mockClient, "test-key-id", digest);
+      const result = await signWithManagerKey(
+        mockClient,
+        "test-key-id",
+        digest,
+      );
 
       expect(result).toEqual(mockSignature);
     });
@@ -209,7 +215,11 @@ describe("kms-manager", () => {
       const digest = new Uint8Array(32);
       mockSignDigest.mockRejectedValueOnce(new Error("Sign error"));
 
-      const result = await signWithManagerKey(mockClient, "test-key-id", digest);
+      const result = await signWithManagerKey(
+        mockClient,
+        "test-key-id",
+        digest,
+      );
 
       expect(result).toBeUndefined();
     });
@@ -237,8 +247,7 @@ describe("kms-manager", () => {
 
     it("should return signature on success", async () => {
       // 65-byte signature: 32 bytes r + 32 bytes s + 1 byte v (0x1b = 27)
-      const mockSignature =
-        "0x" + "11".repeat(32) + "22".repeat(32) + "1b";
+      const mockSignature = "0x" + "11".repeat(32) + "22".repeat(32) + "1b";
 
       mockSignTypedData.mockResolvedValueOnce(mockSignature);
 
@@ -247,7 +256,7 @@ describe("kms-manager", () => {
         "test-key-id",
         testDomain,
         testTypes,
-        testMessage
+        testMessage,
       );
 
       expect(result).toBeDefined();
@@ -265,7 +274,7 @@ describe("kms-manager", () => {
         "test-key-id",
         testDomain,
         testTypes,
-        testMessage
+        testMessage,
       );
 
       expect(result).toBeUndefined();
@@ -286,7 +295,7 @@ describe("kms-manager", () => {
 
       // Should not throw
       await expect(
-        scheduleManagerKeyDeletion(mockClient, "test-key-id")
+        scheduleManagerKeyDeletion(mockClient, "test-key-id"),
       ).resolves.not.toThrow();
     });
   });

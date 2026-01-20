@@ -55,7 +55,7 @@ export interface EthSignature {
  */
 export async function createManagerKey(
   client: KMSClient,
-  rpId: string
+  rpId: string,
 ): Promise<CreateManagerKeyResult | undefined> {
   try {
     const { KeyMetadata } = await client.send(
@@ -68,7 +68,7 @@ export async function createManagerKey(
           { TagKey: "rpId", TagValue: rpId },
           { TagKey: "purpose", TagValue: "rp-manager" },
         ],
-      })
+      }),
     );
 
     const keyId = KeyMetadata?.KeyId;
@@ -102,7 +102,7 @@ export async function createManagerKey(
  */
 export async function getManagerAddress(
   client: KMSClient,
-  keyId: string
+  keyId: string,
 ): Promise<string | undefined> {
   try {
     return await getEthAddressFromKMS(client, keyId);
@@ -121,11 +121,11 @@ export async function getManagerAddress(
  */
 export async function getManagerPublicKey(
   client: KMSClient,
-  keyId: string
+  keyId: string,
 ): Promise<Uint8Array | undefined> {
   try {
     const { PublicKey } = await client.send(
-      new GetPublicKeyCommand({ KeyId: keyId })
+      new GetPublicKeyCommand({ KeyId: keyId }),
     );
 
     if (!PublicKey) {
@@ -151,7 +151,7 @@ export async function getManagerPublicKey(
 export async function signWithManagerKey(
   client: KMSClient,
   keyId: string,
-  digest: Uint8Array
+  digest: Uint8Array,
 ): Promise<EthSignature | undefined> {
   if (digest.length !== 32) {
     logger.error("Digest must be 32 bytes", { digestLength: digest.length });
@@ -192,7 +192,7 @@ export async function signTypedDataWithManagerKey(
   keyId: string,
   domain: TypedDataDomain,
   types: Record<string, TypedDataField[]>,
-  message: Record<string, unknown>
+  message: Record<string, unknown>,
 ): Promise<EthSignature | undefined> {
   try {
     // Create a KMSSigner instance
@@ -230,14 +230,14 @@ export async function signTypedDataWithManagerKey(
  */
 export async function scheduleManagerKeyDeletion(
   client: KMSClient,
-  keyId: string
+  keyId: string,
 ): Promise<void> {
   try {
     await client.send(
       new ScheduleKeyDeletionCommand({
         KeyId: keyId,
         PendingWindowInDays: 7, // Minimum allowed value
-      })
+      }),
     );
   } catch (error) {
     logger.error("Error scheduling manager key deletion", { error, keyId });
