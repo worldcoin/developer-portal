@@ -86,6 +86,17 @@ export async function submitAppForReviewFormServerSide({
         });
       }
 
+      // Prevent staging apps from being submitted for review
+      if (data.app_metadata[0].app.is_staging) {
+        return errorFormAction({
+          message: "Staging apps cannot be submitted for review",
+          additionalInfo: { input },
+          team_id: input.team_id,
+          app_id: appId,
+          logLevel: "warn",
+        });
+      }
+
       const localisations = getLocalisationFormValues(
         data.app_metadata[0],
         data.localisations as LocalisationData,
