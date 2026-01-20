@@ -17,7 +17,7 @@ import {
   getEthAddressFromKMS,
 } from "@rumblefishdev/eth-signer-kms";
 import type { TypedDataDomain, TypedDataField } from "ethers";
-import { Signature, TypedDataEncoder } from "ethers";
+import { hexlify, Signature, TypedDataEncoder } from "ethers";
 
 /**
  * Result of creating a new manager key.
@@ -84,10 +84,22 @@ export async function createManagerKey(
     }
 
     // Get the Ethereum address using the library
-    const address = await getEthAddressFromKMS({
-      keyId,
-      kmsInstance: client,
-    });
+    let address: string;
+    try {
+      address = await getEthAddressFromKMS({
+        keyId,
+        kmsInstance: client,
+      });
+    } catch (addressError) {
+      // Clean up the orphaned key since we can't derive the address
+      logger.error("Failed to derive address, scheduling key for deletion", {
+        error: addressError,
+        keyId,
+        rpId,
+      });
+      await scheduleManagerKeyDeletion(client, keyId);
+      return undefined;
+    }
 
     return {
       keyId,
@@ -170,11 +182,7 @@ export async function signWithManagerKey(
     const address = await getEthAddressFromKMS({ keyId, kmsInstance: client });
 
     // Convert digest to hex string for the library
-    const message =
-      "0x" +
-      Array.from(digest)
-        .map((b) => b.toString(16).padStart(2, "0"))
-        .join("");
+    const message = hexlify(digest);
 
     // Sign using the library's createSignature
     const sig = await createSignature({

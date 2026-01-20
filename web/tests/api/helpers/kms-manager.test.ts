@@ -107,13 +107,16 @@ describe("kms-manager", () => {
       expect(result).toBeUndefined();
     });
 
-    it("should return undefined when getEthAddressFromKMS fails", async () => {
+    it("should schedule key deletion and return undefined when getEthAddressFromKMS fails", async () => {
       mockSend.mockResolvedValueOnce({
         KeyMetadata: {
           KeyId: "test-key-id",
           CreationDate: new Date(),
         },
       });
+
+      // For ScheduleKeyDeletionCommand
+      mockSend.mockResolvedValueOnce({});
 
       mockGetEthAddressFromKMS.mockRejectedValueOnce(
         new Error("Address error"),
@@ -122,6 +125,14 @@ describe("kms-manager", () => {
       const result = await createManagerKey(mockClient, "rp-123");
 
       expect(result).toBeUndefined();
+      // Verify cleanup was attempted - second call should be ScheduleKeyDeletionCommand
+      expect(mockSend).toHaveBeenCalledTimes(2);
+      expect(mockSend.mock.calls[1][0]).toMatchObject({
+        input: {
+          KeyId: "test-key-id",
+          PendingWindowInDays: 7,
+        },
+      });
     });
   });
 
