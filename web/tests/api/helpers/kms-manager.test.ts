@@ -31,18 +31,15 @@ jest.mock("@aws-sdk/client-kms", () => {
 });
 
 // Mock the eth-signer-kms library
-const mockSignDigest = jest.fn();
-const mockSignTypedData = jest.fn();
-
 jest.mock("@rumblefishdev/eth-signer-kms", () => ({
   getEthAddressFromKMS: jest.fn(),
-  KMSSigner: jest.fn().mockImplementation(() => ({
-    signDigest: mockSignDigest,
-    signTypedData: mockSignTypedData,
-  })),
+  createSignature: jest.fn(),
 }));
 
-import { getEthAddressFromKMS } from "@rumblefishdev/eth-signer-kms";
+import {
+  getEthAddressFromKMS,
+  createSignature,
+} from "@rumblefishdev/eth-signer-kms";
 
 jest.mock(
   "@/lib/logger",
@@ -61,6 +58,7 @@ describe("kms-manager", () => {
   let mockClient: KMSClient;
   let mockSend: jest.Mock;
   const mockGetEthAddressFromKMS = getEthAddressFromKMS as jest.Mock;
+  const mockCreateSignature = createSignature as jest.Mock;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -193,14 +191,16 @@ describe("kms-manager", () => {
 
     it("should return signature on success", async () => {
       const digest = new Uint8Array(32);
-      const mockSignature = {
-        r: "0x1234",
-        s: "0x5678",
+      const mockAddress = "0x1234567890123456789012345678901234567890";
+      // createSignature returns { r, s, v } which ethers Signature.from() processes
+      const mockSig = {
+        r: "0x" + "11".repeat(32),
+        s: "0x" + "22".repeat(32),
         v: 27,
-        serialized: "0x12345678",
       };
 
-      mockSignDigest.mockResolvedValueOnce(mockSignature);
+      mockGetEthAddressFromKMS.mockResolvedValueOnce(mockAddress);
+      mockCreateSignature.mockResolvedValueOnce(mockSig);
 
       const result = await signWithManagerKey(
         mockClient,
@@ -208,12 +208,21 @@ describe("kms-manager", () => {
         digest,
       );
 
-      expect(result).toEqual(mockSignature);
+      expect(result).toBeDefined();
+      expect(result?.r).toBe(mockSig.r);
+      expect(result?.s).toBe(mockSig.s);
+      expect(result?.v).toBe(27);
+      expect(mockCreateSignature).toHaveBeenCalledWith({
+        kmsInstance: mockClient,
+        keyId: "test-key-id",
+        message: expect.any(String),
+        address: mockAddress,
+      });
     });
 
     it("should return undefined on error", async () => {
       const digest = new Uint8Array(32);
-      mockSignDigest.mockRejectedValueOnce(new Error("Sign error"));
+      mockGetEthAddressFromKMS.mockRejectedValueOnce(new Error("Sign error"));
 
       const result = await signWithManagerKey(
         mockClient,
@@ -246,10 +255,15 @@ describe("kms-manager", () => {
     };
 
     it("should return signature on success", async () => {
-      // 65-byte signature: 32 bytes r + 32 bytes s + 1 byte v (0x1b = 27)
-      const mockSignature = "0x" + "11".repeat(32) + "22".repeat(32) + "1b";
+      const mockAddress = "0x1234567890123456789012345678901234567890";
+      const mockSig = {
+        r: "0x" + "11".repeat(32),
+        s: "0x" + "22".repeat(32),
+        v: 27,
+      };
 
-      mockSignTypedData.mockResolvedValueOnce(mockSignature);
+      mockGetEthAddressFromKMS.mockResolvedValueOnce(mockAddress);
+      mockCreateSignature.mockResolvedValueOnce(mockSig);
 
       const result = await signTypedDataWithManagerKey(
         mockClient,
@@ -263,11 +277,16 @@ describe("kms-manager", () => {
       expect(result?.r).toBe("0x" + "11".repeat(32));
       expect(result?.s).toBe("0x" + "22".repeat(32));
       expect(result?.v).toBe(27);
-      expect(result?.serialized).toBe(mockSignature);
+      expect(mockCreateSignature).toHaveBeenCalledWith({
+        kmsInstance: mockClient,
+        keyId: "test-key-id",
+        message: expect.any(String), // TypedDataEncoder.hash result
+        address: mockAddress,
+      });
     });
 
     it("should return undefined on error", async () => {
-      mockSignTypedData.mockRejectedValueOnce(new Error("Sign error"));
+      mockGetEthAddressFromKMS.mockRejectedValueOnce(new Error("Sign error"));
 
       const result = await signTypedDataWithManagerKey(
         mockClient,
