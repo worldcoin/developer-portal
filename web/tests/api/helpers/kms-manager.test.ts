@@ -23,6 +23,10 @@ jest.mock("@aws-sdk/client-kms", () => {
       input,
       _type: "GetPublicKeyCommand",
     })),
+    SignCommand: jest.fn().mockImplementation((input) => ({
+      input,
+      _type: "SignCommand",
+    })),
     ScheduleKeyDeletionCommand: jest.fn().mockImplementation((input) => ({
       input,
       _type: "ScheduleKeyDeletionCommand",
@@ -30,16 +34,16 @@ jest.mock("@aws-sdk/client-kms", () => {
   };
 });
 
-// Mock the eth-signer-kms library
-jest.mock("@rumblefishdev/eth-signer-kms", () => ({
+// Mock the ethereum-utils
+jest.mock("@/api/helpers/ethereum-utils", () => ({
   getEthAddressFromKMS: jest.fn(),
-  createSignature: jest.fn(),
+  createKmsSignature: jest.fn(),
 }));
 
 import {
   getEthAddressFromKMS,
-  createSignature,
-} from "@rumblefishdev/eth-signer-kms";
+  createKmsSignature,
+} from "@/api/helpers/ethereum-utils";
 
 jest.mock(
   "@/lib/logger",
@@ -58,7 +62,7 @@ describe("kms-manager", () => {
   let mockClient: KMSClient;
   let mockSend: jest.Mock;
   const mockGetEthAddressFromKMS = getEthAddressFromKMS as jest.Mock;
-  const mockCreateSignature = createSignature as jest.Mock;
+  const mockCreateKmsSignature = createKmsSignature as jest.Mock;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -203,15 +207,15 @@ describe("kms-manager", () => {
     it("should return signature on success", async () => {
       const digest = new Uint8Array(32);
       const mockAddress = "0x1234567890123456789012345678901234567890";
-      // createSignature returns { r, s, v } which ethers Signature.from() processes
-      const mockSig = {
+      const mockSignature = {
         r: "0x" + "11".repeat(32),
         s: "0x" + "22".repeat(32),
         v: 27,
+        serialized: "0x" + "11".repeat(32) + "22".repeat(32) + "1b",
       };
 
       mockGetEthAddressFromKMS.mockResolvedValueOnce(mockAddress);
-      mockCreateSignature.mockResolvedValueOnce(mockSig);
+      mockCreateKmsSignature.mockResolvedValueOnce(mockSignature);
 
       const result = await signWithManagerKey(
         mockClient,
@@ -219,16 +223,13 @@ describe("kms-manager", () => {
         digest,
       );
 
-      expect(result).toBeDefined();
-      expect(result?.r).toBe(mockSig.r);
-      expect(result?.s).toBe(mockSig.s);
-      expect(result?.v).toBe(27);
-      expect(mockCreateSignature).toHaveBeenCalledWith({
-        kmsInstance: mockClient,
-        keyId: "test-key-id",
-        message: expect.any(String),
-        address: mockAddress,
-      });
+      expect(result).toEqual(mockSignature);
+      expect(mockCreateKmsSignature).toHaveBeenCalledWith(
+        mockClient,
+        "test-key-id",
+        digest,
+        mockAddress,
+      );
     });
 
     it("should return undefined on error", async () => {
@@ -267,14 +268,15 @@ describe("kms-manager", () => {
 
     it("should return signature on success", async () => {
       const mockAddress = "0x1234567890123456789012345678901234567890";
-      const mockSig = {
+      const mockSignature = {
         r: "0x" + "11".repeat(32),
         s: "0x" + "22".repeat(32),
         v: 27,
+        serialized: "0x" + "11".repeat(32) + "22".repeat(32) + "1b",
       };
 
       mockGetEthAddressFromKMS.mockResolvedValueOnce(mockAddress);
-      mockCreateSignature.mockResolvedValueOnce(mockSig);
+      mockCreateKmsSignature.mockResolvedValueOnce(mockSignature);
 
       const result = await signTypedDataWithManagerKey(
         mockClient,
@@ -284,16 +286,13 @@ describe("kms-manager", () => {
         testMessage,
       );
 
-      expect(result).toBeDefined();
-      expect(result?.r).toBe("0x" + "11".repeat(32));
-      expect(result?.s).toBe("0x" + "22".repeat(32));
-      expect(result?.v).toBe(27);
-      expect(mockCreateSignature).toHaveBeenCalledWith({
-        kmsInstance: mockClient,
-        keyId: "test-key-id",
-        message: expect.any(String), // TypedDataEncoder.hash result
-        address: mockAddress,
-      });
+      expect(result).toEqual(mockSignature);
+      expect(mockCreateKmsSignature).toHaveBeenCalledWith(
+        mockClient,
+        "test-key-id",
+        expect.any(Uint8Array), // The hash bytes
+        mockAddress,
+      );
     });
 
     it("should return undefined on error", async () => {

@@ -12,12 +12,12 @@ import {
   KMSClient,
   ScheduleKeyDeletionCommand,
 } from "@aws-sdk/client-kms";
-import {
-  createSignature,
-  getEthAddressFromKMS,
-} from "@rumblefishdev/eth-signer-kms";
 import type { TypedDataDomain, TypedDataField } from "ethers";
-import { hexlify, Signature, TypedDataEncoder } from "ethers";
+import { getBytes, TypedDataEncoder } from "ethers";
+import {
+  createKmsSignature,
+  getEthAddressFromKMS,
+} from "./ethereum-utils";
 
 /**
  * Result of creating a new manager key.
@@ -83,13 +83,10 @@ export async function createManagerKey(
       return undefined;
     }
 
-    // Get the Ethereum address using the library
+    // Get the Ethereum address
     let address: string;
     try {
-      address = await getEthAddressFromKMS({
-        keyId,
-        kmsInstance: client,
-      });
+      address = await getEthAddressFromKMS(client, keyId);
     } catch (addressError) {
       // Clean up the orphaned key since we can't derive the address
       logger.error("Failed to derive address, scheduling key for deletion", {
@@ -124,7 +121,7 @@ export async function getManagerAddress(
   keyId: string,
 ): Promise<string | undefined> {
   try {
-    return await getEthAddressFromKMS({ keyId, kmsInstance: client });
+    return await getEthAddressFromKMS(client, keyId);
   } catch (error) {
     logger.error("Error getting manager address", { error, keyId });
     return undefined;
@@ -179,28 +176,10 @@ export async function signWithManagerKey(
 
   try {
     // Get the address first (needed for signature recovery)
-    const address = await getEthAddressFromKMS({ keyId, kmsInstance: client });
+    const address = await getEthAddressFromKMS(client, keyId);
 
-    // Convert digest to hex string for the library
-    const message = hexlify(digest);
-
-    // Sign using the library's createSignature
-    const sig = await createSignature({
-      kmsInstance: client,
-      keyId,
-      message,
-      address,
-    });
-
-    // Convert to our format using ethers Signature
-    const ethSig = Signature.from(sig);
-
-    return {
-      r: ethSig.r,
-      s: ethSig.s,
-      v: ethSig.v,
-      serialized: ethSig.serialized,
-    };
+    // Sign using our KMS signature utility
+    return await createKmsSignature(client, keyId, digest, address);
   } catch (error) {
     logger.error("Error signing with manager key", { error, keyId });
     return undefined;
@@ -226,28 +205,16 @@ export async function signTypedDataWithManagerKey(
 ): Promise<EthSignature | undefined> {
   try {
     // Get the address first (needed for signature recovery)
-    const address = await getEthAddressFromKMS({ keyId, kmsInstance: client });
+    const address = await getEthAddressFromKMS(client, keyId);
 
     // Hash the typed data using ethers TypedDataEncoder
     const hash = TypedDataEncoder.hash(domain, types, message);
 
-    // Sign using the library's createSignature
-    const sig = await createSignature({
-      kmsInstance: client,
-      keyId,
-      message: hash,
-      address,
-    });
+    // Convert hash to bytes for signing
+    const hashBytes = getBytes(hash);
 
-    // Convert to our format using ethers Signature
-    const ethSig = Signature.from(sig);
-
-    return {
-      r: ethSig.r,
-      s: ethSig.s,
-      v: ethSig.v,
-      serialized: ethSig.serialized,
-    };
+    // Sign using our KMS signature utility
+    return await createKmsSignature(client, keyId, hashBytes, address);
   } catch (error) {
     logger.error("Error signing typed data with manager key", { error, keyId });
     return undefined;
