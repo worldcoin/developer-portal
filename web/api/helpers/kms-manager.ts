@@ -14,10 +14,7 @@ import {
 } from "@aws-sdk/client-kms";
 import type { TypedDataDomain, TypedDataField } from "ethers";
 import { getBytes, TypedDataEncoder } from "ethers";
-import {
-  createKmsSignature,
-  getEthAddressFromKMS,
-} from "./ethereum-utils";
+import { createKmsSignature, getEthAddressFromKMS } from "./ethereum-utils";
 
 /**
  * Result of creating a new manager key.

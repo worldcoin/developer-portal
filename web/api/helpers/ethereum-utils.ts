@@ -140,7 +140,9 @@ export { hexlify as bytesToHex } from "ethers";
  * @param spkiPublicKey - The SPKI-formatted public key
  * @returns The 65-byte uncompressed public key (04 || x || y)
  */
-export function extractPublicKeyFromSpki(spkiPublicKey: Uint8Array): Uint8Array {
+export function extractPublicKeyFromSpki(
+  spkiPublicKey: Uint8Array,
+): Uint8Array {
   // SPKI for secp256k1: 26 bytes header + 65 bytes uncompressed public key
   // The uncompressed key starts with 0x04
   const keyStart = spkiPublicKey.length - 65;
