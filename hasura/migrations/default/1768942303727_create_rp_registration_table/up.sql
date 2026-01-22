@@ -5,13 +5,11 @@
 CREATE TYPE rp_registration_mode AS ENUM ('managed', 'self_managed');
 
 -- Create enum for registration status
--- pending: Waiting to submit transaction
--- confirming: Transaction submitted, awaiting confirmations
+-- pending: Not yet registered on-chain
 -- registered: Successfully registered on-chain
 -- failed: Transaction failed (prompt retry)
 CREATE TYPE rp_registration_status AS ENUM (
   'pending',
-  'confirming',
   'registered',
   'failed'
 );
