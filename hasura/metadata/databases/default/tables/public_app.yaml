@@ -22,6 +22,13 @@ array_relationships:
         remote_table:
           name: app_metadata
           schema: public
+  - name: rp_registration
+    using:
+      foreign_key_constraint_on:
+        column: app_id
+        table:
+          name: rp_registration
+          schema: public
 insert_permissions:
   - role: qa
     permission:

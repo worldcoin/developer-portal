@@ -21,5 +21,6 @@
 - "!include public_nullifier_uses_seen.yaml"
 - "!include public_redirect.yaml"
 - "!include public_role.yaml"
+- "!include public_rp_registration.yaml"
 - "!include public_team.yaml"
 - "!include public_user.yaml"
