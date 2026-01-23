@@ -61,18 +61,23 @@ const DEFAULT_VALID_UNTIL_OFFSET_MINUTES = 30; // Transaction expiry
 
 /**
  * ERC-4337 UserOperation structure (EntryPoint v0.7 format).
+ * Uses v0.7 native fields (factory/factoryData, paymaster fields) like app-backend.
  */
 export interface UserOperation {
   sender: string;
   nonce: string;
-  initCode: string;
+  factory?: string;
+  factoryData?: string;
   callData: string;
   callGasLimit: string;
   verificationGasLimit: string;
   preVerificationGas: string;
   maxFeePerGas: string;
   maxPriorityFeePerGas: string;
-  paymasterAndData: string;
+  paymaster?: string;
+  paymasterVerificationGasLimit: string;
+  paymasterPostOpGasLimit: string;
+  paymasterData?: string;
   signature: string;
 }
 
@@ -89,16 +94,62 @@ export enum DevPortalAction {
 // ============================================================================
 
 /**
- * Hardcoded gas limits for DevPortal UserOps.
- * These are sponsored transactions with zero fees.
+ * Gas limits configuration for UserOps.
  */
-const GAS_LIMITS = {
+export interface GasLimits {
+  callGasLimit: string;
+  verificationGasLimit: string;
+  preVerificationGas: string;
+  maxFeePerGas: string;
+  maxPriorityFeePerGas: string;
+}
+
+/**
+ * Default gas limits for DevPortal UserOps.
+ * These are for sponsored transactions with zero fees (via temporal bundler).
+ */
+export const DEFAULT_GAS_LIMITS: GasLimits = {
   callGasLimit: "0xF4240", // 1,000,000
   verificationGasLimit: "0x186A0", // 100,000
   preVerificationGas: "0x0",
   maxFeePerGas: "0x0",
   maxPriorityFeePerGas: "0x0",
 };
+
+// ============================================================================
+// v0.7 to v0.6 Packing Helpers (for hashing)
+// ============================================================================
+
+const ADDRESS_ZERO = "0x0000000000000000000000000000000000000000";
+
+/**
+ * Packs factory and factoryData into initCode (v0.6 format).
+ * @param userOp - The UserOperation with v0.7 fields
+ * @returns The packed initCode or "0x" if no factory
+ */
+function getInitCode(userOp: UserOperation): string {
+  if (!userOp.factory || userOp.factory === ADDRESS_ZERO) {
+    return "0x";
+  }
+  return concat([userOp.factory, userOp.factoryData || "0x"]);
+}
+
+/**
+ * Packs paymaster fields into paymasterAndData (v0.6 format).
+ * @param userOp - The UserOperation with v0.7 fields
+ * @returns The packed paymasterAndData or "0x" if no paymaster
+ */
+function getPaymasterAndData(userOp: UserOperation): string {
+  if (!userOp.paymaster || userOp.paymaster === ADDRESS_ZERO) {
+    return "0x";
+  }
+  return concat([
+    userOp.paymaster,
+    zeroPadValue(userOp.paymasterVerificationGasLimit || "0x0", 16),
+    zeroPadValue(userOp.paymasterPostOpGasLimit || "0x0", 16),
+    userOp.paymasterData || "0x",
+  ]);
+}
 
 // ============================================================================
 // Validity Timestamps
@@ -289,6 +340,7 @@ export function getRegisterRpNonce(rpId: bigint): Uint8Array {
  * @param nonce - The 32-byte nonce
  * @param validAfter - Start of validity window
  * @param validUntil - End of validity window
+ * @param gasLimits - Optional gas limits (defaults to DEFAULT_GAS_LIMITS)
  * @returns The UserOperation with placeholder signature
  */
 export function buildUserOperation(
@@ -297,18 +349,21 @@ export function buildUserOperation(
   nonce: Uint8Array,
   validAfter: Date,
   validUntil: Date,
+  gasLimits: GasLimits = DEFAULT_GAS_LIMITS,
 ): UserOperation {
   return {
     sender,
     nonce: hexlify(nonce),
-    initCode: "0x",
+    // factory/factoryData omitted (no deployment)
     callData,
-    callGasLimit: GAS_LIMITS.callGasLimit,
-    verificationGasLimit: GAS_LIMITS.verificationGasLimit,
-    preVerificationGas: GAS_LIMITS.preVerificationGas,
-    maxFeePerGas: GAS_LIMITS.maxFeePerGas,
-    maxPriorityFeePerGas: GAS_LIMITS.maxPriorityFeePerGas,
-    paymasterAndData: "0x",
+    callGasLimit: gasLimits.callGasLimit,
+    verificationGasLimit: gasLimits.verificationGasLimit,
+    preVerificationGas: gasLimits.preVerificationGas,
+    maxFeePerGas: gasLimits.maxFeePerGas,
+    maxPriorityFeePerGas: gasLimits.maxPriorityFeePerGas,
+    // paymaster fields (no paymaster for DevPortal ops)
+    paymasterVerificationGasLimit: "0x0",
+    paymasterPostOpGasLimit: "0x0",
     signature: signatureWithValidityTimestamps({
       validAfter,
       validUntil,
@@ -367,6 +422,10 @@ export function hashSafeUserOp(
   const validAfter = BigInt("0x" + userOp.signature.slice(2, 14));
   const validUntil = BigInt("0x" + userOp.signature.slice(14, 26));
 
+  // Pack v0.7 fields to v0.6 format for hashing
+  const initCode = getInitCode(userOp);
+  const paymasterAndData = getPaymasterAndData(userOp);
+
   // Encode the Safe Operation struct
   const encodedSafeOp = abiCoder.encode(
     [
@@ -389,14 +448,14 @@ export function hashSafeUserOp(
       SAFE_OP_TYPEHASH,
       userOp.sender,
       userOp.nonce,
-      keccak256(userOp.initCode),
+      keccak256(initCode),
       keccak256(userOp.callData),
       BigInt(userOp.verificationGasLimit),
       BigInt(userOp.callGasLimit),
       BigInt(userOp.preVerificationGas),
       BigInt(userOp.maxPriorityFeePerGas),
       BigInt(userOp.maxFeePerGas),
-      keccak256(userOp.paymasterAndData),
+      keccak256(paymasterAndData),
       validAfter,
       validUntil,
       entryPointAddress,
@@ -417,86 +476,3 @@ export function hashSafeUserOp(
   return keccak256(message);
 }
 
-/**
- * Computes the EntryPoint UserOperation hash.
- * This is used by the bundler to identify the UserOp (not for signing with Safe).
- *
- * @param userOp - The UserOperation
- * @param entryPointAddress - The EntryPoint contract address
- * @param chainId - The chain ID
- * @returns The EntryPoint hash
- */
-export function getUserOpHash(
-  userOp: UserOperation,
-  entryPointAddress: string,
-  chainId: number,
-): string {
-  const abiCoder = AbiCoder.defaultAbiCoder();
-
-  // Pack gas limits: verificationGasLimit (16 bytes) || callGasLimit (16 bytes)
-  const accountGasLimits = concat([
-    zeroPadValue(userOp.verificationGasLimit, 16),
-    zeroPadValue(userOp.callGasLimit, 16),
-  ]);
-
-  // Pack gas fees: maxPriorityFeePerGas (16 bytes) || maxFeePerGas (16 bytes)
-  const gasFees = concat([
-    zeroPadValue(userOp.maxPriorityFeePerGas, 16),
-    zeroPadValue(userOp.maxFeePerGas, 16),
-  ]);
-
-  const encoded = abiCoder.encode(
-    [
-      "address",
-      "uint256",
-      "bytes32",
-      "bytes32",
-      "bytes32",
-      "uint256",
-      "bytes32",
-      "bytes32",
-    ],
-    [
-      userOp.sender,
-      userOp.nonce,
-      keccak256(userOp.initCode),
-      keccak256(userOp.callData),
-      accountGasLimits,
-      userOp.preVerificationGas,
-      gasFees,
-      keccak256(userOp.paymasterAndData),
-    ],
-  );
-
-  const enc = abiCoder.encode(
-    ["bytes32", "address", "uint256"],
-    [keccak256(encoded), entryPointAddress, chainId],
-  );
-
-  return keccak256(enc);
-}
-
-// ============================================================================
-// RPC Format
-// ============================================================================
-
-/**
- * Converts a UserOperation to the format expected by eth_sendUserOperation.
- */
-export function userOpToRpcFormat(
-  userOp: UserOperation,
-): Record<string, string> {
-  return {
-    sender: userOp.sender,
-    nonce: userOp.nonce,
-    initCode: userOp.initCode,
-    callData: userOp.callData,
-    callGasLimit: userOp.callGasLimit,
-    verificationGasLimit: userOp.verificationGasLimit,
-    preVerificationGas: userOp.preVerificationGas,
-    maxFeePerGas: userOp.maxFeePerGas,
-    maxPriorityFeePerGas: userOp.maxPriorityFeePerGas,
-    paymasterAndData: userOp.paymasterAndData,
-    signature: userOp.signature,
-  };
-}

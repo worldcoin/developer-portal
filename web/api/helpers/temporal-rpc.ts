@@ -6,7 +6,7 @@ import "server-only";
 
 import { logger } from "@/lib/logger";
 import { JsonRpcProvider } from "ethers";
-import { UserOperation, userOpToRpcFormat } from "./user-operation";
+import { UserOperation } from "./user-operation";
 
 /**
  * Result of sending a UserOperation.
@@ -55,7 +55,7 @@ export async function sendUserOperation(
   const provider = new JsonRpcProvider(rpcUrl);
 
   const operationHash = await provider.send("eth_sendUserOperation", [
-    userOpToRpcFormat(userOp),
+    userOp,
     entryPoint,
   ]);
 
