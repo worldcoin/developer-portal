@@ -178,11 +178,11 @@ function devPortalNonce(
 export function getRegisterRpNonce(rpId: bigint): Uint8Array {
   // Convert uint64 to 8 bytes big-endian
   const buf = Buffer.alloc(8);
-  buf.writeBigUInt64BE(value);
+  buf.writeBigUInt64BE(rpId);
 
   // Create 10-byte metadata: 2 zero bytes + 8 bytes rpId
   const metadata = new Uint8Array(10);
-  metadata.set(rpIdBytes, 2); // left-pad with 2 zero bytes
+  metadata.set(buf, 2); // left-pad with 2 zero bytes
 
   return devPortalNonce(DevPortalAction.RegisterRp, metadata);
 }
