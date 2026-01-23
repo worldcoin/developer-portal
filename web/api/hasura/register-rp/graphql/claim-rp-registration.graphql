@@ -1,0 +1,21 @@
+mutation ClaimRpRegistration(
+  $rp_id: String!
+  $app_id: String!
+  $mode: rp_registration_mode!
+  $signer_address: String!
+) {
+  insert_rp_registration_one(
+    object: {
+      rp_id: $rp_id
+      app_id: $app_id
+      mode: $mode
+      signer_address: $signer_address
+      status: pending
+    }
+    on_conflict: { constraint: rp_registration_app_id_key, update_columns: [] }
+  ) {
+    rp_id
+    app_id
+    status
+  }
+}
