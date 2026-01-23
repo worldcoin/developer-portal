@@ -25,7 +25,8 @@ const SPKI_PUBLIC_KEY = new Uint8Array([
   0xa4, 0xfb, 0xfc, 0x0e, 0x11, 0x08, 0xa8, 0xfd, 0x17, 0xb4, 0x48, 0xa6, 0x85,
   0x54, 0x19, 0x9c, 0x47, 0xd0, 0x8f, 0xfb, 0x10, 0xd4, 0xb8,
 ]);
-const EXPECTED_ADDRESS_FOR_GENERATOR = "0x7E5F4552091A69125d5DfCb7b8C2659029395Bdf";
+const EXPECTED_ADDRESS_FOR_GENERATOR =
+  "0x7E5F4552091A69125d5DfCb7b8C2659029395Bdf";
 
 // Test wallet for signature verification tests
 // Private key: 0x0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
@@ -163,7 +164,9 @@ describe("kms-eth", () => {
 
       // Most importantly: verify the signature recovers to the correct address
       const recoveredAddress = recoverAddress(digest, result!.serialized);
-      expect(recoveredAddress.toLowerCase()).toBe(expectedAddress.toLowerCase());
+      expect(recoveredAddress.toLowerCase()).toBe(
+        expectedAddress.toLowerCase(),
+      );
     });
 
     it("returns undefined for invalid digest length", async () => {
