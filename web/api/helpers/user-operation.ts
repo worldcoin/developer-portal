@@ -199,7 +199,6 @@ export function buildUserOperation(
   };
 }
 
-
 /**
  * Computes the hash of a UserOperation for signing.
  *
