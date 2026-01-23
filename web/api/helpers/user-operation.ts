@@ -4,12 +4,7 @@ import "server-only";
  * ERC-4337 UserOperation building utilities for RP Registry operations.
  */
 
-import {
-  AbiCoder,
-  hexlify,
-  Interface,
-  keccak256
-} from "ethers";
+import { AbiCoder, hexlify, Interface, keccak256 } from "ethers";
 
 /**
  * ERC-4337 UserOperation structure (EntryPoint v0.7 format).
@@ -88,7 +83,10 @@ export function buildRegisterRpCalldata(
  * @param metadata - exactly 10 bytes of metadata
  * @returns Uint8Array of length 32
  */
-function devPortalNonce(action: DevPortalAction, metadata: Uint8Array): Uint8Array {
+function devPortalNonce(
+  action: DevPortalAction,
+  metadata: Uint8Array,
+): Uint8Array {
   if (metadata.byteLength !== 10) {
     throw new Error("metadata must be 10 bytes");
   }
@@ -228,10 +226,7 @@ export function hashUserOperation(
     userOp.verificationGasLimit,
     userOp.callGasLimit,
   );
-  const gasFees = packGasFees(
-    userOp.maxPriorityFeePerGas,
-    userOp.maxFeePerGas,
-  );
+  const gasFees = packGasFees(userOp.maxPriorityFeePerGas, userOp.maxFeePerGas);
 
   // Hash initCode and callData
   const initCodeHash = keccak256(userOp.initCode);
@@ -276,7 +271,9 @@ export function hashUserOperation(
 /**
  * Converts a UserOperation to the format expected by eth_sendUserOperation.
  */
-export function userOpToRpcFormat(userOp: UserOperation): Record<string, string> {
+export function userOpToRpcFormat(
+  userOp: UserOperation,
+): Record<string, string> {
   return {
     sender: userOp.sender,
     nonce: userOp.nonce,
