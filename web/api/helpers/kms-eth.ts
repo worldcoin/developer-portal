@@ -1,11 +1,14 @@
 import "server-only";
 
 /**
- * Ethereum utilities for KMS signature handling.
- * Handles DER signature parsing, low-S normalization, and address derivation.
+ * Ethereum utilities for KMS key management and signing.
+ * Handles secp256k1 key creation, DER signature parsing, low-S normalization,
+ * address derivation, and Ethereum-compatible signing.
  */
 
+import { logger } from "@/lib/logger";
 import {
+  CreateKeyCommand,
   GetPublicKeyCommand,
   KMSClient,
   SignCommand,
@@ -19,6 +22,7 @@ import {
   toBeHex,
   zeroPadValue,
 } from "ethers";
+import { scheduleKeyDeletion } from "./kms";
 
 // secp256k1 curve order
 const SECP256K1_N = BigInt(
@@ -26,34 +30,54 @@ const SECP256K1_N = BigInt(
 );
 const SECP256K1_N_DIV_2 = SECP256K1_N / 2n;
 
+// ============================================================================
+// Types
+// ============================================================================
+
 /**
  * Parsed ECDSA signature components.
  */
-export interface ParsedSignature {
+interface ParsedSignature {
   r: Uint8Array;
   s: Uint8Array;
 }
 
 /**
- * Ethereum-compatible signature with recovery parameter.
+ * Ethereum signature with r, s, v components.
  */
-export interface EthereumSignature {
+export interface EthSignature {
+  /** r component as hex string (32 bytes, 0x-prefixed) */
   r: string;
+  /** s component as hex string (32 bytes, 0x-prefixed) */
   s: string;
+  /** Recovery parameter (27 or 28) */
   v: number;
+  /** Serialized signature (65 bytes, 0x-prefixed): r || s || v */
   serialized: string;
 }
+
+/**
+ * Result of creating a new manager key.
+ */
+export interface CreateManagerKeyResult {
+  /** The KMS key ID */
+  keyId: string;
+  /** The Ethereum address derived from the public key */
+  address: string;
+  /** When the key was created */
+  createdAt: Date;
+}
+
+// ============================================================================
+// DER Signature Parsing
+// ============================================================================
 
 /**
  * Parses a DER-encoded ECDSA signature into r and s components.
  *
  * DER format: 0x30 [total-length] 0x02 [r-length] [r] 0x02 [s-length] [s]
- *
- * @param derSignature - The DER-encoded signature bytes
- * @returns Parsed r and s components as 32-byte Uint8Arrays
  */
-export function parseDerSignature(derSignature: Uint8Array): ParsedSignature {
-  // Validate SEQUENCE tag
+function parseDerSignature(derSignature: Uint8Array): ParsedSignature {
   if (derSignature[0] !== 0x30) {
     throw new Error("Invalid DER signature: missing SEQUENCE tag");
   }
@@ -111,15 +135,11 @@ function padTo32Bytes(bytes: Uint8Array): Uint8Array {
 /**
  * Normalizes the S value to be in the lower half of the curve order.
  * Ethereum requires s < secp256k1_n / 2 (EIP-2).
- *
- * @param s - The S component as a 32-byte Uint8Array
- * @returns Normalized S value
  */
-export function normalizeSValue(s: Uint8Array): Uint8Array {
+function normalizeSValue(s: Uint8Array): Uint8Array {
   const sValue = BigInt(hexlify(s));
 
   if (sValue > SECP256K1_N_DIV_2) {
-    // s = n - s
     const normalizedS = SECP256K1_N - sValue;
     return new Uint8Array(getBytes(zeroPadValue(toBeHex(normalizedS), 32)));
   }
@@ -127,24 +147,15 @@ export function normalizeSValue(s: Uint8Array): Uint8Array {
   return s;
 }
 
-/**
- * Converts a Uint8Array to a hex string with 0x prefix.
- * Re-exported from ethers for convenience.
- */
-export { hexlify as bytesToHex } from "ethers";
+// ============================================================================
+// Public Key Utilities
+// ============================================================================
 
 /**
  * Extracts the uncompressed public key from SPKI-formatted public key.
- * SPKI format has a header before the actual key bytes.
- *
- * @param spkiPublicKey - The SPKI-formatted public key
- * @returns The 65-byte uncompressed public key (04 || x || y)
  */
-export function extractPublicKeyFromSpki(
-  spkiPublicKey: Uint8Array,
-): Uint8Array {
+function extractPublicKeyFromSpki(spkiPublicKey: Uint8Array): Uint8Array {
   // SPKI for secp256k1: 26 bytes header + 65 bytes uncompressed public key
-  // The uncompressed key starts with 0x04
   const keyStart = spkiPublicKey.length - 65;
   const publicKey = spkiPublicKey.slice(keyStart);
 
@@ -157,29 +168,21 @@ export function extractPublicKeyFromSpki(
 
 /**
  * Derives an Ethereum address from an uncompressed public key.
- *
- * @param publicKey - The 65-byte uncompressed public key (04 || x || y)
- * @returns The checksummed Ethereum address
  */
-export function publicKeyToAddress(publicKey: Uint8Array): string {
+function publicKeyToAddress(publicKey: Uint8Array): string {
   if (publicKey.length !== 65 || publicKey[0] !== 0x04) {
     throw new Error(
       "Invalid public key: expected 65-byte uncompressed format starting with 0x04",
     );
   }
 
-  // ethers computeAddress handles uncompressed public keys directly
   return computeAddress(hexlify(publicKey));
 }
 
 /**
  * Gets the Ethereum address for a KMS key.
- *
- * @param client - The KMS client
- * @param keyId - The KMS key ID
- * @returns The checksummed Ethereum address
  */
-export async function getEthAddressFromKMS(
+async function getEthAddressFromKMS(
   client: KMSClient,
   keyId: string,
 ): Promise<string> {
@@ -196,22 +199,19 @@ export async function getEthAddressFromKMS(
   return publicKeyToAddress(uncompressedKey);
 }
 
+// ============================================================================
+// KMS Signing
+// ============================================================================
+
 /**
  * Signs a digest with KMS and returns an Ethereum-compatible signature.
- *
- * @param client - The KMS client
- * @param keyId - The KMS key ID
- * @param digest - The 32-byte message digest to sign
- * @param expectedAddress - The expected signer address (for v recovery)
- * @returns Ethereum signature with r, s, v components
  */
-export async function createKmsSignature(
+async function signWithKms(
   client: KMSClient,
   keyId: string,
   digest: Uint8Array,
   expectedAddress: string,
-): Promise<EthereumSignature> {
-  // Sign with KMS
+): Promise<EthSignature> {
   const { Signature: derSignature } = await client.send(
     new SignCommand({
       KeyId: keyId,
@@ -225,10 +225,7 @@ export async function createKmsSignature(
     throw new Error("KMS signing failed: no signature returned");
   }
 
-  // Parse DER signature
   const { r, s: rawS } = parseDerSignature(new Uint8Array(derSignature));
-
-  // Normalize S to low-S form
   const s = normalizeSValue(rawS);
 
   const rHex = hexlify(r);
@@ -242,12 +239,7 @@ export async function createKmsSignature(
       const recovered = recoverAddress(digestHex, sig);
 
       if (recovered.toLowerCase() === expectedAddress.toLowerCase()) {
-        return {
-          r: rHex,
-          s: sHex,
-          v,
-          serialized: sig.serialized,
-        };
+        return { r: rHex, s: sHex, v, serialized: sig.serialized };
       }
     } catch {
       // Try next v value
@@ -255,4 +247,76 @@ export async function createKmsSignature(
   }
 
   throw new Error("Failed to recover correct address from signature");
+}
+
+// ============================================================================
+// Public API
+// ============================================================================
+
+/**
+ * Creates a new secp256k1 manager key for an RP.
+ */
+export async function createManagerKey(
+  client: KMSClient,
+  rpId: string,
+): Promise<CreateManagerKeyResult | undefined> {
+  try {
+    const { KeyMetadata } = await client.send(
+      new CreateKeyCommand({
+        KeySpec: "ECC_SECG_P256K1",
+        KeyUsage: "SIGN_VERIFY",
+        Description: `Manager key for RP ${rpId}. Created: ${new Date().toISOString()}`,
+        Tags: [
+          { TagKey: "app", TagValue: "developer-portal" },
+          { TagKey: "rpId", TagValue: rpId },
+        ],
+      }),
+    );
+
+    const keyId = KeyMetadata?.KeyId;
+    const createdAt = KeyMetadata?.CreationDate;
+
+    if (!keyId || !createdAt) {
+      logger.error("Key creation returned incomplete metadata", { rpId });
+      return undefined;
+    }
+
+    let address: string;
+    try {
+      address = await getEthAddressFromKMS(client, keyId);
+    } catch (addressError) {
+      logger.error("Failed to derive address, scheduling key for deletion", {
+        error: addressError,
+        keyId,
+        rpId,
+      });
+      await scheduleKeyDeletion(client, keyId);
+      return undefined;
+    }
+
+    return { keyId, address, createdAt };
+  } catch (error) {
+    logger.error("Error creating manager key", { error, rpId });
+    return undefined;
+  }
+}
+
+/**
+ * Signs a 32-byte digest with a KMS key and returns an Ethereum signature.
+ */
+export async function signEthDigestWithKms(
+  client: KMSClient,
+  keyId: string,
+  digest: Uint8Array,
+): Promise<EthSignature | undefined> {
+  if (digest.length !== 32) {
+    return undefined;
+  }
+
+  try {
+    const address = await getEthAddressFromKMS(client, keyId);
+    return await signWithKms(client, keyId, digest, address);
+  } catch {
+    return undefined;
+  }
 }
