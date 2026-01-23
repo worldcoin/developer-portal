@@ -206,8 +206,10 @@ export function replacePlaceholderWithSignature(params: {
     throw new Error("Invalid placeholder signature");
   }
   // Keep the timestamp prefix, replace the signature part
-  return params.placeholderSig.slice(0, TIMESTAMP_PREFIX_LENGTH) +
-    params.signature.slice(2);
+  return (
+    params.placeholderSig.slice(0, TIMESTAMP_PREFIX_LENGTH) +
+    params.signature.slice(2)
+  );
 }
 
 // ============================================================================
@@ -475,4 +477,3 @@ export function hashSafeUserOp(
 
   return keccak256(message);
 }
-
