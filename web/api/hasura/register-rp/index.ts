@@ -253,6 +253,10 @@ export const POST = async (req: NextRequest) => {
     );
     operationHash = result.operationHash;
   } catch (error) {
+    logger.error("Failed to submit registration transaction", {
+      error,
+      app_id,
+    });
     await scheduleKeyDeletion(kmsClient, managerKmsKeyId);
     await getDeleteRpSdk(client).DeleteRpRegistration({ rp_id: rpIdString });
     return errorHasuraQuery({
