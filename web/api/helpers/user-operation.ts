@@ -44,10 +44,27 @@ const GAS_LIMITS = {
 };
 
 /**
- * RpRegistry ABI fragment for the register function.
+ * RpRegistry contract ABI.
  */
-const RP_REGISTRY_ABI = [
+export const RP_REGISTRY_ABI = [
+  // Write functions
   "function register(uint64 rpId, address manager, address signer, string calldata unverifiedWellKnownDomain)",
+  "function updateManager(uint64 rpId, address newManager)",
+  "function updateSigner(uint64 rpId, address newSigner)",
+  "function updateDomain(uint64 rpId, string calldata newDomain)",
+
+  // View functions
+  "function getRp(uint64 rpId) view returns (address manager, address signer, string domain)",
+  "function getManager(uint64 rpId) view returns (address)",
+  "function getSigner(uint64 rpId) view returns (address)",
+  "function getDomain(uint64 rpId) view returns (string)",
+  "function isRegistered(uint64 rpId) view returns (bool)",
+
+  // Events
+  "event RpRegistered(uint64 indexed rpId, address indexed manager, address indexed signer, string domain)",
+  "event ManagerUpdated(uint64 indexed rpId, address indexed oldManager, address indexed newManager)",
+  "event SignerUpdated(uint64 indexed rpId, address indexed oldSigner, address indexed newSigner)",
+  "event DomainUpdated(uint64 indexed rpId, string oldDomain, string newDomain)",
 ];
 
 /**
