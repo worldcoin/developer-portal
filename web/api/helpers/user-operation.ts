@@ -6,6 +6,9 @@ import "server-only";
 
 import { AbiCoder, hexlify, Interface, keccak256 } from "ethers";
 
+import RP_REGISTRY_ABI from "./abi/rp-registry.json";
+import SAFE_4337_ABI from "./abi/safe-4337.json";
+
 /**
  * ERC-4337 UserOperation structure (EntryPoint v0.7 format).
  */
@@ -44,35 +47,14 @@ const GAS_LIMITS = {
 };
 
 /**
- * Safe 4337 module ABI for executeUserOp.
+ * Pre-computed packed gas values for hashUserOperation.
+ * accountGasLimits: verificationGasLimit (16 bytes) || callGasLimit (16 bytes)
+ * gasFees: maxPriorityFeePerGas (16 bytes) || maxFeePerGas (16 bytes)
  */
-const SAFE_4337_ABI = [
-  "function executeUserOp(address to, uint256 value, bytes calldata data, uint8 operation)",
-];
-
-/**
- * RpRegistry contract ABI.
- */
-export const RP_REGISTRY_ABI = [
-  // Write functions
-  "function register(uint64 rpId, address manager, address signer, string calldata unverifiedWellKnownDomain)",
-  "function updateManager(uint64 rpId, address newManager)",
-  "function updateSigner(uint64 rpId, address newSigner)",
-  "function updateDomain(uint64 rpId, string calldata newDomain)",
-
-  // View functions
-  "function getRp(uint64 rpId) view returns (address manager, address signer, string domain)",
-  "function getManager(uint64 rpId) view returns (address)",
-  "function getSigner(uint64 rpId) view returns (address)",
-  "function getDomain(uint64 rpId) view returns (string)",
-  "function isRegistered(uint64 rpId) view returns (bool)",
-
-  // Events
-  "event RpRegistered(uint64 indexed rpId, address indexed manager, address indexed signer, string domain)",
-  "event ManagerUpdated(uint64 indexed rpId, address indexed oldManager, address indexed newManager)",
-  "event SignerUpdated(uint64 indexed rpId, address indexed oldSigner, address indexed newSigner)",
-  "event DomainUpdated(uint64 indexed rpId, string oldDomain, string newDomain)",
-];
+const PACKED_ACCOUNT_GAS_LIMITS =
+  "0x000000000000000000000000000186a0000000000000000000000000000f4240";
+const PACKED_GAS_FEES =
+  "0x0000000000000000000000000000000000000000000000000000000000000000";
 
 /**
  * Encodes calldata for a Safe executeUserOp call.
@@ -122,8 +104,8 @@ export function buildRegisterRpCalldata(
  *  - [0..5]   (6 bytes)  : magic: "dvprtl"
  *  - [6]      (1 byte)   : action
  *  - [7..16]  (10 bytes) : metadata (type-specific)
- *  - [17..23] (7 bytes)  : random tail / concurrency key (zeroed by default)
- *  - [24..31] (8 bytes)  : sequence (left zeroed; typically 0 for Bedrock txs)
+ *  - [17..23] (7 bytes)  : random tail (ensures unique nonce per attempt)
+ *  - [24..31] (8 bytes)  : sequence (zeroed; typically 0 for Bedrock txs)
  *
  * @param action - DevPortalAction numeric enum (fits in 1 byte)
  * @param metadata - exactly 10 bytes of metadata
@@ -142,7 +124,9 @@ function devPortalNonce(
 
   const MAGIC_BYTES = new Uint8Array([100, 118, 112, 114, 116, 108]); // 'dvprtl'
   const CONCURRENCY_BYTES = 7;
-  const concurrencyBuffer = new Uint8Array(CONCURRENCY_BYTES);
+  const concurrencyBuffer = crypto.getRandomValues(
+    new Uint8Array(CONCURRENCY_BYTES),
+  );
   const VALUE_BYTES = 8;
   const nonceValue = new Uint8Array(VALUE_BYTES);
 
@@ -170,7 +154,7 @@ function devPortalNonce(
  * Generates the nonce for a RegisterRp operation.
  *
  * The rpId (uint64) is serialized as 8 bytes big-endian and placed
- * in the metadata with 2 leading zero bytes.
+ * in the metadata with 2 trailing zero bytes.
  *
  * @param rpId - The RP identifier (uint64)
  * @returns 32-byte nonce as Uint8Array
@@ -180,9 +164,9 @@ export function getRegisterRpNonce(rpId: bigint): Uint8Array {
   const buf = Buffer.alloc(8);
   buf.writeBigUInt64BE(rpId);
 
-  // Create 10-byte metadata: 2 zero bytes + 8 bytes rpId
+  // Create 10-byte metadata: 8 bytes rpId + 2 zero bytes
   const metadata = new Uint8Array(10);
-  metadata.set(buf, 2); // left-pad with 2 zero bytes
+  metadata.set(buf, 0); // rpId first, right-pad with 2 zero bytes
 
   return devPortalNonce(DevPortalAction.RegisterRp, metadata);
 }
@@ -215,33 +199,6 @@ export function buildUserOperation(
   };
 }
 
-/**
- * Packs accountGasLimits from verification and call gas limits.
- * Format: verificationGasLimit (16 bytes) || callGasLimit (16 bytes)
- */
-function packAccountGasLimits(
-  verificationGasLimit: string,
-  callGasLimit: string,
-): string {
-  const verification = BigInt(verificationGasLimit);
-  const call = BigInt(callGasLimit);
-  const packed = (verification << 128n) | call;
-  return "0x" + packed.toString(16).padStart(64, "0");
-}
-
-/**
- * Packs gasFees from maxPriorityFeePerGas and maxFeePerGas.
- * Format: maxPriorityFeePerGas (16 bytes) || maxFeePerGas (16 bytes)
- */
-function packGasFees(
-  maxPriorityFeePerGas: string,
-  maxFeePerGas: string,
-): string {
-  const priority = BigInt(maxPriorityFeePerGas);
-  const max = BigInt(maxFeePerGas);
-  const packed = (priority << 128n) | max;
-  return "0x" + packed.toString(16).padStart(64, "0");
-}
 
 /**
  * Computes the hash of a UserOperation for signing.
@@ -262,13 +219,6 @@ export function hashUserOperation(
   chainId: bigint,
 ): string {
   const abiCoder = AbiCoder.defaultAbiCoder();
-
-  // Pack gas limits and fees
-  const accountGasLimits = packAccountGasLimits(
-    userOp.verificationGasLimit,
-    userOp.callGasLimit,
-  );
-  const gasFees = packGasFees(userOp.maxPriorityFeePerGas, userOp.maxFeePerGas);
 
   // Hash initCode and callData
   const initCodeHash = keccak256(userOp.initCode);
@@ -293,9 +243,9 @@ export function hashUserOperation(
         userOp.nonce,
         initCodeHash,
         callDataHash,
-        accountGasLimits,
+        PACKED_ACCOUNT_GAS_LIMITS,
         userOp.preVerificationGas,
-        gasFees,
+        PACKED_GAS_FEES,
         paymasterAndDataHash,
       ],
     ),
