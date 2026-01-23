@@ -103,7 +103,9 @@ describe("kms-eth", () => {
       expect(result).toBeDefined();
       expect(result?.keyId).toBe(mockKeyId);
       expect(result?.createdAt).toBe(mockCreatedAt);
-      expect(result?.address.toLowerCase()).toBe(EXPECTED_ADDRESS.toLowerCase());
+      expect(result?.address.toLowerCase()).toBe(
+        EXPECTED_ADDRESS.toLowerCase(),
+      );
     });
 
     it("should return undefined when KeyMetadata is missing", async () => {
