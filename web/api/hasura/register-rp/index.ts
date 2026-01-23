@@ -267,12 +267,12 @@ export const POST = async (req: NextRequest) => {
     });
   }
 
-  // STEP 5: Update the registration with KMS key ID and tx hash
+  // STEP 5: Update the registration with KMS key ID and operation hash
   const { update_rp_registration_by_pk: updatedRegistration } =
     await getUpdateRpSdk(client).UpdateRpRegistration({
       rp_id: rpIdString,
       manager_kms_key_id: managerKmsKeyId,
-      tx_hash: operationHash,
+      operation_hash: operationHash,
     });
 
   if (!updatedRegistration) {

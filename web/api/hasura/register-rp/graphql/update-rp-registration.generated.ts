@@ -7,7 +7,7 @@ type GraphQLClientRequestHeaders = RequestOptions["requestHeaders"];
 export type UpdateRpRegistrationMutationVariables = Types.Exact<{
   rp_id: Types.Scalars["String"]["input"];
   manager_kms_key_id: Types.Scalars["String"]["input"];
-  tx_hash: Types.Scalars["String"]["input"];
+  operation_hash: Types.Scalars["String"]["input"];
 }>;
 
 export type UpdateRpRegistrationMutation = {
@@ -18,7 +18,7 @@ export type UpdateRpRegistrationMutation = {
     app_id: string;
     status: unknown;
     manager_kms_key_id?: string | null;
-    tx_hash?: string | null;
+    operation_hash?: string | null;
   } | null;
 };
 
@@ -26,17 +26,17 @@ export const UpdateRpRegistrationDocument = gql`
   mutation UpdateRpRegistration(
     $rp_id: String!
     $manager_kms_key_id: String!
-    $tx_hash: String!
+    $operation_hash: String!
   ) {
     update_rp_registration_by_pk(
       pk_columns: { rp_id: $rp_id }
-      _set: { manager_kms_key_id: $manager_kms_key_id, tx_hash: $tx_hash }
+      _set: { manager_kms_key_id: $manager_kms_key_id, operation_hash: $operation_hash }
     ) {
       rp_id
       app_id
       status
       manager_kms_key_id
-      tx_hash
+      operation_hash
     }
   }
 `;
