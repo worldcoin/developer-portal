@@ -2,10 +2,7 @@ import { getSdk as getCheckUserSdk } from "@/api/hasura/graphql/checkUserInApp.g
 import { errorHasuraQuery } from "@/api/helpers/errors";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { getKMSClient, scheduleKeyDeletion } from "@/api/helpers/kms";
-import {
-  createManagerKey,
-  signEthDigestWithKms,
-} from "@/api/helpers/kms-eth";
+import { createManagerKey, signEthDigestWithKms } from "@/api/helpers/kms-eth";
 import { generateRpIdString } from "@/api/helpers/rp-utils";
 import { sendUserOperation } from "@/api/helpers/temporal-rpc";
 import {
