@@ -3,11 +3,14 @@ import { Auth0SessionUser } from "@/lib/types";
 import { getSession } from "@auth0/nextjs-auth0";
 import { redirect } from "next/navigation";
 import { ClientPage } from "./ClientPage";
+import { NewClientPage } from "./NewClientPage";
 import { getSdk as getInitialAppSdk } from "./graphql/server/apps.generated";
 
 type AppPage = {
   params: Record<string, string> | null | undefined;
 };
+
+const USE_NEW_PAGE = process.env.NEXT_PUBLIC_USE_NEW_APPS_PAGE === "true";
 
 export const AppsPage = async (props: AppPage) => {
   const session = await getSession();
@@ -38,5 +41,5 @@ export const AppsPage = async (props: AppPage) => {
     return redirect(`/teams/${teamId}/apps/${app[0].id}`);
   }
 
-  return <ClientPage />;
+  return USE_NEW_PAGE ? <NewClientPage /> : <ClientPage />;
 };
