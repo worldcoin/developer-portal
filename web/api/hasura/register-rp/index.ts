@@ -8,6 +8,7 @@ import { sendUserOperation } from "@/api/helpers/temporal-rpc";
 import {
   buildRegisterRpCalldata,
   buildUserOperation,
+  encodeSafeUserOpCalldata,
   getRegisterRpNonce,
   hashUserOperation,
 } from "@/api/helpers/user-operation";
@@ -196,18 +197,25 @@ export const POST = async (req: NextRequest) => {
   const appName = appInfo.app_metadata?.[0]?.name || "";
 
   // STEP 3: Build and sign UserOperation
-  const calldata = buildRegisterRpCalldata(
+  const innerCalldata = buildRegisterRpCalldata(
     rpId,
     managerAddress,
     signer_address,
     appName,
   );
 
+  // Wrap in Safe's executeUserOp
+  const safeCalldata = encodeSafeUserOpCalldata(
+    process.env.RP_REGISTRY_CONTRACT_ADDRESS!,
+    0n,
+    innerCalldata,
+  );
+
   const nonce = getRegisterRpNonce(rpId);
 
   const userOp = buildUserOperation(
     process.env.RP_REGISTRY_SAFE_ADDRESS!,
-    calldata,
+    safeCalldata,
     nonce,
   );
 
