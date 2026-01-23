@@ -44,6 +44,13 @@ const GAS_LIMITS = {
 };
 
 /**
+ * Safe 4337 module ABI for executeUserOp.
+ */
+const SAFE_4337_ABI = [
+  "function executeUserOp(address to, uint256 value, bytes calldata data, uint8 operation)",
+];
+
+/**
  * RpRegistry contract ABI.
  */
 export const RP_REGISTRY_ABI = [
@@ -66,6 +73,28 @@ export const RP_REGISTRY_ABI = [
   "event SignerUpdated(uint64 indexed rpId, address indexed oldSigner, address indexed newSigner)",
   "event DomainUpdated(uint64 indexed rpId, string oldDomain, string newDomain)",
 ];
+
+/**
+ * Encodes calldata for a Safe executeUserOp call.
+ *
+ * @param to - Target contract address
+ * @param value - ETH value to send (usually 0)
+ * @param data - The inner calldata to execute
+ * @returns The encoded Safe executeUserOp calldata
+ */
+export function encodeSafeUserOpCalldata(
+  to: string,
+  value: bigint,
+  data: string,
+): string {
+  const iface = new Interface(SAFE_4337_ABI);
+  return iface.encodeFunctionData("executeUserOp", [
+    to,
+    value,
+    data,
+    0, // operation: 0 = CALL
+  ]);
+}
 
 /**
  * Builds the calldata for RpRegistry.register().
