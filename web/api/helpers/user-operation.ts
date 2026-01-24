@@ -61,7 +61,6 @@ const DEFAULT_VALID_UNTIL_OFFSET_MINUTES = 30; // Transaction expiry
 
 /**
  * ERC-4337 UserOperation structure (EntryPoint v0.7 format).
- * Uses v0.7 native fields (factory/factoryData, paymaster fields) like app-backend.
  */
 export interface UserOperation {
   sender: string;
