@@ -30,7 +30,10 @@ export const UpdateRpRegistrationDocument = gql`
   ) {
     update_rp_registration_by_pk(
       pk_columns: { rp_id: $rp_id }
-      _set: { manager_kms_key_id: $manager_kms_key_id, operation_hash: $operation_hash }
+      _set: {
+        manager_kms_key_id: $manager_kms_key_id
+        operation_hash: $operation_hash
+      }
     ) {
       rp_id
       app_id
