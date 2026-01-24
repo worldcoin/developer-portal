@@ -5,6 +5,18 @@ object_relationships:
   - name: app
     using:
       foreign_key_constraint_on: app_id
+insert_permissions:
+  - role: service
+    permission:
+      check: {}
+      columns:
+        - rp_id
+        - app_id
+        - mode
+        - signer_address
+        - manager_kms_key_id
+        - status
+        - operation_hash
 select_permissions:
   - role: service
     permission:
@@ -39,18 +51,6 @@ select_permissions:
                 memberships:
                   user_id:
                     _eq: X-Hasura-User-Id
-insert_permissions:
-  - role: service
-    permission:
-      check: {}
-      columns:
-        - rp_id
-        - app_id
-        - mode
-        - signer_address
-        - manager_kms_key_id
-        - status
-        - operation_hash
 update_permissions:
   - role: service
     permission:
@@ -61,3 +61,8 @@ update_permissions:
         - operation_hash
       filter: {}
       check: {}
+delete_permissions:
+  - role: service
+    permission:
+      filter: {}
+    comment: ""

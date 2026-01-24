@@ -23,7 +23,7 @@ export const GetAppInfoDocument = gql`
     app(where: { id: { _eq: $app_id } }) {
       id
       team_id
-      app_metadata(limit: 1, order_by: { created_at: desc }) {
+      app_metadata(limit: 1) {
         name
       }
     }

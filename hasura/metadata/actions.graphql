@@ -66,6 +66,13 @@ type Mutation {
 }
 
 type Mutation {
+  register_rp(
+    app_id: String!
+    signer_address: String!
+  ): RegisterRpOutput
+}
+
+type Mutation {
   reset_api_key(
     id: String!
     team_id: String!
@@ -109,13 +116,6 @@ type Mutation {
     is_reviewer_app_store_approved: Boolean!
     is_reviewer_world_app_approved: Boolean!
   ): VerifyAppOutput
-}
-
-type Mutation {
-  register_rp(
-    app_id: String!
-    signer_address: String!
-  ): RegisterRpOutput
 }
 
 enum ReviewStatusEnum {
