@@ -10,7 +10,9 @@ import {
   buildUserOperation,
   encodeSafeUserOpCalldata,
   getRegisterRpNonce,
-  hashUserOperation,
+  getTxExpiration,
+  hashSafeUserOp,
+  replacePlaceholderWithSignature,
 } from "@/api/helpers/user-operation";
 import { protectInternalEndpoint } from "@/api/helpers/utils";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
@@ -109,7 +111,8 @@ export const POST = async (req: NextRequest) => {
     !process.env.RP_REGISTRY_SAFE_OWNER_KMS_KEY_ID ||
     !process.env.RP_REGISTRY_CONTRACT_ADDRESS ||
     !process.env.RP_REGISTRY_SAFE_ADDRESS ||
-    !process.env.RP_REGISTRY_ENTRYPOINT_ADDRESS
+    !process.env.RP_REGISTRY_ENTRYPOINT_ADDRESS ||
+    !process.env.RP_REGISTRY_SAFE_4337_MODULE_ADDRESS
   ) {
     return errorHasuraQuery({
       req,
@@ -212,23 +215,28 @@ export const POST = async (req: NextRequest) => {
   );
 
   const nonce = getRegisterRpNonce(rpId);
+  const { validAfter, validUntil } = getTxExpiration();
 
   const userOp = buildUserOperation(
     process.env.RP_REGISTRY_SAFE_ADDRESS!,
     safeCalldata,
     nonce,
+    validAfter,
+    validUntil,
   );
 
-  const userOpHash = hashUserOperation(
+  // Compute Safe Operation hash (EIP-712 typed data) - this is what the Safe owner signs
+  const safeOpHash = hashSafeUserOp(
     userOp,
+    Number(WORLD_CHAIN_ID),
+    process.env.RP_REGISTRY_SAFE_4337_MODULE_ADDRESS!,
     process.env.RP_REGISTRY_ENTRYPOINT_ADDRESS!,
-    WORLD_CHAIN_ID,
   );
 
   const signature = await signEthDigestWithKms(
     kmsClient,
     process.env.RP_REGISTRY_SAFE_OWNER_KMS_KEY_ID!,
-    getBytes(userOpHash),
+    getBytes(safeOpHash),
   );
 
   if (!signature) {
@@ -242,7 +250,11 @@ export const POST = async (req: NextRequest) => {
     });
   }
 
-  userOp.signature = signature.serialized;
+  // Replace placeholder signature with actual signature (preserving validity timestamps)
+  userOp.signature = replacePlaceholderWithSignature({
+    placeholderSig: userOp.signature,
+    signature: signature.serialized,
+  });
 
   // STEP 4: Submit to temporal bundler
   let operationHash: string;
