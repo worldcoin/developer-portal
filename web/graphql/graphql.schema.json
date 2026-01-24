@@ -66076,6 +66076,18 @@
             "deprecationReason": null
           },
           {
+            "name": "operation_hash",
+            "description": null,
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "rp_id",
             "description": null,
             "args": [],
@@ -66119,18 +66131,6 @@
                 "name": "rp_registration_status",
                 "ofType": null
               }
-            },
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
-            "name": "tx_hash",
-            "description": null,
-            "args": [],
-            "type": {
-              "kind": "SCALAR",
-              "name": "String",
-              "ofType": null
             },
             "isDeprecated": false,
             "deprecationReason": null
@@ -66595,6 +66595,18 @@
             "deprecationReason": null
           },
           {
+            "name": "operation_hash",
+            "description": null,
+            "type": {
+              "kind": "INPUT_OBJECT",
+              "name": "String_comparison_exp",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "rp_id",
             "description": null,
             "type": {
@@ -66624,18 +66636,6 @@
             "type": {
               "kind": "INPUT_OBJECT",
               "name": "rp_registration_status_comparison_exp",
-              "ofType": null
-            },
-            "defaultValue": null,
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
-            "name": "tx_hash",
-            "description": null,
-            "type": {
-              "kind": "INPUT_OBJECT",
-              "name": "String_comparison_exp",
               "ofType": null
             },
             "defaultValue": null,
@@ -66749,6 +66749,18 @@
             "deprecationReason": null
           },
           {
+            "name": "operation_hash",
+            "description": null,
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "rp_id",
             "description": null,
             "type": {
@@ -66778,18 +66790,6 @@
             "type": {
               "kind": "SCALAR",
               "name": "rp_registration_status",
-              "ofType": null
-            },
-            "defaultValue": null,
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
-            "name": "tx_hash",
-            "description": null,
-            "type": {
-              "kind": "SCALAR",
-              "name": "String",
               "ofType": null
             },
             "defaultValue": null,
@@ -66867,6 +66867,18 @@
             "deprecationReason": null
           },
           {
+            "name": "operation_hash",
+            "description": null,
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "rp_id",
             "description": null,
             "args": [],
@@ -66897,18 +66909,6 @@
             "type": {
               "kind": "SCALAR",
               "name": "rp_registration_status",
-              "ofType": null
-            },
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
-            "name": "tx_hash",
-            "description": null,
-            "args": [],
-            "type": {
-              "kind": "SCALAR",
-              "name": "String",
               "ofType": null
             },
             "isDeprecated": false,
@@ -66987,6 +66987,18 @@
             "deprecationReason": null
           },
           {
+            "name": "operation_hash",
+            "description": null,
+            "type": {
+              "kind": "ENUM",
+              "name": "order_by",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "rp_id",
             "description": null,
             "type": {
@@ -67012,18 +67024,6 @@
           },
           {
             "name": "status",
-            "description": null,
-            "type": {
-              "kind": "ENUM",
-              "name": "order_by",
-              "ofType": null
-            },
-            "defaultValue": null,
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
-            "name": "tx_hash",
             "description": null,
             "type": {
               "kind": "ENUM",
@@ -67105,6 +67105,18 @@
             "deprecationReason": null
           },
           {
+            "name": "operation_hash",
+            "description": null,
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "rp_id",
             "description": null,
             "args": [],
@@ -67135,18 +67147,6 @@
             "type": {
               "kind": "SCALAR",
               "name": "rp_registration_status",
-              "ofType": null
-            },
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
-            "name": "tx_hash",
-            "description": null,
-            "args": [],
-            "type": {
-              "kind": "SCALAR",
-              "name": "String",
               "ofType": null
             },
             "isDeprecated": false,
@@ -67225,6 +67225,18 @@
             "deprecationReason": null
           },
           {
+            "name": "operation_hash",
+            "description": null,
+            "type": {
+              "kind": "ENUM",
+              "name": "order_by",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "rp_id",
             "description": null,
             "type": {
@@ -67250,18 +67262,6 @@
           },
           {
             "name": "status",
-            "description": null,
-            "type": {
-              "kind": "ENUM",
-              "name": "order_by",
-              "ofType": null
-            },
-            "defaultValue": null,
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
-            "name": "tx_hash",
             "description": null,
             "type": {
               "kind": "ENUM",
@@ -67615,6 +67615,18 @@
             "deprecationReason": null
           },
           {
+            "name": "operation_hash",
+            "description": null,
+            "type": {
+              "kind": "ENUM",
+              "name": "order_by",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "rp_id",
             "description": null,
             "type": {
@@ -67640,18 +67652,6 @@
           },
           {
             "name": "status",
-            "description": null,
-            "type": {
-              "kind": "ENUM",
-              "name": "order_by",
-              "ofType": null
-            },
-            "defaultValue": null,
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
-            "name": "tx_hash",
             "description": null,
             "type": {
               "kind": "ENUM",
@@ -67739,6 +67739,12 @@
             "deprecationReason": null
           },
           {
+            "name": "operation_hash",
+            "description": "column name",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "rp_id",
             "description": "column name",
             "isDeprecated": false,
@@ -67752,12 +67758,6 @@
           },
           {
             "name": "status",
-            "description": "column name",
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
-            "name": "tx_hash",
             "description": "column name",
             "isDeprecated": false,
             "deprecationReason": null
@@ -67826,6 +67826,18 @@
             "deprecationReason": null
           },
           {
+            "name": "operation_hash",
+            "description": null,
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "rp_id",
             "description": null,
             "type": {
@@ -67855,18 +67867,6 @@
             "type": {
               "kind": "SCALAR",
               "name": "rp_registration_status",
-              "ofType": null
-            },
-            "defaultValue": null,
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
-            "name": "tx_hash",
-            "description": null,
-            "type": {
-              "kind": "SCALAR",
-              "name": "String",
               "ofType": null
             },
             "defaultValue": null,
@@ -68129,6 +68129,18 @@
             "deprecationReason": null
           },
           {
+            "name": "operation_hash",
+            "description": null,
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "rp_id",
             "description": null,
             "type": {
@@ -68158,18 +68170,6 @@
             "type": {
               "kind": "SCALAR",
               "name": "rp_registration_status",
-              "ofType": null
-            },
-            "defaultValue": null,
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
-            "name": "tx_hash",
-            "description": null,
-            "type": {
-              "kind": "SCALAR",
-              "name": "String",
               "ofType": null
             },
             "defaultValue": null,
@@ -68226,6 +68226,12 @@
             "deprecationReason": null
           },
           {
+            "name": "operation_hash",
+            "description": "column name",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "rp_id",
             "description": "column name",
             "isDeprecated": false,
@@ -68239,12 +68245,6 @@
           },
           {
             "name": "status",
-            "description": "column name",
-            "isDeprecated": false,
-            "deprecationReason": null
-          },
-          {
-            "name": "tx_hash",
             "description": "column name",
             "isDeprecated": false,
             "deprecationReason": null

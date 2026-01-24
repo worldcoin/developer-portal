@@ -17,7 +17,7 @@ select_permissions:
         - signer_address
         - manager_kms_key_id
         - status
-        - tx_hash
+        - operation_hash
       filter: {}
   - role: user
     permission:
@@ -29,7 +29,7 @@ select_permissions:
         - mode
         - signer_address
         - status
-        - tx_hash
+        - operation_hash
       filter:
         app:
           _and:
@@ -50,7 +50,7 @@ insert_permissions:
         - signer_address
         - manager_kms_key_id
         - status
-        - tx_hash
+        - operation_hash
 update_permissions:
   - role: service
     permission:
@@ -58,6 +58,6 @@ update_permissions:
         - signer_address
         - manager_kms_key_id
         - status
-        - tx_hash
+        - operation_hash
       filter: {}
       check: {}
