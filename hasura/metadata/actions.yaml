@@ -214,6 +214,16 @@ actions:
     permissions:
       - role: reviewer
     comment: Verify an App
+  - name: register_rp
+    definition:
+      kind: synchronous
+      handler: '{{NEXT_API_URL}}/hasura/register-rp'
+      headers:
+        - name: Authorization
+          value_from_env: INTERNAL_ENDPOINTS_SECRET
+    permissions:
+      - role: user
+    comment: Register an RP (Relying Party) for an app with managed mode
 custom_types:
   enums:
     - name: ReviewStatusEnum
@@ -363,4 +373,5 @@ custom_types:
     - name: ConcludeAppReportInvestigationOutput
     - name: SetAppReportAppealOutput
     - name: ChangeAppReportStatusOutput
+    - name: RegisterRpOutput
   scalars: []

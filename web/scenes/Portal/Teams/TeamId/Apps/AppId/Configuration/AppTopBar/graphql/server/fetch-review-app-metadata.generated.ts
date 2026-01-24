@@ -30,10 +30,7 @@ export type FetchAppMetadataByIdQuery = {
     is_for_humans_only: boolean;
     verification_status: string;
     content_card_image_url: string;
-    app: {
-      __typename?: "app";
-      is_staging: boolean;
-    };
+    app: { __typename?: "app"; is_staging: boolean };
   }>;
   localisations: Array<{
     __typename?: "localisations";

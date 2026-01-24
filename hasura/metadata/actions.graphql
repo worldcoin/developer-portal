@@ -111,6 +111,13 @@ type Mutation {
   ): VerifyAppOutput
 }
 
+type Mutation {
+  register_rp(
+    app_id: String!
+    signer_address: String!
+  ): RegisterRpOutput
+}
+
 enum ReviewStatusEnum {
   OPEN
   NOT_ESCALATE
@@ -321,5 +328,13 @@ type SetAppReportAppealOutput {
 
 type ChangeAppReportStatusOutput {
   success: Boolean!
+}
+
+type RegisterRpOutput {
+  rp_id: String!
+  manager_address: String!
+  signer_address: String!
+  status: String!
+  operation_hash: String!
 }
 
