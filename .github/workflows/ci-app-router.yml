@@ -167,7 +167,7 @@ jobs:
   e2e-tests:
     name: End-to-end Tests
     runs-on:
-      group: arc-public-xlarge-amd64-runner
+      group: arc-public-2xlarge-amd64-runner
     timeout-minutes: 10
     environment: development
 

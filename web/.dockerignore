@@ -9,3 +9,4 @@ README.md
 # Added by SEC-1406 patch
 .gitignore
 .env*
+scripts

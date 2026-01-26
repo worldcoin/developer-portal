@@ -66,6 +66,13 @@ type Mutation {
 }
 
 type Mutation {
+  register_rp(
+    app_id: String!
+    signer_address: String!
+  ): RegisterRpOutput
+}
+
+type Mutation {
   reset_api_key(
     id: String!
     team_id: String!
@@ -321,5 +328,13 @@ type SetAppReportAppealOutput {
 
 type ChangeAppReportStatusOutput {
   success: Boolean!
+}
+
+type RegisterRpOutput {
+  rp_id: String!
+  manager_address: String!
+  signer_address: String!
+  status: String!
+  operation_hash: String!
 }
 
