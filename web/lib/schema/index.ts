@@ -96,6 +96,48 @@ export const httpsLinkSchema = ({
       excludeEmptyString,
     });
 
+/**
+ * Schema for HTTPS URLs that:
+ * - Transforms URLs without protocol to add https://
+ * - Rejects non-HTTPS protocols (http://, ftp://, etc.)
+ * - Validates HTTPS URL format
+ */
+export const httpsUrlSchema = ({
+  required = false,
+}: {
+  required?: boolean;
+} = {}) => {
+  let schema = yup
+    .string()
+    .transform((value) => {
+      if (!value || value.trim() === "") return value;
+      if (/^[a-zA-Z][a-zA-Z\d+\-.]*:/.test(value)) return value;
+      return `https://${value}`;
+    })
+    .test(
+      "no-non-https-protocol",
+      "URL must use HTTPS (e.g., https://example.com)",
+      function (value) {
+        if (!value || value.trim() === "") return true;
+        const hasProtocol = /^[a-zA-Z][a-zA-Z\d+\-.]*:/.test(value);
+        return !hasProtocol || value.startsWith("https://");
+      }
+    )
+    .url("Must be a valid URL")
+    .matches(/^https:\/\/(\w+-)*\w+(\.\w+)+([\/\w\-._/?%&#=]*)?$/, {
+      message: "URL must use HTTPS (e.g., https://example.com)",
+      excludeEmptyString: true,
+    });
+
+  if (required) {
+    schema = schema.required("This field is required");
+  } else {
+    schema = schema.optional();
+  }
+
+  return schema;
+};
+
 function noLinks(value: string | undefined) {
   if (!value) return true;
   const urlRegex = /(https?:\/\/[^\s]+)/g;
