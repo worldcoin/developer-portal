@@ -136,6 +136,21 @@ export const POST = async (req: NextRequest) => {
   const appInfo = app[0];
   const teamId = appInfo.team_id;
 
+  // Check if team is enabled for World ID 4.0
+  const enabledTeams = await global.ParameterStore?.getParameter<string[]>(
+    "world-id-4-0/enabled-teams",
+    [],
+  );
+
+  if (!enabledTeams?.includes(teamId)) {
+    return errorHasuraQuery({
+      req,
+      detail: "World ID 4.0 is not enabled for this team.",
+      code: "feature_not_enabled",
+      app_id,
+    });
+  }
+
   // Verify user has permission (ADMIN or OWNER)
   const { team } = await getCheckUserSdk(client).CheckUserInApp({
     team_id: teamId,
