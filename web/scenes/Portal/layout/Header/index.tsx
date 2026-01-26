@@ -14,8 +14,12 @@ import { colorAtom } from "..";
 import { Color } from "../../Profile/types";
 import { AppSelector } from "../AppSelector";
 import { CreateAppDialog } from "../CreateAppDialog";
+import { CreateAppDialogV2 } from "../CreateAppDialog/index-v2";
 
 export const createAppDialogOpenedAtom = atom(false);
+
+const USE_NEW_CREATE_APP_DIALOG =
+  process.env.NEXT_PUBLIC_USE_NEW_CREATE_APP_DIALOG === "true";
 
 export const Header = (props: { color: Color | null }) => {
   const setColor = useSetAtom(colorAtom);
@@ -95,7 +99,11 @@ export const Header = (props: { color: Color | null }) => {
         <LoggedUserNav />
       </SizingWrapper>
 
-      <CreateAppDialog open={open} onClose={setOpen} className={"mx-0"} />
+      {USE_NEW_CREATE_APP_DIALOG ? (
+        <CreateAppDialogV2 open={open} onClose={setOpen} className={"mx-0"} />
+      ) : (
+        <CreateAppDialog open={open} onClose={setOpen} className={"mx-0"} />
+      )}
     </header>
   );
 };
