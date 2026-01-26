@@ -25,9 +25,9 @@ export type CreateKeyResult =
     }
   | undefined;
 
-export const getKMSClient = async () => {
+export const getKMSClient = async (region?: string) => {
   return new KMSClient({
-    region: process.env.AWS_REGION_NAME,
+    region: region ?? process.env.AWS_REGION_NAME,
   });
 };
 

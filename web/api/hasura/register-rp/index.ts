@@ -112,7 +112,8 @@ export const POST = async (req: NextRequest) => {
     !process.env.RP_REGISTRY_CONTRACT_ADDRESS ||
     !process.env.RP_REGISTRY_SAFE_ADDRESS ||
     !process.env.RP_REGISTRY_ENTRYPOINT_ADDRESS ||
-    !process.env.RP_REGISTRY_SAFE_4337_MODULE_ADDRESS
+    !process.env.RP_REGISTRY_SAFE_4337_MODULE_ADDRESS ||
+    !process.env.RP_REGISTRY_KMS_REGION
   ) {
     return errorHasuraQuery({
       req,
@@ -196,7 +197,7 @@ export const POST = async (req: NextRequest) => {
   const rpId = BigInt("0x" + rpIdHex);
 
   // STEP 2: Create KMS manager key
-  const kmsClient = await getKMSClient();
+  const kmsClient = await getKMSClient(process.env.RP_REGISTRY_KMS_REGION);
   const managerKeyResult = await createManagerKey(kmsClient, rpIdString);
 
   if (!managerKeyResult) {
