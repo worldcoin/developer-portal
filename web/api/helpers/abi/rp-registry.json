@@ -1,15 +1,34 @@
 [
-  "function register(uint64 rpId, address manager, address signer, string calldata unverifiedWellKnownDomain)",
-  "function updateManager(uint64 rpId, address newManager)",
-  "function updateSigner(uint64 rpId, address newSigner)",
-  "function updateDomain(uint64 rpId, string calldata newDomain)",
-  "function getRp(uint64 rpId) view returns (address manager, address signer, string domain)",
-  "function getManager(uint64 rpId) view returns (address)",
-  "function getSigner(uint64 rpId) view returns (address)",
-  "function getDomain(uint64 rpId) view returns (string)",
-  "function isRegistered(uint64 rpId) view returns (bool)",
-  "event RpRegistered(uint64 indexed rpId, address indexed manager, address indexed signer, string domain)",
-  "event ManagerUpdated(uint64 indexed rpId, address indexed oldManager, address indexed newManager)",
-  "event SignerUpdated(uint64 indexed rpId, address indexed oldSigner, address indexed newSigner)",
-  "event DomainUpdated(uint64 indexed rpId, string oldDomain, string newDomain)"
+  {
+    "type": "function",
+    "name": "register",
+    "inputs": [
+      { "name": "rpId", "type": "uint64" },
+      { "name": "manager", "type": "address" },
+      { "name": "signer", "type": "address" },
+      { "name": "unverifiedWellKnownDomain", "type": "string" }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "getRpUnchecked",
+    "inputs": [{ "name": "rpId", "type": "uint64" }],
+    "outputs": [
+      {
+        "name": "",
+        "type": "tuple",
+        "components": [
+          { "name": "initialized", "type": "bool" },
+          { "name": "active", "type": "bool" },
+          { "name": "manager", "type": "address" },
+          { "name": "signer", "type": "address" },
+          { "name": "oprfKeyId", "type": "uint160" },
+          { "name": "unverifiedWellKnownDomain", "type": "string" }
+        ]
+      }
+    ],
+    "stateMutability": "view"
+  }
 ]

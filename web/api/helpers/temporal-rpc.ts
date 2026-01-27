@@ -1,59 +1,65 @@
 import "server-only";
 
 /**
- * Temporal JSON-RPC client for submitting ERC-4337 UserOperations.
+ * Temporal JSON-RPC client for ERC-4337 UserOperations and contract view calls.
  */
 
 import { logger } from "@/lib/logger";
-import { JsonRpcProvider } from "ethers";
+import { Contract, FetchRequest, JsonRpcProvider, Network } from "ethers";
+import RP_REGISTRY_ABI from "./abi/rp-registry.json";
 import { UserOperation } from "./user-operation";
 
-/**
- * Result of sending a UserOperation.
- */
+const RPC_TIMEOUT_MS = 10_000;
+const RPC_MAX_RETRIES = 2;
+const WORLD_CHAIN_ID = 480;
+const WORLD_CHAIN_NETWORK = "worldchain";
+
 export interface SendUserOperationResult {
-  /** The operation hash returned by the bundler */
   operationHash: string;
 }
 
-/**
- * World Chain network identifier.
- */
-const WORLD_CHAIN_NETWORK = "worldchain";
+export interface OnChainRelyingParty {
+  initialized: boolean;
+  active: boolean;
+  manager: string;
+  signer: string;
+  oprfKeyId: bigint;
+  unverifiedWellKnownDomain: string;
+}
 
-/**
- * Gets the JSON-RPC URL for the temporal service.
- */
-function getRpcUrl(): string {
+function createProvider(): JsonRpcProvider {
   const baseUrl = process.env.TEMPORAL_RPC_URL;
   if (!baseUrl) {
     throw new Error("TEMPORAL_RPC_URL environment variable is not set");
   }
-  return `${baseUrl}/v2/rpc/${WORLD_CHAIN_NETWORK}`;
+
+  const rpcUrl = `${baseUrl}/v2/rpc/${WORLD_CHAIN_NETWORK}`;
+  const fetchRequest = new FetchRequest(rpcUrl);
+  fetchRequest.timeout = RPC_TIMEOUT_MS;
+  fetchRequest.retryFunc = (_req, _resp, attempt) => {
+    return Promise.resolve(attempt < RPC_MAX_RETRIES);
+  };
+
+  return new JsonRpcProvider(fetchRequest, Network.from(WORLD_CHAIN_ID), {
+    batchMaxCount: 1,
+    staticNetwork: true,
+  });
 }
 
 /**
- * Sends a UserOperation to the temporal bundler service.
- *
- * @param userOp - The signed UserOperation to submit
- * @param entryPoint - The EntryPoint contract address
- * @returns The operation hash if successful
- * @throws Error if the RPC call fails
+ * Submits an ERC-4337 UserOperation via the temporal bundler.
+ * Returns the operation hash for tracking the transaction status.
  */
 export async function sendUserOperation(
   userOp: UserOperation,
   entryPoint: string,
 ): Promise<SendUserOperationResult> {
-  const rpcUrl = getRpcUrl();
-
   logger.info("Sending UserOperation to temporal", {
-    rpcUrl,
     sender: userOp.sender,
     nonce: userOp.nonce,
   });
 
-  const provider = new JsonRpcProvider(rpcUrl);
-
+  const provider = createProvider();
   const operationHash = await provider.send("eth_sendUserOperation", [
     userOp,
     entryPoint,
@@ -65,4 +71,27 @@ export async function sendUserOperation(
   });
 
   return { operationHash };
+}
+
+/**
+ * Fetches RP data from RpRegistry. Uses getRpUnchecked to return data
+ * even for inactive RPs (getRp would revert for inactive ones).
+ */
+export async function getRpFromContract(
+  rpId: bigint,
+  contractAddress: string,
+): Promise<OnChainRelyingParty> {
+  const provider = createProvider();
+  const contract = new Contract(contractAddress, RP_REGISTRY_ABI, provider);
+
+  const result = await contract.getRpUnchecked(rpId);
+
+  return {
+    initialized: result.initialized,
+    active: result.active,
+    manager: result.manager,
+    signer: result.signer,
+    oprfKeyId: BigInt(result.oprfKeyId),
+    unverifiedWellKnownDomain: result.unverifiedWellKnownDomain,
+  };
 }
