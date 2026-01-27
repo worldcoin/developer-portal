@@ -52,7 +52,8 @@ export async function sendUserOperation(
     nonce: userOp.nonce,
   });
 
-  const provider = new JsonRpcProvider(rpcUrl);
+  // Disable batching (batchMaxCount: 1) since temporal doesn't support batch requests
+  const provider = new JsonRpcProvider(rpcUrl, undefined, { batchMaxCount: 1 });
 
   const operationHash = await provider.send("eth_sendUserOperation", [
     userOp,
