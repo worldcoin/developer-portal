@@ -28,23 +28,18 @@ export interface OnChainRelyingParty {
   unverifiedWellKnownDomain: string;
 }
 
-export interface Groth16Proof {
-  pA: [bigint, bigint];
-  pB: [[bigint, bigint], [bigint, bigint]];
-  pC: [bigint, bigint];
-}
-
 export interface VerifyProofParams {
   nullifier: bigint;
   action: bigint;
   rpId: bigint;
-  accountCommitment: bigint;
+  sessionId: bigint;
   nonce: bigint;
   signalHash: bigint;
   authenticatorRoot: bigint;
   proofTimestamp: bigint;
   credentialIssuerId: bigint;
-  proof: Groth16Proof;
+  credentialGenesisIssuedAtMin: bigint;
+  compressedProof: [bigint, bigint, bigint, bigint];
 }
 
 export interface VerifyProofResult {
@@ -162,7 +157,8 @@ export async function getRpFromContract(
 }
 
 /**
- * Verifies a World ID proof by calling the on-chain Verifier contract.
+ * Verifies a World ID v4 proof by calling the on-chain Verifier contract.
+ * The contract reverts if the proof is invalid (no return value on success).
  */
 export async function verifyProofOnChain(
   params: VerifyProofParams,
@@ -178,40 +174,24 @@ export async function verifyProofOnChain(
     const provider = createProvider();
     const contract = new Contract(contractAddress, VERIFIER_ABI, provider);
 
-    const isValid = await contract.verify(
+    await contract.verify(
       params.nullifier,
       params.action,
       params.rpId,
-      params.accountCommitment,
+      params.sessionId,
       params.nonce,
       params.signalHash,
       params.authenticatorRoot,
       params.proofTimestamp,
       params.credentialIssuerId,
-      {
-        pA: params.proof.pA,
-        pB: params.proof.pB,
-        pC: params.proof.pC,
-      },
+      params.credentialGenesisIssuedAtMin,
+      params.compressedProof,
     );
 
-    if (isValid) {
-      logger.info("Proof verified successfully", {
-        rpId: params.rpId.toString(),
-      });
-      return { success: true };
-    }
-
-    logger.warn("Proof verification returned false", {
+    logger.info("Proof verified successfully", {
       rpId: params.rpId.toString(),
     });
-    return {
-      success: false,
-      error: {
-        code: "invalid_proof",
-        detail: "The proof verification returned false.",
-      },
-    };
+    return { success: true };
   } catch (error) {
     logger.error("Proof verification failed", {
       error: error instanceof Error ? error.message : String(error),

@@ -5,24 +5,17 @@
     "inputs": [
       { "name": "nullifier", "type": "uint256" },
       { "name": "action", "type": "uint256" },
-      { "name": "rpId", "type": "uint160" },
-      { "name": "accountCommitment", "type": "uint256" },
+      { "name": "rpId", "type": "uint64" },
+      { "name": "sessionId", "type": "uint256" },
       { "name": "nonce", "type": "uint256" },
       { "name": "signalHash", "type": "uint256" },
       { "name": "authenticatorRoot", "type": "uint256" },
       { "name": "proofTimestamp", "type": "uint256" },
       { "name": "credentialIssuerId", "type": "uint256" },
-      {
-        "name": "proof",
-        "type": "tuple",
-        "components": [
-          { "name": "pA", "type": "uint256[2]" },
-          { "name": "pB", "type": "uint256[2][2]" },
-          { "name": "pC", "type": "uint256[2]" }
-        ]
-      }
+      { "name": "credentialGenesisIssuedAtMin", "type": "uint256" },
+      { "name": "compressedProof", "type": "uint256[4]" }
     ],
-    "outputs": [{ "name": "", "type": "bool" }],
+    "outputs": [],
     "stateMutability": "view"
   }
 ]
