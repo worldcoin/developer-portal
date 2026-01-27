@@ -3,7 +3,7 @@ import { errorHasuraQuery } from "@/api/helpers/errors";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { getKMSClient, scheduleKeyDeletion } from "@/api/helpers/kms";
 import { createManagerKey, signEthDigestWithKms } from "@/api/helpers/kms-eth";
-import { generateRpIdString } from "@/api/helpers/rp-utils";
+import { generateRpIdString, parseRpId } from "@/api/helpers/rp-utils";
 import { sendUserOperation } from "@/api/helpers/temporal-rpc";
 import {
   buildRegisterRpCalldata,
@@ -192,9 +192,7 @@ export const POST = async (req: NextRequest) => {
     });
   }
 
-  // Get the numeric rpId for the contract call (strip "rp_" prefix and parse)
-  const rpIdHex = rpIdString.slice(3);
-  const rpId = BigInt("0x" + rpIdHex);
+  const rpId = parseRpId(rpIdString);
 
   // STEP 2: Create KMS manager key
   const kmsClient = await getKMSClient(process.env.RP_REGISTRY_KMS_REGION);
