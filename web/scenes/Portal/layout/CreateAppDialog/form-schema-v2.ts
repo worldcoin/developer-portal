@@ -16,9 +16,7 @@ export const createAppSchemaV2 = yup
     category: yup.string().when("is_miniapp", {
       is: true,
       then: (schema) =>
-        schema
-          .oneOf(CategoryNameIterable)
-          .required("This field is required"),
+        schema.oneOf(CategoryNameIterable).required("This field is required"),
       otherwise: (schema) => schema.optional(),
     }),
     // Keep these for backend compatibility but don't show in form

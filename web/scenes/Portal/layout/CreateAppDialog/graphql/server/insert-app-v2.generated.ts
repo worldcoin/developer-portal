@@ -75,14 +75,10 @@ export function getSdk(
     ): Promise<InsertAppV2Mutation> {
       return withWrapper(
         (wrappedRequestHeaders) =>
-          client.request<InsertAppV2Mutation>(
-            InsertAppV2Document,
-            variables,
-            {
-              ...requestHeaders,
-              ...wrappedRequestHeaders,
-            },
-          ),
+          client.request<InsertAppV2Mutation>(InsertAppV2Document, variables, {
+            ...requestHeaders,
+            ...wrappedRequestHeaders,
+          }),
         "InsertAppV2",
         "mutation",
         variables,

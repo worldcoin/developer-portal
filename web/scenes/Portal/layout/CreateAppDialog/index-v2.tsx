@@ -81,16 +81,15 @@ export const CreateAppDialogV2 = (props: DialogProps) => {
           new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
       )[0];
 
-      const redirect =
-        values.is_miniapp
-          ? urls.configuration({
-              team_id: teamId,
-              app_id: latestApp?.id ?? "",
-            })
-          : urls.actions({
-              team_id: teamId,
-              app_id: latestApp?.id ?? "",
-            });
+      const redirect = values.is_miniapp
+        ? urls.configuration({
+            team_id: teamId,
+            app_id: latestApp?.id ?? "",
+          })
+        : urls.actions({
+            team_id: teamId,
+            app_id: latestApp?.id ?? "",
+          });
 
       router.prefetch(redirect);
       reset(defaultValues);
