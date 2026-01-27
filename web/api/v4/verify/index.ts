@@ -193,6 +193,7 @@ export async function POST(
       status: string;
       is_archived: boolean;
       deleted_at?: string | null;
+      app_mode: string | null;
     };
   } | null = null;
 
@@ -204,11 +205,17 @@ export async function POST(
     });
     const reg = response.rp_registration[0];
     if (reg) {
+      const appWithMetadata = reg.app as typeof reg.app & {
+        app_metadata?: Array<{ app_mode: string }>;
+      };
       rpRegistration = {
         rp_id: reg.rp_id,
         app_id: reg.app_id,
         status: reg.status as string,
-        app: reg.app,
+        app: {
+          ...reg.app,
+          app_mode: appWithMetadata.app_metadata?.[0]?.app_mode ?? null,
+        },
       };
     }
   } else if (routeId.startsWith("app_")) {
@@ -219,11 +226,17 @@ export async function POST(
     });
     const reg = response.rp_registration[0];
     if (reg) {
+      const appWithMetadata = reg.app as typeof reg.app & {
+        app_metadata?: Array<{ app_mode: string }>;
+      };
       rpRegistration = {
         rp_id: reg.rp_id,
         app_id: reg.app_id,
         status: reg.status as string,
-        app: reg.app,
+        app: {
+          ...reg.app,
+          app_mode: appWithMetadata.app_metadata?.[0]?.app_mode ?? null,
+        },
       };
     }
   } else {
@@ -285,9 +298,42 @@ export async function POST(
     parsedParams.responses && parsedParams.responses.length > 0,
   );
   const isV3Proof = !isV4Proof;
+  const requestedEnvironment = parsedParams.environment as
+    | "staging"
+    | "production";
+
+  // Staging actions only allowed for v4 proofs
+  if (requestedEnvironment === "staging" && isV3Proof) {
+    return errorResponse({
+      statusCode: 400,
+      code: "staging_requires_v4",
+      detail: "Staging actions can only be created with World ID 4.0 proofs.",
+      attribute: "environment",
+      req,
+      app_id: routeId,
+    });
+  }
+
+  // Staging actions only allowed for external apps (not mini-apps)
+  if (requestedEnvironment === "staging" && app.app_mode === "mini-app") {
+    return errorResponse({
+      statusCode: 400,
+      code: "staging_not_allowed_for_mini_apps",
+      detail:
+        "Staging actions are not allowed for mini apps. Only external apps can use staging environment.",
+      attribute: "environment",
+      req,
+      app_id: routeId,
+    });
+  }
 
   let nullifierForStorage: string;
   let proofType: "v3" | "v4";
+  let prefetchedActionV4: Awaited<
+    ReturnType<
+      ReturnType<typeof getFetchActionV4Sdk>["FetchActionV4"]
+    >
+  >["action_v4"][0] | null = null;
 
   if (isV3Proof) {
     // World ID 3.0 proof - verify via sequencer
@@ -389,13 +435,30 @@ export async function POST(
     // Extract the numeric rp_id for the on-chain call
     const numericRpId = parseRpId(rpId);
 
-    // Get verifier contract address
-    const verifierAddress = process.env.VERIFIER_CONTRACT_ADDRESS;
+    // Check if action already exists to determine environment for verification
+    const existingActionResult = await getFetchActionV4Sdk(
+      client,
+    ).FetchActionV4({
+      rp_id: rpId,
+      action: parsedParams.action,
+    });
+    prefetchedActionV4 = existingActionResult.action_v4[0] ?? null;
+
+    // Determine environment: use existing action's env or requested env
+    const verificationEnvironment =
+      prefetchedActionV4?.environment ?? parsedParams.environment;
+
+    // Select verifier contract address based on environment
+    const verifierAddress =
+      verificationEnvironment === "staging"
+        ? process.env.VERIFIER_CONTRACT_ADDRESS_STAGING
+        : process.env.VERIFIER_CONTRACT_ADDRESS;
+
     if (!verifierAddress) {
       return errorResponse({
         statusCode: 500,
         code: "configuration_error",
-        detail: "Verifier contract address not configured.",
+        detail: `Verifier contract address not configured for ${verificationEnvironment} environment.`,
         attribute: null,
         req,
         app_id: routeId,
@@ -467,13 +530,15 @@ export async function POST(
 
   // Proof is valid - now handle action creation and nullifier
 
-  // Check if action_v4 exists
-  const fetchActionResult = await getFetchActionV4Sdk(client).FetchActionV4({
-    rp_id: rpId,
-    action: parsedParams.action,
-  });
-
-  let actionV4 = fetchActionResult.action_v4[0];
+  // Check if action_v4 exists (use prefetched for v4 proofs, fetch for v3)
+  let actionV4 = prefetchedActionV4;
+  if (!actionV4 && isV3Proof) {
+    const fetchActionResult = await getFetchActionV4Sdk(client).FetchActionV4({
+      rp_id: rpId,
+      action: parsedParams.action,
+    });
+    actionV4 = fetchActionResult.action_v4[0];
+  }
 
   // If action doesn't exist, create it
   if (!actionV4) {
@@ -481,7 +546,7 @@ export async function POST(
       rp_id: rpId,
       action: parsedParams.action,
       description: parsedParams.action_description || "",
-      environment: parsedParams.environment as "staging" | "production",
+      environment: requestedEnvironment,
     });
 
     actionV4 = createResult.insert_action_v4_one!;

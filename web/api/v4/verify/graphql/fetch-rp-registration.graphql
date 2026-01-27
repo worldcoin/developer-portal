@@ -11,6 +11,9 @@ query FetchRpRegistration($app_id: String!) {
       status
       is_archived
       deleted_at
+      app_metadata {
+        app_mode
+      }
     }
   }
 }
@@ -28,6 +31,9 @@ query FetchRpRegistrationByRpId($rp_id: String!) {
       status
       is_archived
       deleted_at
+      app_metadata {
+        app_mode
+      }
     }
   }
 }
