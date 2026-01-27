@@ -24,6 +24,7 @@ export type FetchRpRegistrationQuery = {
       status: string;
       is_archived: boolean;
       deleted_at?: string | null;
+      app_metadata: Array<{ __typename?: "app_metadata"; app_mode: string }>;
     };
   }>;
 };
@@ -48,6 +49,7 @@ export type FetchRpRegistrationByRpIdQuery = {
       status: string;
       is_archived: boolean;
       deleted_at?: string | null;
+      app_metadata: Array<{ __typename?: "app_metadata"; app_mode: string }>;
     };
   }>;
 };
@@ -66,6 +68,9 @@ export const FetchRpRegistrationDocument = gql`
         status
         is_archived
         deleted_at
+        app_metadata {
+          app_mode
+        }
       }
     }
   }
@@ -84,6 +89,9 @@ export const FetchRpRegistrationByRpIdDocument = gql`
         status
         is_archived
         deleted_at
+        app_metadata {
+          app_mode
+        }
       }
     }
   }

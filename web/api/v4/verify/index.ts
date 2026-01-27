@@ -1,9 +1,7 @@
-import {
-  errorRequiredAttribute,
-  errorResponse,
-} from "@/api/helpers/errors";
+import { errorRequiredAttribute, errorResponse } from "@/api/helpers/errors";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import {
+  hashActionToUint256,
   isValidRpId,
   parseRpId,
 } from "@/api/helpers/rp-utils";
@@ -19,9 +17,7 @@ import * as yup from "yup";
 import { getSdk as getCheckNullifierV4Sdk } from "./graphql/check-nullifier-v4.generated";
 import { getSdk as getCreateActionV4Sdk } from "./graphql/create-action-v4.generated";
 import { getSdk as getFetchActionV4Sdk } from "./graphql/fetch-action-v4.generated";
-import {
-  getSdk as getFetchRpRegistrationSdk,
-} from "./graphql/fetch-rp-registration.generated";
+import { getSdk as getFetchRpRegistrationSdk } from "./graphql/fetch-rp-registration.generated";
 import { getSdk as getInsertNullifierV4Sdk } from "./graphql/insert-nullifier-v4.generated";
 
 const VerificationLevelWithFace = {
@@ -68,11 +64,7 @@ const schema = yup
           authenticator_root: yup.string(),
           proof_timestamp: yup.string(),
           credential_genesis_issued_at_min: yup.string(),
-          compressed_proof: yup
-            .array()
-            .of(yup.string())
-            .length(4)
-            .optional(),
+          compressed_proof: yup.array().of(yup.string()).length(4).optional(),
           error: yup.string(),
         }),
       )
@@ -111,9 +103,9 @@ const schema = yup
       const hasV4 = Boolean(value.responses && value.responses.length > 0);
       const hasV3 = Boolean(
         value.merkle_root ||
-        value.nullifier_hash ||
-        value.proof ||
-        value.verification_level,
+          value.nullifier_hash ||
+          value.proof ||
+          value.verification_level,
       );
       return !(hasV4 && hasV3);
     },
@@ -125,9 +117,9 @@ const schema = yup
       const hasV4 = Boolean(value.responses && value.responses.length > 0);
       const isV3Complete = Boolean(
         value.merkle_root &&
-        value.nullifier_hash &&
-        value.proof &&
-        value.verification_level,
+          value.nullifier_hash &&
+          value.proof &&
+          value.verification_level,
       );
       return hasV4 || isV3Complete;
     },
@@ -243,8 +235,7 @@ export async function POST(
     return errorResponse({
       statusCode: 400,
       code: "invalid_request",
-      detail:
-        "Invalid ID format. Expected app_id (app_xxx) or rp_id (rp_xxx).",
+      detail: "Invalid ID format. Expected app_id (app_xxx) or rp_id (rp_xxx).",
       attribute: "app_id",
       req,
       app_id: routeId,
@@ -298,6 +289,10 @@ export async function POST(
     parsedParams.responses && parsedParams.responses.length > 0,
   );
   const isV3Proof = !isV4Proof;
+  // Environment is per-action (not per-app). Developers can create staging
+  // actions for testing (allows nullifier reuse) or production actions
+  // (enforces uniqueness). Restrictions: staging requires v4 proofs and
+  // is not available for mini-apps.
   const requestedEnvironment = parsedParams.environment as
     | "staging"
     | "production";
@@ -329,11 +324,11 @@ export async function POST(
 
   let nullifierForStorage: string;
   let proofType: "v3" | "v4";
-  let prefetchedActionV4: Awaited<
-    ReturnType<
-      ReturnType<typeof getFetchActionV4Sdk>["FetchActionV4"]
-    >
-  >["action_v4"][0] | null = null;
+  let prefetchedActionV4:
+    | Awaited<
+        ReturnType<ReturnType<typeof getFetchActionV4Sdk>["FetchActionV4"]>
+      >["action_v4"][0]
+    | null = null;
 
   if (isV3Proof) {
     // World ID 3.0 proof - verify via sequencer
@@ -378,8 +373,7 @@ export async function POST(
         return errorResponse({
           statusCode: error?.statusCode || 400,
           code: error?.code || AppErrorCodes.GenericError,
-          detail:
-            error?.message || "There was an error verifying this proof.",
+          detail: error?.message || "There was an error verifying this proof.",
           attribute: error?.attribute || null,
           req,
           app_id: routeId,
@@ -469,7 +463,7 @@ export async function POST(
       const verifyResult = await verifyProofOnChain(
         {
           nullifier: BigInt(validResponse.nullifier!),
-          action: BigInt(parsedParams.action),
+          action: hashActionToUint256(parsedParams.action),
           rpId: numericRpId,
           sessionId: BigInt(validResponse.session_id!),
           nonce: BigInt(validResponse.nonce!),
@@ -678,10 +672,7 @@ export async function POST(
     const errorMessage = e instanceof Error ? e.message : String(e);
 
     // Check if it's a unique constraint violation (race condition)
-    if (
-      errorMessage.includes("unique") ||
-      errorMessage.includes("duplicate")
-    ) {
+    if (errorMessage.includes("unique") || errorMessage.includes("duplicate")) {
       if (actionV4.environment === "staging") {
         // Staging - allow the race condition, just return success
         return NextResponse.json(
