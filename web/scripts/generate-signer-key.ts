@@ -23,7 +23,9 @@ function main() {
   console.log("Signer Address (use in register_rp):");
   console.log(`  ${wallet.address}\n`);
   console.log("=================================");
-  console.log("\nStore the private key securely. You'll need it to sign proofs.");
+  console.log(
+    "\nStore the private key securely. You'll need it to sign proofs.",
+  );
 }
 
 main();

@@ -95,6 +95,19 @@ export async function GET(
     });
   }
 
+  // If not initialized on-chain, preserve DB status (pending/failed are pre-registration states)
+  if (!onChainRp.initialized) {
+    if (redis) {
+      try {
+        const cacheKey = `${CACHE_KEY_PREFIX}${rpId}`;
+        await redis.set(cacheKey, currentDbStatus, "EX", CACHE_TTL_SECONDS);
+      } catch (error) {
+        logger.warn("Failed to write to cache", { rpId, error });
+      }
+    }
+    return NextResponse.json({ status: currentDbStatus }, { status: 200 });
+  }
+
   const onChainStatus = mapOnChainToDbStatus(
     onChainRp.initialized,
     onChainRp.active,

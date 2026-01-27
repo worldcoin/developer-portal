@@ -30,7 +30,11 @@ export function generateRpIdString(appId: string): string {
 }
 
 export function isValidRpId(rpId: string): boolean {
-  return typeof rpId === "string" && rpId.startsWith("rp_");
+  if (typeof rpId !== "string" || !rpId.startsWith("rp_")) {
+    return false;
+  }
+  const hexPart = rpId.slice(3);
+  return hexPart.length === 16 && /^[0-9a-f]+$/i.test(hexPart);
 }
 
 /**
