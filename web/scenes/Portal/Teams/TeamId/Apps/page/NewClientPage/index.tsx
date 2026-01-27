@@ -41,10 +41,10 @@ export const NewClientPage = () => {
           <DecoratedButton
             type="button"
             onClick={() => setCreateAppDialogOpen(true)}
-            className="w-[180px] justify-self-center py-4"
+            className="justify-self-center py-3"
             testId="create-an-app"
           >
-            <Typography variant={TYPOGRAPHY.M3}>Get started</Typography>
+            Get started
           </DecoratedButton>
         </div>
       </SizingWrapper>
