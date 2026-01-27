@@ -87,11 +87,11 @@ export async function getRpFromContract(
   const result = await contract.getRpUnchecked(rpId);
 
   return {
-    initialized: result[0],
-    active: result[1],
-    manager: result[2],
-    signer: result[3],
-    oprfKeyId: BigInt(result[4]),
-    unverifiedWellKnownDomain: result[5],
+    initialized: result.initialized,
+    active: result.active,
+    manager: result.manager,
+    signer: result.signer,
+    oprfKeyId: BigInt(result.oprfKeyId),
+    unverifiedWellKnownDomain: result.unverifiedWellKnownDomain,
   };
 }
