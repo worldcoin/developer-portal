@@ -14,9 +14,7 @@
   {
     "type": "function",
     "name": "getRpUnchecked",
-    "inputs": [
-      { "name": "rpId", "type": "uint64" }
-    ],
+    "inputs": [{ "name": "rpId", "type": "uint64" }],
     "outputs": [
       {
         "name": "",
