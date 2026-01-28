@@ -1,0 +1,15 @@
+mutation ClaimRotationSlot($rp_id: String!) {
+  update_rp_registration(
+    where: { rp_id: { _eq: $rp_id }, status: { _eq: registered } }
+    _set: { status: pending }
+  ) {
+    affected_rows
+    returning {
+      rp_id
+      app_id
+      status
+      signer_address
+      manager_kms_key_id
+    }
+  }
+}

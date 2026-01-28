@@ -73,6 +73,13 @@ type Mutation {
 }
 
 type Mutation {
+  rotate_signer_key(
+    app_id: String!
+    new_signer_address: String!
+  ): RotateSignerKeyOutput
+}
+
+type Mutation {
   reset_api_key(
     id: String!
     team_id: String!
@@ -336,5 +343,13 @@ type RegisterRpOutput {
   signer_address: String!
   status: String!
   operation_hash: String!
+}
+
+type RotateSignerKeyOutput {
+  rp_id: String!
+  new_signer_address: String!
+  old_signer_address: String!
+  status: String!
+  operation_hash: String
 }
 

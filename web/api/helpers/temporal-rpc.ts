@@ -10,10 +10,9 @@ import RP_REGISTRY_ABI from "./abi/rp-registry.json";
 import VERIFIER_ABI from "./abi/verifier.json";
 import { UserOperation } from "./user-operation";
 
-const RPC_TIMEOUT_MS = 10_000;
-const RPC_MAX_RETRIES = 2;
-const WORLD_CHAIN_ID = 480;
-const WORLD_CHAIN_NETWORK = "worldchain";
+// =============================================================================
+// Types & Interfaces
+// =============================================================================
 
 export interface SendUserOperationResult {
   operationHash: string;
@@ -50,36 +49,16 @@ export interface VerifyProofResult {
   };
 }
 
-function createProvider(): JsonRpcProvider {
-  const baseUrl = process.env.TEMPORAL_RPC_URL;
-  if (!baseUrl) {
-    throw new Error("TEMPORAL_RPC_URL environment variable is not set");
-  }
+// =============================================================================
+// Constants
+// =============================================================================
 
-  const rpcUrl = `${baseUrl}/v2/rpc/${WORLD_CHAIN_NETWORK}`;
-  const fetchRequest = new FetchRequest(rpcUrl);
-  fetchRequest.timeout = RPC_TIMEOUT_MS;
-  fetchRequest.retryFunc = (_req, _resp, attempt) => {
-    return Promise.resolve(attempt < RPC_MAX_RETRIES);
-  };
+const RPC_TIMEOUT_MS = 10_000;
+const RPC_MAX_RETRIES = 2;
+const WORLD_CHAIN_ID = 480;
+const WORLD_CHAIN_NETWORK = "worldchain";
 
-  return new JsonRpcProvider(fetchRequest, Network.from(WORLD_CHAIN_ID), {
-    batchMaxCount: 1,
-    staticNetwork: true,
-  });
-}
-
-interface EthersCallException {
-  code: string;
-  revert?: {
-    name: string;
-    signature?: string;
-    args?: unknown[];
-  };
-  shortMessage?: string;
-  message?: string;
-}
-
+/** Maps Verifier contract revert reasons to user-friendly error codes. */
 const VERIFIER_ERROR_MAP: Record<string, { code: string; detail: string }> = {
   OutdatedNullifier: {
     code: "outdated_nullifier",
@@ -107,6 +86,47 @@ const VERIFIER_ERROR_MAP: Record<string, { code: string; detail: string }> = {
   },
 };
 
+// =============================================================================
+// Internal Helpers
+// =============================================================================
+
+interface EthersCallException {
+  code: string;
+  revert?: {
+    name: string;
+    signature?: string;
+    args?: unknown[];
+  };
+  shortMessage?: string;
+  message?: string;
+}
+
+/** Creates a configured JsonRpcProvider for the temporal RPC endpoint. */
+function createProvider(): JsonRpcProvider {
+  const baseUrl = process.env.TEMPORAL_RPC_URL;
+  if (!baseUrl) {
+    throw new Error("TEMPORAL_RPC_URL environment variable is not set");
+  }
+
+  const rpcUrl = `${baseUrl}/v2/rpc/${WORLD_CHAIN_NETWORK}`;
+  const fetchRequest = new FetchRequest(rpcUrl);
+  fetchRequest.timeout = RPC_TIMEOUT_MS;
+  fetchRequest.retryFunc = (_req, _resp, attempt) => {
+    return Promise.resolve(attempt < RPC_MAX_RETRIES);
+  };
+
+  return new JsonRpcProvider(fetchRequest, Network.from(WORLD_CHAIN_ID), {
+    batchMaxCount: 1,
+    staticNetwork: true,
+  });
+}
+
+/** Creates a contract instance for the RP Registry. */
+function createRpRegistryContract(contractAddress: string): Contract {
+  return new Contract(contractAddress, RP_REGISTRY_ABI, createProvider());
+}
+
+/** Parses Verifier contract revert reasons into user-friendly errors. */
 function parseVerifierRevertReason(error: unknown): {
   code: string;
   detail: string;
@@ -143,6 +163,10 @@ function parseVerifierRevertReason(error: unknown): {
   };
 }
 
+// =============================================================================
+// UserOperation Submission
+// =============================================================================
+
 /**
  * Submits an ERC-4337 UserOperation via the temporal bundler.
  * Returns the operation hash for tracking the transaction status.
@@ -170,17 +194,19 @@ export async function sendUserOperation(
   return { operationHash };
 }
 
+// =============================================================================
+// RP Registry Queries
+// =============================================================================
+
 /**
- * Fetches RP data from RpRegistry. Uses getRpUnchecked to return data
- * even for inactive RPs (getRp would revert for inactive ones).
+ * Fetches RP data from RpRegistry.
+ * Uses getRpUnchecked to return data even for inactive RPs.
  */
 export async function getRpFromContract(
   rpId: bigint,
   contractAddress: string,
 ): Promise<OnChainRelyingParty> {
-  const provider = createProvider();
-  const contract = new Contract(contractAddress, RP_REGISTRY_ABI, provider);
-
+  const contract = createRpRegistryContract(contractAddress);
   const result = await contract.getRpUnchecked(rpId);
 
   return {
@@ -192,6 +218,39 @@ export async function getRpFromContract(
     unverifiedWellKnownDomain: result.unverifiedWellKnownDomain,
   };
 }
+
+/**
+ * Fetches the current nonce for an RP from the RpRegistry contract.
+ * Used for EIP-712 signatures in updateRp operations.
+ */
+export async function getRpNonceFromContract(
+  rpId: bigint,
+  contractAddress: string,
+): Promise<bigint> {
+  const contract = createRpRegistryContract(contractAddress);
+  const result = await contract.nonceOf(rpId);
+  return BigInt(result);
+}
+
+/** Fetches the EIP-712 domain separator from the RpRegistry contract. */
+export async function getRpDomainSeparator(
+  contractAddress: string,
+): Promise<string> {
+  const contract = createRpRegistryContract(contractAddress);
+  return await contract.domainSeparatorV4();
+}
+
+/** Fetches the UPDATE_RP_TYPEHASH from the RpRegistry contract. */
+export async function getUpdateRpTypehash(
+  contractAddress: string,
+): Promise<string> {
+  const contract = createRpRegistryContract(contractAddress);
+  return await contract.UPDATE_RP_TYPEHASH();
+}
+
+// =============================================================================
+// Verifier
+// =============================================================================
 
 /**
  * Verifies a World ID v4 proof by calling the on-chain Verifier contract.
