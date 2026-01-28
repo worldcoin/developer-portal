@@ -87,10 +87,7 @@ const v4ResponseItemSchema = yup.object({
 const schema = yup
   .object({
     // Proof version at root level
-    version: yup
-      .string()
-      .oneOf(["v3", "v4"])
-      .required("version is required"),
+    version: yup.string().oneOf(["v3", "v4"]).required("version is required"),
     // Action identifier (required)
     action: yup.string().strict().required("action is required"),
     // Signal hash (optional, defaults to hash of empty string)
@@ -108,27 +105,32 @@ const schema = yup
       .min(1, "At least one response item is required")
       .required("responses array is required"),
   })
-  .test("responses-schema", "Invalid response items for version", function (value) {
-    const { version, responses } = value;
-    if (!responses || responses.length === 0) return true;
+  .test(
+    "responses-schema",
+    "Invalid response items for version",
+    function (value) {
+      const { version, responses } = value;
+      if (!responses || responses.length === 0) return true;
 
-    const itemSchema = version === "v3" ? v3ResponseItemSchema : v4ResponseItemSchema;
+      const itemSchema =
+        version === "v3" ? v3ResponseItemSchema : v4ResponseItemSchema;
 
-    for (let i = 0; i < responses.length; i++) {
-      try {
-        itemSchema.validateSync(responses[i], { abortEarly: false });
-      } catch (err) {
-        if (err instanceof yup.ValidationError) {
-          return this.createError({
-            path: `responses[${i}]`,
-            message: err.errors.join(", "),
-          });
+      for (let i = 0; i < responses.length; i++) {
+        try {
+          itemSchema.validateSync(responses[i], { abortEarly: false });
+        } catch (err) {
+          if (err instanceof yup.ValidationError) {
+            return this.createError({
+              path: `responses[${i}]`,
+              message: err.errors.join(", "),
+            });
+          }
+          throw err;
         }
-        throw err;
       }
-    }
-    return true;
-  });
+      return true;
+    },
+  );
 
 // Type for verification result per response item
 interface VerificationResult {
@@ -331,8 +333,7 @@ export async function POST(
   const existingActionV4 = existingActionResult.action_v4[0] ?? null;
 
   // Determine verification environment from existing action (default to production for new actions)
-  const verificationEnvironment =
-    existingActionV4?.environment ?? "production";
+  const verificationEnvironment = existingActionV4?.environment ?? "production";
 
   // Verify all proofs in parallel
   const verificationResults: VerificationResult[] = [];
