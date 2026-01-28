@@ -20,7 +20,7 @@ const GENERATE_BULLETS = [
 
 export type ConfigureSignerKeyContentProps = {
   onBack: () => void;
-  onContinue: () => void;
+  onContinue: (setup: SignerKeySetup) => void;
   className?: string;
 };
 
@@ -38,9 +38,13 @@ export const ConfigureSignerKeyContent = ({
     defaultValues,
   });
 
+  const onSubmit = (values: FormValues) => {
+    onContinue(values.signer_key_setup);
+  };
+
   return (
     <form
-      onSubmit={handleSubmit(onContinue)}
+      onSubmit={handleSubmit(onSubmit)}
       className={clsx("grid w-full max-w-[580px] gap-y-6", className)}
     >
       <div className="grid gap-y-3">
