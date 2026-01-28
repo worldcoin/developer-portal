@@ -73,24 +73,24 @@ export const WorldId40OptionCard = (
       </Typography>
 
       {(props.bullets?.length ?? 0) > 0 && (
-      <ul className="grid gap-y-2">
-        {props.bullets.map((bullet, i) => (
-          <li key={i} className="flex items-center gap-x-2">
-            {bullet.variant === "check" ? (
-              <span className="flex size-4 shrink-0 items-center justify-center rounded-full bg-additional-azure-100 text-additional-azure-500">
-                <CheckIcon size="16" variant="shortTail" className="size-3" />
-              </span>
-            ) : (
-              <span className="flex size-4 shrink-0 items-center justify-center rounded-full bg-system-error-50 text-system-error-500">
-                <CloseIcon className="size-3" strokeWidth={2} />
-              </span>
-            )}
-            <Typography variant={TYPOGRAPHY.R4} className="text-[#939BA5]">
-              {bullet.text}
-            </Typography>
-          </li>
-        ))}
-      </ul>
+        <ul className="grid gap-y-2">
+          {props.bullets.map((bullet, i) => (
+            <li key={i} className="flex items-center gap-x-2">
+              {bullet.variant === "check" ? (
+                <span className="flex size-4 shrink-0 items-center justify-center rounded-full bg-additional-azure-100 text-additional-azure-500">
+                  <CheckIcon size="16" variant="shortTail" className="size-3" />
+                </span>
+              ) : (
+                <span className="flex size-4 shrink-0 items-center justify-center rounded-full bg-system-error-50 text-system-error-500">
+                  <CloseIcon className="size-3" strokeWidth={2} />
+                </span>
+              )}
+              <Typography variant={TYPOGRAPHY.R4} className="text-[#939BA5]">
+                {bullet.text}
+              </Typography>
+            </li>
+          ))}
+        </ul>
       )}
     </label>
   );
