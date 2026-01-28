@@ -67,7 +67,11 @@ export const EnableWorldId40Content = ({
         <Typography as="h1" variant={TYPOGRAPHY.H6}>
           Enable World ID 4.0
         </Typography>
-        <Typography as="p" variant={TYPOGRAPHY.R3} className="text-grey-500">
+        <Typography
+          as="p"
+          variant={TYPOGRAPHY.R3}
+          className="text-grey-500"
+        >
           Enable the next generation of World ID with improved privacy,
           multi-device support, and enhanced security.
         </Typography>

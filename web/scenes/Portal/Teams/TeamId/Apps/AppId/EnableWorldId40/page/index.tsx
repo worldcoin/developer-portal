@@ -13,10 +13,7 @@ export const EnableWorldId40Page = () => {
   };
   const router = useRouter();
   const searchParams = useSearchParams();
-  const nextParam = searchParams.get("next") as
-    | "configuration"
-    | "actions"
-    | null;
+  const nextParam = searchParams.get("next") as "configuration" | "actions" | null;
 
   const onContinue = useCallback(() => {
     if (!teamId || !appId) return;
