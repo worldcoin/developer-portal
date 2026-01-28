@@ -69,35 +69,72 @@ function createProvider(): JsonRpcProvider {
   });
 }
 
+interface EthersCallException {
+  code: string;
+  revert?: {
+    name: string;
+    signature?: string;
+    args?: unknown[];
+  };
+  shortMessage?: string;
+  message?: string;
+}
+
+const VERIFIER_ERROR_MAP: Record<string, { code: string; detail: string }> = {
+  OutdatedNullifier: {
+    code: "outdated_nullifier",
+    detail: "The proof has expired. Please generate a new proof.",
+  },
+  NullifierFromFuture: {
+    code: "nullifier_from_future",
+    detail: "The proof timestamp is in the future.",
+  },
+  InvalidMerkleRoot: {
+    code: "invalid_root",
+    detail: "The authenticator root is not valid.",
+  },
+  UnregisteredIssuerSchemaId: {
+    code: "invalid_credential_issuer",
+    detail: "The credential issuer is not registered.",
+  },
+  ProofInvalid: {
+    code: "invalid_proof",
+    detail: "The proof is invalid.",
+  },
+  PublicInputNotInField: {
+    code: "invalid_public_input",
+    detail: "A public input value is out of range.",
+  },
+};
+
 function parseVerifierRevertReason(error: unknown): {
   code: string;
   detail: string;
 } {
-  const message = error instanceof Error ? error.message : String(error);
+  const ethersError = error as EthersCallException;
 
-  if (message.includes("OutdatedNullifier")) {
+  // Check for structured revert from ethers.js
+  if (ethersError?.revert?.name) {
+    const mapped = VERIFIER_ERROR_MAP[ethersError.revert.name];
+    if (mapped) {
+      return mapped;
+    }
     return {
-      code: "outdated_nullifier",
-      detail: "The proof has expired. Please generate a new proof.",
+      code: "verification_failed",
+      detail: `Contract reverted: ${ethersError.revert.name}`,
     };
   }
-  if (message.includes("NullifierFromFuture")) {
-    return {
-      code: "nullifier_from_future",
-      detail: "The proof timestamp is in the future.",
-    };
-  }
-  if (message.includes("Invalid authenticator root")) {
-    return {
-      code: "invalid_root",
-      detail: "The authenticator root is not valid.",
-    };
-  }
-  if (message.includes("Credential issuer not registered")) {
-    return {
-      code: "invalid_credential_issuer",
-      detail: "The credential issuer is not registered.",
-    };
+
+  // Fallback to shortMessage or message string matching
+  const message =
+    ethersError?.shortMessage ||
+    ethersError?.message ||
+    (error instanceof Error ? error.message : String(error));
+
+  for (const [errorName, mapped] of Object.entries(VERIFIER_ERROR_MAP)) {
+    if (message.includes(errorName)) {
+      return mapped;
+    }
   }
 
   return {
