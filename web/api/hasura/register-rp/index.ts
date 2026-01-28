@@ -23,6 +23,7 @@ import {
 } from "@/api/helpers/user-operation";
 import { protectInternalEndpoint } from "@/api/helpers/utils";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
+import { isWorldId40EnabledForTeam } from "@/lib/feature-flags";
 import { logger } from "@/lib/logger";
 import { getBytes, isAddress } from "ethers";
 import { NextRequest, NextResponse } from "next/server";
@@ -124,20 +125,15 @@ export const POST = async (req: NextRequest) => {
   const teamId = appInfo.team_id;
 
   // Check if team is enabled for World ID 4.0
-  // TEMPORARY: Skip check for local testing - remove before committing
-  // const enabledTeams = await global.ParameterStore?.getParameter<string[]>(
-  //   "world-id-4-0/enabled-teams",
-  //   [],
-  // );
-
-  // if (!enabledTeams?.includes(teamId)) {
-  //   return errorHasuraQuery({
-  //     req,
-  //     detail: "World ID 4.0 is not enabled for this team.",
-  //     code: "feature_not_enabled",
-  //     app_id,
-  //   });
-  // }
+  const isEnabledForTeam = await isWorldId40EnabledForTeam(teamId);
+  if (!isEnabledForTeam) {
+    return errorHasuraQuery({
+      req,
+      detail: "World ID 4.0 is not enabled for this team.",
+      code: "feature_not_enabled",
+      app_id,
+    });
+  }
 
   // Verify user has permission (ADMIN or OWNER)
   const { team } = await getCheckUserSdk(client).CheckUserInApp({
