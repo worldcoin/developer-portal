@@ -15,6 +15,18 @@ export const urls = {
   actions: (params: { team_id: string; app_id?: string }): string =>
     `/teams/${params.team_id}/apps/${params.app_id}/actions`,
 
+  enableWorldId40: (params: {
+    team_id: string;
+    app_id: string;
+    next?: "configuration" | "actions";
+  }): string => {
+    const path = `/teams/${params.team_id}/apps/${params.app_id}/enable-world-id-4-0`;
+    if (params.next) {
+      return `${path}?next=${params.next}`;
+    }
+    return path;
+  },
+
   createTeam: (): "/create-team" => "/create-team",
 
   signInWorldId: (params: { team_id: string; app_id?: string }): string =>

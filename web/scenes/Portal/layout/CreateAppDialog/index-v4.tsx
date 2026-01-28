@@ -16,7 +16,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import clsx from "clsx";
 import { useParams, useRouter } from "next/navigation";
 import posthog from "posthog-js";
-import { useCallback, useMemo } from "react";
+import React, { useCallback, useMemo } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { toast } from "react-toastify";
 import { FetchAppsDocument } from "../AppSelector/graphql/client/fetch-apps.generated";
@@ -80,15 +80,12 @@ export const CreateAppDialogV4 = (props: DialogProps) => {
           new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
       )[0];
 
-      const redirect = values.is_miniapp
-        ? urls.configuration({
-            team_id: teamId,
-            app_id: latestApp?.id ?? "",
-          })
-        : urls.actions({
-            team_id: teamId,
-            app_id: latestApp?.id ?? "",
-          });
+      const next = values.is_miniapp ? "configuration" : "actions";
+      const redirect = urls.enableWorldId40({
+        team_id: teamId,
+        app_id: latestApp?.id ?? "",
+        next,
+      });
 
       router.prefetch(redirect);
       reset(defaultValues);

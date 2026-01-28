@@ -62,6 +62,11 @@ const config: Config = {
             500: "#4292F4",
           },
 
+          azure: {
+            100: "#E8F2FF",
+            500: "#4572FE",
+          },
+
           purple: {
             100: "#F7F1FF",
             500: "#9D50FF",
