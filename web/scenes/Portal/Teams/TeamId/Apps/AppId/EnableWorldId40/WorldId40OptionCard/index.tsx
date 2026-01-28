@@ -16,25 +16,39 @@ export const WorldId40OptionCard = (
     option: { value: string; label: string };
     subtitle: string;
     stampText?: string;
+    /** Shown in stamp slot when disabled (e.g. "Coming Soon") */
+    disabledStampText?: string;
     bullets: Bullet[];
     testId?: string;
+    disabled?: boolean;
   },
 ) => {
+  const { disabled = false } = props;
+  const stampContent = disabled
+    ? props.disabledStampText ?? props.stampText
+    : props.stampText;
+  const stampClassName = disabled
+    ? "rounded-full bg-grey-100 px-2 py-0.5 text-grey-500"
+    : "rounded-full bg-additional-azure-100 px-2 py-0.5 text-additional-azure-500";
   return (
     <label
       className={twMerge(
         clsx(
-          "grid cursor-pointer gap-y-3 rounded-lg border border-grey-100 bg-white px-6 py-5 shadow-[0_1.3px_2.6px_rgba(0,0,0,0.053)] transition-colors hover:border-additional-azure-500",
+          "grid gap-y-3 rounded-lg border border-grey-100 bg-white px-6 py-5 shadow-[0_1.3px_2.6px_rgba(0,0,0,0.053)] transition-colors",
+          !disabled && "cursor-pointer hover:border-additional-azure-500",
+          disabled && "cursor-not-allowed opacity-60",
           props.className,
         ),
       )}
       {...(props.testId ? { "data-testid": `card-${props.testId}` } : {})}
+      {...(disabled ? { "data-disabled": "true" } : {})}
     >
       <div className="flex items-center justify-between">
         <div className="grid grid-cols-auto/1fr items-center gap-x-2">
           <Radio
             register={props.register}
             value={props.option.value}
+            disabled={disabled}
             {...(props.testId
               ? { "data-testid": `radio-${props.testId}` }
               : {})}
@@ -43,13 +57,13 @@ export const WorldId40OptionCard = (
             {props.option.label}
           </Typography>
         </div>
-        {props.stampText && (
+        {stampContent && (
           <Typography
             as="div"
             variant={TYPOGRAPHY.M5}
-            className="rounded-full bg-additional-azure-100 px-2 py-0.5 text-additional-azure-500"
+            className={stampClassName}
           >
-            {props.stampText}
+            {stampContent}
           </Typography>
         )}
       </div>
