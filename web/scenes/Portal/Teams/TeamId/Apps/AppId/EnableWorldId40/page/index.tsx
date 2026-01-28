@@ -27,6 +27,9 @@ const MANAGED_BULLETS = [
   },
 ];
 
+/** Set to true when Self-Managed option is ready to be offered */
+const SELF_MANAGED_OPTION_ENABLED = false;
+
 const SELF_MANAGED_BULLETS = [
   { text: "Keys can be lost", variant: "x" as const },
   {
@@ -100,8 +103,10 @@ export const EnableWorldId40Page = () => {
             option={{ value: "self-managed", label: "Self-Managed" }}
             subtitle="Full control over all keys and transactions"
             stampText="Advanced"
+            disabledStampText="Coming Soon"
             bullets={SELF_MANAGED_BULLETS}
             testId="self-managed"
+            disabled={!SELF_MANAGED_OPTION_ENABLED}
           />
         </div>
 
