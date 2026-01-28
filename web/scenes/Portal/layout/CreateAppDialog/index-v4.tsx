@@ -55,6 +55,8 @@ export const CreateAppDialogV4 = (props: DialogProps) => {
   const [nextDest, setNextDest] = useState<"configuration" | "actions" | null>(
     null,
   );
+  const [signerKeySetup, setSignerKeySetup] =
+    useState<SignerKeySetup>("generate");
 
   const defaultValues: Partial<CreateAppSchemaV4> = useMemo(
     () => ({
@@ -148,6 +150,7 @@ export const CreateAppDialogV4 = (props: DialogProps) => {
 
   const onConfigureContinue = useCallback(
     (setup: SignerKeySetup) => {
+      setSignerKeySetup(setup);
       if (setup === "existing") {
         setStep("use-existing-key");
       } else {
@@ -298,6 +301,7 @@ export const CreateAppDialogV4 = (props: DialogProps) => {
               <ConfigureSignerKeyContent
                 onBack={onConfigureBack}
                 onContinue={onConfigureContinue}
+                initialSetup={signerKeySetup}
                 className="justify-self-center py-10"
               />
             )}
