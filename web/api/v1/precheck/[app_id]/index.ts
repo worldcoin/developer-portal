@@ -10,6 +10,7 @@ import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
 import { getSdk as getAppPrecheckSdk } from "./graphql/app-precheck.generated";
 import { getSdk as getAppPrecheckByActionSdk } from "./graphql/app-precheck-by-action.generated";
+import { getSdk as getFetchRpRegistrationForPrecheckSdk } from "./graphql/fetch-rp-registration-for-precheck.generated";
 
 /**
  * Apps that use custom external_nullifier values (not computed from app_id + action).
@@ -142,8 +143,58 @@ export async function POST(
     actions: rawAppValues.actions,
   };
 
-  // ANCHOR: If the action doesn't exist return error
+  // ANCHOR: If the action doesn't exist, check if app is migrated
   if (!app.actions.length) {
+    // Check if this app has been migrated to v4 (has rp_registration)
+    const rpRegistrationResult = await getFetchRpRegistrationForPrecheckSdk(
+      client,
+    ).FetchRpRegistrationForPrecheck({
+      app_id,
+    });
+
+    const rpRegistration = rpRegistrationResult.rp_registration[0];
+
+    // Only return synthetic action if RP is registered and active
+    if (rpRegistration && rpRegistration.status === "registered") {
+      const nullifierData = generateExternalNullifier(app_id, action);
+      // Generate action ID similar to DB pattern: action_<32 hex chars>
+      const actionIdHash = nullifierData.hash.toString(16).slice(0, 32);
+
+      const syntheticAction = {
+        id: `action_${actionIdHash}`,
+        action: action,
+        name: "",
+        description: "",
+        external_nullifier: nullifierData.digest,
+        max_verifications: 1,
+        max_accounts_per_user: 1,
+        status: "active",
+        kiosk_enabled: false,
+        privacy_policy_uri: null,
+        terms_uri: null,
+        webhook_uri: null,
+        webhook_pem: null,
+        app_flow_on_complete: null,
+        post_action_deep_link_ios: null,
+        post_action_deep_link_android: null,
+      };
+
+      const response = {
+        ...app,
+        actions: undefined,
+        sign_in_with_world_id: action === "",
+        is_sign_in: action === "",
+        action: syntheticAction,
+        can_user_verify: CanUserVerifyType.Yes,
+      };
+
+      return corsHandler(
+        NextResponse.json(response, { status: 200 }),
+        corsMethods,
+      );
+    }
+
+    // App is not migrated or RP not active - return the original error
     return corsHandler(
       errorResponse({
         statusCode: 400,
