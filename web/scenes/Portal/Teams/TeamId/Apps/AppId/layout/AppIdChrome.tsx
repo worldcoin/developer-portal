@@ -119,7 +119,10 @@ export const AppIdChrome = ({
       {children}
 
       <BottomBar>
-        <BottomBar.Link href={`/teams/${teamId}/apps/${appId}`} segment={null}>
+        <BottomBar.Link
+          href={`/teams/${teamId}/apps/${appId}`}
+          segment={null}
+        >
           <DashboardSquareIcon className="size-7" />
         </BottomBar.Link>
 
