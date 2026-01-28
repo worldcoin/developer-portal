@@ -15,7 +15,10 @@ export type OnboardingLayoutProps = {
   children: ReactNode;
 };
 
-export const OnboardingLayout = ({ title, children }: OnboardingLayoutProps) => {
+export const OnboardingLayout = ({
+  title,
+  children,
+}: OnboardingLayoutProps) => {
   const router = useRouter();
   const { teamId, appId } = useParams() as {
     teamId?: string;

@@ -47,13 +47,9 @@ export const ConfigureSignerKeyContent = ({
         <Typography as="h1" variant={TYPOGRAPHY.H6}>
           Configure Signer Key
         </Typography>
-        <Typography
-          as="p"
-          variant={TYPOGRAPHY.R3}
-          className="text-grey-500"
-        >
-          Your signer key is used to sign proof requests. Choose how you want
-          to set up your key:
+        <Typography as="p" variant={TYPOGRAPHY.R3} className="text-grey-500">
+          Your signer key is used to sign proof requests. Choose how you want to
+          set up your key:
         </Typography>
       </div>
 
