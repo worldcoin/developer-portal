@@ -97,17 +97,6 @@ export const CreateAppDialogV4 = (props: DialogProps) => {
       )[0];
 
       const next = values.is_miniapp ? "configuration" : "actions";
-<<<<<<< HEAD
-=======
-      const redirect = urls.enableWorldId40({
-        team_id: teamId,
-        app_id: latestApp?.id ?? "",
-        next,
-      });
-
-      router.prefetch(redirect);
-      reset(defaultValues);
->>>>>>> 2bc5a182 (Add Enable World ID 4.0 step to new app flow)
 
       posthog.capture("app_creation_successful", {
         team_id: teamId,
