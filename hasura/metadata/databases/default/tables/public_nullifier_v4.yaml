@@ -1,0 +1,41 @@
+table:
+  name: nullifier_v4
+  schema: public
+object_relationships:
+  - name: action_v4
+    using:
+      foreign_key_constraint_on: action_v4_id
+insert_permissions:
+  - role: service
+    permission:
+      check: {}
+      columns:
+        - action_v4_id
+        - nullifier
+select_permissions:
+  - role: service
+    permission:
+      columns:
+        - id
+        - created_at
+        - action_v4_id
+        - nullifier
+      filter: {}
+  - role: user
+    permission:
+      columns:
+        - id
+        - created_at
+        - action_v4_id
+        - nullifier
+      filter:
+        action_v4:
+          rp_registration:
+            app:
+              _and:
+                - deleted_at:
+                    _is_null: true
+                - team:
+                    memberships:
+                      user_id:
+                        _eq: X-Hasura-User-Id

@@ -26,6 +26,7 @@ export type Scalars = {
   Boolean: { input: boolean; output: boolean };
   Int: { input: number; output: number };
   Float: { input: number; output: number };
+  action_environment: { input: unknown; output: unknown };
   app_flow_on_complete_enum: { input: unknown; output: unknown };
   bigint: { input: number; output: number };
   date: { input: string; output: string };
@@ -498,6 +499,19 @@ export enum Action_Constraint {
   /** unique or primary key constraint on columns "id" */
   ActionPkey = "action_pkey",
 }
+
+/** Boolean expression to compare columns of type "action_environment". All fields are combined with logical 'AND'. */
+export type Action_Environment_Comparison_Exp = {
+  _eq?: InputMaybe<Scalars["action_environment"]["input"]>;
+  _gt?: InputMaybe<Scalars["action_environment"]["input"]>;
+  _gte?: InputMaybe<Scalars["action_environment"]["input"]>;
+  _in?: InputMaybe<Array<Scalars["action_environment"]["input"]>>;
+  _is_null?: InputMaybe<Scalars["Boolean"]["input"]>;
+  _lt?: InputMaybe<Scalars["action_environment"]["input"]>;
+  _lte?: InputMaybe<Scalars["action_environment"]["input"]>;
+  _neq?: InputMaybe<Scalars["action_environment"]["input"]>;
+  _nin?: InputMaybe<Array<Scalars["action_environment"]["input"]>>;
+};
 
 /** input type for incrementing numeric columns in table "action" */
 export type Action_Inc_Input = {
@@ -1247,6 +1261,263 @@ export type Action_Updates = {
   _set?: InputMaybe<Action_Set_Input>;
   /** filter the rows which have to be updated */
   where: Action_Bool_Exp;
+};
+
+/** Actions for World ID 4.0 verification, tied to RP registration */
+export type Action_V4 = {
+  __typename?: "action_v4";
+  /** Action identifier as passed by the developer */
+  action: Scalars["String"]["output"];
+  created_at: Scalars["timestamptz"]["output"];
+  /** Human-readable description of the action */
+  description: Scalars["String"]["output"];
+  /** Whether this action is for staging (allows nullifier reuse) or production */
+  environment: Scalars["action_environment"]["output"];
+  id: Scalars["String"]["output"];
+  /** An array relationship */
+  nullifiers: Array<Nullifier_V4>;
+  /** An aggregate relationship */
+  nullifiers_aggregate: Nullifier_V4_Aggregate;
+  /** Reference to the RP registration (on-chain RP ID) */
+  rp_id: Scalars["String"]["output"];
+  /** An object relationship */
+  rp_registration: Rp_Registration;
+  updated_at: Scalars["timestamptz"]["output"];
+};
+
+/** Actions for World ID 4.0 verification, tied to RP registration */
+export type Action_V4NullifiersArgs = {
+  distinct_on?: InputMaybe<Array<Nullifier_V4_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Nullifier_V4_Order_By>>;
+  where?: InputMaybe<Nullifier_V4_Bool_Exp>;
+};
+
+/** Actions for World ID 4.0 verification, tied to RP registration */
+export type Action_V4Nullifiers_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Nullifier_V4_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Nullifier_V4_Order_By>>;
+  where?: InputMaybe<Nullifier_V4_Bool_Exp>;
+};
+
+/** aggregated selection of "action_v4" */
+export type Action_V4_Aggregate = {
+  __typename?: "action_v4_aggregate";
+  aggregate?: Maybe<Action_V4_Aggregate_Fields>;
+  nodes: Array<Action_V4>;
+};
+
+/** aggregate fields of "action_v4" */
+export type Action_V4_Aggregate_Fields = {
+  __typename?: "action_v4_aggregate_fields";
+  count: Scalars["Int"]["output"];
+  max?: Maybe<Action_V4_Max_Fields>;
+  min?: Maybe<Action_V4_Min_Fields>;
+};
+
+/** aggregate fields of "action_v4" */
+export type Action_V4_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<Action_V4_Select_Column>>;
+  distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
+};
+
+/** Boolean expression to filter rows from the table "action_v4". All fields are combined with a logical 'AND'. */
+export type Action_V4_Bool_Exp = {
+  _and?: InputMaybe<Array<Action_V4_Bool_Exp>>;
+  _not?: InputMaybe<Action_V4_Bool_Exp>;
+  _or?: InputMaybe<Array<Action_V4_Bool_Exp>>;
+  action?: InputMaybe<String_Comparison_Exp>;
+  created_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+  description?: InputMaybe<String_Comparison_Exp>;
+  environment?: InputMaybe<Action_Environment_Comparison_Exp>;
+  id?: InputMaybe<String_Comparison_Exp>;
+  nullifiers?: InputMaybe<Nullifier_V4_Bool_Exp>;
+  nullifiers_aggregate?: InputMaybe<Nullifier_V4_Aggregate_Bool_Exp>;
+  rp_id?: InputMaybe<String_Comparison_Exp>;
+  rp_registration?: InputMaybe<Rp_Registration_Bool_Exp>;
+  updated_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+};
+
+/** unique or primary key constraints on table "action_v4" */
+export enum Action_V4_Constraint {
+  /** unique or primary key constraint on columns "id" */
+  ActionV4Pkey = "action_v4_pkey",
+  /** unique or primary key constraint on columns "action", "rp_id" */
+  ActionV4RpIdActionKey = "action_v4_rp_id_action_key",
+}
+
+/** input type for inserting data into table "action_v4" */
+export type Action_V4_Insert_Input = {
+  /** Action identifier as passed by the developer */
+  action?: InputMaybe<Scalars["String"]["input"]>;
+  created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  /** Human-readable description of the action */
+  description?: InputMaybe<Scalars["String"]["input"]>;
+  /** Whether this action is for staging (allows nullifier reuse) or production */
+  environment?: InputMaybe<Scalars["action_environment"]["input"]>;
+  id?: InputMaybe<Scalars["String"]["input"]>;
+  nullifiers?: InputMaybe<Nullifier_V4_Arr_Rel_Insert_Input>;
+  /** Reference to the RP registration (on-chain RP ID) */
+  rp_id?: InputMaybe<Scalars["String"]["input"]>;
+  rp_registration?: InputMaybe<Rp_Registration_Obj_Rel_Insert_Input>;
+  updated_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+};
+
+/** aggregate max on columns */
+export type Action_V4_Max_Fields = {
+  __typename?: "action_v4_max_fields";
+  /** Action identifier as passed by the developer */
+  action?: Maybe<Scalars["String"]["output"]>;
+  created_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  /** Human-readable description of the action */
+  description?: Maybe<Scalars["String"]["output"]>;
+  /** Whether this action is for staging (allows nullifier reuse) or production */
+  environment?: Maybe<Scalars["action_environment"]["output"]>;
+  id?: Maybe<Scalars["String"]["output"]>;
+  /** Reference to the RP registration (on-chain RP ID) */
+  rp_id?: Maybe<Scalars["String"]["output"]>;
+  updated_at?: Maybe<Scalars["timestamptz"]["output"]>;
+};
+
+/** aggregate min on columns */
+export type Action_V4_Min_Fields = {
+  __typename?: "action_v4_min_fields";
+  /** Action identifier as passed by the developer */
+  action?: Maybe<Scalars["String"]["output"]>;
+  created_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  /** Human-readable description of the action */
+  description?: Maybe<Scalars["String"]["output"]>;
+  /** Whether this action is for staging (allows nullifier reuse) or production */
+  environment?: Maybe<Scalars["action_environment"]["output"]>;
+  id?: Maybe<Scalars["String"]["output"]>;
+  /** Reference to the RP registration (on-chain RP ID) */
+  rp_id?: Maybe<Scalars["String"]["output"]>;
+  updated_at?: Maybe<Scalars["timestamptz"]["output"]>;
+};
+
+/** response of any mutation on the table "action_v4" */
+export type Action_V4_Mutation_Response = {
+  __typename?: "action_v4_mutation_response";
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars["Int"]["output"];
+  /** data from the rows affected by the mutation */
+  returning: Array<Action_V4>;
+};
+
+/** input type for inserting object relation for remote table "action_v4" */
+export type Action_V4_Obj_Rel_Insert_Input = {
+  data: Action_V4_Insert_Input;
+  /** upsert condition */
+  on_conflict?: InputMaybe<Action_V4_On_Conflict>;
+};
+
+/** on_conflict condition type for table "action_v4" */
+export type Action_V4_On_Conflict = {
+  constraint: Action_V4_Constraint;
+  update_columns?: Array<Action_V4_Update_Column>;
+  where?: InputMaybe<Action_V4_Bool_Exp>;
+};
+
+/** Ordering options when selecting data from "action_v4". */
+export type Action_V4_Order_By = {
+  action?: InputMaybe<Order_By>;
+  created_at?: InputMaybe<Order_By>;
+  description?: InputMaybe<Order_By>;
+  environment?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  nullifiers_aggregate?: InputMaybe<Nullifier_V4_Aggregate_Order_By>;
+  rp_id?: InputMaybe<Order_By>;
+  rp_registration?: InputMaybe<Rp_Registration_Order_By>;
+  updated_at?: InputMaybe<Order_By>;
+};
+
+/** primary key columns input for table: action_v4 */
+export type Action_V4_Pk_Columns_Input = {
+  id: Scalars["String"]["input"];
+};
+
+/** select columns of table "action_v4" */
+export enum Action_V4_Select_Column {
+  /** column name */
+  Action = "action",
+  /** column name */
+  CreatedAt = "created_at",
+  /** column name */
+  Description = "description",
+  /** column name */
+  Environment = "environment",
+  /** column name */
+  Id = "id",
+  /** column name */
+  RpId = "rp_id",
+  /** column name */
+  UpdatedAt = "updated_at",
+}
+
+/** input type for updating data in table "action_v4" */
+export type Action_V4_Set_Input = {
+  /** Action identifier as passed by the developer */
+  action?: InputMaybe<Scalars["String"]["input"]>;
+  created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  /** Human-readable description of the action */
+  description?: InputMaybe<Scalars["String"]["input"]>;
+  /** Whether this action is for staging (allows nullifier reuse) or production */
+  environment?: InputMaybe<Scalars["action_environment"]["input"]>;
+  id?: InputMaybe<Scalars["String"]["input"]>;
+  /** Reference to the RP registration (on-chain RP ID) */
+  rp_id?: InputMaybe<Scalars["String"]["input"]>;
+  updated_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+};
+
+/** Streaming cursor of the table "action_v4" */
+export type Action_V4_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: Action_V4_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type Action_V4_Stream_Cursor_Value_Input = {
+  /** Action identifier as passed by the developer */
+  action?: InputMaybe<Scalars["String"]["input"]>;
+  created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  /** Human-readable description of the action */
+  description?: InputMaybe<Scalars["String"]["input"]>;
+  /** Whether this action is for staging (allows nullifier reuse) or production */
+  environment?: InputMaybe<Scalars["action_environment"]["input"]>;
+  id?: InputMaybe<Scalars["String"]["input"]>;
+  /** Reference to the RP registration (on-chain RP ID) */
+  rp_id?: InputMaybe<Scalars["String"]["input"]>;
+  updated_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+};
+
+/** update columns of table "action_v4" */
+export enum Action_V4_Update_Column {
+  /** column name */
+  Action = "action",
+  /** column name */
+  CreatedAt = "created_at",
+  /** column name */
+  Description = "description",
+  /** column name */
+  Environment = "environment",
+  /** column name */
+  Id = "id",
+  /** column name */
+  RpId = "rp_id",
+  /** column name */
+  UpdatedAt = "updated_at",
+}
+
+export type Action_V4_Updates = {
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<Action_V4_Set_Input>;
+  /** filter the rows which have to be updated */
+  where: Action_V4_Bool_Exp;
 };
 
 /** aggregate var_pop on columns */
@@ -5954,6 +6225,10 @@ export type Mutation_Root = {
   delete_action_stats_returning?: Maybe<Action_Stats_Returning_Mutation_Response>;
   /** delete single row from the table: "action_stats_returning" */
   delete_action_stats_returning_by_pk?: Maybe<Action_Stats_Returning>;
+  /** delete data from the table: "action_v4" */
+  delete_action_v4?: Maybe<Action_V4_Mutation_Response>;
+  /** delete single row from the table: "action_v4" */
+  delete_action_v4_by_pk?: Maybe<Action_V4>;
   /** delete data from the table: "api_key" */
   delete_api_key?: Maybe<Api_Key_Mutation_Response>;
   /** delete single row from the table: "api_key" */
@@ -6030,6 +6305,10 @@ export type Mutation_Root = {
   delete_nullifier_uses_seen?: Maybe<Nullifier_Uses_Seen_Mutation_Response>;
   /** delete single row from the table: "nullifier_uses_seen" */
   delete_nullifier_uses_seen_by_pk?: Maybe<Nullifier_Uses_Seen>;
+  /** delete data from the table: "nullifier_v4" */
+  delete_nullifier_v4?: Maybe<Nullifier_V4_Mutation_Response>;
+  /** delete single row from the table: "nullifier_v4" */
+  delete_nullifier_v4_by_pk?: Maybe<Nullifier_V4>;
   /** delete data from the table: "redirect" */
   delete_redirect?: Maybe<Redirect_Mutation_Response>;
   /** delete single row from the table: "redirect" */
@@ -6059,6 +6338,10 @@ export type Mutation_Root = {
   insert_action_stats_returning?: Maybe<Action_Stats_Returning_Mutation_Response>;
   /** insert a single row into the table: "action_stats_returning" */
   insert_action_stats_returning_one?: Maybe<Action_Stats_Returning>;
+  /** insert data into the table: "action_v4" */
+  insert_action_v4?: Maybe<Action_V4_Mutation_Response>;
+  /** insert a single row into the table: "action_v4" */
+  insert_action_v4_one?: Maybe<Action_V4>;
   /** insert data into the table: "api_key" */
   insert_api_key?: Maybe<Api_Key_Mutation_Response>;
   /** insert a single row into the table: "api_key" */
@@ -6135,6 +6418,10 @@ export type Mutation_Root = {
   insert_nullifier_uses_seen?: Maybe<Nullifier_Uses_Seen_Mutation_Response>;
   /** insert a single row into the table: "nullifier_uses_seen" */
   insert_nullifier_uses_seen_one?: Maybe<Nullifier_Uses_Seen>;
+  /** insert data into the table: "nullifier_v4" */
+  insert_nullifier_v4?: Maybe<Nullifier_V4_Mutation_Response>;
+  /** insert a single row into the table: "nullifier_v4" */
+  insert_nullifier_v4_one?: Maybe<Nullifier_V4>;
   /** insert data into the table: "redirect" */
   insert_redirect?: Maybe<Redirect_Mutation_Response>;
   /** insert a single row into the table: "redirect" */
@@ -6182,6 +6469,12 @@ export type Mutation_Root = {
   update_action_stats_returning_many?: Maybe<
     Array<Maybe<Action_Stats_Returning_Mutation_Response>>
   >;
+  /** update data of the table: "action_v4" */
+  update_action_v4?: Maybe<Action_V4_Mutation_Response>;
+  /** update single row of the table: "action_v4" */
+  update_action_v4_by_pk?: Maybe<Action_V4>;
+  /** update multiples rows of table: "action_v4" */
+  update_action_v4_many?: Maybe<Array<Maybe<Action_V4_Mutation_Response>>>;
   /** update data of the table: "api_key" */
   update_api_key?: Maybe<Api_Key_Mutation_Response>;
   /** update single row of the table: "api_key" */
@@ -6312,6 +6605,14 @@ export type Mutation_Root = {
   update_nullifier_uses_seen_many?: Maybe<
     Array<Maybe<Nullifier_Uses_Seen_Mutation_Response>>
   >;
+  /** update data of the table: "nullifier_v4" */
+  update_nullifier_v4?: Maybe<Nullifier_V4_Mutation_Response>;
+  /** update single row of the table: "nullifier_v4" */
+  update_nullifier_v4_by_pk?: Maybe<Nullifier_V4>;
+  /** update multiples rows of table: "nullifier_v4" */
+  update_nullifier_v4_many?: Maybe<
+    Array<Maybe<Nullifier_V4_Mutation_Response>>
+  >;
   /** update data of the table: "redirect" */
   update_redirect?: Maybe<Redirect_Mutation_Response>;
   /** update single row of the table: "redirect" */
@@ -6388,6 +6689,16 @@ export type Mutation_RootDelete_Action_Stats_ReturningArgs = {
 /** mutation root */
 export type Mutation_RootDelete_Action_Stats_Returning_By_PkArgs = {
   action_id: Scalars["String"]["input"];
+};
+
+/** mutation root */
+export type Mutation_RootDelete_Action_V4Args = {
+  where: Action_V4_Bool_Exp;
+};
+
+/** mutation root */
+export type Mutation_RootDelete_Action_V4_By_PkArgs = {
+  id: Scalars["String"]["input"];
 };
 
 /** mutation root */
@@ -6584,6 +6895,16 @@ export type Mutation_RootDelete_Nullifier_Uses_Seen_By_PkArgs = {
 };
 
 /** mutation root */
+export type Mutation_RootDelete_Nullifier_V4Args = {
+  where: Nullifier_V4_Bool_Exp;
+};
+
+/** mutation root */
+export type Mutation_RootDelete_Nullifier_V4_By_PkArgs = {
+  id: Scalars["String"]["input"];
+};
+
+/** mutation root */
 export type Mutation_RootDelete_RedirectArgs = {
   where: Redirect_Bool_Exp;
 };
@@ -6660,6 +6981,18 @@ export type Mutation_RootInsert_Action_Stats_ReturningArgs = {
 export type Mutation_RootInsert_Action_Stats_Returning_OneArgs = {
   object: Action_Stats_Returning_Insert_Input;
   on_conflict?: InputMaybe<Action_Stats_Returning_On_Conflict>;
+};
+
+/** mutation root */
+export type Mutation_RootInsert_Action_V4Args = {
+  objects: Array<Action_V4_Insert_Input>;
+  on_conflict?: InputMaybe<Action_V4_On_Conflict>;
+};
+
+/** mutation root */
+export type Mutation_RootInsert_Action_V4_OneArgs = {
+  object: Action_V4_Insert_Input;
+  on_conflict?: InputMaybe<Action_V4_On_Conflict>;
 };
 
 /** mutation root */
@@ -6891,6 +7224,18 @@ export type Mutation_RootInsert_Nullifier_Uses_Seen_OneArgs = {
 };
 
 /** mutation root */
+export type Mutation_RootInsert_Nullifier_V4Args = {
+  objects: Array<Nullifier_V4_Insert_Input>;
+  on_conflict?: InputMaybe<Nullifier_V4_On_Conflict>;
+};
+
+/** mutation root */
+export type Mutation_RootInsert_Nullifier_V4_OneArgs = {
+  object: Nullifier_V4_Insert_Input;
+  on_conflict?: InputMaybe<Nullifier_V4_On_Conflict>;
+};
+
+/** mutation root */
 export type Mutation_RootInsert_RedirectArgs = {
   objects: Array<Redirect_Insert_Input>;
   on_conflict?: InputMaybe<Redirect_On_Conflict>;
@@ -7025,6 +7370,23 @@ export type Mutation_RootUpdate_Action_Stats_Returning_By_PkArgs = {
 /** mutation root */
 export type Mutation_RootUpdate_Action_Stats_Returning_ManyArgs = {
   updates: Array<Action_Stats_Returning_Updates>;
+};
+
+/** mutation root */
+export type Mutation_RootUpdate_Action_V4Args = {
+  _set?: InputMaybe<Action_V4_Set_Input>;
+  where: Action_V4_Bool_Exp;
+};
+
+/** mutation root */
+export type Mutation_RootUpdate_Action_V4_By_PkArgs = {
+  _set?: InputMaybe<Action_V4_Set_Input>;
+  pk_columns: Action_V4_Pk_Columns_Input;
+};
+
+/** mutation root */
+export type Mutation_RootUpdate_Action_V4_ManyArgs = {
+  updates: Array<Action_V4_Updates>;
 };
 
 /** mutation root */
@@ -7380,6 +7742,23 @@ export type Mutation_RootUpdate_Nullifier_Uses_Seen_By_PkArgs = {
 /** mutation root */
 export type Mutation_RootUpdate_Nullifier_Uses_Seen_ManyArgs = {
   updates: Array<Nullifier_Uses_Seen_Updates>;
+};
+
+/** mutation root */
+export type Mutation_RootUpdate_Nullifier_V4Args = {
+  _set?: InputMaybe<Nullifier_V4_Set_Input>;
+  where: Nullifier_V4_Bool_Exp;
+};
+
+/** mutation root */
+export type Mutation_RootUpdate_Nullifier_V4_By_PkArgs = {
+  _set?: InputMaybe<Nullifier_V4_Set_Input>;
+  pk_columns: Nullifier_V4_Pk_Columns_Input;
+};
+
+/** mutation root */
+export type Mutation_RootUpdate_Nullifier_V4_ManyArgs = {
+  updates: Array<Nullifier_V4_Updates>;
 };
 
 /** mutation root */
@@ -8340,6 +8719,219 @@ export type Nullifier_Uses_Seen_Variance_Fields = {
   last_seen_uses?: Maybe<Scalars["Float"]["output"]>;
 };
 
+/** Nullifiers for World ID 4.0 verification, ensures uniqueness per action */
+export type Nullifier_V4 = {
+  __typename?: "nullifier_v4";
+  /** An object relationship */
+  action_v4: Action_V4;
+  action_v4_id: Scalars["String"]["output"];
+  created_at: Scalars["timestamptz"]["output"];
+  id: Scalars["String"]["output"];
+  /** The nullifier hash from the proof, unique globally */
+  nullifier: Scalars["String"]["output"];
+};
+
+/** aggregated selection of "nullifier_v4" */
+export type Nullifier_V4_Aggregate = {
+  __typename?: "nullifier_v4_aggregate";
+  aggregate?: Maybe<Nullifier_V4_Aggregate_Fields>;
+  nodes: Array<Nullifier_V4>;
+};
+
+export type Nullifier_V4_Aggregate_Bool_Exp = {
+  count?: InputMaybe<Nullifier_V4_Aggregate_Bool_Exp_Count>;
+};
+
+export type Nullifier_V4_Aggregate_Bool_Exp_Count = {
+  arguments?: InputMaybe<Array<Nullifier_V4_Select_Column>>;
+  distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
+  filter?: InputMaybe<Nullifier_V4_Bool_Exp>;
+  predicate: Int_Comparison_Exp;
+};
+
+/** aggregate fields of "nullifier_v4" */
+export type Nullifier_V4_Aggregate_Fields = {
+  __typename?: "nullifier_v4_aggregate_fields";
+  count: Scalars["Int"]["output"];
+  max?: Maybe<Nullifier_V4_Max_Fields>;
+  min?: Maybe<Nullifier_V4_Min_Fields>;
+};
+
+/** aggregate fields of "nullifier_v4" */
+export type Nullifier_V4_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<Nullifier_V4_Select_Column>>;
+  distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
+};
+
+/** order by aggregate values of table "nullifier_v4" */
+export type Nullifier_V4_Aggregate_Order_By = {
+  count?: InputMaybe<Order_By>;
+  max?: InputMaybe<Nullifier_V4_Max_Order_By>;
+  min?: InputMaybe<Nullifier_V4_Min_Order_By>;
+};
+
+/** input type for inserting array relation for remote table "nullifier_v4" */
+export type Nullifier_V4_Arr_Rel_Insert_Input = {
+  data: Array<Nullifier_V4_Insert_Input>;
+  /** upsert condition */
+  on_conflict?: InputMaybe<Nullifier_V4_On_Conflict>;
+};
+
+/** Boolean expression to filter rows from the table "nullifier_v4". All fields are combined with a logical 'AND'. */
+export type Nullifier_V4_Bool_Exp = {
+  _and?: InputMaybe<Array<Nullifier_V4_Bool_Exp>>;
+  _not?: InputMaybe<Nullifier_V4_Bool_Exp>;
+  _or?: InputMaybe<Array<Nullifier_V4_Bool_Exp>>;
+  action_v4?: InputMaybe<Action_V4_Bool_Exp>;
+  action_v4_id?: InputMaybe<String_Comparison_Exp>;
+  created_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+  id?: InputMaybe<String_Comparison_Exp>;
+  nullifier?: InputMaybe<String_Comparison_Exp>;
+};
+
+/** unique or primary key constraints on table "nullifier_v4" */
+export enum Nullifier_V4_Constraint {
+  /** unique or primary key constraint on columns "nullifier" */
+  NullifierV4NullifierKey = "nullifier_v4_nullifier_key",
+  /** unique or primary key constraint on columns "id" */
+  NullifierV4Pkey = "nullifier_v4_pkey",
+}
+
+/** input type for inserting data into table "nullifier_v4" */
+export type Nullifier_V4_Insert_Input = {
+  action_v4?: InputMaybe<Action_V4_Obj_Rel_Insert_Input>;
+  action_v4_id?: InputMaybe<Scalars["String"]["input"]>;
+  created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  id?: InputMaybe<Scalars["String"]["input"]>;
+  /** The nullifier hash from the proof, unique globally */
+  nullifier?: InputMaybe<Scalars["String"]["input"]>;
+};
+
+/** aggregate max on columns */
+export type Nullifier_V4_Max_Fields = {
+  __typename?: "nullifier_v4_max_fields";
+  action_v4_id?: Maybe<Scalars["String"]["output"]>;
+  created_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  id?: Maybe<Scalars["String"]["output"]>;
+  /** The nullifier hash from the proof, unique globally */
+  nullifier?: Maybe<Scalars["String"]["output"]>;
+};
+
+/** order by max() on columns of table "nullifier_v4" */
+export type Nullifier_V4_Max_Order_By = {
+  action_v4_id?: InputMaybe<Order_By>;
+  created_at?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  /** The nullifier hash from the proof, unique globally */
+  nullifier?: InputMaybe<Order_By>;
+};
+
+/** aggregate min on columns */
+export type Nullifier_V4_Min_Fields = {
+  __typename?: "nullifier_v4_min_fields";
+  action_v4_id?: Maybe<Scalars["String"]["output"]>;
+  created_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  id?: Maybe<Scalars["String"]["output"]>;
+  /** The nullifier hash from the proof, unique globally */
+  nullifier?: Maybe<Scalars["String"]["output"]>;
+};
+
+/** order by min() on columns of table "nullifier_v4" */
+export type Nullifier_V4_Min_Order_By = {
+  action_v4_id?: InputMaybe<Order_By>;
+  created_at?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  /** The nullifier hash from the proof, unique globally */
+  nullifier?: InputMaybe<Order_By>;
+};
+
+/** response of any mutation on the table "nullifier_v4" */
+export type Nullifier_V4_Mutation_Response = {
+  __typename?: "nullifier_v4_mutation_response";
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars["Int"]["output"];
+  /** data from the rows affected by the mutation */
+  returning: Array<Nullifier_V4>;
+};
+
+/** on_conflict condition type for table "nullifier_v4" */
+export type Nullifier_V4_On_Conflict = {
+  constraint: Nullifier_V4_Constraint;
+  update_columns?: Array<Nullifier_V4_Update_Column>;
+  where?: InputMaybe<Nullifier_V4_Bool_Exp>;
+};
+
+/** Ordering options when selecting data from "nullifier_v4". */
+export type Nullifier_V4_Order_By = {
+  action_v4?: InputMaybe<Action_V4_Order_By>;
+  action_v4_id?: InputMaybe<Order_By>;
+  created_at?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  nullifier?: InputMaybe<Order_By>;
+};
+
+/** primary key columns input for table: nullifier_v4 */
+export type Nullifier_V4_Pk_Columns_Input = {
+  id: Scalars["String"]["input"];
+};
+
+/** select columns of table "nullifier_v4" */
+export enum Nullifier_V4_Select_Column {
+  /** column name */
+  ActionV4Id = "action_v4_id",
+  /** column name */
+  CreatedAt = "created_at",
+  /** column name */
+  Id = "id",
+  /** column name */
+  Nullifier = "nullifier",
+}
+
+/** input type for updating data in table "nullifier_v4" */
+export type Nullifier_V4_Set_Input = {
+  action_v4_id?: InputMaybe<Scalars["String"]["input"]>;
+  created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  id?: InputMaybe<Scalars["String"]["input"]>;
+  /** The nullifier hash from the proof, unique globally */
+  nullifier?: InputMaybe<Scalars["String"]["input"]>;
+};
+
+/** Streaming cursor of the table "nullifier_v4" */
+export type Nullifier_V4_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: Nullifier_V4_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type Nullifier_V4_Stream_Cursor_Value_Input = {
+  action_v4_id?: InputMaybe<Scalars["String"]["input"]>;
+  created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  id?: InputMaybe<Scalars["String"]["input"]>;
+  /** The nullifier hash from the proof, unique globally */
+  nullifier?: InputMaybe<Scalars["String"]["input"]>;
+};
+
+/** update columns of table "nullifier_v4" */
+export enum Nullifier_V4_Update_Column {
+  /** column name */
+  ActionV4Id = "action_v4_id",
+  /** column name */
+  CreatedAt = "created_at",
+  /** column name */
+  Id = "id",
+  /** column name */
+  Nullifier = "nullifier",
+}
+
+export type Nullifier_V4_Updates = {
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<Nullifier_V4_Set_Input>;
+  /** filter the rows which have to be updated */
+  where: Nullifier_V4_Bool_Exp;
+};
+
 /** aggregate var_pop on columns */
 export type Nullifier_Var_Pop_Fields = {
   __typename?: "nullifier_var_pop_fields";
@@ -8433,6 +9025,12 @@ export type Query_Root = {
   action_stats_returning_aggregate: Action_Stats_Returning_Aggregate;
   /** fetch data from the table: "action_stats_returning" using primary key columns */
   action_stats_returning_by_pk?: Maybe<Action_Stats_Returning>;
+  /** fetch data from the table: "action_v4" */
+  action_v4: Array<Action_V4>;
+  /** fetch aggregated fields from the table: "action_v4" */
+  action_v4_aggregate: Action_V4_Aggregate;
+  /** fetch data from the table: "action_v4" using primary key columns */
+  action_v4_by_pk?: Maybe<Action_V4>;
   /** fetch data from the table: "api_key" */
   api_key: Array<Api_Key>;
   /** fetch aggregated fields from the table: "api_key" */
@@ -8552,6 +9150,12 @@ export type Query_Root = {
   nullifier_uses_seen_aggregate: Nullifier_Uses_Seen_Aggregate;
   /** fetch data from the table: "nullifier_uses_seen" using primary key columns */
   nullifier_uses_seen_by_pk?: Maybe<Nullifier_Uses_Seen>;
+  /** fetch data from the table: "nullifier_v4" */
+  nullifier_v4: Array<Nullifier_V4>;
+  /** fetch aggregated fields from the table: "nullifier_v4" */
+  nullifier_v4_aggregate: Nullifier_V4_Aggregate;
+  /** fetch data from the table: "nullifier_v4" using primary key columns */
+  nullifier_v4_by_pk?: Maybe<Nullifier_V4>;
   /** fetch data from the table: "redirect" */
   redirect: Array<Redirect>;
   /** fetch aggregated fields from the table: "redirect" */
@@ -8642,6 +9246,26 @@ export type Query_RootAction_Stats_Returning_AggregateArgs = {
 
 export type Query_RootAction_Stats_Returning_By_PkArgs = {
   action_id: Scalars["String"]["input"];
+};
+
+export type Query_RootAction_V4Args = {
+  distinct_on?: InputMaybe<Array<Action_V4_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Action_V4_Order_By>>;
+  where?: InputMaybe<Action_V4_Bool_Exp>;
+};
+
+export type Query_RootAction_V4_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Action_V4_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Action_V4_Order_By>>;
+  where?: InputMaybe<Action_V4_Bool_Exp>;
+};
+
+export type Query_RootAction_V4_By_PkArgs = {
+  id: Scalars["String"]["input"];
 };
 
 export type Query_RootApi_KeyArgs = {
@@ -9048,6 +9672,26 @@ export type Query_RootNullifier_Uses_Seen_AggregateArgs = {
 
 export type Query_RootNullifier_Uses_Seen_By_PkArgs = {
   nullifier_hash: Scalars["String"]["input"];
+};
+
+export type Query_RootNullifier_V4Args = {
+  distinct_on?: InputMaybe<Array<Nullifier_V4_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Nullifier_V4_Order_By>>;
+  where?: InputMaybe<Nullifier_V4_Bool_Exp>;
+};
+
+export type Query_RootNullifier_V4_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Nullifier_V4_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Nullifier_V4_Order_By>>;
+  where?: InputMaybe<Nullifier_V4_Bool_Exp>;
+};
+
+export type Query_RootNullifier_V4_By_PkArgs = {
+  id: Scalars["String"]["input"];
 };
 
 export type Query_RootRedirectArgs = {
@@ -9721,6 +10365,13 @@ export type Rp_Registration_Mutation_Response = {
   returning: Array<Rp_Registration>;
 };
 
+/** input type for inserting object relation for remote table "rp_registration" */
+export type Rp_Registration_Obj_Rel_Insert_Input = {
+  data: Rp_Registration_Insert_Input;
+  /** upsert condition */
+  on_conflict?: InputMaybe<Rp_Registration_On_Conflict>;
+};
+
 /** on_conflict condition type for table "rp_registration" */
 export type Rp_Registration_On_Conflict = {
   constraint: Rp_Registration_Constraint;
@@ -9867,6 +10518,14 @@ export type Subscription_Root = {
   action_stats_returning_stream: Array<Action_Stats_Returning>;
   /** fetch data from the table in a streaming manner: "action" */
   action_stream: Array<Action>;
+  /** fetch data from the table: "action_v4" */
+  action_v4: Array<Action_V4>;
+  /** fetch aggregated fields from the table: "action_v4" */
+  action_v4_aggregate: Action_V4_Aggregate;
+  /** fetch data from the table: "action_v4" using primary key columns */
+  action_v4_by_pk?: Maybe<Action_V4>;
+  /** fetch data from the table in a streaming manner: "action_v4" */
+  action_v4_stream: Array<Action_V4>;
   /** fetch data from the table: "api_key" */
   api_key: Array<Api_Key>;
   /** fetch aggregated fields from the table: "api_key" */
@@ -10019,6 +10678,14 @@ export type Subscription_Root = {
   nullifier_uses_seen_by_pk?: Maybe<Nullifier_Uses_Seen>;
   /** fetch data from the table in a streaming manner: "nullifier_uses_seen" */
   nullifier_uses_seen_stream: Array<Nullifier_Uses_Seen>;
+  /** fetch data from the table: "nullifier_v4" */
+  nullifier_v4: Array<Nullifier_V4>;
+  /** fetch aggregated fields from the table: "nullifier_v4" */
+  nullifier_v4_aggregate: Nullifier_V4_Aggregate;
+  /** fetch data from the table: "nullifier_v4" using primary key columns */
+  nullifier_v4_by_pk?: Maybe<Nullifier_V4>;
+  /** fetch data from the table in a streaming manner: "nullifier_v4" */
+  nullifier_v4_stream: Array<Nullifier_V4>;
   /** fetch data from the table: "redirect" */
   redirect: Array<Redirect>;
   /** fetch aggregated fields from the table: "redirect" */
@@ -10129,6 +10796,32 @@ export type Subscription_RootAction_StreamArgs = {
   batch_size: Scalars["Int"]["input"];
   cursor: Array<InputMaybe<Action_Stream_Cursor_Input>>;
   where?: InputMaybe<Action_Bool_Exp>;
+};
+
+export type Subscription_RootAction_V4Args = {
+  distinct_on?: InputMaybe<Array<Action_V4_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Action_V4_Order_By>>;
+  where?: InputMaybe<Action_V4_Bool_Exp>;
+};
+
+export type Subscription_RootAction_V4_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Action_V4_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Action_V4_Order_By>>;
+  where?: InputMaybe<Action_V4_Bool_Exp>;
+};
+
+export type Subscription_RootAction_V4_By_PkArgs = {
+  id: Scalars["String"]["input"];
+};
+
+export type Subscription_RootAction_V4_StreamArgs = {
+  batch_size: Scalars["Int"]["input"];
+  cursor: Array<InputMaybe<Action_V4_Stream_Cursor_Input>>;
+  where?: InputMaybe<Action_V4_Bool_Exp>;
 };
 
 export type Subscription_RootApi_KeyArgs = {
@@ -10632,6 +11325,32 @@ export type Subscription_RootNullifier_Uses_Seen_StreamArgs = {
   batch_size: Scalars["Int"]["input"];
   cursor: Array<InputMaybe<Nullifier_Uses_Seen_Stream_Cursor_Input>>;
   where?: InputMaybe<Nullifier_Uses_Seen_Bool_Exp>;
+};
+
+export type Subscription_RootNullifier_V4Args = {
+  distinct_on?: InputMaybe<Array<Nullifier_V4_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Nullifier_V4_Order_By>>;
+  where?: InputMaybe<Nullifier_V4_Bool_Exp>;
+};
+
+export type Subscription_RootNullifier_V4_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Nullifier_V4_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Nullifier_V4_Order_By>>;
+  where?: InputMaybe<Nullifier_V4_Bool_Exp>;
+};
+
+export type Subscription_RootNullifier_V4_By_PkArgs = {
+  id: Scalars["String"]["input"];
+};
+
+export type Subscription_RootNullifier_V4_StreamArgs = {
+  batch_size: Scalars["Int"]["input"];
+  cursor: Array<InputMaybe<Nullifier_V4_Stream_Cursor_Input>>;
+  where?: InputMaybe<Nullifier_V4_Bool_Exp>;
 };
 
 export type Subscription_RootRedirectArgs = {
