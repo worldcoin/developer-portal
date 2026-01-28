@@ -1,0 +1,14 @@
+query CheckNullifierV4($nullifier: String!) {
+  nullifier_v4(where: { nullifier: { _eq: $nullifier } }) {
+    id
+    nullifier
+    action_v4_id
+    created_at
+    action_v4 {
+      id
+      rp_id
+      action
+      environment
+    }
+  }
+}

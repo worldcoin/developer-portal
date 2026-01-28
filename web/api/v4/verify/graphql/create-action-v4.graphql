@@ -1,0 +1,23 @@
+mutation CreateActionV4(
+  $rp_id: String!
+  $action: String!
+  $description: String!
+  $environment: action_environment!
+) {
+  insert_action_v4_one(
+    object: {
+      rp_id: $rp_id
+      action: $action
+      description: $description
+      environment: $environment
+    }
+    on_conflict: { constraint: action_v4_rp_id_action_key, update_columns: [] }
+  ) {
+    id
+    rp_id
+    action
+    description
+    environment
+    created_at
+  }
+}
