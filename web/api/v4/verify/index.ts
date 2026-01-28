@@ -319,7 +319,6 @@ export async function POST(
 
   const rpId = rpRegistration.rp_id;
   const appId = rpRegistration.app_id;
-  const isStaging = app.is_staging;
 
   // Version is at root level
   const proofVersion = parsedParams.version as "v3" | "v4";
@@ -359,7 +358,8 @@ export async function POST(
               external_nullifier: externalNullifier,
             },
             {
-              is_staging: isStaging,
+              // Use action's environment for staging determination
+              is_staging: verificationEnvironment === "staging",
               verification_level: item.verification_level as
                 | VerificationLevel
                 | "face",
