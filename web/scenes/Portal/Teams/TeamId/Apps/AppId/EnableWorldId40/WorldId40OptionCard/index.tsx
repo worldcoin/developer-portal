@@ -72,6 +72,7 @@ export const WorldId40OptionCard = (
         {props.subtitle}
       </Typography>
 
+      {(props.bullets?.length ?? 0) > 0 && (
       <ul className="grid gap-y-2">
         {props.bullets.map((bullet, i) => (
           <li key={i} className="flex items-center gap-x-2">
@@ -90,6 +91,7 @@ export const WorldId40OptionCard = (
           </li>
         ))}
       </ul>
+      )}
     </label>
   );
 };

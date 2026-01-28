@@ -62,11 +62,13 @@ export const EnableWorldId40Page = () => {
 
   const onContinue = useCallback(() => {
     if (!teamId || !appId) return;
-    const redirect =
-      nextParam === "configuration"
-        ? urls.configuration({ team_id: teamId, app_id: appId })
-        : urls.actions({ team_id: teamId, app_id: appId });
-    router.push(redirect);
+    router.push(
+      urls.configureSignerKey({
+        team_id: teamId,
+        app_id: appId,
+        next: nextParam ?? "configuration",
+      }),
+    );
   }, [teamId, appId, nextParam, router]);
 
   return (
