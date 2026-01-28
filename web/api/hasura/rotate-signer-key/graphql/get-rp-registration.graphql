@@ -1,0 +1,14 @@
+query GetRpRegistration($app_id: String!) {
+  rp_registration(where: { app_id: { _eq: $app_id } }) {
+    rp_id
+    app_id
+    mode
+    status
+    signer_address
+    manager_kms_key_id
+    operation_hash
+    app {
+      team_id
+    }
+  }
+}

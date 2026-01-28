@@ -1,0 +1,16 @@
+mutation UpdateRotationResult(
+  $rp_id: String!
+  $signer_address: String!
+  $operation_hash: String!
+) {
+  update_rp_registration_by_pk(
+    pk_columns: { rp_id: $rp_id }
+    _set: { signer_address: $signer_address, operation_hash: $operation_hash }
+  ) {
+    rp_id
+    app_id
+    status
+    signer_address
+    operation_hash
+  }
+}
