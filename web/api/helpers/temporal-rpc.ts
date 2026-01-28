@@ -201,10 +201,15 @@ export async function verifyProofOnChain(
   params: VerifyProofParams,
   contractAddress: string,
 ): Promise<VerifyProofResult> {
+  const serializableParams = Object.fromEntries(
+    Object.entries(params).map(([k, v]) => [
+      k,
+      Array.isArray(v) ? v.map(String) : String(v),
+    ]),
+  );
   logger.info("Verifying proof via on-chain Verifier", {
     contractAddress,
-    rpId: params.rpId.toString(),
-    proofTimestamp: params.proofTimestamp.toString(),
+    params: serializableParams,
   });
 
   try {
