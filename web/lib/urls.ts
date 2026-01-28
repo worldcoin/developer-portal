@@ -27,6 +27,18 @@ export const urls = {
     return path;
   },
 
+  configureSignerKey: (params: {
+    team_id: string;
+    app_id: string;
+    next?: "configuration" | "actions";
+  }): string => {
+    const path = `/teams/${params.team_id}/apps/${params.app_id}/configure-signer-key`;
+    if (params.next) {
+      return `${path}?next=${params.next}`;
+    }
+    return path;
+  },
+
   createTeam: (): "/create-team" => "/create-team",
 
   signInWorldId: (params: { team_id: string; app_id?: string }): string =>
