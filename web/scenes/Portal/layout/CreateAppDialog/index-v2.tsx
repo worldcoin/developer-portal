@@ -46,9 +46,9 @@ export const CreateAppDialogV2 = (props: DialogProps) => {
 
   const [step, setStep] = useState<CreateDialogStep>("create");
   const [createdAppId, setCreatedAppId] = useState<string | null>(null);
-  const [nextDest, setNextDest] = useState<
-    "configuration" | "actions" | null
-  >(null);
+  const [nextDest, setNextDest] = useState<"configuration" | "actions" | null>(
+    null,
+  );
 
   const defaultValues: Partial<CreateAppSchemaV2> = useMemo(
     () => ({
