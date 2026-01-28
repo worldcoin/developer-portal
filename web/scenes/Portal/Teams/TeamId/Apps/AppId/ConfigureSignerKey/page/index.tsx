@@ -13,7 +13,10 @@ export const ConfigureSignerKeyPage = () => {
   };
   const router = useRouter();
   const searchParams = useSearchParams();
-  const nextParam = searchParams.get("next") as "configuration" | "actions" | null;
+  const nextParam = searchParams.get("next") as
+    | "configuration"
+    | "actions"
+    | null;
 
   const onBack = useCallback(() => {
     if (!teamId || !appId) return;
