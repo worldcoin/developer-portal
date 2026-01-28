@@ -21,17 +21,19 @@ const GENERATE_BULLETS = [
 export type ConfigureSignerKeyContentProps = {
   onBack: () => void;
   onContinue: (setup: SignerKeySetup) => void;
+  initialSetup?: SignerKeySetup;
   className?: string;
 };
 
 export const ConfigureSignerKeyContent = ({
   onBack,
   onContinue,
+  initialSetup = "generate",
   className,
 }: ConfigureSignerKeyContentProps) => {
   const defaultValues: FormValues = useMemo(
-    () => ({ signer_key_setup: "generate" }),
-    [],
+    () => ({ signer_key_setup: initialSetup }),
+    [initialSetup],
   );
 
   const { register, handleSubmit } = useForm<FormValues>({
