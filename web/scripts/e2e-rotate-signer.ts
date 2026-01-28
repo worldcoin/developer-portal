@@ -1,21 +1,25 @@
 #!/usr/bin/env npx tsx
 
 /**
- * E2E Test Script for RP Registration UserOperation
+ * E2E Test Script for RP Signer Key Rotation UserOperation
  *
- * This script validates the UserOp building and signing logic against real contracts.
+ * This script validates the updateRp UserOp building and signing logic against real contracts.
  * Uses the correct Safe 4337 EIP-712 signing scheme with AWS KMS for signing.
  *
  * Prerequisites:
  * - AWS credentials configured (via SSO: `aws sso login --profile <profile>`)
+ * - An existing registered RP on-chain
  *
  * Required Environment Variables:
  *   ALCHEMY_API_KEY       - Alchemy API key for World Chain
  *   KMS_KEY_ID            - AWS KMS key ID/alias for Safe owner key
+ *   MANAGER_KMS_KEY_ID    - AWS KMS key ID/alias for manager key (can be same as KMS_KEY_ID for testing)
  *   SAFE_ADDRESS          - Safe wallet address (sender of UserOps)
  *   RP_REGISTRY_ADDRESS   - RpRegistry contract address
+ *   RP_ID                 - Numeric RP ID of an existing registered RP
  *
  * Optional Environment Variables:
+ *   NEW_SIGNER_ADDRESS    - New signer address (defaults to manager address for testing)
  *   AWS_PROFILE           - AWS SSO profile name (default: "default")
  *   AWS_REGION            - AWS region (default: "us-east-1")
  *   CHAIN_ID              - Chain ID (default: 480 for World Chain Mainnet)
@@ -24,11 +28,13 @@
  *   aws sso login --profile <your-profile>
  *
  *   ALCHEMY_API_KEY=xxx \
- *   KMS_KEY_ID=alias/your-key \
+ *   KMS_KEY_ID=alias/safe-owner-key \
+ *   MANAGER_KMS_KEY_ID=alias/manager-key \
  *   SAFE_ADDRESS=0x... \
  *   RP_REGISTRY_ADDRESS=0x... \
+ *   RP_ID=12345 \
  *   AWS_PROFILE=your-profile \
- *   npx tsx web/scripts/e2e-rp-registration.ts
+ *   npx tsx web/scripts/e2e-rotate-signer.ts
  */
 
 import {
@@ -39,10 +45,10 @@ import {
 import { fromSSO } from "@aws-sdk/credential-provider-sso";
 import {
   computeAddress,
+  Contract,
   getBytes,
   hexlify,
   JsonRpcProvider,
-  keccak256,
   recoverAddress,
   Signature,
   toBeHex,
@@ -50,15 +56,18 @@ import {
 } from "ethers";
 
 // Import from shared helpers
+import RP_REGISTRY_ABI from "../api/helpers/abi/rp-registry.json";
 import {
-  buildRegisterRpCalldata,
+  buildUpdateRpSignerCalldata,
   buildUserOperation,
   encodeSafeUserOpCalldata,
   type GasLimits,
-  getRegisterRpNonce,
   getTxExpiration,
+  getUpdateRpNonce,
   hashSafeUserOp,
+  hashUpdateRpTypedData,
   replacePlaceholderWithSignature,
+  RP_NO_UPDATE_DOMAIN,
 } from "../api/helpers/user-operation";
 
 // ============================================================================
@@ -184,12 +193,15 @@ const ALCHEMY_GAS_LIMITS: GasLimits = {
 // Required
 const ALCHEMY_API_KEY = process.env.ALCHEMY_API_KEY;
 const KMS_KEY_ID = process.env.KMS_KEY_ID;
+const MANAGER_KMS_KEY_ID = process.env.MANAGER_KMS_KEY_ID;
 const SAFE_ADDRESS = process.env.SAFE_ADDRESS;
 const RP_REGISTRY_ADDRESS = process.env.RP_REGISTRY_ADDRESS;
+const RP_ID = process.env.RP_ID;
 
 // Optional with defaults
+const NEW_SIGNER_ADDRESS = process.env.NEW_SIGNER_ADDRESS;
 const AWS_PROFILE = process.env.AWS_PROFILE || "default";
-const AWS_REGION = process.env.AWS_REGION || "us-east-1";
+const AWS_REGION = process.env.AWS_REGION || "eu-west-1";
 const CHAIN_ID = parseInt(process.env.CHAIN_ID || "480", 10); // World Chain Mainnet
 
 // Derived URLs
@@ -203,12 +215,48 @@ const ENTRYPOINT_ADDRESS = "0x0000000071727De22E5E9d8BAf0edAc6f37da032";
 const SAFE_4337_MODULE = "0x75cf11467937ce3F2f357CE24ffc3DBF8fD5c226";
 
 // ============================================================================
-// Helper Functions
+// Contract Helpers
 // ============================================================================
 
-function generateRpId(appId: string): bigint {
-  const hash = keccak256(new TextEncoder().encode(appId));
-  return BigInt(hash) & ((1n << 64n) - 1n);
+function createRpRegistryContract(
+  contractAddress: string,
+  provider: JsonRpcProvider,
+): Contract {
+  return new Contract(contractAddress, RP_REGISTRY_ABI, provider);
+}
+
+async function getRpNonceFromContract(
+  rpId: bigint,
+  contract: Contract,
+): Promise<bigint> {
+  const result = await contract.nonceOf(rpId);
+  return BigInt(result);
+}
+
+async function getRpDomainSeparator(contract: Contract): Promise<string> {
+  return await contract.domainSeparatorV4();
+}
+
+async function getUpdateRpTypehash(contract: Contract): Promise<string> {
+  return await contract.UPDATE_RP_TYPEHASH();
+}
+
+async function getRpFromContract(
+  rpId: bigint,
+  contract: Contract,
+): Promise<{
+  initialized: boolean;
+  active: boolean;
+  manager: string;
+  signer: string;
+}> {
+  const result = await contract.getRpUnchecked(rpId);
+  return {
+    initialized: result.initialized,
+    active: result.active,
+    manager: result.manager,
+    signer: result.signer,
+  };
 }
 
 // ============================================================================
@@ -216,14 +264,16 @@ function generateRpId(appId: string): bigint {
 // ============================================================================
 
 async function main(): Promise<void> {
-  console.log("=== E2E RP Registration Test (KMS Signing) ===\n");
+  console.log("=== E2E RP Signer Rotation Test (KMS Signing) ===\n");
 
   // Validate required environment variables
   const requiredEnvVars: Record<string, string | undefined> = {
     ALCHEMY_API_KEY,
     KMS_KEY_ID,
+    MANAGER_KMS_KEY_ID,
     SAFE_ADDRESS,
     RP_REGISTRY_ADDRESS,
+    RP_ID,
   };
 
   const missing = Object.entries(requiredEnvVars)
@@ -241,16 +291,22 @@ async function main(): Promise<void> {
   console.log("--- AWS KMS Setup ---");
   console.log("AWS Profile:", AWS_PROFILE);
   console.log("AWS Region:", AWS_REGION);
-  console.log("KMS Key ID:", KMS_KEY_ID);
+  console.log("Safe Owner KMS Key ID:", KMS_KEY_ID);
+  console.log("Manager KMS Key ID:", MANAGER_KMS_KEY_ID);
 
   const kmsClient = new KMSClient({
     region: AWS_REGION,
     credentials: fromSSO({ profile: AWS_PROFILE }),
   });
 
-  // Get Safe owner address from KMS
-  const ownerAddress = await getEthAddressFromKMS(kmsClient, KMS_KEY_ID!);
-  console.log("Safe Owner Address (from KMS):", ownerAddress);
+  // Get addresses from KMS
+  const safeOwnerAddress = await getEthAddressFromKMS(kmsClient, KMS_KEY_ID!);
+  const managerAddress = await getEthAddressFromKMS(
+    kmsClient,
+    MANAGER_KMS_KEY_ID!,
+  );
+  console.log("Safe Owner Address (from KMS):", safeOwnerAddress);
+  console.log("Manager Address (from KMS):", managerAddress);
 
   // Setup provider
   const provider = new JsonRpcProvider(RPC_URL);
@@ -262,30 +318,94 @@ async function main(): Promise<void> {
   console.log("EntryPoint:", ENTRYPOINT_ADDRESS);
   console.log("Safe:", SAFE_ADDRESS);
 
-  // Generate test RP data
-  const testAppId = `app_test_${Date.now()}`;
-  const rpId = generateRpId(testAppId);
-  const managerAddress = ownerAddress; // Use KMS address as manager for testing
-  const signerAddress = ownerAddress; // Use KMS address as signer for testing
-  const domain = "test.example.com";
-
-  console.log("\n--- RP Registration Data ---");
-  console.log("App ID:", testAppId);
+  // Parse RP ID
+  const rpId = BigInt(RP_ID!);
+  console.log("\n--- RP Info ---");
   console.log("RP ID:", rpId.toString());
-  console.log("Manager:", managerAddress);
-  console.log("Signer:", signerAddress);
-  console.log("Domain:", domain);
 
-  // Build inner calldata (RpRegistry.register)
-  const innerCalldata = buildRegisterRpCalldata(
+  // Get contract instance
+  const contract = createRpRegistryContract(RP_REGISTRY_ADDRESS!, provider);
+
+  // Fetch current RP state
+  console.log("\n--- Fetching Current RP State ---");
+  const rpState = await getRpFromContract(rpId, contract);
+  console.log("Initialized:", rpState.initialized);
+  console.log("Active:", rpState.active);
+  console.log("Current Manager:", rpState.manager);
+  console.log("Current Signer:", rpState.signer);
+
+  if (!rpState.initialized || !rpState.active) {
+    console.error("\nError: RP is not initialized or active. Cannot rotate.");
+    process.exit(1);
+  }
+
+  // New signer address (default to manager address for testing)
+  const newSignerAddress = NEW_SIGNER_ADDRESS || managerAddress;
+  console.log("\n--- Rotation Data ---");
+  console.log("New Signer Address:", newSignerAddress);
+
+  // Fetch contract state for EIP-712 signing
+  console.log("\n--- Fetching Contract State for EIP-712 ---");
+  const [contractNonce, domainSeparator, updateRpTypehash] = await Promise.all([
+    getRpNonceFromContract(rpId, contract),
+    getRpDomainSeparator(contract),
+    getUpdateRpTypehash(contract),
+  ]);
+  console.log("Contract Nonce:", contractNonce.toString());
+  console.log("Domain Separator:", domainSeparator);
+  console.log("UPDATE_RP_TYPEHASH:", updateRpTypehash);
+
+  // Compute EIP-712 typed data hash for manager signature
+  console.log("\n--- Computing Manager EIP-712 Hash ---");
+  const updateRpParams = {
     rpId,
-    managerAddress,
-    signerAddress,
-    domain,
+    oprfKeyId: 0n, // No change
+    manager: "0x0000000000000000000000000000000000000000", // No change
+    signer: newSignerAddress,
+    toggleActive: false, // No change
+    unverifiedWellKnownDomain: RP_NO_UPDATE_DOMAIN,
+    nonce: contractNonce,
+  };
+  console.log("UpdateRp Params:", {
+    ...updateRpParams,
+    rpId: updateRpParams.rpId.toString(),
+    nonce: updateRpParams.nonce.toString(),
+  });
+
+  const updateRpHash = hashUpdateRpTypedData(
+    updateRpParams,
+    domainSeparator,
+    updateRpTypehash,
+  );
+  console.log("UpdateRp EIP-712 Hash:", updateRpHash);
+
+  // Sign with manager KMS key
+  console.log("\n--- Signing with Manager KMS Key ---");
+  const managerSignature = await signEthDigestWithKms(
+    kmsClient,
+    MANAGER_KMS_KEY_ID!,
+    getBytes(updateRpHash),
+  );
+
+  if (!managerSignature) {
+    console.error("Error: Failed to sign with manager KMS key");
+    process.exit(1);
+  }
+  console.log(
+    "Manager Signature:",
+    managerSignature.serialized.slice(0, 42) + "...",
+  );
+
+  // Build updateRp calldata
+  const innerCalldata = buildUpdateRpSignerCalldata(
+    rpId,
+    newSignerAddress,
+    contractNonce,
+    managerSignature.serialized,
   );
   console.log("\n--- Calldata ---");
   console.log(
-    "Inner calldata (RpRegistry.register):",
+    "Inner calldata (RpRegistry.updateRp):",
     innerCalldata.slice(0, 74) + "...",
   );
 
@@ -307,7 +427,7 @@ async function main(): Promise<void> {
   console.log("Valid Until:", validUntil.toISOString());
 
   // Build UserOperation with placeholder signature (using Alchemy gas limits)
-  const nonce = getRegisterRpNonce(rpId);
+  const nonce = getUpdateRpNonce(rpId);
   const userOp = buildUserOperation(
     SAFE_ADDRESS!,
     safeCalldata,
@@ -329,27 +449,30 @@ async function main(): Promise<void> {
     SAFE_4337_MODULE,
     ENTRYPOINT_ADDRESS,
   );
-  console.log("\n--- Signing with KMS (Safe EIP-712) ---");
+  console.log("\n--- Signing with Safe Owner KMS (Safe EIP-712) ---");
   console.log("Safe4337 Module:", SAFE_4337_MODULE);
   console.log("Safe Operation Hash:", safeOpHash);
 
-  // Sign the Safe Operation hash with KMS (the Safe owner key)
-  const signature = await signEthDigestWithKms(
+  // Sign the Safe Operation hash with Safe owner KMS key
+  const safeOwnerSignature = await signEthDigestWithKms(
     kmsClient,
     KMS_KEY_ID!,
     getBytes(safeOpHash),
   );
 
-  if (!signature) {
-    console.error("Error: Failed to sign with KMS key");
+  if (!safeOwnerSignature) {
+    console.error("Error: Failed to sign with Safe owner KMS key");
     process.exit(1);
   }
-  console.log("KMS Signature:", signature.serialized.slice(0, 42) + "...");
+  console.log(
+    "Safe Owner Signature:",
+    safeOwnerSignature.serialized.slice(0, 42) + "...",
+  );
 
   // Replace placeholder with actual signature (preserving validity timestamps)
   userOp.signature = replacePlaceholderWithSignature({
     placeholderSig: userOp.signature,
-    signature: signature.serialized,
+    signature: safeOwnerSignature.serialized,
   });
   console.log("Final Signature:", userOp.signature.slice(0, 42) + "...");
 
@@ -366,6 +489,9 @@ async function main(): Promise<void> {
     console.log("\nSuccess! UserOp Hash:", result);
     console.log("\nCheck Safe wallet activity at:");
     console.log(`  https://worldscan.org/address/${SAFE_ADDRESS}`);
+    console.log("\nSigner rotation:");
+    console.log(`  Old: ${rpState.signer}`);
+    console.log(`  New: ${newSignerAddress}`);
   } catch (error: unknown) {
     console.error("\nBundler Error:");
     const err = error as {
