@@ -19,19 +19,28 @@ import posthog from "posthog-js";
 import { useCallback, useMemo, useState } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { toast } from "react-toastify";
-import { ConfigureSignerKeyContent } from "../../Teams/TeamId/Apps/AppId/ConfigureSignerKey/ConfigureSignerKeyContent";
+import {
+  ConfigureSignerKeyContent,
+  SignerKeySetup,
+} from "../../Teams/TeamId/Apps/AppId/ConfigureSignerKey/ConfigureSignerKeyContent";
 import { EnableWorldId40Content } from "../../Teams/TeamId/Apps/AppId/EnableWorldId40/EnableWorldId40Content";
+import { UseExistingKeyContent } from "../../Teams/TeamId/Apps/AppId/UseExistingKey/UseExistingKeyContent";
 import { FetchAppsDocument } from "../AppSelector/graphql/client/fetch-apps.generated";
 import { MiniappToggleSection } from "./MiniappToggleSection";
 import { createAppSchemaV4, CreateAppSchemaV4 } from "./form-schema-v4";
 import { validateAndInsertAppServerSideV4 } from "./server/v4/submit";
 
-type Step = "create" | "enable-world-id-4-0" | "configure-signer-key";
+type CreateDialogStep =
+  | "create"
+  | "enable-world-id-4-0"
+  | "configure-signer-key"
+  | "use-existing-key";
 
 const STEP_TITLES: Record<Step, string> = {
   create: "Create a new app",
   "enable-world-id-4-0": "Enable World ID 4.0",
-  "configure-signer-key": "Configure Signer Key",
+  "configure-signer-key": "Enable World ID 4.0",
+  "use-existing-key": "Use Existing Key",
 };
 
 export const CreateAppDialogV4 = (props: DialogProps) => {
@@ -137,20 +146,53 @@ export const CreateAppDialogV4 = (props: DialogProps) => {
     setStep("enable-world-id-4-0");
   }, [setStep]);
 
-  const onConfigureContinue = useCallback(() => {
-    if (!teamId || !createdAppId) {
-      toast.error(
-        "Failed to complete app setup. Please close this dialog and try again from your team's apps page.",
-      );
-      return;
-    }
-    const redirect =
-      nextDest === "configuration"
-        ? urls.configuration({ team_id: teamId, app_id: createdAppId })
-        : urls.actions({ team_id: teamId, app_id: createdAppId });
-    router.push(redirect);
-    onClose();
-  }, [teamId, createdAppId, nextDest, router, onClose]);
+  const onConfigureContinue = useCallback(
+    (setup: SignerKeySetup) => {
+      if (setup === "existing") {
+        setStep("use-existing-key");
+      } else {
+        // Handle "generate" flow - for now, redirect to app page
+        if (!teamId || !createdAppId) {
+          toast.error(
+            "Failed to complete app setup. Please close this dialog and try again from your team's apps page.",
+          );
+          return;
+        }
+        const redirect =
+          nextDest === "configuration"
+            ? urls.configuration({ team_id: teamId, app_id: createdAppId })
+            : urls.actions({ team_id: teamId, app_id: createdAppId });
+        router.push(redirect);
+        onClose();
+      }
+    },
+    [teamId, createdAppId, nextDest, router, onClose],
+  );
+
+  const onUseExistingKeyBack = useCallback(() => {
+    setStep("configure-signer-key");
+  }, []);
+
+  const onUseExistingKeyContinue = useCallback(
+    (publicKey: string) => {
+      // TODO: Save the public key to the database
+      console.log("Public key:", publicKey);
+
+      if (!teamId || !createdAppId) {
+        toast.error(
+          "Failed to complete app setup. Please close this dialog and try again from your team's apps page.",
+        );
+        return;
+      }
+      const redirect =
+        nextDest === "configuration"
+          ? urls.configuration({ team_id: teamId, app_id: createdAppId })
+          : urls.actions({ team_id: teamId, app_id: createdAppId });
+      router.push(redirect);
+      onClose();
+    },
+    [teamId, createdAppId, nextDest, router, onClose],
+  );
 
   return (
     <Dialog open={props.open} onClose={onClose} className="z-50 ">
@@ -256,6 +298,13 @@ export const CreateAppDialogV4 = (props: DialogProps) => {
               <ConfigureSignerKeyContent
                 onBack={onConfigureBack}
                 onContinue={onConfigureContinue}
+                className="justify-self-center py-10"
+              />
+            )}
+            {step === "use-existing-key" && (
+              <UseExistingKeyContent
+                onBack={onUseExistingKeyBack}
+                onContinue={onUseExistingKeyContinue}
                 className="justify-self-center py-10"
               />
             )}
