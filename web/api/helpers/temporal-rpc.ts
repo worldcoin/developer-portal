@@ -7,6 +7,7 @@ import "server-only";
 import { logger } from "@/lib/logger";
 import { Contract, FetchRequest, JsonRpcProvider, Network } from "ethers";
 import RP_REGISTRY_ABI from "./abi/rp-registry.json";
+import VERIFIER_ABI from "./abi/verifier.json";
 import { UserOperation } from "./user-operation";
 
 const RPC_TIMEOUT_MS = 10_000;
@@ -27,6 +28,28 @@ export interface OnChainRelyingParty {
   unverifiedWellKnownDomain: string;
 }
 
+export interface VerifyProofParams {
+  nullifier: bigint;
+  action: bigint;
+  rpId: bigint;
+  sessionId: bigint;
+  nonce: bigint;
+  signalHash: bigint;
+  authenticatorRoot: bigint;
+  proofTimestamp: bigint;
+  credentialIssuerId: bigint;
+  credentialGenesisIssuedAtMin: bigint;
+  compressedProof: [bigint, bigint, bigint, bigint];
+}
+
+export interface VerifyProofResult {
+  success: boolean;
+  error?: {
+    code: string;
+    detail: string;
+  };
+}
+
 function createProvider(): JsonRpcProvider {
   const baseUrl = process.env.TEMPORAL_RPC_URL;
   if (!baseUrl) {
@@ -44,6 +67,43 @@ function createProvider(): JsonRpcProvider {
     batchMaxCount: 1,
     staticNetwork: true,
   });
+}
+
+function parseVerifierRevertReason(error: unknown): {
+  code: string;
+  detail: string;
+} {
+  const message = error instanceof Error ? error.message : String(error);
+
+  if (message.includes("OutdatedNullifier")) {
+    return {
+      code: "outdated_nullifier",
+      detail: "The proof has expired. Please generate a new proof.",
+    };
+  }
+  if (message.includes("NullifierFromFuture")) {
+    return {
+      code: "nullifier_from_future",
+      detail: "The proof timestamp is in the future.",
+    };
+  }
+  if (message.includes("Invalid authenticator root")) {
+    return {
+      code: "invalid_root",
+      detail: "The authenticator root is not valid.",
+    };
+  }
+  if (message.includes("Credential issuer not registered")) {
+    return {
+      code: "invalid_credential_issuer",
+      detail: "The credential issuer is not registered.",
+    };
+  }
+
+  return {
+    code: "verification_failed",
+    detail: message,
+  };
 }
 
 /**
@@ -94,4 +154,53 @@ export async function getRpFromContract(
     oprfKeyId: BigInt(result.oprfKeyId),
     unverifiedWellKnownDomain: result.unverifiedWellKnownDomain,
   };
+}
+
+/**
+ * Verifies a World ID v4 proof by calling the on-chain Verifier contract.
+ * The contract reverts if the proof is invalid (no return value on success).
+ */
+export async function verifyProofOnChain(
+  params: VerifyProofParams,
+  contractAddress: string,
+): Promise<VerifyProofResult> {
+  logger.info("Verifying proof via on-chain Verifier", {
+    contractAddress,
+    rpId: params.rpId.toString(),
+    proofTimestamp: params.proofTimestamp.toString(),
+  });
+
+  try {
+    const provider = createProvider();
+    const contract = new Contract(contractAddress, VERIFIER_ABI, provider);
+
+    await contract.verify(
+      params.nullifier,
+      params.action,
+      params.rpId,
+      params.sessionId,
+      params.nonce,
+      params.signalHash,
+      params.authenticatorRoot,
+      params.proofTimestamp,
+      params.credentialIssuerId,
+      params.credentialGenesisIssuedAtMin,
+      params.compressedProof,
+    );
+
+    logger.info("Proof verified successfully", {
+      rpId: params.rpId.toString(),
+    });
+    return { success: true };
+  } catch (error) {
+    logger.error("Proof verification failed", {
+      error: error instanceof Error ? error.message : String(error),
+      rpId: params.rpId.toString(),
+    });
+
+    return {
+      success: false,
+      error: parseVerifierRevertReason(error),
+    };
+  }
 }

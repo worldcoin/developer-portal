@@ -1,0 +1,21 @@
+[
+  {
+    "type": "function",
+    "name": "verify",
+    "inputs": [
+      { "name": "nullifier", "type": "uint256" },
+      { "name": "action", "type": "uint256" },
+      { "name": "rpId", "type": "uint64" },
+      { "name": "sessionId", "type": "uint256" },
+      { "name": "nonce", "type": "uint256" },
+      { "name": "signalHash", "type": "uint256" },
+      { "name": "authenticatorRoot", "type": "uint256" },
+      { "name": "proofTimestamp", "type": "uint256" },
+      { "name": "credentialIssuerId", "type": "uint256" },
+      { "name": "credentialGenesisIssuedAtMin", "type": "uint256" },
+      { "name": "compressedProof", "type": "uint256[4]" }
+    ],
+    "outputs": [],
+    "stateMutability": "view"
+  }
+]
