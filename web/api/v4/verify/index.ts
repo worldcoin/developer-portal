@@ -90,11 +90,14 @@ const v4ResponseItemSchema = yup.object({
     .required("compressed_proof is required for v4"),
 });
 
-// Base schema - responses validated in custom test based on version
+// Base schema - responses validated in custom test based on protocol version
 const schema = yup
   .object({
-    // Proof version at root level
-    version: yup.string().oneOf(["v3", "v4"]).required("version is required"),
+    // Protocol version at root level
+    protocol_version: yup
+      .string()
+      .oneOf(["v3", "v4"])
+      .required("protocol_version is required"),
     // Action identifier (required)
     action: yup.string().strict().required("action is required"),
     // Parameters for action creation (used if action_v4 doesn't exist)
@@ -107,13 +110,13 @@ const schema = yup
   })
   .test(
     "responses-schema",
-    "Invalid response items for version",
+    "Invalid response items for protocol version",
     function (value) {
-      const { version, responses } = value;
+      const { protocol_version, responses } = value;
       if (!responses || responses.length === 0) return true;
 
       const itemSchema =
-        version === "v3" ? v3ResponseItemSchema : v4ResponseItemSchema;
+        protocol_version === "v3" ? v3ResponseItemSchema : v4ResponseItemSchema;
 
       for (let i = 0; i < responses.length; i++) {
         try {
@@ -272,7 +275,7 @@ export async function POST(
   const appId = rpRegistration.app_id;
 
   // Version is at root level
-  const proofVersion = parsedParams.version as "v3" | "v4";
+  const proofVersion = parsedParams.protocol_version as "v3" | "v4";
 
   // Check if action already exists to determine environment for verification
   const existingActionResult = await getFetchActionV4Sdk(client).FetchActionV4({
