@@ -1,0 +1,27 @@
+query FetchAppByAppId($app_id: String!) {
+  app(
+    where: {
+      id: { _eq: $app_id }
+      status: { _eq: "active" }
+      is_archived: { _eq: false }
+    }
+  ) {
+    id
+    is_staging
+    app_metadata(where: { verification_status: { _neq: "verified" } }) {
+      name
+      integration_url
+    }
+    verified_app_metadata: app_metadata(
+      where: { verification_status: { _eq: "verified" } }
+    ) {
+      name
+      logo_img_url
+      integration_url
+    }
+    rp_registration {
+      rp_id
+      status
+    }
+  }
+}

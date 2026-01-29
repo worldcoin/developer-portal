@@ -5,6 +5,14 @@ object_relationships:
   - name: app
     using:
       foreign_key_constraint_on: app_id
+array_relationships:
+  - name: actions_v4
+    using:
+      foreign_key_constraint_on:
+        column: rp_id
+        table:
+          name: action_v4
+          schema: public
 insert_permissions:
   - role: service
     permission:
