@@ -35,7 +35,17 @@ const VerificationLevelWithFace = {
 
 // V3 response item schema
 const v3ResponseItemSchema = yup.object({
-  identifier: yup.string().required("identifier is required"),
+  // Identifier uses VerificationLevel values (legacy term for credential type: "orb", "device", "face")
+  identifier: yup
+    .string()
+    .oneOf(Object.values(VerificationLevelWithFace))
+    .required("identifier is required"),
+  signal_hash: yup
+    .string()
+    .matches(/^0x[\dabcdef]+$/, "Invalid signal_hash.")
+    .default(
+      "0x00c5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a4",
+    ),
   merkle_root: yup.string().strict().required("merkle_root is required for v3"),
   nullifier_hash: yup
     .string()
@@ -46,10 +56,6 @@ const v3ResponseItemSchema = yup.object({
     )
     .required("nullifier_hash is required for v3"),
   proof: yup.string().strict().required("proof is required for v3"),
-  verification_level: yup
-    .string()
-    .oneOf(Object.values(VerificationLevelWithFace))
-    .required("verification_level is required for v3"),
   max_age: yup
     .number()
     .integer()
@@ -65,15 +71,17 @@ const v3ResponseItemSchema = yup.object({
 // V4 response item schema
 const v4ResponseItemSchema = yup.object({
   identifier: yup.string().required("identifier is required"),
+  // V4 default signal_hash is zero (unlike v3 which uses keccak256 of empty string)
+  signal_hash: yup
+    .string()
+    .matches(/^0x[\dabcdef]+$/, "Invalid signal_hash.")
+    .default("0x0"),
   issuer_schema_id: yup
     .string()
     .required("issuer_schema_id is required for v4"),
   nullifier: yup.string().required("nullifier is required for v4"),
-  session_id: yup.string().required("session_id is required for v4"),
   nonce: yup.string().required("nonce is required for v4"),
-  authenticator_root: yup
-    .string()
-    .required("authenticator_root is required for v4"),
+  merkle_root: yup.string().required("merkle_root is required for v4"),
   proof_timestamp: yup.string().required("proof_timestamp is required for v4"),
   credential_genesis_issued_at_min: yup.string().optional(),
   compressed_proof: yup
@@ -90,13 +98,6 @@ const schema = yup
     version: yup.string().oneOf(["v3", "v4"]).required("version is required"),
     // Action identifier (required)
     action: yup.string().strict().required("action is required"),
-    // Signal hash (optional, defaults to hash of empty string)
-    signal_hash: yup
-      .string()
-      .matches(/^0x[\dabcdef]+$/, "Invalid signal_hash.")
-      .default(
-        "0x00c5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a4",
-      ),
     // Parameters for action creation (used if action_v4 doesn't exist)
     action_description: yup.string().optional().default(""),
     // Responses array - validated based on version
@@ -143,22 +144,23 @@ interface VerificationResult {
 
 // Type for parsed v3 response item
 interface V3ResponseItem {
+  // Identifier uses VerificationLevel values (legacy term for credential type)
   identifier: string;
+  signal_hash: string;
   merkle_root: string;
   nullifier_hash: string;
   proof: string;
-  verification_level: string;
   max_age?: number;
 }
 
 // Type for parsed v4 response item
 interface V4ResponseItem {
   identifier: string;
+  signal_hash: string;
   issuer_schema_id: string;
   nullifier: string;
-  session_id: string;
   nonce: string;
-  authenticator_root: string;
+  merkle_root: string;
   proof_timestamp: string;
   credential_genesis_issued_at_min?: string;
   compressed_proof: string[];
@@ -352,7 +354,7 @@ export async function POST(
         try {
           const { error, success } = await verifyProof(
             {
-              signal_hash: parsedParams.signal_hash,
+              signal_hash: item.signal_hash,
               proof: item.proof,
               merkle_root: item.merkle_root,
               nullifier_hash: item.nullifier_hash,
@@ -361,9 +363,8 @@ export async function POST(
             {
               // Use action's environment for staging determination
               is_staging: verificationEnvironment === "staging",
-              verification_level: item.verification_level as
-                | VerificationLevel
-                | "face",
+              // identifier uses VerificationLevel values (legacy term for credential type)
+              verification_level: item.identifier as VerificationLevel | "face",
               max_age: item.max_age,
             },
           );
@@ -434,10 +435,10 @@ export async function POST(
               nullifier: BigInt(item.nullifier),
               action: hashActionToUint256(parsedParams.action),
               rpId: numericRpId,
-              sessionId: BigInt(item.session_id),
+              sessionId: 0n, // Not used in current implementation
               nonce: BigInt(item.nonce),
-              signalHash: BigInt(parsedParams.signal_hash),
-              authenticatorRoot: BigInt(item.authenticator_root),
+              signalHash: BigInt(item.signal_hash),
+              authenticatorRoot: BigInt(item.merkle_root),
               proofTimestamp: BigInt(item.proof_timestamp),
               credentialIssuerId: BigInt(item.issuer_schema_id),
               credentialGenesisIssuedAtMin: BigInt(
