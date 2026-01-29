@@ -17,10 +17,7 @@ import { getSdk as getFetchAppByRpIdSdk } from "./graphql/fetch-app-by-rp-id.gen
 const schema = yup
   .object()
   .shape({
-    action: yup
-      .string()
-      .strict()
-      .required("This attribute is required."),
+    action: yup.string().strict().required("This attribute is required."),
   })
   .noUnknown();
 
@@ -95,7 +92,11 @@ export async function POST(
     id: string;
     is_staging: boolean;
     app_metadata: Array<{ name: string; integration_url: string }>;
-    verified_app_metadata: Array<{ name: string; logo_img_url: string; integration_url: string }>;
+    verified_app_metadata: Array<{
+      name: string;
+      logo_img_url: string;
+      integration_url: string;
+    }>;
   } | null = null;
 
   let rpRegistration: {
@@ -105,7 +106,9 @@ export async function POST(
 
   if (isRpId) {
     // Fetch by rp_id
-    const result = await getFetchAppByRpIdSdk(client).FetchAppByRpId({ rp_id: id });
+    const result = await getFetchAppByRpIdSdk(client).FetchAppByRpId({
+      rp_id: id,
+    });
     const registration = result.rp_registration[0];
 
     if (!registration) {
@@ -142,7 +145,9 @@ export async function POST(
     };
   } else {
     // Fetch by app_id
-    const result = await getFetchAppByAppIdSdk(client).FetchAppByAppId({ app_id: id });
+    const result = await getFetchAppByAppIdSdk(client).FetchAppByAppId({
+      app_id: id,
+    });
     const app = result.app[0];
 
     if (!app) {
@@ -207,16 +212,16 @@ export async function POST(
 
   const actionResponse = existingAction
     ? {
-      action: existingAction.action,
-      description: existingAction.description,
-      environment: existingAction.environment as "staging" | "production",
-    }
+        action: existingAction.action,
+        description: existingAction.description,
+        environment: existingAction.environment as "staging" | "production",
+      }
     : {
-      // Synthetic action - not saved to DB, will be created in /verify endpoint
-      action: action,
-      description: "",
-      environment: "production" as const,
-    };
+        // Synthetic action - not saved to DB, will be created in /verify endpoint
+        action: action,
+        description: "",
+        environment: "production" as const,
+      };
 
   const response: ProofContextResponse = {
     app_id: appData.id,

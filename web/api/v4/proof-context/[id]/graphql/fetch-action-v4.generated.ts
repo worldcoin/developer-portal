@@ -55,11 +55,10 @@ export function getSdk(
     ): Promise<FetchActionV4Query> {
       return withWrapper(
         (wrappedRequestHeaders) =>
-          client.request<FetchActionV4Query>(
-            FetchActionV4Document,
-            variables,
-            { ...requestHeaders, ...wrappedRequestHeaders },
-          ),
+          client.request<FetchActionV4Query>(FetchActionV4Document, variables, {
+            ...requestHeaders,
+            ...wrappedRequestHeaders,
+          }),
         "FetchActionV4",
         "query",
         variables,
