@@ -1,0 +1,10 @@
+query FetchActionV4($rp_id: String!, $action: String!) {
+  action_v4(where: { rp_id: { _eq: $rp_id }, action: { _eq: $action } }) {
+    id
+    rp_id
+    action
+    description
+    environment
+    created_at
+  }
+}
