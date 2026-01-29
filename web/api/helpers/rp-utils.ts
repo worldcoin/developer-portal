@@ -5,6 +5,8 @@ import "server-only";
  */
 
 import { keccak256, toUtf8Bytes } from "ethers";
+import { GraphQLClient } from "graphql-request";
+import { getSdk as getFetchRpRegistrationSdk } from "./graphql/fetch-rp-registration.generated";
 
 export type RpRegistrationStatus =
   | "pending"
@@ -68,4 +70,85 @@ export function hashActionToUint256(action: string): bigint {
   }
   const hash = keccak256(toUtf8Bytes(action));
   return BigInt(hash);
+}
+
+/**
+ * Resolved RP registration with app details.
+ */
+export interface ResolvedRpRegistration {
+  rp_id: string;
+  app_id: string;
+  status: string;
+  app: {
+    id: string;
+    is_staging: boolean;
+    status: string;
+    is_archived: boolean;
+    deleted_at?: string | null;
+    app_mode: string | null;
+  };
+}
+
+/**
+ * Result of resolving an app_id or rp_id to an RP registration.
+ */
+export type ResolveRpRegistrationResult =
+  | { success: true; registration: ResolvedRpRegistration }
+  | { success: false; error: "invalid_format" | "not_found" };
+
+/**
+ * Resolves an app_id (app_xxx) or rp_id (rp_xxx) to an RP registration.
+ * Returns the registration with normalized app data, or an error if not found.
+ */
+export async function resolveRpRegistration(
+  client: GraphQLClient,
+  routeId: string,
+): Promise<ResolveRpRegistrationResult> {
+  let registration: ResolvedRpRegistration | null = null;
+
+  if (isValidRpId(routeId)) {
+    const response = await getFetchRpRegistrationSdk(
+      client,
+    ).FetchRpRegistrationByRpId({
+      rp_id: routeId,
+    });
+    const reg = response.rp_registration[0];
+    if (reg) {
+      registration = {
+        rp_id: reg.rp_id,
+        app_id: reg.app_id,
+        status: reg.status as string,
+        app: {
+          ...reg.app,
+          app_mode: reg.app.app_metadata?.[0]?.app_mode ?? null,
+        },
+      };
+    }
+  } else if (routeId.startsWith("app_")) {
+    const response = await getFetchRpRegistrationSdk(
+      client,
+    ).FetchRpRegistration({
+      app_id: routeId,
+    });
+    const reg = response.rp_registration[0];
+    if (reg) {
+      registration = {
+        rp_id: reg.rp_id,
+        app_id: reg.app_id,
+        status: reg.status as string,
+        app: {
+          ...reg.app,
+          app_mode: reg.app.app_metadata?.[0]?.app_mode ?? null,
+        },
+      };
+    }
+  } else {
+    return { success: false, error: "invalid_format" };
+  }
+
+  if (!registration) {
+    return { success: false, error: "not_found" };
+  }
+
+  return { success: true, registration };
 }

@@ -2,8 +2,8 @@ import { errorRequiredAttribute, errorResponse } from "@/api/helpers/errors";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import {
   hashActionToUint256,
-  isValidRpId,
   parseRpId,
+  resolveRpRegistration,
 } from "@/api/helpers/rp-utils";
 import { verifyProofOnChain } from "@/api/helpers/temporal-rpc";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
@@ -17,7 +17,6 @@ import * as yup from "yup";
 import { getSdk as getCheckNullifierV4Sdk } from "./graphql/check-nullifier-v4.generated";
 import { getSdk as getCreateActionV4Sdk } from "./graphql/create-action-v4.generated";
 import { getSdk as getFetchActionV4Sdk } from "./graphql/fetch-action-v4.generated";
-import { getSdk as getFetchRpRegistrationSdk } from "./graphql/fetch-rp-registration.generated";
 import { getSdk as getInsertNullifierV4Sdk } from "./graphql/insert-nullifier-v4.generated";
 
 const VerificationLevelWithFace = {
@@ -216,75 +215,21 @@ export async function POST(
   const client = await getAPIServiceGraphqlClient();
 
   // Resolve app_id/rp_id to rp_registration
-  let rpRegistration: {
-    rp_id: string;
-    app_id: string;
-    status: string;
-    app: {
-      id: string;
-      is_staging: boolean;
-      status: string;
-      is_archived: boolean;
-      deleted_at?: string | null;
-      app_mode: string | null;
-    };
-  } | null = null;
+  const resolveResult = await resolveRpRegistration(client, routeId);
 
-  if (isValidRpId(routeId)) {
-    const response = await getFetchRpRegistrationSdk(
-      client,
-    ).FetchRpRegistrationByRpId({
-      rp_id: routeId,
-    });
-    const reg = response.rp_registration[0];
-    if (reg) {
-      const appWithMetadata = reg.app as typeof reg.app & {
-        app_metadata?: Array<{ app_mode: string }>;
-      };
-      rpRegistration = {
-        rp_id: reg.rp_id,
-        app_id: reg.app_id,
-        status: reg.status as string,
-        app: {
-          ...reg.app,
-          app_mode: appWithMetadata.app_metadata?.[0]?.app_mode ?? null,
-        },
-      };
+  if (!resolveResult.success) {
+    if (resolveResult.error === "invalid_format") {
+      return errorResponse({
+        statusCode: 400,
+        code: "invalid_request",
+        detail:
+          "Invalid ID format. Expected app_id (app_xxx) or rp_id (rp_xxx).",
+        attribute: "app_id",
+        req,
+        app_id: routeId,
+      });
     }
-  } else if (routeId.startsWith("app_")) {
-    const response = await getFetchRpRegistrationSdk(
-      client,
-    ).FetchRpRegistration({
-      app_id: routeId,
-    });
-    const reg = response.rp_registration[0];
-    if (reg) {
-      const appWithMetadata = reg.app as typeof reg.app & {
-        app_metadata?: Array<{ app_mode: string }>;
-      };
-      rpRegistration = {
-        rp_id: reg.rp_id,
-        app_id: reg.app_id,
-        status: reg.status as string,
-        app: {
-          ...reg.app,
-          app_mode: appWithMetadata.app_metadata?.[0]?.app_mode ?? null,
-        },
-      };
-    }
-  } else {
-    return errorResponse({
-      statusCode: 400,
-      code: "invalid_request",
-      detail: "Invalid ID format. Expected app_id (app_xxx) or rp_id (rp_xxx).",
-      attribute: "app_id",
-      req,
-      app_id: routeId,
-    });
-  }
-
-  // Check if the app is migrated (has rp_registration)
-  if (!rpRegistration) {
+    // error === "not_found"
     return errorResponse({
       statusCode: 400,
       code: "app_not_migrated",
@@ -295,6 +240,8 @@ export async function POST(
       app_id: routeId,
     });
   }
+
+  const rpRegistration = resolveResult.registration;
 
   // Check if RP registration is active
   if (rpRegistration.status !== "registered") {
