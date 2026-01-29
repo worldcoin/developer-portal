@@ -1,0 +1,24 @@
+query FetchAppByRpId($rp_id: String!) {
+  rp_registration(where: { rp_id: { _eq: $rp_id } }) {
+    rp_id
+    app_id
+    status
+    app {
+      id
+      is_staging
+      status
+      is_archived
+      app_metadata(where: { verification_status: { _neq: "verified" } }) {
+        name
+        integration_url
+      }
+      verified_app_metadata: app_metadata(
+        where: { verification_status: { _eq: "verified" } }
+      ) {
+        name
+        logo_img_url
+        integration_url
+      }
+    }
+  }
+}

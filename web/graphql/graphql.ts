@@ -205,6 +205,15 @@ export enum ReviewStatusEnum {
   Review = "REVIEW",
 }
 
+export type RotateSignerKeyOutput = {
+  __typename?: "RotateSignerKeyOutput";
+  new_signer_address: Scalars["String"]["output"];
+  old_signer_address: Scalars["String"]["output"];
+  operation_hash?: Maybe<Scalars["String"]["output"]>;
+  rp_id: Scalars["String"]["output"];
+  status: Scalars["String"]["output"];
+};
+
 /** Boolean expression to compare columns of type "String". All fields are combined with logical 'AND'. */
 export type String_Array_Comparison_Exp = {
   /** is the array contained in the given array value */
@@ -6453,6 +6462,8 @@ export type Mutation_Root = {
   reset_client_secret?: Maybe<ResetClientOutput>;
   /** execute VOLATILE function "rollup_app_stats" which returns "app_stats" */
   rollup_app_stats: Array<App_Stats>;
+  /** Rotate the signer key for an RP (Relying Party) */
+  rotate_signer_key?: Maybe<RotateSignerKeyOutput>;
   /** Unbans an app */
   unban_app?: Maybe<UnbanAppOutput>;
   /** update data of the table: "action" */
@@ -7327,6 +7338,12 @@ export type Mutation_RootRollup_App_StatsArgs = {
   offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<App_Stats_Order_By>>;
   where?: InputMaybe<App_Stats_Bool_Exp>;
+};
+
+/** mutation root */
+export type Mutation_RootRotate_Signer_KeyArgs = {
+  app_id: Scalars["String"]["input"];
+  new_signer_address: Scalars["String"]["input"];
 };
 
 /** mutation root */
