@@ -1,0 +1,39 @@
+query FetchRpRegistration($app_id: String!) {
+  rp_registration(where: { app_id: { _eq: $app_id } }) {
+    rp_id
+    app_id
+    mode
+    signer_address
+    status
+    app {
+      id
+      is_staging
+      status
+      is_archived
+      deleted_at
+      app_metadata {
+        app_mode
+      }
+    }
+  }
+}
+
+query FetchRpRegistrationByRpId($rp_id: String!) {
+  rp_registration(where: { rp_id: { _eq: $rp_id } }) {
+    rp_id
+    app_id
+    mode
+    signer_address
+    status
+    app {
+      id
+      is_staging
+      status
+      is_archived
+      deleted_at
+      app_metadata {
+        app_mode
+      }
+    }
+  }
+}
