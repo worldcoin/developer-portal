@@ -16,7 +16,7 @@ export const MiniappToggleSection = (props: MiniappToggleSectionProps) => {
   return (
     <div
       className={clsx(
-        "grid grid-cols-auto/1fr/auto items-center gap-x-4 rounded-lg border-[1px] border-grey-200 bg-grey-0 px-2 py-4 transition-colors hover:border-grey-700 focus-within:border-blue-500 focus-within:hover:border-blue-500",
+        "grid grid-cols-auto/1fr/auto items-center gap-x-4 rounded-lg border-[1px] border-grey-200 bg-grey-0 px-2 py-4 transition-colors focus-within:border-blue-500 hover:border-grey-700 focus-within:hover:border-blue-500",
         className,
       )}
     >

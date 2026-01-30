@@ -80,13 +80,12 @@ export const CreateAppDialogV4 = (props: DialogProps) => {
           new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
       )[0];
 
-      const redirect =
-        values.is_miniapp
-          ? urls.configuration({
+      const redirect = values.is_miniapp
+        ? urls.configuration({
             team_id: teamId,
             app_id: latestApp?.id ?? "",
           })
-          : urls.actions({
+        : urls.actions({
             team_id: teamId,
             app_id: latestApp?.id ?? "",
           });

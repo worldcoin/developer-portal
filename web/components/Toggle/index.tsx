@@ -11,12 +11,12 @@ type ToggleProps = {
 
 /**
  * Fully controlled toggle component.
- * 
+ *
  * This component is intentionally fully controlled (no internal state) to ensure
  * it always reflects the parent's state. The previous implementation used useState
  * which only initialized once, causing desync issues when the `checked` prop changed
  * after mount (e.g., form resets, external state updates).
- * 
+ *
  * All existing usages already follow the controlled pattern (passing checked + onChange),
  * so this change fixes a bug without breaking existing functionality.
  */
