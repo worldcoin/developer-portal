@@ -46,12 +46,12 @@ export const OnboardingLayout = ({
               </Button>
               <span className="text-grey-200">|</span>
               <Typography variant={TYPOGRAPHY.M4}>{title}</Typography>
-            </div >
+            </div>
             <LoggedUserNav />
-          </div >
-        </SizingWrapper >
-      </header >
+          </div>
+        </SizingWrapper>
+      </header>
       {children}
-    </div >
+    </div>
   );
 };

@@ -36,7 +36,7 @@ type CreateDialogStep =
   | "configure-signer-key"
   | "use-existing-key";
 
-const STEP_TITLES: Record<Step, string> = {
+const STEP_TITLES: Record<CreateDialogStep, string> = {
   create: "Create a new app",
   "enable-world-id-4-0": "Enable World ID 4.0",
   "configure-signer-key": "Enable World ID 4.0",
@@ -50,7 +50,7 @@ export const CreateAppDialogV4 = (props: DialogProps) => {
     teamId: teamId,
   });
 
-  const [step, setStep] = useState<Step>("create");
+  const [step, setStep] = useState<CreateDialogStep>("create");
   const [createdAppId, setCreatedAppId] = useState<string | null>(null);
   const [nextDest, setNextDest] = useState<"configuration" | "actions" | null>(
     null,
@@ -143,10 +143,13 @@ export const CreateAppDialogV4 = (props: DialogProps) => {
     props.onClose(false);
   }, [defaultValues, props, reset, setStep, setCreatedAppId, setNextDest]);
 
-  const onEnableContinue = useCallback((mode: "managed" | "self-managed") => {
-    setWorldIdMode(mode);
-    setStep("configure-signer-key");
-  }, [setStep]);
+  const onEnableContinue = useCallback(
+    (mode: "managed" | "self-managed") => {
+      setWorldIdMode(mode);
+      setStep("configure-signer-key");
+    },
+    [setStep],
+  );
 
   const onConfigureBack = useCallback(() => {
     setStep("enable-world-id-4-0");
