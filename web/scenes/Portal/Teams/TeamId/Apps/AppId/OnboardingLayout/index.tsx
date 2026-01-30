@@ -13,11 +13,14 @@ export type OnboardingLayoutProps = {
   /** Header title shown next to [X] for this onboarding flow. */
   title: string;
   children: ReactNode;
+  /** Whether to show the close button. Should be false during app creation flow. */
+  showCloseButton?: boolean;
 };
 
 export const OnboardingLayout = ({
   title,
   children,
+  showCloseButton = true,
 }: OnboardingLayoutProps) => {
   const router = useRouter();
   const { teamId, appId } = useParams() as {
@@ -41,10 +44,14 @@ export const OnboardingLayout = ({
         <SizingWrapper>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-x-3">
-              <Button type="button" onClick={onClose} className="flex">
-                <CloseIcon className="size-4" />
-              </Button>
-              <span className="text-grey-200">|</span>
+              {showCloseButton && (
+                <>
+                  <Button type="button" onClick={onClose} className="flex">
+                    <CloseIcon className="size-4" />
+                  </Button>
+                  <span className="text-grey-200">|</span>
+                </>
+              )}
               <Typography variant={TYPOGRAPHY.M4}>{title}</Typography>
             </div>
             <LoggedUserNav />
