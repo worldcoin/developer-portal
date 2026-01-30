@@ -68,6 +68,9 @@ export const CreateAppDialogV4 = ({
   const [nextDest, setNextDest] = useState<"configuration" | "actions" | null>(
     null,
   );
+  const [worldIdMode, setWorldIdMode] = useState<"managed" | "self-managed">(
+    "managed",
+  );
   const [signerKeySetup, setSignerKeySetup] =
     useState<SignerKeySetup>("generate");
 
@@ -153,7 +156,8 @@ export const CreateAppDialogV4 = ({
     props.onClose(false);
   }, [defaultValues, props, reset, initialStep, existingAppId]);
 
-  const onEnableContinue = useCallback(() => {
+  const onEnableContinue = useCallback((mode: "managed" | "self-managed") => {
+    setWorldIdMode(mode);
     setStep("configure-signer-key");
   }, [setStep]);
 
@@ -190,16 +194,28 @@ export const CreateAppDialogV4 = ({
   }, []);
 
   const onUseExistingKeyContinue = useCallback(
-    (publicKey: string) => {
-      // TODO: Save the public key to the database
-      console.log("Public key:", publicKey);
-
+    async (publicKey: string) => {
       if (!teamId || !createdAppId) {
         toast.error(
           "Failed to complete app setup. Please close this dialog and try again from your team's apps page.",
         );
         return;
       }
+
+      // Save signer key before redirecting
+      const { saveSignerKey } = await import("./server/save-signer-key");
+      const result = await saveSignerKey({
+        appId: createdAppId,
+        signerAddress: publicKey,
+        setupType: "existing",
+        mode: worldIdMode || "managed",
+      });
+
+      if (!result.success) {
+        toast.error(result.error || "Failed to save signer key");
+        return;
+      }
+
       const redirect =
         nextDest === "configuration"
           ? urls.configuration({ team_id: teamId, app_id: createdAppId })

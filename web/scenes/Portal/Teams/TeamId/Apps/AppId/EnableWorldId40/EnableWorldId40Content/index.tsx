@@ -41,7 +41,7 @@ const SELF_MANAGED_BULLETS = [
 ];
 
 export type EnableWorldId40ContentProps = {
-  onContinue: () => void;
+  onContinue: (mode: WorldId40Mode) => void;
   className?: string;
 };
 
@@ -58,9 +58,13 @@ export const EnableWorldId40Content = ({
     defaultValues,
   });
 
+  const onSubmit = (values: FormValues) => {
+    onContinue(values.world_id_4_0_mode);
+  };
+
   return (
     <form
-      onSubmit={handleSubmit(onContinue)}
+      onSubmit={handleSubmit(onSubmit)}
       className={clsx("grid w-full max-w-[580px] gap-y-6", className)}
     >
       <div className="grid gap-y-3">
