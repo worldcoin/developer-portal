@@ -22,10 +22,10 @@ export const MiniappToggleSection = (props: MiniappToggleSectionProps) => {
     >
       <div className="grid gap-y-1 pl-2">
         <Typography variant={TYPOGRAPHY.R3} className="font-semibold">
-          Miniapp
+          Mini App
         </Typography>
         <Typography variant={TYPOGRAPHY.R4} className="text-grey-500">
-          Enable App to run as Miniapp
+          Enable App to run as Mini App
         </Typography>
       </div>
       <div className="flex items-center justify-end">

@@ -39,7 +39,7 @@ export async function validateAndInsertAppServerSideV4(
     const app_mode = parsedInitialValues.is_miniapp ? "mini-app" : "external";
 
     const client = await getAPIServiceGraphqlClient();
-    await getInsertAppV2Sdk(client).InsertAppV2({
+    await getInsertAppSdk(client).InsertApp({
       team_id,
       name: parsedInitialValues.name,
       is_staging: parsedInitialValues.build === "staging",

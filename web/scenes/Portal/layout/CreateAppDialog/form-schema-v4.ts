@@ -21,15 +21,6 @@ export const createAppSchemaV4 = yup
           .required("This field is required"),
       otherwise: (schema) => schema.optional(),
     }),
-    /**
-     * Backend compatibility fields - required by backend schema but hidden from user in V2 form:
-     * - build: Deployment environment (defaults to "production")
-     * - verification: Verification method (defaults to "cloud" for managed mode)
-     * - app_mode: App type (defaults to "external", overridden by is_miniapp)
-     *
-     * These fields bridge the gap between the simplified V2 UI and the existing backend schema.
-     * Future: Can be removed when backend schema is updated to make these optional.
-     */
     build: yup.string().default("production"),
     verification: yup.string().default("cloud"),
   })
