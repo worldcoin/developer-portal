@@ -21,21 +21,20 @@ import { Controller, useForm, useWatch } from "react-hook-form";
 import { toast } from "react-toastify";
 import { FetchAppsDocument } from "../AppSelector/graphql/client/fetch-apps.generated";
 import { MiniappToggleSection } from "./MiniappToggleSection";
-import { createAppSchemaV2, CreateAppSchemaV2 } from "./form-schema-v2";
-import { validateAndInsertAppServerSideV2 } from "./server/submit-v2";
+import { createAppSchemaV4, CreateAppSchemaV4 } from "./form-schema-v4";
+import { validateAndInsertAppServerSideV4 } from "./server/v4/submit";
 
-export const CreateAppDialogV2 = (props: DialogProps) => {
+export const CreateAppDialogV4 = (props: DialogProps) => {
   const { teamId } = useParams() as { teamId: string | undefined };
   const router = useRouter();
   const { refetch: refetchApps } = useRefetchQueries(FetchAppsDocument, {
     teamId: teamId,
   });
 
-  const defaultValues: Partial<CreateAppSchemaV2> = useMemo(
+  const defaultValues: Partial<CreateAppSchemaV4> = useMemo(
     () => ({
       build: "production",
       verification: "cloud",
-      app_mode: "external",
       is_miniapp: false,
     }),
     [],
@@ -47,9 +46,9 @@ export const CreateAppDialogV2 = (props: DialogProps) => {
     handleSubmit,
     control,
     reset,
-  } = useForm<CreateAppSchemaV2>({
+  } = useForm<CreateAppSchemaV4>({
     mode: "onChange",
-    resolver: yupResolver(createAppSchemaV2),
+    resolver: yupResolver(createAppSchemaV4),
     defaultValues,
   });
 
@@ -59,11 +58,11 @@ export const CreateAppDialogV2 = (props: DialogProps) => {
   });
 
   const submit = useCallback(
-    async (values: CreateAppSchemaV2) => {
+    async (values: CreateAppSchemaV4) => {
       if (!teamId) {
         return toast.error("Failed to create app");
       }
-      const result = await validateAndInsertAppServerSideV2(values, teamId);
+      const result = await validateAndInsertAppServerSideV4(values, teamId);
       if (!result.success) {
         toast.error(result.message);
         posthog.capture("app_creation_failed", {
@@ -84,13 +83,13 @@ export const CreateAppDialogV2 = (props: DialogProps) => {
       const redirect =
         values.is_miniapp
           ? urls.configuration({
-              team_id: teamId,
-              app_id: latestApp?.id ?? "",
-            })
+            team_id: teamId,
+            app_id: latestApp?.id ?? "",
+          })
           : urls.actions({
-              team_id: teamId,
-              app_id: latestApp?.id ?? "",
-            });
+            team_id: teamId,
+            app_id: latestApp?.id ?? "",
+          });
 
       router.prefetch(redirect);
       reset(defaultValues);

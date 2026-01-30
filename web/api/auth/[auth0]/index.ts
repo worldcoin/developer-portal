@@ -25,6 +25,9 @@ export const GET = handleAuth({
       appUrl,
     ).toString();
 
+    console.log("returnTo", returnTo);
+    console.log("authReturnTo", authReturnTo);
+    console.log("redirect_uri", redirect_uri);
     return handleLogin(req, ctx, {
       returnTo: authReturnTo,
       authorizationParams: {
@@ -37,6 +40,8 @@ export const GET = handleAuth({
     const appUrl = await getAppUrlFromRequest(req);
     const redirect_uri = new URL("/api/auth/callback", appUrl).toString();
 
+    console.log("redirect_uri", redirect_uri);
+    console.log("redirectUri", redirectUri);
     return handleCallback(req, ctx, {
       authorizationParams: {
         redirect_uri: redirect_uri,

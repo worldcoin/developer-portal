@@ -1,7 +1,7 @@
 import { CategoryNameIterable } from "@/lib/categories";
 import * as yup from "yup";
 
-export const createAppSchemaV2 = yup
+export const createAppSchemaV4 = yup
   .object({
     name: yup.string().required("This field is required"),
     integration_url: yup
@@ -24,10 +24,6 @@ export const createAppSchemaV2 = yup
     // Keep these for backend compatibility but don't show in form
     build: yup.string().default("production"),
     verification: yup.string().default("cloud"),
-    app_mode: yup
-      .string()
-      .oneOf(["mini-app", "external", "native"])
-      .default("external"),
   })
   .noUnknown();
-export type CreateAppSchemaV2 = yup.InferType<typeof createAppSchemaV2>;
+export type CreateAppSchemaV4 = yup.InferType<typeof createAppSchemaV4>;

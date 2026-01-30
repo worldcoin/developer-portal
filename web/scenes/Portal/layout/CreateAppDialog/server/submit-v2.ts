@@ -4,11 +4,10 @@ import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { getIsUserAllowedToInsertApp } from "@/lib/permissions";
 import { FormActionResult } from "@/lib/types";
-import { createAppSchemaV2, CreateAppSchemaV2 } from "../form-schema-v2";
-import { getSdk as getInsertAppV2Sdk } from "../graphql/server/insert-app-v2.generated";
+import { createAppSchemaV4, CreateAppSchemaV4 } from "../../form-schema-v4";
 
-export async function validateAndInsertAppServerSideV2(
-  initialValues: CreateAppSchemaV2,
+export async function validateAndInsertAppServerSideV4(
+  initialValues: CreateAppSchemaV4,
   team_id: string,
 ): Promise<FormActionResult> {
   try {
@@ -23,23 +22,13 @@ export async function validateAndInsertAppServerSideV2(
 
     const { isValid, parsedParams: parsedInitialValues } =
       await validateRequestSchema({
-        schema: createAppSchemaV2,
+        schema: createAppSchemaV4,
         value: initialValues,
       });
 
     if (!isValid || !parsedInitialValues) {
       return errorFormAction({
         message: "The provided app data is invalid",
-        additionalInfo: { initialValues },
-        team_id,
-        logLevel: "warn",
-      });
-    }
-
-    // Additional safeguard: ensure category is provided when miniapp is enabled
-    if (parsedInitialValues.is_miniapp && !parsedInitialValues.category) {
-      return errorFormAction({
-        message: "Category is required when miniapp is enabled",
         additionalInfo: { initialValues },
         team_id,
         logLevel: "warn",
