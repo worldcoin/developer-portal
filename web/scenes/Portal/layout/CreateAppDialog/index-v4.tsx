@@ -161,10 +161,14 @@ export const CreateAppDialogV4 = (props: DialogProps) => {
           <SizingWrapper>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-x-3">
-                <Button type="button" onClick={onClose} className="flex">
-                  <CloseIcon className="size-4" />
-                </Button>
-                <span className="text-grey-200">|</span>
+                {step === "create" && (
+                  <>
+                    <Button type="button" onClick={onClose} className="flex">
+                      <CloseIcon className="size-4" />
+                    </Button>
+                    <span className="text-grey-200">|</span>
+                  </>
+                )}
                 <Typography variant={TYPOGRAPHY.M4}>
                   {STEP_TITLES[step]}
                 </Typography>
