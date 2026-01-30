@@ -10,7 +10,9 @@ import { useAtom } from "jotai";
 import { Fragment } from "react";
 
 export const NewClientPage = () => {
-  const [_, setCreateAppDialogOpen] = useAtom(createAppDialogOpenedAtom);
+  const [isDialogOpen, setCreateAppDialogOpen] = useAtom(
+    createAppDialogOpenedAtom,
+  );
 
   return (
     <Fragment>
