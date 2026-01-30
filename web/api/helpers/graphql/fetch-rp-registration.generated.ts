@@ -20,7 +20,6 @@ export type FetchRpRegistrationQuery = {
     app: {
       __typename?: "app";
       id: string;
-      is_staging: boolean;
       status: string;
       is_archived: boolean;
       deleted_at?: string | null;
@@ -45,7 +44,6 @@ export type FetchRpRegistrationByRpIdQuery = {
     app: {
       __typename?: "app";
       id: string;
-      is_staging: boolean;
       status: string;
       is_archived: boolean;
       deleted_at?: string | null;
@@ -64,7 +62,6 @@ export const FetchRpRegistrationDocument = gql`
       status
       app {
         id
-        is_staging
         status
         is_archived
         deleted_at
@@ -85,7 +82,6 @@ export const FetchRpRegistrationByRpIdDocument = gql`
       status
       app {
         id
-        is_staging
         status
         is_archived
         deleted_at

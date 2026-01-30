@@ -1,0 +1,16 @@
+query FetchAppMetadata($app_id: String!) {
+  app_by_pk(id: $app_id) {
+    id
+    app_metadata(where: { verification_status: { _neq: "verified" } }) {
+      name
+      integration_url
+    }
+    verified_app_metadata: app_metadata(
+      where: { verification_status: { _eq: "verified" } }
+    ) {
+      name
+      logo_img_url
+      integration_url
+    }
+  }
+}

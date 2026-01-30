@@ -1,0 +1,10 @@
+mutation UpdateRpStatus($rp_id: String!, $status: rp_registration_status!) {
+  update_rp_registration_by_pk(
+    pk_columns: { rp_id: $rp_id }
+    _set: { status: $status }
+  ) {
+    rp_id
+    status
+    updated_at
+  }
+}
