@@ -18,6 +18,11 @@ const formSchema = yup.object({
   public_key: yup
     .string()
     .required("Public key is required")
+    .transform((value) => {
+      // Auto-add 0x prefix if missing
+      if (!value) return value;
+      return value.startsWith("0x") ? value : `0x${value}`;
+    })
     .test("is-address", "Invalid Ethereum address", (value) =>
       value ? isAddress(value) : false,
     ),
