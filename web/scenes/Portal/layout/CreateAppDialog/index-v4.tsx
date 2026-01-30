@@ -21,8 +21,6 @@ import { Controller, useForm, useWatch } from "react-hook-form";
 import { toast } from "react-toastify";
 import { FetchAppsDocument } from "../AppSelector/graphql/client/fetch-apps.generated";
 import { MiniappToggleSection } from "./MiniappToggleSection";
-import { createAppSchemaV4, CreateAppSchemaV4 } from "./form-schema-v4";
-import { validateAndInsertAppServerSideV4 } from "./server/v4/submit";
 
 export const CreateAppDialogV4 = (props: DialogProps) => {
   const { teamId } = useParams() as { teamId: string | undefined };
