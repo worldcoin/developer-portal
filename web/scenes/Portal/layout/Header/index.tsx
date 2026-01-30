@@ -15,7 +15,7 @@ import { colorAtom } from "..";
 import { Color } from "../../Profile/types";
 import { AppSelector } from "../AppSelector";
 import { CreateAppDialog } from "../CreateAppDialog";
-import { CreateAppDialogV2 } from "../CreateAppDialog/index-v2";
+import { CreateAppDialogV4 } from "../CreateAppDialog/index-v4";
 
 export const createAppDialogOpenedAtom = atom(false);
 
@@ -104,7 +104,7 @@ export const Header = (props: { color: Color | null }) => {
       </SizingWrapper>
 
       {useNewCreateAppDialog ? (
-        <CreateAppDialogV2 open={open} onClose={setOpen} className={"mx-0"} />
+        <CreateAppDialogV4 open={open} onClose={setOpen} className={"mx-0"} />
       ) : (
         <CreateAppDialog open={open} onClose={setOpen} className={"mx-0"} />
       )}
