@@ -5,6 +5,7 @@ import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { getIsUserAllowedToInsertApp } from "@/lib/permissions";
 import { FormActionResult } from "@/lib/types";
 import { createAppSchemaV4, CreateAppSchemaV4 } from "../../form-schema-v4";
+import { getSdk as getInsertAppSdk } from "../../graphql/server/insert-app.generated";
 
 export async function validateAndInsertAppServerSideV4(
   initialValues: CreateAppSchemaV4,
