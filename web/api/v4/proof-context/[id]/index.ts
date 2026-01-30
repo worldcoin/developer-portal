@@ -96,7 +96,8 @@ export async function POST(
         errorResponse({
           statusCode: 400,
           code: "invalid_request",
-          detail: "Invalid ID format. Expected app_id (app_xxx) or rp_id (rp_xxx).",
+          detail:
+            "Invalid ID format. Expected app_id (app_xxx) or rp_id (rp_xxx).",
           attribute: "id",
           req,
         }),
@@ -184,16 +185,16 @@ export async function POST(
 
     response.action = existingAction
       ? {
-        action: existingAction.action,
-        description: existingAction.description,
-        environment: existingAction.environment as "staging" | "production",
-      }
+          action: existingAction.action,
+          description: existingAction.description,
+          environment: existingAction.environment as "staging" | "production",
+        }
       : {
-        // Synthetic action - not saved to DB, will be created in /verify endpoint
-        action: action,
-        description: "",
-        environment: "production" as const,
-      };
+          // Synthetic action - not saved to DB, will be created in /verify endpoint
+          action: action,
+          description: "",
+          environment: "production" as const,
+        };
   }
 
   return corsHandler(NextResponse.json(response, { status: 200 }), corsMethods);

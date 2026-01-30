@@ -156,7 +156,10 @@ export async function POST(
     const rpRegistration = rpRegistrationResult.rp_registration[0];
 
     // Only return synthetic action if RP is registered and active
-    if (rpRegistration && rpRegistration.status === RpRegistrationStatus.Registered) {
+    if (
+      rpRegistration &&
+      rpRegistration.status === RpRegistrationStatus.Registered
+    ) {
       const nullifierData = generateExternalNullifier(app_id, action);
       // Generate action ID similar to DB pattern: action_<32 hex chars>
       const actionIdHash = nullifierData.hash.toString(16).slice(0, 32);

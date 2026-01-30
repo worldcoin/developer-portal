@@ -58,7 +58,9 @@ export function mapOnChainToDbStatus(
   if (!initialized) {
     return RpRegistrationStatus.Pending;
   }
-  return active ? RpRegistrationStatus.Registered : RpRegistrationStatus.Deactivated;
+  return active
+    ? RpRegistrationStatus.Registered
+    : RpRegistrationStatus.Deactivated;
 }
 
 /**
