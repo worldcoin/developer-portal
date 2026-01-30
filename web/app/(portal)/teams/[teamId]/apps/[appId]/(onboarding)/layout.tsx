@@ -7,6 +7,8 @@ export default function OnboardingRouteLayout({
   children: ReactNode;
 }) {
   return (
-    <OnboardingLayout title="Enable World ID 4.0">{children}</OnboardingLayout>
+    <OnboardingLayout title="Enable World ID 4.0" showCloseButton={false}>
+      {children}
+    </OnboardingLayout>
   );
 }
