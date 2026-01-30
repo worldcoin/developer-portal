@@ -4,6 +4,7 @@ import {
   hashActionToUint256,
   parseRpId,
   resolveRpRegistration,
+  RpRegistrationStatus,
 } from "@/api/helpers/rp-utils";
 import { verifyProofOnChain } from "@/api/helpers/temporal-rpc";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
@@ -247,7 +248,7 @@ export async function POST(
   const rpRegistration = resolveResult.registration;
 
   // Check if RP registration is active
-  if (rpRegistration.status !== "registered") {
+  if (rpRegistration.status !== RpRegistrationStatus.Registered) {
     return errorResponse({
       statusCode: 400,
       code: "rp_not_active",

@@ -1,14 +1,16 @@
 import { errorResponse } from "@/api/helpers/errors";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
-import { isValidRpId } from "@/api/helpers/rp-utils";
+import {
+  resolveRpRegistration,
+  RpRegistrationStatus,
+} from "@/api/helpers/rp-utils";
 import { corsHandler } from "@/api/helpers/utils";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { getCDNImageUrl } from "@/lib/utils";
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
 import { getSdk as getFetchActionV4Sdk } from "./graphql/fetch-action-v4.generated";
-import { getSdk as getFetchAppByAppIdSdk } from "./graphql/fetch-app-by-app-id.generated";
-import { getSdk as getFetchAppByRpIdSdk } from "./graphql/fetch-app-by-rp-id.generated";
+import { getSdk as getFetchAppMetadataSdk } from "./graphql/fetch-app-metadata.generated";
 
 /**
  * Request body schema for v4 proof-context
@@ -85,90 +87,23 @@ export async function POST(
 
   const client = await getAPIServiceGraphqlClient();
 
-  // Determine if ID is rp_id or app_id format
-  const isRpId = isValidRpId(id);
+  // Resolve app_id/rp_id to rp_registration
+  const resolveResult = await resolveRpRegistration(client, id);
 
-  let appData: {
-    id: string;
-    is_staging: boolean;
-    app_metadata: Array<{ name: string; integration_url: string }>;
-    verified_app_metadata: Array<{
-      name: string;
-      logo_img_url: string;
-      integration_url: string;
-    }>;
-  } | null = null;
-
-  let rpRegistration: {
-    rp_id: string;
-    status: string;
-  } | null = null;
-
-  if (isRpId) {
-    // Fetch by rp_id
-    const result = await getFetchAppByRpIdSdk(client).FetchAppByRpId({
-      rp_id: id,
-    });
-    const registration = result.rp_registration[0];
-
-    if (!registration) {
+  if (!resolveResult.success) {
+    if (resolveResult.error === "invalid_format") {
       return corsHandler(
         errorResponse({
-          statusCode: 404,
-          code: "not_found",
-          detail: "RP not found. The RP ID may be invalid.",
-          attribute: null,
+          statusCode: 400,
+          code: "invalid_request",
+          detail: "Invalid ID format. Expected app_id (app_xxx) or rp_id (rp_xxx).",
+          attribute: "id",
           req,
         }),
         corsMethods,
       );
     }
-
-    // Check if app is active and not archived
-    if (registration.app.status !== "active" || registration.app.is_archived) {
-      return corsHandler(
-        errorResponse({
-          statusCode: 404,
-          code: "not_found",
-          detail: "App not found. App may be inactive or archived.",
-          attribute: null,
-          req,
-        }),
-        corsMethods,
-      );
-    }
-
-    appData = registration.app;
-    rpRegistration = {
-      rp_id: registration.rp_id,
-      status: registration.status,
-    };
-  } else {
-    // Fetch by app_id
-    const result = await getFetchAppByAppIdSdk(client).FetchAppByAppId({
-      app_id: id,
-    });
-    const app = result.app[0];
-
-    if (!app) {
-      return corsHandler(
-        errorResponse({
-          statusCode: 404,
-          code: "not_found",
-          detail: "App not found. App may be inactive or archived.",
-          attribute: null,
-          req,
-        }),
-        corsMethods,
-      );
-    }
-
-    appData = app;
-    rpRegistration = app.rp_registration[0] ?? null;
-  }
-
-  // Check if RP registration exists and is active
-  if (!rpRegistration || !appData) {
+    // error === "not_found"
     return corsHandler(
       errorResponse({
         statusCode: 400,
@@ -181,7 +116,10 @@ export async function POST(
     );
   }
 
-  if (rpRegistration.status !== "registered") {
+  const rpRegistration = resolveResult.registration;
+
+  // Check if RP registration is active
+  if (rpRegistration.status !== RpRegistrationStatus.Registered) {
     return corsHandler(
       errorResponse({
         statusCode: 400,
@@ -194,18 +132,38 @@ export async function POST(
     );
   }
 
-  // Get app metadata
-  const app_metadata = appData.app_metadata[0];
-  const verified_app_metadata = appData.verified_app_metadata[0];
+  // Validate app status
+  const app = rpRegistration.app;
+  if (app.status !== "active" || app.is_archived || app.deleted_at) {
+    return corsHandler(
+      errorResponse({
+        statusCode: 404,
+        code: "not_found",
+        detail: "App not found. App may be inactive or archived.",
+        attribute: null,
+        req,
+      }),
+      corsMethods,
+    );
+  }
+
+  // Fetch app metadata for display
+  const metadataResult = await getFetchAppMetadataSdk(client).FetchAppMetadata({
+    app_id: rpRegistration.app_id,
+  });
+  const appMetadata = metadataResult.app_by_pk;
+
+  const app_metadata = appMetadata?.app_metadata[0];
+  const verified_app_metadata = appMetadata?.verified_app_metadata[0];
 
   // Build logo URL
   const logo_img_url = verified_app_metadata?.logo_img_url
-    ? getCDNImageUrl(appData.id, verified_app_metadata.logo_img_url)
+    ? getCDNImageUrl(rpRegistration.app_id, verified_app_metadata.logo_img_url)
     : "";
 
   // Build response
   const response: ProofContextResponse = {
-    app_id: appData.id,
+    app_id: rpRegistration.app_id,
     rp_id: rpRegistration.rp_id,
     name: verified_app_metadata?.name ?? app_metadata?.name ?? "",
     is_verified: Boolean(verified_app_metadata),
@@ -226,16 +184,16 @@ export async function POST(
 
     response.action = existingAction
       ? {
-          action: existingAction.action,
-          description: existingAction.description,
-          environment: existingAction.environment as "staging" | "production",
-        }
+        action: existingAction.action,
+        description: existingAction.description,
+        environment: existingAction.environment as "staging" | "production",
+      }
       : {
-          // Synthetic action - not saved to DB, will be created in /verify endpoint
-          action: action,
-          description: "",
-          environment: "production" as const,
-        };
+        // Synthetic action - not saved to DB, will be created in /verify endpoint
+        action: action,
+        description: "",
+        environment: "production" as const,
+      };
   }
 
   return corsHandler(NextResponse.json(response, { status: 200 }), corsMethods);

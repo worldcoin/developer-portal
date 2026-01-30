@@ -3,7 +3,11 @@ import { errorHasuraQuery } from "@/api/helpers/errors";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { getKMSClient, scheduleKeyDeletion } from "@/api/helpers/kms";
 import { createManagerKey, signEthDigestWithKms } from "@/api/helpers/kms-eth";
-import { generateRpIdString, parseRpId } from "@/api/helpers/rp-utils";
+import {
+  generateRpIdString,
+  parseRpId,
+  RpRegistrationStatus,
+} from "@/api/helpers/rp-utils";
 import { sendUserOperation } from "@/api/helpers/temporal-rpc";
 import {
   buildRegisterRpCalldata,
@@ -322,7 +326,7 @@ export const POST = async (req: NextRequest) => {
     rp_id: rpIdString,
     manager_address: managerAddress,
     signer_address,
-    status: "pending",
+    status: RpRegistrationStatus.Pending,
     operation_hash: operationHash,
   });
 };

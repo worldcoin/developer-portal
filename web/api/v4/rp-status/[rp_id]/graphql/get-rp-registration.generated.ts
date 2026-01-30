@@ -4,27 +4,34 @@ import * as Types from "@/graphql/graphql";
 import { GraphQLClient, RequestOptions } from "graphql-request";
 import gql from "graphql-tag";
 type GraphQLClientRequestHeaders = RequestOptions["requestHeaders"];
-export type FetchActionV4QueryVariables = Types.Exact<{
+export type GetRpRegistrationQueryVariables = Types.Exact<{
   rp_id: Types.Scalars["String"]["input"];
-  action: Types.Scalars["String"]["input"];
 }>;
 
-export type FetchActionV4Query = {
+export type GetRpRegistrationQuery = {
   __typename?: "query_root";
-  action_v4: Array<{
-    __typename?: "action_v4";
-    action: string;
-    description: string;
-    environment: unknown;
-  }>;
+  rp_registration_by_pk?: {
+    __typename?: "rp_registration";
+    rp_id: string;
+    app_id: string;
+    status: unknown;
+    mode: unknown;
+    signer_address: string;
+    created_at: string;
+    updated_at: string;
+  } | null;
 };
 
-export const FetchActionV4Document = gql`
-  query FetchActionV4($rp_id: String!, $action: String!) {
-    action_v4(where: { rp_id: { _eq: $rp_id }, action: { _eq: $action } }) {
-      action
-      description
-      environment
+export const GetRpRegistrationDocument = gql`
+  query GetRpRegistration($rp_id: String!) {
+    rp_registration_by_pk(rp_id: $rp_id) {
+      rp_id
+      app_id
+      status
+      mode
+      signer_address
+      created_at
+      updated_at
     }
   }
 `;
@@ -48,17 +55,18 @@ export function getSdk(
   withWrapper: SdkFunctionWrapper = defaultWrapper,
 ) {
   return {
-    FetchActionV4(
-      variables: FetchActionV4QueryVariables,
+    GetRpRegistration(
+      variables: GetRpRegistrationQueryVariables,
       requestHeaders?: GraphQLClientRequestHeaders,
-    ): Promise<FetchActionV4Query> {
+    ): Promise<GetRpRegistrationQuery> {
       return withWrapper(
         (wrappedRequestHeaders) =>
-          client.request<FetchActionV4Query>(FetchActionV4Document, variables, {
-            ...requestHeaders,
-            ...wrappedRequestHeaders,
-          }),
-        "FetchActionV4",
+          client.request<GetRpRegistrationQuery>(
+            GetRpRegistrationDocument,
+            variables,
+            { ...requestHeaders, ...wrappedRequestHeaders },
+          ),
+        "GetRpRegistration",
         "query",
         variables,
       );

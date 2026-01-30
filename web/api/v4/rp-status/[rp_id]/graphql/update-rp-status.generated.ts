@@ -4,27 +4,30 @@ import * as Types from "@/graphql/graphql";
 import { GraphQLClient, RequestOptions } from "graphql-request";
 import gql from "graphql-tag";
 type GraphQLClientRequestHeaders = RequestOptions["requestHeaders"];
-export type FetchActionV4QueryVariables = Types.Exact<{
+export type UpdateRpStatusMutationVariables = Types.Exact<{
   rp_id: Types.Scalars["String"]["input"];
-  action: Types.Scalars["String"]["input"];
+  status: Types.Scalars["rp_registration_status"]["input"];
 }>;
 
-export type FetchActionV4Query = {
-  __typename?: "query_root";
-  action_v4: Array<{
-    __typename?: "action_v4";
-    action: string;
-    description: string;
-    environment: unknown;
-  }>;
+export type UpdateRpStatusMutation = {
+  __typename?: "mutation_root";
+  update_rp_registration_by_pk?: {
+    __typename?: "rp_registration";
+    rp_id: string;
+    status: unknown;
+    updated_at: string;
+  } | null;
 };
 
-export const FetchActionV4Document = gql`
-  query FetchActionV4($rp_id: String!, $action: String!) {
-    action_v4(where: { rp_id: { _eq: $rp_id }, action: { _eq: $action } }) {
-      action
-      description
-      environment
+export const UpdateRpStatusDocument = gql`
+  mutation UpdateRpStatus($rp_id: String!, $status: rp_registration_status!) {
+    update_rp_registration_by_pk(
+      pk_columns: { rp_id: $rp_id }
+      _set: { status: $status }
+    ) {
+      rp_id
+      status
+      updated_at
     }
   }
 `;
@@ -48,18 +51,19 @@ export function getSdk(
   withWrapper: SdkFunctionWrapper = defaultWrapper,
 ) {
   return {
-    FetchActionV4(
-      variables: FetchActionV4QueryVariables,
+    UpdateRpStatus(
+      variables: UpdateRpStatusMutationVariables,
       requestHeaders?: GraphQLClientRequestHeaders,
-    ): Promise<FetchActionV4Query> {
+    ): Promise<UpdateRpStatusMutation> {
       return withWrapper(
         (wrappedRequestHeaders) =>
-          client.request<FetchActionV4Query>(FetchActionV4Document, variables, {
-            ...requestHeaders,
-            ...wrappedRequestHeaders,
-          }),
-        "FetchActionV4",
-        "query",
+          client.request<UpdateRpStatusMutation>(
+            UpdateRpStatusDocument,
+            variables,
+            { ...requestHeaders, ...wrappedRequestHeaders },
+          ),
+        "UpdateRpStatus",
+        "mutation",
         variables,
       );
     },

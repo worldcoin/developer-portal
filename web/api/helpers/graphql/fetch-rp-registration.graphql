@@ -7,7 +7,6 @@ query FetchRpRegistration($app_id: String!) {
     status
     app {
       id
-      is_staging
       status
       is_archived
       deleted_at
@@ -27,7 +26,6 @@ query FetchRpRegistrationByRpId($rp_id: String!) {
     status
     app {
       id
-      is_staging
       status
       is_archived
       deleted_at

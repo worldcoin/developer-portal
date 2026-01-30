@@ -8,11 +8,12 @@ import { keccak256, toUtf8Bytes } from "ethers";
 import { GraphQLClient } from "graphql-request";
 import { getSdk as getFetchRpRegistrationSdk } from "./graphql/fetch-rp-registration.generated";
 
-export type RpRegistrationStatus =
-  | "pending"
-  | "registered"
-  | "failed"
-  | "deactivated";
+export enum RpRegistrationStatus {
+  Pending = "pending",
+  Registered = "registered",
+  Failed = "failed",
+  Deactivated = "deactivated",
+}
 
 /**
  * RP ID is derived as uint64(keccak256(app_id)).
@@ -55,9 +56,9 @@ export function mapOnChainToDbStatus(
   active: boolean,
 ): RpRegistrationStatus {
   if (!initialized) {
-    return "pending";
+    return RpRegistrationStatus.Pending;
   }
-  return active ? "registered" : "deactivated";
+  return active ? RpRegistrationStatus.Registered : RpRegistrationStatus.Deactivated;
 }
 
 /**
@@ -81,7 +82,6 @@ export interface ResolvedRpRegistration {
   status: string;
   app: {
     id: string;
-    is_staging: boolean;
     status: string;
     is_archived: boolean;
     deleted_at?: string | null;

@@ -4,17 +4,15 @@ import * as Types from "@/graphql/graphql";
 import { GraphQLClient, RequestOptions } from "graphql-request";
 import gql from "graphql-tag";
 type GraphQLClientRequestHeaders = RequestOptions["requestHeaders"];
-
-export type FetchAppByAppIdQueryVariables = Types.Exact<{
+export type FetchAppMetadataQueryVariables = Types.Exact<{
   app_id: Types.Scalars["String"]["input"];
 }>;
 
-export type FetchAppByAppIdQuery = {
+export type FetchAppMetadataQuery = {
   __typename?: "query_root";
-  app: Array<{
+  app_by_pk?: {
     __typename?: "app";
     id: string;
-    is_staging: boolean;
     app_metadata: Array<{
       __typename?: "app_metadata";
       name: string;
@@ -26,25 +24,13 @@ export type FetchAppByAppIdQuery = {
       logo_img_url: string;
       integration_url: string;
     }>;
-    rp_registration: Array<{
-      __typename?: "rp_registration";
-      rp_id: string;
-      status: string;
-    }>;
-  }>;
+  } | null;
 };
 
-export const FetchAppByAppIdDocument = gql`
-  query FetchAppByAppId($app_id: String!) {
-    app(
-      where: {
-        id: { _eq: $app_id }
-        status: { _eq: "active" }
-        is_archived: { _eq: false }
-      }
-    ) {
+export const FetchAppMetadataDocument = gql`
+  query FetchAppMetadata($app_id: String!) {
+    app_by_pk(id: $app_id) {
       id
-      is_staging
       app_metadata(where: { verification_status: { _neq: "verified" } }) {
         name
         integration_url
@@ -55,10 +41,6 @@ export const FetchAppByAppIdDocument = gql`
         name
         logo_img_url
         integration_url
-      }
-      rp_registration {
-        rp_id
-        status
       }
     }
   }
@@ -83,18 +65,18 @@ export function getSdk(
   withWrapper: SdkFunctionWrapper = defaultWrapper,
 ) {
   return {
-    FetchAppByAppId(
-      variables: FetchAppByAppIdQueryVariables,
+    FetchAppMetadata(
+      variables: FetchAppMetadataQueryVariables,
       requestHeaders?: GraphQLClientRequestHeaders,
-    ): Promise<FetchAppByAppIdQuery> {
+    ): Promise<FetchAppMetadataQuery> {
       return withWrapper(
         (wrappedRequestHeaders) =>
-          client.request<FetchAppByAppIdQuery>(
-            FetchAppByAppIdDocument,
+          client.request<FetchAppMetadataQuery>(
+            FetchAppMetadataDocument,
             variables,
             { ...requestHeaders, ...wrappedRequestHeaders },
           ),
-        "FetchAppByAppId",
+        "FetchAppMetadata",
         "query",
         variables,
       );
