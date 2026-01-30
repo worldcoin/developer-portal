@@ -10,12 +10,11 @@ import {
   WORLD_CHAIN_ID,
 } from "@/api/helpers/rp-utils";
 import {
-  getRpDomainSeparator,
   getRpNonceFromContract,
-  getUpdateRpTypehash,
   sendUserOperation,
 } from "@/api/helpers/temporal-rpc";
 import {
+  ADDRESS_ZERO,
   buildUpdateRpSignerCalldata,
   buildUserOperation,
   encodeSafeUserOpCalldata,
@@ -211,27 +210,26 @@ export const POST = async (req: NextRequest) => {
   };
 
   try {
-    // STEP 5: Fetch contract state for EIP-712 signing
-    const [contractNonce, domainSeparator, updateRpTypehash] =
-      await Promise.all([
-        getRpNonceFromContract(rpId, config.contractAddress),
-        getRpDomainSeparator(config.contractAddress),
-        getUpdateRpTypehash(config.contractAddress),
-      ]);
+    // STEP 5: Fetch contract nonce (the only value that changes per-RP)
+    const contractNonce = await getRpNonceFromContract(
+      rpId,
+      config.contractAddress,
+    );
 
     // STEP 6: Build EIP-712 typed data hash for manager signature
+    // domainSeparator and updateRpTypehash are fixed constants from config
     const updateRpHash = hashUpdateRpTypedData(
       {
         rpId,
         oprfKeyId: 0n, // No change
-        manager: "0x0000000000000000000000000000000000000000", // No change
+        manager: ADDRESS_ZERO, // No change
         signer: new_signer_address,
         toggleActive: false, // No change
         unverifiedWellKnownDomain: RP_NO_UPDATE_DOMAIN,
         nonce: contractNonce,
       },
-      domainSeparator,
-      updateRpTypehash,
+      config.domainSeparator,
+      config.updateRpTypehash,
     );
 
     // STEP 7: Sign with manager KMS key

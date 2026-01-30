@@ -175,6 +175,12 @@ async function signEthDigestWithKms(
 }
 
 // ============================================================================
+// Constants
+// ============================================================================
+
+const ADDRESS_ZERO = "0x0000000000000000000000000000000000000000";
+
+// ============================================================================
 // Gas Configuration (for Alchemy bundler - requires non-zero values)
 // ============================================================================
 
@@ -360,7 +366,7 @@ async function main(): Promise<void> {
   const updateRpParams = {
     rpId,
     oprfKeyId: 0n, // No change
-    manager: "0x0000000000000000000000000000000000000000", // No change
+    manager: ADDRESS_ZERO, // No change
     signer: newSignerAddress,
     toggleActive: false, // No change
     unverifiedWellKnownDomain: RP_NO_UPDATE_DOMAIN,

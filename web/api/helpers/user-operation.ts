@@ -77,7 +77,7 @@ export enum DevPortalAction {
 // =============================================================================
 
 /** Zero address constant. */
-const ADDRESS_ZERO = "0x0000000000000000000000000000000000000000";
+export const ADDRESS_ZERO = "0x0000000000000000000000000000000000000000";
 
 /** Placeholder signature used during UserOp construction. */
 const PLACEHOLDER_SIGNATURE =

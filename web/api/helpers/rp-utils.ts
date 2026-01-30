@@ -110,6 +110,10 @@ export interface RpRegistryConfig {
   entryPointAddress: string;
   safe4337ModuleAddress: string;
   kmsRegion: string;
+  /** EIP-712 domain separator (fixed once contract is deployed) */
+  domainSeparator: string;
+  /** UPDATE_RP_TYPEHASH constant from contract */
+  updateRpTypehash: string;
 }
 
 /**
@@ -124,6 +128,8 @@ export function getRpRegistryConfig(): RpRegistryConfig | null {
     entryPointAddress: process.env.RP_REGISTRY_ENTRYPOINT_ADDRESS,
     safe4337ModuleAddress: process.env.RP_REGISTRY_SAFE_4337_MODULE_ADDRESS,
     kmsRegion: process.env.RP_REGISTRY_KMS_REGION,
+    domainSeparator: process.env.RP_REGISTRY_DOMAIN_SEPARATOR,
+    updateRpTypehash: process.env.RP_REGISTRY_UPDATE_RP_TYPEHASH,
   };
 
   if (Object.values(config).some((v) => !v)) {
