@@ -16,7 +16,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import clsx from "clsx";
 import { useParams, useRouter } from "next/navigation";
 import posthog from "posthog-js";
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { toast } from "react-toastify";
 import { ConfigureSignerKeyContent } from "../../Teams/TeamId/Apps/AppId/ConfigureSignerKey/ConfigureSignerKeyContent";
@@ -26,12 +26,26 @@ import { MiniappToggleSection } from "./MiniappToggleSection";
 import { createAppSchemaV4, CreateAppSchemaV4 } from "./form-schema-v4";
 import { validateAndInsertAppServerSideV4 } from "./server/v4/submit";
 
+type Step = "create" | "enable-world-id-4-0" | "configure-signer-key";
+
+const STEP_TITLES: Record<Step, string> = {
+  create: "Create a new app",
+  "enable-world-id-4-0": "Enable World ID 4.0",
+  "configure-signer-key": "Configure Signer Key",
+};
+
 export const CreateAppDialogV4 = (props: DialogProps) => {
   const { teamId } = useParams() as { teamId: string | undefined };
   const router = useRouter();
   const { refetch: refetchApps } = useRefetchQueries(FetchAppsDocument, {
     teamId: teamId,
   });
+
+  const [step, setStep] = useState<Step>("create");
+  const [createdAppId, setCreatedAppId] = useState<string | null>(null);
+  const [nextDest, setNextDest] = useState<"configuration" | "actions" | null>(
+    null,
+  );
 
   const defaultValues: Partial<CreateAppSchemaV4> = useMemo(
     () => ({
@@ -96,7 +110,15 @@ export const CreateAppDialogV4 = (props: DialogProps) => {
       setStep("enable-world-id-4-0");
       reset(defaultValues);
     },
-    [defaultValues, refetchApps, reset, teamId],
+    [
+      defaultValues,
+      refetchApps,
+      reset,
+      teamId,
+      setCreatedAppId,
+      setNextDest,
+      setStep,
+    ],
   );
 
   const onClose = useCallback(() => {
@@ -105,15 +127,15 @@ export const CreateAppDialogV4 = (props: DialogProps) => {
     setCreatedAppId(null);
     setNextDest(null);
     props.onClose(false);
-  }, [defaultValues, props, reset]);
+  }, [defaultValues, props, reset, setStep, setCreatedAppId, setNextDest]);
 
   const onEnableContinue = useCallback(() => {
     setStep("configure-signer-key");
-  }, []);
+  }, [setStep]);
 
   const onConfigureBack = useCallback(() => {
     setStep("enable-world-id-4-0");
-  }, []);
+  }, [setStep]);
 
   const onConfigureContinue = useCallback(() => {
     if (!teamId || !createdAppId) {
@@ -158,7 +180,7 @@ export const CreateAppDialogV4 = (props: DialogProps) => {
           >
             {step === "create" && (
               <form
-                onSubmit={handleSubmit(submitCreate)}
+                onSubmit={handleSubmit(submit)}
                 className="grid w-full max-w-[580px] gap-y-6 justify-self-center py-10"
               >
                 <Typography variant={TYPOGRAPHY.H6}>Setup your app</Typography>
