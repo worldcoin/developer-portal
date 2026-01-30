@@ -138,6 +138,16 @@ actions:
     permissions:
       - role: user
     comment: Register an RP (Relying Party) for an app with managed mode
+  - name: rotate_signer_key
+    definition:
+      kind: synchronous
+      handler: '{{NEXT_API_URL}}/hasura/rotate-signer-key'
+      headers:
+        - name: Authorization
+          value_from_env: INTERNAL_ENDPOINTS_SECRET
+    permissions:
+      - role: user
+    comment: Rotate the signer key for an RP (Relying Party)
   - name: reset_api_key
     definition:
       kind: synchronous
@@ -374,4 +384,5 @@ custom_types:
     - name: SetAppReportAppealOutput
     - name: ChangeAppReportStatusOutput
     - name: RegisterRpOutput
+    - name: RotateSignerKeyOutput
   scalars: []

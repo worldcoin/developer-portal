@@ -8,12 +8,20 @@ import { keccak256, toUtf8Bytes } from "ethers";
 import { GraphQLClient } from "graphql-request";
 import { getSdk as getFetchRpRegistrationSdk } from "./graphql/fetch-rp-registration.generated";
 
+// =============================================================================
+// Types
+// =============================================================================
+
 export enum RpRegistrationStatus {
   Pending = "pending",
   Registered = "registered",
   Failed = "failed",
   Deactivated = "deactivated",
 }
+
+// =============================================================================
+// RP ID Utilities
+// =============================================================================
 
 /**
  * RP ID is derived as uint64(keccak256(app_id)).
@@ -74,6 +82,66 @@ export function hashActionToUint256(action: string): bigint {
   const hash = keccak256(toUtf8Bytes(action));
   return BigInt(hash);
 }
+
+// =============================================================================
+// Address Utilities
+// =============================================================================
+
+/** Normalizes an Ethereum address by adding 0x prefix if missing. */
+export function normalizeAddress(address: string): string {
+  if (address.startsWith("0x")) {
+    return address;
+  }
+  return `0x${address}`;
+}
+
+// =============================================================================
+// Configuration
+// =============================================================================
+
+/** World Chain ID for RP Registry operations. */
+export const WORLD_CHAIN_ID = 480;
+
+/** Required environment variables for RP Registry operations. */
+export interface RpRegistryConfig {
+  safeOwnerKmsKeyId: string;
+  contractAddress: string;
+  safeAddress: string;
+  entryPointAddress: string;
+  safe4337ModuleAddress: string;
+  kmsRegion: string;
+  /** EIP-712 domain separator (fixed once contract is deployed) */
+  domainSeparator: string;
+  /** UPDATE_RP_TYPEHASH constant from contract */
+  updateRpTypehash: string;
+}
+
+/**
+ * Validates and returns RP Registry configuration from environment variables.
+ * Returns null if any required variable is missing.
+ */
+export function getRpRegistryConfig(): RpRegistryConfig | null {
+  const config = {
+    safeOwnerKmsKeyId: process.env.RP_REGISTRY_SAFE_OWNER_KMS_KEY_ID,
+    contractAddress: process.env.RP_REGISTRY_CONTRACT_ADDRESS,
+    safeAddress: process.env.RP_REGISTRY_SAFE_ADDRESS,
+    entryPointAddress: process.env.RP_REGISTRY_ENTRYPOINT_ADDRESS,
+    safe4337ModuleAddress: process.env.RP_REGISTRY_SAFE_4337_MODULE_ADDRESS,
+    kmsRegion: process.env.RP_REGISTRY_KMS_REGION,
+    domainSeparator: process.env.RP_REGISTRY_DOMAIN_SEPARATOR,
+    updateRpTypehash: process.env.RP_REGISTRY_UPDATE_RP_TYPEHASH,
+  };
+
+  if (Object.values(config).some((v) => !v)) {
+    return null;
+  }
+
+  return config as RpRegistryConfig;
+}
+
+// =============================================================================
+// RP Registration Resolution
+// =============================================================================
 
 /**
  * Resolved RP registration with app details.

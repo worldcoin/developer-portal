@@ -5,8 +5,11 @@ import { getKMSClient, scheduleKeyDeletion } from "@/api/helpers/kms";
 import { createManagerKey, signEthDigestWithKms } from "@/api/helpers/kms-eth";
 import {
   generateRpIdString,
+  getRpRegistryConfig,
+  normalizeAddress,
   parseRpId,
   RpRegistrationStatus,
+  WORLD_CHAIN_ID,
 } from "@/api/helpers/rp-utils";
 import { sendUserOperation } from "@/api/helpers/temporal-rpc";
 import {
@@ -30,16 +33,6 @@ import { getSdk as getAppInfoSdk } from "./graphql/get-app-info.generated";
 import { getSdk as getUpdateRpSdk } from "./graphql/update-rp-registration.generated";
 
 /**
- * Normalizes an Ethereum address by adding 0x prefix if missing.
- */
-function normalizeAddress(address: string): string {
-  if (address.startsWith("0x")) {
-    return address;
-  }
-  return `0x${address}`;
-}
-
-/**
  * Input schema for the register_rp action.
  */
 const schema = yup
@@ -55,11 +48,6 @@ const schema = yup
       ),
   })
   .noUnknown();
-
-/**
- * World Chain ID for UserOp hashing.
- */
-const WORLD_CHAIN_ID = 480n;
 
 /**
  * POST handler for the register_rp Hasura action.
@@ -111,14 +99,8 @@ export const POST = async (req: NextRequest) => {
 
   const { app_id, signer_address } = parsedParams;
 
-  if (
-    !process.env.RP_REGISTRY_SAFE_OWNER_KMS_KEY_ID ||
-    !process.env.RP_REGISTRY_CONTRACT_ADDRESS ||
-    !process.env.RP_REGISTRY_SAFE_ADDRESS ||
-    !process.env.RP_REGISTRY_ENTRYPOINT_ADDRESS ||
-    !process.env.RP_REGISTRY_SAFE_4337_MODULE_ADDRESS ||
-    !process.env.RP_REGISTRY_KMS_REGION
-  ) {
+  const config = getRpRegistryConfig();
+  if (!config) {
     return errorHasuraQuery({
       req,
       detail: "Missing required environment variables for RP Registry.",
@@ -199,7 +181,7 @@ export const POST = async (req: NextRequest) => {
   const rpId = parseRpId(rpIdString);
 
   // STEP 2: Create KMS manager key
-  const kmsClient = await getKMSClient(process.env.RP_REGISTRY_KMS_REGION);
+  const kmsClient = await getKMSClient(config.kmsRegion);
   const managerKeyResult = await createManagerKey(kmsClient, rpIdString);
 
   if (!managerKeyResult) {
@@ -227,7 +209,7 @@ export const POST = async (req: NextRequest) => {
 
   // Wrap in Safe's executeUserOp
   const safeCalldata = encodeSafeUserOpCalldata(
-    process.env.RP_REGISTRY_CONTRACT_ADDRESS!,
+    config.contractAddress,
     0n,
     innerCalldata,
   );
@@ -236,7 +218,7 @@ export const POST = async (req: NextRequest) => {
   const { validAfter, validUntil } = getTxExpiration();
 
   const userOp = buildUserOperation(
-    process.env.RP_REGISTRY_SAFE_ADDRESS!,
+    config.safeAddress,
     safeCalldata,
     nonce,
     validAfter,
@@ -246,14 +228,14 @@ export const POST = async (req: NextRequest) => {
   // Compute Safe Operation hash (EIP-712 typed data) - this is what the Safe owner signs
   const safeOpHash = hashSafeUserOp(
     userOp,
-    Number(WORLD_CHAIN_ID),
-    process.env.RP_REGISTRY_SAFE_4337_MODULE_ADDRESS!,
-    process.env.RP_REGISTRY_ENTRYPOINT_ADDRESS!,
+    WORLD_CHAIN_ID,
+    config.safe4337ModuleAddress,
+    config.entryPointAddress,
   );
 
   const signature = await signEthDigestWithKms(
     kmsClient,
-    process.env.RP_REGISTRY_SAFE_OWNER_KMS_KEY_ID!,
+    config.safeOwnerKmsKeyId,
     getBytes(safeOpHash),
   );
 
@@ -277,10 +259,7 @@ export const POST = async (req: NextRequest) => {
   // STEP 4: Submit to temporal bundler
   let operationHash: string;
   try {
-    const result = await sendUserOperation(
-      userOp,
-      process.env.RP_REGISTRY_ENTRYPOINT_ADDRESS!,
-    );
+    const result = await sendUserOperation(userOp, config.entryPointAddress);
     operationHash = result.operationHash;
   } catch (error) {
     logger.error("Failed to submit registration transaction", {

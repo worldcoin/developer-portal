@@ -1,0 +1,10 @@
+mutation RevertRotationStatus($rp_id: String!) {
+  update_rp_registration_by_pk(
+    pk_columns: { rp_id: $rp_id }
+    _set: { status: registered }
+  ) {
+    rp_id
+    app_id
+    status
+  }
+}
