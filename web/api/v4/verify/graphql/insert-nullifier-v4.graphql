@@ -1,0 +1,10 @@
+mutation InsertNullifierV4($action_v4_id: String!, $nullifier: String!) {
+  insert_nullifier_v4_one(
+    object: { action_v4_id: $action_v4_id, nullifier: $nullifier }
+  ) {
+    id
+    nullifier
+    action_v4_id
+    created_at
+  }
+}

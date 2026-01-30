@@ -41,7 +41,7 @@ export const JoinPage = async (props: {
             variant={TYPOGRAPHY.R3}
             className="text-center text-grey-500"
           >
-            To join this team you need to create an account on World&apos;
+            To join this team you need to create an account on World&apos;s
             Developer Portal
           </Typography>
         </div>

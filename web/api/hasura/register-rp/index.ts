@@ -8,6 +8,7 @@ import {
   getRpRegistryConfig,
   normalizeAddress,
   parseRpId,
+  RpRegistrationStatus,
   WORLD_CHAIN_ID,
 } from "@/api/helpers/rp-utils";
 import { sendUserOperation } from "@/api/helpers/temporal-rpc";
@@ -304,7 +305,7 @@ export const POST = async (req: NextRequest) => {
     rp_id: rpIdString,
     manager_address: managerAddress,
     signer_address,
-    status: "pending",
+    status: RpRegistrationStatus.Pending,
     operation_hash: operationHash,
   });
 };

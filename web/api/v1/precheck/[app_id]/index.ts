@@ -1,5 +1,6 @@
 import { errorResponse } from "@/api/helpers/errors";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
+import { RpRegistrationStatus } from "@/api/helpers/rp-utils";
 import { corsHandler } from "@/api/helpers/utils";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { canVerifyForAction } from "@/api/helpers/verify";
@@ -155,7 +156,10 @@ export async function POST(
     const rpRegistration = rpRegistrationResult.rp_registration[0];
 
     // Only return synthetic action if RP is registered and active
-    if (rpRegistration && rpRegistration.status === "registered") {
+    if (
+      rpRegistration &&
+      rpRegistration.status === RpRegistrationStatus.Registered
+    ) {
       const nullifierData = generateExternalNullifier(app_id, action);
       // Generate action ID similar to DB pattern: action_<32 hex chars>
       const actionIdHash = nullifierData.hash.toString(16).slice(0, 32);

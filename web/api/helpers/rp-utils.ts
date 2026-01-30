@@ -5,15 +5,23 @@ import "server-only";
  */
 
 import { keccak256, toUtf8Bytes } from "ethers";
+import { GraphQLClient } from "graphql-request";
+import { getSdk as getFetchRpRegistrationSdk } from "./graphql/fetch-rp-registration.generated";
 
-/** World Chain ID for RP Registry operations. */
-export const WORLD_CHAIN_ID = 480;
+// =============================================================================
+// Types
+// =============================================================================
 
-export type RpRegistrationStatus =
-  | "pending"
-  | "registered"
-  | "failed"
-  | "deactivated";
+export enum RpRegistrationStatus {
+  Pending = "pending",
+  Registered = "registered",
+  Failed = "failed",
+  Deactivated = "deactivated",
+}
+
+// =============================================================================
+// RP ID Utilities
+// =============================================================================
 
 /**
  * RP ID is derived as uint64(keccak256(app_id)).
@@ -56,9 +64,11 @@ export function mapOnChainToDbStatus(
   active: boolean,
 ): RpRegistrationStatus {
   if (!initialized) {
-    return "pending";
+    return RpRegistrationStatus.Pending;
   }
-  return active ? "registered" : "deactivated";
+  return active
+    ? RpRegistrationStatus.Registered
+    : RpRegistrationStatus.Deactivated;
 }
 
 /**
@@ -73,6 +83,10 @@ export function hashActionToUint256(action: string): bigint {
   return BigInt(hash);
 }
 
+// =============================================================================
+// Address Utilities
+// =============================================================================
+
 /** Normalizes an Ethereum address by adding 0x prefix if missing. */
 export function normalizeAddress(address: string): string {
   if (address.startsWith("0x")) {
@@ -80,6 +94,13 @@ export function normalizeAddress(address: string): string {
   }
   return `0x${address}`;
 }
+
+// =============================================================================
+// Configuration
+// =============================================================================
+
+/** World Chain ID for RP Registry operations. */
+export const WORLD_CHAIN_ID = 480;
 
 /** Required environment variables for RP Registry operations. */
 export interface RpRegistryConfig {
@@ -110,4 +131,88 @@ export function getRpRegistryConfig(): RpRegistryConfig | null {
   }
 
   return config as RpRegistryConfig;
+}
+
+// =============================================================================
+// RP Registration Resolution
+// =============================================================================
+
+/**
+ * Resolved RP registration with app details.
+ */
+export interface ResolvedRpRegistration {
+  rp_id: string;
+  app_id: string;
+  status: string;
+  app: {
+    id: string;
+    status: string;
+    is_archived: boolean;
+    deleted_at?: string | null;
+    app_mode: string | null;
+  };
+}
+
+/**
+ * Result of resolving an app_id or rp_id to an RP registration.
+ */
+export type ResolveRpRegistrationResult =
+  | { success: true; registration: ResolvedRpRegistration }
+  | { success: false; error: "invalid_format" | "not_found" };
+
+/**
+ * Resolves an app_id (app_xxx) or rp_id (rp_xxx) to an RP registration.
+ * Returns the registration with normalized app data, or an error if not found.
+ */
+export async function resolveRpRegistration(
+  client: GraphQLClient,
+  routeId: string,
+): Promise<ResolveRpRegistrationResult> {
+  let registration: ResolvedRpRegistration | null = null;
+
+  if (isValidRpId(routeId)) {
+    const response = await getFetchRpRegistrationSdk(
+      client,
+    ).FetchRpRegistrationByRpId({
+      rp_id: routeId,
+    });
+    const reg = response.rp_registration[0];
+    if (reg) {
+      registration = {
+        rp_id: reg.rp_id,
+        app_id: reg.app_id,
+        status: reg.status as string,
+        app: {
+          ...reg.app,
+          app_mode: reg.app.app_metadata?.[0]?.app_mode ?? null,
+        },
+      };
+    }
+  } else if (routeId.startsWith("app_")) {
+    const response = await getFetchRpRegistrationSdk(
+      client,
+    ).FetchRpRegistration({
+      app_id: routeId,
+    });
+    const reg = response.rp_registration[0];
+    if (reg) {
+      registration = {
+        rp_id: reg.rp_id,
+        app_id: reg.app_id,
+        status: reg.status as string,
+        app: {
+          ...reg.app,
+          app_mode: reg.app.app_metadata?.[0]?.app_mode ?? null,
+        },
+      };
+    }
+  } else {
+    return { success: false, error: "invalid_format" };
+  }
+
+  if (!registration) {
+    return { success: false, error: "not_found" };
+  }
+
+  return { success: true, registration };
 }
