@@ -16,13 +16,23 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import clsx from "clsx";
 import { useParams, useRouter } from "next/navigation";
 import posthog from "posthog-js";
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { toast } from "react-toastify";
+import { ConfigureSignerKeyContent } from "../../Teams/TeamId/Apps/AppId/ConfigureSignerKey/ConfigureSignerKeyContent";
+import { EnableWorldId40Content } from "../../Teams/TeamId/Apps/AppId/EnableWorldId40/EnableWorldId40Content";
 import { FetchAppsDocument } from "../AppSelector/graphql/client/fetch-apps.generated";
 import { MiniappToggleSection } from "./MiniappToggleSection";
 import { createAppSchemaV4, CreateAppSchemaV4 } from "./form-schema-v4";
 import { validateAndInsertAppServerSideV4 } from "./server/v4/submit";
+
+type Step = "create" | "enable-world-id-4-0" | "configure-signer-key";
+
+const STEP_TITLES: Record<Step, string> = {
+  create: "Create a new app",
+  "enable-world-id-4-0": "Enable World ID 4.0",
+  "configure-signer-key": "Configure Signer Key",
+};
 
 export const CreateAppDialogV4 = (props: DialogProps) => {
   const { teamId } = useParams() as { teamId: string | undefined };
@@ -30,6 +40,12 @@ export const CreateAppDialogV4 = (props: DialogProps) => {
   const { refetch: refetchApps } = useRefetchQueries(FetchAppsDocument, {
     teamId: teamId,
   });
+
+  const [step, setStep] = useState<Step>("create");
+  const [createdAppId, setCreatedAppId] = useState<string | null>(null);
+  const [nextDest, setNextDest] = useState<"configuration" | "actions" | null>(
+    null,
+  );
 
   const defaultValues: Partial<CreateAppSchemaV4> = useMemo(
     () => ({
@@ -80,18 +96,7 @@ export const CreateAppDialogV4 = (props: DialogProps) => {
           new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
       )[0];
 
-      const redirect = values.is_miniapp
-        ? urls.configuration({
-            team_id: teamId,
-            app_id: latestApp?.id ?? "",
-          })
-        : urls.actions({
-            team_id: teamId,
-            app_id: latestApp?.id ?? "",
-          });
-
-      router.prefetch(redirect);
-      reset(defaultValues);
+      const next = values.is_miniapp ? "configuration" : "actions";
 
       posthog.capture("app_creation_successful", {
         team_id: teamId,
@@ -100,16 +105,52 @@ export const CreateAppDialogV4 = (props: DialogProps) => {
         engine: values.verification,
       });
 
-      router.push(redirect);
-      props.onClose(false);
+      setCreatedAppId(latestApp?.id ?? null);
+      setNextDest(next);
+      setStep("enable-world-id-4-0");
+      reset(defaultValues);
     },
-    [defaultValues, props, refetchApps, reset, router, teamId],
+    [
+      defaultValues,
+      refetchApps,
+      reset,
+      teamId,
+      setCreatedAppId,
+      setNextDest,
+      setStep,
+    ],
   );
 
   const onClose = useCallback(() => {
     reset(defaultValues);
+    setStep("create");
+    setCreatedAppId(null);
+    setNextDest(null);
     props.onClose(false);
-  }, [defaultValues, props, reset]);
+  }, [defaultValues, props, reset, setStep, setCreatedAppId, setNextDest]);
+
+  const onEnableContinue = useCallback(() => {
+    setStep("configure-signer-key");
+  }, [setStep]);
+
+  const onConfigureBack = useCallback(() => {
+    setStep("enable-world-id-4-0");
+  }, [setStep]);
+
+  const onConfigureContinue = useCallback(() => {
+    if (!teamId || !createdAppId) {
+      toast.error(
+        "Failed to complete app setup. Please close this dialog and try again from your team's apps page.",
+      );
+      return;
+    }
+    const redirect =
+      nextDest === "configuration"
+        ? urls.configuration({ team_id: teamId, app_id: createdAppId })
+        : urls.actions({ team_id: teamId, app_id: createdAppId });
+    router.push(redirect);
+    onClose();
+  }, [teamId, createdAppId, nextDest, router, onClose]);
 
   return (
     <Dialog open={props.open} onClose={onClose} className="z-50 ">
@@ -120,12 +161,16 @@ export const CreateAppDialogV4 = (props: DialogProps) => {
           <SizingWrapper>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-x-3">
-                <Button type="button" onClick={onClose} className="flex">
-                  <CloseIcon className="size-4" />
-                </Button>
-                <span className="text-grey-200">|</span>
+                {step === "create" && (
+                  <>
+                    <Button type="button" onClick={onClose} className="flex">
+                      <CloseIcon className="size-4" />
+                    </Button>
+                    <span className="text-grey-200">|</span>
+                  </>
+                )}
                 <Typography variant={TYPOGRAPHY.M4}>
-                  Create a new app
+                  {STEP_TITLES[step]}
                 </Typography>
               </div>
               <LoggedUserNav />
@@ -137,68 +182,83 @@ export const CreateAppDialogV4 = (props: DialogProps) => {
             gridClassName="overflow-y-auto"
             className="flex items-start justify-center"
           >
-            <form
-              onSubmit={handleSubmit(submit)}
-              className="grid w-full max-w-[580px] gap-y-6 justify-self-center py-10"
-            >
-              <Typography variant={TYPOGRAPHY.H6}>Setup your app</Typography>
+            {step === "create" && (
+              <form
+                onSubmit={handleSubmit(submit)}
+                className="grid w-full max-w-[580px] gap-y-6 justify-self-center py-10"
+              >
+                <Typography variant={TYPOGRAPHY.H6}>Setup your app</Typography>
 
-              <div className="grid gap-y-8">
-                <Input
-                  register={register("name")}
-                  label="App name"
-                  placeholder="Display name (ex. Voting app)"
-                  required
-                  errors={errors.name}
-                  data-testid="input-app-name"
-                />
-                <Input
-                  register={register("integration_url")}
-                  label="App URL"
-                  placeholder="URL where users can access your app (ex. https://example.com)"
-                  errors={errors.integration_url}
-                />
-                <Controller
-                  name="is_miniapp"
-                  control={control}
-                  render={({ field }) => (
-                    <MiniappToggleSection
-                      checked={field.value}
-                      onChange={field.onChange}
+                <div className="grid gap-y-8">
+                  <Input
+                    register={register("name")}
+                    label="App name"
+                    placeholder="Display name (ex. Voting app)"
+                    required
+                    errors={errors.name}
+                    data-testid="input-app-name"
+                  />
+                  <Input
+                    register={register("integration_url")}
+                    label="App URL"
+                    placeholder="URL where users can access your app (ex. https://example.com)"
+                    errors={errors.integration_url}
+                  />
+                  <Controller
+                    name="is_miniapp"
+                    control={control}
+                    render={({ field }) => (
+                      <MiniappToggleSection
+                        checked={field.value}
+                        onChange={field.onChange}
+                      />
+                    )}
+                  />
+                  {isMiniapp && (
+                    <Controller
+                      name="category"
+                      control={control}
+                      render={({ field }) => {
+                        return (
+                          <CategorySelector
+                            value={field.value}
+                            required
+                            disabled={false}
+                            onChange={field.onChange}
+                            errors={errors.category}
+                            label="Category"
+                            data-testid="category-selector"
+                          />
+                        );
+                      }}
                     />
                   )}
-                />
-                {isMiniapp && (
-                  <Controller
-                    name="category"
-                    control={control}
-                    render={({ field }) => {
-                      return (
-                        <CategorySelector
-                          value={field.value}
-                          required
-                          disabled={false}
-                          onChange={field.onChange}
-                          errors={errors.category}
-                          label="Category"
-                          data-testid="category-selector"
-                        />
-                      );
-                    }}
-                  />
-                )}
-              </div>
+                </div>
 
-              <DecoratedButton
-                type="submit"
-                variant="primary"
-                className="justify-self-end py-3"
-                disabled={!isValid || isSubmitting}
-                testId="create-app"
-              >
-                Create app
-              </DecoratedButton>
-            </form>
+                <DecoratedButton
+                  type="submit"
+                  variant="primary"
+                  className="justify-self-end py-3"
+                  disabled={!isValid || isSubmitting}
+                  testId="create-app"
+                >
+                  Create app
+                </DecoratedButton>
+              </form>
+            )}
+            {step === "enable-world-id-4-0" && (
+              <EnableWorldId40Content
+                onContinue={onEnableContinue}
+                className="justify-self-center py-10"
+              />
+            )}
+            {step === "configure-signer-key" && (
+              <ConfigureSignerKeyContent
+                onBack={onConfigureBack}
+                onContinue={onConfigureContinue}
+                className="justify-self-center py-10"
+              />
+            )}
           </SizingWrapper>
         </div>
       </DialogPanel>
