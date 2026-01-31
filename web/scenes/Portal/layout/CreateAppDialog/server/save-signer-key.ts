@@ -1,6 +1,9 @@
 "use server";
 
-import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
+import { generateUserJWT } from "@/api/helpers/jwts";
+import { getSession } from "@auth0/nextjs-auth0";
+import dayjs from "dayjs";
+import { GraphQLClient } from "graphql-request";
 import { getSdk } from "./graphql/register-rp.generated";
 
 /**
@@ -44,7 +47,26 @@ export async function saveSignerKey(
   }
 
   try {
-    const client = await getAPIServiceGraphqlClient();
+    const session = await getSession();
+
+    if (!session?.user?.hasura?.id) {
+      return {
+        success: false,
+        error: "User not authenticated",
+      };
+    }
+
+    const { token } = await generateUserJWT(
+      session.user.hasura.id,
+      dayjs().add(1, "minute").unix(),
+    );
+
+    const client = new GraphQLClient(process.env.NEXT_PUBLIC_GRAPHQL_API_URL!, {
+      headers: {
+        authorization: `Bearer ${token}`,
+      },
+    });
+
     const sdk = getSdk(client);
 
     const result = await sdk.RegisterRp({
