@@ -24,6 +24,7 @@ import {
   SignerKeySetup,
 } from "../../Teams/TeamId/Apps/AppId/ConfigureSignerKey/ConfigureSignerKeyContent";
 import { EnableWorldId40Content } from "../../Teams/TeamId/Apps/AppId/EnableWorldId40/EnableWorldId40Content";
+import { GenerateNewKeyContent } from "../../Teams/TeamId/Apps/AppId/GenerateNewKey/GenerateNewKeyContent";
 import { UseExistingKeyContent } from "../../Teams/TeamId/Apps/AppId/UseExistingKey/UseExistingKeyContent";
 import { FetchAppsDocument } from "../AppSelector/graphql/client/fetch-apps.generated";
 import { MiniappToggleSection } from "./MiniappToggleSection";
@@ -35,13 +36,15 @@ type CreateDialogStep =
   | "create"
   | "enable-world-id-4-0"
   | "configure-signer-key"
-  | "use-existing-key";
+  | "use-existing-key"
+  | "generate-new-key";
 
 const STEP_TITLES: Record<CreateDialogStep, string> = {
   create: "Create a new app",
   "enable-world-id-4-0": "Enable World ID 4.0",
   "configure-signer-key": "Enable World ID 4.0",
-  "use-existing-key": "Use Existing Key",
+  "use-existing-key": "Enable World ID 4.0",
+  "generate-new-key": "Enable World ID 4.0",
 };
 
 export const CreateAppDialogV4 = (props: DialogProps) => {
@@ -158,29 +161,14 @@ export const CreateAppDialogV4 = (props: DialogProps) => {
     setStep("enable-world-id-4-0");
   }, [setStep]);
 
-  const onConfigureContinue = useCallback(
-    (setup: SignerKeySetup) => {
-      setSignerKeySetup(setup);
-      if (setup === "existing") {
-        setStep("use-existing-key");
-      } else {
-        // Handle "generate" flow - for now, redirect to app page
-        if (!teamId || !createdAppId) {
-          toast.error(
-            "Failed to complete app setup. Please close this dialog and try again from your team's apps page.",
-          );
-          return;
-        }
-        const redirect =
-          nextDest === "configuration"
-            ? urls.configuration({ team_id: teamId, app_id: createdAppId })
-            : urls.actions({ team_id: teamId, app_id: createdAppId });
-        router.push(redirect);
-        onClose();
-      }
-    },
-    [teamId, createdAppId, nextDest, router, onClose],
-  );
+  const onConfigureContinue = useCallback((setup: SignerKeySetup) => {
+    setSignerKeySetup(setup);
+    if (setup === "existing") {
+      setStep("use-existing-key");
+    } else {
+      setStep("generate-new-key");
+    }
+  }, []);
 
   const onUseExistingKeyBack = useCallback(() => {
     setStep("configure-signer-key");
@@ -223,6 +211,31 @@ export const CreateAppDialogV4 = (props: DialogProps) => {
       }
     },
     [teamId, createdAppId, nextDest, router, onClose, registerRp],
+  );
+
+  const onGenerateNewKeyBack = useCallback(() => {
+    setStep("configure-signer-key");
+  }, []);
+
+  const onGenerateNewKeyContinue = useCallback(
+    (publicKey: string) => {
+      // TODO: Save the public key to the database
+      console.log("Generated public key:", publicKey);
+
+      if (!teamId || !createdAppId) {
+        toast.error(
+          "Failed to complete app setup. Please close this dialog and try again from your team's apps page.",
+        );
+        return;
+      }
+      const redirect =
+        nextDest === "configuration"
+          ? urls.configuration({ team_id: teamId, app_id: createdAppId })
+          : urls.actions({ team_id: teamId, app_id: createdAppId });
+      router.push(redirect);
+      onClose();
+    },
+    [teamId, createdAppId, nextDest, router, onClose],
   );
 
   return (
@@ -339,6 +352,13 @@ export const CreateAppDialogV4 = (props: DialogProps) => {
                 onContinue={onUseExistingKeyContinue}
                 className="justify-self-center py-10"
                 loading={registeringRp}
+              />
+            )}
+            {step === "generate-new-key" && (
+              <GenerateNewKeyContent
+                onBack={onGenerateNewKeyBack}
+                onContinue={onGenerateNewKeyContinue}
+                className="justify-self-center py-10"
               />
             )}
           </SizingWrapper>

@@ -10,7 +10,7 @@ export const IconFrame = (props: {
   return (
     <div
       className={clsx(
-        "relative flex size-8 items-center justify-center rounded-full",
+        "relative flex size-7 shrink-0 items-center justify-center rounded-full",
         {
           "bg-blue-500": props.variant === "info",
           "bg-system-warning-500": props.variant === "warning",

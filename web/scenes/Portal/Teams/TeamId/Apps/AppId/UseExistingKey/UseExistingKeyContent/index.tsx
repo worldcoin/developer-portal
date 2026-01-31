@@ -82,11 +82,11 @@ export const UseExistingKeyContent = ({
         />
       </div>
 
-      <div className="flex justify-between gap-x-4">
+      <div className="flex justify-end gap-x-4">
         <DecoratedButton
           type="button"
           variant="secondary"
-          className="py-3"
+          className="w-24 py-3"
           onClick={onBack}
           testId="use-existing-key-back"
         >
