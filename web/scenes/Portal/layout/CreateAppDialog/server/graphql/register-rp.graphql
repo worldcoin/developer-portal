@@ -1,0 +1,9 @@
+mutation RegisterRp($app_id: String!, $signer_address: String!) {
+  register_rp(app_id: $app_id, signer_address: $signer_address) {
+    rp_id
+    manager_address
+    signer_address
+    status
+    operation_hash
+  }
+}

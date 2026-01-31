@@ -5,7 +5,6 @@ import { CloseIcon } from "@/components/Icons/CloseIcon";
 import { Radio, RadioProps } from "@/components/Radio";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import clsx from "clsx";
-import React from "react";
 import { twMerge } from "tailwind-merge";
 
 type Bullet = { text: string; variant: "check" | "x" };
