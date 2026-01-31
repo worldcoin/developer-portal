@@ -16,21 +16,21 @@ export const Notification = (props: {
     <div
       className={twMerge(
         clsx(
-          "grid grid-cols-auto/1fr items-center gap-x-3 rounded-xl border p-5",
+          "grid grid-cols-auto/1fr items-center gap-x-4 rounded-xl border px-4 py-3.5",
           {
-            "border-system-warning-200 bg-system-warning-50":
+            "border-system-warning-100 bg-system-warning-50":
               props.variant === "warning",
-            "border-blue-150 bg-blue-50": props.variant === "info",
+            "border-blue-100 bg-blue-50": props.variant === "info",
           },
           props.className,
         ),
       )}
     >
-      <IconFrame variant={props.variant} className="text-grey-0">
-        {props.variant === "warning" && <AlertIcon className="size-4" />}
+      <IconFrame variant={props.variant} className="-mt-px text-grey-0">
+        {props.variant === "warning" && <AlertIcon className="size-3.5" />}
 
         {props.variant === "info" && (
-          <InformationCircleIcon className="size-4 text-grey-0" />
+          <InformationCircleIcon className="size-3.5 text-grey-0" />
         )}
       </IconFrame>
 
