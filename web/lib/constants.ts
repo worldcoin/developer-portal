@@ -18,7 +18,7 @@ export const DOCUMENT_SEQUENCER =
   "https://signup-document.crypto.worldcoin.org";
 export const SECURE_DOCUMENT_SEQUENCER =
   "https://signup-document-secure.crypto.worldcoin.org";
-export const FACE_SEQUENCER = "";
+export const FACE_SEQUENCER = "https://signup-face.crypto.worldcoin.org";
 
 // ANCHOR: Staging Sequencers
 export const ORB_SEQUENCER_STAGING =
