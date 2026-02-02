@@ -113,9 +113,9 @@ export const GenerateNewKeyContent = ({
               aria-label={isBlurred ? "Show private key" : "Hide private key"}
             >
               {isBlurred ? (
-                <EyeSlashIcon className="size-5 text-grey-900" />
-              ) : (
                 <EyeIcon className="size-5 text-grey-900" />
+              ) : (
+                <EyeSlashIcon className="size-5 text-grey-900" />
               )}
             </button>
             <CopyButton
