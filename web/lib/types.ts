@@ -335,12 +335,6 @@ export interface GetIdentityVerificationLinkResponse {
   };
 }
 
-export interface RequestParticipationResponse {
-  result: {
-    participationStatus: ParticipationStatus;
-  };
-}
-
 export interface AcceptTermsResponse {
   result: {
     termsAcceptedAt: string;
@@ -364,13 +358,6 @@ export type AffiliateBalanceResponse = {
   };
 };
 
-export enum ParticipationStatus {
-  NOT_REQUESTED = "not_requested",
-  PENDING = "pending",
-  APPROVED = "approved",
-  REJECTED = "rejected",
-}
-
 export enum IdentityVerificationStatus {
   NOT_STARTED = "not_started",
   CREATED = "created",
@@ -389,7 +376,6 @@ export type AffiliateMetadataResponse = {
     identityVerificationStatus: IdentityVerificationStatus;
     identityVerifiedAt: string;
     verificationType: "kyb" | "kyc";
-    participationStatus: ParticipationStatus;
     totalInvites: number;
     pendingInvites: number; // Applied code, but not verified
     verifiedInvites: {

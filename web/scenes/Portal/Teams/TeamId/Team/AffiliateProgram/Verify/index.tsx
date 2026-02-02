@@ -2,21 +2,16 @@
 import { MailWithLines } from "@/components/Icons/MailWithLines";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import {
-  GetIdentityVerificationLinkResponse,
-  ParticipationStatus,
-} from "@/lib/types";
+import { GetIdentityVerificationLinkResponse } from "@/lib/types";
 import { useGetAffiliateMetadata } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Overview/page/hooks/use-get-affiliate-metadata";
 import { getIdentityVerificationLink } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Overview/server/getIdentityVerificationLink";
 import { useState } from "react";
 import { toast } from "react-toastify";
 import { AcceptTermsDialog } from "./AcceptTerms";
-import { RequestStep } from "./RequestStep";
 import { KybStep } from "./KybStep";
 
 export const VerifyPage = () => {
-  const { data: metadata, refetch: refetchMetadata } =
-    useGetAffiliateMetadata();
+  const { data: metadata } = useGetAffiliateMetadata();
   const [isLoading, setIsLoading] = useState(false);
   const [showAcceptTerms, setShowAcceptTerms] = useState(false);
 
@@ -84,13 +79,6 @@ export const VerifyPage = () => {
         </div>
 
         <div className="mt-10">
-          <RequestStep
-            metadata={metadata}
-            onComplete={() => {
-              refetchMetadata();
-            }}
-          />
-
           <KybStep
             metadata={metadata}
             onComplete={handleComplete}
