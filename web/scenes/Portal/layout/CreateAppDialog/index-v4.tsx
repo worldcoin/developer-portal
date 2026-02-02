@@ -170,11 +170,11 @@ export const CreateAppDialogV4 = (props: DialogProps) => {
     }
   }, []);
 
-  const onUseExistingKeyBack = useCallback(() => {
+  const onSignerKeyBack = useCallback(() => {
     setStep("configure-signer-key");
   }, []);
 
-  const onUseExistingKeyContinue = useCallback(
+  const onSignerKeyContinue = useCallback(
     async (publicKey: string) => {
       if (!teamId || !createdAppId) {
         toast.error(
@@ -206,50 +206,7 @@ export const CreateAppDialogV4 = (props: DialogProps) => {
         router.push(redirect);
         onClose();
       } catch (error) {
-        console.error("[onUseExistingKeyContinue] Error:", error);
-        toast.error("Failed to register Relying Party");
-      }
-    },
-    [teamId, createdAppId, nextDest, router, onClose, registerRp],
-  );
-
-  const onGenerateNewKeyBack = useCallback(() => {
-    setStep("configure-signer-key");
-  }, []);
-
-  const onGenerateNewKeyContinue = useCallback(
-    async (publicKey: string) => {
-      if (!teamId || !createdAppId) {
-        toast.error(
-          "Failed to complete app setup. Please close this dialog and try again from your team's apps page.",
-        );
-        return;
-      }
-
-      try {
-        const { data } = await registerRp({
-          variables: {
-            app_id: createdAppId,
-            signer_address: publicKey,
-          },
-        });
-
-        if (!data?.register_rp) {
-          toast.error("Failed to register Relying Party");
-          return;
-        }
-
-        // Success - redirect to app
-        const redirect =
-          nextDest === "configuration"
-            ? urls.configuration({ team_id: teamId, app_id: createdAppId })
-            : urls.actions({ team_id: teamId, app_id: createdAppId });
-
-        toast.success("App configured successfully");
-        router.push(redirect);
-        onClose();
-      } catch (error) {
-        console.error("[onGenerateNewKeyContinue] Error:", error);
+        console.error("[onSignerKeyContinue] Error:", error);
         toast.error("Failed to register Relying Party");
       }
     },
@@ -366,16 +323,16 @@ export const CreateAppDialogV4 = (props: DialogProps) => {
             )}
             {step === "use-existing-key" && (
               <UseExistingKeyContent
-                onBack={onUseExistingKeyBack}
-                onContinue={onUseExistingKeyContinue}
+                onBack={onSignerKeyBack}
+                onContinue={onSignerKeyContinue}
                 className="justify-self-center py-10"
                 loading={registeringRp}
               />
             )}
             {step === "generate-new-key" && (
               <GenerateNewKeyContent
-                onBack={onGenerateNewKeyBack}
-                onContinue={onGenerateNewKeyContinue}
+                onBack={onSignerKeyBack}
+                onContinue={onSignerKeyContinue}
                 className="justify-self-center py-10"
               />
             )}
