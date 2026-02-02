@@ -1,13 +1,12 @@
-import { ReactNode, useMemo } from "react";
+import { IdentificationIcon } from "@/components/Icons/IdentificationIcon";
+import { RemoveCustomIcon } from "@/components/Icons/RemoveCustomIcon";
+import { IconFrame } from "@/components/InitialSteps/IconFrame";
 import {
   AffiliateMetadataResponse,
-  IdentityVerificationStatus,
-  ParticipationStatus,
+  IdentityVerificationStatus
 } from "@/lib/types";
-import { IconFrame } from "@/components/InitialSteps/IconFrame";
-import { RemoveCustomIcon } from "@/components/Icons/RemoveCustomIcon";
-import { IdentificationIcon } from "@/components/Icons/IdentificationIcon";
 import { Step } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Verify/Step";
+import { ReactNode, useMemo } from "react";
 
 type StepConfig = {
   icon?: ReactNode;
@@ -37,19 +36,6 @@ export const KybStep = ({ metadata, onComplete, isLoading }: Props) => {
         </IconFrame>
       ),
     };
-
-    if (metadata.participationStatus !== ParticipationStatus.APPROVED) {
-      return {
-        ...defaultConfig,
-        icon: (
-          <IconFrame className="flex-shrink-0 bg-grey-100 text-grey-500">
-            <IdentificationIcon className="size-5" />
-          </IconFrame>
-        ),
-        title: "Complete KYB",
-        disabled: true,
-      };
-    }
 
     if (status === IdentityVerificationStatus.SUCCESS) {
       return null;
