@@ -36,17 +36,7 @@ export const Dashboard4 = ({ appId, teamId }: Dashboard4Props) => {
   return (
     <div className="flex flex-col gap-y-10">
       {/* Stats Row */}
-      <StatsRow
-        impressions={metricsWithChange.impressions}
-        impressionsChange={metricsWithChange.impressionsChange}
-        sessions={metricsWithChange.sessions}
-        sessionsChange={metricsWithChange.sessionsChange}
-        users={metricsWithChange.users}
-        usersChange={metricsWithChange.usersChange}
-        newUsers={metricsWithChange.newUsers}
-        newUsersChange={metricsWithChange.newUsersChange}
-        isLoading={metricsLoading}
-      />
+      <StatsRow {...metricsWithChange} isLoading={metricsLoading} />
 
       {/* Unified Chart with Tabs */}
       <UnifiedChart appId={appId} />
