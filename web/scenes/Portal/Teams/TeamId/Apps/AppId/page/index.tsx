@@ -5,9 +5,8 @@ import { ReviewMessageDialog } from "@/scenes/Portal/Teams/TeamId/Apps/common/Re
 import dayjs from "dayjs";
 import advancedFormat from "dayjs/plugin/advancedFormat";
 import { BanMessageDialog } from "../../common/BanMessageDialog";
-import { AppStatsGraph } from "./AppStatsGraph";
 import { BanStatusSection } from "./BanStatusSection";
-import { QuickActionsSection } from "./QuickActionsSection";
+import { Dashboard4 } from "./Dashboard4";
 import { VerificationStatusSection } from "./VerificationStatusSection";
 
 dayjs.extend(advancedFormat);
@@ -39,8 +38,8 @@ export const AppIdPage = (props: {
           </Typography>
         </div>
       </div>
-      <AppStatsGraph appId={appId} />
-      <QuickActionsSection appId={appId} teamId={teamId} />
+
+      <Dashboard4 appId={appId} teamId={teamId} />
 
       <ReviewMessageDialog
         appId={appId}
