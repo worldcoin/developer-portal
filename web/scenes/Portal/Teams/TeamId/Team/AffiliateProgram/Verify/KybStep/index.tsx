@@ -3,7 +3,7 @@ import { RemoveCustomIcon } from "@/components/Icons/RemoveCustomIcon";
 import { IconFrame } from "@/components/InitialSteps/IconFrame";
 import {
   AffiliateMetadataResponse,
-  IdentityVerificationStatus
+  IdentityVerificationStatus,
 } from "@/lib/types";
 import { Step } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Verify/Step";
 import { ReactNode, useMemo } from "react";
