@@ -136,7 +136,7 @@ export const GenerateNewKeyContent = ({
         as="button"
         type="button"
         onClick={handleDownload}
-        variant={TYPOGRAPHY.M4}
+        variant={TYPOGRAPHY.R3}
         className="text-left text-blue-600 underline hover:opacity-70"
         disabled={!privateKey}
       >
