@@ -12,12 +12,12 @@ type Params = {
   teamId?: string;
 };
 
-type TeamIdLayoutProps = {
+type TeamLayoutProps = {
   params: Params;
   children: ReactNode;
 };
 
-export const TeamIdLayout = async (props: TeamIdLayoutProps) => {
+export const TeamLayout = async (props: TeamLayoutProps) => {
   const params = props.params;
   const session = await getSession();
   const pathname = getPathFromHeaders() || "";
@@ -35,7 +35,7 @@ export const TeamIdLayout = async (props: TeamIdLayoutProps) => {
   );
 
   if (isAffiliateProgram) {
-    return props.children;
+    return <>{props.children}</>;
   }
   return (
     <div className="flex flex-col">

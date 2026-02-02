@@ -5,21 +5,24 @@ import { WorldIcon } from "@/components/Icons/WorldIcon";
 import { LoggedUserNav } from "@/components/LoggedUserNav";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { Typography, TYPOGRAPHY } from "@/components/Typography";
+import { isWorldId40Enabled, worldId40Atom } from "@/lib/feature-flags";
 import { urls } from "@/lib/urls";
 import { CloseButton } from "@/scenes/Onboarding/CreateTeam/layout/CloseButton";
 import { atom, useAtom, useSetAtom } from "jotai";
 import { useParams, usePathname } from "next/navigation";
-import { useEffect, useMemo } from "react";
+import React, { useEffect, useMemo } from "react";
 import { colorAtom } from "..";
 import { Color } from "../../Profile/types";
 import { AppSelector } from "../AppSelector";
 import { CreateAppDialog } from "../CreateAppDialog";
+import { CreateAppDialogV4 } from "../CreateAppDialog/index-v4";
 
 export const createAppDialogOpenedAtom = atom(false);
 
 export const Header = (props: { color: Color | null }) => {
   const setColor = useSetAtom(colorAtom);
   const [open, setOpen] = useAtom(createAppDialogOpenedAtom);
+  const [worldId40Config] = useAtom(worldId40Atom);
   const { teamId, appId } = useParams() as { teamId?: string; appId?: string };
 
   useEffect(() => {
@@ -61,6 +64,11 @@ export const Header = (props: { color: Color | null }) => {
     return null;
   }, [path, showCloseButton, teamId]);
 
+  const useNewCreateAppDialog = useMemo(
+    () => isWorldId40Enabled(worldId40Config, teamId),
+    [worldId40Config, teamId],
+  );
+
   return (
     <header className="max-md:sticky max-md:top-0 max-md:z-10 max-md:mb-6 max-md:border-b max-md:border-gray-200 max-md:bg-grey-0">
       <SizingWrapper
@@ -95,7 +103,11 @@ export const Header = (props: { color: Color | null }) => {
         <LoggedUserNav />
       </SizingWrapper>
 
-      <CreateAppDialog open={open} onClose={setOpen} className={"mx-0"} />
+      {useNewCreateAppDialog ? (
+        <CreateAppDialogV4 open={open} onClose={setOpen} className={"mx-0"} />
+      ) : (
+        <CreateAppDialog open={open} onClose={setOpen} className={"mx-0"} />
+      )}
     </header>
   );
 };

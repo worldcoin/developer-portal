@@ -2,7 +2,7 @@ import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { Auth0SessionUser } from "@/lib/types";
 import { getSession } from "@auth0/nextjs-auth0";
 import { redirect } from "next/navigation";
-import { ClientPage } from "./ClientPage";
+import { AppsPageClient } from "./AppsPageClient";
 import { getSdk as getInitialAppSdk } from "./graphql/server/apps.generated";
 
 type AppPage = {
@@ -38,5 +38,6 @@ export const AppsPage = async (props: AppPage) => {
     return redirect(`/teams/${teamId}/apps/${app[0].id}`);
   }
 
-  return <ClientPage />;
+  // Use new app creation flow for teams with World ID 4.0 enabled
+  return <AppsPageClient teamId={teamId} />;
 };
