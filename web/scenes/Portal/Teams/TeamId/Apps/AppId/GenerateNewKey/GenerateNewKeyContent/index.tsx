@@ -132,19 +132,23 @@ export const GenerateNewKeyContent = ({
         data-testid="input-private-key"
       />
 
-      <button
+      <Typography
+        as="button"
         type="button"
         onClick={handleDownload}
-        className="text-left text-14 font-medium text-blue-600 underline hover:opacity-70"
+        variant={TYPOGRAPHY.M4}
+        className="text-left text-blue-600 underline hover:opacity-70"
         disabled={!privateKey}
       >
         Download Key File (.json)
-      </button>
+      </Typography>
 
       <Notification variant="warning">
         <div className="max-w-[65ch] text-grey-900">
-          <p className="mb-2 text-14 font-semibold">Important</p>
-          <ul className="grid gap-y-2 text-13">
+          <Typography as="p" variant={TYPOGRAPHY.S3} className="mb-2">
+            Important
+          </Typography>
+          <Typography as="ul" variant={TYPOGRAPHY.R4} className="grid gap-y-2">
             <li className="pl-4 indent-[-1rem]">
               • Save this private key securely - it cannot be recovered if lost
             </li>
@@ -154,7 +158,7 @@ export const GenerateNewKeyContent = ({
             <li className="pl-4 indent-[-1rem]">
               • Use environment variables to store the key in your application
             </li>
-          </ul>
+          </Typography>
         </div>
       </Notification>
 
