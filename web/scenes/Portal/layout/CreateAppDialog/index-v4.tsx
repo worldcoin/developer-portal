@@ -27,6 +27,7 @@ import { EnableWorldId40Content } from "../../Teams/TeamId/Apps/AppId/EnableWorl
 import { UseExistingKeyContent } from "../../Teams/TeamId/Apps/AppId/UseExistingKey/UseExistingKeyContent";
 import { FetchAppsDocument } from "../AppSelector/graphql/client/fetch-apps.generated";
 import { MiniappToggleSection } from "./MiniappToggleSection";
+import { useRegisterRpMutation } from "./client/register-rp.generated";
 import { createAppSchemaV4, CreateAppSchemaV4 } from "./form-schema-v4";
 import { validateAndInsertAppServerSideV4 } from "./server/v4/submit";
 
@@ -60,6 +61,8 @@ export const CreateAppDialogV4 = ({
   const { refetch: refetchApps } = useRefetchQueries(FetchAppsDocument, {
     teamId: teamId,
   });
+
+  const [registerRp, { loading: registeringRp }] = useRegisterRpMutation();
 
   const [step, setStep] = useState<Step>(initialStep);
   const [createdAppId, setCreatedAppId] = useState<string | null>(
@@ -205,28 +208,34 @@ export const CreateAppDialogV4 = ({
         return;
       }
 
-      // Save signer key before redirecting
-      const { saveSignerKey } = await import("./server/save-signer-key");
-      const result = await saveSignerKey({
-        appId: createdAppId,
-        signerAddress: publicKey,
-        setupType: "existing",
-        mode: worldIdMode || "managed",
-      });
+      try {
+        const { data } = await registerRp({
+          variables: {
+            app_id: createdAppId,
+            signer_address: publicKey,
+          },
+        });
 
-      if (!result.success) {
-        toast.error(result.error || "Failed to save signer key");
-        return;
+        if (!data?.register_rp) {
+          toast.error("Failed to register Relying Party");
+          return;
+        }
+
+        // Success - redirect to app
+        const redirect =
+          nextDest === "configuration"
+            ? urls.configuration({ team_id: teamId, app_id: createdAppId })
+            : urls.actions({ team_id: teamId, app_id: createdAppId });
+
+        toast.success("App configured successfully");
+        router.push(redirect);
+        onClose();
+      } catch (error) {
+        console.error("[onUseExistingKeyContinue] Error:", error);
+        toast.error("Failed to register Relying Party");
       }
-
-      const redirect =
-        nextDest === "configuration"
-          ? urls.configuration({ team_id: teamId, app_id: createdAppId })
-          : urls.actions({ team_id: teamId, app_id: createdAppId });
-      router.push(redirect);
-      onClose();
     },
-    [teamId, createdAppId, nextDest, router, onClose],
+    [teamId, createdAppId, nextDest, router, onClose, registerRp],
   );
 
   return (
@@ -342,6 +351,7 @@ export const CreateAppDialogV4 = ({
                 onBack={onUseExistingKeyBack}
                 onContinue={onUseExistingKeyContinue}
                 className="justify-self-center py-10"
+                loading={registeringRp}
               />
             )}
           </SizingWrapper>
