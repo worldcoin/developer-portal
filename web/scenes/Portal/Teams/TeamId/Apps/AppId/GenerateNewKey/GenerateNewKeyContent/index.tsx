@@ -37,14 +37,11 @@ export const GenerateNewKeyContent = ({
   const {
     register,
     handleSubmit,
-    watch,
     formState: { isValid },
   } = useForm<FormValues>({
     mode: "onChange",
     defaultValues,
   });
-
-  const confirmed = watch("confirmed");
 
   // Generate key on mount
   useEffect(() => {
@@ -163,7 +160,7 @@ export const GenerateNewKeyContent = ({
       </Notification>
 
       <label className="flex items-center gap-x-3">
-        <Checkbox register={register("confirmed")} />
+        <Checkbox register={register("confirmed", { required: true })} />
         <Typography as="span" variant={TYPOGRAPHY.R4} className="text-grey-500">
           I have saved my private key securely
         </Typography>
@@ -183,7 +180,7 @@ export const GenerateNewKeyContent = ({
           type="submit"
           variant="primary"
           className="w-24 py-3"
-          disabled={!isValid || !confirmed}
+          disabled={!isValid}
           testId="generate-new-key-create"
         >
           Create
