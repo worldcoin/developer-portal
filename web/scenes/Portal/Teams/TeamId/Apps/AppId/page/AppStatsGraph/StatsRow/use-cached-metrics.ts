@@ -113,6 +113,22 @@ export const useCachedMetrics = (
       return;
     }
 
+    // All-time view: no change percentages, no caching
+    if (timePeriod === "all-time") {
+      setMetricsWithChange({
+        impressions: currentMetrics.impressions,
+        impressionsChange: null,
+        sessions: currentMetrics.sessions,
+        sessionsChange: null,
+        users: currentMetrics.users,
+        usersChange: null,
+        newUsers: currentMetrics.newUsers,
+        newUsersChange: null,
+      });
+      return;
+    }
+
+    // Weekly view: calculate week-over-week changes using cached data
     const cacheKey = getCacheKey(appId);
 
     // Try to get cached data
@@ -150,7 +166,7 @@ export const useCachedMetrics = (
         cachedData.newUsers,
       );
 
-      // Update cache with new data since a week has passed
+      // Update cache with new weekly data since a week has passed
       try {
         const newCache: CachedMetrics = {
           impressions: currentMetrics.impressions,
@@ -164,7 +180,7 @@ export const useCachedMetrics = (
         // Ignore localStorage errors
       }
     } else if (!cachedData) {
-      // No cached data, save current data for future comparison
+      // No cached data, save current weekly data for future comparison
       try {
         const newCache: CachedMetrics = {
           impressions: currentMetrics.impressions,

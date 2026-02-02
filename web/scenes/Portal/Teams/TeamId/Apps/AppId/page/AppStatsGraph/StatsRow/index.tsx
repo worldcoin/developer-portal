@@ -1,5 +1,6 @@
 "use client";
 
+import { ArrowUpIcon } from "@/components/Icons/ArrowUpIcon";
 import { CaretIcon } from "@/components/Icons/CaretIcon";
 import {
   Select,
@@ -27,26 +28,13 @@ const ChangeArrowIcon = ({
   direction: "up" | "down" | "neutral";
 }) => (
   <div className="flex size-4 items-center justify-center rounded-full bg-gray-50">
-    <svg
-      width="12"
-      height="12"
-      viewBox="0 0 12 12"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
+    <ArrowUpIcon
       className={clsx(
         direction === "up" && "rotate-0 text-system-success-500",
         direction === "down" && "rotate-180 text-system-error-500",
         direction === "neutral" && "rotate-90 text-gray-400",
       )}
-    >
-      <path
-        d="M6 9V3M6 3L3.5 5.5M6 3L8.5 5.5"
-        stroke="currentColor"
-        strokeWidth="1"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
+    />
   </div>
 );
 
