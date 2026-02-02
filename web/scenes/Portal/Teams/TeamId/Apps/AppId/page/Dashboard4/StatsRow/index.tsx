@@ -1,8 +1,17 @@
 "use client";
 
+import { CaretIcon } from "@/components/Icons/CaretIcon";
+import {
+  Select,
+  SelectButton,
+  SelectOption,
+  SelectOptions,
+} from "@/components/Select";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import clsx from "clsx";
 import Skeleton from "react-loading-skeleton";
+
+export type TimePeriod = "weekly" | "all-time";
 
 interface StatItemProps {
   label: string;
@@ -21,9 +30,9 @@ const ChangeArrowIcon = ({ direction }: { direction: "up" | "down" | "neutral" }
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       className={clsx(
-        direction === "up" && "rotate-0",
-        direction === "down" && "rotate-180",
-        direction === "neutral" && "rotate-90"
+        direction === "up" && "rotate-0 text-system-success-500",
+        direction === "down" && "rotate-180 text-system-error-500",
+        direction === "neutral" && "rotate-90 text-gray-400"
       )}
     >
       <path
@@ -32,7 +41,6 @@ const ChangeArrowIcon = ({ direction }: { direction: "up" | "down" | "neutral" }
         strokeWidth="1"
         strokeLinecap="round"
         strokeLinejoin="round"
-        className="text-gray-400"
       />
     </svg>
   </div>
@@ -78,11 +86,11 @@ const StatItem = ({ label, value, changePercent, isLoading }: StatItemProps) => 
           </Typography>
         )}
 
-        {!isLoading && (
+        {!isLoading && changePercent !== null && changePercent !== undefined && (
           <div className="flex h-5 items-center gap-x-1">
             <ChangeArrowIcon direction={getChangeDirection(changePercent)} />
             <span className={clsx("font-gta text-xs font-medium leading-4", getChangeColor(changePercent))}>
-              {Math.abs(displayPercent).toFixed(0)}%
+              {Math.abs(changePercent).toFixed(0)}%
             </span>
           </div>
         )}
@@ -94,6 +102,11 @@ const StatItem = ({ label, value, changePercent, isLoading }: StatItemProps) => 
 const Divider = () => (
   <div className="hidden h-6 w-0 border border-gray-200 md:block" />
 );
+
+const timePeriodOptions = [
+  { value: "weekly" as TimePeriod, label: "Weekly" },
+  { value: "all-time" as TimePeriod, label: "All time" },
+];
 
 export interface StatsRowProps {
   impressions: number | undefined | null;
@@ -107,6 +120,38 @@ export interface StatsRowProps {
   isLoading: boolean;
 }
 
+interface TimePeriodSelectorProps {
+  timePeriod: TimePeriod;
+  onTimePeriodChange: (period: TimePeriod) => void;
+}
+
+export const TimePeriodSelector = ({
+  timePeriod,
+  onTimePeriodChange,
+}: TimePeriodSelectorProps) => {
+  return (
+    <Select value={timePeriod} onChange={onTimePeriodChange}>
+      <SelectButton className="flex h-10 w-32 items-center justify-between rounded-lg border border-gray-200 bg-white px-4">
+        <span className="font-gta text-base font-normal text-zinc-700">
+          {timePeriodOptions.find((o) => o.value === timePeriod)?.label}
+        </span>
+        <CaretIcon className="size-5 text-gray-400" />
+      </SelectButton>
+      <SelectOptions>
+        {timePeriodOptions.map((option) => (
+          <SelectOption
+            key={option.value}
+            value={option.value}
+            className="font-gta text-base text-zinc-700 hover:bg-gray-50"
+          >
+            {option.label}
+          </SelectOption>
+        ))}
+      </SelectOptions>
+    </Select>
+  );
+};
+
 export const StatsRow = ({
   impressions,
   impressionsChange,
@@ -117,36 +162,67 @@ export const StatsRow = ({
   newUsers,
   newUsersChange,
   isLoading,
-}: StatsRowProps) => {
+}: Omit<StatsRowProps, "timePeriod" | "onTimePeriodChange">) => {
   return (
-    <div className="flex flex-col gap-4 md:flex-row md:items-center md:gap-8">
-      <StatItem
-        label="Impressions"
-        value={impressions}
-        changePercent={impressionsChange}
-        isLoading={isLoading}
-      />
-      <Divider />
-      <StatItem
-        label="Sessions"
-        value={sessions}
-        changePercent={sessionsChange}
-        isLoading={isLoading}
-      />
-      <Divider />
-      <StatItem
-        label="Users"
-        value={users}
-        changePercent={usersChange}
-        isLoading={isLoading}
-      />
-      <Divider />
-      <StatItem
-        label="New users"
-        value={newUsers}
-        changePercent={newUsersChange}
-        isLoading={isLoading}
-      />
-    </div>
+    <>
+      {/* Mobile: 2x2 grid */}
+      <div className="grid grid-cols-2 gap-4 md:hidden">
+        <StatItem
+          label="Impressions"
+          value={impressions}
+          changePercent={impressionsChange}
+          isLoading={isLoading}
+        />
+        <StatItem
+          label="Sessions"
+          value={sessions}
+          changePercent={sessionsChange}
+          isLoading={isLoading}
+        />
+        <StatItem
+          label="Users"
+          value={users}
+          changePercent={usersChange}
+          isLoading={isLoading}
+        />
+        <StatItem
+          label="New users"
+          value={newUsers}
+          changePercent={newUsersChange}
+          isLoading={isLoading}
+        />
+      </div>
+
+      {/* Desktop: horizontal row with dividers */}
+      <div className="hidden md:flex md:items-center md:gap-8">
+        <StatItem
+          label="Impressions"
+          value={impressions}
+          changePercent={impressionsChange}
+          isLoading={isLoading}
+        />
+        <Divider />
+        <StatItem
+          label="Sessions"
+          value={sessions}
+          changePercent={sessionsChange}
+          isLoading={isLoading}
+        />
+        <Divider />
+        <StatItem
+          label="Users"
+          value={users}
+          changePercent={usersChange}
+          isLoading={isLoading}
+        />
+        <Divider />
+        <StatItem
+          label="New users"
+          value={newUsers}
+          changePercent={newUsersChange}
+          isLoading={isLoading}
+        />
+      </div>
+    </>
   );
 };

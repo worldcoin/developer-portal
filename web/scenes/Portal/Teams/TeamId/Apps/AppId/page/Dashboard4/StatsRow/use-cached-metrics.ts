@@ -2,6 +2,30 @@
 
 import { useEffect, useState } from "react";
 
+const USE_MOCK_DATA = false;
+
+const mockWeeklyMetrics: MetricsWithChange = {
+  impressions: 24853,
+  impressionsChange: 12.4,
+  sessions: 18234,
+  sessionsChange: 8.2,
+  users: 6847,
+  usersChange: -3.1,
+  newUsers: 1249,
+  newUsersChange: 22.7,
+};
+
+const mockAllTimeMetrics: MetricsWithChange = {
+  impressions: 142580,
+  impressionsChange: null,
+  sessions: 98432,
+  sessionsChange: null,
+  users: 34219,
+  usersChange: null,
+  newUsers: 34219,
+  newUsersChange: null,
+};
+
 interface CachedMetrics {
   impressions: number | null;
   sessions: number | null;
@@ -52,7 +76,8 @@ export const useCachedMetrics = (
     users: number | null;
     newUsers: number | null;
   } | null,
-  isLoading: boolean
+  isLoading: boolean,
+  timePeriod: "weekly" | "all-time" = "weekly"
 ): MetricsWithChange => {
   const [metricsWithChange, setMetricsWithChange] = useState<MetricsWithChange>(
     {
@@ -68,7 +93,18 @@ export const useCachedMetrics = (
   );
 
   useEffect(() => {
-    if (isLoading || !currentMetrics) {
+    if (isLoading) {
+      return;
+    }
+
+    // Always use mock data when enabled for preview
+    if (USE_MOCK_DATA) {
+      setMetricsWithChange(timePeriod === "weekly" ? mockWeeklyMetrics : mockAllTimeMetrics);
+      return;
+    }
+
+    // Use real data
+    if (!currentMetrics || (currentMetrics.impressions === null && currentMetrics.sessions === null)) {
       return;
     }
 
@@ -149,7 +185,7 @@ export const useCachedMetrics = (
       newUsers: currentMetrics.newUsers,
       newUsersChange,
     });
-  }, [appId, currentMetrics, isLoading]);
+  }, [appId, currentMetrics, isLoading, timePeriod]);
 
   return metricsWithChange;
 };

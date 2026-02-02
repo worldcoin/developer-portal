@@ -1,13 +1,6 @@
 "use client";
 
 import { Chart } from "@/components/Chart";
-import { CaretIcon } from "@/components/Icons/CaretIcon";
-import {
-  Select,
-  SelectButton,
-  SelectOption,
-  SelectOptions,
-} from "@/components/Select";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { ChartOptions } from "chart.js";
 import clsx from "clsx";
@@ -17,31 +10,54 @@ import { ChartTabs, ChartTabType } from "./ChartTabs";
 import { useChartData } from "./use-chart-data";
 
 const commonChartConfig: ChartOptions<"line"> = {
+  layout: {
+    padding: { left: 0, bottom: 0 },
+  },
   scales: {
     y: {
-      ticks: { display: false },
+      display: true,
+      beginAtZero: true,
+      border: {
+        display: false,
+      },
       grid: {
-        lineWidth: 0,
+        color: "#E5E7EB", // gray-200
+        lineWidth: 1,
+      },
+      ticks: {
+        display: true,
+        padding: 12,
+        color: "#9CA3AF", // gray-400
+        font: {
+          family: "GT America",
+          size: 12,
+        },
+        maxTicksLimit: 5,
+        precision: 0,
       },
     },
     x: {
-      ticks: { maxTicksLimit: 3, crossAlign: "center" },
+      border: {
+        display: false,
+      },
+      grid: {
+        display: false,
+      },
+      ticks: {
+        maxTicksLimit: 6,
+        crossAlign: "center",
+        color: "#9CA3AF", // gray-400
+        font: {
+          family: "GT America",
+          size: 12,
+        },
+      },
     },
   },
 };
 
-const desktopAspectRatio = 1180 / 350;
-const mobileAspectRatio = 500 / 250;
-
-interface TimePeriodOption {
-  value: string;
-  label: string;
-}
-
-const timePeriodOptions: TimePeriodOption[] = [
-  { value: "monthly", label: "Monthly" },
-  { value: "weekly", label: "Weekly" },
-];
+const desktopAspectRatio = 1180 / 280;
+const mobileAspectRatio = 500 / 200;
 
 interface StatDisplayProps {
   label: string;
@@ -84,7 +100,6 @@ interface UnifiedChartProps {
 
 export const UnifiedChart = ({ appId }: UnifiedChartProps) => {
   const [activeTab, setActiveTab] = useState<ChartTabType>("verifications");
-  const [timePeriod, setTimePeriod] = useState("monthly");
 
   const { chartData, isLoading, stats, additionalStats } = useChartData(
     appId,
@@ -98,30 +113,8 @@ export const UnifiedChart = ({ appId }: UnifiedChartProps) => {
 
   return (
     <div className="flex flex-col gap-y-4">
-      {/* Header with tabs and time period selector */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <ChartTabs activeTab={activeTab} onTabChange={setActiveTab} />
-
-        <Select value={timePeriod} onChange={setTimePeriod}>
-          <SelectButton className="flex h-10 w-32 items-center justify-between rounded-lg border border-gray-200 bg-white px-4">
-            <span className="font-gta text-base font-normal text-zinc-700">
-              {timePeriodOptions.find((o) => o.value === timePeriod)?.label}
-            </span>
-            <CaretIcon className="size-5 text-gray-400" />
-          </SelectButton>
-          <SelectOptions>
-            {timePeriodOptions.map((option) => (
-              <SelectOption
-                key={option.value}
-                value={option.value}
-                className="font-gta text-base text-zinc-700 hover:bg-gray-50"
-              >
-                {option.label}
-              </SelectOption>
-            ))}
-          </SelectOptions>
-        </Select>
-      </div>
+      {/* Header with tabs */}
+      <ChartTabs activeTab={activeTab} onTabChange={setActiveTab} />
 
       {/* Chart area */}
       <div className="rounded-2xl border border-grey-200">
@@ -218,12 +211,12 @@ export const UnifiedChart = ({ appId }: UnifiedChartProps) => {
             </div>
 
             {/* Mobile Chart */}
-            <div className="block sm:hidden">
+            <div className="block pl-2 sm:hidden">
               <Chart data={chartData} options={mobileChartOptions} />
             </div>
 
             {/* Desktop Chart */}
-            <div className="hidden sm:block">
+            <div className="hidden pl-2 sm:block">
               <Chart data={chartData} options={commonChartConfig} />
             </div>
           </div>

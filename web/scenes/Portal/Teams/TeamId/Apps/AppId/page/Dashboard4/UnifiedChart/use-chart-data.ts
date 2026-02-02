@@ -56,6 +56,30 @@ const openRateDatasetConfig: Partial<ChartData<"line">["datasets"][number]> = {
   backgroundColor: "#FFA048",
 };
 
+const USE_MOCK_DATA = false;
+
+const mockVerificationsData: ChartProps["data"] = {
+  x: ["Aug 2024", "Sep 2024", "Oct 2024", "Nov 2024", "Dec 2024", "Jan 2025"],
+  y: [
+    { ...verificationsDatasetConfig, data: [1200, 1900, 3000, 5200, 4800, 6100] },
+    { ...uniqueUsersDatasetConfig, data: [800, 1200, 2100, 3400, 3100, 4200] },
+  ],
+};
+
+const mockPaymentsData: ChartProps["data"] = {
+  x: ["Aug 2024", "Sep 2024", "Oct 2024", "Nov 2024", "Dec 2024", "Jan 2025"],
+  y: [
+    { ...paymentsDatasetConfig, data: [250, 890, 1450, 2100, 3200, 4850] },
+  ],
+};
+
+const mockNotificationsData: ChartProps["data"] = {
+  x: ["Jan 20", "Jan 21", "Jan 22", "Jan 23", "Jan 24", "Jan 25", "Jan 26", "Jan 27", "Jan 28", "Jan 29", "Jan 30", "Jan 31", "Feb 01", "Feb 02"],
+  y: [
+    { ...openRateDatasetConfig, data: [42, 38, 45, 52, 48, 55, 51, 47, 53, 58, 54, 49, 56, 52] },
+  ],
+};
+
 export interface ChartDataResult {
   chartData: ChartProps["data"] | null;
   isLoading: boolean;
@@ -212,9 +236,11 @@ export const useChartData = (appId: string, activeTab: ChartTabType) => {
   // Return data based on active tab
   const result = useMemo((): ChartDataResult => {
     switch (activeTab) {
-      case "verifications":
+      case "verifications": {
+        const hasRealData = !!formattedVerificationsChartData;
+        const useMock = USE_MOCK_DATA && !hasRealData;
         return {
-          chartData: formattedVerificationsChartData,
+          chartData: hasRealData ? formattedVerificationsChartData : (useMock ? mockVerificationsData : null),
           isLoading: appStatsLoading,
           emptyStateTitle:
             engine === EngineType.OnChain
@@ -227,57 +253,64 @@ export const useChartData = (appId: string, activeTab: ChartTabType) => {
           stats: [
             {
               label: "Verifications",
-              value: totalVerifications,
+              value: useMock ? 6100 : totalVerifications,
               colorClassName: "bg-blue-500",
             },
             {
               label: "Unique users",
-              value: totalUniqueUsers,
+              value: useMock ? 4200 : totalUniqueUsers,
               colorClassName: "bg-additional-sea-500",
             },
           ],
         };
+      }
 
-      case "payments":
+      case "payments": {
+        const hasRealData = !!formattedPaymentsChartData;
+        const useMock = USE_MOCK_DATA && !hasRealData;
         return {
-          chartData: formattedPaymentsChartData,
+          chartData: hasRealData ? formattedPaymentsChartData : (useMock ? mockPaymentsData : null),
           isLoading: transactionsLoading,
           emptyStateTitle: "No data available yet",
           emptyStateDescription: "Your payment numbers will show up here.",
           stats: [
             {
               label: "Payments",
-              value: accumulatedPaymentsAmountUSD,
+              value: useMock ? 4850 : accumulatedPaymentsAmountUSD,
               valuePrefix: "$",
               colorClassName: "bg-additional-blue-500",
             },
           ],
         };
+      }
 
-      case "notifications":
+      case "notifications": {
+        const hasRealData = !!formattedNotificationOpenRateChartData;
+        const useMock = USE_MOCK_DATA && !hasRealData;
         return {
-          chartData: formattedNotificationOpenRateChartData,
+          chartData: hasRealData ? formattedNotificationOpenRateChartData : (useMock ? mockNotificationsData : null),
           isLoading: metricsLoading,
           emptyStateTitle: "No data available yet",
           emptyStateDescription:
             "Your notification open rate will show up here.",
-          stats: formattedNotificationOpenRateChartData
+          stats: (hasRealData || useMock)
             ? [
                 {
                   label: "Notifications open rate",
-                  value: formattedAverageOpenRate,
+                  value: useMock ? "51.21" : formattedAverageOpenRate,
                   valueSuffix: "%",
                   colorClassName: "bg-additional-lightOrange-500",
                 },
               ]
             : [],
-          additionalStats: formattedNotificationOptInRate
+          additionalStats: (hasRealData && formattedNotificationOptInRate) || useMock
             ? {
                 label: "Total opt-in rate",
-                value: formattedNotificationOptInRate,
+                value: useMock ? "68.5%" : formattedNotificationOptInRate,
               }
             : undefined,
         };
+      }
     }
   }, [
     activeTab,

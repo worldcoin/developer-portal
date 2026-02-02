@@ -1,12 +1,15 @@
+"use client";
+
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { urls } from "@/lib/urls";
 import { ReviewMessageDialog } from "@/scenes/Portal/Teams/TeamId/Apps/common/ReviewMessageDialog";
 import dayjs from "dayjs";
 import advancedFormat from "dayjs/plugin/advancedFormat";
+import { useState } from "react";
 import { BanMessageDialog } from "../../common/BanMessageDialog";
 import { BanStatusSection } from "./BanStatusSection";
-import { Dashboard4 } from "./Dashboard4";
+import { Dashboard4, TimePeriod, TimePeriodSelector } from "./Dashboard4";
 import { VerificationStatusSection } from "./VerificationStatusSection";
 
 dayjs.extend(advancedFormat);
@@ -25,6 +28,7 @@ export const AppIdPage = (props: {
   };
 }) => {
   const { teamId, appId } = props.params;
+  const [timePeriod, setTimePeriod] = useState<TimePeriod>("weekly");
 
   return (
     <SizingWrapper className="flex flex-col gap-y-10 py-10">
@@ -32,14 +36,23 @@ export const AppIdPage = (props: {
         <VerificationStatusSection appId={appId} />
         <BanStatusSection appId={appId} />
 
-        <div className="grid gap-y-3">
-          <Typography as="h1" variant={TYPOGRAPHY.H5}>
+        <div className="flex items-center justify-between">
+          <Typography variant={TYPOGRAPHY.H6} className="text-gray-900">
             Overview
           </Typography>
+          <TimePeriodSelector
+            timePeriod={timePeriod}
+            onTimePeriodChange={setTimePeriod}
+          />
         </div>
       </div>
 
-      <Dashboard4 appId={appId} teamId={teamId} />
+      <Dashboard4
+        appId={appId}
+        teamId={teamId}
+        timePeriod={timePeriod}
+        onTimePeriodChange={setTimePeriod}
+      />
 
       <ReviewMessageDialog
         appId={appId}
