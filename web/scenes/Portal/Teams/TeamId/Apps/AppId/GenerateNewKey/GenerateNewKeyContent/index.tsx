@@ -164,7 +164,7 @@ export const GenerateNewKeyContent = ({
 
       <label className="flex items-center gap-x-3">
         <Checkbox register={register("confirmed")} />
-        <Typography as="span" variant={TYPOGRAPHY.R3} className="text-grey-900">
+        <Typography as="span" variant={TYPOGRAPHY.R4} className="text-grey-500">
           I have saved my private key securely
         </Typography>
       </label>
