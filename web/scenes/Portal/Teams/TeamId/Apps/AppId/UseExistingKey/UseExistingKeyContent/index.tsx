@@ -32,12 +32,14 @@ export type UseExistingKeyContentProps = {
   onBack: () => void;
   onContinue: (publicKey: string) => void;
   className?: string;
+  loading?: boolean;
 };
 
 export const UseExistingKeyContent = ({
   onBack,
   onContinue,
   className,
+  loading = false,
 }: UseExistingKeyContentProps) => {
   const defaultValues: FormValues = useMemo(() => ({ public_key: "" }), []);
 
@@ -94,7 +96,7 @@ export const UseExistingKeyContent = ({
           type="submit"
           variant="primary"
           className="py-3"
-          disabled={!isValid}
+          disabled={!isValid || loading}
           testId="use-existing-key-create"
         >
           Create
