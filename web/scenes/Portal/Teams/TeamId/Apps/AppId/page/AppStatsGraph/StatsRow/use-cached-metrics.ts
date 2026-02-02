@@ -60,7 +60,7 @@ const isOlderThanOneWeek = (cachedAt: string): boolean => {
 
 const calculatePercentChange = (
   current: number | null,
-  previous: number | null
+  previous: number | null,
 ): number | null => {
   if (current === null || previous === null || previous === 0) {
     return null;
@@ -77,7 +77,7 @@ export const useCachedMetrics = (
     newUsers: number | null;
   } | null,
   isLoading: boolean,
-  timePeriod: "weekly" | "all-time" = "weekly"
+  timePeriod: "weekly" | "all-time" = "weekly",
 ): MetricsWithChange => {
   const [metricsWithChange, setMetricsWithChange] = useState<MetricsWithChange>(
     {
@@ -89,7 +89,7 @@ export const useCachedMetrics = (
       usersChange: null,
       newUsers: null,
       newUsersChange: null,
-    }
+    },
   );
 
   useEffect(() => {
@@ -99,12 +99,17 @@ export const useCachedMetrics = (
 
     // Always use mock data when enabled for preview
     if (USE_MOCK_DATA) {
-      setMetricsWithChange(timePeriod === "weekly" ? mockWeeklyMetrics : mockAllTimeMetrics);
+      setMetricsWithChange(
+        timePeriod === "weekly" ? mockWeeklyMetrics : mockAllTimeMetrics,
+      );
       return;
     }
 
     // Use real data
-    if (!currentMetrics || (currentMetrics.impressions === null && currentMetrics.sessions === null)) {
+    if (
+      !currentMetrics ||
+      (currentMetrics.impressions === null && currentMetrics.sessions === null)
+    ) {
       return;
     }
 
@@ -130,19 +135,19 @@ export const useCachedMetrics = (
     if (cachedData && isOlderThanOneWeek(cachedData.cachedAt)) {
       impressionsChange = calculatePercentChange(
         currentMetrics.impressions,
-        cachedData.impressions
+        cachedData.impressions,
       );
       sessionsChange = calculatePercentChange(
         currentMetrics.sessions,
-        cachedData.sessions
+        cachedData.sessions,
       );
       usersChange = calculatePercentChange(
         currentMetrics.users,
-        cachedData.users
+        cachedData.users,
       );
       newUsersChange = calculatePercentChange(
         currentMetrics.newUsers,
-        cachedData.newUsers
+        cachedData.newUsers,
       );
 
       // Update cache with new data since a week has passed

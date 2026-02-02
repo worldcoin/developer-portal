@@ -8,8 +8,9 @@ import dayjs from "dayjs";
 import advancedFormat from "dayjs/plugin/advancedFormat";
 import { useState } from "react";
 import { BanMessageDialog } from "../../common/BanMessageDialog";
+import { AppStatsGraph, TimePeriodSelector } from "./AppStatsGraph";
+import type { TimePeriod } from "./AppStatsGraph";
 import { BanStatusSection } from "./BanStatusSection";
-import { Dashboard4, TimePeriod, TimePeriodSelector } from "./Dashboard4";
 import { VerificationStatusSection } from "./VerificationStatusSection";
 
 dayjs.extend(advancedFormat);
@@ -47,7 +48,7 @@ export const AppIdPage = (props: {
         </div>
       </div>
 
-      <Dashboard4
+      <AppStatsGraph
         appId={appId}
         teamId={teamId}
         timePeriod={timePeriod}

@@ -7,9 +7,9 @@ import dayjs from "dayjs";
 import tz from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
 import { useMemo } from "react";
-import { useFetchAppStatsQuery } from "../../AppStatsGraph/graphql/client/fetch-app-stats.generated";
-import { useGetAccumulativeTransactions } from "../../AppStatsGraph/GraphsSection/use-get-accumulative-transactions";
-import { useGetMetrics } from "../../AppStatsGraph/StatCards/use-get-metrics";
+import { useFetchAppStatsQuery } from "../graphql/client/fetch-app-stats.generated";
+import { useGetAccumulativeTransactions } from "../GraphsSection/use-get-accumulative-transactions";
+import { useGetMetrics } from "../StatCards/use-get-metrics";
 import { ChartTabType } from "./ChartTabs";
 
 dayjs.extend(utc);
@@ -42,13 +42,12 @@ const paymentsDatasetConfig: Partial<ChartData<"line">["datasets"][number]> = {
   backgroundColor: "#4292F4",
 };
 
-const uniqueUsersDatasetConfig: Partial<
-  ChartData<"line">["datasets"][number]
-> = {
-  ...defaultDatasetConfig,
-  borderColor: "#00C3B6",
-  backgroundColor: "#00C3B6",
-};
+const uniqueUsersDatasetConfig: Partial<ChartData<"line">["datasets"][number]> =
+  {
+    ...defaultDatasetConfig,
+    borderColor: "#00C3B6",
+    backgroundColor: "#00C3B6",
+  };
 
 const openRateDatasetConfig: Partial<ChartData<"line">["datasets"][number]> = {
   ...defaultDatasetConfig,
@@ -61,22 +60,41 @@ const USE_MOCK_DATA = false;
 const mockVerificationsData: ChartProps["data"] = {
   x: ["Aug 2024", "Sep 2024", "Oct 2024", "Nov 2024", "Dec 2024", "Jan 2025"],
   y: [
-    { ...verificationsDatasetConfig, data: [1200, 1900, 3000, 5200, 4800, 6100] },
+    {
+      ...verificationsDatasetConfig,
+      data: [1200, 1900, 3000, 5200, 4800, 6100],
+    },
     { ...uniqueUsersDatasetConfig, data: [800, 1200, 2100, 3400, 3100, 4200] },
   ],
 };
 
 const mockPaymentsData: ChartProps["data"] = {
   x: ["Aug 2024", "Sep 2024", "Oct 2024", "Nov 2024", "Dec 2024", "Jan 2025"],
-  y: [
-    { ...paymentsDatasetConfig, data: [250, 890, 1450, 2100, 3200, 4850] },
-  ],
+  y: [{ ...paymentsDatasetConfig, data: [250, 890, 1450, 2100, 3200, 4850] }],
 };
 
 const mockNotificationsData: ChartProps["data"] = {
-  x: ["Jan 20", "Jan 21", "Jan 22", "Jan 23", "Jan 24", "Jan 25", "Jan 26", "Jan 27", "Jan 28", "Jan 29", "Jan 30", "Jan 31", "Feb 01", "Feb 02"],
+  x: [
+    "Jan 20",
+    "Jan 21",
+    "Jan 22",
+    "Jan 23",
+    "Jan 24",
+    "Jan 25",
+    "Jan 26",
+    "Jan 27",
+    "Jan 28",
+    "Jan 29",
+    "Jan 30",
+    "Jan 31",
+    "Feb 01",
+    "Feb 02",
+  ],
   y: [
-    { ...openRateDatasetConfig, data: [42, 38, 45, 52, 48, 55, 51, 47, 53, 58, 54, 49, 56, 52] },
+    {
+      ...openRateDatasetConfig,
+      data: [42, 38, 45, 52, 48, 55, 51, 47, 53, 58, 54, 49, 56, 52],
+    },
   ],
 };
 
@@ -106,14 +124,12 @@ export const useChartData = (appId: string, activeTab: ChartTabType) => {
       variables: { appId },
     });
 
-  const {
-    payments: paymentsData,
-    loading: transactionsLoading,
-  } = useGetAccumulativeTransactions(appId);
+  const { payments: paymentsData, loading: transactionsLoading } =
+    useGetAccumulativeTransactions(appId);
 
   const engine = useMemo(
     () => appStatsData?.app?.[0]?.engine,
-    [appStatsData?.app]
+    [appStatsData?.app],
   );
 
   // Verifications data
@@ -176,7 +192,7 @@ export const useChartData = (appId: string, activeTab: ChartTabType) => {
 
   const accumulatedPaymentsAmountUSD = useMemo(
     () => paymentsData?.accumulatedTokenAmountUSD,
-    [paymentsData?.accumulatedTokenAmountUSD]
+    [paymentsData?.accumulatedTokenAmountUSD],
   );
 
   // Notifications data
@@ -196,7 +212,7 @@ export const useChartData = (appId: string, activeTab: ChartTabType) => {
 
     metrics.open_rate_last_14_days.forEach((stat) => {
       formattedData.x.push(
-        dayjs(stat.date).format(notificationOpenRateLabelDateFormat)
+        dayjs(stat.date).format(notificationOpenRateLabelDateFormat),
       );
       formattedData.y[0].data.push(stat.value * 100);
     });
@@ -216,14 +232,14 @@ export const useChartData = (appId: string, activeTab: ChartTabType) => {
     return (
       metrics?.open_rate_last_14_days?.reduce(
         (acc, curr) => acc + curr.value,
-        0
+        0,
       ) / metrics?.open_rate_last_14_days?.length
     );
   }, [metrics?.open_rate_last_14_days, metricsLoading]);
 
   const formattedAverageOpenRate = useMemo(
     () => (averageOpenRate == null ? null : (averageOpenRate * 100).toFixed(2)),
-    [averageOpenRate]
+    [averageOpenRate],
   );
 
   const formattedNotificationOptInRate = useMemo(() => {
@@ -240,7 +256,11 @@ export const useChartData = (appId: string, activeTab: ChartTabType) => {
         const hasRealData = !!formattedVerificationsChartData;
         const useMock = USE_MOCK_DATA && !hasRealData;
         return {
-          chartData: hasRealData ? formattedVerificationsChartData : (useMock ? mockVerificationsData : null),
+          chartData: hasRealData
+            ? formattedVerificationsChartData
+            : useMock
+              ? mockVerificationsData
+              : null,
           isLoading: appStatsLoading,
           emptyStateTitle:
             engine === EngineType.OnChain
@@ -269,7 +289,11 @@ export const useChartData = (appId: string, activeTab: ChartTabType) => {
         const hasRealData = !!formattedPaymentsChartData;
         const useMock = USE_MOCK_DATA && !hasRealData;
         return {
-          chartData: hasRealData ? formattedPaymentsChartData : (useMock ? mockPaymentsData : null),
+          chartData: hasRealData
+            ? formattedPaymentsChartData
+            : useMock
+              ? mockPaymentsData
+              : null,
           isLoading: transactionsLoading,
           emptyStateTitle: "No data available yet",
           emptyStateDescription: "Your payment numbers will show up here.",
@@ -288,27 +312,33 @@ export const useChartData = (appId: string, activeTab: ChartTabType) => {
         const hasRealData = !!formattedNotificationOpenRateChartData;
         const useMock = USE_MOCK_DATA && !hasRealData;
         return {
-          chartData: hasRealData ? formattedNotificationOpenRateChartData : (useMock ? mockNotificationsData : null),
+          chartData: hasRealData
+            ? formattedNotificationOpenRateChartData
+            : useMock
+              ? mockNotificationsData
+              : null,
           isLoading: metricsLoading,
           emptyStateTitle: "No data available yet",
           emptyStateDescription:
             "Your notification open rate will show up here.",
-          stats: (hasRealData || useMock)
-            ? [
-                {
-                  label: "Notifications open rate",
-                  value: useMock ? "51.21" : formattedAverageOpenRate,
-                  valueSuffix: "%",
-                  colorClassName: "bg-additional-lightOrange-500",
-                },
-              ]
-            : [],
-          additionalStats: (hasRealData && formattedNotificationOptInRate) || useMock
-            ? {
-                label: "Total opt-in rate",
-                value: useMock ? "68.5%" : formattedNotificationOptInRate,
-              }
-            : undefined,
+          stats:
+            hasRealData || useMock
+              ? [
+                  {
+                    label: "Notifications open rate",
+                    value: useMock ? "51.21" : formattedAverageOpenRate,
+                    valueSuffix: "%",
+                    colorClassName: "bg-additional-lightOrange-500",
+                  },
+                ]
+              : [],
+          additionalStats:
+            (hasRealData && formattedNotificationOptInRate) || useMock
+              ? {
+                  label: "Total opt-in rate",
+                  value: useMock ? "68.5%" : formattedNotificationOptInRate,
+                }
+              : undefined,
         };
       }
     }

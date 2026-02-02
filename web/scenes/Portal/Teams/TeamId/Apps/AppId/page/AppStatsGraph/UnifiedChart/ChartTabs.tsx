@@ -26,7 +26,7 @@ export const ChartTabs = ({ activeTab, onTabChange }: ChartTabsProps) => {
             "pb-2 text-14 font-medium transition-colors",
             activeTab === tab.value
               ? "border-b-2 border-grey-900 text-grey-900"
-              : "text-grey-500 hover:text-grey-700"
+              : "text-grey-500 hover:text-grey-700",
           )}
         >
           {tab.label}

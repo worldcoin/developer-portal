@@ -21,7 +21,11 @@ interface StatItemProps {
 }
 
 // Arrow icon for the change badge
-const ChangeArrowIcon = ({ direction }: { direction: "up" | "down" | "neutral" }) => (
+const ChangeArrowIcon = ({
+  direction,
+}: {
+  direction: "up" | "down" | "neutral";
+}) => (
   <div className="flex size-4 items-center justify-center rounded-full bg-gray-50">
     <svg
       width="12"
@@ -32,7 +36,7 @@ const ChangeArrowIcon = ({ direction }: { direction: "up" | "down" | "neutral" }
       className={clsx(
         direction === "up" && "rotate-0 text-system-success-500",
         direction === "down" && "rotate-180 text-system-error-500",
-        direction === "neutral" && "rotate-90 text-gray-400"
+        direction === "neutral" && "rotate-90 text-gray-400",
       )}
     >
       <path
@@ -46,13 +50,20 @@ const ChangeArrowIcon = ({ direction }: { direction: "up" | "down" | "neutral" }
   </div>
 );
 
-const StatItem = ({ label, value, changePercent, isLoading }: StatItemProps) => {
+const StatItem = ({
+  label,
+  value,
+  changePercent,
+  isLoading,
+}: StatItemProps) => {
   const formatValue = (val: number | undefined | null) => {
     if (val === undefined || val === null) return "0";
     return val.toLocaleString();
   };
 
-  const getChangeDirection = (change: number | null | undefined): "up" | "down" | "neutral" => {
+  const getChangeDirection = (
+    change: number | null | undefined,
+  ): "up" | "down" | "neutral" => {
     if (change === null || change === undefined || change === 0) {
       return "neutral";
     }
@@ -78,22 +89,26 @@ const StatItem = ({ label, value, changePercent, isLoading }: StatItemProps) => 
         {isLoading ? (
           <Skeleton width={60} height={32} />
         ) : (
-          <Typography
-            variant={TYPOGRAPHY.H6}
-            className="text-zinc-900"
-          >
+          <Typography variant={TYPOGRAPHY.H6} className="text-zinc-900">
             {formatValue(value)}
           </Typography>
         )}
 
-        {!isLoading && changePercent !== null && changePercent !== undefined && (
-          <div className="flex h-5 items-center gap-x-1">
-            <ChangeArrowIcon direction={getChangeDirection(changePercent)} />
-            <span className={clsx("font-gta text-xs font-medium leading-4", getChangeColor(changePercent))}>
-              {Math.abs(changePercent).toFixed(0)}%
-            </span>
-          </div>
-        )}
+        {!isLoading &&
+          changePercent !== null &&
+          changePercent !== undefined && (
+            <div className="flex h-5 items-center gap-x-1">
+              <ChangeArrowIcon direction={getChangeDirection(changePercent)} />
+              <span
+                className={clsx(
+                  "font-gta text-xs font-medium leading-4",
+                  getChangeColor(changePercent),
+                )}
+              >
+                {Math.abs(changePercent).toFixed(0)}%
+              </span>
+            </div>
+          )}
       </div>
     </div>
   );

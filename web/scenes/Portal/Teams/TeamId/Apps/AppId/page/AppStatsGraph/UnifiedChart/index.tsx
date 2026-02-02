@@ -103,7 +103,7 @@ export const UnifiedChart = ({ appId }: UnifiedChartProps) => {
 
   const { chartData, isLoading, stats, additionalStats } = useChartData(
     appId,
-    activeTab
+    activeTab,
   );
 
   const mobileChartOptions = {
