@@ -25,5 +25,5 @@ export const isWorldId40EnabledForTeam = async (
     [] as string[],
   );
 
-  return enabledTeams.includes(teamId);
+  return enabledTeams?.includes(teamId) ?? false;
 };
