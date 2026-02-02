@@ -121,7 +121,7 @@ export const httpsUrlSchema = ({
         if (!value || value.trim() === "") return true;
         const hasProtocol = /^[a-zA-Z][a-zA-Z\d+\-.]*:/.test(value);
         return !hasProtocol || value.startsWith("https://");
-      }
+      },
     )
     .url("Must be a valid URL")
     .matches(/^https:\/\/(\w+-)*\w+(\.\w+)+([\/\w\-._/?%&#=]*)?$/, {
