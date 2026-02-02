@@ -218,24 +218,42 @@ export const CreateAppDialogV4 = (props: DialogProps) => {
   }, []);
 
   const onGenerateNewKeyContinue = useCallback(
-    (publicKey: string) => {
-      // TODO: Save the public key to the database
-      console.log("Generated public key:", publicKey);
-
+    async (publicKey: string) => {
       if (!teamId || !createdAppId) {
         toast.error(
           "Failed to complete app setup. Please close this dialog and try again from your team's apps page.",
         );
         return;
       }
-      const redirect =
-        nextDest === "configuration"
-          ? urls.configuration({ team_id: teamId, app_id: createdAppId })
-          : urls.actions({ team_id: teamId, app_id: createdAppId });
-      router.push(redirect);
-      onClose();
+
+      try {
+        const { data } = await registerRp({
+          variables: {
+            app_id: createdAppId,
+            signer_address: publicKey,
+          },
+        });
+
+        if (!data?.register_rp) {
+          toast.error("Failed to register Relying Party");
+          return;
+        }
+
+        // Success - redirect to app
+        const redirect =
+          nextDest === "configuration"
+            ? urls.configuration({ team_id: teamId, app_id: createdAppId })
+            : urls.actions({ team_id: teamId, app_id: createdAppId });
+
+        toast.success("App configured successfully");
+        router.push(redirect);
+        onClose();
+      } catch (error) {
+        console.error("[onGenerateNewKeyContinue] Error:", error);
+        toast.error("Failed to register Relying Party");
+      }
     },
-    [teamId, createdAppId, nextDest, router, onClose],
+    [teamId, createdAppId, nextDest, router, onClose, registerRp],
   );
 
   return (
