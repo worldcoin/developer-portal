@@ -181,11 +181,16 @@ export const useChartData = (appId: string, activeTab: ChartTabType) => {
     };
 
     payments.forEach((stat) => {
-      formattedData.x.push(dayjs(stat.updatedAt).format(labelDateFormat));
       if (stat.transactionStatus === TransactionStatus.Mined) {
+        formattedData.x.push(dayjs(stat.updatedAt).format(labelDateFormat));
         formattedData.y[0].data.push(Number(stat.inputTokenAmount));
       }
     });
+
+    // Return null if no mined payments to show empty state
+    if (!formattedData.x.length) {
+      return null;
+    }
 
     return formattedData;
   }, [paymentsData?.accumulativePayments]);
