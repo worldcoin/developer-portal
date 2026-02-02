@@ -86,7 +86,7 @@ export const GenerateNewKeyContent = ({
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
-      className={clsx("grid w-full max-w-[580px] gap-y-[1.8rem]", className)}
+      className={clsx("grid w-full max-w-[580px] gap-y-6", className)}
     >
       <div className="grid gap-y-3">
         <Typography as="h1" variant={TYPOGRAPHY.H6}>
@@ -105,7 +105,7 @@ export const GenerateNewKeyContent = ({
         readOnly
         disabled
         addOnRight={
-          <div className="flex items-center gap-x-[0.3rem]">
+          <div className="flex items-center gap-x-2">
             <button
               type="button"
               onClick={() => setIsBlurred(!isBlurred)}
@@ -113,9 +113,9 @@ export const GenerateNewKeyContent = ({
               aria-label={isBlurred ? "Show private key" : "Hide private key"}
             >
               {isBlurred ? (
-                <EyeIcon className="size-5 text-grey-900" />
-              ) : (
                 <EyeSlashIcon className="size-5 text-grey-900" />
+              ) : (
+                <EyeIcon className="size-5 text-grey-900" />
               )}
             </button>
             <CopyButton
