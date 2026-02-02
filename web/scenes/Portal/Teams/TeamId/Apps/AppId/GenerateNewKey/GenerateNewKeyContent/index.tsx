@@ -86,7 +86,7 @@ export const GenerateNewKeyContent = ({
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
-      className={clsx("grid w-full max-w-[580px] gap-y-6", className)}
+      className={clsx("grid w-full max-w-[580px] gap-y-8", className)}
     >
       <div className="grid gap-y-3">
         <Typography as="h1" variant={TYPOGRAPHY.H6}>

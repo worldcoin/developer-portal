@@ -16,7 +16,7 @@ export const Notification = (props: {
     <div
       className={twMerge(
         clsx(
-          "grid grid-cols-auto/1fr items-center gap-x-4 rounded-xl border px-4 py-3.5",
+          "grid grid-cols-auto/1fr items-center gap-x-3 rounded-xl border p-5",
           {
             "border-system-warning-200 bg-system-warning-50":
               props.variant === "warning",
