@@ -44,7 +44,7 @@ export const Input = memo(function Input(props: InputInterface) {
 
     {
       "hover:text-grey-700": !disabled,
-      "bg-grey-50 text-grey-400 border-grey-200": disabled,
+      "bg-grey-25 text-grey-400 border-grey-200": disabled,
     },
   );
   const inputClassNames = clsx(
