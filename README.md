@@ -14,18 +14,34 @@ All the technical docs for the World SDK, World ID Protocol, examples, guides ca
 
 The Developer Portal uses some external services to operate. You do **not** need all the real credentials to run locally.
 
-1. Copy the `.env.test` into a local env file
+1. Copy the `.env.example` into a local env file
 
 ```
 cd web/
-cp .env.test .env
+cp .env.example .env
 ```
 
-**Note:** You may also have to overwrite the `.env.local` file if one exists.
+**Note:** You may also have to overwrite the `.env.local` file if one exists. The `.env.example` file contains all the environment variables needed to run locally with placeholder values for secrets.
 
 2. Edit any environment variables for which you have real credentials.
-3. AWS access (for KMS) is required to run the Developer Portal locally. KMS is used to sign/encrypt, particularly for Sign in with World ID. You will need to have AWS credentials in your env with relevant permissions to run KMS. Here is an [IAM sample policy](web/aws-role-sample-policy.json) for this.
-   1. If you are a core contributor with AWS access to TFH, follow the instructions [here](https://github.com/worldcoin/developer-portal-deployment#local-development) instead.
+3. AWS access is required to run the Developer Portal locally. The following AWS services are used:
+   - **KMS** - for signing/encryption (Sign in with World ID, RP Registry)
+   - **SSM Parameter Store** - for feature flags (e.g., World ID 4.0 enabled teams)
+   - **S3** - for asset storage
+
+   **For Worldcoin team members:** Use the `worldcoin-consumer-stage` AWS profile:
+   ```bash
+   export AWS_PROFILE=worldcoin-consumer-stage
+   ```
+
+   Or run the app with the profile:
+   ```bash
+   AWS_PROFILE=worldcoin-consumer-stage pnpm dev
+   ```
+
+   **For external contributors:** You will need AWS credentials with relevant permissions. Here is an [IAM sample policy](web/aws-role-sample-policy.json) for this.
+
+   If you are a core contributor with AWS access to TFH, follow the instructions [here](https://github.com/worldcoin/developer-portal-deployment#local-development) instead.
 
 ### Starting the app
 
