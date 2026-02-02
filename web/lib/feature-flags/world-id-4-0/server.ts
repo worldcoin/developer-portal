@@ -20,7 +20,10 @@ export const isWorldId40EnabledForTeam = async (
 ): Promise<boolean> => {
   if (!teamId) return false;
 
-  const enabledTeams = await getWorldId40EnabledTeams();
+  const enabledTeams = await global.ParameterStore?.getParameter(
+    "world-id-4-0/enabled-teams",
+    [] as string[],
+  );
 
-  return enabledTeams.includes(teamId);
+  return enabledTeams?.includes(teamId) ?? false;
 };
