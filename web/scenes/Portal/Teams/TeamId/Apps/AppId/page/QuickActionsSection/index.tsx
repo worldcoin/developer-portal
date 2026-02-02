@@ -1,5 +1,3 @@
-"use client";
-
 import { ArrowUpIcon } from "@/components/Icons/ArrowUpIcon";
 import { CheckmarkBadge } from "@/components/Icons/CheckmarkBadge";
 import { MultiplePlusIcon } from "@/components/Icons/MultiplePlusIcon";
