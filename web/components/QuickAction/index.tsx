@@ -23,14 +23,14 @@ export const QuickAction = (
     <Button
       className={twMerge(
         clsx(
-          "group grid grid-cols-1fr/auto items-center justify-between rounded-2xl border border-grey-200 p-6 transition-colors hover:border-blue-500",
+          "group grid grid-cols-1fr/auto items-center justify-between rounded-2xl border border-grey-200 p-6 transition-colors hover:border-blue-600",
           className,
         ),
       )}
       {...buttonProps}
     >
       <div className="flex gap-x-4">
-        <div className="flex size-12 items-center justify-center rounded-full bg-blue-100 text-blue-500">
+        <div className=" flex size-12 items-center justify-center rounded-full bg-additional-blue-100 text-additional-blue-600">
           {icon}
         </div>
 

@@ -60,6 +60,7 @@ const config: Config = {
           blue: {
             100: "#E4F2FE",
             500: "#4292F4",
+            600: "#005CFF",
           },
 
           azure: {

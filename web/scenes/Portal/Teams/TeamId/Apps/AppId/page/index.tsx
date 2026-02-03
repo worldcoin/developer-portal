@@ -1,16 +1,13 @@
+import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { SizingWrapper } from "@/components/SizingWrapper";
-import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { urls } from "@/lib/urls";
 import { ReviewMessageDialog } from "@/scenes/Portal/Teams/TeamId/Apps/common/ReviewMessageDialog";
-import dayjs from "dayjs";
-import advancedFormat from "dayjs/plugin/advancedFormat";
 import { BanMessageDialog } from "../../common/BanMessageDialog";
-import { AppStatsGraph } from "./AppStatsGraph";
+import { getSdk as getAppEnvSdk } from "../layout/graphql/server/fetch-app-env.generated";
 import { BanStatusSection } from "./BanStatusSection";
-import { QuickActionsSection } from "./QuickActionsSection";
+import { DashboardWrapper } from "./DashboardWrapper";
 import { VerificationStatusSection } from "./VerificationStatusSection";
-
-dayjs.extend(advancedFormat);
+import { WorldId40MigrationBanner } from "./WorldId40MigrationBanner";
 
 export enum VerificationStatus {
   Unverified = "unverified",
@@ -19,7 +16,7 @@ export enum VerificationStatus {
   Verified = "verified",
 }
 
-export const AppIdPage = (props: {
+export const AppIdPage = async (props: {
   params: {
     teamId: string;
     appId: string;
@@ -27,20 +24,25 @@ export const AppIdPage = (props: {
 }) => {
   const { teamId, appId } = props.params;
 
+  const client = await getAPIServiceGraphqlClient();
+  const appEnvData = await getAppEnvSdk(client).FetchAppEnv({ id: appId });
+  const hasRpRegistration =
+    (appEnvData.app[0]?.rp_registration?.length ?? 0) > 0;
+
   return (
-    <SizingWrapper className="flex flex-col gap-y-10 py-10">
+    <SizingWrapper className="flex flex-col gap-y-8 py-10">
+      <WorldId40MigrationBanner
+        teamId={teamId}
+        appId={appId}
+        hasRpRegistration={hasRpRegistration}
+      />
+
       <div className="grid gap-y-3">
         <VerificationStatusSection appId={appId} />
         <BanStatusSection appId={appId} />
-
-        <div className="grid gap-y-3">
-          <Typography as="h1" variant={TYPOGRAPHY.H5}>
-            Overview
-          </Typography>
-        </div>
       </div>
-      <AppStatsGraph appId={appId} />
-      <QuickActionsSection appId={appId} teamId={teamId} />
+
+      <DashboardWrapper appId={appId} teamId={teamId} />
 
       <ReviewMessageDialog
         appId={appId}

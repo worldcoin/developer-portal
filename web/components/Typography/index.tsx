@@ -56,9 +56,9 @@ export const Typography = <T extends ElementType = "span">(
             variant === TYPOGRAPHY.H4,
           "font-twk text-3xl font-medium leading-[1.3]":
             variant === TYPOGRAPHY.H5,
-          "font-twk text-2xl font-medium leading-[1.3]":
+          "font-twk text-2xl font-[550] leading-[1.3]":
             variant === TYPOGRAPHY.H6,
-          "font-twk text-lg font-medium leading-[1.3]":
+          "font-twk text-lg font-[550] leading-[1.3]":
             variant === TYPOGRAPHY.H7,
 
           "font-gta text-lg font-medium leading-[1.5]":

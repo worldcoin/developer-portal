@@ -1,35 +1,35 @@
-"use client";
-import { FlaskIcon } from "@/components/Icons/FlaskIcon";
+import { CheckmarkBadge } from "@/components/Icons/CheckmarkBadge";
 import { MultiplePlusIcon } from "@/components/Icons/MultiplePlusIcon";
 import { QuickAction } from "@/components/QuickAction";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import { SIMULATOR_URL } from "@/lib/constants";
 import { urls } from "@/lib/urls";
+
+interface QuickActionsSectionProps {
+  appId: string;
+  teamId: string;
+}
 
 export const QuickActionsSection = ({
   appId,
   teamId,
-}: {
-  appId: string;
-  teamId: string;
-}) => {
+}: QuickActionsSectionProps) => {
   return (
     <div className="grid gap-y-6">
       <Typography variant={TYPOGRAPHY.H7}>Quick actions</Typography>
 
-      <div className="grid gap-x-6 gap-y-4 lg:grid-cols-3">
+      <div className="grid gap-6 lg:grid-cols-3">
         <QuickAction
-          icon={<MultiplePlusIcon />}
+          href={urls.createAction({ team_id: teamId, app_id: appId })}
+          icon={<MultiplePlusIcon className="size-5" />}
           title="Create an action"
           description="Verify users as unique humans"
-          href={urls.createAction({ team_id: teamId, app_id: appId })}
         />
 
         <QuickAction
-          icon={<FlaskIcon />}
-          title="Try simulator"
-          description="Test your app in the simulator"
-          href={SIMULATOR_URL}
+          href={urls.configuration({ team_id: teamId, app_id: appId })}
+          icon={<CheckmarkBadge className="size-5" />}
+          title="Get your app verified"
+          description="Verified apps get more users."
         />
       </div>
     </div>
