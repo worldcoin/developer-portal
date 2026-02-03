@@ -1,5 +1,5 @@
-import { SizingWrapper } from "@/components/SizingWrapper";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
+import { SizingWrapper } from "@/components/SizingWrapper";
 import { urls } from "@/lib/urls";
 import { ReviewMessageDialog } from "@/scenes/Portal/Teams/TeamId/Apps/common/ReviewMessageDialog";
 import { BanMessageDialog } from "../../common/BanMessageDialog";
@@ -30,7 +30,7 @@ export const AppIdPage = async (props: {
     (appEnvData.app[0]?.rp_registration?.length ?? 0) > 0;
 
   return (
-    <SizingWrapper className="flex flex-col gap-y-10 py-10">
+    <SizingWrapper className="flex flex-col gap-y-8 py-10">
       <WorldId40MigrationBanner
         teamId={teamId}
         appId={appId}

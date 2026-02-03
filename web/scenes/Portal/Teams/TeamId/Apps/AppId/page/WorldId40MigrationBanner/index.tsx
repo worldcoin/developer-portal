@@ -6,8 +6,9 @@ import {
   isWorldId40Enabled,
   worldId40Atom,
 } from "@/lib/feature-flags/world-id-4-0/client";
-import { urls } from "@/lib/urls";
+import { CreateAppDialogV4 } from "@/scenes/Portal/layout/CreateAppDialog/index-v4";
 import { useAtomValue } from "jotai";
+import { useState } from "react";
 
 interface WorldId40MigrationBannerProps {
   teamId: string;
@@ -22,6 +23,7 @@ export const WorldId40MigrationBanner = ({
 }: WorldId40MigrationBannerProps) => {
   const worldId40Config = useAtomValue(worldId40Atom);
   const isEnabled = isWorldId40Enabled(worldId40Config, teamId);
+  const [dialogOpen, setDialogOpen] = useState(false);
 
   // Don't show banner if:
   // - World ID 4.0 is not enabled for this team, OR
@@ -54,7 +56,8 @@ export const WorldId40MigrationBanner = ({
 
         <div className="flex items-center gap-2">
           <DecoratedButton
-            href={urls.enableWorldId40({ team_id: teamId, app_id: appId })}
+            type="button"
+            onClick={() => setDialogOpen(true)}
             variant="primary"
             className="h-12 rounded-[10px] border-transparent outline outline-1 outline-offset-[-1px] outline-white/20"
           >
@@ -70,6 +73,13 @@ export const WorldId40MigrationBanner = ({
           </DecoratedButton>
         </div>
       </div>
+
+      <CreateAppDialogV4
+        open={dialogOpen}
+        onClose={() => setDialogOpen(false)}
+        initialStep="enable-world-id-4-0"
+        appId={appId}
+      />
     </div>
   );
 };
