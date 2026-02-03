@@ -70,11 +70,9 @@ export const WorldId40Page = async ({ params }: Props) => {
   const status = rpData.status as RpStatus;
   const statusInfo = statusConfig[status] || statusConfig.pending;
 
-  const { isActive, isFailed, isPending, isDeactivated } = {
+  const { isActive, isFailed } = {
     isActive: status === "registered",
     isFailed: status === "failed",
-    isPending: status === "pending",
-    isDeactivated: status === "deactivated",
   };
 
   const formattedDate = new Date(rpData.created_at).toLocaleDateString(
@@ -86,8 +84,7 @@ export const WorldId40Page = async ({ params }: Props) => {
     },
   );
 
-  const modeLabel =
-    rpData.mode === "managed" ? "Portal-Managed" : "Self-Managed";
+  const modeLabel = rpData.mode === "managed" ? "Managed" : "Self-Managed";
 
   return (
     <SizingWrapper className="py-10">
@@ -134,23 +131,25 @@ export const WorldId40Page = async ({ params }: Props) => {
 
         {/* Status */}
         <div className="flex flex-col gap-0.5">
-          <Typography variant={TYPOGRAPHY.B4} className="text-grey-500">
+          <Typography variant={TYPOGRAPHY.B4} className="text-gray-500">
             Status
           </Typography>
-          <div className="flex items-center gap-2">
-            <div
-              className={`p-1 ${statusInfo.bgColor} flex items-center justify-center rounded-full`}
-            >
-              <div className={`size-2 ${statusInfo.dotColor} rounded-full`} />
+          <div className="flex items-center justify-between rounded-xl">
+            <div className="flex items-center gap-2">
+              <div
+                className={`flex items-center justify-center rounded-full p-1 ${statusInfo.bgColor}`}
+              >
+                <div className={`size-2 rounded-full ${statusInfo.dotColor}`} />
+              </div>
+              <Typography variant={TYPOGRAPHY.B3} className={statusInfo.color}>
+                {statusInfo.label}
+              </Typography>
             </div>
-            <Typography variant={TYPOGRAPHY.B3} className={statusInfo.color}>
-              {statusInfo.label}
-            </Typography>
             {isFailed && (
               <DecoratedButton
                 type="button"
                 variant="primary"
-                className="ml-4 h-8 rounded-full px-4 py-0 text-xs"
+                className="h-8 rounded-full px-4 py-0 text-xs"
               >
                 Try again
               </DecoratedButton>
