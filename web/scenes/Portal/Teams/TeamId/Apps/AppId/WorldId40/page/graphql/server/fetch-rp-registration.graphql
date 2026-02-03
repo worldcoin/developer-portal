@@ -1,0 +1,11 @@
+query FetchRpRegistration($appId: String!) {
+  rp_registration(where: { app_id: { _eq: $appId } }) {
+    rp_id
+    app_id
+    status
+    mode
+    signer_address
+    created_at
+    updated_at
+  }
+}
