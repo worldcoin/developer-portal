@@ -1,10 +1,13 @@
 import { SizingWrapper } from "@/components/SizingWrapper";
+import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { urls } from "@/lib/urls";
 import { ReviewMessageDialog } from "@/scenes/Portal/Teams/TeamId/Apps/common/ReviewMessageDialog";
 import { BanMessageDialog } from "../../common/BanMessageDialog";
+import { getSdk as getAppEnvSdk } from "../layout/graphql/server/fetch-app-env.generated";
 import { BanStatusSection } from "./BanStatusSection";
 import { DashboardWrapper } from "./DashboardWrapper";
 import { VerificationStatusSection } from "./VerificationStatusSection";
+import { WorldId40MigrationBanner } from "./WorldId40MigrationBanner";
 
 export enum VerificationStatus {
   Unverified = "unverified",
@@ -13,7 +16,7 @@ export enum VerificationStatus {
   Verified = "verified",
 }
 
-export const AppIdPage = (props: {
+export const AppIdPage = async (props: {
   params: {
     teamId: string;
     appId: string;
@@ -21,8 +24,19 @@ export const AppIdPage = (props: {
 }) => {
   const { teamId, appId } = props.params;
 
+  const client = await getAPIServiceGraphqlClient();
+  const appEnvData = await getAppEnvSdk(client).FetchAppEnv({ id: appId });
+  const hasRpRegistration =
+    (appEnvData.app[0]?.rp_registration?.length ?? 0) > 0;
+
   return (
     <SizingWrapper className="flex flex-col gap-y-10 py-10">
+      <WorldId40MigrationBanner
+        teamId={teamId}
+        appId={appId}
+        hasRpRegistration={hasRpRegistration}
+      />
+
       <div className="grid gap-y-3">
         <VerificationStatusSection appId={appId} />
         <BanStatusSection appId={appId} />
