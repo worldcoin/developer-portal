@@ -71,7 +71,9 @@ export const WorldId40Page = async ({ params }: Props) => {
   const statusInfo = statusConfig[status] || statusConfig.pending;
   const isActive = status === "registered";
   const isFailed = status === "failed";
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const isPending = status === "pending";
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const isDeactivated = status === "deactivated";
 
   const formattedDate = new Date(rpData.created_at).toLocaleDateString(
@@ -103,7 +105,7 @@ export const WorldId40Page = async ({ params }: Props) => {
         </div>
 
         {/* RP ID */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center justify-between">
           <div className="flex flex-col gap-0.5">
             <Typography
               variant={TYPOGRAPHY.B4}
