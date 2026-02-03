@@ -2,8 +2,8 @@
 
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { useState } from "react";
-import { AppStatsGraph, TimePeriodSelector } from "./AppStatsGraph";
 import type { TimePeriod } from "./AppStatsGraph";
+import { AppStatsGraph, TimePeriodSelector } from "./AppStatsGraph";
 
 interface DashboardWrapperProps {
   appId: string;
