@@ -34,15 +34,28 @@ const STEP_TITLES: Record<Step, string> = {
   "configure-signer-key": "Configure Signer Key",
 };
 
-export const CreateAppDialogV4 = (props: DialogProps) => {
+type CreateAppDialogV4Props = DialogProps & {
+  /** Starting step - use "enable-world-id-4-0" for existing apps */
+  initialStep?: Step;
+  /** App ID for existing apps (required when initialStep is not "create") */
+  appId?: string;
+};
+
+export const CreateAppDialogV4 = ({
+  initialStep = "create",
+  appId: existingAppId,
+  ...props
+}: CreateAppDialogV4Props) => {
   const { teamId } = useParams() as { teamId: string | undefined };
   const router = useRouter();
   const { refetch: refetchApps } = useRefetchQueries(FetchAppsDocument, {
     teamId: teamId,
   });
 
-  const [step, setStep] = useState<Step>("create");
-  const [createdAppId, setCreatedAppId] = useState<string | null>(null);
+  const [step, setStep] = useState<Step>(initialStep);
+  const [createdAppId, setCreatedAppId] = useState<string | null>(
+    existingAppId ?? null,
+  );
   const [nextDest, setNextDest] = useState<"configuration" | "actions" | null>(
     null,
   );
@@ -123,11 +136,11 @@ export const CreateAppDialogV4 = (props: DialogProps) => {
 
   const onClose = useCallback(() => {
     reset(defaultValues);
-    setStep("create");
-    setCreatedAppId(null);
+    setStep(initialStep);
+    setCreatedAppId(existingAppId ?? null);
     setNextDest(null);
     props.onClose(false);
-  }, [defaultValues, props, reset, setStep, setCreatedAppId, setNextDest]);
+  }, [defaultValues, props, reset, initialStep, existingAppId]);
 
   const onEnableContinue = useCallback(() => {
     setStep("configure-signer-key");
@@ -144,13 +157,17 @@ export const CreateAppDialogV4 = (props: DialogProps) => {
       );
       return;
     }
+    // For existing apps (initialStep !== "create"), redirect to app page
+    // For new apps, redirect based on app type (miniapp -> configuration, external -> actions)
     const redirect =
-      nextDest === "configuration"
-        ? urls.configuration({ team_id: teamId, app_id: createdAppId })
-        : urls.actions({ team_id: teamId, app_id: createdAppId });
+      initialStep !== "create"
+        ? urls.app({ team_id: teamId, app_id: createdAppId })
+        : nextDest === "configuration"
+          ? urls.configuration({ team_id: teamId, app_id: createdAppId })
+          : urls.actions({ team_id: teamId, app_id: createdAppId });
     router.push(redirect);
     onClose();
-  }, [teamId, createdAppId, nextDest, router, onClose]);
+  }, [teamId, createdAppId, nextDest, initialStep, router, onClose]);
 
   return (
     <Dialog open={props.open} onClose={onClose} className="z-50 ">
@@ -161,7 +178,7 @@ export const CreateAppDialogV4 = (props: DialogProps) => {
           <SizingWrapper>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-x-3">
-                {step === "create" && (
+                {step === initialStep && (
                   <>
                     <Button type="button" onClick={onClose} className="flex">
                       <CloseIcon className="size-4" />
