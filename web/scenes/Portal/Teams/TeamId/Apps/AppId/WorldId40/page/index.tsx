@@ -69,12 +69,13 @@ export const WorldId40Page = async ({ params }: Props) => {
 
   const status = rpData.status as RpStatus;
   const statusInfo = statusConfig[status] || statusConfig.pending;
-  const isActive = status === "registered";
-  const isFailed = status === "failed";
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const isPending = status === "pending";
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const isDeactivated = status === "deactivated";
+
+  const { isActive, isFailed, isPending, isDeactivated } = {
+    isActive: status === "registered",
+    isFailed: status === "failed",
+    isPending: status === "pending",
+    isDeactivated: status === "deactivated",
+  };
 
   const formattedDate = new Date(rpData.created_at).toLocaleDateString(
     "en-US",
@@ -107,10 +108,7 @@ export const WorldId40Page = async ({ params }: Props) => {
         {/* RP ID */}
         <div className="flex items-center justify-between">
           <div className="flex flex-col gap-0.5">
-            <Typography
-              variant={TYPOGRAPHY.B4}
-              className="text-xs text-grey-500"
-            >
+            <Typography variant={TYPOGRAPHY.B4} className="text-grey-500">
               RP ID
             </Typography>
             <Typography variant={TYPOGRAPHY.B3} className="text-grey-900">
@@ -126,7 +124,7 @@ export const WorldId40Page = async ({ params }: Props) => {
 
         {/* Management Mode */}
         <div className="flex flex-col gap-0.5">
-          <Typography variant={TYPOGRAPHY.B4} className="text-xs text-grey-500">
+          <Typography variant={TYPOGRAPHY.B4} className="text-grey-500">
             Management Mode
           </Typography>
           <Typography variant={TYPOGRAPHY.B3} className="text-grey-900">
@@ -136,7 +134,7 @@ export const WorldId40Page = async ({ params }: Props) => {
 
         {/* Status */}
         <div className="flex flex-col gap-0.5">
-          <Typography variant={TYPOGRAPHY.B4} className="text-xs text-grey-500">
+          <Typography variant={TYPOGRAPHY.B4} className="text-grey-500">
             Status
           </Typography>
           <div className="flex items-center gap-2">

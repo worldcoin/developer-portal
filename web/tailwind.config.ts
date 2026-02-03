@@ -151,6 +151,7 @@ const config: Config = {
         rubik: ["var(--font-rubik)", ...defaultTheme.fontFamily.sans],
         twk: ["TWK Lausanne", ...defaultTheme.fontFamily.sans],
         ibm: ["var(--font-mono)", "monospace"],
+        world: ["World Pro", ...defaultTheme.fontFamily.sans],
       },
 
       fontSize: {
