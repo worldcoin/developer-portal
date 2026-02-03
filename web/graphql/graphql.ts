@@ -1319,6 +1319,17 @@ export type Action_V4_Aggregate = {
   nodes: Array<Action_V4>;
 };
 
+export type Action_V4_Aggregate_Bool_Exp = {
+  count?: InputMaybe<Action_V4_Aggregate_Bool_Exp_Count>;
+};
+
+export type Action_V4_Aggregate_Bool_Exp_Count = {
+  arguments?: InputMaybe<Array<Action_V4_Select_Column>>;
+  distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
+  filter?: InputMaybe<Action_V4_Bool_Exp>;
+  predicate: Int_Comparison_Exp;
+};
+
 /** aggregate fields of "action_v4" */
 export type Action_V4_Aggregate_Fields = {
   __typename?: "action_v4_aggregate_fields";
@@ -1331,6 +1342,20 @@ export type Action_V4_Aggregate_Fields = {
 export type Action_V4_Aggregate_FieldsCountArgs = {
   columns?: InputMaybe<Array<Action_V4_Select_Column>>;
   distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
+};
+
+/** order by aggregate values of table "action_v4" */
+export type Action_V4_Aggregate_Order_By = {
+  count?: InputMaybe<Order_By>;
+  max?: InputMaybe<Action_V4_Max_Order_By>;
+  min?: InputMaybe<Action_V4_Min_Order_By>;
+};
+
+/** input type for inserting array relation for remote table "action_v4" */
+export type Action_V4_Arr_Rel_Insert_Input = {
+  data: Array<Action_V4_Insert_Input>;
+  /** upsert condition */
+  on_conflict?: InputMaybe<Action_V4_On_Conflict>;
 };
 
 /** Boolean expression to filter rows from the table "action_v4". All fields are combined with a logical 'AND'. */
@@ -1391,6 +1416,21 @@ export type Action_V4_Max_Fields = {
   updated_at?: Maybe<Scalars["timestamptz"]["output"]>;
 };
 
+/** order by max() on columns of table "action_v4" */
+export type Action_V4_Max_Order_By = {
+  /** Action identifier as passed by the developer */
+  action?: InputMaybe<Order_By>;
+  created_at?: InputMaybe<Order_By>;
+  /** Human-readable description of the action */
+  description?: InputMaybe<Order_By>;
+  /** Whether this action is for staging (allows nullifier reuse) or production */
+  environment?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  /** Reference to the RP registration (on-chain RP ID) */
+  rp_id?: InputMaybe<Order_By>;
+  updated_at?: InputMaybe<Order_By>;
+};
+
 /** aggregate min on columns */
 export type Action_V4_Min_Fields = {
   __typename?: "action_v4_min_fields";
@@ -1405,6 +1445,21 @@ export type Action_V4_Min_Fields = {
   /** Reference to the RP registration (on-chain RP ID) */
   rp_id?: Maybe<Scalars["String"]["output"]>;
   updated_at?: Maybe<Scalars["timestamptz"]["output"]>;
+};
+
+/** order by min() on columns of table "action_v4" */
+export type Action_V4_Min_Order_By = {
+  /** Action identifier as passed by the developer */
+  action?: InputMaybe<Order_By>;
+  created_at?: InputMaybe<Order_By>;
+  /** Human-readable description of the action */
+  description?: InputMaybe<Order_By>;
+  /** Whether this action is for staging (allows nullifier reuse) or production */
+  environment?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  /** Reference to the RP registration (on-chain RP ID) */
+  rp_id?: InputMaybe<Order_By>;
+  updated_at?: InputMaybe<Order_By>;
 };
 
 /** response of any mutation on the table "action_v4" */
@@ -10208,6 +10263,10 @@ export type Rollup_App_Stats_Args = {
 /** columns and relationships of "rp_registration" */
 export type Rp_Registration = {
   __typename?: "rp_registration";
+  /** An array relationship */
+  actions_v4: Array<Action_V4>;
+  /** An aggregate relationship */
+  actions_v4_aggregate: Action_V4_Aggregate;
   /** An object relationship */
   app: App;
   app_id: Scalars["String"]["output"];
@@ -10219,6 +10278,24 @@ export type Rp_Registration = {
   signer_address: Scalars["String"]["output"];
   status: Scalars["rp_registration_status"]["output"];
   updated_at: Scalars["timestamptz"]["output"];
+};
+
+/** columns and relationships of "rp_registration" */
+export type Rp_RegistrationActions_V4Args = {
+  distinct_on?: InputMaybe<Array<Action_V4_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Action_V4_Order_By>>;
+  where?: InputMaybe<Action_V4_Bool_Exp>;
+};
+
+/** columns and relationships of "rp_registration" */
+export type Rp_RegistrationActions_V4_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Action_V4_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Action_V4_Order_By>>;
+  where?: InputMaybe<Action_V4_Bool_Exp>;
 };
 
 /** aggregated selection of "rp_registration" */
@@ -10272,6 +10349,8 @@ export type Rp_Registration_Bool_Exp = {
   _and?: InputMaybe<Array<Rp_Registration_Bool_Exp>>;
   _not?: InputMaybe<Rp_Registration_Bool_Exp>;
   _or?: InputMaybe<Array<Rp_Registration_Bool_Exp>>;
+  actions_v4?: InputMaybe<Action_V4_Bool_Exp>;
+  actions_v4_aggregate?: InputMaybe<Action_V4_Aggregate_Bool_Exp>;
   app?: InputMaybe<App_Bool_Exp>;
   app_id?: InputMaybe<String_Comparison_Exp>;
   created_at?: InputMaybe<Timestamptz_Comparison_Exp>;
@@ -10294,6 +10373,7 @@ export enum Rp_Registration_Constraint {
 
 /** input type for inserting data into table "rp_registration" */
 export type Rp_Registration_Insert_Input = {
+  actions_v4?: InputMaybe<Action_V4_Arr_Rel_Insert_Input>;
   app?: InputMaybe<App_Obj_Rel_Insert_Input>;
   app_id?: InputMaybe<Scalars["String"]["input"]>;
   created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
@@ -10398,6 +10478,7 @@ export type Rp_Registration_On_Conflict = {
 
 /** Ordering options when selecting data from "rp_registration". */
 export type Rp_Registration_Order_By = {
+  actions_v4_aggregate?: InputMaybe<Action_V4_Aggregate_Order_By>;
   app?: InputMaybe<App_Order_By>;
   app_id?: InputMaybe<Order_By>;
   created_at?: InputMaybe<Order_By>;

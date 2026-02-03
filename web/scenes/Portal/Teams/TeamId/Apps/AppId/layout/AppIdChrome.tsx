@@ -31,6 +31,7 @@ type AppIdChromeProps = {
   params: { teamId?: string; appId?: string };
   isOnChainApp: boolean;
   hasRpRegistration: boolean;
+  hasLegacyActions: boolean;
   children: ReactNode;
 };
 
@@ -38,6 +39,7 @@ export const AppIdChrome = ({
   params,
   isOnChainApp,
   hasRpRegistration,
+  hasLegacyActions,
   children,
 }: AppIdChromeProps) => {
   const pathname = usePathname();
@@ -52,7 +54,10 @@ export const AppIdChrome = ({
     return <>{children}</>;
   }
 
-  const isWorldIdSegment = segment === "actions";
+  const isWorldIdSegment =
+    segment === "world-id-4-0" ||
+    segment === "world-id-actions" ||
+    segment === "actions";
   const isMiniAppSegment =
     segment === "transactions" || segment === "notifications";
 
@@ -71,10 +76,10 @@ export const AppIdChrome = ({
               </Tab>
 
               <Tab
-                href={`/teams/${teamId}/apps/${appId}/actions`}
+                href={`/teams/${teamId}/apps/${appId}/world-id-4-0`}
                 underlined
                 active={isWorldIdSegment}
-                segment={"actions"}
+                segment={"world-id-4-0"}
               >
                 <Typography variant={TYPOGRAPHY.R4}>World ID</Typography>
               </Tab>
@@ -99,6 +104,41 @@ export const AppIdChrome = ({
           </SizingWrapper>
         </div>
 
+        {isWorldIdSegment && (
+          <div className="md:border-b md:border-grey-100 md:bg-grey-50">
+            <SizingWrapper gridClassName="hidden md:grid" variant="nav">
+              <Tabs className="px-6 py-4 font-gta md:py-0">
+                <Tab
+                  className="md:py-4"
+                  href={`/teams/${teamId}/apps/${appId}/world-id-4-0`}
+                  segment={"world-id-4-0"}
+                >
+                  <Typography variant={TYPOGRAPHY.R4}>World ID 4.0</Typography>
+                </Tab>
+
+                <Tab
+                  className="md:py-4"
+                  href={`/teams/${teamId}/apps/${appId}/world-id-actions`}
+                  segment={"world-id-actions"}
+                >
+                  <Typography variant={TYPOGRAPHY.R4}>Actions</Typography>
+                </Tab>
+
+                {hasLegacyActions && (
+                  <Tab
+                    className="md:py-4"
+                    href={`/teams/${teamId}/apps/${appId}/actions`}
+                    segment={"actions"}
+                  >
+                    <Typography variant={TYPOGRAPHY.R4}>
+                      World ID 3.0 Legacy
+                    </Typography>
+                  </Tab>
+                )}
+              </Tabs>
+            </SizingWrapper>
+          </div>
+        )}
 
         {isMiniAppSegment && (
           <div className="md:border-b md:border-grey-100 md:bg-grey-50">
