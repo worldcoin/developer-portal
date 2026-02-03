@@ -46,7 +46,7 @@ const STEP_TITLES: Record<CreateDialogStep, string> = {
 
 type CreateAppDialogV4Props = DialogProps & {
   /** Starting step - use "enable-world-id-4-0" for existing apps */
-  initialStep?: Step;
+  initialStep?: CreateDialogStep;
   /** App ID for existing apps (required when initialStep is not "create") */
   appId?: string;
 };
@@ -64,7 +64,7 @@ export const CreateAppDialogV4 = ({
 
   const [registerRp, { loading: registeringRp }] = useRegisterRpMutation();
 
-  const [step, setStep] = useState<Step>(initialStep);
+  const [step, setStep] = useState<CreateDialogStep>(initialStep);
   const [createdAppId, setCreatedAppId] = useState<string | null>(
     existingAppId ?? null,
   );
