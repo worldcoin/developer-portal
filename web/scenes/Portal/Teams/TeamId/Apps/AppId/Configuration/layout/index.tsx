@@ -66,6 +66,15 @@ export const AppProfileLayout = async (props: AppProfileLayout) => {
                 <Typography variant={TYPOGRAPHY.R4}>Danger zone</Typography>
               </Tab>
             )}
+
+            <Tab
+              className="md:py-4"
+              href={`/teams/${params!.teamId}/api-keys`}
+              active={false}
+              segment={"api-keys"}
+            >
+              <Typography variant={TYPOGRAPHY.R4}>API Keys</Typography>
+            </Tab>
           </Tabs>
         </SizingWrapper>
       </div>

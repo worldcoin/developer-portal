@@ -10,7 +10,7 @@ import { SizingWrapper } from "@/components/SizingWrapper";
 import { Tab, Tabs } from "@/components/Tabs";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { urls } from "@/lib/urls";
-import { usePathname } from "next/navigation";
+import { usePathname, useSelectedLayoutSegment } from "next/navigation";
 import { ReactNode } from "react";
 
 function isOnboardingPath(
@@ -30,15 +30,18 @@ function isOnboardingPath(
 type AppIdChromeProps = {
   params: { teamId?: string; appId?: string };
   isOnChainApp: boolean;
+  hasRpRegistration: boolean;
   children: ReactNode;
 };
 
 export const AppIdChrome = ({
   params,
   isOnChainApp,
+  hasRpRegistration,
   children,
 }: AppIdChromeProps) => {
   const pathname = usePathname();
+  const segment = useSelectedLayoutSegment();
 
   if (isOnboardingPath(pathname, params)) {
     return <>{children}</>;
@@ -47,6 +50,113 @@ export const AppIdChrome = ({
   const { teamId, appId } = params;
   if (!teamId || !appId) {
     return <>{children}</>;
+  }
+
+  const isWorldIdSegment = segment === "actions";
+  const isMiniAppSegment =
+    segment === "transactions" || segment === "notifications";
+
+  if (hasRpRegistration) {
+    return (
+      <div className="flex flex-col">
+        <div className="md:border-b md:border-grey-100">
+          <SizingWrapper gridClassName="hidden md:grid" variant="nav">
+            <Tabs className="m-auto font-gta">
+              <Tab
+                href={`/teams/${teamId}/apps/${appId}`}
+                underlined
+                segment={null}
+              >
+                <Typography variant={TYPOGRAPHY.R4}>Dashboard</Typography>
+              </Tab>
+
+              <Tab
+                href={`/teams/${teamId}/apps/${appId}/actions`}
+                underlined
+                active={isWorldIdSegment}
+                segment={"actions"}
+              >
+                <Typography variant={TYPOGRAPHY.R4}>World ID</Typography>
+              </Tab>
+
+              <Tab
+                href={`/teams/${teamId}/apps/${appId}/configuration`}
+                underlined
+                segment={"configuration"}
+              >
+                <Typography variant={TYPOGRAPHY.R4}>Configuration</Typography>
+              </Tab>
+
+              <Tab
+                href={`/teams/${teamId}/apps/${appId}/transactions`}
+                underlined
+                active={isMiniAppSegment}
+                segment={"transactions"}
+              >
+                <Typography variant={TYPOGRAPHY.R4}>Mini App</Typography>
+              </Tab>
+            </Tabs>
+          </SizingWrapper>
+        </div>
+
+
+        {isMiniAppSegment && (
+          <div className="md:border-b md:border-grey-100 md:bg-grey-50">
+            <SizingWrapper gridClassName="hidden md:grid" variant="nav">
+              <Tabs className="px-6 py-4 font-gta md:py-0">
+                <Tab
+                  className="md:py-4"
+                  href={`/teams/${teamId}/apps/${appId}/transactions`}
+                  segment={"transactions"}
+                >
+                  <Typography variant={TYPOGRAPHY.R4}>Transactions</Typography>
+                </Tab>
+
+                <Tab
+                  className="md:py-4"
+                  href={`/teams/${teamId}/apps/${appId}/notifications`}
+                  segment={"notifications"}
+                >
+                  <Typography variant={TYPOGRAPHY.R4}>Notifications</Typography>
+                </Tab>
+              </Tabs>
+            </SizingWrapper>
+          </div>
+        )}
+
+        {children}
+
+        <BottomBar>
+          <BottomBar.Link
+            href={`/teams/${teamId}/apps/${appId}`}
+            segment={null}
+          >
+            <DashboardSquareIcon className="size-7" />
+          </BottomBar.Link>
+
+          <BottomBar.Link
+            href={`/teams/${teamId}/apps/${appId}/actions`}
+            segment={"actions"}
+          >
+            <IncognitoIcon className="size-7" />
+          </BottomBar.Link>
+
+          <BottomBar.Link
+            href={`/teams/${teamId}/apps/${appId}/configuration`}
+            segment={"configuration"}
+          >
+            <AppIcon className="size-7" />
+          </BottomBar.Link>
+
+          <BottomBar.Link
+            href={`/teams/${teamId}/apps/${appId}/transactions`}
+            segment={"transactions"}
+          >
+            <TransactionIcon className="size-7" />
+          </BottomBar.Link>
+        </BottomBar>
+      </div>
+    );
   }
 
   return (
