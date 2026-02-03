@@ -30,7 +30,7 @@ export const AppIdPage = async (props: {
     (appEnvData.app[0]?.rp_registration?.length ?? 0) > 0;
 
   return (
-    <SizingWrapper className="flex flex-col gap-y-8 py-10">
+    <SizingWrapper className="flex flex-col gap-y-8 py-4">
       <WorldId40MigrationBanner
         teamId={teamId}
         appId={appId}
