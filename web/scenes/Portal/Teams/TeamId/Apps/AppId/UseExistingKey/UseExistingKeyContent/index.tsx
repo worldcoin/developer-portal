@@ -1,6 +1,7 @@
 "use client";
 
 import { DecoratedButton } from "@/components/DecoratedButton";
+import { SpinnerIcon } from "@/components/Icons/SpinnerIcon";
 import { Input } from "@/components/Input";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -97,9 +98,10 @@ export const UseExistingKeyContent = ({
           variant="primary"
           className="py-3"
           disabled={!isValid || loading}
+          loading={loading}
           testId="use-existing-key-create"
         >
-          Create
+          {loading ? <SpinnerIcon className="size-4 animate-spin" /> : "Create"}
         </DecoratedButton>
       </div>
     </form>
