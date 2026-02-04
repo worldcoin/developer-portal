@@ -75,7 +75,6 @@ export const CreateActionDialogV4 = (props: CreateActionDialogV4Props) => {
       .replace(/[^a-z0-9-]/g, "") // Remove other invalid chars
       .replace(/-{2,}/g, "-") // Collapse multiple consecutive dashes
       .slice(0, 32); // Limit to 32 chars
->>>>>>> 6540aa43 (fix: allow typing dashes in action identifier input)
   };
 
   if (!open) return null;

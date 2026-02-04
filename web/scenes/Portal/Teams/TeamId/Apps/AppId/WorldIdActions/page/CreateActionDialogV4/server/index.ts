@@ -1,7 +1,10 @@
 "use server";
 
+import "server-only";
+
 import { errorFormAction } from "@/api/helpers/errors";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
+import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { getIsUserAllowedToUpdateApp } from "@/lib/permissions";
 import { FormActionResult } from "@/lib/types";
 import { getSession } from "@auth0/nextjs-auth0";
@@ -31,6 +34,14 @@ export async function validateAndInsertActionV4(
   // 3. Get rp_id from app
   const client = await getAPIServiceGraphqlClient();
   const { app } = await getAppRpIdSdk(client).GetAppRpId({ app_id });
+
+  if (!app || app.length === 0) {
+    return errorFormAction({
+      message: "App not found",
+      additionalInfo: { app_id },
+    });
+  }
+
   const rp_id = app[0]?.rp_registration[0]?.rp_id;
 
   if (!rp_id) {
@@ -41,17 +52,18 @@ export async function validateAndInsertActionV4(
   }
 
   // 4. Validate input
-  let parsedParams: CreateActionSchemaV4;
-  try {
-    parsedParams = await createActionSchemaV4.validate(values);
-  } catch (error) {
-    if (error instanceof Error) {
-      return errorFormAction({
-        message: error.message, // Returns specific Yup validation error
-        additionalInfo: { app_id },
-      });
-    }
-    return errorFormAction({ message: "Invalid input" });
+  const { isValid, parsedParams } = await validateRequestSchema({
+    schema: createActionSchemaV4,
+    value: values,
+    app_id,
+  });
+
+  if (!isValid || !parsedParams) {
+    return errorFormAction({
+      message: "Invalid input",
+      additionalInfo: { app_id },
+      logLevel: "warn",
+    });
   }
 
   // 5. Insert action_v4
@@ -81,7 +93,12 @@ export async function validateAndInsertActionV4(
       return errorFormAction({
         error: error as Error,
         message: `An action with identifier "${parsedParams.action}" already exists`,
-        additionalInfo: { app_id, rp_id, action: parsedParams.action },
+        additionalInfo: {
+          app_id,
+          rp_id,
+          action: parsedParams.action,
+          user_id: userId,
+        },
         logLevel: "warn",
       });
     }
@@ -89,7 +106,12 @@ export async function validateAndInsertActionV4(
     return errorFormAction({
       error: error as Error,
       message: "Failed to create action",
-      additionalInfo: { app_id, rp_id, action: parsedParams.action },
+      additionalInfo: {
+        app_id,
+        rp_id,
+        action: parsedParams.action,
+        user_id: userId,
+      },
       logLevel: "error",
     });
   }

@@ -30,8 +30,12 @@ export const ActionsListV4 = (props: ActionsListV4Props) => {
   }, [searchQuery]);
 
   // Filter actions based on search query
-  const filteredActions = actions.filter((action) =>
-    action.action.toLowerCase().includes(searchQuery.toLowerCase()),
+  const filteredActions = useMemo(
+    () =>
+      actions.filter((action) =>
+        action.action.toLowerCase().includes(searchQuery.toLowerCase()),
+      ),
+    [actions, searchQuery],
   );
 
   // Paginate filtered actions

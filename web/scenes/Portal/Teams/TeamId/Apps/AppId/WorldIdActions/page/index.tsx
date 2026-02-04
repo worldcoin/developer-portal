@@ -45,7 +45,6 @@ export const WorldIdActionsPage = ({ params }: WorldIdActionsPageProps) => {
   }
 
   if (error) {
-    console.error("GraphQL Error:", error);
     return (
       <SizingWrapper className="flex items-center justify-center py-10">
         <div className="flex flex-col items-center gap-2">
