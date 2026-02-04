@@ -16,15 +16,13 @@ export const MiniappToggleSection = (props: MiniappToggleSectionProps) => {
   return (
     <div
       className={clsx(
-        "grid grid-cols-auto/1fr/auto items-center gap-x-4 rounded-lg border-[1px] border-grey-200 bg-grey-0 px-2 py-4 transition-colors focus-within:border-blue-500 hover:border-grey-700 focus-within:hover:border-blue-500",
+        "grid grid-cols-auto/1fr/auto items-center gap-x-4 rounded-lg border-[1px] border-grey-200 bg-grey-0 px-2 py-4 transition-colors ",
         className,
       )}
     >
       <div className="grid gap-y-1 pl-2">
-        <Typography variant={TYPOGRAPHY.R3} className="font-semibold">
-          Mini App
-        </Typography>
-        <Typography variant={TYPOGRAPHY.R4} className="text-grey-500">
+        <Typography variant={TYPOGRAPHY.S2}>Mini App</Typography>
+        <Typography variant={TYPOGRAPHY.B3} className="text-grey-500">
           Enable App to run as Mini App
         </Typography>
       </div>

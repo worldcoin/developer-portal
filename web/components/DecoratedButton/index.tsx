@@ -59,7 +59,7 @@ export const DecoratedButton = memo(function DecoratedButton(
       disabled={disabled}
       className={twMerge(
         clsx(
-          "relative flex items-center justify-center rounded-xl border px-6 py-2.5 font-gta font-medium",
+          "relative flex items-center justify-center rounded-[100px] border px-6 py-2.5 font-gta font-medium",
           { [buttonStyles[variant].normal]: !disabled && !loading },
           { [buttonStyles[variant].hover]: !disabled && !loading },
           disabled && buttonStyles[variant].disabled,
