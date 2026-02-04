@@ -5,6 +5,7 @@ import { DecoratedButton } from "@/components/DecoratedButton";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { useEffect, useState } from "react";
+import { RotateSignerKeyDialog } from "./RotateSignerKeyDialog";
 
 type RpStatus = "pending" | "registered" | "failed" | "deactivated";
 
@@ -39,6 +40,7 @@ const statusConfig: Record<
 };
 
 type WorldId40ContentProps = {
+  appId: string;
   rpId: string;
   initialStatus: RpStatus;
   mode: string;
@@ -46,12 +48,14 @@ type WorldId40ContentProps = {
 };
 
 export const WorldId40Content = ({
+  appId,
   rpId,
   initialStatus,
   mode,
   createdAt,
 }: WorldId40ContentProps) => {
   const [status, setStatus] = useState<RpStatus>(initialStatus);
+  const [isRotateDialogOpen, setIsRotateDialogOpen] = useState(false);
 
   useEffect(() => {
     const fetchStatus = async () => {
@@ -179,6 +183,7 @@ export const WorldId40Content = ({
                 variant="secondary"
                 disabled={!isActive}
                 className="h-8 rounded-full px-4 py-0 text-xs"
+                onClick={() => setIsRotateDialogOpen(true)}
               >
                 Reset
               </DecoratedButton>
@@ -235,6 +240,13 @@ export const WorldId40Content = ({
           </div>
         </div>
       </div>
+
+      <RotateSignerKeyDialog
+        open={isRotateDialogOpen}
+        onClose={() => setIsRotateDialogOpen(false)}
+        appId={appId}
+        onSuccess={() => setStatus("pending")}
+      />
     </SizingWrapper>
   );
 };
