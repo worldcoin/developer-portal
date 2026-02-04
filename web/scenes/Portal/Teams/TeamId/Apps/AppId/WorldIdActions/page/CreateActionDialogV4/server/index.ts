@@ -20,7 +20,7 @@ export async function validateAndInsertActionV4(
     return errorFormAction({ message: "Permission denied" });
   }
 
-  // 2. Get rp_id from app
+  // 2. Get RP registration and validate status
   const client = await getAPIServiceGraphqlClient();
   const { app } = await getAppRpIdSdk(client).GetAppRpId({ app_id });
 
@@ -31,12 +31,23 @@ export async function validateAndInsertActionV4(
     });
   }
 
-  const rp_id = app[0]?.rp_registration[0]?.rp_id;
+  const rpRegistration = app[0]?.rp_registration[0];
+  const rp_id = rpRegistration?.rp_id;
+  const status = rpRegistration?.status;
 
   if (!rp_id) {
     return errorFormAction({
       message: "App does not have RP registration",
       additionalInfo: { app_id },
+    });
+  }
+
+  if (status !== "registered") {
+    return errorFormAction({
+      message:
+        "RP registration is not active. Please ensure your app is properly registered.",
+      additionalInfo: { app_id, rp_id, status },
+      logLevel: "warn",
     });
   }
 
