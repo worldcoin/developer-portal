@@ -1,4 +1,5 @@
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
+import { ErrorPage } from "@/components/ErrorPage";
 import { EngineType } from "@/lib/types";
 import { ReactNode } from "react";
 import { getSdk as getAppEnv } from "./graphql/server/fetch-app-env.generated";
@@ -21,8 +22,12 @@ export const AppIdLayout = async (props: AppIdLayoutProps) => {
     id: params.appId ?? "",
   });
 
-  const isOnChainApp = app?.[0]?.engine === EngineType.OnChain;
-  const hasRpRegistration = (app?.[0]?.rp_registration?.length ?? 0) > 0;
+  if (!app?.[0]) {
+    return <ErrorPage statusCode={404} title="App not found" />;
+  }
+
+  const isOnChainApp = app[0].engine === EngineType.OnChain;
+  const hasRpRegistration = (app[0].rp_registration?.length ?? 0) > 0;
   const hasLegacyActions = action.length > 0;
 
   return (
