@@ -44,6 +44,7 @@ type WorldId40ContentProps = {
   rpId: string;
   initialStatus: RpStatus;
   mode: string;
+  signerAddress: string;
   createdAt: string;
 };
 
@@ -52,6 +53,7 @@ export const WorldId40Content = ({
   rpId,
   initialStatus,
   mode,
+  signerAddress,
   createdAt,
 }: WorldId40ContentProps) => {
   const [status, setStatus] = useState<RpStatus>(initialStatus);
@@ -122,6 +124,17 @@ export const WorldId40Content = ({
             fieldValue={rpId}
             className="text-grey-500"
           />
+        </div>
+
+        {/* Signing Key */}
+        <div className="flex flex-col gap-0.5">
+          <Typography variant={TYPOGRAPHY.B4} className="text-grey-500">
+            Signing Key
+          </Typography>
+          <Typography variant={TYPOGRAPHY.B3} className="text-grey-900">
+            {signerAddress.slice(0, 6).toLowerCase()}...
+            {signerAddress.slice(-6).toLowerCase()}
+          </Typography>
         </div>
 
         {/* Management Mode */}
