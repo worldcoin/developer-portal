@@ -19,7 +19,7 @@ import { useRemoveFromReview } from "@/scenes/Portal/Teams/TeamId/Apps/common/ho
 import { useUser } from "@auth0/nextjs-auth0/client";
 import clsx from "clsx";
 import { useAtom, useSetAtom } from "jotai";
-import ErrorComponent from "next/error";
+import { ErrorPage } from "@/components/ErrorPage";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useFormContext } from "react-hook-form";
@@ -305,7 +305,7 @@ export const AppTopBar = (props: AppTopBarProps) => {
     unverifiedImagesData?.unverified_images?.logo_img_url,
   ]);
 
-  if (!appMetadata) return <ErrorComponent statusCode={404}></ErrorComponent>;
+  if (!appMetadata) return <ErrorPage statusCode={404} title="App not found" />;
   return (
     <div className="grid gap-y-5 rounded-3xl border p-8 pt-7 sm:rounded-none sm:border-none sm:p-0">
       {["changes_requested", "verified"].includes(

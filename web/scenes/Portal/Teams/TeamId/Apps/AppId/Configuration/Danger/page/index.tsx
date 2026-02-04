@@ -8,7 +8,7 @@ import { checkUserPermissions, truncateString } from "@/lib/utils";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import clsx from "clsx";
 import { useAtom } from "jotai";
-import Error from "next/error";
+import { ErrorPage } from "@/components/ErrorPage";
 import { useMemo, useState } from "react";
 import { AppTopBar } from "../../AppTopBar";
 import { useFetchAppMetadataQuery } from "../../graphql/client/fetch-app-metadata.generated";
@@ -49,7 +49,11 @@ export const AppProfileDangerPage = ({ params }: AppProfileDangerPageProps) => {
   if (loading) {
     return <div></div>;
   } else if (!app) {
-    return <Error statusCode={404} title="App not found" />;
+    return (
+      <SizingWrapper gridClassName="order-1 md:order-2">
+        <ErrorPage statusCode={404} title="App not found" />
+      </SizingWrapper>
+    );
   } else {
     return (
       <>

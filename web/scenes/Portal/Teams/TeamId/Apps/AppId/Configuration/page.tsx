@@ -1,6 +1,6 @@
 "use client";
+import { ErrorPage } from "@/components/ErrorPage";
 import { SizingWrapper } from "@/components/SizingWrapper";
-import Error from "next/error";
 import Skeleton from "react-loading-skeleton";
 import { AppTopBar } from "./AppTopBar";
 import { FormSkeleton } from "./AppTopBar/FormSkeleton";
@@ -32,7 +32,11 @@ export const AppProfilePage = ({ params }: AppProfilePageProps) => {
   const teamName = teamData?.team[0]?.name;
 
   if (!loading && (error || !app)) {
-    return <Error statusCode={404} title="App not found" />;
+    return (
+      <SizingWrapper gridClassName="order-1 md:order-2">
+        <ErrorPage statusCode={404} title="App not found" />
+      </SizingWrapper>
+    );
   } else {
     return (
       <>

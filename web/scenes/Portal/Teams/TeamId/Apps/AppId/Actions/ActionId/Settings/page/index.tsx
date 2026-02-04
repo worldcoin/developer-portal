@@ -1,6 +1,6 @@
 "use client";
 import { SizingWrapper } from "@/components/SizingWrapper";
-import ErrorComponent from "next/error";
+import { ErrorPage } from "@/components/ErrorPage";
 import Skeleton from "react-loading-skeleton";
 import { ActionsHeader } from "../../Components/ActionsHeader";
 import { TryAction } from "../TryAction";
@@ -27,10 +27,9 @@ export const ActionIdSettingsPage = ({ params }: ActionIdSettingsPageProps) => {
 
   if (!loading && !action) {
     return (
-      <ErrorComponent
-        statusCode={404}
-        title="Action not found"
-      ></ErrorComponent>
+      <SizingWrapper gridClassName="order-1 md:order-2">
+        <ErrorPage statusCode={404} title="Action not found" />
+      </SizingWrapper>
     );
   } else {
     return (

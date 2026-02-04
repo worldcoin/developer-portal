@@ -1,5 +1,5 @@
 "use client";
-import ErrorComponent from "next/error";
+import { ErrorPage } from "@/components/ErrorPage";
 import Skeleton from "react-loading-skeleton";
 import { ActionsHeader } from "../../Components/ActionsHeader";
 import { ActionDangerZoneContent } from "../ActionDangerZoneContent";
@@ -24,10 +24,9 @@ export const ActionIdDangerPage = ({ params }: ActionIdDangerPageProps) => {
 
   if (!loading && !action) {
     return (
-      <ErrorComponent
-        statusCode={404}
-        title="Action not found"
-      ></ErrorComponent>
+      <SizingWrapper gridClassName="order-1 md:order-2">
+        <ErrorPage statusCode={404} title="Action not found" />
+      </SizingWrapper>
     );
   } else {
     return (
