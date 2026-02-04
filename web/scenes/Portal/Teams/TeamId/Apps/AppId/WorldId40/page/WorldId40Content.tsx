@@ -209,8 +209,8 @@ export const WorldId40Content = ({
               </div>
               <DecoratedButton
                 type="button"
-                variant={isActive ? "danger" : "secondary"}
-                disabled={!isActive}
+                variant="secondary"
+                disabled
                 className="h-8 rounded-full px-4 py-0 text-xs"
               >
                 Deactivate
@@ -230,8 +230,8 @@ export const WorldId40Content = ({
               </div>
               <DecoratedButton
                 type="button"
-                variant={isActive ? "danger" : "secondary"}
-                disabled={!isActive}
+                variant="secondary"
+                disabled
                 className="h-8 rounded-full px-4 py-0 text-xs"
               >
                 Switch
