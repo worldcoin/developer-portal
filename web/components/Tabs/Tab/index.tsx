@@ -6,11 +6,11 @@ import { HTMLAttributes, useMemo } from "react";
 import { tv } from "tailwind-variants";
 
 const tab = tv({
-  base: "block px-4 py-2.5 leading-5 md:px-1 md:py-3 md:leading-4 cursor-pointer",
+  base: "block cursor-pointer px-4 py-2.5 leading-5 md:px-1 md:py-3 md:leading-4",
   variants: {
     active: {
       true: "cursor-default rounded-full bg-grey-0 text-grey-900 shadow-tab md:rounded-none md:bg-transparent md:shadow-none",
-      false: "text-grey-500 cursor-pointer",
+      false: "cursor-pointer text-grey-500",
     },
     underlined: {
       true: "",

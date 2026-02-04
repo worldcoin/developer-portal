@@ -1,0 +1,22 @@
+query GetActionsV4($app_id: String!) {
+  app(where: { id: { _eq: $app_id } }) {
+    rp_registration {
+      rp_id
+    }
+  }
+  action_v4(
+    where: { rp_registration: { app: { id: { _eq: $app_id } } } }
+    order_by: { created_at: desc }
+  ) {
+    id
+    action
+    description
+    environment
+    created_at
+    nullifiers_aggregate {
+      aggregate {
+        count
+      }
+    }
+  }
+}
