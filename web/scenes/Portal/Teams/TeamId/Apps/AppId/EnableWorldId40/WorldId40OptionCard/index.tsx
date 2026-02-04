@@ -5,7 +5,6 @@ import { CloseIcon } from "@/components/Icons/CloseIcon";
 import { Radio, RadioProps } from "@/components/Radio";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import clsx from "clsx";
-import React from "react";
 import { twMerge } from "tailwind-merge";
 
 type Bullet = { text: string; variant: "check" | "x" };
@@ -35,7 +34,7 @@ export const WorldId40OptionCard = (
       className={twMerge(
         clsx(
           "grid gap-y-3 rounded-lg border border-grey-100 bg-white px-6 py-5 shadow-[0_1.3px_2.6px_rgba(0,0,0,0.053)] transition-colors",
-          !disabled && "cursor-pointer hover:border-additional-azure-500",
+          !disabled && "cursor-pointer ",
           disabled && "cursor-not-allowed opacity-60",
           props.className,
         ),
