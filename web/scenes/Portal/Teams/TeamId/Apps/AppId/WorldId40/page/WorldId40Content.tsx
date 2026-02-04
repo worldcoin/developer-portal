@@ -203,8 +203,7 @@ export const WorldId40Content = ({
             </div>
           </div>
         </div>
-        {/* TODO: Bottom two not implemented yet */}
-        {/* Danger Zone */}
+        {/* TODO: Danger Zone - not implemented yet
         <div className="mt-4 flex flex-col gap-y-6">
           <Typography variant={TYPOGRAPHY.S2} className="text-gray-900">
             Danger zone
@@ -222,8 +221,8 @@ export const WorldId40Content = ({
               </div>
               <DecoratedButton
                 type="button"
-                variant="secondary"
-                disabled
+                variant={isActive ? "danger" : "secondary"}
+                disabled={!isActive}
                 className="h-8 rounded-full px-4 py-0 text-xs"
               >
                 Deactivate
@@ -243,8 +242,8 @@ export const WorldId40Content = ({
               </div>
               <DecoratedButton
                 type="button"
-                variant="secondary"
-                disabled
+                variant={isActive ? "danger" : "secondary"}
+                disabled={!isActive}
                 className="h-8 rounded-full px-4 py-0 text-xs"
               >
                 Switch
@@ -252,6 +251,7 @@ export const WorldId40Content = ({
             </div>
           </div>
         </div>
+        */}
       </div>
 
       <RotateSignerKeyDialog
