@@ -1,13 +1,89 @@
+"use client";
+
+import { useState } from "react";
+import { Button } from "@/components/Button";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import { UserStoryIcon } from "@/components/Icons/UserStoryIcon";
+import { useGetActionsV4Query } from "./graphql/client/get-actions-v4.generated";
 
-export const WorldIdActionsPage = () => {
+type WorldIdActionsPageProps = {
+  params: Record<string, string> | null | undefined;
+  searchParams?: Record<string, string> | null | undefined;
+};
+
+export const WorldIdActionsPage = ({ params }: WorldIdActionsPageProps) => {
+  const appId = params?.appId as `app_${string}`;
+  const [dialogOpen, setDialogOpen] = useState(false);
+
+  const { data, loading, error } = useGetActionsV4Query({
+    variables: {
+      app_id: appId ?? "",
+    },
+    skip: !appId,
+  });
+
+  const actions = data?.action_v4 || [];
+
+  if (loading) {
+    return (
+      <SizingWrapper className="flex items-center justify-center py-10">
+        <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
+          Loading...
+        </Typography>
+      </SizingWrapper>
+    );
+  }
+
+  if (error) {
+    return (
+      <SizingWrapper className="flex items-center justify-center py-10">
+        <Typography variant={TYPOGRAPHY.R3} className="text-system-error-500">
+          Error loading actions
+        </Typography>
+      </SizingWrapper>
+    );
+  }
+
   return (
     <SizingWrapper className="flex flex-col gap-y-8 py-10">
-      <Typography variant={TYPOGRAPHY.H6}>Actions</Typography>
-      <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
-        Actions page coming soon.
-      </Typography>
+      {actions.length === 0 ? (
+        <div className="flex flex-col items-center justify-center gap-6 py-20">
+          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#9D50FF]">
+            <UserStoryIcon className="size-8 text-white" />
+          </div>
+          <div className="flex flex-col items-center gap-2">
+            <Typography variant={TYPOGRAPHY.H6}>
+              Create your first action
+            </Typography>
+            <Typography
+              variant={TYPOGRAPHY.R4}
+              className="max-w-md text-center text-grey-500"
+            >
+              Allow users to verify as a unique person without revealing their
+              identity
+            </Typography>
+          </div>
+          <Button type="button" onClick={() => setDialogOpen(true)}>
+            Create
+          </Button>
+
+          {/* TODO: Add CreateActionDialogV4 in next commit */}
+          {/* {dialogOpen && (
+            <CreateActionDialogV4
+              open={dialogOpen}
+              onClose={() => setDialogOpen(false)}
+            />
+          )} */}
+        </div>
+      ) : (
+        <div>
+          <Typography variant={TYPOGRAPHY.H6}>
+            Actions ({actions.length})
+          </Typography>
+          {/* TODO: Add ActionsListV4 in next commit */}
+        </div>
+      )}
     </SizingWrapper>
   );
 };
