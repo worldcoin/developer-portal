@@ -25,7 +25,7 @@ export const ErrorPage = ({
         </div>
         <Link href="/teams">
           <DecoratedButton type="button" className="rounded-3xl">
-            <Typography variant={TYPOGRAPHY.R3}>Return Home</Typography>
+            <Typography variant={TYPOGRAPHY.R3}>Go to Home</Typography>
           </DecoratedButton>
         </Link>
       </div>
