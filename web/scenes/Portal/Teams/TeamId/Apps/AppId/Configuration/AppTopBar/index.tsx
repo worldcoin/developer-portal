@@ -305,7 +305,7 @@ export const AppTopBar = (props: AppTopBarProps) => {
     unverifiedImagesData?.unverified_images?.logo_img_url,
   ]);
 
-  if (!appMetadata) return <ErrorPage statusCode={404}></ErrorPage>;
+  if (!appMetadata) return <ErrorPage statusCode={404} title="App not found" />;
   return (
     <div className="grid gap-y-5 rounded-3xl border p-8 pt-7 sm:rounded-none sm:border-none sm:p-0">
       {["changes_requested", "verified"].includes(

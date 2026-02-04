@@ -4,10 +4,13 @@ import Link from "next/link";
 
 type ErrorPageProps = {
   statusCode: number;
-  title: string;
+  title?: string;
 };
 
-export const ErrorPage = ({ statusCode, title }: ErrorPageProps) => {
+export const ErrorPage = ({
+  statusCode,
+  title = "Not found",
+}: ErrorPageProps) => {
   return (
     <div className="flex min-h-[50vh] w-full items-center justify-center">
       <div className="flex flex-col items-center gap-6">
