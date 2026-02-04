@@ -1,10 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "@/components/Button";
+import { DecoratedButton } from "@/components/DecoratedButton";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { UserStoryIcon } from "@/components/Icons/UserStoryIcon";
+import { CreateActionDialogV4 } from "./CreateActionDialogV4";
 import { useGetActionsV4Query } from "./graphql/client/get-actions-v4.generated";
 
 type WorldIdActionsPageProps = {
@@ -64,17 +65,21 @@ export const WorldIdActionsPage = ({ params }: WorldIdActionsPageProps) => {
               identity
             </Typography>
           </div>
-          <Button type="button" onClick={() => setDialogOpen(true)}>
-            Create
-          </Button>
+          <DecoratedButton
+            variant="primary"
+            type="button"
+            onClick={() => setDialogOpen(true)}
+            testId="create-action-v4-empty"
+          >
+            <Typography variant={TYPOGRAPHY.M4}>Create</Typography>
+          </DecoratedButton>
 
-          {/* TODO: Add CreateActionDialogV4 in next commit */}
-          {/* {dialogOpen && (
+          {dialogOpen && (
             <CreateActionDialogV4
               open={dialogOpen}
               onClose={() => setDialogOpen(false)}
             />
-          )} */}
+          )}
         </div>
       ) : (
         <div>

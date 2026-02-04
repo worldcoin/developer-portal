@@ -1,0 +1,7 @@
+query GetAppRpId($app_id: String!) {
+  app(where: { id: { _eq: $app_id } }) {
+    rp_registration {
+      rp_id
+    }
+  }
+}

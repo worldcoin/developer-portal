@@ -1,0 +1,8 @@
+mutation InsertActionV4($object: action_v4_insert_input!) {
+  insert_action_v4_one(object: $object) {
+    id
+    action
+    description
+    environment
+  }
+}
