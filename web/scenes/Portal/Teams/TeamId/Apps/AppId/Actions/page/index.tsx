@@ -6,7 +6,7 @@ import { IconFrame } from "@/components/InitialSteps/IconFrame";
 import { Step } from "@/components/InitialSteps/Step";
 import { Placeholder } from "@/components/PlaceholderImage";
 import { SizingWrapper } from "@/components/SizingWrapper";
-import ErrorComponent from "next/error";
+import { ErrorPage } from "@/components/ErrorPage";
 import { useMemo } from "react";
 import { ActionsList } from "./ActionsList";
 import { CreateActionModal } from "./CreateActionModal";
@@ -78,7 +78,9 @@ export const ActionsPage = ({ params, searchParams }: ActionsPageProps) => {
 
   if (!appRes.loading && !appRes.data?.app) {
     return (
-      <ErrorComponent statusCode={404} title="App Not found"></ErrorComponent>
+      <SizingWrapper gridClassName="order-1 md:order-2">
+        <ErrorPage statusCode={404} title="App Not found" />
+      </SizingWrapper>
     );
   }
 

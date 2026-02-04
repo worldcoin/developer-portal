@@ -1,7 +1,7 @@
 "use client";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { useAtom } from "jotai";
-import Error from "next/error";
+import { ErrorPage } from "@/components/ErrorPage";
 import { useMemo } from "react";
 import Skeleton from "react-loading-skeleton";
 import { AppTopBar } from "../../AppTopBar";
@@ -36,7 +36,11 @@ export const AppProfileSetupPage = ({ params }: AppProfileSetupPageProps) => {
   }, [app, viewMode]);
 
   if (!loading && (error || !app)) {
-    return <Error statusCode={404} title="App not found" />;
+    return (
+      <SizingWrapper gridClassName="order-1 md:order-2">
+        <ErrorPage statusCode={404} title="App not found" />
+      </SizingWrapper>
+    );
   } else {
     return (
       <>

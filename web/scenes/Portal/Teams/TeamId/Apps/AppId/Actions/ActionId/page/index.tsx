@@ -1,6 +1,6 @@
 "use client";
 import { EngineType } from "@/lib/types";
-import ErrorComponent from "next/error";
+import { ErrorPage } from "@/components/ErrorPage";
 import Skeleton from "react-loading-skeleton";
 import { ActionsHeader } from "../Components/ActionsHeader";
 import { ActionStatsGraph } from "./ActionStatsGraph";
@@ -26,13 +26,16 @@ export const ActionIdPage = ({ params }: ActionIdPageProps) => {
 
   if (!loading && !action) {
     return (
-      <ErrorComponent
-        statusCode={404}
-        title="Action not found"
-      ></ErrorComponent>
+      <SizingWrapper gridClassName="order-1 md:order-2">
+        <ErrorPage statusCode={404} title="Action not found" />
+      </SizingWrapper>
     );
   } else if (data?.action[0]?.app.engine === EngineType.OnChain) {
-    return <ErrorComponent statusCode={401} title="No Access"></ErrorComponent>;
+    return (
+      <SizingWrapper gridClassName="order-1 md:order-2">
+        <ErrorPage statusCode={401} title="No Access" />
+      </SizingWrapper>
+    );
   } else {
     return (
       <>

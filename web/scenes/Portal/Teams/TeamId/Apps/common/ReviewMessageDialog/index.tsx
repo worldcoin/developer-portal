@@ -8,7 +8,7 @@ import { DialogPanel } from "@/components/DialogPanel";
 import { CloseIcon } from "@/components/Icons/CloseIcon";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { atom, useAtom } from "jotai";
-import ErrorComponent from "next/error";
+import { ErrorPage } from "@/components/ErrorPage";
 import { useRouter } from "next/navigation";
 import { useCallback, useMemo } from "react";
 import { useGetVerificationDataQuery } from "../../AppId/page/graphql/client/get-verification-data.generated";
@@ -57,7 +57,7 @@ export const ReviewMessageDialog = (props: {
 
   if (!loadingGetVerificationQuery && !data?.app) {
     return (
-      <ErrorComponent statusCode={404} title="App Not found"></ErrorComponent>
+      <ErrorPage statusCode={404} title="App Not found"></ErrorPage>
     );
   } else {
     return (

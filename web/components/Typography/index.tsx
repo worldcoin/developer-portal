@@ -89,7 +89,7 @@ export const Typography = <T extends ElementType = "span">(
             variant === TYPOGRAPHY.S2,
           "font-world text-sm font-medium leading-[1.4]":
             variant === TYPOGRAPHY.S3,
-          "font-rubik text-xs font-medium leading-[1.3]":
+          "font-world text-xs font-medium leading-[1.3]":
             variant === TYPOGRAPHY.S4,
         }),
       )}
