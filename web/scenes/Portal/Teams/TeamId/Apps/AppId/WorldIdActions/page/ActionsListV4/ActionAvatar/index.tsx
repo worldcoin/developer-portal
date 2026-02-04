@@ -1,5 +1,3 @@
-"use client";
-
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import clsx from "clsx";
 

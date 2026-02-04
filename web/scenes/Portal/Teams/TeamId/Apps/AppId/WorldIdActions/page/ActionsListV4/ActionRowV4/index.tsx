@@ -1,5 +1,3 @@
-"use client";
-
 import { CopyButton } from "@/components/CopyButton";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import clsx from "clsx";
