@@ -119,13 +119,6 @@ export const RotateSignerKeyDialog = ({
                   <Typography as="h1" variant={TYPOGRAPHY.H6}>
                     Rotate signer key
                   </Typography>
-                  <Typography
-                    as="p"
-                    variant={TYPOGRAPHY.R3}
-                    className="text-grey-500"
-                  >
-                    Choose how you want to set up your new signer key:
-                  </Typography>
                 </div>
 
                 <RotateConfigureContent
@@ -262,7 +255,7 @@ const RotateConfigureContent = ({
         <button
           type="button"
           onClick={() => onContinue(setup)}
-          className="hover:bg-grey-800 rounded-full bg-grey-900 px-6 py-3 text-white"
+          className="rounded-full bg-grey-900 px-6 py-3 text-white hover:opacity-90"
         >
           <Typography variant={TYPOGRAPHY.M4}>Continue</Typography>
         </button>
