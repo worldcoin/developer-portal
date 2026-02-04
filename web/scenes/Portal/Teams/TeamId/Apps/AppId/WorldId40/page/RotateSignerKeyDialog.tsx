@@ -133,6 +133,7 @@ export const RotateSignerKeyDialog = ({
                 onBack={onSignerKeyBack}
                 onContinue={onSignerKeyContinue}
                 className="justify-self-center py-10"
+                loading={loading}
               />
             )}
 
@@ -234,7 +235,7 @@ const RotateConfigureContent = ({
             </div>
           </div>
           <Typography variant={TYPOGRAPHY.B3} className="mt-1 text-grey-500">
-            Provide the address of a key you already control.
+            Provide a secp256k1 public key you control (e.g. Ethereum address)
           </Typography>
         </button>
       </div>

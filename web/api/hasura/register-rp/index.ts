@@ -43,8 +43,10 @@ const schema = yup
       .strict()
       .required()
       .transform((value) => (value ? normalizeAddress(value) : value))
-      .test("is-address", "Invalid Ethereum address", (value) =>
-        value ? isAddress(value) : false,
+      .test(
+        "is-address",
+        "Invalid signer key. Must be a valid secp256k1 public key (0x followed by 40 hex characters)",
+        (value) => (value ? isAddress(value) : false),
       ),
   })
   .noUnknown();

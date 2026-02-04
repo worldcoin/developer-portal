@@ -185,7 +185,11 @@ export const GenerateNewKeyContent = ({
           loading={loading}
           testId="generate-new-key-create"
         >
-          {loading ? <SpinnerIcon className="size-4 animate-spin" /> : "Continue"}
+          {loading ? (
+            <SpinnerIcon className="size-6 animate-spin" />
+          ) : (
+            "Continue"
+          )}
         </DecoratedButton>
       </div>
     </form>
