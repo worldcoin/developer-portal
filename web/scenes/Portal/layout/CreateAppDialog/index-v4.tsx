@@ -334,6 +334,7 @@ export const CreateAppDialogV4 = ({
                 onBack={onSignerKeyBack}
                 onContinue={onSignerKeyContinue}
                 className="justify-self-center py-10"
+                loading={registeringRp}
               />
             )}
           </SizingWrapper>

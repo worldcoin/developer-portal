@@ -1,6 +1,7 @@
 "use client";
 
 import { DecoratedButton } from "@/components/DecoratedButton";
+import { SpinnerIcon } from "@/components/Icons/SpinnerIcon";
 import { Input } from "@/components/Input";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -23,8 +24,10 @@ const formSchema = yup.object({
       if (!value) return value;
       return value.startsWith("0x") ? value : `0x${value}`;
     })
-    .test("is-address", "Invalid Ethereum address", (value) =>
-      value ? isAddress(value) : false,
+    .test(
+      "is-address",
+      "Invalid signer key. Must be a valid secp256k1 public key (0x followed by 40 hex characters)",
+      (value) => (value ? isAddress(value) : false),
     ),
 });
 
@@ -67,7 +70,7 @@ export const UseExistingKeyContent = ({
           Use Existing Key
         </Typography>
         <Typography as="p" variant={TYPOGRAPHY.R3} className="text-grey-500">
-          Provide the address of a key you already control.
+          Provide a secp256k1 public key you control (e.g. Ethereum address)
         </Typography>
       </div>
 
@@ -75,7 +78,7 @@ export const UseExistingKeyContent = ({
         <Input
           register={register("public_key")}
           label="Public Key"
-          placeholder="Enter public key"
+          placeholder="0x1234...abcd"
           required
           errors={errors.public_key}
           data-testid="input-public-key"
@@ -97,9 +100,10 @@ export const UseExistingKeyContent = ({
           variant="primary"
           className="py-3"
           disabled={!isValid || loading}
+          loading={loading}
           testId="use-existing-key-create"
         >
-          Create
+          {loading ? <SpinnerIcon className="size-5 animate-spin" /> : "Create"}
         </DecoratedButton>
       </div>
     </form>

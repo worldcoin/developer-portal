@@ -5,6 +5,7 @@ import { CopyButton } from "@/components/CopyButton";
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { EyeIcon } from "@/components/Icons/EyeIcon";
 import { EyeSlashIcon } from "@/components/Icons/EyeSlashIcon";
+import { SpinnerIcon } from "@/components/Icons/SpinnerIcon";
 import { Input } from "@/components/Input";
 import { Notification } from "@/components/Notification";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
@@ -21,12 +22,14 @@ export type GenerateNewKeyContentProps = {
   onBack: () => void;
   onContinue: (publicKey: string) => void;
   className?: string;
+  loading?: boolean;
 };
 
 export const GenerateNewKeyContent = ({
   onBack,
   onContinue,
   className,
+  loading,
 }: GenerateNewKeyContentProps) => {
   const [privateKey, setPrivateKey] = useState<string>("");
   const [publicKey, setPublicKey] = useState<string>("");
@@ -178,10 +181,15 @@ export const GenerateNewKeyContent = ({
           type="submit"
           variant="primary"
           className="w-32 rounded-3xl py-3"
-          disabled={!isValid}
+          disabled={!isValid || loading}
+          loading={loading}
           testId="generate-new-key-create"
         >
-          Continue
+          {loading ? (
+            <SpinnerIcon className="size-6 animate-spin" />
+          ) : (
+            "Continue"
+          )}
         </DecoratedButton>
       </div>
     </form>

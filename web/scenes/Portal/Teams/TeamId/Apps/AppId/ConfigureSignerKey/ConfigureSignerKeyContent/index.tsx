@@ -71,7 +71,7 @@ export const ConfigureSignerKeyContent = ({
         <WorldId40OptionCard
           register={register("signer_key_setup")}
           option={{ value: "existing", label: "Use Existing Key" }}
-          subtitle="Provide the address of a key you already control."
+          subtitle="Provide a secp256k1 public key you control (e.g. Ethereum address)"
           bullets={[]}
           testId="existing"
         />
