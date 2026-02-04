@@ -1,0 +1,126 @@
+import { parseRpId } from "@/api/helpers/rp-utils";
+import { logger } from "@/lib/logger";
+import { captureEvent } from "@/services/posthogClient";
+import { NextResponse } from "next/server";
+import { SessionProofRequest } from "../request-schema";
+import { processSessionProof, SessionResult } from "./verify-util";
+
+// Session proof response types
+type SessionProofSuccessResponse = {
+  success: true;
+  session_id: string;
+  environment: "production";
+  results: SessionResult[];
+  message: string;
+};
+
+type SessionProofErrorResponse = {
+  success: false;
+  code: string;
+  detail: string;
+  results?: SessionResult[];
+};
+
+type SessionProofResponse =
+  | SessionProofSuccessResponse
+  | SessionProofErrorResponse;
+
+/**
+ * Handle session proof verification flow.
+ * Session proofs use production verifier and don't create action records.
+ */
+export async function handleSessionProofVerification(
+  rpId: string,
+  appId: string,
+  parsedParams: {
+    session_id: string;
+    nonce: string;
+    protocol_version: string;
+    responses: SessionProofRequest["responses"];
+  },
+): Promise<NextResponse<SessionProofResponse>> {
+  // Get verifier address (session proofs always use production)
+  const verifierAddress = process.env.VERIFIER_CONTRACT_ADDRESS;
+
+  if (!verifierAddress) {
+    return NextResponse.json<SessionProofErrorResponse>(
+      {
+        success: false,
+        code: "configuration_error",
+        detail: "Verifier contract address not configured.",
+      },
+      { status: 500 },
+    );
+  }
+
+  // Build session proof request and verify
+  const numericRpId = parseRpId(rpId);
+  const sessionProofRequest: SessionProofRequest = {
+    session_id: parsedParams.session_id,
+    nonce: parsedParams.nonce,
+    protocol_version: "4.0",
+    responses: parsedParams.responses,
+  };
+
+  const verificationResults = await processSessionProof(
+    numericRpId,
+    sessionProofRequest,
+    verifierAddress,
+  );
+
+  // If no successful verifications, return 400 with all results
+  const allFailed = verificationResults.every((r) => r.success === false);
+  if (allFailed) {
+    await captureEvent({
+      event: "session_verify_v4_failed",
+      distinctId: rpId,
+      properties: {
+        rp_id: rpId,
+        app_id: appId,
+        session_id: parsedParams.session_id,
+        protocol_version: "4.0",
+        results: verificationResults,
+      },
+    });
+
+    logger.warn("All session proof verifications failed", {
+      rp_id: rpId,
+      app_id: appId,
+      session_id: parsedParams.session_id,
+      results: verificationResults,
+    });
+
+    return NextResponse.json<SessionProofErrorResponse>(
+      {
+        success: false,
+        code: "all_verifications_failed",
+        detail: "All proof verifications failed.",
+        results: verificationResults,
+      },
+      { status: 400 },
+    );
+  }
+
+  const sessionId = parsedParams.session_id;
+
+  await captureEvent({
+    event: "session_verify_v4_success",
+    distinctId: rpId,
+    properties: {
+      rp_id: rpId,
+      app_id: appId,
+      session_id: sessionId,
+    },
+  });
+
+  return NextResponse.json<SessionProofSuccessResponse>(
+    {
+      success: true,
+      session_id: sessionId,
+      environment: "production",
+      results: verificationResults,
+      message: "Session proof verified successfully",
+    },
+    { status: 200 },
+  );
+}

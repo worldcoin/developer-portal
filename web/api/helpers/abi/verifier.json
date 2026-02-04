@@ -6,14 +6,29 @@
       { "name": "nullifier", "type": "uint256" },
       { "name": "action", "type": "uint256" },
       { "name": "rpId", "type": "uint64" },
-      { "name": "sessionId", "type": "uint256" },
       { "name": "nonce", "type": "uint256" },
       { "name": "signalHash", "type": "uint256" },
-      { "name": "authenticatorRoot", "type": "uint256" },
-      { "name": "proofTimestamp", "type": "uint256" },
-      { "name": "credentialIssuerId", "type": "uint256" },
+      { "name": "expiresAtMin", "type": "uint64" },
+      { "name": "issuerSchemaId", "type": "uint64" },
       { "name": "credentialGenesisIssuedAtMin", "type": "uint256" },
-      { "name": "compressedProof", "type": "uint256[4]" }
+      { "name": "zeroKnowledgeProof", "type": "uint256[5]" }
+    ],
+    "outputs": [],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "verifySession",
+    "inputs": [
+      { "name": "rpId", "type": "uint64" },
+      { "name": "nonce", "type": "uint256" },
+      { "name": "signalHash", "type": "uint256" },
+      { "name": "expiresAtMin", "type": "uint64" },
+      { "name": "issuerSchemaId", "type": "uint64" },
+      { "name": "credentialGenesisIssuedAtMin", "type": "uint256" },
+      { "name": "sessionId", "type": "uint256" },
+      { "name": "sessionNullifier", "type": "uint256[2]" },
+      { "name": "zeroKnowledgeProof", "type": "uint256[5]" }
     ],
     "outputs": [],
     "stateMutability": "view"
