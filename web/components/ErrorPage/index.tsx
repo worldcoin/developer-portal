@@ -1,5 +1,3 @@
-"use client";
-
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import Link from "next/link";
@@ -14,7 +12,7 @@ export const ErrorPage = ({ statusCode, title }: ErrorPageProps) => {
     <div className="flex min-h-[50vh] w-full items-center justify-center">
       <div className="flex flex-col items-center gap-6">
         <div className="flex items-center gap-4">
-          <Typography variant={TYPOGRAPHY.H2} className="text-grey-900">
+          <Typography variant={TYPOGRAPHY.H5} className="text-grey-900">
             {statusCode}
           </Typography>
           <div className="h-12 w-px bg-grey-200" />
