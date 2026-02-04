@@ -16,6 +16,7 @@ export type FetchAppEnvQuery = {
     engine: string;
     rp_registration: Array<{ __typename?: "rp_registration"; rp_id: string }>;
   }>;
+  action: Array<{ __typename?: "action"; id: string }>;
 };
 
 export const FetchAppEnvDocument = gql`
@@ -26,6 +27,9 @@ export const FetchAppEnvDocument = gql`
       rp_registration {
         rp_id
       }
+    }
+    action(where: { app_id: { _eq: $id } }, limit: 1) {
+      id
     }
   }
 `;

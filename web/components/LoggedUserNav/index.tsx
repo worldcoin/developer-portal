@@ -24,6 +24,7 @@ import posthog from "posthog-js";
 import { CSSProperties, useCallback, useEffect, useMemo } from "react";
 import { Button } from "../Button";
 import { Dropdown } from "../Dropdown";
+import { KeyIcon } from "../Icons/KeyIcon";
 import { LogoutIcon } from "../Icons/LogoutIcon";
 import { MailIcon } from "../Icons/MailIcon";
 import { SettingsIcon } from "../Icons/SettingsIcon";
@@ -173,6 +174,16 @@ export const LoggedUserNav = () => {
                   </Dropdown.ListItemIcon>
 
                   <Dropdown.ListItemText>Overview</Dropdown.ListItemText>
+                </Link>
+              </Dropdown.ListItem>
+
+              <Dropdown.ListItem asChild>
+                <Link href={`/teams/${teamId}/api-keys`}>
+                  <Dropdown.ListItemIcon asChild>
+                    <KeyIcon />
+                  </Dropdown.ListItemIcon>
+
+                  <Dropdown.ListItemText>API Keys</Dropdown.ListItemText>
                 </Link>
               </Dropdown.ListItem>
 
