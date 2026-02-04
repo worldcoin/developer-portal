@@ -45,7 +45,7 @@ const schema = yup
       .transform((value) => (value ? normalizeAddress(value) : value))
       .test(
         "is-address",
-        "Invalid signer key. Must be a valid secp256k1 public key (0x followed by 40 hex characters)",
+        "Invalid signer key. Must be 40 hex characters (0x followed by 40 characters)",
         (value) => (value ? isAddress(value) : false),
       ),
   })
