@@ -106,9 +106,14 @@ export const UnifiedChart = ({ appId }: UnifiedChartProps) => {
     activeTab,
   );
 
-  const mobileChartOptions = {
+  const mobileChartOptions: ChartOptions<"line"> = {
     ...commonChartConfig,
     aspectRatio: mobileAspectRatio,
+  };
+
+  const desktopChartOptions: ChartOptions<"line"> = {
+    ...commonChartConfig,
+    aspectRatio: desktopAspectRatio,
   };
 
   return (
@@ -217,7 +222,7 @@ export const UnifiedChart = ({ appId }: UnifiedChartProps) => {
 
             {/* Desktop Chart */}
             <div className="hidden pl-2 sm:block">
-              <Chart data={chartData} options={commonChartConfig} />
+              <Chart data={chartData} options={desktopChartOptions} />
             </div>
           </div>
         )}
