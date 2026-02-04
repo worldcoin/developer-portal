@@ -1,13 +1,10 @@
 "use server";
 
-import "server-only";
-
 import { errorFormAction } from "@/api/helpers/errors";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { getIsUserAllowedToUpdateApp } from "@/lib/permissions";
 import { FormActionResult } from "@/lib/types";
-import { getSession } from "@auth0/nextjs-auth0";
 import { getSdk as getAppRpIdSdk } from "../graphql/server/get-app-rp-id.generated";
 import { getSdk as insertActionV4Sdk } from "../graphql/server/insert-action-v4.generated";
 import { createActionSchemaV4, CreateActionSchemaV4 } from "./form-schema-v4";
@@ -16,22 +13,14 @@ export async function validateAndInsertActionV4(
   values: CreateActionSchemaV4,
   app_id: string,
 ): Promise<FormActionResult> {
-  // 1. Validate session
-  const session = await getSession();
-  const userId = session?.user?.hasura?.id;
-
-  if (!userId) {
-    return errorFormAction({ message: "Unauthorized" });
-  }
-
-  // 2. Check permissions
+  // 1. Check permissions
   const isAllowed = await getIsUserAllowedToUpdateApp(app_id);
 
   if (!isAllowed) {
     return errorFormAction({ message: "Permission denied" });
   }
 
-  // 3. Get rp_id from app
+  // 2. Get rp_id from app
   const client = await getAPIServiceGraphqlClient();
   const { app } = await getAppRpIdSdk(client).GetAppRpId({ app_id });
 
@@ -51,7 +40,7 @@ export async function validateAndInsertActionV4(
     });
   }
 
-  // 4. Validate input
+  // 3. Validate input
   const { isValid, parsedParams } = await validateRequestSchema({
     schema: createActionSchemaV4,
     value: values,
@@ -66,7 +55,7 @@ export async function validateAndInsertActionV4(
     });
   }
 
-  // 5. Insert action_v4
+  // 4. Insert action_v4
   try {
     const { insert_action_v4_one } = await insertActionV4Sdk(
       client,
@@ -97,7 +86,6 @@ export async function validateAndInsertActionV4(
           app_id,
           rp_id,
           action: parsedParams.action,
-          user_id: userId,
         },
         logLevel: "warn",
       });
@@ -110,7 +98,6 @@ export async function validateAndInsertActionV4(
         app_id,
         rp_id,
         action: parsedParams.action,
-        user_id: userId,
       },
       logLevel: "error",
     });
