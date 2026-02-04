@@ -202,8 +202,8 @@ export const CreateAppDialogV4 = ({
 
         toast.success("App configured successfully");
         // Refresh server components to pick up the new rp_registration row
+        router.replace(redirect);
         router.refresh();
-        router.push(redirect);
         onClose();
       } catch (error) {
         console.error("[onSignerKeyContinue] Error:", error);
