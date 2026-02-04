@@ -190,7 +190,7 @@ export const WorldId40Content = ({
             </div>
           </div>
         </div>
-
+        {/* TODO: Bottom two not implemented yet */}
         {/* Danger Zone */}
         <div className="mt-4 flex flex-col gap-y-6">
           <Typography variant={TYPOGRAPHY.S2} className="text-gray-900">

@@ -38,7 +38,9 @@ export const WorldId40Page = async ({ params }: Props) => {
     <WorldId40Content
       appId={appId}
       rpId={rpData.rp_id}
-      initialStatus={rpData.status as "pending" | "registered" | "failed" | "deactivated"}
+      initialStatus={
+        rpData.status as "pending" | "registered" | "failed" | "deactivated"
+      }
       mode={rpData.mode as string}
       createdAt={rpData.created_at}
     />
