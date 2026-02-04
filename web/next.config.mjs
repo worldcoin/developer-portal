@@ -10,7 +10,7 @@ const nextConfig = {
 
   experimental: {
     instrumentationHook: true,
-    serverComponentsExternalPackages: ["winston"],
+    serverComponentsExternalPackages: ["winston", "dd-trace"],
   },
 
   output: "standalone",
