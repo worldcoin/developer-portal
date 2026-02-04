@@ -6,6 +6,7 @@ import { SizingWrapper } from "@/components/SizingWrapper";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { UserStoryIcon } from "@/components/Icons/UserStoryIcon";
 import { CreateActionDialogV4 } from "./CreateActionDialogV4";
+import { ActionsListV4 } from "./ActionsListV4";
 import { useGetActionsV4Query } from "./graphql/client/get-actions-v4.generated";
 
 type WorldIdActionsPageProps = {
@@ -17,7 +18,7 @@ export const WorldIdActionsPage = ({ params }: WorldIdActionsPageProps) => {
   const appId = params?.appId as `app_${string}`;
   const [dialogOpen, setDialogOpen] = useState(false);
 
-  const { data, loading, error } = useGetActionsV4Query({
+  const { data, loading, error, refetch } = useGetActionsV4Query({
     variables: {
       app_id: appId ?? "",
     },
@@ -25,6 +26,13 @@ export const WorldIdActionsPage = ({ params }: WorldIdActionsPageProps) => {
   });
 
   const actions = data?.action_v4 || [];
+
+  const handleDialogClose = async (success?: boolean) => {
+    setDialogOpen(false);
+    if (success) {
+      await refetch();
+    }
+  };
 
   if (loading) {
     return (
@@ -37,57 +45,60 @@ export const WorldIdActionsPage = ({ params }: WorldIdActionsPageProps) => {
   }
 
   if (error) {
+    console.error("GraphQL Error:", error);
     return (
       <SizingWrapper className="flex items-center justify-center py-10">
-        <Typography variant={TYPOGRAPHY.R3} className="text-system-error-500">
-          Error loading actions
-        </Typography>
+        <div className="flex flex-col items-center gap-2">
+          <Typography variant={TYPOGRAPHY.R3} className="text-system-error-500">
+            Error loading actions
+          </Typography>
+          <Typography variant={TYPOGRAPHY.R4} className="text-grey-500">
+            {error.message}
+          </Typography>
+        </div>
       </SizingWrapper>
     );
   }
 
   return (
-    <SizingWrapper className="flex flex-col gap-y-8 py-10">
+    <SizingWrapper gridClassName="grow" className="flex flex-col">
       {actions.length === 0 ? (
-        <div className="flex flex-col items-center justify-center gap-6 py-20">
-          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#9D50FF]">
-            <UserStoryIcon className="size-8 text-white" />
-          </div>
-          <div className="flex flex-col items-center gap-2">
-            <Typography variant={TYPOGRAPHY.H6}>
-              Create your first action
-            </Typography>
-            <Typography
-              variant={TYPOGRAPHY.R4}
-              className="max-w-md text-center text-grey-500"
+        <div className="grid size-full items-start justify-items-center overflow-hidden pt-20">
+          <div className="flex flex-col items-center justify-center gap-6 py-20">
+            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#9D50FF]">
+              <UserStoryIcon className="size-8 text-white" />
+            </div>
+            <div className="flex flex-col items-center gap-2">
+              <Typography variant={TYPOGRAPHY.H6}>
+                Create your first action
+              </Typography>
+              <Typography
+                variant={TYPOGRAPHY.R4}
+                className="max-w-md text-center text-grey-500"
+              >
+                Allow users to verify as a unique person without revealing their
+                identity
+              </Typography>
+            </div>
+            <DecoratedButton
+              variant="primary"
+              type="button"
+              onClick={() => setDialogOpen(true)}
+              testId="create-action-v4-empty"
             >
-              Allow users to verify as a unique person without revealing their
-              identity
-            </Typography>
+              <Typography variant={TYPOGRAPHY.M4}>Create</Typography>
+            </DecoratedButton>
           </div>
-          <DecoratedButton
-            variant="primary"
-            type="button"
-            onClick={() => setDialogOpen(true)}
-            testId="create-action-v4-empty"
-          >
-            <Typography variant={TYPOGRAPHY.M4}>Create</Typography>
-          </DecoratedButton>
-
-          {dialogOpen && (
-            <CreateActionDialogV4
-              open={dialogOpen}
-              onClose={() => setDialogOpen(false)}
-            />
-          )}
         </div>
       ) : (
-        <div>
-          <Typography variant={TYPOGRAPHY.H6}>
-            Actions ({actions.length})
-          </Typography>
-          {/* TODO: Add ActionsListV4 in next commit */}
-        </div>
+        <ActionsListV4
+          actions={actions}
+          onCreateClick={() => setDialogOpen(true)}
+        />
+      )}
+
+      {dialogOpen && (
+        <CreateActionDialogV4 open={dialogOpen} onClose={handleDialogClose} />
       )}
     </SizingWrapper>
   );

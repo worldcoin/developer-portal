@@ -21,6 +21,13 @@ export type GetActionsV4Query = {
     description: string;
     environment: unknown;
     created_at: string;
+    nullifiers_aggregate: {
+      __typename?: "nullifier_v4_aggregate";
+      aggregate?: {
+        __typename?: "nullifier_v4_aggregate_fields";
+        count: number;
+      } | null;
+    };
   }>;
 };
 
@@ -31,12 +38,20 @@ export const GetActionsV4Document = gql`
         rp_id
       }
     }
-    action_v4(where: { rp_registration: { app: { id: { _eq: $app_id } } } }) {
+    action_v4(
+      where: { rp_registration: { app: { id: { _eq: $app_id } } } }
+      order_by: { created_at: desc }
+    ) {
       id
       action
       description
       environment
       created_at
+      nullifiers_aggregate {
+        aggregate {
+          count
+        }
+      }
     }
   }
 `;

@@ -10,7 +10,7 @@ import { SizingWrapper } from "@/components/SizingWrapper";
 import { ToggleSection } from "@/components/ToggleSection";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { useParams, usePathname, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import { useCallback, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "react-toastify";
@@ -22,14 +22,12 @@ import {
 
 type CreateActionDialogV4Props = {
   open: boolean;
-  onClose: () => void;
+  onClose: (success?: boolean) => void;
 };
 
 export const CreateActionDialogV4 = (props: CreateActionDialogV4Props) => {
   const { open, onClose } = props;
-  const pathname = usePathname() ?? "";
   const params = useParams();
-  const router = useRouter();
   const appId = params?.appId as `app_${string}`;
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -58,15 +56,15 @@ export const CreateActionDialogV4 = (props: CreateActionDialogV4Props) => {
 
       if (!result.success) {
         toast.error(result.message);
+        // Dialog stays open - user can fix and retry
       } else {
         toast.success(`Action "${values.action}" created.`);
-        router.refresh();
-        onClose();
+        onClose(true);
       }
 
       setIsSubmitting(false);
     },
-    [appId, router, onClose],
+    [appId, onClose],
   );
 
   // Auto-transform identifier: lowercase and replace spaces/underscores with dashes
