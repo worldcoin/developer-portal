@@ -84,7 +84,7 @@ export const ActionsListV4 = (props: ActionsListV4Props) => {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               label=""
-              placeholder="Search action by name"
+              placeholder="Search action by identifier"
               className="w-full pt-2 text-base"
               addOnLeft={<SearchIcon className="mx-2 text-grey-400" />}
             />
@@ -97,6 +97,7 @@ export const ActionsListV4 = (props: ActionsListV4Props) => {
               className="h-12 w-[132px]"
               onClick={onCreateClick}
               testId="create-action-v4-list"
+              aria-label="Create new action"
             >
               <Typography variant={TYPOGRAPHY.M3} className="whitespace-nowrap">
                 New action
@@ -109,7 +110,7 @@ export const ActionsListV4 = (props: ActionsListV4Props) => {
           <div className="max-md:grid max-md:grid-cols-2 max-md:border-x max-md:border-transparent max-md:px-4 md:contents">
             <div className="py-3 md:border-b md:border-gray-100">
               <Typography variant={TYPOGRAPHY.R5} className="text-grey-400">
-                Name
+                Identifier
               </Typography>
             </div>
 

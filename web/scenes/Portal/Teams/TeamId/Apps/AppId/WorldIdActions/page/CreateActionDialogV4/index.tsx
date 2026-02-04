@@ -90,6 +90,7 @@ export const CreateActionDialogV4 = (props: CreateActionDialogV4Props) => {
                   type="button"
                   onClick={() => onClose()}
                   className="flex"
+                  aria-label="Close dialog"
                 >
                   <CloseIcon className="size-4" />
                 </Button>
@@ -119,26 +120,35 @@ export const CreateActionDialogV4 = (props: CreateActionDialogV4Props) => {
               name="action"
               control={control}
               render={({ field }) => (
-                <Input
-                  {...field}
-                  onChange={(e) => {
-                    const transformed = transformIdentifier(e.target.value);
-                    field.onChange(transformed);
-                  }}
-                  value={field.value}
-                  errors={errors.action}
-                  label="Identifier"
-                  placeholder="proposal-102"
-                  helperText="This is the value you will use in IDKit and any API calls. Max 32 characters."
-                  data-testid="input-action"
-                  required
-                  addOnRight={
-                    <CopyButton
-                      fieldName="Action identifier"
-                      fieldValue={watch("action")}
-                    />
-                  }
-                />
+                <div>
+                  <Input
+                    {...field}
+                    onChange={(e) => {
+                      const transformed = transformIdentifier(e.target.value);
+                      field.onChange(transformed);
+                    }}
+                    value={field.value}
+                    errors={errors.action}
+                    label="Identifier"
+                    placeholder="proposal-102"
+                    data-testid="input-action"
+                    required
+                    addOnRight={
+                      <CopyButton
+                        fieldName="Action identifier"
+                        fieldValue={watch("action")}
+                      />
+                    }
+                  />
+                  <div className="mt-2 flex items-center justify-between px-2 text-xs text-grey-500">
+                    <span>
+                      This is the value you will use in IDKit and any API calls.
+                    </span>
+                    <span className="ml-4 whitespace-nowrap">
+                      {watch("action").length}/32 characters
+                    </span>
+                  </div>
+                </div>
               )}
             />
 

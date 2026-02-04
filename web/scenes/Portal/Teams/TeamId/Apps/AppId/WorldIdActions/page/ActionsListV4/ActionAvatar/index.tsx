@@ -14,19 +14,18 @@ export const ActionAvatar = (props: ActionAvatarProps) => {
 
   const firstLetter = identifier.charAt(0).toUpperCase();
 
-  // Color scheme based on environment
-  const colors =
-    environment === "staging"
-      ? { backgroundColor: "#F5F5F5", color: "#6B7280" } // Grey
-      : { backgroundColor: "#E6F0FF", color: "#005CFF" }; // Blue
+  const bgClass = environment === "staging" ? "bg-grey-50" : "bg-blue-50";
+  const textClass =
+    environment === "staging" ? "text-grey-500" : "text-blue-500";
 
   return (
     <div
       className={clsx(
         "flex size-12 items-center justify-center rounded-full uppercase",
+        bgClass,
+        textClass,
         className,
       )}
-      style={colors}
     >
       <Typography variant={TYPOGRAPHY.M3}>{firstLetter}</Typography>
     </div>

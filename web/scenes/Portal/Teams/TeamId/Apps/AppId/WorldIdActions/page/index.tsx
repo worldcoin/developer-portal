@@ -84,6 +84,7 @@ export const WorldIdActionsPage = ({ params }: WorldIdActionsPageProps) => {
               type="button"
               onClick={() => setDialogOpen(true)}
               testId="create-action-v4-empty"
+              aria-label="Create your first action"
             >
               <Typography variant={TYPOGRAPHY.M4}>Create</Typography>
             </DecoratedButton>
