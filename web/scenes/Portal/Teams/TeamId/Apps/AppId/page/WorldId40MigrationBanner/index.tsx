@@ -65,7 +65,7 @@ export const WorldId40MigrationBanner = ({
           </DecoratedButton>
 
           <DecoratedButton
-            href="https://docs.world.org/world-id"
+            href="https://world.org/blog/engineering/introducing-world-id-4.0"
             variant="secondary"
             className="h-12 rounded-[10px] border-transparent outline outline-1 outline-offset-[-1px] outline-white/20"
           >
