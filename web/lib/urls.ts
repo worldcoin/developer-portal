@@ -15,6 +15,9 @@ export const urls = {
   actions: (params: { team_id: string; app_id?: string }): string =>
     `/teams/${params.team_id}/apps/${params.app_id}/actions`,
 
+  worldId40: (params: { team_id: string; app_id: string }): string =>
+    `/teams/${params.team_id}/apps/${params.app_id}/world-id-4-0`,
+
   enableWorldId40: (params: {
     team_id: string;
     app_id: string;

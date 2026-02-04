@@ -71,9 +71,6 @@ export const CreateAppDialogV4 = ({
   const [createdAppId, setCreatedAppId] = useState<string | null>(
     existingAppId ?? null,
   );
-  const [nextDest, setNextDest] = useState<"configuration" | "actions" | null>(
-    null,
-  );
   const [worldIdMode, setWorldIdMode] = useState<"managed" | "self-managed">(
     "managed",
   );
@@ -129,8 +126,6 @@ export const CreateAppDialogV4 = ({
           new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
       )[0];
 
-      const next = values.is_miniapp ? "configuration" : "actions";
-
       posthog.capture("app_creation_successful", {
         team_id: teamId,
         app_id: latestApp?.id,
@@ -139,26 +134,16 @@ export const CreateAppDialogV4 = ({
       });
 
       setCreatedAppId(latestApp?.id ?? null);
-      setNextDest(next);
       setStep("enable-world-id-4-0");
       reset(defaultValues);
     },
-    [
-      defaultValues,
-      refetchApps,
-      reset,
-      teamId,
-      setCreatedAppId,
-      setNextDest,
-      setStep,
-    ],
+    [defaultValues, refetchApps, reset, teamId, setCreatedAppId, setStep],
   );
 
   const onClose = useCallback(() => {
     reset(defaultValues);
     setStep(initialStep);
     setCreatedAppId(existingAppId ?? null);
-    setNextDest(null);
     props.onClose(false);
   }, [defaultValues, props, reset, initialStep, existingAppId]);
 
@@ -209,11 +194,11 @@ export const CreateAppDialogV4 = ({
           return;
         }
 
-        // Success - redirect to app
-        const redirect =
-          nextDest === "configuration"
-            ? urls.configuration({ team_id: teamId, app_id: createdAppId })
-            : urls.actions({ team_id: teamId, app_id: createdAppId });
+        // Success - redirect to World ID 4.0 page
+        const redirect = urls.worldId40({
+          team_id: teamId,
+          app_id: createdAppId,
+        });
 
         toast.success("App configured successfully");
         router.push(redirect);
@@ -223,7 +208,7 @@ export const CreateAppDialogV4 = ({
         toast.error("Failed to register Relying Party");
       }
     },
-    [teamId, createdAppId, nextDest, router, onClose, registerRp],
+    [teamId, createdAppId, router, onClose, registerRp],
   );
 
   return (

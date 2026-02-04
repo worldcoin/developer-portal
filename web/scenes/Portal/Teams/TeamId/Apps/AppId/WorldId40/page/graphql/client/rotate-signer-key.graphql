@@ -1,0 +1,9 @@
+mutation RotateSignerKey($app_id: String!, $new_signer_address: String!) {
+  rotate_signer_key(app_id: $app_id, new_signer_address: $new_signer_address) {
+    rp_id
+    new_signer_address
+    old_signer_address
+    status
+    operation_hash
+  }
+}
