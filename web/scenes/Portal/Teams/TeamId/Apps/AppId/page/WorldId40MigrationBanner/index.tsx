@@ -50,7 +50,7 @@ export const WorldId40MigrationBanner = ({
             Enable World ID 4.0
           </Typography>
           <Typography variant={TYPOGRAPHY.R3} className="text-gray-500">
-            Let users sign in to your app with their World ID.
+            Upgrade your app to use World ID 4.0.
           </Typography>
         </div>
 
