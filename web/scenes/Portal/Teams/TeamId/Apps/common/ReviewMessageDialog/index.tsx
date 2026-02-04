@@ -56,9 +56,7 @@ export const ReviewMessageDialog = (props: {
   }, [closeModal, props.goTo, removeFromReview, router]);
 
   if (!loadingGetVerificationQuery && !data?.app) {
-    return (
-      <ErrorPage statusCode={404} title="App Not found"></ErrorPage>
-    );
+    return <ErrorPage statusCode={404} title="App Not found"></ErrorPage>;
   } else {
     return (
       <Dialog onClose={closeModal} open={isOpened}>
