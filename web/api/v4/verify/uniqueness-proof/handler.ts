@@ -59,9 +59,11 @@ export async function handleUniquenessProofVerification(
     nonce?: string;
     protocol_version: "3.0" | "4.0";
     responses: UniquenessProofResponseV3[] | UniquenessProofResponseV4[];
+    environment?: "production" | "staging";
   },
 ): Promise<NextResponse<UniquenessProofResponse>> {
   // For uniqueness proofs check if action already exists to determine environment
+  // Priority: explicit request environment > DB action environment > "production" default
   let existingActionV4 = null;
   let verificationEnvironment = "production";
 
@@ -74,7 +76,9 @@ export async function handleUniquenessProofVerification(
     });
     existingActionV4 = existingActionResult.action_v4[0] ?? null;
     verificationEnvironment =
-      (existingActionV4?.environment as string) ?? "production";
+      parsedParams.environment ??
+      (existingActionV4?.environment as string) ??
+      "production";
   }
 
   // Verify all proofs in parallel

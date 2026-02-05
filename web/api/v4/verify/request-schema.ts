@@ -141,6 +141,12 @@ export const schema = yup
     // We use this field to detect session proofs in custom validation
     session_id: yup.string().strict().optional(),
 
+    // Optional environment to specify which verifier contract to use
+    environment: yup
+      .string()
+      .oneOf(["production", "staging"])
+      .optional(),
+
     // Responses array - validated based on version and type of proof
     responses: yup
       .array()
@@ -222,6 +228,7 @@ export interface UniquenessProofRequestV3 {
   nonce: string;
   action: string;
   action_description?: string;
+  environment?: "production" | "staging";
   responses: UniquenessProofResponseV3[];
 }
 
@@ -240,6 +247,7 @@ export interface UniquenessProofRequestV4 {
   nonce: string;
   action: string;
   action_description?: string;
+  environment?: "production" | "staging";
   responses: UniquenessProofResponseV4[];
 }
 
@@ -257,5 +265,6 @@ export interface SessionProofRequest {
   session_id: string;
   nonce: string;
   protocol_version: "4.0";
+  environment?: "production" | "staging";
   responses: SessionResponseItem[];
 }

@@ -9,7 +9,7 @@ import { processSessionProof, SessionResult } from "./verify-util";
 type SessionProofSuccessResponse = {
   success: true;
   session_id: string;
-  environment: "production";
+  environment: "production" | "staging";
   results: SessionResult[];
   message: string;
 };
@@ -37,17 +37,22 @@ export async function handleSessionProofVerification(
     nonce: string;
     protocol_version: string;
     responses: SessionProofRequest["responses"];
+    environment?: "production" | "staging";
   },
 ): Promise<NextResponse<SessionProofResponse>> {
-  // Get verifier address (session proofs always use production)
-  const verifierAddress = process.env.VERIFIER_CONTRACT_ADDRESS;
+  // Get verifier address based on requested environment (defaults to production)
+  const requestedEnvironment = parsedParams.environment ?? "production";
+  const verifierAddress =
+    requestedEnvironment === "staging"
+      ? process.env.VERIFIER_CONTRACT_ADDRESS_STAGING
+      : process.env.VERIFIER_CONTRACT_ADDRESS;
 
   if (!verifierAddress) {
     return NextResponse.json<SessionProofErrorResponse>(
       {
         success: false,
         code: "configuration_error",
-        detail: "Verifier contract address not configured.",
+        detail: `Verifier contract address not configured for ${requestedEnvironment} environment.`,
       },
       { status: 500 },
     );
@@ -117,7 +122,7 @@ export async function handleSessionProofVerification(
     {
       success: true,
       session_id: sessionId,
-      environment: "production",
+      environment: requestedEnvironment,
       results: verificationResults,
       message: "Session proof verified successfully",
     },

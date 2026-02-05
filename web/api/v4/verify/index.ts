@@ -107,6 +107,7 @@ export async function POST(
       nonce: parsedParams.nonce!,
       protocol_version: parsedParams.protocol_version,
       responses: parsedParams.responses as SessionProofRequest["responses"],
+      environment: parsedParams.environment,
     });
   }
 
@@ -119,5 +120,6 @@ export async function POST(
     responses: parsedParams.responses as
       | UniquenessProofResponseV3[]
       | UniquenessProofResponseV4[],
+    environment: parsedParams.environment,
   });
 }
