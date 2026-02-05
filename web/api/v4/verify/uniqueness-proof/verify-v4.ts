@@ -2,6 +2,7 @@ import { hashActionToUint256 } from "@/api/helpers/rp-utils";
 import { verifyProofOnChain } from "@/api/helpers/temporal-rpc";
 import { logger } from "@/lib/logger";
 import { AppErrorCodes } from "@worldcoin/idkit-core";
+import { nullifierHashToBigIntStr } from "../../../helpers/verify";
 import { UniquenessProofResponseV4 } from "../request-schema";
 import { UniquenessResult } from "./handler";
 
@@ -56,7 +57,8 @@ export async function processUniquenessProofV4(
         return {
           identifier: item.identifier,
           success: true,
-          nullifier: item.nullifier,
+          // Normalize nullifier for storage
+          nullifier: nullifierHashToBigIntStr(item.nullifier),
         };
       } catch (e: unknown) {
         const errorMessage = e instanceof Error ? e.message : String(e);

@@ -25,7 +25,7 @@ export async function processUniquenessProofV3(
             signal_hash: item.signal_hash,
             proof: item.proof,
             merkle_root: item.merkle_root,
-            nullifier_hash: item.nullifier_hash,
+            nullifier_hash: item.nullifier,
             external_nullifier: externalNullifier,
           },
           {
@@ -46,12 +46,11 @@ export async function processUniquenessProofV3(
           };
         }
 
-        // Use nullifier_hash_int for storage (consistent with v2 endpoint)
-        const nullifier = nullifierHashToBigIntStr(item.nullifier_hash);
         return {
           identifier: item.identifier,
           success: true,
-          nullifier,
+          // Normalize nullifier for storage
+          nullifier: nullifierHashToBigIntStr(item.nullifier),
         };
       } catch (e: unknown) {
         const errorMessage = e instanceof Error ? e.message : String(e);

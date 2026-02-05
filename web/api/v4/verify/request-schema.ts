@@ -10,7 +10,7 @@ const VerificationLevelWithFace = {
  * Schema for v4 verify request - supports both v3 (cloud) and v4 (on-chain) proofs.
  *
  * The version field at root level determines which proof format is expected.
- * V3 proofs include: merkle_root, nullifier_hash, proof, verification_level
+ * V3 proofs include: merkle_root, nullifier, proof, verification_level
  * V4 proofs include: identifier, issuer_schema_id, compressed_proof, nullifier, etc.
  */
 
@@ -28,14 +28,14 @@ const v3ResponseItemSchema = yup.object({
       "0x00c5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a4",
     ),
   merkle_root: yup.string().strict().required("merkle_root is required for v3"),
-  nullifier_hash: yup
+  nullifier: yup
     .string()
     .strict()
     .matches(
       /^(0x)?[\da-fA-F]+$/,
-      "Invalid nullifier_hash. Must be a hex string with optional 0x prefix.",
+      "Invalid nullifier. Must be a hex string with optional 0x prefix.",
     )
-    .required("nullifier_hash is required for v3"),
+    .required("nullifier is required for v3"),
   proof: yup.string().strict().required("proof is required for v3"),
   max_age: yup
     .number()
@@ -212,7 +212,7 @@ export interface UniquenessProofResponseV3 {
   identifier: string;
   signal_hash: string;
   merkle_root: string;
-  nullifier_hash: string;
+  nullifier: string;
   proof: string;
   max_age?: number;
 }
