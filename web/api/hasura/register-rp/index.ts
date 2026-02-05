@@ -2,31 +2,19 @@ import { getSdk as getCheckUserSdk } from "@/api/hasura/graphql/checkUserInApp.g
 import { errorHasuraQuery } from "@/api/helpers/errors";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { getKMSClient, scheduleKeyDeletion } from "@/api/helpers/kms";
-import { createManagerKey, signEthDigestWithKms } from "@/api/helpers/kms-eth";
+import { createManagerKey } from "@/api/helpers/kms-eth";
 import {
   generateRpIdString,
   getTargetConfigs,
   normalizeAddress,
   parseRpId,
   RpRegistrationStatus,
-  RpRegistryConfig,
-  WORLD_CHAIN_ID,
 } from "@/api/helpers/rp-utils";
-import { sendUserOperation } from "@/api/helpers/temporal-rpc";
-import {
-  buildRegisterRpCalldata,
-  buildUserOperation,
-  encodeSafeUserOpCalldata,
-  getRegisterRpNonce,
-  getTxExpiration,
-  hashSafeUserOp,
-  replacePlaceholderWithSignature,
-} from "@/api/helpers/user-operation";
+import { submitRegisterRpTransaction } from "@/api/helpers/rp-transactions";
 import { protectInternalEndpoint } from "@/api/helpers/utils";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { logger } from "@/lib/logger";
-import { KMSClient } from "@aws-sdk/client-kms";
-import { getBytes, isAddress } from "ethers";
+import { isAddress } from "ethers";
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
 import { getSdk as getClaimRpSdk } from "./graphql/claim-rp-registration.generated";
@@ -52,70 +40,6 @@ const schema = yup
       ),
   })
   .noUnknown();
-
-/**
- * Builds, signs, and submits a registerRp transaction for a given config.
- * Returns the operation hash on success.
- */
-async function submitRegisterRpTransaction(
-  config: RpRegistryConfig,
-  params: {
-    rpId: bigint;
-    managerAddress: string;
-    signerAddress: string;
-    appName: string;
-    kmsClient: KMSClient;
-  },
-): Promise<string> {
-  const innerCalldata = buildRegisterRpCalldata(
-    params.rpId,
-    params.managerAddress,
-    params.signerAddress,
-    params.appName,
-  );
-
-  const safeCalldata = encodeSafeUserOpCalldata(
-    config.contractAddress,
-    0n,
-    innerCalldata,
-  );
-
-  const nonce = getRegisterRpNonce(params.rpId);
-  const { validAfter, validUntil } = getTxExpiration();
-
-  const userOp = buildUserOperation(
-    config.safeAddress,
-    safeCalldata,
-    nonce,
-    validAfter,
-    validUntil,
-  );
-
-  const safeOpHash = hashSafeUserOp(
-    userOp,
-    WORLD_CHAIN_ID,
-    config.safe4337ModuleAddress,
-    config.entryPointAddress,
-  );
-
-  const signature = await signEthDigestWithKms(
-    params.kmsClient,
-    config.safeOwnerKmsKeyId,
-    getBytes(safeOpHash),
-  );
-
-  if (!signature) {
-    throw new Error("Failed to sign transaction");
-  }
-
-  userOp.signature = replacePlaceholderWithSignature({
-    placeholderSig: userOp.signature,
-    signature: signature.serialized,
-  });
-
-  const result = await sendUserOperation(userOp, config.entryPointAddress);
-  return result.operationHash;
-}
 
 /**
  * POST handler for the register_rp Hasura action.

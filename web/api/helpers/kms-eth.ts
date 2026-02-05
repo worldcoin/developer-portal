@@ -182,7 +182,7 @@ function publicKeyToAddress(publicKey: Uint8Array): string {
 /**
  * Gets the Ethereum address for a KMS key.
  */
-async function getEthAddressFromKMS(
+export async function getEthAddressFromKMS(
   client: KMSClient,
   keyId: string,
 ): Promise<string> {

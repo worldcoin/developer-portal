@@ -15,10 +15,15 @@ import { getSdk as getUpdateRpStatusSdk } from "./graphql/update-rp-status.gener
 const CACHE_TTL_SECONDS = 3600;
 const CACHE_KEY_PREFIX = "rp_status:";
 
+interface DualStatus {
+  production_status: string;
+  staging_status: string | null;
+}
+
 /**
- * Returns the registration status of an RP.
- * Checks cache first, then DB, then on-chain for registered/deactivated RPs.
- * Syncs DB if on-chain status differs.
+ * Returns the registration status of an RP for both production and staging contracts.
+ * Checks cache first, then DB + on-chain.
+ * Syncs DB status based on the production contract only.
  */
 export async function GET(
   req: NextRequest,
@@ -41,10 +46,15 @@ export async function GET(
   if (redis) {
     try {
       const cacheKey = `${CACHE_KEY_PREFIX}${rpId}`;
-      const cachedStatus = await redis.get(cacheKey);
+      const cachedValue = await redis.get(cacheKey);
 
-      if (cachedStatus) {
-        return NextResponse.json({ status: cachedStatus }, { status: 200 });
+      if (cachedValue) {
+        try {
+          const parsed = JSON.parse(cachedValue) as DualStatus;
+          return NextResponse.json(parsed, { status: 200 });
+        } catch {
+          // Legacy single-status cache entry, ignore and re-fetch
+        }
       }
     } catch (error) {
       logger.warn("Failed to read from cache", { rpId, error });
@@ -68,8 +78,8 @@ export async function GET(
 
   const currentDbStatus = dbRecord.status as RpRegistrationStatus;
 
-  const contractAddress = process.env.RP_REGISTRY_CONTRACT_ADDRESS;
-  if (!contractAddress) {
+  const productionContractAddress = process.env.RP_REGISTRY_CONTRACT_ADDRESS;
+  if (!productionContractAddress) {
     logger.error("RP_REGISTRY_CONTRACT_ADDRESS not configured");
     return errorResponse({
       statusCode: 500,
@@ -80,12 +90,35 @@ export async function GET(
     });
   }
 
-  let onChainRp;
+  const stagingContractAddress =
+    process.env.RP_REGISTRY_STAGING_CONTRACT_ADDRESS || null;
+
+  const numericRpId = parseRpId(rpId);
+
+  // Fetch production on-chain state
+  let productionStatus: string;
+  let productionInitialized = false;
   try {
-    const numericRpId = parseRpId(rpId);
-    onChainRp = await getRpFromContract(numericRpId, contractAddress);
+    const onChainRp = await getRpFromContract(
+      numericRpId,
+      productionContractAddress,
+    );
+    productionInitialized = onChainRp.initialized;
+
+    if (onChainRp.initialized) {
+      productionStatus = mapOnChainToDbStatus(
+        onChainRp.initialized,
+        onChainRp.active,
+      );
+    } else {
+      // Not initialized on production — we'll determine status below
+      productionStatus = currentDbStatus;
+    }
   } catch (error) {
-    logger.error("Failed to fetch RP from contract", { rpId, error });
+    logger.error("Failed to fetch RP from production contract", {
+      rpId,
+      error,
+    });
     return errorResponse({
       statusCode: 500,
       code: "rpc_error",
@@ -95,48 +128,82 @@ export async function GET(
     });
   }
 
-  // If not initialized on-chain, preserve DB status (pending/failed are pre-registration states)
-  if (!onChainRp.initialized) {
-    if (redis) {
-      try {
-        const cacheKey = `${CACHE_KEY_PREFIX}${rpId}`;
-        await redis.set(cacheKey, currentDbStatus, "EX", CACHE_TTL_SECONDS);
-      } catch (error) {
-        logger.warn("Failed to write to cache", { rpId, error });
+  // Fetch staging on-chain state (if configured)
+  let stagingStatus: string | null = null;
+  let stagingInitialized = false;
+  if (stagingContractAddress) {
+    try {
+      const stagingOnChainRp = await getRpFromContract(
+        numericRpId,
+        stagingContractAddress,
+      );
+      stagingInitialized = stagingOnChainRp.initialized;
+
+      if (stagingOnChainRp.initialized) {
+        stagingStatus = mapOnChainToDbStatus(
+          stagingOnChainRp.initialized,
+          stagingOnChainRp.active,
+        );
+      } else {
+        // Not initialized on staging — determine below
+        stagingStatus = currentDbStatus;
       }
+    } catch (error) {
+      logger.error("Failed to fetch RP from staging contract", {
+        rpId,
+        error,
+      });
+      // Staging failure is non-fatal; report as failed
+      stagingStatus = RpRegistrationStatus.Failed;
     }
-    return NextResponse.json({ status: currentDbStatus }, { status: 200 });
   }
 
-  const onChainStatus = mapOnChainToDbStatus(
-    onChainRp.initialized,
-    onChainRp.active,
-  );
+  // Cross-contract logic: if one contract IS initialized but the other is NOT,
+  // the non-initialized one should be "failed" (submission never went through)
+  if (stagingContractAddress) {
+    if (productionInitialized && !stagingInitialized) {
+      stagingStatus = RpRegistrationStatus.Failed;
+    }
+    if (!productionInitialized && stagingInitialized) {
+      productionStatus = RpRegistrationStatus.Failed;
+    }
+  }
 
-  if (onChainStatus !== currentDbStatus) {
+  // Sync DB status based on production contract only
+  if (productionInitialized && productionStatus !== currentDbStatus) {
     try {
       await getUpdateRpStatusSdk(client).UpdateRpStatus({
         rp_id: rpId,
-        status: onChainStatus,
+        status: productionStatus,
       });
       logger.info("Updated RP status in DB", {
         rpId,
         oldStatus: currentDbStatus,
-        newStatus: onChainStatus,
+        newStatus: productionStatus,
       });
     } catch (error) {
       logger.error("Failed to update RP status in DB", { rpId, error });
     }
   }
 
+  const result: DualStatus = {
+    production_status: productionStatus,
+    staging_status: stagingStatus,
+  };
+
   if (redis) {
     try {
       const cacheKey = `${CACHE_KEY_PREFIX}${rpId}`;
-      await redis.set(cacheKey, onChainStatus, "EX", CACHE_TTL_SECONDS);
+      await redis.set(
+        cacheKey,
+        JSON.stringify(result),
+        "EX",
+        CACHE_TTL_SECONDS,
+      );
     } catch (error) {
       logger.warn("Failed to write to cache", { rpId, error });
     }
   }
 
-  return NextResponse.json({ status: onChainStatus }, { status: 200 });
+  return NextResponse.json(result, { status: 200 });
 }
