@@ -44,6 +44,7 @@ type WorldId40ContentProps = {
   rpId: string;
   initialStatus: RpStatus;
   mode: string;
+  signerAddress: string;
   createdAt: string;
 };
 
@@ -52,6 +53,7 @@ export const WorldId40Content = ({
   rpId,
   initialStatus,
   mode,
+  signerAddress,
   createdAt,
 }: WorldId40ContentProps) => {
   const [status, setStatus] = useState<RpStatus>(initialStatus);
@@ -190,8 +192,7 @@ export const WorldId40Content = ({
             </div>
           </div>
         </div>
-        {/* TODO: Bottom two not implemented yet */}
-        {/* Danger Zone */}
+        {/* TODO: Danger Zone - not implemented yet
         <div className="mt-4 flex flex-col gap-y-6">
           <Typography variant={TYPOGRAPHY.S2} className="text-gray-900">
             Danger zone
@@ -239,6 +240,7 @@ export const WorldId40Content = ({
             </div>
           </div>
         </div>
+        */}
       </div>
 
       <RotateSignerKeyDialog
