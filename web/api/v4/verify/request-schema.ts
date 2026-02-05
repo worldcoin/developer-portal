@@ -142,10 +142,7 @@ export const schema = yup
     session_id: yup.string().strict().optional(),
 
     // Optional environment to specify which verifier contract to use
-    environment: yup
-      .string()
-      .oneOf(["production", "staging"])
-      .optional(),
+    environment: yup.string().oneOf(["production", "staging"]).optional(),
 
     // Responses array - validated based on version and type of proof
     responses: yup
