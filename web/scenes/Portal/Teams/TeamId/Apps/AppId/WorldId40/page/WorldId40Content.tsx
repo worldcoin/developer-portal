@@ -126,17 +126,6 @@ export const WorldId40Content = ({
           />
         </div>
 
-        {/* Signing Key */}
-        <div className="flex flex-col gap-0.5">
-          <Typography variant={TYPOGRAPHY.B4} className="text-grey-500">
-            Signing Key
-          </Typography>
-          <Typography variant={TYPOGRAPHY.B3} className="text-grey-900">
-            {signerAddress.slice(0, 6).toLowerCase()}...
-            {signerAddress.slice(-6).toLowerCase()}
-          </Typography>
-        </div>
-
         {/* Management Mode */}
         <div className="flex flex-col gap-0.5">
           <Typography variant={TYPOGRAPHY.B4} className="text-grey-500">
