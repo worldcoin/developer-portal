@@ -61,7 +61,9 @@ select_permissions:
         - deleted_at
         - id
         - name
-      filter: {}
+      filter:
+        deleted_at:
+          _is_null: true
   - role: service
     permission:
       columns:

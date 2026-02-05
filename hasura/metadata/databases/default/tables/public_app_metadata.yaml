@@ -199,8 +199,12 @@ select_permissions:
         - world_app_button_text
         - world_app_description
       filter:
-        verification_status:
-          _neq: unverified
+        _and:
+          - app:
+              deleted_at:
+                _is_null: true
+          - verification_status:
+              _neq: unverified
   - role: service
     permission:
       columns:
