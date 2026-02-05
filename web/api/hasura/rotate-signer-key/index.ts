@@ -4,9 +4,10 @@ import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { getKMSClient } from "@/api/helpers/kms";
 import { signEthDigestWithKms } from "@/api/helpers/kms-eth";
 import {
-  getRpRegistryConfig,
+  getTargetConfigs,
   normalizeAddress,
   parseRpId,
+  RpRegistryConfig,
   WORLD_CHAIN_ID,
 } from "@/api/helpers/rp-utils";
 import {
@@ -28,6 +29,7 @@ import {
 import { protectInternalEndpoint } from "@/api/helpers/utils";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { logger } from "@/lib/logger";
+import { KMSClient } from "@aws-sdk/client-kms";
 import { getBytes, isAddress } from "ethers";
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
@@ -54,6 +56,107 @@ const schema = yup
       ),
   })
   .noUnknown();
+
+/**
+ * Builds, signs, and submits a signer rotation transaction for a given config.
+ * Returns the operation hash on success.
+ */
+async function submitRotateSignerTransaction(
+  config: RpRegistryConfig,
+  params: {
+    rpId: bigint;
+    newSignerAddress: string;
+    managerKmsKeyId: string;
+    kmsClient: KMSClient;
+  },
+): Promise<string> {
+  // Fetch contract nonce (different per contract)
+  const contractNonce = await getRpNonceFromContract(
+    params.rpId,
+    config.contractAddress,
+  );
+
+  // Build EIP-712 typed data hash for manager signature
+  // domainSeparator and updateRpTypehash are contract-specific
+  const updateRpHash = hashUpdateRpTypedData(
+    {
+      rpId: params.rpId,
+      oprfKeyId: 0n, // No change
+      manager: ADDRESS_ZERO, // No change
+      signer: params.newSignerAddress,
+      toggleActive: false, // No change
+      unverifiedWellKnownDomain: RP_NO_UPDATE_DOMAIN,
+      nonce: contractNonce,
+    },
+    config.domainSeparator,
+    config.updateRpTypehash,
+  );
+
+  // Sign with manager KMS key
+  const managerSignature = await signEthDigestWithKms(
+    params.kmsClient,
+    params.managerKmsKeyId,
+    getBytes(updateRpHash),
+  );
+
+  if (!managerSignature) {
+    throw new Error("Failed to sign with manager key");
+  }
+
+  // Build updateRp calldata
+  const innerCalldata = buildUpdateRpSignerCalldata(
+    params.rpId,
+    params.newSignerAddress,
+    contractNonce,
+    managerSignature.serialized,
+  );
+
+  // Wrap in Safe's executeUserOp
+  const safeCalldata = encodeSafeUserOpCalldata(
+    config.contractAddress,
+    0n,
+    innerCalldata,
+  );
+
+  const nonce = getUpdateRpNonce(params.rpId);
+  const { validAfter, validUntil } = getTxExpiration();
+
+  const userOp = buildUserOperation(
+    config.safeAddress,
+    safeCalldata,
+    nonce,
+    validAfter,
+    validUntil,
+  );
+
+  // Sign UserOp with Safe owner KMS key
+  const safeOpHash = hashSafeUserOp(
+    userOp,
+    WORLD_CHAIN_ID,
+    config.safe4337ModuleAddress,
+    config.entryPointAddress,
+  );
+
+  const safeOwnerSignature = await signEthDigestWithKms(
+    params.kmsClient,
+    config.safeOwnerKmsKeyId,
+    getBytes(safeOpHash),
+  );
+
+  if (!safeOwnerSignature) {
+    throw new Error("Failed to sign transaction");
+  }
+
+  // Replace placeholder signature with actual signature
+  userOp.signature = replacePlaceholderWithSignature({
+    placeholderSig: userOp.signature,
+    signature: safeOwnerSignature.serialized,
+  });
+
+  // Submit to temporal bundler
+  const result = await sendUserOperation(userOp, config.entryPointAddress);
+  return result.operationHash;
+}
 
 /**
  * POST handler for the rotate_signer_key Hasura action.
@@ -105,14 +208,17 @@ export const POST = async (req: NextRequest) => {
 
   const { app_id, new_signer_address } = parsedParams;
 
-  const config = getRpRegistryConfig();
-  if (!config) {
+  const configs = getTargetConfigs();
+  if (configs.length === 0) {
     return errorHasuraQuery({
       req,
       detail: "Missing required environment variables for RP Registry.",
       code: "config_error",
     });
   }
+
+  // Primary config is always the first one (production contract when in prod deployment)
+  const primaryConfig = configs[0];
 
   const client = await getAPIServiceGraphqlClient();
 
@@ -212,122 +318,60 @@ export const POST = async (req: NextRequest) => {
   };
 
   try {
-    // STEP 5: Fetch contract nonce (the only value that changes per-RP)
-    const contractNonce = await getRpNonceFromContract(
-      rpId,
-      config.contractAddress,
-    );
+    // STEP 5: Submit rotation to all target contracts
+    // In production deployment: submits to both production and staging contracts
+    // In staging deployment: submits only to staging contract
+    const kmsClient = await getKMSClient(primaryConfig.kmsRegion);
+    let primaryOperationHash: string | undefined;
 
-    // STEP 6: Build EIP-712 typed data hash for manager signature
-    // domainSeparator and updateRpTypehash are fixed constants from config
-    const updateRpHash = hashUpdateRpTypedData(
-      {
-        rpId,
-        oprfKeyId: 0n, // No change
-        manager: ADDRESS_ZERO, // No change
-        signer: new_signer_address,
-        toggleActive: false, // No change
-        unverifiedWellKnownDomain: RP_NO_UPDATE_DOMAIN,
-        nonce: contractNonce,
-      },
-      config.domainSeparator,
-      config.updateRpTypehash,
-    );
+    for (let i = 0; i < configs.length; i++) {
+      const config = configs[i];
+      const isPrimary = i === 0;
 
-    // STEP 7: Sign with manager KMS key
-    const kmsClient = await getKMSClient(config.kmsRegion);
-    const managerSignature = await signEthDigestWithKms(
-      kmsClient,
-      managerKmsKeyId,
-      getBytes(updateRpHash),
-    );
+      try {
+        const operationHash = await submitRotateSignerTransaction(config, {
+          rpId,
+          newSignerAddress: new_signer_address,
+          managerKmsKeyId,
+          kmsClient,
+        });
 
-    if (!managerSignature) {
-      await revertStatus();
-      return errorHasuraQuery({
-        req,
-        detail: "Failed to sign with manager key.",
-        code: "kms_error",
-        app_id,
-      });
+        if (isPrimary) {
+          primaryOperationHash = operationHash;
+        } else {
+          logger.info("Staging signer rotation submitted", {
+            rpIdString,
+            operationHash,
+            contractAddress: config.contractAddress,
+          });
+        }
+      } catch (error) {
+        if (isPrimary) {
+          // Primary (production) failed - revert and return error
+          logger.error("Failed to submit signer rotation transaction", {
+            error,
+            app_id,
+          });
+          await revertStatus();
+          return errorHasuraQuery({
+            req,
+            detail: "Failed to submit signer rotation transaction.",
+            code: "submission_error",
+            app_id,
+          });
+        }
+        // Staging failed - log and continue (fire-and-forget)
+        logger.error("Staging signer rotation failed", {
+          error,
+          rpIdString,
+          contractAddress: config.contractAddress,
+        });
+      }
     }
 
-    // STEP 8: Build updateRp calldata
-    const innerCalldata = buildUpdateRpSignerCalldata(
-      rpId,
-      new_signer_address,
-      contractNonce,
-      managerSignature.serialized,
-    );
+    const operationHash = primaryOperationHash!;
 
-    // Wrap in Safe's executeUserOp
-    const safeCalldata = encodeSafeUserOpCalldata(
-      config.contractAddress,
-      0n,
-      innerCalldata,
-    );
-
-    const nonce = getUpdateRpNonce(rpId);
-    const { validAfter, validUntil } = getTxExpiration();
-
-    const userOp = buildUserOperation(
-      config.safeAddress,
-      safeCalldata,
-      nonce,
-      validAfter,
-      validUntil,
-    );
-
-    // STEP 9: Sign UserOp with Safe owner KMS key
-    const safeOpHash = hashSafeUserOp(
-      userOp,
-      WORLD_CHAIN_ID,
-      config.safe4337ModuleAddress,
-      config.entryPointAddress,
-    );
-
-    const safeOwnerSignature = await signEthDigestWithKms(
-      kmsClient,
-      config.safeOwnerKmsKeyId,
-      getBytes(safeOpHash),
-    );
-
-    if (!safeOwnerSignature) {
-      await revertStatus();
-      return errorHasuraQuery({
-        req,
-        detail: "Failed to sign transaction.",
-        code: "signing_error",
-        app_id,
-      });
-    }
-
-    // Replace placeholder signature with actual signature
-    userOp.signature = replacePlaceholderWithSignature({
-      placeholderSig: userOp.signature,
-      signature: safeOwnerSignature.serialized,
-    });
-
-    // STEP 10: Submit to temporal bundler
-    let operationHash: string;
-    try {
-      const result = await sendUserOperation(userOp, config.entryPointAddress);
-      operationHash = result.operationHash;
-    } catch (error) {
-      logger.error("Failed to submit signer rotation transaction", {
-        error,
-        app_id,
-      });
-      await revertStatus();
-      return errorHasuraQuery({
-        req,
-        detail: "Failed to submit signer rotation transaction.",
-        code: "submission_error",
-        app_id,
-      });
-    }
-
-    // STEP 11: Update the registration with new signer address and operation hash
+    // STEP 6: Update the registration with new signer address and operation hash
     const { update_rp_registration_by_pk: updatedRegistration } =
       await getUpdateResultSdk(client).UpdateRotationResult({
         rp_id: rpIdString,

@@ -5,10 +5,11 @@ import { getKMSClient, scheduleKeyDeletion } from "@/api/helpers/kms";
 import { createManagerKey, signEthDigestWithKms } from "@/api/helpers/kms-eth";
 import {
   generateRpIdString,
-  getRpRegistryConfig,
+  getTargetConfigs,
   normalizeAddress,
   parseRpId,
   RpRegistrationStatus,
+  RpRegistryConfig,
   WORLD_CHAIN_ID,
 } from "@/api/helpers/rp-utils";
 import { sendUserOperation } from "@/api/helpers/temporal-rpc";
@@ -24,6 +25,7 @@ import {
 import { protectInternalEndpoint } from "@/api/helpers/utils";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { logger } from "@/lib/logger";
+import { KMSClient } from "@aws-sdk/client-kms";
 import { getBytes, isAddress } from "ethers";
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
@@ -50,6 +52,70 @@ const schema = yup
       ),
   })
   .noUnknown();
+
+/**
+ * Builds, signs, and submits a registerRp transaction for a given config.
+ * Returns the operation hash on success.
+ */
+async function submitRegisterRpTransaction(
+  config: RpRegistryConfig,
+  params: {
+    rpId: bigint;
+    managerAddress: string;
+    signerAddress: string;
+    appName: string;
+    kmsClient: KMSClient;
+  },
+): Promise<string> {
+  const innerCalldata = buildRegisterRpCalldata(
+    params.rpId,
+    params.managerAddress,
+    params.signerAddress,
+    params.appName,
+  );
+
+  const safeCalldata = encodeSafeUserOpCalldata(
+    config.contractAddress,
+    0n,
+    innerCalldata,
+  );
+
+  const nonce = getRegisterRpNonce(params.rpId);
+  const { validAfter, validUntil } = getTxExpiration();
+
+  const userOp = buildUserOperation(
+    config.safeAddress,
+    safeCalldata,
+    nonce,
+    validAfter,
+    validUntil,
+  );
+
+  const safeOpHash = hashSafeUserOp(
+    userOp,
+    WORLD_CHAIN_ID,
+    config.safe4337ModuleAddress,
+    config.entryPointAddress,
+  );
+
+  const signature = await signEthDigestWithKms(
+    params.kmsClient,
+    config.safeOwnerKmsKeyId,
+    getBytes(safeOpHash),
+  );
+
+  if (!signature) {
+    throw new Error("Failed to sign transaction");
+  }
+
+  userOp.signature = replacePlaceholderWithSignature({
+    placeholderSig: userOp.signature,
+    signature: signature.serialized,
+  });
+
+  const result = await sendUserOperation(userOp, config.entryPointAddress);
+  return result.operationHash;
+}
 
 /**
  * POST handler for the register_rp Hasura action.
@@ -101,14 +167,17 @@ export const POST = async (req: NextRequest) => {
 
   const { app_id, signer_address } = parsedParams;
 
-  const config = getRpRegistryConfig();
-  if (!config) {
+  const configs = getTargetConfigs();
+  if (configs.length === 0) {
     return errorHasuraQuery({
       req,
       detail: "Missing required environment variables for RP Registry.",
       code: "config_error",
     });
   }
+
+  // Primary config is always the first one (production contract when in prod deployment)
+  const primaryConfig = configs[0];
 
   const client = await getAPIServiceGraphqlClient();
 
@@ -183,7 +252,7 @@ export const POST = async (req: NextRequest) => {
   const rpId = parseRpId(rpIdString);
 
   // STEP 2: Create KMS manager key
-  const kmsClient = await getKMSClient(config.kmsRegion);
+  const kmsClient = await getKMSClient(primaryConfig.kmsRegion);
   const managerKeyResult = await createManagerKey(kmsClient, rpIdString);
 
   if (!managerKeyResult) {
@@ -201,82 +270,61 @@ export const POST = async (req: NextRequest) => {
   // Get the domain (app name)
   const appName = appInfo.app_metadata?.[0]?.name || "";
 
-  // STEP 3: Build and sign UserOperation
-  const innerCalldata = buildRegisterRpCalldata(
-    rpId,
-    managerAddress,
-    signer_address,
-    appName,
-  );
+  // STEP 3: Submit registration to all target contracts
+  // In production deployment: submits to both production and staging contracts
+  // In staging deployment: submits only to staging contract
+  let primaryOperationHash: string | undefined;
 
-  // Wrap in Safe's executeUserOp
-  const safeCalldata = encodeSafeUserOpCalldata(
-    config.contractAddress,
-    0n,
-    innerCalldata,
-  );
+  for (let i = 0; i < configs.length; i++) {
+    const config = configs[i];
+    const isPrimary = i === 0;
 
-  const nonce = getRegisterRpNonce(rpId);
-  const { validAfter, validUntil } = getTxExpiration();
+    try {
+      const operationHash = await submitRegisterRpTransaction(config, {
+        rpId,
+        managerAddress,
+        signerAddress: signer_address,
+        appName,
+        kmsClient,
+      });
 
-  const userOp = buildUserOperation(
-    config.safeAddress,
-    safeCalldata,
-    nonce,
-    validAfter,
-    validUntil,
-  );
-
-  // Compute Safe Operation hash (EIP-712 typed data) - this is what the Safe owner signs
-  const safeOpHash = hashSafeUserOp(
-    userOp,
-    WORLD_CHAIN_ID,
-    config.safe4337ModuleAddress,
-    config.entryPointAddress,
-  );
-
-  const signature = await signEthDigestWithKms(
-    kmsClient,
-    config.safeOwnerKmsKeyId,
-    getBytes(safeOpHash),
-  );
-
-  if (!signature) {
-    await scheduleKeyDeletion(kmsClient, managerKmsKeyId);
-    await getDeleteRpSdk(client).DeleteRpRegistration({ rp_id: rpIdString });
-    return errorHasuraQuery({
-      req,
-      detail: "Failed to sign transaction.",
-      code: "signing_error",
-      app_id,
-    });
+      if (isPrimary) {
+        primaryOperationHash = operationHash;
+      } else {
+        logger.info("Staging registration submitted", {
+          rpIdString,
+          operationHash,
+          contractAddress: config.contractAddress,
+        });
+      }
+    } catch (error) {
+      if (isPrimary) {
+        // Primary (production) failed - cleanup and return error
+        logger.error("Failed to submit registration transaction", {
+          error,
+          app_id,
+        });
+        await scheduleKeyDeletion(kmsClient, managerKmsKeyId);
+        await getDeleteRpSdk(client).DeleteRpRegistration({
+          rp_id: rpIdString,
+        });
+        return errorHasuraQuery({
+          req,
+          detail: "Failed to submit registration transaction.",
+          code: "submission_error",
+          app_id,
+        });
+      }
+      // Staging failed - log and continue (fire-and-forget)
+      logger.error("Staging registration failed", {
+        error,
+        rpIdString,
+        contractAddress: config.contractAddress,
+      });
+    }
   }
 
-  // Replace placeholder signature with actual signature (preserving validity timestamps)
-  userOp.signature = replacePlaceholderWithSignature({
-    placeholderSig: userOp.signature,
-    signature: signature.serialized,
-  });
-
-  // STEP 4: Submit to temporal bundler
-  let operationHash: string;
-  try {
-    const result = await sendUserOperation(userOp, config.entryPointAddress);
-    operationHash = result.operationHash;
-  } catch (error) {
-    logger.error("Failed to submit registration transaction", {
-      error,
-      app_id,
-    });
-    await scheduleKeyDeletion(kmsClient, managerKmsKeyId);
-    await getDeleteRpSdk(client).DeleteRpRegistration({ rp_id: rpIdString });
-    return errorHasuraQuery({
-      req,
-      detail: "Failed to submit registration transaction.",
-      code: "submission_error",
-      app_id,
-    });
-  }
+  const operationHash = primaryOperationHash!;
 
   // STEP 5: Update the registration with KMS key ID and operation hash
   const { update_rp_registration_by_pk: updatedRegistration } =
