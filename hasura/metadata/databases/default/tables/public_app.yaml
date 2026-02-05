@@ -81,9 +81,12 @@ select_permissions:
         - id
         - is_banned
       filter:
-        app_metadata:
-          verification_status:
-            _neq: unverified
+        _and:
+          - deleted_at:
+              _is_null: true
+          - app_metadata:
+              verification_status:
+                _neq: unverified
   - role: service
     permission:
       columns:
