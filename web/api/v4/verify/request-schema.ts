@@ -107,19 +107,6 @@ const sessionResponseItemSchema = yup.object({
     .required("proof is required for v4"),
 });
 
-/**
- * Detect whether responses contain session proofs (have session_id field).
- * A request must be all uniqueness proofs OR all session proofs.
- */
-export function isSessionProofRequest(responses: unknown[]): boolean {
-  if (!responses || responses.length === 0) return false;
-  const firstResponse = responses[0] as Record<string, unknown>;
-  return (
-    "session_id" in firstResponse &&
-    typeof firstResponse.session_id === "string"
-  );
-}
-
 // Base schema - responses validated in custom test based on protocol version
 export const schema = yup
   .object({
