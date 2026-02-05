@@ -129,8 +129,8 @@ export const schema = yup
       .oneOf(["3.0", "4.0"])
       .required("protocol_version is required"),
 
-    // Nonce for v4 proofs (required for v4, optional for v3)
-    nonce: yup.string().strict().optional(),
+    // Nonce used in the RP signature
+    nonce: yup.string().strict().required("nonce is required"),
 
     // Action identifier required for uniqueness proofs
     action: yup.string().strict().optional(),
