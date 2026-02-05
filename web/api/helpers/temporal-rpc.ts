@@ -31,14 +31,24 @@ export interface VerifyProofParams {
   nullifier: bigint;
   action: bigint;
   rpId: bigint;
-  sessionId: bigint;
   nonce: bigint;
   signalHash: bigint;
-  authenticatorRoot: bigint;
-  proofTimestamp: bigint;
-  credentialIssuerId: bigint;
+  expiresAtMin: bigint;
+  issuerSchemaId: bigint;
   credentialGenesisIssuedAtMin: bigint;
-  compressedProof: [bigint, bigint, bigint, bigint];
+  zeroKnowledgeProof: [bigint, bigint, bigint, bigint, bigint];
+}
+
+export interface VerifySessionProofParams {
+  rpId: bigint;
+  nonce: bigint;
+  signalHash: bigint;
+  expiresAtMin: bigint;
+  issuerSchemaId: bigint;
+  credentialGenesisIssuedAtMin: bigint;
+  sessionId: bigint;
+  sessionNullifier: [bigint, bigint]; // [nullifier, action]
+  zeroKnowledgeProof: [bigint, bigint, bigint, bigint, bigint];
 }
 
 export interface VerifyProofResult {
@@ -253,7 +263,7 @@ export async function getUpdateRpTypehash(
 // =============================================================================
 
 /**
- * Verifies a World ID v4 proof by calling the on-chain Verifier contract.
+ * Verifies a World ID v4 uniqueness proof by calling the on-chain Verifier contract.
  * The contract reverts if the proof is invalid (no return value on success).
  */
 export async function verifyProofOnChain(
@@ -279,14 +289,12 @@ export async function verifyProofOnChain(
       params.nullifier,
       params.action,
       params.rpId,
-      params.sessionId,
       params.nonce,
       params.signalHash,
-      params.authenticatorRoot,
-      params.proofTimestamp,
-      params.credentialIssuerId,
+      params.expiresAtMin,
+      params.issuerSchemaId,
       params.credentialGenesisIssuedAtMin,
-      params.compressedProof,
+      params.zeroKnowledgeProof,
     );
 
     logger.info("Proof verified successfully", {
@@ -297,6 +305,62 @@ export async function verifyProofOnChain(
     logger.error("Proof verification failed", {
       error: error instanceof Error ? error.message : String(error),
       rpId: params.rpId.toString(),
+    });
+
+    return {
+      success: false,
+      error: parseVerifierRevertReason(error),
+    };
+  }
+}
+
+/**
+ * Verifies a World ID v4 session proof by calling the on-chain Verifier contract.
+ * Session proofs are used for subsequent verifications with the same user
+ * after an initial uniqueness proof has been established.
+ * The contract reverts if the proof is invalid (no return value on success).
+ */
+export async function verifySessionProofOnChain(
+  params: VerifySessionProofParams,
+  contractAddress: string,
+): Promise<VerifyProofResult> {
+  const serializableParams = Object.fromEntries(
+    Object.entries(params).map(([k, v]) => [
+      k,
+      Array.isArray(v) ? v.map(String) : String(v),
+    ]),
+  );
+  logger.info("Verifying session proof via on-chain Verifier", {
+    contractAddress,
+    params: serializableParams,
+  });
+
+  try {
+    const provider = createProvider();
+    const contract = new Contract(contractAddress, VERIFIER_ABI, provider);
+
+    await contract.verifySession(
+      params.rpId,
+      params.nonce,
+      params.signalHash,
+      params.expiresAtMin,
+      params.issuerSchemaId,
+      params.credentialGenesisIssuedAtMin,
+      params.sessionId,
+      params.sessionNullifier,
+      params.zeroKnowledgeProof,
+    );
+
+    logger.info("Session proof verified successfully", {
+      rpId: params.rpId.toString(),
+      sessionId: params.sessionId.toString(),
+    });
+    return { success: true };
+  } catch (error) {
+    logger.error("Session proof verification failed", {
+      error: error instanceof Error ? error.message : String(error),
+      rpId: params.rpId.toString(),
+      sessionId: params.sessionId.toString(),
     });
 
     return {
