@@ -177,7 +177,7 @@ export const schema = yup
 
       // Determine which schema to use
       let itemSchema;
-      if (session_id) {
+      if (session_id && protocol_version === "4.0") {
         itemSchema = sessionResponseItemSchema;
       } else if (protocol_version === "4.0") {
         itemSchema = v4ResponseItemSchema;
