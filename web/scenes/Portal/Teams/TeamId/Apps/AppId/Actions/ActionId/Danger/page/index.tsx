@@ -1,10 +1,19 @@
 "use client";
 import { ErrorPage } from "@/components/ErrorPage";
 import Skeleton from "react-loading-skeleton";
-import { ActionsHeader } from "../../Components/ActionsHeader";
-import { ActionDangerZoneContent } from "../ActionDangerZoneContent";
+import { ActionsHeader } from "@/components/ActionsHeader";
+import { ActionDangerZone } from "@/components/ActionDangerZone";
 import { useGetSingleActionQuery } from "./graphql/client/get-single-action.generated";
 import { SizingWrapper } from "@/components/SizingWrapper";
+import { urls } from "@/lib/urls";
+import { Role_Enum } from "@/graphql/graphql";
+import { Auth0SessionUser } from "@/lib/types";
+import { useUser } from "@auth0/nextjs-auth0/client";
+import { useRouter } from "next/navigation";
+import { useCallback, useMemo } from "react";
+import { toast } from "react-toastify";
+import { useDeleteActionMutation } from "../ActionDangerZoneContent/graphql/client/delete-action.generated";
+import { GetActionsDocument } from "../../../page/graphql/client/actions.generated";
 
 type ActionIdDangerPageProps = {
   params: Record<string, string> | null | undefined;
@@ -16,11 +25,58 @@ export const ActionIdDangerPage = ({ params }: ActionIdDangerPageProps) => {
   const teamId = params?.teamId;
   const appId = params?.appId;
 
+  const router = useRouter();
+  const { user } = useUser() as Auth0SessionUser;
+
   const { data, loading } = useGetSingleActionQuery({
     variables: { action_id: actionId ?? "" },
   });
 
   const action = data?.action_by_pk;
+
+  const isEnoughPermissions = useMemo(() => {
+    const membership = user?.hasura.memberships.find(
+      (m) => m.team?.id === teamId,
+    );
+
+    return (
+      membership?.role === Role_Enum.Owner ||
+      membership?.role === Role_Enum.Admin
+    );
+  }, [teamId, user?.hasura.memberships]);
+
+  const [deleteActionMutation, { loading: deleteActionLoading }] =
+    useDeleteActionMutation();
+
+  const handleDelete = useCallback(async () => {
+    try {
+      const result = await deleteActionMutation({
+        variables: { id: action?.id ?? "" },
+        refetchQueries: [
+          {
+            query: GetActionsDocument,
+            variables: {
+              app_id: appId,
+              condition: {},
+            },
+            fetchPolicy: "network-only",
+          },
+        ],
+        awaitRefetchQueries: true,
+      });
+
+      if (result instanceof Error) {
+        throw result;
+      }
+
+      toast.success(`${action?.name} was deleted.`);
+      router.prefetch(`/teams/${teamId}/apps/${appId}/actions`);
+      router.replace(`/teams/${teamId}/apps/${appId}/actions`);
+    } catch (error) {
+      console.error("Delete Action: ", error);
+      toast.error("Unable to delete action");
+    }
+  }, [action?.id, action?.name, appId, deleteActionMutation, router, teamId]);
 
   if (!loading && !action) {
     return (
@@ -32,7 +88,18 @@ export const ActionIdDangerPage = ({ params }: ActionIdDangerPageProps) => {
     return (
       <>
         <SizingWrapper gridClassName="order-1 pt-6 md:pt-10">
-          <ActionsHeader appId={appId} actionId={actionId} teamId={teamId} />
+          <ActionsHeader
+            displayText={action?.name ?? ""}
+            backText="Back to Incognito Actions"
+            backUrl={urls.actions({ team_id: teamId ?? "", app_id: appId })}
+            isLoading={loading}
+            analyticsContext={{
+              teamId,
+              appId,
+              actionId,
+              location: "actions",
+            }}
+          />
 
           <hr className="mt-5 w-full border-dashed text-grey-200" />
         </SizingWrapper>
@@ -41,10 +108,11 @@ export const ActionIdDangerPage = ({ params }: ActionIdDangerPageProps) => {
           {loading ? (
             <Skeleton height={150} />
           ) : (
-            <ActionDangerZoneContent
-              action={action!}
-              teamId={teamId}
-              appId={appId}
+            <ActionDangerZone
+              actionIdentifier={action?.name ?? ""}
+              onDelete={handleDelete}
+              isDeleting={deleteActionLoading}
+              canDelete={isEnoughPermissions}
             />
           )}
         </SizingWrapper>

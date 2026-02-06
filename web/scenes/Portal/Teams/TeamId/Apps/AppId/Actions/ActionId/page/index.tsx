@@ -2,11 +2,12 @@
 import { EngineType } from "@/lib/types";
 import { ErrorPage } from "@/components/ErrorPage";
 import Skeleton from "react-loading-skeleton";
-import { ActionsHeader } from "../Components/ActionsHeader";
+import { ActionsHeader } from "@/components/ActionsHeader";
 import { ActionStatsGraph } from "./ActionStatsGraph";
 import { VerifiedTable } from "./VerifiedTable";
 import { useGetSingleActionAndNullifiersQuery } from "./graphql/client/get-single-action.generated";
 import { SizingWrapper } from "@/components/SizingWrapper";
+import { urls } from "@/lib/urls";
 
 type ActionIdPageProps = {
   params: Record<string, string> | null | undefined;
@@ -40,7 +41,18 @@ export const ActionIdPage = ({ params }: ActionIdPageProps) => {
     return (
       <>
         <SizingWrapper gridClassName="order-1 pt-6 md:pt-10">
-          <ActionsHeader appId={appId} actionId={actionId} teamId={teamId} />
+          <ActionsHeader
+            displayText={action?.name ?? ""}
+            backText="Back to Incognito Actions"
+            backUrl={urls.actions({ team_id: teamId ?? "", app_id: appId })}
+            isLoading={loading}
+            analyticsContext={{
+              teamId,
+              appId,
+              actionId,
+              location: "actions",
+            }}
+          />
 
           <hr className="mt-5 w-full border-dashed text-grey-200" />
         </SizingWrapper>
