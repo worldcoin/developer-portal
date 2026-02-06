@@ -232,8 +232,8 @@ export const rankApps = (
     if (combinedNativeAppIds.has(stat.app_id)) {
       return;
     }
-    maxNewUsers = Math.max(maxNewUsers, stat.new_users_last_7_days ?? 0);
-    maxUniqueUsers = Math.max(maxUniqueUsers, stat.unique_users ?? 0);
+    maxNewUsers = Math.max(maxNewUsers, Number(stat.new_users_last_7_days ?? 0));
+    maxUniqueUsers = Math.max(maxUniqueUsers, Number(stat.unique_users ?? 0));
   });
 
   // ensure we don't divide by zero
@@ -259,10 +259,10 @@ export const rankApps = (
     const bStat = appStoreAppStats.find((stat) => stat.app_id === b.app_id);
 
     // default to 0 if stats not found
-    const aNewUsers = aStat?.new_users_last_7_days ?? 0;
-    const aUniqueUsers = aStat?.unique_users ?? 0;
-    const bNewUsers = bStat?.new_users_last_7_days ?? 0;
-    const bUniqueUsers = bStat?.unique_users ?? 0;
+    const aNewUsers = Number(aStat?.new_users_last_7_days ?? 0);
+    const aUniqueUsers = Number(aStat?.unique_users ?? 0);
+    const bNewUsers = Number(bStat?.new_users_last_7_days ?? 0);
+    const bUniqueUsers = Number(bStat?.unique_users ?? 0);
 
     // normalize values to 0-1 scale
     const aNormalizedNewUsers = aNewUsers / maxNewUsers;

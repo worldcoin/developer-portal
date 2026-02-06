@@ -32,7 +32,7 @@ export type Scalars = {
   date: { input: string; output: string };
   illegal_content_sub_category_enum: { input: unknown; output: unknown };
   jsonb: { input: any; output: any };
-  numeric: { input: number; output: number };
+  numeric: { input: string; output: string };
   purpose_enum: { input: unknown; output: unknown };
   review_status_enum: { input: unknown; output: unknown };
   rp_registration_mode: { input: unknown; output: unknown };
