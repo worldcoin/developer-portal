@@ -7,6 +7,7 @@ import { getIsUserAllowedToUpdateApp } from "@/lib/permissions";
 import { FormActionResult } from "@/lib/types";
 import { logger } from "@/lib/logger";
 import { getSdk } from "./graphql/server/update-action-v4.generated";
+import { getSdk as getActionWithAppSdk } from "./graphql/server/get-action-v4-with-app.generated";
 import {
   createActionSchemaV4,
   CreateActionSchemaV4,
@@ -17,7 +18,7 @@ export async function updateActionV4ServerSide(
   actionId: string,
   appId: string,
 ): Promise<FormActionResult> {
-  // 1. Check permissions
+  // 1. Check app-level permissions
   const isAllowed = await getIsUserAllowedToUpdateApp(appId);
 
   if (!isAllowed) {
@@ -26,7 +27,48 @@ export async function updateActionV4ServerSide(
     });
   }
 
-  // 2. Validate input
+  // 2. Verify action ownership (IDOR protection)
+  const client = await getAPIServiceGraphqlClient();
+  const { action_v4_by_pk } = await getActionWithAppSdk(
+    client,
+  ).GetActionV4WithApp({
+    action_id: actionId,
+  });
+
+  if (!action_v4_by_pk) {
+    logger.warn("Action not found during update", {
+      action_id: actionId,
+      app_id: appId,
+    });
+    return errorFormAction({
+      message: "Action not found",
+    });
+  }
+
+  if (action_v4_by_pk.rp_registration.app_id !== appId) {
+    logger.warn("IDOR attempt detected - action does not belong to app", {
+      action_id: actionId,
+      expected_app_id: appId,
+      actual_app_id: action_v4_by_pk.rp_registration.app_id,
+    });
+    return errorFormAction({
+      message: "Unauthorized",
+    });
+  }
+
+  // 3. Verify production-only (PR requirement)
+  if (action_v4_by_pk.environment !== "production") {
+    logger.warn("Attempted to edit non-production action", {
+      action_id: actionId,
+      environment: action_v4_by_pk.environment,
+      app_id: appId,
+    });
+    return errorFormAction({
+      message: "Only production actions can be modified",
+    });
+  }
+
+  // 4. Validate input
   const { isValid, parsedParams } = await validateRequestSchema({
     schema: createActionSchemaV4,
     value: values,
@@ -41,9 +83,8 @@ export async function updateActionV4ServerSide(
     });
   }
 
-  // 3. Update action_v4 (only description and environment, not identifier)
+  // 5. Update action_v4 (only description, not identifier or environment)
   try {
-    const client = await getAPIServiceGraphqlClient();
     await getSdk(client).UpdateActionV4({
       id: actionId,
       input: {
