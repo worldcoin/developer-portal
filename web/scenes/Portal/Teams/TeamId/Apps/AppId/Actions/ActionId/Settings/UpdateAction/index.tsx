@@ -28,10 +28,11 @@ import {
 type UpdateActionProps = {
   teamId: string;
   action: GetSingleActionQuery["action"][0];
+  isReadOnly?: boolean;
 };
 
 export const UpdateActionForm = (props: UpdateActionProps) => {
-  const { action, teamId } = props;
+  const { action, teamId, isReadOnly } = props;
   const isProduction = checkIfProduction();
   const isPartnerTeam = checkIfPartnerTeam(teamId);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -129,6 +130,7 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
           label="Action Name"
           placeholder="Anonymous Vote #12"
           required
+          disabled={isReadOnly}
           className="h-16"
         />
         <Input
@@ -138,6 +140,7 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
           placeholder="Cast your vote on proposal #102"
           helperText="Tell your users what the action is for."
           required
+          disabled={isReadOnly}
           className="h-16"
         />
         <Input
@@ -180,6 +183,7 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
                 errors={errors.max_verifications}
                 showCustomInput
                 required
+                disabled={isReadOnly}
                 className="w-full " // border is 2 px
                 label="Max verifications per user"
                 helperText="The number of verifications the same person can do for this action"
@@ -196,6 +200,7 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
             <Toggle
               checked={showAdvancedConfig}
               onChange={() => setShowAdvancedConfig(!showAdvancedConfig)}
+              disabled={isReadOnly}
             />
           </div>
 
@@ -212,6 +217,7 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
                     label="App Flow on Complete"
                     helperText="Select what happens when the action is completed"
                     required
+                    disabled={isReadOnly}
                   />
                 )}
               />
@@ -224,6 +230,7 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
                     label="Webhook URL"
                     placeholder="https://your-webhook-endpoint.com"
                     helperText="Enter the full URL where webhook payloads will be sent. Must start with 'https://'."
+                    disabled={isReadOnly}
                     className="h-16"
                   />
 
@@ -233,6 +240,7 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
                     label="Webhook RSA PEM"
                     placeholder={`-----BEGIN RSA PUBLIC KEY-----\nMII... (your key here) ...AB\n-----END RSA PUBLIC KEY-----\n\nor\n\n-----BEGIN PUBLIC KEY-----\nMII... (your key here) ...AB\n-----END PUBLIC KEY-----`}
                     helperText="Enter the full RSA public key in PEM format, including 'BEGIN' and 'END' lines. Both PKCS#1 (RSA PUBLIC KEY) and SPKI (PUBLIC KEY) formats are supported."
+                    disabled={isReadOnly}
                     className="h-16"
                   />
                 </div>
@@ -244,6 +252,7 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
                 label="Post-action deep link (iOS)"
                 placeholder="e.g. worldapp:// or https://world.org"
                 helperText="If specified, after action completion, allow users to continue to the iOS app specified by the deep link."
+                disabled={isReadOnly}
                 className="h-16"
               />
 
@@ -253,23 +262,26 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
                 label="Post-action deep link (Android)"
                 placeholder="e.g. worldapp:// or https://world.org"
                 helperText="If specified, after action completion, allow users to continue to the Android app specified by the deep link."
+                disabled={isReadOnly}
                 className="h-16"
               />
             </div>
           )}
         </div>
-        <div className="flex w-full justify-start">
-          <DecoratedButton
-            variant="primary"
-            type="submit"
-            disabled={!isValid || isSubmitting}
-            className="mt-4 px-6 py-3"
-          >
-            <Typography variant={TYPOGRAPHY.R4} className="text-white">
-              Save Changes
-            </Typography>
-          </DecoratedButton>
-        </div>
+        {!isReadOnly && (
+          <div className="flex w-full justify-start">
+            <DecoratedButton
+              variant="primary"
+              type="submit"
+              disabled={!isValid || isSubmitting}
+              className="mt-4 px-6 py-3"
+            >
+              <Typography variant={TYPOGRAPHY.R4} className="text-white">
+                Save Changes
+              </Typography>
+            </DecoratedButton>
+          </div>
+        )}
       </form>
     </div>
   );

@@ -15,9 +15,13 @@ import { GetActionsDocument } from "../../../page/graphql/client/actions.generat
 type ActionIdDangerPageProps = {
   params: Record<string, string> | null | undefined;
   searchParams: Record<string, string> | null | undefined;
+  isReadOnly?: boolean;
 };
 
-export const ActionIdDangerPage = ({ params }: ActionIdDangerPageProps) => {
+export const ActionIdDangerPage = ({
+  params,
+  isReadOnly,
+}: ActionIdDangerPageProps) => {
   const actionId = params?.actionId;
   const teamId = params?.teamId;
   const appId = params?.appId;
@@ -75,7 +79,11 @@ export const ActionIdDangerPage = ({ params }: ActionIdDangerPageProps) => {
         <SizingWrapper gridClassName="order-1 pt-6 md:pt-10">
           <ActionsHeader
             displayText={action?.name ?? ""}
-            backText="Back to Incognito Actions"
+            backText={
+              isReadOnly
+                ? "Back to Legacy Actions"
+                : "Back to Incognito Actions"
+            }
             backUrl={urls.actions({ team_id: teamId ?? "", app_id: appId })}
             isLoading={loading}
             analyticsContext={{
@@ -97,7 +105,7 @@ export const ActionIdDangerPage = ({ params }: ActionIdDangerPageProps) => {
               actionIdentifier={action?.name ?? ""}
               onDelete={handleDelete}
               isDeleting={deleteActionLoading}
-              canDelete={true}
+              canDelete={!isReadOnly}
             />
           )}
         </SizingWrapper>
