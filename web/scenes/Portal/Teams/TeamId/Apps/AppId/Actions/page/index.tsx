@@ -1,20 +1,20 @@
 "use client";
-import clsx from "clsx";
+import { ErrorPage } from "@/components/ErrorPage";
 import { UserStoryIcon } from "@/components/Icons/UserStoryIcon";
 import { InitialSteps } from "@/components/InitialSteps";
 import { IconFrame } from "@/components/InitialSteps/IconFrame";
 import { Step } from "@/components/InitialSteps/Step";
 import { Placeholder } from "@/components/PlaceholderImage";
 import { SizingWrapper } from "@/components/SizingWrapper";
-import { ErrorPage } from "@/components/ErrorPage";
+import { EngineType } from "@/lib/types";
+import clsx from "clsx";
+import { usePathname } from "next/navigation";
 import { useMemo } from "react";
+import { useForm, useWatch } from "react-hook-form";
 import { ActionsList } from "./ActionsList";
 import { CreateActionModal } from "./CreateActionModal";
 import { useGetActionsQuery } from "./graphql/client/actions.generated";
-import { useForm, useWatch } from "react-hook-form";
 import { useGetAppQuery } from "./graphql/client/app.generated";
-import { EngineType } from "@/lib/types";
-import { usePathname } from "next/navigation";
 
 type ActionsPageProps = {
   params: Record<string, string> | null | undefined;
@@ -102,8 +102,8 @@ export const ActionsPage = ({ params, searchParams }: ActionsPageProps) => {
       {isInitial && (
         <div className="grid size-full items-start justify-items-center overflow-hidden pt-20">
           <InitialSteps
-            title="Create your first incognito action"
-            description="Allow users to verify as a unique person without revealing their identity"
+            title="Create your first action"
+            description="Actions are used to request uniqueness proofs"
             steps={[
               // FIXME: pass actual app
               <Step

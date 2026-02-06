@@ -20,7 +20,7 @@ export const createActionSchemaV4 = yup
         "Description must contain only common characters",
       )
       .optional(),
-    environment: yup.string().oneOf(["staging", "production"]).required(),
+    environment: yup.string().oneOf(["production"]).default("production"),
   })
   .noUnknown();
 
