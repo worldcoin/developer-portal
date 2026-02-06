@@ -26,6 +26,13 @@ export type GetSingleActionV4Query = {
         count: number;
       } | null;
     };
+    nullifiers: Array<{
+      __typename?: "nullifier_v4";
+      id: string;
+      created_at: string;
+      nullifier: string;
+      action_v4_id: string;
+    }>;
   } | null;
 };
 
@@ -45,6 +52,12 @@ export const GetSingleActionV4Document = gql`
         aggregate {
           count
         }
+      }
+      nullifiers(limit: 100, order_by: { created_at: desc }) {
+        id
+        created_at
+        nullifier
+        action_v4_id
       }
     }
   }

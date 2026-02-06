@@ -14,5 +14,11 @@ query GetSingleActionV4($action_id: String!) {
         count
       }
     }
+    nullifiers(limit: 100, order_by: { created_at: desc }) {
+      id
+      created_at
+      nullifier
+      action_v4_id
+    }
   }
 }
