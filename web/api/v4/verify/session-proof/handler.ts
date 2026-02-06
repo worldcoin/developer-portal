@@ -71,7 +71,8 @@ export async function handleSessionProofVerification(
   const verificationResults = await withSpan(
     "verify.v4.verify_session_proof",
     { rp_id: rpId, session_id: parsedParams.session_id },
-    () => processSessionProof(numericRpId, sessionProofRequest, verifierAddress),
+    () =>
+      processSessionProof(numericRpId, sessionProofRequest, verifierAddress),
   );
 
   // If no successful verifications, return 400 with all results
