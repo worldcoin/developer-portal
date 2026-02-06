@@ -35,6 +35,8 @@ const config: Config = {
       },
 
       colors: {
+        danger: "#F2280D", // Primary danger red for delete actions
+
         blue: {
           50: "#F9F9FE",
           100: "#F0F0FD",
