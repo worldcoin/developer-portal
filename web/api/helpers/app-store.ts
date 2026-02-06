@@ -232,7 +232,10 @@ export const rankApps = (
     if (combinedNativeAppIds.has(stat.app_id)) {
       return;
     }
-    maxNewUsers = Math.max(maxNewUsers, Number(stat.new_users_last_7_days ?? 0));
+    maxNewUsers = Math.max(
+      maxNewUsers,
+      Number(stat.new_users_last_7_days ?? 0),
+    );
     maxUniqueUsers = Math.max(maxUniqueUsers, Number(stat.unique_users ?? 0));
   });
 

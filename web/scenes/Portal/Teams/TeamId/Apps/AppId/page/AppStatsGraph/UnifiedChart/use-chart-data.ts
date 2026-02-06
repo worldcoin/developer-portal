@@ -159,13 +159,17 @@ export const useChartData = (appId: string, activeTab: ChartTabType) => {
   const totalVerifications = useMemo(() => {
     const appStatsLength = appStatsData?.app_stats.length;
     if (!appStatsLength) return 0;
-    return Number(appStatsData?.app_stats[appStatsLength - 1].verifications ?? 0);
+    return Number(
+      appStatsData?.app_stats[appStatsLength - 1].verifications ?? 0,
+    );
   }, [appStatsData?.app_stats]);
 
   const totalUniqueUsers = useMemo(() => {
     const appStatsLength = appStatsData?.app_stats.length;
     if (!appStatsLength) return 0;
-    return Number(appStatsData?.app_stats[appStatsLength - 1].unique_users ?? 0);
+    return Number(
+      appStatsData?.app_stats[appStatsLength - 1].unique_users ?? 0,
+    );
   }, [appStatsData?.app_stats]);
 
   // Payments data
