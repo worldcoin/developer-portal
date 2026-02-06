@@ -82,6 +82,7 @@ export const WorldIdActionIdPage = ({ params }: WorldIdActionIdPageProps) => {
           </div>
         ) : (
           <VerifiedTable
+            columns={["human", "time"]}
             nullifiers={adaptNullifierV4(action?.nullifiers ?? [])}
           />
         )}

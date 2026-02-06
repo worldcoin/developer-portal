@@ -66,7 +66,10 @@ export const ActionIdPage = ({ params }: ActionIdPageProps) => {
                 <Skeleton count={5} />
               </div>
             ) : (
-              <VerifiedTable nullifiers={action?.nullifiers ?? []} />
+              <VerifiedTable
+                columns={["human", "uses", "time"]}
+                nullifiers={action?.nullifiers ?? []}
+              />
             )}
           </div>
         </SizingWrapper>
