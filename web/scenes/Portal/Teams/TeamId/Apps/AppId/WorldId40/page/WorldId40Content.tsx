@@ -4,7 +4,7 @@ import { CopyButton } from "@/components/CopyButton";
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { RotateSignerKeyDialog } from "./RotateSignerKeyDialog";
 
 type RpStatus = "pending" | "registered" | "failed" | "deactivated";
@@ -53,37 +53,73 @@ export const WorldId40Content = ({
   rpId,
   initialStatus,
   mode,
-  signerAddress,
   createdAt,
 }: WorldId40ContentProps) => {
-  const [status, setStatus] = useState<RpStatus>(initialStatus);
+  const [productionStatus, setProductionStatus] =
+    useState<RpStatus>(initialStatus);
+  const [stagingStatus, setStagingStatus] = useState<RpStatus | null>(null);
   const [isRotateDialogOpen, setIsRotateDialogOpen] = useState(false);
+  const [retryingEnvironment, setRetryingEnvironment] = useState<string | null>(
+    null,
+  );
+
+  const fetchStatus = useCallback(async () => {
+    try {
+      const response = await fetch(`/api/v4/rp-status/${rpId}`);
+      if (response.ok) {
+        const data = await response.json();
+        setProductionStatus(data.production_status as RpStatus);
+        setStagingStatus(
+          data.staging_status != null
+            ? (data.staging_status as RpStatus)
+            : null,
+        );
+      }
+    } catch {
+      // Keep the current status on error
+    }
+  }, [rpId]);
 
   useEffect(() => {
-    const fetchStatus = async () => {
-      try {
-        const response = await fetch(`/api/v4/rp-status/${rpId}`);
-        if (response.ok) {
-          const data = await response.json();
-          setStatus(data.status as RpStatus);
-        }
-      } catch {
-        // Keep the current status on error
-      }
-    };
-
     fetchStatus();
+  }, [fetchStatus]);
 
-    // Poll every 5 seconds while status is pending
-    if (status === "pending") {
+  // Poll every 5 seconds while either status is pending
+  useEffect(() => {
+    const shouldPoll =
+      productionStatus === "pending" || stagingStatus === "pending";
+    if (shouldPoll) {
       const interval = setInterval(fetchStatus, 5000);
       return () => clearInterval(interval);
     }
-  }, [rpId, status]);
+  }, [productionStatus, stagingStatus, fetchStatus]);
 
-  const statusInfo = statusConfig[status] || statusConfig.pending;
-  const isActive = status === "registered";
-  const isFailed = status === "failed";
+  const handleRetry = async (environment: "production" | "staging") => {
+    setRetryingEnvironment(environment);
+    try {
+      const response = await fetch(`/api/v4/rp-retry/${rpId}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ environment }),
+      });
+
+      if (response.ok) {
+        // Set the retried environment to pending and resume polling
+        if (environment === "production") {
+          setProductionStatus("pending");
+        } else {
+          setStagingStatus("pending");
+        }
+      }
+    } catch {
+      // Keep current status on error
+    } finally {
+      setRetryingEnvironment(null);
+    }
+  };
+
+  // Use production status for overall "active" checks (e.g., enabling reset button)
+  const isActive = productionStatus === "registered";
 
   const formattedDate = new Date(createdAt).toLocaleDateString("en-US", {
     year: "numeric",
@@ -92,6 +128,47 @@ export const WorldId40Content = ({
   });
 
   const modeLabel = mode === "managed" ? "Managed" : "Self-Managed";
+
+  const renderStatusRow = (
+    label: string,
+    status: RpStatus,
+    environment: "production" | "staging",
+  ) => {
+    const info = statusConfig[status] || statusConfig.pending;
+    const isFailed = status === "failed";
+    const isRetrying = retryingEnvironment === environment;
+
+    return (
+      <div className="flex flex-col gap-0.5">
+        <Typography variant={TYPOGRAPHY.B4} className="text-gray-500">
+          {label}
+        </Typography>
+        <div className="flex items-center justify-between rounded-xl">
+          <div className="flex items-center gap-2">
+            <div
+              className={`flex items-center justify-center rounded-full p-1 ${info.bgColor}`}
+            >
+              <div className={`size-2 rounded-full ${info.dotColor}`} />
+            </div>
+            <Typography variant={TYPOGRAPHY.B3} className={info.color}>
+              {info.label}
+            </Typography>
+          </div>
+          {isFailed && (
+            <DecoratedButton
+              type="button"
+              variant="primary"
+              className="h-8 rounded-full px-4 py-0 text-xs"
+              disabled={isRetrying}
+              onClick={() => handleRetry(environment)}
+            >
+              {isRetrying ? "Retrying..." : "Try again"}
+            </DecoratedButton>
+          )}
+        </div>
+      </div>
+    );
+  };
 
   return (
     <SizingWrapper className="py-10">
@@ -137,32 +214,12 @@ export const WorldId40Content = ({
         </div>
 
         {/* Status */}
-        <div className="flex flex-col gap-0.5">
-          <Typography variant={TYPOGRAPHY.B4} className="text-gray-500">
-            Status
-          </Typography>
-          <div className="flex items-center justify-between rounded-xl">
-            <div className="flex items-center gap-2">
-              <div
-                className={`flex items-center justify-center rounded-full p-1 ${statusInfo.bgColor}`}
-              >
-                <div className={`size-2 rounded-full ${statusInfo.dotColor}`} />
-              </div>
-              <Typography variant={TYPOGRAPHY.B3} className={statusInfo.color}>
-                {statusInfo.label}
-              </Typography>
-            </div>
-            {isFailed && (
-              <DecoratedButton
-                type="button"
-                variant="primary"
-                className="h-8 rounded-full px-4 py-0 text-xs"
-              >
-                Try again
-              </DecoratedButton>
-            )}
-          </div>
-        </div>
+        {renderStatusRow("Production Status", productionStatus, "production")}
+        {renderStatusRow(
+          "Staging Status",
+          stagingStatus ?? "failed",
+          "staging",
+        )}
 
         {/* Key Section */}
         <div className="mt-4 flex flex-col gap-4">
@@ -247,7 +304,7 @@ export const WorldId40Content = ({
         open={isRotateDialogOpen}
         onClose={() => setIsRotateDialogOpen(false)}
         appId={appId}
-        onSuccess={() => setStatus("pending")}
+        onSuccess={() => setProductionStatus("pending")}
       />
     </SizingWrapper>
   );

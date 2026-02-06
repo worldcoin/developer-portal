@@ -2,35 +2,16 @@ import { getSdk as getCheckUserSdk } from "@/api/hasura/graphql/checkUserInApp.g
 import { errorHasuraQuery } from "@/api/helpers/errors";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { getKMSClient } from "@/api/helpers/kms";
-import { signEthDigestWithKms } from "@/api/helpers/kms-eth";
 import {
   getTargetConfigs,
   normalizeAddress,
   parseRpId,
-  RpRegistryConfig,
-  WORLD_CHAIN_ID,
 } from "@/api/helpers/rp-utils";
-import {
-  getRpNonceFromContract,
-  sendUserOperation,
-} from "@/api/helpers/temporal-rpc";
-import {
-  ADDRESS_ZERO,
-  buildUpdateRpSignerCalldata,
-  buildUserOperation,
-  encodeSafeUserOpCalldata,
-  getUpdateRpNonce,
-  getTxExpiration,
-  hashSafeUserOp,
-  hashUpdateRpTypedData,
-  replacePlaceholderWithSignature,
-  RP_NO_UPDATE_DOMAIN,
-} from "@/api/helpers/user-operation";
+import { submitRotateSignerTransaction } from "@/api/helpers/rp-transactions";
 import { protectInternalEndpoint } from "@/api/helpers/utils";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { logger } from "@/lib/logger";
-import { KMSClient } from "@aws-sdk/client-kms";
-import { getBytes, isAddress } from "ethers";
+import { isAddress } from "ethers";
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
 import { getSdk as getClaimRotationSdk } from "./graphql/claim-rotation-slot.generated";
@@ -56,107 +37,6 @@ const schema = yup
       ),
   })
   .noUnknown();
-
-/**
- * Builds, signs, and submits a signer rotation transaction for a given config.
- * Returns the operation hash on success.
- */
-async function submitRotateSignerTransaction(
-  config: RpRegistryConfig,
-  params: {
-    rpId: bigint;
-    newSignerAddress: string;
-    managerKmsKeyId: string;
-    kmsClient: KMSClient;
-  },
-): Promise<string> {
-  // Fetch contract nonce (different per contract)
-  const contractNonce = await getRpNonceFromContract(
-    params.rpId,
-    config.contractAddress,
-  );
-
-  // Build EIP-712 typed data hash for manager signature
-  // domainSeparator and updateRpTypehash are contract-specific
-  const updateRpHash = hashUpdateRpTypedData(
-    {
-      rpId: params.rpId,
-      oprfKeyId: 0n, // No change
-      manager: ADDRESS_ZERO, // No change
-      signer: params.newSignerAddress,
-      toggleActive: false, // No change
-      unverifiedWellKnownDomain: RP_NO_UPDATE_DOMAIN,
-      nonce: contractNonce,
-    },
-    config.domainSeparator,
-    config.updateRpTypehash,
-  );
-
-  // Sign with manager KMS key
-  const managerSignature = await signEthDigestWithKms(
-    params.kmsClient,
-    params.managerKmsKeyId,
-    getBytes(updateRpHash),
-  );
-
-  if (!managerSignature) {
-    throw new Error("Failed to sign with manager key");
-  }
-
-  // Build updateRp calldata
-  const innerCalldata = buildUpdateRpSignerCalldata(
-    params.rpId,
-    params.newSignerAddress,
-    contractNonce,
-    managerSignature.serialized,
-  );
-
-  // Wrap in Safe's executeUserOp
-  const safeCalldata = encodeSafeUserOpCalldata(
-    config.contractAddress,
-    0n,
-    innerCalldata,
-  );
-
-  const nonce = getUpdateRpNonce(params.rpId);
-  const { validAfter, validUntil } = getTxExpiration();
-
-  const userOp = buildUserOperation(
-    config.safeAddress,
-    safeCalldata,
-    nonce,
-    validAfter,
-    validUntil,
-  );
-
-  // Sign UserOp with Safe owner KMS key
-  const safeOpHash = hashSafeUserOp(
-    userOp,
-    WORLD_CHAIN_ID,
-    config.safe4337ModuleAddress,
-    config.entryPointAddress,
-  );
-
-  const safeOwnerSignature = await signEthDigestWithKms(
-    params.kmsClient,
-    config.safeOwnerKmsKeyId,
-    getBytes(safeOpHash),
-  );
-
-  if (!safeOwnerSignature) {
-    throw new Error("Failed to sign transaction");
-  }
-
-  // Replace placeholder signature with actual signature
-  userOp.signature = replacePlaceholderWithSignature({
-    placeholderSig: userOp.signature,
-    signature: safeOwnerSignature.serialized,
-  });
-
-  // Submit to temporal bundler
-  const result = await sendUserOperation(userOp, config.entryPointAddress);
-  return result.operationHash;
-}
 
 /**
  * POST handler for the rotate_signer_key Hasura action.

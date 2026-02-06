@@ -82,6 +82,21 @@ export async function handleUniquenessProofVerification(
       "production";
   }
 
+  if (
+    verificationEnvironment === "staging" &&
+    !process.env.VERIFIER_CONTRACT_ADDRESS_STAGING
+  ) {
+    return NextResponse.json<UniquenessProofErrorResponse>(
+      {
+        success: false,
+        code: "environment_not_configured",
+        detail:
+          "The staging environment is not configured. Use production or omit the environment field.",
+      },
+      { status: 400 },
+    );
+  }
+
   // Verify all proofs in parallel
   let verificationResults: UniquenessResult[] = [];
 
