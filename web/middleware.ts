@@ -99,6 +99,7 @@ const checkRouteRolesRestrictions = async (request: NextRequest) => {
   ];
   const ownerAndAdminRoutes = [
     "/teams/[a-zA-Z0-9_]+/apps/[a-zA-Z0-9_]+/actions/[a-zA-Z0-9_]+/danger$",
+    "/teams/[a-zA-Z0-9_]+/apps/[a-zA-Z0-9_]+/world-id-actions/[a-zA-Z0-9_]+/danger$",
     "/teams/[a-zA-Z0-9_]+/api-keys$",
   ];
 
