@@ -7,7 +7,6 @@ import { CloseIcon } from "@/components/Icons/CloseIcon";
 import { Input } from "@/components/Input";
 import { LoggedUserNav } from "@/components/LoggedUserNav";
 import { SizingWrapper } from "@/components/SizingWrapper";
-import { ToggleSection } from "@/components/ToggleSection";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useParams } from "next/navigation";
@@ -44,7 +43,6 @@ export const CreateActionDialogV4 = (props: CreateActionDialogV4Props) => {
     defaultValues: {
       action: "",
       description: "",
-      environment: "production",
     },
   });
 
@@ -158,21 +156,6 @@ export const CreateActionDialogV4 = (props: CreateActionDialogV4Props) => {
               label="Short Description"
               placeholder="Cast your vote on proposal #102"
               data-testid="input-description"
-            />
-
-            <Controller
-              name="environment"
-              control={control}
-              render={({ field }) => (
-                <ToggleSection
-                  title="Staging"
-                  description="Staging actions are for development only and allow the same user to verify multiple times."
-                  checked={field.value === "staging"}
-                  onChange={(checked) =>
-                    field.onChange(checked ? "staging" : "production")
-                  }
-                />
-              )}
             />
 
             <div className="flex w-full justify-end">

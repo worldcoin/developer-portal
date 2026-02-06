@@ -2,14 +2,14 @@
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { SearchIcon } from "@/components/Icons/SearchIcon";
 import { Input } from "@/components/Input";
+import { Section } from "@/components/Section";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useForm, useWatch } from "react-hook-form";
-import { type useGetActionsQuery } from "../graphql/client/actions.generated";
-import { Section } from "@/components/Section";
 import Skeleton from "react-loading-skeleton";
+import { type useGetActionsQuery } from "../graphql/client/actions.generated";
 import { Item } from "./Item";
-import Link from "next/link";
 
 export const ActionsList = (props: {
   searchForm: ReturnType<typeof useForm<{ keyword: string }>>;
@@ -29,10 +29,9 @@ export const ActionsList = (props: {
     <Section>
       <Section.Header>
         <Section.Header.Title className="grid gap-y-3">
-          Incognito Actions
+          Actions
           <Typography as="p" variant={TYPOGRAPHY.R3} className="text-grey-500">
-            Allow users to verify that they are a unique person without
-            revealing their identity
+            Actions are used to request uniqueness proofs
           </Typography>
         </Section.Header.Title>
 

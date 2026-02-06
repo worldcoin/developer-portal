@@ -1,12 +1,12 @@
 "use client";
 
-import { useState } from "react";
 import { DecoratedButton } from "@/components/DecoratedButton";
+import { UserStoryIcon } from "@/components/Icons/UserStoryIcon";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import { UserStoryIcon } from "@/components/Icons/UserStoryIcon";
-import { CreateActionDialogV4 } from "./CreateActionDialogV4";
+import { useState } from "react";
 import { ActionsListV4 } from "./ActionsListV4";
+import { CreateActionDialogV4 } from "./CreateActionDialogV4";
 import { useGetActionsV4Query } from "./graphql/client/get-actions-v4.generated";
 
 type WorldIdActionsPageProps = {
@@ -64,7 +64,7 @@ export const WorldIdActionsPage = ({ params }: WorldIdActionsPageProps) => {
       {actions.length === 0 ? (
         <div className="grid size-full items-start justify-items-center overflow-hidden pt-20">
           <div className="flex flex-col items-center justify-center gap-6 py-20">
-            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#9D50FF]">
+            <div className="flex size-16 items-center justify-center rounded-full bg-[#9D50FF]">
               <UserStoryIcon className="size-8 text-white" />
             </div>
             <div className="flex flex-col items-center gap-2">
@@ -75,8 +75,7 @@ export const WorldIdActionsPage = ({ params }: WorldIdActionsPageProps) => {
                 variant={TYPOGRAPHY.R4}
                 className="max-w-md text-center text-grey-500"
               >
-                Allow users to verify as a unique person without revealing their
-                identity
+                Actions are used to request uniqueness proofs
               </Typography>
             </div>
             <DecoratedButton

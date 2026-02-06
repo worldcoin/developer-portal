@@ -1,12 +1,12 @@
 "use client";
 
 import { DecoratedButton } from "@/components/DecoratedButton";
-import { Input } from "@/components/Input";
-import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { SearchIcon } from "@/components/Icons/SearchIcon";
-import { Section } from "@/components/Section";
+import { Input } from "@/components/Input";
 import { Pagination } from "@/components/Pagination";
-import { useState, useMemo, useEffect } from "react";
+import { Section } from "@/components/Section";
+import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import { useEffect, useMemo, useState } from "react";
 import { ActionRowV4 } from "./ActionRowV4";
 
 import type { GetActionsV4Query } from "../graphql/client/get-actions-v4.generated";
@@ -74,8 +74,7 @@ export const ActionsListV4 = (props: ActionsListV4Props) => {
               variant={TYPOGRAPHY.R3}
               className="text-grey-500"
             >
-              Allow users to verify that they&apos;re a unique person without
-              revealing their identity
+              Actions are used to request uniqueness proofs
             </Typography>
           </Section.Header.Title>
 
