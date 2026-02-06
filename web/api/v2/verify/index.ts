@@ -7,7 +7,7 @@ import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import {
   canVerifyForAction,
-  nullifierHashToBigIntStr,
+  encodeNullifierForStorage,
   verifyProof,
 } from "@/api/helpers/verify";
 import { logger } from "@/lib/logger";
@@ -108,7 +108,7 @@ export async function POST(
   const client = await getAPIServiceGraphqlClient();
 
   // Convert the nullifier hash to its integer representation for more robust comparison
-  const nullifier_hash_int = nullifierHashToBigIntStr(
+  const nullifier_hash_int = encodeNullifierForStorage(
     parsedParams.nullifier_hash,
   );
 
