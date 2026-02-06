@@ -12,7 +12,7 @@ import {
 } from "@/api/helpers/oidc";
 import { corsHandler } from "@/api/helpers/utils";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
-import { nullifierHashToBigIntStr, verifyProof } from "@/api/helpers/verify";
+import { encodeNullifierForStorage, verifyProof } from "@/api/helpers/verify";
 import { Nullifier_Constraint } from "@/graphql/graphql";
 import { logger } from "@/lib/logger";
 import { OIDCFlowType, OIDCResponseType } from "@/lib/types";
@@ -379,7 +379,7 @@ export async function POST(req: NextRequest) {
             object: {
               nullifier_hash,
               action_id: app.action_id,
-              nullifier_hash_int: nullifierHashToBigIntStr(nullifier_hash),
+              nullifier_hash_int: encodeNullifierForStorage(nullifier_hash),
             },
             on_conflict: {
               constraint: Nullifier_Constraint.NullifierPkey,

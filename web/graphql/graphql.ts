@@ -7818,12 +7818,14 @@ export type Mutation_RootUpdate_Nullifier_Uses_Seen_ManyArgs = {
 
 /** mutation root */
 export type Mutation_RootUpdate_Nullifier_V4Args = {
+  _inc?: InputMaybe<Nullifier_V4_Inc_Input>;
   _set?: InputMaybe<Nullifier_V4_Set_Input>;
   where: Nullifier_V4_Bool_Exp;
 };
 
 /** mutation root */
 export type Mutation_RootUpdate_Nullifier_V4_By_PkArgs = {
+  _inc?: InputMaybe<Nullifier_V4_Inc_Input>;
   _set?: InputMaybe<Nullifier_V4_Set_Input>;
   pk_columns: Nullifier_V4_Pk_Columns_Input;
 };
@@ -8800,7 +8802,7 @@ export type Nullifier_V4 = {
   created_at: Scalars["timestamptz"]["output"];
   id: Scalars["String"]["output"];
   /** The nullifier hash from the proof, unique globally */
-  nullifier: Scalars["String"]["output"];
+  nullifier: Scalars["numeric"]["output"];
 };
 
 /** aggregated selection of "nullifier_v4" */
@@ -8824,9 +8826,17 @@ export type Nullifier_V4_Aggregate_Bool_Exp_Count = {
 /** aggregate fields of "nullifier_v4" */
 export type Nullifier_V4_Aggregate_Fields = {
   __typename?: "nullifier_v4_aggregate_fields";
+  avg?: Maybe<Nullifier_V4_Avg_Fields>;
   count: Scalars["Int"]["output"];
   max?: Maybe<Nullifier_V4_Max_Fields>;
   min?: Maybe<Nullifier_V4_Min_Fields>;
+  stddev?: Maybe<Nullifier_V4_Stddev_Fields>;
+  stddev_pop?: Maybe<Nullifier_V4_Stddev_Pop_Fields>;
+  stddev_samp?: Maybe<Nullifier_V4_Stddev_Samp_Fields>;
+  sum?: Maybe<Nullifier_V4_Sum_Fields>;
+  var_pop?: Maybe<Nullifier_V4_Var_Pop_Fields>;
+  var_samp?: Maybe<Nullifier_V4_Var_Samp_Fields>;
+  variance?: Maybe<Nullifier_V4_Variance_Fields>;
 };
 
 /** aggregate fields of "nullifier_v4" */
@@ -8837,9 +8847,17 @@ export type Nullifier_V4_Aggregate_FieldsCountArgs = {
 
 /** order by aggregate values of table "nullifier_v4" */
 export type Nullifier_V4_Aggregate_Order_By = {
+  avg?: InputMaybe<Nullifier_V4_Avg_Order_By>;
   count?: InputMaybe<Order_By>;
   max?: InputMaybe<Nullifier_V4_Max_Order_By>;
   min?: InputMaybe<Nullifier_V4_Min_Order_By>;
+  stddev?: InputMaybe<Nullifier_V4_Stddev_Order_By>;
+  stddev_pop?: InputMaybe<Nullifier_V4_Stddev_Pop_Order_By>;
+  stddev_samp?: InputMaybe<Nullifier_V4_Stddev_Samp_Order_By>;
+  sum?: InputMaybe<Nullifier_V4_Sum_Order_By>;
+  var_pop?: InputMaybe<Nullifier_V4_Var_Pop_Order_By>;
+  var_samp?: InputMaybe<Nullifier_V4_Var_Samp_Order_By>;
+  variance?: InputMaybe<Nullifier_V4_Variance_Order_By>;
 };
 
 /** input type for inserting array relation for remote table "nullifier_v4" */
@@ -8847,6 +8865,19 @@ export type Nullifier_V4_Arr_Rel_Insert_Input = {
   data: Array<Nullifier_V4_Insert_Input>;
   /** upsert condition */
   on_conflict?: InputMaybe<Nullifier_V4_On_Conflict>;
+};
+
+/** aggregate avg on columns */
+export type Nullifier_V4_Avg_Fields = {
+  __typename?: "nullifier_v4_avg_fields";
+  /** The nullifier hash from the proof, unique globally */
+  nullifier?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** order by avg() on columns of table "nullifier_v4" */
+export type Nullifier_V4_Avg_Order_By = {
+  /** The nullifier hash from the proof, unique globally */
+  nullifier?: InputMaybe<Order_By>;
 };
 
 /** Boolean expression to filter rows from the table "nullifier_v4". All fields are combined with a logical 'AND'. */
@@ -8858,7 +8889,7 @@ export type Nullifier_V4_Bool_Exp = {
   action_v4_id?: InputMaybe<String_Comparison_Exp>;
   created_at?: InputMaybe<Timestamptz_Comparison_Exp>;
   id?: InputMaybe<String_Comparison_Exp>;
-  nullifier?: InputMaybe<String_Comparison_Exp>;
+  nullifier?: InputMaybe<Numeric_Comparison_Exp>;
 };
 
 /** unique or primary key constraints on table "nullifier_v4" */
@@ -8869,6 +8900,12 @@ export enum Nullifier_V4_Constraint {
   NullifierV4Pkey = "nullifier_v4_pkey",
 }
 
+/** input type for incrementing numeric columns in table "nullifier_v4" */
+export type Nullifier_V4_Inc_Input = {
+  /** The nullifier hash from the proof, unique globally */
+  nullifier?: InputMaybe<Scalars["numeric"]["input"]>;
+};
+
 /** input type for inserting data into table "nullifier_v4" */
 export type Nullifier_V4_Insert_Input = {
   action_v4?: InputMaybe<Action_V4_Obj_Rel_Insert_Input>;
@@ -8876,7 +8913,7 @@ export type Nullifier_V4_Insert_Input = {
   created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
   id?: InputMaybe<Scalars["String"]["input"]>;
   /** The nullifier hash from the proof, unique globally */
-  nullifier?: InputMaybe<Scalars["String"]["input"]>;
+  nullifier?: InputMaybe<Scalars["numeric"]["input"]>;
 };
 
 /** aggregate max on columns */
@@ -8886,7 +8923,7 @@ export type Nullifier_V4_Max_Fields = {
   created_at?: Maybe<Scalars["timestamptz"]["output"]>;
   id?: Maybe<Scalars["String"]["output"]>;
   /** The nullifier hash from the proof, unique globally */
-  nullifier?: Maybe<Scalars["String"]["output"]>;
+  nullifier?: Maybe<Scalars["numeric"]["output"]>;
 };
 
 /** order by max() on columns of table "nullifier_v4" */
@@ -8905,7 +8942,7 @@ export type Nullifier_V4_Min_Fields = {
   created_at?: Maybe<Scalars["timestamptz"]["output"]>;
   id?: Maybe<Scalars["String"]["output"]>;
   /** The nullifier hash from the proof, unique globally */
-  nullifier?: Maybe<Scalars["String"]["output"]>;
+  nullifier?: Maybe<Scalars["numeric"]["output"]>;
 };
 
 /** order by min() on columns of table "nullifier_v4" */
@@ -8965,7 +9002,46 @@ export type Nullifier_V4_Set_Input = {
   created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
   id?: InputMaybe<Scalars["String"]["input"]>;
   /** The nullifier hash from the proof, unique globally */
-  nullifier?: InputMaybe<Scalars["String"]["input"]>;
+  nullifier?: InputMaybe<Scalars["numeric"]["input"]>;
+};
+
+/** aggregate stddev on columns */
+export type Nullifier_V4_Stddev_Fields = {
+  __typename?: "nullifier_v4_stddev_fields";
+  /** The nullifier hash from the proof, unique globally */
+  nullifier?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** order by stddev() on columns of table "nullifier_v4" */
+export type Nullifier_V4_Stddev_Order_By = {
+  /** The nullifier hash from the proof, unique globally */
+  nullifier?: InputMaybe<Order_By>;
+};
+
+/** aggregate stddev_pop on columns */
+export type Nullifier_V4_Stddev_Pop_Fields = {
+  __typename?: "nullifier_v4_stddev_pop_fields";
+  /** The nullifier hash from the proof, unique globally */
+  nullifier?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** order by stddev_pop() on columns of table "nullifier_v4" */
+export type Nullifier_V4_Stddev_Pop_Order_By = {
+  /** The nullifier hash from the proof, unique globally */
+  nullifier?: InputMaybe<Order_By>;
+};
+
+/** aggregate stddev_samp on columns */
+export type Nullifier_V4_Stddev_Samp_Fields = {
+  __typename?: "nullifier_v4_stddev_samp_fields";
+  /** The nullifier hash from the proof, unique globally */
+  nullifier?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** order by stddev_samp() on columns of table "nullifier_v4" */
+export type Nullifier_V4_Stddev_Samp_Order_By = {
+  /** The nullifier hash from the proof, unique globally */
+  nullifier?: InputMaybe<Order_By>;
 };
 
 /** Streaming cursor of the table "nullifier_v4" */
@@ -8982,7 +9058,20 @@ export type Nullifier_V4_Stream_Cursor_Value_Input = {
   created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
   id?: InputMaybe<Scalars["String"]["input"]>;
   /** The nullifier hash from the proof, unique globally */
-  nullifier?: InputMaybe<Scalars["String"]["input"]>;
+  nullifier?: InputMaybe<Scalars["numeric"]["input"]>;
+};
+
+/** aggregate sum on columns */
+export type Nullifier_V4_Sum_Fields = {
+  __typename?: "nullifier_v4_sum_fields";
+  /** The nullifier hash from the proof, unique globally */
+  nullifier?: Maybe<Scalars["numeric"]["output"]>;
+};
+
+/** order by sum() on columns of table "nullifier_v4" */
+export type Nullifier_V4_Sum_Order_By = {
+  /** The nullifier hash from the proof, unique globally */
+  nullifier?: InputMaybe<Order_By>;
 };
 
 /** update columns of table "nullifier_v4" */
@@ -8998,10 +9087,51 @@ export enum Nullifier_V4_Update_Column {
 }
 
 export type Nullifier_V4_Updates = {
+  /** increments the numeric columns with given value of the filtered values */
+  _inc?: InputMaybe<Nullifier_V4_Inc_Input>;
   /** sets the columns of the filtered rows to the given values */
   _set?: InputMaybe<Nullifier_V4_Set_Input>;
   /** filter the rows which have to be updated */
   where: Nullifier_V4_Bool_Exp;
+};
+
+/** aggregate var_pop on columns */
+export type Nullifier_V4_Var_Pop_Fields = {
+  __typename?: "nullifier_v4_var_pop_fields";
+  /** The nullifier hash from the proof, unique globally */
+  nullifier?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** order by var_pop() on columns of table "nullifier_v4" */
+export type Nullifier_V4_Var_Pop_Order_By = {
+  /** The nullifier hash from the proof, unique globally */
+  nullifier?: InputMaybe<Order_By>;
+};
+
+/** aggregate var_samp on columns */
+export type Nullifier_V4_Var_Samp_Fields = {
+  __typename?: "nullifier_v4_var_samp_fields";
+  /** The nullifier hash from the proof, unique globally */
+  nullifier?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** order by var_samp() on columns of table "nullifier_v4" */
+export type Nullifier_V4_Var_Samp_Order_By = {
+  /** The nullifier hash from the proof, unique globally */
+  nullifier?: InputMaybe<Order_By>;
+};
+
+/** aggregate variance on columns */
+export type Nullifier_V4_Variance_Fields = {
+  __typename?: "nullifier_v4_variance_fields";
+  /** The nullifier hash from the proof, unique globally */
+  nullifier?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** order by variance() on columns of table "nullifier_v4" */
+export type Nullifier_V4_Variance_Order_By = {
+  /** The nullifier hash from the proof, unique globally */
+  nullifier?: InputMaybe<Order_By>;
 };
 
 /** aggregate var_pop on columns */

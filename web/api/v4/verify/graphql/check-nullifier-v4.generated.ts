@@ -5,7 +5,7 @@ import { GraphQLClient, RequestOptions } from "graphql-request";
 import gql from "graphql-tag";
 type GraphQLClientRequestHeaders = RequestOptions["requestHeaders"];
 export type CheckNullifierV4QueryVariables = Types.Exact<{
-  nullifier: Types.Scalars["String"]["input"];
+  nullifier: Types.Scalars["numeric"]["input"];
 }>;
 
 export type CheckNullifierV4Query = {
@@ -27,7 +27,7 @@ export type CheckNullifierV4Query = {
 };
 
 export const CheckNullifierV4Document = gql`
-  query CheckNullifierV4($nullifier: String!) {
+  query CheckNullifierV4($nullifier: numeric!) {
     nullifier_v4(where: { nullifier: { _eq: $nullifier } }) {
       id
       nullifier

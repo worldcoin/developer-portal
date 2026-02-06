@@ -63,6 +63,11 @@ const v4ResponseItemSchema = yup.object({
     .required("issuer_schema_id is required for v4"),
   nullifier: yup
     .string()
+    .strict()
+    .matches(
+      /^(0x)?[\da-fA-F]+$/,
+      "Invalid nullifier. Must be a hex string with optional 0x prefix.",
+    )
     .required("nullifier is required for v4 uniqueness proofs"),
   expires_at_min: yup
     .number()

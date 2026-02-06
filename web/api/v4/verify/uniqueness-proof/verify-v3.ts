@@ -1,4 +1,4 @@
-import { nullifierHashToBigIntStr, verifyProof } from "@/api/helpers/verify";
+import { verifyProof } from "@/api/helpers/verify";
 import { generateExternalNullifier } from "@/lib/hashing";
 import { logger } from "@/lib/logger";
 import { AppErrorCodes, VerificationLevel } from "@worldcoin/idkit-core";
@@ -49,8 +49,7 @@ export async function processUniquenessProofV3(
         return {
           identifier: item.identifier,
           success: true,
-          // Normalize nullifier for storage
-          nullifier: nullifierHashToBigIntStr(item.nullifier),
+          nullifier: item.nullifier,
         };
       } catch (e: unknown) {
         const errorMessage = e instanceof Error ? e.message : String(e);
