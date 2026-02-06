@@ -4,7 +4,7 @@ import "server-only";
  * Utilities for RP (Relying Party) operations.
  */
 
-import { createGraphQlDbTracer } from "@/lib/tracer";
+import type { GraphQlSdkWrapper } from "@/lib/tracer";
 import { keccak256, toUtf8Bytes } from "ethers";
 import { GraphQLClient } from "graphql-request";
 import { getSdk as getFetchRpRegistrationSdk } from "./graphql/fetch-rp-registration.generated";
@@ -238,6 +238,7 @@ export type ResolveRpRegistrationResult =
 export async function resolveRpRegistration(
   client: GraphQLClient,
   routeId: string,
+  dbTracer?: GraphQlSdkWrapper,
 ): Promise<ResolveRpRegistrationResult> {
   let registration: ResolvedRpRegistration | null = null;
 
@@ -251,7 +252,6 @@ export async function resolveRpRegistration(
     return { success: false, error: "invalid_format" };
   }
 
-  const dbTracer = createGraphQlDbTracer("verify.v4", { route_id: routeId });
   const sdk = getFetchRpRegistrationSdk(client, dbTracer);
 
   if (routeIdType === "rp_id") {

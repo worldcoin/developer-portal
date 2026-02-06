@@ -1,6 +1,11 @@
 import ddTrace from "dd-trace";
 
-import type { SdkFunctionWrapper } from "@/api/v4/verify/graphql/fetch-action-v4.generated";
+export type GraphQlSdkWrapper = <T>(
+  action: (requestHeaders?: Record<string, string>) => Promise<T>,
+  operationName: string,
+  operationType?: string,
+  variables?: unknown,
+) => Promise<T>;
 
 export async function withSpan<T>(
   operationName: string,
@@ -11,37 +16,22 @@ export async function withSpan<T>(
 }
 
 /**
- * Returns an `SdkFunctionWrapper` that wraps every GraphQL SDK call in a
+ * Returns a `GraphQlSdkWrapper` that wraps every GraphQL SDK call in a
  * dd-trace span so we get per-operation latency in Datadog.
  *
  * Span name:  `{spanPrefix}.{OperationName}`
- * Tags:       staticTags + scalar GraphQL variables + graphql_operation_type
+ * Tags:       staticTags + graphql_operation_type
  */
 export function createGraphQlDbTracer(
   spanPrefix: string,
   staticTags: Record<string, string | number | boolean>,
-): SdkFunctionWrapper {
-  return async (action, operationName, operationType, variables) => {
-    const variableTags: Record<string, string | number | boolean> = {};
-
-    if (variables && typeof variables === "object") {
-      for (const [key, value] of Object.entries(variables)) {
-        if (
-          typeof value === "string" ||
-          typeof value === "number" ||
-          typeof value === "boolean"
-        ) {
-          variableTags[`graphql.var.${key}`] = value;
-        }
-      }
-    }
-
+): GraphQlSdkWrapper {
+  return async (action, operationName, operationType) => {
     return ddTrace.trace(
       `${spanPrefix}.${operationName}`,
       {
         tags: {
           ...staticTags,
-          ...variableTags,
           ...(operationType
             ? { graphql_operation_type: operationType }
             : undefined),
