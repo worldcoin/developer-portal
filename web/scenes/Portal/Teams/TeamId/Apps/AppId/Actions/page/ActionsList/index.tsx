@@ -2,6 +2,7 @@
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { SearchIcon } from "@/components/Icons/SearchIcon";
 import { Input } from "@/components/Input";
+import { Notification } from "@/components/Notification";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { useRouter } from "next/navigation";
 import { useForm, useWatch } from "react-hook-form";
@@ -16,8 +17,9 @@ export const ActionsList = (props: {
   items: ReturnType<typeof useGetActionsQuery>;
   generateItemHref: (id: string) => string;
   engineType?: string;
+  isReadOnly?: boolean;
 }) => {
-  const { searchForm, items, generateItemHref } = props;
+  const { searchForm, items, generateItemHref, isReadOnly } = props;
   const router = useRouter();
 
   const keyword = useWatch({
@@ -29,37 +31,54 @@ export const ActionsList = (props: {
     <Section>
       <Section.Header>
         <Section.Header.Title className="grid gap-y-3">
-          Incognito Actions
+          {isReadOnly ? "World ID 3.0 Legacy" : "Incognito Actions"}
           <Typography as="p" variant={TYPOGRAPHY.R3} className="text-grey-500">
             Allow users to verify that they are a unique person without
             revealing their identity
           </Typography>
         </Section.Header.Title>
 
-        <Section.Header.Search>
+        {isReadOnly && (
+          <div className="mt-6 md:col-span-2">
+            <Notification variant="warning">
+              <div className="text-system-warning-800">
+                <Typography as="p" variant={TYPOGRAPHY.S3}>
+                  This functionality is deprecated
+                </Typography>
+              </div>
+            </Notification>
+          </div>
+        )}
+
+        <Section.Header.Search className="md:col-span-2">
           <Input
             register={searchForm.register("keyword")}
             label=""
             placeholder="Search actions by name"
-            className="max-w-full pt-2 text-base md:max-w-136"
+            className="w-full pt-2 text-base"
             addOnLeft={<SearchIcon className="mx-2 text-grey-400" />}
           />
         </Section.Header.Search>
 
-        <Section.Header.Button className="max-md:!bottom-[4.25rem]">
-          {!keyword && items.loading ? (
-            <Skeleton className="h-12 w-[12rem] rounded-xl" />
-          ) : (
-            <DecoratedButton
-              className="h-12 min-w-[12rem]"
-              href="?createAction=true"
-            >
-              <Typography variant={TYPOGRAPHY.M3} className="whitespace-nowrap">
-                New action
-              </Typography>
-            </DecoratedButton>
-          )}
-        </Section.Header.Button>
+        {!isReadOnly && (
+          <Section.Header.Button className="max-md:!bottom-[4.25rem] md:row-start-1 md:items-start">
+            {!keyword && items.loading ? (
+              <Skeleton className="h-12 w-[12rem] rounded-xl" />
+            ) : (
+              <DecoratedButton
+                className="h-12 min-w-[12rem]"
+                href="?createAction=true"
+              >
+                <Typography
+                  variant={TYPOGRAPHY.M3}
+                  className="whitespace-nowrap"
+                >
+                  New action
+                </Typography>
+              </DecoratedButton>
+            )}
+          </Section.Header.Button>
+        )}
       </Section.Header>
 
       <div className="md:grid md:grid-cols-[auto_auto_max-content]">

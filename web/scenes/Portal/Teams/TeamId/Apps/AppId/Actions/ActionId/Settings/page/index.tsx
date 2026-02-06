@@ -11,9 +11,13 @@ import { urls } from "@/lib/urls";
 type ActionIdSettingsPageProps = {
   params: Record<string, string> | null | undefined;
   searchParams: Record<string, string> | null | undefined;
+  isReadOnly?: boolean;
 };
 
-export const ActionIdSettingsPage = ({ params }: ActionIdSettingsPageProps) => {
+export const ActionIdSettingsPage = ({
+  params,
+  isReadOnly,
+}: ActionIdSettingsPageProps) => {
   const actionID = params?.actionId;
   const teamId = params?.teamId;
   const appId = params?.appId;
@@ -38,7 +42,11 @@ export const ActionIdSettingsPage = ({ params }: ActionIdSettingsPageProps) => {
         <SizingWrapper gridClassName="order-1 pt-6 md:pt-10">
           <ActionsHeader
             displayText={action?.name ?? ""}
-            backText="Back to Incognito Actions"
+            backText={
+              isReadOnly
+                ? "Back to Legacy Actions"
+                : "Back to Incognito Actions"
+            }
             backUrl={urls.actions({ team_id: teamId ?? "", app_id: appId })}
             isLoading={loading}
             analyticsContext={{
@@ -58,7 +66,11 @@ export const ActionIdSettingsPage = ({ params }: ActionIdSettingsPageProps) => {
               <Skeleton count={4} />
             ) : (
               // Only possible if action is defined
-              <UpdateActionForm action={action!} teamId={teamId ?? ""} />
+              <UpdateActionForm
+                action={action!}
+                teamId={teamId ?? ""}
+                isReadOnly={isReadOnly}
+              />
             )}
 
             {loading ? (

@@ -7,6 +7,8 @@ import { Step } from "@/components/InitialSteps/Step";
 import { Placeholder } from "@/components/PlaceholderImage";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { EngineType } from "@/lib/types";
+import { Notification } from "@/components/Notification";
+import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import clsx from "clsx";
 import { usePathname } from "next/navigation";
 import { useMemo } from "react";
@@ -19,9 +21,14 @@ import { useGetAppQuery } from "./graphql/client/app.generated";
 type ActionsPageProps = {
   params: Record<string, string> | null | undefined;
   searchParams: Record<string, string> | null | undefined;
+  isReadOnly?: boolean;
 };
 
-export const ActionsPage = ({ params, searchParams }: ActionsPageProps) => {
+export const ActionsPage = ({
+  params,
+  searchParams,
+  isReadOnly,
+}: ActionsPageProps) => {
   const createAction = searchParams?.createAction;
   const appId = params?.appId as `app_${string}`;
   const pathName = usePathname() ?? "";
@@ -96,6 +103,7 @@ export const ActionsPage = ({ params, searchParams }: ActionsPageProps) => {
               : `${pathName}/${id}`
           }
           engineType={engineType}
+          isReadOnly={isReadOnly}
         />
       )}
 
@@ -141,7 +149,7 @@ export const ActionsPage = ({ params, searchParams }: ActionsPageProps) => {
         </div>
       )}
 
-      {createAction && (
+      {createAction && !isReadOnly && (
         <CreateActionModal
           className={clsx({ hidden: !createAction })}
           engineType={engineType}
