@@ -4,6 +4,7 @@ import "server-only";
  * Utilities for RP (Relying Party) operations.
  */
 
+import { createGraphQlDbTracer } from "@/lib/tracer";
 import { keccak256, toUtf8Bytes } from "ethers";
 import { GraphQLClient } from "graphql-request";
 import { getSdk as getFetchRpRegistrationSdk } from "./graphql/fetch-rp-registration.generated";
@@ -240,10 +241,21 @@ export async function resolveRpRegistration(
 ): Promise<ResolveRpRegistrationResult> {
   let registration: ResolvedRpRegistration | null = null;
 
-  if (isValidRpId(routeId)) {
-    const response = await getFetchRpRegistrationSdk(
-      client,
-    ).FetchRpRegistrationByRpId({
+  const routeIdType = isValidRpId(routeId)
+    ? "rp_id"
+    : routeId.startsWith("app_")
+      ? "app_id"
+      : null;
+
+  if (!routeIdType) {
+    return { success: false, error: "invalid_format" };
+  }
+
+  const dbTracer = createGraphQlDbTracer("verify.v4", { route_id: routeId });
+  const sdk = getFetchRpRegistrationSdk(client, dbTracer);
+
+  if (routeIdType === "rp_id") {
+    const response = await sdk.FetchRpRegistrationByRpId({
       rp_id: routeId,
     });
     const reg = response.rp_registration[0];
@@ -258,10 +270,8 @@ export async function resolveRpRegistration(
         },
       };
     }
-  } else if (routeId.startsWith("app_")) {
-    const response = await getFetchRpRegistrationSdk(
-      client,
-    ).FetchRpRegistration({
+  } else {
+    const response = await sdk.FetchRpRegistration({
       app_id: routeId,
     });
     const reg = response.rp_registration[0];
@@ -276,8 +286,6 @@ export async function resolveRpRegistration(
         },
       };
     }
-  } else {
-    return { success: false, error: "invalid_format" };
   }
 
   if (!registration) {

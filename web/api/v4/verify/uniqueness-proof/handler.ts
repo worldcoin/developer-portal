@@ -1,5 +1,6 @@
 import { parseRpId } from "@/api/helpers/rp-utils";
 import { logger } from "@/lib/logger";
+import { createGraphQlDbTracer, withSpan } from "@/lib/tracer";
 import { captureEvent } from "@/services/posthogClient";
 import { GraphQLClient } from "graphql-request";
 import { NextResponse } from "next/server";
@@ -67,9 +68,16 @@ export async function handleUniquenessProofVerification(
   let existingActionV4 = null;
   let verificationEnvironment = "production";
 
+  const dbTracer = createGraphQlDbTracer("verify.v4", {
+    rp_id: rpId,
+    protocol_version: parsedParams.protocol_version,
+    environment: parsedParams.environment ?? "production",
+  });
+
   if (parsedParams.action) {
     const existingActionResult = await getFetchActionV4Sdk(
       client,
+      dbTracer,
     ).FetchActionV4({
       rp_id: rpId,
       action: parsedParams.action,
@@ -87,11 +95,20 @@ export async function handleUniquenessProofVerification(
   const protocolVersion = parsedParams.protocol_version;
   if (protocolVersion === "3.0") {
     // World ID 3.0 proofs - verify via sequencer in parallel
-    verificationResults = await processUniquenessProofV3(
-      appId,
-      parsedParams.action!,
-      parsedParams.responses as UniquenessProofResponseV3[],
-      verificationEnvironment === "staging",
+    verificationResults = await withSpan(
+      "verify.v4.verify_proof",
+      {
+        rp_id: rpId,
+        protocol_version: parsedParams.protocol_version,
+        environment: verificationEnvironment,
+      },
+      () =>
+        processUniquenessProofV3(
+          appId,
+          parsedParams.action!,
+          parsedParams.responses as UniquenessProofResponseV3[],
+          verificationEnvironment === "staging",
+        ),
     );
   } else {
     // World ID 4.0 uniqueness proofs - verify via on-chain Verifier in parallel
@@ -114,12 +131,21 @@ export async function handleUniquenessProofVerification(
       );
     }
 
-    verificationResults = await processUniquenessProofV4(
-      numericRpId,
-      parsedParams.nonce!,
-      parsedParams.action!,
-      parsedParams.responses as UniquenessProofResponseV4[],
-      verifierAddress,
+    verificationResults = await withSpan(
+      "verify.v4.verify_proof",
+      {
+        rp_id: rpId,
+        protocol_version: parsedParams.protocol_version,
+        environment: verificationEnvironment,
+      },
+      () =>
+        processUniquenessProofV4(
+          numericRpId,
+          parsedParams.nonce!,
+          parsedParams.action!,
+          parsedParams.responses as UniquenessProofResponseV4[],
+          verifierAddress,
+        ),
     );
   }
 
@@ -167,7 +193,10 @@ export async function handleUniquenessProofVerification(
 
   // If action doesn't exist, create it (always as production)
   if (!actionV4) {
-    const createResult = await getCreateActionV4Sdk(client).CreateActionV4({
+    const createResult = await getCreateActionV4Sdk(
+      client,
+      dbTracer,
+    ).CreateActionV4({
       rp_id: rpId,
       action: parsedParams.action!,
       description: parsedParams.action_description || "",
@@ -197,6 +226,7 @@ export async function handleUniquenessProofVerification(
   // Check if nullifier already exists
   const checkNullifierResult = await getCheckNullifierV4Sdk(
     client,
+    dbTracer,
   ).CheckNullifierV4({
     nullifier: nullifierForStorage,
   });
@@ -256,8 +286,9 @@ export async function handleUniquenessProofVerification(
   try {
     const insertResult = await getInsertNullifierV4Sdk(
       client,
+      dbTracer,
     ).InsertNullifierV4({
-      action_v4_id: actionV4.id,
+      action_v4_id: actionV4!.id,
       nullifier: nullifierForStorage,
     });
 

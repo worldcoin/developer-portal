@@ -1,5 +1,6 @@
 import { parseRpId } from "@/api/helpers/rp-utils";
 import { logger } from "@/lib/logger";
+import { withSpan } from "@/lib/tracer";
 import { captureEvent } from "@/services/posthogClient";
 import { NextResponse } from "next/server";
 import { SessionProofRequest } from "../request-schema";
@@ -67,10 +68,10 @@ export async function handleSessionProofVerification(
     responses: parsedParams.responses,
   };
 
-  const verificationResults = await processSessionProof(
-    numericRpId,
-    sessionProofRequest,
-    verifierAddress,
+  const verificationResults = await withSpan(
+    "verify.v4.verify_session_proof",
+    { rp_id: rpId, session_id: parsedParams.session_id },
+    () => processSessionProof(numericRpId, sessionProofRequest, verifierAddress),
   );
 
   // If no successful verifications, return 400 with all results
