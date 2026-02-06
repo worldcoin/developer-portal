@@ -1,4 +1,5 @@
 import { parseRpId } from "@/api/helpers/rp-utils";
+import { encodeNullifierForStorage } from "@/api/helpers/verify";
 import { logger } from "@/lib/logger";
 import { captureEvent } from "@/services/posthogClient";
 import { GraphQLClient } from "graphql-request";
@@ -158,7 +159,7 @@ export async function handleUniquenessProofVerification(
   }
 
   // Use nullifier from first successful verification (firstSuccess is guaranteed to exist here)
-  const nullifierForStorage = firstSuccess!.nullifier!;
+  const nullifierForStorage = encodeNullifierForStorage(firstSuccess!.nullifier!);
 
   // At least one proof is valid - now handle action creation and nullifier
 

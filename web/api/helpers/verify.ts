@@ -323,19 +323,28 @@ export const canVerifyForAction = (
   return nullifier.uses < max_verifications_per_person;
 };
 
-const normalizeNullifierHash = (nullifierHash: string): string => {
-  const normalized = nullifierHash.toLowerCase().trim().replace(/^0x/, "");
-
-  return `0x${normalized}`;
+/**
+ * Encodes a hex-encoded nullifier (0x...) into a decimal string for
+ * storage in the nullifier_v4.nullifier numeric(78,0) column.
+ *
+ * Normalizes different hex representations (0xABC, abc, 0xabc) to a single
+ * canonical decimal form, preventing case/prefix bypass attacks.
+ *
+ * @param hexNullifier - A hex-encoded nullifier string (with or without 0x prefix)
+ * @returns Decimal string representation for DB storage
+ */
+export const encodeNullifierForStorage = (hexNullifier: string): string => {
+  const normalized = hexNullifier.toLowerCase().trim().replace(/^0x/, "");
+  return BigInt(`0x${normalized}`).toString();
 };
 
 /**
- * Converts a nullifier hash to its numeric representation for database storage and comparison
- * This helps prevent case sensitivity, prefix, and padding bypass attacks
+ * Converts a nullifier hash to its numeric representation for database storage and comparison.
+ * Used by v1/v2 verify APIs. For v4, use encodeNullifierForStorage instead.
  */
 export const nullifierHashToBigIntStr = (nullifierHash: string): string => {
-  const normalized = normalizeNullifierHash(nullifierHash);
-  return BigInt(normalized).toString();
+  const normalized = nullifierHash.toLowerCase().trim().replace(/^0x/, "");
+  return BigInt(`0x${normalized}`).toString();
 };
 
 export const verifyProof = async (
