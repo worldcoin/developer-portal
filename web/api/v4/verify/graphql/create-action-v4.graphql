@@ -11,7 +11,7 @@ mutation CreateActionV4(
       description: $description
       environment: $environment
     }
-    on_conflict: { constraint: action_v4_rp_id_action_key, update_columns: [] }
+    on_conflict: { constraint: action_v4_rp_id_action_environment_key, update_columns: [] }
   ) {
     id
     rp_id
