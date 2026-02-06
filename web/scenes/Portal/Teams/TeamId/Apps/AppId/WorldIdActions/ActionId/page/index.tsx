@@ -14,8 +14,6 @@ type WorldIdActionIdPageProps = {
 
 export const WorldIdActionIdPage = ({ params }: WorldIdActionIdPageProps) => {
   const actionId = params?.actionId;
-  const teamId = params?.teamId;
-  const appId = params?.appId;
 
   const { data, loading } = useGetSingleActionV4Query({
     variables: { action_id: actionId ?? "" },

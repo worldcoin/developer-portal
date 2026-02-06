@@ -4,15 +4,12 @@ import { SizingWrapper } from "@/components/SizingWrapper";
 import { ActionDangerZone } from "@/components/ActionDangerZone";
 import { ErrorPage } from "@/components/ErrorPage";
 import { urls } from "@/lib/urls";
-import { Role_Enum } from "@/graphql/graphql";
-import { Auth0SessionUser } from "@/lib/types";
 import { useRouter } from "next/navigation";
-import { useCallback, useState, useMemo } from "react";
+import { useCallback, useState } from "react";
 import { toast } from "react-toastify";
 import { useGetSingleActionV4Query } from "../../page/graphql/client/get-single-action-v4.generated";
 import { useDeleteActionV4Mutation } from "./graphql/client/delete-action-v4.generated";
 import { GetActionsV4Document } from "../../../page/graphql/client/get-actions-v4.generated";
-import { useUser } from "@auth0/nextjs-auth0/client";
 
 type WorldIdActionIdDangerPageProps = {
   params: Record<string, string> | null | undefined;
@@ -27,11 +24,11 @@ export const WorldIdActionIdDangerPage = ({
   const router = useRouter();
   const [isDeleting, setIsDeleting] = useState(false);
 
-  const { user } = useUser() as Auth0SessionUser;
-
   const { data, loading } = useGetSingleActionV4Query({
     variables: { action_id: actionId ?? "" },
   });
+
+  const action = data?.action_v4_by_pk;
 
   const [deleteActionMutation] = useDeleteActionV4Mutation({
     refetchQueries: [
@@ -42,19 +39,6 @@ export const WorldIdActionIdDangerPage = ({
     ],
     awaitRefetchQueries: true,
   });
-
-  const action = data?.action_v4_by_pk;
-
-  const isEnoughPermissions = useMemo(() => {
-    const membership = user?.hasura.memberships.find(
-      (m) => m.team?.id === teamId,
-    );
-
-    return (
-      membership?.role === Role_Enum.Owner ||
-      membership?.role === Role_Enum.Admin
-    );
-  }, [teamId, user?.hasura.memberships]);
 
   const handleDelete = useCallback(async () => {
     if (!actionId || !appId || !teamId) return;
@@ -92,7 +76,7 @@ export const WorldIdActionIdDangerPage = ({
           actionIdentifier={action.action}
           onDelete={handleDelete}
           isDeleting={isDeleting}
-          canDelete={isEnoughPermissions}
+          canDelete={true}
         />
       ) : null}
     </SizingWrapper>
