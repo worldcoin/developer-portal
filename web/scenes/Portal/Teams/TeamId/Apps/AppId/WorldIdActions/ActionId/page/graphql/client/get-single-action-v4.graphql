@@ -3,7 +3,6 @@ query GetSingleActionV4($action_id: String!) {
     id
     action
     description
-    environment
     rp_id
     created_at
     rp_registration {
