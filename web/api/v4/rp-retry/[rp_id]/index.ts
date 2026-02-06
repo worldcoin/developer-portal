@@ -98,8 +98,7 @@ export async function POST(
     return errorResponse({
       statusCode: 400,
       code: "invalid_environment",
-      detail:
-        'environment must be "production" or "staging".',
+      detail: 'environment must be "production" or "staging".',
       attribute: "environment",
       req,
     });
