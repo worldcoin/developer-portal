@@ -53,7 +53,6 @@ export const WorldId40Content = ({
   rpId,
   initialStatus,
   mode,
-  signerAddress,
   createdAt,
 }: WorldId40ContentProps) => {
   const [productionStatus, setProductionStatus] =
@@ -216,8 +215,11 @@ export const WorldId40Content = ({
 
         {/* Status */}
         {renderStatusRow("Production Status", productionStatus, "production")}
-        {stagingStatus !== null &&
-          renderStatusRow("Staging Status", stagingStatus, "staging")}
+        {renderStatusRow(
+          "Staging Status",
+          stagingStatus ?? "failed",
+          "staging",
+        )}
 
         {/* Key Section */}
         <div className="mt-4 flex flex-col gap-4">
