@@ -6,11 +6,8 @@ import { ActionDangerZone } from "@/components/ActionDangerZone";
 import { useGetSingleActionQuery } from "./graphql/client/get-single-action.generated";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { urls } from "@/lib/urls";
-import { Role_Enum } from "@/graphql/graphql";
-import { Auth0SessionUser } from "@/lib/types";
-import { useUser } from "@auth0/nextjs-auth0/client";
 import { useRouter } from "next/navigation";
-import { useCallback, useMemo } from "react";
+import { useCallback } from "react";
 import { toast } from "react-toastify";
 import { useDeleteActionMutation } from "../ActionDangerZoneContent/graphql/client/delete-action.generated";
 import { GetActionsDocument } from "../../../page/graphql/client/actions.generated";
@@ -26,24 +23,12 @@ export const ActionIdDangerPage = ({ params }: ActionIdDangerPageProps) => {
   const appId = params?.appId;
 
   const router = useRouter();
-  const { user } = useUser() as Auth0SessionUser;
 
   const { data, loading } = useGetSingleActionQuery({
     variables: { action_id: actionId ?? "" },
   });
 
   const action = data?.action_by_pk;
-
-  const isEnoughPermissions = useMemo(() => {
-    const membership = user?.hasura.memberships.find(
-      (m) => m.team?.id === teamId,
-    );
-
-    return (
-      membership?.role === Role_Enum.Owner ||
-      membership?.role === Role_Enum.Admin
-    );
-  }, [teamId, user?.hasura.memberships]);
 
   const [deleteActionMutation, { loading: deleteActionLoading }] =
     useDeleteActionMutation();
@@ -112,7 +97,7 @@ export const ActionIdDangerPage = ({ params }: ActionIdDangerPageProps) => {
               actionIdentifier={action?.name ?? ""}
               onDelete={handleDelete}
               isDeleting={deleteActionLoading}
-              canDelete={isEnoughPermissions}
+              canDelete={true}
             />
           )}
         </SizingWrapper>
