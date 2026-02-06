@@ -3,14 +3,14 @@ import { DecoratedButton } from "@/components/DecoratedButton";
 import { SearchIcon } from "@/components/Icons/SearchIcon";
 import { Input } from "@/components/Input";
 import { Notification } from "@/components/Notification";
+import { Section } from "@/components/Section";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useForm, useWatch } from "react-hook-form";
-import { type useGetActionsQuery } from "../graphql/client/actions.generated";
-import { Section } from "@/components/Section";
 import Skeleton from "react-loading-skeleton";
+import { type useGetActionsQuery } from "../graphql/client/actions.generated";
 import { Item } from "./Item";
-import Link from "next/link";
 
 export const ActionsList = (props: {
   searchForm: ReturnType<typeof useForm<{ keyword: string }>>;
@@ -43,7 +43,9 @@ export const ActionsList = (props: {
             <Notification variant="warning">
               <div className="text-system-warning-800">
                 <Typography as="p" variant={TYPOGRAPHY.S3}>
-                  This functionality is deprecated
+                  This functionality is deprecated in 4.0. It's still viewable
+                  for your convenience. Please make all new actions in the 4.0
+                  view.
                 </Typography>
               </div>
             </Notification>
