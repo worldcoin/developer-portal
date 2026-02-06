@@ -159,7 +159,9 @@ export async function handleUniquenessProofVerification(
   }
 
   // Use nullifier from first successful verification (firstSuccess is guaranteed to exist here)
-  const nullifierForStorage = encodeNullifierForStorage(firstSuccess!.nullifier!);
+  const nullifierForStorage = encodeNullifierForStorage(
+    firstSuccess!.nullifier!,
+  );
 
   // At least one proof is valid - now handle action creation and nullifier
 
