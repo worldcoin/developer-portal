@@ -1,0 +1,9 @@
+mutation UpdateActionV4($id: String!, $input: action_v4_set_input!) {
+  update_action_v4_by_pk(pk_columns: { id: $id }, _set: $input) {
+    id
+    action
+    description
+    environment
+    updated_at
+  }
+}
