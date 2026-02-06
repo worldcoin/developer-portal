@@ -3,12 +3,11 @@
 import { CopyButton } from "@/components/CopyButton";
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { Input } from "@/components/Input";
-import { ToggleSection } from "@/components/ToggleSection";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
-import { Controller, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import {
   CreateActionSchemaV4,
@@ -40,10 +39,7 @@ export const UpdateActionV4Form = (props: UpdateActionV4FormProps) => {
     defaultValues: {
       action: action.action,
       description: action.description || "",
-      environment:
-        action.environment === "staging" || action.environment === "production"
-          ? action.environment
-          : "staging",
+      environment: "production",
     },
   });
 
@@ -58,7 +54,7 @@ export const UpdateActionV4Form = (props: UpdateActionV4FormProps) => {
       } else {
         toast.success(result.message);
         reset(values);
-        router.refresh(); // Trigger server component re-render to update environment badge
+        router.refresh();
       }
     },
     [action.id, appId, reset, router],
@@ -71,7 +67,7 @@ export const UpdateActionV4Form = (props: UpdateActionV4FormProps) => {
           Settings
         </Typography>
         <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
-          Configure your action identifier, description, and environment.
+          Configure your action identifier and description.
         </Typography>
       </div>
 
@@ -102,22 +98,6 @@ export const UpdateActionV4Form = (props: UpdateActionV4FormProps) => {
           errors={errors.description}
           label="Short description"
           placeholder="e.g., Vote in community polls"
-        />
-
-        {/* Environment Toggle using ToggleSection */}
-        <Controller
-          name="environment"
-          control={control}
-          render={({ field }) => (
-            <ToggleSection
-              title="Staging"
-              description="Staging actions are for development only and allow the same user to verify multiple times."
-              checked={field.value === "staging"}
-              onChange={(checked) =>
-                field.onChange(checked ? "staging" : "production")
-              }
-            />
-          )}
         />
       </div>
 

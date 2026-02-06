@@ -19,7 +19,6 @@ export type GetActionsV4Query = {
     id: string;
     action: string;
     description: string;
-    environment: unknown;
     created_at: string;
     nullifiers_aggregate: {
       __typename?: "nullifier_v4_aggregate";
@@ -39,13 +38,15 @@ export const GetActionsV4Document = gql`
       }
     }
     action_v4(
-      where: { rp_registration: { app: { id: { _eq: $app_id } } } }
+      where: {
+        rp_registration: { app: { id: { _eq: $app_id } } }
+        environment: { _eq: "production" }
+      }
       order_by: { created_at: desc }
     ) {
       id
       action
       description
-      environment
       created_at
       nullifiers_aggregate {
         aggregate {

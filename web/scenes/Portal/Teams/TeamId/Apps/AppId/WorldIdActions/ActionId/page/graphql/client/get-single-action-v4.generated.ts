@@ -15,7 +15,6 @@ export type GetSingleActionV4Query = {
     id: string;
     action: string;
     description: string;
-    environment: unknown;
     rp_id: string;
     created_at: string;
     rp_registration: { __typename?: "rp_registration"; app_id: string };
@@ -42,7 +41,6 @@ export const GetSingleActionV4Document = gql`
       id
       action
       description
-      environment
       rp_id
       created_at
       rp_registration {
