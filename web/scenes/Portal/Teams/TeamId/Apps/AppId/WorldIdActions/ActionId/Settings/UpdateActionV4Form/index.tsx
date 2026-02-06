@@ -92,7 +92,7 @@ export const UpdateActionV4Form = (props: UpdateActionV4FormProps) => {
             required
           />
           <Typography variant={TYPOGRAPHY.R4} className="text-grey-500">
-            The unique identifier for this action. This cannot be changed.
+            This is the value you will use in IDKit and any API calls
           </Typography>
         </div>
 
@@ -100,7 +100,7 @@ export const UpdateActionV4Form = (props: UpdateActionV4FormProps) => {
         <Input
           register={register("description")}
           errors={errors.description}
-          label="Short Description"
+          label="Short description"
           placeholder="e.g., Vote in community polls"
         />
 

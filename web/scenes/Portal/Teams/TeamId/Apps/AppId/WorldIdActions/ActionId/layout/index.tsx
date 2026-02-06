@@ -70,12 +70,11 @@ export const WorldIdActionIdLayout = async (
             location: "world-id-actions",
           }}
         />
-        <hr className="mt-5 w-full border-grey-100" />
       </SizingWrapper>
 
       {/* Tabs Section */}
       <SizingWrapper gridClassName="order-2 pt-2">
-        <Tabs className="font-gta md:py-0">
+        <Tabs className="border-b border-grey-100 font-gta md:py-0">
           <Tab
             className="md:py-4"
             href={urls.worldIdAction({
