@@ -18,6 +18,7 @@ type ActionsHeaderProps = {
   isLoading?: boolean;
   className?: string;
   environment?: "staging" | "production";
+  isDeprecated?: boolean;
   // Analytics context (optional)
   analyticsContext?: {
     teamId?: string;
@@ -38,6 +39,7 @@ export const ActionsHeader = memo(function ActionsHeader(
     isLoading = false,
     className,
     environment,
+    isDeprecated,
     analyticsContext,
   } = props;
 
@@ -92,6 +94,18 @@ export const ActionsHeader = memo(function ActionsHeader(
                   className="capitalize text-grey-700"
                 >
                   {environment}
+                </Typography>
+              </div>
+            )}
+
+            {/* Deprecated Badge */}
+            {!isLoading && isDeprecated && (
+              <div
+                className="inline-flex items-center gap-x-1.5 rounded-full bg-grey-100 px-2.5 py-1"
+                title="This action is deprecated and read-only"
+              >
+                <Typography variant={TYPOGRAPHY.R5} className="text-grey-500">
+                  Deprecated
                 </Typography>
               </div>
             )}
