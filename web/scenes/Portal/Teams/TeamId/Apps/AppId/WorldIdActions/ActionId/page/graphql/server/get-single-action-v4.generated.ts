@@ -14,6 +14,7 @@ export type GetSingleActionV4Query = {
     __typename?: "action_v4";
     id: string;
     action: string;
+    environment: unknown;
   } | null;
 };
 
@@ -22,6 +23,7 @@ export const GetSingleActionV4Document = gql`
     action_v4_by_pk(id: $action_id) {
       id
       action
+      environment
     }
   }
 `;

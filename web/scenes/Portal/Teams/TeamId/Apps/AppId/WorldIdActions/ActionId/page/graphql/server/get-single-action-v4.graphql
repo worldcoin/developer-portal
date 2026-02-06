@@ -2,5 +2,6 @@ query GetSingleActionV4($action_id: String!) {
   action_v4_by_pk(id: $action_id) {
     id
     action
+    environment
   }
 }
