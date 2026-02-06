@@ -4,28 +4,20 @@ import * as Types from "@/graphql/graphql";
 import { GraphQLClient, RequestOptions } from "graphql-request";
 import gql from "graphql-tag";
 type GraphQLClientRequestHeaders = RequestOptions["requestHeaders"];
-export type FetchAppEnvQueryVariables = Types.Exact<{
-  id: Types.Scalars["String"]["input"];
+export type GetActionNameQueryVariables = Types.Exact<{
+  action_id: Types.Scalars["String"]["input"];
 }>;
 
-export type FetchAppEnvQuery = {
+export type GetActionNameQuery = {
   __typename?: "query_root";
-  app: Array<{
-    __typename?: "app";
-    id: string;
-    engine: string;
-    rp_registration: Array<{ __typename?: "rp_registration"; rp_id: string }>;
-  }>;
+  action_by_pk?: { __typename?: "action"; id: string; name: string } | null;
 };
 
-export const FetchAppEnvDocument = gql`
-  query FetchAppEnv($id: String!) {
-    app(where: { id: { _eq: $id } }) {
+export const GetActionNameDocument = gql`
+  query GetActionName($action_id: String!) {
+    action_by_pk(id: $action_id) {
       id
-      engine
-      rp_registration {
-        rp_id
-      }
+      name
     }
   }
 `;
@@ -49,17 +41,17 @@ export function getSdk(
   withWrapper: SdkFunctionWrapper = defaultWrapper,
 ) {
   return {
-    FetchAppEnv(
-      variables: FetchAppEnvQueryVariables,
+    GetActionName(
+      variables: GetActionNameQueryVariables,
       requestHeaders?: GraphQLClientRequestHeaders,
-    ): Promise<FetchAppEnvQuery> {
+    ): Promise<GetActionNameQuery> {
       return withWrapper(
         (wrappedRequestHeaders) =>
-          client.request<FetchAppEnvQuery>(FetchAppEnvDocument, variables, {
+          client.request<GetActionNameQuery>(GetActionNameDocument, variables, {
             ...requestHeaders,
             ...wrappedRequestHeaders,
           }),
-        "FetchAppEnv",
+        "GetActionName",
         "query",
         variables,
       );

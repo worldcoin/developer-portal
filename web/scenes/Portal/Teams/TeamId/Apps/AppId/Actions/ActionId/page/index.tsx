@@ -1,15 +1,11 @@
 "use client";
 import { EngineType } from "@/lib/types";
 import { ErrorPage } from "@/components/ErrorPage";
-import { Notification } from "@/components/Notification";
-import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import Skeleton from "react-loading-skeleton";
-import { ActionsHeader } from "@/components/ActionsHeader";
 import { ActionStatsGraph } from "./ActionStatsGraph";
 import { VerifiedTable } from "./VerifiedTable";
 import { useGetSingleActionAndNullifiersQuery } from "./graphql/client/get-single-action.generated";
 import { SizingWrapper } from "@/components/SizingWrapper";
-import { urls } from "@/lib/urls";
 
 type ActionIdPageProps = {
   params: Record<string, string> | null | undefined;
@@ -42,55 +38,22 @@ export const ActionIdPage = ({ params, isReadOnly }: ActionIdPageProps) => {
     );
   } else {
     return (
-      <>
-        <SizingWrapper gridClassName="order-1 pt-6 md:pt-10">
-          <ActionsHeader
-            displayText={action?.name ?? ""}
-            backText={
-              isReadOnly
-                ? "Back to Legacy Actions"
-                : "Back to Incognito Actions"
-            }
-            backUrl={urls.actions({ team_id: teamId ?? "", app_id: appId })}
-            isLoading={loading}
-            analyticsContext={{
-              teamId,
-              appId,
-              actionId,
-              location: "actions",
-            }}
-          />
+      <SizingWrapper gridClassName="pt-6 pb-6 md:pb-10">
+        <div className="grid w-full grid-cols-1 items-start justify-between gap-y-10 lg:grid-cols-2 lg:gap-x-32">
+          <ActionStatsGraph />
 
-          <hr className="mt-5 w-full border-dashed text-grey-200" />
-
-          {isReadOnly && (
-            <Notification variant="warning" className="mt-6">
-              <div className="text-system-warning-800">
-                <Typography as="p" variant={TYPOGRAPHY.S3}>
-                  This functionality is deprecated
-                </Typography>
-              </div>
-            </Notification>
+          {loading ? (
+            <div>
+              <Skeleton count={5} />
+            </div>
+          ) : (
+            <VerifiedTable
+              columns={["human", "uses", "time"]}
+              nullifiers={action?.nullifiers ?? []}
+            />
           )}
-        </SizingWrapper>
-
-        <SizingWrapper gridClassName="order-2 pt-2 pb-6 md:pb-10">
-          <div className="grid w-full grid-cols-1 items-start justify-between gap-y-10 lg:grid-cols-2 lg:gap-x-32">
-            <ActionStatsGraph />
-
-            {loading ? (
-              <div>
-                <Skeleton count={5} />
-              </div>
-            ) : (
-              <VerifiedTable
-                columns={["human", "uses", "time"]}
-                nullifiers={action?.nullifiers ?? []}
-              />
-            )}
-          </div>
-        </SizingWrapper>
-      </>
+        </div>
+      </SizingWrapper>
     );
   }
 };

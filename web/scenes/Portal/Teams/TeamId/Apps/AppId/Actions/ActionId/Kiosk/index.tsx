@@ -6,7 +6,6 @@ import { EngineType } from "@/lib/types";
 import { VerificationLevel } from "@worldcoin/idkit-core";
 import clsx from "clsx";
 import { useState } from "react";
-import { ActionsHeader } from "../Components/ActionsHeader";
 import { KioskError } from "../Components/Kiosk/KioskError";
 import { VerificationLevelPicker } from "../Components/Kiosk/VerificationLevelPicker";
 import {
@@ -54,13 +53,7 @@ export const ActionIdKioskPage = (props: ActionIdKioskPageProps) => {
 
   return (
     <>
-      <SizingWrapper gridClassName="order-1 pt-6 md:pt-10">
-        <ActionsHeader appId={appId} actionId={actionId} teamId={teamId} />
-
-        <hr className="mt-5 w-full border-dashed text-grey-200" />
-      </SizingWrapper>
-
-      <SizingWrapper gridClassName="order-2 pt-6 pb-6 md:pt-10 md:pb-10">
+      <SizingWrapper gridClassName="pt-6 pb-6 md:pb-10">
         <div className="grid w-full grid-cols-1 items-start justify-between gap-x-32 gap-y-10 md:grid-cols-1fr/auto">
           <div className={clsx("grid max-w-[480px] gap-y-10")}>
             <div className="grid gap-y-5">

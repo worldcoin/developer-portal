@@ -14,7 +14,7 @@ import { Controller, useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import { AppFlowOnCompleteTypeSelector } from "../../../page/CreateActionModal/AppFlowOnCompleteTypeSelector";
 import { MaxVerificationsSelector } from "../../../page/CreateActionModal/MaxVerificationsSelector";
-import { GetActionNameDocument } from "../../Components/ActionsHeader/graphql/client/get-action-name.generated";
+import { GetActionNameDocument } from "./graphql/client/get-action-name.generated";
 import {
   GetSingleActionDocument,
   GetSingleActionQuery,
