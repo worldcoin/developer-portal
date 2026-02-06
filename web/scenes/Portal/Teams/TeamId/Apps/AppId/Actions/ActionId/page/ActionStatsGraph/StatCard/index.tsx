@@ -6,7 +6,7 @@ import Skeleton from "react-loading-skeleton";
 export const StatCard = (props: {
   mainColorClassName: string;
   title: string;
-  value: number | null;
+  value: number | string | null;
   changePercentage: number;
 }) => {
   return (
@@ -23,7 +23,11 @@ export const StatCard = (props: {
 
       <div className="flex items-center gap-x-2">
         <Typography variant={TYPOGRAPHY.H6} className="text-grey-700">
-          {props.value?.toLocaleString() ?? <Skeleton width={100} />}
+          {props.value != null ? (
+            Number(props.value).toLocaleString()
+          ) : (
+            <Skeleton width={100} />
+          )}
         </Typography>
 
         <div
