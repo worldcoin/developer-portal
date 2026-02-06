@@ -28,6 +28,7 @@ export const MaxVerificationsSelector = (props: {
   label: string;
   helperText?: string;
   required?: boolean;
+  disabled?: boolean;
 }) => {
   const {
     value,
@@ -38,6 +39,7 @@ export const MaxVerificationsSelector = (props: {
     showCustomInput,
     className,
     required,
+    disabled,
   } = props;
   const [input, setInput] = useState("");
 
@@ -81,8 +83,9 @@ export const MaxVerificationsSelector = (props: {
   return (
     <Select
       value={value}
-      onChange={handleSelect}
+      onChange={disabled ? () => {} : handleSelect}
       by={(a: number | null, b: number | null) => a === b}
+      disabled={disabled}
     >
       <div className={"inline-grid font-gta"}>
         <fieldset
@@ -94,8 +97,10 @@ export const MaxVerificationsSelector = (props: {
               selectorClassNames,
               "grid grid-cols-1fr/auto",
               className,
+              disabled && "cursor-not-allowed opacity-50",
             )}
             data-testid="select-max-verifications"
+            disabled={disabled}
           >
             <Typography variant={TYPOGRAPHY.R4}>
               {VerificationOptions[value] ?? value.toString()}
