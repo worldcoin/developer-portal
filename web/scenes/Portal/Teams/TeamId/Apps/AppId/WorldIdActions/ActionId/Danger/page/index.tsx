@@ -6,11 +6,6 @@ import { ErrorPage } from "@/components/ErrorPage";
 import { urls } from "@/lib/urls";
 import { Role_Enum } from "@/graphql/graphql";
 import { Auth0SessionUser } from "@/lib/types";
-import { useAtomValue } from "jotai";
-import {
-  worldId40Atom,
-  isWorldId40Enabled,
-} from "@/lib/feature-flags/world-id-4-0/client";
 import { useRouter } from "next/navigation";
 import { useCallback, useState, useMemo } from "react";
 import { toast } from "react-toastify";
@@ -33,8 +28,6 @@ export const WorldIdActionIdDangerPage = ({
   const [isDeleting, setIsDeleting] = useState(false);
 
   const { user } = useUser() as Auth0SessionUser;
-  const worldId40Config = useAtomValue(worldId40Atom);
-  const isFeatureEnabled = isWorldId40Enabled(worldId40Config, teamId);
 
   const { data, loading } = useGetSingleActionV4Query({
     variables: { action_id: actionId ?? "" },
@@ -82,13 +75,10 @@ export const WorldIdActionIdDangerPage = ({
     }
   }, [actionId, appId, teamId, deleteActionMutation, router]);
 
-  if (!loading && (!isFeatureEnabled || !action)) {
+  if (!loading && !action) {
     return (
       <SizingWrapper gridClassName="order-1 md:order-2">
-        <ErrorPage
-          statusCode={404}
-          title={!isFeatureEnabled ? "Feature not enabled" : "Action not found"}
-        />
+        <ErrorPage statusCode={404} title="Action not found" />
       </SizingWrapper>
     );
   }

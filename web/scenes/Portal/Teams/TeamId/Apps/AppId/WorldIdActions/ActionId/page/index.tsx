@@ -3,13 +3,10 @@
 import { ErrorPage } from "@/components/ErrorPage";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import {
-  isWorldId40Enabled,
-  worldId40Atom,
-} from "@/lib/feature-flags/world-id-4-0/client";
-import { useAtomValue } from "jotai";
 import Skeleton from "react-loading-skeleton";
 import { useGetSingleActionV4Query } from "./graphql/client/get-single-action-v4.generated";
+import { VerifiedTable } from "@/scenes/Portal/Teams/TeamId/Apps/AppId/Actions/ActionId/page/VerifiedTable";
+import { adaptNullifierV4 } from "./utils/adapt-nullifier-v4";
 
 type WorldIdActionIdPageProps = {
   params: Record<string, string> | null | undefined;
@@ -20,99 +17,110 @@ export const WorldIdActionIdPage = ({ params }: WorldIdActionIdPageProps) => {
   const teamId = params?.teamId;
   const appId = params?.appId;
 
-  const worldId40Config = useAtomValue(worldId40Atom);
-  const isFeatureEnabled = isWorldId40Enabled(worldId40Config, teamId);
-
   const { data, loading } = useGetSingleActionV4Query({
     variables: { action_id: actionId ?? "" },
   });
 
   const action = data?.action_v4_by_pk;
 
-  if (!loading && (!isFeatureEnabled || !action)) {
+  if (!loading && !action) {
     return (
       <SizingWrapper gridClassName="order-1 md:order-2">
-        <ErrorPage
-          statusCode={404}
-          title={!isFeatureEnabled ? "Feature not enabled" : "Action not found"}
-        />
+        <ErrorPage statusCode={404} title="Action not found" />
       </SizingWrapper>
     );
   }
 
   return (
     <SizingWrapper gridClassName="order-1 pt-2 pb-6 md:pb-10">
-      <div className="grid w-full gap-y-6">
-        <Typography variant={TYPOGRAPHY.H7}>Overview</Typography>
+      <div className="grid w-full grid-cols-1 items-start justify-between gap-y-10 lg:grid-cols-2 lg:gap-x-32">
+        {/* Left: Stats overview */}
+        <div className="grid gap-y-6">
+          <Typography className="mt-6 block" variant={TYPOGRAPHY.H7}>
+            Overview
+          </Typography>
 
-        <div className="grid gap-y-4">
-          <div className="rounded-lg border border-grey-100 p-6">
-            <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
-              Total Verifications
-            </Typography>
-            <Typography variant={TYPOGRAPHY.H6} className="mt-2">
-              {loading ? (
-                <Skeleton width={100} />
-              ) : (
-                Number(
-                  action?.nullifiers_aggregate?.aggregate?.count ?? 0,
-                ).toLocaleString()
-              )}
-            </Typography>
-          </div>
+          {/* Stats summary */}
+          <div className="flex flex-col gap-y-6">
+            {/* Total verifications stat */}
+            <div>
+              <div className="grid grid-cols-auto/1fr items-center gap-x-1">
+                <div className="size-1.5 rounded-[1px] bg-blue-500" />
+                <Typography variant={TYPOGRAPHY.R5} className="text-grey-400">
+                  Total Verifications
+                </Typography>
+              </div>
+              <div className="mt-1 flex items-center gap-x-2">
+                <Typography variant={TYPOGRAPHY.H6} className="text-grey-700">
+                  {loading ? (
+                    <Skeleton width={100} />
+                  ) : (
+                    Number(
+                      action?.nullifiers_aggregate?.aggregate?.count ?? 0,
+                    ).toLocaleString()
+                  )}
+                </Typography>
+              </div>
+            </div>
 
-          <div className="rounded-lg border border-grey-100 p-6">
-            <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
-              Environment
-            </Typography>
-            <div className="mt-2 flex items-center gap-x-2">
-              {loading ? (
-                <Skeleton width={100} />
-              ) : (
-                <>
-                  {(() => {
-                    const environment =
-                      (action?.environment as "staging" | "production") ||
-                      "staging";
-                    const isProduction = environment === "production";
-                    return (
-                      <>
-                        <div
-                          className={`size-2 rounded-full ${
-                            isProduction ? "bg-green-500" : "bg-yellow-500"
-                          }`}
-                        />
-                        <Typography
-                          variant={TYPOGRAPHY.H7}
-                          className="capitalize"
-                        >
-                          {isProduction ? "Production" : "Staging"}
-                        </Typography>
-                      </>
-                    );
-                  })()}
-                </>
-              )}
+            {/* Environment badge */}
+            <div className="flex items-center gap-x-3 rounded-lg border border-grey-100 bg-grey-50 px-4 py-3">
+              <Typography variant={TYPOGRAPHY.R4} className="text-grey-500">
+                Environment:
+              </Typography>
+              <div className="flex items-center gap-x-2">
+                {loading ? (
+                  <Skeleton width={100} />
+                ) : (
+                  <>
+                    {(() => {
+                      const environment =
+                        (action?.environment as "staging" | "production") ||
+                        "staging";
+                      const isProduction = environment === "production";
+                      return (
+                        <>
+                          <div
+                            className={`size-2 rounded-full ${
+                              isProduction ? "bg-green-500" : "bg-yellow-500"
+                            }`}
+                          />
+                          <Typography
+                            variant={TYPOGRAPHY.M4}
+                            className="capitalize text-grey-900"
+                          >
+                            {isProduction ? "Production" : "Staging"}
+                          </Typography>
+                        </>
+                      );
+                    })()}
+                  </>
+                )}
+              </div>
             </div>
           </div>
 
-          <div className="rounded-lg border border-grey-100 p-6">
-            <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
-              Description
+          {/* Placeholder for future graph */}
+          <div className="pointer-events-none grid aspect-[580/350] w-full select-none content-center justify-center justify-items-center gap-y-1 rounded-2xl border border-grey-200">
+            <Typography variant={TYPOGRAPHY.H7} className="text-grey-500">
+              Detailed analytics coming soon
             </Typography>
-            <Typography variant={TYPOGRAPHY.R3} className="mt-2">
-              {loading ? (
-                <Skeleton count={2} />
-              ) : action?.description ? (
-                action.description
-              ) : (
-                <span className="italic text-grey-400">
-                  No description provided
-                </span>
-              )}
+            <Typography variant={TYPOGRAPHY.R4} className="text-grey-400">
+              Verification trends will show up here
             </Typography>
           </div>
         </div>
+
+        {/* Right: Verified humans table */}
+        {loading ? (
+          <div>
+            <Skeleton count={5} />
+          </div>
+        ) : (
+          <VerifiedTable
+            nullifiers={adaptNullifierV4(action?.nullifiers ?? [])}
+          />
+        )}
       </div>
     </SizingWrapper>
   );
