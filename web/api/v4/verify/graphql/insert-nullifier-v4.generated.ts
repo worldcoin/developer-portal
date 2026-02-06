@@ -6,7 +6,7 @@ import gql from "graphql-tag";
 type GraphQLClientRequestHeaders = RequestOptions["requestHeaders"];
 export type InsertNullifierV4MutationVariables = Types.Exact<{
   action_v4_id: Types.Scalars["String"]["input"];
-  nullifier: Types.Scalars["String"]["input"];
+  nullifier: Types.Scalars["numeric"]["input"];
 }>;
 
 export type InsertNullifierV4Mutation = {
@@ -21,7 +21,7 @@ export type InsertNullifierV4Mutation = {
 };
 
 export const InsertNullifierV4Document = gql`
-  mutation InsertNullifierV4($action_v4_id: String!, $nullifier: String!) {
+  mutation InsertNullifierV4($action_v4_id: String!, $nullifier: numeric!) {
     insert_nullifier_v4_one(
       object: { action_v4_id: $action_v4_id, nullifier: $nullifier }
     ) {

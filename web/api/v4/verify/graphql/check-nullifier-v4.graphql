@@ -1,4 +1,4 @@
-query CheckNullifierV4($nullifier: String!) {
+query CheckNullifierV4($nullifier: numeric!) {
   nullifier_v4(where: { nullifier: { _eq: $nullifier } }) {
     id
     nullifier

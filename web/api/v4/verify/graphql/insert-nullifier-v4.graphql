@@ -1,4 +1,4 @@
-mutation InsertNullifierV4($action_v4_id: String!, $nullifier: String!) {
+mutation InsertNullifierV4($action_v4_id: String!, $nullifier: numeric!) {
   insert_nullifier_v4_one(
     object: { action_v4_id: $action_v4_id, nullifier: $nullifier }
   ) {
