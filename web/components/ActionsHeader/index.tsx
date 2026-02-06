@@ -4,6 +4,7 @@ import { DecoratedButton } from "@/components/DecoratedButton";
 import { CaretIcon } from "@/components/Icons/CaretIcon";
 import { DocsIcon } from "@/components/Icons/DocsIcon";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import clsx from "clsx";
 import Link from "next/link";
 import posthog from "posthog-js";
 import { memo, useCallback } from "react";
@@ -16,6 +17,7 @@ type ActionsHeaderProps = {
   learnMoreUrl?: string;
   isLoading?: boolean;
   className?: string;
+  environment?: "staging" | "production";
   // Analytics context (optional)
   analyticsContext?: {
     teamId?: string;
@@ -35,6 +37,7 @@ export const ActionsHeader = memo(function ActionsHeader(
     learnMoreUrl = "https://docs.world.org/id/cloud",
     isLoading = false,
     className,
+    environment,
     analyticsContext,
   } = props;
 
@@ -62,12 +65,37 @@ export const ActionsHeader = memo(function ActionsHeader(
         </div>
 
         <div className="grid w-full grid-cols-1fr/auto items-center justify-between gap-x-3">
-          <Typography
-            variant={TYPOGRAPHY.H6}
-            className="max-w-[400px] truncate text-grey-900 md:max-w-[750px]"
-          >
-            {isLoading ? <Skeleton width={200} /> : displayText}
-          </Typography>
+          <div className="flex items-center gap-x-2">
+            <Typography
+              variant={TYPOGRAPHY.H6}
+              className="max-w-[400px] truncate text-grey-900 md:max-w-[750px]"
+            >
+              {isLoading ? <Skeleton width={200} /> : displayText}
+            </Typography>
+
+            {/* Environment Badge */}
+            {!isLoading && environment && (
+              <div
+                className="inline-flex items-center gap-x-1.5 rounded-full bg-grey-50 px-2.5 py-1"
+                title={environment === "staging" ? "Staging" : "Production"}
+              >
+                <div
+                  className={clsx(
+                    "size-1.5 rounded-full",
+                    environment === "staging"
+                      ? "bg-yellow-500"
+                      : "bg-green-500",
+                  )}
+                />
+                <Typography
+                  variant={TYPOGRAPHY.R5}
+                  className="capitalize text-grey-700"
+                >
+                  {environment}
+                </Typography>
+              </div>
+            )}
+          </div>
 
           <DecoratedButton
             variant="secondary"

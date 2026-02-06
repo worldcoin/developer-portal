@@ -6,15 +6,16 @@ import { Input } from "@/components/Input";
 import { ToggleSection } from "@/components/ToggleSection";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { yupResolver } from "@hookform/resolvers/yup";
+import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "react-toastify";
-import { GetSingleActionV4Query } from "../../page/graphql/client/get-single-action-v4.generated";
-import { updateActionV4ServerSide } from "./server";
 import {
   CreateActionSchemaV4,
   createActionSchemaV4,
 } from "../../../page/CreateActionDialogV4/server/form-schema-v4";
+import { GetSingleActionV4Query } from "../../page/graphql/client/get-single-action-v4.generated";
+import { updateActionV4ServerSide } from "./server";
 
 type UpdateActionV4FormProps = {
   action: NonNullable<GetSingleActionV4Query["action_v4_by_pk"]>;
@@ -23,6 +24,7 @@ type UpdateActionV4FormProps = {
 
 export const UpdateActionV4Form = (props: UpdateActionV4FormProps) => {
   const { action, appId } = props;
+  const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const {
@@ -56,16 +58,17 @@ export const UpdateActionV4Form = (props: UpdateActionV4FormProps) => {
       } else {
         toast.success(result.message);
         reset(values);
+        router.refresh(); // Trigger server component re-render to update environment badge
       }
     },
-    [action.id, appId, reset],
+    [action.id, appId, reset, router],
   );
 
   return (
     <form onSubmit={handleSubmit(submit)} className="grid w-full gap-y-6">
       <div className="grid gap-y-2">
         <Typography variant={TYPOGRAPHY.H7} className="text-grey-900">
-          Action Settings
+          Settings
         </Typography>
         <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
           Configure your action identifier, description, and environment.
@@ -108,11 +111,7 @@ export const UpdateActionV4Form = (props: UpdateActionV4FormProps) => {
           render={({ field }) => (
             <ToggleSection
               title="Staging"
-              description={
-                field.value === "staging"
-                  ? "Staging actions are for development only and allow the same user to verify multiple times."
-                  : "Production actions enforce unique verifications per user."
-              }
+              description="Staging actions are for development only and allow the same user to verify multiple times."
               checked={field.value === "staging"}
               onChange={(checked) =>
                 field.onChange(checked ? "staging" : "production")

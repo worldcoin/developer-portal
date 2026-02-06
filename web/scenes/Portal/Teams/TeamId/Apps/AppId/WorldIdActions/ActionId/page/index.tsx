@@ -32,22 +32,22 @@ export const WorldIdActionIdPage = ({ params }: WorldIdActionIdPageProps) => {
   }
 
   return (
-    <SizingWrapper gridClassName="order-1 pt-2 pb-6 md:pb-10">
+    <SizingWrapper gridClassName="order-1 pt-6 pb-6 md:pb-10">
       <div className="grid w-full grid-cols-1 items-start justify-between gap-y-10 lg:grid-cols-2 lg:gap-x-32">
         {/* Left: Stats overview */}
         <div className="grid gap-y-6">
-          <Typography className="mt-6 block" variant={TYPOGRAPHY.H7}>
+          <Typography className="block" variant={TYPOGRAPHY.H7}>
             Overview
           </Typography>
 
           {/* Stats summary */}
           <div className="flex flex-col gap-y-6">
-            {/* Total verifications stat */}
+            {/* Verifications stat */}
             <div>
               <div className="grid grid-cols-auto/1fr items-center gap-x-1">
                 <div className="size-1.5 rounded-[1px] bg-blue-500" />
                 <Typography variant={TYPOGRAPHY.R5} className="text-grey-400">
-                  Total Verifications
+                  Verifications
                 </Typography>
               </div>
               <div className="mt-1 flex items-center gap-x-2">
@@ -60,42 +60,6 @@ export const WorldIdActionIdPage = ({ params }: WorldIdActionIdPageProps) => {
                     ).toLocaleString()
                   )}
                 </Typography>
-              </div>
-            </div>
-
-            {/* Environment badge */}
-            <div className="flex items-center gap-x-3 rounded-lg border border-grey-100 bg-grey-50 px-4 py-3">
-              <Typography variant={TYPOGRAPHY.R4} className="text-grey-500">
-                Environment:
-              </Typography>
-              <div className="flex items-center gap-x-2">
-                {loading ? (
-                  <Skeleton width={100} />
-                ) : (
-                  <>
-                    {(() => {
-                      const environment =
-                        (action?.environment as "staging" | "production") ||
-                        "staging";
-                      const isProduction = environment === "production";
-                      return (
-                        <>
-                          <div
-                            className={`size-2 rounded-full ${
-                              isProduction ? "bg-green-500" : "bg-yellow-500"
-                            }`}
-                          />
-                          <Typography
-                            variant={TYPOGRAPHY.M4}
-                            className="capitalize text-grey-900"
-                          >
-                            {isProduction ? "Production" : "Staging"}
-                          </Typography>
-                        </>
-                      );
-                    })()}
-                  </>
-                )}
               </div>
             </div>
           </div>
