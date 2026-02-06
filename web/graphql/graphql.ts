@@ -1379,8 +1379,8 @@ export type Action_V4_Bool_Exp = {
 export enum Action_V4_Constraint {
   /** unique or primary key constraint on columns "id" */
   ActionV4Pkey = "action_v4_pkey",
-  /** unique or primary key constraint on columns "action", "rp_id" */
-  ActionV4RpIdActionKey = "action_v4_rp_id_action_key",
+  /** unique or primary key constraint on columns "environment", "action", "rp_id" */
+  ActionV4RpIdActionEnvironmentKey = "action_v4_rp_id_action_environment_key",
 }
 
 /** input type for inserting data into table "action_v4" */

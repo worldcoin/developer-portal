@@ -10369,8 +10369,8 @@
             "deprecationReason": null
           },
           {
-            "name": "action_v4_rp_id_action_key",
-            "description": "unique or primary key constraint on columns \"action\", \"rp_id\"",
+            "name": "action_v4_rp_id_action_environment_key",
+            "description": "unique or primary key constraint on columns \"environment\", \"action\", \"rp_id\"",
             "isDeprecated": false,
             "deprecationReason": null
           }

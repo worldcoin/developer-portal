@@ -138,16 +138,6 @@ actions:
     permissions:
       - role: user
     comment: Register an RP (Relying Party) for an app with managed mode
-  - name: rotate_signer_key
-    definition:
-      kind: synchronous
-      handler: '{{NEXT_API_URL}}/hasura/rotate-signer-key'
-      headers:
-        - name: Authorization
-          value_from_env: INTERNAL_ENDPOINTS_SECRET
-    permissions:
-      - role: user
-    comment: Rotate the signer key for an RP (Relying Party)
   - name: reset_api_key
     definition:
       kind: synchronous
@@ -169,6 +159,16 @@ actions:
       - role: api_key
       - role: user
     comment: Reset the client secret for a Sign in with World ID application
+  - name: rotate_signer_key
+    definition:
+      kind: synchronous
+      handler: '{{NEXT_API_URL}}/hasura/rotate-signer-key'
+      headers:
+        - name: Authorization
+          value_from_env: INTERNAL_ENDPOINTS_SECRET
+    permissions:
+      - role: user
+    comment: Rotate the signer key for an RP (Relying Party)
   - name: unban_app
     definition:
       kind: synchronous
