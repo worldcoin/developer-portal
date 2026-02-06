@@ -3,7 +3,6 @@ import { ActionDangerZone } from "@/components/ActionDangerZone";
 import { ActionsHeader } from "@/components/ActionsHeader";
 import { ErrorPage } from "@/components/ErrorPage";
 import { SizingWrapper } from "@/components/SizingWrapper";
-import { urls } from "@/lib/urls";
 import { useRouter } from "next/navigation";
 import { useCallback } from "react";
 import Skeleton from "react-loading-skeleton";
@@ -74,41 +73,18 @@ export const ActionIdDangerPage = ({
     );
   } else {
     return (
-      <>
-        <SizingWrapper gridClassName="order-1 pt-6 md:pt-10">
-          <ActionsHeader
-            displayText={action?.name ?? ""}
-            backText={
-              isReadOnly
-                ? "Back to Legacy Actions"
-                : "Back to Incognito Actions"
-            }
-            backUrl={urls.actions({ team_id: teamId ?? "", app_id: appId })}
-            isLoading={loading}
-            analyticsContext={{
-              teamId,
-              appId,
-              actionId,
-              location: "actions",
-            }}
+      <SizingWrapper gridClassName="pt-6 pb-6 md:pb-10">
+        {loading ? (
+          <Skeleton height={150} />
+        ) : (
+          <ActionDangerZone
+            actionIdentifier={action?.name ?? ""}
+            onDelete={handleDelete}
+            isDeleting={deleteActionLoading}
+            canDelete={!isReadOnly}
           />
-
-          <hr className="mt-5 w-full border-dashed text-grey-200" />
-        </SizingWrapper>
-
-        <SizingWrapper gridClassName="order-2 pt-2 pb-6 md:pb-10">
-          {loading ? (
-            <Skeleton height={150} />
-          ) : (
-            <ActionDangerZone
-              actionIdentifier={action?.name ?? ""}
-              onDelete={handleDelete}
-              isDeleting={deleteActionLoading}
-              canDelete={!isReadOnly}
-            />
-          )}
-        </SizingWrapper>
-      </>
+        )}
+      </SizingWrapper>
     );
   }
 };
