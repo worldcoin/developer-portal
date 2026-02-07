@@ -15,11 +15,19 @@ type WorldIdActionIdPageProps = {
 export const WorldIdActionIdPage = ({ params }: WorldIdActionIdPageProps) => {
   const actionId = params?.actionId;
 
-  const { data, loading } = useGetSingleActionV4Query({
+  const { data, loading, error } = useGetSingleActionV4Query({
     variables: { action_id: actionId ?? "" },
   });
 
   const action = data?.action_v4_by_pk;
+
+  if (error) {
+    return (
+      <SizingWrapper gridClassName="order-1 md:order-2">
+        <ErrorPage statusCode={500} title="Failed to load action" />
+      </SizingWrapper>
+    );
+  }
 
   if (!loading && !action) {
     return (
