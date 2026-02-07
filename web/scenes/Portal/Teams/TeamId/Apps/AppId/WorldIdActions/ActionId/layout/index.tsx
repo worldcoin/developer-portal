@@ -1,3 +1,5 @@
+"use client";
+
 import { ActionsHeader } from "@/components/ActionsHeader";
 import { ErrorPage } from "@/components/ErrorPage";
 import { SizingWrapper } from "@/components/SizingWrapper";
@@ -7,10 +9,9 @@ import { Role_Enum } from "@/graphql/graphql";
 import { Auth0SessionUser } from "@/lib/types";
 import { checkUserPermissions } from "@/lib/utils";
 import { urls } from "@/lib/urls";
-import { getSession } from "@auth0/nextjs-auth0";
+import { useUser } from "@auth0/nextjs-auth0/client";
 import { ReactNode } from "react";
-import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
-import { getSdk } from "../page/graphql/server/get-single-action-v4.generated";
+import { useGetSingleActionV4Query } from "../page/graphql/client/get-single-action-v4.generated";
 
 type Params = {
   teamId?: string;
@@ -23,21 +24,22 @@ type WorldIdActionIdLayoutProps = {
   children: ReactNode;
 };
 
-export const WorldIdActionIdLayout = async (
-  props: WorldIdActionIdLayoutProps,
-) => {
+export const WorldIdActionIdLayout = (props: WorldIdActionIdLayoutProps) => {
   const params = props.params;
-  const session = await getSession();
-  const user = session?.user as Auth0SessionUser["user"];
+  const { user } = useUser() as Auth0SessionUser;
 
-  // Fetch action data for header
-  const client = await getAPIServiceGraphqlClient();
-  const { action_v4_by_pk } = await getSdk(client).GetSingleActionV4({
-    action_id: params.actionId ?? "",
+  // Fetch action data for header using user permissions
+  const { data, loading } = useGetSingleActionV4Query({
+    variables: {
+      action_id: params.actionId ?? "",
+    },
+    skip: !params.actionId,
   });
 
-  // Handle 404 if action not found
-  if (!action_v4_by_pk) {
+  const action_v4_by_pk = data?.action_v4_by_pk;
+
+  // Handle 404 if action not found (only after loading completes)
+  if (!loading && !action_v4_by_pk) {
     return (
       <SizingWrapper gridClassName="order-1 md:order-2">
         <ErrorPage statusCode={404} title="Action not found" />
@@ -55,13 +57,13 @@ export const WorldIdActionIdLayout = async (
       {/* Header Section */}
       <SizingWrapper gridClassName="order-1 pt-6 md:pt-10">
         <ActionsHeader
-          displayText={action_v4_by_pk.action}
+          displayText={action_v4_by_pk?.action ?? ""}
           backText="Back to Actions"
           backUrl={urls.worldIdActions({
             team_id: params.teamId ?? "",
             app_id: params.appId,
           })}
-          isLoading={false}
+          isLoading={loading}
           analyticsContext={{
             teamId: params.teamId,
             appId: params.appId,
