@@ -1,9 +1,0 @@
-query FetchAppEnv($id: String!) {
-  app(where: { id: { _eq: $id } }) {
-    id
-    engine
-    rp_registration {
-      rp_id
-    }
-  }
-}

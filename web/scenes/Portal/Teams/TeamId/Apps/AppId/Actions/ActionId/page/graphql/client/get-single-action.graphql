@@ -11,6 +11,9 @@ query GetSingleActionAndNullifiers($action_id: String!) {
     app {
       id
       engine
+      rp_registration {
+        rp_id
+      }
     }
   }
 }
