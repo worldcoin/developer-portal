@@ -21,14 +21,9 @@ import { useGetAppQuery } from "./graphql/client/app.generated";
 type ActionsPageProps = {
   params: Record<string, string> | null | undefined;
   searchParams: Record<string, string> | null | undefined;
-  isReadOnly?: boolean;
 };
 
-export const ActionsPage = ({
-  params,
-  searchParams,
-  isReadOnly,
-}: ActionsPageProps) => {
+export const ActionsPage = ({ params, searchParams }: ActionsPageProps) => {
   const createAction = searchParams?.createAction;
   const appId = params?.appId as `app_${string}`;
   const pathName = usePathname() ?? "";
@@ -69,6 +64,8 @@ export const ActionsPage = ({
 
   const engineType = appRes.data?.app?.engine;
   const appName = appRes.data?.app?.app_metadata[0]?.name;
+  const hasRpRegistration =
+    (appRes.data?.app?.rp_registration?.length ?? 0) > 0;
 
   const isInitial = useMemo(() => {
     if (actionsRes.loading) {
@@ -103,7 +100,7 @@ export const ActionsPage = ({
               : `${pathName}/${id}`
           }
           engineType={engineType}
-          isReadOnly={isReadOnly}
+          isReadOnly={hasRpRegistration}
         />
       )}
 
@@ -149,7 +146,7 @@ export const ActionsPage = ({
         </div>
       )}
 
-      {createAction && !isReadOnly && (
+      {createAction && !hasRpRegistration && (
         <CreateActionModal
           className={clsx({ hidden: !createAction })}
           engineType={engineType}

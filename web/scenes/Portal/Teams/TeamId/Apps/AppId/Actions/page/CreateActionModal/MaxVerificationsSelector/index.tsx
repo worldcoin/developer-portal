@@ -100,7 +100,6 @@ export const MaxVerificationsSelector = (props: {
               disabled && "cursor-not-allowed opacity-50",
             )}
             data-testid="select-max-verifications"
-            disabled={disabled}
           >
             <Typography variant={TYPOGRAPHY.R4}>
               {VerificationOptions[value] ?? value.toString()}

@@ -9,11 +9,9 @@ import { SizingWrapper } from "@/components/SizingWrapper";
 
 type ActionIdPageProps = {
   params: Record<string, string> | null | undefined;
-  searchParams: Record<string, string> | null | undefined;
-  isReadOnly?: boolean;
 };
 
-export const ActionIdPage = ({ params, isReadOnly }: ActionIdPageProps) => {
+export const ActionIdPage = ({ params }: ActionIdPageProps) => {
   const actionId = params?.actionId;
   const teamId = params?.teamId;
   const appId = params?.appId;
