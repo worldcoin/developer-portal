@@ -148,6 +148,16 @@ actions:
     permissions:
       - role: user
     comment: Rotate the signer key for an RP (Relying Party)
+  - name: retry_rp
+    definition:
+      kind: synchronous
+      handler: '{{NEXT_API_URL}}/hasura/rp-retry'
+      headers:
+        - name: Authorization
+          value_from_env: INTERNAL_ENDPOINTS_SECRET
+    permissions:
+      - role: user
+    comment: Retry RP registration sync for a specific environment
   - name: reset_api_key
     definition:
       kind: synchronous
