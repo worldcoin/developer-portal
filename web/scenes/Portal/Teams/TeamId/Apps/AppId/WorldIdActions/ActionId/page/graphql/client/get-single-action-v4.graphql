@@ -1,0 +1,23 @@
+query GetSingleActionV4($action_id: String!) {
+  action_v4_by_pk(id: $action_id) {
+    id
+    action
+    description
+    rp_id
+    created_at
+    rp_registration {
+      app_id
+    }
+    nullifiers_aggregate {
+      aggregate {
+        count
+      }
+    }
+    nullifiers(limit: 100, order_by: { created_at: desc }) {
+      id
+      created_at
+      nullifier
+      action_v4_id
+    }
+  }
+}

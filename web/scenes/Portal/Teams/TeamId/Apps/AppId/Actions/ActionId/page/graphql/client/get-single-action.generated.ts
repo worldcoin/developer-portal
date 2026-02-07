@@ -13,6 +13,7 @@ export type GetSingleActionAndNullifiersQuery = {
   action: Array<{
     __typename?: "action";
     id: string;
+    name: string;
     nullifiers: Array<{
       __typename?: "nullifier";
       id: string;
@@ -28,6 +29,7 @@ export const GetSingleActionAndNullifiersDocument = gql`
   query GetSingleActionAndNullifiers($action_id: String!) {
     action(order_by: { created_at: asc }, where: { id: { _eq: $action_id } }) {
       id
+      name
       nullifiers(limit: 100) {
         id
         updated_at

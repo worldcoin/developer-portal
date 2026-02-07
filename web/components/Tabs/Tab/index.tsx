@@ -9,7 +9,7 @@ const tab = tv({
   base: "block cursor-pointer px-4 py-2.5 leading-5 md:px-1 md:py-3 md:leading-4",
   variants: {
     active: {
-      true: "cursor-default rounded-full bg-grey-0 text-grey-900 shadow-tab md:rounded-none md:bg-transparent md:shadow-none",
+      true: "cursor-default rounded-full bg-grey-0 text-grey-900 shadow-tab md:rounded-none md:border-b md:border-grey-900 md:bg-transparent md:shadow-none",
       false: "cursor-pointer text-grey-500",
     },
     underlined: {

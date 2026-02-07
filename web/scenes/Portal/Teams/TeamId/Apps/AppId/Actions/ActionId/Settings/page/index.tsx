@@ -2,10 +2,11 @@
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { ErrorPage } from "@/components/ErrorPage";
 import Skeleton from "react-loading-skeleton";
-import { ActionsHeader } from "../../Components/ActionsHeader";
+import { ActionsHeader } from "@/components/ActionsHeader";
 import { TryAction } from "../TryAction";
 import { UpdateActionForm } from "../UpdateAction";
 import { useGetSingleActionQuery } from "./graphql/client/get-single-action.generated";
+import { urls } from "@/lib/urls";
 
 type ActionIdSettingsPageProps = {
   params: Record<string, string> | null | undefined;
@@ -36,10 +37,16 @@ export const ActionIdSettingsPage = ({ params }: ActionIdSettingsPageProps) => {
       <>
         <SizingWrapper gridClassName="order-1 pt-6 md:pt-10">
           <ActionsHeader
-            actionId={actionID}
-            teamId={teamId}
-            appId={appId}
-            learnMoreUrl="https://docs.world.org/quick-start/installation"
+            displayText={action?.name ?? ""}
+            backText="Back to Incognito Actions"
+            backUrl={urls.actions({ team_id: teamId ?? "", app_id: appId })}
+            isLoading={loading}
+            analyticsContext={{
+              teamId,
+              appId,
+              actionId: actionID,
+              location: "actions",
+            }}
           />
 
           <hr className="mt-5 w-full border-dashed text-grey-200" />

@@ -1,10 +1,16 @@
 "use client";
+import { ActionDangerZone } from "@/components/ActionDangerZone";
+import { ActionsHeader } from "@/components/ActionsHeader";
 import { ErrorPage } from "@/components/ErrorPage";
-import Skeleton from "react-loading-skeleton";
-import { ActionsHeader } from "../../Components/ActionsHeader";
-import { ActionDangerZoneContent } from "../ActionDangerZoneContent";
-import { useGetSingleActionQuery } from "./graphql/client/get-single-action.generated";
 import { SizingWrapper } from "@/components/SizingWrapper";
+import { urls } from "@/lib/urls";
+import { useRouter } from "next/navigation";
+import { useCallback } from "react";
+import Skeleton from "react-loading-skeleton";
+import { toast } from "react-toastify";
+import { GetActionsDocument } from "../../../page/graphql/client/actions.generated";
+import { useDeleteActionMutation } from "../ActionDangerZoneContent/graphql/client/delete-action.generated";
+import { useGetSingleActionQuery } from "./graphql/client/get-single-action.generated";
 
 type ActionIdDangerPageProps = {
   params: Record<string, string> | null | undefined;
@@ -16,11 +22,45 @@ export const ActionIdDangerPage = ({ params }: ActionIdDangerPageProps) => {
   const teamId = params?.teamId;
   const appId = params?.appId;
 
+  const router = useRouter();
+
   const { data, loading } = useGetSingleActionQuery({
     variables: { action_id: actionId ?? "" },
   });
 
   const action = data?.action_by_pk;
+
+  const [deleteActionMutation, { loading: deleteActionLoading }] =
+    useDeleteActionMutation();
+
+  const handleDelete = useCallback(async () => {
+    try {
+      const result = await deleteActionMutation({
+        variables: { id: action?.id ?? "" },
+        refetchQueries: [
+          {
+            query: GetActionsDocument,
+            variables: {
+              app_id: appId,
+              condition: {},
+            },
+            fetchPolicy: "network-only",
+          },
+        ],
+        awaitRefetchQueries: true,
+      });
+
+      if (result.errors) {
+        throw new Error("Failed to delete action");
+      }
+
+      toast.success(`${action?.name} was deleted.`);
+      router.prefetch(`/teams/${teamId}/apps/${appId}/actions`);
+      router.replace(`/teams/${teamId}/apps/${appId}/actions`);
+    } catch (error) {
+      toast.error("Unable to delete action");
+    }
+  }, [action?.id, action?.name, appId, deleteActionMutation, router, teamId]);
 
   if (!loading && !action) {
     return (
@@ -32,7 +72,18 @@ export const ActionIdDangerPage = ({ params }: ActionIdDangerPageProps) => {
     return (
       <>
         <SizingWrapper gridClassName="order-1 pt-6 md:pt-10">
-          <ActionsHeader appId={appId} actionId={actionId} teamId={teamId} />
+          <ActionsHeader
+            displayText={action?.name ?? ""}
+            backText="Back to Incognito Actions"
+            backUrl={urls.actions({ team_id: teamId ?? "", app_id: appId })}
+            isLoading={loading}
+            analyticsContext={{
+              teamId,
+              appId,
+              actionId,
+              location: "actions",
+            }}
+          />
 
           <hr className="mt-5 w-full border-dashed text-grey-200" />
         </SizingWrapper>
@@ -41,10 +92,11 @@ export const ActionIdDangerPage = ({ params }: ActionIdDangerPageProps) => {
           {loading ? (
             <Skeleton height={150} />
           ) : (
-            <ActionDangerZoneContent
-              action={action!}
-              teamId={teamId}
-              appId={appId}
+            <ActionDangerZone
+              actionIdentifier={action?.name ?? ""}
+              onDelete={handleDelete}
+              isDeleting={deleteActionLoading}
+              canDelete={true}
             />
           )}
         </SizingWrapper>

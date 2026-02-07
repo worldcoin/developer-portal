@@ -1,0 +1,5 @@
+mutation DeleteActionV4($id: String!) {
+  delete_action_v4_by_pk(id: $id) {
+    id
+  }
+}

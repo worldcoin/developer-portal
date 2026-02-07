@@ -1,0 +1,9 @@
+query GetActionV4WithApp($action_id: String!) {
+  action_v4_by_pk(id: $action_id) {
+    id
+    environment
+    rp_registration {
+      app_id
+    }
+  }
+}

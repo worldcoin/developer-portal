@@ -16,6 +16,7 @@ type WorldIdActionsPageProps = {
 
 export const WorldIdActionsPage = ({ params }: WorldIdActionsPageProps) => {
   const appId = params?.appId as `app_${string}`;
+  const teamId = params?.teamId ?? "";
   const [dialogOpen, setDialogOpen] = useState(false);
 
   const { data, loading, error, refetch } = useGetActionsV4Query({
@@ -93,6 +94,8 @@ export const WorldIdActionsPage = ({ params }: WorldIdActionsPageProps) => {
         <ActionsListV4
           actions={actions}
           onCreateClick={() => setDialogOpen(true)}
+          teamId={teamId}
+          appId={appId}
         />
       )}
 

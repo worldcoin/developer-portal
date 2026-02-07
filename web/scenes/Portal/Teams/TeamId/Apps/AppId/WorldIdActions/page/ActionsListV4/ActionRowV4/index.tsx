@@ -1,6 +1,8 @@
 import { CopyButton } from "@/components/CopyButton";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import clsx from "clsx";
+import Link from "next/link";
+import { urls } from "@/lib/urls";
 import { ActionAvatar } from "../ActionAvatar";
 
 type ActionRowV4Props = {
@@ -9,24 +11,27 @@ type ActionRowV4Props = {
     action: string;
     description: string;
     uses: number;
-    environment: "staging" | "production";
   };
+  teamId: string;
+  appId: string;
 };
 
 export const ActionRowV4 = (props: ActionRowV4Props) => {
-  const { action } = props;
+  const { action, teamId, appId } = props;
 
   return (
-    <div
+    <Link
+      href={urls.worldIdAction({
+        team_id: teamId,
+        app_id: appId,
+        action_id: action.id,
+      })}
       className={clsx(
         "group max-md:grid max-md:grid-cols-1fr/auto max-md:rounded-2xl max-md:border max-md:px-2 max-md:hover:bg-grey-25 md:contents [&>*]:border-gray-100 [&>*]:px-2 md:[&>*]:border-b",
       )}
     >
       <div className="grid grid-cols-auto/1fr items-center gap-x-4 py-4 md:group-hover:bg-grey-25">
-        <ActionAvatar
-          identifier={action.action}
-          environment={action.environment}
-        />
+        <ActionAvatar identifier={action.action} />
 
         <div className="grid gap-y-0.5">
           <div className="flex items-center gap-x-1">
@@ -57,6 +62,6 @@ export const ActionRowV4 = (props: ActionRowV4Props) => {
           {action.uses.toLocaleString()}
         </Typography>
       </div>
-    </div>
+    </Link>
   );
 };

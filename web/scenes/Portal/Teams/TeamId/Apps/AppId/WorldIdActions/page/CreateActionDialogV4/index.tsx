@@ -153,7 +153,7 @@ export const CreateActionDialogV4 = (props: CreateActionDialogV4Props) => {
             <Input
               register={register("description")}
               errors={errors.description}
-              label="Short Description"
+              label="Short description"
               placeholder="Cast your vote on proposal #102"
               data-testid="input-description"
             />

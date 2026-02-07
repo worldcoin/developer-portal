@@ -12,7 +12,7 @@ export const DialogOverlay = () => {
       leaveTo="opacity-0"
       as={Fragment}
     >
-      <div className="fixed inset-0 bg-black/40" />
+      <div className="fixed inset-0 bg-black/40 backdrop-blur-[15px]" />
     </Transition.Child>
   );
 };

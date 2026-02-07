@@ -17,8 +17,9 @@ export const CopyButton = (props: {
   const [isCopied, setIsCopied] = useState<boolean>(false);
 
   const copyToClipboard = (event: any) => {
-    setIsCopied(true);
+    event.preventDefault();
     event.stopPropagation();
+    setIsCopied(true);
     navigator.clipboard.writeText(fieldValue);
     toast.success(`${fieldName} copied to clipboard`);
     setTimeout(() => {
