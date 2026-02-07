@@ -53,7 +53,6 @@ export const ActionsListV4 = (props: ActionsListV4Props) => {
     action: action.action,
     description: action.description,
     uses: action.nullifiers_aggregate?.aggregate?.count ?? 0,
-    environment: action.environment as "staging" | "production",
   }));
 
   const handlePageChange = (newPage: number) => {

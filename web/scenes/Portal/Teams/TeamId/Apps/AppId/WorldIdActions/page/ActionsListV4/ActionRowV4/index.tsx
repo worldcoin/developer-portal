@@ -11,7 +11,6 @@ type ActionRowV4Props = {
     action: string;
     description: string;
     uses: number;
-    environment: "staging" | "production";
   };
   teamId: string;
   appId: string;
@@ -32,10 +31,7 @@ export const ActionRowV4 = (props: ActionRowV4Props) => {
       )}
     >
       <div className="grid grid-cols-auto/1fr items-center gap-x-4 py-4 md:group-hover:bg-grey-25">
-        <ActionAvatar
-          identifier={action.action}
-          environment={action.environment}
-        />
+        <ActionAvatar identifier={action.action} />
 
         <div className="grid gap-y-0.5">
           <div className="flex items-center gap-x-1">
