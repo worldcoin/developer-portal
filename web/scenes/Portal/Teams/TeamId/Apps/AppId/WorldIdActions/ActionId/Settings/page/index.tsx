@@ -49,7 +49,7 @@ export const WorldIdActionIdSettingsPage = ({
             action={adaptActionV4ForTryAction({
               action: action.action,
               description: action.description,
-              environment: action.environment as string,
+              environment: "production",
               rp_registration: {
                 app_id: action.rp_registration.app_id,
               },
