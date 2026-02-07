@@ -6,7 +6,7 @@ import { SizingWrapper } from "@/components/SizingWrapper";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { useCallback, useEffect, useState } from "react";
 import { RotateSignerKeyDialog } from "./RotateSignerKeyDialog";
-import { useRetryRpMutation } from "./graphql/client/retry-rp";
+import { useRetryRpMutation } from "./graphql/client/retry-rp.generated";
 
 type RpStatus = "pending" | "registered" | "failed" | "deactivated";
 
