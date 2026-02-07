@@ -4,6 +4,7 @@ import { DecoratedButton } from "@/components/DecoratedButton";
 import { CaretIcon } from "@/components/Icons/CaretIcon";
 import { DocsIcon } from "@/components/Icons/DocsIcon";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import { DOCS_CLOUD_URL } from "@/lib/constants";
 import clsx from "clsx";
 import Link from "next/link";
 import posthog from "posthog-js";
@@ -33,7 +34,7 @@ export const ActionsHeader = memo(function ActionsHeader(
     displayText,
     backText,
     backUrl,
-    learnMoreUrl = "https://docs.world.org/id/cloud",
+    learnMoreUrl = DOCS_CLOUD_URL,
     isLoading = false,
     className,
     analyticsContext,

@@ -3,6 +3,7 @@ import { DecoratedButton } from "@/components/DecoratedButton";
 import { CaretIcon } from "@/components/Icons/CaretIcon";
 import { DocsIcon } from "@/components/Icons/DocsIcon";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import { DOCS_CLOUD_URL } from "@/lib/constants";
 import { urls } from "@/lib/urls";
 import Link from "next/link";
 import posthog from "posthog-js";
@@ -16,7 +17,7 @@ export const ActionsHeader = memo(function ActionsHeader(props: {
   appId?: string;
   learnMoreUrl?: string;
 }) {
-  const { learnMoreUrl = "https://docs.world.org/id/cloud" } = props;
+  const { learnMoreUrl = DOCS_CLOUD_URL } = props;
 
   const { data, loading } = useGetActionNameQuery({
     variables: { action_id: props.actionId ?? "" },

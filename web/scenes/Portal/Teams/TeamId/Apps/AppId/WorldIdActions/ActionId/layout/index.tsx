@@ -56,7 +56,6 @@ export const WorldIdActionIdLayout = async (
       <SizingWrapper gridClassName="order-1 pt-6 md:pt-10">
         <ActionsHeader
           displayText={action_v4_by_pk.action}
-          environment={action_v4_by_pk.environment as "staging" | "production"}
           backText="Back to Actions"
           backUrl={urls.worldIdActions({
             team_id: params.teamId ?? "",

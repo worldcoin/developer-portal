@@ -5,7 +5,7 @@ import { ActionDangerZone } from "@/components/ActionDangerZone";
 import { ErrorPage } from "@/components/ErrorPage";
 import { urls } from "@/lib/urls";
 import { useRouter } from "next/navigation";
-import { useCallback, useState } from "react";
+import { useCallback } from "react";
 import { toast } from "react-toastify";
 import { useGetSingleActionV4Query } from "../../page/graphql/client/get-single-action-v4.generated";
 import { useDeleteActionV4Mutation } from "./graphql/client/delete-action-v4.generated";
@@ -22,7 +22,6 @@ export const WorldIdActionIdDangerPage = ({
   const teamId = params?.teamId;
   const appId = params?.appId;
   const router = useRouter();
-  const [isDeleting, setIsDeleting] = useState(false);
 
   const { data, loading } = useGetSingleActionV4Query({
     variables: { action_id: actionId ?? "" },
@@ -30,20 +29,19 @@ export const WorldIdActionIdDangerPage = ({
 
   const action = data?.action_v4_by_pk;
 
-  const [deleteActionMutation] = useDeleteActionV4Mutation({
-    refetchQueries: [
-      {
-        query: GetActionsV4Document,
-        variables: { app_id: appId ?? "" },
-      },
-    ],
-    awaitRefetchQueries: true,
-  });
+  const [deleteActionMutation, { loading: isDeleting }] =
+    useDeleteActionV4Mutation({
+      refetchQueries: [
+        {
+          query: GetActionsV4Document,
+          variables: { app_id: appId ?? "" },
+        },
+      ],
+      awaitRefetchQueries: true,
+    });
 
   const handleDelete = useCallback(async () => {
     if (!actionId || !appId || !teamId) return;
-
-    setIsDeleting(true);
 
     try {
       await deleteActionMutation({
@@ -53,9 +51,7 @@ export const WorldIdActionIdDangerPage = ({
       toast.success("Action deleted successfully");
       router.push(urls.worldIdActions({ team_id: teamId, app_id: appId }));
     } catch (error) {
-      console.error("Failed to delete action:", error);
       toast.error("Failed to delete action");
-      setIsDeleting(false);
     }
   }, [actionId, appId, teamId, deleteActionMutation, router]);
 

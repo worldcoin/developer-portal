@@ -1,16 +1,16 @@
 "use client";
-import { ErrorPage } from "@/components/ErrorPage";
-import Skeleton from "react-loading-skeleton";
-import { ActionsHeader } from "@/components/ActionsHeader";
 import { ActionDangerZone } from "@/components/ActionDangerZone";
-import { useGetSingleActionQuery } from "./graphql/client/get-single-action.generated";
+import { ActionsHeader } from "@/components/ActionsHeader";
+import { ErrorPage } from "@/components/ErrorPage";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { urls } from "@/lib/urls";
 import { useRouter } from "next/navigation";
 import { useCallback } from "react";
+import Skeleton from "react-loading-skeleton";
 import { toast } from "react-toastify";
-import { useDeleteActionMutation } from "../ActionDangerZoneContent/graphql/client/delete-action.generated";
 import { GetActionsDocument } from "../../../page/graphql/client/actions.generated";
+import { useDeleteActionMutation } from "../ActionDangerZoneContent/graphql/client/delete-action.generated";
+import { useGetSingleActionQuery } from "./graphql/client/get-single-action.generated";
 
 type ActionIdDangerPageProps = {
   params: Record<string, string> | null | undefined;
@@ -50,15 +50,14 @@ export const ActionIdDangerPage = ({ params }: ActionIdDangerPageProps) => {
         awaitRefetchQueries: true,
       });
 
-      if (result instanceof Error) {
-        throw result;
+      if (result.errors) {
+        throw new Error("Failed to delete action");
       }
 
       toast.success(`${action?.name} was deleted.`);
       router.prefetch(`/teams/${teamId}/apps/${appId}/actions`);
       router.replace(`/teams/${teamId}/apps/${appId}/actions`);
     } catch (error) {
-      console.error("Delete Action: ", error);
       toast.error("Unable to delete action");
     }
   }, [action?.id, action?.name, appId, deleteActionMutation, router, teamId]);
