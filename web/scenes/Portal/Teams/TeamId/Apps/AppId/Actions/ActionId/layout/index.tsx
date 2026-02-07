@@ -1,4 +1,5 @@
-import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
+"use client";
+
 import { ActionsHeader } from "@/components/ActionsHeader";
 import { ErrorPage } from "@/components/ErrorPage";
 import { SizingWrapper } from "@/components/SizingWrapper";
@@ -8,10 +9,9 @@ import { Role_Enum } from "@/graphql/graphql";
 import { Auth0SessionUser, EngineType } from "@/lib/types";
 import { urls } from "@/lib/urls";
 import { checkUserPermissions } from "@/lib/utils";
-import { getSession } from "@auth0/nextjs-auth0";
+import { useUser } from "@auth0/nextjs-auth0/client";
 import { ReactNode } from "react";
-import { getSdk as getAppEnvSdk } from "./graphql/server/fetch-app-env.generated";
-import { getSdk as getActionNameSdk } from "./graphql/server/get-action-name.generated";
+import { useGetSingleActionAndNullifiersQuery } from "../page/graphql/client/get-single-action.generated";
 
 type Params = {
   teamId?: string;
@@ -24,32 +24,31 @@ type ActionIdLayout = {
   children: ReactNode;
 };
 
-export const ActionIdLayout = async (props: ActionIdLayout) => {
+export const ActionIdLayout = (props: ActionIdLayout) => {
   const params = props.params;
-  const session = await getSession();
-  const client = await getAPIServiceGraphqlClient();
-  const user = session?.user as Auth0SessionUser["user"];
+  const { user } = useUser() as Auth0SessionUser;
+
+  // Fetch action data for header using user permissions
+  const { data, loading } = useGetSingleActionAndNullifiersQuery({
+    variables: {
+      action_id: params.actionId ?? "",
+    },
+    skip: !params.actionId,
+  });
+
+  const action = data?.action?.[0];
+  const app = action?.app;
+
+  const isOnChainApp = app?.engine === EngineType.OnChain;
+  const hasRpRegistration = (app?.rp_registration?.length ?? 0) > 0;
 
   const isEnoughPermissions = checkUserPermissions(user, params.teamId ?? "", [
     Role_Enum.Owner,
     Role_Enum.Admin,
   ]);
 
-  // Fetch app environment data
-  const { app } = await getAppEnvSdk(client).FetchAppEnv({
-    id: params.appId ?? "",
-  });
-
-  const isOnChainApp = app?.[0]?.engine === EngineType.OnChain;
-  const hasRpRegistration = (app?.[0]?.rp_registration?.length ?? 0) > 0;
-
-  // Fetch action data for header
-  const { action_by_pk } = await getActionNameSdk(client).GetActionName({
-    action_id: params.actionId ?? "",
-  });
-
-  // Handle 404 if action not found
-  if (!action_by_pk) {
+  // Handle 404 if action not found (only after loading completes)
+  if (!loading && !action) {
     return (
       <SizingWrapper gridClassName="order-1 md:order-2">
         <ErrorPage statusCode={404} title="Action not found" />
@@ -62,7 +61,7 @@ export const ActionIdLayout = async (props: ActionIdLayout) => {
       {/* Header Section */}
       <SizingWrapper gridClassName="order-1 pt-6 md:pt-10">
         <ActionsHeader
-          displayText={action_by_pk.name}
+          displayText={action?.name ?? ""}
           backText={
             hasRpRegistration
               ? "Back to Legacy Actions"
@@ -72,7 +71,7 @@ export const ActionIdLayout = async (props: ActionIdLayout) => {
             team_id: params.teamId ?? "",
             app_id: params.appId,
           })}
-          isLoading={false}
+          isLoading={loading}
           isDeprecated={hasRpRegistration}
           analyticsContext={{
             teamId: params.teamId,
