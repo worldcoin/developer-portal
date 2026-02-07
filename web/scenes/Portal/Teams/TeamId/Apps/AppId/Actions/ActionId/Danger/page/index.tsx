@@ -13,14 +13,9 @@ import { useGetSingleActionQuery } from "./graphql/client/get-single-action.gene
 
 type ActionIdDangerPageProps = {
   params: Record<string, string> | null | undefined;
-  searchParams: Record<string, string> | null | undefined;
-  isReadOnly?: boolean;
 };
 
-export const ActionIdDangerPage = ({
-  params,
-  isReadOnly,
-}: ActionIdDangerPageProps) => {
+export const ActionIdDangerPage = ({ params }: ActionIdDangerPageProps) => {
   const actionId = params?.actionId;
   const teamId = params?.teamId;
   const appId = params?.appId;
@@ -32,6 +27,7 @@ export const ActionIdDangerPage = ({
   });
 
   const action = data?.action_by_pk;
+  const hasRpRegistration = (action?.app?.rp_registration?.length ?? 0) > 0;
 
   const [deleteActionMutation, { loading: deleteActionLoading }] =
     useDeleteActionMutation();
@@ -81,7 +77,7 @@ export const ActionIdDangerPage = ({
             actionIdentifier={action?.name ?? ""}
             onDelete={handleDelete}
             isDeleting={deleteActionLoading}
-            canDelete={!isReadOnly}
+            canDelete={!hasRpRegistration}
           />
         )}
       </SizingWrapper>

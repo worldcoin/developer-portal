@@ -8,14 +8,9 @@ import { useGetSingleActionQuery } from "./graphql/client/get-single-action.gene
 
 type ActionIdSettingsPageProps = {
   params: Record<string, string> | null | undefined;
-  searchParams: Record<string, string> | null | undefined;
-  isReadOnly?: boolean;
 };
 
-export const ActionIdSettingsPage = ({
-  params,
-  isReadOnly,
-}: ActionIdSettingsPageProps) => {
+export const ActionIdSettingsPage = ({ params }: ActionIdSettingsPageProps) => {
   const actionID = params?.actionId;
   const teamId = params?.teamId;
   const appId = params?.appId;
@@ -27,6 +22,7 @@ export const ActionIdSettingsPage = ({
   });
 
   const action = data?.action[0];
+  const hasRpRegistration = (action?.app?.rp_registration?.length ?? 0) > 0;
 
   if (!loading && !action) {
     return (
@@ -45,7 +41,7 @@ export const ActionIdSettingsPage = ({
             <UpdateActionForm
               action={action!}
               teamId={teamId ?? ""}
-              isReadOnly={isReadOnly}
+              isReadOnly={hasRpRegistration}
             />
           )}
 
