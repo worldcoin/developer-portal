@@ -8,6 +8,7 @@ import { TrashIcon } from "@/components/Icons/TrashIcon";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { truncateString } from "@/lib/utils";
 import { useState } from "react";
+import { toast } from "react-toastify";
 
 type ActionDangerZoneProps = {
   actionIdentifier: string;
@@ -23,8 +24,13 @@ export const ActionDangerZone = (props: ActionDangerZoneProps) => {
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
 
   const handleDelete = async () => {
-    await onDelete();
-    setOpenDeleteModal(false);
+    try {
+      await onDelete();
+      setOpenDeleteModal(false); // Only close on success
+    } catch (error) {
+      toast.error("Failed to delete action. Please try again.");
+      // Modal stays open for retry
+    }
   };
 
   return (
