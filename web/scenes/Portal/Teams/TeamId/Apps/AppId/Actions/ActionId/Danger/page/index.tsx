@@ -57,7 +57,7 @@ export const ActionIdDangerPage = ({ params }: ActionIdDangerPageProps) => {
       router.prefetch(`/teams/${teamId}/apps/${appId}/actions`);
       router.replace(`/teams/${teamId}/apps/${appId}/actions`);
     } catch (error) {
-      toast.error("Unable to delete action");
+      throw error;
     }
   }, [action?.id, action?.name, appId, deleteActionMutation, router, teamId]);
 

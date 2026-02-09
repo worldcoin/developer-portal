@@ -30,21 +30,22 @@ export const WorldIdActionIdDangerPage = ({
   const action = data?.action_v4_by_pk;
 
   const handleDelete = useCallback(async () => {
-    if (!actionId || !appId || !teamId) return;
+    if (!actionId || !appId || !teamId) {
+      throw new Error("Missing required parameters");
+    }
 
     setIsDeleting(true);
     try {
       const result = await deleteActionV4ServerSide(actionId, appId);
 
       if (!result.success) {
-        toast.error(result.message);
-        return;
+        throw new Error(result.message || "Failed to delete action");
       }
 
       toast.success("Action deleted successfully");
       router.push(urls.worldIdActions({ team_id: teamId, app_id: appId }));
     } catch (error) {
-      toast.error("Failed to delete action");
+      throw error;
     } finally {
       setIsDeleting(false);
     }
