@@ -3,15 +3,15 @@
 import { errorFormAction } from "@/api/helpers/errors";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
+import { logger } from "@/lib/logger";
 import { getIsUserAllowedToUpdateApp } from "@/lib/permissions";
 import { FormActionResult } from "@/lib/types";
-import { logger } from "@/lib/logger";
-import { getSdk } from "./graphql/server/update-action-v4.generated";
-import { getSdk as getActionWithAppSdk } from "./graphql/server/get-action-v4-with-app.generated";
 import {
   createActionSchemaV4,
   CreateActionSchemaV4,
 } from "../../../../page/CreateActionDialogV4/server/form-schema-v4";
+import { getSdk as getActionWithAppSdk } from "./graphql/server/get-action-v4-with-app.generated";
+import { getSdk } from "./graphql/server/update-action-v4.generated";
 
 export async function updateActionV4ServerSide(
   values: CreateActionSchemaV4,
@@ -56,7 +56,7 @@ export async function updateActionV4ServerSide(
     });
   }
 
-  // 3. Verify production-only (PR requirement)
+  // 3. Verify production-only
   if (action_v4_by_pk.environment !== "production") {
     logger.warn("Attempted to edit non-production action", {
       action_id: actionId,
@@ -83,14 +83,12 @@ export async function updateActionV4ServerSide(
     });
   }
 
-  // 5. Update action_v4 (only description, not identifier or environment)
+  // 5. Update action_v4 (only description)
   try {
     await getSdk(client).UpdateActionV4({
       id: actionId,
       input: {
         description: parsedParams.description || "",
-        environment: parsedParams.environment,
-        // Note: action (identifier) is NOT updated - it's read-only
       },
     });
 
