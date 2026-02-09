@@ -1,5 +1,15 @@
-query FetchActionV4($rp_id: String!, $action: String!) {
-  action_v4(where: { rp_id: { _eq: $rp_id }, action: { _eq: $action } }) {
+query FetchActionV4(
+  $rp_id: String!
+  $action: String!
+  $environment: action_environment!
+) {
+  action_v4(
+    where: {
+      rp_id: { _eq: $rp_id }
+      action: { _eq: $action }
+      environment: { _eq: $environment }
+    }
+  ) {
     action
     description
     environment
