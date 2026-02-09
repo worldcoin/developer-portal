@@ -20,6 +20,10 @@ const schema = yup
   .object()
   .shape({
     action: yup.string().strict().optional(),
+    environment: yup
+      .string()
+      .oneOf(["production", "staging"])
+      .default("production"),
   })
   .noUnknown();
 
@@ -71,6 +75,7 @@ export async function POST(
 
   const id = routeParams.id;
   const action = parsedParams.action;
+  const environment = parsedParams.environment;
 
   if (!id) {
     return corsHandler(
@@ -180,6 +185,7 @@ export async function POST(
     const actionResult = await getFetchActionV4Sdk(client).FetchActionV4({
       rp_id: rpRegistration.rp_id,
       action,
+      environment,
     });
     const existingAction = actionResult.action_v4[0];
 
@@ -193,7 +199,7 @@ export async function POST(
           // Synthetic action - not saved to DB, will be created in /verify endpoint
           action: action,
           description: "",
-          environment: "production" as const,
+          environment,
         };
   }
 
