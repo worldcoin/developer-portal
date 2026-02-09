@@ -186,6 +186,23 @@ export const WorldId40Content = ({
           </Typography>
         </div>
 
+        {/* APP ID (Legacy) */}
+        <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-0.5">
+            <Typography variant={TYPOGRAPHY.B4} className="text-grey-500">
+              APP ID (Legacy)
+            </Typography>
+            <Typography variant={TYPOGRAPHY.B3} className="text-grey-900">
+              {appId}
+            </Typography>
+          </div>
+          <CopyButton
+            fieldName="APP ID (Legacy)"
+            fieldValue={appId}
+            className="text-grey-500"
+          />
+        </div>
+
         {/* RP ID */}
         <div className="flex items-center justify-between">
           <div className="flex flex-col gap-0.5">
