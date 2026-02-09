@@ -7,6 +7,8 @@ import { Step } from "@/components/InitialSteps/Step";
 import { Placeholder } from "@/components/PlaceholderImage";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { EngineType } from "@/lib/types";
+import { Notification } from "@/components/Notification";
+import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import clsx from "clsx";
 import { usePathname } from "next/navigation";
 import { useMemo } from "react";
@@ -62,6 +64,8 @@ export const ActionsPage = ({ params, searchParams }: ActionsPageProps) => {
 
   const engineType = appRes.data?.app?.engine;
   const appName = appRes.data?.app?.app_metadata[0]?.name;
+  const hasRpRegistration =
+    (appRes.data?.app?.rp_registration?.length ?? 0) > 0;
 
   const isInitial = useMemo(() => {
     if (actionsRes.loading) {
@@ -96,6 +100,7 @@ export const ActionsPage = ({ params, searchParams }: ActionsPageProps) => {
               : `${pathName}/${id}`
           }
           engineType={engineType}
+          isReadOnly={hasRpRegistration}
         />
       )}
 
@@ -141,7 +146,7 @@ export const ActionsPage = ({ params, searchParams }: ActionsPageProps) => {
         </div>
       )}
 
-      {createAction && (
+      {createAction && !hasRpRegistration && (
         <CreateActionModal
           className={clsx({ hidden: !createAction })}
           engineType={engineType}

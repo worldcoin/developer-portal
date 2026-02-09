@@ -3,7 +3,6 @@ import { ActionDangerZone } from "@/components/ActionDangerZone";
 import { ActionsHeader } from "@/components/ActionsHeader";
 import { ErrorPage } from "@/components/ErrorPage";
 import { SizingWrapper } from "@/components/SizingWrapper";
-import { urls } from "@/lib/urls";
 import { useRouter } from "next/navigation";
 import { useCallback } from "react";
 import Skeleton from "react-loading-skeleton";
@@ -14,7 +13,6 @@ import { useGetSingleActionQuery } from "./graphql/client/get-single-action.gene
 
 type ActionIdDangerPageProps = {
   params: Record<string, string> | null | undefined;
-  searchParams: Record<string, string> | null | undefined;
 };
 
 export const ActionIdDangerPage = ({ params }: ActionIdDangerPageProps) => {
@@ -29,6 +27,7 @@ export const ActionIdDangerPage = ({ params }: ActionIdDangerPageProps) => {
   });
 
   const action = data?.action_by_pk;
+  const hasRpRegistration = (action?.app?.rp_registration?.length ?? 0) > 0;
 
   const [deleteActionMutation, { loading: deleteActionLoading }] =
     useDeleteActionMutation();
@@ -58,7 +57,7 @@ export const ActionIdDangerPage = ({ params }: ActionIdDangerPageProps) => {
       router.prefetch(`/teams/${teamId}/apps/${appId}/actions`);
       router.replace(`/teams/${teamId}/apps/${appId}/actions`);
     } catch (error) {
-      toast.error("Unable to delete action");
+      throw error;
     }
   }, [action?.id, action?.name, appId, deleteActionMutation, router, teamId]);
 
@@ -70,37 +69,18 @@ export const ActionIdDangerPage = ({ params }: ActionIdDangerPageProps) => {
     );
   } else {
     return (
-      <>
-        <SizingWrapper gridClassName="order-1 pt-6 md:pt-10">
-          <ActionsHeader
-            displayText={action?.name ?? ""}
-            backText="Back to Incognito Actions"
-            backUrl={urls.actions({ team_id: teamId ?? "", app_id: appId })}
-            isLoading={loading}
-            analyticsContext={{
-              teamId,
-              appId,
-              actionId,
-              location: "actions",
-            }}
+      <SizingWrapper gridClassName="pt-6 pb-6 md:pb-10">
+        {loading ? (
+          <Skeleton height={150} />
+        ) : (
+          <ActionDangerZone
+            actionIdentifier={action?.name ?? ""}
+            onDelete={handleDelete}
+            isDeleting={deleteActionLoading}
+            canDelete={!hasRpRegistration}
           />
-
-          <hr className="mt-5 w-full border-dashed text-grey-200" />
-        </SizingWrapper>
-
-        <SizingWrapper gridClassName="order-2 pt-2 pb-6 md:pb-10">
-          {loading ? (
-            <Skeleton height={150} />
-          ) : (
-            <ActionDangerZone
-              actionIdentifier={action?.name ?? ""}
-              onDelete={handleDelete}
-              isDeleting={deleteActionLoading}
-              canDelete={true}
-            />
-          )}
-        </SizingWrapper>
-      </>
+        )}
+      </SizingWrapper>
     );
   }
 };

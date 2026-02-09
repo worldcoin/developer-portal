@@ -15,6 +15,11 @@ export type GetSingleActionQuery = {
     id: string;
     name: string;
     app_id: string;
+    app: {
+      __typename?: "app";
+      id: string;
+      rp_registration: Array<{ __typename?: "rp_registration"; rp_id: string }>;
+    };
   } | null;
 };
 
@@ -24,6 +29,12 @@ export const GetSingleActionDocument = gql`
       id
       name
       app_id
+      app {
+        id
+        rp_registration {
+          rp_id
+        }
+      }
     }
   }
 `;

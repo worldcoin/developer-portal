@@ -38,6 +38,18 @@ export const WorldIdActionIdLayout = (props: WorldIdActionIdLayoutProps) => {
 
   const action_v4_by_pk = data?.action_v4_by_pk;
 
+  // Validate app ownership - action must belong to the app in URL
+  if (!loading && action_v4_by_pk) {
+    const actionAppId = action_v4_by_pk.rp_registration?.app_id;
+    if (actionAppId && actionAppId !== params.appId) {
+      return (
+        <SizingWrapper gridClassName="order-1 md:order-2">
+          <ErrorPage statusCode={404} title="Action not found" />
+        </SizingWrapper>
+      );
+    }
+  }
+
   // Handle 404 if action not found (only after loading completes)
   if (!loading && !action_v4_by_pk) {
     return (

@@ -21,7 +21,12 @@ export type GetSingleActionAndNullifiersQuery = {
       nullifier_hash: string;
       uses: number;
     }>;
-    app: { __typename?: "app"; id: string; engine: string };
+    app: {
+      __typename?: "app";
+      id: string;
+      engine: string;
+      rp_registration: Array<{ __typename?: "rp_registration"; rp_id: string }>;
+    };
   }>;
 };
 
@@ -39,6 +44,9 @@ export const GetSingleActionAndNullifiersDocument = gql`
       app {
         id
         engine
+        rp_registration {
+          rp_id
+        }
       }
     }
   }

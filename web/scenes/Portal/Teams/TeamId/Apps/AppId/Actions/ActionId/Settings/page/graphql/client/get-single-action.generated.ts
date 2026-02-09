@@ -29,6 +29,7 @@ export type GetSingleActionQuery = {
       is_staging: boolean;
       engine: string;
       app_metadata: Array<{ __typename?: "app_metadata"; app_mode: string }>;
+      rp_registration: Array<{ __typename?: "rp_registration"; rp_id: string }>;
     };
   }>;
 };
@@ -53,6 +54,9 @@ export const GetSingleActionDocument = gql`
         engine
         app_metadata {
           app_mode
+        }
+        rp_registration {
+          rp_id
         }
       }
     }
