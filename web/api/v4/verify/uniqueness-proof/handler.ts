@@ -63,10 +63,11 @@ export async function handleUniquenessProofVerification(
     environment?: "production" | "staging";
   },
 ): Promise<NextResponse<UniquenessProofResponse>> {
-  // For uniqueness proofs check if action already exists to determine environment
-  // Priority: explicit request environment > DB action environment > "production" default
+  // Resolve environment upfront: explicit request environment or default to "production"
+  const verificationEnvironment = parsedParams.environment ?? "production";
+
+  // Fetch existing action filtered by environment
   let existingActionV4 = null;
-  let verificationEnvironment = "production";
 
   if (parsedParams.action) {
     const existingActionResult = await getFetchActionV4Sdk(
@@ -74,12 +75,9 @@ export async function handleUniquenessProofVerification(
     ).FetchActionV4({
       rp_id: rpId,
       action: parsedParams.action,
+      environment: verificationEnvironment,
     });
     existingActionV4 = existingActionResult.action_v4[0] ?? null;
-    verificationEnvironment =
-      parsedParams.environment ??
-      (existingActionV4?.environment as string) ??
-      "production";
   }
 
   if (
@@ -180,16 +178,16 @@ export async function handleUniquenessProofVerification(
 
   // At least one proof is valid - now handle action creation and nullifier
 
-  // Use existing action or create new one (always production for new actions)
+  // Use existing action or create new one for the resolved environment
   let actionV4 = existingActionV4;
 
-  // If action doesn't exist, create it (always as production)
+  // If action doesn't exist, create it with the resolved environment
   if (!actionV4) {
     const createResult = await getCreateActionV4Sdk(client).CreateActionV4({
       rp_id: rpId,
       action: parsedParams.action!,
       description: parsedParams.action_description || "",
-      environment: "production",
+      environment: verificationEnvironment,
     });
 
     actionV4 = createResult.insert_action_v4_one!;

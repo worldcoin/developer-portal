@@ -89,10 +89,10 @@ export async function validateAndInsertActionV4(
 
     // Check if this is our specific unique constraint violation
     // The constraint name will appear in the error if it's violated
-    if (errorStr.includes("action_v4_rp_id_action_key")) {
+    if (errorStr.includes("action_v4_rp_id_action_environment_key")) {
       return errorFormAction({
         error: error as Error,
-        message: `An action with identifier "${parsedParams.action}" already exists`,
+        message: `An action with identifier "${parsedParams.action}" already exists for this environment`,
         additionalInfo: {
           app_id,
           rp_id,

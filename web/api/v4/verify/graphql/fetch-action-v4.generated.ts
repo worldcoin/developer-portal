@@ -7,6 +7,7 @@ type GraphQLClientRequestHeaders = RequestOptions["requestHeaders"];
 export type FetchActionV4QueryVariables = Types.Exact<{
   rp_id: Types.Scalars["String"]["input"];
   action: Types.Scalars["String"]["input"];
+  environment: Types.Scalars["action_environment"]["input"];
 }>;
 
 export type FetchActionV4Query = {
@@ -23,8 +24,18 @@ export type FetchActionV4Query = {
 };
 
 export const FetchActionV4Document = gql`
-  query FetchActionV4($rp_id: String!, $action: String!) {
-    action_v4(where: { rp_id: { _eq: $rp_id }, action: { _eq: $action } }) {
+  query FetchActionV4(
+    $rp_id: String!
+    $action: String!
+    $environment: action_environment!
+  ) {
+    action_v4(
+      where: {
+        rp_id: { _eq: $rp_id }
+        action: { _eq: $action }
+        environment: { _eq: $environment }
+      }
+    ) {
       id
       rp_id
       action
