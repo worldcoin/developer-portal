@@ -1,5 +1,8 @@
 import { parseRpId } from "@/api/helpers/rp-utils";
-import { encodeNullifierForStorage } from "@/api/helpers/verify";
+import {
+  encodeNullifierForStorage,
+  normalizeNullifierHash,
+} from "@/api/helpers/verify";
 import { logger } from "@/lib/logger";
 import { captureEvent } from "@/services/posthogClient";
 import { GraphQLClient } from "graphql-request";
@@ -28,7 +31,7 @@ export interface UniquenessResult {
 type UniquenessProofSuccessResponse = {
   success: true;
   action: string;
-  nullifier: string;
+  nullifier: string; // Hex format `0x` prefixed
   created_at?: string;
   environment: string;
   results: UniquenessResult[];
@@ -176,6 +179,9 @@ export async function handleUniquenessProofVerification(
     firstSuccess!.nullifier!,
   );
 
+  // We normalize the nullifier to hex for the response, to match the request format which expects a hex string.
+  const normalizedNullifier = normalizeNullifierHash(firstSuccess!.nullifier!);
+
   // At least one proof is valid - now handle action creation and nullifier
 
   // Use existing action or create new one for the resolved environment
@@ -247,7 +253,7 @@ export async function handleUniquenessProofVerification(
         {
           success: true,
           action: actionV4.action,
-          nullifier: nullifierForStorage,
+          nullifier: normalizedNullifier,
           created_at: existingNullifier.created_at,
           environment: actionV4.environment as string,
           results: verificationResults,
@@ -305,7 +311,7 @@ export async function handleUniquenessProofVerification(
       {
         success: true,
         action: actionV4.action,
-        nullifier: nullifierForStorage,
+        nullifier: normalizedNullifier,
         created_at: insertResult.insert_nullifier_v4_one.created_at,
         environment: actionV4.environment as string,
         results: verificationResults,
@@ -324,7 +330,7 @@ export async function handleUniquenessProofVerification(
           {
             success: true,
             action: actionV4.action,
-            nullifier: nullifierForStorage,
+            nullifier: normalizedNullifier,
             environment: actionV4.environment as string,
             results: verificationResults,
             message: "Proof verified successfully (staging nullifier reuse)",
