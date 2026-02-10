@@ -1,0 +1,14 @@
+mutation UpdateToggleResult(
+  $rp_id: String!
+  $operation_hash: String!
+) {
+  update_rp_registration_by_pk(
+    pk_columns: { rp_id: $rp_id }
+    _set: { operation_hash: $operation_hash }
+  ) {
+    rp_id
+    app_id
+    status
+    operation_hash
+  }
+}
