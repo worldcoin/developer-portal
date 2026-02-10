@@ -50,8 +50,7 @@ export async function getSelfManagedRegistrationInfo(
     if (!productionConfig) {
       return {
         success: false,
-        message:
-          "RP Registry is not configured. Please contact support.",
+        message: "RP Registry is not configured. Please contact support.",
       };
     }
 
@@ -70,10 +69,7 @@ export async function getSelfManagedRegistrationInfo(
       functionSignature: REGISTER_FUNCTION_SIGNATURE,
     };
   } catch (error) {
-    console.error(
-      "[getSelfManagedRegistrationInfo] Error:",
-      error,
-    );
+    console.error("[getSelfManagedRegistrationInfo] Error:", error);
 
     return {
       success: false,
