@@ -83,21 +83,6 @@ export async function handleUniquenessProofVerification(
     existingActionV4 = existingActionResult.action_v4[0] ?? null;
   }
 
-  if (
-    verificationEnvironment === "staging" &&
-    !process.env.VERIFIER_CONTRACT_ADDRESS_STAGING
-  ) {
-    return NextResponse.json<UniquenessProofErrorResponse>(
-      {
-        success: false,
-        code: "environment_not_configured",
-        detail:
-          "The staging environment is not configured. Use production or omit the environment field.",
-      },
-      { status: 400 },
-    );
-  }
-
   // Verify all proofs in parallel
   let verificationResults: UniquenessResult[] = [];
 
@@ -111,9 +96,6 @@ export async function handleUniquenessProofVerification(
       verificationEnvironment === "staging",
     );
   } else {
-    // World ID 4.0 uniqueness proofs - verify via on-chain Verifier in parallel
-    const numericRpId = parseRpId(rpId);
-
     // Select verifier contract address based on environment
     const verifierAddress =
       verificationEnvironment === "staging"
@@ -127,10 +109,12 @@ export async function handleUniquenessProofVerification(
           code: "configuration_error",
           detail: `Verifier contract address not configured for ${verificationEnvironment} environment.`,
         },
-        { status: 500 },
+        { status: 400 },
       );
     }
 
+    // World ID 4.0 uniqueness proofs - verify via on-chain Verifier in parallel
+    const numericRpId = parseRpId(rpId);
     verificationResults = await processUniquenessProofV4(
       numericRpId,
       parsedParams.nonce!,
