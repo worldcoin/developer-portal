@@ -19,7 +19,6 @@ export type GetAppQuery = {
       id: string;
       name: string;
     }>;
-    rp_registration: Array<{ __typename?: "rp_registration"; rp_id: string }>;
   } | null;
 };
 
@@ -31,9 +30,6 @@ export const GetAppDocument = gql`
       app_metadata {
         id
         name
-      }
-      rp_registration {
-        rp_id
       }
     }
   }

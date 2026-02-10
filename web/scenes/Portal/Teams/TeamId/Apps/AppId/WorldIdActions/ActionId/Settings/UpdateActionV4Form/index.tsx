@@ -39,7 +39,6 @@ export const UpdateActionV4Form = (props: UpdateActionV4FormProps) => {
     defaultValues: {
       action: action.action,
       description: action.description || "",
-      environment: "production",
     },
   });
 

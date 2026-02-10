@@ -9,7 +9,9 @@ import { SizingWrapper } from "@/components/SizingWrapper";
 import { EngineType } from "@/lib/types";
 import { Notification } from "@/components/Notification";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import { worldId40Atom, isWorldId40Enabled } from "@/lib/feature-flags";
 import clsx from "clsx";
+import { useAtomValue } from "jotai";
 import { usePathname } from "next/navigation";
 import { useMemo } from "react";
 import { useForm, useWatch } from "react-hook-form";
@@ -26,6 +28,7 @@ type ActionsPageProps = {
 export const ActionsPage = ({ params, searchParams }: ActionsPageProps) => {
   const createAction = searchParams?.createAction;
   const appId = params?.appId as `app_${string}`;
+  const teamId = params?.teamId as string;
   const pathName = usePathname() ?? "";
 
   const searchForm = useForm<{ keyword: string }>({
@@ -64,8 +67,8 @@ export const ActionsPage = ({ params, searchParams }: ActionsPageProps) => {
 
   const engineType = appRes.data?.app?.engine;
   const appName = appRes.data?.app?.app_metadata[0]?.name;
-  const hasRpRegistration =
-    (appRes.data?.app?.rp_registration?.length ?? 0) > 0;
+  const worldId40Config = useAtomValue(worldId40Atom);
+  const isEnabled = isWorldId40Enabled(worldId40Config, teamId);
 
   const isInitial = useMemo(() => {
     if (actionsRes.loading) {
@@ -100,7 +103,7 @@ export const ActionsPage = ({ params, searchParams }: ActionsPageProps) => {
               : `${pathName}/${id}`
           }
           engineType={engineType}
-          isReadOnly={hasRpRegistration}
+          isReadOnly={isEnabled}
         />
       )}
 
@@ -146,7 +149,7 @@ export const ActionsPage = ({ params, searchParams }: ActionsPageProps) => {
         </div>
       )}
 
-      {createAction && !hasRpRegistration && (
+      {createAction && !isEnabled && (
         <CreateActionModal
           className={clsx({ hidden: !createAction })}
           engineType={engineType}

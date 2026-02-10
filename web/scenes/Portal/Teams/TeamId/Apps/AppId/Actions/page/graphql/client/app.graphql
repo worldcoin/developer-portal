@@ -6,8 +6,5 @@ query GetApp($app_id: String!) {
       id
       name
     }
-    rp_registration {
-      rp_id
-    }
   }
 }
