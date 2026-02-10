@@ -83,27 +83,10 @@ export async function handleUniquenessProofVerification(
     existingActionV4 = existingActionResult.action_v4[0] ?? null;
   }
 
-  //TODO: Remove once we release staging verifier and configure address in env vars
-  const protocolVersion = parsedParams.protocol_version;
-  if (
-    verificationEnvironment === "staging" &&
-    protocolVersion === "4.0" &&
-    !process.env.VERIFIER_CONTRACT_ADDRESS_STAGING
-  ) {
-    return NextResponse.json<UniquenessProofErrorResponse>(
-      {
-        success: false,
-        code: "environment_not_configured",
-        detail:
-          "The staging environment is not configured. Use production or omit the environment field.",
-      },
-      { status: 400 },
-    );
-  }
-
   // Verify all proofs in parallel
   let verificationResults: UniquenessResult[] = [];
 
+  const protocolVersion = parsedParams.protocol_version;
   if (protocolVersion === "3.0") {
     // World ID 3.0 proofs - verify via sequencer in parallel
     verificationResults = await processUniquenessProofV3(
@@ -126,7 +109,7 @@ export async function handleUniquenessProofVerification(
           code: "configuration_error",
           detail: `Verifier contract address not configured for ${verificationEnvironment} environment.`,
         },
-        { status: 500 },
+        { status: 400 },
       );
     }
 
