@@ -2,7 +2,7 @@ actions:
   - name: ban_app
     definition:
       kind: synchronous
-      handler: '{{NEXT_API_URL}}/hasura/ban-app'
+      handler: "{{NEXT_API_URL}}/hasura/ban-app"
       headers:
         - name: Authorization
           value_from_env: INTERNAL_ENDPOINTS_SECRET
@@ -12,7 +12,6 @@ actions:
   - name: change_app_report_status
     definition:
       kind: synchronous
-      handler: '{{NEXT_API_URL}}/hasura/change-app-report-status'
       handler: "{{NEXT_API_URL}}/hasura/change-app-report-status"
       headers:
         - name: Authorization
