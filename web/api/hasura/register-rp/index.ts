@@ -159,7 +159,7 @@ export const POST = async (req: NextRequest) => {
     rp_id: rpIdString,
     app_id,
     mode: mode as "managed" | "self_managed",
-    signer_address: signer_address ?? null,
+    signer_address: mode === "self_managed" ? null : signer_address ?? null,
   });
 
   // Another registration already exists for this app
