@@ -93,7 +93,7 @@ export async function validateAndSubmitServerSide(
   } catch (error) {
     return errorFormAction({
       message:
-        "An error occurred while updating the app metadata basic information",
+        "An error occurred while updating the app information",
       error: error as Error,
       additionalInfo: { app_metadata_id, input },
       team_id: teamId,
