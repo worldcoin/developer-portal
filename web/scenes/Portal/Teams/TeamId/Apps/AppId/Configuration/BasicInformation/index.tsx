@@ -4,11 +4,12 @@ import { DecoratedButton } from "@/components/DecoratedButton";
 import { Input } from "@/components/Input";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Role_Enum } from "@/graphql/graphql";
-import { Auth0SessionUser } from "@/lib/types";
+import { Auth0SessionUser, EngineType } from "@/lib/types";
 import { useRefetchQueries } from "@/lib/use-refetch-queries";
 import { checkUserPermissions } from "@/lib/utils";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { yupResolver } from "@hookform/resolvers/yup";
+import clsx from "clsx";
 import { useAtom } from "jotai";
 import { useCallback, useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
@@ -62,8 +63,9 @@ export const BasicInformation = (props: {
     return {
       name: appMetaData?.name,
       integration_url: appMetaData?.integration_url,
+      engine: app.engine as EngineType,
     };
-  }, [appMetaData]);
+  }, [appMetaData, app.engine]);
 
   const {
     register,
@@ -88,7 +90,11 @@ export const BasicInformation = (props: {
 
   const submit = useCallback(
     async (data: BasicInformationFormValues) => {
-      const result = await validateAndSubmitServerSide(appMetaData?.id, data);
+      const result = await validateAndSubmitServerSide(
+        appMetaData?.id,
+        appId,
+        data,
+      );
       if (!result.success) {
         toast.error(result.message);
       } else {
@@ -151,6 +157,39 @@ export const BasicInformation = (props: {
             placeholder="https://"
             register={register("integration_url")}
           />
+
+          <div className="inline-grid w-full font-gta transition-colors">
+            <label htmlFor="engine" className="mb-2 text-sm text-grey-500">
+              Engine <span className="text-system-error-500">*</span>
+            </label>
+            <select
+              id="engine"
+              {...register("engine")}
+              disabled={!isEditable || !isEnoughPermissions}
+              className={clsx(
+                "h-12 rounded-lg border border-grey-200 bg-grey-0 px-3 text-sm text-grey-700",
+                "focus:border-blue-500 focus:outline-none",
+                {
+                  "cursor-not-allowed border-grey-200 bg-grey-50 text-grey-400":
+                    !isEditable || !isEnoughPermissions,
+                },
+              )}
+            >
+              <option value={EngineType.Cloud}>Cloud</option>
+              <option value={EngineType.OnChain}>On-chain</option>
+            </select>
+            {errors.engine?.message && (
+              <Typography
+                className="mt-2 text-system-error-500"
+                variant={TYPOGRAPHY.R5}
+              >
+                {errors.engine.message}
+              </Typography>
+            )}
+            <Typography variant={TYPOGRAPHY.R5} className="mt-2 text-grey-500">
+              Choose where your app verifications are processed.
+            </Typography>
+          </div>
 
           <Input
             label="ID"
