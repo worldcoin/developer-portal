@@ -42,7 +42,7 @@ export const WorldId40Page = async ({ params }: Props) => {
         rpData.status as "pending" | "registered" | "failed" | "deactivated"
       }
       mode={rpData.mode as string}
-      signerAddress={rpData.signer_address}
+      signerAddress={rpData.signer_address ?? null}
       createdAt={rpData.created_at}
     />
   );
