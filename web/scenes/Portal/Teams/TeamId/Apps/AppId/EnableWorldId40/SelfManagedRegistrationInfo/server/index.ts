@@ -9,18 +9,14 @@ import {
 } from "@/api/helpers/rp-utils";
 import { getIsUserAllowedToUpdateApp } from "@/lib/permissions";
 
-type ContractInfo = {
-  contractAddress: string;
-  chainId: number;
-};
-
 export type SelfManagedRegistrationInfoResult =
   | {
       success: true;
       rpId: string;
       rpIdNumeric: string;
-      production: ContractInfo;
-      staging: ContractInfo | null;
+      chainId: number;
+      productionContractAddress: string;
+      stagingContractAddress: string | null;
       functionSignature: string;
     }
   | {
@@ -35,8 +31,6 @@ const REGISTER_FUNCTION_SIGNATURE =
  * Returns the information a developer needs to register their RP on-chain
  * in self-managed mode: rpId, contract addresses, chain ID, and function
  * signature.
- *
- * This is a pure info endpoint — no database reads or writes.
  */
 export async function getSelfManagedRegistrationInfo(
   appId: string,
@@ -70,16 +64,9 @@ export async function getSelfManagedRegistrationInfo(
       success: true,
       rpId: rpIdString,
       rpIdNumeric,
-      production: {
-        contractAddress: productionConfig.contractAddress,
-        chainId: WORLD_CHAIN_ID,
-      },
-      staging: stagingConfig
-        ? {
-            contractAddress: stagingConfig.contractAddress,
-            chainId: WORLD_CHAIN_ID,
-          }
-        : null,
+      chainId: WORLD_CHAIN_ID,
+      productionContractAddress: productionConfig.contractAddress,
+      stagingContractAddress: stagingConfig?.contractAddress ?? null,
       functionSignature: REGISTER_FUNCTION_SIGNATURE,
     };
   } catch (error) {
