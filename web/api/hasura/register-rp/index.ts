@@ -41,11 +41,13 @@ const schema = yup
       .when("mode", {
         is: "managed",
         then: (s) =>
-          s.required("signer_address is required for managed mode").test(
-            "is-address",
-            "Invalid signer key. Must be 40 hex characters (0x followed by 40 characters)",
-            (value) => (value ? isAddress(value) : false),
-          ),
+          s
+            .required("signer_address is required for managed mode")
+            .test(
+              "is-address",
+              "Invalid signer key. Must be 40 hex characters (0x followed by 40 characters)",
+              (value) => (value ? isAddress(value) : false),
+            ),
       }),
   })
   .noUnknown();
