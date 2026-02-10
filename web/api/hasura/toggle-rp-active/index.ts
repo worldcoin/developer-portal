@@ -165,8 +165,7 @@ export const POST = async (req: NextRequest) => {
   if (!claimResult || claimResult.affected_rows === 0) {
     return errorHasuraQuery({
       req,
-      detail:
-        "Cannot toggle RP. Another operation may already be in progress.",
+      detail: "Cannot toggle RP. Another operation may already be in progress.",
       code: "operation_in_progress",
       app_id,
     });
@@ -262,7 +261,8 @@ export const POST = async (req: NextRequest) => {
       });
     }
 
-    const action = currentStatus === "registered" ? "deactivation" : "activation";
+    const action =
+      currentStatus === "registered" ? "deactivation" : "activation";
     logger.info(`RP ${action} submitted`, {
       app_id,
       rpIdString,
