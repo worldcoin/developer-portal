@@ -14,6 +14,7 @@ import {
 import {
   ADDRESS_ZERO,
   buildRegisterRpCalldata,
+  buildUpdateRpManagerCalldata,
   buildUpdateRpSignerCalldata,
   buildUserOperation,
   encodeSafeUserOpCalldata,
@@ -141,6 +142,107 @@ export async function submitRotateSignerTransaction(
   const innerCalldata = buildUpdateRpSignerCalldata(
     params.rpId,
     params.newSignerAddress,
+    contractNonce,
+    managerSignature.serialized,
+  );
+
+  // Wrap in Safe's executeUserOp
+  const safeCalldata = encodeSafeUserOpCalldata(
+    config.contractAddress,
+    0n,
+    innerCalldata,
+  );
+
+  const nonce = getUpdateRpNonce(params.rpId);
+  const { validAfter, validUntil } = getTxExpiration();
+
+  const userOp = buildUserOperation(
+    config.safeAddress,
+    safeCalldata,
+    nonce,
+    validAfter,
+    validUntil,
+  );
+
+  // Sign UserOp with Safe owner KMS key
+  const safeOpHash = hashSafeUserOp(
+    userOp,
+    WORLD_CHAIN_ID,
+    config.safe4337ModuleAddress,
+    config.entryPointAddress,
+  );
+
+  const safeOwnerSignature = await signEthDigestWithKms(
+    params.kmsClient,
+    config.safeOwnerKmsKeyId,
+    getBytes(safeOpHash),
+  );
+
+  if (!safeOwnerSignature) {
+    throw new Error("Failed to sign transaction");
+  }
+
+  // Replace placeholder signature with actual signature
+  userOp.signature = replacePlaceholderWithSignature({
+    placeholderSig: userOp.signature,
+    signature: safeOwnerSignature.serialized,
+  });
+
+  // Submit to temporal bundler
+  const result = await sendUserOperation(userOp, config.entryPointAddress);
+  return result.operationHash;
+}
+
+/**
+ * Builds, signs, and submits a manager transfer transaction for a given config.
+ * Used when switching from managed to self-managed mode.
+ * Returns the operation hash on success.
+ */
+export async function submitTransferManagerTransaction(
+  config: RpRegistryConfig,
+  params: {
+    rpId: bigint;
+    newManagerAddress: string;
+    managerKmsKeyId: string;
+    kmsClient: KMSClient;
+  },
+): Promise<string> {
+  // Fetch contract nonce (different per contract)
+  const contractNonce = await getRpNonceFromContract(
+    params.rpId,
+    config.contractAddress,
+  );
+
+  // Build EIP-712 typed data hash for manager signature
+  const updateRpHash = hashUpdateRpTypedData(
+    {
+      rpId: params.rpId,
+      oprfKeyId: 0n, // No change
+      manager: params.newManagerAddress,
+      signer: ADDRESS_ZERO, // No change
+      toggleActive: false, // No change
+      unverifiedWellKnownDomain: RP_NO_UPDATE_DOMAIN,
+      nonce: contractNonce,
+    },
+    config.domainSeparator,
+    config.updateRpTypehash,
+  );
+
+  // Sign with manager KMS key
+  const managerSignature = await signEthDigestWithKms(
+    params.kmsClient,
+    params.managerKmsKeyId,
+    getBytes(updateRpHash),
+  );
+
+  if (!managerSignature) {
+    throw new Error("Failed to sign with manager key");
+  }
+
+  // Build updateRp calldata
+  const innerCalldata = buildUpdateRpManagerCalldata(
+    params.rpId,
+    params.newManagerAddress,
     contractNonce,
     managerSignature.serialized,
   );
