@@ -215,10 +215,10 @@ export const BasicInformation = (props: {
 
                     <SelectOptions className="mt-3 text-sm focus:outline-none">
                       <SelectOption value={EngineType.Cloud}>
-                        <Typography variant={TYPOGRAPHY.R5}>Cloud</Typography>
+                        <Typography variant={TYPOGRAPHY.R4}>Cloud</Typography>
                       </SelectOption>
                       <SelectOption value={EngineType.OnChain}>
-                        <Typography variant={TYPOGRAPHY.R5}>
+                        <Typography variant={TYPOGRAPHY.R4}>
                           On-chain
                         </Typography>
                       </SelectOption>
