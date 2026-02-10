@@ -100,7 +100,8 @@ export const POST = async (req: NextRequest) => {
     });
   }
 
-  const { app_id, mode, signer_address } = parsedParams;
+  const { app_id, mode: rawMode, signer_address } = parsedParams;
+  const mode = rawMode ?? "managed";
 
   const client = await getAPIServiceGraphqlClient();
 
