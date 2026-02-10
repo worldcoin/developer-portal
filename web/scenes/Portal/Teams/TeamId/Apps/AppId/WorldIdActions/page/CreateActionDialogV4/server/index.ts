@@ -75,7 +75,7 @@ export async function validateAndInsertActionV4(
         rp_id,
         action: parsedParams.action,
         description: parsedParams.description || "",
-        environment: parsedParams.environment,
+        environment: "production",
       },
     });
 

@@ -14,10 +14,12 @@ import type { GetActionsV4Query } from "../graphql/client/get-actions-v4.generat
 type ActionsListV4Props = {
   actions: GetActionsV4Query["action_v4"];
   onCreateClick: () => void;
+  teamId: string;
+  appId: string;
 };
 
 export const ActionsListV4 = (props: ActionsListV4Props) => {
-  const { actions, onCreateClick } = props;
+  const { actions, onCreateClick, teamId, appId } = props;
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
@@ -51,7 +53,6 @@ export const ActionsListV4 = (props: ActionsListV4Props) => {
     action: action.action,
     description: action.description,
     uses: action.nullifiers_aggregate?.aggregate?.count ?? 0,
-    environment: action.environment as "staging" | "production",
   }));
 
   const handlePageChange = (newPage: number) => {
@@ -131,7 +132,12 @@ export const ActionsListV4 = (props: ActionsListV4Props) => {
               </div>
             ) : (
               transformedActions.map((action) => (
-                <ActionRowV4 key={action.id} action={action} />
+                <ActionRowV4
+                  key={action.id}
+                  action={action}
+                  teamId={teamId}
+                  appId={appId}
+                />
               ))
             )}
           </div>
