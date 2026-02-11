@@ -2374,6 +2374,7 @@ export type App_Metadata = {
   app_website_url: Scalars["String"]["output"];
   associated_domains?: Maybe<Array<Scalars["String"]["output"]>>;
   can_import_all_contacts: Scalars["Boolean"]["output"];
+  can_use_attestation: Scalars["Boolean"]["output"];
   category: Scalars["String"]["output"];
   changelog?: Maybe<Scalars["String"]["output"]>;
   content_card_image_url: Scalars["String"]["output"];
@@ -2537,6 +2538,7 @@ export type App_Metadata_Bool_Exp = {
   app_website_url?: InputMaybe<String_Comparison_Exp>;
   associated_domains?: InputMaybe<String_Array_Comparison_Exp>;
   can_import_all_contacts?: InputMaybe<Boolean_Comparison_Exp>;
+  can_use_attestation?: InputMaybe<Boolean_Comparison_Exp>;
   category?: InputMaybe<String_Comparison_Exp>;
   changelog?: InputMaybe<String_Comparison_Exp>;
   content_card_image_url?: InputMaybe<String_Comparison_Exp>;
@@ -2598,6 +2600,7 @@ export type App_Metadata_Insert_Input = {
   app_website_url?: InputMaybe<Scalars["String"]["input"]>;
   associated_domains?: InputMaybe<Array<Scalars["String"]["input"]>>;
   can_import_all_contacts?: InputMaybe<Scalars["Boolean"]["input"]>;
+  can_use_attestation?: InputMaybe<Scalars["Boolean"]["input"]>;
   category?: InputMaybe<Scalars["String"]["input"]>;
   changelog?: InputMaybe<Scalars["String"]["input"]>;
   content_card_image_url?: InputMaybe<Scalars["String"]["input"]>;
@@ -2819,6 +2822,7 @@ export type App_Metadata_Order_By = {
   app_website_url?: InputMaybe<Order_By>;
   associated_domains?: InputMaybe<Order_By>;
   can_import_all_contacts?: InputMaybe<Order_By>;
+  can_use_attestation?: InputMaybe<Order_By>;
   category?: InputMaybe<Order_By>;
   changelog?: InputMaybe<Order_By>;
   content_card_image_url?: InputMaybe<Order_By>;
@@ -2875,6 +2879,8 @@ export enum App_Metadata_Select_Column {
   AssociatedDomains = "associated_domains",
   /** column name */
   CanImportAllContacts = "can_import_all_contacts",
+  /** column name */
+  CanUseAttestation = "can_use_attestation",
   /** column name */
   Category = "category",
   /** column name */
@@ -2954,6 +2960,8 @@ export enum App_Metadata_Select_Column_App_Metadata_Aggregate_Bool_Exp_Bool_And_
   /** column name */
   CanImportAllContacts = "can_import_all_contacts",
   /** column name */
+  CanUseAttestation = "can_use_attestation",
+  /** column name */
   IsAllowedUnlimitedNotifications = "is_allowed_unlimited_notifications",
   /** column name */
   IsAndroidOnly = "is_android_only",
@@ -2975,6 +2983,8 @@ export enum App_Metadata_Select_Column_App_Metadata_Aggregate_Bool_Exp_Bool_And_
 export enum App_Metadata_Select_Column_App_Metadata_Aggregate_Bool_Exp_Bool_Or_Arguments_Columns {
   /** column name */
   CanImportAllContacts = "can_import_all_contacts",
+  /** column name */
+  CanUseAttestation = "can_use_attestation",
   /** column name */
   IsAllowedUnlimitedNotifications = "is_allowed_unlimited_notifications",
   /** column name */
@@ -3000,6 +3010,7 @@ export type App_Metadata_Set_Input = {
   app_website_url?: InputMaybe<Scalars["String"]["input"]>;
   associated_domains?: InputMaybe<Array<Scalars["String"]["input"]>>;
   can_import_all_contacts?: InputMaybe<Scalars["Boolean"]["input"]>;
+  can_use_attestation?: InputMaybe<Scalars["Boolean"]["input"]>;
   category?: InputMaybe<Scalars["String"]["input"]>;
   changelog?: InputMaybe<Scalars["String"]["input"]>;
   content_card_image_url?: InputMaybe<Scalars["String"]["input"]>;
@@ -3092,6 +3103,7 @@ export type App_Metadata_Stream_Cursor_Value_Input = {
   app_website_url?: InputMaybe<Scalars["String"]["input"]>;
   associated_domains?: InputMaybe<Array<Scalars["String"]["input"]>>;
   can_import_all_contacts?: InputMaybe<Scalars["Boolean"]["input"]>;
+  can_use_attestation?: InputMaybe<Scalars["Boolean"]["input"]>;
   category?: InputMaybe<Scalars["String"]["input"]>;
   changelog?: InputMaybe<Scalars["String"]["input"]>;
   content_card_image_url?: InputMaybe<Scalars["String"]["input"]>;
@@ -3155,6 +3167,8 @@ export enum App_Metadata_Update_Column {
   AssociatedDomains = "associated_domains",
   /** column name */
   CanImportAllContacts = "can_import_all_contacts",
+  /** column name */
+  CanUseAttestation = "can_use_attestation",
   /** column name */
   Category = "category",
   /** column name */

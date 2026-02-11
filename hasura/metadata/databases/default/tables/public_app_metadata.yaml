@@ -38,6 +38,7 @@ insert_permissions:
         - app_website_url
         - associated_domains
         - can_import_all_contacts
+        - can_use_attestation
         - category
         - changelog
         - content_card_image_url
@@ -84,6 +85,7 @@ insert_permissions:
         - app_website_url
         - associated_domains
         - can_import_all_contacts
+        - can_use_attestation
         - category
         - changelog
         - content_card_image_url
@@ -119,6 +121,7 @@ select_permissions:
         - app_website_url
         - associated_domains
         - can_import_all_contacts
+        - can_use_attestation
         - category
         - content_card_image_url
         - contracts
@@ -163,6 +166,7 @@ select_permissions:
         - app_website_url
         - associated_domains
         - can_import_all_contacts
+        - can_use_attestation
         - category
         - changelog
         - content_card_image_url
@@ -213,6 +217,7 @@ select_permissions:
         - app_website_url
         - associated_domains
         - can_import_all_contacts
+        - can_use_attestation
         - category
         - content_card_image_url
         - contracts
@@ -253,6 +258,7 @@ select_permissions:
         - app_website_url
         - associated_domains
         - can_import_all_contacts
+        - can_use_attestation
         - category
         - content_card_image_url
         - contracts
@@ -301,6 +307,7 @@ update_permissions:
         - app_website_url
         - associated_domains
         - can_import_all_contacts
+        - can_use_attestation
         - category
         - contracts
         - description
@@ -382,6 +389,7 @@ update_permissions:
         - app_website_url
         - associated_domains
         - can_import_all_contacts
+        - can_use_attestation
         - category
         - changelog
         - content_card_image_url
@@ -430,6 +438,7 @@ update_permissions:
         - app_website_url
         - associated_domains
         - can_import_all_contacts
+        - can_use_attestation
         - category
         - content_card_image_url
         - contracts

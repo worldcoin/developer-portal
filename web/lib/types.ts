@@ -211,6 +211,7 @@ export type AppStoreMetadataFields = {
   contracts?: string[] | null;
   permit2_tokens?: string[] | null;
   can_import_all_contacts?: boolean | null;
+  can_use_attestation?: boolean | null;
   verification_status: string;
   is_allowed_unlimited_notifications?: boolean | null;
   max_notifications_per_day?: number | null;
