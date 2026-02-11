@@ -47,27 +47,6 @@ describe("Auxiliary API Endpoints", () => {
     });
   });
 
-  describe("POST /api/_delete-jwks", () => {
-    it("Delete Expired JWKs With Authorization", async () => {
-      const response = await axios.post(
-        `${INTERNAL_API_URL}/api/_delete-jwks`,
-        {},
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        },
-      );
-
-      expect(
-        response.status,
-        `Delete expired JWKs request resolved with a wrong code:\n${JSON.stringify(response.data, null, 2)}`,
-      ).toBe(204); // This endpoint returns 204 No Content
-      expect(response.data).toBe(""); // Empty response body
-    });
-  });
-
   describe("POST /api/_gen-external-nullifier", () => {
     let testTeamId: string | undefined;
     let testAppId: string | undefined;

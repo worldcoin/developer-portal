@@ -6,7 +6,6 @@ import { DashboardSquareIcon } from "@/components/Icons/DashboardSquareIcon";
 import { IncognitoIcon } from "@/components/Icons/IncognitoIcon";
 import { SecurityIcon } from "@/components/Icons/SecurityIcon";
 import { TransactionIcon } from "@/components/Icons/TransactionIcon";
-import { UserAccountIcon } from "@/components/Icons/UserAccountIcon";
 import { WalletIcon } from "@/components/Icons/WalletIcon";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { Tab, Tabs } from "@/components/Tabs";
@@ -272,18 +271,6 @@ export const AppIdChrome = ({
               <Typography variant={TYPOGRAPHY.R4}>Incognito actions</Typography>
             </Tab>
 
-            {!isOnChainApp && (
-              <Tab
-                href={`/teams/${teamId}/apps/${appId}/sign-in-with-world-id`}
-                underlined
-                segment={"sign-in-with-world-id"}
-              >
-                <Typography variant={TYPOGRAPHY.R4}>
-                  Sign in with World ID
-                </Typography>
-              </Tab>
-            )}
-
             <Tab
               href={miniAppTransactionsPath}
               underlined
@@ -324,13 +311,6 @@ export const AppIdChrome = ({
           segment={"actions"}
         >
           <IncognitoIcon className="size-7" />
-        </BottomBar.Link>
-
-        <BottomBar.Link
-          href={`/teams/${teamId}/apps/${appId}/sign-in-with-world-id`}
-          segment={"sign-in-with-world-id"}
-        >
-          <UserAccountIcon className="size-7" />
         </BottomBar.Link>
 
         <BottomBar.Link
