@@ -14,7 +14,6 @@ import {
   getSdk as getUpdateAppSdk,
   UpdateAppInfoMutationVariables,
 } from "../graphql/server/update-app.generated";
-import { getSdk as getUpdateAppEngineSdk } from "../graphql/server/update-app-engine.generated";
 
 export async function validateAndSubmitServerSide(
   app_metadata_id: string,
@@ -67,15 +66,12 @@ export async function validateAndSubmitServerSide(
     const client = await getAPIServiceGraphqlClient();
     await getUpdateAppSdk(client).UpdateAppInfo({
       app_metadata_id,
+      app_id,
+      engine: parsedInput.engine,
       input: {
         name: parsedInput.name,
         integration_url: parsedInput.integration_url,
       },
-    });
-
-    await getUpdateAppEngineSdk(client).UpdateAppEngine({
-      app_id,
-      engine: parsedInput.engine,
     });
 
     return {
