@@ -3,9 +3,12 @@
 import { errorFormAction } from "@/api/helpers/errors";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
-import { getIsUserAllowedToUpdateAppMetadata } from "@/lib/permissions";
+import {
+  getIsUserAllowedToUpdateApp,
+  getIsUserAllowedToUpdateAppMetadata,
+} from "@/lib/permissions";
 import { extractIdsFromPath, getPathFromHeaders } from "@/lib/server-utils";
-import { FormActionResult } from "@/lib/types";
+import { EngineType, FormActionResult } from "@/lib/types";
 import { schema } from "../form-schema";
 import {
   getSdk as getUpdateAppSdk,
@@ -14,7 +17,10 @@ import {
 
 export async function validateAndSubmitServerSide(
   app_metadata_id: string,
-  input: UpdateAppInfoMutationVariables["input"],
+  app_id: string,
+  input: UpdateAppInfoMutationVariables["input"] & {
+    engine: EngineType;
+  },
 ): Promise<FormActionResult> {
   const path = getPathFromHeaders() || "";
   const { Teams: teamId } = extractIdsFromPath(path, ["Teams"]);
@@ -27,6 +33,16 @@ export async function validateAndSubmitServerSide(
         message:
           "The user does not have permission to update this app metadata",
         app_id: input?.app_id ?? undefined,
+        team_id: teamId,
+        logLevel: "warn",
+      });
+    }
+
+    const isUserAllowedToUpdateApp = await getIsUserAllowedToUpdateApp(app_id);
+    if (!isUserAllowedToUpdateApp) {
+      return errorFormAction({
+        message: "The user does not have permission to update this app",
+        app_id,
         team_id: teamId,
         logLevel: "warn",
       });
@@ -50,6 +66,8 @@ export async function validateAndSubmitServerSide(
     const client = await getAPIServiceGraphqlClient();
     await getUpdateAppSdk(client).UpdateAppInfo({
       app_metadata_id,
+      app_id,
+      engine: parsedInput.engine,
       input: {
         name: parsedInput.name,
         integration_url: parsedInput.integration_url,
@@ -58,12 +76,11 @@ export async function validateAndSubmitServerSide(
 
     return {
       success: true,
-      message: "App metadata basic information updated successfully",
+      message: "App information updated successfully",
     };
   } catch (error) {
     return errorFormAction({
-      message:
-        "An error occurred while updating the app metadata basic information",
+      message: "An error occurred while updating the app information",
       error: error as Error,
       additionalInfo: { app_metadata_id, input },
       team_id: teamId,

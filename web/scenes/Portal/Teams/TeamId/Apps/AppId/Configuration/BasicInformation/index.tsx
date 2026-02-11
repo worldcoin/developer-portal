@@ -1,17 +1,25 @@
 "use client";
 import { CopyButton } from "@/components/CopyButton";
 import { DecoratedButton } from "@/components/DecoratedButton";
+import { CaretIcon } from "@/components/Icons/CaretIcon";
 import { Input } from "@/components/Input";
+import {
+  Select,
+  SelectButton,
+  SelectOption,
+  SelectOptions,
+} from "@/components/Select";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Role_Enum } from "@/graphql/graphql";
-import { Auth0SessionUser } from "@/lib/types";
+import { Auth0SessionUser, EngineType } from "@/lib/types";
 import { useRefetchQueries } from "@/lib/use-refetch-queries";
 import { checkUserPermissions } from "@/lib/utils";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { yupResolver } from "@hookform/resolvers/yup";
+import clsx from "clsx";
 import { useAtom } from "jotai";
 import { useCallback, useEffect, useMemo } from "react";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import {
   FetchAppMetadataDocument,
@@ -62,10 +70,12 @@ export const BasicInformation = (props: {
     return {
       name: appMetaData?.name,
       integration_url: appMetaData?.integration_url,
+      engine: app.engine as EngineType,
     };
-  }, [appMetaData]);
+  }, [appMetaData, app.engine]);
 
   const {
+    control,
     register,
     handleSubmit,
     reset,
@@ -88,7 +98,11 @@ export const BasicInformation = (props: {
 
   const submit = useCallback(
     async (data: BasicInformationFormValues) => {
-      const result = await validateAndSubmitServerSide(appMetaData?.id, data);
+      const result = await validateAndSubmitServerSide(
+        appMetaData?.id,
+        appId,
+        data,
+      );
       if (!result.success) {
         toast.error(result.message);
       } else {
@@ -96,7 +110,7 @@ export const BasicInformation = (props: {
         toast.success("App information updated successfully");
       }
     },
-    [appMetaData?.id, refetchAppMetadata],
+    [appMetaData?.id, appId, refetchAppMetadata],
   );
 
   // Show QR quick action if the app has an integration URL
@@ -150,6 +164,88 @@ export const BasicInformation = (props: {
             disabled={!isEditable || !isEnoughPermissions}
             placeholder="https://"
             register={register("integration_url")}
+          />
+
+          <Controller
+            name="engine"
+            control={control}
+            render={({ field }) => (
+              <Select
+                value={field.value}
+                onChange={field.onChange}
+                disabled={!isEditable || !isEnoughPermissions}
+                by={(a: string | null, b: string | null) => a === b}
+              >
+                <div className="inline-grid w-full font-gta transition-colors">
+                  <fieldset
+                    className={clsx(
+                      "group grid w-full pb-2",
+                      "rounded-lg border bg-grey-0",
+                      {
+                        "border-grey-200 focus-within:border-blue-500 hover:border-grey-700":
+                          !errors.engine && isEditable && isEnoughPermissions,
+                        "border-system-error-500":
+                          !!errors.engine && isEditable && isEnoughPermissions,
+                        "cursor-not-allowed border-grey-200 bg-grey-50 text-grey-400":
+                          !isEditable || !isEnoughPermissions,
+                      },
+                    )}
+                  >
+                    <SelectButton
+                      className={clsx(
+                        "grid grid-cols-1fr/auto items-center py-1 text-left text-grey-700",
+                        {
+                          "cursor-not-allowed text-grey-400":
+                            !isEditable || !isEnoughPermissions,
+                        },
+                      )}
+                    >
+                      <Typography variant={TYPOGRAPHY.R4}>
+                        {field.value === EngineType.OnChain
+                          ? "On-chain"
+                          : "Cloud"}
+                      </Typography>
+                      <CaretIcon
+                        className={clsx("text-grey-400 transition-colors", {
+                          "group-hover:text-grey-700":
+                            isEditable && isEnoughPermissions,
+                        })}
+                      />
+                    </SelectButton>
+
+                    <SelectOptions className="mt-3 text-sm focus:outline-none">
+                      <SelectOption value={EngineType.Cloud}>
+                        <Typography variant={TYPOGRAPHY.R4}>Cloud</Typography>
+                      </SelectOption>
+                      <SelectOption value={EngineType.OnChain}>
+                        <Typography variant={TYPOGRAPHY.R4}>
+                          On-chain
+                        </Typography>
+                      </SelectOption>
+                    </SelectOptions>
+
+                    <legend className="ml-4 whitespace-nowrap px-0.5 text-sm text-grey-500">
+                      Engine <span className="text-system-error-500">*</span>
+                    </legend>
+                  </fieldset>
+
+                  {errors.engine?.message && (
+                    <Typography
+                      className="mt-2 px-2 text-system-error-500"
+                      variant={TYPOGRAPHY.R5}
+                    >
+                      {errors.engine.message}
+                    </Typography>
+                  )}
+                  <Typography
+                    variant={TYPOGRAPHY.R5}
+                    className="mt-2 px-2 text-grey-500"
+                  >
+                    Choose where your World ID proofs will be verified.
+                  </Typography>
+                </div>
+              </Select>
+            )}
           />
 
           <Input
