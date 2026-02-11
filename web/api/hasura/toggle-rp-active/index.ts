@@ -277,6 +277,19 @@ export const POST = async (req: NextRequest) => {
       });
     }
 
+    // STEP 10: Invalidate Redis cache so status endpoint reflects the change
+    const redis = global.RedisClient;
+    if (redis) {
+      try {
+        await redis.del(`rp_status:${rpIdString}`);
+      } catch (cacheError) {
+        logger.error("Failed to invalidate rp_status cache", {
+          error: cacheError,
+          rpIdString,
+        });
+      }
+    }
+
     const action =
       currentStatus === "registered" ? "deactivation" : "activation";
     logger.info(`RP ${action} submitted`, {

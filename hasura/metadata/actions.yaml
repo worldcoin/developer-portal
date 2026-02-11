@@ -395,4 +395,6 @@ custom_types:
     - name: ChangeAppReportStatusOutput
     - name: RegisterRpOutput
     - name: RotateSignerKeyOutput
+    - name: SwitchToSelfManagedOutput
+    - name: ToggleRpActiveOutput
   scalars: []
