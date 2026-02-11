@@ -4,7 +4,6 @@ import "server-only";
  * Contains all functions for interacting with Amazon KMS
  */
 
-import { retrieveJWK } from "@/api/helpers/jwks";
 import { logger } from "@/lib/logger";
 import {
   CreateKeyCommand,
@@ -13,9 +12,7 @@ import {
   KMSClient,
   KeySpec,
   ScheduleKeyDeletionCommand,
-  SignCommand,
 } from "@aws-sdk/client-kms";
-import { base64url } from "jose";
 
 export type CreateKeyResult =
   | {
@@ -76,45 +73,6 @@ export const getKMSKeyStatus = async (client: KMSClient, keyId: string) => {
     return KeyMetadata?.Enabled;
   } catch (error) {
     logger.error("Error describing key.", { error });
-  }
-};
-
-export const signJWTWithKMSKey = async (
-  client: KMSClient,
-  header: Record<string, any>,
-  payload: Record<string, any>,
-) => {
-  const encodedHeader = base64url.encode(JSON.stringify(header));
-  const encodedPayload = base64url.encode(JSON.stringify(payload));
-  const encodedHeaderPayload = `${encodedHeader}.${encodedPayload}`;
-
-  try {
-    const { kms_id } = await retrieveJWK(header.kid); // NOTE: JWK is already verified to be active at this point
-
-    if (!kms_id) {
-      throw new Error("KMS ID not found.");
-    }
-
-    const response = await client.send(
-      new SignCommand({
-        KeyId: kms_id,
-        Message: new Uint8Array(Buffer.from(encodedHeaderPayload)),
-        MessageType: "RAW",
-        SigningAlgorithm: "RSASSA_PKCS1_V1_5_SHA_256",
-      }),
-    );
-
-    if (response?.Signature) {
-      // See: https://www.rfc-editor.org/rfc/rfc7515#appendix-C
-      const encodedSignature = base64url
-        .encode(response.Signature)
-        .replace(/\+/g, "-")
-        .replace(/\//g, "_")
-        .replace(/=/g, "");
-      return `${encodedHeaderPayload}.${encodedSignature}`;
-    }
-  } catch (error) {
-    logger.error("Error signing JWT:", { error });
   }
 };
 

@@ -36,16 +36,6 @@ const config: PermissionsConfig = {
     Admin: true,
     Member: false,
   },
-  "View Sign in with World ID": {
-    Owner: true,
-    Admin: true,
-    Member: true,
-  },
-  "Create & Edit Sign in with World ID": {
-    Owner: true,
-    Admin: true,
-    Member: false,
-  },
   "View apps": {
     Owner: true,
     Admin: true,

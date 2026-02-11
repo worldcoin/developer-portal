@@ -1,5 +1,0 @@
-mutation UpdateSignInAction($id: String!, $input: action_set_input) {
-  update_action_by_pk(pk_columns: { id: $id }, _set: $input) {
-    id
-  }
-}
