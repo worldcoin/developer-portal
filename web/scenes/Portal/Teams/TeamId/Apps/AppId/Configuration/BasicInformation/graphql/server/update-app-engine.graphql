@@ -1,0 +1,5 @@
+mutation UpdateAppEngine($app_id: String!, $engine: String!) {
+  update_app_by_pk(pk_columns: { id: $app_id }, _set: { engine: $engine }) {
+    id
+  }
+}

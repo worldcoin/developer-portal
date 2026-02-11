@@ -14,6 +14,7 @@ import {
   getSdk as getUpdateAppSdk,
   UpdateAppInfoMutationVariables,
 } from "../graphql/server/update-app.generated";
+import { getSdk as getUpdateAppEngineSdk } from "../graphql/server/update-app-engine.generated";
 
 export async function validateAndSubmitServerSide(
   app_metadata_id: string,
@@ -72,19 +73,10 @@ export async function validateAndSubmitServerSide(
       },
     });
 
-    await client.request(
-      `
-      mutation UpdateAppEngine($app_id: String!, $engine: String!) {
-        update_app_by_pk(pk_columns: { id: $app_id }, _set: { engine: $engine }) {
-          id
-        }
-      }
-      `,
-      {
-        app_id,
-        engine: parsedInput.engine,
-      },
-    );
+    await getUpdateAppEngineSdk(client).UpdateAppEngine({
+      app_id,
+      engine: parsedInput.engine,
+    });
 
     return {
       success: true,
@@ -92,8 +84,7 @@ export async function validateAndSubmitServerSide(
     };
   } catch (error) {
     return errorFormAction({
-      message:
-        "An error occurred while updating the app information",
+      message: "An error occurred while updating the app information",
       error: error as Error,
       additionalInfo: { app_metadata_id, input },
       team_id: teamId,
