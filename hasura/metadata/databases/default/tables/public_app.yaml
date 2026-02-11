@@ -152,6 +152,7 @@ update_permissions:
     permission:
       columns:
         - deleted_at
+        - engine
         - first_verified_at
         - is_banned
         - rating_count
