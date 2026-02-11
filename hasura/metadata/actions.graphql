@@ -82,13 +82,6 @@ type Mutation {
 }
 
 type Mutation {
-  reset_client_secret(
-    app_id: String!
-    team_id: String!
-  ): ResetClientOutput
-}
-
-type Mutation {
   rotate_signer_key(
     app_id: String!
     new_signer_address: String!
@@ -246,10 +239,6 @@ input ChangeAppReportStatusUpdate {
 
 input ChangeAppReportStatusInput {
   updates: [ChangeAppReportStatusUpdate!]!
-}
-
-type ResetClientOutput {
-  client_secret: String!
 }
 
 type ResetAPIOutput {
