@@ -1,5 +1,0 @@
-query Nullifier($nullifier_hash: String!) {
-  nullifier(where: { nullifier_hash: { _eq: $nullifier_hash } }) {
-    id
-  }
-}

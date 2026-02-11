@@ -1,7 +1,0 @@
-query JWKQuery {
-  jwks {
-    id
-    expires_at
-    key: public_jwk
-  }
-}

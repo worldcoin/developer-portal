@@ -1,8 +1,0 @@
-mutation DeleteExpiredJWKs($expired_by: timestamptz = "") {
-  delete_jwks(where: { expires_at: { _lte: $expired_by } }) {
-    returning {
-      id
-      kms_id
-    }
-  }
-}

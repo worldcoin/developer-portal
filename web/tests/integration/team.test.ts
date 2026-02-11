@@ -183,7 +183,7 @@ describe("user role", () => {
     const memberRoleTeamId = memberRoleMemberships[0].team_id;
 
     const req = new NextRequest(
-      `${process.env.NEXT_PUBLIC_APP_URL}/api/hasura/reset-client-secret`,
+      `${process.env.NEXT_PUBLIC_APP_URL}/api/hasura/invite-team-members`,
       {
         method: "POST",
         headers: {
@@ -219,7 +219,7 @@ describe("user role", () => {
     const tokenTeamId = teams[1].id;
 
     const req = new NextRequest(
-      `${process.env.NEXT_PUBLIC_APP_URL}/api/hasura/reset-client-secret`,
+      `${process.env.NEXT_PUBLIC_APP_URL}/api/hasura/invite-team-members`,
       {
         method: "POST",
         headers: {
@@ -255,7 +255,7 @@ describe("user role", () => {
     const tokenTeamId = teamMemberships[0].team_id;
 
     const req = new NextRequest(
-      `${process.env.NEXT_PUBLIC_APP_URL}/api/hasura/reset-client-secret`,
+      `${process.env.NEXT_PUBLIC_APP_URL}/api/hasura/invite-team-members`,
       {
         method: "POST",
         headers: {
