@@ -148,17 +148,6 @@ actions:
     permissions:
       - role: user
     comment: Reset the given API key for the developer portal
-  - name: reset_client_secret
-    definition:
-      kind: synchronous
-      handler: '{{NEXT_API_URL}}/hasura/reset-client-secret'
-      headers:
-        - name: Authorization
-          value_from_env: INTERNAL_ENDPOINTS_SECRET
-    permissions:
-      - role: api_key
-      - role: user
-    comment: Reset the client secret for a Sign in with World ID application
   - name: rotate_signer_key
     definition:
       kind: synchronous
@@ -360,7 +349,6 @@ custom_types:
     - name: ChangeAppReportStatusUpdate
     - name: ChangeAppReportStatusInput
   objects:
-    - name: ResetClientOutput
     - name: ResetAPIOutput
     - name: InviteTeamMembersOutput
     - name: PresignedPost
