@@ -4,6 +4,7 @@ import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { getKMSClient } from "@/api/helpers/kms";
 import { getTargetConfigs, parseRpId } from "@/api/helpers/rp-utils";
 import { submitToggleRpActiveTransaction } from "@/api/helpers/rp-transactions";
+import { getRpFromContract } from "@/api/helpers/temporal-rpc";
 import { protectInternalEndpoint } from "@/api/helpers/utils";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { logger } from "@/lib/logger";
@@ -190,56 +191,71 @@ export const POST = async (req: NextRequest) => {
   };
 
   try {
-    // STEP 6: Submit toggleActive to all target contracts
+    // STEP 6: Determine target active state from DB status
     const kmsClient = await getKMSClient(primaryConfig.kmsRegion);
-    let primaryOperationHash: string | undefined;
+    const targetActive = currentStatus === "deactivated"; // deactivated → activate, registered → deactivate
 
-    for (let i = 0; i < configs.length; i++) {
-      const config = configs[i];
-      const isPrimary = i === 0;
+    // STEP 7: Submit toggleActive to production
+    let primaryOperationHash: string;
+    try {
+      primaryOperationHash = await submitToggleRpActiveTransaction(
+        primaryConfig,
+        { rpId, managerKmsKeyId, kmsClient },
+      );
+    } catch (error) {
+      logger.error("Failed to submit toggle active transaction", {
+        error,
+        app_id,
+      });
+      await revertStatus();
+      return errorHasuraQuery({
+        req,
+        detail: "Failed to submit toggle active transaction.",
+        code: "submission_error",
+        app_id,
+      });
+    }
 
+    // STEP 8: Submit to staging if configured and its state differs from the target
+    const stagingConfig = configs[1];
+    if (stagingConfig) {
       try {
-        const operationHash = await submitToggleRpActiveTransaction(config, {
+        const stagingRp = await getRpFromContract(
           rpId,
-          managerKmsKeyId,
-          kmsClient,
-        });
+          stagingConfig.contractAddress,
+        );
 
-        if (isPrimary) {
-          primaryOperationHash = operationHash;
+        if (stagingRp.active === targetActive) {
+          logger.info("Staging already at target state, skipping toggle", {
+            rpIdString,
+            targetActive,
+            contractAddress: stagingConfig.contractAddress,
+          });
         } else {
+          const operationHash = await submitToggleRpActiveTransaction(
+            stagingConfig,
+            { rpId, managerKmsKeyId, kmsClient },
+          );
+
           logger.info("Staging toggle active submitted", {
             rpIdString,
             operationHash,
-            contractAddress: config.contractAddress,
+            contractAddress: stagingConfig.contractAddress,
           });
         }
       } catch (error) {
-        if (isPrimary) {
-          logger.error("Failed to submit toggle active transaction", {
-            error,
-            app_id,
-          });
-          await revertStatus();
-          return errorHasuraQuery({
-            req,
-            detail: "Failed to submit toggle active transaction.",
-            code: "submission_error",
-            app_id,
-          });
-        }
-        // Staging failed - log and continue
+        // Staging is best-effort
         logger.error("Staging toggle active failed", {
           error,
           rpIdString,
-          contractAddress: config.contractAddress,
+          contractAddress: stagingConfig.contractAddress,
         });
       }
     }
 
-    const operationHash = primaryOperationHash!;
+    const operationHash = primaryOperationHash;
 
-    // STEP 7: Update DB with operation hash
+    // STEP 9: Update DB with operation hash
     // The status endpoint will pick up the final on-chain state via polling
     const { update_rp_registration_by_pk: updatedRegistration } =
       await getUpdateResultSdk(client).UpdateToggleResult({
