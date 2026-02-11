@@ -1,5 +1,5 @@
-import { createPrivateKey, createPublicKey, createSign } from "crypto";
-import { privateJwk, publicJwk } from "./jwk";
+import { createPrivateKey, createSign } from "crypto";
+import { privateJwk } from "./jwk";
 
 module.exports = {
   getKMSClient: jest.fn().mockImplementation(() => ({
@@ -16,13 +16,5 @@ module.exports = {
       };
     }),
   })),
-  createKMSKey: jest.fn().mockImplementation(async () => {
-    const key = createPublicKey({ format: "jwk", key: publicJwk });
-    const pemKey = key.export({ type: "pkcs1", format: "pem" });
-    return {
-      keyId: "test-kms-key-id",
-      publicKey: pemKey,
-    };
-  }),
   scheduleKeyDeletion: jest.fn(),
 };
