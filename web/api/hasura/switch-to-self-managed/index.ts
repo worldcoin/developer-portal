@@ -3,7 +3,8 @@ import { errorHasuraQuery } from "@/api/helpers/errors";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { getKMSClient, scheduleKeyDeletion } from "@/api/helpers/kms";
 import {
-  getTargetConfigs,
+  getRpRegistryConfig,
+  getStagingRpRegistryConfig,
   normalizeAddress,
   parseRpId,
 } from "@/api/helpers/rp-utils";
@@ -85,16 +86,14 @@ export const POST = async (req: NextRequest) => {
 
   const { app_id, new_manager_address } = parsedParams;
 
-  const configs = getTargetConfigs();
-  if (configs.length === 0) {
+  const primaryConfig = getRpRegistryConfig();
+  if (!primaryConfig) {
     return errorHasuraQuery({
       req,
       detail: "Missing required environment variables for RP Registry.",
       code: "config_error",
     });
   }
-
-  const primaryConfig = configs[0];
   const client = await getAPIServiceGraphqlClient();
 
   // STEP 1: Fetch RP registration
@@ -191,55 +190,59 @@ export const POST = async (req: NextRequest) => {
   };
 
   try {
-    // STEP 5: Submit manager transfer to all target contracts
+    // STEP 5a: Submit primary manager transfer (required)
     const kmsClient = await getKMSClient(primaryConfig.kmsRegion);
-    let primaryOperationHash: string | undefined;
+    let operationHash: string;
 
-    for (let i = 0; i < configs.length; i++) {
-      const config = configs[i];
-      const isPrimary = i === 0;
-
-      try {
-        const operationHash = await submitTransferManagerTransaction(config, {
-          rpId,
-          newManagerAddress: new_manager_address,
-          managerKmsKeyId,
-          kmsClient,
-        });
-
-        if (isPrimary) {
-          primaryOperationHash = operationHash;
-        } else {
-          logger.info("Staging manager transfer submitted", {
-            rpIdString,
-            operationHash,
-            contractAddress: config.contractAddress,
-          });
-        }
-      } catch (error) {
-        if (isPrimary) {
-          logger.error("Failed to submit manager transfer transaction", {
-            error,
-            app_id,
-          });
-          await revertStatus();
-          return errorHasuraQuery({
-            req,
-            detail: "Failed to submit manager transfer transaction.",
-            code: "submission_error",
-            app_id,
-          });
-        }
-        // Staging failed - log and continue
-        logger.error("Staging manager transfer failed", {
-          error,
-          rpIdString,
-          contractAddress: config.contractAddress,
-        });
-      }
+    try {
+      operationHash = await submitTransferManagerTransaction(primaryConfig, {
+        rpId,
+        newManagerAddress: new_manager_address,
+        managerKmsKeyId,
+        kmsClient,
+      });
+    } catch (error) {
+      logger.error("Failed to submit manager transfer transaction", {
+        error,
+        app_id,
+      });
+      await revertStatus();
+      return errorHasuraQuery({
+        req,
+        detail: "Failed to submit manager transfer transaction.",
+        code: "submission_error",
+        app_id,
+      });
     }
 
-    const operationHash = primaryOperationHash!;
+    // STEP 5b: Duplicate to staging contract (best-effort, production only)
+    if (process.env.NEXT_PUBLIC_APP_ENV === "production") {
+      const stagingConfig = getStagingRpRegistryConfig();
+      if (stagingConfig) {
+        try {
+          const stagingHash = await submitTransferManagerTransaction(
+            stagingConfig,
+            {
+              rpId,
+              newManagerAddress: new_manager_address,
+              managerKmsKeyId,
+              kmsClient,
+            },
+          );
+          logger.info("Staging manager transfer submitted", {
+            rpIdString,
+            operationHash: stagingHash,
+            contractAddress: stagingConfig.contractAddress,
+          });
+        } catch (error) {
+          logger.error("Staging manager transfer failed", {
+            error,
+            rpIdString,
+            contractAddress: stagingConfig.contractAddress,
+          });
+        }
+      }
+    }
 
     // STEP 6: Update DB to self-managed mode
     const { update_rp_registration_by_pk: updatedRegistration } =

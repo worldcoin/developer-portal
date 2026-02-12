@@ -5,7 +5,8 @@ import { getKMSClient, scheduleKeyDeletion } from "@/api/helpers/kms";
 import { createManagerKey } from "@/api/helpers/kms-eth";
 import {
   generateRpIdString,
-  getTargetConfigs,
+  getRpRegistryConfig,
+  getStagingRpRegistryConfig,
   normalizeAddress,
   parseRpId,
   RpRegistrationStatus,
@@ -191,8 +192,8 @@ export const POST = async (req: NextRequest) => {
 
   // --- Managed mode: create KMS key and submit on-chain transactions ---
 
-  const configs = getTargetConfigs();
-  if (configs.length === 0) {
+  const primaryConfig = getRpRegistryConfig();
+  if (!primaryConfig) {
     await getDeleteRpSdk(client).DeleteRpRegistration({ rp_id: rpIdString });
     return errorHasuraQuery({
       req,
@@ -200,9 +201,6 @@ export const POST = async (req: NextRequest) => {
       code: "config_error",
     });
   }
-
-  // Primary config is always the first one (production contract when in prod deployment)
-  const primaryConfig = configs[0];
 
   const rpId = parseRpId(rpIdString);
 
@@ -225,61 +223,60 @@ export const POST = async (req: NextRequest) => {
   // Get the domain (app name)
   const appName = appInfo.app_metadata?.[0]?.name || "";
 
-  // STEP 3: Submit registration to all target contracts
-  // In production deployment: submits to both production and staging contracts
-  // In staging deployment: submits only to staging contract
-  let primaryOperationHash: string | undefined;
+  // STEP 3a: Submit primary registration (required)
+  let operationHash: string;
 
-  for (let i = 0; i < configs.length; i++) {
-    const config = configs[i];
-    const isPrimary = i === 0;
-
-    try {
-      const operationHash = await submitRegisterRpTransaction(config, {
-        rpId,
-        managerAddress,
-        signerAddress: signer_address!,
-        appName,
-        kmsClient,
-      });
-
-      if (isPrimary) {
-        primaryOperationHash = operationHash;
-      } else {
-        logger.info("Staging registration submitted", {
-          rpIdString,
-          operationHash,
-          contractAddress: config.contractAddress,
-        });
-      }
-    } catch (error) {
-      if (isPrimary) {
-        // Primary (production) failed - cleanup and return error
-        logger.error("Failed to submit registration transaction", {
-          error,
-          app_id,
-        });
-        await scheduleKeyDeletion(kmsClient, managerKmsKeyId);
-        await getDeleteRpSdk(client).DeleteRpRegistration({
-          rp_id: rpIdString,
-        });
-        return errorHasuraQuery({
-          req,
-          detail: "Failed to submit registration transaction.",
-          code: "submission_error",
-          app_id,
-        });
-      }
-      // Staging failed - log and continue (fire-and-forget)
-      logger.error("Staging registration failed", {
-        error,
-        rpIdString,
-        contractAddress: config.contractAddress,
-      });
-    }
+  try {
+    operationHash = await submitRegisterRpTransaction(primaryConfig, {
+      rpId,
+      managerAddress,
+      signerAddress: signer_address!,
+      appName,
+      kmsClient,
+    });
+  } catch (error) {
+    logger.error("Failed to submit registration transaction", {
+      error,
+      app_id,
+    });
+    await scheduleKeyDeletion(kmsClient, managerKmsKeyId);
+    await getDeleteRpSdk(client).DeleteRpRegistration({
+      rp_id: rpIdString,
+    });
+    return errorHasuraQuery({
+      req,
+      detail: "Failed to submit registration transaction.",
+      code: "submission_error",
+      app_id,
+    });
   }
 
-  const operationHash = primaryOperationHash!;
+  // STEP 3b: Duplicate to staging contract (best-effort, production only)
+  if (process.env.NEXT_PUBLIC_APP_ENV === "production") {
+    const stagingConfig = getStagingRpRegistryConfig();
+    if (stagingConfig) {
+      try {
+        const stagingHash = await submitRegisterRpTransaction(stagingConfig, {
+          rpId,
+          managerAddress,
+          signerAddress: signer_address!,
+          appName,
+          kmsClient,
+        });
+        logger.info("Staging registration submitted", {
+          rpIdString,
+          operationHash: stagingHash,
+          contractAddress: stagingConfig.contractAddress,
+        });
+      } catch (error) {
+        logger.error("Staging registration failed", {
+          error,
+          rpIdString,
+          contractAddress: stagingConfig.contractAddress,
+        });
+      }
+    }
+  }
 
   // STEP 4: Update the registration with KMS key ID and operation hash
   const { update_rp_registration_by_pk: updatedRegistration } =

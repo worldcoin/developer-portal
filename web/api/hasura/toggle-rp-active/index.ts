@@ -2,7 +2,11 @@ import { getSdk as getCheckUserSdk } from "@/api/hasura/graphql/checkUserInApp.g
 import { errorHasuraQuery } from "@/api/helpers/errors";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { getKMSClient } from "@/api/helpers/kms";
-import { getTargetConfigs, parseRpId } from "@/api/helpers/rp-utils";
+import {
+  getRpRegistryConfig,
+  getStagingRpRegistryConfig,
+  parseRpId,
+} from "@/api/helpers/rp-utils";
 import { submitToggleRpActiveTransaction } from "@/api/helpers/rp-transactions";
 import { getRpFromContract } from "@/api/helpers/temporal-rpc";
 import { protectInternalEndpoint } from "@/api/helpers/utils";
@@ -70,16 +74,14 @@ export const POST = async (req: NextRequest) => {
 
   const { app_id } = parsedParams;
 
-  const configs = getTargetConfigs();
-  if (configs.length === 0) {
+  const primaryConfig = getRpRegistryConfig();
+  if (!primaryConfig) {
     return errorHasuraQuery({
       req,
       detail: "Missing required environment variables for RP Registry.",
       code: "config_error",
     });
   }
-
-  const primaryConfig = configs[0];
   const client = await getAPIServiceGraphqlClient();
 
   // STEP 1: Fetch RP registration
@@ -217,7 +219,10 @@ export const POST = async (req: NextRequest) => {
     }
 
     // STEP 8: Submit to staging if configured and its state differs from the target
-    const stagingConfig = configs[1];
+    const stagingConfig =
+      process.env.NEXT_PUBLIC_APP_ENV === "production"
+        ? getStagingRpRegistryConfig()
+        : null;
     if (stagingConfig) {
       try {
         const stagingRp = await getRpFromContract(

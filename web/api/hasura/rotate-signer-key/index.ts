@@ -3,7 +3,8 @@ import { errorHasuraQuery } from "@/api/helpers/errors";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { getKMSClient } from "@/api/helpers/kms";
 import {
-  getTargetConfigs,
+  getRpRegistryConfig,
+  getStagingRpRegistryConfig,
   normalizeAddress,
   parseRpId,
 } from "@/api/helpers/rp-utils";
@@ -88,17 +89,14 @@ export const POST = async (req: NextRequest) => {
 
   const { app_id, new_signer_address } = parsedParams;
 
-  const configs = getTargetConfigs();
-  if (configs.length === 0) {
+  const primaryConfig = getRpRegistryConfig();
+  if (!primaryConfig) {
     return errorHasuraQuery({
       req,
       detail: "Missing required environment variables for RP Registry.",
       code: "config_error",
     });
   }
-
-  // Primary config is always the first one (production contract when in prod deployment)
-  const primaryConfig = configs[0];
 
   const client = await getAPIServiceGraphqlClient();
 
@@ -198,58 +196,59 @@ export const POST = async (req: NextRequest) => {
   };
 
   try {
-    // STEP 5: Submit rotation to all target contracts
-    // In production deployment: submits to both production and staging contracts
-    // In staging deployment: submits only to staging contract
+    // STEP 5a: Submit primary signer rotation (required)
     const kmsClient = await getKMSClient(primaryConfig.kmsRegion);
-    let primaryOperationHash: string | undefined;
+    let operationHash: string;
 
-    for (let i = 0; i < configs.length; i++) {
-      const config = configs[i];
-      const isPrimary = i === 0;
-
-      try {
-        const operationHash = await submitRotateSignerTransaction(config, {
-          rpId,
-          newSignerAddress: new_signer_address,
-          managerKmsKeyId,
-          kmsClient,
-        });
-
-        if (isPrimary) {
-          primaryOperationHash = operationHash;
-        } else {
-          logger.info("Staging signer rotation submitted", {
-            rpIdString,
-            operationHash,
-            contractAddress: config.contractAddress,
-          });
-        }
-      } catch (error) {
-        if (isPrimary) {
-          // Primary (production) failed - revert and return error
-          logger.error("Failed to submit signer rotation transaction", {
-            error,
-            app_id,
-          });
-          await revertStatus();
-          return errorHasuraQuery({
-            req,
-            detail: "Failed to submit signer rotation transaction.",
-            code: "submission_error",
-            app_id,
-          });
-        }
-        // Staging failed - log and continue (fire-and-forget)
-        logger.error("Staging signer rotation failed", {
-          error,
-          rpIdString,
-          contractAddress: config.contractAddress,
-        });
-      }
+    try {
+      operationHash = await submitRotateSignerTransaction(primaryConfig, {
+        rpId,
+        newSignerAddress: new_signer_address,
+        managerKmsKeyId,
+        kmsClient,
+      });
+    } catch (error) {
+      logger.error("Failed to submit signer rotation transaction", {
+        error,
+        app_id,
+      });
+      await revertStatus();
+      return errorHasuraQuery({
+        req,
+        detail: "Failed to submit signer rotation transaction.",
+        code: "submission_error",
+        app_id,
+      });
     }
 
-    const operationHash = primaryOperationHash!;
+    // STEP 5b: Duplicate to staging contract (best-effort, production only)
+    if (process.env.NEXT_PUBLIC_APP_ENV === "production") {
+      const stagingConfig = getStagingRpRegistryConfig();
+      if (stagingConfig) {
+        try {
+          const stagingHash = await submitRotateSignerTransaction(
+            stagingConfig,
+            {
+              rpId,
+              newSignerAddress: new_signer_address,
+              managerKmsKeyId,
+              kmsClient,
+            },
+          );
+          logger.info("Staging signer rotation submitted", {
+            rpIdString,
+            operationHash: stagingHash,
+            contractAddress: stagingConfig.contractAddress,
+          });
+        } catch (error) {
+          logger.error("Staging signer rotation failed", {
+            error,
+            rpIdString,
+            contractAddress: stagingConfig.contractAddress,
+          });
+        }
+      }
+    }
 
     // STEP 6: Update the registration with new signer address and operation hash
     const { update_rp_registration_by_pk: updatedRegistration } =

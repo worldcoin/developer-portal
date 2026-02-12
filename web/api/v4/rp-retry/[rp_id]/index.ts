@@ -12,7 +12,6 @@ import {
   isValidRpId,
   normalizeAddress,
   parseRpId,
-  RpRegistryConfig,
 } from "@/api/helpers/rp-utils";
 import { getRpFromContract } from "@/api/helpers/temporal-rpc";
 import { logger } from "@/lib/logger";
@@ -27,26 +26,10 @@ type Environment = "production" | "staging";
 /**
  * Returns the contract config for the specified environment.
  */
-function getConfigForEnvironment(
-  environment: Environment,
-): RpRegistryConfig | null {
-  const primaryConfig = getRpRegistryConfig();
-  if (!primaryConfig) return null;
-
-  if (environment === "production") {
-    return primaryConfig;
-  }
-
-  // Staging: merge staging overrides with primary config
-  const stagingOverrides = getStagingRpRegistryConfig();
-  if (!stagingOverrides) return null;
-
-  return {
-    ...primaryConfig,
-    contractAddress: stagingOverrides.contractAddress,
-    domainSeparator: stagingOverrides.domainSeparator,
-    updateRpTypehash: stagingOverrides.updateRpTypehash,
-  };
+function getConfigForEnvironment(environment: Environment) {
+  return environment === "production"
+    ? getRpRegistryConfig()
+    : getStagingRpRegistryConfig();
 }
 
 /**
