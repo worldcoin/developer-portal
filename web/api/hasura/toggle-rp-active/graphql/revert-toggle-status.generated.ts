@@ -4,39 +4,33 @@ import * as Types from "@/graphql/graphql";
 import { GraphQLClient, RequestOptions } from "graphql-request";
 import gql from "graphql-tag";
 type GraphQLClientRequestHeaders = RequestOptions["requestHeaders"];
-export type UpdateRotationResultMutationVariables = Types.Exact<{
+export type RevertToggleStatusMutationVariables = Types.Exact<{
   rp_id: Types.Scalars["String"]["input"];
-  signer_address: Types.Scalars["String"]["input"];
-  operation_hash: Types.Scalars["String"]["input"];
+  previous_status: Types.Scalars["rp_registration_status"]["input"];
 }>;
 
-export type UpdateRotationResultMutation = {
+export type RevertToggleStatusMutation = {
   __typename?: "mutation_root";
   update_rp_registration_by_pk?: {
     __typename?: "rp_registration";
     rp_id: string;
     app_id: string;
     status: unknown;
-    signer_address?: string | null;
-    operation_hash?: string | null;
   } | null;
 };
 
-export const UpdateRotationResultDocument = gql`
-  mutation UpdateRotationResult(
+export const RevertToggleStatusDocument = gql`
+  mutation RevertToggleStatus(
     $rp_id: String!
-    $signer_address: String!
-    $operation_hash: String!
+    $previous_status: rp_registration_status!
   ) {
     update_rp_registration_by_pk(
       pk_columns: { rp_id: $rp_id }
-      _set: { signer_address: $signer_address, operation_hash: $operation_hash }
+      _set: { status: $previous_status }
     ) {
       rp_id
       app_id
       status
-      signer_address
-      operation_hash
     }
   }
 `;
@@ -60,18 +54,18 @@ export function getSdk(
   withWrapper: SdkFunctionWrapper = defaultWrapper,
 ) {
   return {
-    UpdateRotationResult(
-      variables: UpdateRotationResultMutationVariables,
+    RevertToggleStatus(
+      variables: RevertToggleStatusMutationVariables,
       requestHeaders?: GraphQLClientRequestHeaders,
-    ): Promise<UpdateRotationResultMutation> {
+    ): Promise<RevertToggleStatusMutation> {
       return withWrapper(
         (wrappedRequestHeaders) =>
-          client.request<UpdateRotationResultMutation>(
-            UpdateRotationResultDocument,
+          client.request<RevertToggleStatusMutation>(
+            RevertToggleStatusDocument,
             variables,
             { ...requestHeaders, ...wrappedRequestHeaders },
           ),
-        "UpdateRotationResult",
+        "RevertToggleStatus",
         "mutation",
         variables,
       );

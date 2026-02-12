@@ -68,7 +68,8 @@ type Mutation {
 type Mutation {
   register_rp(
     app_id: String!
-    signer_address: String!
+    mode: String
+    signer_address: String
   ): RegisterRpOutput
 }
 
@@ -98,6 +99,12 @@ type Mutation {
     app_id: String!
     new_manager_address: String!
   ): SwitchToSelfManagedOutput
+}
+
+type Mutation {
+  toggle_rp_active(
+    app_id: String!
+  ): ToggleRpActiveOutput
 }
 
 type Mutation {
@@ -346,10 +353,10 @@ type ChangeAppReportStatusOutput {
 
 type RegisterRpOutput {
   rp_id: String!
-  manager_address: String!
-  signer_address: String!
+  manager_address: String
+  signer_address: String
   status: String!
-  operation_hash: String!
+  operation_hash: String
 }
 
 type RotateSignerKeyOutput {
@@ -366,3 +373,8 @@ type SwitchToSelfManagedOutput {
   operation_hash: String
 }
 
+type ToggleRpActiveOutput {
+  rp_id: String!
+  status: String!
+  operation_hash: String
+}

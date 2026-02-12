@@ -4,39 +4,34 @@ import * as Types from "@/graphql/graphql";
 import { GraphQLClient, RequestOptions } from "graphql-request";
 import gql from "graphql-tag";
 type GraphQLClientRequestHeaders = RequestOptions["requestHeaders"];
-export type UpdateRotationResultMutationVariables = Types.Exact<{
-  rp_id: Types.Scalars["String"]["input"];
-  signer_address: Types.Scalars["String"]["input"];
-  operation_hash: Types.Scalars["String"]["input"];
+export type GetRpRegistrationQueryVariables = Types.Exact<{
+  app_id: Types.Scalars["String"]["input"];
 }>;
 
-export type UpdateRotationResultMutation = {
-  __typename?: "mutation_root";
-  update_rp_registration_by_pk?: {
+export type GetRpRegistrationQuery = {
+  __typename?: "query_root";
+  rp_registration: Array<{
     __typename?: "rp_registration";
     rp_id: string;
     app_id: string;
+    mode: unknown;
     status: unknown;
-    signer_address?: string | null;
-    operation_hash?: string | null;
-  } | null;
+    manager_kms_key_id?: string | null;
+    app: { __typename?: "app"; team_id: string };
+  }>;
 };
 
-export const UpdateRotationResultDocument = gql`
-  mutation UpdateRotationResult(
-    $rp_id: String!
-    $signer_address: String!
-    $operation_hash: String!
-  ) {
-    update_rp_registration_by_pk(
-      pk_columns: { rp_id: $rp_id }
-      _set: { signer_address: $signer_address, operation_hash: $operation_hash }
-    ) {
+export const GetRpRegistrationDocument = gql`
+  query GetRpRegistration($app_id: String!) {
+    rp_registration(where: { app_id: { _eq: $app_id } }) {
       rp_id
       app_id
+      mode
       status
-      signer_address
-      operation_hash
+      manager_kms_key_id
+      app {
+        team_id
+      }
     }
   }
 `;
@@ -60,19 +55,19 @@ export function getSdk(
   withWrapper: SdkFunctionWrapper = defaultWrapper,
 ) {
   return {
-    UpdateRotationResult(
-      variables: UpdateRotationResultMutationVariables,
+    GetRpRegistration(
+      variables: GetRpRegistrationQueryVariables,
       requestHeaders?: GraphQLClientRequestHeaders,
-    ): Promise<UpdateRotationResultMutation> {
+    ): Promise<GetRpRegistrationQuery> {
       return withWrapper(
         (wrappedRequestHeaders) =>
-          client.request<UpdateRotationResultMutation>(
-            UpdateRotationResultDocument,
+          client.request<GetRpRegistrationQuery>(
+            GetRpRegistrationDocument,
             variables,
             { ...requestHeaders, ...wrappedRequestHeaders },
           ),
-        "UpdateRotationResult",
-        "mutation",
+        "GetRpRegistration",
+        "query",
         variables,
       );
     },

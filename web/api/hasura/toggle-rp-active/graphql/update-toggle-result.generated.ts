@@ -4,38 +4,31 @@ import * as Types from "@/graphql/graphql";
 import { GraphQLClient, RequestOptions } from "graphql-request";
 import gql from "graphql-tag";
 type GraphQLClientRequestHeaders = RequestOptions["requestHeaders"];
-export type UpdateRotationResultMutationVariables = Types.Exact<{
+export type UpdateToggleResultMutationVariables = Types.Exact<{
   rp_id: Types.Scalars["String"]["input"];
-  signer_address: Types.Scalars["String"]["input"];
   operation_hash: Types.Scalars["String"]["input"];
 }>;
 
-export type UpdateRotationResultMutation = {
+export type UpdateToggleResultMutation = {
   __typename?: "mutation_root";
   update_rp_registration_by_pk?: {
     __typename?: "rp_registration";
     rp_id: string;
     app_id: string;
     status: unknown;
-    signer_address?: string | null;
     operation_hash?: string | null;
   } | null;
 };
 
-export const UpdateRotationResultDocument = gql`
-  mutation UpdateRotationResult(
-    $rp_id: String!
-    $signer_address: String!
-    $operation_hash: String!
-  ) {
+export const UpdateToggleResultDocument = gql`
+  mutation UpdateToggleResult($rp_id: String!, $operation_hash: String!) {
     update_rp_registration_by_pk(
       pk_columns: { rp_id: $rp_id }
-      _set: { signer_address: $signer_address, operation_hash: $operation_hash }
+      _set: { operation_hash: $operation_hash }
     ) {
       rp_id
       app_id
       status
-      signer_address
       operation_hash
     }
   }
@@ -60,18 +53,18 @@ export function getSdk(
   withWrapper: SdkFunctionWrapper = defaultWrapper,
 ) {
   return {
-    UpdateRotationResult(
-      variables: UpdateRotationResultMutationVariables,
+    UpdateToggleResult(
+      variables: UpdateToggleResultMutationVariables,
       requestHeaders?: GraphQLClientRequestHeaders,
-    ): Promise<UpdateRotationResultMutation> {
+    ): Promise<UpdateToggleResultMutation> {
       return withWrapper(
         (wrappedRequestHeaders) =>
-          client.request<UpdateRotationResultMutation>(
-            UpdateRotationResultDocument,
+          client.request<UpdateToggleResultMutation>(
+            UpdateToggleResultDocument,
             variables,
             { ...requestHeaders, ...wrappedRequestHeaders },
           ),
-        "UpdateRotationResult",
+        "UpdateToggleResult",
         "mutation",
         variables,
       );

@@ -179,10 +179,10 @@ export enum PurposeEnum {
 
 export type RegisterRpOutput = {
   __typename?: "RegisterRpOutput";
-  manager_address: Scalars["String"]["output"];
-  operation_hash: Scalars["String"]["output"];
+  manager_address?: Maybe<Scalars["String"]["output"]>;
+  operation_hash?: Maybe<Scalars["String"]["output"]>;
   rp_id: Scalars["String"]["output"];
-  signer_address: Scalars["String"]["output"];
+  signer_address?: Maybe<Scalars["String"]["output"]>;
   status: Scalars["String"]["output"];
 };
 
@@ -264,8 +264,8 @@ export type String_Comparison_Exp = {
   _similar?: InputMaybe<Scalars["String"]["input"]>;
 };
 
-export type SwitchToSelfManagedOutput = {
-  __typename?: "SwitchToSelfManagedOutput";
+export type ToggleRpActiveOutput = {
+  __typename?: "ToggleRpActiveOutput";
   operation_hash?: Maybe<Scalars["String"]["output"]>;
   rp_id: Scalars["String"]["output"];
   status: Scalars["String"]["output"];
@@ -6526,8 +6526,8 @@ export type Mutation_Root = {
   rollup_app_stats: Array<App_Stats>;
   /** Rotate the signer key for an RP (Relying Party) */
   rotate_signer_key?: Maybe<RotateSignerKeyOutput>;
-  /** Switch an RP from managed to self-managed mode by transferring the on-chain manager key */
-  switch_to_self_managed?: Maybe<SwitchToSelfManagedOutput>;
+  /** Activate or deactivate a managed RP on-chain */
+  toggle_rp_active?: Maybe<ToggleRpActiveOutput>;
   /** Unbans an app */
   unban_app?: Maybe<UnbanAppOutput>;
   /** update data of the table: "action" */
@@ -7379,7 +7379,8 @@ export type Mutation_RootInvite_Team_MembersArgs = {
 /** mutation root */
 export type Mutation_RootRegister_RpArgs = {
   app_id: Scalars["String"]["input"];
-  signer_address: Scalars["String"]["input"];
+  mode?: InputMaybe<Scalars["String"]["input"]>;
+  signer_address?: InputMaybe<Scalars["String"]["input"]>;
 };
 
 /** mutation root */
@@ -7411,9 +7412,8 @@ export type Mutation_RootRotate_Signer_KeyArgs = {
 };
 
 /** mutation root */
-export type Mutation_RootSwitch_To_Self_ManagedArgs = {
+export type Mutation_RootToggle_Rp_ActiveArgs = {
   app_id: Scalars["String"]["input"];
-  new_manager_address: Scalars["String"]["input"];
 };
 
 /** mutation root */
@@ -10420,7 +10420,7 @@ export type Rp_Registration = {
   mode: Scalars["rp_registration_mode"]["output"];
   operation_hash?: Maybe<Scalars["String"]["output"]>;
   rp_id: Scalars["String"]["output"];
-  signer_address: Scalars["String"]["output"];
+  signer_address?: Maybe<Scalars["String"]["output"]>;
   status: Scalars["rp_registration_status"]["output"];
   updated_at: Scalars["timestamptz"]["output"];
 };

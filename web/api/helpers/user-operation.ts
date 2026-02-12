@@ -502,6 +502,28 @@ export function buildUpdateRpManagerCalldata(
   ]);
 }
 
+/**
+ * Builds the calldata for RpRegistry.updateRp() to toggle the active status.
+ * Uses zero/sentinel values for all other fields.
+ */
+export function buildToggleRpActiveCalldata(
+  rpId: bigint,
+  contractNonce: bigint,
+  managerSignature: string,
+): string {
+  const iface = new Interface(RP_REGISTRY_ABI);
+  return iface.encodeFunctionData("updateRp", [
+    rpId,
+    0, // oprfKeyId: no change
+    ADDRESS_ZERO, // manager: no change
+    ADDRESS_ZERO, // signer: no change
+    true, // toggleActive: flip active state
+    RP_NO_UPDATE_DOMAIN,
+    contractNonce,
+    managerSignature,
+  ]);
+}
+
 /** Generates the 32-byte nonce for an UpdateRp operation. */
 export function getUpdateRpNonce(rpId: bigint): Uint8Array {
   return buildDevPortalNonce(

@@ -1086,13 +1086,9 @@
             "description": null,
             "args": [],
             "type": {
-              "kind": "NON_NULL",
-              "name": null,
-              "ofType": {
-                "kind": "SCALAR",
-                "name": "String",
-                "ofType": null
-              }
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
             },
             "isDeprecated": false,
             "deprecationReason": null
@@ -1102,13 +1098,9 @@
             "description": null,
             "args": [],
             "type": {
-              "kind": "NON_NULL",
-              "name": null,
-              "ofType": {
-                "kind": "SCALAR",
-                "name": "String",
-                "ofType": null
-              }
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
             },
             "isDeprecated": false,
             "deprecationReason": null
@@ -1134,13 +1126,9 @@
             "description": null,
             "args": [],
             "type": {
-              "kind": "NON_NULL",
-              "name": null,
-              "ofType": {
-                "kind": "SCALAR",
-                "name": "String",
-                "ofType": null
-              }
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
             },
             "isDeprecated": false,
             "deprecationReason": null
@@ -1861,7 +1849,7 @@
       },
       {
         "kind": "OBJECT",
-        "name": "SwitchToSelfManagedOutput",
+        "name": "ToggleRpActiveOutput",
         "description": null,
         "fields": [
           {
@@ -49803,16 +49791,24 @@
                 "deprecationReason": null
               },
               {
+                "name": "mode",
+                "description": null,
+                "type": {
+                  "kind": "SCALAR",
+                  "name": "String",
+                  "ofType": null
+                },
+                "defaultValue": null,
+                "isDeprecated": false,
+                "deprecationReason": null
+              },
+              {
                 "name": "signer_address",
                 "description": null,
                 "type": {
-                  "kind": "NON_NULL",
-                  "name": null,
-                  "ofType": {
-                    "kind": "SCALAR",
-                    "name": "String",
-                    "ofType": null
-                  }
+                  "kind": "SCALAR",
+                  "name": "String",
+                  "ofType": null
                 },
                 "defaultValue": null,
                 "isDeprecated": false,
@@ -50076,27 +50072,11 @@
             "deprecationReason": null
           },
           {
-            "name": "switch_to_self_managed",
-            "description": "Switch an RP from managed to self-managed mode by transferring the on-chain manager key",
+            "name": "toggle_rp_active",
+            "description": "Activate or deactivate a managed RP on-chain",
             "args": [
               {
                 "name": "app_id",
-                "description": null,
-                "type": {
-                  "kind": "NON_NULL",
-                  "name": null,
-                  "ofType": {
-                    "kind": "SCALAR",
-                    "name": "String",
-                    "ofType": null
-                  }
-                },
-                "defaultValue": null,
-                "isDeprecated": false,
-                "deprecationReason": null
-              },
-              {
-                "name": "new_manager_address",
                 "description": null,
                 "type": {
                   "kind": "NON_NULL",
@@ -50114,7 +50094,7 @@
             ],
             "type": {
               "kind": "OBJECT",
-              "name": "SwitchToSelfManagedOutput",
+              "name": "ToggleRpActiveOutput",
               "ofType": null
             },
             "isDeprecated": false,
@@ -71657,13 +71637,9 @@
             "description": null,
             "args": [],
             "type": {
-              "kind": "NON_NULL",
-              "name": null,
-              "ofType": {
-                "kind": "SCALAR",
-                "name": "String",
-                "ofType": null
-              }
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
             },
             "isDeprecated": false,
             "deprecationReason": null
