@@ -179,10 +179,10 @@ export enum PurposeEnum {
 
 export type RegisterRpOutput = {
   __typename?: "RegisterRpOutput";
-  manager_address: Scalars["String"]["output"];
-  operation_hash: Scalars["String"]["output"];
+  manager_address?: Maybe<Scalars["String"]["output"]>;
+  operation_hash?: Maybe<Scalars["String"]["output"]>;
   rp_id: Scalars["String"]["output"];
-  signer_address: Scalars["String"]["output"];
+  signer_address?: Maybe<Scalars["String"]["output"]>;
   status: Scalars["String"]["output"];
 };
 
@@ -7379,7 +7379,8 @@ export type Mutation_RootInvite_Team_MembersArgs = {
 /** mutation root */
 export type Mutation_RootRegister_RpArgs = {
   app_id: Scalars["String"]["input"];
-  signer_address: Scalars["String"]["input"];
+  mode?: InputMaybe<Scalars["String"]["input"]>;
+  signer_address?: InputMaybe<Scalars["String"]["input"]>;
 };
 
 /** mutation root */
@@ -10419,7 +10420,7 @@ export type Rp_Registration = {
   mode: Scalars["rp_registration_mode"]["output"];
   operation_hash?: Maybe<Scalars["String"]["output"]>;
   rp_id: Scalars["String"]["output"];
-  signer_address: Scalars["String"]["output"];
+  signer_address?: Maybe<Scalars["String"]["output"]>;
   status: Scalars["rp_registration_status"]["output"];
   updated_at: Scalars["timestamptz"]["output"];
 };

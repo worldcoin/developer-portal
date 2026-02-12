@@ -2,7 +2,7 @@ mutation ClaimRpRegistration(
   $rp_id: String!
   $app_id: String!
   $mode: rp_registration_mode!
-  $signer_address: String!
+  $signer_address: String
 ) {
   insert_rp_registration_one(
     object: {
