@@ -8,7 +8,7 @@ export type ClaimRpRegistrationMutationVariables = Types.Exact<{
   rp_id: Types.Scalars["String"]["input"];
   app_id: Types.Scalars["String"]["input"];
   mode: Types.Scalars["rp_registration_mode"]["input"];
-  signer_address: Types.Scalars["String"]["input"];
+  signer_address?: Types.InputMaybe<Types.Scalars["String"]["input"]>;
 }>;
 
 export type ClaimRpRegistrationMutation = {
@@ -26,7 +26,7 @@ export const ClaimRpRegistrationDocument = gql`
     $rp_id: String!
     $app_id: String!
     $mode: rp_registration_mode!
-    $signer_address: String!
+    $signer_address: String
   ) {
     insert_rp_registration_one(
       object: {

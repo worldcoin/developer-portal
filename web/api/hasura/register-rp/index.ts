@@ -28,16 +28,27 @@ import { getSdk as getUpdateRpSdk } from "./graphql/update-rp-registration.gener
 const schema = yup
   .object({
     app_id: yup.string().strict().required(),
+    mode: yup
+      .string()
+      .strict()
+      .oneOf(["managed", "self_managed"])
+      .default("managed"),
     signer_address: yup
       .string()
       .strict()
-      .required()
+      .nullable()
       .transform((value) => (value ? normalizeAddress(value) : value))
-      .test(
-        "is-address",
-        "Invalid signer key. Must be 40 hex characters (0x followed by 40 characters)",
-        (value) => (value ? isAddress(value) : false),
-      ),
+      .when("mode", {
+        is: "managed",
+        then: (s) =>
+          s
+            .required("signer_address is required for managed mode")
+            .test(
+              "is-address",
+              "Invalid signer key. Must be 40 hex characters (0x followed by 40 characters)",
+              (value) => (value ? isAddress(value) : false),
+            ),
+      }),
   })
   .noUnknown();
 
@@ -89,19 +100,8 @@ export const POST = async (req: NextRequest) => {
     });
   }
 
-  const { app_id, signer_address } = parsedParams;
-
-  const configs = getTargetConfigs();
-  if (configs.length === 0) {
-    return errorHasuraQuery({
-      req,
-      detail: "Missing required environment variables for RP Registry.",
-      code: "config_error",
-    });
-  }
-
-  // Primary config is always the first one (production contract when in prod deployment)
-  const primaryConfig = configs[0];
+  const { app_id, mode: rawMode, signer_address } = parsedParams;
+  const mode = rawMode ?? "managed";
 
   const client = await getAPIServiceGraphqlClient();
 
@@ -159,8 +159,8 @@ export const POST = async (req: NextRequest) => {
   ).ClaimRpRegistration({
     rp_id: rpIdString,
     app_id,
-    mode: "managed",
-    signer_address,
+    mode: mode as "managed" | "self_managed",
+    signer_address: mode === "self_managed" ? null : signer_address ?? null,
   });
 
   // Another registration already exists for this app
@@ -172,6 +172,37 @@ export const POST = async (req: NextRequest) => {
       app_id,
     });
   }
+
+  // Self-managed: just create the DB record, no KMS or transactions
+  if (mode === "self_managed") {
+    logger.info("Self-managed RP registration created", {
+      app_id,
+      rpIdString,
+    });
+
+    return NextResponse.json({
+      rp_id: rpIdString,
+      manager_address: null,
+      signer_address: null,
+      status: RpRegistrationStatus.Pending,
+      operation_hash: null,
+    });
+  }
+
+  // --- Managed mode: create KMS key and submit on-chain transactions ---
+
+  const configs = getTargetConfigs();
+  if (configs.length === 0) {
+    await getDeleteRpSdk(client).DeleteRpRegistration({ rp_id: rpIdString });
+    return errorHasuraQuery({
+      req,
+      detail: "Missing required environment variables for RP Registry.",
+      code: "config_error",
+    });
+  }
+
+  // Primary config is always the first one (production contract when in prod deployment)
+  const primaryConfig = configs[0];
 
   const rpId = parseRpId(rpIdString);
 
@@ -207,7 +238,7 @@ export const POST = async (req: NextRequest) => {
       const operationHash = await submitRegisterRpTransaction(config, {
         rpId,
         managerAddress,
-        signerAddress: signer_address,
+        signerAddress: signer_address!,
         appName,
         kmsClient,
       });
@@ -250,7 +281,7 @@ export const POST = async (req: NextRequest) => {
 
   const operationHash = primaryOperationHash!;
 
-  // STEP 5: Update the registration with KMS key ID and operation hash
+  // STEP 4: Update the registration with KMS key ID and operation hash
   const { update_rp_registration_by_pk: updatedRegistration } =
     await getUpdateRpSdk(client).UpdateRpRegistration({
       rp_id: rpIdString,

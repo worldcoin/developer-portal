@@ -144,6 +144,17 @@ export async function POST(
 
   const managerKmsKeyId = dbRecord.manager_kms_key_id;
   const signerAddress = dbRecord.signer_address;
+
+  if (!signerAddress) {
+    return errorResponse({
+      statusCode: 400,
+      code: "missing_signer",
+      detail: "Signer address is missing for this managed RP.",
+      attribute: null,
+      req,
+    });
+  }
+
   const appName = dbRecord.app?.app_metadata?.[0]?.name || "";
   const numericRpId = parseRpId(rpId);
 

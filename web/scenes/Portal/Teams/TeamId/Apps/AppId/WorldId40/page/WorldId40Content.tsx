@@ -44,7 +44,7 @@ type WorldId40ContentProps = {
   rpId: string;
   initialStatus: RpStatus;
   mode: string;
-  signerAddress: string;
+  signerAddress?: string | null;
   createdAt: string;
 };
 

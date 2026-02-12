@@ -6,7 +6,8 @@ import * as Apollo from "@apollo/client";
 const defaultOptions = {} as const;
 export type RegisterRpMutationVariables = Types.Exact<{
   app_id: Types.Scalars["String"]["input"];
-  signer_address: Types.Scalars["String"]["input"];
+  mode?: Types.InputMaybe<Types.Scalars["String"]["input"]>;
+  signer_address?: Types.InputMaybe<Types.Scalars["String"]["input"]>;
 }>;
 
 export type RegisterRpMutation = {
@@ -14,16 +15,20 @@ export type RegisterRpMutation = {
   register_rp?: {
     __typename?: "RegisterRpOutput";
     rp_id: string;
-    manager_address: string;
-    signer_address: string;
+    manager_address?: string | null;
+    signer_address?: string | null;
     status: string;
-    operation_hash: string;
+    operation_hash?: string | null;
   } | null;
 };
 
 export const RegisterRpDocument = gql`
-  mutation RegisterRp($app_id: String!, $signer_address: String!) {
-    register_rp(app_id: $app_id, signer_address: $signer_address) {
+  mutation RegisterRp(
+    $app_id: String!
+    $mode: String
+    $signer_address: String
+  ) {
+    register_rp(app_id: $app_id, mode: $mode, signer_address: $signer_address) {
       rp_id
       manager_address
       signer_address
@@ -51,6 +56,7 @@ export type RegisterRpMutationFn = Apollo.MutationFunction<
  * const [registerRpMutation, { data, loading, error }] = useRegisterRpMutation({
  *   variables: {
  *      app_id: // value for 'app_id'
+ *      mode: // value for 'mode'
  *      signer_address: // value for 'signer_address'
  *   },
  * });
