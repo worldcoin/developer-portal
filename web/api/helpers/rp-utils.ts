@@ -144,63 +144,39 @@ export function getRpRegistryConfig(): RpRegistryConfig | null {
 // =============================================================================
 
 /**
- * Staging-specific config overrides (contract address and EIP-712 values).
- * Used when duplicating transactions to staging contract from production deployment.
+ * Returns a full staging RpRegistryConfig by merging staging-specific env vars
+ * (contract address, domain separator, typehash) with the primary config
+ * (Safe, KMS, entry point).
+ *
+ * Returns null if either primary config or staging env vars are missing.
  */
-export interface StagingRpRegistryConfig {
-  contractAddress: string;
-  domainSeparator: string;
-  updateRpTypehash: string;
-}
-
-/**
- * Returns staging contract configuration from environment variables.
- * Returns null if any required variable is missing.
- */
-export function getStagingRpRegistryConfig(): StagingRpRegistryConfig | null {
-  const config = {
-    contractAddress: process.env.RP_REGISTRY_STAGING_CONTRACT_ADDRESS,
-    domainSeparator: process.env.RP_REGISTRY_STAGING_DOMAIN_SEPARATOR,
-    updateRpTypehash: process.env.RP_REGISTRY_STAGING_UPDATE_RP_TYPEHASH,
-  };
-
-  if (Object.values(config).some((v) => !v)) {
+export function getStagingRpRegistryConfig(): RpRegistryConfig | null {
+  const primaryConfig = getRpRegistryConfig();
+  if (!primaryConfig) {
     return null;
   }
 
-  return config as StagingRpRegistryConfig;
-}
+  const stagingContractAddress =
+    process.env.RP_REGISTRY_STAGING_CONTRACT_ADDRESS;
+  const stagingDomainSeparator =
+    process.env.RP_REGISTRY_STAGING_DOMAIN_SEPARATOR;
+  const stagingUpdateRpTypehash =
+    process.env.RP_REGISTRY_STAGING_UPDATE_RP_TYPEHASH;
 
-/**
- * Returns array of configs to target based on deployment environment:
- * - Service deployed to STAGING: returns [primaryConfig] - only the configured contract
- * - Service deployed to PRODUCTION: returns [primaryConfig, stagingConfig] - both contracts
- *
- * This enables transaction duplication to staging when running in production.
- */
-export function getTargetConfigs(): RpRegistryConfig[] {
-  const primaryConfig = getRpRegistryConfig();
-  if (!primaryConfig) {
-    return [];
+  if (
+    !stagingContractAddress ||
+    !stagingDomainSeparator ||
+    !stagingUpdateRpTypehash
+  ) {
+    return null;
   }
 
-  const configs = [primaryConfig];
-
-  // Only duplicate to staging when service is deployed to PRODUCTION
-  if (process.env.NEXT_PUBLIC_APP_ENV === "production") {
-    const stagingOverrides = getStagingRpRegistryConfig();
-    if (stagingOverrides) {
-      // Merge staging overrides with primary config (same Safe, KMS, entry point)
-      configs.push({
-        ...primaryConfig,
-        contractAddress: stagingOverrides.contractAddress,
-        domainSeparator: stagingOverrides.domainSeparator,
-        updateRpTypehash: stagingOverrides.updateRpTypehash,
-      });
-    }
-  }
-
-  return configs;
+  return {
+    ...primaryConfig,
+    contractAddress: stagingContractAddress,
+    domainSeparator: stagingDomainSeparator,
+    updateRpTypehash: stagingUpdateRpTypehash,
+  };
 }
 
 // =============================================================================

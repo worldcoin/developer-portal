@@ -1,54 +1,51 @@
 import { getSdk as getCheckUserSdk } from "@/api/hasura/graphql/checkUserInApp.generated";
 import { errorHasuraQuery } from "@/api/helpers/errors";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
-import { getKMSClient } from "@/api/helpers/kms";
+import { getKMSClient, scheduleKeyDeletion } from "@/api/helpers/kms";
 import {
   getRpRegistryConfig,
   getStagingRpRegistryConfig,
   normalizeAddress,
   parseRpId,
 } from "@/api/helpers/rp-utils";
-import { submitRotateSignerTransaction } from "@/api/helpers/rp-transactions";
+import { submitTransferManagerTransaction } from "@/api/helpers/rp-transactions";
 import { protectInternalEndpoint } from "@/api/helpers/utils";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { logger } from "@/lib/logger";
 import { isAddress } from "ethers";
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
-import { getSdk as getClaimRotationSdk } from "./graphql/claim-rotation-slot.generated";
+import { getSdk as getClaimSlotSdk } from "./graphql/claim-mode-switch-slot.generated";
 import { getSdk as getRpRegistrationSdk } from "./graphql/get-rp-registration.generated";
-import { getSdk as getRevertStatusSdk } from "./graphql/revert-rotation-status.generated";
-import { getSdk as getUpdateResultSdk } from "./graphql/update-rotation-result.generated";
+import { getSdk as getRevertStatusSdk } from "./graphql/revert-mode-switch-status.generated";
+import { getSdk as getUpdateResultSdk } from "./graphql/update-mode-switch-result.generated";
 
-/**
- * Input schema for the rotate_signer_key action.
- */
 const schema = yup
   .object({
     app_id: yup.string().strict().required(),
-    new_signer_address: yup
+    new_manager_address: yup
       .string()
       .strict()
       .required()
       .transform((value) => (value ? normalizeAddress(value) : value))
       .test(
         "is-address",
-        "Invalid signer key. Must be 40 hex characters (0x followed by 40 characters)",
+        "Invalid manager address. Must be 40 hex characters (0x followed by 40 characters)",
         (value) => (value ? isAddress(value) : false),
       ),
   })
   .noUnknown();
 
 /**
- * POST handler for the rotate_signer_key Hasura action.
+ * POST handler for the switch_to_self_managed Hasura action.
  *
  * This endpoint:
  * 1. Validates the user owns the app (ADMIN/OWNER)
- * 2. Verifies the RP is in managed mode
- * 3. Claims the rotation slot (prevents concurrent rotations)
- * 4. Builds and signs the updateRp transaction
- * 5. Submits to the temporal bundler
- * 6. Updates the registration with new signer address
+ * 2. Verifies the RP is in managed mode and registered
+ * 3. Claims the mode-switch slot (prevents concurrent operations)
+ * 4. Submits an updateRp transaction to transfer the manager on-chain
+ * 5. Updates the DB to self_managed mode, clears KMS key and signer address
+ * 6. Schedules KMS key deletion
  */
 export const POST = async (req: NextRequest) => {
   const { isAuthenticated, errorResponse } = protectInternalEndpoint(req);
@@ -57,7 +54,7 @@ export const POST = async (req: NextRequest) => {
   }
 
   const body = await req.json();
-  if (body?.action?.name !== "rotate_signer_key") {
+  if (body?.action?.name !== "switch_to_self_managed") {
     return errorHasuraQuery({
       req,
       detail: "Invalid action.",
@@ -87,7 +84,7 @@ export const POST = async (req: NextRequest) => {
     });
   }
 
-  const { app_id, new_signer_address } = parsedParams;
+  const { app_id, new_manager_address } = parsedParams;
 
   const primaryConfig = getRpRegistryConfig();
   if (!primaryConfig) {
@@ -97,7 +94,6 @@ export const POST = async (req: NextRequest) => {
       code: "config_error",
     });
   }
-
   const client = await getAPIServiceGraphqlClient();
 
   // STEP 1: Fetch RP registration
@@ -117,7 +113,6 @@ export const POST = async (req: NextRequest) => {
   const registration = rp_registration[0];
   const rpIdString = registration.rp_id;
   const teamId = registration.app.team_id;
-  const oldSignerAddress = registration.signer_address || "";
 
   // Check if team is enabled for World ID 4.0
   const enabledTeams = await global.ParameterStore?.getParameter<string[]>(
@@ -144,7 +139,7 @@ export const POST = async (req: NextRequest) => {
   if (!team || team.length === 0) {
     return errorHasuraQuery({
       req,
-      detail: "User does not have permission to rotate signer key.",
+      detail: "User does not have permission to switch mode.",
       code: "unauthorized",
       app_id,
     });
@@ -154,26 +149,25 @@ export const POST = async (req: NextRequest) => {
   if (registration.mode !== "managed" || !registration.manager_kms_key_id) {
     return errorHasuraQuery({
       req,
-      detail:
-        "RP is in self-managed mode. You must handle signer key rotation yourself.",
-      code: "self_managed_mode",
+      detail: "RP is already in self-managed mode.",
+      code: "already_self_managed",
       app_id,
     });
   }
 
   const managerKmsKeyId = registration.manager_kms_key_id;
 
-  // STEP 4: Atomically claim rotation slot (status: registered → pending)
-  const { update_rp_registration: claimResult } = await getClaimRotationSdk(
+  // STEP 4: Claim mode-switch slot (status: registered → pending)
+  const { update_rp_registration: claimResult } = await getClaimSlotSdk(
     client,
-  ).ClaimRotationSlot({ rp_id: rpIdString });
+  ).ClaimModeSwitchSlot({ rp_id: rpIdString });
 
   if (!claimResult || claimResult.affected_rows === 0) {
     return errorHasuraQuery({
       req,
       detail:
-        "Cannot rotate signer key. RP status is not 'registered' (rotation may already be in progress).",
-      code: "rotation_in_progress",
+        "Cannot switch mode. RP status is not 'registered' (another operation may be in progress).",
+      code: "operation_in_progress",
       app_id,
     });
   }
@@ -183,11 +177,11 @@ export const POST = async (req: NextRequest) => {
   // Helper to revert status on failure
   const revertStatus = async () => {
     try {
-      await getRevertStatusSdk(client).RevertRotationStatus({
+      await getRevertStatusSdk(client).RevertModeSwitchStatus({
         rp_id: rpIdString,
       });
     } catch (revertError) {
-      logger.error("Failed to revert rotation status", {
+      logger.error("Failed to revert mode switch status", {
         error: revertError,
         app_id,
         rpIdString,
@@ -196,26 +190,26 @@ export const POST = async (req: NextRequest) => {
   };
 
   try {
-    // STEP 5a: Submit primary signer rotation (required)
+    // STEP 5a: Submit primary manager transfer (required)
     const kmsClient = await getKMSClient(primaryConfig.kmsRegion);
     let operationHash: string;
 
     try {
-      operationHash = await submitRotateSignerTransaction(primaryConfig, {
+      operationHash = await submitTransferManagerTransaction(primaryConfig, {
         rpId,
-        newSignerAddress: new_signer_address,
+        newManagerAddress: new_manager_address,
         managerKmsKeyId,
         kmsClient,
       });
     } catch (error) {
-      logger.error("Failed to submit signer rotation transaction", {
+      logger.error("Failed to submit manager transfer transaction", {
         error,
         app_id,
       });
       await revertStatus();
       return errorHasuraQuery({
         req,
-        detail: "Failed to submit signer rotation transaction.",
+        detail: "Failed to submit manager transfer transaction.",
         code: "submission_error",
         app_id,
       });
@@ -226,22 +220,22 @@ export const POST = async (req: NextRequest) => {
       const stagingConfig = getStagingRpRegistryConfig();
       if (stagingConfig) {
         try {
-          const stagingHash = await submitRotateSignerTransaction(
+          const stagingHash = await submitTransferManagerTransaction(
             stagingConfig,
             {
               rpId,
-              newSignerAddress: new_signer_address,
+              newManagerAddress: new_manager_address,
               managerKmsKeyId,
               kmsClient,
             },
           );
-          logger.info("Staging signer rotation submitted", {
+          logger.info("Staging manager transfer submitted", {
             rpIdString,
             operationHash: stagingHash,
             contractAddress: stagingConfig.contractAddress,
           });
         } catch (error) {
-          logger.error("Staging signer rotation failed", {
+          logger.error("Staging manager transfer failed", {
             error,
             rpIdString,
             contractAddress: stagingConfig.contractAddress,
@@ -250,21 +244,18 @@ export const POST = async (req: NextRequest) => {
       }
     }
 
-    // STEP 6: Update the registration with new signer address and operation hash
+    // STEP 6: Update DB to self-managed mode
     const { update_rp_registration_by_pk: updatedRegistration } =
-      await getUpdateResultSdk(client).UpdateRotationResult({
+      await getUpdateResultSdk(client).UpdateModeSwitchResult({
         rp_id: rpIdString,
-        signer_address: new_signer_address,
         operation_hash: operationHash,
       });
 
     if (!updatedRegistration) {
-      // On-chain tx may succeed; manual intervention needed to reconcile state
-      logger.error("Failed to update registration record after submission", {
-        app_id,
-        rpIdString,
-        operationHash,
-      });
+      logger.error(
+        "Failed to update registration record after manager transfer",
+        { app_id, rpIdString, operationHash },
+      );
       return errorHasuraQuery({
         req,
         detail: "Failed to update registration record.",
@@ -273,23 +264,23 @@ export const POST = async (req: NextRequest) => {
       });
     }
 
-    logger.info("Signer key rotation successful", {
+    // STEP 7: Schedule KMS key deletion
+    await scheduleKeyDeletion(kmsClient, managerKmsKeyId);
+
+    logger.info("Mode switch to self-managed successful", {
       app_id,
       rpIdString,
-      oldSignerAddress,
-      new_signer_address,
+      new_manager_address,
       operationHash,
     });
 
     return NextResponse.json({
       rp_id: rpIdString,
-      new_signer_address,
-      old_signer_address: oldSignerAddress,
       status: "pending",
       operation_hash: operationHash,
     });
   } catch (error) {
-    logger.error("Unexpected error during signer key rotation", {
+    logger.error("Unexpected error during mode switch", {
       error,
       app_id,
     });

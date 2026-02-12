@@ -1,0 +1,17 @@
+mutation UpdateModeSwitchResult($rp_id: String!, $operation_hash: String!) {
+  update_rp_registration_by_pk(
+    pk_columns: { rp_id: $rp_id }
+    _set: {
+      mode: self_managed
+      manager_kms_key_id: null
+      signer_address: null
+      operation_hash: $operation_hash
+    }
+  ) {
+    rp_id
+    app_id
+    mode
+    status
+    operation_hash
+  }
+}
