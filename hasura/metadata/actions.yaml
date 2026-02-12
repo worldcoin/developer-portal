@@ -169,6 +169,16 @@ actions:
     permissions:
       - role: user
     comment: Rotate the signer key for an RP (Relying Party)
+  - name: switch_to_self_managed
+    definition:
+      kind: synchronous
+      handler: "{{NEXT_API_URL}}/hasura/switch-to-self-managed"
+      headers:
+        - name: Authorization
+          value_from_env: INTERNAL_ENDPOINTS_SECRET
+    permissions:
+      - role: user
+    comment: Switch an RP from managed to self-managed mode by transferring the on-chain manager key
   - name: toggle_rp_active
     definition:
       kind: synchronous
