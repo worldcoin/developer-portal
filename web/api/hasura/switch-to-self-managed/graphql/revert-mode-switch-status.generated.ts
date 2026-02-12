@@ -13,8 +13,6 @@ export type RevertModeSwitchStatusMutation = {
   update_rp_registration_by_pk?: {
     __typename?: "rp_registration";
     rp_id: string;
-    app_id: string;
-    status: unknown;
   } | null;
 };
 
@@ -25,8 +23,6 @@ export const RevertModeSwitchStatusDocument = gql`
       _set: { status: registered }
     ) {
       rp_id
-      app_id
-      status
     }
   }
 `;
