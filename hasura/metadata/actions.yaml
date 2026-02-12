@@ -84,11 +84,12 @@ actions:
         query_params:
           app_id: "{{$body.input.app_id}}"
           locale: "{{$body.input?.locale}}"
+          verification_status: "{{$body.input?.verification_status}}"
         template_engine: Kriti
         version: 2
     permissions:
       - role: reviewer
-    comment: Used by the reviewer to get in review app images
+    comment: Used by the reviewer to get app images by verification status
   - name: get_uploaded_image
     definition:
       kind: ""

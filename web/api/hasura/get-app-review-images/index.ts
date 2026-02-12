@@ -13,6 +13,7 @@ const schema = yup
   .object({
     app_id: yup.string().strict().required(),
     locale: yup.string(),
+    verification_status: yup.string(),
   })
   .noUnknown();
 
@@ -65,7 +66,8 @@ export const POST = async (req: NextRequest) => {
     });
   }
 
-  const { app_id, locale } = parsedParams;
+  const { app_id, locale, verification_status } = parsedParams;
+  const resolvedStatus = verification_status || "awaiting_review";
 
   // Anchor: Get relative paths for images from the database
   const client = await getAPIReviewerGraphqlClient();
@@ -73,6 +75,7 @@ export const POST = async (req: NextRequest) => {
   const { app: appInfo } = await getAppReviewImages(client).GetAppReviewImages({
     app_id,
     locale: locale || "en",
+    verification_status: resolvedStatus,
   });
 
   // If the app is not found, return an error
@@ -94,7 +97,8 @@ export const POST = async (req: NextRequest) => {
   });
 
   // Anchor: Get Signed URLS for images
-  const objectKey = `unverified/${app_id}/`;
+  const s3Prefix = resolvedStatus === "verified" ? "verified" : "unverified";
+  const objectKey = `${s3Prefix}/${app_id}/`;
   const bucketName = process.env.ASSETS_S3_BUCKET_NAME;
   const urlExpiration = 7200;
   const urlPromises = [];

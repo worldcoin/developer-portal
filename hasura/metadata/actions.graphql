@@ -41,6 +41,7 @@ type Query {
   get_app_review_images(
     app_id: String!
     locale: String
+    verification_status: String
   ): ImageGetAppReviewImagesOutput
 }
 
