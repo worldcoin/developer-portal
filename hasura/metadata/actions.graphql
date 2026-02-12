@@ -95,6 +95,19 @@ type Mutation {
 }
 
 type Mutation {
+  switch_to_self_managed(
+    app_id: String!
+    new_manager_address: String!
+  ): SwitchToSelfManagedOutput
+}
+
+type Mutation {
+  toggle_rp_active(
+    app_id: String!
+  ): ToggleRpActiveOutput
+}
+
+type Mutation {
   unban_app(
     app_id: String!
   ): UnbanAppOutput
@@ -354,3 +367,14 @@ type RotateSignerKeyOutput {
   operation_hash: String
 }
 
+type SwitchToSelfManagedOutput {
+  rp_id: String!
+  status: String!
+  operation_hash: String
+}
+
+type ToggleRpActiveOutput {
+  rp_id: String!
+  status: String!
+  operation_hash: String
+}

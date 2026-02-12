@@ -2,7 +2,7 @@ actions:
   - name: ban_app
     definition:
       kind: synchronous
-      handler: '{{NEXT_API_URL}}/hasura/ban-app'
+      handler: "{{NEXT_API_URL}}/hasura/ban-app"
       headers:
         - name: Authorization
           value_from_env: INTERNAL_ENDPOINTS_SECRET
@@ -12,7 +12,7 @@ actions:
   - name: change_app_report_status
     definition:
       kind: synchronous
-      handler: '{{NEXT_API_URL}}/hasura/change-app-report-status'
+      handler: "{{NEXT_API_URL}}/hasura/change-app-report-status"
       headers:
         - name: Authorization
           value_from_env: INTERNAL_ENDPOINTS_SECRET
@@ -22,7 +22,7 @@ actions:
   - name: create_app_report
     definition:
       kind: synchronous
-      handler: '{{NEXT_API_URL}}/hasura/create-app-report'
+      handler: "{{NEXT_API_URL}}/hasura/create-app-report"
       headers:
         - name: Authorization
           value_from_env: INTERNAL_ENDPOINTS_SECRET
@@ -32,15 +32,15 @@ actions:
   - name: create_new_draft
     definition:
       kind: synchronous
-      handler: '{{NEXT_API_URL}}/hasura/create-new-draft'
+      handler: "{{NEXT_API_URL}}/hasura/create-new-draft"
       headers:
         - name: Authorization
           value_from_env: INTERNAL_ENDPOINTS_SECRET
       request_transform:
         method: POST
         query_params:
-          app_id: '{{$body.input.app_id}}'
-          team_id: '{{$body.input.team_id}}'
+          app_id: "{{$body.input.app_id}}"
+          team_id: "{{$body.input.team_id}}"
         template_engine: Kriti
         version: 2
     permissions:
@@ -48,7 +48,7 @@ actions:
   - name: delete_unverified_images
     definition:
       kind: synchronous
-      handler: '{{NEXT_API_URL}}/hasura/delete-images'
+      handler: "{{NEXT_API_URL}}/hasura/delete-images"
       headers:
         - name: Authorization
           value_from_env: INTERNAL_ENDPOINTS_SECRET
@@ -58,15 +58,15 @@ actions:
   - name: get_all_unverified_images
     definition:
       kind: ""
-      handler: '{{NEXT_API_URL}}/hasura/get-unverified-images'
+      handler: "{{NEXT_API_URL}}/hasura/get-unverified-images"
       headers:
         - name: Authorization
           value_from_env: INTERNAL_ENDPOINTS_SECRET
       request_transform:
         method: POST
         query_params:
-          app_id: '{{$body.input.app_id}}'
-          locale: '{{$body.input?.locale}}'
+          app_id: "{{$body.input.app_id}}"
+          locale: "{{$body.input?.locale}}"
         template_engine: Kriti
         version: 2
     permissions:
@@ -75,15 +75,15 @@ actions:
   - name: get_app_review_images
     definition:
       kind: ""
-      handler: '{{NEXT_API_URL}}/hasura/get-app-review-images'
+      handler: "{{NEXT_API_URL}}/hasura/get-app-review-images"
       headers:
         - name: Authorization
           value_from_env: INTERNAL_ENDPOINTS_SECRET
       request_transform:
         method: POST
         query_params:
-          app_id: '{{$body.input.app_id}}'
-          locale: '{{$body.input?.locale}}'
+          app_id: "{{$body.input.app_id}}"
+          locale: "{{$body.input?.locale}}"
         template_engine: Kriti
         version: 2
     permissions:
@@ -92,17 +92,17 @@ actions:
   - name: get_uploaded_image
     definition:
       kind: ""
-      handler: '{{NEXT_API_URL}}/hasura/get-image'
+      handler: "{{NEXT_API_URL}}/hasura/get-image"
       headers:
         - name: Authorization
           value_from_env: INTERNAL_ENDPOINTS_SECRET
       request_transform:
         method: POST
         query_params:
-          app_id: '{{$body.input.app_id}}'
-          content_type_ending: '{{$body.input.content_type_ending}}'
-          image_type: '{{$body.input.image_type}}'
-          locale: '{{$body.input?.locale}}'
+          app_id: "{{$body.input.app_id}}"
+          content_type_ending: "{{$body.input.content_type_ending}}"
+          image_type: "{{$body.input.image_type}}"
+          locale: "{{$body.input?.locale}}"
         template_engine: Kriti
         version: 2
     permissions:
@@ -112,7 +112,7 @@ actions:
   - name: invalidate_cache
     definition:
       kind: synchronous
-      handler: '{{NEXT_API_URL}}/hasura/invalidate-cache'
+      handler: "{{NEXT_API_URL}}/hasura/invalidate-cache"
       headers:
         - name: Authorization
           value_from_env: INTERNAL_ENDPOINTS_SECRET
@@ -121,7 +121,7 @@ actions:
   - name: invite_team_members
     definition:
       kind: synchronous
-      handler: '{{NEXT_API_URL}}/hasura/invite-team-members'
+      handler: "{{NEXT_API_URL}}/hasura/invite-team-members"
       headers:
         - name: Authorization
           value_from_env: INTERNAL_ENDPOINTS_SECRET
@@ -131,7 +131,7 @@ actions:
   - name: register_rp
     definition:
       kind: synchronous
-      handler: '{{NEXT_API_URL}}/hasura/register-rp'
+      handler: "{{NEXT_API_URL}}/hasura/register-rp"
       headers:
         - name: Authorization
           value_from_env: INTERNAL_ENDPOINTS_SECRET
@@ -141,7 +141,7 @@ actions:
   - name: reset_api_key
     definition:
       kind: synchronous
-      handler: '{{NEXT_API_URL}}/hasura/reset-api-key'
+      handler: "{{NEXT_API_URL}}/hasura/reset-api-key"
       headers:
         - name: Authorization
           value_from_env: INTERNAL_ENDPOINTS_SECRET
@@ -151,7 +151,7 @@ actions:
   - name: reset_client_secret
     definition:
       kind: synchronous
-      handler: '{{NEXT_API_URL}}/hasura/reset-client-secret'
+      handler: "{{NEXT_API_URL}}/hasura/reset-client-secret"
       headers:
         - name: Authorization
           value_from_env: INTERNAL_ENDPOINTS_SECRET
@@ -162,17 +162,37 @@ actions:
   - name: rotate_signer_key
     definition:
       kind: synchronous
-      handler: '{{NEXT_API_URL}}/hasura/rotate-signer-key'
+      handler: "{{NEXT_API_URL}}/hasura/rotate-signer-key"
       headers:
         - name: Authorization
           value_from_env: INTERNAL_ENDPOINTS_SECRET
     permissions:
       - role: user
     comment: Rotate the signer key for an RP (Relying Party)
+  - name: switch_to_self_managed
+    definition:
+      kind: synchronous
+      handler: "{{NEXT_API_URL}}/hasura/switch-to-self-managed"
+      headers:
+        - name: Authorization
+          value_from_env: INTERNAL_ENDPOINTS_SECRET
+    permissions:
+      - role: user
+    comment: Switch an RP from managed to self-managed mode by transferring the on-chain manager key
+  - name: toggle_rp_active
+    definition:
+      kind: synchronous
+      handler: "{{NEXT_API_URL}}/hasura/toggle-rp-active"
+      headers:
+        - name: Authorization
+          value_from_env: INTERNAL_ENDPOINTS_SECRET
+    permissions:
+      - role: user
+    comment: Activate or deactivate a managed RP on-chain
   - name: unban_app
     definition:
       kind: synchronous
-      handler: '{{NEXT_API_URL}}/hasura/unban-app'
+      handler: "{{NEXT_API_URL}}/hasura/unban-app"
       headers:
         - name: Authorization
           value_from_env: INTERNAL_ENDPOINTS_SECRET
@@ -182,17 +202,17 @@ actions:
   - name: upload_image
     definition:
       kind: ""
-      handler: '{{NEXT_API_URL}}/hasura/upload-image'
+      handler: "{{NEXT_API_URL}}/hasura/upload-image"
       headers:
         - name: Authorization
           value_from_env: INTERNAL_ENDPOINTS_SECRET
       request_transform:
         method: POST
         query_params:
-          app_id: '{{$body.input.app_id}}'
-          content_type_ending: '{{$body.input.content_type_ending}}'
-          image_type: '{{$body.input.image_type}}'
-          locale: '{{$body.input?.locale}}'
+          app_id: "{{$body.input.app_id}}"
+          content_type_ending: "{{$body.input.content_type_ending}}"
+          image_type: "{{$body.input.image_type}}"
+          locale: "{{$body.input?.locale}}"
         template_engine: Kriti
         version: 2
     permissions:
@@ -202,15 +222,15 @@ actions:
   - name: validate_localisation
     definition:
       kind: synchronous
-      handler: '{{NEXT_API_URL}}/hasura/validate-localisation'
+      handler: "{{NEXT_API_URL}}/hasura/validate-localisation"
       headers:
         - name: Authorization
           value_from_env: INTERNAL_ENDPOINTS_SECRET
       request_transform:
         method: POST
         query_params:
-          app_metadata_id: '{{$body.input.app_metadata_id}}'
-          team_id: '{{$body.input.team_id}}'
+          app_metadata_id: "{{$body.input.app_metadata_id}}"
+          team_id: "{{$body.input.team_id}}"
         template_engine: Kriti
         version: 2
     permissions:
@@ -218,17 +238,17 @@ actions:
   - name: verify_app
     definition:
       kind: synchronous
-      handler: '{{NEXT_API_URL}}/hasura/verify-app'
+      handler: "{{NEXT_API_URL}}/hasura/verify-app"
       headers:
         - name: Authorization
           value_from_env: INTERNAL_ENDPOINTS_SECRET
       request_transform:
         method: POST
         query_params:
-          app_id: '{{$body.input.app_id}}'
-          is_reviewer_app_store_approved: '{{$body.input.is_reviewer_app_store_approved}}'
-          is_reviewer_world_app_approved: '{{$body.input.is_reviewer_world_app_approved}}'
-          reviewer_name: '{{$body.input.reviewer_name}}'
+          app_id: "{{$body.input.app_id}}"
+          is_reviewer_app_store_approved: "{{$body.input.is_reviewer_app_store_approved}}"
+          is_reviewer_world_app_approved: "{{$body.input.is_reviewer_world_app_approved}}"
+          reviewer_name: "{{$body.input.reviewer_name}}"
         template_engine: Kriti
         version: 2
     permissions:
@@ -385,4 +405,6 @@ custom_types:
     - name: ChangeAppReportStatusOutput
     - name: RegisterRpOutput
     - name: RotateSignerKeyOutput
+    - name: SwitchToSelfManagedOutput
+    - name: ToggleRpActiveOutput
   scalars: []

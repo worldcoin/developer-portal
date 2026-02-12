@@ -1,0 +1,16 @@
+mutation ClaimToggleSlot(
+  $rp_id: String!
+  $current_status: rp_registration_status!
+) {
+  update_rp_registration(
+    where: { rp_id: { _eq: $rp_id }, status: { _eq: $current_status } }
+    _set: { status: pending }
+  ) {
+    affected_rows
+    returning {
+      rp_id
+      app_id
+      status
+    }
+  }
+}
