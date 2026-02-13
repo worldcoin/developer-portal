@@ -1,9 +1,0 @@
-mutation InsertRedirect($action_id: String!, $uri: String!) {
-  insert_redirect_one(object: { action_id: $action_id, redirect_uri: $uri }) {
-    id
-    action_id
-    redirect_uri
-    created_at
-    updated_at
-  }
-}
