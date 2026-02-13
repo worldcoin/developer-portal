@@ -2,9 +2,15 @@ import "server-only";
 
 /**
  * Contains all backend utilities related to JWTs.
+ * * OIDC tokens
  * * Hasura authentication
  * * Developer Portal authentication
  */
+import { retrieveJWK } from "@/api/helpers/jwks";
+import { getKMSClient, signJWTWithKMSKey } from "@/api/helpers/kms";
+import { OIDCScopes } from "@/api/helpers/oidc";
+import { VerificationLevel } from "@worldcoin/idkit-core";
+import { randomUUID } from "crypto";
 import dayjs from "dayjs";
 import * as jose from "jose";
 
@@ -204,4 +210,108 @@ export const verifySignUpJWT = async (token: string) => {
     throw new Error("JWT does not contain valid `sub` claim.");
   }
   return { sub };
+};
+
+// ANCHOR: -----------------OIDC JWTs--------------------------
+
+const formatOIDCDateTime = (date: Date | dayjs.Dayjs): number => {
+  return dayjs(date).unix();
+};
+
+interface IVerificationJWT {
+  kid: string;
+  kms_id: string;
+  nonce?: string;
+  nullifier_hash: string;
+  app_id: string;
+  verification_level: VerificationLevel;
+  scope: OIDCScopes[];
+}
+
+/**
+ * Generates a JWT that can be used to verify a proof (used for Sign in with World ID)
+ * @returns
+ */
+export const generateOIDCJWT = async ({
+  app_id,
+  nonce,
+  nullifier_hash,
+  kid,
+  verification_level,
+  scope,
+}: IVerificationJWT): Promise<string> => {
+  const payload = {
+    iss: JWT_ISSUER,
+    sub: nullifier_hash,
+    jti: randomUUID(),
+    iat: formatOIDCDateTime(new Date()),
+    exp: formatOIDCDateTime(dayjs().add(1, "hour")),
+    aud: app_id,
+    scope: scope.join(" "),
+    // NOTE: DEPRECATED, will be removed in future versions
+    "https://id.worldcoin.org/beta": {
+      likely_human:
+        verification_level === VerificationLevel.Orb ? "strong" : "weak",
+      credential_type: verification_level,
+      warning:
+        "DEPRECATED and will be removed soon. Use `https://id.worldcoin.org/v1` instead.",
+    },
+    "https://id.worldcoin.org/v1": {
+      verification_level,
+    },
+  } as Record<string, any>;
+
+  if (nonce) {
+    payload.nonce = nonce;
+  }
+
+  if (scope.includes(OIDCScopes.Email)) {
+    payload.email = `${nullifier_hash}@id.worldcoin.org`;
+  }
+
+  if (scope.includes(OIDCScopes.Profile)) {
+    payload.name = "World ID User";
+    payload.given_name = "World ID";
+    payload.family_name = "User";
+  }
+
+  // Sign the JWT with a KMS managed key
+  const client = await getKMSClient();
+  const header = {
+    alg: "RS256",
+    typ: "JWT",
+    kid,
+  };
+
+  if (client) {
+    const token = await signJWTWithKMSKey(client, header, payload);
+    if (token) return token;
+  }
+  throw new Error("Failed to sign JWT from KMS.");
+};
+
+export const verifyOIDCJWT = async (
+  token: string,
+): Promise<jose.JWTPayload> => {
+  const { kid } = jose.decodeProtectedHeader(token);
+
+  if (!kid) {
+    throw new Error("JWT is invalid. Does not contain a `kid` claim.");
+  }
+
+  const { public_jwk } = await retrieveJWK(kid);
+
+  if (!public_jwk) {
+    throw new Error("Key for this JWT is invalid.");
+  }
+
+  const { payload } = await jose.jwtVerify(
+    token,
+    await jose.importJWK(public_jwk, "RS256"),
+    {
+      issuer: JWT_ISSUER,
+    },
+  );
+
+  return payload;
 };

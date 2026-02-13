@@ -77,6 +77,10 @@ const nextConfig = {
   async rewrites() {
     return [
       {
+        source: "/.well-known/openid-configuration",
+        destination: "/api/v1/oidc/openid-configuration",
+      },
+      {
         source: "/ingest/:path*",
         destination: "https://app.posthog.com/:path*",
       },

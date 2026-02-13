@@ -1,3 +1,10 @@
+export enum OIDCFlowType {
+  AuthorizationCode = "authorization_code",
+  Implicit = "implicit",
+  Hybrid = "hybrid",
+  Token = "token",
+}
+
 import { InsertMembershipMutation } from "@/api/create-team/graphql/insert-membership.generated";
 /**
  * This file contains the main types for both the frontend and backend.
@@ -55,6 +62,13 @@ export type ActionStatsModel = Array<{
   total: number;
   total_cumulative: number;
 }>;
+
+export enum OIDCResponseType {
+  Code = "code", // authorization code
+  JWT = "jwt", // implicit flow
+  IdToken = "id_token",
+  Token = "token",
+}
 
 export interface IInternalError {
   message: string;
