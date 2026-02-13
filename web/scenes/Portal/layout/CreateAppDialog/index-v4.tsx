@@ -182,9 +182,12 @@ export const CreateAppDialogV4 = ({
       }
 
       try {
+        const hasuraMode =
+          worldIdMode === "self-managed" ? "self_managed" : "managed";
         const { data } = await registerRp({
           variables: {
             app_id: createdAppId,
+            mode: hasuraMode,
             signer_address: publicKey,
           },
         });
@@ -210,7 +213,7 @@ export const CreateAppDialogV4 = ({
         toast.error("Failed to register Relying Party");
       }
     },
-    [teamId, createdAppId, router, onClose, registerRp],
+    [teamId, createdAppId, worldIdMode, router, onClose, registerRp],
   );
 
   return (
