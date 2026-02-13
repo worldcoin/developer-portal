@@ -34,8 +34,14 @@ export const SECURE_DOCUMENT_SEQUENCER_STAGING =
 export const FACE_SEQUENCER_STAGING =
   "https://signup-face.stage-crypto.worldcoin.dev";
 
+// ANCHOR: OIDC Base URL
+export const OIDC_BASE_URL = "https://id.worldcoin.org";
 export const DOCS_URL = "https://docs.world.org";
 export const DOCS_CLOUD_URL = "https://docs.world.org/id/cloud";
+
+// ANCHOR: JWKs
+export const JWK_TIME_TO_LIVE = 30; // days; duration before a JWK is rotated
+export const JWK_TTL_USABLE = 7; // days; duration before a JWK is rotated
 
 export const SIMULATOR_URL = "https://simulator.worldcoin.org";
 export const TELEGRAM_DEVELOPERS_GROUP_URL = "https://t.me/worldcoindevelopers";

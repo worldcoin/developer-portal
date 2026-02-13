@@ -1,0 +1,10 @@
+query FetchActiveJWKsByExpiration($expires_at: timestamptz!) {
+  jwks(
+    where: { expires_at: { _gt: $expires_at } }
+    order_by: { expires_at: desc }
+  ) {
+    id
+    kms_id
+    expires_at
+  }
+}
