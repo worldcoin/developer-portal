@@ -37,6 +37,7 @@ export type GetAppsQuery = {
     contracts?: Array<string> | null;
     permit2_tokens?: Array<string> | null;
     can_import_all_contacts: boolean;
+    can_use_attestation: boolean;
     is_reviewer_world_app_approved: boolean;
     verification_status: string;
     is_allowed_unlimited_notifications?: boolean | null;
@@ -102,6 +103,7 @@ export const GetAppsDocument = gql`
       contracts
       permit2_tokens
       can_import_all_contacts
+      can_use_attestation
       is_reviewer_world_app_approved
       verification_status
       is_allowed_unlimited_notifications

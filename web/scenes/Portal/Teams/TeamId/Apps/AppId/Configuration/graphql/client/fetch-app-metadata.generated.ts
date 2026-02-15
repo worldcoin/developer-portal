@@ -46,6 +46,7 @@ export type FetchAppMetadataQuery = {
       contracts?: Array<string> | null;
       permit2_tokens?: Array<string> | null;
       can_import_all_contacts: boolean;
+      can_use_attestation: boolean;
       is_allowed_unlimited_notifications?: boolean | null;
       max_notifications_per_day?: number | null;
       is_android_only: boolean;
@@ -82,6 +83,7 @@ export type FetchAppMetadataQuery = {
       contracts?: Array<string> | null;
       permit2_tokens?: Array<string> | null;
       can_import_all_contacts: boolean;
+      can_use_attestation: boolean;
       is_allowed_unlimited_notifications?: boolean | null;
       max_notifications_per_day?: number | null;
       is_android_only: boolean;
@@ -127,6 +129,7 @@ export const FetchAppMetadataDocument = gql`
         contracts
         permit2_tokens
         can_import_all_contacts
+        can_use_attestation
         is_allowed_unlimited_notifications
         max_notifications_per_day
         is_android_only
@@ -164,6 +167,7 @@ export const FetchAppMetadataDocument = gql`
         contracts
         permit2_tokens
         can_import_all_contacts
+        can_use_attestation
         is_allowed_unlimited_notifications
         max_notifications_per_day
         is_android_only

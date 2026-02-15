@@ -20,6 +20,7 @@ export type UpdateSetupMutationVariables = Types.Exact<{
     Array<Types.Scalars["String"]["input"]> | Types.Scalars["String"]["input"]
   >;
   can_import_all_contacts: Types.Scalars["Boolean"]["input"];
+  can_use_attestation: Types.Scalars["Boolean"]["input"];
   is_allowed_unlimited_notifications: Types.Scalars["Boolean"]["input"];
   max_notifications_per_day: Types.Scalars["Int"]["input"];
 }>;
@@ -41,6 +42,7 @@ export const UpdateSetupDocument = gql`
     $contracts: [String!]
     $permit2_tokens: [String!]
     $can_import_all_contacts: Boolean!
+    $can_use_attestation: Boolean!
     $is_allowed_unlimited_notifications: Boolean!
     $max_notifications_per_day: Int!
   ) {
@@ -53,6 +55,7 @@ export const UpdateSetupDocument = gql`
         contracts: $contracts
         permit2_tokens: $permit2_tokens
         can_import_all_contacts: $can_import_all_contacts
+        can_use_attestation: $can_use_attestation
         is_allowed_unlimited_notifications: $is_allowed_unlimited_notifications
         max_notifications_per_day: $max_notifications_per_day
       }
