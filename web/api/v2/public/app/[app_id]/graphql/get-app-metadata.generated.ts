@@ -38,6 +38,7 @@ export type GetAppMetadataQuery = {
     contracts?: Array<string> | null;
     permit2_tokens?: Array<string> | null;
     can_import_all_contacts: boolean;
+    can_use_attestation: boolean;
     is_reviewer_world_app_approved: boolean;
     is_reviewer_app_store_approved: boolean;
     verification_status: string;
@@ -97,6 +98,7 @@ export const GetAppMetadataDocument = gql`
       contracts
       permit2_tokens
       can_import_all_contacts
+      can_use_attestation
       is_reviewer_world_app_approved
       is_reviewer_app_store_approved
       verification_status

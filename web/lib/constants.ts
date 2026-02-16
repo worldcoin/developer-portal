@@ -193,6 +193,7 @@ export const APP_STORE_FORMATTED_DEFAULTS: AppStoreFormattedFields = {
   contracts: [] as string[],
   permit2_tokens: [] as string[],
   can_import_all_contacts: null,
+  can_use_attestation: null,
   verification_status: "",
   is_allowed_unlimited_notifications: false,
   max_notifications_per_day: null,

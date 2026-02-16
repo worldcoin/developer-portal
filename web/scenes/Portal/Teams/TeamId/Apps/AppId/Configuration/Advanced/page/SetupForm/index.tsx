@@ -116,6 +116,7 @@ export const SetupForm = (props: LinksFormProps) => {
       contracts: appMetadata?.contracts?.join(",") ?? null,
       permit2_tokens: appMetadata?.permit2_tokens?.join(",") ?? null,
       can_import_all_contacts: appMetadata?.can_import_all_contacts,
+      can_use_attestation: appMetadata?.can_use_attestation,
       max_notifications_per_day: Number(appMetadata?.max_notifications_per_day),
       is_allowed_unlimited_notifications: Boolean(
         appMetadata?.is_allowed_unlimited_notifications,
@@ -134,6 +135,7 @@ export const SetupForm = (props: LinksFormProps) => {
       contracts: appMetadata?.contracts?.join(",") ?? null,
       permit2_tokens: appMetadata?.permit2_tokens?.join(",") ?? null,
       can_import_all_contacts: appMetadata?.can_import_all_contacts,
+      can_use_attestation: appMetadata?.can_use_attestation,
       max_notifications_per_day: Number(appMetadata?.max_notifications_per_day),
       is_allowed_unlimited_notifications: Boolean(
         appMetadata?.is_allowed_unlimited_notifications,
@@ -147,6 +149,7 @@ export const SetupForm = (props: LinksFormProps) => {
     appMetadata?.contracts,
     appMetadata?.permit2_tokens,
     appMetadata?.can_import_all_contacts,
+    appMetadata?.can_use_attestation,
     appMetadata?.max_notifications_per_day,
     appMetadata?.is_allowed_unlimited_notifications,
   ]);
