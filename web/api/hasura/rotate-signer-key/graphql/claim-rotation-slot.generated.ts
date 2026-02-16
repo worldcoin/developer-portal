@@ -18,7 +18,7 @@ export type ClaimRotationSlotMutation = {
       rp_id: string;
       app_id: string;
       status: unknown;
-      signer_address?: string | null;
+      signer_address: string;
       manager_kms_key_id?: string | null;
     }>;
   } | null;

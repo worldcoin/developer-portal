@@ -16,7 +16,7 @@ export type GetRpRegistrationForRetryQuery = {
     app_id: string;
     status: unknown;
     mode: unknown;
-    signer_address?: string | null;
+    signer_address: string;
     manager_kms_key_id?: string | null;
     app: {
       __typename?: "app";

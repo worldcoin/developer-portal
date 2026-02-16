@@ -20,6 +20,8 @@ import { getSdk as getRpRegistrationSdk } from "./graphql/get-rp-registration.ge
 import { getSdk as getRevertStatusSdk } from "./graphql/revert-mode-switch-status.generated";
 import { getSdk as getUpdateResultSdk } from "./graphql/update-mode-switch-result.generated";
 
+const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
+
 const schema = yup
   .object({
     app_id: yup.string().strict().required(),
@@ -32,6 +34,11 @@ const schema = yup
         "is-address",
         "Invalid manager address. Must be 40 hex characters (0x followed by 40 characters)",
         (value) => (value ? isAddress(value) : false),
+      )
+      .test(
+        "not-zero",
+        "Cannot use zero address",
+        (value) => value !== ZERO_ADDRESS,
       ),
   })
   .noUnknown();

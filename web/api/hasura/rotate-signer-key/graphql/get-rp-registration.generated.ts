@@ -16,7 +16,7 @@ export type GetRpRegistrationQuery = {
     app_id: string;
     mode: unknown;
     status: unknown;
-    signer_address?: string | null;
+    signer_address: string;
     manager_kms_key_id?: string | null;
     operation_hash?: string | null;
     app: { __typename?: "app"; team_id: string };

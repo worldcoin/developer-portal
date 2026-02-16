@@ -16,7 +16,7 @@ export type FetchRpRegistrationQuery = {
     app_id: string;
     status: unknown;
     mode: unknown;
-    signer_address?: string | null;
+    signer_address: string;
     created_at: string;
     updated_at: string;
   }>;
