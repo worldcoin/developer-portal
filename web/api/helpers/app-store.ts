@@ -61,6 +61,11 @@ export const formatAppMetadata = async (
     [] as string[],
   );
 
+  const implicitCredentialsApps = await global.ParameterStore?.getParameter(
+    "whitelisted-apps/implicit-credentials",
+    [] as string[],
+  );
+
   // Check if the app is whitelisted for permit2
   const permit2Tokens = whitelistedAppsPermit2?.includes(appMetadata.app_id)
     ? ["all"]
@@ -173,6 +178,8 @@ export const formatAppMetadata = async (
     avg_notification_open_rate: getAvgNotificationOpenRate(
       singleAppStats?.open_rate_last_14_days,
     ),
+    can_use_implicit_credentials:
+      implicitCredentialsApps?.includes(appMetadata.app_id) ?? false,
   };
 };
 
