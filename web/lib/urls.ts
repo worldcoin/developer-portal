@@ -66,6 +66,18 @@ export const urls = {
     return path;
   },
 
+  selfManagedRegistration: (params: {
+    team_id: string;
+    app_id: string;
+    next?: "configuration" | "actions";
+  }): string => {
+    const path = `/teams/${params.team_id}/apps/${params.app_id}/self-managed-registration`;
+    if (params.next) {
+      return `${path}?next=${params.next}`;
+    }
+    return path;
+  },
+
   createTeam: (): "/create-team" => "/create-team",
 
   signInWorldId: (params: { team_id: string; app_id?: string }): string =>
