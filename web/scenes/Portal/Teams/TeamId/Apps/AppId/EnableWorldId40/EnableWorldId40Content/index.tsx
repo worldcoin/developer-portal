@@ -25,9 +25,6 @@ const MANAGED_BULLETS = [
   },
 ];
 
-/** Set to true when Self-Managed option is ready to be offered */
-const SELF_MANAGED_OPTION_ENABLED = false;
-
 const SELF_MANAGED_BULLETS = [
   { text: "Keys can be lost", variant: "x" as const },
   {
@@ -42,11 +39,15 @@ const SELF_MANAGED_BULLETS = [
 
 export type EnableWorldId40ContentProps = {
   onContinue: (mode: WorldId40Mode) => void;
+  isSelfManagedEnabled: boolean;
+  loading?: boolean;
   className?: string;
 };
 
 export const EnableWorldId40Content = ({
   onContinue,
+  isSelfManagedEnabled,
+  loading,
   className,
 }: EnableWorldId40ContentProps) => {
   const defaultValues: FormValues = useMemo(
@@ -94,7 +95,7 @@ export const EnableWorldId40Content = ({
           disabledStampText="Coming Soon"
           bullets={SELF_MANAGED_BULLETS}
           testId="self-managed"
-          disabled={!SELF_MANAGED_OPTION_ENABLED}
+          disabled={!isSelfManagedEnabled}
         />
       </div>
 
@@ -102,9 +103,10 @@ export const EnableWorldId40Content = ({
         type="submit"
         variant="primary"
         className="justify-self-end py-3"
+        disabled={loading}
         testId="enable-world-id-40-continue"
       >
-        Continue
+        {loading ? "Processing..." : "Continue"}
       </DecoratedButton>
     </form>
   );

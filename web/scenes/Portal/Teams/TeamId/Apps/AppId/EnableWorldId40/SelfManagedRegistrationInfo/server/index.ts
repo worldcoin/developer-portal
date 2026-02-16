@@ -7,6 +7,7 @@ import {
   getStagingRpRegistryConfig,
   WORLD_CHAIN_ID,
 } from "@/api/helpers/rp-utils";
+import { logger } from "@/lib/logger";
 import { getIsUserAllowedToUpdateApp } from "@/lib/permissions";
 
 export type SelfManagedRegistrationInfoResult =
@@ -69,7 +70,10 @@ export async function getSelfManagedRegistrationInfo(
       functionSignature: REGISTER_FUNCTION_SIGNATURE,
     };
   } catch (error) {
-    console.error("[getSelfManagedRegistrationInfo] Error:", error);
+    logger.error("[getSelfManagedRegistrationInfo] Error", {
+      error,
+      app_id: appId,
+    });
 
     return {
       success: false,
