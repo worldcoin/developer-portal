@@ -3,6 +3,7 @@
 import { CopyButton } from "@/components/CopyButton";
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { Notification } from "@/components/Notification";
+import { WarningErrorIcon } from "@/components/Icons/WarningErrorIcon";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import clsx from "clsx";
 import { useEffect, useMemo, useState } from "react";
@@ -16,16 +17,26 @@ type SelfManagedTransactionInfoContentProps = {
   rpId: string;
   onBack: () => void;
   onComplete: () => void;
+  title?: string;
+  completeButtonLabel?: string;
   className?: string;
 };
 
 type SelfManagedInfo = {
-  rpId: string;
-  rpIdNumeric: string;
-  chainId: number;
-  productionContractAddress: string;
+  rpId: string | null;
+  chainId: number | null;
+  productionContractAddress: string | null;
   stagingContractAddress: string | null;
-  functionSignature: string;
+  functionSignature: string | null;
+};
+
+const FIELD_PLACEHOLDERS = {
+  rpId: "—",
+  contractAddress: "0x...RpRegistry",
+  stagingContractAddress: "—",
+  chainId: "4808",
+  functionSignature:
+    "register(uint64 rpId, address manager, address signer, string domain)",
 };
 
 const withTimeout = async (
@@ -54,11 +65,14 @@ export const SelfManagedTransactionInfoContent = ({
   rpId,
   onBack,
   onComplete,
+  title = "Self-Managed Registration",
+  completeButtonLabel = "Continue",
   className,
 }: SelfManagedTransactionInfoContentProps) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<SelfManagedInfo | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
     let isMounted = true;
@@ -75,27 +89,26 @@ export const SelfManagedTransactionInfoContent = ({
           return;
         }
 
-        if (
-          !result.productionContractAddress ||
-          !result.functionSignature ||
-          !result.rpIdNumeric
-        ) {
-          if (isMounted) setError("Missing required registration details");
-          return;
-        }
-
         if (isMounted) {
           setInfo({
-            rpId: result.rpId,
-            rpIdNumeric: result.rpIdNumeric,
-            chainId: result.chainId,
-            productionContractAddress: result.productionContractAddress,
+            rpId: result.rpId ?? null,
+            chainId: result.chainId ?? null,
+            productionContractAddress: result.productionContractAddress ?? null,
             stagingContractAddress: result.stagingContractAddress,
-            functionSignature: result.functionSignature,
+            functionSignature: result.functionSignature ?? null,
           });
         }
       } catch (fetchError) {
         if (isMounted) {
+          if (
+            fetchError instanceof Error &&
+            fetchError.message === "Request timeout"
+          ) {
+            setError(
+              "Request timed out while loading registration details. Check network/RPC access and try again.",
+            );
+            return;
+          }
           const message =
             fetchError instanceof Error
               ? fetchError.message
@@ -112,16 +125,26 @@ export const SelfManagedTransactionInfoContent = ({
     return () => {
       isMounted = false;
     };
-  }, [appId]);
+  }, [appId, retryCount]);
 
-  const resolvedRpId = useMemo(() => info?.rpId ?? rpId, [info?.rpId, rpId]);
+  const resolvedRpId = useMemo(
+    () => info?.rpId ?? rpId ?? FIELD_PLACEHOLDERS.rpId,
+    [info?.rpId, rpId],
+  );
+  const productionContractAddress =
+    info?.productionContractAddress ?? FIELD_PLACEHOLDERS.contractAddress;
+  const stagingContractAddress =
+    info?.stagingContractAddress ?? FIELD_PLACEHOLDERS.stagingContractAddress;
+  const chainId = info?.chainId
+    ? String(info.chainId)
+    : FIELD_PLACEHOLDERS.chainId;
+  const functionSignature =
+    info?.functionSignature ?? FIELD_PLACEHOLDERS.functionSignature;
 
   if (loading) {
     return (
       <div className={clsx("grid w-full max-w-[580px] gap-y-4", className)}>
-        <Typography variant={TYPOGRAPHY.H6}>
-          Self-Managed Registration
-        </Typography>
+        <Typography variant={TYPOGRAPHY.H6}>{title}</Typography>
         <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
           Loading registration details...
         </Typography>
@@ -132,13 +155,18 @@ export const SelfManagedTransactionInfoContent = ({
   if (error || !info) {
     return (
       <div className={clsx("grid w-full max-w-[580px] gap-y-6", className)}>
-        <Typography variant={TYPOGRAPHY.H6}>
-          Self-Managed Registration
-        </Typography>
+        <Typography variant={TYPOGRAPHY.H6}>{title}</Typography>
         <Typography variant={TYPOGRAPHY.R3} className="text-system-error-500">
           {error ?? "Failed to load registration details"}
         </Typography>
-        <div className="flex justify-end">
+        <div className="flex justify-end gap-x-3">
+          <DecoratedButton
+            type="button"
+            onClick={() => setRetryCount((v) => v + 1)}
+            variant="secondary"
+          >
+            Retry
+          </DecoratedButton>
           <DecoratedButton type="button" onClick={onBack} variant="secondary">
             Go Back
           </DecoratedButton>
@@ -148,120 +176,144 @@ export const SelfManagedTransactionInfoContent = ({
   }
 
   return (
-    <div className={clsx("grid w-full max-w-[580px] gap-y-6", className)}>
-      <div className="grid gap-y-2">
-        <Typography variant={TYPOGRAPHY.H6}>
-          Self-Managed Registration
-        </Typography>
-        <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
-          Use the details below to submit the on-chain registration transaction.
-        </Typography>
+    <div className={clsx("grid w-full max-w-[580px] gap-y-8", className)}>
+      <div className="grid gap-y-1">
+        <Typography variant={TYPOGRAPHY.H6}>{title}</Typography>
       </div>
 
-      <div className="grid gap-y-4 rounded-xl border border-grey-100 p-5">
-        <div className="flex items-center justify-between gap-x-4">
-          <div className="min-w-0">
-            <Typography variant={TYPOGRAPHY.B4} className="text-grey-500">
-              Contract Address
-            </Typography>
+      <div className="grid gap-y-5">
+        <div className="flex min-h-14 items-center justify-between gap-x-2 rounded-[10px] bg-grey-50 px-4 py-3">
+          <div className="min-w-0 flex-1">
             <Typography
-              variant={TYPOGRAPHY.R3}
-              className="break-all font-mono text-grey-900"
+              variant={TYPOGRAPHY.B4}
+              className="block leading-tight text-grey-500"
             >
-              {info.productionContractAddress}
-            </Typography>
-          </div>
-          <CopyButton
-            fieldName="Contract Address"
-            fieldValue={info.productionContractAddress}
-          />
-        </div>
-
-        {info.stagingContractAddress && (
-          <div className="flex items-center justify-between gap-x-4">
-            <div className="min-w-0">
-              <Typography variant={TYPOGRAPHY.B4} className="text-grey-500">
-                Staging Contract Address
-              </Typography>
-              <Typography
-                variant={TYPOGRAPHY.R3}
-                className="break-all font-mono text-grey-900"
-              >
-                {info.stagingContractAddress}
-              </Typography>
-            </div>
-            <CopyButton
-              fieldName="Staging Contract Address"
-              fieldValue={info.stagingContractAddress}
-            />
-          </div>
-        )}
-
-        <div className="flex items-center justify-between gap-x-4">
-          <div className="min-w-0">
-            <Typography variant={TYPOGRAPHY.B4} className="text-grey-500">
               RP ID
             </Typography>
             <Typography
-              variant={TYPOGRAPHY.R3}
-              className="break-all font-mono text-grey-900"
+              variant={TYPOGRAPHY.B3}
+              className="block truncate leading-tight text-grey-400"
             >
               {resolvedRpId}
             </Typography>
           </div>
-          <CopyButton fieldName="RP ID" fieldValue={resolvedRpId} />
+          <CopyButton
+            fieldName="RP ID"
+            fieldValue={resolvedRpId}
+            iconClassName="text-grey-500"
+          />
         </div>
 
-        <div className="flex items-center justify-between gap-x-4">
-          <div className="min-w-0">
-            <Typography variant={TYPOGRAPHY.B4} className="text-grey-500">
-              RP ID Numeric
+        <div className="flex min-h-14 items-center justify-between gap-x-2 rounded-[10px] bg-grey-50 px-4 py-3">
+          <div className="min-w-0 flex-1">
+            <Typography
+              variant={TYPOGRAPHY.B4}
+              className="block leading-tight text-grey-500"
+            >
+              Production contract address
             </Typography>
             <Typography
-              variant={TYPOGRAPHY.R3}
-              className="break-all font-mono text-grey-900"
+              variant={TYPOGRAPHY.B3}
+              className="block truncate leading-tight text-grey-400"
             >
-              {info.rpIdNumeric}
-            </Typography>
-          </div>
-          <CopyButton fieldName="RP ID Numeric" fieldValue={info.rpIdNumeric} />
-        </div>
-
-        <div className="flex items-center justify-between gap-x-4">
-          <div className="min-w-0">
-            <Typography variant={TYPOGRAPHY.B4} className="text-grey-500">
-              Function Signature
-            </Typography>
-            <Typography
-              variant={TYPOGRAPHY.R3}
-              className="break-all font-mono text-grey-900"
-            >
-              {info.functionSignature}
+              {productionContractAddress}
             </Typography>
           </div>
           <CopyButton
-            fieldName="Function Signature"
-            fieldValue={info.functionSignature}
+            fieldName="Production contract address"
+            fieldValue={productionContractAddress}
+            iconClassName="text-grey-500"
+          />
+        </div>
+
+        <div className="flex min-h-14 items-center justify-between gap-x-2 rounded-[10px] bg-grey-50 px-4 py-3">
+          <div className="min-w-0 flex-1">
+            <Typography
+              variant={TYPOGRAPHY.B4}
+              className="block leading-tight text-grey-500"
+            >
+              Staging contract address
+            </Typography>
+            <Typography
+              variant={TYPOGRAPHY.B3}
+              className="block truncate leading-tight text-grey-400"
+            >
+              {stagingContractAddress}
+            </Typography>
+          </div>
+          <CopyButton
+            fieldName="Staging contract address"
+            fieldValue={stagingContractAddress}
+            iconClassName="text-grey-500"
+          />
+        </div>
+
+        <div className="flex min-h-14 items-center justify-between gap-x-2 rounded-[10px] bg-grey-50 px-4 py-3">
+          <div className="min-w-0 flex-1">
+            <Typography
+              variant={TYPOGRAPHY.B4}
+              className="block leading-tight text-grey-500"
+            >
+              Chain ID
+            </Typography>
+            <Typography
+              variant={TYPOGRAPHY.B3}
+              className="block leading-tight text-grey-400"
+            >
+              {chainId}
+            </Typography>
+          </div>
+          <CopyButton
+            fieldName="Chain ID"
+            fieldValue={chainId}
+            iconClassName="text-grey-500"
+          />
+        </div>
+
+        <div className="flex min-h-14 items-center justify-between gap-x-2 rounded-[10px] bg-grey-50 px-4 py-3">
+          <div className="min-w-0 flex-1">
+            <Typography
+              variant={TYPOGRAPHY.B4}
+              className="block leading-tight text-grey-500"
+            >
+              Function to call
+            </Typography>
+            <Typography
+              variant={TYPOGRAPHY.B3}
+              className="block truncate leading-tight text-grey-400"
+            >
+              {functionSignature}
+            </Typography>
+          </div>
+          <CopyButton
+            fieldName="Function to call"
+            fieldValue={functionSignature}
+            iconClassName="text-grey-500"
           />
         </div>
       </div>
 
-      <Notification variant="info">
-        <div className="grid gap-y-1 text-blue-800">
-          <Typography variant={TYPOGRAPHY.S3}>Next step</Typography>
+      <Notification
+        variant="warning"
+        className="min-h-[72px] rounded-[10px] border-none bg-system-warning-75"
+        iconClassName="bg-system-warning-650"
+        icon={<WarningErrorIcon className="size-4 text-grey-0" />}
+      >
+        <div className="grid gap-y-0.5 text-system-warning-650">
+          <Typography variant={TYPOGRAPHY.S4}>Staging warning:</Typography>
           <Typography variant={TYPOGRAPHY.S4}>
-            Submit the registration transaction on chain and then return to this
-            app. Chain ID: {info.chainId}.
+            Register on BOTH production and staging if you want to use staging
+            actions.
           </Typography>
         </div>
       </Notification>
 
-      <div className="flex justify-between gap-x-4">
+      <div className="flex justify-end gap-x-4 pt-1">
         <DecoratedButton type="button" onClick={onBack} variant="secondary">
           Back
         </DecoratedButton>
         <DecoratedButton type="button" onClick={onComplete} variant="primary">
-          Done
+          {completeButtonLabel}
         </DecoratedButton>
       </div>
     </div>
