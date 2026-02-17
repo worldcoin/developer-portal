@@ -241,7 +241,7 @@ export const POST = async (req: NextRequest) => {
 
     return errorHasuraQuery({
       req,
-      detail: `Registration already exists with status: ${existing.status}. View your registration in World ID 4.0 settings.`,
+      detail: "Registration already in progress or completed for this app.",
       code: "already_registered",
       app_id,
     });
