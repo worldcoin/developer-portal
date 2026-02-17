@@ -17,7 +17,7 @@ export type UpdateRotationResultMutation = {
     rp_id: string;
     app_id: string;
     status: unknown;
-    signer_address: string;
+    signer_address?: string | null;
     operation_hash?: string | null;
   } | null;
 };

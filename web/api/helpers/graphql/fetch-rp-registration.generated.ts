@@ -15,7 +15,7 @@ export type FetchRpRegistrationQuery = {
     rp_id: string;
     app_id: string;
     mode: unknown;
-    signer_address: string;
+    signer_address?: string | null;
     status: unknown;
     app: {
       __typename?: "app";
@@ -39,7 +39,7 @@ export type FetchRpRegistrationByRpIdQuery = {
     rp_id: string;
     app_id: string;
     mode: unknown;
-    signer_address: string;
+    signer_address?: string | null;
     status: unknown;
     app: {
       __typename?: "app";

@@ -271,7 +271,26 @@ export const POST = async (req: NextRequest) => {
       });
     }
 
-    // STEP 7: Schedule KMS key deletion
+    // STEP 7: Invalidate status cache
+    const redis = global.RedisClient;
+    if (redis) {
+      try {
+        const cacheKey = `rp_status:${rpIdString}`;
+        await redis.del(cacheKey);
+        logger.info("Invalidated rp_status cache after mode switch", {
+          rpIdString,
+          cacheKey,
+        });
+      } catch (cacheError) {
+        logger.warn("Failed to invalidate rp_status cache", {
+          error: cacheError,
+          rpIdString,
+        });
+        // Non-critical, continue
+      }
+    }
+
+    // STEP 8: Schedule KMS key deletion
     await scheduleKeyDeletion(kmsClient, managerKmsKeyId);
 
     logger.info("Mode switch to self-managed successful", {

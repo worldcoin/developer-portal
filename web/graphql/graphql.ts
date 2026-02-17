@@ -10450,7 +10450,7 @@ export type Rp_Registration = {
   mode: Scalars["rp_registration_mode"]["output"];
   operation_hash?: Maybe<Scalars["String"]["output"]>;
   rp_id: Scalars["String"]["output"];
-  signer_address: Scalars["String"]["output"];
+  signer_address?: Maybe<Scalars["String"]["output"]>;
   status: Scalars["rp_registration_status"]["output"];
   updated_at: Scalars["timestamptz"]["output"];
 };
