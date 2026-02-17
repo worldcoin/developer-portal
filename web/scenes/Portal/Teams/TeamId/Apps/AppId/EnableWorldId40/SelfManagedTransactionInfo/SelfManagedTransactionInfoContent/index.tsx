@@ -24,6 +24,7 @@ type SelfManagedTransactionInfoContentProps = {
 
 type SelfManagedInfo = {
   rpId: string | null;
+  rpIdNumeric: string | null;
   chainId: number | null;
   productionContractAddress: string | null;
   stagingContractAddress: string | null;
@@ -92,6 +93,7 @@ export const SelfManagedTransactionInfoContent = ({
         if (isMounted) {
           setInfo({
             rpId: result.rpId ?? null,
+            rpIdNumeric: result.rpIdNumeric ?? null,
             chainId: result.chainId ?? null,
             productionContractAddress: result.productionContractAddress ?? null,
             stagingContractAddress: result.stagingContractAddress,
@@ -128,8 +130,8 @@ export const SelfManagedTransactionInfoContent = ({
   }, [appId, retryCount]);
 
   const resolvedRpId = useMemo(
-    () => info?.rpId ?? rpId ?? FIELD_PLACEHOLDERS.rpId,
-    [info?.rpId, rpId],
+    () => info?.rpIdNumeric ?? rpId ?? FIELD_PLACEHOLDERS.rpId,
+    [info?.rpIdNumeric, rpId],
   );
   const productionContractAddress =
     info?.productionContractAddress ?? FIELD_PLACEHOLDERS.contractAddress;
