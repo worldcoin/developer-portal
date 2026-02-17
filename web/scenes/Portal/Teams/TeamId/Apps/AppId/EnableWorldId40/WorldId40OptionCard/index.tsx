@@ -2,6 +2,7 @@
 
 import { CheckIcon } from "@/components/Icons/CheckIcon";
 import { CloseIcon } from "@/components/Icons/CloseIcon";
+import { InformationCircleIcon } from "@/components/Icons/InformationCircleIcon";
 import { Radio, RadioProps } from "@/components/Radio";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import clsx from "clsx";
@@ -17,6 +18,7 @@ export const WorldId40OptionCard = (
     stampText?: string;
     /** Shown in stamp slot when disabled (e.g. "Coming Soon") */
     disabledStampText?: string;
+    disabledReason?: string;
     bullets: Bullet[];
     testId?: string;
     disabled?: boolean;
@@ -57,13 +59,31 @@ export const WorldId40OptionCard = (
           </Typography>
         </div>
         {stampContent && (
-          <Typography
-            as="div"
-            variant={TYPOGRAPHY.M5}
-            className={stampClassName}
-          >
-            {stampContent}
-          </Typography>
+          <div className="flex items-center gap-x-1.5">
+            <Typography
+              as="div"
+              variant={TYPOGRAPHY.M5}
+              className={stampClassName}
+            >
+              {stampContent}
+            </Typography>
+            {disabled && props.disabledReason && (
+              <div className="group relative">
+                <span
+                  tabIndex={0}
+                  aria-label={props.disabledReason}
+                  title={props.disabledReason}
+                  className="inline-flex outline-none focus-visible:ring-2 focus-visible:ring-grey-300 focus-visible:ring-offset-1"
+                >
+                  <InformationCircleIcon className="size-4 text-grey-400" />
+                </span>
+                <div className="pointer-events-none absolute -top-2 right-0 z-20 w-48 -translate-y-full rounded-md bg-grey-900 px-2 py-1.5 text-xs text-grey-0 opacity-0 shadow-lg transition-opacity group-focus-within:opacity-100 group-hover:opacity-100">
+                  {props.disabledReason}
+                  <div className="absolute -bottom-1 right-3 h-2 w-2 rotate-45 bg-grey-900" />
+                </div>
+              </div>
+            )}
+          </div>
         )}
       </div>
 

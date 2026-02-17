@@ -1,5 +1,6 @@
 "use client";
 
+import { DecoratedButton } from "@/components/DecoratedButton";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { getGraphQLErrorCode } from "@/lib/errors";
@@ -25,6 +26,9 @@ export const SelfManagedRegistrationPage = () => {
 
   const [rpId, setRpId] = useState<string | null>(null);
   const [registrationAttempted, setRegistrationAttempted] = useState(false);
+  const [registrationError, setRegistrationError] = useState<string | null>(
+    null,
+  );
   const [registerRp, { loading }] = useRegisterRpMutation();
 
   useEffect(() => {
@@ -34,6 +38,7 @@ export const SelfManagedRegistrationPage = () => {
       return;
     }
 
+    setRegistrationError(null);
     setRegistrationAttempted(true);
 
     const register = async () => {
@@ -54,14 +59,7 @@ export const SelfManagedRegistrationPage = () => {
         if (!isMounted) return;
 
         if (!data?.register_rp?.rp_id) {
-          toast.error("Failed to create registration record");
-          router.push(
-            urls.enableWorldId40({
-              team_id: teamId,
-              app_id: appId,
-              next: nextParam ?? undefined,
-            }),
-          );
+          setRegistrationError("Unable to create registration record.");
           return;
         }
 
@@ -77,14 +75,7 @@ export const SelfManagedRegistrationPage = () => {
           return;
         }
 
-        toast.error("Failed to create registration record");
-        router.push(
-          urls.enableWorldId40({
-            team_id: teamId,
-            app_id: appId,
-            next: nextParam ?? undefined,
-          }),
-        );
+        setRegistrationError("Unable to create registration record.");
       }
     };
 
@@ -93,15 +84,12 @@ export const SelfManagedRegistrationPage = () => {
     return () => {
       isMounted = false;
     };
-  }, [
-    appId,
-    nextParam,
-    registerRp,
-    router,
-    rpId,
-    teamId,
-    registrationAttempted,
-  ]);
+  }, [appId, registerRp, router, rpId, teamId, registrationAttempted]);
+
+  const onRetry = useCallback(() => {
+    setRegistrationError(null);
+    setRegistrationAttempted(false);
+  }, []);
 
   const onBack = useCallback(() => {
     router.push(
@@ -119,6 +107,40 @@ export const SelfManagedRegistrationPage = () => {
   }, [teamId, appId, router]);
 
   if (!rpId || loading) {
+    if (registrationError && !loading) {
+      return (
+        <SizingWrapper gridClassName="grow flex justify-center items-center pb-10 pt-10">
+          <div className="grid w-full max-w-[580px] gap-y-6">
+            <Typography variant={TYPOGRAPHY.H6}>
+              Unable to create registration
+            </Typography>
+            <Typography
+              variant={TYPOGRAPHY.R3}
+              className="text-system-error-500"
+            >
+              {registrationError}
+            </Typography>
+            <div className="flex justify-end gap-x-3">
+              <DecoratedButton
+                type="button"
+                variant="secondary"
+                onClick={onBack}
+              >
+                Back
+              </DecoratedButton>
+              <DecoratedButton
+                type="button"
+                variant="primary"
+                onClick={onRetry}
+              >
+                Retry
+              </DecoratedButton>
+            </div>
+          </div>
+        </SizingWrapper>
+      );
+    }
+
     return (
       <SizingWrapper gridClassName="grow flex justify-center items-center pb-10 pt-10">
         <Typography variant={TYPOGRAPHY.R3}>

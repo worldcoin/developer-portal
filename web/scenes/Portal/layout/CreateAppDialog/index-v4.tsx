@@ -142,17 +142,32 @@ export const CreateAppDialogV4 = ({
         engine: values.verification,
       });
 
+      setWorldIdMode("managed");
+      setSignerKeySetup("generate");
+      setRpId(null);
       setCreatedAppId(latestApp?.id ?? null);
       setStep("enable-world-id-4-0");
       reset(defaultValues);
     },
-    [defaultValues, refetchApps, reset, teamId, setCreatedAppId, setStep],
+    [
+      defaultValues,
+      refetchApps,
+      reset,
+      teamId,
+      setCreatedAppId,
+      setRpId,
+      setSignerKeySetup,
+      setStep,
+      setWorldIdMode,
+    ],
   );
 
   const onClose = useCallback(() => {
     reset(defaultValues);
     setStep(initialStep);
     setCreatedAppId(existingAppId ?? null);
+    setWorldIdMode("managed");
+    setSignerKeySetup("generate");
     setRpId(null);
     props.onClose(false);
   }, [defaultValues, props, reset, initialStep, existingAppId]);
@@ -162,6 +177,11 @@ export const CreateAppDialogV4 = ({
       setWorldIdMode(mode);
 
       if (mode === "self-managed") {
+        if (rpId) {
+          setStep("self-managed-transaction");
+          return;
+        }
+
         if (!teamId || !createdAppId) {
           toast.error(
             "Failed to complete app setup. Please close this dialog and try again from your team's apps page.",
@@ -200,7 +220,6 @@ export const CreateAppDialogV4 = ({
 
           if (code === "already_registered") {
             toast.info("Registration already exists for this app");
-            setRpId(null);
             setStep("enable-world-id-4-0");
             return;
           }
@@ -212,7 +231,7 @@ export const CreateAppDialogV4 = ({
 
       setStep("configure-signer-key");
     },
-    [teamId, createdAppId, registerRp, registeringRp, setStep],
+    [teamId, createdAppId, registerRp, registeringRp, rpId, setStep],
   );
 
   const onConfigureBack = useCallback(() => {
@@ -373,6 +392,11 @@ export const CreateAppDialogV4 = ({
               <EnableWorldId40Content
                 onContinue={onEnableContinue}
                 isSelfManagedEnabled={isSelfManagedEnabled}
+                initialMode={worldIdMode}
+                isManagedEnabled={!rpId}
+                managedDisabledReason={
+                  rpId ? "RP already registered for this app." : undefined
+                }
                 loading={registeringRp}
                 className="justify-self-center py-10"
               />
@@ -389,8 +413,8 @@ export const CreateAppDialogV4 = ({
                   <SelfManagedTransactionInfoContent
                     appId={createdAppId}
                     rpId={rpId}
+                    title="Self-Managed"
                     onBack={() => {
-                      setRpId(null);
                       setStep("enable-world-id-4-0");
                     }}
                     onComplete={() => {
