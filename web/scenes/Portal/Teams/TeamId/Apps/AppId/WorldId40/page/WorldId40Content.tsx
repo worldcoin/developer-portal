@@ -244,7 +244,7 @@ export const WorldId40Content = ({
               <DecoratedButton
                 type="button"
                 variant="secondary"
-                disabled={!isActive}
+                disabled={!isActive || mode === "self_managed"}
                 className="h-8 rounded-full px-4 py-0 text-xs"
                 onClick={() => setIsRotateDialogOpen(true)}
               >
