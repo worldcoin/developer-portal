@@ -113,6 +113,7 @@ describe("/api/public/app/[app_id]", () => {
           "This is an example app designed to showcase the capabilities of our platform.",
         avg_notification_open_rate: null,
         deleted_at: null,
+        can_use_implicit_credentials: false,
       },
     });
   });
@@ -215,6 +216,7 @@ describe("/api/public/app/[app_id]", () => {
           "This is an example app designed to showcase the capabilities of our platform.",
         avg_notification_open_rate: null,
         deleted_at: null,
+        can_use_implicit_credentials: false,
       },
     });
   });
@@ -316,6 +318,7 @@ describe("/api/public/app/[app_id]", () => {
           "This is an example app designed to showcase the capabilities of our platform.",
         avg_notification_open_rate: null,
         deleted_at: null,
+        can_use_implicit_credentials: false,
       },
     });
   });

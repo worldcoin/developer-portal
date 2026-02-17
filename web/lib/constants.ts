@@ -208,6 +208,7 @@ export const APP_STORE_FORMATTED_DEFAULTS: AppStoreFormattedFields = {
   description: { overview: "", how_it_works: "", how_to_connect: "" },
   avg_notification_open_rate: null,
   deleted_at: null,
+  can_use_implicit_credentials: false,
 };
 
 // App store metadata isn't used. This is defined on the client side
