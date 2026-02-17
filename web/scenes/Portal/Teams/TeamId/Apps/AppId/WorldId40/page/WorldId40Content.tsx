@@ -6,6 +6,7 @@ import { SizingWrapper } from "@/components/SizingWrapper";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import clsx from "clsx";
 import { RotateSignerKeyDialog } from "./RotateSignerKeyDialog";
 import { SwitchToSelfManagedDialog } from "./SwitchToSelfManagedDialog";
 
@@ -274,7 +275,19 @@ export const WorldId40Content = ({
                 type="button"
                 variant="danger"
                 disabled={!isActive || mode === "self_managed"}
-                className="h-8 shrink-0 rounded-full bg-danger px-4 text-[13px] font-semibold text-white hover:bg-system-error-700"
+                className={clsx(
+                  "h-8 shrink-0 rounded-full px-4 text-[13px] font-semibold",
+                  !isActive || mode === "self_managed"
+                    ? "" // Let DecoratedButton handle disabled styles
+                    : "bg-danger text-white hover:bg-system-error-700",
+                )}
+                title={
+                  mode === "self_managed"
+                    ? "Already in self-managed mode"
+                    : !isActive
+                      ? "RP must be active to switch modes"
+                      : undefined
+                }
                 onClick={() => setIsSwitchDialogOpen(true)}
               >
                 Switch
