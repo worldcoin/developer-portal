@@ -27,7 +27,11 @@ function isOnboardingPath(
   const selfManagedPath = urls
     .selfManagedRegistration({ team_id: params.teamId, app_id: params.appId })
     .split("?")[0];
-  return pathname === enablePath || pathname === configurePath || pathname === selfManagedPath;
+  return (
+    pathname === enablePath ||
+    pathname === configurePath ||
+    pathname === selfManagedPath
+  );
 }
 
 type AppIdChromeProps = {
