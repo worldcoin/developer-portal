@@ -119,22 +119,7 @@ export const POST = async (req: NextRequest) => {
   const teamId = registration.app.team_id;
   const oldSignerAddress = registration.signer_address || "";
 
-  // Check if team is enabled for World ID 4.0
-  const enabledTeams = await global.ParameterStore?.getParameter<string[]>(
-    "world-id-4-0/enabled-teams",
-    [],
-  );
-
-  if (!enabledTeams?.includes(teamId)) {
-    return errorHasuraQuery({
-      req,
-      detail: "World ID 4.0 is not enabled for this team.",
-      code: "feature_not_enabled",
-      app_id,
-    });
-  }
-
-  // STEP 2: Verify user has permission (ADMIN or OWNER)
+  // STEP 2: Verify user has permission (ADMIN or OWNER) before revealing feature state
   const { team } = await getCheckUserSdk(client).CheckUserInApp({
     team_id: teamId,
     app_id,
@@ -146,6 +131,21 @@ export const POST = async (req: NextRequest) => {
       req,
       detail: "User does not have permission to rotate signer key.",
       code: "unauthorized",
+      app_id,
+    });
+  }
+
+  // Check if team is enabled for World ID 4.0
+  const enabledTeams = await global.ParameterStore?.getParameter<string[]>(
+    "world-id-4-0/enabled-teams",
+    [],
+  );
+
+  if (!enabledTeams?.includes(teamId)) {
+    return errorHasuraQuery({
+      req,
+      detail: "World ID 4.0 is not enabled for this team.",
+      code: "feature_not_enabled",
       app_id,
     });
   }
