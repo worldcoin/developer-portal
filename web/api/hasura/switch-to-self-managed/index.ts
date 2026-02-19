@@ -263,6 +263,7 @@ export const POST = async (req: NextRequest) => {
         "Failed to update registration record after manager transfer",
         { app_id, rpIdString, operationHash },
       );
+      await revertStatus();
       return errorHasuraQuery({
         req,
         detail: "Failed to update registration record.",
