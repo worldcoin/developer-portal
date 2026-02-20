@@ -88,6 +88,7 @@ export async function validateAndUpdateSetupServerSide(
       permit2_tokens,
       whitelisted_addresses,
       can_import_all_contacts: parsedInitialValues.can_import_all_contacts,
+      can_use_attestation: parsedInitialValues.can_use_attestation,
       is_allowed_unlimited_notifications,
       max_notifications_per_day,
     });

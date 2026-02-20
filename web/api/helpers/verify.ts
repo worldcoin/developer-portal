@@ -323,7 +323,7 @@ export const canVerifyForAction = (
   return nullifier.uses < max_verifications_per_person;
 };
 
-const normalizeNullifierHash = (nullifierHash: string): string => {
+export const normalizeNullifierHash = (nullifierHash: string): string => {
   const normalized = nullifierHash.toLowerCase().trim().replace(/^0x/, "");
 
   return `0x${normalized}`;

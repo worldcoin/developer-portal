@@ -211,6 +211,7 @@ export type AppStoreMetadataFields = {
   contracts?: string[] | null;
   permit2_tokens?: string[] | null;
   can_import_all_contacts?: boolean | null;
+  can_use_attestation?: boolean | null;
   verification_status: string;
   is_allowed_unlimited_notifications?: boolean | null;
   max_notifications_per_day?: number | null;
@@ -256,6 +257,7 @@ export type AppStoreFormattedFields = Omit<
   draft_id?: string;
   avg_notification_open_rate: number | null;
   deleted_at?: string | null;
+  can_use_implicit_credentials: boolean;
 };
 
 type NativeApp = {

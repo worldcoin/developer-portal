@@ -1,4 +1,5 @@
 import { appNameSchema } from "@/lib/schema";
+import { EngineType } from "@/lib/types";
 import * as yup from "yup";
 
 export const schema = yup
@@ -11,6 +12,10 @@ export const schema = yup
         message: "Link must be a valid HTTPS URL",
         excludeEmptyString: true,
       })
+      .required("This field is required"),
+    engine: yup
+      .string()
+      .oneOf([EngineType.OnChain, EngineType.Cloud], "Invalid engine")
       .required("This field is required"),
   })
   .noUnknown();

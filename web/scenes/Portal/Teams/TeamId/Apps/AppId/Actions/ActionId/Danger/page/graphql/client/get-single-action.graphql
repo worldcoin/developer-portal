@@ -3,5 +3,11 @@ query GetSingleAction($action_id: String!) {
     id
     name
     app_id
+    app {
+      id
+      rp_registration {
+        rp_id
+      }
+    }
   }
 }

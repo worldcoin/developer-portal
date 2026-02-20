@@ -5,13 +5,15 @@ query GetActionsV4($app_id: String!) {
     }
   }
   action_v4(
-    where: { rp_registration: { app: { id: { _eq: $app_id } } } }
+    where: {
+      rp_registration: { app: { id: { _eq: $app_id } } }
+      environment: { _eq: "production" }
+    }
     order_by: { created_at: desc }
   ) {
     id
     action
     description
-    environment
     created_at
     nullifiers_aggregate {
       aggregate {

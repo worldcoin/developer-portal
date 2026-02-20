@@ -166,6 +166,17 @@ export const POST = async (req: NextRequest) => {
 
   const managerKmsKeyId = dbRecord.manager_kms_key_id;
   const signerAddress = dbRecord.signer_address;
+
+  if (!signerAddress) {
+    return errorHasuraQuery({
+      req,
+      detail: "Signer address is missing for this managed RP.",
+      code: "missing_signer",
+      app_id: appId,
+      team_id: teamId,
+    });
+  }
+
   const appName = dbRecord.app?.app_metadata?.[0]?.name || "";
   const numericRpId = parseRpId(rpId);
 

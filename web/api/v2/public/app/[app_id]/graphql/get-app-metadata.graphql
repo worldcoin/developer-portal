@@ -27,6 +27,7 @@ query GetAppMetadata($app_id: String!, $locale: String!) {
     contracts
     permit2_tokens
     can_import_all_contacts
+    can_use_attestation
     is_reviewer_world_app_approved
     is_reviewer_app_store_approved
     verification_status

@@ -5,7 +5,8 @@ import { getKMSClient, scheduleKeyDeletion } from "@/api/helpers/kms";
 import { createManagerKey } from "@/api/helpers/kms-eth";
 import {
   generateRpIdString,
-  getTargetConfigs,
+  getRpRegistryConfig,
+  getStagingRpRegistryConfig,
   normalizeAddress,
   parseRpId,
   RpRegistrationStatus,
@@ -28,16 +29,27 @@ import { getSdk as getUpdateRpSdk } from "./graphql/update-rp-registration.gener
 const schema = yup
   .object({
     app_id: yup.string().strict().required(),
+    mode: yup
+      .string()
+      .strict()
+      .oneOf(["managed", "self_managed"])
+      .default("managed"),
     signer_address: yup
       .string()
       .strict()
-      .required()
+      .nullable()
       .transform((value) => (value ? normalizeAddress(value) : value))
-      .test(
-        "is-address",
-        "Invalid signer key. Must be 40 hex characters (0x followed by 40 characters)",
-        (value) => (value ? isAddress(value) : false),
-      ),
+      .when("mode", {
+        is: "managed",
+        then: (s) =>
+          s
+            .required("signer_address is required for managed mode")
+            .test(
+              "is-address",
+              "Invalid signer key. Must be 40 hex characters (0x followed by 40 characters)",
+              (value) => (value ? isAddress(value) : false),
+            ),
+      }),
   })
   .noUnknown();
 
@@ -89,19 +101,8 @@ export const POST = async (req: NextRequest) => {
     });
   }
 
-  const { app_id, signer_address } = parsedParams;
-
-  const configs = getTargetConfigs();
-  if (configs.length === 0) {
-    return errorHasuraQuery({
-      req,
-      detail: "Missing required environment variables for RP Registry.",
-      code: "config_error",
-    });
-  }
-
-  // Primary config is always the first one (production contract when in prod deployment)
-  const primaryConfig = configs[0];
+  const { app_id, mode: rawMode, signer_address } = parsedParams;
+  const mode = rawMode ?? "managed";
 
   const client = await getAPIServiceGraphqlClient();
 
@@ -159,8 +160,8 @@ export const POST = async (req: NextRequest) => {
   ).ClaimRpRegistration({
     rp_id: rpIdString,
     app_id,
-    mode: "managed",
-    signer_address,
+    mode: mode as "managed" | "self_managed",
+    signer_address: mode === "self_managed" ? null : signer_address ?? null,
   });
 
   // Another registration already exists for this app
@@ -170,6 +171,34 @@ export const POST = async (req: NextRequest) => {
       detail: "Registration already in progress or completed for this app.",
       code: "already_registered",
       app_id,
+    });
+  }
+
+  // Self-managed: just create the DB record, no KMS or transactions
+  if (mode === "self_managed") {
+    logger.info("Self-managed RP registration created", {
+      app_id,
+      rpIdString,
+    });
+
+    return NextResponse.json({
+      rp_id: rpIdString,
+      manager_address: null,
+      signer_address: null,
+      status: RpRegistrationStatus.Pending,
+      operation_hash: null,
+    });
+  }
+
+  // --- Managed mode: create KMS key and submit on-chain transactions ---
+
+  const primaryConfig = getRpRegistryConfig();
+  if (!primaryConfig) {
+    await getDeleteRpSdk(client).DeleteRpRegistration({ rp_id: rpIdString });
+    return errorHasuraQuery({
+      req,
+      detail: "Missing required environment variables for RP Registry.",
+      code: "config_error",
     });
   }
 
@@ -194,63 +223,62 @@ export const POST = async (req: NextRequest) => {
   // Get the domain (app name)
   const appName = appInfo.app_metadata?.[0]?.name || "";
 
-  // STEP 3: Submit registration to all target contracts
-  // In production deployment: submits to both production and staging contracts
-  // In staging deployment: submits only to staging contract
-  let primaryOperationHash: string | undefined;
+  // STEP 3a: Submit primary registration (required)
+  let operationHash: string;
 
-  for (let i = 0; i < configs.length; i++) {
-    const config = configs[i];
-    const isPrimary = i === 0;
+  try {
+    operationHash = await submitRegisterRpTransaction(primaryConfig, {
+      rpId,
+      managerAddress,
+      signerAddress: signer_address!,
+      appName,
+      kmsClient,
+    });
+  } catch (error) {
+    logger.error("Failed to submit registration transaction", {
+      error,
+      app_id,
+    });
+    await scheduleKeyDeletion(kmsClient, managerKmsKeyId);
+    await getDeleteRpSdk(client).DeleteRpRegistration({
+      rp_id: rpIdString,
+    });
+    return errorHasuraQuery({
+      req,
+      detail: "Failed to submit registration transaction.",
+      code: "submission_error",
+      app_id,
+    });
+  }
 
-    try {
-      const operationHash = await submitRegisterRpTransaction(config, {
-        rpId,
-        managerAddress,
-        signerAddress: signer_address,
-        appName,
-        kmsClient,
-      });
-
-      if (isPrimary) {
-        primaryOperationHash = operationHash;
-      } else {
+  // STEP 3b: Duplicate to staging contract (best-effort, production only)
+  if (process.env.NEXT_PUBLIC_APP_ENV === "production") {
+    const stagingConfig = getStagingRpRegistryConfig();
+    if (stagingConfig) {
+      try {
+        const stagingHash = await submitRegisterRpTransaction(stagingConfig, {
+          rpId,
+          managerAddress,
+          signerAddress: signer_address!,
+          appName,
+          kmsClient,
+        });
         logger.info("Staging registration submitted", {
           rpIdString,
-          operationHash,
-          contractAddress: config.contractAddress,
+          operationHash: stagingHash,
+          contractAddress: stagingConfig.contractAddress,
         });
-      }
-    } catch (error) {
-      if (isPrimary) {
-        // Primary (production) failed - cleanup and return error
-        logger.error("Failed to submit registration transaction", {
+      } catch (error) {
+        logger.error("Staging registration failed", {
           error,
-          app_id,
-        });
-        await scheduleKeyDeletion(kmsClient, managerKmsKeyId);
-        await getDeleteRpSdk(client).DeleteRpRegistration({
-          rp_id: rpIdString,
-        });
-        return errorHasuraQuery({
-          req,
-          detail: "Failed to submit registration transaction.",
-          code: "submission_error",
-          app_id,
+          rpIdString,
+          contractAddress: stagingConfig.contractAddress,
         });
       }
-      // Staging failed - log and continue (fire-and-forget)
-      logger.error("Staging registration failed", {
-        error,
-        rpIdString,
-        contractAddress: config.contractAddress,
-      });
     }
   }
 
-  const operationHash = primaryOperationHash!;
-
-  // STEP 5: Update the registration with KMS key ID and operation hash
+  // STEP 4: Update the registration with KMS key ID and operation hash
   const { update_rp_registration_by_pk: updatedRegistration } =
     await getUpdateRpSdk(client).UpdateRpRegistration({
       rp_id: rpIdString,

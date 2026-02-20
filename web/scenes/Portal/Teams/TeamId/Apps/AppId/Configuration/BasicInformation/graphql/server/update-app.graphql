@@ -1,11 +1,16 @@
 mutation UpdateAppInfo(
   $app_metadata_id: String!
+  $app_id: String!
   $input: app_metadata_set_input
+  $engine: String!
 ) {
   update_app_metadata_by_pk(
     pk_columns: { id: $app_metadata_id }
     _set: $input
   ) {
+    id
+  }
+  update_app_by_pk(pk_columns: { id: $app_id }, _set: { engine: $engine }) {
     id
   }
 }

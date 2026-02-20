@@ -18,6 +18,9 @@ query GetSingleAction($action_id: String!) {
       app_metadata {
         app_mode
       }
+      rp_registration {
+        rp_id
+      }
     }
   }
 }

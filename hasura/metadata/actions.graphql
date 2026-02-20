@@ -41,6 +41,7 @@ type Query {
   get_app_review_images(
     app_id: String!
     locale: String
+    verification_status: String
   ): ImageGetAppReviewImagesOutput
 }
 
@@ -68,15 +69,9 @@ type Mutation {
 type Mutation {
   register_rp(
     app_id: String!
-    signer_address: String!
+    mode: String
+    signer_address: String
   ): RegisterRpOutput
-}
-
-type Mutation {
-  rotate_signer_key(
-    app_id: String!
-    new_signer_address: String!
-  ): RotateSignerKeyOutput
 }
 
 type Mutation {
@@ -98,6 +93,26 @@ type Mutation {
     app_id: String!
     team_id: String!
   ): ResetClientOutput
+}
+
+type Mutation {
+  rotate_signer_key(
+    app_id: String!
+    new_signer_address: String!
+  ): RotateSignerKeyOutput
+}
+
+type Mutation {
+  switch_to_self_managed(
+    app_id: String!
+    new_manager_address: String!
+  ): SwitchToSelfManagedOutput
+}
+
+type Mutation {
+  toggle_rp_active(
+    app_id: String!
+  ): ToggleRpActiveOutput
 }
 
 type Mutation {
@@ -346,10 +361,10 @@ type ChangeAppReportStatusOutput {
 
 type RegisterRpOutput {
   rp_id: String!
-  manager_address: String!
-  signer_address: String!
+  manager_address: String
+  signer_address: String
   status: String!
-  operation_hash: String!
+  operation_hash: String
 }
 
 type RotateSignerKeyOutput {
@@ -363,5 +378,17 @@ type RotateSignerKeyOutput {
 type RetryRpOutput {
   success: Boolean!
   environment: String!
+  operation_hash: String
+}
+
+type SwitchToSelfManagedOutput {
+  rp_id: String!
+  status: String!
+  operation_hash: String
+}
+
+type ToggleRpActiveOutput {
+  rp_id: String!
+  status: String!
   operation_hash: String
 }

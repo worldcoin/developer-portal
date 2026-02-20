@@ -37,6 +37,7 @@ export const FACE_SEQUENCER_STAGING =
 // ANCHOR: OIDC Base URL
 export const OIDC_BASE_URL = "https://id.worldcoin.org";
 export const DOCS_URL = "https://docs.world.org";
+export const DOCS_CLOUD_URL = "https://docs.world.org/id/cloud";
 
 // ANCHOR: JWKs
 export const JWK_TIME_TO_LIVE = 30; // days; duration before a JWK is rotated
@@ -192,6 +193,7 @@ export const APP_STORE_FORMATTED_DEFAULTS: AppStoreFormattedFields = {
   contracts: [] as string[],
   permit2_tokens: [] as string[],
   can_import_all_contacts: null,
+  can_use_attestation: null,
   verification_status: "",
   is_allowed_unlimited_notifications: false,
   max_notifications_per_day: null,
@@ -206,6 +208,7 @@ export const APP_STORE_FORMATTED_DEFAULTS: AppStoreFormattedFields = {
   description: { overview: "", how_it_works: "", how_to_connect: "" },
   avg_notification_open_rate: null,
   deleted_at: null,
+  can_use_implicit_credentials: false,
 };
 
 // App store metadata isn't used. This is defined on the client side

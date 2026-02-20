@@ -4,20 +4,26 @@ import * as Types from "@/graphql/graphql";
 import { GraphQLClient, RequestOptions } from "graphql-request";
 import gql from "graphql-tag";
 type GraphQLClientRequestHeaders = RequestOptions["requestHeaders"];
-export type FetchAppEnvQueryVariables = Types.Exact<{
-  id: Types.Scalars["String"]["input"];
+export type GetSingleActionV4QueryVariables = Types.Exact<{
+  action_id: Types.Scalars["String"]["input"];
 }>;
 
-export type FetchAppEnvQuery = {
+export type GetSingleActionV4Query = {
   __typename?: "query_root";
-  app: Array<{ __typename?: "app"; id: string; engine: string }>;
+  action_v4_by_pk?: {
+    __typename?: "action_v4";
+    id: string;
+    action: string;
+    environment: unknown;
+  } | null;
 };
 
-export const FetchAppEnvDocument = gql`
-  query FetchAppEnv($id: String!) {
-    app(where: { id: { _eq: $id } }) {
+export const GetSingleActionV4Document = gql`
+  query GetSingleActionV4($action_id: String!) {
+    action_v4_by_pk(id: $action_id) {
       id
-      engine
+      action
+      environment
     }
   }
 `;
@@ -41,17 +47,18 @@ export function getSdk(
   withWrapper: SdkFunctionWrapper = defaultWrapper,
 ) {
   return {
-    FetchAppEnv(
-      variables: FetchAppEnvQueryVariables,
+    GetSingleActionV4(
+      variables: GetSingleActionV4QueryVariables,
       requestHeaders?: GraphQLClientRequestHeaders,
-    ): Promise<FetchAppEnvQuery> {
+    ): Promise<GetSingleActionV4Query> {
       return withWrapper(
         (wrappedRequestHeaders) =>
-          client.request<FetchAppEnvQuery>(FetchAppEnvDocument, variables, {
-            ...requestHeaders,
-            ...wrappedRequestHeaders,
-          }),
-        "FetchAppEnv",
+          client.request<GetSingleActionV4Query>(
+            GetSingleActionV4Document,
+            variables,
+            { ...requestHeaders, ...wrappedRequestHeaders },
+          ),
+        "GetSingleActionV4",
         "query",
         variables,
       );

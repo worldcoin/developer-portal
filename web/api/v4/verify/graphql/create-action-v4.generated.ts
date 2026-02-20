@@ -39,7 +39,7 @@ export const CreateActionV4Document = gql`
         environment: $environment
       }
       on_conflict: {
-        constraint: action_v4_rp_id_action_key
+        constraint: action_v4_rp_id_action_environment_key
         update_columns: []
       }
     ) {

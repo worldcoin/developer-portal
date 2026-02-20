@@ -43,21 +43,6 @@ export async function handleSessionProofVerification(
   // Get verifier address based on requested environment (defaults to production)
   const requestedEnvironment = parsedParams.environment ?? "production";
 
-  if (
-    requestedEnvironment === "staging" &&
-    !process.env.VERIFIER_CONTRACT_ADDRESS_STAGING
-  ) {
-    return NextResponse.json<SessionProofErrorResponse>(
-      {
-        success: false,
-        code: "environment_not_configured",
-        detail:
-          "The staging environment is not configured. Use production or omit the environment field.",
-      },
-      { status: 400 },
-    );
-  }
-
   const verifierAddress =
     requestedEnvironment === "staging"
       ? process.env.VERIFIER_CONTRACT_ADDRESS_STAGING
@@ -70,7 +55,7 @@ export async function handleSessionProofVerification(
         code: "configuration_error",
         detail: `Verifier contract address not configured for ${requestedEnvironment} environment.`,
       },
-      { status: 500 },
+      { status: 400 },
     );
   }
 

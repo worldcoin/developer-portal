@@ -14,6 +14,8 @@ import {
 import {
   ADDRESS_ZERO,
   buildRegisterRpCalldata,
+  buildToggleRpActiveCalldata,
+  buildUpdateRpManagerCalldata,
   buildUpdateRpSignerCalldata,
   buildUserOperation,
   encodeSafeUserOpCalldata,
@@ -188,6 +190,190 @@ export async function submitRotateSignerTransaction(
   });
 
   // Submit to temporal bundler
+  const result = await sendUserOperation(userOp, config.entryPointAddress);
+  return result.operationHash;
+}
+
+/**
+ * Builds, signs, and submits a manager transfer transaction for a given config.
+ * Used when switching from managed to self-managed mode.
+ * Returns the operation hash on success.
+ */
+export async function submitTransferManagerTransaction(
+  config: RpRegistryConfig,
+  params: {
+    rpId: bigint;
+    newManagerAddress: string;
+    managerKmsKeyId: string;
+    kmsClient: KMSClient;
+  },
+): Promise<string> {
+  const contractNonce = await getRpNonceFromContract(
+    params.rpId,
+    config.contractAddress,
+  );
+
+  const updateRpHash = hashUpdateRpTypedData(
+    {
+      rpId: params.rpId,
+      oprfKeyId: 0n,
+      manager: params.newManagerAddress,
+      signer: ADDRESS_ZERO,
+      toggleActive: false,
+      unverifiedWellKnownDomain: RP_NO_UPDATE_DOMAIN,
+      nonce: contractNonce,
+    },
+    config.domainSeparator,
+    config.updateRpTypehash,
+  );
+
+  const managerSignature = await signEthDigestWithKms(
+    params.kmsClient,
+    params.managerKmsKeyId,
+    getBytes(updateRpHash),
+  );
+
+  if (!managerSignature) {
+    throw new Error("Failed to sign with manager key");
+  }
+
+  const innerCalldata = buildUpdateRpManagerCalldata(
+    params.rpId,
+    params.newManagerAddress,
+    contractNonce,
+    managerSignature.serialized,
+  );
+
+  const safeCalldata = encodeSafeUserOpCalldata(
+    config.contractAddress,
+    0n,
+    innerCalldata,
+  );
+
+  const nonce = getUpdateRpNonce(params.rpId);
+  const { validAfter, validUntil } = getTxExpiration();
+
+  const userOp = buildUserOperation(
+    config.safeAddress,
+    safeCalldata,
+    nonce,
+    validAfter,
+    validUntil,
+  );
+
+  const safeOpHash = hashSafeUserOp(
+    userOp,
+    WORLD_CHAIN_ID,
+    config.safe4337ModuleAddress,
+    config.entryPointAddress,
+  );
+
+  const safeOwnerSignature = await signEthDigestWithKms(
+    params.kmsClient,
+    config.safeOwnerKmsKeyId,
+    getBytes(safeOpHash),
+  );
+
+  if (!safeOwnerSignature) {
+    throw new Error("Failed to sign transaction");
+  }
+
+  userOp.signature = replacePlaceholderWithSignature({
+    placeholderSig: userOp.signature,
+    signature: safeOwnerSignature.serialized,
+  });
+
+  const result = await sendUserOperation(userOp, config.entryPointAddress);
+  return result.operationHash;
+}
+
+/**
+ * Builds, signs, and submits a toggleActive transaction for a given config.
+ * Used to activate or deactivate a managed RP on-chain.
+ * Returns the operation hash on success.
+ */
+export async function submitToggleRpActiveTransaction(
+  config: RpRegistryConfig,
+  params: {
+    rpId: bigint;
+    managerKmsKeyId: string;
+    kmsClient: KMSClient;
+  },
+): Promise<string> {
+  const contractNonce = await getRpNonceFromContract(
+    params.rpId,
+    config.contractAddress,
+  );
+
+  const updateRpHash = hashUpdateRpTypedData(
+    {
+      rpId: params.rpId,
+      oprfKeyId: 0n,
+      manager: ADDRESS_ZERO,
+      signer: ADDRESS_ZERO,
+      toggleActive: true,
+      unverifiedWellKnownDomain: RP_NO_UPDATE_DOMAIN,
+      nonce: contractNonce,
+    },
+    config.domainSeparator,
+    config.updateRpTypehash,
+  );
+
+  const managerSignature = await signEthDigestWithKms(
+    params.kmsClient,
+    params.managerKmsKeyId,
+    getBytes(updateRpHash),
+  );
+
+  if (!managerSignature) {
+    throw new Error("Failed to sign with manager key");
+  }
+
+  const innerCalldata = buildToggleRpActiveCalldata(
+    params.rpId,
+    contractNonce,
+    managerSignature.serialized,
+  );
+
+  const safeCalldata = encodeSafeUserOpCalldata(
+    config.contractAddress,
+    0n,
+    innerCalldata,
+  );
+
+  const nonce = getUpdateRpNonce(params.rpId);
+  const { validAfter, validUntil } = getTxExpiration();
+
+  const userOp = buildUserOperation(
+    config.safeAddress,
+    safeCalldata,
+    nonce,
+    validAfter,
+    validUntil,
+  );
+
+  const safeOpHash = hashSafeUserOp(
+    userOp,
+    WORLD_CHAIN_ID,
+    config.safe4337ModuleAddress,
+    config.entryPointAddress,
+  );
+
+  const safeOwnerSignature = await signEthDigestWithKms(
+    params.kmsClient,
+    config.safeOwnerKmsKeyId,
+    getBytes(safeOpHash),
+  );
+
+  if (!safeOwnerSignature) {
+    throw new Error("Failed to sign transaction");
+  }
+
+  userOp.signature = replacePlaceholderWithSignature({
+    placeholderSig: userOp.signature,
+    signature: safeOwnerSignature.serialized,
+  });
+
   const result = await sendUserOperation(userOp, config.entryPointAddress);
   return result.operationHash;
 }

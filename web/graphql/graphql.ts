@@ -179,10 +179,10 @@ export enum PurposeEnum {
 
 export type RegisterRpOutput = {
   __typename?: "RegisterRpOutput";
-  manager_address: Scalars["String"]["output"];
-  operation_hash: Scalars["String"]["output"];
+  manager_address?: Maybe<Scalars["String"]["output"]>;
+  operation_hash?: Maybe<Scalars["String"]["output"]>;
   rp_id: Scalars["String"]["output"];
-  signer_address: Scalars["String"]["output"];
+  signer_address?: Maybe<Scalars["String"]["output"]>;
   status: Scalars["String"]["output"];
 };
 
@@ -262,6 +262,20 @@ export type String_Comparison_Exp = {
   _regex?: InputMaybe<Scalars["String"]["input"]>;
   /** does the column match the given SQL regular expression */
   _similar?: InputMaybe<Scalars["String"]["input"]>;
+};
+
+export type SwitchToSelfManagedOutput = {
+  __typename?: "SwitchToSelfManagedOutput";
+  operation_hash?: Maybe<Scalars["String"]["output"]>;
+  rp_id: Scalars["String"]["output"];
+  status: Scalars["String"]["output"];
+};
+
+export type ToggleRpActiveOutput = {
+  __typename?: "ToggleRpActiveOutput";
+  operation_hash?: Maybe<Scalars["String"]["output"]>;
+  rp_id: Scalars["String"]["output"];
+  status: Scalars["String"]["output"];
 };
 
 export type UnbanAppOutput = {
@@ -1379,8 +1393,8 @@ export type Action_V4_Bool_Exp = {
 export enum Action_V4_Constraint {
   /** unique or primary key constraint on columns "id" */
   ActionV4Pkey = "action_v4_pkey",
-  /** unique or primary key constraint on columns "action", "rp_id" */
-  ActionV4RpIdActionKey = "action_v4_rp_id_action_key",
+  /** unique or primary key constraint on columns "environment", "action", "rp_id" */
+  ActionV4RpIdActionEnvironmentKey = "action_v4_rp_id_action_environment_key",
 }
 
 /** input type for inserting data into table "action_v4" */
@@ -2374,6 +2388,7 @@ export type App_Metadata = {
   app_website_url: Scalars["String"]["output"];
   associated_domains?: Maybe<Array<Scalars["String"]["output"]>>;
   can_import_all_contacts: Scalars["Boolean"]["output"];
+  can_use_attestation: Scalars["Boolean"]["output"];
   category: Scalars["String"]["output"];
   changelog?: Maybe<Scalars["String"]["output"]>;
   content_card_image_url: Scalars["String"]["output"];
@@ -2537,6 +2552,7 @@ export type App_Metadata_Bool_Exp = {
   app_website_url?: InputMaybe<String_Comparison_Exp>;
   associated_domains?: InputMaybe<String_Array_Comparison_Exp>;
   can_import_all_contacts?: InputMaybe<Boolean_Comparison_Exp>;
+  can_use_attestation?: InputMaybe<Boolean_Comparison_Exp>;
   category?: InputMaybe<String_Comparison_Exp>;
   changelog?: InputMaybe<String_Comparison_Exp>;
   content_card_image_url?: InputMaybe<String_Comparison_Exp>;
@@ -2598,6 +2614,7 @@ export type App_Metadata_Insert_Input = {
   app_website_url?: InputMaybe<Scalars["String"]["input"]>;
   associated_domains?: InputMaybe<Array<Scalars["String"]["input"]>>;
   can_import_all_contacts?: InputMaybe<Scalars["Boolean"]["input"]>;
+  can_use_attestation?: InputMaybe<Scalars["Boolean"]["input"]>;
   category?: InputMaybe<Scalars["String"]["input"]>;
   changelog?: InputMaybe<Scalars["String"]["input"]>;
   content_card_image_url?: InputMaybe<Scalars["String"]["input"]>;
@@ -2819,6 +2836,7 @@ export type App_Metadata_Order_By = {
   app_website_url?: InputMaybe<Order_By>;
   associated_domains?: InputMaybe<Order_By>;
   can_import_all_contacts?: InputMaybe<Order_By>;
+  can_use_attestation?: InputMaybe<Order_By>;
   category?: InputMaybe<Order_By>;
   changelog?: InputMaybe<Order_By>;
   content_card_image_url?: InputMaybe<Order_By>;
@@ -2875,6 +2893,8 @@ export enum App_Metadata_Select_Column {
   AssociatedDomains = "associated_domains",
   /** column name */
   CanImportAllContacts = "can_import_all_contacts",
+  /** column name */
+  CanUseAttestation = "can_use_attestation",
   /** column name */
   Category = "category",
   /** column name */
@@ -2954,6 +2974,8 @@ export enum App_Metadata_Select_Column_App_Metadata_Aggregate_Bool_Exp_Bool_And_
   /** column name */
   CanImportAllContacts = "can_import_all_contacts",
   /** column name */
+  CanUseAttestation = "can_use_attestation",
+  /** column name */
   IsAllowedUnlimitedNotifications = "is_allowed_unlimited_notifications",
   /** column name */
   IsAndroidOnly = "is_android_only",
@@ -2975,6 +2997,8 @@ export enum App_Metadata_Select_Column_App_Metadata_Aggregate_Bool_Exp_Bool_And_
 export enum App_Metadata_Select_Column_App_Metadata_Aggregate_Bool_Exp_Bool_Or_Arguments_Columns {
   /** column name */
   CanImportAllContacts = "can_import_all_contacts",
+  /** column name */
+  CanUseAttestation = "can_use_attestation",
   /** column name */
   IsAllowedUnlimitedNotifications = "is_allowed_unlimited_notifications",
   /** column name */
@@ -3000,6 +3024,7 @@ export type App_Metadata_Set_Input = {
   app_website_url?: InputMaybe<Scalars["String"]["input"]>;
   associated_domains?: InputMaybe<Array<Scalars["String"]["input"]>>;
   can_import_all_contacts?: InputMaybe<Scalars["Boolean"]["input"]>;
+  can_use_attestation?: InputMaybe<Scalars["Boolean"]["input"]>;
   category?: InputMaybe<Scalars["String"]["input"]>;
   changelog?: InputMaybe<Scalars["String"]["input"]>;
   content_card_image_url?: InputMaybe<Scalars["String"]["input"]>;
@@ -3092,6 +3117,7 @@ export type App_Metadata_Stream_Cursor_Value_Input = {
   app_website_url?: InputMaybe<Scalars["String"]["input"]>;
   associated_domains?: InputMaybe<Array<Scalars["String"]["input"]>>;
   can_import_all_contacts?: InputMaybe<Scalars["Boolean"]["input"]>;
+  can_use_attestation?: InputMaybe<Scalars["Boolean"]["input"]>;
   category?: InputMaybe<Scalars["String"]["input"]>;
   changelog?: InputMaybe<Scalars["String"]["input"]>;
   content_card_image_url?: InputMaybe<Scalars["String"]["input"]>;
@@ -3155,6 +3181,8 @@ export enum App_Metadata_Update_Column {
   AssociatedDomains = "associated_domains",
   /** column name */
   CanImportAllContacts = "can_import_all_contacts",
+  /** column name */
+  CanUseAttestation = "can_use_attestation",
   /** column name */
   Category = "category",
   /** column name */
@@ -6519,6 +6547,10 @@ export type Mutation_Root = {
   rollup_app_stats: Array<App_Stats>;
   /** Rotate the signer key for an RP (Relying Party) */
   rotate_signer_key?: Maybe<RotateSignerKeyOutput>;
+  /** Switch an RP from managed to self-managed mode by transferring the on-chain manager key */
+  switch_to_self_managed?: Maybe<SwitchToSelfManagedOutput>;
+  /** Activate or deactivate a managed RP on-chain */
+  toggle_rp_active?: Maybe<ToggleRpActiveOutput>;
   /** Unbans an app */
   unban_app?: Maybe<UnbanAppOutput>;
   /** update data of the table: "action" */
@@ -7370,7 +7402,8 @@ export type Mutation_RootInvite_Team_MembersArgs = {
 /** mutation root */
 export type Mutation_RootRegister_RpArgs = {
   app_id: Scalars["String"]["input"];
-  signer_address: Scalars["String"]["input"];
+  mode?: InputMaybe<Scalars["String"]["input"]>;
+  signer_address?: InputMaybe<Scalars["String"]["input"]>;
 };
 
 /** mutation root */
@@ -7399,6 +7432,17 @@ export type Mutation_RootRollup_App_StatsArgs = {
 export type Mutation_RootRotate_Signer_KeyArgs = {
   app_id: Scalars["String"]["input"];
   new_signer_address: Scalars["String"]["input"];
+};
+
+/** mutation root */
+export type Mutation_RootSwitch_To_Self_ManagedArgs = {
+  app_id: Scalars["String"]["input"];
+  new_manager_address: Scalars["String"]["input"];
+};
+
+/** mutation root */
+export type Mutation_RootToggle_Rp_ActiveArgs = {
+  app_id: Scalars["String"]["input"];
 };
 
 /** mutation root */
@@ -9300,7 +9344,7 @@ export type Query_Root = {
   /** fetch data from the table: "cache" using primary key columns */
   cache_by_pk?: Maybe<Cache>;
   get_all_unverified_images?: Maybe<ImageGetAllUnverifiedImagesOutput>;
-  /** Used by the reviewer to get in review app images */
+  /** Used by the reviewer to get app images by verification status */
   get_app_review_images?: Maybe<ImageGetAppReviewImagesOutput>;
   /** Gets the uploaded image to display */
   get_uploaded_image?: Maybe<GetUploadedImageOutput>;
@@ -9702,6 +9746,7 @@ export type Query_RootGet_All_Unverified_ImagesArgs = {
 export type Query_RootGet_App_Review_ImagesArgs = {
   app_id: Scalars["String"]["input"];
   locale?: InputMaybe<Scalars["String"]["input"]>;
+  verification_status?: InputMaybe<Scalars["String"]["input"]>;
 };
 
 export type Query_RootGet_Uploaded_ImageArgs = {
@@ -10405,7 +10450,7 @@ export type Rp_Registration = {
   mode: Scalars["rp_registration_mode"]["output"];
   operation_hash?: Maybe<Scalars["String"]["output"]>;
   rp_id: Scalars["String"]["output"];
-  signer_address: Scalars["String"]["output"];
+  signer_address?: Maybe<Scalars["String"]["output"]>;
   status: Scalars["rp_registration_status"]["output"];
   updated_at: Scalars["timestamptz"]["output"];
 };

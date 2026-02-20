@@ -1,5 +1,8 @@
 import { parseRpId } from "@/api/helpers/rp-utils";
-import { encodeNullifierForStorage } from "@/api/helpers/verify";
+import {
+  encodeNullifierForStorage,
+  normalizeNullifierHash,
+} from "@/api/helpers/verify";
 import { logger } from "@/lib/logger";
 import { captureEvent } from "@/services/posthogClient";
 import { GraphQLClient } from "graphql-request";
@@ -28,7 +31,7 @@ export interface UniquenessResult {
 type UniquenessProofSuccessResponse = {
   success: true;
   action: string;
-  nullifier: string;
+  nullifier: string; // Hex format `0x` prefixed
   created_at?: string;
   environment: string;
   results: UniquenessResult[];
@@ -63,10 +66,11 @@ export async function handleUniquenessProofVerification(
     environment?: "production" | "staging";
   },
 ): Promise<NextResponse<UniquenessProofResponse>> {
-  // For uniqueness proofs check if action already exists to determine environment
-  // Priority: explicit request environment > DB action environment > "production" default
+  // Resolve environment upfront: explicit request environment or default to "production"
+  const verificationEnvironment = parsedParams.environment ?? "production";
+
+  // Fetch existing action filtered by environment
   let existingActionV4 = null;
-  let verificationEnvironment = "production";
 
   if (parsedParams.action) {
     const existingActionResult = await getFetchActionV4Sdk(
@@ -74,27 +78,9 @@ export async function handleUniquenessProofVerification(
     ).FetchActionV4({
       rp_id: rpId,
       action: parsedParams.action,
+      environment: verificationEnvironment,
     });
     existingActionV4 = existingActionResult.action_v4[0] ?? null;
-    verificationEnvironment =
-      parsedParams.environment ??
-      (existingActionV4?.environment as string) ??
-      "production";
-  }
-
-  if (
-    verificationEnvironment === "staging" &&
-    !process.env.VERIFIER_CONTRACT_ADDRESS_STAGING
-  ) {
-    return NextResponse.json<UniquenessProofErrorResponse>(
-      {
-        success: false,
-        code: "environment_not_configured",
-        detail:
-          "The staging environment is not configured. Use production or omit the environment field.",
-      },
-      { status: 400 },
-    );
   }
 
   // Verify all proofs in parallel
@@ -110,9 +96,6 @@ export async function handleUniquenessProofVerification(
       verificationEnvironment === "staging",
     );
   } else {
-    // World ID 4.0 uniqueness proofs - verify via on-chain Verifier in parallel
-    const numericRpId = parseRpId(rpId);
-
     // Select verifier contract address based on environment
     const verifierAddress =
       verificationEnvironment === "staging"
@@ -126,10 +109,12 @@ export async function handleUniquenessProofVerification(
           code: "configuration_error",
           detail: `Verifier contract address not configured for ${verificationEnvironment} environment.`,
         },
-        { status: 500 },
+        { status: 400 },
       );
     }
 
+    // World ID 4.0 uniqueness proofs - verify via on-chain Verifier in parallel
+    const numericRpId = parseRpId(rpId);
     verificationResults = await processUniquenessProofV4(
       numericRpId,
       parsedParams.nonce!,
@@ -178,18 +163,21 @@ export async function handleUniquenessProofVerification(
     firstSuccess!.nullifier!,
   );
 
+  // We normalize the nullifier to hex for the response, to match the request format which expects a hex string.
+  const normalizedNullifier = normalizeNullifierHash(firstSuccess!.nullifier!);
+
   // At least one proof is valid - now handle action creation and nullifier
 
-  // Use existing action or create new one (always production for new actions)
+  // Use existing action or create new one for the resolved environment
   let actionV4 = existingActionV4;
 
-  // If action doesn't exist, create it (always as production)
+  // If action doesn't exist, create it with the resolved environment
   if (!actionV4) {
     const createResult = await getCreateActionV4Sdk(client).CreateActionV4({
       rp_id: rpId,
       action: parsedParams.action!,
       description: parsedParams.action_description || "",
-      environment: "production",
+      environment: verificationEnvironment,
     });
 
     actionV4 = createResult.insert_action_v4_one!;
@@ -249,7 +237,7 @@ export async function handleUniquenessProofVerification(
         {
           success: true,
           action: actionV4.action,
-          nullifier: nullifierForStorage,
+          nullifier: normalizedNullifier,
           created_at: existingNullifier.created_at,
           environment: actionV4.environment as string,
           results: verificationResults,
@@ -307,7 +295,7 @@ export async function handleUniquenessProofVerification(
       {
         success: true,
         action: actionV4.action,
-        nullifier: nullifierForStorage,
+        nullifier: normalizedNullifier,
         created_at: insertResult.insert_nullifier_v4_one.created_at,
         environment: actionV4.environment as string,
         results: verificationResults,
@@ -326,7 +314,7 @@ export async function handleUniquenessProofVerification(
           {
             success: true,
             action: actionV4.action,
-            nullifier: nullifierForStorage,
+            nullifier: normalizedNullifier,
             environment: actionV4.environment as string,
             results: verificationResults,
             message: "Proof verified successfully (staging nullifier reuse)",

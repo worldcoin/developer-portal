@@ -132,6 +132,7 @@ const app_metadata = {
   team_name: "test",
   is_allowed_unlimited_notifications: false,
   avg_notification_open_rate: null,
+  can_use_implicit_credentials: false,
 };
 
 const getUrl = (app_id: string) =>
@@ -233,6 +234,7 @@ describe("/api/v2/minikit/app-metadata/[app_id] [success cases]", () => {
       team_name: "test",
       is_allowed_unlimited_notifications: false,
       avg_notification_open_rate: null,
+      can_use_implicit_credentials: false,
     });
   });
 });
