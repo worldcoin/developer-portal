@@ -1,0 +1,7 @@
+mutation RetryRp($rp_id: String!, $environment: String!) {
+  retry_rp(rp_id: $rp_id, environment: $environment) {
+    success
+    environment
+    operation_hash
+  }
+}

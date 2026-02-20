@@ -8,6 +8,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import clsx from "clsx";
 import { RotateSignerKeyDialog } from "./RotateSignerKeyDialog";
+import { useRetryRpMutation } from "./graphql/client/retry-rp.generated";
 import { SwitchToSelfManagedDialog } from "./SwitchToSelfManagedDialog";
 
 type RpStatus = "pending" | "registered" | "failed" | "deactivated";
@@ -58,6 +59,7 @@ export const WorldId40Content = ({
   mode,
   createdAt,
 }: WorldId40ContentProps) => {
+  const [retryRpMutation] = useRetryRpMutation();
   const router = useRouter();
   const [productionStatus, setProductionStatus] =
     useState<RpStatus>(initialStatus);
@@ -102,13 +104,14 @@ export const WorldId40Content = ({
   const handleRetry = async (environment: "production" | "staging") => {
     setRetryingEnvironment(environment);
     try {
-      const response = await fetch(`/api/v4/rp-retry/${rpId}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ environment }),
+      const { data } = await retryRpMutation({
+        variables: {
+          rp_id: rpId,
+          environment,
+        },
       });
 
-      if (response.ok) {
+      if (data?.retry_rp?.success) {
         // Set the retried environment to pending and resume polling
         if (environment === "production") {
           setProductionStatus("pending");

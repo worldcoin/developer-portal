@@ -75,6 +75,13 @@ type Mutation {
 }
 
 type Mutation {
+  retry_rp(
+    rp_id: String!
+    environment: String!
+  ): RetryRpOutput
+}
+
+type Mutation {
   reset_api_key(
     id: String!
     team_id: String!
@@ -365,6 +372,12 @@ type RotateSignerKeyOutput {
   new_signer_address: String!
   old_signer_address: String!
   status: String!
+  operation_hash: String
+}
+
+type RetryRpOutput {
+  success: Boolean!
+  environment: String!
   operation_hash: String
 }
 
