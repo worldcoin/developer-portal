@@ -79,7 +79,6 @@ export const CreateAppDialogV4 = ({
   const [createdAppId, setCreatedAppId] = useState<string | null>(
     existingAppId ?? null,
   );
-  const [rpId, setRpId] = useState<string | null>(null);
   const [worldIdMode, setWorldIdMode] = useState<"managed" | "self-managed">(
     "managed",
   );
@@ -144,7 +143,6 @@ export const CreateAppDialogV4 = ({
 
       setWorldIdMode("managed");
       setSignerKeySetup("generate");
-      setRpId(null);
       setCreatedAppId(latestApp?.id ?? null);
       setStep("enable-world-id-4-0");
       reset(defaultValues);
@@ -155,7 +153,6 @@ export const CreateAppDialogV4 = ({
       reset,
       teamId,
       setCreatedAppId,
-      setRpId,
       setSignerKeySetup,
       setStep,
       setWorldIdMode,
@@ -168,71 +165,75 @@ export const CreateAppDialogV4 = ({
     setCreatedAppId(existingAppId ?? null);
     setWorldIdMode("managed");
     setSignerKeySetup("generate");
-    setRpId(null);
     props.onClose(false);
   }, [defaultValues, props, reset, initialStep, existingAppId]);
 
   const onEnableContinue = useCallback(
-    async (mode: "managed" | "self-managed") => {
+    (mode: "managed" | "self-managed") => {
       setWorldIdMode(mode);
 
       if (mode === "self-managed") {
-        if (rpId) {
-          setStep("self-managed-transaction");
-          return;
-        }
-
-        if (!teamId || !createdAppId) {
-          toast.error(
-            "Failed to complete app setup. Please close this dialog and try again from your team's apps page.",
-          );
-          return;
-        }
-
-        if (registeringRp) {
-          return;
-        }
-
-        try {
-          const { data } = await registerRp({
-            variables: {
-              app_id: createdAppId,
-              mode: "self_managed",
-              signer_address: null,
-            },
-            context: {
-              fetchOptions: {
-                timeout: 30000,
-              },
-            },
-          });
-
-          if (!data?.register_rp?.rp_id) {
-            toast.error("Failed to create registration record");
-            return;
-          }
-
-          setRpId(data.register_rp.rp_id);
-          setStep("self-managed-transaction");
-          return;
-        } catch (error) {
-          const code = getGraphQLErrorCode(error);
-
-          if (code === "already_registered") {
-            toast.info("Registration already exists for this app");
-            setStep("enable-world-id-4-0");
-            return;
-          }
-
-          toast.error("Failed to create registration record");
-          return;
-        }
+        setStep("self-managed-transaction");
+        return;
       }
 
       setStep("configure-signer-key");
     },
-    [teamId, createdAppId, registerRp, registeringRp, rpId, setStep],
+    [setWorldIdMode, setStep],
   );
+
+  const onSelfManagedComplete = useCallback(async () => {
+    if (!teamId || !createdAppId) {
+      toast.error("Unable to complete setup. Please close and try again.");
+      return;
+    }
+
+    try {
+      const { data } = await registerRp({
+        variables: {
+          app_id: createdAppId,
+          mode: "self_managed",
+          signer_address: null,
+        },
+        context: {
+          fetchOptions: {
+            timeout: 30000,
+          },
+        },
+      });
+
+      if (!data?.register_rp?.rp_id) {
+        toast.error("Failed to create registration record");
+        return;
+      }
+
+      toast.success("App configured successfully");
+      const redirect = urls.worldId40({
+        team_id: teamId,
+        app_id: createdAppId,
+      });
+      router.replace(redirect);
+      router.refresh();
+      onClose();
+    } catch (error) {
+      const code = getGraphQLErrorCode(error);
+
+      if (code === "already_registered") {
+        // Idempotent — treat as success
+        toast.success("App configured successfully");
+        const redirect = urls.worldId40({
+          team_id: teamId,
+          app_id: createdAppId,
+        });
+        router.replace(redirect);
+        router.refresh();
+        onClose();
+        return;
+      }
+
+      toast.error("Failed to create registration record");
+    }
+  }, [teamId, createdAppId, registerRp, router, onClose]);
 
   const onConfigureBack = useCallback(() => {
     setStep("enable-world-id-4-0");
@@ -393,46 +394,22 @@ export const CreateAppDialogV4 = ({
                 onContinue={onEnableContinue}
                 isSelfManagedEnabled={isSelfManagedEnabled}
                 initialMode={worldIdMode}
-                isManagedEnabled={!rpId}
-                managedDisabledReason={
-                  rpId ? "RP already registered for this app." : undefined
-                }
-                loading={registeringRp}
                 className="justify-self-center py-10"
               />
             )}
             {step === "self-managed-transaction" && (
               <>
-                {!rpId || !createdAppId ? (
+                {!createdAppId ? (
                   <div className="flex items-center justify-center py-10">
-                    <Typography variant={TYPOGRAPHY.R3}>
-                      Loading registration information...
-                    </Typography>
+                    <Typography variant={TYPOGRAPHY.R3}>Loading...</Typography>
                   </div>
                 ) : (
                   <SelfManagedTransactionInfoContent
                     appId={createdAppId}
-                    rpId={rpId}
                     title="Self-Managed"
-                    onBack={() => {
-                      setStep("enable-world-id-4-0");
-                    }}
-                    onComplete={() => {
-                      if (!teamId || !createdAppId) {
-                        toast.error(
-                          "Unable to navigate. Please close this dialog and try again.",
-                        );
-                        return;
-                      }
-
-                      const redirect = urls.worldId40({
-                        team_id: teamId,
-                        app_id: createdAppId,
-                      });
-                      router.replace(redirect);
-                      router.refresh();
-                      onClose();
-                    }}
+                    onBack={() => setStep("enable-world-id-4-0")}
+                    onComplete={onSelfManagedComplete}
+                    completionLoading={registeringRp}
                     className="justify-self-center py-10"
                   />
                 )}
