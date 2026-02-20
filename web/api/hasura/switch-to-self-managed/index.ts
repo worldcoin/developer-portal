@@ -20,6 +20,8 @@ import { getSdk as getRpRegistrationSdk } from "./graphql/get-rp-registration.ge
 import { getSdk as getRevertStatusSdk } from "./graphql/revert-mode-switch-status.generated";
 import { getSdk as getUpdateResultSdk } from "./graphql/update-mode-switch-result.generated";
 
+const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
+
 const schema = yup
   .object({
     app_id: yup.string().strict().required(),
@@ -32,6 +34,11 @@ const schema = yup
         "is-address",
         "Invalid manager address. Must be 40 hex characters (0x followed by 40 characters)",
         (value) => (value ? isAddress(value) : false),
+      )
+      .test(
+        "not-zero",
+        "Cannot use zero address",
+        (value) => value !== ZERO_ADDRESS,
       ),
   })
   .noUnknown();
@@ -256,6 +263,7 @@ export const POST = async (req: NextRequest) => {
         "Failed to update registration record after manager transfer",
         { app_id, rpIdString, operationHash },
       );
+      await revertStatus();
       return errorHasuraQuery({
         req,
         detail: "Failed to update registration record.",
@@ -264,7 +272,26 @@ export const POST = async (req: NextRequest) => {
       });
     }
 
-    // STEP 7: Schedule KMS key deletion
+    // STEP 7: Invalidate status cache
+    const redis = global.RedisClient;
+    if (redis) {
+      try {
+        const cacheKey = `rp_status:${rpIdString}`;
+        await redis.del(cacheKey);
+        logger.info("Invalidated rp_status cache after mode switch", {
+          rpIdString,
+          cacheKey,
+        });
+      } catch (cacheError) {
+        logger.warn("Failed to invalidate rp_status cache", {
+          error: cacheError,
+          rpIdString,
+        });
+        // Non-critical, continue
+      }
+    }
+
+    // STEP 8: Schedule KMS key deletion
     await scheduleKeyDeletion(kmsClient, managerKmsKeyId);
 
     logger.info("Mode switch to self-managed successful", {

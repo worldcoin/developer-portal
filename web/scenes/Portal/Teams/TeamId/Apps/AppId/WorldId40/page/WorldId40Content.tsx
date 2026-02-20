@@ -5,7 +5,10 @@ import { DecoratedButton } from "@/components/DecoratedButton";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { useCallback, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import clsx from "clsx";
 import { RotateSignerKeyDialog } from "./RotateSignerKeyDialog";
+import { SwitchToSelfManagedDialog } from "./SwitchToSelfManagedDialog";
 
 type RpStatus = "pending" | "registered" | "failed" | "deactivated";
 
@@ -55,10 +58,12 @@ export const WorldId40Content = ({
   mode,
   createdAt,
 }: WorldId40ContentProps) => {
+  const router = useRouter();
   const [productionStatus, setProductionStatus] =
     useState<RpStatus>(initialStatus);
   const [stagingStatus, setStagingStatus] = useState<RpStatus | null>(null);
   const [isRotateDialogOpen, setIsRotateDialogOpen] = useState(false);
+  const [isSwitchDialogOpen, setIsSwitchDialogOpen] = useState(false);
   const [retryingEnvironment, setRetryingEnvironment] = useState<string | null>(
     null,
   );
@@ -240,7 +245,7 @@ export const WorldId40Content = ({
               <DecoratedButton
                 type="button"
                 variant="secondary"
-                disabled={!isActive}
+                disabled={!isActive || mode === "self_managed"}
                 className="h-8 rounded-full px-4 py-0 text-xs"
                 onClick={() => setIsRotateDialogOpen(true)}
               >
@@ -249,37 +254,17 @@ export const WorldId40Content = ({
             </div>
           </div>
         </div>
-        {/* TODO: Danger Zone - not implemented yet
+        {/* Danger Zone */}
         <div className="mt-4 flex flex-col gap-y-6">
           <Typography variant={TYPOGRAPHY.S2} className="text-gray-900">
             Danger zone
           </Typography>
 
-          <div className="rounded-xl border border-grey-100 p-6">
-            <div className="flex items-center justify-between gap-4">
+          {/* Switch to Self-Managed */}
+          <div className="rounded-[10px] border border-grey-100 px-6 py-4">
+            <div className="flex items-center justify-between gap-2">
               <div className="flex flex-col gap-1">
-                <Typography variant={TYPOGRAPHY.S2} className="text-gray-900">
-                  Deactivate RP
-                </Typography>
-                <Typography variant={TYPOGRAPHY.B3} className="text-grey-500">
-                  Deactivate this RP and stop all related activity
-                </Typography>
-              </div>
-              <DecoratedButton
-                type="button"
-                variant={isActive ? "danger" : "secondary"}
-                disabled={!isActive}
-                className="h-8 rounded-full px-4 py-0 text-xs"
-              >
-                Deactivate
-              </DecoratedButton>
-            </div>
-          </div>
-
-          <div className="rounded-xl border border-grey-100 p-6">
-            <div className="flex items-center justify-between gap-4">
-              <div className="flex flex-col gap-1">
-                <Typography variant={TYPOGRAPHY.S2} className="text-gray-900">
+                <Typography variant={TYPOGRAPHY.S2}>
                   Switch to Self-Managed
                 </Typography>
                 <Typography variant={TYPOGRAPHY.B3} className="text-grey-500">
@@ -288,16 +273,28 @@ export const WorldId40Content = ({
               </div>
               <DecoratedButton
                 type="button"
-                variant={isActive ? "danger" : "secondary"}
-                disabled={!isActive}
-                className="h-8 rounded-full px-4 py-0 text-xs"
+                variant="danger"
+                disabled={!isActive || mode === "self_managed"}
+                className={clsx(
+                  "h-8 shrink-0 rounded-full px-4 text-[13px] font-semibold",
+                  !isActive || mode === "self_managed"
+                    ? "" // Let DecoratedButton handle disabled styles
+                    : "bg-danger text-white hover:bg-system-error-700",
+                )}
+                title={
+                  mode === "self_managed"
+                    ? "Already in self-managed mode"
+                    : !isActive
+                      ? "RP must be active to switch modes"
+                      : undefined
+                }
+                onClick={() => setIsSwitchDialogOpen(true)}
               >
                 Switch
               </DecoratedButton>
             </div>
           </div>
         </div>
-        */}
       </div>
 
       <RotateSignerKeyDialog
@@ -305,6 +302,21 @@ export const WorldId40Content = ({
         onClose={() => setIsRotateDialogOpen(false)}
         appId={appId}
         onSuccess={() => setProductionStatus("pending")}
+      />
+
+      <SwitchToSelfManagedDialog
+        open={isSwitchDialogOpen}
+        onClose={() => setIsSwitchDialogOpen(false)}
+        appId={appId}
+        onSuccess={() => {
+          // Trigger status polling
+          setProductionStatus("pending");
+          // CRITICAL: Refresh server component to get updated mode from DB
+          router.refresh();
+          // Status polling will automatically pick up the "pending" state
+          // and poll every 5 seconds until status returns to "registered"
+          // router.refresh() ensures the mode prop updates to "self_managed"
+        }}
       />
     </SizingWrapper>
   );

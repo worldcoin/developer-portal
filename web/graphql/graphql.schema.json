@@ -1849,6 +1849,61 @@
       },
       {
         "kind": "OBJECT",
+        "name": "SwitchToSelfManagedOutput",
+        "description": null,
+        "fields": [
+          {
+            "name": "operation_hash",
+            "description": null,
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "rp_id",
+            "description": null,
+            "args": [],
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "SCALAR",
+                "name": "String",
+                "ofType": null
+              }
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "status",
+            "description": null,
+            "args": [],
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "SCALAR",
+                "name": "String",
+                "ofType": null
+              }
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          }
+        ],
+        "inputFields": null,
+        "interfaces": [],
+        "enumValues": null,
+        "possibleTypes": null
+      },
+      {
+        "kind": "OBJECT",
         "name": "ToggleRpActiveOutput",
         "description": null,
         "fields": [
@@ -17597,6 +17652,22 @@
             "deprecationReason": null
           },
           {
+            "name": "can_use_attestation",
+            "description": null,
+            "args": [],
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "SCALAR",
+                "name": "Boolean",
+                "ofType": null
+              }
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "category",
             "description": null,
             "args": [],
@@ -19250,6 +19321,18 @@
             "deprecationReason": null
           },
           {
+            "name": "can_use_attestation",
+            "description": null,
+            "type": {
+              "kind": "INPUT_OBJECT",
+              "name": "Boolean_comparison_exp",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "category",
             "description": null,
             "type": {
@@ -19832,6 +19915,18 @@
           },
           {
             "name": "can_import_all_contacts",
+            "description": null,
+            "type": {
+              "kind": "SCALAR",
+              "name": "Boolean",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "can_use_attestation",
             "description": null,
             "type": {
               "kind": "SCALAR",
@@ -22299,6 +22394,18 @@
             "deprecationReason": null
           },
           {
+            "name": "can_use_attestation",
+            "description": null,
+            "type": {
+              "kind": "ENUM",
+              "name": "order_by",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "category",
             "description": null,
             "type": {
@@ -22813,6 +22920,12 @@
             "deprecationReason": null
           },
           {
+            "name": "can_use_attestation",
+            "description": "column name",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "category",
             "description": "column name",
             "isDeprecated": false,
@@ -23046,6 +23159,12 @@
             "deprecationReason": null
           },
           {
+            "name": "can_use_attestation",
+            "description": "column name",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "is_allowed_unlimited_notifications",
             "description": "column name",
             "isDeprecated": false,
@@ -23106,6 +23225,12 @@
         "enumValues": [
           {
             "name": "can_import_all_contacts",
+            "description": "column name",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "can_use_attestation",
             "description": "column name",
             "isDeprecated": false,
             "deprecationReason": null
@@ -23225,6 +23350,18 @@
           },
           {
             "name": "can_import_all_contacts",
+            "description": null,
+            "type": {
+              "kind": "SCALAR",
+              "name": "Boolean",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "can_use_attestation",
             "description": null,
             "type": {
               "kind": "SCALAR",
@@ -24008,6 +24145,18 @@
             "deprecationReason": null
           },
           {
+            "name": "can_use_attestation",
+            "description": null,
+            "type": {
+              "kind": "SCALAR",
+              "name": "Boolean",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "category",
             "description": null,
             "type": {
@@ -24584,6 +24733,12 @@
           },
           {
             "name": "can_import_all_contacts",
+            "description": "column name",
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "can_use_attestation",
             "description": "column name",
             "isDeprecated": false,
             "deprecationReason": null
@@ -50072,6 +50227,51 @@
             "deprecationReason": null
           },
           {
+            "name": "switch_to_self_managed",
+            "description": "Switch an RP from managed to self-managed mode by transferring the on-chain manager key",
+            "args": [
+              {
+                "name": "app_id",
+                "description": null,
+                "type": {
+                  "kind": "NON_NULL",
+                  "name": null,
+                  "ofType": {
+                    "kind": "SCALAR",
+                    "name": "String",
+                    "ofType": null
+                  }
+                },
+                "defaultValue": null,
+                "isDeprecated": false,
+                "deprecationReason": null
+              },
+              {
+                "name": "new_manager_address",
+                "description": null,
+                "type": {
+                  "kind": "NON_NULL",
+                  "name": null,
+                  "ofType": {
+                    "kind": "SCALAR",
+                    "name": "String",
+                    "ofType": null
+                  }
+                },
+                "defaultValue": null,
+                "isDeprecated": false,
+                "deprecationReason": null
+              }
+            ],
+            "type": {
+              "kind": "OBJECT",
+              "name": "SwitchToSelfManagedOutput",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "toggle_rp_active",
             "description": "Activate or deactivate a managed RP on-chain",
             "args": [
@@ -65472,7 +65672,7 @@
           },
           {
             "name": "get_app_review_images",
-            "description": "Used by the reviewer to get in review app images",
+            "description": "Used by the reviewer to get app images by verification status",
             "args": [
               {
                 "name": "app_id",
@@ -65492,6 +65692,18 @@
               },
               {
                 "name": "locale",
+                "description": null,
+                "type": {
+                  "kind": "SCALAR",
+                  "name": "String",
+                  "ofType": null
+                },
+                "defaultValue": null,
+                "isDeprecated": false,
+                "deprecationReason": null
+              },
+              {
+                "name": "verification_status",
                 "description": null,
                 "type": {
                   "kind": "SCALAR",

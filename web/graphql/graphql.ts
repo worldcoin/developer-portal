@@ -264,6 +264,13 @@ export type String_Comparison_Exp = {
   _similar?: InputMaybe<Scalars["String"]["input"]>;
 };
 
+export type SwitchToSelfManagedOutput = {
+  __typename?: "SwitchToSelfManagedOutput";
+  operation_hash?: Maybe<Scalars["String"]["output"]>;
+  rp_id: Scalars["String"]["output"];
+  status: Scalars["String"]["output"];
+};
+
 export type ToggleRpActiveOutput = {
   __typename?: "ToggleRpActiveOutput";
   operation_hash?: Maybe<Scalars["String"]["output"]>;
@@ -6540,6 +6547,8 @@ export type Mutation_Root = {
   rollup_app_stats: Array<App_Stats>;
   /** Rotate the signer key for an RP (Relying Party) */
   rotate_signer_key?: Maybe<RotateSignerKeyOutput>;
+  /** Switch an RP from managed to self-managed mode by transferring the on-chain manager key */
+  switch_to_self_managed?: Maybe<SwitchToSelfManagedOutput>;
   /** Activate or deactivate a managed RP on-chain */
   toggle_rp_active?: Maybe<ToggleRpActiveOutput>;
   /** Unbans an app */
@@ -7423,6 +7432,12 @@ export type Mutation_RootRollup_App_StatsArgs = {
 export type Mutation_RootRotate_Signer_KeyArgs = {
   app_id: Scalars["String"]["input"];
   new_signer_address: Scalars["String"]["input"];
+};
+
+/** mutation root */
+export type Mutation_RootSwitch_To_Self_ManagedArgs = {
+  app_id: Scalars["String"]["input"];
+  new_manager_address: Scalars["String"]["input"];
 };
 
 /** mutation root */
@@ -9329,7 +9344,7 @@ export type Query_Root = {
   /** fetch data from the table: "cache" using primary key columns */
   cache_by_pk?: Maybe<Cache>;
   get_all_unverified_images?: Maybe<ImageGetAllUnverifiedImagesOutput>;
-  /** Used by the reviewer to get in review app images */
+  /** Used by the reviewer to get app images by verification status */
   get_app_review_images?: Maybe<ImageGetAppReviewImagesOutput>;
   /** Gets the uploaded image to display */
   get_uploaded_image?: Maybe<GetUploadedImageOutput>;
@@ -9731,6 +9746,7 @@ export type Query_RootGet_All_Unverified_ImagesArgs = {
 export type Query_RootGet_App_Review_ImagesArgs = {
   app_id: Scalars["String"]["input"];
   locale?: InputMaybe<Scalars["String"]["input"]>;
+  verification_status?: InputMaybe<Scalars["String"]["input"]>;
 };
 
 export type Query_RootGet_Uploaded_ImageArgs = {
