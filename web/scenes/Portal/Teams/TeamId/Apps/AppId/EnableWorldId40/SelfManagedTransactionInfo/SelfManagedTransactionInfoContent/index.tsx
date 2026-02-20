@@ -6,7 +6,7 @@ import { Notification } from "@/components/Notification";
 import { WarningErrorIcon } from "@/components/Icons/WarningErrorIcon";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import clsx from "clsx";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   getSelfManagedRegistrationInfo,
   type SelfManagedRegistrationInfoResult,
@@ -14,9 +14,9 @@ import {
 
 type SelfManagedTransactionInfoContentProps = {
   appId: string;
-  rpId: string;
   onBack: () => void;
   onComplete: () => void;
+  completionLoading?: boolean;
   title?: string;
   completeButtonLabel?: string;
   className?: string;
@@ -63,9 +63,9 @@ const withTimeout = async (
 
 export const SelfManagedTransactionInfoContent = ({
   appId,
-  rpId,
   onBack,
   onComplete,
+  completionLoading,
   title = "Self-Managed Registration",
   completeButtonLabel = "Continue",
   className,
@@ -129,10 +129,7 @@ export const SelfManagedTransactionInfoContent = ({
     };
   }, [appId, retryCount]);
 
-  const resolvedRpId = useMemo(
-    () => info?.rpIdNumeric ?? rpId ?? FIELD_PLACEHOLDERS.rpId,
-    [info?.rpIdNumeric, rpId],
-  );
+  const resolvedRpId = info?.rpIdNumeric ?? FIELD_PLACEHOLDERS.rpId;
   const productionContractAddress =
     info?.productionContractAddress ?? FIELD_PLACEHOLDERS.contractAddress;
   const stagingContractAddress =
@@ -314,8 +311,13 @@ export const SelfManagedTransactionInfoContent = ({
         <DecoratedButton type="button" onClick={onBack} variant="secondary">
           Back
         </DecoratedButton>
-        <DecoratedButton type="button" onClick={onComplete} variant="primary">
-          {completeButtonLabel}
+        <DecoratedButton
+          type="button"
+          onClick={onComplete}
+          variant="primary"
+          disabled={completionLoading}
+        >
+          {completionLoading ? "Processing..." : completeButtonLabel}
         </DecoratedButton>
       </div>
     </div>
