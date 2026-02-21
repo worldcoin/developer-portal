@@ -10,6 +10,8 @@ export type NotificationVariant = "warning" | "info";
 export const Notification = (props: {
   className?: string;
   variant: NotificationVariant;
+  iconClassName?: string;
+  icon?: ReactNode;
   children: ReactNode;
 }) => {
   return (
@@ -26,12 +28,16 @@ export const Notification = (props: {
         ),
       )}
     >
-      <IconFrame variant={props.variant} className="text-grey-0">
-        {props.variant === "warning" && <AlertIcon className="size-4" />}
-
-        {props.variant === "info" && (
-          <InformationCircleIcon className="size-4 text-grey-0" />
-        )}
+      <IconFrame
+        variant={props.variant}
+        className={twMerge("text-grey-0", props.iconClassName)}
+      >
+        {props.icon ??
+          (props.variant === "warning" ? (
+            <AlertIcon className="size-4" />
+          ) : (
+            <InformationCircleIcon className="size-4 text-grey-0" />
+          ))}
       </IconFrame>
 
       {props.children}

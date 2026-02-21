@@ -22,6 +22,7 @@ import { getSdk as getClaimRpSdk } from "./graphql/claim-rp-registration.generat
 import { getSdk as getDeleteRpSdk } from "./graphql/delete-rp-registration.generated";
 import { getSdk as getAppInfoSdk } from "./graphql/get-app-info.generated";
 import { getSdk as getUpdateRpSdk } from "./graphql/update-rp-registration.generated";
+import { getSdk as getExistingRpSdk } from "./graphql/get-existing-rp-registration.generated";
 
 /**
  * Input schema for the register_rp action.
@@ -166,6 +167,78 @@ export const POST = async (req: NextRequest) => {
 
   // Another registration already exists for this app
   if (!claimedSlot) {
+    // Fetch the existing registration with error handling
+    let rp_registration;
+    try {
+      const result = await getExistingRpSdk(client).GetExistingRpRegistration({
+        app_id,
+      });
+      rp_registration = result.rp_registration;
+    } catch (fetchError) {
+      logger.error("Failed to query existing registration", {
+        app_id,
+        error: fetchError,
+      });
+      return errorHasuraQuery({
+        req,
+        detail: "Unable to verify existing registration.",
+        code: "db_error",
+        app_id,
+      });
+    }
+
+    // If not found, this indicates a database inconsistency
+    if (!rp_registration || rp_registration.length === 0) {
+      logger.error("Unique constraint violation but record not found", {
+        app_id,
+        note: "This may indicate a database issue",
+      });
+      return errorHasuraQuery({
+        req,
+        detail: "Registration already in progress or completed for this app.",
+        code: "already_registered",
+        app_id,
+      });
+    }
+
+    const existing = rp_registration[0];
+
+    // Check mode compatibility
+    if (existing.mode !== mode) {
+      logger.warn("Registration mode mismatch", {
+        app_id,
+        existing_mode: existing.mode,
+        requested_mode: mode,
+      });
+      return errorHasuraQuery({
+        req,
+        detail: `Registration already exists in ${existing.mode} mode. Cannot change to ${mode} mode.`,
+        code: "already_registered",
+        app_id,
+      });
+    }
+
+    // For self-managed mode: return existing registration (fully idempotent)
+    // This solves the core issue: users can refresh/retry and continue their setup
+    if (mode === "self_managed") {
+      return NextResponse.json({
+        rp_id: existing.rp_id,
+        manager_address: null,
+        signer_address: null,
+        status: existing.status,
+        operation_hash: null,
+      });
+    }
+
+    // For managed mode: return error for all cases
+    // Note: Managed mode doesn't need idempotency because backend handles everything
+    // Users can view their existing registration in the UI
+    logger.warn("Managed registration already exists", {
+      app_id,
+      rp_id: existing.rp_id,
+      status: existing.status,
+    });
+
     return errorHasuraQuery({
       req,
       detail: "Registration already in progress or completed for this app.",

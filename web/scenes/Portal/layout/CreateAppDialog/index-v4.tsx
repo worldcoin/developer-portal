@@ -10,10 +10,13 @@ import { Input } from "@/components/Input";
 import { LoggedUserNav } from "@/components/LoggedUserNav";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import { getGraphQLErrorCode } from "@/lib/errors";
+import { isWorldId40Enabled, worldId40Atom } from "@/lib/feature-flags";
 import { urls } from "@/lib/urls";
 import { useRefetchQueries } from "@/lib/use-refetch-queries";
 import { yupResolver } from "@hookform/resolvers/yup";
 import clsx from "clsx";
+import { useAtomValue } from "jotai";
 import { useParams, useRouter } from "next/navigation";
 import posthog from "posthog-js";
 import { useCallback, useMemo, useState } from "react";
@@ -24,6 +27,7 @@ import {
   SignerKeySetup,
 } from "../../Teams/TeamId/Apps/AppId/ConfigureSignerKey/ConfigureSignerKeyContent";
 import { EnableWorldId40Content } from "../../Teams/TeamId/Apps/AppId/EnableWorldId40/EnableWorldId40Content";
+import { SelfManagedTransactionInfoContent } from "../../Teams/TeamId/Apps/AppId/EnableWorldId40/SelfManagedTransactionInfo/SelfManagedTransactionInfoContent";
 import { GenerateNewKeyContent } from "../../Teams/TeamId/Apps/AppId/GenerateNewKey/GenerateNewKeyContent";
 import { UseExistingKeyContent } from "../../Teams/TeamId/Apps/AppId/UseExistingKey/UseExistingKeyContent";
 import { FetchAppsDocument } from "../AppSelector/graphql/client/fetch-apps.generated";
@@ -37,7 +41,8 @@ type CreateDialogStep =
   | "enable-world-id-4-0"
   | "configure-signer-key"
   | "use-existing-key"
-  | "generate-new-key";
+  | "generate-new-key"
+  | "self-managed-transaction";
 
 const STEP_TITLES: Record<CreateDialogStep, string> = {
   create: "Create a new app",
@@ -45,6 +50,7 @@ const STEP_TITLES: Record<CreateDialogStep, string> = {
   "configure-signer-key": "Enable World ID 4.0",
   "use-existing-key": "Enable World ID 4.0",
   "generate-new-key": "Enable World ID 4.0",
+  "self-managed-transaction": "Enable World ID 4.0",
 };
 
 type CreateAppDialogV4Props = DialogProps & {
@@ -61,6 +67,8 @@ export const CreateAppDialogV4 = ({
 }: CreateAppDialogV4Props) => {
   const { teamId } = useParams() as { teamId: string | undefined };
   const router = useRouter();
+  const worldId40Config = useAtomValue(worldId40Atom);
+  const isSelfManagedEnabled = isWorldId40Enabled(worldId40Config, teamId);
   const { refetch: refetchApps } = useRefetchQueries(FetchAppsDocument, {
     teamId: teamId,
   });
@@ -133,27 +141,99 @@ export const CreateAppDialogV4 = ({
         engine: values.verification,
       });
 
+      setWorldIdMode("managed");
+      setSignerKeySetup("generate");
       setCreatedAppId(latestApp?.id ?? null);
       setStep("enable-world-id-4-0");
       reset(defaultValues);
     },
-    [defaultValues, refetchApps, reset, teamId, setCreatedAppId, setStep],
+    [
+      defaultValues,
+      refetchApps,
+      reset,
+      teamId,
+      setCreatedAppId,
+      setSignerKeySetup,
+      setStep,
+      setWorldIdMode,
+    ],
   );
 
   const onClose = useCallback(() => {
     reset(defaultValues);
     setStep(initialStep);
     setCreatedAppId(existingAppId ?? null);
+    setWorldIdMode("managed");
+    setSignerKeySetup("generate");
     props.onClose(false);
   }, [defaultValues, props, reset, initialStep, existingAppId]);
 
   const onEnableContinue = useCallback(
     (mode: "managed" | "self-managed") => {
       setWorldIdMode(mode);
+
+      if (mode === "self-managed") {
+        setStep("self-managed-transaction");
+        return;
+      }
+
       setStep("configure-signer-key");
     },
-    [setStep],
+    [setWorldIdMode, setStep],
   );
+
+  const onSelfManagedComplete = useCallback(async () => {
+    if (!teamId || !createdAppId) {
+      toast.error("Unable to complete setup. Please close and try again.");
+      return;
+    }
+
+    try {
+      const { data } = await registerRp({
+        variables: {
+          app_id: createdAppId,
+          mode: "self_managed",
+          signer_address: null,
+        },
+        context: {
+          fetchOptions: {
+            timeout: 30000,
+          },
+        },
+      });
+
+      if (!data?.register_rp?.rp_id) {
+        toast.error("Failed to create registration record");
+        return;
+      }
+
+      toast.success("App configured successfully");
+      const redirect = urls.worldId40({
+        team_id: teamId,
+        app_id: createdAppId,
+      });
+      router.replace(redirect);
+      router.refresh();
+      onClose();
+    } catch (error) {
+      const code = getGraphQLErrorCode(error);
+
+      if (code === "already_registered") {
+        // Idempotent — treat as success
+        toast.success("App configured successfully");
+        const redirect = urls.worldId40({
+          team_id: teamId,
+          app_id: createdAppId,
+        });
+        router.replace(redirect);
+        router.refresh();
+        onClose();
+        return;
+      }
+
+      toast.error("Failed to create registration record");
+    }
+  }, [teamId, createdAppId, registerRp, router, onClose]);
 
   const onConfigureBack = useCallback(() => {
     setStep("enable-world-id-4-0");
@@ -209,7 +289,6 @@ export const CreateAppDialogV4 = ({
         router.refresh();
         onClose();
       } catch (error) {
-        console.error("[onSignerKeyContinue] Error:", error);
         toast.error("Failed to register Relying Party");
       }
     },
@@ -313,8 +392,28 @@ export const CreateAppDialogV4 = ({
             {step === "enable-world-id-4-0" && (
               <EnableWorldId40Content
                 onContinue={onEnableContinue}
+                isSelfManagedEnabled={isSelfManagedEnabled}
+                initialMode={worldIdMode}
                 className="justify-self-center py-10"
               />
+            )}
+            {step === "self-managed-transaction" && (
+              <>
+                {!createdAppId ? (
+                  <div className="flex items-center justify-center py-10">
+                    <Typography variant={TYPOGRAPHY.R3}>Loading...</Typography>
+                  </div>
+                ) : (
+                  <SelfManagedTransactionInfoContent
+                    appId={createdAppId}
+                    title="Self-Managed"
+                    onBack={() => setStep("enable-world-id-4-0")}
+                    onComplete={onSelfManagedComplete}
+                    completionLoading={registeringRp}
+                    className="justify-self-center py-10"
+                  />
+                )}
+              </>
             )}
             {step === "configure-signer-key" && (
               <ConfigureSignerKeyContent
