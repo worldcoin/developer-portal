@@ -1,4 +1,4 @@
-import { CircleIconContainer } from "@/components/CircleIconContainer";
+import { ModalIcon } from "@/components/ModalIcon";
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { Dialog } from "@/components/Dialog";
 import { DialogOverlay } from "@/components/DialogOverlay";
@@ -31,37 +31,38 @@ export const ResolveModal = ({
       <DialogOverlay />
       <DialogPanel className="gap-y-6 md:max-w-[36rem]">
         {/* Icon */}
-        <CircleIconContainer variant="error">
-          <CloseIcon className="size-6 text-grey-400" strokeWidth={2} />
-        </CircleIconContainer>
+        <ModalIcon variant="neutral">
+          <CloseIcon className="size-8 text-white" strokeWidth={2} />
+        </ModalIcon>
 
         {/* Content */}
-        <div className="grid grid-cols-1 justify-items-center gap-y-4 text-center">
-          {/* Title */}
-          <Typography variant={TYPOGRAPHY.H6} className="text-grey-900">
-            App was rejected
-          </Typography>
+        <div className="grid grid-cols-1 justify-items-center gap-y-6 text-center">
+          {/* Title + Description */}
+          <div className="grid gap-y-2">
+            <Typography variant={TYPOGRAPHY.H6} className="text-grey-900">
+              App was rejected
+            </Typography>
+            <Typography variant={TYPOGRAPHY.R4} className="text-grey-500">
+              Unfortunately, your app's review was evaluated by our Worldcoin
+              team, and it was rejected due to the reason:
+            </Typography>
+          </div>
 
-          {/* Description */}
-          <Typography variant={TYPOGRAPHY.R3} className="text-grey-600">
-            Unfortunately, your app's review was evaluated by our Worldcoin
-            team, and it was rejected due to the reason:
-          </Typography>
-
-          {/* Rejection Reason Box */}
-          {reviewMessage && (
-            <div className="w-full rounded-xl bg-grey-50 px-4 py-3 text-left">
-              <Typography variant={TYPOGRAPHY.R4} className="text-grey-700">
+          {/* Rejection Reason Box + Instructions */}
+          <div className="w-full rounded-xl bg-grey-50 px-4 py-3 text-left">
+            {reviewMessage && (
+              <Typography variant={TYPOGRAPHY.R4} className="text-grey-500">
                 {reviewMessage}
               </Typography>
-            </div>
-          )}
-
-          {/* Instructions */}
-          <Typography variant={TYPOGRAPHY.R3} className="text-grey-600">
-            Please, fix the issues stated before and then apply for review
-            again.
-          </Typography>
+            )}
+            <Typography
+              variant={TYPOGRAPHY.R4}
+              className={reviewMessage ? "mt-2 text-grey-500" : "text-grey-500"}
+            >
+              Please, fix the issues stated before and then apply for review
+              again.
+            </Typography>
+          </div>
         </div>
 
         {/* Buttons */}
@@ -71,10 +72,10 @@ export const ResolveModal = ({
             variant="secondary"
             onClick={() => setOpen(false)}
           >
-            Cancel
+            <Typography variant={TYPOGRAPHY.R3}>Cancel</Typography>
           </DecoratedButton>
           <DecoratedButton type="button" onClick={handleResolve}>
-            Resolve issues
+            <Typography variant={TYPOGRAPHY.R3}>Resolve issues</Typography>
           </DecoratedButton>
         </div>
       </DialogPanel>

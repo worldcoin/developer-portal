@@ -1,8 +1,9 @@
-import { CircleIconContainer } from "@/components/CircleIconContainer";
+import { ModalIcon } from "@/components/ModalIcon";
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { Dialog } from "@/components/Dialog";
 import { DialogOverlay } from "@/components/DialogOverlay";
 import { DialogPanel } from "@/components/DialogPanel";
+import { AlertIcon } from "@/components/Icons/AlertIcon";
 import { SendIcon } from "@/components/Icons/SendIcon";
 import { Toggle } from "@/components/Toggle";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
@@ -153,46 +154,65 @@ export const SubmitAppModal = (props: SubmitAppModalProps) => {
   return (
     <Dialog open={open} onClose={() => setOpen(false)}>
       <DialogOverlay />
-      <DialogPanel className="gap-y-6 md:max-w-[36rem]">
-        <CircleIconContainer variant="info">
-          <SendIcon className="text-blue-500" />
-        </CircleIconContainer>
+      <DialogPanel className="gap-y-8 md:max-w-[36rem]">
+        <ModalIcon variant="info">
+          <SendIcon className="size-10 text-white" />
+        </ModalIcon>
         <form className="grid gap-y-6" onSubmit={handleSubmit(submit)}>
-          <div className="grid grid-cols-1 justify-items-center gap-y-3 text-center">
+          <div className="grid grid-cols-1 justify-items-center gap-y-1 text-center">
             <Typography variant={TYPOGRAPHY.H6} className="text-grey-900">
               Submit for review
             </Typography>
-            <Typography variant={TYPOGRAPHY.R3} className="text-grey-600">
+            <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
               Submit your app for review to get the badge "Verified"
             </Typography>
           </div>
 
-          <div className="grid gap-y-4 rounded-xl border border-grey-200 p-6">
-            <div className="flex items-start justify-between gap-4">
-              <div className="flex-1">
-                <div className="flex items-center gap-2">
-                  <Typography variant={TYPOGRAPHY.M3} className="text-grey-900">
-                    Display in the Worldcoin App Store
+          <div className="mt-2 grid gap-y-3">
+            <div className="grid gap-y-4 rounded-xl border border-grey-200 p-6">
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2">
+                    <Typography
+                      variant={TYPOGRAPHY.M3}
+                      className="text-grey-900"
+                    >
+                      Display in the Worldcoin App Store
+                    </Typography>
+                    <span className="rounded-full bg-grey-100 px-2 py-0.5 text-xs text-grey-500">
+                      Optional
+                    </span>
+                  </div>
+                  <Typography
+                    variant={TYPOGRAPHY.R4}
+                    className="mt-1 text-grey-500"
+                  >
+                    If approved, your app can be featured in the Worldcoin App
+                    Store
                   </Typography>
-                  <Typography variant={TYPOGRAPHY.R4} className="text-grey-500">
-                    Optional
-                  </Typography>
+                </div>
+                <Toggle
+                  checked={isAllowListing}
+                  onChange={(checked) =>
+                    setValue("is_developer_allow_listing", checked)
+                  }
+                />
+              </div>
+            </div>
+
+            {isDeveloperAllowListing && !isAllowListing && (
+              <div className="flex items-center gap-3 rounded-xl bg-system-warning-100 p-3">
+                <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-system-warning-600">
+                  <AlertIcon className="size-4 text-white" />
                 </div>
                 <Typography
                   variant={TYPOGRAPHY.R4}
-                  className="text-grey-600 mt-1"
+                  className="text-system-warning-600"
                 >
-                  If approved, your app can be featured in the Worldcoin App
-                  Store
+                  Your app will be removed from the Worldcoin App Store
                 </Typography>
               </div>
-              <Toggle
-                checked={isAllowListing}
-                onChange={(checked) =>
-                  setValue("is_developer_allow_listing", checked)
-                }
-              />
-            </div>
+            )}
           </div>
 
           <div className="grid w-full gap-4 md:grid-cols-2">

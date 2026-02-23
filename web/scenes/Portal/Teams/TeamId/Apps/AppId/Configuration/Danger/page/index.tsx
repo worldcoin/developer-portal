@@ -13,6 +13,7 @@ import { useParams } from "next/navigation";
 import { useMemo, useState } from "react";
 import { useFetchAppMetadataQuery } from "../../graphql/client/fetch-app-metadata.generated";
 import { viewModeAtom } from "../../layout/ImagesProvider";
+import { AppTopBar } from "../../AppTopBar";
 import { DeleteModal } from "./DeleteModal";
 
 type AppProfileDangerPageProps = {
@@ -58,11 +59,16 @@ export const AppProfileDangerPage = ({ params }: AppProfileDangerPageProps) => {
   } else {
     return (
       <>
-        <SizingWrapper gridClassName="order-1 pb-8 pt-4">
+        <SizingWrapper gridClassName="order-1 pt-8">
+          <AppTopBar appId={appId} teamId={teamId} app={app} />
+          <hr className="my-5 w-full border-dashed text-grey-200" />
+        </SizingWrapper>
+
+        <SizingWrapper gridClassName="order-2 pb-8 pt-4">
           <div className="grid grid-cols-1 gap-y-10 md:w-1/2">
             <div className="grid gap-y-2">
               <Typography variant={TYPOGRAPHY.H7} className="text-grey-900">
-                Danger Zone
+                Danger zone
               </Typography>
 
               <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
@@ -76,17 +82,14 @@ export const AppProfileDangerPage = ({ params }: AppProfileDangerPageProps) => {
 
             <DecoratedButton
               type="button"
-              variant="danger"
+              variant="destructive"
               onClick={() => setOpenDeleteModal(true)}
-              className={clsx("w-fit bg-system-error-100 ", {
-                hidden: !isEnoughPermissions,
-              })}
+              className={clsx("w-fit", { hidden: !isEnoughPermissions })}
             >
               <Typography variant={TYPOGRAPHY.R3}>Delete app</Typography>
             </DecoratedButton>
           </div>
         </SizingWrapper>
-
         <DeleteModal
           appName={appMetaData?.name ?? ""}
           appId={appId}

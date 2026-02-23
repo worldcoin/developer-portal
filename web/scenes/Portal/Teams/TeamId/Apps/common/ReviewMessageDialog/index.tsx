@@ -1,11 +1,11 @@
 "use client";
 
-import { CircleIconContainer } from "@/components/CircleIconContainer";
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { Dialog } from "@/components/Dialog";
 import { DialogOverlay } from "@/components/DialogOverlay";
 import { DialogPanel } from "@/components/DialogPanel";
 import { CloseIcon } from "@/components/Icons/CloseIcon";
+import { ModalIcon } from "@/components/ModalIcon";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { atom, useAtom } from "jotai";
 import { ErrorPage } from "@/components/ErrorPage";
@@ -62,49 +62,49 @@ export const ReviewMessageDialog = (props: {
       <Dialog onClose={closeModal} open={isOpened}>
         <DialogOverlay />
 
-        <DialogPanel className="grid gap-y-8 md:max-w-[32rem]">
-          <CircleIconContainer variant={"error"}>
-            <CloseIcon
-              className="size-5 text-system-error-600"
-              strokeWidth={3}
-            />
-          </CircleIconContainer>
+        <DialogPanel className="gap-y-6 md:max-w-[36rem]">
+          <ModalIcon variant="neutral">
+            <CloseIcon className="size-8 text-white" strokeWidth={2} />
+          </ModalIcon>
 
-          <div className="grid w-full items-center justify-center gap-y-4">
-            <Typography
-              variant={TYPOGRAPHY.H6}
-              className="text-center text-grey-900"
-            >
-              App was rejected
-            </Typography>
+          <div className="grid grid-cols-1 justify-items-center gap-y-6 text-center">
+            <div className="grid gap-y-2">
+              <Typography variant={TYPOGRAPHY.H6} className="text-grey-900">
+                App was rejected
+              </Typography>
+              <Typography variant={TYPOGRAPHY.R4} className="text-grey-500">
+                Unfortunately, your app's review was evaluated by our Worldcoin
+                team, and it was rejected due to the reason:
+              </Typography>
+            </div>
 
-            <Typography
-              variant={TYPOGRAPHY.R3}
-              className="text-center text-grey-500 "
-            >
-              Unfortunately, your app was evaluated by our team, and it was
-              rejected for the following reason. <br />
-              <b>Questions? Reachout on Telegram @MateoSauton</b>
-            </Typography>
+            <div className="w-full rounded-xl bg-grey-50 px-4 py-3 text-left">
+              {message && (
+                <Typography variant={TYPOGRAPHY.R4} className="text-grey-500">
+                  {message}
+                </Typography>
+              )}
+              <Typography
+                variant={TYPOGRAPHY.R4}
+                className={message ? "mt-2 text-grey-500" : "text-grey-500"}
+              >
+                Please, fix the issues stated before and then apply for review
+                again.
+              </Typography>
+            </div>
           </div>
 
-          <div className="w-full rounded-lg border border-grey-200 bg-grey-25 px-5 py-4">
-            <Typography variant={TYPOGRAPHY.R3} className="text-grey-400">
-              {message}
-            </Typography>
-          </div>
-
-          <div className="grid w-full grid-cols-2 gap-x-4">
+          <div className="grid w-full gap-4 md:grid-cols-2">
             <DecoratedButton
               type="button"
               variant="secondary"
               onClick={() => setIsOpened(false)}
             >
-              Cancel
+              <Typography variant={TYPOGRAPHY.R3}>Cancel</Typography>
             </DecoratedButton>
 
             <DecoratedButton onClick={removeAndClose} type="button">
-              Resolve issues
+              <Typography variant={TYPOGRAPHY.R3}>Resolve issues</Typography>
             </DecoratedButton>
           </div>
         </DialogPanel>

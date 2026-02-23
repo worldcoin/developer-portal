@@ -1,4 +1,4 @@
-import { CircleIconContainer } from "@/components/CircleIconContainer";
+import { ModalIcon } from "@/components/ModalIcon";
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { Dialog } from "@/components/Dialog";
 import { DialogOverlay } from "@/components/DialogOverlay";
@@ -27,7 +27,7 @@ export const ClearConfirmationModal = ({
 
   const description = isCountries
     ? "This will remove all countries from the Supported Countries list. This action cannot be undone."
-    : "This will remove all languages from the Supported Languages list except English. This action cannot be undone.";
+    : "This will remove all languages from the Supported Languages list and permanently delete all related localization data. This action cannot be undone.";
 
   const handleConfirm = () => {
     onConfirm();
@@ -38,9 +38,9 @@ export const ClearConfirmationModal = ({
     <Dialog open={open} onClose={() => setOpen(false)}>
       <DialogOverlay />
       <DialogPanel className="gap-y-5 md:max-w-[36rem]">
-        <CircleIconContainer variant="error">
-          <TrashIcon className="size-6 text-red-500" />
-        </CircleIconContainer>
+        <ModalIcon variant="error">
+          <TrashIcon className="size-6 text-white" />
+        </ModalIcon>
         <div className="grid gap-y-10">
           <div className="grid grid-cols-1 justify-items-center gap-y-4">
             <Typography variant={TYPOGRAPHY.H6} className="text-grey-900">
@@ -63,7 +63,7 @@ export const ClearConfirmationModal = ({
             </DecoratedButton>
             <DecoratedButton
               type="button"
-              className="bg-red-500 text-white hover:bg-red-600"
+              variant="destructive"
               onClick={handleConfirm}
             >
               Yes
