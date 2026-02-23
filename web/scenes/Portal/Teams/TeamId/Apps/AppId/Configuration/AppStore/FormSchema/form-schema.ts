@@ -19,8 +19,16 @@ export const localisationFormSchema = yup
   .object({
     language: yup.string().required("Locale is required"),
     name: appNameSchema,
-    short_name: appShortNameSchema,
-    world_app_description: appWorldAppDescriptionSchema,
+    short_name: appShortNameSchema.when("$isMiniApp", {
+      is: true,
+      then: (s) => s.required("Short name is required"),
+      otherwise: (s) => s.notRequired(),
+    }),
+    world_app_description: appWorldAppDescriptionSchema.when("$isMiniApp", {
+      is: true,
+      then: (s) => s.required("App tag line is required"),
+      otherwise: (s) => s.notRequired(),
+    }),
     description_overview: appDescriptionOverviewSchema,
     meta_tag_image_url: yup.string().notRequired(),
     showcase_img_urls: yup.array().of(yup.string().notRequired()),
@@ -64,10 +72,16 @@ export const localisationFormReviewSubmitSchema = yup
   .object({
     language: yup.string().required("Locale is required"),
     name: appNameSchema.required("Name is required"),
-    short_name: appShortNameSchema.required("Short name is required"),
-    world_app_description: appWorldAppDescriptionSchema.required(
-      "App tag line is required",
-    ),
+    short_name: appShortNameSchema.when("$isMiniApp", {
+      is: true,
+      then: (s) => s.required("Short name is required"),
+      otherwise: (s) => s.notRequired(),
+    }),
+    world_app_description: appWorldAppDescriptionSchema.when("$isMiniApp", {
+      is: true,
+      then: (s) => s.required("App tag line is required"),
+      otherwise: (s) => s.notRequired(),
+    }),
     description_overview: appDescriptionOverviewSchema.required(
       "Overview is required",
     ),
@@ -87,7 +101,11 @@ export const localisationFormReviewSubmitSchema = yup
 export const mainAppStoreFormReviewSubmitSchema = yup
   .object({
     name: appNameSchema.required("Name is required"),
-    short_name: appShortNameSchema.required("Short name is required"),
+    short_name: appShortNameSchema.when("$isMiniApp", {
+      is: true,
+      then: (s) => s.required("Short name is required"),
+      otherwise: (s) => s.notRequired(),
+    }),
     logo_img_url: yup.string().required("Logo image is required"),
     content_card_image_url: yup.string().when("$isMiniApp", {
       is: true,
@@ -99,9 +117,11 @@ export const mainAppStoreFormReviewSubmitSchema = yup
       then: (s) => s.required("Category is required"),
       otherwise: (s) => s.notRequired(),
     }),
-    world_app_description: appWorldAppDescriptionSchema.required(
-      "App tag line is required",
-    ),
+    world_app_description: appWorldAppDescriptionSchema.when("$isMiniApp", {
+      is: true,
+      then: (s) => s.required("App tag line is required"),
+      otherwise: (s) => s.notRequired(),
+    }),
     app_website_url: appWebsiteUrlSchema.required("Website URL is required"),
     support_type: yup.string().oneOf(["email", "link"]),
     support_link: yup.string().when("support_type", {

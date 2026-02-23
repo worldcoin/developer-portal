@@ -210,7 +210,7 @@ export function errorFormAction({
   });
 
   const serializedError = error
-    ? JSON.parse(JSON.stringify(error, Object.getOwnPropertyNames(error)))
+    ? { message: error.message, name: error.name }
     : undefined;
 
   return { success: false, message, code, error: serializedError };

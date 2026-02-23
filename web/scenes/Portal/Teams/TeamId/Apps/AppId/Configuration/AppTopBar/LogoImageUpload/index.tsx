@@ -120,20 +120,27 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
   };
 
   const removeImage = async () => {
+    const previous = unverifiedImages;
     setUnverifiedImages({
       ...unverifiedImages,
       logo_img_url: "",
     });
+
+    try {
+      await updateLogoMutation({
+        variables: {
+          id: appMetadataId,
+          fileName: "",
+        },
+
+        refetchQueries: [FetchAppMetadataDocument],
+      });
+    } catch {
+      setUnverifiedImages(previous);
+      toast.error("Failed to remove image");
+    }
+
     handleClose();
-
-    await updateLogoMutation({
-      variables: {
-        id: appMetadataId,
-        fileName: "",
-      },
-
-      refetchQueries: [FetchAppMetadataDocument],
-    });
   };
 
   const verifiedImageURL = useMemo(() => {

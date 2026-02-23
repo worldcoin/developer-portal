@@ -193,7 +193,8 @@ export const AppStoreForm = ({
           isSubmitting={isSubmitting}
           isDisabled={!isEditable || !isEnoughPermissions || isSubmitting}
           onSubmit={async () => {
-            await onBeforeSave?.();
+            const canProceed = await onBeforeSave?.();
+            if (canProceed === false) return;
             handleSubmit(submit, onInvalid)();
           }}
         />

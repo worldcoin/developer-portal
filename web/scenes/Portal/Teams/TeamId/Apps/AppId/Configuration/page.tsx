@@ -167,7 +167,9 @@ export const AppProfilePage = ({ params }: AppProfilePageProps) => {
           teamId={teamId}
           appMetadata={appMetadata as AppMetadata}
           onBeforeSave={async () => {
-            await basicInfoRef.current?.submit({ silent: true });
+            return (
+              (await basicInfoRef.current?.submit({ silent: true })) ?? true
+            );
           }}
         />
       </SizingWrapper>

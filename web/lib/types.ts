@@ -322,7 +322,7 @@ export interface FormActionResult {
   success: boolean;
   message: string;
   code?: "AUTH_EXPIRED" | "FORBIDDEN" | "VALIDATION_ERROR" | "UNKNOWN";
-  error?: unknown;
+  error?: { message: string; name: string };
   [key: string]: unknown;
 }
 
