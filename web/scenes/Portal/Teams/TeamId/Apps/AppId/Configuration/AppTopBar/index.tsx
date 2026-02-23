@@ -35,6 +35,7 @@ import {
   getFirstFormError,
   MULTIPLE_ERRORS_TOAST_MESSAGE,
 } from "../AppStore/utils/form-error-utils";
+import { useApolloClient } from "@apollo/client";
 import {
   FetchAppMetadataDocument,
   FetchAppMetadataQuery,
@@ -68,6 +69,7 @@ const AppTopBarSubmit = ({
 }: AppTopBarSubmitProps) => {
   const form = useFormContext<AppStoreFormValues>();
   const searchParams = useSearchParams();
+  const client = useApolloClient();
   const [isSubmittingForReview, setIsSubmittingForReview] = useState(false);
   const hasAutoSubmitted = useRef(false);
 
@@ -117,6 +119,14 @@ const AppTopBarSubmit = ({
         (l) => l.language === "en",
       );
       const isMiniApp = appMetadata.app_mode === "mini-app";
+      // Read fresh metadata from the Apollo cache — BasicInformation's save
+      // already awaited refetchAppMetadata(), so the cache is up to date.
+      const freshData = client.readQuery<FetchAppMetadataQuery>({
+        query: FetchAppMetadataDocument,
+        variables: { id: appId },
+      });
+      const freshAppMetadata =
+        freshData?.app?.[0]?.app_metadata?.[0] ?? appMetadata;
       await mainAppStoreFormReviewSubmitSchema.validate(
         {
           ...formValues,
@@ -124,9 +134,9 @@ const AppTopBarSubmit = ({
           short_name: enLocalization?.short_name,
           world_app_description: enLocalization?.world_app_description,
           description_overview: enLocalization?.description_overview,
-          logo_img_url: appMetadata.logo_img_url,
-          content_card_image_url: appMetadata.content_card_image_url,
-          app_website_url: appMetadata.app_website_url,
+          logo_img_url: freshAppMetadata.logo_img_url,
+          content_card_image_url: freshAppMetadata.content_card_image_url,
+          app_website_url: freshAppMetadata.app_website_url,
         },
         {
           abortEarly: false,
@@ -164,7 +174,7 @@ const AppTopBarSubmit = ({
     } finally {
       setIsSubmittingForReview(false);
     }
-  }, [appMetadata, basicInfoRef, form, onSubmitSuccess]);
+  }, [appId, appMetadata, basicInfoRef, client, form, onSubmitSuccess]);
 
   const shouldAutoSubmitForReview =
     searchParams.get("submitForReview") === "true";
