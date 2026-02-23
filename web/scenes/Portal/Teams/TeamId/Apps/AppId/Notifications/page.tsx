@@ -157,7 +157,6 @@ export const NotificationsPage = () => {
           recipient_count: walletAddresses.length,
         });
         toast.success(`Notification sent successfully`);
-        reset();
       } else {
         toast.error(result.error?.detail || "Failed to send notification");
       }
