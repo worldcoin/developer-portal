@@ -79,7 +79,7 @@ export const AppProfileGalleryPage = ({ params }: AppProfileGalleryProps) => {
         }
       >
         <SizingWrapper gridClassName="order-1 pt-8">
-          <AppTopBar appId={appId} teamId={teamId} app={app!} />
+          <AppTopBar appId={appId} teamId={teamId} app={app!} hasFormContext />
           <hr className="my-5 w-full border-dashed text-grey-200 " />
         </SizingWrapper>
         <SizingWrapper gridClassName="order-2 pb-8 pt-4">

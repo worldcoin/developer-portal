@@ -41,37 +41,162 @@ import { SubmitAppModal } from "./SubmitAppModal";
 import { VersionSwitcher } from "./VersionSwitcher";
 import { useCreateEditableRowMutation } from "./graphql/client/create-editable-row.generated";
 
+type AppTopBarSubmitProps = {
+  appMetadata: FetchAppMetadataQuery["app"][0]["app_metadata"][0];
+  appId: string;
+  teamId: string;
+  viewMode: "unverified" | "verified";
+  onSubmitSuccess: () => void;
+};
+
+const AppTopBarSubmit = ({
+  appMetadata,
+  appId,
+  teamId,
+  viewMode,
+  onSubmitSuccess,
+}: AppTopBarSubmitProps) => {
+  const form = useFormContext<AppStoreFormValues>();
+  const searchParams = useSearchParams();
+  const [isSubmittingForReview, setIsSubmittingForReview] = useState(false);
+  const hasAutoSubmitted = useRef(false);
+
+  const submitForReview = useCallback(async () => {
+    if (appMetadata?.verification_status !== "unverified") {
+      toast.error("Only unverified apps can be submitted for review");
+      return;
+    }
+    setIsSubmittingForReview(true);
+    try {
+      if (form.formState.isDirty) {
+        await new Promise<void>((resolve, reject) => {
+          form.handleSubmit(
+            async (data) => {
+              const result = await updateAppStoreMetadata({
+                ...data,
+                app_metadata_id: appMetadata.id,
+              });
+              if (!result.success) {
+                reject(new Error(result.message));
+              } else {
+                toast.success("App information saved");
+                resolve();
+              }
+            },
+            (errors) => {
+              const errorMessage = getFirstFormError(
+                errors,
+                form.getValues("localisations"),
+              );
+              reject(new Error(errorMessage ?? "Form validation failed"));
+            },
+          )();
+        });
+      }
+      const formValues = form.getValues();
+      const enLocalization = formValues.localisations.find(
+        (l) => l.language === "en",
+      );
+      await mainAppStoreFormReviewSubmitSchema.validate(
+        {
+          ...formValues,
+          name: enLocalization?.name,
+          short_name: enLocalization?.short_name,
+          world_app_description: enLocalization?.world_app_description,
+          description_overview: enLocalization?.description_overview,
+          logo_img_url: appMetadata.logo_img_url,
+          content_card_image_url: appMetadata.content_card_image_url,
+          app_website_url: appMetadata.app_website_url,
+        },
+        {
+          abortEarly: false,
+          strict: true,
+          stripUnknown: true,
+        },
+      );
+      onSubmitSuccess();
+    } catch (error) {
+      let errorMessage = "Error occurred while submitting app for review";
+      if (error instanceof yup.ValidationError) {
+        error.inner.forEach((yupError) => {
+          const path = yupError.path;
+          const yupErrorMessage = yupError.message;
+          errorMessage = yupErrorMessage;
+          if (path) {
+            form.setError(path as keyof AppStoreFormValues, {
+              message: yupErrorMessage,
+            });
+          }
+        });
+        if (error.inner.length > 1) {
+          errorMessage = MULTIPLE_ERRORS_TOAST_MESSAGE;
+        }
+        toast.error(errorMessage);
+        return;
+      }
+      if (error instanceof Error) {
+        toast.error(error.message);
+        return;
+      }
+      console.error("Submitting App Failed: ", error);
+      toast.error("An unexpected error occurred. Please try again.");
+    } finally {
+      setIsSubmittingForReview(false);
+    }
+  }, [appMetadata, form, onSubmitSuccess]);
+
+  const shouldAutoSubmitForReview =
+    searchParams.get("submitForReview") === "true";
+  useEffect(() => {
+    if (shouldAutoSubmitForReview && !hasAutoSubmitted.current) {
+      submitForReview();
+      hasAutoSubmitted.current = true;
+    }
+  }, [shouldAutoSubmitForReview, submitForReview]);
+
+  return (
+    <DecoratedButton
+      type="submit"
+      className={clsx("h-12 px-6 py-3", {
+        hidden:
+          appMetadata.app_id?.includes("staging") &&
+          process.env.NEXT_PUBLIC_APP_ENV === "production",
+      })}
+      disabled={viewMode === "verified" || isSubmittingForReview}
+      onClick={submitForReview}
+    >
+      <Typography variant={TYPOGRAPHY.M3} className="whitespace-nowrap">
+        {isSubmittingForReview ? "Processing..." : "Submit for review"}
+      </Typography>
+    </DecoratedButton>
+  );
+};
+
 type AppTopBarProps = {
   appId: string;
   teamId: string;
   app: FetchAppMetadataQuery["app"][0];
   onResolve?: () => void;
+  hasFormContext?: boolean;
 };
 
 export const AppTopBar = (props: AppTopBarProps) => {
-  const { appId, teamId, app, onResolve } = props;
+  const { appId, teamId, app, onResolve, hasFormContext } = props;
   const router = useRouter();
-  const searchParams = useSearchParams();
   const [viewMode, setViewMode] = useAtom(viewModeAtom);
   const { user } = useUser() as Auth0SessionUser;
-
-  // Form context is optional - only available on pages with FormProvider
-  let form: ReturnType<typeof useFormContext<AppStoreFormValues>> | null = null;
-  try {
-    form = useFormContext<AppStoreFormValues>();
-  } catch (e) {
-    // No form context available - that's okay for pages like Danger zone
-  }
 
   const { data: unverifiedImagesData } = useFetchImagesQuery({
     variables: { id: appId, team_id: teamId },
   });
-  const hasAutoSubmitted = useRef(false);
 
   const [showSubmitAppModal, setShowSubmitAppModal] = useState(false);
+  const handleSubmitSuccess = useCallback(
+    () => setShowSubmitAppModal(true),
+    [],
+  );
   const [showLogoDialog, setShowLogoDialog] = useState(false);
   const [unverifiedImages, setUnverifiedImages] = useAtom(unverifiedImageAtom);
-  const [isSubmittingForReview, setIsSubmittingForReview] = useState(false);
 
   const isEnoughPermissions = useMemo(() => {
     const membership = user?.hasura.memberships.find(
@@ -121,124 +246,6 @@ export const AppTopBar = (props: AppTopBarProps) => {
         appMetadata?.showcase_img_urls?.length > 0,
     );
   }, [appMetadata?.showcase_img_urls]);
-
-  const submitForReview = useCallback(async () => {
-    if (appMetadata?.verification_status !== "unverified") {
-      toast.error("Only unverified apps can be submitted for review");
-      return;
-    }
-
-    // No form context (e.g. Danger zone page) — redirect to Configuration where the form is available
-    if (!form) {
-      router.push(
-        `${urls.configuration({ team_id: teamId, app_id: appId })}?submitForReview=true`,
-      );
-      return;
-    }
-
-    setIsSubmittingForReview(true);
-    try {
-      // Form is guaranteed to exist at this point due to check above
-      const formContext = form!;
-
-      // autosave
-      if (formContext.formState.isDirty) {
-        await new Promise<void>((resolve, reject) => {
-          formContext.handleSubmit(
-            async (data) => {
-              const result = await updateAppStoreMetadata({
-                ...data,
-                app_metadata_id: appMetadata.id,
-              });
-
-              if (!result.success) {
-                reject(new Error(result.message));
-              } else {
-                toast.success("App information saved");
-                resolve();
-              }
-            },
-            (errors) => {
-              const errorMessage = getFirstFormError(
-                errors,
-                formContext.getValues("localisations"),
-              );
-              reject(new Error(errorMessage ?? "Form validation failed"));
-            },
-          )();
-        });
-      }
-      const formValues = formContext.getValues();
-      const enLocalization = formValues.localisations.find(
-        (l) => l.language === "en",
-      );
-
-      await mainAppStoreFormReviewSubmitSchema.validate(
-        {
-          ...formValues,
-          name: enLocalization?.name,
-          short_name: enLocalization?.short_name,
-          world_app_description: enLocalization?.world_app_description,
-          description_overview: enLocalization?.description_overview,
-          logo_img_url: appMetadata.logo_img_url,
-          content_card_image_url: appMetadata.content_card_image_url,
-        },
-        {
-          abortEarly: false,
-          strict: true,
-          stripUnknown: true,
-        },
-      );
-
-      // if all validation passed, show submission modal
-      setShowSubmitAppModal(true);
-    } catch (error) {
-      let errorMessage = "Error occurred while submitting app for review";
-
-      if (error instanceof yup.ValidationError) {
-        error.inner.forEach((yupError) => {
-          const path = yupError.path;
-          const yupErrorMessage = yupError.message;
-
-          errorMessage = yupErrorMessage;
-
-          // still set form errors for field highlighting
-          if (path && form) {
-            form.setError(path as keyof AppStoreFormValues, {
-              message: yupErrorMessage,
-            });
-          }
-        });
-
-        // check for multiple errors after setting them on form
-        if (error.inner.length > 1) {
-          errorMessage = MULTIPLE_ERRORS_TOAST_MESSAGE;
-        }
-
-        toast.error(errorMessage);
-        return;
-      }
-
-      if (error instanceof Error) {
-        toast.error(error.message);
-        return;
-      }
-
-      console.error("Submitting App Failed: ", error);
-      toast.error("An unexpected error occurred. Please try again.");
-    } finally {
-      setIsSubmittingForReview(false);
-    }
-  }, [appMetadata, router, teamId, appId, form]);
-
-  const shouldAutoSubmitForReview =
-    searchParams.get("submitForReview") === "true";
-  useEffect(() => {
-    if (shouldAutoSubmitForReview && !hasAutoSubmitted.current) {
-      submitForReview();
-      hasAutoSubmitted.current = true;
-    }
-  }, [shouldAutoSubmitForReview, submitForReview]);
 
   const [fetchImagesQuery] = useFetchImagesLazyQuery();
 
@@ -457,25 +464,36 @@ export const AppTopBar = (props: AppTopBarProps) => {
 
               {/* Submit / Un-submit / Create Draft button */}
               {isEditable ? (
-                <DecoratedButton
-                  type="submit"
-                  className={clsx("h-12 px-6 py-3", {
-                    hidden:
-                      appMetadata.app_id?.includes("staging") &&
-                      process.env.NEXT_PUBLIC_APP_ENV === "production",
-                  })}
-                  disabled={viewMode === "verified" || isSubmittingForReview}
-                  onClick={submitForReview}
-                >
-                  <Typography
-                    variant={TYPOGRAPHY.M3}
-                    className="whitespace-nowrap"
+                hasFormContext ? (
+                  <AppTopBarSubmit
+                    appMetadata={appMetadata}
+                    appId={appId}
+                    teamId={teamId}
+                    viewMode={viewMode}
+                    onSubmitSuccess={handleSubmitSuccess}
+                  />
+                ) : (
+                  <DecoratedButton
+                    type="button"
+                    className={clsx("h-12 px-6 py-3", {
+                      hidden:
+                        appMetadata.app_id?.includes("staging") &&
+                        process.env.NEXT_PUBLIC_APP_ENV === "production",
+                    })}
+                    onClick={() =>
+                      router.push(
+                        `${urls.configuration({ team_id: teamId, app_id: appId })}?submitForReview=true`,
+                      )
+                    }
                   >
-                    {isSubmittingForReview
-                      ? "Processing..."
-                      : "Submit for review"}
-                  </Typography>
-                </DecoratedButton>
+                    <Typography
+                      variant={TYPOGRAPHY.M3}
+                      className="whitespace-nowrap"
+                    >
+                      Submit for review
+                    </Typography>
+                  </DecoratedButton>
+                )
               ) : app?.app_metadata?.length === 0 ? (
                 <DecoratedButton
                   type="button"

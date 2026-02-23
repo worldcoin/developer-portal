@@ -19,7 +19,7 @@ export const schema = yup
       .concat(
         httpsLinkSchema({
           message: "App Website URL must be a valid https URL",
-          excludeEmptyString: false,
+          excludeEmptyString: true,
         }),
       )
       .required("This field is required"),

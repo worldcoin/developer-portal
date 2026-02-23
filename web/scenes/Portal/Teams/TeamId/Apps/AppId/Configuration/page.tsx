@@ -133,6 +133,7 @@ export const AppProfilePage = ({ params }: AppProfilePageProps) => {
           teamId={teamId}
           app={app}
           onResolve={() => setShowResolveModal(true)}
+          hasFormContext
         />
       </SizingWrapper>
 

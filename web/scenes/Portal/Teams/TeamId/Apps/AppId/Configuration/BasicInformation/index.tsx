@@ -128,10 +128,11 @@ export const BasicInformation = forwardRef<
       const base = register(fieldName);
       return {
         ...base,
-        onBlur: (e: React.FocusEvent<HTMLInputElement>) => {
-          base.onBlur(e);
-          const inferred = inferHttps(e.target.value);
-          if (inferred !== e.target.value) {
+        onBlur: async (e) => {
+          await base.onBlur(e);
+          const val = (e.target as HTMLInputElement).value;
+          const inferred = inferHttps(val);
+          if (inferred !== val) {
             setValue(fieldName, inferred, { shouldValidate: true });
           }
         },
