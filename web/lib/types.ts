@@ -321,6 +321,8 @@ export enum TokenPrecision {
 export interface FormActionResult {
   success: boolean;
   message: string;
+  code?: "AUTH_EXPIRED" | "FORBIDDEN" | "VALIDATION_ERROR" | "UNKNOWN";
+  error?: unknown;
   [key: string]: unknown;
 }
 

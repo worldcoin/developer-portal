@@ -9,8 +9,8 @@ import { useUser } from "@auth0/nextjs-auth0/client";
 import clsx from "clsx";
 import { useAtom } from "jotai";
 import { ErrorPage } from "@/components/ErrorPage";
+import { useParams } from "next/navigation";
 import { useMemo, useState } from "react";
-import { AppTopBar } from "../../AppTopBar";
 import { useFetchAppMetadataQuery } from "../../graphql/client/fetch-app-metadata.generated";
 import { viewModeAtom } from "../../layout/ImagesProvider";
 import { DeleteModal } from "./DeleteModal";
@@ -20,8 +20,9 @@ type AppProfileDangerPageProps = {
 };
 
 export const AppProfileDangerPage = ({ params }: AppProfileDangerPageProps) => {
-  const appId = params?.appId as `app_${string}`;
-  const teamId = params?.teamId as `team_${string}`;
+  const routeParams = useParams<{ appId: `app_${string}`; teamId: string }>();
+  const appId = (params?.appId || routeParams?.appId) as `app_${string}`;
+  const teamId = (params?.teamId || routeParams?.teamId) as `team_${string}`;
   const [viewMode] = useAtom(viewModeAtom);
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
   const { user } = useUser() as Auth0SessionUser;
@@ -57,13 +58,7 @@ export const AppProfileDangerPage = ({ params }: AppProfileDangerPageProps) => {
   } else {
     return (
       <>
-        <SizingWrapper gridClassName="order-1 pt-8">
-          <AppTopBar appId={appId} teamId={teamId} app={app} />
-
-          <hr className="my-5 w-full border-dashed text-grey-200 " />
-        </SizingWrapper>
-
-        <SizingWrapper gridClassName="order-2 pb-8 pt-4">
+        <SizingWrapper gridClassName="order-1 pb-8 pt-4">
           <div className="grid grid-cols-1 gap-y-10 md:w-1/2">
             <div className="grid gap-y-2">
               <Typography variant={TYPOGRAPHY.H7} className="text-grey-900">

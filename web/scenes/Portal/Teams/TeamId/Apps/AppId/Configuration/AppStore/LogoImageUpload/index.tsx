@@ -213,13 +213,12 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
               variant="secondary"
               disabled={loading}
               onClick={removeImage}
-              className="w-full bg-grey-100 hover:bg-grey-200"
+              className="w-full"
             >
               Remove
             </DecoratedButton>
             <DecoratedButton
               type="button"
-              variant="secondary"
               disabled={loading}
               className="w-full"
               onClick={handleUpload}

@@ -21,7 +21,7 @@ const schema = yup
   .object({
     app_metadata_id: yup.string().required("App metadata id is required"),
     team_id: yup.string().required("Team id is required"),
-    changelog: yup.string().required("Changelog is required"),
+    changelog: yup.string().default(""),
     is_developer_allow_listing: yup
       .boolean()
       .required("This field is required"),

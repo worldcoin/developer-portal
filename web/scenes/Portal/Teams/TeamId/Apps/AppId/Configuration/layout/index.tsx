@@ -2,6 +2,7 @@ import { SizingWrapper } from "@/components/SizingWrapper";
 import { Tab, Tabs } from "@/components/Tabs";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Role_Enum } from "@/graphql/graphql";
+import { urls } from "@/lib/urls";
 import { Auth0SessionUser } from "@/lib/types";
 import { checkUserPermissions } from "@/lib/utils";
 import { getSession } from "@auth0/nextjs-auth0";
@@ -35,32 +36,22 @@ export const AppProfileLayout = async (props: AppProfileLayout) => {
           <Tabs className="px-6 py-4 font-gta md:py-0">
             <Tab
               className="md:py-4"
-              href={`/teams/${params!.teamId}/apps/${params!.appId}/configuration`}
+              href={urls.configuration({
+                team_id: params!.teamId!,
+                app_id: params!.appId!,
+              })}
               segment={null}
             >
-              <Typography variant={TYPOGRAPHY.R4}>Basic</Typography>
-            </Tab>
-
-            <Tab
-              className="md:py-4"
-              href={`/teams/${params!.teamId}/apps/${params!.appId}/configuration/app-store`}
-              segment={"app-store"}
-            >
-              <Typography variant={TYPOGRAPHY.R4}>Mini App Store</Typography>
-            </Tab>
-
-            <Tab
-              className="md:py-4"
-              href={`/teams/${params!.teamId}/apps/${params!.appId}/configuration/advanced`}
-              segment={"advanced"}
-            >
-              <Typography variant={TYPOGRAPHY.R4}>Advanced</Typography>
+              <Typography variant={TYPOGRAPHY.R4}>Overview</Typography>
             </Tab>
 
             {isEnoughPermissions && (
               <Tab
                 className="md:py-4"
-                href={`/teams/${params!.teamId}/apps/${params!.appId}/configuration/danger`}
+                href={`${urls.configuration({
+                  team_id: params!.teamId!,
+                  app_id: params!.appId!,
+                })}/danger`}
                 segment={"danger"}
               >
                 <Typography variant={TYPOGRAPHY.R4}>Danger zone</Typography>

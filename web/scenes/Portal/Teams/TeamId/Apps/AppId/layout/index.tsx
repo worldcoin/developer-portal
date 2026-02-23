@@ -1,7 +1,7 @@
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
-import { ErrorPage } from "@/components/ErrorPage";
 import { isWorldId40EnabledServer } from "@/lib/feature-flags/world-id-4-0/server";
 import { EngineType } from "@/lib/types";
+import { logger } from "@/lib/logger";
 import { ReactNode } from "react";
 import { AppIdChrome } from "./AppIdChrome";
 import { getSdk as getAppEnv } from "./graphql/server/fetch-app-env.generated";
@@ -18,20 +18,35 @@ type AppIdLayoutProps = {
 
 export const AppIdLayout = async (props: AppIdLayoutProps) => {
   const params = props.params;
-  const client = await getAPIServiceGraphqlClient();
-  const { app, action } = await getAppEnv(client).FetchAppEnv({
-    id: params.appId ?? "",
-  });
+  let isOnChainApp = false;
+  let hasLegacyActions = false;
 
-  if (!app?.[0]) {
-    return <ErrorPage statusCode={404} title="App not found" />;
+  if (params.appId) {
+    try {
+      const client = await getAPIServiceGraphqlClient();
+      const { app, action } = await getAppEnv(client).FetchAppEnv({
+        id: params.appId,
+      });
+
+      if (app?.[0]) {
+        isOnChainApp = app[0].engine === EngineType.OnChain;
+        hasLegacyActions = action.length > 0;
+      } else {
+        logger.warn("AppIdLayout could not resolve app from FetchAppEnv", {
+          appId: params.appId,
+          teamId: params.teamId,
+        });
+      }
+    } catch (error) {
+      logger.error("AppIdLayout FetchAppEnv failed", {
+        error,
+        appId: params.appId,
+        teamId: params.teamId,
+      });
+    }
   }
 
-  const isOnChainApp = app[0].engine === EngineType.OnChain;
-  const hasLegacyActions = action.length > 0;
-  const isWorldId40Enabled = await isWorldId40EnabledServer(params.teamId);
-  const showWorldId40Nav =
-    isWorldId40Enabled && (app[0].rp_registration?.length ?? 0) > 0;
+  const showWorldId40Nav = await isWorldId40EnabledServer(params.teamId);
 
   return (
     <AppIdChrome

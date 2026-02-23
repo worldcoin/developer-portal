@@ -10,17 +10,14 @@ import { Button } from "@/components/Button";
 import { EditIcon } from "@/components/Icons/EditIcon";
 import { Auth0SessionUser } from "@/lib/types";
 import { getCDNImageUrl, getDefaultLogoImgCDNUrl } from "@/lib/utils";
-import {
-  ReviewMessageDialog,
-  reviewMessageDialogOpenedAtom,
-} from "@/scenes/Portal/Teams/TeamId/Apps/common/ReviewMessageDialog";
-import { ReviewStatus } from "@/scenes/Portal/Teams/TeamId/Apps/common/ReviewStatus";
+import { ReviewMessageDialog } from "@/scenes/Portal/Teams/TeamId/Apps/common/ReviewMessageDialog";
 import { useRemoveFromReview } from "@/scenes/Portal/Teams/TeamId/Apps/common/hooks/use-remove-from-review";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import clsx from "clsx";
 import { useAtom, useSetAtom } from "jotai";
 import { ErrorPage } from "@/components/ErrorPage";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { urls } from "@/lib/urls";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useFormContext } from "react-hook-form";
 import { toast } from "react-toastify";
@@ -49,23 +46,30 @@ type AppTopBarProps = {
   appId: string;
   teamId: string;
   app: FetchAppMetadataQuery["app"][0];
+  onResolve?: () => void;
 };
 
 export const AppTopBar = (props: AppTopBarProps) => {
-  const { appId, teamId, app } = props;
+  const { appId, teamId, app, onResolve } = props;
   const router = useRouter();
-  const pathname = usePathname();
   const searchParams = useSearchParams();
   const [viewMode, setViewMode] = useAtom(viewModeAtom);
   const { user } = useUser() as Auth0SessionUser;
-  const form = useFormContext<AppStoreFormValues>();
+
+  // Form context is optional - only available on pages with FormProvider
+  let form: ReturnType<typeof useFormContext<AppStoreFormValues>> | null = null;
+  try {
+    form = useFormContext<AppStoreFormValues>();
+  } catch (e) {
+    // No form context available - that's okay for pages like Danger zone
+  }
+
   const { data: unverifiedImagesData } = useFetchImagesQuery({
     variables: { id: appId, team_id: teamId },
   });
   const hasAutoSubmitted = useRef(false);
 
   const [showSubmitAppModal, setShowSubmitAppModal] = useState(false);
-  const [_showReviewMessage] = useAtom(reviewMessageDialogOpenedAtom);
   const setUnverifiedImages = useSetAtom(unverifiedImageAtom);
   const [isSubmittingForReview, setIsSubmittingForReview] = useState(false);
 
@@ -124,14 +128,6 @@ export const AppTopBar = (props: AppTopBarProps) => {
       return;
     }
 
-    // only this route has the form context with up to date form data
-    if (!pathname.includes("configuration/app-store")) {
-      router.push(
-        `/teams/${teamId}/apps/${appId}/configuration/app-store?submitForReview=true`,
-      );
-      return;
-    }
-
     // Check if form context is available
     if (!form) {
       toast.error(
@@ -143,10 +139,13 @@ export const AppTopBar = (props: AppTopBarProps) => {
 
     setIsSubmittingForReview(true);
     try {
+      // Form is guaranteed to exist at this point due to check above
+      const formContext = form!;
+
       // autosave
-      if (form.formState.isDirty) {
+      if (formContext.formState.isDirty) {
         await new Promise<void>((resolve, reject) => {
-          form.handleSubmit(
+          formContext.handleSubmit(
             async (data) => {
               const result = await updateAppStoreMetadata({
                 ...data,
@@ -163,14 +162,14 @@ export const AppTopBar = (props: AppTopBarProps) => {
             (errors) => {
               const errorMessage = getFirstFormError(
                 errors,
-                form.getValues("localisations"),
+                formContext.getValues("localisations"),
               );
               reject(new Error(errorMessage ?? "Form validation failed"));
             },
           )();
         });
       }
-      const formValues = form.getValues();
+      const formValues = formContext.getValues();
       const enLocalization = formValues.localisations.find(
         (l) => l.language === "en",
       );
@@ -205,7 +204,7 @@ export const AppTopBar = (props: AppTopBarProps) => {
           errorMessage = yupErrorMessage;
 
           // still set form errors for field highlighting
-          if (path) {
+          if (path && form) {
             form.setError(path as keyof AppStoreFormValues, {
               message: yupErrorMessage,
             });
@@ -231,7 +230,7 @@ export const AppTopBar = (props: AppTopBarProps) => {
     } finally {
       setIsSubmittingForReview(false);
     }
-  }, [appMetadata, pathname, router, teamId, appId, form]);
+  }, [appMetadata, router, teamId, appId, form]);
 
   const shouldAutoSubmitForReview =
     searchParams.get("submitForReview") === "true";
@@ -306,18 +305,12 @@ export const AppTopBar = (props: AppTopBarProps) => {
   ]);
 
   if (!appMetadata) return <ErrorPage statusCode={404} title="App not found" />;
+
+  const isRejected = appMetadata.verification_status === "changes_requested";
+  const isInReview = appMetadata.verification_status === "pending";
+
   return (
-    <div className="grid gap-y-5 rounded-3xl border p-8 pt-7 sm:rounded-none sm:border-none sm:p-0">
-      {["changes_requested", "verified"].includes(
-        appMetadata.verification_status,
-      ) && (
-        <ReviewStatus
-          status={
-            appMetadata.verification_status as "changes_requested" | "verified"
-          }
-          message={appMetadata.review_message}
-        />
-      )}
+    <div className="grid gap-y-5 rounded-2xl border border-grey-100 p-6 sm:rounded-none sm:border-none sm:p-0">
       <SubmitAppModal
         open={showSubmitAppModal}
         setOpen={setShowSubmitAppModal}
@@ -327,28 +320,25 @@ export const AppTopBar = (props: AppTopBarProps) => {
         appId={appId}
         isDeveloperAllowListing={appMetadata?.is_developer_allow_listing}
       />
-      <div className="grid items-center justify-items-center gap-y-4 sm:grid-cols-auto/1fr/auto sm:justify-items-start sm:gap-x-8">
-        <ReviewMessageDialog appId={appId} />
-        <div className="flex w-full justify-end sm:hidden">
-          <AppStatus
-            className=""
-            status={appMetadata.verification_status as StatusVariant}
-          />
-        </div>
+      <ReviewMessageDialog appId={appId} />
 
-        <div className="relative">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={logoImgUrl}
-            alt="logo"
-            className="size-20 rounded-2xl drop-shadow-lg"
-          />
-          {!pathname.includes("configuration/app-store") && (
+      {/* New layout: Logo + Name/Status/Version on left, Actions on right */}
+      <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-start sm:justify-between">
+        {/* Left side: Logo + Name + Status + Version */}
+        <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-start">
+          {/* Logo */}
+          <div className="relative">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={logoImgUrl}
+              alt="logo"
+              className="size-20 rounded-2xl drop-shadow-lg"
+            />
             <Button
               type="button"
               onClick={() => {
-                router.push(
-                  `/teams/${teamId}/apps/${appId}/configuration/app-store?editLogo=true`,
+                router.replace(
+                  `${urls.configuration({ team_id: teamId, app_id: appId })}?editLogo=true`,
                 );
               }}
               className={clsx(
@@ -358,76 +348,96 @@ export const AppTopBar = (props: AppTopBarProps) => {
             >
               <EditIcon className="size-3" />
             </Button>
-          )}
-        </div>
+          </div>
 
-        <div className="grid grid-cols-1 gap-y-1">
-          <div className="flex flex-col items-center gap-x-3 sm:flex-row">
-            <Typography
-              variant={TYPOGRAPHY.H6}
-              className=" max-w-[250px] truncate sm:max-w-[500px]"
-              data-testid="title-app-name"
-            >
-              {appMetadata.name}
-            </Typography>
-            <AppStatus
-              className="hidden sm:flex"
-              status={appMetadata.verification_status as StatusVariant}
+          {/* Name, Status, Environment, Version */}
+          <div className="flex flex-col items-center gap-2 sm:items-start">
+            {/* Name + Status */}
+            <div className="flex flex-col items-center gap-2 sm:flex-row sm:items-center sm:gap-3">
+              <Typography
+                variant={TYPOGRAPHY.H6}
+                className="max-w-[250px] truncate sm:max-w-[500px]"
+                data-testid="title-app-name"
+              >
+                {appMetadata.name}
+              </Typography>
+              <AppStatus
+                status={appMetadata.verification_status as StatusVariant}
+              />
+            </div>
+
+            {/* Environment */}
+            <Environment
+              environment={app.is_staging ? "staging" : "production"}
+              engine={app.engine}
+              className="justify-self-center sm:justify-self-start"
             />
           </div>
-          <Environment
-            environment={app.is_staging ? "staging" : "production"}
-            engine={app.engine}
-            className="justify-self-center sm:justify-self-start"
-          />
         </div>
 
-        <div className="grid w-full grid-cols-1 items-center gap-3 sm:grid-cols-auto/1fr">
+        {/* Right side: Version Switcher + Action Buttons */}
+        <div className="flex w-full flex-col items-center gap-3 sm:w-auto sm:flex-row">
+          {/* Version Switcher */}
           {app.verified_app_metadata.length > 0 &&
             app.app_metadata.length > 0 && <VersionSwitcher app={app} />}
-          {isEnoughPermissions &&
-            (isEditable ? (
-              <DecoratedButton
-                type="submit"
-                className={clsx("h-12 px-6 py-3", {
-                  hidden:
-                    appMetadata.app_id?.includes("staging") &&
-                    process.env.NEXT_PUBLIC_APP_ENV === "production",
-                })}
-                disabled={viewMode === "verified" || isSubmittingForReview}
-                onClick={submitForReview}
-              >
-                <Typography
-                  variant={TYPOGRAPHY.M3}
-                  className={clsx("whitespace-nowrap")}
+
+          {/* Action Buttons */}
+          {isEnoughPermissions && (
+            <div className="flex gap-3">
+              {/* Resolve button for rejected apps */}
+              {isRejected && onResolve && (
+                <DecoratedButton
+                  type="button"
+                  className="h-12 px-6 py-3"
+                  onClick={onResolve}
                 >
-                  {isSubmittingForReview
-                    ? "Processing..."
-                    : "Submit for review"}
-                </Typography>
-              </DecoratedButton>
-            ) : app?.app_metadata?.length === 0 ? (
-              <DecoratedButton
-                type="submit"
-                className="h-12 px-6 py-3"
-                onClick={createNewDraft}
-              >
-                <Typography variant={TYPOGRAPHY.M3}>
-                  Create new draft
-                </Typography>
-              </DecoratedButton>
-            ) : (
-              <DecoratedButton
-                type="submit"
-                className="h-12 px-6 py-3"
-                disabled={removeLoading}
-                onClick={removeFromReview}
-              >
-                <Typography variant={TYPOGRAPHY.M3}>
-                  Remove from review
-                </Typography>
-              </DecoratedButton>
-            ))}
+                  <Typography variant={TYPOGRAPHY.M3}>Resolve</Typography>
+                </DecoratedButton>
+              )}
+
+              {/* Submit / Un-submit / Create Draft button */}
+              {isEditable ? (
+                <DecoratedButton
+                  type="submit"
+                  className={clsx("h-12 px-6 py-3", {
+                    hidden:
+                      appMetadata.app_id?.includes("staging") &&
+                      process.env.NEXT_PUBLIC_APP_ENV === "production",
+                  })}
+                  disabled={viewMode === "verified" || isSubmittingForReview}
+                  onClick={submitForReview}
+                >
+                  <Typography
+                    variant={TYPOGRAPHY.M3}
+                    className="whitespace-nowrap"
+                  >
+                    {isSubmittingForReview
+                      ? "Processing..."
+                      : "Submit for review"}
+                  </Typography>
+                </DecoratedButton>
+              ) : app?.app_metadata?.length === 0 ? (
+                <DecoratedButton
+                  type="button"
+                  className="h-12 px-6 py-3"
+                  onClick={createNewDraft}
+                >
+                  <Typography variant={TYPOGRAPHY.M3}>
+                    Create new draft
+                  </Typography>
+                </DecoratedButton>
+              ) : (
+                <DecoratedButton
+                  type="button"
+                  className="h-12 px-6 py-3"
+                  disabled={removeLoading}
+                  onClick={removeFromReview}
+                >
+                  <Typography variant={TYPOGRAPHY.M3}>Un-submit</Typography>
+                </DecoratedButton>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>
