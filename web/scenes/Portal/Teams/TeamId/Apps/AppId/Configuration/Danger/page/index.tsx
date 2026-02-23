@@ -52,19 +52,22 @@ export const AppProfileDangerPage = ({ params }: AppProfileDangerPageProps) => {
     return <div></div>;
   } else if (!app) {
     return (
-      <SizingWrapper gridClassName="order-1 md:order-2">
+      <SizingWrapper variant="nav" gridClassName="order-1 md:order-2">
         <ErrorPage statusCode={404} title="App not found" />
       </SizingWrapper>
     );
   } else {
     return (
       <>
-        <SizingWrapper gridClassName="order-1 pt-8">
+        <SizingWrapper variant="nav" gridClassName="order-1 py-10">
           <AppTopBar appId={appId} teamId={teamId} app={app} />
-          <hr className="my-5 w-full border-dashed text-grey-200" />
         </SizingWrapper>
 
-        <SizingWrapper gridClassName="order-2 pb-8 pt-4">
+        <SizingWrapper variant="nav" gridClassName="order-2">
+          <div className="border-t border-grey-100" />
+        </SizingWrapper>
+
+        <SizingWrapper variant="nav" gridClassName="order-3 pb-8 pt-8">
           <div className="grid grid-cols-1 gap-y-10 md:w-1/2">
             <div className="grid gap-y-2">
               <Typography variant={TYPOGRAPHY.H7} className="text-grey-900">

@@ -11,7 +11,7 @@ import { getCDNImageUrl } from "@/lib/utils";
 import clsx from "clsx";
 import { useAtom } from "jotai";
 import Image from "next/image";
-import { ChangeEvent, useMemo, useRef, useState } from "react";
+import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 import Skeleton from "react-loading-skeleton";
 import { toast } from "react-toastify";
 import { LOGO_IMAGE_UPLOAD_TOAST_ID } from "../../constants";
@@ -41,6 +41,10 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
     defaultOpen,
   } = props;
   const [showDialog, setShowDialog] = useState(defaultOpen ?? false);
+
+  useEffect(() => {
+    if (defaultOpen) setShowDialog(true);
+  }, [defaultOpen]);
   const [verifiedImageError, setVerifiedImageError] = useState(false);
   const [isSecondUpload, setIsSecondUpload] = useState(false);
   const [disabled] = useState(false);
@@ -176,10 +180,11 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
             </Button>
           </div>
           <div className="grid gap-y-6 rounded-xl border border-grey-200 p-6">
-            {unverifiedImages?.logo_img_url ? (
+            {unverifiedImages?.logo_img_url &&
+            unverifiedImages.logo_img_url !== "loading" ? (
               <div>
                 <Image
-                  src={unverifiedImages?.logo_img_url}
+                  src={unverifiedImages.logo_img_url}
                   alt="Uploaded"
                   className="size-28 rounded-2xl object-contain drop-shadow-lg"
                   width={512}

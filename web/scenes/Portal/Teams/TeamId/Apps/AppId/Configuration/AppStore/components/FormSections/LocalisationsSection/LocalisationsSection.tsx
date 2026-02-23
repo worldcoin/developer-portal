@@ -1,15 +1,6 @@
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import { useRefetchQueries } from "@/lib/use-refetch-queries";
-import { useCallback } from "react";
-import {
-  Control,
-  FieldArrayWithId,
-  FieldErrors,
-  useWatch,
-} from "react-hook-form";
-import { FetchAppMetadataDocument } from "../../../../graphql/client/fetch-app-metadata.generated";
+import { Control, FieldArrayWithId, FieldErrors } from "react-hook-form";
 import { AppStoreFormValues } from "../../../FormSchema/types";
-import { FetchLocalisationsDocument } from "../../../graphql/client/fetch-localisations.generated";
 import {
   AppMetadata,
   FormSectionProps,
@@ -23,8 +14,6 @@ interface LocalisationsSectionProps extends FormSectionProps {
   control: Control<AppStoreFormValues>;
   errors: FieldErrors<AppStoreFormValues>;
   localisations: FieldArrayWithId<AppStoreFormValues, "localisations", "id">[];
-  appId: string;
-  teamId: string;
   appMetadata: AppMetadata;
 }
 
@@ -34,8 +23,6 @@ export const LocalisationsSection = ({
   localisations,
   isEditable,
   isEnoughPermissions,
-  appId,
-  teamId,
   appMetadata,
 }: LocalisationsSectionProps) => {
   const {
@@ -45,29 +32,6 @@ export const LocalisationsSection = ({
     selectedField,
   } = useLanguageSelection(localisations);
 
-  const supportedLanguages = useWatch({
-    control,
-    name: "supported_languages",
-  });
-
-  const { refetch: refetchAppMetadata } = useRefetchQueries(
-    FetchAppMetadataDocument,
-    { id: appId },
-  );
-  const { refetch: refetchLocalisations } = useRefetchQueries(
-    FetchLocalisationsDocument,
-    { app_metadata_id: appMetadata.id },
-  );
-
-  const handleAutosaveSuccess = useCallback(() => {
-    refetchAppMetadata();
-    refetchLocalisations();
-  }, [refetchAppMetadata, refetchLocalisations]);
-
-  const handleAutosaveError = useCallback((error: any) => {
-    console.error("Autosave failed:", error);
-  }, []);
-
   // fail-safe for empty state
   // en should always be defined
   if (localisations.length === 0) {
@@ -75,7 +39,6 @@ export const LocalisationsSection = ({
       <FormSection
         title="Localisations"
         description="Provide localized content for each supported language."
-        className="grid gap-y-5"
       >
         <Typography variant={TYPOGRAPHY.R4} className="text-grey-500">
           No languages selected. Please add languages in the Supported Languages
@@ -107,12 +70,7 @@ export const LocalisationsSection = ({
             selectedField={selectedField}
             isEditable={isEditable}
             isEnoughPermissions={isEnoughPermissions}
-            appId={appId}
-            teamId={teamId}
-            appMetadata={appMetadata}
-            supportedLanguages={supportedLanguages}
-            onAutosaveSuccess={handleAutosaveSuccess}
-            onAutosaveError={handleAutosaveError}
+            isMiniApp={appMetadata.app_mode === "mini-app"}
           />
         </div>
       )}

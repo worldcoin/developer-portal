@@ -2,19 +2,17 @@
 
 import { AppStatus, StatusVariant } from "@/components/AppStatus";
 import { DecoratedButton } from "@/components/DecoratedButton";
-import { Environment } from "@/components/Environment";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Role_Enum } from "@/graphql/graphql";
 
 import { Button } from "@/components/Button";
-import { EditIcon } from "@/components/Icons/EditIcon";
 import { Auth0SessionUser } from "@/lib/types";
 import { getCDNImageUrl, getDefaultLogoImgCDNUrl } from "@/lib/utils";
 import { ReviewMessageDialog } from "@/scenes/Portal/Teams/TeamId/Apps/common/ReviewMessageDialog";
 import { useRemoveFromReview } from "@/scenes/Portal/Teams/TeamId/Apps/common/hooks/use-remove-from-review";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import clsx from "clsx";
-import { useAtom, useSetAtom } from "jotai";
+import { useAtom } from "jotai";
 import { ErrorPage } from "@/components/ErrorPage";
 import { urls } from "@/lib/urls";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -38,6 +36,7 @@ import {
   useFetchImagesQuery,
 } from "../graphql/client/fetch-images.generated";
 import { unverifiedImageAtom, viewModeAtom } from "../layout/ImagesProvider";
+import { LogoImageUpload } from "./LogoImageUpload";
 import { SubmitAppModal } from "./SubmitAppModal";
 import { VersionSwitcher } from "./VersionSwitcher";
 import { useCreateEditableRowMutation } from "./graphql/client/create-editable-row.generated";
@@ -70,7 +69,8 @@ export const AppTopBar = (props: AppTopBarProps) => {
   const hasAutoSubmitted = useRef(false);
 
   const [showSubmitAppModal, setShowSubmitAppModal] = useState(false);
-  const setUnverifiedImages = useSetAtom(unverifiedImageAtom);
+  const [showLogoDialog, setShowLogoDialog] = useState(false);
+  const [unverifiedImages, setUnverifiedImages] = useAtom(unverifiedImageAtom);
   const [isSubmittingForReview, setIsSubmittingForReview] = useState(false);
 
   const isEnoughPermissions = useMemo(() => {
@@ -128,12 +128,11 @@ export const AppTopBar = (props: AppTopBarProps) => {
       return;
     }
 
-    // Check if form context is available
+    // No form context (e.g. Danger zone page) — redirect to Configuration where the form is available
     if (!form) {
-      toast.error(
-        "Unable to submit for review. Please refresh the page and try again.",
+      router.push(
+        `${urls.configuration({ team_id: teamId, app_id: appId })}?submitForReview=true`,
       );
-      console.error("Form context not available");
       return;
     }
 
@@ -292,25 +291,48 @@ export const AppTopBar = (props: AppTopBarProps) => {
     if (appMetadata?.verification_status === "verified") {
       return getCDNImageUrl(appId, appMetadata?.logo_img_url, true);
     } else {
-      return (
-        unverifiedImagesData?.unverified_images?.logo_img_url ||
-        getDefaultLogoImgCDNUrl()
-      );
+      const atomUrl = unverifiedImages?.logo_img_url;
+      return atomUrl && atomUrl !== "loading"
+        ? atomUrl
+        : getDefaultLogoImgCDNUrl();
     }
   }, [
     appMetadata?.verification_status,
     appMetadata?.logo_img_url,
     appId,
-    unverifiedImagesData?.unverified_images?.logo_img_url,
+    unverifiedImages?.logo_img_url,
+  ]);
+
+  const hasLogo = useMemo(() => {
+    if (appMetadata?.verification_status === "verified") {
+      return Boolean(appMetadata?.logo_img_url);
+    }
+    const atomUrl = unverifiedImages?.logo_img_url;
+    return Boolean(atomUrl) && atomUrl !== "loading";
+  }, [
+    appMetadata?.verification_status,
+    appMetadata?.logo_img_url,
+    unverifiedImages?.logo_img_url,
   ]);
 
   if (!appMetadata) return <ErrorPage statusCode={404} title="App not found" />;
 
   const isRejected = appMetadata.verification_status === "changes_requested";
-  const isInReview = appMetadata.verification_status === "pending";
+  const isInReview = appMetadata.verification_status === "awaiting_review";
 
   return (
     <div className="grid gap-y-5 rounded-2xl border border-grey-100 p-6 sm:rounded-none sm:border-none sm:p-0">
+      <LogoImageUpload
+        appId={appId}
+        appMetadataId={appMetadata.id}
+        teamId={teamId}
+        editable={isEditable}
+        isError={false}
+        logoFile={appMetadata.logo_img_url}
+        open={showLogoDialog}
+        onClose={() => setShowLogoDialog(false)}
+        dialogOnly
+      />
       <SubmitAppModal
         open={showSubmitAppModal}
         setOpen={setShowSubmitAppModal}
@@ -323,40 +345,85 @@ export const AppTopBar = (props: AppTopBarProps) => {
       <ReviewMessageDialog appId={appId} />
 
       {/* New layout: Logo + Name/Status/Version on left, Actions on right */}
-      <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-start sm:justify-between">
+      <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-center sm:justify-between">
         {/* Left side: Logo + Name + Status + Version */}
-        <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-start">
+        <div className="flex flex-col items-center gap-8 sm:flex-row sm:items-center">
           {/* Logo */}
-          <div className="relative">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={logoImgUrl}
-              alt="logo"
-              className="size-20 rounded-2xl drop-shadow-lg"
-            />
-            <Button
-              type="button"
-              onClick={() => {
-                router.replace(
-                  `${urls.configuration({ team_id: teamId, app_id: appId })}?editLogo=true`,
-                );
-              }}
-              className={clsx(
-                "absolute -bottom-2 -right-2 z-10 rounded-full border-2 border-grey-200 bg-white p-2 text-grey-500 hover:bg-grey-50",
-                { hidden: viewMode === "verified" },
-              )}
-            >
-              <EditIcon className="size-3" />
-            </Button>
-          </div>
+          <button
+            type="button"
+            onClick={() => {
+              if (viewMode !== "verified") {
+                setShowLogoDialog(true);
+              }
+            }}
+            className={clsx(
+              "group relative size-[125px] shrink-0 rounded-full",
+              {
+                "cursor-default": viewMode === "verified",
+              },
+            )}
+          >
+            {hasLogo ? (
+              <>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={logoImgUrl}
+                  alt="logo"
+                  className="size-full rounded-full object-cover drop-shadow-lg"
+                />
+                {viewMode !== "verified" && (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 rounded-full bg-grey-900/50 opacity-0 transition-opacity group-hover:opacity-100">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      fill="currentColor"
+                      className="size-6 text-white"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M1.5 6a2.25 2.25 0 0 1 2.25-2.25h16.5A2.25 2.25 0 0 1 22.5 6v12a2.25 2.25 0 0 1-2.25 2.25H3.75A2.25 2.25 0 0 1 1.5 18V6ZM3 16.06V18c0 .414.336.75.75.75h16.5A.75.75 0 0 0 21 18v-1.94l-2.69-2.689a1.5 1.5 0 0 0-2.12 0l-.88.879.83.83a.75.75 0 1 1-1.06 1.06l-5.16-5.159a1.5 1.5 0 0 0-2.12 0L3 16.061Zm10.125-7.81a1.125 1.125 0 1 1 2.25 0 1.125 1.125 0 0 1-2.25 0Z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                    <Typography variant={TYPOGRAPHY.R5} className="text-white">
+                      Update icon
+                    </Typography>
+                  </div>
+                )}
+              </>
+            ) : viewMode !== "verified" ? (
+              <>
+                {/* Empty state: dashed circle placeholder */}
+                <div className="flex size-full flex-col items-center justify-center gap-1 rounded-full border border-dashed border-grey-200 bg-grey-50">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                    className="size-6 text-grey-900"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M1.5 6a2.25 2.25 0 0 1 2.25-2.25h16.5A2.25 2.25 0 0 1 22.5 6v12a2.25 2.25 0 0 1-2.25 2.25H3.75A2.25 2.25 0 0 1 1.5 18V6ZM3 16.06V18c0 .414.336.75.75.75h16.5A.75.75 0 0 0 21 18v-1.94l-2.69-2.689a1.5 1.5 0 0 0-2.12 0l-.88.879.83.83a.75.75 0 1 1-1.06 1.06l-5.16-5.159a1.5 1.5 0 0 0-2.12 0L3 16.061Zm10.125-7.81a1.125 1.125 0 1 1 2.25 0 1.125 1.125 0 0 1-2.25 0Z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                  <Typography variant={TYPOGRAPHY.R5} className="text-grey-900">
+                    App icon <span className="text-system-error-500">*</span>
+                  </Typography>
+                </div>
+                {/* Hover overlay */}
+                <div className="absolute inset-0 rounded-full bg-grey-900/50 opacity-0 transition-opacity group-hover:opacity-100" />
+              </>
+            ) : null}
+          </button>
 
           {/* Name, Status, Environment, Version */}
           <div className="flex flex-col items-center gap-2 sm:items-start">
             {/* Name + Status */}
-            <div className="flex flex-col items-center gap-2 sm:flex-row sm:items-center sm:gap-3">
+            <div className="flex flex-col items-center gap-2 sm:items-start">
               <Typography
                 variant={TYPOGRAPHY.H6}
-                className="max-w-[250px] truncate sm:max-w-[500px]"
+                className="max-w-[250px] truncate font-normal sm:max-w-[500px]"
                 data-testid="title-app-name"
               >
                 {appMetadata.name}
@@ -365,13 +432,6 @@ export const AppTopBar = (props: AppTopBarProps) => {
                 status={appMetadata.verification_status as StatusVariant}
               />
             </div>
-
-            {/* Environment */}
-            <Environment
-              environment={app.is_staging ? "staging" : "production"}
-              engine={app.engine}
-              className="justify-self-center sm:justify-self-start"
-            />
           </div>
         </div>
 
@@ -426,16 +486,17 @@ export const AppTopBar = (props: AppTopBarProps) => {
                     Create new draft
                   </Typography>
                 </DecoratedButton>
-              ) : (
+              ) : isInReview ? (
                 <DecoratedButton
                   type="button"
-                  className="h-12 px-6 py-3"
+                  variant="secondary"
+                  className="h-14 px-6"
                   disabled={removeLoading}
                   onClick={removeFromReview}
                 >
                   <Typography variant={TYPOGRAPHY.M3}>Un-submit</Typography>
                 </DecoratedButton>
-              )}
+              ) : null}
             </div>
           )}
         </div>

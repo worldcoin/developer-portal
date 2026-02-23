@@ -74,6 +74,7 @@ export type AppStoreFormProps = {
   appId: string;
   teamId: string;
   appMetadata: AppMetadata;
+  onBeforeSave?: () => Promise<void>;
 };
 
 export type FormSectionProps = {

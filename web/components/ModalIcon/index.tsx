@@ -18,7 +18,7 @@ export const ModalIcon = ({ variant, children }: ModalIconProps) => {
   return (
     <div
       className={clsx(
-        "flex size-20 items-center justify-center rounded-full",
+        "flex size-[88px] items-center justify-center rounded-full",
         variantStyles[variant],
       )}
     >

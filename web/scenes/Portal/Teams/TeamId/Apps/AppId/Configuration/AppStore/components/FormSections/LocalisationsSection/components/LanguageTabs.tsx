@@ -1,5 +1,4 @@
 import { CountryBadge } from "@/components/CountryBadge";
-import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { FormLanguage, languageMap } from "@/lib/languages";
 import { FieldArrayWithId, FieldErrors } from "react-hook-form";
 import { AppStoreFormValues } from "../../../../FormSchema/types";
@@ -42,7 +41,9 @@ export const LanguageTabs = ({
               src={`${process.env.NEXT_PUBLIC_APP_URL}/icons/flags/${countryCode}.svg`}
               alt={`lang flag`}
             />
-            <Typography variant={TYPOGRAPHY.R5}>{languageLabel}</Typography>
+            <span className="text-[13px] font-semibold text-grey-900">
+              {languageLabel}
+            </span>
           </CountryBadge>
         );
       })}

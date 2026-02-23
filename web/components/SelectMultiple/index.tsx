@@ -41,6 +41,7 @@ export type SelectMultipleProps<T extends FieldValues> = {
   canClearAll?: boolean;
   canDelete?: (item: Item) => boolean;
   selectAllLabel: string;
+  renderBadgeIcon?: (item: Item) => ReactNode;
 };
 
 export const SelectMultiple = <T extends FieldValues>(
@@ -130,10 +131,10 @@ export const SelectMultiple = <T extends FieldValues>(
   );
 
   const fieldsetClassName = clsx(
-    "overflow-hidden rounded-lg border bg-grey-0 text-base text-grey-700 md:text-sm",
+    "overflow-hidden rounded-[10px] border bg-grey-50 text-base text-grey-700 md:text-sm",
 
     {
-      "border-grey-200 focus-within:border-blue-500 focus-within:hover:border-blue-500 hover:border-grey-700":
+      "border-transparent focus-within:border-blue-500 focus-within:hover:border-blue-500 hover:border-grey-300":
         !errors && !disabled,
       "border-system-error-500 text-system-error-500 focus-within:border-system-error-500":
         errors && !disabled,
@@ -141,7 +142,7 @@ export const SelectMultiple = <T extends FieldValues>(
 
     {
       "hover:text-grey-700": !disabled,
-      "bg-grey-50 text-grey-400 border-grey-200": disabled,
+      "text-grey-400 border-transparent": disabled,
     },
   );
 
@@ -181,7 +182,7 @@ export const SelectMultiple = <T extends FieldValues>(
     >
       <fieldset
         className={clsx(
-          "w-full cursor-pointer border px-2.5",
+          "w-full cursor-pointer border px-4 py-3",
           fieldsetClassName,
         )}
         onClick={toggleOpen}
@@ -202,10 +203,9 @@ export const SelectMultiple = <T extends FieldValues>(
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className={twMerge(
-              clsx("w-full rounded-lg py-4 pl-2.5 outline-none", {
-                "border-grey-200 text-grey-700 focus-within:border-blue-500 hover:border-grey-700 focus-within:hover:border-blue-500":
-                  errors,
-              }),
+              clsx(
+                "w-full bg-transparent py-0 pl-0 text-grey-900 outline-none placeholder:text-grey-500",
+              ),
             )}
             disabled={disabled}
           />
@@ -213,17 +213,21 @@ export const SelectMultiple = <T extends FieldValues>(
           {Array.isArray(inputVisibleItems) && inputVisibleItems.length > 0 && (
             <DecoratedButton
               type="button"
-              variant="secondary"
               onClick={(e) => {
                 e.stopPropagation();
                 clearAll?.();
               }}
-              className={clsx("h-9 rounded-lg", {
-                "cursor-not-allowed opacity-50": !props.canClearAll,
-              })}
+              className={clsx(
+                "hover:bg-grey-800 h-8 rounded-full bg-grey-900 px-3 text-white",
+                {
+                  "cursor-not-allowed opacity-50": !props.canClearAll,
+                },
+              )}
               disabled={disabled || !props.canClearAll}
             >
-              <Typography variant={TYPOGRAPHY.R4}>Clear all</Typography>
+              <Typography variant={TYPOGRAPHY.M4} className="text-white">
+                Clear all
+              </Typography>
             </DecoratedButton>
           )}
         </div>
@@ -285,44 +289,34 @@ export const SelectMultiple = <T extends FieldValues>(
       </div>
 
       {props.showSelectedList && (
-        <div className="mt-2">
+        <div className="mt-4">
           {Array.isArray(inputVisibleItems) && inputVisibleItems.length > 0 && (
             <div className="grid gap-y-2">
               <div className="flex flex-wrap gap-2">
                 {inputVisibleItems.map((item, index) => (
                   <div
                     key={`select-multiple-option-${item?.label}-${index}`}
-                    className="grid grid-cols-1fr/auto items-center overflow-hidden rounded-lg"
+                    className="flex h-8 items-center gap-2 rounded-full border border-grey-100 bg-grey-100 pl-1.5 pr-3"
                   >
-                    <Typography
-                      variant={TYPOGRAPHY.R4}
-                      className={clsx("select-none px-2 py-1 text-grey-0", {
-                        "bg-grey-900": !disabled,
-                        "bg-grey-300": disabled,
-                        "border-r border-grey-0":
-                          props.canDelete?.(item) ?? true,
-                      })}
-                    >
+                    {props.renderBadgeIcon?.(item)}
+                    <span className="select-none text-[13px] font-semibold text-grey-900">
                       {item?.label}
-                    </Typography>
+                    </span>
 
                     {(props.canDelete?.(item) ?? true) && (
                       <button
                         type="button"
-                        className={clsx(
-                          "size-full cursor-pointer p-1 transition-colors hover:bg-grey-900/80",
-                          {
-                            "bg-grey-900": !disabled,
-                            "bg-grey-300": disabled,
-                          },
-                        )}
+                        className="cursor-pointer transition-opacity hover:opacity-70 disabled:cursor-not-allowed disabled:opacity-50"
                         onClick={(e) => {
                           e.stopPropagation();
                           onRemove(item.value);
                         }}
                         disabled={disabled}
                       >
-                        <CloseIcon strokeWidth={2} className="text-grey-0" />
+                        <CloseIcon
+                          strokeWidth={2}
+                          className="size-4 text-grey-500"
+                        />
                       </button>
                     )}
                   </div>

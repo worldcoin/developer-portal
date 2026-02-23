@@ -79,7 +79,6 @@ export async function updateAppStoreMetadata(
       is_android_only: parsedParams.is_android_only,
       is_for_humans_only: parsedParams.is_for_humans_only,
       support_link: supportLink,
-      app_website_url: parsedParams.app_website_url,
       supported_countries: parsedParams.supported_countries,
       supported_languages: parsedParams.supported_languages,
       // en locale fields go directly on app_metadata

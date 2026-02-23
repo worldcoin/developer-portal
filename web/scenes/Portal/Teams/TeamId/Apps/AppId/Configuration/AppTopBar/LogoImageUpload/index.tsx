@@ -11,12 +11,12 @@ import { getCDNImageUrl } from "@/lib/utils";
 import clsx from "clsx";
 import { useAtom } from "jotai";
 import Image from "next/image";
-import { ChangeEvent, useMemo, useRef, useState } from "react";
+import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 import Skeleton from "react-loading-skeleton";
 import { toast } from "react-toastify";
-import { LOGO_IMAGE_UPLOAD_TOAST_ID } from "../../constants";
 import { FetchAppMetadataDocument } from "../../graphql/client/fetch-app-metadata.generated";
 import { ImageValidationError, useImage } from "../../hook/use-image";
+import ImageLoader from "../../AppStore/ImageForm/ImageLoader";
 import { unverifiedImageAtom, viewModeAtom } from "../../layout/ImagesProvider";
 import { useUpdateLogoMutation } from "./graphql/client/update-logo.generated";
 
@@ -27,12 +27,30 @@ type LogoImageUploadProps = {
   editable: boolean;
   isError: boolean;
   logoFile?: string;
+  open?: boolean;
+  onClose?: () => void;
+  dialogOnly?: boolean;
 };
 export const LogoImageUpload = (props: LogoImageUploadProps) => {
-  const { appId, appMetadataId, teamId, editable, isError, logoFile } = props;
+  const {
+    appId,
+    appMetadataId,
+    teamId,
+    editable,
+    isError,
+    logoFile,
+    open,
+    onClose,
+    dialogOnly,
+  } = props;
   const [showDialog, setShowDialog] = useState(false);
+
+  useEffect(() => {
+    if (open) setShowDialog(true);
+  }, [open]);
   const [verifiedImageError, setVerifiedImageError] = useState(false);
   const [isSecondUpload, setIsSecondUpload] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const [disabled] = useState(false);
   const [viewMode] = useAtom(viewModeAtom);
   const [unverifiedImages, setUnverifiedImages] = useAtom(unverifiedImageAtom);
@@ -55,12 +73,7 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
         // Aspect ratio of 1:1
         await validateImageAspectRatio(file, 1, 1);
 
-        toast.info("Uploading image", {
-          toastId: LOGO_IMAGE_UPLOAD_TOAST_ID,
-          autoClose: false,
-        });
-
-        toast.dismiss("ImageValidationError");
+        setIsUploading(true);
         await uploadViaPresignedPost(file, appId, teamId, imageType);
 
         const imageUrl = await getImage(
@@ -86,11 +99,6 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
           refetchQueries: [FetchAppMetadataDocument],
         });
 
-        toast.update(LOGO_IMAGE_UPLOAD_TOAST_ID, {
-          type: "success",
-          render: "Image uploaded and saved",
-          autoClose: 5000,
-        });
         // TODO: This is a hotfix since the path names are fixed the browser caches the image and doesn't update it.
         // Will be fixed after the dev-portal update is done to avoid large backend changes for now.
         if (isSecondUpload) {
@@ -98,19 +106,15 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
         } else {
           setIsSecondUpload(true);
         }
-        setShowDialog(false);
+        handleClose();
       } catch (error) {
         console.error("Logo Upload Failed: ", error);
 
-        if (error instanceof ImageValidationError) {
-          toast.dismiss(LOGO_IMAGE_UPLOAD_TOAST_ID);
-        } else {
-          toast.update(LOGO_IMAGE_UPLOAD_TOAST_ID, {
-            type: "error",
-            render: "Error uploading image",
-            autoClose: 5000,
-          });
+        if (!(error instanceof ImageValidationError)) {
+          toast.error("Error uploading image");
         }
+      } finally {
+        setIsUploading(false);
       }
     }
   };
@@ -120,6 +124,7 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
       ...unverifiedImages,
       logo_img_url: "",
     });
+    handleClose();
 
     await updateLogoMutation({
       variables: {
@@ -138,30 +143,39 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
     return getCDNImageUrl(appId, logoFile);
   }, [appId, logoFile, viewMode]);
 
+  const handleClose = () => {
+    setShowDialog(false);
+    onClose?.();
+  };
+
   return (
     <div
       className={clsx(
         "relative flex w-20 flex-col items-center justify-center",
+        dialogOnly && "contents",
       )}
     >
-      <Dialog open={showDialog} onClose={() => setShowDialog(false)}>
+      <Dialog open={showDialog} onClose={handleClose}>
         <DialogOverlay />
         <DialogPanel className="grid gap-y-10 md:max-w-[28rem]">
           <div className="grid w-full grid-cols-1fr/auto justify-between">
             <Typography variant={TYPOGRAPHY.H6}>Edit app image</Typography>
             <Button
               type="button"
-              onClick={() => setShowDialog(false)}
+              onClick={handleClose}
               className="flex size-7 items-center justify-center rounded-full bg-grey-100 hover:bg-grey-200"
             >
               <CloseIcon className="size-4" />
             </Button>
           </div>
           <div className="grid gap-y-6 rounded-xl border border-grey-200 p-6">
-            {unverifiedImages?.logo_img_url ? (
+            {isUploading ? (
+              <ImageLoader name="App icon" className="h-28 w-full" />
+            ) : unverifiedImages?.logo_img_url &&
+              unverifiedImages.logo_img_url !== "loading" ? (
               <div>
                 <Image
-                  src={unverifiedImages?.logo_img_url}
+                  src={unverifiedImages.logo_img_url}
                   alt="Uploaded"
                   className="size-28 rounded-2xl object-contain drop-shadow-lg"
                   width={512}
@@ -193,7 +207,12 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
             <DecoratedButton
               type="button"
               variant="secondary"
-              disabled={loading}
+              disabled={
+                loading ||
+                isUploading ||
+                !unverifiedImages?.logo_img_url ||
+                unverifiedImages.logo_img_url === "loading"
+              }
               onClick={removeImage}
               className="w-full bg-grey-100 hover:bg-grey-200"
             >
@@ -201,8 +220,7 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
             </DecoratedButton>
             <DecoratedButton
               type="button"
-              variant="secondary"
-              disabled={loading}
+              disabled={loading || isUploading}
               className="w-full"
               onClick={handleUpload}
             >
@@ -212,7 +230,8 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
         </DialogPanel>
       </Dialog>
       {/* Using img here since CDN caches for us and measured load time, Next/Image is actually slower */}
-      {viewMode === "verified" &&
+      {!dialogOnly &&
+        viewMode === "verified" &&
         (verifiedImageError ? (
           <div className="flex size-full items-center justify-center rounded-2xl bg-blue-100">
             <WorldIcon className="size-10  text-blue-500" />
@@ -226,7 +245,8 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
             onError={() => setVerifiedImageError(true)}
           />
         ))}
-      {viewMode === "unverified" &&
+      {!dialogOnly &&
+        viewMode === "unverified" &&
         (unverifiedImages?.logo_img_url ? (
           unverifiedImages?.logo_img_url === "loading" ? (
             <Skeleton className="size-20" />
@@ -251,24 +271,28 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
             <WorldIcon className="size-10  text-blue-500" />
           </div>
         ))}
-      <Button
-        type="button"
-        onClick={() => setShowDialog(true)}
-        className={clsx(
-          "absolute -bottom-2 -right-2 rounded-full border-2 border-grey-200 bg-white p-2 text-grey-500 hover:bg-grey-50",
-          { hidden: !editable || viewMode === "verified" },
-          { "bottom-7": isError },
-        )}
-      >
-        <EditIcon className="size-3" />
-      </Button>
-      {isError && (
-        <Typography
-          variant={TYPOGRAPHY.R5}
-          className="left-0 top-20 mt-1 flex w-max shrink text-red-500"
-        >
-          Logo is required.
-        </Typography>
+      {!dialogOnly && (
+        <>
+          <Button
+            type="button"
+            onClick={() => setShowDialog(true)}
+            className={clsx(
+              "absolute -bottom-2 -right-2 rounded-full border-2 border-grey-200 bg-white p-2 text-grey-500 hover:bg-grey-50",
+              { hidden: !editable || viewMode === "verified" },
+              { "bottom-7": isError },
+            )}
+          >
+            <EditIcon className="size-3" />
+          </Button>
+          {isError && (
+            <Typography
+              variant={TYPOGRAPHY.R5}
+              className="left-0 top-20 mt-1 flex w-max shrink text-red-500"
+            >
+              Logo is required.
+            </Typography>
+          )}
+        </>
       )}
     </div>
   );

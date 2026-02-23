@@ -39,7 +39,7 @@ const ImageLoader = (props: { name: string; className?: string }) => {
       </div>
       <div className="w-full rounded-xl bg-gray-200">
         <div
-          className="h-2 rounded-xl bg-blue-500 text-center text-xs text-white"
+          className="h-2 rounded-xl bg-grey-900 text-center text-xs text-white"
           style={{ width: `${progress}%` }}
         />
       </div>

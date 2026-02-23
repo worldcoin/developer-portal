@@ -1,25 +1,23 @@
 "use client";
 import { CopyButton } from "@/components/CopyButton";
-import { DecoratedButton } from "@/components/DecoratedButton";
-import { CaretIcon } from "@/components/Icons/CaretIcon";
-import { Input } from "@/components/Input";
-import {
-  Select,
-  SelectButton,
-  SelectOption,
-  SelectOptions,
-} from "@/components/Select";
+import { FloatingInput } from "@/components/FloatingInput";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Role_Enum } from "@/graphql/graphql";
-import { Auth0SessionUser, EngineType } from "@/lib/types";
+import { Auth0SessionUser } from "@/lib/types";
 import { useRefetchQueries } from "@/lib/use-refetch-queries";
+import { inferHttps } from "@/lib/schema";
 import { checkUserPermissions } from "@/lib/utils";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { yupResolver } from "@hookform/resolvers/yup";
-import clsx from "clsx";
 import { useAtom } from "jotai";
-import { useCallback, useEffect, useMemo } from "react";
-import { Controller, useForm } from "react-hook-form";
+import React, {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useMemo,
+} from "react";
+import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import {
   FetchAppMetadataDocument,
@@ -27,18 +25,22 @@ import {
   FetchAppMetadataQueryVariables,
 } from "../graphql/client/fetch-app-metadata.generated";
 import { viewModeAtom } from "../layout/ImagesProvider";
-import { RemainingCharacters } from "../PageComponents/RemainingCharacters";
 import { BasicInformationFormValues, schema } from "./form-schema";
-import { QrQuickAction } from "./QrQuickAction";
 import { validateAndSubmitServerSide } from "./server/submit";
 
-export const BasicInformation = (props: {
-  appId: string;
-  teamId: string;
-  app: FetchAppMetadataQuery["app"][0];
-  teamName: string;
-}) => {
-  const { appId, teamId, app } = props;
+export type BasicInformationHandle = {
+  submit: (opts?: { silent?: boolean }) => void;
+};
+
+export const BasicInformation = forwardRef<
+  BasicInformationHandle,
+  {
+    appId: string;
+    teamId: string;
+    app: FetchAppMetadataQuery["app"][0];
+    teamName: string;
+  }
+>(({ appId, teamId, app, teamName }, ref) => {
   const { refetch: refetchAppMetadata } =
     useRefetchQueries<FetchAppMetadataQueryVariables>(
       FetchAppMetadataDocument,
@@ -70,16 +72,15 @@ export const BasicInformation = (props: {
     return {
       name: appMetaData?.name,
       integration_url: appMetaData?.integration_url,
-      engine: app.engine as EngineType,
+      app_website_url: appMetaData?.app_website_url ?? "",
     };
-  }, [appMetaData, app.engine]);
+  }, [appMetaData]);
 
   const {
-    control,
     register,
     handleSubmit,
     reset,
-    watch,
+    setValue,
     formState: { errors, isDirty, isValid },
   } = useForm<BasicInformationFormValues>({
     resolver: yupResolver(schema),
@@ -89,7 +90,7 @@ export const BasicInformation = (props: {
     },
   });
 
-  // Used to update the fields when view mode is change
+  // Used to update the fields when view mode is changed
   useEffect(() => {
     reset({
       ...editableAppMetadata,
@@ -97,42 +98,58 @@ export const BasicInformation = (props: {
   }, [reset, editableAppMetadata]);
 
   const submit = useCallback(
-    async (data: BasicInformationFormValues) => {
-      const result = await validateAndSubmitServerSide(
-        appMetaData?.id,
-        appId,
-        data,
-      );
-      if (!result.success) {
-        toast.error(result.message);
-      } else {
-        await refetchAppMetadata();
-        toast.success("App information updated successfully");
-      }
-    },
+    (opts?: { silent?: boolean }) =>
+      async (data: BasicInformationFormValues) => {
+        const result = await validateAndSubmitServerSide(
+          appMetaData?.id,
+          appId,
+          data,
+        );
+        if (!result.success) {
+          toast.error(result.message);
+        } else {
+          await refetchAppMetadata();
+          if (!opts?.silent) {
+            toast.success("App information updated successfully");
+          }
+        }
+      },
     [appMetaData?.id, appId, refetchAppMetadata],
   );
 
-  // Show QR quick action if the app has an integration URL
-  // New mini apps may have an empty integration URL
-  const showQrQuickAction = Boolean(appMetaData?.integration_url);
+  useImperativeHandle(ref, () => ({
+    submit: (opts) => handleSubmit(submit(opts))(),
+  }));
 
-  const { url, showDraftMiniAppFlag } = useMemo(() => {
-    let url = `https://world.org/mini-app?app_id=${appId}&path=`;
-    let showDraftMiniAppFlag = appMetaData?.verification_status !== "verified";
-    if (showDraftMiniAppFlag) {
-      url += `&draft_id=${appMetaData?.id}`;
-    }
-    return { url, showDraftMiniAppFlag };
-  }, [appId, appMetaData]);
+  const makeUrlRegister = useCallback(
+    (
+      fieldName: "integration_url" | "app_website_url",
+    ): ReturnType<typeof register> => {
+      const base = register(fieldName);
+      return {
+        ...base,
+        onBlur: (e: React.FocusEvent<HTMLInputElement>) => {
+          base.onBlur(e);
+          const inferred = inferHttps(e.target.value);
+          if (inferred !== e.target.value) {
+            setValue(fieldName, inferred, { shouldValidate: true });
+          }
+        },
+      };
+    },
+    [register, setValue],
+  );
 
   return (
-    <div className="grid max-w-[580px] grid-cols-1fr/auto">
+    <div className="grid max-w-[700px] grid-cols-1fr/auto">
       <div className="">
-        <form className="grid gap-y-7" onSubmit={handleSubmit(submit)}>
+        <div className="grid gap-y-7">
           <div className="grid gap-y-2">
-            <Typography variant={TYPOGRAPHY.H7} className="text-gray-900">
-              Basic
+            <Typography
+              variant={TYPOGRAPHY.H7}
+              className="font-normal text-grey-900"
+            >
+              Basic information
             </Typography>
             {isDirty && (
               <Typography
@@ -144,135 +161,58 @@ export const BasicInformation = (props: {
             )}
           </div>
 
-          <Input
-            register={register("name")}
-            errors={errors.name}
-            label="App name"
-            disabled={!isEditable || !isEnoughPermissions}
-            required
-            placeholder="Enter your App Name"
-            maxLength={50}
-            addOnRight={
-              <RemainingCharacters text={watch("name")} maxChars={50} />
-            }
-          />
+          <div className="grid grid-cols-2 gap-x-4">
+            <FloatingInput
+              id="name"
+              register={register("name")}
+              errors={errors.name}
+              label="App name"
+              disabled={!isEditable || !isEnoughPermissions}
+              required
+              maxLength={50}
+            />
 
-          <Input
+            <FloatingInput
+              id="publisher"
+              label="Publisher"
+              value={teamName}
+              readOnly
+              tabIndex={-1}
+              className="pointer-events-none"
+            />
+          </div>
+
+          <FloatingInput
+            id="integration_url"
             label="App URL"
             required
             errors={errors.integration_url}
             disabled={!isEditable || !isEnoughPermissions}
-            placeholder="https://"
-            register={register("integration_url")}
+            register={makeUrlRegister("integration_url")}
           />
 
-          <Controller
-            name="engine"
-            control={control}
-            render={({ field }) => (
-              <Select
-                value={field.value}
-                onChange={field.onChange}
-                disabled={!isEditable || !isEnoughPermissions}
-                by={(a: string | null, b: string | null) => a === b}
-              >
-                <div className="inline-grid w-full font-gta transition-colors">
-                  <fieldset
-                    className={clsx(
-                      "group grid w-full pb-2",
-                      "rounded-lg border bg-grey-0",
-                      {
-                        "border-grey-200 focus-within:border-blue-500 hover:border-grey-700":
-                          !errors.engine && isEditable && isEnoughPermissions,
-                        "border-system-error-500":
-                          !!errors.engine && isEditable && isEnoughPermissions,
-                        "cursor-not-allowed border-grey-200 bg-grey-50 text-grey-400":
-                          !isEditable || !isEnoughPermissions,
-                      },
-                    )}
-                  >
-                    <SelectButton
-                      className={clsx(
-                        "grid grid-cols-1fr/auto items-center py-1 text-left text-grey-700",
-                        {
-                          "cursor-not-allowed text-grey-400":
-                            !isEditable || !isEnoughPermissions,
-                        },
-                      )}
-                    >
-                      <Typography variant={TYPOGRAPHY.R4}>
-                        {field.value === EngineType.OnChain
-                          ? "On-chain"
-                          : "Cloud"}
-                      </Typography>
-                      <CaretIcon
-                        className={clsx("text-grey-400 transition-colors", {
-                          "group-hover:text-grey-700":
-                            isEditable && isEnoughPermissions,
-                        })}
-                      />
-                    </SelectButton>
-
-                    <SelectOptions className="mt-3 text-sm focus:outline-none">
-                      <SelectOption value={EngineType.Cloud}>
-                        <Typography variant={TYPOGRAPHY.R4}>Cloud</Typography>
-                      </SelectOption>
-                      <SelectOption value={EngineType.OnChain}>
-                        <Typography variant={TYPOGRAPHY.R4}>
-                          On-chain
-                        </Typography>
-                      </SelectOption>
-                    </SelectOptions>
-
-                    <legend className="ml-4 whitespace-nowrap px-0.5 text-sm text-grey-500">
-                      Engine <span className="text-system-error-500">*</span>
-                    </legend>
-                  </fieldset>
-
-                  {errors.engine?.message && (
-                    <Typography
-                      className="mt-2 px-2 text-system-error-500"
-                      variant={TYPOGRAPHY.R5}
-                    >
-                      {errors.engine.message}
-                    </Typography>
-                  )}
-                  <Typography
-                    variant={TYPOGRAPHY.R5}
-                    className="mt-2 px-2 text-grey-500"
-                  >
-                    Choose where your World ID proofs will be verified.
-                  </Typography>
-                </div>
-              </Select>
-            )}
+          <FloatingInput
+            id="app_website_url"
+            label="App Official Website"
+            required
+            errors={errors.app_website_url}
+            disabled={!isEditable || !isEnoughPermissions}
+            register={makeUrlRegister("app_website_url")}
           />
 
-          <Input
+          <FloatingInput
+            id="app-id"
             label="ID"
-            disabled
-            placeholder={appId}
+            value={appId}
+            readOnly
+            tabIndex={-1}
+            style={{ WebkitTextFillColor: "#9BA3AE", color: "#9BA3AE" }}
             addOnRight={<CopyButton fieldName="App ID" fieldValue={appId} />}
           />
-
-          <DecoratedButton
-            type="submit"
-            variant="primary"
-            className=" mr-5 h-12 w-40"
-            disabled={!isEditable || !isEnoughPermissions || !isValid}
-          >
-            <Typography variant={TYPOGRAPHY.M3}>Save Changes</Typography>
-          </DecoratedButton>
-        </form>
-        <div className="mt-7 flex justify-center sm:justify-start">
-          {showQrQuickAction && (
-            <QrQuickAction
-              url={url}
-              showDraftMiniAppFlag={showDraftMiniAppFlag}
-            />
-          )}
         </div>
       </div>
     </div>
   );
-};
+});
+
+BasicInformation.displayName = "BasicInformation";

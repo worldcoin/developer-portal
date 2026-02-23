@@ -1,10 +1,5 @@
 import { Button } from "@/components/Button";
-import { DecoratedButton } from "@/components/DecoratedButton";
-import { Dialog } from "@/components/Dialog";
-import { DialogOverlay } from "@/components/DialogOverlay";
-import { DialogPanel } from "@/components/DialogPanel";
-import { CloseIcon } from "@/components/Icons/CloseIcon";
-import { EditIcon } from "@/components/Icons/EditIcon";
+import { TrashIcon } from "@/components/Icons/TrashIcon";
 import { WorldIcon } from "@/components/Icons/WorldIcon";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { getCDNImageUrl } from "@/lib/utils";
@@ -14,9 +9,9 @@ import Image from "next/image";
 import { ChangeEvent, useMemo, useRef, useState } from "react";
 import Skeleton from "react-loading-skeleton";
 import { toast } from "react-toastify";
-import { CONTENT_CARD_IMAGE_UPLOAD_TOAST_ID } from "../../constants";
 import { FetchAppMetadataDocument } from "../../graphql/client/fetch-app-metadata.generated";
 import { ImageValidationError, useImage } from "../../hook/use-image";
+import ImageLoader from "../ImageForm/ImageLoader";
 import { unverifiedImageAtom, viewModeAtom } from "../../layout/ImagesProvider";
 import { useUpdateContentCardImageMutation } from "./graphql/client/update-content-card-image.generated";
 
@@ -27,7 +22,6 @@ type ContentCardImageUploadProps = {
   isEditable: boolean;
   isError: boolean;
   contentCardImageFile?: string;
-  defaultOpen?: boolean;
 };
 
 export const ContentCardImageUpload = (props: ContentCardImageUploadProps) => {
@@ -38,11 +32,10 @@ export const ContentCardImageUpload = (props: ContentCardImageUploadProps) => {
     isEditable,
     isError,
     contentCardImageFile,
-    defaultOpen,
   } = props;
-  const [showDialog, setShowDialog] = useState(defaultOpen ?? false);
   const [verifiedImageError, setVerifiedImageError] = useState(false);
   const [isSecondUpload, setIsSecondUpload] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const [disabled] = useState(false);
   const [viewMode] = useAtom(viewModeAtom);
   const [unverifiedImages, setUnverifiedImages] = useAtom(unverifiedImageAtom);
@@ -66,11 +59,7 @@ export const ContentCardImageUpload = (props: ContentCardImageUploadProps) => {
         // Aspect ratio of 345px width and 240px height
         await validateImageAspectRatio(file, 345, 240);
 
-        toast.info("Uploading image", {
-          toastId: CONTENT_CARD_IMAGE_UPLOAD_TOAST_ID,
-          autoClose: false,
-        });
-
+        setIsUploading(true);
         toast.dismiss(ImageValidationError.prototype.toastId);
         await uploadViaPresignedPost(file, appId, teamId, imageType);
 
@@ -97,11 +86,6 @@ export const ContentCardImageUpload = (props: ContentCardImageUploadProps) => {
           refetchQueries: [FetchAppMetadataDocument],
         });
 
-        toast.update(CONTENT_CARD_IMAGE_UPLOAD_TOAST_ID, {
-          type: "success",
-          render: "Image uploaded and saved",
-          autoClose: 5000,
-        });
         // TODO: This is a hotfix since the path names are fixed the browser caches the image and doesn't update it.
         // Will be fixed after the dev-portal update is done to avoid large backend changes for now.
         if (isSecondUpload) {
@@ -109,19 +93,14 @@ export const ContentCardImageUpload = (props: ContentCardImageUploadProps) => {
         } else {
           setIsSecondUpload(true);
         }
-        setShowDialog(false);
       } catch (error) {
         console.error("Content Card Image Upload Failed: ", error);
 
-        if (error instanceof ImageValidationError) {
-          toast.dismiss(CONTENT_CARD_IMAGE_UPLOAD_TOAST_ID);
-        } else {
-          toast.update(CONTENT_CARD_IMAGE_UPLOAD_TOAST_ID, {
-            type: "error",
-            render: "Error uploading image",
-            autoClose: 5000,
-          });
+        if (!(error instanceof ImageValidationError)) {
+          toast.error("Error uploading image");
         }
+      } finally {
+        setIsUploading(false);
       }
     }
   };
@@ -153,139 +132,111 @@ export const ContentCardImageUpload = (props: ContentCardImageUploadProps) => {
     viewMode === "unverified" &&
     unverifiedImages?.content_card_image_url === "loading"
   ) {
-    return <Skeleton className="h-[240px] w-[345px]" />;
+    return <Skeleton className="h-[200px] w-full rounded-xl" />;
   }
 
   return (
-    <div
-      className={clsx(
-        "relative flex w-[345px] flex-col items-center justify-center",
-        isError && "mb-4",
-      )}
-    >
-      <Dialog open={showDialog} onClose={() => setShowDialog(false)}>
-        <DialogOverlay />
-        <DialogPanel className="grid gap-y-10 md:max-w-[28rem]">
-          <div className="grid w-full grid-cols-1fr/auto justify-between">
-            <Typography variant={TYPOGRAPHY.H6}>
-              Update Content Card Image
-            </Typography>
-            <Button
-              type="button"
-              onClick={() => setShowDialog(false)}
-              className="flex size-7 items-center justify-center rounded-full bg-grey-100 hover:bg-grey-200"
-            >
-              <CloseIcon className="size-4" />
-            </Button>
-          </div>
-          <div className="grid gap-y-6 rounded-xl border border-grey-200 p-6">
-            {unverifiedImages?.content_card_image_url ? (
-              <div>
-                <Image
-                  src={unverifiedImages?.content_card_image_url}
-                  alt="Uploaded"
-                  className="rounded-2xl object-contain drop-shadow-lg"
-                  width={345}
-                  height={240}
-                />
-              </div>
-            ) : (
-              <div className="flex items-center justify-center rounded-2xl bg-blue-100">
-                <WorldIcon className="h-[240px] w-[345px] text-blue-500" />
-              </div>
-            )}
-            <input
-              ref={imageInputRef}
-              type="file"
-              accept=".png,.jpg,.jpeg"
-              disabled={disabled}
-              onChange={handleFileInput}
-              style={{ display: "none" }}
-            />
-            <Typography variant={TYPOGRAPHY.R3} className="text-grey-900">
-              Image requirements
-            </Typography>
-            <Typography variant={TYPOGRAPHY.R4} className="text-grey-500">
-              Upload a PNG or JPG image smaller than 500 kb. Required aspect
-              dimension 345px width and 240px height.
-            </Typography>
-          </div>
-          <div className="grid w-full grid-cols-2 gap-x-4">
-            <DecoratedButton
-              type="button"
-              variant="secondary"
-              disabled={loading}
-              onClick={removeImage}
-              className="w-full bg-grey-100 hover:bg-grey-200"
-            >
-              Remove
-            </DecoratedButton>
-            <DecoratedButton
-              type="button"
-              variant="secondary"
-              disabled={loading}
-              className="w-full"
-              onClick={handleUpload}
-            >
-              Upload
-            </DecoratedButton>
-          </div>
-        </DialogPanel>
-      </Dialog>
-      {/* Using img here since CDN caches for us and measured load time, Next/Image is actually slower */}
+    <div className={clsx("grid w-full gap-y-1", isError && "mb-4")}>
+      <input
+        ref={imageInputRef}
+        type="file"
+        accept=".png,.jpg,.jpeg"
+        disabled={disabled}
+        onChange={handleFileInput}
+        style={{ display: "none" }}
+      />
+
+      {/* Verified: full-width image */}
       {viewMode === "verified" &&
         (verifiedImageError ? (
-          <div className="flex size-full items-center justify-center rounded-2xl bg-blue-100">
-            <WorldIcon className="h-[240px] w-[345px]  text-blue-500" />
+          <div className="flex h-[200px] w-full items-center justify-center rounded-xl bg-blue-100">
+            <WorldIcon className="size-10 text-blue-500" />
           </div>
         ) : (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={verifiedImageURL}
             alt="content card image"
-            className="rounded-2xl drop-shadow-lg"
+            className="h-[200px] w-full rounded-xl object-cover drop-shadow-sm"
             onError={() => setVerifiedImageError(true)}
           />
         ))}
+
+      {/* Unverified: uploading loader */}
+      {viewMode === "unverified" && isUploading && (
+        <ImageLoader name="content_card_image" className="h-[200px] w-full" />
+      )}
+
+      {/* Unverified: uploaded image or drop zone */}
       {viewMode === "unverified" &&
+        !isUploading &&
         (unverifiedImages?.content_card_image_url ? (
-          <Image
-            alt="content card image"
-            src={unverifiedImages?.content_card_image_url}
-            className="rounded-2xl drop-shadow-lg"
-            width={345}
-            height={240}
-          />
-        ) : (
-          <div
-            className={clsx(
-              "flex items-center justify-center rounded-2xl bg-blue-100",
-              {
-                "border-2 border-system-error-500": isError,
-              },
-            )}
-          >
-            <WorldIcon className="h-[240px] w-[345px] text-blue-500" />
+          <div className="relative overflow-hidden rounded-xl">
+            <Image
+              alt="content card image"
+              src={unverifiedImages?.content_card_image_url}
+              className="h-[200px] w-full rounded-xl object-cover"
+              width={1200}
+              height={600}
+            />
+            <Button
+              type="button"
+              onClick={removeImage}
+              disabled={loading || !isEditable}
+              className={clsx(
+                "absolute right-4 top-4 flex size-8 items-center justify-center rounded-full border border-grey-200 bg-white shadow-sm transition-colors hover:bg-grey-100 disabled:cursor-not-allowed disabled:opacity-50",
+                { hidden: !isEditable },
+              )}
+            >
+              <TrashIcon className="text-grey-500" />
+            </Button>
           </div>
+        ) : (
+          <label
+            className={clsx(
+              "flex h-[168px] w-full cursor-pointer flex-col items-center justify-center gap-y-3 rounded-[10px] border border-dashed bg-grey-50 p-6 hover:bg-grey-100",
+              isError ? "border-system-error-500" : "border-grey-200",
+            )}
+            onClick={handleUpload}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={2}
+              stroke="currentColor"
+              className="size-6 text-grey-500"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"
+              />
+            </svg>
+            <div className="flex flex-col items-center gap-y-1">
+              <Typography
+                variant={TYPOGRAPHY.B3}
+                className="text-center text-grey-500"
+              >
+                Drop image here to upload
+              </Typography>
+              <Typography
+                variant={TYPOGRAPHY.B3}
+                className="text-center text-grey-500"
+              >
+                or{" "}
+                <span className="font-semibold text-grey-700">
+                  browse files
+                </span>
+              </Typography>
+            </div>
+          </label>
         ))}
-      <Button
-        type="button"
-        onClick={() => setShowDialog(true)}
-        className={clsx(
-          "absolute -bottom-2 -right-2 rounded-full border-2 border-grey-200 bg-white p-2 text-grey-500 hover:bg-grey-50",
-          { hidden: !isEditable || viewMode === "verified" },
-        )}
-      >
-        <EditIcon className="size-3" />
-      </Button>
+
       {isError && (
-        <Typography
-          variant={TYPOGRAPHY.R5}
-          className="absolute left-0 top-[84px] mt-4 flex w-max shrink text-red-500"
-        >
-          Content card image is required. Required aspect ratio is 345px width
-          and 240px height.
-        </Typography>
+        <p className="px-1 text-xs text-system-error-500">
+          Content card image is required. Required aspect ratio is 345×240px.
+        </p>
       )}
     </div>
   );

@@ -27,7 +27,7 @@ export const AppStatus = (props: StatusProps) => {
 
   const statusStyles = {
     unverified: {
-      normal: "bg-grey-100 text-grey-500",
+      normal: "bg-grey-100 text-grey-900",
     },
     awaiting_review: {
       normal: "bg-system-warning-100 text-system-warning-700",

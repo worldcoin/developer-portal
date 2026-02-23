@@ -4,12 +4,12 @@ import * as Types from "@/graphql/graphql";
 import { GraphQLClient, RequestOptions } from "graphql-request";
 import gql from "graphql-tag";
 type GraphQLClientRequestHeaders = RequestOptions["requestHeaders"];
-export type UpdateAppInfoMutationVariables = Types.Exact<{
+export type UpdateAppModeMutationVariables = Types.Exact<{
   app_metadata_id: Types.Scalars["String"]["input"];
-  input?: Types.InputMaybe<Types.App_Metadata_Set_Input>;
+  app_mode: Types.Scalars["String"]["input"];
 }>;
 
-export type UpdateAppInfoMutation = {
+export type UpdateAppModeMutation = {
   __typename?: "mutation_root";
   update_app_metadata_by_pk?: {
     __typename?: "app_metadata";
@@ -17,14 +17,11 @@ export type UpdateAppInfoMutation = {
   } | null;
 };
 
-export const UpdateAppInfoDocument = gql`
-  mutation UpdateAppInfo(
-    $app_metadata_id: String!
-    $input: app_metadata_set_input
-  ) {
+export const UpdateAppModeDocument = gql`
+  mutation UpdateAppMode($app_metadata_id: String!, $app_mode: String!) {
     update_app_metadata_by_pk(
       pk_columns: { id: $app_metadata_id }
-      _set: $input
+      _set: { app_mode: $app_mode }
     ) {
       id
     }
@@ -50,18 +47,18 @@ export function getSdk(
   withWrapper: SdkFunctionWrapper = defaultWrapper,
 ) {
   return {
-    UpdateAppInfo(
-      variables: UpdateAppInfoMutationVariables,
+    UpdateAppMode(
+      variables: UpdateAppModeMutationVariables,
       requestHeaders?: GraphQLClientRequestHeaders,
-    ): Promise<UpdateAppInfoMutation> {
+    ): Promise<UpdateAppModeMutation> {
       return withWrapper(
         (wrappedRequestHeaders) =>
-          client.request<UpdateAppInfoMutation>(
-            UpdateAppInfoDocument,
+          client.request<UpdateAppModeMutation>(
+            UpdateAppModeDocument,
             variables,
             { ...requestHeaders, ...wrappedRequestHeaders },
           ),
-        "UpdateAppInfo",
+        "UpdateAppMode",
         "mutation",
         variables,
       );

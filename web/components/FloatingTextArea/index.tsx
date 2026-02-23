@@ -1,9 +1,10 @@
 "use client";
 import clsx from "clsx";
-import { InputHTMLAttributes, ReactNode } from "react";
+import { ReactNode, TextareaHTMLAttributes } from "react";
 import { FieldError, UseFormRegisterReturn } from "react-hook-form";
 
-interface FloatingInputProps extends InputHTMLAttributes<HTMLInputElement> {
+interface FloatingTextAreaProps
+  extends TextareaHTMLAttributes<HTMLTextAreaElement> {
   register?: UseFormRegisterReturn;
   label: React.ReactNode;
   errors?: FieldError;
@@ -12,7 +13,7 @@ interface FloatingInputProps extends InputHTMLAttributes<HTMLInputElement> {
   addOnRight?: ReactNode;
 }
 
-export const FloatingInput = ({
+export const FloatingTextArea = ({
   register,
   label,
   errors,
@@ -21,26 +22,28 @@ export const FloatingInput = ({
   addOnRight,
   className,
   ...restProps
-}: FloatingInputProps) => {
-  // Force label to floated position when a static value is provided (e.g. disabled fields)
+}: FloatingTextAreaProps) => {
   const hasStaticValue = Boolean(restProps.value || restProps.defaultValue);
 
   return (
     <div className="grid gap-y-1">
       <div
         className={clsx(
-          "relative flex items-center gap-2 rounded-[10px] px-4 pb-3 pt-7",
+          "relative rounded-[10px] px-4 pb-3 pt-7",
           errors ? "bg-system-error-50" : "bg-grey-50",
           className,
         )}
       >
-        <input
+        <textarea
           id={id}
           {...register}
           {...restProps}
           placeholder=" "
-          className="peer w-full min-w-0 flex-1 bg-transparent text-sm text-grey-900 focus:outline-none disabled:text-grey-700 disabled:opacity-100 disabled:[-webkit-text-fill-color:#3C424B]"
+          className="peer w-full resize-none bg-transparent text-sm text-grey-900 focus:outline-none disabled:text-grey-700 disabled:opacity-100 disabled:[-webkit-text-fill-color:#3C424B]"
         />
+        {addOnRight && (
+          <div className="absolute bottom-3 right-4 z-10">{addOnRight}</div>
+        )}
         <label
           htmlFor={id}
           className={clsx(
@@ -49,18 +52,15 @@ export const FloatingInput = ({
             hasStaticValue
               ? "top-4 translate-y-0 text-xs"
               : [
-                  "top-1/2 -translate-y-1/2 text-sm",
-                  "peer-focus:top-4 peer-focus:translate-y-0 peer-focus:text-xs",
-                  "peer-[:not(:placeholder-shown)]:top-4 peer-[:not(:placeholder-shown)]:translate-y-0 peer-[:not(:placeholder-shown)]:text-xs",
+                  "top-7 translate-y-0 text-sm",
+                  "peer-focus:top-4 peer-focus:text-xs",
+                  "peer-[:not(:placeholder-shown)]:top-4 peer-[:not(:placeholder-shown)]:text-xs",
                 ],
           )}
         >
           {label}
           {required && <span className="ml-0.5 text-system-error-500">*</span>}
         </label>
-        {addOnRight && (
-          <div className="relative z-10 shrink-0">{addOnRight}</div>
-        )}
       </div>
 
       {errors?.message && (

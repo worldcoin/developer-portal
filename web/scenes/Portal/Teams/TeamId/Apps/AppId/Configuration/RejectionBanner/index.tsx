@@ -20,23 +20,28 @@ export const RejectionBanner = ({
   return (
     <div
       className={clsx(
-        "flex items-center justify-between gap-4 rounded-2xl bg-system-warning-100 px-6 py-4",
+        "flex items-center gap-3 rounded-20 bg-system-warning-100 p-5",
         className,
       )}
     >
-      <div className="flex items-start gap-3">
-        <AlertIcon className="mt-0.5 size-5 flex-shrink-0 text-system-warning-600" />
-
-        <Typography variant={TYPOGRAPHY.R4} className="text-system-warning-800">
-          {displayMessage}
-        </Typography>
+      {/* Icon */}
+      <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-system-warning-600">
+        <AlertIcon className="size-4 text-white" />
       </div>
+
+      {/* Label */}
+      <Typography
+        variant={TYPOGRAPHY.R4}
+        className="flex-1 text-system-warning-600"
+      >
+        {displayMessage}
+      </Typography>
 
       {/* Resolve Button */}
       <Button
         type="button"
         onClick={onResolve}
-        className="flex-shrink-0 rounded-lg bg-system-warning-600 px-4 py-2 text-white hover:bg-system-warning-700"
+        className="shrink-0 rounded-full bg-system-warning-600 px-4 py-2 text-white hover:opacity-90"
       >
         <Typography variant={TYPOGRAPHY.M4} className="whitespace-nowrap">
           Resolve

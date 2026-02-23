@@ -34,7 +34,6 @@ export const ContentCardImageSection = ({
         isEditable={isEditable}
         isError={hasContentCardError}
         contentCardImageFile={appMetadata.content_card_image_url}
-        defaultOpen={false}
       />
     </FormSection>
   );

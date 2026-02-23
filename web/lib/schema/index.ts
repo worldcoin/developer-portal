@@ -81,6 +81,13 @@ export const allowTitleAndEmojisRegex = {
   },
 };
 
+/** Prepends "https://" to a URL string that has no protocol. Safe for undefined/null. */
+export function inferHttps<T extends string | null | undefined>(value: T): T {
+  if (!value) return value;
+  if (/^https?:\/\//i.test(value)) return value;
+  return `https://${value}` as T;
+}
+
 export const httpsLinkSchema = ({
   excludeEmptyString = false,
   message = "Must be a valid https URL",

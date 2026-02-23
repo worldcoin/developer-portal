@@ -62,12 +62,13 @@ export const ReviewMessageDialog = (props: {
       <Dialog onClose={closeModal} open={isOpened}>
         <DialogOverlay />
 
-        <DialogPanel className="gap-y-6 md:max-w-[36rem]">
-          <ModalIcon variant="neutral">
-            <CloseIcon className="size-8 text-white" strokeWidth={2} />
-          </ModalIcon>
+        <DialogPanel className="gap-y-10 p-8 md:max-w-[36rem]">
+          {/* Icon + Copy */}
+          <div className="grid grid-cols-1 justify-items-center gap-y-8 text-center">
+            <ModalIcon variant="neutral">
+              <CloseIcon className="size-8 text-white" strokeWidth={2} />
+            </ModalIcon>
 
-          <div className="grid grid-cols-1 justify-items-center gap-y-6 text-center">
             <div className="grid gap-y-2">
               <Typography variant={TYPOGRAPHY.H6} className="text-grey-900">
                 App was rejected
@@ -77,21 +78,19 @@ export const ReviewMessageDialog = (props: {
                 team, and it was rejected due to the reason:
               </Typography>
             </div>
+          </div>
 
-            <div className="w-full rounded-xl bg-grey-50 px-4 py-3 text-left">
-              {message && (
-                <Typography variant={TYPOGRAPHY.R4} className="text-grey-500">
-                  {message}
-                </Typography>
-              )}
-              <Typography
-                variant={TYPOGRAPHY.R4}
-                className={message ? "mt-2 text-grey-500" : "text-grey-500"}
-              >
-                Please, fix the issues stated before and then apply for review
-                again.
+          {/* Rejection Reason Box */}
+          <div className="grid w-full gap-y-2 rounded-lg border border-grey-200 bg-grey-50 px-5 py-4 text-left">
+            {message && (
+              <Typography variant={TYPOGRAPHY.R4} className="text-grey-400">
+                {message}
               </Typography>
-            </div>
+            )}
+            <Typography variant={TYPOGRAPHY.R4} className="text-grey-400">
+              Please, fix the issues stated before and then apply for review
+              again.
+            </Typography>
           </div>
 
           <div className="grid w-full gap-4 md:grid-cols-2">
