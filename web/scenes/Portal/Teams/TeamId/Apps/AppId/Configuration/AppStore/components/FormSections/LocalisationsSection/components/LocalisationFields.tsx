@@ -1,11 +1,6 @@
 import { FloatingInput } from "@/components/FloatingInput";
 import { FloatingTextArea } from "@/components/FloatingTextArea";
-import {
-  Control,
-  Controller,
-  FieldArrayWithId,
-  FieldErrors,
-} from "react-hook-form";
+import { Control, Controller, FieldErrors } from "react-hook-form";
 import { RemainingCharacters } from "../../../../../PageComponents/RemainingCharacters";
 import { AppStoreFormValues } from "../../../../FormSchema/types";
 
@@ -13,7 +8,6 @@ interface LocalisationFieldsProps {
   control: Control<AppStoreFormValues>;
   errors: FieldErrors<AppStoreFormValues>;
   selectedIndex: number;
-  selectedField: FieldArrayWithId<AppStoreFormValues, "localisations", "id">;
   isEditable: boolean;
   isEnoughPermissions: boolean;
   isMiniApp: boolean;
@@ -23,7 +17,6 @@ export const LocalisationFields = ({
   control,
   errors,
   selectedIndex,
-  selectedField,
   isEditable,
   isEnoughPermissions,
   isMiniApp,

@@ -54,8 +54,7 @@ export const ShowcaseImagesField = (props: ShowcaseImagesFieldProps) => {
   });
 
   const [upsertShowcaseImages] = useUpsertLocalisedShowcaseImagesMutation({
-    onCompleted: (data) => {
-      console.log("autosave successful", data);
+    onCompleted: () => {
       toast.success("Showcase images saved successfully");
       onAutosaveSuccess?.();
     },

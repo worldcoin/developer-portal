@@ -106,19 +106,25 @@ export const ContentCardImageUpload = (props: ContentCardImageUploadProps) => {
   };
 
   const removeImage = async () => {
+    const previous = unverifiedImages;
     setUnverifiedImages({
       ...unverifiedImages,
       content_card_image_url: "",
     });
 
-    await updateContentCardImageMutation({
-      variables: {
-        id: appMetadataId,
-        fileName: "",
-      },
+    try {
+      await updateContentCardImageMutation({
+        variables: {
+          id: appMetadataId,
+          fileName: "",
+        },
 
-      refetchQueries: [FetchAppMetadataDocument],
-    });
+        refetchQueries: [FetchAppMetadataDocument],
+      });
+    } catch {
+      setUnverifiedImages(previous);
+      toast.error("Failed to remove image");
+    }
   };
 
   const verifiedImageURL = useMemo(() => {

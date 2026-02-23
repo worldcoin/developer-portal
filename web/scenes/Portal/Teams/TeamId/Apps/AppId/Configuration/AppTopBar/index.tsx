@@ -16,11 +16,19 @@ import { useAtom } from "jotai";
 import { ErrorPage } from "@/components/ErrorPage";
 import { urls } from "@/lib/urls";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  MutableRefObject,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { useFormContext } from "react-hook-form";
 import { toast } from "react-toastify";
 import * as yup from "yup";
 import { mainAppStoreFormReviewSubmitSchema } from "../AppStore/FormSchema/form-schema";
+import { BasicInformationHandle } from "../BasicInformation";
 import { AppStoreFormValues } from "../AppStore/FormSchema/types";
 import { updateAppStoreMetadata } from "../AppStore/server/update-app-store";
 import {
@@ -47,6 +55,7 @@ type AppTopBarSubmitProps = {
   teamId: string;
   viewMode: "unverified" | "verified";
   onSubmitSuccess: () => void;
+  basicInfoRef?: MutableRefObject<BasicInformationHandle | null>;
 };
 
 const AppTopBarSubmit = ({
@@ -55,6 +64,7 @@ const AppTopBarSubmit = ({
   teamId,
   viewMode,
   onSubmitSuccess,
+  basicInfoRef,
 }: AppTopBarSubmitProps) => {
   const form = useFormContext<AppStoreFormValues>();
   const searchParams = useSearchParams();
@@ -68,6 +78,15 @@ const AppTopBarSubmit = ({
     }
     setIsSubmittingForReview(true);
     try {
+      if (basicInfoRef?.current) {
+        const ok = await basicInfoRef.current.submit({ silent: true });
+        if (!ok) {
+          toast.error(
+            "Please fix basic information errors before submitting for review",
+          );
+          return;
+        }
+      }
       if (form.formState.isDirty) {
         await new Promise<void>((resolve, reject) => {
           form.handleSubmit(
@@ -97,6 +116,7 @@ const AppTopBarSubmit = ({
       const enLocalization = formValues.localisations.find(
         (l) => l.language === "en",
       );
+      const isMiniApp = appMetadata.app_mode === "mini-app";
       await mainAppStoreFormReviewSubmitSchema.validate(
         {
           ...formValues,
@@ -112,6 +132,7 @@ const AppTopBarSubmit = ({
           abortEarly: false,
           strict: true,
           stripUnknown: true,
+          context: { isMiniApp },
         },
       );
       onSubmitSuccess();
@@ -143,7 +164,7 @@ const AppTopBarSubmit = ({
     } finally {
       setIsSubmittingForReview(false);
     }
-  }, [appMetadata, form, onSubmitSuccess]);
+  }, [appMetadata, basicInfoRef, form, onSubmitSuccess]);
 
   const shouldAutoSubmitForReview =
     searchParams.get("submitForReview") === "true";
@@ -178,10 +199,11 @@ type AppTopBarProps = {
   app: FetchAppMetadataQuery["app"][0];
   onResolve?: () => void;
   hasFormContext?: boolean;
+  basicInfoRef?: MutableRefObject<BasicInformationHandle | null>;
 };
 
 export const AppTopBar = (props: AppTopBarProps) => {
-  const { appId, teamId, app, onResolve, hasFormContext } = props;
+  const { appId, teamId, app, onResolve, hasFormContext, basicInfoRef } = props;
   const router = useRouter();
   const [viewMode, setViewMode] = useAtom(viewModeAtom);
   const { user } = useUser() as Auth0SessionUser;
@@ -471,6 +493,7 @@ export const AppTopBar = (props: AppTopBarProps) => {
                     teamId={teamId}
                     viewMode={viewMode}
                     onSubmitSuccess={handleSubmitSuccess}
+                    basicInfoRef={basicInfoRef}
                   />
                 ) : (
                   <DecoratedButton

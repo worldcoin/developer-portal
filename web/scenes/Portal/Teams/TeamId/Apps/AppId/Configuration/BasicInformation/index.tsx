@@ -29,7 +29,7 @@ import { BasicInformationFormValues, schema } from "./form-schema";
 import { validateAndSubmitServerSide } from "./server/submit";
 
 export type BasicInformationHandle = {
-  submit: (opts?: { silent?: boolean }) => void;
+  submit: (opts?: { silent?: boolean }) => Promise<boolean>;
 };
 
 export const BasicInformation = forwardRef<
@@ -99,7 +99,7 @@ export const BasicInformation = forwardRef<
 
   const submit = useCallback(
     (opts?: { silent?: boolean }) =>
-      async (data: BasicInformationFormValues) => {
+      async (data: BasicInformationFormValues): Promise<boolean> => {
         const result = await validateAndSubmitServerSide(
           appMetaData?.id,
           appId,
@@ -107,18 +107,29 @@ export const BasicInformation = forwardRef<
         );
         if (!result.success) {
           toast.error(result.message);
+          return false;
         } else {
           await refetchAppMetadata();
           if (!opts?.silent) {
             toast.success("App information updated successfully");
           }
+          return true;
         }
       },
     [appMetaData?.id, appId, refetchAppMetadata],
   );
 
   useImperativeHandle(ref, () => ({
-    submit: (opts) => handleSubmit(submit(opts))(),
+    submit: (opts) =>
+      new Promise<boolean>((resolve) => {
+        handleSubmit(
+          async (data) => {
+            const ok = await submit(opts)(data);
+            resolve(ok);
+          },
+          () => resolve(false),
+        )();
+      }),
   }));
 
   const makeUrlRegister = useCallback(

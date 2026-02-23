@@ -103,7 +103,10 @@ export const SelectMultiple = <T extends FieldValues>(
   const { getReferenceProps, getFloatingProps } = useInteractions([dismiss]);
 
   const selectedItems: Item[] = useMemo(
-    () => values?.map((value: string) => items?.find((i) => i.value === value)),
+    () =>
+      (values
+        ?.map((value: string) => items?.find((i) => i.value === value))
+        .filter(Boolean) ?? []) as Item[],
     [items, values],
   );
 
@@ -218,7 +221,7 @@ export const SelectMultiple = <T extends FieldValues>(
                 clearAll?.();
               }}
               className={clsx(
-                "hover:bg-grey-800 h-8 rounded-full bg-grey-900 px-3 text-white",
+                "h-8 rounded-full bg-grey-900 px-3 text-white hover:bg-grey-700",
                 {
                   "cursor-not-allowed opacity-50": !props.canClearAll,
                 },

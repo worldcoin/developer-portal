@@ -67,7 +67,6 @@ export const LocalisationsSection = ({
             control={control}
             errors={errors}
             selectedIndex={selectedIndex}
-            selectedField={selectedField}
             isEditable={isEditable}
             isEnoughPermissions={isEnoughPermissions}
             isMiniApp={appMetadata.app_mode === "mini-app"}

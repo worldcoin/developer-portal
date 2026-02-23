@@ -40,6 +40,8 @@ export const AppStoreForm = ({
     submit,
     isEditable,
     onInvalid,
+    refetchAppMetadata,
+    refetchLocalisations,
   } = useAppStoreForm(appId, appMetadata);
 
   const isEnoughPermissions = useMemo(() => {
@@ -145,7 +147,10 @@ export const AppStoreForm = ({
                   isAppVerified={appMetadata.verification_status === "verified"}
                   appMetadataId={appMetadata.id}
                   supportedLanguages={supportedLanguages}
-                  onAutosaveSuccess={() => {}}
+                  onAutosaveSuccess={() => {
+                    refetchAppMetadata();
+                    refetchLocalisations();
+                  }}
                   onAutosaveError={() => {}}
                 />
               )}
@@ -173,7 +178,10 @@ export const AppStoreForm = ({
                   isAppVerified={appMetadata.verification_status === "verified"}
                   appMetadataId={appMetadata.id}
                   supportedLanguages={supportedLanguages}
-                  onAutosaveSuccess={() => {}}
+                  onAutosaveSuccess={() => {
+                    refetchAppMetadata();
+                    refetchLocalisations();
+                  }}
                   onAutosaveError={() => {}}
                 />
               )}

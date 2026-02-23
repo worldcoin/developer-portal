@@ -134,6 +134,7 @@ export const AppProfilePage = ({ params }: AppProfilePageProps) => {
           app={app}
           onResolve={() => setShowResolveModal(true)}
           hasFormContext
+          basicInfoRef={basicInfoRef}
         />
       </SizingWrapper>
 
@@ -165,9 +166,9 @@ export const AppProfilePage = ({ params }: AppProfilePageProps) => {
           appId={appId}
           teamId={teamId}
           appMetadata={appMetadata as AppMetadata}
-          onBeforeSave={async () =>
-            basicInfoRef.current?.submit({ silent: true })
-          }
+          onBeforeSave={async () => {
+            await basicInfoRef.current?.submit({ silent: true });
+          }}
         />
       </SizingWrapper>
     </AppStoreFormProvider>

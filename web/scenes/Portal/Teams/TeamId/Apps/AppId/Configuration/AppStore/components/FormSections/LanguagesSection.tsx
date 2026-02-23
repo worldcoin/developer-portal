@@ -83,14 +83,10 @@ export const LanguagesSection = ({
                   index={index}
                   checked={field.value?.includes(item.value)}
                   onChange={async (value) => {
-                    if (!field.value) {
-                      return field.onChange([]);
-                    }
-
-                    const isNewLanguage = !field.value.includes(value);
+                    const isNewLanguage = !(field.value ?? []).includes(value);
                     const newSupportedLanguages = isNewLanguage
-                      ? [...field.value, value]
-                      : field.value.filter((v) => v !== value);
+                      ? [...(field.value ?? []), value]
+                      : (field.value ?? []).filter((v) => v !== value);
 
                     field.onChange(newSupportedLanguages);
                   }}

@@ -86,14 +86,10 @@ export const CountriesSection = ({
                   index={index}
                   checked={field.value?.includes(item.value)}
                   onChange={(value) => {
-                    if (!field.value) {
-                      return field.onChange([]);
-                    }
-
                     field.onChange(
-                      field.value.some((v) => v === value)
-                        ? field.value.filter((v) => v !== value)
-                        : [...field.value, value],
+                      (field.value ?? []).some((v) => v === value)
+                        ? (field.value ?? []).filter((v) => v !== value)
+                        : [...(field.value ?? []), value],
                     );
                   }}
                   disabled={!isEditable || !isEnoughPermissions}
