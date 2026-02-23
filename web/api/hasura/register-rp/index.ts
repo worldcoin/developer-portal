@@ -214,22 +214,7 @@ export const POST = async (req: NextRequest) => {
       });
     }
 
-    // For self-managed mode: return existing registration (fully idempotent)
-    // This solves the core issue: users can refresh/retry and continue their setup
-    if (mode === "self_managed") {
-      return NextResponse.json({
-        rp_id: existing.rp_id,
-        manager_address: null,
-        signer_address: null,
-        status: existing.status,
-        operation_hash: null,
-      });
-    }
-
-    // For managed mode: return error for all cases
-    // Note: Managed mode doesn't need idempotency because backend handles everything
-    // Users can view their existing registration in the UI
-    logger.warn("Managed registration already exists", {
+    logger.warn("Registration already exists", {
       app_id,
       rp_id: existing.rp_id,
       status: existing.status,
