@@ -1,5 +1,6 @@
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { ErrorPage } from "@/components/ErrorPage";
+import { isWorldId40EnabledServer } from "@/lib/feature-flags/world-id-4-0/server";
 import { EngineType } from "@/lib/types";
 import { ReactNode } from "react";
 import { AppIdChrome } from "./AppIdChrome";
@@ -28,13 +29,15 @@ export const AppIdLayout = async (props: AppIdLayoutProps) => {
 
   const isOnChainApp = app[0].engine === EngineType.OnChain;
   const hasLegacyActions = action.length > 0;
-  const hasRpRegistration = (app[0].rp_registration?.length ?? 0) > 0;
+  const isWorldId40Enabled = await isWorldId40EnabledServer(params.teamId);
+  const showWorldId40Nav =
+    isWorldId40Enabled && (app[0].rp_registration?.length ?? 0) > 0;
 
   return (
     <AppIdChrome
       params={params}
       isOnChainApp={isOnChainApp}
-      hasRpRegistration={hasRpRegistration}
+      showWorldId40Nav={showWorldId40Nav}
       hasLegacyActions={hasLegacyActions}
     >
       {props.children}
