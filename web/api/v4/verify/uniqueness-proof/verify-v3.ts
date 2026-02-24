@@ -43,6 +43,7 @@ export async function processUniquenessProofV3(
             code: error?.code || AppErrorCodes.GenericError,
             detail:
               error?.message || "There was an error verifying this proof.",
+            attribute: error?.attribute || undefined,
           };
         }
 
@@ -63,6 +64,7 @@ export async function processUniquenessProofV3(
           success: false,
           code: "verification_error",
           detail: errorMessage,
+          attribute: undefined,
         };
       }
     }),
