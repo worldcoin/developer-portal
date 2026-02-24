@@ -1,13 +1,17 @@
 "use server";
 
+import { isWorldId40EnabledForTeam } from "./common";
+
 /**
- * Get list of teams with World ID 4.0 enabled
+ * Server-side helper to check if World ID 4.0 is enabled for a team.
+ * Fetches Parameter Store flag and applies common matching logic.
  */
-export const getWorldId40EnabledTeams = async (): Promise<string[]> => {
+export const isWorldId40EnabledServer = async (
+  teamId: string | undefined,
+): Promise<boolean> => {
   const enabledTeams = await global.ParameterStore?.getParameter<string[]>(
     "world-id-4-0/enabled-teams",
     [],
   );
-
-  return enabledTeams ?? [];
+  return isWorldId40EnabledForTeam(enabledTeams, teamId);
 };

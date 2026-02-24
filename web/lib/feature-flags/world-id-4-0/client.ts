@@ -1,6 +1,7 @@
 "use client";
 
 import { atom } from "jotai";
+import { isWorldId40EnabledForTeam } from "./common";
 
 type WorldId40Config = {
   isFetched: boolean;
@@ -20,5 +21,5 @@ export const isWorldId40Enabled = (
   teamId: string | undefined,
 ): boolean => {
   if (!teamId || !config.isFetched) return false;
-  return config.enabledTeams.includes(teamId);
+  return isWorldId40EnabledForTeam(config.enabledTeams, teamId);
 };
