@@ -14,8 +14,6 @@ export const isWorldId40EnabledForTeam = (
 
   return enabledTeams.some((rawEntry) => {
     const entry = rawEntry.trim();
-    return (
-      entry === WORLD_ID_40_ENABLE_ALL_TEAMS_TOKEN || entry === teamId
-    );
+    return entry === WORLD_ID_40_ENABLE_ALL_TEAMS_TOKEN || entry === teamId;
   });
 };
