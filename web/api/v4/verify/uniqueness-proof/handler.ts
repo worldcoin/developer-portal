@@ -25,6 +25,7 @@ export interface UniquenessResult {
   nullifier?: string;
   code?: string;
   detail?: string;
+  attribute?: string;
 }
 
 // Response types
