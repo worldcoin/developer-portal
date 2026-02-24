@@ -205,10 +205,9 @@ export const WorldId40Content = ({
               Preview notice
             </Typography>
             <Typography as="p" variant={TYPOGRAPHY.S4} className="mt-1">
-              World ID 4.0 is currently in preview for{" "}
-              <span className="font-mono">{rpId}</span>. Once World ID 4.0 is
-              generally available, we may ask developers to rotate their signer
-              key.
+              World ID 4.0 is currently in preview for early adopters. Once
+              World ID 4.0 is generally available, we may ask developers to
+              rotate their signer key.
             </Typography>
           </div>
         </Notification>
