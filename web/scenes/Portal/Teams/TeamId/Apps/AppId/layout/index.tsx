@@ -29,14 +29,15 @@ export const AppIdLayout = async (props: AppIdLayoutProps) => {
 
   const isOnChainApp = app[0].engine === EngineType.OnChain;
   const hasLegacyActions = action.length > 0;
-
   const isWorldId40Enabled = await isWorldId40EnabledServer(params.teamId);
+  const showWorldId40Nav =
+    isWorldId40Enabled && (app[0].rp_registration?.length ?? 0) > 0;
 
   return (
     <AppIdChrome
       params={params}
       isOnChainApp={isOnChainApp}
-      isWorldId40Enabled={isWorldId40Enabled}
+      showWorldId40Nav={showWorldId40Nav}
       hasLegacyActions={hasLegacyActions}
     >
       {props.children}

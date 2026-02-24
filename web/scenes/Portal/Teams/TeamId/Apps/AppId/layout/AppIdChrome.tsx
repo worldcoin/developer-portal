@@ -30,7 +30,7 @@ function isOnboardingPath(
 type AppIdChromeProps = {
   params: { teamId?: string; appId?: string };
   isOnChainApp: boolean;
-  isWorldId40Enabled: boolean;
+  showWorldId40Nav: boolean;
   hasLegacyActions: boolean;
   children: ReactNode;
 };
@@ -38,7 +38,7 @@ type AppIdChromeProps = {
 export const AppIdChrome = ({
   params,
   isOnChainApp,
-  isWorldId40Enabled,
+  showWorldId40Nav,
   hasLegacyActions,
   children,
 }: AppIdChromeProps) => {
@@ -61,7 +61,7 @@ export const AppIdChrome = ({
   const isMiniAppSegment =
     segment === "transactions" || segment === "notifications";
 
-  if (isWorldId40Enabled) {
+  if (showWorldId40Nav) {
     return (
       <div className="flex flex-col">
         <div className="md:border-b md:border-grey-100">
