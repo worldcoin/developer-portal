@@ -11,6 +11,7 @@ import {
 import { submitTransferManagerTransaction } from "@/api/helpers/rp-transactions";
 import { protectInternalEndpoint } from "@/api/helpers/utils";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
+import { isWorldId40EnabledServer } from "@/lib/feature-flags/world-id-4-0/server";
 import { logger } from "@/lib/logger";
 import { isAddress } from "ethers";
 import { NextRequest, NextResponse } from "next/server";
@@ -138,12 +139,7 @@ export const POST = async (req: NextRequest) => {
   }
 
   // Check if team is enabled for World ID 4.0
-  const enabledTeams = await global.ParameterStore?.getParameter<string[]>(
-    "world-id-4-0/enabled-teams",
-    [],
-  );
-
-  if (!enabledTeams?.includes(teamId)) {
+  if (!(await isWorldId40EnabledServer(teamId))) {
     return errorHasuraQuery({
       req,
       detail: "World ID 4.0 is not enabled for this team.",

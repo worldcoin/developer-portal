@@ -1,5 +1,5 @@
 import {
-  getWorldId40EnabledTeams,
+  isWorldId40EnabledServer,
   WorldId40Provider,
 } from "@/lib/feature-flags";
 import { ReactNode } from "react";
@@ -14,8 +14,11 @@ type TeamIdLayoutProps = {
 };
 
 export const TeamIdLayout = async (props: TeamIdLayoutProps) => {
-  // Fetch World ID 4.0 enabled teams for feature flag
-  const enabledTeams = await getWorldId40EnabledTeams();
+  const isWorldId40Enabled = await isWorldId40EnabledServer(
+    props.params.teamId,
+  );
+  const enabledTeams =
+    isWorldId40Enabled && props.params.teamId ? [props.params.teamId] : [];
 
   return (
     <WorldId40Provider enabledTeams={enabledTeams}>

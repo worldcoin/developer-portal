@@ -2,13 +2,14 @@
 
 import { CopyButton } from "@/components/CopyButton";
 import { DecoratedButton } from "@/components/DecoratedButton";
+import { Notification } from "@/components/Notification";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import { useCallback, useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import clsx from "clsx";
-import { RotateSignerKeyDialog } from "./RotateSignerKeyDialog";
+import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
 import { useRetryRpMutation } from "./graphql/client/retry-rp.generated";
+import { RotateSignerKeyDialog } from "./RotateSignerKeyDialog";
 import { SwitchToSelfManagedDialog } from "./SwitchToSelfManagedDialog";
 
 type RpStatus = "pending" | "registered" | "failed" | "deactivated";
@@ -193,6 +194,24 @@ export const WorldId40Content = ({
             Registered {formattedDate}
           </Typography>
         </div>
+
+        <Notification variant="info" className="items-start">
+          <div className="text-blue-700">
+            <Typography
+              as="p"
+              variant={TYPOGRAPHY.S3}
+              className="text-blue-800"
+            >
+              Preview notice
+            </Typography>
+            <Typography as="p" variant={TYPOGRAPHY.S4} className="mt-1">
+              World ID 4.0 is currently in preview for{" "}
+              <span className="font-mono">{rpId}</span>. Once World ID 4.0 is
+              generally available, we may ask developers to rotate their signer
+              key.
+            </Typography>
+          </div>
+        </Notification>
 
         {/* RP ID */}
         <div className="flex items-center justify-between">
