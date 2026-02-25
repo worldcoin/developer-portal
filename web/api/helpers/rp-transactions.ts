@@ -117,7 +117,6 @@ export async function submitRotateSignerTransaction(
   const updateRpHash = hashUpdateRpTypedData(
     {
       rpId: params.rpId,
-      oprfKeyId: 0n, // No change
       manager: ADDRESS_ZERO, // No change
       signer: params.newSignerAddress,
       toggleActive: false, // No change
@@ -216,7 +215,6 @@ export async function submitTransferManagerTransaction(
   const updateRpHash = hashUpdateRpTypedData(
     {
       rpId: params.rpId,
-      oprfKeyId: 0n,
       manager: params.newManagerAddress,
       signer: ADDRESS_ZERO,
       toggleActive: false,
@@ -308,7 +306,6 @@ export async function submitToggleRpActiveTransaction(
   const updateRpHash = hashUpdateRpTypedData(
     {
       rpId: params.rpId,
-      oprfKeyId: 0n,
       manager: ADDRESS_ZERO,
       signer: ADDRESS_ZERO,
       toggleActive: true,

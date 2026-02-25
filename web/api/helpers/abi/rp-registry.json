@@ -36,7 +36,6 @@
     "name": "updateRp",
     "inputs": [
       { "name": "rpId", "type": "uint64" },
-      { "name": "oprfKeyId", "type": "uint160" },
       { "name": "manager", "type": "address" },
       { "name": "signer", "type": "address" },
       { "name": "toggleActive", "type": "bool" },

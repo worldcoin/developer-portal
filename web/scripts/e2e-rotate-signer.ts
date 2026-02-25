@@ -365,7 +365,6 @@ async function main(): Promise<void> {
   console.log("\n--- Computing Manager EIP-712 Hash ---");
   const updateRpParams = {
     rpId,
-    oprfKeyId: 0n, // No change
     manager: ADDRESS_ZERO, // No change
     signer: newSignerAddress,
     toggleActive: false, // No change
