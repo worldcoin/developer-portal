@@ -3,7 +3,7 @@
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import clsx from "clsx";
-import { useMemo } from "react";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { WorldId40OptionCard } from "../WorldId40OptionCard";
 
@@ -25,9 +25,6 @@ const MANAGED_BULLETS = [
   },
 ];
 
-/** Set to true when Self-Managed option is ready to be offered */
-const SELF_MANAGED_OPTION_ENABLED = false;
-
 const SELF_MANAGED_BULLETS = [
   { text: "Keys can be lost", variant: "x" as const },
   {
@@ -42,21 +39,32 @@ const SELF_MANAGED_BULLETS = [
 
 export type EnableWorldId40ContentProps = {
   onContinue: (mode: WorldId40Mode) => void;
+  isSelfManagedEnabled: boolean;
+  initialMode?: WorldId40Mode;
+  isManagedEnabled?: boolean;
+  managedDisabledReason?: string;
+  loading?: boolean;
   className?: string;
 };
 
 export const EnableWorldId40Content = ({
   onContinue,
+  isSelfManagedEnabled,
+  initialMode,
+  isManagedEnabled = true,
+  managedDisabledReason,
+  loading,
   className,
 }: EnableWorldId40ContentProps) => {
-  const defaultValues: FormValues = useMemo(
-    () => ({ world_id_4_0_mode: "managed" }),
-    [],
-  );
-
-  const { register, handleSubmit } = useForm<FormValues>({
-    defaultValues,
+  const { register, handleSubmit, reset } = useForm<FormValues>({
+    defaultValues: {
+      world_id_4_0_mode: initialMode ?? "managed",
+    },
   });
+
+  useEffect(() => {
+    reset({ world_id_4_0_mode: initialMode ?? "managed" });
+  }, [initialMode, reset]);
 
   const onSubmit = (values: FormValues) => {
     onContinue(values.world_id_4_0_mode);
@@ -83,9 +91,13 @@ export const EnableWorldId40Content = ({
           option={{ value: "managed", label: "Managed" }}
           subtitle="On-chain management handled by Developer Portal"
           stampText="Recommended"
+          disabledStampText="Locked"
+          disabledReason={managedDisabledReason}
           bullets={MANAGED_BULLETS}
           testId="managed"
+          disabled={!isManagedEnabled}
         />
+
         <WorldId40OptionCard
           register={register("world_id_4_0_mode")}
           option={{ value: "self-managed", label: "Self-Managed" }}
@@ -94,7 +106,7 @@ export const EnableWorldId40Content = ({
           disabledStampText="Coming Soon"
           bullets={SELF_MANAGED_BULLETS}
           testId="self-managed"
-          disabled={!SELF_MANAGED_OPTION_ENABLED}
+          disabled={!isSelfManagedEnabled}
         />
       </div>
 
@@ -102,9 +114,10 @@ export const EnableWorldId40Content = ({
         type="submit"
         variant="primary"
         className="justify-self-end py-3"
+        disabled={loading}
         testId="enable-world-id-40-continue"
       >
-        Continue
+        {loading ? "Processing..." : "Continue"}
       </DecoratedButton>
     </form>
   );
