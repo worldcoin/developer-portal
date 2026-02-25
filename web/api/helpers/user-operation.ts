@@ -424,15 +424,7 @@ export function hashUpdateRpTypedData(
 
   const structHash = keccak256(
     abiCoder.encode(
-      [
-        "bytes32",
-        "uint64",
-        "address",
-        "address",
-        "bool",
-        "bytes32",
-        "uint256",
-      ],
+      ["bytes32", "uint64", "address", "address", "bool", "bytes32", "uint256"],
       [
         updateRpTypehash,
         params.rpId,
