@@ -97,7 +97,7 @@ describe("notifications", () => {
       {
         ...notificationBody,
         mini_app_path:
-          "https://world.org/verify?t=deepface&i=550e8400-e29b-41d4-a716-446655440000&k=dGVzdC1rZXk%3D",
+          "https://staging.world.org/verify?t=deepface&i=550e8400-e29b-41d4-a716-446655440000&k=dGVzdC1rZXk%3D",
         localisations: [
           {
             language: "en",
@@ -191,7 +191,7 @@ describe("notifications", () => {
       {
         ...notificationBody,
         mini_app_path:
-          "https://world.org/verify?i=550e8400-e29b-41d4-a716-446655440000&k=dGVzdC1rZXk",
+          "https://staging.world.org/verify?i=550e8400-e29b-41d4-a716-446655440000&k=dGVzdC1rZXk",
         localisations: [
           {
             language: "en",
@@ -205,7 +205,7 @@ describe("notifications", () => {
       "deep face link missing i param",
       {
         ...notificationBody,
-        mini_app_path: "https://world.org/verify?t=deepface&k=dGVzdC1rZXk",
+        mini_app_path: "https://staging.world.org/verify?t=deepface&k=dGVzdC1rZXk",
         localisations: [
           {
             language: "en",
@@ -220,7 +220,7 @@ describe("notifications", () => {
       {
         ...notificationBody,
         mini_app_path:
-          "https://world.org/verify?t=deepface&i=550e8400-e29b-41d4-a716-446655440000",
+          "https://staging.world.org/verify?t=deepface&i=550e8400-e29b-41d4-a716-446655440000",
         localisations: [
           {
             language: "en",
@@ -250,7 +250,7 @@ describe("notifications", () => {
       {
         ...notificationBody,
         mini_app_path:
-          "https://world.org/other?t=deepface&i=550e8400-e29b-41d4-a716-446655440000&k=dGVzdC1rZXk",
+          "https://staging.world.org/other?t=deepface&i=550e8400-e29b-41d4-a716-446655440000&k=dGVzdC1rZXk",
         localisations: [
           {
             language: "en",
@@ -278,7 +278,7 @@ describe("notifications", () => {
       "deep face link with empty i param",
       {
         ...notificationBody,
-        mini_app_path: "https://world.org/verify?t=deepface&i=&k=dGVzdC1rZXk",
+        mini_app_path: "https://staging.world.org/verify?t=deepface&i=&k=dGVzdC1rZXk",
         localisations: [
           {
             language: "en",
@@ -293,7 +293,7 @@ describe("notifications", () => {
       {
         ...notificationBody,
         mini_app_path:
-          "https://world.org/verify?t=deepface&i=550e8400-e29b-41d4-a716-446655440000&k=",
+          "https://staging.world.org/verify?t=deepface&i=550e8400-e29b-41d4-a716-446655440000&k=",
         localisations: [
           {
             language: "en",
@@ -373,7 +373,7 @@ describe("V1 schema mini_app_path validation", () => {
       sendNotificationBodySchemaV1.isValidSync({
         ...v1Body,
         mini_app_path:
-          "https://world.org/verify?t=deepface&i=550e8400-e29b-41d4-a716-446655440000&k=dGVzdC1rZXk%3D",
+          "https://staging.world.org/verify?t=deepface&i=550e8400-e29b-41d4-a716-446655440000&k=dGVzdC1rZXk%3D",
       }),
     ).toBe(true);
   });
