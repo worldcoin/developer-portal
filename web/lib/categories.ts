@@ -339,7 +339,6 @@ export const getLocalisedCategory = (
   locale: string,
 ) => {
   if (Object.keys(CategoryTranslations).indexOf(locale) === -1) {
-    console.warn("Missing locale, falling back to default: ", { locale });
     locale = "en";
   }
   const defaultLocale = locale || "en";
