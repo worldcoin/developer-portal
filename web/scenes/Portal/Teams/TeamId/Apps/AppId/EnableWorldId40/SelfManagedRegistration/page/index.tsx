@@ -34,6 +34,13 @@ export const SelfManagedRegistrationPage = () => {
     );
   }, [teamId, appId, nextParam, router]);
 
+  const successUrl =
+    nextParam === "configuration"
+      ? urls.configuration({ team_id: teamId, app_id: appId })
+      : nextParam === "actions"
+        ? urls.actions({ team_id: teamId, app_id: appId })
+        : urls.worldId40({ team_id: teamId, app_id: appId });
+
   const onComplete = useCallback(async () => {
     try {
       const { data } = await registerRp({
@@ -55,7 +62,7 @@ export const SelfManagedRegistrationPage = () => {
       }
 
       toast.success("App configured successfully");
-      router.replace(urls.worldId40({ team_id: teamId, app_id: appId }));
+      router.replace(successUrl);
       router.refresh();
     } catch (error) {
       const code = getGraphQLErrorCode(error);
@@ -63,14 +70,14 @@ export const SelfManagedRegistrationPage = () => {
       if (code === "already_registered") {
         // Idempotent for self-managed — treat as success
         toast.success("App configured successfully");
-        router.replace(urls.worldId40({ team_id: teamId, app_id: appId }));
+        router.replace(successUrl);
         router.refresh();
         return;
       }
 
       toast.error("Unable to complete registration. Please try again.");
     }
-  }, [appId, teamId, registerRp, router]);
+  }, [appId, teamId, registerRp, router, successUrl]);
 
   return (
     <SizingWrapper gridClassName="grow flex justify-center pb-10 pt-10">

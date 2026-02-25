@@ -3,6 +3,7 @@ import { errorHasuraQuery } from "@/api/helpers/errors";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { getKMSClient, scheduleKeyDeletion } from "@/api/helpers/kms";
 import { createManagerKey } from "@/api/helpers/kms-eth";
+import { submitRegisterRpTransaction } from "@/api/helpers/rp-transactions";
 import {
   generateRpIdString,
   getRpRegistryConfig,
@@ -11,7 +12,6 @@ import {
   parseRpId,
   RpRegistrationStatus,
 } from "@/api/helpers/rp-utils";
-import { submitRegisterRpTransaction } from "@/api/helpers/rp-transactions";
 import { protectInternalEndpoint } from "@/api/helpers/utils";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { isWorldId40EnabledServer } from "@/lib/feature-flags/world-id-4-0/server";
@@ -162,7 +162,6 @@ export const POST = async (req: NextRequest) => {
 
   // Another registration already exists for this app
   if (!claimedSlot) {
-    logger.warn("Registration already exists", { app_id });
     return errorHasuraQuery({
       req,
       detail: "Registration already in progress or completed for this app.",
