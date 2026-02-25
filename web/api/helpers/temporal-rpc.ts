@@ -208,25 +208,45 @@ export async function sendUserOperation(
 // RP Registry Queries
 // =============================================================================
 
+/** Selector for the RpIdDoesNotExist custom error (0x3200e7c0). */
+const RP_ID_DOES_NOT_EXIST_SELECTOR = "0x3200e7c0";
+
 /**
  * Fetches RP data from RpRegistry.
  * Uses getRpUnchecked to return data even for inactive RPs.
+ * Returns a default "not initialized" response if the RP has never been registered.
  */
 export async function getRpFromContract(
   rpId: bigint,
   contractAddress: string,
 ): Promise<OnChainRelyingParty> {
   const contract = createRpRegistryContract(contractAddress);
-  const result = await contract.getRpUnchecked(rpId);
 
-  return {
-    initialized: result.initialized,
-    active: result.active,
-    manager: result.manager,
-    signer: result.signer,
-    oprfKeyId: BigInt(result.oprfKeyId),
-    unverifiedWellKnownDomain: result.unverifiedWellKnownDomain,
-  };
+  try {
+    const result = await contract.getRpUnchecked(rpId);
+
+    return {
+      initialized: result.initialized,
+      active: result.active,
+      manager: result.manager,
+      signer: result.signer,
+      oprfKeyId: BigInt(result.oprfKeyId),
+      unverifiedWellKnownDomain: result.unverifiedWellKnownDomain,
+    };
+  } catch (error: unknown) {
+    const ethersError = error as EthersCallException & { data?: string };
+    if (ethersError?.data?.startsWith(RP_ID_DOES_NOT_EXIST_SELECTOR)) {
+      return {
+        initialized: false,
+        active: false,
+        manager: "0x0000000000000000000000000000000000000000",
+        signer: "0x0000000000000000000000000000000000000000",
+        oprfKeyId: 0n,
+        unverifiedWellKnownDomain: "",
+      };
+    }
+    throw error;
+  }
 }
 
 /**

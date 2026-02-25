@@ -58,7 +58,6 @@ export interface GasLimits {
 /** Parameters for building the UpdateRp EIP-712 typed data hash. */
 export interface UpdateRpTypedDataParams {
   rpId: bigint;
-  oprfKeyId: bigint;
   manager: string;
   signer: string;
   toggleActive: boolean;
@@ -425,20 +424,10 @@ export function hashUpdateRpTypedData(
 
   const structHash = keccak256(
     abiCoder.encode(
-      [
-        "bytes32",
-        "uint64",
-        "uint160",
-        "address",
-        "address",
-        "bool",
-        "bytes32",
-        "uint256",
-      ],
+      ["bytes32", "uint64", "address", "address", "bool", "bytes32", "uint256"],
       [
         updateRpTypehash,
         params.rpId,
-        params.oprfKeyId,
         params.manager,
         params.signer,
         params.toggleActive,
@@ -469,7 +458,6 @@ export function buildUpdateRpSignerCalldata(
   const iface = new Interface(RP_REGISTRY_ABI);
   return iface.encodeFunctionData("updateRp", [
     rpId,
-    0, // oprfKeyId: no change
     ADDRESS_ZERO, // manager: no change
     newSigner,
     false, // toggleActive: no change
@@ -492,7 +480,6 @@ export function buildUpdateRpManagerCalldata(
   const iface = new Interface(RP_REGISTRY_ABI);
   return iface.encodeFunctionData("updateRp", [
     rpId,
-    0, // oprfKeyId: no change
     newManager,
     ADDRESS_ZERO, // signer: no change
     false, // toggleActive: no change
@@ -514,7 +501,6 @@ export function buildToggleRpActiveCalldata(
   const iface = new Interface(RP_REGISTRY_ABI);
   return iface.encodeFunctionData("updateRp", [
     rpId,
-    0, // oprfKeyId: no change
     ADDRESS_ZERO, // manager: no change
     ADDRESS_ZERO, // signer: no change
     true, // toggleActive: flip active state
