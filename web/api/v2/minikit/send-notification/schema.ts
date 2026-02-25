@@ -7,6 +7,36 @@ import * as yup from "yup";
 
 const USERNAME_SPECIAL_STRING = "${username}";
 
+const isValidDeepFaceLink = (value: string): boolean => {
+  try {
+    const url = new URL(value);
+    const isProduction =
+      process.env.NEXT_PUBLIC_APP_ENV === "production";
+
+    const isAllowedOrigin =
+      url.origin === "https://world.org" ||
+      (!isProduction && url.origin === "https://staging.world.org");
+
+    return (
+      isAllowedOrigin &&
+      url.pathname === "/verify" &&
+      url.searchParams.get("t") === "deepface" &&
+      Boolean(url.searchParams.get("i")) &&
+      Boolean(url.searchParams.get("k"))
+    );
+  } catch {
+    return false;
+  }
+};
+
+const isValidMiniAppPath = (value: string | undefined, app_id: string): boolean => {
+  if (!value) return false;
+  return (
+    value.startsWith(`worldapp://mini-app?app_id=${app_id}`) ||
+    isValidDeepFaceLink(value)
+  );
+};
+
 export const sendNotificationBodySchemaV1 = yup
   .object({
     app_id: yup.string().strict().required(),
@@ -24,11 +54,11 @@ export const sendNotificationBodySchemaV1 = yup
       .strict()
       .required()
       .test(
-        "contains-app-id",
-        "mini_app_path must include the app_id and be a valid WorldApp deeplink",
+        "valid-mini-app-path",
+        "mini_app_path must be a valid WorldApp deeplink (worldapp://mini-app?app_id=) or a deep face app link (https://world.org/verify?t=deepface)",
         function (value) {
           const { app_id } = this.parent;
-          return value.startsWith(`worldapp://mini-app?app_id=${app_id}`);
+          return isValidMiniAppPath(value, app_id);
         },
       ),
   })
@@ -67,11 +97,11 @@ export const sendNotificationBodySchemaV2 = yup
       .strict()
       .required()
       .test(
-        "contains-app-id",
-        "mini_app_path must include the app_id and be a valid WorldApp deeplink starting with 'worldapp://mini-app?app_id='",
+        "valid-mini-app-path",
+        "mini_app_path must be a valid WorldApp deeplink (worldapp://mini-app?app_id=) or a deep face app link (https://world.org/verify?t=deepface)",
         function (value) {
           const { app_id } = this.parent;
-          return value.startsWith(`worldapp://mini-app?app_id=${app_id}`);
+          return isValidMiniAppPath(value, app_id);
         },
       ),
     draft_id: yup.string().optional(),
