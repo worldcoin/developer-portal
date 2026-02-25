@@ -26,7 +26,10 @@ const isValidDeepFaceLink = (value: string): boolean => {
   }
 };
 
-const isValidMiniAppPath = (value: string | undefined, app_id: string): boolean => {
+const isValidMiniAppPath = (
+  value: string | undefined,
+  app_id: string,
+): boolean => {
   if (!value) return false;
   return (
     value.startsWith(`worldapp://mini-app?app_id=${app_id}`) ||

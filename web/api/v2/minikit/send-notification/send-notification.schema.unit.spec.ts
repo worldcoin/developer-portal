@@ -278,8 +278,7 @@ describe("notifications", () => {
       "deep face link with empty i param",
       {
         ...notificationBody,
-        mini_app_path:
-          "https://world.org/verify?t=deepface&i=&k=dGVzdC1rZXk",
+        mini_app_path: "https://world.org/verify?t=deepface&i=&k=dGVzdC1rZXk",
         localisations: [
           {
             language: "en",
