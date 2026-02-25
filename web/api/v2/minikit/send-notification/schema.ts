@@ -7,12 +7,16 @@ import * as yup from "yup";
 
 const USERNAME_SPECIAL_STRING = "${username}";
 
+const isProduction = process.env.NEXT_PUBLIC_APP_ENV === "production";
+
+const ALLOWED_DEEP_FACE_ORIGINS = isProduction
+  ? ["https://world.org"]
+  : ["https://staging.world.org"];
+
 const isValidDeepFaceLink = (value: string): boolean => {
   try {
     const url = new URL(value);
-    const isAllowedOrigin =
-      url.origin === "https://world.org" ||
-      url.origin === "https://staging.world.org";
+    const isAllowedOrigin = ALLOWED_DEEP_FACE_ORIGINS.includes(url.origin);
 
     return (
       isAllowedOrigin &&
