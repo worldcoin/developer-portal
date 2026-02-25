@@ -24,7 +24,7 @@ import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
 import { getSdk as getGetRpRegistrationSdk } from "./graphql/get-rp-registration.generated";
 
-const CACHE_KEY_PREFIX = "rp_status:";
+const CACHE_KEY_PREFIX = "rp_status:v2:";
 
 type Environment = "production" | "staging";
 

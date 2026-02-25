@@ -282,7 +282,7 @@ export const POST = async (req: NextRequest) => {
     const redis = global.RedisClient;
     if (redis) {
       try {
-        await redis.del(`rp_status:${rpIdString}`);
+        await redis.del(`rp_status:v2:${rpIdString}`);
       } catch (cacheError) {
         logger.error("Failed to invalidate rp_status cache", {
           error: cacheError,

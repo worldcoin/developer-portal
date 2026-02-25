@@ -13,7 +13,7 @@ import { getSdk as getGetRpRegistrationSdk } from "./graphql/get-rp-registration
 import { getSdk as getUpdateRpStatusSdk } from "./graphql/update-rp-status.generated";
 
 const CACHE_TTL_SECONDS = 3600;
-const CACHE_KEY_PREFIX = "rp_status:";
+const CACHE_KEY_PREFIX = "rp_status:v2:";
 
 interface DualStatus {
   production_status: string;
@@ -193,13 +193,13 @@ export async function GET(
 
   if (redis) {
     try {
+      // Use a minimal TTL for pending statuses so polling picks up on-chain changes quickly
+      const ttl =
+        productionStatus === "pending" || stagingStatus === "pending"
+          ? 1
+          : CACHE_TTL_SECONDS;
       const cacheKey = `${CACHE_KEY_PREFIX}${rpId}`;
-      await redis.set(
-        cacheKey,
-        JSON.stringify(result),
-        "EX",
-        CACHE_TTL_SECONDS,
-      );
+      await redis.set(cacheKey, JSON.stringify(result), "EX", ttl);
     } catch (error) {
       logger.warn("Failed to write to cache", { rpId, error });
     }
