@@ -10,12 +10,9 @@ const USERNAME_SPECIAL_STRING = "${username}";
 const isValidDeepFaceLink = (value: string): boolean => {
   try {
     const url = new URL(value);
-    const isProduction =
-      process.env.NEXT_PUBLIC_APP_ENV === "production";
-
     const isAllowedOrigin =
       url.origin === "https://world.org" ||
-      (!isProduction && url.origin === "https://staging.world.org");
+      url.origin === "https://staging.world.org";
 
     return (
       isAllowedOrigin &&
