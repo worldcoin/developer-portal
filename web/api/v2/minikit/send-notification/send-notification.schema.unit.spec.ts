@@ -205,7 +205,8 @@ describe("notifications", () => {
       "deep face link missing i param",
       {
         ...notificationBody,
-        mini_app_path: "https://staging.world.org/verify?t=deepface&k=dGVzdC1rZXk",
+        mini_app_path:
+          "https://staging.world.org/verify?t=deepface&k=dGVzdC1rZXk",
         localisations: [
           {
             language: "en",
@@ -278,7 +279,8 @@ describe("notifications", () => {
       "deep face link with empty i param",
       {
         ...notificationBody,
-        mini_app_path: "https://staging.world.org/verify?t=deepface&i=&k=dGVzdC1rZXk",
+        mini_app_path:
+          "https://staging.world.org/verify?t=deepface&i=&k=dGVzdC1rZXk",
         localisations: [
           {
             language: "en",
