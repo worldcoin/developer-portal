@@ -272,7 +272,7 @@ export const POST = async (req: NextRequest) => {
     const redis = global.RedisClient;
     if (redis) {
       try {
-        const cacheKey = `rp_status:${rpIdString}`;
+        const cacheKey = `rp_status:v2:${rpIdString}`;
         await redis.del(cacheKey);
         logger.info("Invalidated rp_status cache after mode switch", {
           rpIdString,

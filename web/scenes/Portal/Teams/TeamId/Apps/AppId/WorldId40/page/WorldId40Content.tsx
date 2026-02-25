@@ -243,7 +243,7 @@ export const WorldId40Content = ({
         {renderStatusRow("Production Status", productionStatus, "production")}
         {renderStatusRow(
           "Staging Status",
-          stagingStatus ?? "failed",
+          stagingStatus ?? "pending",
           "staging",
         )}
 
