@@ -93,11 +93,71 @@ describe("notifications", () => {
       },
     ],
     [
-      "deep face app link as mini_app_path",
+      "Deep Face Universal Link as mini_app_path",
       {
         ...notificationBody,
         mini_app_path:
           "https://staging.world.org/verify?t=deepface&i=550e8400-e29b-41d4-a716-446655440000&k=dGVzdC1rZXk%3D",
+        localisations: [
+          {
+            language: "en",
+            title: "This is a title",
+            message: "This is a message",
+          },
+        ],
+      },
+    ],
+    [
+      "Deep Face Universal Link missing i param",
+      {
+        ...notificationBody,
+        mini_app_path:
+          "https://staging.world.org/verify?t=deepface&k=dGVzdC1rZXk",
+        localisations: [
+          {
+            language: "en",
+            title: "This is a title",
+            message: "This is a message",
+          },
+        ],
+      },
+    ],
+    [
+      "Deep Face Universal Link missing k param",
+      {
+        ...notificationBody,
+        mini_app_path:
+          "https://staging.world.org/verify?t=deepface&i=550e8400-e29b-41d4-a716-446655440000",
+        localisations: [
+          {
+            language: "en",
+            title: "This is a title",
+            message: "This is a message",
+          },
+        ],
+      },
+    ],
+    [
+      "Deep Face Universal Link with empty i param",
+      {
+        ...notificationBody,
+        mini_app_path:
+          "https://staging.world.org/verify?t=deepface&i=&k=dGVzdC1rZXk",
+        localisations: [
+          {
+            language: "en",
+            title: "This is a title",
+            message: "This is a message",
+          },
+        ],
+      },
+    ],
+    [
+      "Deep Face Universal Link with empty k param",
+      {
+        ...notificationBody,
+        mini_app_path:
+          "https://staging.world.org/verify?t=deepface&i=550e8400-e29b-41d4-a716-446655440000&k=",
         localisations: [
           {
             language: "en",
@@ -202,36 +262,6 @@ describe("notifications", () => {
       },
     ],
     [
-      "deep face link missing i param",
-      {
-        ...notificationBody,
-        mini_app_path:
-          "https://staging.world.org/verify?t=deepface&k=dGVzdC1rZXk",
-        localisations: [
-          {
-            language: "en",
-            title: "This is a title",
-            message: "This is a message",
-          },
-        ],
-      },
-    ],
-    [
-      "deep face link missing k param",
-      {
-        ...notificationBody,
-        mini_app_path:
-          "https://staging.world.org/verify?t=deepface&i=550e8400-e29b-41d4-a716-446655440000",
-        localisations: [
-          {
-            language: "en",
-            title: "This is a title",
-            message: "This is a message",
-          },
-        ],
-      },
-    ],
-    [
       "deep face link with wrong domain",
       {
         ...notificationBody,
@@ -266,36 +296,6 @@ describe("notifications", () => {
       {
         ...notificationBody,
         mini_app_path: "https://example.com/some-path",
-        localisations: [
-          {
-            language: "en",
-            title: "This is a title",
-            message: "This is a message",
-          },
-        ],
-      },
-    ],
-    [
-      "deep face link with empty i param",
-      {
-        ...notificationBody,
-        mini_app_path:
-          "https://staging.world.org/verify?t=deepface&i=&k=dGVzdC1rZXk",
-        localisations: [
-          {
-            language: "en",
-            title: "This is a title",
-            message: "This is a message",
-          },
-        ],
-      },
-    ],
-    [
-      "deep face link with empty k param",
-      {
-        ...notificationBody,
-        mini_app_path:
-          "https://staging.world.org/verify?t=deepface&i=550e8400-e29b-41d4-a716-446655440000&k=",
         localisations: [
           {
             language: "en",
@@ -370,7 +370,7 @@ describe("V1 schema mini_app_path validation", () => {
     ).toBe(true);
   });
 
-  test("should accept deep face app link", () => {
+  test("should accept Deep Face Universal Link", () => {
     expect(
       sendNotificationBodySchemaV1.isValidSync({
         ...v1Body,

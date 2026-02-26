@@ -9,36 +9,31 @@ const USERNAME_SPECIAL_STRING = "${username}";
 
 const isProduction = process.env.NEXT_PUBLIC_APP_ENV === "production";
 
-const ALLOWED_DEEP_FACE_ORIGINS = isProduction
+const ALLOWED_UNIVERSAL_LINK_ORIGINS = isProduction
   ? ["https://world.org"]
   : ["https://staging.world.org"];
 
-const isValidDeepFaceLink = (value: string): boolean => {
+const isValidUniversalLink = (value: string): boolean => {
   try {
     const url = new URL(value);
-    const isAllowedOrigin = ALLOWED_DEEP_FACE_ORIGINS.includes(url.origin);
+    const isAllowedOrigin = ALLOWED_UNIVERSAL_LINK_ORIGINS.includes(url.origin);
 
     return (
       isAllowedOrigin &&
       url.pathname === "/verify" &&
-      url.searchParams.get("t") === "deepface" &&
-      Boolean(url.searchParams.get("i")) &&
-      Boolean(url.searchParams.get("k"))
+      url.searchParams.get("t") === "deepface"
     );
   } catch {
     return false;
   }
 };
 
-const isValidMiniAppPath = (
+const isValidMiniAppDeepLink = (
   value: string | undefined,
   app_id: string,
 ): boolean => {
   if (!value) return false;
-  return (
-    value.startsWith(`worldapp://mini-app?app_id=${app_id}`) ||
-    isValidDeepFaceLink(value)
-  );
+  return value.startsWith(`worldapp://mini-app?app_id=${app_id}`);
 };
 
 export const sendNotificationBodySchemaV1 = yup
@@ -59,10 +54,13 @@ export const sendNotificationBodySchemaV1 = yup
       .required()
       .test(
         "valid-mini-app-path",
-        "mini_app_path must be a valid WorldApp deeplink (worldapp://mini-app?app_id=) or a deep face app link (https://world.org/verify?t=deepface)",
+        "mini_app_path must be a valid WorldApp deeplink (worldapp://mini-app?app_id=) or a Deep Face Universal Link (https://world.org/verify?t=deepface)",
         function (value) {
           const { app_id } = this.parent;
-          return isValidMiniAppPath(value, app_id);
+          return (
+            isValidMiniAppDeepLink(value, app_id) ||
+            isValidUniversalLink(value ?? "")
+          );
         },
       ),
   })
@@ -102,10 +100,13 @@ export const sendNotificationBodySchemaV2 = yup
       .required()
       .test(
         "valid-mini-app-path",
-        "mini_app_path must be a valid WorldApp deeplink (worldapp://mini-app?app_id=) or a deep face app link (https://world.org/verify?t=deepface)",
+        "mini_app_path must be a valid WorldApp deeplink (worldapp://mini-app?app_id=) or a Deep Face Universal Link (https://world.org/verify?t=deepface)",
         function (value) {
           const { app_id } = this.parent;
-          return isValidMiniAppPath(value, app_id);
+          return (
+            isValidMiniAppDeepLink(value, app_id) ||
+            isValidUniversalLink(value ?? "")
+          );
         },
       ),
     draft_id: yup.string().optional(),
