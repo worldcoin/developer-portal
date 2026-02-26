@@ -209,12 +209,16 @@ export async function handleUniquenessProofVerification(
   });
 
   const existingNullifier = checkNullifierResult.nullifier_v4[0];
+  // Allow nullifier reuse in staging for both 3.0 and 4.0 for better DevEx.
+  // Allow nullifier reuse for 3.0 in both staging and production, since 3.0 nullifiers can be reused, this matches the legacy /verify behavior
+  const allowNullifierReuse =
+    actionV4.environment === "staging" || protocolVersion === "3.0";
 
   if (existingNullifier) {
     // Nullifier exists - check if we can skip (staging) or error (production)
-    if (actionV4.environment === "staging") {
-      // Skip saving - allow reuse in staging
-      logger.info("Nullifier already exists, skipping save (staging)", {
+    if (allowNullifierReuse) {
+      // Skip saving - allow reuse
+      logger.info("Nullifier already exists, skipping save (reuse allowed)", {
         nullifier: nullifierForStorage,
         rpId,
         action: parsedParams.action,
@@ -228,7 +232,7 @@ export async function handleUniquenessProofVerification(
           rp_id: rpId,
           app_id: appId,
           action: parsedParams.action,
-          environment: "staging",
+          environment: actionV4.environment as string,
           nullifier_reused: true,
           protocol_version: protocolVersion,
         },
@@ -242,7 +246,7 @@ export async function handleUniquenessProofVerification(
           created_at: existingNullifier.created_at,
           environment: actionV4.environment as string,
           results: verificationResults,
-          message: "Proof verified successfully (staging nullifier reuse)",
+          message: "Proof verified successfully (nullifier reuse)",
         },
         { status: 200 },
       );
@@ -309,8 +313,8 @@ export async function handleUniquenessProofVerification(
 
     // Check if it's a unique constraint violation (race condition)
     if (errorMessage.includes("unique") || errorMessage.includes("duplicate")) {
-      if (actionV4.environment === "staging") {
-        // Staging - allow the race condition, just return success
+      if (allowNullifierReuse) {
+        // Reuse allowed - allow race condition and return success
         return NextResponse.json<UniquenessProofSuccessResponse>(
           {
             success: true,
@@ -318,7 +322,7 @@ export async function handleUniquenessProofVerification(
             nullifier: normalizedNullifier,
             environment: actionV4.environment as string,
             results: verificationResults,
-            message: "Proof verified successfully (staging nullifier reuse)",
+            message: "Proof verified successfully (nullifier reuse)",
           },
           { status: 200 },
         );
