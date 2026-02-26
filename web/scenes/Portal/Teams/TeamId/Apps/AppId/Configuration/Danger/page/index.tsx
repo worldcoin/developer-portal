@@ -14,7 +14,6 @@ import { useMemo, useState } from "react";
 import { useFetchAppMetadataQuery } from "../../graphql/client/fetch-app-metadata.generated";
 import { viewModeAtom } from "../../layout/ImagesProvider";
 import { AppTopBar } from "../../AppTopBar";
-import { ResolveModal } from "../../ResolveModal";
 import { DeleteModal } from "./DeleteModal";
 
 type AppProfileDangerPageProps = {
@@ -27,7 +26,6 @@ export const AppProfileDangerPage = ({ params }: AppProfileDangerPageProps) => {
   const teamId = (params?.teamId || routeParams?.teamId) as `team_${string}`;
   const [viewMode] = useAtom(viewModeAtom);
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
-  const [showResolveModal, setShowResolveModal] = useState(false);
   const { user } = useUser() as Auth0SessionUser;
 
   const isEnoughPermissions = useMemo(() => {
@@ -62,12 +60,7 @@ export const AppProfileDangerPage = ({ params }: AppProfileDangerPageProps) => {
     return (
       <>
         <SizingWrapper variant="nav" gridClassName="order-1 py-10">
-          <AppTopBar
-            appId={appId}
-            teamId={teamId}
-            app={app}
-            onResolve={() => setShowResolveModal(true)}
-          />
+          <AppTopBar appId={appId} teamId={teamId} app={app} />
         </SizingWrapper>
 
         <SizingWrapper variant="nav" gridClassName="order-2">
@@ -100,7 +93,6 @@ export const AppProfileDangerPage = ({ params }: AppProfileDangerPageProps) => {
             </DecoratedButton>
           </div>
         </SizingWrapper>
-        <ResolveModal open={showResolveModal} setOpen={setShowResolveModal} />
         <DeleteModal
           appName={appMetaData?.name ?? ""}
           appId={appId}

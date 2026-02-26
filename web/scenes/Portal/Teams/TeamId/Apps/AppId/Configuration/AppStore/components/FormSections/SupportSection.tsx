@@ -1,6 +1,5 @@
 import { FloatingInput } from "@/components/FloatingInput";
 import { Radio } from "@/components/Radio";
-import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Control, Controller, FieldErrors } from "react-hook-form";
 import { AppStoreFormValues } from "../../FormSchema/types";
 import { FormSectionProps, SupportType } from "../../types/AppStoreFormTypes";
@@ -70,7 +69,7 @@ export const SupportSection = ({
           render={({ field }) => (
             <FloatingInput
               id="support_link"
-              label="https://example.com"
+              placeholder="https://example.com"
               value={field.value || ""}
               onChange={field.onChange}
               disabled={disabled}
