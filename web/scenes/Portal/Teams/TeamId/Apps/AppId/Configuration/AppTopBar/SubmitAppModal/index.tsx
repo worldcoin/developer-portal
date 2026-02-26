@@ -1,10 +1,10 @@
-import { ModalIcon } from "@/components/ModalIcon";
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { Dialog } from "@/components/Dialog";
 import { DialogOverlay } from "@/components/DialogOverlay";
 import { DialogPanel } from "@/components/DialogPanel";
 import { AlertIcon } from "@/components/Icons/AlertIcon";
 import { SendIcon } from "@/components/Icons/SendIcon";
+import { ModalIcon } from "@/components/ModalIcon";
 import { Toggle } from "@/components/Toggle";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { useRefetchQueries } from "@/lib/use-refetch-queries";
@@ -128,8 +128,10 @@ export const SubmitAppModal = (props: SubmitAppModalProps) => {
             const result = await removeAppFromReview(appMetadataId);
             if (result.success) {
               await refetchAppMetadata();
+              return true;
             } else {
               toast.error(result.message);
+              return false;
             }
           }}
         />,

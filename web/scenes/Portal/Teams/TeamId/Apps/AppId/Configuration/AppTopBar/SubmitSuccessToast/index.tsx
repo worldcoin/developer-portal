@@ -4,7 +4,7 @@ import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { toast } from "react-toastify";
 
 type SubmitSuccessToastProps = {
-  onUndo: () => Promise<void>;
+  onUndo: () => Promise<boolean>;
   closeToast?: () => void;
 };
 
@@ -14,8 +14,8 @@ export const SubmitSuccessToast = ({
 }: SubmitSuccessToastProps) => {
   const handleUndo = async () => {
     closeToast?.();
-    await onUndo();
-    toast.info("App removed from review");
+    const success = await onUndo();
+    if (success) toast.info("App removed from review");
   };
 
   return (
