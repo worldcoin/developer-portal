@@ -2,7 +2,7 @@
 
 import { errorFormAction } from "@/api/helpers/errors";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
-import { getIsUserAllowedToUpdateAppMetadata } from "@/lib/permissions";
+import { getAppMetadataPermissionAndMode } from "@/lib/permissions";
 import { extractIdsFromPath, getPathFromHeaders } from "@/lib/server-utils";
 import { FormActionResult } from "@/lib/types";
 import * as yup from "yup";
@@ -37,10 +37,11 @@ export async function updateAppStoreMetadata(
   ]);
 
   try {
-    const isUserAllowedToUpdateAppMetadata =
-      await getIsUserAllowedToUpdateAppMetadata(formData.app_metadata_id);
+    const { allowed, appMode } = await getAppMetadataPermissionAndMode(
+      formData.app_metadata_id,
+    );
 
-    if (!isUserAllowedToUpdateAppMetadata) {
+    if (!allowed) {
       return errorFormAction({
         message:
           "The user does not have permission to update this app metadata",
@@ -55,6 +56,7 @@ export async function updateAppStoreMetadata(
     try {
       parsedParams = await schema.validate(formData, {
         abortEarly: false,
+        context: { isMiniApp: appMode === "mini-app" },
       });
     } catch (validationError) {
       return errorFormAction({

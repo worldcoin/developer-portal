@@ -89,6 +89,7 @@ const AppTopBarSubmit = ({
           return;
         }
       }
+      const isMiniApp = appMetadata.app_mode === "mini-app";
       if (form.formState.isDirty) {
         await new Promise<void>((resolve, reject) => {
           form.handleSubmit(
@@ -118,7 +119,6 @@ const AppTopBarSubmit = ({
       const enLocalization = formValues.localisations.find(
         (l) => l.language === "en",
       );
-      const isMiniApp = appMetadata.app_mode === "mini-app";
       // Read fresh metadata from the Apollo cache — BasicInformation's save
       // already awaited refetchAppMetadata(), so the cache is up to date.
       const freshData = client.readQuery<FetchAppMetadataQuery>({

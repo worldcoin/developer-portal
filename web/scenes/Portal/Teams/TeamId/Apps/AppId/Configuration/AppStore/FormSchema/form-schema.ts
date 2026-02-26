@@ -38,17 +38,30 @@ export const localisationFormSchema = yup
 export const mainAppStoreFormSchema = yup
   .object({
     category: categorySchema,
-    support_type: yup.string().oneOf(["email", "link"], "Invalid support type"),
-    support_link: yup.string().when("support_type", {
-      is: "link",
-      then: (_schema) => supportLinkSchema.required("Support link is required"),
-      otherwise: (_schema) => yup.string().length(0),
+    support_type: yup.string().when("$isMiniApp", {
+      is: true,
+      then: (s) => s.oneOf(["email", "link"], "Invalid support type"),
+      otherwise: (s) => s.notRequired(),
     }),
-    support_email: yup.string().when("support_type", {
-      is: "email",
-      then: (_schema) =>
-        supportEmailSchema.required("Support email is required"),
-      otherwise: (_schema) => yup.string().length(0),
+    support_link: yup.string().when("$isMiniApp", {
+      is: false,
+      then: (s) => s.notRequired(),
+      otherwise: (s) =>
+        s.when("support_type", {
+          is: "link",
+          then: () => supportLinkSchema.required("Support link is required"),
+          otherwise: () => yup.string().length(0),
+        }),
+    }),
+    support_email: yup.string().when("$isMiniApp", {
+      is: false,
+      then: (s) => s.notRequired(),
+      otherwise: (s) =>
+        s.when("support_type", {
+          is: "email",
+          then: () => supportEmailSchema.required("Support email is required"),
+          otherwise: () => yup.string().length(0),
+        }),
     }),
     is_android_only: isAndroidOnlySchema,
     is_for_humans_only: isForHumansOnlySchema,
@@ -123,17 +136,30 @@ export const mainAppStoreFormReviewSubmitSchema = yup
       otherwise: (s) => s.notRequired(),
     }),
     app_website_url: appWebsiteUrlSchema.required("Website URL is required"),
-    support_type: yup.string().oneOf(["email", "link"]),
-    support_link: yup.string().when("support_type", {
-      is: "link",
-      then: (_schema) => supportLinkSchema.required("Support link is required"),
-      otherwise: (_schema) => yup.string().length(0),
+    support_type: yup.string().when("$isMiniApp", {
+      is: true,
+      then: (s) => s.oneOf(["email", "link"], "Invalid support type"),
+      otherwise: (s) => s.notRequired(),
     }),
-    support_email: yup.string().when("support_type", {
-      is: "email",
-      then: (_schema) =>
-        supportEmailSchema.required("Support email is required"),
-      otherwise: (_schema) => yup.string().length(0),
+    support_link: yup.string().when("$isMiniApp", {
+      is: false,
+      then: (s) => s.notRequired(),
+      otherwise: (s) =>
+        s.when("support_type", {
+          is: "link",
+          then: () => supportLinkSchema.required("Support link is required"),
+          otherwise: () => yup.string().length(0),
+        }),
+    }),
+    support_email: yup.string().when("$isMiniApp", {
+      is: false,
+      then: (s) => s.notRequired(),
+      otherwise: (s) =>
+        s.when("support_type", {
+          is: "email",
+          then: () => supportEmailSchema.required("Support email is required"),
+          otherwise: () => yup.string().length(0),
+        }),
     }),
     is_android_only: isAndroidOnlySchema.required("This field is required"),
     is_for_humans_only: isForHumansOnlySchema.required(
@@ -171,9 +197,8 @@ export const mainAppStoreFormReviewSubmitSchema = yup
     "support-contact-required",
     "Either support link or support email must be provided",
     function (values) {
+      if (!this.options.context?.isMiniApp) return true;
       const { support_link, support_email } = values || {};
-
-      // exactly one must be provided
       return !!(support_link || support_email);
     },
   );

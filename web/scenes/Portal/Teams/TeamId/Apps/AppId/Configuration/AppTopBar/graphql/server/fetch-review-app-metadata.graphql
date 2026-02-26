@@ -24,6 +24,7 @@ query FetchAppMetadataById($app_metadata_id: String!) {
     supported_languages
     is_android_only
     is_for_humans_only
+    app_mode
     verification_status
     content_card_image_url
     app {

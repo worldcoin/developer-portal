@@ -124,6 +124,7 @@ export async function submitAppForReviewFormServerSide({
           abortEarly: false,
           strict: true,
           stripUnknown: true,
+          context: { isMiniApp: data.app_metadata[0].app_mode === "mini-app" },
         },
       );
     } catch (error) {
