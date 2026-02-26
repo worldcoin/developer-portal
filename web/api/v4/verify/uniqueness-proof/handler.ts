@@ -15,7 +15,6 @@ import {
   UniquenessProofResponseV3,
   UniquenessProofResponseV4,
 } from "../request-schema";
-import { shouldAllowNullifierReuse } from "./nullifier-reuse";
 import { processUniquenessProofV3 } from "./verify-v3";
 import { processUniquenessProofV4 } from "./verify-v4";
 
@@ -210,10 +209,10 @@ export async function handleUniquenessProofVerification(
   });
 
   const existingNullifier = checkNullifierResult.nullifier_v4[0];
-  const allowNullifierReuse = shouldAllowNullifierReuse(
-    protocolVersion,
-    actionV4.environment as string,
-  );
+  // Allow nullifier reuse in staging for both 3.0 and 4.0 for better DevEx.
+  // Allow nullifier reuse for 3.0 in both staging and production, since 3.0 nullifiers can be reused, this matches the legacy /verify behavior
+  const allowNullifierReuse =
+    actionV4.environment === "staging" || protocolVersion === "3.0";
 
   if (existingNullifier) {
     // Nullifier exists - check if we can skip (staging) or error (production)
