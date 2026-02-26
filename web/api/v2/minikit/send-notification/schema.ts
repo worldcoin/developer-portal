@@ -18,6 +18,7 @@ export const sendNotificationBodySchemaV1 = yup
       .required("wallet_addresses is required"),
     message: notificationMessageSchema,
     title: notificationTitleSchema,
+    draft_id: yup.string().optional(),
     mini_app_path: yup
       .string()
       .strict()
@@ -73,6 +74,7 @@ export const sendNotificationBodySchemaV2 = yup
           return value.startsWith(`worldapp://mini-app?app_id=${app_id}`);
         },
       ),
+    draft_id: yup.string().optional(),
     localisations: yup
       .array()
       .of(
