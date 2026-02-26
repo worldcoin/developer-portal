@@ -1,11 +1,18 @@
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import { Control, FieldArrayWithId, FieldErrors } from "react-hook-form";
+import {
+  Control,
+  Controller,
+  FieldArrayWithId,
+  FieldErrors,
+} from "react-hook-form";
 import { AppStoreFormValues } from "../../../FormSchema/types";
 import {
   AppMetadata,
   FormSectionProps,
 } from "../../../types/AppStoreFormTypes";
 import { FormSection } from "../../FormFields/FormSection";
+import { MetaTagImageField } from "../../../ImageForm/MetaTagImageField";
+import { ShowcaseImagesField } from "../../../ImageForm/ShowcaseImagesField";
 import { LanguageTabs } from "./components/LanguageTabs";
 import { LocalisationFields } from "./components/LocalisationFields";
 import { useLanguageSelection } from "./hooks/useLanguageSelection";
@@ -15,6 +22,10 @@ interface LocalisationsSectionProps extends FormSectionProps {
   errors: FieldErrors<AppStoreFormValues>;
   localisations: FieldArrayWithId<AppStoreFormValues, "localisations", "id">[];
   appMetadata: AppMetadata;
+  appId: string;
+  teamId: string;
+  supportedLanguages: string[];
+  onAutosaveSuccess: () => void;
 }
 
 export const LocalisationsSection = ({
@@ -24,6 +35,10 @@ export const LocalisationsSection = ({
   isEditable,
   isEnoughPermissions,
   appMetadata,
+  appId,
+  teamId,
+  supportedLanguages,
+  onAutosaveSuccess,
 }: LocalisationsSectionProps) => {
   const {
     selectedLanguage,
@@ -71,6 +86,59 @@ export const LocalisationsSection = ({
             isEnoughPermissions={isEnoughPermissions}
             isMiniApp={appMetadata.app_mode === "mini-app"}
           />
+
+          <FormSection
+            title="Showcase Images"
+            description="Upload up to 3 images to showcase your application."
+          >
+            <Controller
+              control={control}
+              name={`localisations.${selectedIndex}.showcase_img_urls`}
+              render={({ field }) => (
+                <ShowcaseImagesField
+                  value={(field.value || []).filter((url): url is string =>
+                    Boolean(url),
+                  )}
+                  onChange={field.onChange}
+                  disabled={!isEditable || !isEnoughPermissions}
+                  appId={appId}
+                  teamId={teamId}
+                  locale={selectedLanguage}
+                  isAppVerified={appMetadata.verification_status === "verified"}
+                  appMetadataId={appMetadata.id}
+                  supportedLanguages={supportedLanguages}
+                  onAutosaveSuccess={onAutosaveSuccess}
+                  onAutosaveError={() => {}}
+                />
+              )}
+            />
+          </FormSection>
+
+          <FormSection
+            title="Meta Tag Image"
+            description="This image will be displayed as the opengraph meta tags image when linking your app. Fallback to your app's logo image if not provided."
+            isRequiredAsterisk={false}
+          >
+            <Controller
+              control={control}
+              name={`localisations.${selectedIndex}.meta_tag_image_url`}
+              render={({ field }) => (
+                <MetaTagImageField
+                  value={field.value}
+                  onChange={field.onChange}
+                  disabled={!isEditable || !isEnoughPermissions}
+                  appId={appId}
+                  teamId={teamId}
+                  locale={selectedLanguage}
+                  isAppVerified={appMetadata.verification_status === "verified"}
+                  appMetadataId={appMetadata.id}
+                  supportedLanguages={supportedLanguages}
+                  onAutosaveSuccess={onAutosaveSuccess}
+                  onAutosaveError={() => {}}
+                />
+              )}
+            />
+          </FormSection>
         </div>
       )}
     </FormSection>

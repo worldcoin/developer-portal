@@ -22,7 +22,7 @@ export const schema = yup
           excludeEmptyString: true,
         }),
       )
-      .required("This field is required"),
+      .optional(),
   })
   .noUnknown();
 export type BasicInformationFormValues = yup.Asserts<typeof schema>;
