@@ -229,6 +229,27 @@ export const AppTopBar = (props: AppTopBarProps) => {
   );
   const [showLogoDialog, setShowLogoDialog] = useState(false);
   const [unverifiedImages, setUnverifiedImages] = useAtom(unverifiedImageAtom);
+  const [localUnverifiedLogoOverride, setLocalUnverifiedLogoOverride] =
+    useState<string | null>(null);
+
+  useEffect(() => {
+    setLocalUnverifiedLogoOverride(null);
+  }, [appId]);
+
+  useEffect(() => {
+    if (unverifiedImagesData === undefined) return;
+
+    const atomUrl = unverifiedImages?.logo_img_url;
+    if (atomUrl === undefined || atomUrl === "loading") return;
+
+    const queryUrl =
+      unverifiedImagesData?.unverified_images?.logo_img_url ?? "";
+    if (atomUrl !== queryUrl) {
+      setLocalUnverifiedLogoOverride(atomUrl);
+    } else {
+      setLocalUnverifiedLogoOverride(null);
+    }
+  }, [unverifiedImages?.logo_img_url, unverifiedImagesData]);
 
   const isEnoughPermissions = useMemo(() => {
     const membership = user?.hasura.memberships.find(
@@ -330,28 +351,32 @@ export const AppTopBar = (props: AppTopBarProps) => {
     if (appMetadata?.verification_status === "verified") {
       return getCDNImageUrl(appId, appMetadata?.logo_img_url, true);
     } else {
-      const atomUrl = unverifiedImages?.logo_img_url;
-      return atomUrl && atomUrl !== "loading"
-        ? atomUrl
-        : getDefaultLogoImgCDNUrl();
+      const queryUrl =
+        unverifiedImagesData?.unverified_images?.logo_img_url ?? "";
+      const unverifiedLogoImgUrl = localUnverifiedLogoOverride ?? queryUrl;
+      return unverifiedLogoImgUrl || getDefaultLogoImgCDNUrl();
     }
   }, [
     appMetadata?.verification_status,
     appMetadata?.logo_img_url,
     appId,
-    unverifiedImages?.logo_img_url,
+    localUnverifiedLogoOverride,
+    unverifiedImagesData?.unverified_images?.logo_img_url,
   ]);
 
   const hasLogo = useMemo(() => {
     if (appMetadata?.verification_status === "verified") {
       return Boolean(appMetadata?.logo_img_url);
     }
-    const atomUrl = unverifiedImages?.logo_img_url;
-    return Boolean(atomUrl) && atomUrl !== "loading";
+    const queryUrl =
+      unverifiedImagesData?.unverified_images?.logo_img_url ?? "";
+    const unverifiedLogoImgUrl = localUnverifiedLogoOverride ?? queryUrl;
+    return Boolean(unverifiedLogoImgUrl);
   }, [
     appMetadata?.verification_status,
     appMetadata?.logo_img_url,
-    unverifiedImages?.logo_img_url,
+    localUnverifiedLogoOverride,
+    unverifiedImagesData?.unverified_images?.logo_img_url,
   ]);
 
   if (!appMetadata) return <ErrorPage statusCode={404} title="App not found" />;
