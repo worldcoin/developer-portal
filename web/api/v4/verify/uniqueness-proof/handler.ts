@@ -15,6 +15,7 @@ import {
   UniquenessProofResponseV3,
   UniquenessProofResponseV4,
 } from "../request-schema";
+import { shouldAllowStagingNullifierReuse } from "./nullifier-reuse";
 import { processUniquenessProofV3 } from "./verify-v3";
 import { processUniquenessProofV4 } from "./verify-v4";
 
@@ -209,10 +210,14 @@ export async function handleUniquenessProofVerification(
   });
 
   const existingNullifier = checkNullifierResult.nullifier_v4[0];
+  const allowStagingNullifierReuse = shouldAllowStagingNullifierReuse(
+    protocolVersion,
+    actionV4.environment as string,
+  );
 
   if (existingNullifier) {
     // Nullifier exists - check if we can skip (staging) or error (production)
-    if (actionV4.environment === "staging") {
+    if (allowStagingNullifierReuse) {
       // Skip saving - allow reuse in staging
       logger.info("Nullifier already exists, skipping save (staging)", {
         nullifier: nullifierForStorage,
@@ -309,7 +314,7 @@ export async function handleUniquenessProofVerification(
 
     // Check if it's a unique constraint violation (race condition)
     if (errorMessage.includes("unique") || errorMessage.includes("duplicate")) {
-      if (actionV4.environment === "staging") {
+      if (allowStagingNullifierReuse) {
         // Staging - allow the race condition, just return success
         return NextResponse.json<UniquenessProofSuccessResponse>(
           {
