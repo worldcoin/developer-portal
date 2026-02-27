@@ -384,7 +384,14 @@ export const AppTopBar = (props: AppTopBarProps) => {
 
         <div className="grid w-full grid-cols-1 items-center gap-3 sm:grid-cols-auto/1fr">
           {app.verified_app_metadata.length > 0 &&
-            app.app_metadata.length > 0 && <VersionSwitcher app={app} />}
+            app.app_metadata.length > 0 && (
+              <VersionSwitcher
+                viewMode={viewMode}
+                setMode={setViewMode}
+                disabled={app.app_metadata.length === 0}
+                verifiedAt={app.verified_app_metadata[0]?.verified_at}
+              />
+            )}
           {isEnoughPermissions &&
             (isEditable ? (
               <DecoratedButton

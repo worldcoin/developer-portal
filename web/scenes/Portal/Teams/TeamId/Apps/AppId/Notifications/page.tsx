@@ -10,6 +10,8 @@ import posthog from "posthog-js";
 import { ChangeEvent, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
+import { VersionSwitcher } from "../Configuration/AppTopBar/VersionSwitcher";
+import { useFetchNotificationAppMetadataQuery } from "./graphql/client/fetch-notification-app-metadata.generated";
 
 type NotificationFormData = {
   walletAddresses: string;
@@ -22,7 +24,22 @@ type NotificationFormData = {
 export const NotificationsPage = () => {
   const params = useParams<{ teamId: string; appId: string }>();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [viewMode, setViewMode] = useState<"verified" | "unverified">(
+    "verified",
+  );
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const { data: appMetadataData } = useFetchNotificationAppMetadataQuery({
+    variables: { id: params?.appId ?? "" },
+    skip: !params?.appId,
+  });
+
+  const appData = appMetadataData?.app[0];
+  const draftId = appData?.app_metadata[0]?.id;
+  const hasBothVersions =
+    (appData?.app_metadata.length ?? 0) > 0 &&
+    (appData?.verified_app_metadata.length ?? 0) > 0;
+
   const {
     register,
     handleSubmit,
@@ -137,6 +154,7 @@ export const NotificationsPage = () => {
         title: data.title || undefined, // don't send if empty
         message: data.message,
         mini_app_path: data.miniAppPath,
+        ...(viewMode === "unverified" && draftId ? { draft_id: draftId } : {}),
       };
 
       const response = await fetch("/api/v2/minikit/send-notification", {
@@ -181,20 +199,31 @@ export const NotificationsPage = () => {
     <div className="my-8 grid gap-y-6">
       <div className="grid max-w-2xl gap-y-4">
         <Notification variant="info">
-          <div className="text-sm">
-            <h3 className="font-medium text-blue-800">Notifications</h3>
-            <div className="mt-2 text-blue-700">
-              Send notifications to specific wallet addresses. Unverified apps
-              are limited to 40 notifications per 4 hours.{" "}
-              <a
-                href="https://docs.world.org/mini-apps/reference/api#send-notification"
-                target="_blank"
-                className="underline"
-                rel="noopener noreferrer"
-              >
-                Docs reference
-              </a>
+          <div className="flex flex-col gap-y-3 sm:flex-row sm:items-center sm:justify-between sm:gap-x-4">
+            <div className="text-sm">
+              <h3 className="font-medium text-blue-800">Notifications</h3>
+              <div className="mt-2 text-blue-700">
+                Send notifications to specific wallet addresses. Unverified apps
+                are limited to 40 notifications per 4 hours.{" "}
+                <a
+                  href="https://docs.world.org/mini-apps/reference/api#send-notification"
+                  target="_blank"
+                  className="underline"
+                  rel="noopener noreferrer"
+                >
+                  Docs reference
+                </a>
+              </div>
             </div>
+
+            {hasBothVersions && (
+              <VersionSwitcher
+                viewMode={viewMode}
+                setMode={setViewMode}
+                verifiedAt={appData?.verified_app_metadata[0]?.verified_at}
+                buttonClassName="px-3 py-1.5 text-sm"
+              />
+            )}
           </div>
         </Notification>
 
