@@ -138,6 +138,7 @@ const AppTopBarSubmit = ({
           description_overview: enLocalization?.description_overview,
           logo_img_url: freshAppMetadata.logo_img_url,
           content_card_image_url: freshAppMetadata.content_card_image_url,
+          app_website_url: freshAppMetadata.app_website_url,
         },
         {
           abortEarly: false,
