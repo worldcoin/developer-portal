@@ -12,6 +12,15 @@ export const urls = {
   configuration: (params: { team_id: string; app_id: string }): string =>
     `/teams/${params.team_id}/apps/${params.app_id}/configuration`,
 
+  miniAppPermissions: (params: { team_id: string; app_id: string }): string =>
+    `/teams/${params.team_id}/apps/${params.app_id}/transactions/permissions`,
+
+  miniAppTransactions: (params: { team_id: string; app_id: string }): string =>
+    `/teams/${params.team_id}/apps/${params.app_id}/transactions`,
+
+  miniAppNotifications: (params: { team_id: string; app_id: string }): string =>
+    `/teams/${params.team_id}/apps/${params.app_id}/notifications`,
+
   actions: (params: { team_id: string; app_id?: string }): string =>
     `/teams/${params.team_id}/apps/${params.app_id}/actions`,
 

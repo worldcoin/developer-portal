@@ -6,9 +6,9 @@ import { useMemo } from "react";
 import Skeleton from "react-loading-skeleton";
 import { AppTopBar } from "../../Configuration/AppTopBar";
 import { FormSkeleton } from "../../Configuration/AppTopBar/FormSkeleton";
-import { SetupForm } from "../../Configuration/Advanced/page/SetupForm";
 import { useFetchAppMetadataQuery } from "../../Configuration/graphql/client/fetch-app-metadata.generated";
 import { viewModeAtom } from "../../Configuration/layout/ImagesProvider";
+import { SetupForm } from "../../MiniApp/PermissionsForm";
 
 type AppPermissionsPageProps = {
   params: Record<string, string> | null | undefined;

@@ -67,9 +67,18 @@ export const AppIdChrome = ({
     segment === "actions";
   const isMiniAppSegment =
     segment === "transactions" || segment === "notifications";
-  const miniAppPermissionsPath = `/teams/${teamId}/apps/${appId}/transactions/permissions`;
-  const miniAppTransactionsPath = `/teams/${teamId}/apps/${appId}/transactions`;
-  const miniAppNotificationsPath = `/teams/${teamId}/apps/${appId}/notifications`;
+  const miniAppPermissionsPath = urls.miniAppPermissions({
+    team_id: teamId,
+    app_id: appId,
+  });
+  const miniAppTransactionsPath = urls.miniAppTransactions({
+    team_id: teamId,
+    app_id: appId,
+  });
+  const miniAppNotificationsPath = urls.miniAppNotifications({
+    team_id: teamId,
+    app_id: appId,
+  });
   const isMiniAppPermissions = pathname === miniAppPermissionsPath;
   const isMiniAppTransactions = pathname === miniAppTransactionsPath;
   const isMiniAppNotifications = pathname === miniAppNotificationsPath;
@@ -106,7 +115,7 @@ export const AppIdChrome = ({
               </Tab>
 
               <Tab
-                href={`/teams/${teamId}/apps/${appId}/transactions/permissions`}
+                href={miniAppPermissionsPath}
                 underlined
                 active={isMiniAppSegment}
                 segment={"transactions"}
@@ -213,7 +222,7 @@ export const AppIdChrome = ({
           </BottomBar.Link>
 
           <BottomBar.Link
-            href={`/teams/${teamId}/apps/${appId}/transactions`}
+            href={miniAppPermissionsPath}
             segment={"transactions"}
           >
             <TransactionIcon className="size-7" />
