@@ -6,7 +6,8 @@ query FetchAppEnv($id: String!) {
       rp_id
     }
   }
-  action(where: { app_id: { _eq: $id } }, limit: 1) {
+  # Exclude auto-created "Sign in with World ID" actions (action = "") as they have their own dedicated page
+  action(where: { app_id: { _eq: $id }, action: { _neq: "" } }, limit: 1) {
     id
   }
 }
