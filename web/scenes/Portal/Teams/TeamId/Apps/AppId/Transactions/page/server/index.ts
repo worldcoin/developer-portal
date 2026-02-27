@@ -15,7 +15,7 @@ export const getTransactionData = async (
   transactionId?: string,
 ): Promise<FormActionResult> => {
   const path = getPathFromHeaders() || "";
-  const { Teams: teamId } = extractIdsFromPath(path, ["Teams"]);
+  const { teams: teamId } = extractIdsFromPath(path, ["teams"]);
 
   const session = await getSession();
   const user = session?.user as Auth0SessionUser["user"];
