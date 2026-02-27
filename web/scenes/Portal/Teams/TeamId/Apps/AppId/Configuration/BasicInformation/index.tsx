@@ -25,11 +25,19 @@ import {
   FetchAppMetadataQueryVariables,
 } from "../graphql/client/fetch-app-metadata.generated";
 import { viewModeAtom } from "../layout/ImagesProvider";
-import { BasicInformationFormValues, schema } from "./form-schema";
+import * as yup from "yup";
+import {
+  BasicInformationFormValues,
+  reviewSchema,
+  schema,
+} from "./form-schema";
 import { validateAndSubmitServerSide } from "./server/submit";
 
 export type BasicInformationHandle = {
-  submit: (opts?: { silent?: boolean }) => Promise<boolean>;
+  submit: (opts?: {
+    silent?: boolean;
+    forReview?: boolean;
+  }) => Promise<boolean>;
 };
 
 export const BasicInformation = forwardRef<
@@ -81,6 +89,7 @@ export const BasicInformation = forwardRef<
     handleSubmit,
     reset,
     setValue,
+    setError,
     formState: { errors, isDirty, isValid },
   } = useForm<BasicInformationFormValues>({
     resolver: yupResolver(schema),
@@ -124,6 +133,23 @@ export const BasicInformation = forwardRef<
       new Promise<boolean>((resolve) => {
         handleSubmit(
           async (data) => {
+            if (opts?.forReview) {
+              try {
+                await reviewSchema.validate(data, { abortEarly: false });
+              } catch (err) {
+                if (err instanceof yup.ValidationError) {
+                  err.inner.forEach((e) => {
+                    if (e.path) {
+                      setError(e.path as keyof BasicInformationFormValues, {
+                        message: e.message,
+                      });
+                    }
+                  });
+                  resolve(false);
+                  return;
+                }
+              }
+            }
             const ok = await submit(opts)(data);
             resolve(ok);
           },

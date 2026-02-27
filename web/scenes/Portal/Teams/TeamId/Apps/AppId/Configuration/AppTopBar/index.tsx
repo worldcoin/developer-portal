@@ -81,7 +81,10 @@ const AppTopBarSubmit = ({
     setIsSubmittingForReview(true);
     try {
       if (basicInfoRef?.current) {
-        const ok = await basicInfoRef.current.submit({ silent: true });
+        const ok = await basicInfoRef.current.submit({
+          silent: true,
+          forReview: true,
+        });
         if (!ok) {
           toast.error(
             "Please fix basic information errors before submitting for review",
@@ -136,7 +139,6 @@ const AppTopBarSubmit = ({
           description_overview: enLocalization?.description_overview,
           logo_img_url: freshAppMetadata.logo_img_url,
           content_card_image_url: freshAppMetadata.content_card_image_url,
-          app_website_url: freshAppMetadata.app_website_url,
         },
         {
           abortEarly: false,

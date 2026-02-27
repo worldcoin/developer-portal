@@ -68,7 +68,9 @@ export async function validateAndSubmitServerSide(
       input: {
         name: parsedInput.name,
         integration_url: parsedInput.integration_url,
-        app_website_url: parsedInput.app_website_url || null,
+        ...(parsedInput.app_website_url && {
+          app_website_url: parsedInput.app_website_url,
+        }),
       },
     });
 
