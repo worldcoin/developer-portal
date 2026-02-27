@@ -51,11 +51,20 @@ export const AppStoreForm = ({
   const isMiniApp = useAtomValue(isMiniAppAtom);
 
   const supportedLanguages = useWatch({ control, name: "supported_languages" });
+  const guardedSubmit = async () => {
+    const canProceed = await onBeforeSave?.();
+    if (canProceed === false) return;
+    handleSubmit(submit, onInvalid)();
+  };
+
   return (
     <div className="grid max-w-[700px] grid-cols-1fr/auto">
       <form
         className="grid gap-y-10"
-        onSubmit={handleSubmit(submit, onInvalid)}
+        onSubmit={(event) => {
+          event.preventDefault();
+          void guardedSubmit();
+        }}
       >
         {isMiniApp && (
           <>
@@ -131,11 +140,7 @@ export const AppStoreForm = ({
         <SaveButton
           isSubmitting={isSubmitting}
           isDisabled={!isEditable || !isEnoughPermissions || isSubmitting}
-          onSubmit={async () => {
-            const canProceed = await onBeforeSave?.();
-            if (canProceed === false) return;
-            handleSubmit(submit, onInvalid)();
-          }}
+          onSubmit={guardedSubmit}
         />
       </form>
     </div>
