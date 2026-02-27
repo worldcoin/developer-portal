@@ -135,6 +135,7 @@ export const mainAppStoreFormReviewSubmitSchema = yup
       then: (s) => s.required("App tag line is required"),
       otherwise: (s) => s.notRequired(),
     }),
+    app_website_url: appWebsiteUrlSchema.required("Website URL is required"),
     support_type: yup.string().when("$isMiniApp", {
       is: true,
       then: (s) => s.oneOf(["email", "link"], "Invalid support type"),

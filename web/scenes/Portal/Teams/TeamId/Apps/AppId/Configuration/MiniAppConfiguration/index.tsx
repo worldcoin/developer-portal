@@ -9,7 +9,14 @@ import { useRefetchQueries } from "@/lib/use-refetch-queries";
 import { checkUserPermissions } from "@/lib/utils";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { useAtom } from "jotai";
-import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
+import {
+  Fragment,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { toast } from "react-toastify";
 import {
   FetchAppMetadataDocument,
@@ -33,6 +40,8 @@ export const MiniAppConfiguration = ({
 }: MiniAppConfigurationProps) => {
   const { user } = useUser() as Auth0SessionUser;
   const [showQrCode, setShowQrCode] = useState(false);
+  const [isUpdatingMode, setIsUpdatingMode] = useState(false);
+  const modeUpdateInFlightRef = useRef(false);
 
   const isEnoughPermissions = useMemo(() => {
     return checkUserPermissions(user, teamId ?? "", [
@@ -59,19 +68,31 @@ export const MiniAppConfiguration = ({
 
   const handleAppModeToggle = useCallback(
     async (checked: boolean) => {
+      if (modeUpdateInFlightRef.current) {
+        return;
+      }
+
+      modeUpdateInFlightRef.current = true;
+      setIsUpdatingMode(true);
+
       // Optimistically flip the toggle immediately
       setIsMiniApp(checked);
       const newMode = checked ? "mini-app" : "external";
-      const result = await updateAppMode(appMetadata.id, newMode);
-      if (!result.success) {
-        // Revert on failure
-        setIsMiniApp(!checked);
-        toast.error(result.message);
-      } else {
-        refetchAppMetadata();
+      try {
+        const result = await updateAppMode(appMetadata.id, newMode);
+        if (!result.success) {
+          // Revert on failure
+          setIsMiniApp(!checked);
+          toast.error(result.message);
+        } else {
+          await refetchAppMetadata();
+        }
+      } finally {
+        modeUpdateInFlightRef.current = false;
+        setIsUpdatingMode(false);
       }
     },
-    [appMetadata.id, refetchAppMetadata],
+    [appMetadata.id, refetchAppMetadata, setIsMiniApp],
   );
 
   const { url, showDraftMiniAppFlag } = useMemo(() => {
@@ -106,7 +127,7 @@ export const MiniAppConfiguration = ({
             <Toggle
               checked={isMiniApp}
               onChange={handleAppModeToggle}
-              disabled={!isEditable || !isEnoughPermissions}
+              disabled={!isEditable || !isEnoughPermissions || isUpdatingMode}
             />
           </div>
         </div>

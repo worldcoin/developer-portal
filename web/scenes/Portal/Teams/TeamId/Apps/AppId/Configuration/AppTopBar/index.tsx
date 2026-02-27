@@ -8,7 +8,6 @@ import { Role_Enum } from "@/graphql/graphql";
 import { Button } from "@/components/Button";
 import { Auth0SessionUser } from "@/lib/types";
 import { getCDNImageUrl, getDefaultLogoImgCDNUrl } from "@/lib/utils";
-import { ReviewMessageDialog } from "@/scenes/Portal/Teams/TeamId/Apps/common/ReviewMessageDialog";
 import { useRemoveFromReview } from "@/scenes/Portal/Teams/TeamId/Apps/common/hooks/use-remove-from-review";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import clsx from "clsx";
@@ -408,8 +407,6 @@ export const AppTopBar = (props: AppTopBarProps) => {
         appId={appId}
         isDeveloperAllowListing={appMetadata?.is_developer_allow_listing}
       />
-      <ReviewMessageDialog appId={appId} />
-
       {/* New layout: Logo + Name/Status/Version on left, Actions on right */}
       <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-center sm:justify-between">
         {/* Left side: Logo + Name + Status + Version */}
