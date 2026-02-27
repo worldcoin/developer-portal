@@ -28,7 +28,7 @@ export const FetchAppEnvDocument = gql`
         rp_id
       }
     }
-    action(where: { app_id: { _eq: $id } }, limit: 1) {
+    action(where: { app_id: { _eq: $id }, action: { _neq: "" } }, limit: 1) {
       id
     }
   }

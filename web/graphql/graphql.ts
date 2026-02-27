@@ -196,6 +196,13 @@ export type ResetClientOutput = {
   client_secret: Scalars["String"]["output"];
 };
 
+export type RetryRpOutput = {
+  __typename?: "RetryRpOutput";
+  environment: Scalars["String"]["output"];
+  operation_hash?: Maybe<Scalars["String"]["output"]>;
+  success: Scalars["Boolean"]["output"];
+};
+
 export enum ReviewStatusEnum {
   Actioned = "ACTIONED",
   Appealed = "APPEALED",
@@ -6543,6 +6550,8 @@ export type Mutation_Root = {
   reset_api_key?: Maybe<ResetApiOutput>;
   /** Reset the client secret for a Sign in with World ID application */
   reset_client_secret?: Maybe<ResetClientOutput>;
+  /** Retry RP registration sync for a specific environment */
+  retry_rp?: Maybe<RetryRpOutput>;
   /** execute VOLATILE function "rollup_app_stats" which returns "app_stats" */
   rollup_app_stats: Array<App_Stats>;
   /** Rotate the signer key for an RP (Relying Party) */
@@ -7416,6 +7425,12 @@ export type Mutation_RootReset_Api_KeyArgs = {
 export type Mutation_RootReset_Client_SecretArgs = {
   app_id: Scalars["String"]["input"];
   team_id: Scalars["String"]["input"];
+};
+
+/** mutation root */
+export type Mutation_RootRetry_RpArgs = {
+  environment: Scalars["String"]["input"];
+  rp_id: Scalars["String"]["input"];
 };
 
 /** mutation root */
