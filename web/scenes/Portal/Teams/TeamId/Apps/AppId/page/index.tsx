@@ -1,7 +1,5 @@
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { SizingWrapper } from "@/components/SizingWrapper";
-import { urls } from "@/lib/urls";
-import { ReviewMessageDialog } from "@/scenes/Portal/Teams/TeamId/Apps/common/ReviewMessageDialog";
 import { BanMessageDialog } from "../../common/BanMessageDialog";
 import { getSdk as getAppEnvSdk } from "../layout/graphql/server/fetch-app-env.generated";
 import { BanStatusSection } from "./BanStatusSection";
@@ -38,16 +36,12 @@ export const AppIdPage = async (props: {
       />
 
       <div className="grid gap-y-3">
-        <VerificationStatusSection appId={appId} />
+        <VerificationStatusSection appId={appId} teamId={teamId} />
         <BanStatusSection appId={appId} />
       </div>
 
       <DashboardWrapper appId={appId} teamId={teamId} />
 
-      <ReviewMessageDialog
-        appId={appId}
-        goTo={urls.configuration({ team_id: teamId, app_id: appId })}
-      />
       <BanMessageDialog />
     </SizingWrapper>
   );

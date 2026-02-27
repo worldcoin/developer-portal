@@ -9,18 +9,17 @@ import clsx from "clsx";
 import { useAtom } from "jotai";
 import { useCallback, useMemo } from "react";
 import { showReviewStatusAtom } from "../../AppId/Configuration/layout/ImagesProvider";
-import { reviewMessageDialogOpenedAtom } from "../ReviewMessageDialog";
 
 type ReviewStatusProps = {
   status: "changes_requested" | "verified";
   message: string;
   className?: string;
+  onResolveClick?: () => void;
 };
 
 export const ReviewStatus = (props: ReviewStatusProps) => {
-  const { status, message, className } = props;
+  const { status, message, className, onResolveClick } = props;
   const [showReviewStatus, setShowReviewStatus] = useAtom(showReviewStatusAtom);
-  const [, setOpened] = useAtom(reviewMessageDialogOpenedAtom);
 
   const statusStyles = {
     verified: {
@@ -47,11 +46,11 @@ export const ReviewStatus = (props: ReviewStatusProps) => {
 
   const onClick = useCallback(() => {
     if (status === "changes_requested") {
-      setOpened(true);
+      onResolveClick?.();
     }
 
     setShowReviewStatus(false);
-  }, [setOpened, setShowReviewStatus, status]);
+  }, [onResolveClick, setShowReviewStatus, status]);
 
   if (status === "verified" && showReviewStatus === false) {
     return;
