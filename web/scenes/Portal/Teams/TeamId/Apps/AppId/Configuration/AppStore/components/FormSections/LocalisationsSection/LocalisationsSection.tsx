@@ -94,7 +94,7 @@ export const LocalisationsSection = ({
             <Controller
               control={control}
               name={`localisations.${selectedIndex}.showcase_img_urls`}
-              render={({ field }) => (
+              render={({ field, fieldState }) => (
                 <ShowcaseImagesField
                   value={(field.value || []).filter((url): url is string =>
                     Boolean(url),
@@ -109,6 +109,7 @@ export const LocalisationsSection = ({
                   supportedLanguages={supportedLanguages}
                   onAutosaveSuccess={onAutosaveSuccess}
                   onAutosaveError={() => {}}
+                  error={fieldState.error?.message}
                 />
               )}
             />
@@ -122,7 +123,7 @@ export const LocalisationsSection = ({
             <Controller
               control={control}
               name={`localisations.${selectedIndex}.meta_tag_image_url`}
-              render={({ field }) => (
+              render={({ field, fieldState }) => (
                 <MetaTagImageField
                   value={field.value}
                   onChange={field.onChange}
@@ -135,6 +136,7 @@ export const LocalisationsSection = ({
                   supportedLanguages={supportedLanguages}
                   onAutosaveSuccess={onAutosaveSuccess}
                   onAutosaveError={() => {}}
+                  error={fieldState.error?.message}
                 />
               )}
             />

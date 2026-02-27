@@ -142,7 +142,7 @@ export const ContentCardImageUpload = (props: ContentCardImageUploadProps) => {
   }
 
   return (
-    <div className={clsx("grid w-full gap-y-1", isError && "mb-4")}>
+    <div className="grid w-full gap-y-1">
       <input
         ref={imageInputRef}
         type="file"
@@ -201,7 +201,9 @@ export const ContentCardImageUpload = (props: ContentCardImageUploadProps) => {
           <label
             className={clsx(
               "flex h-[168px] w-full cursor-pointer flex-col items-center justify-center gap-y-3 rounded-[10px] border border-dashed bg-grey-50 p-6 hover:bg-grey-100",
-              isError ? "border-system-error-500" : "border-grey-200",
+              isError
+                ? "border-system-error-500 bg-system-error-50"
+                : "border-grey-200",
             )}
             onClick={handleUpload}
           >
@@ -235,15 +237,18 @@ export const ContentCardImageUpload = (props: ContentCardImageUploadProps) => {
                   browse files
                 </span>
               </Typography>
+              {isError && (
+                <Typography
+                  variant={TYPOGRAPHY.R5}
+                  className="text-center text-system-error-500"
+                >
+                  Content card image is required. Required aspect ratio is
+                  345x240px.
+                </Typography>
+              )}
             </div>
           </label>
         ))}
-
-      {isError && (
-        <p className="px-1 text-xs text-system-error-500">
-          Content card image is required. Required aspect ratio is 345×240px.
-        </p>
-      )}
     </div>
   );
 };

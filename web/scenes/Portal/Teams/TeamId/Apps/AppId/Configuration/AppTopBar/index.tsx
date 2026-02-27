@@ -205,6 +205,110 @@ const AppTopBarSubmit = ({
   );
 };
 
+type AppIconButtonProps = {
+  hasLogo: boolean;
+  logoImgUrl: string;
+  viewMode: "unverified" | "verified";
+  isLogoError: boolean;
+  onEdit: () => void;
+};
+
+const AppIconButton = ({
+  hasLogo,
+  logoImgUrl,
+  viewMode,
+  isLogoError,
+  onEdit,
+}: AppIconButtonProps) => (
+  <button
+    type="button"
+    onClick={() => {
+      if (viewMode !== "verified") {
+        onEdit();
+      }
+    }}
+    className={clsx("group relative size-[125px] shrink-0 rounded-full", {
+      "cursor-default": viewMode === "verified",
+    })}
+  >
+    {hasLogo ? (
+      <>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={logoImgUrl}
+          alt="logo"
+          className="size-full rounded-full object-cover drop-shadow-lg"
+        />
+        {viewMode !== "verified" && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 rounded-full bg-grey-900/50 opacity-0 transition-opacity group-hover:opacity-100">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+              className="size-6 text-white"
+            >
+              <path
+                fillRule="evenodd"
+                d="M1.5 6a2.25 2.25 0 0 1 2.25-2.25h16.5A2.25 2.25 0 0 1 22.5 6v12a2.25 2.25 0 0 1-2.25 2.25H3.75A2.25 2.25 0 0 1 1.5 18V6ZM3 16.06V18c0 .414.336.75.75.75h16.5A.75.75 0 0 0 21 18v-1.94l-2.69-2.689a1.5 1.5 0 0 0-2.12 0l-.88.879.83.83a.75.75 0 1 1-1.06 1.06l-5.16-5.159a1.5 1.5 0 0 0-2.12 0L3 16.061Zm10.125-7.81a1.125 1.125 0 1 1 2.25 0 1.125 1.125 0 0 1-2.25 0Z"
+                clipRule="evenodd"
+              />
+            </svg>
+            <Typography variant={TYPOGRAPHY.R5} className="text-white">
+              Update icon
+            </Typography>
+          </div>
+        )}
+      </>
+    ) : viewMode !== "verified" ? (
+      <>
+        <div
+          className={clsx(
+            "flex size-full flex-col items-center justify-center gap-1 rounded-full border border-dashed border-grey-200 bg-grey-50",
+            isLogoError && "border-system-error-500 bg-system-error-50",
+          )}
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="currentColor"
+            className="size-6 text-grey-900"
+          >
+            <path
+              fillRule="evenodd"
+              d="M1.5 6a2.25 2.25 0 0 1 2.25-2.25h16.5A2.25 2.25 0 0 1 22.5 6v12a2.25 2.25 0 0 1-2.25 2.25H3.75A2.25 2.25 0 0 1 1.5 18V6ZM3 16.06V18c0 .414.336.75.75.75h16.5A.75.75 0 0 0 21 18v-1.94l-2.69-2.689a1.5 1.5 0 0 0-2.12 0l-.88.879.83.83a.75.75 0 1 1-1.06 1.06l-5.16-5.159a1.5 1.5 0 0 0-2.12 0L3 16.061Zm10.125-7.81a1.125 1.125 0 1 1 2.25 0 1.125 1.125 0 0 1-2.25 0Z"
+              clipRule="evenodd"
+            />
+          </svg>
+          <Typography variant={TYPOGRAPHY.R5} className="text-grey-900">
+            App icon <span className="text-system-error-500">*</span>
+          </Typography>
+          {isLogoError && (
+            <Typography
+              variant={TYPOGRAPHY.R5}
+              className="text-center text-system-error-500"
+            >
+              Logo is required.
+            </Typography>
+          )}
+        </div>
+        <div className="absolute inset-0 rounded-full bg-grey-900/50 opacity-0 transition-opacity group-hover:opacity-100" />
+      </>
+    ) : null}
+  </button>
+);
+
+const AppIconButtonWithFormError = (
+  props: Omit<AppIconButtonProps, "isLogoError">,
+) => {
+  const {
+    formState: { errors },
+  } = useFormContext<AppStoreFormValues & { logo_img_url?: string }>();
+
+  return (
+    <AppIconButton {...props} isLogoError={Boolean(errors.logo_img_url)} />
+  );
+};
+
 type AppTopBarProps = {
   appId: string;
   teamId: string;
@@ -298,7 +402,7 @@ export const AppTopBar = (props: AppTopBarProps) => {
   const hasRequiredImagesForAppStore = useMemo(() => {
     return Boolean(
       appMetadata?.showcase_img_urls &&
-        appMetadata?.showcase_img_urls?.length > 0,
+        appMetadata?.showcase_img_urls?.length >= 3,
     );
   }, [appMetadata?.showcase_img_urls]);
 
@@ -413,73 +517,22 @@ export const AppTopBar = (props: AppTopBarProps) => {
         {/* Left side: Logo + Name + Status + Version */}
         <div className="flex flex-col items-center gap-8 sm:flex-row sm:items-center">
           {/* Logo */}
-          <button
-            type="button"
-            onClick={() => {
-              if (viewMode !== "verified") {
-                setShowLogoDialog(true);
-              }
-            }}
-            className={clsx(
-              "group relative size-[125px] shrink-0 rounded-full",
-              {
-                "cursor-default": viewMode === "verified",
-              },
-            )}
-          >
-            {hasLogo ? (
-              <>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={logoImgUrl}
-                  alt="logo"
-                  className="size-full rounded-full object-cover drop-shadow-lg"
-                />
-                {viewMode !== "verified" && (
-                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 rounded-full bg-grey-900/50 opacity-0 transition-opacity group-hover:opacity-100">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 24 24"
-                      fill="currentColor"
-                      className="size-6 text-white"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M1.5 6a2.25 2.25 0 0 1 2.25-2.25h16.5A2.25 2.25 0 0 1 22.5 6v12a2.25 2.25 0 0 1-2.25 2.25H3.75A2.25 2.25 0 0 1 1.5 18V6ZM3 16.06V18c0 .414.336.75.75.75h16.5A.75.75 0 0 0 21 18v-1.94l-2.69-2.689a1.5 1.5 0 0 0-2.12 0l-.88.879.83.83a.75.75 0 1 1-1.06 1.06l-5.16-5.159a1.5 1.5 0 0 0-2.12 0L3 16.061Zm10.125-7.81a1.125 1.125 0 1 1 2.25 0 1.125 1.125 0 0 1-2.25 0Z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                    <Typography variant={TYPOGRAPHY.R5} className="text-white">
-                      Update icon
-                    </Typography>
-                  </div>
-                )}
-              </>
-            ) : viewMode !== "verified" ? (
-              <>
-                {/* Empty state: dashed circle placeholder */}
-                <div className="flex size-full flex-col items-center justify-center gap-1 rounded-full border border-dashed border-grey-200 bg-grey-50">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                    fill="currentColor"
-                    className="size-6 text-grey-900"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M1.5 6a2.25 2.25 0 0 1 2.25-2.25h16.5A2.25 2.25 0 0 1 22.5 6v12a2.25 2.25 0 0 1-2.25 2.25H3.75A2.25 2.25 0 0 1 1.5 18V6ZM3 16.06V18c0 .414.336.75.75.75h16.5A.75.75 0 0 0 21 18v-1.94l-2.69-2.689a1.5 1.5 0 0 0-2.12 0l-.88.879.83.83a.75.75 0 1 1-1.06 1.06l-5.16-5.159a1.5 1.5 0 0 0-2.12 0L3 16.061Zm10.125-7.81a1.125 1.125 0 1 1 2.25 0 1.125 1.125 0 0 1-2.25 0Z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                  <Typography variant={TYPOGRAPHY.R5} className="text-grey-900">
-                    App icon <span className="text-system-error-500">*</span>
-                  </Typography>
-                </div>
-                {/* Hover overlay */}
-                <div className="absolute inset-0 rounded-full bg-grey-900/50 opacity-0 transition-opacity group-hover:opacity-100" />
-              </>
-            ) : null}
-          </button>
+          {hasFormContext ? (
+            <AppIconButtonWithFormError
+              hasLogo={hasLogo}
+              logoImgUrl={logoImgUrl}
+              viewMode={viewMode}
+              onEdit={() => setShowLogoDialog(true)}
+            />
+          ) : (
+            <AppIconButton
+              hasLogo={hasLogo}
+              logoImgUrl={logoImgUrl}
+              viewMode={viewMode}
+              isLogoError={false}
+              onEdit={() => setShowLogoDialog(true)}
+            />
+          )}
 
           {/* Name, Status, Environment, Version */}
           <div className="flex flex-col items-center gap-2 sm:items-start">

@@ -271,11 +271,22 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
             className={clsx(
               "flex size-20 items-center justify-center rounded-2xl bg-blue-100",
               {
-                "border-2 border-system-error-500": isError,
+                "border-2 border-system-error-500 bg-system-error-50 p-2":
+                  isError,
               },
             )}
           >
-            <WorldIcon className="size-10  text-blue-500" />
+            <div className="flex flex-col items-center gap-1">
+              <WorldIcon className="size-6 text-blue-500" />
+              {isError && (
+                <Typography
+                  variant={TYPOGRAPHY.R5}
+                  className="text-center text-system-error-500"
+                >
+                  Logo is required.
+                </Typography>
+              )}
+            </div>
           </div>
         ))}
       {!dialogOnly && (
@@ -286,19 +297,10 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
             className={clsx(
               "absolute -bottom-2 -right-2 rounded-full border-2 border-grey-200 bg-white p-2 text-grey-500 hover:bg-grey-50",
               { hidden: !editable || viewMode === "verified" },
-              { "bottom-7": isError },
             )}
           >
             <EditIcon className="size-3" />
           </Button>
-          {isError && (
-            <Typography
-              variant={TYPOGRAPHY.R5}
-              className="left-0 top-20 mt-1 flex w-max shrink text-red-500"
-            >
-              Logo is required.
-            </Typography>
-          )}
         </>
       )}
     </div>
