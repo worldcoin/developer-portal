@@ -4,7 +4,9 @@ import { ReactNode } from "react";
 export const TransactionsLayout = (props: { children: ReactNode }) => {
   return (
     <div>
-      <SizingWrapper>{props.children}</SizingWrapper>
+      <SizingWrapper variant="nav" className="w-full">
+        {props.children}
+      </SizingWrapper>
     </div>
   );
 };

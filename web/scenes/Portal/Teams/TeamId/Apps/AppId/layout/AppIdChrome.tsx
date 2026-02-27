@@ -67,6 +67,12 @@ export const AppIdChrome = ({
     segment === "actions";
   const isMiniAppSegment =
     segment === "transactions" || segment === "notifications";
+  const miniAppPermissionsPath = `/teams/${teamId}/apps/${appId}/transactions/permissions`;
+  const miniAppTransactionsPath = `/teams/${teamId}/apps/${appId}/transactions`;
+  const miniAppNotificationsPath = `/teams/${teamId}/apps/${appId}/notifications`;
+  const isMiniAppPermissions = pathname === miniAppPermissionsPath;
+  const isMiniAppTransactions = pathname === miniAppTransactionsPath;
+  const isMiniAppNotifications = pathname === miniAppNotificationsPath;
 
   if (showWorldId40Nav) {
     return (
@@ -100,7 +106,7 @@ export const AppIdChrome = ({
               </Tab>
 
               <Tab
-                href={`/teams/${teamId}/apps/${appId}/transactions`}
+                href={`/teams/${teamId}/apps/${appId}/transactions/permissions`}
                 underlined
                 active={isMiniAppSegment}
                 segment={"transactions"}
@@ -153,16 +159,27 @@ export const AppIdChrome = ({
               <Tabs className="px-6 py-4 font-gta md:py-0">
                 <Tab
                   className="md:py-4"
-                  href={`/teams/${teamId}/apps/${appId}/transactions`}
+                  href={miniAppPermissionsPath}
                   segment={"transactions"}
+                  active={isMiniAppPermissions}
+                >
+                  <Typography variant={TYPOGRAPHY.R4}>Permissions</Typography>
+                </Tab>
+
+                <Tab
+                  className="md:py-4"
+                  href={miniAppTransactionsPath}
+                  segment={"transactions"}
+                  active={isMiniAppTransactions}
                 >
                   <Typography variant={TYPOGRAPHY.R4}>Transactions</Typography>
                 </Tab>
 
                 <Tab
                   className="md:py-4"
-                  href={`/teams/${teamId}/apps/${appId}/notifications`}
+                  href={miniAppNotificationsPath}
                   segment={"notifications"}
+                  active={isMiniAppNotifications}
                 >
                   <Typography variant={TYPOGRAPHY.R4}>Notifications</Typography>
                 </Tab>
