@@ -140,7 +140,7 @@ export const getIsUserAllowedToUpdateAppMetadata = async (
 export const getAppMetadataPermissionAndMode = async (
   appMetadataId: string,
 ): Promise<{ allowed: boolean; appMode: string | null }> => {
-  if (!getIsIdValid(appMetadataId)) {
+  if (!(await getIsIdValid(appMetadataId))) {
     return { allowed: false, appMode: null };
   }
 
