@@ -1,4 +1,5 @@
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
+import { ErrorPage } from "@/components/ErrorPage";
 import { isWorldId40EnabledServer } from "@/lib/feature-flags/world-id-4-0/server";
 import { EngineType } from "@/lib/types";
 import { logger } from "@/lib/logger";
@@ -36,6 +37,7 @@ export const AppIdLayout = async (props: AppIdLayoutProps) => {
           appId: params.appId,
           teamId: params.teamId,
         });
+        return <ErrorPage statusCode={404} title="App not found" />;
       }
     } catch (error) {
       logger.error("AppIdLayout FetchAppEnv failed", {
@@ -43,6 +45,7 @@ export const AppIdLayout = async (props: AppIdLayoutProps) => {
         appId: params.appId,
         teamId: params.teamId,
       });
+      return <ErrorPage statusCode={500} title="Failed to load app" />;
     }
   }
 
