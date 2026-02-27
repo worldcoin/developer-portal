@@ -2,22 +2,21 @@ import { Dropdown } from "@/components/Dropdown";
 import { CaretIcon } from "@/components/Icons/CaretIcon";
 import { CheckmarkCircleIcon } from "@/components/Icons/CheckmarkCircleIcon";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import { useAtom } from "jotai";
 import { useMemo } from "react";
-import { FetchAppMetadataQuery } from "../../graphql/client/fetch-app-metadata.generated";
-import { viewModeAtom } from "../../layout/ImagesProvider";
+import { twMerge } from "tailwind-merge";
 
 type VersionSwitcherProps = {
-  app: FetchAppMetadataQuery["app"][0];
+  viewMode: "verified" | "unverified";
+  setMode: (mode: "verified" | "unverified") => void;
+  disabled?: boolean;
+  verifiedAt?: string | null;
+  buttonClassName?: string;
 };
 
 export const VersionSwitcher = (props: VersionSwitcherProps) => {
-  const { app } = props;
-  const [viewMode, setMode] = useAtom(viewModeAtom);
+  const { viewMode, setMode, disabled, verifiedAt, buttonClassName } = props;
 
   const formattedDate = useMemo(() => {
-    const verifiedAt = app?.verified_app_metadata[0]?.verified_at;
-
     if (!verifiedAt) {
       return "";
     }
@@ -28,18 +27,21 @@ export const VersionSwitcher = (props: VersionSwitcherProps) => {
     const year = date.getFullYear();
 
     return `${month}.${day}.${year}`;
-  }, [app?.verified_app_metadata]);
+  }, [verifiedAt]);
 
   return (
     <Dropdown>
       <Dropdown.Button
-        disabled={app?.app_metadata.length === 0}
-        className="flex items-center justify-center rounded-xl border border-grey-200 bg-grey-0 px-4  py-2.5 text-grey-700 shadow-button"
+        disabled={disabled}
+        className={twMerge(
+          "flex items-center justify-center rounded-xl border border-grey-200 bg-grey-0 px-4 py-2.5 text-grey-700 shadow-button",
+          buttonClassName,
+        )}
       >
         <Typography variant={TYPOGRAPHY.M3} className="whitespace-nowrap">
           {viewMode === "verified" ? "Approved version" : "Current version"}
         </Typography>
-        {app?.app_metadata.length > 0 && <CaretIcon className="ml-2 size-4" />}
+        {!disabled && <CaretIcon className="ml-2 size-4" />}
       </Dropdown.Button>
 
       <Dropdown.List

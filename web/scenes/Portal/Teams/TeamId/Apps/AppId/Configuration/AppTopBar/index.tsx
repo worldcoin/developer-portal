@@ -503,7 +503,14 @@ export const AppTopBar = (props: AppTopBarProps) => {
         <div className="flex w-full flex-col items-center gap-3 sm:w-auto sm:flex-row">
           {/* Version Switcher */}
           {app.verified_app_metadata.length > 0 &&
-            app.app_metadata.length > 0 && <VersionSwitcher app={app} />}
+            app.app_metadata.length > 0 && (
+              <VersionSwitcher
+                viewMode={viewMode}
+                setMode={setViewMode}
+                disabled={app.app_metadata.length === 0}
+                verifiedAt={app.verified_app_metadata[0]?.verified_at}
+              />
+            )}
 
           {/* Action Buttons */}
           {isEnoughPermissions && (

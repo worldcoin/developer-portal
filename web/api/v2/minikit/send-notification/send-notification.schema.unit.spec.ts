@@ -1,6 +1,9 @@
 import { formLanguagesList } from "@/lib/languages";
 import * as yup from "yup";
-import { sendNotificationBodySchemaV2 } from "./schema";
+import {
+  sendNotificationBodySchemaV1,
+  sendNotificationBodySchemaV2,
+} from "./schema";
 
 const testAppId = "app_testid";
 const notificationBody = {
@@ -172,6 +175,43 @@ describe("notifications", () => {
 
   test.each(validTestCases)("should accept %s", (_, input) => {
     expect(sendNotificationBodySchemaV2.isValidSync(input)).toBe(true);
+  });
+
+  test("accepts v1 without draft_id", () => {
+    expect(
+      sendNotificationBodySchemaV1.isValidSync({
+        ...notificationBody,
+        title: "This is a title",
+        message: "This is a message",
+      }),
+    ).toBe(true);
+  });
+
+  test("preserves draft_id through v1 schema validation", async () => {
+    const input = {
+      ...notificationBody,
+      draft_id: "meta_abc123draft",
+      title: "This is a title",
+      message: "This is a message",
+    };
+    const result = await sendNotificationBodySchemaV1.validate(input);
+    expect(result.draft_id).toBe("meta_abc123draft");
+  });
+
+  test("preserves draft_id through v2 schema validation", async () => {
+    const input = {
+      ...notificationBody,
+      draft_id: "meta_abc123draft",
+      localisations: [
+        {
+          language: "en",
+          title: "This is a title",
+          message: "This is a message",
+        },
+      ],
+    };
+    const result = await sendNotificationBodySchemaV2.validate(input);
+    expect(result.draft_id).toBe("meta_abc123draft");
   });
 
   test.each(invalidTestCases)("should reject %s", (_, input) => {

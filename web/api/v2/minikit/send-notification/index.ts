@@ -148,7 +148,7 @@ export const POST = async (req: NextRequest) => {
     return handleError(req);
   }
 
-  const { app_id, wallet_addresses, mini_app_path } = {
+  const { app_id, wallet_addresses, mini_app_path, draft_id } = {
     ...parsedParams,
   };
 
@@ -331,6 +331,7 @@ export const POST = async (req: NextRequest) => {
           message: (parsedParams as SendNotificationBodyV1).message!,
           miniAppPath: mini_app_path,
           teamId: teamId,
+          ...(draft_id !== undefined && { draftId: draft_id }),
         }
       : {
           appId: app_id,
@@ -338,6 +339,7 @@ export const POST = async (req: NextRequest) => {
           miniAppPath: mini_app_path,
           teamId: teamId,
           localisations: (parsedParams as SendNotificationBodyV2).localisations,
+          ...(draft_id !== undefined && { draftId: draft_id }),
         };
 
   let signedFetch = global.TransactionSignedFetcher;
@@ -379,6 +381,7 @@ export const POST = async (req: NextRequest) => {
       error: error,
       app_id,
       team_id: teamId,
+      draft_id,
     });
     return errorResponse({
       statusCode: 500,
@@ -406,6 +409,7 @@ export const POST = async (req: NextRequest) => {
       data,
       app_id,
       team_id: teamId,
+      draft_id,
     });
 
     let errorMessage;
