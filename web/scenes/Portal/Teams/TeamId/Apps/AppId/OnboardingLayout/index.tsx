@@ -2,7 +2,6 @@
 
 import { Button } from "@/components/Button";
 import { CloseIcon } from "@/components/Icons/CloseIcon";
-import { LoggedUserNav } from "@/components/LoggedUserNav";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { urls } from "@/lib/urls";
@@ -54,7 +53,6 @@ export const OnboardingLayout = ({
               )}
               <Typography variant={TYPOGRAPHY.M4}>{title}</Typography>
             </div>
-            <LoggedUserNav />
           </div>
         </SizingWrapper>
       </header>
