@@ -90,6 +90,7 @@ export const LocalisationsSection = ({
           <FormSection
             title="Showcase Images"
             description="Upload up to 3 images to showcase your application."
+            titleVariant={TYPOGRAPHY.S3}
           >
             <Controller
               control={control}
@@ -119,6 +120,7 @@ export const LocalisationsSection = ({
             title="Meta Tag Image"
             description="This image will be displayed as the opengraph meta tags image when linking your app. Fallback to your app's logo image if not provided."
             isRequiredAsterisk={false}
+            titleVariant={TYPOGRAPHY.S3}
           >
             <Controller
               control={control}

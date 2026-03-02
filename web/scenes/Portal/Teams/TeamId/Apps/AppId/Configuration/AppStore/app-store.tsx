@@ -18,6 +18,10 @@ import { SaveButton } from "./components/SaveButton";
 import { useAppStoreForm } from "./hooks/useAppStoreForm";
 import { AppStoreFormProps } from "./types/AppStoreFormTypes";
 
+const SectionDivider = () => (
+  <div className="w-full border-t border-grey-100" aria-hidden />
+);
+
 export const AppStoreForm = ({
   appId,
   teamId,
@@ -87,6 +91,8 @@ export const AppStoreForm = ({
               isEnoughPermissions={isEnoughPermissions}
             />
 
+            <SectionDivider />
+
             <SupportSection
               control={control}
               errors={errors}
@@ -96,6 +102,8 @@ export const AppStoreForm = ({
               onSupportTypeChange={handleSupportTypeChange}
             />
 
+            <SectionDivider />
+
             <ContentCardImageSection
               appId={appId}
               teamId={teamId}
@@ -104,6 +112,8 @@ export const AppStoreForm = ({
               isEnoughPermissions={isEnoughPermissions}
               errors={errors}
             />
+
+            <SectionDivider />
           </>
         )}
 
@@ -114,12 +124,16 @@ export const AppStoreForm = ({
           isEnoughPermissions={isEnoughPermissions}
         />
 
+        <SectionDivider />
+
         <LanguagesSection
           control={control}
           errors={errors}
           isEditable={isEditable}
           isEnoughPermissions={isEnoughPermissions}
         />
+
+        <SectionDivider />
 
         <LocalisationsSection
           control={control}

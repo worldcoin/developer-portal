@@ -1,4 +1,5 @@
 import { FloatingInput } from "@/components/FloatingInput";
+import { TYPOGRAPHY } from "@/components/Typography";
 import { Radio } from "@/components/Radio";
 import { Control, Controller, FieldErrors } from "react-hook-form";
 import { AppStoreFormValues } from "../../FormSchema/types";
@@ -27,6 +28,7 @@ export const SupportSection = ({
       title="Support"
       description="Please include support information. Users will be able to reach out to you for help."
       className="grid gap-y-5"
+      titleVariant={TYPOGRAPHY.S2}
     >
       {/* Email / Link selector */}
       <div className="flex gap-x-6">
