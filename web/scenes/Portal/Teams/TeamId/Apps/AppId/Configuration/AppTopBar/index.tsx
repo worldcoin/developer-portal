@@ -209,6 +209,7 @@ type AppIconButtonProps = {
   hasLogo: boolean;
   logoImgUrl: string;
   viewMode: "unverified" | "verified";
+  isInReview: boolean;
   isLogoError: boolean;
   onEdit: () => void;
 };
@@ -217,18 +218,19 @@ const AppIconButton = ({
   hasLogo,
   logoImgUrl,
   viewMode,
+  isInReview,
   isLogoError,
   onEdit,
 }: AppIconButtonProps) => (
   <button
     type="button"
     onClick={() => {
-      if (viewMode !== "verified") {
+      if (viewMode !== "verified" && !isInReview) {
         onEdit();
       }
     }}
     className={clsx("group relative size-[125px] shrink-0 rounded-full", {
-      "cursor-default": viewMode === "verified",
+      "cursor-default": viewMode === "verified" || isInReview,
     })}
   >
     {hasLogo ? (
@@ -239,7 +241,7 @@ const AppIconButton = ({
           alt="logo"
           className="size-full rounded-full object-cover drop-shadow-lg"
         />
-        {viewMode !== "verified" && (
+        {viewMode !== "verified" && !isInReview && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 rounded-full bg-grey-900/50 opacity-0 transition-opacity group-hover:opacity-100">
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -259,7 +261,7 @@ const AppIconButton = ({
           </div>
         )}
       </>
-    ) : viewMode !== "verified" ? (
+    ) : viewMode !== "verified" && !isInReview ? (
       <>
         <div
           className={clsx(
@@ -402,7 +404,7 @@ export const AppTopBar = (props: AppTopBarProps) => {
   const hasRequiredImagesForAppStore = useMemo(() => {
     return Boolean(
       appMetadata?.showcase_img_urls &&
-        appMetadata?.showcase_img_urls?.length >= 3,
+        appMetadata?.showcase_img_urls?.length >= 1,
     );
   }, [appMetadata?.showcase_img_urls]);
 
@@ -522,6 +524,7 @@ export const AppTopBar = (props: AppTopBarProps) => {
               hasLogo={hasLogo}
               logoImgUrl={logoImgUrl}
               viewMode={viewMode}
+              isInReview={isInReview}
               onEdit={() => setShowLogoDialog(true)}
             />
           ) : (
@@ -529,6 +532,7 @@ export const AppTopBar = (props: AppTopBarProps) => {
               hasLogo={hasLogo}
               logoImgUrl={logoImgUrl}
               viewMode={viewMode}
+              isInReview={isInReview}
               isLogoError={false}
               onEdit={() => setShowLogoDialog(true)}
             />
