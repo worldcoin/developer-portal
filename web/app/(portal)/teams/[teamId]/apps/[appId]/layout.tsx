@@ -1,16 +1,9 @@
 import { AppIdLayout } from "@/scenes/Portal/Teams/TeamId/Apps/AppId/layout";
 import { ReactNode } from "react";
+import { AppLayoutRouteParams } from "./layout-params";
 
 type Props = {
-  params:
-    | {
-        teamId: string;
-        appId: string;
-      }
-    | Promise<{
-        teamId: string;
-        appId: string;
-      }>;
+  params: AppLayoutRouteParams;
   children: ReactNode;
 };
 

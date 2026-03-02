@@ -38,6 +38,7 @@ type AppIdChromeProps = {
   params: { teamId?: string; appId?: string };
   isOnChainApp: boolean;
   showWorldId40Nav: boolean;
+  hasRpRegistration: boolean;
   hasLegacyActions: boolean;
   children: ReactNode;
 };
@@ -46,6 +47,7 @@ export const AppIdChrome = ({
   params,
   isOnChainApp,
   showWorldId40Nav,
+  hasRpRegistration,
   hasLegacyActions,
   children,
 }: AppIdChromeProps) => {
@@ -98,7 +100,17 @@ export const AppIdChrome = ({
               </Tab>
 
               <Tab
-                href={`/teams/${teamId}/apps/${appId}/world-id-4-0`}
+                href={
+                  hasRpRegistration
+                    ? `/teams/${teamId}/apps/${appId}/world-id-4-0`
+                    : hasLegacyActions
+                      ? `/teams/${teamId}/apps/${appId}/actions`
+                      : urls.enableWorldId40({
+                          team_id: teamId,
+                          app_id: appId,
+                          next: "actions",
+                        })
+                }
                 underlined
                 active={isWorldIdSegment}
                 segment={"world-id-4-0"}
@@ -130,13 +142,17 @@ export const AppIdChrome = ({
           <div className="md:border-b md:border-grey-100 md:bg-grey-50">
             <SizingWrapper gridClassName="hidden md:grid" variant="nav">
               <Tabs className="px-6 py-4 font-gta md:py-0">
-                <Tab
-                  className="md:py-4"
-                  href={`/teams/${teamId}/apps/${appId}/world-id-4-0`}
-                  segment={"world-id-4-0"}
-                >
-                  <Typography variant={TYPOGRAPHY.R4}>World ID 4.0</Typography>
-                </Tab>
+                {hasRpRegistration && (
+                  <Tab
+                    className="md:py-4"
+                    href={`/teams/${teamId}/apps/${appId}/world-id-4-0`}
+                    segment={"world-id-4-0"}
+                  >
+                    <Typography variant={TYPOGRAPHY.R4}>
+                      World ID 4.0
+                    </Typography>
+                  </Tab>
+                )}
 
                 <Tab
                   className="md:py-4"

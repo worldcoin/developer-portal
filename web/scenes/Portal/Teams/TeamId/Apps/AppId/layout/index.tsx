@@ -1,4 +1,3 @@
-import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { ErrorPage } from "@/components/ErrorPage";
 import { isWorldId40EnabledServer } from "@/lib/feature-flags/world-id-4-0/server";
 import { logger } from "@/lib/logger";
@@ -6,7 +5,7 @@ import { Auth0SessionUser, EngineType } from "@/lib/types";
 import { getSession } from "@auth0/nextjs-auth0";
 import { ReactNode } from "react";
 import { AppIdChrome } from "./AppIdChrome";
-import { getSdk as getAppEnv } from "./graphql/server/fetch-app-env.generated";
+import { fetchAppEnvCached } from "./server/fetch-app-env";
 
 type Params = {
   teamId?: string;
@@ -36,10 +35,7 @@ export const AppIdLayout = async (props: AppIdLayoutProps) => {
 
   if (params.appId) {
     try {
-      const client = await getAPIServiceGraphqlClient();
-      const { app, action } = await getAppEnv(client).FetchAppEnv({
-        id: params.appId,
-      });
+      const { app, action } = await fetchAppEnvCached(params.appId);
 
       if (app?.[0]) {
         isOnChainApp = app[0].engine === EngineType.OnChain;
@@ -62,14 +58,14 @@ export const AppIdLayout = async (props: AppIdLayoutProps) => {
     }
   }
 
-  const showWorldId40Nav =
-    hasRpRegistration && (await isWorldId40EnabledServer(params.teamId));
+  const showWorldId40Nav = await isWorldId40EnabledServer(params.teamId);
 
   return (
     <AppIdChrome
       params={params}
       isOnChainApp={isOnChainApp}
       showWorldId40Nav={showWorldId40Nav}
+      hasRpRegistration={hasRpRegistration}
       hasLegacyActions={hasLegacyActions}
     >
       {props.children}
