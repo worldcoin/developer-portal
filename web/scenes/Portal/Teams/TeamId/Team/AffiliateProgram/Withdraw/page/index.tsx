@@ -82,6 +82,7 @@ export const WithdrawPage = (props: PageProps) => {
     });
   }, [balanceData]);
 
+  // NOTE: dynamically update schema based on balance data
   const schemaRef = useRef(withdrawSchema);
   schemaRef.current = withdrawSchema;
 
@@ -177,7 +178,7 @@ export const WithdrawPage = (props: PageProps) => {
               isLoading={isLoading}
             />
           )}
-          {currentStep === AffiliateWithdrawStep.ENTER_CODE && metadata && (
+          {currentStep === AffiliateWithdrawStep.ENTER_CODE && (
             <EnterCode
               metadata={metadata}
               onConfirm={onWithdrawConfirm}
