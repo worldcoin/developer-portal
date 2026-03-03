@@ -12,8 +12,8 @@ import {
   WORLD_CHAIN_ID,
 } from "@/api/helpers/rp-utils";
 import {
+  getERC20Allowance,
   getRpNonceFromContract,
-  getWldAllowance,
   sendUserOperation,
 } from "@/api/helpers/temporal-rpc";
 import {
@@ -110,7 +110,7 @@ export async function submitRegisterRpTransaction(
 ): Promise<string> {
   // Ensure the Safe has granted MaxUint256 WLD allowance to the
   // CredentialSchemaIssuerRegistry before attempting registration.
-  const currentAllowance = await getWldAllowance(
+  const currentAllowance = await getERC20Allowance(
     config.safeAddress,
     config.credentialSchemaIssuerRegistryAddress,
     WLD_TOKEN_ADDRESS,

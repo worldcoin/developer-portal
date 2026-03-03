@@ -282,7 +282,7 @@ export async function getUpdateRpTypehash(
 /**
  * Returns the current WLD token allowance that `owner` has granted to `spender`.
  */
-export async function getWldAllowance(
+export async function getERC20Allowance(
   owner: string,
   spender: string,
   tokenAddress: string,
