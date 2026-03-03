@@ -100,7 +100,6 @@ export const WithdrawPage = (props: PageProps) => {
       const result = await initiateWithdraw({
         amountInWld: amountInWldWei,
       });
-      console.log("initiateWithdraw data", result, result.data);
 
       setCurrentStep(AffiliateWithdrawStep.ENTER_CODE);
     } catch (error) {
