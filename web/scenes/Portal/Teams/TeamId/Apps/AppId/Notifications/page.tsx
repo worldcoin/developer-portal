@@ -1,10 +1,8 @@
 "use client";
 
 import { DecoratedButton } from "@/components/DecoratedButton";
-import { Input } from "@/components/Input";
-import { Notification } from "@/components/Notification";
-import { TextArea } from "@/components/TextArea";
-import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import { NotificationBellIcon } from "@/components/Icons/NotificationBellIcon";
+import { Typography } from "@/components/Typography";
 import { useParams } from "next/navigation";
 import posthog from "posthog-js";
 import { ChangeEvent, useRef, useState } from "react";
@@ -44,7 +42,6 @@ export const NotificationsPage = () => {
     register,
     handleSubmit,
     formState: { errors },
-    reset,
     watch,
     setValue,
   } = useForm<NotificationFormData>({
@@ -74,7 +71,7 @@ export const NotificationsPage = () => {
     try {
       const text = await file.text();
       parseAndSetWalletAddresses(text);
-    } catch (error) {
+    } catch {
       toast.error("Failed to read CSV file");
     } finally {
       // reset the file input so the same file can be uploaded again
@@ -91,7 +88,7 @@ export const NotificationsPage = () => {
       const addresses: string[] = [];
 
       for (const line of lines) {
-        if (!line.trim()) continue; // skip empty lines
+        if (!line.trim()) continue;
 
         // split by comma and take the first column if there are multiple columns
         const columns = line.split(",");
@@ -119,7 +116,7 @@ export const NotificationsPage = () => {
       toast.success(
         `Successfully imported ${uniqueAddresses.length} wallet addresses from CSV`,
       );
-    } catch (error) {
+    } catch {
       toast.error("Failed to parse CSV file");
     }
   };
@@ -151,7 +148,7 @@ export const NotificationsPage = () => {
       const payload = {
         app_id: params.appId,
         wallet_addresses: walletAddresses,
-        title: data.title || undefined, // don't send if empty
+        title: data.title || undefined,
         message: data.message,
         mini_app_path: data.miniAppPath,
         ...(viewMode === "unverified" && draftId ? { draft_id: draftId } : {}),
@@ -174,7 +171,7 @@ export const NotificationsPage = () => {
           appId: params.appId,
           recipient_count: walletAddresses.length,
         });
-        toast.success(`Notification sent successfully`);
+        toast.success("Notification sent successfully");
       } else {
         toast.error(result.error?.detail || "Failed to send notification");
       }
@@ -195,42 +192,67 @@ export const NotificationsPage = () => {
     }
   };
 
+  const walletAddressCount =
+    walletAddressesValue
+      ?.split(",")
+      .filter((address) => address.trim().length > 0).length ?? 0;
+
   return (
-    <div className="my-8 grid gap-y-6">
-      <div className="grid max-w-2xl gap-y-4">
-        <Notification variant="info">
-          <div className="flex flex-col gap-y-3 sm:flex-row sm:items-center sm:justify-between sm:gap-x-4">
-            <div className="text-sm">
-              <h3 className="font-medium text-blue-800">Notifications</h3>
-              <div className="mt-2 text-blue-700">
-                Send notifications to specific wallet addresses. Unverified apps
-                are limited to 40 notifications per 4 hours.{" "}
-                <a
-                  href="https://docs.world.org/mini-apps/reference/api#send-notification"
-                  target="_blank"
-                  className="underline"
-                  rel="noopener noreferrer"
-                >
-                  Docs reference
-                </a>
-              </div>
-            </div>
+    <div className="my-8 grid max-w-[1180px] gap-y-10">
+      <div className="grid h-[72px] grid-cols-auto/1fr items-center gap-x-3 rounded-[10px] bg-[#E6F0FF] p-5">
+        <NotificationBellIcon className="size-8" aria-hidden="true" />
 
-            {hasBothVersions && (
-              <VersionSwitcher
-                viewMode={viewMode}
-                setMode={setViewMode}
-                verifiedAt={appData?.verified_app_metadata[0]?.verified_at}
-                buttonClassName="px-3 py-1.5 text-sm"
-              />
-            )}
-          </div>
-        </Notification>
+        <div className="font-world text-[13px] leading-[120%] text-grey-900">
+          <Typography as="p" className="font-world text-[13px] font-semibold">
+            Notifications
+          </Typography>
+          <Typography as="p" className="font-world text-[13px] font-medium">
+            Send notifications to specific wallet addresses. Unverified apps are
+            limited to 40 notifications per 4 hours.{" "}
+            <a
+              href="https://docs.world.org/mini-apps/reference/api#send-notification"
+              target="_blank"
+              className="underline"
+              rel="noopener noreferrer"
+            >
+              Docs reference
+            </a>
+          </Typography>
+        </div>
+      </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="grid gap-y-4">
-          <div className="grid gap-y-2">
-            <div className="flex items-center justify-between">
-              <Typography variant={TYPOGRAPHY.M4}>Wallet Addresses</Typography>
+      <div className="grid gap-y-10">
+        <div className="flex items-center justify-between gap-x-5">
+          <Typography
+            as="h1"
+            className="font-world text-[26px] font-semibold leading-[120%] tracking-[-0.01em] text-[#191C20]"
+          >
+            Notifications
+          </Typography>
+
+          {hasBothVersions && (
+            <VersionSwitcher
+              viewMode={viewMode}
+              setMode={setViewMode}
+              verifiedAt={appData?.verified_app_metadata[0]?.verified_at}
+              buttonClassName="px-3 py-1.5 text-sm"
+            />
+          )}
+        </div>
+
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="grid w-full max-w-[580px] gap-y-5"
+        >
+          <div className="grid gap-y-5">
+            <div className="flex items-center justify-between gap-x-5">
+              <Typography
+                as="h2"
+                className="font-world text-[17px] font-medium leading-[120%] text-grey-900"
+              >
+                Wallet addresses
+              </Typography>
+
               <div className="flex gap-x-2">
                 <input
                   type="file"
@@ -239,107 +261,159 @@ export const NotificationsPage = () => {
                   onChange={handleFileUpload}
                   ref={fileInputRef}
                 />
+
                 <DecoratedButton
                   type="button"
                   variant="secondary"
                   onClick={handleImportClick}
-                  className="py-1.5"
+                  className="h-10 min-w-[109px] px-3.5 py-0 text-[15px] font-semibold"
                 >
                   Import CSV
                 </DecoratedButton>
+
                 {walletAddressesValue && (
                   <DecoratedButton
                     type="button"
                     variant="secondary"
                     onClick={handleClearAddresses}
-                    className="py-1.5"
+                    className="h-10 min-w-[109px] px-3.5 py-0 text-[15px] font-semibold"
                   >
-                    Clear All
+                    Clear all
                   </DecoratedButton>
                 )}
               </div>
             </div>
 
-            <TextArea
-              label=""
-              register={register("walletAddresses", {
-                required: "Wallet addresses are required",
-                validate: (value) => {
-                  const addresses = value
-                    .split(",")
-                    .map((address) => address.trim())
-                    .filter((address) => address.length > 0);
-                  if (addresses.length === 0)
-                    return "At least one wallet address is required";
-                  if (addresses.length > 1000)
-                    return "Maximum 1000 wallet addresses allowed";
-                  return true;
+            <div className="grid gap-y-1">
+              <textarea
+                {...register("walletAddresses", {
+                  required: "Wallet addresses are required",
+                  validate: (value) => {
+                    const addresses = value
+                      .split(",")
+                      .map((address) => address.trim())
+                      .filter((address) => address.length > 0);
+                    if (addresses.length === 0)
+                      return "At least one wallet address is required";
+                    if (addresses.length > 1000)
+                      return "Maximum 1000 wallet addresses allowed";
+                    return true;
+                  },
+                })}
+                rows={4}
+                placeholder="Enter wallet addresses separated by commas"
+                className="h-[120px] resize-none rounded-[10px] border-0 bg-grey-50 p-4 font-world text-[15px] leading-[130%] text-grey-900 placeholder:text-grey-500 focus:outline-none focus:ring-0"
+                aria-invalid={errors.walletAddresses ? "true" : "false"}
+              />
+
+              <p className="px-2 font-world text-xs leading-[130%] text-grey-500">
+                {walletAddressCount}/1000 addresses - Enter one or more wallet
+                addresses, separated by commas
+              </p>
+              {errors.walletAddresses?.message && (
+                <p className="px-2 text-xs text-system-error-500">
+                  {errors.walletAddresses.message}
+                </p>
+              )}
+            </div>
+          </div>
+
+          <div className="grid gap-y-1">
+            <input
+              {...register("title", {
+                maxLength: {
+                  value: 30,
+                  message: "Title cannot exceed 30 characters",
                 },
               })}
-              placeholder="Enter wallet addresses separated by commas"
-              errors={errors.walletAddresses}
-              helperText={`${walletAddressesValue?.split(",").filter((addr) => addr.trim()).length || 0}/1000 addresses - Enter one or more wallet addresses, separated by commas`}
-              rows={4}
+              maxLength={30}
+              placeholder="Notification title"
+              className="h-14 rounded-[10px] border-0 bg-grey-50 px-4 py-3 font-world text-[15px] leading-[130%] text-grey-900 placeholder:text-grey-500 focus:outline-none focus:ring-0"
+              aria-invalid={errors.title ? "true" : "false"}
             />
+            <p className="px-2 font-world text-xs leading-[130%] text-grey-500">
+              {titleValue?.length || 0}/30 characters
+            </p>
+            {errors.title?.message && (
+              <p className="px-2 text-xs text-system-error-500">
+                {errors.title.message}
+              </p>
+            )}
           </div>
 
-          <Input
-            label="Title"
-            register={register("title", {
-              maxLength: {
-                value: 30,
-                message: "Title cannot exceed 30 characters",
-              },
-            })}
-            placeholder="Notification title"
-            errors={errors.title}
-            helperText={`${titleValue?.length || 0}/30 characters`}
-          />
-
-          <TextArea
-            label="Message"
-            register={register("message", {
-              required: "Message is required",
-              maxLength: {
-                value: 200,
-                message: "Message cannot exceed 200 characters",
-              },
-            })}
-            placeholder="Enter notification message"
-            errors={errors.message}
-            helperText={`${messageValue?.length || 0}/200 characters`}
-            rows={3}
-          />
-
-          <Input
-            label="Mini App Path"
-            register={register("miniAppPath", {
-              required: "Mini App Path is required",
-            })}
-            placeholder="Enter the path inside your mini app"
-            errors={errors.miniAppPath}
-            helperText="The path inside your mini app that will open when the notification is tapped"
-          />
-
-          <Input
-            label="API Key"
-            register={register("apiKey", {
-              required: "API Key is required",
-            })}
-            placeholder="Enter your API key"
-            errors={errors.apiKey}
-            helperText="Your Developer Portal API key (format: api_...). Obtain it from the API Keys tab."
-          />
-
-          <div className="mt-4 flex justify-end">
-            <DecoratedButton
-              type="submit"
-              disabled={isSubmitting}
-              loading={isSubmitting}
-            >
-              Send Notification
-            </DecoratedButton>
+          <div className="grid gap-y-1">
+            <textarea
+              {...register("message", {
+                required: "Message is required",
+                maxLength: {
+                  value: 200,
+                  message: "Message cannot exceed 200 characters",
+                },
+              })}
+              maxLength={200}
+              rows={1}
+              placeholder="Notification message"
+              className="h-14 resize-none rounded-[10px] border-0 bg-grey-50 px-4 py-3 font-world text-[15px] leading-[130%] text-grey-900 placeholder:text-grey-500 focus:outline-none focus:ring-0"
+              aria-invalid={errors.message ? "true" : "false"}
+            />
+            <p className="px-2 font-world text-xs leading-[130%] text-grey-500">
+              {messageValue?.length || 0}/200 characters
+            </p>
+            {errors.message?.message && (
+              <p className="px-2 text-xs text-system-error-500">
+                {errors.message.message}
+              </p>
+            )}
           </div>
+
+          <div className="grid gap-y-1">
+            <input
+              {...register("miniAppPath", {
+                required: "Mini App Path is required",
+              })}
+              placeholder="Mini App Path"
+              className="h-14 rounded-[10px] border-0 bg-grey-50 px-4 py-3 font-world text-[15px] leading-[130%] text-grey-900 placeholder:text-grey-500 focus:outline-none focus:ring-0"
+              aria-invalid={errors.miniAppPath ? "true" : "false"}
+            />
+            <p className="px-2 font-world text-xs leading-[130%] text-grey-500">
+              The path inside your mini app that will open when the notification
+              is tapped
+            </p>
+            {errors.miniAppPath?.message && (
+              <p className="px-2 text-xs text-system-error-500">
+                {errors.miniAppPath.message}
+              </p>
+            )}
+          </div>
+
+          <div className="grid gap-y-1">
+            <input
+              {...register("apiKey", {
+                required: "API Key is required",
+              })}
+              placeholder="API Key"
+              className="h-14 rounded-[10px] border-0 bg-grey-50 px-4 py-3 font-world text-[15px] leading-[130%] text-grey-900 placeholder:text-grey-500 focus:outline-none focus:ring-0"
+              aria-invalid={errors.apiKey ? "true" : "false"}
+            />
+            <p className="px-2 font-world text-xs leading-[130%] text-grey-500">
+              Your Developer Portal API key (format: api_...). Obtain it from
+              the API Keys tab.
+            </p>
+            {errors.apiKey?.message && (
+              <p className="px-2 text-xs text-system-error-500">
+                {errors.apiKey.message}
+              </p>
+            )}
+          </div>
+
+          <DecoratedButton
+            type="submit"
+            disabled={isSubmitting}
+            loading={isSubmitting}
+            className="mt-5 h-14 w-fit px-6 py-0 text-[17px] font-semibold"
+          >
+            Send notification
+          </DecoratedButton>
         </form>
       </div>
     </div>
