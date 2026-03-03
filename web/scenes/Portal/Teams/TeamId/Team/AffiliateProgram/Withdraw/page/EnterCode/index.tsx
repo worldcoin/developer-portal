@@ -77,7 +77,7 @@ export const EnterCode = (props: Props) => {
           variant={TYPOGRAPHY.R4}
           className="mt-2 w-full text-center text-grey-500"
         >
-          We sent confirmation code to {metadataEmail}
+          We sent confirmation code to {metadataEmail}.
         </Typography>
       )}
 

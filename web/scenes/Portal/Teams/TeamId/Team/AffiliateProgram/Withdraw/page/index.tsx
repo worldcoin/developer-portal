@@ -64,7 +64,7 @@ export const WithdrawPage = (props: PageProps) => {
               balanceData?.availableBalance?.inWLD,
               "WLD",
             );
-            if (!minWithdrawWLD || !maxWithdrawWLD) return schema;
+            if (minWithdrawWLD == null || maxWithdrawWLD == null) return schema;
             const effectiveMaxWLD = Math.min(
               maxAvailableWLD ?? maxWithdrawWLD,
               maxWithdrawWLD,
@@ -73,7 +73,8 @@ export const WithdrawPage = (props: PageProps) => {
               .min(minWithdrawWLD, `Minimum amount is ${minWithdrawWLD} WLD`)
               .max(effectiveMaxWLD, `Maximum amount is ${effectiveMaxWLD} WLD`);
           },
-        }),
+        })
+        .typeError("Please enter a valid number"),
       otpCode: yup
         .string()
         .required("OTP code is required")
@@ -100,14 +101,14 @@ export const WithdrawPage = (props: PageProps) => {
     mode: "onBlur",
   });
 
-  const { watch } = methods;
+  const { watch, setValue } = methods;
 
   // When balanceData is fetched, set walletAddress in the form if present
   useEffect(() => {
     if (balanceData?.withdrawalWallet) {
-      methods.setValue("walletAddress", balanceData.withdrawalWallet);
+      setValue("walletAddress", balanceData.withdrawalWallet);
     }
-  }, [balanceData?.withdrawalWallet]);
+  }, [balanceData?.withdrawalWallet, setValue]);
 
   const onWithdrawInitiate = async () => {
     setIsLoading(true);

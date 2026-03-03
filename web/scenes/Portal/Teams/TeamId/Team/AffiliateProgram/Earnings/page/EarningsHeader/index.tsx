@@ -55,7 +55,7 @@ export const EarningsHeader = (props: Props) => {
     }
     if (!data?.withdrawalWallet?.trim()) {
       toast.error(
-        "Missing wallet address to initiate withdraw. It must be filled in during the KYB process. Please contact support if so.",
+        "Missing wallet address for withdrawals. Complete your KYB to add a withdrawal wallet address, or contact support for assistance.",
       );
       return;
     }
