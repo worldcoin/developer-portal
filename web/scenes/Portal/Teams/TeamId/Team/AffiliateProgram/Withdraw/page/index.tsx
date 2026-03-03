@@ -82,7 +82,7 @@ export const WithdrawPage = (props: PageProps) => {
     });
   }, [balanceData]);
 
-  // NOTE: dynamically update schema based on balance data
+  // NOTE: use refs to dynamically update later schema based on balance data
   const schemaRef = useRef(withdrawSchema);
   schemaRef.current = withdrawSchema;
 
