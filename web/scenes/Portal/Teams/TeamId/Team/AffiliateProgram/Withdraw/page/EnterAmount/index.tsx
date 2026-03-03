@@ -6,19 +6,22 @@ import { AffiliateBalanceResponse } from "@/lib/types";
 import { parseTokenAmount } from "@/lib/utils";
 import { useMemo } from "react";
 import { useFormContext } from "react-hook-form";
-import { WithdrawFormData } from "../common/types";
 import Skeleton from "react-loading-skeleton";
+import { WithdrawFormData } from "../common/types";
 
 export type Props = {
-  balance: AffiliateBalanceResponse["result"];
+  balance: AffiliateBalanceResponse["result"] | null;
   onConfirm: () => void;
   loading: boolean;
 };
 
 export const EnterAmount = (props: Props) => {
   const availableBalance = useMemo(
-    () => parseTokenAmount(props.balance.availableBalance.inWLD, "WLD"),
-    [props.balance.availableBalance],
+    () =>
+      props.balance
+        ? parseTokenAmount(props.balance.availableBalance.inWLD, "WLD")
+        : null,
+    [props.balance],
   );
 
   const {
@@ -29,7 +32,7 @@ export const EnterAmount = (props: Props) => {
   } = useFormContext<WithdrawFormData>();
 
   const amount = watch("amount");
-  const isAmountValid = amount && !errors.amount;
+  const isAllowedToWithdraw = !!amount && !errors.amount && !!props.balance;
 
   return (
     <div className="grid w-full max-w-[380px] place-items-center justify-self-center py-8">
@@ -91,7 +94,7 @@ export const EnterAmount = (props: Props) => {
               shouldDirty: true,
             });
           }}
-          disabled={props.loading}
+          disabled={props.loading || !availableBalance}
         >
           Max
         </DecoratedButton>
@@ -104,7 +107,7 @@ export const EnterAmount = (props: Props) => {
           type="button"
           variant="primary"
           className="mt-8 w-full"
-          disabled={!isAmountValid}
+          disabled={!isAllowedToWithdraw}
           onClick={props.onConfirm}
         >
           Confirm

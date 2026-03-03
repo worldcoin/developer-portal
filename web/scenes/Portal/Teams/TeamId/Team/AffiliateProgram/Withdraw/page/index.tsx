@@ -154,10 +154,6 @@ export const WithdrawPage = (props: PageProps) => {
     }
   };
 
-  if (!balanceData || !metadata) {
-    return null;
-  }
-
   return (
     <FormProvider {...methods}>
       <SizingWrapper
@@ -179,7 +175,7 @@ export const WithdrawPage = (props: PageProps) => {
               isLoading={isLoading}
             />
           )}
-          {currentStep === AffiliateWithdrawStep.ENTER_CODE && (
+          {currentStep === AffiliateWithdrawStep.ENTER_CODE && !!metadata && (
             <EnterCode
               metadata={metadata}
               onConfirm={onWithdrawConfirm}
