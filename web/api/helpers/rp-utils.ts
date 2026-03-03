@@ -103,8 +103,7 @@ export function normalizeAddress(address: string): string {
 export const WORLD_CHAIN_ID = 480;
 
 /** WLD ERC-20 token address on World Chain. */
-export const WLD_TOKEN_ADDRESS =
-  "0x2cFc85d8E48F8EAB294be644d9E25C3030863003";
+export const WLD_TOKEN_ADDRESS = "0x2cFc85d8E48F8EAB294be644d9E25C3030863003";
 
 /** Required environment variables for RP Registry operations. */
 export interface RpRegistryConfig {
