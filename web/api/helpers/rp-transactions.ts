@@ -126,6 +126,8 @@ export async function submitRegisterRpTransaction(
       safeAddress: config.safeAddress,
       spender: config.credentialSchemaIssuerRegistryAddress,
     });
+    // give a couple of seconds for the tx to mine
+    await new Promise((res) => setTimeout(res, 2000));
   }
 
   const innerCalldata = buildRegisterRpCalldata(
