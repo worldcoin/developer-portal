@@ -2,16 +2,10 @@
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { convertAmountToWei, parseTokenAmount } from "@/lib/utils";
 import { useGetAffiliateBalance } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/common/hooks/use-get-affiliate-balance";
-import {
-  useGetAffiliateMetadata
-} from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Overview/page/hooks/use-get-affiliate-metadata";
+import { useGetAffiliateMetadata } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Overview/page/hooks/use-get-affiliate-metadata";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import {
-  FormProvider,
-  ResolverOptions,
-  useForm,
-} from "react-hook-form";
+import { FormProvider, ResolverOptions, useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import * as yup from "yup";
 import { confirmWithdraw } from "../server/confirmWithdraw";
@@ -71,8 +65,13 @@ export const WithdrawPage = (props: PageProps) => {
               "WLD",
             );
             if (!minWithdrawWLD || !maxWithdrawWLD) return schema;
-            const effectiveMaxWLD = Math.min(maxAvailableWLD ?? maxWithdrawWLD, maxWithdrawWLD);
-            return schema.min(minWithdrawWLD, `Minimum amount is ${minWithdrawWLD} WLD`).max(effectiveMaxWLD, `Maximum amount is ${effectiveMaxWLD} WLD`);
+            const effectiveMaxWLD = Math.min(
+              maxAvailableWLD ?? maxWithdrawWLD,
+              maxWithdrawWLD,
+            );
+            return schema
+              .min(minWithdrawWLD, `Minimum amount is ${minWithdrawWLD} WLD`)
+              .max(effectiveMaxWLD, `Maximum amount is ${effectiveMaxWLD} WLD`);
           },
         }),
       otpCode: yup
@@ -81,9 +80,7 @@ export const WithdrawPage = (props: PageProps) => {
         .length(6, "OTP code must be 6 digits")
         .matches(/^\d{6}$/, "OTP code must be 6 digits"),
     });
-  }, [
-    balanceData
-  ]);
+  }, [balanceData]);
 
   const schemaRef = useRef(withdrawSchema);
   schemaRef.current = withdrawSchema;
@@ -174,7 +171,7 @@ export const WithdrawPage = (props: PageProps) => {
     }
   };
 
-  if(!balanceData || !metadata) {
+  if (!balanceData || !metadata) {
     return null;
   }
 

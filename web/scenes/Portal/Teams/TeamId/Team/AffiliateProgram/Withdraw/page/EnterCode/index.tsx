@@ -72,14 +72,14 @@ export const EnterCode = (props: Props) => {
     <div className="grid w-full max-w-[380px] place-items-center justify-self-center py-8">
       <Typography variant={TYPOGRAPHY.H5}>Check email template</Typography>
 
-        {userEmail && (
-            <Typography
-                variant={TYPOGRAPHY.R4}
-                className="mt-2 w-full text-center text-grey-500"
-            >
-                We sent confirmation code to {userEmail}.
-            </Typography>
-        )}
+      {userEmail && (
+        <Typography
+          variant={TYPOGRAPHY.R4}
+          className="mt-2 w-full text-center text-grey-500"
+        >
+          We sent confirmation code to {userEmail}.
+        </Typography>
+      )}
 
       <div className="my-10">
         <OtpInput
