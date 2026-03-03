@@ -2,14 +2,14 @@
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { OtpInput } from "@/components/OtpInput";
 import { Typography, TYPOGRAPHY } from "@/components/Typography";
-import { Auth0SessionUser } from "@/lib/types";
-import { useUser } from "@auth0/nextjs-auth0/client";
+import { AffiliateMetadataResponse } from "@/lib/types";
 import { useCallback, useState } from "react";
 import { useFormContext } from "react-hook-form";
 import { toast } from "react-toastify";
 import { WithdrawFormData } from "../common/types";
 
 export type Props = {
+  metadata: AffiliateMetadataResponse["result"];
   onConfirm: () => void;
   onRetry: () => void;
   isLoading: boolean; // Add this prop
@@ -18,7 +18,6 @@ export type Props = {
 const MAX_RETRY_ATTEMPTS = 3;
 
 export const EnterCode = (props: Props) => {
-  const { user } = useUser() as Auth0SessionUser;
   const { onRetry, isLoading } = props;
 
   // Retry state management
@@ -33,6 +32,7 @@ export const EnterCode = (props: Props) => {
   } = useFormContext<WithdrawFormData>();
 
   const otpCode = watch("otpCode");
+  const userEmail = props.metadata.email;
 
   // Check if OTP code is valid
   const isOtpValid = otpCode && !errors.otpCode;
@@ -72,12 +72,14 @@ export const EnterCode = (props: Props) => {
     <div className="grid w-full max-w-[380px] place-items-center justify-self-center py-8">
       <Typography variant={TYPOGRAPHY.H5}>Check email template</Typography>
 
-      <Typography
-        variant={TYPOGRAPHY.R4}
-        className="mt-2 w-full text-center text-grey-500"
-      >
-        We sent confirmation code to {user?.email}.
-      </Typography>
+        {userEmail && (
+            <Typography
+                variant={TYPOGRAPHY.R4}
+                className="mt-2 w-full text-center text-grey-500"
+            >
+                We sent confirmation code to {userEmail}.
+            </Typography>
+        )}
 
       <div className="my-10">
         <OtpInput
