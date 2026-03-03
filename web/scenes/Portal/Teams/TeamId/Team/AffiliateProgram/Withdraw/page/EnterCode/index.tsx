@@ -32,7 +32,7 @@ export const EnterCode = (props: Props) => {
   } = useFormContext<WithdrawFormData>();
 
   const otpCode = watch("otpCode");
-  const userEmail = props.metadata.email;
+  const metadataEmail = props.metadata.email;
 
   // Check if OTP code is valid
   const isOtpValid = otpCode && !errors.otpCode;
@@ -72,12 +72,12 @@ export const EnterCode = (props: Props) => {
     <div className="grid w-full max-w-[380px] place-items-center justify-self-center py-8">
       <Typography variant={TYPOGRAPHY.H5}>Check email template</Typography>
 
-      {userEmail && (
+      {metadataEmail && (
         <Typography
           variant={TYPOGRAPHY.R4}
           className="mt-2 w-full text-center text-grey-500"
         >
-          We sent confirmation code to {userEmail}.
+          We sent confirmation code to {metadataEmail}
         </Typography>
       )}
 

@@ -108,25 +108,6 @@ export const WithdrawPage = (props: PageProps) => {
     }
   }, [balanceData?.withdrawalWallet]);
 
-  // Re-validate amount when balance data has loaded and user has entered an amount
-  // useEffect(() => {
-  //   const hasBalanceLimits =
-  //     balanceData?.minimumWithdrawal != null ||
-  //     balanceData?.maximumWithdrawal != null ||
-  //     balanceData?.availableBalance?.inWLD != null;
-  //   const amount = methods.getValues("amount");
-  //   const hasAmount =
-  //     amount !== undefined && amount !== null && !Number.isNaN(Number(amount));
-  //   if (hasBalanceLimits && hasAmount) {
-  //     methods.trigger("amount");
-  //   }
-  // }, [
-  //   balanceData?.minimumWithdrawal,
-  //   balanceData?.maximumWithdrawal,
-  //   balanceData?.availableBalance?.inWLD,
-  //   methods,
-  // ]);
-
   const onWithdrawInitiate = async () => {
     setIsLoading(true);
 

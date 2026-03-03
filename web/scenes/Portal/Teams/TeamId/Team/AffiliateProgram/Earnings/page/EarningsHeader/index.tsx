@@ -65,7 +65,7 @@ export const EarningsHeader = (props: Props) => {
       BigInt(data.availableBalance.inWLD) < BigInt(data.minimumWithdrawal);
     if (isBelowMin) {
       const minWldDisplay = formatTokenAmount(data.minimumWithdrawal, "WLD");
-      toast.warn(
+      toast.error(
         `Available balance is below the minimum withdrawal amount (min ${minWldDisplay} WLD). Please accumulate more rewards before withdrawing.`,
       );
       return;
