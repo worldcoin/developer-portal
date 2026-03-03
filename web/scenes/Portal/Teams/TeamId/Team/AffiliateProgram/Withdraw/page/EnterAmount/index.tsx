@@ -2,7 +2,10 @@
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { Input } from "@/components/Input";
 import { Typography, TYPOGRAPHY } from "@/components/Typography";
-import { AffiliateBalanceResponse } from "@/lib/types";
+import {
+  AffiliateBalanceResponse,
+  AffiliateMetadataResponse,
+} from "@/lib/types";
 import { parseTokenAmount } from "@/lib/utils";
 import { useMemo } from "react";
 import { useFormContext } from "react-hook-form";
@@ -11,6 +14,7 @@ import { WithdrawFormData } from "../common/types";
 
 export type Props = {
   balance: AffiliateBalanceResponse["result"] | null;
+  metadata: AffiliateMetadataResponse["result"] | null;
   onConfirm: () => void;
   loading: boolean;
 };
@@ -32,7 +36,8 @@ export const EnterAmount = (props: Props) => {
   } = useFormContext<WithdrawFormData>();
 
   const amount = watch("amount");
-  const isAllowedToWithdraw = !!amount && !errors.amount && !!props.balance;
+  const isAllowedToWithdraw =
+    !!amount && !errors.amount && !!props.balance && !!props.metadata;
 
   return (
     <div className="grid w-full max-w-[380px] place-items-center justify-self-center py-8">

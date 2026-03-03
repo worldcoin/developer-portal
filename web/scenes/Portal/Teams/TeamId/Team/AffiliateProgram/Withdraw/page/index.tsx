@@ -161,14 +161,14 @@ export const WithdrawPage = (props: PageProps) => {
         className="gap flex flex-col"
       >
         <div className="flex h-full min-h-0 items-center justify-center">
-          {currentStep === AffiliateWithdrawStep.ENTER_AMOUNT &&
-            balanceData && (
-              <EnterAmount
-                balance={balanceData}
-                onConfirm={() => setCurrentStep(AffiliateWithdrawStep.CONFIRM)}
-                loading={isLoading || isBalanceLoading}
-              />
-            )}
+          {currentStep === AffiliateWithdrawStep.ENTER_AMOUNT && (
+            <EnterAmount
+              balance={balanceData}
+              metadata={metadata}
+              onConfirm={() => setCurrentStep(AffiliateWithdrawStep.CONFIRM)}
+              loading={isLoading || isBalanceLoading}
+            />
+          )}
           {currentStep === AffiliateWithdrawStep.CONFIRM && (
             <ConfirmTransaction
               onConfirm={onWithdrawInitiate}
