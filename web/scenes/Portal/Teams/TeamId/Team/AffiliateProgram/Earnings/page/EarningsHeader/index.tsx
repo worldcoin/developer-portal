@@ -12,8 +12,9 @@ import {
 } from "@/lib/utils";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { useParams, useRouter } from "next/navigation";
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import Skeleton from "react-loading-skeleton";
+import { toast } from "react-toastify";
 
 type Props = {
   loading: boolean;
@@ -29,14 +30,6 @@ export const EarningsHeader = (props: Props) => {
   const isAllowedToWithdraw = useMemo(() => {
     return checkUserPermissions(auth0User, teamId ?? "", [Role_Enum.Owner]);
   }, [auth0User, teamId]);
-
-  const isWithdrawDisabled = useMemo(() => {
-    return (
-      !!data?.minimumWithdrawal &&
-      !!data?.availableBalance?.inWLD &&
-      BigInt(data?.availableBalance?.inWLD) < BigInt(data?.minimumWithdrawal)
-    );
-  }, []);
 
   const formattedWldAmount = useMemo(() => {
     if (!data?.availableBalance) return null;
@@ -55,6 +48,30 @@ export const EarningsHeader = (props: Props) => {
     }
     return "No funds to withdraw";
   }, [loading, data?.availableBalance?.inCurrency]);
+
+  const handleWithdrawClick = useCallback(() => {
+    if (!data) {
+      return;
+    }
+    if (!data?.withdrawalWallet?.trim()) {
+      toast.error(
+        "Missing wallet address for withdrawals. Complete your KYB to add a withdrawal wallet address, or contact support for assistance.",
+      );
+      return;
+    }
+    const isBelowMin =
+      data?.minimumWithdrawal != null &&
+      data?.availableBalance?.inWLD != null &&
+      BigInt(data.availableBalance.inWLD) < BigInt(data.minimumWithdrawal);
+    if (isBelowMin) {
+      const minWldDisplay = formatTokenAmount(data.minimumWithdrawal, "WLD");
+      toast.error(
+        `Available balance is below the minimum withdrawal amount (min ${minWldDisplay} WLD). Please accumulate more rewards before withdrawing.`,
+      );
+      return;
+    }
+    router.push(`/teams/${teamId}/affiliate-program/withdraw`);
+  }, [data, router, teamId]);
 
   return (
     <div className="grid items-center gap-y-4 border-b border-dashed border-grey-200 pb-8 pt-4 sm:grid-cols-auto/1fr/auto sm:justify-items-start sm:gap-x-6 md:pt-10">
@@ -84,11 +101,9 @@ export const EarningsHeader = (props: Props) => {
             <DecoratedButton
               type="button"
               variant="primary"
-              onClick={() =>
-                router.push(`/teams/${teamId}/affiliate-program/withdraw`)
-              }
+              onClick={handleWithdrawClick}
               className="w-full"
-              disabled={isWithdrawDisabled}
+              disabled={!data}
             >
               Withdraw
             </DecoratedButton>
