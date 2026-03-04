@@ -102,6 +102,9 @@ export function normalizeAddress(address: string): string {
 /** World Chain ID for RP Registry operations. */
 export const WORLD_CHAIN_ID = 480;
 
+/** WLD ERC-20 token address on World Chain. */
+export const WLD_TOKEN_ADDRESS = "0x2cFc85d8E48F8EAB294be644d9E25C3030863003";
+
 /** Required environment variables for RP Registry operations. */
 export interface RpRegistryConfig {
   safeOwnerKmsKeyId: string;
@@ -114,6 +117,8 @@ export interface RpRegistryConfig {
   domainSeparator: string;
   /** UPDATE_RP_TYPEHASH constant from contract */
   updateRpTypehash: string;
+  /** CredentialSchemaIssuerRegistry contract that pulls WLD from the Safe */
+  credentialSchemaIssuerRegistryAddress: string;
 }
 
 /**
@@ -130,6 +135,8 @@ export function getRpRegistryConfig(): RpRegistryConfig | null {
     kmsRegion: process.env.RP_REGISTRY_KMS_REGION,
     domainSeparator: process.env.RP_REGISTRY_DOMAIN_SEPARATOR,
     updateRpTypehash: process.env.RP_REGISTRY_UPDATE_RP_TYPEHASH,
+    credentialSchemaIssuerRegistryAddress:
+      process.env.CREDENTIAL_SCHEMA_ISSUER_REGISTRY_ADDRESS,
   };
 
   if (Object.values(config).some((v) => !v)) {

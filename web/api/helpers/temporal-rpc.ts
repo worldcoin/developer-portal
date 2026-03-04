@@ -6,6 +6,7 @@ import "server-only";
 
 import { logger } from "@/lib/logger";
 import { Contract, FetchRequest, JsonRpcProvider, Network } from "ethers";
+import ERC20_ABI from "./abi/erc20.json";
 import RP_REGISTRY_ABI from "./abi/rp-registry.json";
 import VERIFIER_ABI from "./abi/verifier.json";
 import { UserOperation } from "./user-operation";
@@ -276,6 +277,19 @@ export async function getUpdateRpTypehash(
 ): Promise<string> {
   const contract = createRpRegistryContract(contractAddress);
   return await contract.UPDATE_RP_TYPEHASH();
+}
+
+/**
+ * Returns the current WLD token allowance that `owner` has granted to `spender`.
+ */
+export async function getERC20Allowance(
+  owner: string,
+  spender: string,
+  tokenAddress: string,
+): Promise<bigint> {
+  const contract = new Contract(tokenAddress, ERC20_ABI, createProvider());
+  const allowance = await contract.allowance(owner, spender);
+  return BigInt(allowance);
 }
 
 // =============================================================================

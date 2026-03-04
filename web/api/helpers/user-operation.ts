@@ -20,6 +20,7 @@ import {
   zeroPadValue,
 } from "ethers";
 
+import ERC20_ABI from "./abi/erc20.json";
 import RP_REGISTRY_ABI from "./abi/rp-registry.json";
 import SAFE_4337_ABI from "./abi/safe-4337.json";
 
@@ -69,6 +70,7 @@ export interface UpdateRpTypedDataParams {
 export enum DevPortalAction {
   RegisterRp = 0,
   UpdateRp = 1,
+  ApproveWld = 2,
 }
 
 // =============================================================================
@@ -405,6 +407,24 @@ export function getRegisterRpNonce(rpId: bigint): Uint8Array {
     DevPortalAction.RegisterRp,
     rpIdToNonceMetadata(rpId),
   );
+}
+
+// =============================================================================
+// ERC-20 Approve
+// =============================================================================
+
+/** Builds the calldata for ERC20.approve(spender, amount). */
+export function buildErc20ApproveCalldata(
+  spender: string,
+  amount: bigint,
+): string {
+  const iface = new Interface(ERC20_ABI);
+  return iface.encodeFunctionData("approve", [spender, amount]);
+}
+
+/** Generates the 32-byte nonce for a WLD approval operation. */
+export function getApproveWldNonce(): Uint8Array {
+  return buildDevPortalNonce(DevPortalAction.ApproveWld, new Uint8Array(10));
 }
 
 // =============================================================================
