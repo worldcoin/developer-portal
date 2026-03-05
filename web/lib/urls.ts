@@ -13,13 +13,13 @@ export const urls = {
     `/teams/${params.team_id}/apps/${params.app_id}/configuration`,
 
   miniAppPermissions: (params: { team_id: string; app_id: string }): string =>
-    `/teams/${params.team_id}/apps/${params.app_id}/transactions/permissions`,
+    `/teams/${params.team_id}/apps/${params.app_id}/mini-app/permissions`,
 
   miniAppTransactions: (params: { team_id: string; app_id: string }): string =>
-    `/teams/${params.team_id}/apps/${params.app_id}/transactions`,
+    `/teams/${params.team_id}/apps/${params.app_id}/mini-app/transactions`,
 
   miniAppNotifications: (params: { team_id: string; app_id: string }): string =>
-    `/teams/${params.team_id}/apps/${params.app_id}/notifications`,
+    `/teams/${params.team_id}/apps/${params.app_id}/mini-app/notifications`,
 
   actions: (params: { team_id: string; app_id?: string }): string =>
     `/teams/${params.team_id}/apps/${params.app_id}/actions`,

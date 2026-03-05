@@ -68,7 +68,9 @@ export const AppIdChrome = ({
     segment === "world-id-actions" ||
     segment === "actions";
   const isMiniAppSegment =
-    segment === "transactions" || segment === "notifications";
+    segment === "mini-app" ||
+    segment === "transactions" ||
+    segment === "notifications";
   const miniAppPermissionsPath = urls.miniAppPermissions({
     team_id: teamId,
     app_id: appId,
@@ -130,7 +132,7 @@ export const AppIdChrome = ({
                 href={miniAppPermissionsPath}
                 underlined
                 active={isMiniAppSegment}
-                segment={"transactions"}
+                segment={"mini-app"}
               >
                 <Typography variant={TYPOGRAPHY.R4}>Mini App</Typography>
               </Tab>
@@ -185,7 +187,7 @@ export const AppIdChrome = ({
                 <Tab
                   className="md:py-4"
                   href={miniAppPermissionsPath}
-                  segment={"transactions"}
+                  segment={"mini-app"}
                   active={isMiniAppPermissions}
                 >
                   <Typography variant={TYPOGRAPHY.R4}>Permissions</Typography>
@@ -194,7 +196,7 @@ export const AppIdChrome = ({
                 <Tab
                   className="md:py-4"
                   href={miniAppTransactionsPath}
-                  segment={"transactions"}
+                  segment={"mini-app"}
                   active={isMiniAppTransactions}
                 >
                   <Typography variant={TYPOGRAPHY.R4}>Transactions</Typography>
@@ -203,7 +205,7 @@ export const AppIdChrome = ({
                 <Tab
                   className="md:py-4"
                   href={miniAppNotificationsPath}
-                  segment={"notifications"}
+                  segment={"mini-app"}
                   active={isMiniAppNotifications}
                 >
                   <Typography variant={TYPOGRAPHY.R4}>Notifications</Typography>
@@ -237,10 +239,7 @@ export const AppIdChrome = ({
             <AppIcon className="size-7" />
           </BottomBar.Link>
 
-          <BottomBar.Link
-            href={miniAppPermissionsPath}
-            segment={"transactions"}
-          >
+          <BottomBar.Link href={miniAppPermissionsPath} segment={"mini-app"}>
             <TransactionIcon className="size-7" />
           </BottomBar.Link>
         </BottomBar>
@@ -290,16 +289,18 @@ export const AppIdChrome = ({
             )}
 
             <Tab
-              href={`/teams/${teamId}/apps/${appId}/transactions`}
+              href={miniAppTransactionsPath}
               underlined
-              segment={"transactions"}
+              segment={"mini-app"}
+              active={isMiniAppTransactions}
             >
               <Typography variant={TYPOGRAPHY.R4}>Transactions</Typography>
             </Tab>
             <Tab
-              href={`/teams/${teamId}/apps/${appId}/notifications`}
+              href={miniAppNotificationsPath}
               underlined
-              segment={"notifications"}
+              segment={"mini-app"}
+              active={isMiniAppNotifications}
             >
               <Typography variant={TYPOGRAPHY.R4}>Notifications</Typography>
             </Tab>
@@ -342,10 +343,7 @@ export const AppIdChrome = ({
         >
           <AppIcon className="size-7" />
         </BottomBar.Link>
-        <BottomBar.Link
-          href={`/teams/${teamId}/apps/${appId}/transactions`}
-          segment={"transactions"}
-        >
+        <BottomBar.Link href={miniAppTransactionsPath} segment={"mini-app"}>
           <TransactionIcon className="size-7" />
         </BottomBar.Link>
       </BottomBar>

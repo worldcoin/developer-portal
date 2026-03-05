@@ -7,6 +7,6 @@ type Props = {
   };
 };
 
-export default function LegacyPermissionsPage({ params }: Props) {
+export default function MiniAppPage({ params }: Props) {
   redirect(`/teams/${params.teamId}/apps/${params.appId}/mini-app/permissions`);
 }
