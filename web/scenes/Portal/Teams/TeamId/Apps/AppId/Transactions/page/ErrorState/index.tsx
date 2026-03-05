@@ -18,10 +18,12 @@ export const ErrorState = () => {
             <CloseIcon className="size-4 text-system-error-500" />
           </CircleIconContainer>
         </div>
-        <Typography variant={TYPOGRAPHY.H6}>Failed to load payments</Typography>
+        <Typography variant={TYPOGRAPHY.H6}>
+          Failed to load transactions
+        </Typography>
         <Typography variant={TYPOGRAPHY.R3} className="text-grey-700">
-          Something went wrong while loading payments. Please try refreshing the
-          page.
+          Something went wrong while loading transactions. Please try refreshing
+          the page.
         </Typography>
       </div>
       <DecoratedButton
