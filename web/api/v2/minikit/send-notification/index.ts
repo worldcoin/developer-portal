@@ -421,7 +421,7 @@ export const POST = async (req: NextRequest) => {
 
     return errorResponse({
       statusCode: res.status === 429 ? 500 : res.status, // If we get a 429 from the backend, we return a 500 to the client
-      code: data.error.code ?? "internal_server_error",
+      code: data?.error?.code ?? "internal_server_error",
       detail: errorMessage,
       attribute: "notification",
       req,
