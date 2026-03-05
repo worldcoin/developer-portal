@@ -49,7 +49,7 @@ export const mainAppStoreFormSchema = yup
       otherwise: (s) =>
         s.when("support_type", {
           is: "link",
-          then: () => supportLinkSchema.required("Support link is required"),
+          then: () => supportLinkSchema.required("Support contact is required"),
           otherwise: () => yup.string().length(0),
         }),
     }),
@@ -59,7 +59,8 @@ export const mainAppStoreFormSchema = yup
       otherwise: (s) =>
         s.when("support_type", {
           is: "email",
-          then: () => supportEmailSchema.required("Support email is required"),
+          then: () =>
+            supportEmailSchema.required("Support contact is required"),
           otherwise: () => yup.string().length(0),
         }),
     }),
@@ -147,7 +148,7 @@ export const mainAppStoreFormReviewSubmitSchema = yup
       otherwise: (s) =>
         s.when("support_type", {
           is: "link",
-          then: () => supportLinkSchema.required("Support link is required"),
+          then: () => supportLinkSchema.required("Support contact is required"),
           otherwise: () => yup.string().length(0),
         }),
     }),
@@ -157,7 +158,8 @@ export const mainAppStoreFormReviewSubmitSchema = yup
       otherwise: (s) =>
         s.when("support_type", {
           is: "email",
-          then: () => supportEmailSchema.required("Support email is required"),
+          then: () =>
+            supportEmailSchema.required("Support contact is required"),
           otherwise: () => yup.string().length(0),
         }),
     }),
