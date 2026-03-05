@@ -13,6 +13,7 @@ import { useUser } from "@auth0/nextjs-auth0/client";
 import clsx from "clsx";
 import { useAtom } from "jotai";
 import { ErrorPage } from "@/components/ErrorPage";
+import { SpinnerIcon } from "@/components/Icons/SpinnerIcon";
 import { urls } from "@/lib/urls";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
@@ -221,6 +222,7 @@ const AppTopBarSubmit = ({
 type AppIconButtonProps = {
   hasLogo: boolean;
   logoImgUrl: string;
+  isLogoLoading: boolean;
   viewMode: "unverified" | "verified";
   isInReview: boolean;
   isLogoError: boolean;
@@ -230,6 +232,7 @@ type AppIconButtonProps = {
 const AppIconButton = ({
   hasLogo,
   logoImgUrl,
+  isLogoLoading,
   viewMode,
   isInReview,
   isLogoError,
@@ -274,6 +277,13 @@ const AppIconButton = ({
           </div>
         )}
       </>
+    ) : isLogoLoading ? (
+      <div className="flex size-full items-center justify-center rounded-full border border-dashed border-grey-200 bg-grey-50">
+        <SpinnerIcon
+          className="size-8 animate-spin text-grey-300"
+          aria-label="Loading app logo"
+        />
+      </div>
     ) : viewMode !== "verified" && !isInReview ? (
       <>
         <div
@@ -336,6 +346,7 @@ type AppTopBarProps = {
 export const AppTopBar = (props: AppTopBarProps) => {
   const { appId, teamId, app, onResolve, hasFormContext, basicInfoRef } = props;
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [viewMode, setViewMode] = useAtom(viewModeAtom);
   const { user } = useUser() as Auth0SessionUser;
 
@@ -349,12 +360,14 @@ export const AppTopBar = (props: AppTopBarProps) => {
     [],
   );
   const [showLogoDialog, setShowLogoDialog] = useState(false);
+  const hasAutoOpenedLogoDialog = useRef(false);
   const [unverifiedImages, setUnverifiedImages] = useAtom(unverifiedImageAtom);
   const [localUnverifiedLogoOverride, setLocalUnverifiedLogoOverride] =
     useState<string | null>(null);
 
   useEffect(() => {
     setLocalUnverifiedLogoOverride(null);
+    hasAutoOpenedLogoDialog.current = false;
   }, [appId]);
 
   useEffect(() => {
@@ -413,6 +426,25 @@ export const AppTopBar = (props: AppTopBarProps) => {
 
   const isEditable = app?.app_metadata[0]?.verification_status === "unverified";
   const [createEditableRowMutation] = useCreateEditableRowMutation({});
+  const shouldAutoOpenLogoDialog = searchParams.get("editLogo") === "true";
+
+  useEffect(() => {
+    if (!shouldAutoOpenLogoDialog || hasAutoOpenedLogoDialog.current) {
+      return;
+    }
+
+    if (viewMode === "verified" && app.app_metadata.length > 0) {
+      setViewMode("unverified");
+    }
+
+    setShowLogoDialog(true);
+    hasAutoOpenedLogoDialog.current = true;
+  }, [
+    app.app_metadata.length,
+    setViewMode,
+    shouldAutoOpenLogoDialog,
+    viewMode,
+  ]);
 
   const hasRequiredImagesForAppStore = useMemo(() => {
     return Boolean(
@@ -474,7 +506,10 @@ export const AppTopBar = (props: AppTopBarProps) => {
     } else {
       const queryUrl =
         unverifiedImagesData?.unverified_images?.logo_img_url ?? "";
-      const unverifiedLogoImgUrl = localUnverifiedLogoOverride ?? queryUrl;
+      const unverifiedLogoImgUrl =
+        localUnverifiedLogoOverride !== null
+          ? localUnverifiedLogoOverride
+          : queryUrl;
       return unverifiedLogoImgUrl || getDefaultLogoImgCDNUrl();
     }
   }, [
@@ -491,13 +526,37 @@ export const AppTopBar = (props: AppTopBarProps) => {
     }
     const queryUrl =
       unverifiedImagesData?.unverified_images?.logo_img_url ?? "";
-    const unverifiedLogoImgUrl = localUnverifiedLogoOverride ?? queryUrl;
+    const unverifiedLogoImgUrl =
+      localUnverifiedLogoOverride !== null
+        ? localUnverifiedLogoOverride
+        : queryUrl;
     return Boolean(unverifiedLogoImgUrl);
   }, [
     appMetadata?.verification_status,
     appMetadata?.logo_img_url,
     localUnverifiedLogoOverride,
     unverifiedImagesData?.unverified_images?.logo_img_url,
+  ]);
+
+  const isLogoLoading = useMemo(() => {
+    if (appMetadata?.verification_status === "verified") {
+      return false;
+    }
+
+    if (localUnverifiedLogoOverride === "loading") {
+      return true;
+    }
+
+    return (
+      localUnverifiedLogoOverride === null &&
+      unverifiedImagesData === undefined &&
+      Boolean(appMetadata?.logo_img_url)
+    );
+  }, [
+    appMetadata?.verification_status,
+    appMetadata?.logo_img_url,
+    localUnverifiedLogoOverride,
+    unverifiedImagesData,
   ]);
 
   if (!appMetadata) return <ErrorPage statusCode={404} title="App not found" />;
@@ -537,6 +596,7 @@ export const AppTopBar = (props: AppTopBarProps) => {
             <AppIconButtonWithFormError
               hasLogo={hasLogo}
               logoImgUrl={logoImgUrl}
+              isLogoLoading={isLogoLoading}
               viewMode={viewMode}
               isInReview={isInReview}
               onEdit={() => setShowLogoDialog(true)}
@@ -545,6 +605,7 @@ export const AppTopBar = (props: AppTopBarProps) => {
             <AppIconButton
               hasLogo={hasLogo}
               logoImgUrl={logoImgUrl}
+              isLogoLoading={isLogoLoading}
               viewMode={viewMode}
               isInReview={isInReview}
               isLogoError={false}
