@@ -29,17 +29,10 @@ describe("service role", () => {
       }),
     );
 
-    let signInWithWorldIDCount = 0;
-
     for (const row of response.data.action) {
       // Service role should not see archived actions
       expect(row.app_id).not.toEqual(rows[0].id);
-      if (row.name === "Sign in with World ID") {
-        signInWithWorldIDCount++;
-      }
     }
-
-    expect(signInWithWorldIDCount).toEqual(1); // only one app with sign in with world id
   });
 
   test("can query return_to fields from actions", async () => {

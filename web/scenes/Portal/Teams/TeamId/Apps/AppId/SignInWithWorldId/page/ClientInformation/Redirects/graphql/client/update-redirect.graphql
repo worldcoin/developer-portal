@@ -1,9 +1,0 @@
-mutation UpdateRedirect($id: String!, $uri: String!) {
-  update_redirect_by_pk(pk_columns: { id: $id }, _set: { redirect_uri: $uri }) {
-    id
-    action_id
-    redirect_uri
-    created_at
-    updated_at
-  }
-}

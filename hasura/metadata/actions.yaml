@@ -162,7 +162,7 @@ actions:
   - name: reset_client_secret
     definition:
       kind: synchronous
-      handler: "{{NEXT_API_URL}}/hasura/reset-client-secret"
+      handler: '{{NEXT_API_URL}}/hasura/reset-client-secret'
       headers:
         - name: Authorization
           value_from_env: INTERNAL_ENDPOINTS_SECRET
