@@ -5,6 +5,7 @@ import {
   RpRegistrationStatus,
 } from "@/api/helpers/rp-utils";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
+import { logger } from "@/lib/logger";
 import { NextRequest } from "next/server";
 import {
   schema,
@@ -31,7 +32,25 @@ export async function POST(
     return errorRequiredAttribute("app_id", req);
   }
 
-  const body = await req.json();
+  let body;
+  try {
+    body = await req.json();
+  } catch (error) {
+    logger.warn("Invalid JSON in request body", {
+      error,
+      app_id: routeId,
+    });
+
+    return errorResponse({
+      statusCode: 400,
+      code: "invalid_request",
+      detail: "Invalid JSON in request body",
+      attribute: null,
+      req,
+      app_id: routeId,
+    });
+  }
+
   const { isValid, parsedParams, handleError } = await validateRequestSchema({
     schema,
     value: body,
