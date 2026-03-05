@@ -1,5 +1,6 @@
 import { CountryBadge } from "@/components/CountryBadge";
 import { FormLanguage, languageMap } from "@/lib/languages";
+import clsx from "clsx";
 import { FieldArrayWithId, FieldErrors } from "react-hook-form";
 import { AppStoreFormValues } from "../../../../FormSchema/types";
 
@@ -33,6 +34,9 @@ export const LanguageTabs = ({
             onClick={() => onLanguageSelect(field.language as FormLanguage)}
             focused={isSelected}
             isError={hasError}
+            className={clsx({
+              "bg-system-error-50 hover:bg-system-error-100": hasError,
+            })}
           >
             <img
               width={20}
