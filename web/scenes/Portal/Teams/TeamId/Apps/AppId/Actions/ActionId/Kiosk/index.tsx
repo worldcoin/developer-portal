@@ -2,8 +2,8 @@
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import { LegacyVerificationLevel } from "@/lib/idkit";
 import { EngineType } from "@/lib/types";
-import { VerificationLevel } from "@worldcoin/idkit-core";
 import clsx from "clsx";
 import { useState } from "react";
 import { KioskError } from "../Components/Kiosk/KioskError";
@@ -20,7 +20,7 @@ type ActionIdKioskPageProps = {
 export const ActionIdKioskPage = (props: ActionIdKioskPageProps) => {
   const { params } = props;
   const [kioskVerificationLevel, setKioskVerificationLevel] =
-    useState<VerificationLevel>(VerificationLevel.Device);
+    useState<LegacyVerificationLevel>(LegacyVerificationLevel.Device);
 
   const appId = params?.appId as `app_${string}`;
   const actionId = params?.actionId as `action_${string}`;

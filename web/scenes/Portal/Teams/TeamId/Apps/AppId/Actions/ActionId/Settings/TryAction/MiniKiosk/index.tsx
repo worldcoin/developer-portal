@@ -1,10 +1,7 @@
 import { restAPIRequest } from "@/lib/frontend-api";
+import { LegacyVerificationLevel } from "@/lib/idkit";
 import { KioskScreen } from "@/lib/types";
-import {
-  ISuccessResult,
-  VerificationLevel,
-  useWorldBridgeStore,
-} from "@worldcoin/idkit-core";
+import { ISuccessResult, useWorldBridgeStore } from "@worldcoin/idkit-core";
 import clsx from "clsx";
 import { useCallback, useEffect, useState } from "react";
 import { Connected } from "../../../Components/Kiosk/Connected";
@@ -79,8 +76,8 @@ export const MiniKiosk = (props: MiniKioskProps) => {
             ...result,
             action: action?.action,
             verification_level:
-              kioskVerificationLevel === VerificationLevel.Orb
-                ? VerificationLevel.Orb
+              kioskVerificationLevel === LegacyVerificationLevel.Orb
+                ? LegacyVerificationLevel.Orb
                 : result.verification_level,
           },
         });
