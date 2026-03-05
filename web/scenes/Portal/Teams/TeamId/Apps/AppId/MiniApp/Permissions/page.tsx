@@ -40,17 +40,17 @@ export const AppPermissionsPage = ({ params }: AppPermissionsPageProps) => {
 
   return (
     <>
-      <div className="pt-8">
+      <div className="py-10">
         {loading ? (
           <Skeleton count={2} height={50} />
         ) : (
           <AppTopBar appId={appId} teamId={teamId} app={app!} />
         )}
-
-        <hr className="my-5 w-full border-dashed text-grey-200" />
       </div>
 
-      <div className="pb-8 pt-4">
+      <div className="border-t border-grey-100" />
+
+      <div className="pb-6 pt-8">
         <div className="grid max-w-[580px] grid-cols-1">
           {loading ? (
             <FormSkeleton count={3} />
