@@ -103,7 +103,7 @@ export const localisationFormReviewSubmitSchema = yup
     showcase_img_urls: yup
       .array()
       .of(yup.string())
-      .min(1, "At least one showcase image is required"),
+      .min(1, "At least one showcase image is required for each localisation"),
   })
   .noUnknown();
 
