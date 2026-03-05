@@ -51,14 +51,18 @@ export const SupportSection = ({
       {/* Single input based on selection */}
       {supportType === "email" ? (
         <Controller
+          key="support-email"
           name="support_email"
           control={control}
+          shouldUnregister={false}
           render={({ field }) => (
             <FloatingInput
               id="support_email"
               label="Enter email"
               value={field.value || ""}
               onChange={field.onChange}
+              onBlur={field.onBlur}
+              name={field.name}
               disabled={disabled}
               errors={errors.support_email}
             />
@@ -66,14 +70,18 @@ export const SupportSection = ({
         />
       ) : (
         <Controller
+          key="support-link"
           name="support_link"
           control={control}
+          shouldUnregister={false}
           render={({ field }) => (
             <FloatingInput
               id="support_link"
               placeholder="https://example.com"
               value={field.value || ""}
               onChange={field.onChange}
+              onBlur={field.onBlur}
+              name={field.name}
               disabled={disabled}
               errors={errors.support_link}
             />

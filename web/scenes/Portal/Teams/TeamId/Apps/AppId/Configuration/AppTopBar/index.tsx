@@ -93,6 +93,19 @@ const AppTopBarSubmit = ({
       }
       const isMiniApp = appMetadata.app_mode === "mini-app";
       if (form.formState.isDirty) {
+        const currentSupportType = form.getValues("support_type");
+        if (currentSupportType === "email") {
+          form.setValue("support_link", "", {
+            shouldDirty: true,
+            shouldValidate: false,
+          });
+        } else if (currentSupportType === "link") {
+          form.setValue("support_email", "", {
+            shouldDirty: true,
+            shouldValidate: false,
+          });
+        }
+
         await new Promise<void>((resolve, reject) => {
           form.handleSubmit(
             async (data) => {

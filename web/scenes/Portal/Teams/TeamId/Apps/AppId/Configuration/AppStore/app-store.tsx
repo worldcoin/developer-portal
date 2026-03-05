@@ -39,6 +39,8 @@ export const AppStoreForm = ({
     supportType,
     handleSupportTypeChange,
     submit,
+    watch,
+    setValue,
     isEditable,
     onInvalid,
     refetchAppMetadata,
@@ -58,6 +60,20 @@ export const AppStoreForm = ({
   const guardedSubmit = async () => {
     const canProceed = await onBeforeSave?.();
     if (canProceed === false) return;
+
+    const currentSupportType = watch("support_type");
+    if (currentSupportType === "email") {
+      setValue("support_link", "", {
+        shouldDirty: true,
+        shouldValidate: false,
+      });
+    } else if (currentSupportType === "link") {
+      setValue("support_email", "", {
+        shouldDirty: true,
+        shouldValidate: false,
+      });
+    }
+
     handleSubmit(submit, onInvalid)();
   };
 
