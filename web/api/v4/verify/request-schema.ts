@@ -187,7 +187,12 @@ export const schema = yup
 
       for (let i = 0; i < responses.length; i++) {
         try {
-          itemSchema.validateSync(responses[i], { abortEarly: false });
+          // Persist per-item defaults/transforms (e.g. signal_hash default)
+          // back into the parsed request body.
+          responses[i] = itemSchema.validateSync(responses[i], {
+            abortEarly: false,
+            stripUnknown: true,
+          });
         } catch (err) {
           if (err instanceof yup.ValidationError) {
             return this.createError({
