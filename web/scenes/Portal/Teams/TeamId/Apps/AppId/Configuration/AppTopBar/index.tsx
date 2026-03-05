@@ -491,6 +491,7 @@ export const AppTopBar = (props: AppTopBarProps) => {
 
   const isRejected = appMetadata.verification_status === "changes_requested";
   const isInReview = appMetadata.verification_status === "awaiting_review";
+  const canSubmitForReview = viewMode !== "verified";
 
   return (
     <div className="grid gap-y-5 rounded-2xl border border-grey-100 p-6 sm:rounded-none sm:border-none sm:p-0">
@@ -602,6 +603,7 @@ export const AppTopBar = (props: AppTopBarProps) => {
                         appMetadata.app_id?.includes("staging") &&
                         process.env.NEXT_PUBLIC_APP_ENV === "production",
                     })}
+                    disabled={!canSubmitForReview}
                     onClick={() =>
                       router.push(
                         `${urls.configuration({ team_id: teamId, app_id: appId })}?submitForReview=true`,
