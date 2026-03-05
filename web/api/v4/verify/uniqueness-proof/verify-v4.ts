@@ -1,7 +1,7 @@
 import { hashActionToUint256 } from "@/api/helpers/rp-utils";
 import { verifyProofOnChain } from "@/api/helpers/temporal-rpc";
 import { logger } from "@/lib/logger";
-import { AppErrorCodes } from "@worldcoin/idkit-core";
+import { IDKitErrorCodes } from "@worldcoin/idkit-core";
 import { UniquenessProofResponseV4 } from "../request-schema";
 import { UniquenessResult } from "./handler";
 
@@ -46,7 +46,7 @@ export async function processUniquenessProofV4(
           return {
             identifier: item.identifier,
             success: false,
-            code: verifyResult.error?.code || AppErrorCodes.GenericError,
+            code: verifyResult.error?.code || IDKitErrorCodes.GenericError,
             detail:
               verifyResult.error?.detail ||
               "There was an error verifying this proof.",

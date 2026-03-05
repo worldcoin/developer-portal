@@ -6,7 +6,7 @@ import { NativeAppToAppIdMapping } from "@/lib/constants";
 import { generateExternalNullifier } from "@/lib/hashing";
 import { logger } from "@/lib/logger";
 import { captureEvent } from "@/services/posthogClient";
-import { AppErrorCodes, VerificationLevel } from "@worldcoin/idkit-core";
+import { IDKitErrorCodes, VerificationLevel } from "@worldcoin/idkit-core";
 import { hashToField } from "@worldcoin/idkit-core/hashing";
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
@@ -90,7 +90,7 @@ export const POST = async (req: NextRequest) => {
     logger.warn("App review failed", { app_id });
     return errorResponse({
       statusCode: error?.statusCode || 400,
-      code: error?.code || AppErrorCodes.GenericError,
+      code: error?.code || IDKitErrorCodes.GenericError,
       detail:
         error?.message ||
         "Review Failed: There was an error verifying this proof.",
