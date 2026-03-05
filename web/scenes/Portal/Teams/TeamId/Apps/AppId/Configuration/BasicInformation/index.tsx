@@ -16,6 +16,7 @@ import React, {
   useEffect,
   useImperativeHandle,
   useMemo,
+  useRef,
 } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
@@ -83,6 +84,7 @@ export const BasicInformation = forwardRef<
       app_website_url: appMetaData?.app_website_url ?? "",
     };
   }, [appMetaData]);
+  const previousMetadataId = useRef<string | undefined>(appMetaData?.id);
 
   const {
     register,
@@ -99,12 +101,16 @@ export const BasicInformation = forwardRef<
     },
   });
 
-  // Used to update the fields when view mode is changed
+  // Reset form values only when the metadata context changes (e.g. version switch),
+  // not on same-row refetches from image/toggle mutations.
   useEffect(() => {
-    reset({
-      ...editableAppMetadata,
-    });
-  }, [reset, editableAppMetadata]);
+    if (previousMetadataId.current !== appMetaData?.id) {
+      reset({
+        ...editableAppMetadata,
+      });
+      previousMetadataId.current = appMetaData?.id;
+    }
+  }, [appMetaData?.id, editableAppMetadata, reset]);
 
   const submit = useCallback(
     (opts?: { silent?: boolean }) =>
@@ -119,13 +125,14 @@ export const BasicInformation = forwardRef<
           return false;
         } else {
           await refetchAppMetadata();
+          reset(data);
           if (!opts?.silent) {
             toast.success("App information updated successfully");
           }
           return true;
         }
       },
-    [appMetaData?.id, appId, refetchAppMetadata],
+    [appMetaData?.id, appId, refetchAppMetadata, reset],
   );
 
   useImperativeHandle(ref, () => ({
