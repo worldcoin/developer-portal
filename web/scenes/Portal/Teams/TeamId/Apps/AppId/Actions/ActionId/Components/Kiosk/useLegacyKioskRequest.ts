@@ -13,6 +13,7 @@ import {
   type Preset,
   type RpContext,
 } from "@worldcoin/idkit";
+import { hashSignal } from "@worldcoin/idkit/hashing";
 import { useEffect, useMemo, useReducer } from "react";
 
 const POLLING_INTERVAL_MS = 3000;
@@ -47,16 +48,11 @@ type LegacyVerifyPayload = {
   verification_level: LegacyVerificationLevel;
 };
 
-function toHex(bytes: Uint8Array): string {
-  return Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join(
-    "",
-  );
-}
-
-function createNonce(): `0x${string}` {
+function createNonce(): string {
   const bytes = new Uint8Array(32);
   crypto.getRandomValues(bytes);
-  return `0x${toHex(bytes)}` as `0x${string}`;
+  // hashSignal is hashToFieldElement under the hood, we can reuse it to hash the nonce
+  return hashSignal(bytes);
 }
 
 function buildMockRpContext(appId: `app_${string}`): RpContext {
@@ -71,9 +67,7 @@ function buildMockRpContext(appId: `app_${string}`): RpContext {
   };
 }
 
-function getLegacyPreset(
-  verificationLevel: LegacyVerificationLevel,
-): Preset {
+function getLegacyPreset(verificationLevel: LegacyVerificationLevel): Preset {
   switch (verificationLevel) {
     case LegacyVerificationLevel.Orb:
       return orbLegacy();
@@ -89,9 +83,7 @@ function getLegacyPreset(
   }
 }
 
-function getKioskEnvironment(
-  appId: `app_${string}`,
-): "production" | "staging" {
+function getKioskEnvironment(appId: `app_${string}`): "production" | "staging" {
   return appId.startsWith("app_staging_") ? "staging" : "production";
 }
 
@@ -205,6 +197,18 @@ export function useLegacyKioskRequest({
       timeout: POLLING_TIMEOUT_MS,
     },
   });
+
+  useEffect(() => {
+    if (process.env.NODE_ENV === "production" || !flow.isError) {
+      return;
+    }
+
+    console.warn("Legacy kiosk request failed", {
+      appId,
+      action,
+      errorCode: flow.errorCode,
+    });
+  }, [action, appId, flow.errorCode, flow.isError]);
 
   useEffect(() => {
     if (!enabled) {
