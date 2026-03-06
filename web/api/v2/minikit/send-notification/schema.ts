@@ -13,7 +13,7 @@ const ALLOWED_UNIVERSAL_LINK_ORIGINS = isProduction
   ? ["https://world.org"]
   : ["https://staging.world.org"];
 
-const isValidUniversalLink = (value: string): boolean => {
+const isValidDeepFaceUniversalLink = (value: string): boolean => {
   try {
     const url = new URL(value);
     const isAllowedOrigin = ALLOWED_UNIVERSAL_LINK_ORIGINS.includes(url.origin);
@@ -74,7 +74,7 @@ export const sendNotificationBodySchemaV1 = yup
           const { app_id } = this.parent;
           return (
             isValidMiniAppDeepLink(value, app_id) ||
-            isValidUniversalLink(value ?? "") ||
+            isValidDeepFaceUniversalLink(value ?? "") ||
             isValidDeepFaceDeepLink(value ?? "")
           );
         },
@@ -121,7 +121,7 @@ export const sendNotificationBodySchemaV2 = yup
           const { app_id } = this.parent;
           return (
             isValidMiniAppDeepLink(value, app_id) ||
-            isValidUniversalLink(value ?? "") ||
+            isValidDeepFaceUniversalLink(value ?? "") ||
             isValidDeepFaceDeepLink(value ?? "")
           );
         },
