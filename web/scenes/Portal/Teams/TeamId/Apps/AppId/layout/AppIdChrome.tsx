@@ -4,8 +4,10 @@ import { BottomBar } from "@/components/BottomBar";
 import { AppIcon } from "@/components/Icons/AppIcon";
 import { DashboardSquareIcon } from "@/components/Icons/DashboardSquareIcon";
 import { IncognitoIcon } from "@/components/Icons/IncognitoIcon";
+import { SecurityIcon } from "@/components/Icons/SecurityIcon";
 import { TransactionIcon } from "@/components/Icons/TransactionIcon";
 import { UserAccountIcon } from "@/components/Icons/UserAccountIcon";
+import { WalletIcon } from "@/components/Icons/WalletIcon";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { Tab, Tabs } from "@/components/Tabs";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
@@ -90,7 +92,7 @@ export const AppIdChrome = ({
 
   if (showWorldId40Nav) {
     return (
-      <div className="flex flex-col">
+      <div className="flex min-h-dvh flex-col">
         <div className="md:border-b md:border-grey-100">
           <SizingWrapper gridClassName="hidden md:grid" variant="nav">
             <Tabs className="m-auto font-gta">
@@ -200,7 +202,7 @@ export const AppIdChrome = ({
 
         {children}
 
-        <BottomBar>
+        <BottomBar className="order-last mt-auto">
           <BottomBar.Link
             href={`/teams/${teamId}/apps/${appId}`}
             segment={null}
@@ -209,21 +211,32 @@ export const AppIdChrome = ({
           </BottomBar.Link>
 
           <BottomBar.Link
-            href={`/teams/${teamId}/apps/${appId}/actions`}
-            segment={"actions"}
+            href={
+              hasRpRegistration
+                ? `/teams/${teamId}/apps/${appId}/world-id-4-0`
+                : hasLegacyActions
+                  ? `/teams/${teamId}/apps/${appId}/actions`
+                  : urls.enableWorldId40({
+                      team_id: teamId,
+                      app_id: appId,
+                      next: "actions",
+                    })
+            }
+            segment={"world-id-4-0"}
+            active={isWorldIdSegment}
           >
-            <IncognitoIcon className="size-7" />
+            <AppIcon className="size-7" />
           </BottomBar.Link>
 
           <BottomBar.Link
             href={`/teams/${teamId}/apps/${appId}/configuration`}
             segment={"configuration"}
           >
-            <AppIcon className="size-7" />
+            <SecurityIcon className="size-7" />
           </BottomBar.Link>
 
           <BottomBar.Link href={miniAppPermissionsPath} segment={"mini-app"}>
-            <TransactionIcon className="size-7" />
+            <WalletIcon className="size-7" />
           </BottomBar.Link>
         </BottomBar>
       </div>
@@ -231,7 +244,7 @@ export const AppIdChrome = ({
   }
 
   return (
-    <div className="flex flex-col">
+    <div className="flex min-h-dvh flex-col">
       <div className="md:border-b md:border-grey-100">
         <SizingWrapper gridClassName="hidden md:grid" variant="nav">
           <Tabs className="m-auto font-gta">
@@ -301,7 +314,7 @@ export const AppIdChrome = ({
 
       {children}
 
-      <BottomBar>
+      <BottomBar className="order-last mt-auto">
         <BottomBar.Link href={`/teams/${teamId}/apps/${appId}`} segment={null}>
           <DashboardSquareIcon className="size-7" />
         </BottomBar.Link>
@@ -324,7 +337,7 @@ export const AppIdChrome = ({
           href={`/teams/${teamId}/apps/${appId}/configuration`}
           segment={"configuration"}
         >
-          <AppIcon className="size-7" />
+          <SecurityIcon className="size-7" />
         </BottomBar.Link>
         <BottomBar.Link href={miniAppTransactionsPath} segment={"mini-app"}>
           <TransactionIcon className="size-7" />

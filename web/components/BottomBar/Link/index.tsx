@@ -8,17 +8,21 @@ import clsx from "clsx";
 type BottomBarLinkProps = HTMLAttributes<HTMLAnchorElement> &
   LinkProps & {
     segment: string | null;
+    active?: boolean;
   };
 
 export const BottomBarLink = (props: BottomBarLinkProps) => {
-  const { className, segment, ...otherProps } = props;
+  const { className, segment, active: manualActive, ...otherProps } = props;
 
   const selectedLayoutSegment = useSelectedLayoutSegment();
 
-  const active = useMemo(
-    () => segment === selectedLayoutSegment,
-    [segment, selectedLayoutSegment],
-  );
+  const active = useMemo(() => {
+    if (manualActive !== undefined) {
+      return manualActive;
+    }
+
+    return segment === selectedLayoutSegment;
+  }, [manualActive, segment, selectedLayoutSegment]);
 
   return (
     <Link
