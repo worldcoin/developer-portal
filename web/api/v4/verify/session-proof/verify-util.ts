@@ -1,4 +1,4 @@
-import { IDKitErrorCodes } from "@worldcoin/idkit-core";
+import { IDKitErrorCodes } from "@worldcoin/idkit";
 import { logger } from "../../../../lib/logger";
 import { verifySessionProofOnChain } from "../../../helpers/temporal-rpc";
 import { SessionProofRequest } from "../request-schema";

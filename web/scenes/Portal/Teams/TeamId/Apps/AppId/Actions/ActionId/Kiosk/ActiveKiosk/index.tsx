@@ -13,7 +13,7 @@ import {
   ISuccessResult,
   VerificationLevel,
   useWorldBridgeStore,
-} from "@worldcoin/idkit-core";
+} from "@worldcoin/idkit";
 import clsx from "clsx";
 import dayjs from "dayjs";
 import dayjsRelative from "dayjs/plugin/relativeTime";

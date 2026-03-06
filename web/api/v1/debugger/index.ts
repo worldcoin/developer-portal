@@ -4,7 +4,7 @@ import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { verifyProof } from "@/api/helpers/verify";
 import { generateExternalNullifier } from "@/lib/hashing";
 import { LegacyVerificationLevel } from "@/lib/idkit";
-import { hashToField } from "@worldcoin/idkit-core/hashing";
+import { hashToField } from "@worldcoin/idkit/hashing";
 import { toBeHex } from "ethers";
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";

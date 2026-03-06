@@ -1,7 +1,7 @@
 import { verifyProof } from "@/api/helpers/verify";
 import { generateExternalNullifier } from "@/lib/hashing";
 import { logger } from "@/lib/logger";
-import { IDKitErrorCodes, VerificationLevel } from "@worldcoin/idkit-core";
+import { IDKitErrorCodes, VerificationLevel } from "@worldcoin/idkit";
 import { UniquenessProofResponseV3 } from "../request-schema";
 import { UniquenessResult } from "./handler";
 

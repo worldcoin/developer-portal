@@ -1,7 +1,7 @@
 import { hashActionToUint256 } from "@/api/helpers/rp-utils";
 import { verifyProofOnChain } from "@/api/helpers/temporal-rpc";
 import { logger } from "@/lib/logger";
-import { IDKitErrorCodes } from "@worldcoin/idkit-core";
+import { IDKitErrorCodes } from "@worldcoin/idkit";
 import { UniquenessProofResponseV4 } from "../request-schema";
 import { UniquenessResult } from "./handler";
 

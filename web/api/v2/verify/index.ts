@@ -12,7 +12,7 @@ import {
 } from "@/api/helpers/verify";
 import { logger } from "@/lib/logger";
 import { captureEvent } from "@/services/posthogClient";
-import { IDKitErrorCodes, VerificationLevel } from "@worldcoin/idkit-core";
+import { IDKitErrorCodes, VerificationLevel } from "@worldcoin/idkit";
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
 import { getSdk as atomicUpsertNullifierSdk } from "./graphql/atomic-upsert-nullifier.generated";

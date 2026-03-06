@@ -1,7 +1,7 @@
 import { restAPIRequest } from "@/lib/frontend-api";
 import { LegacyVerificationLevel } from "@/lib/idkit";
 import { KioskScreen } from "@/lib/types";
-import { ISuccessResult, useWorldBridgeStore } from "@worldcoin/idkit-core";
+import { ISuccessResult, useWorldBridgeStore } from "@worldcoin/idkit";
 import clsx from "clsx";
 import { useCallback, useEffect, useState } from "react";
 import { Connected } from "../../../Components/Kiosk/Connected";
