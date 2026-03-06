@@ -303,7 +303,20 @@ export const loginCallback = withApiAuthRequired(async (req: NextRequest) => {
 
   const teamId = user?.memberships[0]?.team.id;
   let url: string = urls.profile();
-  const returnTo = req.nextUrl.searchParams.get("returnTo");
+  const rawReturnTo = req.nextUrl.searchParams.get("returnTo");
+  let returnTo: string | null = null;
+
+  if (rawReturnTo) {
+    try {
+      const appOrigin = new URL(appUrl).origin;
+      const resolved = new URL(rawReturnTo, appUrl);
+      if (resolved.origin === appOrigin) {
+        returnTo = resolved.pathname + resolved.search + resolved.hash;
+      }
+    } catch {
+      // invalid URL — leave returnTo as null
+    }
+  }
 
   if (returnTo) {
     url = returnTo;
