@@ -21,12 +21,35 @@ export const POST = withApiAuthRequired(async (req: NextRequest) => {
     return NextResponse.json({ success: false }, { status: 401 });
   }
 
+  const {
+    id,
+    name,
+    email,
+    world_id_nullifier,
+    posthog_id,
+    is_allow_tracking,
+    memberships,
+  } = user;
+
+  const allowlistedUpdates = Object.fromEntries(
+    Object.entries({
+      id,
+      name,
+      email,
+      world_id_nullifier,
+      posthog_id,
+      is_allow_tracking,
+      memberships,
+    }).filter(([, v]) => v !== undefined),
+  );
+
   const updatedSession = {
     ...session,
     user: {
       ...session.user,
       hasura: {
-        ...user,
+        ...session.user.hasura,
+        ...allowlistedUpdates,
       },
     },
   };
