@@ -10,6 +10,24 @@ The World Developer Portal provides tools to interact with the [World ID Protoco
 
 All the technical docs for the World SDK, World ID Protocol, examples, guides can be found at https://docs.world.org/
 
+## 📋 Prerequisites
+
+1. **Node.js v20.18.0** - You can install it using [nvm](https://github.com/nvm-sh/nvm) (recommended) or directly from [nodejs.org](https://nodejs.org/).
+   - If using nvm, you can install it via Homebrew (`brew install nvm`) or follow the [nvm installation instructions](https://github.com/nvm-sh/nvm#installing-and-updating). Then run:
+     ```bash
+     nvm install
+     nvm use
+     ```
+   - Alternatively, install Node.js v20.18.0 directly from [nodejs.org](https://nodejs.org/).
+
+2. **pnpm** (version >= 8.15.8):
+   ```bash
+   npm install -g pnpm
+   ```
+
+3. **Docker** and **Docker Compose** - Install from the [official Docker website](https://www.docker.com/get-started) (Docker Desktop includes both Docker and Docker Compose).
+   - **Note for Apple Silicon users:** You may be prompted to install Rosetta 2 during Docker installation. This is required for compatibility with some Docker images or installer components. Rosetta 2 can be installed automatically when prompted, or manually via `softwareupdate --install-rosetta` in Terminal.
+
 ## 🧑‍💻 Developing Locally
 
 The Developer Portal uses some external services to operate. You do **not** need all the real credentials to run locally.
@@ -45,11 +63,17 @@ cp .env.example .env
 
 ### Starting the app
 
-The following command will start two containers with the Postgres database, and Hasura server. Additionally, it will run the Next.js app from the [/web](./web) directory. All Hasura migrations and metadata are automatically applied.
+The following commands will start two containers with the Postgres database, and Hasura server. Additionally, it will run the Next.js app from the [/web](./web) directory. All Hasura migrations and metadata are automatically applied.
 
 ```bash
+# Start Docker containers (run from project root)
 docker compose up --detach
-cd web && pnpm dev
+
+# Install dependencies (run from project root)
+cd web && pnpm install
+
+# Start the Next.js dev server
+pnpm dev
 ```
 
 You can also take advantage of the Makefile, `make up`
