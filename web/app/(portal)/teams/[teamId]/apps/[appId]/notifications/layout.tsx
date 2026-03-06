@@ -1,3 +1,3 @@
-import { TransactionsLayout } from "@/scenes/Portal/Teams/TeamId/Apps/AppId/MiniApp/layout";
+import { MiniAppLayout } from "@/scenes/Portal/Teams/TeamId/Apps/AppId/MiniApp/layout";
 
-export default TransactionsLayout;
+export default MiniAppLayout;

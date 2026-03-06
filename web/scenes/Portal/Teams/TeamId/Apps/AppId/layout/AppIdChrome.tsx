@@ -12,6 +12,7 @@ import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { urls } from "@/lib/urls";
 import { usePathname, useSelectedLayoutSegment } from "next/navigation";
 import { ReactNode } from "react";
+import { SectionSubTabs } from "../common/SectionSubTabs";
 
 function isOnboardingPath(
   pathname: string | null,
@@ -142,40 +143,28 @@ export const AppIdChrome = ({
 
         {isWorldIdSegment && (
           <div className="md:border-b md:border-grey-100 md:bg-grey-50">
-            <SizingWrapper gridClassName="hidden md:grid" variant="nav">
-              <Tabs className="px-6 py-4 font-gta md:py-0">
-                {hasRpRegistration && (
-                  <Tab
-                    className="md:py-4"
-                    href={`/teams/${teamId}/apps/${appId}/world-id-4-0`}
-                    segment={"world-id-4-0"}
-                  >
-                    <Typography variant={TYPOGRAPHY.R4}>
-                      World ID 4.0
-                    </Typography>
-                  </Tab>
-                )}
-
-                <Tab
-                  className="md:py-4"
-                  href={`/teams/${teamId}/apps/${appId}/world-id-actions`}
-                  segment={"world-id-actions"}
-                >
-                  <Typography variant={TYPOGRAPHY.R4}>Actions</Typography>
-                </Tab>
-
-                {hasLegacyActions && (
-                  <Tab
-                    className="md:py-4"
-                    href={`/teams/${teamId}/apps/${appId}/actions`}
-                    segment={"actions"}
-                  >
-                    <Typography variant={TYPOGRAPHY.R4}>
-                      World ID 3.0 Legacy
-                    </Typography>
-                  </Tab>
-                )}
-              </Tabs>
+            <SizingWrapper variant="nav">
+              <SectionSubTabs
+                items={[
+                  {
+                    label: "World ID 4.0",
+                    href: `/teams/${teamId}/apps/${appId}/world-id-4-0`,
+                    segment: "world-id-4-0",
+                    hidden: !hasRpRegistration,
+                  },
+                  {
+                    label: "Actions",
+                    href: `/teams/${teamId}/apps/${appId}/world-id-actions`,
+                    segment: "world-id-actions",
+                  },
+                  {
+                    label: "World ID 3.0 Legacy",
+                    href: `/teams/${teamId}/apps/${appId}/actions`,
+                    segment: "actions",
+                    hidden: !hasLegacyActions,
+                  },
+                ]}
+              />
             </SizingWrapper>
           </div>
         )}
@@ -183,34 +172,28 @@ export const AppIdChrome = ({
         {isMiniAppSegment && (
           <div className="md:border-b md:border-grey-100 md:bg-grey-50">
             <SizingWrapper gridClassName="hidden md:grid" variant="nav">
-              <Tabs className="px-6 py-4 font-gta md:py-0">
-                <Tab
-                  className="md:py-4"
-                  href={miniAppPermissionsPath}
-                  segment={"mini-app"}
-                  active={isMiniAppPermissions}
-                >
-                  <Typography variant={TYPOGRAPHY.R4}>Permissions</Typography>
-                </Tab>
-
-                <Tab
-                  className="md:py-4"
-                  href={miniAppTransactionsPath}
-                  segment={"mini-app"}
-                  active={isMiniAppTransactions}
-                >
-                  <Typography variant={TYPOGRAPHY.R4}>Transactions</Typography>
-                </Tab>
-
-                <Tab
-                  className="md:py-4"
-                  href={miniAppNotificationsPath}
-                  segment={"mini-app"}
-                  active={isMiniAppNotifications}
-                >
-                  <Typography variant={TYPOGRAPHY.R4}>Notifications</Typography>
-                </Tab>
-              </Tabs>
+              <SectionSubTabs
+                items={[
+                  {
+                    label: "Permissions",
+                    href: miniAppPermissionsPath,
+                    segment: "mini-app",
+                    active: isMiniAppPermissions,
+                  },
+                  {
+                    label: "Transactions",
+                    href: miniAppTransactionsPath,
+                    segment: "mini-app",
+                    active: isMiniAppTransactions,
+                  },
+                  {
+                    label: "Notifications",
+                    href: miniAppNotificationsPath,
+                    segment: "mini-app",
+                    active: isMiniAppNotifications,
+                  },
+                ]}
+              />
             </SizingWrapper>
           </div>
         )}

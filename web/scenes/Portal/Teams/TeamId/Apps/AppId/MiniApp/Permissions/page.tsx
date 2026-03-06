@@ -9,6 +9,7 @@ import { FormSkeleton } from "../../Configuration/AppTopBar/FormSkeleton";
 import { useFetchAppMetadataQuery } from "../../Configuration/graphql/client/fetch-app-metadata.generated";
 import { viewModeAtom } from "../../Configuration/layout/ImagesProvider";
 import { SetupForm } from "../../MiniApp/PermissionsForm";
+import { MiniAppSubTabs } from "../SubTabs";
 
 type AppPermissionsPageProps = {
   params: Record<string, string> | null | undefined;
@@ -46,6 +47,10 @@ export const AppPermissionsPage = ({ params }: AppPermissionsPageProps) => {
         ) : (
           <AppTopBar appId={appId} teamId={teamId} app={app!} />
         )}
+      </div>
+
+      <div className="md:hidden">
+        <MiniAppSubTabs />
       </div>
 
       <div className="border-t border-grey-100" />
