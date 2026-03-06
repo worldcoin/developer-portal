@@ -18,7 +18,7 @@ import { LegacyVerificationLevel } from "@/lib/idkit";
 import { logger } from "@/lib/logger";
 import { OIDCFlowType, OIDCResponseType } from "@/lib/types";
 import { captureEvent } from "@/services/posthogClient";
-import { hashSignal } from "@worldcoin/idkit";
+import { hashSignal } from "@worldcoin/idkit/hashing";
 import { createHash } from "crypto";
 import { toBeHex } from "ethers";
 import { NextRequest, NextResponse } from "next/server";

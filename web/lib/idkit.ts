@@ -1,4 +1,4 @@
-import { hashSignal } from "@worldcoin/idkit";
+import { hashSignal } from "@worldcoin/idkit/hashing";
 import { AbiParameters } from "ox";
 
 declare const brand: unique symbol;
