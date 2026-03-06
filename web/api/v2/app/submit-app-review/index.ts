@@ -8,7 +8,7 @@ import { LegacyVerificationLevel } from "@/lib/idkit";
 import { logger } from "@/lib/logger";
 import { captureEvent } from "@/services/posthogClient";
 import { IDKitErrorCodes } from "@worldcoin/idkit";
-import { hashToField } from "@worldcoin/idkit/hashing";
+import { hashSignal } from "@worldcoin/idkit/hashing";
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
 import { getSdk as fetchAppReview } from "./graphql/fetch-current-app-review.generated";
@@ -69,12 +69,12 @@ export const POST = async (req: NextRequest) => {
   }
 
   // Fix the signal hash to be empty string
-  const signalHash = hashToField(parsedParams.rating.toString());
+  const signalHash = hashSignal(parsedParams.rating.toString());
   const external_nullifier = generateExternalNullifier(`${app_id}_app_review`);
 
   const { error, success } = await verifyProof(
     {
-      signal_hash: signalHash.digest,
+      signal_hash: signalHash,
       proof: parsedParams.proof,
       merkle_root: parsedParams.merkle_root,
       nullifier_hash: parsedParams.nullifier_hash,
