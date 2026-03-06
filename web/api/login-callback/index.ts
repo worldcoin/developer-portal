@@ -303,7 +303,11 @@ export const loginCallback = withApiAuthRequired(async (req: NextRequest) => {
 
   const teamId = user?.memberships[0]?.team.id;
   let url: string = urls.profile();
-  const returnTo = req.nextUrl.searchParams.get("returnTo");
+  const rawReturnTo = req.nextUrl.searchParams.get("returnTo");
+  const returnTo =
+    rawReturnTo?.startsWith("/") && !rawReturnTo.startsWith("//")
+      ? rawReturnTo
+      : null;
 
   if (returnTo) {
     url = returnTo;
