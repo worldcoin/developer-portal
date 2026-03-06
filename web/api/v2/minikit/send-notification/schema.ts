@@ -28,6 +28,19 @@ const isValidUniversalLink = (value: string): boolean => {
   }
 };
 
+const APP_LINK_PREFIX = "worldapp://verify?";
+
+const isValidAppLink = (value: string): boolean => {
+  if (!value.startsWith(APP_LINK_PREFIX)) return false;
+  try {
+    const params = new URLSearchParams(value.slice(APP_LINK_PREFIX.length));
+
+    return params.get("t") === "deepface";
+  } catch {
+    return false;
+  }
+};
+
 const isValidMiniAppDeepLink = (
   value: string | undefined,
   app_id: string,
@@ -54,12 +67,13 @@ export const sendNotificationBodySchemaV1 = yup
       .required()
       .test(
         "valid-mini-app-path",
-        "mini_app_path must be a valid WorldApp deeplink (worldapp://mini-app?app_id=) or a Deep Face Universal Link (https://world.org/verify?t=deepface)",
+        "mini_app_path must be a valid WorldApp deeplink (worldapp://mini-app?app_id=), a Deep Face Universal Link (https://world.org/verify?t=deepface), or a Deep Face App Link (worldapp://verify?t=deepface)",
         function (value) {
           const { app_id } = this.parent;
           return (
             isValidMiniAppDeepLink(value, app_id) ||
-            isValidUniversalLink(value ?? "")
+            isValidUniversalLink(value ?? "") ||
+            isValidAppLink(value ?? "")
           );
         },
       ),
@@ -100,12 +114,13 @@ export const sendNotificationBodySchemaV2 = yup
       .required()
       .test(
         "valid-mini-app-path",
-        "mini_app_path must be a valid WorldApp deeplink (worldapp://mini-app?app_id=) or a Deep Face Universal Link (https://world.org/verify?t=deepface)",
+        "mini_app_path must be a valid WorldApp deeplink (worldapp://mini-app?app_id=), a Deep Face Universal Link (https://world.org/verify?t=deepface), or a Deep Face App Link (worldapp://verify?t=deepface)",
         function (value) {
           const { app_id } = this.parent;
           return (
             isValidMiniAppDeepLink(value, app_id) ||
-            isValidUniversalLink(value ?? "")
+            isValidUniversalLink(value ?? "") ||
+            isValidAppLink(value ?? "")
           );
         },
       ),
