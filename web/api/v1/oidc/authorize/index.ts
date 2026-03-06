@@ -18,7 +18,7 @@ import { LegacyVerificationLevel } from "@/lib/idkit";
 import { logger } from "@/lib/logger";
 import { OIDCFlowType, OIDCResponseType } from "@/lib/types";
 import { captureEvent } from "@/services/posthogClient";
-import { hashToField } from "@worldcoin/idkit/hashing";
+import { hashSignal } from "@worldcoin/idkit/hashing";
 import { createHash } from "crypto";
 import { toBeHex } from "ethers";
 import { NextRequest, NextResponse } from "next/server";
@@ -251,7 +251,7 @@ export async function POST(req: NextRequest) {
     // For OIDC we should always hash the signal now.
     let signalHash: string;
     try {
-      signalHash = toBeHex(hashToField(signal).hash as bigint);
+      signalHash = toBeHex(hashSignal(signal));
     } catch (error) {
       return corsHandler(
         errorResponse({

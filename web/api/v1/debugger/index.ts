@@ -4,7 +4,7 @@ import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { verifyProof } from "@/api/helpers/verify";
 import { generateExternalNullifier } from "@/lib/hashing";
 import { LegacyVerificationLevel } from "@/lib/idkit";
-import { hashToField } from "@worldcoin/idkit/hashing";
+import { hashSignal } from "@worldcoin/idkit/hashing";
 import { toBeHex } from "ethers";
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
@@ -58,7 +58,7 @@ export async function POST(req: NextRequest) {
   ).digest;
 
   try {
-    const signalHash = toBeHex(hashToField(parsedParams.signal).hash as bigint);
+    const signalHash = toBeHex(hashSignal(parsedParams.signal));
     const result = await verifyProof(
       {
         merkle_root: parsedParams.merkle_root,

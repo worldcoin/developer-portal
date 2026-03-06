@@ -1,21 +1,22 @@
-import { AbiEncodedValue, IDKitConfig } from "@worldcoin/idkit";
+import { hashSignal } from "@worldcoin/idkit/hashing";
 
 import {
+  AbiEncodedValue,
   HashFunctionOutput,
-  hashToField,
   packAndEncode,
   solidityEncode,
-} from "@worldcoin/idkit/hashing";
+} from "@/lib/idkit";
 
 export const generateExternalNullifier = (
   app_id: string,
-  action?: IDKitConfig["action"],
+  action?: AbiEncodedValue | string,
 ): HashFunctionOutput => {
-  if (!action) return packAndEncode([["uint256", hashToField(app_id).hash]]);
+  let hashed_app_id = hashSignal(app_id);
+  if (!action) return packAndEncode([["uint256", hashed_app_id]]);
   if (typeof action === "string") action = solidityEncode(["string"], [action]);
 
   return packAndEncode([
-    ["uint256", hashToField(app_id).hash],
+    ["uint256", hashed_app_id],
     ...action.types.map(
       (type, index) =>
         [type, (action as AbiEncodedValue).values[index]] as [string, unknown],
