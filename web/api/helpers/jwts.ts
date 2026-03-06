@@ -9,7 +9,7 @@ import "server-only";
 import { retrieveJWK } from "@/api/helpers/jwks";
 import { getKMSClient, signJWTWithKMSKey } from "@/api/helpers/kms";
 import { OIDCScopes } from "@/api/helpers/oidc";
-import { VerificationLevel } from "@worldcoin/idkit-core";
+import { LegacyVerificationLevel } from "@/lib/idkit";
 import { randomUUID } from "crypto";
 import dayjs from "dayjs";
 import * as jose from "jose";
@@ -224,7 +224,7 @@ interface IVerificationJWT {
   nonce?: string;
   nullifier_hash: string;
   app_id: string;
-  verification_level: VerificationLevel;
+  verification_level: LegacyVerificationLevel;
   scope: OIDCScopes[];
 }
 
@@ -251,7 +251,7 @@ export const generateOIDCJWT = async ({
     // NOTE: DEPRECATED, will be removed in future versions
     "https://id.worldcoin.org/beta": {
       likely_human:
-        verification_level === VerificationLevel.Orb ? "strong" : "weak",
+        verification_level === LegacyVerificationLevel.Orb ? "strong" : "weak",
       credential_type: verification_level,
       warning:
         "DEPRECATED and will be removed soon. Use `https://id.worldcoin.org/v1` instead.",

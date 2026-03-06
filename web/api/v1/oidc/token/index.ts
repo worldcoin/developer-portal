@@ -5,7 +5,7 @@ import { generateOIDCJWT } from "@/api/helpers/jwts";
 import { authenticateOIDCEndpoint } from "@/api/helpers/oidc";
 import { corsHandler } from "@/api/helpers/utils";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
-import { VerificationLevel } from "@worldcoin/idkit-core";
+import { LegacyVerificationLevel } from "@/lib/idkit";
 import { createHash, timingSafeEqual } from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
@@ -210,7 +210,7 @@ export async function POST(req: NextRequest) {
   const token = await generateOIDCJWT({
     app_id,
     nullifier_hash: authCode.nullifier_hash,
-    verification_level: authCode.verification_level as VerificationLevel,
+    verification_level: authCode.verification_level as LegacyVerificationLevel,
     kid: jwk.kid,
     kms_id: jwk.kms_id ?? "",
     scope: authCode.scope,

@@ -2,7 +2,7 @@ import { Button } from "@/components/Button";
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { CopyIcon } from "@/components/Icons/CopyIcon";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import { VerificationLevel } from "@worldcoin/idkit-core";
+import { LegacyVerificationLevel } from "@/lib/idkit";
 import clsx from "clsx";
 import { useParams } from "next/navigation";
 import posthog from "posthog-js";
@@ -14,8 +14,10 @@ export const Waiting = memo(function Waiting(props: {
   qrData: string | null;
   showSimulator: boolean;
   qrCodeSize?: number;
-  verificationLevel?: VerificationLevel;
-  resetKioskAndUpdateVerificationLevel?: (value: VerificationLevel) => void;
+  verificationLevel?: LegacyVerificationLevel;
+  resetKioskAndUpdateVerificationLevel?: (
+    value: LegacyVerificationLevel,
+  ) => void;
 }) {
   const [copied, setCopied] = useState(false);
   const [buttonColor, setButtonColor] = useState(false);

@@ -1,11 +1,11 @@
-import { AbiEncodedValue, IDKitConfig } from "@worldcoin/idkit-core";
+import { AbiEncodedValue, IDKitConfig } from "@worldcoin/idkit";
 
 import {
   HashFunctionOutput,
   hashToField,
   packAndEncode,
   solidityEncode,
-} from "@worldcoin/idkit-core/hashing";
+} from "@worldcoin/idkit/hashing";
 
 export const generateExternalNullifier = (
   app_id: string,

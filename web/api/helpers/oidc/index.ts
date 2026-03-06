@@ -1,7 +1,7 @@
 import { verifyHashedSecret } from "@/api/helpers/utils";
+import { LegacyVerificationLevel } from "@/lib/idkit";
 import { logger } from "@/lib/logger";
 import { IInternalError, OIDCFlowType, OIDCResponseType } from "@/lib/types";
-import { VerificationLevel } from "@worldcoin/idkit-core";
 import crypto from "crypto";
 import "server-only";
 
@@ -115,7 +115,7 @@ export const fetchOIDCApp = async (
 export const generateOIDCCode = async (
   app_id: string,
   nullifier_hash: string,
-  verification_level: VerificationLevel,
+  verification_level: LegacyVerificationLevel,
   scope: OIDCScopes[],
   redirect_uri: string,
   code_challenge?: string,

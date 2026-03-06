@@ -3,7 +3,7 @@ import {
   VerificationLevel,
   VerificationState,
   useWorldBridgeStore,
-} from "@worldcoin/idkit-core";
+} from "@worldcoin/idkit";
 
 import { memo, useEffect, useRef } from "react";
 
@@ -53,7 +53,7 @@ export const IDKitBridge = memo(function IDKitBridge(props: IDKitBridgeProps) {
       app_id: props.app_id,
       action: props.action,
       bridge_url,
-      verification_level: verificationLevel ?? VerificationLevel.Device,
+      verification_level: verificationLevel ?? LegacyVerificationLevel.Device,
       action_description: props.action_description,
     })
       .then(() => {

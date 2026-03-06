@@ -3,8 +3,8 @@ import { corsHandler } from "@/api/helpers/utils";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { verifyProof } from "@/api/helpers/verify";
 import { generateExternalNullifier } from "@/lib/hashing";
-import { VerificationLevel } from "@worldcoin/idkit-core";
-import { hashToField } from "@worldcoin/idkit-core/hashing";
+import { LegacyVerificationLevel } from "@/lib/idkit";
+import { hashToField } from "@worldcoin/idkit/hashing";
 import { toBeHex } from "ethers";
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
@@ -34,7 +34,7 @@ const schema = yup
     is_staging: yup.boolean().strict().required("This attribute is required."),
     verification_level: yup
       .string()
-      .oneOf(Object.values(VerificationLevel))
+      .oneOf(Object.values(LegacyVerificationLevel))
       .required(),
   })
   .noUnknown();
