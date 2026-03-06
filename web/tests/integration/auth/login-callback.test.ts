@@ -265,6 +265,21 @@ describe("test /login-callback", () => {
     expect(response.headers.get("location")?.endsWith("/apps")).toBeTruthy();
   });
 
+  it("should ignore a backslash-prefixed returnTo that resolves off-site", async () => {
+    const url = new URL(
+      "/login-callback?returnTo=%2F%5Cevil.com",
+      "http://localhost:3000",
+    );
+    const mockReq = { nextUrl: url } as unknown as NextRequest;
+    const mockSession = { user: validEmailSessionUser };
+
+    (getSession as jest.Mock).mockResolvedValue(mockSession);
+    const response = await loginCallback(mockReq, {});
+
+    expect(response.headers.get("location")).not.toContain("evil.com");
+    expect(response.headers.get("location")?.endsWith("/apps")).toBeTruthy();
+  });
+
   it("Should add membership for the invited existing user", async () => {
     const email = "test1-member@team2.example.com";
     const team_id = "team_d7cde14f17eda7e0ededba7ded6b4467";
