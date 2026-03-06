@@ -7,7 +7,6 @@ import { generateExternalNullifier } from "@/lib/hashing";
 import { LegacyVerificationLevel } from "@/lib/idkit";
 import { logger } from "@/lib/logger";
 import { captureEvent } from "@/services/posthogClient";
-import { IDKitErrorCodes } from "@worldcoin/idkit";
 import { hashSignal } from "@worldcoin/idkit/hashing";
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
@@ -91,7 +90,8 @@ export const POST = async (req: NextRequest) => {
     logger.warn("App review failed", { app_id });
     return errorResponse({
       statusCode: error?.statusCode || 400,
-      code: error?.code || IDKitErrorCodes.GenericError,
+      // Defaulting to "generic_error" for backwards compatibility.
+      code: error?.code || "generic_error",
       detail:
         error?.message ||
         "Review Failed: There was an error verifying this proof.",
