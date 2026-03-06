@@ -10,18 +10,14 @@ import {
   encodeNullifierForStorage,
   verifyProof,
 } from "@/api/helpers/verify";
+import { LegacyVerificationLevel } from "@/lib/idkit";
 import { logger } from "@/lib/logger";
 import { captureEvent } from "@/services/posthogClient";
-import { IDKitErrorCodes, VerificationLevel } from "@worldcoin/idkit";
+import { IDKitErrorCodes } from "@worldcoin/idkit";
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
 import { getSdk as atomicUpsertNullifierSdk } from "./graphql/atomic-upsert-nullifier.generated";
 import { getSdk as getFetchAppActionSdk } from "./graphql/fetch-app-action.generated";
-
-const VerificationLevelWithFace = {
-  ...VerificationLevel,
-  Face: "face" as const,
-};
 
 const schema = yup
   .object({
@@ -48,7 +44,7 @@ const schema = yup
     merkle_root: yup.string().strict().required("This attribute is required."),
     verification_level: yup
       .string()
-      .oneOf(Object.values(VerificationLevelWithFace))
+      .oneOf(Object.values(LegacyVerificationLevel))
       .required("This attribute is required."),
     max_age: yup
       .number()

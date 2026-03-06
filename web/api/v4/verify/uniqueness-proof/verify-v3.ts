@@ -1,7 +1,8 @@
 import { verifyProof } from "@/api/helpers/verify";
 import { generateExternalNullifier } from "@/lib/hashing";
+import { LegacyVerificationLevel } from "@/lib/idkit";
 import { logger } from "@/lib/logger";
-import { IDKitErrorCodes, VerificationLevel } from "@worldcoin/idkit";
+import { IDKitErrorCodes } from "@worldcoin/idkit";
 import { UniquenessProofResponseV3 } from "../request-schema";
 import { UniquenessResult } from "./handler";
 
@@ -31,7 +32,7 @@ export async function processUniquenessProofV3(
           {
             is_staging: isStaging,
             // identifier uses VerificationLevel values (legacy term for credential type)
-            verification_level: item.identifier as VerificationLevel | "face",
+            verification_level: item.identifier as LegacyVerificationLevel,
             max_age: item.max_age,
           },
         );
