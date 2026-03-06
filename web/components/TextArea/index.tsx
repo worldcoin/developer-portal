@@ -10,7 +10,7 @@ export interface TextAreaInterface
   required?: boolean;
   currentValue?: string;
   errors?: FieldError;
-  label: React.ReactNode;
+  label?: React.ReactNode;
   placeholder?: string;
   helperText?: string;
   addOn?: React.ReactElement;
@@ -95,9 +95,12 @@ export const TextArea = memo(function TextArea(props: TextAreaInterface) {
           {addOn && addOn}
         </div>
 
-        <legend className={labelClassNames}>
-          {label} {required && <span className="text-system-error-500">*</span>}
-        </legend>
+        {(Boolean(label) || required) && (
+          <legend className={labelClassNames}>
+            {label}
+            {required && <span className="text-system-error-500">*</span>}
+          </legend>
+        )}
       </fieldset>
       <div className={clsx("flex w-full flex-col px-2")}>
         {helperText && (

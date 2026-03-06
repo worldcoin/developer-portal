@@ -1,6 +1,6 @@
 import { CountryBadge } from "@/components/CountryBadge";
-import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { FormLanguage, languageMap } from "@/lib/languages";
+import clsx from "clsx";
 import { FieldArrayWithId, FieldErrors } from "react-hook-form";
 import { AppStoreFormValues } from "../../../../FormSchema/types";
 
@@ -34,6 +34,9 @@ export const LanguageTabs = ({
             onClick={() => onLanguageSelect(field.language as FormLanguage)}
             focused={isSelected}
             isError={hasError}
+            className={clsx({
+              "bg-system-error-50 hover:bg-system-error-100": hasError,
+            })}
           >
             <img
               width={20}
@@ -42,7 +45,9 @@ export const LanguageTabs = ({
               src={`${process.env.NEXT_PUBLIC_APP_URL}/icons/flags/${countryCode}.svg`}
               alt={`lang flag`}
             />
-            <Typography variant={TYPOGRAPHY.R5}>{languageLabel}</Typography>
+            <span className="text-[13px] font-semibold text-grey-900">
+              {languageLabel}
+            </span>
           </CountryBadge>
         );
       })}

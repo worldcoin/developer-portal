@@ -4,6 +4,9 @@ query FetchAppMetadata($id: String!) {
     engine
     is_staging
     status
+    team {
+      name
+    }
     app_metadata(where: { verification_status: { _neq: "verified" } }) {
       id
       app_id

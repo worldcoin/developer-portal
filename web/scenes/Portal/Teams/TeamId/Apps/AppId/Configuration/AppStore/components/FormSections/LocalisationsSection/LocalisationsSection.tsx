@@ -1,20 +1,18 @@
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import { useRefetchQueries } from "@/lib/use-refetch-queries";
-import { useCallback } from "react";
 import {
   Control,
+  Controller,
   FieldArrayWithId,
   FieldErrors,
-  useWatch,
 } from "react-hook-form";
-import { FetchAppMetadataDocument } from "../../../../graphql/client/fetch-app-metadata.generated";
 import { AppStoreFormValues } from "../../../FormSchema/types";
-import { FetchLocalisationsDocument } from "../../../graphql/client/fetch-localisations.generated";
 import {
   AppMetadata,
   FormSectionProps,
 } from "../../../types/AppStoreFormTypes";
 import { FormSection } from "../../FormFields/FormSection";
+import { MetaTagImageField } from "../../../ImageForm/MetaTagImageField";
+import { ShowcaseImagesField } from "../../../ImageForm/ShowcaseImagesField";
 import { LanguageTabs } from "./components/LanguageTabs";
 import { LocalisationFields } from "./components/LocalisationFields";
 import { useLanguageSelection } from "./hooks/useLanguageSelection";
@@ -23,9 +21,11 @@ interface LocalisationsSectionProps extends FormSectionProps {
   control: Control<AppStoreFormValues>;
   errors: FieldErrors<AppStoreFormValues>;
   localisations: FieldArrayWithId<AppStoreFormValues, "localisations", "id">[];
+  appMetadata: AppMetadata;
   appId: string;
   teamId: string;
-  appMetadata: AppMetadata;
+  supportedLanguages: string[];
+  onAutosaveSuccess: () => void;
 }
 
 export const LocalisationsSection = ({
@@ -34,9 +34,11 @@ export const LocalisationsSection = ({
   localisations,
   isEditable,
   isEnoughPermissions,
+  appMetadata,
   appId,
   teamId,
-  appMetadata,
+  supportedLanguages,
+  onAutosaveSuccess,
 }: LocalisationsSectionProps) => {
   const {
     selectedLanguage,
@@ -45,29 +47,6 @@ export const LocalisationsSection = ({
     selectedField,
   } = useLanguageSelection(localisations);
 
-  const supportedLanguages = useWatch({
-    control,
-    name: "supported_languages",
-  });
-
-  const { refetch: refetchAppMetadata } = useRefetchQueries(
-    FetchAppMetadataDocument,
-    { id: appId },
-  );
-  const { refetch: refetchLocalisations } = useRefetchQueries(
-    FetchLocalisationsDocument,
-    { app_metadata_id: appMetadata.id },
-  );
-
-  const handleAutosaveSuccess = useCallback(() => {
-    refetchAppMetadata();
-    refetchLocalisations();
-  }, [refetchAppMetadata, refetchLocalisations]);
-
-  const handleAutosaveError = useCallback((error: any) => {
-    console.error("Autosave failed:", error);
-  }, []);
-
   // fail-safe for empty state
   // en should always be defined
   if (localisations.length === 0) {
@@ -75,7 +54,6 @@ export const LocalisationsSection = ({
       <FormSection
         title="Localisations"
         description="Provide localized content for each supported language."
-        className="grid gap-y-5"
       >
         <Typography variant={TYPOGRAPHY.R4} className="text-grey-500">
           No languages selected. Please add languages in the Supported Languages
@@ -104,16 +82,67 @@ export const LocalisationsSection = ({
             control={control}
             errors={errors}
             selectedIndex={selectedIndex}
-            selectedField={selectedField}
             isEditable={isEditable}
             isEnoughPermissions={isEnoughPermissions}
-            appId={appId}
-            teamId={teamId}
-            appMetadata={appMetadata}
-            supportedLanguages={supportedLanguages}
-            onAutosaveSuccess={handleAutosaveSuccess}
-            onAutosaveError={handleAutosaveError}
+            isMiniApp={appMetadata.app_mode === "mini-app"}
           />
+
+          <FormSection
+            title="Showcase Images"
+            description="Upload up to 3 images to showcase your application."
+            titleVariant={TYPOGRAPHY.S3}
+          >
+            <Controller
+              control={control}
+              name={`localisations.${selectedIndex}.showcase_img_urls`}
+              render={({ field, fieldState }) => (
+                <ShowcaseImagesField
+                  value={(field.value || []).filter((url): url is string =>
+                    Boolean(url),
+                  )}
+                  onChange={field.onChange}
+                  disabled={!isEditable || !isEnoughPermissions}
+                  appId={appId}
+                  teamId={teamId}
+                  locale={selectedLanguage}
+                  isAppVerified={appMetadata.verification_status === "verified"}
+                  appMetadataId={appMetadata.id}
+                  supportedLanguages={supportedLanguages}
+                  onAutosaveSuccess={onAutosaveSuccess}
+                  onAutosaveError={() => {}}
+                  error={fieldState.error?.message}
+                />
+              )}
+            />
+          </FormSection>
+
+          <FormSection
+            title="Meta Tag Image"
+            description="This image will be displayed as the opengraph meta tags image when linking your app. Fallback to your app's logo image if not provided."
+            isRequiredAsterisk={false}
+            titleVariant={TYPOGRAPHY.S3}
+          >
+            <Controller
+              control={control}
+              name={`localisations.${selectedIndex}.meta_tag_image_url`}
+              render={({ field, fieldState }) => (
+                <MetaTagImageField
+                  value={field.value}
+                  onChange={field.onChange}
+                  disabled={!isEditable || !isEnoughPermissions}
+                  appId={appId}
+                  teamId={teamId}
+                  locale={selectedLanguage}
+                  isAppVerified={appMetadata.verification_status === "verified"}
+                  appMetadataId={appMetadata.id}
+                  supportedLanguages={supportedLanguages}
+                  onAutosaveSuccess={onAutosaveSuccess}
+                  onAutosaveError={() => {}}
+                  error={fieldState.error?.message}
+                />
+              )}
+            />
+          </FormSection>
         </div>
       )}
     </FormSection>

@@ -27,6 +27,7 @@ export async function removeAppFromReview(
         team_id: teamId,
         app_id: appId,
         logLevel: "warn",
+        code: "FORBIDDEN",
       });
     }
 
@@ -49,6 +50,7 @@ export async function removeAppFromReview(
       team_id: teamId,
       app_id: appId,
       logLevel: "error",
+      code: "UNKNOWN",
     });
   }
 }

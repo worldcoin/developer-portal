@@ -1,6 +1,6 @@
-import { Input } from "@/components/Input";
+import { FloatingInput } from "@/components/FloatingInput";
+import { TYPOGRAPHY } from "@/components/Typography";
 import { Radio } from "@/components/Radio";
-import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Control, Controller, FieldErrors } from "react-hook-form";
 import { AppStoreFormValues } from "../../FormSchema/types";
 import { FormSectionProps, SupportType } from "../../types/AppStoreFormTypes";
@@ -21,68 +21,73 @@ export const SupportSection = ({
   supportType,
   onSupportTypeChange,
 }: SupportSectionProps) => {
+  const disabled = !isEditable || !isEnoughPermissions;
+
   return (
     <FormSection
       title="Support"
       description="Please include support information. Users will be able to reach out to you for help."
       className="grid gap-y-5"
+      titleVariant={TYPOGRAPHY.S2}
     >
-      <div className="grid grid-cols-2 gap-x-4">
-        <div>
-          <div className="grid grid-cols-auto/1fr gap-x-2 pb-2">
-            <Radio
-              value={"email"}
-              checked={supportType === "email"}
-              onChange={() => onSupportTypeChange("email")}
-            />
-            <Typography variant={TYPOGRAPHY.R4} className="text-gray-500">
-              Email
-            </Typography>
-          </div>
-          <Controller
-            name="support_email"
-            control={control}
-            render={({ field }) => (
-              <Input
-                disabled={
-                  !isEditable || !isEnoughPermissions || supportType !== "email"
-                }
-                placeholder="address@example.com"
-                value={field.value || ""}
-                onChange={field.onChange}
-                errors={errors.support_email}
-              />
-            )}
-          />
-        </div>
-        <div>
-          <div className="grid grid-cols-auto/1fr gap-x-2 pb-2">
-            <Radio
-              value={"link"}
-              checked={supportType === "link"}
-              onChange={() => onSupportTypeChange("link")}
-            />
-            <Typography variant={TYPOGRAPHY.R4} className="text-gray-500">
-              Link
-            </Typography>
-          </div>
-          <Controller
-            name="support_link"
-            control={control}
-            render={({ field }) => (
-              <Input
-                disabled={
-                  !isEditable || !isEnoughPermissions || supportType !== "link"
-                }
-                placeholder="https://"
-                value={field.value || ""}
-                onChange={field.onChange}
-                errors={errors.support_link}
-              />
-            )}
-          />
-        </div>
+      {/* Email / Link selector */}
+      <div className="flex gap-x-6">
+        <Radio
+          label="Email"
+          value="email"
+          checked={supportType === "email"}
+          onChange={() => onSupportTypeChange("email")}
+          disabled={disabled}
+        />
+        <Radio
+          label="Link"
+          value="link"
+          checked={supportType === "link"}
+          onChange={() => onSupportTypeChange("link")}
+          disabled={disabled}
+        />
       </div>
+
+      {/* Single input based on selection */}
+      {supportType === "email" ? (
+        <Controller
+          key="support-email"
+          name="support_email"
+          control={control}
+          shouldUnregister={false}
+          render={({ field }) => (
+            <FloatingInput
+              id="support_email"
+              label="Enter email"
+              value={field.value || ""}
+              onChange={field.onChange}
+              onBlur={field.onBlur}
+              name={field.name}
+              disabled={disabled}
+              errors={errors.support_email}
+            />
+          )}
+        />
+      ) : (
+        <Controller
+          key="support-link"
+          name="support_link"
+          control={control}
+          shouldUnregister={false}
+          render={({ field }) => (
+            <FloatingInput
+              id="support_link"
+              placeholder="https://example.com"
+              value={field.value || ""}
+              onChange={field.onChange}
+              onBlur={field.onBlur}
+              name={field.name}
+              disabled={disabled}
+              errors={errors.support_link}
+            />
+          )}
+        />
+      )}
     </FormSection>
   );
 };

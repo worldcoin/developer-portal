@@ -1,39 +1,44 @@
-import { Control, Controller, FieldErrors } from "react-hook-form";
+import { Toggle } from "@/components/Toggle";
+import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import { Control, Controller } from "react-hook-form";
 import { AppStoreFormValues } from "../../FormSchema/types";
 import { FormSectionProps } from "../../types/AppStoreFormTypes";
-import { FormSection } from "../FormFields/FormSection";
-import { RadioGroup } from "../FormFields/RadioGroup";
 
 type HumansOnlySectionProps = FormSectionProps & {
   control: Control<AppStoreFormValues>;
-  errors: FieldErrors<AppStoreFormValues>;
 };
 
 export const HumansOnlySection = ({
   control,
-  errors,
   isEditable,
   isEnoughPermissions,
 }: HumansOnlySectionProps) => {
   return (
-    <FormSection
-      title="Is your app for verified humans only?"
-      description="Answering yes means your app leverages WorldID in a way that allows only unique human users to use the app. This will make you eligible for a special badge in the Mini App Store."
-      className="mt-3"
-    >
-      <Controller
-        name="is_for_humans_only"
-        control={control}
-        disabled={!isEditable || !isEnoughPermissions}
-        render={({ field }) => (
-          <RadioGroup
-            value={field.value}
-            onChange={field.onChange}
-            disabled={!isEditable || !isEnoughPermissions}
-            error={errors.is_for_humans_only}
-          />
-        )}
-      />
-    </FormSection>
+    <Controller
+      name="is_for_humans_only"
+      control={control}
+      disabled={!isEditable || !isEnoughPermissions}
+      render={({ field }) => (
+        <div className="rounded-[10px] border border-grey-100 px-6 py-4">
+          <div className="flex items-center gap-x-4">
+            <div className="grid flex-1 gap-y-1">
+              <Typography variant={TYPOGRAPHY.S2} className="text-grey-900">
+                Verified humans only
+              </Typography>
+              <Typography variant={TYPOGRAPHY.B3} className="text-grey-500">
+                Only unique human users verified via World ID can use the app.
+                This makes your app eligible for a special badge in the Mini App
+                Store.
+              </Typography>
+            </div>
+            <Toggle
+              checked={field.value ?? false}
+              onChange={field.onChange}
+              disabled={!isEditable || !isEnoughPermissions}
+            />
+          </div>
+        </div>
+      )}
+    />
   );
 };

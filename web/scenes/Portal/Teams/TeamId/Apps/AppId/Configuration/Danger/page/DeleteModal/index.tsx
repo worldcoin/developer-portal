@@ -1,11 +1,10 @@
-import { CircleIconContainer } from "@/components/CircleIconContainer";
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { Dialog } from "@/components/Dialog";
 import { DialogOverlay } from "@/components/DialogOverlay";
 import { DialogPanel } from "@/components/DialogPanel";
+import { FloatingInput } from "@/components/FloatingInput";
 import { AlertIcon } from "@/components/Icons/AlertIcon";
-import { WarningErrorIcon } from "@/components/Icons/WarningErrorIcon";
-import { Input } from "@/components/Input";
+import { ModalIcon } from "@/components/ModalIcon";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { useRefetchQueries } from "@/lib/use-refetch-queries";
 import { FetchAppsDocument } from "@/scenes/Portal/layout/AppSelector/graphql/client/fetch-apps.generated";
@@ -25,21 +24,23 @@ type DeleteModalProps = {
   teamId: string;
 };
 
-const schema = yup
-  .object()
-  .shape({
-    app_name: yup
-      .string()
-      .oneOf(["DELETE"], "Please check if the input is correct")
-      .required("This field is required"),
-  })
-  .noUnknown();
+const createSchema = (appName: string) =>
+  yup
+    .object()
+    .shape({
+      app_name: yup
+        .string()
+        .oneOf([appName], "Please check if the input is correct")
+        .required("This field is required"),
+    })
+    .noUnknown();
 
 export const DeleteModal = (props: DeleteModalProps) => {
   const { openDeleteModal, setOpenDeleteModal, appName, appId, teamId } = props;
   const [deletingApp, setDeletingApp] = useState(false);
   const router = useRouter();
   const { refetch: refetchApps } = useRefetchQueries(FetchAppsDocument);
+  const schema = createSchema(appName);
 
   const handleDeleteApp = async () => {
     if (deletingApp) {
@@ -68,7 +69,7 @@ export const DeleteModal = (props: DeleteModalProps) => {
 
       toast.update("deleting_app", {
         type: "success",
-        render: "App deleted",
+        render: `${appName} was deleted`,
         autoClose: 5000,
       });
 
@@ -100,14 +101,14 @@ export const DeleteModal = (props: DeleteModalProps) => {
     <Dialog open={openDeleteModal} onClose={() => setOpenDeleteModal(false)}>
       <DialogOverlay />
 
-      <DialogPanel className="grid gap-y-6 md:max-w-[26rem]">
-        <CircleIconContainer variant={"error"}>
-          <AlertIcon />
-        </CircleIconContainer>
+      <DialogPanel className="grid gap-y-6 md:max-w-[36rem]">
+        <ModalIcon variant="error">
+          <AlertIcon className="size-7 text-white" />
+        </ModalIcon>
 
         <div className="grid w-full place-items-center gap-y-5">
           <Typography variant={TYPOGRAPHY.H6} className="text-grey-900">
-            Are you sure?
+            Do you want to delete this app?
           </Typography>
 
           <Typography
@@ -121,48 +122,45 @@ export const DeleteModal = (props: DeleteModalProps) => {
             >
               {appName ?? ""}
             </Typography>{" "}
-            App will be deleted, along with all of its actions, configurations
-            and statistics.
+            will be deleted, along with all of its actions, configurations and
+            statistics.
           </Typography>
-
-          <div className="grid grid-cols-auto/1fr items-center gap-x-1 rounded-lg bg-system-error-50 px-3 py-2">
-            <WarningErrorIcon className=" text-system-error-600" />
-
-            <Typography
-              variant={TYPOGRAPHY.B4}
-              className="text-system-error-600"
-            >
-              This action is not reversible.
-            </Typography>
-          </div>
         </div>
 
         <form
           className="grid w-full gap-y-7"
           onSubmit={handleSubmit(handleDeleteApp)}
         >
-          <Input
+          <FloatingInput
+            id="delete_app_name"
             register={register("app_name")}
-            label="To delete, type DELETE below"
+            label={
+              <>
+                To verify, type{" "}
+                <span className="font-medium text-grey-900">{appName}</span>{" "}
+                below
+              </>
+            }
             errors={errors.app_name}
           />
 
           <div className="grid w-full gap-4 md:grid-cols-2">
             <DecoratedButton
-              type="submit"
-              variant="danger"
-              className="order-2 w-full bg-system-error-100 py-3 md:order-1"
-              disabled={!isValid}
+              type="button"
+              variant="secondary"
+              className="w-full py-3"
+              onClick={() => setOpenDeleteModal(false)}
             >
-              <Typography variant={TYPOGRAPHY.R3}>Delete App</Typography>
+              <Typography variant={TYPOGRAPHY.R3}>No</Typography>
             </DecoratedButton>
 
             <DecoratedButton
-              type="button"
-              className="order-1 w-full py-3 md:order-2"
-              onClick={() => setOpenDeleteModal(false)}
+              type="submit"
+              variant="destructive"
+              className="w-full py-3"
+              disabled={!isValid}
             >
-              <Typography variant={TYPOGRAPHY.R3}>Keep App</Typography>
+              <Typography variant={TYPOGRAPHY.R3}>Yes</Typography>
             </DecoratedButton>
           </div>
         </form>

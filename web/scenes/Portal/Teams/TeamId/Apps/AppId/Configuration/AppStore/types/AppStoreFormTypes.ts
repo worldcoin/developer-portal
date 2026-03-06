@@ -36,7 +36,6 @@ export type AppMetadata = Readonly<
     | "is_developer_allow_listing"
     | "world_app_button_text"
     | "integration_url"
-    | "app_website_url"
     | "source_code_url"
     | "verified_at"
     | "review_message"
@@ -74,6 +73,7 @@ export type AppStoreFormProps = {
   appId: string;
   teamId: string;
   appMetadata: AppMetadata;
+  onBeforeSave?: () => Promise<boolean | void>;
 };
 
 export type FormSectionProps = {

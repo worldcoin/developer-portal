@@ -1,9 +1,10 @@
 import { CategoryNameIterable } from "@/lib/categories";
+import { appNameSchema } from "@/lib/schema";
 import * as yup from "yup";
 
 export const createAppSchemaV4 = yup
   .object({
-    name: yup.string().required("This field is required"),
+    name: appNameSchema,
     integration_url: yup
       .string()
       .url("Must be a valid URL")

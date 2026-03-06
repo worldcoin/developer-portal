@@ -1,2 +1,22 @@
 import { AppProfileLayout } from "@/scenes/Portal/Teams/TeamId/Apps/AppId/Configuration/layout";
-export default AppProfileLayout;
+import { ReactNode } from "react";
+
+type Props = {
+  params:
+    | {
+        teamId: string;
+        appId: string;
+      }
+    | Promise<{
+        teamId: string;
+        appId: string;
+      }>;
+  children: ReactNode;
+};
+
+export default async function Layout({ params, children }: Props) {
+  const resolvedParams = await Promise.resolve(params);
+  return (
+    <AppProfileLayout params={resolvedParams}>{children}</AppProfileLayout>
+  );
+}

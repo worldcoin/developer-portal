@@ -1,31 +1,28 @@
-import { Checkbox } from "@/components/Checkbox";
-import { CircleIconContainer } from "@/components/CircleIconContainer";
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { Dialog } from "@/components/Dialog";
 import { DialogOverlay } from "@/components/DialogOverlay";
 import { DialogPanel } from "@/components/DialogPanel";
-import { CheckmarkBadge } from "@/components/Icons/CheckmarkBadge";
-import { WorldIcon } from "@/components/Icons/WorldIcon";
-import { TextArea } from "@/components/TextArea";
+import { AlertIcon } from "@/components/Icons/AlertIcon";
+import { SendIcon } from "@/components/Icons/SendIcon";
+import { ModalIcon } from "@/components/ModalIcon";
+import { Toggle } from "@/components/Toggle";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import { appChangelogSchema } from "@/lib/schema";
 import { useRefetchQueries } from "@/lib/use-refetch-queries";
+import { removeAppFromReview } from "@/scenes/Portal/Teams/TeamId/Apps/common/hooks/server";
 import { yupResolver } from "@hookform/resolvers/yup";
-import clsx from "clsx";
 import posthog from "posthog-js";
 import { useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import * as yup from "yup";
 import { FetchAppMetadataDocument } from "../../graphql/client/fetch-app-metadata.generated";
-import { RemainingCharacters } from "../../PageComponents/RemainingCharacters";
 import { submitAppForReviewFormServerSide } from "../server/submit";
+import { SubmitSuccessToast } from "../SubmitSuccessToast";
 import { useValidateLocalisationMutation } from "./graphql/client/validate-localisations.generated";
 
 const schema = yup
   .object({
     is_developer_allow_listing: yup.boolean().default(false),
-    changelog: appChangelogSchema,
   })
   .noUnknown();
 
@@ -65,15 +62,17 @@ export const SubmitAppModal = (props: SubmitAppModalProps) => {
     register,
     handleSubmit,
     watch,
+    setValue,
     formState: { errors },
   } = useForm<SubmitAppFormValues>({
     resolver: yupResolver(schema),
     mode: "onChange",
     defaultValues: {
       is_developer_allow_listing: isDeveloperAllowListing,
-      changelog: "",
     },
   });
+
+  const isAllowListing = watch("is_developer_allow_listing");
 
   const submit = useCallback(
     async (values: SubmitAppFormValues) => {
@@ -108,7 +107,7 @@ export const SubmitAppModal = (props: SubmitAppModalProps) => {
           app_metadata_id: appMetadataId,
           team_id: teamId,
           is_developer_allow_listing: values.is_developer_allow_listing,
-          changelog: values.changelog,
+          changelog: "", // No changelog in new design
         },
       });
       if (!result.success) {
@@ -123,7 +122,24 @@ export const SubmitAppModal = (props: SubmitAppModalProps) => {
         is_developer_allow_listing: values.is_developer_allow_listing,
       });
 
-      toast.success("App submitted for review");
+      toast.success(
+        <SubmitSuccessToast
+          onUndo={async () => {
+            const result = await removeAppFromReview(appMetadataId);
+            if (result.success) {
+              await refetchAppMetadata();
+              return true;
+            } else {
+              toast.error(result.message);
+              return false;
+            }
+          }}
+        />,
+        {
+          icon: false,
+          closeButton: false,
+        },
+      );
       setOpen(false);
     },
     [
@@ -140,67 +156,67 @@ export const SubmitAppModal = (props: SubmitAppModalProps) => {
   return (
     <Dialog open={open} onClose={() => setOpen(false)}>
       <DialogOverlay />
-      <DialogPanel className="gap-y-5 md:max-w-[36rem]">
-        <CircleIconContainer variant={"info"}>
-          <WorldIcon className=" text-blue-500" />
-        </CircleIconContainer>
-        <form className="grid gap-y-10" onSubmit={handleSubmit(submit)}>
-          <div className="grid grid-cols-1 justify-items-center gap-y-4">
-            <Typography
-              variant={TYPOGRAPHY.H6}
-              className={clsx("text-grey-900")}
-            >
-              Submit for Review
+      <DialogPanel className="gap-y-8 md:max-w-[36rem]">
+        <ModalIcon variant="info">
+          <SendIcon className="size-10 text-white" />
+        </ModalIcon>
+        <form className="grid gap-y-6" onSubmit={handleSubmit(submit)}>
+          <div className="grid grid-cols-1 justify-items-center gap-y-1 text-center">
+            <Typography variant={TYPOGRAPHY.H6} className="text-grey-900">
+              Submit for review
             </Typography>
-            <Typography
-              variant={TYPOGRAPHY.R3}
-              className="flex flex-col items-center justify-center text-grey-500 sm:flex-row"
-            >
-              Submit your app for review to get the{" "}
-              <span className="flex items-center">
-                <span className="mx-1.5 inline-flex items-center gap-x-1 rounded-xl bg-system-success-50 px-2 py-1 text-system-success-500">
-                  <CheckmarkBadge className="w-4" />
-                  <Typography
-                    variant={TYPOGRAPHY.S3}
-                    className="text-system-success-500"
-                  >
-                    Verified
-                  </Typography>
-                </span>{" "}
-                badge
-              </span>
+            <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
+              Submit your app for review to get the badge "Verified"
             </Typography>
           </div>
-          <label
-            htmlFor="is_developer_allow_listing"
-            className="grid cursor-pointer grid-cols-auto/1fr gap-x-4 rounded-xl border-[1px] border-grey-200 px-5 py-6"
-          >
-            <Checkbox
-              id="is_developer_allow_listing"
-              register={register("is_developer_allow_listing")}
-            />
-            <div className="grid gap-y-2">
-              <Typography variant={TYPOGRAPHY.R3} className="text-grey-700">
-                Allow listing in mini app store
-              </Typography>
-              <Typography variant={TYPOGRAPHY.R4} className="text-grey-700">
-                Checking this box means you would like your app to be available
-                in the mini app store.
-              </Typography>
+
+          <div className="mt-2 grid gap-y-3">
+            <div className="grid gap-y-4 rounded-xl border border-grey-200 p-6">
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2">
+                    <Typography
+                      variant={TYPOGRAPHY.M3}
+                      className="text-grey-900"
+                    >
+                      Display in the Worldcoin App Store
+                    </Typography>
+                    <span className="rounded-full bg-grey-100 px-2 py-0.5 text-xs text-grey-500">
+                      Optional
+                    </span>
+                  </div>
+                  <Typography
+                    variant={TYPOGRAPHY.R4}
+                    className="mt-1 text-grey-500"
+                  >
+                    If approved, your app can be featured in the Worldcoin App
+                    Store
+                  </Typography>
+                </div>
+                <Toggle
+                  checked={isAllowListing}
+                  onChange={(checked) =>
+                    setValue("is_developer_allow_listing", checked)
+                  }
+                />
+              </div>
             </div>
-          </label>
-          <TextArea
-            label="Changelog"
-            required
-            rows={5}
-            maxLength={1500}
-            errors={errors.changelog}
-            addOn={
-              <RemainingCharacters text={watch("changelog")} maxChars={1500} />
-            }
-            placeholder="Let the reviewer know what's new in this version. Try to include paths to new features, changes, and bug fixes. This speeds reviews up."
-            register={register("changelog")}
-          />
+
+            {isDeveloperAllowListing && !isAllowListing && (
+              <div className="flex items-center gap-3 rounded-xl bg-system-warning-100 p-3">
+                <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-system-warning-600">
+                  <AlertIcon className="size-4 text-white" />
+                </div>
+                <Typography
+                  variant={TYPOGRAPHY.R4}
+                  className="text-system-warning-600"
+                >
+                  Your app will be removed from the Worldcoin App Store
+                </Typography>
+              </div>
+            )}
+          </div>
+
           <div className="grid w-full gap-4 md:grid-cols-2">
             <DecoratedButton
               type="button"

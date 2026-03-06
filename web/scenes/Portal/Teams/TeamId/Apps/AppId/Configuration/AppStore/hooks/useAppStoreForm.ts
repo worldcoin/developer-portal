@@ -129,5 +129,7 @@ export const useAppStoreForm = (appId: string, appMetadata: AppMetadata) => {
     submit,
     onInvalid,
     isEditable,
+    refetchAppMetadata,
+    refetchLocalisations,
   };
 };
