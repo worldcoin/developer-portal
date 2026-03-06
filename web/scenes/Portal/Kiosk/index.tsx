@@ -32,7 +32,6 @@ export const ActionIdKioskPage = (props: ActionIdKioskPageProps) => {
         <ActiveKioskPage
           params={params}
           data={data}
-          toggleKiosk={() => true}
           verificationLevel={verificationLevel}
         />
       )}

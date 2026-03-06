@@ -2,7 +2,6 @@ import { verifyProof } from "@/api/helpers/verify";
 import { generateExternalNullifier } from "@/lib/hashing";
 import { LegacyVerificationLevel } from "@/lib/idkit";
 import { logger } from "@/lib/logger";
-import { IDKitErrorCodes } from "@worldcoin/idkit";
 import { UniquenessProofResponseV3 } from "../request-schema";
 import { UniquenessResult } from "./handler";
 
@@ -41,7 +40,8 @@ export async function processUniquenessProofV3(
           return {
             identifier: item.identifier,
             success: false,
-            code: error?.code || IDKitErrorCodes.GenericError,
+            // Defaulting to "generic_error" for backwards compatibility.
+            code: error?.code || "generic_error",
             detail:
               error?.message || "There was an error verifying this proof.",
             attribute: error?.attribute || undefined,

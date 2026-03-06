@@ -6,14 +6,10 @@ import { CaretIcon } from "@/components/Icons/CaretIcon";
 import { CheckmarkCircleIcon } from "@/components/Icons/CheckmarkCircleIcon";
 import { WorldTextLogo } from "@/components/Icons/WorldTextLogo";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import { restAPIRequest } from "@/lib/frontend-api";
+import { LegacyVerificationLevel } from "@/lib/idkit";
 import { EngineType, KioskScreen } from "@/lib/types";
 import { getCDNImageUrl } from "@/lib/utils";
-import {
-  ISuccessResult,
-  VerificationLevel,
-  useWorldBridgeStore,
-} from "@worldcoin/idkit";
+import type { IDKitResult } from "@worldcoin/idkit";
 import clsx from "clsx";
 import dayjs from "dayjs";
 import dayjsRelative from "dayjs/plugin/relativeTime";
@@ -21,22 +17,16 @@ import { useRouter } from "next/navigation";
 import posthog from "posthog-js";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Connected } from "../../Components/Kiosk/Connected";
-import { IDKitBridge } from "../../Components/Kiosk/IDKitBridge";
 import { KioskError } from "../../Components/Kiosk/KioskError";
 import { Success } from "../../Components/Kiosk/Success";
 import { Waiting } from "../../Components/Kiosk/Waiting";
+import {
+  submitKioskProof,
+  useLegacyKioskRequest,
+  type KioskProofResponse,
+} from "../../Components/Kiosk/useLegacyKioskRequest";
 import { GetKioskActionQuery } from "../graphql/client/get-kiosk-action.generated";
 dayjs.extend(dayjsRelative);
-
-type ProofResponse = {
-  success: boolean;
-  action_id?: string;
-  nullifier_hash?: string;
-  created_at?: string;
-  code?: string;
-  detail?: string;
-  attribute?: string;
-};
 
 interface SuccessParams {
   timestamp: dayjs.Dayjs; // Assuming timestamp is a Dayjs object based on your usage
@@ -46,19 +36,14 @@ interface SuccessParams {
 type ActiveKioskPageProps = {
   params: Record<string, string> | null | undefined;
   data: GetKioskActionQuery;
-  toggleKiosk: (value: boolean) => void;
-  verificationLevel?: VerificationLevel;
+  verificationLevel?: LegacyVerificationLevel;
 };
 export const ActiveKioskPage = (props: ActiveKioskPageProps) => {
   const [screen, setScreen] = useState<KioskScreen>(KioskScreen.Waiting);
-  const [qrData, setQrData] = useState<string | null>(null);
   const [resetInterval, setResetInterval] = useState<number>(0);
   const [successParams, setSuccessParams] = useState<SuccessParams | null>(
     null,
   );
-  const [proofResult, setProofResult] = useState<ISuccessResult | null>(null);
-  const [connectionTimeout, setConnectionTimeout] = useState<boolean>(true);
-  const { reset } = useWorldBridgeStore();
   const appId = props.params?.appId as `app_${string}`;
   const data = props.data;
   const router = useRouter();
@@ -67,20 +52,27 @@ export const ActiveKioskPage = (props: ActiveKioskPageProps) => {
   const app = data?.app_by_pk;
   const logo = data?.app_metadata[0]?.logo_img_url;
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const { connectorURI, proofResult, requestScreen, restartRequest } =
+    useLegacyKioskRequest({
+      appId,
+      action: action?.action ?? "",
+      actionDescription: action?.description ?? "",
+      verificationLevel:
+        props.verificationLevel ?? LegacyVerificationLevel.Device,
+      enabled: Boolean(action && app?.engine === EngineType.Cloud),
+    });
 
   const resetKiosk = useCallback(() => {
     setScreen(KioskScreen.Waiting);
-    reset();
-    setQrData(null);
-    setProofResult(null);
-    setConnectionTimeout(true);
+    setSuccessParams(null);
+    restartRequest();
 
     // Clear the timer when resetKiosk is called manually
     if (timerRef.current) {
       clearTimeout(timerRef.current);
       timerRef.current = null;
     }
-  }, [reset]);
+  }, [restartRequest]);
 
   useEffect(() => {
     if (screen === KioskScreen.Success && resetInterval > 0) {
@@ -105,21 +97,29 @@ export const ActiveKioskPage = (props: ActiveKioskPageProps) => {
 
   // Reset kiosk if the action changes
   useEffect(() => {
-    resetKiosk();
     if (!action || app?.engine === EngineType.OnChain) {
       setScreen(KioskScreen.InvalidRequest);
     }
-  }, [action, resetKiosk, setScreen, app?.engine]);
+  }, [action, setScreen, app?.engine]);
+
+  useEffect(() => {
+    if (action && app?.engine === EngineType.Cloud) {
+      setScreen(requestScreen);
+    }
+  }, [action, app?.engine, requestScreen]);
 
   const verifyProof = useCallback(
-    async (result: ISuccessResult) => {
-      let response;
-      setConnectionTimeout(false);
+    async (result: IDKitResult) => {
+      if (!result) {
+        return;
+      }
+
+      let response: KioskProofResponse = {
+        success: false,
+        code: "unknown",
+      };
       try {
-        response = await restAPIRequest<ProofResponse>(`/verify/${appId}`, {
-          method: "POST",
-          json: { action: action?.action, signal: "", ...result },
-        });
+        response = await submitKioskProof(appId, result);
       } catch (e) {
         console.warn("Error verifying proof. Please check network logs.");
         try {
@@ -133,7 +133,8 @@ export const ActiveKioskPage = (props: ActiveKioskPageProps) => {
           response = { success: false, code: "unknown" };
         }
       }
-      if (response?.success) {
+
+      if (response.success) {
         posthog.capture("kiosk-verification-success", {
           action: action?.action,
           app_id: appId,
@@ -148,11 +149,11 @@ export const ActiveKioskPage = (props: ActiveKioskPageProps) => {
         posthog.capture("kiosk-verification-failed", {
           action: action?.action,
           app_id: appId,
-          code: response?.code,
+          code: response.code,
         });
-        if (response?.code === "max_verifications_reached") {
+        if (response.code === "max_verifications_reached") {
           setScreen(KioskScreen.AlreadyVerified);
-        } else if (response?.code === "invalid_merkle_root") {
+        } else if (response.code === "invalid_merkle_root") {
           setScreen(KioskScreen.InvalidIdentity);
         } else {
           setScreen(KioskScreen.VerificationError);
@@ -164,8 +165,7 @@ export const ActiveKioskPage = (props: ActiveKioskPageProps) => {
 
   useEffect(() => {
     if (proofResult) {
-      verifyProof(proofResult);
-      setProofResult(null);
+      void verifyProof(proofResult);
     }
   }, [proofResult, verifyProof]);
   return (
@@ -327,22 +327,12 @@ export const ActiveKioskPage = (props: ActiveKioskPageProps) => {
               />
             )}
 
-            {action && app?.engine === EngineType.Cloud && (
-              <IDKitBridge
-                app_id={appId}
-                action={action.action}
-                action_description={action.description}
-                setScreen={setScreen}
-                setQrData={setQrData}
-                setProofResult={setProofResult}
-                resetKiosk={resetKiosk}
-                connectionTimeout={connectionTimeout}
-                verificationLevel={props.verificationLevel}
-              />
-            )}
-
             {screen === KioskScreen.Waiting && (
-              <Waiting qrData={qrData} showSimulator={false} qrCodeSize={280} />
+              <Waiting
+                qrData={connectorURI}
+                showSimulator={false}
+                qrCodeSize={280}
+              />
             )}
 
             {screen === KioskScreen.Connected && (
