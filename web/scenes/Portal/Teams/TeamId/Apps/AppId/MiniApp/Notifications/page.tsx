@@ -199,10 +199,10 @@ export const NotificationsPage = () => {
 
   return (
     <div className="my-8 grid max-w-[1180px] gap-y-10">
-      <div className="grid h-[72px] grid-cols-auto/1fr items-center gap-x-3 rounded-[10px] bg-[#E6F0FF] p-5">
+      <div className="grid grid-cols-auto/1fr items-start gap-x-3 rounded-[10px] bg-[#E6F0FF] p-4 sm:p-5">
         <NotificationBellIcon className="size-8" aria-hidden="true" />
 
-        <div className="font-world text-[13px] leading-[120%] text-grey-900">
+        <div className="min-w-0 font-world text-[13px] leading-[120%] text-grey-900">
           <Typography as="p" className="font-world text-[13px] font-semibold">
             Notifications
           </Typography>
@@ -212,7 +212,7 @@ export const NotificationsPage = () => {
             <a
               href="https://docs.world.org/mini-apps/reference/api#send-notification"
               target="_blank"
-              className="underline"
+              className="inline-block whitespace-nowrap underline"
               rel="noopener noreferrer"
             >
               Docs reference
