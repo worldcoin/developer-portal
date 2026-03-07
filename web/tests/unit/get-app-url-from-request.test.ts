@@ -72,6 +72,27 @@ describe("getAppUrlFromRequest()", () => {
     expect(result).toBe("https://developer.world.org");
   });
 
+  it("ignores x-forwarded-proto: http and still returns https", async () => {
+    global.ParameterStore = {
+      getParameter: jest.fn().mockResolvedValue(["developer.world.org"]),
+    } as unknown as NonNullable<typeof global.ParameterStore>;
+
+    const mockReq = {
+      headers: {
+        get: jest
+          .fn()
+          .mockImplementation((header: string) =>
+            header === "x-forwarded-proto" ? "http" : null,
+          ),
+      },
+      nextUrl: new URL("/api/test", "https://developer.world.org"),
+    } as unknown as NextRequest;
+
+    const result = await getAppUrlFromRequest(mockReq);
+
+    expect(result).toBe("https://developer.world.org");
+  });
+
   it("falls back to NEXT_PUBLIC_APP_URL when host is not in allowedHosts", async () => {
     global.ParameterStore = {
       getParameter: jest.fn().mockResolvedValue([]),

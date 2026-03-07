@@ -90,10 +90,7 @@ export async function getAppUrlFromRequest(req: NextRequest): Promise<string> {
     req?.headers?.get("host") ||
     req?.nextUrl?.host;
 
-  const protocol =
-    req?.headers?.get("x-forwarded-proto") ||
-    req?.headers?.get("x-forwarded-protocol") ||
-    "https";
+  const protocol = "https";
 
   // Strip default ports regardless of protocol
   if (host) {
