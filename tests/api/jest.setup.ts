@@ -1,6 +1,6 @@
 // Global setup for API tests - validates required environment variables
 
-const requiredEnvVars = ["INTERNAL_API_URL", "NAME_SLUG"];
+const requiredEnvVars = ["INTERNAL_API_URL"];
 
 beforeAll(() => {
   const missingEnvVars = requiredEnvVars.filter(
