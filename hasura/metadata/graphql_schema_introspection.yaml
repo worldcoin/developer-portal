@@ -1,1 +1,7 @@
-disabled_for_roles: []
+disabled_for_roles:
+  - public
+  - user
+  - api_key
+  - reviewer
+  - qa
+  - service
