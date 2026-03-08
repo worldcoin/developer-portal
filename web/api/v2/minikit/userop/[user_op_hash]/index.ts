@@ -29,11 +29,7 @@ type UserOpStatusResponse = {
 };
 
 const getTransactionHash = (receipt: UserOperationReceipt) =>
-  receipt.receipt?.transactionHash ??
-  receipt.receipt?.transaction_hash ??
-  receipt.transactionHash ??
-  receipt.transaction_hash ??
-  null;
+  receipt.receipt.transactionHash;
 
 const toStatusResponse = (
   userOpHash: string,
@@ -52,9 +48,9 @@ const toStatusResponse = (
   return {
     status: receipt.success ? "success" : "failed",
     userOpHash,
-    sender: receipt.sender ?? null,
+    sender: receipt.sender,
     transaction_hash: getTransactionHash(receipt),
-    nonce: receipt.nonce ?? null,
+    nonce: receipt.nonce,
   };
 };
 

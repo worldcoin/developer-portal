@@ -20,16 +20,29 @@ export interface SendUserOperationResult {
 }
 
 export interface UserOperationReceipt {
-  userOpHash?: string;
-  sender?: string;
-  nonce?: string;
-  success?: boolean;
-  receipt?: {
-    transactionHash?: string;
-    transaction_hash?: string;
-  } | null;
-  transactionHash?: string;
-  transaction_hash?: string;
+  entryPoint: string;
+  userOpHash: string;
+  sender: string;
+  nonce: string;
+  actualGasUsed: string;
+  actualGasCost: string;
+  success: boolean;
+  logs: unknown[];
+  receipt: {
+    transactionHash: string;
+    transactionIndex: string;
+    blockHash: string;
+    blockNumber: string;
+    from: string;
+    to: string;
+    cumulativeGasUsed: string;
+    gasUsed: string;
+    contractAddress: string | null;
+    logs: unknown[];
+    logsBloom: string;
+    status: string;
+    effectiveGasPrice: string;
+  };
 }
 
 export interface OnChainRelyingParty {
