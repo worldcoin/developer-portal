@@ -1,8 +1,9 @@
 "use client";
 import { CopyButton } from "@/components/CopyButton";
+import { AlertIcon } from "@/components/Icons/AlertIcon";
 import { FlaskIcon } from "@/components/Icons/FlaskIcon";
-import { Notification } from "@/components/Notification";
 import { QuickAction } from "@/components/QuickAction";
+import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import Image from "next/image";
 import QRCode from "qrcode";
 import { useEffect, useState } from "react";
@@ -35,15 +36,26 @@ export const QrQuickAction = (props: {
   return (
     <div className="grid gap-y-2">
       {showDraftMiniAppFlag && (
-        <Notification variant="warning">
-          <div className="text-sm">
-            <h3 className="font-medium text-yellow-800">Developer Preview</h3>
-            <div className="mt-2 text-yellow-700">
+        <div className="flex items-center gap-3 rounded-[10px] bg-system-warning-100 p-5">
+          <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-system-warning-600">
+            <AlertIcon className="size-4 text-white" />
+          </div>
+          <div className="flex flex-1 flex-col gap-0.5">
+            <Typography
+              variant={TYPOGRAPHY.S3}
+              className="text-system-warning-600"
+            >
+              Developer Preview
+            </Typography>
+            <Typography
+              variant={TYPOGRAPHY.B3}
+              className="text-system-warning-600"
+            >
               This link/QR code is for testing purposes only and will be deleted
               after the app is verified.
-            </div>
+            </Typography>
           </div>
-        </Notification>
+        </div>
       )}
       <div className="flex justify-center">
         <QuickAction

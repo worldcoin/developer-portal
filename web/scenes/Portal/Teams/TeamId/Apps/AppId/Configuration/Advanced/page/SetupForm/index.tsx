@@ -251,7 +251,7 @@ export const SetupForm = (props: LinksFormProps) => {
           </Typography>
         </div>
         <TextArea
-          label="Additional Domains"
+          aria-label="Additional Domains"
           disabled={!isEditable || !isEnoughPermissions}
           placeholder="https://example.com, https://example2.com"
           register={register("associated_domains", {

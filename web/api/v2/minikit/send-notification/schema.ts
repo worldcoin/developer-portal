@@ -13,7 +13,7 @@ const ALLOWED_UNIVERSAL_LINK_ORIGINS = isProduction
   ? ["https://world.org"]
   : ["https://staging.world.org"];
 
-const isValidUniversalLink = (value: string): boolean => {
+const isValidDeepFaceUniversalLink = (value: string): boolean => {
   try {
     const url = new URL(value);
     const isAllowedOrigin = ALLOWED_UNIVERSAL_LINK_ORIGINS.includes(url.origin);
@@ -23,6 +23,21 @@ const isValidUniversalLink = (value: string): boolean => {
       url.pathname === "/verify" &&
       url.searchParams.get("t") === "deepface"
     );
+  } catch {
+    return false;
+  }
+};
+
+const DEEP_FACE_DEEPLINK_PREFIX = "worldapp://verify?";
+
+const isValidDeepFaceDeepLink = (value: string): boolean => {
+  if (!value.startsWith(DEEP_FACE_DEEPLINK_PREFIX)) return false;
+  try {
+    const params = new URLSearchParams(
+      value.slice(DEEP_FACE_DEEPLINK_PREFIX.length),
+    );
+
+    return params.get("t") === "deepface";
   } catch {
     return false;
   }
@@ -54,12 +69,13 @@ export const sendNotificationBodySchemaV1 = yup
       .required()
       .test(
         "valid-mini-app-path",
-        "mini_app_path must be a valid WorldApp deeplink (worldapp://mini-app?app_id=) or a Deep Face Universal Link (https://world.org/verify?t=deepface)",
+        "mini_app_path must be a valid WorldApp deeplink (worldapp://mini-app?app_id=), a Deep Face Universal Link (https://world.org/verify?t=deepface), or a Deep Face deeplink (worldapp://verify?t=deepface)",
         function (value) {
           const { app_id } = this.parent;
           return (
             isValidMiniAppDeepLink(value, app_id) ||
-            isValidUniversalLink(value ?? "")
+            isValidDeepFaceUniversalLink(value ?? "") ||
+            isValidDeepFaceDeepLink(value ?? "")
           );
         },
       ),
@@ -100,12 +116,13 @@ export const sendNotificationBodySchemaV2 = yup
       .required()
       .test(
         "valid-mini-app-path",
-        "mini_app_path must be a valid WorldApp deeplink (worldapp://mini-app?app_id=) or a Deep Face Universal Link (https://world.org/verify?t=deepface)",
+        "mini_app_path must be a valid WorldApp deeplink (worldapp://mini-app?app_id=), a Deep Face Universal Link (https://world.org/verify?t=deepface), or a Deep Face deeplink (worldapp://verify?t=deepface)",
         function (value) {
           const { app_id } = this.parent;
           return (
             isValidMiniAppDeepLink(value, app_id) ||
-            isValidUniversalLink(value ?? "")
+            isValidDeepFaceUniversalLink(value ?? "") ||
+            isValidDeepFaceDeepLink(value ?? "")
           );
         },
       ),

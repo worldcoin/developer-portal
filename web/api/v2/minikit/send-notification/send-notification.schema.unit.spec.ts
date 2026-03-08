@@ -167,6 +167,35 @@ describe("notifications", () => {
         ],
       },
     ],
+    [
+      "Deep Face App Link as mini_app_path",
+      {
+        ...notificationBody,
+        mini_app_path:
+          "worldapp://verify?t=deepface&i=550e8400-e29b-41d4-a716-446655440000&k=dGVzdC1rZXk%3D",
+        localisations: [
+          {
+            language: "en",
+            title: "This is a title",
+            message: "This is a message",
+          },
+        ],
+      },
+    ],
+    [
+      "Deep Face App Link without extra params",
+      {
+        ...notificationBody,
+        mini_app_path: "worldapp://verify?t=deepface",
+        localisations: [
+          {
+            language: "en",
+            title: "This is a title",
+            message: "This is a message",
+          },
+        ],
+      },
+    ],
   ];
 
   const invalidTestCases = [
@@ -305,6 +334,34 @@ describe("notifications", () => {
         ],
       },
     ],
+    [
+      "deep face app link missing t=deepface param",
+      {
+        ...notificationBody,
+        mini_app_path: "worldapp://verify?t=other",
+        localisations: [
+          {
+            language: "en",
+            title: "This is a title",
+            message: "This is a message",
+          },
+        ],
+      },
+    ],
+    [
+      "deep face app link with wrong path",
+      {
+        ...notificationBody,
+        mini_app_path: "worldapp://other?t=deepface",
+        localisations: [
+          {
+            language: "en",
+            title: "This is a title",
+            message: "This is a message",
+          },
+        ],
+      },
+    ],
   ];
 
   test.each(validTestCases)("should accept %s", (_, input) => {
@@ -376,6 +433,16 @@ describe("V1 schema mini_app_path validation", () => {
         ...v1Body,
         mini_app_path:
           "https://staging.world.org/verify?t=deepface&i=550e8400-e29b-41d4-a716-446655440000&k=dGVzdC1rZXk%3D",
+      }),
+    ).toBe(true);
+  });
+
+  test("should accept Deep Face App Link", () => {
+    expect(
+      sendNotificationBodySchemaV1.isValidSync({
+        ...v1Body,
+        mini_app_path:
+          "worldapp://verify?t=deepface&i=550e8400-e29b-41d4-a716-446655440000&k=dGVzdC1rZXk%3D",
       }),
     ).toBe(true);
   });

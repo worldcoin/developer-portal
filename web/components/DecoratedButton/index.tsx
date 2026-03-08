@@ -10,7 +10,7 @@ type DecoratedButtonProps = CommonButtonProps & {
   disabled?: boolean;
   loading?: boolean;
   className?: string;
-  variant?: "primary" | "secondary" | "danger";
+  variant?: "primary" | "secondary" | "danger" | "destructive";
   testId?: string;
 };
 
@@ -51,6 +51,12 @@ export const DecoratedButton = memo(function DecoratedButton(
 
       loading:
         "border-system-error-300 text-system-error-400 pointer-events-none",
+    },
+    destructive: {
+      normal: "bg-system-error-500 text-white border-system-error-500",
+      hover: "hover:bg-system-error-600 hover:border-system-error-600",
+      disabled: "bg-grey-200 text-grey-500 border-grey-200 pointer-events-none",
+      loading: "bg-grey-200 text-grey-500 border-grey-200 pointer-events-none",
     },
   };
 

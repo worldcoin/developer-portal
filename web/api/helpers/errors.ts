@@ -192,6 +192,7 @@ export function errorFormAction({
   app_id,
   team_id,
   logLevel,
+  code = "UNKNOWN",
 }: {
   error?: Error;
   message: string;
@@ -199,6 +200,7 @@ export function errorFormAction({
   app_id?: string;
   team_id?: string;
   logLevel?: "error" | "warn";
+  code?: "AUTH_EXPIRED" | "FORBIDDEN" | "VALIDATION_ERROR" | "UNKNOWN";
 }): FormActionResult {
   logger[logLevel || "error"](message, {
     error,
@@ -208,8 +210,8 @@ export function errorFormAction({
   });
 
   const serializedError = error
-    ? JSON.parse(JSON.stringify(error, Object.getOwnPropertyNames(error)))
+    ? { message: error.message, name: error.name }
     : undefined;
 
-  return { success: false, message, error: serializedError };
+  return { success: false, message, code, error: serializedError };
 }

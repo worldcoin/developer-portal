@@ -13,6 +13,7 @@ export type GetLocalesQuery = {
   app_metadata_by_pk?: {
     __typename?: "app_metadata";
     supported_languages?: Array<string> | null;
+    app_mode: string;
   } | null;
 };
 
@@ -20,6 +21,7 @@ export const GetLocalesDocument = gql`
   query GetLocales($id: String!) {
     app_metadata_by_pk(id: $id) {
       supported_languages
+      app_mode
     }
   }
 `;

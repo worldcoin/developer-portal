@@ -17,6 +17,7 @@ type ImageDropZoneProps = {
   imageType?: string;
   children?: React.ReactNode;
   error?: string | null;
+  className?: string;
 };
 
 export const ImageDropZone = (props: ImageDropZoneProps) => {
@@ -28,6 +29,7 @@ export const ImageDropZone = (props: ImageDropZoneProps) => {
     imageType,
     children,
     error,
+    className,
     ...otherProps
   } = props;
 
@@ -48,19 +50,15 @@ export const ImageDropZone = (props: ImageDropZoneProps) => {
   return (
     <label
       className={clsx(
-        "grid w-full justify-items-center gap-y-4 rounded-xl  border-blue-150 p-8",
+        "flex w-full flex-col items-center justify-center gap-y-3 rounded-[10px] border border-dashed p-6",
         {
-          "cursor-pointer hover:border-solid hover:border-blue-500 hover:bg-blue-50":
-            !disabled,
+          "cursor-pointer border-grey-200 bg-grey-50 hover:bg-grey-100":
+            !disabled && !error && !isDragActive,
+          "border-blue-500 bg-blue-50": !disabled && isDragActive,
+          "border-system-error-500 bg-system-error-50": error && !disabled,
+          "cursor-not-allowed opacity-50": disabled,
         },
-        {
-          "border-solid border-blue-500 bg-blue-50": !disabled && isDragActive,
-        },
-        { "cursor-not-allowed opacity-50": disabled },
-        { "border-[1px] border-dashed": !error },
-        {
-          "border-2 border-solid border-red-200 hover:border-red-500": error,
-        },
+        className,
       )}
       {...getRootProps()}
     >
