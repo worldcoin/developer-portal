@@ -19,6 +19,19 @@ export interface SendUserOperationResult {
   operationHash: string;
 }
 
+export interface UserOperationReceipt {
+  userOpHash?: string;
+  sender?: string;
+  nonce?: string;
+  success?: boolean;
+  receipt?: {
+    transactionHash?: string;
+    transaction_hash?: string;
+  } | null;
+  transactionHash?: string;
+  transaction_hash?: string;
+}
+
 export interface OnChainRelyingParty {
   initialized: boolean;
   active: boolean;
@@ -203,6 +216,17 @@ export async function sendUserOperation(
   });
 
   return { operationHash };
+}
+
+/**
+ * Fetches a UserOperation receipt from the temporal RPC endpoint.
+ * Returns null while the operation is still pending.
+ */
+export async function getUserOperationReceipt(
+  userOpHash: string,
+): Promise<UserOperationReceipt | null> {
+  const provider = createProvider();
+  return await provider.send("eth_getUserOperationReceipt", [userOpHash]);
 }
 
 // =============================================================================
