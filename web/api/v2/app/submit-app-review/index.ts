@@ -4,10 +4,10 @@ import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { verifyProof } from "@/api/helpers/verify";
 import { NativeAppToAppIdMapping } from "@/lib/constants";
 import { generateExternalNullifier } from "@/lib/hashing";
+import { LegacyVerificationLevel } from "@/lib/idkit";
 import { logger } from "@/lib/logger";
 import { captureEvent } from "@/services/posthogClient";
-import { IDKitErrorCodes, VerificationLevel } from "@worldcoin/idkit";
-import { hashToField } from "@worldcoin/idkit/hashing";
+import { hashSignal } from "@worldcoin/idkit/hashing";
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
 import { getSdk as fetchAppReview } from "./graphql/fetch-current-app-review.generated";
@@ -24,7 +24,7 @@ const schema = yup
     merkle_root: yup.string().strict().required("This attribute is required."),
     verification_level: yup
       .string()
-      .oneOf(Object.values(VerificationLevel))
+      .oneOf(Object.values(LegacyVerificationLevel))
       .required("This attribute is required."),
     rating: yup
       .number()
@@ -68,12 +68,12 @@ export const POST = async (req: NextRequest) => {
   }
 
   // Fix the signal hash to be empty string
-  const signalHash = hashToField(parsedParams.rating.toString());
+  const signalHash = hashSignal(parsedParams.rating.toString());
   const external_nullifier = generateExternalNullifier(`${app_id}_app_review`);
 
   const { error, success } = await verifyProof(
     {
-      signal_hash: signalHash.digest,
+      signal_hash: signalHash,
       proof: parsedParams.proof,
       merkle_root: parsedParams.merkle_root,
       nullifier_hash: parsedParams.nullifier_hash,
@@ -90,7 +90,8 @@ export const POST = async (req: NextRequest) => {
     logger.warn("App review failed", { app_id });
     return errorResponse({
       statusCode: error?.statusCode || 400,
-      code: error?.code || IDKitErrorCodes.GenericError,
+      // Defaulting to "generic_error" for backwards compatibility.
+      code: error?.code || "generic_error",
       detail:
         error?.message ||
         "Review Failed: There was an error verifying this proof.",

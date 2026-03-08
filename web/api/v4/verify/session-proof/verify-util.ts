@@ -1,4 +1,3 @@
-import { IDKitErrorCodes } from "@worldcoin/idkit";
 import { logger } from "../../../../lib/logger";
 import { verifySessionProofOnChain } from "../../../helpers/temporal-rpc";
 import { SessionProofRequest } from "../request-schema";
@@ -51,7 +50,8 @@ export async function processSessionProof(
             identifier: item.identifier,
             sessionId: sessionProofRequest.session_id,
             success: false,
-            code: verifyResult.error?.code || IDKitErrorCodes.GenericError,
+            // Defaulting to "generic_error" for backwards compatibility.
+            code: verifyResult.error?.code || "generic_error",
             detail:
               verifyResult.error?.detail ||
               "There was an error verifying this session proof.",

@@ -1,7 +1,7 @@
 import { verifyProof } from "@/api/helpers/verify";
 import { generateExternalNullifier } from "@/lib/hashing";
+import { LegacyVerificationLevel } from "@/lib/idkit";
 import { logger } from "@/lib/logger";
-import { IDKitErrorCodes, VerificationLevel } from "@worldcoin/idkit";
 import { UniquenessProofResponseV3 } from "../request-schema";
 import { UniquenessResult } from "./handler";
 
@@ -31,7 +31,7 @@ export async function processUniquenessProofV3(
           {
             is_staging: isStaging,
             // identifier uses VerificationLevel values (legacy term for credential type)
-            verification_level: item.identifier as VerificationLevel | "face",
+            verification_level: item.identifier as LegacyVerificationLevel,
             max_age: item.max_age,
           },
         );
@@ -40,7 +40,8 @@ export async function processUniquenessProofV3(
           return {
             identifier: item.identifier,
             success: false,
-            code: error?.code || IDKitErrorCodes.GenericError,
+            // Defaulting to "generic_error" for backwards compatibility.
+            code: error?.code || "generic_error",
             detail:
               error?.message || "There was an error verifying this proof.",
             attribute: error?.attribute || undefined,
