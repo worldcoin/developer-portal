@@ -48,6 +48,9 @@ export const GET = async (
   req: NextRequest,
   { params }: { params: { user_op_hash: string } },
 ) => {
+  // This endpoint is intentionally unprotected. World Chain user operations can
+  // already be fetched on-chain; this route is only a convenience wrapper for
+  // developers querying World Chain user op status through the Dev Portal API.
   const userOpHash = params.user_op_hash;
 
   if (!userOperationHashRegex.test(userOpHash)) {
