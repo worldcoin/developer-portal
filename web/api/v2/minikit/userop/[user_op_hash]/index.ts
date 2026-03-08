@@ -1,22 +1,12 @@
-import { verifyApiKey } from "@/api/helpers/auth/verify-api-key";
 import { errorResponse } from "@/api/helpers/errors";
 import {
   getUserOperationReceipt,
   UserOperationReceipt,
 } from "@/api/helpers/temporal-rpc";
 import { corsHandler } from "@/api/helpers/utils";
-import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
-import { appIdSchema } from "@/lib/schema";
 import { NextRequest, NextResponse } from "next/server";
-import * as yup from "yup";
 
 const userOperationHashRegex = /^0x[a-fA-F0-9]{64}$/;
-
-const schema = yup
-  .object({
-    app_id: appIdSchema,
-  })
-  .noUnknown();
 
 const corsMethods = ["GET", "OPTIONS"];
 
@@ -73,28 +63,6 @@ export const GET = async (
     );
   }
 
-  const { searchParams } = new URL(req.url);
-  const { isValid, parsedParams, handleError } = await validateRequestSchema({
-    schema,
-    value: {
-      app_id: searchParams.get("app_id"),
-    },
-  });
-
-  if (!isValid) {
-    return corsHandler(handleError(req), corsMethods);
-  }
-
-  const { app_id: appId } = parsedParams;
-  const apiKeyResult = await verifyApiKey({
-    req,
-    appId,
-  });
-
-  if (!apiKeyResult.success) {
-    return corsHandler(apiKeyResult.errorResponse, corsMethods);
-  }
-
   try {
     const receipt = await getUserOperationReceipt(userOpHash);
     return corsHandler(
@@ -109,8 +77,6 @@ export const GET = async (
         detail: "Failed to fetch user operation status",
         attribute: "user_op_hash",
         req,
-        app_id: appId,
-        team_id: apiKeyResult.teamId,
       }),
       corsMethods,
     );
