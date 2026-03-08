@@ -10,7 +10,7 @@ import { appIdSchema } from "@/lib/schema";
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
 
-const userOperationHashRegex = /^0x[a-f0-9]{64}$/;
+const userOperationHashRegex = /^0x[a-fA-F0-9]{64}$/;
 
 const schema = yup
   .object({

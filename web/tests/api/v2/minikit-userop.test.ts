@@ -75,6 +75,8 @@ const validApiKeyResponse = {
 const validAppId = validApiKeyResponse.api_key_by_pk.team.apps[0].id;
 const validUserOpHash =
   "0x8004b63530b968a2a2c9ff414e01fc06a3ec5e4068d36d923df6aa4334744369";
+const uppercaseUserOpHash =
+  "0x8004B63530B968A2A2C9FF414E01FC06A3EC5E4068D36D923DF6AA4334744369";
 const validApiKey = `api_${apiKeyValue}`;
 
 describe("/api/v2/minikit/userop/[user_op_hash]", () => {
@@ -98,6 +100,27 @@ describe("/api/v2/minikit/userop/[user_op_hash]", () => {
     await expect(res.json()).resolves.toEqual({
       status: "pending",
       userOpHash: validUserOpHash,
+      sender: null,
+      transaction_hash: null,
+      nonce: null,
+    });
+  });
+
+  it("accepts uppercase user operation hashes", async () => {
+    const mockReq = createMockRequest({
+      url: getUrl(uppercaseUserOpHash, validAppId),
+      api_key: validApiKey,
+    });
+
+    mockGetUserOperationReceipt.mockResolvedValue(null);
+
+    const res = await GET(mockReq, {
+      params: { user_op_hash: uppercaseUserOpHash },
+    });
+    expect(res.status).toBe(200);
+    await expect(res.json()).resolves.toEqual({
+      status: "pending",
+      userOpHash: uppercaseUserOpHash,
       sender: null,
       transaction_hash: null,
       nonce: null,
