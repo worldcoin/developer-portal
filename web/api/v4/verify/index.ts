@@ -139,7 +139,7 @@ export async function POST(
 
     // Early return for session proofs - handle separately
     if (parsedParams.session_id) {
-      return handleSessionProofVerification(rpId, appId, {
+      return await handleSessionProofVerification(rpId, appId, {
         session_id: parsedParams.session_id,
         nonce: parsedParams.nonce!,
         protocol_version: parsedParams.protocol_version,
@@ -149,7 +149,7 @@ export async function POST(
     }
 
     // Handle uniqueness proofs
-    return handleUniquenessProofVerification(client, rpId, appId, {
+    return await handleUniquenessProofVerification(client, rpId, appId, {
       action: parsedParams.action!,
       action_description: parsedParams.action_description,
       nonce: parsedParams.nonce,
