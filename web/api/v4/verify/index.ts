@@ -60,85 +60,119 @@ export async function POST(
     return handleError(req);
   }
 
-  const client = await getAPIServiceGraphqlClient();
+  let client;
+  try {
+    client = await getAPIServiceGraphqlClient();
+  } catch (error) {
+    logger.error("Failed to initialize GraphQL client", {
+      error: error instanceof Error ? error.message : String(error),
+      app_id: routeId,
+    });
 
-  // Resolve app_id/rp_id to rp_registration
-  const resolveResult = await resolveRpRegistration(client, routeId);
+    return errorResponse({
+      statusCode: 500,
+      code: "internal_error",
+      detail: "Internal server error.",
+      attribute: null,
+      req,
+      app_id: routeId,
+    });
+  }
 
-  if (!resolveResult.success) {
-    if (resolveResult.error === "invalid_format") {
+  try {
+    // Resolve app_id/rp_id to rp_registration
+    const resolveResult = await resolveRpRegistration(client, routeId);
+
+    if (!resolveResult.success) {
+      if (resolveResult.error === "invalid_format") {
+        return errorResponse({
+          statusCode: 400,
+          code: "invalid_request",
+          detail:
+            "Invalid ID format. Expected app_id (app_xxx) or rp_id (rp_xxx).",
+          attribute: "app_id",
+          req,
+          app_id: routeId,
+        });
+      }
+      // error === "not_found"
       return errorResponse({
         statusCode: 400,
-        code: "invalid_request",
+        code: "app_not_migrated",
         detail:
-          "Invalid ID format. Expected app_id (app_xxx) or rp_id (rp_xxx).",
-        attribute: "app_id",
+          "This app has not been migrated to World ID 4.0. Please use the v2 verify endpoint.",
+        attribute: null,
         req,
         app_id: routeId,
       });
     }
-    // error === "not_found"
-    return errorResponse({
-      statusCode: 400,
-      code: "app_not_migrated",
-      detail:
-        "This app has not been migrated to World ID 4.0. Please use the v2 verify endpoint.",
-      attribute: null,
-      req,
-      app_id: routeId,
-    });
-  }
 
-  const rpRegistration = resolveResult.registration;
+    const rpRegistration = resolveResult.registration;
 
-  // Check if RP registration is active
-  if (rpRegistration.status !== RpRegistrationStatus.Registered) {
-    return errorResponse({
-      statusCode: 400,
-      code: "rp_not_active",
-      detail: "RP registration is not active.",
-      attribute: null,
-      req,
-      app_id: routeId,
-    });
-  }
+    // Check if RP registration is active
+    if (rpRegistration.status !== RpRegistrationStatus.Registered) {
+      return errorResponse({
+        statusCode: 400,
+        code: "rp_not_active",
+        detail: "RP registration is not active.",
+        attribute: null,
+        req,
+        app_id: routeId,
+      });
+    }
 
-  // Validate app status
-  const app = rpRegistration.app;
-  if (app.status !== "active" || app.is_archived || app.deleted_at) {
-    return errorResponse({
-      statusCode: 404,
-      code: "not_found",
-      detail: "App not found. App may be no longer active.",
-      attribute: null,
-      req,
-      app_id: routeId,
-    });
-  }
+    // Validate app status
+    const app = rpRegistration.app;
+    if (app.status !== "active" || app.is_archived || app.deleted_at) {
+      return errorResponse({
+        statusCode: 404,
+        code: "not_found",
+        detail: "App not found. App may be no longer active.",
+        attribute: null,
+        req,
+        app_id: routeId,
+      });
+    }
 
-  const rpId = rpRegistration.rp_id;
-  const appId = rpRegistration.app_id;
+    const rpId = rpRegistration.rp_id;
+    const appId = rpRegistration.app_id;
 
-  // Early return for session proofs - handle separately
-  if (parsedParams.session_id) {
-    return handleSessionProofVerification(rpId, appId, {
-      session_id: parsedParams.session_id,
-      nonce: parsedParams.nonce!,
-      protocol_version: parsedParams.protocol_version,
-      responses: parsedParams.responses as SessionProofRequest["responses"],
+    // Early return for session proofs - handle separately
+    if (parsedParams.session_id) {
+      return handleSessionProofVerification(rpId, appId, {
+        session_id: parsedParams.session_id,
+        nonce: parsedParams.nonce!,
+        protocol_version: parsedParams.protocol_version,
+        responses: parsedParams.responses as SessionProofRequest["responses"],
+        environment: parsedParams.environment,
+      });
+    }
+
+    // Handle uniqueness proofs
+    return handleUniquenessProofVerification(client, rpId, appId, {
+      action: parsedParams.action!,
+      action_description: parsedParams.action_description,
+      nonce: parsedParams.nonce,
+      protocol_version: parsedParams.protocol_version as "3.0" | "4.0",
+      responses: parsedParams.responses as
+        | UniquenessProofResponseV3[]
+        | UniquenessProofResponseV4[],
       environment: parsedParams.environment,
     });
-  }
+  } catch (error) {
+    logger.error("Unhandled error in v4/verify", {
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+      app_id: routeId,
+    });
 
-  // Handle uniqueness proofs
-  return handleUniquenessProofVerification(client, rpId, appId, {
-    action: parsedParams.action!,
-    action_description: parsedParams.action_description,
-    nonce: parsedParams.nonce,
-    protocol_version: parsedParams.protocol_version as "3.0" | "4.0",
-    responses: parsedParams.responses as
-      | UniquenessProofResponseV3[]
-      | UniquenessProofResponseV4[],
-    environment: parsedParams.environment,
-  });
+    return errorResponse({
+      statusCode: 500,
+      code: "internal_error",
+      detail: "Internal server error.",
+      attribute: null,
+      req,
+      app_id: routeId,
+    });
+  }
 }
