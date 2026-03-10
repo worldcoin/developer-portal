@@ -17,3 +17,18 @@ export const isWorldId40EnabledForTeam = (
     return entry === WORLD_ID_40_ENABLE_ALL_TEAMS_TOKEN || entry === teamId;
   });
 };
+
+export const isLegacyActionsEditableForTeam = (
+  teamId: string | undefined,
+): boolean => {
+  if (!teamId) {
+    return false;
+  }
+
+  return [
+    // internal example team
+    "team_f8bdaaa2da5b9779b9dbd6ab82a705a2",
+    // partner team that we want to support legacy actions editing for
+    "team_47d749c71e3627c69f3a59fc1b21b2ae",
+  ].includes(teamId);
+};
