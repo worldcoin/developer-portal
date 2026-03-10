@@ -28,8 +28,8 @@ export const isLegacyActionsEditableForTeam = (
   }
 
   let legacyEnabledTeams: string[];
-  
-  if (checkIfProduction()){
+
+  if (checkIfProduction()) {
     legacyEnabledTeams = [
       // TFH teams
       "team_f8bdaaa2da5b9779b9dbd6ab82a705a2", // World ID
@@ -42,6 +42,6 @@ export const isLegacyActionsEditableForTeam = (
       "team_653e1d90daf143a7ce19c6752f48899e", // World ID
     ];
   }
-  
+
   return legacyEnabledTeams.includes(teamId);
 };
