@@ -1,6 +1,6 @@
-import { hashActionToUint256 } from "@/api/helpers/rp-utils";
 import { verifyProofOnChain } from "@/api/helpers/temporal-rpc";
 import { logger } from "@/lib/logger";
+import { hashSignal } from "@worldcoin/idkit/hashing";
 import { UniquenessProofResponseV4 } from "../request-schema";
 import { UniquenessResult } from "./handler";
 
@@ -21,7 +21,8 @@ export async function processUniquenessProofV4(
         const verifyResult = await verifyProofOnChain(
           {
             nullifier: BigInt(item.nullifier),
-            action: hashActionToUint256(action),
+            // Note: `hashSignal` is same as `hashToField` from previous idkit versions
+            action: BigInt(hashSignal(action)),
             rpId,
             nonce: BigInt(nonce),
             signalHash: BigInt(item.signal_hash),

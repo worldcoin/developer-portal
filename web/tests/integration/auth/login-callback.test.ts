@@ -219,6 +219,67 @@ describe("test /login-callback", () => {
     ).toBeTruthy();
   });
 
+  it("should redirect to a valid relative returnTo path", async () => {
+    const url = new URL(
+      "/login-callback?returnTo=/some-page",
+      "http://localhost:3000",
+    );
+    const mockReq = { nextUrl: url } as unknown as NextRequest;
+    const mockSession = { user: validEmailSessionUser };
+
+    (getSession as jest.Mock).mockResolvedValue(mockSession);
+    const response = await loginCallback(mockReq, {});
+
+    expect(
+      response.headers.get("location")?.endsWith("/some-page"),
+    ).toBeTruthy();
+  });
+
+  it("should ignore an absolute URL returnTo and use default redirect", async () => {
+    const url = new URL(
+      "/login-callback?returnTo=https://evil.com",
+      "http://localhost:3000",
+    );
+    const mockReq = { nextUrl: url } as unknown as NextRequest;
+    const mockSession = { user: validEmailSessionUser };
+
+    (getSession as jest.Mock).mockResolvedValue(mockSession);
+    const response = await loginCallback(mockReq, {});
+
+    expect(response.headers.get("location")).not.toContain("evil.com");
+    expect(response.headers.get("location")?.endsWith("/apps")).toBeTruthy();
+  });
+
+  it("should ignore a protocol-relative URL returnTo and use default redirect", async () => {
+    const url = new URL(
+      "/login-callback?returnTo=%2F%2Fevil.com",
+      "http://localhost:3000",
+    );
+    const mockReq = { nextUrl: url } as unknown as NextRequest;
+    const mockSession = { user: validEmailSessionUser };
+
+    (getSession as jest.Mock).mockResolvedValue(mockSession);
+    const response = await loginCallback(mockReq, {});
+
+    expect(response.headers.get("location")).not.toContain("evil.com");
+    expect(response.headers.get("location")?.endsWith("/apps")).toBeTruthy();
+  });
+
+  it("should ignore a backslash-prefixed returnTo that resolves off-site", async () => {
+    const url = new URL(
+      "/login-callback?returnTo=%2F%5Cevil.com",
+      "http://localhost:3000",
+    );
+    const mockReq = { nextUrl: url } as unknown as NextRequest;
+    const mockSession = { user: validEmailSessionUser };
+
+    (getSession as jest.Mock).mockResolvedValue(mockSession);
+    const response = await loginCallback(mockReq, {});
+
+    expect(response.headers.get("location")).not.toContain("evil.com");
+    expect(response.headers.get("location")?.endsWith("/apps")).toBeTruthy();
+  });
+
   it("Should add membership for the invited existing user", async () => {
     const email = "test1-member@team2.example.com";
     const team_id = "team_d7cde14f17eda7e0ededba7ded6b4467";

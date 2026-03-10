@@ -57,18 +57,6 @@ export function mapOnChainToDbStatus(
     : RpRegistrationStatus.Deactivated;
 }
 
-/**
- * Hashes an action string to a uint256 for on-chain verification.
- * If the action is already a numeric string or hex, it's used directly.
- */
-export function hashActionToUint256(action: string): bigint {
-  if (/^(0x[\da-fA-F]+|\d+)$/.test(action)) {
-    return BigInt(action);
-  }
-  const hash = keccak256(toUtf8Bytes(action));
-  return BigInt(hash);
-}
-
 // =============================================================================
 // Address Utilities
 // =============================================================================
