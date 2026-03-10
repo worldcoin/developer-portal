@@ -4,6 +4,7 @@ import "server-only";
  * Utilities for RP (Relying Party) operations.
  */
 
+import { generateRpId, generateRpIdString } from "@/lib/rp";
 import { keccak256, toUtf8Bytes } from "ethers";
 import { GraphQLClient } from "graphql-request";
 import { getSdk as getFetchRpRegistrationSdk } from "./graphql/fetch-rp-registration.generated";
@@ -23,22 +24,7 @@ export enum RpRegistrationStatus {
 // RP ID Utilities
 // =============================================================================
 
-/**
- * RP ID is derived as uint64(keccak256(app_id)).
- */
-export function generateRpId(appId: string): bigint {
-  const hash = keccak256(toUtf8Bytes(appId));
-  const uint64Hex = hash.slice(2, 18);
-  return BigInt("0x" + uint64Hex);
-}
-
-/**
- * Returns rp_id string (rp_ + 16 hex chars) for database storage.
- */
-export function generateRpIdString(appId: string): string {
-  const rpId = generateRpId(appId);
-  return "rp_" + rpId.toString(16).padStart(16, "0");
-}
+export { generateRpId, generateRpIdString };
 
 export function isValidRpId(rpId: string): boolean {
   if (typeof rpId !== "string" || !rpId.startsWith("rp_")) {

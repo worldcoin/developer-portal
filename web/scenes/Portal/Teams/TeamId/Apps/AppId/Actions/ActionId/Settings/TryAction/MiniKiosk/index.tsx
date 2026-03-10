@@ -1,27 +1,17 @@
-import { restAPIRequest } from "@/lib/frontend-api";
+import { LegacyVerificationLevel } from "@/lib/idkit";
 import { KioskScreen } from "@/lib/types";
-import {
-  ISuccessResult,
-  VerificationLevel,
-  useWorldBridgeStore,
-} from "@worldcoin/idkit-core";
+import type { IDKitResult } from "@worldcoin/idkit";
 import clsx from "clsx";
 import { useCallback, useEffect, useState } from "react";
 import { Connected } from "../../../Components/Kiosk/Connected";
-import { IDKitBridge } from "../../../Components/Kiosk/IDKitBridge";
 import { KioskError } from "../../../Components/Kiosk/KioskError";
 import { Success } from "../../../Components/Kiosk/Success";
 import { Waiting } from "../../../Components/Kiosk/Waiting";
-
-type ProofResponse = {
-  success: boolean;
-  action_id?: string;
-  nullifier_hash?: string;
-  created_at?: string;
-  code?: string;
-  detail?: string;
-  attribute?: string;
-};
+import {
+  submitKioskProof,
+  useLegacyKioskRequest,
+  type KioskProofResponse,
+} from "../../../Components/Kiosk/useLegacyKioskRequest";
 
 type MiniKioskProps = {
   action: {
@@ -34,30 +24,32 @@ type MiniKioskProps = {
 };
 export const MiniKiosk = (props: MiniKioskProps) => {
   const [screen, setScreen] = useState<KioskScreen>(KioskScreen.Waiting);
-  const [qrData, setQrData] = useState<string | null>(null);
-  const [proofResult, setProofResult] = useState<ISuccessResult | null>(null);
-  const [connectionTimeout, setConnectionTimeout] = useState<boolean>(true);
   const [kioskVerificationLevel, setKioskVerificationLevel] =
-    useState<VerificationLevel>(VerificationLevel.Device);
+    useState<LegacyVerificationLevel>(LegacyVerificationLevel.Device);
 
-  const { reset } = useWorldBridgeStore();
   const { action } = props;
   const appId = action.app_id as `app_${string}`;
+  const { connectorURI, proofResult, requestScreen, restartRequest } =
+    useLegacyKioskRequest({
+      appId,
+      action: action.action,
+      actionDescription: action.description,
+      verificationLevel: kioskVerificationLevel,
+      enabled: Boolean(action),
+    });
 
   const resetKiosk = useCallback(() => {
     setScreen(KioskScreen.Waiting);
-    reset();
-    setQrData(null);
-    setProofResult(null);
-    setConnectionTimeout(true);
-  }, [reset]);
+    restartRequest();
+  }, [restartRequest]);
 
   const resetKioskAndUpdateVerificationLevel = useCallback(
-    (newVerificationLevel: VerificationLevel) => {
+    (newVerificationLevel: LegacyVerificationLevel) => {
       setKioskVerificationLevel(newVerificationLevel);
-      resetKiosk();
+      setScreen(KioskScreen.Waiting);
+      restartRequest();
     },
-    [resetKiosk],
+    [restartRequest],
   );
 
   // Reset kiosk if the action changes
@@ -65,25 +57,26 @@ export const MiniKiosk = (props: MiniKioskProps) => {
     if (!action) {
       setScreen(KioskScreen.InvalidRequest);
     }
-    resetKiosk();
-  }, [action, resetKiosk, setScreen]);
+  }, [action, setScreen]);
+
+  useEffect(() => {
+    if (action) {
+      setScreen(requestScreen);
+    }
+  }, [action, requestScreen]);
 
   const verifyProof = useCallback(
-    async (result: ISuccessResult) => {
-      let response;
-      setConnectionTimeout(false);
+    async (result: IDKitResult) => {
+      if (!result) {
+        return;
+      }
+
+      let response: KioskProofResponse = {
+        success: false,
+        code: "unknown",
+      };
       try {
-        response = await restAPIRequest<ProofResponse>(`/verify/${appId}`, {
-          method: "POST",
-          json: {
-            ...result,
-            action: action?.action,
-            verification_level:
-              kioskVerificationLevel === VerificationLevel.Orb
-                ? VerificationLevel.Orb
-                : result.verification_level,
-          },
-        });
+        response = await submitKioskProof(appId, result);
       } catch (e) {
         console.warn("Error verifying proof. Please check network logs.");
         try {
@@ -97,25 +90,25 @@ export const MiniKiosk = (props: MiniKioskProps) => {
           response = { success: false, code: "unknown" };
         }
       }
-      if (response?.success) {
+
+      if (response.success) {
         setScreen(KioskScreen.Success);
       } else {
-        if (response?.code === "max_verifications_reached") {
+        if (response.code === "max_verifications_reached") {
           setScreen(KioskScreen.AlreadyVerified);
-        } else if (response?.code === "invalid_merkle_root") {
+        } else if (response.code === "invalid_merkle_root") {
           setScreen(KioskScreen.InvalidIdentity);
         } else {
           setScreen(KioskScreen.VerificationError);
         }
       }
     },
-    [action?.action, appId, kioskVerificationLevel],
+    [appId],
   );
 
   useEffect(() => {
     if (proofResult) {
-      verifyProof(proofResult);
-      setProofResult(null);
+      void verifyProof(proofResult);
     }
   }, [proofResult, verifyProof]);
 
@@ -139,23 +132,9 @@ export const MiniKiosk = (props: MiniKioskProps) => {
           <KioskError title="This request is invalid." reset={resetKiosk} />
         )}
 
-        {action && (
-          <IDKitBridge
-            app_id={appId}
-            action={action.action}
-            action_description={action.description}
-            verificationLevel={kioskVerificationLevel}
-            setScreen={setScreen}
-            setQrData={setQrData}
-            setProofResult={setProofResult}
-            resetKiosk={resetKiosk}
-            connectionTimeout={connectionTimeout}
-          />
-        )}
-
         {screen === KioskScreen.Waiting && (
           <Waiting
-            qrData={qrData}
+            qrData={connectorURI}
             verificationLevel={kioskVerificationLevel}
             resetKioskAndUpdateVerificationLevel={
               resetKioskAndUpdateVerificationLevel

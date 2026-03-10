@@ -1,6 +1,6 @@
 import { Role_Enum } from "@/graphql/graphql";
+import { LegacyVerificationLevel } from "@/lib/idkit";
 import { Auth0EmailUser, Auth0User } from "@/lib/types";
-import { VerificationLevel } from "@worldcoin/idkit-core";
 import {
   DOCUMENT_SEQUENCER,
   DOCUMENT_SEQUENCER_STAGING,
@@ -22,26 +22,29 @@ import { Auth0SessionUser } from "./types";
  * @returns The sequencer for the verification level
  */
 export const sequencerMapping: Record<
-  VerificationLevel | "face",
+  LegacyVerificationLevel,
   { [key: string]: string | undefined }
 > = {
-  [VerificationLevel.Orb]: {
+  [LegacyVerificationLevel.Orb]: {
     true: ORB_SEQUENCER_STAGING,
     false: ORB_SEQUENCER,
   },
-  [VerificationLevel.Device]: {
+  [LegacyVerificationLevel.Device]: {
     true: PHONE_SEQUENCER_STAGING,
     false: PHONE_SEQUENCER,
   },
-  [VerificationLevel.Document]: {
+  [LegacyVerificationLevel.Document]: {
     true: DOCUMENT_SEQUENCER_STAGING,
     false: DOCUMENT_SEQUENCER,
   },
-  [VerificationLevel.SecureDocument]: {
+  [LegacyVerificationLevel.SecureDocument]: {
     true: SECURE_DOCUMENT_SEQUENCER_STAGING,
     false: SECURE_DOCUMENT_SEQUENCER,
   },
-  ["face"]: { true: FACE_SEQUENCER_STAGING, false: FACE_SEQUENCER },
+  [LegacyVerificationLevel.Face]: {
+    true: FACE_SEQUENCER_STAGING,
+    false: FACE_SEQUENCER,
+  },
 };
 
 /**

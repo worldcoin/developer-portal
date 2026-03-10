@@ -14,11 +14,11 @@ import { corsHandler } from "@/api/helpers/utils";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { encodeNullifierForStorage, verifyProof } from "@/api/helpers/verify";
 import { Nullifier_Constraint } from "@/graphql/graphql";
+import { LegacyVerificationLevel } from "@/lib/idkit";
 import { logger } from "@/lib/logger";
 import { OIDCFlowType, OIDCResponseType } from "@/lib/types";
 import { captureEvent } from "@/services/posthogClient";
-import { VerificationLevel } from "@worldcoin/idkit-core";
-import { hashToField } from "@worldcoin/idkit-core/hashing";
+import { hashSignal } from "@worldcoin/idkit/hashing";
 import { createHash } from "crypto";
 import { toBeHex } from "ethers";
 import { NextRequest, NextResponse } from "next/server";
@@ -37,7 +37,7 @@ const schema = yup
     merkle_root: yup.string().strict().required("This attribute is required."),
     verification_level: yup
       .string()
-      .oneOf(Object.values(VerificationLevel))
+      .oneOf(Object.values(LegacyVerificationLevel))
       .required("This attribute is required."),
     app_id: yup.string().strict().required("This attribute is required."),
     signal: yup // `signal` in the context of World ID; `nonce` in the context of OIDC
@@ -251,7 +251,7 @@ export async function POST(req: NextRequest) {
     // For OIDC we should always hash the signal now.
     let signalHash: string;
     try {
-      signalHash = toBeHex(hashToField(signal).hash as bigint);
+      signalHash = toBeHex(hashSignal(signal));
     } catch (error) {
       return corsHandler(
         errorResponse({

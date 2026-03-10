@@ -1,5 +1,5 @@
 import { POST } from "@/api/v2/verify";
-import { VerificationLevel } from "@worldcoin/idkit-core";
+import { LegacyVerificationLevel } from "@/lib/idkit";
 import { NextRequest } from "next/server";
 import { semaphoreProofParamsMock } from "../__mocks__/proof.mock";
 
@@ -170,7 +170,7 @@ describe("/api/v2/verify", () => {
       action: validBody.action,
       created_at: validNullifier.created_at,
       max_uses: 0,
-      verification_level: VerificationLevel.Orb,
+      verification_level: LegacyVerificationLevel.Orb,
       nullifier_hash: semaphoreProofParamsMock.nullifier_hash,
     });
   });
@@ -221,7 +221,7 @@ describe("/api/v2/verify", () => {
       action: validBody.action,
       created_at: validNullifier.created_at,
       max_uses: 0,
-      verification_level: VerificationLevel.Orb,
+      verification_level: LegacyVerificationLevel.Orb,
       nullifier_hash: semaphoreProofParamsMock.nullifier_hash,
     });
   });
@@ -276,7 +276,7 @@ describe("/api/v2/verify", () => {
       message: "Proof verified successfully",
       created_at: validNullifier.created_at,
       max_uses: 0,
-      verification_level: VerificationLevel.Orb,
+      verification_level: LegacyVerificationLevel.Orb,
       nullifier_hash: semaphoreProofParamsMock.nullifier_hash,
     });
   });
@@ -333,7 +333,7 @@ describe("/api/v2/verify", () => {
       action: validBody.action,
       created_at: validNullifier.created_at,
       max_uses: 0,
-      verification_level: VerificationLevel.Orb,
+      verification_level: LegacyVerificationLevel.Orb,
       nullifier_hash: semaphoreProofParamsMock.nullifier_hash,
     });
   });
@@ -660,7 +660,7 @@ describe("/api/v2/verify [error cases]", () => {
     const mockReq = createMockRequest(getUrl(stagingAppId), {
       ...semaphoreProofParamsMock,
       action: "action_verify",
-      verification_level: VerificationLevel.Device,
+      verification_level: LegacyVerificationLevel.Device,
       // Note: max_age is not provided
     });
 
@@ -714,7 +714,7 @@ describe("/api/v2/verify [error cases]", () => {
     const mockReq = createMockRequest(getUrl(stagingAppId), {
       ...semaphoreProofParamsMock,
       action: "action_verify",
-      verification_level: VerificationLevel.Device,
+      verification_level: LegacyVerificationLevel.Device,
       max_age: customMaxAge,
     });
 

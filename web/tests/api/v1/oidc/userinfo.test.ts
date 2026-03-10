@@ -1,6 +1,6 @@
 import { generateOIDCJWT } from "@/api/helpers/jwts";
 import { OIDCScopes } from "@/api/helpers/oidc";
-import { VerificationLevel } from "@worldcoin/idkit-core";
+import { LegacyVerificationLevel } from "@/lib/idkit";
 
 import { POST } from "@/api/v1/oidc/userinfo";
 import { NextRequest } from "next/server";
@@ -21,7 +21,7 @@ describe("/api/v1/oidc/userinfo", () => {
       app_id: "app_1234",
       kms_id: "test-kms-id",
       nullifier_hash: "0x00000",
-      verification_level: VerificationLevel.Orb,
+      verification_level: LegacyVerificationLevel.Orb,
       scope: [OIDCScopes.OpenID, OIDCScopes.Profile],
     });
     // Ensure we're actually generating a JWT
