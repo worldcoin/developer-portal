@@ -1,4 +1,4 @@
-import checkIfProduction from "@/lib/utils";
+import { checkIfProduction } from "@/lib/utils";
 
 export const WORLD_ID_40_ENABLE_ALL_TEAMS_TOKEN = "enable_all_teams";
 
