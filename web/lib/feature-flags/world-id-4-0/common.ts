@@ -1,11 +1,5 @@
 export const WORLD_ID_40_ENABLE_ALL_TEAMS_TOKEN = "enable_all_teams";
 
-const getLegacyActionsEditableTeams = () =>
-  (process.env.NEXT_PUBLIC_LEGACY_ACTIONS_EDITABLE_TEAM_IDS ?? "")
-    .split(",")
-    .map((entry) => entry.trim())
-    .filter(Boolean);
-
 /**
  * Shared World ID 4.0 team-gating logic.
  * Supports explicit team IDs and a global override token.
