@@ -199,7 +199,7 @@ export function useLegacyKioskRequest({
   });
 
   useEffect(() => {
-    if (process.env.NODE_ENV === "production" || !flow.isError) {
+    if (!flow.isError) {
       return;
     }
 
