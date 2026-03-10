@@ -33,6 +33,7 @@ export const isLegacyActionsEditableForTeam = (
     legacyEnabledTeams = [
       // TFH teams
       "team_f8bdaaa2da5b9779b9dbd6ab82a705a2", // World ID
+      "team_56592d0d26de476126ae29a3904df44e", // World ID Deep Face
       // Partner teams
       "team_47d749c71e3627c69f3a59fc1b21b2ae", // Tinder
     ];
