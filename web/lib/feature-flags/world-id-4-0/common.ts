@@ -1,3 +1,5 @@
+import checkIfProduction from "@/lib/utils";
+
 export const WORLD_ID_40_ENABLE_ALL_TEAMS_TOKEN = "enable_all_teams";
 
 /**
@@ -25,10 +27,21 @@ export const isLegacyActionsEditableForTeam = (
     return false;
   }
 
-  return [
-    // internal example team
-    "team_f8bdaaa2da5b9779b9dbd6ab82a705a2",
-    // partner team that we want to support legacy actions editing for
-    "team_47d749c71e3627c69f3a59fc1b21b2ae",
-  ].includes(teamId);
+  let legacyEnabledTeams: string[];
+  
+  if (checkIfProduction()){
+    legacyEnabledTeams = [
+      // TFH teams
+      "team_f8bdaaa2da5b9779b9dbd6ab82a705a2", // World ID
+      // Partner teams
+      "team_47d749c71e3627c69f3a59fc1b21b2ae", // Tinder
+    ];
+  } else {
+    legacyEnabledTeams = [
+      // TFH teams
+      "team_653e1d90daf143a7ce19c6752f48899e", // World ID
+    ];
+  }
+  
+  return legacyEnabledTeams.includes(teamId);
 };
