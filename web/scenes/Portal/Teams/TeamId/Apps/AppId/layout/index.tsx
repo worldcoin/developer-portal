@@ -42,9 +42,10 @@ export const AppIdLayout = async (props: AppIdLayoutProps) => {
         isOnChainApp = app[0].engine === EngineType.OnChain;
         hasLegacyActions = action.length > 0;
         hasRpRegistration = app[0].rp_registration.length > 0;
-        const activeMetadata =
-          app[0].app_metadata[0] ?? app[0].verified_app_metadata[0];
-        isMiniAppEnabled = activeMetadata?.app_mode === "mini-app";
+        const hasDraftMiniApp = app[0].app_metadata[0]?.app_mode === "mini-app";
+        const hasVerifiedMiniApp =
+          app[0].verified_app_metadata[0]?.app_mode === "mini-app";
+        isMiniAppEnabled = hasDraftMiniApp || hasVerifiedMiniApp;
       } else {
         logger.warn("AppIdLayout could not resolve app from FetchAppEnv", {
           appId: params.appId,

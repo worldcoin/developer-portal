@@ -17,10 +17,11 @@ export const MiniAppLayout = async (props: MiniAppLayoutProps) => {
 
   if (appId && teamId) {
     const { app } = await fetchAppEnvCached(appId);
-    const activeMetadata =
-      app[0]?.app_metadata[0] ?? app[0]?.verified_app_metadata[0];
+    const hasDraftMiniApp = app[0]?.app_metadata[0]?.app_mode === "mini-app";
+    const hasVerifiedMiniApp =
+      app[0]?.verified_app_metadata[0]?.app_mode === "mini-app";
 
-    if (activeMetadata?.app_mode !== "mini-app") {
+    if (!hasDraftMiniApp && !hasVerifiedMiniApp) {
       redirect(
         urls.configuration({
           team_id: teamId,
