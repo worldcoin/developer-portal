@@ -1,6 +1,5 @@
 "use client";
 
-import { Transition } from "@headlessui/react";
 import { Toggle } from "@/components/Toggle";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Role_Enum } from "@/graphql/graphql";
@@ -9,14 +8,7 @@ import { useRefetchQueries } from "@/lib/use-refetch-queries";
 import { checkUserPermissions } from "@/lib/utils";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { useAtom } from "jotai";
-import {
-  Fragment,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "react-toastify";
 import {
   FetchAppMetadataDocument,
@@ -39,7 +31,6 @@ export const MiniAppConfiguration = ({
   appMetadata,
 }: MiniAppConfigurationProps) => {
   const { user } = useUser() as Auth0SessionUser;
-  const [showQrCode, setShowQrCode] = useState(false);
   const [isUpdatingMode, setIsUpdatingMode] = useState(false);
   const modeUpdateInFlightRef = useRef(false);
 
@@ -96,13 +87,15 @@ export const MiniAppConfiguration = ({
   );
 
   const { url, showDraftMiniAppFlag } = useMemo(() => {
-    let url = `https://world.org/mini-app?app_id=${appId}&path=`;
-    const showDraftMiniAppFlag = appMetadata.verification_status !== "verified";
-    if (showDraftMiniAppFlag) {
-      url += `&draft_id=${appMetadata.id}`;
+    let miniAppUrl = `https://world.org/mini-app?app_id=${appId}&path=`;
+    const isDraftMiniApp = appMetadata.verification_status !== "verified";
+
+    if (isDraftMiniApp) {
+      miniAppUrl += `&draft_id=${appMetadata.id}`;
     }
-    return { url, showDraftMiniAppFlag };
-  }, [appId, appMetadata]);
+
+    return { url: miniAppUrl, showDraftMiniAppFlag: isDraftMiniApp };
+  }, [appId, appMetadata.id, appMetadata.verification_status]);
 
   return (
     <div className="flex max-w-[700px] flex-col gap-5">
@@ -132,40 +125,12 @@ export const MiniAppConfiguration = ({
           </div>
         </div>
 
-        {/* Activate QR code toggle — mini-app only */}
         {isMiniApp && !!appMetadata.integration_url && (
-          <div className="grid gap-y-10">
-            <div className="rounded-[10px] border border-grey-100 px-6 py-4">
-              <div className="flex items-center gap-x-4">
-                <div className="grid flex-1 gap-y-1">
-                  <Typography variant={TYPOGRAPHY.S2} className="text-grey-900">
-                    Activate the QR code
-                  </Typography>
-                  <Typography variant={TYPOGRAPHY.B3} className="text-grey-500">
-                    Show QR code in your app for users to try it out.
-                  </Typography>
-                </div>
-                <Toggle checked={showQrCode} onChange={setShowQrCode} />
-              </div>
-            </div>
-
-            <Transition
-              show={showQrCode}
-              as={Fragment}
-              enter="transition-all duration-200 ease-out"
-              enterFrom="opacity-0 -translate-y-1"
-              enterTo="opacity-100 translate-y-0"
-              leave="transition-all duration-150 ease-in"
-              leaveFrom="opacity-100 translate-y-0"
-              leaveTo="opacity-0 -translate-y-1"
-            >
-              <div className="flex justify-center sm:justify-start">
-                <QrQuickAction
-                  url={url}
-                  showDraftMiniAppFlag={showDraftMiniAppFlag}
-                />
-              </div>
-            </Transition>
+          <div className="flex justify-center sm:justify-start">
+            <QrQuickAction
+              url={url}
+              showDraftMiniAppFlag={showDraftMiniAppFlag}
+            />
           </div>
         )}
       </div>
