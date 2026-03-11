@@ -21,13 +21,14 @@ type MiniKioskProps = {
     app_id: string;
     app: { is_staging: boolean };
   };
+  is_v4_action: boolean;
 };
 export const MiniKiosk = (props: MiniKioskProps) => {
   const [screen, setScreen] = useState<KioskScreen>(KioskScreen.Waiting);
   const [kioskVerificationLevel, setKioskVerificationLevel] =
     useState<LegacyVerificationLevel>(LegacyVerificationLevel.Device);
 
-  const { action } = props;
+  const { action, is_v4_action } = props;
   const appId = action.app_id as `app_${string}`;
   const { connectorURI, proofResult, requestScreen, restartRequest } =
     useLegacyKioskRequest({
@@ -76,7 +77,7 @@ export const MiniKiosk = (props: MiniKioskProps) => {
         code: "unknown",
       };
       try {
-        response = await submitKioskProof(appId, result);
+        response = await submitKioskProof(appId, result, is_v4_action);
       } catch (e) {
         console.warn("Error verifying proof. Please check network logs.");
         try {

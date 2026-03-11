@@ -145,22 +145,43 @@ function toLegacyVerifyPayload(result: IDKitResult): LegacyVerifyPayload {
 export async function submitKioskProof(
   appId: `app_${string}`,
   result: IDKitResult,
+  is_v4_action: boolean,
 ): Promise<KioskProofResponse> {
-  const response = await fetch(`/api/v2/verify/${appId}`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(toLegacyVerifyPayload(result)),
-  });
+  if (is_v4_action) {
+    const response = await fetch(`/api/v4/verify/${appId}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(result),
+    });
 
-  const payload = (await response.json()) as KioskProofResponse;
+    const payload = (await response.json()) as KioskProofResponse;
 
-  if (!response.ok) {
-    throw payload;
+    if (!response.ok) {
+      throw payload;
+    }
+
+    return {
+      success: true,
+    };
+  } else {
+    const response = await fetch(`/api/v2/verify/${appId}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(toLegacyVerifyPayload(result)),
+    });
+
+    const payload = (await response.json()) as KioskProofResponse;
+
+    if (!response.ok) {
+      throw payload;
+    }
+
+    return payload;
   }
-
-  return payload;
 }
 
 export function useLegacyKioskRequest({
