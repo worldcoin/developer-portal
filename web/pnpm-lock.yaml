@@ -79,8 +79,8 @@ importers:
         specifier: ^8.1.3
         version: 8.1.3
       '@worldcoin/idkit':
-        specifier: ^4.0.8
-        version: 4.0.8(react-dom@18.2.0(react@18.3.1))(react@18.3.1)
+        specifier: ^4.0.9
+        version: 4.0.9(react-dom@18.2.0(react@18.3.1))(react@18.3.1)
       auth0:
         specifier: ^4.10.0
         version: 4.10.0
@@ -2834,15 +2834,15 @@ packages:
     resolution: {integrity: sha512-Nst5JdK47VIl9UcGwtv2Rcgyn5lWtZ0/mhRQ4G8NN2isxpq2TO30iqHzmwoJycjWuyUfg3GFXqP/gFHXeV57IA==}
     engines: {node: '>=16.0.0'}
 
-  '@worldcoin/idkit-core@4.0.11':
-    resolution: {integrity: sha512-Fu4oHavbMCS0N8mQrYDpbZ9GZEYJjcAgotcbNw/l+NcuFIDKbo8xleTVz/icyQAaaT0QMkxtagrrH7kTKppG5w==}
+  '@worldcoin/idkit-core@4.0.13':
+    resolution: {integrity: sha512-SWeS2jGijbXI3Z+qjJn/DbdWYMuc6swdKUOaEj5m5zMLQYWLZwYNRYylvNuNLwnPAMuAgJQ8andyIFZ4RFqM4g==}
 
   '@worldcoin/idkit-server@1.0.0':
     resolution: {integrity: sha512-ZCyXJFexxLjPtG7lxTntf6oiwF0pzoUIsVFIAAgFyXav5KmUnVlrvVoeGrgpiDFRznH2B4/Iv5xv+SkEHxOdXQ==}
     engines: {node: '>=18'}
 
-  '@worldcoin/idkit@4.0.8':
-    resolution: {integrity: sha512-F3QH1P7oxHPT3syXuVuWsfvt7tAD+mJVBtV6yxT684Zv+NBMLCCwLh7f9Lk7tItlKXKXwFIwJRGJmBgECJcpiQ==}
+  '@worldcoin/idkit@4.0.9':
+    resolution: {integrity: sha512-NVDEj5ax82mxW2+vzV76o3i9OnX6ItoNzg2sjvaP+WHIyfdAVDkIMlVTZ/Baz2PNHEuR99sEYNrVq+vclHzYdw==}
     peerDependencies:
       react: '>=18'
       react-dom: '>=18'
@@ -10737,7 +10737,7 @@ snapshots:
     dependencies:
       tslib: 2.7.0
 
-  '@worldcoin/idkit-core@4.0.11':
+  '@worldcoin/idkit-core@4.0.13':
     dependencies:
       '@noble/hashes': 1.8.0
       '@worldcoin/idkit-server': 1.0.0
@@ -10747,9 +10747,9 @@ snapshots:
       '@noble/hashes': 1.8.0
       '@noble/secp256k1': 2.3.0
 
-  '@worldcoin/idkit@4.0.8(react-dom@18.2.0(react@18.3.1))(react@18.3.1)':
+  '@worldcoin/idkit@4.0.9(react-dom@18.2.0(react@18.3.1))(react@18.3.1)':
     dependencies:
-      '@worldcoin/idkit-core': 4.0.11
+      '@worldcoin/idkit-core': 4.0.13
       qrcode: 1.5.4
       react: 18.3.1
       react-dom: 18.2.0(react@18.3.1)
