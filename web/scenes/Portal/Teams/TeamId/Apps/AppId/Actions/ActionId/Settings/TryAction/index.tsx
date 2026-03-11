@@ -22,10 +22,11 @@ type TryActionProps = {
       app_metadata: { app_mode: string }[];
     };
   };
+  is_v4_action: boolean;
 };
 
 export const TryAction = (props: TryActionProps) => {
-  const { action } = props;
+  const { action, is_v4_action } = props;
   const [showCode, setShowCode] = useState(
     action.app.engine === EngineType.OnChain,
   );
@@ -83,7 +84,7 @@ export const TryAction = (props: TryActionProps) => {
             engine={action.app.engine}
           />
         ) : (
-          <MiniKiosk action={action} />
+          <MiniKiosk action={action} is_v4_action={is_v4_action} />
         )}
       </div>
     </div>

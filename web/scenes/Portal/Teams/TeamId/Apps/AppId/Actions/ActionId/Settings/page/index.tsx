@@ -1,13 +1,13 @@
 "use client";
-import { SizingWrapper } from "@/components/SizingWrapper";
 import { ErrorPage } from "@/components/ErrorPage";
+import { SizingWrapper } from "@/components/SizingWrapper";
+import { isWorldId40Enabled, worldId40Atom } from "@/lib/feature-flags";
+import { isLegacyActionsEditableForTeam } from "@/lib/feature-flags/world-id-4-0/common";
+import { useAtomValue } from "jotai";
 import Skeleton from "react-loading-skeleton";
 import { TryAction } from "../TryAction";
 import { UpdateActionForm } from "../UpdateAction";
 import { useGetSingleActionQuery } from "./graphql/client/get-single-action.generated";
-import { useAtomValue } from "jotai";
-import { worldId40Atom, isWorldId40Enabled } from "@/lib/feature-flags";
-import { isLegacyActionsEditableForTeam } from "@/lib/feature-flags/world-id-4-0/common";
 
 type ActionIdSettingsPageProps = {
   params: Record<string, string> | null | undefined;
@@ -53,7 +53,7 @@ export const ActionIdSettingsPage = ({ params }: ActionIdSettingsPageProps) => {
           {loading ? (
             <Skeleton className="md:w-[480px]" height={400} />
           ) : (
-            <TryAction action={action!} />
+            <TryAction action={action!} is_v4_action={false} />
           )}
         </div>
       </SizingWrapper>

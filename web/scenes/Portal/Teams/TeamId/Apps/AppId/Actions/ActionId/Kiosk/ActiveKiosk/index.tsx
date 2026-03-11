@@ -119,7 +119,8 @@ export const ActiveKioskPage = (props: ActiveKioskPageProps) => {
         code: "unknown",
       };
       try {
-        response = await submitKioskProof(appId, result);
+        // Kiosk will be deprecated soon, it only uses v3 actions
+        response = await submitKioskProof(appId, result, false);
       } catch (e) {
         console.warn("Error verifying proof. Please check network logs.");
         try {
