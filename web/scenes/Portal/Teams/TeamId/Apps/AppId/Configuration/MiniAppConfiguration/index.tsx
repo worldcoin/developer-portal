@@ -1,5 +1,6 @@
 "use client";
 
+import { AlertIcon } from "@/components/Icons/AlertIcon";
 import { Toggle } from "@/components/Toggle";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Role_Enum } from "@/graphql/graphql";
@@ -131,6 +132,21 @@ export const MiniAppConfiguration = ({
               url={url}
               showDraftMiniAppFlag={showDraftMiniAppFlag}
             />
+          </div>
+        )}
+
+        {isMiniApp && !appMetadata.integration_url && (
+          <div className="flex items-center gap-3 rounded-[10px] bg-system-warning-100 p-5">
+            <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-system-warning-600">
+              <AlertIcon className="size-4 text-white" />
+            </div>
+            <Typography
+              variant={TYPOGRAPHY.B3}
+              className="flex-1 text-system-warning-600"
+            >
+              Add a valid App URL and save changes to enable the QR code
+              preview.
+            </Typography>
           </div>
         )}
       </div>
