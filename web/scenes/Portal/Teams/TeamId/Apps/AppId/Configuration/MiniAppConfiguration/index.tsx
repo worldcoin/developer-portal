@@ -1,6 +1,5 @@
 "use client";
 
-import { AlertIcon } from "@/components/Icons/AlertIcon";
 import { Toggle } from "@/components/Toggle";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Role_Enum } from "@/graphql/graphql";
@@ -15,7 +14,6 @@ import {
   FetchAppMetadataDocument,
   FetchAppMetadataQueryVariables,
 } from "../graphql/client/fetch-app-metadata.generated";
-import { QrQuickAction } from "../BasicInformation/QrQuickAction";
 import { AppMetadata } from "../AppStore/types/AppStoreFormTypes";
 import { isMiniAppAtom } from "../layout/ImagesProvider";
 import { updateAppMode } from "./server/submit";
@@ -87,17 +85,6 @@ export const MiniAppConfiguration = ({
     [appMetadata.id, refetchAppMetadata, setIsMiniApp],
   );
 
-  const { url, showDraftMiniAppFlag } = useMemo(() => {
-    let miniAppUrl = `https://world.org/mini-app?app_id=${appId}&path=`;
-    const isDraftMiniApp = appMetadata.verification_status !== "verified";
-
-    if (isDraftMiniApp) {
-      miniAppUrl += `&draft_id=${appMetadata.id}`;
-    }
-
-    return { url: miniAppUrl, showDraftMiniAppFlag: isDraftMiniApp };
-  }, [appId, appMetadata.id, appMetadata.verification_status]);
-
   return (
     <div className="flex max-w-[700px] flex-col gap-5">
       <Typography variant={TYPOGRAPHY.H7} className="font-normal text-grey-900">
@@ -125,30 +112,6 @@ export const MiniAppConfiguration = ({
             />
           </div>
         </div>
-
-        {isMiniApp && !!appMetadata.integration_url && (
-          <div className="flex justify-center sm:justify-start">
-            <QrQuickAction
-              url={url}
-              showDraftMiniAppFlag={showDraftMiniAppFlag}
-            />
-          </div>
-        )}
-
-        {isMiniApp && !appMetadata.integration_url && (
-          <div className="flex items-center gap-3 rounded-[10px] bg-system-warning-100 p-5">
-            <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-system-warning-600">
-              <AlertIcon className="size-4 text-white" />
-            </div>
-            <Typography
-              variant={TYPOGRAPHY.B3}
-              className="flex-1 text-system-warning-600"
-            >
-              Add a valid App URL and save changes to enable the QR code
-              preview.
-            </Typography>
-          </div>
-        )}
       </div>
     </div>
   );

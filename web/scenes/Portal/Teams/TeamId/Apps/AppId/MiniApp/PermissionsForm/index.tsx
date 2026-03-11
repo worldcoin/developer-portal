@@ -18,6 +18,7 @@ import clsx from "clsx";
 import { ChangeEvent, ReactNode, useCallback, useEffect, useMemo } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { toast } from "react-toastify";
+import { QrQuickAction } from "../../Configuration/BasicInformation/QrQuickAction";
 import {
   FetchAppMetadataDocument,
   FetchAppMetadataQuery,
@@ -111,6 +112,58 @@ const InlineWarning = ({ children }: { children: ReactNode }) => {
         {children}
       </Typography>
     </div>
+  );
+};
+
+const MiniAppQrPanel = ({
+  appId,
+  appMetadata,
+  appMode,
+}: {
+  appId: string;
+  appMetadata: PermissionsFormProps["appMetadata"];
+  appMode?: keyof typeof AppMode;
+}) => {
+  if (appMode === "external") {
+    return null;
+  }
+
+  const showDraftMiniAppFlag = appMetadata?.verification_status !== "verified";
+  let miniAppUrl = `https://world.org/mini-app?app_id=${appId}&path=`;
+
+  if (showDraftMiniAppFlag && appMetadata?.id) {
+    miniAppUrl += `&draft_id=${appMetadata.id}`;
+  }
+
+  const shouldStickToTop =
+    !appMetadata?.integration_url || showDraftMiniAppFlag;
+
+  return (
+    <aside
+      className={clsx(
+        "lg:sticky",
+        shouldStickToTop ? "lg:top-8" : "lg:top-1/2 lg:-translate-y-1/2",
+      )}
+    >
+      {!!appMetadata?.integration_url ? (
+        <QrQuickAction
+          url={miniAppUrl}
+          showDraftMiniAppFlag={showDraftMiniAppFlag}
+        />
+      ) : (
+        <div className="flex items-center gap-3 rounded-[10px] bg-system-warning-100 p-5">
+          <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-system-warning-600">
+            <AlertIcon className="size-4 text-white" />
+          </div>
+          <Typography
+            variant={TYPOGRAPHY.B3}
+            className="flex-1 text-system-warning-600"
+          >
+            Add a valid App URL and save changes to enable the QR code preview.
+          </Typography>
+        </div>
+      )}
+    </aside>
   );
 };
 
@@ -231,317 +284,325 @@ export const SetupForm = ({
   const canEdit = isEditable && isEnoughPermissions;
 
   return (
-    <form
-      className="grid max-w-[580px] gap-y-10"
-      onSubmit={handleSubmit(submit)}
-    >
-      <div className="grid gap-y-5">
-        <Typography
-          variant={TYPOGRAPHY.H7}
-          className="font-normal text-grey-900"
-        >
-          Advanced settings
-        </Typography>
-
-        {isDirty && (
-          <Typography
-            variant={TYPOGRAPHY.R4}
-            className="text-system-warning-500"
-          >
-            Warning: You have unsaved changes
-          </Typography>
-        )}
-      </div>
-
-      <div className="grid gap-4 md:grid-cols-2">
-        <ModeCard
-          label="Mini App"
-          description="Create a mini app that runs inside the World App."
-          value="mini-app"
-          selected={appMode === "mini-app"}
-          disabled={!canEdit}
-          onSelect={(value) =>
-            setValue("app_mode", value, {
-              shouldDirty: true,
-              shouldValidate: true,
-            })
-          }
-        />
-
-        <ModeCard
-          label="External"
-          description="Create a World ID app that runs outside the World App."
-          value="external"
-          selected={appMode === "external"}
-          disabled={!canEdit}
-          onSelect={(value) =>
-            setValue("app_mode", value, {
-              shouldDirty: true,
-              shouldValidate: true,
-            })
-          }
-        />
-      </div>
-
-      {!isExternal && <div className="w-full border-t border-grey-100" />}
-
-      {!isExternal && (
-        <>
-          <div className="grid gap-y-5">
-            <div className="grid gap-y-3">
-              <Typography
-                variant={TYPOGRAPHY.H7}
-                className="font-normal text-grey-900"
-              >
-                Additional Domains
-              </Typography>
-              <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
-                Add additional domains that your Mini App can interact with. All
-                other domains will be blocked. You do not need to specify
-                subdomains. Ex: https://example.com
-              </Typography>
-            </div>
-
-            <TextArea
-              label=""
-              disabled={!canEdit}
-              placeholder="https://example.com, https://example2.com"
-              register={register("associated_domains", {
-                onChange: formatArrayInput,
-              })}
-              enableResize={false}
-              rows={4}
-              className={clsx(
-                "h-[120px] max-h-[120px] min-h-[120px] !rounded-[10px] !bg-grey-50 placeholder:!text-[#717680]",
-                errors.associated_domains
-                  ? "!border !border-system-error-500"
-                  : "!border-0",
-              )}
-              errors={errors.associated_domains}
-            />
-          </div>
-
-          <div className="w-full border-t border-grey-100" />
-
-          <div className="grid gap-y-5">
-            <div className="grid gap-y-3">
-              <Typography
-                variant={TYPOGRAPHY.H7}
-                className="font-normal text-grey-900"
-              >
-                Whitelisted Payment Addresses
-              </Typography>
-              <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
-                These addresses are authorised to receive payments for your mini
-                app. Payment requests to other addresses will be rejected.
-              </Typography>
-            </div>
-
-            {isWhitelistDisabled && (
-              <InlineWarning>
-                Disabling the whitelist removes protection from payments to
-                invalid addresses.
-              </InlineWarning>
-            )}
-
-            <TextArea
-              label=""
-              disabled={!canEdit || isWhitelistDisabled}
-              placeholder="Whitelisted Payment Addresses"
-              register={register("whitelisted_addresses", {
-                onChange: formatArrayInput,
-              })}
-              enableResize={false}
-              rows={4}
-              className={clsx(
-                "h-[120px] max-h-[120px] min-h-[120px] !rounded-[10px] !border-0 !bg-grey-50",
-                errors.whitelisted_addresses
-                  ? "!border !border-system-error-500"
-                  : "!border-0",
-                isWhitelistDisabled
-                  ? "placeholder:!text-[#B1B8C2]"
-                  : "placeholder:!text-[#717680]",
-              )}
-              errors={errors.whitelisted_addresses}
-            />
-
-            <label
-              htmlFor="is_whitelist_disabled"
-              className="grid w-fit cursor-pointer grid-cols-auto/1fr items-center gap-x-4"
-            >
-              <Checkbox
-                id="is_whitelist_disabled"
-                register={register("is_whitelist_disabled")}
-                disabled={!canEdit}
-              />
-              <Typography variant={TYPOGRAPHY.S2} className="text-grey-900">
-                Disable whitelist
-              </Typography>
-            </label>
-          </div>
-
-          <div className="w-full border-t border-grey-100" />
-
-          <div className="grid gap-y-5">
-            <div className="grid gap-y-3">
-              <Typography
-                variant={TYPOGRAPHY.H7}
-                className="font-normal text-grey-900"
-              >
-                Permit2 Tokens
-              </Typography>
-              <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
-                List all the tokens that you intend to use in your Mini App. Any
-                other tokens will be blocked.
-              </Typography>
-            </div>
-
-            <TextArea
-              label=""
-              disabled={!canEdit}
-              placeholder="0xad312321..., 0xE901e312..."
-              register={register("permit2_tokens", {
-                onChange: formatArrayInput,
-              })}
-              enableResize={false}
-              rows={4}
-              className={clsx(
-                "h-[120px] max-h-[120px] min-h-[120px] !rounded-[10px] !bg-grey-50 placeholder:!text-[#717680]",
-                errors.permit2_tokens
-                  ? "!border !border-system-error-500"
-                  : "!border-0",
-              )}
-              errors={errors.permit2_tokens}
-            />
-          </div>
-
-          <div className="w-full border-t border-grey-100" />
-
-          <div className="grid gap-y-5">
-            <div className="grid gap-y-3">
-              <Typography
-                variant={TYPOGRAPHY.H7}
-                className="font-normal text-grey-900"
-              >
-                Contract Entrypoints
-              </Typography>
-              <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
-                List here contracts that you intend to call functions directly
-                on.
-              </Typography>
-            </div>
-
-            <TextArea
-              label=""
-              disabled={!canEdit}
-              placeholder="0xb731d321..., 0xF2310312..."
-              register={register("contracts", {
-                onChange: formatArrayInput,
-              })}
-              enableResize={false}
-              rows={4}
-              className={clsx(
-                "h-[120px] max-h-[120px] min-h-[120px] !rounded-[10px] !bg-grey-50 placeholder:!text-[#717680]",
-                errors.contracts
-                  ? "!border !border-system-error-500"
-                  : "!border-0",
-              )}
-              errors={errors.contracts}
-            />
-          </div>
-
-          <div className="w-full border-t border-grey-100" />
-
-          <div className="grid gap-y-5">
-            <div className="grid gap-y-3">
-              <Typography
-                variant={TYPOGRAPHY.H7}
-                className="font-normal text-grey-900"
-              >
-                Permissions
-              </Typography>
-              <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
-                Request permissions to access notifications or contacts.
-              </Typography>
-            </div>
-
-            <InlineWarning>
-              <>
-                Unlimited notifications are very rarely granted and will be
-                rejected most of the time. Refer to{" "}
-                <Link
-                  href="https://docs.world.org/mini-apps/commands/how-to-send-notifications"
-                  className="underline"
-                >
-                  docs
-                </Link>{" "}
-                for guidelines.
-              </>
-            </InlineWarning>
-
-            <Typography variant={TYPOGRAPHY.R3} className="text-grey-900">
-              Select your desired maximum notifications per day:
-            </Typography>
-
-            <Controller
-              name="max_notifications_per_day"
-              control={control}
-              render={({ field }) => {
-                return (
-                  <div className="flex items-center gap-x-8">
-                    {maxNotificationPerDayOptions.map((option) => {
-                      const optionValue = option;
-                      const isSelected = field.value === optionValue;
-
-                      return (
-                        <label
-                          key={String(option)}
-                          className={clsx(
-                            "flex items-center gap-x-4",
-                            canEdit ? "cursor-pointer" : "cursor-not-allowed",
-                          )}
-                        >
-                          <button
-                            type="button"
-                            disabled={!canEdit}
-                            onClick={() => field.onChange(optionValue)}
-                            className={clsx(
-                              "flex size-5 items-center justify-center rounded-full border-[1.25px]",
-                              isSelected
-                                ? "border-grey-900 bg-grey-900 text-grey-0"
-                                : "border-grey-200 bg-transparent",
-                            )}
-                            aria-pressed={isSelected}
-                            aria-label={`Set notifications per day to ${option === "unlimited" ? "Unlimited" : option}`}
-                          >
-                            {isSelected && (
-                              <CheckIcon size="16" className="size-[13px]" />
-                            )}
-                          </button>
-                          <Typography
-                            variant={TYPOGRAPHY.S2}
-                            className="text-grey-900"
-                          >
-                            {option === "unlimited" ? "Unlimited" : option}
-                          </Typography>
-                        </label>
-                      );
-                    })}
-                  </div>
-                );
-              }}
-            />
-          </div>
-        </>
-      )}
-
-      <DecoratedButton
-        type="submit"
-        className="h-14 w-[159px] rounded-full px-6"
-        disabled={!canEdit || !isValid}
+    <div className="grid gap-10 lg:grid-cols-[minmax(0,580px)_minmax(280px,1fr)] lg:items-start">
+      <form
+        className="grid max-w-[580px] gap-y-10"
+        onSubmit={handleSubmit(submit)}
       >
-        <Typography variant={TYPOGRAPHY.M3}>Save changes</Typography>
-      </DecoratedButton>
-    </form>
+        <div className="grid gap-y-5">
+          <Typography
+            variant={TYPOGRAPHY.H7}
+            className="font-normal text-grey-900"
+          >
+            Advanced settings
+          </Typography>
+          {isDirty && (
+            <Typography
+              variant={TYPOGRAPHY.R4}
+              className="text-system-warning-500"
+            >
+              Warning: You have unsaved changes
+            </Typography>
+          )}
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-2">
+          <ModeCard
+            label="Mini App"
+            description="Create a mini app that runs inside the World App."
+            value="mini-app"
+            selected={appMode === "mini-app"}
+            disabled={!canEdit}
+            onSelect={(value) =>
+              setValue("app_mode", value, {
+                shouldDirty: true,
+                shouldValidate: true,
+              })
+            }
+          />
+
+          <ModeCard
+            label="External"
+            description="Create a World ID app that runs outside the World App."
+            value="external"
+            selected={appMode === "external"}
+            disabled={!canEdit}
+            onSelect={(value) =>
+              setValue("app_mode", value, {
+                shouldDirty: true,
+                shouldValidate: true,
+              })
+            }
+          />
+        </div>
+
+        {!isExternal && <div className="w-full border-t border-grey-100" />}
+
+        {!isExternal && (
+          <>
+            <div className="grid gap-y-5">
+              <div className="grid gap-y-3">
+                <Typography
+                  variant={TYPOGRAPHY.H7}
+                  className="font-normal text-grey-900"
+                >
+                  Additional Domains
+                </Typography>
+                <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
+                  Add additional domains that your Mini App can interact with.
+                  All other domains will be blocked. You do not need to specify
+                  subdomains. Ex: https://example.com
+                </Typography>
+              </div>
+
+              <TextArea
+                label=""
+                disabled={!canEdit}
+                placeholder="https://example.com, https://example2.com"
+                register={register("associated_domains", {
+                  onChange: formatArrayInput,
+                })}
+                enableResize={false}
+                rows={4}
+                className={clsx(
+                  "h-[120px] max-h-[120px] min-h-[120px] !rounded-[10px] !bg-grey-50 placeholder:!text-[#717680]",
+                  errors.associated_domains
+                    ? "!border !border-system-error-500"
+                    : "!border-0",
+                )}
+                errors={errors.associated_domains}
+              />
+            </div>
+
+            <div className="w-full border-t border-grey-100" />
+
+            <div className="grid gap-y-5">
+              <div className="grid gap-y-3">
+                <Typography
+                  variant={TYPOGRAPHY.H7}
+                  className="font-normal text-grey-900"
+                >
+                  Whitelisted Payment Addresses
+                </Typography>
+                <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
+                  These addresses are authorised to receive payments for your
+                  mini app. Payment requests to other addresses will be
+                  rejected.
+                </Typography>
+              </div>
+
+              {isWhitelistDisabled && (
+                <InlineWarning>
+                  Disabling the whitelist removes protection from payments to
+                  invalid addresses.
+                </InlineWarning>
+              )}
+
+              <TextArea
+                label=""
+                disabled={!canEdit || isWhitelistDisabled}
+                placeholder="Whitelisted Payment Addresses"
+                register={register("whitelisted_addresses", {
+                  onChange: formatArrayInput,
+                })}
+                enableResize={false}
+                rows={4}
+                className={clsx(
+                  "h-[120px] max-h-[120px] min-h-[120px] !rounded-[10px] !border-0 !bg-grey-50",
+                  errors.whitelisted_addresses
+                    ? "!border !border-system-error-500"
+                    : "!border-0",
+                  isWhitelistDisabled
+                    ? "placeholder:!text-[#B1B8C2]"
+                    : "placeholder:!text-[#717680]",
+                )}
+                errors={errors.whitelisted_addresses}
+              />
+
+              <label
+                htmlFor="is_whitelist_disabled"
+                className="grid w-fit cursor-pointer grid-cols-auto/1fr items-center gap-x-4"
+              >
+                <Checkbox
+                  id="is_whitelist_disabled"
+                  register={register("is_whitelist_disabled")}
+                  disabled={!canEdit}
+                />
+                <Typography variant={TYPOGRAPHY.S2} className="text-grey-900">
+                  Disable whitelist
+                </Typography>
+              </label>
+            </div>
+
+            <div className="w-full border-t border-grey-100" />
+
+            <div className="grid gap-y-5">
+              <div className="grid gap-y-3">
+                <Typography
+                  variant={TYPOGRAPHY.H7}
+                  className="font-normal text-grey-900"
+                >
+                  Permit2 Tokens
+                </Typography>
+                <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
+                  List all the tokens that you intend to use in your Mini App.
+                  Any other tokens will be blocked.
+                </Typography>
+              </div>
+
+              <TextArea
+                label=""
+                disabled={!canEdit}
+                placeholder="0xad312321..., 0xE901e312..."
+                register={register("permit2_tokens", {
+                  onChange: formatArrayInput,
+                })}
+                enableResize={false}
+                rows={4}
+                className={clsx(
+                  "h-[120px] max-h-[120px] min-h-[120px] !rounded-[10px] !bg-grey-50 placeholder:!text-[#717680]",
+                  errors.permit2_tokens
+                    ? "!border !border-system-error-500"
+                    : "!border-0",
+                )}
+                errors={errors.permit2_tokens}
+              />
+            </div>
+
+            <div className="w-full border-t border-grey-100" />
+
+            <div className="grid gap-y-5">
+              <div className="grid gap-y-3">
+                <Typography
+                  variant={TYPOGRAPHY.H7}
+                  className="font-normal text-grey-900"
+                >
+                  Contract Entrypoints
+                </Typography>
+                <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
+                  List here contracts that you intend to call functions directly
+                  on.
+                </Typography>
+              </div>
+
+              <TextArea
+                label=""
+                disabled={!canEdit}
+                placeholder="0xb731d321..., 0xF2310312..."
+                register={register("contracts", {
+                  onChange: formatArrayInput,
+                })}
+                enableResize={false}
+                rows={4}
+                className={clsx(
+                  "h-[120px] max-h-[120px] min-h-[120px] !rounded-[10px] !bg-grey-50 placeholder:!text-[#717680]",
+                  errors.contracts
+                    ? "!border !border-system-error-500"
+                    : "!border-0",
+                )}
+                errors={errors.contracts}
+              />
+            </div>
+
+            <div className="w-full border-t border-grey-100" />
+
+            <div className="grid gap-y-5">
+              <div className="grid gap-y-3">
+                <Typography
+                  variant={TYPOGRAPHY.H7}
+                  className="font-normal text-grey-900"
+                >
+                  Permissions
+                </Typography>
+                <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
+                  Request permissions to access notifications or contacts.
+                </Typography>
+              </div>
+
+              <InlineWarning>
+                <>
+                  Unlimited notifications are very rarely granted and will be
+                  rejected most of the time. Refer to{" "}
+                  <Link
+                    href="https://docs.world.org/mini-apps/commands/how-to-send-notifications"
+                    className="underline"
+                  >
+                    docs
+                  </Link>{" "}
+                  for guidelines.
+                </>
+              </InlineWarning>
+
+              <Typography variant={TYPOGRAPHY.R3} className="text-grey-900">
+                Select your desired maximum notifications per day:
+              </Typography>
+
+              <Controller
+                name="max_notifications_per_day"
+                control={control}
+                render={({ field }) => {
+                  return (
+                    <div className="flex items-center gap-x-8">
+                      {maxNotificationPerDayOptions.map((option) => {
+                        const optionValue = option;
+                        const isSelected = field.value === optionValue;
+
+                        return (
+                          <label
+                            key={String(option)}
+                            className={clsx(
+                              "flex items-center gap-x-4",
+                              canEdit ? "cursor-pointer" : "cursor-not-allowed",
+                            )}
+                          >
+                            <button
+                              type="button"
+                              disabled={!canEdit}
+                              onClick={() => field.onChange(optionValue)}
+                              className={clsx(
+                                "flex size-5 items-center justify-center rounded-full border-[1.25px]",
+                                isSelected
+                                  ? "border-grey-900 bg-grey-900 text-grey-0"
+                                  : "border-grey-200 bg-transparent",
+                              )}
+                              aria-pressed={isSelected}
+                              aria-label={`Set notifications per day to ${option === "unlimited" ? "Unlimited" : option}`}
+                            >
+                              {isSelected && (
+                                <CheckIcon size="16" className="size-[13px]" />
+                              )}
+                            </button>
+                            <Typography
+                              variant={TYPOGRAPHY.S2}
+                              className="text-grey-900"
+                            >
+                              {option === "unlimited" ? "Unlimited" : option}
+                            </Typography>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  );
+                }}
+              />
+            </div>
+          </>
+        )}
+
+        <DecoratedButton
+          type="submit"
+          className="h-14 w-[159px] rounded-full px-6"
+          disabled={!canEdit || !isValid}
+        >
+          <Typography variant={TYPOGRAPHY.M3}>Save changes</Typography>
+        </DecoratedButton>
+      </form>
+
+      <MiniAppQrPanel
+        appId={appId}
+        appMetadata={appMetadata}
+        appMode={appMode}
+      />
+    </div>
   );
 };

@@ -56,7 +56,7 @@ export const AppPermissionsPage = ({ params }: AppPermissionsPageProps) => {
       <div className="border-t border-grey-100" />
 
       <div className="pb-6 pt-8">
-        <div className="grid max-w-[580px] grid-cols-1">
+        <div className="grid grid-cols-1">
           {loading ? (
             <FormSkeleton count={3} />
           ) : (
