@@ -226,11 +226,12 @@ export function useLegacyKioskRequest({
 
   useEffect(() => {
     if (!enabled) {
-      console.log("TEEEEST");
+      console.log("request disabled, resetting flow");
       flow.reset();
       return;
     }
 
+    console.log("request enabled, starting flow");
     flow.reset();
     flow.open();
   }, [enabled, flow.open, flow.reset, requestVersion]);
