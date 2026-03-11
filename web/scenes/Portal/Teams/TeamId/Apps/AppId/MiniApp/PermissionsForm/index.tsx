@@ -135,16 +135,8 @@ const MiniAppQrPanel = ({
     miniAppUrl += `&draft_id=${appMetadata.id}`;
   }
 
-  const shouldStickToTop =
-    !appMetadata?.integration_url || showDraftMiniAppFlag;
-
   return (
-    <aside
-      className={clsx(
-        "lg:sticky",
-        shouldStickToTop ? "lg:top-8" : "lg:top-1/2 lg:-translate-y-1/2",
-      )}
-    >
+    <aside className="lg:sticky lg:top-8">
       {!!appMetadata?.integration_url ? (
         <QrQuickAction
           url={miniAppUrl}
