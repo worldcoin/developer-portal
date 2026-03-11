@@ -24,6 +24,7 @@ const generateCsp = () => {
       values: [
         "'self'",
         `'nonce-${nonce}'`,
+        "'wasm-unsafe-eval'", // Required for IDKit v4 WASM bridge compilation https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Content-Security-Policy/script-src#unsafe_webassembly_execution
         ...(isDev ? ["'unsafe-eval'"] : []),
         "https://cookie-cdn.cookiepro.com",
         "https://app.posthog.com",
