@@ -30,7 +30,7 @@ export const QrQuickAction = (props: {
   }, [url]);
 
   if (!qrCodeDataURL) {
-    return <Skeleton height={200} width={200} />;
+    return <Skeleton height={350} width={350} />;
   }
 
   return (
@@ -72,7 +72,7 @@ export const QrQuickAction = (props: {
           }
           title="See your mini app"
         >
-          <Image src={qrCodeDataURL} width={200} height={200} alt="QR Code" />
+          <Image src={qrCodeDataURL} width={350} height={350} alt="QR Code" />
         </QuickAction>
       </div>
     </div>
