@@ -184,6 +184,20 @@ export function useLegacyKioskRequest({
     [verificationLevel],
   );
 
+  console.log("Initializing legacy kiosk request with options", {
+    app_id: appId,
+    action,
+    action_description: actionDescription,
+    rp_context: rpContext,
+    allow_legacy_proofs: true,
+    preset,
+    environment: getKioskEnvironment(appId),
+    polling: {
+      interval: POLLING_INTERVAL_MS,
+      timeout: POLLING_TIMEOUT_MS,
+    },
+  });
+
   const flow = useIDKitRequest({
     app_id: appId,
     action,
@@ -212,10 +226,12 @@ export function useLegacyKioskRequest({
 
   useEffect(() => {
     if (!enabled) {
+      console.log("request disabled, resetting flow");
       flow.reset();
       return;
     }
 
+    console.log("request enabled, starting flow");
     flow.reset();
     flow.open();
   }, [enabled, flow.open, flow.reset, requestVersion]);
