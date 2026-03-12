@@ -17,11 +17,13 @@ export type FetchNotificationAppMetadataQuery = {
       __typename?: "app_metadata";
       id: string;
       verification_status: string;
+      app_mode: string;
     }>;
     verified_app_metadata: Array<{
       __typename?: "app_metadata";
       id: string;
       verified_at?: string | null;
+      app_mode: string;
     }>;
   }>;
 };
@@ -33,12 +35,14 @@ export const FetchNotificationAppMetadataDocument = gql`
       app_metadata(where: { verification_status: { _neq: "verified" } }) {
         id
         verification_status
+        app_mode
       }
       verified_app_metadata: app_metadata(
         where: { verification_status: { _eq: "verified" } }
       ) {
         id
         verified_at
+        app_mode
       }
     }
   }

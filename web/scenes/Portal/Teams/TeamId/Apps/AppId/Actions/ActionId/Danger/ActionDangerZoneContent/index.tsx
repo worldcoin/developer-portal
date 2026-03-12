@@ -10,9 +10,10 @@ import { Role_Enum } from "@/graphql/graphql";
 import { Auth0SessionUser } from "@/lib/types";
 import { truncateString } from "@/lib/utils";
 import { useUser } from "@auth0/nextjs-auth0/client";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useMemo, useState } from "react";
 import { toast } from "react-toastify";
+import { appendExplicitVersionParam } from "../../../../versioning";
 import { GetActionsDocument } from "../../../page/graphql/client/actions.generated";
 import { GetSingleActionQuery } from "../page/graphql/client/get-single-action.generated";
 import { useDeleteActionMutation } from "./graphql/client/delete-action.generated";
@@ -25,6 +26,11 @@ export const ActionDangerZoneContent = (props: {
   const { action, appId, teamId } = props;
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const actionsPath = appendExplicitVersionParam(
+    `/teams/${teamId}/apps/${appId}/actions`,
+    searchParams.get("version"),
+  );
   const { user } = useUser() as Auth0SessionUser;
 
   const isEnoughPermissions = useMemo(() => {
@@ -61,15 +67,23 @@ export const ActionDangerZoneContent = (props: {
       if (result instanceof Error) {
         throw result;
       }
-      router.prefetch(`/teams/${teamId}/apps/${appId}/actions`);
-      router.replace(`/teams/${teamId}/apps/${appId}/actions`);
+      router.prefetch(actionsPath);
+      router.replace(actionsPath);
     } catch (error) {
       console.error("Delete Action: ", error);
       return toast.error("Unable to delete action");
     }
 
     toast.success(`${action?.name} was deleted.`);
-  }, [action?.id, action?.name, appId, deleteActionQuery, router, teamId]);
+  }, [
+    action?.id,
+    action?.name,
+    actionsPath,
+    appId,
+    deleteActionQuery,
+    router,
+    teamId,
+  ]);
 
   return (
     <div>

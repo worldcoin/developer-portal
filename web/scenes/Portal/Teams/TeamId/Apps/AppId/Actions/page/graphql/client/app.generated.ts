@@ -19,6 +19,11 @@ export type GetAppQuery = {
       id: string;
       name: string;
     }>;
+    verified_app_metadata: Array<{
+      __typename?: "app_metadata";
+      id: string;
+      name: string;
+    }>;
   } | null;
 };
 
@@ -27,7 +32,13 @@ export const GetAppDocument = gql`
     app: app_by_pk(id: $app_id) {
       id
       engine
-      app_metadata {
+      app_metadata(where: { verification_status: { _neq: "verified" } }) {
+        id
+        name
+      }
+      verified_app_metadata: app_metadata(
+        where: { verification_status: { _eq: "verified" } }
+      ) {
         id
         name
       }

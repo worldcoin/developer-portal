@@ -4,12 +4,14 @@ query FetchNotificationAppMetadata($id: String!) {
     app_metadata(where: { verification_status: { _neq: "verified" } }) {
       id
       verification_status
+      app_mode
     }
     verified_app_metadata: app_metadata(
       where: { verification_status: { _eq: "verified" } }
     ) {
       id
       verified_at
+      app_mode
     }
   }
 }

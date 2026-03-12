@@ -5,10 +5,11 @@ import { ErrorPage } from "@/components/ErrorPage";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { useAtomValue } from "jotai";
 import { worldId40Atom, isWorldId40Enabled } from "@/lib/feature-flags";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback } from "react";
 import Skeleton from "react-loading-skeleton";
 import { toast } from "react-toastify";
+import { appendExplicitVersionParam } from "../../../../versioning";
 import { GetActionsDocument } from "../../../page/graphql/client/actions.generated";
 import { useDeleteActionMutation } from "../ActionDangerZoneContent/graphql/client/delete-action.generated";
 import { useGetSingleActionQuery } from "./graphql/client/get-single-action.generated";
@@ -23,6 +24,11 @@ export const ActionIdDangerPage = ({ params }: ActionIdDangerPageProps) => {
   const appId = params?.appId;
 
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const actionsPath = appendExplicitVersionParam(
+    `/teams/${teamId}/apps/${appId}/actions`,
+    searchParams.get("version"),
+  );
 
   const { data, loading } = useGetSingleActionQuery({
     variables: { action_id: actionId ?? "" },
@@ -57,12 +63,20 @@ export const ActionIdDangerPage = ({ params }: ActionIdDangerPageProps) => {
       }
 
       toast.success(`${action?.name} was deleted.`);
-      router.prefetch(`/teams/${teamId}/apps/${appId}/actions`);
-      router.replace(`/teams/${teamId}/apps/${appId}/actions`);
+      router.prefetch(actionsPath);
+      router.replace(actionsPath);
     } catch (error) {
       throw error;
     }
-  }, [action?.id, action?.name, appId, deleteActionMutation, router, teamId]);
+  }, [
+    action?.id,
+    action?.name,
+    actionsPath,
+    appId,
+    deleteActionMutation,
+    router,
+    teamId,
+  ]);
 
   if (!loading && !action) {
     return (

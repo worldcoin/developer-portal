@@ -30,3 +30,8 @@ export const getPathFromHeaders = (): string | null => {
   const path = headersList.get("x-current-path");
   return path;
 };
+
+export const getUrlFromHeaders = (): string | null => {
+  const headersList = headers();
+  return headersList.get("x-current-url");
+};

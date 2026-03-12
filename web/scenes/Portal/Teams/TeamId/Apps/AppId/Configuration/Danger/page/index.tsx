@@ -7,14 +7,13 @@ import { Auth0SessionUser } from "@/lib/types";
 import { checkUserPermissions, truncateString } from "@/lib/utils";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import clsx from "clsx";
-import { useAtom } from "jotai";
 import { ErrorPage } from "@/components/ErrorPage";
 import { useParams } from "next/navigation";
 import { useMemo, useState } from "react";
 import { useFetchAppMetadataQuery } from "../../graphql/client/fetch-app-metadata.generated";
-import { viewModeAtom } from "../../layout/ImagesProvider";
 import { AppTopBar } from "../../AppTopBar";
 import { DeleteModal } from "./DeleteModal";
+import { useAppVersionMode } from "../../../useAppVersionMode";
 
 type AppProfileDangerPageProps = {
   params: Record<string, string> | null | undefined;
@@ -24,7 +23,6 @@ export const AppProfileDangerPage = ({ params }: AppProfileDangerPageProps) => {
   const routeParams = useParams<{ appId: `app_${string}`; teamId: string }>();
   const appId = (params?.appId || routeParams?.appId) as `app_${string}`;
   const teamId = (params?.teamId || routeParams?.teamId) as `team_${string}`;
-  const [viewMode] = useAtom(viewModeAtom);
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
   const { user } = useUser() as Auth0SessionUser;
 
@@ -39,6 +37,10 @@ export const AppProfileDangerPage = ({ params }: AppProfileDangerPageProps) => {
   });
 
   const app = data?.app[0];
+  const { viewMode } = useAppVersionMode({
+    hasDraft: (app?.app_metadata.length ?? 0) > 0,
+    hasVerified: (app?.verified_app_metadata.length ?? 0) > 0,
+  });
   const appMetaData = useMemo(() => {
     if (viewMode === "verified") {
       return app?.verified_app_metadata[0];

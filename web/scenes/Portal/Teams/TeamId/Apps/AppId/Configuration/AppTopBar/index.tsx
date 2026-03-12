@@ -44,7 +44,8 @@ import {
   useFetchImagesLazyQuery,
   useFetchImagesQuery,
 } from "../graphql/client/fetch-images.generated";
-import { unverifiedImageAtom, viewModeAtom } from "../layout/ImagesProvider";
+import { unverifiedImageAtom } from "../layout/ImagesProvider";
+import { useAppVersionMode } from "../../useAppVersionMode";
 import { LogoImageUpload } from "./LogoImageUpload";
 import { SubmitAppModal } from "./SubmitAppModal";
 import { VersionSwitcher } from "./VersionSwitcher";
@@ -347,8 +348,15 @@ export const AppTopBar = (props: AppTopBarProps) => {
   const { appId, teamId, app, onResolve, hasFormContext, basicInfoRef } = props;
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [viewMode, setViewMode] = useAtom(viewModeAtom);
   const { user } = useUser() as Auth0SessionUser;
+  const { viewMode, setViewMode, getVersionedPath } = useAppVersionMode({
+    hasDraft: app.app_metadata.length > 0,
+    hasVerified: app.verified_app_metadata.length > 0,
+    hasDraftMiniApp: app.app_metadata[0]?.app_mode === "mini-app",
+    hasVerifiedMiniApp: app.verified_app_metadata[0]?.app_mode === "mini-app",
+    teamId,
+    appId,
+  });
 
   const { data: unverifiedImagesData } = useFetchImagesQuery({
     variables: { id: appId, team_id: teamId },
@@ -407,22 +415,6 @@ export const AppTopBar = (props: AppTopBarProps) => {
   const { removeFromReview, loading: removeLoading } = useRemoveFromReview({
     metadataId: appMetadata?.id,
   });
-
-  useEffect(() => {
-    if (app?.app_metadata.length === 0) {
-      setViewMode("verified");
-    } else if (
-      app.verified_app_metadata.length === 0 &&
-      viewMode === "verified"
-    ) {
-      setViewMode("unverified");
-    }
-  }, [
-    app.app_metadata.length,
-    app.verified_app_metadata.length,
-    setViewMode,
-    viewMode,
-  ]);
 
   const isEditable = app?.app_metadata[0]?.verification_status === "unverified";
   const [createEditableRowMutation] = useCreateEditableRowMutation({});
@@ -484,7 +476,13 @@ export const AppTopBar = (props: AppTopBarProps) => {
         },
       });
 
-      setViewMode("unverified");
+      setViewMode("unverified", {
+        hasDraft: true,
+        hasVerified: app.verified_app_metadata.length > 0,
+        hasDraftMiniApp: app.verified_app_metadata[0]?.app_mode === "mini-app",
+        hasVerifiedMiniApp:
+          app.verified_app_metadata[0]?.app_mode === "mini-app",
+      });
       toast.success("New app draft created");
     } catch (error: any) {
       console.error("Failed to create a new draft: ", error.message);
@@ -680,7 +678,9 @@ export const AppTopBar = (props: AppTopBarProps) => {
                     disabled={!canSubmitForReview}
                     onClick={() =>
                       router.push(
-                        `${urls.configuration({ team_id: teamId, app_id: appId })}?submitForReview=true`,
+                        getVersionedPath(
+                          `${urls.configuration({ team_id: teamId, app_id: appId })}?submitForReview=true`,
+                        ),
                       )
                     }
                   >

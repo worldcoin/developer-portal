@@ -1,15 +1,14 @@
 "use client";
 
 import { ErrorPage } from "@/components/ErrorPage";
-import { useAtom } from "jotai";
 import { useMemo } from "react";
 import Skeleton from "react-loading-skeleton";
 import { AppTopBar } from "../../Configuration/AppTopBar";
 import { FormSkeleton } from "../../Configuration/AppTopBar/FormSkeleton";
 import { useFetchAppMetadataQuery } from "../../Configuration/graphql/client/fetch-app-metadata.generated";
-import { viewModeAtom } from "../../Configuration/layout/ImagesProvider";
 import { SetupForm } from "../../MiniApp/PermissionsForm";
 import { MiniAppSubTabs } from "../SubTabs";
+import { useAppVersionMode } from "../../useAppVersionMode";
 
 type AppPermissionsPageProps = {
   params: Record<string, string> | null | undefined;
@@ -18,7 +17,6 @@ type AppPermissionsPageProps = {
 export const AppPermissionsPage = ({ params }: AppPermissionsPageProps) => {
   const appId = params?.appId as `app_${string}`;
   const teamId = params?.teamId as `team_${string}`;
-  const [viewMode] = useAtom(viewModeAtom);
 
   const { data, loading, error } = useFetchAppMetadataQuery({
     variables: {
@@ -27,6 +25,10 @@ export const AppPermissionsPage = ({ params }: AppPermissionsPageProps) => {
   });
 
   const app = data?.app[0];
+  const { viewMode } = useAppVersionMode({
+    hasDraft: (app?.app_metadata.length ?? 0) > 0,
+    hasVerified: (app?.verified_app_metadata.length ?? 0) > 0,
+  });
   const appMetadata = useMemo(() => {
     if (viewMode === "verified") {
       return app?.verified_app_metadata[0];

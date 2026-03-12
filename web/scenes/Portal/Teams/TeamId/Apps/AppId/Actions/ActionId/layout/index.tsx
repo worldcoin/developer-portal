@@ -13,6 +13,8 @@ import { urls } from "@/lib/urls";
 import { checkUserPermissions } from "@/lib/utils";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { ReactNode } from "react";
+import { useSearchParams } from "next/navigation";
+import { appendExplicitVersionParam } from "../../../versioning";
 import { useGetSingleActionAndNullifiersQuery } from "../page/graphql/client/get-single-action.generated";
 
 type Params = {
@@ -29,6 +31,10 @@ type ActionIdLayout = {
 export const ActionIdLayout = (props: ActionIdLayout) => {
   const params = props.params;
   const { user } = useUser() as Auth0SessionUser;
+  const searchParams = useSearchParams();
+  const requestedVersion = searchParams.get("version");
+  const getVersionedPath = (path: string) =>
+    appendExplicitVersionParam(path, requestedVersion);
 
   // Fetch action data for header using user permissions
   const { data, loading } = useGetSingleActionAndNullifiersQuery({
@@ -68,10 +74,12 @@ export const ActionIdLayout = (props: ActionIdLayout) => {
           backText={
             isEnabled ? "Back to Legacy Actions" : "Back to Incognito Actions"
           }
-          backUrl={urls.actions({
-            team_id: params.teamId ?? "",
-            app_id: params.appId,
-          })}
+          backUrl={getVersionedPath(
+            urls.actions({
+              team_id: params.teamId ?? "",
+              app_id: params.appId,
+            }),
+          )}
           isLoading={loading}
           isDeprecated={isEnabled}
           analyticsContext={{
@@ -89,7 +97,9 @@ export const ActionIdLayout = (props: ActionIdLayout) => {
           {!isOnChainApp && (
             <Tab
               className="md:py-4"
-              href={`/teams/${params!.teamId}/apps/${params!.appId}/actions/${params!.actionId}`}
+              href={getVersionedPath(
+                `/teams/${params!.teamId}/apps/${params!.appId}/actions/${params!.actionId}`,
+              )}
               segment={null}
             >
               <Typography variant={TYPOGRAPHY.R4}>Overview</Typography>
@@ -98,7 +108,9 @@ export const ActionIdLayout = (props: ActionIdLayout) => {
 
           <Tab
             className="md:py-4"
-            href={`/teams/${params!.teamId}/apps/${params!.appId}/actions/${params!.actionId}/settings`}
+            href={getVersionedPath(
+              `/teams/${params!.teamId}/apps/${params!.appId}/actions/${params!.actionId}/settings`,
+            )}
             segment={"settings"}
           >
             <Typography variant={TYPOGRAPHY.R4}>Settings</Typography>
@@ -106,7 +118,9 @@ export const ActionIdLayout = (props: ActionIdLayout) => {
 
           <Tab
             className="md:py-4"
-            href={`/teams/${params!.teamId}/apps/${params!.appId}/actions/${params!.actionId}/proof-debugging`}
+            href={getVersionedPath(
+              `/teams/${params!.teamId}/apps/${params!.appId}/actions/${params!.actionId}/proof-debugging`,
+            )}
             segment={"proof-debugging"}
           >
             <Typography variant={TYPOGRAPHY.R4}>Proof debugging</Typography>
@@ -115,7 +129,9 @@ export const ActionIdLayout = (props: ActionIdLayout) => {
           {!isOnChainApp && (
             <Tab
               className="md:py-4"
-              href={`/teams/${params!.teamId}/apps/${params!.appId}/actions/${params!.actionId}/kiosk`}
+              href={getVersionedPath(
+                `/teams/${params!.teamId}/apps/${params!.appId}/actions/${params!.actionId}/kiosk`,
+              )}
               segment={"kiosk"}
             >
               <Typography variant={TYPOGRAPHY.R4}>Kiosk</Typography>
@@ -125,7 +141,9 @@ export const ActionIdLayout = (props: ActionIdLayout) => {
           {isEnoughPermissions && (
             <Tab
               className="md:py-4"
-              href={`/teams/${params!.teamId}/apps/${params!.appId}/actions/${params!.actionId}/danger`}
+              href={getVersionedPath(
+                `/teams/${params!.teamId}/apps/${params!.appId}/actions/${params!.actionId}/danger`,
+              )}
               segment={"danger"}
             >
               <Typography variant={TYPOGRAPHY.R4}>Danger zone</Typography>

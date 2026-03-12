@@ -12,9 +12,9 @@ import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { worldId40Atom, isWorldId40Enabled } from "@/lib/feature-flags";
 import clsx from "clsx";
 import { useAtomValue } from "jotai";
-import { usePathname } from "next/navigation";
 import { useMemo } from "react";
 import { useForm, useWatch } from "react-hook-form";
+import { appendVersionParam, resolveAppVersionParam } from "../../versioning";
 import { ActionsList } from "./ActionsList";
 import { CreateActionModal } from "./CreateActionModal";
 import { useGetActionsQuery } from "./graphql/client/actions.generated";
@@ -29,7 +29,9 @@ export const ActionsPage = ({ params, searchParams }: ActionsPageProps) => {
   const createAction = searchParams?.createAction;
   const appId = params?.appId as `app_${string}`;
   const teamId = params?.teamId as string;
-  const pathName = usePathname() ?? "";
+  const requestedVersion =
+    typeof searchParams?.version === "string" ? searchParams.version : null;
+  const actionsBasePath = `/teams/${teamId}/apps/${appId}/actions`;
 
   const searchForm = useForm<{ keyword: string }>({
     mode: "onChange",
@@ -65,7 +67,24 @@ export const ActionsPage = ({ params, searchParams }: ActionsPageProps) => {
 
   const { data } = actionsRes;
   const engineType = appRes.data?.app?.engine;
-  const appName = appRes.data?.app?.app_metadata[0]?.name;
+  const hasDraftVersion = (appRes.data?.app?.app_metadata.length ?? 0) > 0;
+  const hasVerifiedVersion =
+    (appRes.data?.app?.verified_app_metadata.length ?? 0) > 0;
+  const selectedVersion = resolveAppVersionParam({
+    requestedVersion,
+    hasDraft: hasDraftVersion,
+    hasVerified: hasVerifiedVersion,
+  });
+  const createActionHref = appendVersionParam({
+    path: `${actionsBasePath}?createAction=true`,
+    version: selectedVersion,
+    hasDraft: hasDraftVersion,
+    hasVerified: hasVerifiedVersion,
+  });
+  const appName =
+    selectedVersion === "approved"
+      ? appRes.data?.app?.verified_app_metadata[0]?.name
+      : appRes.data?.app?.app_metadata[0]?.name;
   const worldId40Config = useAtomValue(worldId40Atom);
   const isEnabled = isWorldId40Enabled(worldId40Config, teamId);
 
@@ -97,12 +116,19 @@ export const ActionsPage = ({ params, searchParams }: ActionsPageProps) => {
           searchForm={searchForm}
           items={actionsRes}
           generateItemHref={(id) =>
-            engineType === EngineType.OnChain
-              ? `${pathName}/${id}/settings`
-              : `${pathName}/${id}`
+            appendVersionParam({
+              path:
+                engineType === EngineType.OnChain
+                  ? `${actionsBasePath}/${id}/settings`
+                  : `${actionsBasePath}/${id}`,
+              version: selectedVersion,
+              hasDraft: hasDraftVersion,
+              hasVerified: hasVerifiedVersion,
+            })
           }
           engineType={engineType}
           isReadOnly={isEnabled}
+          createActionHref={createActionHref}
         />
       )}
 
@@ -145,7 +171,7 @@ export const ActionsPage = ({ params, searchParams }: ActionsPageProps) => {
                   />,
                   <Step
                     key={`actions-tutorial-step-2`}
-                    href="?createAction=true"
+                    href={createActionHref}
                     icon={
                       <IconFrame className="bg-additional-purple-500 text-grey-0">
                         <UserStoryIcon />

@@ -11,6 +11,7 @@ import { toast } from "react-toastify";
 import { VersionSwitcher } from "../../Configuration/AppTopBar/VersionSwitcher";
 import { MiniAppSubTabs } from "../SubTabs";
 import { useFetchNotificationAppMetadataQuery } from "./graphql/client/fetch-notification-app-metadata.generated";
+import { useAppVersionMode } from "../../useAppVersionMode";
 
 type NotificationFormData = {
   walletAddresses: string;
@@ -23,9 +24,6 @@ type NotificationFormData = {
 export const NotificationsPage = () => {
   const params = useParams<{ teamId: string; appId: string }>();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [viewMode, setViewMode] = useState<"verified" | "unverified">(
-    "verified",
-  );
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { data: appMetadataData } = useFetchNotificationAppMetadataQuery({
@@ -38,6 +36,15 @@ export const NotificationsPage = () => {
   const hasBothVersions =
     (appData?.app_metadata.length ?? 0) > 0 &&
     (appData?.verified_app_metadata.length ?? 0) > 0;
+  const { viewMode, setViewMode } = useAppVersionMode({
+    hasDraft: (appData?.app_metadata.length ?? 0) > 0,
+    hasVerified: (appData?.verified_app_metadata.length ?? 0) > 0,
+    hasDraftMiniApp: appData?.app_metadata[0]?.app_mode === "mini-app",
+    hasVerifiedMiniApp:
+      appData?.verified_app_metadata[0]?.app_mode === "mini-app",
+    teamId: params?.teamId,
+    appId: params?.appId,
+  });
 
   const {
     register,

@@ -18,8 +18,10 @@ export const ActionsList = (props: {
   generateItemHref: (id: string) => string;
   engineType?: string;
   isReadOnly?: boolean;
+  createActionHref: string;
 }) => {
-  const { searchForm, items, generateItemHref, isReadOnly } = props;
+  const { searchForm, items, generateItemHref, isReadOnly, createActionHref } =
+    props;
   const router = useRouter();
 
   const keyword = useWatch({
@@ -69,7 +71,7 @@ export const ActionsList = (props: {
             ) : (
               <DecoratedButton
                 className="h-12 min-w-[12rem]"
-                href="?createAction=true"
+                href={createActionHref}
               >
                 <Typography
                   variant={TYPOGRAPHY.M3}

@@ -133,10 +133,19 @@ export default withMiddlewareAuthRequired({
       const headers = new Headers(request.headers);
       headers.set("x-nonce", nonce);
       headers.set("content-security-policy", csp);
+      headers.set("x-current-path", request.nextUrl.pathname);
+      headers.set(
+        "x-current-url",
+        `${request.nextUrl.pathname}${request.nextUrl.search}`,
+      );
       const response = NextResponse.next({ request: { headers } });
       response.headers.set("content-security-policy", csp);
       response.headers.set("Permissions-Policy", "clipboard-write=(self)");
       response.headers.set("x-current-path", request.nextUrl.pathname);
+      response.headers.set(
+        "x-current-url",
+        `${request.nextUrl.pathname}${request.nextUrl.search}`,
+      );
       return response;
     } catch (error) {
       console.warn("Error in middleware", { error });

@@ -3,7 +3,6 @@
 import { ErrorPage } from "@/components/ErrorPage";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import clsx from "clsx";
-import { useAtom } from "jotai";
 import { useMemo, useRef, useState } from "react";
 import Skeleton from "react-loading-skeleton";
 import { useParams } from "next/navigation";
@@ -18,11 +17,11 @@ import {
 } from "./AppStore/types/AppStoreFormTypes";
 import { BasicInformation, BasicInformationHandle } from "./BasicInformation";
 import { useFetchAppMetadataQuery } from "./graphql/client/fetch-app-metadata.generated";
-import { viewModeAtom } from "./layout/ImagesProvider";
 import { useFetchLocalisationsQuery } from "./AppStore/graphql/client/fetch-localisations.generated";
 import { RejectionBanner } from "./RejectionBanner";
 import { ResolveModal } from "./ResolveModal";
 import { useRemoveFromReview } from "@/scenes/Portal/Teams/TeamId/Apps/common/hooks/use-remove-from-review";
+import { useAppVersionMode } from "../useAppVersionMode";
 
 type AppProfilePageProps = {
   params: Record<string, string> | null | undefined;
@@ -32,7 +31,6 @@ export const AppProfilePage = ({ params }: AppProfilePageProps) => {
   const routeParams = useParams<{ appId: `app_${string}`; teamId: string }>();
   const appId = (params?.appId || routeParams?.appId) as `app_${string}`;
   const teamId = (params?.teamId || routeParams?.teamId) as `team_${string}`;
-  const [viewMode] = useAtom(viewModeAtom);
 
   const {
     data,
@@ -45,6 +43,10 @@ export const AppProfilePage = ({ params }: AppProfilePageProps) => {
   });
 
   const app = data?.app[0];
+  const { viewMode } = useAppVersionMode({
+    hasDraft: (app?.app_metadata.length ?? 0) > 0,
+    hasVerified: (app?.verified_app_metadata.length ?? 0) > 0,
+  });
 
   const appMetadata = useMemo(() => {
     if (viewMode === "verified") {

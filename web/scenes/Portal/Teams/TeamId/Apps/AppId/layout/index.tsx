@@ -22,7 +22,10 @@ export const AppIdLayout = async (props: AppIdLayoutProps) => {
   let isOnChainApp = false;
   let hasLegacyActions = false;
   let hasRpRegistration = false;
-  let isMiniAppEnabled = false;
+  let hasDraftVersion = false;
+  let hasVerifiedVersion = false;
+  let hasDraftMiniApp = false;
+  let hasVerifiedMiniApp = false;
 
   const session = await getSession();
   const user = session?.user as Auth0SessionUser["user"];
@@ -42,10 +45,11 @@ export const AppIdLayout = async (props: AppIdLayoutProps) => {
         isOnChainApp = app[0].engine === EngineType.OnChain;
         hasLegacyActions = action.length > 0;
         hasRpRegistration = app[0].rp_registration.length > 0;
-        const hasDraftMiniApp = app[0].app_metadata[0]?.app_mode === "mini-app";
-        const hasVerifiedMiniApp =
+        hasDraftVersion = app[0].app_metadata.length > 0;
+        hasVerifiedVersion = app[0].verified_app_metadata.length > 0;
+        hasDraftMiniApp = app[0].app_metadata[0]?.app_mode === "mini-app";
+        hasVerifiedMiniApp =
           app[0].verified_app_metadata[0]?.app_mode === "mini-app";
-        isMiniAppEnabled = hasDraftMiniApp || hasVerifiedMiniApp;
       } else {
         logger.warn("AppIdLayout could not resolve app from FetchAppEnv", {
           appId: params.appId,
@@ -72,7 +76,10 @@ export const AppIdLayout = async (props: AppIdLayoutProps) => {
       showWorldId40Nav={showWorldId40Nav}
       hasRpRegistration={hasRpRegistration}
       hasLegacyActions={hasLegacyActions}
-      isMiniAppEnabled={isMiniAppEnabled}
+      hasDraftVersion={hasDraftVersion}
+      hasVerifiedVersion={hasVerifiedVersion}
+      hasDraftMiniApp={hasDraftMiniApp}
+      hasVerifiedMiniApp={hasVerifiedMiniApp}
     >
       {props.children}
     </AppIdChrome>

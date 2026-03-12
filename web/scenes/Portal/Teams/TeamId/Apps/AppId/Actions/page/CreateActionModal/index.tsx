@@ -15,12 +15,18 @@ import { useRefetchQueries } from "@/lib/use-refetch-queries";
 import { checkIfPartnerTeam, checkIfProduction } from "@/lib/utils";
 import { yupResolver } from "@hookform/resolvers/yup";
 import clsx from "clsx";
-import { useParams, usePathname, useRouter } from "next/navigation";
+import {
+  useParams,
+  usePathname,
+  useRouter,
+  useSearchParams,
+} from "next/navigation";
 import posthog from "posthog-js";
 import { useCallback, useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import slugify from "slugify";
+import { appendExplicitVersionParam } from "../../../versioning";
 import { GetActionsDocument } from "../graphql/client/actions.generated";
 import { AppFlowOnCompleteTypeSelector } from "./AppFlowOnCompleteTypeSelector";
 import { MaxVerificationsSelector } from "./MaxVerificationsSelector";
@@ -37,12 +43,18 @@ type CreateActionModalProps = {
 export const CreateActionModal = (props: CreateActionModalProps) => {
   const { className, firstAction, engineType } = props;
   const pathname = usePathname() ?? "";
+  const searchParams = useSearchParams();
   const params = useParams();
   const router = useRouter();
   const appId = params?.appId as `app_${string}`;
   const teamId = params?.teamId as string;
   const isProduction = checkIfProduction();
   const isPartnerTeam = checkIfPartnerTeam(teamId);
+  const requestedVersion = searchParams.get("version");
+  const versionedPathname = appendExplicitVersionParam(
+    pathname,
+    requestedVersion,
+  );
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const {
@@ -128,11 +140,15 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
         reset();
 
         if (firstAction) {
-          router.prefetch(`${pathname}/${action_id}/settings`);
-          router.replace(`${pathname}/${action_id}/settings`);
+          const nextSettingsPath = appendExplicitVersionParam(
+            `${pathname}/${action_id}/settings`,
+            requestedVersion,
+          );
+          router.prefetch(nextSettingsPath);
+          router.replace(nextSettingsPath);
         } else {
-          router.prefetch(pathname);
-          router.replace(pathname);
+          router.prefetch(versionedPathname);
+          router.replace(versionedPathname);
         }
 
         toast.success(`Action "${values.name}" created.`);
@@ -149,6 +165,8 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
       reset,
       router,
       pathname,
+      requestedVersion,
+      versionedPathname,
     ],
   );
 
@@ -164,7 +182,7 @@ export const CreateActionModal = (props: CreateActionModalProps) => {
           <SizingWrapper>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-x-3">
-                <Button href={pathname} className="flex">
+                <Button href={versionedPathname} className="flex">
                   <CloseIcon className="size-4" />
                 </Button>
                 <span className="text-grey-200">|</span>
