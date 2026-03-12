@@ -30,11 +30,11 @@ export const QrQuickAction = (props: {
   }, [url]);
 
   if (!qrCodeDataURL) {
-    return <Skeleton height={200} width={200} />;
+    return <Skeleton height={350} width={350} />;
   }
 
   return (
-    <div className="grid gap-y-2">
+    <div className="grid gap-y-4">
       {showDraftMiniAppFlag && (
         <div className="flex items-center gap-3 rounded-[10px] bg-system-warning-100 p-5">
           <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-system-warning-600">
@@ -51,8 +51,8 @@ export const QrQuickAction = (props: {
               variant={TYPOGRAPHY.B3}
               className="text-system-warning-600"
             >
-              This link/QR code is for testing purposes only and will be deleted
-              after the app is verified.
+              This preview link/QR code is for testing only and will switch to
+              the approved app link after verification.
             </Typography>
           </div>
         </div>
@@ -72,7 +72,7 @@ export const QrQuickAction = (props: {
           }
           title="See your mini app"
         >
-          <Image src={qrCodeDataURL} width={200} height={200} alt="QR Code" />
+          <Image src={qrCodeDataURL} width={350} height={350} alt="QR Code" />
         </QuickAction>
       </div>
     </div>
