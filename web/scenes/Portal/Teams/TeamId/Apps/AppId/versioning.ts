@@ -38,6 +38,7 @@ type MiniAppNavStateParams = {
   searchParams: SearchParamsLike | null | undefined;
   hasDraft: boolean;
   hasVerified: boolean;
+  preserveRequestedVersion?: boolean;
 };
 
 const getSearchParamValue = (
@@ -165,12 +166,20 @@ export const getMiniAppNavState = ({
   searchParams,
   hasDraft,
   hasVerified,
+  preserveRequestedVersion = false,
 }: MiniAppNavStateParams) => {
-  const version = getSelectedAppVersion({
-    hasDraft,
-    hasVerified,
-    searchParams,
-  });
+  const explicitRequestedVersion = preserveRequestedVersion
+    ? getRequestedVersion(searchParams)
+    : null;
+  const selectedVersion =
+    explicitRequestedVersion === "current" ||
+    explicitRequestedVersion === "approved"
+      ? explicitRequestedVersion
+      : getSelectedAppVersion({
+          hasDraft,
+          hasVerified,
+          searchParams,
+        });
   const currentPath = getCurrentPathWithSearch(pathname, searchParams);
   const permissionsBasePath = urls.miniAppPermissions({
     team_id: teamId,
@@ -184,27 +193,34 @@ export const getMiniAppNavState = ({
     team_id: teamId,
     app_id: appId,
   });
+  const shouldPreserveExplicitVersion =
+    explicitRequestedVersion === "current" ||
+    explicitRequestedVersion === "approved";
+  const effectiveHasDraft = shouldPreserveExplicitVersion ? true : hasDraft;
+  const effectiveHasVerified = shouldPreserveExplicitVersion
+    ? true
+    : hasVerified;
   const permissionsPath = appendVersionParam({
     path: permissionsBasePath,
-    version,
-    hasDraft,
-    hasVerified,
+    version: selectedVersion,
+    hasDraft: effectiveHasDraft,
+    hasVerified: effectiveHasVerified,
   });
   const transactionsPath = appendVersionParam({
     path: transactionsBasePath,
-    version,
-    hasDraft,
-    hasVerified,
+    version: selectedVersion,
+    hasDraft: effectiveHasDraft,
+    hasVerified: effectiveHasVerified,
   });
   const notificationsPath = appendVersionParam({
     path: notificationsBasePath,
-    version,
-    hasDraft,
-    hasVerified,
+    version: selectedVersion,
+    hasDraft: effectiveHasDraft,
+    hasVerified: effectiveHasVerified,
   });
 
   return {
-    version,
+    version: selectedVersion,
     currentPath,
     permissionsPath,
     transactionsPath,

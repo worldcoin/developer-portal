@@ -2,7 +2,7 @@
 
 import { useParams, usePathname, useSearchParams } from "next/navigation";
 import { useFetchAppMetadataQuery } from "../../Configuration/graphql/client/fetch-app-metadata.generated";
-import { getMiniAppNavState, getRequestedVersion } from "../../versioning";
+import { getMiniAppNavState } from "../../versioning";
 import { SectionSubTabs } from "../../common/SectionSubTabs";
 
 export const MiniAppSubTabs = () => {
@@ -14,22 +14,14 @@ export const MiniAppSubTabs = () => {
     skip: !params?.appId,
   });
   const app = data?.app[0];
-  const requestedVersion = getRequestedVersion(searchParams);
-  const hasDraft =
-    app !== undefined
-      ? app.app_metadata.length > 0
-      : requestedVersion !== "approved";
-  const hasVerified =
-    app !== undefined
-      ? app.verified_app_metadata.length > 0
-      : requestedVersion !== "current";
   const miniAppNav = getMiniAppNavState({
     teamId: params?.teamId ?? "",
     appId: params?.appId ?? "",
     pathname,
     searchParams,
-    hasDraft,
-    hasVerified,
+    hasDraft: (app?.app_metadata.length ?? 0) > 0,
+    hasVerified: (app?.verified_app_metadata.length ?? 0) > 0,
+    preserveRequestedVersion: app === undefined,
   });
 
   return (

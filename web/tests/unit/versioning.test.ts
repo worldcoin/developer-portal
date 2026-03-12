@@ -89,4 +89,60 @@ describe("versioning helpers", () => {
       isNotificationsActive: false,
     });
   });
+
+  it("preserves explicit requested versions in mini app nav while availability is unresolved", () => {
+    expect(
+      getMiniAppNavState({
+        teamId: "team_123",
+        appId: "app_123",
+        pathname: "/teams/team_123/apps/app_123/mini-app/permissions",
+        searchParams: new URLSearchParams("version=approved"),
+        hasDraft: false,
+        hasVerified: false,
+        preserveRequestedVersion: true,
+      }),
+    ).toMatchObject({
+      version: "approved",
+      permissionsPath:
+        "/teams/team_123/apps/app_123/mini-app/permissions?version=approved",
+      transactionsPath:
+        "/teams/team_123/apps/app_123/mini-app/transactions?version=approved",
+      isPermissionsActive: true,
+    });
+
+    expect(
+      getMiniAppNavState({
+        teamId: "team_123",
+        appId: "app_123",
+        pathname: "/teams/team_123/apps/app_123/mini-app/transactions",
+        searchParams: new URLSearchParams("version=current"),
+        hasDraft: false,
+        hasVerified: false,
+        preserveRequestedVersion: true,
+      }),
+    ).toMatchObject({
+      version: "current",
+      permissionsPath:
+        "/teams/team_123/apps/app_123/mini-app/permissions?version=current",
+      transactionsPath:
+        "/teams/team_123/apps/app_123/mini-app/transactions?version=current",
+      isTransactionsActive: true,
+    });
+
+    expect(
+      getMiniAppNavState({
+        teamId: "team_123",
+        appId: "app_123",
+        pathname: "/teams/team_123/apps/app_123/mini-app/notifications",
+        searchParams: new URLSearchParams(),
+        hasDraft: false,
+        hasVerified: false,
+        preserveRequestedVersion: true,
+      }),
+    ).toMatchObject({
+      version: "current",
+      notificationsPath: "/teams/team_123/apps/app_123/mini-app/notifications",
+      isNotificationsActive: true,
+    });
+  });
 });
