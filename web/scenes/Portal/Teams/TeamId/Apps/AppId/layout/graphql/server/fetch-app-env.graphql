@@ -2,6 +2,18 @@ query FetchAppEnv($id: String!) {
   app(where: { id: { _eq: $id } }) {
     id
     engine
+    app_metadata(
+      where: { verification_status: { _neq: "verified" } }
+      limit: 1
+    ) {
+      app_mode
+    }
+    verified_app_metadata: app_metadata(
+      where: { verification_status: { _eq: "verified" } }
+      limit: 1
+    ) {
+      app_mode
+    }
     rp_registration {
       rp_id
     }

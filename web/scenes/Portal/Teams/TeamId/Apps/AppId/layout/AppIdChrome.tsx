@@ -43,6 +43,7 @@ type AppIdChromeProps = {
   showWorldId40Nav: boolean;
   hasRpRegistration: boolean;
   hasLegacyActions: boolean;
+  isMiniAppEnabled: boolean;
   children: ReactNode;
 };
 
@@ -52,6 +53,7 @@ export const AppIdChrome = ({
   showWorldId40Nav,
   hasRpRegistration,
   hasLegacyActions,
+  isMiniAppEnabled,
   children,
 }: AppIdChromeProps) => {
   const pathname = usePathname();
@@ -131,14 +133,16 @@ export const AppIdChrome = ({
                 <Typography variant={TYPOGRAPHY.R4}>Configuration</Typography>
               </Tab>
 
-              <Tab
-                href={miniAppPermissionsPath}
-                underlined
-                active={isMiniAppSegment}
-                segment={"mini-app"}
-              >
-                <Typography variant={TYPOGRAPHY.R4}>Mini App</Typography>
-              </Tab>
+              {isMiniAppEnabled && (
+                <Tab
+                  href={miniAppPermissionsPath}
+                  underlined
+                  active={isMiniAppSegment}
+                  segment={"mini-app"}
+                >
+                  <Typography variant={TYPOGRAPHY.R4}>Mini App</Typography>
+                </Tab>
+              )}
             </Tabs>
           </SizingWrapper>
         </div>
@@ -171,7 +175,7 @@ export const AppIdChrome = ({
           </div>
         )}
 
-        {isMiniAppSegment && (
+        {isMiniAppEnabled && isMiniAppSegment && (
           <div className="md:border-b md:border-grey-100 md:bg-grey-50">
             <SizingWrapper gridClassName="hidden md:grid" variant="nav">
               <SectionSubTabs
@@ -235,9 +239,11 @@ export const AppIdChrome = ({
             <SecurityIcon className="size-7" />
           </BottomBar.Link>
 
-          <BottomBar.Link href={miniAppPermissionsPath} segment={"mini-app"}>
-            <WalletIcon className="size-7" />
-          </BottomBar.Link>
+          {isMiniAppEnabled && (
+            <BottomBar.Link href={miniAppPermissionsPath} segment={"mini-app"}>
+              <WalletIcon className="size-7" />
+            </BottomBar.Link>
+          )}
         </BottomBar>
       </div>
     );
@@ -284,22 +290,26 @@ export const AppIdChrome = ({
               </Tab>
             )}
 
-            <Tab
-              href={miniAppTransactionsPath}
-              underlined
-              segment={"mini-app"}
-              active={isMiniAppTransactions}
-            >
-              <Typography variant={TYPOGRAPHY.R4}>Transactions</Typography>
-            </Tab>
-            <Tab
-              href={miniAppNotificationsPath}
-              underlined
-              segment={"mini-app"}
-              active={isMiniAppNotifications}
-            >
-              <Typography variant={TYPOGRAPHY.R4}>Notifications</Typography>
-            </Tab>
+            {isMiniAppEnabled && (
+              <Tab
+                href={miniAppTransactionsPath}
+                underlined
+                segment={"mini-app"}
+                active={isMiniAppTransactions}
+              >
+                <Typography variant={TYPOGRAPHY.R4}>Transactions</Typography>
+              </Tab>
+            )}
+            {isMiniAppEnabled && (
+              <Tab
+                href={miniAppNotificationsPath}
+                underlined
+                segment={"mini-app"}
+                active={isMiniAppNotifications}
+              >
+                <Typography variant={TYPOGRAPHY.R4}>Notifications</Typography>
+              </Tab>
+            )}
 
             <Tab
               href={`/teams/${teamId}/api-keys`}
@@ -339,9 +349,11 @@ export const AppIdChrome = ({
         >
           <SecurityIcon className="size-7" />
         </BottomBar.Link>
-        <BottomBar.Link href={miniAppTransactionsPath} segment={"mini-app"}>
-          <TransactionIcon className="size-7" />
-        </BottomBar.Link>
+        {isMiniAppEnabled && (
+          <BottomBar.Link href={miniAppTransactionsPath} segment={"mini-app"}>
+            <TransactionIcon className="size-7" />
+          </BottomBar.Link>
+        )}
       </BottomBar>
     </div>
   );

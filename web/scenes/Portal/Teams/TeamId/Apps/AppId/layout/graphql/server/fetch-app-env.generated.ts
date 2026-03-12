@@ -14,6 +14,11 @@ export type FetchAppEnvQuery = {
     __typename?: "app";
     id: string;
     engine: string;
+    app_metadata: Array<{ __typename?: "app_metadata"; app_mode: string }>;
+    verified_app_metadata: Array<{
+      __typename?: "app_metadata";
+      app_mode: string;
+    }>;
     rp_registration: Array<{ __typename?: "rp_registration"; rp_id: string }>;
   }>;
   action: Array<{ __typename?: "action"; id: string }>;
@@ -24,6 +29,18 @@ export const FetchAppEnvDocument = gql`
     app(where: { id: { _eq: $id } }) {
       id
       engine
+      app_metadata(
+        where: { verification_status: { _neq: "verified" } }
+        limit: 1
+      ) {
+        app_mode
+      }
+      verified_app_metadata: app_metadata(
+        where: { verification_status: { _eq: "verified" } }
+        limit: 1
+      ) {
+        app_mode
+      }
       rp_registration {
         rp_id
       }
