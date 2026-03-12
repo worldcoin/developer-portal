@@ -14,7 +14,10 @@ import {
 } from "@/api/helpers/rp-utils";
 import { protectInternalEndpoint } from "@/api/helpers/utils";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
-import { isWorldId40EnabledServer } from "@/lib/feature-flags/world-id-4-0/server";
+import {
+  isSelfManagedEnabled,
+  SELF_MANAGED_DISABLED_MESSAGE,
+} from "@/lib/feature-flags";
 import { logger } from "@/lib/logger";
 import { isAddress } from "ethers";
 import { NextRequest, NextResponse } from "next/server";
@@ -136,12 +139,11 @@ export const POST = async (req: NextRequest) => {
     });
   }
 
-  // Check if team is enabled for World ID 4.0
-  if (!(await isWorldId40EnabledServer(teamId))) {
+  if (mode === "self_managed" && !isSelfManagedEnabled()) {
     return errorHasuraQuery({
       req,
-      detail: "World ID 4.0 is not enabled for this team.",
-      code: "feature_not_enabled",
+      detail: SELF_MANAGED_DISABLED_MESSAGE,
+      code: "self_managed_disabled",
       app_id,
     });
   }

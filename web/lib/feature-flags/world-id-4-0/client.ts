@@ -1,7 +1,6 @@
 "use client";
 
 import { atom } from "jotai";
-import { isWorldId40EnabledForTeam } from "./common";
 
 type WorldId40Config = {
   isFetched: boolean;
@@ -14,12 +13,11 @@ export const worldId40Atom = atom<WorldId40Config>({
 });
 
 /**
- * Client-side helper to check if World ID 4.0 is enabled for a team
+ * World ID 4.0 is now enabled for all teams.
  */
 export const isWorldId40Enabled = (
-  config: WorldId40Config,
+  _config: WorldId40Config,
   teamId: string | undefined,
 ): boolean => {
-  if (!teamId || !config.isFetched) return false;
-  return isWorldId40EnabledForTeam(config.enabledTeams, teamId);
+  return Boolean(teamId);
 };

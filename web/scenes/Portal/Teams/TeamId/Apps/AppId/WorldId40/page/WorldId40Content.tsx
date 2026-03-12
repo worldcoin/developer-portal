@@ -5,6 +5,10 @@ import { DecoratedButton } from "@/components/DecoratedButton";
 import { Notification } from "@/components/Notification";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import {
+  isSelfManagedEnabled,
+  SELF_MANAGED_DISABLED_REASON,
+} from "@/lib/feature-flags";
 import clsx from "clsx";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
@@ -129,6 +133,9 @@ export const WorldId40Content = ({
 
   // Use production status for overall "active" checks (e.g., enabling reset button)
   const isActive = productionStatus === "registered";
+  const selfManagedEnabled = isSelfManagedEnabled();
+  const isSelfManagedSwitchDisabled =
+    !selfManagedEnabled || !isActive || mode === "self_managed";
 
   const formattedDate = new Date(createdAt).toLocaleDateString("en-US", {
     year: "numeric",
@@ -306,25 +313,29 @@ export const WorldId40Content = ({
                   Switch to Self-Managed
                 </Typography>
                 <Typography variant={TYPOGRAPHY.B3} className="text-grey-500">
-                  Move this RP to a self-managed configuration
+                  {selfManagedEnabled
+                    ? "Move this RP to a self-managed configuration"
+                    : "Self-managed mode is coming soon"}
                 </Typography>
               </div>
               <DecoratedButton
                 type="button"
                 variant="danger"
-                disabled={!isActive || mode === "self_managed"}
+                disabled={isSelfManagedSwitchDisabled}
                 className={clsx(
                   "h-8 shrink-0 rounded-full px-4 text-[13px] font-semibold",
-                  !isActive || mode === "self_managed"
+                  isSelfManagedSwitchDisabled
                     ? "" // Let DecoratedButton handle disabled styles
                     : "bg-danger text-white hover:bg-system-error-700",
                 )}
                 title={
-                  mode === "self_managed"
-                    ? "Already in self-managed mode"
-                    : !isActive
-                      ? "RP must be active to switch modes"
-                      : undefined
+                  !selfManagedEnabled
+                    ? `Self-managed mode is ${SELF_MANAGED_DISABLED_REASON.toLowerCase()}`
+                    : mode === "self_managed"
+                      ? "Already in self-managed mode"
+                      : !isActive
+                        ? "RP must be active to switch modes"
+                        : undefined
                 }
                 onClick={() => setIsSwitchDialogOpen(true)}
               >
@@ -342,20 +353,17 @@ export const WorldId40Content = ({
         onSuccess={() => setProductionStatus("pending")}
       />
 
-      <SwitchToSelfManagedDialog
-        open={isSwitchDialogOpen}
-        onClose={() => setIsSwitchDialogOpen(false)}
-        appId={appId}
-        onSuccess={() => {
-          // Trigger status polling
-          setProductionStatus("pending");
-          // CRITICAL: Refresh server component to get updated mode from DB
-          router.refresh();
-          // Status polling will automatically pick up the "pending" state
-          // and poll every 5 seconds until status returns to "registered"
-          // router.refresh() ensures the mode prop updates to "self_managed"
-        }}
-      />
+      {selfManagedEnabled && (
+        <SwitchToSelfManagedDialog
+          open={isSwitchDialogOpen}
+          onClose={() => setIsSwitchDialogOpen(false)}
+          appId={appId}
+          onSuccess={() => {
+            setProductionStatus("pending");
+            router.refresh();
+          }}
+        />
+      )}
     </SizingWrapper>
   );
 };

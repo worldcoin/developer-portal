@@ -11,7 +11,6 @@ import {
 import { submitRotateSignerTransaction } from "@/api/helpers/rp-transactions";
 import { protectInternalEndpoint } from "@/api/helpers/utils";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
-import { isWorldId40EnabledServer } from "@/lib/feature-flags/world-id-4-0/server";
 import { logger } from "@/lib/logger";
 import { isAddress } from "ethers";
 import { NextRequest, NextResponse } from "next/server";
@@ -132,16 +131,6 @@ export const POST = async (req: NextRequest) => {
       req,
       detail: "User does not have permission to rotate signer key.",
       code: "unauthorized",
-      app_id,
-    });
-  }
-
-  // Check if team is enabled for World ID 4.0
-  if (!(await isWorldId40EnabledServer(teamId))) {
-    return errorHasuraQuery({
-      req,
-      detail: "World ID 4.0 is not enabled for this team.",
-      code: "feature_not_enabled",
       app_id,
     });
   }

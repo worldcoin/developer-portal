@@ -11,7 +11,10 @@ import {
 import { submitTransferManagerTransaction } from "@/api/helpers/rp-transactions";
 import { protectInternalEndpoint } from "@/api/helpers/utils";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
-import { isWorldId40EnabledServer } from "@/lib/feature-flags/world-id-4-0/server";
+import {
+  isSelfManagedEnabled,
+  SELF_MANAGED_DISABLED_MESSAGE,
+} from "@/lib/feature-flags";
 import { logger } from "@/lib/logger";
 import { isAddress } from "ethers";
 import { NextRequest, NextResponse } from "next/server";
@@ -138,12 +141,13 @@ export const POST = async (req: NextRequest) => {
     });
   }
 
-  // Check if team is enabled for World ID 4.0
-  if (!(await isWorldId40EnabledServer(teamId))) {
+  // Temporary product disable. Keep the full self-managed flow intact for
+  // future re-enable, but do not expose feature state before authz succeeds.
+  if (!isSelfManagedEnabled()) {
     return errorHasuraQuery({
       req,
-      detail: "World ID 4.0 is not enabled for this team.",
-      code: "feature_not_enabled",
+      detail: SELF_MANAGED_DISABLED_MESSAGE,
+      code: "self_managed_disabled",
       app_id,
     });
   }
@@ -160,7 +164,7 @@ export const POST = async (req: NextRequest) => {
 
   const managerKmsKeyId = registration.manager_kms_key_id;
 
-  // STEP 4: Claim mode-switch slot (status: registered → pending)
+  // STEP 4: Claim mode-switch slot (status: registered -> pending)
   const { update_rp_registration: claimResult } = await getClaimSlotSdk(
     client,
   ).ClaimModeSwitchSlot({ rp_id: rpIdString });
@@ -283,7 +287,6 @@ export const POST = async (req: NextRequest) => {
           error: cacheError,
           rpIdString,
         });
-        // Non-critical, continue
       }
     }
 

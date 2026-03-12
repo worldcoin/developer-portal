@@ -11,12 +11,11 @@ import { LoggedUserNav } from "@/components/LoggedUserNav";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { getGraphQLErrorCode } from "@/lib/errors";
-import { isWorldId40Enabled, worldId40Atom } from "@/lib/feature-flags";
+import { isSelfManagedEnabled } from "@/lib/feature-flags";
 import { urls } from "@/lib/urls";
 import { useRefetchQueries } from "@/lib/use-refetch-queries";
 import { yupResolver } from "@hookform/resolvers/yup";
 import clsx from "clsx";
-import { useAtomValue } from "jotai";
 import { useParams, useRouter } from "next/navigation";
 import posthog from "posthog-js";
 import { useCallback, useMemo, useState } from "react";
@@ -67,8 +66,7 @@ export const CreateAppDialogV4 = ({
 }: CreateAppDialogV4Props) => {
   const { teamId } = useParams() as { teamId: string | undefined };
   const router = useRouter();
-  const worldId40Config = useAtomValue(worldId40Atom);
-  const isSelfManagedEnabled = isWorldId40Enabled(worldId40Config, teamId);
+  const selfManagedEnabled = isSelfManagedEnabled();
   const { refetch: refetchApps } = useRefetchQueries(FetchAppsDocument, {
     teamId: teamId,
   });
@@ -170,16 +168,17 @@ export const CreateAppDialogV4 = ({
 
   const onEnableContinue = useCallback(
     (mode: "managed" | "self-managed") => {
-      setWorldIdMode(mode);
+      const nextMode = selfManagedEnabled ? mode : "managed";
+      setWorldIdMode(nextMode);
 
-      if (mode === "self-managed") {
+      if (nextMode === "self-managed") {
         setStep("self-managed-transaction");
         return;
       }
 
       setStep("configure-signer-key");
     },
-    [setWorldIdMode, setStep],
+    [selfManagedEnabled],
   );
 
   const onSelfManagedComplete = useCallback(async () => {
@@ -219,7 +218,6 @@ export const CreateAppDialogV4 = ({
       const code = getGraphQLErrorCode(error);
 
       if (code === "already_registered") {
-        // Idempotent — treat as success
         toast.success("App configured successfully");
         const redirect = urls.worldId40({
           team_id: teamId,
@@ -237,7 +235,7 @@ export const CreateAppDialogV4 = ({
 
   const onConfigureBack = useCallback(() => {
     setStep("enable-world-id-4-0");
-  }, [setStep]);
+  }, []);
 
   const onConfigureContinue = useCallback((setup: SignerKeySetup) => {
     setSignerKeySetup(setup);
@@ -262,12 +260,10 @@ export const CreateAppDialogV4 = ({
       }
 
       try {
-        const hasuraMode =
-          worldIdMode === "self-managed" ? "self_managed" : "managed";
         const { data } = await registerRp({
           variables: {
             app_id: createdAppId,
-            mode: hasuraMode,
+            mode: worldIdMode === "self-managed" ? "self_managed" : "managed",
             signer_address: publicKey,
           },
         });
@@ -392,7 +388,7 @@ export const CreateAppDialogV4 = ({
             {step === "enable-world-id-4-0" && (
               <EnableWorldId40Content
                 onContinue={onEnableContinue}
-                isSelfManagedEnabled={isSelfManagedEnabled}
+                isSelfManagedEnabled={selfManagedEnabled}
                 initialMode={worldIdMode}
                 className="justify-self-center py-10"
               />

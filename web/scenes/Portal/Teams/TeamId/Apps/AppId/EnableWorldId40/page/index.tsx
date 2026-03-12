@@ -1,9 +1,8 @@
 "use client";
 
 import { SizingWrapper } from "@/components/SizingWrapper";
-import { isWorldId40Enabled, worldId40Atom } from "@/lib/feature-flags";
+import { isSelfManagedEnabled } from "@/lib/feature-flags";
 import { urls } from "@/lib/urls";
-import { useAtomValue } from "jotai";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useCallback } from "react";
 import { EnableWorldId40Content } from "../EnableWorldId40Content";
@@ -16,8 +15,7 @@ export const EnableWorldId40Page = () => {
   };
   const router = useRouter();
   const searchParams = useSearchParams();
-  const worldId40Config = useAtomValue(worldId40Atom);
-  const isSelfManagedEnabled = isWorldId40Enabled(worldId40Config, teamId);
+  const selfManagedEnabled = isSelfManagedEnabled();
   const nextParamRaw = searchParams.get("next");
   const nextParam =
     nextParamRaw === "configuration" || nextParamRaw === "actions"
@@ -39,7 +37,7 @@ export const EnableWorldId40Page = () => {
     (mode: WorldId40Mode) => {
       if (!teamId || !appId) return;
 
-      if (mode === "self-managed") {
+      if (selfManagedEnabled && mode === "self-managed") {
         router.push(
           urls.selfManagedRegistration({
             team_id: teamId,
@@ -52,14 +50,14 @@ export const EnableWorldId40Page = () => {
 
       onContinue();
     },
-    [teamId, appId, nextParam, onContinue, router],
+    [teamId, appId, nextParam, onContinue, router, selfManagedEnabled],
   );
 
   return (
     <SizingWrapper gridClassName="grow flex justify-center pb-10 pt-10">
       <EnableWorldId40Content
         onContinue={onContinueByMode}
-        isSelfManagedEnabled={isSelfManagedEnabled}
+        isSelfManagedEnabled={selfManagedEnabled}
       />
     </SizingWrapper>
   );
