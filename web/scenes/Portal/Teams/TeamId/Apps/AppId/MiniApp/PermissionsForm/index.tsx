@@ -54,53 +54,6 @@ const formatArrayInput = (e: ChangeEvent<HTMLTextAreaElement>) => {
   }
 };
 
-const ModeCard = (props: {
-  label: string;
-  description: string;
-  value: keyof typeof AppMode;
-  selected: boolean;
-  disabled: boolean;
-  onSelect: (value: keyof typeof AppMode) => void;
-}) => {
-  const { label, description, value, selected, disabled, onSelect } = props;
-
-  return (
-    <button
-      type="button"
-      disabled={disabled}
-      onClick={() => onSelect(value)}
-      className={clsx(
-        "flex h-[110px] flex-col items-start gap-3 rounded-[10px] border px-6 py-5 text-left transition-colors",
-        "border-grey-100",
-        !selected && "hover:border-grey-300",
-        disabled && "cursor-not-allowed opacity-60",
-      )}
-    >
-      <div className="flex w-[234px] items-center justify-between gap-3">
-        <Typography variant={TYPOGRAPHY.S2} className="text-grey-900">
-          {label}
-        </Typography>
-
-        <span
-          className={clsx(
-            "flex size-5 items-center justify-center rounded-full border-[1.25px]",
-            selected
-              ? "border-grey-900 bg-grey-900 text-grey-0"
-              : "border-grey-200 bg-grey-0",
-          )}
-          aria-hidden
-        >
-          {selected && <CheckIcon size="16" className="size-[13px]" />}
-        </span>
-      </div>
-
-      <Typography variant={TYPOGRAPHY.B3} className="w-[218px] text-[#657080]">
-        {description}
-      </Typography>
-    </button>
-  );
-};
-
 const InlineWarning = ({ children }: { children: ReactNode }) => {
   return (
     <div className="flex h-[72px] items-center gap-x-3 rounded-[10px] bg-system-warning-100 px-5">
@@ -162,7 +115,6 @@ export const SetupForm = ({
     formState: { errors, isDirty, isValid },
     setError,
     control,
-    setValue,
   } = useForm<UpdateSetupInitialSchema>({
     resolver: yupResolver(updateSetupInitialSchema),
     mode: "onChange",
@@ -227,7 +179,6 @@ export const SetupForm = ({
     name: "is_whitelist_disabled",
   });
 
-  const isExternal = appMode === "external";
   const canEdit = isEditable && isEnoughPermissions;
 
   return (
@@ -235,57 +186,13 @@ export const SetupForm = ({
       className="grid max-w-[580px] gap-y-10"
       onSubmit={handleSubmit(submit)}
     >
-      <div className="grid gap-y-5">
-        <Typography
-          variant={TYPOGRAPHY.H7}
-          className="font-normal text-grey-900"
-        >
-          Advanced settings
+      {isDirty && (
+        <Typography variant={TYPOGRAPHY.R4} className="text-system-warning-500">
+          Warning: You have unsaved changes
         </Typography>
+      )}
 
-        {isDirty && (
-          <Typography
-            variant={TYPOGRAPHY.R4}
-            className="text-system-warning-500"
-          >
-            Warning: You have unsaved changes
-          </Typography>
-        )}
-      </div>
-
-      <div className="grid gap-4 md:grid-cols-2">
-        <ModeCard
-          label="Mini App"
-          description="Create a mini app that runs inside the World App."
-          value="mini-app"
-          selected={appMode === "mini-app"}
-          disabled={!canEdit}
-          onSelect={(value) =>
-            setValue("app_mode", value, {
-              shouldDirty: true,
-              shouldValidate: true,
-            })
-          }
-        />
-
-        <ModeCard
-          label="External"
-          description="Create a World ID app that runs outside the World App."
-          value="external"
-          selected={appMode === "external"}
-          disabled={!canEdit}
-          onSelect={(value) =>
-            setValue("app_mode", value, {
-              shouldDirty: true,
-              shouldValidate: true,
-            })
-          }
-        />
-      </div>
-
-      {!isExternal && <div className="w-full border-t border-grey-100" />}
-
-      {!isExternal && (
+      {appMode === "mini-app" && (
         <>
           <div className="grid gap-y-5">
             <div className="grid gap-y-3">
