@@ -259,18 +259,13 @@ export async function POST(
   }
 
   const nullifier = actionItem.nullifiers?.[0];
-  const {
-    __typename: _actionTypename,
-    nullifiers: _nullifiers,
-    ...actionResponse
-  } = actionItem;
 
   const response = {
     ...app,
     actions: undefined,
     sign_in_with_world_id: action === "", // DEPRECATED: will be removed in v2
     is_sign_in: action === "",
-    action: actionResponse,
+    action: { ...actionItem, nullifiers: undefined },
     ...(nullifier
       ? {
           nullifier: {
