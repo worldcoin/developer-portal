@@ -265,7 +265,7 @@ export async function POST(
     ...actionResponse
   } = actionItem;
 
-  const response: PrecheckResponse = {
+  const response = {
     ...app,
     actions: undefined,
     sign_in_with_world_id: action === "", // DEPRECATED: will be removed in v2
