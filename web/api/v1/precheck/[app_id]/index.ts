@@ -9,8 +9,14 @@ import { CanUserVerifyType, EngineType } from "@/lib/types";
 import { getCDNImageUrl } from "@/lib/utils";
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
-import { getSdk as getAppPrecheckSdk } from "./graphql/app-precheck.generated";
-import { getSdk as getAppPrecheckByActionSdk } from "./graphql/app-precheck-by-action.generated";
+import {
+  type AppPrecheckByActionQueryQuery,
+  getSdk as getAppPrecheckByActionSdk,
+} from "./graphql/app-precheck-by-action.generated";
+import {
+  type AppPrecheckQueryQuery,
+  getSdk as getAppPrecheckSdk,
+} from "./graphql/app-precheck.generated";
 import { getSdk as getFetchRpRegistrationForPrecheckSdk } from "./graphql/fetch-rp-registration-for-precheck.generated";
 
 /**
@@ -23,6 +29,50 @@ const APPS_WITH_CUSTOM_EXTERNAL_NULLIFIER = [
   "app_1f7f2c379f20307a414f6cf8b544ec8a", // Grants app - uses 0xB16B00B5 for humanity verification
 ];
 const FACE_CHECK_ENABLED_APPS_PARAMETER = "whitelisted-apps/face-check";
+// Whitelist some partner demo apps, that are not verified but we want to show their logos
+const APPS_TO_SHOW_UNVERIFIED_LOGO = [
+  "app_staging_c8137371ceac59890774ccc932e11dcf",
+];
+
+type AppPrecheckQueryResult =
+  | AppPrecheckQueryQuery
+  | AppPrecheckByActionQueryQuery;
+type RawAppValues = AppPrecheckQueryResult["app"][number];
+type RawAction = RawAppValues["actions"][number];
+type RawNullifier = RawAction["nullifiers"][number];
+
+type PrecheckActionResponse = Omit<RawAction, "__typename" | "nullifiers"> & {
+  id?: string;
+  kiosk_enabled?: boolean;
+};
+
+type PrecheckAppSummary = {
+  id: RawAppValues["id"];
+  engine: RawAppValues["engine"];
+  is_staging: RawAppValues["is_staging"];
+  is_verified: boolean;
+  name: string;
+  verified_app_logo: string;
+  unverified_app_logo: string;
+  integration_url: string;
+  enable_face_check: boolean;
+  actions: RawAppValues["actions"];
+};
+
+/**
+ * Success response type for /api/v1/precheck/[app_id].
+ * The endpoint can return either a stored action or a synthetic action for migrated apps.
+ */
+type PrecheckResponse = Omit<PrecheckAppSummary, "actions"> & {
+  actions?: undefined;
+  sign_in_with_world_id: boolean;
+  is_sign_in: boolean;
+  action: PrecheckActionResponse;
+  can_user_verify: CanUserVerifyType;
+  nullifier?: {
+    uses: RawNullifier["uses"];
+  };
+};
 
 const schema = yup
   .object()
@@ -88,7 +138,7 @@ export async function POST(
   // ANCHOR: Fetch app from Hasura
   // For apps with custom external_nullifier, query by action name to return the stored value
   // For other apps, compute the external_nullifier from app_id + action (standard behavior)
-  let appQueryResult;
+  let appQueryResult: AppPrecheckQueryResult;
 
   if (useCustomExternalNullifier) {
     // Query by action name for apps with custom external_nullifier
@@ -112,7 +162,7 @@ export async function POST(
     });
   }
 
-  const rawAppValues = appQueryResult.app?.[0];
+  const rawAppValues: RawAppValues | undefined = appQueryResult.app?.[0];
 
   if (!rawAppValues) {
     return corsHandler(
@@ -128,26 +178,43 @@ export async function POST(
     );
   }
 
-  const app_metadata = rawAppValues.app_metadata[0];
+  const unverified_app_metadata = rawAppValues.app_metadata[0];
   const verified_app_metadata = rawAppValues.verified_app_metadata[0];
   const faceCheckEnabledApps = await faceCheckEnabledAppsPromise;
   const enableFaceCheck = faceCheckEnabledApps?.includes(app_id) ?? false;
   // If an image is present it should store it's relative path and extension ie logo.png
-  const logo_img_url = verified_app_metadata?.logo_img_url
+  let logo_img_url = verified_app_metadata?.logo_img_url
     ? getCDNImageUrl(rawAppValues.id, verified_app_metadata?.logo_img_url)
     : "";
+  const unverified_logo_url = unverified_app_metadata?.logo_img_url
+    ? getCDNImageUrl(
+        rawAppValues.id,
+        unverified_app_metadata?.logo_img_url,
+        false,
+      )
+    : "";
+
+  // If the app doesn't have a verified logo yet, but it's in our whitelist we want to show the unverified logo if it exists
+  if (
+    APPS_TO_SHOW_UNVERIFIED_LOGO.includes(rawAppValues.id) &&
+    !logo_img_url &&
+    unverified_logo_url
+  ) {
+    logo_img_url = unverified_logo_url;
+  }
 
   // Prevent breaking changes
-  const app = {
+  const app: PrecheckAppSummary = {
     id: rawAppValues.id,
     engine: rawAppValues.engine,
     is_staging: rawAppValues.is_staging,
     is_verified: verified_app_metadata ? true : false,
-    name: verified_app_metadata?.name ?? app_metadata?.name ?? "",
+    name: verified_app_metadata?.name ?? unverified_app_metadata?.name ?? "",
     verified_app_logo: logo_img_url,
+    unverified_app_logo: unverified_logo_url,
     integration_url:
       verified_app_metadata?.integration_url ??
-      app_metadata?.integration_url ??
+      unverified_app_metadata?.integration_url ??
       "",
     enable_face_check: enableFaceCheck,
     actions: rawAppValues.actions,
@@ -173,7 +240,7 @@ export async function POST(
       // Generate action ID similar to DB pattern: action_<32 hex chars>
       const actionIdHash = nullifierData.hash.toString(16).slice(0, 32);
 
-      const syntheticAction = {
+      const syntheticAction: PrecheckActionResponse = {
         id: `action_${actionIdHash}`,
         action: action,
         name: "",
@@ -192,7 +259,7 @@ export async function POST(
         post_action_deep_link_android: null,
       };
 
-      const response = {
+      const response: PrecheckResponse = {
         ...app,
         actions: undefined,
         sign_in_with_world_id: action === "",
@@ -238,13 +305,18 @@ export async function POST(
   }
 
   const nullifier = actionItem.nullifiers?.[0];
+  const {
+    __typename: _actionTypename,
+    nullifiers: _nullifiers,
+    ...actionResponse
+  } = actionItem;
 
-  const response = {
+  const response: PrecheckResponse = {
     ...app,
     actions: undefined,
     sign_in_with_world_id: action === "", // DEPRECATED: will be removed in v2
     is_sign_in: action === "",
-    action: { ...actionItem, nullifiers: undefined },
+    action: actionResponse,
     ...(nullifier
       ? {
           nullifier: {

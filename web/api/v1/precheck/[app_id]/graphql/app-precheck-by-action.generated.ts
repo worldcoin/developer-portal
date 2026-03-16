@@ -20,6 +20,7 @@ export type AppPrecheckByActionQueryQuery = {
     app_metadata: Array<{
       __typename?: "app_metadata";
       name: string;
+      logo_img_url: string;
       integration_url: string;
     }>;
     verified_app_metadata: Array<{
@@ -72,6 +73,7 @@ export const AppPrecheckByActionQueryDocument = gql`
       engine
       app_metadata(where: { verification_status: { _neq: "verified" } }) {
         name
+        logo_img_url
         integration_url
       }
       verified_app_metadata: app_metadata(
