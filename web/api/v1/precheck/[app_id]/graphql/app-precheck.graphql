@@ -15,6 +15,7 @@ query AppPrecheckQuery(
     engine
     app_metadata(where: { verification_status: { _neq: "verified" } }) {
       name
+      logo_img_url
       integration_url
     }
     verified_app_metadata: app_metadata(

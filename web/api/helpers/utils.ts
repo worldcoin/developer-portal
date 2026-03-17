@@ -66,7 +66,10 @@ export const getFileExtension = (filename: string): string => {
  * @param methods - The methods to allow
  * @returns The response with CORS headers added
  */
-export function corsHandler(response: NextResponse, methods: string[]) {
+export function corsHandler<T>(
+  response: NextResponse<T>,
+  methods: string[],
+): NextResponse<T> {
   response.headers.set("Access-Control-Allow-Origin", "*");
   response.headers.set("Access-Control-Allow-Methods", methods.join(", "));
   response.headers.set("Access-Control-Allow-Headers", "Content-Type");

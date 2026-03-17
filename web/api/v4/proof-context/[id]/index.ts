@@ -38,6 +38,7 @@ type ProofContextResponse = {
   name: string;
   is_verified: boolean;
   verified_app_logo: string;
+  unverified_app_logo: string;
   integration_url: string;
   action?: {
     action: string;
@@ -45,6 +46,11 @@ type ProofContextResponse = {
     environment: "staging" | "production";
   };
 };
+
+// Whitelist some partner demo apps, that are not verified but we want to show their logos
+const APPS_TO_SHOW_UNVERIFIED_LOGO = [
+  "app_staging_c8137371ceac59890774ccc932e11dcf",
+];
 
 /**
  * V4 Proof Context Endpoint
@@ -62,7 +68,12 @@ type ProofContextResponse = {
 export async function POST(
   req: NextRequest,
   { params: routeParams }: { params: { id: string } },
-) {
+): Promise<
+  NextResponse<
+    | ProofContextResponse
+    | { code: string; detail: string; attribute: string | null }
+  >
+> {
   const body = await req.json();
   const { isValid, parsedParams, handleError } = await validateRequestSchema({
     schema,
@@ -159,24 +170,42 @@ export async function POST(
   });
   const appMetadata = metadataResult.app_by_pk;
 
-  const app_metadata = appMetadata?.app_metadata[0];
+  const unverified_app_metadata = appMetadata?.app_metadata[0];
   const verified_app_metadata = appMetadata?.verified_app_metadata[0];
 
   // Build logo URL
-  const logo_img_url = verified_app_metadata?.logo_img_url
+  let logo_img_url = verified_app_metadata?.logo_img_url
     ? getCDNImageUrl(rpRegistration.app_id, verified_app_metadata.logo_img_url)
     : "";
+
+  const unverified_logo_url = unverified_app_metadata?.logo_img_url
+    ? getCDNImageUrl(
+        rpRegistration.app_id,
+        unverified_app_metadata?.logo_img_url,
+        false,
+      )
+    : "";
+
+  // If the app doesn't have a verified logo yet, but it's in our whitelist we want to show the unverified logo if it exists
+  if (
+    APPS_TO_SHOW_UNVERIFIED_LOGO.includes(rpRegistration.app_id) &&
+    !logo_img_url &&
+    unverified_logo_url
+  ) {
+    logo_img_url = unverified_logo_url;
+  }
 
   // Build response
   const response: ProofContextResponse = {
     app_id: rpRegistration.app_id,
     rp_id: rpRegistration.rp_id,
-    name: verified_app_metadata?.name ?? app_metadata?.name ?? "",
+    name: verified_app_metadata?.name ?? unverified_app_metadata?.name ?? "",
     is_verified: Boolean(verified_app_metadata),
     verified_app_logo: logo_img_url,
+    unverified_app_logo: unverified_logo_url,
     integration_url:
       verified_app_metadata?.integration_url ??
-      app_metadata?.integration_url ??
+      unverified_app_metadata?.integration_url ??
       "",
   };
 
