@@ -110,11 +110,7 @@ export const AppIdChrome = ({
                     ? `/teams/${teamId}/apps/${appId}/world-id-4-0`
                     : hasLegacyActions
                       ? `/teams/${teamId}/apps/${appId}/actions`
-                      : urls.enableWorldId40({
-                          team_id: teamId,
-                          app_id: appId,
-                          next: "actions",
-                        })
+                      : `/teams/${teamId}/apps/${appId}?enableWorldId4=true`
                 }
                 underlined
                 active={isWorldIdSegment}
@@ -158,6 +154,7 @@ export const AppIdChrome = ({
                     label: "Actions",
                     href: `/teams/${teamId}/apps/${appId}/world-id-actions`,
                     segment: "world-id-actions",
+                    hidden: !hasRpRegistration,
                   },
                   {
                     label: "World ID 3.0 Legacy",
@@ -216,11 +213,7 @@ export const AppIdChrome = ({
                 ? `/teams/${teamId}/apps/${appId}/world-id-4-0`
                 : hasLegacyActions
                   ? `/teams/${teamId}/apps/${appId}/actions`
-                  : urls.enableWorldId40({
-                      team_id: teamId,
-                      app_id: appId,
-                      next: "actions",
-                    })
+                  : `/teams/${teamId}/apps/${appId}?enableWorldId4=true`
             }
             segment={"world-id-4-0"}
             active={isWorldIdSegment}
