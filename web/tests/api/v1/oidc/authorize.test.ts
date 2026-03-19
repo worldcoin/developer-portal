@@ -52,12 +52,15 @@ jest.mock("@/api/helpers/oidc/graphql/insert-auth-code.generated", () => ({
 }));
 
 // Mock the verifyProof function
+const mockVerifyProof = jest.fn().mockResolvedValue({ error: null });
 jest.mock("@/api/helpers/verify", () => ({
-  verifyProof: jest.fn().mockResolvedValue({ error: null }),
+  verifyProof: (...args: unknown[]) => mockVerifyProof(...args),
+  encodeNullifierForStorage: jest.fn().mockReturnValue("0x123"),
 }));
 
 beforeEach(async () => {
   await global.RedisClient?.flushall();
+  mockVerifyProof.mockResolvedValue({ error: null });
 
   // Mock OIDC app fetch
   FetchOIDCApp.mockResolvedValue({
@@ -228,6 +231,41 @@ describe("/api/v1/oidc/authorize [authorization code flow]", () => {
     expect(data).toEqual({
       code: expect.stringMatching(/^[a-f0-9]{16,30}$/),
     });
+  });
+
+  test("cleans up proof key on verification failure so proof can be retried", async () => {
+    // First request: verification fails
+    mockVerifyProof.mockResolvedValueOnce({
+      error: {
+        statusCode: 400,
+        code: "invalid_proof",
+        message: "Invalid merkle root",
+        attribute: "merkle_root",
+      },
+    });
+
+    const req1 = new NextRequest(
+      "http://localhost:3000/api/v1/oidc/authorize",
+      {
+        method: "POST",
+        body: JSON.stringify({ ...VALID_REQUEST }),
+      },
+    );
+
+    const failResponse = await POST(req1);
+    expect(failResponse.status).toBe(400);
+
+    // Second request with same proof should succeed (proof key was cleaned up)
+    const req2 = new NextRequest(
+      "http://localhost:3000/api/v1/oidc/authorize",
+      {
+        method: "POST",
+        body: JSON.stringify({ ...VALID_REQUEST }),
+      },
+    );
+
+    const successResponse = await POST(req2);
+    expect(successResponse.status).toBe(200);
   });
 
   test("prevents replayed proofs", async () => {

@@ -87,6 +87,7 @@ export async function POST(req: NextRequest) {
   }
 
   let app_id: string | undefined;
+  let proofKey: string | undefined;
 
   try {
     const body = await req.json();
@@ -228,7 +229,7 @@ export async function POST(req: NextRequest) {
         corsMethods,
       );
     }
-    const proofKey = `oidc:proof:${hashedProof}`;
+    proofKey = `oidc:proof:${hashedProof}`;
     const isProofReplayed = await redis.get(proofKey);
 
     if (isProofReplayed) {
@@ -253,6 +254,7 @@ export async function POST(req: NextRequest) {
     try {
       signalHash = toBeHex(hashSignal(signal));
     } catch (error) {
+      await redis.del(proofKey);
       return corsHandler(
         errorResponse({
           statusCode: 400,
@@ -283,6 +285,7 @@ export async function POST(req: NextRequest) {
     );
 
     if (verifyError) {
+      await redis.del(proofKey);
       return corsHandler(
         errorResponse({
           statusCode: verifyError.statusCode ?? 400,
@@ -415,6 +418,9 @@ export async function POST(req: NextRequest) {
     ]);
   } catch (error) {
     // Handle any unexpected errors
+    if (proofKey) {
+      await redis.del(proofKey).catch(() => {});
+    }
     logger.error("Unexpected error in OIDC authorize", {
       error,
       app_id,
