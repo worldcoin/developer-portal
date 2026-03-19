@@ -9,7 +9,7 @@ import {
 import { CreateAppDialogV4 } from "@/scenes/Portal/layout/CreateAppDialog/index-v4";
 import { useAtomValue } from "jotai";
 import { useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 interface WorldId40MigrationBannerProps {
   teamId: string;
@@ -27,6 +27,10 @@ export const WorldId40MigrationBanner = ({
   const searchParams = useSearchParams();
   const autoOpen = searchParams.get("enableWorldId4") === "true";
   const [dialogOpen, setDialogOpen] = useState(autoOpen);
+
+  useEffect(() => {
+    if (autoOpen) setDialogOpen(true);
+  }, [autoOpen]);
 
   // Don't show banner if:
   // - World ID 4.0 is not enabled for this team, OR
