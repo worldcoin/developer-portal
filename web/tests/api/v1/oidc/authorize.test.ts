@@ -268,6 +268,65 @@ describe("/api/v1/oidc/authorize [authorization code flow]", () => {
     expect(successResponse.status).toBe(200);
   });
 
+  test("cleans up proof key when verifyProof throws so proof can be retried", async () => {
+    mockVerifyProof.mockRejectedValueOnce(new Error("Sequencer timeout"));
+
+    const req1 = new NextRequest(
+      "http://localhost:3000/api/v1/oidc/authorize",
+      {
+        method: "POST",
+        body: JSON.stringify({ ...VALID_REQUEST }),
+      },
+    );
+
+    const failResponse = await POST(req1);
+    expect(failResponse.status).toBe(500);
+
+    const req2 = new NextRequest(
+      "http://localhost:3000/api/v1/oidc/authorize",
+      {
+        method: "POST",
+        body: JSON.stringify({ ...VALID_REQUEST }),
+      },
+    );
+
+    const successResponse = await POST(req2);
+    expect(successResponse.status).toBe(200);
+  });
+
+  test("keeps proof key after post-verification failures to prevent replay", async () => {
+    InsertAuthCode.mockRejectedValueOnce(new Error("GraphQL unavailable"));
+
+    const req1 = new NextRequest(
+      "http://localhost:3000/api/v1/oidc/authorize",
+      {
+        method: "POST",
+        body: JSON.stringify({ ...VALID_REQUEST }),
+      },
+    );
+
+    const failResponse = await POST(req1);
+    expect(failResponse.status).toBe(500);
+
+    const req2 = new NextRequest(
+      "http://localhost:3000/api/v1/oidc/authorize",
+      {
+        method: "POST",
+        body: JSON.stringify({ ...VALID_REQUEST }),
+      },
+    );
+
+    const replayResponse = await POST(req2);
+    const replayData = await replayResponse.json();
+
+    expect(replayResponse.status).toBe(400);
+    expect(replayData).toMatchObject({
+      code: "invalid_proof",
+      attribute: "proof",
+      detail: "This proof has already been used. Please try again",
+    });
+  });
+
   test("prevents replayed proofs", async () => {
     const req1 = new NextRequest(
       "http://localhost:3000/api/v1/oidc/authorize",
