@@ -259,8 +259,11 @@ export const isValidHostName = (request: Request) => {
     return false;
   }
 
-  // Skip check for development
-  if (process.env.NODE_ENV === "development") {
+  // Skip check for development and staging (staging may not have custom domains)
+  if (
+    process.env.NODE_ENV === "development" ||
+    process.env.NEXT_PUBLIC_APP_ENV === "staging"
+  ) {
     return true;
   }
   const cdnHost = process.env.NEXT_PUBLIC_IMAGES_CDN_URL;
