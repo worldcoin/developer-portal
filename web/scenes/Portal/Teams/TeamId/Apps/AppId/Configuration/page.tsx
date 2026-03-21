@@ -161,7 +161,7 @@ export const AppProfilePage = ({ params }: AppProfilePageProps) => {
         />
       </SizingWrapper>
 
-      <SizingWrapper variant="nav" gridClassName="order-5 pt-10 pb-6">
+      <SizingWrapper variant="nav" gridClassName="order-5 pt-10 pb-24">
         <AppStoreForm
           appId={appId}
           teamId={teamId}

@@ -167,7 +167,7 @@ export const AppStoreForm = ({
           }}
         />
 
-        <div className="sticky bottom-0 z-10 bg-white pb-4 pt-4 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+        <div className="fixed bottom-[5.25rem] z-10 md:bottom-6">
           <SaveButton
             isSubmitting={isSubmitting}
             isDisabled={!isEditable || !isEnoughPermissions || isSubmitting}
