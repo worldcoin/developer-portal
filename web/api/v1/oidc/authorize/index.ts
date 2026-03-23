@@ -245,7 +245,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Set the proof before continuing with other operations
+    // Lock the exact proof blob early to prevent duplicate submissions while we process it.
     await redis.set(proofKey, "1", "EX", 5400);
 
     // For OIDC we should always hash the signal now.
@@ -253,6 +253,7 @@ export async function POST(req: NextRequest) {
     try {
       signalHash = toBeHex(hashSignal(signal));
     } catch (error) {
+      await redis.del(proofKey);
       return corsHandler(
         errorResponse({
           statusCode: 400,
@@ -266,31 +267,52 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // ANCHOR: Verify the zero-knowledge proof
-    const { error: verifyError } = await verifyProof(
-      {
-        proof,
-        nullifier_hash,
-        merkle_root,
-        signal_hash: signalHash,
-        external_nullifier: app.external_nullifier,
-      },
-      {
-        is_staging: app.is_staging,
-        verification_level,
-        max_age: 3600, // require that root be less than 1 hour old
-      },
-    );
+    // Best effort: only clear the proof lock if verification fails.
+    try {
+      let { error: verifyError } = await verifyProof(
+        {
+          proof,
+          nullifier_hash,
+          merkle_root,
+          signal_hash: signalHash,
+          external_nullifier: app.external_nullifier,
+        },
+        {
+          is_staging: app.is_staging,
+          verification_level,
+          max_age: 3600, // require that root be less than 1 hour old
+        },
+      );
 
-    if (verifyError) {
+      if (verifyError) {
+        await redis.del(proofKey);
+        return corsHandler(
+          errorResponse({
+            statusCode: verifyError.statusCode ?? 400,
+            code: verifyError.code ?? "invalid_proof",
+            detail:
+              verifyError.message ??
+              "Verification request error. Please try again.",
+            attribute: verifyError.attribute,
+            req,
+            app_id,
+          }),
+          corsMethods,
+        );
+      }
+    } catch (error) {
+      await redis.del(proofKey);
+      logger.error("Unexpected error verifying proof in OIDC authorize", {
+        error,
+        app_id,
+      });
+
       return corsHandler(
         errorResponse({
-          statusCode: verifyError.statusCode ?? 400,
-          code: verifyError.code ?? "invalid_proof",
-          detail:
-            verifyError.message ??
-            "Verification request error. Please try again.",
-          attribute: verifyError.attribute,
+          statusCode: 500,
+          code: "internal_server_error",
+          detail: "An unexpected error occurred",
+          attribute: "server",
           req,
           app_id,
         }),
