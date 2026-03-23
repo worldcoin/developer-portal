@@ -12,7 +12,6 @@ import { SizingWrapper } from "@/components/SizingWrapper";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { getGraphQLErrorCode } from "@/lib/errors";
 import { isWorldId40Enabled, worldId40Atom } from "@/lib/feature-flags";
-import { urls } from "@/lib/urls";
 import { useRefetchQueries } from "@/lib/use-refetch-queries";
 import { yupResolver } from "@hookform/resolvers/yup";
 import clsx from "clsx";
@@ -208,10 +207,7 @@ export const CreateAppDialogV4 = ({
       }
 
       toast.success("App configured successfully");
-      const redirect = urls.worldId40({
-        team_id: teamId,
-        app_id: createdAppId,
-      });
+      const redirect = `/teams/${teamId}/apps/${createdAppId}`;
       router.replace(redirect);
       router.refresh();
       onClose();
@@ -221,10 +217,7 @@ export const CreateAppDialogV4 = ({
       if (code === "already_registered") {
         // Idempotent — treat as success
         toast.success("App configured successfully");
-        const redirect = urls.worldId40({
-          team_id: teamId,
-          app_id: createdAppId,
-        });
+        const redirect = `/teams/${teamId}/apps/${createdAppId}`;
         router.replace(redirect);
         router.refresh();
         onClose();
@@ -277,11 +270,8 @@ export const CreateAppDialogV4 = ({
           return;
         }
 
-        // Success - redirect to World ID 4.0 page
-        const redirect = urls.worldId40({
-          team_id: teamId,
-          app_id: createdAppId,
-        });
+        // Success - redirect to app dashboard
+        const redirect = `/teams/${teamId}/apps/${createdAppId}`;
 
         toast.success("App configured successfully");
         // Refresh server components to pick up the new rp_registration row

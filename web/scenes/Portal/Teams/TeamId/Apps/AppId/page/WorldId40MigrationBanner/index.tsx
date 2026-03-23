@@ -8,7 +8,8 @@ import {
 } from "@/lib/feature-flags/world-id-4-0/client";
 import { CreateAppDialogV4 } from "@/scenes/Portal/layout/CreateAppDialog/index-v4";
 import { useAtomValue } from "jotai";
-import { useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 
 interface WorldId40MigrationBannerProps {
   teamId: string;
@@ -23,7 +24,13 @@ export const WorldId40MigrationBanner = ({
 }: WorldId40MigrationBannerProps) => {
   const worldId40Config = useAtomValue(worldId40Atom);
   const isEnabled = isWorldId40Enabled(worldId40Config, teamId);
-  const [dialogOpen, setDialogOpen] = useState(false);
+  const searchParams = useSearchParams();
+  const autoOpen = searchParams.get("enableWorldId4") === "true";
+  const [dialogOpen, setDialogOpen] = useState(autoOpen);
+
+  useEffect(() => {
+    if (autoOpen) setDialogOpen(true);
+  }, [autoOpen]);
 
   // Don't show banner if:
   // - World ID 4.0 is not enabled for this team, OR

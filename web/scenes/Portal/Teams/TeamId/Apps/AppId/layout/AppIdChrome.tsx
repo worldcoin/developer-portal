@@ -16,27 +16,6 @@ import { usePathname, useSelectedLayoutSegment } from "next/navigation";
 import { ReactNode } from "react";
 import { SectionSubTabs } from "../common/SectionSubTabs";
 
-function isOnboardingPath(
-  pathname: string | null,
-  params: { teamId?: string; appId?: string },
-): boolean {
-  if (!pathname || !params.teamId || !params.appId) return false;
-  const enablePath = urls
-    .enableWorldId40({ team_id: params.teamId, app_id: params.appId })
-    .split("?")[0];
-  const configurePath = urls
-    .configureSignerKey({ team_id: params.teamId, app_id: params.appId })
-    .split("?")[0];
-  const selfManagedPath = urls
-    .selfManagedRegistration({ team_id: params.teamId, app_id: params.appId })
-    .split("?")[0];
-  return (
-    pathname === enablePath ||
-    pathname === configurePath ||
-    pathname === selfManagedPath
-  );
-}
-
 type AppIdChromeProps = {
   params: { teamId?: string; appId?: string };
   isOnChainApp: boolean;
@@ -56,10 +35,6 @@ export const AppIdChrome = ({
 }: AppIdChromeProps) => {
   const pathname = usePathname();
   const segment = useSelectedLayoutSegment();
-
-  if (isOnboardingPath(pathname, params)) {
-    return <>{children}</>;
-  }
 
   const { teamId, appId } = params;
   if (!teamId || !appId) {
@@ -110,11 +85,7 @@ export const AppIdChrome = ({
                     ? `/teams/${teamId}/apps/${appId}/world-id-4-0`
                     : hasLegacyActions
                       ? `/teams/${teamId}/apps/${appId}/actions`
-                      : urls.enableWorldId40({
-                          team_id: teamId,
-                          app_id: appId,
-                          next: "actions",
-                        })
+                      : `/teams/${teamId}/apps/${appId}?enableWorldId4=true`
                 }
                 underlined
                 active={isWorldIdSegment}
@@ -158,6 +129,7 @@ export const AppIdChrome = ({
                     label: "Actions",
                     href: `/teams/${teamId}/apps/${appId}/world-id-actions`,
                     segment: "world-id-actions",
+                    hidden: !hasRpRegistration,
                   },
                   {
                     label: "World ID 3.0 Legacy",
@@ -216,11 +188,7 @@ export const AppIdChrome = ({
                 ? `/teams/${teamId}/apps/${appId}/world-id-4-0`
                 : hasLegacyActions
                   ? `/teams/${teamId}/apps/${appId}/actions`
-                  : urls.enableWorldId40({
-                      team_id: teamId,
-                      app_id: appId,
-                      next: "actions",
-                    })
+                  : `/teams/${teamId}/apps/${appId}?enableWorldId4=true`
             }
             segment={"world-id-4-0"}
             active={isWorldIdSegment}
