@@ -50,6 +50,7 @@ type ProofContextResponse = {
 // Whitelist some partner demo apps, that are not verified but we want to show their logos
 const APPS_TO_SHOW_UNVERIFIED_LOGO = [
   "app_staging_c8137371ceac59890774ccc932e11dcf",
+  "app_staging_79640e8c674aedb3f5969a30f80ff6f9",
 ];
 
 /**
