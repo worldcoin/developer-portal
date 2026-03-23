@@ -167,11 +167,13 @@ export const AppStoreForm = ({
           }}
         />
 
-        <SaveButton
-          isSubmitting={isSubmitting}
-          isDisabled={!isEditable || !isEnoughPermissions || isSubmitting}
-          onSubmit={guardedSubmit}
-        />
+        <div className="fixed bottom-[5.25rem] z-10 md:bottom-6">
+          <SaveButton
+            isSubmitting={isSubmitting}
+            isDisabled={!isEditable || !isEnoughPermissions || isSubmitting}
+            onSubmit={guardedSubmit}
+          />
+        </div>
       </form>
     </div>
   );

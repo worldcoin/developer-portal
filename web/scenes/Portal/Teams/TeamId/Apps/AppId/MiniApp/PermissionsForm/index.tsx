@@ -581,13 +581,15 @@ export const SetupForm = ({
           </>
         )}
 
-        <DecoratedButton
-          type="submit"
-          className="h-14 w-[159px] rounded-full px-6"
-          disabled={!canEdit || !isValid}
-        >
-          <Typography variant={TYPOGRAPHY.M3}>Save changes</Typography>
-        </DecoratedButton>
+        <div className="fixed bottom-[5.25rem] z-10 md:bottom-6">
+          <DecoratedButton
+            type="submit"
+            className="h-14 w-[159px] rounded-full px-6"
+            disabled={!canEdit || !isValid}
+          >
+            <Typography variant={TYPOGRAPHY.M3}>Save changes</Typography>
+          </DecoratedButton>
+        </div>
       </form>
 
       <MiniAppQrPanel
