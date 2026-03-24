@@ -12,7 +12,7 @@ export const createAppSchema = yup
     integration_url: yup
       .string()
       .url("Must be a valid URL")
-      .matches(/^https:\/\/(\w+-)*\w+(\.\w+)+([\/\w\-._/?%&#=]*)?$/, {
+      .matches(/^https:\/\//, {
         message: "URL must use HTTPS (e.g., https://example.com)",
         excludeEmptyString: true,
       })

@@ -8,7 +8,7 @@ export const schema = yup
       .string()
       .transform(inferHttps)
       .url("Must be a valid https:// URL")
-      .matches(/^https:\/\/(\w+-)*\w+(\.\w+)+([\/\w\-._/?%&#=]*)?$/, {
+      .matches(/^https:\/\//, {
         message: "Link must be a valid HTTPS URL",
         excludeEmptyString: true,
       })
