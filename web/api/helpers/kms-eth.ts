@@ -22,7 +22,7 @@ import {
   toBeHex,
   zeroPadValue,
 } from "ethers";
-import { scheduleKeyDeletion } from "./kms";
+import { resolveKeyId, scheduleKeyDeletion } from "./kms";
 
 // secp256k1 curve order
 const SECP256K1_N = BigInt(
@@ -187,7 +187,7 @@ export async function getEthAddressFromKMS(
   keyId: string,
 ): Promise<string> {
   const { PublicKey } = await client.send(
-    new GetPublicKeyCommand({ KeyId: keyId }),
+    new GetPublicKeyCommand({ KeyId: resolveKeyId(keyId) }),
   );
 
   if (!PublicKey) {
@@ -214,7 +214,7 @@ async function signWithKms(
 ): Promise<EthSignature> {
   const { Signature: derSignature } = await client.send(
     new SignCommand({
-      KeyId: keyId,
+      KeyId: resolveKeyId(keyId),
       Message: digest,
       MessageType: "DIGEST",
       SigningAlgorithm: "ECDSA_SHA_256",
@@ -273,7 +273,7 @@ export async function createManagerKey(
       }),
     );
 
-    const keyId = KeyMetadata?.KeyId;
+    const keyId = KeyMetadata?.Arn ?? KeyMetadata?.KeyId;
     const createdAt = KeyMetadata?.CreationDate;
 
     if (!keyId || !createdAt) {
