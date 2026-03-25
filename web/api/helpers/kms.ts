@@ -51,8 +51,7 @@ export function resolveKeyId(keyId: string, region?: string): string {
     return keyId;
   }
 
-  const resolvedRegion =
-    region ?? process.env.AWS_REGION_NAME ?? "eu-west-1";
+  const resolvedRegion = region ?? process.env.AWS_REGION_NAME ?? "eu-west-1";
   return `arn:aws:kms:${resolvedRegion}:${legacyAccountId}:key/${keyId}`;
 }
 
