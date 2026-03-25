@@ -5,8 +5,10 @@ import { DialogPanel } from "@/components/DialogPanel";
 import { AlertIcon } from "@/components/Icons/AlertIcon";
 import { SendIcon } from "@/components/Icons/SendIcon";
 import { ModalIcon } from "@/components/ModalIcon";
+import { TextArea } from "@/components/TextArea";
 import { Toggle } from "@/components/Toggle";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import { appChangelogSchema } from "@/lib/schema";
 import { useRefetchQueries } from "@/lib/use-refetch-queries";
 import { removeAppFromReview } from "@/scenes/Portal/Teams/TeamId/Apps/common/hooks/server";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -16,6 +18,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import * as yup from "yup";
 import { FetchAppMetadataDocument } from "../../graphql/client/fetch-app-metadata.generated";
+import { RemainingCharacters } from "../../PageComponents/RemainingCharacters";
 import { submitAppForReviewFormServerSide } from "../server/submit";
 import { SubmitSuccessToast } from "../SubmitSuccessToast";
 import { useValidateLocalisationMutation } from "./graphql/client/validate-localisations.generated";
@@ -23,6 +26,7 @@ import { useValidateLocalisationMutation } from "./graphql/client/validate-local
 const schema = yup
   .object({
     is_developer_allow_listing: yup.boolean().default(false),
+    changelog: appChangelogSchema,
   })
   .noUnknown();
 
@@ -69,6 +73,7 @@ export const SubmitAppModal = (props: SubmitAppModalProps) => {
     mode: "onChange",
     defaultValues: {
       is_developer_allow_listing: isDeveloperAllowListing,
+      changelog: "",
     },
   });
 
@@ -107,7 +112,7 @@ export const SubmitAppModal = (props: SubmitAppModalProps) => {
           app_metadata_id: appMetadataId,
           team_id: teamId,
           is_developer_allow_listing: values.is_developer_allow_listing,
-          changelog: "", // No changelog in new design
+          changelog: values.changelog,
         },
       });
       if (!result.success) {
@@ -216,6 +221,19 @@ export const SubmitAppModal = (props: SubmitAppModalProps) => {
               </div>
             )}
           </div>
+
+          <TextArea
+            label="Changelog"
+            required
+            rows={5}
+            maxLength={1500}
+            errors={errors.changelog}
+            addOn={
+              <RemainingCharacters text={watch("changelog")} maxChars={1500} />
+            }
+            placeholder="Let the reviewer know what's new in this version. Try to include paths to new features, changes, and bug fixes. This speeds reviews up."
+            register={register("changelog")}
+          />
 
           <div className="grid w-full gap-4 md:grid-cols-2">
             <DecoratedButton
