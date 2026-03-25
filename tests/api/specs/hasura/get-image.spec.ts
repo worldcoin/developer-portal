@@ -36,7 +36,8 @@ describe("Hasura API - Get Image", () => {
 
     beforeAll(async () => {
       // Set required AWS environment variables for tests
-      process.env.ASSETS_S3_BUCKET_NAME = process.env.ASSETS_S3_BUCKET_NAME || "world-id-assets-staging";
+      process.env.ASSETS_S3_BUCKET_NAME =
+        process.env.ASSETS_S3_BUCKET_NAME || "world-id-assets-staging";
       process.env.ASSETS_S3_REGION = "us-east-1";
 
       // Create test team and user
