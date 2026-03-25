@@ -260,6 +260,7 @@ export const isValidHostName = (request: Request) => {
   }
 
   // Skip check for development and staging (staging may not have custom domains)
+  // TODO(CORPLAT-689): Remove staging bypass after DNS cutover
   if (
     process.env.NODE_ENV === "development" ||
     process.env.NEXT_PUBLIC_APP_ENV === "staging"
