@@ -66,17 +66,15 @@ export const GenerateNewKeyContent = ({
         "IMPORTANT: Keep this private key secure. Never share it or commit it to version control.",
     };
 
-    const blob = new Blob([JSON.stringify(keyData, null, 2)], {
-      type: "application/json",
-    });
-    const url = URL.createObjectURL(blob);
+    const jsonString = JSON.stringify(keyData, null, 2);
+    const dataUri =
+      "data:application/json;charset=utf-8," + encodeURIComponent(jsonString);
     const link = document.createElement("a");
-    link.href = url;
+    link.href = dataUri;
     link.download = `signing-key-${publicKey.slice(0, 8)}.json`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    URL.revokeObjectURL(url);
   };
 
   const onSubmit = () => {
