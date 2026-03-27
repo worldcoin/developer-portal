@@ -1,16 +1,23 @@
 "use client";
 import { CopyButton } from "@/components/CopyButton";
-import { DecoratedButton } from "@/components/DecoratedButton";
-import { Input } from "@/components/Input";
+import { FloatingInput } from "@/components/FloatingInput";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Role_Enum } from "@/graphql/graphql";
 import { Auth0SessionUser } from "@/lib/types";
 import { useRefetchQueries } from "@/lib/use-refetch-queries";
+import { inferHttps } from "@/lib/schema";
 import { checkUserPermissions } from "@/lib/utils";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useAtom } from "jotai";
-import { useCallback, useEffect, useMemo } from "react";
+import React, {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+} from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import {
@@ -19,18 +26,30 @@ import {
   FetchAppMetadataQueryVariables,
 } from "../graphql/client/fetch-app-metadata.generated";
 import { viewModeAtom } from "../layout/ImagesProvider";
-import { RemainingCharacters } from "../PageComponents/RemainingCharacters";
-import { BasicInformationFormValues, schema } from "./form-schema";
-import { QrQuickAction } from "./QrQuickAction";
+import * as yup from "yup";
+import {
+  BasicInformationFormValues,
+  reviewSchema,
+  schema,
+} from "./form-schema";
 import { validateAndSubmitServerSide } from "./server/submit";
 
-export const BasicInformation = (props: {
-  appId: string;
-  teamId: string;
-  app: FetchAppMetadataQuery["app"][0];
-  teamName: string;
-}) => {
-  const { appId, teamId, app } = props;
+export type BasicInformationHandle = {
+  submit: (opts?: {
+    silent?: boolean;
+    forReview?: boolean;
+  }) => Promise<boolean>;
+};
+
+export const BasicInformation = forwardRef<
+  BasicInformationHandle,
+  {
+    appId: string;
+    teamId: string;
+    app: FetchAppMetadataQuery["app"][0];
+    teamName: string;
+  }
+>(({ appId, teamId, app, teamName }, ref) => {
   const { refetch: refetchAppMetadata } =
     useRefetchQueries<FetchAppMetadataQueryVariables>(
       FetchAppMetadataDocument,
@@ -62,14 +81,17 @@ export const BasicInformation = (props: {
     return {
       name: appMetaData?.name,
       integration_url: appMetaData?.integration_url,
+      app_website_url: appMetaData?.app_website_url ?? "",
     };
   }, [appMetaData]);
+  const previousMetadataId = useRef<string | undefined>(appMetaData?.id);
 
   const {
     register,
     handleSubmit,
     reset,
-    watch,
+    setValue,
+    setError,
     formState: { errors, isDirty, isValid },
   } = useForm<BasicInformationFormValues>({
     resolver: yupResolver(schema),
@@ -79,46 +101,100 @@ export const BasicInformation = (props: {
     },
   });
 
-  // Used to update the fields when view mode is change
+  // Reset form values only when the metadata context changes (e.g. version switch),
+  // not on same-row refetches from image/toggle mutations.
   useEffect(() => {
-    reset({
-      ...editableAppMetadata,
-    });
-  }, [reset, editableAppMetadata]);
+    if (previousMetadataId.current !== appMetaData?.id) {
+      reset({
+        ...editableAppMetadata,
+      });
+      previousMetadataId.current = appMetaData?.id;
+    }
+  }, [appMetaData?.id, editableAppMetadata, reset]);
 
   const submit = useCallback(
-    async (data: BasicInformationFormValues) => {
-      const result = await validateAndSubmitServerSide(appMetaData?.id, data);
-      if (!result.success) {
-        toast.error(result.message);
-      } else {
-        await refetchAppMetadata();
-        toast.success("App information updated successfully");
-      }
-    },
-    [appMetaData?.id, refetchAppMetadata],
+    (opts?: { silent?: boolean }) =>
+      async (data: BasicInformationFormValues): Promise<boolean> => {
+        const result = await validateAndSubmitServerSide(
+          appMetaData?.id,
+          appId,
+          data,
+        );
+        if (!result.success) {
+          toast.error(result.message);
+          return false;
+        } else {
+          await refetchAppMetadata();
+          reset(data);
+          if (!opts?.silent) {
+            toast.success("App information updated successfully");
+          }
+          return true;
+        }
+      },
+    [appMetaData?.id, appId, refetchAppMetadata, reset],
   );
 
-  // Show QR quick action if the app has an integration URL
-  // New mini apps may have an empty integration URL
-  const showQrQuickAction = Boolean(appMetaData?.integration_url);
+  useImperativeHandle(ref, () => ({
+    submit: (opts) =>
+      new Promise<boolean>((resolve) => {
+        handleSubmit(
+          async (data) => {
+            if (opts?.forReview) {
+              try {
+                await reviewSchema.validate(data, { abortEarly: false });
+              } catch (err) {
+                if (err instanceof yup.ValidationError) {
+                  err.inner.forEach((e) => {
+                    if (e.path) {
+                      setError(e.path as keyof BasicInformationFormValues, {
+                        message: e.message,
+                      });
+                    }
+                  });
+                  resolve(false);
+                  return;
+                }
+              }
+            }
+            const ok = await submit(opts)(data);
+            resolve(ok);
+          },
+          () => resolve(false),
+        )();
+      }),
+  }));
 
-  const { url, showDraftMiniAppFlag } = useMemo(() => {
-    let url = `https://world.org/mini-app?app_id=${appId}&path=`;
-    let showDraftMiniAppFlag = appMetaData?.verification_status !== "verified";
-    if (showDraftMiniAppFlag) {
-      url += `&draft_id=${appMetaData?.id}`;
-    }
-    return { url, showDraftMiniAppFlag };
-  }, [appId, appMetaData]);
+  const makeUrlRegister = useCallback(
+    (
+      fieldName: "integration_url" | "app_website_url",
+    ): ReturnType<typeof register> => {
+      const base = register(fieldName);
+      return {
+        ...base,
+        onBlur: async (e) => {
+          await base.onBlur(e);
+          const val = (e.target as HTMLInputElement).value;
+          const inferred = inferHttps(val);
+          if (inferred !== val) {
+            setValue(fieldName, inferred, { shouldValidate: true });
+          }
+        },
+      };
+    },
+    [register, setValue],
+  );
 
   return (
-    <div className="grid max-w-[580px] grid-cols-1fr/auto">
+    <div className="grid max-w-[700px] grid-cols-1fr/auto">
       <div className="">
-        <form className="grid gap-y-7" onSubmit={handleSubmit(submit)}>
+        <div className="grid gap-y-7">
           <div className="grid gap-y-2">
-            <Typography variant={TYPOGRAPHY.H7} className="text-gray-900">
-              Basic
+            <Typography
+              variant={TYPOGRAPHY.H7}
+              className="font-normal text-grey-900"
+            >
+              Basic information
             </Typography>
             {isDirty && (
               <Typography
@@ -130,53 +206,58 @@ export const BasicInformation = (props: {
             )}
           </div>
 
-          <Input
-            register={register("name")}
-            errors={errors.name}
-            label="App name"
-            disabled={!isEditable || !isEnoughPermissions}
-            required
-            placeholder="Enter your App Name"
-            maxLength={50}
-            addOnRight={
-              <RemainingCharacters text={watch("name")} maxChars={50} />
-            }
-          />
+          <div className="grid grid-cols-2 gap-x-4">
+            <FloatingInput
+              id="name"
+              register={register("name")}
+              errors={errors.name}
+              label="App name"
+              disabled={!isEditable || !isEnoughPermissions}
+              required
+              maxLength={50}
+            />
 
-          <Input
+            <FloatingInput
+              id="publisher"
+              label="Publisher"
+              value={teamName}
+              readOnly
+              tabIndex={-1}
+              className="pointer-events-none"
+            />
+          </div>
+
+          <FloatingInput
+            id="integration_url"
             label="App URL"
             required
             errors={errors.integration_url}
             disabled={!isEditable || !isEnoughPermissions}
-            placeholder="https://"
-            register={register("integration_url")}
+            register={makeUrlRegister("integration_url")}
           />
 
-          <Input
+          <FloatingInput
+            id="app_website_url"
+            label="App Official Website"
+            required
+            errors={errors.app_website_url}
+            disabled={!isEditable || !isEnoughPermissions}
+            register={makeUrlRegister("app_website_url")}
+          />
+
+          <FloatingInput
+            id="app-id"
             label="ID"
-            disabled
-            placeholder={appId}
+            value={appId}
+            readOnly
+            tabIndex={-1}
+            style={{ WebkitTextFillColor: "#9BA3AE", color: "#9BA3AE" }}
             addOnRight={<CopyButton fieldName="App ID" fieldValue={appId} />}
           />
-
-          <DecoratedButton
-            type="submit"
-            variant="primary"
-            className=" mr-5 h-12 w-40"
-            disabled={!isEditable || !isEnoughPermissions || !isValid}
-          >
-            <Typography variant={TYPOGRAPHY.M3}>Save Changes</Typography>
-          </DecoratedButton>
-        </form>
-        <div className="mt-7 flex justify-center sm:justify-start">
-          {showQrQuickAction && (
-            <QrQuickAction
-              url={url}
-              showDraftMiniAppFlag={showDraftMiniAppFlag}
-            />
-          )}
         </div>
       </div>
     </div>
   );
-};
+});
+
+BasicInformation.displayName = "BasicInformation";

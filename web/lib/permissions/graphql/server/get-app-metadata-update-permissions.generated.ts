@@ -13,6 +13,7 @@ export type GetIsUserPermittedToModifyAppMetadataQuery = {
   __typename?: "query_root";
   app_metadata: Array<{
     __typename?: "app_metadata";
+    app_mode: string;
     app: {
       __typename?: "app";
       team: {
@@ -38,6 +39,7 @@ export const GetIsUserPermittedToModifyAppMetadataDocument = gql`
         verification_status: { _eq: "unverified" }
       }
     ) {
+      app_mode
       app {
         team {
           memberships(

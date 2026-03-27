@@ -1,5 +1,6 @@
 query GetLocales($id: String!) {
   app_metadata_by_pk(id: $id) {
     supported_languages
+    app_mode
   }
 }

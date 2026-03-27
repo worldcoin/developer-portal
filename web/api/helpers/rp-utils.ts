@@ -1,0 +1,245 @@
+import "server-only";
+
+/**
+ * Utilities for RP (Relying Party) operations.
+ */
+
+import { generateRpId, generateRpIdString } from "@/lib/rp";
+import { keccak256, toUtf8Bytes } from "ethers";
+import { GraphQLClient } from "graphql-request";
+import { getSdk as getFetchRpRegistrationSdk } from "./graphql/fetch-rp-registration.generated";
+
+// =============================================================================
+// Types
+// =============================================================================
+
+export enum RpRegistrationStatus {
+  Pending = "pending",
+  Registered = "registered",
+  Failed = "failed",
+  Deactivated = "deactivated",
+}
+
+// =============================================================================
+// RP ID Utilities
+// =============================================================================
+
+export { generateRpId, generateRpIdString };
+
+export function isValidRpId(rpId: string): boolean {
+  if (typeof rpId !== "string" || !rpId.startsWith("rp_")) {
+    return false;
+  }
+  const hexPart = rpId.slice(3);
+  return hexPart.length === 16 && /^[0-9a-f]+$/i.test(hexPart);
+}
+
+/**
+ * Converts rp_id string back to numeric rpId for contract calls.
+ */
+export function parseRpId(rpIdString: string): bigint {
+  const hexPart = rpIdString.slice(3);
+  return BigInt("0x" + hexPart);
+}
+
+/**
+ * Maps on-chain RP state to DB status.
+ */
+export function mapOnChainToDbStatus(
+  initialized: boolean,
+  active: boolean,
+): RpRegistrationStatus {
+  if (!initialized) {
+    return RpRegistrationStatus.Pending;
+  }
+  return active
+    ? RpRegistrationStatus.Registered
+    : RpRegistrationStatus.Deactivated;
+}
+
+// =============================================================================
+// Address Utilities
+// =============================================================================
+
+/** Normalizes an Ethereum address by adding 0x prefix if missing. */
+export function normalizeAddress(address: string): string {
+  if (address.startsWith("0x")) {
+    return address;
+  }
+  return `0x${address}`;
+}
+
+// =============================================================================
+// Configuration
+// =============================================================================
+
+/** World Chain ID for RP Registry operations. */
+export const WORLD_CHAIN_ID = 480;
+
+/** WLD ERC-20 token address on World Chain. */
+export const WLD_TOKEN_ADDRESS = "0x2cFc85d8E48F8EAB294be644d9E25C3030863003";
+
+/** Required environment variables for RP Registry operations. */
+export interface RpRegistryConfig {
+  safeOwnerKmsKeyId: string;
+  contractAddress: string;
+  safeAddress: string;
+  entryPointAddress: string;
+  safe4337ModuleAddress: string;
+  kmsRegion: string;
+  /** EIP-712 domain separator (fixed once contract is deployed) */
+  domainSeparator: string;
+  /** UPDATE_RP_TYPEHASH constant from contract */
+  updateRpTypehash: string;
+  /** CredentialSchemaIssuerRegistry contract that pulls WLD from the Safe */
+  credentialSchemaIssuerRegistryAddress: string;
+}
+
+/**
+ * Validates and returns RP Registry configuration from environment variables.
+ * Returns null if any required variable is missing.
+ */
+export function getRpRegistryConfig(): RpRegistryConfig | null {
+  const config = {
+    safeOwnerKmsKeyId: process.env.RP_REGISTRY_SAFE_OWNER_KMS_KEY_ID,
+    contractAddress: process.env.RP_REGISTRY_CONTRACT_ADDRESS,
+    safeAddress: process.env.RP_REGISTRY_SAFE_ADDRESS,
+    entryPointAddress: process.env.RP_REGISTRY_ENTRYPOINT_ADDRESS,
+    safe4337ModuleAddress: process.env.RP_REGISTRY_SAFE_4337_MODULE_ADDRESS,
+    kmsRegion: process.env.RP_REGISTRY_KMS_REGION,
+    domainSeparator: process.env.RP_REGISTRY_DOMAIN_SEPARATOR,
+    updateRpTypehash: process.env.RP_REGISTRY_UPDATE_RP_TYPEHASH,
+    credentialSchemaIssuerRegistryAddress:
+      process.env.CREDENTIAL_SCHEMA_ISSUER_REGISTRY_ADDRESS,
+  };
+
+  if (Object.values(config).some((v) => !v)) {
+    return null;
+  }
+
+  return config as RpRegistryConfig;
+}
+
+// =============================================================================
+// Staging Configuration (for transaction duplication in production)
+// =============================================================================
+
+/**
+ * Returns a full staging RpRegistryConfig by merging staging-specific env vars
+ * (contract address, domain separator, typehash) with the primary config
+ * (Safe, KMS, entry point).
+ *
+ * Returns null if either primary config or staging env vars are missing.
+ */
+export function getStagingRpRegistryConfig(): RpRegistryConfig | null {
+  const primaryConfig = getRpRegistryConfig();
+  if (!primaryConfig) {
+    return null;
+  }
+
+  const stagingContractAddress =
+    process.env.RP_REGISTRY_STAGING_CONTRACT_ADDRESS;
+  const stagingDomainSeparator =
+    process.env.RP_REGISTRY_STAGING_DOMAIN_SEPARATOR;
+  const stagingUpdateRpTypehash =
+    process.env.RP_REGISTRY_STAGING_UPDATE_RP_TYPEHASH;
+
+  if (
+    !stagingContractAddress ||
+    !stagingDomainSeparator ||
+    !stagingUpdateRpTypehash
+  ) {
+    return null;
+  }
+
+  return {
+    ...primaryConfig,
+    contractAddress: stagingContractAddress,
+    domainSeparator: stagingDomainSeparator,
+    updateRpTypehash: stagingUpdateRpTypehash,
+  };
+}
+
+// =============================================================================
+// RP Registration Resolution
+// =============================================================================
+
+/**
+ * Resolved RP registration with app details.
+ */
+export interface ResolvedRpRegistration {
+  rp_id: string;
+  app_id: string;
+  status: string;
+  app: {
+    id: string;
+    status: string;
+    is_archived: boolean;
+    deleted_at?: string | null;
+    app_mode: string | null;
+  };
+}
+
+/**
+ * Result of resolving an app_id or rp_id to an RP registration.
+ */
+export type ResolveRpRegistrationResult =
+  | { success: true; registration: ResolvedRpRegistration }
+  | { success: false; error: "invalid_format" | "not_found" };
+
+/**
+ * Resolves an app_id (app_xxx) or rp_id (rp_xxx) to an RP registration.
+ * Returns the registration with normalized app data, or an error if not found.
+ */
+export async function resolveRpRegistration(
+  client: GraphQLClient,
+  routeId: string,
+): Promise<ResolveRpRegistrationResult> {
+  let registration: ResolvedRpRegistration | null = null;
+
+  if (isValidRpId(routeId)) {
+    const response = await getFetchRpRegistrationSdk(
+      client,
+    ).FetchRpRegistrationByRpId({
+      rp_id: routeId,
+    });
+    const reg = response.rp_registration[0];
+    if (reg) {
+      registration = {
+        rp_id: reg.rp_id,
+        app_id: reg.app_id,
+        status: reg.status as string,
+        app: {
+          ...reg.app,
+          app_mode: reg.app.app_metadata?.[0]?.app_mode ?? null,
+        },
+      };
+    }
+  } else if (routeId.startsWith("app_")) {
+    const response = await getFetchRpRegistrationSdk(
+      client,
+    ).FetchRpRegistration({
+      app_id: routeId,
+    });
+    const reg = response.rp_registration[0];
+    if (reg) {
+      registration = {
+        rp_id: reg.rp_id,
+        app_id: reg.app_id,
+        status: reg.status as string,
+        app: {
+          ...reg.app,
+          app_mode: reg.app.app_metadata?.[0]?.app_mode ?? null,
+        },
+      };
+    }
+  } else {
+    return { success: false, error: "invalid_format" };
+  }
+
+  if (!registration) {
+    return { success: false, error: "not_found" };
+  }
+
+  return { success: true, registration };
+}

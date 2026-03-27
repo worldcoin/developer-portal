@@ -3,8 +3,8 @@ import { corsHandler } from "@/api/helpers/utils";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { verifyProof } from "@/api/helpers/verify";
 import { generateExternalNullifier } from "@/lib/hashing";
-import { VerificationLevel } from "@worldcoin/idkit-core";
-import { hashToField } from "@worldcoin/idkit-core/hashing";
+import { LegacyVerificationLevel } from "@/lib/idkit";
+import { hashSignal } from "@worldcoin/idkit/hashing";
 import { toBeHex } from "ethers";
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
@@ -34,7 +34,7 @@ const schema = yup
     is_staging: yup.boolean().strict().required("This attribute is required."),
     verification_level: yup
       .string()
-      .oneOf(Object.values(VerificationLevel))
+      .oneOf(Object.values(LegacyVerificationLevel))
       .required(),
   })
   .noUnknown();
@@ -58,7 +58,7 @@ export async function POST(req: NextRequest) {
   ).digest;
 
   try {
-    const signalHash = toBeHex(hashToField(parsedParams.signal).hash as bigint);
+    const signalHash = toBeHex(hashSignal(parsedParams.signal));
     const result = await verifyProof(
       {
         merkle_root: parsedParams.merkle_root,

@@ -91,6 +91,7 @@ export const POST = async (req: NextRequest) => {
   });
 
   if (app_locales?.supported_languages) {
+    const isMiniApp = app_locales.app_mode === "mini-app";
     const supportedLanguagesWithoutEn = app_locales.supported_languages.filter(
       (lang) => lang !== "en",
     );
@@ -100,16 +101,17 @@ export const POST = async (req: NextRequest) => {
           (localisation) => localisation.locale === languageCode,
         );
         if (!matchingLocalization) return false;
-        if (
-          matchingLocalization.name &&
-          matchingLocalization.short_name &&
-          matchingLocalization.world_app_description &&
-          matchingLocalization.description
-        ) {
-          return true;
-        } else {
+        if (!matchingLocalization.name || !matchingLocalization.description) {
           return false;
         }
+        if (
+          isMiniApp &&
+          (!matchingLocalization.short_name ||
+            !matchingLocalization.world_app_description)
+        ) {
+          return false;
+        }
+        return true;
       })
     ) {
       return errorHasuraQuery({

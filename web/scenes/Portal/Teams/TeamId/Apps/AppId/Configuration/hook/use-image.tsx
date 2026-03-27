@@ -94,7 +94,9 @@ export const useImage = () => {
       img.src = parsedUrl.href;
     });
   };
-  const [uploadImage] = useUploadImageLazyQuery({});
+  const [uploadImage] = useUploadImageLazyQuery({
+    fetchPolicy: "network-only",
+  });
 
   const uploadViaPresignedPost = async (
     file: File,
@@ -142,7 +144,7 @@ export const useImage = () => {
     });
 
     if (!uploadResponse.ok) {
-      const errorBody = await uploadResponse.json();
+      const errorBody = await uploadResponse.text();
       throw new Error(
         `Failed to upload file: ${uploadResponse.status} ${uploadResponse.statusText} - ${errorBody}`,
       );

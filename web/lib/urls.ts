@@ -12,8 +12,44 @@ export const urls = {
   configuration: (params: { team_id: string; app_id: string }): string =>
     `/teams/${params.team_id}/apps/${params.app_id}/configuration`,
 
+  miniAppPermissions: (params: { team_id: string; app_id: string }): string =>
+    `/teams/${params.team_id}/apps/${params.app_id}/mini-app/permissions`,
+
+  miniAppTransactions: (params: { team_id: string; app_id: string }): string =>
+    `/teams/${params.team_id}/apps/${params.app_id}/mini-app/transactions`,
+
+  miniAppNotifications: (params: { team_id: string; app_id: string }): string =>
+    `/teams/${params.team_id}/apps/${params.app_id}/mini-app/notifications`,
+
   actions: (params: { team_id: string; app_id?: string }): string =>
     `/teams/${params.team_id}/apps/${params.app_id}/actions`,
+
+  worldId40: (params: { team_id: string; app_id: string }): string =>
+    `/teams/${params.team_id}/apps/${params.app_id}/world-id-4-0`,
+
+  worldIdActions: (params: { team_id: string; app_id?: string }): string =>
+    `/teams/${params.team_id}/apps/${params.app_id}/world-id-actions`,
+
+  worldIdAction: (params: {
+    team_id: string;
+    app_id: string;
+    action_id: string;
+  }): string =>
+    `/teams/${params.team_id}/apps/${params.app_id}/world-id-actions/${params.action_id}`,
+
+  worldIdActionSettings: (params: {
+    team_id: string;
+    app_id: string;
+    action_id: string;
+  }): string =>
+    `/teams/${params.team_id}/apps/${params.app_id}/world-id-actions/${params.action_id}/settings`,
+
+  worldIdActionDanger: (params: {
+    team_id: string;
+    app_id: string;
+    action_id: string;
+  }): string =>
+    `/teams/${params.team_id}/apps/${params.app_id}/world-id-actions/${params.action_id}/danger`,
 
   createTeam: (): "/create-team" => "/create-team",
 

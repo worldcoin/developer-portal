@@ -7,21 +7,16 @@ import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import {
   canVerifyForAction,
-  nullifierHashToBigIntStr,
+  encodeNullifierForStorage,
   verifyProof,
 } from "@/api/helpers/verify";
+import { LegacyVerificationLevel } from "@/lib/idkit";
 import { logger } from "@/lib/logger";
 import { captureEvent } from "@/services/posthogClient";
-import { AppErrorCodes, VerificationLevel } from "@worldcoin/idkit-core";
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
 import { getSdk as atomicUpsertNullifierSdk } from "./graphql/atomic-upsert-nullifier.generated";
 import { getSdk as getFetchAppActionSdk } from "./graphql/fetch-app-action.generated";
-
-const VerificationLevelWithFace = {
-  ...VerificationLevel,
-  Face: "face" as const,
-};
 
 const schema = yup
   .object({
@@ -48,7 +43,7 @@ const schema = yup
     merkle_root: yup.string().strict().required("This attribute is required."),
     verification_level: yup
       .string()
-      .oneOf(Object.values(VerificationLevelWithFace))
+      .oneOf(Object.values(LegacyVerificationLevel))
       .required("This attribute is required."),
     max_age: yup
       .number()
@@ -108,7 +103,7 @@ export async function POST(
   const client = await getAPIServiceGraphqlClient();
 
   // Convert the nullifier hash to its integer representation for more robust comparison
-  const nullifier_hash_int = nullifierHashToBigIntStr(
+  const nullifier_hash_int = encodeNullifierForStorage(
     parsedParams.nullifier_hash,
   );
 
@@ -223,7 +218,8 @@ export async function POST(
       });
       return errorResponse({
         statusCode: error?.statusCode || 400,
-        code: error?.code || AppErrorCodes.GenericError,
+        // Defaulting to "generic_error" for backwards compatibility.
+        code: error?.code || "generic_error",
         detail: error?.message || "There was an error verifying this proof.",
         attribute: error?.attribute || null,
         req,

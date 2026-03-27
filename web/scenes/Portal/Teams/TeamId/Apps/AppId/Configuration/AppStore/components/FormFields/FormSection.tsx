@@ -7,6 +7,7 @@ type FormSectionProps = {
   children: ReactNode;
   className?: string;
   isRequiredAsterisk?: boolean;
+  titleVariant?: TYPOGRAPHY;
 };
 
 export const FormSection = ({
@@ -15,18 +16,26 @@ export const FormSection = ({
   children,
   className = "",
   isRequiredAsterisk = true,
+  titleVariant = TYPOGRAPHY.H7,
 }: FormSectionProps) => {
   return (
-    <div className={`grid gap-y-3 ${className}`}>
-      <Typography variant={TYPOGRAPHY.H7} className="text-grey-700">
-        {title}
-        {isRequiredAsterisk && <span className="text-red-500"> *</span>}
-      </Typography>
-      {description && (
-        <Typography variant={TYPOGRAPHY.R4} className="text-grey-500">
-          {description}
+    <div className={`grid gap-y-5 ${className}`}>
+      <div className="grid gap-y-3">
+        <Typography
+          variant={titleVariant}
+          className="font-normal text-grey-900"
+        >
+          {title}
+          {isRequiredAsterisk && (
+            <span className="text-system-error-500"> *</span>
+          )}
         </Typography>
-      )}
+        {description && (
+          <Typography variant={TYPOGRAPHY.B3} className="text-grey-500">
+            {description}
+          </Typography>
+        )}
+      </div>
       {children}
     </div>
   );

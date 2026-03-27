@@ -1,6 +1,7 @@
 query GetSingleActionAndNullifiers($action_id: String!) {
   action(order_by: { created_at: asc }, where: { id: { _eq: $action_id } }) {
     id
+    name
     nullifiers(limit: 100) {
       id
       updated_at
@@ -10,6 +11,9 @@ query GetSingleActionAndNullifiers($action_id: String!) {
     app {
       id
       engine
+      rp_registration {
+        rp_id
+      }
     }
   }
 }

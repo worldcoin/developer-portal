@@ -1,0 +1,13 @@
+mutation RevertToggleStatus(
+  $rp_id: String!
+  $previous_status: rp_registration_status!
+) {
+  update_rp_registration_by_pk(
+    pk_columns: { rp_id: $rp_id }
+    _set: { status: $previous_status }
+  ) {
+    rp_id
+    app_id
+    status
+  }
+}

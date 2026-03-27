@@ -10,7 +10,8 @@ import { Auth0SessionUser } from "@/lib/types";
 import { checkUserPermissions } from "@/lib/utils";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import clsx from "clsx";
-import Error from "next/error";
+import { ErrorPage } from "@/components/ErrorPage";
+import { SizingWrapper } from "@/components/SizingWrapper";
 import { useCallback, useMemo, useState } from "react";
 import Skeleton from "react-loading-skeleton";
 import { toast } from "react-toastify";
@@ -95,7 +96,11 @@ export const ClientInformationPage = (props: {
   }
 
   if (!fetchingAction && !signInAction) {
-    return <Error statusCode={404} title="Action not found" />;
+    return (
+      <SizingWrapper gridClassName="order-1 md:order-2">
+        <ErrorPage statusCode={404} title="Action not found" />
+      </SizingWrapper>
+    );
   }
 
   return (

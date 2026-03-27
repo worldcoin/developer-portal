@@ -1,4 +1,4 @@
-import { autoUpdate, size, useFloating } from "@floating-ui/react";
+import { autoUpdate, flip, size, useFloating } from "@floating-ui/react";
 import { Listbox, ListboxProps } from "@headlessui/react";
 import { CSSProperties, createContext, useMemo } from "react";
 
@@ -14,14 +14,24 @@ type selectContextValue = {
 
 export const selectContext = createContext({} as selectContextValue);
 
-type SelectProps<T> = ListboxProps<"div", T, any>;
+type SelectProps<T> = ListboxProps<"div", T, any> & {
+  placement?: "bottom-start" | "top-start";
+};
 
 export const Select = <T,>(props: SelectProps<T>) => {
+  const { placement = "bottom-start", ...listboxProps } = props;
+
   const { refs, floatingStyles } = useFloating({
-    placement: "bottom-start",
+    placement,
     strategy: "fixed",
     whileElementsMounted: autoUpdate,
     middleware: [
+      flip({
+        fallbackPlacements:
+          placement === "top-start"
+            ? ["bottom-start", "top-start"]
+            : ["top-start", "bottom-start"],
+      }),
       size({
         apply({ availableWidth, availableHeight, elements, rects }) {
           Object.assign(elements.floating.style, {
@@ -45,7 +55,7 @@ export const Select = <T,>(props: SelectProps<T>) => {
 
   return (
     <selectContext.Provider value={selectContextValue}>
-      <Listbox {...props} />
+      <Listbox {...listboxProps} />
     </selectContext.Provider>
   );
 };

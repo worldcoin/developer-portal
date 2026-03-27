@@ -1,0 +1,11 @@
+query GetRpRegistration($rp_id: String!) {
+  rp_registration_by_pk(rp_id: $rp_id) {
+    rp_id
+    app_id
+    status
+    mode
+    signer_address
+    created_at
+    updated_at
+  }
+}

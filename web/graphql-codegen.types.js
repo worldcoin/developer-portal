@@ -18,7 +18,7 @@ module.exports = {
       date: "string",
       jsonb: "any",
       json: "any",
-      numeric: "number",
+      numeric: "string",
       _text: "any",
       bigint: "number",
     },

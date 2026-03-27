@@ -1,6 +1,6 @@
 "use client";
 import { SizingWrapper } from "@/components/SizingWrapper";
-import { VerificationLevel } from "@worldcoin/idkit-core";
+import { LegacyVerificationLevel } from "@/lib/idkit";
 import { useSearchParams } from "next/navigation";
 import { ActiveKioskPage } from "../Teams/TeamId/Apps/AppId/Actions/ActionId/Kiosk/ActiveKiosk";
 import { useGetKioskActionQuery } from "../Teams/TeamId/Apps/AppId/Actions/ActionId/Kiosk/graphql/client/get-kiosk-action.generated";
@@ -14,7 +14,7 @@ export const ActionIdKioskPage = (props: ActionIdKioskPageProps) => {
 
   const verificationLevel = searchParams?.get(
     "verification-level",
-  ) as VerificationLevel;
+  ) as LegacyVerificationLevel;
 
   const appId = params?.appId as `app_${string}`;
   const actionId = params?.actionId as `action_${string}`;
@@ -32,7 +32,6 @@ export const ActionIdKioskPage = (props: ActionIdKioskPageProps) => {
         <ActiveKioskPage
           params={params}
           data={data}
-          toggleKiosk={() => true}
           verificationLevel={verificationLevel}
         />
       )}

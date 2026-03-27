@@ -1,0 +1,10 @@
+mutation SwitchToSelfManaged($app_id: String!, $new_manager_address: String!) {
+  switch_to_self_managed(
+    app_id: $app_id
+    new_manager_address: $new_manager_address
+  ) {
+    rp_id
+    status
+    operation_hash
+  }
+}

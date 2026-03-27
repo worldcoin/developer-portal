@@ -211,6 +211,7 @@ export type AppStoreMetadataFields = {
   contracts?: string[] | null;
   permit2_tokens?: string[] | null;
   can_import_all_contacts?: boolean | null;
+  can_use_attestation?: boolean | null;
   verification_status: string;
   is_allowed_unlimited_notifications?: boolean | null;
   max_notifications_per_day?: number | null;
@@ -256,6 +257,7 @@ export type AppStoreFormattedFields = Omit<
   draft_id?: string;
   avg_notification_open_rate: number | null;
   deleted_at?: string | null;
+  can_use_implicit_credentials: boolean;
 };
 
 type NativeApp = {
@@ -319,6 +321,8 @@ export enum TokenPrecision {
 export interface FormActionResult {
   success: boolean;
   message: string;
+  code?: "AUTH_EXPIRED" | "FORBIDDEN" | "VALIDATION_ERROR" | "UNKNOWN";
+  error?: { message: string; name: string };
   [key: string]: unknown;
 }
 
@@ -332,12 +336,6 @@ export interface GetIdentityVerificationLinkResponse {
   result: {
     link: string;
     isLimitReached: boolean;
-  };
-}
-
-export interface RequestParticipationResponse {
-  result: {
-    participationStatus: ParticipationStatus;
   };
 }
 
@@ -364,13 +362,6 @@ export type AffiliateBalanceResponse = {
   };
 };
 
-export enum ParticipationStatus {
-  NOT_REQUESTED = "not_requested",
-  PENDING = "pending",
-  APPROVED = "approved",
-  REJECTED = "rejected",
-}
-
 export enum IdentityVerificationStatus {
   NOT_STARTED = "not_started",
   CREATED = "created",
@@ -389,7 +380,6 @@ export type AffiliateMetadataResponse = {
     identityVerificationStatus: IdentityVerificationStatus;
     identityVerifiedAt: string;
     verificationType: "kyb" | "kyc";
-    participationStatus: ParticipationStatus;
     totalInvites: number;
     pendingInvites: number; // Applied code, but not verified
     verifiedInvites: {

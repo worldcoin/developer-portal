@@ -7,6 +7,7 @@ type GraphQLClientRequestHeaders = RequestOptions["requestHeaders"];
 export type GetAppReviewImagesQueryVariables = Types.Exact<{
   app_id: Types.Scalars["String"]["input"];
   locale?: Types.InputMaybe<Types.Scalars["String"]["input"]>;
+  verification_status: Types.Scalars["String"]["input"];
 }>;
 
 export type GetAppReviewImagesQuery = {
@@ -31,9 +32,15 @@ export type GetAppReviewImagesQuery = {
 };
 
 export const GetAppReviewImagesDocument = gql`
-  query GetAppReviewImages($app_id: String!, $locale: String) {
+  query GetAppReviewImages(
+    $app_id: String!
+    $locale: String
+    $verification_status: String!
+  ) {
     app(where: { id: { _eq: $app_id } }) {
-      app_metadata(where: { verification_status: { _eq: "awaiting_review" } }) {
+      app_metadata(
+        where: { verification_status: { _eq: $verification_status } }
+      ) {
         logo_img_url
         hero_image_url
         meta_tag_image_url

@@ -24,6 +24,7 @@ const generateCsp = () => {
       values: [
         "'self'",
         `'nonce-${nonce}'`,
+        "'wasm-unsafe-eval'", // Required for IDKit v4 WASM bridge compilation https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Content-Security-Policy/script-src#unsafe_webassembly_execution
         ...(isDev ? ["'unsafe-eval'"] : []),
         "https://cookie-cdn.cookiepro.com",
         "https://app.posthog.com",
@@ -99,6 +100,7 @@ const checkRouteRolesRestrictions = async (request: NextRequest) => {
   ];
   const ownerAndAdminRoutes = [
     "/teams/[a-zA-Z0-9_]+/apps/[a-zA-Z0-9_]+/actions/[a-zA-Z0-9_]+/danger$",
+    "/teams/[a-zA-Z0-9_]+/apps/[a-zA-Z0-9_]+/world-id-actions/[a-zA-Z0-9_]+/danger$",
     "/teams/[a-zA-Z0-9_]+/api-keys$",
   ];
 

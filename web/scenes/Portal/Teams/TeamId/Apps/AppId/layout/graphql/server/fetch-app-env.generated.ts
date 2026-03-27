@@ -10,7 +10,13 @@ export type FetchAppEnvQueryVariables = Types.Exact<{
 
 export type FetchAppEnvQuery = {
   __typename?: "query_root";
-  app: Array<{ __typename?: "app"; id: string; engine: string }>;
+  app: Array<{
+    __typename?: "app";
+    id: string;
+    engine: string;
+    rp_registration: Array<{ __typename?: "rp_registration"; rp_id: string }>;
+  }>;
+  action: Array<{ __typename?: "action"; id: string }>;
 };
 
 export const FetchAppEnvDocument = gql`
@@ -18,6 +24,12 @@ export const FetchAppEnvDocument = gql`
     app(where: { id: { _eq: $id } }) {
       id
       engine
+      rp_registration {
+        rp_id
+      }
+    }
+    action(where: { app_id: { _eq: $id }, action: { _neq: "" } }, limit: 1) {
+      id
     }
   }
 `;

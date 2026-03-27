@@ -696,6 +696,7 @@ describe("/api/v2/public/apps", () => {
             content_card_image_url: "",
             category_ranking: 1,
             avg_notification_open_rate: null,
+            can_use_implicit_credentials: false,
           },
           {
             app_id: "2",
@@ -733,6 +734,7 @@ describe("/api/v2/public/apps", () => {
             content_card_image_url: "",
             category_ranking: 2,
             avg_notification_open_rate: null,
+            can_use_implicit_credentials: false,
           },
           {
             app_id: "3",
@@ -771,6 +773,7 @@ describe("/api/v2/public/apps", () => {
             content_card_image_url: "",
             category_ranking: 1,
             avg_notification_open_rate: null,
+            can_use_implicit_credentials: false,
           },
         ],
       },
@@ -888,6 +891,7 @@ describe("/api/v2/public/apps", () => {
             content_card_image_url: "",
             category_ranking: 1,
             avg_notification_open_rate: null,
+            can_use_implicit_credentials: false,
           },
         ],
         highlights: [],

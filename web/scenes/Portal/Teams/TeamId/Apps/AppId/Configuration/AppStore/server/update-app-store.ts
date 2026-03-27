@@ -2,9 +2,9 @@
 
 import { errorFormAction } from "@/api/helpers/errors";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
-import { deleteUnverifiedImage } from "@/api/helpers/image-processing";
+import { expireUnverifiedImage } from "@/api/helpers/image-processing";
 import { logger } from "@/lib/logger";
-import { getIsUserAllowedToUpdateAppMetadata } from "@/lib/permissions";
+import { getAppMetadataPermissionAndMode } from "@/lib/permissions";
 import { extractIdsFromPath, getPathFromHeaders } from "@/lib/server-utils";
 import { FormActionResult } from "@/lib/types";
 import { S3Client } from "@aws-sdk/client-s3";
@@ -41,10 +41,11 @@ export async function updateAppStoreMetadata(
   ]);
 
   try {
-    const isUserAllowedToUpdateAppMetadata =
-      await getIsUserAllowedToUpdateAppMetadata(formData.app_metadata_id);
+    const { allowed, appMode } = await getAppMetadataPermissionAndMode(
+      formData.app_metadata_id,
+    );
 
-    if (!isUserAllowedToUpdateAppMetadata) {
+    if (!allowed) {
       return errorFormAction({
         message:
           "The user does not have permission to update this app metadata",
@@ -59,6 +60,7 @@ export async function updateAppStoreMetadata(
     try {
       parsedParams = await schema.validate(formData, {
         abortEarly: false,
+        context: { isMiniApp: appMode === "mini-app" },
       });
     } catch (validationError) {
       return errorFormAction({
@@ -83,7 +85,6 @@ export async function updateAppStoreMetadata(
       is_android_only: parsedParams.is_android_only,
       is_for_humans_only: parsedParams.is_for_humans_only,
       support_link: supportLink,
-      app_website_url: parsedParams.app_website_url,
       supported_countries: parsedParams.supported_countries,
       supported_languages: parsedParams.supported_languages,
       // en locale fields go directly on app_metadata
@@ -124,18 +125,14 @@ export async function updateAppStoreMetadata(
 
     const client = await getAPIServiceGraphqlClient();
 
-    // Fetch current metadata and localizations to identify removed images
-    // Note (0x1): Using inline GraphQL query instead of generated SDK since this is a one-off
-    // query specific to image cleanup.
+    // Fetch current metadata before update to identify removed images
     const fetchCurrentMetadataQuery = gql`
       query FetchCurrentMetadataForCleanup($app_metadata_id: String!) {
         app_metadata_by_pk(id: $app_metadata_id) {
-          id
           app_id
           meta_tag_image_url
           showcase_img_urls
           localisations {
-            id
             locale
             meta_tag_image_url
             showcase_img_urls
@@ -177,168 +174,15 @@ export async function updateAppStoreMetadata(
       languages_to_keep: parsedParams.supported_languages,
     });
 
-    // Clean up removed images from S3
+    // Fire-and-forget: expire removed images in S3 via tagging
     if (currentMetadata && appId) {
-      const bucketName = process.env.ASSETS_S3_BUCKET_NAME;
-      const s3Client =
-        bucketName && process.env.ASSETS_S3_REGION
-          ? new S3Client({
-            region: process.env.ASSETS_S3_REGION,
-          })
-          : null;
-
-      if (s3Client && bucketName) {
-        const deletePromises: Promise<boolean>[] = [];
-
-        // Compare English metadata images (stored on app_metadata)
-        const oldEnMetaTag = currentMetadata.meta_tag_image_url || "";
-        const newEnMetaTag = appMetadataInput.meta_tag_image_url || "";
-        if (oldEnMetaTag && oldEnMetaTag !== newEnMetaTag) {
-          deletePromises.push(
-            deleteUnverifiedImage(
-              s3Client,
-              bucketName,
-              appId,
-              oldEnMetaTag,
-            ),
-          );
-        }
-
-        const oldEnShowcase =
-          currentMetadata.showcase_img_urls?.filter(Boolean) || [];
-        const newEnShowcase = appMetadataInput.showcase_img_urls || [];
-        const removedEnShowcase = oldEnShowcase.filter(
-          (img) => !newEnShowcase.includes(img),
-        );
-        for (const img of removedEnShowcase) {
-          deletePromises.push(
-            deleteUnverifiedImage(s3Client, bucketName, appId, img),
-          );
-        }
-
-        // Compare localized images
-        const newLocalisationLocales = new Set(
-          localisationsToUpsert.map((l) => l.locale),
-        );
-
-        for (const oldLoc of currentMetadata.localisations) {
-          const isDeleted = !newLocalisationLocales.has(oldLoc.locale);
-          const newLoc = localisationsToUpsert.find(
-            (l) => l.locale === oldLoc.locale,
-          );
-
-          // Handle deleted localizations - delete all their images
-          if (isDeleted) {
-            if (oldLoc.meta_tag_image_url) {
-              deletePromises.push(
-                deleteUnverifiedImage(
-                  s3Client,
-                  bucketName,
-                  appId,
-                  oldLoc.meta_tag_image_url,
-                  oldLoc.locale,
-                ),
-              );
-            }
-            if (oldLoc.showcase_img_urls) {
-              for (const img of oldLoc.showcase_img_urls.filter(Boolean)) {
-                deletePromises.push(
-                  deleteUnverifiedImage(
-                    s3Client,
-                    bucketName,
-                    appId,
-                    img,
-                    oldLoc.locale,
-                  ),
-                );
-              }
-            }
-          } else if (newLoc) {
-            // Handle updated localizations - compare old vs new
-            const oldMetaTag = oldLoc.meta_tag_image_url || "";
-            const newMetaTag = newLoc.meta_tag_image_url || "";
-            if (oldMetaTag && oldMetaTag !== newMetaTag) {
-              deletePromises.push(
-                deleteUnverifiedImage(
-                  s3Client,
-                  bucketName,
-                  appId,
-                  oldMetaTag,
-                  oldLoc.locale,
-                ),
-              );
-            }
-
-            const oldShowcase =
-              oldLoc.showcase_img_urls?.filter(Boolean) || [];
-            const newShowcase = newLoc.showcase_img_urls || [];
-            const removedShowcase = oldShowcase.filter(
-              (img) => !newShowcase.includes(img),
-            );
-            for (const img of removedShowcase) {
-              deletePromises.push(
-                deleteUnverifiedImage(
-                  s3Client,
-                  bucketName,
-                  appId,
-                  img,
-                  oldLoc.locale,
-                ),
-              );
-            }
-          }
-        }
-
-        // Also handle images from localizations that were deleted via DeleteUnusedLocalisations
-        const deletedLocalisationLocales =
-          deleteResult.delete_localisations?.returning.map((l) => l.locale) ||
-          [];
-        for (const deletedLocale of deletedLocalisationLocales) {
-          const deletedLoc = currentMetadata.localisations.find(
-            (l) => l.locale === deletedLocale,
-          );
-          if (deletedLoc) {
-            if (deletedLoc.meta_tag_image_url) {
-              deletePromises.push(
-                deleteUnverifiedImage(
-                  s3Client,
-                  bucketName,
-                  appId,
-                  deletedLoc.meta_tag_image_url,
-                  deletedLocale,
-                ),
-              );
-            }
-            if (deletedLoc.showcase_img_urls) {
-              for (const img of deletedLoc.showcase_img_urls.filter(Boolean)) {
-                deletePromises.push(
-                  deleteUnverifiedImage(
-                    s3Client,
-                    bucketName,
-                    appId,
-                    img,
-                    deletedLocale,
-                  ),
-                );
-              }
-            }
-          }
-        }
-
-        // Execute all deletions in parallel (failures are logged but don't throw)
-        const deleteResults = await Promise.all(deletePromises);
-        const successCount = deleteResults.filter((r) => r).length;
-        const failureCount = deleteResults.filter((r) => !r).length;
-
-        if (deletePromises.length > 0) {
-          logger.info("Image cleanup completed", {
-            app_id: appId,
-            total: deletePromises.length,
-            success: successCount,
-            failures: failureCount,
-          });
-        }
-      }
+      expireRemovedImages(
+        currentMetadata,
+        appMetadataInput,
+        localisationsToUpsert,
+        deleteResult.delete_localisations?.returning ?? [],
+        appId,
+      );
     }
 
     return {
@@ -354,5 +198,168 @@ export async function updateAppStoreMetadata(
       app_id: appId,
       logLevel: "error",
     });
+  }
+}
+
+type CurrentMetadata = {
+  app_id: string;
+  meta_tag_image_url: string;
+  showcase_img_urls: string[] | null;
+  localisations: Array<{
+    locale: string;
+    meta_tag_image_url: string;
+    showcase_img_urls: string[] | null;
+  }>;
+};
+
+/**
+ * Compares old vs new image URLs and expires removed ones in S3.
+ * Runs as fire-and-forget so it never blocks the response.
+ */
+async function expireRemovedImages(
+  currentMetadata: CurrentMetadata,
+  appMetadataInput: { meta_tag_image_url: string; showcase_img_urls: string[] },
+  localisationsToUpsert: Array<{
+    locale: string;
+    meta_tag_image_url: string;
+    showcase_img_urls: string[];
+  }>,
+  deletedLocalisations: Array<{ locale: string }>,
+  appId: string,
+): Promise<void> {
+  const bucketName = process.env.ASSETS_S3_BUCKET_NAME;
+  const region = process.env.ASSETS_S3_REGION;
+
+  if (!bucketName || !region) {
+    return;
+  }
+
+  try {
+    const s3Client = new S3Client({ region });
+    const expirePromises: Promise<boolean>[] = [];
+
+    // English meta_tag_image
+    const oldEnMetaTag = currentMetadata.meta_tag_image_url || "";
+    const newEnMetaTag = appMetadataInput.meta_tag_image_url || "";
+    if (oldEnMetaTag && oldEnMetaTag !== newEnMetaTag) {
+      expirePromises.push(
+        expireUnverifiedImage(s3Client, bucketName, appId, oldEnMetaTag),
+      );
+    }
+
+    // English showcase images
+    const oldEnShowcase =
+      currentMetadata.showcase_img_urls?.filter(Boolean) || [];
+    const newEnShowcase = appMetadataInput.showcase_img_urls || [];
+    for (const img of oldEnShowcase.filter(
+      (i) => !newEnShowcase.includes(i),
+    )) {
+      expirePromises.push(
+        expireUnverifiedImage(s3Client, bucketName, appId, img),
+      );
+    }
+
+    // Localized images: updated locales
+    const newLocaleSet = new Set(localisationsToUpsert.map((l) => l.locale));
+    for (const oldLoc of currentMetadata.localisations) {
+      const newLoc = localisationsToUpsert.find(
+        (l) => l.locale === oldLoc.locale,
+      );
+
+      if (!newLocaleSet.has(oldLoc.locale)) {
+        // Locale removed entirely via form — expire all its images
+        if (oldLoc.meta_tag_image_url) {
+          expirePromises.push(
+            expireUnverifiedImage(
+              s3Client,
+              bucketName,
+              appId,
+              oldLoc.meta_tag_image_url,
+              oldLoc.locale,
+            ),
+          );
+        }
+        for (const img of oldLoc.showcase_img_urls?.filter(Boolean) ?? []) {
+          expirePromises.push(
+            expireUnverifiedImage(
+              s3Client,
+              bucketName,
+              appId,
+              img,
+              oldLoc.locale,
+            ),
+          );
+        }
+      } else if (newLoc) {
+        // Locale still present — diff individual images
+        const oldMeta = oldLoc.meta_tag_image_url || "";
+        const newMeta = newLoc.meta_tag_image_url || "";
+        if (oldMeta && oldMeta !== newMeta) {
+          expirePromises.push(
+            expireUnverifiedImage(
+              s3Client,
+              bucketName,
+              appId,
+              oldMeta,
+              oldLoc.locale,
+            ),
+          );
+        }
+
+        const oldShowcase = oldLoc.showcase_img_urls?.filter(Boolean) ?? [];
+        const newShowcase = newLoc.showcase_img_urls || [];
+        for (const img of oldShowcase.filter(
+          (i) => !newShowcase.includes(i),
+        )) {
+          expirePromises.push(
+            expireUnverifiedImage(
+              s3Client,
+              bucketName,
+              appId,
+              img,
+              oldLoc.locale,
+            ),
+          );
+        }
+      }
+    }
+
+    // Images from localisations deleted via DeleteUnusedLocalisations
+    for (const { locale } of deletedLocalisations) {
+      const deletedLoc = currentMetadata.localisations.find(
+        (l) => l.locale === locale,
+      );
+      if (!deletedLoc) continue;
+
+      if (deletedLoc.meta_tag_image_url) {
+        expirePromises.push(
+          expireUnverifiedImage(
+            s3Client,
+            bucketName,
+            appId,
+            deletedLoc.meta_tag_image_url,
+            locale,
+          ),
+        );
+      }
+      for (const img of deletedLoc.showcase_img_urls?.filter(Boolean) ?? []) {
+        expirePromises.push(
+          expireUnverifiedImage(s3Client, bucketName, appId, img, locale),
+        );
+      }
+    }
+
+    if (expirePromises.length > 0) {
+      const results = await Promise.all(expirePromises);
+      const successes = results.filter(Boolean).length;
+      logger.info("Image cleanup completed", {
+        app_id: appId,
+        total: results.length,
+        successes,
+        failures: results.length - successes,
+      });
+    }
+  } catch (error) {
+    logger.error("Image cleanup failed", { error, app_id: appId });
   }
 }

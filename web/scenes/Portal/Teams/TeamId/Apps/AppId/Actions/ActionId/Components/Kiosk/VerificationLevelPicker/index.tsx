@@ -1,12 +1,14 @@
 import { Radio } from "@/components/Radio";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import { VerificationLevel } from "@worldcoin/idkit-core";
+import { LegacyVerificationLevel } from "@/lib/idkit";
 import { memo } from "react";
 import { twMerge } from "tailwind-merge";
 
 type VerificationLevelPickerProps = {
-  verificationLevel: VerificationLevel;
-  resetKioskAndUpdateVerificationLevel: (value: VerificationLevel) => void;
+  verificationLevel: LegacyVerificationLevel;
+  resetKioskAndUpdateVerificationLevel: (
+    value: LegacyVerificationLevel,
+  ) => void;
   className?: string;
 };
 export const VerificationLevelPicker = memo(function VerificationLevelPicker(
@@ -27,39 +29,41 @@ export const VerificationLevelPicker = memo(function VerificationLevelPicker(
       </Typography>
       <div className="flex flex-row items-center justify-center gap-x-3">
         <Radio
-          value={VerificationLevel.Device}
+          value={LegacyVerificationLevel.Device}
           label="Device"
-          checked={verificationLevel === VerificationLevel.Device}
+          checked={verificationLevel === LegacyVerificationLevel.Device}
           onChange={() =>
-            resetKioskAndUpdateVerificationLevel(VerificationLevel.Device)
+            resetKioskAndUpdateVerificationLevel(LegacyVerificationLevel.Device)
           }
         />
         <Radio
-          value={VerificationLevel.Document}
+          value={LegacyVerificationLevel.Document}
           label="Document"
-          checked={verificationLevel === VerificationLevel.Document}
+          checked={verificationLevel === LegacyVerificationLevel.Document}
           onChange={() =>
-            resetKioskAndUpdateVerificationLevel(VerificationLevel.Document)
+            resetKioskAndUpdateVerificationLevel(
+              LegacyVerificationLevel.Document,
+            )
           }
         />
       </div>
       <div className="flex flex-row items-center justify-center gap-x-3">
         <Radio
-          value={VerificationLevel.SecureDocument}
+          value={LegacyVerificationLevel.SecureDocument}
           label="Secure Document"
-          checked={verificationLevel === VerificationLevel.SecureDocument}
+          checked={verificationLevel === LegacyVerificationLevel.SecureDocument}
           onChange={() =>
             resetKioskAndUpdateVerificationLevel(
-              VerificationLevel.SecureDocument,
+              LegacyVerificationLevel.SecureDocument,
             )
           }
         />
         <Radio
-          value={VerificationLevel.Orb}
+          value={LegacyVerificationLevel.Orb}
           label="Orb"
-          checked={verificationLevel === VerificationLevel.Orb}
+          checked={verificationLevel === LegacyVerificationLevel.Orb}
           onChange={() =>
-            resetKioskAndUpdateVerificationLevel(VerificationLevel.Orb)
+            resetKioskAndUpdateVerificationLevel(LegacyVerificationLevel.Orb)
           }
         />
       </div>

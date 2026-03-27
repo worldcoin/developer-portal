@@ -11,7 +11,7 @@ import { getCDNImageUrl } from "@/lib/utils";
 import clsx from "clsx";
 import { useAtom } from "jotai";
 import Image from "next/image";
-import { ChangeEvent, useMemo, useRef, useState } from "react";
+import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 import Skeleton from "react-loading-skeleton";
 import { toast } from "react-toastify";
 import { LOGO_IMAGE_UPLOAD_TOAST_ID } from "../../constants";
@@ -42,6 +42,10 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
     defaultOpen,
   } = props;
   const [showDialog, setShowDialog] = useState(defaultOpen ?? false);
+
+  useEffect(() => {
+    if (defaultOpen) setShowDialog(true);
+  }, [defaultOpen]);
   const [verifiedImageError, setVerifiedImageError] = useState(false);
   const [isSecondUpload, setIsSecondUpload] = useState(false);
   const [disabled] = useState(false);
@@ -101,14 +105,9 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
           refetchQueries: [FetchAppMetadataDocument],
         });
 
-        // Clean up the old image from S3 if it was replaced (different filename)
+        // Fire-and-forget: expire the old image if the extension changed
         if (currentImagePath && currentImagePath !== newFileName) {
-          await cleanupRemovedImage(
-            appId,
-            appMetadataId,
-            "logo_img",
-            currentImagePath,
-          );
+          cleanupRemovedImage(appId, appMetadataId, "logo_img", currentImagePath);
         }
 
         toast.update(LOGO_IMAGE_UPLOAD_TOAST_ID, {
@@ -141,36 +140,24 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
   };
 
   const removeImage = async () => {
-    // Store the current image path before removal for cleanup
     const currentImagePath = logoFile || null;
-
     setUnverifiedImages({
       ...unverifiedImages,
       logo_img_url: "",
     });
 
-    try {
-      await updateLogoMutation({
-        variables: {
-          id: appMetadataId,
-          fileName: "",
-        },
+    await updateLogoMutation({
+      variables: {
+        id: appMetadataId,
+        fileName: "",
+      },
 
-        refetchQueries: [FetchAppMetadataDocument],
-      });
+      refetchQueries: [FetchAppMetadataDocument],
+    });
 
-      // Clean up the old image from S3 after successful removal
-      if (currentImagePath) {
-        await cleanupRemovedImage(
-          appId,
-          appMetadataId,
-          "logo_img",
-          currentImagePath,
-        );
-      }
-    } catch (error) {
-      // Error is already handled by the mutation, but log cleanup if it fails
-      console.error("Error removing logo image:", error);
+    // Fire-and-forget: expire the old image in S3
+    if (currentImagePath) {
+      cleanupRemovedImage(appId, appMetadataId, "logo_img", currentImagePath);
     }
   };
 
@@ -209,10 +196,11 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
             </Button>
           </div>
           <div className="grid gap-y-6 rounded-xl border border-grey-200 p-6">
-            {unverifiedImages?.logo_img_url ? (
+            {unverifiedImages?.logo_img_url &&
+            unverifiedImages.logo_img_url !== "loading" ? (
               <div>
                 <Image
-                  src={unverifiedImages?.logo_img_url}
+                  src={unverifiedImages.logo_img_url}
                   alt="Uploaded"
                   className="size-28 rounded-2xl object-contain drop-shadow-lg"
                   width={512}
@@ -246,13 +234,12 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
               variant="secondary"
               disabled={loading}
               onClick={removeImage}
-              className="w-full bg-grey-100 hover:bg-grey-200"
+              className="w-full"
             >
               Remove
             </DecoratedButton>
             <DecoratedButton
               type="button"
-              variant="secondary"
               disabled={loading}
               className="w-full"
               onClick={handleUpload}

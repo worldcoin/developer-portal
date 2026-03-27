@@ -1,0 +1,5 @@
+mutation DeleteRpRegistration($rp_id: String!) {
+  delete_rp_registration_by_pk(rp_id: $rp_id) {
+    rp_id
+  }
+}

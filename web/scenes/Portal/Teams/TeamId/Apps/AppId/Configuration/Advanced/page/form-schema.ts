@@ -59,6 +59,7 @@ export const schema = yup
       .oneOf([0, 1, 2, "unlimited"])
       .required(),
     can_import_all_contacts: yup.boolean().required(),
+    can_use_attestation: yup.boolean().required(),
     is_allowed_unlimited_notifications: yup.boolean().required(),
   })
   .noUnknown();

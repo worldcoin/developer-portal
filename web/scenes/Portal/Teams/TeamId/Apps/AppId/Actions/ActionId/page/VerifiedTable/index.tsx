@@ -11,9 +11,25 @@ export type NullifierItem = {
   uses?: number | null | undefined;
 };
 
+export type VerifiedTableColumn = "human" | "uses" | "time";
+
+const getColumnLabel = (column: VerifiedTableColumn): string => {
+  switch (column) {
+    case "human":
+      return "Human";
+    case "uses":
+      return "Uses";
+    case "time":
+      return "Time";
+  }
+};
+
 // This table is just going to be limited to 100 rows to prevent performance issues
-export const VerifiedTable = (props: { nullifiers: NullifierItem[] }) => {
-  const { nullifiers } = props;
+export const VerifiedTable = (props: {
+  nullifiers: NullifierItem[];
+  columns: VerifiedTableColumn[];
+}) => {
+  const { nullifiers, columns } = props;
   const rowsPerPageOptions = [5, 10, 20]; // Rows per page options
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(5);
@@ -103,11 +119,29 @@ export const VerifiedTable = (props: { nullifiers: NullifierItem[] }) => {
         </div>
 
         <div className="no-scrollbar w-full overflow-auto">
-          <div className="grid md:grid-cols-[auto_auto_min-content]">
+          <div
+            className="grid"
+            style={{
+              gridTemplateColumns: columns
+                .map((c) => (c === "time" ? "min-content" : "auto"))
+                .join(" "),
+            }}
+          >
             <div className="text-left text-xs font-[400] text-grey-400 max-md:flex max-md:justify-between md:contents md:[&>*]:border-b md:[&>*]:border-grey-100">
-              <div className="py-3 pr-2 max-md:pl-5">Human</div>
-              <div className="px-2 py-3 max-md:pr-5">Uses</div>
-              <div className="py-3 pl-2 max-md:hidden max-md:px-4">Time</div>
+              {columns.map((column) => (
+                <div
+                  key={column}
+                  className={
+                    column === "human"
+                      ? "py-3 pr-2 max-md:pl-5"
+                      : column === "uses"
+                        ? "px-2 py-3 max-md:pr-5"
+                        : "py-3 pl-2 max-md:hidden max-md:px-4"
+                  }
+                >
+                  {getColumnLabel(column)}
+                </div>
+              ))}
             </div>
 
             <div className="max-md:grid max-md:gap-y-2 md:contents">
@@ -116,6 +150,7 @@ export const VerifiedTable = (props: { nullifiers: NullifierItem[] }) => {
                   nullifier={nullifier}
                   key={index}
                   logo={_selectImage(nullifier.nullifier_hash)}
+                  columns={columns}
                 />
               ))}
             </div>

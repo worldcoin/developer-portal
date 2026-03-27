@@ -65,8 +65,8 @@ const calculatePercentageChange = (
     return 0;
   }
 
-  const current = arr[arr.length - 1][key];
-  const previous = arr[arr.length - 2][key];
+  const current = Number(arr[arr.length - 1][key]);
+  const previous = Number(arr[arr.length - 2][key]);
 
   const percentageChange = ((current - previous) / previous) * 100;
 
@@ -145,8 +145,8 @@ export const ActionStatsGraph = () => {
 
     stats.forEach((stat) => {
       formattedData.x.push(dayjs(stat.date).format(labelDateFormat));
-      formattedData.y[0].data.push(stat.verifications);
-      formattedData.y[1].data.push(stat.unique_users);
+      formattedData.y[0].data.push(Number(stat.verifications));
+      formattedData.y[1].data.push(Number(stat.unique_users));
     });
 
     return formattedData;
@@ -161,7 +161,7 @@ export const ActionStatsGraph = () => {
       return 0;
     }
 
-    return stats[stats.length - 1].verifications;
+    return Number(stats[stats.length - 1].verifications);
   }, [loading, stats]);
 
   const totalUnique = useMemo(() => {
@@ -173,7 +173,7 @@ export const ActionStatsGraph = () => {
       return 0;
     }
 
-    return stats[stats.length - 1].unique_users;
+    return Number(stats[stats.length - 1].unique_users);
   }, [loading, stats]);
 
   const verificationPercentageChange = useMemo(

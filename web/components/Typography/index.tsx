@@ -23,6 +23,7 @@ export enum TYPOGRAPHY {
 
   S2 = "s2",
   S3 = "s3",
+  S4 = "s4",
 
   B3 = "b3",
   B4 = "b4",
@@ -56,9 +57,9 @@ export const Typography = <T extends ElementType = "span">(
             variant === TYPOGRAPHY.H4,
           "font-twk text-3xl font-medium leading-[1.3]":
             variant === TYPOGRAPHY.H5,
-          "font-twk text-2xl font-medium leading-[1.3]":
+          "font-twk text-2xl font-[550] leading-[1.3]":
             variant === TYPOGRAPHY.H6,
-          "font-twk text-lg font-medium leading-[1.3]":
+          "font-twk text-lg font-[550] leading-[1.3]":
             variant === TYPOGRAPHY.H7,
 
           "font-gta text-lg font-medium leading-[1.5]":
@@ -79,14 +80,17 @@ export const Typography = <T extends ElementType = "span">(
           "font-gta text-xs font-normal leading-[1.3]":
             variant === TYPOGRAPHY.R5,
 
-          "font-rubik text-sm leading-[1.3]": variant === TYPOGRAPHY.B3,
-          "font-rubik text-xs font-normal leading-[1.3]":
+          "font-world text-sm font-[325] leading-[1.3]":
+            variant === TYPOGRAPHY.B3,
+          "font-world text-xs font-[325] leading-[1.3]":
             variant === TYPOGRAPHY.B4,
 
-          "font-rubik text-base font-semibold leading-[1.25]":
+          "font-world text-base font-[500] leading-[1.25]":
             variant === TYPOGRAPHY.S2,
-          "font-rubik text-sm font-medium leading-[1.4]":
+          "font-world text-sm font-medium leading-[1.4]":
             variant === TYPOGRAPHY.S3,
+          "font-world text-xs font-medium leading-[1.3]":
+            variant === TYPOGRAPHY.S4,
         }),
       )}
       {...otherProps}

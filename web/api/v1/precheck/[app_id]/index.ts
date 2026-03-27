@@ -1,5 +1,6 @@
 import { errorResponse } from "@/api/helpers/errors";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
+import { RpRegistrationStatus } from "@/api/helpers/rp-utils";
 import { corsHandler } from "@/api/helpers/utils";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { canVerifyForAction } from "@/api/helpers/verify";
@@ -8,8 +9,9 @@ import { CanUserVerifyType, EngineType } from "@/lib/types";
 import { getCDNImageUrl } from "@/lib/utils";
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
-import { getSdk as getAppPrecheckSdk } from "./graphql/app-precheck.generated";
 import { getSdk as getAppPrecheckByActionSdk } from "./graphql/app-precheck-by-action.generated";
+import { getSdk as getAppPrecheckSdk } from "./graphql/app-precheck.generated";
+import { getSdk as getFetchRpRegistrationForPrecheckSdk } from "./graphql/fetch-rp-registration-for-precheck.generated";
 
 /**
  * Apps that use custom external_nullifier values (not computed from app_id + action).
@@ -19,6 +21,12 @@ import { getSdk as getAppPrecheckByActionSdk } from "./graphql/app-precheck-by-a
  */
 const APPS_WITH_CUSTOM_EXTERNAL_NULLIFIER = [
   "app_1f7f2c379f20307a414f6cf8b544ec8a", // Grants app - uses 0xB16B00B5 for humanity verification
+];
+const FACE_CHECK_ENABLED_APPS_PARAMETER = "whitelisted-apps/face-check";
+// Whitelist some partner demo apps, that are not verified but we want to show their logos
+const APPS_TO_SHOW_UNVERIFIED_LOGO = [
+  "app_staging_c8137371ceac59890774ccc932e11dcf",
+  "app_staging_79640e8c674aedb3f5969a30f80ff6f9",
 ];
 
 const schema = yup
@@ -70,6 +78,11 @@ export async function POST(
   const app_id = routeParams.app_id;
   const action = parsedParams.action ?? "";
   const nullifier_hash = parsedParams.nullifier_hash;
+  const faceCheckEnabledAppsPromise =
+    global.ParameterStore?.getParameter<string[]>(
+      FACE_CHECK_ENABLED_APPS_PARAMETER,
+      [],
+    ) ?? Promise.resolve([] as string[]);
 
   // Check if this app uses custom external_nullifier values
   const useCustomExternalNullifier =
@@ -120,12 +133,30 @@ export async function POST(
     );
   }
 
-  const app_metadata = rawAppValues.app_metadata[0];
+  const unverified_app_metadata = rawAppValues.app_metadata[0];
   const verified_app_metadata = rawAppValues.verified_app_metadata[0];
+  const faceCheckEnabledApps = await faceCheckEnabledAppsPromise;
+  const enableFaceCheck = faceCheckEnabledApps?.includes(app_id) ?? false;
   // If an image is present it should store it's relative path and extension ie logo.png
-  const logo_img_url = verified_app_metadata?.logo_img_url
+  let logo_img_url = verified_app_metadata?.logo_img_url
     ? getCDNImageUrl(rawAppValues.id, verified_app_metadata?.logo_img_url)
     : "";
+  const unverified_logo_url = unverified_app_metadata?.logo_img_url
+    ? getCDNImageUrl(
+        rawAppValues.id,
+        unverified_app_metadata?.logo_img_url,
+        false,
+      )
+    : "";
+
+  // If the app doesn't have a verified logo yet, but it's in our whitelist we want to show the unverified logo if it exists
+  if (
+    APPS_TO_SHOW_UNVERIFIED_LOGO.includes(rawAppValues.id) &&
+    !logo_img_url &&
+    unverified_logo_url
+  ) {
+    logo_img_url = unverified_logo_url;
+  }
 
   // Prevent breaking changes
   const app = {
@@ -133,17 +164,72 @@ export async function POST(
     engine: rawAppValues.engine,
     is_staging: rawAppValues.is_staging,
     is_verified: verified_app_metadata ? true : false,
-    name: verified_app_metadata?.name ?? app_metadata?.name ?? "",
+    name: verified_app_metadata?.name ?? unverified_app_metadata?.name ?? "",
     verified_app_logo: logo_img_url,
+    unverified_app_logo: unverified_logo_url,
     integration_url:
       verified_app_metadata?.integration_url ??
-      app_metadata?.integration_url ??
+      unverified_app_metadata?.integration_url ??
       "",
+    enable_face_check: enableFaceCheck,
     actions: rawAppValues.actions,
   };
 
-  // ANCHOR: If the action doesn't exist return error
+  // ANCHOR: If the action doesn't exist, check if app is migrated
   if (!app.actions.length) {
+    // Check if this app has been migrated to v4 (has rp_registration)
+    const rpRegistrationResult = await getFetchRpRegistrationForPrecheckSdk(
+      client,
+    ).FetchRpRegistrationForPrecheck({
+      app_id,
+    });
+
+    const rpRegistration = rpRegistrationResult.rp_registration[0];
+
+    // Only return synthetic action if RP is registered and active
+    if (
+      rpRegistration &&
+      rpRegistration.status === RpRegistrationStatus.Registered
+    ) {
+      const nullifierData = generateExternalNullifier(app_id, action);
+      // Generate action ID similar to DB pattern: action_<32 hex chars>
+      const actionIdHash = nullifierData.hash.toString(16).slice(0, 32);
+
+      const syntheticAction = {
+        id: `action_${actionIdHash}`,
+        action: action,
+        name: "",
+        description: "",
+        external_nullifier: nullifierData.digest,
+        max_verifications: 1,
+        max_accounts_per_user: 1,
+        status: "active",
+        kiosk_enabled: false,
+        privacy_policy_uri: null,
+        terms_uri: null,
+        webhook_uri: null,
+        webhook_pem: null,
+        app_flow_on_complete: null,
+        post_action_deep_link_ios: null,
+        post_action_deep_link_android: null,
+      };
+
+      const response = {
+        ...app,
+        actions: undefined,
+        sign_in_with_world_id: action === "",
+        is_sign_in: action === "",
+        action: syntheticAction,
+        can_user_verify: CanUserVerifyType.Yes,
+      };
+
+      return corsHandler(
+        NextResponse.json(response, { status: 200 }),
+        corsMethods,
+      );
+    }
+
+    // App is not migrated or RP not active - return the original error
     return corsHandler(
       errorResponse({
         statusCode: 400,

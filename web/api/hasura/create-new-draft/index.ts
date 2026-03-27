@@ -143,6 +143,7 @@ export const POST = async (req: NextRequest) => {
       newAppMetadata.is_allowed_unlimited_notifications,
     ),
     can_import_all_contacts: newAppMetadata.can_import_all_contacts,
+    can_use_attestation: newAppMetadata.can_use_attestation,
     max_notifications_per_day: Number(newAppMetadata.max_notifications_per_day),
   });
 

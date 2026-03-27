@@ -2,5 +2,12 @@ query FetchAppEnv($id: String!) {
   app(where: { id: { _eq: $id } }) {
     id
     engine
+    rp_registration {
+      rp_id
+    }
+  }
+  # Exclude auto-created "Sign in with World ID" actions (action = "") as they have their own dedicated page
+  action(where: { app_id: { _eq: $id }, action: { _neq: "" } }, limit: 1) {
+    id
   }
 }

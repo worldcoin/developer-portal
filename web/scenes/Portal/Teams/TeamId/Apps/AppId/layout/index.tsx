@@ -1,16 +1,11 @@
-import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
-import { BottomBar } from "@/components/BottomBar";
-import { AppIcon } from "@/components/Icons/AppIcon";
-import { DashboardSquareIcon } from "@/components/Icons/DashboardSquareIcon";
-import { IncognitoIcon } from "@/components/Icons/IncognitoIcon";
-import { TransactionIcon } from "@/components/Icons/TransactionIcon";
-import { UserAccountIcon } from "@/components/Icons/UserAccountIcon";
-import { SizingWrapper } from "@/components/SizingWrapper";
-import { Tab, Tabs } from "@/components/Tabs";
-import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import { EngineType } from "@/lib/types";
+import { ErrorPage } from "@/components/ErrorPage";
+import { isWorldId40EnabledServer } from "@/lib/feature-flags/world-id-4-0/server";
+import { logger } from "@/lib/logger";
+import { Auth0SessionUser, EngineType } from "@/lib/types";
+import { getSession } from "@auth0/nextjs-auth0";
 import { ReactNode } from "react";
-import { getSdk as getAppEnv } from "./graphql/server/fetch-app-env.generated";
+import { AppIdChrome } from "./AppIdChrome";
+import { fetchAppEnvCached } from "./server/fetch-app-env";
 
 type Params = {
   teamId?: string;
@@ -24,117 +19,56 @@ type AppIdLayoutProps = {
 
 export const AppIdLayout = async (props: AppIdLayoutProps) => {
   const params = props.params;
-  const client = await getAPIServiceGraphqlClient();
-  const { app } = await getAppEnv(client).FetchAppEnv({
-    id: params.appId ?? "",
-  });
+  let isOnChainApp = false;
+  let hasLegacyActions = false;
+  let hasRpRegistration = false;
 
-  const isOnChainApp = app?.[0]?.engine === EngineType.OnChain;
+  const session = await getSession();
+  const user = session?.user as Auth0SessionUser["user"];
+  const isTeamMember = user?.hasura?.memberships?.some(
+    (membership) => membership.team?.id === params.teamId,
+  );
+
+  if (!isTeamMember) {
+    return <ErrorPage statusCode={404} title="App not found" />;
+  }
+
+  if (params.appId) {
+    try {
+      const { app, action } = await fetchAppEnvCached(params.appId);
+
+      if (app?.[0]) {
+        isOnChainApp = app[0].engine === EngineType.OnChain;
+        hasLegacyActions = action.length > 0;
+        hasRpRegistration = app[0].rp_registration.length > 0;
+      } else {
+        logger.warn("AppIdLayout could not resolve app from FetchAppEnv", {
+          appId: params.appId,
+          teamId: params.teamId,
+        });
+        return <ErrorPage statusCode={404} title="App not found" />;
+      }
+    } catch (error) {
+      logger.error("AppIdLayout FetchAppEnv failed", {
+        error,
+        appId: params.appId,
+        teamId: params.teamId,
+      });
+      return <ErrorPage statusCode={500} title="Failed to load app" />;
+    }
+  }
+
+  const showWorldId40Nav = await isWorldId40EnabledServer(params.teamId);
 
   return (
-    <div className="flex flex-col">
-      <div className="md:border-b md:border-grey-100">
-        <SizingWrapper gridClassName="hidden md:grid" variant="nav">
-          <Tabs className="m-auto font-gta">
-            <Tab
-              href={`/teams/${params!.teamId}/apps/${params!.appId}`}
-              underlined
-              segment={null}
-            >
-              <Typography variant={TYPOGRAPHY.R4}>Dashboard</Typography>
-            </Tab>
-
-            <Tab
-              href={`/teams/${params!.teamId}/apps/${params!.appId}/configuration`}
-              underlined
-              segment={"configuration"}
-            >
-              <Typography variant={TYPOGRAPHY.R4}>Configuration</Typography>
-            </Tab>
-
-            <Tab
-              href={`/teams/${params!.teamId}/apps/${params!.appId}/actions`}
-              underlined
-              segment={"actions"}
-            >
-              <Typography variant={TYPOGRAPHY.R4}>Incognito actions</Typography>
-            </Tab>
-
-            {!isOnChainApp && (
-              <Tab
-                href={`/teams/${params!.teamId}/apps/${params!.appId}/sign-in-with-world-id`}
-                underlined
-                segment={"sign-in-with-world-id"}
-              >
-                <Typography variant={TYPOGRAPHY.R4}>
-                  Sign in with World ID
-                </Typography>
-              </Tab>
-            )}
-
-            <Tab
-              href={`/teams/${params!.teamId}/apps/${params!.appId}/transactions`}
-              underlined
-              segment={"transactions"}
-            >
-              <Typography variant={TYPOGRAPHY.R4}>Transactions</Typography>
-            </Tab>
-            <Tab
-              href={`/teams/${params!.teamId}/apps/${params!.appId}/notifications`}
-              underlined
-              segment={"notifications"}
-            >
-              <Typography variant={TYPOGRAPHY.R4}>Notifications</Typography>
-            </Tab>
-
-            <Tab
-              href={`/teams/${params!.teamId}/api-keys`}
-              underlined
-              segment={"API Keys"}
-            >
-              <Typography variant={TYPOGRAPHY.R4}>API Keys</Typography>
-            </Tab>
-          </Tabs>
-        </SizingWrapper>
-      </div>
-
+    <AppIdChrome
+      params={params}
+      isOnChainApp={isOnChainApp}
+      showWorldId40Nav={showWorldId40Nav}
+      hasRpRegistration={hasRpRegistration}
+      hasLegacyActions={hasLegacyActions}
+    >
       {props.children}
-
-      <BottomBar>
-        <BottomBar.Link
-          href={`/teams/${params!.teamId}/apps/${params!.appId}`}
-          segment={null}
-        >
-          <DashboardSquareIcon className="size-7" />
-        </BottomBar.Link>
-
-        <BottomBar.Link
-          href={`/teams/${params!.teamId}/apps/${params!.appId}/actions`}
-          segment={"actions"}
-        >
-          <IncognitoIcon className="size-7" />
-        </BottomBar.Link>
-
-        <BottomBar.Link
-          href={`/teams/${params!.teamId}/apps/${params!.appId}/sign-in-with-world-id`}
-          segment={"sign-in-with-world-id"}
-        >
-          <UserAccountIcon className="size-7" />
-        </BottomBar.Link>
-
-        <BottomBar.Link
-          href={`/teams/${params!.teamId}/apps/${params!.appId}/configuration`}
-          segment={"configuration"}
-        >
-          <AppIcon className="size-7" />
-        </BottomBar.Link>
-        <BottomBar.Link
-          href={`/teams/${params!.teamId}/apps/${params!.appId}/transactions`}
-          segment={"transactions"}
-        >
-          <TransactionIcon className="size-7" />
-        </BottomBar.Link>
-      </BottomBar>
-    </div>
+    </AppIdChrome>
   );
 };

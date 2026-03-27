@@ -1,8 +1,8 @@
 import { Nullifier } from "@/graphql/graphql";
+import { LegacyVerificationLevel } from "@/lib/idkit";
 import { logger } from "@/lib/logger";
 import { IInternalError } from "@/lib/types";
 import { sequencerMapping } from "@/lib/utils";
-import { VerificationLevel } from "@worldcoin/idkit-core";
 import { AbiCoder, toBeHex } from "ethers";
 import * as yup from "yup";
 
@@ -55,7 +55,7 @@ export interface IInputParams {
 
 export interface IVerifyParams {
   is_staging: boolean;
-  verification_level: VerificationLevel | "face";
+  verification_level: LegacyVerificationLevel;
   max_age?: number;
 }
 
@@ -323,17 +323,23 @@ export const canVerifyForAction = (
   return nullifier.uses < max_verifications_per_person;
 };
 
-const normalizeNullifierHash = (nullifierHash: string): string => {
+export const normalizeNullifierHash = (nullifierHash: string): string => {
   const normalized = nullifierHash.toLowerCase().trim().replace(/^0x/, "");
 
   return `0x${normalized}`;
 };
 
 /**
- * Converts a nullifier hash to its numeric representation for database storage and comparison
- * This helps prevent case sensitivity, prefix, and padding bypass attacks
+ * Encodes a hex-encoded nullifier (0x...) into a decimal string for
+ * storage in the nullifier_v4.nullifier numeric(78,0) column.
+ *
+ * Normalizes different hex representations (0xABC, abc, 0xabc) to a single
+ * canonical decimal form, preventing case/prefix bypass attacks.
+ *
+ * @param hexNullifier - A hex-encoded nullifier string (with or without 0x prefix)
+ * @returns Decimal string representation for DB storage
  */
-export const nullifierHashToBigIntStr = (nullifierHash: string): string => {
+export const encodeNullifierForStorage = (nullifierHash: string): string => {
   const normalized = normalizeNullifierHash(nullifierHash);
   return BigInt(normalized).toString();
 };

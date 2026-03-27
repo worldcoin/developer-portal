@@ -7,6 +7,50 @@ import * as yup from "yup";
 
 const USERNAME_SPECIAL_STRING = "${username}";
 
+const isProduction = process.env.NEXT_PUBLIC_APP_ENV === "production";
+
+const ALLOWED_UNIVERSAL_LINK_ORIGINS = isProduction
+  ? ["https://world.org"]
+  : ["https://staging.world.org"];
+
+const isValidDeepFaceUniversalLink = (value: string): boolean => {
+  try {
+    const url = new URL(value);
+    const isAllowedOrigin = ALLOWED_UNIVERSAL_LINK_ORIGINS.includes(url.origin);
+
+    return (
+      isAllowedOrigin &&
+      url.pathname === "/verify" &&
+      url.searchParams.get("t") === "deepface"
+    );
+  } catch {
+    return false;
+  }
+};
+
+const DEEP_FACE_DEEPLINK_PREFIX = "worldapp://verify?";
+
+const isValidDeepFaceDeepLink = (value: string): boolean => {
+  if (!value.startsWith(DEEP_FACE_DEEPLINK_PREFIX)) return false;
+  try {
+    const params = new URLSearchParams(
+      value.slice(DEEP_FACE_DEEPLINK_PREFIX.length),
+    );
+
+    return params.get("t") === "deepface";
+  } catch {
+    return false;
+  }
+};
+
+const isValidMiniAppDeepLink = (
+  value: string | undefined,
+  app_id: string,
+): boolean => {
+  if (!value) return false;
+  return value.startsWith(`worldapp://mini-app?app_id=${app_id}`);
+};
+
 export const sendNotificationBodySchemaV1 = yup
   .object({
     app_id: yup.string().strict().required(),
@@ -18,16 +62,21 @@ export const sendNotificationBodySchemaV1 = yup
       .required("wallet_addresses is required"),
     message: notificationMessageSchema,
     title: notificationTitleSchema,
+    draft_id: yup.string().optional(),
     mini_app_path: yup
       .string()
       .strict()
       .required()
       .test(
-        "contains-app-id",
-        "mini_app_path must include the app_id and be a valid WorldApp deeplink",
+        "valid-mini-app-path",
+        "mini_app_path must be a valid WorldApp deeplink (worldapp://mini-app?app_id=), a Deep Face Universal Link (https://world.org/verify?t=deepface), or a Deep Face deeplink (worldapp://verify?t=deepface)",
         function (value) {
           const { app_id } = this.parent;
-          return value.startsWith(`worldapp://mini-app?app_id=${app_id}`);
+          return (
+            isValidMiniAppDeepLink(value, app_id) ||
+            isValidDeepFaceUniversalLink(value ?? "") ||
+            isValidDeepFaceDeepLink(value ?? "")
+          );
         },
       ),
   })
@@ -66,13 +115,18 @@ export const sendNotificationBodySchemaV2 = yup
       .strict()
       .required()
       .test(
-        "contains-app-id",
-        "mini_app_path must include the app_id and be a valid WorldApp deeplink starting with 'worldapp://mini-app?app_id='",
+        "valid-mini-app-path",
+        "mini_app_path must be a valid WorldApp deeplink (worldapp://mini-app?app_id=), a Deep Face Universal Link (https://world.org/verify?t=deepface), or a Deep Face deeplink (worldapp://verify?t=deepface)",
         function (value) {
           const { app_id } = this.parent;
-          return value.startsWith(`worldapp://mini-app?app_id=${app_id}`);
+          return (
+            isValidMiniAppDeepLink(value, app_id) ||
+            isValidDeepFaceUniversalLink(value ?? "") ||
+            isValidDeepFaceDeepLink(value ?? "")
+          );
         },
       ),
+    draft_id: yup.string().optional(),
     localisations: yup
       .array()
       .of(

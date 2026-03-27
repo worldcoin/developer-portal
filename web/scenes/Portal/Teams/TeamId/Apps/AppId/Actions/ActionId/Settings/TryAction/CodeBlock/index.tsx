@@ -9,65 +9,100 @@ type CodeBlockProps = {
 
 export const CodeBlock = (props: CodeBlockProps) => {
   const { appId, action_identifier, engine } = props;
+  const presetFactory =
+    engine === EngineType.OnChain ? "orbLegacy()" : "deviceLegacy()";
 
   const idKitWidgetCodeString = `
-// (If using Next.js - IDKitWidget must be run on client)
-"use client"
-import { IDKitWidget, VerificationLevel } from '@worldcoin/idkit'
+"use client";
 
-// TODO: Calls your implemented server route
-const verifyProof = async (proof) => {
-  throw new Error("TODO: verify proof server route")
+import { useState } from "react";
+import {
+  IDKitRequestWidget,
+  ${engine === EngineType.OnChain ? "orbLegacy" : "deviceLegacy"},
+} from "@worldcoin/idkit";
+
+const fetchRpContext = async () => {
+  // Fetch a signed rp_context from your backend.
+  const response = await fetch("/api/idkit/rp-context", {
+    method: "POST",
+    // ...
+  });
+
+  return response.json();
 };
 
-// TODO: Functionality after verifying
-const onSuccess = () => {
-  console.log("Success")
+const verifyProof = async (result) => {
+  const response = await fetch("/api/v4/verify/${appId}", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(result),
+  });
+
+  if (!response.ok) {
+    // Handle your error response here.
+    throw new Error("Verification failed");
+  }
 };
 
-// ...
+export default function VerifyWithWorldID() {
+  const [open, setOpen] = useState(false);
+  const [rpContext, setRpContext] = useState(null);
 
-<IDKitWidget
-    app_id="${appId}"
-    action="${action_identifier}"
-    ${engine === EngineType.OnChain && "// On-chain only accepts Orb verifications"}
-    verification_level={VerificationLevel.${engine === EngineType.OnChain ? "Orb" : "Device"}}
-    handleVerify={verifyProof}
-    onSuccess={onSuccess}>
-    {({ open }) => (
+  return (
+    <>
       <button
-        onClick={open}
+        onClick={async () => {
+          if (!rpContext) {
+            setRpContext(await fetchRpContext());
+          }
+          setOpen(true);
+        }}
       >
         Verify with World ID
       </button>
-    )}
-</IDKitWidget>
+
+      {rpContext && (
+        <IDKitRequestWidget
+          open={open}
+          onOpenChange={setOpen}
+          app_id="${appId}"
+          action="${action_identifier}"
+          action_description="Describe the action the user is approving."
+          rp_context={rpContext}
+          allow_legacy_proofs={true}
+          preset={${presetFactory}}
+          handleVerify={verifyProof}
+          onSuccess={(result) => {
+            console.log(result);
+          }}
+        />
+      )}
+    </>
+  );
+}
 `.trim();
 
   const verifyProofCloudCodeString = `
-// Note: This must be implemented server side
-const verifyProof = async (proof) => {
-  console.log('proof', proof);
-  const response = await fetch(
-    'https://developer.world.org/api/v2/verify/app_staging_129259332fd6f93d4fabaadcc5e4ff9d',
-    {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ ...proof, action: "test"}),
-    }
-  );
+// Note: This must be implemented server side or in a trusted route handler
+const verifyProof = async (result) => {
+  const response = await fetch("/api/v4/verify/${appId}", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(result),
+  });
+
   if (response.ok) {
-    const { verified } = await response.json();
-    return verified;
+    return response.json();
   } else {
     const { code, detail } = await response.json();
     throw new Error(\`Error Code \${code}: \${detail}\`);
   }
 };
-// For a complete example see:
-// https://github.com/worldcoin/world-id-cloud-template`.trim();
+// Result already includes action, nonce, protocol_version, and responses.`.trim();
 
   const verifyProofOnChainCodeString =
     "// example_verify.sol\n" +

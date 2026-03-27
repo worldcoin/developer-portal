@@ -22,6 +22,13 @@ array_relationships:
         remote_table:
           name: app_metadata
           schema: public
+  - name: rp_registration
+    using:
+      foreign_key_constraint_on:
+        column: app_id
+        table:
+          name: rp_registration
+          schema: public
 insert_permissions:
   - role: qa
     permission:
@@ -74,9 +81,12 @@ select_permissions:
         - id
         - is_banned
       filter:
-        app_metadata:
-          verification_status:
-            _neq: unverified
+        _and:
+          - deleted_at:
+              _is_null: true
+          - app_metadata:
+              verification_status:
+                _neq: unverified
   - role: service
     permission:
       columns:
@@ -142,6 +152,7 @@ update_permissions:
     permission:
       columns:
         - deleted_at
+        - engine
         - first_verified_at
         - is_banned
         - rating_count

@@ -1,0 +1,361 @@
+"use client";
+
+import { CopyButton } from "@/components/CopyButton";
+import { DecoratedButton } from "@/components/DecoratedButton";
+import { Notification } from "@/components/Notification";
+import { SizingWrapper } from "@/components/SizingWrapper";
+import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import clsx from "clsx";
+import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
+import { useRetryRpMutation } from "./graphql/client/retry-rp.generated";
+import { RotateSignerKeyDialog } from "./RotateSignerKeyDialog";
+import { SwitchToSelfManagedDialog } from "./SwitchToSelfManagedDialog";
+
+type RpStatus = "pending" | "registered" | "failed" | "deactivated";
+
+const statusConfig: Record<
+  RpStatus,
+  { label: string; color: string; bgColor: string; dotColor: string }
+> = {
+  pending: {
+    label: "Pending",
+    color: "text-amber-500",
+    bgColor: "bg-yellow-50",
+    dotColor: "bg-amber-500",
+  },
+  registered: {
+    label: "Active",
+    color: "text-green-500",
+    bgColor: "bg-green-50",
+    dotColor: "bg-green-500",
+  },
+  failed: {
+    label: "Rejected",
+    color: "text-system-error-500",
+    bgColor: "bg-red-50",
+    dotColor: "bg-system-error-500",
+  },
+  deactivated: {
+    label: "Deactivated",
+    color: "text-grey-500",
+    bgColor: "bg-grey-100",
+    dotColor: "bg-grey-500",
+  },
+};
+
+type WorldId40ContentProps = {
+  appId: string;
+  rpId: string;
+  initialStatus: RpStatus;
+  mode: string;
+  signerAddress?: string | null;
+  createdAt: string;
+};
+
+export const WorldId40Content = ({
+  appId,
+  rpId,
+  initialStatus,
+  mode,
+  createdAt,
+}: WorldId40ContentProps) => {
+  const [retryRpMutation] = useRetryRpMutation();
+  const router = useRouter();
+  const [productionStatus, setProductionStatus] =
+    useState<RpStatus>(initialStatus);
+  const [stagingStatus, setStagingStatus] = useState<RpStatus | null>(null);
+  const [isRotateDialogOpen, setIsRotateDialogOpen] = useState(false);
+  const [isSwitchDialogOpen, setIsSwitchDialogOpen] = useState(false);
+  const [retryingEnvironment, setRetryingEnvironment] = useState<string | null>(
+    null,
+  );
+
+  const fetchStatus = useCallback(async () => {
+    try {
+      const response = await fetch(`/api/v4/rp-status/${rpId}`);
+      if (response.ok) {
+        const data = await response.json();
+        setProductionStatus(data.production_status as RpStatus);
+        setStagingStatus(
+          data.staging_status != null
+            ? (data.staging_status as RpStatus)
+            : null,
+        );
+      }
+    } catch {
+      // Keep the current status on error
+    }
+  }, [rpId]);
+
+  useEffect(() => {
+    fetchStatus();
+  }, [fetchStatus]);
+
+  // Poll every 5 seconds while either status is pending
+  useEffect(() => {
+    const shouldPoll =
+      productionStatus === "pending" || stagingStatus === "pending";
+    if (shouldPoll) {
+      const interval = setInterval(fetchStatus, 5000);
+      return () => clearInterval(interval);
+    }
+  }, [productionStatus, stagingStatus, fetchStatus]);
+
+  const handleRetry = async (environment: "production" | "staging") => {
+    setRetryingEnvironment(environment);
+    try {
+      const { data } = await retryRpMutation({
+        variables: {
+          rp_id: rpId,
+          environment,
+        },
+      });
+
+      if (data?.retry_rp?.success) {
+        // Set the retried environment to pending and resume polling
+        if (environment === "production") {
+          setProductionStatus("pending");
+        } else {
+          setStagingStatus("pending");
+        }
+      }
+    } catch {
+      // Keep current status on error
+    } finally {
+      setRetryingEnvironment(null);
+    }
+  };
+
+  // Use production status for overall "active" checks (e.g., enabling reset button)
+  const isActive = productionStatus === "registered";
+
+  const formattedDate = new Date(createdAt).toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
+
+  const modeLabel = mode === "managed" ? "Managed" : "Self-Managed";
+
+  const renderStatusRow = (
+    label: string,
+    status: RpStatus,
+    environment: "production" | "staging",
+  ) => {
+    const info = statusConfig[status] || statusConfig.pending;
+    const isFailed = status === "failed";
+    const isRetrying = retryingEnvironment === environment;
+
+    return (
+      <div className="flex flex-col gap-0.5">
+        <Typography variant={TYPOGRAPHY.B4} className="text-gray-500">
+          {label}
+        </Typography>
+        <div className="flex items-center justify-between rounded-xl">
+          <div className="flex items-center gap-2">
+            <div
+              className={`flex items-center justify-center rounded-full p-1 ${info.bgColor}`}
+            >
+              <div className={`size-2 rounded-full ${info.dotColor}`} />
+            </div>
+            <Typography variant={TYPOGRAPHY.B3} className={info.color}>
+              {info.label}
+            </Typography>
+          </div>
+          {isFailed && (
+            <DecoratedButton
+              type="button"
+              variant="primary"
+              className="h-8 rounded-full px-4 py-0 text-xs"
+              disabled={isRetrying}
+              onClick={() => handleRetry(environment)}
+            >
+              {isRetrying ? "Retrying..." : "Try again"}
+            </DecoratedButton>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <SizingWrapper className="py-10">
+      <div className="flex max-w-[580px] flex-col gap-y-8">
+        {/* Header */}
+        <div className="flex flex-col gap-y-3">
+          <Typography
+            variant={TYPOGRAPHY.H6}
+            className="text-2xl font-semibold"
+          >
+            World ID 4.0
+          </Typography>
+          <Typography variant={TYPOGRAPHY.B3} className="text-grey-500">
+            Registered {formattedDate}
+          </Typography>
+        </div>
+
+        <Notification variant="info" className="items-start">
+          <div className="text-blue-700">
+            <Typography
+              as="p"
+              variant={TYPOGRAPHY.S3}
+              className="text-blue-800"
+            >
+              Preview notice
+            </Typography>
+            <Typography as="p" variant={TYPOGRAPHY.S4} className="mt-1">
+              World ID 4.0 is currently in preview for early adopters. Once
+              World ID 4.0 is generally available, we may ask developers to
+              rotate their signer key.
+            </Typography>
+          </div>
+        </Notification>
+
+        {/* APP ID (Legacy) */}
+        <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-0.5">
+            <Typography variant={TYPOGRAPHY.B4} className="text-grey-500">
+              APP ID (Legacy)
+            </Typography>
+            <Typography variant={TYPOGRAPHY.B3} className="text-grey-900">
+              {appId}
+            </Typography>
+          </div>
+          <CopyButton
+            fieldName="APP ID (Legacy)"
+            fieldValue={appId}
+            className="text-grey-500"
+          />
+        </div>
+
+        {/* RP ID */}
+        <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-0.5">
+            <Typography variant={TYPOGRAPHY.B4} className="text-grey-500">
+              RP ID
+            </Typography>
+            <Typography variant={TYPOGRAPHY.B3} className="text-grey-900">
+              {rpId}
+            </Typography>
+          </div>
+          <CopyButton
+            fieldName="RP ID"
+            fieldValue={rpId}
+            className="text-grey-500"
+          />
+        </div>
+
+        {/* Management Mode */}
+        <div className="flex flex-col gap-0.5">
+          <Typography variant={TYPOGRAPHY.B4} className="text-grey-500">
+            Management Mode
+          </Typography>
+          <Typography variant={TYPOGRAPHY.B3} className="text-grey-900">
+            {modeLabel}
+          </Typography>
+        </div>
+
+        {/* Status */}
+        {renderStatusRow("Production Status", productionStatus, "production")}
+        {renderStatusRow(
+          "Staging Status",
+          stagingStatus ?? "pending",
+          "staging",
+        )}
+
+        {/* Key Section */}
+        <div className="mt-4 flex flex-col gap-4">
+          <Typography variant={TYPOGRAPHY.S2} className="text-gray-900">
+            Key
+          </Typography>
+
+          <div className="rounded-xl border border-grey-100 p-6">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex flex-col gap-1">
+                <Typography variant={TYPOGRAPHY.S2} className="text-gray-900">
+                  Reset signer key
+                </Typography>
+                <Typography variant={TYPOGRAPHY.B3} className="text-grey-500">
+                  This will create a new signer key and disable the existing key
+                </Typography>
+              </div>
+              <DecoratedButton
+                type="button"
+                variant="secondary"
+                disabled={!isActive || mode === "self_managed"}
+                className="h-8 rounded-full px-4 py-0 text-xs"
+                onClick={() => setIsRotateDialogOpen(true)}
+              >
+                Reset
+              </DecoratedButton>
+            </div>
+          </div>
+        </div>
+        {/* Danger Zone */}
+        <div className="mt-4 flex flex-col gap-y-6">
+          <Typography variant={TYPOGRAPHY.S2} className="text-gray-900">
+            Danger zone
+          </Typography>
+
+          {/* Switch to Self-Managed */}
+          <div className="rounded-[10px] border border-grey-100 px-6 py-4">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex flex-col gap-1">
+                <Typography variant={TYPOGRAPHY.S2}>
+                  Switch to Self-Managed
+                </Typography>
+                <Typography variant={TYPOGRAPHY.B3} className="text-grey-500">
+                  Move this RP to a self-managed configuration
+                </Typography>
+              </div>
+              <DecoratedButton
+                type="button"
+                variant="danger"
+                disabled={!isActive || mode === "self_managed"}
+                className={clsx(
+                  "h-8 shrink-0 rounded-full px-4 text-[13px] font-semibold",
+                  !isActive || mode === "self_managed"
+                    ? "" // Let DecoratedButton handle disabled styles
+                    : "bg-danger text-white hover:bg-system-error-700",
+                )}
+                title={
+                  mode === "self_managed"
+                    ? "Already in self-managed mode"
+                    : !isActive
+                      ? "RP must be active to switch modes"
+                      : undefined
+                }
+                onClick={() => setIsSwitchDialogOpen(true)}
+              >
+                Switch
+              </DecoratedButton>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <RotateSignerKeyDialog
+        open={isRotateDialogOpen}
+        onClose={() => setIsRotateDialogOpen(false)}
+        appId={appId}
+        onSuccess={() => setProductionStatus("pending")}
+      />
+
+      <SwitchToSelfManagedDialog
+        open={isSwitchDialogOpen}
+        onClose={() => setIsSwitchDialogOpen(false)}
+        appId={appId}
+        onSuccess={() => {
+          // Trigger status polling
+          setProductionStatus("pending");
+          // CRITICAL: Refresh server component to get updated mode from DB
+          router.refresh();
+          // Status polling will automatically pick up the "pending" state
+          // and poll every 5 seconds until status returns to "registered"
+          // router.refresh() ensures the mode prop updates to "self_managed"
+        }}
+      />
+    </SizingWrapper>
+  );
+};

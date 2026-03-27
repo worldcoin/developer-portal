@@ -117,6 +117,7 @@ const PaginationSelect = (props: {
       value={value}
       onChange={handleSelect}
       by={(a: number | null, b: number | null) => a === b}
+      placement="top-start"
     >
       <SelectButton
         className={clsx(

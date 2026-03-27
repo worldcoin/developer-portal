@@ -28,12 +28,10 @@ export type FetchAppMetadataByIdQuery = {
     supported_languages?: Array<string> | null;
     is_android_only: boolean;
     is_for_humans_only: boolean;
+    app_mode: string;
     verification_status: string;
     content_card_image_url: string;
-    app: {
-      __typename?: "app";
-      is_staging: boolean;
-    };
+    app: { __typename?: "app"; is_staging: boolean };
   }>;
   localisations: Array<{
     __typename?: "localisations";
@@ -74,6 +72,7 @@ export const FetchAppMetadataByIdDocument = gql`
       supported_languages
       is_android_only
       is_for_humans_only
+      app_mode
       verification_status
       content_card_image_url
       app {

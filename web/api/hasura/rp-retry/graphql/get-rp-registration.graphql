@@ -1,0 +1,17 @@
+query GetRpRegistrationForRetry($rp_id: String!) {
+  rp_registration_by_pk(rp_id: $rp_id) {
+    rp_id
+    app_id
+    status
+    mode
+    signer_address
+    manager_kms_key_id
+    app {
+      id
+      team_id
+      app_metadata(limit: 1) {
+        name
+      }
+    }
+  }
+}

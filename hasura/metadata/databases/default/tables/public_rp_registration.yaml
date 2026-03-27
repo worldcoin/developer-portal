@@ -1,0 +1,77 @@
+table:
+  name: rp_registration
+  schema: public
+object_relationships:
+  - name: app
+    using:
+      foreign_key_constraint_on: app_id
+array_relationships:
+  - name: actions_v4
+    using:
+      foreign_key_constraint_on:
+        column: rp_id
+        table:
+          name: action_v4
+          schema: public
+insert_permissions:
+  - role: service
+    permission:
+      check: {}
+      columns:
+        - rp_id
+        - app_id
+        - mode
+        - signer_address
+        - manager_kms_key_id
+        - status
+        - operation_hash
+select_permissions:
+  - role: service
+    permission:
+      columns:
+        - rp_id
+        - created_at
+        - updated_at
+        - app_id
+        - mode
+        - signer_address
+        - manager_kms_key_id
+        - status
+        - operation_hash
+      filter: {}
+  - role: user
+    permission:
+      columns:
+        - rp_id
+        - created_at
+        - updated_at
+        - app_id
+        - mode
+        - signer_address
+        - status
+        - operation_hash
+      filter:
+        app:
+          _and:
+            - deleted_at:
+                _is_null: true
+            - team:
+                memberships:
+                  user_id:
+                    _eq: X-Hasura-User-Id
+update_permissions:
+  - role: service
+    permission:
+      columns:
+        - mode
+        - signer_address
+        - manager_kms_key_id
+        - status
+        - operation_hash
+      filter: {}
+      check: {}
+delete_permissions:
+  - role: service
+    permission:
+      filter: {}
+    comment: ""

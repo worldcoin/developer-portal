@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 import { getSdk as fetchApiKeySdk } from "../../v2/minikit/graphql/fetch-api-key.generated";
 import { errorResponse } from "../errors";
 import { getAPIServiceGraphqlClient } from "../graphql";
@@ -16,7 +17,7 @@ export type VerifyApiKeyResult =
     }
   | {
       success: false;
-      errorResponse: Response;
+      errorResponse: NextResponse;
     };
 
 /**

@@ -2,36 +2,40 @@
 
 import { AppStatus, StatusVariant } from "@/components/AppStatus";
 import { DecoratedButton } from "@/components/DecoratedButton";
-import { Environment } from "@/components/Environment";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Role_Enum } from "@/graphql/graphql";
 
 import { Button } from "@/components/Button";
-import { EditIcon } from "@/components/Icons/EditIcon";
 import { Auth0SessionUser } from "@/lib/types";
 import { getCDNImageUrl, getDefaultLogoImgCDNUrl } from "@/lib/utils";
-import {
-  ReviewMessageDialog,
-  reviewMessageDialogOpenedAtom,
-} from "@/scenes/Portal/Teams/TeamId/Apps/common/ReviewMessageDialog";
-import { ReviewStatus } from "@/scenes/Portal/Teams/TeamId/Apps/common/ReviewStatus";
 import { useRemoveFromReview } from "@/scenes/Portal/Teams/TeamId/Apps/common/hooks/use-remove-from-review";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import clsx from "clsx";
-import { useAtom, useSetAtom } from "jotai";
-import ErrorComponent from "next/error";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useAtom } from "jotai";
+import { ErrorPage } from "@/components/ErrorPage";
+import { SpinnerIcon } from "@/components/Icons/SpinnerIcon";
+import { urls } from "@/lib/urls";
+import { useRouter, useSearchParams } from "next/navigation";
+import {
+  MutableRefObject,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { useFormContext } from "react-hook-form";
 import { toast } from "react-toastify";
 import * as yup from "yup";
 import { mainAppStoreFormReviewSubmitSchema } from "../AppStore/FormSchema/form-schema";
+import { BasicInformationHandle } from "../BasicInformation";
 import { AppStoreFormValues } from "../AppStore/FormSchema/types";
 import { updateAppStoreMetadata } from "../AppStore/server/update-app-store";
 import {
   getFirstFormError,
   MULTIPLE_ERRORS_TOAST_MESSAGE,
 } from "../AppStore/utils/form-error-utils";
+import { useApolloClient } from "@apollo/client";
 import {
   FetchAppMetadataDocument,
   FetchAppMetadataQuery,
@@ -41,33 +45,345 @@ import {
   useFetchImagesQuery,
 } from "../graphql/client/fetch-images.generated";
 import { unverifiedImageAtom, viewModeAtom } from "../layout/ImagesProvider";
+import { LogoImageUpload } from "./LogoImageUpload";
 import { SubmitAppModal } from "./SubmitAppModal";
 import { VersionSwitcher } from "./VersionSwitcher";
 import { useCreateEditableRowMutation } from "./graphql/client/create-editable-row.generated";
+
+type AppTopBarSubmitProps = {
+  appMetadata: FetchAppMetadataQuery["app"][0]["app_metadata"][0];
+  appId: string;
+  teamId: string;
+  viewMode: "unverified" | "verified";
+  onSubmitSuccess: () => void;
+  basicInfoRef?: MutableRefObject<BasicInformationHandle | null>;
+};
+
+const AppTopBarSubmit = ({
+  appMetadata,
+  appId,
+  teamId,
+  viewMode,
+  onSubmitSuccess,
+  basicInfoRef,
+}: AppTopBarSubmitProps) => {
+  const form = useFormContext<AppStoreFormValues>();
+  const searchParams = useSearchParams();
+  const client = useApolloClient();
+  const [isSubmittingForReview, setIsSubmittingForReview] = useState(false);
+  const hasAutoSubmitted = useRef(false);
+
+  const submitForReview = useCallback(async () => {
+    if (appMetadata?.verification_status !== "unverified") {
+      toast.error("Only unverified apps can be submitted for review");
+      return;
+    }
+    setIsSubmittingForReview(true);
+    try {
+      if (basicInfoRef?.current) {
+        const ok = await basicInfoRef.current.submit({
+          silent: true,
+          forReview: true,
+        });
+        if (!ok) {
+          toast.error(
+            "Please fix basic information errors before submitting for review",
+          );
+          return;
+        }
+      }
+      const isMiniApp = appMetadata.app_mode === "mini-app";
+      if (form.formState.isDirty) {
+        const currentSupportType = form.getValues("support_type");
+        if (currentSupportType === "email") {
+          form.setValue("support_link", "", {
+            shouldDirty: true,
+            shouldValidate: false,
+          });
+        } else if (currentSupportType === "link") {
+          form.setValue("support_email", "", {
+            shouldDirty: true,
+            shouldValidate: false,
+          });
+        }
+
+        await new Promise<void>((resolve, reject) => {
+          form.handleSubmit(
+            async (data) => {
+              const result = await updateAppStoreMetadata({
+                ...data,
+                app_metadata_id: appMetadata.id,
+              });
+              if (!result.success) {
+                reject(new Error(result.message));
+              } else {
+                toast.success("App information saved");
+                resolve();
+              }
+            },
+            (errors) => {
+              const errorMessage = getFirstFormError(
+                errors,
+                form.getValues("localisations"),
+              );
+              reject(new Error(errorMessage ?? "Form validation failed"));
+            },
+          )();
+        });
+      }
+      const formValues = form.getValues();
+      const enLocalization = formValues.localisations.find(
+        (l) => l.language === "en",
+      );
+      // Read fresh metadata from the Apollo cache — BasicInformation's save
+      // already awaited refetchAppMetadata(), so the cache is up to date.
+      const freshData = client.readQuery<FetchAppMetadataQuery>({
+        query: FetchAppMetadataDocument,
+        variables: { id: appId },
+      });
+      const freshAppMetadata =
+        freshData?.app?.[0]?.app_metadata?.[0] ?? appMetadata;
+      await mainAppStoreFormReviewSubmitSchema.validate(
+        {
+          ...formValues,
+          name: enLocalization?.name,
+          short_name: enLocalization?.short_name,
+          world_app_description: enLocalization?.world_app_description,
+          description_overview: enLocalization?.description_overview,
+          logo_img_url: freshAppMetadata.logo_img_url,
+          content_card_image_url: freshAppMetadata.content_card_image_url,
+          app_website_url: freshAppMetadata.app_website_url,
+        },
+        {
+          abortEarly: false,
+          strict: true,
+          stripUnknown: true,
+          context: { isMiniApp },
+        },
+      );
+      onSubmitSuccess();
+    } catch (error) {
+      let errorMessage = "Error occurred while submitting app for review";
+      if (error instanceof yup.ValidationError) {
+        error.inner.forEach((yupError) => {
+          const path = yupError.path;
+          const yupErrorMessage = yupError.message;
+          errorMessage = yupErrorMessage;
+          if (path) {
+            form.setError(path as keyof AppStoreFormValues, {
+              message: yupErrorMessage,
+            });
+          }
+        });
+        if (error.inner.length > 1) {
+          errorMessage = MULTIPLE_ERRORS_TOAST_MESSAGE;
+        }
+        toast.error(errorMessage);
+        return;
+      }
+      if (error instanceof Error) {
+        toast.error(error.message);
+        return;
+      }
+      console.error("Submitting App Failed: ", error);
+      toast.error("An unexpected error occurred. Please try again.");
+    } finally {
+      setIsSubmittingForReview(false);
+    }
+  }, [appId, appMetadata, basicInfoRef, client, form, onSubmitSuccess]);
+
+  const shouldAutoSubmitForReview =
+    searchParams.get("submitForReview") === "true";
+  useEffect(() => {
+    if (shouldAutoSubmitForReview && !hasAutoSubmitted.current) {
+      submitForReview();
+      hasAutoSubmitted.current = true;
+    }
+  }, [shouldAutoSubmitForReview, submitForReview]);
+
+  return (
+    <DecoratedButton
+      type="submit"
+      className={clsx("h-12 px-6 py-3", {
+        hidden:
+          appMetadata.app_id?.includes("staging") &&
+          process.env.NEXT_PUBLIC_APP_ENV === "production",
+      })}
+      disabled={viewMode === "verified" || isSubmittingForReview}
+      onClick={submitForReview}
+    >
+      <Typography variant={TYPOGRAPHY.M3} className="whitespace-nowrap">
+        {isSubmittingForReview ? "Processing..." : "Submit for review"}
+      </Typography>
+    </DecoratedButton>
+  );
+};
+
+type AppIconButtonProps = {
+  hasLogo: boolean;
+  logoImgUrl: string;
+  isLogoLoading: boolean;
+  viewMode: "unverified" | "verified";
+  isInReview: boolean;
+  isLogoError: boolean;
+  onEdit: () => void;
+};
+
+const AppIconButton = ({
+  hasLogo,
+  logoImgUrl,
+  isLogoLoading,
+  viewMode,
+  isInReview,
+  isLogoError,
+  onEdit,
+}: AppIconButtonProps) => (
+  <button
+    type="button"
+    onClick={() => {
+      if (viewMode !== "verified" && !isInReview) {
+        onEdit();
+      }
+    }}
+    className={clsx("group relative size-[125px] shrink-0 rounded-full", {
+      "cursor-default": viewMode === "verified" || isInReview,
+    })}
+  >
+    {hasLogo ? (
+      <>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={logoImgUrl}
+          alt="logo"
+          className="size-full rounded-full object-cover drop-shadow-lg"
+        />
+        {viewMode !== "verified" && !isInReview && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 rounded-full bg-grey-900/50 opacity-0 transition-opacity group-hover:opacity-100">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+              className="size-6 text-white"
+            >
+              <path
+                fillRule="evenodd"
+                d="M1.5 6a2.25 2.25 0 0 1 2.25-2.25h16.5A2.25 2.25 0 0 1 22.5 6v12a2.25 2.25 0 0 1-2.25 2.25H3.75A2.25 2.25 0 0 1 1.5 18V6ZM3 16.06V18c0 .414.336.75.75.75h16.5A.75.75 0 0 0 21 18v-1.94l-2.69-2.689a1.5 1.5 0 0 0-2.12 0l-.88.879.83.83a.75.75 0 1 1-1.06 1.06l-5.16-5.159a1.5 1.5 0 0 0-2.12 0L3 16.061Zm10.125-7.81a1.125 1.125 0 1 1 2.25 0 1.125 1.125 0 0 1-2.25 0Z"
+                clipRule="evenodd"
+              />
+            </svg>
+            <Typography variant={TYPOGRAPHY.R5} className="text-white">
+              Update icon
+            </Typography>
+          </div>
+        )}
+      </>
+    ) : isLogoLoading ? (
+      <div className="flex size-full items-center justify-center rounded-full border border-dashed border-grey-200 bg-grey-50">
+        <SpinnerIcon
+          className="size-8 animate-spin text-grey-300"
+          aria-label="Loading app logo"
+        />
+      </div>
+    ) : viewMode !== "verified" && !isInReview ? (
+      <>
+        <div
+          className={clsx(
+            "flex size-full flex-col items-center justify-center gap-1 rounded-full border border-dashed border-grey-200 bg-grey-50",
+            isLogoError && "border-system-error-500 bg-system-error-50",
+          )}
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="currentColor"
+            className="size-6 text-grey-900"
+          >
+            <path
+              fillRule="evenodd"
+              d="M1.5 6a2.25 2.25 0 0 1 2.25-2.25h16.5A2.25 2.25 0 0 1 22.5 6v12a2.25 2.25 0 0 1-2.25 2.25H3.75A2.25 2.25 0 0 1 1.5 18V6ZM3 16.06V18c0 .414.336.75.75.75h16.5A.75.75 0 0 0 21 18v-1.94l-2.69-2.689a1.5 1.5 0 0 0-2.12 0l-.88.879.83.83a.75.75 0 1 1-1.06 1.06l-5.16-5.159a1.5 1.5 0 0 0-2.12 0L3 16.061Zm10.125-7.81a1.125 1.125 0 1 1 2.25 0 1.125 1.125 0 0 1-2.25 0Z"
+              clipRule="evenodd"
+            />
+          </svg>
+          <Typography variant={TYPOGRAPHY.R5} className="text-grey-900">
+            App icon <span className="text-system-error-500">*</span>
+          </Typography>
+          {isLogoError && (
+            <Typography
+              variant={TYPOGRAPHY.R5}
+              className="text-center text-system-error-500"
+            >
+              Logo is required.
+            </Typography>
+          )}
+        </div>
+        <div className="absolute inset-0 rounded-full bg-grey-900/50 opacity-0 transition-opacity group-hover:opacity-100" />
+      </>
+    ) : null}
+  </button>
+);
+
+const AppIconButtonWithFormError = (
+  props: Omit<AppIconButtonProps, "isLogoError">,
+) => {
+  const {
+    formState: { errors },
+  } = useFormContext<AppStoreFormValues & { logo_img_url?: string }>();
+
+  return (
+    <AppIconButton {...props} isLogoError={Boolean(errors.logo_img_url)} />
+  );
+};
 
 type AppTopBarProps = {
   appId: string;
   teamId: string;
   app: FetchAppMetadataQuery["app"][0];
+  onResolve?: () => void;
+  hasFormContext?: boolean;
+  basicInfoRef?: MutableRefObject<BasicInformationHandle | null>;
 };
 
 export const AppTopBar = (props: AppTopBarProps) => {
-  const { appId, teamId, app } = props;
+  const { appId, teamId, app, onResolve, hasFormContext, basicInfoRef } = props;
   const router = useRouter();
-  const pathname = usePathname();
   const searchParams = useSearchParams();
   const [viewMode, setViewMode] = useAtom(viewModeAtom);
   const { user } = useUser() as Auth0SessionUser;
-  const form = useFormContext<AppStoreFormValues>();
+
   const { data: unverifiedImagesData } = useFetchImagesQuery({
     variables: { id: appId, team_id: teamId },
   });
-  const hasAutoSubmitted = useRef(false);
 
   const [showSubmitAppModal, setShowSubmitAppModal] = useState(false);
-  const [_showReviewMessage] = useAtom(reviewMessageDialogOpenedAtom);
-  const setUnverifiedImages = useSetAtom(unverifiedImageAtom);
-  const [isSubmittingForReview, setIsSubmittingForReview] = useState(false);
+  const handleSubmitSuccess = useCallback(
+    () => setShowSubmitAppModal(true),
+    [],
+  );
+  const [showLogoDialog, setShowLogoDialog] = useState(false);
+  const hasAutoOpenedLogoDialog = useRef(false);
+  const [unverifiedImages, setUnverifiedImages] = useAtom(unverifiedImageAtom);
+  const [localUnverifiedLogoOverride, setLocalUnverifiedLogoOverride] =
+    useState<string | null>(null);
+
+  useEffect(() => {
+    setLocalUnverifiedLogoOverride(null);
+    hasAutoOpenedLogoDialog.current = false;
+  }, [appId]);
+
+  useEffect(() => {
+    if (unverifiedImagesData === undefined) return;
+
+    const atomUrl = unverifiedImages?.logo_img_url;
+    if (atomUrl === undefined || atomUrl === "loading") return;
+
+    const queryUrl =
+      unverifiedImagesData?.unverified_images?.logo_img_url ?? "";
+    if (atomUrl !== queryUrl) {
+      setLocalUnverifiedLogoOverride(atomUrl);
+    } else {
+      setLocalUnverifiedLogoOverride(null);
+    }
+  }, [unverifiedImages?.logo_img_url, unverifiedImagesData]);
 
   const isEnoughPermissions = useMemo(() => {
     const membership = user?.hasura.memberships.find(
@@ -110,137 +426,32 @@ export const AppTopBar = (props: AppTopBarProps) => {
 
   const isEditable = app?.app_metadata[0]?.verification_status === "unverified";
   const [createEditableRowMutation] = useCreateEditableRowMutation({});
+  const shouldAutoOpenLogoDialog = searchParams.get("editLogo") === "true";
+
+  useEffect(() => {
+    if (!shouldAutoOpenLogoDialog || hasAutoOpenedLogoDialog.current) {
+      return;
+    }
+
+    if (viewMode === "verified" && app.app_metadata.length > 0) {
+      setViewMode("unverified");
+    }
+
+    setShowLogoDialog(true);
+    hasAutoOpenedLogoDialog.current = true;
+  }, [
+    app.app_metadata.length,
+    setViewMode,
+    shouldAutoOpenLogoDialog,
+    viewMode,
+  ]);
 
   const hasRequiredImagesForAppStore = useMemo(() => {
     return Boolean(
       appMetadata?.showcase_img_urls &&
-        appMetadata?.showcase_img_urls?.length > 0,
+        appMetadata?.showcase_img_urls?.length >= 1,
     );
   }, [appMetadata?.showcase_img_urls]);
-
-  const submitForReview = useCallback(async () => {
-    if (appMetadata?.verification_status !== "unverified") {
-      toast.error("Only unverified apps can be submitted for review");
-      return;
-    }
-
-    // only this route has the form context with up to date form data
-    if (!pathname.includes("configuration/app-store")) {
-      router.push(
-        `/teams/${teamId}/apps/${appId}/configuration/app-store?submitForReview=true`,
-      );
-      return;
-    }
-
-    // Check if form context is available
-    if (!form) {
-      toast.error(
-        "Unable to submit for review. Please refresh the page and try again.",
-      );
-      console.error("Form context not available");
-      return;
-    }
-
-    setIsSubmittingForReview(true);
-    try {
-      // autosave
-      if (form.formState.isDirty) {
-        await new Promise<void>((resolve, reject) => {
-          form.handleSubmit(
-            async (data) => {
-              const result = await updateAppStoreMetadata({
-                ...data,
-                app_metadata_id: appMetadata.id,
-              });
-
-              if (!result.success) {
-                reject(new Error(result.message));
-              } else {
-                toast.success("App information saved");
-                resolve();
-              }
-            },
-            (errors) => {
-              const errorMessage = getFirstFormError(
-                errors,
-                form.getValues("localisations"),
-              );
-              reject(new Error(errorMessage ?? "Form validation failed"));
-            },
-          )();
-        });
-      }
-      const formValues = form.getValues();
-      const enLocalization = formValues.localisations.find(
-        (l) => l.language === "en",
-      );
-
-      await mainAppStoreFormReviewSubmitSchema.validate(
-        {
-          ...formValues,
-          name: enLocalization?.name,
-          short_name: enLocalization?.short_name,
-          world_app_description: enLocalization?.world_app_description,
-          description_overview: enLocalization?.description_overview,
-          logo_img_url: appMetadata.logo_img_url,
-          content_card_image_url: appMetadata.content_card_image_url,
-        },
-        {
-          abortEarly: false,
-          strict: true,
-          stripUnknown: true,
-        },
-      );
-
-      // if all validation passed, show submission modal
-      setShowSubmitAppModal(true);
-    } catch (error) {
-      let errorMessage = "Error occurred while submitting app for review";
-
-      if (error instanceof yup.ValidationError) {
-        error.inner.forEach((yupError) => {
-          const path = yupError.path;
-          const yupErrorMessage = yupError.message;
-
-          errorMessage = yupErrorMessage;
-
-          // still set form errors for field highlighting
-          if (path) {
-            form.setError(path as keyof AppStoreFormValues, {
-              message: yupErrorMessage,
-            });
-          }
-        });
-
-        // check for multiple errors after setting them on form
-        if (error.inner.length > 1) {
-          errorMessage = MULTIPLE_ERRORS_TOAST_MESSAGE;
-        }
-
-        toast.error(errorMessage);
-        return;
-      }
-
-      if (error instanceof Error) {
-        toast.error(error.message);
-        return;
-      }
-
-      console.error("Submitting App Failed: ", error);
-      toast.error("An unexpected error occurred. Please try again.");
-    } finally {
-      setIsSubmittingForReview(false);
-    }
-  }, [appMetadata, pathname, router, teamId, appId, form]);
-
-  const shouldAutoSubmitForReview =
-    searchParams.get("submitForReview") === "true";
-  useEffect(() => {
-    if (shouldAutoSubmitForReview && !hasAutoSubmitted.current) {
-      submitForReview();
-      hasAutoSubmitted.current = true;
-    }
-  }, [shouldAutoSubmitForReview, submitForReview]);
 
   const [fetchImagesQuery] = useFetchImagesLazyQuery();
 
@@ -293,31 +504,80 @@ export const AppTopBar = (props: AppTopBarProps) => {
     if (appMetadata?.verification_status === "verified") {
       return getCDNImageUrl(appId, appMetadata?.logo_img_url, true);
     } else {
-      return (
-        unverifiedImagesData?.unverified_images?.logo_img_url ||
-        getDefaultLogoImgCDNUrl()
-      );
+      const queryUrl =
+        unverifiedImagesData?.unverified_images?.logo_img_url ?? "";
+      const unverifiedLogoImgUrl =
+        localUnverifiedLogoOverride !== null
+          ? localUnverifiedLogoOverride
+          : queryUrl;
+      return unverifiedLogoImgUrl || getDefaultLogoImgCDNUrl();
     }
   }, [
     appMetadata?.verification_status,
     appMetadata?.logo_img_url,
     appId,
+    localUnverifiedLogoOverride,
     unverifiedImagesData?.unverified_images?.logo_img_url,
   ]);
 
-  if (!appMetadata) return <ErrorComponent statusCode={404}></ErrorComponent>;
+  const hasLogo = useMemo(() => {
+    if (appMetadata?.verification_status === "verified") {
+      return Boolean(appMetadata?.logo_img_url);
+    }
+    const queryUrl =
+      unverifiedImagesData?.unverified_images?.logo_img_url ?? "";
+    const unverifiedLogoImgUrl =
+      localUnverifiedLogoOverride !== null
+        ? localUnverifiedLogoOverride
+        : queryUrl;
+    return Boolean(unverifiedLogoImgUrl);
+  }, [
+    appMetadata?.verification_status,
+    appMetadata?.logo_img_url,
+    localUnverifiedLogoOverride,
+    unverifiedImagesData?.unverified_images?.logo_img_url,
+  ]);
+
+  const isLogoLoading = useMemo(() => {
+    if (appMetadata?.verification_status === "verified") {
+      return false;
+    }
+
+    if (localUnverifiedLogoOverride === "loading") {
+      return true;
+    }
+
+    return (
+      localUnverifiedLogoOverride === null &&
+      unverifiedImagesData === undefined &&
+      Boolean(appMetadata?.logo_img_url)
+    );
+  }, [
+    appMetadata?.verification_status,
+    appMetadata?.logo_img_url,
+    localUnverifiedLogoOverride,
+    unverifiedImagesData,
+  ]);
+
+  if (!appMetadata) return <ErrorPage statusCode={404} title="App not found" />;
+
+  const isRejected = appMetadata.verification_status === "changes_requested";
+  const isInReview = appMetadata.verification_status === "awaiting_review";
+  const canSubmitForReview = viewMode !== "verified";
+
   return (
-    <div className="grid gap-y-5 rounded-3xl border p-8 pt-7 sm:rounded-none sm:border-none sm:p-0">
-      {["changes_requested", "verified"].includes(
-        appMetadata.verification_status,
-      ) && (
-        <ReviewStatus
-          status={
-            appMetadata.verification_status as "changes_requested" | "verified"
-          }
-          message={appMetadata.review_message}
-        />
-      )}
+    <div className="grid gap-y-5 rounded-2xl border border-grey-100 p-6 sm:rounded-none sm:border-none sm:p-0">
+      <LogoImageUpload
+        appId={appId}
+        appMetadataId={appMetadata.id}
+        teamId={teamId}
+        editable={isEditable}
+        isError={false}
+        logoFile={appMetadata.logo_img_url}
+        open={showLogoDialog}
+        onClose={() => setShowLogoDialog(false)}
+        dialogOnly
+      />
       <SubmitAppModal
         open={showSubmitAppModal}
         setOpen={setShowSubmitAppModal}
@@ -327,107 +587,134 @@ export const AppTopBar = (props: AppTopBarProps) => {
         appId={appId}
         isDeveloperAllowListing={appMetadata?.is_developer_allow_listing}
       />
-      <div className="grid items-center justify-items-center gap-y-4 sm:grid-cols-auto/1fr/auto sm:justify-items-start sm:gap-x-8">
-        <ReviewMessageDialog appId={appId} />
-        <div className="flex w-full justify-end sm:hidden">
-          <AppStatus
-            className=""
-            status={appMetadata.verification_status as StatusVariant}
-          />
-        </div>
-
-        <div className="relative">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={logoImgUrl}
-            alt="logo"
-            className="size-20 rounded-2xl drop-shadow-lg"
-          />
-          {!pathname.includes("configuration/app-store") && (
-            <Button
-              type="button"
-              onClick={() => {
-                router.push(
-                  `/teams/${teamId}/apps/${appId}/configuration/app-store?editLogo=true`,
-                );
-              }}
-              className={clsx(
-                "absolute -bottom-2 -right-2 z-10 rounded-full border-2 border-grey-200 bg-white p-2 text-grey-500 hover:bg-grey-50",
-                { hidden: viewMode === "verified" },
-              )}
-            >
-              <EditIcon className="size-3" />
-            </Button>
-          )}
-        </div>
-
-        <div className="grid grid-cols-1 gap-y-1">
-          <div className="flex flex-col items-center gap-x-3 sm:flex-row">
-            <Typography
-              variant={TYPOGRAPHY.H6}
-              className=" max-w-[250px] truncate sm:max-w-[500px]"
-              data-testid="title-app-name"
-            >
-              {appMetadata.name}
-            </Typography>
-            <AppStatus
-              className="hidden sm:flex"
-              status={appMetadata.verification_status as StatusVariant}
+      {/* New layout: Logo + Name/Status/Version on left, Actions on right */}
+      <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-center sm:justify-between">
+        {/* Left side: Logo + Name + Status + Version */}
+        <div className="flex flex-col items-center gap-8 sm:flex-row sm:items-center">
+          {/* Logo */}
+          {hasFormContext ? (
+            <AppIconButtonWithFormError
+              hasLogo={hasLogo}
+              logoImgUrl={logoImgUrl}
+              isLogoLoading={isLogoLoading}
+              viewMode={viewMode}
+              isInReview={isInReview}
+              onEdit={() => setShowLogoDialog(true)}
             />
+          ) : (
+            <AppIconButton
+              hasLogo={hasLogo}
+              logoImgUrl={logoImgUrl}
+              isLogoLoading={isLogoLoading}
+              viewMode={viewMode}
+              isInReview={isInReview}
+              isLogoError={false}
+              onEdit={() => setShowLogoDialog(true)}
+            />
+          )}
+
+          {/* Name, Status, Environment, Version */}
+          <div className="flex flex-col items-center gap-2 sm:items-start">
+            {/* Name + Status */}
+            <div className="flex flex-col items-center gap-2 sm:items-start">
+              <Typography
+                variant={TYPOGRAPHY.H6}
+                className="max-w-[250px] truncate font-normal sm:max-w-[500px]"
+                data-testid="title-app-name"
+              >
+                {appMetadata.name}
+              </Typography>
+              <AppStatus
+                status={appMetadata.verification_status as StatusVariant}
+              />
+            </div>
           </div>
-          <Environment
-            environment={app.is_staging ? "staging" : "production"}
-            engine={app.engine}
-            className="justify-self-center sm:justify-self-start"
-          />
         </div>
 
-        <div className="grid w-full grid-cols-1 items-center gap-3 sm:grid-cols-auto/1fr">
+        {/* Right side: Version Switcher + Action Buttons */}
+        <div className="flex w-full flex-col items-center gap-3 sm:w-auto sm:flex-row">
+          {/* Version Switcher */}
           {app.verified_app_metadata.length > 0 &&
-            app.app_metadata.length > 0 && <VersionSwitcher app={app} />}
-          {isEnoughPermissions &&
-            (isEditable ? (
-              <DecoratedButton
-                type="submit"
-                className={clsx("h-12 px-6 py-3", {
-                  hidden:
-                    appMetadata.app_id?.includes("staging") &&
-                    process.env.NEXT_PUBLIC_APP_ENV === "production",
-                })}
-                disabled={viewMode === "verified" || isSubmittingForReview}
-                onClick={submitForReview}
-              >
-                <Typography
-                  variant={TYPOGRAPHY.M3}
-                  className={clsx("whitespace-nowrap")}
+            app.app_metadata.length > 0 && (
+              <VersionSwitcher
+                viewMode={viewMode}
+                setMode={setViewMode}
+                disabled={app.app_metadata.length === 0}
+                verifiedAt={app.verified_app_metadata[0]?.verified_at}
+              />
+            )}
+
+          {/* Action Buttons */}
+          {isEnoughPermissions && (
+            <div className="flex gap-3">
+              {/* Resolve button for rejected apps */}
+              {isRejected && onResolve && (
+                <DecoratedButton
+                  type="button"
+                  className="h-12 px-6 py-3"
+                  onClick={onResolve}
                 >
-                  {isSubmittingForReview
-                    ? "Processing..."
-                    : "Submit for review"}
-                </Typography>
-              </DecoratedButton>
-            ) : app?.app_metadata?.length === 0 ? (
-              <DecoratedButton
-                type="submit"
-                className="h-12 px-6 py-3"
-                onClick={createNewDraft}
-              >
-                <Typography variant={TYPOGRAPHY.M3}>
-                  Create new draft
-                </Typography>
-              </DecoratedButton>
-            ) : (
-              <DecoratedButton
-                type="submit"
-                className="h-12 px-6 py-3"
-                disabled={removeLoading}
-                onClick={removeFromReview}
-              >
-                <Typography variant={TYPOGRAPHY.M3}>
-                  Remove from review
-                </Typography>
-              </DecoratedButton>
-            ))}
+                  <Typography variant={TYPOGRAPHY.M3}>Resolve</Typography>
+                </DecoratedButton>
+              )}
+
+              {/* Submit / Un-submit / Create Draft button */}
+              {isEditable ? (
+                hasFormContext ? (
+                  <AppTopBarSubmit
+                    appMetadata={appMetadata}
+                    appId={appId}
+                    teamId={teamId}
+                    viewMode={viewMode}
+                    onSubmitSuccess={handleSubmitSuccess}
+                    basicInfoRef={basicInfoRef}
+                  />
+                ) : (
+                  <DecoratedButton
+                    type="button"
+                    className={clsx("h-12 px-6 py-3", {
+                      hidden:
+                        appMetadata.app_id?.includes("staging") &&
+                        process.env.NEXT_PUBLIC_APP_ENV === "production",
+                    })}
+                    disabled={!canSubmitForReview}
+                    onClick={() =>
+                      router.push(
+                        `${urls.configuration({ team_id: teamId, app_id: appId })}?submitForReview=true`,
+                      )
+                    }
+                  >
+                    <Typography
+                      variant={TYPOGRAPHY.M3}
+                      className="whitespace-nowrap"
+                    >
+                      Submit for review
+                    </Typography>
+                  </DecoratedButton>
+                )
+              ) : app?.app_metadata?.length === 0 ? (
+                <DecoratedButton
+                  type="button"
+                  className="h-12 px-6 py-3"
+                  onClick={createNewDraft}
+                >
+                  <Typography variant={TYPOGRAPHY.M3}>
+                    Create new draft
+                  </Typography>
+                </DecoratedButton>
+              ) : isInReview ? (
+                <DecoratedButton
+                  type="button"
+                  variant="secondary"
+                  className="h-14 px-6"
+                  disabled={removeLoading}
+                  onClick={removeFromReview}
+                >
+                  <Typography variant={TYPOGRAPHY.M3}>Un-submit</Typography>
+                </DecoratedButton>
+              ) : null}
+            </div>
+          )}
         </div>
       </div>
     </div>

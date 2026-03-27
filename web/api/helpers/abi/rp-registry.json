@@ -1,0 +1,77 @@
+[
+  {
+    "type": "function",
+    "name": "register",
+    "inputs": [
+      { "name": "rpId", "type": "uint64" },
+      { "name": "manager", "type": "address" },
+      { "name": "signer", "type": "address" },
+      { "name": "unverifiedWellKnownDomain", "type": "string" }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "getRpUnchecked",
+    "inputs": [{ "name": "rpId", "type": "uint64" }],
+    "outputs": [
+      {
+        "name": "",
+        "type": "tuple",
+        "components": [
+          { "name": "initialized", "type": "bool" },
+          { "name": "active", "type": "bool" },
+          { "name": "manager", "type": "address" },
+          { "name": "signer", "type": "address" },
+          { "name": "oprfKeyId", "type": "uint160" },
+          { "name": "unverifiedWellKnownDomain", "type": "string" }
+        ]
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "updateRp",
+    "inputs": [
+      { "name": "rpId", "type": "uint64" },
+      { "name": "manager", "type": "address" },
+      { "name": "signer", "type": "address" },
+      { "name": "toggleActive", "type": "bool" },
+      { "name": "unverifiedWellKnownDomain", "type": "string" },
+      { "name": "nonce", "type": "uint256" },
+      { "name": "signature", "type": "bytes" }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "nonceOf",
+    "inputs": [{ "name": "rpId", "type": "uint64" }],
+    "outputs": [{ "name": "", "type": "uint256" }],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "domainSeparatorV4",
+    "inputs": [],
+    "outputs": [{ "name": "", "type": "bytes32" }],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "UPDATE_RP_TYPEHASH",
+    "inputs": [],
+    "outputs": [{ "name": "", "type": "bytes32" }],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "NO_UPDATE",
+    "inputs": [],
+    "outputs": [{ "name": "", "type": "string" }],
+    "stateMutability": "view"
+  }
+]

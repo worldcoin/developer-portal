@@ -27,6 +27,7 @@ services:
       HASURA_GRAPHQL_MIGRATIONS_DIR: /hasura-migrations
       HASURA_GRAPHQL_METADATA_DIR: /hasura-metadata
       HASURA_GRAPHQL_JWT_SECRET: '{"key": "unsafe_vxgMtDq9UxgTsDq9UxgTsNHGAnEsZxveGsAWoENHGAnEsZxveGsAWoENIoJ", "type": "HS512"}'
+      HASURA_GRAPHQL_STRINGIFY_NUMERIC_TYPES: "true"
       HASURA_GRAPHQL_UNAUTHORIZED_ROLE: public
       NEXT_API_URL: "http://host.docker.internal:3000/api"
       INTERNAL_ENDPOINTS_SECRET: xnEU6vvqPMkc5UYEPVWM2IArdQ2eWv7A9

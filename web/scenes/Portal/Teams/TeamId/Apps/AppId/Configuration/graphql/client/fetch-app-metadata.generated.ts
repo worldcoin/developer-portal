@@ -16,6 +16,7 @@ export type FetchAppMetadataQuery = {
     engine: string;
     is_staging: boolean;
     status: string;
+    team: { __typename?: "team"; name?: string | null };
     app_metadata: Array<{
       __typename?: "app_metadata";
       id: string;
@@ -46,6 +47,7 @@ export type FetchAppMetadataQuery = {
       contracts?: Array<string> | null;
       permit2_tokens?: Array<string> | null;
       can_import_all_contacts: boolean;
+      can_use_attestation: boolean;
       is_allowed_unlimited_notifications?: boolean | null;
       max_notifications_per_day?: number | null;
       is_android_only: boolean;
@@ -82,6 +84,7 @@ export type FetchAppMetadataQuery = {
       contracts?: Array<string> | null;
       permit2_tokens?: Array<string> | null;
       can_import_all_contacts: boolean;
+      can_use_attestation: boolean;
       is_allowed_unlimited_notifications?: boolean | null;
       max_notifications_per_day?: number | null;
       is_android_only: boolean;
@@ -98,6 +101,9 @@ export const FetchAppMetadataDocument = gql`
       engine
       is_staging
       status
+      team {
+        name
+      }
       app_metadata(where: { verification_status: { _neq: "verified" } }) {
         id
         app_id
@@ -127,6 +133,7 @@ export const FetchAppMetadataDocument = gql`
         contracts
         permit2_tokens
         can_import_all_contacts
+        can_use_attestation
         is_allowed_unlimited_notifications
         max_notifications_per_day
         is_android_only
@@ -164,6 +171,7 @@ export const FetchAppMetadataDocument = gql`
         contracts
         permit2_tokens
         can_import_all_contacts
+        can_use_attestation
         is_allowed_unlimited_notifications
         max_notifications_per_day
         is_android_only

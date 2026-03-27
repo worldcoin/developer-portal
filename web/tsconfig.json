@@ -23,8 +23,9 @@
       "@/*": ["./*"],
       "@e2e/*": ["./tests/e2e/*"],
       "graphql-request/*": ["./node_modules/graphql-request/*"]
-    }
+    },
+    "types": ["node", "jest"]
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["node_modules", ".next"]
+  "exclude": ["node_modules", ".next", "scripts"]
 }

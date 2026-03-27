@@ -1,0 +1,8 @@
+mutation UpdateAppMode($app_metadata_id: String!, $app_mode: String!) {
+  update_app_metadata_by_pk(
+    pk_columns: { id: $app_metadata_id }
+    _set: { app_mode: $app_mode }
+  ) {
+    id
+  }
+}

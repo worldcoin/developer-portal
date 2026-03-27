@@ -35,6 +35,8 @@ const config: Config = {
       },
 
       colors: {
+        danger: "#F2280D", // Primary danger red for delete actions
+
         blue: {
           50: "#F9F9FE",
           100: "#F0F0FD",
@@ -60,6 +62,12 @@ const config: Config = {
           blue: {
             100: "#E4F2FE",
             500: "#4292F4",
+            600: "#005CFF",
+          },
+
+          azure: {
+            100: "#E8F2FF",
+            500: "#4572FE",
           },
 
           purple: {
@@ -125,12 +133,14 @@ const config: Config = {
           },
 
           warning: {
+            75: "#FFF6E6",
             50: "#FFFAE5",
             100: "#FFF9EF",
             200: "#FFE999",
             300: "#FFDA66",
             500: "#FFB200",
             600: "#DB9200",
+            650: "#CC8B00",
             700: "#FFB11B",
             800: "#935900",
           },
@@ -145,6 +155,7 @@ const config: Config = {
         rubik: ["var(--font-rubik)", ...defaultTheme.fontFamily.sans],
         twk: ["TWK Lausanne", ...defaultTheme.fontFamily.sans],
         ibm: ["var(--font-mono)", "monospace"],
+        world: ["World Pro", ...defaultTheme.fontFamily.sans],
       },
 
       fontSize: {
