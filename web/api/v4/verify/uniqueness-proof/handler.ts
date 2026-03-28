@@ -1,4 +1,4 @@
-import { errorResponse } from "@/api/helpers/errors";
+import { errorResponse, ErrorResponseBody } from "@/api/helpers/errors";
 import { parseRpId } from "@/api/helpers/rp-utils";
 import {
   encodeNullifierForStorage,
@@ -68,7 +68,7 @@ export async function handleUniquenessProofVerification(
     environment?: "production" | "staging";
   },
   req: NextRequest,
-): Promise<NextResponse> {
+): Promise<NextResponse<UniquenessProofResponse | ErrorResponseBody>> {
   // Resolve environment upfront: explicit request environment or default to "production"
   const verificationEnvironment = parsedParams.environment ?? "production";
 
