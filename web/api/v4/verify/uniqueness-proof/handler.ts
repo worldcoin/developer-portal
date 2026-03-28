@@ -1,3 +1,4 @@
+import { errorResponse } from "@/api/helpers/errors";
 import { parseRpId } from "@/api/helpers/rp-utils";
 import {
   encodeNullifierForStorage,
@@ -6,7 +7,7 @@ import {
 import { logger } from "@/lib/logger";
 import { captureEvent } from "@/services/posthogClient";
 import { GraphQLClient } from "graphql-request";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getSdk as getCheckNullifierV4Sdk } from "../graphql/check-nullifier-v4.generated";
 import { getSdk as getCreateActionV4Sdk } from "../graphql/create-action-v4.generated";
 import { getSdk as getFetchActionV4Sdk } from "../graphql/fetch-action-v4.generated";
@@ -66,7 +67,8 @@ export async function handleUniquenessProofVerification(
     responses: UniquenessProofResponseV3[] | UniquenessProofResponseV4[];
     environment?: "production" | "staging";
   },
-): Promise<NextResponse<UniquenessProofResponse>> {
+  req: NextRequest,
+): Promise<NextResponse> {
   // Resolve environment upfront: explicit request environment or default to "production"
   const verificationEnvironment = parsedParams.environment ?? "production";
 
@@ -184,14 +186,14 @@ export async function handleUniquenessProofVerification(
     actionV4 = createResult.insert_action_v4_one!;
 
     if (!actionV4) {
-      return NextResponse.json<UniquenessProofErrorResponse>(
-        {
-          success: false,
-          code: "internal_error",
-          detail: "Failed to create action.",
-        },
-        { status: 500 },
-      );
+      return errorResponse({
+        statusCode: 500,
+        code: "internal_error",
+        detail: "Failed to create action.",
+        attribute: null,
+        req,
+        app_id: appId,
+      });
     }
 
     logger.info("Created new action_v4", {
@@ -273,14 +275,14 @@ export async function handleUniquenessProofVerification(
     });
 
     if (!insertResult.insert_nullifier_v4_one) {
-      return NextResponse.json<UniquenessProofErrorResponse>(
-        {
-          success: false,
-          code: "internal_error",
-          detail: "Failed to save nullifier.",
-        },
-        { status: 500 },
-      );
+      return errorResponse({
+        statusCode: 500,
+        code: "internal_error",
+        detail: "Failed to save nullifier.",
+        attribute: null,
+        req,
+        app_id: appId,
+      });
     }
 
     await captureEvent({
