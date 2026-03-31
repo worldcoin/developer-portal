@@ -12,7 +12,7 @@
     "@aws-sdk/client-s3": "^3.664.0",
     "@panva/hkdf": "^1.2.1",
     "@types/jest": "^30.0.0",
-    "axios": "^1.13.5",
+    "axios": "1.13.5",
     "cookie": "^1.0.2",
     "dotenv": "^16.4.5",
     "globals": "^16.3.0",
@@ -37,7 +37,7 @@
   },
   "pnpm": {
     "overrides": {
-      "axios": "^1.13.5",
+      "axios": "1.13.5",
       "fast-xml-parser@5": "5.3.8",
       "glob@10": "10.5.0",
       "minimatch@3": "3.1.4",
