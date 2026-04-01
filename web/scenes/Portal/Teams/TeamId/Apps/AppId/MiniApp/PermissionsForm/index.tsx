@@ -136,7 +136,7 @@ const MiniAppQrPanel = ({
   }
 
   return (
-    <aside className="lg:sticky lg:top-8">
+    <aside className="fixed bottom-24 right-8 z-10 hidden w-[300px] lg:block">
       {!!appMetadata?.integration_url ? (
         <QrQuickAction
           url={miniAppUrl}
@@ -276,7 +276,7 @@ export const SetupForm = ({
   const canEdit = isEditable && isEnoughPermissions;
 
   return (
-    <div className="grid gap-10 lg:grid-cols-[minmax(0,580px)_minmax(280px,1fr)] lg:items-start">
+    <div className="grid gap-10 lg:grid-cols-[minmax(0,580px)] lg:items-start">
       <form
         className="grid max-w-[580px] gap-y-10"
         onSubmit={handleSubmit(submit)}
