@@ -19,6 +19,7 @@ export type GetRpRegistrationQuery = {
     signer_address?: string | null;
     created_at: string;
     updated_at: string;
+    operation_hash?: string | null;
   } | null;
 };
 
@@ -32,6 +33,7 @@ export const GetRpRegistrationDocument = gql`
       signer_address
       created_at
       updated_at
+      operation_hash
     }
   }
 `;

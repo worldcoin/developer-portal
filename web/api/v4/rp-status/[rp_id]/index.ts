@@ -14,6 +14,7 @@ import { getSdk as getUpdateRpStatusSdk } from "./graphql/update-rp-status.gener
 
 const CACHE_TTL_SECONDS = 3600;
 const CACHE_KEY_PREFIX = "rp_status:v2:";
+const PENDING_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes
 
 interface DualStatus {
   production_status: string;
@@ -159,8 +160,13 @@ export async function GET(
   }
 
   // Cross-contract logic: if one contract IS initialized but the other is NOT,
-  // the non-initialized one should be "failed" (submission never went through)
-  if (stagingContractAddress) {
+  // the non-initialized one should be "failed" (submission never went through).
+  // Only apply after the pending timeout to avoid a race where one contract
+  // initializes a few seconds before the other.
+  const ageMs = Date.now() - new Date(dbRecord.created_at).getTime();
+  const isPastGracePeriod = ageMs > PENDING_TIMEOUT_MS;
+
+  if (stagingContractAddress && isPastGracePeriod) {
     if (productionInitialized && !stagingInitialized) {
       stagingStatus = RpRegistrationStatus.Failed;
     }
@@ -183,6 +189,42 @@ export async function GET(
       });
     } catch (error) {
       logger.error("Failed to update RP status in DB", { rpId, error });
+    }
+  }
+
+  // Timeout: if production is NOT initialized on-chain and DB status is still
+  // pending after 5 minutes, transition to failed so the user sees a retry button.
+  if (
+    !productionInitialized &&
+    currentDbStatus === RpRegistrationStatus.Pending &&
+    isPastGracePeriod
+  ) {
+    logger.warn(
+      "RP registration pending timeout — transitioning to failed",
+      {
+        rpId,
+        createdAt: dbRecord.created_at,
+        ageMs,
+        operation_hash: dbRecord.operation_hash ?? "null",
+      },
+    );
+
+    try {
+      await getUpdateRpStatusSdk(client).UpdateRpStatus({
+        rp_id: rpId,
+        status: RpRegistrationStatus.Failed,
+      });
+
+      productionStatus = RpRegistrationStatus.Failed;
+
+      if (stagingContractAddress && !stagingInitialized) {
+        stagingStatus = RpRegistrationStatus.Failed;
+      }
+    } catch (error) {
+      logger.error("Failed to update timed-out RP status in DB", {
+        rpId,
+        error,
+      });
     }
   }
 
