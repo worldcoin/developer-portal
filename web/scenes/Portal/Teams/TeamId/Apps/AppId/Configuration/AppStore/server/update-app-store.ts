@@ -77,7 +77,7 @@ export async function updateAppStoreMetadata(
       (l) => l.language === "en",
     );
     const appMetadataInput = {
-      category: parsedParams.category,
+      category: parsedParams.category || "External",
       is_android_only: parsedParams.is_android_only,
       is_for_humans_only: parsedParams.is_for_humans_only,
       support_link: supportLink,

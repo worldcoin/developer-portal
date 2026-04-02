@@ -71,7 +71,7 @@ export const CreateDraftDocument = gql`
     $content_card_image_url: String = ""
     $description: String = ""
     $world_app_description: String = ""
-    $category: String = ""
+    $category: String = "External"
     $is_developer_allow_listing: Boolean
     $integration_url: String = ""
     $app_website_url: String = ""
