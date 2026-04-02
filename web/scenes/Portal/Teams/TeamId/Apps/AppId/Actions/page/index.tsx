@@ -64,7 +64,6 @@ export const ActionsPage = ({ params, searchParams }: ActionsPageProps) => {
   });
 
   const { data } = actionsRes;
-
   const engineType = appRes.data?.app?.engine;
   const appName = appRes.data?.app?.app_metadata[0]?.name;
   const worldId40Config = useAtomValue(worldId40Atom);
@@ -108,52 +107,67 @@ export const ActionsPage = ({ params, searchParams }: ActionsPageProps) => {
       )}
 
       {isInitial && (
-        <div className="grid size-full items-start justify-items-center overflow-hidden pt-20">
-          <InitialSteps
-            title="Create your first action"
-            description="Actions are used to request uniqueness proofs"
-            steps={[
-              // FIXME: pass actual app
-              <Step
-                key={`actions-tutorial-step-1`}
-                href="#"
-                icon={
-                  <IconFrame className="">
-                    <Placeholder
-                      name={appName ?? "Add your app"}
-                      className="size-full rounded-full"
-                    />
-                  </IconFrame>
-                }
-                title={appName ?? "Add your app"}
-                description="App created successfully"
-                buttonText="Start"
-                testId="app-1"
-                completed
-              />,
-              <Step
-                key={`actions-tutorial-step-2`}
-                href="?createAction=true"
-                icon={
-                  <IconFrame className="bg-additional-purple-500 text-grey-0">
-                    <UserStoryIcon />
-                  </IconFrame>
-                }
-                title="Create action"
-                description="Allow user to verify as a unique person"
-                buttonText="Create"
-                testId="create-action"
-              />,
-            ]}
-          />
-        </div>
+        <>
+          {isEnabled ? (
+            <div className="pt-20">
+              {/* Defensive fallback when client flags briefly diverge from server-side route redirects. */}
+              <Notification variant="warning">
+                <Typography
+                  variant={TYPOGRAPHY.S3}
+                  className="text-system-warning-800"
+                >
+                  Legacy actions are deprecated and read-only.
+                </Typography>
+              </Notification>
+            </div>
+          ) : (
+            <div className="grid size-full items-start justify-items-center overflow-hidden pt-20">
+              <InitialSteps
+                title="Create your first action"
+                description="Actions are used to request uniqueness proofs"
+                steps={[
+                  <Step
+                    key={`actions-tutorial-step-1`}
+                    href="#"
+                    icon={
+                      <IconFrame className="">
+                        <Placeholder
+                          name={appName ?? "Add your app"}
+                          className="size-full rounded-full"
+                        />
+                      </IconFrame>
+                    }
+                    title={appName ?? "Add your app"}
+                    description="App created successfully"
+                    buttonText="Start"
+                    testId="app-1"
+                    completed
+                  />,
+                  <Step
+                    key={`actions-tutorial-step-2`}
+                    href="?createAction=true"
+                    icon={
+                      <IconFrame className="bg-additional-purple-500 text-grey-0">
+                        <UserStoryIcon />
+                      </IconFrame>
+                    }
+                    title="Create action"
+                    description="Allow user to verify as a unique person"
+                    buttonText="Create"
+                    testId="create-action"
+                  />,
+                ]}
+              />
+            </div>
+          )}
+        </>
       )}
 
       {createAction && !isEnabled && (
         <CreateActionModal
           className={clsx({ hidden: !createAction })}
           engineType={engineType}
-          firstAction={data?.actions.length === 0} // Due to the refetch query completing this value will be updated to 1
+          firstAction={data?.actions.length === 0}
         />
       )}
     </SizingWrapper>

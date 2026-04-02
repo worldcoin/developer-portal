@@ -12,6 +12,7 @@ type Images = {
 
 export const viewModeAtom = atom<"unverified" | "verified">("unverified");
 export const showReviewStatusAtom = atom<boolean>(true);
+export const isMiniAppAtom = atom<boolean>(false);
 
 export const unverifiedImageAtom = atom<Images>({
   logo_img_url: "loading",

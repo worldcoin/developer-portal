@@ -1,7 +1,6 @@
-import { hashActionToUint256 } from "@/api/helpers/rp-utils";
 import { verifyProofOnChain } from "@/api/helpers/temporal-rpc";
 import { logger } from "@/lib/logger";
-import { AppErrorCodes } from "@worldcoin/idkit-core";
+import { hashSignal } from "@worldcoin/idkit/hashing";
 import { UniquenessProofResponseV4 } from "../request-schema";
 import { UniquenessResult } from "./handler";
 
@@ -22,7 +21,8 @@ export async function processUniquenessProofV4(
         const verifyResult = await verifyProofOnChain(
           {
             nullifier: BigInt(item.nullifier),
-            action: hashActionToUint256(action),
+            // Note: `hashSignal` is same as `hashToField` from previous idkit versions
+            action: BigInt(hashSignal(action)),
             rpId,
             nonce: BigInt(nonce),
             signalHash: BigInt(item.signal_hash),
@@ -46,7 +46,8 @@ export async function processUniquenessProofV4(
           return {
             identifier: item.identifier,
             success: false,
-            code: verifyResult.error?.code || AppErrorCodes.GenericError,
+            // Defaulting to "generic_error" for backwards compatibility.
+            code: verifyResult.error?.code || "generic_error",
             detail:
               verifyResult.error?.detail ||
               "There was an error verifying this proof.",

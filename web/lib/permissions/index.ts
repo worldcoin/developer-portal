@@ -137,6 +137,30 @@ export const getIsUserAllowedToUpdateAppMetadata = async (
   return false;
 };
 
+export const getAppMetadataPermissionAndMode = async (
+  appMetadataId: string,
+): Promise<{ allowed: boolean; appMode: string | null }> => {
+  if (!(await getIsIdValid(appMetadataId))) {
+    return { allowed: false, appMode: null };
+  }
+
+  const session = await getSession();
+  if (!session) {
+    return { allowed: false, appMode: null };
+  }
+
+  const userId = session.user.hasura.id;
+  const response = await getAppMetadataPermissionsSdk(
+    await getAPIServiceGraphqlClient(),
+  ).GetIsUserPermittedToModifyAppMetadata({ appMetadataId, userId });
+
+  const row = response.app_metadata[0];
+  if (!row || !row.app.team.memberships.length) {
+    return { allowed: false, appMode: null };
+  }
+  return { allowed: true, appMode: row.app_mode };
+};
+
 export const getIsUserAllowedToInsertLocalisation = async (appId: string) => {
   if (!getIsIdValid(appId)) {
     return false;

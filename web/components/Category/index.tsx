@@ -21,6 +21,7 @@ export const CategorySelector = (props: {
   helperText?: string;
   required?: boolean;
   disabled: boolean;
+  variant?: "flat";
 }) => {
   const {
     value,
@@ -31,6 +32,7 @@ export const CategorySelector = (props: {
     className,
     required,
     disabled,
+    variant,
   } = props;
 
   const categories = useMemo(() => Categories.map((i) => i.name), []);
@@ -70,6 +72,74 @@ export const CategorySelector = (props: {
     },
     [onChange, categories],
   );
+
+  if (variant === "flat") {
+    return (
+      <Select
+        value={
+          value ? categories.indexOf(value as (typeof categories)[number]) : -1
+        }
+        onChange={handleSelect}
+        disabled={disabled}
+        by={(a: number | null, b: number | null) => a === b}
+      >
+        <div className="grid">
+          <SelectButton
+            className={clsx(
+              "group flex w-full items-center gap-2 rounded-[10px] bg-grey-50 px-4 py-3 text-left",
+              disabled && "opacity-50",
+              className,
+            )}
+            data-testid="button-select-category"
+          >
+            <div className="flex flex-1 flex-col justify-center">
+              <Typography variant={TYPOGRAPHY.B4} className="text-grey-500">
+                {label}
+                {required && (
+                  <span className="ml-0.5 text-system-error-500">*</span>
+                )}
+              </Typography>
+              <Typography
+                variant={TYPOGRAPHY.B3}
+                className={clsx(value ? "text-grey-900" : "text-grey-400")}
+              >
+                {value || "Select a category"}
+              </Typography>
+            </div>
+            <CaretIcon
+              className={clsx("shrink-0 text-grey-500", {
+                "group-hover:text-grey-700": !disabled,
+              })}
+            />
+          </SelectButton>
+
+          <SelectOptions className="mt-1 max-h-40 text-sm focus:outline-none focus:ring-0">
+            {categories.map((_, index) => (
+              <SelectOption
+                key={index}
+                value={index}
+                className="h-full hover:bg-grey-50"
+              >
+                <div className="grid grid-cols-1fr/auto">
+                  <Typography variant={TYPOGRAPHY.R4}>
+                    {categories[index]}
+                  </Typography>
+                </div>
+              </SelectOption>
+            ))}
+          </SelectOptions>
+          {errors?.message && (
+            <Typography
+              className="mt-2 text-system-error-500"
+              variant={TYPOGRAPHY.R5}
+            >
+              {errors.message}
+            </Typography>
+          )}
+        </div>
+      </Select>
+    );
+  }
 
   return (
     <Select

@@ -1,9 +1,14 @@
-import { generateMetaTitle } from "@/lib/genarate-title";
-import { NotificationsPage } from "@/scenes/Portal/Teams/TeamId/Apps/AppId/Notifications/page";
-import { Metadata } from "next";
+import { redirect } from "next/navigation";
 
-export const metadata: Metadata = {
-  title: generateMetaTitle({ left: "Notifications" }),
+type Props = {
+  params: {
+    teamId: string;
+    appId: string;
+  };
 };
 
-export default NotificationsPage;
+export default function LegacyNotificationsPage({ params }: Props) {
+  redirect(
+    `/teams/${params.teamId}/apps/${params.appId}/mini-app/notifications`,
+  );
+}

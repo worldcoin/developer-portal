@@ -4,40 +4,23 @@ import { BottomBar } from "@/components/BottomBar";
 import { AppIcon } from "@/components/Icons/AppIcon";
 import { DashboardSquareIcon } from "@/components/Icons/DashboardSquareIcon";
 import { IncognitoIcon } from "@/components/Icons/IncognitoIcon";
+import { SecurityIcon } from "@/components/Icons/SecurityIcon";
 import { TransactionIcon } from "@/components/Icons/TransactionIcon";
 import { UserAccountIcon } from "@/components/Icons/UserAccountIcon";
+import { WalletIcon } from "@/components/Icons/WalletIcon";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { Tab, Tabs } from "@/components/Tabs";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { urls } from "@/lib/urls";
 import { usePathname, useSelectedLayoutSegment } from "next/navigation";
 import { ReactNode } from "react";
-
-function isOnboardingPath(
-  pathname: string | null,
-  params: { teamId?: string; appId?: string },
-): boolean {
-  if (!pathname || !params.teamId || !params.appId) return false;
-  const enablePath = urls
-    .enableWorldId40({ team_id: params.teamId, app_id: params.appId })
-    .split("?")[0];
-  const configurePath = urls
-    .configureSignerKey({ team_id: params.teamId, app_id: params.appId })
-    .split("?")[0];
-  const selfManagedPath = urls
-    .selfManagedRegistration({ team_id: params.teamId, app_id: params.appId })
-    .split("?")[0];
-  return (
-    pathname === enablePath ||
-    pathname === configurePath ||
-    pathname === selfManagedPath
-  );
-}
+import { SectionSubTabs } from "../common/SectionSubTabs";
 
 type AppIdChromeProps = {
   params: { teamId?: string; appId?: string };
   isOnChainApp: boolean;
   showWorldId40Nav: boolean;
+  hasRpRegistration: boolean;
   hasLegacyActions: boolean;
   children: ReactNode;
 };
@@ -46,15 +29,12 @@ export const AppIdChrome = ({
   params,
   isOnChainApp,
   showWorldId40Nav,
+  hasRpRegistration,
   hasLegacyActions,
   children,
 }: AppIdChromeProps) => {
   const pathname = usePathname();
   const segment = useSelectedLayoutSegment();
-
-  if (isOnboardingPath(pathname, params)) {
-    return <>{children}</>;
-  }
 
   const { teamId, appId } = params;
   if (!teamId || !appId) {
@@ -66,11 +46,28 @@ export const AppIdChrome = ({
     segment === "world-id-actions" ||
     segment === "actions";
   const isMiniAppSegment =
-    segment === "transactions" || segment === "notifications";
+    segment === "mini-app" ||
+    segment === "transactions" ||
+    segment === "notifications";
+  const miniAppPermissionsPath = urls.miniAppPermissions({
+    team_id: teamId,
+    app_id: appId,
+  });
+  const miniAppTransactionsPath = urls.miniAppTransactions({
+    team_id: teamId,
+    app_id: appId,
+  });
+  const miniAppNotificationsPath = urls.miniAppNotifications({
+    team_id: teamId,
+    app_id: appId,
+  });
+  const isMiniAppPermissions = pathname === miniAppPermissionsPath;
+  const isMiniAppTransactions = pathname === miniAppTransactionsPath;
+  const isMiniAppNotifications = pathname === miniAppNotificationsPath;
 
   if (showWorldId40Nav) {
     return (
-      <div className="flex flex-col">
+      <div className="flex min-h-dvh flex-col">
         <div className="md:border-b md:border-grey-100">
           <SizingWrapper gridClassName="hidden md:grid" variant="nav">
             <Tabs className="m-auto font-gta">
@@ -83,7 +80,13 @@ export const AppIdChrome = ({
               </Tab>
 
               <Tab
-                href={`/teams/${teamId}/apps/${appId}/world-id-4-0`}
+                href={
+                  hasRpRegistration
+                    ? `/teams/${teamId}/apps/${appId}/world-id-4-0`
+                    : hasLegacyActions
+                      ? `/teams/${teamId}/apps/${appId}/actions`
+                      : `/teams/${teamId}/apps/${appId}?enableWorldId4=true`
+                }
                 underlined
                 active={isWorldIdSegment}
                 segment={"world-id-4-0"}
@@ -100,10 +103,10 @@ export const AppIdChrome = ({
               </Tab>
 
               <Tab
-                href={`/teams/${teamId}/apps/${appId}/transactions`}
+                href={miniAppPermissionsPath}
                 underlined
                 active={isMiniAppSegment}
-                segment={"transactions"}
+                segment={"mini-app"}
               >
                 <Typography variant={TYPOGRAPHY.R4}>Mini App</Typography>
               </Tab>
@@ -113,36 +116,29 @@ export const AppIdChrome = ({
 
         {isWorldIdSegment && (
           <div className="md:border-b md:border-grey-100 md:bg-grey-50">
-            <SizingWrapper gridClassName="hidden md:grid" variant="nav">
-              <Tabs className="px-6 py-4 font-gta md:py-0">
-                <Tab
-                  className="md:py-4"
-                  href={`/teams/${teamId}/apps/${appId}/world-id-4-0`}
-                  segment={"world-id-4-0"}
-                >
-                  <Typography variant={TYPOGRAPHY.R4}>World ID 4.0</Typography>
-                </Tab>
-
-                <Tab
-                  className="md:py-4"
-                  href={`/teams/${teamId}/apps/${appId}/world-id-actions`}
-                  segment={"world-id-actions"}
-                >
-                  <Typography variant={TYPOGRAPHY.R4}>Actions</Typography>
-                </Tab>
-
-                {hasLegacyActions && (
-                  <Tab
-                    className="md:py-4"
-                    href={`/teams/${teamId}/apps/${appId}/actions`}
-                    segment={"actions"}
-                  >
-                    <Typography variant={TYPOGRAPHY.R4}>
-                      World ID 3.0 Legacy
-                    </Typography>
-                  </Tab>
-                )}
-              </Tabs>
+            <SizingWrapper variant="nav">
+              <SectionSubTabs
+                items={[
+                  {
+                    label: "World ID 4.0",
+                    href: `/teams/${teamId}/apps/${appId}/world-id-4-0`,
+                    segment: "world-id-4-0",
+                    hidden: !hasRpRegistration,
+                  },
+                  {
+                    label: "Actions",
+                    href: `/teams/${teamId}/apps/${appId}/world-id-actions`,
+                    segment: "world-id-actions",
+                    hidden: !hasRpRegistration,
+                  },
+                  {
+                    label: "World ID 3.0 Legacy",
+                    href: `/teams/${teamId}/apps/${appId}/actions`,
+                    segment: "actions",
+                    hidden: !hasLegacyActions,
+                  },
+                ]}
+              />
             </SizingWrapper>
           </div>
         )}
@@ -150,30 +146,35 @@ export const AppIdChrome = ({
         {isMiniAppSegment && (
           <div className="md:border-b md:border-grey-100 md:bg-grey-50">
             <SizingWrapper gridClassName="hidden md:grid" variant="nav">
-              <Tabs className="px-6 py-4 font-gta md:py-0">
-                <Tab
-                  className="md:py-4"
-                  href={`/teams/${teamId}/apps/${appId}/transactions`}
-                  segment={"transactions"}
-                >
-                  <Typography variant={TYPOGRAPHY.R4}>Transactions</Typography>
-                </Tab>
-
-                <Tab
-                  className="md:py-4"
-                  href={`/teams/${teamId}/apps/${appId}/notifications`}
-                  segment={"notifications"}
-                >
-                  <Typography variant={TYPOGRAPHY.R4}>Notifications</Typography>
-                </Tab>
-              </Tabs>
+              <SectionSubTabs
+                items={[
+                  {
+                    label: "Permissions",
+                    href: miniAppPermissionsPath,
+                    segment: "mini-app",
+                    active: isMiniAppPermissions,
+                  },
+                  {
+                    label: "Transactions",
+                    href: miniAppTransactionsPath,
+                    segment: "mini-app",
+                    active: isMiniAppTransactions,
+                  },
+                  {
+                    label: "Notifications",
+                    href: miniAppNotificationsPath,
+                    segment: "mini-app",
+                    active: isMiniAppNotifications,
+                  },
+                ]}
+              />
             </SizingWrapper>
           </div>
         )}
 
         {children}
 
-        <BottomBar>
+        <BottomBar className="order-last mt-auto">
           <BottomBar.Link
             href={`/teams/${teamId}/apps/${appId}`}
             segment={null}
@@ -182,24 +183,28 @@ export const AppIdChrome = ({
           </BottomBar.Link>
 
           <BottomBar.Link
-            href={`/teams/${teamId}/apps/${appId}/actions`}
-            segment={"actions"}
+            href={
+              hasRpRegistration
+                ? `/teams/${teamId}/apps/${appId}/world-id-4-0`
+                : hasLegacyActions
+                  ? `/teams/${teamId}/apps/${appId}/actions`
+                  : `/teams/${teamId}/apps/${appId}?enableWorldId4=true`
+            }
+            segment={"world-id-4-0"}
+            active={isWorldIdSegment}
           >
-            <IncognitoIcon className="size-7" />
+            <AppIcon className="size-7" />
           </BottomBar.Link>
 
           <BottomBar.Link
             href={`/teams/${teamId}/apps/${appId}/configuration`}
             segment={"configuration"}
           >
-            <AppIcon className="size-7" />
+            <SecurityIcon className="size-7" />
           </BottomBar.Link>
 
-          <BottomBar.Link
-            href={`/teams/${teamId}/apps/${appId}/transactions`}
-            segment={"transactions"}
-          >
-            <TransactionIcon className="size-7" />
+          <BottomBar.Link href={miniAppPermissionsPath} segment={"mini-app"}>
+            <WalletIcon className="size-7" />
           </BottomBar.Link>
         </BottomBar>
       </div>
@@ -207,7 +212,7 @@ export const AppIdChrome = ({
   }
 
   return (
-    <div className="flex flex-col">
+    <div className="flex min-h-dvh flex-col">
       <div className="md:border-b md:border-grey-100">
         <SizingWrapper gridClassName="hidden md:grid" variant="nav">
           <Tabs className="m-auto font-gta">
@@ -248,16 +253,18 @@ export const AppIdChrome = ({
             )}
 
             <Tab
-              href={`/teams/${teamId}/apps/${appId}/transactions`}
+              href={miniAppTransactionsPath}
               underlined
-              segment={"transactions"}
+              segment={"mini-app"}
+              active={isMiniAppTransactions}
             >
               <Typography variant={TYPOGRAPHY.R4}>Transactions</Typography>
             </Tab>
             <Tab
-              href={`/teams/${teamId}/apps/${appId}/notifications`}
+              href={miniAppNotificationsPath}
               underlined
-              segment={"notifications"}
+              segment={"mini-app"}
+              active={isMiniAppNotifications}
             >
               <Typography variant={TYPOGRAPHY.R4}>Notifications</Typography>
             </Tab>
@@ -275,7 +282,7 @@ export const AppIdChrome = ({
 
       {children}
 
-      <BottomBar>
+      <BottomBar className="order-last mt-auto">
         <BottomBar.Link href={`/teams/${teamId}/apps/${appId}`} segment={null}>
           <DashboardSquareIcon className="size-7" />
         </BottomBar.Link>
@@ -298,12 +305,9 @@ export const AppIdChrome = ({
           href={`/teams/${teamId}/apps/${appId}/configuration`}
           segment={"configuration"}
         >
-          <AppIcon className="size-7" />
+          <SecurityIcon className="size-7" />
         </BottomBar.Link>
-        <BottomBar.Link
-          href={`/teams/${teamId}/apps/${appId}/transactions`}
-          segment={"transactions"}
-        >
+        <BottomBar.Link href={miniAppTransactionsPath} segment={"mini-app"}>
           <TransactionIcon className="size-7" />
         </BottomBar.Link>
       </BottomBar>

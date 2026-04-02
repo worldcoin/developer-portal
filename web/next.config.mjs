@@ -60,6 +60,16 @@ const nextConfig = {
   async redirects() {
     return [
       {
+        source: "/teams/:teamId/apps/:appId/configuration/app-store",
+        permanent: false,
+        destination: "/teams/:teamId/apps/:appId/configuration",
+      },
+      {
+        source: "/teams/:teamId/apps/:appId/configuration/advanced",
+        permanent: false,
+        destination: "/teams/:teamId/apps/:appId/configuration",
+      },
+      {
         source: "/privacy-statement",
         permanent: false,
         destination:

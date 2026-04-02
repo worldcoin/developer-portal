@@ -66,7 +66,10 @@ export const getFileExtension = (filename: string): string => {
  * @param methods - The methods to allow
  * @returns The response with CORS headers added
  */
-export function corsHandler(response: NextResponse, methods: string[]) {
+export function corsHandler<T>(
+  response: NextResponse<T>,
+  methods: string[],
+): NextResponse<T> {
   response.headers.set("Access-Control-Allow-Origin", "*");
   response.headers.set("Access-Control-Allow-Methods", methods.join(", "));
   response.headers.set("Access-Control-Allow-Headers", "Content-Type");
@@ -90,17 +93,11 @@ export async function getAppUrlFromRequest(req: NextRequest): Promise<string> {
     req?.headers?.get("host") ||
     req?.nextUrl?.host;
 
-  const protocol =
-    req?.headers?.get("x-forwarded-proto") ||
-    req?.headers?.get("x-forwarded-protocol") ||
-    (req?.nextUrl?.protocol === "https:" ? "https" : "http");
+  const protocol = "https";
 
-  // Strip default ports (80 for http, 443 for https)
+  // Strip default ports regardless of protocol
   if (host) {
-    if (
-      (protocol === "https" && host.endsWith(":443")) ||
-      (protocol === "http" && host.endsWith(":80"))
-    ) {
+    if (host.endsWith(":443") || host.endsWith(":80")) {
       host = host.split(":")[0];
     }
 

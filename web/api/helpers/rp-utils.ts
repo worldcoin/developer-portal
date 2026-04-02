@@ -4,6 +4,7 @@ import "server-only";
  * Utilities for RP (Relying Party) operations.
  */
 
+import { generateRpId, generateRpIdString } from "@/lib/rp";
 import { keccak256, toUtf8Bytes } from "ethers";
 import { GraphQLClient } from "graphql-request";
 import { getSdk as getFetchRpRegistrationSdk } from "./graphql/fetch-rp-registration.generated";
@@ -23,22 +24,7 @@ export enum RpRegistrationStatus {
 // RP ID Utilities
 // =============================================================================
 
-/**
- * RP ID is derived as uint64(keccak256(app_id)).
- */
-export function generateRpId(appId: string): bigint {
-  const hash = keccak256(toUtf8Bytes(appId));
-  const uint64Hex = hash.slice(2, 18);
-  return BigInt("0x" + uint64Hex);
-}
-
-/**
- * Returns rp_id string (rp_ + 16 hex chars) for database storage.
- */
-export function generateRpIdString(appId: string): string {
-  const rpId = generateRpId(appId);
-  return "rp_" + rpId.toString(16).padStart(16, "0");
-}
+export { generateRpId, generateRpIdString };
 
 export function isValidRpId(rpId: string): boolean {
   if (typeof rpId !== "string" || !rpId.startsWith("rp_")) {
@@ -71,18 +57,6 @@ export function mapOnChainToDbStatus(
     : RpRegistrationStatus.Deactivated;
 }
 
-/**
- * Hashes an action string to a uint256 for on-chain verification.
- * If the action is already a numeric string or hex, it's used directly.
- */
-export function hashActionToUint256(action: string): bigint {
-  if (/^(0x[\da-fA-F]+|\d+)$/.test(action)) {
-    return BigInt(action);
-  }
-  const hash = keccak256(toUtf8Bytes(action));
-  return BigInt(hash);
-}
-
 // =============================================================================
 // Address Utilities
 // =============================================================================
@@ -102,6 +76,9 @@ export function normalizeAddress(address: string): string {
 /** World Chain ID for RP Registry operations. */
 export const WORLD_CHAIN_ID = 480;
 
+/** WLD ERC-20 token address on World Chain. */
+export const WLD_TOKEN_ADDRESS = "0x2cFc85d8E48F8EAB294be644d9E25C3030863003";
+
 /** Required environment variables for RP Registry operations. */
 export interface RpRegistryConfig {
   safeOwnerKmsKeyId: string;
@@ -114,6 +91,8 @@ export interface RpRegistryConfig {
   domainSeparator: string;
   /** UPDATE_RP_TYPEHASH constant from contract */
   updateRpTypehash: string;
+  /** CredentialSchemaIssuerRegistry contract that pulls WLD from the Safe */
+  credentialSchemaIssuerRegistryAddress: string;
 }
 
 /**
@@ -130,6 +109,8 @@ export function getRpRegistryConfig(): RpRegistryConfig | null {
     kmsRegion: process.env.RP_REGISTRY_KMS_REGION,
     domainSeparator: process.env.RP_REGISTRY_DOMAIN_SEPARATOR,
     updateRpTypehash: process.env.RP_REGISTRY_UPDATE_RP_TYPEHASH,
+    credentialSchemaIssuerRegistryAddress:
+      process.env.CREDENTIAL_SCHEMA_ISSUER_REGISTRY_ADDRESS,
   };
 
   if (Object.values(config).some((v) => !v)) {

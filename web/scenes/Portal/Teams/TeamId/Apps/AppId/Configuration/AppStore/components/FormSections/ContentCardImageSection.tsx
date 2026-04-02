@@ -3,6 +3,7 @@ import { ContentCardImageUpload } from "../../ContentCardImageUpload";
 import { AppStoreFormValues } from "../../FormSchema/types";
 import { AppMetadata, FormSectionProps } from "../../types/AppStoreFormTypes";
 import { FormSection } from "../FormFields/FormSection";
+import { TYPOGRAPHY } from "@/components/Typography";
 
 type ContentCardImageSectionProps = FormSectionProps & {
   appId: string;
@@ -26,6 +27,7 @@ export const ContentCardImageSection = ({
     <FormSection
       title="Content card image"
       description="This image will be used when featuring your app in the Mini App Store. Required aspect ratio is 345px width and 240px height."
+      titleVariant={TYPOGRAPHY.S2}
     >
       <ContentCardImageUpload
         appId={appId}
@@ -34,7 +36,6 @@ export const ContentCardImageSection = ({
         isEditable={isEditable}
         isError={hasContentCardError}
         contentCardImageFile={appMetadata.content_card_image_url}
-        defaultOpen={false}
       />
     </FormSection>
   );

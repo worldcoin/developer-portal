@@ -1,11 +1,11 @@
-import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { ErrorPage } from "@/components/ErrorPage";
 import { isWorldId40EnabledServer } from "@/lib/feature-flags/world-id-4-0/server";
+import { logger } from "@/lib/logger";
 import { Auth0SessionUser, EngineType } from "@/lib/types";
 import { getSession } from "@auth0/nextjs-auth0";
 import { ReactNode } from "react";
 import { AppIdChrome } from "./AppIdChrome";
-import { getSdk as getAppEnv } from "./graphql/server/fetch-app-env.generated";
+import { fetchAppEnvCached } from "./server/fetch-app-env";
 
 type Params = {
   teamId?: string;
@@ -19,6 +19,9 @@ type AppIdLayoutProps = {
 
 export const AppIdLayout = async (props: AppIdLayoutProps) => {
   const params = props.params;
+  let isOnChainApp = false;
+  let hasLegacyActions = false;
+  let hasRpRegistration = false;
 
   const session = await getSession();
   const user = session?.user as Auth0SessionUser["user"];
@@ -30,26 +33,39 @@ export const AppIdLayout = async (props: AppIdLayoutProps) => {
     return <ErrorPage statusCode={404} title="App not found" />;
   }
 
-  const client = await getAPIServiceGraphqlClient();
-  const { app, action } = await getAppEnv(client).FetchAppEnv({
-    id: params.appId ?? "",
-  });
+  if (params.appId) {
+    try {
+      const { app, action } = await fetchAppEnvCached(params.appId);
 
-  if (!app?.[0]) {
-    return <ErrorPage statusCode={404} title="App not found" />;
+      if (app?.[0]) {
+        isOnChainApp = app[0].engine === EngineType.OnChain;
+        hasLegacyActions = action.length > 0;
+        hasRpRegistration = app[0].rp_registration.length > 0;
+      } else {
+        logger.warn("AppIdLayout could not resolve app from FetchAppEnv", {
+          appId: params.appId,
+          teamId: params.teamId,
+        });
+        return <ErrorPage statusCode={404} title="App not found" />;
+      }
+    } catch (error) {
+      logger.error("AppIdLayout FetchAppEnv failed", {
+        error,
+        appId: params.appId,
+        teamId: params.teamId,
+      });
+      return <ErrorPage statusCode={500} title="Failed to load app" />;
+    }
   }
 
-  const isOnChainApp = app[0].engine === EngineType.OnChain;
-  const hasLegacyActions = action.length > 0;
-  const isWorldId40Enabled = await isWorldId40EnabledServer(params.teamId);
-  const showWorldId40Nav =
-    isWorldId40Enabled && (app[0].rp_registration?.length ?? 0) > 0;
+  const showWorldId40Nav = await isWorldId40EnabledServer(params.teamId);
 
   return (
     <AppIdChrome
       params={params}
       isOnChainApp={isOnChainApp}
       showWorldId40Nav={showWorldId40Nav}
+      hasRpRegistration={hasRpRegistration}
       hasLegacyActions={hasLegacyActions}
     >
       {props.children}

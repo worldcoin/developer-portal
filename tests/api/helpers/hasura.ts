@@ -243,16 +243,28 @@ export const createTestTeam = async (name: string) => {
   }
 };
 
+const createTestUserIdentifiers = () => {
+  const suffix = `${Date.now()}_${crypto.randomBytes(6).toString("hex")}`;
+
+  return {
+    auth0Id: `auth0|test_${suffix}`,
+    ironcladId: `ironclad_test_${suffix}`,
+    worldIdNullifier: `0x${crypto.randomBytes(16).toString("hex")}`,
+  };
+};
+
 // Helper for creating test user
 export const createTestUser = async (email: string, teamId?: string) => {
   try {
+    const { auth0Id, ironcladId, worldIdNullifier } =
+      createTestUserIdentifiers();
     const response = (await adminGraphqlClient.request(CREATE_USER_MUTATION, {
       object: {
         email,
-        auth0Id: `auth0|test_${Date.now()}`,
+        auth0Id,
         ...(teamId && { team_id: teamId }),
-        ironclad_id: `ironclad_test_${Date.now()}`,
-        world_id_nullifier: `0x${Date.now().toString(16)}`,
+        ironclad_id: ironcladId,
+        world_id_nullifier: worldIdNullifier,
       },
     })) as any;
 

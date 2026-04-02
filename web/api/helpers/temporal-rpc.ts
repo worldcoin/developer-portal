@@ -6,6 +6,7 @@ import "server-only";
 
 import { logger } from "@/lib/logger";
 import { Contract, FetchRequest, JsonRpcProvider, Network } from "ethers";
+import ERC20_ABI from "./abi/erc20.json";
 import RP_REGISTRY_ABI from "./abi/rp-registry.json";
 import VERIFIER_ABI from "./abi/verifier.json";
 import { UserOperation } from "./user-operation";
@@ -16,6 +17,32 @@ import { UserOperation } from "./user-operation";
 
 export interface SendUserOperationResult {
   operationHash: string;
+}
+
+export interface UserOperationReceipt {
+  entryPoint: string;
+  userOpHash: string;
+  sender: string;
+  nonce: string;
+  actualGasUsed: string;
+  actualGasCost: string;
+  success: boolean;
+  logs: unknown[];
+  receipt: {
+    transactionHash: string;
+    transactionIndex: string;
+    blockHash: string;
+    blockNumber: string;
+    from: string;
+    to: string;
+    cumulativeGasUsed: string;
+    gasUsed: string;
+    contractAddress: string | null;
+    logs: unknown[];
+    logsBloom: string;
+    status: string;
+    effectiveGasPrice: string;
+  };
 }
 
 export interface OnChainRelyingParty {
@@ -204,6 +231,17 @@ export async function sendUserOperation(
   return { operationHash };
 }
 
+/**
+ * Fetches a UserOperation receipt from the temporal RPC endpoint.
+ * Returns null while the operation is still pending.
+ */
+export async function getUserOperationReceipt(
+  userOpHash: string,
+): Promise<UserOperationReceipt | null> {
+  const provider = createProvider();
+  return await provider.send("eth_getUserOperationReceipt", [userOpHash]);
+}
+
 // =============================================================================
 // RP Registry Queries
 // =============================================================================
@@ -276,6 +314,19 @@ export async function getUpdateRpTypehash(
 ): Promise<string> {
   const contract = createRpRegistryContract(contractAddress);
   return await contract.UPDATE_RP_TYPEHASH();
+}
+
+/**
+ * Returns the current WLD token allowance that `owner` has granted to `spender`.
+ */
+export async function getERC20Allowance(
+  owner: string,
+  spender: string,
+  tokenAddress: string,
+): Promise<bigint> {
+  const contract = new Contract(tokenAddress, ERC20_ABI, createProvider());
+  const allowance = await contract.allowance(owner, spender);
+  return BigInt(allowance);
 }
 
 // =============================================================================

@@ -54,8 +54,7 @@ export const MetaTagImageField = (props: MetaTagImageFieldProps) => {
   });
 
   const [upsertLocalisedMetaTagImage] = useUpsertLocalisedMetaTagImageMutation({
-    onCompleted: (data) => {
-      console.log("autosave successful", data);
+    onCompleted: () => {
       toast.success("Meta tag image saved successfully");
       onAutosaveSuccess?.();
     },

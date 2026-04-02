@@ -8,18 +8,17 @@ import {
   getIsUserAllowedToUpdateAppMetadata,
 } from "@/lib/permissions";
 import { extractIdsFromPath, getPathFromHeaders } from "@/lib/server-utils";
-import { EngineType, FormActionResult } from "@/lib/types";
+import { FormActionResult } from "@/lib/types";
 import { schema } from "../form-schema";
-import {
-  getSdk as getUpdateAppSdk,
-  UpdateAppInfoMutationVariables,
-} from "../graphql/server/update-app.generated";
+import { getSdk as getUpdateAppSdk } from "../graphql/server/update-app.generated";
 
 export async function validateAndSubmitServerSide(
   app_metadata_id: string,
   app_id: string,
-  input: UpdateAppInfoMutationVariables["input"] & {
-    engine: EngineType;
+  input: {
+    name?: string;
+    integration_url?: string;
+    app_website_url?: string;
   },
 ): Promise<FormActionResult> {
   const path = getPathFromHeaders() || "";
@@ -32,7 +31,7 @@ export async function validateAndSubmitServerSide(
       return errorFormAction({
         message:
           "The user does not have permission to update this app metadata",
-        app_id: input?.app_id ?? undefined,
+        app_id: app_id ?? undefined,
         team_id: teamId,
         logLevel: "warn",
       });
@@ -58,7 +57,7 @@ export async function validateAndSubmitServerSide(
         message: "The provided app metadata basic information is invalid",
         additionalInfo: { app_metadata_id, input },
         team_id: teamId,
-        app_id: input?.app_id ?? undefined,
+        app_id: app_id ?? undefined,
         logLevel: "warn",
       });
     }
@@ -66,11 +65,12 @@ export async function validateAndSubmitServerSide(
     const client = await getAPIServiceGraphqlClient();
     await getUpdateAppSdk(client).UpdateAppInfo({
       app_metadata_id,
-      app_id,
-      engine: parsedInput.engine,
       input: {
         name: parsedInput.name,
         integration_url: parsedInput.integration_url,
+        ...(parsedInput.app_website_url && {
+          app_website_url: parsedInput.app_website_url,
+        }),
       },
     });
 
@@ -84,7 +84,7 @@ export async function validateAndSubmitServerSide(
       error: error as Error,
       additionalInfo: { app_metadata_id, input },
       team_id: teamId,
-      app_id: input?.app_id ?? undefined,
+      app_id: app_id ?? undefined,
       logLevel: "error",
     });
   }

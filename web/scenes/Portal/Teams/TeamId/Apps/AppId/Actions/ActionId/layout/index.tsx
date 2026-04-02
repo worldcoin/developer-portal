@@ -85,7 +85,7 @@ export const ActionIdLayout = (props: ActionIdLayout) => {
 
       {/* Tabs Section */}
       <SizingWrapper gridClassName="order-2 pt-2">
-        <Tabs className="border-b border-grey-100 font-gta md:py-0">
+        <Tabs className="border-b border-grey-100 pb-2 font-gta md:py-0 md:pb-0">
           {!isOnChainApp && (
             <Tab
               className="md:py-4"

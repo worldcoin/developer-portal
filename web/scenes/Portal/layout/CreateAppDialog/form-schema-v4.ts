@@ -1,13 +1,14 @@
 import { CategoryNameIterable } from "@/lib/categories";
+import { appNameSchema } from "@/lib/schema";
 import * as yup from "yup";
 
 export const createAppSchemaV4 = yup
   .object({
-    name: yup.string().required("This field is required"),
+    name: appNameSchema,
     integration_url: yup
       .string()
       .url("Must be a valid URL")
-      .matches(/^https:\/\/(\w+-)*\w+(\.\w+)+([\/\w\-._/?%&#=]*)?$/, {
+      .matches(/^https:\/\//, {
         message: "URL must use HTTPS (e.g., https://example.com)",
         excludeEmptyString: true,
       })

@@ -1,8 +1,8 @@
 import { Nullifier } from "@/graphql/graphql";
+import { LegacyVerificationLevel } from "@/lib/idkit";
 import { logger } from "@/lib/logger";
 import { IInternalError } from "@/lib/types";
 import { sequencerMapping } from "@/lib/utils";
-import { VerificationLevel } from "@worldcoin/idkit-core";
 import { AbiCoder, toBeHex } from "ethers";
 import * as yup from "yup";
 
@@ -55,7 +55,7 @@ export interface IInputParams {
 
 export interface IVerifyParams {
   is_staging: boolean;
-  verification_level: VerificationLevel | "face";
+  verification_level: LegacyVerificationLevel;
   max_age?: number;
 }
 

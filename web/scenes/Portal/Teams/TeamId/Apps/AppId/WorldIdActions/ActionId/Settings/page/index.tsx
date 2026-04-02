@@ -1,12 +1,12 @@
 "use client";
 
-import { SizingWrapper } from "@/components/SizingWrapper";
 import { ErrorPage } from "@/components/ErrorPage";
+import { SizingWrapper } from "@/components/SizingWrapper";
+import { TryAction } from "@/scenes/Portal/Teams/TeamId/Apps/AppId/Actions/ActionId/Settings/TryAction";
+import Skeleton from "react-loading-skeleton";
 import { useGetSingleActionV4Query } from "../../page/graphql/client/get-single-action-v4.generated";
 import { UpdateActionV4Form } from "../UpdateActionV4Form";
-import { TryAction } from "@/scenes/Portal/Teams/TeamId/Apps/AppId/Actions/ActionId/Settings/TryAction";
 import { adaptActionV4ForTryAction } from "./utils/adapt-action-v4";
-import Skeleton from "react-loading-skeleton";
 
 type WorldIdActionIdSettingsPageProps = {
   params: Record<string, string> | null | undefined;
@@ -62,6 +62,7 @@ export const WorldIdActionIdSettingsPage = ({
                 app_id: action!.rp_registration.app_id,
               },
             })}
+            is_v4_action={true}
           />
         )}
       </div>

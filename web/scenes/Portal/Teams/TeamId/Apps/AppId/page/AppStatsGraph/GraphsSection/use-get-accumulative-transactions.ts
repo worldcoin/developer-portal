@@ -3,7 +3,7 @@ import {
   getAccumulativePaymentsData,
   GetAccumulativePaymentsDataReturnType,
   GetAccumulativeTransactionsDataReturnType,
-} from "../../../Transactions/page/server/getAccumulativeTransactionData";
+} from "../../../MiniApp/Transactions/page/server/getAccumulativeTransactionData";
 
 export const useGetAccumulativeTransactions = (appId: string) => {
   const [payments, setPayments] =

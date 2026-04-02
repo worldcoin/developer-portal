@@ -3,6 +3,14 @@ import { FormActionResult } from "@/lib/types";
 import { NextRequest, NextResponse } from "next/server";
 import "server-only";
 
+export type ErrorResponseBody = {
+  code: string;
+  detail: string;
+  attribute: string | null;
+  app_id?: string;
+  team_id?: string;
+};
+
 export function errorResponse(params: {
   statusCode: number;
   code: string;
@@ -11,7 +19,7 @@ export function errorResponse(params: {
   req: NextRequest;
   app_id?: string;
   team_id?: string;
-}) {
+}): NextResponse<ErrorResponseBody> {
   const {
     statusCode,
     code,
@@ -192,6 +200,7 @@ export function errorFormAction({
   app_id,
   team_id,
   logLevel,
+  code = "UNKNOWN",
 }: {
   error?: Error;
   message: string;
@@ -199,6 +208,7 @@ export function errorFormAction({
   app_id?: string;
   team_id?: string;
   logLevel?: "error" | "warn";
+  code?: "AUTH_EXPIRED" | "FORBIDDEN" | "VALIDATION_ERROR" | "UNKNOWN";
 }): FormActionResult {
   logger[logLevel || "error"](message, {
     error,
@@ -208,8 +218,8 @@ export function errorFormAction({
   });
 
   const serializedError = error
-    ? JSON.parse(JSON.stringify(error, Object.getOwnPropertyNames(error)))
+    ? { message: error.message, name: error.name }
     : undefined;
 
-  return { success: false, message, error: serializedError };
+  return { success: false, message, code, error: serializedError };
 }

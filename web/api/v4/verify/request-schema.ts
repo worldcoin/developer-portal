@@ -1,10 +1,5 @@
-import { VerificationLevel } from "@worldcoin/idkit-core";
+import { LegacyVerificationLevel } from "@/lib/idkit";
 import * as yup from "yup";
-
-const VerificationLevelWithFace = {
-  ...VerificationLevel,
-  Face: "face" as const,
-};
 
 /**
  * Schema for v4 verify request - supports both v3 (cloud) and v4 (on-chain) proofs.
@@ -19,7 +14,7 @@ const v3ResponseItemSchema = yup.object({
   // Identifier uses VerificationLevel values (legacy term for credential type: "orb", "device", "face")
   identifier: yup
     .string()
-    .oneOf(Object.values(VerificationLevelWithFace))
+    .oneOf(Object.values(LegacyVerificationLevel))
     .required("identifier is required"),
   signal_hash: yup
     .string()
@@ -187,7 +182,12 @@ export const schema = yup
 
       for (let i = 0; i < responses.length; i++) {
         try {
-          itemSchema.validateSync(responses[i], { abortEarly: false });
+          // Persist per-item defaults/transforms (e.g. signal_hash default)
+          // back into the parsed request body.
+          responses[i] = itemSchema.validateSync(responses[i], {
+            abortEarly: false,
+            stripUnknown: true,
+          });
         } catch (err) {
           if (err instanceof yup.ValidationError) {
             return this.createError({

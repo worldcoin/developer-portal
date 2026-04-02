@@ -6,19 +6,26 @@ import "server-only";
  */
 
 import { signEthDigestWithKms } from "@/api/helpers/kms-eth";
-import { RpRegistryConfig, WORLD_CHAIN_ID } from "@/api/helpers/rp-utils";
 import {
+  RpRegistryConfig,
+  WLD_TOKEN_ADDRESS,
+  WORLD_CHAIN_ID,
+} from "@/api/helpers/rp-utils";
+import {
+  getERC20Allowance,
   getRpNonceFromContract,
   sendUserOperation,
 } from "@/api/helpers/temporal-rpc";
 import {
   ADDRESS_ZERO,
+  buildErc20ApproveCalldata,
   buildRegisterRpCalldata,
   buildToggleRpActiveCalldata,
   buildUpdateRpManagerCalldata,
   buildUpdateRpSignerCalldata,
   buildUserOperation,
   encodeSafeUserOpCalldata,
+  getApproveWldNonce,
   getRegisterRpNonce,
   getTxExpiration,
   getUpdateRpNonce,
@@ -27,8 +34,65 @@ import {
   replacePlaceholderWithSignature,
   RP_NO_UPDATE_DOMAIN,
 } from "@/api/helpers/user-operation";
+import { logger } from "@/lib/logger";
 import { KMSClient } from "@aws-sdk/client-kms";
-import { getBytes } from "ethers";
+import { getBytes, MaxUint256 } from "ethers";
+
+/**
+ * Builds, signs, and submits an ERC-20 approve(MaxUint256) UserOp so the
+ * Safe wallet grants the CredentialSchemaIssuerRegistry unlimited WLD spend.
+ */
+async function submitWldApprovalTransaction(
+  config: RpRegistryConfig,
+  kmsClient: KMSClient,
+): Promise<string> {
+  const approveCalldata = buildErc20ApproveCalldata(
+    config.credentialSchemaIssuerRegistryAddress,
+    MaxUint256,
+  );
+
+  const safeCalldata = encodeSafeUserOpCalldata(
+    WLD_TOKEN_ADDRESS,
+    0n,
+    approveCalldata,
+  );
+
+  const nonce = getApproveWldNonce();
+  const { validAfter, validUntil } = getTxExpiration();
+
+  const userOp = buildUserOperation(
+    config.safeAddress,
+    safeCalldata,
+    nonce,
+    validAfter,
+    validUntil,
+  );
+
+  const safeOpHash = hashSafeUserOp(
+    userOp,
+    WORLD_CHAIN_ID,
+    config.safe4337ModuleAddress,
+    config.entryPointAddress,
+  );
+
+  const signature = await signEthDigestWithKms(
+    kmsClient,
+    config.safeOwnerKmsKeyId,
+    getBytes(safeOpHash),
+  );
+
+  if (!signature) {
+    throw new Error("Failed to sign WLD approval transaction");
+  }
+
+  userOp.signature = replacePlaceholderWithSignature({
+    placeholderSig: userOp.signature,
+    signature: signature.serialized,
+  });
+
+  const result = await sendUserOperation(userOp, config.entryPointAddress);
+  return result.operationHash;
+}
 
 /**
  * Builds, signs, and submits a registerRp transaction for a given config.
@@ -44,6 +108,28 @@ export async function submitRegisterRpTransaction(
     kmsClient: KMSClient;
   },
 ): Promise<string> {
+  // Ensure the Safe has granted MaxUint256 WLD allowance to the
+  // CredentialSchemaIssuerRegistry before attempting registration.
+  const currentAllowance = await getERC20Allowance(
+    config.safeAddress,
+    config.credentialSchemaIssuerRegistryAddress,
+    WLD_TOKEN_ADDRESS,
+  );
+
+  if (currentAllowance < MaxUint256) {
+    const approvalHash = await submitWldApprovalTransaction(
+      config,
+      params.kmsClient,
+    );
+    logger.info("WLD approval UserOp submitted", {
+      approvalHash,
+      safeAddress: config.safeAddress,
+      spender: config.credentialSchemaIssuerRegistryAddress,
+    });
+    // give a couple of seconds for the tx to mine
+    await new Promise((res) => setTimeout(res, 2000));
+  }
+
   const innerCalldata = buildRegisterRpCalldata(
     params.rpId,
     params.managerAddress,

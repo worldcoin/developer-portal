@@ -14,6 +14,7 @@ import { getSdk as getUpdateRpStatusSdk } from "./graphql/update-rp-status.gener
 
 const CACHE_TTL_SECONDS = 3600;
 const CACHE_KEY_PREFIX = "rp_status:v2:";
+const PENDING_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes
 
 interface DualStatus {
   production_status: string;
@@ -111,7 +112,7 @@ export async function GET(
         onChainRp.active,
       );
     } else {
-      // Not initialized on production — we'll determine status below
+      // Not initialized on-chain — use DB status (tracks production)
       productionStatus = currentDbStatus;
     }
   } catch (error) {
@@ -139,15 +140,12 @@ export async function GET(
       );
       stagingInitialized = stagingOnChainRp.initialized;
 
-      if (stagingOnChainRp.initialized) {
-        stagingStatus = mapOnChainToDbStatus(
-          stagingOnChainRp.initialized,
-          stagingOnChainRp.active,
-        );
-      } else {
-        // Not initialized on staging — determine below
-        stagingStatus = currentDbStatus;
-      }
+      stagingStatus = stagingOnChainRp.initialized
+        ? mapOnChainToDbStatus(
+            stagingOnChainRp.initialized,
+            stagingOnChainRp.active,
+          )
+        : RpRegistrationStatus.Pending;
     } catch (error) {
       logger.error("Failed to fetch RP from staging contract", {
         rpId,
@@ -158,16 +156,8 @@ export async function GET(
     }
   }
 
-  // Cross-contract logic: if one contract IS initialized but the other is NOT,
-  // the non-initialized one should be "failed" (submission never went through)
-  if (stagingContractAddress) {
-    if (productionInitialized && !stagingInitialized) {
-      stagingStatus = RpRegistrationStatus.Failed;
-    }
-    if (!productionInitialized && stagingInitialized) {
-      productionStatus = RpRegistrationStatus.Failed;
-    }
-  }
+  const ageMs = Date.now() - new Date(dbRecord.created_at).getTime();
+  const isPastGracePeriod = ageMs > PENDING_TIMEOUT_MS;
 
   // Sync DB status based on production contract only
   if (productionInitialized && productionStatus !== currentDbStatus) {
@@ -184,6 +174,50 @@ export async function GET(
     } catch (error) {
       logger.error("Failed to update RP status in DB", { rpId, error });
     }
+  }
+
+  // Timeout: if a managed RP is NOT initialized on-chain and DB status is still
+  // pending after 5 minutes, transition to failed so the user sees a retry button.
+  // Self-managed RPs intentionally stay pending until the developer completes
+  // on-chain setup manually, so we skip the timeout for those.
+  if (
+    !productionInitialized &&
+    currentDbStatus === RpRegistrationStatus.Pending &&
+    isPastGracePeriod &&
+    dbRecord.mode === "managed"
+  ) {
+    logger.warn("RP registration pending timeout — transitioning to failed", {
+      rpId,
+      createdAt: dbRecord.created_at,
+      ageMs,
+      operation_hash: dbRecord.operation_hash ?? "null",
+    });
+
+    try {
+      await getUpdateRpStatusSdk(client).UpdateRpStatus({
+        rp_id: rpId,
+        status: RpRegistrationStatus.Failed,
+      });
+
+      productionStatus = RpRegistrationStatus.Failed;
+    } catch (error) {
+      logger.error("Failed to update timed-out RP status in DB", {
+        rpId,
+        error,
+      });
+    }
+  }
+
+  // Staging timeout: if staging is not initialized after the grace period,
+  // report as failed so the user gets a retry button and polling stops.
+  // Response-only — no DB write needed since staging isn't persisted.
+  if (
+    stagingContractAddress &&
+    !stagingInitialized &&
+    isPastGracePeriod &&
+    dbRecord.mode === "managed"
+  ) {
+    stagingStatus = RpRegistrationStatus.Failed;
   }
 
   const result: DualStatus = {

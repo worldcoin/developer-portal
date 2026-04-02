@@ -1,6 +1,5 @@
 import { Button } from "@/components/Button";
 import { TrashIcon } from "@/components/Icons/TrashIcon";
-import { UploadIcon } from "@/components/Icons/UploadIcon";
 import { ImageDropZone } from "@/components/ImageDropZone";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { getCDNImageUrl } from "@/lib/utils";
@@ -210,118 +209,179 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
     };
   }, []);
 
-  return (
-    <div className="grid gap-y-3">
-      <Typography variant={TYPOGRAPHY.H7} className="text-grey-700">
-        {title} {required && <span className="text-system-error-500">*</span>}
-      </Typography>
-      <Typography variant={TYPOGRAPHY.R4} className="text-grey-500">
-        {description}
-      </Typography>
-
-      {/* existing images */}
-      {value.length > 0 && !isImagesLoading && (
-        <div
-          className={
-            maxImages > 1 ? "grid gap-4 md:grid-cols-3" : "relative size-fit"
-          }
+  const dropZoneChildren = (
+    <>
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 24 24"
+        strokeWidth={2}
+        stroke="currentColor"
+        className="size-6 text-grey-500"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"
+        />
+      </svg>
+      <div className="flex flex-col items-center gap-y-1">
+        <Typography
+          variant={TYPOGRAPHY.B3}
+          className="text-center text-grey-500"
         >
+          Drop image here to upload
+        </Typography>
+        <Typography
+          variant={TYPOGRAPHY.B3}
+          className="text-center text-grey-500"
+        >
+          or <span className="font-semibold text-grey-700">browse files</span>
+        </Typography>
+      </div>
+    </>
+  );
+
+  return (
+    <div className="grid gap-y-4">
+      {/* ── 0 images: full-width drop zone ── */}
+      {value.length === 0 && !isUploading && !isImagesLoading && (
+        <ImageDropZone
+          width={imageConstraints.width}
+          height={imageConstraints.height}
+          disabled={disabled || !canUploadMore}
+          uploadImage={uploadImage}
+          imageType={imageTypeNamer(0)}
+          error={error}
+          className="h-[168px] !rounded-xl"
+        >
+          {dropZoneChildren}
+        </ImageDropZone>
+      )}
+
+      {/* 0 images: skeleton */}
+      {value.length === 0 && !isUploading && isImagesLoading && (
+        <Skeleton height={168} className="rounded-lg" />
+      )}
+
+      {/* 0 images: uploading loader */}
+      {value.length === 0 && isUploading && (
+        <ImageLoader name={imageTypeNamer(0)} className="h-[168px]" />
+      )}
+
+      {/* ── maxImages === 1: single image, full-width box ── */}
+      {value.length > 0 && maxImages === 1 && !isImagesLoading && (
+        <>
           {value.map((url) => {
             const imagePath = extractImagePathWithExtensionFromActualUrl(url);
             const resolvedUrl =
               resolvedImageUrls?.find((imgUrl) => imgUrl.includes(imagePath)) ||
               "";
-
             return (
-              <div key={imagePath} className="relative size-fit">
+              <div
+                key={imagePath}
+                className="relative overflow-hidden rounded-xl"
+              >
                 <ImageDisplay
                   src={resolvedUrl}
                   type="original"
-                  width={maxImages === 1 ? 300 : 150}
-                  height={maxImages === 1 ? 150 : 150}
-                  className={
-                    maxImages === 1
-                      ? "h-auto w-64 rounded-lg"
-                      : "h-auto w-32 rounded-lg"
-                  }
+                  width={imageConstraints.width}
+                  height={imageConstraints.height}
+                  className="h-[200px] w-full rounded-xl object-cover"
                 />
                 <Button
                   type="button"
                   onClick={() => handleDelete(imagePath)}
                   disabled={disabled}
-                  className="absolute -right-3 -top-3 flex size-8 items-center justify-center rounded-full bg-grey-100 hover:bg-grey-200 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="absolute right-4 top-4 flex size-8 items-center justify-center rounded-full border border-grey-200 bg-white shadow-sm transition-colors hover:bg-grey-100 disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  <TrashIcon />
+                  <TrashIcon className="text-grey-500" />
+                </Button>
+              </div>
+            );
+          })}
+          {isUploading && (
+            <ImageLoader
+              name={imageTypeNamer(value.length)}
+              className="h-[200px]"
+            />
+          )}
+        </>
+      )}
+
+      {/* maxImages === 1: skeleton */}
+      {value.length > 0 && maxImages === 1 && isImagesLoading && (
+        <Skeleton height={200} className="rounded-xl" />
+      )}
+
+      {/* ── maxImages > 1: 2-column grid — images + drop zone inline ── */}
+      {value.length > 0 && maxImages > 1 && !isImagesLoading && (
+        <div className="grid grid-cols-2 gap-3">
+          {value.map((url) => {
+            const imagePath = extractImagePathWithExtensionFromActualUrl(url);
+            const resolvedUrl =
+              resolvedImageUrls?.find((imgUrl) => imgUrl.includes(imagePath)) ||
+              "";
+            return (
+              <div
+                key={imagePath}
+                className="relative overflow-hidden rounded-xl"
+              >
+                <ImageDisplay
+                  src={resolvedUrl}
+                  type="original"
+                  width={imageConstraints.width}
+                  height={imageConstraints.height}
+                  className="h-[200px] w-full rounded-xl object-cover"
+                />
+                <Button
+                  type="button"
+                  onClick={() => handleDelete(imagePath)}
+                  disabled={disabled}
+                  className="absolute right-4 top-4 flex size-8 items-center justify-center rounded-full border border-grey-200 bg-white shadow-sm transition-colors hover:bg-grey-100 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <TrashIcon className="text-grey-500" />
                 </Button>
               </div>
             );
           })}
 
-          {/* upload loader */}
+          {/* uploading loader occupies next grid slot */}
           {isUploading && (
             <ImageLoader
               name={imageTypeNamer(value.length)}
-              className={maxImages === 1 ? "h-[150px]" : "h-[128px] w-32"}
+              className="h-[200px]"
             />
+          )}
+
+          {/* drop zone occupies next grid slot */}
+          {canUploadMore && !isUploading && (
+            <ImageDropZone
+              width={imageConstraints.width}
+              height={imageConstraints.height}
+              disabled={disabled || !canUploadMore}
+              uploadImage={uploadImage}
+              imageType={imageTypeNamer(value.length)}
+              error={error}
+              className="h-[200px] !rounded-xl"
+            >
+              {dropZoneChildren}
+            </ImageDropZone>
           )}
         </div>
       )}
 
-      {/* show skeleton when loading and have images */}
-      {value.length > 0 && isImagesLoading && (
-        <div className={maxImages > 1 ? "grid gap-4 md:grid-cols-3" : ""}>
+      {/* maxImages > 1: skeleton */}
+      {value.length > 0 && maxImages > 1 && isImagesLoading && (
+        <div className="grid grid-cols-2 gap-3">
           {value.map((url, index) => (
             <Skeleton
               key={`${url}-${index}`}
-              height={maxImages === 1 ? 150 : 128}
-              className={
-                maxImages === 1 ? "w-64 rounded-lg" : "w-32 rounded-lg"
-              }
+              height={200}
+              className="rounded-xl"
             />
           ))}
         </div>
-      )}
-
-      {/* upload zone */}
-      {canUploadMore && !isUploading && !isImagesLoading && (
-        <ImageDropZone
-          width={imageConstraints.width}
-          height={imageConstraints.height}
-          disabled={disabled || isUploading || !canUploadMore}
-          uploadImage={uploadImage}
-          imageType={imageTypeNamer(value.length)}
-          error={error}
-        >
-          <UploadIcon className="size-12 text-blue-500" />
-          <div className="gap-y-2">
-            <div className="text-center">
-              <Typography variant={TYPOGRAPHY.M3} className="text-blue-500">
-                Click to upload
-              </Typography>{" "}
-              <Typography variant={TYPOGRAPHY.R3} className="text-grey-700">
-                or drag and drop
-              </Typography>
-            </div>
-            <Typography variant={TYPOGRAPHY.R5} className="text-grey-500">
-              JPG or PNG (max 500kb), required aspect ratio{" "}
-              {imageConstraints.aspectRatio}.{"\n"}
-              Recommended size: {imageConstraints.recommendedSize}
-            </Typography>
-          </div>
-        </ImageDropZone>
-      )}
-
-      {/* show skeleton when loading and no images yet */}
-      {value.length === 0 && !isUploading && isImagesLoading && (
-        <Skeleton height={maxImages === 1 ? 150 : 200} className="rounded-lg" />
-      )}
-
-      {/* show loader when no images yet */}
-      {value.length === 0 && isUploading && (
-        <ImageLoader
-          name={imageTypeNamer(0)}
-          className={maxImages === 1 ? "h-[150px]" : "h-[200px]"}
-        />
       )}
     </div>
   );

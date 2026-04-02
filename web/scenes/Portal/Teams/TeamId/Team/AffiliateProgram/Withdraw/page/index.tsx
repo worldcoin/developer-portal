@@ -2,9 +2,10 @@
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { convertAmountToWei, parseTokenAmount } from "@/lib/utils";
 import { useGetAffiliateBalance } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/common/hooks/use-get-affiliate-balance";
+import { useGetAffiliateMetadata } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Overview/page/hooks/use-get-affiliate-metadata";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { useEffect, useMemo, useState } from "react";
-import { FormProvider, useForm } from "react-hook-form";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { FormProvider, ResolverOptions, useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import * as yup from "yup";
 import { confirmWithdraw } from "../server/confirmWithdraw";
@@ -30,6 +31,7 @@ type PageProps = {
 export const WithdrawPage = (props: PageProps) => {
   const { data: balanceData, loading: isBalanceLoading } =
     useGetAffiliateBalance();
+  const { data: metadata } = useGetAffiliateMetadata();
 
   const [currentStep, setCurrentStep] = useState<AffiliateWithdrawStep>(
     AffiliateWithdrawStep.ENTER_AMOUNT,
@@ -42,6 +44,9 @@ export const WithdrawPage = (props: PageProps) => {
       walletAddress: yup.string().required("Wallet address is required"),
       amount: yup
         .number()
+        .transform((value, originalValue) =>
+          originalValue === "" ? undefined : value,
+        )
         .required("Amount is required")
         .when([], {
           is: () => !!balanceData,
@@ -55,11 +60,18 @@ export const WithdrawPage = (props: PageProps) => {
               balanceData?.maximumWithdrawal,
               "WLD",
             );
-            if (!minWithdrawWLD || !maxWithdrawWLD) return schema;
+            const maxAvailableWLD = parseTokenAmount(
+              balanceData?.availableBalance?.inWLD,
+              "WLD",
+            );
+            if (minWithdrawWLD == null || maxWithdrawWLD == null) return schema;
+            const effectiveMaxWLD = Math.min(
+              maxAvailableWLD ?? maxWithdrawWLD,
+              maxWithdrawWLD,
+            );
             return schema
               .min(minWithdrawWLD, `Minimum amount is ${minWithdrawWLD} WLD`)
-              .max(maxWithdrawWLD, `Maximum amount is ${maxWithdrawWLD} WLD`)
-              .typeError("Please enter a valid number");
+              .max(effectiveMaxWLD, `Maximum amount is ${effectiveMaxWLD} WLD`);
           },
         })
         .typeError("Please enter a valid number"),
@@ -69,22 +81,34 @@ export const WithdrawPage = (props: PageProps) => {
         .length(6, "OTP code must be 6 digits")
         .matches(/^\d{6}$/, "OTP code must be 6 digits"),
     });
-  }, [balanceData?.minimumWithdrawal, balanceData?.maximumWithdrawal]);
+  }, [balanceData]);
 
-  // Setup form with dynamic schema
+  // NOTE: use refs to dynamically update later schema based on balance data
+  const schemaRef = useRef(withdrawSchema);
+  schemaRef.current = withdrawSchema;
+
+  const resolver = useCallback(
+    (
+      data: WithdrawFormData,
+      context: unknown,
+      options: ResolverOptions<WithdrawFormData>,
+    ) => yupResolver(schemaRef.current)(data, context, options),
+    [],
+  );
+
   const methods = useForm<WithdrawFormData>({
-    resolver: yupResolver(withdrawSchema),
+    resolver,
     mode: "onBlur",
   });
 
-  const { watch } = methods;
+  const { watch, setValue } = methods;
 
   // When balanceData is fetched, set walletAddress in the form if present
   useEffect(() => {
     if (balanceData?.withdrawalWallet) {
-      methods.setValue("walletAddress", balanceData.withdrawalWallet);
+      setValue("walletAddress", balanceData.withdrawalWallet);
     }
-  }, [balanceData?.withdrawalWallet]);
+  }, [balanceData?.withdrawalWallet, setValue]);
 
   const onWithdrawInitiate = async () => {
     setIsLoading(true);
@@ -136,22 +160,23 @@ export const WithdrawPage = (props: PageProps) => {
         className="gap flex flex-col"
       >
         <div className="flex h-full min-h-0 items-center justify-center">
-          {currentStep === AffiliateWithdrawStep.ENTER_AMOUNT &&
-            balanceData && (
-              <EnterAmount
-                balance={balanceData}
-                onConfirm={() => setCurrentStep(AffiliateWithdrawStep.CONFIRM)}
-                loading={isLoading || isBalanceLoading}
-              />
-            )}
+          {currentStep === AffiliateWithdrawStep.ENTER_AMOUNT && (
+            <EnterAmount
+              balance={balanceData}
+              metadata={metadata}
+              onConfirm={() => setCurrentStep(AffiliateWithdrawStep.CONFIRM)}
+              loading={isLoading || isBalanceLoading}
+            />
+          )}
           {currentStep === AffiliateWithdrawStep.CONFIRM && (
             <ConfirmTransaction
               onConfirm={onWithdrawInitiate}
               isLoading={isLoading}
             />
           )}
-          {currentStep === AffiliateWithdrawStep.ENTER_CODE && (
+          {currentStep === AffiliateWithdrawStep.ENTER_CODE && !!metadata && (
             <EnterCode
+              metadata={metadata}
               onConfirm={onWithdrawConfirm}
               onRetry={onWithdrawInitiate}
               isLoading={isLoading}

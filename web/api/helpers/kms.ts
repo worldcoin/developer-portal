@@ -31,6 +31,30 @@ export const getKMSClient = async (region?: string) => {
   });
 };
 
+/**
+ * Resolves a KMS key reference to a full ARN for cross-account access.
+ *
+ * - Full ARN (`arn:aws:kms:...`): returned as-is (new keys or already resolved)
+ * - Bare key ID (UUID): if `KMS_LEGACY_ACCOUNT_ID` is set, constructs a full
+ *   ARN pointing to the legacy account; otherwise returns as-is
+ *
+ * This enables a seamless migration period where the application runs in a new
+ * AWS account but still uses KMS keys that remain in the old account.
+ */
+export function resolveKeyId(keyId: string, region?: string): string {
+  if (keyId.startsWith("arn:")) {
+    return keyId;
+  }
+
+  const legacyAccountId = process.env.KMS_LEGACY_ACCOUNT_ID;
+  if (!legacyAccountId) {
+    return keyId;
+  }
+
+  const resolvedRegion = region ?? process.env.AWS_REGION_NAME ?? "eu-west-1";
+  return `arn:aws:kms:${resolvedRegion}:${legacyAccountId}:key/${keyId}`;
+}
+
 export const createKMSKey = async (
   client: KMSClient,
   alg: KeySpec,
@@ -45,7 +69,7 @@ export const createKMSKey = async (
       }),
     );
 
-    const keyId = KeyMetadata?.KeyId;
+    const keyId = KeyMetadata?.Arn ?? KeyMetadata?.KeyId;
     const createdAt = KeyMetadata?.CreationDate;
 
     if (keyId && createdAt) {
@@ -70,7 +94,7 @@ export const getKMSKeyStatus = async (client: KMSClient, keyId: string) => {
   try {
     const { KeyMetadata } = await client.send(
       new DescribeKeyCommand({
-        KeyId: keyId,
+        KeyId: resolveKeyId(keyId),
       }),
     );
     return KeyMetadata?.Enabled;
@@ -97,7 +121,7 @@ export const signJWTWithKMSKey = async (
 
     const response = await client.send(
       new SignCommand({
-        KeyId: kms_id,
+        KeyId: resolveKeyId(kms_id),
         Message: new Uint8Array(Buffer.from(encodedHeaderPayload)),
         MessageType: "RAW",
         SigningAlgorithm: "RSASSA_PKCS1_V1_5_SHA_256",
@@ -122,7 +146,7 @@ export const scheduleKeyDeletion = async (client: KMSClient, keyId: string) => {
   try {
     await client.send(
       new ScheduleKeyDeletionCommand({
-        KeyId: keyId,
+        KeyId: resolveKeyId(keyId),
         PendingWindowInDays: 7, // Note: 7 is the minimum allowed value
       }),
     );

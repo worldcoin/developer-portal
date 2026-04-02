@@ -9,8 +9,8 @@ import { CanUserVerifyType, EngineType } from "@/lib/types";
 import { getCDNImageUrl } from "@/lib/utils";
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
-import { getSdk as getAppPrecheckSdk } from "./graphql/app-precheck.generated";
 import { getSdk as getAppPrecheckByActionSdk } from "./graphql/app-precheck-by-action.generated";
+import { getSdk as getAppPrecheckSdk } from "./graphql/app-precheck.generated";
 import { getSdk as getFetchRpRegistrationForPrecheckSdk } from "./graphql/fetch-rp-registration-for-precheck.generated";
 
 /**
@@ -23,6 +23,11 @@ const APPS_WITH_CUSTOM_EXTERNAL_NULLIFIER = [
   "app_1f7f2c379f20307a414f6cf8b544ec8a", // Grants app - uses 0xB16B00B5 for humanity verification
 ];
 const FACE_CHECK_ENABLED_APPS_PARAMETER = "whitelisted-apps/face-check";
+// Whitelist some partner demo apps, that are not verified but we want to show their logos
+const APPS_TO_SHOW_UNVERIFIED_LOGO = [
+  "app_staging_c8137371ceac59890774ccc932e11dcf",
+  "app_staging_79640e8c674aedb3f5969a30f80ff6f9",
+];
 
 const schema = yup
   .object()
@@ -128,14 +133,30 @@ export async function POST(
     );
   }
 
-  const app_metadata = rawAppValues.app_metadata[0];
+  const unverified_app_metadata = rawAppValues.app_metadata[0];
   const verified_app_metadata = rawAppValues.verified_app_metadata[0];
   const faceCheckEnabledApps = await faceCheckEnabledAppsPromise;
   const enableFaceCheck = faceCheckEnabledApps?.includes(app_id) ?? false;
   // If an image is present it should store it's relative path and extension ie logo.png
-  const logo_img_url = verified_app_metadata?.logo_img_url
+  let logo_img_url = verified_app_metadata?.logo_img_url
     ? getCDNImageUrl(rawAppValues.id, verified_app_metadata?.logo_img_url)
     : "";
+  const unverified_logo_url = unverified_app_metadata?.logo_img_url
+    ? getCDNImageUrl(
+        rawAppValues.id,
+        unverified_app_metadata?.logo_img_url,
+        false,
+      )
+    : "";
+
+  // If the app doesn't have a verified logo yet, but it's in our whitelist we want to show the unverified logo if it exists
+  if (
+    APPS_TO_SHOW_UNVERIFIED_LOGO.includes(rawAppValues.id) &&
+    !logo_img_url &&
+    unverified_logo_url
+  ) {
+    logo_img_url = unverified_logo_url;
+  }
 
   // Prevent breaking changes
   const app = {
@@ -143,11 +164,12 @@ export async function POST(
     engine: rawAppValues.engine,
     is_staging: rawAppValues.is_staging,
     is_verified: verified_app_metadata ? true : false,
-    name: verified_app_metadata?.name ?? app_metadata?.name ?? "",
+    name: verified_app_metadata?.name ?? unverified_app_metadata?.name ?? "",
     verified_app_logo: logo_img_url,
+    unverified_app_logo: unverified_logo_url,
     integration_url:
       verified_app_metadata?.integration_url ??
-      app_metadata?.integration_url ??
+      unverified_app_metadata?.integration_url ??
       "",
     enable_face_check: enableFaceCheck,
     actions: rawAppValues.actions,

@@ -7,5 +7,6 @@ query GetRpRegistration($rp_id: String!) {
     signer_address
     created_at
     updated_at
+    operation_hash
   }
 }

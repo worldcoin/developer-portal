@@ -16,6 +16,7 @@ export type FetchAppMetadataQuery = {
     engine: string;
     is_staging: boolean;
     status: string;
+    team: { __typename?: "team"; name?: string | null };
     app_metadata: Array<{
       __typename?: "app_metadata";
       id: string;
@@ -100,6 +101,9 @@ export const FetchAppMetadataDocument = gql`
       engine
       is_staging
       status
+      team {
+        name
+      }
       app_metadata(where: { verification_status: { _neq: "verified" } }) {
         id
         app_id

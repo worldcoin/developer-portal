@@ -1,9 +1,14 @@
-import { generateMetaTitle } from "@/lib/genarate-title";
-import { TransactionsPage } from "@/scenes/Portal/Teams/TeamId/Apps/AppId/Transactions/page";
-import { Metadata } from "next";
+import { redirect } from "next/navigation";
 
-export const metadata: Metadata = {
-  title: generateMetaTitle({ left: "Transactions" }),
+type Props = {
+  params: {
+    teamId: string;
+    appId: string;
+  };
 };
 
-export default TransactionsPage;
+export default function LegacyTransactionsPage({ params }: Props) {
+  redirect(
+    `/teams/${params.teamId}/apps/${params.appId}/mini-app/transactions`,
+  );
+}
