@@ -135,12 +135,14 @@ export async function GET(
   // Fetch staging on-chain state (if configured)
   let stagingStatus: string | null = null;
   let stagingInitialized = false;
+  let stagingRpcSucceeded = false;
   if (stagingContractAddress) {
     try {
       const stagingOnChainRp = await getRpFromContract(
         numericRpId,
         stagingContractAddress,
       );
+      stagingRpcSucceeded = true;
       stagingInitialized = stagingOnChainRp.initialized;
 
       stagingStatus = stagingOnChainRp.initialized
@@ -181,6 +183,7 @@ export async function GET(
 
   // Sync staging status to DB when on-chain state differs
   if (
+    stagingRpcSucceeded &&
     stagingInitialized &&
     stagingStatus &&
     stagingStatus !== currentDbStagingStatus
@@ -234,8 +237,11 @@ export async function GET(
 
   // Staging timeout: if staging is not initialized after the grace period,
   // transition to failed so the user gets a retry button and polling stops.
+  // Only apply when the RPC call succeeded — a transient RPC failure should
+  // not permanently mark a healthy staging registration as failed.
   if (
     stagingContractAddress &&
+    stagingRpcSucceeded &&
     !stagingInitialized &&
     isPastGracePeriod &&
     dbRecord.mode === "managed"

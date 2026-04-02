@@ -368,5 +368,34 @@ describe("/api/v4/rp-status [staging DB sync]", () => {
     // Should not re-write failed since DB already has failed
     expect(UpdateStagingStatus).not.toHaveBeenCalled();
   });
+
+  it("does not persist staging failed on transient RPC error", async () => {
+    const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
+    GetRpRegistration.mockResolvedValue({
+      rp_registration_by_pk: makeDbRecord({
+        status: "registered",
+        staging_status: "pending",
+        created_at: tenMinutesAgo,
+      }),
+    });
+
+    getRpFromContractMock.mockImplementation(
+      (_rpId: unknown, contractAddress: string) => {
+        if (contractAddress === productionContract) {
+          return { initialized: true, active: true };
+        }
+        // Staging RPC throws — transient error
+        throw new Error("RPC timeout");
+      },
+    );
+
+    const res = await GET(createRequest(), ctx);
+    expect(res.status).toBe(200);
+
+    const body = await res.json();
+    // Response reports failed (non-fatal), but DB should NOT be updated
+    expect(body.staging_status).toBe("failed");
+    expect(UpdateStagingStatus).not.toHaveBeenCalled();
+  });
 });
 // #endregion

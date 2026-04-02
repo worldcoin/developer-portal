@@ -10553,8 +10553,8 @@ export type Rp_Registration_Bool_Exp = {
   operation_hash?: InputMaybe<String_Comparison_Exp>;
   rp_id?: InputMaybe<String_Comparison_Exp>;
   signer_address?: InputMaybe<String_Comparison_Exp>;
-  staging_operation_hash?: InputMaybe<Scalars["String"]["input"]>;
-  staging_status?: InputMaybe<Scalars["rp_registration_status"]["input"]>;
+  staging_operation_hash?: InputMaybe<String_Comparison_Exp>;
+  staging_status?: InputMaybe<Rp_Registration_Status_Comparison_Exp>;
   status?: InputMaybe<Rp_Registration_Status_Comparison_Exp>;
   updated_at?: InputMaybe<Timestamptz_Comparison_Exp>;
 };

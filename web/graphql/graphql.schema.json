@@ -72543,21 +72543,25 @@
             "name": "staging_operation_hash",
             "description": null,
             "type": {
-              "kind": "SCALAR",
-              "name": "String",
+              "kind": "INPUT_OBJECT",
+              "name": "String_comparison_exp",
               "ofType": null
             },
-            "defaultValue": null
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
           },
           {
             "name": "staging_status",
             "description": null,
             "type": {
-              "kind": "SCALAR",
-              "name": "rp_registration_status",
+              "kind": "INPUT_OBJECT",
+              "name": "rp_registration_status_comparison_exp",
               "ofType": null
             },
-            "defaultValue": null
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
           },
           {
             "name": "status",
