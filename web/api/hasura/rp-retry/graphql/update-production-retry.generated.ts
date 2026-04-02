@@ -4,42 +4,35 @@ import * as Types from "@/graphql/graphql";
 import { GraphQLClient, RequestOptions } from "graphql-request";
 import gql from "graphql-tag";
 type GraphQLClientRequestHeaders = RequestOptions["requestHeaders"];
-export type UpdateModeSwitchResultMutationVariables = Types.Exact<{
+export type UpdateProductionRetryMutationVariables = Types.Exact<{
   rp_id: Types.Scalars["String"]["input"];
   operation_hash: Types.Scalars["String"]["input"];
+  status: Types.Scalars["rp_registration_status"]["input"];
 }>;
 
-export type UpdateModeSwitchResultMutation = {
+export type UpdateProductionRetryMutation = {
   __typename?: "mutation_root";
   update_rp_registration_by_pk?: {
     __typename?: "rp_registration";
     rp_id: string;
-    app_id: string;
-    mode: unknown;
     status: unknown;
     operation_hash?: string | null;
-    staging_operation_hash?: string | null;
   } | null;
 };
 
-export const UpdateModeSwitchResultDocument = gql`
-  mutation UpdateModeSwitchResult($rp_id: String!, $operation_hash: String!) {
+export const UpdateProductionRetryDocument = gql`
+  mutation UpdateProductionRetry(
+    $rp_id: String!
+    $operation_hash: String!
+    $status: rp_registration_status!
+  ) {
     update_rp_registration_by_pk(
       pk_columns: { rp_id: $rp_id }
-      _set: {
-        mode: self_managed
-        manager_kms_key_id: null
-        signer_address: null
-        operation_hash: $operation_hash
-        staging_operation_hash: null
-      }
+      _set: { operation_hash: $operation_hash, status: $status }
     ) {
       rp_id
-      app_id
-      mode
       status
       operation_hash
-      staging_operation_hash
     }
   }
 `;
@@ -63,18 +56,18 @@ export function getSdk(
   withWrapper: SdkFunctionWrapper = defaultWrapper,
 ) {
   return {
-    UpdateModeSwitchResult(
-      variables: UpdateModeSwitchResultMutationVariables,
+    UpdateProductionRetry(
+      variables: UpdateProductionRetryMutationVariables,
       requestHeaders?: GraphQLClientRequestHeaders,
-    ): Promise<UpdateModeSwitchResultMutation> {
+    ): Promise<UpdateProductionRetryMutation> {
       return withWrapper(
         (wrappedRequestHeaders) =>
-          client.request<UpdateModeSwitchResultMutation>(
-            UpdateModeSwitchResultDocument,
+          client.request<UpdateProductionRetryMutation>(
+            UpdateProductionRetryDocument,
             variables,
             { ...requestHeaders, ...wrappedRequestHeaders },
           ),
-        "UpdateModeSwitchResult",
+        "UpdateProductionRetry",
         "mutation",
         variables,
       );

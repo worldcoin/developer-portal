@@ -248,23 +248,30 @@ export const POST = async (req: NextRequest) => {
   }
 
   // STEP 3b: Duplicate to staging contract (best-effort, production only)
+  let stagingOperationHash: string | null = null;
+  let stagingStatus: string | null = null;
   if (process.env.NEXT_PUBLIC_APP_ENV === "production") {
     const stagingConfig = getStagingRpRegistryConfig();
     if (stagingConfig) {
       try {
-        const stagingHash = await submitRegisterRpTransaction(stagingConfig, {
-          rpId,
-          managerAddress,
-          signerAddress: signer_address!,
-          appName,
-          kmsClient,
-        });
+        stagingOperationHash = await submitRegisterRpTransaction(
+          stagingConfig,
+          {
+            rpId,
+            managerAddress,
+            signerAddress: signer_address!,
+            appName,
+            kmsClient,
+          },
+        );
+        stagingStatus = RpRegistrationStatus.Pending;
         logger.info("Staging registration submitted", {
           rpIdString,
-          operationHash: stagingHash,
+          operationHash: stagingOperationHash,
           contractAddress: stagingConfig.contractAddress,
         });
       } catch (error) {
+        stagingStatus = RpRegistrationStatus.Failed;
         logger.error("Staging registration failed", {
           error,
           rpIdString,
@@ -280,6 +287,8 @@ export const POST = async (req: NextRequest) => {
       rp_id: rpIdString,
       manager_kms_key_id: managerKmsKeyId,
       operation_hash: operationHash,
+      staging_operation_hash: stagingOperationHash,
+      staging_status: stagingStatus,
     });
 
   if (!updatedRegistration) {
