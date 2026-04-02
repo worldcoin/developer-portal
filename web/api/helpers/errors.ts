@@ -3,6 +3,14 @@ import { FormActionResult } from "@/lib/types";
 import { NextRequest, NextResponse } from "next/server";
 import "server-only";
 
+export type ErrorResponseBody = {
+  code: string;
+  detail: string;
+  attribute: string | null;
+  app_id?: string;
+  team_id?: string;
+};
+
 export function errorResponse(params: {
   statusCode: number;
   code: string;
@@ -11,7 +19,7 @@ export function errorResponse(params: {
   req: NextRequest;
   app_id?: string;
   team_id?: string;
-}) {
+}): NextResponse<ErrorResponseBody> {
   const {
     statusCode,
     code,

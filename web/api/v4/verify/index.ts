@@ -149,16 +149,22 @@ export async function POST(
     }
 
     // Handle uniqueness proofs
-    return await handleUniquenessProofVerification(client, rpId, appId, {
-      action: parsedParams.action!,
-      action_description: parsedParams.action_description,
-      nonce: parsedParams.nonce,
-      protocol_version: parsedParams.protocol_version as "3.0" | "4.0",
-      responses: parsedParams.responses as
-        | UniquenessProofResponseV3[]
-        | UniquenessProofResponseV4[],
-      environment: parsedParams.environment,
-    });
+    return await handleUniquenessProofVerification(
+      client,
+      rpId,
+      appId,
+      {
+        action: parsedParams.action!,
+        action_description: parsedParams.action_description,
+        nonce: parsedParams.nonce,
+        protocol_version: parsedParams.protocol_version as "3.0" | "4.0",
+        responses: parsedParams.responses as
+          | UniquenessProofResponseV3[]
+          | UniquenessProofResponseV4[],
+        environment: parsedParams.environment,
+      },
+      req,
+    );
   } catch (error) {
     logger.error("Unhandled error in v4/verify", {
       error: error instanceof Error ? error.message : String(error),
