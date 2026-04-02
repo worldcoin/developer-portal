@@ -11,6 +11,7 @@ import { logger } from "@/lib/logger";
 import { NextRequest, NextResponse } from "next/server";
 import { getSdk as getGetRpRegistrationSdk } from "./graphql/get-rp-registration.generated";
 import { getSdk as getUpdateRpStatusSdk } from "./graphql/update-rp-status.generated";
+import { getSdk as getUpdateStagingStatusSdk } from "./graphql/update-staging-status.generated";
 
 const CACHE_TTL_SECONDS = 3600;
 const CACHE_KEY_PREFIX = "rp_status:v2:";
@@ -78,6 +79,8 @@ export async function GET(
   }
 
   const currentDbStatus = dbRecord.status as RpRegistrationStatus;
+  const currentDbStagingStatus =
+    (dbRecord.staging_status as RpRegistrationStatus) ?? null;
 
   const productionContractAddress = process.env.RP_REGISTRY_CONTRACT_ADDRESS;
   if (!productionContractAddress) {
@@ -176,6 +179,27 @@ export async function GET(
     }
   }
 
+  // Sync staging status to DB when on-chain state differs
+  if (
+    stagingInitialized &&
+    stagingStatus &&
+    stagingStatus !== currentDbStagingStatus
+  ) {
+    try {
+      await getUpdateStagingStatusSdk(client).UpdateStagingStatus({
+        rp_id: rpId,
+        staging_status: stagingStatus,
+      });
+      logger.info("Updated staging status in DB", {
+        rpId,
+        oldStatus: currentDbStagingStatus,
+        newStatus: stagingStatus,
+      });
+    } catch (error) {
+      logger.error("Failed to update staging status in DB", { rpId, error });
+    }
+  }
+
   // Timeout: if a managed RP is NOT initialized on-chain and DB status is still
   // pending after 5 minutes, transition to failed so the user sees a retry button.
   // Self-managed RPs intentionally stay pending until the developer completes
@@ -209,8 +233,7 @@ export async function GET(
   }
 
   // Staging timeout: if staging is not initialized after the grace period,
-  // report as failed so the user gets a retry button and polling stops.
-  // Response-only — no DB write needed since staging isn't persisted.
+  // transition to failed so the user gets a retry button and polling stops.
   if (
     stagingContractAddress &&
     !stagingInitialized &&
@@ -218,6 +241,20 @@ export async function GET(
     dbRecord.mode === "managed"
   ) {
     stagingStatus = RpRegistrationStatus.Failed;
+
+    if (currentDbStagingStatus !== RpRegistrationStatus.Failed) {
+      try {
+        await getUpdateStagingStatusSdk(client).UpdateStagingStatus({
+          rp_id: rpId,
+          staging_status: RpRegistrationStatus.Failed,
+        });
+      } catch (error) {
+        logger.error("Failed to update staging timeout status in DB", {
+          rpId,
+          error,
+        });
+      }
+    }
   }
 
   const result: DualStatus = {

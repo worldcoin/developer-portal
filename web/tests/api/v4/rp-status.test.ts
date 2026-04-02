@@ -5,6 +5,7 @@ import { NextRequest } from "next/server";
 // #region Mocks
 const GetRpRegistration = jest.fn();
 const UpdateRpStatus = jest.fn();
+const UpdateStagingStatus = jest.fn();
 const getRpFromContractMock = jest.fn();
 
 jest.mock("../../../lib/logger", () => ({
@@ -29,6 +30,15 @@ jest.mock(
   () => ({
     getSdk: () => ({
       UpdateRpStatus,
+    }),
+  }),
+);
+
+jest.mock(
+  "../../../api/v4/rp-status/[rp_id]/graphql/update-staging-status.generated",
+  () => ({
+    getSdk: () => ({
+      UpdateStagingStatus,
     }),
   }),
 );
@@ -59,6 +69,8 @@ const makeDbRecord = (
     created_at: string;
     operation_hash: string | null;
     mode: string;
+    staging_status: string | null;
+    staging_operation_hash: string | null;
   }> = {},
 ) => ({
   rp_id: rpId,
@@ -69,6 +81,8 @@ const makeDbRecord = (
   created_at: new Date().toISOString(),
   updated_at: new Date().toISOString(),
   operation_hash: null,
+  staging_status: null,
+  staging_operation_hash: null,
   ...overrides,
 });
 
@@ -81,6 +95,9 @@ beforeEach(() => {
   process.env.RP_REGISTRY_CONTRACT_ADDRESS = productionContract;
   process.env.RP_REGISTRY_STAGING_CONTRACT_ADDRESS = stagingContract;
   global.RedisClient?.flushall();
+  UpdateStagingStatus.mockResolvedValue({
+    update_rp_registration_by_pk: { rp_id: rpId },
+  });
 });
 
 // #region Pending timeout tests
@@ -114,6 +131,11 @@ describe("/api/v4/rp-status [pending timeout]", () => {
     expect(UpdateRpStatus).toHaveBeenCalledWith({
       rp_id: rpId,
       status: RpRegistrationStatus.Failed,
+    });
+
+    expect(UpdateStagingStatus).toHaveBeenCalledWith({
+      rp_id: rpId,
+      staging_status: RpRegistrationStatus.Failed,
     });
   });
 
@@ -252,6 +274,99 @@ describe("/api/v4/rp-status [staging timeout]", () => {
     const body = await res.json();
     expect(body.production_status).toBe("registered");
     expect(body.staging_status).toBe("failed");
+
+    expect(UpdateStagingStatus).toHaveBeenCalledWith({
+      rp_id: rpId,
+      staging_status: RpRegistrationStatus.Failed,
+    });
+  });
+});
+// #endregion
+
+// #region Staging status DB sync
+describe("/api/v4/rp-status [staging DB sync]", () => {
+  it("syncs staging status to DB when on-chain state differs from DB", async () => {
+    GetRpRegistration.mockResolvedValue({
+      rp_registration_by_pk: makeDbRecord({
+        status: "registered",
+        staging_status: "pending",
+        created_at: new Date().toISOString(),
+      }),
+    });
+
+    getRpFromContractMock.mockImplementation(
+      (_rpId: unknown, contractAddress: string) => {
+        if (contractAddress === productionContract) {
+          return { initialized: true, active: true };
+        }
+        return { initialized: true, active: true };
+      },
+    );
+
+    UpdateRpStatus.mockResolvedValue({
+      update_rp_registration_by_pk: { rp_id: rpId },
+    });
+
+    const res = await GET(createRequest(), ctx);
+    expect(res.status).toBe(200);
+
+    const body = await res.json();
+    expect(body.production_status).toBe("registered");
+    expect(body.staging_status).toBe("registered");
+
+    expect(UpdateStagingStatus).toHaveBeenCalledWith({
+      rp_id: rpId,
+      staging_status: RpRegistrationStatus.Registered,
+    });
+  });
+
+  it("does not update staging status in DB when already in sync", async () => {
+    GetRpRegistration.mockResolvedValue({
+      rp_registration_by_pk: makeDbRecord({
+        status: "registered",
+        staging_status: "registered",
+        created_at: new Date().toISOString(),
+      }),
+    });
+
+    getRpFromContractMock.mockResolvedValue({
+      initialized: true,
+      active: true,
+    });
+
+    const res = await GET(createRequest(), ctx);
+    expect(res.status).toBe(200);
+
+    expect(UpdateStagingStatus).not.toHaveBeenCalled();
+  });
+
+  it("does not write staging timeout to DB when already failed", async () => {
+    const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
+    GetRpRegistration.mockResolvedValue({
+      rp_registration_by_pk: makeDbRecord({
+        status: "registered",
+        staging_status: "failed",
+        created_at: tenMinutesAgo,
+      }),
+    });
+
+    getRpFromContractMock.mockImplementation(
+      (_rpId: unknown, contractAddress: string) => {
+        if (contractAddress === productionContract) {
+          return { initialized: true, active: true };
+        }
+        return { initialized: false, active: false };
+      },
+    );
+
+    const res = await GET(createRequest(), ctx);
+    expect(res.status).toBe(200);
+
+    const body = await res.json();
+    expect(body.staging_status).toBe("failed");
+
+    // Should not re-write failed since DB already has failed
+    expect(UpdateStagingStatus).not.toHaveBeenCalled();
   });
 });
 // #endregion

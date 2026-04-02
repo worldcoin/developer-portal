@@ -20,6 +20,8 @@ export type GetRpRegistrationQuery = {
     created_at: string;
     updated_at: string;
     operation_hash?: string | null;
+    staging_status?: unknown | null;
+    staging_operation_hash?: string | null;
   } | null;
 };
 
@@ -34,6 +36,8 @@ export const GetRpRegistrationDocument = gql`
       created_at
       updated_at
       operation_hash
+      staging_status
+      staging_operation_hash
     }
   }
 `;

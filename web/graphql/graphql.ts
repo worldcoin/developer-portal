@@ -183,6 +183,8 @@ export type RegisterRpOutput = {
   operation_hash?: Maybe<Scalars["String"]["output"]>;
   rp_id: Scalars["String"]["output"];
   signer_address?: Maybe<Scalars["String"]["output"]>;
+  staging_operation_hash?: Maybe<Scalars["String"]["output"]>;
+  staging_status?: Maybe<Scalars["rp_registration_status"]["output"]>;
   status: Scalars["String"]["output"];
 };
 
@@ -10466,6 +10468,8 @@ export type Rp_Registration = {
   operation_hash?: Maybe<Scalars["String"]["output"]>;
   rp_id: Scalars["String"]["output"];
   signer_address?: Maybe<Scalars["String"]["output"]>;
+  staging_operation_hash?: Maybe<Scalars["String"]["output"]>;
+  staging_status?: Maybe<Scalars["rp_registration_status"]["output"]>;
   status: Scalars["rp_registration_status"]["output"];
   updated_at: Scalars["timestamptz"]["output"];
 };
@@ -10549,6 +10553,8 @@ export type Rp_Registration_Bool_Exp = {
   operation_hash?: InputMaybe<String_Comparison_Exp>;
   rp_id?: InputMaybe<String_Comparison_Exp>;
   signer_address?: InputMaybe<String_Comparison_Exp>;
+  staging_operation_hash?: InputMaybe<Scalars["String"]["input"]>;
+  staging_status?: InputMaybe<Scalars["rp_registration_status"]["input"]>;
   status?: InputMaybe<Rp_Registration_Status_Comparison_Exp>;
   updated_at?: InputMaybe<Timestamptz_Comparison_Exp>;
 };
@@ -10572,6 +10578,8 @@ export type Rp_Registration_Insert_Input = {
   operation_hash?: InputMaybe<Scalars["String"]["input"]>;
   rp_id?: InputMaybe<Scalars["String"]["input"]>;
   signer_address?: InputMaybe<Scalars["String"]["input"]>;
+  staging_operation_hash?: InputMaybe<Scalars["String"]["input"]>;
+  staging_status?: InputMaybe<Scalars["rp_registration_status"]["input"]>;
   status?: InputMaybe<Scalars["rp_registration_status"]["input"]>;
   updated_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
 };
@@ -10586,6 +10594,8 @@ export type Rp_Registration_Max_Fields = {
   operation_hash?: Maybe<Scalars["String"]["output"]>;
   rp_id?: Maybe<Scalars["String"]["output"]>;
   signer_address?: Maybe<Scalars["String"]["output"]>;
+  staging_operation_hash?: Maybe<Scalars["String"]["output"]>;
+  staging_status?: Maybe<Scalars["rp_registration_status"]["output"]>;
   status?: Maybe<Scalars["rp_registration_status"]["output"]>;
   updated_at?: Maybe<Scalars["timestamptz"]["output"]>;
 };
@@ -10599,6 +10609,8 @@ export type Rp_Registration_Max_Order_By = {
   operation_hash?: InputMaybe<Order_By>;
   rp_id?: InputMaybe<Order_By>;
   signer_address?: InputMaybe<Order_By>;
+  staging_operation_hash?: InputMaybe<Scalars["String"]["input"]>;
+  staging_status?: InputMaybe<Scalars["rp_registration_status"]["input"]>;
   status?: InputMaybe<Order_By>;
   updated_at?: InputMaybe<Order_By>;
 };
@@ -10613,6 +10625,8 @@ export type Rp_Registration_Min_Fields = {
   operation_hash?: Maybe<Scalars["String"]["output"]>;
   rp_id?: Maybe<Scalars["String"]["output"]>;
   signer_address?: Maybe<Scalars["String"]["output"]>;
+  staging_operation_hash?: Maybe<Scalars["String"]["output"]>;
+  staging_status?: Maybe<Scalars["rp_registration_status"]["output"]>;
   status?: Maybe<Scalars["rp_registration_status"]["output"]>;
   updated_at?: Maybe<Scalars["timestamptz"]["output"]>;
 };
@@ -10626,6 +10640,8 @@ export type Rp_Registration_Min_Order_By = {
   operation_hash?: InputMaybe<Order_By>;
   rp_id?: InputMaybe<Order_By>;
   signer_address?: InputMaybe<Order_By>;
+  staging_operation_hash?: InputMaybe<Scalars["String"]["input"]>;
+  staging_status?: InputMaybe<Scalars["rp_registration_status"]["input"]>;
   status?: InputMaybe<Order_By>;
   updated_at?: InputMaybe<Order_By>;
 };
@@ -10677,6 +10693,8 @@ export type Rp_Registration_Order_By = {
   operation_hash?: InputMaybe<Order_By>;
   rp_id?: InputMaybe<Order_By>;
   signer_address?: InputMaybe<Order_By>;
+  staging_operation_hash?: InputMaybe<Scalars["String"]["input"]>;
+  staging_status?: InputMaybe<Scalars["rp_registration_status"]["input"]>;
   status?: InputMaybe<Order_By>;
   updated_at?: InputMaybe<Order_By>;
 };
@@ -10703,6 +10721,10 @@ export enum Rp_Registration_Select_Column {
   /** column name */
   SignerAddress = "signer_address",
   /** column name */
+  StagingOperationHash = "staging_operation_hash",
+  /** column name */
+  StagingStatus = "staging_status",
+  /** column name */
   Status = "status",
   /** column name */
   UpdatedAt = "updated_at",
@@ -10717,6 +10739,8 @@ export type Rp_Registration_Set_Input = {
   operation_hash?: InputMaybe<Scalars["String"]["input"]>;
   rp_id?: InputMaybe<Scalars["String"]["input"]>;
   signer_address?: InputMaybe<Scalars["String"]["input"]>;
+  staging_operation_hash?: InputMaybe<Scalars["String"]["input"]>;
+  staging_status?: InputMaybe<Scalars["rp_registration_status"]["input"]>;
   status?: InputMaybe<Scalars["rp_registration_status"]["input"]>;
   updated_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
 };
@@ -10751,6 +10775,8 @@ export type Rp_Registration_Stream_Cursor_Value_Input = {
   operation_hash?: InputMaybe<Scalars["String"]["input"]>;
   rp_id?: InputMaybe<Scalars["String"]["input"]>;
   signer_address?: InputMaybe<Scalars["String"]["input"]>;
+  staging_operation_hash?: InputMaybe<Scalars["String"]["input"]>;
+  staging_status?: InputMaybe<Scalars["rp_registration_status"]["input"]>;
   status?: InputMaybe<Scalars["rp_registration_status"]["input"]>;
   updated_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
 };
@@ -10771,6 +10797,10 @@ export enum Rp_Registration_Update_Column {
   RpId = "rp_id",
   /** column name */
   SignerAddress = "signer_address",
+  /** column name */
+  StagingOperationHash = "staging_operation_hash",
+  /** column name */
+  StagingStatus = "staging_status",
   /** column name */
   Status = "status",
   /** column name */

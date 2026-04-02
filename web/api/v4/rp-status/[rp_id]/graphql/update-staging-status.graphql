@@ -1,0 +1,13 @@
+mutation UpdateStagingStatus(
+  $rp_id: String!
+  $staging_status: rp_registration_status!
+) {
+  update_rp_registration_by_pk(
+    pk_columns: { rp_id: $rp_id }
+    _set: { staging_status: $staging_status }
+  ) {
+    rp_id
+    staging_status
+    updated_at
+  }
+}

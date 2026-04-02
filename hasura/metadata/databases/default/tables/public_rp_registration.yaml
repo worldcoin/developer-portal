@@ -25,6 +25,8 @@ insert_permissions:
         - manager_kms_key_id
         - status
         - operation_hash
+        - staging_status
+        - staging_operation_hash
 select_permissions:
   - role: service
     permission:
@@ -38,6 +40,8 @@ select_permissions:
         - manager_kms_key_id
         - status
         - operation_hash
+        - staging_status
+        - staging_operation_hash
       filter: {}
   - role: user
     permission:
@@ -50,6 +54,8 @@ select_permissions:
         - signer_address
         - status
         - operation_hash
+        - staging_status
+        - staging_operation_hash
       filter:
         app:
           _and:
@@ -68,6 +74,8 @@ update_permissions:
         - manager_kms_key_id
         - status
         - operation_hash
+        - staging_status
+        - staging_operation_hash
       filter: {}
       check: {}
 delete_permissions:

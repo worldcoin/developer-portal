@@ -4,41 +4,37 @@ import * as Types from "@/graphql/graphql";
 import { GraphQLClient, RequestOptions } from "graphql-request";
 import gql from "graphql-tag";
 type GraphQLClientRequestHeaders = RequestOptions["requestHeaders"];
-export type UpdateModeSwitchResultMutationVariables = Types.Exact<{
+export type UpdateStagingRetryMutationVariables = Types.Exact<{
   rp_id: Types.Scalars["String"]["input"];
-  operation_hash: Types.Scalars["String"]["input"];
+  staging_operation_hash: Types.Scalars["String"]["input"];
+  staging_status: Types.Scalars["rp_registration_status"]["input"];
 }>;
 
-export type UpdateModeSwitchResultMutation = {
+export type UpdateStagingRetryMutation = {
   __typename?: "mutation_root";
   update_rp_registration_by_pk?: {
     __typename?: "rp_registration";
     rp_id: string;
-    app_id: string;
-    mode: unknown;
-    status: unknown;
-    operation_hash?: string | null;
+    staging_status?: unknown | null;
     staging_operation_hash?: string | null;
   } | null;
 };
 
-export const UpdateModeSwitchResultDocument = gql`
-  mutation UpdateModeSwitchResult($rp_id: String!, $operation_hash: String!) {
+export const UpdateStagingRetryDocument = gql`
+  mutation UpdateStagingRetry(
+    $rp_id: String!
+    $staging_operation_hash: String!
+    $staging_status: rp_registration_status!
+  ) {
     update_rp_registration_by_pk(
       pk_columns: { rp_id: $rp_id }
       _set: {
-        mode: self_managed
-        manager_kms_key_id: null
-        signer_address: null
-        operation_hash: $operation_hash
-        staging_operation_hash: null
+        staging_operation_hash: $staging_operation_hash
+        staging_status: $staging_status
       }
     ) {
       rp_id
-      app_id
-      mode
-      status
-      operation_hash
+      staging_status
       staging_operation_hash
     }
   }
@@ -63,18 +59,18 @@ export function getSdk(
   withWrapper: SdkFunctionWrapper = defaultWrapper,
 ) {
   return {
-    UpdateModeSwitchResult(
-      variables: UpdateModeSwitchResultMutationVariables,
+    UpdateStagingRetry(
+      variables: UpdateStagingRetryMutationVariables,
       requestHeaders?: GraphQLClientRequestHeaders,
-    ): Promise<UpdateModeSwitchResultMutation> {
+    ): Promise<UpdateStagingRetryMutation> {
       return withWrapper(
         (wrappedRequestHeaders) =>
-          client.request<UpdateModeSwitchResultMutation>(
-            UpdateModeSwitchResultDocument,
+          client.request<UpdateStagingRetryMutation>(
+            UpdateStagingRetryDocument,
             variables,
             { ...requestHeaders, ...wrappedRequestHeaders },
           ),
-        "UpdateModeSwitchResult",
+        "UpdateStagingRetry",
         "mutation",
         variables,
       );
