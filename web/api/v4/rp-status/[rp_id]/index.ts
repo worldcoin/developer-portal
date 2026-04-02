@@ -239,11 +239,14 @@ export async function GET(
   // transition to failed so the user gets a retry button and polling stops.
   // Only apply when the RPC call succeeded — a transient RPC failure should
   // not permanently mark a healthy staging registration as failed.
+  // Use updated_at (not created_at) so a fresh staging retry resets the clock.
+  const stagingAgeMs = Date.now() - new Date(dbRecord.updated_at).getTime();
+  const isStagingPastGracePeriod = stagingAgeMs > PENDING_TIMEOUT_MS;
   if (
     stagingContractAddress &&
     stagingRpcSucceeded &&
     !stagingInitialized &&
-    isPastGracePeriod &&
+    isStagingPastGracePeriod &&
     dbRecord.mode === "managed"
   ) {
     stagingStatus = RpRegistrationStatus.Failed;

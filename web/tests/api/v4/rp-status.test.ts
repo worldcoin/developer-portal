@@ -67,6 +67,7 @@ const makeDbRecord = (
   overrides: Partial<{
     status: string;
     created_at: string;
+    updated_at: string;
     operation_hash: string | null;
     mode: string;
     staging_status: string | null;
@@ -108,6 +109,7 @@ describe("/api/v4/rp-status [pending timeout]", () => {
       rp_registration_by_pk: makeDbRecord({
         status: "pending",
         created_at: sixMinutesAgo,
+        updated_at: sixMinutesAgo,
         operation_hash: "0xdeadbeef",
       }),
     });
@@ -256,6 +258,7 @@ describe("/api/v4/rp-status [staging timeout]", () => {
       rp_registration_by_pk: makeDbRecord({
         status: "registered",
         created_at: tenMinutesAgo,
+        updated_at: tenMinutesAgo,
       }),
     });
 
@@ -347,6 +350,7 @@ describe("/api/v4/rp-status [staging DB sync]", () => {
         status: "registered",
         staging_status: "failed",
         created_at: tenMinutesAgo,
+        updated_at: tenMinutesAgo,
       }),
     });
 
@@ -395,6 +399,38 @@ describe("/api/v4/rp-status [staging DB sync]", () => {
     const body = await res.json();
     // Response reports failed (non-fatal), but DB should NOT be updated
     expect(body.staging_status).toBe("failed");
+    expect(UpdateStagingStatus).not.toHaveBeenCalled();
+  });
+
+  it("does not timeout staging after a fresh retry even if RP is old", async () => {
+    const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
+    const oneMinuteAgo = new Date(Date.now() - 1 * 60 * 1000).toISOString();
+    GetRpRegistration.mockResolvedValue({
+      rp_registration_by_pk: makeDbRecord({
+        status: "registered",
+        staging_status: "pending",
+        created_at: tenMinutesAgo,
+        // updated_at is recent because a staging retry just happened
+        updated_at: oneMinuteAgo,
+      }),
+    });
+
+    getRpFromContractMock.mockImplementation(
+      (_rpId: unknown, contractAddress: string) => {
+        if (contractAddress === productionContract) {
+          return { initialized: true, active: true };
+        }
+        // Staging not yet initialized (retry tx still in flight)
+        return { initialized: false, active: false };
+      },
+    );
+
+    const res = await GET(createRequest(), ctx);
+    expect(res.status).toBe(200);
+
+    const body = await res.json();
+    // Should stay pending, not timeout to failed
+    expect(body.staging_status).toBe("pending");
     expect(UpdateStagingStatus).not.toHaveBeenCalled();
   });
 });
