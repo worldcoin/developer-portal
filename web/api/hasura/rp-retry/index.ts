@@ -23,6 +23,7 @@ import { KMSClient } from "@aws-sdk/client-kms";
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
 import { getSdk as getGetRpRegistrationSdk } from "./graphql/get-rp-registration.generated";
+import { getSdk as getUpdateProductionRetrySdk } from "./graphql/update-production-retry.generated";
 import { getSdk as getUpdateStagingRetrySdk } from "./graphql/update-staging-retry.generated";
 
 const CACHE_KEY_PREFIX = "rp_status:v2:";
@@ -301,19 +302,28 @@ export const POST = async (req: NextRequest) => {
     });
   }
 
-  // Persist staging operation hash and status to DB on retry
-  if (environment === "staging" && operationHash) {
+  // Persist operation hash and reset status to pending on retry
+  if (operationHash) {
     try {
-      await getUpdateStagingRetrySdk(client).UpdateStagingRetry({
-        rp_id: rpId,
-        staging_operation_hash: operationHash,
-        staging_status: "pending",
-      });
+      if (environment === "production") {
+        await getUpdateProductionRetrySdk(client).UpdateProductionRetry({
+          rp_id: rpId,
+          operation_hash: operationHash,
+          status: "pending",
+        });
+      } else {
+        await getUpdateStagingRetrySdk(client).UpdateStagingRetry({
+          rp_id: rpId,
+          staging_operation_hash: operationHash,
+          staging_status: "pending",
+        });
+      }
     } catch (error) {
-      logger.error("Failed to update staging retry state in DB", {
+      logger.error("Failed to update retry state in DB", {
         rpId,
         appId,
         teamId,
+        environment,
         error,
       });
     }

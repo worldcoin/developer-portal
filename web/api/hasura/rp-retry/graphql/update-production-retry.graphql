@@ -1,0 +1,14 @@
+mutation UpdateProductionRetry(
+  $rp_id: String!
+  $operation_hash: String!
+  $status: rp_registration_status!
+) {
+  update_rp_registration_by_pk(
+    pk_columns: { rp_id: $rp_id }
+    _set: { operation_hash: $operation_hash, status: $status }
+  ) {
+    rp_id
+    status
+    operation_hash
+  }
+}
