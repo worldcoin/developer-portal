@@ -1,4 +1,7 @@
-import { formatAppMetadata } from "@/api/helpers/app-store";
+import {
+  fetchParameterStoreValues,
+  formatAppMetadata,
+} from "@/api/helpers/app-store";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { getAppStoreLocalisedCategoriesWithUrls } from "@/lib/categories";
 import { compareVersions } from "@/lib/compare-versions";
@@ -206,10 +209,14 @@ export async function GET(
   }
 
   const metricsMap = new Map(metricsData.map((stat) => [stat.app_id, stat]));
+  const paramStoreValues = await fetchParameterStoreValues();
   let formattedMetadata = await formatAppMetadata(
     { ...parsedAppMetadata },
     metricsMap,
     locale,
+    undefined,
+    undefined,
+    paramStoreValues,
   );
 
   formattedMetadata = {
