@@ -205,9 +205,10 @@ export async function GET(
     return NextResponse.json({ error: "App not available" }, { status: 404 });
   }
 
+  const metricsMap = new Map(metricsData.map((stat) => [stat.app_id, stat]));
   let formattedMetadata = await formatAppMetadata(
     { ...parsedAppMetadata },
-    metricsData,
+    metricsMap,
     locale,
   );
 

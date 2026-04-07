@@ -3,23 +3,57 @@ import { NATIVE_MAPPED_APP_ID, NativeAppToAppIdMapping } from "@/lib/constants";
 import { generateExternalNullifier } from "@/lib/hashing";
 import {
   AppStatsItem,
-  AppStatsReturnType,
   AppStoreFormattedFields,
   AppStoreMetadataDescription,
   AppStoreMetadataFields,
 } from "@/lib/types";
 import { getCDNImageUrl, getLogoImgCDNUrl, tryParseJSON } from "@/lib/utils";
 
+export interface ParameterStoreValues {
+  whitelistedAppsPermit2: string[];
+  whitelistedAppsContracts: string[];
+  implicitCredentialsApps: string[];
+}
+
+export const fetchParameterStoreValues =
+  async (): Promise<ParameterStoreValues> => {
+    const [
+      whitelistedAppsPermit2,
+      whitelistedAppsContracts,
+      implicitCredentialsApps,
+    ] = await Promise.all([
+      global.ParameterStore?.getParameter(
+        "whitelisted-apps/permit2",
+        [] as string[],
+      ) ?? Promise.resolve([]),
+      global.ParameterStore?.getParameter(
+        "whitelisted-apps/contracts",
+        [] as string[],
+      ) ?? Promise.resolve([]),
+      global.ParameterStore?.getParameter(
+        "whitelisted-apps/implicit-credentials",
+        [] as string[],
+      ) ?? Promise.resolve([]),
+    ]);
+
+    return {
+      whitelistedAppsPermit2: whitelistedAppsPermit2 ?? [],
+      whitelistedAppsContracts: whitelistedAppsContracts ?? [],
+      implicitCredentialsApps: implicitCredentialsApps ?? [],
+    };
+  };
+
 export const formatAppMetadata = async (
   appData: AppStoreMetadataFields,
-  appStats: AppStatsReturnType,
+  appStatsMap: Map<string, AppStatsItem>,
   locale: string = "en",
   platform?: string | null,
   country?: string | null,
+  paramStoreValues?: ParameterStoreValues,
 ): Promise<AppStoreFormattedFields> => {
   const { app, ...appMetadata } = appData;
-  const singleAppStats: AppStatsItem | undefined = appStats.find(
-    (stat) => stat.app_id === appMetadata.app_id,
+  const singleAppStats: AppStatsItem | undefined = appStatsMap.get(
+    appMetadata.app_id,
   );
 
   const shouldCompressCountryList =
@@ -51,28 +85,23 @@ export const formatAppMetadata = async (
 
   const name = localisedContent?.name ?? appMetadata.name;
 
-  const whitelistedAppsPermit2 = await global.ParameterStore?.getParameter(
-    "whitelisted-apps/permit2",
-    [] as string[],
-  );
-
-  const whitelistedAppsContracts = await global.ParameterStore?.getParameter(
-    "whitelisted-apps/contracts",
-    [] as string[],
-  );
-
-  const implicitCredentialsApps = await global.ParameterStore?.getParameter(
-    "whitelisted-apps/implicit-credentials",
-    [] as string[],
-  );
+  const {
+    whitelistedAppsPermit2,
+    whitelistedAppsContracts,
+    implicitCredentialsApps,
+  } = paramStoreValues ?? {
+    whitelistedAppsPermit2: [],
+    whitelistedAppsContracts: [],
+    implicitCredentialsApps: [],
+  };
 
   // Check if the app is whitelisted for permit2
-  const permit2Tokens = whitelistedAppsPermit2?.includes(appMetadata.app_id)
+  const permit2Tokens = whitelistedAppsPermit2.includes(appMetadata.app_id)
     ? ["all"]
     : appMetadata.permit2_tokens;
 
-  // Check if the app is whitelisted for permit2
-  const contracts = whitelistedAppsContracts?.includes(appMetadata.app_id)
+  // Check if the app is whitelisted for contracts
+  const contracts = whitelistedAppsContracts.includes(appMetadata.app_id)
     ? ["all"]
     : appMetadata.contracts;
 
@@ -178,8 +207,9 @@ export const formatAppMetadata = async (
     avg_notification_open_rate: getAvgNotificationOpenRate(
       singleAppStats?.open_rate_last_14_days,
     ),
-    can_use_implicit_credentials:
-      implicitCredentialsApps?.includes(appMetadata.app_id) ?? false,
+    can_use_implicit_credentials: implicitCredentialsApps.includes(
+      appMetadata.app_id,
+    ),
   };
 };
 
@@ -215,16 +245,10 @@ const isDefaultPinnedNoGrants = (appId: string) => {
  */
 export const rankApps = (
   apps: AppStoreFormattedFields[],
-  appStats: AppStatsReturnType,
+  appStatsMap: Map<string, AppStatsItem>,
 ) => {
   let maxNewUsers = 0;
   let maxUniqueUsers = 0;
-  // determine maximum values among apps that
-  // are present in the current app store
-  const appIdsSet = new Set<string>(apps.map((app) => app.app_id));
-  const appStoreAppStats = appStats.filter((stat) =>
-    appIdsSet.has(stat.app_id),
-  );
 
   const nativeAppConstants = Object.values(NATIVE_MAPPED_APP_ID);
   const nativeAppIds = Object.values(
@@ -235,55 +259,38 @@ export const rankApps = (
     ...nativeAppIds,
   ]);
 
-  appStoreAppStats.forEach((stat) => {
-    if (combinedNativeAppIds.has(stat.app_id)) {
-      return;
-    }
+  // determine maximum values among apps present in the current app store
+  for (const app of apps) {
+    if (combinedNativeAppIds.has(app.app_id)) continue;
+    const stat = appStatsMap.get(app.app_id);
+    if (!stat) continue;
     maxNewUsers = Math.max(
       maxNewUsers,
       Number(stat.new_users_last_7_days ?? 0),
     );
     maxUniqueUsers = Math.max(maxUniqueUsers, Number(stat.unique_users ?? 0));
-  });
+  }
 
   // ensure we don't divide by zero
   maxNewUsers = maxNewUsers === 0 ? 1 : maxNewUsers;
   maxUniqueUsers = maxUniqueUsers === 0 ? 1 : maxUniqueUsers;
 
+  // pre-compute scores to avoid repeated lookups in sort comparator
+  const scoreMap = new Map<string, number>();
+  for (const app of apps) {
+    const stat = appStatsMap.get(app.app_id);
+    const newUsers = Number(stat?.new_users_last_7_days ?? 0);
+    const uniqueUsers = Number(stat?.unique_users ?? 0);
+    const score =
+      (newUsers / maxNewUsers) * 0.5 + (uniqueUsers / maxUniqueUsers) * 0.5;
+    scoreMap.set(app.app_id, score);
+  }
+
   return apps.sort((a, b) => {
-    // move specific apps to the end
-    if (
-      isDefaultPinnedNoGrants(a.app_id) &&
-      !isDefaultPinnedNoGrants(b.app_id)
-    ) {
-      return 1; // a goes after b
-    }
-    if (
-      !isDefaultPinnedNoGrants(a.app_id) &&
-      isDefaultPinnedNoGrants(b.app_id)
-    ) {
-      return -1; // a goes before b
-    }
+    const aPinned = isDefaultPinnedNoGrants(a.app_id);
+    const bPinned = isDefaultPinnedNoGrants(b.app_id);
+    if (aPinned !== bPinned) return aPinned ? 1 : -1;
 
-    const aStat = appStoreAppStats.find((stat) => stat.app_id === a.app_id);
-    const bStat = appStoreAppStats.find((stat) => stat.app_id === b.app_id);
-
-    // default to 0 if stats not found
-    const aNewUsers = Number(aStat?.new_users_last_7_days ?? 0);
-    const aUniqueUsers = Number(aStat?.unique_users ?? 0);
-    const bNewUsers = Number(bStat?.new_users_last_7_days ?? 0);
-    const bUniqueUsers = Number(bStat?.unique_users ?? 0);
-
-    // normalize values to 0-1 scale
-    const aNormalizedNewUsers = aNewUsers / maxNewUsers;
-    const aNormalizedUniqueUsers = aUniqueUsers / maxUniqueUsers;
-    const bNormalizedNewUsers = bNewUsers / maxNewUsers;
-    const bNormalizedUniqueUsers = bUniqueUsers / maxUniqueUsers;
-
-    // 50% new_users_last_7_days, 50% unique_users
-    const aScore = aNormalizedNewUsers * 0.5 + aNormalizedUniqueUsers * 0.5;
-    const bScore = bNormalizedNewUsers * 0.5 + bNormalizedUniqueUsers * 0.5;
-
-    return bScore - aScore;
+    return (scoreMap.get(b.app_id) ?? 0) - (scoreMap.get(a.app_id) ?? 0);
   });
 };

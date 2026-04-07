@@ -17,7 +17,11 @@ import {
 } from "./graphql/get-app-rankings.generated";
 import { getSdk as getWebHighlightsSdk } from "./graphql/get-app-web-highlights.generated";
 
-import { formatAppMetadata, rankApps } from "@/api/helpers/app-store";
+import {
+  fetchParameterStoreValues,
+  formatAppMetadata,
+  rankApps,
+} from "@/api/helpers/app-store";
 import { fetchMetrics } from "@/api/helpers/fetch-metrics";
 import { compareVersions } from "@/lib/compare-versions";
 import { logger } from "@/lib/logger";
@@ -30,7 +34,7 @@ import {
 const queryParamsSchema = yup
   .object({
     page: yup.number().integer().min(1).default(1).notRequired(),
-    limit: yup.number().integer().min(1).max(1000).notRequired().default(750),
+    limit: yup.number().integer().min(1).max(1500).notRequired().default(1000),
     app_mode: yup
       .string()
       .oneOf(["mini-app", "external", "native"])
@@ -136,7 +140,7 @@ export const GET = async (request: NextRequest) => {
   }
 
   // notify if length is close to limit
-  if (limitValue >= 750 && page === 1 && topApps.length > limitValue * 0.8) {
+  if (limitValue >= 1000 && page === 1 && topApps.length > limitValue * 0.8) {
     logger.warn("App store response length is close to limit", {
       limit: limitValue,
       topAppsLength: topApps.length,
@@ -209,21 +213,41 @@ export const GET = async (request: NextRequest) => {
     });
   }
 
-  // ANCHOR: Fetch app stats from metrics service, keep a cache since metrics doesn't update that often
-  const metricsData = await fetchMetrics(country);
+  // ANCHOR: Fetch app stats and parameter store values in parallel
+  const [metricsData, paramStoreValues] = await Promise.all([
+    fetchMetrics(country),
+    fetchParameterStoreValues(),
+  ]);
+
+  // Build a Map for O(1) metric lookups
+  const metricsMap = new Map(metricsData.map((stat) => [stat.app_id, stat]));
 
   const nativeAppMetadata = NativeApps[process.env.NEXT_PUBLIC_APP_ENV];
 
   // ANCHOR: Format all app metadata
   let formattedTopApps = await Promise.all(
     topApps.map((app) =>
-      formatAppMetadata(app, metricsData, locale, platform, country),
+      formatAppMetadata(
+        app,
+        metricsMap,
+        locale,
+        platform,
+        country,
+        paramStoreValues,
+      ),
     ),
   );
 
   let highlightedApps = await Promise.all(
     highlightsApps.map((app) =>
-      formatAppMetadata(app, metricsData, locale, platform, country),
+      formatAppMetadata(
+        app,
+        metricsMap,
+        locale,
+        platform,
+        country,
+        paramStoreValues,
+      ),
     ),
   );
 
@@ -238,9 +262,7 @@ export const GET = async (request: NextRequest) => {
             : app.integration_url,
         app_id: nativeAppItem.app_id,
         app_mode: nativeAppItem.app_mode,
-        unique_users:
-          metricsData.find((stat) => stat.app_id === nativeAppItem.app_id)
-            ?.unique_users ?? 0,
+        unique_users: metricsMap.get(nativeAppItem.app_id)?.unique_users ?? 0,
       };
     }
     return app;
@@ -254,9 +276,7 @@ export const GET = async (request: NextRequest) => {
         integration_url: nativeAppItem.integration_url,
         app_id: nativeAppItem.app_id,
         app_mode: nativeAppItem.app_mode,
-        unique_users:
-          metricsData.find((stat) => stat.app_id === nativeAppItem.app_id)
-            ?.unique_users ?? 0,
+        unique_users: metricsMap.get(nativeAppItem.app_id)?.unique_users ?? 0,
       };
     }
     return app;
@@ -293,27 +313,19 @@ export const GET = async (request: NextRequest) => {
     });
   }
 
-  const rankedApps = rankApps(formattedTopApps, metricsData);
+  const rankedApps = rankApps(formattedTopApps, metricsMap);
 
   /**
    * ANCHOR: Add category_ranking field to each app
    * This is to sort apps inside category,
    * based on the overall ranking in app store
    */
-  const categoryAppsMap = new Map();
-  rankedApps.forEach((app) => {
-    const categoryId = app.category.id;
-    if (!categoryAppsMap.has(categoryId)) {
-      categoryAppsMap.set(
-        categoryId,
-        rankedApps.filter((a) => a.category.id === categoryId),
-      );
-    }
-  });
-
+  const categoryCountMap = new Map<string, number>();
   const rankedAppsWithCategoryRanking = rankedApps.map((app) => {
-    const categoryApps = categoryAppsMap.get(app.category.id);
-    return { ...app, category_ranking: categoryApps.indexOf(app) + 1 };
+    const categoryId = app.category.id;
+    const rank = (categoryCountMap.get(categoryId) ?? 0) + 1;
+    categoryCountMap.set(categoryId, rank);
+    return { ...app, category_ranking: rank };
   });
 
   const responseBody = {
