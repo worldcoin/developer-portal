@@ -1,4 +1,7 @@
-import { formatAppMetadata } from "@/api/helpers/app-store";
+import {
+  fetchParameterStoreValues,
+  formatAppMetadata,
+} from "@/api/helpers/app-store";
 import { errorResponse } from "@/api/helpers/errors";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { verifyHashedSecret } from "@/api/helpers/utils";
@@ -127,7 +130,14 @@ export const GET = async (
 
   return NextResponse.json(
     {
-      ...(await formatAppMetadata(appMetadata, [], locale)),
+      ...formatAppMetadata(
+        appMetadata,
+        new Map(),
+        locale,
+        undefined,
+        undefined,
+        await fetchParameterStoreValues(),
+      ),
       logo_img_url: null,
       hero_image_url: null,
       meta_tag_image_url: null,
