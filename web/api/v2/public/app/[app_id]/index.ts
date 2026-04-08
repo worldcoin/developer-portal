@@ -210,7 +210,7 @@ export async function GET(
 
   const metricsMap = new Map(metricsData.map((stat) => [stat.app_id, stat]));
   const paramStoreValues = await fetchParameterStoreValues();
-  let formattedMetadata = await formatAppMetadata(
+  let formattedMetadata = formatAppMetadata(
     { ...parsedAppMetadata },
     metricsMap,
     locale,

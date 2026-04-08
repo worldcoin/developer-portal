@@ -225,29 +225,25 @@ export const GET = async (request: NextRequest) => {
   const nativeAppMetadata = NativeApps[process.env.NEXT_PUBLIC_APP_ENV];
 
   // ANCHOR: Format all app metadata
-  let formattedTopApps = await Promise.all(
-    topApps.map((app) =>
-      formatAppMetadata(
-        app,
-        metricsMap,
-        locale,
-        platform,
-        country,
-        paramStoreValues,
-      ),
+  let formattedTopApps = topApps.map((app) =>
+    formatAppMetadata(
+      app,
+      metricsMap,
+      locale,
+      platform,
+      country,
+      paramStoreValues,
     ),
   );
 
-  let highlightedApps = await Promise.all(
-    highlightsApps.map((app) =>
-      formatAppMetadata(
-        app,
-        metricsMap,
-        locale,
-        platform,
-        country,
-        paramStoreValues,
-      ),
+  let highlightedApps = highlightsApps.map((app) =>
+    formatAppMetadata(
+      app,
+      metricsMap,
+      locale,
+      platform,
+      country,
+      paramStoreValues,
     ),
   );
 

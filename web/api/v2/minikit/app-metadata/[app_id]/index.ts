@@ -130,14 +130,14 @@ export const GET = async (
 
   return NextResponse.json(
     {
-      ...(await formatAppMetadata(
+      ...formatAppMetadata(
         appMetadata,
         new Map(),
         locale,
         undefined,
         undefined,
         await fetchParameterStoreValues(),
-      )),
+      ),
       logo_img_url: null,
       hero_image_url: null,
       meta_tag_image_url: null,

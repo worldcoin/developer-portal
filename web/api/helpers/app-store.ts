@@ -43,14 +43,14 @@ export const fetchParameterStoreValues =
     };
   };
 
-export const formatAppMetadata = async (
+export const formatAppMetadata = (
   appData: AppStoreMetadataFields,
   appStatsMap: Map<string, AppStatsItem>,
   locale: string = "en",
   platform?: string | null,
   country?: string | null,
   paramStoreValues?: ParameterStoreValues,
-): Promise<AppStoreFormattedFields> => {
+): AppStoreFormattedFields => {
   const { app, ...appMetadata } = appData;
   const singleAppStats: AppStatsItem | undefined = appStatsMap.get(
     appMetadata.app_id,
