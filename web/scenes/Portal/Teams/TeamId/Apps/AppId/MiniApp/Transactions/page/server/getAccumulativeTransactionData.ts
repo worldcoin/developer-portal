@@ -3,12 +3,14 @@
 import { errorFormAction } from "@/api/helpers/errors";
 import { extractIdsFromPath, getPathFromHeaders } from "@/lib/server-utils";
 import {
+  Auth0SessionUser,
   FormActionResult,
   PaymentMetadata,
   TokenPrecision,
   TransactionMetadata,
   TransactionStatus,
 } from "@/lib/types";
+import { getSession } from "@auth0/nextjs-auth0";
 import { createSignedFetcher } from "aws-sigv4-fetch";
 
 export type GetAccumulativePaymentsDataReturnType = {
@@ -84,6 +86,31 @@ export const getAccumulativePaymentsData = async (
 ): Promise<FormActionResult> => {
   const path = getPathFromHeaders() || "";
   const { Teams: teamId } = extractIdsFromPath(path, ["Teams"]);
+
+  const session = await getSession();
+  const user = session?.user as Auth0SessionUser["user"];
+
+  if (!user) {
+    return errorFormAction({
+      message: "User is not authenticated",
+      app_id: appId,
+      team_id: teamId,
+      logLevel: "error",
+    });
+  }
+
+  const isTeamMember = user?.hasura?.memberships?.some(
+    (membership) => membership.team?.id === teamId,
+  );
+
+  if (!isTeamMember) {
+    return errorFormAction({
+      message: "User is not a member of this team",
+      app_id: appId,
+      team_id: teamId,
+      logLevel: "error",
+    });
+  }
 
   try {
     if (!process.env.NEXT_SERVER_INTERNAL_PAYMENTS_ENDPOINT) {
@@ -196,6 +223,31 @@ export const getAccumulativeTransactionsData = async (
 ): Promise<FormActionResult> => {
   const path = getPathFromHeaders() || "";
   const { Teams: teamId } = extractIdsFromPath(path, ["Teams"]);
+
+  const session = await getSession();
+  const user = session?.user as Auth0SessionUser["user"];
+
+  if (!user) {
+    return errorFormAction({
+      message: "User is not authenticated",
+      app_id: appId,
+      team_id: teamId,
+      logLevel: "error",
+    });
+  }
+
+  const isTeamMember = user?.hasura?.memberships?.some(
+    (membership) => membership.team?.id === teamId,
+  );
+
+  if (!isTeamMember) {
+    return errorFormAction({
+      message: "User is not a member of this team",
+      app_id: appId,
+      team_id: teamId,
+      logLevel: "error",
+    });
+  }
 
   try {
     if (!process.env.NEXT_SERVER_INTERNAL_PAYMENTS_ENDPOINT) {
