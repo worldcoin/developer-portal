@@ -36,6 +36,8 @@ type SendNotificationBodyV2 = yup.InferType<
   typeof sendNotificationBodySchemaV2
 >;
 
+const WALLET_ADDRESS_BATCH_SIZE = 100;
+
 export const logNotification = async (
   serviceClient: GraphQLClient,
   app_id: string,
@@ -77,12 +79,26 @@ export const logNotification = async (
     return;
   }
 
-  createNotificationLogSdk(serviceClient).CreateWalletAdressNotificationLogs({
-    objects: wallet_addresses.map((wallet_address) => ({
-      wallet_address,
-      notification_log_id: notificationLogId,
-    })),
-  });
+  const sdk = createNotificationLogSdk(serviceClient);
+
+  // Batch inserts to avoid oversized Hasura CTE queries
+  for (let i = 0; i < wallet_addresses.length; i += WALLET_ADDRESS_BATCH_SIZE) {
+    const batch = wallet_addresses.slice(i, i + WALLET_ADDRESS_BATCH_SIZE);
+
+    try {
+      await sdk.CreateWalletAdressNotificationLogs({
+        objects: batch.map((wallet_address) => ({
+          wallet_address,
+          notification_log_id: notificationLogId,
+        })),
+      });
+    } catch (error) {
+      logger.error(
+        "NotificationLog - failed to insert wallet address batch",
+        { app_id, notificationLogId, batchIndex: i, error },
+      );
+    }
+  }
 };
 
 const getSchemaVersion = (body: object) => {
@@ -430,28 +446,19 @@ export const POST = async (req: NextRequest) => {
     });
   }
   const response: SendNotificationResponse = data.result;
-  if (schemaVersion === "v1") {
-    logNotification(
-      serviceClient,
-      app_id,
-      wallet_addresses,
-      mini_app_path,
-      (parsedParams as SendNotificationBodyV1).message,
-    );
-  } else if (schemaVersion === "v2") {
-    const localisations = (parsedParams as SendNotificationBodyV2)
-      .localisations;
+  const logMessage =
+    schemaVersion === "v1"
+      ? (parsedParams as SendNotificationBodyV1).message
+      : (parsedParams as SendNotificationBodyV2).localisations?.[0]?.message;
 
-    for (const localisation of localisations) {
-      logNotification(
-        serviceClient,
-        app_id,
-        wallet_addresses,
-        mini_app_path,
-        localisation.message,
-      );
-    }
-  }
+  // Fire-and-forget: log wallet addresses once (not per localisation)
+  logNotification(
+    serviceClient,
+    app_id,
+    wallet_addresses,
+    mini_app_path,
+    logMessage,
+  );
 
   return NextResponse.json({
     success: true,
