@@ -93,10 +93,12 @@ export const logNotification = async (
         })),
       });
     } catch (error) {
-      logger.error(
-        "NotificationLog - failed to insert wallet address batch",
-        { app_id, notificationLogId, batchIndex: i, error },
-      );
+      logger.error("NotificationLog - failed to insert wallet address batch", {
+        app_id,
+        notificationLogId,
+        batchIndex: i,
+        error,
+      });
     }
   }
 };
