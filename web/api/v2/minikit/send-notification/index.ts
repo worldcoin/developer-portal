@@ -451,7 +451,11 @@ export const POST = async (req: NextRequest) => {
   const logMessage =
     schemaVersion === "v1"
       ? (parsedParams as SendNotificationBodyV1).message
-      : (parsedParams as SendNotificationBodyV2).localisations?.[0]?.message;
+      : (
+          (parsedParams as SendNotificationBodyV2).localisations?.find(
+            (l) => l.language === "en",
+          ) ?? (parsedParams as SendNotificationBodyV2).localisations?.[0]
+        )?.message;
 
   // Fire-and-forget: log wallet addresses once (not per localisation)
   logNotification(
