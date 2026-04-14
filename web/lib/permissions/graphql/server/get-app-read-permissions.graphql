@@ -1,0 +1,10 @@
+query GetIsUserPermittedToReadApp($appId: String!, $userId: String!) {
+  app_by_pk(id: $appId) {
+    team {
+      memberships(where: { user_id: { _eq: $userId } }) {
+        user_id
+        role
+      }
+    }
+  }
+}
