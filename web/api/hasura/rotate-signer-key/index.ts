@@ -48,8 +48,9 @@ const schema = yup
  * 2. Verifies the RP is in managed mode
  * 3. Claims the rotation slot (prevents concurrent rotations)
  * 4. Builds and signs the updateRp transaction
- * 5. Submits to the temporal bundler
+ * 5. Submits to the temporal bundler (production + staging best-effort)
  * 6. Updates the registration with new signer address
+ * 7. Invalidates the rp_status cache so polling syncs DB from on-chain
  */
 export const POST = async (req: NextRequest) => {
   const { isAuthenticated, errorResponse } = protectInternalEndpoint(req);
@@ -267,6 +268,21 @@ export const POST = async (req: NextRequest) => {
         code: "db_error",
         app_id,
       });
+    }
+
+    // Invalidate status cache so the next rp-status poll does a real
+    // on-chain check and syncs the DB status back to "registered".
+    const redis = global.RedisClient;
+    if (redis) {
+      try {
+        const cacheKey = `rp_status:v2:${rpIdString}`;
+        await redis.del(cacheKey);
+      } catch (cacheError) {
+        logger.warn("Failed to invalidate rp_status cache", {
+          error: cacheError,
+          rpIdString,
+        });
+      }
     }
 
     logger.info("Signer key rotation successful", {
