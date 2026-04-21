@@ -259,11 +259,13 @@ export const isValidHostName = (request: Request) => {
     return false;
   }
 
-  // Skip check for development and staging (staging may not have custom domains)
-  // TODO(CORPLAT-689): Remove staging bypass after DNS cutover
+  // Skip check for development, staging, and temporarily production
+  // (dedicated accounts may not have custom domains before DNS cutover)
+  // TODO(CORPLAT-689): Remove bypass after production DNS cutover
   if (
     process.env.NODE_ENV === "development" ||
-    process.env.NEXT_PUBLIC_APP_ENV === "staging"
+    process.env.NEXT_PUBLIC_APP_ENV === "staging" ||
+    process.env.SKIP_ORIGIN_VALIDATION === "true"
   ) {
     return true;
   }
