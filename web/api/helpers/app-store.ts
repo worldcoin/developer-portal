@@ -144,8 +144,23 @@ export const formatAppMetadata = (
   ) {
     buttonTextOverride = "Get Mini App";
   }
+  // HACK: ORO redirects from worldoro.com to app.worldoro.com for SIWE,
+  // but only has worldoro.com as integration_url. Bedrock requires exact
+  // host match, so we inject the subdomain until they fix their config.
+  const ORO_APP_ID = "app_f1e44837a5e3c2af4da8925b46027645";
+  const associatedDomains =
+    appMetadata.app_id === ORO_APP_ID
+      ? [
+          ...new Set([
+            "https://app.worldoro.com",
+            ...(appMetadata.associated_domains ?? []),
+          ]),
+        ]
+      : appMetadata.associated_domains;
+
   return {
     ...appMetadataWithoutLocalisations,
+    associated_domains: associatedDomains,
     name: name,
     app_rating: appRating ?? 0,
     world_app_button_text: buttonTextOverride,
