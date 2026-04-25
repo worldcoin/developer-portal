@@ -22,7 +22,6 @@ import { getSdk as getFetchRpRegistrationForPrecheckSdk } from "./graphql/fetch-
 const APPS_WITH_CUSTOM_EXTERNAL_NULLIFIER = [
   "app_1f7f2c379f20307a414f6cf8b544ec8a", // Grants app - uses 0xB16B00B5 for humanity verification
 ];
-const FACE_CHECK_ENABLED_APPS_PARAMETER = "whitelisted-apps/face-check";
 // Whitelist some partner demo apps, that are not verified but we want to show their logos
 const APPS_TO_SHOW_UNVERIFIED_LOGO = [
   "app_staging_c8137371ceac59890774ccc932e11dcf",
@@ -78,11 +77,6 @@ export async function POST(
   const app_id = routeParams.app_id;
   const action = parsedParams.action ?? "";
   const nullifier_hash = parsedParams.nullifier_hash;
-  const faceCheckEnabledAppsPromise =
-    global.ParameterStore?.getParameter<string[]>(
-      FACE_CHECK_ENABLED_APPS_PARAMETER,
-      [],
-    ) ?? Promise.resolve([] as string[]);
 
   // Check if this app uses custom external_nullifier values
   const useCustomExternalNullifier =
@@ -135,8 +129,6 @@ export async function POST(
 
   const unverified_app_metadata = rawAppValues.app_metadata[0];
   const verified_app_metadata = rawAppValues.verified_app_metadata[0];
-  const faceCheckEnabledApps = await faceCheckEnabledAppsPromise;
-  const enableFaceCheck = faceCheckEnabledApps?.includes(app_id) ?? false;
   // If an image is present it should store it's relative path and extension ie logo.png
   let logo_img_url = verified_app_metadata?.logo_img_url
     ? getCDNImageUrl(rawAppValues.id, verified_app_metadata?.logo_img_url)
@@ -171,7 +163,7 @@ export async function POST(
       verified_app_metadata?.integration_url ??
       unverified_app_metadata?.integration_url ??
       "",
-    enable_face_check: enableFaceCheck,
+    enable_face_check: true, // Default to true now this is GA
     actions: rawAppValues.actions,
   };
 
