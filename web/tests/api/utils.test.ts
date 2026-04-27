@@ -199,6 +199,21 @@ describe("isValidHostName()", () => {
       ).toBe(false);
     });
 
+    test("accepts request without port when CDN env has explicit port", () => {
+      process.env.NEXT_PUBLIC_IMAGES_CDN_URL = "https://cdn.example.com:443";
+      expect(isValidHostName(makeRequest("cdn.example.com"))).toBe(true);
+    });
+
+    test("accepts request with port when CDN env has no port", () => {
+      process.env.NEXT_PUBLIC_IMAGES_CDN_URL = "https://cdn.example.com";
+      expect(isValidHostName(makeRequest("cdn.example.com:443"))).toBe(true);
+    });
+
+    test("accepts bare-host CDN env with explicit port", () => {
+      process.env.NEXT_PUBLIC_IMAGES_CDN_URL = "cdn.example.com:443";
+      expect(isValidHostName(makeRequest("cdn.example.com"))).toBe(true);
+    });
+
     test("rejects when CDN env var is unset", () => {
       delete process.env.NEXT_PUBLIC_IMAGES_CDN_URL;
       expect(isValidHostName(makeRequest("cdn.example.com"))).toBe(false);

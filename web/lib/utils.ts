@@ -272,15 +272,21 @@ export const isValidHostName = (request: Request) => {
     return false;
   }
 
-  // env var may be a full URL ("https://cdn.example.com") or a bare host ("cdn.example.com")
+  // env var may be a full URL ("https://cdn.example.com") or a bare host ("cdn.example.com");
+  // compare hostnames only (port-insensitive) since the Host header may or may not include a port
+  const stripPort = (h: string) => h.replace(/:\d+$/, "");
   let cdnHostName: string;
-  try {
-    cdnHostName = new URL(cdnHost).host;
-  } catch {
-    cdnHostName = cdnHost;
+  if (cdnHost.includes("://")) {
+    try {
+      cdnHostName = new URL(cdnHost).hostname;
+    } catch {
+      return false;
+    }
+  } else {
+    cdnHostName = stripPort(cdnHost);
   }
 
-  return cdnHostName === hostName;
+  return cdnHostName !== "" && cdnHostName === stripPort(hostName);
 };
 
 /**
