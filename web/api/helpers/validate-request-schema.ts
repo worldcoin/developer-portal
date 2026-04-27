@@ -1,5 +1,6 @@
 import "server-only";
 
+import { logger } from "@/lib/logger";
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
 import { errorResponse } from "./errors";
@@ -51,6 +52,12 @@ export const validateRequestSchema = async <T extends yup.Schema>({
       };
       return { isValid: false, handleError };
     }
+
+    logger.error("Unexpected error validating request schema", {
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+      app_id,
+    });
 
     const handleError = (req: NextRequest) => {
       return errorResponse({
