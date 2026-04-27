@@ -1,5 +1,5 @@
 import { canVerifyForAction } from "@/api/helpers/verify";
-import { validateUri, validateUrl } from "@/lib/utils";
+import { isValidHostName, validateUri, validateUrl } from "@/lib/utils";
 
 describe("canVerifyForAction()", () => {
   test("can verify if it has not verified before", () => {
@@ -141,6 +141,100 @@ describe("validateUrl()", () => {
       expect(
         validateUrl("https://test.com/\nalert(1)", isStaging),
       ).toBeTruthy();
+    });
+  });
+});
+
+describe("isValidHostName()", () => {
+  const ORIGINAL_NODE_ENV = process.env.NODE_ENV;
+  const ORIGINAL_APP_ENV = process.env.NEXT_PUBLIC_APP_ENV;
+  const ORIGINAL_CDN = process.env.NEXT_PUBLIC_IMAGES_CDN_URL;
+
+  const makeRequest = (host: string) => {
+    const headers = new Headers();
+    headers.set("host", host);
+    return new Request("https://example.com", { headers });
+  };
+
+  afterEach(() => {
+    Object.defineProperty(process.env, "NODE_ENV", {
+      value: ORIGINAL_NODE_ENV,
+    });
+    process.env.NEXT_PUBLIC_APP_ENV = ORIGINAL_APP_ENV;
+    process.env.NEXT_PUBLIC_IMAGES_CDN_URL = ORIGINAL_CDN;
+  });
+
+  describe("production", () => {
+    beforeEach(() => {
+      Object.defineProperty(process.env, "NODE_ENV", { value: "production" });
+      process.env.NEXT_PUBLIC_APP_ENV = "production";
+      process.env.NEXT_PUBLIC_IMAGES_CDN_URL = "https://cdn.example.com";
+    });
+
+    test("accepts exact host match against full CDN URL", () => {
+      expect(isValidHostName(makeRequest("cdn.example.com"))).toBe(true);
+    });
+
+    test("accepts exact host match against bare host CDN value", () => {
+      process.env.NEXT_PUBLIC_IMAGES_CDN_URL = "cdn.example.com";
+      expect(isValidHostName(makeRequest("cdn.example.com"))).toBe(true);
+    });
+
+    test("rejects single-character host (substring bypass)", () => {
+      // The previous implementation used cdnHost.includes(hostName), so any
+      // substring of the CDN URL (e.g., "h", "cdn") would pass.
+      expect(isValidHostName(makeRequest("h"))).toBe(false);
+      expect(isValidHostName(makeRequest("cdn"))).toBe(false);
+      expect(isValidHostName(makeRequest("example.com"))).toBe(false);
+    });
+
+    test("rejects attacker-controlled host that is a substring of CDN URL", () => {
+      expect(isValidHostName(makeRequest("https"))).toBe(false);
+      expect(isValidHostName(makeRequest(".com"))).toBe(false);
+    });
+
+    test("rejects host containing CDN as a substring", () => {
+      expect(
+        isValidHostName(makeRequest("evil.cdn.example.com.attacker.com")),
+      ).toBe(false);
+    });
+
+    test("accepts request without port when CDN env has explicit port", () => {
+      process.env.NEXT_PUBLIC_IMAGES_CDN_URL = "https://cdn.example.com:443";
+      expect(isValidHostName(makeRequest("cdn.example.com"))).toBe(true);
+    });
+
+    test("accepts request with port when CDN env has no port", () => {
+      process.env.NEXT_PUBLIC_IMAGES_CDN_URL = "https://cdn.example.com";
+      expect(isValidHostName(makeRequest("cdn.example.com:443"))).toBe(true);
+    });
+
+    test("accepts bare-host CDN env with explicit port", () => {
+      process.env.NEXT_PUBLIC_IMAGES_CDN_URL = "cdn.example.com:443";
+      expect(isValidHostName(makeRequest("cdn.example.com"))).toBe(true);
+    });
+
+    test("rejects when CDN env var is unset", () => {
+      delete process.env.NEXT_PUBLIC_IMAGES_CDN_URL;
+      expect(isValidHostName(makeRequest("cdn.example.com"))).toBe(false);
+    });
+  });
+
+  describe("staging bypass", () => {
+    test("accepts any host when NEXT_PUBLIC_APP_ENV=staging", () => {
+      Object.defineProperty(process.env, "NODE_ENV", { value: "production" });
+      process.env.NEXT_PUBLIC_APP_ENV = "staging";
+      process.env.NEXT_PUBLIC_IMAGES_CDN_URL = "https://cdn.example.com";
+      expect(isValidHostName(makeRequest("anything.com"))).toBe(true);
+    });
+  });
+
+  describe("development bypass", () => {
+    test("accepts any host when NODE_ENV=development", () => {
+      Object.defineProperty(process.env, "NODE_ENV", { value: "development" });
+      process.env.NEXT_PUBLIC_APP_ENV = "production";
+      process.env.NEXT_PUBLIC_IMAGES_CDN_URL = "https://cdn.example.com";
+      expect(isValidHostName(makeRequest("localhost:3000"))).toBe(true);
     });
   });
 });
