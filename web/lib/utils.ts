@@ -268,10 +268,19 @@ export const isValidHostName = (request: Request) => {
     return true;
   }
   const cdnHost = process.env.NEXT_PUBLIC_IMAGES_CDN_URL;
-  if (!cdnHost || !cdnHost.includes(hostName)) {
+  if (!cdnHost) {
     return false;
   }
-  return true;
+
+  // env var may be a full URL ("https://cdn.example.com") or a bare host ("cdn.example.com")
+  let cdnHostName: string;
+  try {
+    cdnHostName = new URL(cdnHost).host;
+  } catch {
+    cdnHostName = cdnHost;
+  }
+
+  return cdnHostName === hostName;
 };
 
 /**
