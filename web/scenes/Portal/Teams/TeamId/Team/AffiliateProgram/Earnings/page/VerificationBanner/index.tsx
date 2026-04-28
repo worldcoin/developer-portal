@@ -1,5 +1,4 @@
 "use client";
-
 import { CircleIconContainer } from "@/components/CircleIconContainer";
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { IdentificationIcon } from "@/components/Icons/IdentificationIcon";
@@ -7,6 +6,7 @@ import { RemoveCustomIcon } from "@/components/Icons/RemoveCustomIcon";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { AffiliateMetadataResponse, IdentityVerificationStatus } from "@/lib/types";
 import { useMemo } from "react";
+import {ClockIcon} from "@/components/Icons/ClockIcon";
 
 type Props = {
   onComplete: () => void;
@@ -29,9 +29,9 @@ export const VerificationBanner = ({
     if (status === IdentityVerificationStatus.PENDING) {
       return {
         title: `${verificationTypeUpper} processing`,
-        description: "It can take 1-3 days",
+        description: "Verification process can take 1-3 days",
         buttonText: "Show more",
-        icon: <IdentificationIcon className="size-8 text-blue-500" />,
+        icon: <ClockIcon className="size-8 text-blue-500" />,
         iconVariant: "info" as const,
         containerClassName: "border-blue-150 from-blue-150/25",
       };
@@ -40,7 +40,7 @@ export const VerificationBanner = ({
     if (status === IdentityVerificationStatus.FAILED) {
       return {
         title: `${verificationTypeUpper} failed`,
-        description: "Verification failed, try again",
+        description: "Verification failed, please try again",
         buttonText: "Show more",
         icon: <RemoveCustomIcon className="size-8 text-system-error-600" />,
         iconVariant: "error" as const,
