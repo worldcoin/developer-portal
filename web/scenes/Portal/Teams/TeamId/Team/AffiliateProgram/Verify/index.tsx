@@ -9,20 +9,26 @@ import { useState } from "react";
 import { toast } from "react-toastify";
 import { AcceptTermsDialog } from "./AcceptTerms";
 import { KybStep } from "./KybStep";
+import { SelectVerificationDialog } from "./SelectVerificationDialog";
 
 export const VerifyPage = () => {
   const { data: metadata } = useGetAffiliateMetadata();
   const [isLoading, setIsLoading] = useState(false);
   const [showAcceptTerms, setShowAcceptTerms] = useState(false);
+  const [showVerificationSelection, setShowVerificationSelection] =
+    useState(false);
+  const [verificationType, setVerificationType] = useState<"kyc" | "kyb" | null>(
+    null,
+  );
 
   const handleGetVerificationLink = async () => {
-    if (!metadata) return;
+    if (!metadata || !verificationType) return;
 
-    setShowAcceptTerms(false);
     setIsLoading(true);
 
     try {
       const result = await getIdentityVerificationLink({
+        type: verificationType,
         redirectUri: window.location.href.replace("/verify", ""),
       });
       console.log("getIdentityVerificationLink: ", result);
@@ -44,10 +50,12 @@ export const VerifyPage = () => {
   };
 
   const handleComplete = () => {
-    if (metadata?.termsAcceptedAt) {
-      handleGetVerificationLink();
-      return;
-    }
+    setShowVerificationSelection(true);
+  };
+
+  const handleSelectVerification = (type: "kyc" | "kyb") => {
+    setVerificationType(type);
+    setShowVerificationSelection(false);
     setShowAcceptTerms(true);
   };
 
@@ -60,7 +68,17 @@ export const VerifyPage = () => {
       <AcceptTermsDialog
         open={showAcceptTerms}
         onConfirm={handleGetVerificationLink}
-        onClose={() => setShowAcceptTerms(false)}
+        onClose={() => {
+          setShowAcceptTerms(false);
+        }}
+      />
+      <SelectVerificationDialog
+        open={showVerificationSelection}
+        onClose={() => {
+          setShowVerificationSelection(false);
+        }}
+        onSelect={handleSelectVerification}
+        isLoading={isLoading}
       />
 
       <div className="grid max-w-[480px] grid-cols-1 justify-items-center pt-12">

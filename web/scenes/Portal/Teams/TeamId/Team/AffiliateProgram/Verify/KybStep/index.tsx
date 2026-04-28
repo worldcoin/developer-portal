@@ -66,7 +66,7 @@ export const KybStep = ({ metadata, onComplete, isLoading }: Props) => {
     // fallback for undefined || not_started || created || timeout - Complete KYB
     return {
       ...defaultConfig,
-      title: "Complete KYB",
+      title: "Complete KYB or KYC",
       buttonTxt: "Complete",
     };
   }, [metadata]);
