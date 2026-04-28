@@ -70,7 +70,7 @@ export const EarningsPage = () => {
         variant="nav"
       >
         <Section>
-          {isVerificationRequired && metadata && (
+          {metadata && (
             <VerificationBanner
               onComplete={() => setShowVerificationSelection(true)}
               metadata={metadata}
