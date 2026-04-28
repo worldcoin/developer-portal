@@ -105,7 +105,7 @@ export const AffiliateProgramLayout = (props: TeamIdLayoutProps) => {
       return router.push(urls.affiliateEarnings({ team_id: teamId }));
     }
 
-    if (isVerifyPage && !isVerificationRequired) {
+    if (isVerifyPage && isTermsAccepted && !isVerificationRequired) {
       return router.push(urls.affiliateProgram({ team_id: teamId }));
     }
   }, [
