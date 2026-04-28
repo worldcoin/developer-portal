@@ -16,11 +16,25 @@ const appUrl = process.env.NEXT_PUBLIC_APP_URL;
 // The portal is served from both worldcoin.org and world.org variants of the
 // same hostname. NEXT_PUBLIC_APP_URL is build-baked, so we mirror it onto the
 // sibling domain so CSP allows assets/connections from either origin.
-const altAppUrl = appUrl?.includes(".worldcoin.org")
-  ? appUrl.replace(".worldcoin.org", ".world.org")
-  : appUrl?.includes(".world.org")
-    ? appUrl.replace(".world.org", ".worldcoin.org")
-    : undefined;
+const computeAltAppUrl = (raw: string | undefined): string | undefined => {
+  if (!raw) return undefined;
+  let parsed: URL;
+  try {
+    parsed = new URL(raw);
+  } catch {
+    return undefined;
+  }
+  const { hostname } = parsed;
+  if (hostname.endsWith(".worldcoin.org")) {
+    parsed.hostname = `${hostname.slice(0, -".worldcoin.org".length)}.world.org`;
+  } else if (hostname.endsWith(".world.org")) {
+    parsed.hostname = `${hostname.slice(0, -".world.org".length)}.worldcoin.org`;
+  } else {
+    return undefined;
+  }
+  return parsed.origin;
+};
+const altAppUrl = computeAltAppUrl(appUrl);
 const isDev = process.env.NODE_ENV === "development";
 const generateCsp = () => {
   const nonce = crypto.randomUUID();
