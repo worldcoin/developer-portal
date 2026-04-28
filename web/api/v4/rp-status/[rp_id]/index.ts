@@ -137,11 +137,13 @@ export async function GET(
   let stagingStatus: string | null = null;
   let stagingInitialized = false;
   let stagingRpcSucceeded = false;
-  // True only when we successfully read staging AND its signer matches the DB
-  // signer. If the signer drifts (rotation in flight, rotation failed, retry
-  // pending), we must NOT auto-sync staging_status to "registered" — that
-  // would clobber a legit "pending"/"failed" set by the rotation handler.
-  let stagingSignerMatches = false;
+  // Whether to treat on-chain as authoritative for staging. True when we
+  // have no DB signer to compare (self-managed mode), or when the on-chain
+  // signer matches the DB signer (rotation has settled). False during a
+  // rotation in flight, after a failed rotation, or while a retry is
+  // pending — in those cases the on-chain "registered" reading is
+  // misleading and we must preserve the DB staging_status.
+  let canTrustOnChainStaging = false;
   if (stagingContractAddress) {
     try {
       const stagingOnChainRp = await getRpFromContract(
@@ -153,26 +155,18 @@ export async function GET(
 
       if (stagingOnChainRp.initialized) {
         const expectedSigner = dbRecord.signer_address;
-        stagingSignerMatches =
-          !!expectedSigner &&
+        canTrustOnChainStaging =
+          !expectedSigner ||
           normalizeAddress(stagingOnChainRp.signer).toLowerCase() ===
             normalizeAddress(expectedSigner).toLowerCase();
 
-        // When signer mismatches, the on-chain "registered" reading is
-        // misleading — a rotation either hasn't been applied yet or failed.
-        // Preserve whatever rotate-signer-key/rp-retry persisted in the DB
-        // (pending or failed). For self-managed RPs (no DB signer) we have
-        // no expected value to compare against, so fall back to on-chain.
-        stagingStatus = stagingSignerMatches
-          ? mapOnChainToDbStatus(
-              stagingOnChainRp.initialized,
-              stagingOnChainRp.active,
-            )
-          : currentDbStagingStatus ??
-            mapOnChainToDbStatus(
-              stagingOnChainRp.initialized,
-              stagingOnChainRp.active,
-            );
+        const onChainMappedStatus = mapOnChainToDbStatus(
+          stagingOnChainRp.initialized,
+          stagingOnChainRp.active,
+        );
+        stagingStatus = canTrustOnChainStaging
+          ? onChainMappedStatus
+          : currentDbStagingStatus ?? onChainMappedStatus;
       } else {
         stagingStatus = RpRegistrationStatus.Pending;
       }
@@ -206,15 +200,15 @@ export async function GET(
     }
   }
 
-  // Sync staging status to DB when on-chain state differs.
-  // Only when the on-chain signer matches the DB signer — otherwise the
-  // on-chain "registered" reading would clobber a legit "pending"/"failed"
-  // that rotate-signer-key or rp-retry persisted while a rotation is in
-  // flight or after a rotation failure.
+  // Sync staging status to DB when on-chain state differs. Only when we
+  // can trust on-chain (signer matches, or self-managed with no DB signer
+  // to compare against) — otherwise the on-chain "registered" reading
+  // would clobber a legit "pending"/"failed" that rotate-signer-key or
+  // rp-retry persisted while a rotation is in flight or after a failure.
   if (
     stagingRpcSucceeded &&
     stagingInitialized &&
-    stagingSignerMatches &&
+    canTrustOnChainStaging &&
     stagingStatus &&
     stagingStatus !== currentDbStagingStatus
   ) {
