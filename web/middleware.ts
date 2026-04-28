@@ -13,6 +13,14 @@ const cdnURLObject = new URL(
 );
 const s3BucketUrl = `https://${process.env.ASSETS_S3_BUCKET_NAME}.s3.${process.env.ASSETS_S3_REGION}.amazonaws.com`;
 const appUrl = process.env.NEXT_PUBLIC_APP_URL;
+// The portal is served from both worldcoin.org and world.org variants of the
+// same hostname. NEXT_PUBLIC_APP_URL is build-baked, so we mirror it onto the
+// sibling domain so CSP allows assets/connections from either origin.
+const altAppUrl = appUrl?.includes(".worldcoin.org")
+  ? appUrl.replace(".worldcoin.org", ".world.org")
+  : appUrl?.includes(".world.org")
+    ? appUrl.replace(".world.org", ".worldcoin.org")
+    : undefined;
 const isDev = process.env.NODE_ENV === "development";
 const generateCsp = () => {
   const nonce = crypto.randomUUID();
@@ -60,6 +68,7 @@ const generateCsp = () => {
         "https://us.i.posthog.com",
         ...(s3BucketUrl ? [s3BucketUrl] : []),
         ...(appUrl ? [appUrl] : []),
+        ...(altAppUrl ? [altAppUrl] : []),
       ],
     },
     {
@@ -72,6 +81,7 @@ const generateCsp = () => {
         ...(s3BucketUrl ? [s3BucketUrl] : []),
         ...(cdnURLObject ? [cdnURLObject.hostname] : []),
         ...(appUrl ? [appUrl] : []),
+        ...(altAppUrl ? [altAppUrl] : []),
       ],
     },
   ];
