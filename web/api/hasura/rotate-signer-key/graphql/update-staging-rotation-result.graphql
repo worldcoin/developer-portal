@@ -1,0 +1,17 @@
+mutation UpdateStagingRotationResult(
+  $rp_id: String!
+  $staging_status: rp_registration_status!
+  $staging_operation_hash: String
+) {
+  update_rp_registration_by_pk(
+    pk_columns: { rp_id: $rp_id }
+    _set: {
+      staging_status: $staging_status
+      staging_operation_hash: $staging_operation_hash
+    }
+  ) {
+    rp_id
+    staging_status
+    staging_operation_hash
+  }
+}

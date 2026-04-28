@@ -7,6 +7,7 @@ import {
   getStagingRpRegistryConfig,
   normalizeAddress,
   parseRpId,
+  RpRegistrationStatus,
 } from "@/api/helpers/rp-utils";
 import { submitRotateSignerTransaction } from "@/api/helpers/rp-transactions";
 import { protectInternalEndpoint } from "@/api/helpers/utils";
@@ -20,6 +21,7 @@ import { getSdk as getClaimRotationSdk } from "./graphql/claim-rotation-slot.gen
 import { getSdk as getRpRegistrationSdk } from "./graphql/get-rp-registration.generated";
 import { getSdk as getRevertStatusSdk } from "./graphql/revert-rotation-status.generated";
 import { getSdk as getUpdateResultSdk } from "./graphql/update-rotation-result.generated";
+import { getSdk as getUpdateStagingResultSdk } from "./graphql/update-staging-rotation-result.generated";
 
 /**
  * Input schema for the rotate_signer_key action.
@@ -219,25 +221,26 @@ export const POST = async (req: NextRequest) => {
     }
 
     // STEP 5b: Duplicate to staging contract (best-effort, production only)
+    let stagingHash: string | null = null;
+    let stagingStatusToWrite: RpRegistrationStatus | null = null;
     if (process.env.NEXT_PUBLIC_APP_ENV === "production") {
       const stagingConfig = getStagingRpRegistryConfig();
       if (stagingConfig) {
         try {
-          const stagingHash = await submitRotateSignerTransaction(
-            stagingConfig,
-            {
-              rpId,
-              newSignerAddress: new_signer_address,
-              managerKmsKeyId,
-              kmsClient,
-            },
-          );
+          stagingHash = await submitRotateSignerTransaction(stagingConfig, {
+            rpId,
+            newSignerAddress: new_signer_address,
+            managerKmsKeyId,
+            kmsClient,
+          });
+          stagingStatusToWrite = RpRegistrationStatus.Pending;
           logger.info("Staging signer rotation submitted", {
             rpIdString,
             operationHash: stagingHash,
             contractAddress: stagingConfig.contractAddress,
           });
         } catch (error) {
+          stagingStatusToWrite = RpRegistrationStatus.Failed;
           logger.error("Staging signer rotation failed", {
             error,
             rpIdString,
@@ -268,6 +271,25 @@ export const POST = async (req: NextRequest) => {
         code: "db_error",
         app_id,
       });
+    }
+
+    // Persist staging rotation outcome so the UI surfaces a retry button on
+    // failure and doesn't keep showing the registration's stale operation hash
+    // on success. Best-effort: a DB error here doesn't fail the rotation.
+    if (stagingStatusToWrite) {
+      try {
+        await getUpdateStagingResultSdk(client).UpdateStagingRotationResult({
+          rp_id: rpIdString,
+          staging_status: stagingStatusToWrite,
+          staging_operation_hash: stagingHash,
+        });
+      } catch (error) {
+        logger.error("Failed to persist staging rotation result", {
+          error,
+          rpIdString,
+          staging_status: stagingStatusToWrite,
+        });
+      }
     }
 
     // Invalidate status cache so the next rp-status poll does a real
