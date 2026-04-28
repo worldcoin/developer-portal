@@ -10,6 +10,7 @@ import { LoggedUserNav } from "@/components/LoggedUserNav";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import {
+  AffiliateMetadataResponse,
   GetIdentityVerificationLinkRequest,
   IdentityVerificationStatus,
 } from "@/lib/types";
@@ -21,6 +22,8 @@ type Props = {
   onClose: () => void;
   onSelect: (type: GetIdentityVerificationLinkRequest["type"]) => void;
   isLoading: boolean;
+  title: string;
+  metadata: AffiliateMetadataResponse["result"] | null;
 };
 
 export const SelectVerificationDialog = ({
@@ -28,7 +31,19 @@ export const SelectVerificationDialog = ({
   onClose,
   onSelect,
   isLoading,
+  title,
+  metadata,
 }: Props) => {
+  const getStatus = (type: "kyc" | "kyb"): IdentityVerificationStatus => {
+    if (!metadata) return IdentityVerificationStatus.NOT_STARTED;
+    if (metadata.verificationType !== type) {
+      return IdentityVerificationStatus.NOT_STARTED;
+    }
+    return metadata.identityVerificationStatus;
+  };
+  const kycStatus = getStatus("kyc");
+  const kybStatus = getStatus("kyb");
+
   return (
     <Dialog open={open} onClose={onClose} className="z-50">
       <DialogPanel className={clsx("fixed inset-0 overflow-y-scroll p-0")}>
@@ -61,9 +76,7 @@ export const SelectVerificationDialog = ({
                 </CircleIconContainer>
 
                 <div className="grid gap-y-3 text-center">
-                  <Typography variant={TYPOGRAPHY.H6}>
-                    Select verification
-                  </Typography>
+                  <Typography variant={TYPOGRAPHY.H6}>{title}</Typography>
                   <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
                     In order to withdraw funds, you need
                     <br />
@@ -75,17 +88,21 @@ export const SelectVerificationDialog = ({
               <div className="mt-10 w-full shadow-[0px_1px_1px_0px_rgba(25,28,32,0.06)]">
                 <VerificationStep
                   verificationType="kyc"
-                  status={IdentityVerificationStatus.NOT_STARTED}
+                  status={kycStatus}
                   onComplete={() => onSelect("kyc")}
-                  isLoading={isLoading}
+                  isLoading={
+                    isLoading || kycStatus === IdentityVerificationStatus.PENDING
+                  }
                   buttonText="Start"
                   className="border-grey-200"
                 />
                 <VerificationStep
                   verificationType="kyb"
-                  status={IdentityVerificationStatus.NOT_STARTED}
+                  status={kybStatus}
                   onComplete={() => onSelect("kyb")}
-                  isLoading={isLoading}
+                  isLoading={
+                    isLoading || kybStatus === IdentityVerificationStatus.PENDING
+                  }
                   buttonText="Start"
                   className="border-grey-200"
                 />

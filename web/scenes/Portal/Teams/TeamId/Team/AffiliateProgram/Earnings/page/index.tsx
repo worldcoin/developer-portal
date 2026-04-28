@@ -78,7 +78,7 @@ export const EarningsPage = () => {
                 <div className="flex size-[60px] items-center justify-center">
                   <div className="scale-[0.6818]">
                     <CircleIconContainer variant="info">
-                      <IdentificationIcon className="size-5 text-blue-500" />
+                      <IdentificationIcon className="size-8 text-blue-500" />
                     </CircleIconContainer>
                   </div>
                 </div>
@@ -117,6 +117,8 @@ export const EarningsPage = () => {
             onClose={() => setShowVerificationSelection(false)}
             onSelect={handleGetVerificationLink}
             isLoading={isVerificationLoading}
+            title="Complete KYB or KYC"
+            metadata={metadata}
           />
 
           <div className="mt-6 grid grid-cols-1 items-stretch gap-10 md:mt-10 md:grid-cols-12 md:gap-0">

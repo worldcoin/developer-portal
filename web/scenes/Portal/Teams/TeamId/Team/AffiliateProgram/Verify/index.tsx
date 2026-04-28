@@ -70,7 +70,6 @@ export const VerifyPage = () => {
       <AcceptTermsDialog
         open={showAcceptTerms}
         onConfirm={() => {
-          setShowAcceptTerms(false);
           if (shouldGoToOverviewAfterTerms) {
             setShouldGoToOverviewAfterTerms(false);
             router.push(urls.affiliateEarnings({ team_id: teamId }));
@@ -90,6 +89,8 @@ export const VerifyPage = () => {
         }}
         onSelect={handleGetVerificationLink}
         isLoading={isLoading}
+        title="Select verification"
+        metadata={metadata}
       />
       <VerifyLaterDialog
         open={showVerifyLaterDialog}
