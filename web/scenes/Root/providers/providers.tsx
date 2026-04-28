@@ -20,7 +20,7 @@ interface HasuraUserData {
 
 if (typeof window !== "undefined") {
   posthog.init(process.env.NEXT_PUBLIC_POSTHOG_API_KEY!, {
-    api_host: `${process.env.NEXT_PUBLIC_APP_URL}/ingest`,
+    api_host: `${window.location.origin}/ingest`,
     ui_host: "https://app.posthog.com",
     loaded: (posthog) => {
       if (process.env.NODE_ENV === "development") posthog.debug();
