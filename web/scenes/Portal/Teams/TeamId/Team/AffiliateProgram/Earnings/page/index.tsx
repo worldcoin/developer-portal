@@ -1,8 +1,20 @@
 "use client";
+import { CircleIconContainer } from "@/components/CircleIconContainer";
+import { DecoratedButton } from "@/components/DecoratedButton";
+import { IdentificationIcon } from "@/components/Icons/IdentificationIcon";
 import { Section } from "@/components/Section";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import {
+  GetIdentityVerificationLinkResponse,
+  IdentityVerificationStatus,
+} from "@/lib/types";
+import { useGetAffiliateMetadata } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Overview/page/hooks/use-get-affiliate-metadata";
+import { getIdentityVerificationLink } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Overview/server/getIdentityVerificationLink";
+import { SelectVerificationDialog } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Verify/SelectVerificationDialog";
 import clsx from "clsx";
+import { useState } from "react";
+import { toast } from "react-toastify";
 import { useGetAffiliateBalance } from "../../common/hooks/use-get-affiliate-balance";
 import { EarningsHeader } from "./EarningsHeader";
 import { RewardsChart } from "./RewardsChart";
@@ -11,12 +23,44 @@ import { useGetAffiliateTransactions } from "./hooks/use-get-affiliate-transacti
 
 export const EarningsPage = () => {
   const { data, loading: isBalanceLoading } = useGetAffiliateBalance();
+  const { data: metadata, loading: isMetadataLoading } = useGetAffiliateMetadata();
   const transactionsData = useGetAffiliateTransactions();
+  const [showVerificationSelection, setShowVerificationSelection] =
+    useState(false);
+  const [isVerificationLoading, setIsVerificationLoading] = useState(false);
+
+  const isVerificationRequired =
+    metadata?.identityVerificationStatus !== IdentityVerificationStatus.SUCCESS;
 
   const hasTransactions =
     transactionsData.loading || transactionsData.totalCount > 0;
 
-  if (isBalanceLoading || transactionsData.loading) {
+  const handleGetVerificationLink = async (type: "kyc" | "kyb") => {
+    setIsVerificationLoading(true);
+
+    try {
+      const result = await getIdentityVerificationLink({
+        type,
+        redirectUri: window.location.href.replace("/earnings", ""),
+      });
+
+      if (result.success && result.data) {
+        window.location.href = (
+          result.data as GetIdentityVerificationLinkResponse
+        ).result.link;
+      } else {
+        throw new Error(result.message || "Failed to get verification link");
+      }
+    } catch (error) {
+      console.error("Failed to get verification link:", error);
+      toast.error("Failed to start verification. Please try again.");
+    } finally {
+      setIsVerificationLoading(false);
+      setShowVerificationSelection(false);
+    }
+  };
+
+  if (isBalanceLoading || isMetadataLoading || transactionsData.loading) {
     return null;
   }
 
@@ -28,7 +72,52 @@ export const EarningsPage = () => {
         variant="nav"
       >
         <Section>
-          <EarningsHeader loading={isBalanceLoading} data={data} />
+          {isVerificationRequired && (
+            <div className="flex items-center justify-between rounded-3xl border border-blue-150 bg-gradient-to-t from-blue-150/25 to-transparent p-5 md:mt-10">
+              <div className="flex items-center gap-4">
+                <div className="flex size-[60px] items-center justify-center">
+                  <div className="scale-[0.6818]">
+                    <CircleIconContainer variant="info">
+                      <IdentificationIcon className="size-5 text-blue-500" />
+                    </CircleIconContainer>
+                  </div>
+                </div>
+
+                <div className="grid gap-y-1">
+                  <Typography variant={TYPOGRAPHY.H7}>
+                    Complete verification
+                  </Typography>
+                  <Typography variant={TYPOGRAPHY.R4} className="text-grey-500">
+                    Complete KYB or KYC to unlock withdrawals
+                  </Typography>
+                </div>
+              </div>
+              <DecoratedButton
+                type="button"
+                className="max-h-9"
+                onClick={() => setShowVerificationSelection(true)}
+              >
+                Complete
+              </DecoratedButton>
+            </div>
+          )}
+
+          <EarningsHeader
+            loading={isBalanceLoading}
+            data={data}
+            onWithdrawClick={
+              isVerificationRequired
+                ? () => setShowVerificationSelection(true)
+                : undefined
+            }
+          />
+
+          <SelectVerificationDialog
+            open={showVerificationSelection}
+            onClose={() => setShowVerificationSelection(false)}
+            onSelect={handleGetVerificationLink}
+            isLoading={isVerificationLoading}
+          />
 
           <div className="mt-6 grid grid-cols-1 items-stretch gap-10 md:mt-10 md:grid-cols-12 md:gap-0">
             <div

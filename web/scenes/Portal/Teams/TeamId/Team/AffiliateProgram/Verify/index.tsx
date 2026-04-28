@@ -24,10 +24,13 @@ export const VerifyPage = () => {
   const [showVerificationSelection, setShowVerificationSelection] =
     useState(false);
   const [showVerifyLaterDialog, setShowVerifyLaterDialog] = useState(false);
+  const [shouldGoToOverviewAfterTerms, setShouldGoToOverviewAfterTerms] =
+    useState(false);
 
   const handleGetVerificationLink = async (type: "kyc" | "kyb") => {
     if (!metadata) return;
 
+    setShowVerificationSelection(false);
     setIsLoading(true);
 
     try {
@@ -54,6 +57,7 @@ export const VerifyPage = () => {
   };
 
   const handleComplete = () => {
+    setShouldGoToOverviewAfterTerms(false);
     setShowAcceptTerms(true);
   };
 
@@ -65,8 +69,17 @@ export const VerifyPage = () => {
     >
       <AcceptTermsDialog
         open={showAcceptTerms}
-        onConfirm={() => setShowVerificationSelection(true)}
+        onConfirm={() => {
+          setShowAcceptTerms(false);
+          if (shouldGoToOverviewAfterTerms) {
+            setShouldGoToOverviewAfterTerms(false);
+            router.push(urls.affiliateEarnings({ team_id: teamId }));
+            return;
+          }
+          setShowVerificationSelection(true);
+        }}
         onClose={() => {
+          setShouldGoToOverviewAfterTerms(false);
           setShowAcceptTerms(false);
         }}
       />
@@ -83,10 +96,12 @@ export const VerifyPage = () => {
         onClose={() => setShowVerifyLaterDialog(false)}
         onConfirm={() => {
           setShowVerifyLaterDialog(false);
-          router.push(urls.affiliateProgram({ team_id: teamId }));
+          setShouldGoToOverviewAfterTerms(true);
+          setShowAcceptTerms(true);
         }}
         onVerifyNow={() => {
           setShowVerifyLaterDialog(false);
+          setShouldGoToOverviewAfterTerms(false);
           setShowAcceptTerms(true);
         }}
         isLoading={isLoading}
