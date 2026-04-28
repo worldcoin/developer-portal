@@ -3,6 +3,7 @@ import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import {
   isValidRpId,
   mapOnChainToDbStatus,
+  normalizeAddress,
   parseRpId,
   RpRegistrationStatus,
 } from "@/api/helpers/rp-utils";
@@ -136,6 +137,11 @@ export async function GET(
   let stagingStatus: string | null = null;
   let stagingInitialized = false;
   let stagingRpcSucceeded = false;
+  // True only when we successfully read staging AND its signer matches the DB
+  // signer. If the signer drifts (rotation in flight, rotation failed, retry
+  // pending), we must NOT auto-sync staging_status to "registered" — that
+  // would clobber a legit "pending"/"failed" set by the rotation handler.
+  let stagingSignerMatches = false;
   if (stagingContractAddress) {
     try {
       const stagingOnChainRp = await getRpFromContract(
@@ -145,12 +151,31 @@ export async function GET(
       stagingRpcSucceeded = true;
       stagingInitialized = stagingOnChainRp.initialized;
 
-      stagingStatus = stagingOnChainRp.initialized
-        ? mapOnChainToDbStatus(
-            stagingOnChainRp.initialized,
-            stagingOnChainRp.active,
-          )
-        : RpRegistrationStatus.Pending;
+      if (stagingOnChainRp.initialized) {
+        const expectedSigner = dbRecord.signer_address;
+        stagingSignerMatches =
+          !!expectedSigner &&
+          normalizeAddress(stagingOnChainRp.signer).toLowerCase() ===
+            normalizeAddress(expectedSigner).toLowerCase();
+
+        // When signer mismatches, the on-chain "registered" reading is
+        // misleading — a rotation either hasn't been applied yet or failed.
+        // Preserve whatever rotate-signer-key/rp-retry persisted in the DB
+        // (pending or failed). For self-managed RPs (no DB signer) we have
+        // no expected value to compare against, so fall back to on-chain.
+        stagingStatus = stagingSignerMatches
+          ? mapOnChainToDbStatus(
+              stagingOnChainRp.initialized,
+              stagingOnChainRp.active,
+            )
+          : currentDbStagingStatus ??
+            mapOnChainToDbStatus(
+              stagingOnChainRp.initialized,
+              stagingOnChainRp.active,
+            );
+      } else {
+        stagingStatus = RpRegistrationStatus.Pending;
+      }
     } catch (error) {
       logger.error("Failed to fetch RP from staging contract", {
         rpId,
@@ -181,10 +206,15 @@ export async function GET(
     }
   }
 
-  // Sync staging status to DB when on-chain state differs
+  // Sync staging status to DB when on-chain state differs.
+  // Only when the on-chain signer matches the DB signer — otherwise the
+  // on-chain "registered" reading would clobber a legit "pending"/"failed"
+  // that rotate-signer-key or rp-retry persisted while a rotation is in
+  // flight or after a rotation failure.
   if (
     stagingRpcSucceeded &&
     stagingInitialized &&
+    stagingSignerMatches &&
     stagingStatus &&
     stagingStatus !== currentDbStagingStatus
   ) {

@@ -70,6 +70,7 @@ const makeDbRecord = (
     updated_at: string;
     operation_hash: string | null;
     mode: string;
+    signer_address: string | null;
     staging_status: string | null;
     staging_operation_hash: string | null;
   }> = {},
@@ -174,10 +175,11 @@ describe("/api/v4/rp-status [pending timeout]", () => {
       }),
     });
 
-    // Both contracts initialized
+    // Both contracts initialized; on-chain signer matches DB signer
     getRpFromContractMock.mockResolvedValue({
       initialized: true,
       active: true,
+      signer: "0x1234",
     });
 
     UpdateRpStatus.mockResolvedValue({
@@ -297,12 +299,13 @@ describe("/api/v4/rp-status [staging DB sync]", () => {
       }),
     });
 
+    // On-chain signer matches DB signer → safe to sync to "registered"
     getRpFromContractMock.mockImplementation(
       (_rpId: unknown, contractAddress: string) => {
         if (contractAddress === productionContract) {
           return { initialized: true, active: true };
         }
-        return { initialized: true, active: true };
+        return { initialized: true, active: true, signer: "0x1234" };
       },
     );
 
@@ -335,11 +338,70 @@ describe("/api/v4/rp-status [staging DB sync]", () => {
     getRpFromContractMock.mockResolvedValue({
       initialized: true,
       active: true,
+      signer: "0x1234",
     });
 
     const res = await GET(createRequest(), ctx);
     expect(res.status).toBe(200);
 
+    expect(UpdateStagingStatus).not.toHaveBeenCalled();
+  });
+
+  it("preserves DB staging_status=failed when on-chain signer mismatches (rotation failed)", async () => {
+    // Simulates the post-rotation-failure case: rotate-signer-key persisted
+    // staging_status=failed and a new DB signer; on-chain still has the OLD
+    // signer (the rotation tx didn't land). rp-status must NOT auto-clear
+    // the failed state to "registered" — that would hide the retry button.
+    GetRpRegistration.mockResolvedValue({
+      rp_registration_by_pk: makeDbRecord({
+        status: "registered",
+        staging_status: "failed",
+        signer_address: "0xnewSigner",
+        created_at: new Date().toISOString(),
+      }),
+    });
+
+    getRpFromContractMock.mockImplementation(
+      (_rpId: unknown, contractAddress: string) => {
+        if (contractAddress === productionContract) {
+          return { initialized: true, active: true };
+        }
+        return { initialized: true, active: true, signer: "0xoldSigner" };
+      },
+    );
+
+    const res = await GET(createRequest(), ctx);
+    expect(res.status).toBe(200);
+
+    const body = await res.json();
+    expect(body.staging_status).toBe("failed");
+    expect(UpdateStagingStatus).not.toHaveBeenCalled();
+  });
+
+  it("preserves DB staging_status=pending when on-chain signer mismatches (rotation in flight)", async () => {
+    GetRpRegistration.mockResolvedValue({
+      rp_registration_by_pk: makeDbRecord({
+        status: "registered",
+        staging_status: "pending",
+        signer_address: "0xnewSigner",
+        created_at: new Date().toISOString(),
+      }),
+    });
+
+    getRpFromContractMock.mockImplementation(
+      (_rpId: unknown, contractAddress: string) => {
+        if (contractAddress === productionContract) {
+          return { initialized: true, active: true };
+        }
+        return { initialized: true, active: true, signer: "0xoldSigner" };
+      },
+    );
+
+    const res = await GET(createRequest(), ctx);
+    expect(res.status).toBe(200);
+
+    const body = await res.json();
+    expect(body.staging_status).toBe("pending");
     expect(UpdateStagingStatus).not.toHaveBeenCalled();
   });
 
