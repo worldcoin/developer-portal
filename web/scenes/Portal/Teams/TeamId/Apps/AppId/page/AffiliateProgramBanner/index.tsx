@@ -1,24 +1,32 @@
 "use client";
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import clsx from "clsx";
 import Image from "next/image";
 import mailImage from "./mail.png";
 
 interface AffiliateProgramBannerProps {
   teamId: string;
   hasVerifiedApps: boolean;
+  className?: string;
 }
 
 export const AffiliateProgramBanner = ({
   teamId,
   hasVerifiedApps,
+  className,
 }: AffiliateProgramBannerProps) => {
   if (!hasVerifiedApps) {
     return null;
   }
 
   return (
-    <div className="mt-10 w-full rounded-[24px] border border-[#D9E0FD] bg-[linear-gradient(0deg,rgba(187,209,255,0.52)_0%,rgba(187,209,255,0.13)_100%)]">
+    <div
+      className={clsx(
+        "mt-10 mb-3 w-full rounded-[24px] border border-[#D9E0FD] bg-[linear-gradient(0deg,rgba(187,209,255,0.52)_0%,rgba(187,209,255,0.13)_100%)]",
+        className,
+      )}
+    >
       <div className="flex items-center justify-between p-8">
         <div className="flex items-center gap-5">
           <Image

@@ -38,6 +38,7 @@ export const AppIdPage = async (props: {
       <AffiliateProgramBanner
         teamId={teamId}
         hasVerifiedApps={hasVerifiedApps}
+        className="mt-6"
       />
 
       <WorldId40MigrationBanner
