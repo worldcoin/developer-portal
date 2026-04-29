@@ -12,6 +12,14 @@ import { getSdk as getMcpUpsertRpRegistrationSdk } from "@/api/mcp/graphql/upser
 import { generateRpIdString } from "@/api/helpers/rp-utils";
 import { CategoryNameIterable } from "@/lib/categories";
 import { logger } from "@/lib/logger";
+import { mainAppStoreFormReviewSubmitSchema } from "@/scenes/Portal/Teams/TeamId/Apps/AppId/Configuration/AppStore/FormSchema/form-schema";
+import { LocalisationData } from "@/scenes/Portal/Teams/TeamId/Apps/AppId/Configuration/AppStore/types/AppStoreFormTypes";
+import { getSupportType } from "@/scenes/Portal/Teams/TeamId/Apps/AppId/Configuration/AppStore/utils";
+import {
+  getLocalisationFormValues,
+  transformMailtoToRawEmail,
+} from "@/scenes/Portal/Teams/TeamId/Apps/AppId/Configuration/AppStore/utils/dataTransforms";
+import { getSdk as getReviewAppMetadataSdk } from "@/scenes/Portal/Teams/TeamId/Apps/AppId/Configuration/AppTopBar/graphql/server/fetch-review-app-metadata.generated";
 import { Wallet } from "ethers";
 import { GraphQLClient } from "graphql-request";
 import { NextRequest, NextResponse } from "next/server";
@@ -339,6 +347,13 @@ const rotateWorldIdSigningKey = async (input: unknown, ctx: ToolContext) => {
     throw new McpError("World ID is not configured for this app.", -32004);
   }
 
+  if (registration.mode !== "self_managed") {
+    throw new McpError(
+      "Managed (platform) signing keys must be rotated from the developer portal UI so the on-chain signer is updated. The MCP can only rotate self-managed keys.",
+      -32004,
+    );
+  }
+
   const signingKey = makeWallet(args.signer_private_key);
   const data = await getMcpUpsertRpRegistrationSdk(
     ctx.client,
@@ -560,6 +575,56 @@ const tools = {
     }
     if (metadata.verification_status !== "unverified") {
       throw new McpError("Only unverified apps can be submitted.", -32004);
+    }
+
+    const reviewData = await getReviewAppMetadataSdk(
+      ctx.client,
+    ).FetchAppMetadataById({ app_metadata_id: metadata.id });
+    const reviewMetadata = reviewData.app_metadata[0];
+    if (!reviewMetadata) {
+      throw new McpError(
+        "App metadata not found or not in unverified state.",
+        -32004,
+      );
+    }
+
+    const localisations = getLocalisationFormValues(
+      reviewMetadata,
+      reviewData.localisations as LocalisationData,
+    );
+    const supportLinkOrEmail = reviewMetadata.support_link;
+    const supportType = getSupportType(supportLinkOrEmail);
+    const supportLink = supportType === "link" ? supportLinkOrEmail : "";
+    const rawSupportEmail =
+      supportType === "email"
+        ? transformMailtoToRawEmail(supportLinkOrEmail)
+        : "";
+
+    try {
+      await mainAppStoreFormReviewSubmitSchema.validate(
+        {
+          ...reviewMetadata,
+          support_type: supportType,
+          support_link: supportLink,
+          support_email: rawSupportEmail,
+          localisations,
+        },
+        {
+          abortEarly: false,
+          strict: true,
+          stripUnknown: true,
+          context: { isMiniApp: reviewMetadata.app_mode === "mini-app" },
+        },
+      );
+    } catch (error) {
+      if (error instanceof yup.ValidationError) {
+        throw new McpError(
+          "App metadata is incomplete and cannot be submitted for review.",
+          -32602,
+          error.errors,
+        );
+      }
+      throw error;
     }
 
     const data = await getMcpSubmitAppForReviewSdk(

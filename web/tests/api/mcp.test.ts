@@ -50,7 +50,7 @@ const appContextResponse = {
       rp_registration: [
         {
           rp_id: rpId,
-          mode: "managed",
+          mode: "self_managed",
           status: "registered",
           signer_address: "0x0000000000000000000000000000000000000001",
           actions_v4: [],
@@ -59,6 +59,31 @@ const appContextResponse = {
     },
   ],
 };
+
+const reviewMetadata = {
+  id: "meta_123",
+  app_id: appId,
+  name: "Test App",
+  short_name: "Test",
+  logo_img_url: "logo.png",
+  showcase_img_urls: ["showcase.png"],
+  meta_tag_image_url: "meta.png",
+  world_app_description: "World tagline",
+  description:
+    '{"description_overview":"An overview that is long enough to satisfy the schema.","description_how_it_works":"","description_connect":""}',
+  category: "Other",
+  app_website_url: "https://example.com",
+  support_link: "mailto:support@example.com",
+  supported_countries: ["us"],
+  supported_languages: ["en"],
+  is_android_only: false,
+  is_for_humans_only: false,
+  app_mode: "mini-app",
+  verification_status: "unverified",
+  content_card_image_url: "card.png",
+  app: { is_staging: false },
+};
+const reviewLocalisations: Array<Record<string, unknown>> = [];
 let currentAppContextResponse = appContextResponse;
 
 const getOperationName = (query: unknown) => {
@@ -172,6 +197,12 @@ beforeEach(() => {
           verification_status: "awaiting_review",
           is_developer_allow_listing: variables.is_developer_allow_listing,
         },
+      };
+    }
+    if (operationName.includes("FetchAppMetadataById")) {
+      return {
+        app_metadata: [reviewMetadata],
+        localisations: reviewLocalisations,
       };
     }
     throw new Error(`Unexpected query: ${operationName}`);
@@ -309,6 +340,30 @@ describe("/api/mcp", () => {
     expect(payload.signing_key.signer_address).toMatch(/^0x/);
   });
 
+  it("refuses to rotate signing keys for managed RPs", async () => {
+    currentAppContextResponse = {
+      app: [
+        {
+          ...appContextResponse.app[0],
+          rp_registration: [
+            {
+              ...appContextResponse.app[0].rp_registration[0],
+              mode: "managed",
+            },
+          ],
+        },
+      ],
+    };
+
+    const res = await POST(
+      callTool("rotate_world_id_signing_key", { app_id: appId }),
+    );
+
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.error.message).toMatch(/developer portal UI/);
+  });
+
   it("updates Mini App metadata through an app-owned context", async () => {
     const res = await POST(
       callTool("configure_mini_app", {
@@ -372,6 +427,34 @@ describe("/api/mcp", () => {
       "portal_app_submission",
       expect.objectContaining({ actor: "mcp", app_id: appId, team_id: teamId }),
     );
+  });
+
+  it("rejects review submission when metadata is incomplete", async () => {
+    const incompleteMetadata = { ...reviewMetadata, logo_img_url: "" };
+    requestMock.mockImplementation(async (query: unknown, variables: any) => {
+      const operationName = getOperationName(query);
+      if (operationName.includes("McpAppContext"))
+        return currentAppContextResponse;
+      if (operationName.includes("FetchAppMetadataById")) {
+        return {
+          app_metadata: [incompleteMetadata],
+          localisations: reviewLocalisations,
+        };
+      }
+      throw new Error(`Unexpected query: ${operationName}`);
+    });
+
+    const res = await POST(
+      callTool("submit_app_for_review", {
+        app_id: appId,
+        confirm_submission: true,
+        is_developer_allow_listing: true,
+      }),
+    );
+
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.error.message).toMatch(/incomplete/i);
   });
 
   it("rejects tool calls with an invalid API key", async () => {
