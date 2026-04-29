@@ -809,7 +809,7 @@ export const POST = async (req: NextRequest) => {
     );
   }
 
-  if (message.id === undefined || message.id === null) {
+  if (message.id === undefined) {
     return new NextResponse(null, { status: 202 });
   }
 

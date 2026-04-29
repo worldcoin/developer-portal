@@ -570,6 +570,22 @@ describe("/api/mcp", () => {
     expect(await res.text()).toBe("");
   });
 
+  it("treats requests with id: null as regular calls and responds in kind", async () => {
+    const res = await POST(
+      createRequest({
+        jsonrpc: "2.0",
+        id: null,
+        method: "initialize",
+      }),
+    );
+
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.jsonrpc).toBe("2.0");
+    expect(body.id).toBeNull();
+    expect(body.result.serverInfo.name).toBe("world-developer-portal");
+  });
+
   it("returns a JSON-RPC parse error for malformed request bodies", async () => {
     const req = new NextRequest("http://localhost:3000/api/mcp", {
       method: "POST",
