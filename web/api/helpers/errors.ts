@@ -168,14 +168,16 @@ export function errorHasuraQuery({
   detail = "Something went wrong.",
   app_id,
   team_id,
+  logLevel = "error",
 }: {
   req: NextRequest;
   code?: string;
   detail?: string;
   app_id?: string;
   team_id?: string;
+  logLevel?: "error" | "warn" | "info";
 }) {
-  logger.error(detail, {
+  logger[logLevel](detail, {
     req,
     error: { code },
     app_id,
