@@ -558,6 +558,18 @@ describe("/api/mcp", () => {
     expect(requestMock).not.toHaveBeenCalled();
   });
 
+  it("returns 202 with no body for accepted notifications", async () => {
+    const res = await POST(
+      createRequest({
+        jsonrpc: "2.0",
+        method: "notifications/initialized",
+      }),
+    );
+
+    expect(res.status).toBe(202);
+    expect(await res.text()).toBe("");
+  });
+
   it("returns a JSON-RPC parse error for malformed request bodies", async () => {
     const req = new NextRequest("http://localhost:3000/api/mcp", {
       method: "POST",
