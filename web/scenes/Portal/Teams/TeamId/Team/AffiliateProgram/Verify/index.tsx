@@ -70,9 +70,10 @@ export const VerifyPage = () => {
       <AcceptTermsDialog
         open={showAcceptTerms}
         onConfirm={() => {
+          setShowAcceptTerms(false)
           if (shouldGoToOverviewAfterTerms) {
             setShouldGoToOverviewAfterTerms(false);
-            router.push(urls.affiliateEarnings({ team_id: teamId }));
+            router.push(urls.affiliateProgram({ team_id: teamId }));
             return;
           }
           setShowVerificationSelection(true);
