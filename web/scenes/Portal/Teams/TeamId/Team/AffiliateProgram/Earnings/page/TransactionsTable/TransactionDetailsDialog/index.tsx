@@ -56,7 +56,7 @@ export const TransactionDetailsDialog = (props: Props) => {
       <DialogOverlay />
 
       <DialogPanel
-        className="grid max-w-[30rem] gap-y-8 md:w-[30rem]"
+        className="grid max-w-[30rem] md:w-[30rem]"
         onClose={() => setIsOpened(false)}
         showCloseIcon={true}
       >
@@ -66,7 +66,7 @@ export const TransactionDetailsDialog = (props: Props) => {
           iconClassName="size-8"
         />
 
-        <div className="grid justify-items-center gap-1">
+        <div className="mt-6 grid justify-items-center gap-1">
           <Typography variant={TYPOGRAPHY.H6}>
             {TITLE_MAP[props.data.type]}
           </Typography>
@@ -86,7 +86,7 @@ export const TransactionDetailsDialog = (props: Props) => {
           </Typography>
         </div>
 
-        <div className="w-full border-t border-grey-100" />
+        <div className="my-10 w-full border-t border-grey-100" />
         {props.data.type === "affiliateAccumulationOrb" && (
           <Typography
             variant={TYPOGRAPHY.R3}
