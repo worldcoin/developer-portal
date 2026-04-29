@@ -28,7 +28,7 @@ export const VerifyLaterDialog = ({
       <DialogOverlay />
 
       <DialogPanel
-        className="w-full max-w-[480px] gap-y-8"
+        className="max-w-[30rem] gap-y-8 md:w-[30rem]"
         onClose={onClose}
         showCloseIcon={true}
       >
