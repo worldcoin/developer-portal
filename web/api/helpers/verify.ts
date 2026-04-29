@@ -139,7 +139,10 @@ export function decodeProof(proof: string): NestedProof {
         ];
       }
     } catch (error) {
-      logger.debug("Error processing JSON-encoded proof", { error });
+      // Pass error.message, not the Error: logger.ts tags the active span as errored when data.error is an Error.
+      logger.debug("Error processing JSON-encoded proof", {
+        error: error instanceof Error ? error.message : String(error),
+      });
       // If there's an error processing the JSON-encoded proof, fall through to try decoding it as ABI
     }
   }
@@ -149,7 +152,9 @@ export function decodeProof(proof: string): NestedProof {
     const flatProof = decodeAbiEncodedProof(cleanedProof);
     return convertToNestedFormat(flatProof);
   } catch (error) {
-    logger.warn("Error decoding ABI-encoded proof", { error });
+    logger.warn("Error decoding ABI-encoded proof", {
+      error: error instanceof Error ? error.message : String(error),
+    });
     throw new Error("Invalid proof format");
   }
 }
