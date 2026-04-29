@@ -13,6 +13,10 @@ import {
   UniquenessProofResponseV3,
   UniquenessProofResponseV4,
 } from "./request-schema";
+import {
+  INTEGRITY_VERIFICATION_ERROR_CODE,
+  verifyIntegrityBundle,
+} from "./integrity-bundle";
 import { handleSessionProofVerification } from "./session-proof/handler";
 import { handleUniquenessProofVerification } from "./uniqueness-proof/handler";
 
@@ -136,6 +140,30 @@ export async function POST(
 
     const rpId = rpRegistration.rp_id;
     const appId = rpRegistration.app_id;
+
+    if (parsedParams.integrity_bundle) {
+      const integrityResult = await verifyIntegrityBundle({
+        integrityBundle: parsedParams.integrity_bundle,
+        nonce: parsedParams.nonce!,
+        protocolVersion: parsedParams.protocol_version as "3.0" | "4.0",
+        responses: parsedParams.responses as
+          | SessionProofRequest["responses"]
+          | UniquenessProofResponseV3[]
+          | UniquenessProofResponseV4[],
+        rpId,
+      });
+
+      if (!integrityResult.success) {
+        return errorResponse({
+          statusCode: 403,
+          code: INTEGRITY_VERIFICATION_ERROR_CODE,
+          detail: "Integrity bundle verification failed.",
+          attribute: "integrity_bundle",
+          req,
+          app_id: appId,
+        });
+      }
+    }
 
     // Early return for session proofs - handle separately
     if (parsedParams.session_id) {
