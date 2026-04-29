@@ -91,7 +91,8 @@ export const SelectVerificationDialog = ({
                   status={kycStatus}
                   onComplete={() => onSelect("kyc")}
                   isLoading={
-                    isLoading || kycStatus === IdentityVerificationStatus.PENDING
+                    isLoading ||
+                    kycStatus === IdentityVerificationStatus.PENDING
                   }
                   buttonText="Start"
                   className="border-grey-200"
@@ -101,7 +102,8 @@ export const SelectVerificationDialog = ({
                   status={kybStatus}
                   onComplete={() => onSelect("kyb")}
                   isLoading={
-                    isLoading || kybStatus === IdentityVerificationStatus.PENDING
+                    isLoading ||
+                    kybStatus === IdentityVerificationStatus.PENDING
                   }
                   buttonText="Start"
                   className="border-grey-200"

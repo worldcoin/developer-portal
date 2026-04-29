@@ -33,15 +33,17 @@ export const TeamIdPage = async (props: TeamIdPageProps) => {
   }
 
   const client = await getAPIServiceGraphqlClient();
-  const verifiedApps = await getTeamVerifiedAppsSdk(client).GetTeamVerifiedApps({
-    teamId,
-  });
+  const verifiedApps = await getTeamVerifiedAppsSdk(client).GetTeamVerifiedApps(
+    {
+      teamId,
+    },
+  );
   const hasVerifiedApps = verifiedApps.app.length > 0;
 
   return (
     <>
       <SizingWrapper gridClassName="order-1">
-      <AffiliateProgramBanner
+        <AffiliateProgramBanner
           teamId={teamId}
           hasVerifiedApps={hasVerifiedApps}
         />

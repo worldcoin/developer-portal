@@ -23,7 +23,7 @@ export const AffiliateProgramBanner = ({
   return (
     <div
       className={clsx(
-        "mt-10 mb-3 w-full rounded-[24px] border border-[#D9E0FD] bg-[linear-gradient(0deg,rgba(187,209,255,0.52)_0%,rgba(187,209,255,0.13)_100%)]",
+        "mb-3 mt-10 w-full rounded-[24px] border border-[#D9E0FD] bg-[linear-gradient(0deg,rgba(187,209,255,0.52)_0%,rgba(187,209,255,0.13)_100%)]",
         className,
       )}
     >
@@ -42,7 +42,8 @@ export const AffiliateProgramBanner = ({
               Invite humans and earn rewards
             </Typography>
             <Typography variant={TYPOGRAPHY.R4} className="text-gray-500">
-              Receive rewards for each human that uses your code and gets verified
+              Receive rewards for each human that uses your code and gets
+              verified
             </Typography>
           </div>
         </div>

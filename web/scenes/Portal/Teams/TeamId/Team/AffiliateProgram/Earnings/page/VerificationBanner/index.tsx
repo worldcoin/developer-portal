@@ -4,19 +4,19 @@ import { DecoratedButton } from "@/components/DecoratedButton";
 import { IdentificationIcon } from "@/components/Icons/IdentificationIcon";
 import { RemoveCustomIcon } from "@/components/Icons/RemoveCustomIcon";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import { AffiliateMetadataResponse, IdentityVerificationStatus } from "@/lib/types";
+import {
+  AffiliateMetadataResponse,
+  IdentityVerificationStatus,
+} from "@/lib/types";
 import { useMemo } from "react";
-import {ClockIcon} from "@/components/Icons/ClockIcon";
+import { ClockIcon } from "@/components/Icons/ClockIcon";
 
 type Props = {
   onComplete: () => void;
   metadata: AffiliateMetadataResponse["result"];
 };
 
-export const VerificationBanner = ({
-  onComplete,
-  metadata,
-}: Props) => {
+export const VerificationBanner = ({ onComplete, metadata }: Props) => {
   const stepConfig = useMemo(() => {
     const status = metadata.identityVerificationStatus;
     const verificationType = metadata.verificationType;

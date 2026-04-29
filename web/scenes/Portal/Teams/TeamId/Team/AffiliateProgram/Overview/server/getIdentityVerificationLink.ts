@@ -13,9 +13,10 @@ import { validateAffiliateRequest } from "../../common/server/validate-affiliate
 export const getIdentityVerificationLink = async ({
   type,
   redirectUri,
-}: Pick<GetIdentityVerificationLinkRequest, "type" | "redirectUri">): Promise<
-  FormActionResult
-> => {
+}: Pick<
+  GetIdentityVerificationLinkRequest,
+  "type" | "redirectUri"
+>): Promise<FormActionResult> => {
   let teamId: string | undefined;
 
   try {

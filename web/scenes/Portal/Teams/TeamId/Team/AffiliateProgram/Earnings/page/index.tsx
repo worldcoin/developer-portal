@@ -21,7 +21,8 @@ import { useGetAffiliateTransactions } from "./hooks/use-get-affiliate-transacti
 
 export const EarningsPage = () => {
   const { data, loading: isBalanceLoading } = useGetAffiliateBalance();
-  const { data: metadata, loading: isMetadataLoading } = useGetAffiliateMetadata();
+  const { data: metadata, loading: isMetadataLoading } =
+    useGetAffiliateMetadata();
   const transactionsData = useGetAffiliateTransactions();
   const [showVerificationSelection, setShowVerificationSelection] =
     useState(false);
