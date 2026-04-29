@@ -350,7 +350,15 @@ const requireApp = async (
 };
 
 const makeWallet = (privateKey?: string) => {
-  const wallet = privateKey ? new Wallet(privateKey) : Wallet.createRandom();
+  let wallet;
+  try {
+    wallet = privateKey ? new Wallet(privateKey) : Wallet.createRandom();
+  } catch {
+    throw new McpError(
+      "Invalid signer_private_key: must be a 32-byte hex-encoded private key.",
+      -32602,
+    );
+  }
   return {
     private_key: wallet.privateKey,
     signer_address: wallet.address,
@@ -506,7 +514,7 @@ const tools = {
       throw new McpError("World ID is not configured for this app.", -32004);
     }
 
-    if (args.rotate_if_unavailable) {
+    if (args.rotate_if_unavailable && !registration.signer_address) {
       return rotateWorldIdSigningKey({ app_id: args.app_id }, ctx);
     }
 

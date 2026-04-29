@@ -324,7 +324,21 @@ describe("/api/mcp", () => {
     expect(payload.signing_key.signer_address).toMatch(/^0x/);
   });
 
-  it("rotates the signing key when requested from get_world_id_signing_key", async () => {
+  it("rotates the signing key when one is missing and rotate_if_unavailable is set", async () => {
+    const baseRegistration = appContextResponse.app[0].rp_registration[0];
+    const { signer_address: _signerAddress, ...registrationWithoutSigner } =
+      baseRegistration;
+    currentAppContextResponse = {
+      app: [
+        {
+          ...appContextResponse.app[0],
+          rp_registration: [
+            registrationWithoutSigner as typeof baseRegistration,
+          ],
+        },
+      ],
+    };
+
     const res = await POST(
       callTool("get_world_id_signing_key", {
         app_id: appId,
@@ -338,6 +352,42 @@ describe("/api/mcp", () => {
     expect(payload.rp_registration.rp_id).toBe(rpId);
     expect(payload.signing_key.private_key).toMatch(/^0x/);
     expect(payload.signing_key.signer_address).toMatch(/^0x/);
+  });
+
+  it("does not rotate when a signer is already configured", async () => {
+    const res = await POST(
+      callTool("get_world_id_signing_key", {
+        app_id: appId,
+        rotate_if_unavailable: true,
+      }),
+    );
+
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    const payload = JSON.parse(body.result.content[0].text);
+    expect(payload.signer_address).toBe(
+      "0x0000000000000000000000000000000000000001",
+    );
+    expect(payload.private_key).toBeNull();
+    expect(
+      requestMock.mock.calls.some(
+        ([query]) => getOperationName(query) === "McpUpsertRpRegistration",
+      ),
+    ).toBe(false);
+  });
+
+  it("returns -32602 for malformed signer_private_key", async () => {
+    const res = await POST(
+      callTool("rotate_world_id_signing_key", {
+        app_id: appId,
+        signer_private_key: "not-a-valid-key",
+      }),
+    );
+
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.error.code).toBe(-32602);
+    expect(body.error.message).toMatch(/signer_private_key/);
   });
 
   it("refuses to rotate signing keys for managed RPs", async () => {
