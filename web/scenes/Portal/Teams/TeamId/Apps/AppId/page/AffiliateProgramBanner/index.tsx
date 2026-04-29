@@ -49,9 +49,9 @@ export const AffiliateProgramBanner = ({
 
         <div className="flex items-center gap-2">
           <DecoratedButton
-            href={`/teams/${teamId}/affiliate-program/verify`}
+            href={`/teams/${teamId}/affiliate-program`}
             variant="primary"
-            className="h-12 rounded-[10px] border-transparent outline outline-1 outline-offset-[-1px] outline-white/20"
+            className="h-12"
           >
             Earn rewards
           </DecoratedButton>
