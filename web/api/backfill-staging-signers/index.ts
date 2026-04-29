@@ -105,11 +105,18 @@ export const POST = async (req: NextRequest) => {
 
   const managedRps = gqlResult?.rp_registration ?? [];
 
+  const effectiveLimit = Math.min(limit, 50);
+
   if (managedRps.length === 0) {
     return NextResponse.json({
       summary: { total: 0, submitted: 0, in_sync: 0, skipped: 0, errors: 0 },
       results: [],
-      pagination: { offset, limit, returned: 0, has_more: false },
+      pagination: {
+        offset,
+        limit: effectiveLimit,
+        returned: 0,
+        has_more: false,
+      },
     });
   }
 
@@ -133,11 +140,15 @@ export const POST = async (req: NextRequest) => {
           numericRpId,
           stagingConfig.contractAddress,
         );
-      } catch {
+      } catch (rpcError) {
+        logger.error("Backfill: RPC call failed", {
+          rpId: rp.rp_id,
+          error: rpcError,
+        });
         results.push({
           rp_id: rp.rp_id,
-          status: "skipped",
-          reason: "not_on_staging",
+          status: "error",
+          reason: "rpc_failure",
         });
         continue;
       }
@@ -228,9 +239,9 @@ export const POST = async (req: NextRequest) => {
     results,
     pagination: {
       offset,
-      limit,
+      limit: effectiveLimit,
       returned: managedRps.length,
-      has_more: managedRps.length === Math.min(limit, 50),
+      has_more: managedRps.length === effectiveLimit,
     },
   });
 };
