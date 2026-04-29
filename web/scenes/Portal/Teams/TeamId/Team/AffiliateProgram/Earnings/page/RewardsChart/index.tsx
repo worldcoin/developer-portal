@@ -172,7 +172,7 @@ const GraphCard: React.FC<GraphCardProps> = ({
   };
 
   return (
-    <div className={clsx("relative flex-1", className)}>
+    <div className={clsx("relative w-full min-w-0 flex-1", className)}>
       {/* Info icon with tooltip on hover */}
       {tooltip && (
         <div className="absolute right-3 top-3 z-10">
@@ -368,7 +368,7 @@ export const RewardsChart = () => {
   const chartConfig = getChartConfig(isEmpty);
 
   return (
-    <div className="grid flex-1">
+    <div className="grid w-full min-w-0 flex-1">
       <GraphCard
         isLoading={isOverviewDataLoading}
         chartData={formattedVerificationsChartData}
