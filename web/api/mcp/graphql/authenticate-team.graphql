@@ -1,0 +1,5 @@
+query McpAuthenticateTeam {
+  team(limit: 1) {
+    id
+  }
+}

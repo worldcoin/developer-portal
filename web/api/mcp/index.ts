@@ -1,12 +1,19 @@
 import { errorResponse } from "@/api/helpers/errors";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { logPortalEvent } from "@/api/helpers/portal-events";
-import { verifyHashedSecret } from "@/api/helpers/utils";
-import { CategoryNameIterable } from "@/lib/categories";
+import { getSdk as getMcpAppContextSdk } from "@/api/mcp/graphql/app-context.generated";
+import { getSdk as getMcpAuthenticateTeamSdk } from "@/api/mcp/graphql/authenticate-team.generated";
+import { getSdk as getMcpCreateAppSdk } from "@/api/mcp/graphql/create-app.generated";
+import { getSdk as getMcpSubmitAppForReviewSdk } from "@/api/mcp/graphql/submit-app-for-review.generated";
+import { getSdk as getMcpTeamContextSdk } from "@/api/mcp/graphql/team-context.generated";
+import { getSdk as getMcpUpdateAppMetadataSdk } from "@/api/mcp/graphql/update-app-metadata.generated";
+import { getSdk as getMcpUpsertActionV4Sdk } from "@/api/mcp/graphql/upsert-action-v4.generated";
+import { getSdk as getMcpUpsertRpRegistrationSdk } from "@/api/mcp/graphql/upsert-rp-registration.generated";
 import { generateRpIdString } from "@/api/helpers/rp-utils";
+import { CategoryNameIterable } from "@/lib/categories";
 import { logger } from "@/lib/logger";
 import { Wallet } from "ethers";
-import { GraphQLClient, gql } from "graphql-request";
+import { GraphQLClient } from "graphql-request";
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
 
@@ -18,7 +25,6 @@ type JsonRpcRequest = {
 };
 
 type McpAuthContext = {
-  apiKeyId: string;
   teamId: string;
 };
 
@@ -35,271 +41,6 @@ class McpError extends Error {
     super(message);
   }
 }
-
-const AUTHENTICATE_API_KEY = gql`
-  query AuthenticateApiKey($id: String!) {
-    api_key_by_pk(id: $id) {
-      id
-      api_key
-      is_active
-      team_id
-    }
-  }
-`;
-
-const GET_TEAM_CONTEXT = gql`
-  query McpTeamContext($team_id: String!) {
-    team_by_pk(id: $team_id) {
-      id
-      name
-      apps(
-        where: { deleted_at: { _is_null: true } }
-        order_by: { created_at: desc }
-      ) {
-        id
-        name
-        engine
-        is_staging
-        status
-        created_at
-        app_metadata(
-          where: { verification_status: { _neq: "verified" } }
-          order_by: { created_at: desc }
-          limit: 1
-        ) {
-          id
-          name
-          app_mode
-          category
-          integration_url
-          verification_status
-        }
-        rp_registration {
-          rp_id
-          mode
-          status
-          signer_address
-          staging_status
-        }
-      }
-    }
-  }
-`;
-
-const GET_APP_CONTEXT = gql`
-  query McpAppContext($team_id: String!, $app_id: String!) {
-    app(
-      where: {
-        id: { _eq: $app_id }
-        team_id: { _eq: $team_id }
-        deleted_at: { _is_null: true }
-      }
-      limit: 1
-    ) {
-      id
-      name
-      engine
-      is_staging
-      status
-      app_metadata(
-        where: { verification_status: { _neq: "verified" } }
-        order_by: { created_at: desc }
-        limit: 1
-      ) {
-        id
-        name
-        short_name
-        app_mode
-        category
-        content_card_image_url
-        description
-        hero_image_url
-        integration_url
-        is_android_only
-        app_website_url
-        is_for_humans_only
-        logo_img_url
-        meta_tag_image_url
-        support_link
-        showcase_img_urls
-        world_app_description
-        world_app_button_text
-        verification_status
-        is_developer_allow_listing
-        supported_countries
-        supported_languages
-      }
-      rp_registration {
-        rp_id
-        mode
-        status
-        signer_address
-        staging_status
-        actions_v4(order_by: { created_at: desc }) {
-          id
-          action
-          description
-          environment
-        }
-      }
-    }
-  }
-`;
-
-const CREATE_APP = gql`
-  mutation McpCreateApp(
-    $team_id: String!
-    $name: String!
-    $engine: String!
-    $is_staging: Boolean!
-    $category: String!
-    $integration_url: String!
-    $app_mode: String!
-  ) {
-    insert_app_one(
-      object: {
-        engine: $engine
-        name: $name
-        is_staging: $is_staging
-        team_id: $team_id
-        app_metadata: {
-          data: {
-            name: $name
-            integration_url: $integration_url
-            app_mode: $app_mode
-            category: $category
-          }
-        }
-      }
-    ) {
-      id
-      name
-      is_staging
-      engine
-      app_metadata(order_by: { created_at: desc }, limit: 1) {
-        id
-        app_mode
-        category
-        integration_url
-      }
-    }
-  }
-`;
-
-const UPSERT_RP_REGISTRATION = gql`
-  mutation McpUpsertRpRegistration(
-    $rp_id: String!
-    $app_id: String!
-    $mode: rp_registration_mode!
-    $signer_address: String
-  ) {
-    insert_rp_registration_one(
-      object: {
-        rp_id: $rp_id
-        app_id: $app_id
-        mode: $mode
-        signer_address: $signer_address
-        status: pending
-      }
-      on_conflict: {
-        constraint: rp_registration_app_id_key
-        update_columns: [mode, signer_address, status]
-      }
-    ) {
-      rp_id
-      app_id
-      mode
-      signer_address
-      status
-    }
-  }
-`;
-
-const UPSERT_ACTION_V4 = gql`
-  mutation McpUpsertActionV4(
-    $rp_id: String!
-    $action: String!
-    $description: String!
-    $environment: action_environment!
-  ) {
-    insert_action_v4_one(
-      object: {
-        rp_id: $rp_id
-        action: $action
-        description: $description
-        environment: $environment
-      }
-      on_conflict: {
-        constraint: action_v4_rp_id_action_environment_key
-        update_columns: [description]
-      }
-    ) {
-      id
-      rp_id
-      action
-      description
-      environment
-    }
-  }
-`;
-
-const UPDATE_APP_METADATA = gql`
-  mutation McpUpdateAppMetadata(
-    $app_metadata_id: String!
-    $set: app_metadata_set_input!
-  ) {
-    update_app_metadata_by_pk(
-      pk_columns: { id: $app_metadata_id }
-      _set: $set
-    ) {
-      id
-      app_id
-      name
-      short_name
-      app_mode
-      category
-      integration_url
-      app_website_url
-      support_link
-      content_card_image_url
-      description
-      hero_image_url
-      is_android_only
-      is_for_humans_only
-      logo_img_url
-      meta_tag_image_url
-      showcase_img_urls
-      world_app_description
-      world_app_button_text
-      verification_status
-      supported_countries
-      supported_languages
-      is_developer_allow_listing
-    }
-  }
-`;
-
-const SUBMIT_APP_FOR_REVIEW = gql`
-  mutation McpSubmitAppForReview(
-    $app_metadata_id: String!
-    $is_developer_allow_listing: Boolean!
-    $changelog: String!
-  ) {
-    update_app_metadata_by_pk(
-      pk_columns: { id: $app_metadata_id }
-      _set: {
-        verification_status: "awaiting_review"
-        is_developer_allow_listing: $is_developer_allow_listing
-        changelog: $changelog
-      }
-    ) {
-      id
-      app_id
-      verification_status
-      is_developer_allow_listing
-    }
-  }
-`;
 
 const toolDefinitions = [
   {
@@ -521,48 +262,30 @@ const submitAppSchema = yup
   })
   .noUnknown();
 
-const parseApiKey = (req: NextRequest) => {
-  const raw = req.headers.get("authorization")?.split(/\s+/).at(-1);
-  if (!raw) {
+const authenticate = async (req: NextRequest): Promise<McpAuthContext> => {
+  const authorization = req.headers.get("authorization");
+  if (!authorization) {
     throw new McpError("API key is required.", -32001);
   }
 
-  const decoded = Buffer.from(raw.replace(/^api_/, ""), "base64").toString(
-    "utf8",
-  );
-  const [id, secret] = decoded.split(":");
+  const client = new GraphQLClient(`${req.nextUrl.origin}/api/v1/graphql`, {
+    fetch,
+    headers: { Authorization: authorization },
+  });
 
-  if (!id || !secret) {
-    throw new McpError("Invalid API key format.", -32001);
-  }
-
-  return { id, secret };
-};
-
-const authenticate = async (req: NextRequest): Promise<McpAuthContext> => {
-  const { id, secret } = parseApiKey(req);
-  const client = await getAPIServiceGraphqlClient();
-  const result = await client.request<{
-    api_key_by_pk?: {
-      id: string;
-      api_key: string;
-      is_active: boolean;
-      team_id: string;
-    } | null;
-  }>(AUTHENTICATE_API_KEY, { id });
-
-  const apiKey = result.api_key_by_pk;
-  if (!apiKey) {
-    throw new McpError("API key not found.", -32001);
-  }
-  if (!apiKey.is_active) {
-    throw new McpError("API key is inactive.", -32001);
-  }
-  if (!verifyHashedSecret(apiKey.id, secret, apiKey.api_key)) {
+  let result;
+  try {
+    result = await getMcpAuthenticateTeamSdk(client).McpAuthenticateTeam();
+  } catch {
     throw new McpError("API key is not valid.", -32001);
   }
 
-  return { apiKeyId: apiKey.id, teamId: apiKey.team_id };
+  const teamId = result.team[0]?.id;
+  if (!teamId) {
+    throw new McpError("API key is not valid.", -32001);
+  }
+
+  return { teamId };
 };
 
 const parseInput = async <T>(schema: yup.Schema<T>, value: unknown) => {
@@ -588,7 +311,7 @@ const requireApp = async (
   teamId: string,
   appId: string,
 ) => {
-  const data = await client.request<{ app: any[] }>(GET_APP_CONTEXT, {
+  const data = await getMcpAppContextSdk(client).McpAppContext({
     team_id: teamId,
     app_id: appId,
   });
@@ -619,15 +342,14 @@ const rotateWorldIdSigningKey = async (input: unknown, ctx: ToolContext) => {
   }
 
   const signingKey = makeWallet(args.signer_private_key);
-  const data = await ctx.client.request<{ insert_rp_registration_one: any }>(
-    UPSERT_RP_REGISTRATION,
-    {
-      rp_id: registration.rp_id,
-      app_id: args.app_id,
-      mode: registration.mode,
-      signer_address: signingKey.signer_address,
-    },
-  );
+  const data = await getMcpUpsertRpRegistrationSdk(
+    ctx.client,
+  ).McpUpsertRpRegistration({
+    rp_id: registration.rp_id,
+    app_id: args.app_id,
+    mode: registration.mode,
+    signer_address: signingKey.signer_address,
+  });
 
   return content({
     rp_registration: data.insert_rp_registration_one,
@@ -639,7 +361,7 @@ const rotateWorldIdSigningKey = async (input: unknown, ctx: ToolContext) => {
 
 const tools = {
   get_team_context: async (_input, ctx) => {
-    const data = await ctx.client.request(GET_TEAM_CONTEXT, {
+    const data = await getMcpTeamContextSdk(ctx.client).McpTeamContext({
       team_id: ctx.teamId,
     });
     return content(data);
@@ -668,7 +390,7 @@ const tools = {
       throw new McpError("Invalid app category.", -32602);
     }
 
-    const data = await ctx.client.request<{ insert_app_one: any }>(CREATE_APP, {
+    const data = await getMcpCreateAppSdk(ctx.client).McpCreateApp({
       team_id: ctx.teamId,
       name: args.name,
       is_staging: args.build === "staging",
@@ -716,21 +438,24 @@ const tools = {
           ? makeWallet(args.signer_private_key)
           : null;
 
-    const data = await ctx.client.request<{ insert_rp_registration_one: any }>(
-      UPSERT_RP_REGISTRATION,
-      {
-        rp_id: generateRpIdString(args.app_id),
-        app_id: args.app_id,
-        mode: args.mode,
-        signer_address: signingKey?.signer_address ?? null,
-      },
-    );
+    const data = await getMcpUpsertRpRegistrationSdk(
+      ctx.client,
+    ).McpUpsertRpRegistration({
+      rp_id: generateRpIdString(args.app_id),
+      app_id: args.app_id,
+      mode: args.mode,
+      signer_address: signingKey?.signer_address ?? null,
+    });
+    const rpRegistration = data.insert_rp_registration_one;
+    if (!rpRegistration) {
+      throw new McpError("Unable to configure World ID for this app.", -32000);
+    }
 
     return content({
-      rp_registration: data.insert_rp_registration_one,
+      rp_registration: rpRegistration,
       signing_key: signingKey,
-      verify_endpoint: `/api/v4/verify/${data.insert_rp_registration_one.rp_id}`,
-      proof_context_endpoint: `/api/v4/proof-context/${data.insert_rp_registration_one.rp_id}`,
+      verify_endpoint: `/api/v4/verify/${rpRegistration.rp_id}`,
+      proof_context_endpoint: `/api/v4/proof-context/${rpRegistration.rp_id}`,
       warning:
         "Private keys are returned only at generation/rotation time. Store the private_key securely in the app environment.",
     });
@@ -772,15 +497,12 @@ const tools = {
       throw new McpError("World ID is not configured for this app.", -32004);
     }
 
-    const data = await ctx.client.request<{ insert_action_v4_one: any }>(
-      UPSERT_ACTION_V4,
-      {
-        rp_id: registration.rp_id,
-        action: args.action,
-        description: args.description,
-        environment: args.environment,
-      },
-    );
+    const data = await getMcpUpsertActionV4Sdk(ctx.client).McpUpsertActionV4({
+      rp_id: registration.rp_id,
+      action: args.action,
+      description: args.description,
+      environment: args.environment,
+    });
 
     logPortalEvent({
       event: "action_creation",
@@ -816,13 +538,12 @@ const tools = {
       }).filter(([, value]) => value !== undefined),
     );
 
-    const data = await ctx.client.request<{ update_app_metadata_by_pk: any }>(
-      UPDATE_APP_METADATA,
-      {
-        app_metadata_id: metadata.id,
-        set,
-      },
-    );
+    const data = await getMcpUpdateAppMetadataSdk(
+      ctx.client,
+    ).McpUpdateAppMetadata({
+      app_metadata_id: metadata.id,
+      set,
+    });
 
     return content({ app_metadata: data.update_app_metadata_by_pk });
   },
@@ -845,9 +566,9 @@ const tools = {
       throw new McpError("Only unverified apps can be submitted.", -32004);
     }
 
-    const data = await ctx.client.request<{
-      update_app_metadata_by_pk: any;
-    }>(SUBMIT_APP_FOR_REVIEW, {
+    const data = await getMcpSubmitAppForReviewSdk(
+      ctx.client,
+    ).McpSubmitAppForReview({
       app_metadata_id: metadata.id,
       is_developer_allow_listing: args.is_developer_allow_listing,
       changelog: args.changelog,

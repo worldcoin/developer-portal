@@ -5,6 +5,7 @@ import { generateRpIdString } from "@/lib/rp";
 import { NextRequest } from "next/server";
 
 const requestMock = jest.fn();
+const fetchMock = jest.fn();
 
 jest.mock("../../api/helpers/graphql", () => ({
   getAPIServiceGraphqlClient: jest.fn(async () => ({ request: requestMock })),
@@ -30,15 +31,6 @@ const validApiKey = `api_${Buffer.from(`${apiKeyId}:${hashedSecret.secret}`)
 
 const appId = "app_staging_9cdd0a714aec9ed17dca660bc9ffe72a";
 const rpId = generateRpIdString(appId);
-
-const authResponse = {
-  api_key_by_pk: {
-    id: apiKeyId,
-    api_key: hashedSecret.hashed_secret,
-    is_active: true,
-    team_id: teamId,
-  },
-};
 
 const appContextResponse = {
   app: [
@@ -69,6 +61,17 @@ const appContextResponse = {
 };
 let currentAppContextResponse = appContextResponse;
 
+const getOperationName = (query: unknown) => {
+  if (typeof query === "string") {
+    return query;
+  }
+
+  return (
+    (query as { definitions?: { name?: { value?: string } }[] })
+      .definitions?.[0]?.name?.value ?? ""
+  );
+};
+
 const createRequest = (body: Record<string, unknown>, apiKey = validApiKey) =>
   new NextRequest("http://localhost:3000/api/mcp", {
     method: "POST",
@@ -89,13 +92,27 @@ const callTool = (name: string, args: Record<string, unknown>) =>
 
 beforeEach(() => {
   jest.clearAllMocks();
+  global.fetch = fetchMock;
+  fetchMock.mockImplementation(
+    async (input: RequestInfo | URL, init?: RequestInit) => {
+      const headers = new Headers(
+        init?.headers ?? (input instanceof Request ? input.headers : undefined),
+      );
+      if (headers.get("authorization") !== `Bearer ${validApiKey}`) {
+        return Response.json({ errors: [{ message: "Invalid API key" }] });
+      }
+
+      return Response.json({ data: { team: [{ id: teamId }] } });
+    },
+  );
   currentAppContextResponse = appContextResponse;
-  requestMock.mockImplementation(async (query: string, variables: any) => {
-    if (query.includes("AuthenticateApiKey")) return authResponse;
-    if (query.includes("McpTeamContext")) {
+  requestMock.mockImplementation(async (query: unknown, variables: any) => {
+    const operationName = getOperationName(query);
+
+    if (operationName.includes("McpTeamContext")) {
       return { team_by_pk: { id: teamId, name: "Team", apps: [] } };
     }
-    if (query.includes("McpCreateApp")) {
+    if (operationName.includes("McpCreateApp")) {
       return {
         insert_app_one: {
           id: appId,
@@ -113,8 +130,9 @@ beforeEach(() => {
         },
       };
     }
-    if (query.includes("McpAppContext")) return currentAppContextResponse;
-    if (query.includes("McpUpsertActionV4")) {
+    if (operationName.includes("McpAppContext"))
+      return currentAppContextResponse;
+    if (operationName.includes("McpUpsertActionV4")) {
       return {
         insert_action_v4_one: {
           id: "action_v4_123",
@@ -125,7 +143,7 @@ beforeEach(() => {
         },
       };
     }
-    if (query.includes("McpUpsertRpRegistration")) {
+    if (operationName.includes("McpUpsertRpRegistration")) {
       return {
         insert_rp_registration_one: {
           rp_id: variables.rp_id,
@@ -136,7 +154,7 @@ beforeEach(() => {
         },
       };
     }
-    if (query.includes("McpUpdateAppMetadata")) {
+    if (operationName.includes("McpUpdateAppMetadata")) {
       return {
         update_app_metadata_by_pk: {
           id: variables.app_metadata_id,
@@ -146,7 +164,7 @@ beforeEach(() => {
         },
       };
     }
-    if (query.includes("McpSubmitAppForReview")) {
+    if (operationName.includes("McpSubmitAppForReview")) {
       return {
         update_app_metadata_by_pk: {
           id: variables.app_metadata_id,
@@ -156,7 +174,7 @@ beforeEach(() => {
         },
       };
     }
-    throw new Error(`Unexpected query: ${query}`);
+    throw new Error(`Unexpected query: ${operationName}`);
   });
 });
 
