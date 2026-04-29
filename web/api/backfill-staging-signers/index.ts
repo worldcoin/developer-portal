@@ -80,10 +80,7 @@ export const POST = async (req: NextRequest) => {
     "team_49b143a1d031de615a0ecc42771ef52a",
   ];
   if (!ALLOWED_TEAMS.includes(authResult.teamId)) {
-    return NextResponse.json(
-      { error: "Unauthorized team" },
-      { status: 403 },
-    );
+    return NextResponse.json({ error: "Unauthorized team" }, { status: 403 });
   }
 
   const primaryConfig = getRpRegistryConfig();
