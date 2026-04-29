@@ -139,7 +139,7 @@ export function decodeProof(proof: string): NestedProof {
         ];
       }
     } catch (error) {
-      logger.error("Error processing JSON-encoded proof", { error });
+      logger.debug("Error processing JSON-encoded proof", { error });
       // If there's an error processing the JSON-encoded proof, fall through to try decoding it as ABI
     }
   }
@@ -149,7 +149,7 @@ export function decodeProof(proof: string): NestedProof {
     const flatProof = decodeAbiEncodedProof(cleanedProof);
     return convertToNestedFormat(flatProof);
   } catch (error) {
-    logger.error("Error decoding ABI-encoded proof", { error });
+    logger.warn("Error decoding ABI-encoded proof", { error });
     throw new Error("Invalid proof format");
   }
 }
@@ -220,8 +220,7 @@ export const parseProofInputs = (params: IInputParams) => {
 
   try {
     proof = decodeProof(params.proof);
-  } catch (error) {
-    logger.error("Error decode proof", { error });
+  } catch {
     return {
       error: {
         message:
