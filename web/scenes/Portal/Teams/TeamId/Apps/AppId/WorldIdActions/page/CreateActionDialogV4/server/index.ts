@@ -2,6 +2,7 @@
 
 import { errorFormAction } from "@/api/helpers/errors";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
+import { logPortalEvent } from "@/api/helpers/portal-events";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { getIsUserAllowedToUpdateApp } from "@/lib/permissions";
 import { FormActionResult } from "@/lib/types";
@@ -77,6 +78,14 @@ export async function validateAndInsertActionV4(
         description: parsedParams.description || "",
         environment: "production",
       },
+    });
+
+    logPortalEvent({
+      event: "action_creation",
+      actor: "human",
+      app_id,
+      action: parsedParams.action,
+      metadata: { action_version: "v4", environment: "production" },
     });
 
     return {
