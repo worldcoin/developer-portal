@@ -82,7 +82,7 @@ export const VerificationBanner = ({
           </Typography>
         </div>
       </div>
-      <DecoratedButton type="button" className="max-h-9" onClick={onComplete}>
+      <DecoratedButton type="button" onClick={onComplete}>
         {stepConfig.buttonText}
       </DecoratedButton>
     </div>

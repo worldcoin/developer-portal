@@ -96,22 +96,23 @@ export const EarningsPage = () => {
             metadata={metadata}
           />
 
-          <div className="mt-6 grid grid-cols-1 items-stretch gap-10 md:mt-10 md:grid-cols-12 md:gap-0">
-            <div
-              className={clsx(
-                "col-span-full flex min-w-0 flex-col gap-4 md:mb-10 md:gap-8",
-                hasTransactions ? "md:col-span-6" : "md:col-span-12",
-              )}
-            >
+          <div
+            className={clsx(
+              "mt-6 grid grid-cols-1 items-start gap-10 md:mt-10",
+              hasTransactions &&
+                "md:grid-cols-[minmax(0,6fr)_minmax(0,5fr)] md:gap-x-10 md:gap-y-0",
+            )}
+          >
+            <div className="flex min-w-0 flex-col gap-4 md:mb-10 md:gap-8">
               {hasTransactions && (
                 <Typography variant={TYPOGRAPHY.H7}>Earnings</Typography>
               )}
-              <div className="flex min-h-0 flex-1 flex-col">
+              <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
                 <RewardsChart />
               </div>
             </div>
             {hasTransactions && (
-              <div className="col-span-full flex min-w-0 flex-col md:col-span-5 md:col-start-8">
+              <div className="min-w-0 overflow-x-auto md:max-w-none">
                 <TransactionsTable {...transactionsData} />
               </div>
             )}

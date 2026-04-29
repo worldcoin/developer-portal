@@ -255,17 +255,15 @@ const GraphCard: React.FC<GraphCardProps> = ({
           )}
 
           {!isLoading && chartData && (
-            <>
-              {/* Mobile Chart (Visible on sm and below) */}
+            <div className="min-h-0 min-w-0">
+              {/* Single grid row cell: two breakpoints swap charts without extra grid items */}
               <div className="block min-h-[245px] sm:hidden">
                 <Chart data={chartData} options={mobileChartOptions} />
               </div>
-
-              {/* Desktop Chart (Visible on sm and above) */}
               <div className="hidden min-h-[350px] sm:block">
                 <Chart data={chartData} options={chartOptions} />
               </div>
-            </>
+            </div>
           )}
         </div>
       )}
