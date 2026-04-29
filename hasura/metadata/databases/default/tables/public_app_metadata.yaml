@@ -221,6 +221,7 @@ select_permissions:
         - category
         - content_card_image_url
         - contracts
+        - created_at
         - description
         - hero_image_url
         - id

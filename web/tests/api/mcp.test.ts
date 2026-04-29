@@ -272,6 +272,35 @@ describe("/api/mcp", () => {
     expect(payload.app_metadata.short_name).toBe("MCP");
   });
 
+  it("rejects Mini App metadata updates after review submission", async () => {
+    currentAppContextResponse = {
+      app: [
+        {
+          ...appContextResponse.app[0],
+          app_metadata: [
+            {
+              ...appContextResponse.app[0].app_metadata[0],
+              verification_status: "awaiting_review",
+            },
+          ],
+        },
+      ],
+    };
+
+    const res = await POST(
+      callTool("configure_mini_app", {
+        app_id: appId,
+        short_name: "MCP",
+      }),
+    );
+
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.error.message).toBe(
+      "Only unverified app metadata can be edited.",
+    );
+  });
+
   it("submits an app for review only with explicit confirmation", async () => {
     const res = await POST(
       callTool("submit_app_for_review", {

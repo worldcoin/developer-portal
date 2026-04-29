@@ -111,9 +111,17 @@ const GET_APP_CONTEXT = gql`
         short_name
         app_mode
         category
+        content_card_image_url
+        description
+        hero_image_url
         integration_url
+        is_android_only
         app_website_url
+        is_for_humans_only
+        logo_img_url
+        meta_tag_image_url
         support_link
+        showcase_img_urls
         world_app_description
         world_app_button_text
         verification_status
@@ -212,7 +220,7 @@ const UPSERT_ACTION_V4 = gql`
     $rp_id: String!
     $action: String!
     $description: String!
-    $environment: String!
+    $environment: action_environment!
   ) {
     insert_action_v4_one(
       object: {
@@ -253,6 +261,14 @@ const UPDATE_APP_METADATA = gql`
       integration_url
       app_website_url
       support_link
+      content_card_image_url
+      description
+      hero_image_url
+      is_android_only
+      is_for_humans_only
+      logo_img_url
+      meta_tag_image_url
+      showcase_img_urls
       world_app_description
       world_app_button_text
       verification_status
@@ -393,11 +409,19 @@ const toolDefinitions = [
         category: { type: "string" },
         app_website_url: { type: "string" },
         support_link: { type: "string" },
+        description: { type: "string" },
+        logo_img_url: { type: "string" },
+        hero_image_url: { type: "string" },
+        meta_tag_image_url: { type: "string" },
+        showcase_img_urls: { type: "array", items: { type: "string" } },
+        content_card_image_url: { type: "string" },
         world_app_description: { type: "string" },
         world_app_button_text: { type: "string" },
         supported_countries: { type: "array", items: { type: "string" } },
         supported_languages: { type: "array", items: { type: "string" } },
+        is_android_only: { type: "boolean" },
         is_developer_allow_listing: { type: "boolean" },
+        is_for_humans_only: { type: "boolean" },
       },
       required: ["app_id"],
       additionalProperties: false,
@@ -472,11 +496,19 @@ const configureMiniAppSchema = yup
     category: yup.string().oneOf(CategoryNameIterable).optional(),
     app_website_url: yup.string().url().optional(),
     support_link: yup.string().optional(),
+    description: yup.string().optional(),
+    logo_img_url: yup.string().optional(),
+    hero_image_url: yup.string().optional(),
+    meta_tag_image_url: yup.string().optional(),
+    showcase_img_urls: yup.array().of(yup.string()).optional(),
+    content_card_image_url: yup.string().optional(),
     world_app_description: yup.string().optional(),
     world_app_button_text: yup.string().optional(),
     supported_countries: yup.array().of(yup.string().length(2)).optional(),
     supported_languages: yup.array().of(yup.string()).optional(),
+    is_android_only: yup.boolean().optional(),
     is_developer_allow_listing: yup.boolean().optional(),
+    is_for_humans_only: yup.boolean().optional(),
   })
   .noUnknown();
 
@@ -774,8 +806,8 @@ const tools: Record<
     if (!metadata) {
       throw new McpError("Editable app metadata not found.", -32004);
     }
-    if (metadata.verification_status === "verified") {
-      throw new McpError("Verified app metadata cannot be edited.", -32004);
+    if (metadata.verification_status !== "unverified") {
+      throw new McpError("Only unverified app metadata can be edited.", -32004);
     }
 
     const { app_id: _appId, ...rest } = args;

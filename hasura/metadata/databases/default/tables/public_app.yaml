@@ -99,6 +99,7 @@ select_permissions:
         - is_archived
         - is_banned
         - is_staging
+        - name
         - rating_count
         - rating_sum
         - status
