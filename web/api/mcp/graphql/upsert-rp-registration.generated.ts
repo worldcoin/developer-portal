@@ -40,7 +40,7 @@ export const McpUpsertRpRegistrationDocument = gql`
       }
       on_conflict: {
         constraint: rp_registration_app_id_key
-        update_columns: [mode, signer_address, status]
+        update_columns: [signer_address]
       }
     ) {
       rp_id

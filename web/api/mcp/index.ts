@@ -82,12 +82,11 @@ const toolDefinitions = [
   {
     name: "configure_world_id",
     description:
-      "Create or update World ID 4.0 RP config and optionally generate a signing key.",
+      "Create World ID 4.0 RP config in self-managed mode and optionally generate a signing key. Managed mode (where the platform performs on-chain registration on the developer's behalf) requires user-session permissions and must be configured from the developer portal UI.",
     inputSchema: {
       type: "object",
       properties: {
         app_id: { type: "string" },
-        mode: { type: "string", enum: ["managed", "self_managed"] },
         signer_private_key: { type: "string" },
         generate_signing_key: { type: "boolean" },
       },
@@ -206,7 +205,6 @@ const createAppSchema = yup
 const configureWorldIdSchema = yup
   .object({
     app_id: yup.string().required(),
-    mode: yup.string().oneOf(["managed", "self_managed"]).default("managed"),
     signer_private_key: yup.string().optional(),
     generate_signing_key: yup.boolean().default(true),
   })
@@ -432,18 +430,16 @@ const tools = {
     }
 
     const signingKey =
-      args.mode === "managed" && args.generate_signing_key
+      args.generate_signing_key || args.signer_private_key
         ? makeWallet(args.signer_private_key)
-        : args.signer_private_key
-          ? makeWallet(args.signer_private_key)
-          : null;
+        : null;
 
     const data = await getMcpUpsertRpRegistrationSdk(
       ctx.client,
     ).McpUpsertRpRegistration({
       rp_id: generateRpIdString(args.app_id),
       app_id: args.app_id,
-      mode: args.mode,
+      mode: "self_managed",
       signer_address: signingKey?.signer_address ?? null,
     });
     const rpRegistration = data.insert_rp_registration_one;
@@ -457,7 +453,7 @@ const tools = {
       verify_endpoint: `/api/v4/verify/${rpRegistration.rp_id}`,
       proof_context_endpoint: `/api/v4/proof-context/${rpRegistration.rp_id}`,
       warning:
-        "Private keys are returned only at generation/rotation time. Store the private_key securely in the app environment.",
+        "Private keys are returned only at generation/rotation time. Store the private_key securely in the app environment. To use platform-managed (on-chain) registration instead, configure the app from the developer portal UI.",
     });
   },
 

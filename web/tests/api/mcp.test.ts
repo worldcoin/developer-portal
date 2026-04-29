@@ -281,7 +281,6 @@ describe("/api/mcp", () => {
     const res = await POST(
       callTool("configure_world_id", {
         app_id: appId,
-        mode: "managed",
         generate_signing_key: true,
       }),
     );
