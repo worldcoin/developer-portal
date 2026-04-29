@@ -5,18 +5,27 @@ import { GraphQLClient, RequestOptions } from "graphql-request";
 import gql from "graphql-tag";
 type GraphQLClientRequestHeaders = RequestOptions["requestHeaders"];
 export type McpAuthenticateTeamQueryVariables = Types.Exact<{
-  [key: string]: never;
+  id: Types.Scalars["String"]["input"];
 }>;
 
 export type McpAuthenticateTeamQuery = {
   __typename?: "query_root";
-  team: Array<{ __typename?: "team"; id: string }>;
+  api_key_by_pk?: {
+    __typename?: "api_key";
+    id: string;
+    api_key: string;
+    is_active: boolean;
+    team_id: string;
+  } | null;
 };
 
 export const McpAuthenticateTeamDocument = gql`
-  query McpAuthenticateTeam {
-    team(limit: 1) {
+  query McpAuthenticateTeam($id: String!) {
+    api_key_by_pk(id: $id) {
       id
+      api_key
+      is_active
+      team_id
     }
   }
 `;
@@ -41,7 +50,7 @@ export function getSdk(
 ) {
   return {
     McpAuthenticateTeam(
-      variables?: McpAuthenticateTeamQueryVariables,
+      variables: McpAuthenticateTeamQueryVariables,
       requestHeaders?: GraphQLClientRequestHeaders,
     ): Promise<McpAuthenticateTeamQuery> {
       return withWrapper(

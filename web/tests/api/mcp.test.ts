@@ -5,7 +5,6 @@ import { generateRpIdString } from "@/lib/rp";
 import { NextRequest } from "next/server";
 
 const requestMock = jest.fn();
-const fetchMock = jest.fn();
 
 jest.mock("../../api/helpers/graphql", () => ({
   getAPIServiceGraphqlClient: jest.fn(async () => ({ request: requestMock })),
@@ -45,6 +44,7 @@ const appContextResponse = {
           id: "meta_123",
           app_mode: "mini-app",
           verification_status: "unverified",
+          is_developer_allow_listing: false,
         },
       ],
       rp_registration: [
@@ -117,23 +117,23 @@ const callTool = (name: string, args: Record<string, unknown>) =>
 
 beforeEach(() => {
   jest.clearAllMocks();
-  global.fetch = fetchMock;
-  fetchMock.mockImplementation(
-    async (input: RequestInfo | URL, init?: RequestInit) => {
-      const headers = new Headers(
-        init?.headers ?? (input instanceof Request ? input.headers : undefined),
-      );
-      if (headers.get("authorization") !== `Bearer ${validApiKey}`) {
-        return Response.json({ errors: [{ message: "Invalid API key" }] });
-      }
-
-      return Response.json({ data: { team: [{ id: teamId }] } });
-    },
-  );
   currentAppContextResponse = appContextResponse;
   requestMock.mockImplementation(async (query: unknown, variables: any) => {
     const operationName = getOperationName(query);
 
+    if (operationName.includes("McpAuthenticateTeam")) {
+      if (variables.id !== apiKeyId) {
+        return { api_key_by_pk: null };
+      }
+      return {
+        api_key_by_pk: {
+          id: apiKeyId,
+          api_key: hashedSecret.hashed_secret,
+          is_active: true,
+          team_id: teamId,
+        },
+      };
+    }
     if (operationName.includes("McpTeamContext")) {
       return { team_by_pk: { id: teamId, name: "Team", apps: [] } };
     }
@@ -433,6 +433,16 @@ describe("/api/mcp", () => {
     const incompleteMetadata = { ...reviewMetadata, logo_img_url: "" };
     requestMock.mockImplementation(async (query: unknown, variables: any) => {
       const operationName = getOperationName(query);
+      if (operationName.includes("McpAuthenticateTeam")) {
+        return {
+          api_key_by_pk: {
+            id: apiKeyId,
+            api_key: hashedSecret.hashed_secret,
+            is_active: true,
+            team_id: teamId,
+          },
+        };
+      }
       if (operationName.includes("McpAppContext"))
         return currentAppContextResponse;
       if (operationName.includes("FetchAppMetadataById")) {
@@ -476,5 +486,74 @@ describe("/api/mcp", () => {
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(body.error.message).toBe("API key is not valid.");
+  });
+
+  it("rejects bearer tokens that are not API keys", async () => {
+    const jwtToken = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.fake.fake";
+    const res = await POST(
+      createRequest(
+        {
+          jsonrpc: "2.0",
+          id: 1,
+          method: "tools/call",
+          params: { name: "get_team_context", arguments: {} },
+        },
+        jwtToken,
+      ),
+    );
+
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.error.code).toBe(-32001);
+    expect(requestMock).not.toHaveBeenCalled();
+  });
+
+  it("returns a JSON-RPC parse error for malformed request bodies", async () => {
+    const req = new NextRequest("http://localhost:3000/api/mcp", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${validApiKey}`,
+      },
+      body: "{not json",
+    });
+
+    const res = await POST(req);
+
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.jsonrpc).toBe("2.0");
+    expect(body.error.code).toBe(-32700);
+  });
+
+  it("preserves is_developer_allow_listing when submitter omits it", async () => {
+    currentAppContextResponse = {
+      app: [
+        {
+          ...appContextResponse.app[0],
+          app_metadata: [
+            {
+              ...appContextResponse.app[0].app_metadata[0],
+              is_developer_allow_listing: true,
+            },
+          ],
+        },
+      ],
+    };
+
+    const res = await POST(
+      callTool("submit_app_for_review", {
+        app_id: appId,
+        confirm_submission: true,
+      }),
+    );
+
+    expect(res.status).toBe(200);
+    const submitCall = requestMock.mock.calls.find(
+      ([query]) => getOperationName(query) === "McpSubmitAppForReview",
+    );
+    expect(submitCall?.[1]).toEqual(
+      expect.objectContaining({ is_developer_allow_listing: true }),
+    );
   });
 });

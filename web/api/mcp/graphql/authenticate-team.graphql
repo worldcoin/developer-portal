@@ -1,5 +1,8 @@
-query McpAuthenticateTeam {
-  team(limit: 1) {
+query McpAuthenticateTeam($id: String!) {
+  api_key_by_pk(id: $id) {
     id
+    api_key
+    is_active
+    team_id
   }
 }

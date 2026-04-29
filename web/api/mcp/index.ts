@@ -1,6 +1,6 @@
-import { errorResponse } from "@/api/helpers/errors";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { logPortalEvent } from "@/api/helpers/portal-events";
+import { verifyHashedSecret } from "@/api/helpers/utils";
 import { getSdk as getMcpAppContextSdk } from "@/api/mcp/graphql/app-context.generated";
 import { getSdk as getMcpAuthenticateTeamSdk } from "@/api/mcp/graphql/authenticate-team.generated";
 import { getSdk as getMcpCreateAppSdk } from "@/api/mcp/graphql/create-app.generated";
@@ -264,34 +264,55 @@ const submitAppSchema = yup
     app_id: yup.string().required(),
     confirm_submission: yup.boolean().oneOf([true]).required(),
     changelog: yup.string().default("Submitted via MCP"),
-    is_developer_allow_listing: yup.boolean().default(false),
+    is_developer_allow_listing: yup.boolean().optional(),
   })
   .noUnknown();
 
+const parseApiKey = (authorization: string | null) => {
+  if (!authorization) return null;
+  const [scheme, token] = authorization.split(" ");
+  if (scheme?.toLowerCase() !== "bearer" || !token?.startsWith("api_")) {
+    return null;
+  }
+  let decoded: string;
+  try {
+    decoded = Buffer.from(token.slice("api_".length), "base64").toString(
+      "utf8",
+    );
+  } catch {
+    return null;
+  }
+  const [id, secret] = decoded.split(":");
+  if (!id || !secret) return null;
+  return { id, secret };
+};
+
 const authenticate = async (req: NextRequest): Promise<McpAuthContext> => {
-  const authorization = req.headers.get("authorization");
-  if (!authorization) {
+  const credentials = parseApiKey(req.headers.get("authorization"));
+  if (!credentials) {
     throw new McpError("API key is required.", -32001);
   }
 
-  const client = new GraphQLClient(`${req.nextUrl.origin}/api/v1/graphql`, {
-    fetch,
-    headers: { Authorization: authorization },
-  });
-
-  let result;
+  const serviceClient = await getAPIServiceGraphqlClient();
+  let apiKey;
   try {
-    result = await getMcpAuthenticateTeamSdk(client).McpAuthenticateTeam();
+    const result = await getMcpAuthenticateTeamSdk(
+      serviceClient,
+    ).McpAuthenticateTeam({ id: credentials.id });
+    apiKey = result.api_key_by_pk;
   } catch {
     throw new McpError("API key is not valid.", -32001);
   }
 
-  const teamId = result.team[0]?.id;
-  if (!teamId) {
+  if (
+    !apiKey ||
+    !apiKey.is_active ||
+    !verifyHashedSecret(apiKey.id, credentials.secret, apiKey.api_key)
+  ) {
     throw new McpError("API key is not valid.", -32001);
   }
 
-  return { teamId };
+  return { teamId: apiKey.team_id };
 };
 
 const parseInput = async <T>(schema: yup.Schema<T>, value: unknown) => {
@@ -627,11 +648,16 @@ const tools = {
       throw error;
     }
 
+    const isDeveloperAllowListing =
+      args.is_developer_allow_listing ??
+      metadata.is_developer_allow_listing ??
+      false;
+
     const data = await getMcpSubmitAppForReviewSdk(
       ctx.client,
     ).McpSubmitAppForReview({
       app_metadata_id: metadata.id,
-      is_developer_allow_listing: args.is_developer_allow_listing,
+      is_developer_allow_listing: isDeveloperAllowListing,
       changelog: args.changelog,
     });
 
@@ -641,7 +667,7 @@ const tools = {
       team_id: ctx.teamId,
       app_id: args.app_id,
       metadata: {
-        is_developer_allow_listing: args.is_developer_allow_listing,
+        is_developer_allow_listing: isDeveloperAllowListing,
       },
     });
 
@@ -769,13 +795,10 @@ export const POST = async (req: NextRequest) => {
   try {
     message = await req.json();
   } catch {
-    return errorResponse({
-      statusCode: 400,
-      code: "invalid_request",
-      detail: "Invalid JSON-RPC request body.",
-      attribute: null,
-      req,
-    });
+    return jsonRpcError(
+      null,
+      new McpError("Invalid JSON-RPC request body.", -32700),
+    );
   }
 
   if (message.id === undefined || message.id === null) {
