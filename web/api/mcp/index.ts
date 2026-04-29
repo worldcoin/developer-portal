@@ -570,7 +570,6 @@ const parseInput = async <T>(schema: yup.Schema<T>, value: unknown) => {
     return await schema.validate(value ?? {}, {
       abortEarly: false,
       stripUnknown: true,
-      strict: true,
     });
   } catch (error) {
     if (error instanceof yup.ValidationError) {
@@ -608,10 +607,37 @@ const makeWallet = (privateKey?: string) => {
   };
 };
 
-const tools: Record<
-  string,
-  (input: unknown, ctx: ToolContext) => Promise<any>
-> = {
+const rotateWorldIdSigningKey = async (input: unknown, ctx: ToolContext) => {
+  const args = await parseInput(
+    appIdSchema.shape({ signer_private_key: yup.string().optional() }),
+    input,
+  );
+  const app = await requireApp(ctx.client, ctx.teamId, args.app_id);
+  const registration = app.rp_registration[0];
+  if (!registration) {
+    throw new McpError("World ID is not configured for this app.", -32004);
+  }
+
+  const signingKey = makeWallet(args.signer_private_key);
+  const data = await ctx.client.request<{ insert_rp_registration_one: any }>(
+    UPSERT_RP_REGISTRATION,
+    {
+      rp_id: registration.rp_id,
+      app_id: args.app_id,
+      mode: registration.mode,
+      signer_address: signingKey.signer_address,
+    },
+  );
+
+  return content({
+    rp_registration: data.insert_rp_registration_one,
+    signing_key: signingKey,
+    warning:
+      "Store private_key securely. It is not recoverable after this response.",
+  });
+};
+
+const tools = {
   get_team_context: async (_input, ctx) => {
     const data = await ctx.client.request(GET_TEAM_CONTEXT, {
       team_id: ctx.teamId,
@@ -724,7 +750,7 @@ const tools: Record<
     }
 
     if (args.rotate_if_unavailable) {
-      return tools.rotate_world_id_signing_key(input, ctx);
+      return rotateWorldIdSigningKey({ app_id: args.app_id }, ctx);
     }
 
     return content({
@@ -736,35 +762,7 @@ const tools: Record<
     });
   },
 
-  rotate_world_id_signing_key: async (input, ctx) => {
-    const args = await parseInput(
-      appIdSchema.shape({ signer_private_key: yup.string().optional() }),
-      input,
-    );
-    const app = await requireApp(ctx.client, ctx.teamId, args.app_id);
-    const registration = app.rp_registration[0];
-    if (!registration) {
-      throw new McpError("World ID is not configured for this app.", -32004);
-    }
-
-    const signingKey = makeWallet(args.signer_private_key);
-    const data = await ctx.client.request<{ insert_rp_registration_one: any }>(
-      UPSERT_RP_REGISTRATION,
-      {
-        rp_id: registration.rp_id,
-        app_id: args.app_id,
-        mode: registration.mode,
-        signer_address: signingKey.signer_address,
-      },
-    );
-
-    return content({
-      rp_registration: data.insert_rp_registration_one,
-      signing_key: signingKey,
-      warning:
-        "Store private_key securely. It is not recoverable after this response.",
-    });
-  },
+  rotate_world_id_signing_key: rotateWorldIdSigningKey,
 
   create_world_id_action: async (input, ctx) => {
     const args = await parseInput(createActionSchema, input);
@@ -867,38 +865,89 @@ const tools: Record<
 
     return content({ app_metadata: data.update_app_metadata_by_pk });
   },
+} satisfies Record<string, (input: unknown, ctx: ToolContext) => Promise<any>>;
+
+type McpMethod = "initialize" | "ping" | "tools/list" | "tools/call";
+type ToolName = keyof typeof tools;
+
+const parseMcpMethod = (value: unknown): McpMethod => {
+  switch (value) {
+    case "initialize":
+    case "ping":
+    case "tools/list":
+    case "tools/call":
+      return value;
+    default:
+      throw new McpError(`Unsupported MCP method: ${String(value)}`, -32601);
+  }
+};
+
+const parseToolName = (value: unknown): ToolName => {
+  switch (value) {
+    case "get_team_context":
+    case "get_app_config":
+    case "create_app":
+    case "configure_world_id":
+    case "get_world_id_signing_key":
+    case "rotate_world_id_signing_key":
+    case "create_world_id_action":
+    case "configure_mini_app":
+    case "submit_app_for_review":
+      return value;
+    default:
+      throw new McpError(`Unknown tool: ${String(value)}`, -32601);
+  }
+};
+
+const executeTool = async (
+  name: ToolName,
+  input: unknown,
+  ctx: ToolContext,
+) => {
+  switch (name) {
+    case "get_team_context":
+      return tools.get_team_context(input, ctx);
+    case "get_app_config":
+      return tools.get_app_config(input, ctx);
+    case "create_app":
+      return tools.create_app(input, ctx);
+    case "configure_world_id":
+      return tools.configure_world_id(input, ctx);
+    case "get_world_id_signing_key":
+      return tools.get_world_id_signing_key(input, ctx);
+    case "rotate_world_id_signing_key":
+      return tools.rotate_world_id_signing_key(input, ctx);
+    case "create_world_id_action":
+      return tools.create_world_id_action(input, ctx);
+    case "configure_mini_app":
+      return tools.configure_mini_app(input, ctx);
+    case "submit_app_for_review":
+      return tools.submit_app_for_review(input, ctx);
+  }
 };
 
 const handleJsonRpc = async (req: NextRequest, message: JsonRpcRequest) => {
-  if (message.method === "initialize") {
-    return {
-      protocolVersion: "2025-06-18",
-      capabilities: { tools: {} },
-      serverInfo: { name: "world-developer-portal", version: "0.1.0" },
-    };
-  }
+  const method = parseMcpMethod(message.method);
+  const auth = await authenticate(req);
 
-  if (message.method === "tools/list") {
-    await authenticate(req);
-    return { tools: toolDefinitions };
-  }
-
-  if (message.method === "tools/call") {
-    const auth = await authenticate(req);
-    const client = await getAPIServiceGraphqlClient();
-    const name = message.params?.name;
-    const handler = tools[name];
-    if (!handler) {
-      throw new McpError(`Unknown tool: ${name}`, -32601);
+  switch (method) {
+    case "initialize":
+      return {
+        protocolVersion: "2025-06-18",
+        capabilities: { tools: {} },
+        serverInfo: { name: "world-developer-portal", version: "0.1.0" },
+      };
+    case "ping":
+      return {};
+    case "tools/list": {
+      return { tools: toolDefinitions };
     }
-    return handler(message.params?.arguments, { ...auth, client });
+    case "tools/call": {
+      const client = await getAPIServiceGraphqlClient();
+      const name = parseToolName(message.params?.name);
+      return executeTool(name, message.params?.arguments, { ...auth, client });
+    }
   }
-
-  if (message.method === "ping") {
-    return {};
-  }
-
-  throw new McpError(`Unsupported MCP method: ${message.method}`, -32601);
 };
 
 const jsonRpcResponse = (

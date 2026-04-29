@@ -84,9 +84,7 @@ export const POST = async (req: NextRequest) => {
     const client = await getAPIServiceGraphqlClient();
 
     const getUploadableApp = async () => {
-      const { app } = await checkAppInTeamDocumentSDK(
-        client,
-      ).CheckAppInTeam({
+      const { app } = await checkAppInTeamDocumentSDK(client).CheckAppInTeam({
         team_id: uploadTeamId,
         app_id: uploadAppId,
       });

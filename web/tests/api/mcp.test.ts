@@ -161,7 +161,7 @@ beforeEach(() => {
 });
 
 describe("/api/mcp", () => {
-  it("returns MCP initialize metadata without auth", async () => {
+  it("returns MCP initialize metadata with a valid dev portal API key", async () => {
     const res = await POST(
       createRequest({
         jsonrpc: "2.0",
@@ -211,6 +211,27 @@ describe("/api/mcp", () => {
     );
   });
 
+  it("applies defaults when creating an app with only a name", async () => {
+    const res = await POST(
+      callTool("create_app", {
+        name: "MCP Defaults",
+      }),
+    );
+
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    const payload = JSON.parse(body.result.content[0].text);
+    expect(payload.app.engine).toBe("cloud");
+    expect(payload.app.is_staging).toBe(false);
+    expect(payload.app.app_metadata[0]).toEqual(
+      expect.objectContaining({
+        app_mode: "external",
+        category: "External",
+        integration_url: "https://docs.world.org/",
+      }),
+    );
+  });
+
   it("creates a World ID action and logs MCP action creation", async () => {
     const res = await POST(
       callTool("create_world_id_action", {
@@ -244,6 +265,22 @@ describe("/api/mcp", () => {
         app_id: appId,
         mode: "managed",
         generate_signing_key: true,
+      }),
+    );
+
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    const payload = JSON.parse(body.result.content[0].text);
+    expect(payload.rp_registration.rp_id).toBe(rpId);
+    expect(payload.signing_key.private_key).toMatch(/^0x/);
+    expect(payload.signing_key.signer_address).toMatch(/^0x/);
+  });
+
+  it("rotates the signing key when requested from get_world_id_signing_key", async () => {
+    const res = await POST(
+      callTool("get_world_id_signing_key", {
+        app_id: appId,
+        rotate_if_unavailable: true,
       }),
     );
 
