@@ -20,7 +20,6 @@ import { getSdk as getUpdateRpStatusSdk } from "@/api/v4/rp-status/[rp_id]/graph
 import { getSdk as getUpdateStagingStatusSdk } from "@/api/v4/rp-status/[rp_id]/graphql/update-staging-status.generated";
 import { CategoryNameIterable } from "@/lib/categories";
 import { logger } from "@/lib/logger";
-import { formatMultipleStringInput } from "@/lib/utils";
 import { mainAppStoreFormReviewSubmitSchema } from "@/scenes/Portal/Teams/TeamId/Apps/AppId/Configuration/AppStore/FormSchema/form-schema";
 import { LocalisationData } from "@/scenes/Portal/Teams/TeamId/Apps/AppId/Configuration/AppStore/types/AppStoreFormTypes";
 import { getSupportType } from "@/scenes/Portal/Teams/TeamId/Apps/AppId/Configuration/AppStore/utils";
@@ -277,6 +276,14 @@ const createActionSchema = yup
 const ETH_ADDRESS_REGEX = /^0x[a-fA-F0-9]{40}$/;
 const HTTPS_URL_REGEX = /^https:\/\/[a-zA-Z0-9-]+\.[a-zA-Z]{2,}/;
 
+const noCommaTest = (label: string) =>
+  ({
+    name: "no-comma",
+    message: `${label} cannot contain commas — pass each value as a separate array element`,
+    test: (value: string | undefined) =>
+      value === undefined || !value.includes(","),
+  }) as const;
+
 const ethAddressArraySchema = (label: string) =>
   yup
     .array()
@@ -287,6 +294,7 @@ const ethAddressArraySchema = (label: string) =>
           ETH_ADDRESS_REGEX,
           `${label} must be 0x followed by 40 hex characters`,
         )
+        .test(noCommaTest(label))
         .required(),
     )
     .optional();
@@ -330,6 +338,7 @@ const configureMiniAppSchema = yup
             HTTPS_URL_REGEX,
             "Each associated domain must be a valid HTTPS URL",
           )
+          .test(noCommaTest("Each associated domain"))
           .required(),
       )
       .optional(),
@@ -798,8 +807,15 @@ const tools = {
       ...rest
     } = args;
 
-    const toPgArrayText = (arr: string[] | undefined) =>
-      arr === undefined ? undefined : formatMultipleStringInput(arr.join(","));
+    // Build Postgres array text directly from the input array.
+    // Do NOT round-trip through a comma-joined string + formatMultipleStringInput:
+    // that helper splits on commas and would shred any element that happens to
+    // contain a comma into multiple stored values.
+    const toPgArrayText = (arr: string[] | undefined) => {
+      if (arr === undefined) return undefined;
+      if (arr.length === 0) return null;
+      return `{${arr.map((s) => `"${s.trim()}"`).join(",")}}`;
+    };
 
     const advanced: Record<string, unknown> = {
       contracts: toPgArrayText(contracts),
