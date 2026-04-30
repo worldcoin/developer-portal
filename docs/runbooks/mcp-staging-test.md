@@ -9,6 +9,11 @@ through the MCP only — no developer-portal UI interaction at any step.
 
 - Access to the staging dev portal UI (admin/owner on at least one team)
   so you can mint an API key.
+- **The team must be enabled for World ID 4.0** in staging.
+  `configure_world_id` runs the same managed registration pipeline as
+  the dashboard (KMS manager key + on-chain `registerRp` TX), and the
+  pipeline gates on `isWorldId40EnabledServer(team_id)`. If the flag
+  is off the call returns `-32004` with `data.reason: "feature_not_enabled"`.
 - A Claude Code (or other MCP client) install you can configure with a
   custom server.
 - Datadog access for the dev-portal service so you can watch
@@ -112,34 +117,44 @@ Prompt your agent (substitute your own image URLs):
 > World ID app called "MCP Test External". Steps:
 >
 > 1.  Create the app (production build, cloud verification).
-> 2.  Configure World ID in self-managed mode and generate a signing
->     key — capture the private key, it's one-time only.
-> 3.  Create an action called `verify-account`.
-> 4.  Upload the logo from `https://example.com/logo.png` as the logo.
-> 5.  Upload `https://example.com/screenshot.png` as `showcase_1`.
-> 6.  Set the rest of the required metadata: `app_website_url`,
+> 2.  Configure World ID. The server will generate a signer wallet,
+>     create a KMS manager key, and submit the on-chain registration —
+>     capture the returned `signing_key.private_key`, it's one-time.
+> 3.  Poll `get_world_id_registration_status` until it reports
+>     `production_status: "registered"` so the on-chain TX has confirmed.
+> 4.  Create an action called `verify-account`.
+> 5.  Upload the logo from `https://example.com/logo.png`.
+> 6.  Upload `https://example.com/screenshot.png` as `showcase_1`.
+> 7.  Set the rest of the required metadata: `app_website_url`,
 >     `description_overview`, `supported_countries: ["us"]`,
 >     `supported_languages: ["en"]`, `is_android_only: false`,
 >     `is_for_humans_only: false`.
-> 7.  Submit the app for review.
+> 8.  Submit the app for review.
 
 Expected tool sequence:
 
 1. `create_app` (`app_mode: "external"`, `build: "production"`,
    `verification: "cloud"`) → returns `app_id`.
-2. `configure_world_id` → returns `signing_key.private_key` (capture).
-3. `create_world_id_action` (`action: "verify-account"`).
-4. `upload_app_image` (`image_type: "logo"`).
-5. `upload_app_image` (`image_type: "showcase_1"`).
-6. `configure_mini_app` (with the metadata above — `description_overview`,
-   `app_website_url`, `supported_countries`, `supported_languages`,
-   `is_android_only`, `is_for_humans_only`).
-7. `submit_app_for_review` (`confirm_submission: true`) → response
+2. `configure_world_id` (no args beyond `app_id`) → returns
+   `signing_key.private_key` + `manager_address` + `operation_hash` +
+   `status: "pending"`. **Capture the private key now.** The on-chain
+   TX is in flight.
+3. `get_world_id_registration_status { app_id }` until
+   `production_status: "registered"` (typically a few seconds; on
+   prod we also see `staging_status: "registered"`).
+4. `create_world_id_action` (`action: "verify-account"`).
+5. `upload_app_image` (`image_type: "logo"`).
+6. `upload_app_image` (`image_type: "showcase_1"`).
+7. `configure_mini_app` (with `description_overview`, `app_website_url`,
+   `supported_countries`, `supported_languages`, `is_android_only`,
+   `is_for_humans_only`).
+8. `submit_app_for_review` (`confirm_submission: true`) → response
    `verification_status: "awaiting_review"`.
 
 Verify in the dashboard UI: app appears, World ID is configured, signer
-address matches what the agent reported, action is listed, store fields
-populated, logo + showcase render, app is in `awaiting_review`.
+address matches what the agent reported, the manager address is set,
+action is listed, store fields populated, logo + showcase render, app
+is in `awaiting_review`.
 
 Verify in Datadog (per `docs/runbooks/mcp-datadog-queries.md`):
 
@@ -159,7 +174,11 @@ Prompt:
 > end to end via MCP only.
 >
 > 1. Create the mini app.
-> 2. Configure World ID in self-managed mode and generate a signing key.
+> 2. Configure World ID — the server generates a signer wallet, creates
+>    the KMS manager key, and submits the on-chain registration.
+>    Capture the returned `private_key`. Then poll
+>    `get_world_id_registration_status` until `production_status` is
+>    `registered`.
 > 3. Upload these images (use HTTPS URLs or local files):
 >    - `logo` from `https://example.com/logo.png`
 >    - `content_card` from `https://example.com/card.png`
@@ -183,11 +202,15 @@ Prompt:
 Expected:
 
 - `create_app` (`app_mode: "mini-app"`) → returns `app_id`.
-- `configure_world_id` (capture the private key).
-- 3× `upload_app_image` (logo + content_card + showcase_1).
+- `configure_world_id` → returns the one-time `private_key`,
+  `manager_address`, `operation_hash`, `status: "pending"`.
+- `get_world_id_registration_status` polled until
+  `production_status: "registered"` (typically a few seconds).
+- 3× `upload_app_image` (logo + content_card + showcase_1) — each
+  returns `committed: true` once the metadata patch lands.
 - `configure_mini_app` accepts every store-metadata and advanced field
   listed above in a single call (the server JSON-encodes
-  `description_overview` into `app_metadata.description`).
+  `description_overview` into `app_metadata.description` for you).
 - `submit_app_for_review` (`confirm_submission: true`) → returns
   `verification_status: "awaiting_review"`.
 
@@ -198,6 +221,21 @@ Verify in the dashboard UI:
 - Configuration → Advanced shows the contracts, permit2 tokens, and
   `2 notifications / day`.
 - Permissions toggles for "Import contacts" and "Attestation" are on.
+
+### Optional: rotate the signing key
+
+If you also want to dogfood `rotate_world_id_signing_key`, prompt:
+
+> Rotate the World ID signing key for `MCP Test Mini`. Capture the new
+> private key. Then poll `get_world_id_registration_status` until the
+> on-chain rotation confirms.
+
+This submits an on-chain `updateRp` TX, returns a new
+`signing_key.private_key`, and flips the RP status to `pending` until
+the bundler confirms. Self-managed RPs (none in these scenarios, but
+relevant for any pre-existing apps) get `-32004` with
+`data.reason: "self_managed_mode"` — those have to be rotated by the
+developer themselves.
 
 ## 5. Codex security review
 
@@ -220,11 +258,15 @@ Resolve each Codex review thread once handled.
 
 - [ ] All 11 tools visible in `tools/list`
 - [ ] Scenario 1: external app reached `awaiting_review` via MCP only —
-      no UI interaction required.
+      no UI interaction required. RP status confirmed `registered` on
+      both production and staging (where applicable) registry contracts
+      via `get_world_id_registration_status`.
 - [ ] Scenario 2: mini app reached `awaiting_review` via MCP only, with
       logo + content_card + showcase_1 images uploaded and visible, and
       contracts / permit2 / notification cap / attestation / contacts
       all reflected in the dashboard.
+- [ ] (Optional) `rotate_world_id_signing_key` produced a new private
+      key and the on-chain rotation confirmed.
 - [ ] Datadog shows the expected `portal_*` events per scenario, all
       tagged `@actor:mcp`.
 - [ ] No `Unhandled MCP error` in Datadog over the test window.
@@ -238,16 +280,44 @@ endpoint 404s. The deeper handler can stay.
 
 ## Known limitations
 
-- `configure_world_id` only supports **self-managed** mode. Managed
-  (platform-signed) registration must go through the dashboard UI —
-  it requires user-session permissions and an on-chain registration
-  transaction the API-key path can't perform.
-- `rotate_world_id_signing_key` rejects managed RPs for the same reason.
+- `configure_world_id` is **managed-only** and **asynchronous**. The
+  call returns `status: "pending"` once the on-chain `registerRp` TX
+  has been submitted to the bundler; the agent must poll
+  `get_world_id_registration_status` until it reads `registered`
+  before relying on the RP for verifications. There is no MCP path
+  to create a self-managed RP — that flow only exists in the
+  dashboard.
+- `rotate_world_id_signing_key` runs the same managed-mode pipeline
+  (KMS-signed `updateRp` TX). Self-managed RPs (e.g. legacy
+  registrations not created via MCP) return `-32004` with
+  `data.reason: "self_managed_mode"` — they have to be rotated by the
+  developer themselves. After rotation, the agent should re-poll
+  `get_world_id_registration_status` until the new signer reflects
+  on-chain.
+- `configure_world_id` and `rotate_world_id_signing_key` both gate on
+  the team having World ID 4.0 enabled. A disabled team gets `-32004`
+  with `data.reason: "feature_not_enabled"`.
 - Notification limits accept `0 | 1 | 2 | "unlimited"`. The handler
   translates `"unlimited"` to `is_allowed_unlimited_notifications: true`
   + `max_notifications_per_day: 0` (matching the dashboard's behavior).
-- Image uploads are capped at 500KB and limited to PNG / JPEG. For
-  local files the agent base64-encodes via Bash and passes through
-  `image_base64`; for hosted images the server fetches `source_url`
-  directly. Either way the bytes go through the upload helper at
-  `web/api/helpers/app-image-storage.ts`.
+- `configure_mini_app` accepts `description_overview`,
+  `description_how_it_works`, `description_connect` as separate
+  inputs; the server JSON-encodes them into `app_metadata.description`.
+  Partial updates preserve the sub-fields the caller didn't pass — no
+  silent data loss.
+- Image uploads are capped at 500KB and limited to PNG / JPEG. The
+  server detects the format from magic bytes (no `content_type`
+  parameter). For hosted images the server fetches `source_url` over
+  HTTPS using a pinned-IP `https.request` with no redirect-following,
+  so an SSRF / DNS-rebinding payload can't reach internal hosts. For
+  local files the agent base64-encodes via Bash and passes
+  `image_base64`. Bytes go through the helper at
+  `web/api/helpers/app-image-storage.ts`. Per-API-key cap: **60
+  uploads/minute, 500/day** — overflow returns `-32029` with
+  `data.retry_after_seconds`.
+- Image upload is atomic: if the S3 PUT succeeds but the metadata
+  patch then fails, the server best-effort deletes the just-written
+  S3 object and returns `-32603` with `data: { committed: false }`.
+  Retries are idempotent (deterministic key + bytes), so the agent
+  just calls the same tool again. Successful responses include
+  `committed: true`.
