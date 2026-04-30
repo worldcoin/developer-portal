@@ -36,6 +36,14 @@ export type McpUpdateAppMetadataMutation = {
     supported_countries?: Array<string> | null;
     supported_languages?: Array<string> | null;
     is_developer_allow_listing: boolean;
+    contracts?: Array<string> | null;
+    permit2_tokens?: Array<string> | null;
+    whitelisted_addresses?: Array<string> | null;
+    associated_domains?: Array<string> | null;
+    can_import_all_contacts: boolean;
+    can_use_attestation: boolean;
+    is_allowed_unlimited_notifications?: boolean | null;
+    max_notifications_per_day?: number | null;
   } | null;
 };
 
@@ -71,6 +79,14 @@ export const McpUpdateAppMetadataDocument = gql`
       supported_countries
       supported_languages
       is_developer_allow_listing
+      contracts
+      permit2_tokens
+      whitelisted_addresses
+      associated_domains
+      can_import_all_contacts
+      can_use_attestation
+      is_allowed_unlimited_notifications
+      max_notifications_per_day
     }
   }
 `;

@@ -20,6 +20,7 @@ import { getSdk as getUpdateRpStatusSdk } from "@/api/v4/rp-status/[rp_id]/graph
 import { getSdk as getUpdateStagingStatusSdk } from "@/api/v4/rp-status/[rp_id]/graphql/update-staging-status.generated";
 import { CategoryNameIterable } from "@/lib/categories";
 import { logger } from "@/lib/logger";
+import { formatMultipleStringInput } from "@/lib/utils";
 import { mainAppStoreFormReviewSubmitSchema } from "@/scenes/Portal/Teams/TeamId/Apps/AppId/Configuration/AppStore/FormSchema/form-schema";
 import { LocalisationData } from "@/scenes/Portal/Teams/TeamId/Apps/AppId/Configuration/AppStore/types/AppStoreFormTypes";
 import { getSupportType } from "@/scenes/Portal/Teams/TeamId/Apps/AppId/Configuration/AppStore/utils";
@@ -167,7 +168,8 @@ const toolDefinitions = [
   },
   {
     name: "configure_mini_app",
-    description: "Update Mini App portal settings and app store metadata.",
+    description:
+      "Update Mini App portal settings, app store metadata, and Advanced/Permissions configuration (contracts, permit2 tokens, notification limits, etc.).",
     inputSchema: {
       type: "object",
       properties: {
@@ -191,6 +193,27 @@ const toolDefinitions = [
         is_android_only: { type: "boolean" },
         is_developer_allow_listing: { type: "boolean" },
         is_for_humans_only: { type: "boolean" },
+        app_mode: {
+          type: "string",
+          enum: ["external", "mini-app", "native"],
+        },
+        contracts: { type: "array", items: { type: "string" } },
+        permit2_tokens: { type: "array", items: { type: "string" } },
+        whitelisted_addresses: {
+          type: "array",
+          items: { type: "string" },
+          description:
+            "Wallet addresses allowed to interact with the mini app. Pass an empty array to disable the whitelist.",
+        },
+        associated_domains: { type: "array", items: { type: "string" } },
+        can_import_all_contacts: { type: "boolean" },
+        can_use_attestation: { type: "boolean" },
+        max_notifications_per_day: {
+          oneOf: [
+            { type: "integer", enum: [0, 1, 2] },
+            { type: "string", enum: ["unlimited"] },
+          ],
+        },
       },
       required: ["app_id"],
       additionalProperties: false,
@@ -251,6 +274,23 @@ const createActionSchema = yup
   })
   .noUnknown();
 
+const ETH_ADDRESS_REGEX = /^0x[a-fA-F0-9]{40}$/;
+const HTTPS_URL_REGEX = /^https:\/\/[a-zA-Z0-9-]+\.[a-zA-Z]{2,}/;
+
+const ethAddressArraySchema = (label: string) =>
+  yup
+    .array()
+    .of(
+      yup
+        .string()
+        .matches(
+          ETH_ADDRESS_REGEX,
+          `${label} must be 0x followed by 40 hex characters`,
+        )
+        .required(),
+    )
+    .optional();
+
 const configureMiniAppSchema = yup
   .object({
     app_id: yup.string().required(),
@@ -277,6 +317,28 @@ const configureMiniAppSchema = yup
     is_android_only: yup.boolean().optional(),
     is_developer_allow_listing: yup.boolean().optional(),
     is_for_humans_only: yup.boolean().optional(),
+    app_mode: yup.string().oneOf(["external", "mini-app", "native"]).optional(),
+    contracts: ethAddressArraySchema("Each contract address"),
+    permit2_tokens: ethAddressArraySchema("Each permit2 token address"),
+    whitelisted_addresses: ethAddressArraySchema("Each whitelisted address"),
+    associated_domains: yup
+      .array()
+      .of(
+        yup
+          .string()
+          .matches(
+            HTTPS_URL_REGEX,
+            "Each associated domain must be a valid HTTPS URL",
+          )
+          .required(),
+      )
+      .optional(),
+    can_import_all_contacts: yup.boolean().optional(),
+    can_use_attestation: yup.boolean().optional(),
+    max_notifications_per_day: yup
+      .mixed<0 | 1 | 2 | "unlimited">()
+      .oneOf([0, 1, 2, "unlimited"])
+      .optional(),
   })
   .noUnknown();
 
@@ -725,12 +787,40 @@ const tools = {
       throw new McpError("Only unverified app metadata can be edited.", -32004);
     }
 
-    const { app_id: _appId, ...rest } = args;
+    const {
+      app_id: _appId,
+      contracts,
+      permit2_tokens,
+      whitelisted_addresses,
+      associated_domains,
+      max_notifications_per_day,
+      app_mode,
+      ...rest
+    } = args;
+
+    const toPgArrayText = (arr: string[] | undefined) =>
+      arr === undefined ? undefined : formatMultipleStringInput(arr.join(","));
+
+    const advanced: Record<string, unknown> = {
+      contracts: toPgArrayText(contracts),
+      permit2_tokens: toPgArrayText(permit2_tokens),
+      whitelisted_addresses: toPgArrayText(whitelisted_addresses),
+      associated_domains: toPgArrayText(associated_domains),
+      app_mode: app_mode ?? "mini-app",
+    };
+
+    if (max_notifications_per_day !== undefined) {
+      const unlimited = max_notifications_per_day === "unlimited";
+      advanced.is_allowed_unlimited_notifications = unlimited;
+      advanced.max_notifications_per_day = unlimited
+        ? 0
+        : max_notifications_per_day;
+    }
+
     const set = Object.fromEntries(
-      Object.entries({
-        ...rest,
-        app_mode: "mini-app",
-      }).filter(([, value]) => value !== undefined),
+      Object.entries({ ...rest, ...advanced }).filter(
+        ([, value]) => value !== undefined,
+      ),
     );
 
     const data = await getMcpUpdateAppMetadataSdk(

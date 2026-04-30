@@ -508,6 +508,71 @@ describe("/api/mcp", () => {
     expect(payload.app_metadata.short_name).toBe("MCP");
   });
 
+  it("updates Mini App advanced fields (contracts, permit2, notification cap)", async () => {
+    const res = await POST(
+      callTool("configure_mini_app", {
+        app_id: appId,
+        contracts: ["0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"],
+        permit2_tokens: ["0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"],
+        whitelisted_addresses: ["0xcccccccccccccccccccccccccccccccccccccccc"],
+        associated_domains: ["https://example.com"],
+        can_import_all_contacts: true,
+        can_use_attestation: true,
+        max_notifications_per_day: 2,
+      }),
+    );
+
+    expect(res.status).toBe(200);
+    const updateCall = requestMock.mock.calls.find(
+      ([query]) => getOperationName(query) === "McpUpdateAppMetadata",
+    );
+    expect(updateCall?.[1].set).toEqual(
+      expect.objectContaining({
+        contracts: '{"0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}',
+        permit2_tokens: '{"0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"}',
+        whitelisted_addresses: '{"0xcccccccccccccccccccccccccccccccccccccccc"}',
+        associated_domains: '{"https://example.com"}',
+        can_import_all_contacts: true,
+        can_use_attestation: true,
+        max_notifications_per_day: 2,
+        is_allowed_unlimited_notifications: false,
+      }),
+    );
+  });
+
+  it("maps max_notifications_per_day=unlimited to the unlimited flag pair", async () => {
+    const res = await POST(
+      callTool("configure_mini_app", {
+        app_id: appId,
+        max_notifications_per_day: "unlimited",
+      }),
+    );
+
+    expect(res.status).toBe(200);
+    const updateCall = requestMock.mock.calls.find(
+      ([query]) => getOperationName(query) === "McpUpdateAppMetadata",
+    );
+    expect(updateCall?.[1].set).toEqual(
+      expect.objectContaining({
+        max_notifications_per_day: 0,
+        is_allowed_unlimited_notifications: true,
+      }),
+    );
+  });
+
+  it("rejects malformed contract addresses with a JSON-RPC validation error", async () => {
+    const res = await POST(
+      callTool("configure_mini_app", {
+        app_id: appId,
+        contracts: ["not-an-address"],
+      }),
+    );
+
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.error.code).toBe(-32602);
+  });
+
   it("rejects Mini App metadata updates after review submission", async () => {
     currentAppContextResponse = {
       app: [

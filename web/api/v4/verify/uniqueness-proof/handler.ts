@@ -1,4 +1,5 @@
 import { errorResponse, ErrorResponseBody } from "@/api/helpers/errors";
+import { logPortalEvent } from "@/api/helpers/portal-events";
 import { parseRpId } from "@/api/helpers/rp-utils";
 import {
   encodeNullifierForStorage,
@@ -234,6 +235,19 @@ export async function handleUniquenessProofVerification(
       },
     });
 
+    logPortalEvent({
+      event: "action_verification",
+      actor: "human",
+      app_id: appId,
+      action: parsedParams.action,
+      metadata: {
+        rp_id: rpId,
+        environment: actionV4.environment as string,
+        nullifier_reused: true,
+        protocol_version: protocolVersion,
+      },
+    });
+
     return NextResponse.json<UniquenessProofSuccessResponse>(
       {
         success: true,
@@ -281,6 +295,19 @@ export async function handleUniquenessProofVerification(
       },
     });
 
+    logPortalEvent({
+      event: "action_verification",
+      actor: "human",
+      app_id: appId,
+      action: parsedParams.action,
+      metadata: {
+        rp_id: rpId,
+        environment: actionV4.environment as string,
+        nullifier_reused: false,
+        protocol_version: protocolVersion,
+      },
+    });
+
     return NextResponse.json<UniquenessProofSuccessResponse>(
       {
         success: true,
@@ -298,6 +325,19 @@ export async function handleUniquenessProofVerification(
 
     // Race condition: another request inserted the same nullifier — treat as success
     if (errorMessage.includes("unique") || errorMessage.includes("duplicate")) {
+      logPortalEvent({
+        event: "action_verification",
+        actor: "human",
+        app_id: appId,
+        action: parsedParams.action,
+        metadata: {
+          rp_id: rpId,
+          environment: actionV4.environment as string,
+          nullifier_reused: true,
+          protocol_version: protocolVersion,
+        },
+      });
+
       return NextResponse.json<UniquenessProofSuccessResponse>(
         {
           success: true,
