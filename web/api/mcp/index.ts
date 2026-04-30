@@ -1,11 +1,16 @@
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { logPortalEvent } from "@/api/helpers/portal-events";
 import {
-  generateRpIdString,
   mapOnChainToDbStatus,
   normalizeAddress,
   parseRpId,
 } from "@/api/helpers/rp-utils";
+import {
+  submitManagedRpRegistration,
+  submitManagedSignerRotation,
+  type ManagedRegistrationResult,
+  type ManagedRotationResult,
+} from "@/api/helpers/rp-registration-flows";
 import { getRpFromContract } from "@/api/helpers/temporal-rpc";
 import { verifyHashedSecret } from "@/api/helpers/utils";
 import { getSdk as getMcpAppContextSdk } from "@/api/mcp/graphql/app-context.generated";
@@ -15,7 +20,6 @@ import { getSdk as getMcpSubmitAppForReviewSdk } from "@/api/mcp/graphql/submit-
 import { getSdk as getMcpTeamContextSdk } from "@/api/mcp/graphql/team-context.generated";
 import { getSdk as getMcpUpdateAppMetadataSdk } from "@/api/mcp/graphql/update-app-metadata.generated";
 import { getSdk as getMcpUpsertActionV4Sdk } from "@/api/mcp/graphql/upsert-action-v4.generated";
-import { getSdk as getMcpUpsertRpRegistrationSdk } from "@/api/mcp/graphql/upsert-rp-registration.generated";
 import { SKILL_INSTRUCTIONS } from "@/api/mcp/skill";
 import { getSdk as getUpdateRpStatusSdk } from "@/api/v4/rp-status/[rp_id]/graphql/update-rp-status.generated";
 import { getSdk as getUpdateStagingStatusSdk } from "@/api/v4/rp-status/[rp_id]/graphql/update-staging-status.generated";
@@ -113,13 +117,16 @@ const toolDefinitions = [
   {
     name: "configure_world_id",
     description:
-      "Create World ID 4.0 RP config in self-managed mode and optionally generate a signing key. Managed mode (where the platform performs on-chain registration on the developer's behalf) requires user-session permissions and must be configured from the developer portal UI.",
+      "Create a managed World ID 4.0 RP for an app. The platform creates a KMS-backed manager key, submits the on-chain registration transaction, and (on production) duplicates to the staging contract. A new signer wallet is generated server-side; its private key is returned ONCE in the response — the portal does not retain it.",
     inputSchema: {
       type: "object",
       properties: {
         app_id: { type: "string" },
-        signer_private_key: { type: "string" },
-        generate_signing_key: { type: "boolean" },
+        signer_private_key: {
+          type: "string",
+          description:
+            "Optional. If provided, the resulting wallet's address is registered as the on-chain signer. If omitted, a fresh wallet is generated server-side and the private key is returned once.",
+        },
       },
       required: ["app_id"],
       additionalProperties: false,
@@ -323,7 +330,6 @@ const configureWorldIdSchema = yup
   .object({
     app_id: yup.string().required(),
     signer_private_key: yup.string().optional(),
-    generate_signing_key: yup.boolean().default(true),
   })
   .noUnknown();
 
@@ -684,39 +690,72 @@ const makeWallet = (privateKey?: string) => {
   };
 };
 
+// Map a managed-flow helper failure to the JSON-RPC error code the MCP
+// surfaces. Caller-fixable problems (already registered, wrong mode, feature
+// flag off) become -32004 (operation not allowed in current state); anything
+// platform-side becomes -32603 so clients know to retry / escalate.
+const REGISTRATION_FLOW_RPC_CODE: Record<
+  Exclude<ManagedRegistrationResult, { ok: true }>["code"],
+  number
+> = {
+  feature_not_enabled: -32004,
+  already_registered: -32004,
+  config_error: -32603,
+  kms_error: -32603,
+  submission_error: -32603,
+  db_error: -32603,
+};
+
+const ROTATION_FLOW_RPC_CODE: Record<
+  Exclude<ManagedRotationResult, { ok: true }>["code"],
+  number
+> = {
+  feature_not_enabled: -32004,
+  rp_not_registered: -32004,
+  self_managed_mode: -32004,
+  rotation_in_progress: -32004,
+  config_error: -32603,
+  submission_error: -32603,
+  db_error: -32603,
+};
+
 const rotateWorldIdSigningKey = async (input: unknown, ctx: ToolContext) => {
   const args = await parseInput(
     appIdSchema.shape({ signer_private_key: yup.string().optional() }),
     input,
   );
+  // requireApp validates the app belongs to the API key's team before we
+  // hand off to the rotation flow (which trusts the caller's auth).
   const app = await requireApp(ctx.client, ctx.teamId, args.app_id);
   const registration = app.rp_registration[0];
   if (!registration) {
     throw new McpError("World ID is not configured for this app.", -32004);
   }
 
-  if (registration.mode !== "self_managed") {
-    throw new McpError(
-      "Managed (platform) signing keys must be rotated from the developer portal UI so the on-chain signer is updated. The MCP can only rotate self-managed keys.",
-      -32004,
-    );
-  }
-
   const signingKey = makeWallet(args.signer_private_key);
-  const data = await getMcpUpsertRpRegistrationSdk(
-    ctx.client,
-  ).McpUpsertRpRegistration({
-    rp_id: registration.rp_id,
-    app_id: args.app_id,
-    mode: registration.mode,
-    signer_address: signingKey.signer_address,
+
+  const result = await submitManagedSignerRotation({
+    client: ctx.client,
+    appId: args.app_id,
+    newSignerAddress: signingKey.signer_address,
   });
 
+  if (!result.ok) {
+    throw new McpError(result.detail, ROTATION_FLOW_RPC_CODE[result.code], {
+      reason: result.code,
+    });
+  }
+
   return content({
-    rp_registration: data.insert_rp_registration_one,
+    rp_id: result.rpIdString,
+    new_signer_address: result.newSignerAddress,
+    old_signer_address: result.oldSignerAddress,
+    operation_hash: result.operationHash,
+    status: result.status,
     signing_key: signingKey,
+    status_endpoint: rpStatusEndpoint(result.rpIdString),
     warning:
-      "Store private_key securely. It is not recoverable after this response.",
+      "Store private_key securely. It is not recoverable after this response. The on-chain rotation is pending — poll status_endpoint until it returns 'registered'.",
   });
 };
 
@@ -796,32 +835,42 @@ const tools = {
       });
     }
 
-    const signingKey =
-      args.generate_signing_key || args.signer_private_key
-        ? makeWallet(args.signer_private_key)
-        : null;
+    // Always generate a wallet — managed mode requires a real signer
+    // address up front. If the caller passed a private key we honor it,
+    // otherwise we mint a fresh one and return it once.
+    const signingKey = makeWallet(args.signer_private_key);
+    const appName = app.app_metadata?.[0]?.name || app.name || "";
 
-    const data = await getMcpUpsertRpRegistrationSdk(
-      ctx.client,
-    ).McpUpsertRpRegistration({
-      rp_id: generateRpIdString(args.app_id),
-      app_id: args.app_id,
-      mode: "self_managed",
-      signer_address: signingKey?.signer_address ?? null,
+    const result = await submitManagedRpRegistration({
+      client: ctx.client,
+      appId: args.app_id,
+      teamId: ctx.teamId,
+      signerAddress: signingKey.signer_address,
+      appName,
     });
-    const rpRegistration = data.insert_rp_registration_one;
-    if (!rpRegistration) {
-      throw new McpError("Unable to configure World ID for this app.", -32000);
+
+    if (!result.ok) {
+      throw new McpError(
+        result.detail,
+        REGISTRATION_FLOW_RPC_CODE[result.code],
+        { reason: result.code },
+      );
     }
 
     return content({
-      rp_registration: rpRegistration,
+      rp_id: result.rpIdString,
+      manager_address: result.managerAddress,
+      signer_address: result.signerAddress,
+      operation_hash: result.operationHash,
+      status: result.status,
+      staging_operation_hash: result.stagingOperationHash,
+      staging_status: result.stagingStatus,
       signing_key: signingKey,
-      verify_endpoint: `/api/v4/verify/${rpRegistration.rp_id}`,
-      proof_context_endpoint: `/api/v4/proof-context/${rpRegistration.rp_id}`,
-      status_endpoint: rpStatusEndpoint(rpRegistration.rp_id),
+      verify_endpoint: `/api/v4/verify/${result.rpIdString}`,
+      proof_context_endpoint: `/api/v4/proof-context/${result.rpIdString}`,
+      status_endpoint: rpStatusEndpoint(result.rpIdString),
       warning:
-        "Private keys are returned only at generation/rotation time. Store the private_key securely in the app environment. To use platform-managed (on-chain) registration instead, configure the app from the developer portal UI.",
+        "Private keys are returned only at generation/rotation time. Store the private_key securely in the app environment. The on-chain registration is pending — poll status_endpoint until it returns 'registered' before relying on the RP for verifications.",
     });
   },
 

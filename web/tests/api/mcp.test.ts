@@ -38,6 +38,15 @@ jest.mock("node:dns/promises", () => ({
   lookup: (...args: unknown[]) => dnsLookupMock(...args),
 }));
 
+const submitManagedRpRegistrationMock = jest.fn();
+const submitManagedSignerRotationMock = jest.fn();
+jest.mock("../../api/helpers/rp-registration-flows", () => ({
+  submitManagedRpRegistration: (...args: unknown[]) =>
+    submitManagedRpRegistrationMock(...args),
+  submitManagedSignerRotation: (...args: unknown[]) =>
+    submitManagedSignerRotationMock(...args),
+}));
+
 const fetchMock = jest.fn();
 global.fetch = fetchMock as unknown as typeof fetch;
 
@@ -156,6 +165,32 @@ beforeEach(async () => {
   // Default: source_url hostnames resolve to a public address. Specific tests
   // override this to simulate private / loopback responses.
   dnsLookupMock.mockResolvedValue({ address: "203.0.113.10", family: 4 });
+  submitManagedRpRegistrationMock.mockReset();
+  submitManagedSignerRotationMock.mockReset();
+  // Default: managed flows succeed. Specific tests override to assert
+  // failure paths (already_registered, self_managed_mode, etc.).
+  submitManagedRpRegistrationMock.mockImplementation(
+    async ({ appId, signerAddress }) => ({
+      ok: true,
+      rpIdString: generateRpIdString(appId),
+      managerAddress: "0x1111111111111111111111111111111111111111",
+      signerAddress,
+      operationHash: "0xop_hash_register",
+      status: "pending",
+      stagingOperationHash: null,
+      stagingStatus: null,
+    }),
+  );
+  submitManagedSignerRotationMock.mockImplementation(
+    async ({ appId, newSignerAddress }) => ({
+      ok: true,
+      rpIdString: generateRpIdString(appId),
+      newSignerAddress,
+      oldSignerAddress: "0x0000000000000000000000000000000000000001",
+      operationHash: "0xop_hash_rotate",
+      status: "pending",
+    }),
+  );
   currentAppContextResponse = appContextResponse;
   mockGetRpFromContract.mockResolvedValue({
     initialized: true,
@@ -391,27 +426,53 @@ describe("/api/mcp", () => {
     );
   });
 
-  it("configures World ID and returns a one-time signing key", async () => {
+  it("configures World ID via the managed flow and returns a one-time signing key", async () => {
     currentAppContextResponse = {
       app: [{ ...appContextResponse.app[0], rp_registration: [] }],
     };
 
-    const res = await POST(
-      callTool("configure_world_id", {
-        app_id: appId,
-        generate_signing_key: true,
-      }),
-    );
+    const res = await POST(callTool("configure_world_id", { app_id: appId }));
 
     expect(res.status).toBe(200);
     const body = await res.json();
     const payload = JSON.parse(body.result.content[0].text);
-    expect(payload.rp_registration.rp_id).toBe(rpId);
+    expect(payload.rp_id).toBe(rpId);
+    expect(payload.manager_address).toBe(
+      "0x1111111111111111111111111111111111111111",
+    );
+    expect(payload.operation_hash).toBe("0xop_hash_register");
+    expect(payload.status).toBe("pending");
     expect(payload.signing_key.private_key).toMatch(/^0x/);
     expect(payload.signing_key.signer_address).toMatch(/^0x/);
+    expect(submitManagedRpRegistrationMock).toHaveBeenCalledTimes(1);
+    expect(submitManagedRpRegistrationMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        appId,
+        teamId,
+        signerAddress: payload.signing_key.signer_address,
+      }),
+    );
   });
 
-  it("rotates the signing key when one is missing and rotate_if_unavailable is set", async () => {
+  it("surfaces feature_not_enabled from the registration helper as -32004", async () => {
+    currentAppContextResponse = {
+      app: [{ ...appContextResponse.app[0], rp_registration: [] }],
+    };
+    submitManagedRpRegistrationMock.mockResolvedValueOnce({
+      ok: false,
+      code: "feature_not_enabled",
+      detail: "World ID 4.0 is not enabled for this team.",
+    });
+
+    const res = await POST(callTool("configure_world_id", { app_id: appId }));
+
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.error.code).toBe(-32004);
+    expect(body.error.data.reason).toBe("feature_not_enabled");
+  });
+
+  it("rotates the signing key via the managed flow when one is missing and rotate_if_unavailable is set", async () => {
     const baseRegistration = appContextResponse.app[0].rp_registration[0];
     const { signer_address: _signerAddress, ...registrationWithoutSigner } =
       baseRegistration;
@@ -436,9 +497,11 @@ describe("/api/mcp", () => {
     expect(res.status).toBe(200);
     const body = await res.json();
     const payload = JSON.parse(body.result.content[0].text);
-    expect(payload.rp_registration.rp_id).toBe(rpId);
+    expect(payload.rp_id).toBe(rpId);
+    expect(payload.operation_hash).toBe("0xop_hash_rotate");
     expect(payload.signing_key.private_key).toMatch(/^0x/);
     expect(payload.signing_key.signer_address).toMatch(/^0x/);
+    expect(submitManagedSignerRotationMock).toHaveBeenCalledTimes(1);
   });
 
   it("does not rotate when a signer is already configured", async () => {
@@ -515,20 +578,13 @@ describe("/api/mcp", () => {
     expect(body.error.message).toMatch(/signer_private_key/);
   });
 
-  it("refuses to rotate signing keys for managed RPs", async () => {
-    currentAppContextResponse = {
-      app: [
-        {
-          ...appContextResponse.app[0],
-          rp_registration: [
-            {
-              ...appContextResponse.app[0].rp_registration[0],
-              mode: "managed",
-            },
-          ],
-        },
-      ],
-    };
+  it("surfaces a self_managed_mode rotation failure as -32004", async () => {
+    submitManagedSignerRotationMock.mockResolvedValueOnce({
+      ok: false,
+      code: "self_managed_mode",
+      detail:
+        "RP is in self-managed mode. You must handle signer key rotation yourself.",
+    });
 
     const res = await POST(
       callTool("rotate_world_id_signing_key", { app_id: appId }),
@@ -536,7 +592,8 @@ describe("/api/mcp", () => {
 
     expect(res.status).toBe(200);
     const body = await res.json();
-    expect(body.error.message).toMatch(/developer portal UI/);
+    expect(body.error.code).toBe(-32004);
+    expect(body.error.data.reason).toBe("self_managed_mode");
   });
 
   it("updates Mini App metadata through an app-owned context", async () => {

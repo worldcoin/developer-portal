@@ -17,7 +17,7 @@ This MCP authenticates with a developer-portal team API key and exposes 11 tools
 | \`get_team_context\`                 | List the team's apps + status                                                                                 | (none)                                                                                                                                                             |
 | \`get_app_config\`                   | Snapshot of an app: World ID config, store metadata, mini-app settings                                        | \`app_id\`                                                                                                                                                           |
 | \`create_app\`                       | Create a new app                                                                                              | \`name\`; optional \`app_mode\` (\`external\` \\| \`mini-app\`), \`build\` (\`production\` \\| \`staging\`), \`verification\` (\`cloud\` \\| \`on-chain\`), \`category\`, \`integration_url\` |
-| \`configure_world_id\`               | Create the World ID 4.0 RP and (optionally) generate a signing key. **Self-managed only.**                    | \`app_id\`; optional \`signer_private_key\`, \`generate_signing_key\`                                                                                                    |
+| \`configure_world_id\`               | Create a managed World ID 4.0 RP for the app: KMS manager key, on-chain registration, signer wallet           | \`app_id\`; optional \`signer_private_key\` (else the server generates one and returns it once)                                                                        |
 | \`get_world_id_signing_key\`         | Read the signer address for an app. Private key is never returned here.                                       | \`app_id\`; optional \`rotate_if_unavailable\`                                                                                                                         |
 | \`rotate_world_id_signing_key\`      | Generate a new World ID signing key. Returns the private key once.                                            | \`app_id\`; optional \`signer_private_key\`                                                                                                                            |
 | \`get_world_id_registration_status\` | Sync the on-chain registry status for an RP                                                                   | \`app_id\`                                                                                                                                                           |
@@ -125,7 +125,7 @@ Image bytes flow through your context as base64 — fine for typical app icons (
 1. rotate_world_id_signing_key { app_id }
 \`\`\`
 
-Returns a fresh \`private_key\` once. Updates the on-portal \`signer_address\`. **Only works for self-managed RPs.** If the registration is platform-managed, the call fails and the user has to rotate from the dashboard UI (it requires an on-chain signer-update transaction the API key path can't perform).
+Returns a fresh \`private_key\` once. Submits the on-chain \`updateRp\` transaction (primary registry, plus best-effort staging on production deployments) and updates \`app_metadata.signer_address\`. The status flips to \`pending\` until the on-chain TX confirms; poll \`status_endpoint\` to watch the transition back to \`registered\`. Self-managed RPs (e.g. legacy registrations not created via MCP) return \`-32004\` with \`data.reason: "self_managed_mode"\` — those have to be rotated by the developer themselves.
 
 ### E. Read-only inspection
 
@@ -138,7 +138,8 @@ get_world_id_registration_status { app_id }  ← on-chain registry sync
 
 ## Pitfalls and constraints
 
-- **Managed mode is dashboard-only.** \`configure_world_id\` and rotation only work in self-managed mode. If the user wants the platform to handle on-chain registration, point them at the dashboard.
+- **\`configure_world_id\` is asynchronous.** The on-chain registration is submitted to the bundler and returns immediately with \`status: "pending"\` and an \`operation_hash\`. Watch \`status_endpoint\` until it returns \`production_status: "registered"\` before relying on the RP for verifications.
+- **\`configure_world_id\` requires the team to be enabled for World ID 4.0.** A team without the feature flag gets \`-32004\` with \`data.reason: "feature_not_enabled"\`. Surface that to the user and point them at the dashboard for enrollment.
 - **Private keys are returned once.** If the user loses the value from \`configure_world_id\` / \`rotate_world_id_signing_key\`, they must rotate again. The portal does not store private keys.
 - **Submission preconditions are strict.** \`submit_app_for_review\` runs the same Yup completeness check as the dashboard. The full required set:
   - **Always required**: \`name\`, \`logo_img_url\`, \`app_website_url\`, \`is_android_only\`, \`is_for_humans_only\`, \`supported_countries\` (≥1), \`supported_languages\` (must include \`"en"\`), \`description_overview\` (encoded into the description JSON), and at least one entry in \`showcase_img_urls\` for the English locale.
