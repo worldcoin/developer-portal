@@ -6,6 +6,7 @@ import { entityIdSchema } from "../schema";
 import { getSdk as getAppDeletePermissionsSdk } from "./graphql/server/get-app-delete-permissions.generated";
 import { getSdk as getAppInsertPermissionsSdk } from "./graphql/server/get-app-insert-permissions.generated";
 import { getSdk as getAppMetadataPermissionsSdk } from "./graphql/server/get-app-metadata-update-permissions.generated";
+import { getSdk as getAppReadPermissionsSdk } from "./graphql/server/get-app-read-permissions.generated";
 import { getSdk as getAppUpdatePermissionsSdk } from "./graphql/server/get-app-update-permissions.generated";
 import { getSdk as getLocalisationsDeletePermissionsSdk } from "./graphql/server/get-localisations-delete-permissions.generated";
 import { getSdk as getLocalisationsInsertPermissionsSdk } from "./graphql/server/get-localisations-insert-permissions.generated";
@@ -35,6 +36,27 @@ export const getIsUserAllowedToInsertApp = async (teamId: string) => {
   ).GetIsUserPermittedToInsertApp({ userId, teamId });
 
   if (response.team.find((team) => team.id === teamId)?.memberships.length) {
+    return true;
+  }
+  return false;
+};
+
+export const getIsUserAllowedToReadApp = async (appId: string) => {
+  if (!getIsIdValid(appId)) {
+    return false;
+  }
+
+  const session = await getSession();
+  if (!session) {
+    return false;
+  }
+
+  const userId = session.user.hasura.id;
+  const response = await getAppReadPermissionsSdk(
+    await getAPIServiceGraphqlClient(),
+  ).GetIsUserPermittedToReadApp({ appId, userId });
+
+  if (response.app_by_pk?.team.memberships.length) {
     return true;
   }
   return false;
