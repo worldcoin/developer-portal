@@ -3,12 +3,15 @@ import { Section } from "@/components/Section";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import {
+  Auth0SessionUser,
   GetIdentityVerificationLinkResponse,
   IdentityVerificationStatus,
 } from "@/lib/types";
+import { showAffiliateKycOption } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/common/show-affiliate-kyc-option";
 import { useGetAffiliateMetadata } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Overview/page/hooks/use-get-affiliate-metadata";
 import { getIdentityVerificationLink } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Overview/server/getIdentityVerificationLink";
 import { SelectVerificationDialog } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Verify/SelectVerificationDialog";
+import { useUser } from "@auth0/nextjs-auth0/client";
 import clsx from "clsx";
 import { useState } from "react";
 import { toast } from "react-toastify";
@@ -20,6 +23,9 @@ import { VerificationBanner } from "./VerificationBanner";
 import { useGetAffiliateTransactions } from "./hooks/use-get-affiliate-transactions";
 
 export const EarningsPage = () => {
+  const { user: auth0User } = useUser() as Auth0SessionUser;
+  const showKycOption = showAffiliateKycOption(auth0User?.email);
+
   const { data, loading: isBalanceLoading } = useGetAffiliateBalance();
   const { data: metadata, loading: isMetadataLoading } =
     useGetAffiliateMetadata();
@@ -94,8 +100,9 @@ export const EarningsPage = () => {
             onClose={() => setShowVerificationSelection(false)}
             onSelect={handleGetVerificationLink}
             loadingType={loadingVerification}
-            title="Complete KYB or KYC"
+            title={`Complete ${showKycOption ? "KYB or KYC" : "KYB"}`}
             metadata={metadata}
+            showKycOption={showKycOption}
           />
 
           {hasTransactions ? (

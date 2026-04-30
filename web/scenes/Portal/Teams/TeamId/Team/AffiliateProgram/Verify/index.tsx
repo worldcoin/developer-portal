@@ -5,8 +5,11 @@ import { SizingWrapper } from "@/components/SizingWrapper";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { GetIdentityVerificationLinkResponse } from "@/lib/types";
 import { urls } from "@/lib/urls";
+import { Auth0SessionUser } from "@/lib/types";
+import { showAffiliateKycOption } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/common/show-affiliate-kyc-option";
 import { useGetAffiliateMetadata } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Overview/page/hooks/use-get-affiliate-metadata";
 import { getIdentityVerificationLink } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Overview/server/getIdentityVerificationLink";
+import { useUser } from "@auth0/nextjs-auth0/client";
 import { useParams, useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 import { toast } from "react-toastify";
@@ -15,6 +18,9 @@ import { SelectVerificationDialog } from "./SelectVerificationDialog";
 import { VerifyLaterDialog } from "./VerifyLaterDialog";
 
 export const VerifyPage = () => {
+  const { user: auth0User } = useUser() as Auth0SessionUser;
+  const showKycOption = showAffiliateKycOption(auth0User?.email);
+
   const { data: metadata, refetch: refetchAffiliateMetadata } =
     useGetAffiliateMetadata();
   const params = useParams();
@@ -88,7 +94,6 @@ export const VerifyPage = () => {
       <AcceptTermsDialog
         open={showAcceptTerms}
         onConfirm={async () => {
-          setShowAcceptTerms(false);
           await refetchAffiliateMetadata();
           if (shouldGoToOverviewAfterTerms) {
             setShouldGoToOverviewAfterTerms(false);
@@ -96,6 +101,7 @@ export const VerifyPage = () => {
             return;
           }
           setShowVerificationSelection(true);
+          setShowAcceptTerms(false);
         }}
         onClose={() => {
           setShouldGoToOverviewAfterTerms(false);
@@ -109,12 +115,14 @@ export const VerifyPage = () => {
         }}
         onSelect={handleGetVerificationLink}
         loadingType={loadingVerification}
-        title="Select verification"
+        title={`Complete ${showKycOption ? "KYB or KYC" : "KYB"}`}
         metadata={metadata}
+        showKycOption={showKycOption}
       />
       <VerifyLaterDialog
         open={showVerifyLaterDialog}
         onClose={() => setShowVerifyLaterDialog(false)}
+        showKycOption={showKycOption}
         onConfirm={() => {
           setShowVerifyLaterDialog(false);
           setShouldGoToOverviewAfterTerms(true);
@@ -149,7 +157,7 @@ export const VerifyPage = () => {
             onClick={handleComplete}
             disabled={isLoading}
           >
-            Complete KYB or KYC
+            {`Complete ${showKycOption ? "KYB or KYC" : "KYB"}`}
           </DecoratedButton>
           <DecoratedButton
             type="button"

@@ -14,6 +14,8 @@ type Props = {
   onConfirm: () => void;
   onVerifyNow: () => void;
   isLoading?: boolean;
+  /** When false, copy refers to KYB only (KYC hidden for this user). */
+  showKycOption: boolean;
 };
 
 export const VerifyLaterDialog = ({
@@ -22,6 +24,7 @@ export const VerifyLaterDialog = ({
   onConfirm,
   onVerifyNow,
   isLoading = false,
+  showKycOption,
 }: Props) => {
   return (
     <Dialog open={open} onClose={onClose}>
@@ -46,7 +49,7 @@ export const VerifyLaterDialog = ({
             <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
               You will not be able to withdraw money
               <br />
-              without completing KYB/KYC
+              without completing {showKycOption ? "KYB/KYC" : "KYB"}
             </Typography>
           </div>
         </div>

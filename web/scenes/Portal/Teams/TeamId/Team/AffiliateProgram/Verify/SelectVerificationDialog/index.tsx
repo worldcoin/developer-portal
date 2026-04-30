@@ -25,6 +25,8 @@ type Props = {
   loadingType?: "kyc" | "kyb" | null;
   title: string;
   metadata: AffiliateMetadataResponse["result"] | null;
+  /** When false, KYC is hidden (KYB-only UX). */
+  showKycOption: boolean;
 };
 
 export const SelectVerificationDialog = ({
@@ -34,6 +36,7 @@ export const SelectVerificationDialog = ({
   loadingType = null,
   title,
   metadata,
+  showKycOption,
 }: Props) => {
   const getStatus = (type: "kyc" | "kyb"): IdentityVerificationStatus => {
     if (!metadata) return IdentityVerificationStatus.NOT_STARTED;
@@ -87,17 +90,19 @@ export const SelectVerificationDialog = ({
               </div>
 
               <div className="mt-10 w-full shadow-[0px_1px_1px_0px_rgba(25,28,32,0.06)]">
-                <VerificationStep
-                  verificationType="kyc"
-                  status={kycStatus}
-                  onComplete={() => onSelect("kyc")}
-                  isLoading={
-                    loadingType === "kyc" ||
-                    kycStatus === IdentityVerificationStatus.PENDING
-                  }
-                  buttonText="Start"
-                  className="border-grey-200"
-                />
+                {showKycOption ? (
+                  <VerificationStep
+                    verificationType="kyc"
+                    status={kycStatus}
+                    onComplete={() => onSelect("kyc")}
+                    isLoading={
+                      loadingType === "kyc" ||
+                      kycStatus === IdentityVerificationStatus.PENDING
+                    }
+                    buttonText="Start"
+                    className="border-grey-200"
+                  />
+                ) : null}
                 <VerificationStep
                   verificationType="kyb"
                   status={kybStatus}
