@@ -19,6 +19,7 @@ import { toast } from "react-toastify";
 type Props = {
   loading: boolean;
   data: AffiliateBalanceResponse["result"] | null;
+  onWithdrawClick?: () => void;
 };
 
 export const EarningsHeader = (props: Props) => {
@@ -50,6 +51,10 @@ export const EarningsHeader = (props: Props) => {
   }, [loading, data?.availableBalance?.inCurrency]);
 
   const handleWithdrawClick = useCallback(() => {
+    if (props.onWithdrawClick) {
+      props.onWithdrawClick();
+      return;
+    }
     if (!data) {
       return;
     }
@@ -71,7 +76,7 @@ export const EarningsHeader = (props: Props) => {
       return;
     }
     router.push(`/teams/${teamId}/affiliate-program/withdraw`);
-  }, [data, router, teamId]);
+  }, [data, props.onWithdrawClick, router, teamId]);
 
   return (
     <div className="grid items-center gap-y-4 border-b border-dashed border-grey-200 pb-8 pt-4 sm:grid-cols-auto/1fr/auto sm:justify-items-start sm:gap-x-6 md:pt-10">

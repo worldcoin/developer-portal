@@ -11,10 +11,11 @@ import { createSignedFetcher } from "aws-sigv4-fetch";
 import { validateAffiliateRequest } from "../../common/server/validate-affiliate-request";
 
 export const getIdentityVerificationLink = async ({
+  type,
   redirectUri,
 }: Pick<
   GetIdentityVerificationLinkRequest,
-  "redirectUri"
+  "type" | "redirectUri"
 >): Promise<FormActionResult> => {
   let teamId: string | undefined;
 
@@ -36,7 +37,7 @@ export const getIdentityVerificationLink = async ({
     }
     const url = `${process.env.NEXT_SERVER_APP_BACKEND_BASE_URL}/internal/v1/affiliate/identity-verification/verification-link`;
     // NOTE: set kyb because app backend doesn't if it's kyc or kyb
-    const requestBody = { type: "kyb", redirectUri };
+    const requestBody = { type, redirectUri };
 
     const response = await signedFetch(url, {
       method: "POST",
