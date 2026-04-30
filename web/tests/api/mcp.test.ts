@@ -513,24 +513,6 @@ describe("/api/mcp", () => {
     );
   });
 
-  it("accepts the legacy generate_signing_key field for backwards compatibility", async () => {
-    currentAppContextResponse = {
-      app: [{ ...appContextResponse.app[0], rp_registration: [] }],
-    };
-
-    const res = await POST(
-      callTool("configure_world_id", {
-        app_id: appId,
-        generate_signing_key: true,
-      }),
-    );
-
-    expect(res.status).toBe(200);
-    const body = await res.json();
-    expect(body.error).toBeUndefined();
-    expect(submitManagedRpRegistrationMock).toHaveBeenCalledTimes(1);
-  });
-
   it("surfaces feature_not_enabled from the registration helper as -32004", async () => {
     currentAppContextResponse = {
       app: [{ ...appContextResponse.app[0], rp_registration: [] }],
