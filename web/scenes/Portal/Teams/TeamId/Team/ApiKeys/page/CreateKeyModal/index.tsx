@@ -1,6 +1,5 @@
 "use client";
 import { CircleIconContainer } from "@/components/CircleIconContainer";
-import { CopyButton } from "@/components/CopyButton";
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { Dialog } from "@/components/Dialog";
 import { DialogOverlay } from "@/components/DialogOverlay";
@@ -14,6 +13,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import * as yup from "yup";
 import { useResetApiKeyMutation } from "../ApiKeyTable/ApiKeyRow/graphql/client/reset-api-key.generated";
+import { ApiKeySecretFields } from "../ApiKeySecretFields";
 import { FetchKeysDocument } from "../graphql/client/fetch-keys.generated";
 import { useInsertKeyMutation } from "./graphql/client/create-key.generated";
 
@@ -31,17 +31,9 @@ type CreateKeyModal = {
 };
 
 export type CreateKeyFormValues = yup.Asserts<typeof schema>;
-export type CreatedAPIKey = {
-  id: string;
-  apiKey: string;
-};
-
-const getClaudeMcpCommand = (apiKey: string) =>
-  `claude mcp add --transport http --scope project worldcoin-developer-portal https://developer.world.org/api/mcp --header "Authorization: Bearer ${apiKey}"`;
-
 export const CreateKeyModal = (props: CreateKeyModal) => {
   const { teamId, isOpen, setIsOpen } = props;
-  const [createdKey, setCreatedKey] = useState<CreatedAPIKey | null>(null);
+  const [createdKey, setCreatedKey] = useState<string | null>(null);
   const [insertKeyMutation, { loading: creatingKey }] = useInsertKeyMutation();
   const [resetApiKeyMutation, { loading: revealingKey }] =
     useResetApiKeyMutation();
@@ -96,12 +88,7 @@ export const CreateKeyModal = (props: CreateKeyModal) => {
         throw new Error("No API key returned");
       }
 
-      const revealedApiKey = {
-        id: createdApiKey.id,
-        apiKey,
-      };
-
-      setCreatedKey(revealedApiKey);
+      setCreatedKey(apiKey);
       toast.success(
         <span>
           New API key <b>{values.name}</b> was created
@@ -114,10 +101,6 @@ export const CreateKeyModal = (props: CreateKeyModal) => {
       toast.error("Error occurred while creating API key.");
     }
   };
-
-  const claudeMcpCommand = createdKey
-    ? getClaudeMcpCommand(createdKey.apiKey)
-    : "";
 
   return (
     <Dialog open={isOpen} onClose={close}>
@@ -142,34 +125,7 @@ export const CreateKeyModal = (props: CreateKeyModal) => {
 
           {createdKey ? (
             <div className="grid w-full gap-y-10">
-              <Input
-                label="API key"
-                value={createdKey.apiKey}
-                readOnly
-                disabled
-                className="h-16"
-                helperText="Save this API key. You won't be able to see it again."
-                addOnRight={
-                  <CopyButton
-                    fieldName="API Key"
-                    fieldValue={createdKey.apiKey}
-                  />
-                }
-              />
-
-              <Input
-                label="Claude MCP"
-                value={claudeMcpCommand}
-                readOnly
-                disabled
-                className="h-16"
-                addOnRight={
-                  <CopyButton
-                    fieldName="Claude MCP command"
-                    fieldValue={claudeMcpCommand}
-                  />
-                }
-              />
+              <ApiKeySecretFields apiKey={createdKey} />
 
               <DecoratedButton type="button" onClick={close}>
                 Done
