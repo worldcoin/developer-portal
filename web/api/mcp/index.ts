@@ -19,6 +19,11 @@ import { getSdk as getMcpUpsertRpRegistrationSdk } from "@/api/mcp/graphql/upser
 import { SKILL_INSTRUCTIONS } from "@/api/mcp/skill";
 import { getSdk as getUpdateRpStatusSdk } from "@/api/v4/rp-status/[rp_id]/graphql/update-rp-status.generated";
 import { getSdk as getUpdateStagingStatusSdk } from "@/api/v4/rp-status/[rp_id]/graphql/update-staging-status.generated";
+import {
+  MCP_APP_IMAGE_MAP,
+  type McpAppImageType,
+  uploadAppImage,
+} from "@/api/helpers/app-image-storage";
 import { CategoryNameIterable } from "@/lib/categories";
 import { logger } from "@/lib/logger";
 import { mainAppStoreFormReviewSubmitSchema } from "@/scenes/Portal/Teams/TeamId/Apps/AppId/Configuration/AppStore/FormSchema/form-schema";
@@ -220,6 +225,51 @@ const toolDefinitions = [
     },
   },
   {
+    name: "upload_app_image",
+    description:
+      "Upload an app image (logo, hero, content_card, meta_tag, showcase_1/2/3) from a public HTTPS source URL or base64 data and set the corresponding app_metadata field. Image must be PNG or JPEG, ≤500KB. Required for app store submissions which gate on logo_img_url and (for Mini Apps) content_card_image_url.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        app_id: { type: "string" },
+        image_type: {
+          type: "string",
+          enum: [
+            "logo",
+            "hero",
+            "content_card",
+            "meta_tag",
+            "showcase_1",
+            "showcase_2",
+            "showcase_3",
+          ],
+        },
+        source_url: {
+          type: "string",
+          description:
+            "Public HTTPS URL the server will fetch. Use this OR image_base64.",
+        },
+        image_base64: {
+          type: "string",
+          description: "Base64-encoded PNG/JPEG bytes. Use this OR source_url.",
+        },
+        content_type: {
+          type: "string",
+          enum: ["png", "jpeg"],
+          description:
+            "Required when using image_base64. Optional with source_url (inferred from response Content-Type).",
+        },
+        locale: {
+          type: "string",
+          description:
+            "Locale subfolder (e.g. 'es'). Defaults to root unverified/{app_id}/ when omitted or 'en'.",
+        },
+      },
+      required: ["app_id", "image_type"],
+      additionalProperties: false,
+    },
+  },
+  {
     name: "submit_app_for_review",
     description:
       "Submit an app for review after explicit confirmation from the user.",
@@ -365,6 +415,38 @@ const submitAppSchema = yup
     changelog: yup.string().default("Submitted via MCP"),
     is_developer_allow_listing: yup.boolean().optional(),
   })
+  .noUnknown();
+
+const uploadAppImageSchema = yup
+  .object({
+    app_id: yup.string().required(),
+    image_type: yup
+      .string()
+      .oneOf(Object.keys(MCP_APP_IMAGE_MAP) as McpAppImageType[])
+      .required(),
+    source_url: yup
+      .string()
+      .url()
+      .matches(/^https:\/\//, "source_url must use https://")
+      .optional(),
+    image_base64: yup.string().optional(),
+    content_type: yup.string().oneOf(["png", "jpeg"]).optional(),
+    locale: yup.string().optional(),
+  })
+  .test(
+    "exactly-one-source",
+    "Provide exactly one of source_url or image_base64",
+    (value) => {
+      const hasUrl = Boolean(value?.source_url);
+      const hasBase64 = Boolean(value?.image_base64);
+      return hasUrl !== hasBase64;
+    },
+  )
+  .test(
+    "base64-needs-content-type",
+    "image_base64 requires content_type to be set",
+    (value) => !value?.image_base64 || Boolean(value?.content_type),
+  )
   .noUnknown();
 
 const parseApiKey = (authorization: string | null) => {
@@ -861,6 +943,112 @@ const tools = {
     return content({ app_metadata: data.update_app_metadata_by_pk });
   },
 
+  upload_app_image: async (input, ctx) => {
+    const args = await parseInput(uploadAppImageSchema, input);
+    const app = await requireApp(ctx.client, ctx.teamId, args.app_id);
+    const metadata = app.app_metadata[0];
+    if (!metadata) {
+      throw new McpError("Editable app metadata not found.", -32004);
+    }
+    if (metadata.verification_status !== "unverified") {
+      throw new McpError("Only unverified app metadata can be edited.", -32004);
+    }
+
+    // Resolve the image bytes + content type from either source.
+    let body: Buffer;
+    let contentType: "image/png" | "image/jpeg";
+
+    if (args.source_url) {
+      const fetchResponse = await fetch(args.source_url);
+      if (!fetchResponse.ok) {
+        throw new McpError(
+          `Failed to fetch source_url: ${fetchResponse.status} ${fetchResponse.statusText}`,
+          -32602,
+        );
+      }
+      const headerType = fetchResponse.headers.get("content-type") ?? "";
+      const inferred = headerType.includes("png")
+        ? "image/png"
+        : headerType.includes("jpeg") || headerType.includes("jpg")
+          ? "image/jpeg"
+          : null;
+      if (!inferred && !args.content_type) {
+        throw new McpError(
+          `source_url did not return a PNG/JPEG image (Content-Type: ${headerType || "unknown"}). Pass content_type to override.`,
+          -32602,
+        );
+      }
+      contentType =
+        inferred ?? (args.content_type === "png" ? "image/png" : "image/jpeg");
+      body = Buffer.from(await fetchResponse.arrayBuffer());
+    } else {
+      try {
+        body = Buffer.from(args.image_base64!, "base64");
+      } catch {
+        throw new McpError("Invalid base64 image data.", -32602);
+      }
+      contentType = args.content_type === "png" ? "image/png" : "image/jpeg";
+    }
+
+    let uploadResult: Awaited<ReturnType<typeof uploadAppImage>>;
+    try {
+      uploadResult = await uploadAppImage({
+        appId: args.app_id,
+        imageType: args.image_type as McpAppImageType,
+        body,
+        contentType,
+        locale: args.locale,
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      // Size / empty errors thrown by the helper are caller-fixable.
+      if (
+        message.includes("empty") ||
+        message.includes("maximum") ||
+        message.includes("bytes")
+      ) {
+        throw new McpError(message, -32602);
+      }
+      logger.error("Failed to upload MCP app image", {
+        error,
+        app_id: args.app_id,
+        team_id: ctx.teamId,
+        image_type: args.image_type,
+      });
+      throw new McpError("Failed to upload image to storage.", -32603);
+    }
+
+    const { fileName, objectKey, mapping, sizeBytes } = uploadResult;
+    let set: Record<string, unknown>;
+    if ("arrayIndex" in mapping) {
+      const current = (metadata.showcase_img_urls ?? []) as string[];
+      const next = [...current];
+      while (next.length < mapping.arrayIndex + 1) next.push("");
+      next[mapping.arrayIndex] = fileName;
+      set = { showcase_img_urls: next };
+    } else {
+      set = { [mapping.field]: fileName };
+    }
+
+    const data = await getMcpUpdateAppMetadataSdk(
+      ctx.client,
+    ).McpUpdateAppMetadata({
+      app_metadata_id: metadata.id,
+      set,
+    });
+
+    return content({
+      app_id: args.app_id,
+      image_type: args.image_type,
+      field: mapping.field,
+      file_name: fileName,
+      s3_key: objectKey,
+      size_bytes: sizeBytes,
+      content_type: contentType,
+      app_metadata: data.update_app_metadata_by_pk,
+    });
+  },
+
   submit_app_for_review: async (input, ctx) => {
     const args = await parseInput(submitAppSchema, input);
     const app = await requireApp(ctx.client, ctx.teamId, args.app_id);
@@ -982,6 +1170,7 @@ const parseToolName = (value: unknown): ToolName => {
     case "rotate_world_id_signing_key":
     case "create_world_id_action":
     case "configure_mini_app":
+    case "upload_app_image":
     case "submit_app_for_review":
       return value;
     default:
@@ -1013,6 +1202,8 @@ const executeTool = async (
       return tools.create_world_id_action(input, ctx);
     case "configure_mini_app":
       return tools.configure_mini_app(input, ctx);
+    case "upload_app_image":
+      return tools.upload_app_image(input, ctx);
     case "submit_app_for_review":
       return tools.submit_app_for_review(input, ctx);
   }

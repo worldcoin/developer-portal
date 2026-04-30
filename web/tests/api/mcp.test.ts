@@ -6,6 +6,7 @@ import { NextRequest } from "next/server";
 import { getRpFromContract } from "../../api/helpers/temporal-rpc";
 
 const requestMock = jest.fn();
+const s3SendMock = jest.fn();
 
 jest.mock("../../api/helpers/graphql", () => ({
   getAPIServiceGraphqlClient: jest.fn(async () => ({ request: requestMock })),
@@ -23,6 +24,14 @@ jest.mock("../../lib/logger", () => ({
 jest.mock("../../api/helpers/temporal-rpc", () => ({
   getRpFromContract: jest.fn(),
 }));
+
+jest.mock("@aws-sdk/client-s3", () => ({
+  S3Client: jest.fn().mockImplementation(() => ({ send: s3SendMock })),
+  PutObjectCommand: jest.fn().mockImplementation((args) => ({ ...args })),
+}));
+
+const fetchMock = jest.fn();
+global.fetch = fetchMock as unknown as typeof fetch;
 
 const mockLoggerInfo = logger.info as jest.Mock;
 const mockGetRpFromContract = getRpFromContract as jest.Mock;
@@ -127,6 +136,10 @@ beforeEach(() => {
   process.env.RP_REGISTRY_CONTRACT_ADDRESS =
     "0x0000000000000000000000000000000000000048";
   delete process.env.RP_REGISTRY_STAGING_CONTRACT_ADDRESS;
+  process.env.ASSETS_S3_REGION = "us-east-1";
+  process.env.ASSETS_S3_BUCKET_NAME = "test-bucket";
+  s3SendMock.mockResolvedValue({});
+  fetchMock.mockReset();
   currentAppContextResponse = appContextResponse;
   mockGetRpFromContract.mockResolvedValue({
     initialized: true,
@@ -616,6 +629,131 @@ describe("/api/mcp", () => {
       ).toBe(false);
     },
   );
+
+  it("uploads a logo image from a source_url and patches logo_img_url", async () => {
+    const pngBytes = Buffer.from([
+      0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a,
+    ]);
+    fetchMock.mockResolvedValue(
+      new Response(pngBytes, {
+        status: 200,
+        headers: { "Content-Type": "image/png" },
+      }),
+    );
+
+    const res = await POST(
+      callTool("upload_app_image", {
+        app_id: appId,
+        image_type: "logo",
+        source_url: "https://cdn.example.com/logo.png",
+      }),
+    );
+
+    expect(res.status).toBe(200);
+    const payload = JSON.parse((await res.json()).result.content[0].text);
+    expect(payload.file_name).toBe("logo_img.png");
+    expect(payload.s3_key).toBe(`unverified/${appId}/logo_img.png`);
+    expect(s3SendMock).toHaveBeenCalledTimes(1);
+
+    const updateCall = requestMock.mock.calls.find(
+      ([query]) => getOperationName(query) === "McpUpdateAppMetadata",
+    );
+    expect(updateCall?.[1].set).toEqual({ logo_img_url: "logo_img.png" });
+  });
+
+  it("uploads a base64 image and respects content_type", async () => {
+    const jpegBase64 = Buffer.from([0xff, 0xd8, 0xff, 0xd9]).toString("base64");
+
+    const res = await POST(
+      callTool("upload_app_image", {
+        app_id: appId,
+        image_type: "content_card",
+        image_base64: jpegBase64,
+        content_type: "jpeg",
+      }),
+    );
+
+    expect(res.status).toBe(200);
+    const payload = JSON.parse((await res.json()).result.content[0].text);
+    expect(payload.file_name).toBe("content_card_image.jpg");
+    expect(payload.content_type).toBe("image/jpeg");
+    expect(fetchMock).not.toHaveBeenCalled();
+
+    const updateCall = requestMock.mock.calls.find(
+      ([query]) => getOperationName(query) === "McpUpdateAppMetadata",
+    );
+    expect(updateCall?.[1].set).toEqual({
+      content_card_image_url: "content_card_image.jpg",
+    });
+  });
+
+  it("places showcase_2 in the second slot of showcase_img_urls", async () => {
+    currentAppContextResponse = {
+      app: [
+        {
+          ...appContextResponse.app[0],
+          app_metadata: [
+            {
+              ...appContextResponse.app[0].app_metadata[0],
+              showcase_img_urls: ["showcase_img_1.png"],
+            },
+          ],
+        },
+      ],
+    };
+    fetchMock.mockResolvedValue(
+      new Response(Buffer.from("png"), {
+        status: 200,
+        headers: { "Content-Type": "image/png" },
+      }),
+    );
+
+    const res = await POST(
+      callTool("upload_app_image", {
+        app_id: appId,
+        image_type: "showcase_2",
+        source_url: "https://cdn.example.com/showcase2.png",
+      }),
+    );
+
+    expect(res.status).toBe(200);
+    const updateCall = requestMock.mock.calls.find(
+      ([query]) => getOperationName(query) === "McpUpdateAppMetadata",
+    );
+    expect(updateCall?.[1].set).toEqual({
+      showcase_img_urls: ["showcase_img_1.png", "showcase_img_2.png"],
+    });
+  });
+
+  it("rejects images that exceed the 500KB cap", async () => {
+    const huge = Buffer.alloc(501 * 1024, 0).toString("base64");
+    const res = await POST(
+      callTool("upload_app_image", {
+        app_id: appId,
+        image_type: "logo",
+        image_base64: huge,
+        content_type: "png",
+      }),
+    );
+
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.error.code).toBe(-32602);
+    expect(s3SendMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects when neither source_url nor image_base64 is provided", async () => {
+    const res = await POST(
+      callTool("upload_app_image", {
+        app_id: appId,
+        image_type: "logo",
+      }),
+    );
+
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.error.code).toBe(-32602);
+  });
 
   it("rejects Mini App metadata updates after review submission", async () => {
     currentAppContextResponse = {

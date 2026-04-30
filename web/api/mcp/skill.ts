@@ -8,22 +8,23 @@
 
 export const SKILL_INSTRUCTIONS = `# World ID developer portal MCP
 
-This MCP authenticates with a developer-portal team API key and exposes 10 tools for the full app lifecycle. Always use \`get_team_context\` first if the user hasn't given you an \`app_id\` — it returns the team and any existing apps so you can pick or confirm.
+This MCP authenticates with a developer-portal team API key and exposes 11 tools for the full app lifecycle. Always use \`get_team_context\` first if the user hasn't given you an \`app_id\` — it returns the team and any existing apps so you can pick or confirm.
 
 ## Tool reference
 
-| Tool                               | Purpose                                                                                    | Key inputs                                                                                                                                                         |
-| ---------------------------------- | ------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| \`get_team_context\`                 | List the team's apps + status                                                              | (none)                                                                                                                                                             |
-| \`get_app_config\`                   | Snapshot of an app: World ID config, store metadata, mini-app settings                     | \`app_id\`                                                                                                                                                           |
-| \`create_app\`                       | Create a new app                                                                           | \`name\`; optional \`app_mode\` (\`external\` \\| \`mini-app\`), \`build\` (\`production\` \\| \`staging\`), \`verification\` (\`cloud\` \\| \`on-chain\`), \`category\`, \`integration_url\` |
-| \`configure_world_id\`               | Create the World ID 4.0 RP and (optionally) generate a signing key. **Self-managed only.** | \`app_id\`; optional \`signer_private_key\`, \`generate_signing_key\`                                                                                                    |
-| \`get_world_id_signing_key\`         | Read the signer address for an app. Private key is never returned here.                    | \`app_id\`; optional \`rotate_if_unavailable\`                                                                                                                         |
-| \`rotate_world_id_signing_key\`      | Generate a new World ID signing key. Returns the private key once.                         | \`app_id\`; optional \`signer_private_key\`                                                                                                                            |
-| \`get_world_id_registration_status\` | Sync the on-chain registry status for an RP                                                | \`app_id\`                                                                                                                                                           |
-| \`create_world_id_action\`           | Create / update a v4 action (the thing you \`verify\` against)                               | \`app_id\`, \`action\`; optional \`description\`, \`environment\`                                                                                                          |
-| \`configure_mini_app\`               | Update mini-app store metadata + Advanced/Permissions config                               | \`app_id\`; many optional fields, see below                                                                                                                          |
-| \`submit_app_for_review\`            | Submit an unverified app for review. Requires \`confirm_submission: true\`.                  | \`app_id\`, \`confirm_submission\`; optional \`changelog\`, \`is_developer_allow_listing\`                                                                                 |
+| Tool                               | Purpose                                                                                                       | Key inputs                                                                                                                                                         |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| \`get_team_context\`                 | List the team's apps + status                                                                                 | (none)                                                                                                                                                             |
+| \`get_app_config\`                   | Snapshot of an app: World ID config, store metadata, mini-app settings                                        | \`app_id\`                                                                                                                                                           |
+| \`create_app\`                       | Create a new app                                                                                              | \`name\`; optional \`app_mode\` (\`external\` \\| \`mini-app\`), \`build\` (\`production\` \\| \`staging\`), \`verification\` (\`cloud\` \\| \`on-chain\`), \`category\`, \`integration_url\` |
+| \`configure_world_id\`               | Create the World ID 4.0 RP and (optionally) generate a signing key. **Self-managed only.**                    | \`app_id\`; optional \`signer_private_key\`, \`generate_signing_key\`                                                                                                    |
+| \`get_world_id_signing_key\`         | Read the signer address for an app. Private key is never returned here.                                       | \`app_id\`; optional \`rotate_if_unavailable\`                                                                                                                         |
+| \`rotate_world_id_signing_key\`      | Generate a new World ID signing key. Returns the private key once.                                            | \`app_id\`; optional \`signer_private_key\`                                                                                                                            |
+| \`get_world_id_registration_status\` | Sync the on-chain registry status for an RP                                                                   | \`app_id\`                                                                                                                                                           |
+| \`create_world_id_action\`           | Create / update a v4 action (the thing you \`verify\` against)                                                  | \`app_id\`, \`action\`; optional \`description\`, \`environment\`                                                                                                          |
+| \`configure_mini_app\`               | Update mini-app store metadata + Advanced/Permissions config                                                  | \`app_id\`; many optional fields, see below                                                                                                                          |
+| \`upload_app_image\`                 | Upload an app image (logo, hero, content_card, meta_tag, showcase_1/2/3) and patch the matching \`*_url\` field | \`app_id\`, \`image_type\`, one of \`source_url\` / \`image_base64\` (+ \`content_type\` for base64). PNG/JPEG ≤500KB.                                                       |
+| \`submit_app_for_review\`            | Submit an unverified app for review. Requires \`confirm_submission: true\`.                                     | \`app_id\`, \`confirm_submission\`; optional \`changelog\`, \`is_developer_allow_listing\`                                                                                 |
 
 ## Canonical flows
 
@@ -33,7 +34,9 @@ This MCP authenticates with a developer-portal team API key and exposes 10 tools
 1. create_app                  { name, app_mode: "external", build: "production", verification: "cloud" }
 2. configure_world_id          { app_id, generate_signing_key: true }      ← capture private_key, it's one-time
 3. create_world_id_action      { app_id, action: "verify-account" }
-4. submit_app_for_review       { app_id, confirm_submission: true }
+4. upload_app_image            { app_id, image_type: "logo", source_url } ← required before submit
+5. configure_mini_app          { app_id, app_website_url, support_link, supported_countries, supported_languages: ["en"] }
+6. submit_app_for_review       { app_id, confirm_submission: true }
 \`\`\`
 
 After step 2, store the returned \`private_key\` in the developer's app environment as \`WORLD_ID_PRIVATE_KEY\` (or whatever their app expects). The portal does not retain it.
@@ -43,8 +46,11 @@ After step 2, store the returned \`private_key\` in the developer's app environm
 \`\`\`
 1. create_app                  { name, app_mode: "mini-app" }
 2. configure_world_id          { app_id, generate_signing_key: true }      ← only if the mini app verifies proofs itself
-3. configure_mini_app          { app_id, ...store metadata, ...advanced config }
-4. submit_app_for_review       { app_id, confirm_submission: true }
+3. upload_app_image            { app_id, image_type: "logo",         source_url }
+4. upload_app_image            { app_id, image_type: "content_card", source_url }   ← required for Mini Apps
+5. upload_app_image            { app_id, image_type: "showcase_1",   source_url }   ← optional but recommended
+6. configure_mini_app          { app_id, ...store metadata, ...advanced config }
+7. submit_app_for_review       { app_id, confirm_submission: true }
 \`\`\`
 
 \`configure_mini_app\` accepts both store metadata (logo, screenshots, descriptions, supported countries/languages, ...) **and** Advanced/Permissions config in a single call:
@@ -58,7 +64,27 @@ After step 2, store the returned \`private_key\` in the developer's app environm
 
 All address arrays are validated as \`0x\` + 40 hex chars; URLs as \`https://...\`; reject any element with an embedded comma.
 
-### C. Rotate a leaked signing key
+### C. Upload images (logo / hero / content_card / meta_tag / showcase_N)
+
+\`upload_app_image\` accepts the bytes in two ways:
+
+- **\`source_url\`** — public HTTPS URL the server fetches (best for URLs the user already gave you, or staging asset CDNs)
+- **\`image_base64\`** — base64-encoded bytes (use for local files)
+
+When the user gives you a **local file path**, base64-encode it client-side via Bash and pass through:
+
+\`\`\`
+# in Bash:
+base64 -i ./logo.png
+# pipe / capture the output, then call upload_app_image:
+upload_app_image { app_id, image_type: "logo", image_base64: "<that string>", content_type: "png" }
+\`\`\`
+
+The server validates ≤500KB PNG/JPEG either way, uploads to S3, and patches \`app_metadata.{logo_img_url|hero_image_url|content_card_image_url|meta_tag_image_url|showcase_img_urls[N]}\` in one call. No follow-up \`configure_mini_app\` is needed for images.
+
+Image bytes flow through your context as base64 — fine for typical app icons (<100KB), wasteful for very large screenshots. Prefer \`source_url\` whenever the image is already on the web.
+
+### D. Rotate a leaked signing key
 
 \`\`\`
 1. rotate_world_id_signing_key { app_id }
@@ -66,7 +92,7 @@ All address arrays are validated as \`0x\` + 40 hex chars; URLs as \`https://...
 
 Returns a fresh \`private_key\` once. Updates the on-portal \`signer_address\`. **Only works for self-managed RPs.** If the registration is platform-managed, the call fails and the user has to rotate from the dashboard UI (it requires an on-chain signer-update transaction the API key path can't perform).
 
-### D. Read-only inspection
+### E. Read-only inspection
 
 \`\`\`
 get_team_context                    ← what apps exist, their status
@@ -79,7 +105,8 @@ get_world_id_registration_status { app_id }  ← on-chain registry sync
 
 - **Managed mode is dashboard-only.** \`configure_world_id\` and rotation only work in self-managed mode. If the user wants the platform to handle on-chain registration, point them at the dashboard.
 - **Private keys are returned once.** If the user loses the value from \`configure_world_id\` / \`rotate_world_id_signing_key\`, they must rotate again. The portal does not store private keys.
-- **Submission preconditions are strict.** \`submit_app_for_review\` runs the same Yup completeness check as the dashboard; missing \`logo_img_url\`, \`app_website_url\`, English locale, etc. will return a \`-32602\` with the exact validation errors. Fix and retry.
+- **Submission preconditions are strict.** \`submit_app_for_review\` runs the same Yup completeness check as the dashboard; missing \`logo_img_url\`, \`app_website_url\`, English locale, etc. will return a \`-32602\` with the exact validation errors. Fix and retry. For Mini Apps, \`content_card_image_url\` is also required.
+- **Use \`upload_app_image\`, not \`configure_mini_app\`, for image fields.** Image fields store filenames (\`logo_img.png\`), not full URLs — the dashboard reconstructs the CDN URL at view time. \`upload_app_image\` handles the S3 upload and stores the right filename automatically; passing a stray URL through \`configure_mini_app.logo_img_url\` will break the image.
 - **Staging apps cannot be submitted for review.** \`create_app\` with \`build: "staging"\` is for sandbox use; switch to \`build: "production"\` (a different app) for store submission.
 - **\`is_developer_allow_listing\` is optional on submit.** If you omit it, the existing value on \`app_metadata\` is preserved — the MCP will not silently un-list a previously listed app.
 - **Don't re-run \`configure_world_id\` on an already-configured app.** It returns the existing registration without rotating. Use \`rotate_world_id_signing_key\` if the user actually wants a new key.

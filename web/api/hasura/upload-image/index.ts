@@ -1,3 +1,4 @@
+import { generateAppImagePresignedPost } from "@/api/helpers/app-image-storage";
 import { getSdk as checkAppInTeamDocumentSDK } from "@/api/hasura/graphql/checkAppInTeam.generated";
 import { getSdk as checkUserInAppDocumentSDK } from "@/api/hasura/graphql/checkUserInApp.generated";
 import { errorHasuraQuery } from "@/api/helpers/errors";
@@ -5,8 +6,6 @@ import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { protectInternalEndpoint } from "@/api/helpers/utils";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { logger } from "@/lib/logger";
-import { S3Client } from "@aws-sdk/client-s3";
-import { createPresignedPost } from "@aws-sdk/s3-presigned-post";
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
 
@@ -154,40 +153,15 @@ export const POST = async (req: NextRequest) => {
       }
     }
 
-    if (!process.env.ASSETS_S3_REGION) {
-      throw new Error("AWS Region must be set.");
-    }
-
-    const s3Client = new S3Client({
-      region: process.env.ASSETS_S3_REGION,
+    const { url, fields } = await generateAppImagePresignedPost({
+      appId: app_id,
+      imageType: image_type,
+      contentTypeEnding: content_type_ending,
+      locale,
     });
-
-    if (!process.env.ASSETS_S3_BUCKET_NAME) {
-      throw new Error("AWS Bucket Name must be set.");
-    }
-
-    const bucketName = process.env.ASSETS_S3_BUCKET_NAME;
-
-    // Standardize JPEG to jpg
-    const objectKey = `unverified/${app_id}${locale && locale !== "en" ? `/${locale}` : ""}/${image_type}.${
-      content_type_ending === "jpeg" ? "jpg" : content_type_ending
-    }`;
-
-    const contentType = `image/${content_type_ending}`;
-    const signedUrl = await createPresignedPost(s3Client, {
-      Bucket: bucketName,
-      Key: objectKey,
-      Expires: 600, // URL expires in 10 minutes
-      Conditions: [
-        ["content-length-range", 0, 500 * 1024],
-        ["eq", "$Content-Type", contentType],
-      ],
-    });
-
-    const { url, fields } = signedUrl;
 
     return NextResponse.json({
-      url: url,
+      url,
       stringifiedFields: JSON.stringify(fields),
     });
   } catch (error) {
