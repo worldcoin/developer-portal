@@ -20,7 +20,7 @@ This MCP authenticates with a developer-portal team API key and exposes 11 tools
 | `get_world_id_registration_status` | Sync the on-chain registry status for an RP                                                                   | `app_id`                                                                                                                                                           |
 | `create_world_id_action`           | Create / update a v4 action (the thing you `verify` against)                                                  | `app_id`, `action`; optional `description`, `environment`                                                                                                          |
 | `configure_mini_app`               | Update mini-app store metadata + Advanced/Permissions config                                                  | `app_id`; many optional fields, see below                                                                                                                          |
-| `upload_app_image`                 | Upload an app image (logo, hero, content_card, meta_tag, showcase_1/2/3) and patch the matching `*_url` field | `app_id`, `image_type`, one of `source_url` / `image_base64` (+ `content_type` for base64). PNG/JPEG ≤500KB.                                                       |
+| `upload_app_image`                 | Upload an app image (logo, hero, content_card, meta_tag, showcase_1/2/3) and patch the matching `*_url` field | `app_id`, `image_type`, one of `source_url` (https only, public addr, no redirects) / `image_base64`. Format detected from magic bytes. PNG/JPEG ≤500KB.           |
 | `submit_app_for_review`            | Submit an unverified app for review. Requires `confirm_submission: true`.                                     | `app_id`, `confirm_submission`; optional `changelog`, `is_developer_allow_listing`                                                                                 |
 
 ## Canonical flows
@@ -101,10 +101,14 @@ When the user gives you a **local file path**, base64-encode it client-side via 
 # in Bash:
 base64 -i ./logo.png
 # pipe / capture the output, then call upload_app_image:
-upload_app_image { app_id, image_type: "logo", image_base64: "<that string>", content_type: "png" }
+upload_app_image { app_id, image_type: "logo", image_base64: "<that string>" }
 ```
 
-The server validates ≤500KB PNG/JPEG either way, uploads to S3, and patches `app_metadata.{logo_img_url|hero_image_url|content_card_image_url|meta_tag_image_url|showcase_img_urls[N]}` in one call. No follow-up `configure_mini_app` is needed for images.
+You don't need to specify the format — the server inspects the magic bytes and stores the file as PNG or JPEG accordingly. Anything that isn't a real PNG/JPEG (or anything >500KB) is rejected with `-32602`.
+
+`source_url` is fetched server-side over HTTPS only, must resolve to a public address (loopback / private / link-local rejected), and **redirects are not followed** — if the user gives you a URL that redirects, resolve the final URL client-side first.
+
+The server uploads the bytes to S3 and patches `app_metadata.{logo_img_url|hero_image_url|content_card_image_url|meta_tag_image_url|showcase_img_urls[N]}` in one call. No follow-up `configure_mini_app` is needed for images.
 
 Image bytes flow through your context as base64 — fine for typical app icons (<100KB), wasteful for very large screenshots. Prefer `source_url` whenever the image is already on the web.
 

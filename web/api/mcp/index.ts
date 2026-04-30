@@ -22,6 +22,9 @@ import { getSdk as getUpdateStagingStatusSdk } from "@/api/v4/rp-status/[rp_id]/
 import {
   MCP_APP_IMAGE_MAP,
   type McpAppImageType,
+  decodeImageBase64,
+  fetchImageFromUrl,
+  ImageInputError,
   uploadAppImage,
 } from "@/api/helpers/app-image-storage";
 import { CategoryNameIterable } from "@/lib/categories";
@@ -261,17 +264,12 @@ const toolDefinitions = [
         source_url: {
           type: "string",
           description:
-            "Public HTTPS URL the server will fetch. Use this OR image_base64.",
+            "Public HTTPS URL the server fetches. Must resolve to a public address (loopback/private/link-local rejected). Redirects are not followed. Use this OR image_base64.",
         },
         image_base64: {
           type: "string",
-          description: "Base64-encoded PNG/JPEG bytes. Use this OR source_url.",
-        },
-        content_type: {
-          type: "string",
-          enum: ["png", "jpeg"],
           description:
-            "Required when using image_base64. Optional with source_url (inferred from response Content-Type).",
+            "Base64-encoded PNG/JPEG bytes. Use this OR source_url. The server detects the format from magic bytes; no separate content_type input is needed.",
         },
         locale: {
           type: "string",
@@ -447,7 +445,6 @@ const uploadAppImageSchema = yup
       .matches(/^https:\/\//, "source_url must use https://")
       .optional(),
     image_base64: yup.string().optional(),
-    content_type: yup.string().oneOf(["png", "jpeg"]).optional(),
     locale: yup.string().optional(),
   })
   .test(
@@ -458,11 +455,6 @@ const uploadAppImageSchema = yup
       const hasBase64 = Boolean(value?.image_base64);
       return hasUrl !== hasBase64;
     },
-  )
-  .test(
-    "base64-needs-content-type",
-    "image_base64 requires content_type to be set",
-    (value) => !value?.image_base64 || Boolean(value?.content_type),
   )
   .noUnknown();
 
@@ -995,40 +987,32 @@ const tools = {
       throw new McpError("Only unverified app metadata can be edited.", -32004);
     }
 
-    // Resolve the image bytes + content type from either source.
+    // Resolve the image bytes + content type from either source. The helpers
+    // perform SSRF-safe fetching (https only, no redirects, public addrs),
+    // size-cap streaming, and authoritative magic-number detection so we
+    // never trust the caller-provided content_type. ImageInputError is the
+    // caller-fixable signal we map to JSON-RPC -32602.
     let body: Buffer;
     let contentType: "image/png" | "image/jpeg";
 
-    if (args.source_url) {
-      const fetchResponse = await fetch(args.source_url);
-      if (!fetchResponse.ok) {
-        throw new McpError(
-          `Failed to fetch source_url: ${fetchResponse.status} ${fetchResponse.statusText}`,
-          -32602,
-        );
+    try {
+      const resolved = args.source_url
+        ? await fetchImageFromUrl(args.source_url)
+        : decodeImageBase64(args.image_base64!);
+      body = resolved.body;
+      contentType = resolved.contentType;
+    } catch (error) {
+      if (error instanceof ImageInputError) {
+        throw new McpError(error.message, -32602);
       }
-      const headerType = fetchResponse.headers.get("content-type") ?? "";
-      const inferred = headerType.includes("png")
-        ? "image/png"
-        : headerType.includes("jpeg") || headerType.includes("jpg")
-          ? "image/jpeg"
-          : null;
-      if (!inferred && !args.content_type) {
-        throw new McpError(
-          `source_url did not return a PNG/JPEG image (Content-Type: ${headerType || "unknown"}). Pass content_type to override.`,
-          -32602,
-        );
-      }
-      contentType =
-        inferred ?? (args.content_type === "png" ? "image/png" : "image/jpeg");
-      body = Buffer.from(await fetchResponse.arrayBuffer());
-    } else {
-      try {
-        body = Buffer.from(args.image_base64!, "base64");
-      } catch {
-        throw new McpError("Invalid base64 image data.", -32602);
-      }
-      contentType = args.content_type === "png" ? "image/png" : "image/jpeg";
+      logger.error("Failed to resolve MCP app image bytes", {
+        error,
+        app_id: args.app_id,
+        team_id: ctx.teamId,
+        image_type: args.image_type,
+        source: args.source_url ? "url" : "base64",
+      });
+      throw new McpError("Failed to read image bytes.", -32603);
     }
 
     let uploadResult: Awaited<ReturnType<typeof uploadAppImage>>;

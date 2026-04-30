@@ -30,6 +30,11 @@ jest.mock("@aws-sdk/client-s3", () => ({
   PutObjectCommand: jest.fn().mockImplementation((args) => ({ ...args })),
 }));
 
+const dnsLookupMock = jest.fn();
+jest.mock("node:dns/promises", () => ({
+  lookup: (...args: unknown[]) => dnsLookupMock(...args),
+}));
+
 const fetchMock = jest.fn();
 global.fetch = fetchMock as unknown as typeof fetch;
 
@@ -141,6 +146,10 @@ beforeEach(() => {
   process.env.ASSETS_S3_BUCKET_NAME = "test-bucket";
   s3SendMock.mockResolvedValue({});
   fetchMock.mockReset();
+  dnsLookupMock.mockReset();
+  // Default: source_url hostnames resolve to a public address. Specific tests
+  // override this to simulate private / loopback responses.
+  dnsLookupMock.mockResolvedValue({ address: "203.0.113.10", family: 4 });
   currentAppContextResponse = appContextResponse;
   mockGetRpFromContract.mockResolvedValue({
     initialized: true,
@@ -702,7 +711,7 @@ describe("/api/mcp", () => {
     expect(updateCall?.[1].set).toEqual({ logo_img_url: "logo_img.png" });
   });
 
-  it("uploads a base64 image and respects content_type", async () => {
+  it("uploads a base64 image and detects format from magic bytes", async () => {
     const jpegBase64 = Buffer.from([0xff, 0xd8, 0xff, 0xd9]).toString("base64");
 
     const res = await POST(
@@ -710,7 +719,6 @@ describe("/api/mcp", () => {
         app_id: appId,
         image_type: "content_card",
         image_base64: jpegBase64,
-        content_type: "jpeg",
       }),
     );
 
@@ -728,6 +736,22 @@ describe("/api/mcp", () => {
     });
   });
 
+  it("rejects base64 bytes that aren't a valid PNG/JPEG", async () => {
+    const notAnImage = Buffer.from("hello world").toString("base64");
+    const res = await POST(
+      callTool("upload_app_image", {
+        app_id: appId,
+        image_type: "logo",
+        image_base64: notAnImage,
+      }),
+    );
+
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.error.code).toBe(-32602);
+    expect(s3SendMock).not.toHaveBeenCalled();
+  });
+
   it("places showcase_2 in the second slot of showcase_img_urls", async () => {
     currentAppContextResponse = {
       app: [
@@ -742,8 +766,11 @@ describe("/api/mcp", () => {
         },
       ],
     };
+    const pngBytes = Buffer.from([
+      0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a,
+    ]);
     fetchMock.mockResolvedValue(
-      new Response(Buffer.from("png"), {
+      new Response(pngBytes, {
         status: 200,
         headers: { "Content-Type": "image/png" },
       }),
@@ -773,13 +800,57 @@ describe("/api/mcp", () => {
         app_id: appId,
         image_type: "logo",
         image_base64: huge,
-        content_type: "png",
       }),
     );
 
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(body.error.code).toBe(-32602);
+    expect(s3SendMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects source_url that resolves to a private address", async () => {
+    dnsLookupMock.mockResolvedValue({ address: "127.0.0.1", family: 4 });
+
+    const res = await POST(
+      callTool("upload_app_image", {
+        app_id: appId,
+        image_type: "logo",
+        source_url: "https://internal.example.com/logo.png",
+      }),
+    );
+
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.error.code).toBe(-32602);
+    expect(body.error.message).toMatch(/private\/internal/);
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(s3SendMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects source_url with Content-Length above the 500KB cap before reading body", async () => {
+    fetchMock.mockResolvedValue(
+      new Response(Buffer.from([0x89, 0x50, 0x4e, 0x47]), {
+        status: 200,
+        headers: {
+          "Content-Type": "image/png",
+          "Content-Length": String(600 * 1024),
+        },
+      }),
+    );
+
+    const res = await POST(
+      callTool("upload_app_image", {
+        app_id: appId,
+        image_type: "logo",
+        source_url: "https://cdn.example.com/big.png",
+      }),
+    );
+
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.error.code).toBe(-32602);
+    expect(body.error.message).toMatch(/Content-Length/);
     expect(s3SendMock).not.toHaveBeenCalled();
   });
 

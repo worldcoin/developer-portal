@@ -3,6 +3,8 @@ import {
   createPresignedPost,
   type PresignedPost,
 } from "@aws-sdk/s3-presigned-post";
+import { lookup } from "node:dns/promises";
+import { isIP } from "node:net";
 
 // Image-type identifier the dashboard / Hasura action / MCP all share. The
 // values match the basenames the dashboard uses on disk so the existing image
@@ -155,4 +157,207 @@ export const uploadAppImage = async ({
   );
 
   return { fileName, objectKey, mapping, sizeBytes: body.byteLength };
+};
+
+// ---------------------------------------------------------------------------
+// Source-image fetch + decode helpers (used by MCP upload_app_image).
+//
+// We need to (a) avoid SSRF when an authenticated caller asks the server to
+// fetch an arbitrary URL, (b) cap the bytes we read so we don't OOM on a 1GB
+// response, and (c) authoritatively detect the image format from the bytes
+// themselves rather than trusting caller-provided metadata.
+// ---------------------------------------------------------------------------
+
+export class ImageInputError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "ImageInputError";
+  }
+}
+
+export const detectImageContentType = (
+  body: Buffer,
+): "image/png" | "image/jpeg" | null => {
+  if (body.length >= 8) {
+    // PNG signature: 89 50 4E 47 0D 0A 1A 0A
+    if (
+      body[0] === 0x89 &&
+      body[1] === 0x50 &&
+      body[2] === 0x4e &&
+      body[3] === 0x47 &&
+      body[4] === 0x0d &&
+      body[5] === 0x0a &&
+      body[6] === 0x1a &&
+      body[7] === 0x0a
+    ) {
+      return "image/png";
+    }
+  }
+  if (body.length >= 3) {
+    // JPEG SOI marker: FF D8 FF (any third byte)
+    if (body[0] === 0xff && body[1] === 0xd8 && body[2] === 0xff) {
+      return "image/jpeg";
+    }
+  }
+  return null;
+};
+
+const isPrivateIp = (addr: string, family: 4 | 6): boolean => {
+  if (family === 4) {
+    const parts = addr.split(".").map((n) => parseInt(n, 10));
+    if (parts.length !== 4 || parts.some(Number.isNaN)) return true;
+    const [a, b] = parts;
+    if (a === 10) return true; // RFC1918 10/8
+    if (a === 127) return true; // loopback
+    if (a === 0) return true; // 0.0.0.0/8
+    if (a === 169 && b === 254) return true; // link-local
+    if (a === 172 && b >= 16 && b <= 31) return true; // RFC1918 172.16/12
+    if (a === 192 && b === 168) return true; // RFC1918 192.168/16
+    if (a === 100 && b >= 64 && b <= 127) return true; // CGNAT 100.64/10
+    if (a >= 224) return true; // multicast / reserved
+    return false;
+  }
+  // IPv6
+  const lower = addr.toLowerCase();
+  if (lower === "::1" || lower === "::") return true; // loopback / unspec
+  if (lower.startsWith("fe80:")) return true; // link-local
+  if (lower.startsWith("fc") || lower.startsWith("fd")) return true; // unique local
+  if (lower.startsWith("ff")) return true; // multicast
+  if (lower.startsWith("::ffff:")) {
+    // IPv4-mapped IPv6 — re-check the embedded v4
+    const embedded = lower.slice("::ffff:".length);
+    if (isIP(embedded) === 4) return isPrivateIp(embedded, 4);
+  }
+  return false;
+};
+
+const assertSafeImageUrl = async (rawUrl: string): Promise<URL> => {
+  let url: URL;
+  try {
+    url = new URL(rawUrl);
+  } catch {
+    throw new ImageInputError("source_url is not a valid URL.");
+  }
+  if (url.protocol !== "https:") {
+    throw new ImageInputError("source_url must use https://.");
+  }
+  // Disallow embedded auth — they have no business here and can mask hosts.
+  if (url.username || url.password) {
+    throw new ImageInputError("source_url must not embed credentials.");
+  }
+  // Resolve hostname → reject private / loopback / link-local / multicast.
+  const hostname = url.hostname.replace(/^\[|\]$/g, "");
+  const directIpFamily = isIP(hostname) as 0 | 4 | 6;
+  if (directIpFamily) {
+    if (isPrivateIp(hostname, directIpFamily)) {
+      throw new ImageInputError(
+        "source_url resolves to a private/internal address.",
+      );
+    }
+    return url;
+  }
+  let resolved;
+  try {
+    resolved = await lookup(hostname, { all: false });
+  } catch {
+    throw new ImageInputError(
+      `source_url hostname (${hostname}) could not be resolved.`,
+    );
+  }
+  const family = resolved.family === 6 ? 6 : 4;
+  if (isPrivateIp(resolved.address, family)) {
+    throw new ImageInputError(
+      "source_url resolves to a private/internal address.",
+    );
+  }
+  return url;
+};
+
+const readWithCap = async (
+  body: ReadableStream<Uint8Array>,
+  cap: number,
+): Promise<Buffer> => {
+  const reader = body.getReader();
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      total += value.byteLength;
+      if (total > cap) {
+        await reader.cancel().catch(() => {});
+        throw new ImageInputError(
+          `source_url body exceeds ${cap} bytes (read ${total}).`,
+        );
+      }
+      chunks.push(value);
+    }
+  } finally {
+    reader.releaseLock();
+  }
+  return Buffer.concat(
+    chunks.map((c) => Buffer.from(c)),
+    total,
+  );
+};
+
+export const fetchImageFromUrl = async (
+  rawUrl: string,
+): Promise<{ body: Buffer; contentType: "image/png" | "image/jpeg" }> => {
+  const url = await assertSafeImageUrl(rawUrl);
+  let response;
+  try {
+    response = await fetch(url, { redirect: "error" });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    throw new ImageInputError(`Failed to fetch source_url: ${message}`);
+  }
+  if (!response.ok) {
+    throw new ImageInputError(
+      `Failed to fetch source_url: ${response.status} ${response.statusText}`,
+    );
+  }
+  // Bail early if the server tells us the body is too big up front.
+  const declared = response.headers.get("content-length");
+  if (declared) {
+    const declaredBytes = Number.parseInt(declared, 10);
+    if (Number.isFinite(declaredBytes) && declaredBytes > MAX_APP_IMAGE_BYTES) {
+      throw new ImageInputError(
+        `source_url Content-Length (${declaredBytes}) exceeds ${MAX_APP_IMAGE_BYTES} bytes.`,
+      );
+    }
+  }
+  if (!response.body) {
+    throw new ImageInputError("source_url response had no body.");
+  }
+  const body = await readWithCap(response.body, MAX_APP_IMAGE_BYTES);
+  const contentType = detectImageContentType(body);
+  if (!contentType) {
+    throw new ImageInputError(
+      "source_url body is not a valid PNG or JPEG image.",
+    );
+  }
+  return { body, contentType };
+};
+
+export const decodeImageBase64 = (
+  b64: string,
+): { body: Buffer; contentType: "image/png" | "image/jpeg" } => {
+  const body = Buffer.from(b64, "base64");
+  if (body.length === 0) {
+    throw new ImageInputError("image_base64 decoded to zero bytes.");
+  }
+  if (body.length > MAX_APP_IMAGE_BYTES) {
+    throw new ImageInputError(
+      `image_base64 decoded to ${body.length} bytes; maximum is ${MAX_APP_IMAGE_BYTES}.`,
+    );
+  }
+  const contentType = detectImageContentType(body);
+  if (!contentType) {
+    throw new ImageInputError(
+      "image_base64 bytes are not a valid PNG or JPEG image.",
+    );
+  }
+  return { body, contentType };
 };
