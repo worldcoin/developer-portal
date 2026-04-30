@@ -684,7 +684,7 @@ describe("/api/mcp", () => {
         associated_domains: ["https://example.com"],
         can_import_all_contacts: true,
         can_use_attestation: true,
-        max_notifications_per_day: 2,
+        max_notifications_per_day: "2",
       }),
     );
 
@@ -704,6 +704,22 @@ describe("/api/mcp", () => {
         is_allowed_unlimited_notifications: false,
       }),
     );
+  });
+
+  it("rejects max_notifications_per_day passed as an integer (string-only enum)", async () => {
+    // Mixed integer/string oneOf in the JSON schema broke MCP client
+    // validation in staging. The input is now a string-only enum; numeric
+    // values must surface a clear -32602 instead of silently slipping
+    // through.
+    const res = await POST(
+      callTool("configure_mini_app", {
+        app_id: appId,
+        max_notifications_per_day: 2,
+      }),
+    );
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.error.code).toBe(-32602);
   });
 
   it("maps max_notifications_per_day=unlimited to the unlimited flag pair", async () => {

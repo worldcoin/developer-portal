@@ -70,7 +70,7 @@ After step 2, store the returned `private_key` in the developer's app environmen
                             // optional Advanced fields:
                             contracts:            ["0x..."],
                             permit2_tokens:       ["0x..."],
-                            max_notifications_per_day: 2,
+                            max_notifications_per_day: "2",
                           }
 7. submit_app_for_review  { app_id, confirm_submission: true }
 ```
@@ -84,7 +84,7 @@ After step 2, store the returned `private_key` in the developer's app environmen
 - `whitelisted_addresses: string[]` — wallets allowed to interact (pass `[]` to disable)
 - `associated_domains: string[]` — universal-link domains
 - `can_import_all_contacts`, `can_use_attestation` — capability toggles
-- `max_notifications_per_day`: `0 | 1 | 2 | "unlimited"` — notification cap (`"unlimited"` automatically sets `is_allowed_unlimited_notifications: true`)
+- `max_notifications_per_day`: `"0" | "1" | "2" | "unlimited"` — notification cap (string-only enum so MCP clients with strict JSON schema validators accept all values; `"unlimited"` automatically sets `is_allowed_unlimited_notifications: true`)
 
 All address arrays are validated as `0x` + 40 hex chars; URLs as `https://...`; reject any element with an embedded comma.
 
