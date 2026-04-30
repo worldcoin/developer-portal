@@ -242,10 +242,10 @@ const toolDefinitions = [
         can_import_all_contacts: { type: "boolean" },
         can_use_attestation: { type: "boolean" },
         max_notifications_per_day: {
-          oneOf: [
-            { type: "integer", enum: [0, 1, 2] },
-            { type: "string", enum: ["unlimited"] },
-          ],
+          type: "string",
+          enum: ["0", "1", "2", "unlimited"],
+          description:
+            'How many notifications the mini app may send per day. Pass "unlimited" for no cap (automatically sets is_allowed_unlimited_notifications: true).',
         },
       },
       required: ["app_id"],
@@ -422,8 +422,8 @@ const configureMiniAppSchema = yup
     can_import_all_contacts: yup.boolean().optional(),
     can_use_attestation: yup.boolean().optional(),
     max_notifications_per_day: yup
-      .mixed<0 | 1 | 2 | "unlimited">()
-      .oneOf([0, 1, 2, "unlimited"])
+      .mixed<"0" | "1" | "2" | "unlimited">()
+      .oneOf(["0", "1", "2", "unlimited"])
       .optional(),
   })
   .noUnknown();
@@ -984,7 +984,7 @@ const tools = {
       advanced.is_allowed_unlimited_notifications = unlimited;
       advanced.max_notifications_per_day = unlimited
         ? 0
-        : max_notifications_per_day;
+        : Number(max_notifications_per_day);
     }
 
     // app_metadata.description is a JSON-encoded string with shape
