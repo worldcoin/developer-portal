@@ -15,11 +15,15 @@ import { SelectVerificationDialog } from "./SelectVerificationDialog";
 import { VerifyLaterDialog } from "./VerifyLaterDialog";
 
 export const VerifyPage = () => {
-  const { data: metadata } = useGetAffiliateMetadata();
+  const { data: metadata, refetch: refetchAffiliateMetadata } =
+    useGetAffiliateMetadata();
   const params = useParams();
   const teamId = params.teamId as string;
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+  const [loadingVerification, setLoadingVerification] = useState<
+    "kyc" | "kyb" | null
+  >(null);
   const [showAcceptTerms, setShowAcceptTerms] = useState(false);
   const [showVerificationSelection, setShowVerificationSelection] =
     useState(false);
@@ -31,6 +35,7 @@ export const VerifyPage = () => {
     if (!metadata) return;
 
     setShowVerificationSelection(false);
+    setLoadingVerification(type);
     setIsLoading(true);
 
     try {
@@ -52,6 +57,7 @@ export const VerifyPage = () => {
       console.error("Failed to get verification link:", error);
       toast.error("Failed to start verification. Please try again.");
     } finally {
+      setLoadingVerification(null);
       setIsLoading(false);
     }
   };
@@ -69,8 +75,9 @@ export const VerifyPage = () => {
     >
       <AcceptTermsDialog
         open={showAcceptTerms}
-        onConfirm={() => {
+        onConfirm={async () => {
           setShowAcceptTerms(false);
+          await refetchAffiliateMetadata();
           if (shouldGoToOverviewAfterTerms) {
             setShouldGoToOverviewAfterTerms(false);
             router.push(urls.affiliateProgram({ team_id: teamId }));
@@ -89,7 +96,7 @@ export const VerifyPage = () => {
           setShowVerificationSelection(false);
         }}
         onSelect={handleGetVerificationLink}
-        isLoading={isLoading}
+        loadingType={loadingVerification}
         title="Select verification"
         metadata={metadata}
       />

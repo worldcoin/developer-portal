@@ -17,7 +17,7 @@ import { toast } from "react-toastify";
 
 type Props = DialogProps & {
   onClose: () => void;
-  onConfirm: () => void;
+  onConfirm: () => void | Promise<void>;
 };
 
 export const AcceptTermsDialog = (props: Props) => {
@@ -30,7 +30,7 @@ export const AcceptTermsDialog = (props: Props) => {
       const result = await executeAcceptTerms();
       if (result.success) {
         console.log("accepted terms url", result);
-        props.onConfirm();
+        await Promise.resolve(props.onConfirm());
       } else {
         throw new Error(result.message || "Failed to accept terms");
       }
