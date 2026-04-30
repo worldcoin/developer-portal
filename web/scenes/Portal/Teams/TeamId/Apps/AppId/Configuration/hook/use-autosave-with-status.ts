@@ -28,15 +28,15 @@ export const useAutosaveWithStatus = <T extends FieldValues>(
     onStatus: (status: AutosaveStatus) => {
       ctx?.pushStatus(idRef.current, status);
     },
+    onPendingChange: (isPending: boolean) => {
+      ctx?.setPending(idRef.current, isPending);
+    },
   });
 
   useEffect(() => {
     if (!ctx) return;
-    return ctx.register(idRef.current, {
-      flush: autosave.flush,
-      hasPending: autosave.hasPending,
-    });
-  }, [ctx, autosave.flush, autosave.hasPending]);
+    return ctx.register(idRef.current, { flush: autosave.flush });
+  }, [ctx, autosave.flush]);
 
   return autosave;
 };

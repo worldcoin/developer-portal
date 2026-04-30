@@ -18,6 +18,7 @@ const setup = (
   opts: {
     enabled?: boolean;
     onStatus?: (s: AutosaveStatus) => void;
+    onPendingChange?: (isPending: boolean) => void;
     debounceMs?: number;
     defaultValues?: Partial<Values>;
   } = {},
@@ -34,6 +35,7 @@ const setup = (
       save: saveImpl,
       enabled: opts.enabled ?? true,
       onStatus: opts.onStatus ?? (() => {}),
+      onPendingChange: opts.onPendingChange,
       debounceMs: opts.debounceMs ?? DEBOUNCE_MS,
     });
     return { form, result };
@@ -119,16 +121,17 @@ describe("useAutosave", () => {
     expect(save).not.toHaveBeenCalled();
   });
 
-  it("aborts in-flight save when a new change comes in", async () => {
-    const seenSignals: AbortSignal[] = [];
+  it("serializes saves: a new save waits for the prior one to settle", async () => {
+    const callOrder: string[] = [];
     let resolveFirst: (() => void) | null = null;
-    const save = jest.fn(async (_data: Values, signal: AbortSignal) => {
-      seenSignals.push(signal);
-      if (seenSignals.length === 1) {
+    const save = jest.fn(async (data: Values) => {
+      callOrder.push(`start:${data.name}`);
+      if (data.name === "first") {
         await new Promise<void>((resolve) => {
           resolveFirst = resolve;
         });
       }
+      callOrder.push(`end:${data.name}`);
     });
 
     const { result } = setup(save);
@@ -141,8 +144,9 @@ describe("useAutosave", () => {
     });
 
     expect(save).toHaveBeenCalledTimes(1);
-    expect(seenSignals[0].aborted).toBe(false);
+    expect(callOrder).toEqual(["start:first"]);
 
+    // Schedule a second save while the first is still in flight.
     await act(async () => {
       result.current.form.setValue("name", "second", { shouldDirty: true });
     });
@@ -150,13 +154,42 @@ describe("useAutosave", () => {
       await wait(DEBOUNCE_MS * 4);
     });
 
-    expect(save).toHaveBeenCalledTimes(2);
-    expect(seenSignals[0].aborted).toBe(true);
+    // Second save must not have started yet — the first is still in flight.
+    expect(save).toHaveBeenCalledTimes(1);
 
+    // Let the first save complete; the queued second save should fire next.
     await act(async () => {
       resolveFirst?.();
-      await Promise.resolve();
+      await wait(DEBOUNCE_MS * 4);
     });
+
+    expect(save).toHaveBeenCalledTimes(2);
+    expect(callOrder).toEqual([
+      "start:first",
+      "end:first",
+      "start:second",
+      "end:second",
+    ]);
+  });
+
+  it("emits pending change events around the debounce window", async () => {
+    const save = jest.fn().mockResolvedValue(undefined);
+    const events: boolean[] = [];
+    const { result } = setup(save, {
+      onPendingChange: (p) => events.push(p),
+    });
+
+    await act(async () => {
+      result.current.form.setValue("name", "x", { shouldDirty: true });
+    });
+    expect(events[0]).toBe(true);
+
+    await act(async () => {
+      await wait(DEBOUNCE_MS * 4);
+    });
+
+    expect(events).toContain(false);
+    expect(events.indexOf(false)).toBeGreaterThan(events.indexOf(true));
   });
 
   it("emits error status with retry function on save failure", async () => {

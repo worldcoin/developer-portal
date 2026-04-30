@@ -156,11 +156,13 @@ export const SetupForm = (props: LinksFormProps) => {
   ]);
 
   const persist = useCallback(
-    async (values: UpdateSetupInitialSchema) => {
+    async (values: UpdateSetupInitialSchema, signal?: AbortSignal) => {
+      if (signal?.aborted) throw new DOMException("Aborted", "AbortError");
       const result = await validateAndUpdateSetupServerSide(
         values,
         appMetadata?.id ?? "",
       );
+      if (signal?.aborted) throw new DOMException("Aborted", "AbortError");
       if (!result.success) {
         throw new Error(result.message);
       }
@@ -181,7 +183,7 @@ export const SetupForm = (props: LinksFormProps) => {
     id: "advanced-setup",
     form,
     enabled: isAdvancedEditable,
-    save: async (values) => {
+    save: async (values, signal) => {
       if (hasInvalidWhitelistCombination(values)) {
         setError("whitelisted_addresses", {
           type: "manual",
@@ -192,7 +194,7 @@ export const SetupForm = (props: LinksFormProps) => {
           "Mini Apps must have at least one whitelisted payment address.",
         );
       }
-      await persist(values);
+      await persist(values, signal);
     },
   });
 

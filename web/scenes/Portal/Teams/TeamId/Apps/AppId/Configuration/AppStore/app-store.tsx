@@ -62,8 +62,8 @@ export const AppStoreForm = ({
     id: "app-store",
     form,
     enabled: isEditable && isEnoughPermissions,
-    save: async (data) => {
-      await submitSilent(data);
+    save: async (data, signal) => {
+      await submitSilent(data, signal);
     },
   });
 

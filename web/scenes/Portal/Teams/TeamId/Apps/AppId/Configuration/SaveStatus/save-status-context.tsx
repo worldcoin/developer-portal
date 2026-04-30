@@ -14,7 +14,6 @@ import { AutosaveStatus } from "../hook/use-autosave";
 
 type Registered = {
   flush: () => Promise<boolean>;
-  hasPending: () => boolean;
 };
 
 type SaveStatusContextValue = {
@@ -22,6 +21,7 @@ type SaveStatusContextValue = {
   hasPending: boolean;
   register: (id: string, r: Registered) => () => void;
   pushStatus: (id: string, status: AutosaveStatus) => void;
+  setPending: (id: string, isPending: boolean) => void;
   flushAll: () => Promise<boolean>;
 };
 
@@ -51,6 +51,7 @@ export const SaveStatusProvider = ({ children }: { children: ReactNode }) => {
   const [statuses, setStatuses] = useState<Map<string, AutosaveStatus>>(
     () => new Map(),
   );
+  const [pendingIds, setPendingIds] = useState<Set<string>>(() => new Set());
   const registeredRef = useRef<Map<string, Registered>>(new Map());
 
   const register = useCallback((id: string, r: Registered) => {
@@ -63,6 +64,12 @@ export const SaveStatusProvider = ({ children }: { children: ReactNode }) => {
         next.delete(id);
         return next;
       });
+      setPendingIds((prev) => {
+        if (!prev.has(id)) return prev;
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      });
     };
   }, []);
 
@@ -70,6 +77,16 @@ export const SaveStatusProvider = ({ children }: { children: ReactNode }) => {
     setStatuses((prev) => {
       const next = new Map(prev);
       next.set(id, status);
+      return next;
+    });
+  }, []);
+
+  const setPending = useCallback((id: string, isPending: boolean) => {
+    setPendingIds((prev) => {
+      if (isPending === prev.has(id)) return prev;
+      const next = new Set(prev);
+      if (isPending) next.add(id);
+      else next.delete(id);
       return next;
     });
   }, []);
@@ -87,11 +104,8 @@ export const SaveStatusProvider = ({ children }: { children: ReactNode }) => {
 
   const hasPending = useMemo(() => {
     if (status.state === "saving" || status.state === "error") return true;
-    for (const r of registeredRef.current.values()) {
-      if (r.hasPending()) return true;
-    }
-    return false;
-  }, [status, statuses]);
+    return pendingIds.size > 0;
+  }, [status, pendingIds]);
 
   const value = useMemo<SaveStatusContextValue>(
     () => ({
@@ -99,9 +113,10 @@ export const SaveStatusProvider = ({ children }: { children: ReactNode }) => {
       hasPending,
       register,
       pushStatus,
+      setPending,
       flushAll,
     }),
-    [status, hasPending, register, pushStatus, flushAll],
+    [status, hasPending, register, pushStatus, setPending, flushAll],
   );
 
   useBeforeUnloadGuard(hasPending);

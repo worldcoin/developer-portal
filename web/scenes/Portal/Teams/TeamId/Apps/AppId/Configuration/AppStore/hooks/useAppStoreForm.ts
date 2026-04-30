@@ -90,11 +90,13 @@ export const useAppStoreForm = (appId: string, appMetadata: AppMetadata) => {
   }, [supportedLanguages, localisations, append, remove]);
 
   const submitSilent = useCallback(
-    async (data: AppStoreFormValues) => {
+    async (data: AppStoreFormValues, signal?: AbortSignal) => {
+      if (signal?.aborted) throw new DOMException("Aborted", "AbortError");
       const result = await updateAppStoreMetadata({
         ...data,
         app_metadata_id: appMetadata.id,
       });
+      if (signal?.aborted) throw new DOMException("Aborted", "AbortError");
       if (!result.success) {
         throw new Error(result.message);
       }

@@ -15,12 +15,12 @@ export type UseAutosaveOptions<T extends FieldValues> = {
   enabled: boolean;
   debounceMs?: number;
   onStatus: (status: AutosaveStatus) => void;
+  onPendingChange?: (isPending: boolean) => void;
 };
 
 export type UseAutosaveResult = {
   flush: () => Promise<boolean>;
   isSaving: () => boolean;
-  hasPending: () => boolean;
 };
 
 const DEFAULT_DEBOUNCE_MS = 1500;
@@ -52,16 +52,28 @@ export function useAutosave<T extends FieldValues>(
   }, []);
 
   const performSave = useCallback(async (): Promise<boolean> => {
-    const { form: f, save, onStatus } = optionsRef.current;
+    // Serialize saves: wait for any prior in-flight save to complete first.
+    // Without this, two HTTP requests can race and the server-side write order
+    // is undefined — an older snapshot can land on top of a newer one.
+    const prior = inFlightPromiseRef.current;
+    if (prior) {
+      try {
+        await prior;
+      } catch {
+        /* ignore prior error; it's already been surfaced via onStatus */
+      }
+    }
+
+    const { form: f, save, onStatus, onPendingChange } = optionsRef.current;
 
     const valid = await f.trigger();
     if (!valid) return false;
 
-    if (controllerRef.current) controllerRef.current.abort();
     const controller = new AbortController();
     controllerRef.current = controller;
 
     const snapshot = f.getValues();
+    onPendingChange?.(false);
     onStatus({ state: "saving" });
 
     try {
@@ -124,14 +136,10 @@ export function useAutosave<T extends FieldValues>(
 
   const isSaving = useCallback(() => controllerRef.current !== null, []);
 
-  const hasPending = useCallback(
-    () => debounceTimerRef.current !== null || controllerRef.current !== null,
-    [],
-  );
-
   useEffect(() => {
     if (!options.enabled) {
       clearDebounce();
+      optionsRef.current.onPendingChange?.(false);
       return;
     }
 
@@ -139,6 +147,7 @@ export function useAutosave<T extends FieldValues>(
       if (!info.name) return;
       if (!optionsRef.current.enabled) return;
       clearDebounce();
+      optionsRef.current.onPendingChange?.(true);
       debounceTimerRef.current = setTimeout(() => {
         debounceTimerRef.current = null;
         const promise = performSave();
@@ -161,5 +170,5 @@ export function useAutosave<T extends FieldValues>(
     };
   }, [clearDebounce]);
 
-  return { flush, isSaving, hasPending };
+  return { flush, isSaving };
 }

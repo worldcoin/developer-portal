@@ -115,12 +115,17 @@ export const BasicInformation = forwardRef<
   }, [appMetaData?.id, editableAppMetadata, reset]);
 
   const persist = useCallback(
-    async (data: BasicInformationFormValues): Promise<boolean> => {
+    async (
+      data: BasicInformationFormValues,
+      signal?: AbortSignal,
+    ): Promise<boolean> => {
+      if (signal?.aborted) throw new DOMException("Aborted", "AbortError");
       const result = await validateAndSubmitServerSide(
         appMetaData?.id,
         appId,
         data,
       );
+      if (signal?.aborted) throw new DOMException("Aborted", "AbortError");
       if (!result.success) {
         throw new Error(result.message);
       }
@@ -134,8 +139,8 @@ export const BasicInformation = forwardRef<
     id: "basic-information",
     form,
     enabled: isEditable && isEnoughPermissions,
-    save: async (data) => {
-      await persist(data);
+    save: async (data, signal) => {
+      await persist(data, signal);
     },
   });
 
