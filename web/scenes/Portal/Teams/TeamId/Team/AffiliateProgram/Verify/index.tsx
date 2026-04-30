@@ -15,7 +15,8 @@ import { SelectVerificationDialog } from "./SelectVerificationDialog";
 import { VerifyLaterDialog } from "./VerifyLaterDialog";
 
 export const VerifyPage = () => {
-  const { data: metadata } = useGetAffiliateMetadata();
+  const { data: metadata, refetch: refetchAffiliateMetadata } =
+    useGetAffiliateMetadata();
   const params = useParams();
   const teamId = params.teamId as string;
   const router = useRouter();
@@ -74,8 +75,9 @@ export const VerifyPage = () => {
     >
       <AcceptTermsDialog
         open={showAcceptTerms}
-        onConfirm={() => {
+        onConfirm={async () => {
           setShowAcceptTerms(false);
+          await refetchAffiliateMetadata();
           if (shouldGoToOverviewAfterTerms) {
             setShouldGoToOverviewAfterTerms(false);
             router.push(urls.affiliateProgram({ team_id: teamId }));

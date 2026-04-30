@@ -76,6 +76,10 @@ export const AffiliateProgramLayout = (props: TeamIdLayoutProps) => {
     [metadata?.identityVerificationStatus],
   );
 
+  console.log('render layout', {
+    isTermsAccepted,
+    pathname,
+  })
   // Handle redirects client-side
   useEffect(() => {
     // Wait for affiliateEnabled to be fetched before making decisions
@@ -84,11 +88,13 @@ export const AffiliateProgramLayout = (props: TeamIdLayoutProps) => {
     }
 
     if (!isAffiliateEnabled) {
+      console.log('redirect teams')
       return router.push(urls.teams({ team_id: teamId }));
     }
 
     // Check owner permissions for owner-only pages (most restrictive check first)
     if (isOwnerOnlyPage && !hasOwnerPermission) {
+      console.log('redirect affiliateProgram')
       return router.push(urls.affiliateProgram({ team_id: teamId }));
     }
 
@@ -98,14 +104,17 @@ export const AffiliateProgramLayout = (props: TeamIdLayoutProps) => {
     }
 
     if (!isVerifyPage && !isTermsAccepted) {
+      console.log('redirect verify')
       return router.push(urls.affiliateProgramVerify({ team_id: teamId }));
     }
 
     if (isWithdrawPage && isVerificationRequired) {
+      console.log('redirect earnings')
       return router.push(urls.affiliateEarnings({ team_id: teamId }));
     }
 
     if (isVerifyPage && isTermsAccepted) {
+      console.log('redirect overview')
       return router.push(urls.affiliateProgram({ team_id: teamId }));
     }
   }, [

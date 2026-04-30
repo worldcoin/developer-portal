@@ -1,41 +1,88 @@
+"use client";
+
 import { AffiliateMetadataResponse } from "@/lib/types";
+import { affiliateMetadataAtom } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/common/affiliate-metadata-atom";
 import { getAffiliateMetadata } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Overview/page/server/getAffiliateMetadata";
-import { useCallback, useEffect, useState } from "react";
+import { useAtom } from "jotai";
+import { usePathname } from "next/navigation";
+import { useCallback, useEffect } from "react";
 import { toast } from "react-toastify";
 
-export const useGetAffiliateMetadata = (options?: { skip?: boolean }) => {
-  const [data, setData] = useState<AffiliateMetadataResponse["result"] | null>(
-    null,
-  );
-  const [loading, setLoading] = useState(!options?.skip);
-  const [error, setError] = useState<unknown>(null);
+let inflightFetch: Promise<
+  AffiliateMetadataResponse["result"] | null
+> | null = null;
 
-  const fetchData = useCallback(async () => {
-    // Set loading to true before starting the fetch
-    setLoading(true);
-    setError(null); // Clear previous errors
+async function fetchAffiliateMetadataDeduped(): Promise<
+  AffiliateMetadataResponse["result"] | null
+> {
+  if (inflightFetch) {
+    return inflightFetch;
+  }
 
+  inflightFetch = (async () => {
     const result = await getAffiliateMetadata();
-    console.log("useGetAffiliateMetadata data: ", result, result.data);
     if (!result.success) {
       console.error("Failed to fetch data: ", result.message);
       toast.error("Failed to fetch metadata. Please try later.");
-      setError(result.error);
-    } else {
-      setData((result.data as AffiliateMetadataResponse).result);
+      return null;
     }
-    setLoading(false);
-  }, []);
+    return (result.data as AffiliateMetadataResponse).result;
+  })().finally(() => {
+    inflightFetch = null;
+  });
+
+  return inflightFetch;
+}
+
+/**
+ * Subscribes to shared affiliate metadata atom and loads/refetches into it.
+ * Call `refetch()` after mutations (e.g. accept terms) so layout guards stay in sync.
+ */
+export const useGetAffiliateMetadata = (options?: { skip?: boolean }) => {
+  const pathname = usePathname();
+  const [{ data, loading, error }, setState] = useAtom(affiliateMetadataAtom);
+
+  const fetchData = useCallback(async () => {
+    setState((prev) => {
+      const hasCached = prev.data != null;
+      return {
+        ...prev,
+        error: null,
+        loading: hasCached ? prev.loading : true,
+      };
+    });
+
+    const next = await fetchAffiliateMetadataDeduped();
+
+    if (next == null) {
+      setState((prev) => ({
+        ...prev,
+        loading: false,
+      }));
+      return null;
+    }
+
+    setState({
+      data: next,
+      loading: false,
+      error: null,
+    });
+    return next;
+  }, [setState]);
 
   useEffect(() => {
-    // Skip fetching if skip is true
     if (options?.skip) {
-      setLoading(false);
+      setState((prev) => ({ ...prev, loading: false }));
       return;
     }
 
-    fetchData();
-  }, [options?.skip, fetchData]);
+    void fetchData();
+  }, [options?.skip, fetchData, pathname, setState]);
 
-  return { data, loading, error, refetch: fetchData };
+  return {
+    data,
+    loading,
+    error,
+    refetch: fetchData,
+  };
 };
