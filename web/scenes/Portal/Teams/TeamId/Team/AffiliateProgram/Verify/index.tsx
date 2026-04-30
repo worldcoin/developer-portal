@@ -20,6 +20,9 @@ export const VerifyPage = () => {
   const teamId = params.teamId as string;
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+  const [loadingVerification, setLoadingVerification] = useState<
+    "kyc" | "kyb" | null
+  >(null);
   const [showAcceptTerms, setShowAcceptTerms] = useState(false);
   const [showVerificationSelection, setShowVerificationSelection] =
     useState(false);
@@ -31,6 +34,7 @@ export const VerifyPage = () => {
     if (!metadata) return;
 
     setShowVerificationSelection(false);
+    setLoadingVerification(type);
     setIsLoading(true);
 
     try {
@@ -52,6 +56,7 @@ export const VerifyPage = () => {
       console.error("Failed to get verification link:", error);
       toast.error("Failed to start verification. Please try again.");
     } finally {
+      setLoadingVerification(null);
       setIsLoading(false);
     }
   };
@@ -89,7 +94,7 @@ export const VerifyPage = () => {
           setShowVerificationSelection(false);
         }}
         onSelect={handleGetVerificationLink}
-        isLoading={isLoading}
+        loadingType={loadingVerification}
         title="Select verification"
         metadata={metadata}
       />

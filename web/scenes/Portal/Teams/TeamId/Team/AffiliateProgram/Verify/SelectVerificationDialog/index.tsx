@@ -21,7 +21,8 @@ type Props = {
   open: boolean;
   onClose: () => void;
   onSelect: (type: GetIdentityVerificationLinkRequest["type"]) => void;
-  isLoading: boolean;
+  /** Which verification flow is fetching a link; only that row shows a loading state */
+  loadingType?: "kyc" | "kyb" | null;
   title: string;
   metadata: AffiliateMetadataResponse["result"] | null;
 };
@@ -30,7 +31,7 @@ export const SelectVerificationDialog = ({
   open,
   onClose,
   onSelect,
-  isLoading,
+  loadingType = null,
   title,
   metadata,
 }: Props) => {
@@ -91,7 +92,7 @@ export const SelectVerificationDialog = ({
                   status={kycStatus}
                   onComplete={() => onSelect("kyc")}
                   isLoading={
-                    isLoading ||
+                    loadingType === "kyc" ||
                     kycStatus === IdentityVerificationStatus.PENDING
                   }
                   buttonText="Start"
@@ -102,7 +103,7 @@ export const SelectVerificationDialog = ({
                   status={kybStatus}
                   onComplete={() => onSelect("kyb")}
                   isLoading={
-                    isLoading ||
+                    loadingType === "kyb" ||
                     kybStatus === IdentityVerificationStatus.PENDING
                   }
                   buttonText="Start"
