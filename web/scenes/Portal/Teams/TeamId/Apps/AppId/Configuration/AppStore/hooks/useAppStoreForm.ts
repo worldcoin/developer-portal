@@ -89,21 +89,34 @@ export const useAppStoreForm = (appId: string, appMetadata: AppMetadata) => {
     }
   }, [supportedLanguages, localisations, append, remove]);
 
-  const submit = useCallback(
+  const submitSilent = useCallback(
     async (data: AppStoreFormValues) => {
       const result = await updateAppStoreMetadata({
         ...data,
         app_metadata_id: appMetadata.id,
       });
-
       if (!result.success) {
-        toast.error(result.message);
-      } else {
-        await Promise.all([refetchAppMetadata(), refetchLocalisations()]);
-        toast.success("App information updated successfully");
+        throw new Error(result.message);
       }
+      await Promise.all([refetchAppMetadata(), refetchLocalisations()]);
     },
     [appMetadata.id, refetchAppMetadata, refetchLocalisations],
+  );
+
+  const submit = useCallback(
+    async (data: AppStoreFormValues) => {
+      try {
+        await submitSilent(data);
+        toast.success("App information updated successfully");
+      } catch (err) {
+        toast.error(
+          err instanceof Error
+            ? err.message
+            : "Failed to update app information",
+        );
+      }
+    },
+    [submitSilent],
   );
 
   const onInvalid = useCallback(
@@ -127,6 +140,7 @@ export const useAppStoreForm = (appId: string, appMetadata: AppMetadata) => {
     supportType,
     handleSupportTypeChange,
     submit,
+    submitSilent,
     onInvalid,
     isEditable,
     refetchAppMetadata,

@@ -71,7 +71,9 @@ export async function updateAppStoreMetadata(
 
     const supportLink =
       parsedParams.support_type === "email"
-        ? formatEmailLink(parsedParams.support_email || "")
+        ? parsedParams.support_email
+          ? formatEmailLink(parsedParams.support_email)
+          : ""
         : parsedParams.support_link;
     const enLocalisation = parsedParams.localisations.find(
       (l) => l.language === "en",
@@ -108,7 +110,7 @@ export async function updateAppStoreMetadata(
         short_name: l.short_name,
         world_app_description: l.world_app_description,
         world_app_button_text: "", // backwards compat
-        description: encodeDescription(l.description_overview),
+        description: encodeDescription(l.description_overview ?? ""),
         meta_tag_image_url: extractImagePathWithExtensionFromActualUrl(
           l.meta_tag_image_url,
         ),

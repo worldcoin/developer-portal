@@ -18,18 +18,10 @@ import {
 export const localisationFormSchema = yup
   .object({
     language: yup.string().required("Locale is required"),
-    name: appNameSchema,
-    short_name: appShortNameSchema.when("$isMiniApp", {
-      is: true,
-      then: (s) => s.required("Short name is required"),
-      otherwise: (s) => s.notRequired(),
-    }),
-    world_app_description: appWorldAppDescriptionSchema.when("$isMiniApp", {
-      is: true,
-      then: (s) => s.required("App tag line is required"),
-      otherwise: (s) => s.notRequired(),
-    }),
-    description_overview: appDescriptionOverviewSchema,
+    name: appNameSchema.optional(),
+    short_name: appShortNameSchema.optional(),
+    world_app_description: appWorldAppDescriptionSchema.optional(),
+    description_overview: appDescriptionOverviewSchema.optional(),
     meta_tag_image_url: yup.string().notRequired(),
     showcase_img_urls: yup.array().of(yup.string().notRequired()),
   })
@@ -40,7 +32,7 @@ export const mainAppStoreFormSchema = yup
     category: categorySchema,
     support_type: yup.string().when("$isMiniApp", {
       is: true,
-      then: (s) => s.oneOf(["email", "link"], "Invalid support type"),
+      then: (s) => s.oneOf(["email", "link", ""], "Invalid support type"),
       otherwise: (s) => s.notRequired(),
     }),
     support_link: yup.string().when("$isMiniApp", {
@@ -49,7 +41,7 @@ export const mainAppStoreFormSchema = yup
       otherwise: (s) =>
         s.when("support_type", {
           is: "link",
-          then: () => supportLinkSchema.required("Support contact is required"),
+          then: () => supportLinkSchema,
           otherwise: () => yup.string().length(0),
         }),
     }),
@@ -59,8 +51,7 @@ export const mainAppStoreFormSchema = yup
       otherwise: (s) =>
         s.when("support_type", {
           is: "email",
-          then: () =>
-            supportEmailSchema.required("Support contact is required"),
+          then: () => supportEmailSchema,
           otherwise: () => yup.string().length(0),
         }),
     }),
@@ -69,11 +60,11 @@ export const mainAppStoreFormSchema = yup
     supported_countries: supportedCountriesSchema,
     supported_languages: yup
       .array(yup.string().required("This field is required"))
-      .min(1, "This field is required")
-      .required("This field is required")
       .default(["en"])
-      .test("has-english", "English is a required language", (langs) =>
-        langs.includes("en"),
+      .test(
+        "has-english",
+        "English is a required language",
+        (langs) => !langs?.length || langs.includes("en"),
       ),
     localisations: yup.array().of(localisationFormSchema).default([]),
   })
@@ -167,9 +158,9 @@ export const mainAppStoreFormReviewSubmitSchema = yup
     is_for_humans_only: isForHumansOnlySchema.required(
       "This field is required",
     ),
-    supported_countries: supportedCountriesSchema.required(
-      "This field is required",
-    ),
+    supported_countries: supportedCountriesSchema
+      .min(1, "Supported Countries is required")
+      .required("This field is required"),
     supported_languages: yup
       .array(yup.string().required("This field is required"))
       .min(1, "This field is required")

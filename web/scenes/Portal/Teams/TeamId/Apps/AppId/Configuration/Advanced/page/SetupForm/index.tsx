@@ -23,11 +23,12 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import clsx from "clsx";
 import { ChangeEvent, useCallback, useEffect, useMemo } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
-import { toast } from "react-toastify";
 import {
   FetchAppMetadataDocument,
   FetchAppMetadataQuery,
 } from "../../../graphql/client/fetch-app-metadata.generated";
+import { useAutosaveWithStatus } from "../../../hook/use-autosave-with-status";
+import { useSaveStatus } from "../../../SaveStatus";
 import {
   updateSetupInitialSchema,
   UpdateSetupInitialSchema,
@@ -96,14 +97,7 @@ export const SetupForm = (props: LinksFormProps) => {
     ]);
   }, [user, teamId]);
 
-  const {
-    register,
-    handleSubmit,
-    reset,
-    formState: { errors, isDirty, isValid, dirtyFields },
-    setError,
-    control,
-  } = useForm<UpdateSetupInitialSchema>({
+  const form = useForm<UpdateSetupInitialSchema>({
     resolver: yupResolver(updateSetupInitialSchema),
     mode: "onChange",
 
@@ -123,6 +117,13 @@ export const SetupForm = (props: LinksFormProps) => {
       ),
     },
   });
+  const {
+    register,
+    reset,
+    formState: { errors, dirtyFields },
+    setError,
+    control,
+  } = form;
 
   // Used to update the fields when view mode is change
   useEffect(() => {
@@ -154,15 +155,34 @@ export const SetupForm = (props: LinksFormProps) => {
     appMetadata?.is_allowed_unlimited_notifications,
   ]);
 
-  const submit = useCallback(
+  const persist = useCallback(
     async (values: UpdateSetupInitialSchema) => {
-      // Check if app_mode is true and whitelisted_addresses is not provided or empty
-      if (
-        values.app_mode &&
-        !values.is_whitelist_disabled &&
-        (!values.whitelisted_addresses ||
-          values.whitelisted_addresses.length === 0)
-      ) {
+      const result = await validateAndUpdateSetupServerSide(
+        values,
+        appMetadata?.id ?? "",
+      );
+      if (!result.success) {
+        throw new Error(result.message);
+      }
+      await refetchAppMetadata();
+    },
+    [appMetadata?.id, refetchAppMetadata],
+  );
+
+  const isAdvancedEditable = isEditable && isEnoughPermissions;
+
+  const hasInvalidWhitelistCombination = (values: UpdateSetupInitialSchema) =>
+    values.app_mode === "mini-app" &&
+    !values.is_whitelist_disabled &&
+    (!values.whitelisted_addresses ||
+      values.whitelisted_addresses.length === 0);
+
+  useAutosaveWithStatus<UpdateSetupInitialSchema>({
+    id: "advanced-setup",
+    form,
+    enabled: isAdvancedEditable,
+    save: async (values) => {
+      if (hasInvalidWhitelistCombination(values)) {
         setError("whitelisted_addresses", {
           type: "manual",
           message:
@@ -172,21 +192,11 @@ export const SetupForm = (props: LinksFormProps) => {
           "Mini Apps must have at least one whitelisted payment address.",
         );
       }
-
-      const result = await validateAndUpdateSetupServerSide(
-        values,
-        appMetadata?.id ?? "",
-      );
-
-      if (!result.success) {
-        toast.error(result.message);
-      } else {
-        refetchAppMetadata();
-        toast.success("App information updated successfully");
-      }
+      await persist(values);
     },
-    [appMetadata?.id, refetchAppMetadata, setError],
-  );
+  });
+
+  const { flushAll, status } = useSaveStatus();
 
   const appMode = useWatch({
     control,
@@ -213,16 +223,14 @@ export const SetupForm = (props: LinksFormProps) => {
     watchedValues;
 
   return (
-    <form className="grid gap-y-9" onSubmit={handleSubmit(submit)}>
-      <div className="grid gap-y-2">
-        <Typography variant={TYPOGRAPHY.H7}>Advanced Settings</Typography>
-
-        {isDirty && (
-          <Typography variant={TYPOGRAPHY.R4} className="text-system-error-500">
-            Warning: You have unsaved changes
-          </Typography>
-        )}
-      </div>
+    <form
+      className="grid gap-y-9"
+      onSubmit={(event) => {
+        event.preventDefault();
+        void flushAll();
+      }}
+    >
+      <Typography variant={TYPOGRAPHY.H7}>Advanced Settings</Typography>
 
       <div className="grid gap-y-6">
         <div className="grid gap-2 md:grid-cols-2">
@@ -468,11 +476,16 @@ export const SetupForm = (props: LinksFormProps) => {
         </label> */}
       </div>
       <DecoratedButton
-        type="submit"
+        type="button"
         className="h-12 w-40"
-        disabled={!isEditable || !isEnoughPermissions || !isValid}
+        disabled={!isAdvancedEditable || status.state === "saving"}
+        onClick={() => {
+          void flushAll();
+        }}
       >
-        <Typography variant={TYPOGRAPHY.M3}>Save Changes</Typography>
+        <Typography variant={TYPOGRAPHY.M3}>
+          {status.state === "saving" ? "Saving…" : "Save now"}
+        </Typography>
       </DecoratedButton>
     </form>
   );

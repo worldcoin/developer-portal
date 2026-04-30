@@ -16,6 +16,7 @@ import {
 } from "../graphql/client/fetch-app-metadata.generated";
 import { AppMetadata } from "../AppStore/types/AppStoreFormTypes";
 import { isMiniAppAtom } from "../layout/ImagesProvider";
+import { useOptionalSaveStatus } from "../SaveStatus";
 import { updateAppMode } from "./server/submit";
 
 type MiniAppConfigurationProps = {
@@ -32,6 +33,7 @@ export const MiniAppConfiguration = ({
   const { user } = useUser() as Auth0SessionUser;
   const [isUpdatingMode, setIsUpdatingMode] = useState(false);
   const modeUpdateInFlightRef = useRef(false);
+  const saveStatus = useOptionalSaveStatus();
 
   const isEnoughPermissions = useMemo(() => {
     return checkUserPermissions(user, teamId ?? "", [
@@ -64,6 +66,7 @@ export const MiniAppConfiguration = ({
 
       modeUpdateInFlightRef.current = true;
       setIsUpdatingMode(true);
+      saveStatus?.pushStatus("mini-app-toggle", { state: "saving" });
 
       // Optimistically flip the toggle immediately
       setIsMiniApp(checked);
@@ -74,16 +77,33 @@ export const MiniAppConfiguration = ({
           // Revert on failure
           setIsMiniApp(!checked);
           toast.error(result.message);
+          const error = new Error(result.message);
+          saveStatus?.pushStatus("mini-app-toggle", {
+            state: "error",
+            error,
+            retry: () => {
+              void handleAppModeToggleRef.current?.(checked);
+            },
+          });
         } else {
           await refetchAppMetadata();
+          saveStatus?.pushStatus("mini-app-toggle", {
+            state: "saved",
+            at: Date.now(),
+          });
         }
       } finally {
         modeUpdateInFlightRef.current = false;
         setIsUpdatingMode(false);
       }
     },
-    [appMetadata.id, refetchAppMetadata, setIsMiniApp],
+    [appMetadata.id, refetchAppMetadata, setIsMiniApp, saveStatus],
   );
+
+  const handleAppModeToggleRef = useRef<typeof handleAppModeToggle | null>(
+    null,
+  );
+  handleAppModeToggleRef.current = handleAppModeToggle;
 
   return (
     <div className="flex max-w-[700px] flex-col gap-5">

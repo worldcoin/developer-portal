@@ -1,0 +1,137 @@
+"use client";
+
+import {
+  createContext,
+  ReactNode,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import { AutosaveStatus } from "../hook/use-autosave";
+
+type Registered = {
+  flush: () => Promise<boolean>;
+  hasPending: () => boolean;
+};
+
+type SaveStatusContextValue = {
+  status: AutosaveStatus;
+  hasPending: boolean;
+  register: (id: string, r: Registered) => () => void;
+  pushStatus: (id: string, status: AutosaveStatus) => void;
+  flushAll: () => Promise<boolean>;
+};
+
+const SaveStatusContext = createContext<SaveStatusContextValue | null>(null);
+
+const mergeStatuses = (
+  statuses: Map<string, AutosaveStatus>,
+): AutosaveStatus => {
+  let mostRecentSaved: { state: "saved"; at: number } | null = null;
+  let firstError: AutosaveStatus | null = null;
+  for (const status of statuses.values()) {
+    if (status.state === "saving") return status;
+    if (status.state === "error" && !firstError) firstError = status;
+    if (
+      status.state === "saved" &&
+      (!mostRecentSaved || status.at > mostRecentSaved.at)
+    ) {
+      mostRecentSaved = status;
+    }
+  }
+  if (firstError) return firstError;
+  if (mostRecentSaved) return mostRecentSaved;
+  return { state: "idle" };
+};
+
+export const SaveStatusProvider = ({ children }: { children: ReactNode }) => {
+  const [statuses, setStatuses] = useState<Map<string, AutosaveStatus>>(
+    () => new Map(),
+  );
+  const registeredRef = useRef<Map<string, Registered>>(new Map());
+
+  const register = useCallback((id: string, r: Registered) => {
+    registeredRef.current.set(id, r);
+    return () => {
+      registeredRef.current.delete(id);
+      setStatuses((prev) => {
+        if (!prev.has(id)) return prev;
+        const next = new Map(prev);
+        next.delete(id);
+        return next;
+      });
+    };
+  }, []);
+
+  const pushStatus = useCallback((id: string, status: AutosaveStatus) => {
+    setStatuses((prev) => {
+      const next = new Map(prev);
+      next.set(id, status);
+      return next;
+    });
+  }, []);
+
+  const flushAll = useCallback(async (): Promise<boolean> => {
+    const results = await Promise.all(
+      Array.from(registeredRef.current.values()).map((r) =>
+        r.flush().catch(() => false),
+      ),
+    );
+    return results.every(Boolean);
+  }, []);
+
+  const status = useMemo(() => mergeStatuses(statuses), [statuses]);
+
+  const hasPending = useMemo(() => {
+    if (status.state === "saving" || status.state === "error") return true;
+    for (const r of registeredRef.current.values()) {
+      if (r.hasPending()) return true;
+    }
+    return false;
+  }, [status, statuses]);
+
+  const value = useMemo<SaveStatusContextValue>(
+    () => ({
+      status,
+      hasPending,
+      register,
+      pushStatus,
+      flushAll,
+    }),
+    [status, hasPending, register, pushStatus, flushAll],
+  );
+
+  useBeforeUnloadGuard(hasPending);
+
+  return (
+    <SaveStatusContext.Provider value={value}>
+      {children}
+    </SaveStatusContext.Provider>
+  );
+};
+
+export const useSaveStatus = (): SaveStatusContextValue => {
+  const ctx = useContext(SaveStatusContext);
+  if (!ctx) {
+    throw new Error("useSaveStatus must be used within SaveStatusProvider");
+  }
+  return ctx;
+};
+
+export const useOptionalSaveStatus = (): SaveStatusContextValue | null =>
+  useContext(SaveStatusContext);
+
+const useBeforeUnloadGuard = (shouldWarn: boolean) => {
+  useEffect(() => {
+    if (!shouldWarn) return;
+    const handler = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = "";
+    };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [shouldWarn]);
+};
