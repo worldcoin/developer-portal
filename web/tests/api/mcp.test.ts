@@ -162,9 +162,10 @@ beforeEach(async () => {
   s3SendMock.mockResolvedValue({});
   fetchMock.mockReset();
   dnsLookupMock.mockReset();
-  // Default: source_url hostnames resolve to a public address. Specific tests
-  // override this to simulate private / loopback responses.
-  dnsLookupMock.mockResolvedValue({ address: "203.0.113.10", family: 4 });
+  // Default: source_url hostnames resolve to a single public address. The
+  // helper calls `lookup(host, { all: true })`, which returns an array; we
+  // adapt here so existing call sites stay simple.
+  dnsLookupMock.mockResolvedValue([{ address: "203.0.113.10", family: 4 }]);
   submitManagedRpRegistrationMock.mockReset();
   submitManagedSignerRotationMock.mockReset();
   // Default: managed flows succeed. Specific tests override to assert
@@ -873,7 +874,7 @@ describe("/api/mcp", () => {
   });
 
   it("rejects source_url that resolves to a private address", async () => {
-    dnsLookupMock.mockResolvedValue({ address: "127.0.0.1", family: 4 });
+    dnsLookupMock.mockResolvedValue([{ address: "127.0.0.1", family: 4 }]);
 
     const res = await POST(
       callTool("upload_app_image", {
@@ -889,6 +890,52 @@ describe("/api/mcp", () => {
     expect(body.error.message).toMatch(/private\/internal/);
     expect(fetchMock).not.toHaveBeenCalled();
     expect(s3SendMock).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ["dotted IPv4-mapped IPv6 loopback", "::ffff:127.0.0.1"],
+    ["hex IPv4-mapped IPv6 loopback", "::ffff:7f00:1"],
+    ["hex IPv4-mapped IPv6 RFC1918", "::ffff:0a00:1"],
+  ])(
+    "rejects source_url whose DNS records include %s",
+    async (_name, mappedAddress) => {
+      dnsLookupMock.mockResolvedValue([{ address: mappedAddress, family: 6 }]);
+
+      const res = await POST(
+        callTool("upload_app_image", {
+          app_id: appId,
+          image_type: "logo",
+          source_url: "https://example.com/logo.png",
+        }),
+      );
+
+      expect(res.status).toBe(200);
+      const body = await res.json();
+      expect(body.error.code).toBe(-32602);
+      expect(body.error.message).toMatch(/private\/internal/);
+      expect(fetchMock).not.toHaveBeenCalled();
+    },
+  );
+
+  it("rejects source_url where any of the resolved A/AAAA records is private", async () => {
+    dnsLookupMock.mockResolvedValue([
+      { address: "203.0.113.10", family: 4 },
+      { address: "127.0.0.1", family: 4 },
+    ]);
+
+    const res = await POST(
+      callTool("upload_app_image", {
+        app_id: appId,
+        image_type: "logo",
+        source_url: "https://mixed.example.com/logo.png",
+      }),
+    );
+
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.error.code).toBe(-32602);
+    expect(body.error.message).toMatch(/private\/internal/);
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it("rejects source_url with Content-Length above the 500KB cap before reading body", async () => {

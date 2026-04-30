@@ -224,6 +224,27 @@ export const detectImageContentType = (
   return null;
 };
 
+// Convert any IPv4-mapped IPv6 form (dotted `::ffff:127.0.0.1` OR hex
+// `::ffff:7f00:1`) back to the underlying dotted IPv4. Returns null for
+// non-mapped IPv6.
+const ipv4FromMapped = (ipv6: string): string | null => {
+  const lower = ipv6.toLowerCase();
+  // Some forms include an extra `::ffff:0:` prefix; normalize the leader to
+  // `::ffff:` only.
+  const mapped = lower.replace(/^::ffff:0+:/, "::ffff:");
+  const dotted = mapped.match(/^::ffff:(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})$/);
+  if (dotted) return isIP(dotted[1]) === 4 ? dotted[1] : null;
+  const hex = mapped.match(/^::ffff:([0-9a-f]{1,4}):([0-9a-f]{1,4})$/);
+  if (hex) {
+    const high = parseInt(hex[1], 16);
+    const low = parseInt(hex[2], 16);
+    if (Number.isNaN(high) || Number.isNaN(low)) return null;
+    const v4 = `${(high >> 8) & 0xff}.${high & 0xff}.${(low >> 8) & 0xff}.${low & 0xff}`;
+    return isIP(v4) === 4 ? v4 : null;
+  }
+  return null;
+};
+
 const isPrivateIp = (addr: string, family: 4 | 6): boolean => {
   if (family === 4) {
     const parts = addr.split(".").map((n) => parseInt(n, 10));
@@ -239,17 +260,15 @@ const isPrivateIp = (addr: string, family: 4 | 6): boolean => {
     if (a >= 224) return true; // multicast / reserved
     return false;
   }
-  // IPv6
+  // IPv6 — check the well-known internal prefixes first, then fall through
+  // to IPv4-mapped detection for any of the dotted/hex variants.
   const lower = addr.toLowerCase();
   if (lower === "::1" || lower === "::") return true; // loopback / unspec
   if (lower.startsWith("fe80:")) return true; // link-local
   if (lower.startsWith("fc") || lower.startsWith("fd")) return true; // unique local
   if (lower.startsWith("ff")) return true; // multicast
-  if (lower.startsWith("::ffff:")) {
-    // IPv4-mapped IPv6 — re-check the embedded v4
-    const embedded = lower.slice("::ffff:".length);
-    if (isIP(embedded) === 4) return isPrivateIp(embedded, 4);
-  }
+  const embeddedV4 = ipv4FromMapped(lower);
+  if (embeddedV4) return isPrivateIp(embeddedV4, 4);
   return false;
 };
 
@@ -278,19 +297,29 @@ const assertSafeImageUrl = async (rawUrl: string): Promise<URL> => {
     }
     return url;
   }
-  let resolved;
+  // Validate every A/AAAA record. fetch performs its own resolution and may
+  // pick a different record than we did, so any single private address in
+  // the result set is grounds for refusal — not just the first one we see.
+  let resolvedAll: Array<{ address: string; family: number }>;
   try {
-    resolved = await lookup(hostname, { all: false });
+    resolvedAll = await lookup(hostname, { all: true });
   } catch {
     throw new ImageInputError(
       `source_url hostname (${hostname}) could not be resolved.`,
     );
   }
-  const family = resolved.family === 6 ? 6 : 4;
-  if (isPrivateIp(resolved.address, family)) {
+  if (!resolvedAll || resolvedAll.length === 0) {
     throw new ImageInputError(
-      "source_url resolves to a private/internal address.",
+      `source_url hostname (${hostname}) returned no DNS records.`,
     );
+  }
+  for (const record of resolvedAll) {
+    const family = record.family === 6 ? 6 : 4;
+    if (isPrivateIp(record.address, family)) {
+      throw new ImageInputError(
+        "source_url resolves to a private/internal address.",
+      );
+    }
   }
   return url;
 };
