@@ -592,23 +592,30 @@ describe("/api/mcp", () => {
     expect(body.error.code).toBe(-32602);
   });
 
-  it("rejects associated_domains entries that contain commas", async () => {
-    const res = await POST(
-      callTool("configure_mini_app", {
-        app_id: appId,
-        associated_domains: ["https://example.com,evil.com"],
-      }),
-    );
+  it.each([
+    ["comma", "https://example.com,evil.com"],
+    ["double quote", 'https://example.com/"x"'],
+    ["backslash", "https://example.com/\\path"],
+  ])(
+    "rejects associated_domains entries containing a %s",
+    async (_name, value) => {
+      const res = await POST(
+        callTool("configure_mini_app", {
+          app_id: appId,
+          associated_domains: [value],
+        }),
+      );
 
-    expect(res.status).toBe(200);
-    const body = await res.json();
-    expect(body.error.code).toBe(-32602);
-    expect(
-      requestMock.mock.calls.some(
-        ([query]) => getOperationName(query) === "McpUpdateAppMetadata",
-      ),
-    ).toBe(false);
-  });
+      expect(res.status).toBe(200);
+      const body = await res.json();
+      expect(body.error.code).toBe(-32602);
+      expect(
+        requestMock.mock.calls.some(
+          ([query]) => getOperationName(query) === "McpUpdateAppMetadata",
+        ),
+      ).toBe(false);
+    },
+  );
 
   it("rejects Mini App metadata updates after review submission", async () => {
     currentAppContextResponse = {

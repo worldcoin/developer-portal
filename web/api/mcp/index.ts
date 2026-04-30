@@ -277,12 +277,18 @@ const createActionSchema = yup
 const ETH_ADDRESS_REGEX = /^0x[a-fA-F0-9]{40}$/;
 const HTTPS_URL_REGEX = /^https:\/\/[a-zA-Z0-9-]+\.[a-zA-Z]{2,}/;
 
-const noCommaTest = (label: string) =>
+// Reject characters that either (a) get split apart by Postgres array parsing
+// (commas) or (b) require escaping in PG array literals and would otherwise
+// produce malformed text (`"` and `\`). Keeps configure_mini_app's array
+// fields safe even if a per-item regex is loose.
+const PG_ARRAY_UNSAFE_CHAR_REGEX = /[",\\]/;
+
+const noUnsafeCharsTest = (label: string) =>
   ({
-    name: "no-comma",
-    message: `${label} cannot contain commas — pass each value as a separate array element`,
+    name: "no-pg-unsafe-chars",
+    message: `${label} cannot contain commas, double quotes, or backslashes`,
     test: (value: string | undefined) =>
-      value === undefined || !value.includes(","),
+      value === undefined || !PG_ARRAY_UNSAFE_CHAR_REGEX.test(value),
   }) as const;
 
 const ethAddressArraySchema = (label: string) =>
@@ -295,7 +301,7 @@ const ethAddressArraySchema = (label: string) =>
           ETH_ADDRESS_REGEX,
           `${label} must be 0x followed by 40 hex characters`,
         )
-        .test(noCommaTest(label))
+        .test(noUnsafeCharsTest(label))
         .required(),
     )
     .optional();
@@ -339,7 +345,7 @@ const configureMiniAppSchema = yup
             HTTPS_URL_REGEX,
             "Each associated domain must be a valid HTTPS URL",
           )
-          .test(noCommaTest("Each associated domain"))
+          .test(noUnsafeCharsTest("Each associated domain"))
           .required(),
       )
       .optional(),
@@ -811,11 +817,16 @@ const tools = {
     // Build Postgres array text directly from the input array.
     // Do NOT round-trip through a comma-joined string + formatMultipleStringInput:
     // that helper splits on commas and would shred any element that happens to
-    // contain a comma into multiple stored values.
+    // contain a comma into multiple stored values. Each element is also
+    // PG-quote-escaped (`\` -> `\\`, `"` -> `\"`) so an embedded quote or
+    // backslash that slips past validation doesn't produce malformed array
+    // literals. Validation should normally reject these characters upfront.
     const toPgArrayText = (arr: string[] | undefined) => {
       if (arr === undefined) return undefined;
       if (arr.length === 0) return null;
-      return `{${arr.map((s) => `"${s.trim()}"`).join(",")}}`;
+      const escapeForPgArray = (s: string) =>
+        s.trim().replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+      return `{${arr.map((s) => `"${escapeForPgArray(s)}"`).join(",")}}`;
     };
 
     const advanced: Record<string, unknown> = {
