@@ -13,10 +13,10 @@ End-to-end smoke test of the World ID MCP endpoint
 - Repo open at the commit where this runbook landed (so the agent
   command list matches the deployed tools).
 
-Staging URLs (verify against your team's `.env.staging` if different):
+Staging URLs:
 
-- Dev portal: `https://developer.staging.worldcoin.org`
-- MCP endpoint: `https://developer.staging.worldcoin.org/api/mcp`
+- Dev portal: `https://staging-developer.worldcoin.org`
+- MCP endpoint: `https://staging-developer.worldcoin.org/api/mcp`
 
 ## 1. Mint an API key in staging
 
@@ -34,7 +34,7 @@ For Claude Code, add to your settings (`~/.claude.json` or via `/config`):
 {
   "mcpServers": {
     "world-portal-staging": {
-      "url": "https://developer.staging.worldcoin.org/api/mcp",
+      "url": "https://staging-developer.worldcoin.org/api/mcp",
       "headers": { "Authorization": "Bearer api_xxxxxxxx" }
     }
   }
