@@ -92,12 +92,19 @@ export const SaveStatusProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const flushAll = useCallback(async (): Promise<boolean> => {
-    const results = await Promise.all(
-      Array.from(registeredRef.current.values()).map((r) =>
-        r.flush().catch(() => false),
-      ),
-    );
-    return results.every(Boolean);
+    // Run flushes sequentially. Multiple forms here (BasicInformation,
+    // AppStore) write overlapping columns on app_metadata (e.g. `name`), so a
+    // concurrent flushAll would let the last response win nondeterministically.
+    let allOk = true;
+    for (const r of Array.from(registeredRef.current.values())) {
+      try {
+        const ok = await r.flush();
+        if (!ok) allOk = false;
+      } catch {
+        allOk = false;
+      }
+    }
+    return allOk;
   }, []);
 
   const status = useMemo(() => mergeStatuses(statuses), [statuses]);
