@@ -8,6 +8,7 @@ import {
   type PresignedPost,
 } from "@aws-sdk/s3-presigned-post";
 import { lookup } from "node:dns/promises";
+import { request as httpsRequest, type RequestOptions } from "node:https";
 import { isIP } from "node:net";
 
 // Image-type identifier the dashboard / Hasura action / MCP all share. The
@@ -272,7 +273,17 @@ const isPrivateIp = (addr: string, family: 4 | 6): boolean => {
   return false;
 };
 
-const assertSafeImageUrl = async (rawUrl: string): Promise<URL> => {
+type ResolvedSafeUrl = {
+  url: URL;
+  // The pre-validated address we'll force the connection to use. Pinning
+  // here closes the DNS-rebinding TOCTOU window: if the hostname's records
+  // change between our `lookup` and the actual TCP connect, the connect
+  // still goes to the IP we already proved is public.
+  pinnedAddress: string;
+  pinnedFamily: 4 | 6;
+};
+
+const assertSafeImageUrl = async (rawUrl: string): Promise<ResolvedSafeUrl> => {
   let url: URL;
   try {
     url = new URL(rawUrl);
@@ -286,7 +297,6 @@ const assertSafeImageUrl = async (rawUrl: string): Promise<URL> => {
   if (url.username || url.password) {
     throw new ImageInputError("source_url must not embed credentials.");
   }
-  // Resolve hostname → reject private / loopback / link-local / multicast.
   const hostname = url.hostname.replace(/^\[|\]$/g, "");
   const directIpFamily = isIP(hostname) as 0 | 4 | 6;
   if (directIpFamily) {
@@ -295,11 +305,10 @@ const assertSafeImageUrl = async (rawUrl: string): Promise<URL> => {
         "source_url resolves to a private/internal address.",
       );
     }
-    return url;
+    return { url, pinnedAddress: hostname, pinnedFamily: directIpFamily };
   }
-  // Validate every A/AAAA record. fetch performs its own resolution and may
-  // pick a different record than we did, so any single private address in
-  // the result set is grounds for refusal — not just the first one we see.
+  // Resolve every A/AAAA record so we can reject hostnames that mix public
+  // and private answers. Any single private record fails the whole URL.
   let resolvedAll: Array<{ address: string; family: number }>;
   try {
     resolvedAll = await lookup(hostname, { all: true });
@@ -321,75 +330,153 @@ const assertSafeImageUrl = async (rawUrl: string): Promise<URL> => {
       );
     }
   }
-  return url;
+  // Pin to the first record. The set is fully validated either way; picking
+  // one is fine since the connection only needs one IP.
+  const pin = resolvedAll[0];
+  return {
+    url,
+    pinnedAddress: pin.address,
+    pinnedFamily: pin.family === 6 ? 6 : 4,
+  };
 };
 
-const readWithCap = async (
-  body: ReadableStream<Uint8Array>,
-  cap: number,
-): Promise<Buffer> => {
-  const reader = body.getReader();
-  const chunks: Uint8Array[] = [];
-  let total = 0;
-  try {
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      total += value.byteLength;
-      if (total > cap) {
-        await reader.cancel().catch(() => {});
-        throw new ImageInputError(
-          `source_url body exceeds ${cap} bytes (read ${total}).`,
+type FetchedImage = {
+  status: number;
+  contentLength: number | null;
+  body: Buffer;
+};
+
+// Fetch over https using a custom DNS lookup that always returns the
+// pre-validated IP. This guarantees the connection lands on the address we
+// already proved is public. Streams the body, aborts past the cap, and
+// rejects redirects by returning an error on any 30x status.
+const httpsRequestPinned = ({
+  url,
+  pinnedAddress,
+  pinnedFamily,
+  cap,
+}: {
+  url: URL;
+  pinnedAddress: string;
+  pinnedFamily: 4 | 6;
+  cap: number;
+}): Promise<FetchedImage> => {
+  const options: RequestOptions = {
+    method: "GET",
+    host: url.hostname,
+    port: url.port ? Number(url.port) : 443,
+    path: `${url.pathname}${url.search}`,
+    headers: { Host: url.host, "User-Agent": "world-developer-portal-mcp" },
+    lookup: (_hostname, _options, callback) => {
+      // Ignore the hostname argument — we always return the pinned IP.
+      // Cast trick: dns.lookup callback takes either (err, addresses)
+      // or (err, address, family) depending on options.all. The
+      // https.request connect path uses the single-result form.
+      (
+        callback as (
+          err: NodeJS.ErrnoException | null,
+          address: string,
+          family: number,
+        ) => void
+      )(null, pinnedAddress, pinnedFamily);
+    },
+  };
+
+  return new Promise<FetchedImage>((resolve, reject) => {
+    const req = httpsRequest(options, (res) => {
+      const status = res.statusCode ?? 0;
+      // We never follow redirects: the new Location could resolve to a
+      // private host. Surface the redirect so the caller resolves it
+      // client-side first.
+      if (status >= 300 && status < 400) {
+        res.resume();
+        reject(
+          new ImageInputError(
+            `source_url returned ${status} ${res.statusMessage ?? ""}; redirects are not followed.`,
+          ),
         );
+        return;
       }
-      chunks.push(value);
-    }
-  } finally {
-    reader.releaseLock();
-  }
-  return Buffer.concat(
-    chunks.map((c) => Buffer.from(c)),
-    total,
-  );
+      if (status < 200 || status >= 300) {
+        res.resume();
+        reject(
+          new ImageInputError(
+            `Failed to fetch source_url: ${status} ${res.statusMessage ?? ""}`,
+          ),
+        );
+        return;
+      }
+
+      const declared = res.headers["content-length"];
+      const contentLength =
+        typeof declared === "string" ? Number.parseInt(declared, 10) : null;
+      if (
+        contentLength !== null &&
+        Number.isFinite(contentLength) &&
+        contentLength > cap
+      ) {
+        res.destroy();
+        reject(
+          new ImageInputError(
+            `source_url Content-Length (${contentLength}) exceeds ${cap} bytes.`,
+          ),
+        );
+        return;
+      }
+
+      const chunks: Buffer[] = [];
+      let total = 0;
+      res.on("data", (chunk: Buffer) => {
+        total += chunk.byteLength;
+        if (total > cap) {
+          res.destroy();
+          reject(
+            new ImageInputError(
+              `source_url body exceeds ${cap} bytes (read ${total}).`,
+            ),
+          );
+          return;
+        }
+        chunks.push(chunk);
+      });
+      res.on("end", () => {
+        resolve({
+          status,
+          contentLength,
+          body: Buffer.concat(chunks, total),
+        });
+      });
+      res.on("error", reject);
+    });
+    req.on("error", reject);
+    req.end();
+  });
 };
 
 export const fetchImageFromUrl = async (
   rawUrl: string,
 ): Promise<{ body: Buffer; contentType: "image/png" | "image/jpeg" }> => {
-  const url = await assertSafeImageUrl(rawUrl);
-  let response;
+  const { url, pinnedAddress, pinnedFamily } = await assertSafeImageUrl(rawUrl);
+  let result: FetchedImage;
   try {
-    response = await fetch(url, { redirect: "error" });
+    result = await httpsRequestPinned({
+      url,
+      pinnedAddress,
+      pinnedFamily,
+      cap: MAX_APP_IMAGE_BYTES,
+    });
   } catch (error) {
+    if (error instanceof ImageInputError) throw error;
     const message = error instanceof Error ? error.message : String(error);
     throw new ImageInputError(`Failed to fetch source_url: ${message}`);
   }
-  if (!response.ok) {
-    throw new ImageInputError(
-      `Failed to fetch source_url: ${response.status} ${response.statusText}`,
-    );
-  }
-  // Bail early if the server tells us the body is too big up front.
-  const declared = response.headers.get("content-length");
-  if (declared) {
-    const declaredBytes = Number.parseInt(declared, 10);
-    if (Number.isFinite(declaredBytes) && declaredBytes > MAX_APP_IMAGE_BYTES) {
-      throw new ImageInputError(
-        `source_url Content-Length (${declaredBytes}) exceeds ${MAX_APP_IMAGE_BYTES} bytes.`,
-      );
-    }
-  }
-  if (!response.body) {
-    throw new ImageInputError("source_url response had no body.");
-  }
-  const body = await readWithCap(response.body, MAX_APP_IMAGE_BYTES);
-  const contentType = detectImageContentType(body);
+  const contentType = detectImageContentType(result.body);
   if (!contentType) {
     throw new ImageInputError(
       "source_url body is not a valid PNG or JPEG image.",
     );
   }
-  return { body, contentType };
+  return { body: result.body, contentType };
 };
 
 export const decodeImageBase64 = (

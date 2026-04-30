@@ -47,8 +47,65 @@ jest.mock("../../api/helpers/rp-registration-flows", () => ({
     submitManagedSignerRotationMock(...args),
 }));
 
-const fetchMock = jest.fn();
-global.fetch = fetchMock as unknown as typeof fetch;
+const httpsRequestMock = jest.fn();
+jest.mock("node:https", () => ({
+  request: (...args: unknown[]) => httpsRequestMock(...args),
+}));
+
+// Build a fake IncomingMessage + ClientRequest pair that drives the
+// streaming reader in fetchImageFromUrl. Used by tests that simulate a
+// source_url response.
+type HttpsResponseShape = {
+  statusCode: number;
+  statusMessage?: string;
+  headers?: Record<string, string>;
+  body?: Buffer;
+};
+const mockHttpsResponse = (response: HttpsResponseShape) => {
+  httpsRequestMock.mockImplementationOnce(
+    (
+      _options: unknown,
+      callback: (
+        res: NodeJS.EventEmitter & {
+          statusCode: number;
+          statusMessage?: string;
+          headers: Record<string, string>;
+          resume: () => void;
+          destroy: () => void;
+        },
+      ) => void,
+    ) => {
+      const listeners: Record<string, ((arg?: unknown) => void)[]> = {};
+      const res = {
+        statusCode: response.statusCode,
+        statusMessage: response.statusMessage ?? "",
+        headers: response.headers ?? {},
+        on: (event: string, handler: (arg?: unknown) => void) => {
+          (listeners[event] ??= []).push(handler);
+          return res;
+        },
+        resume: () => {},
+        destroy: () => {},
+      };
+      // Simulate streaming on next tick so the caller's listeners attach
+      // first.
+      process.nextTick(() => {
+        callback(res as never);
+        process.nextTick(() => {
+          if (response.body && response.body.length > 0) {
+            for (const fn of listeners.data ?? []) fn(response.body);
+          }
+          for (const fn of listeners.end ?? []) fn();
+        });
+      });
+      return {
+        on: () => {},
+        end: () => {},
+        destroy: () => {},
+      };
+    },
+  );
+};
 
 const mockLoggerInfo = logger.info as jest.Mock;
 const mockGetRpFromContract = getRpFromContract as jest.Mock;
@@ -160,7 +217,7 @@ beforeEach(async () => {
   process.env.ASSETS_S3_REGION = "us-east-1";
   process.env.ASSETS_S3_BUCKET_NAME = "test-bucket";
   s3SendMock.mockResolvedValue({});
-  fetchMock.mockReset();
+  httpsRequestMock.mockReset();
   dnsLookupMock.mockReset();
   // Default: source_url hostnames resolve to a single public address. The
   // helper calls `lookup(host, { all: true })`, which returns an array; we
@@ -748,12 +805,11 @@ describe("/api/mcp", () => {
     const pngBytes = Buffer.from([
       0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a,
     ]);
-    fetchMock.mockResolvedValue(
-      new Response(pngBytes, {
-        status: 200,
-        headers: { "Content-Type": "image/png" },
-      }),
-    );
+    mockHttpsResponse({
+      statusCode: 200,
+      headers: { "content-type": "image/png" },
+      body: pngBytes,
+    });
 
     const res = await POST(
       callTool("upload_app_image", {
@@ -790,7 +846,7 @@ describe("/api/mcp", () => {
     const payload = JSON.parse((await res.json()).result.content[0].text);
     expect(payload.file_name).toBe("content_card_image.jpg");
     expect(payload.content_type).toBe("image/jpeg");
-    expect(fetchMock).not.toHaveBeenCalled();
+    expect(httpsRequestMock).not.toHaveBeenCalled();
 
     const updateCall = requestMock.mock.calls.find(
       ([query]) => getOperationName(query) === "McpUpdateAppMetadata",
@@ -833,12 +889,11 @@ describe("/api/mcp", () => {
     const pngBytes = Buffer.from([
       0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a,
     ]);
-    fetchMock.mockResolvedValue(
-      new Response(pngBytes, {
-        status: 200,
-        headers: { "Content-Type": "image/png" },
-      }),
-    );
+    mockHttpsResponse({
+      statusCode: 200,
+      headers: { "content-type": "image/png" },
+      body: pngBytes,
+    });
 
     const res = await POST(
       callTool("upload_app_image", {
@@ -888,7 +943,7 @@ describe("/api/mcp", () => {
     const body = await res.json();
     expect(body.error.code).toBe(-32602);
     expect(body.error.message).toMatch(/private\/internal/);
-    expect(fetchMock).not.toHaveBeenCalled();
+    expect(httpsRequestMock).not.toHaveBeenCalled();
     expect(s3SendMock).not.toHaveBeenCalled();
   });
 
@@ -913,7 +968,7 @@ describe("/api/mcp", () => {
       const body = await res.json();
       expect(body.error.code).toBe(-32602);
       expect(body.error.message).toMatch(/private\/internal/);
-      expect(fetchMock).not.toHaveBeenCalled();
+      expect(httpsRequestMock).not.toHaveBeenCalled();
     },
   );
 
@@ -935,19 +990,18 @@ describe("/api/mcp", () => {
     const body = await res.json();
     expect(body.error.code).toBe(-32602);
     expect(body.error.message).toMatch(/private\/internal/);
-    expect(fetchMock).not.toHaveBeenCalled();
+    expect(httpsRequestMock).not.toHaveBeenCalled();
   });
 
   it("rejects source_url with Content-Length above the 500KB cap before reading body", async () => {
-    fetchMock.mockResolvedValue(
-      new Response(Buffer.from([0x89, 0x50, 0x4e, 0x47]), {
-        status: 200,
-        headers: {
-          "Content-Type": "image/png",
-          "Content-Length": String(600 * 1024),
-        },
-      }),
-    );
+    mockHttpsResponse({
+      statusCode: 200,
+      headers: {
+        "content-type": "image/png",
+        "content-length": String(600 * 1024),
+      },
+      body: Buffer.from([0x89, 0x50, 0x4e, 0x47]),
+    });
 
     const res = await POST(
       callTool("upload_app_image", {
@@ -964,17 +1018,60 @@ describe("/api/mcp", () => {
     expect(s3SendMock).not.toHaveBeenCalled();
   });
 
+  it("pins the connection to the validated IP — fetch never re-resolves the hostname", async () => {
+    dnsLookupMock.mockResolvedValue([{ address: "203.0.113.55", family: 4 }]);
+    mockHttpsResponse({
+      statusCode: 200,
+      headers: { "content-type": "image/png" },
+      body: Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
+    });
+
+    const res = await POST(
+      callTool("upload_app_image", {
+        app_id: appId,
+        image_type: "logo",
+        source_url: "https://cdn.example.com/logo.png",
+      }),
+    );
+
+    expect(res.status).toBe(200);
+    expect(httpsRequestMock).toHaveBeenCalledTimes(1);
+    const [requestOptions] = httpsRequestMock.mock.calls[0];
+    expect(requestOptions.host).toBe("cdn.example.com");
+    // The custom lookup we wired in must always return the validated IP,
+    // regardless of what hostname the connect path asks for. This forces
+    // any fresh resolution by the underlying HTTP stack to be ignored.
+    const lookupCb = jest.fn();
+    requestOptions.lookup("attacker-controlled.example", {}, lookupCb);
+    expect(lookupCb).toHaveBeenCalledWith(null, "203.0.113.55", 4);
+  });
+
   it("rate-limits upload_app_image at 60/minute per API key", async () => {
     const pngBytes = Buffer.from([
       0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a,
     ]);
-    fetchMock.mockImplementation(
-      async () =>
-        new Response(pngBytes, {
-          status: 200,
-          headers: { "Content-Type": "image/png" },
-        }),
-    );
+    httpsRequestMock.mockImplementation((_options, callback) => {
+      const listeners: Record<string, ((arg?: unknown) => void)[]> = {};
+      const res = {
+        statusCode: 200,
+        statusMessage: "OK",
+        headers: { "content-type": "image/png" },
+        on: (event: string, handler: (arg?: unknown) => void) => {
+          (listeners[event] ??= []).push(handler);
+          return res;
+        },
+        resume: () => {},
+        destroy: () => {},
+      };
+      process.nextTick(() => {
+        callback(res);
+        process.nextTick(() => {
+          for (const fn of listeners.data ?? []) fn(pngBytes);
+          for (const fn of listeners.end ?? []) fn();
+        });
+      });
+      return { on: () => {}, end: () => {}, destroy: () => {} };
+    });
 
     const callOnce = () =>
       POST(
@@ -1004,12 +1101,11 @@ describe("/api/mcp", () => {
     const pngBytes = Buffer.from([
       0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a,
     ]);
-    fetchMock.mockResolvedValue(
-      new Response(pngBytes, {
-        status: 200,
-        headers: { "Content-Type": "image/png" },
-      }),
-    );
+    mockHttpsResponse({
+      statusCode: 200,
+      headers: { "content-type": "image/png" },
+      body: pngBytes,
+    });
 
     const baseImpl = requestMock.getMockImplementation()!;
     requestMock.mockImplementation(async (query: unknown, variables: any) => {
