@@ -1,5 +1,6 @@
 "use client";
 import { CircleIconContainer } from "@/components/CircleIconContainer";
+import { CopyButton } from "@/components/CopyButton";
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { Dialog } from "@/components/Dialog";
 import { DialogOverlay } from "@/components/DialogOverlay";
@@ -8,9 +9,11 @@ import { KeyIcon } from "@/components/Icons/KeyIcon";
 import { Input } from "@/components/Input";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { yupResolver } from "@hookform/resolvers/yup";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import * as yup from "yup";
+import { useResetApiKeyMutation } from "../ApiKeyTable/ApiKeyRow/graphql/client/reset-api-key.generated";
 import { FetchKeysDocument } from "../graphql/client/fetch-keys.generated";
 import { useInsertKeyMutation } from "./graphql/client/create-key.generated";
 
@@ -28,10 +31,20 @@ type CreateKeyModal = {
 };
 
 export type CreateKeyFormValues = yup.Asserts<typeof schema>;
+export type CreatedAPIKey = {
+  id: string;
+  apiKey: string;
+};
+
+const getClaudeMcpCommand = (apiKey: string) =>
+  `claude mcp add --transport http --scope project worldcoin-developer-portal https://developer.world.org/api/mcp --header "Authorization: Bearer ${apiKey}"`;
 
 export const CreateKeyModal = (props: CreateKeyModal) => {
   const { teamId, isOpen, setIsOpen } = props;
+  const [createdKey, setCreatedKey] = useState<CreatedAPIKey | null>(null);
   const [insertKeyMutation, { loading: creatingKey }] = useInsertKeyMutation();
+  const [resetApiKeyMutation, { loading: revealingKey }] =
+    useResetApiKeyMutation();
 
   const {
     register,
@@ -42,8 +55,14 @@ export const CreateKeyModal = (props: CreateKeyModal) => {
     resolver: yupResolver(schema),
   });
 
+  const close = () => {
+    reset();
+    setCreatedKey(null);
+    setIsOpen(false);
+  };
+
   const submit = async (values: CreateKeyFormValues) => {
-    if (creatingKey) return;
+    if (creatingKey || revealingKey) return;
 
     try {
       const result = await insertKeyMutation({
@@ -51,18 +70,44 @@ export const CreateKeyModal = (props: CreateKeyModal) => {
           name: values.name,
           teamId,
         },
-        refetchQueries: [FetchKeysDocument],
       });
-      if (result instanceof Error) {
+      if (result instanceof Error || Boolean(result?.errors)) {
         throw result;
       }
+
+      const createdApiKey = result.data?.insert_api_key_one;
+      if (!createdApiKey?.id) {
+        throw new Error("No API key created");
+      }
+
+      const resetResult = await resetApiKeyMutation({
+        variables: {
+          id: createdApiKey.id,
+          team_id: teamId,
+        },
+        refetchQueries: [FetchKeysDocument],
+      });
+      if (resetResult instanceof Error || Boolean(resetResult?.errors)) {
+        throw resetResult;
+      }
+
+      const apiKey = resetResult.data?.reset_api_key?.api_key;
+      if (!apiKey) {
+        throw new Error("No API key returned");
+      }
+
+      const revealedApiKey = {
+        id: createdApiKey.id,
+        apiKey,
+      };
+
+      setCreatedKey(revealedApiKey);
       toast.success(
         <span>
           New API key <b>{values.name}</b> was created
         </span>,
       );
       reset();
-      setIsOpen(false);
     } catch (error) {
       console.error("Failed to create API key: ", error);
 
@@ -70,8 +115,12 @@ export const CreateKeyModal = (props: CreateKeyModal) => {
     }
   };
 
+  const claudeMcpCommand = createdKey
+    ? getClaudeMcpCommand(createdKey.apiKey)
+    : "";
+
   return (
-    <Dialog open={isOpen} onClose={() => setIsOpen(false)}>
+    <Dialog open={isOpen} onClose={close}>
       <DialogOverlay />
 
       <DialogPanel className="md:max-w-[36rem]">
@@ -91,37 +140,75 @@ export const CreateKeyModal = (props: CreateKeyModal) => {
             </Typography>
           </div>
 
-          <form
-            className="grid w-full gap-y-10"
-            onSubmit={handleSubmit(submit)}
-          >
-            <Input
-              register={register("name")}
-              label="Key name"
-              required
-              errors={errors.name}
-              placeholder="Staging_key"
-            />
+          {createdKey ? (
+            <div className="grid w-full gap-y-10">
+              <Input
+                label="API key"
+                value={createdKey.apiKey}
+                readOnly
+                disabled
+                className="h-16"
+                helperText="Save this API key. You won't be able to see it again."
+                addOnRight={
+                  <CopyButton
+                    fieldName="API Key"
+                    fieldValue={createdKey.apiKey}
+                  />
+                }
+              />
 
-            <div className="grid w-full gap-x-4 gap-y-2 md:grid-cols-2">
-              <DecoratedButton
-                className="order-2 md:order-1"
-                type="button"
-                variant="secondary"
-                onClick={() => setIsOpen(false)}
-              >
-                Cancel
-              </DecoratedButton>
+              <Input
+                label="Claude MCP"
+                value={claudeMcpCommand}
+                readOnly
+                disabled
+                className="h-16"
+                addOnRight={
+                  <CopyButton
+                    fieldName="Claude MCP command"
+                    fieldValue={claudeMcpCommand}
+                  />
+                }
+              />
 
-              <DecoratedButton
-                type="submit"
-                disabled={!teamId}
-                className="order-1 whitespace-nowrap"
-              >
-                Create new key
+              <DecoratedButton type="button" onClick={close}>
+                Done
               </DecoratedButton>
             </div>
-          </form>
+          ) : (
+            <form
+              className="grid w-full gap-y-10"
+              onSubmit={handleSubmit(submit)}
+            >
+              <Input
+                register={register("name")}
+                label="Key name"
+                required
+                errors={errors.name}
+                placeholder="Staging_key"
+              />
+
+              <div className="grid w-full gap-x-4 gap-y-2 md:grid-cols-2">
+                <DecoratedButton
+                  className="order-2 md:order-1"
+                  type="button"
+                  variant="secondary"
+                  onClick={close}
+                >
+                  Cancel
+                </DecoratedButton>
+
+                <DecoratedButton
+                  type="submit"
+                  disabled={!teamId || creatingKey || revealingKey}
+                  loading={creatingKey || revealingKey}
+                  className="order-1 whitespace-nowrap"
+                >
+                  Create new key
+                </DecoratedButton>
+              </div>
+            </form>
+          )}
         </div>
       </DialogPanel>
     </Dialog>
