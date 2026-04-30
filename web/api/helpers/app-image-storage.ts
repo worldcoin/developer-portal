@@ -198,6 +198,18 @@ export class ImageInputError extends Error {
   }
 }
 
+// Subclass for "we never received an HTTP response from this address" —
+// connect refused, network unreachable, idle timeout before headers, etc.
+// fetchImageFromUrl uses this to know whether retrying the next validated
+// A/AAAA record could plausibly help. Once a host has responded (even with
+// an error status or oversize body), trying a sibling address is pointless.
+class ConnectError extends ImageInputError {
+  constructor(message: string) {
+    super(message);
+    this.name = "ConnectError";
+  }
+}
+
 export const detectImageContentType = (
   body: Buffer,
 ): "image/png" | "image/jpeg" | null => {
@@ -275,12 +287,14 @@ const isPrivateIp = (addr: string, family: 4 | 6): boolean => {
 
 type ResolvedSafeUrl = {
   url: URL;
-  // The pre-validated address we'll force the connection to use. Pinning
-  // here closes the DNS-rebinding TOCTOU window: if the hostname's records
-  // change between our `lookup` and the actual TCP connect, the connect
-  // still goes to the IP we already proved is public.
-  pinnedAddress: string;
-  pinnedFamily: 4 | 6;
+  // Pre-validated addresses we'll try in order. Pinning closes the
+  // DNS-rebinding TOCTOU window: even if the hostname's records change
+  // between our `lookup` and the actual TCP connect, the connect goes to
+  // an IP we already proved is public. We keep the full validated set
+  // (instead of pinning a single record) so a dual-stack hostname whose
+  // first record is unreachable from this egress (e.g. an AAAA record in
+  // an IPv4-only network) can still resolve via a later A record.
+  pinnedAddresses: Array<{ address: string; family: 4 | 6 }>;
 };
 
 const assertSafeImageUrl = async (rawUrl: string): Promise<ResolvedSafeUrl> => {
@@ -305,7 +319,10 @@ const assertSafeImageUrl = async (rawUrl: string): Promise<ResolvedSafeUrl> => {
         "source_url resolves to a private/internal address.",
       );
     }
-    return { url, pinnedAddress: hostname, pinnedFamily: directIpFamily };
+    return {
+      url,
+      pinnedAddresses: [{ address: hostname, family: directIpFamily }],
+    };
   }
   // Resolve every A/AAAA record so we can reject hostnames that mix public
   // and private answers. Any single private record fails the whole URL.
@@ -330,13 +347,12 @@ const assertSafeImageUrl = async (rawUrl: string): Promise<ResolvedSafeUrl> => {
       );
     }
   }
-  // Pin to the first record. The set is fully validated either way; picking
-  // one is fine since the connection only needs one IP.
-  const pin = resolvedAll[0];
   return {
     url,
-    pinnedAddress: pin.address,
-    pinnedFamily: pin.family === 6 ? 6 : 4,
+    pinnedAddresses: resolvedAll.map((r) => ({
+      address: r.address,
+      family: r.family === 6 ? 6 : 4,
+    })),
   };
 };
 
@@ -392,6 +408,7 @@ const httpsRequestPinned = ({
   return new Promise<FetchedImage>((resolve, reject) => {
     let settled = false;
     let totalTimer: ReturnType<typeof setTimeout> | null = null;
+    let responseReceived = false;
 
     const cleanup = () => {
       if (totalTimer) {
@@ -418,6 +435,7 @@ const httpsRequestPinned = ({
     };
 
     const req = httpsRequest(options, (res) => {
+      responseReceived = true;
       const status = res.statusCode ?? 0;
       // We never follow redirects: the new Location could resolve to a
       // private host. Surface the redirect so the caller resolves it
@@ -485,20 +503,36 @@ const httpsRequestPinned = ({
 
     totalTimer = setTimeout(() => {
       fail(
-        new ImageInputError(
-          `source_url fetch exceeded ${FETCH_TOTAL_TIMEOUT_MS}ms.`,
-        ),
+        responseReceived
+          ? new ImageInputError(
+              `source_url fetch exceeded ${FETCH_TOTAL_TIMEOUT_MS}ms.`,
+            )
+          : new ConnectError(
+              `source_url did not respond within ${FETCH_TOTAL_TIMEOUT_MS}ms.`,
+            ),
       );
     }, FETCH_TOTAL_TIMEOUT_MS);
 
     req.setTimeout(FETCH_SOCKET_IDLE_TIMEOUT_MS, () => {
       fail(
-        new ImageInputError(
-          `source_url socket was idle for ${FETCH_SOCKET_IDLE_TIMEOUT_MS}ms.`,
-        ),
+        responseReceived
+          ? new ImageInputError(
+              `source_url socket was idle for ${FETCH_SOCKET_IDLE_TIMEOUT_MS}ms.`,
+            )
+          : new ConnectError(
+              `source_url socket idle for ${FETCH_SOCKET_IDLE_TIMEOUT_MS}ms before any response.`,
+            ),
       );
     });
-    req.on("error", fail);
+    req.on("error", (err) => {
+      fail(
+        responseReceived
+          ? new ImageInputError(`source_url socket error: ${err.message}`)
+          : new ConnectError(
+              `source_url could not connect to ${pinnedAddress}: ${err.message}`,
+            ),
+      );
+    });
     req.end();
   });
 };
@@ -506,27 +540,42 @@ const httpsRequestPinned = ({
 export const fetchImageFromUrl = async (
   rawUrl: string,
 ): Promise<{ body: Buffer; contentType: "image/png" | "image/jpeg" }> => {
-  const { url, pinnedAddress, pinnedFamily } = await assertSafeImageUrl(rawUrl);
-  let result: FetchedImage;
-  try {
-    result = await httpsRequestPinned({
-      url,
-      pinnedAddress,
-      pinnedFamily,
-      cap: MAX_APP_IMAGE_BYTES,
-    });
-  } catch (error) {
-    if (error instanceof ImageInputError) throw error;
-    const message = error instanceof Error ? error.message : String(error);
-    throw new ImageInputError(`Failed to fetch source_url: ${message}`);
+  const { url, pinnedAddresses } = await assertSafeImageUrl(rawUrl);
+  // Try the validated A/AAAA records in order. Fall through to the next
+  // entry on a transport-level failure (host unreachable, idle before
+  // headers, etc. — surfaced by httpsRequestPinned as ConnectError); any
+  // other failure means the host responded, so trying a sibling address
+  // wouldn't change the outcome.
+  const connectErrors: string[] = [];
+  for (const pin of pinnedAddresses) {
+    let result: FetchedImage;
+    try {
+      result = await httpsRequestPinned({
+        url,
+        pinnedAddress: pin.address,
+        pinnedFamily: pin.family,
+        cap: MAX_APP_IMAGE_BYTES,
+      });
+    } catch (error) {
+      if (error instanceof ConnectError) {
+        connectErrors.push(`${pin.address}: ${error.message}`);
+        continue;
+      }
+      if (error instanceof ImageInputError) throw error;
+      const message = error instanceof Error ? error.message : String(error);
+      throw new ImageInputError(`Failed to fetch source_url: ${message}`);
+    }
+    const contentType = detectImageContentType(result.body);
+    if (!contentType) {
+      throw new ImageInputError(
+        "source_url body is not a valid PNG or JPEG image.",
+      );
+    }
+    return { body: result.body, contentType };
   }
-  const contentType = detectImageContentType(result.body);
-  if (!contentType) {
-    throw new ImageInputError(
-      "source_url body is not a valid PNG or JPEG image.",
-    );
-  }
-  return { body: result.body, contentType };
+  throw new ImageInputError(
+    `Failed to fetch source_url after trying ${pinnedAddresses.length} validated address(es): ${connectErrors.join("; ")}`,
+  );
 };
 
 export const decodeImageBase64 = (

@@ -1273,7 +1273,73 @@ describe("/api/mcp", () => {
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(body.error.code).toBe(-32602);
-    expect(body.error.message).toMatch(/exceeded\s+\d+ms|idle/i);
+    expect(body.error.message).toMatch(/did not respond within \d+ms/i);
+  });
+
+  it("falls through to the next validated DNS answer when the first connect fails", async () => {
+    // Dual-stack hostname: AAAA returned first, A second. Egress can't
+    // reach the IPv6 address (e.g. IPv4-only network) so the first
+    // connect errors before any response. The fetch must move on to the
+    // validated A record instead of failing the tool call.
+    const pngBytes = Buffer.from([
+      0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a,
+    ]);
+    dnsLookupMock.mockResolvedValue([
+      { address: "2001:db8::1", family: 6 },
+      { address: "203.0.113.55", family: 4 },
+    ]);
+
+    // First call: simulate ENETUNREACH via 'error' event before any
+    // response handler runs. This must surface as a ConnectError so the
+    // outer loop falls through.
+    httpsRequestMock.mockImplementationOnce(() => {
+      const errorListeners: Array<(err: Error) => void> = [];
+      return {
+        on: (event: string, handler: (err: Error) => void) => {
+          if (event === "error") errorListeners.push(handler);
+        },
+        end: () => {
+          process.nextTick(() => {
+            for (const fn of errorListeners) {
+              fn(
+                Object.assign(new Error("connect ENETUNREACH 2001:db8::1"), {
+                  code: "ENETUNREACH",
+                }),
+              );
+            }
+          });
+        },
+        destroy: () => {},
+        setTimeout: () => {},
+      };
+    });
+
+    // Second call: succeeds.
+    mockHttpsResponse({
+      statusCode: 200,
+      headers: { "content-type": "image/png" },
+      body: pngBytes,
+    });
+
+    const res = await POST(
+      callTool("upload_app_image", {
+        app_id: appId,
+        image_type: "logo",
+        source_url: "https://cdn.example.com/logo.png",
+      }),
+    );
+
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.error).toBeUndefined();
+    expect(httpsRequestMock).toHaveBeenCalledTimes(2);
+    // First attempt pinned the AAAA address; second pinned the A record.
+    const cb1 = jest.fn();
+    httpsRequestMock.mock.calls[0][0].lookup("any", {}, cb1);
+    expect(cb1).toHaveBeenCalledWith(null, "2001:db8::1", 6);
+    const cb2 = jest.fn();
+    httpsRequestMock.mock.calls[1][0].lookup("any", {}, cb2);
+    expect(cb2).toHaveBeenCalledWith(null, "203.0.113.55", 4);
   });
 
   it("ignores legacy locale input and uploads to the default-locale path so default-locale fields are never corrupted", async () => {
