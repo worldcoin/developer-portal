@@ -6,6 +6,7 @@ import { NextRequest } from "next/server";
 import { getRpFromContract } from "../../api/helpers/temporal-rpc";
 
 const requestMock = jest.fn();
+const s3SendMock = jest.fn();
 
 jest.mock("../../api/helpers/graphql", () => ({
   getAPIServiceGraphqlClient: jest.fn(async () => ({ request: requestMock })),
@@ -23,6 +24,89 @@ jest.mock("../../lib/logger", () => ({
 jest.mock("../../api/helpers/temporal-rpc", () => ({
   getRpFromContract: jest.fn(),
 }));
+
+jest.mock("@aws-sdk/client-s3", () => ({
+  S3Client: jest.fn().mockImplementation(() => ({ send: s3SendMock })),
+  PutObjectCommand: jest.fn().mockImplementation((args) => ({ ...args })),
+  DeleteObjectCommand: jest
+    .fn()
+    .mockImplementation((args) => ({ delete: args })),
+}));
+
+const dnsLookupMock = jest.fn();
+jest.mock("node:dns/promises", () => ({
+  lookup: (...args: unknown[]) => dnsLookupMock(...args),
+}));
+
+const submitManagedRpRegistrationMock = jest.fn();
+const submitManagedSignerRotationMock = jest.fn();
+jest.mock("../../api/helpers/rp-registration-flows", () => ({
+  submitManagedRpRegistration: (...args: unknown[]) =>
+    submitManagedRpRegistrationMock(...args),
+  submitManagedSignerRotation: (...args: unknown[]) =>
+    submitManagedSignerRotationMock(...args),
+}));
+
+const httpsRequestMock = jest.fn();
+jest.mock("node:https", () => ({
+  request: (...args: unknown[]) => httpsRequestMock(...args),
+}));
+
+// Build a fake IncomingMessage + ClientRequest pair that drives the
+// streaming reader in fetchImageFromUrl. Used by tests that simulate a
+// source_url response.
+type HttpsResponseShape = {
+  statusCode: number;
+  statusMessage?: string;
+  headers?: Record<string, string>;
+  body?: Buffer;
+};
+const mockHttpsResponse = (response: HttpsResponseShape) => {
+  httpsRequestMock.mockImplementationOnce(
+    (
+      _options: unknown,
+      callback: (
+        res: NodeJS.EventEmitter & {
+          statusCode: number;
+          statusMessage?: string;
+          headers: Record<string, string>;
+          resume: () => void;
+          destroy: () => void;
+        },
+      ) => void,
+    ) => {
+      const listeners: Record<string, ((arg?: unknown) => void)[]> = {};
+      const res = {
+        statusCode: response.statusCode,
+        statusMessage: response.statusMessage ?? "",
+        headers: response.headers ?? {},
+        on: (event: string, handler: (arg?: unknown) => void) => {
+          (listeners[event] ??= []).push(handler);
+          return res;
+        },
+        resume: () => {},
+        destroy: () => {},
+      };
+      // Simulate streaming on next tick so the caller's listeners attach
+      // first.
+      process.nextTick(() => {
+        callback(res as never);
+        process.nextTick(() => {
+          if (response.body && response.body.length > 0) {
+            for (const fn of listeners.data ?? []) fn(response.body);
+          }
+          for (const fn of listeners.end ?? []) fn();
+        });
+      });
+      return {
+        on: () => {},
+        end: () => {},
+        destroy: () => {},
+        setTimeout: () => {},
+      };
+    },
+  );
+};
 
 const mockLoggerInfo = logger.info as jest.Mock;
 const mockGetRpFromContract = getRpFromContract as jest.Mock;
@@ -51,6 +135,9 @@ const appContextResponse = {
           app_mode: "mini-app",
           verification_status: "unverified",
           is_developer_allow_listing: false,
+          logo_img_url: "" as string,
+          showcase_img_urls: [] as string[],
+          description: "" as string | null,
         },
       ],
       rp_registration: [
@@ -122,11 +209,49 @@ const callTool = (name: string, args: Record<string, unknown>) =>
     params: { name, arguments: args },
   });
 
-beforeEach(() => {
+beforeEach(async () => {
   jest.clearAllMocks();
+  // Reset the in-memory rate-limit counters between tests so one suite's
+  // upload bursts don't bleed into the next one.
+  await (global.RedisClient as { flushall: () => Promise<unknown> }).flushall();
   process.env.RP_REGISTRY_CONTRACT_ADDRESS =
     "0x0000000000000000000000000000000000000048";
   delete process.env.RP_REGISTRY_STAGING_CONTRACT_ADDRESS;
+  process.env.ASSETS_S3_REGION = "us-east-1";
+  process.env.ASSETS_S3_BUCKET_NAME = "test-bucket";
+  s3SendMock.mockResolvedValue({});
+  httpsRequestMock.mockReset();
+  dnsLookupMock.mockReset();
+  // Default: source_url hostnames resolve to a single public address. The
+  // helper calls `lookup(host, { all: true })`, which returns an array; we
+  // adapt here so existing call sites stay simple.
+  dnsLookupMock.mockResolvedValue([{ address: "203.0.113.10", family: 4 }]);
+  submitManagedRpRegistrationMock.mockReset();
+  submitManagedSignerRotationMock.mockReset();
+  // Default: managed flows succeed. Specific tests override to assert
+  // failure paths (already_registered, self_managed_mode, etc.).
+  submitManagedRpRegistrationMock.mockImplementation(
+    async ({ appId, signerAddress }) => ({
+      ok: true,
+      rpIdString: generateRpIdString(appId),
+      managerAddress: "0x1111111111111111111111111111111111111111",
+      signerAddress,
+      operationHash: "0xop_hash_register",
+      status: "pending",
+      stagingOperationHash: null,
+      stagingStatus: null,
+    }),
+  );
+  submitManagedSignerRotationMock.mockImplementation(
+    async ({ appId, newSignerAddress }) => ({
+      ok: true,
+      rpIdString: generateRpIdString(appId),
+      newSignerAddress,
+      oldSignerAddress: "0x0000000000000000000000000000000000000001",
+      operationHash: "0xop_hash_rotate",
+      status: "pending",
+    }),
+  );
   currentAppContextResponse = appContextResponse;
   mockGetRpFromContract.mockResolvedValue({
     initialized: true,
@@ -362,27 +487,53 @@ describe("/api/mcp", () => {
     );
   });
 
-  it("configures World ID and returns a one-time signing key", async () => {
+  it("configures World ID via the managed flow and returns a one-time signing key", async () => {
     currentAppContextResponse = {
       app: [{ ...appContextResponse.app[0], rp_registration: [] }],
     };
 
-    const res = await POST(
-      callTool("configure_world_id", {
-        app_id: appId,
-        generate_signing_key: true,
-      }),
-    );
+    const res = await POST(callTool("configure_world_id", { app_id: appId }));
 
     expect(res.status).toBe(200);
     const body = await res.json();
     const payload = JSON.parse(body.result.content[0].text);
-    expect(payload.rp_registration.rp_id).toBe(rpId);
+    expect(payload.rp_id).toBe(rpId);
+    expect(payload.manager_address).toBe(
+      "0x1111111111111111111111111111111111111111",
+    );
+    expect(payload.operation_hash).toBe("0xop_hash_register");
+    expect(payload.status).toBe("pending");
     expect(payload.signing_key.private_key).toMatch(/^0x/);
     expect(payload.signing_key.signer_address).toMatch(/^0x/);
+    expect(submitManagedRpRegistrationMock).toHaveBeenCalledTimes(1);
+    expect(submitManagedRpRegistrationMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        appId,
+        teamId,
+        signerAddress: payload.signing_key.signer_address,
+      }),
+    );
   });
 
-  it("rotates the signing key when one is missing and rotate_if_unavailable is set", async () => {
+  it("surfaces feature_not_enabled from the registration helper as -32004", async () => {
+    currentAppContextResponse = {
+      app: [{ ...appContextResponse.app[0], rp_registration: [] }],
+    };
+    submitManagedRpRegistrationMock.mockResolvedValueOnce({
+      ok: false,
+      code: "feature_not_enabled",
+      detail: "World ID 4.0 is not enabled for this team.",
+    });
+
+    const res = await POST(callTool("configure_world_id", { app_id: appId }));
+
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.error.code).toBe(-32004);
+    expect(body.error.data.reason).toBe("feature_not_enabled");
+  });
+
+  it("rotates the signing key via the managed flow when one is missing and rotate_if_unavailable is set", async () => {
     const baseRegistration = appContextResponse.app[0].rp_registration[0];
     const { signer_address: _signerAddress, ...registrationWithoutSigner } =
       baseRegistration;
@@ -407,9 +558,11 @@ describe("/api/mcp", () => {
     expect(res.status).toBe(200);
     const body = await res.json();
     const payload = JSON.parse(body.result.content[0].text);
-    expect(payload.rp_registration.rp_id).toBe(rpId);
+    expect(payload.rp_id).toBe(rpId);
+    expect(payload.operation_hash).toBe("0xop_hash_rotate");
     expect(payload.signing_key.private_key).toMatch(/^0x/);
     expect(payload.signing_key.signer_address).toMatch(/^0x/);
+    expect(submitManagedSignerRotationMock).toHaveBeenCalledTimes(1);
   });
 
   it("does not rotate when a signer is already configured", async () => {
@@ -486,20 +639,13 @@ describe("/api/mcp", () => {
     expect(body.error.message).toMatch(/signer_private_key/);
   });
 
-  it("refuses to rotate signing keys for managed RPs", async () => {
-    currentAppContextResponse = {
-      app: [
-        {
-          ...appContextResponse.app[0],
-          rp_registration: [
-            {
-              ...appContextResponse.app[0].rp_registration[0],
-              mode: "managed",
-            },
-          ],
-        },
-      ],
-    };
+  it("surfaces a self_managed_mode rotation failure as -32004", async () => {
+    submitManagedSignerRotationMock.mockResolvedValueOnce({
+      ok: false,
+      code: "self_managed_mode",
+      detail:
+        "RP is in self-managed mode. You must handle signer key rotation yourself.",
+    });
 
     const res = await POST(
       callTool("rotate_world_id_signing_key", { app_id: appId }),
@@ -507,7 +653,8 @@ describe("/api/mcp", () => {
 
     expect(res.status).toBe(200);
     const body = await res.json();
-    expect(body.error.message).toMatch(/developer portal UI/);
+    expect(body.error.code).toBe(-32004);
+    expect(body.error.data.reason).toBe("self_managed_mode");
   });
 
   it("updates Mini App metadata through an app-owned context", async () => {
@@ -616,6 +763,625 @@ describe("/api/mcp", () => {
       ).toBe(false);
     },
   );
+
+  it("encodes description_overview / how_it_works / connect into a JSON description", async () => {
+    const res = await POST(
+      callTool("configure_mini_app", {
+        app_id: appId,
+        description_overview: "Cool app",
+        description_how_it_works: "It works like this",
+        description_connect: "Connect on X",
+      }),
+    );
+
+    expect(res.status).toBe(200);
+    const updateCall = requestMock.mock.calls.find(
+      ([query]) => getOperationName(query) === "McpUpdateAppMetadata",
+    );
+    const set = updateCall?.[1].set ?? {};
+    expect(JSON.parse(set.description)).toEqual({
+      description_overview: "Cool app",
+      description_how_it_works: "It works like this",
+      description_connect: "Connect on X",
+    });
+  });
+
+  it("prefers explicit description over the encoded sub-fields", async () => {
+    const res = await POST(
+      callTool("configure_mini_app", {
+        app_id: appId,
+        description: '{"description_overview":"raw"}',
+        description_overview: "Cool app",
+      }),
+    );
+
+    expect(res.status).toBe(200);
+    const updateCall = requestMock.mock.calls.find(
+      ([query]) => getOperationName(query) === "McpUpdateAppMetadata",
+    );
+    expect(updateCall?.[1].set.description).toBe(
+      '{"description_overview":"raw"}',
+    );
+  });
+
+  it("preserves untouched description sub-fields when patching just description_overview", async () => {
+    currentAppContextResponse = {
+      app: [
+        {
+          ...appContextResponse.app[0],
+          app_metadata: [
+            {
+              ...appContextResponse.app[0].app_metadata[0],
+              description: JSON.stringify({
+                description_overview: "OLD overview",
+                description_how_it_works: "PRESERVE this",
+                description_connect: "PRESERVE this too",
+              }),
+            },
+          ],
+        },
+      ],
+    };
+
+    const res = await POST(
+      callTool("configure_mini_app", {
+        app_id: appId,
+        description_overview: "NEW overview",
+      }),
+    );
+
+    expect(res.status).toBe(200);
+    const updateCall = requestMock.mock.calls.find(
+      ([query]) => getOperationName(query) === "McpUpdateAppMetadata",
+    );
+    expect(JSON.parse(updateCall?.[1].set.description)).toEqual({
+      description_overview: "NEW overview",
+      description_how_it_works: "PRESERVE this",
+      description_connect: "PRESERVE this too",
+    });
+  });
+
+  it("uploads a logo image from a source_url and patches logo_img_url", async () => {
+    const pngBytes = Buffer.from([
+      0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a,
+    ]);
+    mockHttpsResponse({
+      statusCode: 200,
+      headers: { "content-type": "image/png" },
+      body: pngBytes,
+    });
+
+    const res = await POST(
+      callTool("upload_app_image", {
+        app_id: appId,
+        image_type: "logo",
+        source_url: "https://cdn.example.com/logo.png",
+      }),
+    );
+
+    expect(res.status).toBe(200);
+    const payload = JSON.parse((await res.json()).result.content[0].text);
+    expect(payload.file_name).toBe("logo_img.png");
+    expect(payload.s3_key).toBe(`unverified/${appId}/logo_img.png`);
+    expect(s3SendMock).toHaveBeenCalledTimes(1);
+
+    const updateCall = requestMock.mock.calls.find(
+      ([query]) => getOperationName(query) === "McpUpdateAppMetadata",
+    );
+    expect(updateCall?.[1].set).toEqual({ logo_img_url: "logo_img.png" });
+  });
+
+  it("uploads a base64 image and detects format from magic bytes", async () => {
+    const jpegBase64 = Buffer.from([0xff, 0xd8, 0xff, 0xd9]).toString("base64");
+
+    const res = await POST(
+      callTool("upload_app_image", {
+        app_id: appId,
+        image_type: "content_card",
+        image_base64: jpegBase64,
+      }),
+    );
+
+    expect(res.status).toBe(200);
+    const payload = JSON.parse((await res.json()).result.content[0].text);
+    expect(payload.file_name).toBe("content_card_image.jpg");
+    expect(payload.content_type).toBe("image/jpeg");
+    expect(httpsRequestMock).not.toHaveBeenCalled();
+
+    const updateCall = requestMock.mock.calls.find(
+      ([query]) => getOperationName(query) === "McpUpdateAppMetadata",
+    );
+    expect(updateCall?.[1].set).toEqual({
+      content_card_image_url: "content_card_image.jpg",
+    });
+  });
+
+  it("rejects base64 bytes that aren't a valid PNG/JPEG", async () => {
+    const notAnImage = Buffer.from("hello world").toString("base64");
+    const res = await POST(
+      callTool("upload_app_image", {
+        app_id: appId,
+        image_type: "logo",
+        image_base64: notAnImage,
+      }),
+    );
+
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.error.code).toBe(-32602);
+    expect(s3SendMock).not.toHaveBeenCalled();
+  });
+
+  it("places showcase_2 in the second slot of showcase_img_urls", async () => {
+    currentAppContextResponse = {
+      app: [
+        {
+          ...appContextResponse.app[0],
+          app_metadata: [
+            {
+              ...appContextResponse.app[0].app_metadata[0],
+              showcase_img_urls: ["showcase_img_1.png"],
+            },
+          ],
+        },
+      ],
+    };
+    const pngBytes = Buffer.from([
+      0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a,
+    ]);
+    mockHttpsResponse({
+      statusCode: 200,
+      headers: { "content-type": "image/png" },
+      body: pngBytes,
+    });
+
+    const res = await POST(
+      callTool("upload_app_image", {
+        app_id: appId,
+        image_type: "showcase_2",
+        source_url: "https://cdn.example.com/showcase2.png",
+      }),
+    );
+
+    expect(res.status).toBe(200);
+    const updateCall = requestMock.mock.calls.find(
+      ([query]) => getOperationName(query) === "McpUpdateAppMetadata",
+    );
+    expect(updateCall?.[1].set).toEqual({
+      showcase_img_urls: ["showcase_img_1.png", "showcase_img_2.png"],
+    });
+  });
+
+  it("rejects images that exceed the 500KB cap", async () => {
+    const huge = Buffer.alloc(501 * 1024, 0).toString("base64");
+    const res = await POST(
+      callTool("upload_app_image", {
+        app_id: appId,
+        image_type: "logo",
+        image_base64: huge,
+      }),
+    );
+
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.error.code).toBe(-32602);
+    expect(s3SendMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects source_url that resolves to a private address", async () => {
+    dnsLookupMock.mockResolvedValue([{ address: "127.0.0.1", family: 4 }]);
+
+    const res = await POST(
+      callTool("upload_app_image", {
+        app_id: appId,
+        image_type: "logo",
+        source_url: "https://internal.example.com/logo.png",
+      }),
+    );
+
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.error.code).toBe(-32602);
+    expect(body.error.message).toMatch(/private\/internal/);
+    expect(httpsRequestMock).not.toHaveBeenCalled();
+    expect(s3SendMock).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ["dotted IPv4-mapped IPv6 loopback", "::ffff:127.0.0.1"],
+    ["hex IPv4-mapped IPv6 loopback", "::ffff:7f00:1"],
+    ["hex IPv4-mapped IPv6 RFC1918", "::ffff:0a00:1"],
+  ])(
+    "rejects source_url whose DNS records include %s",
+    async (_name, mappedAddress) => {
+      dnsLookupMock.mockResolvedValue([{ address: mappedAddress, family: 6 }]);
+
+      const res = await POST(
+        callTool("upload_app_image", {
+          app_id: appId,
+          image_type: "logo",
+          source_url: "https://example.com/logo.png",
+        }),
+      );
+
+      expect(res.status).toBe(200);
+      const body = await res.json();
+      expect(body.error.code).toBe(-32602);
+      expect(body.error.message).toMatch(/private\/internal/);
+      expect(httpsRequestMock).not.toHaveBeenCalled();
+    },
+  );
+
+  it("rejects source_url where any of the resolved A/AAAA records is private", async () => {
+    dnsLookupMock.mockResolvedValue([
+      { address: "203.0.113.10", family: 4 },
+      { address: "127.0.0.1", family: 4 },
+    ]);
+
+    const res = await POST(
+      callTool("upload_app_image", {
+        app_id: appId,
+        image_type: "logo",
+        source_url: "https://mixed.example.com/logo.png",
+      }),
+    );
+
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.error.code).toBe(-32602);
+    expect(body.error.message).toMatch(/private\/internal/);
+    expect(httpsRequestMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects source_url with Content-Length above the 500KB cap before reading body", async () => {
+    mockHttpsResponse({
+      statusCode: 200,
+      headers: {
+        "content-type": "image/png",
+        "content-length": String(600 * 1024),
+      },
+      body: Buffer.from([0x89, 0x50, 0x4e, 0x47]),
+    });
+
+    const res = await POST(
+      callTool("upload_app_image", {
+        app_id: appId,
+        image_type: "logo",
+        source_url: "https://cdn.example.com/big.png",
+      }),
+    );
+
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.error.code).toBe(-32602);
+    expect(body.error.message).toMatch(/Content-Length/);
+    expect(s3SendMock).not.toHaveBeenCalled();
+  });
+
+  it("pins the connection to the validated IP — fetch never re-resolves the hostname", async () => {
+    dnsLookupMock.mockResolvedValue([{ address: "203.0.113.55", family: 4 }]);
+    mockHttpsResponse({
+      statusCode: 200,
+      headers: { "content-type": "image/png" },
+      body: Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
+    });
+
+    const res = await POST(
+      callTool("upload_app_image", {
+        app_id: appId,
+        image_type: "logo",
+        source_url: "https://cdn.example.com/logo.png",
+      }),
+    );
+
+    expect(res.status).toBe(200);
+    expect(httpsRequestMock).toHaveBeenCalledTimes(1);
+    const [requestOptions] = httpsRequestMock.mock.calls[0];
+    expect(requestOptions.host).toBe("cdn.example.com");
+    // The custom lookup we wired in must always return the validated IP,
+    // regardless of what hostname the connect path asks for. This forces
+    // any fresh resolution by the underlying HTTP stack to be ignored.
+    const lookupCb = jest.fn();
+    requestOptions.lookup("attacker-controlled.example", {}, lookupCb);
+    expect(lookupCb).toHaveBeenCalledWith(null, "203.0.113.55", 4);
+  });
+
+  it("rate-limits upload_app_image at 60/minute per API key", async () => {
+    const pngBytes = Buffer.from([
+      0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a,
+    ]);
+    httpsRequestMock.mockImplementation((_options, callback) => {
+      const listeners: Record<string, ((arg?: unknown) => void)[]> = {};
+      const res = {
+        statusCode: 200,
+        statusMessage: "OK",
+        headers: { "content-type": "image/png" },
+        on: (event: string, handler: (arg?: unknown) => void) => {
+          (listeners[event] ??= []).push(handler);
+          return res;
+        },
+        resume: () => {},
+        destroy: () => {},
+      };
+      process.nextTick(() => {
+        callback(res);
+        process.nextTick(() => {
+          for (const fn of listeners.data ?? []) fn(pngBytes);
+          for (const fn of listeners.end ?? []) fn();
+        });
+      });
+      return {
+        on: () => {},
+        end: () => {},
+        destroy: () => {},
+        setTimeout: () => {},
+      };
+    });
+
+    const callOnce = () =>
+      POST(
+        callTool("upload_app_image", {
+          app_id: appId,
+          image_type: "logo",
+          source_url: "https://cdn.example.com/logo.png",
+        }),
+      );
+
+    // 60 calls inside the same minute window pass.
+    for (let i = 0; i < 60; i++) {
+      const res = await callOnce();
+      expect(res.status).toBe(200);
+      const body = await res.json();
+      expect(body.error).toBeUndefined();
+    }
+
+    const blocked = await callOnce();
+    expect(blocked.status).toBe(200);
+    const blockedBody = await blocked.json();
+    expect(blockedBody.error.code).toBe(-32029);
+    expect(blockedBody.error.data.retry_after_seconds).toBeGreaterThan(0);
+  });
+
+  it("rolls back the S3 object when the metadata patch fails", async () => {
+    const pngBytes = Buffer.from([
+      0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a,
+    ]);
+    mockHttpsResponse({
+      statusCode: 200,
+      headers: { "content-type": "image/png" },
+      body: pngBytes,
+    });
+
+    const baseImpl = requestMock.getMockImplementation()!;
+    requestMock.mockImplementation(async (query: unknown, variables: any) => {
+      if (getOperationName(query) === "McpUpdateAppMetadata") {
+        throw new Error("simulated Hasura outage");
+      }
+      return baseImpl(query, variables);
+    });
+
+    const res = await POST(
+      callTool("upload_app_image", {
+        app_id: appId,
+        image_type: "logo",
+        source_url: "https://cdn.example.com/logo.png",
+      }),
+    );
+
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.error.code).toBe(-32603);
+    expect(body.error.data).toEqual(
+      expect.objectContaining({
+        committed: false,
+        file_name: "logo_img.png",
+      }),
+    );
+    // First call: PutObject. Second call: DeleteObject (best-effort cleanup).
+    expect(s3SendMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("skips the S3 rollback delete when the metadata field already references the same filename", async () => {
+    // The deterministic object key (e.g. logo_img.png) means a replace-
+    // upload PUT overwrites the existing asset before the metadata patch
+    // runs. If the patch then fails AND the field already pointed at this
+    // exact filename, deleting the object would leave a dangling reference
+    // to a now-missing asset. The cleanup must be suppressed in that case.
+    currentAppContextResponse = {
+      app: [
+        {
+          ...appContextResponse.app[0],
+          app_metadata: [
+            {
+              ...appContextResponse.app[0].app_metadata[0],
+              logo_img_url: "logo_img.png",
+            },
+          ],
+        },
+      ],
+    };
+
+    const pngBytes = Buffer.from([
+      0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a,
+    ]);
+    mockHttpsResponse({
+      statusCode: 200,
+      headers: { "content-type": "image/png" },
+      body: pngBytes,
+    });
+
+    const baseImpl = requestMock.getMockImplementation()!;
+    requestMock.mockImplementation(async (query: unknown, variables: any) => {
+      if (getOperationName(query) === "McpUpdateAppMetadata") {
+        throw new Error("simulated Hasura outage");
+      }
+      return baseImpl(query, variables);
+    });
+
+    const res = await POST(
+      callTool("upload_app_image", {
+        app_id: appId,
+        image_type: "logo",
+        source_url: "https://cdn.example.com/logo.png",
+      }),
+    );
+
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.error.code).toBe(-32603);
+    expect(body.error.data).toEqual(
+      expect.objectContaining({
+        committed: false,
+        file_name: "logo_img.png",
+      }),
+    );
+    expect(body.error.message).toMatch(/existing reference was preserved/i);
+    // PutObject only — DeleteObject was suppressed because the existing
+    // metadata reference matched the deterministic filename, so deleting
+    // would have orphaned the still-referenced field.
+    expect(s3SendMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("times out a stalled source_url fetch", async () => {
+    // Simulate a host that accepts the TCP connection but never sends a
+    // response. The fetch wrapper must abort and surface a -32602 instead
+    // of pinning the worker until the platform-level request timeout.
+    httpsRequestMock.mockImplementationOnce(() => ({
+      on: () => {},
+      end: () => {},
+      destroy: () => {},
+      setTimeout: () => {},
+    }));
+
+    jest.useFakeTimers({ doNotFake: ["nextTick", "setImmediate"] });
+
+    const promise = POST(
+      callTool("upload_app_image", {
+        app_id: appId,
+        image_type: "logo",
+        source_url: "https://cdn.example.com/logo.png",
+      }),
+    );
+
+    // Walk past the 10s total-fetch timeout. The helper destroys the
+    // request and rejects with an ImageInputError, which the tool handler
+    // maps to JSON-RPC -32602.
+    await jest.advanceTimersByTimeAsync(11_000);
+    jest.useRealTimers();
+
+    const res = await promise;
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.error.code).toBe(-32602);
+    expect(body.error.message).toMatch(/did not respond within \d+ms/i);
+  });
+
+  it("falls through to the next validated DNS answer when the first connect fails", async () => {
+    // Dual-stack hostname: AAAA returned first, A second. Egress can't
+    // reach the IPv6 address (e.g. IPv4-only network) so the first
+    // connect errors before any response. The fetch must move on to the
+    // validated A record instead of failing the tool call.
+    const pngBytes = Buffer.from([
+      0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a,
+    ]);
+    dnsLookupMock.mockResolvedValue([
+      { address: "2001:db8::1", family: 6 },
+      { address: "203.0.113.55", family: 4 },
+    ]);
+
+    // First call: simulate ENETUNREACH via 'error' event before any
+    // response handler runs. This must surface as a ConnectError so the
+    // outer loop falls through.
+    httpsRequestMock.mockImplementationOnce(() => {
+      const errorListeners: Array<(err: Error) => void> = [];
+      return {
+        on: (event: string, handler: (err: Error) => void) => {
+          if (event === "error") errorListeners.push(handler);
+        },
+        end: () => {
+          process.nextTick(() => {
+            for (const fn of errorListeners) {
+              fn(
+                Object.assign(new Error("connect ENETUNREACH 2001:db8::1"), {
+                  code: "ENETUNREACH",
+                }),
+              );
+            }
+          });
+        },
+        destroy: () => {},
+        setTimeout: () => {},
+      };
+    });
+
+    // Second call: succeeds.
+    mockHttpsResponse({
+      statusCode: 200,
+      headers: { "content-type": "image/png" },
+      body: pngBytes,
+    });
+
+    const res = await POST(
+      callTool("upload_app_image", {
+        app_id: appId,
+        image_type: "logo",
+        source_url: "https://cdn.example.com/logo.png",
+      }),
+    );
+
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.error).toBeUndefined();
+    expect(httpsRequestMock).toHaveBeenCalledTimes(2);
+    // First attempt pinned the AAAA address; second pinned the A record.
+    const cb1 = jest.fn();
+    httpsRequestMock.mock.calls[0][0].lookup("any", {}, cb1);
+    expect(cb1).toHaveBeenCalledWith(null, "2001:db8::1", 6);
+    const cb2 = jest.fn();
+    httpsRequestMock.mock.calls[1][0].lookup("any", {}, cb2);
+    expect(cb2).toHaveBeenCalledWith(null, "203.0.113.55", 4);
+  });
+
+  it("ignores legacy locale input and uploads to the default-locale path so default-locale fields are never corrupted", async () => {
+    // locale used to scope the S3 key prefix while the DB write still
+    // patched the base app_metadata row, which would leave the
+    // default-locale logo_img_url pointing at a path that has no asset.
+    // Locale was removed from the input schema; Yup's stripUnknown
+    // silently drops it, and the upload lands at the base path that the
+    // (single) DB field actually references.
+    const pngBytes = Buffer.from([
+      0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a,
+    ]);
+    const res = await POST(
+      callTool("upload_app_image", {
+        app_id: appId,
+        image_type: "logo",
+        image_base64: pngBytes.toString("base64"),
+        locale: "es",
+      }),
+    );
+
+    expect(res.status).toBe(200);
+    const payload = JSON.parse((await res.json()).result.content[0].text);
+    expect(payload.s3_key).toBe(`unverified/${appId}/logo_img.png`);
+    const updateCall = requestMock.mock.calls.find(
+      ([query]) => getOperationName(query) === "McpUpdateAppMetadata",
+    );
+    expect(updateCall?.[1].set).toEqual({ logo_img_url: "logo_img.png" });
+  });
+
+  it("rejects when neither source_url nor image_base64 is provided", async () => {
+    const res = await POST(
+      callTool("upload_app_image", {
+        app_id: appId,
+        image_type: "logo",
+      }),
+    );
+
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.error.code).toBe(-32602);
+  });
 
   it("rejects Mini App metadata updates after review submission", async () => {
     currentAppContextResponse = {

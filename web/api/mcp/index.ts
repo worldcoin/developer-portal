@@ -1,11 +1,16 @@
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { logPortalEvent } from "@/api/helpers/portal-events";
 import {
-  generateRpIdString,
   mapOnChainToDbStatus,
   normalizeAddress,
   parseRpId,
 } from "@/api/helpers/rp-utils";
+import {
+  submitManagedRpRegistration,
+  submitManagedSignerRotation,
+  type ManagedRegistrationResult,
+  type ManagedRotationResult,
+} from "@/api/helpers/rp-registration-flows";
 import { getRpFromContract } from "@/api/helpers/temporal-rpc";
 import { verifyHashedSecret } from "@/api/helpers/utils";
 import { getSdk as getMcpAppContextSdk } from "@/api/mcp/graphql/app-context.generated";
@@ -15,15 +20,28 @@ import { getSdk as getMcpSubmitAppForReviewSdk } from "@/api/mcp/graphql/submit-
 import { getSdk as getMcpTeamContextSdk } from "@/api/mcp/graphql/team-context.generated";
 import { getSdk as getMcpUpdateAppMetadataSdk } from "@/api/mcp/graphql/update-app-metadata.generated";
 import { getSdk as getMcpUpsertActionV4Sdk } from "@/api/mcp/graphql/upsert-action-v4.generated";
-import { getSdk as getMcpUpsertRpRegistrationSdk } from "@/api/mcp/graphql/upsert-rp-registration.generated";
 import { SKILL_INSTRUCTIONS } from "@/api/mcp/skill";
 import { getSdk as getUpdateRpStatusSdk } from "@/api/v4/rp-status/[rp_id]/graphql/update-rp-status.generated";
 import { getSdk as getUpdateStagingStatusSdk } from "@/api/v4/rp-status/[rp_id]/graphql/update-staging-status.generated";
+import {
+  MCP_APP_IMAGE_MAP,
+  type McpAppImageType,
+  decodeImageBase64,
+  fetchImageFromUrl,
+  ImageInputError,
+  tryDeleteAppImage,
+  uploadAppImage,
+} from "@/api/helpers/app-image-storage";
+import { checkRateLimit } from "@/api/helpers/rate-limit";
 import { CategoryNameIterable } from "@/lib/categories";
 import { logger } from "@/lib/logger";
 import { mainAppStoreFormReviewSubmitSchema } from "@/scenes/Portal/Teams/TeamId/Apps/AppId/Configuration/AppStore/FormSchema/form-schema";
 import { LocalisationData } from "@/scenes/Portal/Teams/TeamId/Apps/AppId/Configuration/AppStore/types/AppStoreFormTypes";
-import { getSupportType } from "@/scenes/Portal/Teams/TeamId/Apps/AppId/Configuration/AppStore/utils";
+import {
+  encodeDescription,
+  getSupportType,
+  parseDescription,
+} from "@/scenes/Portal/Teams/TeamId/Apps/AppId/Configuration/AppStore/utils";
 import {
   getLocalisationFormValues,
   transformMailtoToRawEmail,
@@ -43,6 +61,7 @@ type JsonRpcRequest = {
 
 type McpAuthContext = {
   teamId: string;
+  apiKeyId: string;
 };
 
 type ToolContext = McpAuthContext & {
@@ -99,13 +118,16 @@ const toolDefinitions = [
   {
     name: "configure_world_id",
     description:
-      "Create World ID 4.0 RP config in self-managed mode and optionally generate a signing key. Managed mode (where the platform performs on-chain registration on the developer's behalf) requires user-session permissions and must be configured from the developer portal UI.",
+      "Create a managed World ID 4.0 RP for an app. The platform creates a KMS-backed manager key, submits the on-chain registration transaction, and (on production) duplicates to the staging contract. A new signer wallet is generated server-side; its private key is returned ONCE in the response — the portal does not retain it.",
     inputSchema: {
       type: "object",
       properties: {
         app_id: { type: "string" },
-        signer_private_key: { type: "string" },
-        generate_signing_key: { type: "boolean" },
+        signer_private_key: {
+          type: "string",
+          description:
+            "Optional. If provided, the resulting wallet's address is registered as the on-chain signer. If omitted, a fresh wallet is generated server-side and the private key is returned once.",
+        },
       },
       required: ["app_id"],
       additionalProperties: false,
@@ -180,7 +202,18 @@ const toolDefinitions = [
         category: { type: "string" },
         app_website_url: { type: "string" },
         support_link: { type: "string" },
-        description: { type: "string" },
+        description: {
+          type: "string",
+          description:
+            "Stored verbatim. Prefer description_overview for the human-readable text shown in the app store; the server will JSON-encode it for you.",
+        },
+        description_overview: {
+          type: "string",
+          description:
+            "App store overview shown to users. Required for review submission. Server JSON-encodes this (with description_how_it_works / description_connect) into app_metadata.description.",
+        },
+        description_how_it_works: { type: "string" },
+        description_connect: { type: "string" },
         logo_img_url: { type: "string" },
         hero_image_url: { type: "string" },
         meta_tag_image_url: { type: "string" },
@@ -216,6 +249,41 @@ const toolDefinitions = [
         },
       },
       required: ["app_id"],
+      additionalProperties: false,
+    },
+  },
+  {
+    name: "upload_app_image",
+    description:
+      "Upload an app image (logo, hero, content_card, meta_tag, showcase_1/2/3) from a public HTTPS source URL or base64 data and set the corresponding app_metadata field. Image must be PNG or JPEG, ≤500KB. Required for app store submissions which gate on logo_img_url and (for Mini Apps) content_card_image_url.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        app_id: { type: "string" },
+        image_type: {
+          type: "string",
+          enum: [
+            "logo",
+            "hero",
+            "content_card",
+            "meta_tag",
+            "showcase_1",
+            "showcase_2",
+            "showcase_3",
+          ],
+        },
+        source_url: {
+          type: "string",
+          description:
+            "Public HTTPS URL the server fetches. Must resolve to a public address (loopback/private/link-local rejected). Redirects are not followed. Use this OR image_base64.",
+        },
+        image_base64: {
+          type: "string",
+          description:
+            "Base64-encoded PNG/JPEG bytes. Use this OR source_url. The server detects the format from magic bytes; no separate content_type input is needed.",
+        },
+      },
+      required: ["app_id", "image_type"],
       additionalProperties: false,
     },
   },
@@ -258,7 +326,6 @@ const configureWorldIdSchema = yup
   .object({
     app_id: yup.string().required(),
     signer_private_key: yup.string().optional(),
-    generate_signing_key: yup.boolean().default(true),
   })
   .noUnknown();
 
@@ -320,6 +387,9 @@ const configureMiniAppSchema = yup
     app_website_url: yup.string().url().optional(),
     support_link: yup.string().optional(),
     description: yup.string().optional(),
+    description_overview: yup.string().optional(),
+    description_how_it_works: yup.string().optional(),
+    description_connect: yup.string().optional(),
     logo_img_url: yup.string().optional(),
     hero_image_url: yup.string().optional(),
     meta_tag_image_url: yup.string().optional(),
@@ -367,6 +437,31 @@ const submitAppSchema = yup
   })
   .noUnknown();
 
+const uploadAppImageSchema = yup
+  .object({
+    app_id: yup.string().required(),
+    image_type: yup
+      .string()
+      .oneOf(Object.keys(MCP_APP_IMAGE_MAP) as McpAppImageType[])
+      .required(),
+    source_url: yup
+      .string()
+      .url()
+      .matches(/^https:\/\//, "source_url must use https://")
+      .optional(),
+    image_base64: yup.string().optional(),
+  })
+  .test(
+    "exactly-one-source",
+    "Provide exactly one of source_url or image_base64",
+    (value) => {
+      const hasUrl = Boolean(value?.source_url);
+      const hasBase64 = Boolean(value?.image_base64);
+      return hasUrl !== hasBase64;
+    },
+  )
+  .noUnknown();
+
 const parseApiKey = (authorization: string | null) => {
   if (!authorization) return null;
   const [scheme, token] = authorization.split(" ");
@@ -411,7 +506,7 @@ const authenticate = async (req: NextRequest): Promise<McpAuthContext> => {
     throw new McpError("API key is not valid.", -32001);
   }
 
-  return { teamId: apiKey.team_id };
+  return { teamId: apiKey.team_id, apiKeyId: apiKey.id };
 };
 
 const parseInput = async <T>(schema: yup.Schema<T>, value: unknown) => {
@@ -590,39 +685,72 @@ const makeWallet = (privateKey?: string) => {
   };
 };
 
+// Map a managed-flow helper failure to the JSON-RPC error code the MCP
+// surfaces. Caller-fixable problems (already registered, wrong mode, feature
+// flag off) become -32004 (operation not allowed in current state); anything
+// platform-side becomes -32603 so clients know to retry / escalate.
+const REGISTRATION_FLOW_RPC_CODE: Record<
+  Exclude<ManagedRegistrationResult, { ok: true }>["code"],
+  number
+> = {
+  feature_not_enabled: -32004,
+  already_registered: -32004,
+  config_error: -32603,
+  kms_error: -32603,
+  submission_error: -32603,
+  db_error: -32603,
+};
+
+const ROTATION_FLOW_RPC_CODE: Record<
+  Exclude<ManagedRotationResult, { ok: true }>["code"],
+  number
+> = {
+  feature_not_enabled: -32004,
+  rp_not_registered: -32004,
+  self_managed_mode: -32004,
+  rotation_in_progress: -32004,
+  config_error: -32603,
+  submission_error: -32603,
+  db_error: -32603,
+};
+
 const rotateWorldIdSigningKey = async (input: unknown, ctx: ToolContext) => {
   const args = await parseInput(
     appIdSchema.shape({ signer_private_key: yup.string().optional() }),
     input,
   );
+  // requireApp validates the app belongs to the API key's team before we
+  // hand off to the rotation flow (which trusts the caller's auth).
   const app = await requireApp(ctx.client, ctx.teamId, args.app_id);
   const registration = app.rp_registration[0];
   if (!registration) {
     throw new McpError("World ID is not configured for this app.", -32004);
   }
 
-  if (registration.mode !== "self_managed") {
-    throw new McpError(
-      "Managed (platform) signing keys must be rotated from the developer portal UI so the on-chain signer is updated. The MCP can only rotate self-managed keys.",
-      -32004,
-    );
-  }
-
   const signingKey = makeWallet(args.signer_private_key);
-  const data = await getMcpUpsertRpRegistrationSdk(
-    ctx.client,
-  ).McpUpsertRpRegistration({
-    rp_id: registration.rp_id,
-    app_id: args.app_id,
-    mode: registration.mode,
-    signer_address: signingKey.signer_address,
+
+  const result = await submitManagedSignerRotation({
+    client: ctx.client,
+    appId: args.app_id,
+    newSignerAddress: signingKey.signer_address,
   });
 
+  if (!result.ok) {
+    throw new McpError(result.detail, ROTATION_FLOW_RPC_CODE[result.code], {
+      reason: result.code,
+    });
+  }
+
   return content({
-    rp_registration: data.insert_rp_registration_one,
+    rp_id: result.rpIdString,
+    new_signer_address: result.newSignerAddress,
+    old_signer_address: result.oldSignerAddress,
+    operation_hash: result.operationHash,
+    status: result.status,
     signing_key: signingKey,
+    status_endpoint: rpStatusEndpoint(result.rpIdString),
     warning:
-      "Store private_key securely. It is not recoverable after this response.",
+      "Store private_key securely. It is not recoverable after this response. The on-chain rotation is pending — poll status_endpoint until it returns 'registered'.",
   });
 };
 
@@ -702,32 +830,42 @@ const tools = {
       });
     }
 
-    const signingKey =
-      args.generate_signing_key || args.signer_private_key
-        ? makeWallet(args.signer_private_key)
-        : null;
+    // Always generate a wallet — managed mode requires a real signer
+    // address up front. If the caller passed a private key we honor it,
+    // otherwise we mint a fresh one and return it once.
+    const signingKey = makeWallet(args.signer_private_key);
+    const appName = app.app_metadata?.[0]?.name || app.name || "";
 
-    const data = await getMcpUpsertRpRegistrationSdk(
-      ctx.client,
-    ).McpUpsertRpRegistration({
-      rp_id: generateRpIdString(args.app_id),
-      app_id: args.app_id,
-      mode: "self_managed",
-      signer_address: signingKey?.signer_address ?? null,
+    const result = await submitManagedRpRegistration({
+      client: ctx.client,
+      appId: args.app_id,
+      teamId: ctx.teamId,
+      signerAddress: signingKey.signer_address,
+      appName,
     });
-    const rpRegistration = data.insert_rp_registration_one;
-    if (!rpRegistration) {
-      throw new McpError("Unable to configure World ID for this app.", -32000);
+
+    if (!result.ok) {
+      throw new McpError(
+        result.detail,
+        REGISTRATION_FLOW_RPC_CODE[result.code],
+        { reason: result.code },
+      );
     }
 
     return content({
-      rp_registration: rpRegistration,
+      rp_id: result.rpIdString,
+      manager_address: result.managerAddress,
+      signer_address: result.signerAddress,
+      operation_hash: result.operationHash,
+      status: result.status,
+      staging_operation_hash: result.stagingOperationHash,
+      staging_status: result.stagingStatus,
       signing_key: signingKey,
-      verify_endpoint: `/api/v4/verify/${rpRegistration.rp_id}`,
-      proof_context_endpoint: `/api/v4/proof-context/${rpRegistration.rp_id}`,
-      status_endpoint: rpStatusEndpoint(rpRegistration.rp_id),
+      verify_endpoint: `/api/v4/verify/${result.rpIdString}`,
+      proof_context_endpoint: `/api/v4/proof-context/${result.rpIdString}`,
+      status_endpoint: rpStatusEndpoint(result.rpIdString),
       warning:
-        "Private keys are returned only at generation/rotation time. Store the private_key securely in the app environment. To use platform-managed (on-chain) registration instead, configure the app from the developer portal UI.",
+        "Private keys are returned only at generation/rotation time. Store the private_key securely in the app environment. The on-chain registration is pending — poll status_endpoint until it returns 'registered' before relying on the RP for verifications.",
     });
   },
 
@@ -811,6 +949,10 @@ const tools = {
       associated_domains,
       max_notifications_per_day,
       app_mode,
+      description,
+      description_overview,
+      description_how_it_works,
+      description_connect,
       ...rest
     } = args;
 
@@ -845,6 +987,31 @@ const tools = {
         : max_notifications_per_day;
     }
 
+    // app_metadata.description is a JSON-encoded string with shape
+    // { description_overview, description_how_it_works, description_connect }.
+    // Accept the sub-fields directly so the agent doesn't need to construct
+    // the JSON. configure_mini_app behaves like a patch endpoint elsewhere
+    // (omitted fields preserve existing values) so we mirror that here:
+    // missing sub-fields fall back to whatever's already stored, NOT to "".
+    // Explicit `description` (legacy / advanced) wins if both are provided.
+    if (
+      description === undefined &&
+      (description_overview !== undefined ||
+        description_how_it_works !== undefined ||
+        description_connect !== undefined)
+    ) {
+      const existing = parseDescription(
+        ((metadata as { description?: string | null }).description ?? "") || "",
+      );
+      advanced.description = encodeDescription(
+        description_overview ?? existing.description_overview,
+        description_how_it_works ?? existing.description_how_it_works,
+        description_connect ?? existing.description_connect,
+      );
+    } else if (description !== undefined) {
+      advanced.description = description;
+    }
+
     const set = Object.fromEntries(
       Object.entries({ ...rest, ...advanced }).filter(
         ([, value]) => value !== undefined,
@@ -859,6 +1026,157 @@ const tools = {
     });
 
     return content({ app_metadata: data.update_app_metadata_by_pk });
+  },
+
+  upload_app_image: async (input, ctx) => {
+    const args = await parseInput(uploadAppImageSchema, input);
+    const app = await requireApp(ctx.client, ctx.teamId, args.app_id);
+    const metadata = app.app_metadata[0];
+    if (!metadata) {
+      throw new McpError("Editable app metadata not found.", -32004);
+    }
+    if (metadata.verification_status !== "unverified") {
+      throw new McpError("Only unverified app metadata can be edited.", -32004);
+    }
+
+    // Per-API-key upload throttle. Caps cost from a single key looping the
+    // tool: 60 uploads/min and 500/day. Falls open if Redis is unavailable.
+    const limit = await checkRateLimit({
+      scope: "mcp_upload_app_image",
+      key: ctx.apiKeyId,
+      windows: [
+        { label: "minute", limit: 60, periodSeconds: 60 },
+        { label: "day", limit: 500, periodSeconds: 86_400 },
+      ],
+    });
+    if (!limit.ok) {
+      throw new McpError(
+        `Rate limit exceeded for upload_app_image (${limit.window.limit}/${limit.window.label}). Retry in ${limit.resetIn}s.`,
+        -32029,
+        { retry_after_seconds: limit.resetIn, window: limit.window.label },
+      );
+    }
+
+    // Resolve the image bytes + content type from either source. The helpers
+    // perform SSRF-safe fetching (https only, no redirects, public addrs),
+    // size-cap streaming, and authoritative magic-number detection so we
+    // never trust the caller-provided content_type. ImageInputError is the
+    // caller-fixable signal we map to JSON-RPC -32602.
+    let body: Buffer;
+    let contentType: "image/png" | "image/jpeg";
+
+    try {
+      const resolved = args.source_url
+        ? await fetchImageFromUrl(args.source_url)
+        : decodeImageBase64(args.image_base64!);
+      body = resolved.body;
+      contentType = resolved.contentType;
+    } catch (error) {
+      if (error instanceof ImageInputError) {
+        throw new McpError(error.message, -32602);
+      }
+      logger.error("Failed to resolve MCP app image bytes", {
+        error,
+        app_id: args.app_id,
+        team_id: ctx.teamId,
+        image_type: args.image_type,
+        source: args.source_url ? "url" : "base64",
+      });
+      throw new McpError("Failed to read image bytes.", -32603);
+    }
+
+    let uploadResult: Awaited<ReturnType<typeof uploadAppImage>>;
+    try {
+      uploadResult = await uploadAppImage({
+        appId: args.app_id,
+        imageType: args.image_type as McpAppImageType,
+        body,
+        contentType,
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      // Size / empty errors thrown by the helper are caller-fixable.
+      if (
+        message.includes("empty") ||
+        message.includes("maximum") ||
+        message.includes("bytes")
+      ) {
+        throw new McpError(message, -32602);
+      }
+      logger.error("Failed to upload MCP app image", {
+        error,
+        app_id: args.app_id,
+        team_id: ctx.teamId,
+        image_type: args.image_type,
+      });
+      throw new McpError("Failed to upload image to storage.", -32603);
+    }
+
+    const { fileName, objectKey, mapping, sizeBytes } = uploadResult;
+    let set: Record<string, unknown>;
+    let priorReferencedFileName: string | undefined;
+    if ("arrayIndex" in mapping) {
+      const current = (metadata.showcase_img_urls ?? []) as string[];
+      const slot = current[mapping.arrayIndex];
+      priorReferencedFileName = typeof slot === "string" ? slot : undefined;
+      const next = [...current];
+      while (next.length < mapping.arrayIndex + 1) next.push("");
+      next[mapping.arrayIndex] = fileName;
+      set = { showcase_img_urls: next };
+    } else {
+      const raw = (metadata as Record<string, unknown>)[mapping.field];
+      priorReferencedFileName = typeof raw === "string" ? raw : undefined;
+      set = { [mapping.field]: fileName };
+    }
+
+    // S3 upload already succeeded above. The deterministic object key means
+    // a replace-upload may have just overwritten an asset that the existing
+    // metadata field already references; in that case deleting on failure
+    // would leave the existing reference dangling. The prior bytes are gone
+    // either way, so the safer rollback is to keep the new bytes in place
+    // (effectively partial success — the asset is updated even though the
+    // patch failed) and let the caller retry. When the prior metadata
+    // referenced something else (or nothing), we DELETE the orphan we just
+    // wrote. Retries are idempotent (same key, same bytes).
+    let data;
+    try {
+      data = await getMcpUpdateAppMetadataSdk(ctx.client).McpUpdateAppMetadata({
+        app_metadata_id: metadata.id,
+        set,
+      });
+    } catch (error) {
+      const wouldOrphanReference = priorReferencedFileName === fileName;
+      if (!wouldOrphanReference) {
+        await tryDeleteAppImage(objectKey);
+      }
+      logger.error("MCP app image uploaded to S3 but metadata patch failed.", {
+        error,
+        app_id: args.app_id,
+        team_id: ctx.teamId,
+        image_type: args.image_type,
+        object_key: objectKey,
+        cleanup_skipped: wouldOrphanReference,
+      });
+      throw new McpError(
+        wouldOrphanReference
+          ? "Image was uploaded but the metadata update failed. The existing reference was preserved; retry the same call."
+          : "Image was uploaded but the metadata update failed. The S3 object was rolled back; retry the same call.",
+        -32603,
+        { committed: false, file_name: fileName },
+      );
+    }
+
+    return content({
+      committed: true,
+      app_id: args.app_id,
+      image_type: args.image_type,
+      field: mapping.field,
+      file_name: fileName,
+      s3_key: objectKey,
+      size_bytes: sizeBytes,
+      content_type: contentType,
+      app_metadata: data.update_app_metadata_by_pk,
+    });
   },
 
   submit_app_for_review: async (input, ctx) => {
@@ -982,6 +1300,7 @@ const parseToolName = (value: unknown): ToolName => {
     case "rotate_world_id_signing_key":
     case "create_world_id_action":
     case "configure_mini_app":
+    case "upload_app_image":
     case "submit_app_for_review":
       return value;
     default:
@@ -1013,6 +1332,8 @@ const executeTool = async (
       return tools.create_world_id_action(input, ctx);
     case "configure_mini_app":
       return tools.configure_mini_app(input, ctx);
+    case "upload_app_image":
+      return tools.upload_app_image(input, ctx);
     case "submit_app_for_review":
       return tools.submit_app_for_review(input, ctx);
   }
