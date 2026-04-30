@@ -4,34 +4,23 @@ import { AffiliateMetadataResponse } from "@/lib/types";
 import { affiliateMetadataAtom } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/common/affiliate-metadata-atom";
 import { getAffiliateMetadata } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Overview/page/server/getAffiliateMetadata";
 import { useAtom } from "jotai";
-import { usePathname } from "next/navigation";
-import { useCallback, useEffect } from "react";
+import { useParams, usePathname } from "next/navigation";
+import { useCallback, useEffect, useRef } from "react";
 import { toast } from "react-toastify";
 
-let inflightFetch: Promise<
-  AffiliateMetadataResponse["result"] | null
-> | null = null;
+/** Which team's metadata was last written to `affiliateMetadataAtom` (shared across hook instances). */
+let lastAppliedMetadataTeamId: string | null = null;
 
-async function fetchAffiliateMetadataDeduped(): Promise<
+async function loadAffiliateMetadata(): Promise<
   AffiliateMetadataResponse["result"] | null
 > {
-  if (inflightFetch) {
-    return inflightFetch;
+  const result = await getAffiliateMetadata();
+  if (!result.success) {
+    console.error("Failed to fetch data: ", result.message);
+    toast.error("Failed to fetch metadata. Please try later.");
+    return null;
   }
-
-  inflightFetch = (async () => {
-    const result = await getAffiliateMetadata();
-    if (!result.success) {
-      console.error("Failed to fetch data: ", result.message);
-      toast.error("Failed to fetch metadata. Please try later.");
-      return null;
-    }
-    return (result.data as AffiliateMetadataResponse).result;
-  })().finally(() => {
-    inflightFetch = null;
-  });
-
-  return inflightFetch;
+  return (result.data as AffiliateMetadataResponse).result;
 }
 
 /**
@@ -40,19 +29,37 @@ async function fetchAffiliateMetadataDeduped(): Promise<
  */
 export const useGetAffiliateMetadata = (options?: { skip?: boolean }) => {
   const pathname = usePathname();
+  const params = useParams();
+  const teamId = params?.teamId as string | undefined;
+
+  const teamIdRef = useRef(teamId);
+  teamIdRef.current = teamId;
+
   const [{ data, loading, error }, setState] = useAtom(affiliateMetadataAtom);
 
   const fetchData = useCallback(async () => {
-    setState((prev) => {
-      const hasCached = prev.data != null;
-      return {
-        ...prev,
-        error: null,
-        loading: hasCached ? prev.loading : true,
-      };
-    });
+    const requestTeamId = teamId;
+    if (!requestTeamId) {
+      return null;
+    }
 
-    const next = await fetchAffiliateMetadataDeduped();
+    const isTeamChange =
+      lastAppliedMetadataTeamId != null &&
+      lastAppliedMetadataTeamId !== requestTeamId;
+
+    setState((prev) => ({
+      ...prev,
+      // Drop another team's row so layout guards do not run on stale data while loading.
+      data: isTeamChange ? null : prev.data,
+      error: null,
+      loading: true,
+    }));
+
+    const next = await loadAffiliateMetadata();
+
+    if (teamIdRef.current !== requestTeamId) {
+      return null;
+    }
 
     if (next == null) {
       setState((prev) => ({
@@ -62,22 +69,24 @@ export const useGetAffiliateMetadata = (options?: { skip?: boolean }) => {
       return null;
     }
 
+    lastAppliedMetadataTeamId = requestTeamId;
+
     setState({
       data: next,
       loading: false,
       error: null,
     });
     return next;
-  }, [setState]);
+  }, [setState, teamId]);
 
   useEffect(() => {
-    if (options?.skip) {
+    if (options?.skip || !teamId) {
       setState((prev) => ({ ...prev, loading: false }));
       return;
     }
 
     void fetchData();
-  }, [options?.skip, fetchData, pathname, setState]);
+  }, [options?.skip, fetchData, pathname, setState, teamId]);
 
   return {
     data,
