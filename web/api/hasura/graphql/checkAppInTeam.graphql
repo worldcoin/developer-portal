@@ -1,0 +1,18 @@
+query CheckAppInTeam($team_id: String!, $app_id: String!) {
+  app(
+    where: {
+      id: { _eq: $app_id }
+      team_id: { _eq: $team_id }
+      deleted_at: { _is_null: true }
+    }
+    limit: 1
+  ) {
+    id
+    app_metadata(
+      where: { verification_status: { _eq: "unverified" } }
+      limit: 1
+    ) {
+      id
+    }
+  }
+}

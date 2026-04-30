@@ -1,0 +1,30 @@
+mutation McpUpdateAppMetadata(
+  $app_metadata_id: String!
+  $set: app_metadata_set_input!
+) {
+  update_app_metadata_by_pk(pk_columns: { id: $app_metadata_id }, _set: $set) {
+    id
+    app_id
+    name
+    short_name
+    app_mode
+    category
+    integration_url
+    app_website_url
+    support_link
+    content_card_image_url
+    description
+    hero_image_url
+    is_android_only
+    is_for_humans_only
+    logo_img_url
+    meta_tag_image_url
+    showcase_img_urls
+    world_app_description
+    world_app_button_text
+    verification_status
+    supported_countries
+    supported_languages
+    is_developer_allow_listing
+  }
+}

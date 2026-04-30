@@ -1,39 +1,40 @@
-/* eslint-disable */
+/* eslint-disable import/no-relative-parent-imports -- auto generated file */
 import * as Types from "@/graphql/graphql";
 
 import { GraphQLClient, RequestOptions } from "graphql-request";
 import gql from "graphql-tag";
 type GraphQLClientRequestHeaders = RequestOptions["requestHeaders"];
-export type FetchRpRegistrationQueryVariables = Types.Exact<{
-  appId: Types.Scalars["String"]["input"];
+export type CheckAppInTeamQueryVariables = Types.Exact<{
+  team_id: Types.Scalars["String"]["input"];
+  app_id: Types.Scalars["String"]["input"];
 }>;
 
-export type FetchRpRegistrationQuery = {
+export type CheckAppInTeamQuery = {
   __typename?: "query_root";
-  rp_registration: Array<{
-    __typename?: "rp_registration";
-    rp_id: string;
-    app_id: string;
-    status: unknown;
-    staging_status?: unknown | null;
-    mode: unknown;
-    signer_address?: string | null;
-    created_at: string;
-    updated_at: string;
+  app: Array<{
+    __typename?: "app";
+    id: string;
+    app_metadata: Array<{ __typename?: "app_metadata"; id: string }>;
   }>;
 };
 
-export const FetchRpRegistrationDocument = gql`
-  query FetchRpRegistration($appId: String!) {
-    rp_registration(where: { app_id: { _eq: $appId } }) {
-      rp_id
-      app_id
-      status
-      staging_status
-      mode
-      signer_address
-      created_at
-      updated_at
+export const CheckAppInTeamDocument = gql`
+  query CheckAppInTeam($team_id: String!, $app_id: String!) {
+    app(
+      where: {
+        id: { _eq: $app_id }
+        team_id: { _eq: $team_id }
+        deleted_at: { _is_null: true }
+      }
+      limit: 1
+    ) {
+      id
+      app_metadata(
+        where: { verification_status: { _eq: "unverified" } }
+        limit: 1
+      ) {
+        id
+      }
     }
   }
 `;
@@ -57,18 +58,18 @@ export function getSdk(
   withWrapper: SdkFunctionWrapper = defaultWrapper,
 ) {
   return {
-    FetchRpRegistration(
-      variables: FetchRpRegistrationQueryVariables,
+    CheckAppInTeam(
+      variables: CheckAppInTeamQueryVariables,
       requestHeaders?: GraphQLClientRequestHeaders,
-    ): Promise<FetchRpRegistrationQuery> {
+    ): Promise<CheckAppInTeamQuery> {
       return withWrapper(
         (wrappedRequestHeaders) =>
-          client.request<FetchRpRegistrationQuery>(
-            FetchRpRegistrationDocument,
+          client.request<CheckAppInTeamQuery>(
+            CheckAppInTeamDocument,
             variables,
             { ...requestHeaders, ...wrappedRequestHeaders },
           ),
-        "FetchRpRegistration",
+        "CheckAppInTeam",
         "query",
         variables,
       );

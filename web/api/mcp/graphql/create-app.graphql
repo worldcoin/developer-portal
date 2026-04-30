@@ -1,0 +1,37 @@
+mutation McpCreateApp(
+  $team_id: String!
+  $name: String!
+  $engine: String!
+  $is_staging: Boolean!
+  $category: String!
+  $integration_url: String!
+  $app_mode: String!
+) {
+  insert_app_one(
+    object: {
+      engine: $engine
+      name: $name
+      is_staging: $is_staging
+      team_id: $team_id
+      app_metadata: {
+        data: {
+          name: $name
+          integration_url: $integration_url
+          app_mode: $app_mode
+          category: $category
+        }
+      }
+    }
+  ) {
+    id
+    name
+    is_staging
+    engine
+    app_metadata(order_by: { created_at: desc }, limit: 1) {
+      id
+      app_mode
+      category
+      integration_url
+    }
+  }
+}

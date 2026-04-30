@@ -41,6 +41,15 @@ export const WorldId40Page = async ({ params }: Props) => {
       initialStatus={
         rpData.status as "pending" | "registered" | "failed" | "deactivated"
       }
+      initialStagingStatus={
+        (rpData.staging_status as
+          | "pending"
+          | "registered"
+          | "failed"
+          | "deactivated"
+          | null
+          | undefined) ?? null
+      }
       mode={rpData.mode as string}
       signerAddress={rpData.signer_address ?? null}
       createdAt={rpData.created_at}

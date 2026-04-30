@@ -1,39 +1,31 @@
-/* eslint-disable */
+/* eslint-disable import/no-relative-parent-imports -- auto generated file */
 import * as Types from "@/graphql/graphql";
 
 import { GraphQLClient, RequestOptions } from "graphql-request";
 import gql from "graphql-tag";
 type GraphQLClientRequestHeaders = RequestOptions["requestHeaders"];
-export type FetchRpRegistrationQueryVariables = Types.Exact<{
-  appId: Types.Scalars["String"]["input"];
+export type McpAuthenticateTeamQueryVariables = Types.Exact<{
+  id: Types.Scalars["String"]["input"];
 }>;
 
-export type FetchRpRegistrationQuery = {
+export type McpAuthenticateTeamQuery = {
   __typename?: "query_root";
-  rp_registration: Array<{
-    __typename?: "rp_registration";
-    rp_id: string;
-    app_id: string;
-    status: unknown;
-    staging_status?: unknown | null;
-    mode: unknown;
-    signer_address?: string | null;
-    created_at: string;
-    updated_at: string;
-  }>;
+  api_key_by_pk?: {
+    __typename?: "api_key";
+    id: string;
+    api_key: string;
+    is_active: boolean;
+    team_id: string;
+  } | null;
 };
 
-export const FetchRpRegistrationDocument = gql`
-  query FetchRpRegistration($appId: String!) {
-    rp_registration(where: { app_id: { _eq: $appId } }) {
-      rp_id
-      app_id
-      status
-      staging_status
-      mode
-      signer_address
-      created_at
-      updated_at
+export const McpAuthenticateTeamDocument = gql`
+  query McpAuthenticateTeam($id: String!) {
+    api_key_by_pk(id: $id) {
+      id
+      api_key
+      is_active
+      team_id
     }
   }
 `;
@@ -57,18 +49,18 @@ export function getSdk(
   withWrapper: SdkFunctionWrapper = defaultWrapper,
 ) {
   return {
-    FetchRpRegistration(
-      variables: FetchRpRegistrationQueryVariables,
+    McpAuthenticateTeam(
+      variables: McpAuthenticateTeamQueryVariables,
       requestHeaders?: GraphQLClientRequestHeaders,
-    ): Promise<FetchRpRegistrationQuery> {
+    ): Promise<McpAuthenticateTeamQuery> {
       return withWrapper(
         (wrappedRequestHeaders) =>
-          client.request<FetchRpRegistrationQuery>(
-            FetchRpRegistrationDocument,
+          client.request<McpAuthenticateTeamQuery>(
+            McpAuthenticateTeamDocument,
             variables,
             { ...requestHeaders, ...wrappedRequestHeaders },
           ),
-        "FetchRpRegistration",
+        "McpAuthenticateTeam",
         "query",
         variables,
       );

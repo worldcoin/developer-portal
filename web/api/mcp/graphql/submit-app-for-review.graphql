@@ -1,0 +1,19 @@
+mutation McpSubmitAppForReview(
+  $app_metadata_id: String!
+  $is_developer_allow_listing: Boolean!
+  $changelog: String!
+) {
+  update_app_metadata_by_pk(
+    pk_columns: { id: $app_metadata_id }
+    _set: {
+      verification_status: "awaiting_review"
+      is_developer_allow_listing: $is_developer_allow_listing
+      changelog: $changelog
+    }
+  ) {
+    id
+    app_id
+    verification_status
+    is_developer_allow_listing
+  }
+}

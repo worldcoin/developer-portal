@@ -2,6 +2,7 @@
 
 import { errorFormAction } from "@/api/helpers/errors";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
+import { logPortalEvent } from "@/api/helpers/portal-events";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { normalizePublicKey } from "@/lib/crypto.server";
 import { generateExternalNullifier } from "@/lib/hashing";
@@ -92,6 +93,15 @@ export async function createActionServerSide(
         appId,
         parsedInitialValues.action,
       ).digest,
+    });
+
+    logPortalEvent({
+      event: "action_creation",
+      actor: "human",
+      team_id: teamId,
+      app_id: appId,
+      action: parsedInitialValues.action,
+      metadata: { action_version: "legacy" },
     });
 
     return {

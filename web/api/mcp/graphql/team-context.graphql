@@ -1,0 +1,36 @@
+query McpTeamContext($team_id: String!) {
+  team_by_pk(id: $team_id) {
+    id
+    name
+    apps(
+      where: { deleted_at: { _is_null: true } }
+      order_by: { created_at: desc }
+    ) {
+      id
+      name
+      engine
+      is_staging
+      status
+      created_at
+      app_metadata(
+        where: { verification_status: { _neq: "verified" } }
+        order_by: { created_at: desc }
+        limit: 1
+      ) {
+        id
+        name
+        app_mode
+        category
+        integration_url
+        verification_status
+      }
+      rp_registration {
+        rp_id
+        mode
+        status
+        signer_address
+        staging_status
+      }
+    }
+  }
+}
