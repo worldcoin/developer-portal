@@ -43,6 +43,10 @@ export function useAutosave<T extends FieldValues>(
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const controllerRef = useRef<AbortController | null>(null);
   const inFlightPromiseRef = useRef<Promise<boolean> | null>(null);
+  // Tracks whether the form has changed since the last successful save.
+  // We rely on this rather than RHF's formState.isDirty because that proxy is
+  // only reliably current inside a render — autosave runs in callbacks/timers.
+  const hasUnsavedChangesRef = useRef(false);
 
   const clearDebounce = useCallback(() => {
     if (debounceTimerRef.current) {
@@ -66,6 +70,11 @@ export function useAutosave<T extends FieldValues>(
 
     const { form: f, save, onStatus, onPendingChange } = optionsRef.current;
 
+    if (!hasUnsavedChangesRef.current) {
+      onPendingChange?.(false);
+      return true;
+    }
+
     const valid = await f.trigger();
     if (!valid) return false;
 
@@ -73,6 +82,10 @@ export function useAutosave<T extends FieldValues>(
     controllerRef.current = controller;
 
     const snapshot = f.getValues();
+    // Mark "no unsaved changes" preemptively. Any change that arrives while
+    // this save is in flight will flip it back to true through the watch
+    // subscription, which means the next save will fire.
+    hasUnsavedChangesRef.current = false;
     onPendingChange?.(false);
     onStatus({ state: "saving" });
 
@@ -104,6 +117,8 @@ export function useAutosave<T extends FieldValues>(
       ) {
         return false;
       }
+      // Failure: restore unsaved-changes flag so flushAll/Save Now can retry.
+      hasUnsavedChangesRef.current = true;
       const error = err instanceof Error ? err : new Error(String(err));
       onStatus({
         state: "error",
@@ -146,6 +161,7 @@ export function useAutosave<T extends FieldValues>(
     const subscription = form.watch((_values, info) => {
       if (!info.name) return;
       if (!optionsRef.current.enabled) return;
+      hasUnsavedChangesRef.current = true;
       clearDebounce();
       optionsRef.current.onPendingChange?.(true);
       debounceTimerRef.current = setTimeout(() => {

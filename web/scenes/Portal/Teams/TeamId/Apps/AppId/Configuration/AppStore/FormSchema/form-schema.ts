@@ -60,11 +60,12 @@ export const mainAppStoreFormSchema = yup
     supported_countries: supportedCountriesSchema,
     supported_languages: yup
       .array(yup.string().required("This field is required"))
+      .min(1, "At least one supported language is required")
       .default(["en"])
       .test(
         "has-english",
         "English is a required language",
-        (langs) => !langs?.length || langs.includes("en"),
+        (langs) => langs?.includes("en") ?? false,
       ),
     localisations: yup.array().of(localisationFormSchema).default([]),
   })

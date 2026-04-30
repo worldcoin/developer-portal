@@ -250,4 +250,17 @@ describe("useAutosave", () => {
     expect(flushResult).toBe(true);
     expect(save).not.toHaveBeenCalled();
   });
+
+  it("flush is a no-op when there are no unsaved changes", async () => {
+    const save = jest.fn().mockResolvedValue(undefined);
+    const { result } = setup(save);
+
+    let flushResult = false;
+    await act(async () => {
+      flushResult = await result.current.result.flush();
+    });
+
+    expect(flushResult).toBe(true);
+    expect(save).not.toHaveBeenCalled();
+  });
 });
