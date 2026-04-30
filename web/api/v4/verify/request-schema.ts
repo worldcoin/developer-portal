@@ -131,6 +131,10 @@ export const schema = yup
     // Optional environment to specify which verifier contract to use
     environment: yup.string().oneOf(["production", "staging"]).optional(),
 
+    // Optional World App integrity attestation bundle. When present, it is
+    // verified before proof verification.
+    integrity_bundle: yup.string().strict().optional(),
+
     // Responses array - validated based on version and type of proof
     responses: yup
       .array()
@@ -218,6 +222,7 @@ export interface UniquenessProofRequestV3 {
   action: string;
   action_description?: string;
   environment?: "production" | "staging";
+  integrity_bundle?: string;
   responses: UniquenessProofResponseV3[];
 }
 
@@ -237,6 +242,7 @@ export interface UniquenessProofRequestV4 {
   action: string;
   action_description?: string;
   environment?: "production" | "staging";
+  integrity_bundle?: string;
   responses: UniquenessProofResponseV4[];
 }
 
@@ -255,5 +261,6 @@ export interface SessionProofRequest {
   nonce: string;
   protocol_version: "4.0";
   environment?: "production" | "staging";
+  integrity_bundle?: string;
   responses: SessionResponseItem[];
 }
