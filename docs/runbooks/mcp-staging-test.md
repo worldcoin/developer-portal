@@ -52,6 +52,13 @@ Expected: 10 tools — `get_team_context`, `get_app_config`, `create_app`,
 `get_world_id_registration_status`, `rotate_world_id_signing_key`,
 `create_world_id_action`, `configure_mini_app`, `submit_app_for_review`.
 
+The MCP returns a skill guide via `initialize.instructions` — the agent
+should pick this up automatically and follow the canonical flows below.
+The same content lives at `web/api/mcp/SKILL.md`; if you'd rather load
+it as a Claude Code local skill (e.g. for offline reference), copy it
+into `~/.claude/skills/world-id-mcp/SKILL.md` — the YAML frontmatter
+is already in place.
+
 ## 3. Scenario 1 — External World ID app, end-to-end
 
 Prompt your agent:
