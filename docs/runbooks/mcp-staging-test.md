@@ -192,7 +192,7 @@ Prompt:
 >    - `support_link: "mailto:test@example.com"`
 >    - `supported_countries: ["us"]`, `supported_languages: ["en"]`
 >    - `is_android_only: false`, `is_for_humans_only: false`
->    - Advanced: `max_notifications_per_day: 2`,
+>    - Advanced: `max_notifications_per_day: "2"`,
 >      `contracts: ["0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"]`,
 >      `permit2_tokens: ["0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"]`,
 >      `can_import_all_contacts: true`, `can_use_attestation: true`.
@@ -297,9 +297,12 @@ endpoint 404s. The deeper handler can stay.
 - `configure_world_id` and `rotate_world_id_signing_key` both gate on
   the team having World ID 4.0 enabled. A disabled team gets `-32004`
   with `data.reason: "feature_not_enabled"`.
-- Notification limits accept `0 | 1 | 2 | "unlimited"`. The handler
-  translates `"unlimited"` to `is_allowed_unlimited_notifications: true`
-  + `max_notifications_per_day: 0` (matching the dashboard's behavior).
+- Notification limits accept the string-only enum `"0" | "1" | "2" |
+  "unlimited"` (the schema is string-only because mixed-type `oneOf`
+  fails strict JSON schema validators in some MCP clients). The handler
+  parses the integer server-side, and translates `"unlimited"` to
+  `is_allowed_unlimited_notifications: true` + `max_notifications_per_day: 0`
+  (matching the dashboard's behavior).
 - `configure_mini_app` accepts `description_overview`,
   `description_how_it_works`, `description_connect` as separate
   inputs; the server JSON-encodes them into `app_metadata.description`.
