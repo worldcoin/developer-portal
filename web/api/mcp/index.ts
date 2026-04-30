@@ -16,6 +16,7 @@ import { getSdk as getMcpTeamContextSdk } from "@/api/mcp/graphql/team-context.g
 import { getSdk as getMcpUpdateAppMetadataSdk } from "@/api/mcp/graphql/update-app-metadata.generated";
 import { getSdk as getMcpUpsertActionV4Sdk } from "@/api/mcp/graphql/upsert-action-v4.generated";
 import { getSdk as getMcpUpsertRpRegistrationSdk } from "@/api/mcp/graphql/upsert-rp-registration.generated";
+import { SKILL_INSTRUCTIONS } from "@/api/mcp/skill";
 import { getSdk as getUpdateRpStatusSdk } from "@/api/v4/rp-status/[rp_id]/graphql/update-rp-status.generated";
 import { getSdk as getUpdateStagingStatusSdk } from "@/api/v4/rp-status/[rp_id]/graphql/update-staging-status.generated";
 import { CategoryNameIterable } from "@/lib/categories";
@@ -1016,6 +1017,7 @@ const handleJsonRpc = async (req: NextRequest, message: JsonRpcRequest) => {
         protocolVersion: "2025-06-18",
         capabilities: { tools: {} },
         serverInfo: { name: "world-developer-portal", version: "0.1.0" },
+        instructions: SKILL_INSTRUCTIONS,
       };
     case "ping":
       return {};

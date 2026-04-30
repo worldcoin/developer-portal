@@ -258,6 +258,25 @@ describe("/api/mcp", () => {
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(body.result.serverInfo.name).toBe("world-developer-portal");
+    expect(body.result.instructions).toEqual(
+      expect.stringContaining("World ID"),
+    );
+    expect(body.result.instructions).toEqual(
+      expect.stringContaining("Canonical flows"),
+    );
+  });
+
+  it("keeps SKILL.md and SKILL_INSTRUCTIONS in sync", async () => {
+    const fs = await import("fs/promises");
+    const path = await import("path");
+    const { SKILL_INSTRUCTIONS } = await import("@/api/mcp/skill");
+    const md = await fs.readFile(
+      path.join(__dirname, "../../api/mcp/SKILL.md"),
+      "utf-8",
+    );
+    // Strip YAML frontmatter (---\n...\n---\n) so we compare body to body.
+    const body = md.replace(/^---\n[\s\S]*?\n---\n+/, "");
+    expect(SKILL_INSTRUCTIONS.trim()).toBe(body.trim());
   });
 
   it("lists tools with a valid dev portal API key", async () => {
