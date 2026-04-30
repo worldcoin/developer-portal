@@ -1,5 +1,12 @@
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { logPortalEvent } from "@/api/helpers/portal-events";
+import {
+  generateRpIdString,
+  mapOnChainToDbStatus,
+  normalizeAddress,
+  parseRpId,
+} from "@/api/helpers/rp-utils";
+import { getRpFromContract } from "@/api/helpers/temporal-rpc";
 import { verifyHashedSecret } from "@/api/helpers/utils";
 import { getSdk as getMcpAppContextSdk } from "@/api/mcp/graphql/app-context.generated";
 import { getSdk as getMcpAuthenticateTeamSdk } from "@/api/mcp/graphql/authenticate-team.generated";
@@ -9,7 +16,8 @@ import { getSdk as getMcpTeamContextSdk } from "@/api/mcp/graphql/team-context.g
 import { getSdk as getMcpUpdateAppMetadataSdk } from "@/api/mcp/graphql/update-app-metadata.generated";
 import { getSdk as getMcpUpsertActionV4Sdk } from "@/api/mcp/graphql/upsert-action-v4.generated";
 import { getSdk as getMcpUpsertRpRegistrationSdk } from "@/api/mcp/graphql/upsert-rp-registration.generated";
-import { generateRpIdString } from "@/api/helpers/rp-utils";
+import { getSdk as getUpdateRpStatusSdk } from "@/api/v4/rp-status/[rp_id]/graphql/update-rp-status.generated";
+import { getSdk as getUpdateStagingStatusSdk } from "@/api/v4/rp-status/[rp_id]/graphql/update-staging-status.generated";
 import { CategoryNameIterable } from "@/lib/categories";
 import { logger } from "@/lib/logger";
 import { mainAppStoreFormReviewSubmitSchema } from "@/scenes/Portal/Teams/TeamId/Apps/AppId/Configuration/AppStore/FormSchema/form-schema";
@@ -111,6 +119,19 @@ const toolDefinitions = [
       properties: {
         app_id: { type: "string" },
         rotate_if_unavailable: { type: "boolean" },
+      },
+      required: ["app_id"],
+      additionalProperties: false,
+    },
+  },
+  {
+    name: "get_world_id_registration_status",
+    description:
+      "Fetch and sync World ID RP registration status from the registry contracts for an app.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        app_id: { type: "string" },
       },
       required: ["app_id"],
       additionalProperties: false,
@@ -333,6 +354,8 @@ const content = (value: unknown) => ({
   content: [{ type: "text", text: JSON.stringify(value, null, 2) }],
 });
 
+const rpStatusEndpoint = (rpId: string) => `/api/v4/rp-status/${rpId}`;
+
 const requireApp = async (
   client: GraphQLClient,
   teamId: string,
@@ -347,6 +370,130 @@ const requireApp = async (
     throw new McpError("App not found for this API key.", -32004);
   }
   return app;
+};
+
+const syncWorldIdRegistrationStatus = async (
+  input: unknown,
+  ctx: ToolContext,
+) => {
+  const { app_id } = await parseInput(appIdSchema, input);
+  const app = await requireApp(ctx.client, ctx.teamId, app_id);
+  const registration = app.rp_registration[0];
+  if (!registration) {
+    throw new McpError("World ID is not configured for this app.", -32004);
+  }
+
+  const productionContractAddress = process.env.RP_REGISTRY_CONTRACT_ADDRESS;
+  if (!productionContractAddress) {
+    throw new McpError("RP Registry is not configured.", -32603);
+  }
+
+  const rpId = registration.rp_id;
+  const numericRpId = parseRpId(rpId);
+  const currentProductionStatus = registration.status as string;
+  const currentStagingStatus =
+    (registration.staging_status as string | null | undefined) ?? null;
+
+  let productionStatus = currentProductionStatus;
+  let productionInitialized = false;
+
+  try {
+    const productionRp = await getRpFromContract(
+      numericRpId,
+      productionContractAddress,
+    );
+    productionInitialized = productionRp.initialized;
+
+    if (productionRp.initialized) {
+      productionStatus = mapOnChainToDbStatus(
+        productionRp.initialized,
+        productionRp.active,
+      );
+    }
+  } catch (error) {
+    logger.error("Failed to fetch MCP RP status from production contract", {
+      error,
+      app_id,
+      rp_id: rpId,
+    });
+    throw new McpError("Failed to fetch production RP status.", -32603);
+  }
+
+  if (productionInitialized && productionStatus !== currentProductionStatus) {
+    await getUpdateRpStatusSdk(ctx.client).UpdateRpStatus({
+      rp_id: rpId,
+      status: productionStatus,
+    });
+  }
+
+  const stagingContractAddress =
+    process.env.RP_REGISTRY_STAGING_CONTRACT_ADDRESS || null;
+  let stagingStatus: string | null = currentStagingStatus;
+  let stagingInitialized: boolean | null = null;
+  let stagingSynced = false;
+
+  if (stagingContractAddress) {
+    try {
+      const stagingRp = await getRpFromContract(
+        numericRpId,
+        stagingContractAddress,
+      );
+      stagingInitialized = stagingRp.initialized;
+
+      if (stagingRp.initialized) {
+        const expectedSigner = registration.signer_address;
+        const canTrustOnChainStaging =
+          !expectedSigner ||
+          normalizeAddress(stagingRp.signer).toLowerCase() ===
+            normalizeAddress(expectedSigner).toLowerCase();
+
+        const mappedStagingStatus = mapOnChainToDbStatus(
+          stagingRp.initialized,
+          stagingRp.active,
+        );
+        stagingStatus = canTrustOnChainStaging
+          ? mappedStagingStatus
+          : currentStagingStatus ?? mappedStagingStatus;
+
+        if (canTrustOnChainStaging && stagingStatus !== currentStagingStatus) {
+          await getUpdateStagingStatusSdk(ctx.client).UpdateStagingStatus({
+            rp_id: rpId,
+            staging_status: stagingStatus,
+          });
+          stagingSynced = true;
+        }
+      } else {
+        stagingStatus = "pending";
+      }
+    } catch (error) {
+      logger.error("Failed to fetch MCP RP status from staging contract", {
+        error,
+        app_id,
+        rp_id: rpId,
+      });
+      stagingStatus = "failed";
+    }
+  }
+
+  return content({
+    rp_id: rpId,
+    app_id,
+    mode: registration.mode,
+    production_status: productionStatus,
+    staging_status: stagingStatus,
+    synced: {
+      production:
+        productionInitialized && productionStatus !== currentProductionStatus,
+      staging: stagingSynced,
+    },
+    on_chain: {
+      production_initialized: productionInitialized,
+      staging_initialized: stagingInitialized,
+    },
+    status_endpoint: rpStatusEndpoint(rpId),
+    verify_endpoint: `/api/v4/verify/${rpId}`,
+    proof_context_endpoint: `/api/v4/proof-context/${rpId}`,
+  });
 };
 
 const makeWallet = (privateKey?: string) => {
@@ -420,6 +567,9 @@ const tools = {
       proof_context_endpoint: app.rp_registration[0]
         ? `/api/v4/proof-context/${app.rp_registration[0].rp_id}`
         : null,
+      status_endpoint: app.rp_registration[0]
+        ? rpStatusEndpoint(app.rp_registration[0].rp_id)
+        : null,
     });
   },
 
@@ -468,6 +618,7 @@ const tools = {
         signing_key: null,
         verify_endpoint: `/api/v4/verify/${existingRegistration.rp_id}`,
         proof_context_endpoint: `/api/v4/proof-context/${existingRegistration.rp_id}`,
+        status_endpoint: rpStatusEndpoint(existingRegistration.rp_id),
         message:
           "World ID is already configured. Use rotate_world_id_signing_key to generate a new private signing key.",
       });
@@ -496,6 +647,7 @@ const tools = {
       signing_key: signingKey,
       verify_endpoint: `/api/v4/verify/${rpRegistration.rp_id}`,
       proof_context_endpoint: `/api/v4/proof-context/${rpRegistration.rp_id}`,
+      status_endpoint: rpStatusEndpoint(rpRegistration.rp_id),
       warning:
         "Private keys are returned only at generation/rotation time. Store the private_key securely in the app environment. To use platform-managed (on-chain) registration instead, configure the app from the developer portal UI.",
     });
@@ -522,10 +674,13 @@ const tools = {
       rp_id: registration.rp_id,
       signer_address: registration.signer_address,
       private_key: null,
+      status_endpoint: rpStatusEndpoint(registration.rp_id),
       message:
         "Existing private signing keys are not recoverable. Use rotate_world_id_signing_key to generate a new key.",
     });
   },
+
+  get_world_id_registration_status: syncWorldIdRegistrationStatus,
 
   rotate_world_id_signing_key: rotateWorldIdSigningKey,
 
@@ -705,6 +860,7 @@ const parseToolName = (value: unknown): ToolName => {
     case "create_app":
     case "configure_world_id":
     case "get_world_id_signing_key":
+    case "get_world_id_registration_status":
     case "rotate_world_id_signing_key":
     case "create_world_id_action":
     case "configure_mini_app":
@@ -731,6 +887,8 @@ const executeTool = async (
       return tools.configure_world_id(input, ctx);
     case "get_world_id_signing_key":
       return tools.get_world_id_signing_key(input, ctx);
+    case "get_world_id_registration_status":
+      return tools.get_world_id_registration_status(input, ctx);
     case "rotate_world_id_signing_key":
       return tools.rotate_world_id_signing_key(input, ctx);
     case "create_world_id_action":

@@ -3,6 +3,7 @@ import { POST } from "@/api/mcp";
 import { logger } from "@/lib/logger";
 import { generateRpIdString } from "@/lib/rp";
 import { NextRequest } from "next/server";
+import { getRpFromContract } from "../../api/helpers/temporal-rpc";
 
 const requestMock = jest.fn();
 
@@ -19,7 +20,12 @@ jest.mock("../../lib/logger", () => ({
   },
 }));
 
+jest.mock("../../api/helpers/temporal-rpc", () => ({
+  getRpFromContract: jest.fn(),
+}));
+
 const mockLoggerInfo = logger.info as jest.Mock;
+const mockGetRpFromContract = getRpFromContract as jest.Mock;
 
 const teamId = "team_dd2ecd36c6c45f645e8e5d9a31abdee1";
 const apiKeyId = "key_667f5fbd4ad943622b4b2d3eb258f89c";
@@ -53,6 +59,7 @@ const appContextResponse = {
           mode: "self_managed",
           status: "registered",
           signer_address: "0x0000000000000000000000000000000000000001",
+          staging_status: null,
           actions_v4: [],
         },
       ],
@@ -117,7 +124,18 @@ const callTool = (name: string, args: Record<string, unknown>) =>
 
 beforeEach(() => {
   jest.clearAllMocks();
+  process.env.RP_REGISTRY_CONTRACT_ADDRESS =
+    "0x0000000000000000000000000000000000000048";
+  delete process.env.RP_REGISTRY_STAGING_CONTRACT_ADDRESS;
   currentAppContextResponse = appContextResponse;
+  mockGetRpFromContract.mockResolvedValue({
+    initialized: true,
+    active: true,
+    manager: "0x0000000000000000000000000000000000000002",
+    signer: "0x0000000000000000000000000000000000000001",
+    oprfKeyId: 0n,
+    unverifiedWellKnownDomain: "Test App",
+  });
   requestMock.mockImplementation(async (query: unknown, variables: any) => {
     const operationName = getOperationName(query);
 
@@ -199,6 +217,24 @@ beforeEach(() => {
         },
       };
     }
+    if (operationName.includes("UpdateRpStatus")) {
+      return {
+        update_rp_registration_by_pk: {
+          rp_id: variables.rp_id,
+          status: variables.status,
+          updated_at: "2026-04-29T00:00:00.000Z",
+        },
+      };
+    }
+    if (operationName.includes("UpdateStagingStatus")) {
+      return {
+        update_rp_registration_by_pk: {
+          rp_id: variables.rp_id,
+          staging_status: variables.staging_status,
+          updated_at: "2026-04-29T00:00:00.000Z",
+        },
+      };
+    }
     if (operationName.includes("FetchAppMetadataById")) {
       return {
         app_metadata: [reviewMetadata],
@@ -237,6 +273,9 @@ describe("/api/mcp", () => {
     const body = await res.json();
     expect(body.result.tools.map((tool: any) => tool.name)).toContain(
       "create_app",
+    );
+    expect(body.result.tools.map((tool: any) => tool.name)).toContain(
+      "get_world_id_registration_status",
     );
   });
 
@@ -374,6 +413,44 @@ describe("/api/mcp", () => {
         ([query]) => getOperationName(query) === "McpUpsertRpRegistration",
       ),
     ).toBe(false);
+  });
+
+  it("syncs World ID registration status from the production registry", async () => {
+    currentAppContextResponse = {
+      app: [
+        {
+          ...appContextResponse.app[0],
+          rp_registration: [
+            {
+              ...appContextResponse.app[0].rp_registration[0],
+              status: "pending",
+            },
+          ],
+        },
+      ],
+    };
+
+    const res = await POST(
+      callTool("get_world_id_registration_status", { app_id: appId }),
+    );
+
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    const payload = JSON.parse(body.result.content[0].text);
+    expect(payload).toEqual(
+      expect.objectContaining({
+        rp_id: rpId,
+        production_status: "registered",
+        status_endpoint: `/api/v4/rp-status/${rpId}`,
+      }),
+    );
+
+    const updateCall = requestMock.mock.calls.find(
+      ([query]) => getOperationName(query) === "UpdateRpStatus",
+    );
+    expect(updateCall?.[1]).toEqual(
+      expect.objectContaining({ rp_id: rpId, status: "registered" }),
+    );
   });
 
   it("returns -32602 for malformed signer_private_key", async () => {
