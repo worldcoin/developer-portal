@@ -111,7 +111,11 @@ You don't need to specify the format — the server inspects the magic bytes and
 
 \`source_url\` is fetched server-side over HTTPS only, must resolve to a public address (loopback / private / link-local rejected), and **redirects are not followed** — if the user gives you a URL that redirects, resolve the final URL client-side first.
 
-The server uploads the bytes to S3 and patches \`app_metadata.{logo_img_url|hero_image_url|content_card_image_url|meta_tag_image_url|showcase_img_urls[N]}\` in one call. No follow-up \`configure_mini_app\` is needed for images.
+The server uploads the bytes to S3 and patches \`app_metadata.{logo_img_url|hero_image_url|content_card_image_url|meta_tag_image_url|showcase_img_urls[N]}\` in one call. No follow-up \`configure_mini_app\` is needed for images. Successful responses include \`committed: true\`.
+
+If the metadata patch fails after the S3 upload (rare — typically a transient Hasura error), the server best-effort deletes the S3 object and returns \`-32603\` with \`data: { committed: false }\`. Retries are idempotent, so just call the same tool again.
+
+\`upload_app_image\` is rate-limited per API key: **60 uploads/minute, 500/day**. Hitting the cap returns \`-32029\` with \`data.retry_after_seconds\`.
 
 Image bytes flow through your context as base64 — fine for typical app icons (<100KB), wasteful for very large screenshots. Prefer \`source_url\` whenever the image is already on the web.
 

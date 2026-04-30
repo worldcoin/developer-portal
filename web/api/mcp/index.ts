@@ -25,8 +25,10 @@ import {
   decodeImageBase64,
   fetchImageFromUrl,
   ImageInputError,
+  tryDeleteAppImage,
   uploadAppImage,
 } from "@/api/helpers/app-image-storage";
+import { checkRateLimit } from "@/api/helpers/rate-limit";
 import { CategoryNameIterable } from "@/lib/categories";
 import { logger } from "@/lib/logger";
 import { mainAppStoreFormReviewSubmitSchema } from "@/scenes/Portal/Teams/TeamId/Apps/AppId/Configuration/AppStore/FormSchema/form-schema";
@@ -54,6 +56,7 @@ type JsonRpcRequest = {
 
 type McpAuthContext = {
   teamId: string;
+  apiKeyId: string;
 };
 
 type ToolContext = McpAuthContext & {
@@ -502,7 +505,7 @@ const authenticate = async (req: NextRequest): Promise<McpAuthContext> => {
     throw new McpError("API key is not valid.", -32001);
   }
 
-  return { teamId: apiKey.team_id };
+  return { teamId: apiKey.team_id, apiKeyId: apiKey.id };
 };
 
 const parseInput = async <T>(schema: yup.Schema<T>, value: unknown) => {
@@ -987,6 +990,24 @@ const tools = {
       throw new McpError("Only unverified app metadata can be edited.", -32004);
     }
 
+    // Per-API-key upload throttle. Caps cost from a single key looping the
+    // tool: 60 uploads/min and 500/day. Falls open if Redis is unavailable.
+    const limit = await checkRateLimit({
+      scope: "mcp_upload_app_image",
+      key: ctx.apiKeyId,
+      windows: [
+        { label: "minute", limit: 60, periodSeconds: 60 },
+        { label: "day", limit: 500, periodSeconds: 86_400 },
+      ],
+    });
+    if (!limit.ok) {
+      throw new McpError(
+        `Rate limit exceeded for upload_app_image (${limit.window.limit}/${limit.window.label}). Retry in ${limit.resetIn}s.`,
+        -32029,
+        { retry_after_seconds: limit.resetIn, window: limit.window.label },
+      );
+    }
+
     // Resolve the image bytes + content type from either source. The helpers
     // perform SSRF-safe fetching (https only, no redirects, public addrs),
     // size-cap streaming, and authoritative magic-number detection so we
@@ -1055,14 +1076,38 @@ const tools = {
       set = { [mapping.field]: fileName };
     }
 
-    const data = await getMcpUpdateAppMetadataSdk(
-      ctx.client,
-    ).McpUpdateAppMetadata({
-      app_metadata_id: metadata.id,
-      set,
-    });
+    // S3 upload already succeeded above. If the metadata patch fails we'd
+    // leave bytes in S3 that aren't referenced, so best-effort delete the
+    // freshly-uploaded object before surfacing the error. Retries are
+    // idempotent (deterministic key, same bytes), so the caller can safely
+    // re-run.
+    let data;
+    try {
+      data = await getMcpUpdateAppMetadataSdk(ctx.client).McpUpdateAppMetadata({
+        app_metadata_id: metadata.id,
+        set,
+      });
+    } catch (error) {
+      await tryDeleteAppImage(objectKey);
+      logger.error(
+        "MCP app image uploaded to S3 but metadata patch failed; cleaned up.",
+        {
+          error,
+          app_id: args.app_id,
+          team_id: ctx.teamId,
+          image_type: args.image_type,
+          object_key: objectKey,
+        },
+      );
+      throw new McpError(
+        "Image was uploaded but the metadata update failed. The S3 object was rolled back; retry the same call.",
+        -32603,
+        { committed: false, file_name: fileName },
+      );
+    }
 
     return content({
+      committed: true,
       app_id: args.app_id,
       image_type: args.image_type,
       field: mapping.field,

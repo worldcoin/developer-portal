@@ -1,4 +1,8 @@
-import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import {
+  DeleteObjectCommand,
+  PutObjectCommand,
+  S3Client,
+} from "@aws-sdk/client-s3";
 import {
   createPresignedPost,
   type PresignedPost,
@@ -157,6 +161,24 @@ export const uploadAppImage = async ({
   );
 
   return { fileName, objectKey, mapping, sizeBytes: body.byteLength };
+};
+
+/**
+ * Best-effort delete of an object we just wrote, used to compensate when a
+ * downstream step (e.g. an app_metadata GraphQL update) fails after the S3
+ * PUT succeeded. Swallows errors — the caller has already decided to surface
+ * the original failure; we just don't want orphaned bytes if we can help it.
+ */
+export const tryDeleteAppImage = async (objectKey: string): Promise<void> => {
+  try {
+    const { region, bucket } = getS3Config();
+    const client = new S3Client({ region });
+    await client.send(
+      new DeleteObjectCommand({ Bucket: bucket, Key: objectKey }),
+    );
+  } catch {
+    // intentionally ignored — the caller logs the original failure.
+  }
 };
 
 // ---------------------------------------------------------------------------

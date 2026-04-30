@@ -28,6 +28,9 @@ jest.mock("../../api/helpers/temporal-rpc", () => ({
 jest.mock("@aws-sdk/client-s3", () => ({
   S3Client: jest.fn().mockImplementation(() => ({ send: s3SendMock })),
   PutObjectCommand: jest.fn().mockImplementation((args) => ({ ...args })),
+  DeleteObjectCommand: jest
+    .fn()
+    .mockImplementation((args) => ({ delete: args })),
 }));
 
 const dnsLookupMock = jest.fn();
@@ -137,8 +140,11 @@ const callTool = (name: string, args: Record<string, unknown>) =>
     params: { name, arguments: args },
   });
 
-beforeEach(() => {
+beforeEach(async () => {
   jest.clearAllMocks();
+  // Reset the in-memory rate-limit counters between tests so one suite's
+  // upload bursts don't bleed into the next one.
+  await (global.RedisClient as { flushall: () => Promise<unknown> }).flushall();
   process.env.RP_REGISTRY_CONTRACT_ADDRESS =
     "0x0000000000000000000000000000000000000048";
   delete process.env.RP_REGISTRY_STAGING_CONTRACT_ADDRESS;
@@ -852,6 +858,82 @@ describe("/api/mcp", () => {
     expect(body.error.code).toBe(-32602);
     expect(body.error.message).toMatch(/Content-Length/);
     expect(s3SendMock).not.toHaveBeenCalled();
+  });
+
+  it("rate-limits upload_app_image at 60/minute per API key", async () => {
+    const pngBytes = Buffer.from([
+      0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a,
+    ]);
+    fetchMock.mockImplementation(
+      async () =>
+        new Response(pngBytes, {
+          status: 200,
+          headers: { "Content-Type": "image/png" },
+        }),
+    );
+
+    const callOnce = () =>
+      POST(
+        callTool("upload_app_image", {
+          app_id: appId,
+          image_type: "logo",
+          source_url: "https://cdn.example.com/logo.png",
+        }),
+      );
+
+    // 60 calls inside the same minute window pass.
+    for (let i = 0; i < 60; i++) {
+      const res = await callOnce();
+      expect(res.status).toBe(200);
+      const body = await res.json();
+      expect(body.error).toBeUndefined();
+    }
+
+    const blocked = await callOnce();
+    expect(blocked.status).toBe(200);
+    const blockedBody = await blocked.json();
+    expect(blockedBody.error.code).toBe(-32029);
+    expect(blockedBody.error.data.retry_after_seconds).toBeGreaterThan(0);
+  });
+
+  it("rolls back the S3 object when the metadata patch fails", async () => {
+    const pngBytes = Buffer.from([
+      0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a,
+    ]);
+    fetchMock.mockResolvedValue(
+      new Response(pngBytes, {
+        status: 200,
+        headers: { "Content-Type": "image/png" },
+      }),
+    );
+
+    const baseImpl = requestMock.getMockImplementation()!;
+    requestMock.mockImplementation(async (query: unknown, variables: any) => {
+      if (getOperationName(query) === "McpUpdateAppMetadata") {
+        throw new Error("simulated Hasura outage");
+      }
+      return baseImpl(query, variables);
+    });
+
+    const res = await POST(
+      callTool("upload_app_image", {
+        app_id: appId,
+        image_type: "logo",
+        source_url: "https://cdn.example.com/logo.png",
+      }),
+    );
+
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.error.code).toBe(-32603);
+    expect(body.error.data).toEqual(
+      expect.objectContaining({
+        committed: false,
+        file_name: "logo_img.png",
+      }),
+    );
+    // First call: PutObject. Second call: DeleteObject (best-effort cleanup).
+    expect(s3SendMock).toHaveBeenCalledTimes(2);
   });
 
   it("rejects when neither source_url nor image_base64 is provided", async () => {
