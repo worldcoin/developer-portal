@@ -282,11 +282,6 @@ const toolDefinitions = [
           description:
             "Base64-encoded PNG/JPEG bytes. Use this OR source_url. The server detects the format from magic bytes; no separate content_type input is needed.",
         },
-        locale: {
-          type: "string",
-          description:
-            "Locale subfolder (e.g. 'es'). Defaults to root unverified/{app_id}/ when omitted or 'en'.",
-        },
       },
       required: ["app_id", "image_type"],
       additionalProperties: false,
@@ -331,6 +326,12 @@ const configureWorldIdSchema = yup
   .object({
     app_id: yup.string().required(),
     signer_private_key: yup.string().optional(),
+    // Deprecated. Older skill snippets and previous MCP behavior treated
+    // this as "should the server generate a signer wallet?". The managed
+    // flow now always provides a wallet (caller-supplied if signer_private_
+    // key is set, generated server-side otherwise), so the value is
+    // ignored. Accepted here so existing clients don't break with -32602.
+    generate_signing_key: yup.boolean().optional(),
   })
   .noUnknown();
 
@@ -455,7 +456,6 @@ const uploadAppImageSchema = yup
       .matches(/^https:\/\//, "source_url must use https://")
       .optional(),
     image_base64: yup.string().optional(),
-    locale: yup.string().optional(),
   })
   .test(
     "exactly-one-source",
@@ -1098,7 +1098,6 @@ const tools = {
         imageType: args.image_type as McpAppImageType,
         body,
         contentType,
-        locale: args.locale,
       });
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);

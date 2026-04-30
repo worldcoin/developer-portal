@@ -513,6 +513,24 @@ describe("/api/mcp", () => {
     );
   });
 
+  it("accepts the legacy generate_signing_key field for backwards compatibility", async () => {
+    currentAppContextResponse = {
+      app: [{ ...appContextResponse.app[0], rp_registration: [] }],
+    };
+
+    const res = await POST(
+      callTool("configure_world_id", {
+        app_id: appId,
+        generate_signing_key: true,
+      }),
+    );
+
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.error).toBeUndefined();
+    expect(submitManagedRpRegistrationMock).toHaveBeenCalledTimes(1);
+  });
+
   it("surfaces feature_not_enabled from the registration helper as -32004", async () => {
     currentAppContextResponse = {
       app: [{ ...appContextResponse.app[0], rp_registration: [] }],
@@ -1172,6 +1190,34 @@ describe("/api/mcp", () => {
     );
     // First call: PutObject. Second call: DeleteObject (best-effort cleanup).
     expect(s3SendMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("ignores legacy locale input and uploads to the default-locale path so default-locale fields are never corrupted", async () => {
+    // locale used to scope the S3 key prefix while the DB write still
+    // patched the base app_metadata row, which would leave the
+    // default-locale logo_img_url pointing at a path that has no asset.
+    // Locale was removed from the input schema; Yup's stripUnknown
+    // silently drops it, and the upload lands at the base path that the
+    // (single) DB field actually references.
+    const pngBytes = Buffer.from([
+      0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a,
+    ]);
+    const res = await POST(
+      callTool("upload_app_image", {
+        app_id: appId,
+        image_type: "logo",
+        image_base64: pngBytes.toString("base64"),
+        locale: "es",
+      }),
+    );
+
+    expect(res.status).toBe(200);
+    const payload = JSON.parse((await res.json()).result.content[0].text);
+    expect(payload.s3_key).toBe(`unverified/${appId}/logo_img.png`);
+    const updateCall = requestMock.mock.calls.find(
+      ([query]) => getOperationName(query) === "McpUpdateAppMetadata",
+    );
+    expect(updateCall?.[1].set).toEqual({ logo_img_url: "logo_img.png" });
   });
 
   it("rejects when neither source_url nor image_base64 is provided", async () => {
