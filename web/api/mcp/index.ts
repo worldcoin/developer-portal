@@ -1114,21 +1114,30 @@ const tools = {
 
     const { fileName, objectKey, mapping, sizeBytes } = uploadResult;
     let set: Record<string, unknown>;
+    let priorReferencedFileName: string | undefined;
     if ("arrayIndex" in mapping) {
       const current = (metadata.showcase_img_urls ?? []) as string[];
+      const slot = current[mapping.arrayIndex];
+      priorReferencedFileName = typeof slot === "string" ? slot : undefined;
       const next = [...current];
       while (next.length < mapping.arrayIndex + 1) next.push("");
       next[mapping.arrayIndex] = fileName;
       set = { showcase_img_urls: next };
     } else {
+      const raw = (metadata as Record<string, unknown>)[mapping.field];
+      priorReferencedFileName = typeof raw === "string" ? raw : undefined;
       set = { [mapping.field]: fileName };
     }
 
-    // S3 upload already succeeded above. If the metadata patch fails we'd
-    // leave bytes in S3 that aren't referenced, so best-effort delete the
-    // freshly-uploaded object before surfacing the error. Retries are
-    // idempotent (deterministic key, same bytes), so the caller can safely
-    // re-run.
+    // S3 upload already succeeded above. The deterministic object key means
+    // a replace-upload may have just overwritten an asset that the existing
+    // metadata field already references; in that case deleting on failure
+    // would leave the existing reference dangling. The prior bytes are gone
+    // either way, so the safer rollback is to keep the new bytes in place
+    // (effectively partial success — the asset is updated even though the
+    // patch failed) and let the caller retry. When the prior metadata
+    // referenced something else (or nothing), we DELETE the orphan we just
+    // wrote. Retries are idempotent (same key, same bytes).
     let data;
     try {
       data = await getMcpUpdateAppMetadataSdk(ctx.client).McpUpdateAppMetadata({
@@ -1136,19 +1145,22 @@ const tools = {
         set,
       });
     } catch (error) {
-      await tryDeleteAppImage(objectKey);
-      logger.error(
-        "MCP app image uploaded to S3 but metadata patch failed; cleaned up.",
-        {
-          error,
-          app_id: args.app_id,
-          team_id: ctx.teamId,
-          image_type: args.image_type,
-          object_key: objectKey,
-        },
-      );
+      const wouldOrphanReference = priorReferencedFileName === fileName;
+      if (!wouldOrphanReference) {
+        await tryDeleteAppImage(objectKey);
+      }
+      logger.error("MCP app image uploaded to S3 but metadata patch failed.", {
+        error,
+        app_id: args.app_id,
+        team_id: ctx.teamId,
+        image_type: args.image_type,
+        object_key: objectKey,
+        cleanup_skipped: wouldOrphanReference,
+      });
       throw new McpError(
-        "Image was uploaded but the metadata update failed. The S3 object was rolled back; retry the same call.",
+        wouldOrphanReference
+          ? "Image was uploaded but the metadata update failed. The existing reference was preserved; retry the same call."
+          : "Image was uploaded but the metadata update failed. The S3 object was rolled back; retry the same call.",
         -32603,
         { committed: false, file_name: fileName },
       );

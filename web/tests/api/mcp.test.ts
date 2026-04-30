@@ -102,6 +102,7 @@ const mockHttpsResponse = (response: HttpsResponseShape) => {
         on: () => {},
         end: () => {},
         destroy: () => {},
+        setTimeout: () => {},
       };
     },
   );
@@ -134,6 +135,7 @@ const appContextResponse = {
           app_mode: "mini-app",
           verification_status: "unverified",
           is_developer_allow_listing: false,
+          logo_img_url: "" as string,
           showcase_img_urls: [] as string[],
           description: "" as string | null,
         },
@@ -1108,7 +1110,12 @@ describe("/api/mcp", () => {
           for (const fn of listeners.end ?? []) fn();
         });
       });
-      return { on: () => {}, end: () => {}, destroy: () => {} };
+      return {
+        on: () => {},
+        end: () => {},
+        destroy: () => {},
+        setTimeout: () => {},
+      };
     });
 
     const callOnce = () =>
@@ -1172,6 +1179,101 @@ describe("/api/mcp", () => {
     );
     // First call: PutObject. Second call: DeleteObject (best-effort cleanup).
     expect(s3SendMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("skips the S3 rollback delete when the metadata field already references the same filename", async () => {
+    // The deterministic object key (e.g. logo_img.png) means a replace-
+    // upload PUT overwrites the existing asset before the metadata patch
+    // runs. If the patch then fails AND the field already pointed at this
+    // exact filename, deleting the object would leave a dangling reference
+    // to a now-missing asset. The cleanup must be suppressed in that case.
+    currentAppContextResponse = {
+      app: [
+        {
+          ...appContextResponse.app[0],
+          app_metadata: [
+            {
+              ...appContextResponse.app[0].app_metadata[0],
+              logo_img_url: "logo_img.png",
+            },
+          ],
+        },
+      ],
+    };
+
+    const pngBytes = Buffer.from([
+      0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a,
+    ]);
+    mockHttpsResponse({
+      statusCode: 200,
+      headers: { "content-type": "image/png" },
+      body: pngBytes,
+    });
+
+    const baseImpl = requestMock.getMockImplementation()!;
+    requestMock.mockImplementation(async (query: unknown, variables: any) => {
+      if (getOperationName(query) === "McpUpdateAppMetadata") {
+        throw new Error("simulated Hasura outage");
+      }
+      return baseImpl(query, variables);
+    });
+
+    const res = await POST(
+      callTool("upload_app_image", {
+        app_id: appId,
+        image_type: "logo",
+        source_url: "https://cdn.example.com/logo.png",
+      }),
+    );
+
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.error.code).toBe(-32603);
+    expect(body.error.data).toEqual(
+      expect.objectContaining({
+        committed: false,
+        file_name: "logo_img.png",
+      }),
+    );
+    expect(body.error.message).toMatch(/existing reference was preserved/i);
+    // PutObject only — DeleteObject was suppressed because the existing
+    // metadata reference matched the deterministic filename, so deleting
+    // would have orphaned the still-referenced field.
+    expect(s3SendMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("times out a stalled source_url fetch", async () => {
+    // Simulate a host that accepts the TCP connection but never sends a
+    // response. The fetch wrapper must abort and surface a -32602 instead
+    // of pinning the worker until the platform-level request timeout.
+    httpsRequestMock.mockImplementationOnce(() => ({
+      on: () => {},
+      end: () => {},
+      destroy: () => {},
+      setTimeout: () => {},
+    }));
+
+    jest.useFakeTimers({ doNotFake: ["nextTick", "setImmediate"] });
+
+    const promise = POST(
+      callTool("upload_app_image", {
+        app_id: appId,
+        image_type: "logo",
+        source_url: "https://cdn.example.com/logo.png",
+      }),
+    );
+
+    // Walk past the 10s total-fetch timeout. The helper destroys the
+    // request and rejects with an ImageInputError, which the tool handler
+    // maps to JSON-RPC -32602.
+    await jest.advanceTimersByTimeAsync(11_000);
+    jest.useRealTimers();
+
+    const res = await promise;
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.error.code).toBe(-32602);
+    expect(body.error.message).toMatch(/exceeded\s+\d+ms|idle/i);
   });
 
   it("ignores legacy locale input and uploads to the default-locale path so default-locale fields are never corrupted", async () => {

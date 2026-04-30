@@ -346,6 +346,13 @@ type FetchedImage = {
   body: Buffer;
 };
 
+// Bound the time a single source_url fetch can occupy a worker. The total
+// budget covers DNS + connect + body read end-to-end; the idle timer fires
+// when the socket goes silent for too long mid-transfer (slow-trickle
+// attack). 10s is generous for a 500KB image even on slow public links.
+const FETCH_TOTAL_TIMEOUT_MS = 10_000;
+const FETCH_SOCKET_IDLE_TIMEOUT_MS = 5_000;
+
 // Fetch over https using a custom DNS lookup that always returns the
 // pre-validated IP. This guarantees the connection lands on the address we
 // already proved is public. Streams the body, aborts past the cap, and
@@ -383,6 +390,33 @@ const httpsRequestPinned = ({
   };
 
   return new Promise<FetchedImage>((resolve, reject) => {
+    let settled = false;
+    let totalTimer: ReturnType<typeof setTimeout> | null = null;
+
+    const cleanup = () => {
+      if (totalTimer) {
+        clearTimeout(totalTimer);
+        totalTimer = null;
+      }
+    };
+    const succeed = (value: FetchedImage) => {
+      if (settled) return;
+      settled = true;
+      cleanup();
+      resolve(value);
+    };
+    const fail = (error: Error) => {
+      if (settled) return;
+      settled = true;
+      cleanup();
+      try {
+        req.destroy();
+      } catch {
+        // ignore — best-effort socket teardown.
+      }
+      reject(error);
+    };
+
     const req = httpsRequest(options, (res) => {
       const status = res.statusCode ?? 0;
       // We never follow redirects: the new Location could resolve to a
@@ -390,7 +424,7 @@ const httpsRequestPinned = ({
       // client-side first.
       if (status >= 300 && status < 400) {
         res.resume();
-        reject(
+        fail(
           new ImageInputError(
             `source_url returned ${status} ${res.statusMessage ?? ""}; redirects are not followed.`,
           ),
@@ -399,7 +433,7 @@ const httpsRequestPinned = ({
       }
       if (status < 200 || status >= 300) {
         res.resume();
-        reject(
+        fail(
           new ImageInputError(
             `Failed to fetch source_url: ${status} ${res.statusMessage ?? ""}`,
           ),
@@ -416,7 +450,7 @@ const httpsRequestPinned = ({
         contentLength > cap
       ) {
         res.destroy();
-        reject(
+        fail(
           new ImageInputError(
             `source_url Content-Length (${contentLength}) exceeds ${cap} bytes.`,
           ),
@@ -430,7 +464,7 @@ const httpsRequestPinned = ({
         total += chunk.byteLength;
         if (total > cap) {
           res.destroy();
-          reject(
+          fail(
             new ImageInputError(
               `source_url body exceeds ${cap} bytes (read ${total}).`,
             ),
@@ -440,15 +474,31 @@ const httpsRequestPinned = ({
         chunks.push(chunk);
       });
       res.on("end", () => {
-        resolve({
+        succeed({
           status,
           contentLength,
           body: Buffer.concat(chunks, total),
         });
       });
-      res.on("error", reject);
+      res.on("error", fail);
     });
-    req.on("error", reject);
+
+    totalTimer = setTimeout(() => {
+      fail(
+        new ImageInputError(
+          `source_url fetch exceeded ${FETCH_TOTAL_TIMEOUT_MS}ms.`,
+        ),
+      );
+    }, FETCH_TOTAL_TIMEOUT_MS);
+
+    req.setTimeout(FETCH_SOCKET_IDLE_TIMEOUT_MS, () => {
+      fail(
+        new ImageInputError(
+          `source_url socket was idle for ${FETCH_SOCKET_IDLE_TIMEOUT_MS}ms.`,
+        ),
+      );
+    });
+    req.on("error", fail);
     req.end();
   });
 };
