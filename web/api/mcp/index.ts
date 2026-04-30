@@ -28,7 +28,10 @@ import { CategoryNameIterable } from "@/lib/categories";
 import { logger } from "@/lib/logger";
 import { mainAppStoreFormReviewSubmitSchema } from "@/scenes/Portal/Teams/TeamId/Apps/AppId/Configuration/AppStore/FormSchema/form-schema";
 import { LocalisationData } from "@/scenes/Portal/Teams/TeamId/Apps/AppId/Configuration/AppStore/types/AppStoreFormTypes";
-import { getSupportType } from "@/scenes/Portal/Teams/TeamId/Apps/AppId/Configuration/AppStore/utils";
+import {
+  encodeDescription,
+  getSupportType,
+} from "@/scenes/Portal/Teams/TeamId/Apps/AppId/Configuration/AppStore/utils";
 import {
   getLocalisationFormValues,
   transformMailtoToRawEmail,
@@ -185,7 +188,18 @@ const toolDefinitions = [
         category: { type: "string" },
         app_website_url: { type: "string" },
         support_link: { type: "string" },
-        description: { type: "string" },
+        description: {
+          type: "string",
+          description:
+            "Stored verbatim. Prefer description_overview for the human-readable text shown in the app store; the server will JSON-encode it for you.",
+        },
+        description_overview: {
+          type: "string",
+          description:
+            "App store overview shown to users. Required for review submission. Server JSON-encodes this (with description_how_it_works / description_connect) into app_metadata.description.",
+        },
+        description_how_it_works: { type: "string" },
+        description_connect: { type: "string" },
         logo_img_url: { type: "string" },
         hero_image_url: { type: "string" },
         meta_tag_image_url: { type: "string" },
@@ -370,6 +384,9 @@ const configureMiniAppSchema = yup
     app_website_url: yup.string().url().optional(),
     support_link: yup.string().optional(),
     description: yup.string().optional(),
+    description_overview: yup.string().optional(),
+    description_how_it_works: yup.string().optional(),
+    description_connect: yup.string().optional(),
     logo_img_url: yup.string().optional(),
     hero_image_url: yup.string().optional(),
     meta_tag_image_url: yup.string().optional(),
@@ -893,6 +910,10 @@ const tools = {
       associated_domains,
       max_notifications_per_day,
       app_mode,
+      description,
+      description_overview,
+      description_how_it_works,
+      description_connect,
       ...rest
     } = args;
 
@@ -925,6 +946,26 @@ const tools = {
       advanced.max_notifications_per_day = unlimited
         ? 0
         : max_notifications_per_day;
+    }
+
+    // app_metadata.description is a JSON-encoded string with shape
+    // { description_overview, description_how_it_works, description_connect }.
+    // Accept the sub-fields directly so the agent doesn't need to construct
+    // the JSON. Explicit `description` (legacy / advanced) wins if both are
+    // provided.
+    if (
+      description === undefined &&
+      (description_overview !== undefined ||
+        description_how_it_works !== undefined ||
+        description_connect !== undefined)
+    ) {
+      advanced.description = encodeDescription(
+        description_overview ?? "",
+        description_how_it_works ?? "",
+        description_connect ?? "",
+      );
+    } else if (description !== undefined) {
+      advanced.description = description;
     }
 
     const set = Object.fromEntries(

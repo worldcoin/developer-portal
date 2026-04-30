@@ -60,6 +60,7 @@ const appContextResponse = {
           app_mode: "mini-app",
           verification_status: "unverified",
           is_developer_allow_listing: false,
+          showcase_img_urls: [] as string[],
         },
       ],
       rp_registration: [
@@ -629,6 +630,46 @@ describe("/api/mcp", () => {
       ).toBe(false);
     },
   );
+
+  it("encodes description_overview / how_it_works / connect into a JSON description", async () => {
+    const res = await POST(
+      callTool("configure_mini_app", {
+        app_id: appId,
+        description_overview: "Cool app",
+        description_how_it_works: "It works like this",
+        description_connect: "Connect on X",
+      }),
+    );
+
+    expect(res.status).toBe(200);
+    const updateCall = requestMock.mock.calls.find(
+      ([query]) => getOperationName(query) === "McpUpdateAppMetadata",
+    );
+    const set = updateCall?.[1].set ?? {};
+    expect(JSON.parse(set.description)).toEqual({
+      description_overview: "Cool app",
+      description_how_it_works: "It works like this",
+      description_connect: "Connect on X",
+    });
+  });
+
+  it("prefers explicit description over the encoded sub-fields", async () => {
+    const res = await POST(
+      callTool("configure_mini_app", {
+        app_id: appId,
+        description: '{"description_overview":"raw"}',
+        description_overview: "Cool app",
+      }),
+    );
+
+    expect(res.status).toBe(200);
+    const updateCall = requestMock.mock.calls.find(
+      ([query]) => getOperationName(query) === "McpUpdateAppMetadata",
+    );
+    expect(updateCall?.[1].set.description).toBe(
+      '{"description_overview":"raw"}',
+    );
+  });
 
   it("uploads a logo image from a source_url and patches logo_img_url", async () => {
     const pngBytes = Buffer.from([

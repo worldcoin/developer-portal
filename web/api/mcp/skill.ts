@@ -31,12 +31,21 @@ This MCP authenticates with a developer-portal team API key and exposes 11 tools
 ### A. Build an external (non-mini) World ID app end-to-end
 
 \`\`\`
-1. create_app                  { name, app_mode: "external", build: "production", verification: "cloud" }
-2. configure_world_id          { app_id, generate_signing_key: true }      ← capture private_key, it's one-time
-3. create_world_id_action      { app_id, action: "verify-account" }
-4. upload_app_image            { app_id, image_type: "logo", source_url } ← required before submit
-5. configure_mini_app          { app_id, app_website_url, support_link, supported_countries, supported_languages: ["en"] }
-6. submit_app_for_review       { app_id, confirm_submission: true }
+1. create_app             { name, app_mode: "external", build: "production", verification: "cloud" }
+2. configure_world_id     { app_id, generate_signing_key: true }      ← capture private_key, it's one-time
+3. create_world_id_action { app_id, action: "verify-account" }
+4. upload_app_image       { app_id, image_type: "logo",       source_url }   ← required: logo_img_url
+5. upload_app_image       { app_id, image_type: "showcase_1", source_url }   ← required: ≥1 showcase per locale
+6. configure_mini_app     {
+                            app_id,
+                            app_website_url:     "https://your-app.example",
+                            description_overview: "What the app does, in one paragraph.",
+                            supported_countries: ["us"],
+                            supported_languages: ["en"],
+                            is_android_only:     false,
+                            is_for_humans_only:  false,
+                          }
+7. submit_app_for_review  { app_id, confirm_submission: true }
 \`\`\`
 
 After step 2, store the returned \`private_key\` in the developer's app environment as \`WORLD_ID_PRIVATE_KEY\` (or whatever their app expects). The portal does not retain it.
@@ -44,17 +53,35 @@ After step 2, store the returned \`private_key\` in the developer's app environm
 ### B. Build a Mini App with full Advanced settings
 
 \`\`\`
-1. create_app                  { name, app_mode: "mini-app" }
-2. configure_world_id          { app_id, generate_signing_key: true }      ← only if the mini app verifies proofs itself
-3. upload_app_image            { app_id, image_type: "logo",         source_url }
-4. upload_app_image            { app_id, image_type: "content_card", source_url }   ← required for Mini Apps
-5. upload_app_image            { app_id, image_type: "showcase_1",   source_url }   ← optional but recommended
-6. configure_mini_app          { app_id, ...store metadata, ...advanced config }
-7. submit_app_for_review       { app_id, confirm_submission: true }
+1. create_app             { name, app_mode: "mini-app" }
+2. configure_world_id     { app_id, generate_signing_key: true }      ← only if the mini app verifies proofs itself
+3. upload_app_image       { app_id, image_type: "logo",         source_url }   ← required
+4. upload_app_image       { app_id, image_type: "content_card", source_url }   ← required for Mini Apps
+5. upload_app_image       { app_id, image_type: "showcase_1",   source_url }   ← required: ≥1 showcase per locale
+6. configure_mini_app     {
+                            app_id,
+                            short_name:           "MyApp",
+                            category:             "Other",
+                            world_app_description: "One-line tag line",
+                            description_overview:  "What the mini app does, in one paragraph.",
+                            app_website_url:      "https://your-app.example",
+                            support_link:         "mailto:support@your-app.example",  // or "https://your-app.example/support"
+                            supported_countries:  ["us"],
+                            supported_languages:  ["en"],
+                            is_android_only:      false,
+                            is_for_humans_only:   false,
+                            // optional Advanced fields:
+                            contracts:            ["0x..."],
+                            permit2_tokens:       ["0x..."],
+                            max_notifications_per_day: 2,
+                          }
+7. submit_app_for_review  { app_id, confirm_submission: true }
 \`\`\`
 
-\`configure_mini_app\` accepts both store metadata (logo, screenshots, descriptions, supported countries/languages, ...) **and** Advanced/Permissions config in a single call:
+\`configure_mini_app\` accepts store metadata, Advanced/Permissions config, and the App Store description in a single call:
 
+- \`description_overview: string\` — required for review; the human-readable overview shown to users in the app store. Pass it as a plain string here; the server JSON-encodes it (with \`description_how_it_works\` and \`description_connect\`) into the underlying \`app_metadata.description\` column for you. Don't pre-construct the JSON yourself.
+- \`description_how_it_works\`, \`description_connect\` — optional companion sections (also stored inside the encoded description JSON).
 - \`contracts: string[]\` — Worldchain contract addresses the mini app calls
 - \`permit2_tokens: string[]\` — token addresses approved for Permit2 signing
 - \`whitelisted_addresses: string[]\` — wallets allowed to interact (pass \`[]\` to disable)
@@ -105,7 +132,10 @@ get_world_id_registration_status { app_id }  ← on-chain registry sync
 
 - **Managed mode is dashboard-only.** \`configure_world_id\` and rotation only work in self-managed mode. If the user wants the platform to handle on-chain registration, point them at the dashboard.
 - **Private keys are returned once.** If the user loses the value from \`configure_world_id\` / \`rotate_world_id_signing_key\`, they must rotate again. The portal does not store private keys.
-- **Submission preconditions are strict.** \`submit_app_for_review\` runs the same Yup completeness check as the dashboard; missing \`logo_img_url\`, \`app_website_url\`, English locale, etc. will return a \`-32602\` with the exact validation errors. Fix and retry. For Mini Apps, \`content_card_image_url\` is also required.
+- **Submission preconditions are strict.** \`submit_app_for_review\` runs the same Yup completeness check as the dashboard. The full required set:
+  - **Always required**: \`name\`, \`logo_img_url\`, \`app_website_url\`, \`is_android_only\`, \`is_for_humans_only\`, \`supported_countries\` (≥1), \`supported_languages\` (must include \`"en"\`), \`description_overview\` (encoded into the description JSON), and at least one entry in \`showcase_img_urls\` for the English locale.
+  - **Mini-app additional**: \`short_name\`, \`category\`, \`world_app_description\` (the tag line), \`content_card_image_url\`, and either \`support_link\` (HTTPS URL) or \`support_link\` set to a \`mailto:\` URL.
+  - On failure the server returns a \`-32602\` with the exact field path; surface that to the user verbatim.
 - **Use \`upload_app_image\`, not \`configure_mini_app\`, for image fields.** Image fields store filenames (\`logo_img.png\`), not full URLs — the dashboard reconstructs the CDN URL at view time. \`upload_app_image\` handles the S3 upload and stores the right filename automatically; passing a stray URL through \`configure_mini_app.logo_img_url\` will break the image.
 - **Staging apps cannot be submitted for review.** \`create_app\` with \`build: "staging"\` is for sandbox use; switch to \`build: "production"\` (a different app) for store submission.
 - **\`is_developer_allow_listing\` is optional on submit.** If you omit it, the existing value on \`app_metadata\` is preserved — the MCP will not silently un-list a previously listed app.
