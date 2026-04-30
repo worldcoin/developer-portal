@@ -135,6 +135,7 @@ const appContextResponse = {
           verification_status: "unverified",
           is_developer_allow_listing: false,
           showcase_img_urls: [] as string[],
+          description: "" as string | null,
         },
       ],
       rp_registration: [
@@ -799,6 +800,43 @@ describe("/api/mcp", () => {
     expect(updateCall?.[1].set.description).toBe(
       '{"description_overview":"raw"}',
     );
+  });
+
+  it("preserves untouched description sub-fields when patching just description_overview", async () => {
+    currentAppContextResponse = {
+      app: [
+        {
+          ...appContextResponse.app[0],
+          app_metadata: [
+            {
+              ...appContextResponse.app[0].app_metadata[0],
+              description: JSON.stringify({
+                description_overview: "OLD overview",
+                description_how_it_works: "PRESERVE this",
+                description_connect: "PRESERVE this too",
+              }),
+            },
+          ],
+        },
+      ],
+    };
+
+    const res = await POST(
+      callTool("configure_mini_app", {
+        app_id: appId,
+        description_overview: "NEW overview",
+      }),
+    );
+
+    expect(res.status).toBe(200);
+    const updateCall = requestMock.mock.calls.find(
+      ([query]) => getOperationName(query) === "McpUpdateAppMetadata",
+    );
+    expect(JSON.parse(updateCall?.[1].set.description)).toEqual({
+      description_overview: "NEW overview",
+      description_how_it_works: "PRESERVE this",
+      description_connect: "PRESERVE this too",
+    });
   });
 
   it("uploads a logo image from a source_url and patches logo_img_url", async () => {

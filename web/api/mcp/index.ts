@@ -40,6 +40,7 @@ import { LocalisationData } from "@/scenes/Portal/Teams/TeamId/Apps/AppId/Config
 import {
   encodeDescription,
   getSupportType,
+  parseDescription,
 } from "@/scenes/Portal/Teams/TeamId/Apps/AppId/Configuration/AppStore/utils";
 import {
   getLocalisationFormValues,
@@ -995,18 +996,23 @@ const tools = {
     // app_metadata.description is a JSON-encoded string with shape
     // { description_overview, description_how_it_works, description_connect }.
     // Accept the sub-fields directly so the agent doesn't need to construct
-    // the JSON. Explicit `description` (legacy / advanced) wins if both are
-    // provided.
+    // the JSON. configure_mini_app behaves like a patch endpoint elsewhere
+    // (omitted fields preserve existing values) so we mirror that here:
+    // missing sub-fields fall back to whatever's already stored, NOT to "".
+    // Explicit `description` (legacy / advanced) wins if both are provided.
     if (
       description === undefined &&
       (description_overview !== undefined ||
         description_how_it_works !== undefined ||
         description_connect !== undefined)
     ) {
+      const existing = parseDescription(
+        ((metadata as { description?: string | null }).description ?? "") || "",
+      );
       advanced.description = encodeDescription(
-        description_overview ?? "",
-        description_how_it_works ?? "",
-        description_connect ?? "",
+        description_overview ?? existing.description_overview,
+        description_how_it_works ?? existing.description_how_it_works,
+        description_connect ?? existing.description_connect,
       );
     } else if (description !== undefined) {
       advanced.description = description;

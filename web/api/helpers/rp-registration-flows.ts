@@ -116,7 +116,24 @@ export async function submitManagedRpRegistration({
 
   const rpId = parseRpId(rpIdString);
 
-  const kmsClient = await getKMSClient(primaryConfig.kmsRegion);
+  // Slot is now claimed; any failure between here and the final DB write
+  // must release it so retries don't bounce off `already_registered`.
+  let kmsClient;
+  try {
+    kmsClient = await getKMSClient(primaryConfig.kmsRegion);
+  } catch (error) {
+    logger.error("Failed to initialize KMS client for registration", {
+      error,
+      app_id: appId,
+    });
+    await getDeleteRpSdk(client).DeleteRpRegistration({ rp_id: rpIdString });
+    return {
+      ok: false,
+      code: "kms_error",
+      detail: "Failed to initialize KMS client.",
+    };
+  }
+
   const managerKeyResult = await createManagerKey(kmsClient, rpIdString);
   if (!managerKeyResult) {
     await getDeleteRpSdk(client).DeleteRpRegistration({ rp_id: rpIdString });
@@ -188,18 +205,40 @@ export async function submitManagedRpRegistration({
     }
   }
 
-  const { update_rp_registration_by_pk: updatedRegistration } =
-    await getUpdateRpSdk(client).UpdateRpRegistration({
+  let updatedRegistration;
+  try {
+    const { update_rp_registration_by_pk } = await getUpdateRpSdk(
+      client,
+    ).UpdateRpRegistration({
       rp_id: rpIdString,
       manager_kms_key_id: managerKmsKeyId,
       operation_hash: operationHash,
       staging_operation_hash: stagingOperationHash,
       staging_status: stagingStatus,
     });
+    updatedRegistration = update_rp_registration_by_pk;
+  } catch (error) {
+    // On-chain TX is already in flight; the DB write threw, leaving the
+    // slot held without manager_kms_key_id / operation_hash. Logging the
+    // op hash here gives ops a way to reconcile the on-chain state. We
+    // intentionally do NOT delete the slot — the row's existence prevents
+    // a second registerRp transaction from being submitted on retry.
+    logger.error("DB write failed after registration submission", {
+      error,
+      app_id: appId,
+      rpIdString,
+      managerAddress,
+      operationHash,
+    });
+    return {
+      ok: false,
+      code: "db_error",
+      detail: "Failed to update registration record.",
+    };
+  }
 
   if (!updatedRegistration) {
-    // On-chain TX may have succeeded; the DB just lost the keyId/op_hash.
-    // The caller must surface this clearly so an operator can reconcile.
+    // Same situation, just no exception.
     return {
       ok: false,
       code: "db_error",
@@ -335,8 +374,28 @@ export async function submitManagedSignerRotation({
     }
   };
 
-  const kmsClient = await getKMSClient(primaryConfig.kmsRegion);
+  // From here on the RP status is `pending`; any unhandled exception or
+  // tagged failure must revert it so the user can retry. Otherwise a
+  // transient KMS / Hasura blip would leave the RP wedged in `pending`
+  // and every subsequent rotate would short-circuit on
+  // rotation_in_progress until an operator reset it manually.
+  let kmsClient;
   let operationHash: string;
+  try {
+    kmsClient = await getKMSClient(primaryConfig.kmsRegion);
+  } catch (error) {
+    logger.error("Failed to initialize KMS client for rotation", {
+      error,
+      app_id: appId,
+    });
+    await revertStatus();
+    return {
+      ok: false,
+      code: "submission_error",
+      detail: "Failed to initialize KMS client.",
+    };
+  }
+
   try {
     operationHash = await submitRotateSignerTransaction(primaryConfig, {
       rpId,
@@ -387,18 +446,40 @@ export async function submitManagedSignerRotation({
     }
   }
 
-  const { update_rp_registration_by_pk: updatedRegistration } =
-    await getUpdateResultSdk(client).UpdateRotationResult({
+  let updatedRegistration;
+  try {
+    const { update_rp_registration_by_pk } = await getUpdateResultSdk(
+      client,
+    ).UpdateRotationResult({
       rp_id: rpIdString,
       signer_address: newSignerAddress,
       operation_hash: operationHash,
     });
+    updatedRegistration = update_rp_registration_by_pk;
+  } catch (error) {
+    // On-chain TX already submitted; we still revert so the user can
+    // retry instead of being stuck on rotation_in_progress. Operations
+    // can dedupe via the operation_hash logged here.
+    logger.error("DB write failed after rotation submission; reverting", {
+      error,
+      app_id: appId,
+      rpIdString,
+      operationHash,
+    });
+    await revertStatus();
+    return {
+      ok: false,
+      code: "db_error",
+      detail: "Failed to update registration record.",
+    };
+  }
   if (!updatedRegistration) {
     logger.error("Failed to update registration record after submission", {
       app_id: appId,
       rpIdString,
       operationHash,
     });
+    await revertStatus();
     return {
       ok: false,
       code: "db_error",
