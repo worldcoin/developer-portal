@@ -76,8 +76,7 @@ type McpAppContextApp = Awaited<
   ReturnType<ReturnType<typeof getMcpAppContextSdk>["McpAppContext"]>
 >["app"][number];
 type McpEditableAppMetadata = McpAppContextApp["app_metadata"][number];
-type McpVerifiedAppMetadata =
-  McpAppContextApp["verified_app_metadata"][number];
+type McpVerifiedAppMetadata = McpAppContextApp["verified_app_metadata"][number];
 
 class McpError extends Error {
   constructor(
@@ -634,9 +633,7 @@ const createDraftFromVerifiedMetadata = async (
     is_allowed_unlimited_notifications: Boolean(
       verified.is_allowed_unlimited_notifications,
     ),
-    max_notifications_per_day: Number(
-      verified.max_notifications_per_day ?? 0,
-    ),
+    max_notifications_per_day: Number(verified.max_notifications_per_day ?? 0),
     is_android_only: Boolean(verified.is_android_only),
     is_for_humans_only: Boolean(verified.is_for_humans_only),
   };
@@ -669,8 +666,8 @@ const createDraftFromVerifiedMetadata = async (
           meta_tag_image_url,
           "meta_tag_image",
         ),
-        showcase_img_urls: showcaseFileNamesForDraft(showcase_img_urls)
-          .metadataValue,
+        showcase_img_urls:
+          showcaseFileNamesForDraft(showcase_img_urls).metadataValue,
       },
     });
   }
