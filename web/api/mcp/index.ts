@@ -214,11 +214,6 @@ const toolDefinitions = [
         },
         description_how_it_works: { type: "string" },
         description_connect: { type: "string" },
-        logo_img_url: { type: "string" },
-        hero_image_url: { type: "string" },
-        meta_tag_image_url: { type: "string" },
-        showcase_img_urls: { type: "array", items: { type: "string" } },
-        content_card_image_url: { type: "string" },
         world_app_description: { type: "string" },
         world_app_button_text: { type: "string" },
         supported_countries: { type: "array", items: { type: "string" } },
@@ -343,6 +338,13 @@ const createActionSchema = yup
 
 const ETH_ADDRESS_REGEX = /^0x[a-fA-F0-9]{40}$/;
 const HTTPS_URL_REGEX = /^https:\/\/[a-zA-Z0-9-]+\.[a-zA-Z]{2,}/;
+const CONFIGURE_MINI_APP_IMAGE_FIELDS = [
+  "logo_img_url",
+  "hero_image_url",
+  "meta_tag_image_url",
+  "showcase_img_urls",
+  "content_card_image_url",
+] as const;
 
 // Reject characters that either (a) get split apart by Postgres array parsing
 // (commas) or (b) require escaping in PG array literals and would otherwise
@@ -390,11 +392,6 @@ const configureMiniAppSchema = yup
     description_overview: yup.string().optional(),
     description_how_it_works: yup.string().optional(),
     description_connect: yup.string().optional(),
-    logo_img_url: yup.string().optional(),
-    hero_image_url: yup.string().optional(),
-    meta_tag_image_url: yup.string().optional(),
-    showcase_img_urls: yup.array().of(yup.string()).optional(),
-    content_card_image_url: yup.string().optional(),
     world_app_description: yup.string().optional(),
     world_app_button_text: yup.string().optional(),
     supported_countries: yup.array().of(yup.string().length(2)).optional(),
@@ -521,6 +518,22 @@ const parseInput = async <T>(schema: yup.Schema<T>, value: unknown) => {
     }
     throw error;
   }
+};
+
+const rejectConfigureMiniAppImageFields = (value: unknown) => {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return;
+
+  const fields = CONFIGURE_MINI_APP_IMAGE_FIELDS.filter((field) =>
+    Object.prototype.hasOwnProperty.call(value, field),
+  );
+
+  if (fields.length === 0) return;
+
+  throw new McpError(
+    "Use upload_app_image to upload and set app image fields.",
+    -32602,
+    { fields },
+  );
 };
 
 const content = (value: unknown) => ({
@@ -931,6 +944,7 @@ const tools = {
   },
 
   configure_mini_app: async (input, ctx) => {
+    rejectConfigureMiniAppImageFields(input);
     const args = await parseInput(configureMiniAppSchema, input);
     const app = await requireApp(ctx.client, ctx.teamId, args.app_id);
     const metadata = app.app_metadata[0];
