@@ -37,7 +37,7 @@ const envReference = (name: string) => `\${${name}}`;
 const tomlString = (value: string) => JSON.stringify(value);
 
 export const getClaudeMcpCommand = (apiKey: string) =>
-  `claude mcp add --transport http --scope project ${MCP_SERVER_NAME} ${MCP_ENDPOINT} --header "Authorization: Bearer ${apiKey}"`;
+  `claude mcp add --transport http --scope project --header "Authorization: Bearer ${apiKey}" ${MCP_SERVER_NAME} ${MCP_ENDPOINT}`;
 
 export const getCodexMcpCommand = (apiKey: string) =>
   `codex mcp add ${MCP_SERVER_NAME} --env ${MCP_API_KEY_ENV_VAR}=${shellQuote(apiKey)} -- npx -y mcp-remote ${MCP_ENDPOINT} --transport http-only --header 'Authorization:Bearer ${envReference(MCP_API_KEY_ENV_VAR)}'`;

@@ -8,12 +8,12 @@ import { KeyIcon } from "@/components/Icons/KeyIcon";
 import { Input } from "@/components/Input";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import * as yup from "yup";
-import { useResetApiKeyMutation } from "../ApiKeyTable/ApiKeyRow/graphql/client/reset-api-key.generated";
 import { ApiKeySecretFields } from "../ApiKeySecretFields";
+import { useResetApiKeyMutation } from "../ApiKeyTable/ApiKeyRow/graphql/client/reset-api-key.generated";
 import { FetchKeysDocument } from "../graphql/client/fetch-keys.generated";
 import { useInsertKeyMutation } from "./graphql/client/create-key.generated";
 
@@ -34,6 +34,8 @@ export type CreateKeyFormValues = yup.Asserts<typeof schema>;
 export const CreateKeyModal = (props: CreateKeyModal) => {
   const { teamId, isOpen, setIsOpen } = props;
   const [createdKey, setCreatedKey] = useState<string | null>(null);
+  const isOpenRef = useRef(isOpen);
+  const requestIdRef = useRef(0);
   const [insertKeyMutation, { loading: creatingKey }] = useInsertKeyMutation();
   const [resetApiKeyMutation, { loading: revealingKey }] =
     useResetApiKeyMutation();
@@ -47,7 +49,12 @@ export const CreateKeyModal = (props: CreateKeyModal) => {
     resolver: yupResolver(schema),
   });
 
+  useEffect(() => {
+    isOpenRef.current = isOpen;
+  }, [isOpen]);
+
   const close = () => {
+    requestIdRef.current += 1;
     reset();
     setCreatedKey(null);
     setIsOpen(false);
@@ -55,6 +62,8 @@ export const CreateKeyModal = (props: CreateKeyModal) => {
 
   const submit = async (values: CreateKeyFormValues) => {
     if (creatingKey || revealingKey) return;
+    const requestId = requestIdRef.current + 1;
+    requestIdRef.current = requestId;
 
     try {
       const result = await insertKeyMutation({
@@ -89,6 +98,10 @@ export const CreateKeyModal = (props: CreateKeyModal) => {
         throw new Error("No API key returned");
       }
 
+      if (!isOpenRef.current || requestIdRef.current !== requestId) {
+        return;
+      }
+
       setCreatedKey(apiKey);
       toast.success(
         <span>
@@ -98,6 +111,10 @@ export const CreateKeyModal = (props: CreateKeyModal) => {
       reset();
     } catch (error) {
       console.error("Failed to create API key: ", error);
+
+      if (!isOpenRef.current || requestIdRef.current !== requestId) {
+        return;
+      }
 
       toast.error("Error occurred while creating API key.");
     }
@@ -150,7 +167,7 @@ export const CreateKeyModal = (props: CreateKeyModal) => {
             >
               {createdKey
                 ? "Your new key is ready. Save it now because you won't be able to see it again."
-                : "Create a secure API key to seamlessly connect with your World ID App."}
+                : "Create a secure API key to seamlessly connect with your App."}
             </Typography>
           </div>
 
@@ -176,7 +193,7 @@ export const CreateKeyModal = (props: CreateKeyModal) => {
                 label="Key name"
                 required
                 errors={errors.name}
-                placeholder="Staging_key"
+                placeholder="api_key_123"
               />
 
               <div className="grid w-full gap-x-4 gap-y-2 md:grid-cols-2">
