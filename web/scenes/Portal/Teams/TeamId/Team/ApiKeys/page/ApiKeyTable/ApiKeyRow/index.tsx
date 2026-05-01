@@ -93,7 +93,7 @@ export const ApiKeyRow = (props: {
         apiKey={resetKey}
         isOpen={Boolean(resetKey)}
         onClose={() => setResetKey(null)}
-        title="API key reset"
+        title="API Key"
         description="Your new API key is ready. Save it now because you won't be able to see it again."
       />
 
