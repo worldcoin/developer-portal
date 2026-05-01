@@ -20,6 +20,9 @@ import { getSdk as getMcpSubmitAppForReviewSdk } from "@/api/mcp/graphql/submit-
 import { getSdk as getMcpTeamContextSdk } from "@/api/mcp/graphql/team-context.generated";
 import { getSdk as getMcpUpdateAppMetadataSdk } from "@/api/mcp/graphql/update-app-metadata.generated";
 import { getSdk as getMcpUpsertActionV4Sdk } from "@/api/mcp/graphql/upsert-action-v4.generated";
+import { getSdk as getCreateDraftSdk } from "@/api/hasura/create-new-draft/graphql/create-draft.generated";
+import { getSdk as getCreateLocalisationSdk } from "@/api/hasura/create-new-draft/graphql/create-localisation.generated";
+import { getSdk as getFetchLocalisationsSdk } from "@/api/hasura/create-new-draft/graphql/fetch-localisations.generated";
 import { SKILL_INSTRUCTIONS } from "@/api/mcp/skill";
 import { getSdk as getUpdateRpStatusSdk } from "@/api/v4/rp-status/[rp_id]/graphql/update-rp-status.generated";
 import { getSdk as getUpdateStagingStatusSdk } from "@/api/v4/rp-status/[rp_id]/graphql/update-staging-status.generated";
@@ -35,6 +38,7 @@ import {
 import { checkRateLimit } from "@/api/helpers/rate-limit";
 import { CategoryNameIterable } from "@/lib/categories";
 import { logger } from "@/lib/logger";
+import { getImageEndpoint } from "@/lib/utils";
 import { mainAppStoreFormReviewSubmitSchema } from "@/scenes/Portal/Teams/TeamId/Apps/AppId/Configuration/AppStore/FormSchema/form-schema";
 import { LocalisationData } from "@/scenes/Portal/Teams/TeamId/Apps/AppId/Configuration/AppStore/types/AppStoreFormTypes";
 import {
@@ -67,6 +71,13 @@ type McpAuthContext = {
 type ToolContext = McpAuthContext & {
   client: GraphQLClient;
 };
+
+type McpAppContextApp = Awaited<
+  ReturnType<ReturnType<typeof getMcpAppContextSdk>["McpAppContext"]>
+>["app"][number];
+type McpEditableAppMetadata = McpAppContextApp["app_metadata"][number];
+type McpVerifiedAppMetadata =
+  McpAppContextApp["verified_app_metadata"][number];
 
 class McpError extends Error {
   constructor(
@@ -546,7 +557,7 @@ const requireApp = async (
   client: GraphQLClient,
   teamId: string,
   appId: string,
-) => {
+): Promise<McpAppContextApp> => {
   const data = await getMcpAppContextSdk(client).McpAppContext({
     team_id: teamId,
     app_id: appId,
@@ -556,6 +567,152 @@ const requireApp = async (
     throw new McpError("App not found for this API key.", -32004);
   }
   return app;
+};
+
+const fileNameForDraft = (
+  fileName: string | null | undefined,
+  basename: string,
+) => (fileName ? `${basename}.${getImageEndpoint(fileName)}` : "");
+
+const showcaseFileNamesForDraft = (fileNames: string[] | null | undefined) => {
+  if (!fileNames?.length) {
+    return { insertValue: null, metadataValue: [] as string[] };
+  }
+
+  const metadataValue = fileNames.map(
+    (fileName, index) =>
+      `showcase_img_${index + 1}.${getImageEndpoint(fileName)}`,
+  );
+  return {
+    // Hasura accepts Postgres array text here; this mirrors the dashboard's
+    // create_new_draft action so approved image filenames are preserved.
+    insertValue: `{${metadataValue.join(",")}}`,
+    metadataValue,
+  };
+};
+
+const createDraftFromVerifiedMetadata = async (
+  ctx: ToolContext,
+  appId: string,
+  verified: McpVerifiedAppMetadata,
+): Promise<McpEditableAppMetadata> => {
+  const showcase = showcaseFileNamesForDraft(verified.showcase_img_urls);
+  const draftValues = {
+    app_id: appId,
+    name: verified.name,
+    short_name: verified.short_name,
+    logo_img_url: fileNameForDraft(verified.logo_img_url, "logo_img"),
+    hero_image_url: "",
+    meta_tag_image_url: fileNameForDraft(
+      verified.meta_tag_image_url,
+      "meta_tag_image",
+    ),
+    showcase_img_urls: showcase.insertValue,
+    content_card_image_url: fileNameForDraft(
+      verified.content_card_image_url,
+      "content_card_image",
+    ),
+    description: verified.description,
+    world_app_description: verified.world_app_description,
+    category: verified.category,
+    is_developer_allow_listing: verified.is_developer_allow_listing,
+    integration_url: verified.integration_url,
+    app_website_url: verified.app_website_url,
+    source_code_url: verified.source_code_url,
+    verification_status: "unverified",
+    world_app_button_text: verified.world_app_button_text,
+    app_mode: verified.app_mode,
+    whitelisted_addresses: verified.whitelisted_addresses ?? null,
+    support_link: verified.support_link,
+    supported_countries: verified.supported_countries ?? null,
+    supported_languages: verified.supported_languages ?? null,
+    associated_domains: verified.associated_domains ?? null,
+    contracts: verified.contracts ?? null,
+    permit2_tokens: verified.permit2_tokens ?? null,
+    can_import_all_contacts: Boolean(verified.can_import_all_contacts),
+    can_use_attestation: Boolean(verified.can_use_attestation),
+    is_allowed_unlimited_notifications: Boolean(
+      verified.is_allowed_unlimited_notifications,
+    ),
+    max_notifications_per_day: Number(
+      verified.max_notifications_per_day ?? 0,
+    ),
+    is_android_only: Boolean(verified.is_android_only),
+    is_for_humans_only: Boolean(verified.is_for_humans_only),
+  };
+
+  const data = await getCreateDraftSdk(ctx.client).CreateDraft(draftValues);
+  const draftId = data.insert_app_metadata_one?.id;
+  if (!draftId) {
+    throw new McpError("Failed to create an editable app draft.", -32603);
+  }
+
+  const { localisations } = await getFetchLocalisationsSdk(
+    ctx.client,
+  ).FetchLocalisations({ id: verified.id });
+
+  for (const localisation of localisations) {
+    const {
+      id: _id,
+      __typename: _typename,
+      meta_tag_image_url,
+      showcase_img_urls,
+      ...copiedLocalisation
+    } = localisation;
+
+    await getCreateLocalisationSdk(ctx.client).CreateLocalisation({
+      input: {
+        ...copiedLocalisation,
+        app_metadata_id: draftId,
+        hero_image_url: "",
+        meta_tag_image_url: fileNameForDraft(
+          meta_tag_image_url,
+          "meta_tag_image",
+        ),
+        showcase_img_urls: showcaseFileNamesForDraft(showcase_img_urls)
+          .metadataValue,
+      },
+    });
+  }
+
+  logPortalEvent({
+    event: "app_draft_creation",
+    actor: "mcp",
+    team_id: ctx.teamId,
+    app_id: appId,
+    metadata: {
+      source_app_metadata_id: verified.id,
+      draft_app_metadata_id: draftId,
+    },
+  });
+
+  return {
+    id: draftId,
+    ...draftValues,
+    showcase_img_urls: showcase.metadataValue,
+  } as McpEditableAppMetadata;
+};
+
+const getOrCreateEditableMetadata = async (
+  ctx: ToolContext,
+  app: McpAppContextApp,
+) => {
+  const metadata = app.app_metadata[0];
+  if (metadata) {
+    return { metadata, draftCreated: false };
+  }
+
+  const verifiedMetadata = app.verified_app_metadata?.[0];
+  if (!verifiedMetadata) {
+    throw new McpError("Editable app metadata not found.", -32004);
+  }
+
+  const draft = await createDraftFromVerifiedMetadata(
+    ctx,
+    app.id,
+    verifiedMetadata,
+  );
+  return { metadata: draft, draftCreated: true };
 };
 
 const syncWorldIdRegistrationStatus = async (
@@ -947,10 +1104,10 @@ const tools = {
     rejectConfigureMiniAppImageFields(input);
     const args = await parseInput(configureMiniAppSchema, input);
     const app = await requireApp(ctx.client, ctx.teamId, args.app_id);
-    const metadata = app.app_metadata[0];
-    if (!metadata) {
-      throw new McpError("Editable app metadata not found.", -32004);
-    }
+    const { metadata, draftCreated } = await getOrCreateEditableMetadata(
+      ctx,
+      app,
+    );
     if (metadata.verification_status !== "unverified") {
       throw new McpError("Only unverified app metadata can be edited.", -32004);
     }
@@ -1039,16 +1196,19 @@ const tools = {
       set,
     });
 
-    return content({ app_metadata: data.update_app_metadata_by_pk });
+    return content({
+      app_metadata: data.update_app_metadata_by_pk,
+      draft_created: draftCreated,
+    });
   },
 
   upload_app_image: async (input, ctx) => {
     const args = await parseInput(uploadAppImageSchema, input);
     const app = await requireApp(ctx.client, ctx.teamId, args.app_id);
-    const metadata = app.app_metadata[0];
-    if (!metadata) {
-      throw new McpError("Editable app metadata not found.", -32004);
-    }
+    const { metadata, draftCreated } = await getOrCreateEditableMetadata(
+      ctx,
+      app,
+    );
     if (metadata.verification_status !== "unverified") {
       throw new McpError("Only unverified app metadata can be edited.", -32004);
     }
@@ -1189,6 +1349,7 @@ const tools = {
       s3_key: objectKey,
       size_bytes: sizeBytes,
       content_type: contentType,
+      draft_created: draftCreated,
       app_metadata: data.update_app_metadata_by_pk,
     });
   },
@@ -1205,7 +1366,10 @@ const tools = {
 
     const metadata = app.app_metadata[0];
     if (!metadata) {
-      throw new McpError("Editable app metadata not found.", -32004);
+      throw new McpError(
+        "No editable draft exists. Update Mini App metadata or upload an app image first to create a draft.",
+        -32004,
+      );
     }
     if (metadata.verification_status !== "unverified") {
       throw new McpError("Only unverified apps can be submitted.", -32004);

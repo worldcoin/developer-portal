@@ -80,6 +80,8 @@ After step 2, store the returned \`private_key\` in the developer's app environm
 
 \`configure_mini_app\` accepts store metadata, Advanced/Permissions config, and the App Store description in a single call:
 
+If an app already has an approved version and no current draft, \`configure_mini_app\` and \`upload_app_image\` first create an \`unverified\` draft copied from the approved metadata, then apply the change. Successful responses include \`draft_created: true\` when that happens.
+
 - \`description_overview: string\` — required for review; the human-readable overview shown to users in the app store. Pass it as a plain string here; the server JSON-encodes it (with \`description_how_it_works\` and \`description_connect\`) into the underlying \`app_metadata.description\` column for you. Don't pre-construct the JSON yourself.
 - \`description_how_it_works\`, \`description_connect\` — optional companion sections (also stored inside the encoded description JSON).
 - \`contracts: string[]\` — Worldchain contract addresses the mini app calls
@@ -146,6 +148,7 @@ get_world_id_registration_status { app_id }  ← on-chain registry sync
   - **Mini-app additional**: \`short_name\`, \`category\`, \`world_app_description\` (the tag line), \`content_card_image_url\`, and either \`support_link\` (HTTPS URL) or \`support_link\` set to a \`mailto:\` URL.
   - On failure the server returns a \`-32602\` with the exact field path; surface that to the user verbatim.
 - **Use \`upload_app_image\`, not \`configure_mini_app\`, for image fields.** Image fields store filenames (\`logo_img.png\`), not full URLs — the dashboard reconstructs the CDN URL at view time. \`upload_app_image\` handles the S3 upload and stores the right filename automatically. Passing \`logo_img_url\`, \`hero_image_url\`, \`meta_tag_image_url\`, \`showcase_img_urls\`, or \`content_card_image_url\` to \`configure_mini_app\` is rejected with \`-32602\`.
+- **Draft creation is edit-driven.** \`configure_mini_app\` and \`upload_app_image\` can create a draft from an approved app when no draft exists. \`submit_app_for_review\` does not create a draft by itself; make at least one metadata or image change first.
 - **Staging apps cannot be submitted for review.** \`create_app\` with \`build: "staging"\` is for sandbox use; switch to \`build: "production"\` (a different app) for store submission.
 - **\`is_developer_allow_listing\` is optional on submit.** If you omit it, the existing value on \`app_metadata\` is preserved — the MCP will not silently un-list a previously listed app.
 - **Don't re-run \`configure_world_id\` on an already-configured app.** It returns the existing registration without rotating. Use \`rotate_world_id_signing_key\` if the user actually wants a new key.

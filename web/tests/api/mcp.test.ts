@@ -140,6 +140,7 @@ const appContextResponse = {
           description: "" as string | null,
         },
       ],
+      verified_app_metadata: [] as Record<string, unknown>[],
       rp_registration: [
         {
           rp_id: rpId,
@@ -300,6 +301,23 @@ beforeEach(async () => {
     }
     if (operationName.includes("McpAppContext"))
       return currentAppContextResponse;
+    if (operationName.includes("CreateDraft")) {
+      return {
+        insert_app_metadata_one: {
+          id: "meta_draft",
+        },
+      };
+    }
+    if (operationName.includes("FetchLocalisations")) {
+      return { localisations: [] };
+    }
+    if (operationName.includes("CreateLocalisation")) {
+      return {
+        insert_localisations_one: {
+          id: "loc_draft",
+        },
+      };
+    }
     if (operationName.includes("McpUpsertActionV4")) {
       return {
         insert_action_v4_one: {
@@ -681,6 +699,73 @@ describe("/api/mcp", () => {
     const payload = JSON.parse(body.result.content[0].text);
     expect(payload.app_metadata.app_mode).toBe("mini-app");
     expect(payload.app_metadata.short_name).toBe("MCP");
+  });
+
+  it("creates an editable draft from approved metadata before updating Mini App metadata", async () => {
+    currentAppContextResponse = {
+      app: [
+        {
+          ...appContextResponse.app[0],
+          app_metadata: [],
+          verified_app_metadata: [
+            {
+              ...reviewMetadata,
+              id: "meta_verified",
+              verification_status: "verified",
+              hero_image_url: "hero.png",
+              integration_url: "https://example.com/mini",
+              source_code_url: "",
+              world_app_button_text: "Open",
+              whitelisted_addresses: [],
+              associated_domains: [],
+              contracts: [],
+              permit2_tokens: [],
+              can_import_all_contacts: false,
+              can_use_attestation: false,
+              is_allowed_unlimited_notifications: false,
+              max_notifications_per_day: 0,
+            },
+          ],
+        },
+      ],
+    };
+
+    const res = await POST(
+      callTool("configure_mini_app", {
+        app_id: appId,
+        short_name: "Draft",
+      }),
+    );
+
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    const payload = JSON.parse(body.result.content[0].text);
+    expect(payload.draft_created).toBe(true);
+
+    const createDraftCall = requestMock.mock.calls.find(
+      ([query]) => getOperationName(query) === "CreateDraft",
+    );
+    expect(createDraftCall?.[1]).toEqual(
+      expect.objectContaining({
+        app_id: appId,
+        verification_status: "unverified",
+        logo_img_url: "logo_img.png",
+        meta_tag_image_url: "meta_tag_image.png",
+        content_card_image_url: "content_card_image.png",
+        showcase_img_urls: "{showcase_img_1.png}",
+      }),
+    );
+
+    const fetchLocalisationsCall = requestMock.mock.calls.find(
+      ([query]) => getOperationName(query) === "FetchLocalisations",
+    );
+    expect(fetchLocalisationsCall?.[1]).toEqual({ id: "meta_verified" });
+
+    const updateCall = requestMock.mock.calls.find(
+      ([query]) => getOperationName(query) === "McpUpdateAppMetadata",
+    );
+    expect(updateCall?.[1].app_metadata_id).toBe("meta_draft");
+    expect(updateCall?.[1].set.short_name).toBe("Draft");
   });
 
   it("rejects direct image metadata writes through configure_mini_app", async () => {
