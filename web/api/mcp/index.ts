@@ -1129,9 +1129,6 @@ const tools = {
       description_connect,
       ...rest
     } = args;
-    const hasExplicitPatchField = Object.keys(args).some(
-      (field) => field !== "app_id",
-    );
 
     // Build Postgres array text directly from the input array.
     // Do NOT round-trip through a comma-joined string + formatMultipleStringInput:
@@ -1153,7 +1150,7 @@ const tools = {
       permit2_tokens: toPgArrayText(permit2_tokens),
       whitelisted_addresses: toPgArrayText(whitelisted_addresses),
       associated_domains: toPgArrayText(associated_domains),
-      app_mode: app_mode ?? (hasExplicitPatchField ? "mini-app" : undefined),
+      app_mode,
     };
 
     if (max_notifications_per_day !== undefined) {
