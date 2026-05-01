@@ -36,6 +36,14 @@ const shellQuote = (value: string) => `'${value.replace(/'/g, "'\\''")}'`;
 const envReference = (name: string) => `\${${name}}`;
 const tomlString = (value: string) => JSON.stringify(value);
 
+const getApiKeyPreview = (apiKey: string) => {
+  if (apiKey.length <= 34) {
+    return apiKey;
+  }
+
+  return `${apiKey.slice(0, 18)}...${apiKey.slice(-12)}`;
+};
+
 export const getClaudeMcpCommand = (apiKey: string) =>
   `claude mcp add --transport http --scope project --header "Authorization: Bearer ${apiKey}" ${MCP_SERVER_NAME} ${MCP_ENDPOINT}`;
 
@@ -264,6 +272,7 @@ const SnippetText = (props: { value: string; isRawConfig: boolean }) => {
 
 export const ApiKeySecretFields = (props: { apiKey: string }) => {
   const { apiKey } = props;
+  const apiKeyPreview = getApiKeyPreview(apiKey);
   const [selectedProvider, setSelectedProvider] = useState<ProviderId>("codex");
   const [showRawConfig, setShowRawConfig] = useState(false);
   const snippets = useMemo(() => getProviderSnippets(apiKey), [apiKey]);
@@ -292,11 +301,8 @@ export const ApiKeySecretFields = (props: { apiKey: string }) => {
         </div>
 
         <div className="grid min-h-12 grid-cols-[minmax(0,1fr)_auto] items-center gap-2 rounded-12 border border-blue-150 bg-blue-50 p-1.5 pl-3">
-          <code
-            className="truncate font-ibm text-sm text-grey-900"
-            title={apiKey}
-          >
-            {apiKey}
+          <code className="min-w-0 break-all font-ibm text-sm text-grey-900">
+            {apiKeyPreview}
           </code>
 
           <CopyControl fieldName="API Key" fieldValue={apiKey} variant="pill" />

@@ -148,7 +148,7 @@ export const ClientPage = (props: { teamId: string }) => {
                 </Typography>
 
                 <Typography variant={TYPOGRAPHY.R4} className="text-grey-500">
-                  Connect Claude, Cursor, or any MCP client to build and manage
+                  Connect Codex, Claude, or any MCP client to build and manage
                   your app via natural language.
                 </Typography>
               </div>

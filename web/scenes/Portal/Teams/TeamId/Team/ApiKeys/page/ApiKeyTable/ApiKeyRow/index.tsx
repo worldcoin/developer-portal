@@ -16,6 +16,7 @@ import clsx from "clsx";
 import { useCallback, useMemo, useState } from "react";
 import { toast } from "react-toastify";
 import { ApiKeySecretModal } from "../../ApiKeySecretModal";
+import { FetchKeysDocument } from "../../graphql/client/fetch-keys.generated";
 import { Status } from "./Status";
 import { useResetApiKeyMutation } from "./graphql/client/reset-api-key.generated";
 
@@ -54,6 +55,7 @@ export const ApiKeyRow = (props: {
             id: apiKeyId,
             team_id: teamId,
           },
+          refetchQueries: [FetchKeysDocument],
         });
 
         if (result instanceof Error || Boolean(result?.errors)) {
