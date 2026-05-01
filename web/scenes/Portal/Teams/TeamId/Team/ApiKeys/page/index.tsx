@@ -47,7 +47,10 @@ export const TeamApiKeysPage = (props: TeamApiKeysPageProps) => {
                 className="text-center text-grey-500"
               >
                 Create a secure API key to seamlessly <br />
-                manage your team&apos;s World ID apps
+                manage your team&apos;s apps.
+                <br />
+                <br />
+                Also used for MCP authorization
               </Typography>
             </div>
 
