@@ -57,7 +57,6 @@ export const EarningsPage = () => {
       toast.error("Failed to start verification. Please try again.");
     } finally {
       setLoadingVerification(null);
-      setShowVerificationSelection(false);
     }
   };
 
