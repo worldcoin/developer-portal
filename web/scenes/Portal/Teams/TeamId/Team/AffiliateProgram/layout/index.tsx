@@ -29,51 +29,51 @@ export const AffiliateProgramLayout = (props: TeamIdLayoutProps) => {
   const [affiliateEnabled] = useAtom(affiliateEnabledAtom);
 
   const isTeamMember = auth0User?.hasura?.memberships?.some(
-    (membership) => membership.team?.id === teamId,
+      (membership) => membership.team?.id === teamId,
   );
 
   const isAffiliateEnabled = useMemo(
-    () =>
-      affiliateEnabled.isFetched &&
-      isAffiliateEnabledForTeam(affiliateEnabled, teamId, auth0User),
-    [affiliateEnabled, teamId, auth0User],
+      () =>
+          affiliateEnabled.isFetched &&
+          isAffiliateEnabledForTeam(affiliateEnabled, teamId, auth0User),
+      [affiliateEnabled, teamId, auth0User],
   );
 
   // Skip fetching metadata if affiliate program is not enabled
   const { data: metadata, loading: isMetadataLoading } =
-    useGetAffiliateMetadata({
-      skip: !isAffiliateEnabled,
-    });
+      useGetAffiliateMetadata({
+        skip: !isAffiliateEnabled,
+      });
 
   const hasOwnerPermission = useMemo(
-    () => checkUserPermissions(auth0User, teamId ?? "", [Role_Enum.Owner]),
-    [auth0User, teamId],
+      () => checkUserPermissions(auth0User, teamId ?? "", [Role_Enum.Owner]),
+      [auth0User, teamId],
   );
 
   const isVerifyPage = useMemo(
-    () => pathname === urls.affiliateProgramVerify({ team_id: teamId }),
-    [pathname, teamId],
+      () => pathname === urls.affiliateProgramVerify({ team_id: teamId }),
+      [pathname, teamId],
   );
   const isWithdrawPage = useMemo(
-    () => pathname === urls.affiliateWithdrawal({ team_id: teamId }),
-    [pathname, teamId],
+      () => pathname === urls.affiliateWithdrawal({ team_id: teamId }),
+      [pathname, teamId],
   );
   const isAccountPage = useMemo(
-    () => pathname === urls.affiliateAccount({ team_id: teamId }),
-    [pathname, teamId],
+      () => pathname === urls.affiliateAccount({ team_id: teamId }),
+      [pathname, teamId],
   );
   const isRewardsPage = useMemo(
-    () => pathname === urls.affiliateRewards({ team_id: teamId }),
-    [pathname, teamId],
+      () => pathname === urls.affiliateRewards({ team_id: teamId }),
+      [pathname, teamId],
   );
   const isOwnerOnlyPage = isWithdrawPage || isAccountPage;
   const hideTabs = isWithdrawPage || isRewardsPage || isVerifyPage;
   const isTermsAccepted = Boolean(metadata?.termsAcceptedAt);
   const isVerificationRequired = useMemo(
-    () =>
-      metadata?.identityVerificationStatus !==
-      IdentityVerificationStatus.SUCCESS,
-    [metadata?.identityVerificationStatus],
+      () =>
+          metadata?.identityVerificationStatus !==
+          IdentityVerificationStatus.SUCCESS,
+      [metadata?.identityVerificationStatus],
   );
 
   // Handle redirects client-side
@@ -104,10 +104,6 @@ export const AffiliateProgramLayout = (props: TeamIdLayoutProps) => {
     if (isWithdrawPage && isVerificationRequired) {
       return router.push(urls.affiliateEarnings({ team_id: teamId }));
     }
-
-    if (isVerifyPage && isTermsAccepted) {
-      return router.push(urls.affiliateProgram({ team_id: teamId }));
-    }
   }, [
     affiliateEnabled.isFetched,
     isTeamMember,
@@ -125,60 +121,60 @@ export const AffiliateProgramLayout = (props: TeamIdLayoutProps) => {
   ]);
 
   if (
-    !metadata ||
-    isMetadataLoading ||
-    !isAffiliateEnabled ||
-    (!isVerifyPage && !isTermsAccepted) ||
-    (isWithdrawPage && isVerificationRequired)
+      !metadata ||
+      isMetadataLoading ||
+      !isAffiliateEnabled ||
+      (!isVerifyPage && !isTermsAccepted) ||
+      (isWithdrawPage && isVerificationRequired)
   )
     return null;
 
   return (
-    <div className="flex flex-col">
-      <div className="order-2 md:order-1 md:w-full md:border-b md:border-grey-100">
-        {!hideTabs && (
-          <SizingWrapper variant="nav">
-            <Tabs className="px-6 py-4 font-gta md:py-0">
-              <Tab
-                className="md:py-4"
-                href={`/teams/${teamId}/affiliate-program`}
-                segment={null}
-                underlined
-              >
-                <Typography variant={TYPOGRAPHY.R4}>Overview</Typography>
-              </Tab>
-              <Tab
-                className="md:py-4"
-                href={`/teams/${teamId}/affiliate-program/earnings`}
-                segment={"earnings"}
-                underlined
-              >
-                <Typography variant={TYPOGRAPHY.R4}>Earnings</Typography>
-              </Tab>
-              <Tab
-                className="md:py-4"
-                href={`/teams/${teamId}/affiliate-program/how-it-works`}
-                segment={"how-it-works"}
-                underlined
-              >
-                <Typography variant={TYPOGRAPHY.R4}>How it works</Typography>
-              </Tab>
-              {hasOwnerPermission && (
-                <Tab
-                  className="md:py-4"
-                  href={`/teams/${teamId}/affiliate-program/account`}
-                  segment={"account"}
-                  underlined
-                >
-                  <Typography variant={TYPOGRAPHY.R4}>Account</Typography>
-                </Tab>
-              )}
-            </Tabs>
-          </SizingWrapper>
-        )}
-      </div>
+      <div className="flex flex-col">
+        <div className="order-2 md:order-1 md:w-full md:border-b md:border-grey-100">
+          {!hideTabs && (
+              <SizingWrapper variant="nav">
+                <Tabs className="px-6 py-4 font-gta md:py-0">
+                  <Tab
+                      className="md:py-4"
+                      href={`/teams/${teamId}/affiliate-program`}
+                      segment={null}
+                      underlined
+                  >
+                    <Typography variant={TYPOGRAPHY.R4}>Overview</Typography>
+                  </Tab>
+                  <Tab
+                      className="md:py-4"
+                      href={`/teams/${teamId}/affiliate-program/earnings`}
+                      segment={"earnings"}
+                      underlined
+                  >
+                    <Typography variant={TYPOGRAPHY.R4}>Earnings</Typography>
+                  </Tab>
+                  <Tab
+                      className="md:py-4"
+                      href={`/teams/${teamId}/affiliate-program/how-it-works`}
+                      segment={"how-it-works"}
+                      underlined
+                  >
+                    <Typography variant={TYPOGRAPHY.R4}>How it works</Typography>
+                  </Tab>
+                  {hasOwnerPermission && (
+                      <Tab
+                          className="md:py-4"
+                          href={`/teams/${teamId}/affiliate-program/account`}
+                          segment={"account"}
+                          underlined
+                      >
+                        <Typography variant={TYPOGRAPHY.R4}>Account</Typography>
+                      </Tab>
+                  )}
+                </Tabs>
+              </SizingWrapper>
+          )}
+        </div>
 
-      {props.children}
-    </div>
+        {props.children}
+      </div>
   );
 };
