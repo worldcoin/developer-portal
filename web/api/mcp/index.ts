@@ -573,9 +573,19 @@ const fileNameForDraft = (
   basename: string,
 ) => (fileName ? `${basename}.${getImageEndpoint(fileName)}` : "");
 
+const showcaseInsertValueForDraft = (
+  fileNames: string[] | null | undefined,
+) => {
+  if (!fileNames?.length) {
+    return null;
+  }
+
+  return `{${fileNames.join(",")}}`;
+};
+
 const showcaseFileNamesForDraft = (fileNames: string[] | null | undefined) => {
   if (!fileNames?.length) {
-    return { insertValue: null, metadataValue: [] as string[] };
+    return { insertValue: null, metadataValue: null };
   }
 
   const metadataValue = fileNames.map(
@@ -585,17 +595,58 @@ const showcaseFileNamesForDraft = (fileNames: string[] | null | undefined) => {
   return {
     // Hasura accepts Postgres array text here; this mirrors the dashboard's
     // create_new_draft action so approved image filenames are preserved.
-    insertValue: `{${metadataValue.join(",")}}`,
+    insertValue: showcaseInsertValueForDraft(metadataValue),
     metadataValue,
   };
+};
+
+type McpDraftImagePatch = Partial<
+  Pick<
+    McpEditableAppMetadata,
+    | "logo_img_url"
+    | "hero_image_url"
+    | "meta_tag_image_url"
+    | "content_card_image_url"
+  >
+> & {
+  showcase_img_urls?: string[] | null;
+};
+
+const imagePatchForUploadedDraft = (
+  verified: McpVerifiedAppMetadata,
+  mapping: (typeof MCP_APP_IMAGE_MAP)[McpAppImageType],
+  fileName: string,
+): McpDraftImagePatch => {
+  if ("arrayIndex" in mapping) {
+    const current =
+      showcaseFileNamesForDraft(verified.showcase_img_urls).metadataValue ?? [];
+    const next = [...current];
+    while (next.length < mapping.arrayIndex + 1) next.push("");
+    next[mapping.arrayIndex] = fileName;
+    return { showcase_img_urls: next };
+  }
+
+  return { [mapping.field]: fileName } as McpDraftImagePatch;
 };
 
 const createDraftFromVerifiedMetadata = async (
   ctx: ToolContext,
   appId: string,
   verified: McpVerifiedAppMetadata,
+  imagePatch: McpDraftImagePatch = {},
 ): Promise<McpEditableAppMetadata> => {
   const showcase = showcaseFileNamesForDraft(verified.showcase_img_urls);
+  const hasPatchedShowcase = "showcase_img_urls" in imagePatch;
+  const { showcase_img_urls: patchedShowcaseImgUrls, ...scalarImagePatch } =
+    imagePatch;
+  const showcaseCreateValue =
+    hasPatchedShowcase
+      ? (patchedShowcaseImgUrls ?? null)
+      : showcase.insertValue;
+  const showcaseMetadataValue =
+    hasPatchedShowcase
+      ? (patchedShowcaseImgUrls ?? null)
+      : showcase.metadataValue;
   const draftValues = {
     app_id: appId,
     name: verified.name,
@@ -606,7 +657,7 @@ const createDraftFromVerifiedMetadata = async (
       verified.meta_tag_image_url,
       "meta_tag_image",
     ),
-    showcase_img_urls: showcase.insertValue,
+    showcase_img_urls: showcaseCreateValue,
     content_card_image_url: fileNameForDraft(
       verified.content_card_image_url,
       "content_card_image",
@@ -636,6 +687,7 @@ const createDraftFromVerifiedMetadata = async (
     max_notifications_per_day: Number(verified.max_notifications_per_day ?? 0),
     is_android_only: Boolean(verified.is_android_only),
     is_for_humans_only: Boolean(verified.is_for_humans_only),
+    ...scalarImagePatch,
   };
 
   const data = await getCreateDraftSdk(ctx.client).CreateDraft(draftValues);
@@ -686,7 +738,7 @@ const createDraftFromVerifiedMetadata = async (
   return {
     id: draftId,
     ...draftValues,
-    showcase_img_urls: showcase.metadataValue,
+    showcase_img_urls: showcaseMetadataValue,
   } as McpEditableAppMetadata;
 };
 
@@ -1202,12 +1254,13 @@ const tools = {
   upload_app_image: async (input, ctx) => {
     const args = await parseInput(uploadAppImageSchema, input);
     const app = await requireApp(ctx.client, ctx.teamId, args.app_id);
-    const { metadata, draftCreated } = await getOrCreateEditableMetadata(
-      ctx,
-      app,
-    );
-    if (metadata.verification_status !== "unverified") {
+    let metadata = app.app_metadata[0] ?? null;
+    const verifiedMetadata = app.verified_app_metadata?.[0];
+    if (metadata && metadata.verification_status !== "unverified") {
       throw new McpError("Only unverified app metadata can be edited.", -32004);
+    }
+    if (!metadata && !verifiedMetadata) {
+      throw new McpError("Editable app metadata not found.", -32004);
     }
 
     // Per-API-key upload throttle. Caps cost from a single key looping the
@@ -1284,6 +1337,45 @@ const tools = {
     }
 
     const { fileName, objectKey, mapping, sizeBytes } = uploadResult;
+
+    if (!metadata) {
+      try {
+        metadata = await createDraftFromVerifiedMetadata(
+          ctx,
+          app.id,
+          verifiedMetadata!,
+          imagePatchForUploadedDraft(verifiedMetadata!, mapping, fileName),
+        );
+      } catch (error) {
+        await tryDeleteAppImage(objectKey);
+        logger.error("MCP app image uploaded to S3 but draft creation failed.", {
+          error,
+          app_id: args.app_id,
+          team_id: ctx.teamId,
+          image_type: args.image_type,
+          object_key: objectKey,
+        });
+        throw new McpError(
+          "Image was uploaded but draft creation failed. The S3 object was rolled back; retry the same call.",
+          -32603,
+          { committed: false, file_name: fileName },
+        );
+      }
+
+      return content({
+        committed: true,
+        app_id: args.app_id,
+        image_type: args.image_type,
+        field: mapping.field,
+        file_name: fileName,
+        s3_key: objectKey,
+        size_bytes: sizeBytes,
+        content_type: contentType,
+        draft_created: true,
+        app_metadata: metadata,
+      });
+    }
+
     let set: Record<string, unknown>;
     let priorReferencedFileName: string | undefined;
     if ("arrayIndex" in mapping) {
@@ -1346,7 +1438,7 @@ const tools = {
       s3_key: objectKey,
       size_bytes: sizeBytes,
       content_type: contentType,
-      draft_created: draftCreated,
+      draft_created: false,
       app_metadata: data.update_app_metadata_by_pk,
     });
   },
