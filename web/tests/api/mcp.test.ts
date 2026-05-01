@@ -421,6 +421,15 @@ describe("/api/mcp", () => {
     expect(body.result.tools.map((tool: any) => tool.name)).toContain(
       "get_world_id_registration_status",
     );
+    const configureMiniApp = body.result.tools.find(
+      (tool: any) => tool.name === "configure_mini_app",
+    );
+    expect(configureMiniApp.inputSchema.properties).not.toHaveProperty(
+      "logo_img_url",
+    );
+    expect(configureMiniApp.inputSchema.properties).not.toHaveProperty(
+      "showcase_img_urls",
+    );
   });
 
   it("creates an app and logs MCP app creation", async () => {
@@ -672,6 +681,33 @@ describe("/api/mcp", () => {
     const payload = JSON.parse(body.result.content[0].text);
     expect(payload.app_metadata.app_mode).toBe("mini-app");
     expect(payload.app_metadata.short_name).toBe("MCP");
+  });
+
+  it("rejects direct image metadata writes through configure_mini_app", async () => {
+    const res = await POST(
+      callTool("configure_mini_app", {
+        app_id: appId,
+        logo_img_url: "https://example.com/logo.png",
+        content_card_image_url: "content_card_image.png",
+        showcase_img_urls: ["showcase_img_1.png"],
+      }),
+    );
+
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.error.code).toBe(-32602);
+    expect(body.error.message).toMatch(/upload_app_image/);
+    expect(body.error.data.fields).toEqual([
+      "logo_img_url",
+      "showcase_img_urls",
+      "content_card_image_url",
+    ]);
+    expect(
+      requestMock.mock.calls.some(
+        ([query]) => getOperationName(query) === "McpUpdateAppMetadata",
+      ),
+    ).toBe(false);
+    expect(s3SendMock).not.toHaveBeenCalled();
   });
 
   it("updates Mini App advanced fields (contracts, permit2, notification cap)", async () => {
@@ -1397,6 +1433,151 @@ describe("/api/mcp", () => {
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(body.error.code).toBe(-32602);
+  });
+
+  it("supports the full Mini App MCP flow through image upload and review submission", async () => {
+    const metadataState = {
+      ...reviewMetadata,
+      id: "meta_e2e",
+      name: "",
+      short_name: "",
+      logo_img_url: "",
+      showcase_img_urls: [] as string[],
+      world_app_description: "",
+      description: "",
+      app_website_url: "",
+      support_link: "",
+      supported_countries: [] as string[],
+      supported_languages: [] as string[],
+      content_card_image_url: "",
+      verification_status: "unverified",
+      is_developer_allow_listing: false,
+    };
+
+    currentAppContextResponse = {
+      app: [
+        {
+          ...appContextResponse.app[0],
+          app_metadata: [metadataState],
+        },
+      ],
+    };
+
+    const baseImpl = requestMock.getMockImplementation()!;
+    requestMock.mockImplementation(async (query: unknown, variables: any) => {
+      const operationName = getOperationName(query);
+
+      if (operationName.includes("McpAppContext")) {
+        return currentAppContextResponse;
+      }
+      if (operationName.includes("McpUpdateAppMetadata")) {
+        Object.assign(metadataState, variables.set);
+        return {
+          update_app_metadata_by_pk: {
+            ...metadataState,
+            id: variables.app_metadata_id,
+            app_id: appId,
+          },
+        };
+      }
+      if (operationName.includes("FetchAppMetadataById")) {
+        return {
+          app_metadata: [metadataState],
+          localisations: reviewLocalisations,
+        };
+      }
+      if (operationName.includes("McpSubmitAppForReview")) {
+        Object.assign(metadataState, {
+          verification_status: "awaiting_review",
+          is_developer_allow_listing: variables.is_developer_allow_listing,
+        });
+        return {
+          update_app_metadata_by_pk: {
+            id: variables.app_metadata_id,
+            app_id: appId,
+            verification_status: metadataState.verification_status,
+            is_developer_allow_listing:
+              metadataState.is_developer_allow_listing,
+          },
+        };
+      }
+
+      return baseImpl(query, variables);
+    });
+
+    const createRes = await POST(
+      callTool("create_app", {
+        name: "MCP E2E App",
+        app_mode: "mini-app",
+        integration_url: "https://example.com",
+        category: "Other",
+      }),
+    );
+    expect(createRes.status).toBe(200);
+    expect((await createRes.json()).error).toBeUndefined();
+
+    const configureRes = await POST(
+      callTool("configure_mini_app", {
+        app_id: appId,
+        name: "MCP E2E App",
+        short_name: "MCP",
+        category: "Other",
+        world_app_description: "Human app setup",
+        description_overview:
+          "A complete Mini App configured through the Developer Portal MCP.",
+        app_website_url: "https://example.com",
+        support_link: "mailto:support@example.com",
+        supported_countries: ["us"],
+        supported_languages: ["en"],
+        is_android_only: false,
+        is_for_humans_only: false,
+      }),
+    );
+    expect(configureRes.status).toBe(200);
+    expect((await configureRes.json()).error).toBeUndefined();
+    expect(metadataState.logo_img_url).toBe("");
+    expect(metadataState.content_card_image_url).toBe("");
+
+    const imageBase64 = Buffer.from([
+      0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a,
+    ]).toString("base64");
+
+    for (const image_type of ["logo", "content_card", "showcase_1"] as const) {
+      const uploadRes = await POST(
+        callTool("upload_app_image", {
+          app_id: appId,
+          image_type,
+          image_base64: imageBase64,
+        }),
+      );
+      expect(uploadRes.status).toBe(200);
+      expect((await uploadRes.json()).error).toBeUndefined();
+    }
+
+    expect(metadataState.logo_img_url).toBe("logo_img.png");
+    expect(metadataState.content_card_image_url).toBe("content_card_image.png");
+    expect(metadataState.showcase_img_urls).toEqual(["showcase_img_1.png"]);
+
+    const submitRes = await POST(
+      callTool("submit_app_for_review", {
+        app_id: appId,
+        confirm_submission: true,
+        is_developer_allow_listing: true,
+      }),
+    );
+
+    expect(submitRes.status).toBe(200);
+    const submitPayload = JSON.parse(
+      (await submitRes.json()).result.content[0].text,
+    );
+    expect(submitPayload.app_metadata).toEqual(
+      expect.objectContaining({
+        id: "meta_e2e",
+        app_id: appId,
+        verification_status: "awaiting_review",
+        is_developer_allow_listing: true,
+      }),
+    );
   });
 
   it("rejects Mini App metadata updates after review submission", async () => {
