@@ -639,14 +639,12 @@ const createDraftFromVerifiedMetadata = async (
   const hasPatchedShowcase = "showcase_img_urls" in imagePatch;
   const { showcase_img_urls: patchedShowcaseImgUrls, ...scalarImagePatch } =
     imagePatch;
-  const showcaseCreateValue =
-    hasPatchedShowcase
-      ? (patchedShowcaseImgUrls ?? null)
-      : showcase.insertValue;
-  const showcaseMetadataValue =
-    hasPatchedShowcase
-      ? (patchedShowcaseImgUrls ?? null)
-      : showcase.metadataValue;
+  const showcaseCreateValue = hasPatchedShowcase
+    ? patchedShowcaseImgUrls ?? null
+    : showcase.insertValue;
+  const showcaseMetadataValue = hasPatchedShowcase
+    ? patchedShowcaseImgUrls ?? null
+    : showcase.metadataValue;
   const draftValues = {
     app_id: appId,
     name: verified.name,
@@ -1348,13 +1346,16 @@ const tools = {
         );
       } catch (error) {
         await tryDeleteAppImage(objectKey);
-        logger.error("MCP app image uploaded to S3 but draft creation failed.", {
-          error,
-          app_id: args.app_id,
-          team_id: ctx.teamId,
-          image_type: args.image_type,
-          object_key: objectKey,
-        });
+        logger.error(
+          "MCP app image uploaded to S3 but draft creation failed.",
+          {
+            error,
+            app_id: args.app_id,
+            team_id: ctx.teamId,
+            image_type: args.image_type,
+            object_key: objectKey,
+          },
+        );
         throw new McpError(
           "Image was uploaded but draft creation failed. The S3 object was rolled back; retry the same call.",
           -32603,
