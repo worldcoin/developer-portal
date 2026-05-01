@@ -342,13 +342,6 @@ beforeEach(async () => {
     if (operationName.includes("FetchLocalisations")) {
       return { localisations: [] };
     }
-    if (operationName.includes("CreateLocalisation")) {
-      return {
-        insert_localisations_one: {
-          id: "loc_draft",
-        },
-      };
-    }
     if (operationName.includes("McpUpsertActionV4")) {
       return {
         insert_action_v4_one: {
@@ -757,7 +750,8 @@ describe("/api/mcp", () => {
         logo_img_url: "logo_img.png",
         meta_tag_image_url: "meta_tag_image.png",
         content_card_image_url: "content_card_image.png",
-        showcase_img_urls: "{showcase_img_1.png}",
+        showcase_img_urls: ["showcase_img_1.png"],
+        localisations: null,
       }),
     );
 
@@ -838,10 +832,20 @@ describe("/api/mcp", () => {
     const body = await res.json();
     expect(body.error).toBeUndefined();
 
-    const createLocalisationCall = requestMock.mock.calls.find(
-      ([query]) => getOperationName(query) === "CreateLocalisation",
+    const createDraftCall = requestMock.mock.calls.find(
+      ([query]) => getOperationName(query) === "CreateDraft",
     );
-    expect(createLocalisationCall?.[1].input.showcase_img_urls).toBeNull();
+    expect(createDraftCall?.[1].localisations.data[0]).toEqual(
+      expect.objectContaining({
+        locale: "es",
+        showcase_img_urls: null,
+      }),
+    );
+    expect(
+      requestMock.mock.calls.some(
+        ([query]) => getOperationName(query) === "CreateLocalisation",
+      ),
+    ).toBe(false);
   });
 
   it("rejects direct image metadata writes through configure_mini_app", async () => {

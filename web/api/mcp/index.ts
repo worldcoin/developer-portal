@@ -21,7 +21,6 @@ import { getSdk as getMcpTeamContextSdk } from "@/api/mcp/graphql/team-context.g
 import { getSdk as getMcpUpdateAppMetadataSdk } from "@/api/mcp/graphql/update-app-metadata.generated";
 import { getSdk as getMcpUpsertActionV4Sdk } from "@/api/mcp/graphql/upsert-action-v4.generated";
 import { getSdk as getCreateDraftSdk } from "@/api/hasura/create-new-draft/graphql/create-draft.generated";
-import { getSdk as getCreateLocalisationSdk } from "@/api/hasura/create-new-draft/graphql/create-localisation.generated";
 import { getSdk as getFetchLocalisationsSdk } from "@/api/hasura/create-new-draft/graphql/fetch-localisations.generated";
 import { SKILL_INSTRUCTIONS } from "@/api/mcp/skill";
 import { getSdk as getUpdateRpStatusSdk } from "@/api/v4/rp-status/[rp_id]/graphql/update-rp-status.generated";
@@ -573,32 +572,13 @@ const fileNameForDraft = (
   basename: string,
 ) => (fileName ? `${basename}.${getImageEndpoint(fileName)}` : "");
 
-const showcaseInsertValueForDraft = (
-  fileNames: string[] | null | undefined,
-) => {
-  if (!fileNames?.length) {
-    return null;
-  }
-
-  return `{${fileNames.join(",")}}`;
-};
-
-const showcaseFileNamesForDraft = (fileNames: string[] | null | undefined) => {
-  if (!fileNames?.length) {
-    return { insertValue: null, metadataValue: null };
-  }
-
-  const metadataValue = fileNames.map(
-    (fileName, index) =>
-      `showcase_img_${index + 1}.${getImageEndpoint(fileName)}`,
-  );
-  return {
-    // Hasura accepts Postgres array text here; this mirrors the dashboard's
-    // create_new_draft action so approved image filenames are preserved.
-    insertValue: showcaseInsertValueForDraft(metadataValue),
-    metadataValue,
-  };
-};
+const showcaseFileNamesForDraft = (fileNames: string[] | null | undefined) =>
+  fileNames?.length
+    ? fileNames.map(
+        (fileName, index) =>
+          `showcase_img_${index + 1}.${getImageEndpoint(fileName)}`,
+      )
+    : null;
 
 type McpDraftImagePatch = Partial<
   Pick<
@@ -618,8 +598,7 @@ const imagePatchForUploadedDraft = (
   fileName: string,
 ): McpDraftImagePatch => {
   if ("arrayIndex" in mapping) {
-    const current =
-      showcaseFileNamesForDraft(verified.showcase_img_urls).metadataValue ?? [];
+    const current = showcaseFileNamesForDraft(verified.showcase_img_urls) ?? [];
     const next = [...current];
     while (next.length < mapping.arrayIndex + 1) next.push("");
     next[mapping.arrayIndex] = fileName;
@@ -639,12 +618,34 @@ const createDraftFromVerifiedMetadata = async (
   const hasPatchedShowcase = "showcase_img_urls" in imagePatch;
   const { showcase_img_urls: patchedShowcaseImgUrls, ...scalarImagePatch } =
     imagePatch;
-  const showcaseCreateValue = hasPatchedShowcase
+  const showcaseValue = hasPatchedShowcase
     ? patchedShowcaseImgUrls ?? null
-    : showcase.insertValue;
-  const showcaseMetadataValue = hasPatchedShowcase
-    ? patchedShowcaseImgUrls ?? null
-    : showcase.metadataValue;
+    : showcase;
+
+  const { localisations } = await getFetchLocalisationsSdk(
+    ctx.client,
+  ).FetchLocalisations({ id: verified.id });
+  const localisationData = localisations.map((localisation) => {
+    const {
+      id: _id,
+      __typename: _typename,
+      app_metadata_id: _appMetadataId,
+      meta_tag_image_url,
+      showcase_img_urls,
+      ...copiedLocalisation
+    } = localisation;
+
+    return {
+      ...copiedLocalisation,
+      hero_image_url: "",
+      meta_tag_image_url: fileNameForDraft(
+        meta_tag_image_url,
+        "meta_tag_image",
+      ),
+      showcase_img_urls: showcaseFileNamesForDraft(showcase_img_urls),
+    };
+  });
+
   const draftValues = {
     app_id: appId,
     name: verified.name,
@@ -655,7 +656,7 @@ const createDraftFromVerifiedMetadata = async (
       verified.meta_tag_image_url,
       "meta_tag_image",
     ),
-    showcase_img_urls: showcaseCreateValue,
+    showcase_img_urls: showcaseValue,
     content_card_image_url: fileNameForDraft(
       verified.content_card_image_url,
       "content_card_image",
@@ -688,38 +689,13 @@ const createDraftFromVerifiedMetadata = async (
     ...scalarImagePatch,
   };
 
-  const data = await getCreateDraftSdk(ctx.client).CreateDraft(draftValues);
+  const data = await getCreateDraftSdk(ctx.client).CreateDraft({
+    ...draftValues,
+    localisations: localisationData.length ? { data: localisationData } : null,
+  });
   const draftId = data.insert_app_metadata_one?.id;
   if (!draftId) {
     throw new McpError("Failed to create an editable app draft.", -32603);
-  }
-
-  const { localisations } = await getFetchLocalisationsSdk(
-    ctx.client,
-  ).FetchLocalisations({ id: verified.id });
-
-  for (const localisation of localisations) {
-    const {
-      id: _id,
-      __typename: _typename,
-      meta_tag_image_url,
-      showcase_img_urls,
-      ...copiedLocalisation
-    } = localisation;
-
-    await getCreateLocalisationSdk(ctx.client).CreateLocalisation({
-      input: {
-        ...copiedLocalisation,
-        app_metadata_id: draftId,
-        hero_image_url: "",
-        meta_tag_image_url: fileNameForDraft(
-          meta_tag_image_url,
-          "meta_tag_image",
-        ),
-        showcase_img_urls:
-          showcaseFileNamesForDraft(showcase_img_urls).metadataValue,
-      },
-    });
   }
 
   logPortalEvent({
@@ -736,7 +712,7 @@ const createDraftFromVerifiedMetadata = async (
   return {
     id: draftId,
     ...draftValues,
-    showcase_img_urls: showcaseMetadataValue,
+    showcase_img_urls: showcaseValue,
   } as McpEditableAppMetadata;
 };
 

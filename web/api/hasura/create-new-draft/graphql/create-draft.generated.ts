@@ -52,6 +52,7 @@ export type CreateDraftMutationVariables = Types.Exact<{
   max_notifications_per_day: Types.Scalars["Int"]["input"];
   is_android_only: Types.Scalars["Boolean"]["input"];
   is_for_humans_only: Types.Scalars["Boolean"]["input"];
+  localisations?: Types.InputMaybe<Types.Localisations_Arr_Rel_Insert_Input>;
 }>;
 
 export type CreateDraftMutation = {
@@ -92,6 +93,7 @@ export const CreateDraftDocument = gql`
     $max_notifications_per_day: Int!
     $is_android_only: Boolean!
     $is_for_humans_only: Boolean!
+    $localisations: localisations_arr_rel_insert_input = null
   ) {
     insert_app_metadata_one(
       object: {
@@ -126,6 +128,7 @@ export const CreateDraftDocument = gql`
         max_notifications_per_day: $max_notifications_per_day
         is_android_only: $is_android_only
         is_for_humans_only: $is_for_humans_only
+        localisations: $localisations
       }
     ) {
       id
