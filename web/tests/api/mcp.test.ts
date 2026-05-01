@@ -773,6 +773,30 @@ describe("/api/mcp", () => {
     expect(updateCall?.[1].set.short_name).toBe("Draft");
   });
 
+  it("rejects empty Mini App metadata updates without creating a draft", async () => {
+    currentAppContextResponse = appContextWithVerifiedMetadata();
+
+    const res = await POST(
+      callTool("configure_mini_app", {
+        app_id: appId,
+      }),
+    );
+
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.error.code).toBe(-32602);
+    expect(
+      requestMock.mock.calls.some(
+        ([query]) => getOperationName(query) === "CreateDraft",
+      ),
+    ).toBe(false);
+    expect(
+      requestMock.mock.calls.some(
+        ([query]) => getOperationName(query) === "McpUpdateAppMetadata",
+      ),
+    ).toBe(false);
+  });
+
   it("preserves missing localized showcase images when creating an editable draft", async () => {
     currentAppContextResponse = appContextWithVerifiedMetadata();
 

@@ -740,28 +740,6 @@ const createDraftFromVerifiedMetadata = async (
   } as McpEditableAppMetadata;
 };
 
-const getOrCreateEditableMetadata = async (
-  ctx: ToolContext,
-  app: McpAppContextApp,
-) => {
-  const metadata = app.app_metadata[0];
-  if (metadata) {
-    return { metadata, draftCreated: false };
-  }
-
-  const verifiedMetadata = app.verified_app_metadata?.[0];
-  if (!verifiedMetadata) {
-    throw new McpError("Editable app metadata not found.", -32004);
-  }
-
-  const draft = await createDraftFromVerifiedMetadata(
-    ctx,
-    app.id,
-    verifiedMetadata,
-  );
-  return { metadata: draft, draftCreated: true };
-};
-
 const syncWorldIdRegistrationStatus = async (
   input: unknown,
   ctx: ToolContext,
@@ -1151,13 +1129,15 @@ const tools = {
     rejectConfigureMiniAppImageFields(input);
     const args = await parseInput(configureMiniAppSchema, input);
     const app = await requireApp(ctx.client, ctx.teamId, args.app_id);
-    const { metadata, draftCreated } = await getOrCreateEditableMetadata(
-      ctx,
-      app,
-    );
-    if (metadata.verification_status !== "unverified") {
+    let metadata = app.app_metadata[0] ?? null;
+    const verifiedMetadata = app.verified_app_metadata?.[0];
+    if (metadata && metadata.verification_status !== "unverified") {
       throw new McpError("Only unverified app metadata can be edited.", -32004);
     }
+    if (!metadata && !verifiedMetadata) {
+      throw new McpError("Editable app metadata not found.", -32004);
+    }
+    const sourceMetadata = metadata ?? verifiedMetadata!;
 
     const {
       app_id: _appId,
@@ -1173,6 +1153,9 @@ const tools = {
       description_connect,
       ...rest
     } = args;
+    const hasExplicitPatchField = Object.keys(args).some(
+      (field) => field !== "app_id",
+    );
 
     // Build Postgres array text directly from the input array.
     // Do NOT round-trip through a comma-joined string + formatMultipleStringInput:
@@ -1194,7 +1177,7 @@ const tools = {
       permit2_tokens: toPgArrayText(permit2_tokens),
       whitelisted_addresses: toPgArrayText(whitelisted_addresses),
       associated_domains: toPgArrayText(associated_domains),
-      app_mode: app_mode ?? "mini-app",
+      app_mode: app_mode ?? (hasExplicitPatchField ? "mini-app" : undefined),
     };
 
     if (max_notifications_per_day !== undefined) {
@@ -1219,7 +1202,9 @@ const tools = {
         description_connect !== undefined)
     ) {
       const existing = parseDescription(
-        ((metadata as { description?: string | null }).description ?? "") || "",
+        ((sourceMetadata as { description?: string | null }).description ??
+          "") ||
+          "",
       );
       advanced.description = encodeDescription(
         description_overview ?? existing.description_overview,
@@ -1235,6 +1220,23 @@ const tools = {
         ([, value]) => value !== undefined,
       ),
     );
+
+    if (Object.keys(set).length === 0) {
+      throw new McpError(
+        "No Mini App metadata fields provided to update.",
+        -32602,
+      );
+    }
+
+    let draftCreated = false;
+    if (!metadata) {
+      metadata = await createDraftFromVerifiedMetadata(
+        ctx,
+        app.id,
+        verifiedMetadata!,
+      );
+      draftCreated = true;
+    }
 
     const data = await getMcpUpdateAppMetadataSdk(
       ctx.client,
