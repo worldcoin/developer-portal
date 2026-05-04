@@ -267,6 +267,47 @@ describe("useAutosave", () => {
     expect(save).not.toHaveBeenCalled();
   });
 
+  it("does not emit 'saved' when the user typed during the save", async () => {
+    let resolveSave: (() => void) | null = null;
+    const save = jest.fn(async () => {
+      await new Promise<void>((resolve) => {
+        resolveSave = resolve;
+      });
+    });
+    const statuses: AutosaveStatus[] = [];
+    const { result } = setup(save, { onStatus: (s) => statuses.push(s) });
+
+    await act(async () => {
+      result.current.form.setValue("name", "first", { shouldDirty: true });
+    });
+    await act(async () => {
+      await wait(DEBOUNCE_MS * 4);
+    });
+
+    expect(save).toHaveBeenCalledTimes(1);
+
+    // Type while the save is still in flight.
+    await act(async () => {
+      result.current.form.setValue("name", "first-edited", {
+        shouldDirty: true,
+      });
+    });
+    // Now resolve the in-flight save. Snapshot ("first") no longer matches
+    // the form value ("first-edited"), so we should NOT see "saved".
+    await act(async () => {
+      resolveSave?.();
+      await Promise.resolve();
+    });
+
+    const sawSavedAfterFirstSave = statuses.some(
+      (s, i) =>
+        s.state === "saved" &&
+        // Ignore any saved emitted later by the queued debounced save.
+        i < statuses.length - 1,
+    );
+    expect(sawSavedAfterFirstSave).toBe(false);
+  });
+
   it("retry from error status serializes with concurrent debounced saves", async () => {
     let resolveRetry: (() => void) | null = null;
     const callOrder: string[] = [];

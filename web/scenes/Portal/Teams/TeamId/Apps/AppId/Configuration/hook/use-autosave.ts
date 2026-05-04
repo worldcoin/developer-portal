@@ -121,9 +121,13 @@ export function useAutosave<T extends FieldValues>(
             keepErrors: true,
             keepTouched: true,
           });
+          onStatus({ state: "saved", at: Date.now() });
         }
-
-        onStatus({ state: "saved", at: Date.now() });
+        // When not stable the user typed during the save: a new debounce was
+        // scheduled by the watch subscription, so leave the status on "saving"
+        // until that next save settles. Emitting "saved" here would flash the
+        // indicator misleadingly for snapshot data the user has already moved
+        // past.
         return true;
       } catch (err) {
         if (
