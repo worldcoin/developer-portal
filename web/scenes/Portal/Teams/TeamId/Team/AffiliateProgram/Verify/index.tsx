@@ -8,7 +8,7 @@ import { urls } from "@/lib/urls";
 import { useGetAffiliateMetadata } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Overview/page/hooks/use-get-affiliate-metadata";
 import { getIdentityVerificationLink } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Overview/server/getIdentityVerificationLink";
 import { useParams, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { toast } from "react-toastify";
 import { AcceptTermsDialog } from "./AcceptTerms";
 import { SelectVerificationDialog } from "./SelectVerificationDialog";
@@ -30,6 +30,15 @@ export const VerifyPage = () => {
   const [showVerifyLaterDialog, setShowVerifyLaterDialog] = useState(false);
   const [shouldGoToOverviewAfterTerms, setShouldGoToOverviewAfterTerms] =
     useState(false);
+
+  /** Terms already accepted: leave verify on primary actions (not on KYC pick — terms are set then too). */
+  const redirectToAffiliateIfTermsAccepted = useCallback((): boolean => {
+    if (!metadata?.termsAcceptedAt) {
+      return false;
+    }
+    router.push(urls.affiliateProgram({ team_id: teamId }));
+    return true;
+  }, [metadata?.termsAcceptedAt, router, teamId]);
 
   const handleGetVerificationLink = async (type: "kyc" | "kyb") => {
     if (!metadata) return;
@@ -63,6 +72,9 @@ export const VerifyPage = () => {
   };
 
   const handleComplete = () => {
+    if (redirectToAffiliateIfTermsAccepted()) {
+      return;
+    }
     setShouldGoToOverviewAfterTerms(false);
     setShowAcceptTerms(true);
   };
@@ -143,7 +155,12 @@ export const VerifyPage = () => {
             type="button"
             variant="secondary"
             className="h-12 w-[360px] rounded-[10px]"
-            onClick={() => setShowVerifyLaterDialog(true)}
+            onClick={() => {
+              if (redirectToAffiliateIfTermsAccepted()) {
+                return;
+              }
+              setShowVerifyLaterDialog(true);
+            }}
             disabled={isLoading}
           >
             Start now, verify later
