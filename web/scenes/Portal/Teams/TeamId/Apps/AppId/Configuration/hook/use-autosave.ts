@@ -117,8 +117,10 @@ export function useAutosave<T extends FieldValues>(
       ) {
         return false;
       }
-      // Failure: restore unsaved-changes flag so flushAll/Save Now can retry.
+      // Failure: restore unsaved-changes flag so flushAll/Save Now can retry,
+      // and re-register pending so the beforeunload guard stays installed.
       hasUnsavedChangesRef.current = true;
+      onPendingChange?.(true);
       const error = err instanceof Error ? err : new Error(String(err));
       onStatus({
         state: "error",

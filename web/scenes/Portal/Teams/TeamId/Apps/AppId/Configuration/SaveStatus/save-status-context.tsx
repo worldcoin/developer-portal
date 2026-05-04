@@ -110,7 +110,13 @@ export const SaveStatusProvider = ({ children }: { children: ReactNode }) => {
   const status = useMemo(() => mergeStatuses(statuses), [statuses]);
 
   const hasPending = useMemo(() => {
-    if (status.state === "saving" || status.state === "error") return true;
+    // Derive pending-ness from actual unsaved data (`pendingIds`) and from
+    // whether a save is currently in flight. Error status alone is not enough
+    // — e.g. the MiniApp toggle reverts on failure and has nothing unsaved,
+    // and treating that as pending stuck the beforeunload guard on.
+    // Form autosaves restore their pending entry on save failure so the
+    // guard correctly stays on for them.
+    if (status.state === "saving") return true;
     return pendingIds.size > 0;
   }, [status, pendingIds]);
 
