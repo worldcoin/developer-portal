@@ -55,100 +55,118 @@ export function useAutosave<T extends FieldValues>(
     }
   }, []);
 
-  const performSave = useCallback(async (): Promise<boolean> => {
-    // Serialize saves: wait for any prior in-flight save to complete first.
-    // Without this, two HTTP requests can race and the server-side write order
-    // is undefined — an older snapshot can land on top of a newer one.
+  const performSave = useCallback((): Promise<boolean> => {
+    // Capture the prior in-flight promise synchronously so two sync calls to
+    // performSave (e.g. retry + a fresh debounce firing) chain in order rather
+    // than running concurrently. Every entry into performSave registers itself
+    // on inFlightPromiseRef before yielding.
     const prior = inFlightPromiseRef.current;
-    if (prior) {
-      try {
-        await prior;
-      } catch {
-        /* ignore prior error; it's already been surfaced via onStatus */
+
+    const run = async (): Promise<boolean> => {
+      if (prior) {
+        try {
+          await prior;
+        } catch {
+          /* prior error already surfaced via onStatus */
+        }
       }
-    }
 
-    const { form: f, save, onStatus, onPendingChange } = optionsRef.current;
+      const { form: f, save, onStatus, onPendingChange } = optionsRef.current;
 
-    if (!hasUnsavedChangesRef.current) {
-      onPendingChange?.(false);
-      return true;
-    }
+      if (!hasUnsavedChangesRef.current) {
+        onPendingChange?.(false);
+        return true;
+      }
 
-    const valid = await f.trigger();
-    if (!valid) return false;
-
-    const controller = new AbortController();
-    controllerRef.current = controller;
-
-    const snapshot = f.getValues();
-    // Mark "no unsaved changes" preemptively. Any change that arrives while
-    // this save is in flight will flip it back to true through the watch
-    // subscription, which means the next save will fire.
-    hasUnsavedChangesRef.current = false;
-    onPendingChange?.(false);
-    onStatus({ state: "saving" });
-
-    try {
-      await save(snapshot, controller.signal);
-      if (controller.signal.aborted) throw new StaleSaveError();
-
-      const fresh = f.getValues();
-      const stable =
-        JSON.stringify(fresh) === JSON.stringify(snapshot) &&
-        controllerRef.current === controller;
-
-      if (stable) {
-        f.reset(snapshot, {
-          keepValues: true,
-          keepDirty: false,
-          keepErrors: true,
-          keepTouched: true,
+      const valid = await f.trigger();
+      if (!valid) {
+        // Surface invalid state on the indicator instead of leaving the prior
+        // "Saved Xm ago" up — that would mislead the user into thinking their
+        // current invalid edit was persisted. The next valid edit will trigger
+        // a debounce → save → "Saved" status that replaces this.
+        onStatus({
+          state: "error",
+          error: new Error("Fix the highlighted errors to save"),
+          retry: () => {
+            void performSave();
+          },
         });
-      }
-
-      onStatus({ state: "saved", at: Date.now() });
-      return true;
-    } catch (err) {
-      if (
-        err instanceof StaleSaveError ||
-        controller.signal.aborted ||
-        (err instanceof Error && err.name === "AbortError")
-      ) {
         return false;
       }
-      // Failure: restore unsaved-changes flag so flushAll/Save Now can retry,
-      // and re-register pending so the beforeunload guard stays installed.
-      hasUnsavedChangesRef.current = true;
-      onPendingChange?.(true);
-      const error = err instanceof Error ? err : new Error(String(err));
-      onStatus({
-        state: "error",
-        error,
-        retry: () => {
-          void performSave();
-        },
-      });
-      return false;
-    } finally {
-      if (controllerRef.current === controller) {
-        controllerRef.current = null;
-      }
-    }
-  }, []);
 
-  const flush = useCallback(async (): Promise<boolean> => {
-    clearDebounce();
-    if (!optionsRef.current.enabled) return true;
-    const promise = performSave();
+      const controller = new AbortController();
+      controllerRef.current = controller;
+
+      const snapshot = f.getValues();
+      // Mark "no unsaved changes" preemptively. Any change that arrives while
+      // this save is in flight will flip it back to true through the watch
+      // subscription, which means the next save will fire.
+      hasUnsavedChangesRef.current = false;
+      onPendingChange?.(false);
+      onStatus({ state: "saving" });
+
+      try {
+        await save(snapshot, controller.signal);
+        if (controller.signal.aborted) throw new StaleSaveError();
+
+        const fresh = f.getValues();
+        const stable =
+          JSON.stringify(fresh) === JSON.stringify(snapshot) &&
+          controllerRef.current === controller;
+
+        if (stable) {
+          f.reset(snapshot, {
+            keepValues: true,
+            keepDirty: false,
+            keepErrors: true,
+            keepTouched: true,
+          });
+        }
+
+        onStatus({ state: "saved", at: Date.now() });
+        return true;
+      } catch (err) {
+        if (
+          err instanceof StaleSaveError ||
+          controller.signal.aborted ||
+          (err instanceof Error && err.name === "AbortError")
+        ) {
+          return false;
+        }
+        // Failure: restore unsaved-changes flag so flushAll/Save Now can
+        // retry, and re-register pending so the beforeunload guard stays.
+        hasUnsavedChangesRef.current = true;
+        onPendingChange?.(true);
+        const error = err instanceof Error ? err : new Error(String(err));
+        onStatus({
+          state: "error",
+          error,
+          retry: () => {
+            void performSave();
+          },
+        });
+        return false;
+      } finally {
+        if (controllerRef.current === controller) {
+          controllerRef.current = null;
+        }
+      }
+    };
+
+    const promise = run();
     inFlightPromiseRef.current = promise;
-    try {
-      return await promise;
-    } finally {
+    promise.finally(() => {
       if (inFlightPromiseRef.current === promise) {
         inFlightPromiseRef.current = null;
       }
-    }
+    });
+    return promise;
+  }, []);
+
+  const flush = useCallback((): Promise<boolean> => {
+    clearDebounce();
+    if (!optionsRef.current.enabled) return Promise.resolve(true);
+    return performSave();
   }, [clearDebounce, performSave]);
 
   const isSaving = useCallback(() => controllerRef.current !== null, []);
@@ -168,13 +186,7 @@ export function useAutosave<T extends FieldValues>(
       optionsRef.current.onPendingChange?.(true);
       debounceTimerRef.current = setTimeout(() => {
         debounceTimerRef.current = null;
-        const promise = performSave();
-        inFlightPromiseRef.current = promise;
-        promise.finally(() => {
-          if (inFlightPromiseRef.current === promise) {
-            inFlightPromiseRef.current = null;
-          }
-        });
+        void performSave();
       }, debounceMs);
     });
 

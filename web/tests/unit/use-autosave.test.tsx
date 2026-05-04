@@ -78,8 +78,9 @@ describe("useAutosave", () => {
     expect(statuses[1]?.state).toBe("saved");
   });
 
-  it("does not call save when validation fails", async () => {
+  it("does not call save when validation fails and emits error status", async () => {
     const save = jest.fn().mockResolvedValue(undefined);
+    const statuses: AutosaveStatus[] = [];
     const { result } = renderHook(() => {
       const form = useForm<Values>({
         defaultValues: { name: "", url: "" },
@@ -91,7 +92,7 @@ describe("useAutosave", () => {
         form,
         save,
         enabled: true,
-        onStatus: () => {},
+        onStatus: (s) => statuses.push(s),
         debounceMs: DEBOUNCE_MS,
       });
       return { form, r };
@@ -105,6 +106,8 @@ describe("useAutosave", () => {
     });
 
     expect(save).not.toHaveBeenCalled();
+    // The indicator should not stay on a stale "saved" state — surface error.
+    expect(statuses.find((s) => s.state === "error")).toBeDefined();
   });
 
   it("does not call save when disabled", async () => {
@@ -262,5 +265,73 @@ describe("useAutosave", () => {
 
     expect(flushResult).toBe(true);
     expect(save).not.toHaveBeenCalled();
+  });
+
+  it("retry from error status serializes with concurrent debounced saves", async () => {
+    let resolveRetry: (() => void) | null = null;
+    const callOrder: string[] = [];
+    const save = jest.fn(async (data: Values) => {
+      callOrder.push(`start:${data.name}`);
+      if (data.name === "first") {
+        // First call fails so we get an error+retry status.
+        callOrder.push(`end:first(reject)`);
+        throw new Error("first save failed");
+      }
+      if (data.name === "first-retry") {
+        // Hold the retry open so we can race a debounced save against it.
+        await new Promise<void>((resolve) => {
+          resolveRetry = resolve;
+        });
+      }
+      callOrder.push(`end:${data.name}`);
+    });
+
+    const statuses: AutosaveStatus[] = [];
+    const { result } = setup(save, { onStatus: (s) => statuses.push(s) });
+
+    await act(async () => {
+      result.current.form.setValue("name", "first", { shouldDirty: true });
+    });
+    await act(async () => {
+      await wait(DEBOUNCE_MS * 4);
+    });
+
+    const errorStatus = statuses.find((s) => s.state === "error");
+    if (errorStatus?.state !== "error") throw new Error("expected error");
+
+    // Stage the next form value so when retry fires it sends "first-retry".
+    await act(async () => {
+      result.current.form.setValue("name", "first-retry", {
+        shouldDirty: true,
+      });
+    });
+    // Trigger retry. Save will start and hang on resolveRetry.
+    await act(async () => {
+      errorStatus.retry();
+      await wait(DEBOUNCE_MS * 4);
+    });
+
+    expect(callOrder).toContain("start:first-retry");
+
+    // Now schedule a fresh edit — its debounced save MUST wait for retry.
+    await act(async () => {
+      result.current.form.setValue("name", "second", { shouldDirty: true });
+    });
+    await act(async () => {
+      await wait(DEBOUNCE_MS * 4);
+    });
+
+    expect(callOrder).not.toContain("start:second");
+
+    await act(async () => {
+      resolveRetry?.();
+      await wait(DEBOUNCE_MS * 4);
+    });
+
+    expect(callOrder).toContain("end:first-retry");
+    expect(callOrder).toContain("start:second");
+    expect(callOrder.indexOf("end:first-retry")).toBeLessThan(
+      callOrder.indexOf("start:second"),
+    );
   });
 });
