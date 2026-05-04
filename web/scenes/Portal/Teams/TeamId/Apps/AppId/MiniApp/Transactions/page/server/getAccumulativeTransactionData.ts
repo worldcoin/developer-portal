@@ -86,18 +86,18 @@ export const getAccumulativePaymentsData = async (
   const path = getPathFromHeaders() || "";
   const { Teams: teamId } = extractIdsFromPath(path, ["Teams"]);
 
-  const isAllowed = await getIsUserAllowedToReadApp(appId);
-
-  if (!isAllowed) {
-    return errorFormAction({
-      message: "User is not authorized to view this app's data",
-      app_id: appId,
-      team_id: teamId,
-      logLevel: "error",
-    });
-  }
-
   try {
+    const isAllowed = await getIsUserAllowedToReadApp(appId);
+
+    if (!isAllowed) {
+      return errorFormAction({
+        message: "User is not authorized to view this app's data",
+        app_id: appId,
+        team_id: teamId,
+        logLevel: "error",
+      });
+    }
+
     if (!process.env.NEXT_SERVER_INTERNAL_PAYMENTS_ENDPOINT) {
       return errorFormAction({
         message: "The internal payments endpoint is not set",
@@ -209,18 +209,18 @@ export const getAccumulativeTransactionsData = async (
   const path = getPathFromHeaders() || "";
   const { Teams: teamId } = extractIdsFromPath(path, ["Teams"]);
 
-  const isAllowed = await getIsUserAllowedToReadApp(appId);
-
-  if (!isAllowed) {
-    return errorFormAction({
-      message: "User is not authorized to view this app's data",
-      app_id: appId,
-      team_id: teamId,
-      logLevel: "error",
-    });
-  }
-
   try {
+    const isAllowed = await getIsUserAllowedToReadApp(appId);
+
+    if (!isAllowed) {
+      return errorFormAction({
+        message: "User is not authorized to view this app's data",
+        app_id: appId,
+        team_id: teamId,
+        logLevel: "error",
+      });
+    }
+
     if (!process.env.NEXT_SERVER_INTERNAL_PAYMENTS_ENDPOINT) {
       return errorFormAction({
         message: "The internal transactions endpoint is not set",
