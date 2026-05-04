@@ -42,7 +42,7 @@ export const getIsUserAllowedToInsertApp = async (teamId: string) => {
 };
 
 export const getIsUserAllowedToReadApp = async (appId: string) => {
-  if (!getIsIdValid(appId)) {
+  if (!(await getIsIdValid(appId))) {
     return false;
   }
 
