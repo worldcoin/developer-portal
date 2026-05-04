@@ -813,6 +813,38 @@ describe("/api/mcp", () => {
     ).toBe(false);
   });
 
+  it("preserves empty showcase slots when cloning verified metadata into a draft", async () => {
+    // The MCP image upload path pads sparse showcase slots with "" so that
+    // showcase_2 can be uploaded without showcase_1. Once such an app is
+    // approved, the verified metadata still carries those empty slots, and
+    // any future MCP edit (configure_mini_app or upload_app_image) clones
+    // it into a draft. The cloning helper must skip getImageEndpoint on
+    // empty entries — calling it on "" throws "Unsupported image file
+    // type" and would otherwise block all further MCP edits for the app.
+    currentAppContextResponse = appContextWithVerifiedMetadata({
+      showcase_img_urls: ["", "showcase.png", ""],
+    });
+
+    const res = await POST(
+      callTool("configure_mini_app", {
+        app_id: appId,
+        short_name: "Draft",
+      }),
+    );
+
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.error).toBeUndefined();
+    const createDraftCall = requestMock.mock.calls.find(
+      ([query]) => getOperationName(query) === "CreateDraft",
+    );
+    expect(createDraftCall?.[1].showcase_img_urls).toEqual([
+      "",
+      "showcase_img_2.png",
+      "",
+    ]);
+  });
+
   it("rejects empty Mini App metadata updates without creating a draft", async () => {
     currentAppContextResponse = appContextWithVerifiedMetadata();
 

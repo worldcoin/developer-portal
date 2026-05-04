@@ -574,9 +574,10 @@ const fileNameForDraft = (
 
 const showcaseFileNamesForDraft = (fileNames: string[] | null | undefined) =>
   fileNames?.length
-    ? fileNames.map(
-        (fileName, index) =>
-          `showcase_img_${index + 1}.${getImageEndpoint(fileName)}`,
+    ? fileNames.map((fileName, index) =>
+        fileName
+          ? `showcase_img_${index + 1}.${getImageEndpoint(fileName)}`
+          : "",
       )
     : null;
 
