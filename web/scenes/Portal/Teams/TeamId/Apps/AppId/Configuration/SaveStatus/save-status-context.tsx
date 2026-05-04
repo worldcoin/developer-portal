@@ -23,6 +23,11 @@ type SaveStatusContextValue = {
   pushStatus: (id: string, status: AutosaveStatus) => void;
   setPending: (id: string, isPending: boolean) => void;
   flushAll: () => Promise<boolean>;
+  // Serialize all autosave network writes across registered forms. Multiple
+  // forms in this provider write overlapping app_metadata columns (e.g.
+  // `name`), so without a shared queue concurrent debounced saves from
+  // different forms can race and produce nondeterministic last-write-wins.
+  runExclusive: <T>(fn: () => Promise<T>) => Promise<T>;
 };
 
 const SaveStatusContext = createContext<SaveStatusContextValue | null>(null);
@@ -53,6 +58,7 @@ export const SaveStatusProvider = ({ children }: { children: ReactNode }) => {
   );
   const [pendingIds, setPendingIds] = useState<Set<string>>(() => new Set());
   const registeredRef = useRef<Map<string, Registered>>(new Map());
+  const saveQueueRef = useRef<Promise<unknown>>(Promise.resolve());
 
   const register = useCallback((id: string, r: Registered) => {
     registeredRef.current.set(id, r);
@@ -89,6 +95,14 @@ export const SaveStatusProvider = ({ children }: { children: ReactNode }) => {
       else next.delete(id);
       return next;
     });
+  }, []);
+
+  const runExclusive = useCallback(<T,>(fn: () => Promise<T>): Promise<T> => {
+    const next = saveQueueRef.current.catch(() => undefined).then(() => fn());
+    // Replace the queue head with a promise that always resolves, so a
+    // failure in one task doesn't poison the queue for the next one.
+    saveQueueRef.current = next.catch(() => undefined);
+    return next;
   }, []);
 
   const flushAll = useCallback(async (): Promise<boolean> => {
@@ -128,8 +142,17 @@ export const SaveStatusProvider = ({ children }: { children: ReactNode }) => {
       pushStatus,
       setPending,
       flushAll,
+      runExclusive,
     }),
-    [status, hasPending, register, pushStatus, setPending, flushAll],
+    [
+      status,
+      hasPending,
+      register,
+      pushStatus,
+      setPending,
+      flushAll,
+      runExclusive,
+    ],
   );
 
   useBeforeUnloadGuard(hasPending);
