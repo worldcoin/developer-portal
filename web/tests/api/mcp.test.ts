@@ -140,6 +140,7 @@ const appContextResponse = {
           description: "" as string | null,
         },
       ],
+      verified_app_metadata: [] as Record<string, unknown>[],
       rp_registration: [
         {
           rp_id: rpId,
@@ -179,6 +180,37 @@ const reviewMetadata = {
 };
 const reviewLocalisations: Array<Record<string, unknown>> = [];
 let currentAppContextResponse = appContextResponse;
+
+const verifiedMetadataForDraft = (overrides: Record<string, unknown> = {}) => ({
+  ...reviewMetadata,
+  id: "meta_verified",
+  verification_status: "verified",
+  hero_image_url: "hero.png",
+  integration_url: "https://example.com/mini",
+  source_code_url: "",
+  world_app_button_text: "Open",
+  whitelisted_addresses: [],
+  associated_domains: [],
+  contracts: [],
+  permit2_tokens: [],
+  can_import_all_contacts: false,
+  can_use_attestation: false,
+  is_allowed_unlimited_notifications: false,
+  max_notifications_per_day: 0,
+  ...overrides,
+});
+
+const appContextWithVerifiedMetadata = (
+  overrides: Record<string, unknown> = {},
+) => ({
+  app: [
+    {
+      ...appContextResponse.app[0],
+      app_metadata: [],
+      verified_app_metadata: [verifiedMetadataForDraft(overrides)],
+    },
+  ],
+});
 
 const getOperationName = (query: unknown) => {
   if (typeof query === "string") {
@@ -300,6 +332,16 @@ beforeEach(async () => {
     }
     if (operationName.includes("McpAppContext"))
       return currentAppContextResponse;
+    if (operationName.includes("CreateDraft")) {
+      return {
+        insert_app_metadata_one: {
+          id: "meta_draft",
+        },
+      };
+    }
+    if (operationName.includes("FetchLocalisations")) {
+      return { localisations: [] };
+    }
     if (operationName.includes("McpUpsertActionV4")) {
       return {
         insert_action_v4_one: {
@@ -679,8 +721,152 @@ describe("/api/mcp", () => {
     expect(res.status).toBe(200);
     const body = await res.json();
     const payload = JSON.parse(body.result.content[0].text);
-    expect(payload.app_metadata.app_mode).toBe("mini-app");
     expect(payload.app_metadata.short_name).toBe("MCP");
+    const updateCall = requestMock.mock.calls.find(
+      ([query]) => getOperationName(query) === "McpUpdateAppMetadata",
+    );
+    expect(updateCall?.[1].set).not.toHaveProperty("app_mode");
+  });
+
+  it("creates an editable draft from approved metadata before updating Mini App metadata", async () => {
+    currentAppContextResponse = appContextWithVerifiedMetadata({
+      app_mode: "external",
+    });
+
+    const baseImpl = requestMock.getMockImplementation()!;
+    requestMock.mockImplementation(async (query: unknown, variables: any) => {
+      const operationName = getOperationName(query);
+
+      if (operationName.includes("FetchLocalisations")) {
+        return {
+          localisations: [
+            {
+              id: "loc_verified",
+              app_metadata_id: "meta_verified",
+              locale: "es",
+              name: "Test App ES",
+              description: "Descripcion",
+              world_app_button_text: "Abrir",
+              world_app_description: "Resumen",
+              short_name: "Test",
+              hero_image_url: "",
+              meta_tag_image_url: "",
+              showcase_img_urls: null,
+            },
+          ],
+        };
+      }
+
+      return baseImpl(query, variables);
+    });
+
+    const res = await POST(
+      callTool("configure_mini_app", {
+        app_id: appId,
+        short_name: "Draft",
+      }),
+    );
+
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    const payload = JSON.parse(body.result.content[0].text);
+    expect(payload.draft_created).toBe(true);
+
+    const createDraftCall = requestMock.mock.calls.find(
+      ([query]) => getOperationName(query) === "CreateDraft",
+    );
+    expect(createDraftCall?.[1]).toEqual(
+      expect.objectContaining({
+        app_id: appId,
+        verification_status: "unverified",
+        app_mode: "external",
+        logo_img_url: "logo_img.png",
+        meta_tag_image_url: "meta_tag_image.png",
+        content_card_image_url: "content_card_image.png",
+        showcase_img_urls: ["showcase_img_1.png"],
+        localisations: {
+          data: [
+            expect.objectContaining({
+              locale: "es",
+              showcase_img_urls: null,
+            }),
+          ],
+        },
+      }),
+    );
+
+    const fetchLocalisationsCall = requestMock.mock.calls.find(
+      ([query]) => getOperationName(query) === "FetchLocalisations",
+    );
+    expect(fetchLocalisationsCall?.[1]).toEqual({ id: "meta_verified" });
+
+    const updateCall = requestMock.mock.calls.find(
+      ([query]) => getOperationName(query) === "McpUpdateAppMetadata",
+    );
+    expect(updateCall?.[1].app_metadata_id).toBe("meta_draft");
+    expect(updateCall?.[1].set.short_name).toBe("Draft");
+    expect(updateCall?.[1].set).not.toHaveProperty("app_mode");
+    expect(
+      requestMock.mock.calls.some(
+        ([query]) => getOperationName(query) === "CreateLocalisation",
+      ),
+    ).toBe(false);
+  });
+
+  it("preserves empty showcase slots when cloning verified metadata into a draft", async () => {
+    // The MCP image upload path pads sparse showcase slots with "" so that
+    // showcase_2 can be uploaded without showcase_1. Once such an app is
+    // approved, the verified metadata still carries those empty slots, and
+    // any future MCP edit (configure_mini_app or upload_app_image) clones
+    // it into a draft. The cloning helper must skip getImageEndpoint on
+    // empty entries — calling it on "" throws "Unsupported image file
+    // type" and would otherwise block all further MCP edits for the app.
+    currentAppContextResponse = appContextWithVerifiedMetadata({
+      showcase_img_urls: ["", "showcase.png", ""],
+    });
+
+    const res = await POST(
+      callTool("configure_mini_app", {
+        app_id: appId,
+        short_name: "Draft",
+      }),
+    );
+
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.error).toBeUndefined();
+    const createDraftCall = requestMock.mock.calls.find(
+      ([query]) => getOperationName(query) === "CreateDraft",
+    );
+    expect(createDraftCall?.[1].showcase_img_urls).toEqual([
+      "",
+      "showcase_img_2.png",
+      "",
+    ]);
+  });
+
+  it("rejects empty Mini App metadata updates without creating a draft", async () => {
+    currentAppContextResponse = appContextWithVerifiedMetadata();
+
+    const res = await POST(
+      callTool("configure_mini_app", {
+        app_id: appId,
+      }),
+    );
+
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.error.code).toBe(-32602);
+    expect(
+      requestMock.mock.calls.some(
+        ([query]) => getOperationName(query) === "CreateDraft",
+      ),
+    ).toBe(false);
+    expect(
+      requestMock.mock.calls.some(
+        ([query]) => getOperationName(query) === "McpUpdateAppMetadata",
+      ),
+    ).toBe(false);
   });
 
   it("rejects direct image metadata writes through configure_mini_app", async () => {
@@ -964,6 +1150,59 @@ describe("/api/mcp", () => {
     expect(s3SendMock).not.toHaveBeenCalled();
   });
 
+  it("only creates an approved-app draft after image validation succeeds", async () => {
+    currentAppContextResponse = appContextWithVerifiedMetadata();
+
+    const notAnImage = Buffer.from("hello world").toString("base64");
+    const invalidRes = await POST(
+      callTool("upload_app_image", {
+        app_id: appId,
+        image_type: "logo",
+        image_base64: notAnImage,
+      }),
+    );
+
+    expect(invalidRes.status).toBe(200);
+    const body = await invalidRes.json();
+    expect(body.error.code).toBe(-32602);
+    expect(s3SendMock).not.toHaveBeenCalled();
+    expect(
+      requestMock.mock.calls.some(
+        ([query]) => getOperationName(query) === "CreateDraft",
+      ),
+    ).toBe(false);
+
+    requestMock.mockClear();
+    s3SendMock.mockClear();
+    const imageBase64 = Buffer.from([
+      0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a,
+    ]).toString("base64");
+    const validRes = await POST(
+      callTool("upload_app_image", {
+        app_id: appId,
+        image_type: "logo",
+        image_base64: imageBase64,
+      }),
+    );
+
+    expect(validRes.status).toBe(200);
+    const payload = JSON.parse((await validRes.json()).result.content[0].text);
+    expect(payload.draft_created).toBe(true);
+    expect(payload.app_metadata.id).toBe("meta_draft");
+    expect(payload.app_metadata.logo_img_url).toBe("logo_img.png");
+    expect(s3SendMock).toHaveBeenCalledTimes(1);
+
+    const createDraftCall = requestMock.mock.calls.find(
+      ([query]) => getOperationName(query) === "CreateDraft",
+    );
+    expect(createDraftCall?.[1].logo_img_url).toBe("logo_img.png");
+    expect(
+      requestMock.mock.calls.some(
+        ([query]) => getOperationName(query) === "McpUpdateAppMetadata",
+      ),
+    ).toBe(false);
+  });
+
   it("places showcase_2 in the second slot of showcase_img_urls", async () => {
     currentAppContextResponse = {
       app: [
@@ -1187,11 +1426,18 @@ describe("/api/mcp", () => {
       expect(body.error).toBeUndefined();
     }
 
+    currentAppContextResponse = appContextWithVerifiedMetadata();
+
     const blocked = await callOnce();
     expect(blocked.status).toBe(200);
     const blockedBody = await blocked.json();
     expect(blockedBody.error.code).toBe(-32029);
     expect(blockedBody.error.data.retry_after_seconds).toBeGreaterThan(0);
+    expect(
+      requestMock.mock.calls.some(
+        ([query]) => getOperationName(query) === "CreateDraft",
+      ),
+    ).toBe(false);
   });
 
   it("rolls back the S3 object when the metadata patch fails", async () => {

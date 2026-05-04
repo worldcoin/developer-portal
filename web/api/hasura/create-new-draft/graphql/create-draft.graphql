@@ -30,6 +30,7 @@ mutation CreateDraft(
   $max_notifications_per_day: Int!
   $is_android_only: Boolean!
   $is_for_humans_only: Boolean!
+  $localisations: localisations_arr_rel_insert_input = null
 ) {
   insert_app_metadata_one(
     object: {
@@ -64,6 +65,7 @@ mutation CreateDraft(
       max_notifications_per_day: $max_notifications_per_day
       is_android_only: $is_android_only
       is_for_humans_only: $is_for_humans_only
+      localisations: $localisations
     }
   ) {
     id

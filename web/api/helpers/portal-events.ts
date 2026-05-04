@@ -4,6 +4,7 @@ type PortalActor = "human" | "mcp";
 
 type PortalEventName =
   | "app_creation"
+  | "app_draft_creation"
   | "action_creation"
   | "app_submission"
   | "action_verification";

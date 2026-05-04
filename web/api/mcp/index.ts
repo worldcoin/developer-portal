@@ -20,6 +20,8 @@ import { getSdk as getMcpSubmitAppForReviewSdk } from "@/api/mcp/graphql/submit-
 import { getSdk as getMcpTeamContextSdk } from "@/api/mcp/graphql/team-context.generated";
 import { getSdk as getMcpUpdateAppMetadataSdk } from "@/api/mcp/graphql/update-app-metadata.generated";
 import { getSdk as getMcpUpsertActionV4Sdk } from "@/api/mcp/graphql/upsert-action-v4.generated";
+import { getSdk as getCreateDraftSdk } from "@/api/hasura/create-new-draft/graphql/create-draft.generated";
+import { getSdk as getFetchLocalisationsSdk } from "@/api/hasura/create-new-draft/graphql/fetch-localisations.generated";
 import { SKILL_INSTRUCTIONS } from "@/api/mcp/skill";
 import { getSdk as getUpdateRpStatusSdk } from "@/api/v4/rp-status/[rp_id]/graphql/update-rp-status.generated";
 import { getSdk as getUpdateStagingStatusSdk } from "@/api/v4/rp-status/[rp_id]/graphql/update-staging-status.generated";
@@ -35,6 +37,7 @@ import {
 import { checkRateLimit } from "@/api/helpers/rate-limit";
 import { CategoryNameIterable } from "@/lib/categories";
 import { logger } from "@/lib/logger";
+import { getImageEndpoint } from "@/lib/utils";
 import { mainAppStoreFormReviewSubmitSchema } from "@/scenes/Portal/Teams/TeamId/Apps/AppId/Configuration/AppStore/FormSchema/form-schema";
 import { LocalisationData } from "@/scenes/Portal/Teams/TeamId/Apps/AppId/Configuration/AppStore/types/AppStoreFormTypes";
 import {
@@ -67,6 +70,12 @@ type McpAuthContext = {
 type ToolContext = McpAuthContext & {
   client: GraphQLClient;
 };
+
+type McpAppContextApp = Awaited<
+  ReturnType<ReturnType<typeof getMcpAppContextSdk>["McpAppContext"]>
+>["app"][number];
+type McpEditableAppMetadata = McpAppContextApp["app_metadata"][number];
+type McpVerifiedAppMetadata = McpAppContextApp["verified_app_metadata"][number];
 
 class McpError extends Error {
   constructor(
@@ -546,7 +555,7 @@ const requireApp = async (
   client: GraphQLClient,
   teamId: string,
   appId: string,
-) => {
+): Promise<McpAppContextApp> => {
   const data = await getMcpAppContextSdk(client).McpAppContext({
     team_id: teamId,
     app_id: appId,
@@ -556,6 +565,156 @@ const requireApp = async (
     throw new McpError("App not found for this API key.", -32004);
   }
   return app;
+};
+
+const fileNameForDraft = (
+  fileName: string | null | undefined,
+  basename: string,
+) => (fileName ? `${basename}.${getImageEndpoint(fileName)}` : "");
+
+const showcaseFileNamesForDraft = (fileNames: string[] | null | undefined) =>
+  fileNames?.length
+    ? fileNames.map((fileName, index) =>
+        fileName
+          ? `showcase_img_${index + 1}.${getImageEndpoint(fileName)}`
+          : "",
+      )
+    : null;
+
+type McpDraftImagePatch = Partial<
+  Pick<
+    McpEditableAppMetadata,
+    | "logo_img_url"
+    | "hero_image_url"
+    | "meta_tag_image_url"
+    | "content_card_image_url"
+  >
+> & {
+  showcase_img_urls?: string[] | null;
+};
+
+const imagePatchForUploadedDraft = (
+  verified: McpVerifiedAppMetadata,
+  mapping: (typeof MCP_APP_IMAGE_MAP)[McpAppImageType],
+  fileName: string,
+): McpDraftImagePatch => {
+  if ("arrayIndex" in mapping) {
+    const current = showcaseFileNamesForDraft(verified.showcase_img_urls) ?? [];
+    const next = [...current];
+    while (next.length < mapping.arrayIndex + 1) next.push("");
+    next[mapping.arrayIndex] = fileName;
+    return { showcase_img_urls: next };
+  }
+
+  return { [mapping.field]: fileName } as McpDraftImagePatch;
+};
+
+const createDraftFromVerifiedMetadata = async (
+  ctx: ToolContext,
+  appId: string,
+  verified: McpVerifiedAppMetadata,
+  imagePatch: McpDraftImagePatch = {},
+): Promise<McpEditableAppMetadata> => {
+  const showcase = showcaseFileNamesForDraft(verified.showcase_img_urls);
+  const hasPatchedShowcase = "showcase_img_urls" in imagePatch;
+  const { showcase_img_urls: patchedShowcaseImgUrls, ...scalarImagePatch } =
+    imagePatch;
+  const showcaseValue = hasPatchedShowcase
+    ? patchedShowcaseImgUrls ?? null
+    : showcase;
+
+  const { localisations } = await getFetchLocalisationsSdk(
+    ctx.client,
+  ).FetchLocalisations({ id: verified.id });
+  const localisationData = localisations.map((localisation) => {
+    const {
+      id: _id,
+      __typename: _typename,
+      app_metadata_id: _appMetadataId,
+      meta_tag_image_url,
+      showcase_img_urls,
+      ...copiedLocalisation
+    } = localisation;
+
+    return {
+      ...copiedLocalisation,
+      hero_image_url: "",
+      meta_tag_image_url: fileNameForDraft(
+        meta_tag_image_url,
+        "meta_tag_image",
+      ),
+      showcase_img_urls: showcaseFileNamesForDraft(showcase_img_urls),
+    };
+  });
+
+  const draftValues = {
+    app_id: appId,
+    name: verified.name,
+    short_name: verified.short_name,
+    logo_img_url: fileNameForDraft(verified.logo_img_url, "logo_img"),
+    hero_image_url: "",
+    meta_tag_image_url: fileNameForDraft(
+      verified.meta_tag_image_url,
+      "meta_tag_image",
+    ),
+    showcase_img_urls: showcaseValue,
+    content_card_image_url: fileNameForDraft(
+      verified.content_card_image_url,
+      "content_card_image",
+    ),
+    description: verified.description,
+    world_app_description: verified.world_app_description,
+    category: verified.category,
+    is_developer_allow_listing: verified.is_developer_allow_listing,
+    integration_url: verified.integration_url,
+    app_website_url: verified.app_website_url,
+    source_code_url: verified.source_code_url,
+    verification_status: "unverified",
+    world_app_button_text: verified.world_app_button_text,
+    app_mode: verified.app_mode,
+    whitelisted_addresses: verified.whitelisted_addresses ?? null,
+    support_link: verified.support_link,
+    supported_countries: verified.supported_countries ?? null,
+    supported_languages: verified.supported_languages ?? null,
+    associated_domains: verified.associated_domains ?? null,
+    contracts: verified.contracts ?? null,
+    permit2_tokens: verified.permit2_tokens ?? null,
+    can_import_all_contacts: Boolean(verified.can_import_all_contacts),
+    can_use_attestation: Boolean(verified.can_use_attestation),
+    is_allowed_unlimited_notifications: Boolean(
+      verified.is_allowed_unlimited_notifications,
+    ),
+    max_notifications_per_day: Number(verified.max_notifications_per_day ?? 0),
+    is_android_only: Boolean(verified.is_android_only),
+    is_for_humans_only: Boolean(verified.is_for_humans_only),
+    ...scalarImagePatch,
+  };
+
+  const data = await getCreateDraftSdk(ctx.client).CreateDraft({
+    ...draftValues,
+    localisations: localisationData.length ? { data: localisationData } : null,
+  });
+  const draftId = data.insert_app_metadata_one?.id;
+  if (!draftId) {
+    throw new McpError("Failed to create an editable app draft.", -32603);
+  }
+
+  logPortalEvent({
+    event: "app_draft_creation",
+    actor: "mcp",
+    team_id: ctx.teamId,
+    app_id: appId,
+    metadata: {
+      source_app_metadata_id: verified.id,
+      draft_app_metadata_id: draftId,
+    },
+  });
+
+  return {
+    id: draftId,
+    ...draftValues,
+    showcase_img_urls: showcaseValue,
+  } as McpEditableAppMetadata;
 };
 
 const syncWorldIdRegistrationStatus = async (
@@ -947,13 +1106,15 @@ const tools = {
     rejectConfigureMiniAppImageFields(input);
     const args = await parseInput(configureMiniAppSchema, input);
     const app = await requireApp(ctx.client, ctx.teamId, args.app_id);
-    const metadata = app.app_metadata[0];
-    if (!metadata) {
-      throw new McpError("Editable app metadata not found.", -32004);
-    }
-    if (metadata.verification_status !== "unverified") {
+    let metadata = app.app_metadata[0] ?? null;
+    const verifiedMetadata = app.verified_app_metadata?.[0];
+    if (metadata && metadata.verification_status !== "unverified") {
       throw new McpError("Only unverified app metadata can be edited.", -32004);
     }
+    if (!metadata && !verifiedMetadata) {
+      throw new McpError("Editable app metadata not found.", -32004);
+    }
+    const sourceMetadata = metadata ?? verifiedMetadata!;
 
     const {
       app_id: _appId,
@@ -990,7 +1151,7 @@ const tools = {
       permit2_tokens: toPgArrayText(permit2_tokens),
       whitelisted_addresses: toPgArrayText(whitelisted_addresses),
       associated_domains: toPgArrayText(associated_domains),
-      app_mode: app_mode ?? "mini-app",
+      app_mode,
     };
 
     if (max_notifications_per_day !== undefined) {
@@ -1015,7 +1176,9 @@ const tools = {
         description_connect !== undefined)
     ) {
       const existing = parseDescription(
-        ((metadata as { description?: string | null }).description ?? "") || "",
+        ((sourceMetadata as { description?: string | null }).description ??
+          "") ||
+          "",
       );
       advanced.description = encodeDescription(
         description_overview ?? existing.description_overview,
@@ -1032,6 +1195,23 @@ const tools = {
       ),
     );
 
+    if (Object.keys(set).length === 0) {
+      throw new McpError(
+        "No Mini App metadata fields provided to update.",
+        -32602,
+      );
+    }
+
+    let draftCreated = false;
+    if (!metadata) {
+      metadata = await createDraftFromVerifiedMetadata(
+        ctx,
+        app.id,
+        verifiedMetadata!,
+      );
+      draftCreated = true;
+    }
+
     const data = await getMcpUpdateAppMetadataSdk(
       ctx.client,
     ).McpUpdateAppMetadata({
@@ -1039,18 +1219,22 @@ const tools = {
       set,
     });
 
-    return content({ app_metadata: data.update_app_metadata_by_pk });
+    return content({
+      app_metadata: data.update_app_metadata_by_pk,
+      draft_created: draftCreated,
+    });
   },
 
   upload_app_image: async (input, ctx) => {
     const args = await parseInput(uploadAppImageSchema, input);
     const app = await requireApp(ctx.client, ctx.teamId, args.app_id);
-    const metadata = app.app_metadata[0];
-    if (!metadata) {
-      throw new McpError("Editable app metadata not found.", -32004);
-    }
-    if (metadata.verification_status !== "unverified") {
+    let metadata = app.app_metadata[0] ?? null;
+    const verifiedMetadata = app.verified_app_metadata?.[0];
+    if (metadata && metadata.verification_status !== "unverified") {
       throw new McpError("Only unverified app metadata can be edited.", -32004);
+    }
+    if (!metadata && !verifiedMetadata) {
+      throw new McpError("Editable app metadata not found.", -32004);
     }
 
     // Per-API-key upload throttle. Caps cost from a single key looping the
@@ -1127,6 +1311,48 @@ const tools = {
     }
 
     const { fileName, objectKey, mapping, sizeBytes } = uploadResult;
+
+    if (!metadata) {
+      try {
+        metadata = await createDraftFromVerifiedMetadata(
+          ctx,
+          app.id,
+          verifiedMetadata!,
+          imagePatchForUploadedDraft(verifiedMetadata!, mapping, fileName),
+        );
+      } catch (error) {
+        await tryDeleteAppImage(objectKey);
+        logger.error(
+          "MCP app image uploaded to S3 but draft creation failed.",
+          {
+            error,
+            app_id: args.app_id,
+            team_id: ctx.teamId,
+            image_type: args.image_type,
+            object_key: objectKey,
+          },
+        );
+        throw new McpError(
+          "Image was uploaded but draft creation failed. The S3 object was rolled back; retry the same call.",
+          -32603,
+          { committed: false, file_name: fileName },
+        );
+      }
+
+      return content({
+        committed: true,
+        app_id: args.app_id,
+        image_type: args.image_type,
+        field: mapping.field,
+        file_name: fileName,
+        s3_key: objectKey,
+        size_bytes: sizeBytes,
+        content_type: contentType,
+        draft_created: true,
+        app_metadata: metadata,
+      });
+    }
+
     let set: Record<string, unknown>;
     let priorReferencedFileName: string | undefined;
     if ("arrayIndex" in mapping) {
@@ -1189,6 +1415,7 @@ const tools = {
       s3_key: objectKey,
       size_bytes: sizeBytes,
       content_type: contentType,
+      draft_created: false,
       app_metadata: data.update_app_metadata_by_pk,
     });
   },
@@ -1205,7 +1432,10 @@ const tools = {
 
     const metadata = app.app_metadata[0];
     if (!metadata) {
-      throw new McpError("Editable app metadata not found.", -32004);
+      throw new McpError(
+        "No editable draft exists. Update Mini App metadata or upload an app image first to create a draft.",
+        -32004,
+      );
     }
     if (metadata.verification_status !== "unverified") {
       throw new McpError("Only unverified apps can be submitted.", -32004);

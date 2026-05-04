@@ -43,6 +43,40 @@ export type McpAppContextQuery = {
       supported_countries?: Array<string> | null;
       supported_languages?: Array<string> | null;
     }>;
+    verified_app_metadata: Array<{
+      __typename?: "app_metadata";
+      id: string;
+      name: string;
+      short_name: string;
+      app_mode: string;
+      category: string;
+      content_card_image_url: string;
+      description: string;
+      hero_image_url: string;
+      integration_url: string;
+      is_android_only: boolean;
+      app_website_url: string;
+      is_for_humans_only: boolean;
+      logo_img_url: string;
+      meta_tag_image_url: string;
+      support_link: string;
+      showcase_img_urls?: Array<string> | null;
+      world_app_description: string;
+      world_app_button_text: string;
+      verification_status: string;
+      is_developer_allow_listing: boolean;
+      supported_countries?: Array<string> | null;
+      supported_languages?: Array<string> | null;
+      source_code_url: string;
+      whitelisted_addresses?: Array<string> | null;
+      associated_domains?: Array<string> | null;
+      contracts?: Array<string> | null;
+      permit2_tokens?: Array<string> | null;
+      can_import_all_contacts: boolean;
+      can_use_attestation: boolean;
+      is_allowed_unlimited_notifications?: boolean | null;
+      max_notifications_per_day?: number | null;
+    }>;
     rp_registration: Array<{
       __typename?: "rp_registration";
       rp_id: string;
@@ -103,6 +137,43 @@ export const McpAppContextDocument = gql`
         is_developer_allow_listing
         supported_countries
         supported_languages
+      }
+      verified_app_metadata: app_metadata(
+        where: { verification_status: { _eq: "verified" } }
+        order_by: { verified_at: desc }
+        limit: 1
+      ) {
+        id
+        name
+        short_name
+        app_mode
+        category
+        content_card_image_url
+        description
+        hero_image_url
+        integration_url
+        is_android_only
+        app_website_url
+        is_for_humans_only
+        logo_img_url
+        meta_tag_image_url
+        support_link
+        showcase_img_urls
+        world_app_description
+        world_app_button_text
+        verification_status
+        is_developer_allow_listing
+        supported_countries
+        supported_languages
+        source_code_url
+        whitelisted_addresses
+        associated_domains
+        contracts
+        permit2_tokens
+        can_import_all_contacts
+        can_use_attestation
+        is_allowed_unlimited_notifications
+        max_notifications_per_day
       }
       rp_registration {
         rp_id

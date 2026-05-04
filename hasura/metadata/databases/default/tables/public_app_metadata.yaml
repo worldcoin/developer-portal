@@ -244,6 +244,7 @@ select_permissions:
         - support_link
         - supported_countries
         - supported_languages
+        - verified_at
         - verification_status
         - whitelisted_addresses
         - world_app_button_text
