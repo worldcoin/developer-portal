@@ -1,6 +1,7 @@
 "use server";
 
 import { errorFormAction } from "@/api/helpers/errors";
+import { getIsUserAllowedToReadApp } from "@/lib/permissions";
 import { extractIdsFromPath, getPathFromHeaders } from "@/lib/server-utils";
 import {
   FormActionResult,
@@ -86,6 +87,17 @@ export const getAccumulativePaymentsData = async (
   const { Teams: teamId } = extractIdsFromPath(path, ["Teams"]);
 
   try {
+    const isAllowed = await getIsUserAllowedToReadApp(appId);
+
+    if (!isAllowed) {
+      return errorFormAction({
+        message: "User is not authorized to view this app's data",
+        app_id: appId,
+        team_id: teamId,
+        logLevel: "error",
+      });
+    }
+
     if (!process.env.NEXT_SERVER_INTERNAL_PAYMENTS_ENDPOINT) {
       return errorFormAction({
         message: "The internal payments endpoint is not set",
@@ -198,6 +210,17 @@ export const getAccumulativeTransactionsData = async (
   const { Teams: teamId } = extractIdsFromPath(path, ["Teams"]);
 
   try {
+    const isAllowed = await getIsUserAllowedToReadApp(appId);
+
+    if (!isAllowed) {
+      return errorFormAction({
+        message: "User is not authorized to view this app's data",
+        app_id: appId,
+        team_id: teamId,
+        logLevel: "error",
+      });
+    }
+
     if (!process.env.NEXT_SERVER_INTERNAL_PAYMENTS_ENDPOINT) {
       return errorFormAction({
         message: "The internal transactions endpoint is not set",
