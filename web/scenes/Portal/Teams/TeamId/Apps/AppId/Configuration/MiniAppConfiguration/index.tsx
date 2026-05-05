@@ -93,6 +93,22 @@ export const MiniAppConfiguration = ({
             at: Date.now(),
           });
         }
+      } catch (err) {
+        // updateAppMode can also throw (transport/server exceptions). Without
+        // this catch, we'd exit through finally without ever clearing the
+        // "saving" status — leaving the global indicator stuck and the
+        // submit/save controls disabled until reload.
+        setIsMiniApp(!checked);
+        const error = err instanceof Error ? err : new Error(String(err));
+        toast.error(error.message);
+        saveStatus?.pushStatus("mini-app-toggle", {
+          state: "error",
+          at: Date.now(),
+          error,
+          retry: () => {
+            void handleAppModeToggleRef.current?.(checked);
+          },
+        });
       } finally {
         modeUpdateInFlightRef.current = false;
         setIsUpdatingMode(false);
