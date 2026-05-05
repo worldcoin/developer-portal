@@ -34,17 +34,30 @@ const SaveStatusContext = createContext<SaveStatusContextValue | null>(null);
 
 export const mergeStatuses = (
   statuses: Map<string, AutosaveStatus>,
+  pendingIds: ReadonlySet<string> = new Set(),
 ): AutosaveStatus => {
   let mostRecentSaved: { state: "saved"; at: number } | null = null;
-  let mostRecentError: Extract<AutosaveStatus, { state: "error" }> | null =
+  let mostRecentPendingError: Extract<
+    AutosaveStatus,
+    { state: "error" }
+  > | null = null;
+  let mostRecentStaleError: Extract<AutosaveStatus, { state: "error" }> | null =
     null;
-  for (const status of statuses.values()) {
+  for (const [id, status] of statuses.entries()) {
     if (status.state === "saving") return status;
-    if (
-      status.state === "error" &&
-      (!mostRecentError || status.at > mostRecentError.at)
-    ) {
-      mostRecentError = status;
+    if (status.state === "error") {
+      // Treat the error as "live" while its form still reports unsaved
+      // changes. A pending error must win over any saved from another form
+      // so the indicator can't say "Saved" while a draft has unresolved
+      // validation/network failures.
+      const bucket = pendingIds.has(id) ? "pending" : "stale";
+      if (bucket === "pending") {
+        if (!mostRecentPendingError || status.at > mostRecentPendingError.at) {
+          mostRecentPendingError = status;
+        }
+      } else if (!mostRecentStaleError || status.at > mostRecentStaleError.at) {
+        mostRecentStaleError = status;
+      }
     }
     if (
       status.state === "saved" &&
@@ -53,15 +66,17 @@ export const mergeStatuses = (
       mostRecentSaved = status;
     }
   }
-  // Prefer the most recent event between an error and a saved. A stale error
-  // from one form (e.g. a one-off mini-app toggle failure the user moved past)
-  // must not permanently mask later successful autosaves from other forms.
-  if (mostRecentError && mostRecentSaved) {
-    return mostRecentError.at >= mostRecentSaved.at
-      ? mostRecentError
+  // Pending errors always win — the user has unresolved unsaved data.
+  if (mostRecentPendingError) return mostRecentPendingError;
+  // Stale errors (e.g. a mini-app toggle that reverted; nothing pending now)
+  // fall back to recency vs. the newest saved so we don't permanently mask
+  // newer successful saves from other forms.
+  if (mostRecentStaleError && mostRecentSaved) {
+    return mostRecentStaleError.at >= mostRecentSaved.at
+      ? mostRecentStaleError
       : mostRecentSaved;
   }
-  if (mostRecentError) return mostRecentError;
+  if (mostRecentStaleError) return mostRecentStaleError;
   if (mostRecentSaved) return mostRecentSaved;
   return { state: "idle" };
 };
@@ -135,7 +150,10 @@ export const SaveStatusProvider = ({ children }: { children: ReactNode }) => {
     return allOk;
   }, []);
 
-  const status = useMemo(() => mergeStatuses(statuses), [statuses]);
+  const status = useMemo(
+    () => mergeStatuses(statuses, pendingIds),
+    [statuses, pendingIds],
+  );
 
   const hasPending = useMemo(() => {
     // Derive pending-ness from actual unsaved data (`pendingIds`) and from
