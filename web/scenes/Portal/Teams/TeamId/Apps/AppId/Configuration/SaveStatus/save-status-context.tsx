@@ -32,14 +32,20 @@ type SaveStatusContextValue = {
 
 const SaveStatusContext = createContext<SaveStatusContextValue | null>(null);
 
-const mergeStatuses = (
+export const mergeStatuses = (
   statuses: Map<string, AutosaveStatus>,
 ): AutosaveStatus => {
   let mostRecentSaved: { state: "saved"; at: number } | null = null;
-  let firstError: AutosaveStatus | null = null;
+  let mostRecentError: Extract<AutosaveStatus, { state: "error" }> | null =
+    null;
   for (const status of statuses.values()) {
     if (status.state === "saving") return status;
-    if (status.state === "error" && !firstError) firstError = status;
+    if (
+      status.state === "error" &&
+      (!mostRecentError || status.at > mostRecentError.at)
+    ) {
+      mostRecentError = status;
+    }
     if (
       status.state === "saved" &&
       (!mostRecentSaved || status.at > mostRecentSaved.at)
@@ -47,7 +53,15 @@ const mergeStatuses = (
       mostRecentSaved = status;
     }
   }
-  if (firstError) return firstError;
+  // Prefer the most recent event between an error and a saved. A stale error
+  // from one form (e.g. a one-off mini-app toggle failure the user moved past)
+  // must not permanently mask later successful autosaves from other forms.
+  if (mostRecentError && mostRecentSaved) {
+    return mostRecentError.at >= mostRecentSaved.at
+      ? mostRecentError
+      : mostRecentSaved;
+  }
+  if (mostRecentError) return mostRecentError;
   if (mostRecentSaved) return mostRecentSaved;
   return { state: "idle" };
 };

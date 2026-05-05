@@ -7,7 +7,7 @@ export type AutosaveStatus =
   | { state: "idle" }
   | { state: "saving" }
   | { state: "saved"; at: number }
-  | { state: "error"; error: Error; retry: () => void };
+  | { state: "error"; at: number; error: Error; retry: () => void };
 
 export type UseAutosaveOptions<T extends FieldValues> = {
   form: UseFormReturn<T>;
@@ -86,6 +86,7 @@ export function useAutosave<T extends FieldValues>(
         // a debounce → save → "Saved" status that replaces this.
         onStatus({
           state: "error",
+          at: Date.now(),
           error: new Error("Fix the highlighted errors to save"),
           retry: () => {
             void performSave();
@@ -144,6 +145,7 @@ export function useAutosave<T extends FieldValues>(
         const error = err instanceof Error ? err : new Error(String(err));
         onStatus({
           state: "error",
+          at: Date.now(),
           error,
           retry: () => {
             void performSave();

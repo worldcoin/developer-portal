@@ -80,6 +80,7 @@ export const MiniAppConfiguration = ({
           const error = new Error(result.message);
           saveStatus?.pushStatus("mini-app-toggle", {
             state: "error",
+            at: Date.now(),
             error,
             retry: () => {
               void handleAppModeToggleRef.current?.(checked);
