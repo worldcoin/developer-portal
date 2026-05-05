@@ -68,7 +68,6 @@ export const AffiliateProgramLayout = (props: TeamIdLayoutProps) => {
   );
   const isOwnerOnlyPage = isWithdrawPage || isAccountPage;
   const hideTabs = isWithdrawPage || isRewardsPage || isVerifyPage;
-  const isTermsAccepted = Boolean(metadata?.termsAcceptedAt);
   const isVerificationRequired = useMemo(
     () =>
       metadata?.identityVerificationStatus !==
@@ -97,15 +96,13 @@ export const AffiliateProgramLayout = (props: TeamIdLayoutProps) => {
       return;
     }
 
-    if (!isVerifyPage && !isTermsAccepted) {
+    // Check verification status (but allow verify page itself)
+    if (!isVerifyPage && isVerificationRequired) {
       return router.push(urls.affiliateProgramVerify({ team_id: teamId }));
     }
 
-    if (isWithdrawPage && isVerificationRequired) {
-      return router.push(urls.affiliateEarnings({ team_id: teamId }));
-    }
-
-    if (isVerifyPage && isTermsAccepted) {
+    // If on verify page but already verified, redirect to overview
+    if (isVerifyPage && !isVerificationRequired) {
       return router.push(urls.affiliateProgram({ team_id: teamId }));
     }
   }, [
@@ -116,9 +113,7 @@ export const AffiliateProgramLayout = (props: TeamIdLayoutProps) => {
     isAffiliateEnabled,
     isOwnerOnlyPage,
     hasOwnerPermission,
-    isWithdrawPage,
     isVerifyPage,
-    isTermsAccepted,
     isVerificationRequired,
     teamId,
     router,
@@ -128,8 +123,7 @@ export const AffiliateProgramLayout = (props: TeamIdLayoutProps) => {
     !metadata ||
     isMetadataLoading ||
     !isAffiliateEnabled ||
-    (!isVerifyPage && !isTermsAccepted) ||
-    (isWithdrawPage && isVerificationRequired)
+    (!isVerifyPage && isVerificationRequired)
   )
     return null;
 
