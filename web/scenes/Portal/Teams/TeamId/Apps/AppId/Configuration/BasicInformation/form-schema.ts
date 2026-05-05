@@ -12,8 +12,11 @@ const integrationUrlSchema = yup
 
 export const schema = yup
   .object({
-    name: appNameSchema.optional(),
-    integration_url: integrationUrlSchema.optional(),
+    // Use .notRequired() — yup 1.3.x's .optional() only allows undefined; the
+    // string `required` test still rejects empty strings, which would fail
+    // autosave whenever the user clears the field.
+    name: appNameSchema.notRequired(),
+    integration_url: integrationUrlSchema.notRequired(),
     app_website_url: yup
       .string()
       .transform(inferHttps)
@@ -23,7 +26,7 @@ export const schema = yup
           excludeEmptyString: true,
         }),
       )
-      .optional(),
+      .notRequired(),
   })
   .noUnknown();
 export type BasicInformationFormValues = yup.Asserts<typeof schema>;

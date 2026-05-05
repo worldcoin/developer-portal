@@ -90,28 +90,28 @@ export async function updateAppStoreMetadata(
       supported_countries: parsedParams.supported_countries,
       supported_languages: parsedParams.supported_languages,
     };
-    if (enLocalisation?.name !== undefined) {
+    if (enLocalisation?.name != null) {
       appMetadataInput.name = enLocalisation.name;
     }
-    if (enLocalisation?.short_name !== undefined) {
+    if (enLocalisation?.short_name != null) {
       appMetadataInput.short_name = enLocalisation.short_name;
     }
-    if (enLocalisation?.world_app_description !== undefined) {
+    if (enLocalisation?.world_app_description != null) {
       appMetadataInput.world_app_description =
         enLocalisation.world_app_description;
     }
-    if (enLocalisation?.description_overview !== undefined) {
+    if (enLocalisation?.description_overview != null) {
       appMetadataInput.description = encodeDescription(
         enLocalisation.description_overview,
       );
     }
-    if (enLocalisation?.meta_tag_image_url !== undefined) {
+    if (enLocalisation?.meta_tag_image_url != null) {
       appMetadataInput.meta_tag_image_url =
         extractImagePathWithExtensionFromActualUrl(
           enLocalisation.meta_tag_image_url,
         );
     }
-    if (enLocalisation?.showcase_img_urls !== undefined) {
+    if (enLocalisation?.showcase_img_urls != null) {
       appMetadataInput.showcase_img_urls =
         (enLocalisation.showcase_img_urls
           ?.map(extractImagePathWithExtensionFromActualUrl)

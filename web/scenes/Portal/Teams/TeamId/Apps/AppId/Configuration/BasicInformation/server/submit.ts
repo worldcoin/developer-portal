@@ -16,9 +16,9 @@ export async function validateAndSubmitServerSide(
   app_metadata_id: string,
   app_id: string,
   input: {
-    name?: string;
-    integration_url?: string;
-    app_website_url?: string;
+    name?: string | null;
+    integration_url?: string | null;
+    app_website_url?: string | null;
   },
 ): Promise<FormActionResult> {
   const path = getPathFromHeaders() || "";
@@ -70,11 +70,11 @@ export async function validateAndSubmitServerSide(
       // empty). The schema permits clearing during draft autosave; we must
       // forward that to the DB rather than silently dropping the empty value.
       input: {
-        ...(parsedInput.name !== undefined && { name: parsedInput.name }),
-        ...(parsedInput.integration_url !== undefined && {
+        ...(parsedInput.name != null && { name: parsedInput.name }),
+        ...(parsedInput.integration_url != null && {
           integration_url: parsedInput.integration_url,
         }),
-        ...(parsedInput.app_website_url !== undefined && {
+        ...(parsedInput.app_website_url != null && {
           app_website_url: parsedInput.app_website_url,
         }),
       },

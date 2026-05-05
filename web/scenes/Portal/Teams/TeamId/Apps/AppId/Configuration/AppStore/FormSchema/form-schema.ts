@@ -18,10 +18,16 @@ import {
 export const localisationFormSchema = yup
   .object({
     language: yup.string().required("Locale is required"),
-    name: appNameSchema.optional(),
-    short_name: appShortNameSchema.optional(),
-    world_app_description: appWorldAppDescriptionSchema.optional(),
-    description_overview: appDescriptionOverviewSchema.optional(),
+    // Use .notRequired() rather than .optional() — in yup 1.3.x, .optional()
+    // only allows undefined; the underlying string `required` test still
+    // rejects empty strings. New localisations are initialised with empty
+    // string fields, so without notRequired() autosave would always fail
+    // validation and silently block draft progress until every localisation
+    // text field is filled.
+    name: appNameSchema.notRequired(),
+    short_name: appShortNameSchema.notRequired(),
+    world_app_description: appWorldAppDescriptionSchema.notRequired(),
+    description_overview: appDescriptionOverviewSchema.notRequired(),
     meta_tag_image_url: yup.string().notRequired(),
     showcase_img_urls: yup.array().of(yup.string().notRequired()),
   })
