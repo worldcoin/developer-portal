@@ -15,27 +15,31 @@ interface WorldId40MigrationBannerProps {
   teamId: string;
   appId: string;
   hasRpRegistration: boolean;
+  canRegisterRp: boolean;
 }
 
 export const WorldId40MigrationBanner = ({
   teamId,
   appId,
   hasRpRegistration,
+  canRegisterRp,
 }: WorldId40MigrationBannerProps) => {
   const worldId40Config = useAtomValue(worldId40Atom);
   const isEnabled = isWorldId40Enabled(worldId40Config, teamId);
   const searchParams = useSearchParams();
   const autoOpen = searchParams.get("enableWorldId4") === "true";
-  const [dialogOpen, setDialogOpen] = useState(autoOpen);
+  const [dialogOpen, setDialogOpen] = useState(autoOpen && canRegisterRp);
 
   useEffect(() => {
-    if (autoOpen) setDialogOpen(true);
-  }, [autoOpen]);
+    if (autoOpen && canRegisterRp) setDialogOpen(true);
+  }, [autoOpen, canRegisterRp]);
 
   // Don't show banner if:
   // - World ID 4.0 is not enabled for this team, OR
-  // - App already has RP registration
-  if (!isEnabled || hasRpRegistration) {
+  // - App already has RP registration, OR
+  // - User lacks ADMIN/OWNER role (register_rp Hasura action would
+  //   reject with `unauthorized` and surface a generic toast).
+  if (!isEnabled || hasRpRegistration || !canRegisterRp) {
     return null;
   }
 
