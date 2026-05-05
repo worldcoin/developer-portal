@@ -26,9 +26,7 @@ export const EarningsPage = () => {
   const transactionsData = useGetAffiliateTransactions();
   const [showVerificationSelection, setShowVerificationSelection] =
     useState(false);
-  const [loadingVerification, setLoadingVerification] = useState<
-    "kyc" | "kyb" | null
-  >(null);
+  const [isVerificationLoading, setIsVerificationLoading] = useState(false);
 
   const isVerificationRequired =
     metadata?.identityVerificationStatus !== IdentityVerificationStatus.SUCCESS;
@@ -37,7 +35,7 @@ export const EarningsPage = () => {
     transactionsData.loading || transactionsData.totalCount > 0;
 
   const handleGetVerificationLink = async (type: "kyc" | "kyb") => {
-    setLoadingVerification(type);
+    setIsVerificationLoading(true);
 
     try {
       const result = await getIdentityVerificationLink({
@@ -56,7 +54,7 @@ export const EarningsPage = () => {
       console.error("Failed to get verification link:", error);
       toast.error("Failed to start verification. Please try again.");
     } finally {
-      setLoadingVerification(null);
+      setIsVerificationLoading(false);
       setShowVerificationSelection(false);
     }
   };
@@ -94,7 +92,7 @@ export const EarningsPage = () => {
             open={showVerificationSelection}
             onClose={() => setShowVerificationSelection(false)}
             onSelect={handleGetVerificationLink}
-            loadingType={loadingVerification}
+            isLoading={isVerificationLoading}
             title="Complete KYB or KYC"
             metadata={metadata}
           />
