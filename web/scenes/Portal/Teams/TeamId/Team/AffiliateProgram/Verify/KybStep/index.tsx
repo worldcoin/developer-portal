@@ -1,8 +1,10 @@
-import { BusinessIcon } from "@/components/Icons/BusinessIcon";
 import { IdentificationIcon } from "@/components/Icons/IdentificationIcon";
 import { RemoveCustomIcon } from "@/components/Icons/RemoveCustomIcon";
 import { IconFrame } from "@/components/InitialSteps/IconFrame";
-import { IdentityVerificationStatus } from "@/lib/types";
+import {
+  AffiliateMetadataResponse,
+  IdentityVerificationStatus,
+} from "@/lib/types";
 import { Step } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Verify/Step";
 import { ReactNode, useMemo } from "react";
 
@@ -17,35 +19,20 @@ type StepConfig = {
 };
 
 type Props = {
-  verificationType: "kyc" | "kyb";
-  status: IdentityVerificationStatus;
+  metadata: AffiliateMetadataResponse["result"] | null;
   onComplete: () => void;
   isLoading: boolean;
-  buttonText?: string;
-  className?: string;
 };
 
-export const VerificationStep = ({
-  verificationType,
-  status,
-  onComplete,
-  isLoading,
-  buttonText,
-  className,
-}: Props) => {
+export const KybStep = ({ metadata, onComplete, isLoading }: Props) => {
   const stepConfig: StepConfig | null = useMemo(() => {
-    const verificationTypeUpper = verificationType.toUpperCase();
-    const isKyb = verificationType === "kyb";
-    const completeTitle = `Complete ${verificationTypeUpper}`;
+    if (!metadata) return null;
 
+    const status = metadata.identityVerificationStatus;
     const defaultConfig = {
       icon: (
-        <IconFrame className="shrink-0 bg-blue-500 text-grey-0">
-          {isKyb ? (
-            <BusinessIcon className="size-5" />
-          ) : (
-            <IdentificationIcon className="size-5" />
-          )}
+        <IconFrame className="flex-shrink-0 bg-blue-500 text-grey-0">
+          <IdentificationIcon className="size-5" />
         </IconFrame>
       ),
     };
@@ -57,7 +44,7 @@ export const VerificationStep = ({
     if (status === IdentityVerificationStatus.PENDING) {
       return {
         ...defaultConfig,
-        title: `${verificationTypeUpper} processing`,
+        title: "KYB processing",
         description: "It can take 1-3 days",
         loading: true,
       };
@@ -67,39 +54,33 @@ export const VerificationStep = ({
       return {
         ...defaultConfig,
         icon: (
-          <IconFrame className="shrink-0 bg-system-error-50 text-system-error-500">
+          <IconFrame className="flex-shrink-0 bg-system-error-50 text-system-error-500">
             <RemoveCustomIcon className="size-5" />
           </IconFrame>
         ),
-        title: `${verificationTypeUpper} failed`,
+        title: "KYB failed",
         buttonTxt: "Try again",
-        description: "Verification failed, try again",
       };
     }
 
-    // fallback for undefined || not_started || created || timeout
+    // fallback for undefined || not_started || created || timeout - Complete KYB
     return {
       ...defaultConfig,
-      title: completeTitle,
-      buttonTxt: buttonText ?? "Complete",
+      title: "Complete KYB",
+      buttonTxt: "Complete",
     };
-  }, [buttonText, status, verificationType]);
-
-  if (!stepConfig) {
-    return null;
-  }
+  }, [metadata]);
 
   return (
     <Step
-      icon={stepConfig.icon}
-      title={stepConfig.title}
-      description={stepConfig.description}
-      buttonText={stepConfig.buttonTxt}
-      showButtonSpinner={stepConfig.loading || isLoading}
-      loading={false}
+      icon={stepConfig?.icon}
+      title={stepConfig?.title}
+      description={stepConfig?.description}
+      buttonText={stepConfig?.buttonTxt}
+      showButtonSpinner={stepConfig?.loading || isLoading}
+      loading={!stepConfig}
       onClick={onComplete}
-      disabled={stepConfig.disabled}
-      className={className}
+      disabled={stepConfig?.disabled}
     />
   );
 };

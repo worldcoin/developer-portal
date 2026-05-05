@@ -56,7 +56,7 @@ export const TransactionDetailsDialog = (props: Props) => {
       <DialogOverlay />
 
       <DialogPanel
-        className="grid max-w-[30rem] md:w-[30rem]"
+        className="grid w-full md:w-[480px]"
         onClose={() => setIsOpened(false)}
         showCloseIcon={true}
       >

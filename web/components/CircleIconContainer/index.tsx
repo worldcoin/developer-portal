@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { ReactNode, useId } from "react";
+import { ReactNode } from "react";
 
 type Variant = "error" | "info" | "success" | "muted" | "warning";
 
@@ -15,12 +15,6 @@ type ThemeItem = {
 };
 
 export const CircleIconContainer = (props: CircleIconContainerProps) => {
-  const reactId = useId();
-  const uid = reactId.replace(/:/g, "");
-  const filterId = `cic-filter-${uid}`;
-  const paint0Id = `cic-paint0-${uid}`;
-  const paint1Id = `cic-paint1-${uid}`;
-
   const theme: Record<Variant, ThemeItem> = {
     error: {
       gradient: "#FFCBC5",
@@ -66,12 +60,12 @@ export const CircleIconContainer = (props: CircleIconContainerProps) => {
           cx="44"
           cy="44"
           r="43.45"
-          fill={`url(#${paint0Id})`}
+          fill="url(#paint0_linear_133_316)"
           fillOpacity="0.65"
-          stroke={`url(#${paint1Id})`}
+          stroke="url(#paint1_linear_133_316)"
           strokeWidth="1.1"
         />
-        <g filter={`url(#${filterId})`}>
+        <g filter="url(#filter0_d_133_316)">
           <circle cx="44.0002" cy="44.0002" r="30.8" fill="white" />
           {/* NOTE: outline color */}
           <circle
@@ -83,7 +77,7 @@ export const CircleIconContainer = (props: CircleIconContainerProps) => {
         </g>
         <defs>
           <filter
-            id={filterId}
+            id="filter0_d_133_316"
             x="9.9002"
             y="11.5502"
             width="68.1996"
@@ -118,7 +112,7 @@ export const CircleIconContainer = (props: CircleIconContainerProps) => {
             />
           </filter>
           <linearGradient
-            id={paint0Id}
+            id="paint0_linear_133_316"
             x1="44"
             y1="0"
             x2="44"
@@ -134,7 +128,7 @@ export const CircleIconContainer = (props: CircleIconContainerProps) => {
             />
           </linearGradient>
           <linearGradient
-            id={paint1Id}
+            id="paint1_linear_133_316"
             x1="44"
             y1="0"
             x2="44"

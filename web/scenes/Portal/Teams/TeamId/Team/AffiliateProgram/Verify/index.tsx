@@ -1,55 +1,28 @@
 "use client";
-import { DecoratedButton } from "@/components/DecoratedButton";
 import { MailWithLines } from "@/components/Icons/MailWithLines";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { GetIdentityVerificationLinkResponse } from "@/lib/types";
-import { urls } from "@/lib/urls";
 import { useGetAffiliateMetadata } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Overview/page/hooks/use-get-affiliate-metadata";
 import { getIdentityVerificationLink } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Overview/server/getIdentityVerificationLink";
-import { useParams, useRouter } from "next/navigation";
-import { useCallback, useState } from "react";
+import { useState } from "react";
 import { toast } from "react-toastify";
 import { AcceptTermsDialog } from "./AcceptTerms";
-import { SelectVerificationDialog } from "./SelectVerificationDialog";
-import { VerifyLaterDialog } from "./VerifyLaterDialog";
+import { KybStep } from "./KybStep";
 
 export const VerifyPage = () => {
-  const { data: metadata, refetch: refetchAffiliateMetadata } =
-    useGetAffiliateMetadata();
-  const params = useParams();
-  const teamId = params.teamId as string;
-  const router = useRouter();
+  const { data: metadata } = useGetAffiliateMetadata();
   const [isLoading, setIsLoading] = useState(false);
-  const [loadingVerification, setLoadingVerification] = useState<
-    "kyc" | "kyb" | null
-  >(null);
   const [showAcceptTerms, setShowAcceptTerms] = useState(false);
-  const [showVerificationSelection, setShowVerificationSelection] =
-    useState(false);
-  const [showVerifyLaterDialog, setShowVerifyLaterDialog] = useState(false);
-  const [shouldGoToOverviewAfterTerms, setShouldGoToOverviewAfterTerms] =
-    useState(false);
 
-  /** Terms already accepted: leave verify on primary actions (not on KYC pick — terms are set then too). */
-  const redirectToAffiliateIfTermsAccepted = useCallback((): boolean => {
-    if (!metadata?.termsAcceptedAt) {
-      return false;
-    }
-    router.push(urls.affiliateProgram({ team_id: teamId }));
-    return true;
-  }, [metadata?.termsAcceptedAt, router, teamId]);
-
-  const handleGetVerificationLink = async (type: "kyc" | "kyb") => {
+  const handleGetVerificationLink = async () => {
     if (!metadata) return;
 
-    setShowVerificationSelection(false);
-    setLoadingVerification(type);
+    setShowAcceptTerms(false);
     setIsLoading(true);
 
     try {
       const result = await getIdentityVerificationLink({
-        type,
         redirectUri: window.location.href.replace("/verify", ""),
       });
       console.log("getIdentityVerificationLink: ", result);
@@ -66,16 +39,15 @@ export const VerifyPage = () => {
       console.error("Failed to get verification link:", error);
       toast.error("Failed to start verification. Please try again.");
     } finally {
-      setLoadingVerification(null);
       setIsLoading(false);
     }
   };
 
   const handleComplete = () => {
-    if (redirectToAffiliateIfTermsAccepted()) {
+    if (metadata?.termsAcceptedAt) {
+      handleGetVerificationLink();
       return;
     }
-    setShouldGoToOverviewAfterTerms(false);
     setShowAcceptTerms(true);
   };
 
@@ -87,84 +59,31 @@ export const VerifyPage = () => {
     >
       <AcceptTermsDialog
         open={showAcceptTerms}
-        onConfirm={async () => {
-          setShowAcceptTerms(false);
-          await refetchAffiliateMetadata();
-          if (shouldGoToOverviewAfterTerms) {
-            setShouldGoToOverviewAfterTerms(false);
-            router.push(urls.affiliateProgram({ team_id: teamId }));
-            return;
-          }
-          setShowVerificationSelection(true);
-        }}
-        onClose={() => {
-          setShouldGoToOverviewAfterTerms(false);
-          setShowAcceptTerms(false);
-        }}
-      />
-      <SelectVerificationDialog
-        open={showVerificationSelection}
-        onClose={() => {
-          setShowVerificationSelection(false);
-        }}
-        onSelect={handleGetVerificationLink}
-        loadingType={loadingVerification}
-        title="Select verification"
-        metadata={metadata}
-      />
-      <VerifyLaterDialog
-        open={showVerifyLaterDialog}
-        onClose={() => setShowVerifyLaterDialog(false)}
-        onConfirm={() => {
-          setShowVerifyLaterDialog(false);
-          setShouldGoToOverviewAfterTerms(true);
-          setShowAcceptTerms(true);
-        }}
-        onVerifyNow={() => {
-          setShowVerifyLaterDialog(false);
-          setShouldGoToOverviewAfterTerms(false);
-          setShowAcceptTerms(true);
-        }}
-        isLoading={isLoading}
+        onConfirm={handleGetVerificationLink}
+        onClose={() => setShowAcceptTerms(false)}
       />
 
-      <div className="grid w-full max-w-[480px] grid-cols-1 justify-items-center gap-y-10">
-        <MailWithLines className="w-full max-w-[382px]" />
+      <div className="grid max-w-[480px] grid-cols-1 justify-items-center pt-12">
+        <MailWithLines className="md:max-w-[380px]" />
 
-        <div className="grid gap-y-3 text-center">
-          <Typography variant={TYPOGRAPHY.H6} className="w-full">
+        <div className="mt-4 grid gap-y-2 text-center">
+          <Typography variant={TYPOGRAPHY.H6}>
             Invite humans and earn rewards
           </Typography>
-          <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
-            Receive rewards for each human that uses your
-            <br />
-            code and gets verified.
+          <Typography
+            variant={TYPOGRAPHY.R4}
+            className="text-center text-grey-500"
+          >
+            Receive rewards for each human that uses your code and gets verified
           </Typography>
         </div>
 
-        <div className="grid w-full justify-items-center gap-y-4">
-          <DecoratedButton
-            type="button"
-            className="h-12 w-[360px] rounded-[10px]"
-            onClick={handleComplete}
-            disabled={isLoading}
-          >
-            Complete KYB or KYC
-          </DecoratedButton>
-          <DecoratedButton
-            type="button"
-            variant="secondary"
-            className="h-12 w-[360px] rounded-[10px]"
-            onClick={() => {
-              if (redirectToAffiliateIfTermsAccepted()) {
-                return;
-              }
-              setShowVerifyLaterDialog(true);
-            }}
-            disabled={isLoading}
-          >
-            Start now, verify later
-          </DecoratedButton>
+        <div className="mt-10">
+          <KybStep
+            metadata={metadata}
+            onComplete={handleComplete}
+            isLoading={isLoading}
+          />
         </div>
       </div>
     </SizingWrapper>

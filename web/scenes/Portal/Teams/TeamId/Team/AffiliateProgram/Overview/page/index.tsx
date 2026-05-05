@@ -5,10 +5,16 @@ import { useGetAffiliateMetadata } from "./hooks/use-get-affiliate-metadata";
 import { InviteUserDialog } from "./InviteUserDialog";
 import { OverviewProfile } from "./OverviewProfile";
 import { VerificationsChart } from "./VerificationsChart";
+import { IdentityVerificationStatus } from "@/lib/types";
 
 export const AffiliateProgramPage = () => {
   const { data: metadata, loading: isMetadataLoading } =
     useGetAffiliateMetadata();
+
+  if (
+    metadata?.identityVerificationStatus !== IdentityVerificationStatus.SUCCESS
+  )
+    return null;
 
   return (
     <>
