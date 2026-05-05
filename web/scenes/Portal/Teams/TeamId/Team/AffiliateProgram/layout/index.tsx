@@ -28,10 +28,6 @@ export const AffiliateProgramLayout = (props: TeamIdLayoutProps) => {
   const { user: auth0User } = useUser() as Auth0SessionUser;
   const [affiliateEnabled] = useAtom(affiliateEnabledAtom);
 
-  const isTeamMember = auth0User?.hasura?.memberships?.some(
-    (membership) => membership.team?.id === teamId,
-  );
-
   const isAffiliateEnabled = useMemo(
     () =>
       affiliateEnabled.isFetched &&
@@ -68,6 +64,7 @@ export const AffiliateProgramLayout = (props: TeamIdLayoutProps) => {
   );
   const isOwnerOnlyPage = isWithdrawPage || isAccountPage;
   const hideTabs = isWithdrawPage || isRewardsPage || isVerifyPage;
+  const isTermsAccepted = Boolean(metadata?.termsAcceptedAt);
   const isVerificationRequired = useMemo(
     () =>
       metadata?.identityVerificationStatus !==
@@ -96,24 +93,23 @@ export const AffiliateProgramLayout = (props: TeamIdLayoutProps) => {
       return;
     }
 
-    // Check verification status (but allow verify page itself)
-    if (!isVerifyPage && isVerificationRequired) {
+    if (!isVerifyPage && !isTermsAccepted) {
       return router.push(urls.affiliateProgramVerify({ team_id: teamId }));
     }
 
-    // If on verify page but already verified, redirect to overview
-    if (isVerifyPage && !isVerificationRequired) {
-      return router.push(urls.affiliateProgram({ team_id: teamId }));
+    if (isWithdrawPage && isVerificationRequired) {
+      return router.push(urls.affiliateEarnings({ team_id: teamId }));
     }
   }, [
     affiliateEnabled.isFetched,
-    isTeamMember,
     isMetadataLoading,
     metadata,
     isAffiliateEnabled,
     isOwnerOnlyPage,
     hasOwnerPermission,
+    isWithdrawPage,
     isVerifyPage,
+    isTermsAccepted,
     isVerificationRequired,
     teamId,
     router,
@@ -123,7 +119,8 @@ export const AffiliateProgramLayout = (props: TeamIdLayoutProps) => {
     !metadata ||
     isMetadataLoading ||
     !isAffiliateEnabled ||
-    (!isVerifyPage && isVerificationRequired)
+    (!isVerifyPage && !isTermsAccepted) ||
+    (isWithdrawPage && isVerificationRequired)
   )
     return null;
 

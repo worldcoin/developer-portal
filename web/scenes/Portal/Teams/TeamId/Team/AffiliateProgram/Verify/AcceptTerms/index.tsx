@@ -1,23 +1,23 @@
 "use client";
+import { Button } from "@/components/Button";
 import { CircleIconContainer } from "@/components/CircleIconContainer";
 import { DecoratedButton } from "@/components/DecoratedButton";
-import { LegalIcon } from "@/components/Icons/LegalIcon";
-import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import { acceptTermsText } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Verify/AcceptTerms/doc";
 import { Dialog, DialogProps } from "@/components/Dialog";
 import { DialogPanel } from "@/components/DialogPanel";
-import clsx from "clsx";
-import { SizingWrapper } from "@/components/SizingWrapper";
-import { Button } from "@/components/Button";
 import { CloseIcon } from "@/components/Icons/CloseIcon";
+import { LegalIcon } from "@/components/Icons/LegalIcon";
 import { LoggedUserNav } from "@/components/LoggedUserNav";
-import { toast } from "react-toastify";
+import { SizingWrapper } from "@/components/SizingWrapper";
+import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { executeAcceptTerms } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Overview/server/executeAcceptTerms";
+import { acceptTermsText } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Verify/AcceptTerms/doc";
+import clsx from "clsx";
 import { useState } from "react";
+import { toast } from "react-toastify";
 
 type Props = DialogProps & {
   onClose: () => void;
-  onConfirm: () => void;
+  onConfirm: () => void | Promise<void>;
 };
 
 export const AcceptTermsDialog = (props: Props) => {
@@ -30,7 +30,7 @@ export const AcceptTermsDialog = (props: Props) => {
       const result = await executeAcceptTerms();
       if (result.success) {
         console.log("accepted terms url", result);
-        props.onConfirm();
+        await Promise.resolve(props.onConfirm());
       } else {
         throw new Error(result.message || "Failed to accept terms");
       }
