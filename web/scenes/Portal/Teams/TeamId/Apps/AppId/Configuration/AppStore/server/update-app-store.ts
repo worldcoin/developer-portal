@@ -78,28 +78,45 @@ export async function updateAppStoreMetadata(
     const enLocalisation = parsedParams.localisations.find(
       (l) => l.language === "en",
     );
-    const appMetadataInput = {
+    // The client filters the en-localisation payload to only the fields the
+    // user actually edited (so AppStore autosaves can't revert BasicInformation
+    // edits to overlapping columns). Treat undefined here as "do not touch the
+    // column"; only forward keys the client explicitly sent.
+    const appMetadataInput: Record<string, unknown> = {
       category: parsedParams.category || "External",
       is_android_only: parsedParams.is_android_only,
       is_for_humans_only: parsedParams.is_for_humans_only,
       support_link: supportLink,
       supported_countries: parsedParams.supported_countries,
       supported_languages: parsedParams.supported_languages,
-      // en locale fields go directly on app_metadata
-      name: enLocalisation?.name || "",
-      short_name: enLocalisation?.short_name || "",
-      world_app_description: enLocalisation?.world_app_description || "",
-      description: encodeDescription(
-        enLocalisation?.description_overview || "",
-      ),
-      meta_tag_image_url: extractImagePathWithExtensionFromActualUrl(
-        enLocalisation?.meta_tag_image_url,
-      ),
-      showcase_img_urls:
-        (enLocalisation?.showcase_img_urls
-          ?.map(extractImagePathWithExtensionFromActualUrl)
-          .filter(Boolean) as string[]) || [],
     };
+    if (enLocalisation?.name !== undefined) {
+      appMetadataInput.name = enLocalisation.name;
+    }
+    if (enLocalisation?.short_name !== undefined) {
+      appMetadataInput.short_name = enLocalisation.short_name;
+    }
+    if (enLocalisation?.world_app_description !== undefined) {
+      appMetadataInput.world_app_description =
+        enLocalisation.world_app_description;
+    }
+    if (enLocalisation?.description_overview !== undefined) {
+      appMetadataInput.description = encodeDescription(
+        enLocalisation.description_overview,
+      );
+    }
+    if (enLocalisation?.meta_tag_image_url !== undefined) {
+      appMetadataInput.meta_tag_image_url =
+        extractImagePathWithExtensionFromActualUrl(
+          enLocalisation.meta_tag_image_url,
+        );
+    }
+    if (enLocalisation?.showcase_img_urls !== undefined) {
+      appMetadataInput.showcase_img_urls =
+        (enLocalisation.showcase_img_urls
+          ?.map(extractImagePathWithExtensionFromActualUrl)
+          .filter(Boolean) as string[]) || [];
+    }
 
     const localisationsToUpsert = parsedParams.localisations
       .filter((l) => l.language !== "en")
