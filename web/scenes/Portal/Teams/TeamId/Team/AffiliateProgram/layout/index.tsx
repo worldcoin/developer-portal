@@ -28,6 +28,10 @@ export const AffiliateProgramLayout = (props: TeamIdLayoutProps) => {
   const { user: auth0User } = useUser() as Auth0SessionUser;
   const [affiliateEnabled] = useAtom(affiliateEnabledAtom);
 
+  const isTeamMember = auth0User?.hasura?.memberships?.some(
+    (membership) => membership.team?.id === teamId,
+  );
+
   const isAffiliateEnabled = useMemo(
     () =>
       affiliateEnabled.isFetched &&
@@ -100,8 +104,13 @@ export const AffiliateProgramLayout = (props: TeamIdLayoutProps) => {
     if (isWithdrawPage && isVerificationRequired) {
       return router.push(urls.affiliateEarnings({ team_id: teamId }));
     }
+
+    if (isVerifyPage && isTermsAccepted) {
+      return router.push(urls.affiliateProgram({ team_id: teamId }));
+    }
   }, [
     affiliateEnabled.isFetched,
+    isTeamMember,
     isMetadataLoading,
     metadata,
     isAffiliateEnabled,
