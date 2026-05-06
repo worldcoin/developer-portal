@@ -172,7 +172,7 @@ const GraphCard: React.FC<GraphCardProps> = ({
   };
 
   return (
-    <div className={clsx("relative flex-1", className)}>
+    <div className={clsx("relative w-full min-w-0 flex-1", className)}>
       {/* Info icon with tooltip on hover */}
       {tooltip && (
         <div className="absolute right-3 top-3 z-10">
@@ -255,17 +255,15 @@ const GraphCard: React.FC<GraphCardProps> = ({
           )}
 
           {!isLoading && chartData && (
-            <>
-              {/* Mobile Chart (Visible on sm and below) */}
+            <div className="min-h-0 min-w-0">
+              {/* Single grid row cell: two breakpoints swap charts without extra grid items */}
               <div className="block min-h-[245px] sm:hidden">
                 <Chart data={chartData} options={mobileChartOptions} />
               </div>
-
-              {/* Desktop Chart (Visible on sm and above) */}
               <div className="hidden min-h-[350px] sm:block">
                 <Chart data={chartData} options={chartOptions} />
               </div>
-            </>
+            </div>
           )}
         </div>
       )}
@@ -370,7 +368,7 @@ export const RewardsChart = () => {
   const chartConfig = getChartConfig(isEmpty);
 
   return (
-    <div className="grid flex-1">
+    <div className="grid w-full min-w-0 flex-1">
       <GraphCard
         isLoading={isOverviewDataLoading}
         chartData={formattedVerificationsChartData}
