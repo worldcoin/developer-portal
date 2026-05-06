@@ -86,6 +86,7 @@ export const loginCallback = withApiAuthRequired(async (req: NextRequest) => {
     } catch (error) {
       logger.error(`Error while fetching user for FetchUserByNullifierSdk.`, {
         error,
+        graphqlResponse: (error as { response?: unknown })?.response,
       });
 
       return NextResponse.redirect(
@@ -128,6 +129,7 @@ export const loginCallback = withApiAuthRequired(async (req: NextRequest) => {
     } catch (error) {
       logger.error("Error while fetching user for FetchUserByAuth0IdSdk.", {
         error,
+        graphqlResponse: (error as { response?: unknown })?.response,
       });
 
       return NextResponse.redirect(
@@ -140,6 +142,19 @@ export const loginCallback = withApiAuthRequired(async (req: NextRequest) => {
   const invite_id = req.nextUrl.searchParams.get("invite_id") as string;
 
   if (!user) {
+    // No matching Hasura user. The user is being routed to onboarding
+    // (create-team or join-callback). Log this so we can correlate when
+    // /api/create-team subsequently fails on a uniqueness violation.
+    logger.warn("login-callback: no Hasura user found, routing to onboarding", {
+      auth0Sub: auth0User.sub,
+      hasInvite: Boolean(invite_id),
+      authMethod: isEmailUser(auth0User)
+        ? "email"
+        : isPasswordUser(auth0User)
+          ? "password"
+          : "world_id",
+    });
+
     return NextResponse.redirect(
       new URL(
         invite_id ? urls.joinCallback({ invite_id }) : urls.createTeam(),
