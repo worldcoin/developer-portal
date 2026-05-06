@@ -1,7 +1,7 @@
 import {
   computeIntegritySignatureDigest,
   computeProofIntegrityDigest,
-  parseIntegrityBundle,
+  normalizeIntegrityBundle,
   verifyIntegrityBundle,
 } from "@/api/v4/verify/integrity-bundle";
 import { logger } from "@/lib/logger";
@@ -149,7 +149,13 @@ async function createBundle(params?: {
     signatureHex = Buffer.from(signature.toDERRawBytes()).toString("hex");
   }
 
-  const integrityBundle = `v=1,sf=${signatureFormat},t=${timestamp},s=${signatureHex},jwt=${integrityJwt}`;
+  const integrityBundle = {
+    version: 1,
+    signature_format: signatureFormat,
+    timestamp,
+    signature: signatureHex,
+    jwt: integrityJwt,
+  } as const;
 
   return {
     agPublicJwk: agKey.publicJwk,
@@ -171,13 +177,17 @@ describe("integrity bundle verification", () => {
     delete process.env.INTEGRITY_BUNDLE_EXPECTED_ISSUER;
   });
 
-  it("parses a bundle with jwt padding-safe key splitting", () => {
-    const parsed = parseIntegrityBundle(
-      "v=1,sf=android_keystore,t=1772638272,s=abcd,jwt=aaa.bbb.ccc==",
-    );
+  it("normalizes a structured integrity bundle", () => {
+    const parsed = normalizeIntegrityBundle({
+      version: 1,
+      signature_format: "android_keystore",
+      timestamp: 1772638272,
+      signature: "abcd",
+      jwt: "aaa.bbb.ccc==",
+    });
 
     expect(parsed).toMatchObject({
-      version: "1",
+      version: 1,
       signatureFormat: "android_keystore",
       timestamp: 1772638272,
       signatureHex: "abcd",

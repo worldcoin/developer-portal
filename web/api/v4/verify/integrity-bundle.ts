@@ -12,6 +12,7 @@ import {
   JWTPayload,
 } from "jose";
 import {
+  IntegrityBundle,
   SessionResponseItem,
   UniquenessProofResponseV3,
   UniquenessProofResponseV4,
@@ -19,7 +20,7 @@ import {
 
 const PROOF_INTEGRITY_V3_DOMAIN = "worldcoin/proof-integrity/v3";
 const PROOF_INTEGRITY_V4_DOMAIN = "worldcoin/proof-integrity/v4";
-const INTEGRITY_BUNDLE_VERSION = "1";
+const INTEGRITY_BUNDLE_VERSION = 1;
 const JWKS_CACHE_TTL_SECONDS = 24 * 60 * 60;
 const SIGNATURE_TIMESTAMP_THRESHOLD_SECONDS = 5 * 60;
 const JWKS_FETCH_TIMEOUT_MS = 4_000;
@@ -34,7 +35,7 @@ type SignatureFormat = "apple_app_attest" | "android_keystore";
 type IntegrityPlatform = "ios" | "android";
 
 type ParsedIntegrityBundle = {
-  version: string;
+  version: number;
   signatureFormat: SignatureFormat;
   timestamp: number;
   signatureHex: string;
@@ -48,7 +49,7 @@ type IntegrityTokenClaims = JWTPayload & {
 };
 
 type IntegrityVerificationParams = {
-  integrityBundle: string;
+  integrityBundle: IntegrityBundle;
   nonce: string;
   protocolVersion: "3.0" | "4.0";
   responses:
@@ -104,40 +105,26 @@ const getIntegrityExpectedIssuer = () =>
   process.env.INTEGRITY_TOKEN_EXPECTED_ISSUER ??
   DEFAULT_INTEGRITY_ISSUER;
 
-export function parseIntegrityBundle(
-  integrityBundle: string,
+export function normalizeIntegrityBundle(
+  integrityBundle: IntegrityBundle,
 ): ParsedIntegrityBundle {
-  const fields = new Map<string, string>();
-
-  for (const part of integrityBundle.split(",")) {
-    const separatorIndex = part.indexOf("=");
-    if (separatorIndex === -1) {
-      throw new IntegrityBundleError("malformed_bundle");
-    }
-
-    const key = part.slice(0, separatorIndex).trim();
-    const value = part.slice(separatorIndex + 1).trim();
-
-    if (!key || fields.has(key)) {
-      throw new IntegrityBundleError("malformed_bundle");
-    }
-
-    fields.set(key, value);
+  if (typeof integrityBundle !== "object" || integrityBundle === null) {
+    throw new IntegrityBundleError("malformed_bundle");
   }
 
-  for (const key of fields.keys()) {
-    if (!["v", "sf", "t", "s", "jwt"].includes(key)) {
-      throw new IntegrityBundleError("unknown_bundle_field");
-    }
-  }
+  const version = integrityBundle.version;
+  const signatureFormat = integrityBundle.signature_format;
+  const timestamp = integrityBundle.timestamp;
+  const signatureHex = integrityBundle.signature;
+  const jwt = integrityBundle.jwt;
 
-  const version = fields.get("v");
-  const signatureFormat = fields.get("sf");
-  const timestampRaw = fields.get("t");
-  const signatureHex = fields.get("s");
-  const jwt = fields.get("jwt");
-
-  if (!version || !signatureFormat || !timestampRaw || !signatureHex || !jwt) {
+  if (
+    version === undefined ||
+    !signatureFormat ||
+    timestamp === undefined ||
+    !signatureHex ||
+    !jwt
+  ) {
     throw new IntegrityBundleError("missing_bundle_field");
   }
 
@@ -152,12 +139,7 @@ export function parseIntegrityBundle(
     throw new IntegrityBundleError("unsupported_signature_format");
   }
 
-  if (!/^\d+$/.test(timestampRaw)) {
-    throw new IntegrityBundleError("invalid_timestamp");
-  }
-
-  const timestamp = Number(timestampRaw);
-  if (!Number.isSafeInteger(timestamp)) {
+  if (!Number.isSafeInteger(timestamp) || timestamp < 0) {
     throw new IntegrityBundleError("invalid_timestamp");
   }
 
@@ -631,7 +613,7 @@ export async function verifyIntegrityBundle(
   params: IntegrityVerificationParams,
 ): Promise<IntegrityVerificationResult> {
   try {
-    const bundle = parseIntegrityBundle(params.integrityBundle);
+    const bundle = normalizeIntegrityBundle(params.integrityBundle);
     validateTimestamp(bundle.timestamp);
 
     const { devicePublicKey, platform } = await verifyIntegrityToken({
