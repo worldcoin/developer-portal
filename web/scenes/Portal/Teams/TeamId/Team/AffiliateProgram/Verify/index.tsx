@@ -115,7 +115,7 @@ export const VerifyPage = () => {
         }}
         onSelect={handleGetVerificationLink}
         loadingType={loadingVerification}
-        title={`Complete ${showKycOption ? "KYB or KYC" : "KYB"}`}
+        title="Select verification"
         metadata={metadata}
         showKycOption={showKycOption}
       />
