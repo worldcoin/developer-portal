@@ -191,27 +191,24 @@ const AppTopBarSubmit = ({
   }, [shouldAutoSubmitForReview, submitForReview]);
 
   return (
-    <div className="flex items-center gap-x-3">
-      <SaveStatusIndicator />
-      <DecoratedButton
-        type="submit"
-        className={clsx("h-12 px-6 py-3", {
-          hidden:
-            appMetadata.app_id?.includes("staging") &&
-            process.env.NEXT_PUBLIC_APP_ENV === "production",
-        })}
-        disabled={
-          viewMode === "verified" ||
-          isSubmittingForReview ||
-          saveStatus?.status.state === "saving"
-        }
-        onClick={submitForReview}
-      >
-        <Typography variant={TYPOGRAPHY.M3} className="whitespace-nowrap">
-          {isSubmittingForReview ? "Processing..." : "Submit for review"}
-        </Typography>
-      </DecoratedButton>
-    </div>
+    <DecoratedButton
+      type="submit"
+      className={clsx("h-12 px-6 py-3", {
+        hidden:
+          appMetadata.app_id?.includes("staging") &&
+          process.env.NEXT_PUBLIC_APP_ENV === "production",
+      })}
+      disabled={
+        viewMode === "verified" ||
+        isSubmittingForReview ||
+        saveStatus?.status.state === "saving"
+      }
+      onClick={submitForReview}
+    >
+      <Typography variant={TYPOGRAPHY.M3} className="whitespace-nowrap">
+        {isSubmittingForReview ? "Processing..." : "Submit for review"}
+      </Typography>
+    </DecoratedButton>
   );
 };
 
@@ -620,9 +617,12 @@ export const AppTopBar = (props: AppTopBarProps) => {
               >
                 {appMetadata.name}
               </Typography>
-              <AppStatus
-                status={appMetadata.verification_status as StatusVariant}
-              />
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+                <AppStatus
+                  status={appMetadata.verification_status as StatusVariant}
+                />
+                <SaveStatusIndicator />
+              </div>
             </div>
           </div>
         </div>

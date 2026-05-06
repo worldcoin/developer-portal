@@ -1,4 +1,5 @@
 import { useRefetchQueries } from "@/lib/use-refetch-queries";
+import { useApolloClient } from "@apollo/client";
 import { useCallback, useEffect } from "react";
 import {
   FieldErrors,
@@ -17,6 +18,7 @@ import { useSupportType } from "./useSupportType";
 
 export const useAppStoreForm = (appId: string, appMetadata: AppMetadata) => {
   const isEditable = appMetadata?.verification_status === "unverified";
+  const apolloClient = useApolloClient();
 
   const { refetch: refetchAppMetadata } = useRefetchQueries(
     FetchAppMetadataDocument,
@@ -141,9 +143,33 @@ export const useAppStoreForm = (appId: string, appMetadata: AppMetadata) => {
       if (!result.success) {
         throw new Error(result.message);
       }
-      await Promise.all([refetchAppMetadata(), refetchLocalisations()]);
+      // Patch the Apollo cache locally instead of refetching. A network
+      // round-trip would re-render the entire AppTopBar header (including the
+      // logo container), which the user perceives as a "page reload".
+      // Update the en-localisation mirror columns on app_metadata for any
+      // fields the user just dirtied — that's what the AppTopBar reads.
+      const en = localisations.find((l) => l.language === "en") as
+        | Record<string, unknown>
+        | undefined;
+      if (en) {
+        apolloClient.cache.modify({
+          id: apolloClient.cache.identify({
+            __typename: "app_metadata",
+            id: appMetadata.id,
+          }),
+          fields: {
+            ...(en.name !== undefined && { name: () => en.name ?? "" }),
+            ...(en.short_name !== undefined && {
+              short_name: () => en.short_name ?? "",
+            }),
+            ...(en.world_app_description !== undefined && {
+              world_app_description: () => en.world_app_description ?? "",
+            }),
+          },
+        });
+      }
     },
-    [appMetadata.id, refetchAppMetadata, refetchLocalisations, formContext],
+    [appMetadata.id, formContext, apolloClient],
   );
 
   const submit = useCallback(
