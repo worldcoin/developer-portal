@@ -438,10 +438,7 @@ function extractDevicePublicKey(payload: IntegrityTokenClaims) {
   return publicKey;
 }
 
-async function verifyJwtWithJwk(params: {
-  integrityJwt: string;
-  jwk: JWK;
-}) {
+async function verifyJwtWithJwk(params: { integrityJwt: string; jwk: JWK }) {
   const publicKey = await importJWK(params.jwk, "ES256");
   const { payload } = await jwtVerify(params.integrityJwt, publicKey, {
     algorithms: ["ES256"],
