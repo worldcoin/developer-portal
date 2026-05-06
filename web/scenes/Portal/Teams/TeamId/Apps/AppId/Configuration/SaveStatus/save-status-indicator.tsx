@@ -30,18 +30,18 @@ export const SaveStatusIndicator = () => {
 
   if (status.state === "saving") {
     return (
-      <div className="flex items-center gap-x-1.5 text-grey-500">
-        <SpinnerIcon className="size-3.5 animate-spin" />
-        <Typography variant={TYPOGRAPHY.R5}>Saving…</Typography>
+      <div className="flex items-center gap-x-2 rounded-full bg-grey-50 px-3 py-1.5 text-grey-700">
+        <SpinnerIcon className="size-4 animate-spin" />
+        <Typography variant={TYPOGRAPHY.M3}>Saving…</Typography>
       </div>
     );
   }
 
   if (status.state === "saved") {
     return (
-      <div className="flex items-center gap-x-1.5 text-system-success-700">
+      <div className="flex items-center gap-x-2 rounded-full bg-system-success-50 px-3 py-1.5 text-system-success-700">
         <CheckIcon size="16" />
-        <Typography variant={TYPOGRAPHY.R5}>
+        <Typography variant={TYPOGRAPHY.M3}>
           {formatRelative(status.at, now)}
         </Typography>
       </div>
@@ -49,9 +49,9 @@ export const SaveStatusIndicator = () => {
   }
 
   return (
-    <div className="flex items-center gap-x-2 text-system-error-700">
+    <div className="flex items-center gap-x-2 rounded-full bg-system-error-50 px-3 py-1.5 text-system-error-700">
       <span className="size-2 rounded-full bg-system-error-500" aria-hidden />
-      <Typography variant={TYPOGRAPHY.R5} title={status.error.message}>
+      <Typography variant={TYPOGRAPHY.M3} title={status.error.message}>
         Couldn&apos;t save
       </Typography>
       <button
@@ -59,7 +59,7 @@ export const SaveStatusIndicator = () => {
         onClick={status.retry}
         className="text-system-error-700 underline underline-offset-2"
       >
-        <Typography variant={TYPOGRAPHY.R5}>Retry</Typography>
+        <Typography variant={TYPOGRAPHY.M3}>Retry</Typography>
       </button>
     </div>
   );

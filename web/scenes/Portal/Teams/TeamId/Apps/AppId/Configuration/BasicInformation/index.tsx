@@ -4,9 +4,9 @@ import { FloatingInput } from "@/components/FloatingInput";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Role_Enum } from "@/graphql/graphql";
 import { Auth0SessionUser } from "@/lib/types";
-import { useRefetchQueries } from "@/lib/use-refetch-queries";
 import { inferHttps } from "@/lib/schema";
 import { checkUserPermissions } from "@/lib/utils";
+import { useApolloClient } from "@apollo/client";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useAtom } from "jotai";
@@ -20,11 +20,7 @@ import React, {
 } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
-import {
-  FetchAppMetadataDocument,
-  FetchAppMetadataQuery,
-  FetchAppMetadataQueryVariables,
-} from "../graphql/client/fetch-app-metadata.generated";
+import { FetchAppMetadataQuery } from "../graphql/client/fetch-app-metadata.generated";
 import { viewModeAtom } from "../layout/ImagesProvider";
 import * as yup from "yup";
 import { useAutosaveWithStatus } from "../hook/use-autosave-with-status";
@@ -51,11 +47,7 @@ export const BasicInformation = forwardRef<
     teamName: string;
   }
 >(({ appId, teamId, app, teamName }, ref) => {
-  const { refetch: refetchAppMetadata } =
-    useRefetchQueries<FetchAppMetadataQueryVariables>(
-      FetchAppMetadataDocument,
-      { id: appId },
-    );
+  const apolloClient = useApolloClient();
 
   const [viewMode] = useAtom(viewModeAtom);
   const { user } = useUser() as Auth0SessionUser;
@@ -129,10 +121,31 @@ export const BasicInformation = forwardRef<
       if (!result.success) {
         throw new Error(result.message);
       }
-      await refetchAppMetadata();
+      // Patch the Apollo cache with the saved values so dependent surfaces
+      // (e.g. AppTopBar's app name + logo header) reflect the change instantly,
+      // without the visible re-render flicker that a full refetch causes.
+      if (appMetaData?.id) {
+        apolloClient.cache.modify({
+          id: apolloClient.cache.identify({
+            __typename: "app_metadata",
+            id: appMetaData.id,
+          }),
+          fields: {
+            ...(data.name !== undefined && {
+              name: () => data.name ?? "",
+            }),
+            ...(data.integration_url !== undefined && {
+              integration_url: () => data.integration_url ?? "",
+            }),
+            ...(data.app_website_url !== undefined && {
+              app_website_url: () => data.app_website_url ?? "",
+            }),
+          },
+        });
+      }
       return true;
     },
-    [appMetaData?.id, appId, refetchAppMetadata],
+    [appMetaData?.id, appId, apolloClient],
   );
 
   const autosave = useAutosaveWithStatus<BasicInformationFormValues>({
