@@ -4,7 +4,7 @@ const AFFILIATE_KYC_ALLOWED_EMAILS = new Set([
   "natan.sklair@tooslforhumanity.com",
 ]);
 
-export function showAffiliateKycOption(
+export function isAffiliateKycEnabled(
   email: string | undefined | null,
 ): boolean {
   if (

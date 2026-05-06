@@ -6,7 +6,7 @@ import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { GetIdentityVerificationLinkResponse } from "@/lib/types";
 import { urls } from "@/lib/urls";
 import { Auth0SessionUser } from "@/lib/types";
-import { showAffiliateKycOption } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/common/show-affiliate-kyc-option";
+import { isAffiliateKycEnabled } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/common/is-affiliate-kyc-enabled";
 import { useGetAffiliateMetadata } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Overview/page/hooks/use-get-affiliate-metadata";
 import { getIdentityVerificationLink } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Overview/server/getIdentityVerificationLink";
 import { useUser } from "@auth0/nextjs-auth0/client";
@@ -19,7 +19,7 @@ import { VerifyLaterDialog } from "./VerifyLaterDialog";
 
 export const VerifyPage = () => {
   const { user: auth0User } = useUser() as Auth0SessionUser;
-  const showKycOption = showAffiliateKycOption(auth0User?.email);
+  const showKycOption = isAffiliateKycEnabled(auth0User?.email);
 
   const { data: metadata, refetch: refetchAffiliateMetadata } =
     useGetAffiliateMetadata();

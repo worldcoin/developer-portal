@@ -7,7 +7,7 @@ import {
   GetIdentityVerificationLinkResponse,
   IdentityVerificationStatus,
 } from "@/lib/types";
-import { showAffiliateKycOption } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/common/show-affiliate-kyc-option";
+import { isAffiliateKycEnabled } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/common/is-affiliate-kyc-enabled";
 import { useGetAffiliateMetadata } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Overview/page/hooks/use-get-affiliate-metadata";
 import { getIdentityVerificationLink } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Overview/server/getIdentityVerificationLink";
 import { SelectVerificationDialog } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Verify/SelectVerificationDialog";
@@ -24,7 +24,7 @@ import { useGetAffiliateTransactions } from "./hooks/use-get-affiliate-transacti
 
 export const EarningsPage = () => {
   const { user: auth0User } = useUser() as Auth0SessionUser;
-  const showKycOption = showAffiliateKycOption(auth0User?.email);
+  const showKycOption = isAffiliateKycEnabled(auth0User?.email);
 
   const { data, loading: isBalanceLoading } = useGetAffiliateBalance();
   const { data: metadata, loading: isMetadataLoading } =
