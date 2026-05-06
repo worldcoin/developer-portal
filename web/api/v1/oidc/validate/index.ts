@@ -1,5 +1,6 @@
 import { errorResponse } from "@/api/helpers/errors";
 import { fetchOIDCApp } from "@/api/helpers/oidc";
+import { parseRequestBody } from "@/api/helpers/parse-request-body";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { validateUrl } from "@/lib/utils";
 import { NextRequest, NextResponse } from "next/server";
@@ -16,10 +17,14 @@ const schema = yup
  * Prevalidates app_id & redirect_uri is valid for Sign in with World ID for early user feedback
  */
 export async function POST(req: NextRequest) {
-  const body = await req.json();
+  const parseResult = await parseRequestBody(req);
+  if (!parseResult.isValid) {
+    return parseResult.error;
+  }
+
   const { isValid, parsedParams, handleError } = await validateRequestSchema({
     schema,
-    value: body,
+    value: parseResult.body,
   });
 
   if (!isValid) {

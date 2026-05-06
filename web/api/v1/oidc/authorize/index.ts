@@ -10,6 +10,7 @@ import {
   fetchOIDCApp,
   generateOIDCCode,
 } from "@/api/helpers/oidc";
+import { parseRequestBody } from "@/api/helpers/parse-request-body";
 import { corsHandler } from "@/api/helpers/utils";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { encodeNullifierForStorage, verifyProof } from "@/api/helpers/verify";
@@ -88,11 +89,15 @@ export async function POST(req: NextRequest) {
 
   let app_id: string | undefined;
 
+  const parseResult = await parseRequestBody(req);
+  if (!parseResult.isValid) {
+    return corsHandler(parseResult.error, corsMethods);
+  }
+
   try {
-    const body = await req.json();
     const { isValid, parsedParams, handleError } = await validateRequestSchema({
       schema,
-      value: body,
+      value: parseResult.body,
     });
 
     if (!isValid) {
