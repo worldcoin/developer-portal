@@ -54,7 +54,8 @@ describe("v4 verify request schema", () => {
         protocol_version: "4.0",
         nonce: "0x01",
         action: "test-action",
-        integrity_bundle: "v=1,sf=android_keystore,t=1772638272,s=abcd,jwt=a.b.c",
+        integrity_bundle:
+          "v=1,sf=android_keystore,t=1772638272,s=abcd,jwt=a.b.c",
         responses: [
           {
             identifier: "credential",
