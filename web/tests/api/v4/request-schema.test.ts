@@ -41,4 +41,24 @@ describe("v4 verify request schema", () => {
       "v=1,sf=android_keystore,t=1772638272,s=abcd,jwt=a.b.c",
     );
   });
+
+  it("rejects oversized integrity_bundle values", async () => {
+    await expect(
+      schema.validate({
+        protocol_version: "4.0",
+        nonce: "0x01",
+        action: "test-action",
+        integrity_bundle: "x".repeat(8193),
+        responses: [
+          {
+            identifier: "credential",
+            issuer_schema_id: 128,
+            nullifier: "0x02",
+            expires_at_min: 1772584197,
+            proof: ["0x1", "0x2", "0x3", "0x4", "0x5"],
+          },
+        ],
+      }),
+    ).rejects.toThrow();
+  });
 });

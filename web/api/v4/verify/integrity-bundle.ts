@@ -22,6 +22,7 @@ const PROOF_INTEGRITY_V4_DOMAIN = "worldcoin/proof-integrity/v4";
 const INTEGRITY_BUNDLE_VERSION = "1";
 const JWKS_CACHE_TTL_SECONDS = 24 * 60 * 60;
 const SIGNATURE_TIMESTAMP_THRESHOLD_SECONDS = 5 * 60;
+const JWKS_FETCH_TIMEOUT_MS = 4_000;
 const DEFAULT_INTEGRITY_JWKS_URL =
   "https://attestation.worldcoin.org/.well-known/jwks.json";
 const DEFAULT_INTEGRITY_ISSUER = "attestation.worldcoin.org";
@@ -84,6 +85,12 @@ const sha256 = (data: Uint8Array | Buffer | string) =>
 const u32be = (value: number) => {
   const buffer = Buffer.alloc(4);
   buffer.writeUInt32BE(value);
+  return buffer;
+};
+
+const i64be = (value: number) => {
+  const buffer = Buffer.alloc(8);
+  buffer.writeBigInt64BE(BigInt(value));
   return buffer;
 };
 
@@ -239,6 +246,16 @@ export function computeProofIntegrityDigest(params: {
   return hasher.digest();
 }
 
+export function computeIntegritySignatureDigest(params: {
+  payloadDigest: Uint8Array;
+  timestamp: number;
+}) {
+  const hasher = createHash("sha256");
+  hasher.update(i64be(params.timestamp));
+  hasher.update(params.payloadDigest);
+  return hasher.digest();
+}
+
 function jwksCacheKey(jwksUrl: string, kid: string) {
   const urlHash = createHash("sha256")
     .update(jwksUrl)
@@ -302,13 +319,21 @@ async function cacheJwks(jwksUrl: string, jwks: JWK[]) {
 
 async function fetchJwks(jwksUrl: string) {
   let response: Response;
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), JWKS_FETCH_TIMEOUT_MS);
+
   try {
-    response = await fetch(jwksUrl, { cache: "no-store" });
+    response = await fetch(jwksUrl, {
+      cache: "no-store",
+      signal: controller.signal,
+    });
   } catch (error) {
     throw new IntegrityBundleError(
       "jwks_fetch_failed",
       error instanceof Error ? error.message : String(error),
     );
+  } finally {
+    clearTimeout(timeout);
   }
 
   if (!response.ok) {
@@ -416,16 +441,39 @@ function extractDevicePublicKey(payload: IntegrityTokenClaims) {
 async function verifyJwtWithJwk(params: {
   integrityJwt: string;
   jwk: JWK;
-  rpId: string;
 }) {
   const publicKey = await importJWK(params.jwk, "ES256");
   const { payload } = await jwtVerify(params.integrityJwt, publicKey, {
     algorithms: ["ES256"],
-    audience: params.rpId,
     issuer: getIntegrityExpectedIssuer(),
   });
 
   return payload as IntegrityTokenClaims;
+}
+
+function validateAudience(params: {
+  kid: string;
+  payload: IntegrityTokenClaims;
+  rpId: string;
+}) {
+  const aud = params.payload.aud;
+  const matches =
+    typeof aud === "string"
+      ? aud === params.rpId
+      : Array.isArray(aud) && aud.includes(params.rpId);
+
+  if (matches) {
+    return;
+  }
+
+  logger.warn("integrity_aud_mismatch", {
+    jwt_aud: aud,
+    kid: params.kid,
+    reason: "audience_mismatch",
+    rp_id: params.rpId,
+  });
+
+  throw new IntegrityBundleError("audience_mismatch");
 }
 
 async function verifyIntegrityToken(params: {
@@ -459,7 +507,6 @@ async function verifyIntegrityToken(params: {
     payload = await verifyJwtWithJwk({
       integrityJwt: params.integrityJwt,
       jwk: keyResult.jwk,
-      rpId: params.rpId,
     });
   } catch (error) {
     if (!keyResult.fromCache) {
@@ -479,7 +526,6 @@ async function verifyIntegrityToken(params: {
       payload = await verifyJwtWithJwk({
         integrityJwt: params.integrityJwt,
         jwk: keyResult.jwk,
-        rpId: params.rpId,
       });
     } catch (retryError) {
       throw new IntegrityBundleError(
@@ -488,6 +534,12 @@ async function verifyIntegrityToken(params: {
       );
     }
   }
+
+  validateAudience({
+    kid: protectedHeader.kid,
+    payload,
+    rpId: params.rpId,
+  });
 
   if (payload.pass !== true) {
     throw new IntegrityBundleError("integrity_token_pass_failed");
@@ -591,22 +643,26 @@ export async function verifyIntegrityBundle(
       signatureFormat: bundle.signatureFormat,
     });
 
-    const digest = computeProofIntegrityDigest({
+    const payloadDigest = computeProofIntegrityDigest({
       nonce: params.nonce,
       protocolVersion: params.protocolVersion,
       responses: params.responses,
+    });
+    const signatureDigest = computeIntegritySignatureDigest({
+      payloadDigest,
+      timestamp: bundle.timestamp,
     });
 
     if (platform === "android") {
       verifyAndroidSignature({
         devicePublicKey,
-        digest,
+        digest: signatureDigest,
         signatureHex: bundle.signatureHex,
       });
     } else {
       verifyIOSSignature({
         devicePublicKey,
-        digest,
+        digest: signatureDigest,
         signatureHex: bundle.signatureHex,
       });
     }

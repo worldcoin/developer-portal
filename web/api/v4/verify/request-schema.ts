@@ -133,7 +133,7 @@ export const schema = yup
 
     // Optional World App integrity attestation bundle. When present, it is
     // verified before proof verification.
-    integrity_bundle: yup.string().strict().optional(),
+    integrity_bundle: yup.string().strict().max(8192).optional(),
 
     // Responses array - validated based on version and type of proof
     responses: yup

@@ -1,8 +1,10 @@
 import {
+  computeIntegritySignatureDigest,
   computeProofIntegrityDigest,
   parseIntegrityBundle,
   verifyIntegrityBundle,
 } from "@/api/v4/verify/integrity-bundle";
+import { logger } from "@/lib/logger";
 import { p256 } from "@noble/curves/p256";
 import { encode as encodeCbor } from "cbor-x";
 import { createHash, generateKeyPairSync, KeyObject } from "crypto";
@@ -88,10 +90,13 @@ async function createIntegrityJwt(params: {
 }
 
 async function createBundle(params?: {
+  audience?: string;
   jwtPlatform?: "android" | "ios";
   pass?: boolean;
   signedNonce?: string;
+  signedTimestamp?: number;
   signatureFormat?: "android_keystore" | "apple_app_attest";
+  timestamp?: number;
 }) {
   const agKey = createAgKey();
   const deviceKey = createDeviceKey();
@@ -103,6 +108,7 @@ async function createBundle(params?: {
 
   const integrityJwt = await createIntegrityJwt({
     agPrivateKey: agKey.privateKey,
+    audience: params?.audience,
     devicePublicJwk: deviceKey.publicJwk,
     pass: params?.pass,
     platform,
@@ -113,12 +119,17 @@ async function createBundle(params?: {
     protocolVersion: "4.0",
     responses: [response],
   });
+  const timestamp = params?.timestamp ?? Math.floor(Date.now() / 1000);
+  const signatureDigest = computeIntegritySignatureDigest({
+    payloadDigest: digest,
+    timestamp: params?.signedTimestamp ?? timestamp,
+  });
 
   let signatureHex: string;
   if (signatureFormat === "apple_app_attest") {
     const authenticatorData = Buffer.from("test-authenticator-data");
     const assertionNonce = createHash("sha256")
-      .update(Buffer.concat([authenticatorData, digest]))
+      .update(Buffer.concat([authenticatorData, signatureDigest]))
       .digest();
     const signedDigest = createHash("sha256").update(assertionNonce).digest();
     const signature = p256.sign(signedDigest, deviceKey.privateKey, {
@@ -131,14 +142,13 @@ async function createBundle(params?: {
     });
     signatureHex = Buffer.from(assertion).toString("hex");
   } else {
-    const signature = p256.sign(digest, deviceKey.privateKey, {
+    const signature = p256.sign(signatureDigest, deviceKey.privateKey, {
       lowS: false,
       prehash: false,
     });
     signatureHex = Buffer.from(signature.toDERRawBytes()).toString("hex");
   }
 
-  const timestamp = Math.floor(Date.now() / 1000);
   const integrityBundle = `v=1,sf=${signatureFormat},t=${timestamp},s=${signatureHex},jwt=${integrityJwt}`;
 
   return {
@@ -295,5 +305,65 @@ describe("integrity bundle verification", () => {
       success: false,
       reason: "integrity_token_pass_failed",
     });
+  });
+
+  it("rejects bundles when the timestamp was not signed", async () => {
+    const timestamp = Math.floor(Date.now() / 1000) - 60;
+    const { agPublicJwk, integrityBundle, nonce } = await createBundle({
+      signedTimestamp: timestamp,
+      timestamp: timestamp + 1,
+    });
+    jest.spyOn(global, "fetch").mockResolvedValue(
+      new Response(JSON.stringify({ keys: [agPublicJwk] }), {
+        status: 200,
+      }),
+    );
+
+    const result = await verifyIntegrityBundle({
+      integrityBundle,
+      nonce,
+      protocolVersion: "4.0",
+      responses: [response],
+      rpId: RP_ID,
+    });
+
+    expect(result).toEqual({
+      success: false,
+      reason: "invalid_device_signature",
+    });
+  });
+
+  it("logs and rejects integrity tokens for a different RP", async () => {
+    const { agPublicJwk, integrityBundle, nonce } = await createBundle({
+      audience: "rp_other",
+    });
+    const warnSpy = jest.spyOn(logger, "warn").mockResolvedValue(undefined);
+    jest.spyOn(global, "fetch").mockResolvedValue(
+      new Response(JSON.stringify({ keys: [agPublicJwk] }), {
+        status: 200,
+      }),
+    );
+
+    const result = await verifyIntegrityBundle({
+      integrityBundle,
+      nonce,
+      protocolVersion: "4.0",
+      responses: [response],
+      rpId: RP_ID,
+    });
+
+    expect(result).toEqual({
+      success: false,
+      reason: "audience_mismatch",
+    });
+    expect(warnSpy).toHaveBeenCalledWith(
+      "integrity_aud_mismatch",
+      expect.objectContaining({
+        jwt_aud: "rp_other",
+        kid: AG_KID,
+        reason: "audience_mismatch",
+        rp_id: RP_ID,
+      }),
+    );
   });
 });
