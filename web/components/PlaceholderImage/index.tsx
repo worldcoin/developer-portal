@@ -28,9 +28,17 @@ const colors = [
   "bg-additional-lightOrange-500",
 ];
 
-export const Placeholder = (props: { name: string; className?: string }) => {
+export const Placeholder = (props: {
+  name: string;
+  // Optional stable identifier used to pick the background colour instead of
+  // the (mutable) display name. Pass an app/team id when the avatar should
+  // keep the same colour even as the user renames the entity.
+  seed?: string;
+  className?: string;
+}) => {
   // Hash function I made up to create entropy
-  const hash = props.name.split("").reduce((hash, char) => {
+  const hashSource = props.seed ?? props.name;
+  const hash = hashSource.split("").reduce((hash, char) => {
     return (hash << 5) - hash + char.charCodeAt(0);
   }, 0);
 

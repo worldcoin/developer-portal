@@ -103,6 +103,7 @@ export const AppSelector = () => {
             ) : (
               <Placeholder
                 name={value?.app_metadata[0].name ?? "Select app"}
+                seed={value?.id}
                 className="size-6 text-xs"
               />
             )}
@@ -139,6 +140,7 @@ export const AppSelector = () => {
                 ) : (
                   <Placeholder
                     name={app?.app_metadata[0].name ?? "Select app"}
+                    seed={app.id}
                     className="size-6 text-xs"
                   />
                 )}

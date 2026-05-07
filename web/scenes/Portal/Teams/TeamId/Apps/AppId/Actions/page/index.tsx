@@ -133,6 +133,7 @@ export const ActionsPage = ({ params, searchParams }: ActionsPageProps) => {
                       <IconFrame className="">
                         <Placeholder
                           name={appName ?? "Add your app"}
+                          seed={appId}
                           className="size-full rounded-full"
                         />
                       </IconFrame>
