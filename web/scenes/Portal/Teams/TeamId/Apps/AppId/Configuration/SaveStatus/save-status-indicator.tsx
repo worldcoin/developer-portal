@@ -30,19 +30,19 @@ export const SaveStatusIndicator = () => {
 
   if (status.state === "saving") {
     return (
-      <div className="flex items-center gap-x-2 rounded-full bg-grey-50 px-3 py-1.5 text-grey-700">
+      <div className="flex items-center gap-x-2 rounded-full border border-blue-500 bg-blue-50 px-3 py-1.5 text-blue-500">
         <SpinnerIcon className="size-4 animate-spin" />
-        <Typography variant={TYPOGRAPHY.M3}>Saving…</Typography>
+        <Typography variant={TYPOGRAPHY.M3}>Autosaving…</Typography>
       </div>
     );
   }
 
   if (status.state === "saved") {
     return (
-      <div className="flex items-center gap-x-2 rounded-full bg-system-success-50 px-3 py-1.5 text-system-success-700">
+      <div className="flex items-center gap-x-2 rounded-full border border-system-success-500 bg-system-success-50 px-3 py-1.5 text-system-success-700">
         <CheckIcon size="16" />
         <Typography variant={TYPOGRAPHY.M3}>
-          {formatRelative(status.at, now)}
+          Autosaved {formatRelative(status.at, now).replace("Saved ", "")}
         </Typography>
       </div>
     );

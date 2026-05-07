@@ -21,7 +21,7 @@ export const SaveButton = ({
       onClick={onSubmit}
     >
       <Typography variant={TYPOGRAPHY.M3}>
-        {isSubmitting ? "Saving..." : "Save changes"}
+        {isSubmitting ? "Saving…" : "Save now (autosaves)"}
       </Typography>
     </DecoratedButton>
   );
