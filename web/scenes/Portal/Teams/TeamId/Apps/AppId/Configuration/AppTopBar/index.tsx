@@ -31,7 +31,7 @@ import { mainAppStoreFormReviewSubmitSchema } from "../AppStore/FormSchema/form-
 import { BasicInformationHandle } from "../BasicInformation";
 import { AppStoreFormValues } from "../AppStore/FormSchema/types";
 import { MULTIPLE_ERRORS_TOAST_MESSAGE } from "../AppStore/utils/form-error-utils";
-import { SaveStatusIndicator, useOptionalSaveStatus } from "../SaveStatus";
+import { useOptionalSaveStatus } from "../SaveStatus";
 import { useApolloClient } from "@apollo/client";
 import {
   FetchAppMetadataDocument,
@@ -617,12 +617,9 @@ export const AppTopBar = (props: AppTopBarProps) => {
               >
                 {appMetadata.name}
               </Typography>
-              <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-                <AppStatus
-                  status={appMetadata.verification_status as StatusVariant}
-                />
-                <SaveStatusIndicator />
-              </div>
+              <AppStatus
+                status={appMetadata.verification_status as StatusVariant}
+              />
             </div>
           </div>
         </div>

@@ -16,6 +16,7 @@ import { HumansOnlySection } from "./components/FormSections/HumansOnlySection";
 import { LanguagesSection } from "./components/FormSections/LanguagesSection";
 import { LocalisationsSection } from "./components/FormSections/LocalisationsSection";
 import { SupportSection } from "./components/FormSections/SupportSection";
+import { SaveStatusIndicator } from "../SaveStatus";
 import { SaveButton } from "./components/SaveButton";
 import { AppStoreFormValues } from "./FormSchema/types";
 import { useAppStoreForm } from "./hooks/useAppStoreForm";
@@ -156,7 +157,8 @@ export const AppStoreForm = ({
           }}
         />
 
-        <div className="fixed bottom-[5.25rem] z-10 md:bottom-6">
+        <div className="fixed bottom-[5.25rem] right-6 z-10 flex items-center gap-x-3 md:bottom-6">
+          <SaveStatusIndicator />
           <SaveButton
             isSubmitting={status.state === "saving"}
             isDisabled={
