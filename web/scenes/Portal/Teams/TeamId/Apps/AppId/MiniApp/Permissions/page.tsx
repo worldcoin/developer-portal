@@ -8,6 +8,7 @@ import { AppTopBar } from "../../Configuration/AppTopBar";
 import { FormSkeleton } from "../../Configuration/AppTopBar/FormSkeleton";
 import { useFetchAppMetadataQuery } from "../../Configuration/graphql/client/fetch-app-metadata.generated";
 import { viewModeAtom } from "../../Configuration/layout/ImagesProvider";
+import { SaveStatusProvider } from "../../Configuration/SaveStatus";
 import { SetupForm } from "../../MiniApp/PermissionsForm";
 import { MiniAppSubTabs } from "../SubTabs";
 
@@ -40,7 +41,7 @@ export const AppPermissionsPage = ({ params }: AppPermissionsPageProps) => {
   }
 
   return (
-    <>
+    <SaveStatusProvider>
       <div className="py-10">
         {loading ? (
           <Skeleton count={2} height={50} />
@@ -68,6 +69,6 @@ export const AppPermissionsPage = ({ params }: AppPermissionsPageProps) => {
           )}
         </div>
       </div>
-    </>
+    </SaveStatusProvider>
   );
 };

@@ -10,24 +10,24 @@ import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Role_Enum } from "@/graphql/graphql";
 import { AppMode } from "@/lib/constants";
 import { Auth0SessionUser } from "@/lib/types";
-import { useRefetchQueries } from "@/lib/use-refetch-queries";
 import { checkUserPermissions } from "@/lib/utils";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { yupResolver } from "@hookform/resolvers/yup";
 import clsx from "clsx";
 import { ChangeEvent, ReactNode, useCallback, useEffect, useMemo } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
-import { toast } from "react-toastify";
 import { QrQuickAction } from "../../Configuration/BasicInformation/QrQuickAction";
-import {
-  FetchAppMetadataDocument,
-  FetchAppMetadataQuery,
-} from "../../Configuration/graphql/client/fetch-app-metadata.generated";
+import { FetchAppMetadataQuery } from "../../Configuration/graphql/client/fetch-app-metadata.generated";
 import {
   updateSetupInitialSchema,
   UpdateSetupInitialSchema,
 } from "../../Configuration/Advanced/page/form-schema";
 import { validateAndUpdateSetupServerSide } from "../../Configuration/Advanced/page/server/submit";
+import {
+  SaveStatusIndicator,
+  useSaveStatus,
+} from "../../Configuration/SaveStatus";
+import { useAutosaveWithStatus } from "../../Configuration/hook/use-autosave-with-status";
 
 type PermissionsFormProps = {
   appId: string;
@@ -186,13 +186,6 @@ export const SetupForm = ({
   const { user } = useUser() as Auth0SessionUser;
   const isEditable = appMetadata?.verification_status === "unverified";
 
-  const { refetch: refetchAppMetadata } = useRefetchQueries(
-    FetchAppMetadataDocument,
-    {
-      id: appId,
-    },
-  );
-
   const isEnoughPermissions = useMemo(() => {
     return checkUserPermissions(user, teamId ?? "", [
       Role_Enum.Owner,
@@ -200,71 +193,75 @@ export const SetupForm = ({
     ]);
   }, [teamId, user]);
 
-  const {
-    register,
-    handleSubmit,
-    reset,
-    formState: { errors, isDirty, isValid },
-    setError,
-    control,
-    setValue,
-  } = useForm<UpdateSetupInitialSchema>({
+  const form = useForm<UpdateSetupInitialSchema>({
     resolver: yupResolver(updateSetupInitialSchema),
     mode: "onChange",
     defaultValues: getFormValuesFromMetadata(appMetadata),
   });
+  const {
+    register,
+    reset,
+    formState: { errors },
+    setError,
+    control,
+    setValue,
+  } = form;
 
-  const metadataFormValues = useMemo(
-    () => getFormValuesFromMetadata(appMetadata),
-    [
-      appMetadata?.whitelisted_addresses,
-      appMetadata?.app_mode,
-      appMetadata?.associated_domains,
-      appMetadata?.contracts,
-      appMetadata?.permit2_tokens,
-      appMetadata?.can_import_all_contacts,
-      appMetadata?.can_use_attestation,
-      appMetadata?.max_notifications_per_day,
-      appMetadata?.is_allowed_unlimited_notifications,
-    ],
+  // Reset only when the underlying app id changes (e.g. version switch),
+  // never on cache updates that happen while the user is mid-edit.
+  const previousMetadataIdRef = useMemo(
+    () => ({ current: appMetadata?.id }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
+  );
+  useEffect(() => {
+    if (previousMetadataIdRef.current !== appMetadata?.id) {
+      reset(getFormValuesFromMetadata(appMetadata));
+      previousMetadataIdRef.current = appMetadata?.id;
+    }
+  }, [appMetadata, reset, previousMetadataIdRef]);
+
+  const canEdit = isEditable && isEnoughPermissions;
+
+  const hasInvalidWhitelistCombination = useCallback(
+    (values: UpdateSetupInitialSchema) =>
+      values.app_mode === "mini-app" &&
+      !values.is_whitelist_disabled &&
+      (!values.whitelisted_addresses ||
+        values.whitelisted_addresses.length === 0),
+    [],
   );
 
-  useEffect(() => {
-    reset(metadataFormValues);
-  }, [reset, metadataFormValues]);
-
-  const submit = useCallback(
-    async (values: UpdateSetupInitialSchema) => {
-      if (
-        values.app_mode &&
-        values.app_mode !== "external" &&
-        !values.is_whitelist_disabled &&
-        (!values.whitelisted_addresses ||
-          values.whitelisted_addresses.length === 0)
-      ) {
+  useAutosaveWithStatus<UpdateSetupInitialSchema>({
+    id: "mini-app-permissions",
+    form,
+    enabled: canEdit,
+    save: async (values, signal) => {
+      if (signal?.aborted) throw new DOMException("Aborted", "AbortError");
+      if (hasInvalidWhitelistCombination(values)) {
         setError("whitelisted_addresses", {
           type: "manual",
           message:
             "Mini Apps must have at least one whitelisted payment address.",
         });
-        return;
+        throw new Error(
+          "Mini Apps must have at least one whitelisted payment address.",
+        );
       }
-
       const result = await validateAndUpdateSetupServerSide(
         values,
         appMetadata?.id ?? "",
       );
-
-      if (!result.success) {
-        toast.error(result.message);
-        return;
-      }
-
-      refetchAppMetadata();
-      toast.success("App information updated successfully");
+      if (signal?.aborted) throw new DOMException("Aborted", "AbortError");
+      if (!result.success) throw new Error(result.message);
+      // Skip refetch — none of the persisted fields are displayed elsewhere
+      // on this page (AppTopBar reads name/logo, QR panel reads
+      // integration_url, neither of which this form writes). Skipping the
+      // refetch avoids the cache-driven re-render flicker.
     },
-    [appMetadata?.id, refetchAppMetadata, setError],
-  );
+  });
+
+  const { flushAll, displayStatus } = useSaveStatus();
 
   const appMode = useWatch({ control, name: "app_mode" });
   const isWhitelistDisabled = useWatch({
@@ -273,30 +270,22 @@ export const SetupForm = ({
   });
 
   const isExternal = appMode === "external";
-  const canEdit = isEditable && isEnoughPermissions;
 
   return (
     <div className="grid gap-10 lg:grid-cols-[minmax(0,580px)_minmax(280px,1fr)] lg:items-start">
       <form
         className="grid max-w-[580px] gap-y-10"
-        onSubmit={handleSubmit(submit)}
+        onSubmit={(event) => {
+          event.preventDefault();
+          void flushAll();
+        }}
       >
-        <div className="grid gap-y-5">
-          <Typography
-            variant={TYPOGRAPHY.H7}
-            className="font-normal text-grey-900"
-          >
-            Advanced settings
-          </Typography>
-          {isDirty && (
-            <Typography
-              variant={TYPOGRAPHY.R4}
-              className="text-system-warning-500"
-            >
-              Warning: You have unsaved changes
-            </Typography>
-          )}
-        </div>
+        <Typography
+          variant={TYPOGRAPHY.H7}
+          className="font-normal text-grey-900"
+        >
+          Advanced settings
+        </Typography>
 
         <div className="grid gap-4 md:grid-cols-2">
           <ModeCard
@@ -581,13 +570,19 @@ export const SetupForm = ({
           </>
         )}
 
-        <div className="fixed bottom-[5.25rem] z-10 md:bottom-6">
+        <div className="fixed bottom-[5.25rem] right-6 z-10 flex items-center gap-x-3 md:bottom-6">
+          <SaveStatusIndicator />
           <DecoratedButton
-            type="submit"
-            className="h-14 w-[159px] rounded-full px-6"
-            disabled={!canEdit || !isValid}
+            type="button"
+            className="h-12 w-40"
+            disabled={!canEdit || displayStatus.state === "saving"}
+            onClick={() => {
+              void flushAll();
+            }}
           >
-            <Typography variant={TYPOGRAPHY.M3}>Save changes</Typography>
+            <Typography variant={TYPOGRAPHY.M3}>
+              {displayStatus.state === "saving" ? "Saving…" : "Save changes"}
+            </Typography>
           </DecoratedButton>
         </div>
       </form>
