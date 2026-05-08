@@ -16,9 +16,10 @@ type Registered = {
   flush: () => Promise<boolean>;
 };
 
-type SaveStatusContextValue = {
-  status: AutosaveStatus;
-  hasPending: boolean;
+// Action handles are stable across renders. Forms (autosave hooks, mini-app
+// toggle, AppTopBar's submitForReview) consume actions only — they don't need
+// to re-render when the indicator's status changes.
+export type SaveStatusActions = {
   register: (id: string, r: Registered) => () => void;
   pushStatus: (id: string, status: AutosaveStatus) => void;
   setPending: (id: string, isPending: boolean) => void;
@@ -30,7 +31,18 @@ type SaveStatusContextValue = {
   runExclusive: <T>(fn: () => Promise<T>) => Promise<T>;
 };
 
-const SaveStatusContext = createContext<SaveStatusContextValue | null>(null);
+// Reactive values change with every status push — only the indicator
+// (and the Submit button's "is saving" disabled flag) needs them.
+export type SaveStatusValues = {
+  status: AutosaveStatus;
+  hasPending: boolean;
+};
+
+const SaveStatusActionsContext = createContext<SaveStatusActions | null>(null);
+const SaveStatusValuesContext = createContext<SaveStatusValues>({
+  status: { state: "idle" },
+  hasPending: false,
+});
 
 export const mergeStatuses = (
   statuses: Map<string, AutosaveStatus>,
@@ -166,46 +178,54 @@ export const SaveStatusProvider = ({ children }: { children: ReactNode }) => {
     return pendingIds.size > 0;
   }, [status, pendingIds]);
 
-  const value = useMemo<SaveStatusContextValue>(
-    () => ({
-      status,
-      hasPending,
-      register,
-      pushStatus,
-      setPending,
-      flushAll,
-      runExclusive,
-    }),
-    [
-      status,
-      hasPending,
-      register,
-      pushStatus,
-      setPending,
-      flushAll,
-      runExclusive,
-    ],
+  // Actions are stable across renders — every callback above is useCallback'd
+  // with empty deps, so this object reference is too. Consumers that only need
+  // actions (e.g. the autosave hooks) won't re-render when status changes.
+  const actions = useMemo<SaveStatusActions>(
+    () => ({ register, pushStatus, setPending, flushAll, runExclusive }),
+    [register, pushStatus, setPending, flushAll, runExclusive],
+  );
+
+  const values = useMemo<SaveStatusValues>(
+    () => ({ status, hasPending }),
+    [status, hasPending],
   );
 
   useBeforeUnloadGuard(hasPending);
 
   return (
-    <SaveStatusContext.Provider value={value}>
-      {children}
-    </SaveStatusContext.Provider>
+    <SaveStatusActionsContext.Provider value={actions}>
+      <SaveStatusValuesContext.Provider value={values}>
+        {children}
+      </SaveStatusValuesContext.Provider>
+    </SaveStatusActionsContext.Provider>
   );
 };
 
-export const useSaveStatus = (): SaveStatusContextValue => {
-  const ctx = useContext(SaveStatusContext);
-  if (!ctx) {
+// Convenience: get both actions and values together. Use only in places that
+// genuinely need values (the indicator, the AppTopBar submit button) — using
+// this elsewhere reintroduces the unnecessary re-render cascade.
+export const useSaveStatus = (): SaveStatusActions & SaveStatusValues => {
+  const actions = useContext(SaveStatusActionsContext);
+  const values = useContext(SaveStatusValuesContext);
+  if (!actions) {
     throw new Error("useSaveStatus must be used within SaveStatusProvider");
   }
-  return ctx;
+  return { ...actions, ...values };
 };
 
-export const useOptionalSaveStatus = (): SaveStatusContextValue | null =>
-  useContext(SaveStatusContext);
+export const useOptionalSaveStatus = ():
+  | (SaveStatusActions & SaveStatusValues)
+  | null => {
+  const actions = useContext(SaveStatusActionsContext);
+  const values = useContext(SaveStatusValuesContext);
+  if (!actions) return null;
+  return { ...actions, ...values };
+};
+
+// Stable-actions-only hook — won't re-render the consumer on status changes.
+export const useSaveStatusActions = (): SaveStatusActions | null =>
+  useContext(SaveStatusActionsContext);
 
 const useBeforeUnloadGuard = (shouldWarn: boolean) => {
   useEffect(() => {

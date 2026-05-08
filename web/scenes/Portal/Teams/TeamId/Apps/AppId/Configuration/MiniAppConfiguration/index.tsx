@@ -16,7 +16,7 @@ import {
 } from "../graphql/client/fetch-app-metadata.generated";
 import { AppMetadata } from "../AppStore/types/AppStoreFormTypes";
 import { isMiniAppAtom } from "../layout/ImagesProvider";
-import { useOptionalSaveStatus } from "../SaveStatus";
+import { useSaveStatusActions } from "../SaveStatus";
 import { updateAppMode } from "./server/submit";
 
 type MiniAppConfigurationProps = {
@@ -33,7 +33,7 @@ export const MiniAppConfiguration = ({
   const { user } = useUser() as Auth0SessionUser;
   const [isUpdatingMode, setIsUpdatingMode] = useState(false);
   const modeUpdateInFlightRef = useRef(false);
-  const saveStatus = useOptionalSaveStatus();
+  const saveStatus = useSaveStatusActions();
 
   const isEnoughPermissions = useMemo(() => {
     return checkUserPermissions(user, teamId ?? "", [

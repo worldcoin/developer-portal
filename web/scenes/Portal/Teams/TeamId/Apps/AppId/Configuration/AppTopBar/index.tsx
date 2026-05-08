@@ -31,7 +31,7 @@ import { mainAppStoreFormReviewSubmitSchema } from "../AppStore/FormSchema/form-
 import { BasicInformationHandle } from "../BasicInformation";
 import { AppStoreFormValues } from "../AppStore/FormSchema/types";
 import { MULTIPLE_ERRORS_TOAST_MESSAGE } from "../AppStore/utils/form-error-utils";
-import { useOptionalSaveStatus } from "../SaveStatus";
+import { useSaveStatusActions } from "../SaveStatus";
 import { useApolloClient } from "@apollo/client";
 import {
   FetchAppMetadataDocument,
@@ -69,7 +69,7 @@ const AppTopBarSubmit = ({
   const client = useApolloClient();
   const [isSubmittingForReview, setIsSubmittingForReview] = useState(false);
   const hasAutoSubmitted = useRef(false);
-  const saveStatus = useOptionalSaveStatus();
+  const saveStatus = useSaveStatusActions();
 
   const submitForReview = useCallback(async () => {
     if (appMetadata?.verification_status !== "unverified") {
@@ -198,11 +198,7 @@ const AppTopBarSubmit = ({
           appMetadata.app_id?.includes("staging") &&
           process.env.NEXT_PUBLIC_APP_ENV === "production",
       })}
-      disabled={
-        viewMode === "verified" ||
-        isSubmittingForReview ||
-        saveStatus?.status.state === "saving"
-      }
+      disabled={viewMode === "verified" || isSubmittingForReview}
       onClick={submitForReview}
     >
       <Typography variant={TYPOGRAPHY.M3} className="whitespace-nowrap">

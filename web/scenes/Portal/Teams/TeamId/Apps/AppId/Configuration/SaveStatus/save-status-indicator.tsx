@@ -7,21 +7,15 @@ import { useEffect, useRef, useState } from "react";
 import { AutosaveStatus } from "../hook/use-autosave";
 import { useSaveStatus } from "./save-status-context";
 
-const formatRelative = (timestamp: number, now: number): string => {
-  const seconds = Math.floor((now - timestamp) / 1000);
-  if (seconds < 5) return "just now";
-  if (seconds < 60) return `${seconds}s ago`;
-  const minutes = Math.floor(seconds / 60);
-  if (minutes < 60) return `${minutes}m ago`;
-  const hours = Math.floor(minutes / 60);
-  return `${hours}h ago`;
-};
-
 const MIN_SAVING_VISIBLE_MS = 600;
+// How long the "Changes saved" pill stays visible after a successful save
+// before fading back to nothing.
+const SAVED_VISIBLE_MS = 3000;
 
 /**
  * Holds the underlying status long enough that "saving" stays on screen for at
- * least MIN_SAVING_VISIBLE_MS, even when the network resolves faster than that.
+ * least MIN_SAVING_VISIBLE_MS, and lets a "saved" pill linger for
+ * SAVED_VISIBLE_MS before fading back to idle.
  */
 const useDisplayStatus = (status: AutosaveStatus): AutosaveStatus => {
   const [display, setDisplay] = useState<AutosaveStatus>(status);
@@ -29,37 +23,61 @@ const useDisplayStatus = (status: AutosaveStatus): AutosaveStatus => {
   const pendingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    if (status.state === "saving") {
-      savingShownAtRef.current = Date.now();
+    const clearPending = () => {
       if (pendingTimerRef.current) {
         clearTimeout(pendingTimerRef.current);
         pendingTimerRef.current = null;
       }
+    };
+
+    if (status.state === "saving") {
+      savingShownAtRef.current = Date.now();
+      clearPending();
       setDisplay(status);
       return;
     }
 
     const shownAt = savingShownAtRef.current;
-    if (shownAt !== null) {
+    if (status.state === "saved" && shownAt !== null) {
       const elapsed = Date.now() - shownAt;
       if (elapsed < MIN_SAVING_VISIBLE_MS) {
-        // Always clear any previously-queued transition before scheduling a
-        // new one — otherwise two timers can fire at different times and the
-        // earlier one overwrites the later state with stale display.
-        if (pendingTimerRef.current) clearTimeout(pendingTimerRef.current);
+        // Hold "saving" for at least MIN_SAVING_VISIBLE_MS, then flip to the
+        // saved state for SAVED_VISIBLE_MS, then auto-clear back to idle.
+        clearPending();
         pendingTimerRef.current = setTimeout(() => {
           savingShownAtRef.current = null;
-          pendingTimerRef.current = null;
           setDisplay(status);
+          pendingTimerRef.current = setTimeout(() => {
+            pendingTimerRef.current = null;
+            setDisplay({ state: "idle" });
+          }, SAVED_VISIBLE_MS);
         }, MIN_SAVING_VISIBLE_MS - elapsed);
         return;
       }
       savingShownAtRef.current = null;
+      clearPending();
+      setDisplay(status);
+      pendingTimerRef.current = setTimeout(() => {
+        pendingTimerRef.current = null;
+        setDisplay({ state: "idle" });
+      }, SAVED_VISIBLE_MS);
+      return;
     }
-    if (pendingTimerRef.current) {
-      clearTimeout(pendingTimerRef.current);
-      pendingTimerRef.current = null;
+
+    if (status.state === "saved") {
+      // No prior "saving" was shown; still let the success pill linger.
+      clearPending();
+      setDisplay(status);
+      pendingTimerRef.current = setTimeout(() => {
+        pendingTimerRef.current = null;
+        setDisplay({ state: "idle" });
+      }, SAVED_VISIBLE_MS);
+      return;
     }
+
+    // idle / error path
+    savingShownAtRef.current = null;
+    clearPending();
     setDisplay(status);
   }, [status]);
 
@@ -69,13 +87,6 @@ const useDisplayStatus = (status: AutosaveStatus): AutosaveStatus => {
 export const SaveStatusIndicator = () => {
   const { status } = useSaveStatus();
   const display = useDisplayStatus(status);
-  const [now, setNow] = useState<number>(() => Date.now());
-
-  useEffect(() => {
-    if (display.state !== "saved") return;
-    const interval = setInterval(() => setNow(Date.now()), 30_000);
-    return () => clearInterval(interval);
-  }, [display.state]);
 
   if (display.state === "idle") return null;
 
@@ -83,7 +94,7 @@ export const SaveStatusIndicator = () => {
     return (
       <div className="flex items-center gap-x-2 rounded-full border border-blue-500 bg-blue-50 px-3 py-1.5 text-blue-500">
         <SpinnerIcon className="size-4 animate-spin" />
-        <Typography variant={TYPOGRAPHY.M3}>Autosaving…</Typography>
+        <Typography variant={TYPOGRAPHY.M3}>Saving…</Typography>
       </div>
     );
   }
@@ -92,9 +103,7 @@ export const SaveStatusIndicator = () => {
     return (
       <div className="flex items-center gap-x-2 rounded-full border border-system-success-500 bg-system-success-50 px-3 py-1.5 text-system-success-700">
         <CheckIcon size="16" />
-        <Typography variant={TYPOGRAPHY.M3}>
-          Autosaved {formatRelative(display.at, now)}
-        </Typography>
+        <Typography variant={TYPOGRAPHY.M3}>Changes saved</Typography>
       </div>
     );
   }

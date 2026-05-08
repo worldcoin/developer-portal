@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef } from "react";
 import { FieldValues, UseFormReturn } from "react-hook-form";
-import { useOptionalSaveStatus } from "../SaveStatus";
+import { useSaveStatusActions } from "../SaveStatus";
 import { AutosaveStatus, useAutosave } from "./use-autosave";
 
 type Options<T extends FieldValues> = {
@@ -16,7 +16,7 @@ type Options<T extends FieldValues> = {
 export const useAutosaveWithStatus = <T extends FieldValues>(
   options: Options<T>,
 ) => {
-  const ctx = useOptionalSaveStatus();
+  const ctx = useSaveStatusActions();
   const idRef = useRef(options.id);
   idRef.current = options.id;
   const saveRef = useRef(options.save);
