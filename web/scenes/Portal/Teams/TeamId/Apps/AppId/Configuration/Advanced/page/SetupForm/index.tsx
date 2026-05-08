@@ -21,14 +21,14 @@ import { RadioCard } from "@/scenes/Portal/layout/CreateAppDialog/RadioCard";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { yupResolver } from "@hookform/resolvers/yup";
 import clsx from "clsx";
-import { ChangeEvent, useCallback, useEffect, useMemo } from "react";
+import { ChangeEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import {
   FetchAppMetadataDocument,
   FetchAppMetadataQuery,
 } from "../../../graphql/client/fetch-app-metadata.generated";
 import { useAutosaveWithStatus } from "../../../hook/use-autosave-with-status";
-import { useSaveStatus } from "../../../SaveStatus";
+import { useSaveStatusActions } from "../../../SaveStatus";
 import {
   updateSetupInitialSchema,
   UpdateSetupInitialSchema,
@@ -198,7 +198,18 @@ export const SetupForm = (props: LinksFormProps) => {
     },
   });
 
-  const { flushAll, status } = useSaveStatus();
+  const saveStatusActions = useSaveStatusActions();
+  const [isManualSaving, setIsManualSaving] = useState(false);
+
+  const handleManualSave = useCallback(async () => {
+    if (!saveStatusActions) return;
+    setIsManualSaving(true);
+    try {
+      await saveStatusActions.flushAll();
+    } finally {
+      setIsManualSaving(false);
+    }
+  }, [saveStatusActions]);
 
   const appMode = useWatch({
     control,
@@ -229,7 +240,7 @@ export const SetupForm = (props: LinksFormProps) => {
       className="grid gap-y-9"
       onSubmit={(event) => {
         event.preventDefault();
-        void flushAll();
+        void handleManualSave();
       }}
     >
       <Typography variant={TYPOGRAPHY.H7}>Advanced Settings</Typography>
@@ -480,13 +491,13 @@ export const SetupForm = (props: LinksFormProps) => {
       <DecoratedButton
         type="button"
         className="h-12 w-40"
-        disabled={!isAdvancedEditable || status.state === "saving"}
+        disabled={!isAdvancedEditable || isManualSaving}
         onClick={() => {
-          void flushAll();
+          void handleManualSave();
         }}
       >
         <Typography variant={TYPOGRAPHY.M3}>
-          {status.state === "saving" ? "Saving…" : "Save now"}
+          {isManualSaving ? "Saving…" : "Save now"}
         </Typography>
       </DecoratedButton>
     </form>
