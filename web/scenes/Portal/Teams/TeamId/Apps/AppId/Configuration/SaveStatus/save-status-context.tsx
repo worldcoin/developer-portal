@@ -308,6 +308,17 @@ const useDisplayStatus = (status: AutosaveStatus): AutosaveStatus => {
     setDisplay(status);
   }, [status]);
 
+  // Clear any pending transition timer on unmount so a timeout can't fire
+  // setDisplay on an already-unmounted provider after navigation away.
+  useEffect(() => {
+    return () => {
+      if (pendingTimerRef.current) {
+        clearTimeout(pendingTimerRef.current);
+        pendingTimerRef.current = null;
+      }
+    };
+  }, []);
+
   return display;
 };
 
