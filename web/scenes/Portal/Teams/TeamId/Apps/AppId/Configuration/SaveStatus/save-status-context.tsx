@@ -12,6 +12,11 @@ import {
 } from "react";
 import { AutosaveStatus } from "../hook/use-autosave";
 
+const MIN_SAVING_VISIBLE_MS = 600;
+// How long the "Changes saved" pill stays visible after a successful save
+// before fading back to nothing.
+const SAVED_VISIBLE_MS = 3000;
+
 type Registered = {
   flush: () => Promise<boolean>;
 };
@@ -35,12 +40,19 @@ export type SaveStatusActions = {
 // (and the Submit button's "is saving" disabled flag) needs them.
 export type SaveStatusValues = {
   status: AutosaveStatus;
+  // Status with the indicator's display rules applied: "saving" is held for
+  // at least MIN_SAVING_VISIBLE_MS, "saved" lingers for SAVED_VISIBLE_MS
+  // before snapping back to idle. Use this for any UI surface that must
+  // track the indicator's visible state (e.g. the Save Changes button's
+  // loading variant should only flip while the blue pill is showing).
+  displayStatus: AutosaveStatus;
   hasPending: boolean;
 };
 
 const SaveStatusActionsContext = createContext<SaveStatusActions | null>(null);
 const SaveStatusValuesContext = createContext<SaveStatusValues>({
   status: { state: "idle" },
+  displayStatus: { state: "idle" },
   hasPending: false,
 });
 
@@ -167,6 +179,8 @@ export const SaveStatusProvider = ({ children }: { children: ReactNode }) => {
     [statuses, pendingIds],
   );
 
+  const displayStatus = useDisplayStatus(status);
+
   const hasPending = useMemo(() => {
     // Derive pending-ness from actual unsaved data (`pendingIds`) and from
     // whether a save is currently in flight. Error status alone is not enough
@@ -187,8 +201,8 @@ export const SaveStatusProvider = ({ children }: { children: ReactNode }) => {
   );
 
   const values = useMemo<SaveStatusValues>(
-    () => ({ status, hasPending }),
-    [status, hasPending],
+    () => ({ status, displayStatus, hasPending }),
+    [status, displayStatus, hasPending],
   );
 
   useBeforeUnloadGuard(hasPending);
@@ -226,6 +240,76 @@ export const useOptionalSaveStatus = ():
 // Stable-actions-only hook — won't re-render the consumer on status changes.
 export const useSaveStatusActions = (): SaveStatusActions | null =>
   useContext(SaveStatusActionsContext);
+
+/**
+ * Holds the underlying status long enough that "saving" stays on screen for
+ * at least MIN_SAVING_VISIBLE_MS, and lets a "saved" pill linger for
+ * SAVED_VISIBLE_MS before fading back to idle. Centralised here so the
+ * indicator and any consumer button (e.g. Save Changes) share the same
+ * displayed state instead of computing it independently.
+ */
+const useDisplayStatus = (status: AutosaveStatus): AutosaveStatus => {
+  const [display, setDisplay] = useState<AutosaveStatus>(status);
+  const savingShownAtRef = useRef<number | null>(null);
+  const pendingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    const clearPending = () => {
+      if (pendingTimerRef.current) {
+        clearTimeout(pendingTimerRef.current);
+        pendingTimerRef.current = null;
+      }
+    };
+
+    if (status.state === "saving") {
+      savingShownAtRef.current = Date.now();
+      clearPending();
+      setDisplay(status);
+      return;
+    }
+
+    const shownAt = savingShownAtRef.current;
+    if (status.state === "saved" && shownAt !== null) {
+      const elapsed = Date.now() - shownAt;
+      if (elapsed < MIN_SAVING_VISIBLE_MS) {
+        clearPending();
+        pendingTimerRef.current = setTimeout(() => {
+          savingShownAtRef.current = null;
+          setDisplay(status);
+          pendingTimerRef.current = setTimeout(() => {
+            pendingTimerRef.current = null;
+            setDisplay({ state: "idle" });
+          }, SAVED_VISIBLE_MS);
+        }, MIN_SAVING_VISIBLE_MS - elapsed);
+        return;
+      }
+      savingShownAtRef.current = null;
+      clearPending();
+      setDisplay(status);
+      pendingTimerRef.current = setTimeout(() => {
+        pendingTimerRef.current = null;
+        setDisplay({ state: "idle" });
+      }, SAVED_VISIBLE_MS);
+      return;
+    }
+
+    if (status.state === "saved") {
+      clearPending();
+      setDisplay(status);
+      pendingTimerRef.current = setTimeout(() => {
+        pendingTimerRef.current = null;
+        setDisplay({ state: "idle" });
+      }, SAVED_VISIBLE_MS);
+      return;
+    }
+
+    savingShownAtRef.current = null;
+    clearPending();
+    setDisplay(status);
+  }, [status]);
+
+  return display;
+};
 
 const useBeforeUnloadGuard = (shouldWarn: boolean) => {
   useEffect(() => {

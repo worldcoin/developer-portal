@@ -3,9 +3,9 @@ import { Auth0SessionUser } from "@/lib/types";
 import { checkUserPermissions } from "@/lib/utils";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { useAtomValue } from "jotai";
-import { useCallback, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
-import { useSaveStatusActions } from "../SaveStatus";
+import { useSaveStatus } from "../SaveStatus";
 import { useAutosaveWithStatus } from "../hook/use-autosave-with-status";
 import { isMiniAppAtom } from "../layout/ImagesProvider";
 import { CategorySection } from "./components/FormSections/CategorySection";
@@ -46,21 +46,10 @@ export const AppStoreForm = ({
   } = useAppStoreForm(appId, appMetadata);
 
   const form = useFormContext<AppStoreFormValues>();
-  // Use the actions-only context so this component doesn't re-render on every
-  // background autosave status push. The button's pressed state is tracked
-  // locally below.
-  const saveStatusActions = useSaveStatusActions();
-  const [isManualSaving, setIsManualSaving] = useState(false);
-
-  const handleManualSave = useCallback(async () => {
-    if (!saveStatusActions) return;
-    setIsManualSaving(true);
-    try {
-      await saveStatusActions.flushAll();
-    } finally {
-      setIsManualSaving(false);
-    }
-  }, [saveStatusActions]);
+  // Read displayStatus (debounced/held view of the save state) so the button
+  // tracks the indicator's visible "Saving…" pill — disabling and changing
+  // copy only while the blue pill is showing, not on every raw status flip.
+  const { flushAll, displayStatus } = useSaveStatus();
 
   const isEnoughPermissions = useMemo(() => {
     return checkUserPermissions(user, teamId ?? "", [
@@ -174,10 +163,14 @@ export const AppStoreForm = ({
         <div className="fixed bottom-[5.25rem] right-6 z-10 flex items-center gap-x-3 md:bottom-6">
           <SaveStatusIndicator />
           <SaveButton
-            isSubmitting={isManualSaving}
-            isDisabled={!isEditable || !isEnoughPermissions || isManualSaving}
+            isSubmitting={displayStatus.state === "saving"}
+            isDisabled={
+              !isEditable ||
+              !isEnoughPermissions ||
+              displayStatus.state === "saving"
+            }
             onSubmit={() => {
-              void handleManualSave();
+              void flushAll();
             }}
           />
         </div>
