@@ -292,6 +292,21 @@ export const POST = async (req: NextRequest) => {
   const appMetadata = app_metadata?.[0];
   const teamId = appMetadata.app.team.id;
 
+  if (
+    verifiedOrDefaultApp.app_mode === "external" ||
+    verifiedOrDefaultApp.category?.toLowerCase() === "external"
+  ) {
+    return errorResponse({
+      statusCode: 400,
+      code: "external_app_not_allowed",
+      detail: "Notifications are not available for external apps",
+      attribute: "app",
+      req,
+      app_id,
+      team_id: teamId,
+    });
+  }
+
   // If app is not verified we allow max 40 notifications per 4 hours
   if (verifiedOrDefaultApp?.verification_status !== "verified") {
     const key = `app_notifications_${app_id}`;
