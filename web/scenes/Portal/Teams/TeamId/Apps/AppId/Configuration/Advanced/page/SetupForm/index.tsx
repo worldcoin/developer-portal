@@ -15,18 +15,14 @@ import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Role_Enum } from "@/graphql/graphql";
 import { AppMode } from "@/lib/constants";
 import { Auth0SessionUser } from "@/lib/types";
-import { useRefetchQueries } from "@/lib/use-refetch-queries";
 import { checkUserPermissions } from "@/lib/utils";
 import { RadioCard } from "@/scenes/Portal/layout/CreateAppDialog/RadioCard";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { yupResolver } from "@hookform/resolvers/yup";
 import clsx from "clsx";
-import { ChangeEvent, useCallback, useEffect, useMemo } from "react";
+import { ChangeEvent, useCallback, useEffect, useMemo, useRef } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
-import {
-  FetchAppMetadataDocument,
-  FetchAppMetadataQuery,
-} from "../../../graphql/client/fetch-app-metadata.generated";
+import { FetchAppMetadataQuery } from "../../../graphql/client/fetch-app-metadata.generated";
 import { useAutosaveWithStatus } from "../../../hook/use-autosave-with-status";
 import { useSaveStatus } from "../../../SaveStatus";
 import {
@@ -79,16 +75,9 @@ const calculateRows = (
 };
 
 export const SetupForm = (props: LinksFormProps) => {
-  const { appId, teamId, appMetadata } = props;
+  const { teamId, appMetadata } = props;
   const { user } = useUser() as Auth0SessionUser;
   const isEditable = appMetadata?.verification_status === "unverified";
-
-  const { refetch: refetchAppMetadata } = useRefetchQueries(
-    FetchAppMetadataDocument,
-    {
-      id: appId,
-    },
-  );
 
   const isEnoughPermissions = useMemo(() => {
     return checkUserPermissions(user, teamId ?? "", [
@@ -125,35 +114,33 @@ export const SetupForm = (props: LinksFormProps) => {
     control,
   } = form;
 
-  // Used to update the fields when view mode is change
+  // Reset only when the underlying metadata row changes (e.g. version
+  // switch), never on cache updates that happen while the user is mid-edit.
+  // Without this gate, autosave's post-save refetch could land while the
+  // user keeps typing and reset() would revert the in-flight local edit.
+  const previousMetadataIdRef = useRef(appMetadata?.id);
   useEffect(() => {
-    reset({
-      whitelisted_addresses:
-        appMetadata?.whitelisted_addresses?.join(",") ?? null,
-      app_mode: appMetadata?.app_mode as keyof typeof AppMode,
-      is_whitelist_disabled: !Boolean(appMetadata?.whitelisted_addresses),
-      associated_domains: appMetadata?.associated_domains?.join(",") ?? null,
-      contracts: appMetadata?.contracts?.join(",") ?? null,
-      permit2_tokens: appMetadata?.permit2_tokens?.join(",") ?? null,
-      can_import_all_contacts: appMetadata?.can_import_all_contacts,
-      can_use_attestation: appMetadata?.can_use_attestation,
-      max_notifications_per_day: Number(appMetadata?.max_notifications_per_day),
-      is_allowed_unlimited_notifications: Boolean(
-        appMetadata?.is_allowed_unlimited_notifications,
-      ),
-    });
-  }, [
-    reset,
-    appMetadata?.whitelisted_addresses,
-    appMetadata?.app_mode,
-    appMetadata?.associated_domains,
-    appMetadata?.contracts,
-    appMetadata?.permit2_tokens,
-    appMetadata?.can_import_all_contacts,
-    appMetadata?.can_use_attestation,
-    appMetadata?.max_notifications_per_day,
-    appMetadata?.is_allowed_unlimited_notifications,
-  ]);
+    if (previousMetadataIdRef.current !== appMetadata?.id) {
+      reset({
+        whitelisted_addresses:
+          appMetadata?.whitelisted_addresses?.join(",") ?? null,
+        app_mode: appMetadata?.app_mode as keyof typeof AppMode,
+        is_whitelist_disabled: !Boolean(appMetadata?.whitelisted_addresses),
+        associated_domains: appMetadata?.associated_domains?.join(",") ?? null,
+        contracts: appMetadata?.contracts?.join(",") ?? null,
+        permit2_tokens: appMetadata?.permit2_tokens?.join(",") ?? null,
+        can_import_all_contacts: appMetadata?.can_import_all_contacts,
+        can_use_attestation: appMetadata?.can_use_attestation,
+        max_notifications_per_day: Number(
+          appMetadata?.max_notifications_per_day,
+        ),
+        is_allowed_unlimited_notifications: Boolean(
+          appMetadata?.is_allowed_unlimited_notifications,
+        ),
+      });
+      previousMetadataIdRef.current = appMetadata?.id;
+    }
+  }, [appMetadata, reset]);
 
   const persist = useCallback(
     async (values: UpdateSetupInitialSchema, signal?: AbortSignal) => {
@@ -166,9 +153,13 @@ export const SetupForm = (props: LinksFormProps) => {
       if (!result.success) {
         throw new Error(result.message);
       }
-      await refetchAppMetadata();
+      // Don't refetch — autosave's local form state is the source of truth
+      // for fields the user just typed. A refetch after every save would
+      // race with continued typing and the auto-reset above (when ungated)
+      // would clobber in-flight edits. None of the persisted fields are
+      // displayed elsewhere on this page, so skipping the refetch is safe.
     },
-    [appMetadata?.id, refetchAppMetadata],
+    [appMetadata?.id],
   );
 
   const isAdvancedEditable = isEditable && isEnoughPermissions;
