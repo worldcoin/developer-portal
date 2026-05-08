@@ -43,6 +43,10 @@ const useDisplayStatus = (status: AutosaveStatus): AutosaveStatus => {
     if (shownAt !== null) {
       const elapsed = Date.now() - shownAt;
       if (elapsed < MIN_SAVING_VISIBLE_MS) {
+        // Always clear any previously-queued transition before scheduling a
+        // new one — otherwise two timers can fire at different times and the
+        // earlier one overwrites the later state with stale display.
+        if (pendingTimerRef.current) clearTimeout(pendingTimerRef.current);
         pendingTimerRef.current = setTimeout(() => {
           savingShownAtRef.current = null;
           pendingTimerRef.current = null;
@@ -51,6 +55,10 @@ const useDisplayStatus = (status: AutosaveStatus): AutosaveStatus => {
         return;
       }
       savingShownAtRef.current = null;
+    }
+    if (pendingTimerRef.current) {
+      clearTimeout(pendingTimerRef.current);
+      pendingTimerRef.current = null;
     }
     setDisplay(status);
   }, [status]);
@@ -69,15 +77,7 @@ export const SaveStatusIndicator = () => {
     return () => clearInterval(interval);
   }, [display.state]);
 
-  if (display.state === "idle") {
-    // Always render *something* so users can see the autosave is wired up,
-    // even before the first save fires.
-    return (
-      <div className="flex items-center gap-x-2 rounded-full border border-grey-200 bg-grey-50 px-3 py-1.5 text-grey-500">
-        <Typography variant={TYPOGRAPHY.M3}>Auto-save enabled</Typography>
-      </div>
-    );
-  }
+  if (display.state === "idle") return null;
 
   if (display.state === "saving") {
     return (
