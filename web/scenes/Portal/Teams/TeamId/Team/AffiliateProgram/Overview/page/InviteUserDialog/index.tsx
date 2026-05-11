@@ -25,7 +25,7 @@ export const InviteUserDialog = (props: Props) => {
       <DialogOverlay />
 
       <DialogPanel
-        className="grid gap-y-8 md:max-w-[30rem]"
+        className="grid max-w-[30rem] gap-y-8 md:w-[30rem]"
         onClose={() => setIsOpened(false)}
         showCloseIcon={true}
       >

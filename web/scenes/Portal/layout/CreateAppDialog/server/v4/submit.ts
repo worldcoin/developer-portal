@@ -1,6 +1,7 @@
 "use server";
 import { errorFormAction } from "@/api/helpers/errors";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
+import { logPortalEvent } from "@/api/helpers/portal-events";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { getIsUserAllowedToInsertApp } from "@/lib/permissions";
 import { FormActionResult } from "@/lib/types";
@@ -40,7 +41,7 @@ export async function validateAndInsertAppServerSideV4(
     const app_mode = parsedInitialValues.is_miniapp ? "mini-app" : "external";
 
     const client = await getAPIServiceGraphqlClient();
-    await getInsertAppSdk(client).InsertApp({
+    const result = await getInsertAppSdk(client).InsertApp({
       team_id,
       name: parsedInitialValues.name,
       is_staging: parsedInitialValues.build === "staging",
@@ -49,6 +50,18 @@ export async function validateAndInsertAppServerSideV4(
       integration_url:
         parsedInitialValues.integration_url ?? "https://docs.world.org/",
       app_mode,
+    });
+
+    logPortalEvent({
+      event: "app_creation",
+      actor: "human",
+      team_id,
+      app_id: result.insert_app_one?.id,
+      metadata: {
+        environment: parsedInitialValues.build,
+        engine: parsedInitialValues.verification,
+        app_mode,
+      },
     });
 
     return {

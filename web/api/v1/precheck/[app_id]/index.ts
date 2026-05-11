@@ -1,5 +1,6 @@
 import { errorResponse } from "@/api/helpers/errors";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
+import { parseRequestBody } from "@/api/helpers/parse-request-body";
 import { RpRegistrationStatus } from "@/api/helpers/rp-utils";
 import { corsHandler } from "@/api/helpers/utils";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
@@ -64,17 +65,22 @@ export async function POST(
   req: NextRequest,
   { params: routeParams }: { params: { app_id: string } },
 ) {
-  const body = await req.json();
+  const app_id = routeParams.app_id;
+
+  const parseResult = await parseRequestBody(req, { app_id });
+  if (!parseResult.isValid) {
+    return corsHandler(parseResult.error, corsMethods);
+  }
+
   const { isValid, parsedParams, handleError } = await validateRequestSchema({
     schema,
-    value: body,
+    value: parseResult.body,
   });
 
   if (!isValid) {
     return corsHandler(handleError(req), corsMethods);
   }
 
-  const app_id = routeParams.app_id;
   const action = parsedParams.action ?? "";
   const nullifier_hash = parsedParams.nullifier_hash;
 
