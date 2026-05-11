@@ -3,6 +3,7 @@ import { SizingWrapper } from "@/components/SizingWrapper";
 import { Unauthorized } from "@/components/Unauthorized";
 import { Auth0SessionUser } from "@/lib/types";
 import { AffiliateProgramBanner } from "@/scenes/Portal/Teams/TeamId/Apps/AppId/page/AffiliateProgramBanner";
+import { isAffiliateKycEnabled } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/common/is-affiliate-kyc-enabled";
 import { getSdk as getTeamVerifiedAppsSdk } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/common/server/graphql/getTeamVerifiedApps.generated";
 import { getSession } from "@auth0/nextjs-auth0";
 import { TeamProfile } from "../common/TeamProfile";
@@ -39,13 +40,15 @@ export const TeamIdPage = async (props: TeamIdPageProps) => {
     },
   );
   const hasVerifiedApps = verifiedApps.app.length > 0;
+  const showAffiliateProgramBanner =
+    hasVerifiedApps || isAffiliateKycEnabled(user?.email);
 
   return (
     <>
       <SizingWrapper gridClassName="order-1">
         <AffiliateProgramBanner
           teamId={teamId}
-          hasVerifiedApps={hasVerifiedApps}
+          visible={showAffiliateProgramBanner}
         />
         <TeamProfile />
       </SizingWrapper>

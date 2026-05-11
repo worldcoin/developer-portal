@@ -29,9 +29,7 @@ export const AffiliateProgramLayout = (props: TeamIdLayoutProps) => {
   const [affiliateEnabled] = useAtom(affiliateEnabledAtom);
 
   const isAffiliateEnabled = useMemo(
-    () =>
-      affiliateEnabled.isFetched &&
-      isAffiliateEnabledForTeam(affiliateEnabled, teamId, auth0User),
+    () => isAffiliateEnabledForTeam(affiliateEnabled, teamId, auth0User),
     [affiliateEnabled, teamId, auth0User],
   );
 

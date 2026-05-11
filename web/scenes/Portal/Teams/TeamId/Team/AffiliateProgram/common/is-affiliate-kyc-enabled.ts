@@ -1,6 +1,7 @@
 /** Logged-in users who may start affiliate KYC (individual) in addition to KYB. */
 // TODO: introduce SSM after testing to manage emails list on prod
 const AFFILIATE_KYC_ALLOWED_EMAILS = new Set([
+  "evgeniy.sabynin@toolsforhumanity.com",
   "natan.sklair@tooslforhumanity.com",
 ]);
 
