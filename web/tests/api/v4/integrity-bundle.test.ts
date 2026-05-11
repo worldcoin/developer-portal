@@ -71,6 +71,7 @@ async function createIntegrityJwt(params: {
   agPrivateKey: KeyObject;
   audience?: string;
   devicePublicJwk: JWK;
+  expirationTime?: number | string | Date;
   pass?: boolean;
   platform: "android" | "ios";
 }) {
@@ -85,12 +86,14 @@ async function createIntegrityJwt(params: {
     .setIssuer(ISSUER)
     .setAudience(params.audience ?? RP_ID)
     .setIssuedAt()
-    .setExpirationTime("5m")
+    .setExpirationTime(params.expirationTime ?? "5m")
     .sign(params.agPrivateKey);
 }
 
 async function createBundle(params?: {
+  agKey?: AgKey;
   audience?: string;
+  jwtExpirationTime?: number | string | Date;
   jwtPlatform?: "android" | "ios";
   pass?: boolean;
   signedNonce?: string;
@@ -98,7 +101,7 @@ async function createBundle(params?: {
   signatureFormat?: "android_keystore" | "apple_app_attest";
   timestamp?: number;
 }) {
-  const agKey = createAgKey();
+  const agKey = params?.agKey ?? createAgKey();
   const deviceKey = createDeviceKey();
   const nonce = params?.signedNonce ?? "0x01";
   const platform = params?.jwtPlatform ?? "android";
@@ -110,6 +113,7 @@ async function createBundle(params?: {
     agPrivateKey: agKey.privateKey,
     audience: params?.audience,
     devicePublicJwk: deviceKey.publicJwk,
+    expirationTime: params?.jwtExpirationTime,
     pass: params?.pass,
     platform,
   });
@@ -220,6 +224,42 @@ describe("integrity bundle verification", () => {
 
     expect(firstResult).toEqual({ success: true });
     expect(secondResult).toEqual({ success: true });
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not refresh cached AG JWKs for expired integrity tokens", async () => {
+    const agKey = createAgKey();
+    const validBundle = await createBundle({ agKey });
+    const expiredBundle = await createBundle({
+      agKey,
+      jwtExpirationTime: Math.floor(Date.now() / 1000) - 60,
+    });
+    const fetchSpy = jest.spyOn(global, "fetch").mockResolvedValue(
+      new Response(JSON.stringify({ keys: [agKey.publicJwk] }), {
+        status: 200,
+      }),
+    );
+
+    const firstResult = await verifyIntegrityBundle({
+      integrityBundle: validBundle.integrityBundle,
+      nonce: validBundle.nonce,
+      protocolVersion: "4.0",
+      responses: [response],
+      rpId: RP_ID,
+    });
+    const expiredResult = await verifyIntegrityBundle({
+      integrityBundle: expiredBundle.integrityBundle,
+      nonce: expiredBundle.nonce,
+      protocolVersion: "4.0",
+      responses: [response],
+      rpId: RP_ID,
+    });
+
+    expect(firstResult).toEqual({ success: true });
+    expect(expiredResult).toEqual({
+      success: false,
+      reason: "invalid_integrity_token",
+    });
     expect(fetchSpy).toHaveBeenCalledTimes(1);
   });
 

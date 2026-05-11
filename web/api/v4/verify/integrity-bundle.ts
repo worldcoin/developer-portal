@@ -11,6 +11,7 @@ import {
   jwtVerify,
   JWTPayload,
 } from "jose";
+import { JWSSignatureVerificationFailed } from "jose/errors";
 import {
   IntegrityBundle,
   SessionResponseItem,
@@ -431,6 +432,10 @@ async function verifyJwtWithJwk(params: { integrityJwt: string; jwk: JWK }) {
   return payload as IntegrityTokenClaims;
 }
 
+function shouldRefreshJwksAfterJwtFailure(error: unknown) {
+  return error instanceof JWSSignatureVerificationFailed;
+}
+
 function validateAudience(params: {
   kid: string;
   payload: IntegrityTokenClaims;
@@ -489,7 +494,7 @@ async function verifyIntegrityToken(params: {
       jwk: keyResult.jwk,
     });
   } catch (error) {
-    if (!keyResult.fromCache) {
+    if (!keyResult.fromCache || !shouldRefreshJwksAfterJwtFailure(error)) {
       throw new IntegrityBundleError(
         "invalid_integrity_token",
         error instanceof Error ? error.message : String(error),
