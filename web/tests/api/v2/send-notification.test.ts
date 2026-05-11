@@ -358,6 +358,51 @@ describe("/api/v2/minikit/send-notification [error cases]", () => {
     expect((await res.json()).detail).toBe("API key is inactive.");
   });
 
+  it.each([
+    {
+      label: "app_mode is external",
+      app_mode: "external",
+      category: "Social",
+    },
+    {
+      label: "category is External",
+      app_mode: "mini-app",
+      category: "External",
+    },
+  ])("returns 400 when $label", async ({ app_mode, category }) => {
+    const mockReq = createMockRequest({
+      url: "http://localhost:3000/api/v2/minikit/send-notification",
+      api_key: validApiKey,
+    });
+
+    GetAppMetadata.mockResolvedValue({
+      app_metadata: [
+        {
+          name: "Example App",
+          app_id: "app_staging_9cdd0a714aec9ed17dca660bc9ffe72a",
+          app_mode,
+          category,
+          is_reviewer_app_store_approved: true,
+          is_allowed_unlimited_notifications: true,
+          max_notifications_per_day: 10,
+          verification_status: "verified",
+          app: { team: { id: testTeamId } },
+        },
+      ],
+    });
+
+    mockSignedFetcher.mockClear();
+
+    const res = await POST(mockReq);
+    expect(res.status).toBe(400);
+    const body = await res.json();
+    expect(body.code).toBe("external_app_not_allowed");
+    expect(body.detail).toBe(
+      "Notifications are not available for external apps",
+    );
+    expect(mockSignedFetcher).not.toHaveBeenCalled();
+  });
+
   it("returns 400 if not allowed to send notifications", async () => {
     const mockReq = createMockRequest({
       url: "http://localhost:3000/api/v2/minikit/send-notification",

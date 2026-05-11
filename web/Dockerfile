@@ -22,15 +22,11 @@ WORKDIR /app
 # Install working version of corepack
 RUN npm install -g corepack@0.31.0 && corepack --version
 
-# Pin pnpm to the project's version. Without this, `corepack enable pnpm`
-# fetches the latest pnpm (11.x), which fails on Node 20 with
-# ERR_VM_DYNAMIC_IMPORT_CALLBACK_MISSING. We can't read the version from
-# package.json here because this stage installs a curated subset and
-# doesn't copy it.
-RUN corepack prepare pnpm@9.15.4 --activate
-
+# This stage has no project package.json, so corepack would otherwise fall back
+# to the latest pnpm (incompatible with the Node 20 base). Pin to the same
+# version declared in the project's packageManager field.
 # TODO: Can be further optimized to remove next peer dependency
-RUN pnpm i next-logger@5.0.0 pino@9.2.0 dd-trace@5.12.0
+RUN corepack enable pnpm && corepack prepare pnpm@9.15.4 --activate && pnpm i next-logger@5.0.0 pino@9.2.0 dd-trace@5.12.0
 
 # Rebuild the source code only when needed
 FROM base AS builder
