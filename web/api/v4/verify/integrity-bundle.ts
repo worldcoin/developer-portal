@@ -96,6 +96,7 @@ const i64be = (value: number) => {
 };
 
 const getIntegrityJwksUrl = () =>
+  process.env.ATTESTATION_GATEWAY_JWKS_URL ??
   process.env.INTEGRITY_BUNDLE_JWKS_URL ??
   process.env.INTEGRITY_TOKEN_JWKS_URL ??
   DEFAULT_INTEGRITY_JWKS_URL;
