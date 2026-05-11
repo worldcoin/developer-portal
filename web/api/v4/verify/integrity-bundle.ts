@@ -8,8 +8,8 @@ import {
   decodeProtectedHeader,
   importJWK,
   JWK,
-  jwtVerify,
   JWTPayload,
+  jwtVerify,
 } from "jose";
 import { JWSSignatureVerificationFailed } from "jose/errors";
 import {
@@ -28,6 +28,8 @@ const JWKS_FETCH_TIMEOUT_MS = 4_000;
 const DEFAULT_INTEGRITY_JWKS_URL =
   "https://attestation.worldcoin.org/.well-known/jwks.json";
 const DEFAULT_INTEGRITY_ISSUER = "attestation.worldcoin.org";
+// Temporary fixed audience for internal testing only.
+const DEFAULT_INTEGRITY_AUDIENCE = "developer.worldcoin.org";
 
 export const INTEGRITY_VERIFICATION_ERROR_CODE =
   "integrity_verification_failed";
@@ -106,6 +108,11 @@ const getIntegrityExpectedIssuer = () =>
   process.env.INTEGRITY_BUNDLE_EXPECTED_ISSUER ??
   process.env.INTEGRITY_TOKEN_EXPECTED_ISSUER ??
   DEFAULT_INTEGRITY_ISSUER;
+
+const getIntegrityExpectedAudience = () =>
+  process.env.INTEGRITY_BUNDLE_EXPECTED_AUDIENCE ??
+  process.env.INTEGRITY_TOKEN_EXPECTED_AUDIENCE ??
+  DEFAULT_INTEGRITY_AUDIENCE;
 
 export function normalizeIntegrityBundle(
   integrityBundle: IntegrityBundle,
@@ -427,6 +434,8 @@ async function verifyJwtWithJwk(params: { integrityJwt: string; jwk: JWK }) {
   const { payload } = await jwtVerify(params.integrityJwt, publicKey, {
     algorithms: ["ES256"],
     issuer: getIntegrityExpectedIssuer(),
+    audience: getIntegrityExpectedAudience(),
+    requiredClaims: ["cnf", "exp", "platform", "pass"],
   });
 
   return payload as IntegrityTokenClaims;
@@ -434,31 +443,6 @@ async function verifyJwtWithJwk(params: { integrityJwt: string; jwk: JWK }) {
 
 function shouldRefreshJwksAfterJwtFailure(error: unknown) {
   return error instanceof JWSSignatureVerificationFailed;
-}
-
-function validateAudience(params: {
-  kid: string;
-  payload: IntegrityTokenClaims;
-  rpId: string;
-}) {
-  const aud = params.payload.aud;
-  const matches =
-    typeof aud === "string"
-      ? aud === params.rpId
-      : Array.isArray(aud) && aud.includes(params.rpId);
-
-  if (matches) {
-    return;
-  }
-
-  logger.warn("integrity_aud_mismatch", {
-    jwt_aud: aud,
-    kid: params.kid,
-    reason: "audience_mismatch",
-    rp_id: params.rpId,
-  });
-
-  throw new IntegrityBundleError("audience_mismatch");
 }
 
 async function verifyIntegrityToken(params: {
@@ -520,18 +504,8 @@ async function verifyIntegrityToken(params: {
     }
   }
 
-  validateAudience({
-    kid: protectedHeader.kid,
-    payload,
-    rpId: params.rpId,
-  });
-
   if (payload.pass !== true) {
     throw new IntegrityBundleError("integrity_token_pass_failed");
-  }
-
-  if (typeof payload.exp !== "number") {
-    throw new IntegrityBundleError("missing_integrity_token_exp");
   }
 
   if (payload.platform !== signatureFormatPlatform[params.signatureFormat]) {

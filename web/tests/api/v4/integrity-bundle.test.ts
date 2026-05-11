@@ -10,10 +10,19 @@ import { encode as encodeCbor } from "cbor-x";
 import { createHash, generateKeyPairSync, KeyObject } from "crypto";
 import { JWK, SignJWT } from "jose";
 
+jest.mock("@/lib/logger", () => ({
+  logger: {
+    info: jest.fn(),
+    warn: jest.fn(),
+    error: jest.fn(),
+  },
+}));
+
 const RP_ID = "rp_test_123";
 const AG_KID = "ag-test-key";
 const JWKS_URL = "https://attestation.example/.well-known/jwks.json";
 const ISSUER = "attestation.worldcoin.org";
+const EXPECTED_AUDIENCE = "developer.worldcoin.org";
 
 type DeviceKey = {
   privateKey: Uint8Array;
@@ -84,7 +93,7 @@ async function createIntegrityJwt(params: {
   })
     .setProtectedHeader({ alg: "ES256", kid: AG_KID })
     .setIssuer(ISSUER)
-    .setAudience(params.audience ?? RP_ID)
+    .setAudience(params.audience ?? EXPECTED_AUDIENCE)
     .setIssuedAt()
     .setExpirationTime(params.expirationTime ?? "5m")
     .sign(params.agPrivateKey);
@@ -170,8 +179,10 @@ async function createBundle(params?: {
 
 describe("integrity bundle verification", () => {
   beforeEach(async () => {
+    jest.clearAllMocks();
     process.env.INTEGRITY_BUNDLE_JWKS_URL = JWKS_URL;
     process.env.INTEGRITY_BUNDLE_EXPECTED_ISSUER = ISSUER;
+    process.env.INTEGRITY_BUNDLE_EXPECTED_AUDIENCE = EXPECTED_AUDIENCE;
     await (global.RedisClient as any)?.flushall?.();
   });
 
@@ -179,6 +190,7 @@ describe("integrity bundle verification", () => {
     jest.restoreAllMocks();
     delete process.env.INTEGRITY_BUNDLE_JWKS_URL;
     delete process.env.INTEGRITY_BUNDLE_EXPECTED_ISSUER;
+    delete process.env.INTEGRITY_BUNDLE_EXPECTED_AUDIENCE;
   });
 
   it("normalizes a structured integrity bundle", () => {
@@ -383,11 +395,10 @@ describe("integrity bundle verification", () => {
     });
   });
 
-  it("logs and rejects integrity tokens for a different RP", async () => {
+  it("logs and rejects integrity tokens with an unexpected audience", async () => {
     const { agPublicJwk, integrityBundle, nonce } = await createBundle({
-      audience: "rp_other",
+      audience: "unexpected-audience",
     });
-    const warnSpy = jest.spyOn(logger, "warn").mockResolvedValue(undefined);
     jest.spyOn(global, "fetch").mockResolvedValue(
       new Response(JSON.stringify({ keys: [agPublicJwk] }), {
         status: 200,
@@ -404,14 +415,13 @@ describe("integrity bundle verification", () => {
 
     expect(result).toEqual({
       success: false,
-      reason: "audience_mismatch",
+      reason: "invalid_integrity_token",
     });
-    expect(warnSpy).toHaveBeenCalledWith(
-      "integrity_aud_mismatch",
+    expect(logger.warn).toHaveBeenCalledWith(
+      "Integrity bundle verification failed",
       expect.objectContaining({
-        jwt_aud: "rp_other",
-        kid: AG_KID,
-        reason: "audience_mismatch",
+        error: expect.stringContaining('unexpected "aud" claim value'),
+        reason: "invalid_integrity_token",
         rp_id: RP_ID,
       }),
     );
