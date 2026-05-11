@@ -11,11 +11,9 @@ import { LoggedUserNav } from "@/components/LoggedUserNav";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { getGraphQLErrorCode } from "@/lib/errors";
-import { isWorldId40Enabled, worldId40Atom } from "@/lib/feature-flags";
 import { useRefetchQueries } from "@/lib/use-refetch-queries";
 import { yupResolver } from "@hookform/resolvers/yup";
 import clsx from "clsx";
-import { useAtomValue } from "jotai";
 import { useParams, useRouter } from "next/navigation";
 import posthog from "posthog-js";
 import { useCallback, useMemo, useState } from "react";
@@ -66,8 +64,6 @@ export const CreateAppDialogV4 = ({
 }: CreateAppDialogV4Props) => {
   const { teamId } = useParams() as { teamId: string | undefined };
   const router = useRouter();
-  const worldId40Config = useAtomValue(worldId40Atom);
-  const isSelfManagedEnabled = isWorldId40Enabled(worldId40Config, teamId);
   const { refetch: refetchApps } = useRefetchQueries(FetchAppsDocument, {
     teamId: teamId,
   });
@@ -382,7 +378,7 @@ export const CreateAppDialogV4 = ({
             {step === "enable-world-id-4-0" && (
               <EnableWorldId40Content
                 onContinue={onEnableContinue}
-                isSelfManagedEnabled={isSelfManagedEnabled}
+                isSelfManagedEnabled={true}
                 initialMode={worldIdMode}
                 className="justify-self-center py-10"
               />

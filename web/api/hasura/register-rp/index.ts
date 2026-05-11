@@ -12,7 +12,6 @@ import {
 } from "@/api/helpers/rp-utils";
 import { protectInternalEndpoint } from "@/api/helpers/utils";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
-import { isWorldId40EnabledServer } from "@/lib/feature-flags/world-id-4-0/server";
 import { logger } from "@/lib/logger";
 import { isAddress } from "ethers";
 import { NextRequest, NextResponse } from "next/server";
@@ -51,7 +50,6 @@ const REGISTRATION_ERROR_HTTP_CODE: Record<
   Exclude<ManagedRegistrationResult, { ok: true }>["code"],
   string
 > = {
-  feature_not_enabled: "feature_not_enabled",
   config_error: "config_error",
   already_registered: "already_registered",
   kms_error: "kms_error",
@@ -130,18 +128,6 @@ export const POST = async (req: NextRequest) => {
       req,
       detail: "User does not have permission to register this app.",
       code: "unauthorized",
-      app_id,
-    });
-  }
-
-  // World ID 4.0 rollout flag still gates BOTH modes — the managed helper
-  // checks it internally, but the self_managed branch below skips the
-  // helper, so we explicitly check here to match prior behavior.
-  if (!(await isWorldId40EnabledServer(teamId))) {
-    return errorHasuraQuery({
-      req,
-      detail: "World ID 4.0 is not enabled for this team.",
-      code: "feature_not_enabled",
       app_id,
     });
   }

@@ -1,7 +1,6 @@
 import { ErrorPage } from "@/components/ErrorPage";
-import { isWorldId40EnabledServer } from "@/lib/feature-flags/world-id-4-0/server";
 import { logger } from "@/lib/logger";
-import { Auth0SessionUser, EngineType } from "@/lib/types";
+import { Auth0SessionUser } from "@/lib/types";
 import { getSession } from "@auth0/nextjs-auth0";
 import { ReactNode } from "react";
 import { AppIdChrome } from "./AppIdChrome";
@@ -19,7 +18,6 @@ type AppIdLayoutProps = {
 
 export const AppIdLayout = async (props: AppIdLayoutProps) => {
   const params = props.params;
-  let isOnChainApp = false;
   let hasLegacyActions = false;
   let hasRpRegistration = false;
 
@@ -38,7 +36,6 @@ export const AppIdLayout = async (props: AppIdLayoutProps) => {
       const { app, action } = await fetchAppEnvCached(params.appId);
 
       if (app?.[0]) {
-        isOnChainApp = app[0].engine === EngineType.OnChain;
         hasLegacyActions = action.length > 0;
         hasRpRegistration = app[0].rp_registration.length > 0;
       } else {
@@ -58,13 +55,9 @@ export const AppIdLayout = async (props: AppIdLayoutProps) => {
     }
   }
 
-  const showWorldId40Nav = await isWorldId40EnabledServer(params.teamId);
-
   return (
     <AppIdChrome
       params={params}
-      isOnChainApp={isOnChainApp}
-      showWorldId40Nav={showWorldId40Nav}
       hasRpRegistration={hasRpRegistration}
       hasLegacyActions={hasLegacyActions}
     >

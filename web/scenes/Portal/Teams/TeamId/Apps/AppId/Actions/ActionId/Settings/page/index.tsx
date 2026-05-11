@@ -1,9 +1,7 @@
 "use client";
 import { ErrorPage } from "@/components/ErrorPage";
 import { SizingWrapper } from "@/components/SizingWrapper";
-import { isWorldId40Enabled, worldId40Atom } from "@/lib/feature-flags";
-import { isLegacyActionsEditableForTeam } from "@/lib/feature-flags/world-id-4-0/common";
-import { useAtomValue } from "jotai";
+import { isLegacyActionsEditableForTeam } from "@/lib/legacy-actions";
 import Skeleton from "react-loading-skeleton";
 import { TryAction } from "../TryAction";
 import { UpdateActionForm } from "../UpdateAction";
@@ -25,9 +23,7 @@ export const ActionIdSettingsPage = ({ params }: ActionIdSettingsPageProps) => {
   });
 
   const action = data?.action[0];
-  const worldId40Config = useAtomValue(worldId40Atom);
-  const isEnabled = isWorldId40Enabled(worldId40Config, teamId);
-  const isReadOnly = isEnabled && !isLegacyActionsEditableForTeam(teamId);
+  const isReadOnly = !isLegacyActionsEditableForTeam(teamId);
 
   if (!loading && !action) {
     return (

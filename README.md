@@ -26,7 +26,7 @@ cp .env.example .env
 2. Edit any environment variables for which you have real credentials.
 3. AWS access is required to run the Developer Portal locally. The following AWS services are used:
    - **KMS** - for signing/encryption (Sign in with World ID, RP Registry)
-   - **SSM Parameter Store** - for feature flags (e.g., World ID 4.0 enabled teams)
+   - **SSM Parameter Store** - for runtime configuration
    - **S3** - for asset storage
 
    **For Worldcoin team members:** Use the `worldcoin-consumer-stage` AWS profile:
