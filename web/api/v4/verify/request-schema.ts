@@ -107,6 +107,63 @@ const sessionResponseItemSchema = yup.object({
     .required("proof is required for v4"),
 });
 
+export type IntegrityBundleSignatureFormat =
+  | "apple_app_attest"
+  | "android_keystore";
+
+export interface IntegrityBundle {
+  version: number;
+  signature_format: IntegrityBundleSignatureFormat;
+  timestamp: number;
+  signature: string;
+  jwt: string;
+}
+
+const integrityBundleSchema = yup
+  .object({
+    version: yup
+      .number()
+      .strict()
+      .oneOf([1])
+      .required("integrity_bundle.version is required"),
+    signature_format: yup
+      .string()
+      .strict()
+      .oneOf(["apple_app_attest", "android_keystore"])
+      .required("integrity_bundle.signature_format is required"),
+    timestamp: yup
+      .number()
+      .strict()
+      .integer()
+      .min(0)
+      .max(Number.MAX_SAFE_INTEGER)
+      .required("integrity_bundle.timestamp is required"),
+    signature: yup
+      .string()
+      .strict()
+      .max(8192)
+      .matches(/^[0-9a-fA-F]+$/, "Invalid integrity_bundle.signature.")
+      .test(
+        "even-hex",
+        "Invalid integrity_bundle.signature.",
+        (value) => !value || value.length % 2 === 0,
+      )
+      .required("integrity_bundle.signature is required"),
+    jwt: yup
+      .string()
+      .strict()
+      .max(8192)
+      .required("integrity_bundle.jwt is required"),
+  })
+  .strict()
+  .noUnknown(true, "Unknown integrity_bundle field.")
+  .test(
+    "integrity-bundle-size",
+    "integrity_bundle is too large.",
+    (value) =>
+      !value || Buffer.byteLength(JSON.stringify(value), "utf8") <= 8192,
+  );
+
 // Base schema - responses validated in custom test based on protocol version
 export const schema = yup
   .object({
@@ -130,6 +187,10 @@ export const schema = yup
 
     // Optional environment to specify which verifier contract to use
     environment: yup.string().oneOf(["production", "staging"]).optional(),
+
+    // Optional World App integrity attestation bundle. When present, it is
+    // verified before proof verification.
+    integrity_bundle: integrityBundleSchema.optional(),
 
     // Responses array - validated based on version and type of proof
     responses: yup
@@ -218,6 +279,7 @@ export interface UniquenessProofRequestV3 {
   action: string;
   action_description?: string;
   environment?: "production" | "staging";
+  integrity_bundle?: IntegrityBundle;
   responses: UniquenessProofResponseV3[];
 }
 
@@ -237,6 +299,7 @@ export interface UniquenessProofRequestV4 {
   action: string;
   action_description?: string;
   environment?: "production" | "staging";
+  integrity_bundle?: IntegrityBundle;
   responses: UniquenessProofResponseV4[];
 }
 
@@ -255,5 +318,6 @@ export interface SessionProofRequest {
   nonce: string;
   protocol_version: "4.0";
   environment?: "production" | "staging";
+  integrity_bundle?: IntegrityBundle;
   responses: SessionResponseItem[];
 }
