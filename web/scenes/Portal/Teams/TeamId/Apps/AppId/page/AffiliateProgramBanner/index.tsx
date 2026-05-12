@@ -7,16 +7,16 @@ import mailImage from "./mail.png";
 
 interface AffiliateProgramBannerProps {
   teamId: string;
-  hasVerifiedApps: boolean;
+  visible: boolean;
   className?: string;
 }
 
 export const AffiliateProgramBanner = ({
   teamId,
-  hasVerifiedApps,
+  visible,
   className,
 }: AffiliateProgramBannerProps) => {
-  if (!hasVerifiedApps) {
+  if (!visible) {
     return null;
   }
 
