@@ -2,30 +2,21 @@
 
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import {
-  isWorldId40Enabled,
-  worldId40Atom,
-} from "@/lib/feature-flags/world-id-4-0/client";
 import { CreateAppDialogV4 } from "@/scenes/Portal/layout/CreateAppDialog/index-v4";
-import { useAtomValue } from "jotai";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
 interface WorldId40MigrationBannerProps {
-  teamId: string;
   appId: string;
   hasRpRegistration: boolean;
   canRegisterRp: boolean;
 }
 
 export const WorldId40MigrationBanner = ({
-  teamId,
   appId,
   hasRpRegistration,
   canRegisterRp,
 }: WorldId40MigrationBannerProps) => {
-  const worldId40Config = useAtomValue(worldId40Atom);
-  const isEnabled = isWorldId40Enabled(worldId40Config, teamId);
   const searchParams = useSearchParams();
   const autoOpen = searchParams.get("enableWorldId4") === "true";
   const [dialogOpen, setDialogOpen] = useState(autoOpen && canRegisterRp);
@@ -35,11 +26,10 @@ export const WorldId40MigrationBanner = ({
   }, [autoOpen, canRegisterRp]);
 
   // Don't show banner if:
-  // - World ID 4.0 is not enabled for this team, OR
   // - App already has RP registration, OR
   // - User lacks ADMIN/OWNER role (register_rp Hasura action would
   //   reject with `unauthorized` and surface a generic toast).
-  if (!isEnabled || hasRpRegistration || !canRegisterRp) {
+  if (hasRpRegistration || !canRegisterRp) {
     return null;
   }
 

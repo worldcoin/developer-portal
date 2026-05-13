@@ -40,7 +40,6 @@ export const AppIdPage = async (props: {
   return (
     <SizingWrapper className="flex flex-col gap-y-8 py-4">
       <WorldId40MigrationBanner
-        teamId={teamId}
         appId={appId}
         hasRpRegistration={hasRpRegistration}
         canRegisterRp={canRegisterRp}

@@ -566,24 +566,6 @@ describe("/api/mcp", () => {
     );
   });
 
-  it("surfaces feature_not_enabled from the registration helper as -32004", async () => {
-    currentAppContextResponse = {
-      app: [{ ...appContextResponse.app[0], rp_registration: [] }],
-    };
-    submitManagedRpRegistrationMock.mockResolvedValueOnce({
-      ok: false,
-      code: "feature_not_enabled",
-      detail: "World ID 4.0 is not enabled for this team.",
-    });
-
-    const res = await POST(callTool("configure_world_id", { app_id: appId }));
-
-    expect(res.status).toBe(200);
-    const body = await res.json();
-    expect(body.error.code).toBe(-32004);
-    expect(body.error.data.reason).toBe("feature_not_enabled");
-  });
-
   it("rotates the signing key via the managed flow when one is missing and rotate_if_unavailable is set", async () => {
     const baseRegistration = appContextResponse.app[0].rp_registration[0];
     const { signer_address: _signerAddress, ...registrationWithoutSigner } =

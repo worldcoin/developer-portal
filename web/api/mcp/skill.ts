@@ -141,7 +141,6 @@ get_world_id_registration_status { app_id }  ← on-chain registry sync
 ## Pitfalls and constraints
 
 - **\`configure_world_id\` is asynchronous.** The on-chain registration is submitted to the bundler and returns immediately with \`status: "pending"\` and an \`operation_hash\`. Watch \`status_endpoint\` until it returns \`production_status: "registered"\` before relying on the RP for verifications.
-- **\`configure_world_id\` requires the team to be enabled for World ID 4.0.** A team without the feature flag gets \`-32004\` with \`data.reason: "feature_not_enabled"\`. Surface that to the user and point them at the dashboard for enrollment.
 - **Private keys are returned once.** If the user loses the value from \`configure_world_id\` / \`rotate_world_id_signing_key\`, they must rotate again. The portal does not store private keys.
 - **Submission preconditions are strict.** \`submit_app_for_review\` runs the same Yup completeness check as the dashboard. The full required set:
   - **Always required**: \`name\`, \`logo_img_url\`, \`app_website_url\`, \`is_android_only\`, \`is_for_humans_only\`, \`supported_countries\` (≥1), \`supported_languages\` (must include \`"en"\`), \`description_overview\` (encoded into the description JSON), and at least one entry in \`showcase_img_urls\` for the English locale.

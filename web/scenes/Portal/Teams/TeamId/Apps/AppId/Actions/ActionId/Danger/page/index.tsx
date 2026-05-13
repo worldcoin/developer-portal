@@ -3,8 +3,6 @@ import { ActionDangerZone } from "@/components/ActionDangerZone";
 import { ActionsHeader } from "@/components/ActionsHeader";
 import { ErrorPage } from "@/components/ErrorPage";
 import { SizingWrapper } from "@/components/SizingWrapper";
-import { useAtomValue } from "jotai";
-import { worldId40Atom, isWorldId40Enabled } from "@/lib/feature-flags";
 import { useRouter } from "next/navigation";
 import { useCallback } from "react";
 import Skeleton from "react-loading-skeleton";
@@ -29,8 +27,6 @@ export const ActionIdDangerPage = ({ params }: ActionIdDangerPageProps) => {
   });
 
   const action = data?.action_by_pk;
-  const worldId40Config = useAtomValue(worldId40Atom);
-  const isEnabled = isWorldId40Enabled(worldId40Config, teamId);
 
   const [deleteActionMutation, { loading: deleteActionLoading }] =
     useDeleteActionMutation();
@@ -80,7 +76,7 @@ export const ActionIdDangerPage = ({ params }: ActionIdDangerPageProps) => {
             actionIdentifier={action?.name ?? ""}
             onDelete={handleDelete}
             isDeleting={deleteActionLoading}
-            canDelete={!isEnabled}
+            canDelete={false}
           />
         )}
       </SizingWrapper>

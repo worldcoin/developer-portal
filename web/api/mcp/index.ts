@@ -858,14 +858,13 @@ const makeWallet = (privateKey?: string) => {
 };
 
 // Map a managed-flow helper failure to the JSON-RPC error code the MCP
-// surfaces. Caller-fixable problems (already registered, wrong mode, feature
-// flag off) become -32004 (operation not allowed in current state); anything
-// platform-side becomes -32603 so clients know to retry / escalate.
+// surfaces. Caller-fixable problems (already registered, wrong mode) become
+// -32004 (operation not allowed in current state); anything platform-side
+// becomes -32603 so clients know to retry / escalate.
 const REGISTRATION_FLOW_RPC_CODE: Record<
   Exclude<ManagedRegistrationResult, { ok: true }>["code"],
   number
 > = {
-  feature_not_enabled: -32004,
   already_registered: -32004,
   config_error: -32603,
   kms_error: -32603,
@@ -877,7 +876,6 @@ const ROTATION_FLOW_RPC_CODE: Record<
   Exclude<ManagedRotationResult, { ok: true }>["code"],
   number
 > = {
-  feature_not_enabled: -32004,
   rp_not_registered: -32004,
   self_managed_mode: -32004,
   rotation_in_progress: -32004,
