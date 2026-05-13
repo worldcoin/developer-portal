@@ -28,8 +28,6 @@ const JWKS_FETCH_TIMEOUT_MS = 4_000;
 const DEFAULT_INTEGRITY_JWKS_URL =
   "https://attestation.worldcoin.org/.well-known/jwks.json";
 const DEFAULT_INTEGRITY_ISSUER = "attestation.worldcoin.org";
-// Temporary fixed audience for internal testing only.
-const DEFAULT_INTEGRITY_AUDIENCE = "developer.worldcoin.org";
 
 export const INTEGRITY_VERIFICATION_ERROR_CODE =
   "integrity_verification_failed";
@@ -108,11 +106,6 @@ const getIntegrityExpectedIssuer = () =>
   process.env.INTEGRITY_BUNDLE_EXPECTED_ISSUER ??
   process.env.INTEGRITY_TOKEN_EXPECTED_ISSUER ??
   DEFAULT_INTEGRITY_ISSUER;
-
-const getIntegrityExpectedAudience = () =>
-  process.env.INTEGRITY_BUNDLE_EXPECTED_AUDIENCE ??
-  process.env.INTEGRITY_TOKEN_EXPECTED_AUDIENCE ??
-  DEFAULT_INTEGRITY_AUDIENCE;
 
 export function normalizeIntegrityBundle(
   integrityBundle: IntegrityBundle,
@@ -429,12 +422,16 @@ function extractDevicePublicKey(payload: IntegrityTokenClaims) {
   return publicKey;
 }
 
-async function verifyJwtWithJwk(params: { integrityJwt: string; jwk: JWK }) {
+async function verifyJwtWithJwk(params: {
+  integrityJwt: string;
+  jwk: JWK;
+  rpId: string;
+}) {
   const publicKey = await importJWK(params.jwk, "ES256");
   const { payload } = await jwtVerify(params.integrityJwt, publicKey, {
     algorithms: ["ES256"],
     issuer: getIntegrityExpectedIssuer(),
-    audience: getIntegrityExpectedAudience(),
+    audience: params.rpId,
     requiredClaims: ["cnf", "exp", "platform", "pass"],
   });
 
@@ -476,6 +473,7 @@ async function verifyIntegrityToken(params: {
     payload = await verifyJwtWithJwk({
       integrityJwt: params.integrityJwt,
       jwk: keyResult.jwk,
+      rpId: params.rpId,
     });
   } catch (error) {
     if (!keyResult.fromCache || !shouldRefreshJwksAfterJwtFailure(error)) {
@@ -495,6 +493,7 @@ async function verifyIntegrityToken(params: {
       payload = await verifyJwtWithJwk({
         integrityJwt: params.integrityJwt,
         jwk: keyResult.jwk,
+        rpId: params.rpId,
       });
     } catch (retryError) {
       throw new IntegrityBundleError(

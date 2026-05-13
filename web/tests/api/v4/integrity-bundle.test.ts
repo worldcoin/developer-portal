@@ -22,7 +22,6 @@ const RP_ID = "rp_test_123";
 const AG_KID = "ag-test-key";
 const JWKS_URL = "https://attestation.example/.well-known/jwks.json";
 const ISSUER = "attestation.worldcoin.org";
-const EXPECTED_AUDIENCE = "developer.worldcoin.org";
 
 type DeviceKey = {
   privateKey: Uint8Array;
@@ -78,7 +77,7 @@ function createDeviceKey(): DeviceKey {
 
 async function createIntegrityJwt(params: {
   agPrivateKey: KeyObject;
-  audience?: string;
+  rpId: string;
   devicePublicJwk: JWK;
   expirationTime?: number | string | Date;
   pass?: boolean;
@@ -93,7 +92,7 @@ async function createIntegrityJwt(params: {
   })
     .setProtectedHeader({ alg: "ES256", kid: AG_KID })
     .setIssuer(ISSUER)
-    .setAudience(params.audience ?? EXPECTED_AUDIENCE)
+    .setAudience(params.rpId)
     .setIssuedAt()
     .setExpirationTime(params.expirationTime ?? "5m")
     .sign(params.agPrivateKey);
@@ -101,7 +100,7 @@ async function createIntegrityJwt(params: {
 
 async function createBundle(params?: {
   agKey?: AgKey;
-  audience?: string;
+  rpId?: string;
   jwtExpirationTime?: number | string | Date;
   jwtPlatform?: "android" | "ios";
   pass?: boolean;
@@ -120,7 +119,7 @@ async function createBundle(params?: {
 
   const integrityJwt = await createIntegrityJwt({
     agPrivateKey: agKey.privateKey,
-    audience: params?.audience,
+    rpId: params?.rpId ?? RP_ID,
     devicePublicJwk: deviceKey.publicJwk,
     expirationTime: params?.jwtExpirationTime,
     pass: params?.pass,
@@ -182,7 +181,6 @@ describe("integrity bundle verification", () => {
     jest.clearAllMocks();
     process.env.INTEGRITY_BUNDLE_JWKS_URL = JWKS_URL;
     process.env.INTEGRITY_BUNDLE_EXPECTED_ISSUER = ISSUER;
-    process.env.INTEGRITY_BUNDLE_EXPECTED_AUDIENCE = EXPECTED_AUDIENCE;
     await (global.RedisClient as any)?.flushall?.();
   });
 
@@ -190,7 +188,6 @@ describe("integrity bundle verification", () => {
     jest.restoreAllMocks();
     delete process.env.INTEGRITY_BUNDLE_JWKS_URL;
     delete process.env.INTEGRITY_BUNDLE_EXPECTED_ISSUER;
-    delete process.env.INTEGRITY_BUNDLE_EXPECTED_AUDIENCE;
   });
 
   it("normalizes a structured integrity bundle", () => {
@@ -397,7 +394,7 @@ describe("integrity bundle verification", () => {
 
   it("logs and rejects integrity tokens with an unexpected audience", async () => {
     const { agPublicJwk, integrityBundle, nonce } = await createBundle({
-      audience: "unexpected-audience",
+      rpId: "unexpected-audience",
     });
     jest.spyOn(global, "fetch").mockResolvedValue(
       new Response(JSON.stringify({ keys: [agPublicJwk] }), {
