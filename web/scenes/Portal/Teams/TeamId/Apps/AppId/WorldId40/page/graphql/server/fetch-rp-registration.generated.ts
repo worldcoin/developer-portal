@@ -15,6 +15,7 @@ export type FetchRpRegistrationQuery = {
     rp_id: string;
     app_id: string;
     status: unknown;
+    staging_status?: unknown | null;
     mode: unknown;
     signer_address?: string | null;
     created_at: string;
@@ -28,6 +29,7 @@ export const FetchRpRegistrationDocument = gql`
       rp_id
       app_id
       status
+      staging_status
       mode
       signer_address
       created_at

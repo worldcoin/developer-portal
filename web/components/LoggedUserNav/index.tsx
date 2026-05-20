@@ -83,9 +83,7 @@ export const LoggedUserNav = () => {
   });
 
   const isAffiliateEnabled = useMemo(
-    () =>
-      affiliateConfig.isFetched &&
-      isAffiliateEnabledForTeam(affiliateConfig, teamId, auth0User),
+    () => isAffiliateEnabledForTeam(affiliateConfig, teamId, auth0User),
     [affiliateConfig, teamId, auth0User],
   );
 

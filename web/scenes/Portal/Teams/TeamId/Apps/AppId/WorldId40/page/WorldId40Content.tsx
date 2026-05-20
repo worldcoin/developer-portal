@@ -48,6 +48,7 @@ type WorldId40ContentProps = {
   appId: string;
   rpId: string;
   initialStatus: RpStatus;
+  initialStagingStatus: RpStatus | null;
   mode: string;
   signerAddress?: string | null;
   createdAt: string;
@@ -57,6 +58,7 @@ export const WorldId40Content = ({
   appId,
   rpId,
   initialStatus,
+  initialStagingStatus,
   mode,
   createdAt,
 }: WorldId40ContentProps) => {
@@ -64,7 +66,9 @@ export const WorldId40Content = ({
   const router = useRouter();
   const [productionStatus, setProductionStatus] =
     useState<RpStatus>(initialStatus);
-  const [stagingStatus, setStagingStatus] = useState<RpStatus | null>(null);
+  const [stagingStatus, setStagingStatus] = useState<RpStatus | null>(
+    initialStagingStatus,
+  );
   const [isRotateDialogOpen, setIsRotateDialogOpen] = useState(false);
   const [isSwitchDialogOpen, setIsSwitchDialogOpen] = useState(false);
   const [retryingEnvironment, setRetryingEnvironment] = useState<string | null>(

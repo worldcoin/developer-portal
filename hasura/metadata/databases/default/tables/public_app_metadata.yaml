@@ -221,6 +221,7 @@ select_permissions:
         - category
         - content_card_image_url
         - contracts
+        - created_at
         - description
         - hero_image_url
         - id
@@ -243,6 +244,7 @@ select_permissions:
         - support_link
         - supported_countries
         - supported_languages
+        - verified_at
         - verification_status
         - whitelisted_addresses
         - world_app_button_text

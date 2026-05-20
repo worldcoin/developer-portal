@@ -1,11 +1,11 @@
+import { generateAppImagePresignedPost } from "@/api/helpers/app-image-storage";
+import { getSdk as checkAppInTeamDocumentSDK } from "@/api/hasura/graphql/checkAppInTeam.generated";
 import { getSdk as checkUserInAppDocumentSDK } from "@/api/hasura/graphql/checkUserInApp.generated";
 import { errorHasuraQuery } from "@/api/helpers/errors";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { protectInternalEndpoint } from "@/api/helpers/utils";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { logger } from "@/lib/logger";
-import { S3Client } from "@aws-sdk/client-s3";
-import { createPresignedPost } from "@aws-sdk/s3-presigned-post";
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
 
@@ -37,14 +37,10 @@ export const POST = async (req: NextRequest) => {
       });
     }
 
-    const userId = body.session_variables["x-hasura-user-id"];
-    if (!userId) {
-      return errorHasuraQuery({
-        req,
-        detail: "user_id must be set.",
-        code: "required",
-      });
-    }
+    const sessionVariables = body.session_variables ?? {};
+    const role = sessionVariables["x-hasura-role"];
+    const userId = sessionVariables["x-hasura-user-id"];
+    const sessionTeamId = sessionVariables["x-hasura-team-id"];
 
     team_id = body.input.team_id;
 
@@ -72,6 +68,8 @@ export const POST = async (req: NextRequest) => {
 
     const { image_type, content_type_ending, locale } = parsedParams;
     app_id = parsedParams.app_id;
+    const uploadAppId = app_id;
+    const uploadTeamId = team_id;
 
     if (!["png", "jpeg"].includes(content_type_ending)) {
       return errorHasuraQuery({
@@ -84,58 +82,86 @@ export const POST = async (req: NextRequest) => {
     }
     const client = await getAPIServiceGraphqlClient();
 
-    const { team: userTeam } = await checkUserInAppDocumentSDK(
-      client,
-    ).CheckUserInApp({
-      team_id,
-      app_id,
-      user_id: userId,
-    });
-
-    // Admins and Owners allowed to upload images
-    if (userTeam.length === 0) {
-      return errorHasuraQuery({
-        req,
-        detail: "App not found.",
-        code: "not_found",
-        app_id,
-        team_id,
+    const getUploadableApp = async () => {
+      const { app } = await checkAppInTeamDocumentSDK(client).CheckAppInTeam({
+        team_id: uploadTeamId,
+        app_id: uploadAppId,
       });
-    }
-    if (!process.env.ASSETS_S3_REGION) {
-      throw new Error("AWS Region must be set.");
+
+      return app.find((currentApp) => currentApp.app_metadata.length > 0);
+    };
+
+    // This action is exposed to both dashboard users and Dev Portal API keys.
+    if (role === "api_key") {
+      if (sessionTeamId !== team_id) {
+        return errorHasuraQuery({
+          req,
+          detail: "App not found.",
+          code: "not_found",
+          app_id,
+          team_id,
+        });
+      }
+
+      if (!(await getUploadableApp())) {
+        return errorHasuraQuery({
+          req,
+          detail: "App not found.",
+          code: "not_found",
+          app_id,
+          team_id,
+        });
+      }
+    } else {
+      if (!userId) {
+        return errorHasuraQuery({
+          req,
+          detail: "user_id must be set.",
+          code: "required",
+          app_id,
+          team_id,
+        });
+      }
+
+      const { team: userTeam } = await checkUserInAppDocumentSDK(
+        client,
+      ).CheckUserInApp({
+        team_id,
+        app_id,
+        user_id: userId,
+      });
+
+      // Admins and Owners allowed to upload images
+      if (userTeam.length === 0) {
+        return errorHasuraQuery({
+          req,
+          detail: "App not found.",
+          code: "not_found",
+          app_id,
+          team_id,
+        });
+      }
+
+      if (!(await getUploadableApp())) {
+        return errorHasuraQuery({
+          req,
+          detail: "App not found.",
+          code: "not_found",
+          app_id,
+          team_id,
+        });
+      }
     }
 
-    const s3Client = new S3Client({
-      region: process.env.ASSETS_S3_REGION,
+    const { url, fields } = await generateAppImagePresignedPost({
+      appId: app_id,
+      imageType: image_type,
+      contentTypeEnding: content_type_ending,
+      locale,
     });
-
-    if (!process.env.ASSETS_S3_BUCKET_NAME) {
-      throw new Error("AWS Bucket Name must be set.");
-    }
-
-    const bucketName = process.env.ASSETS_S3_BUCKET_NAME;
-
-    // Standardize JPEG to jpg
-    const objectKey = `unverified/${app_id}${locale && locale !== "en" ? `/${locale}` : ""}/${image_type}.${
-      content_type_ending === "jpeg" ? "jpg" : content_type_ending
-    }`;
-
-    const contentType = `image/${content_type_ending}`;
-    const signedUrl = await createPresignedPost(s3Client, {
-      Bucket: bucketName,
-      Key: objectKey,
-      Expires: 600, // URL expires in 10 minutes
-      Conditions: [
-        ["content-length-range", 0, 500 * 1024],
-        ["eq", "$Content-Type", contentType],
-      ],
-    });
-
-    const { url, fields } = signedUrl;
 
     return NextResponse.json({
-      url: url,
+      url,
       stringifiedFields: JSON.stringify(fields),
     });
   } catch (error) {

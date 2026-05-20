@@ -15,12 +15,15 @@ export enum StepEnum {
 export const InitialSteps = (props: {
   title: string;
   description: string;
-  steps: ReactNode[];
+  steps?: ReactNode[];
+  children?: ReactNode;
+  className?: string;
 }) => {
   return (
     <div
       className={clsx(
         "grid w-full max-w-[480px] items-center justify-items-center gap-y-6 ",
+        props.className,
       )}
     >
       <div className="relative min-h-[60px] max-w-full">
@@ -39,13 +42,17 @@ export const InitialSteps = (props: {
         </Typography>
       </div>
 
-      <div
-        className={clsx(
-          "mt-4 max-w-[320px] rounded-2xl border border-grey-200 shadow-button md:max-w-full",
-        )}
-      >
-        {props.steps.map((step) => step)}
-      </div>
+      {props.children}
+
+      {props.steps && (
+        <div
+          className={clsx(
+            "mt-4 max-w-[320px] rounded-2xl border border-grey-200 shadow-button md:max-w-full",
+          )}
+        >
+          {props.steps.map((step) => step)}
+        </div>
+      )}
     </div>
   );
 };

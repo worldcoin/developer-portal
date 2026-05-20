@@ -20,7 +20,13 @@ const createActionBodySchema = yup
     action: yup.string().strict().required(),
     name: yup.string().optional().default(""),
     description: yup.string().optional().default(""),
-    max_verifications: yup.number().integer().min(1).optional().default(1),
+    max_verifications: yup
+      .number()
+      .integer()
+      .min(1)
+      .max(2147483647)
+      .optional()
+      .default(1),
   })
   .noUnknown();
 
@@ -176,6 +182,23 @@ export const POST = async (
         code: "constraint-violation",
         detail: "Action already exists.",
         attribute: "action",
+        req,
+        app_id,
+      });
+    }
+
+    if (e.response.errors[0].extensions.code === "parse-failed") {
+      const extensionsPath = e.response.errors[0].extensions.path;
+      const attribute =
+        typeof extensionsPath === "string"
+          ? extensionsPath.split(".").pop()
+          : undefined;
+
+      return errorResponse({
+        statusCode: 400,
+        code: "validation_error",
+        detail: "One or more fields could not be parsed.",
+        attribute,
         req,
         app_id,
       });

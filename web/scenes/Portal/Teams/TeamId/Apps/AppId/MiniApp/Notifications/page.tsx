@@ -39,6 +39,15 @@ export const NotificationsPage = () => {
     (appData?.app_metadata.length ?? 0) > 0 &&
     (appData?.verified_app_metadata.length ?? 0) > 0;
 
+  const isExternalApp = [
+    appData?.verified_app_metadata[0],
+    appData?.app_metadata[0],
+  ].some(
+    (meta) =>
+      meta?.app_mode === "external" ||
+      meta?.category?.toLowerCase() === "external",
+  );
+
   const {
     register,
     handleSubmit,
@@ -197,6 +206,29 @@ export const NotificationsPage = () => {
     walletAddressesValue
       ?.split(",")
       .filter((address) => address.trim().length > 0).length ?? 0;
+
+  if (isExternalApp) {
+    return (
+      <div className="my-8 grid max-w-[1180px] gap-y-10">
+        <div className="md:hidden">
+          <MiniAppSubTabs />
+        </div>
+
+        <div className="grid grid-cols-auto/1fr items-start gap-x-3 rounded-[10px] bg-grey-50 p-4 sm:p-5">
+          <NotificationBellIcon className="size-8" aria-hidden="true" />
+
+          <div className="min-w-0 font-world text-[13px] leading-[120%] text-grey-900">
+            <Typography as="p" className="font-world text-[13px] font-semibold">
+              Notifications unavailable
+            </Typography>
+            <Typography as="p" className="font-world text-[13px] font-medium">
+              Notifications aren't available for external apps.
+            </Typography>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="my-8 grid max-w-[1180px] gap-y-10">

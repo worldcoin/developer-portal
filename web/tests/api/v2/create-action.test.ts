@@ -258,5 +258,51 @@ describe("/api/v2/create-action [error cases]", () => {
     const res = await POST(mockReq, ctx);
     expect(res.status).toBe(400);
   });
+
+  it("returns 400 if max_verifications exceeds int32 max", async () => {
+    const mockReq = createMockRequest({
+      url: getUrl(validAppId),
+      api_key: validApiKey,
+      body: { ...validBody, max_verifications: 2147483648 },
+    });
+
+    const ctx = { params: { app_id: validAppId } };
+    VerifyFetchAPIKey.mockResolvedValue(validApiKeyResponse);
+
+    const res = await POST(mockReq, ctx);
+    expect(res.status).toBe(400);
+    const body = await res.json();
+    expect(body.attribute).toBe("max_verifications");
+  });
+
+  it("returns 400 when Hasura responds with parse-failed", async () => {
+    const mockReq = createMockRequest({
+      url: getUrl(validAppId),
+      api_key: validApiKey,
+      body: validBody,
+    });
+
+    const ctx = { params: { app_id: validAppId } };
+    VerifyFetchAPIKey.mockResolvedValue(validApiKeyResponse);
+
+    CreateDynamicAction.mockRejectedValue({
+      response: {
+        errors: [
+          {
+            extensions: {
+              code: "parse-failed",
+              path: "$.selectionSet.insert_action_one.args.object.max_verifications",
+            },
+          },
+        ],
+      },
+    });
+
+    const res = await POST(mockReq, ctx);
+    expect(res.status).toBe(400);
+    const body = await res.json();
+    expect(body.code).toBe("validation_error");
+    expect(body.attribute).toBe("max_verifications");
+  });
 });
 // #endregion
