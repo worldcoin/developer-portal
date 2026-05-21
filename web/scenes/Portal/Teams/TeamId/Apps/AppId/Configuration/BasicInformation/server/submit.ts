@@ -16,9 +16,9 @@ export async function validateAndSubmitServerSide(
   app_metadata_id: string,
   app_id: string,
   input: {
-    name?: string;
-    integration_url?: string;
-    app_website_url?: string;
+    name?: string | null;
+    integration_url?: string | null;
+    app_website_url?: string | null;
   },
 ): Promise<FormActionResult> {
   const path = getPathFromHeaders() || "";
@@ -65,10 +65,16 @@ export async function validateAndSubmitServerSide(
     const client = await getAPIServiceGraphqlClient();
     await getUpdateAppSdk(client).UpdateAppInfo({
       app_metadata_id,
+      // Distinguish "field not present in this submission" (undefined → don't
+      // touch column) from "user cleared the field" (empty string → persist
+      // empty). The schema permits clearing during draft autosave; we must
+      // forward that to the DB rather than silently dropping the empty value.
       input: {
-        name: parsedInput.name,
-        integration_url: parsedInput.integration_url,
-        ...(parsedInput.app_website_url && {
+        ...(parsedInput.name != null && { name: parsedInput.name }),
+        ...(parsedInput.integration_url != null && {
+          integration_url: parsedInput.integration_url,
+        }),
+        ...(parsedInput.app_website_url != null && {
           app_website_url: parsedInput.app_website_url,
         }),
       },

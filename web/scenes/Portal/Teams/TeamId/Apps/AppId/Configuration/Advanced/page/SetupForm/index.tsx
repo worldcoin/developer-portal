@@ -15,19 +15,16 @@ import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Role_Enum } from "@/graphql/graphql";
 import { AppMode } from "@/lib/constants";
 import { Auth0SessionUser } from "@/lib/types";
-import { useRefetchQueries } from "@/lib/use-refetch-queries";
 import { checkUserPermissions } from "@/lib/utils";
 import { RadioCard } from "@/scenes/Portal/layout/CreateAppDialog/RadioCard";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { yupResolver } from "@hookform/resolvers/yup";
 import clsx from "clsx";
-import { ChangeEvent, useCallback, useEffect, useMemo } from "react";
+import { ChangeEvent, useCallback, useEffect, useMemo, useRef } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
-import { toast } from "react-toastify";
-import {
-  FetchAppMetadataDocument,
-  FetchAppMetadataQuery,
-} from "../../../graphql/client/fetch-app-metadata.generated";
+import { FetchAppMetadataQuery } from "../../../graphql/client/fetch-app-metadata.generated";
+import { useAutosaveWithStatus } from "../../../hook/use-autosave-with-status";
+import { useSaveStatus } from "../../../SaveStatus";
 import {
   updateSetupInitialSchema,
   UpdateSetupInitialSchema,
@@ -78,16 +75,9 @@ const calculateRows = (
 };
 
 export const SetupForm = (props: LinksFormProps) => {
-  const { appId, teamId, appMetadata } = props;
+  const { teamId, appMetadata } = props;
   const { user } = useUser() as Auth0SessionUser;
   const isEditable = appMetadata?.verification_status === "unverified";
-
-  const { refetch: refetchAppMetadata } = useRefetchQueries(
-    FetchAppMetadataDocument,
-    {
-      id: appId,
-    },
-  );
 
   const isEnoughPermissions = useMemo(() => {
     return checkUserPermissions(user, teamId ?? "", [
@@ -96,14 +86,7 @@ export const SetupForm = (props: LinksFormProps) => {
     ]);
   }, [user, teamId]);
 
-  const {
-    register,
-    handleSubmit,
-    reset,
-    formState: { errors, isDirty, isValid, dirtyFields },
-    setError,
-    control,
-  } = useForm<UpdateSetupInitialSchema>({
+  const form = useForm<UpdateSetupInitialSchema>({
     resolver: yupResolver(updateSetupInitialSchema),
     mode: "onChange",
 
@@ -123,46 +106,76 @@ export const SetupForm = (props: LinksFormProps) => {
       ),
     },
   });
-
-  // Used to update the fields when view mode is change
-  useEffect(() => {
-    reset({
-      whitelisted_addresses:
-        appMetadata?.whitelisted_addresses?.join(",") ?? null,
-      app_mode: appMetadata?.app_mode as keyof typeof AppMode,
-      is_whitelist_disabled: !Boolean(appMetadata?.whitelisted_addresses),
-      associated_domains: appMetadata?.associated_domains?.join(",") ?? null,
-      contracts: appMetadata?.contracts?.join(",") ?? null,
-      permit2_tokens: appMetadata?.permit2_tokens?.join(",") ?? null,
-      can_import_all_contacts: appMetadata?.can_import_all_contacts,
-      can_use_attestation: appMetadata?.can_use_attestation,
-      max_notifications_per_day: Number(appMetadata?.max_notifications_per_day),
-      is_allowed_unlimited_notifications: Boolean(
-        appMetadata?.is_allowed_unlimited_notifications,
-      ),
-    });
-  }, [
+  const {
+    register,
     reset,
-    appMetadata?.whitelisted_addresses,
-    appMetadata?.app_mode,
-    appMetadata?.associated_domains,
-    appMetadata?.contracts,
-    appMetadata?.permit2_tokens,
-    appMetadata?.can_import_all_contacts,
-    appMetadata?.can_use_attestation,
-    appMetadata?.max_notifications_per_day,
-    appMetadata?.is_allowed_unlimited_notifications,
-  ]);
+    formState: { errors, dirtyFields },
+    setError,
+    control,
+  } = form;
 
-  const submit = useCallback(
-    async (values: UpdateSetupInitialSchema) => {
-      // Check if app_mode is true and whitelisted_addresses is not provided or empty
-      if (
-        values.app_mode &&
-        !values.is_whitelist_disabled &&
-        (!values.whitelisted_addresses ||
-          values.whitelisted_addresses.length === 0)
-      ) {
+  // Reset only when the underlying metadata row changes (e.g. version
+  // switch), never on cache updates that happen while the user is mid-edit.
+  // Without this gate, autosave's post-save refetch could land while the
+  // user keeps typing and reset() would revert the in-flight local edit.
+  const previousMetadataIdRef = useRef(appMetadata?.id);
+  useEffect(() => {
+    if (previousMetadataIdRef.current !== appMetadata?.id) {
+      reset({
+        whitelisted_addresses:
+          appMetadata?.whitelisted_addresses?.join(",") ?? null,
+        app_mode: appMetadata?.app_mode as keyof typeof AppMode,
+        is_whitelist_disabled: !Boolean(appMetadata?.whitelisted_addresses),
+        associated_domains: appMetadata?.associated_domains?.join(",") ?? null,
+        contracts: appMetadata?.contracts?.join(",") ?? null,
+        permit2_tokens: appMetadata?.permit2_tokens?.join(",") ?? null,
+        can_import_all_contacts: appMetadata?.can_import_all_contacts,
+        can_use_attestation: appMetadata?.can_use_attestation,
+        max_notifications_per_day: Number(
+          appMetadata?.max_notifications_per_day,
+        ),
+        is_allowed_unlimited_notifications: Boolean(
+          appMetadata?.is_allowed_unlimited_notifications,
+        ),
+      });
+      previousMetadataIdRef.current = appMetadata?.id;
+    }
+  }, [appMetadata, reset]);
+
+  const persist = useCallback(
+    async (values: UpdateSetupInitialSchema, signal?: AbortSignal) => {
+      if (signal?.aborted) throw new DOMException("Aborted", "AbortError");
+      const result = await validateAndUpdateSetupServerSide(
+        values,
+        appMetadata?.id ?? "",
+      );
+      if (signal?.aborted) throw new DOMException("Aborted", "AbortError");
+      if (!result.success) {
+        throw new Error(result.message);
+      }
+      // Don't refetch — autosave's local form state is the source of truth
+      // for fields the user just typed. A refetch after every save would
+      // race with continued typing and the auto-reset above (when ungated)
+      // would clobber in-flight edits. None of the persisted fields are
+      // displayed elsewhere on this page, so skipping the refetch is safe.
+    },
+    [appMetadata?.id],
+  );
+
+  const isAdvancedEditable = isEditable && isEnoughPermissions;
+
+  const hasInvalidWhitelistCombination = (values: UpdateSetupInitialSchema) =>
+    values.app_mode === "mini-app" &&
+    !values.is_whitelist_disabled &&
+    (!values.whitelisted_addresses ||
+      values.whitelisted_addresses.length === 0);
+
+  useAutosaveWithStatus<UpdateSetupInitialSchema>({
+    id: "advanced-setup",
+    form,
+    enabled: isAdvancedEditable,
+    save: async (values, signal) => {
+      if (hasInvalidWhitelistCombination(values)) {
         setError("whitelisted_addresses", {
           type: "manual",
           message:
@@ -172,21 +185,11 @@ export const SetupForm = (props: LinksFormProps) => {
           "Mini Apps must have at least one whitelisted payment address.",
         );
       }
-
-      const result = await validateAndUpdateSetupServerSide(
-        values,
-        appMetadata?.id ?? "",
-      );
-
-      if (!result.success) {
-        toast.error(result.message);
-      } else {
-        refetchAppMetadata();
-        toast.success("App information updated successfully");
-      }
+      await persist(values, signal);
     },
-    [appMetadata?.id, refetchAppMetadata, setError],
-  );
+  });
+
+  const { flushAll, displayStatus } = useSaveStatus();
 
   const appMode = useWatch({
     control,
@@ -213,16 +216,14 @@ export const SetupForm = (props: LinksFormProps) => {
     watchedValues;
 
   return (
-    <form className="grid gap-y-9" onSubmit={handleSubmit(submit)}>
-      <div className="grid gap-y-2">
-        <Typography variant={TYPOGRAPHY.H7}>Advanced Settings</Typography>
-
-        {isDirty && (
-          <Typography variant={TYPOGRAPHY.R4} className="text-system-error-500">
-            Warning: You have unsaved changes
-          </Typography>
-        )}
-      </div>
+    <form
+      className="grid gap-y-9"
+      onSubmit={(event) => {
+        event.preventDefault();
+        void flushAll();
+      }}
+    >
+      <Typography variant={TYPOGRAPHY.H7}>Advanced Settings</Typography>
 
       <div className="grid gap-y-6">
         <div className="grid gap-2 md:grid-cols-2">
@@ -468,11 +469,16 @@ export const SetupForm = (props: LinksFormProps) => {
         </label> */}
       </div>
       <DecoratedButton
-        type="submit"
+        type="button"
         className="h-12 w-40"
-        disabled={!isEditable || !isEnoughPermissions || !isValid}
+        disabled={!isAdvancedEditable || displayStatus.state === "saving"}
+        onClick={() => {
+          void flushAll();
+        }}
       >
-        <Typography variant={TYPOGRAPHY.M3}>Save Changes</Typography>
+        <Typography variant={TYPOGRAPHY.M3}>
+          {displayStatus.state === "saving" ? "Saving…" : "Save now"}
+        </Typography>
       </DecoratedButton>
     </form>
   );

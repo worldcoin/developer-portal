@@ -50,6 +50,7 @@ export const AppLogo = (props: {
         <div>
           <Placeholder
             name={props.name}
+            seed={props.appId}
             className="size-16 rounded-2xl shadow-image"
           />
         </div>

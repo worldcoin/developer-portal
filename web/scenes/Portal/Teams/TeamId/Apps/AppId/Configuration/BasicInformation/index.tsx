@@ -4,9 +4,9 @@ import { FloatingInput } from "@/components/FloatingInput";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Role_Enum } from "@/graphql/graphql";
 import { Auth0SessionUser } from "@/lib/types";
-import { useRefetchQueries } from "@/lib/use-refetch-queries";
 import { inferHttps } from "@/lib/schema";
 import { checkUserPermissions } from "@/lib/utils";
+import { useApolloClient } from "@apollo/client";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useAtom } from "jotai";
@@ -20,13 +20,10 @@ import React, {
 } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
-import {
-  FetchAppMetadataDocument,
-  FetchAppMetadataQuery,
-  FetchAppMetadataQueryVariables,
-} from "../graphql/client/fetch-app-metadata.generated";
+import { FetchAppMetadataQuery } from "../graphql/client/fetch-app-metadata.generated";
 import { viewModeAtom } from "../layout/ImagesProvider";
 import * as yup from "yup";
+import { useAutosaveWithStatus } from "../hook/use-autosave-with-status";
 import {
   BasicInformationFormValues,
   reviewSchema,
@@ -50,11 +47,7 @@ export const BasicInformation = forwardRef<
     teamName: string;
   }
 >(({ appId, teamId, app, teamName }, ref) => {
-  const { refetch: refetchAppMetadata } =
-    useRefetchQueries<FetchAppMetadataQueryVariables>(
-      FetchAppMetadataDocument,
-      { id: appId },
-    );
+  const apolloClient = useApolloClient();
 
   const [viewMode] = useAtom(viewModeAtom);
   const { user } = useUser() as Auth0SessionUser;
@@ -86,20 +79,21 @@ export const BasicInformation = forwardRef<
   }, [appMetaData]);
   const previousMetadataId = useRef<string | undefined>(appMetaData?.id);
 
-  const {
-    register,
-    handleSubmit,
-    reset,
-    setValue,
-    setError,
-    formState: { errors, isDirty, isValid },
-  } = useForm<BasicInformationFormValues>({
+  const form = useForm<BasicInformationFormValues>({
     resolver: yupResolver(schema),
     mode: "onChange",
     defaultValues: {
       ...editableAppMetadata,
     },
   });
+  const {
+    register,
+    handleSubmit,
+    reset,
+    setValue,
+    setError,
+    formState: { errors },
+  } = form;
 
   // Reset form values only when the metadata context changes (e.g. version switch),
   // not on same-row refetches from image/toggle mutations.
@@ -112,28 +106,56 @@ export const BasicInformation = forwardRef<
     }
   }, [appMetaData?.id, editableAppMetadata, reset]);
 
-  const submit = useCallback(
-    (opts?: { silent?: boolean }) =>
-      async (data: BasicInformationFormValues): Promise<boolean> => {
-        const result = await validateAndSubmitServerSide(
-          appMetaData?.id,
-          appId,
-          data,
-        );
-        if (!result.success) {
-          toast.error(result.message);
-          return false;
-        } else {
-          await refetchAppMetadata();
-          reset(data);
-          if (!opts?.silent) {
-            toast.success("App information updated successfully");
-          }
-          return true;
-        }
-      },
-    [appMetaData?.id, appId, refetchAppMetadata, reset],
+  const persist = useCallback(
+    async (
+      data: BasicInformationFormValues,
+      signal?: AbortSignal,
+    ): Promise<boolean> => {
+      if (signal?.aborted) throw new DOMException("Aborted", "AbortError");
+      const result = await validateAndSubmitServerSide(
+        appMetaData?.id,
+        appId,
+        data,
+      );
+      if (signal?.aborted) throw new DOMException("Aborted", "AbortError");
+      if (!result.success) {
+        throw new Error(result.message);
+      }
+      // Patch the Apollo cache with the saved values so dependent surfaces
+      // (e.g. AppTopBar's app name + logo header) reflect the change instantly,
+      // without the visible re-render flicker that a full refetch causes.
+      if (appMetaData?.id) {
+        apolloClient.cache.modify({
+          id: apolloClient.cache.identify({
+            __typename: "app_metadata",
+            id: appMetaData.id,
+          }),
+          fields: {
+            ...(data.name !== undefined && {
+              name: () => data.name ?? "",
+            }),
+            ...(data.integration_url !== undefined && {
+              integration_url: () => data.integration_url ?? "",
+            }),
+            ...(data.app_website_url !== undefined && {
+              app_website_url: () => data.app_website_url ?? "",
+            }),
+          },
+        });
+      }
+      return true;
+    },
+    [appMetaData?.id, appId, apolloClient],
   );
+
+  const autosave = useAutosaveWithStatus<BasicInformationFormValues>({
+    id: "basic-information",
+    form,
+    enabled: isEditable && isEnoughPermissions,
+    save: async (data, signal) => {
+      await persist(data, signal);
+    },
+  });
 
   useImperativeHandle(ref, () => ({
     submit: (opts) =>
@@ -157,8 +179,15 @@ export const BasicInformation = forwardRef<
                 }
               }
             }
-            const ok = await submit(opts)(data);
-            resolve(ok);
+            const flushed = await autosave.flush();
+            if (!flushed) {
+              resolve(false);
+              return;
+            }
+            if (!opts?.silent) {
+              toast.success("App information updated successfully");
+            }
+            resolve(true);
           },
           () => resolve(false),
         )();
@@ -189,22 +218,12 @@ export const BasicInformation = forwardRef<
     <div className="grid max-w-[700px] grid-cols-1fr/auto">
       <div className="">
         <div className="grid gap-y-7">
-          <div className="grid gap-y-2">
-            <Typography
-              variant={TYPOGRAPHY.H7}
-              className="font-normal text-grey-900"
-            >
-              Basic information
-            </Typography>
-            {isDirty && (
-              <Typography
-                variant={TYPOGRAPHY.R4}
-                className="text-system-error-500"
-              >
-                Warning: You have unsaved changes
-              </Typography>
-            )}
-          </div>
+          <Typography
+            variant={TYPOGRAPHY.H7}
+            className="font-normal text-grey-900"
+          >
+            Basic information
+          </Typography>
 
           <div className="grid grid-cols-2 gap-x-4">
             <FloatingInput
