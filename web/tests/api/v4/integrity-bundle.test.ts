@@ -20,8 +20,10 @@ jest.mock("@/lib/logger", () => ({
 
 const RP_ID = "rp_test_123";
 const AG_KID = "ag-test-key";
-const JWKS_URL = "https://attestation.example/.well-known/jwks.json";
-const ISSUER = "attestation.worldcoin.org";
+const PRODUCTION_ISSUER = "attestation.worldcoin.org";
+const STAGING_ISSUER = "attestation.worldcoin.dev";
+const STAGING_JWKS_URL =
+  "https://attestation.worldcoin.dev/.well-known/jwks.json";
 
 type DeviceKey = {
   privateKey: Uint8Array;
@@ -80,6 +82,7 @@ async function createIntegrityJwt(params: {
   rpId: string;
   devicePublicJwk: JWK;
   expirationTime?: number | string | Date;
+  issuer?: string;
   pass?: boolean;
   platform: "android" | "ios";
 }) {
@@ -91,7 +94,7 @@ async function createIntegrityJwt(params: {
     },
   })
     .setProtectedHeader({ alg: "ES256", kid: AG_KID })
-    .setIssuer(ISSUER)
+    .setIssuer(params.issuer ?? PRODUCTION_ISSUER)
     .setAudience(params.rpId)
     .setIssuedAt()
     .setExpirationTime(params.expirationTime ?? "5m")
@@ -100,6 +103,7 @@ async function createIntegrityJwt(params: {
 
 async function createBundle(params?: {
   agKey?: AgKey;
+  issuer?: string;
   rpId?: string;
   jwtExpirationTime?: number | string | Date;
   jwtPlatform?: "android" | "ios";
@@ -122,6 +126,7 @@ async function createBundle(params?: {
     rpId: params?.rpId ?? RP_ID,
     devicePublicJwk: deviceKey.publicJwk,
     expirationTime: params?.jwtExpirationTime,
+    issuer: params?.issuer,
     pass: params?.pass,
     platform,
   });
@@ -179,15 +184,16 @@ async function createBundle(params?: {
 describe("integrity bundle verification", () => {
   beforeEach(async () => {
     jest.clearAllMocks();
-    process.env.INTEGRITY_BUNDLE_JWKS_URL = JWKS_URL;
-    process.env.INTEGRITY_BUNDLE_EXPECTED_ISSUER = ISSUER;
+    delete process.env.ATTESTATION_GATEWAY_JWKS_URL;
+    delete process.env.INTEGRITY_BUNDLE_JWKS_URL;
+    delete process.env.INTEGRITY_TOKEN_JWKS_URL;
+    delete process.env.INTEGRITY_BUNDLE_EXPECTED_ISSUER;
+    delete process.env.INTEGRITY_TOKEN_EXPECTED_ISSUER;
     await (global.RedisClient as any)?.flushall?.();
   });
 
   afterEach(() => {
     jest.restoreAllMocks();
-    delete process.env.INTEGRITY_BUNDLE_JWKS_URL;
-    delete process.env.INTEGRITY_BUNDLE_EXPECTED_ISSUER;
   });
 
   it("normalizes a structured integrity bundle", () => {
@@ -291,6 +297,53 @@ describe("integrity bundle verification", () => {
     });
 
     expect(result).toEqual({ success: true });
+  });
+
+  it("uses the staging issuer and JWKS URL for staging requests", async () => {
+    const { agPublicJwk, integrityBundle, nonce } = await createBundle({
+      issuer: STAGING_ISSUER,
+    });
+    const fetchSpy = jest.spyOn(global, "fetch").mockResolvedValue(
+      new Response(JSON.stringify({ keys: [agPublicJwk] }), {
+        status: 200,
+      }),
+    );
+
+    const result = await verifyIntegrityBundle({
+      environment: "staging",
+      integrityBundle,
+      nonce,
+      protocolVersion: "4.0",
+      responses: [response],
+      rpId: RP_ID,
+    });
+
+    expect(result).toEqual({ success: true });
+    expect(fetchSpy.mock.calls[0]?.[0]).toBe(STAGING_JWKS_URL);
+  });
+
+  it("defaults to the production issuer when environment is omitted", async () => {
+    const { agPublicJwk, integrityBundle, nonce } = await createBundle({
+      issuer: STAGING_ISSUER,
+    });
+    jest.spyOn(global, "fetch").mockResolvedValue(
+      new Response(JSON.stringify({ keys: [agPublicJwk] }), {
+        status: 200,
+      }),
+    );
+
+    const result = await verifyIntegrityBundle({
+      integrityBundle,
+      nonce,
+      protocolVersion: "4.0",
+      responses: [response],
+      rpId: RP_ID,
+    });
+
+    expect(result).toEqual({
+      success: false,
+      reason: "invalid_integrity_token",
+    });
   });
 
   it("rejects a signature over a different nonce", async () => {
