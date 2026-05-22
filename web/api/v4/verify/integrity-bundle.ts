@@ -25,9 +25,23 @@ const INTEGRITY_BUNDLE_VERSION = 1;
 const JWKS_CACHE_TTL_SECONDS = 24 * 60 * 60;
 const SIGNATURE_TIMESTAMP_THRESHOLD_SECONDS = 5 * 60;
 const JWKS_FETCH_TIMEOUT_MS = 4_000;
-const DEFAULT_INTEGRITY_JWKS_URL =
-  "https://attestation.worldcoin.org/.well-known/jwks.json";
-const DEFAULT_INTEGRITY_ISSUER = "attestation.worldcoin.org";
+
+type IntegrityEnvironment = "production" | "staging";
+
+const DEFAULT_INTEGRITY_ENVIRONMENT: IntegrityEnvironment = "production";
+const INTEGRITY_ATTESTATION_CONFIG_BY_ENVIRONMENT: Record<
+  IntegrityEnvironment,
+  { issuer: string; jwksUrl: string }
+> = {
+  production: {
+    issuer: "attestation.worldcoin.org",
+    jwksUrl: "https://attestation.worldcoin.org/.well-known/jwks.json",
+  },
+  staging: {
+    issuer: "attestation.worldcoin.dev",
+    jwksUrl: "https://attestation.worldcoin.dev/.well-known/jwks.json",
+  },
+};
 
 export const INTEGRITY_VERIFICATION_ERROR_CODE =
   "integrity_verification_failed";
@@ -50,6 +64,7 @@ type IntegrityTokenClaims = JWTPayload & {
 };
 
 type IntegrityVerificationParams = {
+  environment?: IntegrityEnvironment;
   integrityBundle: IntegrityBundle;
   nonce: string;
   protocolVersion: "3.0" | "4.0";
@@ -96,16 +111,9 @@ const i64be = (value: number) => {
   return buffer;
 };
 
-const getIntegrityJwksUrl = () =>
-  process.env.ATTESTATION_GATEWAY_JWKS_URL ??
-  process.env.INTEGRITY_BUNDLE_JWKS_URL ??
-  process.env.INTEGRITY_TOKEN_JWKS_URL ??
-  DEFAULT_INTEGRITY_JWKS_URL;
-
-const getIntegrityExpectedIssuer = () =>
-  process.env.INTEGRITY_BUNDLE_EXPECTED_ISSUER ??
-  process.env.INTEGRITY_TOKEN_EXPECTED_ISSUER ??
-  DEFAULT_INTEGRITY_ISSUER;
+const resolveIntegrityAttestationConfig = (
+  environment: IntegrityEnvironment = DEFAULT_INTEGRITY_ENVIRONMENT,
+) => INTEGRITY_ATTESTATION_CONFIG_BY_ENVIRONMENT[environment];
 
 export function normalizeIntegrityBundle(
   integrityBundle: IntegrityBundle,
@@ -423,6 +431,7 @@ function extractDevicePublicKey(payload: IntegrityTokenClaims) {
 }
 
 async function verifyJwtWithJwk(params: {
+  expectedIssuer: string;
   integrityJwt: string;
   jwk: JWK;
   rpId: string;
@@ -430,7 +439,7 @@ async function verifyJwtWithJwk(params: {
   const publicKey = await importJWK(params.jwk, "ES256");
   const { payload } = await jwtVerify(params.integrityJwt, publicKey, {
     algorithms: ["ES256"],
-    issuer: getIntegrityExpectedIssuer(),
+    issuer: params.expectedIssuer,
     audience: params.rpId,
     requiredClaims: ["cnf", "exp", "platform", "pass"],
   });
@@ -443,6 +452,7 @@ function shouldRefreshJwksAfterJwtFailure(error: unknown) {
 }
 
 async function verifyIntegrityToken(params: {
+  environment?: IntegrityEnvironment;
   integrityJwt: string;
   rpId: string;
   signatureFormat: SignatureFormat;
@@ -462,7 +472,10 @@ async function verifyIntegrityToken(params: {
     throw new IntegrityBundleError("missing_integrity_token_kid");
   }
 
-  const jwksUrl = getIntegrityJwksUrl();
+  const attestationConfig = resolveIntegrityAttestationConfig(
+    params.environment,
+  );
+  const jwksUrl = attestationConfig.jwksUrl;
   let keyResult = await getJwkForKid({
     jwksUrl,
     kid: protectedHeader.kid,
@@ -471,6 +484,7 @@ async function verifyIntegrityToken(params: {
   let payload: IntegrityTokenClaims;
   try {
     payload = await verifyJwtWithJwk({
+      expectedIssuer: attestationConfig.issuer,
       integrityJwt: params.integrityJwt,
       jwk: keyResult.jwk,
       rpId: params.rpId,
@@ -491,6 +505,7 @@ async function verifyIntegrityToken(params: {
 
     try {
       payload = await verifyJwtWithJwk({
+        expectedIssuer: attestationConfig.issuer,
         integrityJwt: params.integrityJwt,
         jwk: keyResult.jwk,
         rpId: params.rpId,
@@ -596,6 +611,7 @@ export async function verifyIntegrityBundle(
     validateTimestamp(bundle.timestamp);
 
     const { devicePublicKey, platform } = await verifyIntegrityToken({
+      environment: params.environment,
       integrityJwt: bundle.jwt,
       rpId: params.rpId,
       signatureFormat: bundle.signatureFormat,
@@ -634,6 +650,7 @@ export async function verifyIntegrityBundle(
 
     logger.warn("Integrity bundle verification failed", {
       error: error instanceof Error ? error.message : String(error),
+      environment: params.environment ?? DEFAULT_INTEGRITY_ENVIRONMENT,
       reason,
       protocol_version: params.protocolVersion,
       rp_id: params.rpId,

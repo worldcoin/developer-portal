@@ -143,6 +143,7 @@ export async function POST(
 
     if (parsedParams.integrity_bundle) {
       const integrityResult = await verifyIntegrityBundle({
+        environment: parsedParams.environment,
         integrityBundle: parsedParams.integrity_bundle,
         nonce: parsedParams.nonce!,
         protocolVersion: parsedParams.protocol_version as "3.0" | "4.0",
