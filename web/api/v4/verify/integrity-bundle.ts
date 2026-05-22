@@ -111,22 +111,9 @@ const i64be = (value: number) => {
   return buffer;
 };
 
-const getIntegrityJwksUrl = () =>
-  process.env.ATTESTATION_GATEWAY_JWKS_URL ??
-  process.env.INTEGRITY_BUNDLE_JWKS_URL ??
-  process.env.INTEGRITY_TOKEN_JWKS_URL;
-
 const resolveIntegrityAttestationConfig = (
   environment: IntegrityEnvironment = DEFAULT_INTEGRITY_ENVIRONMENT,
-) => {
-  const config = INTEGRITY_ATTESTATION_CONFIG_BY_ENVIRONMENT[environment];
-  const jwksUrl = getIntegrityJwksUrl() ?? config.jwksUrl;
-
-  return {
-    ...config,
-    jwksUrl,
-  };
-};
+) => INTEGRITY_ATTESTATION_CONFIG_BY_ENVIRONMENT[environment];
 
 export function normalizeIntegrityBundle(
   integrityBundle: IntegrityBundle,

@@ -21,6 +21,8 @@ jest.mock("@/lib/logger", () => ({
 const RP_ID = "rp_test_123";
 const AG_KID = "ag-test-key";
 const PRODUCTION_ISSUER = "attestation.worldcoin.org";
+const PRODUCTION_JWKS_URL =
+  "https://attestation.worldcoin.org/.well-known/jwks.json";
 const STAGING_ISSUER = "attestation.worldcoin.dev";
 const STAGING_JWKS_URL =
   "https://attestation.worldcoin.dev/.well-known/jwks.json";
@@ -184,11 +186,6 @@ async function createBundle(params?: {
 describe("integrity bundle verification", () => {
   beforeEach(async () => {
     jest.clearAllMocks();
-    delete process.env.ATTESTATION_GATEWAY_JWKS_URL;
-    delete process.env.INTEGRITY_BUNDLE_JWKS_URL;
-    delete process.env.INTEGRITY_TOKEN_JWKS_URL;
-    delete process.env.INTEGRITY_BUNDLE_EXPECTED_ISSUER;
-    delete process.env.INTEGRITY_TOKEN_EXPECTED_ISSUER;
     await (global.RedisClient as any)?.flushall?.();
   });
 
@@ -240,6 +237,7 @@ describe("integrity bundle verification", () => {
     expect(firstResult).toEqual({ success: true });
     expect(secondResult).toEqual({ success: true });
     expect(fetchSpy).toHaveBeenCalledTimes(1);
+    expect(fetchSpy.mock.calls[0]?.[0]).toBe(PRODUCTION_JWKS_URL);
   });
 
   it("does not refresh cached AG JWKs for expired integrity tokens", async () => {
