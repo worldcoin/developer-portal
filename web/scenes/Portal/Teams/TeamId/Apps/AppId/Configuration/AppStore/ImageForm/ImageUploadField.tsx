@@ -190,6 +190,10 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
 
   const canUploadMore = value.length < maxImages;
 
+  const aspectRatioStyle = {
+    aspectRatio: `${imageConstraints.width} / ${imageConstraints.height}`,
+  };
+
   const resolvedImageUrls = useMemo(() => {
     if (isAppVerified) {
       return value.map((url: string) =>
@@ -280,14 +284,15 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
             return (
               <div
                 key={imagePath}
-                className="relative overflow-hidden rounded-xl"
+                className="relative w-full overflow-hidden rounded-xl"
+                style={aspectRatioStyle}
               >
                 <ImageDisplay
                   src={resolvedUrl}
                   type="original"
                   width={imageConstraints.width}
                   height={imageConstraints.height}
-                  className="h-[200px] w-full rounded-xl object-cover"
+                  className="size-full rounded-xl object-contain"
                 />
                 <Button
                   type="button"
@@ -301,17 +306,22 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
             );
           })}
           {isUploading && (
-            <ImageLoader
-              name={imageTypeNamer(value.length)}
-              className="h-[200px]"
-            />
+            <div className="w-full" style={aspectRatioStyle}>
+              <ImageLoader
+                name={imageTypeNamer(value.length)}
+                className="size-full"
+              />
+            </div>
           )}
         </>
       )}
 
       {/* maxImages === 1: skeleton */}
       {value.length > 0 && maxImages === 1 && isImagesLoading && (
-        <Skeleton height={200} className="rounded-xl" />
+        <div
+          className="w-full animate-pulse rounded-xl bg-grey-100"
+          style={aspectRatioStyle}
+        />
       )}
 
       {/* ── maxImages > 1: 2-column grid — images + drop zone inline ── */}
@@ -325,14 +335,15 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
             return (
               <div
                 key={imagePath}
-                className="relative overflow-hidden rounded-xl"
+                className="relative w-full overflow-hidden rounded-xl"
+                style={aspectRatioStyle}
               >
                 <ImageDisplay
                   src={resolvedUrl}
                   type="original"
                   width={imageConstraints.width}
                   height={imageConstraints.height}
-                  className="h-[200px] w-full rounded-xl object-cover"
+                  className="size-full rounded-xl object-contain"
                 />
                 <Button
                   type="button"
@@ -348,25 +359,29 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
 
           {/* uploading loader occupies next grid slot */}
           {isUploading && (
-            <ImageLoader
-              name={imageTypeNamer(value.length)}
-              className="h-[200px]"
-            />
+            <div className="w-full" style={aspectRatioStyle}>
+              <ImageLoader
+                name={imageTypeNamer(value.length)}
+                className="size-full"
+              />
+            </div>
           )}
 
           {/* drop zone occupies next grid slot */}
           {canUploadMore && !isUploading && (
-            <ImageDropZone
-              width={imageConstraints.width}
-              height={imageConstraints.height}
-              disabled={disabled || !canUploadMore}
-              uploadImage={uploadImage}
-              imageType={imageTypeNamer(value.length)}
-              error={error}
-              className="h-[200px] !rounded-xl"
-            >
-              {dropZoneChildren}
-            </ImageDropZone>
+            <div className="w-full" style={aspectRatioStyle}>
+              <ImageDropZone
+                width={imageConstraints.width}
+                height={imageConstraints.height}
+                disabled={disabled || !canUploadMore}
+                uploadImage={uploadImage}
+                imageType={imageTypeNamer(value.length)}
+                error={error}
+                className="h-full !rounded-xl"
+              >
+                {dropZoneChildren}
+              </ImageDropZone>
+            </div>
           )}
         </div>
       )}
@@ -375,10 +390,10 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
       {value.length > 0 && maxImages > 1 && isImagesLoading && (
         <div className="grid grid-cols-2 gap-3">
           {value.map((url, index) => (
-            <Skeleton
+            <div
               key={`${url}-${index}`}
-              height={200}
-              className="rounded-xl"
+              className="w-full animate-pulse rounded-xl bg-grey-100"
+              style={aspectRatioStyle}
             />
           ))}
         </div>

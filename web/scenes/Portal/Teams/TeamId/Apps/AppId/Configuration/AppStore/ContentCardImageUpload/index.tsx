@@ -7,7 +7,6 @@ import clsx from "clsx";
 import { useAtom } from "jotai";
 import Image from "next/image";
 import { ChangeEvent, useMemo, useRef, useState } from "react";
-import Skeleton from "react-loading-skeleton";
 import { toast } from "react-toastify";
 import { FetchAppMetadataDocument } from "../../graphql/client/fetch-app-metadata.generated";
 import { ImageValidationError, useImage } from "../../hook/use-image";
@@ -134,11 +133,18 @@ export const ContentCardImageUpload = (props: ContentCardImageUploadProps) => {
     return getCDNImageUrl(appId, contentCardImageFile);
   }, [appId, contentCardImageFile, viewMode]);
 
+  const aspectRatioStyle = { aspectRatio: "345 / 240" };
+
   if (
     viewMode === "unverified" &&
     unverifiedImages?.content_card_image_url === "loading"
   ) {
-    return <Skeleton className="h-[200px] w-full rounded-xl" />;
+    return (
+      <div
+        className="w-full animate-pulse rounded-xl bg-grey-100"
+        style={aspectRatioStyle}
+      />
+    );
   }
 
   return (
@@ -155,35 +161,48 @@ export const ContentCardImageUpload = (props: ContentCardImageUploadProps) => {
       {/* Verified: full-width image */}
       {viewMode === "verified" &&
         (verifiedImageError ? (
-          <div className="flex h-[200px] w-full items-center justify-center rounded-xl bg-blue-100">
+          <div
+            className="flex w-full items-center justify-center rounded-xl bg-blue-100"
+            style={aspectRatioStyle}
+          >
             <WorldIcon className="size-10 text-blue-500" />
           </div>
         ) : (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={verifiedImageURL}
-            alt="content card image"
-            className="h-[200px] w-full rounded-xl object-cover drop-shadow-sm"
-            onError={() => setVerifiedImageError(true)}
-          />
+          <div
+            className="w-full overflow-hidden rounded-xl"
+            style={aspectRatioStyle}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={verifiedImageURL}
+              alt="content card image"
+              className="size-full rounded-xl object-contain drop-shadow-sm"
+              onError={() => setVerifiedImageError(true)}
+            />
+          </div>
         ))}
 
       {/* Unverified: uploading loader */}
       {viewMode === "unverified" && isUploading && (
-        <ImageLoader name="content_card_image" className="h-[200px] w-full" />
+        <div className="w-full" style={aspectRatioStyle}>
+          <ImageLoader name="content_card_image" className="size-full" />
+        </div>
       )}
 
       {/* Unverified: uploaded image or drop zone */}
       {viewMode === "unverified" &&
         !isUploading &&
         (unverifiedImages?.content_card_image_url ? (
-          <div className="relative overflow-hidden rounded-xl">
+          <div
+            className="relative w-full overflow-hidden rounded-xl"
+            style={aspectRatioStyle}
+          >
             <Image
               alt="content card image"
               src={unverifiedImages?.content_card_image_url}
-              className="h-[200px] w-full rounded-xl object-cover"
-              width={1200}
-              height={600}
+              className="size-full rounded-xl object-contain"
+              width={345}
+              height={240}
             />
             <Button
               type="button"
