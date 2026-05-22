@@ -1,6 +1,7 @@
 import { logger } from "../../../../lib/logger";
 import { verifySessionProofOnChain } from "../../../helpers/temporal-rpc";
 import { SessionProofRequest } from "../request-schema";
+import { getSessionCommitment } from "@worldcoin/idkit-server";
 
 export interface SessionResult {
   identifier: string;
@@ -9,6 +10,14 @@ export interface SessionResult {
   nullifier?: string;
   code?: string;
   detail?: string;
+}
+
+export function getVerifierSessionId(sessionId: string): bigint {
+  if (sessionId.startsWith("session_")) {
+    return getSessionCommitment(sessionId);
+  }
+
+  return BigInt(sessionId);
 }
 
 export async function processSessionProof(
@@ -29,7 +38,7 @@ export async function processSessionProof(
             credentialGenesisIssuedAtMin: BigInt(
               item.credential_genesis_issued_at_min || "0",
             ),
-            sessionId: BigInt(sessionProofRequest.session_id),
+            sessionId: getVerifierSessionId(sessionProofRequest.session_id),
             sessionNullifier: [
               BigInt(item.session_nullifier[0]),
               BigInt(item.session_nullifier[1]),
