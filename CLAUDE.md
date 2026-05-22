@@ -20,6 +20,13 @@
 ## Making Changes
 Always run formatting and type checks before committing. Make sure tests pass as well.
 
+## Pull request follow-up
+
+After pushing a branch with an open pull request, wait 5 minutes, then check the
+pull request for review comments and requested changes. If comments require code
+changes, make the fixes, rerun the relevant checks, commit, and push the branch
+again.
+
 ## Testing
 
 Tests live in `web/tests/api/` mirroring the `web/api/` directory structure.

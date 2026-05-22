@@ -36,6 +36,11 @@ export const sendEmail = async (params: {
   try {
     await sendgrid.send({
       ...(params.attachments ? { attachments: params.attachments } : {}),
+      mailSettings: {
+        bypassUnsubscribeManagement: {
+          enable: true,
+        },
+      },
       ...(params.templateId && params.templateData
         ? {
             dynamicTemplateData: params.templateData,
