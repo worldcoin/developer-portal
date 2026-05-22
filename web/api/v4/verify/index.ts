@@ -151,6 +151,7 @@ export async function POST(
           | UniquenessProofResponseV3[]
           | UniquenessProofResponseV4[],
         rpId,
+        environment: parsedParams.environment,
       });
 
       if (!integrityResult.success) {

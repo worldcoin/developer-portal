@@ -28,6 +28,9 @@ const JWKS_FETCH_TIMEOUT_MS = 4_000;
 const DEFAULT_INTEGRITY_JWKS_URL =
   "https://attestation.worldcoin.org/.well-known/jwks.json";
 const DEFAULT_INTEGRITY_ISSUER = "attestation.worldcoin.org";
+const DEFAULT_INTEGRITY_JWKS_URL_STAGING =
+  "https://attestation.worldcoin.dev/.well-known/jwks.json";
+const DEFAULT_INTEGRITY_ISSUER_STAGING = "attestation.worldcoin.dev";
 
 export const INTEGRITY_VERIFICATION_ERROR_CODE =
   "integrity_verification_failed";
@@ -58,6 +61,7 @@ type IntegrityVerificationParams = {
     | UniquenessProofResponseV4[]
     | SessionResponseItem[];
   rpId: string;
+  environment?: string;
 };
 
 export type IntegrityVerificationResult =
@@ -96,16 +100,17 @@ const i64be = (value: number) => {
   return buffer;
 };
 
-const getIntegrityJwksUrl = () =>
-  process.env.ATTESTATION_GATEWAY_JWKS_URL ??
-  process.env.INTEGRITY_BUNDLE_JWKS_URL ??
-  process.env.INTEGRITY_TOKEN_JWKS_URL ??
-  DEFAULT_INTEGRITY_JWKS_URL;
+const getIntegrityJwksUrl = (environment?: string) =>
+  environment === "staging"
+    ? process.env.ATTESTATION_GATEWAY_JWKS_URL_STAGING ??
+      DEFAULT_INTEGRITY_JWKS_URL_STAGING
+    : process.env.ATTESTATION_GATEWAY_JWKS_URL ?? DEFAULT_INTEGRITY_JWKS_URL;
 
-const getIntegrityExpectedIssuer = () =>
-  process.env.INTEGRITY_BUNDLE_EXPECTED_ISSUER ??
-  process.env.INTEGRITY_TOKEN_EXPECTED_ISSUER ??
-  DEFAULT_INTEGRITY_ISSUER;
+const getIntegrityExpectedIssuer = (environment?: string) =>
+  environment === "staging"
+    ? process.env.INTEGRITY_BUNDLE_EXPECTED_ISSUER_STAGING ??
+      DEFAULT_INTEGRITY_ISSUER_STAGING
+    : process.env.INTEGRITY_BUNDLE_EXPECTED_ISSUER ?? DEFAULT_INTEGRITY_ISSUER;
 
 export function normalizeIntegrityBundle(
   integrityBundle: IntegrityBundle,
@@ -426,11 +431,12 @@ async function verifyJwtWithJwk(params: {
   integrityJwt: string;
   jwk: JWK;
   rpId: string;
+  issuer: string;
 }) {
   const publicKey = await importJWK(params.jwk, "ES256");
   const { payload } = await jwtVerify(params.integrityJwt, publicKey, {
     algorithms: ["ES256"],
-    issuer: getIntegrityExpectedIssuer(),
+    issuer: params.issuer,
     audience: params.rpId,
     requiredClaims: ["cnf", "exp", "platform", "pass"],
   });
@@ -446,6 +452,7 @@ async function verifyIntegrityToken(params: {
   integrityJwt: string;
   rpId: string;
   signatureFormat: SignatureFormat;
+  environment?: string;
 }) {
   let protectedHeader: ReturnType<typeof decodeProtectedHeader>;
   try {
@@ -462,7 +469,8 @@ async function verifyIntegrityToken(params: {
     throw new IntegrityBundleError("missing_integrity_token_kid");
   }
 
-  const jwksUrl = getIntegrityJwksUrl();
+  const jwksUrl = getIntegrityJwksUrl(params.environment);
+  const issuer = getIntegrityExpectedIssuer(params.environment);
   let keyResult = await getJwkForKid({
     jwksUrl,
     kid: protectedHeader.kid,
@@ -474,6 +482,7 @@ async function verifyIntegrityToken(params: {
       integrityJwt: params.integrityJwt,
       jwk: keyResult.jwk,
       rpId: params.rpId,
+      issuer,
     });
   } catch (error) {
     if (!keyResult.fromCache || !shouldRefreshJwksAfterJwtFailure(error)) {
@@ -494,6 +503,7 @@ async function verifyIntegrityToken(params: {
         integrityJwt: params.integrityJwt,
         jwk: keyResult.jwk,
         rpId: params.rpId,
+        issuer,
       });
     } catch (retryError) {
       throw new IntegrityBundleError(
@@ -599,6 +609,7 @@ export async function verifyIntegrityBundle(
       integrityJwt: bundle.jwt,
       rpId: params.rpId,
       signatureFormat: bundle.signatureFormat,
+      environment: params.environment,
     });
 
     const payloadDigest = computeProofIntegrityDigest({

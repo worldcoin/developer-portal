@@ -22,6 +22,9 @@ const RP_ID = "rp_test_123";
 const AG_KID = "ag-test-key";
 const JWKS_URL = "https://attestation.example/.well-known/jwks.json";
 const ISSUER = "attestation.worldcoin.org";
+const STAGING_ISSUER = "attestation.worldcoin.dev";
+const STAGING_JWKS_URL =
+  "https://attestation-staging.example/.well-known/jwks.json";
 
 type DeviceKey = {
   privateKey: Uint8Array;
@@ -82,6 +85,7 @@ async function createIntegrityJwt(params: {
   expirationTime?: number | string | Date;
   pass?: boolean;
   platform: "android" | "ios";
+  issuer?: string;
 }) {
   return await new SignJWT({
     pass: params.pass ?? true,
@@ -91,7 +95,7 @@ async function createIntegrityJwt(params: {
     },
   })
     .setProtectedHeader({ alg: "ES256", kid: AG_KID })
-    .setIssuer(ISSUER)
+    .setIssuer(params.issuer ?? ISSUER)
     .setAudience(params.rpId)
     .setIssuedAt()
     .setExpirationTime(params.expirationTime ?? "5m")
@@ -108,6 +112,7 @@ async function createBundle(params?: {
   signedTimestamp?: number;
   signatureFormat?: "android_keystore" | "apple_app_attest";
   timestamp?: number;
+  issuer?: string;
 }) {
   const agKey = params?.agKey ?? createAgKey();
   const deviceKey = createDeviceKey();
@@ -124,6 +129,7 @@ async function createBundle(params?: {
     expirationTime: params?.jwtExpirationTime,
     pass: params?.pass,
     platform,
+    issuer: params?.issuer,
   });
 
   const digest = computeProofIntegrityDigest({
@@ -179,15 +185,17 @@ async function createBundle(params?: {
 describe("integrity bundle verification", () => {
   beforeEach(async () => {
     jest.clearAllMocks();
-    process.env.INTEGRITY_BUNDLE_JWKS_URL = JWKS_URL;
+    process.env.ATTESTATION_GATEWAY_JWKS_URL = JWKS_URL;
     process.env.INTEGRITY_BUNDLE_EXPECTED_ISSUER = ISSUER;
     await (global.RedisClient as any)?.flushall?.();
   });
 
   afterEach(() => {
     jest.restoreAllMocks();
-    delete process.env.INTEGRITY_BUNDLE_JWKS_URL;
+    delete process.env.ATTESTATION_GATEWAY_JWKS_URL;
     delete process.env.INTEGRITY_BUNDLE_EXPECTED_ISSUER;
+    delete process.env.ATTESTATION_GATEWAY_JWKS_URL_STAGING;
+    delete process.env.INTEGRITY_BUNDLE_EXPECTED_ISSUER_STAGING;
   });
 
   it("normalizes a structured integrity bundle", () => {
@@ -389,6 +397,55 @@ describe("integrity bundle verification", () => {
     expect(result).toEqual({
       success: false,
       reason: "invalid_device_signature",
+    });
+  });
+
+  it("verifies a staging bundle using the staging issuer when environment is staging", async () => {
+    process.env.ATTESTATION_GATEWAY_JWKS_URL_STAGING = STAGING_JWKS_URL;
+    process.env.INTEGRITY_BUNDLE_EXPECTED_ISSUER_STAGING = STAGING_ISSUER;
+
+    const { agPublicJwk, integrityBundle, nonce } = await createBundle({
+      issuer: STAGING_ISSUER,
+    });
+    jest
+      .spyOn(global, "fetch")
+      .mockResolvedValue(
+        new Response(JSON.stringify({ keys: [agPublicJwk] }), { status: 200 }),
+      );
+
+    const result = await verifyIntegrityBundle({
+      integrityBundle,
+      nonce,
+      protocolVersion: "4.0",
+      responses: [response],
+      rpId: RP_ID,
+      environment: "staging",
+    });
+
+    expect(result).toEqual({ success: true });
+  });
+
+  it("rejects a staging bundle when environment is not staging (uses prod issuer)", async () => {
+    const { agPublicJwk, integrityBundle, nonce } = await createBundle({
+      issuer: STAGING_ISSUER,
+    });
+    jest
+      .spyOn(global, "fetch")
+      .mockResolvedValue(
+        new Response(JSON.stringify({ keys: [agPublicJwk] }), { status: 200 }),
+      );
+
+    const result = await verifyIntegrityBundle({
+      integrityBundle,
+      nonce,
+      protocolVersion: "4.0",
+      responses: [response],
+      rpId: RP_ID,
+    });
+
+    expect(result).toEqual({
+      success: false,
+      reason: "invalid_integrity_token",
     });
   });
 
