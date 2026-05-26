@@ -1,4 +1,7 @@
 import { Button } from "@/components/Button";
+import { Dialog } from "@/components/Dialog";
+import { DialogOverlay } from "@/components/DialogOverlay";
+import { DialogPanel } from "@/components/DialogPanel";
 import { TrashIcon } from "@/components/Icons/TrashIcon";
 import { ImageDropZone } from "@/components/ImageDropZone";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
@@ -10,6 +13,8 @@ import { ImageValidationError, useImage } from "../../hook/use-image";
 import { extractImagePathWithExtensionFromActualUrl } from "../utils";
 import { ImageDisplay } from "./ImageDisplay";
 import ImageLoader from "./ImageLoader";
+
+const PREVIEW_HEIGHT_PX = 200;
 
 interface ImageConstraints {
   width: number;
@@ -71,6 +76,7 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
   } = props;
 
   const [isUploading, setIsUploading] = useState(false);
+  const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
   const isMountedRef = useRef(true);
   const abortControllerRef = useRef<AbortController | null>(null);
   const isLocalized = locale !== "en";
@@ -190,8 +196,9 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
 
   const canUploadMore = value.length < maxImages;
 
-  const aspectRatioStyle = {
-    aspectRatio: `${imageConstraints.width} / ${imageConstraints.height}`,
+  const previewStyle = {
+    height: `${PREVIEW_HEIGHT_PX}px`,
+    width: `${(PREVIEW_HEIGHT_PX * imageConstraints.width) / imageConstraints.height}px`,
   };
 
   const resolvedImageUrls = useMemo(() => {
@@ -284,16 +291,23 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
             return (
               <div
                 key={imagePath}
-                className="relative w-full overflow-hidden rounded-xl"
-                style={aspectRatioStyle}
+                className="relative overflow-hidden rounded-xl"
+                style={previewStyle}
               >
-                <ImageDisplay
-                  src={resolvedUrl}
-                  type="original"
-                  width={imageConstraints.width}
-                  height={imageConstraints.height}
-                  className="size-full rounded-xl object-contain"
-                />
+                <button
+                  type="button"
+                  onClick={() => setLightboxUrl(resolvedUrl)}
+                  className="block size-full cursor-zoom-in"
+                  aria-label="View full resolution"
+                >
+                  <ImageDisplay
+                    src={resolvedUrl}
+                    type="original"
+                    width={imageConstraints.width}
+                    height={imageConstraints.height}
+                    className="size-full rounded-xl object-contain"
+                  />
+                </button>
                 <Button
                   type="button"
                   onClick={() => handleDelete(imagePath)}
@@ -306,7 +320,7 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
             );
           })}
           {isUploading && (
-            <div className="w-full" style={aspectRatioStyle}>
+            <div style={previewStyle}>
               <ImageLoader
                 name={imageTypeNamer(value.length)}
                 className="size-full"
@@ -319,14 +333,14 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
       {/* maxImages === 1: skeleton */}
       {value.length > 0 && maxImages === 1 && isImagesLoading && (
         <div
-          className="w-full animate-pulse rounded-xl bg-grey-100"
-          style={aspectRatioStyle}
+          className="animate-pulse rounded-xl bg-grey-100"
+          style={previewStyle}
         />
       )}
 
-      {/* ── maxImages > 1: 2-column grid — images + drop zone inline ── */}
+      {/* ── maxImages > 1: thumbnails + drop zone inline ── */}
       {value.length > 0 && maxImages > 1 && !isImagesLoading && (
-        <div className="grid grid-cols-2 gap-3">
+        <div className="flex flex-wrap gap-3">
           {value.map((url) => {
             const imagePath = extractImagePathWithExtensionFromActualUrl(url);
             const resolvedUrl =
@@ -335,16 +349,23 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
             return (
               <div
                 key={imagePath}
-                className="relative w-full overflow-hidden rounded-xl"
-                style={aspectRatioStyle}
+                className="relative overflow-hidden rounded-xl"
+                style={previewStyle}
               >
-                <ImageDisplay
-                  src={resolvedUrl}
-                  type="original"
-                  width={imageConstraints.width}
-                  height={imageConstraints.height}
-                  className="size-full rounded-xl object-contain"
-                />
+                <button
+                  type="button"
+                  onClick={() => setLightboxUrl(resolvedUrl)}
+                  className="block size-full cursor-zoom-in"
+                  aria-label="View full resolution"
+                >
+                  <ImageDisplay
+                    src={resolvedUrl}
+                    type="original"
+                    width={imageConstraints.width}
+                    height={imageConstraints.height}
+                    className="size-full rounded-xl object-contain"
+                  />
+                </button>
                 <Button
                   type="button"
                   onClick={() => handleDelete(imagePath)}
@@ -357,9 +378,9 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
             );
           })}
 
-          {/* uploading loader occupies next grid slot */}
+          {/* uploading loader occupies next slot */}
           {isUploading && (
-            <div className="w-full" style={aspectRatioStyle}>
+            <div style={previewStyle}>
               <ImageLoader
                 name={imageTypeNamer(value.length)}
                 className="size-full"
@@ -367,9 +388,9 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
             </div>
           )}
 
-          {/* drop zone occupies next grid slot */}
+          {/* drop zone occupies next slot */}
           {canUploadMore && !isUploading && (
-            <div className="w-full" style={aspectRatioStyle}>
+            <div style={previewStyle}>
               <ImageDropZone
                 width={imageConstraints.width}
                 height={imageConstraints.height}
@@ -388,16 +409,34 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
 
       {/* maxImages > 1: skeleton */}
       {value.length > 0 && maxImages > 1 && isImagesLoading && (
-        <div className="grid grid-cols-2 gap-3">
+        <div className="flex flex-wrap gap-3">
           {value.map((url, index) => (
             <div
               key={`${url}-${index}`}
-              className="w-full animate-pulse rounded-xl bg-grey-100"
-              style={aspectRatioStyle}
+              className="animate-pulse rounded-xl bg-grey-100"
+              style={previewStyle}
             />
           ))}
         </div>
       )}
+
+      <Dialog open={!!lightboxUrl} onClose={() => setLightboxUrl(null)}>
+        <DialogOverlay />
+        <DialogPanel
+          showCloseIcon
+          onClose={() => setLightboxUrl(null)}
+          className="md:max-w-[90vw]"
+        >
+          {lightboxUrl && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={lightboxUrl}
+              alt="Full resolution preview"
+              className="max-h-[80vh] max-w-full object-contain"
+            />
+          )}
+        </DialogPanel>
+      </Dialog>
     </div>
   );
 };

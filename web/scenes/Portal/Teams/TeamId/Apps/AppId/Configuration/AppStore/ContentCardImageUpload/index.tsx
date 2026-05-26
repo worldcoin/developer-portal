@@ -1,4 +1,7 @@
 import { Button } from "@/components/Button";
+import { Dialog } from "@/components/Dialog";
+import { DialogOverlay } from "@/components/DialogOverlay";
+import { DialogPanel } from "@/components/DialogPanel";
 import { TrashIcon } from "@/components/Icons/TrashIcon";
 import { WorldIcon } from "@/components/Icons/WorldIcon";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
@@ -13,6 +16,12 @@ import { ImageValidationError, useImage } from "../../hook/use-image";
 import ImageLoader from "../ImageForm/ImageLoader";
 import { unverifiedImageAtom, viewModeAtom } from "../../layout/ImagesProvider";
 import { useUpdateContentCardImageMutation } from "./graphql/client/update-content-card-image.generated";
+
+const PREVIEW_HEIGHT_PX = 200;
+const previewStyle = {
+  height: `${PREVIEW_HEIGHT_PX}px`,
+  width: `${(PREVIEW_HEIGHT_PX * 345) / 240}px`,
+};
 
 type ContentCardImageUploadProps = {
   appId: string;
@@ -36,6 +45,7 @@ export const ContentCardImageUpload = (props: ContentCardImageUploadProps) => {
   const [isSecondUpload, setIsSecondUpload] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [disabled] = useState(false);
+  const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
   const [viewMode] = useAtom(viewModeAtom);
   const [unverifiedImages, setUnverifiedImages] = useAtom(unverifiedImageAtom);
   const [updateContentCardImageMutation, { loading }] =
@@ -133,16 +143,14 @@ export const ContentCardImageUpload = (props: ContentCardImageUploadProps) => {
     return getCDNImageUrl(appId, contentCardImageFile);
   }, [appId, contentCardImageFile, viewMode]);
 
-  const aspectRatioStyle = { aspectRatio: "345 / 240" };
-
   if (
     viewMode === "unverified" &&
     unverifiedImages?.content_card_image_url === "loading"
   ) {
     return (
       <div
-        className="w-full animate-pulse rounded-xl bg-grey-100"
-        style={aspectRatioStyle}
+        className="animate-pulse rounded-xl bg-grey-100"
+        style={previewStyle}
       />
     );
   }
@@ -158,33 +166,37 @@ export const ContentCardImageUpload = (props: ContentCardImageUploadProps) => {
         style={{ display: "none" }}
       />
 
-      {/* Verified: full-width image */}
+      {/* Verified: thumbnail */}
       {viewMode === "verified" &&
         (verifiedImageError ? (
           <div
-            className="flex w-full items-center justify-center rounded-xl bg-blue-100"
-            style={aspectRatioStyle}
+            className="flex items-center justify-center rounded-xl bg-blue-100"
+            style={previewStyle}
           >
             <WorldIcon className="size-10 text-blue-500" />
           </div>
         ) : (
-          <div
-            className="w-full overflow-hidden rounded-xl"
-            style={aspectRatioStyle}
-          >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={verifiedImageURL}
-              alt="content card image"
-              className="size-full rounded-xl object-contain drop-shadow-sm"
-              onError={() => setVerifiedImageError(true)}
-            />
+          <div className="overflow-hidden rounded-xl" style={previewStyle}>
+            <button
+              type="button"
+              onClick={() => setLightboxUrl(verifiedImageURL)}
+              className="block size-full cursor-zoom-in"
+              aria-label="View full resolution"
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={verifiedImageURL}
+                alt="content card image"
+                className="size-full rounded-xl object-contain drop-shadow-sm"
+                onError={() => setVerifiedImageError(true)}
+              />
+            </button>
           </div>
         ))}
 
       {/* Unverified: uploading loader */}
       {viewMode === "unverified" && isUploading && (
-        <div className="w-full" style={aspectRatioStyle}>
+        <div style={previewStyle}>
           <ImageLoader name="content_card_image" className="size-full" />
         </div>
       )}
@@ -194,16 +206,25 @@ export const ContentCardImageUpload = (props: ContentCardImageUploadProps) => {
         !isUploading &&
         (unverifiedImages?.content_card_image_url ? (
           <div
-            className="relative w-full overflow-hidden rounded-xl"
-            style={aspectRatioStyle}
+            className="relative overflow-hidden rounded-xl"
+            style={previewStyle}
           >
-            <Image
-              alt="content card image"
-              src={unverifiedImages?.content_card_image_url}
-              className="size-full rounded-xl object-contain"
-              width={345}
-              height={240}
-            />
+            <button
+              type="button"
+              onClick={() =>
+                setLightboxUrl(unverifiedImages?.content_card_image_url ?? null)
+              }
+              className="block size-full cursor-zoom-in"
+              aria-label="View full resolution"
+            >
+              <Image
+                alt="content card image"
+                src={unverifiedImages?.content_card_image_url}
+                className="size-full rounded-xl object-contain"
+                width={345}
+                height={240}
+              />
+            </button>
             <Button
               type="button"
               onClick={removeImage}
@@ -268,6 +289,24 @@ export const ContentCardImageUpload = (props: ContentCardImageUploadProps) => {
             </div>
           </label>
         ))}
+
+      <Dialog open={!!lightboxUrl} onClose={() => setLightboxUrl(null)}>
+        <DialogOverlay />
+        <DialogPanel
+          showCloseIcon
+          onClose={() => setLightboxUrl(null)}
+          className="md:max-w-[90vw]"
+        >
+          {lightboxUrl && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={lightboxUrl}
+              alt="Full resolution preview"
+              className="max-h-[80vh] max-w-full object-contain"
+            />
+          )}
+        </DialogPanel>
+      </Dialog>
     </div>
   );
 };
