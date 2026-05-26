@@ -115,6 +115,35 @@ describe("/api/v2/create-action [success cases]", () => {
     });
   });
 
+  it("accepts max_verifications=0 for unlimited verifications", async () => {
+    const mockReq = createMockRequest({
+      url: getUrl(validAppId),
+      api_key: validApiKey,
+      body: { ...validBody, max_verifications: 0 },
+    });
+
+    const ctx = { params: { app_id: validAppId } };
+    VerifyFetchAPIKey.mockResolvedValue(validApiKeyResponse);
+
+    const actionResult = {
+      id: "action_123",
+      action: validBody.action,
+      name: validBody.name,
+      description: validBody.description,
+      max_verifications: 0,
+    };
+
+    CreateDynamicAction.mockResolvedValue({
+      insert_action_one: actionResult,
+    });
+
+    const res = await POST(mockReq, ctx);
+    expect(res.status).toBe(200);
+    expect(CreateDynamicAction).toHaveBeenCalledWith(
+      expect.objectContaining({ max_verifications: 0 }),
+    );
+  });
+
   it("can create a new action with full set of body params", async () => {
     const mockReq = createMockRequest({
       url: getUrl(validAppId),

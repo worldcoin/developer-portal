@@ -23,7 +23,7 @@ const createActionBodySchema = yup
     max_verifications: yup
       .number()
       .integer()
-      .min(1)
+      .min(0)
       .max(2147483647)
       .optional()
       .default(1),
