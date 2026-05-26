@@ -1,15 +1,16 @@
 import { Button } from "@/components/Button";
 import { Dialog } from "@/components/Dialog";
 import { DialogOverlay } from "@/components/DialogOverlay";
-import { DialogPanel } from "@/components/DialogPanel";
+import { CloseIcon } from "@/components/Icons/CloseIcon";
 import { TrashIcon } from "@/components/Icons/TrashIcon";
 import { WorldIcon } from "@/components/Icons/WorldIcon";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { getCDNImageUrl } from "@/lib/utils";
+import { Dialog as HeadlessDialog, Transition } from "@headlessui/react";
 import clsx from "clsx";
 import { useAtom } from "jotai";
 import Image from "next/image";
-import { ChangeEvent, useMemo, useRef, useState } from "react";
+import { ChangeEvent, Fragment, useMemo, useRef, useState } from "react";
 import { toast } from "react-toastify";
 import { FetchAppMetadataDocument } from "../../graphql/client/fetch-app-metadata.generated";
 import { ImageValidationError, useImage } from "../../hook/use-image";
@@ -292,20 +293,36 @@ export const ContentCardImageUpload = (props: ContentCardImageUploadProps) => {
 
       <Dialog open={!!lightboxUrl} onClose={() => setLightboxUrl(null)}>
         <DialogOverlay />
-        <DialogPanel
-          showCloseIcon
-          onClose={() => setLightboxUrl(null)}
-          className="md:max-w-[90vw]"
+        <Transition.Child
+          enter="transition duration-200 ease"
+          enterFrom="opacity-0 scale-95"
+          enterTo="opacity-100 scale-100"
+          leave="transition duration-150 ease"
+          leaveFrom="opacity-100 scale-100"
+          leaveTo="opacity-0 scale-95"
+          as={Fragment}
         >
-          {lightboxUrl && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={lightboxUrl}
-              alt="Full resolution preview"
-              className="max-h-[80vh] max-w-full object-contain"
-            />
-          )}
-        </DialogPanel>
+          <div className="fixed inset-0 flex items-center justify-center p-4">
+            <HeadlessDialog.Panel className="relative">
+              {lightboxUrl && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={lightboxUrl}
+                  alt="Full resolution preview"
+                  className="block max-h-[90vh] max-w-[90vw] rounded-2xl object-contain shadow-2xl"
+                />
+              )}
+              <button
+                type="button"
+                onClick={() => setLightboxUrl(null)}
+                className="absolute right-3 top-3 flex size-9 items-center justify-center rounded-full bg-white/95 text-grey-700 shadow-md transition-colors hover:bg-white"
+                aria-label="Close"
+              >
+                <CloseIcon className="size-4" />
+              </button>
+            </HeadlessDialog.Panel>
+          </div>
+        </Transition.Child>
       </Dialog>
     </div>
   );
