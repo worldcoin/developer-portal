@@ -94,7 +94,7 @@ export const getAccumulativePaymentsData = async (
         message: "User is not authorized to view this app's data",
         app_id: appId,
         team_id: teamId,
-        logLevel: "error",
+        logLevel: "warn",
       });
     }
 
@@ -217,7 +217,7 @@ export const getAccumulativeTransactionsData = async (
         message: "User is not authorized to view this app's data",
         app_id: appId,
         team_id: teamId,
-        logLevel: "error",
+        logLevel: "warn",
       });
     }
 
