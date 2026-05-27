@@ -1,10 +1,10 @@
 import { errorResponse } from "@/api/helpers/errors";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
+import { getTransactionSignedFetch } from "@/api/helpers/signed-fetch";
 import { verifyHashedSecret } from "@/api/helpers/utils";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { logger } from "@/lib/logger";
 import { fetchWithRetry } from "@/lib/utils";
-import { createSignedFetcher } from "aws-sigv4-fetch";
 import { createHash } from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
@@ -383,13 +383,7 @@ export const POST = async (req: NextRequest) => {
           ...(draft_id !== undefined && { draftId: draft_id }),
         };
 
-  let signedFetch = global.TransactionSignedFetcher;
-  if (!signedFetch) {
-    signedFetch = createSignedFetcher({
-      service: "execute-api",
-      region: process.env.TRANSACTION_BACKEND_REGION,
-    });
-  }
+  const signedFetch = getTransactionSignedFetch();
 
   let res: Response;
 

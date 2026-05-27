@@ -1,8 +1,8 @@
 "use server";
 
 import { errorFormAction } from "@/api/helpers/errors";
+import { getTransactionSignedFetch } from "@/api/helpers/signed-fetch";
 import { AffiliateMetadataResponse, FormActionResult } from "@/lib/types";
-import { createSignedFetcher } from "aws-sigv4-fetch";
 import { validateAffiliateRequest } from "../../../common/server/validate-affiliate-request";
 
 export const getAffiliateMetadata = async (): Promise<FormActionResult> => {
@@ -17,13 +17,7 @@ export const getAffiliateMetadata = async (): Promise<FormActionResult> => {
 
     teamId = validation.data.teamId;
 
-    let signedFetch = global.TransactionSignedFetcher;
-    if (!signedFetch) {
-      signedFetch = createSignedFetcher({
-        service: "execute-api",
-        region: process.env.TRANSACTION_BACKEND_REGION,
-      });
-    }
+    const signedFetch = getTransactionSignedFetch();
 
     let url = `${process.env.NEXT_SERVER_APP_BACKEND_BASE_URL}/internal/v1/affiliate/metadata`;
 
