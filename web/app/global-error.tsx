@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 // Window (ms) within which we will not auto-reload again after we just did.
 // Guards against tight reload loops if the stale-bundle issue somehow persists
@@ -37,21 +37,32 @@ const shouldAutoReload = () => {
     return false;
   }
   try {
-    const last = window.sessionStorage.getItem(RELOAD_KEY);
-    if (!last) {
-      return true;
+    const storage = window.sessionStorage;
+    const last = storage.getItem(RELOAD_KEY);
+    if (last) {
+      const lastAt = Number.parseInt(last, 10);
+      if (
+        Number.isFinite(lastAt) &&
+        Date.now() - lastAt <= RELOAD_COOLDOWN_MS
+      ) {
+        return false;
+      }
     }
-    const lastAt = Number.parseInt(last, 10);
-    if (!Number.isFinite(lastAt)) {
-      return true;
-    }
-    return Date.now() - lastAt > RELOAD_COOLDOWN_MS;
+    // Probe write capability separately from the real marker so the
+    // commit doesn't happen during render (which would race with React
+    // StrictMode's double render and trip the cooldown on the second
+    // pass). If storage is read-only (Safari Lockdown, quota
+    // exhausted, restricted iframe), the probe throws and we refuse
+    // the auto-reload — the manual fallback UI handles it.
+    const probeKey = "__sa_probe__";
+    storage.setItem(probeKey, "1");
+    storage.removeItem(probeKey);
+    return true;
   } catch {
-    // sessionStorage is unavailable (private mode / disabled storage).
-    // Without a persisted marker we can't enforce the cooldown across
-    // the reload, so a recurring stale-action error would trigger a
-    // reload on every render. Refuse to auto-reload — the manual
-    // fallback UI handles it.
+    // Storage unavailable for either read or write. Without a
+    // persisted marker we can't enforce the cooldown across the
+    // reload, so a recurring stale-action error would re-fire on
+    // every render. Refuse to auto-reload.
     return false;
   }
 };
@@ -79,17 +90,21 @@ export default function GlobalError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  // `bailed` flips us off the reload path if markReload fails between
+  // the probe in shouldAutoReload and the real write here (e.g. a
+  // microsecond race where storage filled up). Without it, the
+  // "Reloading…" UI would be rendered but never actually reload,
+  // stranding the user on the status text.
+  const [bailed, setBailed] = useState(false);
   const staleAction = isStaleServerActionError(error);
-  const willReload = staleAction && shouldAutoReload();
+  const willReload = staleAction && !bailed && shouldAutoReload();
 
   useEffect(() => {
     if (!willReload) {
       return;
     }
     if (!markReload()) {
-      // Cooldown marker couldn't be persisted; reloading without it
-      // risks a tight loop if the error recurs. Skip the reload and
-      // let the user retry manually via the fallback UI.
+      setBailed(true);
       return;
     }
     window.location.reload();
