@@ -17,8 +17,10 @@ export async function POST(req: NextRequest) {
 
   // Reject non-JSON request bodies up front so a form-encoded or otherwise
   // malformed payload does not surface as an unhandled SyntaxError from
-  // `req.json()`.
-  const contentType = req.headers.get("content-type");
+  // `req.json()`. Media-type tokens are case-insensitive per RFC 9110, so
+  // normalise before matching to keep mixed-case clients working
+  // (e.g. `Application/JSON; charset=UTF-8`).
+  const contentType = req.headers.get("content-type")?.toLowerCase();
   if (!contentType?.includes("application/json")) {
     return errorValidation(
       "invalid_content_type",
