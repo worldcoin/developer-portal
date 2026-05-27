@@ -1,12 +1,12 @@
 "use server";
 
 import { errorFormAction } from "@/api/helpers/errors";
+import { getTransactionSignedFetch } from "@/api/helpers/signed-fetch";
 import {
   AffiliateTransactionsRequestParams,
   AffiliateTransactionsResponse,
   FormActionResult,
 } from "@/lib/types";
-import { createSignedFetcher } from "aws-sigv4-fetch";
 import { validateAffiliateRequest } from "../../common/server/validate-affiliate-request";
 
 export const getAffiliateTransactions = async (
@@ -23,13 +23,7 @@ export const getAffiliateTransactions = async (
 
     teamId = validation.data.teamId;
 
-    let signedFetch = global.TransactionSignedFetcher;
-    if (!signedFetch) {
-      signedFetch = createSignedFetcher({
-        service: "execute-api",
-        region: process.env.TRANSACTION_BACKEND_REGION,
-      });
-    }
+    const signedFetch = getTransactionSignedFetch();
 
     const reqParams: AffiliateTransactionsRequestParams = {
       cursor: params?.cursor,

@@ -1,7 +1,7 @@
 import { verifyApiKey } from "@/api/helpers/auth/verify-api-key";
 import { errorResponse } from "@/api/helpers/errors";
+import { getTransactionSignedFetch } from "@/api/helpers/signed-fetch";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
-import { createSignedFetcher } from "aws-sigv4-fetch";
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
 
@@ -44,13 +44,7 @@ export const GET = async (req: NextRequest) => {
     return apiKeyResult.errorResponse;
   }
 
-  let signedFetch = global.TransactionSignedFetcher;
-  if (!signedFetch) {
-    signedFetch = createSignedFetcher({
-      service: "execute-api",
-      region: process.env.TRANSACTION_BACKEND_REGION,
-    });
-  }
+  const signedFetch = getTransactionSignedFetch();
 
   try {
     const res = await signedFetch(

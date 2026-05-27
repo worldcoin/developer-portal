@@ -1,10 +1,10 @@
 import { errorResponse } from "@/api/helpers/errors";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
+import { getTransactionSignedFetch } from "@/api/helpers/signed-fetch";
 import { corsHandler, verifyHashedSecret } from "@/api/helpers/utils";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { logger } from "@/lib/logger";
 import { appIdSchema } from "@/lib/schema";
-import { createSignedFetcher } from "aws-sigv4-fetch";
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
 import { getSdk as fetchApiKeySdk } from "../../graphql/fetch-api-key.generated";
@@ -105,13 +105,7 @@ export const GET = async (req: NextRequest) => {
     });
   }
 
-  let signedFetch = global.TransactionSignedFetcher;
-  if (!signedFetch) {
-    signedFetch = createSignedFetcher({
-      service: "execute-api",
-      region: process.env.TRANSACTION_BACKEND_REGION,
-    });
-  }
+  const signedFetch = getTransactionSignedFetch();
 
   const res = await signedFetch(
     `${process.env.NEXT_SERVER_INTERNAL_PAYMENTS_ENDPOINT}/miniapp-actions/debug?miniapp-id=${appId}`,
