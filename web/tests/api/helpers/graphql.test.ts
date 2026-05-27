@@ -18,8 +18,8 @@ jest.mock("@/api/helpers/jwts", () => ({
 // #endregion
 
 import {
-  graphqlFetchWithRetry,
   isRetryableOperation,
+  makeGraphqlFetchWithRetry,
 } from "@/api/helpers/graphql";
 
 // #region Test data
@@ -84,16 +84,13 @@ describe("isRetryableOperation", () => {
 });
 
 describe("graphqlFetchWithRetry", () => {
-  const originalFetch = global.fetch;
   const fetchMock = jest.fn();
+  const graphqlFetchWithRetry = makeGraphqlFetchWithRetry(
+    fetchMock as unknown as typeof fetch,
+  );
 
   beforeEach(() => {
     jest.clearAllMocks();
-    global.fetch = fetchMock as unknown as typeof fetch;
-  });
-
-  afterAll(() => {
-    global.fetch = originalFetch;
   });
 
   const okResponse = () =>

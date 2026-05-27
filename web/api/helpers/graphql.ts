@@ -133,6 +133,14 @@ const TRANSPORT_ERROR_CODES = new Set([
 const sleep = (ms: number) =>
   new Promise<void>((resolve) => setTimeout(resolve, ms));
 
+// Bind to the native fetch reference captured at module load. This matches
+// `graphql-request`'s own behaviour (its default fetch is resolved at import
+// time, not at call time) and prevents test code that does
+// `global.fetch = jest.fn(...)` — used to mock OTHER outbound calls like the
+// sequencer in `web/tests/integration/api/v2/verify.test.ts` — from
+// accidentally intercepting the Hasura request that this wrapper makes.
+const baseFetch: typeof fetch = globalThis.fetch.bind(globalThis);
+
 /**
  * Combine the caller's optional AbortSignal with a per-attempt timeout signal.
  * Uses `AbortSignal.any` when available (Node >= 20.3); falls back to a manual
@@ -177,58 +185,74 @@ const combineSignals = (
 };
 
 /**
- * A `fetch` replacement, suitable for `graphql-request`'s `GraphQLClient`,
+ * Build a `fetch` replacement, suitable for `graphql-request`'s `GraphQLClient`,
  * that:
  *   - applies a 15s `AbortSignal.timeout` to every attempt
  *   - retries up to 2 extra times (3 attempts total) on transport-level
  *     errors, but ONLY when the body is provably a `query` operation
  *   - never retries on a received HTTP response (4xx/5xx), and never retries
  *     mutations or batch requests
+ *
+ * Takes the underlying fetch as an argument so tests can inject a mock without
+ * having to override `globalThis.fetch` (which would also intercept unrelated
+ * calls in the same test process). Production builds via {@link graphqlFetchWithRetry}
+ * pass the module-load-time `baseFetch`.
  */
-export const graphqlFetchWithRetry: typeof fetch = async (input, init) => {
-  const body = init?.body ?? null;
-  const retryable = isRetryableOperation(body);
-  const callerSignal = init?.signal ?? null;
-  const backoffs = retryable ? QUERY_RETRY_BACKOFFS_MS : [];
-  const maxAttempts = backoffs.length + 1;
+export const makeGraphqlFetchWithRetry = (
+  fetchImpl: typeof fetch,
+): typeof fetch => {
+  return async (input, init) => {
+    const body = init?.body ?? null;
+    const retryable = isRetryableOperation(body);
+    const callerSignal = init?.signal ?? null;
+    const backoffs = retryable ? QUERY_RETRY_BACKOFFS_MS : [];
+    const maxAttempts = backoffs.length + 1;
 
-  let lastError: unknown;
+    let lastError: unknown;
 
-  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-    const signal = combineSignals(callerSignal, REQUEST_TIMEOUT_MS);
-    try {
-      // Pass through everything we received, swapping in our combined signal.
-      return await fetch(input, { ...init, signal });
-    } catch (err) {
-      lastError = err;
-      const isLast = attempt === maxAttempts;
-      const transport = isTransportError(err);
-      // If the caller asked to cancel (route timeout, client disconnect,
-      // upstream short-circuit), honour it immediately rather than treating
-      // the resulting AbortError as a retryable transport failure.
-      const callerAborted = callerSignal?.aborted ?? false;
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      const signal = combineSignals(callerSignal, REQUEST_TIMEOUT_MS);
+      try {
+        // Pass through everything we received, swapping in our combined signal.
+        return await fetchImpl(input, { ...init, signal });
+      } catch (err) {
+        lastError = err;
+        const isLast = attempt === maxAttempts;
+        const transport = isTransportError(err);
+        // If the caller asked to cancel (route timeout, client disconnect,
+        // upstream short-circuit), honour it immediately rather than treating
+        // the resulting AbortError as a retryable transport failure.
+        const callerAborted = callerSignal?.aborted ?? false;
 
-      if (isLast || !transport || callerAborted) {
-        throw err;
+        if (isLast || !transport || callerAborted) {
+          throw err;
+        }
+
+        const delay = backoffs[attempt - 1];
+        logger.warn("graphql transport error, retrying", {
+          attempt,
+          maxAttempts,
+          delay,
+          error:
+            err instanceof Error
+              ? { name: err.name, message: err.message }
+              : String(err),
+        });
+        await sleep(delay);
       }
-
-      const delay = backoffs[attempt - 1];
-      logger.warn("graphql transport error, retrying", {
-        attempt,
-        maxAttempts,
-        delay,
-        error:
-          err instanceof Error
-            ? { name: err.name, message: err.message }
-            : String(err),
-      });
-      await sleep(delay);
     }
-  }
 
-  // Unreachable: the loop either returns a response or throws.
-  throw lastError;
+    // Unreachable: the loop either returns a response or throws.
+    throw lastError;
+  };
 };
+
+/**
+ * Production wrapper bound to the module-load-time `baseFetch`. Use this
+ * everywhere except in unit tests.
+ */
+export const graphqlFetchWithRetry: typeof fetch =
+  makeGraphqlFetchWithRetry(baseFetch);
 
 const sharedFetchConfig = { fetch: graphqlFetchWithRetry } as const;
 
