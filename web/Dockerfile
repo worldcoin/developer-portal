@@ -27,7 +27,15 @@ RUN npm install -g corepack@0.31.0 && corepack --version
 # ERR_VM_DYNAMIC_IMPORT_CALLBACK_MISSING). Pin to the same version declared in
 # the project's packageManager field.
 # TODO: Can be further optimized to remove next peer dependency
-RUN corepack enable pnpm && corepack prepare pnpm@9.15.4 --activate && pnpm i next-logger@5.0.0 pino@9.2.0 dd-trace@5.12.0
+# dd-trace must be >=5.27.0 so its Next.js instrumentation detects
+# middlewareInvoke via the request meta symbol introduced in Next.js 14.2.7
+# (DataDog/dd-trace-js#4916). Earlier versions only checked the legacy
+# `x-middleware-invoke` header, so the internal bubble Error thrown by
+# `handleCatchallMiddlewareRequest` (next-server.js) was captured as a span
+# error on every middleware-matched request, generating tens of thousands of
+# noisy "untyped Error" events in Datadog Error Tracking despite HTTP 200
+# responses. Keep this in sync with the `dd-trace` version in package.json.
+RUN corepack enable pnpm && corepack prepare pnpm@9.15.4 --activate && pnpm i next-logger@5.0.0 pino@9.2.0 dd-trace@5.84.0
 
 # Rebuild the source code only when needed
 FROM base AS builder
