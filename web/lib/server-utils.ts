@@ -25,8 +25,8 @@ export const extractIdsFromPath = (
  * Gets the URL path from the headers set by middleware
  * @returns The path from the headers
  */
-export const getPathFromHeaders = (): string | null => {
-  const headersList = headers();
+export const getPathFromHeaders = async (): Promise<string | null> => {
+  const headersList = await headers();
   const path = headersList.get("x-current-path");
   return path;
 };

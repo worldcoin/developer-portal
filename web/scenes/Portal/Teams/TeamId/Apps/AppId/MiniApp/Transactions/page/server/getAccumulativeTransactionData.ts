@@ -43,7 +43,7 @@ const fetchTransactionData = async (
   appId: string,
   url: string,
 ) => {
-  const path = getPathFromHeaders() || "";
+  const path = (await getPathFromHeaders()) || "";
   const { Teams: teamId } = extractIdsFromPath(path, ["Teams"]);
 
   let signedFetch = global.TransactionSignedFetcher;
@@ -83,7 +83,7 @@ const fetchTransactionData = async (
 export const getAccumulativePaymentsData = async (
   appId: string,
 ): Promise<FormActionResult> => {
-  const path = getPathFromHeaders() || "";
+  const path = (await getPathFromHeaders()) || "";
   const { Teams: teamId } = extractIdsFromPath(path, ["Teams"]);
 
   try {
@@ -206,7 +206,7 @@ export const getAccumulativePaymentsData = async (
 export const getAccumulativeTransactionsData = async (
   appId: string,
 ): Promise<FormActionResult> => {
-  const path = getPathFromHeaders() || "";
+  const path = (await getPathFromHeaders()) || "";
   const { Teams: teamId } = extractIdsFromPath(path, ["Teams"]);
 
   try {

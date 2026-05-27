@@ -151,7 +151,9 @@ describe("/api/v2/minikit/app-metadata/[app_id] [success cases]", () => {
       app_metadata: validAppMetadataResponse,
     });
 
-    const res = await GET(mockReq, { params: { app_id: validAppId } });
+    const res = await GET(mockReq, {
+      params: Promise.resolve({ app_id: validAppId }),
+    });
     expect(res.status).toBe(200);
     const body = await res.json();
 
@@ -193,7 +195,9 @@ describe("/api/v2/minikit/app-metadata/[app_id] [success cases]", () => {
       ],
     });
 
-    const res = await GET(mockReq, { params: { app_id: validAppId } });
+    const res = await GET(mockReq, {
+      params: Promise.resolve({ app_id: validAppId }),
+    });
     expect(res.status).toBe(200);
     const body = await res.json();
 
@@ -250,7 +254,9 @@ describe("/api/v2/minikit/transaction/transaction_id [error cases]", () => {
 
     FetchAPIKey.mockResolvedValue(validApiKeyResponse);
 
-    const res = await GET(mockReq, { params: { app_id: validAppId } });
+    const res = await GET(mockReq, {
+      params: Promise.resolve({ app_id: validAppId }),
+    });
     expect(res.status).toBe(401);
   });
 
@@ -262,7 +268,9 @@ describe("/api/v2/minikit/transaction/transaction_id [error cases]", () => {
 
     FetchAPIKey.mockResolvedValue({});
 
-    const res = await GET(mockReq, { params: { app_id: validAppId } });
+    const res = await GET(mockReq, {
+      params: Promise.resolve({ app_id: validAppId }),
+    });
     expect(res.status).toBe(404);
   });
 
@@ -282,7 +290,9 @@ describe("/api/v2/minikit/transaction/transaction_id [error cases]", () => {
 
     FetchAPIKey.mockResolvedValue(validApiKeyResponse);
 
-    const res = await GET(mockReq, { params: { app_id: validAppId } });
+    const res = await GET(mockReq, {
+      params: Promise.resolve({ app_id: validAppId }),
+    });
     expect(res.status).toBe(403);
   });
 
@@ -294,7 +304,9 @@ describe("/api/v2/minikit/transaction/transaction_id [error cases]", () => {
 
     FetchAPIKey.mockResolvedValue(validApiKeyResponse);
 
-    const res = await GET(mockReq, { params: { app_id: "app_1234" } });
+    const res = await GET(mockReq, {
+      params: Promise.resolve({ app_id: "app_1234" }),
+    });
     expect(res.status).toBe(403);
   });
 
@@ -309,7 +321,9 @@ describe("/api/v2/minikit/transaction/transaction_id [error cases]", () => {
       api_key_by_pk: { ...validApiKeyResponse.api_key_by_pk, is_active: false },
     });
 
-    const res = await GET(mockReq, { params: { app_id: validAppId } });
+    const res = await GET(mockReq, {
+      params: Promise.resolve({ app_id: validAppId }),
+    });
     expect(res.status).toBe(400);
   });
 
@@ -321,7 +335,7 @@ describe("/api/v2/minikit/transaction/transaction_id [error cases]", () => {
 
     FetchAPIKey.mockResolvedValue({});
 
-    const res = await GET(mockReq, { params: { app_id: "" } });
+    const res = await GET(mockReq, { params: Promise.resolve({ app_id: "" }) });
     expect(res.status).toBe(400);
   });
 });

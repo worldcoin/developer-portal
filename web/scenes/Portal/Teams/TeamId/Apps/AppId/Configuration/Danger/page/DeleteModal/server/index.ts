@@ -8,7 +8,7 @@ import { FormActionResult } from "@/lib/types";
 import { getSdk as getDeleteAppSdk } from "../graphql/server/delete-app.generated";
 
 export async function deleteApp(appId: string): Promise<FormActionResult> {
-  const path = getPathFromHeaders() || "";
+  const path = (await getPathFromHeaders()) || "";
   const { Teams: teamId } = extractIdsFromPath(path, ["Teams"]);
 
   try {

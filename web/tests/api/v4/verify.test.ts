@@ -100,7 +100,7 @@ describe("/api/v4/verify [integrity bundle]", () => {
       responses: [v4Response],
     });
 
-    const res = await POST(req, { params: { app_id: appId } });
+    const res = await POST(req, { params: Promise.resolve({ app_id: appId }) });
 
     expect(res.status).toBe(200);
     expect(mockVerifyIntegrityBundle).toHaveBeenCalledWith(

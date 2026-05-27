@@ -68,13 +68,14 @@ const APPS_TO_SHOW_UNVERIFIED_LOGO = [
  */
 export async function POST(
   req: NextRequest,
-  { params: routeParams }: { params: { id: string } },
+  props: { params: Promise<{ id: string }> },
 ): Promise<
   NextResponse<
     | ProofContextResponse
     | { code: string; detail: string; attribute: string | null }
   >
 > {
+  const routeParams = await props.params;
   const body = await req.json();
   const { isValid, parsedParams, handleError } = await validateRequestSchema({
     schema,

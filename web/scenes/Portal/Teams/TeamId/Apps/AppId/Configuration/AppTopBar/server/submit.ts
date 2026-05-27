@@ -36,7 +36,7 @@ export async function submitAppForReviewFormServerSide({
 }: {
   input: SubmitAppForReviewSchema;
 }): Promise<FormActionResult> {
-  const path = getPathFromHeaders() || "";
+  const path = (await getPathFromHeaders()) || "";
   const { Apps: appId } = extractIdsFromPath(path, ["Apps"]);
 
   try {

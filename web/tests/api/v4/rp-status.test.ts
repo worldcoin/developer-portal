@@ -61,7 +61,7 @@ const createRequest = () =>
     { method: "GET" },
   );
 
-const ctx = { params: { rp_id: rpId } };
+const ctx = { params: Promise.resolve({ rp_id: rpId }) };
 
 const makeDbRecord = (
   overrides: Partial<{

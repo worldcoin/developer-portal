@@ -10,7 +10,7 @@ import { getSdk as getRemoveAppFromReviewSdk } from "../graphql/server/remove-ap
 export async function removeAppFromReview(
   app_metadata_id: string,
 ): Promise<FormActionResult> {
-  const path = getPathFromHeaders() || "";
+  const path = (await getPathFromHeaders()) || "";
   const { Apps: appId, Teams: teamId } = extractIdsFromPath(path, [
     "Apps",
     "Teams",

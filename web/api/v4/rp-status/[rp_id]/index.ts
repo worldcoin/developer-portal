@@ -30,8 +30,9 @@ interface DualStatus {
  */
 export async function GET(
   req: NextRequest,
-  { params }: { params: { rp_id: string } },
+  props: { params: Promise<{ rp_id: string }> },
 ) {
+  const params = await props.params;
   const rpId = params.rp_id;
 
   if (!isValidRpId(rpId)) {

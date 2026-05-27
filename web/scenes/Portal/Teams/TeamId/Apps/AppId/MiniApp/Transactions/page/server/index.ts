@@ -14,7 +14,7 @@ export const getTransactionData = async (
   appId: string,
   transactionId?: string,
 ): Promise<FormActionResult> => {
-  const path = getPathFromHeaders() || "";
+  const path = (await getPathFromHeaders()) || "";
   const { teams: teamId } = extractIdsFromPath(path, ["teams"]);
 
   const session = await getSession();

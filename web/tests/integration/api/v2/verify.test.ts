@@ -161,7 +161,7 @@ describe("/api/v2/verify [Security Vulnerabilities Integration Tests]", () => {
       nullifier_hash: VALID_NULLIFIER_HASH,
     });
 
-    const ctx = { params: { app_id: appId } };
+    const ctx = { params: Promise.resolve({ app_id: appId }) };
 
     // First verification should succeed
     const firstResponse = await POST(firstReq, ctx);
@@ -224,7 +224,7 @@ describe("/api/v2/verify [Security Vulnerabilities Integration Tests]", () => {
       nullifier_hash: VALID_NULLIFIER_HASH,
     });
 
-    const ctx = { params: { app_id: appId } };
+    const ctx = { params: Promise.resolve({ app_id: appId }) };
 
     // First verification should succeed
     const firstResponse = await POST(firstReq, ctx);
@@ -287,7 +287,7 @@ describe("/api/v2/verify [Security Vulnerabilities Integration Tests]", () => {
       nullifier_hash: paddedNullifier,
     });
 
-    const ctx = { params: { app_id: appId } };
+    const ctx = { params: Promise.resolve({ app_id: appId }) };
 
     // First verification should succeed
     const firstResponse = await POST(firstReq, ctx);

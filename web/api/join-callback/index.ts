@@ -78,7 +78,7 @@ export const POST = withApiAuthRequired(async (req: NextRequest) => {
 
   try {
     const url = new URL(urls.signUp(), appUrl);
-    const headersList = nextHeaders();
+    const headersList = await nextHeaders();
     let headers: Record<string, string> = {};
 
     headersList.forEach((v, k) => {

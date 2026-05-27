@@ -38,8 +38,9 @@ const createActionParamsSchema = yup
 
 export const POST = async (
   req: NextRequest,
-  { params: rawParams }: { params: { app_id: string } },
+  props: { params: Promise<{ app_id: string }> },
 ) => {
+  const rawParams = await props.params;
   const api_key = req.headers.get("authorization")?.split(" ")[1];
 
   if (!api_key) {
@@ -176,7 +177,7 @@ export const POST = async (
       response: { errors: ApolloError["graphQLErrors"] };
     };
 
-    if (e.response.errors[0].extensions.code === "constraint-violation") {
+    if (e.response.errors[0]?.extensions?.code === "constraint-violation") {
       return errorResponse({
         statusCode: 400,
         code: "constraint-violation",
@@ -187,7 +188,7 @@ export const POST = async (
       });
     }
 
-    if (e.response.errors[0].extensions.code === "parse-failed") {
+    if (e.response.errors[0]?.extensions?.code === "parse-failed") {
       const extensionsPath = e.response.errors[0].extensions.path;
       const attribute =
         typeof extensionsPath === "string"

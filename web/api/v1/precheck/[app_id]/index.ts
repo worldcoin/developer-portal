@@ -63,8 +63,9 @@ const corsMethods = ["POST", "OPTIONS"];
  */
 export async function POST(
   req: NextRequest,
-  { params: routeParams }: { params: { app_id: string } },
+  props: { params: Promise<{ app_id: string }> },
 ) {
+  const routeParams = await props.params;
   const app_id = routeParams.app_id;
 
   const parseResult = await parseRequestBody(req, { app_id });
