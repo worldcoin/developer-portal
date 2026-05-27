@@ -390,11 +390,25 @@ const httpsRequestPinned = ({
     port: url.port ? Number(url.port) : 443,
     path: `${url.pathname}${url.search}`,
     headers: { Host: url.host, "User-Agent": "world-developer-portal-mcp" },
-    lookup: (_hostname, _options, callback) => {
+    lookup: (_hostname, lookupOptions, callback) => {
       // Ignore the hostname argument — we always return the pinned IP.
-      // Cast trick: dns.lookup callback takes either (err, addresses)
-      // or (err, address, family) depending on options.all. The
-      // https.request connect path uses the single-result form.
+      // dns.lookup's callback contract differs by options.all:
+      //   - options.all === true → (err, addresses[]) where each
+      //     entry is { address, family }
+      //   - otherwise            → (err, address, family)
+      // Node's lookupAndConnectMultiple (used by the default
+      // autoSelectFamily connect path on Node 18+) calls lookup with
+      // { all: true } and treats a string address as an object,
+      // triggering `Invalid IP address: undefined`. Honour both shapes.
+      if (lookupOptions && (lookupOptions as { all?: boolean }).all === true) {
+        (
+          callback as (
+            err: NodeJS.ErrnoException | null,
+            addresses: Array<{ address: string; family: number }>,
+          ) => void
+        )(null, [{ address: pinnedAddress, family: pinnedFamily }]);
+        return;
+      }
       (
         callback as (
           err: NodeJS.ErrnoException | null,
