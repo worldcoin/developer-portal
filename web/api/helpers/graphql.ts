@@ -203,8 +203,12 @@ export const graphqlFetchWithRetry: typeof fetch = async (input, init) => {
       lastError = err;
       const isLast = attempt === maxAttempts;
       const transport = isTransportError(err);
+      // If the caller asked to cancel (route timeout, client disconnect,
+      // upstream short-circuit), honour it immediately rather than treating
+      // the resulting AbortError as a retryable transport failure.
+      const callerAborted = callerSignal?.aborted ?? false;
 
-      if (isLast || !transport) {
+      if (isLast || !transport || callerAborted) {
         throw err;
       }
 
