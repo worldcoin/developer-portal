@@ -47,20 +47,28 @@ const shouldAutoReload = () => {
     }
     return Date.now() - lastAt > RELOAD_COOLDOWN_MS;
   } catch {
-    // sessionStorage can throw in private modes / disabled storage. If we
-    // can't read it we err on the side of reloading once.
-    return true;
+    // sessionStorage is unavailable (private mode / disabled storage).
+    // Without a persisted marker we can't enforce the cooldown across
+    // the reload, so a recurring stale-action error would trigger a
+    // reload on every render. Refuse to auto-reload — the manual
+    // fallback UI handles it.
+    return false;
   }
 };
 
-const markReload = () => {
+// Persist the reload marker. Returns true only if the write succeeded;
+// callers MUST NOT trigger window.location.reload() unless this returns
+// true, otherwise a recurring error after the reload becomes a tight
+// loop with no enforceable cooldown.
+const markReload = (): boolean => {
   if (typeof window === "undefined") {
-    return;
+    return false;
   }
   try {
     window.sessionStorage.setItem(RELOAD_KEY, Date.now().toString());
+    return true;
   } catch {
-    // ignore — best effort
+    return false;
   }
 };
 
@@ -78,7 +86,12 @@ export default function GlobalError({
     if (!willReload) {
       return;
     }
-    markReload();
+    if (!markReload()) {
+      // Cooldown marker couldn't be persisted; reloading without it
+      // risks a tight loop if the error recurs. Skip the reload and
+      // let the user retry manually via the fallback UI.
+      return;
+    }
     window.location.reload();
   }, [willReload]);
 
