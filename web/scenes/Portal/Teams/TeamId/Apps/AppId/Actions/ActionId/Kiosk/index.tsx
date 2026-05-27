@@ -5,7 +5,7 @@ import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { LegacyVerificationLevel } from "@/lib/idkit";
 import { EngineType } from "@/lib/types";
 import clsx from "clsx";
-import { useState } from "react";
+import { use, useState } from "react";
 import { KioskError } from "../Components/Kiosk/KioskError";
 import { VerificationLevelPicker } from "../Components/Kiosk/VerificationLevelPicker";
 import {
@@ -15,10 +15,10 @@ import {
 import { useToggleKioskMutation } from "./graphql/client/toggle-kiosk.generated";
 
 type ActionIdKioskPageProps = {
-  params: Record<string, string> | null | undefined;
+  params: Promise<Record<string, string>>;
 };
 export const ActionIdKioskPage = (props: ActionIdKioskPageProps) => {
-  const { params } = props;
+  const params = use(props.params);
   const [kioskVerificationLevel, setKioskVerificationLevel] =
     useState<LegacyVerificationLevel>(LegacyVerificationLevel.Device);
 

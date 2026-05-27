@@ -18,12 +18,12 @@ export enum VerificationStatus {
 }
 
 export const AppIdPage = async (props: {
-  params: {
+  params: Promise<{
     teamId: string;
     appId: string;
-  };
+  }>;
 }) => {
-  const { teamId, appId } = props.params;
+  const { teamId, appId } = await props.params;
 
   const client = await getAPIServiceGraphqlClient();
   const appEnvData = await getAppEnvSdk(client).FetchAppEnv({ id: appId });

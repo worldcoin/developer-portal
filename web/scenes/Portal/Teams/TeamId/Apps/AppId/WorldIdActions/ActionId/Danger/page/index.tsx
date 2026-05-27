@@ -5,18 +5,19 @@ import { ActionDangerZone } from "@/components/ActionDangerZone";
 import { ErrorPage } from "@/components/ErrorPage";
 import { urls } from "@/lib/urls";
 import { useRouter } from "next/navigation";
-import { useCallback, useState } from "react";
+import { useCallback, useState, use } from "react";
 import { toast } from "react-toastify";
 import { useGetSingleActionV4Query } from "../../page/graphql/client/get-single-action-v4.generated";
 import { deleteActionV4ServerSide } from "./server";
 
 type WorldIdActionIdDangerPageProps = {
-  params: Record<string, string> | null | undefined;
+  params: Promise<Record<string, string>>;
 };
 
-export const WorldIdActionIdDangerPage = ({
-  params,
-}: WorldIdActionIdDangerPageProps) => {
+export const WorldIdActionIdDangerPage = (
+  props: WorldIdActionIdDangerPageProps,
+) => {
+  const params = use(props.params);
   const actionId = params?.actionId;
   const teamId = params?.teamId;
   const appId = params?.appId;

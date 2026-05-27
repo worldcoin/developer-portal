@@ -13,7 +13,7 @@ import { worldId40Atom, isWorldId40Enabled } from "@/lib/feature-flags";
 import clsx from "clsx";
 import { useAtomValue } from "jotai";
 import { usePathname } from "next/navigation";
-import { useMemo } from "react";
+import { useMemo, use } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { ActionsList } from "./ActionsList";
 import { CreateActionModal } from "./CreateActionModal";
@@ -21,11 +21,13 @@ import { useGetActionsQuery } from "./graphql/client/actions.generated";
 import { useGetAppQuery } from "./graphql/client/app.generated";
 
 type ActionsPageProps = {
-  params: Record<string, string> | null | undefined;
-  searchParams: Record<string, string> | null | undefined;
+  params: Promise<Record<string, string>>;
+  searchParams: Promise<Record<string, string>>;
 };
 
-export const ActionsPage = ({ params, searchParams }: ActionsPageProps) => {
+export const ActionsPage = (props: ActionsPageProps) => {
+  const params = use(props.params);
+  const searchParams = use(props.searchParams);
   const createAction = searchParams?.createAction;
   const appId = params?.appId as `app_${string}`;
   const teamId = params?.teamId as string;

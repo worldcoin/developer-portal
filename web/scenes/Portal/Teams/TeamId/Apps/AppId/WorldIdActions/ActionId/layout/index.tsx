@@ -10,7 +10,7 @@ import { Auth0SessionUser } from "@/lib/types";
 import { checkUserPermissions } from "@/lib/utils";
 import { urls } from "@/lib/urls";
 import { useUser } from "@auth0/nextjs-auth0/client";
-import { ReactNode } from "react";
+import { ReactNode, use } from "react";
 import { useGetSingleActionV4Query } from "../page/graphql/client/get-single-action-v4.generated";
 
 type Params = {
@@ -20,12 +20,12 @@ type Params = {
 };
 
 type WorldIdActionIdLayoutProps = {
-  params: Params;
+  params: Promise<Params>;
   children: ReactNode;
 };
 
 export const WorldIdActionIdLayout = (props: WorldIdActionIdLayoutProps) => {
-  const params = props.params;
+  const params = use(props.params);
   const { user } = useUser() as Auth0SessionUser;
 
   // Fetch action data for header using user permissions
