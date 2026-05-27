@@ -1,4 +1,4 @@
-import { errorUnauthenticated } from "@/api/helpers/errors";
+import { errorUnauthenticated, errorValidation } from "@/api/helpers/errors";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { generateAPIKeyJWT, generateUserJWT } from "@/api/helpers/jwts";
 import { parseRequestBody } from "@/api/helpers/parse-request-body";
@@ -12,6 +12,21 @@ export async function POST(req: NextRequest) {
   if (!process.env.NEXT_PUBLIC_GRAPHQL_API_URL) {
     throw new Error(
       "Improperly configured. `NEXT_PUBLIC_GRAPHQL_API_URL` env var must be set.",
+    );
+  }
+
+  // Reject non-JSON request bodies up front so a form-encoded or otherwise
+  // malformed payload does not surface as an unhandled SyntaxError from
+  // `req.json()`. Media-type tokens are case-insensitive per RFC 9110, so
+  // normalise before matching to keep mixed-case clients working
+  // (e.g. `Application/JSON; charset=UTF-8`).
+  const contentType = req.headers.get("content-type")?.toLowerCase();
+  if (!contentType?.includes("application/json")) {
+    return errorValidation(
+      "invalid_content_type",
+      "Content-Type must be application/json.",
+      "content-type",
+      req,
     );
   }
 
