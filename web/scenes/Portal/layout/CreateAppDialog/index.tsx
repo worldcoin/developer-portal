@@ -91,7 +91,6 @@ export const CreateAppDialog = (props: DialogProps) => {
               app_id: latestApp?.id ?? "",
             });
 
-      router.prefetch(redirect);
       reset(defaultValues);
 
       posthog.capture("app_creation_successful", {
@@ -101,8 +100,13 @@ export const CreateAppDialog = (props: DialogProps) => {
         engine: values.verification,
       });
 
-      router.push(redirect);
+      // Hard navigation avoids a race with Next 15's automatic
+      // revalidation of the calling route after server actions: the
+      // parent AppsPage would otherwise re-render, see the new app,
+      // and fire its own redirect to /apps/{id}, beating the
+      // client-side push to /configuration.
       props.onClose(false);
+      window.location.href = redirect;
     },
     [appMode, defaultValues, props, refetchApps, reset, router, teamId],
   );
