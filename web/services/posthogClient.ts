@@ -1,3 +1,4 @@
+import { logger } from "@/lib/logger";
 import { PostHog } from "posthog-node";
 
 interface CaptureEventParams {
@@ -21,21 +22,48 @@ function initializePostHog(): PostHog | null {
 // Initialize PostHog only if it hasn't been initialized yet
 let posthogClient: PostHog | null = null;
 
+/**
+ * Send a PostHog event from server code.
+ *
+ * Telemetry is best-effort: PostHog upstream failures (TLS resets, socket
+ * hang-ups against app.posthog.com, etc.) must never propagate into the
+ * caller's response path or count toward the developer-portal's error rate.
+ * We catch and log at `warn`, then resolve.
+ */
 export async function captureEvent({
   event,
   distinctId,
   properties,
 }: CaptureEventParams): Promise<void> {
-  if (!posthogClient) {
-    posthogClient = initializePostHog();
-  }
-  if (posthogClient) {
+  try {
+    if (!posthogClient) {
+      posthogClient = initializePostHog();
+    }
+    if (!posthogClient) {
+      return;
+    }
     posthogClient.capture({
       distinctId,
       event,
       properties: { ...properties, $geoip_disable: true },
     });
-    posthogClient.flush();
+    // flush() returns a Promise in posthog-node v4; without an attached
+    // handler an upstream socket error becomes an unhandled rejection that
+    // dd-trace's http instrumentation reports as a service error.
+    const flushed = posthogClient.flush();
+    if (flushed && typeof flushed.catch === "function") {
+      flushed.catch((error) => {
+        logger.warn("PostHog flush failed", {
+          event,
+          error: error instanceof Error ? error.message : String(error),
+        });
+      });
+    }
+  } catch (error) {
+    logger.warn("PostHog captureEvent failed", {
+      event,
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 }
 
