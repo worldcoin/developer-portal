@@ -1,5 +1,5 @@
 "use client";
-
+import { use } from "react";
 import { ErrorPage } from "@/components/ErrorPage";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { TryAction } from "@/scenes/Portal/Teams/TeamId/Apps/AppId/Actions/ActionId/Settings/TryAction";
@@ -9,12 +9,13 @@ import { UpdateActionV4Form } from "../UpdateActionV4Form";
 import { adaptActionV4ForTryAction } from "./utils/adapt-action-v4";
 
 type WorldIdActionIdSettingsPageProps = {
-  params: Record<string, string> | null | undefined;
+  params: Promise<Record<string, string>>;
 };
 
-export const WorldIdActionIdSettingsPage = ({
-  params,
-}: WorldIdActionIdSettingsPageProps) => {
+export const WorldIdActionIdSettingsPage = (
+  props: WorldIdActionIdSettingsPageProps,
+) => {
+  const params = use(props.params);
   const actionId = params?.actionId;
   const teamId = params?.teamId;
   const appId = params?.appId;

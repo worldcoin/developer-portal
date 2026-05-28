@@ -22,8 +22,9 @@ const corsMethods = ["GET", "OPTIONS"];
 
 export const GET = async (
   req: NextRequest,
-  { params: routeParams }: { params: { transaction_id: string } },
+  props: { params: Promise<{ transaction_id: string }> },
 ) => {
+  const routeParams = await props.params;
   const { searchParams } = new URL(req.url);
   const transactionId = routeParams.transaction_id;
 

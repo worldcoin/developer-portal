@@ -64,6 +64,7 @@ export async function validateAndInsertAppServerSide(
     return {
       success: true,
       message: "App created successfully",
+      app_id: result.insert_app_one?.id,
     };
   } catch (error) {
     return errorFormAction({

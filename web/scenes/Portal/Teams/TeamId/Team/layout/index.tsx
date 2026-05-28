@@ -13,14 +13,14 @@ type Params = {
 };
 
 type TeamLayoutProps = {
-  params: Params;
+  params: Promise<Params>;
   children: ReactNode;
 };
 
 export const TeamLayout = async (props: TeamLayoutProps) => {
-  const params = props.params;
+  const params = await props.params;
   const session = await getSession();
-  const pathname = getPathFromHeaders() || "";
+  const pathname = (await getPathFromHeaders()) || "";
   const isAffiliateProgram = pathname.includes("affiliate-program");
 
   const user = session?.user as Auth0SessionUser["user"];

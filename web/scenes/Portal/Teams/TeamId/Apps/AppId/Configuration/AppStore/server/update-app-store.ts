@@ -30,7 +30,7 @@ const formatEmailLink = (email: string): string => {
 export async function updateAppStoreMetadata(
   formData: Schema,
 ): Promise<FormActionResult> {
-  const path = getPathFromHeaders() || "";
+  const path = (await getPathFromHeaders()) || "";
   const { Apps: appId, Teams: teamId } = extractIdsFromPath(path, [
     "Apps",
     "Teams",

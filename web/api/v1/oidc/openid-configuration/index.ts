@@ -3,6 +3,10 @@ import { OIDCScopes } from "@/api/helpers/oidc";
 import { OIDC_BASE_URL } from "@/lib/constants";
 import { NextRequest, NextResponse } from "next/server";
 
+// OIDC discovery document is purely static; opt into the Next 15+ default
+// cache behavior that handlers no longer get implicitly.
+export const dynamic = "force-static";
+
 /**
  * Returns an OpenID Connect discovery document, according to spec
  * https://openid.net/specs/openid-connect-discovery-1_0.html

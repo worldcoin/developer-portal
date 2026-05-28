@@ -1,4 +1,5 @@
 "use client";
+import { use } from "react";
 import { ErrorPage } from "@/components/ErrorPage";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import Skeleton from "react-loading-skeleton";
@@ -6,13 +7,12 @@ import { Debugger } from "../Debugger";
 import { useDebuggerQuery } from "./graphql/client/debugger.generated";
 
 type ActionIdSettingsPageProps = {
-  params: Record<string, string> | null | undefined;
+  params: Promise<Record<string, string>>;
   searchParams: Record<string, string> | null | undefined;
 };
 
-export const ActionIdProofDebugingPage = ({
-  params,
-}: ActionIdSettingsPageProps) => {
+export const ActionIdProofDebugingPage = (props: ActionIdSettingsPageProps) => {
+  const params = use(props.params);
   const appId = params?.appId;
   const teamId = params?.teamId;
   const actionID = params?.actionId;

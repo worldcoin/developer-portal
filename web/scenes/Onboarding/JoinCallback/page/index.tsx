@@ -4,13 +4,14 @@ import { redirect } from "next/navigation";
 import { JoinCallbackPageContent } from "./JoinCallbackPageContent";
 
 export const JoinCallback = async (props: {
-  searchParams: { invite_id?: string } | null | undefined;
+  searchParams: Promise<{ invite_id?: string }>;
 }) => {
-  const invite_id = props.searchParams?.invite_id;
+  const searchParams = await props.searchParams;
+  const invite_id = searchParams?.invite_id;
 
   if (!invite_id) {
     logger.error("No invite_id found in searchParams after join", {
-      searchParams: props.searchParams,
+      searchParams,
     });
 
     return redirect(urls.logout());

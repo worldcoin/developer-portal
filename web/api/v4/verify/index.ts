@@ -28,8 +28,9 @@ import { handleUniquenessProofVerification } from "./uniqueness-proof/handler";
  */
 export async function POST(
   req: NextRequest,
-  { params }: { params: { app_id: string } },
+  props: { params: Promise<{ app_id: string }> },
 ) {
+  const params = await props.params;
   const routeId = params.app_id;
 
   if (!routeId) {

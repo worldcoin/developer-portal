@@ -6,13 +6,14 @@ import { ReactNode } from "react";
 
 type SignInWithWorldIdLayoutProps = {
   children: ReactNode;
-  params: Record<string, string> | null | undefined;
+  params: Promise<Record<string, string>>;
 };
 
 export const SignInWithWorldIdLayout = async (
   props: SignInWithWorldIdLayoutProps,
 ) => {
-  const appId = props.params?.appId;
+  const params = await props.params;
+  const appId = params?.appId;
 
   if (appId) {
     const { app } = await fetchAppEnvCached(appId);

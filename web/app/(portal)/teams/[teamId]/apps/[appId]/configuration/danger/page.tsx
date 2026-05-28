@@ -3,22 +3,17 @@ import { AppProfileDangerPage } from "@/scenes/Portal/Teams/TeamId/Apps/AppId/Co
 import { Metadata } from "next";
 
 type Props = {
-  params:
-    | {
-        teamId: string;
-        appId: string;
-      }
-    | Promise<{
-        teamId: string;
-        appId: string;
-      }>;
+  params: Promise<{
+    teamId: string;
+    appId: string;
+  }>;
 };
 
 export const metadata: Metadata = {
   title: generateMetaTitle({ left: "Danger zone" }),
 };
 
-export default async function Page({ params }: Props) {
-  const resolvedParams = await Promise.resolve(params);
-  return <AppProfileDangerPage params={resolvedParams} />;
+export default async function Page(props: Props) {
+  const params = await props.params;
+  return <AppProfileDangerPage params={params} />;
 }

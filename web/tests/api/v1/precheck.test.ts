@@ -66,7 +66,9 @@ describe("/api/v1/precheck/[app_id]", () => {
     });
 
     const response = await POST(request, {
-      params: { app_id: "app_staging_6d1c9fb86751a40d952749022db1c1" },
+      params: Promise.resolve({
+        app_id: "app_staging_6d1c9fb86751a40d952749022db1c1",
+      }),
     });
 
     expect(response.status).toBe(200);
@@ -106,7 +108,9 @@ describe("/api/v1/precheck/[app_id]", () => {
     });
 
     const response = await POST(request, {
-      params: { app_id: "app_staging_6d1c9fb86751a40d952749022db1c1" },
+      params: Promise.resolve({
+        app_id: "app_staging_6d1c9fb86751a40d952749022db1c1",
+      }),
     });
 
     expect(response.status).toBe(200);
@@ -158,7 +162,9 @@ describe("/api/v1/precheck/[app_id]", () => {
     });
 
     const response = await POST(request, {
-      params: { app_id: "app_staging_6d1c9fb86751a40d952749022db1c1" },
+      params: Promise.resolve({
+        app_id: "app_staging_6d1c9fb86751a40d952749022db1c1",
+      }),
     });
 
     expect(response.status).toBe(200);
@@ -195,7 +201,9 @@ describe("/api/v1/precheck/[app_id]", () => {
     });
 
     const response = await POST(request, {
-      params: { app_id: "app_staging_6d1c9fb86751a40d952749022db1c1" },
+      params: Promise.resolve({
+        app_id: "app_staging_6d1c9fb86751a40d952749022db1c1",
+      }),
     });
 
     expect(response.status).toBe(200);
@@ -234,7 +242,9 @@ describe("/api/v1/precheck/[app_id]", () => {
     });
 
     const response = await POST(request, {
-      params: { app_id: "app_staging_6d1c9fb86751a40d952749022db1c1" },
+      params: Promise.resolve({
+        app_id: "app_staging_6d1c9fb86751a40d952749022db1c1",
+      }),
     });
 
     expect(response.status).toBe(200);
@@ -274,7 +284,9 @@ describe("/api/v1/precheck/[app_id]", () => {
     });
 
     const response = await POST(request, {
-      params: { app_id: "app_staging_6d1c9fb86751a40d952749022db1c1" },
+      params: Promise.resolve({
+        app_id: "app_staging_6d1c9fb86751a40d952749022db1c1",
+      }),
     });
 
     expect(response.status).toBe(200);
@@ -313,7 +325,9 @@ describe("/api/v1/precheck/[app_id]", () => {
     });
 
     const response = await POST(request, {
-      params: { app_id: "app_staging_6d1c9fb86751a40d952749022db1c1" },
+      params: Promise.resolve({
+        app_id: "app_staging_6d1c9fb86751a40d952749022db1c1",
+      }),
     });
 
     expect(response.status).toBe(200);
@@ -355,7 +369,9 @@ describe("/api/v1/precheck/[app_id]", () => {
     });
 
     const response = await POST(request, {
-      params: { app_id: "app_staging_6d1c9fb86751a40d952749022db1c1" },
+      params: Promise.resolve({
+        app_id: "app_staging_6d1c9fb86751a40d952749022db1c1",
+      }),
     });
 
     expect(response.status).toBe(200);
@@ -400,7 +416,9 @@ describe("/api/v1/precheck/[app_id]", () => {
     });
 
     const response = await POST(request, {
-      params: { app_id: "app_staging_6d1c9fb86751a40d952749022db1c1" },
+      params: Promise.resolve({
+        app_id: "app_staging_6d1c9fb86751a40d952749022db1c1",
+      }),
     });
 
     expect(response.status).toBe(200);
@@ -445,7 +463,9 @@ describe("/api/v1/precheck/[app_id]", () => {
     });
 
     const response = await POST(request, {
-      params: { app_id: "app_staging_6d1c9fb86751a40d952749022db1c1" },
+      params: Promise.resolve({
+        app_id: "app_staging_6d1c9fb86751a40d952749022db1c1",
+      }),
     });
 
     expect(response.status).toBe(200);
@@ -478,7 +498,9 @@ describe("/api/v1/precheck/[action_id] [error cases]", () => {
     });
 
     const response = await POST(request, {
-      params: { app_id: "app_staging_6d1c9fb86751a40d952749022db1c1" },
+      params: Promise.resolve({
+        app_id: "app_staging_6d1c9fb86751a40d952749022db1c1",
+      }),
     });
 
     expect(response.status).toBe(404);

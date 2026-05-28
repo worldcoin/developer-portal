@@ -9,15 +9,16 @@ type Props = {
   children: ReactNode;
 };
 
-export default async function Layout({ params, children }: Props) {
-  const resolvedParams = await Promise.resolve(params);
-  const { app } = await fetchAppEnvCached(resolvedParams.appId);
+export default async function Layout(props: Props) {
+  const params = await props.params;
+  const { children } = props;
+  const { app } = await fetchAppEnvCached(params.appId);
 
   if (!app?.[0] || app[0].rp_registration.length === 0) {
     redirect(
       urls.configuration({
-        team_id: resolvedParams.teamId,
-        app_id: resolvedParams.appId,
+        team_id: params.teamId,
+        app_id: params.appId,
       }),
     );
   }

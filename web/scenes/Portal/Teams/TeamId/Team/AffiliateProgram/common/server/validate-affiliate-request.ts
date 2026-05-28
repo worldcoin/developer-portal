@@ -22,7 +22,7 @@ type ValidationResult =
  * @returns Validation result with teamId and user, or error FormActionResult
  */
 export const validateAffiliateRequest = async (): Promise<ValidationResult> => {
-  const path = getPathFromHeaders() || "";
+  const path = (await getPathFromHeaders()) || "";
   const { teams: teamId } = extractIdsFromPath(path, ["teams"]);
 
   if (!teamId) {

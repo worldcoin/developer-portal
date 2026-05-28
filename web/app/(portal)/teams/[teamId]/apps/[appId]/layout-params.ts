@@ -3,4 +3,4 @@ export type AppLayoutParams = {
   appId: string;
 };
 
-export type AppLayoutRouteParams = AppLayoutParams | Promise<AppLayoutParams>;
+export type AppLayoutRouteParams = Promise<AppLayoutParams>;

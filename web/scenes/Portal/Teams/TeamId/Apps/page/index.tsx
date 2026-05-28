@@ -6,12 +6,13 @@ import { AppsPageClient } from "./AppsPageClient";
 import { getSdk as getInitialAppSdk } from "./graphql/server/apps.generated";
 
 type AppPage = {
-  params: Record<string, string> | null | undefined;
+  params: Promise<Record<string, string>>;
 };
 
 export const AppsPage = async (props: AppPage) => {
   const session = await getSession();
-  const teamId = props.params?.teamId;
+  const params = await props.params;
+  const teamId = params?.teamId;
   const user = session?.user as Auth0SessionUser["user"] | undefined;
 
   if (!user) {
