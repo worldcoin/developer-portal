@@ -56,8 +56,11 @@ const generateCsp = () => {
       name: "font-src",
       values: [
         "'self'",
-        "http://world-id-assets.com",
-        "http://staging.world-id-assets.com",
+        // Font files are served from https://world-id-assets.com (see
+        // `web/styles/globals.css`), so the source must match the https
+        // scheme — http-only source expressions don't match https requests.
+        "https://world-id-assets.com",
+        "https://staging.world-id-assets.com",
       ],
     },
     {
