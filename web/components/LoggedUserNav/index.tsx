@@ -74,8 +74,6 @@ export const LoggedUserNav = () => {
     skip: !teamId,
   });
 
-  // Apollo Client 3.14 deprecated `useQuery({ onCompleted })`; sync into
-  // the affiliate-config atom via derived state on `data` instead.
   const fetchedTeam = teamRes.data;
   useEffect(() => {
     if (!fetchedTeam) return;

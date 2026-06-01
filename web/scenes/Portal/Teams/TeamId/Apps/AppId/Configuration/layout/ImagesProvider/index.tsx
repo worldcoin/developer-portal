@@ -45,8 +45,6 @@ export const ImagesProvider = (props: {
     },
   });
 
-  // Apollo Client 3.14 deprecated `useQuery({ onCompleted })`; sync into
-  // the unverified-images atom via derived state on `data` instead.
   useEffect(() => {
     if (!data) return;
     setUnverifiedImages({
