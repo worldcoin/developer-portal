@@ -72,15 +72,20 @@ export const LoggedUserNav = () => {
           id: teamId,
         },
     skip: !teamId,
-    onCompleted: (data) => {
-      console.log("fetched team", data);
-      setAffiliateConfig((prev) => ({
-        ...prev,
-        isFetched: true,
-        teamVerifiedAppsCount: data.team?.verified_apps.aggregate?.count || 0,
-      }));
-    },
   });
+
+  // Apollo Client 3.14 deprecated `useQuery({ onCompleted })`; sync into
+  // the affiliate-config atom via derived state on `data` instead.
+  const fetchedTeam = teamRes.data;
+  useEffect(() => {
+    if (!fetchedTeam) return;
+    setAffiliateConfig((prev) => ({
+      ...prev,
+      isFetched: true,
+      teamVerifiedAppsCount:
+        fetchedTeam.team?.verified_apps.aggregate?.count || 0,
+    }));
+  }, [fetchedTeam, setAffiliateConfig]);
 
   const isAffiliateEnabled = useMemo(
     () => isAffiliateEnabledForTeam(affiliateConfig, teamId, auth0User),

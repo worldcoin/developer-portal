@@ -1,6 +1,6 @@
 "use client";
 import { atom, useSetAtom } from "jotai";
-import { Fragment, ReactNode } from "react";
+import { Fragment, ReactNode, useEffect } from "react";
 import { useFetchImagesQuery } from "../../graphql/client/fetch-images.generated";
 
 type Images = {
@@ -37,23 +37,26 @@ export const ImagesProvider = (props: {
   const { appId, teamId, locale } = props;
   const setUnverifiedImages = useSetAtom(unverifiedImageAtom);
 
-  const {} = useFetchImagesQuery({
+  const { data } = useFetchImagesQuery({
     variables: {
       id: appId ?? "",
       team_id: teamId ?? "",
       locale: locale,
     },
-
-    onCompleted: (data) => {
-      setUnverifiedImages({
-        logo_img_url: data?.unverified_images?.logo_img_url ?? "",
-        showcase_image_urls: data?.unverified_images?.showcase_img_urls,
-        meta_tag_image_url: data?.unverified_images?.meta_tag_image_url ?? "",
-        content_card_image_url:
-          data?.unverified_images?.content_card_image_url ?? "",
-      });
-    },
   });
+
+  // Apollo Client 3.14 deprecated `useQuery({ onCompleted })`; sync into
+  // the unverified-images atom via derived state on `data` instead.
+  useEffect(() => {
+    if (!data) return;
+    setUnverifiedImages({
+      logo_img_url: data?.unverified_images?.logo_img_url ?? "",
+      showcase_image_urls: data?.unverified_images?.showcase_img_urls,
+      meta_tag_image_url: data?.unverified_images?.meta_tag_image_url ?? "",
+      content_card_image_url:
+        data?.unverified_images?.content_card_image_url ?? "",
+    });
+  }, [data, setUnverifiedImages]);
 
   return <Fragment>{props.children}</Fragment>;
 };
