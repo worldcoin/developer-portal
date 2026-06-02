@@ -1,6 +1,6 @@
 "use client";
 import { SizingWrapper } from "@/components/SizingWrapper";
-import { convertAmountToWei, parseTokenAmount } from "@/lib/utils";
+import { parseTokenAmount } from "@/lib/utils";
 import { useGetAffiliateBalance } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/common/hooks/use-get-affiliate-balance";
 import { useGetAffiliateMetadata } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Overview/page/hooks/use-get-affiliate-metadata";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -10,17 +10,12 @@ import { toast } from "react-toastify";
 import * as yup from "yup";
 import { confirmWithdraw } from "../server/confirmWithdraw";
 import { initiateWithdraw } from "../server/initiateWithdraw";
-import { AffiliateWithdrawStep } from "./common/types";
+import { AffiliateWithdrawStep, WithdrawFormData } from "./common/types";
 import { ConfirmTransaction } from "./ConfirmTransaction";
 import { EnterAmount } from "./EnterAmount";
 import { EnterCode } from "./EnterCode";
 import { WithdrawSuccess } from "./WithdrawSuccess";
 
-type WithdrawFormData = {
-  walletAddress: string;
-  amount: number;
-  otpCode: string;
-};
 
 type PageProps = {
   params: {
@@ -75,6 +70,7 @@ export const WithdrawPage = (props: PageProps) => {
           },
         })
         .typeError("Please enter a valid number"),
+      amountInWld: yup.string().default(""),
       otpCode: yup
         .string()
         .required("OTP code is required")
@@ -115,14 +111,13 @@ export const WithdrawPage = (props: PageProps) => {
 
     try {
       const data = watch();
-      const amountInWldWei = convertAmountToWei(data.amount, "WLD");
-      if (!amountInWldWei) {
+      if (!data.amountInWld) {
         toast.error("Unable to initiate withdrawal. Please contact support.");
         return;
       }
 
       const result = await initiateWithdraw({
-        amountInWld: amountInWldWei,
+        amountInWld: data.amountInWld,
       });
       console.log("initiateWithdraw data", result, result.data);
 

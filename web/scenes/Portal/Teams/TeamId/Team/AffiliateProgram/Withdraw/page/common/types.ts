@@ -9,5 +9,6 @@ export enum AffiliateWithdrawStep {
 export type WithdrawFormData = {
   walletAddress: string;
   amount: number;
+  amountInWld: string; // Ready-to-send wei string, set alongside amount
   otpCode: string;
 };

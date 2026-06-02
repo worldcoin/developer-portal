@@ -6,7 +6,7 @@ import {
   AffiliateBalanceResponse,
   AffiliateMetadataResponse,
 } from "@/lib/types";
-import { parseTokenAmount } from "@/lib/utils";
+import { convertAmountToWei, parseTokenAmount } from "@/lib/utils";
 import { useMemo } from "react";
 import { useFormContext } from "react-hook-form";
 import Skeleton from "react-loading-skeleton";
@@ -39,6 +39,11 @@ export const EnterAmount = (props: Props) => {
   const isAllowedToWithdraw =
     !!amount && !errors.amount && !!props.balance && !!props.metadata;
 
+  const setAmount = (wld: number, wldWei: string) => {
+    setValue("amountInWld", wldWei);
+    setValue("amount", wld, { shouldValidate: true, shouldDirty: true });
+  };
+
   return (
     <div className="grid w-full max-w-[380px] place-items-center justify-self-center py-8">
       <Typography variant={TYPOGRAPHY.H5}>Enter amount</Typography>
@@ -49,7 +54,12 @@ export const EnterAmount = (props: Props) => {
 
       <Input
         type="number"
-        register={register("amount")}
+        register={register("amount", {
+          onChange: (e) => {
+            const wldWei = convertAmountToWei(parseFloat(e.target.value), "WLD") ?? "";
+            setValue("amountInWld", wldWei);
+          },
+        })}
         label="Amount"
         errors={errors.amount}
         className="mt-10"
@@ -62,12 +72,7 @@ export const EnterAmount = (props: Props) => {
           type="button"
           variant="secondary"
           className="w-full"
-          onClick={() =>
-            setValue("amount", 25, {
-              shouldValidate: true,
-              shouldDirty: true,
-            })
-          }
+          onClick={() => setAmount(25, convertAmountToWei(25, "WLD")!)}
           disabled={props.loading}
         >
           25 WLD
@@ -76,12 +81,7 @@ export const EnterAmount = (props: Props) => {
           type="button"
           variant="secondary"
           className="w-full"
-          onClick={() =>
-            setValue("amount", 50, {
-              shouldValidate: true,
-              shouldDirty: true,
-            })
-          }
+          onClick={() => setAmount(50, convertAmountToWei(50, "WLD")!)}
           disabled={props.loading}
         >
           50 WLD
@@ -91,13 +91,10 @@ export const EnterAmount = (props: Props) => {
           variant="secondary"
           className="w-full"
           onClick={() => {
-            if (!availableBalance) {
+            if (!availableBalance || !props.balance) {
               return;
             }
-            setValue("amount", availableBalance, {
-              shouldValidate: true,
-              shouldDirty: true,
-            });
+            setAmount(availableBalance, props.balance.availableBalance.inWLD);
           }}
           disabled={props.loading || !availableBalance}
         >
