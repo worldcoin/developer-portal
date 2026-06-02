@@ -473,8 +473,13 @@ export const fetchWithRetry = async (
         return lastResponse;
       }
       lastError = new Error(`HTTP status ${lastResponse.status}`);
-      // 4xx responses are definitive — surface them immediately instead of retrying.
-      if (lastResponse.status < 500) {
+      // Retry transient statuses only: 5xx, plus 408 (timeout) and 429 (rate limit).
+      // Other 4xx are definitive client errors — surface them immediately.
+      const isRetryableStatus =
+        lastResponse.status >= 500 ||
+        lastResponse.status === 408 ||
+        lastResponse.status === 429;
+      if (!isRetryableStatus) {
         break;
       }
     } catch (error) {
