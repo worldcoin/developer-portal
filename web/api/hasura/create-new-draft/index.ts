@@ -97,6 +97,7 @@ export const POST = async (req: NextRequest) => {
       code: "app_not_found",
       app_id,
       team_id,
+      logLevel: "warn",
     });
   }
 
@@ -109,6 +110,7 @@ export const POST = async (req: NextRequest) => {
       code: "verified_app_metadata_not_found",
       app_id,
       team_id,
+      logLevel: "warn",
     });
   }
 
