@@ -20,7 +20,7 @@ export const deleteAppsForTeam = async (teamId: string): Promise<void> => {
     affected_rows = response.delete_app?.affected_rows;
   } catch {}
 
-  if (!affected_rows) {
+  if (affected_rows == null) {
     throw new Error(
       `Failed to delete apps for team (${teamId}) from Hasura:\n${JSON.stringify(response, null, 2)}`,
     );
