@@ -5,7 +5,7 @@ import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { logger } from "@/lib/logger";
 import { appIdSchema } from "@/lib/schema";
 import { TransactionTypes } from "@/lib/types";
-import { fetchWithTimeout } from "@/lib/utils";
+import { fetchWithRetry } from "@/lib/utils";
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
 
@@ -64,7 +64,7 @@ export const GET = async (
 
   let res: Response;
   try {
-    res = await fetchWithTimeout(
+    res = await fetchWithRetry(
       url,
       {
         method: "GET",
@@ -73,10 +73,18 @@ export const GET = async (
           "Content-Type": "application/json",
         },
       },
-      5000, // fetch timeout in ms
+      2, // max retries: one extra attempt to ride out a transient timeout/transport blip
+      500, // initial retry delay in ms
+      10000, // fetch timeout in ms (upstream p90 sits just under the old 5s cap)
+      false, // do not throw: return the last response so genuine upstream statuses pass through
       signedFetch,
     );
   } catch (error) {
+    logger.error("Transaction fetch to backend failed", {
+      error,
+      req,
+      app_id: appId,
+    });
     return corsHandler(
       errorResponse({
         statusCode: 500,
