@@ -6,11 +6,11 @@ test.describe("Action", () => {
   const appName = "World Test!";
   let appId: string;
 
-  test.beforeAll(async () => {
+  test.beforeEach(async () => {
     appId = await createApp(appName);
   });
 
-  test.afterAll(async () => {
+  test.afterEach(async () => {
     await deleteAppsForTeam(constants.teamId);
   });
 
