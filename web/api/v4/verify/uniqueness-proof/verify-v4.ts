@@ -61,7 +61,13 @@ export async function processUniquenessProofV4(
         };
       } catch (e: unknown) {
         const errorMessage = e instanceof Error ? e.message : String(e);
-        logger.error("Error verifying v4 proof", {
+        // Reaching this catch means a per-item input could not be processed
+        // (e.g. a malformed client-supplied field that fails BigInt conversion).
+        // On-chain verifier reverts are handled gracefully by verifyProofOnChain
+        // (returns success:false) and never throw here. This is client-driven
+        // bad input that yields a 400, so log at warn to avoid polluting the
+        // error rate.
+        logger.warn("Error verifying v4 proof", {
           error: errorMessage,
           rpId: rpId.toString(),
           identifier: item.identifier,
