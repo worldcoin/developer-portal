@@ -10,6 +10,7 @@ const config: PlaywrightTestConfig = {
   globalSetup: require.resolve("tests/e2e/global-setup"),
   globalTeardown: require.resolve("tests/e2e/global-teardown"),
   workers: 1,
+  retries: process.env.CI ? 2 : 0,
   use: {
     baseURL: process.env.NEXT_PUBLIC_APP_URL,
     browserName: "chromium",
