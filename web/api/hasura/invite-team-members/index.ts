@@ -62,6 +62,7 @@ export const POST = async (req: NextRequest) => {
       req,
       detail: "userId must be set.",
       code: "required",
+      logLevel: "warn",
     });
   }
 
@@ -122,6 +123,7 @@ export const POST = async (req: NextRequest) => {
       detail: "Insufficient Permissions",
       code: "insufficient_permissions",
       team_id,
+      logLevel: "warn",
     });
   }
 
