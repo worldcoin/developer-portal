@@ -1,10 +1,10 @@
+import { SizingWrapper } from "@/components/SizingWrapper";
 import { Unauthorized } from "@/components/Unauthorized";
 import { Auth0SessionUser } from "@/lib/types";
 import { getSession } from "@auth0/nextjs-auth0";
 import { TeamProfile } from "../common/TeamProfile";
 import { Apps } from "./Apps";
 import { Members } from "./Members";
-import { SizingWrapper } from "@/components/SizingWrapper";
 
 type TeamIdPageProps = {
   params: Record<string, string> | null | undefined;

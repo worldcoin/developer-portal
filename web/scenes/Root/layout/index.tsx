@@ -1,18 +1,15 @@
 import { ApolloWrapper } from "@/lib/apollo-wrapper";
+import PostHogPageView from "@/scenes/Root/providers/PostHogPageView";
 import WithPostHogIdentifier from "@/scenes/Root/providers/providers";
 import "@/styles/globals.css";
 import { UserProvider } from "@auth0/nextjs-auth0/client";
 import { Provider } from "jotai";
-import dynamic from "next/dynamic";
+import { headers } from "next/headers";
 import { IBM_Plex_Mono, Rubik } from "next/font/google";
-import { CSSProperties } from "react";
+import { CSSProperties, Suspense } from "react";
 import { SkeletonTheme } from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
 import { Slide, ToastContainer } from "react-toastify";
-
-const PostHogPageView = dynamic(() => import("../providers/PostHogPageView"), {
-  ssr: false,
-});
 
 const rubik = Rubik({ weight: ["400"], subsets: ["latin"] });
 
@@ -22,11 +19,17 @@ const ibmPlexMono = IBM_Plex_Mono({
   weight: ["400", "600"],
 });
 
-export const RootLayout = ({
+export const RootLayout = async ({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) => {
+  // Read the per-request CSP nonce set by middleware (`web/middleware.ts`)
+  // so client-only providers that inject inline <script> tags during SSR
+  // (Apollo's data-transport rehydration script) can attach the nonce and
+  // pass our strict script-src.
+  const nonce = (await headers()).get("x-nonce") ?? undefined;
+
   return (
     <html
       lang="en"
@@ -47,10 +50,12 @@ export const RootLayout = ({
 
         <UserProvider>
           <WithPostHogIdentifier>
-            <ApolloWrapper>
+            <ApolloWrapper nonce={nonce}>
               <SkeletonTheme baseColor="#F3F4F5" highlightColor="#EBECEF">
                 <Provider>
-                  <PostHogPageView />
+                  <Suspense fallback={null}>
+                    <PostHogPageView />
+                  </Suspense>
                   {children}
                 </Provider>
               </SkeletonTheme>

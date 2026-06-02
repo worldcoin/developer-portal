@@ -8,10 +8,7 @@ const cdnURLObject = new URL(
 const nextConfig = {
   reactStrictMode: false,
 
-  experimental: {
-    instrumentationHook: true,
-    serverComponentsExternalPackages: ["winston", "dd-trace"],
-  },
+  serverExternalPackages: ["winston", "dd-trace"],
 
   output: "standalone",
   images: {
@@ -89,10 +86,6 @@ const nextConfig = {
       {
         source: "/.well-known/openid-configuration",
         destination: "/api/v1/oidc/openid-configuration",
-      },
-      {
-        source: "/ingest/:path*",
-        destination: "https://app.posthog.com/:path*",
       },
     ];
   },

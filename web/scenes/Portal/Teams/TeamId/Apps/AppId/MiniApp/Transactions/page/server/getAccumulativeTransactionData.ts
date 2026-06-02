@@ -1,6 +1,8 @@
 "use server";
 
 import { errorFormAction } from "@/api/helpers/errors";
+import { getTransactionSignedFetch } from "@/api/helpers/signed-fetch";
+import { getIsUserAllowedToReadApp } from "@/lib/permissions";
 import { extractIdsFromPath, getPathFromHeaders } from "@/lib/server-utils";
 import {
   FormActionResult,
@@ -9,7 +11,6 @@ import {
   TransactionMetadata,
   TransactionStatus,
 } from "@/lib/types";
-import { createSignedFetcher } from "aws-sigv4-fetch";
 
 export type GetAccumulativePaymentsDataReturnType = {
   accumulativePayments: PaymentMetadata[];
@@ -42,16 +43,10 @@ const fetchTransactionData = async (
   appId: string,
   url: string,
 ) => {
-  const path = getPathFromHeaders() || "";
+  const path = (await getPathFromHeaders()) || "";
   const { Teams: teamId } = extractIdsFromPath(path, ["Teams"]);
 
-  let signedFetch = global.TransactionSignedFetcher;
-  if (!signedFetch) {
-    signedFetch = createSignedFetcher({
-      service: "execute-api",
-      region: process.env.TRANSACTION_BACKEND_REGION,
-    });
-  }
+  const signedFetch = getTransactionSignedFetch();
 
   const response = await signedFetch(url, {
     method: "GET",
@@ -82,10 +77,21 @@ const fetchTransactionData = async (
 export const getAccumulativePaymentsData = async (
   appId: string,
 ): Promise<FormActionResult> => {
-  const path = getPathFromHeaders() || "";
+  const path = (await getPathFromHeaders()) || "";
   const { Teams: teamId } = extractIdsFromPath(path, ["Teams"]);
 
   try {
+    const isAllowed = await getIsUserAllowedToReadApp(appId);
+
+    if (!isAllowed) {
+      return errorFormAction({
+        message: "User is not authorized to view this app's data",
+        app_id: appId,
+        team_id: teamId,
+        logLevel: "warn",
+      });
+    }
+
     if (!process.env.NEXT_SERVER_INTERNAL_PAYMENTS_ENDPOINT) {
       return errorFormAction({
         message: "The internal payments endpoint is not set",
@@ -194,10 +200,21 @@ export const getAccumulativePaymentsData = async (
 export const getAccumulativeTransactionsData = async (
   appId: string,
 ): Promise<FormActionResult> => {
-  const path = getPathFromHeaders() || "";
+  const path = (await getPathFromHeaders()) || "";
   const { Teams: teamId } = extractIdsFromPath(path, ["Teams"]);
 
   try {
+    const isAllowed = await getIsUserAllowedToReadApp(appId);
+
+    if (!isAllowed) {
+      return errorFormAction({
+        message: "User is not authorized to view this app's data",
+        app_id: appId,
+        team_id: teamId,
+        logLevel: "warn",
+      });
+    }
+
     if (!process.env.NEXT_SERVER_INTERNAL_PAYMENTS_ENDPOINT) {
       return errorFormAction({
         message: "The internal transactions endpoint is not set",

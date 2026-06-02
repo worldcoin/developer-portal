@@ -1,4 +1,5 @@
 import { errorResponse } from "@/api/helpers/errors";
+import { parseRequestBody } from "@/api/helpers/parse-request-body";
 import { corsHandler } from "@/api/helpers/utils";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { verifyProof } from "@/api/helpers/verify";
@@ -42,10 +43,14 @@ const schema = yup
 const corsMethods = ["POST", "OPTIONS"];
 
 export async function POST(req: NextRequest) {
-  const body = await req.json();
+  const parseResult = await parseRequestBody(req);
+  if (!parseResult.isValid) {
+    return corsHandler(parseResult.error, corsMethods);
+  }
+
   const { isValid, parsedParams, handleError } = await validateRequestSchema({
     schema,
-    value: body,
+    value: parseResult.body,
   });
 
   if (!isValid) {

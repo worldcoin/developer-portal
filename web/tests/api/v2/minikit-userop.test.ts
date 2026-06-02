@@ -43,7 +43,7 @@ describe("/api/v2/minikit/userop/[user_op_hash]", () => {
     mockGetUserOperationReceipt.mockResolvedValue(null);
 
     const res = await GET(mockReq, {
-      params: { user_op_hash: validUserOpHash },
+      params: Promise.resolve({ user_op_hash: validUserOpHash }),
     });
     expect(res.status).toBe(200);
     await expect(res.json()).resolves.toEqual({
@@ -61,7 +61,7 @@ describe("/api/v2/minikit/userop/[user_op_hash]", () => {
     mockGetUserOperationReceipt.mockResolvedValue(null);
 
     const res = await GET(mockReq, {
-      params: { user_op_hash: uppercaseUserOpHash },
+      params: Promise.resolve({ user_op_hash: uppercaseUserOpHash }),
     });
     expect(res.status).toBe(200);
     await expect(res.json()).resolves.toEqual({
@@ -106,7 +106,7 @@ describe("/api/v2/minikit/userop/[user_op_hash]", () => {
     });
 
     const res = await GET(mockReq, {
-      params: { user_op_hash: validUserOpHash },
+      params: Promise.resolve({ user_op_hash: validUserOpHash }),
     });
     expect(res.status).toBe(200);
     await expect(res.json()).resolves.toEqual({
@@ -152,7 +152,7 @@ describe("/api/v2/minikit/userop/[user_op_hash]", () => {
     });
 
     const res = await GET(mockReq, {
-      params: { user_op_hash: validUserOpHash },
+      params: Promise.resolve({ user_op_hash: validUserOpHash }),
     });
     expect(res.status).toBe(200);
     await expect(res.json()).resolves.toEqual({
@@ -169,7 +169,7 @@ describe("/api/v2/minikit/userop/[user_op_hash]", () => {
     const mockReq = createMockRequest(getUrl("invalid-hash"));
 
     const res = await GET(mockReq, {
-      params: { user_op_hash: "invalid-hash" },
+      params: Promise.resolve({ user_op_hash: "invalid-hash" }),
     });
     expect(res.status).toBe(400);
     await expect(res.json()).resolves.toMatchObject({
@@ -184,7 +184,7 @@ describe("/api/v2/minikit/userop/[user_op_hash]", () => {
     mockGetUserOperationReceipt.mockResolvedValue(null);
 
     const res = await GET(mockReq, {
-      params: { user_op_hash: validUserOpHash },
+      params: Promise.resolve({ user_op_hash: validUserOpHash }),
     });
     expect(res.status).toBe(200);
     await expect(res.json()).resolves.toEqual({

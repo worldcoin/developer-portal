@@ -8,5 +8,7 @@ query GetRpRegistration($rp_id: String!) {
     created_at
     updated_at
     operation_hash
+    staging_status
+    staging_operation_hash
   }
 }

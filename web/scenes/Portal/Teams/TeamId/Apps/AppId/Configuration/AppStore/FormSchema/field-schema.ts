@@ -37,21 +37,17 @@ export const supportedCountriesSchema = yup
   .array(
     yup
       .string()
-      .required("This field is required required")
+      .required("This field is required")
       .length(2, "Invalid country code"),
   )
-  .min(1, "Supported Countries is required")
-  .required("Supported Countries is required")
   .default([]);
 export const categorySchema = yup.string().optional();
 export const isAndroidOnlySchema = yup
   .boolean()
-  .typeError("This field is required")
-  .required("This field is required");
+  .typeError("Must be true or false");
 export const isForHumansOnlySchema = yup
   .boolean()
-  .typeError("This field is required")
-  .required("This field is required");
+  .typeError("Must be true or false");
 
 export const appMetadataIdSchema = yup
   .string()

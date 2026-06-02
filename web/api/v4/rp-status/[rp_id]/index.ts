@@ -3,6 +3,7 @@ import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import {
   isValidRpId,
   mapOnChainToDbStatus,
+  normalizeAddress,
   parseRpId,
   RpRegistrationStatus,
 } from "@/api/helpers/rp-utils";
@@ -11,6 +12,7 @@ import { logger } from "@/lib/logger";
 import { NextRequest, NextResponse } from "next/server";
 import { getSdk as getGetRpRegistrationSdk } from "./graphql/get-rp-registration.generated";
 import { getSdk as getUpdateRpStatusSdk } from "./graphql/update-rp-status.generated";
+import { getSdk as getUpdateStagingStatusSdk } from "./graphql/update-staging-status.generated";
 
 const CACHE_TTL_SECONDS = 3600;
 const CACHE_KEY_PREFIX = "rp_status:v2:";
@@ -28,8 +30,9 @@ interface DualStatus {
  */
 export async function GET(
   req: NextRequest,
-  { params }: { params: { rp_id: string } },
+  props: { params: Promise<{ rp_id: string }> },
 ) {
+  const params = await props.params;
   const rpId = params.rp_id;
 
   if (!isValidRpId(rpId)) {
@@ -78,6 +81,8 @@ export async function GET(
   }
 
   const currentDbStatus = dbRecord.status as RpRegistrationStatus;
+  const currentDbStagingStatus =
+    (dbRecord.staging_status as RpRegistrationStatus) ?? null;
 
   const productionContractAddress = process.env.RP_REGISTRY_CONTRACT_ADDRESS;
   if (!productionContractAddress) {
@@ -132,20 +137,40 @@ export async function GET(
   // Fetch staging on-chain state (if configured)
   let stagingStatus: string | null = null;
   let stagingInitialized = false;
+  let stagingRpcSucceeded = false;
+  // Whether to treat on-chain as authoritative for staging. True when we
+  // have no DB signer to compare (self-managed mode), or when the on-chain
+  // signer matches the DB signer (rotation has settled). False during a
+  // rotation in flight, after a failed rotation, or while a retry is
+  // pending — in those cases the on-chain "registered" reading is
+  // misleading and we must preserve the DB staging_status.
+  let canTrustOnChainStaging = false;
   if (stagingContractAddress) {
     try {
       const stagingOnChainRp = await getRpFromContract(
         numericRpId,
         stagingContractAddress,
       );
+      stagingRpcSucceeded = true;
       stagingInitialized = stagingOnChainRp.initialized;
 
-      stagingStatus = stagingOnChainRp.initialized
-        ? mapOnChainToDbStatus(
-            stagingOnChainRp.initialized,
-            stagingOnChainRp.active,
-          )
-        : RpRegistrationStatus.Pending;
+      if (stagingOnChainRp.initialized) {
+        const expectedSigner = dbRecord.signer_address;
+        canTrustOnChainStaging =
+          !expectedSigner ||
+          normalizeAddress(stagingOnChainRp.signer).toLowerCase() ===
+            normalizeAddress(expectedSigner).toLowerCase();
+
+        const onChainMappedStatus = mapOnChainToDbStatus(
+          stagingOnChainRp.initialized,
+          stagingOnChainRp.active,
+        );
+        stagingStatus = canTrustOnChainStaging
+          ? onChainMappedStatus
+          : currentDbStagingStatus ?? onChainMappedStatus;
+      } else {
+        stagingStatus = RpRegistrationStatus.Pending;
+      }
     } catch (error) {
       logger.error("Failed to fetch RP from staging contract", {
         rpId,
@@ -173,6 +198,33 @@ export async function GET(
       });
     } catch (error) {
       logger.error("Failed to update RP status in DB", { rpId, error });
+    }
+  }
+
+  // Sync staging status to DB when on-chain state differs. Only when we
+  // can trust on-chain (signer matches, or self-managed with no DB signer
+  // to compare against) — otherwise the on-chain "registered" reading
+  // would clobber a legit "pending"/"failed" that rotate-signer-key or
+  // rp-retry persisted while a rotation is in flight or after a failure.
+  if (
+    stagingRpcSucceeded &&
+    stagingInitialized &&
+    canTrustOnChainStaging &&
+    stagingStatus &&
+    stagingStatus !== currentDbStagingStatus
+  ) {
+    try {
+      await getUpdateStagingStatusSdk(client).UpdateStagingStatus({
+        rp_id: rpId,
+        staging_status: stagingStatus,
+      });
+      logger.info("Updated staging status in DB", {
+        rpId,
+        oldStatus: currentDbStagingStatus,
+        newStatus: stagingStatus,
+      });
+    } catch (error) {
+      logger.error("Failed to update staging status in DB", { rpId, error });
     }
   }
 
@@ -209,15 +261,34 @@ export async function GET(
   }
 
   // Staging timeout: if staging is not initialized after the grace period,
-  // report as failed so the user gets a retry button and polling stops.
-  // Response-only — no DB write needed since staging isn't persisted.
+  // transition to failed so the user gets a retry button and polling stops.
+  // Only apply when the RPC call succeeded — a transient RPC failure should
+  // not permanently mark a healthy staging registration as failed.
+  // Use updated_at (not created_at) so a fresh staging retry resets the clock.
+  const stagingAgeMs = Date.now() - new Date(dbRecord.updated_at).getTime();
+  const isStagingPastGracePeriod = stagingAgeMs > PENDING_TIMEOUT_MS;
   if (
     stagingContractAddress &&
+    stagingRpcSucceeded &&
     !stagingInitialized &&
-    isPastGracePeriod &&
+    isStagingPastGracePeriod &&
     dbRecord.mode === "managed"
   ) {
     stagingStatus = RpRegistrationStatus.Failed;
+
+    if (currentDbStagingStatus !== RpRegistrationStatus.Failed) {
+      try {
+        await getUpdateStagingStatusSdk(client).UpdateStagingStatus({
+          rp_id: rpId,
+          staging_status: RpRegistrationStatus.Failed,
+        });
+      } catch (error) {
+        logger.error("Failed to update staging timeout status in DB", {
+          rpId,
+          error,
+        });
+      }
+    }
   }
 
   const result: DualStatus = {

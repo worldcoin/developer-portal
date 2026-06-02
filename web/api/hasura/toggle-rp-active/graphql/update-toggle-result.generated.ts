@@ -7,6 +7,7 @@ type GraphQLClientRequestHeaders = RequestOptions["requestHeaders"];
 export type UpdateToggleResultMutationVariables = Types.Exact<{
   rp_id: Types.Scalars["String"]["input"];
   operation_hash: Types.Scalars["String"]["input"];
+  staging_operation_hash?: Types.InputMaybe<Types.Scalars["String"]["input"]>;
 }>;
 
 export type UpdateToggleResultMutation = {
@@ -17,19 +18,28 @@ export type UpdateToggleResultMutation = {
     app_id: string;
     status: unknown;
     operation_hash?: string | null;
+    staging_operation_hash?: string | null;
   } | null;
 };
 
 export const UpdateToggleResultDocument = gql`
-  mutation UpdateToggleResult($rp_id: String!, $operation_hash: String!) {
+  mutation UpdateToggleResult(
+    $rp_id: String!
+    $operation_hash: String!
+    $staging_operation_hash: String
+  ) {
     update_rp_registration_by_pk(
       pk_columns: { rp_id: $rp_id }
-      _set: { operation_hash: $operation_hash }
+      _set: {
+        operation_hash: $operation_hash
+        staging_operation_hash: $staging_operation_hash
+      }
     ) {
       rp_id
       app_id
       status
       operation_hash
+      staging_operation_hash
     }
   }
 `;

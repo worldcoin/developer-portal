@@ -1,4 +1,7 @@
-import { formatAppMetadata } from "@/api/helpers/app-store";
+import {
+  fetchParameterStoreValues,
+  formatAppMetadata,
+} from "@/api/helpers/app-store";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { getAppStoreLocalisedCategoriesWithUrls } from "@/lib/categories";
 import { compareVersions } from "@/lib/compare-versions";
@@ -35,8 +38,9 @@ const independentFieldsToFetch = [
 
 export async function GET(
   request: Request,
-  { params }: { params: { app_id: string } },
+  props: { params: Promise<{ app_id: string }> },
 ) {
+  const params = await props.params;
   if (
     !process.env.NEXT_PUBLIC_APP_ENV ||
     !process.env.NEXT_PUBLIC_METRICS_SERVICE_ENDPOINT
@@ -205,10 +209,15 @@ export async function GET(
     return NextResponse.json({ error: "App not available" }, { status: 404 });
   }
 
-  let formattedMetadata = await formatAppMetadata(
+  const metricsMap = new Map(metricsData.map((stat) => [stat.app_id, stat]));
+  const paramStoreValues = await fetchParameterStoreValues();
+  let formattedMetadata = formatAppMetadata(
     { ...parsedAppMetadata },
-    metricsData,
+    metricsMap,
     locale,
+    undefined,
+    undefined,
+    paramStoreValues,
   );
 
   formattedMetadata = {

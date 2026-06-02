@@ -1,10 +1,12 @@
 import axios from "axios";
 import {
   createTestApp,
+  createTestAppMetadata,
   createTestMembership,
   createTestTeam,
   createTestUser,
   deleteTestApp,
+  deleteTestAppMetadata,
   deleteTestMembership,
   deleteTestTeam,
   deleteTestUser,
@@ -13,6 +15,7 @@ import {
 describe("Hasura API - Upload Image", () => {
   describe("POST /api/hasura/upload-image", () => {
     let testAppId: string;
+    let testAppMetadataId: string;
     let testTeamId: string;
     let testUserId: string;
     let testMembershipId: string;
@@ -37,8 +40,15 @@ describe("Hasura API - Upload Image", () => {
         "OWNER",
       );
 
-      // Create test app
+      // Create test app with an unverified app_metadata row, which the
+      // upload-image handler requires to confirm the app is editable.
       testAppId = await createTestApp("Test App for Image Upload", testTeamId);
+      const metadata = await createTestAppMetadata(
+        testAppId,
+        "Test App for Image Upload",
+        "unverified",
+      );
+      testAppMetadataId = metadata.id;
     });
 
     it("Generate Presigned URL for PNG Image Successfully", async () => {
@@ -168,6 +178,7 @@ describe("Hasura API - Upload Image", () => {
 
     afterAll(async () => {
       // Clean up test data
+      await deleteTestAppMetadata(testAppMetadataId);
       await deleteTestApp(testAppId);
       await deleteTestMembership(testMembershipId);
       await deleteTestUser(testUserId);

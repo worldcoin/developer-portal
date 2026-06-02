@@ -1,6 +1,7 @@
 "use server";
 import { errorFormAction } from "@/api/helpers/errors";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
+import { logPortalEvent } from "@/api/helpers/portal-events";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { getIsUserAllowedToInsertApp } from "@/lib/permissions";
 import { FormActionResult } from "@/lib/types";
@@ -37,7 +38,7 @@ export async function validateAndInsertAppServerSide(
     }
 
     const client = await getAPIServiceGraphqlClient();
-    await getInsertAppSdk(client).InsertApp({
+    const result = await getInsertAppSdk(client).InsertApp({
       team_id,
       name: parsedInitialValues.name,
       is_staging: parsedInitialValues.build === "staging",
@@ -48,9 +49,22 @@ export async function validateAndInsertAppServerSide(
       app_mode: parsedInitialValues.app_mode,
     });
 
+    logPortalEvent({
+      event: "app_creation",
+      actor: "human",
+      team_id,
+      app_id: result.insert_app_one?.id,
+      metadata: {
+        environment: parsedInitialValues.build,
+        engine: parsedInitialValues.verification,
+        app_mode: parsedInitialValues.app_mode,
+      },
+    });
+
     return {
       success: true,
       message: "App created successfully",
+      app_id: result.insert_app_one?.id,
     };
   } catch (error) {
     return errorFormAction({

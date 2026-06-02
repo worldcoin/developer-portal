@@ -11,9 +11,10 @@ import { getSdk as getFetchInvitesSdk } from "./graphql/server/fetch-invites.gen
 type Params = "invite_id";
 
 export const JoinPage = async (props: {
-  searchParams: Record<Params, string> | null | undefined;
+  searchParams: Promise<Record<Params, string>>;
 }) => {
-  const invite_id = props.searchParams?.invite_id;
+  const searchParams = await props.searchParams;
+  const invite_id = searchParams?.invite_id;
 
   if (!invite_id) {
     return redirect("/404");

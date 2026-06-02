@@ -1,6 +1,6 @@
 import { BankIcon } from "@/components/Icons/BankIcon";
 import { FailedIcon } from "@/components/Icons/FailedIcon";
-import { SpinnerIcon } from "@/components/Icons/SpinnerIcon";
+import { SpinnerBadgeIcon } from "@/components/Icons/SpinnerBadgeIcon";
 import { SuccessCheckIcon } from "@/components/Icons/SuccessCheckIcon";
 import { WorldIcon } from "@/components/Icons/WorldIcon";
 import { IconFrame } from "@/components/InitialSteps/IconFrame";
@@ -35,7 +35,7 @@ export const TransactionBadge = (props: {
     ) {
       return null;
     } else if (props.transaction?.status === "pending") {
-      return <SpinnerIcon className="size-5 animate-spin" />;
+      return <SpinnerBadgeIcon className="size-5 animate-spin" />;
     } else if (props.transaction?.status === "mined") {
       return <SuccessCheckIcon className="size-5 text-green-500" />;
     } else if (props.transaction?.status === "failed") {

@@ -1,12 +1,13 @@
 import { redirect } from "next/navigation";
 
 type Props = {
-  params: {
+  params: Promise<{
     teamId: string;
     appId: string;
-  };
+  }>;
 };
 
-export default function MiniAppPage({ params }: Props) {
+export default async function MiniAppPage(props: Props) {
+  const params = await props.params;
   redirect(`/teams/${params.teamId}/apps/${params.appId}/mini-app/permissions`);
 }

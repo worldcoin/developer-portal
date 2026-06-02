@@ -3,6 +3,7 @@ query GetRpRegistrationForRetry($rp_id: String!) {
     rp_id
     app_id
     status
+    staging_status
     mode
     signer_address
     manager_kms_key_id

@@ -5,6 +5,7 @@ import { extractIdsFromPath, getPathFromHeaders } from "@/lib/server-utils";
 import { Auth0SessionUser, FormActionResult } from "@/lib/types";
 import { getSession } from "@auth0/nextjs-auth0";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
+import { isAffiliateKycEnabled } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/common/is-affiliate-kyc-enabled";
 import { getSdk } from "./graphql/getTeamVerifiedApps.generated";
 
 type ValidatedRequest = {
@@ -21,7 +22,7 @@ type ValidationResult =
  * @returns Validation result with teamId and user, or error FormActionResult
  */
 export const validateAffiliateRequest = async (): Promise<ValidationResult> => {
-  const path = getPathFromHeaders() || "";
+  const path = (await getPathFromHeaders()) || "";
   const { teams: teamId } = extractIdsFromPath(path, ["teams"]);
 
   if (!teamId) {
@@ -70,8 +71,9 @@ export const validateAffiliateRequest = async (): Promise<ValidationResult> => {
     teamId: teamId,
   });
   const hasVerifiedApps = data.app.length > 0;
+  const allowlistedForAffiliateProgram = isAffiliateKycEnabled(user.email);
 
-  if (!hasVerifiedApps) {
+  if (!hasVerifiedApps && !allowlistedForAffiliateProgram) {
     return {
       success: false,
       error: errorFormAction({

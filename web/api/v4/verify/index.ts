@@ -13,6 +13,10 @@ import {
   UniquenessProofResponseV3,
   UniquenessProofResponseV4,
 } from "./request-schema";
+import {
+  INTEGRITY_VERIFICATION_ERROR_CODE,
+  verifyIntegrityBundle,
+} from "./integrity-bundle";
 import { handleSessionProofVerification } from "./session-proof/handler";
 import { handleUniquenessProofVerification } from "./uniqueness-proof/handler";
 
@@ -24,8 +28,9 @@ import { handleUniquenessProofVerification } from "./uniqueness-proof/handler";
  */
 export async function POST(
   req: NextRequest,
-  { params }: { params: { app_id: string } },
+  props: { params: Promise<{ app_id: string }> },
 ) {
+  const params = await props.params;
   const routeId = params.app_id;
 
   if (!routeId) {
@@ -137,6 +142,31 @@ export async function POST(
     const rpId = rpRegistration.rp_id;
     const appId = rpRegistration.app_id;
 
+    if (parsedParams.integrity_bundle) {
+      const integrityResult = await verifyIntegrityBundle({
+        environment: parsedParams.environment,
+        integrityBundle: parsedParams.integrity_bundle,
+        nonce: parsedParams.nonce!,
+        protocolVersion: parsedParams.protocol_version as "3.0" | "4.0",
+        responses: parsedParams.responses as
+          | SessionProofRequest["responses"]
+          | UniquenessProofResponseV3[]
+          | UniquenessProofResponseV4[],
+        rpId,
+      });
+
+      if (!integrityResult.success) {
+        return errorResponse({
+          statusCode: 403,
+          code: INTEGRITY_VERIFICATION_ERROR_CODE,
+          detail: "Integrity bundle verification failed.",
+          attribute: "integrity_bundle",
+          req,
+          app_id: appId,
+        });
+      }
+    }
+
     // Early return for session proofs - handle separately
     if (parsedParams.session_id) {
       return await handleSessionProofVerification(rpId, appId, {
@@ -149,16 +179,22 @@ export async function POST(
     }
 
     // Handle uniqueness proofs
-    return await handleUniquenessProofVerification(client, rpId, appId, {
-      action: parsedParams.action!,
-      action_description: parsedParams.action_description,
-      nonce: parsedParams.nonce,
-      protocol_version: parsedParams.protocol_version as "3.0" | "4.0",
-      responses: parsedParams.responses as
-        | UniquenessProofResponseV3[]
-        | UniquenessProofResponseV4[],
-      environment: parsedParams.environment,
-    });
+    return await handleUniquenessProofVerification(
+      client,
+      rpId,
+      appId,
+      {
+        action: parsedParams.action!,
+        action_description: parsedParams.action_description,
+        nonce: parsedParams.nonce,
+        protocol_version: parsedParams.protocol_version as "3.0" | "4.0",
+        responses: parsedParams.responses as
+          | UniquenessProofResponseV3[]
+          | UniquenessProofResponseV4[],
+        environment: parsedParams.environment,
+      },
+      req,
+    );
   } catch (error) {
     logger.error("Unhandled error in v4/verify", {
       error: error instanceof Error ? error.message : String(error),

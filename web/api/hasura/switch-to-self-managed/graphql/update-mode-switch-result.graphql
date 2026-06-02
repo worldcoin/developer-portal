@@ -6,6 +6,7 @@ mutation UpdateModeSwitchResult($rp_id: String!, $operation_hash: String!) {
       manager_kms_key_id: null
       signer_address: null
       operation_hash: $operation_hash
+      staging_operation_hash: null
     }
   ) {
     rp_id
@@ -13,5 +14,6 @@ mutation UpdateModeSwitchResult($rp_id: String!, $operation_hash: String!) {
     mode
     status
     operation_hash
+    staging_operation_hash
   }
 }

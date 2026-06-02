@@ -1,12 +1,11 @@
 import { errorResponse } from "@/api/helpers/errors";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
+import { getTransactionSignedFetch } from "@/api/helpers/signed-fetch";
 import { verifyHashedSecret } from "@/api/helpers/utils";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { logger } from "@/lib/logger";
 import { fetchWithRetry } from "@/lib/utils";
-import { createSignedFetcher } from "aws-sigv4-fetch";
 import { createHash } from "crypto";
-import { GraphQLClient } from "graphql-request";
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
 import { getSdk as fetchApiKeySdk } from "../graphql/fetch-api-key.generated";
@@ -36,8 +35,9 @@ type SendNotificationBodyV2 = yup.InferType<
   typeof sendNotificationBodySchemaV2
 >;
 
+const WALLET_ADDRESS_BATCH_SIZE = 100;
+
 export const logNotification = async (
-  serviceClient: GraphQLClient,
   app_id: string,
   wallet_addresses: string[] | undefined,
   mini_app_path: string | undefined,
@@ -56,18 +56,30 @@ export const logNotification = async (
     return;
   }
 
+  // Mint a fresh client here: the service JWT TTL is 1 minute and the caller
+  // can spend longer than that in upstream retries, so any reused client would
+  // hit JWTExpired.
+  const serviceClient = await getAPIServiceGraphqlClient();
+  const sdk = createNotificationLogSdk(serviceClient);
+
   let notificationLog: CreateNotificationLogMutationVariables = {
     app_id,
     mini_app_path,
     message,
   };
 
-  const { insert_notification_log_one } =
-    await createNotificationLogSdk(serviceClient).CreateNotificationLog(
-      notificationLog,
-    );
-
-  const notificationLogId = insert_notification_log_one?.id;
+  let notificationLogId: string | undefined;
+  try {
+    const { insert_notification_log_one } =
+      await sdk.CreateNotificationLog(notificationLog);
+    notificationLogId = insert_notification_log_one?.id;
+  } catch (error) {
+    logger.error("NotificationLog - failed to create notification log", {
+      app_id,
+      error,
+    });
+    return;
+  }
 
   if (!notificationLogId) {
     logger.error(
@@ -77,12 +89,26 @@ export const logNotification = async (
     return;
   }
 
-  createNotificationLogSdk(serviceClient).CreateWalletAdressNotificationLogs({
-    objects: wallet_addresses.map((wallet_address) => ({
-      wallet_address,
-      notification_log_id: notificationLogId,
-    })),
-  });
+  // Batch inserts to avoid oversized Hasura CTE queries
+  for (let i = 0; i < wallet_addresses.length; i += WALLET_ADDRESS_BATCH_SIZE) {
+    const batch = wallet_addresses.slice(i, i + WALLET_ADDRESS_BATCH_SIZE);
+
+    try {
+      await sdk.CreateWalletAdressNotificationLogs({
+        objects: batch.map((wallet_address) => ({
+          wallet_address,
+          notification_log_id: notificationLogId,
+        })),
+      });
+    } catch (error) {
+      logger.error("NotificationLog - failed to insert wallet address batch", {
+        app_id,
+        notificationLogId,
+        batchIndex: i,
+        error,
+      });
+    }
+  }
 };
 
 const getSchemaVersion = (body: object) => {
@@ -266,6 +292,21 @@ export const POST = async (req: NextRequest) => {
   const appMetadata = app_metadata?.[0];
   const teamId = appMetadata.app.team.id;
 
+  if (
+    verifiedOrDefaultApp.app_mode === "external" ||
+    verifiedOrDefaultApp.category?.toLowerCase() === "external"
+  ) {
+    return errorResponse({
+      statusCode: 400,
+      code: "external_app_not_allowed",
+      detail: "Notifications are not available for external apps",
+      attribute: "app",
+      req,
+      app_id,
+      team_id: teamId,
+    });
+  }
+
   // If app is not verified we allow max 40 notifications per 4 hours
   if (verifiedOrDefaultApp?.verification_status !== "verified") {
     const key = `app_notifications_${app_id}`;
@@ -342,13 +383,7 @@ export const POST = async (req: NextRequest) => {
           ...(draft_id !== undefined && { draftId: draft_id }),
         };
 
-  let signedFetch = global.TransactionSignedFetcher;
-  if (!signedFetch) {
-    signedFetch = createSignedFetcher({
-      service: "execute-api",
-      region: process.env.TRANSACTION_BACKEND_REGION,
-    });
-  }
+  const signedFetch = getTransactionSignedFetch();
 
   let res: Response;
 
@@ -430,28 +465,22 @@ export const POST = async (req: NextRequest) => {
     });
   }
   const response: SendNotificationResponse = data.result;
-  if (schemaVersion === "v1") {
-    logNotification(
-      serviceClient,
-      app_id,
-      wallet_addresses,
-      mini_app_path,
-      (parsedParams as SendNotificationBodyV1).message,
-    );
-  } else if (schemaVersion === "v2") {
-    const localisations = (parsedParams as SendNotificationBodyV2)
-      .localisations;
+  const logMessage =
+    schemaVersion === "v1"
+      ? (parsedParams as SendNotificationBodyV1).message
+      : (
+          (parsedParams as SendNotificationBodyV2).localisations?.find(
+            (l) => l.language === "en",
+          ) ?? (parsedParams as SendNotificationBodyV2).localisations?.[0]
+        )?.message;
 
-    for (const localisation of localisations) {
-      logNotification(
-        serviceClient,
-        app_id,
-        wallet_addresses,
-        mini_app_path,
-        localisation.message,
-      );
-    }
-  }
+  // Fire-and-forget: log wallet addresses once (not per localisation).
+  // .catch keeps any failure from becoming an unhandled rejection.
+  logNotification(app_id, wallet_addresses, mini_app_path, logMessage).catch(
+    (error) => {
+      logger.error("NotificationLog - unexpected failure", { app_id, error });
+    },
+  );
 
   return NextResponse.json({
     success: true,

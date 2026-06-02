@@ -30,11 +30,8 @@ import * as yup from "yup";
 import { mainAppStoreFormReviewSubmitSchema } from "../AppStore/FormSchema/form-schema";
 import { BasicInformationHandle } from "../BasicInformation";
 import { AppStoreFormValues } from "../AppStore/FormSchema/types";
-import { updateAppStoreMetadata } from "../AppStore/server/update-app-store";
-import {
-  getFirstFormError,
-  MULTIPLE_ERRORS_TOAST_MESSAGE,
-} from "../AppStore/utils/form-error-utils";
+import { MULTIPLE_ERRORS_TOAST_MESSAGE } from "../AppStore/utils/form-error-utils";
+import { useSaveStatusActions } from "../SaveStatus";
 import { useApolloClient } from "@apollo/client";
 import {
   FetchAppMetadataDocument,
@@ -72,6 +69,7 @@ const AppTopBarSubmit = ({
   const client = useApolloClient();
   const [isSubmittingForReview, setIsSubmittingForReview] = useState(false);
   const hasAutoSubmitted = useRef(false);
+  const saveStatus = useSaveStatusActions();
 
   const submitForReview = useCallback(async () => {
     if (appMetadata?.verification_status !== "unverified") {
@@ -93,43 +91,26 @@ const AppTopBarSubmit = ({
         }
       }
       const isMiniApp = appMetadata.app_mode === "mini-app";
-      if (form.formState.isDirty) {
-        const currentSupportType = form.getValues("support_type");
-        if (currentSupportType === "email") {
-          form.setValue("support_link", "", {
-            shouldDirty: true,
-            shouldValidate: false,
-          });
-        } else if (currentSupportType === "link") {
-          form.setValue("support_email", "", {
-            shouldDirty: true,
-            shouldValidate: false,
-          });
-        }
-
-        await new Promise<void>((resolve, reject) => {
-          form.handleSubmit(
-            async (data) => {
-              const result = await updateAppStoreMetadata({
-                ...data,
-                app_metadata_id: appMetadata.id,
-              });
-              if (!result.success) {
-                reject(new Error(result.message));
-              } else {
-                toast.success("App information saved");
-                resolve();
-              }
-            },
-            (errors) => {
-              const errorMessage = getFirstFormError(
-                errors,
-                form.getValues("localisations"),
-              );
-              reject(new Error(errorMessage ?? "Form validation failed"));
-            },
-          )();
+      const currentSupportType = form.getValues("support_type");
+      if (currentSupportType === "email") {
+        form.setValue("support_link", "", {
+          shouldDirty: true,
+          shouldValidate: false,
         });
+      } else if (currentSupportType === "link") {
+        form.setValue("support_email", "", {
+          shouldDirty: true,
+          shouldValidate: false,
+        });
+      }
+      if (saveStatus) {
+        const flushed = await saveStatus.flushAll();
+        if (!flushed) {
+          toast.error(
+            "Some changes could not be saved. Fix any errors and try again.",
+          );
+          return;
+        }
       }
       const formValues = form.getValues();
       const enLocalization = formValues.localisations.find(
@@ -190,7 +171,15 @@ const AppTopBarSubmit = ({
     } finally {
       setIsSubmittingForReview(false);
     }
-  }, [appId, appMetadata, basicInfoRef, client, form, onSubmitSuccess]);
+  }, [
+    appId,
+    appMetadata,
+    basicInfoRef,
+    client,
+    form,
+    onSubmitSuccess,
+    saveStatus,
+  ]);
 
   const shouldAutoSubmitForReview =
     searchParams.get("submitForReview") === "true";

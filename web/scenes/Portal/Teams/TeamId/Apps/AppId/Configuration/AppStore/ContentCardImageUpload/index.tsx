@@ -1,19 +1,28 @@
 import { Button } from "@/components/Button";
+import { Dialog } from "@/components/Dialog";
+import { DialogOverlay } from "@/components/DialogOverlay";
+import { CloseIcon } from "@/components/Icons/CloseIcon";
 import { TrashIcon } from "@/components/Icons/TrashIcon";
 import { WorldIcon } from "@/components/Icons/WorldIcon";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { getCDNImageUrl } from "@/lib/utils";
+import { Dialog as HeadlessDialog, Transition } from "@headlessui/react";
 import clsx from "clsx";
 import { useAtom } from "jotai";
 import Image from "next/image";
-import { ChangeEvent, useMemo, useRef, useState } from "react";
-import Skeleton from "react-loading-skeleton";
+import { ChangeEvent, Fragment, useMemo, useRef, useState } from "react";
 import { toast } from "react-toastify";
 import { FetchAppMetadataDocument } from "../../graphql/client/fetch-app-metadata.generated";
 import { ImageValidationError, useImage } from "../../hook/use-image";
 import ImageLoader from "../ImageForm/ImageLoader";
 import { unverifiedImageAtom, viewModeAtom } from "../../layout/ImagesProvider";
 import { useUpdateContentCardImageMutation } from "./graphql/client/update-content-card-image.generated";
+
+const PREVIEW_HEIGHT_PX = 200;
+const previewStyle = {
+  height: `${PREVIEW_HEIGHT_PX}px`,
+  width: `${(PREVIEW_HEIGHT_PX * 345) / 240}px`,
+};
 
 type ContentCardImageUploadProps = {
   appId: string;
@@ -37,6 +46,7 @@ export const ContentCardImageUpload = (props: ContentCardImageUploadProps) => {
   const [isSecondUpload, setIsSecondUpload] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [disabled] = useState(false);
+  const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
   const [viewMode] = useAtom(viewModeAtom);
   const [unverifiedImages, setUnverifiedImages] = useAtom(unverifiedImageAtom);
   const [updateContentCardImageMutation, { loading }] =
@@ -138,7 +148,12 @@ export const ContentCardImageUpload = (props: ContentCardImageUploadProps) => {
     viewMode === "unverified" &&
     unverifiedImages?.content_card_image_url === "loading"
   ) {
-    return <Skeleton className="h-[200px] w-full rounded-xl" />;
+    return (
+      <div
+        className="animate-pulse rounded-xl bg-grey-100"
+        style={previewStyle}
+      />
+    );
   }
 
   return (
@@ -152,39 +167,65 @@ export const ContentCardImageUpload = (props: ContentCardImageUploadProps) => {
         style={{ display: "none" }}
       />
 
-      {/* Verified: full-width image */}
+      {/* Verified: thumbnail */}
       {viewMode === "verified" &&
         (verifiedImageError ? (
-          <div className="flex h-[200px] w-full items-center justify-center rounded-xl bg-blue-100">
+          <div
+            className="flex items-center justify-center rounded-xl bg-blue-100"
+            style={previewStyle}
+          >
             <WorldIcon className="size-10 text-blue-500" />
           </div>
         ) : (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={verifiedImageURL}
-            alt="content card image"
-            className="h-[200px] w-full rounded-xl object-cover drop-shadow-sm"
-            onError={() => setVerifiedImageError(true)}
-          />
+          <div className="overflow-hidden rounded-xl" style={previewStyle}>
+            <button
+              type="button"
+              onClick={() => setLightboxUrl(verifiedImageURL)}
+              className="block size-full cursor-zoom-in"
+              aria-label="View full resolution"
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={verifiedImageURL}
+                alt="content card image"
+                className="size-full rounded-xl object-contain drop-shadow-sm"
+                onError={() => setVerifiedImageError(true)}
+              />
+            </button>
+          </div>
         ))}
 
       {/* Unverified: uploading loader */}
       {viewMode === "unverified" && isUploading && (
-        <ImageLoader name="content_card_image" className="h-[200px] w-full" />
+        <div style={previewStyle}>
+          <ImageLoader name="content_card_image" className="size-full" />
+        </div>
       )}
 
       {/* Unverified: uploaded image or drop zone */}
       {viewMode === "unverified" &&
         !isUploading &&
         (unverifiedImages?.content_card_image_url ? (
-          <div className="relative overflow-hidden rounded-xl">
-            <Image
-              alt="content card image"
-              src={unverifiedImages?.content_card_image_url}
-              className="h-[200px] w-full rounded-xl object-cover"
-              width={1200}
-              height={600}
-            />
+          <div
+            className="relative overflow-hidden rounded-xl"
+            style={previewStyle}
+          >
+            <button
+              type="button"
+              onClick={() =>
+                setLightboxUrl(unverifiedImages?.content_card_image_url ?? null)
+              }
+              className="block size-full cursor-zoom-in"
+              aria-label="View full resolution"
+            >
+              <Image
+                alt="content card image"
+                src={unverifiedImages?.content_card_image_url}
+                className="size-full rounded-xl object-contain"
+                width={345}
+                height={240}
+              />
+            </button>
             <Button
               type="button"
               onClick={removeImage}
@@ -249,6 +290,40 @@ export const ContentCardImageUpload = (props: ContentCardImageUploadProps) => {
             </div>
           </label>
         ))}
+
+      <Dialog open={!!lightboxUrl} onClose={() => setLightboxUrl(null)}>
+        <DialogOverlay />
+        <Transition.Child
+          enter="transition duration-200 ease"
+          enterFrom="opacity-0 scale-95"
+          enterTo="opacity-100 scale-100"
+          leave="transition duration-150 ease"
+          leaveFrom="opacity-100 scale-100"
+          leaveTo="opacity-0 scale-95"
+          as={Fragment}
+        >
+          <div className="fixed inset-0 flex items-center justify-center p-4">
+            <HeadlessDialog.Panel className="relative">
+              {lightboxUrl && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={lightboxUrl}
+                  alt="Full resolution preview"
+                  className="block max-h-[90vh] max-w-[90vw] rounded-2xl object-contain shadow-2xl"
+                />
+              )}
+              <button
+                type="button"
+                onClick={() => setLightboxUrl(null)}
+                className="absolute right-3 top-3 flex size-9 items-center justify-center rounded-full bg-white/95 text-grey-700 shadow-md transition-colors hover:bg-white"
+                aria-label="Close"
+              >
+                <CloseIcon className="size-4" />
+              </button>
+            </HeadlessDialog.Panel>
+          </div>
+        </Transition.Child>
+      </Dialog>
     </div>
   );
 };

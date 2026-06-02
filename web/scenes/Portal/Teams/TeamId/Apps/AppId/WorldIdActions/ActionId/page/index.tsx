@@ -1,5 +1,5 @@
 "use client";
-
+import { use } from "react";
 import { ErrorPage } from "@/components/ErrorPage";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
@@ -9,10 +9,11 @@ import { VerifiedTable } from "@/scenes/Portal/Teams/TeamId/Apps/AppId/Actions/A
 import { adaptNullifierV4 } from "./utils/adapt-nullifier-v4";
 
 type WorldIdActionIdPageProps = {
-  params: Record<string, string> | null | undefined;
+  params: Promise<Record<string, string>>;
 };
 
-export const WorldIdActionIdPage = ({ params }: WorldIdActionIdPageProps) => {
+export const WorldIdActionIdPage = (props: WorldIdActionIdPageProps) => {
+  const params = use(props.params);
   const actionId = params?.actionId;
 
   const { data, loading, error } = useGetSingleActionV4Query({

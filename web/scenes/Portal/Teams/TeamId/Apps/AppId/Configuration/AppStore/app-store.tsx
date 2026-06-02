@@ -4,7 +4,9 @@ import { checkUserPermissions } from "@/lib/utils";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { useAtomValue } from "jotai";
 import { useMemo } from "react";
-import { useWatch } from "react-hook-form";
+import { useFormContext, useWatch } from "react-hook-form";
+import { useSaveStatus } from "../SaveStatus";
+import { useAutosaveWithStatus } from "../hook/use-autosave-with-status";
 import { isMiniAppAtom } from "../layout/ImagesProvider";
 import { CategorySection } from "./components/FormSections/CategorySection";
 import { ComplianceSection } from "./components/FormSections/ComplianceSection";
@@ -14,7 +16,9 @@ import { HumansOnlySection } from "./components/FormSections/HumansOnlySection";
 import { LanguagesSection } from "./components/FormSections/LanguagesSection";
 import { LocalisationsSection } from "./components/FormSections/LocalisationsSection";
 import { SupportSection } from "./components/FormSections/SupportSection";
+import { SaveStatusIndicator } from "../SaveStatus";
 import { SaveButton } from "./components/SaveButton";
+import { AppStoreFormValues } from "./FormSchema/types";
 import { useAppStoreForm } from "./hooks/useAppStoreForm";
 import { AppStoreFormProps } from "./types/AppStoreFormTypes";
 
@@ -26,26 +30,26 @@ export const AppStoreForm = ({
   appId,
   teamId,
   appMetadata,
-  onBeforeSave,
 }: AppStoreFormProps) => {
   const { user } = useUser() as Auth0SessionUser;
 
   const {
     control,
-    handleSubmit,
     errors,
-    isSubmitting,
     localisations,
     supportType,
     handleSupportTypeChange,
-    submit,
-    watch,
-    setValue,
+    submitSilent,
     isEditable,
-    onInvalid,
     refetchAppMetadata,
     refetchLocalisations,
   } = useAppStoreForm(appId, appMetadata);
+
+  const form = useFormContext<AppStoreFormValues>();
+  // Read displayStatus (debounced/held view of the save state) so the button
+  // tracks the indicator's visible "Saving…" pill — disabling and changing
+  // copy only while the blue pill is showing, not on every raw status flip.
+  const { flushAll, displayStatus } = useSaveStatus();
 
   const isEnoughPermissions = useMemo(() => {
     return checkUserPermissions(user, teamId ?? "", [
@@ -57,25 +61,15 @@ export const AppStoreForm = ({
   const isMiniApp = useAtomValue(isMiniAppAtom);
 
   const supportedLanguages = useWatch({ control, name: "supported_languages" });
-  const guardedSubmit = async () => {
-    const canProceed = await onBeforeSave?.();
-    if (canProceed === false) return;
 
-    const currentSupportType = watch("support_type");
-    if (currentSupportType === "email") {
-      setValue("support_link", "", {
-        shouldDirty: true,
-        shouldValidate: false,
-      });
-    } else if (currentSupportType === "link") {
-      setValue("support_email", "", {
-        shouldDirty: true,
-        shouldValidate: false,
-      });
-    }
-
-    handleSubmit(submit, onInvalid)();
-  };
+  useAutosaveWithStatus<AppStoreFormValues>({
+    id: "app-store",
+    form,
+    enabled: isEditable && isEnoughPermissions,
+    save: async (data, signal) => {
+      await submitSilent(data, signal);
+    },
+  });
 
   return (
     <div className="grid max-w-[700px] grid-cols-1fr/auto">
@@ -83,7 +77,6 @@ export const AppStoreForm = ({
         className="grid gap-y-10"
         onSubmit={(event) => {
           event.preventDefault();
-          void guardedSubmit();
         }}
       >
         {isMiniApp && (
@@ -167,11 +160,18 @@ export const AppStoreForm = ({
           }}
         />
 
-        <div className="fixed bottom-[5.25rem] z-10 md:bottom-6">
+        <div className="fixed bottom-[5.25rem] right-6 z-10 flex items-center gap-x-3 md:bottom-6">
+          <SaveStatusIndicator />
           <SaveButton
-            isSubmitting={isSubmitting}
-            isDisabled={!isEditable || !isEnoughPermissions || isSubmitting}
-            onSubmit={guardedSubmit}
+            isSubmitting={displayStatus.state === "saving"}
+            isDisabled={
+              !isEditable ||
+              !isEnoughPermissions ||
+              displayStatus.state === "saving"
+            }
+            onSubmit={() => {
+              void flushAll();
+            }}
           />
         </div>
       </form>

@@ -1,20 +1,21 @@
 "use server";
 
 import { errorFormAction } from "@/api/helpers/errors";
+import { getTransactionSignedFetch } from "@/api/helpers/signed-fetch";
 import { logger } from "@/lib/logger";
 import {
   FormActionResult,
   GetIdentityVerificationLinkRequest,
   GetIdentityVerificationLinkResponse,
 } from "@/lib/types";
-import { createSignedFetcher } from "aws-sigv4-fetch";
 import { validateAffiliateRequest } from "../../common/server/validate-affiliate-request";
 
 export const getIdentityVerificationLink = async ({
+  type,
   redirectUri,
 }: Pick<
   GetIdentityVerificationLinkRequest,
-  "redirectUri"
+  "type" | "redirectUri"
 >): Promise<FormActionResult> => {
   let teamId: string | undefined;
 
@@ -27,16 +28,10 @@ export const getIdentityVerificationLink = async ({
 
     teamId = validation.data.teamId;
 
-    let signedFetch = global.TransactionSignedFetcher;
-    if (!signedFetch) {
-      signedFetch = createSignedFetcher({
-        service: "execute-api",
-        region: process.env.TRANSACTION_BACKEND_REGION,
-      });
-    }
+    const signedFetch = getTransactionSignedFetch();
     const url = `${process.env.NEXT_SERVER_APP_BACKEND_BASE_URL}/internal/v1/affiliate/identity-verification/verification-link`;
     // NOTE: set kyb because app backend doesn't if it's kyc or kyb
-    const requestBody = { type: "kyb", redirectUri };
+    const requestBody = { type, redirectUri };
 
     const response = await signedFetch(url, {
       method: "POST",

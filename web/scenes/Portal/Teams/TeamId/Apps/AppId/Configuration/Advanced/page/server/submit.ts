@@ -16,7 +16,7 @@ export async function validateAndUpdateSetupServerSide(
   initialValues: UpdateSetupInitialSchema,
   app_metadata_id: string,
 ): Promise<FormActionResult> {
-  const path = getPathFromHeaders() || "";
+  const path = (await getPathFromHeaders()) || "";
   const { Apps: appId, Teams: teamId } = extractIdsFromPath(path, [
     "Apps",
     "Teams",
@@ -87,8 +87,9 @@ export async function validateAndUpdateSetupServerSide(
       contracts,
       permit2_tokens,
       whitelisted_addresses,
-      can_import_all_contacts: parsedInitialValues.can_import_all_contacts,
-      can_use_attestation: parsedInitialValues.can_use_attestation,
+      can_import_all_contacts:
+        parsedInitialValues.can_import_all_contacts ?? false,
+      can_use_attestation: parsedInitialValues.can_use_attestation ?? false,
       is_allowed_unlimited_notifications,
       max_notifications_per_day,
     });

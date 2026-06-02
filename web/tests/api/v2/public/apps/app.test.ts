@@ -64,7 +64,9 @@ describe("/api/public/app/[app_id]", () => {
         host: "cdn.test.com",
       },
     });
-    const response = await GET(request, { params: { app_id: "2" } });
+    const response = await GET(request, {
+      params: Promise.resolve({ app_id: "2" }),
+    });
     expect(await response.json()).toEqual({
       app_data: {
         name: "Example App",
@@ -168,7 +170,9 @@ describe("/api/public/app/[app_id]", () => {
         host: "cdn.test.com",
       },
     });
-    const response = await GET(request, { params: { app_id: "1" } });
+    const response = await GET(request, {
+      params: Promise.resolve({ app_id: "1" }),
+    });
     expect(await response.json()).toEqual({
       app_data: {
         name: "Example App",
@@ -273,7 +277,9 @@ describe("/api/public/app/[app_id]", () => {
       }),
     }));
 
-    const response = await GET(request, { params: { app_id: "TEST_APP" } });
+    const response = await GET(request, {
+      params: Promise.resolve({ app_id: "TEST_APP" }),
+    });
     expect(await response.json()).toEqual({
       app_data: {
         name: "Example App",
@@ -418,7 +424,9 @@ describe("/api/public/app/[app_id]", () => {
           },
         },
       );
-      const response = await GET(request, { params: { app_id: "test-app" } });
+      const response = await GET(request, {
+        params: Promise.resolve({ app_id: "test-app" }),
+      });
       const data = await response.json();
       expect(data.app_data.name).toBe("Example App");
       expect(data.app_data.app_rating).toBe(3.33);
@@ -518,7 +526,9 @@ describe("/api/public/app/[app_id]", () => {
           },
         },
       );
-      const response = await GET(request, { params: { app_id: "test-app" } });
+      const response = await GET(request, {
+        params: Promise.resolve({ app_id: "test-app" }),
+      });
       const data = await response.json();
       expect(data.app_data.name).toBe("Example App");
       expect(data.app_data.app_rating).toBe(3.33);
@@ -580,7 +590,9 @@ describe("/api/public/app/[app_id]", () => {
           },
         },
       );
-      const response = await GET(request, { params: { app_id: "test-app" } });
+      const response = await GET(request, {
+        params: Promise.resolve({ app_id: "test-app" }),
+      });
       const data = await response.json();
       expect(response.status).toBe(404);
       expect(data.error).toBe("Draft not found");
@@ -638,7 +650,7 @@ describe("/api/public/app/[app_id]", () => {
       }));
 
       const response = await GET(request, {
-        params: { app_id: "TEST_APP" },
+        params: Promise.resolve({ app_id: "TEST_APP" }),
       });
       expect(response.status).toBe(404);
     });
@@ -696,7 +708,9 @@ describe("/api/public/app/[app_id]", () => {
           },
         },
       );
-      const response = await GET(request, { params: { app_id: "test-app" } });
+      const response = await GET(request, {
+        params: Promise.resolve({ app_id: "test-app" }),
+      });
       expect(response.status).toBe(400);
       const data = await response.json();
       expect(data.error).toBe("Draft already verified");
@@ -756,7 +770,9 @@ describe("/api/public/app/[app_id]", () => {
           },
         },
       );
-      const response = await GET(request, { params: { app_id: "test-app" } });
+      const response = await GET(request, {
+        params: Promise.resolve({ app_id: "test-app" }),
+      });
       expect(response.status).toBe(404);
       const data = await response.json();
       expect(data).toEqual({ error: "Invalid category" });
@@ -821,7 +837,7 @@ describe("/api/public/app/[app_id]", () => {
 
       const request = createRequest("uk"); // uk not in supported countries
       const response = await GET(request, {
-        params: { app_id: "test-app-123" },
+        params: Promise.resolve({ app_id: "test-app-123" }),
       });
 
       expect(response.status).toBe(403);
@@ -839,7 +855,7 @@ describe("/api/public/app/[app_id]", () => {
 
       const request = createRequest("PL");
       const response = await GET(request, {
-        params: { app_id: "test-app-123" },
+        params: Promise.resolve({ app_id: "test-app-123" }),
       });
 
       expect(response.status).toBe(200);
@@ -857,7 +873,7 @@ describe("/api/public/app/[app_id]", () => {
 
       const request = createRequest("PL");
       const response = await GET(request, {
-        params: { app_id: "test-app-123" },
+        params: Promise.resolve({ app_id: "test-app-123" }),
       });
 
       expect(response.status).toBe(200);
@@ -875,7 +891,7 @@ describe("/api/public/app/[app_id]", () => {
 
       const request = createRequest("UK"); // UK not in supported countries
       const response = await GET(request, {
-        params: { app_id: "test-app-123" },
+        params: Promise.resolve({ app_id: "test-app-123" }),
       });
 
       expect(response.status).toBe(200);
@@ -893,7 +909,7 @@ describe("/api/public/app/[app_id]", () => {
 
       const request = createRequest(); // no override_country
       const response = await GET(request, {
-        params: { app_id: "test-app-123" },
+        params: Promise.resolve({ app_id: "test-app-123" }),
       });
 
       expect(response.status).toBe(200);
@@ -911,7 +927,7 @@ describe("/api/public/app/[app_id]", () => {
 
       const request = createRequest("uk"); // uk is in supported countries
       const response = await GET(request, {
-        params: { app_id: "test-app-123" },
+        params: Promise.resolve({ app_id: "test-app-123" }),
       });
 
       expect(response.status).toBe(200);
@@ -929,7 +945,7 @@ describe("/api/public/app/[app_id]", () => {
 
       const request = createRequest("UK");
       const response = await GET(request, {
-        params: { app_id: "test-app-123" },
+        params: Promise.resolve({ app_id: "test-app-123" }),
       });
 
       // Should allow the app since there's no restriction
@@ -1001,7 +1017,9 @@ describe("/api/public/app/[app_id]", () => {
           "x-accept-language": "es",
         },
       });
-      const response = await GET(request, { params: { app_id: "1" } });
+      const response = await GET(request, {
+        params: Promise.resolve({ app_id: "1" }),
+      });
       const data = await response.json();
 
       expect(data.app_data.name).toBe("Aplicación de Ejemplo");
@@ -1077,7 +1095,9 @@ describe("/api/public/app/[app_id]", () => {
           "x-accept-language": "es",
         },
       });
-      const response = await GET(request, { params: { app_id: "1" } });
+      const response = await GET(request, {
+        params: Promise.resolve({ app_id: "1" }),
+      });
       const data = await response.json();
 
       expect(data.app_data.name).toBe("Aplicación de Ejemplo");
@@ -1149,7 +1169,9 @@ describe("/api/public/app/[app_id]", () => {
           "x-accept-language": "es",
         },
       });
-      const response = await GET(request, { params: { app_id: "1" } });
+      const response = await GET(request, {
+        params: Promise.resolve({ app_id: "1" }),
+      });
       const data = await response.json();
 
       expect(data.app_data.name).toBe("Example App");
@@ -1222,7 +1244,9 @@ describe("/api/public/app/[app_id]", () => {
         },
       );
 
-      const response = await GET(request, { params: { app_id: "contacts" } });
+      const response = await GET(request, {
+        params: Promise.resolve({ app_id: "contacts" }),
+      });
 
       expect(response.status).toBe(404);
       expect(await response.json()).toEqual({ error: "App not available" });
@@ -1269,7 +1293,9 @@ describe("/api/public/app/[app_id]", () => {
         },
       );
 
-      const response = await GET(request, { params: { app_id: "contacts" } });
+      const response = await GET(request, {
+        params: Promise.resolve({ app_id: "contacts" }),
+      });
 
       expect(response.status).toBe(404);
       expect(await response.json()).toEqual({ error: "App not available" });
@@ -1316,7 +1342,9 @@ describe("/api/public/app/[app_id]", () => {
         },
       );
 
-      const response = await GET(request, { params: { app_id: "contacts" } });
+      const response = await GET(request, {
+        params: Promise.resolve({ app_id: "contacts" }),
+      });
 
       expect(response.status).toBe(200);
       const data = await response.json();
@@ -1365,7 +1393,9 @@ describe("/api/public/app/[app_id]", () => {
         },
       );
 
-      const response = await GET(request, { params: { app_id: "contacts" } });
+      const response = await GET(request, {
+        params: Promise.resolve({ app_id: "contacts" }),
+      });
 
       expect(response.status).toBe(200);
       const data = await response.json();
@@ -1417,7 +1447,7 @@ describe("/api/public/app/[app_id]", () => {
       );
 
       const response = await GET(request, {
-        params: { app_id: "deleted-app-1" },
+        params: Promise.resolve({ app_id: "deleted-app-1" }),
       });
 
       expect(response.status).toBe(404);
@@ -1435,7 +1465,7 @@ describe("/api/public/app/[app_id]", () => {
       );
 
       const response = await GET(request, {
-        params: { app_id: "deleted-app-1" },
+        params: Promise.resolve({ app_id: "deleted-app-1" }),
       });
 
       expect(response.status).toBe(200);
@@ -1492,7 +1522,7 @@ describe("/api/public/app/[app_id]", () => {
       );
 
       const response = await GET(request, {
-        params: { app_id: "test-app-1" },
+        params: Promise.resolve({ app_id: "test-app-1" }),
       });
 
       expect(response.status).toBe(200);
@@ -1514,7 +1544,7 @@ describe("/api/public/app/[app_id]", () => {
       );
 
       const response = await GET(request, {
-        params: { app_id: "test-app-1" },
+        params: Promise.resolve({ app_id: "test-app-1" }),
       });
 
       expect(response.status).toBe(200);
@@ -1536,7 +1566,7 @@ describe("/api/public/app/[app_id]", () => {
       );
 
       const response = await GET(request, {
-        params: { app_id: "test-app-1" },
+        params: Promise.resolve({ app_id: "test-app-1" }),
       });
 
       expect(response.status).toBe(200);

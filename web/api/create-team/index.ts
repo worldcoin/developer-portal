@@ -29,6 +29,11 @@ import {
   getSdk as getInsertUserSdk,
 } from "./graphql/insert-user.generated";
 
+import {
+  GetUserByAuth0IdQuery,
+  getSdk as getGetUserByAuth0IdSdk,
+} from "./graphql/get-user-by-auth0id.generated";
+
 import { teamNameSchema } from "@/lib/schema";
 import { captureEvent } from "@/services/posthogClient";
 import {
@@ -88,17 +93,48 @@ export const POST = withApiAuthRequired(async (req: NextRequest) => {
 
   const { team_name, hasUser } = parsedParams;
 
+  const client = await getAPIServiceGraphqlClient();
+
+  // The `hasUser` flag in the body is derived from the session, which can be
+  // stale (e.g. session.user.hasura missing or out of date). Trust Hasura
+  // instead by looking up the user by auth0Id. Otherwise we hit a uniqueness
+  // violation on InsertUser when the user already exists.
+  let existingUser: GetUserByAuth0IdQuery["user"][number] | null = null;
+  try {
+    const { user: foundUsers } = await getGetUserByAuth0IdSdk(
+      client,
+    ).GetUserByAuth0Id({
+      auth0Id: auth0User.sub,
+    });
+
+    existingUser = foundUsers[0] ?? null;
+  } catch (error) {
+    logger.error("Error while looking up user on create team:", {
+      error,
+      graphqlResponse: (error as { response?: unknown })?.response,
+    });
+
+    return errorResponse({
+      statusCode: 500,
+      code: "server_error",
+      detail: "Failed to create team",
+      req,
+    });
+  }
+
+  const effectiveHasUser = hasUser || Boolean(existingUser);
+
   // ANCHOR: Sending acceptance
   let ironCladUserId: string | null = null;
 
-  if (!hasUser) {
+  if (!effectiveHasUser) {
     const ironcladActivityApi = new IroncladActivityApi();
     ironCladUserId = crypto.randomUUID();
 
     try {
       const appUrl = await getAppUrlFromRequest(req);
       const url = new URL(urls.signUp(), appUrl);
-      const headersList = nextHeaders();
+      const headersList = await nextHeaders();
       let headers: Record<string, string> = {};
 
       headersList.forEach((v, k) => {
@@ -132,8 +168,6 @@ export const POST = withApiAuthRequired(async (req: NextRequest) => {
     }
   }
 
-  const client = await getAPIServiceGraphqlClient();
-
   // ANCHOR: Insert team
   let insertedTeam: InsertTeamMutation["insert_team_one"] | null = null;
 
@@ -144,7 +178,10 @@ export const POST = withApiAuthRequired(async (req: NextRequest) => {
 
     insertedTeam = insert_team_one;
   } catch (error) {
-    logger.error("Error while inserting team on create team:", { error });
+    logger.error("Error while inserting team on create team:", {
+      error,
+      graphqlResponse: (error as { response?: unknown })?.response,
+    });
 
     return errorResponse({
       statusCode: 500,
@@ -164,7 +201,7 @@ export const POST = withApiAuthRequired(async (req: NextRequest) => {
 
   let insertedUser: InsertUserMutation["insert_user_one"] | null = null;
 
-  if (!hasUser) {
+  if (!effectiveHasUser) {
     try {
       const { insert_user_one } = await getInsertUserSdk(client).InsertUser({
         user_data: {
@@ -192,7 +229,10 @@ export const POST = withApiAuthRequired(async (req: NextRequest) => {
         },
       });
     } catch (error) {
-      logger.error("Error while inserting user on create team:", { error });
+      logger.error("Error while inserting user on create team:", {
+        error,
+        graphqlResponse: (error as { response?: unknown })?.response,
+      });
 
       return errorResponse({
         statusCode: 500,
@@ -209,7 +249,9 @@ export const POST = withApiAuthRequired(async (req: NextRequest) => {
     | null = null;
 
   try {
-    const user_id = hasUser ? hasuraUserId : insertedUser?.id;
+    const user_id = effectiveHasUser
+      ? hasuraUserId ?? existingUser?.id
+      : insertedUser?.id;
 
     if (!insertedTeam?.id) {
       throw new Error("Team id is null");
@@ -229,7 +271,10 @@ export const POST = withApiAuthRequired(async (req: NextRequest) => {
 
     insertedMembership = insert_membership_one;
   } catch (error) {
-    logger.error("Error while inserting membership on create team:", { error });
+    logger.error("Error while inserting membership on create team:", {
+      error,
+      graphqlResponse: (error as { response?: unknown })?.response,
+    });
 
     return errorResponse({
       statusCode: 500,
@@ -251,7 +296,7 @@ export const POST = withApiAuthRequired(async (req: NextRequest) => {
 
   const user = insertedMembership.user;
 
-  const returnTo = urls[hasUser ? "teams" : "app"]({
+  const returnTo = urls[effectiveHasUser ? "teams" : "app"]({
     team_id: insertedMembership.team_id,
   });
 

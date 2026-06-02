@@ -18,6 +18,7 @@ export type UpdateModeSwitchResultMutation = {
     mode: unknown;
     status: unknown;
     operation_hash?: string | null;
+    staging_operation_hash?: string | null;
   } | null;
 };
 
@@ -30,6 +31,7 @@ export const UpdateModeSwitchResultDocument = gql`
         manager_kms_key_id: null
         signer_address: null
         operation_hash: $operation_hash
+        staging_operation_hash: null
       }
     ) {
       rp_id
@@ -37,6 +39,7 @@ export const UpdateModeSwitchResultDocument = gql`
       mode
       status
       operation_hash
+      staging_operation_hash
     }
   }
 `;

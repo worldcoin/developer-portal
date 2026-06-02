@@ -22,6 +22,7 @@ import { viewModeAtom } from "./layout/ImagesProvider";
 import { useFetchLocalisationsQuery } from "./AppStore/graphql/client/fetch-localisations.generated";
 import { RejectionBanner } from "./RejectionBanner";
 import { ResolveModal } from "./ResolveModal";
+import { SaveStatusProvider } from "./SaveStatus";
 import { useRemoveFromReview } from "@/scenes/Portal/Teams/TeamId/Apps/common/hooks/use-remove-from-review";
 
 type AppProfilePageProps = {
@@ -104,75 +105,72 @@ export const AppProfilePage = ({ params }: AppProfilePageProps) => {
         (localisationsData?.localisations || []) as LocalisationData
       }
     >
-      {/* Resolve Modal */}
-      <ResolveModal
-        open={showResolveModal}
-        setOpen={setShowResolveModal}
-        reviewMessage={appMetadata?.review_message}
-        onResolve={removeFromReview}
-      />
+      <SaveStatusProvider>
+        {/* Resolve Modal */}
+        <ResolveModal
+          open={showResolveModal}
+          setOpen={setShowResolveModal}
+          reviewMessage={appMetadata?.review_message}
+          onResolve={removeFromReview}
+        />
 
-      {/* Rejection Warning Banner */}
-      {isRejected && (
-        <SizingWrapper variant="nav" gridClassName="order-1 pt-6">
-          <RejectionBanner
-            message={appMetadata?.review_message}
-            onResolve={() => {
-              setShowResolveModal(true);
-            }}
+        {/* Rejection Warning Banner */}
+        {isRejected && (
+          <SizingWrapper variant="nav" gridClassName="order-1 pt-6">
+            <RejectionBanner
+              message={appMetadata?.review_message}
+              onResolve={() => {
+                setShowResolveModal(true);
+              }}
+            />
+          </SizingWrapper>
+        )}
+
+        <SizingWrapper
+          variant="nav"
+          gridClassName={clsx("order-1 pb-10", isRejected ? "pt-6" : "pt-10")}
+        >
+          <AppTopBar
+            appId={appId}
+            teamId={teamId}
+            app={app}
+            onResolve={() => setShowResolveModal(true)}
+            hasFormContext
+            basicInfoRef={basicInfoRef}
           />
         </SizingWrapper>
-      )}
 
-      <SizingWrapper
-        variant="nav"
-        gridClassName={clsx("order-1 pb-10", isRejected ? "pt-6" : "pt-10")}
-      >
-        <AppTopBar
-          appId={appId}
-          teamId={teamId}
-          app={app}
-          onResolve={() => setShowResolveModal(true)}
-          hasFormContext
-          basicInfoRef={basicInfoRef}
-        />
-      </SizingWrapper>
+        {/* Subtle divider */}
+        <SizingWrapper variant="nav" gridClassName="order-2">
+          <div className="border-t border-grey-100" />
+        </SizingWrapper>
 
-      {/* Subtle divider */}
-      <SizingWrapper variant="nav" gridClassName="order-2">
-        <div className="border-t border-grey-100" />
-      </SizingWrapper>
+        <SizingWrapper variant="nav" gridClassName="order-3 pt-8 pb-6">
+          <BasicInformation
+            ref={basicInfoRef}
+            appId={appId}
+            teamId={teamId}
+            app={app}
+            teamName={teamName ?? ""}
+          />
+        </SizingWrapper>
 
-      <SizingWrapper variant="nav" gridClassName="order-3 pt-8 pb-6">
-        <BasicInformation
-          ref={basicInfoRef}
-          appId={appId}
-          teamId={teamId}
-          app={app}
-          teamName={teamName ?? ""}
-        />
-      </SizingWrapper>
+        <SizingWrapper variant="nav" gridClassName="order-4 pt-6 pb-0">
+          <MiniAppConfiguration
+            appId={appId}
+            teamId={teamId}
+            appMetadata={appMetadata as AppMetadata}
+          />
+        </SizingWrapper>
 
-      <SizingWrapper variant="nav" gridClassName="order-4 pt-6 pb-0">
-        <MiniAppConfiguration
-          appId={appId}
-          teamId={teamId}
-          appMetadata={appMetadata as AppMetadata}
-        />
-      </SizingWrapper>
-
-      <SizingWrapper variant="nav" gridClassName="order-5 pt-10 pb-24">
-        <AppStoreForm
-          appId={appId}
-          teamId={teamId}
-          appMetadata={appMetadata as AppMetadata}
-          onBeforeSave={async () => {
-            return (
-              (await basicInfoRef.current?.submit({ silent: true })) ?? true
-            );
-          }}
-        />
-      </SizingWrapper>
+        <SizingWrapper variant="nav" gridClassName="order-5 pt-10 pb-24">
+          <AppStoreForm
+            appId={appId}
+            teamId={teamId}
+            appMetadata={appMetadata as AppMetadata}
+          />
+        </SizingWrapper>
+      </SaveStatusProvider>
     </AppStoreFormProvider>
   );
 };

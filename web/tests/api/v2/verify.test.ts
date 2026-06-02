@@ -126,7 +126,7 @@ afterEach(() => {
 describe("/api/v2/verify", () => {
   it("can verify proof", async () => {
     const mockReq = createMockRequest(getUrl(stagingAppId), validBody);
-    const ctx = { params: { app_id: stagingAppId } };
+    const ctx = { params: Promise.resolve({ app_id: stagingAppId }) };
 
     const fetchAppResponse = {
       app: [
@@ -177,7 +177,7 @@ describe("/api/v2/verify", () => {
 
   it("can verify onchain action", async () => {
     const mockReq = createMockRequest(getUrl(stagingAppId), validBody);
-    const ctx = { params: { app_id: stagingAppId } };
+    const ctx = { params: Promise.resolve({ app_id: stagingAppId }) };
 
     const fetchAppResponse = {
       app: [
@@ -232,7 +232,7 @@ describe("/api/v2/verify", () => {
       signal_hash: undefined,
     });
 
-    const ctx = { params: { app_id: stagingAppId } };
+    const ctx = { params: Promise.resolve({ app_id: stagingAppId }) };
 
     const fetchAppResponse = {
       app: [
@@ -289,7 +289,7 @@ describe("/api/v2/verify", () => {
       signal_hash: undefined,
     });
 
-    const ctx = { params: { app_id: stagingAppId } };
+    const ctx = { params: Promise.resolve({ app_id: stagingAppId }) };
 
     const fetchAppResponse = {
       app: [
@@ -344,7 +344,7 @@ describe("/api/v2/verify", () => {
 describe("/api/v2/verify [error cases]", () => {
   it("action inactive or not found", async () => {
     const mockReq = createMockRequest(getUrl(stagingAppId), validBody);
-    const ctx = { params: { app_id: stagingAppId } };
+    const ctx = { params: Promise.resolve({ app_id: stagingAppId }) };
 
     const fetchAppResponse = {
       app: [
@@ -370,7 +370,7 @@ describe("/api/v2/verify [error cases]", () => {
 
   it("prevent duplicates (uniqueness check)", async () => {
     const mockReq = createMockRequest(getUrl(stagingAppId), validBody);
-    const ctx = { params: { app_id: stagingAppId } };
+    const ctx = { params: Promise.resolve({ app_id: stagingAppId }) };
 
     const fetchAppResponse = {
       app: [
@@ -407,7 +407,7 @@ describe("/api/v2/verify [error cases]", () => {
 
   it("cannot verify if reached max number of verifications", async () => {
     const mockReq = createMockRequest(getUrl(stagingAppId), validBody);
-    const ctx = { params: { app_id: stagingAppId } };
+    const ctx = { params: Promise.resolve({ app_id: stagingAppId }) };
 
     const fetchAppResponse = {
       app: [
@@ -449,7 +449,7 @@ describe("/api/v2/verify [error cases]", () => {
       nullifier_hash: undefined,
     });
 
-    const ctx = { params: { app_id: stagingAppId } };
+    const ctx = { params: Promise.resolve({ app_id: stagingAppId }) };
 
     const response = await POST(mockReq, ctx);
     expect(response.status).toBe(400);
@@ -464,7 +464,7 @@ describe("/api/v2/verify [error cases]", () => {
 
   it("parameter parsing error", async () => {
     const mockReq = createMockRequest(getUrl(stagingAppId), validBody);
-    const ctx = { params: { app_id: "" } };
+    const ctx = { params: Promise.resolve({ app_id: "" }) };
     const response = await POST(mockReq, ctx);
     expect(response.status).toBe(400);
     const body = await response.json();
@@ -478,7 +478,7 @@ describe("/api/v2/verify [error cases]", () => {
 
   it("throws error if proof is valid but nullifier cannot be inserted", async () => {
     const mockReq = createMockRequest(getUrl(stagingAppId), validBody);
-    const ctx = { params: { app_id: stagingAppId } };
+    const ctx = { params: Promise.resolve({ app_id: stagingAppId }) };
 
     const fetchAppResponse = {
       app: [
@@ -519,7 +519,7 @@ describe("/api/v2/verify [error cases]", () => {
 
   it("invalid merkle root", async () => {
     const mockReq = createMockRequest(getUrl(stagingAppId), validBody);
-    const ctx = { params: { app_id: stagingAppId } };
+    const ctx = { params: Promise.resolve({ app_id: stagingAppId }) };
 
     const fetchAppResponse = {
       app: [
@@ -568,7 +568,7 @@ describe("/api/v2/verify [error cases]", () => {
         signal_hash,
       });
 
-      const ctx = { params: { app_id: stagingAppId } };
+      const ctx = { params: Promise.resolve({ app_id: stagingAppId }) };
 
       const fetchAppResponse = {
         app: [
@@ -617,7 +617,7 @@ describe("/api/v2/verify [error cases]", () => {
 
   it("invalid proof", async () => {
     const mockReq = createMockRequest(getUrl(stagingAppId), validBody);
-    const ctx = { params: { app_id: stagingAppId } };
+    const ctx = { params: Promise.resolve({ app_id: stagingAppId }) };
 
     const fetchAppResponse = {
       app: [
@@ -655,7 +655,7 @@ describe("/api/v2/verify [error cases]", () => {
 
   it("uses default max_age when not provided", async () => {
     const stagingAppId = "app_staging_558238f8f6380338449a552aeffccf29";
-    const ctx = { params: { app_id: stagingAppId } };
+    const ctx = { params: Promise.resolve({ app_id: stagingAppId }) };
 
     const mockReq = createMockRequest(getUrl(stagingAppId), {
       ...semaphoreProofParamsMock,
@@ -708,7 +708,7 @@ describe("/api/v2/verify [error cases]", () => {
 
   it("uses provided max_age when specified", async () => {
     const stagingAppId = "app_staging_558238f8f6380338449a552aeffccf29";
-    const ctx = { params: { app_id: stagingAppId } };
+    const ctx = { params: Promise.resolve({ app_id: stagingAppId }) };
     const customMaxAge = 7200; // 2 hours
 
     const mockReq = createMockRequest(getUrl(stagingAppId), {

@@ -99,6 +99,7 @@ export const POST = async (req: NextRequest) => {
         code: "not_found",
         team_id,
         app_id,
+        logLevel: "warn",
       });
     }
 

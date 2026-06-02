@@ -13,7 +13,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import clsx from "clsx";
 import JSON5 from "json5";
 import posthog from "posthog-js";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, type JSX } from "react";
 import { useForm } from "react-hook-form";
 import * as yup from "yup";
 

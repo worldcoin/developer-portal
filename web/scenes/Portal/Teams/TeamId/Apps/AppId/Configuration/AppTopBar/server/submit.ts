@@ -2,6 +2,7 @@
 
 import { errorFormAction } from "@/api/helpers/errors";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
+import { logPortalEvent } from "@/api/helpers/portal-events";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { getIsUserAllowedToUpdateAppMetadata } from "@/lib/permissions";
 import { extractIdsFromPath, getPathFromHeaders } from "@/lib/server-utils";
@@ -35,7 +36,7 @@ export async function submitAppForReviewFormServerSide({
 }: {
   input: SubmitAppForReviewSchema;
 }): Promise<FormActionResult> {
-  const path = getPathFromHeaders() || "";
+  const path = (await getPathFromHeaders()) || "";
   const { Apps: appId } = extractIdsFromPath(path, ["Apps"]);
 
   try {
@@ -145,6 +146,16 @@ export async function submitAppForReviewFormServerSide({
         parsedInput.is_developer_allow_listing ?? false,
       verification_status: "awaiting_review",
       changelog: parsedInput.changelog,
+    });
+
+    logPortalEvent({
+      event: "app_submission",
+      actor: "human",
+      team_id: parsedInput.team_id,
+      app_id: appId,
+      metadata: {
+        is_developer_allow_listing: parsedInput.is_developer_allow_listing,
+      },
     });
 
     return {

@@ -20,7 +20,13 @@ const createActionBodySchema = yup
     action: yup.string().strict().required(),
     name: yup.string().optional().default(""),
     description: yup.string().optional().default(""),
-    max_verifications: yup.number().integer().min(1).optional().default(1),
+    max_verifications: yup
+      .number()
+      .integer()
+      .min(0)
+      .max(2147483647)
+      .optional()
+      .default(1),
   })
   .noUnknown();
 
@@ -32,8 +38,9 @@ const createActionParamsSchema = yup
 
 export const POST = async (
   req: NextRequest,
-  { params: rawParams }: { params: { app_id: string } },
+  props: { params: Promise<{ app_id: string }> },
 ) => {
+  const rawParams = await props.params;
   const api_key = req.headers.get("authorization")?.split(" ")[1];
 
   if (!api_key) {
@@ -170,12 +177,29 @@ export const POST = async (
       response: { errors: ApolloError["graphQLErrors"] };
     };
 
-    if (e.response.errors[0].extensions.code === "constraint-violation") {
+    if (e.response.errors[0]?.extensions?.code === "constraint-violation") {
       return errorResponse({
         statusCode: 400,
         code: "constraint-violation",
         detail: "Action already exists.",
         attribute: "action",
+        req,
+        app_id,
+      });
+    }
+
+    if (e.response.errors[0]?.extensions?.code === "parse-failed") {
+      const extensionsPath = e.response.errors[0].extensions.path;
+      const attribute =
+        typeof extensionsPath === "string"
+          ? extensionsPath.split(".").pop()
+          : undefined;
+
+      return errorResponse({
+        statusCode: 400,
+        code: "validation_error",
+        detail: "One or more fields could not be parsed.",
+        attribute,
         req,
         app_id,
       });

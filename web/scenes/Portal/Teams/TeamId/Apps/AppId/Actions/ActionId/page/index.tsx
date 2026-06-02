@@ -1,4 +1,5 @@
 "use client";
+import { use } from "react";
 import { EngineType } from "@/lib/types";
 import { ErrorPage } from "@/components/ErrorPage";
 import Skeleton from "react-loading-skeleton";
@@ -8,10 +9,11 @@ import { useGetSingleActionAndNullifiersQuery } from "./graphql/client/get-singl
 import { SizingWrapper } from "@/components/SizingWrapper";
 
 type ActionIdPageProps = {
-  params: Record<string, string> | null | undefined;
+  params: Promise<Record<string, string>>;
 };
 
-export const ActionIdPage = ({ params }: ActionIdPageProps) => {
+export const ActionIdPage = (props: ActionIdPageProps) => {
+  const params = use(props.params);
   const actionId = params?.actionId;
   const teamId = params?.teamId;
   const appId = params?.appId;

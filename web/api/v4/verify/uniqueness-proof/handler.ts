@@ -1,3 +1,5 @@
+import { errorResponse, ErrorResponseBody } from "@/api/helpers/errors";
+import { logPortalEvent } from "@/api/helpers/portal-events";
 import { parseRpId } from "@/api/helpers/rp-utils";
 import {
   encodeNullifierForStorage,
@@ -6,7 +8,7 @@ import {
 import { logger } from "@/lib/logger";
 import { captureEvent } from "@/services/posthogClient";
 import { GraphQLClient } from "graphql-request";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getSdk as getCheckNullifierV4Sdk } from "../graphql/check-nullifier-v4.generated";
 import { getSdk as getCreateActionV4Sdk } from "../graphql/create-action-v4.generated";
 import { getSdk as getFetchActionV4Sdk } from "../graphql/fetch-action-v4.generated";
@@ -66,7 +68,8 @@ export async function handleUniquenessProofVerification(
     responses: UniquenessProofResponseV3[] | UniquenessProofResponseV4[];
     environment?: "production" | "staging";
   },
-): Promise<NextResponse<UniquenessProofResponse>> {
+  req: NextRequest,
+): Promise<NextResponse<UniquenessProofResponse | ErrorResponseBody>> {
   // Resolve environment upfront: explicit request environment or default to "production"
   const verificationEnvironment = parsedParams.environment ?? "production";
 
@@ -184,14 +187,14 @@ export async function handleUniquenessProofVerification(
     actionV4 = createResult.insert_action_v4_one!;
 
     if (!actionV4) {
-      return NextResponse.json<UniquenessProofErrorResponse>(
-        {
-          success: false,
-          code: "internal_error",
-          detail: "Failed to create action.",
-        },
-        { status: 500 },
-      );
+      return errorResponse({
+        statusCode: 500,
+        code: "internal_error",
+        detail: "Failed to create action.",
+        attribute: null,
+        req,
+        app_id: appId,
+      });
     }
 
     logger.info("Created new action_v4", {
@@ -209,58 +212,54 @@ export async function handleUniquenessProofVerification(
   });
 
   const existingNullifier = checkNullifierResult.nullifier_v4[0];
-  // Allow nullifier reuse in staging for both 3.0 and 4.0 for better DevEx.
-  // Allow nullifier reuse for 3.0 in both staging and production, since 3.0 nullifiers can be reused, this matches the legacy /verify behavior
-  const allowNullifierReuse =
-    actionV4.environment === "staging" || protocolVersion === "3.0";
 
   if (existingNullifier) {
-    // Nullifier exists - check if we can skip (staging) or error (production)
-    if (allowNullifierReuse) {
-      // Skip saving - allow reuse
-      logger.info("Nullifier already exists, skipping save (reuse allowed)", {
-        nullifier: nullifierForStorage,
-        rpId,
+    // Nullifier already exists — skip saving and return success
+    logger.info("Nullifier already exists, skipping save", {
+      nullifier: nullifierForStorage,
+      rpId,
+      action: parsedParams.action,
+      protocol_version: protocolVersion,
+    });
+
+    await captureEvent({
+      event: "action_verify_v4_success",
+      distinctId: rpId,
+      properties: {
+        rp_id: rpId,
+        app_id: appId,
         action: parsedParams.action,
+        environment: actionV4.environment as string,
+        nullifier_reused: true,
         protocol_version: protocolVersion,
-      });
+      },
+    });
 
-      await captureEvent({
-        event: "action_verify_v4_success",
-        distinctId: rpId,
-        properties: {
-          rp_id: rpId,
-          app_id: appId,
-          action: parsedParams.action,
-          environment: actionV4.environment as string,
-          nullifier_reused: true,
-          protocol_version: protocolVersion,
-        },
-      });
+    logPortalEvent({
+      event: "action_verification",
+      actor: "human",
+      app_id: appId,
+      action: parsedParams.action,
+      metadata: {
+        rp_id: rpId,
+        environment: actionV4.environment as string,
+        nullifier_reused: true,
+        protocol_version: protocolVersion,
+      },
+    });
 
-      return NextResponse.json<UniquenessProofSuccessResponse>(
-        {
-          success: true,
-          action: actionV4.action,
-          nullifier: normalizedNullifier,
-          created_at: existingNullifier.created_at,
-          environment: actionV4.environment as string,
-          results: verificationResults,
-          message: "Proof verified successfully (nullifier reuse)",
-        },
-        { status: 200 },
-      );
-    } else {
-      // Production - error on duplicate nullifier
-      return NextResponse.json<UniquenessProofErrorResponse>(
-        {
-          success: false,
-          code: "max_verifications_reached",
-          detail: "This person has already verified for this action.",
-        },
-        { status: 400 },
-      );
-    }
+    return NextResponse.json<UniquenessProofSuccessResponse>(
+      {
+        success: true,
+        action: actionV4.action,
+        nullifier: normalizedNullifier,
+        created_at: existingNullifier.created_at,
+        environment: actionV4.environment as string,
+        results: verificationResults,
+        message: "Proof verified successfully (nullifier reuse)",
+      },
+      { status: 200 },
+    );
   }
 
   // Save the new nullifier
@@ -273,14 +272,14 @@ export async function handleUniquenessProofVerification(
     });
 
     if (!insertResult.insert_nullifier_v4_one) {
-      return NextResponse.json<UniquenessProofErrorResponse>(
-        {
-          success: false,
-          code: "internal_error",
-          detail: "Failed to save nullifier.",
-        },
-        { status: 500 },
-      );
+      return errorResponse({
+        statusCode: 500,
+        code: "internal_error",
+        detail: "Failed to save nullifier.",
+        attribute: null,
+        req,
+        app_id: appId,
+      });
     }
 
     await captureEvent({
@@ -290,6 +289,19 @@ export async function handleUniquenessProofVerification(
         rp_id: rpId,
         app_id: appId,
         action: parsedParams.action,
+        environment: actionV4.environment as string,
+        nullifier_reused: false,
+        protocol_version: protocolVersion,
+      },
+    });
+
+    logPortalEvent({
+      event: "action_verification",
+      actor: "human",
+      app_id: appId,
+      action: parsedParams.action,
+      metadata: {
+        rp_id: rpId,
         environment: actionV4.environment as string,
         nullifier_reused: false,
         protocol_version: protocolVersion,
@@ -311,31 +323,32 @@ export async function handleUniquenessProofVerification(
   } catch (e: unknown) {
     const errorMessage = e instanceof Error ? e.message : String(e);
 
-    // Check if it's a unique constraint violation (race condition)
+    // Race condition: another request inserted the same nullifier — treat as success
     if (errorMessage.includes("unique") || errorMessage.includes("duplicate")) {
-      if (allowNullifierReuse) {
-        // Reuse allowed - allow race condition and return success
-        return NextResponse.json<UniquenessProofSuccessResponse>(
-          {
-            success: true,
-            action: actionV4.action,
-            nullifier: normalizedNullifier,
-            environment: actionV4.environment as string,
-            results: verificationResults,
-            message: "Proof verified successfully (nullifier reuse)",
-          },
-          { status: 200 },
-        );
-      } else {
-        return NextResponse.json<UniquenessProofErrorResponse>(
-          {
-            success: false,
-            code: "max_verifications_reached",
-            detail: "This person has already verified for this action.",
-          },
-          { status: 400 },
-        );
-      }
+      logPortalEvent({
+        event: "action_verification",
+        actor: "human",
+        app_id: appId,
+        action: parsedParams.action,
+        metadata: {
+          rp_id: rpId,
+          environment: actionV4.environment as string,
+          nullifier_reused: true,
+          protocol_version: protocolVersion,
+        },
+      });
+
+      return NextResponse.json<UniquenessProofSuccessResponse>(
+        {
+          success: true,
+          action: actionV4.action,
+          nullifier: normalizedNullifier,
+          environment: actionV4.environment as string,
+          results: verificationResults,
+          message: "Proof verified successfully (nullifier reuse)",
+        },
+        { status: 200 },
+      );
     }
 
     logger.error("Error inserting nullifier", { error: errorMessage, rpId });

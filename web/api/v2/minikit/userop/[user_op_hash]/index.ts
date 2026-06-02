@@ -46,8 +46,9 @@ const toStatusResponse = (
 
 export const GET = async (
   req: NextRequest,
-  { params }: { params: { user_op_hash: string } },
+  props: { params: Promise<{ user_op_hash: string }> },
 ) => {
+  const params = await props.params;
   // This endpoint is intentionally unprotected. World Chain user operations can
   // already be fetched on-chain; this route is only a convenience wrapper for
   // developers querying World Chain user op status through the Dev Portal API.

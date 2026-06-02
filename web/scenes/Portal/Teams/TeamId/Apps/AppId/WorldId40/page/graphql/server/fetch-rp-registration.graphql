@@ -3,6 +3,7 @@ query FetchRpRegistration($appId: String!) {
     rp_id
     app_id
     status
+    staging_status
     mode
     signer_address
     created_at

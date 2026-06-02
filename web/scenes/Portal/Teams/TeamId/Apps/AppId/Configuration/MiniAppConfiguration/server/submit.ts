@@ -11,7 +11,7 @@ export async function updateAppMode(
   app_metadata_id: string,
   app_mode: "mini-app" | "external",
 ): Promise<FormActionResult> {
-  const path = getPathFromHeaders() || "";
+  const path = (await getPathFromHeaders()) || "";
   const { Apps: appId, Teams: teamId } = extractIdsFromPath(path, [
     "Apps",
     "Teams",

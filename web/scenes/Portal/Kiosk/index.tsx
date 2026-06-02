@@ -2,14 +2,15 @@
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { LegacyVerificationLevel } from "@/lib/idkit";
 import { useSearchParams } from "next/navigation";
+import { use } from "react";
 import { ActiveKioskPage } from "../Teams/TeamId/Apps/AppId/Actions/ActionId/Kiosk/ActiveKiosk";
 import { useGetKioskActionQuery } from "../Teams/TeamId/Apps/AppId/Actions/ActionId/Kiosk/graphql/client/get-kiosk-action.generated";
 
 type ActionIdKioskPageProps = {
-  params: Record<string, string> | null | undefined;
+  params: Promise<Record<string, string>>;
 };
 export const ActionIdKioskPage = (props: ActionIdKioskPageProps) => {
-  const { params } = props;
+  const params = use(props.params);
   const searchParams = useSearchParams();
 
   const verificationLevel = searchParams?.get(

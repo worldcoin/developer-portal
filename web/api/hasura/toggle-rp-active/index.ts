@@ -215,6 +215,7 @@ export const POST = async (req: NextRequest) => {
     }
 
     // STEP 8: Submit to staging if configured and its state differs from the target
+    let stagingOperationHash: string | null = null;
     const stagingConfig =
       process.env.NEXT_PUBLIC_APP_ENV === "production"
         ? getStagingRpRegistryConfig()
@@ -233,14 +234,14 @@ export const POST = async (req: NextRequest) => {
             contractAddress: stagingConfig.contractAddress,
           });
         } else {
-          const operationHash = await submitToggleRpActiveTransaction(
+          stagingOperationHash = await submitToggleRpActiveTransaction(
             stagingConfig,
             { rpId, managerKmsKeyId, kmsClient },
           );
 
           logger.info("Staging toggle active submitted", {
             rpIdString,
-            operationHash,
+            operationHash: stagingOperationHash,
             contractAddress: stagingConfig.contractAddress,
           });
         }
@@ -262,6 +263,7 @@ export const POST = async (req: NextRequest) => {
       await getUpdateResultSdk(client).UpdateToggleResult({
         rp_id: rpIdString,
         operation_hash: operationHash,
+        staging_operation_hash: stagingOperationHash,
       });
 
     if (!updatedRegistration) {

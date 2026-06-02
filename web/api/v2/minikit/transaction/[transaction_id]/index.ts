@@ -1,11 +1,11 @@
 import { errorResponse } from "@/api/helpers/errors";
+import { getTransactionSignedFetch } from "@/api/helpers/signed-fetch";
 import { corsHandler } from "@/api/helpers/utils";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { logger } from "@/lib/logger";
 import { appIdSchema } from "@/lib/schema";
 import { TransactionTypes } from "@/lib/types";
 import { fetchWithTimeout } from "@/lib/utils";
-import { createSignedFetcher } from "aws-sigv4-fetch";
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
 
@@ -22,8 +22,9 @@ const corsMethods = ["GET", "OPTIONS"];
 
 export const GET = async (
   req: NextRequest,
-  { params: routeParams }: { params: { transaction_id: string } },
+  props: { params: Promise<{ transaction_id: string }> },
 ) => {
+  const routeParams = await props.params;
   const { searchParams } = new URL(req.url);
   const transactionId = routeParams.transaction_id;
 
@@ -55,13 +56,7 @@ export const GET = async (
 
   const { app_id: appId, type } = parsedParams;
 
-  let signedFetch = global.TransactionSignedFetcher;
-  if (!signedFetch) {
-    signedFetch = createSignedFetcher({
-      service: "execute-api",
-      region: process.env.TRANSACTION_BACKEND_REGION,
-    });
-  }
+  const signedFetch = getTransactionSignedFetch();
   const url =
     type === TransactionTypes.Payment
       ? `${process.env.NEXT_SERVER_INTERNAL_PAYMENTS_ENDPOINT}/miniapp?miniapp-id=${appId}&transaction-id=${transactionId}`

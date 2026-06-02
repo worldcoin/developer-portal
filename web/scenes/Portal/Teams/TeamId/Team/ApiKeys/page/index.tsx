@@ -4,7 +4,7 @@ import { PlusIcon } from "@/components/Icons/PlusIcon";
 import { Section } from "@/components/Section";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import { useState } from "react";
+import { useState, use } from "react";
 import Skeleton from "react-loading-skeleton";
 import { TeamProfile } from "../../common/TeamProfile";
 import { ApiKeysTable } from "./ApiKeyTable";
@@ -12,11 +12,11 @@ import { CreateKeyModal } from "./CreateKeyModal";
 import { useFetchKeysQuery } from "./graphql/client/fetch-keys.generated";
 
 type TeamApiKeysPageProps = {
-  params: Record<string, string> | null | undefined;
+  params: Promise<Record<string, string>>;
 };
 
 export const TeamApiKeysPage = (props: TeamApiKeysPageProps) => {
-  const { params } = props;
+  const params = use(props.params);
   const teamId = params?.teamId;
   const [showCreateKeyModal, setShowCreateKeyModal] = useState(false);
   const { data, loading } = useFetchKeysQuery({
@@ -47,7 +47,10 @@ export const TeamApiKeysPage = (props: TeamApiKeysPageProps) => {
                 className="text-center text-grey-500"
               >
                 Create a secure API key to seamlessly <br />
-                manage your team&apos;s World ID apps
+                manage your team&apos;s apps.
+                <br />
+                <br />
+                Also used for MCP authorization
               </Typography>
             </div>
 

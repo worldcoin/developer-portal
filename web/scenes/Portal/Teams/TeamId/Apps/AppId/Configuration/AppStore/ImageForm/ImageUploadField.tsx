@@ -1,15 +1,28 @@
 import { Button } from "@/components/Button";
+import { Dialog } from "@/components/Dialog";
+import { DialogOverlay } from "@/components/DialogOverlay";
+import { CloseIcon } from "@/components/Icons/CloseIcon";
 import { TrashIcon } from "@/components/Icons/TrashIcon";
 import { ImageDropZone } from "@/components/ImageDropZone";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { getCDNImageUrl } from "@/lib/utils";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Dialog as HeadlessDialog, Transition } from "@headlessui/react";
+import {
+  Fragment,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import Skeleton from "react-loading-skeleton";
 import { toast } from "react-toastify";
 import { ImageValidationError, useImage } from "../../hook/use-image";
 import { extractImagePathWithExtensionFromActualUrl } from "../utils";
 import { ImageDisplay } from "./ImageDisplay";
 import ImageLoader from "./ImageLoader";
+
+const PREVIEW_HEIGHT_PX = 200;
 
 interface ImageConstraints {
   width: number;
@@ -71,6 +84,7 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
   } = props;
 
   const [isUploading, setIsUploading] = useState(false);
+  const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
   const isMountedRef = useRef(true);
   const abortControllerRef = useRef<AbortController | null>(null);
   const isLocalized = locale !== "en";
@@ -190,6 +204,11 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
 
   const canUploadMore = value.length < maxImages;
 
+  const previewStyle = {
+    height: `${PREVIEW_HEIGHT_PX}px`,
+    width: `${(PREVIEW_HEIGHT_PX * imageConstraints.width) / imageConstraints.height}px`,
+  };
+
   const resolvedImageUrls = useMemo(() => {
     if (isAppVerified) {
       return value.map((url: string) =>
@@ -281,14 +300,22 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
               <div
                 key={imagePath}
                 className="relative overflow-hidden rounded-xl"
+                style={previewStyle}
               >
-                <ImageDisplay
-                  src={resolvedUrl}
-                  type="original"
-                  width={imageConstraints.width}
-                  height={imageConstraints.height}
-                  className="h-[200px] w-full rounded-xl object-cover"
-                />
+                <button
+                  type="button"
+                  onClick={() => setLightboxUrl(resolvedUrl)}
+                  className="block size-full cursor-zoom-in"
+                  aria-label="View full resolution"
+                >
+                  <ImageDisplay
+                    src={resolvedUrl}
+                    type="original"
+                    width={imageConstraints.width}
+                    height={imageConstraints.height}
+                    className="size-full rounded-xl object-contain"
+                  />
+                </button>
                 <Button
                   type="button"
                   onClick={() => handleDelete(imagePath)}
@@ -301,22 +328,27 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
             );
           })}
           {isUploading && (
-            <ImageLoader
-              name={imageTypeNamer(value.length)}
-              className="h-[200px]"
-            />
+            <div style={previewStyle}>
+              <ImageLoader
+                name={imageTypeNamer(value.length)}
+                className="size-full"
+              />
+            </div>
           )}
         </>
       )}
 
       {/* maxImages === 1: skeleton */}
       {value.length > 0 && maxImages === 1 && isImagesLoading && (
-        <Skeleton height={200} className="rounded-xl" />
+        <div
+          className="animate-pulse rounded-xl bg-grey-100"
+          style={previewStyle}
+        />
       )}
 
-      {/* ── maxImages > 1: 2-column grid — images + drop zone inline ── */}
+      {/* ── maxImages > 1: thumbnails + drop zone inline ── */}
       {value.length > 0 && maxImages > 1 && !isImagesLoading && (
-        <div className="grid grid-cols-2 gap-3">
+        <div className="flex flex-wrap gap-3">
           {value.map((url) => {
             const imagePath = extractImagePathWithExtensionFromActualUrl(url);
             const resolvedUrl =
@@ -326,14 +358,22 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
               <div
                 key={imagePath}
                 className="relative overflow-hidden rounded-xl"
+                style={previewStyle}
               >
-                <ImageDisplay
-                  src={resolvedUrl}
-                  type="original"
-                  width={imageConstraints.width}
-                  height={imageConstraints.height}
-                  className="h-[200px] w-full rounded-xl object-cover"
-                />
+                <button
+                  type="button"
+                  onClick={() => setLightboxUrl(resolvedUrl)}
+                  className="block size-full cursor-zoom-in"
+                  aria-label="View full resolution"
+                >
+                  <ImageDisplay
+                    src={resolvedUrl}
+                    type="original"
+                    width={imageConstraints.width}
+                    height={imageConstraints.height}
+                    className="size-full rounded-xl object-contain"
+                  />
+                </button>
                 <Button
                   type="button"
                   onClick={() => handleDelete(imagePath)}
@@ -346,43 +386,81 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
             );
           })}
 
-          {/* uploading loader occupies next grid slot */}
+          {/* uploading loader occupies next slot */}
           {isUploading && (
-            <ImageLoader
-              name={imageTypeNamer(value.length)}
-              className="h-[200px]"
-            />
+            <div style={previewStyle}>
+              <ImageLoader
+                name={imageTypeNamer(value.length)}
+                className="size-full"
+              />
+            </div>
           )}
 
-          {/* drop zone occupies next grid slot */}
+          {/* drop zone occupies next slot */}
           {canUploadMore && !isUploading && (
-            <ImageDropZone
-              width={imageConstraints.width}
-              height={imageConstraints.height}
-              disabled={disabled || !canUploadMore}
-              uploadImage={uploadImage}
-              imageType={imageTypeNamer(value.length)}
-              error={error}
-              className="h-[200px] !rounded-xl"
-            >
-              {dropZoneChildren}
-            </ImageDropZone>
+            <div style={previewStyle}>
+              <ImageDropZone
+                width={imageConstraints.width}
+                height={imageConstraints.height}
+                disabled={disabled || !canUploadMore}
+                uploadImage={uploadImage}
+                imageType={imageTypeNamer(value.length)}
+                error={error}
+                className="h-full !rounded-xl"
+              >
+                {dropZoneChildren}
+              </ImageDropZone>
+            </div>
           )}
         </div>
       )}
 
       {/* maxImages > 1: skeleton */}
       {value.length > 0 && maxImages > 1 && isImagesLoading && (
-        <div className="grid grid-cols-2 gap-3">
+        <div className="flex flex-wrap gap-3">
           {value.map((url, index) => (
-            <Skeleton
+            <div
               key={`${url}-${index}`}
-              height={200}
-              className="rounded-xl"
+              className="animate-pulse rounded-xl bg-grey-100"
+              style={previewStyle}
             />
           ))}
         </div>
       )}
+
+      <Dialog open={!!lightboxUrl} onClose={() => setLightboxUrl(null)}>
+        <DialogOverlay />
+        <Transition.Child
+          enter="transition duration-200 ease"
+          enterFrom="opacity-0 scale-95"
+          enterTo="opacity-100 scale-100"
+          leave="transition duration-150 ease"
+          leaveFrom="opacity-100 scale-100"
+          leaveTo="opacity-0 scale-95"
+          as={Fragment}
+        >
+          <div className="fixed inset-0 flex items-center justify-center p-4">
+            <HeadlessDialog.Panel className="relative">
+              {lightboxUrl && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={lightboxUrl}
+                  alt="Full resolution preview"
+                  className="block max-h-[90vh] max-w-[90vw] rounded-2xl object-contain shadow-2xl"
+                />
+              )}
+              <button
+                type="button"
+                onClick={() => setLightboxUrl(null)}
+                className="absolute right-3 top-3 flex size-9 items-center justify-center rounded-full bg-white/95 text-grey-700 shadow-md transition-colors hover:bg-white"
+                aria-label="Close"
+              >
+                <CloseIcon className="size-4" />
+              </button>
+            </HeadlessDialog.Panel>
+          </div>
+        </Transition.Child>
+      </Dialog>
     </div>
   );
 };

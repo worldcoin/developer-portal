@@ -1,0 +1,6 @@
+query GetUserByAuth0Id($auth0Id: String!) {
+  user(where: { auth0Id: { _eq: $auth0Id } }, limit: 1) {
+    id
+    posthog_id
+  }
+}

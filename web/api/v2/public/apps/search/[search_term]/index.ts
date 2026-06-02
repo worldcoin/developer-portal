@@ -10,8 +10,9 @@ import { NextResponse } from "next/server";
  */
 export async function GET(
   request: Request,
-  { params }: { params: { search_term: string } },
+  props: { params: Promise<{ search_term: string }> },
 ) {
+  const params = await props.params;
   if (!process.env.NEXT_PUBLIC_APP_ENV) {
     return NextResponse.json(
       {
