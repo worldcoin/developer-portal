@@ -90,7 +90,7 @@ export const POST = async (req: NextRequest) => {
     user_id: userId,
   });
 
-  if (!app) {
+  if (!app || app.length === 0) {
     return errorHasuraQuery({
       req,
       detail: "App not found",
