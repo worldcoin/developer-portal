@@ -24,7 +24,7 @@ export const LoginPage = async () => {
 
     try {
       const data = await getFetchMembershipsSdk(client).FetchMemberships({
-        userId: user?.hasura.id,
+        userId: user?.hasura?.id,
       });
 
       membership = data.membership;

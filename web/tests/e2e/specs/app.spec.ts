@@ -3,7 +3,7 @@ import { deleteAppsForTeam } from "@e2e/helpers/hasura/app";
 import { qase } from "playwright-qase-reporter";
 
 test.describe("App", () => {
-  test.afterAll(async () => {
+  test.afterEach(async () => {
     await deleteAppsForTeam(constants.teamId);
   });
 

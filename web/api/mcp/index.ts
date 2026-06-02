@@ -1648,6 +1648,7 @@ export const POST = async (req: NextRequest) => {
     return jsonRpcError(
       null,
       new McpError("Invalid JSON-RPC request body.", -32700),
+      400,
     );
   }
 
