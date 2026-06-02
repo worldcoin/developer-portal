@@ -23,10 +23,14 @@ export const AppsPage = async (props: AppPage) => {
     return redirect("/api/auth/logout");
   }
 
+  const memberships = user.hasura?.memberships ?? [];
+
   // If user tries to access another team's app, redirect to the their own.
-  if (!user.hasura.memberships.find((m) => m.team?.id === teamId)) {
-    const redirectTeamId = user.hasura.memberships[0]?.team?.id;
-    return redirect(`/teams/${redirectTeamId}/apps`);
+  if (!memberships.find((m) => m.team?.id === teamId)) {
+    const redirectTeamId = memberships[0]?.team?.id;
+    return redirect(
+      redirectTeamId ? `/teams/${redirectTeamId}/apps` : "/api/auth/logout",
+    );
   }
 
   const client = await getAPIServiceGraphqlClient();
