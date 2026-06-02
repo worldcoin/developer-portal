@@ -473,6 +473,10 @@ export const fetchWithRetry = async (
         return lastResponse;
       }
       lastError = new Error(`HTTP status ${lastResponse.status}`);
+      // 4xx responses are definitive — surface them immediately instead of retrying.
+      if (lastResponse.status < 500) {
+        break;
+      }
     } catch (error) {
       lastError = error as Error;
       lastResponse = null;
