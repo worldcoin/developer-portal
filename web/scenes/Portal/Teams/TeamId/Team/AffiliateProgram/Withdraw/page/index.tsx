@@ -16,7 +16,6 @@ import { EnterAmount } from "./EnterAmount";
 import { EnterCode } from "./EnterCode";
 import { WithdrawSuccess } from "./WithdrawSuccess";
 
-
 type PageProps = {
   params: {
     teamId: string;
@@ -55,7 +54,8 @@ export const WithdrawPage = (props: PageProps) => {
               balanceData?.maximumWithdrawal,
               "WLD",
             );
-            const maxAvailableWLD = balanceData?.availableBalance?.inCurrency ?? null;
+            const maxAvailableWLD =
+              balanceData?.availableBalance?.inCurrency ?? null;
             if (minWithdrawWLD == null || maxWithdrawWLD == null) return schema;
             const effectiveMaxWLD = Math.min(
               maxAvailableWLD ?? maxWithdrawWLD,

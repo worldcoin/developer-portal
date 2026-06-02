@@ -47,7 +47,8 @@ export const EnterAmount = (props: Props) => {
         type="number"
         register={register("amount", {
           onChange: (e) => {
-            const wldWei = convertAmountToWei(parseFloat(e.target.value), "WLD") ?? "";
+            const wldWei =
+              convertAmountToWei(parseFloat(e.target.value), "WLD") ?? "";
             setValue("amountInWld", wldWei);
           },
         })}
