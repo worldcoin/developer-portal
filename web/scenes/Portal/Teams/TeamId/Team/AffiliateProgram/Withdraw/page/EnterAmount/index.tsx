@@ -6,8 +6,7 @@ import {
   AffiliateBalanceResponse,
   AffiliateMetadataResponse,
 } from "@/lib/types";
-import { convertAmountToWei, parseTokenAmount } from "@/lib/utils";
-import { useMemo } from "react";
+import { convertAmountToWei } from "@/lib/utils";
 import { useFormContext } from "react-hook-form";
 import Skeleton from "react-loading-skeleton";
 import { WithdrawFormData } from "../common/types";
@@ -20,14 +19,6 @@ export type Props = {
 };
 
 export const EnterAmount = (props: Props) => {
-  const availableBalance = useMemo(
-    () =>
-      props.balance
-        ? parseTokenAmount(props.balance.availableBalance.inWLD, "WLD")
-        : null,
-    [props.balance],
-  );
-
   const {
     register,
     formState: { errors },
@@ -91,12 +82,15 @@ export const EnterAmount = (props: Props) => {
           variant="secondary"
           className="w-full"
           onClick={() => {
-            if (!availableBalance || !props.balance) {
+            if (!props.balance) {
               return;
             }
-            setAmount(availableBalance, props.balance.availableBalance.inWLD);
+            setAmount(
+              props.balance.availableBalance.inCurrency,
+              props.balance.availableBalance.inWLD,
+            );
           }}
-          disabled={props.loading || !availableBalance}
+          disabled={props.loading || !props.balance}
         >
           Max
         </DecoratedButton>

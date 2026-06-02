@@ -55,10 +55,7 @@ export const WithdrawPage = (props: PageProps) => {
               balanceData?.maximumWithdrawal,
               "WLD",
             );
-            const maxAvailableWLD = parseTokenAmount(
-              balanceData?.availableBalance?.inWLD,
-              "WLD",
-            );
+            const maxAvailableWLD = balanceData?.availableBalance?.inCurrency ?? null;
             if (minWithdrawWLD == null || maxWithdrawWLD == null) return schema;
             const effectiveMaxWLD = Math.min(
               maxAvailableWLD ?? maxWithdrawWLD,
