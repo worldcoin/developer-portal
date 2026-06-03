@@ -157,10 +157,7 @@ describe("middleware [pass-through behaviour]", () => {
   });
 
   it("delegates a GET on a protected path to the auth middleware", async () => {
-    await middleware(
-      makeRequest("/teams/team_123", { method: "GET" }),
-      EVENT,
-    );
+    await middleware(makeRequest("/teams/team_123", { method: "GET" }), EVENT);
 
     expect(authMiddlewareSpy).toHaveBeenCalledTimes(1);
   });
