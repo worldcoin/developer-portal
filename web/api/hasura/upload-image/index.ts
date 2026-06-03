@@ -100,6 +100,7 @@ export const POST = async (req: NextRequest) => {
           code: "not_found",
           app_id,
           team_id,
+          logLevel: "warn",
         });
       }
 
@@ -110,6 +111,7 @@ export const POST = async (req: NextRequest) => {
           code: "not_found",
           app_id,
           team_id,
+          logLevel: "warn",
         });
       }
     } else {
@@ -139,6 +141,7 @@ export const POST = async (req: NextRequest) => {
           code: "not_found",
           app_id,
           team_id,
+          logLevel: "warn",
         });
       }
 
@@ -149,6 +152,7 @@ export const POST = async (req: NextRequest) => {
           code: "not_found",
           app_id,
           team_id,
+          logLevel: "warn",
         });
       }
     }
