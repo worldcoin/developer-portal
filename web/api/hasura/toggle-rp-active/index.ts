@@ -96,6 +96,7 @@ export const POST = async (req: NextRequest) => {
       detail: "RP registration not found for this app.",
       code: "rp_not_registered",
       app_id,
+      logLevel: "warn",
     });
   }
 
