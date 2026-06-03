@@ -30,13 +30,13 @@ export const QrQuickAction = (props: {
   }, [url]);
 
   if (!qrCodeDataURL) {
-    return <Skeleton height={350} width={350} />;
+    return <Skeleton height={200} width={200} />;
   }
 
   return (
-    <div className="grid gap-y-4">
+    <div className="grid w-fit gap-y-4">
       {showDraftMiniAppFlag && (
-        <div className="flex items-center gap-3 rounded-[10px] bg-system-warning-100 p-5">
+        <div className="flex items-center gap-3 rounded-[10px] bg-system-warning-100 p-4">
           <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-system-warning-600">
             <AlertIcon className="size-4 text-white" />
           </div>
@@ -48,7 +48,7 @@ export const QrQuickAction = (props: {
               Developer Preview
             </Typography>
             <Typography
-              variant={TYPOGRAPHY.B3}
+              variant={TYPOGRAPHY.B4}
               className="text-system-warning-600"
             >
               This preview link/QR code is for testing only and will switch to
@@ -72,7 +72,7 @@ export const QrQuickAction = (props: {
           }
           title="See your mini app"
         >
-          <Image src={qrCodeDataURL} width={350} height={350} alt="QR Code" />
+          <Image src={qrCodeDataURL} width={200} height={200} alt="QR Code" />
         </QuickAction>
       </div>
     </div>
