@@ -7,7 +7,8 @@ type Props = {
   children: ReactNode;
 };
 
-export default async function Layout({ params, children }: Props) {
-  const resolvedParams = await Promise.resolve(params);
-  return <AppIdLayout params={resolvedParams}>{children}</AppIdLayout>;
+export default async function Layout(props: Props) {
+  const params = await props.params;
+  const { children } = props;
+  return <AppIdLayout params={params}>{children}</AppIdLayout>;
 }

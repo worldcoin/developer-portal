@@ -21,7 +21,7 @@ export async function validateAndSubmitServerSide(
     app_website_url?: string | null;
   },
 ): Promise<FormActionResult> {
-  const path = getPathFromHeaders() || "";
+  const path = (await getPathFromHeaders()) || "";
   const { Teams: teamId } = extractIdsFromPath(path, ["Teams"]);
 
   try {

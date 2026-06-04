@@ -8,10 +8,7 @@ const cdnURLObject = new URL(
 const nextConfig = {
   reactStrictMode: false,
 
-  experimental: {
-    instrumentationHook: true,
-    serverComponentsExternalPackages: ["winston", "dd-trace"],
-  },
+  serverExternalPackages: ["winston", "dd-trace"],
 
   output: "standalone",
   images: {

@@ -50,14 +50,20 @@ const generateCsp = () => {
         ...(isDev ? ["'unsafe-eval'"] : []),
         "https://cookie-cdn.cookiepro.com",
         "https://app.posthog.com",
+        // PostHog lazy-loads extension scripts (web-vitals, etc.) from the
+        // assets host matching its US api_host (us.i.posthog.com).
+        "https://us-assets.i.posthog.com",
       ],
     },
     {
       name: "font-src",
       values: [
         "'self'",
-        "http://world-id-assets.com",
-        "http://staging.world-id-assets.com",
+        // Font files are served from https://world-id-assets.com (see
+        // `web/styles/globals.css`), so the source must match the https
+        // scheme — http-only source expressions don't match https requests.
+        "https://world-id-assets.com",
+        "https://staging.world-id-assets.com",
       ],
     },
     {
@@ -80,6 +86,7 @@ const generateCsp = () => {
         "https://worldcoin.pactsafe.io",
         "https://bridge.worldcoin.org",
         "https://us.i.posthog.com",
+        "https://us-assets.i.posthog.com",
         ...(s3BucketUrl ? [s3BucketUrl] : []),
         ...(appUrl ? [appUrl] : []),
         ...(altAppUrl ? [altAppUrl] : []),

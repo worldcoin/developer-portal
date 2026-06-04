@@ -2,7 +2,7 @@
 
 import { ErrorPage } from "@/components/ErrorPage";
 import { useAtom } from "jotai";
-import { useMemo } from "react";
+import { useMemo, use } from "react";
 import Skeleton from "react-loading-skeleton";
 import { AppTopBar } from "../../Configuration/AppTopBar";
 import { FormSkeleton } from "../../Configuration/AppTopBar/FormSkeleton";
@@ -13,10 +13,11 @@ import { SetupForm } from "../../MiniApp/PermissionsForm";
 import { MiniAppSubTabs } from "../SubTabs";
 
 type AppPermissionsPageProps = {
-  params: Record<string, string> | null | undefined;
+  params: Promise<Record<string, string>>;
 };
 
-export const AppPermissionsPage = ({ params }: AppPermissionsPageProps) => {
+export const AppPermissionsPage = (props: AppPermissionsPageProps) => {
+  const params = use(props.params);
   const appId = params?.appId as `app_${string}`;
   const teamId = params?.teamId as `team_${string}`;
   const [viewMode] = useAtom(viewModeAtom);

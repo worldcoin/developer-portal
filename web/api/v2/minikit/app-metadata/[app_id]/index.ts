@@ -12,8 +12,9 @@ import { getSdk as getAppMetadataSdk } from "./graphql/get-app-metadata.generate
 
 export const GET = async (
   req: NextRequest,
-  { params }: { params: { app_id: string } },
+  props: { params: Promise<{ app_id: string }> },
 ) => {
+  const params = await props.params;
   const apiKey = req.headers.get("authorization")?.split(" ")[1];
   const appId = params.app_id;
 

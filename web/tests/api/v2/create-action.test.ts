@@ -91,7 +91,7 @@ describe("/api/v2/create-action [success cases]", () => {
       body: { action: validBody.action },
     });
 
-    const ctx = { params: { app_id: validAppId } };
+    const ctx = { params: Promise.resolve({ app_id: validAppId }) };
     VerifyFetchAPIKey.mockResolvedValue(validApiKeyResponse);
 
     const actionResult = {
@@ -115,6 +115,35 @@ describe("/api/v2/create-action [success cases]", () => {
     });
   });
 
+  it("accepts max_verifications=0 for unlimited verifications", async () => {
+    const mockReq = createMockRequest({
+      url: getUrl(validAppId),
+      api_key: validApiKey,
+      body: { ...validBody, max_verifications: 0 },
+    });
+
+    const ctx = { params: Promise.resolve({ app_id: validAppId }) };
+    VerifyFetchAPIKey.mockResolvedValue(validApiKeyResponse);
+
+    const actionResult = {
+      id: "action_123",
+      action: validBody.action,
+      name: validBody.name,
+      description: validBody.description,
+      max_verifications: 0,
+    };
+
+    CreateDynamicAction.mockResolvedValue({
+      insert_action_one: actionResult,
+    });
+
+    const res = await POST(mockReq, ctx);
+    expect(res.status).toBe(200);
+    expect(CreateDynamicAction).toHaveBeenCalledWith(
+      expect.objectContaining({ max_verifications: 0 }),
+    );
+  });
+
   it("can create a new action with full set of body params", async () => {
     const mockReq = createMockRequest({
       url: getUrl(validAppId),
@@ -122,7 +151,7 @@ describe("/api/v2/create-action [success cases]", () => {
       body: validBody,
     });
 
-    const ctx = { params: { app_id: validAppId } };
+    const ctx = { params: Promise.resolve({ app_id: validAppId }) };
     VerifyFetchAPIKey.mockResolvedValue(validApiKeyResponse);
 
     const actionResult = {
@@ -157,7 +186,7 @@ describe("/api/v2/create-action [error cases]", () => {
       body: validBody,
     });
 
-    const ctx = { params: { app_id: validAppId } };
+    const ctx = { params: Promise.resolve({ app_id: validAppId }) };
     VerifyFetchAPIKey.mockResolvedValue(validApiKeyResponse);
 
     const res = await POST(mockReq, ctx);
@@ -171,7 +200,7 @@ describe("/api/v2/create-action [error cases]", () => {
       body: validBody,
     });
 
-    const ctx = { params: { app_id: validAppId } };
+    const ctx = { params: Promise.resolve({ app_id: validAppId }) };
     VerifyFetchAPIKey.mockResolvedValue({});
 
     const res = await POST(mockReq, ctx);
@@ -193,7 +222,7 @@ describe("/api/v2/create-action [error cases]", () => {
       body: validBody,
     });
 
-    const ctx = { params: { app_id: validAppId } };
+    const ctx = { params: Promise.resolve({ app_id: validAppId }) };
     VerifyFetchAPIKey.mockResolvedValue(validApiKeyResponse);
 
     const res = await POST(mockReq, ctx);
@@ -207,7 +236,7 @@ describe("/api/v2/create-action [error cases]", () => {
       body: validBody,
     });
 
-    const ctx = { params: { app_id: "app_123" } };
+    const ctx = { params: Promise.resolve({ app_id: "app_123" }) };
     VerifyFetchAPIKey.mockResolvedValue(validApiKeyResponse);
 
     const res = await POST(mockReq, ctx);
@@ -221,7 +250,7 @@ describe("/api/v2/create-action [error cases]", () => {
       body: validBody,
     });
 
-    const ctx = { params: { app_id: validAppId } };
+    const ctx = { params: Promise.resolve({ app_id: validAppId }) };
     VerifyFetchAPIKey.mockResolvedValue({
       ...validApiKeyResponse,
       api_key_by_pk: { ...validApiKeyResponse.api_key_by_pk, is_active: false },
@@ -238,7 +267,7 @@ describe("/api/v2/create-action [error cases]", () => {
       body: {},
     });
 
-    const ctx = { params: { app_id: validAppId } };
+    const ctx = { params: Promise.resolve({ app_id: validAppId }) };
     VerifyFetchAPIKey.mockResolvedValue(validApiKeyResponse);
 
     const res = await POST(mockReq, ctx);
@@ -252,7 +281,7 @@ describe("/api/v2/create-action [error cases]", () => {
       body: { action: "" },
     });
 
-    const ctx = { params: { app_id: validAppId } };
+    const ctx = { params: Promise.resolve({ app_id: validAppId }) };
     VerifyFetchAPIKey.mockResolvedValue(validApiKeyResponse);
 
     const res = await POST(mockReq, ctx);
@@ -266,7 +295,7 @@ describe("/api/v2/create-action [error cases]", () => {
       body: { ...validBody, max_verifications: 2147483648 },
     });
 
-    const ctx = { params: { app_id: validAppId } };
+    const ctx = { params: Promise.resolve({ app_id: validAppId }) };
     VerifyFetchAPIKey.mockResolvedValue(validApiKeyResponse);
 
     const res = await POST(mockReq, ctx);
@@ -282,7 +311,7 @@ describe("/api/v2/create-action [error cases]", () => {
       body: validBody,
     });
 
-    const ctx = { params: { app_id: validAppId } };
+    const ctx = { params: Promise.resolve({ app_id: validAppId }) };
     VerifyFetchAPIKey.mockResolvedValue(validApiKeyResponse);
 
     CreateDynamicAction.mockRejectedValue({

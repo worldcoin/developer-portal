@@ -72,15 +72,18 @@ export const LoggedUserNav = () => {
           id: teamId,
         },
     skip: !teamId,
-    onCompleted: (data) => {
-      console.log("fetched team", data);
-      setAffiliateConfig((prev) => ({
-        ...prev,
-        isFetched: true,
-        teamVerifiedAppsCount: data.team?.verified_apps.aggregate?.count || 0,
-      }));
-    },
   });
+
+  const fetchedTeam = teamRes.data;
+  useEffect(() => {
+    if (!fetchedTeam) return;
+    setAffiliateConfig((prev) => ({
+      ...prev,
+      isFetched: true,
+      teamVerifiedAppsCount:
+        fetchedTeam.team?.verified_apps.aggregate?.count || 0,
+    }));
+  }, [fetchedTeam, setAffiliateConfig]);
 
   const isAffiliateEnabled = useMemo(
     () => isAffiliateEnabledForTeam(affiliateConfig, teamId, auth0User),

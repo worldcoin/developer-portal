@@ -38,7 +38,7 @@ type NotificationData = {
 export const getAppMetricsData = async (
   appId: string,
 ): Promise<FormActionResult> => {
-  const path = getPathFromHeaders() || "";
+  const path = (await getPathFromHeaders()) || "";
   const { Teams: teamId } = extractIdsFromPath(path, ["Teams"]);
 
   const metricsData = await fetch(

@@ -38,8 +38,9 @@ const independentFieldsToFetch = [
 
 export async function GET(
   request: Request,
-  { params }: { params: { app_id: string } },
+  props: { params: Promise<{ app_id: string }> },
 ) {
+  const params = await props.params;
   if (
     !process.env.NEXT_PUBLIC_APP_ENV ||
     !process.env.NEXT_PUBLIC_METRICS_SERVICE_ENDPOINT

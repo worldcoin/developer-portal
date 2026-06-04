@@ -108,7 +108,9 @@ describe("/api/v2/minikit/transaction/transaction_id [success cases]", () => {
       api_key: validApiKey,
     });
 
-    const ctx = { params: { transaction_id: validTransactionId } };
+    const ctx = {
+      params: Promise.resolve({ transaction_id: validTransactionId }),
+    };
     FetchAPIKey.mockResolvedValue(validApiKeyResponse);
 
     const res = await GET(mockReq, ctx);
@@ -128,7 +130,9 @@ describe("/api/v2/minikit/transaction/transaction_id [error cases]", () => {
       api_key: validApiKey,
     });
 
-    const ctx = { params: { transaction_id: validTransactionId } };
+    const ctx = {
+      params: Promise.resolve({ transaction_id: validTransactionId }),
+    };
     FetchAPIKey.mockResolvedValue(validApiKeyResponse);
 
     const res = await GET(mockReq, ctx);
@@ -141,7 +145,9 @@ describe("/api/v2/minikit/transaction/transaction_id [error cases]", () => {
       api_key: validApiKey,
     });
 
-    const ctx = { params: { transaction_id: validTransactionId } };
+    const ctx = {
+      params: Promise.resolve({ transaction_id: validTransactionId }),
+    };
     FetchAPIKey.mockResolvedValue(validApiKeyResponse);
 
     const res = await GET(mockReq, ctx);

@@ -1,6 +1,7 @@
 "use server";
 
 import { errorFormAction } from "@/api/helpers/errors";
+import { getTransactionSignedFetch } from "@/api/helpers/signed-fetch";
 import { extractIdsFromPath, getPathFromHeaders } from "@/lib/server-utils";
 import {
   Auth0SessionUser,
@@ -8,13 +9,12 @@ import {
   PaymentMetadata,
 } from "@/lib/types";
 import { getSession } from "@auth0/nextjs-auth0";
-import { createSignedFetcher } from "aws-sigv4-fetch";
 
 export const getTransactionData = async (
   appId: string,
   transactionId?: string,
 ): Promise<FormActionResult> => {
-  const path = getPathFromHeaders() || "";
+  const path = (await getPathFromHeaders()) || "";
   const { teams: teamId } = extractIdsFromPath(path, ["teams"]);
 
   const session = await getSession();
@@ -53,13 +53,7 @@ export const getTransactionData = async (
       });
     }
 
-    let signedFetch = global.TransactionSignedFetcher;
-    if (!signedFetch) {
-      signedFetch = createSignedFetcher({
-        service: "execute-api",
-        region: process.env.TRANSACTION_BACKEND_REGION,
-      });
-    }
+    const signedFetch = getTransactionSignedFetch();
 
     let url = `${process.env.NEXT_SERVER_INTERNAL_PAYMENTS_ENDPOINT}/miniapp?miniapp-id=${appId}`;
 

@@ -1,11 +1,11 @@
 import { errorResponse } from "@/api/helpers/errors";
+import { getTransactionSignedFetch } from "@/api/helpers/signed-fetch";
 import { corsHandler } from "@/api/helpers/utils";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { logger } from "@/lib/logger";
 import { appIdSchema } from "@/lib/schema";
 import { TransactionTypes } from "@/lib/types";
-import { fetchWithTimeout } from "@/lib/utils";
-import { createSignedFetcher } from "aws-sigv4-fetch";
+import { fetchWithRetry } from "@/lib/utils";
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
 
@@ -22,8 +22,9 @@ const corsMethods = ["GET", "OPTIONS"];
 
 export const GET = async (
   req: NextRequest,
-  { params: routeParams }: { params: { transaction_id: string } },
+  props: { params: Promise<{ transaction_id: string }> },
 ) => {
+  const routeParams = await props.params;
   const { searchParams } = new URL(req.url);
   const transactionId = routeParams.transaction_id;
 
@@ -55,13 +56,7 @@ export const GET = async (
 
   const { app_id: appId, type } = parsedParams;
 
-  let signedFetch = global.TransactionSignedFetcher;
-  if (!signedFetch) {
-    signedFetch = createSignedFetcher({
-      service: "execute-api",
-      region: process.env.TRANSACTION_BACKEND_REGION,
-    });
-  }
+  const signedFetch = getTransactionSignedFetch();
   const url =
     type === TransactionTypes.Payment
       ? `${process.env.NEXT_SERVER_INTERNAL_PAYMENTS_ENDPOINT}/miniapp?miniapp-id=${appId}&transaction-id=${transactionId}`
@@ -69,7 +64,7 @@ export const GET = async (
 
   let res: Response;
   try {
-    res = await fetchWithTimeout(
+    res = await fetchWithRetry(
       url,
       {
         method: "GET",
@@ -78,10 +73,18 @@ export const GET = async (
           "Content-Type": "application/json",
         },
       },
-      5000, // fetch timeout in ms
+      2, // max retries: one extra attempt to ride out a transient timeout/transport blip
+      500, // initial retry delay in ms
+      10000, // fetch timeout in ms (upstream p90 sits just under the old 5s cap)
+      false, // do not throw: return the last response so genuine upstream statuses pass through
       signedFetch,
     );
   } catch (error) {
+    logger.error("Transaction fetch to backend failed", {
+      error,
+      req,
+      app_id: appId,
+    });
     return corsHandler(
       errorResponse({
         statusCode: 500,

@@ -60,8 +60,9 @@ const schema = yup
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { app_id: string } },
+  props: { params: Promise<{ app_id: string }> },
 ) {
+  const params = await props.params;
   if (!params.app_id) {
     return errorRequiredAttribute("app_id", req);
   }

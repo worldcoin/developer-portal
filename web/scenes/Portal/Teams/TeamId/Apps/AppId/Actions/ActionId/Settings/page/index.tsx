@@ -1,4 +1,5 @@
 "use client";
+import { use } from "react";
 import { ErrorPage } from "@/components/ErrorPage";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { isWorldId40Enabled, worldId40Atom } from "@/lib/feature-flags";
@@ -10,10 +11,11 @@ import { UpdateActionForm } from "../UpdateAction";
 import { useGetSingleActionQuery } from "./graphql/client/get-single-action.generated";
 
 type ActionIdSettingsPageProps = {
-  params: Record<string, string> | null | undefined;
+  params: Promise<Record<string, string>>;
 };
 
-export const ActionIdSettingsPage = ({ params }: ActionIdSettingsPageProps) => {
+export const ActionIdSettingsPage = (props: ActionIdSettingsPageProps) => {
+  const params = use(props.params);
   const actionID = params?.actionId;
   const teamId = params?.teamId;
   const appId = params?.appId;

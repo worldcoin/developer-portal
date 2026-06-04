@@ -1,6 +1,7 @@
 "use server";
 
 import { errorFormAction } from "@/api/helpers/errors";
+import { getTransactionSignedFetch } from "@/api/helpers/signed-fetch";
 import { getIsUserAllowedToReadApp } from "@/lib/permissions";
 import { extractIdsFromPath, getPathFromHeaders } from "@/lib/server-utils";
 import {
@@ -10,7 +11,6 @@ import {
   TransactionMetadata,
   TransactionStatus,
 } from "@/lib/types";
-import { createSignedFetcher } from "aws-sigv4-fetch";
 
 export type GetAccumulativePaymentsDataReturnType = {
   accumulativePayments: PaymentMetadata[];
@@ -43,16 +43,10 @@ const fetchTransactionData = async (
   appId: string,
   url: string,
 ) => {
-  const path = getPathFromHeaders() || "";
+  const path = (await getPathFromHeaders()) || "";
   const { Teams: teamId } = extractIdsFromPath(path, ["Teams"]);
 
-  let signedFetch = global.TransactionSignedFetcher;
-  if (!signedFetch) {
-    signedFetch = createSignedFetcher({
-      service: "execute-api",
-      region: process.env.TRANSACTION_BACKEND_REGION,
-    });
-  }
+  const signedFetch = getTransactionSignedFetch();
 
   const response = await signedFetch(url, {
     method: "GET",
@@ -83,7 +77,7 @@ const fetchTransactionData = async (
 export const getAccumulativePaymentsData = async (
   appId: string,
 ): Promise<FormActionResult> => {
-  const path = getPathFromHeaders() || "";
+  const path = (await getPathFromHeaders()) || "";
   const { Teams: teamId } = extractIdsFromPath(path, ["Teams"]);
 
   try {
@@ -94,7 +88,7 @@ export const getAccumulativePaymentsData = async (
         message: "User is not authorized to view this app's data",
         app_id: appId,
         team_id: teamId,
-        logLevel: "error",
+        logLevel: "warn",
       });
     }
 
@@ -206,7 +200,7 @@ export const getAccumulativePaymentsData = async (
 export const getAccumulativeTransactionsData = async (
   appId: string,
 ): Promise<FormActionResult> => {
-  const path = getPathFromHeaders() || "";
+  const path = (await getPathFromHeaders()) || "";
   const { Teams: teamId } = extractIdsFromPath(path, ["Teams"]);
 
   try {
@@ -217,7 +211,7 @@ export const getAccumulativeTransactionsData = async (
         message: "User is not authorized to view this app's data",
         app_id: appId,
         team_id: teamId,
-        logLevel: "error",
+        logLevel: "warn",
       });
     }
 

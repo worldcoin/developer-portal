@@ -40,7 +40,7 @@ export async function updateActionServerSide(
 ): Promise<FormActionResult> {
   let appId: string | undefined;
   try {
-    const path = getPathFromHeaders() || "";
+    const path = (await getPathFromHeaders()) || "";
     const { Apps: appIdFromPath } = extractIdsFromPath(path, ["Apps"]);
     appId = appIdFromPath;
 

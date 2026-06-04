@@ -9,18 +9,17 @@ type Props = {
   children: ReactNode;
 };
 
-export default async function Layout({ params, children }: Props) {
-  const resolvedParams = await Promise.resolve(params);
-  const showWorldId40Nav = await isWorldId40EnabledServer(
-    resolvedParams.teamId,
-  );
+export default async function Layout(props: Props) {
+  const params = await props.params;
+  const { children } = props;
+  const showWorldId40Nav = await isWorldId40EnabledServer(params.teamId);
 
   if (showWorldId40Nav) {
-    const { app } = await fetchAppEnvCached(resolvedParams.appId);
+    const { app } = await fetchAppEnvCached(params.appId);
 
     if (!app?.[0] || app[0].rp_registration.length === 0) {
       redirect(
-        `/teams/${resolvedParams.teamId}/apps/${resolvedParams.appId}?enableWorldId4=true`,
+        `/teams/${params.teamId}/apps/${params.appId}?enableWorldId4=true`,
       );
     }
   }

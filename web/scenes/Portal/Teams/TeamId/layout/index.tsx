@@ -9,16 +9,15 @@ type Params = {
 };
 
 type TeamIdLayoutProps = {
-  params: Params;
+  params: Promise<Params>;
   children: ReactNode;
 };
 
 export const TeamIdLayout = async (props: TeamIdLayoutProps) => {
-  const isWorldId40Enabled = await isWorldId40EnabledServer(
-    props.params.teamId,
-  );
+  const params = await props.params;
+  const isWorldId40Enabled = await isWorldId40EnabledServer(params.teamId);
   const enabledTeams =
-    isWorldId40Enabled && props.params.teamId ? [props.params.teamId] : [];
+    isWorldId40Enabled && params.teamId ? [params.teamId] : [];
 
   return (
     <WorldId40Provider enabledTeams={enabledTeams}>

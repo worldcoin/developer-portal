@@ -6,7 +6,7 @@ import { SizingWrapper } from "@/components/SizingWrapper";
 import { useAtomValue } from "jotai";
 import { worldId40Atom, isWorldId40Enabled } from "@/lib/feature-flags";
 import { useRouter } from "next/navigation";
-import { useCallback } from "react";
+import { useCallback, use } from "react";
 import Skeleton from "react-loading-skeleton";
 import { toast } from "react-toastify";
 import { GetActionsDocument } from "../../../page/graphql/client/actions.generated";
@@ -14,10 +14,11 @@ import { useDeleteActionMutation } from "../ActionDangerZoneContent/graphql/clie
 import { useGetSingleActionQuery } from "./graphql/client/get-single-action.generated";
 
 type ActionIdDangerPageProps = {
-  params: Record<string, string> | null | undefined;
+  params: Promise<Record<string, string>>;
 };
 
-export const ActionIdDangerPage = ({ params }: ActionIdDangerPageProps) => {
+export const ActionIdDangerPage = (props: ActionIdDangerPageProps) => {
+  const params = use(props.params);
   const actionId = params?.actionId;
   const teamId = params?.teamId;
   const appId = params?.appId;

@@ -11,25 +11,19 @@ import { LoggedUserNav } from "@/components/LoggedUserNav";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { urls } from "@/lib/urls";
-import { useRefetchQueries } from "@/lib/use-refetch-queries";
 import { yupResolver } from "@hookform/resolvers/yup";
 import clsx from "clsx";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import posthog from "posthog-js";
 import { useCallback, useMemo } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { toast } from "react-toastify";
-import { FetchAppsDocument } from "../AppSelector/graphql/client/fetch-apps.generated";
 import { RadioCard } from "./RadioCard";
 import { createAppSchema, CreateAppSchema } from "./form-schema";
 import { validateAndInsertAppServerSide } from "./server/submit";
 
 export const CreateAppDialog = (props: DialogProps) => {
   const { teamId } = useParams() as { teamId: string | undefined };
-  const router = useRouter();
-  const { refetch: refetchApps } = useRefetchQueries(FetchAppsDocument, {
-    teamId: teamId,
-  });
 
   const defaultValues: Partial<CreateAppSchema> = useMemo(
     () => ({
@@ -72,39 +66,39 @@ export const CreateAppDialog = (props: DialogProps) => {
           engine: values.verification,
           error: result?.error,
         });
+        return;
       }
-      const [refetched] = await refetchApps();
 
-      const latestApp = refetched.data.app.toSorted(
-        (a: any, b: any) =>
-          new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
-      )[0];
-
+      const newAppId = result.app_id as string | undefined;
       const redirect =
         appMode == "mini-app"
           ? urls.configuration({
               team_id: teamId,
-              app_id: latestApp?.id ?? "",
+              app_id: newAppId ?? "",
             })
           : urls.actions({
               team_id: teamId,
-              app_id: latestApp?.id ?? "",
+              app_id: newAppId ?? "",
             });
 
-      router.prefetch(redirect);
       reset(defaultValues);
 
       posthog.capture("app_creation_successful", {
         team_id: teamId,
-        app_id: latestApp?.id,
+        app_id: newAppId,
         environment: values.build,
         engine: values.verification,
       });
 
-      router.push(redirect);
+      // Hard navigation avoids a race with Next 15's automatic
+      // revalidation of the calling route after server actions: the
+      // parent AppsPage would otherwise re-render, see the new app,
+      // and fire its own redirect to /apps/{id}, beating the
+      // client-side push to /configuration.
       props.onClose(false);
+      window.location.href = redirect;
     },
-    [appMode, defaultValues, props, refetchApps, reset, router, teamId],
+    [appMode, defaultValues, props, reset, teamId],
   );
 
   const onClose = useCallback(() => {

@@ -90,13 +90,14 @@ export const POST = async (req: NextRequest) => {
     user_id: userId,
   });
 
-  if (!app) {
+  if (!app || app.length === 0) {
     return errorHasuraQuery({
       req,
       detail: "App not found",
       code: "app_not_found",
       app_id,
       team_id,
+      logLevel: "warn",
     });
   }
 
@@ -109,6 +110,7 @@ export const POST = async (req: NextRequest) => {
       code: "verified_app_metadata_not_found",
       app_id,
       team_id,
+      logLevel: "warn",
     });
   }
 

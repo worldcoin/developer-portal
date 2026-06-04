@@ -15,7 +15,7 @@ import {
 } from "./graphql/server/fetch-user.generated";
 
 type CreateTeamPage = {
-  params: Record<string, string> | null | undefined;
+  params: Promise<Record<string, string>>;
 };
 
 export const CreateTeamPage = async (props: CreateTeamPage) => {

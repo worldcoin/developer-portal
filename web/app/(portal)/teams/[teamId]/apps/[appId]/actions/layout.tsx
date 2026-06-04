@@ -10,20 +10,19 @@ type Props = {
   children: ReactNode;
 };
 
-export default async function Layout({ params, children }: Props) {
-  const resolvedParams = await Promise.resolve(params);
-  const showWorldId40Nav = await isWorldId40EnabledServer(
-    resolvedParams.teamId,
-  );
+export default async function Layout(props: Props) {
+  const params = await props.params;
+  const { children } = props;
+  const showWorldId40Nav = await isWorldId40EnabledServer(params.teamId);
 
   if (showWorldId40Nav) {
-    const { action } = await fetchAppEnvCached(resolvedParams.appId);
+    const { action } = await fetchAppEnvCached(params.appId);
 
     if (action.length === 0) {
       redirect(
         urls.worldIdActions({
-          team_id: resolvedParams.teamId,
-          app_id: resolvedParams.appId,
+          team_id: params.teamId,
+          app_id: params.appId,
         }),
       );
     }

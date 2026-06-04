@@ -2018,7 +2018,7 @@ describe("/api/mcp", () => {
 
     const res = await POST(req);
 
-    expect(res.status).toBe(200);
+    expect(res.status).toBe(400);
     const body = await res.json();
     expect(body.jsonrpc).toBe("2.0");
     expect(body.error.code).toBe(-32700);
