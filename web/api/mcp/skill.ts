@@ -16,7 +16,7 @@ This MCP authenticates with a developer-portal team API key and exposes 11 tools
 | ---------------------------------- | ------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | \`get_team_context\`                 | List the team's apps + status                                                                                 | (none)                                                                                                                                                             |
 | \`get_app_config\`                   | Snapshot of an app: World ID config, store metadata, mini-app settings                                        | \`app_id\`                                                                                                                                                           |
-| \`create_app\`                       | Create a new app                                                                                              | \`name\`; optional \`app_mode\` (\`external\` \\| \`mini-app\`), \`build\` (\`production\` \\| \`staging\`), \`verification\` (\`cloud\` \\| \`on-chain\`), \`category\`, \`integration_url\` |
+| \`create_app\`                       | Create a new production app                                                                                   | \`name\`; optional \`app_mode\` (\`external\` \\| \`mini-app\`), \`verification\` (\`cloud\` \\| \`on-chain\`), \`category\`, \`integration_url\` |
 | \`configure_world_id\`               | Create a managed World ID 4.0 RP for the app: KMS manager key, on-chain registration, signer wallet           | \`app_id\`; optional \`signer_private_key\` (else the server generates one and returns it once)                                                                        |
 | \`get_world_id_signing_key\`         | Read the signer address for an app. Private key is never returned here.                                       | \`app_id\`; optional \`rotate_if_unavailable\`                                                                                                                         |
 | \`rotate_world_id_signing_key\`      | Generate a new World ID signing key. Returns the private key once.                                            | \`app_id\`; optional \`signer_private_key\`                                                                                                                            |
@@ -31,7 +31,7 @@ This MCP authenticates with a developer-portal team API key and exposes 11 tools
 ### A. Build an external (non-mini) World ID app end-to-end
 
 \`\`\`
-1. create_app             { name, app_mode: "external", build: "production", verification: "cloud" }
+1. create_app             { name, app_mode: "external", verification: "cloud" }
 2. configure_world_id     { app_id, generate_signing_key: true }      ← capture private_key, it's one-time
 3. create_world_id_action { app_id, action: "verify-account" }
 4. upload_app_image       { app_id, image_type: "logo",       source_url }   ← required: logo_img_url
@@ -149,7 +149,7 @@ get_world_id_registration_status { app_id }  ← on-chain registry sync
   - On failure the server returns a \`-32602\` with the exact field path; surface that to the user verbatim.
 - **Use \`upload_app_image\`, not \`configure_mini_app\`, for image fields.** Image fields store filenames (\`logo_img.png\`), not full URLs — the dashboard reconstructs the CDN URL at view time. \`upload_app_image\` handles the S3 upload and stores the right filename automatically. Passing \`logo_img_url\`, \`hero_image_url\`, \`meta_tag_image_url\`, \`showcase_img_urls\`, or \`content_card_image_url\` to \`configure_mini_app\` is rejected with \`-32602\`.
 - **Draft creation is edit-driven.** \`configure_mini_app\` and \`upload_app_image\` can create a draft from an approved app when no draft exists. \`submit_app_for_review\` does not create a draft by itself; make at least one metadata or image change first.
-- **Staging apps cannot be submitted for review.** \`create_app\` with \`build: "staging"\` is for sandbox use; switch to \`build: "production"\` (a different app) for store submission.
+- **MCP-created apps are production apps.** The MCP no longer exposes staging app creation; use the dashboard or existing internal tooling for legacy staging-only sandbox flows.
 - **\`is_developer_allow_listing\` is optional on submit.** If you omit it, the existing value on \`app_metadata\` is preserved — the MCP will not silently un-list a previously listed app.
 - **Don't re-run \`configure_world_id\` on an already-configured app.** It returns the existing registration without rotating. Use \`rotate_world_id_signing_key\` if the user actually wants a new key.
 

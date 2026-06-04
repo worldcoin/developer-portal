@@ -463,6 +463,10 @@ describe("/api/mcp", () => {
     expect(body.result.tools.map((tool: any) => tool.name)).toContain(
       "get_world_id_registration_status",
     );
+    const createApp = body.result.tools.find(
+      (tool: any) => tool.name === "create_app",
+    );
+    expect(createApp.inputSchema.properties).not.toHaveProperty("build");
     const configureMiniApp = body.result.tools.find(
       (tool: any) => tool.name === "configure_mini_app",
     );
@@ -490,7 +494,28 @@ describe("/api/mcp", () => {
     expect(payload.app.id).toBe(appId);
     expect(mockLoggerInfo).toHaveBeenCalledWith(
       "portal_app_creation",
-      expect.objectContaining({ actor: "mcp", app_id: appId, team_id: teamId }),
+      expect.objectContaining({
+        actor: "mcp",
+        app_id: appId,
+        environment: "production",
+        team_id: teamId,
+      }),
+    );
+  });
+
+  it("rejects staging app creation", async () => {
+    const res = await POST(
+      callTool("create_app", {
+        name: "MCP Staging App",
+        build: "staging",
+      }),
+    );
+
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.error.code).toBe(-32602);
+    expect(body.error.data).toContain(
+      "build is no longer supported; MCP creates production apps only.",
     );
   });
 

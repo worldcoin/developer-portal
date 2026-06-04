@@ -109,7 +109,7 @@ const toolDefinitions = [
   },
   {
     name: "create_app",
-    description: "Create an external World ID app or Mini App.",
+    description: "Create a production external World ID app or Mini App.",
     inputSchema: {
       type: "object",
       properties: {
@@ -117,7 +117,6 @@ const toolDefinitions = [
         app_mode: { type: "string", enum: ["external", "mini-app"] },
         integration_url: { type: "string" },
         category: { type: "string" },
-        build: { type: "string", enum: ["production", "staging"] },
         verification: { type: "string", enum: ["cloud", "on-chain"] },
       },
       required: ["name"],
@@ -321,7 +320,14 @@ const createAppSchema = yup
       .matches(/^https:\/\//)
       .default("https://docs.world.org/"),
     category: yup.string().optional(),
-    build: yup.string().oneOf(["production", "staging"]).default("production"),
+    build: yup
+      .mixed()
+      .test(
+        "unsupported-build",
+        "build is no longer supported; MCP creates production apps only.",
+        (value) => value === undefined,
+      )
+      .optional(),
     verification: yup.string().oneOf(["cloud", "on-chain"]).default("cloud"),
   })
   .noUnknown();
@@ -963,7 +969,7 @@ const tools = {
     const data = await getMcpCreateAppSdk(ctx.client).McpCreateApp({
       team_id: ctx.teamId,
       name: args.name,
-      is_staging: args.build === "staging",
+      is_staging: false,
       engine: args.verification,
       category,
       integration_url: args.integration_url,
@@ -977,7 +983,7 @@ const tools = {
       team_id: ctx.teamId,
       app_id: app?.id,
       metadata: {
-        environment: args.build,
+        environment: "production",
         engine: args.verification,
         app_mode: args.app_mode,
       },
