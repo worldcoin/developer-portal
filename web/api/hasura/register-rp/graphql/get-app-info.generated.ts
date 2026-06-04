@@ -14,6 +14,7 @@ export type GetAppInfoQuery = {
     __typename?: "app";
     id: string;
     team_id: string;
+    is_staging: boolean;
     app_metadata: Array<{ __typename?: "app_metadata"; name: string }>;
   }>;
 };
@@ -23,6 +24,7 @@ export const GetAppInfoDocument = gql`
     app(where: { id: { _eq: $app_id } }) {
       id
       team_id
+      is_staging
       app_metadata(limit: 1) {
         name
       }

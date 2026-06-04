@@ -866,6 +866,7 @@ const REGISTRATION_FLOW_RPC_CODE: Record<
   number
 > = {
   feature_not_enabled: -32004,
+  staging_not_supported: -32004,
   already_registered: -32004,
   config_error: -32603,
   kms_error: -32603,
@@ -1001,6 +1002,13 @@ const tools = {
           "World ID is already configured. Use rotate_world_id_signing_key to generate a new private signing key.",
       });
     }
+    if (app.is_staging) {
+      throw new McpError(
+        "Staging apps cannot be migrated to World ID 4.0.",
+        -32004,
+        { reason: "staging_not_supported" },
+      );
+    }
 
     // Always generate a wallet — managed mode requires a real signer
     // address up front. If the caller passed a private key we honor it,
@@ -1014,6 +1022,7 @@ const tools = {
       teamId: ctx.teamId,
       signerAddress: signingKey.signer_address,
       appName,
+      isStaging: app.is_staging,
     });
 
     if (!result.ok) {

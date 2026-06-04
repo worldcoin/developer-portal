@@ -566,6 +566,26 @@ describe("/api/mcp", () => {
     );
   });
 
+  it("rejects World ID migration for staging apps", async () => {
+    currentAppContextResponse = {
+      app: [
+        {
+          ...appContextResponse.app[0],
+          is_staging: true,
+          rp_registration: [],
+        },
+      ],
+    };
+
+    const res = await POST(callTool("configure_world_id", { app_id: appId }));
+
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.error.code).toBe(-32004);
+    expect(body.error.data.reason).toBe("staging_not_supported");
+    expect(submitManagedRpRegistrationMock).not.toHaveBeenCalled();
+  });
+
   it("surfaces feature_not_enabled from the registration helper as -32004", async () => {
     currentAppContextResponse = {
       app: [{ ...appContextResponse.app[0], rp_registration: [] }],

@@ -14,6 +14,7 @@ export type FetchAppEnvQuery = {
     __typename?: "app";
     id: string;
     engine: string;
+    is_staging: boolean;
     rp_registration: Array<{ __typename?: "rp_registration"; rp_id: string }>;
   }>;
   action: Array<{ __typename?: "action"; id: string }>;
@@ -24,6 +25,7 @@ export const FetchAppEnvDocument = gql`
     app(where: { id: { _eq: $id } }) {
       id
       engine
+      is_staging
       rp_registration {
         rp_id
       }

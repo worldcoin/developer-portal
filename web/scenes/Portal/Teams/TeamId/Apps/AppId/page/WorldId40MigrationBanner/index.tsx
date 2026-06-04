@@ -16,6 +16,7 @@ interface WorldId40MigrationBannerProps {
   appId: string;
   hasRpRegistration: boolean;
   canRegisterRp: boolean;
+  isStaging: boolean;
 }
 
 export const WorldId40MigrationBanner = ({
@@ -23,6 +24,7 @@ export const WorldId40MigrationBanner = ({
   appId,
   hasRpRegistration,
   canRegisterRp,
+  isStaging,
 }: WorldId40MigrationBannerProps) => {
   const worldId40Config = useAtomValue(worldId40Atom);
   const isEnabled = isWorldId40Enabled(worldId40Config, teamId);
@@ -37,9 +39,10 @@ export const WorldId40MigrationBanner = ({
   // Don't show banner if:
   // - World ID 4.0 is not enabled for this team, OR
   // - App already has RP registration, OR
+  // - App is a staging app, OR
   // - User lacks ADMIN/OWNER role (register_rp Hasura action would
   //   reject with `unauthorized` and surface a generic toast).
-  if (!isEnabled || hasRpRegistration || !canRegisterRp) {
+  if (!isEnabled || hasRpRegistration || isStaging || !canRegisterRp) {
     return null;
   }
 
