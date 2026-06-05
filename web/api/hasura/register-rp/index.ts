@@ -52,6 +52,7 @@ const REGISTRATION_ERROR_HTTP_CODE: Record<
   string
 > = {
   feature_not_enabled: "feature_not_enabled",
+  staging_not_supported: "staging_not_supported",
   config_error: "config_error",
   already_registered: "already_registered",
   kms_error: "kms_error",
@@ -134,6 +135,15 @@ export const POST = async (req: NextRequest) => {
     });
   }
 
+  if (appInfo.is_staging) {
+    return errorHasuraQuery({
+      req,
+      detail: "Staging apps cannot be migrated to World ID 4.0.",
+      code: "staging_not_supported",
+      app_id,
+    });
+  }
+
   // World ID 4.0 rollout flag still gates BOTH modes — the managed helper
   // checks it internally, but the self_managed branch below skips the
   // helper, so we explicitly check here to match prior behavior.
@@ -186,6 +196,7 @@ export const POST = async (req: NextRequest) => {
     teamId,
     signerAddress: signer_address!,
     appName,
+    isStaging: appInfo.is_staging,
   });
 
   if (!result.ok) {

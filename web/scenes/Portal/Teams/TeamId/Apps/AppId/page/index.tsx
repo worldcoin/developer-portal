@@ -27,8 +27,8 @@ export const AppIdPage = async (props: {
 
   const client = await getAPIServiceGraphqlClient();
   const appEnvData = await getAppEnvSdk(client).FetchAppEnv({ id: appId });
-  const hasRpRegistration =
-    (appEnvData.app[0]?.rp_registration?.length ?? 0) > 0;
+  const appInfo = appEnvData.app[0];
+  const hasRpRegistration = (appInfo?.rp_registration?.length ?? 0) > 0;
 
   const session = await getSession();
   const user = session?.user as Auth0SessionUser["user"] | undefined;
@@ -44,6 +44,7 @@ export const AppIdPage = async (props: {
         appId={appId}
         hasRpRegistration={hasRpRegistration}
         canRegisterRp={canRegisterRp}
+        isStaging={Boolean(appInfo?.is_staging)}
       />
 
       <div className="grid gap-y-3">

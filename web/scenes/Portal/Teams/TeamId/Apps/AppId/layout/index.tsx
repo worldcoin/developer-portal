@@ -22,6 +22,7 @@ export const AppIdLayout = async (props: AppIdLayoutProps) => {
   let isOnChainApp = false;
   let hasLegacyActions = false;
   let hasRpRegistration = false;
+  let isStagingApp = false;
 
   const session = await getSession();
   const user = session?.user as Auth0SessionUser["user"];
@@ -41,6 +42,7 @@ export const AppIdLayout = async (props: AppIdLayoutProps) => {
         isOnChainApp = app[0].engine === EngineType.OnChain;
         hasLegacyActions = action.length > 0;
         hasRpRegistration = app[0].rp_registration.length > 0;
+        isStagingApp = app[0].is_staging;
       } else {
         logger.warn("AppIdLayout could not resolve app from FetchAppEnv", {
           appId: params.appId,
@@ -58,7 +60,9 @@ export const AppIdLayout = async (props: AppIdLayoutProps) => {
     }
   }
 
-  const showWorldId40Nav = await isWorldId40EnabledServer(params.teamId);
+  const showWorldId40Nav =
+    (await isWorldId40EnabledServer(params.teamId)) &&
+    (!isStagingApp || hasRpRegistration);
 
   return (
     <AppIdChrome

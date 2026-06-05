@@ -49,6 +49,7 @@ export type ManagedRegistrationResult =
       ok: false;
       code:
         | "feature_not_enabled"
+        | "staging_not_supported"
         | "config_error"
         | "already_registered"
         | "kms_error"
@@ -70,13 +71,23 @@ export async function submitManagedRpRegistration({
   teamId,
   signerAddress,
   appName,
+  isStaging,
 }: {
   client: GraphQLClient;
   appId: string;
   teamId: string;
   signerAddress: string;
   appName: string;
+  isStaging: boolean;
 }): Promise<ManagedRegistrationResult> {
+  if (isStaging) {
+    return {
+      ok: false,
+      code: "staging_not_supported",
+      detail: "Staging apps cannot be migrated to World ID 4.0.",
+    };
+  }
+
   if (!(await isWorldId40EnabledServer(teamId))) {
     return {
       ok: false,
