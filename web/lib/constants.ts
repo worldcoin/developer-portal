@@ -106,8 +106,7 @@ export const NativeApps: Record<string, NativeAppsMap> = {
     },
     [NativeAppToAppIdMapping.staging.network]: {
       app_id: "network",
-      integration_url: "worldapp://network",
-      app_mode: "native",
+      integration_url: "",
     },
     [NativeAppToAppIdMapping.staging.grants_native]: {
       app_id: "worldcoin",
@@ -133,8 +132,7 @@ export const NativeApps: Record<string, NativeAppsMap> = {
     },
     [NativeAppToAppIdMapping.production.network]: {
       app_id: "network",
-      integration_url: "worldapp://network",
-      app_mode: "native",
+      integration_url: "",
     },
     [NativeAppToAppIdMapping.production.contacts]: {
       app_id: "contacts",
