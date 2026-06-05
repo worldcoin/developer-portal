@@ -263,7 +263,7 @@ export type AppStoreFormattedFields = Omit<
 type NativeApp = {
   app_id: string;
   integration_url: string;
-  app_mode: "native" | "mini-app";
+  app_mode?: "native" | "mini-app";
 };
 
 export type NativeAppsMap = {

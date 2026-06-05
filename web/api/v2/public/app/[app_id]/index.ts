@@ -238,7 +238,7 @@ export async function GET(
 
     formattedMetadata = {
       ...formattedMetadata,
-      app_mode: nativeAppItem.app_mode,
+      app_mode: nativeAppItem.app_mode ?? formattedMetadata.app_mode,
       integration_url:
         nativeAppItem.integration_url !== ""
           ? nativeAppItem.integration_url
