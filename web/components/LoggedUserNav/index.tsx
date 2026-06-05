@@ -209,7 +209,7 @@ export const LoggedUserNav = () => {
                 </Dropdown.ListItem>
               )}
 
-              {isWorldGrowApproved && (
+              {isAffiliateEnabled && isWorldGrowApproved && (
                 <Dropdown.ListItem asChild>
                   <Link href={`/teams/${teamId}/affiliate-program`}>
                     <Dropdown.ListItemIcon asChild>
