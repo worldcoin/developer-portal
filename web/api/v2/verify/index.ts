@@ -76,8 +76,14 @@ export async function POST(
   try {
     body = JSON.parse(rawBody);
   } catch (error) {
+    // Serialize to message/name only (drop the stack) so this expected
+    // bad-client input is not fingerprinted into Datadog Error Tracking,
+    // mirroring the serializedError pattern in errorFormAction.
     logger.warn("Invalid JSON in request body", {
-      error,
+      error:
+        error instanceof Error
+          ? { message: error.message, name: error.name }
+          : error,
       app_id,
       body: rawBody,
     });
