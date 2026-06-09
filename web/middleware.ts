@@ -166,9 +166,11 @@ export async function middleware(request: NextRequest) {
 
   const { pathname } = request.nextUrl;
 
-  // Auth SDK routes (and our custom `/api/auth/login-callback` /
-  // `/api/auth/delete-account` handlers) pass straight through.
-  if (pathname.startsWith("/api/auth/")) {
+  // Auth SDK routes pass straight through: the tenant-facing routes under
+  // `/api/auth/*` (login/logout/callback, plus our custom login-callback /
+  // delete-account handlers) and the default-path `/auth/profile` used by the
+  // client `useUser()` hook.
+  if (pathname.startsWith("/api/auth/") || pathname.startsWith("/auth/")) {
     return authRes;
   }
 
@@ -225,6 +227,7 @@ export async function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     "/api/auth/:path*",
+    "/auth/:path*",
     "/teams/:path*",
     "/create-team",
     "/profile/:path*",

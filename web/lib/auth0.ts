@@ -10,19 +10,22 @@ import { Auth0Client } from "@auth0/nextjs-auth0/server";
  * - `AUTH0_SECRET` (32-byte hex cookie encryption key)
  * - `APP_BASE_URL` (e.g. `https://developer.worldcoin.org`)
  *
- * The authentication routes stay mounted under `/api/auth/*` (the v4 default is
- * `/auth/*`) so that the existing url helpers (`web/lib/urls.ts`), the client
- * `useUser()` profile fetch, and the Auth0 tenant's Allowed Callback/Logout URLs
- * keep working unchanged.
+ * The tenant-facing routes (login, logout, callback) stay mounted under
+ * `/api/auth/*` (the v4 default is `/auth/*`) so the existing url helpers
+ * (`web/lib/urls.ts`) and the Auth0 tenant's Allowed Callback/Logout URLs keep
+ * working unchanged.
+ *
+ * The internal `profile` route is intentionally left at the v4 default
+ * (`/auth/profile`). The client `useUser()` hook fetches it via the build-time
+ * `NEXT_PUBLIC_PROFILE_ROUTE` (default `/auth/profile`); keeping the default
+ * avoids having to thread a new build-time env var through the Docker image.
+ * The middleware matcher includes `/auth/*` so this route is still mounted.
  */
 export const auth0 = new Auth0Client({
   routes: {
     login: "/api/auth/login",
     logout: "/api/auth/logout",
     callback: "/api/auth/callback",
-    profile: "/api/auth/profile",
-    accessToken: "/api/auth/access-token",
-    backChannelLogout: "/api/auth/backchannel-logout",
   },
 
   // The portal never calls resource servers directly with an access token, so the
