@@ -6,7 +6,7 @@ import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { logger } from "@/lib/logger";
 import { Auth0SessionUser } from "@/lib/types";
 import { urls } from "@/lib/urls";
-import { getSession } from "@auth0/nextjs-auth0";
+import { auth0 } from "@/lib/auth0";
 import { redirect } from "next/navigation";
 import {
   FetchMembershipsQuery,
@@ -14,7 +14,7 @@ import {
 } from "./graphql/server/fetch-memberships.generated";
 
 export const LoginPage = async () => {
-  let session = await getSession();
+  let session = await auth0.getSession();
   const user = session?.user as Auth0SessionUser["user"];
 
   if (user) {

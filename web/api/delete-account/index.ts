@@ -1,12 +1,12 @@
 import { errorResponse } from "@/api/helpers/errors";
 import { logger } from "@/lib/logger";
 import { urls } from "@/lib/urls";
-import { getSession, withApiAuthRequired } from "@auth0/nextjs-auth0";
+import { auth0 } from "@/lib/auth0";
 import { ManagementClient } from "auth0";
 import { NextRequest } from "next/server";
 import { getAppUrlFromRequest } from "../helpers/utils";
 
-export const deleteAccount = withApiAuthRequired(async (req: NextRequest) => {
+export const deleteAccount = async (req: NextRequest) => {
   const appUrl = await getAppUrlFromRequest(req);
   if (
     !process.env.AUTH0_CLIENT_ID ||
@@ -23,7 +23,7 @@ export const deleteAccount = withApiAuthRequired(async (req: NextRequest) => {
     });
   }
 
-  const session = await getSession();
+  const session = await auth0.getSession();
   const id = session?.user.sub;
 
   if (!id) {
@@ -57,4 +57,4 @@ export const deleteAccount = withApiAuthRequired(async (req: NextRequest) => {
   }
 
   return Response.redirect(new URL(urls.logout(), appUrl), 307);
-});
+};

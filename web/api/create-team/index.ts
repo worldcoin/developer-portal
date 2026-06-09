@@ -36,11 +36,7 @@ import {
 
 import { teamNameSchema } from "@/lib/schema";
 import { captureEvent } from "@/services/posthogClient";
-import {
-  getSession,
-  updateSession,
-  withApiAuthRequired,
-} from "@auth0/nextjs-auth0";
+import { auth0 } from "@/lib/auth0";
 
 const schema = yup
   .object({
@@ -67,11 +63,10 @@ export type CreateTeamResponse =
       attribute: ErrorResponseParams["attribute"];
     };
 
-export const POST = withApiAuthRequired(async (req: NextRequest) => {
-  const session = await getSession();
-  const auth0User = session?.user as Auth0User | Auth0SessionUser["user"];
+export const POST = async (req: NextRequest) => {
+  const session = await auth0.getSession();
 
-  if (!auth0User) {
+  if (!session) {
     return errorResponse({
       statusCode: 401,
       code: "unauthorized",
@@ -79,6 +74,9 @@ export const POST = withApiAuthRequired(async (req: NextRequest) => {
     });
   }
 
+  const auth0User = session.user as
+    | Auth0User
+    | NonNullable<Auth0SessionUser["user"]>;
   const hasuraUserId = (auth0User as Auth0SessionUser["user"])?.hasura?.id;
   let body = await req.json();
 
@@ -302,10 +300,10 @@ export const POST = withApiAuthRequired(async (req: NextRequest) => {
 
   const res = NextResponse.json({ returnTo });
 
-  await updateSession(req, res, {
+  await auth0.updateSession(req, res, {
     ...session,
     user: {
-      ...session?.user,
+      ...session.user,
       hasura: {
         ...user,
       },
@@ -313,4 +311,4 @@ export const POST = withApiAuthRequired(async (req: NextRequest) => {
   });
 
   return res;
-});
+};

@@ -2,7 +2,7 @@ import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { logger } from "@/lib/logger";
 import { Auth0SessionUser } from "@/lib/types";
 import { urls } from "@/lib/urls";
-import { getSession } from "@auth0/nextjs-auth0";
+import { auth0 } from "@/lib/auth0";
 import { redirect } from "next/navigation";
 
 import {
@@ -11,7 +11,7 @@ import {
 } from "./graphql/server/fetch-memberships.generated";
 
 export const RootPage = async () => {
-  const session = await getSession();
+  const session = await auth0.getSession();
   const auth0User = session?.user as Auth0SessionUser["user"];
 
   if (!auth0User) {

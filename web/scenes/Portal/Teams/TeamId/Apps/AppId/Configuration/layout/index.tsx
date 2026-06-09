@@ -3,7 +3,7 @@ import { Role_Enum } from "@/graphql/graphql";
 import { urls } from "@/lib/urls";
 import { Auth0SessionUser } from "@/lib/types";
 import { checkUserPermissions } from "@/lib/utils";
-import { getSession } from "@auth0/nextjs-auth0";
+import { auth0 } from "@/lib/auth0";
 import { ReactNode } from "react";
 import { SectionSubTabs } from "../../common/SectionSubTabs";
 import { ImagesProvider } from "./ImagesProvider";
@@ -21,7 +21,7 @@ type AppProfileLayout = {
 
 export const AppProfileLayout = async (props: AppProfileLayout) => {
   const params = props.params;
-  const session = await getSession();
+  const session = await auth0.getSession();
   const user = session?.user as Auth0SessionUser["user"];
 
   const isEnoughPermissions = checkUserPermissions(user, params.teamId ?? "", [

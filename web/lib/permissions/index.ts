@@ -1,7 +1,7 @@
 "use server";
 
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
-import { getSession } from "@auth0/nextjs-auth0";
+import { auth0 } from "@/lib/auth0";
 import { entityIdSchema } from "../schema";
 import { getSdk as getAppDeletePermissionsSdk } from "./graphql/server/get-app-delete-permissions.generated";
 import { getSdk as getAppInsertPermissionsSdk } from "./graphql/server/get-app-insert-permissions.generated";
@@ -29,7 +29,7 @@ export const getIsUserAllowedToInsertApp = async (teamId: string) => {
     return false;
   }
 
-  const session = await getSession();
+  const session = await auth0.getSession();
   if (!session) {
     return false;
   }
@@ -50,7 +50,7 @@ export const getIsUserAllowedToReadApp = async (appId: string) => {
     return false;
   }
 
-  const session = await getSession();
+  const session = await auth0.getSession();
   if (!session) {
     return false;
   }
@@ -71,7 +71,7 @@ export const getIsUserAllowedToUpdateApp = async (appId: string) => {
     return false;
   }
 
-  const session = await getSession();
+  const session = await auth0.getSession();
   if (!session) {
     return false;
   }
@@ -92,7 +92,7 @@ export const getIsUserAllowedToDeleteApp = async (appId: string) => {
     return false;
   }
 
-  const session = await getSession();
+  const session = await auth0.getSession();
   if (!session) {
     return false;
   }
@@ -115,7 +115,7 @@ export const getIsUserAllowedToUpdateVerificationStatus = async (
     return false;
   }
 
-  const session = await getSession();
+  const session = await auth0.getSession();
   if (!session) {
     return false;
   }
@@ -144,7 +144,7 @@ export const getIsUserAllowedToUpdateAppMetadata = async (
     return false;
   }
 
-  const session = await getSession();
+  const session = await auth0.getSession();
   if (!session) {
     return false;
   }
@@ -170,7 +170,7 @@ export const getAppMetadataPermissionAndMode = async (
     return { allowed: false, appMode: null };
   }
 
-  const session = await getSession();
+  const session = await auth0.getSession();
   if (!session) {
     return { allowed: false, appMode: null };
   }
@@ -192,7 +192,7 @@ export const getIsUserAllowedToInsertLocalisation = async (appId: string) => {
     return false;
   }
 
-  const session = await getSession();
+  const session = await auth0.getSession();
   if (!session) {
     return false;
   }
@@ -214,7 +214,7 @@ export const getIsUserAllowedToUpdateLocalisation = async (
   if (!getIsIdValid(localisationId)) {
     return false;
   }
-  const session = await getSession();
+  const session = await auth0.getSession();
   if (!session) {
     return false;
   }
@@ -238,7 +238,7 @@ export const getIsUserAllowedToDeleteLocalisation = async (
     return false;
   }
 
-  const session = await getSession();
+  const session = await auth0.getSession();
   if (!session) {
     return false;
   }
@@ -263,7 +263,7 @@ export const getIsUserAllowedToUpdateTeam = async (teamId: string) => {
     return false;
   }
 
-  const session = await getSession();
+  const session = await auth0.getSession();
   if (!session) {
     return false;
   }
@@ -284,7 +284,7 @@ export const getIsUserAllowedToDeleteTeam = async (teamId: string) => {
     return false;
   }
 
-  const session = await getSession();
+  const session = await auth0.getSession();
   if (!session) {
     return false;
   }

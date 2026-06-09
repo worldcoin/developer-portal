@@ -1,8 +1,5 @@
-import {
-  getSession,
-  withMiddlewareAuthRequired,
-} from "@auth0/nextjs-auth0/edge";
 import { NextRequest, NextResponse } from "next/server";
+import { auth0 } from "@/lib/auth0";
 import { Role_Enum } from "./graphql/graphql";
 import { Auth0SessionUser } from "./lib/types";
 import { urls } from "./lib/urls";
@@ -116,9 +113,10 @@ const generateCsp = () => {
   return { csp: cspString, nonce };
 };
 
-const checkRouteRolesRestrictions = async (request: NextRequest) => {
-  const session = await getSession();
-  const user = session?.user as Auth0SessionUser["user"];
+const checkRouteRolesRestrictions = (
+  request: NextRequest,
+  user: Auth0SessionUser["user"],
+) => {
   const { pathname } = request.nextUrl;
   const urlSegments = pathname.split("/");
   const teamId = urlSegments[2];
@@ -151,38 +149,82 @@ const checkRouteRolesRestrictions = async (request: NextRequest) => {
   return false;
 };
 
-export default withMiddlewareAuthRequired({
-  middleware: async function middleware(request: NextRequest) {
-    try {
-      const redirect = await checkRouteRolesRestrictions(request);
+const protectedMatchers = [
+  /^\/teams(\/|$)/,
+  /^\/create-team$/,
+  /^\/profile(\/|$)/,
+  /^\/join-callback$/,
+];
+const isProtectedPath = (pathname: string) =>
+  protectedMatchers.some((matcher) => matcher.test(pathname));
 
-      if (redirect) {
-        return redirect;
-      }
+export async function middleware(request: NextRequest) {
+  // 1. Let the Auth0 SDK mount its routes (`/api/auth/login`, `/callback`,
+  //    `/logout`, `/profile`, ...) and refresh the rolling session cookie. For a
+  //    mounted auth route this returns the auth response directly.
+  const authRes = await auth0.middleware(request);
 
-      const { csp, nonce } = generateCsp();
-      const headers = new Headers(request.headers);
-      headers.set("x-nonce", nonce);
-      headers.set("content-security-policy", csp);
-      const response = NextResponse.next({ request: { headers } });
-      response.headers.set("content-security-policy", csp);
-      response.headers.set("Permissions-Policy", "clipboard-write=(self)");
-      response.headers.set("x-current-path", request.nextUrl.pathname);
-      return response;
-    } catch (error) {
-      console.warn("Error in middleware", { error });
-      return NextResponse.error();
-    }
-  },
+  const { pathname } = request.nextUrl;
 
-  returnTo: (req) =>
-    urls.api.loginCallback({
-      returnTo: req.nextUrl.pathname,
-    }),
-});
+  // Auth SDK routes (and our custom `/api/auth/login-callback` /
+  // `/api/auth/delete-account` handlers) pass straight through.
+  if (pathname.startsWith("/api/auth/")) {
+    return authRes;
+  }
+
+  if (!isProtectedPath(pathname)) {
+    return authRes;
+  }
+
+  // 2. Protected routes require an authenticated session.
+  let session;
+  try {
+    session = await auth0.getSession(request);
+  } catch (error) {
+    console.warn("Error in middleware", { error });
+    return NextResponse.error();
+  }
+
+  if (!session) {
+    const loginUrl = new URL("/api/auth/login", request.url);
+    loginUrl.searchParams.set(
+      "returnTo",
+      urls.api.loginCallback({ returnTo: pathname }),
+    );
+    return NextResponse.redirect(loginUrl);
+  }
+
+  // 3. Role-based route restrictions.
+  const user = session.user as Auth0SessionUser["user"];
+  const roleRedirect = checkRouteRolesRestrictions(request, user);
+  if (roleRedirect) {
+    return roleRedirect;
+  }
+
+  // 4. Attach the per-request CSP nonce. It is forwarded on the request headers
+  //    so the root layout (`web/scenes/Root/layout`) can read `x-nonce` during
+  //    SSR, and set on the response so the browser enforces the policy.
+  const { csp, nonce } = generateCsp();
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set("x-nonce", nonce);
+  requestHeaders.set("content-security-policy", csp);
+
+  const response = NextResponse.next({ request: { headers: requestHeaders } });
+  response.headers.set("content-security-policy", csp);
+  response.headers.set("Permissions-Policy", "clipboard-write=(self)");
+  response.headers.set("x-current-path", pathname);
+
+  // Preserve any session-refresh cookies set by `auth0.middleware()`.
+  for (const cookie of authRes.cookies.getAll()) {
+    response.cookies.set(cookie);
+  }
+
+  return response;
+}
 
 export const config = {
   matcher: [
+    "/api/auth/:path*",
     "/teams/:path*",
     "/create-team",
     "/profile/:path*",

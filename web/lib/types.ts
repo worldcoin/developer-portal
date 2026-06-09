@@ -11,7 +11,6 @@ import { InsertMembershipMutation } from "@/api/create-team/graphql/insert-membe
  * Types referring to Hasura models should be defined in models.ts.
  */
 
-import { UserContext } from "@auth0/nextjs-auth0/client";
 import { NextApiRequest } from "next";
 
 export type NextApiRequestWithBody<T> = Omit<NextApiRequest, "body"> & {
@@ -128,7 +127,11 @@ export enum LoginErrorCode {
   EmailNotVerified = "email-not-verified",
 }
 
-export type Auth0SessionUser = Omit<UserContext, "user"> & {
+// Shape of the authenticated user as seen by both the server session
+// (`auth0.getSession().user`) and the client `useUser()` hook. The base Auth0
+// claims are augmented with the `hasura` object the portal injects into the
+// session after login (see web/api/login-callback).
+export type Auth0SessionUser = {
   user?: Auth0User & {
     hasura: NonNullable<
       InsertMembershipMutation["insert_membership_one"]

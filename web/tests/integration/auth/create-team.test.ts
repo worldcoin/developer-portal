@@ -2,7 +2,7 @@ import { POST } from "@/api/create-team";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { Auth0User } from "@/lib/types";
 import { gql } from "@apollo/client";
-import { getSession, updateSession } from "@auth0/nextjs-auth0";
+import { auth0 } from "@/lib/auth0";
 import { NextRequest } from "next/server";
 
 const validSessionUser = {
@@ -17,15 +17,15 @@ const validSessionUser = {
 } as Auth0User;
 
 // Mock the necessary imports
-jest.mock("@auth0/nextjs-auth0", () => ({
-  withApiAuthRequired: jest.fn((handler) => handler), // Accept and ignore the second argument
-  getSession: jest.fn(() => ({
-    user: {
-      sub: "test",
-    },
-  })),
-  updateSession: jest.fn(),
+jest.mock("@/lib/auth0", () => ({
+  auth0: {
+    getSession: jest.fn(),
+    updateSession: jest.fn(),
+  },
 }));
+
+const getSession = auth0.getSession as jest.Mock;
+const updateSession = auth0.updateSession as jest.Mock;
 
 jest.mock("../../../lib/logger", () => ({
   logger: {
@@ -66,7 +66,7 @@ describe("test /create-team", () => {
     } as unknown as NextRequest;
 
     (getSession as jest.Mock).mockResolvedValue(null);
-    const response = await POST(mockReq, {});
+    const response = await POST(mockReq);
 
     expect(getSession).toHaveReturned();
     expect(response.status).toEqual(401);
@@ -82,7 +82,7 @@ describe("test /create-team", () => {
     };
 
     (getSession as jest.Mock).mockResolvedValue(mockSession);
-    const response = await POST(mockReq, {});
+    const response = await POST(mockReq);
     expect(response.status).toEqual(400);
   });
 
@@ -100,7 +100,7 @@ describe("test /create-team", () => {
     };
 
     (getSession as jest.Mock).mockResolvedValue(mockSession);
-    const response = await POST(mockReq, {});
+    const response = await POST(mockReq);
     expect(response.status).not.toEqual(500);
     const body = await response.json();
 
@@ -130,7 +130,7 @@ describe("test /create-team", () => {
     };
 
     (getSession as jest.Mock).mockResolvedValue(mockSession);
-    const response = await POST(mockReq, {});
+    const response = await POST(mockReq);
     const body = await response.json();
     expect(body).toHaveProperty("returnTo");
     expect(response.status).toEqual(200);
@@ -150,7 +150,7 @@ describe("test /create-team", () => {
     };
 
     (getSession as jest.Mock).mockResolvedValue(mockSession);
-    const response = await POST(mockReq, {});
+    const response = await POST(mockReq);
     const body = await response.json();
     expect(body).toHaveProperty("returnTo");
     expect(response.status).toEqual(200);
@@ -174,7 +174,7 @@ describe("test /create-team", () => {
     };
 
     (getSession as jest.Mock).mockResolvedValue(mockSession);
-    const response = await POST(mockReq, {});
+    const response = await POST(mockReq);
     expect(getSession).toHaveBeenCalledWith();
 
     const userQuery = gql`

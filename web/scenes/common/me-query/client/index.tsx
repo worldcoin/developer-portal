@@ -7,7 +7,7 @@ import { useFetchMeQuery } from "./graphql/client/me-query.generated";
 export const useMeQuery = (options?: Parameters<typeof useFetchMeQuery>[0]) => {
   const { user: auth0User } = useUser() as Auth0SessionUser;
   const [updating, setUpdating] = useState(true);
-  const { checkSession } = useUser();
+  const { invalidate } = useUser();
 
   const {
     data,
@@ -51,8 +51,8 @@ export const useMeQuery = (options?: Parameters<typeof useFetchMeQuery>[0]) => {
       return;
     }
 
-    await checkSession();
-  }, [checkSession, data?.user_by_pk]);
+    await invalidate();
+  }, [invalidate, data?.user_by_pk]);
 
   useEffect(() => {
     if (!data || fetchLoading) {

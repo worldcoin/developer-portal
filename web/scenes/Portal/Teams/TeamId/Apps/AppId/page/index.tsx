@@ -2,7 +2,7 @@ import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { Role_Enum } from "@/graphql/graphql";
 import { Auth0SessionUser } from "@/lib/types";
-import { getSession } from "@auth0/nextjs-auth0";
+import { auth0 } from "@/lib/auth0";
 import { BanMessageDialog } from "../../common/BanMessageDialog";
 import { getSdk as getAppEnvSdk } from "../layout/graphql/server/fetch-app-env.generated";
 import { BanStatusSection } from "./BanStatusSection";
@@ -30,7 +30,7 @@ export const AppIdPage = async (props: {
   const appInfo = appEnvData.app[0];
   const hasRpRegistration = (appInfo?.rp_registration?.length ?? 0) > 0;
 
-  const session = await getSession();
+  const session = await auth0.getSession();
   const user = session?.user as Auth0SessionUser["user"] | undefined;
   const role = user?.hasura?.memberships?.find(
     (m) => m.team?.id === teamId,
