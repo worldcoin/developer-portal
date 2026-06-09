@@ -1,4 +1,5 @@
 import { Auth0Client } from "@auth0/nextjs-auth0/server";
+import { getAllowedAppBaseUrls } from "@/lib/app-base-url";
 
 /**
  * Central Auth0 SDK client (v4).
@@ -24,6 +25,12 @@ import { Auth0Client } from "@auth0/nextjs-auth0/server";
  * middleware matcher.
  */
 export const auth0 = new Auth0Client({
+  // The portal is served on both the worldcoin.org and world.org host variants.
+  // Pass both in allow-list mode so v4 builds callback/logout redirects from the
+  // host the request came in on (v3 derived redirect_uri from the request host
+  // via getAppUrlFromRequest), instead of always using a single APP_BASE_URL.
+  appBaseUrl: getAllowedAppBaseUrls(),
+
   routes: {
     login: "/api/auth/login",
     logout: "/api/auth/logout",
