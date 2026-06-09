@@ -115,6 +115,7 @@ export const POST = async (req: NextRequest) => {
       detail: "App not found.",
       code: "app_not_found",
       app_id,
+      logLevel: "warn",
     });
   }
   const appInfo = app[0];

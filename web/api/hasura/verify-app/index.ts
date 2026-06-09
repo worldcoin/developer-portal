@@ -96,6 +96,7 @@ export const POST = async (req: NextRequest) => {
       req,
       detail: "App not found.",
       code: "not_found",
+      logLevel: "warn",
     });
   }
 
