@@ -25,6 +25,10 @@ const getIsIdValid = async (id: string) => {
 };
 
 export const getIsUserAllowedToInsertApp = async (teamId: string) => {
+  if (!(await getIsIdValid(teamId))) {
+    return false;
+  }
+
   const session = await getSession();
   if (!session) {
     return false;
