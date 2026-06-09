@@ -74,6 +74,7 @@ jobs:
           GENERAL_SECRET_KEY: unsafe_test_key
           HASURA_GRAPHQL_JWT_SECRET: '{"key": "unsafe_AnEsZxveGsAWoENHGAnEsZxveGsAvxgMtDq9UxgTsDq9UxgTsNHGWoENIoJ", "type": "HS512"}'
           JWT_ISSUER: invalid.localhost
+          NEXT_PUBLIC_PROFILE_ROUTE: /api/auth/profile
         run: pnpm build
 
   docker-build:
@@ -206,6 +207,7 @@ jobs:
         env:
           NEXT_PUBLIC_APP_URL: ${{ vars.NEXT_PUBLIC_APP_URL }}
           NEXT_PUBLIC_GRAPHQL_API_URL: ${{ vars.NEXT_PUBLIC_GRAPHQL_API_URL }}
+          NEXT_PUBLIC_PROFILE_ROUTE: /api/auth/profile
           HASURA_GRAPHQL_ADMIN_SECRET: ${{ secrets.HASURA_GRAPHQL_ADMIN_SECRET }}
           HASURA_GRAPHQL_JWT_SECRET: ${{ secrets.HASURA_GRAPHQL_JWT_SECRET }}
           JWT_ISSUER: ${{ vars.JWT_ISSUER }}

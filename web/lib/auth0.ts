@@ -11,18 +11,13 @@ import { getAllowedAppBaseUrls } from "@/lib/app-base-url";
  * - `AUTH0_SECRET` (32-byte hex cookie encryption key)
  * - `APP_BASE_URL` (e.g. `https://developer.worldcoin.org`)
  *
- * The tenant-facing routes (login, logout, callback) stay mounted under
- * `/api/auth/*` (the v4 default is `/auth/*`) so the existing url helpers
- * (`web/lib/urls.ts`) and the Auth0 tenant's Allowed Callback/Logout URLs keep
- * working unchanged.
- *
- * The internal `profile` route is kept on the v4 default (`/auth/profile`),
- * NOT under `/api/auth/*`. The client `useUser()` hook fetches it via the
- * build-time `NEXT_PUBLIC_PROFILE_ROUTE` (default `/auth/profile`); matching the
- * default avoids threading a new build-time env var through the Docker image
- * (the deploy only sets env at runtime, which is never inlined into the client
- * bundle). It is set explicitly below for clarity and mounted via the `/auth/*`
- * middleware matcher.
+ * All auth routes are pinned under `/api/auth/*` (v4 defaults to `/auth/*`) so
+ * the Auth0 tenant's Allowed Callback/Logout URLs and the `lib/urls.ts` helpers
+ * keep working unchanged. This includes the internal `profile` endpoint polled
+ * by the client `useUser()` hook: `useUser()` resolves its fetch URL from the
+ * build-time `NEXT_PUBLIC_PROFILE_ROUTE`, which is inlined to `/api/auth/profile`
+ * in every build path (web/Dockerfile ARG default, the .env files, and the CI
+ * build/e2e jobs) so the client and the mounted server route always agree.
  */
 export const auth0 = new Auth0Client({
   // The portal is served on both the worldcoin.org and world.org host variants.
@@ -35,8 +30,7 @@ export const auth0 = new Auth0Client({
     login: "/api/auth/login",
     logout: "/api/auth/logout",
     callback: "/api/auth/callback",
-    // v4 default; matches the client useUser() profile fetch (see above).
-    profile: "/auth/profile",
+    profile: "/api/auth/profile",
   },
 
   // The portal never calls resource servers directly with an access token, so the
