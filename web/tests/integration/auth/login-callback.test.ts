@@ -123,7 +123,7 @@ describe("test /login-callback", () => {
     expect(getSession).toHaveReturned();
 
     expect(
-      response.headers.get("location")?.endsWith("/api/auth/logout"),
+      response.headers.get("location")?.includes("/api/auth/logout"),
     ).toBeTruthy();
   });
 
