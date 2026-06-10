@@ -7,14 +7,8 @@ import { TeamLogo } from "@/components/LoggedUserNav/Teams/TeamLogo";
 import { useFetchTeamQuery } from "@/components/LoggedUserNav/graphql/client/fetch-team.generated";
 import { Role_Enum } from "@/graphql/graphql";
 import { DOCS_URL } from "@/lib/constants";
-import { Auth0SessionUser, IdentityVerificationStatus } from "@/lib/types";
+import { Auth0SessionUser } from "@/lib/types";
 import { checkUserPermissions } from "@/lib/utils";
-import {
-  affiliateEnabledAtom,
-  isAffiliateEnabledForTeam,
-} from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/common/affiliate-enabled-atom";
-import { getParameter } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/common/server/getParameter";
-import { useGetAffiliateMetadata } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/Overview/page/hooks/use-get-affiliate-metadata";
 import { colorAtom } from "@/scenes/Portal/layout";
 import { useMeQuery } from "@/scenes/common/me-query/client";
 import { useUser } from "@auth0/nextjs-auth0/client";
@@ -22,12 +16,11 @@ import { useAtom } from "jotai";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import posthog from "posthog-js";
-import { CSSProperties, useCallback, useEffect, useMemo } from "react";
+import { CSSProperties, useCallback, useMemo } from "react";
 import { Button } from "../Button";
 import { Dropdown } from "../Dropdown";
 import { KeyIcon } from "../Icons/KeyIcon";
 import { LogoutIcon } from "../Icons/LogoutIcon";
-import { MailIcon } from "../Icons/MailIcon";
 import { SettingsIcon } from "../Icons/SettingsIcon";
 import { UserCircleIcon } from "../Icons/UserCircleIcon";
 import { UserMultipleIcon } from "../Icons/UserMultipleIcon";
@@ -38,8 +31,6 @@ import { Teams } from "./Teams";
 export const LoggedUserNav = () => {
   const [color] = useAtom(colorAtom);
   const { user: auth0User } = useUser() as Auth0SessionUser;
-  const [affiliateConfig, setAffiliateConfig] = useAtom(affiliateEnabledAtom);
-
   const { teamId, appId, actionId } = useParams() as {
     teamId?: string;
     appId?: string;
@@ -74,30 +65,6 @@ export const LoggedUserNav = () => {
         },
     skip: !teamId,
   });
-
-  const fetchedTeam = teamRes.data;
-  useEffect(() => {
-    if (!fetchedTeam) return;
-    setAffiliateConfig((prev) => ({
-      ...prev,
-      isFetched: true,
-      teamVerifiedAppsCount:
-        fetchedTeam.team?.verified_apps.aggregate?.count || 0,
-    }));
-  }, [fetchedTeam, setAffiliateConfig]);
-
-  const isAffiliateEnabled = useMemo(
-    () => isAffiliateEnabledForTeam(affiliateConfig, teamId, auth0User),
-    [affiliateConfig, teamId, auth0User],
-  );
-
-  const { data: affiliateMetadata } = useGetAffiliateMetadata({
-    skip: !isAffiliateEnabled,
-  });
-
-  const isWorldGrowApproved =
-    affiliateMetadata?.identityVerificationStatus ===
-    IdentityVerificationStatus.SUCCESS;
 
   return (
     <div
@@ -205,20 +172,6 @@ export const LoggedUserNav = () => {
                     </Dropdown.ListItemIcon>
 
                     <Dropdown.ListItemText>Settings</Dropdown.ListItemText>
-                  </Link>
-                </Dropdown.ListItem>
-              )}
-
-              {isAffiliateEnabled && isWorldGrowApproved && (
-                <Dropdown.ListItem asChild>
-                  <Link href={`/teams/${teamId}/affiliate-program`}>
-                    <Dropdown.ListItemIcon asChild>
-                      <MailIcon />
-                    </Dropdown.ListItemIcon>
-
-                    <Dropdown.ListItemText>
-                      World Grow (affiliate)
-                    </Dropdown.ListItemText>
                   </Link>
                 </Dropdown.ListItem>
               )}
