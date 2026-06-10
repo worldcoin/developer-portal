@@ -75,6 +75,13 @@ jobs:
           HASURA_GRAPHQL_JWT_SECRET: '{"key": "unsafe_AnEsZxveGsAWoENHGAnEsZxveGsAvxgMtDq9UxgTsDq9UxgTsNHGWoENIoJ", "type": "HS512"}'
           JWT_ISSUER: invalid.localhost
           NEXT_PUBLIC_PROFILE_ROUTE: /api/auth/profile
+          # Dummy build-time Auth0 config: web/lib/auth0.ts constructs the v4
+          # Auth0Client at module scope, which logs a "missing options" error
+          # when these are absent. Real values are injected at runtime.
+          AUTH0_DOMAIN: build.invalid.auth0.com
+          AUTH0_CLIENT_ID: unsafe_build_client_id
+          AUTH0_CLIENT_SECRET: unsafe_build_client_secret
+          AUTH0_SECRET: unsafe_build_secret
         run: pnpm build
 
   docker-build:

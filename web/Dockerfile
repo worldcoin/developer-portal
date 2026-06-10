@@ -70,6 +70,12 @@ ENV GENERAL_SECRET_KEY=unsafe_test_key
 ENV HASURA_GRAPHQL_JWT_SECRET='{"key": "unsafe_AnEsZxveGsAWoENHGAnEsZxveGsAvxgMtDq9UxgTsDq9UxgTsNHGWoENIoJ", "type": "HS512"}'
 ENV CLOUDFRONT_DISTRIBUTION_ID=${CLOUDFRONT_DISTRIBUTION_ID}
 ENV JWT_ISSUER=invalid.localhost
+# Dummy build-time Auth0 config (web/lib/auth0.ts constructs Auth0Client at
+# module scope). Real values come from ECS env + Secrets Manager at runtime.
+ENV AUTH0_DOMAIN=build.invalid.auth0.com
+ENV AUTH0_CLIENT_ID=unsafe_build_client_id
+ENV AUTH0_CLIENT_SECRET=unsafe_build_client_secret
+ENV AUTH0_SECRET=unsafe_build_secret
 
 RUN corepack enable pnpm && pnpm run build
 
