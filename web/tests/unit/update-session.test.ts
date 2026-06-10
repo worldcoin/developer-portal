@@ -1,17 +1,18 @@
 import { POST } from "@/api/update-session";
-import { getSession, updateSession } from "@auth0/nextjs-auth0";
+import { auth0 } from "@/lib/auth0";
 import { NextRequest } from "next/server";
 
-// Mock the necessary imports
-jest.mock("@auth0/nextjs-auth0", () => ({
-  withApiAuthRequired: jest.fn((handler) => handler), // Accept and ignore the second argument
-  getSession: jest.fn(() => ({
-    user: {
-      sub: "test",
-    },
-  })),
-  updateSession: jest.fn(),
+// Mock the Auth0 client (v4): the handler reads/writes the session via
+// `auth0.getSession` / `auth0.updateSession`.
+jest.mock("@/lib/auth0", () => ({
+  auth0: {
+    getSession: jest.fn(),
+    updateSession: jest.fn(),
+  },
 }));
+
+const getSession = auth0.getSession as jest.Mock;
+const updateSession = auth0.updateSession as jest.Mock;
 
 describe("test update-session", () => {
   beforeEach(() => {
@@ -28,10 +29,10 @@ describe("test update-session", () => {
     const mockSession = { user: { hasura: { id: "123" } } };
 
     (getSession as jest.Mock).mockResolvedValue(mockSession);
-    const response = await POST(mockReq, {});
+    const response = await POST(mockReq);
 
     // Check that we have correctly called getSession and updateSession, use any response
-    expect(getSession).toHaveBeenCalledWith(mockReq, expect.anything());
+    expect(getSession).toHaveBeenCalledWith(mockReq);
     expect(updateSession).toHaveBeenCalledWith(
       mockReq,
       expect.anything(),
@@ -53,9 +54,9 @@ describe("test update-session", () => {
     const mockSession = { user: { hasura: { id: "123" } } };
 
     (getSession as jest.Mock).mockResolvedValue(mockSession);
-    const response = await POST(mockReq, {});
+    const response = await POST(mockReq);
 
-    expect(getSession).toHaveBeenCalledWith(mockReq, expect.anything());
+    expect(getSession).toHaveBeenCalledWith(mockReq);
     expect(response.status).toEqual(401);
   });
 
@@ -66,7 +67,7 @@ describe("test update-session", () => {
     const mockSession = { user: { hasura: { id: "123" } } };
 
     (getSession as jest.Mock).mockResolvedValue(mockSession);
-    const response = await POST(mockReq, {});
+    const response = await POST(mockReq);
 
     expect(response.status).toEqual(400);
     expect(updateSession).not.toHaveBeenCalled();
@@ -79,7 +80,7 @@ describe("test update-session", () => {
     const mockSession = { user: { hasura: { id: "123" } } };
 
     (getSession as jest.Mock).mockResolvedValue(mockSession);
-    const response = await POST(mockReq, {});
+    const response = await POST(mockReq);
 
     expect(response.status).toEqual(400);
     expect(updateSession).not.toHaveBeenCalled();
@@ -102,7 +103,7 @@ describe("test update-session", () => {
     const mockSession = { user: { hasura: { id: "123" } } };
 
     (getSession as jest.Mock).mockResolvedValue(mockSession);
-    await POST(mockReq, {});
+    await POST(mockReq);
 
     const calledSession = (updateSession as jest.Mock).mock.calls[0][2];
     expect(calledSession.user.hasura).not.toHaveProperty("injected_key");
@@ -126,7 +127,7 @@ describe("test update-session", () => {
     };
 
     (getSession as jest.Mock).mockResolvedValue(mockSession);
-    await POST(mockReq, {});
+    await POST(mockReq);
 
     const calledSession = (updateSession as jest.Mock).mock.calls[0][2];
     expect(calledSession.user.hasura.email).toBe("existing@example.com");
@@ -151,7 +152,7 @@ describe("test update-session", () => {
     };
 
     (getSession as jest.Mock).mockResolvedValue(mockSession);
-    await POST(mockReq, {});
+    await POST(mockReq);
 
     const calledSession = (updateSession as jest.Mock).mock.calls[0][2];
     expect(calledSession.user.hasura).toEqual({
@@ -176,7 +177,7 @@ describe("test update-session", () => {
     };
 
     (getSession as jest.Mock).mockResolvedValue(mockSession);
-    await POST(mockReq, {});
+    await POST(mockReq);
 
     const calledSession = (updateSession as jest.Mock).mock.calls[0][2];
     expect(calledSession.user.hasura.posthog_id).toBeNull();
@@ -188,9 +189,9 @@ describe("test update-session", () => {
     } as unknown as NextRequest;
 
     (getSession as jest.Mock).mockResolvedValue(null);
-    const response = await POST(mockReq, {});
+    const response = await POST(mockReq);
 
-    expect(getSession).toHaveBeenCalledWith(mockReq, expect.anything());
+    expect(getSession).toHaveBeenCalledWith(mockReq);
     expect(response.status).toEqual(500);
   });
 });

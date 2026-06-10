@@ -1,7 +1,7 @@
 import { deleteAccount } from "@/api/delete-account";
 import { Auth0User } from "@/lib/types";
 import { urls } from "@/lib/urls";
-import { getSession, updateSession } from "@auth0/nextjs-auth0";
+import { auth0 } from "@/lib/auth0";
 import { NextRequest } from "next/server";
 
 const validSessionUser = {
@@ -15,15 +15,15 @@ const validSessionUser = {
   sid: "1234567890",
 } as Auth0User;
 
-jest.mock("@auth0/nextjs-auth0", () => ({
-  withApiAuthRequired: jest.fn((handler) => handler), // Accept and ignore the second argument
-  getSession: jest.fn(() => ({
-    user: {
-      sub: "test",
-    },
-  })),
-  updateSession: jest.fn(),
+jest.mock("@/lib/auth0", () => ({
+  auth0: {
+    getSession: jest.fn(),
+    updateSession: jest.fn(),
+  },
 }));
+
+const getSession = auth0.getSession as jest.Mock;
+const updateSession = auth0.updateSession as jest.Mock;
 
 jest.mock("../../../lib/logger", () => ({
   logger: {
@@ -50,7 +50,7 @@ describe("test /delete-account", () => {
   it("should return 401 if session user id is not found", async () => {
     const mockReq = {} as unknown as NextRequest;
     (getSession as jest.Mock).mockResolvedValue(null);
-    const response = await deleteAccount(mockReq, {});
+    const response = await deleteAccount(mockReq);
     const body = await response.json();
     expect(getSession).toHaveReturned();
     expect(response.status).toEqual(401);
@@ -63,7 +63,7 @@ describe("test /delete-account", () => {
     } as unknown as NextRequest;
 
     (getSession as jest.Mock).mockResolvedValue({ user: validSessionUser });
-    const response = await deleteAccount(mockReq, {});
+    const response = await deleteAccount(mockReq);
     expect(getSession).toHaveReturned();
     expect(response.status).toEqual(307);
     console.log(response.headers.get("location"));

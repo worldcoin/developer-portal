@@ -8,7 +8,7 @@ import {
   FormActionResult,
   PaymentMetadata,
 } from "@/lib/types";
-import { getSession } from "@auth0/nextjs-auth0";
+import { auth0 } from "@/lib/auth0";
 
 export const getTransactionData = async (
   appId: string,
@@ -17,7 +17,7 @@ export const getTransactionData = async (
   const path = (await getPathFromHeaders()) || "";
   const { teams: teamId } = extractIdsFromPath(path, ["teams"]);
 
-  const session = await getSession();
+  const session = await auth0.getSession();
   const user = session?.user as Auth0SessionUser["user"];
 
   if (!user) {

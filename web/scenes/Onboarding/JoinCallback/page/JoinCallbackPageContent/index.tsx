@@ -9,7 +9,7 @@ import { toast } from "react-toastify";
 
 export const JoinCallbackPageContent = (props: { invite_id: string }) => {
   const router = useRouter();
-  const { checkSession } = useUser();
+  const { invalidate } = useUser();
 
   const joinUser = useCallback(async () => {
     let returnTo: string | null = null;
@@ -20,7 +20,7 @@ export const JoinCallbackPageContent = (props: { invite_id: string }) => {
         body: JSON.stringify({ invite_id: props.invite_id }),
       });
 
-      await checkSession();
+      await invalidate();
       const data = await res.json();
 
       if (!data.returnTo) {
@@ -41,7 +41,7 @@ export const JoinCallbackPageContent = (props: { invite_id: string }) => {
     }
 
     router.push(returnTo);
-  }, [checkSession, props.invite_id, router]);
+  }, [invalidate, props.invite_id, router]);
 
   useEffect(() => {
     joinUser();

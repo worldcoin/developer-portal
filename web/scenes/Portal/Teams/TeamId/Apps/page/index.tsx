@@ -1,6 +1,6 @@
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { Auth0SessionUser } from "@/lib/types";
-import { getSession } from "@auth0/nextjs-auth0";
+import { auth0 } from "@/lib/auth0";
 import { redirect } from "next/navigation";
 import { AppsPageClient } from "./AppsPageClient";
 import { getSdk as getInitialAppSdk } from "./graphql/server/apps.generated";
@@ -10,7 +10,7 @@ type AppPage = {
 };
 
 export const AppsPage = async (props: AppPage) => {
-  const session = await getSession();
+  const session = await auth0.getSession();
   const params = await props.params;
   const teamId = params?.teamId;
   const user = session?.user as Auth0SessionUser["user"] | undefined;

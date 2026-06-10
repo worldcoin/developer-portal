@@ -3,7 +3,7 @@
 import { errorFormAction } from "@/api/helpers/errors";
 import { extractIdsFromPath, getPathFromHeaders } from "@/lib/server-utils";
 import { Auth0SessionUser, FormActionResult } from "@/lib/types";
-import { getSession } from "@auth0/nextjs-auth0";
+import { auth0 } from "@/lib/auth0";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { isAffiliateKycEnabled } from "@/scenes/Portal/Teams/TeamId/Team/AffiliateProgram/common/is-affiliate-kyc-enabled";
 import { getSdk } from "./graphql/getTeamVerifiedApps.generated";
@@ -36,7 +36,7 @@ export const validateAffiliateRequest = async (): Promise<ValidationResult> => {
     };
   }
 
-  const session = await getSession();
+  const session = await auth0.getSession();
   const user = session?.user as Auth0SessionUser["user"];
 
   if (!user) {

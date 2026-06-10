@@ -18,7 +18,7 @@ import * as yup from "yup";
 
 export const Form = (props: { hasUser: boolean }) => {
   const router = useRouter();
-  const { checkSession } = useUser();
+  const { invalidate } = useUser();
 
   const schema = useMemo(
     () =>
@@ -82,10 +82,10 @@ export const Form = (props: { hasUser: boolean }) => {
         return console.log("Something went wrong");
       }
 
-      await checkSession();
+      await invalidate();
       router.push(data.returnTo);
     },
-    [checkSession, router],
+    [invalidate, router],
   );
 
   return (

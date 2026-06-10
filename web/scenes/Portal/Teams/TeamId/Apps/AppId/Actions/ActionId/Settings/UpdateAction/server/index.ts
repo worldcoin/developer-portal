@@ -7,7 +7,7 @@ import { normalizePublicKey } from "@/lib/crypto.server";
 import { extractIdsFromPath, getPathFromHeaders } from "@/lib/server-utils";
 import { FormActionResult } from "@/lib/types";
 import { checkIfPartnerTeam } from "@/lib/utils";
-import { getSession } from "@auth0/nextjs-auth0";
+import { auth0 } from "@/lib/auth0";
 import { getSdk as getActionUpdatePermissionsSdk } from "../graphql/server/get-action-update-permissions.generated";
 import { getSdk as getUpdateActionSdk } from "../graphql/server/update-action.generated";
 import { createUpdateActionSchema, UpdateActionSchema } from "./form-schema";
@@ -16,7 +16,7 @@ export const getIsUserAllowedToUpdateAction = async (
   teamId: string,
   actionId: string,
 ) => {
-  const session = await getSession();
+  const session = await auth0.getSession();
   if (!session) {
     return false;
   }

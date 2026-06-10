@@ -5,7 +5,7 @@ import { Role_Enum } from "@/graphql/graphql";
 import { getPathFromHeaders } from "@/lib/server-utils";
 import { Auth0SessionUser } from "@/lib/types";
 import { checkUserPermissions } from "@/lib/utils";
-import { getSession } from "@auth0/nextjs-auth0";
+import { auth0 } from "@/lib/auth0";
 import { ReactNode } from "react";
 
 type Params = {
@@ -19,7 +19,7 @@ type TeamLayoutProps = {
 
 export const TeamLayout = async (props: TeamLayoutProps) => {
   const params = await props.params;
-  const session = await getSession();
+  const session = await auth0.getSession();
   const pathname = (await getPathFromHeaders()) || "";
   const isAffiliateProgram = pathname.includes("affiliate-program");
 

@@ -52,6 +52,9 @@ ARG ASSETS_S3_REGION=""
 ARG NEXT_PUBLIC_IMAGES_CDN_URL=""
 ARG NEXT_PUBLIC_APP_URL=""
 ARG NEXT_PUBLIC_POSTHOG_API_KEY=""
+# Auth0 v4 client profile route. useUser() reads this at build time; default to
+# the mounted /api/auth/profile route so client and server always agree.
+ARG NEXT_PUBLIC_PROFILE_ROUTE="/api/auth/profile"
 ARG CLOUDFRONT_DISTRIBUTION_ID=""
 ARG NEXT_PUBLIC_APP_ENV=""
 ARG NEXT_SERVER_ACTIONS_ENCRYPTION_KEY=""
@@ -62,10 +65,17 @@ ENV ASSETS_S3_REGION=${ASSETS_S3_REGION}
 ENV NEXT_PUBLIC_IMAGES_CDN_URL=${NEXT_PUBLIC_IMAGES_CDN_URL}
 ENV NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL}
 ENV NEXT_PUBLIC_POSTHOG_API_KEY=${NEXT_PUBLIC_POSTHOG_API_KEY}
+ENV NEXT_PUBLIC_PROFILE_ROUTE=${NEXT_PUBLIC_PROFILE_ROUTE}
 ENV GENERAL_SECRET_KEY=unsafe_test_key
 ENV HASURA_GRAPHQL_JWT_SECRET='{"key": "unsafe_AnEsZxveGsAWoENHGAnEsZxveGsAvxgMtDq9UxgTsDq9UxgTsNHGWoENIoJ", "type": "HS512"}'
 ENV CLOUDFRONT_DISTRIBUTION_ID=${CLOUDFRONT_DISTRIBUTION_ID}
 ENV JWT_ISSUER=invalid.localhost
+# Dummy build-time Auth0 config (web/lib/auth0.ts constructs Auth0Client at
+# module scope). Real values come from ECS env + Secrets Manager at runtime.
+ENV AUTH0_DOMAIN=build.invalid.auth0.com
+ENV AUTH0_CLIENT_ID=unsafe_build_client_id
+ENV AUTH0_CLIENT_SECRET=unsafe_build_client_secret
+ENV AUTH0_SECRET=unsafe_build_secret
 
 RUN corepack enable pnpm && pnpm run build
 
