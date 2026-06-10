@@ -4,12 +4,10 @@ import { Button } from "@/components/Button";
 import { WorldIcon } from "@/components/Icons/WorldIcon";
 import { LoggedUserNav } from "@/components/LoggedUserNav";
 import { SizingWrapper } from "@/components/SizingWrapper";
-import { Typography, TYPOGRAPHY } from "@/components/Typography";
 import { isWorldId40Enabled, worldId40Atom } from "@/lib/feature-flags";
 import { urls } from "@/lib/urls";
-import { CloseButton } from "@/scenes/Onboarding/CreateTeam/layout/CloseButton";
 import { atom, useAtom, useSetAtom } from "jotai";
-import { useParams, usePathname } from "next/navigation";
+import { useParams } from "next/navigation";
 import React, { useEffect, useMemo } from "react";
 import { colorAtom } from "..";
 import { Color } from "../../Profile/types";
@@ -38,31 +36,6 @@ export const Header = (props: { color: Color | null }) => {
     }
     return "/";
   }, [teamId, appId]);
-  const path = usePathname();
-
-  const showCloseButton = useMemo(() => {
-    return (
-      path.includes(urls.affiliateWithdrawal({ team_id: teamId })) ||
-      path.includes(urls.affiliateRewards({ team_id: teamId }))
-    );
-  }, [path, teamId]);
-
-  const pageConfig = useMemo(() => {
-    if (!showCloseButton) return null;
-    if (path.includes(urls.affiliateWithdrawal({ team_id: teamId }))) {
-      return {
-        title: "Withdraw",
-        href: urls.affiliateEarnings({ team_id: teamId }),
-      };
-    }
-    if (path.includes(urls.affiliateRewards({ team_id: teamId }))) {
-      return {
-        title: "Rewards",
-        href: urls.affiliateHowItWorks({ team_id: teamId }),
-      };
-    }
-    return null;
-  }, [path, showCloseButton, teamId]);
 
   const useNewCreateAppDialog = useMemo(
     () => isWorldId40Enabled(worldId40Config, teamId),
@@ -76,29 +49,13 @@ export const Header = (props: { color: Color | null }) => {
         gridClassName="py-4"
         variant="nav"
       >
-        {showCloseButton && (
-          <div className="flex items-center gap-x-3">
-            <CloseButton href={pageConfig?.href ?? undefined} />
+        <div className="grid grid-cols-auto/1fr gap-x-4 md:gap-x-8">
+          <Button href={logoHref}>
+            <WorldIcon className="size-6" />
+          </Button>
 
-            {pageConfig?.title && (
-              <>
-                <span className="text-grey-200">|</span>
-                <Typography variant={TYPOGRAPHY.M4}>
-                  {pageConfig.title}
-                </Typography>
-              </>
-            )}
-          </div>
-        )}
-        {!showCloseButton && (
-          <div className="grid grid-cols-auto/1fr gap-x-4 md:gap-x-8">
-            <Button href={logoHref}>
-              <WorldIcon className="size-6" />
-            </Button>
-
-            <AppSelector />
-          </div>
-        )}
+          <AppSelector />
+        </div>
 
         <LoggedUserNav />
       </SizingWrapper>
