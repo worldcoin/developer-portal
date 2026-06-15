@@ -8,6 +8,7 @@ import { useFetchTeamQuery } from "@/components/LoggedUserNav/graphql/client/fet
 import { Role_Enum } from "@/graphql/graphql";
 import { DOCS_URL } from "@/lib/constants";
 import { Auth0SessionUser } from "@/lib/types";
+import { urls } from "@/lib/urls";
 import { checkUserPermissions } from "@/lib/utils";
 import { colorAtom } from "@/scenes/Portal/layout";
 import { useMeQuery } from "@/scenes/common/me-query/client";
@@ -227,7 +228,7 @@ export const LoggedUserNav = () => {
           <Dropdown.ListSeparator />
 
           <Dropdown.ListItem asChild>
-            <a href="/api/auth/logout" className="text-system-error-600">
+            <a href={urls.logout()} className="text-system-error-600">
               <Dropdown.ListItemIcon className="text-system-error-600" asChild>
                 <LogoutIcon />
               </Dropdown.ListItemIcon>

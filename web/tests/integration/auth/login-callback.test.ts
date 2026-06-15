@@ -2,7 +2,7 @@ import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { loginCallback } from "@/api/login-callback";
 import { Auth0User } from "@/lib/types";
 import { gql } from "@apollo/client";
-import { getSession, updateSession } from "@auth0/nextjs-auth0";
+import { auth0 } from "@/lib/auth0";
 import { NextRequest } from "next/server";
 
 import { integrationDBClean, integrationDBExecuteQuery } from "../setup";
@@ -29,15 +29,15 @@ const validNullifierSessionUser = {
   sid: "123",
 } as Auth0User;
 
-jest.mock("@auth0/nextjs-auth0", () => ({
-  withApiAuthRequired: jest.fn((handler) => handler), // Accept and ignore the second argument
-  getSession: jest.fn(() => ({
-    user: {
-      sub: "test",
-    },
-  })),
-  updateSession: jest.fn(),
+jest.mock("@/lib/auth0", () => ({
+  auth0: {
+    getSession: jest.fn(),
+    updateSession: jest.fn(),
+  },
 }));
+
+const getSession = auth0.getSession as jest.Mock;
+const updateSession = auth0.updateSession as jest.Mock;
 
 describe("test /login-callback", () => {
   beforeEach(() => {
@@ -47,7 +47,7 @@ describe("test /login-callback", () => {
   });
 
   it("should redirect to /login if no session is found", async () => {
-    const response = await loginCallback({} as unknown as NextRequest, {});
+    const response = await loginCallback({} as unknown as NextRequest);
     expect(response.status).toEqual(307);
     expect(response.headers.get("location")?.endsWith("/login")).toBeTruthy();
   });
@@ -62,7 +62,7 @@ describe("test /login-callback", () => {
     };
 
     (getSession as jest.Mock).mockResolvedValue(mockSession);
-    const response = await loginCallback(mockReq, {});
+    const response = await loginCallback(mockReq);
 
     expect(getSession).toHaveReturned();
     expect(response.headers.get("location")?.endsWith("/apps")).toBeTruthy();
@@ -78,7 +78,7 @@ describe("test /login-callback", () => {
     };
 
     (getSession as jest.Mock).mockResolvedValue(mockSession);
-    const response = await loginCallback(mockReq, {});
+    const response = await loginCallback(mockReq);
 
     expect(getSession).toHaveReturned();
     expect(response.headers.get("location")?.endsWith("/apps")).toBeTruthy();
@@ -98,7 +98,7 @@ describe("test /login-callback", () => {
     };
 
     (getSession as jest.Mock).mockResolvedValue(mockSession);
-    const response = await loginCallback(mockReq, {});
+    const response = await loginCallback(mockReq);
     expect(getSession).toHaveReturned();
 
     expect(
@@ -119,11 +119,11 @@ describe("test /login-callback", () => {
     };
 
     (getSession as jest.Mock).mockResolvedValue(mockSession);
-    const response = await loginCallback(mockReq, {});
+    const response = await loginCallback(mockReq);
     expect(getSession).toHaveReturned();
 
     expect(
-      response.headers.get("location")?.endsWith("/api/auth/logout"),
+      response.headers.get("location")?.includes("/api/auth/logout"),
     ).toBeTruthy();
   });
 
@@ -137,7 +137,7 @@ describe("test /login-callback", () => {
     };
 
     (getSession as jest.Mock).mockResolvedValue(mockSession);
-    const response = await loginCallback(mockReq, {});
+    const response = await loginCallback(mockReq);
 
     const query = gql(`
       query FetchUserByEmail($email: String!) {
@@ -208,7 +208,7 @@ describe("test /login-callback", () => {
     };
 
     (getSession as jest.Mock).mockResolvedValue(mockSession);
-    const response = await loginCallback(mockReq, {});
+    const response = await loginCallback(mockReq);
 
     expect(getSession).toHaveReturned();
 
@@ -228,7 +228,7 @@ describe("test /login-callback", () => {
     const mockSession = { user: validEmailSessionUser };
 
     (getSession as jest.Mock).mockResolvedValue(mockSession);
-    const response = await loginCallback(mockReq, {});
+    const response = await loginCallback(mockReq);
 
     expect(
       response.headers.get("location")?.endsWith("/some-page"),
@@ -244,7 +244,7 @@ describe("test /login-callback", () => {
     const mockSession = { user: validEmailSessionUser };
 
     (getSession as jest.Mock).mockResolvedValue(mockSession);
-    const response = await loginCallback(mockReq, {});
+    const response = await loginCallback(mockReq);
 
     expect(response.headers.get("location")).not.toContain("evil.com");
     expect(response.headers.get("location")?.endsWith("/apps")).toBeTruthy();
@@ -259,7 +259,7 @@ describe("test /login-callback", () => {
     const mockSession = { user: validEmailSessionUser };
 
     (getSession as jest.Mock).mockResolvedValue(mockSession);
-    const response = await loginCallback(mockReq, {});
+    const response = await loginCallback(mockReq);
 
     expect(response.headers.get("location")).not.toContain("evil.com");
     expect(response.headers.get("location")?.endsWith("/apps")).toBeTruthy();
@@ -274,7 +274,7 @@ describe("test /login-callback", () => {
     const mockSession = { user: validEmailSessionUser };
 
     (getSession as jest.Mock).mockResolvedValue(mockSession);
-    const response = await loginCallback(mockReq, {});
+    const response = await loginCallback(mockReq);
 
     expect(response.headers.get("location")).not.toContain("evil.com");
     expect(response.headers.get("location")?.endsWith("/apps")).toBeTruthy();
@@ -303,7 +303,7 @@ describe("test /login-callback", () => {
     };
 
     (getSession as jest.Mock).mockResolvedValue(mockSession);
-    const response = await loginCallback(mockReq, {});
+    const response = await loginCallback(mockReq);
 
     const userQuery = gql`
       query FetchUserByEmail($email: String!) {

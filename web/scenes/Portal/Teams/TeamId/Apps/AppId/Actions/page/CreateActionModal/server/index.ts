@@ -9,7 +9,7 @@ import { generateExternalNullifier } from "@/lib/hashing";
 import { FormActionResult } from "@/lib/types";
 import { checkIfPartnerTeam } from "@/lib/utils";
 import { ApolloError } from "@apollo/client";
-import { getSession } from "@auth0/nextjs-auth0";
+import { auth0 } from "@/lib/auth0";
 import { getSdk as getActionInsertPermissionsSdk } from "../graphql/server/get-action-insert-permissions.generated";
 import { getSdk as getCreateActionSdk } from "../graphql/server/insert-action.generated";
 import { createActionSchema, CreateActionSchema } from "./form-schema";
@@ -18,7 +18,7 @@ export const getIsUserAllowedToInsertAction = async (
   teamId: string,
   appId: string,
 ) => {
-  const session = await getSession();
+  const session = await auth0.getSession();
   if (!session) {
     return false;
   }

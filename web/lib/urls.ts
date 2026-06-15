@@ -61,7 +61,11 @@ export const urls = {
   login: (params?: { invite_id: string }): string =>
     `/login${params?.invite_id ? `?invite_id=${params?.invite_id}` : ""}`,
 
-  logout: (): "/api/auth/logout" => "/api/auth/logout",
+  // v4 mounts /api/auth/logout via middleware; it honours a `returnTo` query
+  // param for the post-logout landing page. We keep the v3 behaviour of returning
+  // the user to /login (already an Allowed Logout URL on the Auth0 tenant).
+  logout: (): string =>
+    `/api/auth/logout?returnTo=${encodeURIComponent("/login")}`,
 
   join: (params?: SignupParams): string => {
     const searchParams = new URLSearchParams(params);
@@ -125,15 +129,16 @@ export const urls = {
       invite_id?: string | null;
       returnTo?: string | null;
     }): string => {
-      const searchParams = new URLSearchParams();
+      // v4 mounts /api/auth/login via middleware; it honours a `returnTo` query
+      // param and redirects there after the Auth0 callback completes. We point
+      // that at the login-callback pipeline (Hasura sync + session enrichment),
+      // forwarding invite_id and the originally requested deep link.
+      const returnTo = urls.api.loginCallback({
+        invite_id: params?.invite_id,
+        returnTo: params?.returnTo,
+      });
 
-      if (params?.invite_id) {
-        searchParams.append("invite_id", params.invite_id);
-      }
-
-      if (params?.returnTo) {
-        searchParams.append("returnTo", params.returnTo);
-      }
+      const searchParams = new URLSearchParams({ returnTo });
 
       return `/api/auth/login?${searchParams.toString()}`;
     },

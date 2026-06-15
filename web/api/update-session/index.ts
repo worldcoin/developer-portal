@@ -1,8 +1,4 @@
-import {
-  getSession,
-  updateSession,
-  withApiAuthRequired,
-} from "@auth0/nextjs-auth0";
+import { auth0 } from "@/lib/auth0";
 
 import { NextRequest, NextResponse } from "next/server";
 
@@ -30,11 +26,11 @@ const pickAllowlistedHasuraFields = (input: HasuraPayload = {}) =>
     ]).filter(([, value]) => value !== undefined),
   ) as HasuraPayload;
 
-export const POST = withApiAuthRequired(async (req: NextRequest) => {
+export const POST = async (req: NextRequest) => {
   const res = NextResponse.json({ success: true });
   const body = await req.json();
   const user = body?.user;
-  let session = await getSession(req, res);
+  let session = await auth0.getSession(req);
 
   if (!session) {
     return NextResponse.json({ success: false }, { status: 500 });
@@ -66,6 +62,6 @@ export const POST = withApiAuthRequired(async (req: NextRequest) => {
   };
 
   session = updatedSession;
-  await updateSession(req, res, session);
+  await auth0.updateSession(req, res, session);
   return res;
-});
+};

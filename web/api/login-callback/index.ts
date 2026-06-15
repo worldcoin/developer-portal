@@ -1,10 +1,6 @@
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 
-import {
-  getSession,
-  updateSession,
-  withApiAuthRequired,
-} from "@auth0/nextjs-auth0";
+import { auth0 } from "@/lib/auth0";
 
 import { NextRequest, NextResponse } from "next/server";
 
@@ -38,8 +34,8 @@ import { getAppUrlFromRequest } from "../helpers/utils";
 import { getSdk as DeleteInviteSdk } from "./graphql/delete-invite.generated";
 import { getSdk as updateUserSdk } from "./graphql/update-user.generated";
 
-export const loginCallback = withApiAuthRequired(async (req: NextRequest) => {
-  const session = await getSession();
+export const loginCallback = async (req: NextRequest) => {
+  const session = await auth0.getSession();
   const appUrl = await getAppUrlFromRequest(req);
 
   if (!session) {
@@ -348,7 +344,7 @@ export const loginCallback = withApiAuthRequired(async (req: NextRequest) => {
   const res = NextResponse.redirect(new URL(url, appUrl), 307);
 
   // NOTE: User's internal ID & team_id are used to query Hasura in subsequent requests
-  await updateSession(req, res, {
+  await auth0.updateSession(req, res, {
     ...session,
     user: {
       ...session.user,
@@ -359,4 +355,4 @@ export const loginCallback = withApiAuthRequired(async (req: NextRequest) => {
   });
 
   return res;
-});
+};

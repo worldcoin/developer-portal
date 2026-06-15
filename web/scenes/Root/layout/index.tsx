@@ -2,7 +2,7 @@ import { ApolloWrapper } from "@/lib/apollo-wrapper";
 import PostHogPageView from "@/scenes/Root/providers/PostHogPageView";
 import WithPostHogIdentifier from "@/scenes/Root/providers/providers";
 import "@/styles/globals.css";
-import { UserProvider } from "@auth0/nextjs-auth0/client";
+import { Auth0Provider } from "@auth0/nextjs-auth0/client";
 import { Provider } from "jotai";
 import { headers } from "next/headers";
 import { IBM_Plex_Mono, Rubik } from "next/font/google";
@@ -48,7 +48,7 @@ export const RootLayout = async ({
           position="bottom-right"
         />
 
-        <UserProvider>
+        <Auth0Provider>
           <WithPostHogIdentifier>
             <ApolloWrapper nonce={nonce}>
               <SkeletonTheme baseColor="#F3F4F5" highlightColor="#EBECEF">
@@ -61,7 +61,7 @@ export const RootLayout = async ({
               </SkeletonTheme>
             </ApolloWrapper>
           </WithPostHogIdentifier>
-        </UserProvider>
+        </Auth0Provider>
       </body>
     </html>
   );

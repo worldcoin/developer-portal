@@ -1,7 +1,7 @@
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { Unauthorized } from "@/components/Unauthorized";
 import { Auth0SessionUser } from "@/lib/types";
-import { getSession } from "@auth0/nextjs-auth0";
+import { auth0 } from "@/lib/auth0";
 import { TeamProfile } from "../common/TeamProfile";
 import { Apps } from "./Apps";
 import { Members } from "./Members";
@@ -14,7 +14,7 @@ type TeamIdPageProps = {
 export const TeamIdPage = async (props: TeamIdPageProps) => {
   const { params } = props;
   const teamId = params?.teamId as `team_${string}`;
-  const session = await getSession();
+  const session = await auth0.getSession();
   const user = session?.user as Auth0SessionUser["user"];
 
   const isTeamMember = user?.hasura?.memberships?.some(
