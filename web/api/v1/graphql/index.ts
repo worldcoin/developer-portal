@@ -80,7 +80,6 @@ export async function POST(req: NextRequest) {
   }
   const body = parseResult.body;
 
-  let res = NextResponse.json({ success: true });
   if (!headers.get("authorization")) {
     // NOTE: Check if user data exists in auth0 session and create a temporary user JWT
     const session = await auth0.getSession(req);
