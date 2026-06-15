@@ -115,6 +115,7 @@ export const POST = async (req: NextRequest) => {
       detail: "User does not have permission to rotate signer key.",
       code: "unauthorized",
       app_id,
+      logLevel: "warn",
     });
   }
 
