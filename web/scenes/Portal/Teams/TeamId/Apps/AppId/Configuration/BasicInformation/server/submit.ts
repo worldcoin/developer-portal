@@ -85,6 +85,42 @@ export async function validateAndSubmitServerSide(
       message: "App information updated successfully",
     };
   } catch (error) {
+    // Hasura rejects malformed client input (e.g. an invalid integration_url
+    // that fails the DB's URL/format check) with a GraphQL "data-exception" /
+    // "constraint-violation" / "validation-failed". These are bad-client input,
+    // not server faults.
+    const hasuraCode = (
+      error as {
+        response?: { errors?: { extensions?: { code?: unknown } }[] };
+      }
+    )?.response?.errors?.[0]?.extensions?.code;
+
+    if (
+      typeof hasuraCode === "string" &&
+      ["data-exception", "constraint-violation", "validation-failed"].includes(
+        hasuraCode,
+      )
+    ) {
+      // Log at warn and DO NOT attach the raw Error. The logger tags the active
+      // APM span with an error whenever an Error instance is attached (any log
+      // level) or whenever the level is "error" — and that span tag is what
+      // feeds Datadog Error Tracking. Passing the details as plain strings keeps
+      // a useful warn log without fingerprinting an expected validation
+      // rejection, mirroring the errorHasuraQuery warn calls elsewhere.
+      return errorFormAction({
+        message: "An error occurred while updating the app information",
+        additionalInfo: {
+          app_metadata_id,
+          input,
+          hasuraCode,
+          hasuraMessage: error instanceof Error ? error.message : String(error),
+        },
+        team_id: teamId,
+        app_id: app_id ?? undefined,
+        logLevel: "warn",
+      });
+    }
+
     return errorFormAction({
       message: "An error occurred while updating the app information",
       error: error as Error,
