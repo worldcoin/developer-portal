@@ -1,5 +1,6 @@
 import { errorResponse } from "@/api/helpers/errors";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
+import { parseRequestBody } from "@/api/helpers/parse-request-body";
 import {
   resolveRpRegistration,
   RpRegistrationStatus,
@@ -76,10 +77,15 @@ export async function POST(
   >
 > {
   const routeParams = await props.params;
-  const body = await req.json();
+
+  const parseResult = await parseRequestBody(req);
+  if (!parseResult.isValid) {
+    return corsHandler(parseResult.error, corsMethods);
+  }
+
   const { isValid, parsedParams, handleError } = await validateRequestSchema({
     schema,
-    value: body,
+    value: parseResult.body,
   });
 
   if (!isValid) {
