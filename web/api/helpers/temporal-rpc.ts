@@ -200,6 +200,25 @@ function parseVerifierRevertReason(error: unknown): {
   };
 }
 
+/**
+ * Distinguishes an expected on-chain Verifier revert (an invalid or expired
+ * proof — a client/business outcome the caller handles) from an unexpected
+ * failure (RPC/network/infra fault). Reverts are surfaced to the caller as a
+ * structured failure and are not server faults, so callers can log them at
+ * warn instead of error to keep them out of Error Tracking.
+ */
+function isVerifierRevert(error: unknown): boolean {
+  const ethersError = error as EthersCallException;
+  if (ethersError?.revert?.name) {
+    return true;
+  }
+  const message =
+    ethersError?.shortMessage ||
+    ethersError?.message ||
+    (error instanceof Error ? error.message : String(error));
+  return Object.keys(VERIFIER_ERROR_MAP).some((name) => message.includes(name));
+}
+
 // =============================================================================
 // UserOperation Submission
 // =============================================================================
@@ -373,7 +392,8 @@ export async function verifyProofOnChain(
     });
     return { success: true };
   } catch (error) {
-    logger.error("Proof verification failed", {
+    const logLevel = isVerifierRevert(error) ? "warn" : "error";
+    logger[logLevel]("Proof verification failed", {
       error: error instanceof Error ? error.message : String(error),
       rpId: params.rpId.toString(),
     });
@@ -428,7 +448,8 @@ export async function verifySessionProofOnChain(
     });
     return { success: true };
   } catch (error) {
-    logger.error("Session proof verification failed", {
+    const logLevel = isVerifierRevert(error) ? "warn" : "error";
+    logger[logLevel]("Session proof verification failed", {
       error: error instanceof Error ? error.message : String(error),
       rpId: params.rpId.toString(),
       sessionId: params.sessionId.toString(),
