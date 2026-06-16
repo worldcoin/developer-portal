@@ -4,12 +4,18 @@ import { WorldIcon } from "@/components/Icons/WorldIcon";
 import { urls } from "@/lib/urls";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { toast } from "react-toastify";
 
 export const JoinCallbackPageContent = (props: { invite_id: string }) => {
   const router = useRouter();
   const { invalidate } = useUser();
+
+  // `invalidate` from useUser() is a new reference each render; hold the latest
+  // in a ref so `joinUser` stays stable and the mount effect runs once instead
+  // of re-firing (POST /api/join-callback) on every render.
+  const invalidateRef = useRef(invalidate);
+  invalidateRef.current = invalidate;
 
   const joinUser = useCallback(async () => {
     let returnTo: string | null = null;
@@ -20,7 +26,7 @@ export const JoinCallbackPageContent = (props: { invite_id: string }) => {
         body: JSON.stringify({ invite_id: props.invite_id }),
       });
 
-      await invalidate();
+      await invalidateRef.current();
       const data = await res.json();
 
       if (!data.returnTo) {
@@ -41,7 +47,7 @@ export const JoinCallbackPageContent = (props: { invite_id: string }) => {
     }
 
     router.push(returnTo);
-  }, [invalidate, props.invite_id, router]);
+  }, [props.invite_id, router]);
 
   useEffect(() => {
     joinUser();
