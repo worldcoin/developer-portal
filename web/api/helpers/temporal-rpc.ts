@@ -200,6 +200,30 @@ function parseVerifierRevertReason(error: unknown): {
   };
 }
 
+/**
+ * Distinguishes an expected on-chain Verifier revert (an invalid or expired
+ * proof — a client/business outcome the caller handles) from an unexpected
+ * failure (RPC/network/infra fault). Reverts are surfaced to the caller as a
+ * structured failure and are not server faults, so callers can log them at
+ * warn instead of error to keep them out of Error Tracking.
+ */
+function isVerifierRevert(error: unknown): boolean {
+  const ethersError = error as EthersCallException;
+  const knownRevertNames = Object.keys(VERIFIER_ERROR_MAP);
+  // Only downgrade reverts we recognize as expected invalid-proof outcomes.
+  // Built-in Error(string)/Panic(uint256) reverts and unmapped custom errors
+  // stay at error so new contract/verifier failures remain visible in Error
+  // Tracking.
+  if (ethersError?.revert?.name) {
+    return knownRevertNames.includes(ethersError.revert.name);
+  }
+  const message =
+    ethersError?.shortMessage ||
+    ethersError?.message ||
+    (error instanceof Error ? error.message : String(error));
+  return knownRevertNames.some((name) => message.includes(name));
+}
+
 // =============================================================================
 // UserOperation Submission
 // =============================================================================
@@ -373,7 +397,8 @@ export async function verifyProofOnChain(
     });
     return { success: true };
   } catch (error) {
-    logger.error("Proof verification failed", {
+    const logLevel = isVerifierRevert(error) ? "warn" : "error";
+    logger[logLevel]("Proof verification failed", {
       error: error instanceof Error ? error.message : String(error),
       rpId: params.rpId.toString(),
     });
@@ -428,7 +453,8 @@ export async function verifySessionProofOnChain(
     });
     return { success: true };
   } catch (error) {
-    logger.error("Session proof verification failed", {
+    const logLevel = isVerifierRevert(error) ? "warn" : "error";
+    logger[logLevel]("Session proof verification failed", {
       error: error instanceof Error ? error.message : String(error),
       rpId: params.rpId.toString(),
       sessionId: params.sessionId.toString(),
