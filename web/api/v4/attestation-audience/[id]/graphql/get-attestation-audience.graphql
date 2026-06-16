@@ -1,0 +1,33 @@
+query GetAttestationAudienceByAppId($app_id: String!) {
+  app_by_pk(id: $app_id) {
+    id
+    verified_app_metadata: app_metadata(
+      where: { verification_status: { _eq: "verified" } }
+      limit: 1
+    ) {
+      id
+    }
+    rp_registration(limit: 1) {
+      rp_id
+      status
+      staging_status
+    }
+  }
+}
+
+query GetAttestationAudienceByRpId($rp_id: String!) {
+  rp_registration(where: { rp_id: { _eq: $rp_id } }, limit: 1) {
+    app_id
+    rp_id
+    status
+    staging_status
+    app {
+      verified_app_metadata: app_metadata(
+        where: { verification_status: { _eq: "verified" } }
+        limit: 1
+      ) {
+        id
+      }
+    }
+  }
+}
