@@ -1,23 +1,19 @@
 import { errorResponse } from "@/api/helpers/errors";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
-import { isValidRpId, RpRegistrationStatus } from "@/api/helpers/rp-utils";
+import { isValidRpId } from "@/api/helpers/rp-utils";
 import { appIdRegex } from "@/lib/schema";
 import { NextRequest, NextResponse } from "next/server";
-import { getSdk as getAttestationAudienceSdk } from "./graphql/get-attestation-audience.generated";
+import { getSdk as getAppStatusSdk } from "./graphql/get-app-status.generated";
 
 const PUBLIC_CACHE_HEADERS = {
   "Cache-Control": "public, max-age=5, stale-if-error=300",
 };
 
-type AttestationAudienceResponse = {
-  app_id: string;
-  rp_id: string | null;
-  production_registration_status: RpRegistrationStatus | null;
-  staging_registration_status: RpRegistrationStatus | null;
+type AppStatusResponse = {
   verified: boolean;
 };
 
-function isValidAttestationAudienceId(id: string) {
+function isValidAppStatusId(id: string) {
   return isValidRpId(id) || appIdRegex.test(id);
 }
 
@@ -28,7 +24,7 @@ export async function GET(
   const params = await props.params;
   const id = params.id;
 
-  if (!isValidAttestationAudienceId(id)) {
+  if (!isValidAppStatusId(id)) {
     return errorResponse({
       statusCode: 400,
       code: "invalid_id",
@@ -39,10 +35,10 @@ export async function GET(
   }
 
   const client = await getAPIServiceGraphqlClient();
-  const sdk = getAttestationAudienceSdk(client);
+  const sdk = getAppStatusSdk(client);
 
   if (!isValidRpId(id)) {
-    const { app_by_pk: app } = await sdk.GetAttestationAudienceByAppId({
+    const { app_by_pk: app } = await sdk.GetAppStatusByAppId({
       app_id: id,
     });
 
@@ -56,15 +52,7 @@ export async function GET(
       });
     }
 
-    const registration = app.rp_registration[0] ?? null;
-
-    const responseBody: AttestationAudienceResponse = {
-      app_id: app.id,
-      rp_id: registration?.rp_id ?? null,
-      production_registration_status:
-        (registration?.status as RpRegistrationStatus | undefined) ?? null,
-      staging_registration_status:
-        (registration?.staging_status as RpRegistrationStatus | null) ?? null,
+    const responseBody: AppStatusResponse = {
       verified: app.verified_app_metadata.length > 0,
     };
 
@@ -74,7 +62,7 @@ export async function GET(
     });
   }
 
-  const response = await sdk.GetAttestationAudienceByRpId({ rp_id: id });
+  const response = await sdk.GetAppStatusByRpId({ rp_id: id });
 
   const registration = response.rp_registration[0];
 
@@ -88,12 +76,7 @@ export async function GET(
     });
   }
 
-  const responseBody: AttestationAudienceResponse = {
-    app_id: registration.app_id,
-    rp_id: registration.rp_id,
-    production_registration_status: registration.status as RpRegistrationStatus,
-    staging_registration_status:
-      (registration.staging_status as RpRegistrationStatus | null) ?? null,
+  const responseBody: AppStatusResponse = {
     verified: registration.app.verified_app_metadata.length > 0,
   };
 

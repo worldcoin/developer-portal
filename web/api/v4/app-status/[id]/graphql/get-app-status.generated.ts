@@ -4,37 +4,26 @@ import * as Types from "@/graphql/graphql";
 import { GraphQLClient, RequestOptions } from "graphql-request";
 import gql from "graphql-tag";
 type GraphQLClientRequestHeaders = RequestOptions["requestHeaders"];
-export type GetAttestationAudienceByAppIdQueryVariables = Types.Exact<{
+export type GetAppStatusByAppIdQueryVariables = Types.Exact<{
   app_id: Types.Scalars["String"]["input"];
 }>;
 
-export type GetAttestationAudienceByAppIdQuery = {
+export type GetAppStatusByAppIdQuery = {
   __typename?: "query_root";
   app_by_pk?: {
     __typename?: "app";
-    id: string;
     verified_app_metadata: Array<{ __typename?: "app_metadata"; id: string }>;
-    rp_registration: Array<{
-      __typename?: "rp_registration";
-      rp_id: string;
-      status: unknown;
-      staging_status?: unknown | null;
-    }>;
   } | null;
 };
 
-export type GetAttestationAudienceByRpIdQueryVariables = Types.Exact<{
+export type GetAppStatusByRpIdQueryVariables = Types.Exact<{
   rp_id: Types.Scalars["String"]["input"];
 }>;
 
-export type GetAttestationAudienceByRpIdQuery = {
+export type GetAppStatusByRpIdQuery = {
   __typename?: "query_root";
   rp_registration: Array<{
     __typename?: "rp_registration";
-    app_id: string;
-    rp_id: string;
-    status: unknown;
-    staging_status?: unknown | null;
     app: {
       __typename?: "app";
       verified_app_metadata: Array<{ __typename?: "app_metadata"; id: string }>;
@@ -42,31 +31,21 @@ export type GetAttestationAudienceByRpIdQuery = {
   }>;
 };
 
-export const GetAttestationAudienceByAppIdDocument = gql`
-  query GetAttestationAudienceByAppId($app_id: String!) {
+export const GetAppStatusByAppIdDocument = gql`
+  query GetAppStatusByAppId($app_id: String!) {
     app_by_pk(id: $app_id) {
-      id
       verified_app_metadata: app_metadata(
         where: { verification_status: { _eq: "verified" } }
         limit: 1
       ) {
         id
       }
-      rp_registration(limit: 1) {
-        rp_id
-        status
-        staging_status
-      }
     }
   }
 `;
-export const GetAttestationAudienceByRpIdDocument = gql`
-  query GetAttestationAudienceByRpId($rp_id: String!) {
+export const GetAppStatusByRpIdDocument = gql`
+  query GetAppStatusByRpId($rp_id: String!) {
     rp_registration(where: { rp_id: { _eq: $rp_id } }, limit: 1) {
-      app_id
-      rp_id
-      status
-      staging_status
       app {
         verified_app_metadata: app_metadata(
           where: { verification_status: { _eq: "verified" } }
@@ -98,34 +77,34 @@ export function getSdk(
   withWrapper: SdkFunctionWrapper = defaultWrapper,
 ) {
   return {
-    GetAttestationAudienceByAppId(
-      variables: GetAttestationAudienceByAppIdQueryVariables,
+    GetAppStatusByAppId(
+      variables: GetAppStatusByAppIdQueryVariables,
       requestHeaders?: GraphQLClientRequestHeaders,
-    ): Promise<GetAttestationAudienceByAppIdQuery> {
+    ): Promise<GetAppStatusByAppIdQuery> {
       return withWrapper(
         (wrappedRequestHeaders) =>
-          client.request<GetAttestationAudienceByAppIdQuery>(
-            GetAttestationAudienceByAppIdDocument,
+          client.request<GetAppStatusByAppIdQuery>(
+            GetAppStatusByAppIdDocument,
             variables,
             { ...requestHeaders, ...wrappedRequestHeaders },
           ),
-        "GetAttestationAudienceByAppId",
+        "GetAppStatusByAppId",
         "query",
         variables,
       );
     },
-    GetAttestationAudienceByRpId(
-      variables: GetAttestationAudienceByRpIdQueryVariables,
+    GetAppStatusByRpId(
+      variables: GetAppStatusByRpIdQueryVariables,
       requestHeaders?: GraphQLClientRequestHeaders,
-    ): Promise<GetAttestationAudienceByRpIdQuery> {
+    ): Promise<GetAppStatusByRpIdQuery> {
       return withWrapper(
         (wrappedRequestHeaders) =>
-          client.request<GetAttestationAudienceByRpIdQuery>(
-            GetAttestationAudienceByRpIdDocument,
+          client.request<GetAppStatusByRpIdQuery>(
+            GetAppStatusByRpIdDocument,
             variables,
             { ...requestHeaders, ...wrappedRequestHeaders },
           ),
-        "GetAttestationAudienceByRpId",
+        "GetAppStatusByRpId",
         "query",
         variables,
       );

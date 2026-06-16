@@ -1,21 +1,20 @@
-import { GET } from "@/api/v4/attestation-audience/[id]";
-import { RpRegistrationStatus } from "@/api/helpers/rp-utils";
+import { GET } from "@/api/v4/app-status/[id]";
 import { NextRequest } from "next/server";
 
 // #region Mocks
-const GetAttestationAudienceByAppId = jest.fn();
-const GetAttestationAudienceByRpId = jest.fn();
+const GetAppStatusByAppId = jest.fn();
+const GetAppStatusByRpId = jest.fn();
 
 jest.mock("../../../lib/logger", () => ({
   logger: { info: jest.fn(), warn: jest.fn(), error: jest.fn() },
 }));
 
 jest.mock(
-  "../../../api/v4/attestation-audience/[id]/graphql/get-attestation-audience.generated",
+  "../../../api/v4/app-status/[id]/graphql/get-app-status.generated",
   () => ({
     getSdk: () => ({
-      GetAttestationAudienceByAppId,
-      GetAttestationAudienceByRpId,
+      GetAppStatusByAppId,
+      GetAppStatusByRpId,
     }),
   }),
 );
@@ -31,7 +30,7 @@ const rpId = "rp_abc123def4560000";
 
 const createRequest = (id: string) =>
   new NextRequest(
-    new URL(`/api/v4/attestation-audience/${id}`, "http://localhost:3000"),
+    new URL(`/api/v4/app-status/${id}`, "http://localhost:3000"),
     { method: "GET" },
   );
 
@@ -41,18 +40,12 @@ const createContext = (id: string) => ({
 
 const makeRegistration = (
   overrides: Partial<{
-    rp_id: string;
-    status: RpRegistrationStatus;
-    staging_status: RpRegistrationStatus | null;
     verifiedMetadata: Array<{ id: string }>;
   }> = {},
 ) => {
   const { verifiedMetadata, ...registrationOverrides } = overrides;
 
   return {
-    rp_id: rpId,
-    status: RpRegistrationStatus.Registered,
-    staging_status: RpRegistrationStatus.Pending,
     app: {
       verified_app_metadata: verifiedMetadata ?? [{ id: "meta_1" }],
     },
@@ -62,17 +55,13 @@ const makeRegistration = (
 
 const makeApp = (
   overrides: Partial<{
-    id: string;
     verifiedMetadata: Array<{ id: string }>;
-    rp_registration: ReturnType<typeof makeRegistration>[];
   }> = {},
 ) => {
   const { verifiedMetadata, ...appOverrides } = overrides;
 
   return {
-    id: appId,
     verified_app_metadata: verifiedMetadata ?? [{ id: "meta_1" }],
-    rp_registration: [makeRegistration()],
     ...appOverrides,
   };
 };
@@ -83,9 +72,9 @@ beforeEach(() => {
 });
 
 // #region Successful lookups
-describe("/api/v4/attestation-audience/[id] [successful lookups]", () => {
-  it("looks up registration by app_id", async () => {
-    GetAttestationAudienceByAppId.mockResolvedValue({
+describe("/api/v4/app-status/[id] [successful lookups]", () => {
+  it("looks up app status by app_id", async () => {
+    GetAppStatusByAppId.mockResolvedValue({
       app_by_pk: makeApp(),
     });
 
@@ -96,46 +85,33 @@ describe("/api/v4/attestation-audience/[id] [successful lookups]", () => {
       "public, max-age=5, stale-if-error=300",
     );
     await expect(res.json()).resolves.toEqual({
-      app_id: appId,
-      rp_id: rpId,
-      production_registration_status: RpRegistrationStatus.Registered,
-      staging_registration_status: RpRegistrationStatus.Pending,
       verified: true,
     });
-    expect(GetAttestationAudienceByAppId).toHaveBeenCalledWith({
+    expect(GetAppStatusByAppId).toHaveBeenCalledWith({
       app_id: appId,
     });
-    expect(GetAttestationAudienceByRpId).not.toHaveBeenCalled();
+    expect(GetAppStatusByRpId).not.toHaveBeenCalled();
   });
 
-  it("looks up registration by rp_id", async () => {
-    GetAttestationAudienceByRpId.mockResolvedValue({
-      rp_registration: [
-        {
-          ...makeRegistration(),
-          app_id: appId,
-        },
-      ],
+  it("looks up app status by rp_id", async () => {
+    GetAppStatusByRpId.mockResolvedValue({
+      rp_registration: [makeRegistration()],
     });
 
     const res = await GET(createRequest(rpId), createContext(rpId));
 
     expect(res.status).toBe(200);
     await expect(res.json()).resolves.toEqual({
-      app_id: appId,
-      rp_id: rpId,
-      production_registration_status: RpRegistrationStatus.Registered,
-      staging_registration_status: RpRegistrationStatus.Pending,
       verified: true,
     });
-    expect(GetAttestationAudienceByRpId).toHaveBeenCalledWith({
+    expect(GetAppStatusByRpId).toHaveBeenCalledWith({
       rp_id: rpId,
     });
-    expect(GetAttestationAudienceByAppId).not.toHaveBeenCalled();
+    expect(GetAppStatusByAppId).not.toHaveBeenCalled();
   });
 
   it("returns verified true when verified app_metadata exists", async () => {
-    GetAttestationAudienceByAppId.mockResolvedValue({
+    GetAppStatusByAppId.mockResolvedValue({
       app_by_pk: makeApp({ verifiedMetadata: [{ id: "meta_verified" }] }),
     });
 
@@ -147,7 +123,7 @@ describe("/api/v4/attestation-audience/[id] [successful lookups]", () => {
   });
 
   it("returns verified false when verified app_metadata is absent", async () => {
-    GetAttestationAudienceByAppId.mockResolvedValue({
+    GetAppStatusByAppId.mockResolvedValue({
       app_by_pk: makeApp({ verifiedMetadata: [] }),
     });
 
@@ -158,33 +134,15 @@ describe("/api/v4/attestation-audience/[id] [successful lookups]", () => {
     expect(body.verified).toBe(false);
   });
 
-  it("returns null staging_registration_status when staging_status is null", async () => {
-    GetAttestationAudienceByAppId.mockResolvedValue({
-      app_by_pk: makeApp({
-        rp_registration: [makeRegistration({ staging_status: null })],
-      }),
-    });
-
-    const res = await GET(createRequest(appId), createContext(appId));
-
-    expect(res.status).toBe(200);
-    const body = await res.json();
-    expect(body.staging_registration_status).toBeNull();
-  });
-
-  it("returns app metadata with null registration fields when app has no rp_registration", async () => {
-    GetAttestationAudienceByAppId.mockResolvedValue({
-      app_by_pk: makeApp({ rp_registration: [] }),
+  it("returns verified true for app_id even when no rp_registration exists", async () => {
+    GetAppStatusByAppId.mockResolvedValue({
+      app_by_pk: makeApp(),
     });
 
     const res = await GET(createRequest(appId), createContext(appId));
 
     expect(res.status).toBe(200);
     await expect(res.json()).resolves.toEqual({
-      app_id: appId,
-      rp_id: null,
-      production_registration_status: null,
-      staging_registration_status: null,
       verified: true,
     });
   });
@@ -192,7 +150,7 @@ describe("/api/v4/attestation-audience/[id] [successful lookups]", () => {
 // #endregion
 
 // #region Error cases
-describe("/api/v4/attestation-audience/[id] [error cases]", () => {
+describe("/api/v4/app-status/[id] [error cases]", () => {
   it("returns 400 for invalid id format", async () => {
     const res = await GET(
       createRequest("app_invalid"),
@@ -204,12 +162,12 @@ describe("/api/v4/attestation-audience/[id] [error cases]", () => {
       code: "invalid_id",
       attribute: "id",
     });
-    expect(GetAttestationAudienceByAppId).not.toHaveBeenCalled();
-    expect(GetAttestationAudienceByRpId).not.toHaveBeenCalled();
+    expect(GetAppStatusByAppId).not.toHaveBeenCalled();
+    expect(GetAppStatusByRpId).not.toHaveBeenCalled();
   });
 
   it("returns 404 when app_id does not exist", async () => {
-    GetAttestationAudienceByAppId.mockResolvedValue({
+    GetAppStatusByAppId.mockResolvedValue({
       app_by_pk: null,
     });
 
@@ -223,7 +181,7 @@ describe("/api/v4/attestation-audience/[id] [error cases]", () => {
   });
 
   it("returns 404 when rp_id registration does not exist", async () => {
-    GetAttestationAudienceByRpId.mockResolvedValue({
+    GetAppStatusByRpId.mockResolvedValue({
       rp_registration: [],
     });
 
