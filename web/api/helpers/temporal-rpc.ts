@@ -209,14 +209,19 @@ function parseVerifierRevertReason(error: unknown): {
  */
 function isVerifierRevert(error: unknown): boolean {
   const ethersError = error as EthersCallException;
+  const knownRevertNames = Object.keys(VERIFIER_ERROR_MAP);
+  // Only downgrade reverts we recognize as expected invalid-proof outcomes.
+  // Built-in Error(string)/Panic(uint256) reverts and unmapped custom errors
+  // stay at error so new contract/verifier failures remain visible in Error
+  // Tracking.
   if (ethersError?.revert?.name) {
-    return true;
+    return knownRevertNames.includes(ethersError.revert.name);
   }
   const message =
     ethersError?.shortMessage ||
     ethersError?.message ||
     (error instanceof Error ? error.message : String(error));
-  return Object.keys(VERIFIER_ERROR_MAP).some((name) => message.includes(name));
+  return knownRevertNames.some((name) => message.includes(name));
 }
 
 // =============================================================================
