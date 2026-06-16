@@ -1,12 +1,8 @@
 import { calculateColorFromString } from "@/lib/calculate-color-from-string";
 import { Auth0SessionUser } from "@/lib/types";
 import { auth0 } from "@/lib/auth0";
-import { atom } from "jotai";
 import { ReactNode } from "react";
-import { Color } from "../Profile/types";
 import { Header } from "./Header";
-
-export const colorAtom = atom<Color | null>(null);
 
 export const PortalLayout = async (props: { children: ReactNode }) => {
   const session = await auth0.getSession();
