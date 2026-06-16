@@ -40,27 +40,39 @@ const createContext = (id: string) => ({
 
 const makeRegistration = (
   overrides: Partial<{
-    verifiedMetadata: Array<{ id: string }>;
-  }> = {},
-) => {
-  const { verifiedMetadata, ...registrationOverrides } = overrides;
-
-  return {
-    app: {
-      verified_app_metadata: verifiedMetadata ?? [{ id: "meta_1" }],
-    },
-    ...registrationOverrides,
-  };
-};
-
-const makeApp = (
-  overrides: Partial<{
+    status: string;
+    is_archived: boolean;
+    deleted_at: string | null;
     verifiedMetadata: Array<{ id: string }>;
   }> = {},
 ) => {
   const { verifiedMetadata, ...appOverrides } = overrides;
 
   return {
+    app: {
+      status: "active",
+      is_archived: false,
+      deleted_at: null,
+      verified_app_metadata: verifiedMetadata ?? [{ id: "meta_1" }],
+      ...appOverrides,
+    },
+  };
+};
+
+const makeApp = (
+  overrides: Partial<{
+    status: string;
+    is_archived: boolean;
+    deleted_at: string | null;
+    verifiedMetadata: Array<{ id: string }>;
+  }> = {},
+) => {
+  const { verifiedMetadata, ...appOverrides } = overrides;
+
+  return {
+    status: "active",
+    is_archived: false,
+    deleted_at: null,
     verified_app_metadata: verifiedMetadata ?? [{ id: "meta_1" }],
     ...appOverrides,
   };
@@ -128,6 +140,44 @@ describe("/api/v4/app-status/[id] [successful lookups]", () => {
     });
 
     const res = await GET(createRequest(appId), createContext(appId));
+
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.verified).toBe(false);
+  });
+
+  it("returns verified false when app is inactive", async () => {
+    GetAppStatusByAppId.mockResolvedValue({
+      app_by_pk: makeApp({ status: "inactive" }),
+    });
+
+    const res = await GET(createRequest(appId), createContext(appId));
+
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.verified).toBe(false);
+  });
+
+  it("returns verified false when app is archived", async () => {
+    GetAppStatusByAppId.mockResolvedValue({
+      app_by_pk: makeApp({ is_archived: true }),
+    });
+
+    const res = await GET(createRequest(appId), createContext(appId));
+
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.verified).toBe(false);
+  });
+
+  it("returns verified false when app is deleted", async () => {
+    GetAppStatusByRpId.mockResolvedValue({
+      rp_registration: [
+        makeRegistration({ deleted_at: new Date().toISOString() }),
+      ],
+    });
+
+    const res = await GET(createRequest(rpId), createContext(rpId));
 
     expect(res.status).toBe(200);
     const body = await res.json();

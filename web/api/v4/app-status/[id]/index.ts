@@ -13,8 +13,24 @@ type AppStatusResponse = {
   verified: boolean;
 };
 
+type AppStatusData = {
+  status: string;
+  is_archived: boolean;
+  deleted_at?: string | null;
+  verified_app_metadata: Array<unknown>;
+};
+
 function isValidAppStatusId(id: string) {
   return isValidRpId(id) || appIdRegex.test(id);
+}
+
+function isAppVerified(app: AppStatusData) {
+  return (
+    app.status === "active" &&
+    !app.is_archived &&
+    !app.deleted_at &&
+    app.verified_app_metadata.length > 0
+  );
 }
 
 export async function GET(
@@ -53,7 +69,7 @@ export async function GET(
     }
 
     const responseBody: AppStatusResponse = {
-      verified: app.verified_app_metadata.length > 0,
+      verified: isAppVerified(app),
     };
 
     return NextResponse.json(responseBody, {
@@ -63,9 +79,7 @@ export async function GET(
   }
 
   const response = await sdk.GetAppStatusByRpId({ rp_id: id });
-
   const registration = response.rp_registration[0];
-
   if (!registration) {
     return errorResponse({
       statusCode: 404,
@@ -77,7 +91,7 @@ export async function GET(
   }
 
   const responseBody: AppStatusResponse = {
-    verified: registration.app.verified_app_metadata.length > 0,
+    verified: isAppVerified(registration.app),
   };
 
   return NextResponse.json(responseBody, {

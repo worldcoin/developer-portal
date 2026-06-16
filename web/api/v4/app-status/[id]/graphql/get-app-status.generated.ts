@@ -12,6 +12,9 @@ export type GetAppStatusByAppIdQuery = {
   __typename?: "query_root";
   app_by_pk?: {
     __typename?: "app";
+    status: string;
+    is_archived: boolean;
+    deleted_at?: string | null;
     verified_app_metadata: Array<{ __typename?: "app_metadata"; id: string }>;
   } | null;
 };
@@ -26,6 +29,9 @@ export type GetAppStatusByRpIdQuery = {
     __typename?: "rp_registration";
     app: {
       __typename?: "app";
+      status: string;
+      is_archived: boolean;
+      deleted_at?: string | null;
       verified_app_metadata: Array<{ __typename?: "app_metadata"; id: string }>;
     };
   }>;
@@ -34,6 +40,9 @@ export type GetAppStatusByRpIdQuery = {
 export const GetAppStatusByAppIdDocument = gql`
   query GetAppStatusByAppId($app_id: String!) {
     app_by_pk(id: $app_id) {
+      status
+      is_archived
+      deleted_at
       verified_app_metadata: app_metadata(
         where: { verification_status: { _eq: "verified" } }
         limit: 1
@@ -47,6 +56,9 @@ export const GetAppStatusByRpIdDocument = gql`
   query GetAppStatusByRpId($rp_id: String!) {
     rp_registration(where: { rp_id: { _eq: $rp_id } }, limit: 1) {
       app {
+        status
+        is_archived
+        deleted_at
         verified_app_metadata: app_metadata(
           where: { verification_status: { _eq: "verified" } }
           limit: 1
