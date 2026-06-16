@@ -1,13 +1,21 @@
 import { Auth0SessionUser } from "@/lib/types";
 import { getNullifierName } from "@/lib/utils";
 import { useUser } from "@auth0/nextjs-auth0/client";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useFetchMeQuery } from "./graphql/client/me-query.generated";
 
 export const useMeQuery = (options?: Parameters<typeof useFetchMeQuery>[0]) => {
   const { user: auth0User } = useUser() as Auth0SessionUser;
   const [updating, setUpdating] = useState(true);
   const { invalidate } = useUser();
+
+  // `invalidate` from useUser() is a new function reference on every render.
+  // Keep the latest in a ref and call it via the ref so `updateSession` below
+  // stays referentially stable — depending on `invalidate` directly would
+  // recreate updateSession each render and re-run the effect in a loop
+  // (POST /api/update-session + profile refetch on every render).
+  const invalidateRef = useRef(invalidate);
+  invalidateRef.current = invalidate;
 
   const {
     data,
@@ -51,8 +59,8 @@ export const useMeQuery = (options?: Parameters<typeof useFetchMeQuery>[0]) => {
       return;
     }
 
-    await invalidate();
-  }, [invalidate, data?.user_by_pk]);
+    await invalidateRef.current();
+  }, [data?.user_by_pk]);
 
   useEffect(() => {
     if (!data || fetchLoading) {
