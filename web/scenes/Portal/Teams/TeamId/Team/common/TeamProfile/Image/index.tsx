@@ -1,7 +1,7 @@
 "use client";
 
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import { colorAtom } from "@/scenes/Portal/layout";
+import { colorAtom } from "@/scenes/Portal/layout/color-atom";
 import clsx from "clsx";
 import { useAtom } from "jotai";
 import NextImage from "next/image";

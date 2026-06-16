@@ -9,7 +9,7 @@ import { urls } from "@/lib/urls";
 import { atom, useAtom, useSetAtom } from "jotai";
 import { useParams } from "next/navigation";
 import React, { useEffect, useMemo } from "react";
-import { colorAtom } from "..";
+import { colorAtom } from "../color-atom";
 import { Color } from "../../Profile/types";
 import { AppSelector } from "../AppSelector";
 import { CreateAppDialog } from "../CreateAppDialog";
