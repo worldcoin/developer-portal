@@ -128,6 +128,25 @@ describe("middleware [forwarded-header normalization in allow-list mode]", () =>
     expect(handed.headers.get("x-forwarded-proto")).toBe("https");
     expect(handed.headers.get("x-forwarded-host")).toBe("developer.world.org");
   });
+
+  it("uses only the first forwarded host when a proxy appends to X-Forwarded-Host", async () => {
+    const sdkRes = NextResponse.json({ ok: true });
+    auth0Middleware.mockResolvedValue(sdkRes);
+
+    const req = new NextRequest("https://developer.world.org/api/auth/login", {
+      headers: {
+        "x-forwarded-proto": "http",
+        "x-forwarded-host": "developer.world.org:80, proxy.internal",
+      },
+    });
+    const res = await middleware(req);
+
+    expect(res).toBe(sdkRes);
+    const handed = auth0Middleware.mock.calls[0][0] as NextRequest;
+    expect(handed.headers.get("x-forwarded-proto")).toBe("https");
+    // First value, trimmed, port-stripped — matches the allow-list entry the SDK reads.
+    expect(handed.headers.get("x-forwarded-host")).toBe("developer.world.org");
+  });
 });
 // #endregion
 

@@ -164,11 +164,18 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith("/api/auth/") &&
     Array.isArray(getAllowedAppBaseUrls())
   ) {
+    // Mirror the SDK's getFirstHeaderValue (first comma-separated value, trimmed),
+    // then strip the default port it leaves on — so a proxy that appends to
+    // X-Forwarded-Host (e.g. "developer.world.org:80, proxy.internal") still
+    // resolves to the bare canonical host the allow-list contains.
     const host = (
       request.headers.get("x-forwarded-host") ||
       request.headers.get("host") ||
       request.nextUrl.host
-    )?.replace(/:(80|443)$/, "");
+    )
+      ?.split(",")[0]
+      ?.trim()
+      ?.replace(/:(80|443)$/, "");
     if (host) {
       normalizedOrigin = `https://${host}`;
       const headers = new Headers(request.headers);
