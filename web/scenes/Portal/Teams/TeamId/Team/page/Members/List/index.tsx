@@ -1,4 +1,5 @@
 "use client";
+import { Pagination } from "@/components/Pagination";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Role_Enum } from "@/graphql/graphql";
 import { Auth0SessionUser } from "@/lib/types";
@@ -62,14 +63,31 @@ export const List = (props: ListProps) => {
     ] satisfies FetchTeamMembersQuery["members"][number][];
   }, [membersRes]);
 
+  const ROWS_PER_PAGE = 5;
+  const [currentPage, setCurrentPage] = useState(1);
+
+  // reset to page 1 whenever the (server-side) search keyword changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [props.keyword]);
+
+  const pageCount = Math.max(1, Math.ceil(items.length / ROWS_PER_PAGE));
+  // clamp the active page so it can't fall out of range when items shrink (e.g. after remove/cancel)
+  const safePage = Math.min(currentPage, pageCount);
+
+  const paginatedItems = useMemo(() => {
+    const start = (safePage - 1) * ROWS_PER_PAGE;
+    return items.slice(start, start + ROWS_PER_PAGE);
+  }, [items, safePage]);
+
   const membersToRenderHasInvitedMember = useMemo(() => {
-    for (const member of items) {
+    for (const member of paginatedItems) {
       if (member.id.startsWith("inv_")) {
         return true;
       }
     }
     return false;
-  }, [items]);
+  }, [paginatedItems]);
 
   const onEditUser = useCallback(
     (membership: FetchTeamMembersQuery["members"][number]) => {
@@ -177,7 +195,7 @@ export const List = (props: ListProps) => {
           {membersRes.loading &&
             Array.from({ length: 3 }).map((_, i) => <Item key={i} />)}
 
-          {items.map((item) => (
+          {paginatedItems.map((item) => (
             <Item
               key={item.id}
               item={item}
@@ -191,6 +209,16 @@ export const List = (props: ListProps) => {
           ))}
         </div>
       </div>
+
+      {!membersRes.loading && items.length > ROWS_PER_PAGE && (
+        <Pagination
+          totalResults={items.length}
+          currentPage={safePage}
+          rowsPerPage={ROWS_PER_PAGE}
+          handlePageChange={setCurrentPage}
+          className="relative"
+        />
+      )}
 
       {membersRes.data && items.length === 0 && props.keyword && (
         <div className="flex h-[240px] w-full items-center justify-center rounded-2xl border border-grey-200">
