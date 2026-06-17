@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
+import { InvalidConfigurationError } from "@auth0/nextjs-auth0/errors";
 import { auth0 } from "@/lib/auth0";
-import { siblingOrigin } from "@/lib/app-base-url";
+import {
+  getAllowedAppBaseUrls,
+  getPrimaryAppBaseUrl,
+  siblingOrigin,
+} from "@/lib/app-base-url";
 import { Role_Enum } from "./graphql/graphql";
 import { Auth0SessionUser } from "./lib/types";
 import { urls } from "./lib/urls";
@@ -142,12 +147,68 @@ const isProtectedPath = (pathname: string) =>
   protectedMatchers.some((matcher) => matcher.test(pathname));
 
 export async function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+
+  // In allow-list mode the Auth0 SDK matches the request origin against the
+  // `appBaseUrl` list with an exact, un-normalized compare. This deployment's proxy
+  // can forward `x-forwarded-proto: http` and a `:80`/`:443`-suffixed host on
+  // otherwise-HTTPS public traffic (the reason `getAppUrlFromRequest` exists), so a
+  // legitimate worldcoin.org/world.org login would otherwise infer `http://…` /
+  // `…:80`, miss the list, and throw. Normalize the forwarded proto/host on GET auth
+  // requests so the SDK sees the canonical `https://<host>` form and keeps the
+  // callback on the host the request came in on.
+  let authReq = request;
+  let normalizedOrigin: string | undefined;
+  if (
+    request.method === "GET" &&
+    pathname.startsWith("/api/auth/") &&
+    Array.isArray(getAllowedAppBaseUrls())
+  ) {
+    const host = (
+      request.headers.get("x-forwarded-host") ||
+      request.headers.get("host") ||
+      request.nextUrl.host
+    )?.replace(/:(80|443)$/, "");
+    if (host) {
+      normalizedOrigin = `https://${host}`;
+      const headers = new Headers(request.headers);
+      headers.set("x-forwarded-host", host);
+      headers.set("x-forwarded-proto", "https");
+      authReq = new NextRequest(request.url, { headers });
+    }
+  }
+
   // 1. Let the Auth0 SDK mount its routes (`/api/auth/login`, `/callback`,
   //    `/logout`, `/profile`, ...) and refresh the rolling session cookie. For a
   //    mounted auth route this returns the auth response directly.
-  const authRes = await auth0.middleware(request);
-
-  const { pathname } = request.nextUrl;
+  let authRes: NextResponse;
+  try {
+    authRes = await auth0.middleware(authReq);
+  } catch (error) {
+    // An auth route reached from an origin still outside the allow-list after
+    // normalization is an internal/health-check host (e.g.
+    // `developer.*-internal.worldcoin.org`) probing `/api/auth/login`. Redirect it
+    // to the canonical host — whose origin IS allow-listed — rather than surfacing
+    // the SDK's 500. Public origins are accepted by the SDK and never reach here;
+    // the `!== canonical` guard keeps a (would-be) canonical-origin throw from
+    // self-redirecting, and the warn leaves a breadcrumb for genuine misconfig.
+    const canonical = getPrimaryAppBaseUrl();
+    if (
+      error instanceof InvalidConfigurationError &&
+      pathname.startsWith("/api/auth/") &&
+      canonical &&
+      normalizedOrigin !== new URL(canonical).origin
+    ) {
+      console.warn(
+        "Auth route reached on a non-allow-listed origin; redirecting to canonical host",
+        { origin: normalizedOrigin, pathname },
+      );
+      return NextResponse.redirect(
+        new URL(pathname + request.nextUrl.search, canonical),
+      );
+    }
+    throw error;
+  }
 
   // Auth SDK routes pass straight through: login/logout/callback/profile under
   // `/api/auth/*`, plus our custom login-callback / delete-account handlers.
