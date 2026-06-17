@@ -21,10 +21,14 @@ import { getAllowedAppBaseUrls } from "@/lib/app-base-url";
  * build/e2e jobs) so the client and the mounted server route always agree.
  */
 export const auth0 = new Auth0Client({
-  // The portal is served on both the worldcoin.org and world.org host variants.
-  // Pass both in allow-list mode so v4 builds callback/logout redirects from the
-  // host the request came in on (v3 derived redirect_uri from the request host
-  // via getAppUrlFromRequest), instead of always using a single APP_BASE_URL.
+  // Served on both worldcoin.org and world.org. Pass both as the appBaseUrl
+  // allow-list so the SDK builds callback/logout redirects on the host the
+  // request came in on: the OAuth transaction cookie is set on that host and the
+  // callback must return to the same registrable domain. A single static base URL
+  // would send sibling-host logins a cross-domain callback the browser can't
+  // attach the cookie to. Origins outside the list (internal/health-check hosts)
+  // make the SDK throw InvalidConfigurationError; middleware.ts catches that and
+  // redirects them to the canonical host instead of returning a 500.
   appBaseUrl: getAllowedAppBaseUrls(),
 
   routes: {
