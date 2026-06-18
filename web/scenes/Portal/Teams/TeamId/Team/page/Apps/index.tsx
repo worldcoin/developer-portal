@@ -2,9 +2,11 @@
 
 import { Button } from "@/components/Button";
 import { AddCircleIcon } from "@/components/Icons/AddCircleIcon";
+import { MagnifierIcon } from "@/components/Icons/MagnifierIcon";
+import { Input } from "@/components/Input";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { useParams } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Skeleton from "react-loading-skeleton";
 import { App } from "./App";
 import { useFetchAppsQuery } from "./graphql/client/fetch-apps.generated";
@@ -31,10 +33,34 @@ export const Apps = () => {
 
   const app = data?.app;
 
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const filteredApps = useMemo(
+    () =>
+      app?.filter((a) =>
+        (a.app_metadata?.[0]?.name ?? "")
+          .toLowerCase()
+          .includes(searchQuery.toLowerCase()),
+      ),
+    [app, searchQuery],
+  );
+
   return (
     <Section>
       <Section.Header>
         <Section.Header.Title>Apps</Section.Header.Title>
+
+        <Section.Header.Search>
+          <Input
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            type="search"
+            label=""
+            addOnLeft={<MagnifierIcon className="text-grey-400" />}
+            placeholder="Search app by name"
+            className="max-w-full px-4 py-2 md:max-w-[480px]"
+          />
+        </Section.Header.Search>
 
         <Section.Header.Button className="z-10 md:hidden">
           <DecoratedButton
@@ -50,7 +76,15 @@ export const Apps = () => {
       </Section.Header>
 
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
-        {!loading && app?.map((app) => <App key={app.id} app={app} />)}
+        {!loading && filteredApps?.map((app) => <App key={app.id} app={app} />)}
+
+        {!loading && searchQuery && filteredApps?.length === 0 && (
+          <div className="col-span-full flex h-[200px] items-center justify-center rounded-2xl border border-grey-200">
+            <Typography variant={TYPOGRAPHY.R3} className="text-grey-400">
+              No apps found
+            </Typography>
+          </div>
+        )}
 
         {loading &&
           !app &&
@@ -60,7 +94,7 @@ export const Apps = () => {
             </div>
           ))}
 
-        {!loading && app && (
+        {!loading && app && !searchQuery && (
           <Button
             className="group relative flex flex-col items-center justify-center gap-y-4 rounded-20 border border-dashed border-grey-200 px-8 pb-6 pt-10 transition-colors hover:border-blue-500 max-md:hidden"
             type="button"
