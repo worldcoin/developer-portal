@@ -198,7 +198,9 @@ export async function middleware(request: NextRequest) {
     // to the canonical host — whose origin IS allow-listed — rather than surfacing
     // the SDK's 500. Public origins are accepted by the SDK and never reach here;
     // the `!== canonical` guard keeps a (would-be) canonical-origin throw from
-    // self-redirecting, and the warn leaves a breadcrumb for genuine misconfig.
+    // self-redirecting. We deliberately do NOT log here: this path is dominated by
+    // benign, high-volume internal probes, and `console.*` from Edge middleware is
+    // indexed as `status:error`, so logging each hit floods the error dashboards.
     const canonical = getPrimaryAppBaseUrl();
     if (
       error instanceof InvalidConfigurationError &&
@@ -206,10 +208,6 @@ export async function middleware(request: NextRequest) {
       canonical &&
       normalizedOrigin !== new URL(canonical).origin
     ) {
-      console.warn(
-        "Auth route reached on a non-allow-listed origin; redirecting to canonical host",
-        { origin: normalizedOrigin, pathname },
-      );
       return NextResponse.redirect(
         new URL(pathname + request.nextUrl.search, canonical),
       );
