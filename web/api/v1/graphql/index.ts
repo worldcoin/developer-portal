@@ -3,7 +3,7 @@ import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { generateAPIKeyJWT, generateUserJWT } from "@/api/helpers/jwts";
 import { parseRequestBody } from "@/api/helpers/parse-request-body";
 import { verifyHashedSecret } from "@/api/helpers/utils";
-import { auth0 } from "@/lib/auth0";
+import { auth0, toSessionRequest } from "@/lib/auth0";
 import dayjs from "dayjs";
 import { NextRequest, NextResponse } from "next/server";
 import { getSdk as getApiKeySdk } from "./graphql/get-api-key.generated";
@@ -81,8 +81,10 @@ export async function POST(req: NextRequest) {
   const body = parseResult.body;
 
   if (!headers.get("authorization")) {
-    // NOTE: Check if user data exists in auth0 session and create a temporary user JWT
-    const session = await auth0.getSession(req);
+    // NOTE: Check if user data exists in auth0 session and create a temporary user JWT.
+    // Use a body-free request: the body was already read above (parseRequestBody),
+    // and on Next 16 the SDK re-wraps + copies the request body, which would throw.
+    const session = await auth0.getSession(toSessionRequest(req));
     let token: string | null = null;
 
     if (session?.user.hasura?.id) {
