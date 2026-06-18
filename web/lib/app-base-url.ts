@@ -29,7 +29,7 @@ export const siblingOrigin = (raw: string | undefined): string | undefined => {
  * The canonical app origin (`APP_BASE_URL`, e.g. `https://developer.worldcoin.org`),
  * or `undefined` when unset. It is the primary entry of the `appBaseUrl` allow-list
  * and the redirect target for auth requests that arrive on a non-allow-listed
- * origin (see `middleware.ts`).
+ * origin (see `proxy.ts`).
  */
 export const getPrimaryAppBaseUrl = (): string | undefined =>
   process.env.APP_BASE_URL?.split(",")[0]?.trim() || undefined;

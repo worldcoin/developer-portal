@@ -1,3 +1,5 @@
-// Route segment config (`dynamic`) must be re-exported from the route file
-// itself — Next.js only reads it from the route module, not transitive imports.
-export { GET, OPTIONS, dynamic } from "@/api/v1/oidc/openid-configuration";
+// Turbopack (Next 16) only statically reads route segment config declared
+// directly in the route module — a re-exported `dynamic` is not recognized — so
+// declare it here and keep it in sync with the handler module.
+export { GET, OPTIONS } from "@/api/v1/oidc/openid-configuration";
+export const dynamic = "force-static";

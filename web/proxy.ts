@@ -146,7 +146,7 @@ const protectedMatchers = [
 const isProtectedPath = (pathname: string) =>
   protectedMatchers.some((matcher) => matcher.test(pathname));
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // In allow-list mode the Auth0 SDK matches the request origin against the

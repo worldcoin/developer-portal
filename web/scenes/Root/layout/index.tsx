@@ -24,7 +24,7 @@ export const RootLayout = async ({
 }: Readonly<{
   children: React.ReactNode;
 }>) => {
-  // Read the per-request CSP nonce set by middleware (`web/middleware.ts`)
+  // Read the per-request CSP nonce set by the proxy (`web/proxy.ts`)
   // so client-only providers that inject inline <script> tags during SSR
   // (Apollo's data-transport rehydration script) can attach the nonce and
   // pass our strict script-src.
