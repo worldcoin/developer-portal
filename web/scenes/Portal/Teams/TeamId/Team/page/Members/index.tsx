@@ -80,18 +80,18 @@ export const Members = (props: { teamId: string }) => {
       <Section.Header>
         <Section.Header.Title>Members</Section.Header.Title>
 
-        <Section.Header.Search>
+        <Section.Header.Search className="md:col-span-2">
           <Input
             register={register("search")}
             type="search"
             label=""
             addOnLeft={<MagnifierIcon className="text-grey-400" />}
             placeholder="Search member by name or email"
-            className="max-w-full px-4 py-2 md:max-w-[480px]"
+            className="w-full px-4 py-2"
           />
         </Section.Header.Search>
 
-        <Section.Header.Button>
+        <Section.Header.Button className="md:row-start-1">
           {membersRes.loading ? (
             <Skeleton className="h-12 w-[12rem] rounded-xl" />
           ) : (

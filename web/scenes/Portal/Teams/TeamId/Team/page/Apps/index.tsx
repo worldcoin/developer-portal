@@ -50,7 +50,7 @@ export const Apps = () => {
       <Section.Header>
         <Section.Header.Title>Apps</Section.Header.Title>
 
-        <Section.Header.Search>
+        <Section.Header.Search className="md:col-span-2">
           <Input
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -58,7 +58,7 @@ export const Apps = () => {
             label=""
             addOnLeft={<MagnifierIcon className="text-grey-400" />}
             placeholder="Search app by name"
-            className="max-w-full px-4 py-2 md:max-w-[480px]"
+            className="w-full px-4 py-2"
           />
         </Section.Header.Search>
 
