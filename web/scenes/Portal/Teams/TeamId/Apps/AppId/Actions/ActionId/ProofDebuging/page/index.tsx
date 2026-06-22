@@ -8,7 +8,6 @@ import { useDebuggerQuery } from "./graphql/client/debugger.generated";
 
 type ActionIdSettingsPageProps = {
   params: Promise<Record<string, string>>;
-  searchParams: Record<string, string> | null | undefined;
 };
 
 export const ActionIdProofDebugingPage = (props: ActionIdSettingsPageProps) => {
