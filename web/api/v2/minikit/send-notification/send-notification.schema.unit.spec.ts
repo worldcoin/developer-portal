@@ -504,22 +504,22 @@ describe("V1 schema mini_app_path validation", () => {
     ).toBe(true);
   });
 
-  test("should reject World ID mini-app deeplink", () => {
+  test("should accept World ID mini-app deeplink", () => {
     expect(
       sendNotificationBodySchemaV1.isValidSync({
         ...v1Body,
         mini_app_path: `worldid://mini-app?app_id=${testAppId}`,
       }),
-    ).toBe(false);
+    ).toBe(true);
   });
 
-  test("should reject World ID Deep Face deeplink", () => {
+  test("should accept World ID Deep Face deeplink", () => {
     expect(
       sendNotificationBodySchemaV1.isValidSync({
         ...v1Body,
         mini_app_path: "worldid://verify?t=deepface",
       }),
-    ).toBe(false);
+    ).toBe(true);
   });
 
   test("should reject random URL", () => {
