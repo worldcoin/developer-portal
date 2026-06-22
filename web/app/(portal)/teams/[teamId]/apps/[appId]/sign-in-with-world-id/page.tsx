@@ -6,4 +6,9 @@ export const metadata: Metadata = {
   title: generateMetaTitle({ left: "Sign in with World ID" }),
 };
 
-export default SignInWithWorldIdPage;
+// Next 16: params is a Promise — resolve it before handing it to the scene component.
+export default async function Page(props: {
+  params: Promise<Record<string, string>>;
+}) {
+  return <SignInWithWorldIdPage params={await props.params} />;
+}

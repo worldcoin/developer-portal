@@ -12,6 +12,10 @@ const nextConfig = {
 
   output: "standalone",
   images: {
+    // Next 16 changed the default from 60s to 4h. Pin the previous value so a
+    // user who updates an app icon/image doesn't keep seeing the stale one (up to
+    // 4h) from the image optimizer cache.
+    minimumCacheTTL: 60,
     remotePatterns: [
       {
         protocol: "https",
@@ -27,17 +31,14 @@ const nextConfig = {
 
   poweredByHeader: false,
 
-  webpack: (config, { isServer }) => {
-    if (!isServer) {
-      // Don't attempt to load server-only modules on the client as:
-      // fs: module loaded by winston
-      config.resolve.fallback = {
-        ...config.resolve.fallback,
-        fs: false,
-      };
-    }
-
-    return config;
+  // Turbopack is the default bundler in Next 16; a `webpack` config would make
+  // `next build` fail. winston (server-only) gets pulled into the client graph and
+  // references `fs`, so alias it to an empty module for the browser — the Turbopack
+  // equivalent of the old webpack `resolve.fallback: { fs: false }`.
+  turbopack: {
+    resolveAlias: {
+      fs: { browser: "./empty.ts" },
+    },
   },
 
   async headers() {

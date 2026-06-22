@@ -1,5 +1,6 @@
 import "server-only";
 import { Auth0Client } from "@auth0/nextjs-auth0/server";
+import { NextRequest } from "next/server";
 import { getAllowedAppBaseUrls } from "@/lib/app-base-url";
 
 /**
@@ -27,7 +28,7 @@ export const auth0 = new Auth0Client({
   // callback must return to the same registrable domain. A single static base URL
   // would send sibling-host logins a cross-domain callback the browser can't
   // attach the cookie to. Origins outside the list (internal/health-check hosts)
-  // make the SDK throw InvalidConfigurationError; middleware.ts catches that and
+  // make the SDK throw InvalidConfigurationError; proxy.ts catches that and
   // redirects them to the canonical host instead of returning a 500.
   appBaseUrl: getAllowedAppBaseUrls(),
 
@@ -42,3 +43,17 @@ export const auth0 = new Auth0Client({
   // client-facing access-token endpoint stays disabled (security best practice).
   enableAccessTokenEndpoint: false,
 });
+
+/**
+ * Build a body-free request carrying only the cookies/headers the Auth0 SDK reads,
+ * for use with `auth0.getSession(req)` / `auth0.updateSession(req, ...)` inside
+ * route handlers that also read the request body.
+ *
+ * On Next 16 the request passed to a route handler isn't recognized as a
+ * `NextRequest` by the SDK, so the SDK re-wraps it and copies its body — which
+ * throws `TypeError: Response body object should not be disturbed or locked` once
+ * the body has been read (e.g. via `req.json()`). The SDK only needs cookies, so
+ * hand it this body-free copy and read the body off the original request.
+ */
+export const toSessionRequest = (req: NextRequest): NextRequest =>
+  new NextRequest(req.url, { headers: req.headers });
