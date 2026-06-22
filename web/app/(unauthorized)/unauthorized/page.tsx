@@ -6,4 +6,9 @@ export const metadata: Metadata = {
   title: generateMetaTitle({ left: "Unauthorized" }),
 };
 
-export default UnauthorizedPage;
+// Next 16: searchParams is a Promise — resolve it before handing it to the scene component.
+export default async function Page(props: {
+  searchParams: Promise<Record<string, string>>;
+}) {
+  return <UnauthorizedPage searchParams={await props.searchParams} />;
+}
