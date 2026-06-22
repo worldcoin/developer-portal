@@ -3,9 +3,9 @@ import { OIDCScopes } from "@/api/helpers/oidc";
 import { OIDC_BASE_URL } from "@/lib/constants";
 import { NextRequest, NextResponse } from "next/server";
 
-// OIDC discovery document is purely static; opt into the Next 15+ default
-// cache behavior that handlers no longer get implicitly.
-export const dynamic = "force-static";
+// Note: the route's segment config (`dynamic = "force-dynamic"`) lives in
+// app/api/v1/oidc/openid-configuration/route.ts — it must stay dynamic because
+// `issuer` (JWT_ISSUER) is a runtime env value that must not be baked at build.
 
 /**
  * Returns an OpenID Connect discovery document, according to spec
