@@ -196,6 +196,35 @@ describe("notifications", () => {
         ],
       },
     ],
+    [
+      "World ID mini-app deeplink as mini_app_path",
+      {
+        ...notificationBody,
+        mini_app_path: `worldid://mini-app?app_id=${testAppId}`,
+        localisations: [
+          {
+            language: "en",
+            title: "This is a title",
+            message: "This is a message",
+          },
+        ],
+      },
+    ],
+    [
+      "World ID Deep Face deeplink as mini_app_path",
+      {
+        ...notificationBody,
+        mini_app_path:
+          "worldid://verify?t=deepface&i=550e8400-e29b-41d4-a716-446655440000&k=dGVzdC1rZXk%3D",
+        localisations: [
+          {
+            language: "en",
+            title: "This is a title",
+            message: "This is a message",
+          },
+        ],
+      },
+    ],
   ];
 
   const invalidTestCases = [
@@ -362,6 +391,34 @@ describe("notifications", () => {
         ],
       },
     ],
+    [
+      "world id mini-app deeplink with wrong app_id",
+      {
+        ...notificationBody,
+        mini_app_path: "worldid://mini-app?app_id=app_other",
+        localisations: [
+          {
+            language: "en",
+            title: "This is a title",
+            message: "This is a message",
+          },
+        ],
+      },
+    ],
+    [
+      "world id deep face deeplink missing t=deepface param",
+      {
+        ...notificationBody,
+        mini_app_path: "worldid://verify?t=other",
+        localisations: [
+          {
+            language: "en",
+            title: "This is a title",
+            message: "This is a message",
+          },
+        ],
+      },
+    ],
   ];
 
   test.each(validTestCases)("should accept %s", (_, input) => {
@@ -443,6 +500,24 @@ describe("V1 schema mini_app_path validation", () => {
         ...v1Body,
         mini_app_path:
           "worldapp://verify?t=deepface&i=550e8400-e29b-41d4-a716-446655440000&k=dGVzdC1rZXk%3D",
+      }),
+    ).toBe(true);
+  });
+
+  test("should accept World ID mini-app deeplink", () => {
+    expect(
+      sendNotificationBodySchemaV1.isValidSync({
+        ...v1Body,
+        mini_app_path: `worldid://mini-app?app_id=${testAppId}`,
+      }),
+    ).toBe(true);
+  });
+
+  test("should accept World ID Deep Face deeplink", () => {
+    expect(
+      sendNotificationBodySchemaV1.isValidSync({
+        ...v1Body,
+        mini_app_path: "worldid://verify?t=deepface",
       }),
     ).toBe(true);
   });
