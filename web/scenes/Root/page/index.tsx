@@ -18,12 +18,24 @@ export const RootPage = async () => {
     return redirect(urls.login());
   }
 
+  // A valid session can still be missing the Hasura claim (e.g. an incomplete
+  // or legacy session). Reading `.id` off an undefined `hasura` throws a
+  // TypeError, so guard it explicitly and re-authenticate instead of crashing.
+  const hasuraUserId = auth0User?.hasura?.id;
+
+  if (!hasuraUserId) {
+    logger.warn(
+      "Active session is missing a Hasura user id on the root page; logging out to re-authenticate",
+    );
+    return redirect(urls.logout());
+  }
+
   const client = await getAPIServiceGraphqlClient();
   let membership: FetchMembershipsQuery["membership"] | null = null;
 
   try {
     const data = await getSdk(client).FetchMemberships({
-      userId: auth0User?.hasura.id,
+      userId: hasuraUserId,
     });
 
     membership = data.membership;
