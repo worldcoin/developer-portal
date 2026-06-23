@@ -31,14 +31,20 @@ const nextConfig = {
 
   poweredByHeader: false,
 
-  // Turbopack is the default bundler in Next 16; a `webpack` config would make
-  // `next build` fail. winston (server-only) gets pulled into the client graph and
-  // references `fs`, so alias it to an empty module for the browser — the Turbopack
-  // equivalent of the old webpack `resolve.fallback: { fs: false }`.
-  turbopack: {
-    resolveAlias: {
-      fs: { browser: "./empty.ts" },
-    },
+  // We build with webpack (`next build --webpack`), not Turbopack: Next 16's
+  // Turbopack `output: standalone` build omits server chunks that
+  // `instrumentation.ts` (dd-trace) requires, so the standalone server crashes at
+  // runtime ("Cannot find module .../.next/server/chunks/[root-of-the-server]...").
+  // winston (server-only) gets pulled into the client graph and references `fs`;
+  // alias it to an empty module for the browser.
+  webpack: (config, { isServer }) => {
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+      };
+    }
+    return config;
   },
 
   async headers() {
