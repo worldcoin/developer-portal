@@ -11,7 +11,14 @@ export const TeamsPage = async () => {
     return redirect(urls.logout());
   }
 
-  const memberships = user.hasura.memberships;
+  // A valid session can still be missing the Hasura claim (incomplete or
+  // legacy session). Reading `.memberships` off an undefined `hasura` throws
+  // a TypeError, so guard it and re-authenticate instead of crashing.
+  const memberships = user.hasura?.memberships;
+
+  if (!memberships) {
+    return redirect(urls.logout());
+  }
 
   if (memberships.length === 0) {
     return redirect(urls.createTeam());
