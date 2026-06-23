@@ -63,7 +63,6 @@ export const WorldIdActionIdSettingsPage = (
                 app_id: action!.rp_registration.app_id,
               },
             })}
-            is_v4_action={true}
           />
         )}
       </div>

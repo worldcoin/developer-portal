@@ -1,3 +1,6 @@
+/*
+ * MiniKiosk disabled — TryAction now shows code samples only.
+ *
 import { LegacyVerificationLevel } from "@/lib/idkit";
 import { KioskScreen } from "@/lib/types";
 import type { IDKitResult } from "@worldcoin/idkit";
@@ -195,3 +198,6 @@ export const MiniKiosk = (props: MiniKioskProps) => {
     </div>
   );
 };
+*/
+
+export {};
