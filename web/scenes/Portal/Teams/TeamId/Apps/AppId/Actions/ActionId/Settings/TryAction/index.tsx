@@ -39,6 +39,10 @@ export const TryAction = (props: TryActionProps) => {
   const showCodeView = canShowCode && (showCode || !canShowKiosk);
   const showKioskView = canShowKiosk && !showCodeView;
 
+  if (!canShowCode && !canShowKiosk) {
+    return null;
+  }
+
   return (
     <div className="grid h-full grid-rows-auto/1fr items-start gap-y-5 lg:w-[480px]">
       <div className="grid w-full grid-cols-2 items-center justify-between">
@@ -92,18 +96,6 @@ export const TryAction = (props: TryActionProps) => {
         )}
         {showKioskView && (
           <MiniKiosk action={action} is_v4_action={is_v4_action} />
-        )}
-        {!showCodeView && !showKioskView && (
-          <div className="grid h-full min-h-[400px] items-center rounded-3xl border border-grey-100 bg-grey-50 px-8 text-center">
-            <div className="grid gap-y-2">
-              <Typography variant={TYPOGRAPHY.M4} className="text-grey-900">
-                Mini App integration
-              </Typography>
-              <Typography variant={TYPOGRAPHY.R4} className="text-grey-500">
-                Use MiniKit to integrate this action in your Mini App.
-              </Typography>
-            </div>
-          </div>
         )}
       </div>
     </div>
