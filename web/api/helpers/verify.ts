@@ -348,6 +348,19 @@ export const encodeNullifierForStorage = (nullifierHash: string): string => {
   return BigInt(normalized).toString();
 };
 
+/**
+ * Canonicalizes a nullifier hash to a fixed-width, 0x-prefixed, 32-byte
+ * lowercase hex string.
+ *
+ * Collapses case / prefix / leading-zero re-encodings (0xABC, abc, 0x0abc, …)
+ * of the same value to one representation so they cannot bypass a uniqueness
+ * check, while remaining byte-identical to the standard 0x+64-hex form that
+ * IDKit emits and that is already stored — so it is idempotent on existing
+ * rows and needs no data backfill for the common case.
+ */
+export const canonicalizeNullifierHash = (nullifierHash: string): string =>
+  toBeHex(BigInt(normalizeNullifierHash(nullifierHash)), 32);
+
 export const verifyProof = async (
   proofParams: IInputParams,
   verifyParams: IVerifyParams,
