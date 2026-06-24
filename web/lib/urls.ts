@@ -62,10 +62,15 @@ export const urls = {
     `/login${params?.invite_id ? `?invite_id=${params?.invite_id}` : ""}`,
 
   // v4 mounts /api/auth/logout via middleware; it honours a `returnTo` query
-  // param for the post-logout landing page. We keep the v3 behaviour of returning
-  // the user to /login (already an Allowed Logout URL on the Auth0 tenant).
+  // param for the post-logout landing page. Auth0's /v2/logout requires `returnTo`
+  // to be an ABSOLUTE URL in the tenant's Allowed Logout URLs — unlike v3, the v4
+  // SDK does NOT absolutise a relative path, so a bare "/login" is rejected (400).
+  // Build the absolute `<app origin>/login` from NEXT_PUBLIC_APP_URL (build-inlined,
+  // available on both server and client; `<origin>/login` is an Allowed Logout URL).
   logout: (): string =>
-    `/api/auth/logout?returnTo=${encodeURIComponent("/login")}`,
+    `/api/auth/logout?returnTo=${encodeURIComponent(
+      `${process.env.NEXT_PUBLIC_APP_URL}/login`,
+    )}`,
 
   join: (params?: SignupParams): string => {
     const searchParams = new URLSearchParams(params);
