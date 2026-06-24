@@ -6,6 +6,7 @@ import {
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import {
+  canonicalizeNullifierHash,
   canVerifyForAction,
   encodeNullifierForStorage,
   verifyProof,
@@ -111,6 +112,13 @@ export async function POST(
 
   // Convert the nullifier hash to its integer representation for more robust comparison
   const nullifier_hash_int = encodeNullifierForStorage(
+    parsedParams.nullifier_hash,
+  );
+  // Store the nullifier in canonical (fixed-width hex) form so that hex
+  // re-encodings of the same nullifier collide on the unique_nullifier_hash
+  // constraint instead of creating sibling rows that each independently pass
+  // the per-row uses-limit trigger and bypass max_verifications.
+  const canonical_nullifier_hash = canonicalizeNullifierHash(
     parsedParams.nullifier_hash,
   );
 
@@ -250,7 +258,7 @@ export async function POST(
       client,
     ).AtomicUpsertNullifier({
       action_id: action.id,
-      nullifier_hash: parsedParams.nullifier_hash,
+      nullifier_hash: canonical_nullifier_hash,
       nullifier_hash_int: nullifier_hash_int,
     });
 

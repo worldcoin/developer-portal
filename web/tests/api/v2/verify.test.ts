@@ -175,6 +175,45 @@ describe("/api/v2/verify", () => {
     });
   });
 
+  it("stores the nullifier canonically so hex re-encodings collide on the unique constraint (#3771261)", async () => {
+    // Same nullifier, uppercased — a dedup/limit-bypass re-encoding.
+    const reEncoded =
+      "0x" + semaphoreProofParamsMock.nullifier_hash.slice(2).toUpperCase();
+    const mockReq = createMockRequest(getUrl(stagingAppId), {
+      ...validBody,
+      nullifier_hash: reEncoded,
+    });
+    const ctx = { params: Promise.resolve({ app_id: stagingAppId }) };
+
+    mockFetch({ body: { valid: true }, ok: true, status: 200 });
+
+    FetchAppAction.mockResolvedValue({
+      app: [{ ...validApp, actions: [{ ...validAction, nullifiers: [] }] }],
+    });
+    AtomicUpsertNullifier.mockResolvedValue({
+      update_nullifier: {
+        affected_rows: 1,
+        returning: [
+          {
+            nullifier_hash: semaphoreProofParamsMock.nullifier_hash,
+            created_at: validNullifier.created_at,
+            uses: 1,
+          },
+        ],
+      },
+    });
+
+    const response = await POST(mockReq, ctx);
+    expect(response.status).toBe(200);
+    // The re-encoding must be persisted as the canonical lowercase value, so it
+    // hits the same unique_nullifier_hash row instead of creating a sibling.
+    expect(AtomicUpsertNullifier).toHaveBeenCalledWith(
+      expect.objectContaining({
+        nullifier_hash: semaphoreProofParamsMock.nullifier_hash,
+      }),
+    );
+  });
+
   it("can verify onchain action", async () => {
     const mockReq = createMockRequest(getUrl(stagingAppId), validBody);
     const ctx = { params: Promise.resolve({ app_id: stagingAppId }) };
