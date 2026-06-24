@@ -9,9 +9,7 @@ import { SizingWrapper } from "@/components/SizingWrapper";
 import { EngineType } from "@/lib/types";
 import { Notification } from "@/components/Notification";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import { worldId40Atom, isWorldId40Enabled } from "@/lib/feature-flags";
 import clsx from "clsx";
-import { useAtomValue } from "jotai";
 import { usePathname } from "next/navigation";
 import { useMemo, use } from "react";
 import { useForm, useWatch } from "react-hook-form";
@@ -68,8 +66,7 @@ export const ActionsPage = (props: ActionsPageProps) => {
   const { data } = actionsRes;
   const engineType = appRes.data?.app?.engine;
   const appName = appRes.data?.app?.app_metadata[0]?.name;
-  const worldId40Config = useAtomValue(worldId40Atom);
-  const isEnabled = isWorldId40Enabled(worldId40Config, teamId);
+  const isEnabled = true;
 
   const isInitial = useMemo(() => {
     if (actionsRes.loading) {
