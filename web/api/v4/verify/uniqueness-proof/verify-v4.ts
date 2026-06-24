@@ -56,6 +56,8 @@ export async function processUniquenessProofV4(
 
         return {
           identifier: item.identifier,
+          // Bound to the verified proof — authorize on this, not `identifier`.
+          issuer_schema_id: item.issuer_schema_id,
           success: true,
           nullifier: item.nullifier,
         };

@@ -5,6 +5,10 @@ import { getSessionCommitment } from "@worldcoin/idkit-server";
 
 export interface SessionResult {
   identifier: string;
+  // The cryptographically-verified credential type. Present only on success,
+  // where the on-chain proof is bound to this value. Relying parties should
+  // authorize on `issuer_schema_id`, not the caller-supplied `identifier`.
+  issuer_schema_id?: string;
   sessionId: string;
   success: boolean;
   nullifier?: string;
@@ -70,6 +74,8 @@ export async function processSessionProof(
         // For session proofs, use session_nullifier[0] as the nullifier for deduplication
         return {
           identifier: item.identifier,
+          // Bound to the verified proof — authorize on this, not `identifier`.
+          issuer_schema_id: item.issuer_schema_id,
           sessionId: sessionProofRequest.session_id,
           success: true,
           nullifier: item.session_nullifier[0],

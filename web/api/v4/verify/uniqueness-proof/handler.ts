@@ -23,6 +23,10 @@ import { processUniquenessProofV4 } from "./verify-v4";
 // Unified result type for both v3 and v4
 export interface UniquenessResult {
   identifier: string;
+  // The cryptographically-verified credential type. Present only on success,
+  // where the on-chain proof is bound to this value. Relying parties should
+  // authorize on `issuer_schema_id`, not the caller-supplied `identifier`.
+  issuer_schema_id?: string;
   success: boolean;
   nullifier?: string;
   code?: string;
