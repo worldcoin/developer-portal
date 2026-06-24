@@ -214,6 +214,28 @@ describe("/api/v2/verify", () => {
     );
   });
 
+  it("returns a structured 400 (not a 500) for an over-width nullifier_hash", async () => {
+    // 0x1 followed by 64 zeroes — larger than a uint256. Canonicalization runs
+    // only after verifyProof, so proof-input validation rejects this with a 400
+    // instead of the canonicalizer throwing an unhandled 500.
+    const overWide = "0x1" + "0".repeat(64);
+    const mockReq = createMockRequest(getUrl(stagingAppId), {
+      ...validBody,
+      nullifier_hash: overWide,
+    });
+    const ctx = { params: Promise.resolve({ app_id: stagingAppId }) };
+
+    mockFetch({ body: { valid: true }, ok: true, status: 200 });
+    FetchAppAction.mockResolvedValue({
+      app: [{ ...validApp, actions: [{ ...validAction, nullifiers: [] }] }],
+    });
+
+    const response = await POST(mockReq, ctx);
+    expect(response.status).toBe(400);
+    // Rejected before the nullifier is ever stored.
+    expect(AtomicUpsertNullifier).not.toHaveBeenCalled();
+  });
+
   it("can verify onchain action", async () => {
     const mockReq = createMockRequest(getUrl(stagingAppId), validBody);
     const ctx = { params: Promise.resolve({ app_id: stagingAppId }) };

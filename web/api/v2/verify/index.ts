@@ -114,13 +114,6 @@ export async function POST(
   const nullifier_hash_int = encodeNullifierForStorage(
     parsedParams.nullifier_hash,
   );
-  // Store the nullifier in canonical (fixed-width hex) form so that hex
-  // re-encodings of the same nullifier collide on the unique_nullifier_hash
-  // constraint instead of creating sibling rows that each independently pass
-  // the per-row uses-limit trigger and bypass max_verifications.
-  const canonical_nullifier_hash = canonicalizeNullifierHash(
-    parsedParams.nullifier_hash,
-  );
 
   let appActionResponse = await getFetchAppActionSdk(client).FetchAppAction({
     app_id,
@@ -252,6 +245,17 @@ export async function POST(
       app_id,
     });
   }
+
+  // Store the nullifier in canonical (fixed-width hex) form so that hex
+  // re-encodings of the same nullifier collide on the unique_nullifier_hash
+  // constraint instead of creating sibling rows that each independently pass
+  // the per-row uses-limit trigger and bypass max_verifications. Computed only
+  // after verifyProof succeeds: parseProofInputs has already rejected malformed
+  // / over-width nullifiers with a structured 400, so toBeHex cannot throw an
+  // unhandled 500 here.
+  const canonical_nullifier_hash = canonicalizeNullifierHash(
+    parsedParams.nullifier_hash,
+  );
 
   try {
     const upsertResponse = await atomicUpsertNullifierSdk(
