@@ -142,8 +142,11 @@ export const POST = async (req: NextRequest) => {
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
 
-    // Anything other than the per-person uniqueness violation is a real failure.
-    if (!message.includes("unique") && !message.includes("duplicate")) {
+    // Only a per-person nullifier uniqueness violation means "already reviewed".
+    // Any other error — including an app_reviews_pkey (friendly-id) collision or
+    // a transport failure — is a genuine failure and must not fall through to
+    // the edit path, which would adjust the aggregate without writing a review.
+    if (!message.includes("app_reviews_nullifier_hash_key")) {
       logger.error("Failed to insert app review", { error, app_id });
       return errorResponse({
         statusCode: 500,
@@ -161,7 +164,24 @@ export const POST = async (req: NextRequest) => {
       nullifier_hash: nullifierHash,
       app_id,
     });
-    previousRating = app_reviews[0]?.rating ?? 0;
+
+    // The uniqueness violation implies a row exists; if we can't read it back,
+    // do not touch the aggregate with a phantom edit.
+    if (!app_reviews.length) {
+      logger.error("App review nullifier conflict but no existing row found", {
+        app_id,
+      });
+      return errorResponse({
+        statusCode: 500,
+        code: "app_review_failed",
+        detail: "Failed to set app review.",
+        attribute: null,
+        req,
+        app_id,
+      });
+    }
+
+    previousRating = app_reviews[0].rating;
 
     await updateAppReviewRating(serviceClient).UpdateAppReviewRating({
       app_id,

@@ -164,5 +164,30 @@ describe("/api/v2/app/submit-app-review", () => {
     expect(UpdateAppReviewRating).not.toHaveBeenCalled();
     expect(UpdateAppRatingSumMutation).not.toHaveBeenCalled();
   });
+
+  it("returns 500 on a non-nullifier unique violation (e.g. friendly-id collision), not an edit", async () => {
+    InsertAppReview.mockRejectedValue(
+      new Error(
+        'Uniqueness violation. duplicate key value violates unique constraint "app_reviews_pkey"',
+      ),
+    );
+
+    const res = await POST(makeReq(validBody));
+
+    expect(res.status).toBe(500);
+    expect(UpdateAppReviewRating).not.toHaveBeenCalled();
+    expect(UpdateAppRatingSumMutation).not.toHaveBeenCalled();
+  });
+
+  it("returns 500 if the nullifier conflicts but the existing review can't be read back", async () => {
+    InsertAppReview.mockRejectedValue(uniqueViolation());
+    GetAppReview.mockResolvedValue({ app_reviews: [] });
+
+    const res = await POST(makeReq(validBody));
+
+    expect(res.status).toBe(500);
+    expect(UpdateAppReviewRating).not.toHaveBeenCalled();
+    expect(UpdateAppRatingSumMutation).not.toHaveBeenCalled();
+  });
   // #endregion
 });
