@@ -189,5 +189,16 @@ describe("/api/v2/app/submit-app-review", () => {
     expect(UpdateAppReviewRating).not.toHaveBeenCalled();
     expect(UpdateAppRatingSumMutation).not.toHaveBeenCalled();
   });
+
+  it("rejects an over-width nullifier_hash with a 400 instead of a 500", async () => {
+    // A valid nullifier with bytes appended would pass proof verification but
+    // overflow the canonicalizer; the schema length bound rejects it first.
+    const overWide = "0x" + appReviewMockProof.nullifier_hash.slice(2) + "00";
+
+    const res = await POST(makeReq({ ...validBody, nullifier_hash: overWide }));
+
+    expect(res.status).toBe(400);
+    expect(InsertAppReview).not.toHaveBeenCalled();
+  });
   // #endregion
 });

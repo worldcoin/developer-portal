@@ -21,6 +21,13 @@ const schema = yup
     nullifier_hash: yup
       .string()
       .strict()
+      // Bound to 64 hex chars (a uint256): rejects over-width values that
+      // would otherwise pass proof verification (decode reads the first 32
+      // bytes) but overflow the canonicalizer's toBeHex(..., 32) as a 500.
+      .matches(
+        /^(0x)?[\da-fA-F]{1,64}$/,
+        "Invalid nullifier_hash. Must be a hex string (≤ 64 hex chars) with optional 0x prefix.",
+      )
       .required("This attribute is required."),
     merkle_root: yup.string().strict().required("This attribute is required."),
     verification_level: yup
