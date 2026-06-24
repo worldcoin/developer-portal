@@ -1,6 +1,7 @@
 import { ReactNode } from "react";
 import * as DropdownPrimitive from "@radix-ui/react-dropdown-menu";
 import { twMerge } from "tailwind-merge";
+import { ListItemIcon } from "../ListItemIcon";
 
 type DisabledListItemProps = DropdownPrimitive.DropdownMenuItemProps & {
   icon?: ReactNode;
@@ -20,7 +21,11 @@ export const DisabledListItem = (props: DisabledListItemProps) => {
         className,
       )}
     >
-      {icon ? <span className="[&>svg]:size-5">{icon}</span> : null}
+      {icon ? (
+        <ListItemIcon className="text-grey-300" asChild>
+          {icon}
+        </ListItemIcon>
+      ) : null}
       <span className="grid gap-y-0.5">
         <span>{children}</span>
         {description ? (

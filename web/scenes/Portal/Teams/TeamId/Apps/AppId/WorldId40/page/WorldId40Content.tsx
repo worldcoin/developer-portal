@@ -1,9 +1,8 @@
 "use client";
 
 import { CopyButton } from "@/components/CopyButton";
-import { DecoratedButton } from "@/components/DecoratedButton";
 import { Notification } from "@/components/Notification";
-import { RestrictedAction } from "@/components/RestrictedAction";
+import { RestrictedButton } from "@/components/RestrictedButton";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { useTeamPermission } from "@/lib/team-permissions/use-team-permission";
@@ -190,19 +189,16 @@ export const WorldId40Content = ({
             </Typography>
           </div>
           {isFailed && (
-            <RestrictedAction restriction={retryRestriction}>
-              {({ disabled }) => (
-                <DecoratedButton
-                  type="button"
-                  variant="primary"
-                  className="h-8 rounded-full px-4 py-0 text-xs"
-                  disabled={isRetrying || disabled}
-                  onClick={() => handleRetry(environment)}
-                >
-                  {isRetrying ? "Retrying..." : "Try again"}
-                </DecoratedButton>
-              )}
-            </RestrictedAction>
+            <RestrictedButton
+              restriction={retryRestriction}
+              type="button"
+              variant="primary"
+              className="h-8 rounded-full px-4 py-0 text-xs"
+              disabled={isRetrying}
+              onClick={() => handleRetry(environment)}
+            >
+              {isRetrying ? "Retrying..." : "Try again"}
+            </RestrictedButton>
           )}
         </div>
       </div>
@@ -310,19 +306,15 @@ export const WorldId40Content = ({
                   This will create a new signer key and disable the existing key
                 </Typography>
               </div>
-              <RestrictedAction restriction={manageRegisteredRpRestriction}>
-                {({ disabled }) => (
-                  <DecoratedButton
-                    type="button"
-                    variant="secondary"
-                    disabled={disabled}
-                    className="h-8 rounded-full px-4 py-0 text-xs"
-                    onClick={() => setIsRotateDialogOpen(true)}
-                  >
-                    Reset
-                  </DecoratedButton>
-                )}
-              </RestrictedAction>
+              <RestrictedButton
+                restriction={manageRegisteredRpRestriction}
+                type="button"
+                variant="secondary"
+                className="h-8 rounded-full px-4 py-0 text-xs"
+                onClick={() => setIsRotateDialogOpen(true)}
+              >
+                Reset
+              </RestrictedButton>
             </div>
           </div>
         </div>
@@ -343,31 +335,20 @@ export const WorldId40Content = ({
                   Move this RP to a self-managed configuration
                 </Typography>
               </div>
-              <RestrictedAction restriction={manageRegisteredRpRestriction}>
-                {({ disabled }) => (
-                  <DecoratedButton
-                    type="button"
-                    variant="danger"
-                    disabled={disabled}
-                    className={clsx(
-                      "h-8 shrink-0 rounded-full px-4 text-[13px] font-semibold",
-                      disabled
-                        ? "" // Let DecoratedButton handle disabled styles
-                        : "bg-danger text-white hover:bg-system-error-700",
-                    )}
-                    title={
-                      mode === "self_managed"
-                        ? "Already in self-managed mode"
-                        : !isActive
-                          ? "RP must be active to switch modes"
-                          : undefined
-                    }
-                    onClick={() => setIsSwitchDialogOpen(true)}
-                  >
-                    Switch
-                  </DecoratedButton>
+              <RestrictedButton
+                restriction={manageRegisteredRpRestriction}
+                type="button"
+                variant="danger"
+                className={clsx(
+                  "h-8 shrink-0 rounded-full px-4 text-[13px] font-semibold",
+                  manageRegisteredRpRestriction.allowed
+                    ? "bg-danger text-white hover:bg-system-error-700"
+                    : "", // Let DecoratedButton handle disabled styles
                 )}
-              </RestrictedAction>
+                onClick={() => setIsSwitchDialogOpen(true)}
+              >
+                Switch
+              </RestrictedButton>
             </div>
           </div>
         </div>

@@ -12,12 +12,9 @@ import {
 } from "@/components/Select";
 import { TextArea } from "@/components/TextArea";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import { Role_Enum } from "@/graphql/graphql";
 import { AppMode } from "@/lib/constants";
-import { Auth0SessionUser } from "@/lib/types";
-import { checkUserPermissions } from "@/lib/utils";
+import { useTeamPermission } from "@/lib/team-permissions/use-team-permission";
 import { RadioCard } from "@/scenes/Portal/layout/CreateAppDialog/RadioCard";
-import { useUser } from "@auth0/nextjs-auth0/client";
 import { yupResolver } from "@hookform/resolvers/yup";
 import clsx from "clsx";
 import { ChangeEvent, useCallback, useEffect, useMemo, useRef } from "react";
@@ -76,15 +73,8 @@ const calculateRows = (
 
 export const SetupForm = (props: LinksFormProps) => {
   const { teamId, appMetadata } = props;
-  const { user } = useUser() as Auth0SessionUser;
   const isEditable = appMetadata?.verification_status === "unverified";
-
-  const isEnoughPermissions = useMemo(() => {
-    return checkUserPermissions(user, teamId ?? "", [
-      Role_Enum.Owner,
-      Role_Enum.Admin,
-    ]);
-  }, [user, teamId]);
+  const editStorePerm = useTeamPermission(teamId, "edit_app_store_details");
 
   const form = useForm<UpdateSetupInitialSchema>({
     resolver: yupResolver(updateSetupInitialSchema),
@@ -162,7 +152,7 @@ export const SetupForm = (props: LinksFormProps) => {
     [appMetadata?.id],
   );
 
-  const isAdvancedEditable = isEditable && isEnoughPermissions;
+  const isAdvancedEditable = isEditable && editStorePerm.allowed;
 
   const hasInvalidWhitelistCombination = (values: UpdateSetupInitialSchema) =>
     values.app_mode === "mini-app" &&
@@ -253,7 +243,7 @@ export const SetupForm = (props: LinksFormProps) => {
         </div>
         <TextArea
           aria-label="Additional Domains"
-          disabled={!isEditable || !isEnoughPermissions}
+          disabled={!isEditable || !editStorePerm.allowed}
           placeholder="https://example.com, https://example2.com"
           register={register("associated_domains", {
             onChange: formatArrayInput,
@@ -293,7 +283,7 @@ export const SetupForm = (props: LinksFormProps) => {
             label="Whitelisted Payment Addresses"
             disabled={
               !isEditable ||
-              !isEnoughPermissions ||
+              !editStorePerm.allowed ||
               isWhitelistDisabled ||
               appMode == "external"
             }
@@ -320,7 +310,7 @@ export const SetupForm = (props: LinksFormProps) => {
             id="is_whitelist_disabled"
             register={register("is_whitelist_disabled")}
             disabled={
-              !isEditable || !isEnoughPermissions || appMode == "external"
+              !isEditable || !editStorePerm.allowed || appMode == "external"
             }
           />
 
@@ -341,7 +331,7 @@ export const SetupForm = (props: LinksFormProps) => {
         </div>
         <TextArea
           label="Permit2 Tokens"
-          disabled={!isEditable || !isEnoughPermissions}
+          disabled={!isEditable || !editStorePerm.allowed}
           placeholder="0xad312321..., 0xE901e312..."
           register={register("permit2_tokens", { onChange: formatArrayInput })}
           enableResize={false}
@@ -365,7 +355,7 @@ export const SetupForm = (props: LinksFormProps) => {
         </div>
         <TextArea
           label="Contract Entrypoints"
-          disabled={!isEditable || !isEnoughPermissions}
+          disabled={!isEditable || !editStorePerm.allowed}
           placeholder="0xb731d321..., 0xF2310312..."
           register={register("contracts", { onChange: formatArrayInput })}
           enableResize={false}
@@ -417,7 +407,7 @@ export const SetupForm = (props: LinksFormProps) => {
                     : field.value
                 }
                 onChange={field.onChange}
-                disabled={!isEditable || !isEnoughPermissions}
+                disabled={!isEditable || !editStorePerm.allowed}
               >
                 <SelectButton className="min-w-[150px] rounded-lg border border-grey-200 px-4 py-2 md:w-fit">
                   {({ value }) => (
@@ -459,7 +449,7 @@ export const SetupForm = (props: LinksFormProps) => {
             id="can_import_all_contacts"
             register={register("can_import_all_contacts")}
             disabled={
-              !isEditable || !isEnoughPermissions || appMode === "external"
+              !isEditable || !editStorePerm.allowed || appMode === "external"
             }
           />
 

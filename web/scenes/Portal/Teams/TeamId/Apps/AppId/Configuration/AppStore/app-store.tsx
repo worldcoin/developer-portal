@@ -47,7 +47,6 @@ export const AppStoreForm = ({
   const { flushAll, displayStatus } = useSaveStatus();
 
   const editStorePerm = useTeamPermission(teamId, "edit_app_store_details");
-  const savePerm = useTeamPermission(teamId, "save_app_configuration");
 
   const isMiniApp = useAtomValue(isMiniAppAtom);
   const canEditStore = isEditable && editStorePerm.allowed;
@@ -140,7 +139,7 @@ export const AppStoreForm = ({
 
         <div className="fixed bottom-[5.25rem] right-6 z-10 flex items-center gap-x-3 md:bottom-6">
           <SaveStatusIndicator />
-          <RestrictedAction restriction={savePerm}>
+          <RestrictedAction restriction={editStorePerm}>
             {({ disabled }) => (
               <SaveButton
                 isSubmitting={displayStatus.state === "saving"}

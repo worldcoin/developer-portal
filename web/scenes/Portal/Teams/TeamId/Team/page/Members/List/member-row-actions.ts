@@ -1,7 +1,8 @@
+import { Role_Enum } from "@/graphql/graphql";
 import {
   PERMISSION_RULES,
+  roleCanPerformAction,
   SELF_ROW_MESSAGE,
-  type PermissionAction,
 } from "@/lib/team-permissions";
 
 export type MemberRowAction = {
@@ -12,79 +13,52 @@ export type MemberRowAction = {
   reason: string | null;
 };
 
-const reasonFor = (params: {
-  action: PermissionAction;
-  isOwner: boolean;
-  isCurrent: boolean;
-}) => {
-  if (!params.isOwner) {
-    return PERMISSION_RULES[params.action].message;
-  }
+const buildAction = (
+  key: MemberRowAction["key"],
+  label: string,
+  danger: boolean,
+  userRole: Role_Enum | undefined,
+  isCurrent: boolean,
+): MemberRowAction => {
+  const hasRolePermission = roleCanPerformAction(userRole, key);
 
-  if (params.isCurrent) {
-    return SELF_ROW_MESSAGE;
-  }
+  const reason = !hasRolePermission
+    ? PERMISSION_RULES[key].message
+    : isCurrent
+      ? SELF_ROW_MESSAGE
+      : null;
 
-  return null;
+  return {
+    key,
+    label,
+    danger,
+    allowed: hasRolePermission && !isCurrent,
+    reason,
+  };
 };
 
 export const getMemberRowActions = (params: {
-  isOwner: boolean;
+  userRole: Role_Enum | undefined;
   isCurrent: boolean;
   isInviteRow: boolean;
 }): MemberRowAction[] => {
-  const { isOwner, isCurrent, isInviteRow } = params;
-  const allowed = isOwner && !isCurrent;
+  const { userRole, isCurrent, isInviteRow } = params;
 
   if (isInviteRow) {
     return [
-      {
-        key: "resend_invite",
-        label: "Re-send invite",
-        danger: false,
-        allowed,
-        reason: reasonFor({
-          action: "resend_invite",
-          isOwner,
-          isCurrent,
-        }),
-      },
-      {
-        key: "cancel_invite",
-        label: "Cancel invite",
-        danger: true,
-        allowed,
-        reason: reasonFor({
-          action: "cancel_invite",
-          isOwner,
-          isCurrent,
-        }),
-      },
+      buildAction(
+        "resend_invite",
+        "Re-send invite",
+        false,
+        userRole,
+        isCurrent,
+      ),
+      buildAction("cancel_invite", "Cancel invite", true, userRole, isCurrent),
     ];
   }
 
   return [
-    {
-      key: "edit_member_role",
-      label: "Edit role",
-      danger: false,
-      allowed,
-      reason: reasonFor({
-        action: "edit_member_role",
-        isOwner,
-        isCurrent,
-      }),
-    },
-    {
-      key: "remove_member",
-      label: "Remove member",
-      danger: true,
-      allowed,
-      reason: reasonFor({
-        action: "remove_member",
-        isOwner,
-        isCurrent,
-      }),
-    },
+    buildAction("edit_member_role", "Edit role", false, userRole, isCurrent),
+    buildAction("remove_member", "Remove member", true, userRole, isCurrent),
   ];
 };

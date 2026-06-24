@@ -6,12 +6,10 @@ import { DialogOverlay } from "@/components/DialogOverlay";
 import { DialogPanel } from "@/components/DialogPanel";
 import { AlertIcon } from "@/components/Icons/AlertIcon";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import { Role_Enum } from "@/graphql/graphql";
-import { Auth0SessionUser } from "@/lib/types";
+import { useTeamPermission } from "@/lib/team-permissions/use-team-permission";
 import { truncateString } from "@/lib/utils";
-import { useUser } from "@auth0/nextjs-auth0/client";
 import { useRouter } from "next/navigation";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useState } from "react";
 import { toast } from "react-toastify";
 import { GetActionsDocument } from "../../../page/graphql/client/actions.generated";
 import { GetSingleActionQuery } from "../page/graphql/client/get-single-action.generated";
@@ -25,18 +23,10 @@ export const ActionDangerZoneContent = (props: {
   const { action, appId, teamId } = props;
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
   const router = useRouter();
-  const { user } = useUser() as Auth0SessionUser;
-
-  const isEnoughPermissions = useMemo(() => {
-    const membership = user?.hasura.memberships.find(
-      (m) => m.team?.id === teamId,
-    );
-
-    return (
-      membership?.role === Role_Enum.Owner ||
-      membership?.role === Role_Enum.Admin
-    );
-  }, [teamId, user?.hasura.memberships]);
+  const deleteActionPerm = useTeamPermission(
+    teamId ?? "",
+    "delete_world_id_action",
+  );
 
   const [deleteActionQuery, { loading: deleteActionLoading }] =
     useDeleteActionMutation();
@@ -138,7 +128,7 @@ export const ActionDangerZoneContent = (props: {
             type="button"
             variant="danger"
             onClick={() => setOpenDeleteModal(true)}
-            disabled={deleteActionLoading || !isEnoughPermissions}
+            disabled={deleteActionLoading || !deleteActionPerm.allowed}
             className="w-40 bg-system-error-100 "
           >
             <Typography variant={TYPOGRAPHY.R3}>Delete action</Typography>

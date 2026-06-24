@@ -1,8 +1,8 @@
 "use client";
 
-import { type ReactNode } from "react";
-import clsx from "clsx";
 import { Tooltip } from "@/components/Tooltip";
+import clsx from "clsx";
+import { type ReactNode } from "react";
 
 export type ActionRestriction = {
   allowed: boolean;
@@ -10,7 +10,6 @@ export type ActionRestriction = {
 };
 
 type RestrictedActionRenderState = {
-  allowed: boolean;
   disabled: boolean;
 };
 
@@ -18,17 +17,14 @@ type RestrictedActionProps = {
   restriction: ActionRestriction;
   children: ReactNode | ((state: RestrictedActionRenderState) => ReactNode);
   className?: string;
-  placement?: "top" | "bottom" | "left" | "right";
 };
 
 export const RestrictedAction = ({
   restriction,
   children,
   className,
-  placement,
 }: RestrictedActionProps) => {
   const state = {
-    allowed: restriction.allowed,
     disabled: !restriction.allowed,
   };
   const content = typeof children === "function" ? children(state) : children;
@@ -40,7 +36,6 @@ export const RestrictedAction = ({
   return (
     <Tooltip
       content={restriction.message}
-      placement={placement}
       triggerProps={{
         "aria-disabled": true,
         tabIndex: 0,

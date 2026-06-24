@@ -4,6 +4,8 @@ import {
   OWNER_ONLY_MESSAGE,
   PERMISSION_DISPLAY_GROUPS,
   PERMISSION_RULES,
+  getTeamPermission,
+  roleCanPerformAction,
 } from "@/lib/team-permissions";
 
 describe("team permission policy", () => {
@@ -33,5 +35,50 @@ describe("team permission policy", () => {
     );
 
     expect(dialogGroup?.roles).toBe(PERMISSION_RULES.edit_member_role.roles);
+  });
+
+  it("derives delete-app and API key dialog rows from PERMISSION_RULES", () => {
+    const dialogExpectations: Array<{
+      label: string;
+      action: keyof typeof PERMISSION_RULES;
+    }> = [
+      { label: "Delete apps", action: "delete_app" },
+      { label: "View API keys", action: "view_api_keys" },
+      { label: "Create & Edit API keys", action: "edit_api_keys" },
+      { label: "Delete API keys", action: "delete_api_keys" },
+    ];
+
+    for (const { label, action } of dialogExpectations) {
+      const dialogGroup = PERMISSION_DISPLAY_GROUPS.find(
+        (group) => group.label === label,
+      );
+
+      expect(dialogGroup?.roles).toBe(PERMISSION_RULES[action].roles);
+    }
+  });
+
+  it("checks user permission from the central role rules", () => {
+    expect(getTeamPermission(undefined, "team_1", "delete_app").allowed).toBe(
+      false,
+    );
+  });
+
+  it("keeps invite lifecycle actions consistent with invite_member", () => {
+    expect(PERMISSION_RULES.resend_invite).toMatchObject({
+      roles: PERMISSION_RULES.invite_member.roles,
+      message: OWNER_ADMIN_MESSAGE,
+    });
+    expect(PERMISSION_RULES.cancel_invite).toMatchObject({
+      roles: PERMISSION_RULES.invite_member.roles,
+      message: OWNER_ADMIN_MESSAGE,
+    });
+    expect(roleCanPerformAction(Role_Enum.Admin, "resend_invite")).toBe(true);
+    expect(roleCanPerformAction(Role_Enum.Admin, "cancel_invite")).toBe(true);
+  });
+
+  it("checks action permission from the central role rules", () => {
+    expect(roleCanPerformAction(Role_Enum.Owner, "cancel_invite")).toBe(true);
+    expect(roleCanPerformAction(Role_Enum.Admin, "cancel_invite")).toBe(true);
+    expect(roleCanPerformAction(undefined, "cancel_invite")).toBe(false);
   });
 });

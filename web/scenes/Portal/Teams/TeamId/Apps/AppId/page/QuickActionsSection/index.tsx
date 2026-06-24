@@ -1,3 +1,5 @@
+"use client";
+
 import { CheckmarkBadge } from "@/components/Icons/CheckmarkBadge";
 import { MultiplePlusIcon } from "@/components/Icons/MultiplePlusIcon";
 import { QuickAction } from "@/components/QuickAction";
@@ -23,7 +25,6 @@ export const QuickActionsSection = ({
     teamId,
     "create_world_id_action",
   );
-  const canCreateAction = createWorldIdActionPerm.allowed;
   const createActionHref = showWorldId40Actions
     ? urls.createWorldIdAction({ team_id: teamId, app_id: appId })
     : urls.createAction({ team_id: teamId, app_id: appId });

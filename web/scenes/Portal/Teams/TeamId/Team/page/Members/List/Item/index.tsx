@@ -1,3 +1,4 @@
+import { type ComponentType } from "react";
 import clsx from "clsx";
 import { FetchTeamMembersQuery } from "../../graphql/client/fetch-team-members.generated";
 import { getNullifierName } from "@/lib/utils";
@@ -10,7 +11,10 @@ import { SendIcon } from "@/components/Icons/SendIcon";
 import { TrashIcon } from "@/components/Icons/TrashIcon";
 import { Role_Enum } from "@/graphql/graphql";
 import Skeleton from "react-loading-skeleton";
-import { getMemberRowActions } from "../member-row-actions";
+import {
+  getMemberRowActions,
+  type MemberRowAction,
+} from "../member-row-actions";
 
 const roleName: Record<Role_Enum, string> = {
   [Role_Enum.Admin]: "Admin",
@@ -18,10 +22,20 @@ const roleName: Record<Role_Enum, string> = {
   [Role_Enum.Owner]: "Owner",
 };
 
+const actionIcon: Record<
+  MemberRowAction["key"],
+  ComponentType<{ className?: string }>
+> = {
+  edit_member_role: EditUserIcon,
+  remove_member: TrashIcon,
+  resend_invite: SendIcon,
+  cancel_invite: TrashIcon,
+};
+
 type ItemProps = {
   item?: FetchTeamMembersQuery["members"][number];
   isCurrent?: boolean;
-  isEnoughPermissions?: boolean;
+  userRole?: Role_Enum;
   onEdit?: () => void;
   onRemove?: () => void;
   onResendInvite?: () => void;
@@ -29,13 +43,20 @@ type ItemProps = {
 };
 
 export const Item = (props: ItemProps) => {
-  const { item, isCurrent, isEnoughPermissions } = props;
+  const { item, isCurrent, userRole } = props;
   const isInviteRow = item?.id.startsWith("inv_");
   const name =
     item?.user?.name ||
     item?.user?.email ||
     getNullifierName(item?.user?.world_id_nullifier) ||
     "Anonymous User";
+
+  const handlers: Record<MemberRowAction["key"], (() => void) | undefined> = {
+    edit_member_role: props.onEdit,
+    remove_member: props.onRemove,
+    resend_invite: props.onResendInvite,
+    cancel_invite: props.onCancelInvite,
+  };
 
   return (
     <div
@@ -116,23 +137,11 @@ export const Item = (props: ItemProps) => {
 
             <Dropdown.List align="end" heading={name}>
               {getMemberRowActions({
-                isOwner: Boolean(isEnoughPermissions),
+                userRole,
                 isCurrent: Boolean(isCurrent),
                 isInviteRow: Boolean(isInviteRow),
               }).map((action) => {
-                const handlers: Record<string, (() => void) | undefined> = {
-                  edit_member_role: props.onEdit,
-                  remove_member: props.onRemove,
-                  resend_invite: props.onResendInvite,
-                  cancel_invite: props.onCancelInvite,
-                };
-
-                const Icon =
-                  action.key === "edit_member_role"
-                    ? EditUserIcon
-                    : action.key === "resend_invite"
-                      ? SendIcon
-                      : TrashIcon;
+                const Icon = actionIcon[action.key];
 
                 if (!action.allowed) {
                   return (

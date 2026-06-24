@@ -107,19 +107,19 @@ export const WorldIdActionIdLayout = (props: WorldIdActionIdLayoutProps) => {
             <Typography variant={TYPOGRAPHY.R4}>Settings</Typography>
           </Tab>
 
-          {deletePermission.allowed && (
-            <Tab
-              className="md:py-4"
-              href={urls.worldIdActionDanger({
-                team_id: params.teamId ?? "",
-                app_id: params.appId ?? "",
-                action_id: params.actionId ?? "",
-              })}
-              segment={"danger"}
-            >
-              <Typography variant={TYPOGRAPHY.R4}>Danger zone</Typography>
-            </Tab>
-          )}
+          <Tab
+            className="md:py-4"
+            href={urls.worldIdActionDanger({
+              team_id: params.teamId ?? "",
+              app_id: params.appId ?? "",
+              action_id: params.actionId ?? "",
+            })}
+            segment={"danger"}
+            disabled={!deletePermission.allowed}
+            disabledReason={deletePermission.message}
+          >
+            <Typography variant={TYPOGRAPHY.R4}>Danger zone</Typography>
+          </Tab>
         </Tabs>
       </SizingWrapper>
 

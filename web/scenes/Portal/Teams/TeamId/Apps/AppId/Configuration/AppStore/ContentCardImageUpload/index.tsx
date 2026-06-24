@@ -45,7 +45,6 @@ export const ContentCardImageUpload = (props: ContentCardImageUploadProps) => {
   const [verifiedImageError, setVerifiedImageError] = useState(false);
   const [isSecondUpload, setIsSecondUpload] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
-  const [disabled] = useState(false);
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
   const [viewMode] = useAtom(viewModeAtom);
   const [unverifiedImages, setUnverifiedImages] = useAtom(unverifiedImageAtom);
@@ -55,6 +54,9 @@ export const ContentCardImageUpload = (props: ContentCardImageUploadProps) => {
   const { getImage, uploadViaPresignedPost, validateImageAspectRatio } =
     useImage();
   const handleUpload = () => {
+    if (!isEditable) {
+      return;
+    }
     imageInputRef.current?.click();
   };
 
@@ -162,7 +164,7 @@ export const ContentCardImageUpload = (props: ContentCardImageUploadProps) => {
         ref={imageInputRef}
         type="file"
         accept=".png,.jpg,.jpeg"
-        disabled={disabled}
+        disabled={!isEditable}
         onChange={handleFileInput}
         style={{ display: "none" }}
       />
@@ -241,10 +243,13 @@ export const ContentCardImageUpload = (props: ContentCardImageUploadProps) => {
         ) : (
           <label
             className={clsx(
-              "flex h-[168px] w-full cursor-pointer flex-col items-center justify-center gap-y-3 rounded-[10px] border border-dashed bg-grey-50 p-6 hover:bg-grey-100",
+              "flex h-[168px] w-full flex-col items-center justify-center gap-y-3 rounded-[10px] border border-dashed bg-grey-50 p-6",
               isError
                 ? "border-system-error-500 bg-system-error-50"
                 : "border-grey-200",
+              isEditable
+                ? "cursor-pointer hover:bg-grey-100"
+                : "cursor-not-allowed opacity-60",
             )}
             onClick={handleUpload}
           >

@@ -4,7 +4,7 @@ import { DecoratedButton } from "@/components/DecoratedButton";
 import { MagnifierIcon } from "@/components/Icons/MagnifierIcon";
 import { PlusIcon } from "@/components/Icons/PlusIcon";
 import { Input } from "@/components/Input";
-import { RestrictedAction } from "@/components/RestrictedAction";
+import { RestrictedButton } from "@/components/RestrictedButton";
 import { useTeamPermission } from "@/lib/team-permissions/use-team-permission";
 import { Section } from "@/components/Section";
 import { FetchMeDocument } from "@/scenes/common/me-query/client/graphql/client/me-query.generated";
@@ -98,21 +98,17 @@ export const Members = (props: { teamId: string }) => {
                 View permissions
               </DecoratedButton>
 
-              <RestrictedAction restriction={invitePerm}>
-                {({ disabled }) => (
-                  <DecoratedButton
-                    type="button"
-                    onClick={() => setInviteTeamMemberDialogOpened(true)}
-                    variant="primary"
-                    className="min-w-[12rem] py-2.5"
-                    disabled={disabled}
-                  >
-                    <PlusIcon className="size-5 md:hidden" />
-                    <span className="md:hidden">New member</span>
-                    <span className="max-md:hidden">Invite new member</span>
-                  </DecoratedButton>
-                )}
-              </RestrictedAction>
+              <RestrictedButton
+                restriction={invitePerm}
+                type="button"
+                onClick={() => setInviteTeamMemberDialogOpened(true)}
+                variant="primary"
+                className="min-w-[12rem] py-2.5"
+              >
+                <PlusIcon className="size-5 md:hidden" />
+                <span className="md:hidden">New member</span>
+                <span className="max-md:hidden">Invite new member</span>
+              </RestrictedButton>
             </div>
           )}
         </Section.Header.Button>

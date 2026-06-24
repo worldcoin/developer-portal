@@ -1,8 +1,8 @@
 "use client";
 
 import { AppStatus, StatusVariant } from "@/components/AppStatus";
-import { DecoratedButton } from "@/components/DecoratedButton";
 import { RestrictedAction } from "@/components/RestrictedAction";
+import { RestrictedButton } from "@/components/RestrictedButton";
 import {
   type TeamPermission,
   useTeamPermission,
@@ -52,7 +52,6 @@ import { useCreateEditableRowMutation } from "./graphql/client/create-editable-r
 type AppTopBarSubmitProps = {
   appMetadata: FetchAppMetadataQuery["app"][0]["app_metadata"][0];
   appId: string;
-  teamId: string;
   viewMode: "unverified" | "verified";
   onSubmitSuccess: () => void;
   basicInfoRef?: MutableRefObject<BasicInformationHandle | null>;
@@ -62,7 +61,6 @@ type AppTopBarSubmitProps = {
 const AppTopBarSubmit = ({
   appMetadata,
   appId,
-  teamId,
   viewMode,
   onSubmitSuccess,
   basicInfoRef,
@@ -199,26 +197,21 @@ const AppTopBarSubmit = ({
   }, [shouldAutoSubmitForReview, submitForReview, permission.allowed]);
 
   return (
-    <RestrictedAction restriction={permission}>
-      {({ disabled }) => (
-        <DecoratedButton
-          type="submit"
-          className={clsx("h-12 px-6 py-3", {
-            hidden:
-              appMetadata.app_id?.includes("staging") &&
-              process.env.NEXT_PUBLIC_APP_ENV === "production",
-          })}
-          disabled={
-            disabled || viewMode === "verified" || isSubmittingForReview
-          }
-          onClick={submitForReview}
-        >
-          <Typography variant={TYPOGRAPHY.M3} className="whitespace-nowrap">
-            {isSubmittingForReview ? "Processing..." : "Submit for review"}
-          </Typography>
-        </DecoratedButton>
-      )}
-    </RestrictedAction>
+    <RestrictedButton
+      restriction={permission}
+      type="submit"
+      className={clsx("h-12 px-6 py-3", {
+        hidden:
+          appMetadata.app_id?.includes("staging") &&
+          process.env.NEXT_PUBLIC_APP_ENV === "production",
+      })}
+      disabled={viewMode === "verified" || isSubmittingForReview}
+      onClick={submitForReview}
+    >
+      <Typography variant={TYPOGRAPHY.M3} className="whitespace-nowrap">
+        {isSubmittingForReview ? "Processing..." : "Submit for review"}
+      </Typography>
+    </RestrictedButton>
   );
 };
 
@@ -676,18 +669,14 @@ export const AppTopBar = (props: AppTopBarProps) => {
           <div className="flex gap-3">
             {/* Resolve button for rejected apps */}
             {isRejected && onResolve && (
-              <RestrictedAction restriction={resolvePerm}>
-                {({ disabled }) => (
-                  <DecoratedButton
-                    type="button"
-                    className="h-12 px-6 py-3"
-                    disabled={disabled}
-                    onClick={onResolve}
-                  >
-                    <Typography variant={TYPOGRAPHY.M3}>Resolve</Typography>
-                  </DecoratedButton>
-                )}
-              </RestrictedAction>
+              <RestrictedButton
+                restriction={resolvePerm}
+                type="button"
+                className="h-12 px-6 py-3"
+                onClick={onResolve}
+              >
+                <Typography variant={TYPOGRAPHY.M3}>Resolve</Typography>
+              </RestrictedButton>
             )}
 
             {/* Submit / Un-submit / Create Draft button */}
@@ -696,68 +685,57 @@ export const AppTopBar = (props: AppTopBarProps) => {
                 <AppTopBarSubmit
                   appMetadata={appMetadata}
                   appId={appId}
-                  teamId={teamId}
                   viewMode={viewMode}
                   onSubmitSuccess={handleSubmitSuccess}
                   basicInfoRef={basicInfoRef}
                   permission={submitPerm}
                 />
               ) : (
-                <RestrictedAction restriction={submitPerm}>
-                  {({ disabled }) => (
-                    <DecoratedButton
-                      type="button"
-                      className={clsx("h-12 px-6 py-3", {
-                        hidden:
-                          appMetadata.app_id?.includes("staging") &&
-                          process.env.NEXT_PUBLIC_APP_ENV === "production",
-                      })}
-                      disabled={disabled || !canSubmitForReview}
-                      onClick={() =>
-                        router.push(
-                          `${urls.configuration({ team_id: teamId, app_id: appId })}?submitForReview=true`,
-                        )
-                      }
-                    >
-                      <Typography
-                        variant={TYPOGRAPHY.M3}
-                        className="whitespace-nowrap"
-                      >
-                        Submit for review
-                      </Typography>
-                    </DecoratedButton>
-                  )}
-                </RestrictedAction>
+                <RestrictedButton
+                  restriction={submitPerm}
+                  type="button"
+                  className={clsx("h-12 px-6 py-3", {
+                    hidden:
+                      appMetadata.app_id?.includes("staging") &&
+                      process.env.NEXT_PUBLIC_APP_ENV === "production",
+                  })}
+                  disabled={!canSubmitForReview}
+                  onClick={() =>
+                    router.push(
+                      `${urls.configuration({ team_id: teamId, app_id: appId })}?submitForReview=true`,
+                    )
+                  }
+                >
+                  <Typography
+                    variant={TYPOGRAPHY.M3}
+                    className="whitespace-nowrap"
+                  >
+                    Submit for review
+                  </Typography>
+                </RestrictedButton>
               )
             ) : app?.app_metadata?.length === 0 ? (
-              <RestrictedAction restriction={draftPerm}>
-                {({ disabled }) => (
-                  <DecoratedButton
-                    type="button"
-                    className="h-12 px-6 py-3"
-                    disabled={disabled}
-                    onClick={createNewDraft}
-                  >
-                    <Typography variant={TYPOGRAPHY.M3}>
-                      Create new draft
-                    </Typography>
-                  </DecoratedButton>
-                )}
-              </RestrictedAction>
+              <RestrictedButton
+                restriction={draftPerm}
+                type="button"
+                className="h-12 px-6 py-3"
+                onClick={createNewDraft}
+              >
+                <Typography variant={TYPOGRAPHY.M3}>
+                  Create new draft
+                </Typography>
+              </RestrictedButton>
             ) : isInReview ? (
-              <RestrictedAction restriction={unsubmitPerm}>
-                {({ disabled }) => (
-                  <DecoratedButton
-                    type="button"
-                    variant="secondary"
-                    className="h-14 px-6"
-                    disabled={disabled || removeLoading}
-                    onClick={removeFromReview}
-                  >
-                    <Typography variant={TYPOGRAPHY.M3}>Un-submit</Typography>
-                  </DecoratedButton>
-                )}
-              </RestrictedAction>
+              <RestrictedButton
+                restriction={unsubmitPerm}
+                type="button"
+                variant="secondary"
+                className="h-14 px-6"
+                disabled={removeLoading}
+                onClick={removeFromReview}
+              >
+                <Typography variant={TYPOGRAPHY.M3}>Un-submit</Typography>
+              </RestrictedButton>
             ) : null}
           </div>
         </div>

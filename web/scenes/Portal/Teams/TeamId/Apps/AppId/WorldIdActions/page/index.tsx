@@ -1,8 +1,7 @@
 "use client";
 
-import { DecoratedButton } from "@/components/DecoratedButton";
 import { UserStoryIcon } from "@/components/Icons/UserStoryIcon";
-import { RestrictedAction } from "@/components/RestrictedAction";
+import { RestrictedButton } from "@/components/RestrictedButton";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { useTeamPermission } from "@/lib/team-permissions/use-team-permission";
@@ -98,20 +97,16 @@ export const WorldIdActionsPage = ({
                 Actions are used to request uniqueness proofs
               </Typography>
             </div>
-            <RestrictedAction restriction={createPermission}>
-              {({ disabled }) => (
-                <DecoratedButton
-                  variant="primary"
-                  type="button"
-                  onClick={() => setDialogOpen(true)}
-                  disabled={disabled}
-                  testId="create-action-v4-empty"
-                  aria-label="Create your first action"
-                >
-                  <Typography variant={TYPOGRAPHY.M4}>Create</Typography>
-                </DecoratedButton>
-              )}
-            </RestrictedAction>
+            <RestrictedButton
+              restriction={createPermission}
+              variant="primary"
+              type="button"
+              onClick={() => setDialogOpen(true)}
+              testId="create-action-v4-empty"
+              aria-label="Create your first action"
+            >
+              <Typography variant={TYPOGRAPHY.M4}>Create</Typography>
+            </RestrictedButton>
           </div>
         </div>
       ) : (

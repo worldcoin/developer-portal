@@ -6,10 +6,12 @@ import {
   getPrimaryAppBaseUrl,
   siblingOrigin,
 } from "@/lib/app-base-url";
-import { Role_Enum } from "./graphql/graphql";
 import { Auth0SessionUser } from "./lib/types";
 import { urls } from "./lib/urls";
-import { checkUserPermissions } from "./lib/utils";
+import {
+  userCanPerformAction,
+  type PermissionAction,
+} from "./lib/team-permissions";
 
 const cdnURLObject = new URL(
   process.env.NEXT_PUBLIC_IMAGES_CDN_URL || "https://world-id-assets.com",
@@ -110,29 +112,53 @@ const checkRouteRolesRestrictions = (
   const teamId = urlSegments[2];
 
   // Route Subset Restriction
-  const ownerOnlyRoutes = [
-    "/teams/[a-zA-Z0-9_]+/apps/[a-zA-Z0-9_]+/configuration/danger$",
-    "/teams/[a-zA-Z0-9_]+/danger$",
-    "/teams/[a-zA-Z0-9_]+/settings$",
+  const ownerOnlyRoutes: { pattern: string; action: PermissionAction }[] = [
+    {
+      pattern: "/teams/[a-zA-Z0-9_]+/apps/[a-zA-Z0-9_]+/configuration/danger$",
+      action: "delete_app",
+    },
+    {
+      pattern: "/teams/[a-zA-Z0-9_]+/danger$",
+      action: "delete_team",
+    },
+    {
+      pattern: "/teams/[a-zA-Z0-9_]+/settings$",
+      action: "edit_team_settings",
+    },
   ];
-  const ownerAndAdminRoutes = [
-    "/teams/[a-zA-Z0-9_]+/apps/[a-zA-Z0-9_]+/actions/[a-zA-Z0-9_]+/danger$",
-    "/teams/[a-zA-Z0-9_]+/apps/[a-zA-Z0-9_]+/world-id-actions/[a-zA-Z0-9_]+/danger$",
-    "/teams/[a-zA-Z0-9_]+/api-keys$",
+  const ownerAndAdminRoutes: { pattern: string; action: PermissionAction }[] = [
+    {
+      pattern:
+        "/teams/[a-zA-Z0-9_]+/apps/[a-zA-Z0-9_]+/actions/[a-zA-Z0-9_]+/danger$",
+      action: "delete_world_id_action",
+    },
+    {
+      pattern:
+        "/teams/[a-zA-Z0-9_]+/apps/[a-zA-Z0-9_]+/world-id-actions/[a-zA-Z0-9_]+/danger$",
+      action: "delete_world_id_action",
+    },
+    {
+      pattern: "/teams/[a-zA-Z0-9_]+/api-keys$",
+      action: "view_api_keys",
+    },
   ];
 
-  if (ownerOnlyRoutes.some((route) => pathname.match(route))) {
-    if (!checkUserPermissions(user, teamId, [Role_Enum.Owner])) {
-      return NextResponse.rewrite(new URL("/unauthorized", request.url));
-    }
+  if (
+    ownerOnlyRoutes.some(
+      ({ pattern, action }) =>
+        pathname.match(pattern) && !userCanPerformAction(user, teamId, action),
+    )
+  ) {
+    return NextResponse.rewrite(new URL("/unauthorized", request.url));
   }
 
-  if (ownerAndAdminRoutes.some((route) => pathname.match(route))) {
-    if (
-      !checkUserPermissions(user, teamId, [Role_Enum.Owner, Role_Enum.Admin])
-    ) {
-      return NextResponse.rewrite(new URL("/unauthorized", request.url));
-    }
+  if (
+    ownerAndAdminRoutes.some(
+      ({ pattern, action }) =>
+        pathname.match(pattern) && !userCanPerformAction(user, teamId, action),
+    )
+  ) {
+    return NextResponse.rewrite(new URL("/unauthorized", request.url));
   }
   return false;
 };

@@ -1,12 +1,9 @@
 "use client";
-import { DecoratedButton } from "@/components/DecoratedButton";
+import { RestrictedButton } from "@/components/RestrictedButton";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import { Role_Enum } from "@/graphql/graphql";
-import { Auth0SessionUser } from "@/lib/types";
-import { checkUserPermissions, truncateString } from "@/lib/utils";
-import { useUser } from "@auth0/nextjs-auth0/client";
-import clsx from "clsx";
+import { useTeamPermission } from "@/lib/team-permissions/use-team-permission";
+import { truncateString } from "@/lib/utils";
 import { useAtom } from "jotai";
 import { ErrorPage } from "@/components/ErrorPage";
 import { useParams } from "next/navigation";
@@ -26,11 +23,7 @@ export const AppProfileDangerPage = ({ params }: AppProfileDangerPageProps) => {
   const teamId = (params?.teamId || routeParams?.teamId) as `team_${string}`;
   const [viewMode] = useAtom(viewModeAtom);
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
-  const { user } = useUser() as Auth0SessionUser;
-
-  const isEnoughPermissions = useMemo(() => {
-    return checkUserPermissions(user, teamId ?? "", [Role_Enum.Owner]);
-  }, [user, teamId]);
+  const deletePerm = useTeamPermission(teamId ?? "", "delete_app");
 
   const { data, loading } = useFetchAppMetadataQuery({
     variables: {
@@ -83,14 +76,15 @@ export const AppProfileDangerPage = ({ params }: AppProfileDangerPageProps) => {
               </Typography>
             </div>
 
-            <DecoratedButton
+            <RestrictedButton
+              restriction={deletePerm}
               type="button"
               variant="destructive"
+              className="w-fit"
               onClick={() => setOpenDeleteModal(true)}
-              className={clsx("w-fit", { hidden: !isEnoughPermissions })}
             >
               <Typography variant={TYPOGRAPHY.R3}>Delete app</Typography>
-            </DecoratedButton>
+            </RestrictedButton>
           </div>
         </SizingWrapper>
         <DeleteModal

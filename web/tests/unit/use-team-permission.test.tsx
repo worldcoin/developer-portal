@@ -12,21 +12,15 @@ jest.mock("@auth0/nextjs-auth0/client", () => ({
 }));
 
 jest.mock("@/lib/utils", () => ({
-  checkUserPermissions: (
+  getUserTeamRole: (
     user: {
       hasura?: {
         memberships?: Array<{ role?: string; team?: { id?: string } }>;
       };
     },
     teamId: string,
-    roles: string[],
-  ) => {
-    const membership = user?.hasura?.memberships?.find(
-      (item) => item.team?.id === teamId,
-    );
-
-    return Boolean(membership?.role && roles.includes(membership.role));
-  },
+  ) =>
+    user?.hasura?.memberships?.find((item) => item.team?.id === teamId)?.role,
 }));
 
 const userWithRole = (role: Role_Enum) => ({

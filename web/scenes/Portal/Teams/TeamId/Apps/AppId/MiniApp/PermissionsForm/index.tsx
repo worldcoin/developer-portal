@@ -7,11 +7,8 @@ import { CheckIcon } from "@/components/Icons/CheckIcon";
 import { Link } from "@/components/Link";
 import { TextArea } from "@/components/TextArea";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import { Role_Enum } from "@/graphql/graphql";
 import { AppMode } from "@/lib/constants";
-import { Auth0SessionUser } from "@/lib/types";
-import { checkUserPermissions } from "@/lib/utils";
-import { useUser } from "@auth0/nextjs-auth0/client";
+import { useTeamPermission } from "@/lib/team-permissions/use-team-permission";
 import { yupResolver } from "@hookform/resolvers/yup";
 import clsx from "clsx";
 import { ChangeEvent, ReactNode, useCallback, useEffect, useMemo } from "react";
@@ -183,15 +180,8 @@ export const SetupForm = ({
   teamId,
   appMetadata,
 }: PermissionsFormProps) => {
-  const { user } = useUser() as Auth0SessionUser;
   const isEditable = appMetadata?.verification_status === "unverified";
-
-  const isEnoughPermissions = useMemo(() => {
-    return checkUserPermissions(user, teamId ?? "", [
-      Role_Enum.Owner,
-      Role_Enum.Admin,
-    ]);
-  }, [teamId, user]);
+  const editStorePerm = useTeamPermission(teamId, "edit_app_store_details");
 
   const form = useForm<UpdateSetupInitialSchema>({
     resolver: yupResolver(updateSetupInitialSchema),
@@ -221,7 +211,7 @@ export const SetupForm = ({
     }
   }, [appMetadata, reset, previousMetadataIdRef]);
 
-  const canEdit = isEditable && isEnoughPermissions;
+  const canEdit = isEditable && editStorePerm.allowed;
 
   const hasInvalidWhitelistCombination = useCallback(
     (values: UpdateSetupInitialSchema) =>

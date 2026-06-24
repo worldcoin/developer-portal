@@ -1,9 +1,8 @@
 "use client";
 
 import { CopyButton } from "@/components/CopyButton";
-import { DecoratedButton } from "@/components/DecoratedButton";
 import { Input } from "@/components/Input";
-import { RestrictedAction } from "@/components/RestrictedAction";
+import { RestrictedButton } from "@/components/RestrictedButton";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { useTeamPermission } from "@/lib/team-permissions/use-team-permission";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -106,20 +105,17 @@ export const UpdateActionV4Form = (props: UpdateActionV4FormProps) => {
       </div>
 
       <div className="flex justify-start">
-        <RestrictedAction restriction={editPermission} className="w-fit">
-          {({ disabled }) => (
-            <DecoratedButton
-              type="submit"
-              variant="primary"
-              disabled={isSubmitting || !isValid || disabled}
-              className="px-8 py-3"
-            >
-              <Typography variant={TYPOGRAPHY.R3}>
-                {isSubmitting ? "Saving..." : "Save Changes"}
-              </Typography>
-            </DecoratedButton>
-          )}
-        </RestrictedAction>
+        <RestrictedButton
+          restriction={editPermission}
+          type="submit"
+          variant="primary"
+          disabled={isSubmitting || !isValid}
+          className="px-8 py-3"
+        >
+          <Typography variant={TYPOGRAPHY.R3}>
+            {isSubmitting ? "Saving..." : "Save Changes"}
+          </Typography>
+        </RestrictedButton>
       </div>
     </form>
   );
