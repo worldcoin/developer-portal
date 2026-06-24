@@ -16,7 +16,6 @@ export const LanguagesSection = ({
   control,
   errors,
   isEditable,
-  isEnoughPermissions,
 }: LanguagesSectionProps) => {
   const allPossibleLanguages = formLanguagesList;
   const [showClearModal, setShowClearModal] = useState(false);
@@ -41,7 +40,7 @@ export const LanguagesSection = ({
               values={field.value}
               items={allPossibleLanguages}
               label=""
-              disabled={!isEditable || !isEnoughPermissions}
+              disabled={!isEditable}
               errors={errors.supported_languages}
               showSelectedList
               searchPlaceholder="Enter language"
@@ -90,7 +89,7 @@ export const LanguagesSection = ({
 
                     field.onChange(newSupportedLanguages);
                   }}
-                  disabled={!isEditable || !isEnoughPermissions}
+                  disabled={!isEditable}
                 />
               )}
             </SelectMultiple>

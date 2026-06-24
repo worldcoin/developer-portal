@@ -5,11 +5,8 @@ import { ErrorPage } from "@/components/ErrorPage";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { Tab, Tabs } from "@/components/Tabs";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import { Role_Enum } from "@/graphql/graphql";
-import { Auth0SessionUser } from "@/lib/types";
-import { checkUserPermissions } from "@/lib/utils";
+import { useTeamPermission } from "@/lib/team-permissions/use-team-permission";
 import { urls } from "@/lib/urls";
-import { useUser } from "@auth0/nextjs-auth0/client";
 import { ReactNode, use } from "react";
 import { useGetSingleActionV4Query } from "../page/graphql/client/get-single-action-v4.generated";
 
@@ -26,7 +23,10 @@ type WorldIdActionIdLayoutProps = {
 
 export const WorldIdActionIdLayout = (props: WorldIdActionIdLayoutProps) => {
   const params = use(props.params);
-  const { user } = useUser() as Auth0SessionUser;
+  const deletePermission = useTeamPermission(
+    params.teamId ?? "",
+    "delete_world_id_action",
+  );
 
   // Fetch action data for header using user permissions
   const { data, loading } = useGetSingleActionV4Query({
@@ -58,11 +58,6 @@ export const WorldIdActionIdLayout = (props: WorldIdActionIdLayoutProps) => {
       </SizingWrapper>
     );
   }
-
-  const isEnoughPermissions = checkUserPermissions(user, params.teamId ?? "", [
-    Role_Enum.Owner,
-    Role_Enum.Admin,
-  ]);
 
   return (
     <>
@@ -112,19 +107,19 @@ export const WorldIdActionIdLayout = (props: WorldIdActionIdLayoutProps) => {
             <Typography variant={TYPOGRAPHY.R4}>Settings</Typography>
           </Tab>
 
-          {isEnoughPermissions && (
-            <Tab
-              className="md:py-4"
-              href={urls.worldIdActionDanger({
-                team_id: params.teamId ?? "",
-                app_id: params.appId ?? "",
-                action_id: params.actionId ?? "",
-              })}
-              segment={"danger"}
-            >
-              <Typography variant={TYPOGRAPHY.R4}>Danger zone</Typography>
-            </Tab>
-          )}
+          <Tab
+            className="md:py-4"
+            href={urls.worldIdActionDanger({
+              team_id: params.teamId ?? "",
+              app_id: params.appId ?? "",
+              action_id: params.actionId ?? "",
+            })}
+            segment={"danger"}
+            disabled={!deletePermission.allowed}
+            disabledReason={deletePermission.message}
+          >
+            <Typography variant={TYPOGRAPHY.R4}>Danger zone</Typography>
+          </Tab>
         </Tabs>
       </SizingWrapper>
 

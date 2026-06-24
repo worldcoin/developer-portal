@@ -5,7 +5,6 @@ import { WorldIcon } from "@/components/Icons/WorldIcon";
 import { LoggedUserNav } from "@/components/LoggedUserNav";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { isWorldId40Enabled, worldId40Atom } from "@/lib/feature-flags";
-import { urls } from "@/lib/urls";
 import { atom, useAtom, useSetAtom } from "jotai";
 import { useParams } from "next/navigation";
 import React, { useEffect, useMemo } from "react";
@@ -21,21 +20,11 @@ export const Header = (props: { color: Color | null }) => {
   const setColor = useSetAtom(colorAtom);
   const [open, setOpen] = useAtom(createAppDialogOpenedAtom);
   const [worldId40Config] = useAtom(worldId40Atom);
-  const { teamId, appId } = useParams() as { teamId?: string; appId?: string };
+  const { teamId } = useParams() as { teamId?: string };
 
   useEffect(() => {
     setColor(props.color);
   }, [props.color, setColor]);
-
-  const logoHref = useMemo(() => {
-    if (teamId && appId) {
-      return urls.app({ team_id: teamId, app_id: appId });
-    }
-    if (teamId) {
-      return urls.teams({ team_id: teamId });
-    }
-    return "/";
-  }, [teamId, appId]);
 
   const useNewCreateAppDialog = useMemo(
     () => isWorldId40Enabled(worldId40Config, teamId),
@@ -50,7 +39,7 @@ export const Header = (props: { color: Color | null }) => {
         variant="nav"
       >
         <div className="grid grid-cols-auto/1fr gap-x-4 md:gap-x-8">
-          <Button href={logoHref}>
+          <Button href="/">
             <WorldIcon className="size-6" />
           </Button>
 

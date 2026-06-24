@@ -8,12 +8,10 @@ import { FetchKeysQuery } from "../../graphql/client/fetch-keys.generated";
 import { EditIcon } from "@/components/Icons/EditIcon";
 import { KeyIcon } from "@/components/Icons/KeyIcon";
 import { TrashIcon } from "@/components/Icons/TrashIcon";
-import { Role_Enum } from "@/graphql/graphql";
-import { Auth0SessionUser } from "@/lib/types";
+import { useTeamPermission } from "@/lib/team-permissions/use-team-permission";
 import { ApolloError } from "@apollo/client";
-import { useUser } from "@auth0/nextjs-auth0/client";
 import clsx from "clsx";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useState } from "react";
 import { toast } from "react-toastify";
 import { ApiKeySecretModal } from "../../ApiKeySecretModal";
 import { FetchKeysDocument } from "../../graphql/client/fetch-keys.generated";
@@ -32,14 +30,8 @@ export const ApiKeyRow = (props: {
   const timeAgo = formatDistanceToNowStrict(new Date(apiKey.created_at), {
     addSuffix: true,
   });
-  const { user } = useUser() as Auth0SessionUser;
-
-  const isEnoughPermissions = useMemo(() => {
-    const membership = user?.hasura.memberships.find(
-      (m) => m.team?.id === teamId,
-    );
-    return membership?.role === Role_Enum.Owner;
-  }, [teamId, user?.hasura.memberships]);
+  const manageApiKeyPerm = useTeamPermission(teamId, "edit_api_keys");
+  const deleteApiKeyPerm = useTeamPermission(teamId, "delete_api_keys");
 
   const [resetApiKeyMutation, { loading }] = useResetApiKeyMutation();
 
@@ -162,7 +154,7 @@ export const ApiKeyRow = (props: {
           <div
             key={`api_key_${index}_5`}
             className={clsx("flex w-full justify-end", {
-              hidden: !isEnoughPermissions,
+              hidden: !manageApiKeyPerm.allowed,
             })}
           >
             <Dropdown>
@@ -191,20 +183,22 @@ export const ApiKeyRow = (props: {
                   </button>
                 </Dropdown.ListItem>
 
-                <Dropdown.ListItem asChild>
-                  <button onClick={() => openDeleteKeyModal(apiKey)}>
-                    <Dropdown.ListItemIcon
-                      className="text-system-error-600"
-                      asChild
-                    >
-                      <TrashIcon />
-                    </Dropdown.ListItemIcon>
+                {deleteApiKeyPerm.allowed && (
+                  <Dropdown.ListItem asChild>
+                    <button onClick={() => openDeleteKeyModal(apiKey)}>
+                      <Dropdown.ListItemIcon
+                        className="text-system-error-600"
+                        asChild
+                      >
+                        <TrashIcon />
+                      </Dropdown.ListItemIcon>
 
-                    <Dropdown.ListItemText className="text-system-error-600">
-                      Remove key
-                    </Dropdown.ListItemText>
-                  </button>
-                </Dropdown.ListItem>
+                      <Dropdown.ListItemText className="text-system-error-600">
+                        Remove key
+                      </Dropdown.ListItemText>
+                    </button>
+                  </Dropdown.ListItem>
+                )}
               </Dropdown.List>
             </Dropdown>
           </div>

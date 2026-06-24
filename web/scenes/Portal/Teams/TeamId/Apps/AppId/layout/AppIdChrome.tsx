@@ -41,6 +41,7 @@ export const AppIdChrome = ({
     return <>{children}</>;
   }
 
+  const teamsPath = urls.profileTeams();
   const isWorldIdSegment =
     segment === "world-id-4-0" ||
     segment === "world-id-actions" ||
@@ -109,6 +110,10 @@ export const AppIdChrome = ({
                 segment={"mini-app"}
               >
                 <Typography variant={TYPOGRAPHY.R4}>Mini App</Typography>
+              </Tab>
+
+              <Tab href={teamsPath} underlined segment={"teams"}>
+                <Typography variant={TYPOGRAPHY.R4}>Teams</Typography>
               </Tab>
             </Tabs>
           </SizingWrapper>
@@ -275,6 +280,10 @@ export const AppIdChrome = ({
               segment={"API Keys"}
             >
               <Typography variant={TYPOGRAPHY.R4}>API Keys</Typography>
+            </Tab>
+
+            <Tab href={teamsPath} underlined segment={"teams"}>
+              <Typography variant={TYPOGRAPHY.R4}>Teams</Typography>
             </Tab>
           </Tabs>
         </SizingWrapper>

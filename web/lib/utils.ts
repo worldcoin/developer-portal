@@ -200,19 +200,23 @@ export const getLogoImgCDNUrl = (
  * @param validRoles - The roles to check for
  * @returns True if the user has the required roles, false otherwise
  */
+export const getUserTeamRole = (
+  user: Auth0SessionUser["user"] | undefined,
+  teamId: string,
+): Role_Enum | undefined =>
+  user?.hasura?.memberships.find((m) => m.team?.id == teamId)?.role;
+
 export const checkUserPermissions = (
   user: Auth0SessionUser["user"],
   teamId: string,
   validRoles: Role_Enum[] | string[],
 ) => {
-  const membership = user?.hasura?.memberships.find(
-    (m) => m.team?.id == teamId,
-  );
+  const role = getUserTeamRole(user, teamId);
 
-  if (!membership) {
+  if (!role) {
     return false;
   }
-  return validRoles.includes(membership?.role);
+  return validRoles.includes(role);
 };
 
 /**

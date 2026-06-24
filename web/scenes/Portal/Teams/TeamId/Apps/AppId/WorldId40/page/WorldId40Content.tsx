@@ -1,14 +1,17 @@
 "use client";
 
 import { CopyButton } from "@/components/CopyButton";
-import { DecoratedButton } from "@/components/DecoratedButton";
 import { Notification } from "@/components/Notification";
+import { RestrictedButton } from "@/components/RestrictedButton";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import { useTeamPermission } from "@/lib/team-permissions/use-team-permission";
 import clsx from "clsx";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
+import { toast } from "react-toastify";
 import { useRetryRpMutation } from "./graphql/client/retry-rp.generated";
+import { getRpActionRestriction } from "./rp-action-restrictions";
 import { RotateSignerKeyDialog } from "./RotateSignerKeyDialog";
 import { SwitchToSelfManagedDialog } from "./SwitchToSelfManagedDialog";
 
@@ -45,6 +48,7 @@ const statusConfig: Record<
 };
 
 type WorldId40ContentProps = {
+  teamId: string;
   appId: string;
   rpId: string;
   initialStatus: RpStatus;
@@ -55,6 +59,7 @@ type WorldId40ContentProps = {
 };
 
 export const WorldId40Content = ({
+  teamId,
   appId,
   rpId,
   initialStatus,
@@ -74,6 +79,7 @@ export const WorldId40Content = ({
   const [retryingEnvironment, setRetryingEnvironment] = useState<string | null>(
     null,
   );
+  const managePermission = useTeamPermission(teamId, "manage_world_id_4_0");
 
   const fetchStatus = useCallback(async () => {
     try {
@@ -116,16 +122,19 @@ export const WorldId40Content = ({
         },
       });
 
-      if (data?.retry_rp?.success) {
-        // Set the retried environment to pending and resume polling
-        if (environment === "production") {
-          setProductionStatus("pending");
-        } else {
-          setStagingStatus("pending");
-        }
+      if (!data?.retry_rp?.success) {
+        toast.error("Failed to retry RP registration");
+        return;
+      }
+
+      // Set the retried environment to pending and resume polling
+      if (environment === "production") {
+        setProductionStatus("pending");
+      } else {
+        setStagingStatus("pending");
       }
     } catch {
-      // Keep current status on error
+      toast.error("Failed to retry RP registration");
     } finally {
       setRetryingEnvironment(null);
     }
@@ -133,6 +142,18 @@ export const WorldId40Content = ({
 
   // Use production status for overall "active" checks (e.g., enabling reset button)
   const isActive = productionStatus === "registered";
+  const retryRestriction = getRpActionRestriction({
+    action: "retry",
+    permission: managePermission,
+    mode,
+    isActive,
+  });
+  const manageRegisteredRpRestriction = getRpActionRestriction({
+    action: "manage_registered_rp",
+    permission: managePermission,
+    mode,
+    isActive,
+  });
 
   const formattedDate = new Date(createdAt).toLocaleDateString("en-US", {
     year: "numeric",
@@ -168,7 +189,8 @@ export const WorldId40Content = ({
             </Typography>
           </div>
           {isFailed && (
-            <DecoratedButton
+            <RestrictedButton
+              restriction={retryRestriction}
               type="button"
               variant="primary"
               className="h-8 rounded-full px-4 py-0 text-xs"
@@ -176,7 +198,7 @@ export const WorldId40Content = ({
               onClick={() => handleRetry(environment)}
             >
               {isRetrying ? "Retrying..." : "Try again"}
-            </DecoratedButton>
+            </RestrictedButton>
           )}
         </div>
       </div>
@@ -284,15 +306,15 @@ export const WorldId40Content = ({
                   This will create a new signer key and disable the existing key
                 </Typography>
               </div>
-              <DecoratedButton
+              <RestrictedButton
+                restriction={manageRegisteredRpRestriction}
                 type="button"
                 variant="secondary"
-                disabled={!isActive || mode === "self_managed"}
                 className="h-8 rounded-full px-4 py-0 text-xs"
                 onClick={() => setIsRotateDialogOpen(true)}
               >
                 Reset
-              </DecoratedButton>
+              </RestrictedButton>
             </div>
           </div>
         </div>
@@ -313,27 +335,20 @@ export const WorldId40Content = ({
                   Move this RP to a self-managed configuration
                 </Typography>
               </div>
-              <DecoratedButton
+              <RestrictedButton
+                restriction={manageRegisteredRpRestriction}
                 type="button"
                 variant="danger"
-                disabled={!isActive || mode === "self_managed"}
                 className={clsx(
                   "h-8 shrink-0 rounded-full px-4 text-[13px] font-semibold",
-                  !isActive || mode === "self_managed"
-                    ? "" // Let DecoratedButton handle disabled styles
-                    : "bg-danger text-white hover:bg-system-error-700",
+                  manageRegisteredRpRestriction.allowed
+                    ? "bg-danger text-white hover:bg-system-error-700"
+                    : "", // Let DecoratedButton handle disabled styles
                 )}
-                title={
-                  mode === "self_managed"
-                    ? "Already in self-managed mode"
-                    : !isActive
-                      ? "RP must be active to switch modes"
-                      : undefined
-                }
                 onClick={() => setIsSwitchDialogOpen(true)}
               >
                 Switch
-              </DecoratedButton>
+              </RestrictedButton>
             </div>
           </div>
         </div>
