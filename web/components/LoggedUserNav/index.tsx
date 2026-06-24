@@ -228,7 +228,17 @@ export const LoggedUserNav = () => {
           <Dropdown.ListSeparator />
 
           <Dropdown.ListItem asChild>
-            <a href={urls.logout()} className="text-system-error-600">
+            <a
+              href={urls.logout()}
+              onClick={(e) => {
+                // Log out against the host the user is actually on (worldcoin.org
+                // vs world.org) so they land on that host's /login and aren't
+                // bounced back in by a stale session cookie on the other domain.
+                e.preventDefault();
+                window.location.assign(urls.logout(window.location.origin));
+              }}
+              className="text-system-error-600"
+            >
               <Dropdown.ListItemIcon className="text-system-error-600" asChild>
                 <LogoutIcon />
               </Dropdown.ListItemIcon>

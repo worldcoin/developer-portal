@@ -65,11 +65,15 @@ export const urls = {
   // param for the post-logout landing page. Auth0's /v2/logout requires `returnTo`
   // to be an ABSOLUTE URL in the tenant's Allowed Logout URLs — unlike v3, the v4
   // SDK does NOT absolutise a relative path, so a bare "/login" is rejected (400).
-  // Build the absolute `<app origin>/login` from NEXT_PUBLIC_APP_URL (build-inlined,
-  // available on both server and client; `<origin>/login` is an Allowed Logout URL).
-  logout: (): string =>
+  // Pass the caller's `origin` so the user lands on the host they logged out from
+  // (the portal is served on both worldcoin.org and world.org — returning a
+  // sibling-host user to the canonical host can bounce them back in via a stale
+  // session cookie on the other registrable domain). Falls back to the canonical
+  // NEXT_PUBLIC_APP_URL (build-inlined) for server/SSR. `<origin>/login` is an
+  // Allowed Logout URL.
+  logout: (origin?: string): string =>
     `/api/auth/logout?returnTo=${encodeURIComponent(
-      `${process.env.NEXT_PUBLIC_APP_URL}/login`,
+      `${origin ?? process.env.NEXT_PUBLIC_APP_URL}/login`,
     )}`,
 
   join: (params?: SignupParams): string => {
