@@ -48,7 +48,11 @@ export const WorldIdActionIdSettingsPage = (
         {loading ? (
           <Skeleton count={4} />
         ) : (
-          <UpdateActionV4Form action={action!} appId={appId ?? ""} />
+          <UpdateActionV4Form
+            action={action!}
+            appId={appId ?? ""}
+            teamId={teamId ?? ""}
+          />
         )}
 
         {loading ? (

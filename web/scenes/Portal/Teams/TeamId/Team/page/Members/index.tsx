@@ -4,15 +4,13 @@ import { DecoratedButton } from "@/components/DecoratedButton";
 import { MagnifierIcon } from "@/components/Icons/MagnifierIcon";
 import { PlusIcon } from "@/components/Icons/PlusIcon";
 import { Input } from "@/components/Input";
+import { RestrictedAction } from "@/components/RestrictedAction";
+import { useTeamPermission } from "@/lib/team-permissions/use-team-permission";
 import { Section } from "@/components/Section";
-import { Role_Enum } from "@/graphql/graphql";
-import { Auth0SessionUser } from "@/lib/types";
-import { checkUserPermissions } from "@/lib/utils";
 import { FetchMeDocument } from "@/scenes/common/me-query/client/graphql/client/me-query.generated";
-import { useUser } from "@auth0/nextjs-auth0/client";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useAtom } from "jotai";
-import { useEffect, useMemo } from "react";
+import { useEffect } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import Skeleton from "react-loading-skeleton";
 import * as yup from "yup";
@@ -22,6 +20,7 @@ import {
   inviteTeamMemberDialogAtom,
 } from "./InviteTeamMemberDialog";
 import { List } from "./List";
+import { permissionsDialogAtom } from "./List/PermissionsDialog";
 
 const schema = yup
   .object({
@@ -34,14 +33,8 @@ export const Members = (props: { teamId: string }) => {
   const [, setInviteTeamMemberDialogOpened] = useAtom(
     inviteTeamMemberDialogAtom,
   );
-  const { user } = useUser() as Auth0SessionUser;
-
-  const isEnoughPermissions = useMemo(() => {
-    return checkUserPermissions(user, teamId ?? "", [
-      Role_Enum.Owner,
-      Role_Enum.Admin,
-    ]);
-  }, [user, teamId]);
+  const [, setPermissionsDialogOpened] = useAtom(permissionsDialogAtom);
+  const invitePerm = useTeamPermission(teamId, "invite_member");
 
   const { register, control } = useForm({
     resolver: yupResolver(schema),
@@ -95,17 +88,32 @@ export const Members = (props: { teamId: string }) => {
           {membersRes.loading ? (
             <Skeleton className="h-12 w-[12rem] rounded-xl" />
           ) : (
-            <DecoratedButton
-              type="button"
-              onClick={() => setInviteTeamMemberDialogOpened(true)}
-              variant="primary"
-              className="min-w-[12rem] py-2.5"
-              disabled={membersRes.data && !isEnoughPermissions}
-            >
-              <PlusIcon className="size-5 md:hidden" />
-              <span className="md:hidden">New member</span>
-              <span className="max-md:hidden">Invite new member</span>
-            </DecoratedButton>
+            <div className="flex flex-col gap-2 md:flex-row">
+              <DecoratedButton
+                type="button"
+                variant="secondary"
+                className="min-w-[10rem] py-2.5"
+                onClick={() => setPermissionsDialogOpened(true)}
+              >
+                View permissions
+              </DecoratedButton>
+
+              <RestrictedAction restriction={invitePerm}>
+                {({ disabled }) => (
+                  <DecoratedButton
+                    type="button"
+                    onClick={() => setInviteTeamMemberDialogOpened(true)}
+                    variant="primary"
+                    className="min-w-[12rem] py-2.5"
+                    disabled={disabled}
+                  >
+                    <PlusIcon className="size-5 md:hidden" />
+                    <span className="md:hidden">New member</span>
+                    <span className="max-md:hidden">Invite new member</span>
+                  </DecoratedButton>
+                )}
+              </RestrictedAction>
+            </div>
           )}
         </Section.Header.Button>
       </Section.Header>

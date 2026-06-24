@@ -77,7 +77,6 @@ export type AppStoreFormProps = {
 
 export type FormSectionProps = {
   isEditable: boolean;
-  isEnoughPermissions: boolean;
 };
 
 export type SupportType = "email" | "link";

@@ -12,7 +12,7 @@ type Props = {
 };
 
 export const WorldId40Page = async ({ params }: Props) => {
-  const { appId } = params;
+  const { appId, teamId } = params;
 
   const client = await getAPIServiceGraphqlClient();
   const { rp_registration } = await getSdk(client).FetchRpRegistration({
@@ -36,6 +36,7 @@ export const WorldId40Page = async ({ params }: Props) => {
 
   return (
     <WorldId40Content
+      teamId={teamId}
       appId={appId}
       rpId={rpData.rp_id}
       initialStatus={

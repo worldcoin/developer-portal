@@ -10,6 +10,7 @@ import { SendIcon } from "@/components/Icons/SendIcon";
 import { TrashIcon } from "@/components/Icons/TrashIcon";
 import { Role_Enum } from "@/graphql/graphql";
 import Skeleton from "react-loading-skeleton";
+import { getMemberRowActions } from "../member-row-actions";
 
 const roleName: Record<Role_Enum, string> = {
   [Role_Enum.Admin]: "Admin",
@@ -107,67 +108,68 @@ export const Item = (props: ItemProps) => {
         ) : (
           <Dropdown>
             <Dropdown.Button
-              disabled={!isEnoughPermissions || isCurrent}
-              className={clsx("rounded-8 hover:bg-grey-100", {
-                "pointer-events-none invisible":
-                  !isEnoughPermissions || isCurrent,
-              })}
+              className="rounded-8 hover:bg-grey-100"
+              aria-label="Member actions"
             >
               <MoreVerticalIcon className="text-grey-900" />
             </Dropdown.Button>
 
-            <Dropdown.List
-              align="end"
-              heading={name} // TODO: replace heading with member card in separate task
-            >
-              {isEnoughPermissions && !isInviteRow && (
-                <Dropdown.ListItem asChild>
-                  <button onClick={props.onEdit}>
-                    <Dropdown.ListItemIcon asChild>
-                      <EditUserIcon />
-                    </Dropdown.ListItemIcon>
+            <Dropdown.List align="end" heading={name}>
+              {getMemberRowActions({
+                isOwner: Boolean(isEnoughPermissions),
+                isCurrent: Boolean(isCurrent),
+                isInviteRow: Boolean(isInviteRow),
+              }).map((action) => {
+                const handlers: Record<string, (() => void) | undefined> = {
+                  edit_member_role: props.onEdit,
+                  remove_member: props.onRemove,
+                  resend_invite: props.onResendInvite,
+                  cancel_invite: props.onCancelInvite,
+                };
 
-                    <Dropdown.ListItemText>Edit role</Dropdown.ListItemText>
-                  </button>
-                </Dropdown.ListItem>
-              )}
+                const Icon =
+                  action.key === "edit_member_role"
+                    ? EditUserIcon
+                    : action.key === "resend_invite"
+                      ? SendIcon
+                      : TrashIcon;
 
-              {isEnoughPermissions && isInviteRow && (
-                <Dropdown.ListItem asChild>
-                  <button onClick={props.onResendInvite}>
-                    <Dropdown.ListItemIcon asChild>
-                      <SendIcon />
-                    </Dropdown.ListItemIcon>
-
-                    <Dropdown.ListItemText>
-                      Re-send invite
-                    </Dropdown.ListItemText>
-                  </button>
-                </Dropdown.ListItem>
-              )}
-
-              {isEnoughPermissions && (
-                <Dropdown.ListItem className="text-system-error-600" asChild>
-                  <button
-                    onClick={() =>
-                      isInviteRow
-                        ? props.onCancelInvite?.()
-                        : props.onRemove?.()
-                    }
-                  >
-                    <Dropdown.ListItemIcon
-                      className="text-system-error-600"
-                      asChild
+                if (!action.allowed) {
+                  return (
+                    <Dropdown.DisabledListItem
+                      key={action.key}
+                      icon={<Icon />}
+                      description={action.reason}
                     >
-                      <TrashIcon />
-                    </Dropdown.ListItemIcon>
+                      {action.label}
+                    </Dropdown.DisabledListItem>
+                  );
+                }
 
-                    <Dropdown.ListItemText>
-                      {isInviteRow ? "Cancel invite" : "Remove member"}
-                    </Dropdown.ListItemText>
-                  </button>
-                </Dropdown.ListItem>
-              )}
+                return (
+                  <Dropdown.ListItem
+                    key={action.key}
+                    className={
+                      action.danger ? "text-system-error-600" : undefined
+                    }
+                    asChild
+                  >
+                    <button type="button" onClick={handlers[action.key]}>
+                      <Dropdown.ListItemIcon
+                        className={
+                          action.danger ? "text-system-error-600" : undefined
+                        }
+                        asChild
+                      >
+                        <Icon />
+                      </Dropdown.ListItemIcon>
+                      <Dropdown.ListItemText>
+                        {action.label}
+                      </Dropdown.ListItemText>
+                    </button>
+                  </Dropdown.ListItem>
+                );
+              })}
             </Dropdown.List>
           </Dropdown>
         )}

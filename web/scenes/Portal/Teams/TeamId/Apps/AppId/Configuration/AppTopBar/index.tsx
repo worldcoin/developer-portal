@@ -2,14 +2,16 @@
 
 import { AppStatus, StatusVariant } from "@/components/AppStatus";
 import { DecoratedButton } from "@/components/DecoratedButton";
+import { RestrictedAction } from "@/components/RestrictedAction";
+import {
+  type TeamPermission,
+  useTeamPermission,
+} from "@/lib/team-permissions/use-team-permission";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import { Role_Enum } from "@/graphql/graphql";
 
 import { Button } from "@/components/Button";
-import { Auth0SessionUser } from "@/lib/types";
 import { getCDNImageUrl, getDefaultLogoImgCDNUrl } from "@/lib/utils";
 import { useRemoveFromReview } from "@/scenes/Portal/Teams/TeamId/Apps/common/hooks/use-remove-from-review";
-import { useUser } from "@auth0/nextjs-auth0/client";
 import clsx from "clsx";
 import { useAtom } from "jotai";
 import { ErrorPage } from "@/components/ErrorPage";
@@ -54,6 +56,7 @@ type AppTopBarSubmitProps = {
   viewMode: "unverified" | "verified";
   onSubmitSuccess: () => void;
   basicInfoRef?: MutableRefObject<BasicInformationHandle | null>;
+  permission: TeamPermission;
 };
 
 const AppTopBarSubmit = ({
@@ -63,6 +66,7 @@ const AppTopBarSubmit = ({
   viewMode,
   onSubmitSuccess,
   basicInfoRef,
+  permission,
 }: AppTopBarSubmitProps) => {
   const form = useFormContext<AppStoreFormValues>();
   const searchParams = useSearchParams();
@@ -184,27 +188,37 @@ const AppTopBarSubmit = ({
   const shouldAutoSubmitForReview =
     searchParams.get("submitForReview") === "true";
   useEffect(() => {
-    if (shouldAutoSubmitForReview && !hasAutoSubmitted.current) {
+    if (
+      shouldAutoSubmitForReview &&
+      !hasAutoSubmitted.current &&
+      permission.allowed
+    ) {
       submitForReview();
       hasAutoSubmitted.current = true;
     }
-  }, [shouldAutoSubmitForReview, submitForReview]);
+  }, [shouldAutoSubmitForReview, submitForReview, permission.allowed]);
 
   return (
-    <DecoratedButton
-      type="submit"
-      className={clsx("h-12 px-6 py-3", {
-        hidden:
-          appMetadata.app_id?.includes("staging") &&
-          process.env.NEXT_PUBLIC_APP_ENV === "production",
-      })}
-      disabled={viewMode === "verified" || isSubmittingForReview}
-      onClick={submitForReview}
-    >
-      <Typography variant={TYPOGRAPHY.M3} className="whitespace-nowrap">
-        {isSubmittingForReview ? "Processing..." : "Submit for review"}
-      </Typography>
-    </DecoratedButton>
+    <RestrictedAction restriction={permission}>
+      {({ disabled }) => (
+        <DecoratedButton
+          type="submit"
+          className={clsx("h-12 px-6 py-3", {
+            hidden:
+              appMetadata.app_id?.includes("staging") &&
+              process.env.NEXT_PUBLIC_APP_ENV === "production",
+          })}
+          disabled={
+            disabled || viewMode === "verified" || isSubmittingForReview
+          }
+          onClick={submitForReview}
+        >
+          <Typography variant={TYPOGRAPHY.M3} className="whitespace-nowrap">
+            {isSubmittingForReview ? "Processing..." : "Submit for review"}
+          </Typography>
+        </DecoratedButton>
+      )}
+    </RestrictedAction>
   );
 };
 
@@ -215,6 +229,7 @@ type AppIconButtonProps = {
   viewMode: "unverified" | "verified";
   isInReview: boolean;
   isLogoError: boolean;
+  isPermissionBlocked?: boolean;
   onEdit: () => void;
 };
 
@@ -225,34 +240,73 @@ const AppIconButton = ({
   viewMode,
   isInReview,
   isLogoError,
+  isPermissionBlocked = false,
   onEdit,
-}: AppIconButtonProps) => (
-  <button
-    type="button"
-    onClick={() => {
-      if (viewMode !== "verified" && !isInReview) {
-        onEdit();
-      }
-    }}
-    className={clsx("group relative size-[125px] shrink-0 rounded-full", {
-      "cursor-default": viewMode === "verified" || isInReview,
-    })}
-  >
-    {hasLogo ? (
-      <>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={logoImgUrl}
-          alt="logo"
-          className="size-full rounded-full object-cover drop-shadow-lg"
-        />
-        {viewMode !== "verified" && !isInReview && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 rounded-full bg-grey-900/50 opacity-0 transition-opacity group-hover:opacity-100">
+}: AppIconButtonProps) => {
+  const canEditLogo =
+    viewMode !== "verified" && !isInReview && !isPermissionBlocked;
+  const canShowEmptyLogo = viewMode !== "verified" && !isInReview;
+
+  return (
+    <button
+      type="button"
+      onClick={() => {
+        if (canEditLogo) {
+          onEdit();
+        }
+      }}
+      className={clsx("group relative size-[125px] shrink-0 rounded-full", {
+        "cursor-default": !canEditLogo,
+      })}
+    >
+      {hasLogo ? (
+        <>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={logoImgUrl}
+            alt="logo"
+            className="size-full rounded-full object-cover drop-shadow-lg"
+          />
+          {canEditLogo && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 rounded-full bg-grey-900/50 opacity-0 transition-opacity group-hover:opacity-100">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+                className="size-6 text-white"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M1.5 6a2.25 2.25 0 0 1 2.25-2.25h16.5A2.25 2.25 0 0 1 22.5 6v12a2.25 2.25 0 0 1-2.25 2.25H3.75A2.25 2.25 0 0 1 1.5 18V6ZM3 16.06V18c0 .414.336.75.75.75h16.5A.75.75 0 0 0 21 18v-1.94l-2.69-2.689a1.5 1.5 0 0 0-2.12 0l-.88.879.83.83a.75.75 0 1 1-1.06 1.06l-5.16-5.159a1.5 1.5 0 0 0-2.12 0L3 16.061Zm10.125-7.81a1.125 1.125 0 1 1 2.25 0 1.125 1.125 0 0 1-2.25 0Z"
+                  clipRule="evenodd"
+                />
+              </svg>
+              <Typography variant={TYPOGRAPHY.R5} className="text-white">
+                Update icon
+              </Typography>
+            </div>
+          )}
+        </>
+      ) : isLogoLoading ? (
+        <div className="flex size-full items-center justify-center rounded-full border border-dashed border-grey-200 bg-grey-50">
+          <SpinnerIcon
+            className="size-8 animate-spin text-grey-300"
+            aria-label="Loading app logo"
+          />
+        </div>
+      ) : canShowEmptyLogo ? (
+        <>
+          <div
+            className={clsx(
+              "flex size-full flex-col items-center justify-center gap-1 rounded-full border border-dashed border-grey-200 bg-grey-50",
+              isLogoError && "border-system-error-500 bg-system-error-50",
+            )}
+          >
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 24 24"
               fill="currentColor"
-              className="size-6 text-white"
+              className="size-6 text-grey-900"
             >
               <path
                 fillRule="evenodd"
@@ -260,56 +314,26 @@ const AppIconButton = ({
                 clipRule="evenodd"
               />
             </svg>
-            <Typography variant={TYPOGRAPHY.R5} className="text-white">
-              Update icon
+            <Typography variant={TYPOGRAPHY.R5} className="text-grey-900">
+              App icon <span className="text-system-error-500">*</span>
             </Typography>
+            {isLogoError && (
+              <Typography
+                variant={TYPOGRAPHY.R5}
+                className="text-center text-system-error-500"
+              >
+                Logo is required.
+              </Typography>
+            )}
           </div>
-        )}
-      </>
-    ) : isLogoLoading ? (
-      <div className="flex size-full items-center justify-center rounded-full border border-dashed border-grey-200 bg-grey-50">
-        <SpinnerIcon
-          className="size-8 animate-spin text-grey-300"
-          aria-label="Loading app logo"
-        />
-      </div>
-    ) : viewMode !== "verified" && !isInReview ? (
-      <>
-        <div
-          className={clsx(
-            "flex size-full flex-col items-center justify-center gap-1 rounded-full border border-dashed border-grey-200 bg-grey-50",
-            isLogoError && "border-system-error-500 bg-system-error-50",
+          {canEditLogo && (
+            <div className="absolute inset-0 rounded-full bg-grey-900/50 opacity-0 transition-opacity group-hover:opacity-100" />
           )}
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="currentColor"
-            className="size-6 text-grey-900"
-          >
-            <path
-              fillRule="evenodd"
-              d="M1.5 6a2.25 2.25 0 0 1 2.25-2.25h16.5A2.25 2.25 0 0 1 22.5 6v12a2.25 2.25 0 0 1-2.25 2.25H3.75A2.25 2.25 0 0 1 1.5 18V6ZM3 16.06V18c0 .414.336.75.75.75h16.5A.75.75 0 0 0 21 18v-1.94l-2.69-2.689a1.5 1.5 0 0 0-2.12 0l-.88.879.83.83a.75.75 0 1 1-1.06 1.06l-5.16-5.159a1.5 1.5 0 0 0-2.12 0L3 16.061Zm10.125-7.81a1.125 1.125 0 1 1 2.25 0 1.125 1.125 0 0 1-2.25 0Z"
-              clipRule="evenodd"
-            />
-          </svg>
-          <Typography variant={TYPOGRAPHY.R5} className="text-grey-900">
-            App icon <span className="text-system-error-500">*</span>
-          </Typography>
-          {isLogoError && (
-            <Typography
-              variant={TYPOGRAPHY.R5}
-              className="text-center text-system-error-500"
-            >
-              Logo is required.
-            </Typography>
-          )}
-        </div>
-        <div className="absolute inset-0 rounded-full bg-grey-900/50 opacity-0 transition-opacity group-hover:opacity-100" />
-      </>
-    ) : null}
-  </button>
-);
+        </>
+      ) : null}
+    </button>
+  );
+};
 
 const AppIconButtonWithFormError = (
   props: Omit<AppIconButtonProps, "isLogoError">,
@@ -337,7 +361,6 @@ export const AppTopBar = (props: AppTopBarProps) => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [viewMode, setViewMode] = useAtom(viewModeAtom);
-  const { user } = useUser() as Auth0SessionUser;
 
   const { data: unverifiedImagesData } = useFetchImagesQuery({
     variables: { id: appId, team_id: teamId },
@@ -353,6 +376,11 @@ export const AppTopBar = (props: AppTopBarProps) => {
   const [unverifiedImages, setUnverifiedImages] = useAtom(unverifiedImageAtom);
   const [localUnverifiedLogoOverride, setLocalUnverifiedLogoOverride] =
     useState<string | null>(null);
+  const submitPerm = useTeamPermission(teamId, "submit_app_for_review");
+  const draftPerm = useTeamPermission(teamId, "create_app_draft");
+  const unsubmitPerm = useTeamPermission(teamId, "unsubmit_app");
+  const resolvePerm = useTeamPermission(teamId, "resolve_app_review");
+  const imageryPerm = useTeamPermission(teamId, "edit_app_imagery");
 
   useEffect(() => {
     setLocalUnverifiedLogoOverride(null);
@@ -373,16 +401,6 @@ export const AppTopBar = (props: AppTopBarProps) => {
       setLocalUnverifiedLogoOverride(null);
     }
   }, [unverifiedImages?.logo_img_url, unverifiedImagesData]);
-
-  const isEnoughPermissions = useMemo(() => {
-    const membership = user?.hasura.memberships.find(
-      (m) => m.team?.id === teamId,
-    );
-    return (
-      membership?.role === Role_Enum.Owner ||
-      membership?.role === Role_Enum.Admin
-    );
-  }, [teamId, user?.hasura.memberships]);
 
   const appMetadata = useMemo(() => {
     if (viewMode === "verified") {
@@ -422,6 +440,10 @@ export const AppTopBar = (props: AppTopBarProps) => {
       return;
     }
 
+    if (!imageryPerm.allowed) {
+      return;
+    }
+
     if (viewMode === "verified" && app.app_metadata.length > 0) {
       setViewMode("unverified");
     }
@@ -430,6 +452,7 @@ export const AppTopBar = (props: AppTopBarProps) => {
     hasAutoOpenedLogoDialog.current = true;
   }, [
     app.app_metadata.length,
+    imageryPerm.allowed,
     setViewMode,
     shouldAutoOpenLogoDialog,
     viewMode,
@@ -582,24 +605,40 @@ export const AppTopBar = (props: AppTopBarProps) => {
         <div className="flex flex-col items-center gap-8 sm:flex-row sm:items-center">
           {/* Logo */}
           {hasFormContext ? (
-            <AppIconButtonWithFormError
-              hasLogo={hasLogo}
-              logoImgUrl={logoImgUrl}
-              isLogoLoading={isLogoLoading}
-              viewMode={viewMode}
-              isInReview={isInReview}
-              onEdit={() => setShowLogoDialog(true)}
-            />
+            <RestrictedAction
+              restriction={imageryPerm}
+              className="rounded-full"
+            >
+              {({ disabled }) => (
+                <AppIconButtonWithFormError
+                  hasLogo={hasLogo}
+                  logoImgUrl={logoImgUrl}
+                  isLogoLoading={isLogoLoading}
+                  viewMode={viewMode}
+                  isInReview={isInReview}
+                  isPermissionBlocked={disabled}
+                  onEdit={() => setShowLogoDialog(true)}
+                />
+              )}
+            </RestrictedAction>
           ) : (
-            <AppIconButton
-              hasLogo={hasLogo}
-              logoImgUrl={logoImgUrl}
-              isLogoLoading={isLogoLoading}
-              viewMode={viewMode}
-              isInReview={isInReview}
-              isLogoError={false}
-              onEdit={() => setShowLogoDialog(true)}
-            />
+            <RestrictedAction
+              restriction={imageryPerm}
+              className="rounded-full"
+            >
+              {({ disabled }) => (
+                <AppIconButton
+                  hasLogo={hasLogo}
+                  logoImgUrl={logoImgUrl}
+                  isLogoLoading={isLogoLoading}
+                  viewMode={viewMode}
+                  isInReview={isInReview}
+                  isLogoError={false}
+                  isPermissionBlocked={disabled}
+                  onEdit={() => setShowLogoDialog(true)}
+                />
+              )}
+            </RestrictedAction>
           )}
 
           {/* Name, Status, Environment, Version */}
@@ -634,76 +673,93 @@ export const AppTopBar = (props: AppTopBarProps) => {
             )}
 
           {/* Action Buttons */}
-          {isEnoughPermissions && (
-            <div className="flex gap-3">
-              {/* Resolve button for rejected apps */}
-              {isRejected && onResolve && (
-                <DecoratedButton
-                  type="button"
-                  className="h-12 px-6 py-3"
-                  onClick={onResolve}
-                >
-                  <Typography variant={TYPOGRAPHY.M3}>Resolve</Typography>
-                </DecoratedButton>
-              )}
-
-              {/* Submit / Un-submit / Create Draft button */}
-              {isEditable ? (
-                hasFormContext ? (
-                  <AppTopBarSubmit
-                    appMetadata={appMetadata}
-                    appId={appId}
-                    teamId={teamId}
-                    viewMode={viewMode}
-                    onSubmitSuccess={handleSubmitSuccess}
-                    basicInfoRef={basicInfoRef}
-                  />
-                ) : (
+          <div className="flex gap-3">
+            {/* Resolve button for rejected apps */}
+            {isRejected && onResolve && (
+              <RestrictedAction restriction={resolvePerm}>
+                {({ disabled }) => (
                   <DecoratedButton
                     type="button"
-                    className={clsx("h-12 px-6 py-3", {
-                      hidden:
-                        appMetadata.app_id?.includes("staging") &&
-                        process.env.NEXT_PUBLIC_APP_ENV === "production",
-                    })}
-                    disabled={!canSubmitForReview}
-                    onClick={() =>
-                      router.push(
-                        `${urls.configuration({ team_id: teamId, app_id: appId })}?submitForReview=true`,
-                      )
-                    }
+                    className="h-12 px-6 py-3"
+                    disabled={disabled}
+                    onClick={onResolve}
                   >
-                    <Typography
-                      variant={TYPOGRAPHY.M3}
-                      className="whitespace-nowrap"
+                    <Typography variant={TYPOGRAPHY.M3}>Resolve</Typography>
+                  </DecoratedButton>
+                )}
+              </RestrictedAction>
+            )}
+
+            {/* Submit / Un-submit / Create Draft button */}
+            {isEditable ? (
+              hasFormContext ? (
+                <AppTopBarSubmit
+                  appMetadata={appMetadata}
+                  appId={appId}
+                  teamId={teamId}
+                  viewMode={viewMode}
+                  onSubmitSuccess={handleSubmitSuccess}
+                  basicInfoRef={basicInfoRef}
+                  permission={submitPerm}
+                />
+              ) : (
+                <RestrictedAction restriction={submitPerm}>
+                  {({ disabled }) => (
+                    <DecoratedButton
+                      type="button"
+                      className={clsx("h-12 px-6 py-3", {
+                        hidden:
+                          appMetadata.app_id?.includes("staging") &&
+                          process.env.NEXT_PUBLIC_APP_ENV === "production",
+                      })}
+                      disabled={disabled || !canSubmitForReview}
+                      onClick={() =>
+                        router.push(
+                          `${urls.configuration({ team_id: teamId, app_id: appId })}?submitForReview=true`,
+                        )
+                      }
                     >
-                      Submit for review
+                      <Typography
+                        variant={TYPOGRAPHY.M3}
+                        className="whitespace-nowrap"
+                      >
+                        Submit for review
+                      </Typography>
+                    </DecoratedButton>
+                  )}
+                </RestrictedAction>
+              )
+            ) : app?.app_metadata?.length === 0 ? (
+              <RestrictedAction restriction={draftPerm}>
+                {({ disabled }) => (
+                  <DecoratedButton
+                    type="button"
+                    className="h-12 px-6 py-3"
+                    disabled={disabled}
+                    onClick={createNewDraft}
+                  >
+                    <Typography variant={TYPOGRAPHY.M3}>
+                      Create new draft
                     </Typography>
                   </DecoratedButton>
-                )
-              ) : app?.app_metadata?.length === 0 ? (
-                <DecoratedButton
-                  type="button"
-                  className="h-12 px-6 py-3"
-                  onClick={createNewDraft}
-                >
-                  <Typography variant={TYPOGRAPHY.M3}>
-                    Create new draft
-                  </Typography>
-                </DecoratedButton>
-              ) : isInReview ? (
-                <DecoratedButton
-                  type="button"
-                  variant="secondary"
-                  className="h-14 px-6"
-                  disabled={removeLoading}
-                  onClick={removeFromReview}
-                >
-                  <Typography variant={TYPOGRAPHY.M3}>Un-submit</Typography>
-                </DecoratedButton>
-              ) : null}
-            </div>
-          )}
+                )}
+              </RestrictedAction>
+            ) : isInReview ? (
+              <RestrictedAction restriction={unsubmitPerm}>
+                {({ disabled }) => (
+                  <DecoratedButton
+                    type="button"
+                    variant="secondary"
+                    className="h-14 px-6"
+                    disabled={disabled || removeLoading}
+                    onClick={removeFromReview}
+                  >
+                    <Typography variant={TYPOGRAPHY.M3}>Un-submit</Typography>
+                  </DecoratedButton>
+                )}
+              </RestrictedAction>
+            ) : null}
+          </div>
         </div>
       </div>
     </div>

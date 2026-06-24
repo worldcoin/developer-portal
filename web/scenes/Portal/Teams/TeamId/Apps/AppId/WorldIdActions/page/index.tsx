@@ -2,9 +2,11 @@
 
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { UserStoryIcon } from "@/components/Icons/UserStoryIcon";
+import { RestrictedAction } from "@/components/RestrictedAction";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import { useState } from "react";
+import { useTeamPermission } from "@/lib/team-permissions/use-team-permission";
+import { useEffect, useRef, useState } from "react";
 import { ActionsListV4 } from "./ActionsListV4";
 import { CreateActionDialogV4 } from "./CreateActionDialogV4";
 import { useGetActionsV4Query } from "./graphql/client/get-actions-v4.generated";
@@ -14,10 +16,16 @@ type WorldIdActionsPageProps = {
   searchParams?: Record<string, string> | null | undefined;
 };
 
-export const WorldIdActionsPage = ({ params }: WorldIdActionsPageProps) => {
+export const WorldIdActionsPage = ({
+  params,
+  searchParams,
+}: WorldIdActionsPageProps) => {
   const appId = params?.appId as `app_${string}`;
   const teamId = params?.teamId ?? "";
   const [dialogOpen, setDialogOpen] = useState(false);
+  const hasAutoOpenedCreateAction = useRef(false);
+  const createPermission = useTeamPermission(teamId, "create_world_id_action");
+  const shouldAutoOpenCreateAction = searchParams?.createAction === "true";
 
   const { data, loading, error, refetch } = useGetActionsV4Query({
     variables: {
@@ -27,6 +35,17 @@ export const WorldIdActionsPage = ({ params }: WorldIdActionsPageProps) => {
   });
 
   const actions = data?.action_v4 || [];
+
+  useEffect(() => {
+    if (
+      shouldAutoOpenCreateAction &&
+      createPermission.allowed &&
+      !hasAutoOpenedCreateAction.current
+    ) {
+      setDialogOpen(true);
+      hasAutoOpenedCreateAction.current = true;
+    }
+  }, [createPermission.allowed, shouldAutoOpenCreateAction]);
 
   const handleDialogClose = async (success?: boolean) => {
     setDialogOpen(false);
@@ -79,15 +98,20 @@ export const WorldIdActionsPage = ({ params }: WorldIdActionsPageProps) => {
                 Actions are used to request uniqueness proofs
               </Typography>
             </div>
-            <DecoratedButton
-              variant="primary"
-              type="button"
-              onClick={() => setDialogOpen(true)}
-              testId="create-action-v4-empty"
-              aria-label="Create your first action"
-            >
-              <Typography variant={TYPOGRAPHY.M4}>Create</Typography>
-            </DecoratedButton>
+            <RestrictedAction restriction={createPermission}>
+              {({ disabled }) => (
+                <DecoratedButton
+                  variant="primary"
+                  type="button"
+                  onClick={() => setDialogOpen(true)}
+                  disabled={disabled}
+                  testId="create-action-v4-empty"
+                  aria-label="Create your first action"
+                >
+                  <Typography variant={TYPOGRAPHY.M4}>Create</Typography>
+                </DecoratedButton>
+              )}
+            </RestrictedAction>
           </div>
         </div>
       ) : (
@@ -96,6 +120,7 @@ export const WorldIdActionsPage = ({ params }: WorldIdActionsPageProps) => {
           onCreateClick={() => setDialogOpen(true)}
           teamId={teamId}
           appId={appId}
+          createPermission={createPermission}
         />
       )}
 

@@ -1,14 +1,11 @@
 "use client";
 
 import { Toggle } from "@/components/Toggle";
+import { useTeamPermission } from "@/lib/team-permissions/use-team-permission";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import { Role_Enum } from "@/graphql/graphql";
-import { Auth0SessionUser } from "@/lib/types";
 import { useRefetchQueries } from "@/lib/use-refetch-queries";
-import { checkUserPermissions } from "@/lib/utils";
-import { useUser } from "@auth0/nextjs-auth0/client";
 import { useAtom } from "jotai";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "react-toastify";
 import {
   FetchAppMetadataDocument,
@@ -30,17 +27,11 @@ export const MiniAppConfiguration = ({
   teamId,
   appMetadata,
 }: MiniAppConfigurationProps) => {
-  const { user } = useUser() as Auth0SessionUser;
   const [isUpdatingMode, setIsUpdatingMode] = useState(false);
   const modeUpdateInFlightRef = useRef(false);
   const saveStatus = useSaveStatusActions();
 
-  const isEnoughPermissions = useMemo(() => {
-    return checkUserPermissions(user, teamId ?? "", [
-      Role_Enum.Owner,
-      Role_Enum.Admin,
-    ]);
-  }, [user, teamId]);
+  const editStorePerm = useTeamPermission(teamId, "edit_app_store_details");
 
   const isEditable = appMetadata.verification_status === "unverified";
 
@@ -128,6 +119,14 @@ export const MiniAppConfiguration = ({
         Mini App Configuration
       </Typography>
 
+      {!editStorePerm.allowed && (
+        <div className="rounded-xl border border-grey-200 bg-grey-50 px-4 py-3">
+          <Typography variant={TYPOGRAPHY.R4} className="text-grey-700">
+            {editStorePerm.message}
+          </Typography>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 gap-y-10">
         {/* This is a Mini App toggle */}
         <div className="rounded-[10px] border border-grey-100 px-6 py-4">
@@ -145,7 +144,7 @@ export const MiniAppConfiguration = ({
             <Toggle
               checked={isMiniApp}
               onChange={handleAppModeToggle}
-              disabled={!isEditable || !isEnoughPermissions || isUpdatingMode}
+              disabled={!isEditable || !editStorePerm.allowed || isUpdatingMode}
             />
           </div>
         </div>

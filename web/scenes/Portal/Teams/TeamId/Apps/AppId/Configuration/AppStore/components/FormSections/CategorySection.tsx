@@ -12,7 +12,6 @@ export const CategorySection = ({
   control,
   errors,
   isEditable,
-  isEnoughPermissions,
 }: CategorySectionProps) => {
   return (
     <Controller
@@ -22,7 +21,7 @@ export const CategorySection = ({
         <CategorySelector
           value={field.value}
           required
-          disabled={!isEditable || !isEnoughPermissions}
+          disabled={!isEditable}
           onChange={field.onChange}
           errors={errors.category}
           label="Category"

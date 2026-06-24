@@ -4,8 +4,10 @@ import { DecoratedButton } from "@/components/DecoratedButton";
 import { SearchIcon } from "@/components/Icons/SearchIcon";
 import { Input } from "@/components/Input";
 import { Pagination } from "@/components/Pagination";
+import { RestrictedAction } from "@/components/RestrictedAction";
 import { Section } from "@/components/Section";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import type { TeamPermission } from "@/lib/team-permissions";
 import { useEffect, useMemo, useState } from "react";
 import { ActionRowV4 } from "./ActionRowV4";
 
@@ -16,10 +18,11 @@ type ActionsListV4Props = {
   onCreateClick: () => void;
   teamId: string;
   appId: string;
+  createPermission: TeamPermission;
 };
 
 export const ActionsListV4 = (props: ActionsListV4Props) => {
-  const { actions, onCreateClick, teamId, appId } = props;
+  const { actions, onCreateClick, teamId, appId, createPermission } = props;
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
@@ -91,18 +94,26 @@ export const ActionsListV4 = (props: ActionsListV4Props) => {
           </Section.Header.Search>
 
           <Section.Header.Button className="max-md:!bottom-[4.25rem] md:row-start-1 md:items-start">
-            <DecoratedButton
-              type="button"
-              variant="primary"
-              className="h-12 w-[132px]"
-              onClick={onCreateClick}
-              testId="create-action-v4-list"
-              aria-label="Create new action"
-            >
-              <Typography variant={TYPOGRAPHY.M3} className="whitespace-nowrap">
-                New action
-              </Typography>
-            </DecoratedButton>
+            <RestrictedAction restriction={createPermission}>
+              {({ disabled }) => (
+                <DecoratedButton
+                  type="button"
+                  variant="primary"
+                  className="h-12 w-[132px]"
+                  onClick={onCreateClick}
+                  disabled={disabled}
+                  testId="create-action-v4-list"
+                  aria-label="Create new action"
+                >
+                  <Typography
+                    variant={TYPOGRAPHY.M3}
+                    className="whitespace-nowrap"
+                  >
+                    New action
+                  </Typography>
+                </DecoratedButton>
+              )}
+            </RestrictedAction>
           </Section.Header.Button>
         </Section.Header>
 
