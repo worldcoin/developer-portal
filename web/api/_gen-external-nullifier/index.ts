@@ -1,6 +1,7 @@
 import { errorResponse } from "@/api/helpers/errors";
 import { protectInternalEndpoint } from "@/api/helpers/utils";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
+import { APPS_WITH_CUSTOM_EXTERNAL_NULLIFIER } from "@/lib/constants";
 import { generateExternalNullifier } from "@/lib/hashing";
 import { logger } from "@/lib/logger";
 import { NextRequest, NextResponse } from "next/server";
@@ -58,11 +59,16 @@ export async function POST(request: NextRequest) {
 
   const action = parsedParams.event.data.new;
 
-  if (
-    action.external_nullifier &&
-    action.external_nullifier !== action.app_id // If it's app_id this is the default sign in action
-  ) {
-    return NextResponse.json({ success: true, already_generated: true });
+  // Apps that legitimately use a custom external_nullifier keep their stored
+  // value. For every other app the portal is the sole authority for the value:
+  // recompute and overwrite so a client-supplied external_nullifier (e.g. one
+  // inserted directly via the api_key GraphQL role) cannot pin an arbitrary
+  // proof domain instead of the canonical hash(app_id, action).
+  if (APPS_WITH_CUSTOM_EXTERNAL_NULLIFIER.includes(action.app_id)) {
+    return NextResponse.json({
+      success: true,
+      custom_external_nullifier: true,
+    });
   }
 
   const external_nullifier = generateExternalNullifier(
@@ -73,7 +79,8 @@ export async function POST(request: NextRequest) {
   const client = await getAPIServiceGraphqlClient();
   const setExternalNullifierSdk = getSetExternalNullifierSdk(client);
 
-  // Mutation will fail anyways if external nullifier is already set due to permissions.
+  // Runs as the service role, which overwrites any existing value so a
+  // client-supplied external_nullifier cannot persist.
   const response = await setExternalNullifierSdk.SetExternalNullifier({
     action_id: action.id,
     external_nullifier,
