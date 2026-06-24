@@ -28,20 +28,16 @@ type TryActionProps = {
 
 export const TryAction = (props: TryActionProps) => {
   const { action, is_v4_action, enableKiosk = true } = props;
-  const isMiniApp = action.app.app_metadata.some(
-    ({ app_mode }) => app_mode === "mini-app",
-  );
   const canShowKiosk = enableKiosk && action.app.engine !== EngineType.OnChain;
-  const canShowCode = !isMiniApp;
+  // World ID verification for Mini Apps is implemented with @worldcoin/idkit
+  // (MiniKit 2.x no longer proxies verification), so the IDKit CodeBlock is the
+  // correct integration path for every app type — show it for all apps.
+  const canShowCode = true;
   const [showCode, setShowCode] = useState(
     action.app.engine === EngineType.OnChain || !canShowKiosk,
   );
   const showCodeView = canShowCode && (showCode || !canShowKiosk);
   const showKioskView = canShowKiosk && !showCodeView;
-
-  if (!canShowCode && !canShowKiosk) {
-    return null;
-  }
 
   return (
     <div className="grid h-full grid-rows-auto/1fr items-start gap-y-5 lg:w-[480px]">
