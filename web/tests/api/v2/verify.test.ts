@@ -215,10 +215,12 @@ describe("/api/v2/verify", () => {
   });
 
   it("returns a structured 400 (not a 500) for an over-width nullifier_hash", async () => {
-    // 0x1 followed by 64 zeroes — larger than a uint256. Canonicalization runs
-    // only after verifyProof, so proof-input validation rejects this with a 400
-    // instead of the canonicalizer throwing an unhandled 500.
-    const overWide = "0x1" + "0".repeat(64);
+    // A valid 64-nibble nullifier with "00" appended (66 nibbles). decode would
+    // read only the first 32 bytes and let verifyProof pass, then the
+    // canonicalizer's toBeHex(..., 32) would overflow to a 500 — the schema
+    // length bound rejects it up front with a structured 400 instead.
+    const overWide =
+      "0x" + semaphoreProofParamsMock.nullifier_hash.slice(2) + "00";
     const mockReq = createMockRequest(getUrl(stagingAppId), {
       ...validBody,
       nullifier_hash: overWide,
