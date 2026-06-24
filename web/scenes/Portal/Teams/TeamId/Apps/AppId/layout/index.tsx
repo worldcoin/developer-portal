@@ -1,8 +1,8 @@
 import { ErrorPage } from "@/components/ErrorPage";
 import { isWorldId40EnabledServer } from "@/lib/feature-flags/world-id-4-0/server";
 import { logger } from "@/lib/logger";
-import { Auth0SessionUser, EngineType } from "@/lib/types";
-import { auth0 } from "@/lib/auth0";
+import { getIsUserAllowedToReadApp } from "@/lib/permissions";
+import { EngineType } from "@/lib/types";
 import { ReactNode } from "react";
 import { AppIdChrome } from "./AppIdChrome";
 import { fetchAppEnvCached } from "./server/fetch-app-env";
@@ -24,13 +24,10 @@ export const AppIdLayout = async (props: AppIdLayoutProps) => {
   let hasRpRegistration = false;
   let isStagingApp = false;
 
-  const session = await auth0.getSession();
-  const user = session?.user as Auth0SessionUser["user"];
-  const isTeamMember = user?.hasura?.memberships?.some(
-    (membership) => membership.team?.id === params.teamId,
-  );
-
-  if (!isTeamMember) {
+  // Authorize against the database (the session cookie's `memberships` is not a
+  // trustworthy authorization source). Reading an app requires membership in
+  // the app's owning team.
+  if (!params.appId || !(await getIsUserAllowedToReadApp(params.appId))) {
     return <ErrorPage statusCode={404} title="App not found" />;
   }
 

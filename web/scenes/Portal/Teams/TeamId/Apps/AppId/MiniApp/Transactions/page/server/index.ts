@@ -2,13 +2,9 @@
 
 import { errorFormAction } from "@/api/helpers/errors";
 import { getTransactionSignedFetch } from "@/api/helpers/signed-fetch";
+import { getIsUserAllowedToReadApp } from "@/lib/permissions";
 import { extractIdsFromPath, getPathFromHeaders } from "@/lib/server-utils";
-import {
-  Auth0SessionUser,
-  FormActionResult,
-  PaymentMetadata,
-} from "@/lib/types";
-import { auth0 } from "@/lib/auth0";
+import { FormActionResult, PaymentMetadata } from "@/lib/types";
 
 export const getTransactionData = async (
   appId: string,
@@ -17,25 +13,12 @@ export const getTransactionData = async (
   const path = (await getPathFromHeaders()) || "";
   const { teams: teamId } = extractIdsFromPath(path, ["teams"]);
 
-  const session = await auth0.getSession();
-  const user = session?.user as Auth0SessionUser["user"];
-
-  if (!user) {
+  // Authorize against the database. The session cookie's `memberships` is
+  // refreshed from client-triggered requests and must not be trusted to gate
+  // access to another tenant's payment/transaction data.
+  if (!(await getIsUserAllowedToReadApp(appId))) {
     return errorFormAction({
-      message: "User is not authenticated",
-      app_id: appId,
-      team_id: teamId,
-      logLevel: "error",
-    });
-  }
-
-  const isTeamMember = user?.hasura?.memberships?.some(
-    (membership) => membership.team?.id === teamId,
-  );
-
-  if (!isTeamMember) {
-    return errorFormAction({
-      message: "User is not a member of this team",
+      message: "User is not allowed to access this app",
       app_id: appId,
       team_id: teamId,
       logLevel: "error",
