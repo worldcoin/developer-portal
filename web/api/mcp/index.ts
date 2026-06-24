@@ -871,7 +871,6 @@ const REGISTRATION_FLOW_RPC_CODE: Record<
   Exclude<ManagedRegistrationResult, { ok: true }>["code"],
   number
 > = {
-  feature_not_enabled: -32004,
   staging_not_supported: -32004,
   already_registered: -32004,
   config_error: -32603,
@@ -884,7 +883,6 @@ const ROTATION_FLOW_RPC_CODE: Record<
   Exclude<ManagedRotationResult, { ok: true }>["code"],
   number
 > = {
-  feature_not_enabled: -32004,
   rp_not_registered: -32004,
   self_managed_mode: -32004,
   rotation_in_progress: -32004,
@@ -1025,7 +1023,6 @@ const tools = {
     const result = await submitManagedRpRegistration({
       client: ctx.client,
       appId: args.app_id,
-      teamId: ctx.teamId,
       signerAddress: signingKey.signer_address,
       appName,
       isStaging: app.is_staging,

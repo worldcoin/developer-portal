@@ -140,22 +140,17 @@ export const CreateAppDialogV4 = ({
         engine: values.verification,
       });
 
-      setWorldIdMode("managed");
-      setSignerKeySetup("generate");
-      setCreatedAppId(latestApp?.id ?? null);
-      setStep("enable-world-id-4-0");
+      // App creation is decoupled from World ID 4.0 onboarding: send the user
+      // straight to the new app's dashboard. World ID 4.0 setup is launched
+      // later, on demand, from the World ID tab — not automatically here.
       reset(defaultValues);
+      props.onClose(false);
+      if (latestApp?.id) {
+        router.replace(`/teams/${teamId}/apps/${latestApp.id}`);
+        router.refresh();
+      }
     },
-    [
-      defaultValues,
-      refetchApps,
-      reset,
-      teamId,
-      setCreatedAppId,
-      setSignerKeySetup,
-      setStep,
-      setWorldIdMode,
-    ],
+    [defaultValues, refetchApps, reset, teamId, props, router],
   );
 
   const onClose = useCallback(() => {
