@@ -334,7 +334,9 @@ update_permissions:
       filter:
         _and:
           - verification_status:
-              _neq: verified
+              _nin:
+                - verified
+                - awaiting_review
           - app:
               deleted_at:
                 _is_null: true
