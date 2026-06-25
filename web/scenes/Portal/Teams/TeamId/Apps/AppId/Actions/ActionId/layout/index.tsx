@@ -40,7 +40,7 @@ export const ActionIdLayout = (props: ActionIdLayout) => {
   const app = action?.app;
 
   const isOnChainApp = app?.engine === EngineType.OnChain;
-  const isEnabled = true;
+  const isEnabled = false;
 
   const isEnoughPermissions = checkUserPermissions(user, params.teamId ?? "", [
     Role_Enum.Owner,

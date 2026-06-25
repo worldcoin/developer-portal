@@ -28,7 +28,7 @@ export const ActionIdDangerPage = (props: ActionIdDangerPageProps) => {
   });
 
   const action = data?.action_by_pk;
-  const isEnabled = true;
+  const isEnabled = false;
 
   const [deleteActionMutation, { loading: deleteActionLoading }] =
     useDeleteActionMutation();
