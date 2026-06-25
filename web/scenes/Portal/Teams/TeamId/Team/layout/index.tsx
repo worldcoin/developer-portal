@@ -1,9 +1,8 @@
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { Tab, Tabs } from "@/components/Tabs";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import { Role_Enum } from "@/graphql/graphql";
+import { userCanPerformAction } from "@/lib/team-permissions";
 import { Auth0SessionUser } from "@/lib/types";
-import { checkUserPermissions } from "@/lib/utils";
 import { auth0 } from "@/lib/auth0";
 import { ReactNode } from "react";
 
@@ -20,14 +19,22 @@ export const TeamLayout = async (props: TeamLayoutProps) => {
   const params = await props.params;
   const session = await auth0.getSession();
   const user = session?.user as Auth0SessionUser["user"];
-  const ownerPermission = checkUserPermissions(user, params.teamId ?? "", [
-    Role_Enum.Owner,
-  ]);
-
-  const ownerAndAdminPermission = checkUserPermissions(
+  const ownerPermission = userCanPerformAction(
     user,
     params.teamId ?? "",
-    [Role_Enum.Owner, Role_Enum.Admin],
+    "edit_team_settings",
+  );
+
+  const ownerAndAdminPermission = userCanPerformAction(
+    user,
+    params.teamId ?? "",
+    "view_api_keys",
+  );
+
+  const deleteTeamPermission = userCanPerformAction(
+    user,
+    params.teamId ?? "",
+    "delete_team",
   );
 
   return (
@@ -75,7 +82,7 @@ export const TeamLayout = async (props: TeamLayoutProps) => {
               </Tab>
             )}
 
-            {ownerPermission && (
+            {deleteTeamPermission && (
               <Tab
                 className="md:py-4"
                 href={`/teams/${params!.teamId}/danger`}

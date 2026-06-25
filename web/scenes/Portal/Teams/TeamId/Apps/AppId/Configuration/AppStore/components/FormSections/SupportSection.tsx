@@ -17,11 +17,10 @@ export const SupportSection = ({
   control,
   errors,
   isEditable,
-  isEnoughPermissions,
   supportType,
   onSupportTypeChange,
 }: SupportSectionProps) => {
-  const disabled = !isEditable || !isEnoughPermissions;
+  const disabled = !isEditable;
 
   return (
     <FormSection

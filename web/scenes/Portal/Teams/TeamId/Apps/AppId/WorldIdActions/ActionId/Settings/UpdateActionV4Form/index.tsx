@@ -1,9 +1,10 @@
 "use client";
 
 import { CopyButton } from "@/components/CopyButton";
-import { DecoratedButton } from "@/components/DecoratedButton";
 import { Input } from "@/components/Input";
+import { RestrictedButton } from "@/components/RestrictedButton";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import { useTeamPermission } from "@/lib/team-permissions/use-team-permission";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
@@ -19,12 +20,14 @@ import { updateActionV4ServerSide } from "./server";
 type UpdateActionV4FormProps = {
   action: NonNullable<GetSingleActionV4Query["action_v4_by_pk"]>;
   appId: string;
+  teamId: string;
 };
 
 export const UpdateActionV4Form = (props: UpdateActionV4FormProps) => {
-  const { action, appId } = props;
+  const { action, appId, teamId } = props;
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const editPermission = useTeamPermission(teamId, "edit_world_id_action");
 
   const {
     control,
@@ -97,11 +100,13 @@ export const UpdateActionV4Form = (props: UpdateActionV4FormProps) => {
           errors={errors.description}
           label="Short description"
           placeholder="e.g., Vote in community polls"
+          disabled={!editPermission.allowed}
         />
       </div>
 
       <div className="flex justify-start">
-        <DecoratedButton
+        <RestrictedButton
+          restriction={editPermission}
           type="submit"
           variant="primary"
           disabled={isSubmitting || !isValid}
@@ -110,7 +115,7 @@ export const UpdateActionV4Form = (props: UpdateActionV4FormProps) => {
           <Typography variant={TYPOGRAPHY.R3}>
             {isSubmitting ? "Saving..." : "Save Changes"}
           </Typography>
-        </DecoratedButton>
+        </RestrictedButton>
       </div>
     </form>
   );

@@ -6,6 +6,7 @@ import {
   isWorldId40Enabled,
   worldId40Atom,
 } from "@/lib/feature-flags/world-id-4-0/client";
+import { useTeamPermission } from "@/lib/team-permissions/use-team-permission";
 import { CreateAppDialogV4 } from "@/scenes/Portal/layout/CreateAppDialog/index-v4";
 import { useAtomValue } from "jotai";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -15,7 +16,6 @@ interface WorldId40MigrationBannerProps {
   teamId: string;
   appId: string;
   hasRpRegistration: boolean;
-  canRegisterRp: boolean;
   isStaging: boolean;
 }
 
@@ -23,20 +23,22 @@ export const WorldId40MigrationBanner = ({
   teamId,
   appId,
   hasRpRegistration,
-  canRegisterRp,
   isStaging,
 }: WorldId40MigrationBannerProps) => {
   const worldId40Config = useAtomValue(worldId40Atom);
   const isEnabled = isWorldId40Enabled(worldId40Config, teamId);
+  const enablePerm = useTeamPermission(teamId, "enable_world_id_4_0");
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const autoOpen = searchParams.get("enableWorldId4") === "true";
-  const [dialogOpen, setDialogOpen] = useState(autoOpen && canRegisterRp);
+  const [dialogOpen, setDialogOpen] = useState(false);
 
   useEffect(() => {
-    if (autoOpen && canRegisterRp) setDialogOpen(true);
-  }, [autoOpen, canRegisterRp]);
+    if (autoOpen && enablePerm.allowed) {
+      setDialogOpen(true);
+    }
+  }, [autoOpen, enablePerm.allowed]);
 
   const closeDialog = useCallback(() => {
     setDialogOpen(false);
@@ -54,19 +56,12 @@ export const WorldId40MigrationBanner = ({
     }
   }, [pathname, router, searchParams]);
 
-  // Don't show banner if:
-  // - World ID 4.0 is not enabled for this team, OR
-  // - App already has RP registration, OR
-  // - App is a staging app, OR
-  // - User lacks ADMIN/OWNER role (register_rp Hasura action would
-  //   reject with `unauthorized` and surface a generic toast).
-  if (!isEnabled || hasRpRegistration || isStaging || !canRegisterRp) {
+  if (!isEnabled || hasRpRegistration || isStaging || !enablePerm.allowed) {
     return null;
   }
 
   return (
     <div className="relative w-full overflow-hidden rounded-xl bg-[#E6F0FF] shadow-[0px_1px_2px_0px_rgba(11,25,40,0.08)]">
-      {/* Left side - gradient with diagonal edge (27.17deg) */}
       <div
         className="absolute inset-y-0 left-0 w-[65%] bg-gradient-to-r from-[#E6F0FF] to-[#F3F8FF]"
         style={{
@@ -75,7 +70,6 @@ export const WorldId40MigrationBanner = ({
         aria-hidden="true"
       />
 
-      {/* Content */}
       <div className="relative flex items-center justify-between p-10">
         <div className="flex flex-col gap-1">
           <Typography variant={TYPOGRAPHY.H6} className="text-gray-900">

@@ -1,13 +1,10 @@
 "use client";
 import { CopyButton } from "@/components/CopyButton";
 import { FloatingInput } from "@/components/FloatingInput";
+import { useTeamPermission } from "@/lib/team-permissions/use-team-permission";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import { Role_Enum } from "@/graphql/graphql";
-import { Auth0SessionUser } from "@/lib/types";
 import { inferHttps } from "@/lib/schema";
-import { checkUserPermissions } from "@/lib/utils";
 import { useApolloClient } from "@apollo/client";
-import { useUser } from "@auth0/nextjs-auth0/client";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useAtom } from "jotai";
 import React, {
@@ -50,14 +47,7 @@ export const BasicInformation = forwardRef<
   const apolloClient = useApolloClient();
 
   const [viewMode] = useAtom(viewModeAtom);
-  const { user } = useUser() as Auth0SessionUser;
-
-  const isEnoughPermissions = useMemo(() => {
-    return checkUserPermissions(user, teamId ?? "", [
-      Role_Enum.Owner,
-      Role_Enum.Admin,
-    ]);
-  }, [user, teamId]);
+  const editInfoPerm = useTeamPermission(teamId, "edit_app_information");
 
   const appMetaData = useMemo(() => {
     if (viewMode === "verified") {
@@ -151,7 +141,7 @@ export const BasicInformation = forwardRef<
   const autosave = useAutosaveWithStatus<BasicInformationFormValues>({
     id: "basic-information",
     form,
-    enabled: isEditable && isEnoughPermissions,
+    enabled: isEditable && editInfoPerm.allowed,
     save: async (data, signal) => {
       await persist(data, signal);
     },
@@ -225,13 +215,21 @@ export const BasicInformation = forwardRef<
             Basic information
           </Typography>
 
+          {!editInfoPerm.allowed && (
+            <div className="rounded-xl border border-grey-200 bg-grey-50 px-4 py-3">
+              <Typography variant={TYPOGRAPHY.R4} className="text-grey-700">
+                {editInfoPerm.message}
+              </Typography>
+            </div>
+          )}
+
           <div className="grid grid-cols-2 gap-x-4">
             <FloatingInput
               id="name"
               register={register("name")}
               errors={errors.name}
               label="App name"
-              disabled={!isEditable || !isEnoughPermissions}
+              disabled={!isEditable || !editInfoPerm.allowed}
               required
               maxLength={50}
             />
@@ -251,7 +249,7 @@ export const BasicInformation = forwardRef<
             label="App URL"
             required
             errors={errors.integration_url}
-            disabled={!isEditable || !isEnoughPermissions}
+            disabled={!isEditable || !editInfoPerm.allowed}
             register={makeUrlRegister("integration_url")}
           />
 
@@ -260,7 +258,7 @@ export const BasicInformation = forwardRef<
             label="App Official Website"
             required
             errors={errors.app_website_url}
-            disabled={!isEditable || !isEnoughPermissions}
+            disabled={!isEditable || !editInfoPerm.allowed}
             register={makeUrlRegister("app_website_url")}
           />
 

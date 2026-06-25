@@ -17,11 +17,9 @@ import { CheckmarkCircleIcon } from "@/components/Icons/CheckmarkCircleIcon";
 import { PlusCircleIcon } from "@/components/Icons/PlusCircleIcon";
 import { Placeholder } from "@/components/PlaceholderImage";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import { Role_Enum } from "@/graphql/graphql";
-import { Auth0SessionUser } from "@/lib/types";
 import { urls } from "@/lib/urls";
-import { checkUserPermissions, getCDNImageUrl } from "@/lib/utils";
-import { useUser } from "@auth0/nextjs-auth0/client";
+import { getCDNImageUrl } from "@/lib/utils";
+import { useTeamPermission } from "@/lib/team-permissions/use-team-permission";
 import clsx from "clsx";
 import { useAtom } from "jotai";
 import { useParams, useRouter } from "next/navigation";
@@ -32,14 +30,7 @@ export const AppSelector = () => {
   const router = useRouter();
   const { teamId, appId } = useParams() as { teamId?: string; appId?: string };
   const [_, setCreateAppDialogOpen] = useAtom(createAppDialogOpenedAtom);
-  const { user } = useUser() as Auth0SessionUser;
-
-  const isEnoughPermissions = useMemo(() => {
-    return checkUserPermissions(user, teamId ?? "", [
-      Role_Enum.Owner,
-      Role_Enum.Admin,
-    ]);
-  }, [user, teamId]);
+  const createAppPerm = useTeamPermission(teamId ?? "", "create_app_draft");
 
   const { data, loading, error } = useFetchAppsQuery({
     variables: { teamId: teamId! },
@@ -157,7 +148,7 @@ export const AppSelector = () => {
             )}
           </SelectOption>
         ))}
-        {isEnoughPermissions && (
+        {createAppPerm.allowed && (
           <SelectOption value={null}>
             <div className="grid grid-cols-auto/1fr/auto items-center gap-x-2">
               <PlusCircleIcon className="size-4 text-gray-500" />

@@ -1,9 +1,6 @@
-import { Role_Enum } from "@/graphql/graphql";
-import { Auth0SessionUser } from "@/lib/types";
-import { checkUserPermissions } from "@/lib/utils";
-import { useUser } from "@auth0/nextjs-auth0/client";
+import { RestrictedAction } from "@/components/RestrictedAction";
+import { useTeamPermission } from "@/lib/team-permissions/use-team-permission";
 import { useAtomValue } from "jotai";
-import { useMemo } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
 import { useSaveStatus } from "../SaveStatus";
 import { useAutosaveWithStatus } from "../hook/use-autosave-with-status";
@@ -31,8 +28,6 @@ export const AppStoreForm = ({
   teamId,
   appMetadata,
 }: AppStoreFormProps) => {
-  const { user } = useUser() as Auth0SessionUser;
-
   const {
     control,
     errors,
@@ -51,21 +46,17 @@ export const AppStoreForm = ({
   // copy only while the blue pill is showing, not on every raw status flip.
   const { flushAll, displayStatus } = useSaveStatus();
 
-  const isEnoughPermissions = useMemo(() => {
-    return checkUserPermissions(user, teamId ?? "", [
-      Role_Enum.Owner,
-      Role_Enum.Admin,
-    ]);
-  }, [user, teamId]);
+  const editStorePerm = useTeamPermission(teamId, "edit_app_store_details");
 
   const isMiniApp = useAtomValue(isMiniAppAtom);
+  const canEditStore = isEditable && editStorePerm.allowed;
 
   const supportedLanguages = useWatch({ control, name: "supported_languages" });
 
   useAutosaveWithStatus<AppStoreFormValues>({
     id: "app-store",
     form,
-    enabled: isEditable && isEnoughPermissions,
+    enabled: canEditStore,
     save: async (data, signal) => {
       await submitSilent(data, signal);
     },
@@ -81,23 +72,14 @@ export const AppStoreForm = ({
       >
         {isMiniApp && (
           <>
-            <ComplianceSection
-              control={control}
-              isEditable={isEditable}
-              isEnoughPermissions={isEnoughPermissions}
-            />
+            <ComplianceSection control={control} isEditable={canEditStore} />
 
-            <HumansOnlySection
-              control={control}
-              isEditable={isEditable}
-              isEnoughPermissions={isEnoughPermissions}
-            />
+            <HumansOnlySection control={control} isEditable={canEditStore} />
 
             <CategorySection
               control={control}
               errors={errors}
-              isEditable={isEditable}
-              isEnoughPermissions={isEnoughPermissions}
+              isEditable={canEditStore}
             />
 
             <SectionDivider />
@@ -105,8 +87,7 @@ export const AppStoreForm = ({
             <SupportSection
               control={control}
               errors={errors}
-              isEditable={isEditable}
-              isEnoughPermissions={isEnoughPermissions}
+              isEditable={canEditStore}
               supportType={supportType}
               onSupportTypeChange={handleSupportTypeChange}
             />
@@ -117,8 +98,7 @@ export const AppStoreForm = ({
               appId={appId}
               teamId={teamId}
               appMetadata={appMetadata}
-              isEditable={isEditable}
-              isEnoughPermissions={isEnoughPermissions}
+              isEditable={canEditStore}
               errors={errors}
             />
 
@@ -129,8 +109,7 @@ export const AppStoreForm = ({
         <CountriesSection
           control={control}
           errors={errors}
-          isEditable={isEditable}
-          isEnoughPermissions={isEnoughPermissions}
+          isEditable={canEditStore}
         />
 
         <SectionDivider />
@@ -138,8 +117,7 @@ export const AppStoreForm = ({
         <LanguagesSection
           control={control}
           errors={errors}
-          isEditable={isEditable}
-          isEnoughPermissions={isEnoughPermissions}
+          isEditable={canEditStore}
         />
 
         <SectionDivider />
@@ -148,8 +126,7 @@ export const AppStoreForm = ({
           control={control}
           errors={errors}
           localisations={localisations}
-          isEditable={isEditable}
-          isEnoughPermissions={isEnoughPermissions}
+          isEditable={canEditStore}
           appMetadata={appMetadata}
           appId={appId}
           teamId={teamId}
@@ -162,17 +139,19 @@ export const AppStoreForm = ({
 
         <div className="fixed bottom-[5.25rem] right-6 z-10 flex items-center gap-x-3 md:bottom-6">
           <SaveStatusIndicator />
-          <SaveButton
-            isSubmitting={displayStatus.state === "saving"}
-            isDisabled={
-              !isEditable ||
-              !isEnoughPermissions ||
-              displayStatus.state === "saving"
-            }
-            onSubmit={() => {
-              void flushAll();
-            }}
-          />
+          <RestrictedAction restriction={editStorePerm}>
+            {({ disabled }) => (
+              <SaveButton
+                isSubmitting={displayStatus.state === "saving"}
+                isDisabled={
+                  !isEditable || disabled || displayStatus.state === "saving"
+                }
+                onSubmit={() => {
+                  void flushAll();
+                }}
+              />
+            )}
+          </RestrictedAction>
         </div>
       </form>
     </div>

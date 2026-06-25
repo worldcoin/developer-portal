@@ -1,9 +1,10 @@
 "use client";
-import { DecoratedButton } from "@/components/DecoratedButton";
 import { PlusIcon } from "@/components/Icons/PlusIcon";
+import { RestrictedButton } from "@/components/RestrictedButton";
 import { Section } from "@/components/Section";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import { useTeamPermission } from "@/lib/team-permissions/use-team-permission";
 import { useState, use } from "react";
 import Skeleton from "react-loading-skeleton";
 import { TeamProfile } from "../../common/TeamProfile";
@@ -19,6 +20,7 @@ export const TeamApiKeysPage = (props: TeamApiKeysPageProps) => {
   const params = use(props.params);
   const teamId = params?.teamId;
   const [showCreateKeyModal, setShowCreateKeyModal] = useState(false);
+  const createKeyPerm = useTeamPermission(teamId ?? "", "edit_api_keys");
   const { data, loading } = useFetchKeysQuery({
     variables: { teamId: teamId ?? "" },
   });
@@ -54,12 +56,13 @@ export const TeamApiKeysPage = (props: TeamApiKeysPageProps) => {
               </Typography>
             </div>
 
-            <DecoratedButton
+            <RestrictedButton
+              restriction={createKeyPerm}
               type="button"
               onClick={() => setShowCreateKeyModal(true)}
             >
               Create new key
-            </DecoratedButton>
+            </RestrictedButton>
           </div>
         ) : (
           <Section>
@@ -70,14 +73,15 @@ export const TeamApiKeysPage = (props: TeamApiKeysPageProps) => {
                 {loading ? (
                   <Skeleton width={150} />
                 ) : (
-                  <DecoratedButton
+                  <RestrictedButton
+                    restriction={createKeyPerm}
                     type="button"
                     variant="primary"
                     onClick={() => setShowCreateKeyModal(true)}
                     className="py-3"
                   >
                     <PlusIcon className="size-5" /> New key
-                  </DecoratedButton>
+                  </RestrictedButton>
                 )}
               </Section.Header.Button>
             </Section.Header>

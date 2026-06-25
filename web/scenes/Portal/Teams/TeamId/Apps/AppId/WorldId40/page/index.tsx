@@ -2,6 +2,7 @@ import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { getSdk } from "./graphql/server/fetch-rp-registration.generated";
+import { type RpMode } from "./rp-action-restrictions";
 import { WorldId40Content } from "./WorldId40Content";
 
 type Props = {
@@ -12,7 +13,7 @@ type Props = {
 };
 
 export const WorldId40Page = async ({ params }: Props) => {
-  const { appId } = params;
+  const { appId, teamId } = params;
 
   const client = await getAPIServiceGraphqlClient();
   const { rp_registration } = await getSdk(client).FetchRpRegistration({
@@ -36,6 +37,7 @@ export const WorldId40Page = async ({ params }: Props) => {
 
   return (
     <WorldId40Content
+      teamId={teamId}
       appId={appId}
       rpId={rpData.rp_id}
       initialStatus={
@@ -50,7 +52,7 @@ export const WorldId40Page = async ({ params }: Props) => {
           | null
           | undefined) ?? null
       }
-      mode={rpData.mode as string}
+      mode={rpData.mode as RpMode}
       signerAddress={rpData.signer_address ?? null}
       createdAt={rpData.created_at}
     />

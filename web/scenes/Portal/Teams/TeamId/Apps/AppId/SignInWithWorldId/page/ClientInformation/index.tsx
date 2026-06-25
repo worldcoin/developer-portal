@@ -4,11 +4,8 @@ import { DecoratedButton } from "@/components/DecoratedButton";
 import { LockIcon } from "@/components/Icons/LockIcon";
 import { Input } from "@/components/Input";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import { Role_Enum } from "@/graphql/graphql";
 import { ORB_APP_TEAM_ID } from "@/lib/constants";
-import { Auth0SessionUser } from "@/lib/types";
-import { checkUserPermissions } from "@/lib/utils";
-import { useUser } from "@auth0/nextjs-auth0/client";
+import { useTeamPermission } from "@/lib/team-permissions/use-team-permission";
 import clsx from "clsx";
 import { ErrorPage } from "@/components/ErrorPage";
 import { SizingWrapper } from "@/components/SizingWrapper";
@@ -26,14 +23,7 @@ export const ClientInformationPage = (props: {
 }) => {
   const { appID, teamID } = props;
   const [clientSecret, setClientSecret] = useState<string>("");
-  const { user } = useUser() as Auth0SessionUser;
-
-  const isEnoughPermissions = useMemo(() => {
-    return checkUserPermissions(user, teamID ?? "", [
-      Role_Enum.Owner,
-      Role_Enum.Admin,
-    ]);
-  }, [user, teamID]);
+  const editStorePerm = useTeamPermission(teamID, "edit_app_store_details");
 
   const { data, loading: fetchingAction } = useFetchSignInActionQuery({
     variables: { app_id: appID },
@@ -144,7 +134,7 @@ export const ClientInformationPage = (props: {
               <div
                 className={clsx(
                   "grid grid-cols-1fr/auto justify-items-end gap-x-3",
-                  { hidden: !isEnoughPermissions },
+                  { hidden: !editStorePerm.allowed },
                 )}
               >
                 <DecoratedButton
@@ -184,14 +174,14 @@ export const ClientInformationPage = (props: {
           teamId={teamID}
           isStaging={isStaging ?? false}
           appId={appID}
-          canEdit={isEnoughPermissions}
+          canEdit={editStorePerm.allowed}
         />
       </div>
 
       <LinksForm
         signInAction={signInAction!}
         teamId={teamID}
-        canEdit={isEnoughPermissions}
+        canEdit={editStorePerm.allowed}
       />
     </div>
   );
