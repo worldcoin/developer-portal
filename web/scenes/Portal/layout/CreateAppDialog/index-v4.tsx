@@ -146,19 +146,28 @@ export const CreateAppDialogV4 = ({
         engine: values.verification,
       });
 
+      // A successful insert must return the new app's id. If it doesn't, that's
+      // a broken contract — surface it instead of dumping the user on the stale
+      // apps list, and don't reopen the form (which would create a duplicate).
+      // The app does exist, so refresh the current route to let its server
+      // render resolve it.
+      if (!newAppId) {
+        posthog.capture("app_creation_missing_app_id", { team_id: teamId });
+        toast.error("App created, but we couldn't open it. Refreshing…");
+        reset(defaultValues);
+        props.onClose(false);
+        router.refresh();
+        return;
+      }
+
       // App creation is decoupled from World ID 4.0 onboarding: send the user
       // straight to the new app's dashboard. World ID 4.0 setup is launched
       // later, on demand, from the World ID tab — not automatically here.
       reset(defaultValues);
       props.onClose(false);
-      // Always navigate + refresh. Fall back to the apps index (which
-      // server-redirects to an existing app) so the user is never stranded if
-      // the id is somehow missing.
-      router.replace(
-        newAppId
-          ? `/teams/${teamId}/apps/${newAppId}`
-          : `/teams/${teamId}/apps`,
-      );
+      // Navigate straight to the new app's own route — a fresh route with no
+      // cached decider to go stale. No fallback to the apps list.
+      router.replace(`/teams/${teamId}/apps/${newAppId}`);
       router.refresh();
     },
     [defaultValues, refetchApps, reset, teamId, props, router],

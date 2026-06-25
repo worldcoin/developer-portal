@@ -9,7 +9,8 @@ import { SizingWrapper } from "@/components/SizingWrapper";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { createAppDialogOpenedAtom } from "@/scenes/Portal/layout/Header";
 import { useAtom } from "jotai";
-import { Fragment } from "react";
+import { useRouter } from "next/navigation";
+import { Fragment, useEffect } from "react";
 
 const pathButtonClassName =
   "flex h-10 w-full items-center justify-center gap-2 rounded-12 border px-4 font-gta text-sm font-medium leading-none shadow-button transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-150 md:h-11";
@@ -60,6 +61,11 @@ const PathStep = (props: {
 
 export const ClientPage = (props: { teamId: string }) => {
   const [_, setCreateAppDialogOpen] = useAtom(createAppDialogOpenedAtom);
+
+  const router = useRouter();
+  useEffect(() => {
+    router.refresh();
+  }, []);
 
   return (
     <Fragment>
