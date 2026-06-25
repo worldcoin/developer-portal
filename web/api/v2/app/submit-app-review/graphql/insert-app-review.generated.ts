@@ -4,26 +4,20 @@ import * as Types from "@/graphql/graphql";
 import { GraphQLClient, RequestOptions } from "graphql-request";
 import gql from "graphql-tag";
 type GraphQLClientRequestHeaders = RequestOptions["requestHeaders"];
-export type UpsertAppReviewMutationVariables = Types.Exact<{
+export type InsertAppReviewMutationVariables = Types.Exact<{
   nullifier_hash: Types.Scalars["String"]["input"];
   app_id: Types.Scalars["String"]["input"];
   country: Types.Scalars["String"]["input"];
   rating: Types.Scalars["Int"]["input"];
 }>;
 
-export type UpsertAppReviewMutation = {
+export type InsertAppReviewMutation = {
   __typename?: "mutation_root";
-  insert_app_reviews_one?: {
-    __typename?: "app_reviews";
-    id: string;
-    app_id: string;
-    country: string;
-    rating: number;
-  } | null;
+  insert_app_reviews_one?: { __typename?: "app_reviews"; id: string } | null;
 };
 
-export const UpsertAppReviewDocument = gql`
-  mutation UpsertAppReview(
+export const InsertAppReviewDocument = gql`
+  mutation InsertAppReview(
     $nullifier_hash: String!
     $app_id: String!
     $country: String!
@@ -36,15 +30,8 @@ export const UpsertAppReviewDocument = gql`
         country: $country
         rating: $rating
       }
-      on_conflict: {
-        constraint: app_reviews_nullifier_hash_key
-        update_columns: [rating]
-      }
     ) {
       id
-      app_id
-      country
-      rating
     }
   }
 `;
@@ -68,18 +55,18 @@ export function getSdk(
   withWrapper: SdkFunctionWrapper = defaultWrapper,
 ) {
   return {
-    UpsertAppReview(
-      variables: UpsertAppReviewMutationVariables,
+    InsertAppReview(
+      variables: InsertAppReviewMutationVariables,
       requestHeaders?: GraphQLClientRequestHeaders,
-    ): Promise<UpsertAppReviewMutation> {
+    ): Promise<InsertAppReviewMutation> {
       return withWrapper(
         (wrappedRequestHeaders) =>
-          client.request<UpsertAppReviewMutation>(
-            UpsertAppReviewDocument,
+          client.request<InsertAppReviewMutation>(
+            InsertAppReviewDocument,
             variables,
             { ...requestHeaders, ...wrappedRequestHeaders },
           ),
-        "UpsertAppReview",
+        "InsertAppReview",
         "mutation",
         variables,
       );
