@@ -128,16 +128,20 @@ export const CreateAppDialogV4 = ({
         });
         return;
       }
-      const [refetched] = await refetchApps();
+      // Navigate using the id the server action returns — NOT a guess derived
+      // from refetchApps(). On staging the user-facing read can lag the insert
+      // (replica/cache), so the refetch-and-sort approach returned a stale list
+      // and left users stranded on a stale apps page with no redirect/refresh.
+      const newAppId =
+        typeof result.app_id === "string" ? result.app_id : undefined;
 
-      const latestApp = refetched.data.app.toSorted(
-        (a: any, b: any) =>
-          new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
-      )[0];
+      // Keep the client-side app list (AppSelector) fresh, but do not gate
+      // navigation on it.
+      await refetchApps();
 
       posthog.capture("app_creation_successful", {
         team_id: teamId,
-        app_id: latestApp?.id,
+        app_id: newAppId,
         environment: values.build,
         engine: values.verification,
       });
@@ -147,10 +151,15 @@ export const CreateAppDialogV4 = ({
       // later, on demand, from the World ID tab — not automatically here.
       reset(defaultValues);
       props.onClose(false);
-      if (latestApp?.id) {
-        router.replace(`/teams/${teamId}/apps/${latestApp.id}`);
-        router.refresh();
-      }
+      // Always navigate + refresh. Fall back to the apps index (which
+      // server-redirects to an existing app) so the user is never stranded if
+      // the id is somehow missing.
+      router.replace(
+        newAppId
+          ? `/teams/${teamId}/apps/${newAppId}`
+          : `/teams/${teamId}/apps`,
+      );
+      router.refresh();
     },
     [defaultValues, refetchApps, reset, teamId, props, router],
   );
