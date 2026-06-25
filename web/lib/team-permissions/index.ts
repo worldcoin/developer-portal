@@ -47,7 +47,7 @@ export const PERMISSION_RULES = {
   edit_member_role: OWNER_ONLY,
   remove_member: OWNER_ONLY,
   resend_invite: OWNER_ADMIN,
-  cancel_invite: OWNER_ADMIN,
+  cancel_invite: OWNER_ONLY,
 } satisfies Record<string, PermissionRule>;
 
 export type PermissionAction = keyof typeof PERMISSION_RULES;
