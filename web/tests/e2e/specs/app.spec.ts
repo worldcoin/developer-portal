@@ -16,16 +16,17 @@ test.describe("App", () => {
     await expect(page.getByText("Build your first project")).toBeVisible();
     await page.click("[data-testid='button-create-an-app']");
 
-    await expect(page.getByTestId("radio-verification-cloud")).toBeChecked();
+    await expect(page.getByText("Setup your app")).toBeVisible();
     await expect(page.getByTestId("button-create-app")).toBeDisabled();
 
     await page.fill("[data-testid='input-app-name']", appName);
-    await page.click("[data-testid='button-select-category']");
-    await page.locator("li", { hasText: "Social" }).click();
     await expect(page.getByTestId("button-create-app")).toBeEnabled();
     await page.getByTestId("button-create-app").click();
 
-    expect(page).toHaveURL(/.*configuration/);
-    await expect(page.getByTestId("title-app-name")).toHaveText(appName);
+    await expect(page).toHaveURL(
+      new RegExp(`/teams/${constants.teamId}/apps/app_[a-f0-9]+$`),
+    );
+    await expect(page.getByText("Overview")).toBeVisible();
+    await expect(page.getByText(appName)).toBeVisible();
   });
 });

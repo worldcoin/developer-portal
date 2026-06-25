@@ -3,8 +3,6 @@
 import { ActionsHeader } from "@/components/ActionsHeader";
 import { ErrorPage } from "@/components/ErrorPage";
 import { SizingWrapper } from "@/components/SizingWrapper";
-import { useAtomValue } from "jotai";
-import { worldId40Atom, isWorldId40Enabled } from "@/lib/feature-flags";
 import { Tab, Tabs } from "@/components/Tabs";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Role_Enum } from "@/graphql/graphql";
@@ -42,8 +40,7 @@ export const ActionIdLayout = (props: ActionIdLayout) => {
   const app = action?.app;
 
   const isOnChainApp = app?.engine === EngineType.OnChain;
-  const worldId40Config = useAtomValue(worldId40Atom);
-  const isEnabled = isWorldId40Enabled(worldId40Config, params.teamId);
+  const isEnabled = true;
 
   const isEnoughPermissions = checkUserPermissions(user, params.teamId ?? "", [
     Role_Enum.Owner,

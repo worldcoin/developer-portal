@@ -11,11 +11,9 @@ import { LoggedUserNav } from "@/components/LoggedUserNav";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { getGraphQLErrorCode } from "@/lib/errors";
-import { isWorldId40Enabled, worldId40Atom } from "@/lib/feature-flags";
 import { useRefetchQueries } from "@/lib/use-refetch-queries";
 import { yupResolver } from "@hookform/resolvers/yup";
 import clsx from "clsx";
-import { useAtomValue } from "jotai";
 import { useParams, useRouter } from "next/navigation";
 import posthog from "posthog-js";
 import { useCallback, useMemo, useState } from "react";
@@ -66,8 +64,12 @@ export const CreateAppDialogV4 = ({
 }: CreateAppDialogV4Props) => {
   const { teamId } = useParams() as { teamId: string | undefined };
   const router = useRouter();
-  const worldId40Config = useAtomValue(worldId40Atom);
-  const isSelfManagedEnabled = isWorldId40Enabled(worldId40Config, teamId);
+  // Self-Managed availability previously read the World ID 4.0 rollout flag,
+  // but that gate was already true wherever this dialog could actually render
+  // (the dialog itself was flag-gated). With the flag removed (v4 is the
+  // default), hardcoding true preserves the existing behavior — it is not a new
+  // self-managed product change.
+  const isSelfManagedEnabled = true;
   const { refetch: refetchApps } = useRefetchQueries(FetchAppsDocument, {
     teamId: teamId,
   });
@@ -140,22 +142,17 @@ export const CreateAppDialogV4 = ({
         engine: values.verification,
       });
 
-      setWorldIdMode("managed");
-      setSignerKeySetup("generate");
-      setCreatedAppId(latestApp?.id ?? null);
-      setStep("enable-world-id-4-0");
+      // App creation is decoupled from World ID 4.0 onboarding: send the user
+      // straight to the new app's dashboard. World ID 4.0 setup is launched
+      // later, on demand, from the World ID tab — not automatically here.
       reset(defaultValues);
+      props.onClose(false);
+      if (latestApp?.id) {
+        router.replace(`/teams/${teamId}/apps/${latestApp.id}`);
+        router.refresh();
+      }
     },
-    [
-      defaultValues,
-      refetchApps,
-      reset,
-      teamId,
-      setCreatedAppId,
-      setSignerKeySetup,
-      setStep,
-      setWorldIdMode,
-    ],
+    [defaultValues, refetchApps, reset, teamId, props, router],
   );
 
   const onClose = useCallback(() => {
