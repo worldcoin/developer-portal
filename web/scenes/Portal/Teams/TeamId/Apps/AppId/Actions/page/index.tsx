@@ -66,7 +66,7 @@ export const ActionsPage = (props: ActionsPageProps) => {
   const { data } = actionsRes;
   const engineType = appRes.data?.app?.engine;
   const appName = appRes.data?.app?.app_metadata[0]?.name;
-  const isEnabled = false;
+  const isEnabled = true;
 
   const isInitial = useMemo(() => {
     if (actionsRes.loading) {

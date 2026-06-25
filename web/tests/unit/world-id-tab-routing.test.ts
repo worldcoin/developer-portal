@@ -89,7 +89,7 @@ describe("world-id-actions layout [setup behind the tab]", () => {
 
 // #region actions layout (legacy v3 surface)
 describe("actions layout [legacy route stays reachable]", () => {
-  it("does not redirect — legacy /actions remains available for E2E and v3 apps", async () => {
+  it("does not redirect — legacy /actions remains available for v3 apps", async () => {
     withAppEnv({ actions: [] });
 
     await ActionsLayout(makeProps());
