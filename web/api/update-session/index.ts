@@ -1,70 +1,58 @@
+import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { auth0, toSessionRequest } from "@/lib/auth0";
+import { logger } from "@/lib/logger";
 
 import { NextRequest, NextResponse } from "next/server";
 
-const HASURA_ALLOWLIST = [
-  "id",
-  "name",
-  "email",
-  "world_id_nullifier",
-  "posthog_id",
-  "is_allow_tracking",
-  "memberships",
-] as const;
+import { getSdk as getFetchUserForSessionSdk } from "./graphql/server/fetch-user-for-session.generated";
 
-type HasuraAllowlistedKey = (typeof HASURA_ALLOWLIST)[number];
-type HasuraPayload = Partial<Record<HasuraAllowlistedKey, unknown>>;
-
-const isObjectRecord = (value: unknown): value is Record<string, unknown> =>
-  typeof value === "object" && value !== null;
-
-const pickAllowlistedHasuraFields = (input: HasuraPayload = {}) =>
-  Object.fromEntries(
-    HASURA_ALLOWLIST.map((key) => [
-      key,
-      input[key as keyof HasuraPayload],
-    ]).filter(([, value]) => value !== undefined),
-  ) as HasuraPayload;
-
+// Refreshes the caller's sealed session with their latest Hasura profile.
+//
+// The session's Hasura claims — crucially `memberships`, which downstream
+// authorization and route-gating read — are re-derived server-side from the
+// database using the verified session user id. The request body is NOT trusted:
+// any authenticated user could otherwise forge team membership by POSTing a
+// crafted `user.memberships` array.
 export const POST = async (req: NextRequest) => {
   const res = NextResponse.json({ success: true });
-  // Body-free request for the Auth0 SDK (see toSessionRequest): the body is read
-  // below, and on Next 16 the SDK re-wraps + copies the request body, which throws.
+  // Body-free request for the Auth0 SDK (see toSessionRequest): on Next 16 the
+  // SDK re-wraps + copies the request body, which throws.
   const sessionReq = toSessionRequest(req);
-  const body = await req.json();
-  const user = body?.user;
-  let session = await auth0.getSession(sessionReq);
+  const session = await auth0.getSession(sessionReq);
 
   if (!session) {
-    return NextResponse.json({ success: false }, { status: 500 });
-  }
-
-  if (!isObjectRecord(user)) {
-    return NextResponse.json({ success: false }, { status: 400 });
-  }
-
-  // Split this out and return a 401: Unauthorized
-  if (session.user.hasura.id !== user.id) {
     return NextResponse.json({ success: false }, { status: 401 });
   }
 
-  const allowlistedCurrentHasura = pickAllowlistedHasuraFields(
-    session.user.hasura,
-  );
-  const allowlistedUpdates = pickAllowlistedHasuraFields(user);
+  const userId = session.user.hasura.id;
 
-  const updatedSession = {
+  let response;
+  try {
+    response = await getFetchUserForSessionSdk(
+      await getAPIServiceGraphqlClient(),
+    ).FetchUserForSession({ userId });
+  } catch (error) {
+    logger.error("Failed to refresh session: error fetching user", {
+      error,
+      userId,
+    });
+    return NextResponse.json({ success: false }, { status: 500 });
+  }
+
+  const user = response.user_by_pk;
+
+  if (!user) {
+    logger.warn("Failed to refresh session: user not found", { userId });
+    return NextResponse.json({ success: false }, { status: 401 });
+  }
+
+  await auth0.updateSession(sessionReq, res, {
     ...session,
     user: {
       ...session.user,
-      hasura: {
-        ...allowlistedCurrentHasura,
-        ...allowlistedUpdates,
-      },
+      hasura: user,
     },
-  };
+  });
 
-  session = updatedSession;
-  await auth0.updateSession(sessionReq, res, session);
   return res;
 };
