@@ -11,7 +11,7 @@ import React, { useEffect, useMemo } from "react";
 import { colorAtom } from "../color-atom";
 import { Color } from "../../Profile/types";
 import { AppSelector } from "../AppSelector";
-import { CreateAppDialog } from "../CreateAppDialog";
+import { CreateAppDialogV4 } from "../CreateAppDialog/index-v4";
 
 export const createAppDialogOpenedAtom = atom(false);
 
@@ -52,7 +52,7 @@ export const Header = (props: { color: Color | null }) => {
         <LoggedUserNav />
       </SizingWrapper>
 
-      <CreateAppDialog open={open} onClose={setOpen} className={"mx-0"} />
+      <CreateAppDialogV4 open={open} onClose={setOpen} className={"mx-0"} />
     </header>
   );
 };
