@@ -3,6 +3,8 @@
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { ActionDangerZone } from "@/components/ActionDangerZone";
 import { ErrorPage } from "@/components/ErrorPage";
+import { RestrictedAction } from "@/components/RestrictedAction";
+import { useTeamPermission } from "@/lib/team-permissions/use-team-permission";
 import { urls } from "@/lib/urls";
 import { useRouter } from "next/navigation";
 import { useCallback, useState, use } from "react";
@@ -23,6 +25,10 @@ export const WorldIdActionIdDangerPage = (
   const appId = params?.appId;
   const router = useRouter();
   const [isDeleting, setIsDeleting] = useState(false);
+  const deletePermission = useTeamPermission(
+    teamId ?? "",
+    "delete_world_id_action",
+  );
 
   const { data, loading, error } = useGetSingleActionV4Query({
     variables: { action_id: actionId ?? "" },
@@ -73,12 +79,16 @@ export const WorldIdActionIdDangerPage = (
       {loading ? (
         <div>Loading...</div>
       ) : (
-        <ActionDangerZone
-          actionIdentifier={action!.action}
-          onDelete={handleDelete}
-          isDeleting={isDeleting}
-          canDelete={true}
-        />
+        <RestrictedAction restriction={deletePermission} className="w-fit">
+          {({ disabled }) => (
+            <ActionDangerZone
+              actionIdentifier={action!.action}
+              onDelete={handleDelete}
+              isDeleting={isDeleting}
+              canDelete={!disabled}
+            />
+          )}
+        </RestrictedAction>
       )}
     </SizingWrapper>
   );

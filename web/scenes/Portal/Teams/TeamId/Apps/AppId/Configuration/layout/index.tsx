@@ -1,8 +1,7 @@
 import { SizingWrapper } from "@/components/SizingWrapper";
-import { Role_Enum } from "@/graphql/graphql";
+import { userCanPerformAction } from "@/lib/team-permissions";
 import { urls } from "@/lib/urls";
 import { Auth0SessionUser } from "@/lib/types";
-import { checkUserPermissions } from "@/lib/utils";
 import { auth0 } from "@/lib/auth0";
 import { ReactNode } from "react";
 import { SectionSubTabs } from "../../common/SectionSubTabs";
@@ -24,9 +23,11 @@ export const AppProfileLayout = async (props: AppProfileLayout) => {
   const session = await auth0.getSession();
   const user = session?.user as Auth0SessionUser["user"];
 
-  const isEnoughPermissions = checkUserPermissions(user, params.teamId ?? "", [
-    Role_Enum.Owner,
-  ]);
+  const canAccessAppDanger = userCanPerformAction(
+    user,
+    params.teamId ?? "",
+    "delete_app",
+  );
 
   return (
     <div className="flex flex-col items-start">
@@ -49,7 +50,7 @@ export const AppProfileLayout = async (props: AppProfileLayout) => {
                   app_id: params!.appId!,
                 })}/danger`,
                 segment: "danger",
-                hidden: !isEnoughPermissions,
+                hidden: !canAccessAppDanger,
               },
             ]}
           />

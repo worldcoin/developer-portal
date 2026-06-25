@@ -5,14 +5,11 @@ import { HelpSquareIcon } from "@/components/Icons/HelpSquareIcon";
 import { LoginSquareIcon } from "@/components/Icons/LoginSquareIcon";
 import { TeamLogo } from "@/components/LoggedUserNav/Teams/TeamLogo";
 import { useFetchTeamQuery } from "@/components/LoggedUserNav/graphql/client/fetch-team.generated";
-import { Role_Enum } from "@/graphql/graphql";
 import { DOCS_URL } from "@/lib/constants";
-import { Auth0SessionUser } from "@/lib/types";
 import { urls } from "@/lib/urls";
-import { checkUserPermissions } from "@/lib/utils";
+import { useTeamPermission } from "@/lib/team-permissions/use-team-permission";
 import { colorAtom } from "@/scenes/Portal/layout/color-atom";
 import { useMeQuery } from "@/scenes/common/me-query/client";
-import { useUser } from "@auth0/nextjs-auth0/client";
 import { useAtom } from "jotai";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -31,7 +28,6 @@ import { Teams } from "./Teams";
 
 export const LoggedUserNav = () => {
   const [color] = useAtom(colorAtom);
-  const { user: auth0User } = useUser() as Auth0SessionUser;
   const { teamId, appId, actionId } = useParams() as {
     teamId?: string;
     appId?: string;
@@ -40,9 +36,8 @@ export const LoggedUserNav = () => {
 
   const { user } = useMeQuery();
 
-  const hasOwnerPermission = useMemo(() => {
-    return checkUserPermissions(auth0User, teamId ?? "", [Role_Enum.Owner]);
-  }, [auth0User, teamId]);
+  const settingsPerm = useTeamPermission(teamId ?? "", "edit_team_settings");
+  const apiKeysPerm = useTeamPermission(teamId ?? "", "view_api_keys");
 
   const nameFirstLetter = useMemo(
     () => user.nameToDisplay[0].toLocaleUpperCase(),
@@ -155,17 +150,19 @@ export const LoggedUserNav = () => {
                 </Link>
               </Dropdown.ListItem>
 
-              <Dropdown.ListItem asChild>
-                <Link href={`/teams/${teamId}/api-keys`}>
-                  <Dropdown.ListItemIcon asChild>
-                    <KeyIcon />
-                  </Dropdown.ListItemIcon>
+              {apiKeysPerm.allowed && (
+                <Dropdown.ListItem asChild>
+                  <Link href={`/teams/${teamId}/api-keys`}>
+                    <Dropdown.ListItemIcon asChild>
+                      <KeyIcon />
+                    </Dropdown.ListItemIcon>
 
-                  <Dropdown.ListItemText>API Keys</Dropdown.ListItemText>
-                </Link>
-              </Dropdown.ListItem>
+                    <Dropdown.ListItemText>API Keys</Dropdown.ListItemText>
+                  </Link>
+                </Dropdown.ListItem>
+              )}
 
-              {hasOwnerPermission && (
+              {settingsPerm.allowed && (
                 <Dropdown.ListItem asChild>
                   <Link href={`/teams/${teamId}/settings`}>
                     <Dropdown.ListItemIcon asChild>

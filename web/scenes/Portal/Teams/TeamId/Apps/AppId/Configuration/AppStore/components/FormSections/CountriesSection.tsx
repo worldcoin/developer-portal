@@ -19,7 +19,6 @@ export const CountriesSection = ({
   control,
   errors,
   isEditable,
-  isEnoughPermissions,
 }: CountriesSectionProps) => {
   const countries = useMemo(() => formCountriesList(), []);
   const [showClearModal, setShowClearModal] = useState(false);
@@ -60,7 +59,7 @@ export const CountriesSection = ({
               }
               items={countries}
               label=""
-              disabled={!isEditable || !isEnoughPermissions}
+              disabled={!isEditable}
               errors={errors.supported_countries}
               required
               selectAll={() => field.onChange(countries.map((c) => c.value))}
@@ -92,7 +91,7 @@ export const CountriesSection = ({
                         : [...(field.value ?? []), value],
                     );
                   }}
-                  disabled={!isEditable || !isEnoughPermissions}
+                  disabled={!isEditable}
                 />
               )}
             </SelectMultiple>

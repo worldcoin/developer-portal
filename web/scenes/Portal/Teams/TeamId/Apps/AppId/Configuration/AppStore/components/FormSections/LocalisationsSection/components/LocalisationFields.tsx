@@ -9,7 +9,6 @@ interface LocalisationFieldsProps {
   errors: FieldErrors<AppStoreFormValues>;
   selectedIndex: number;
   isEditable: boolean;
-  isEnoughPermissions: boolean;
   isMiniApp: boolean;
 }
 
@@ -18,10 +17,9 @@ export const LocalisationFields = ({
   errors,
   selectedIndex,
   isEditable,
-  isEnoughPermissions,
   isMiniApp,
 }: LocalisationFieldsProps) => {
-  const disabled = !isEditable || !isEnoughPermissions;
+  const disabled = !isEditable;
   const fieldErrors = errors.localisations?.[selectedIndex];
 
   return (

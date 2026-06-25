@@ -3,7 +3,8 @@ import { Pagination } from "@/components/Pagination";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Role_Enum } from "@/graphql/graphql";
 import { Auth0SessionUser } from "@/lib/types";
-import { checkUserPermissions } from "@/lib/utils";
+import { roleCanPerformAction } from "@/lib/team-permissions";
+import { getUserTeamRole } from "@/lib/utils";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { useAtom } from "jotai";
 import { useParams } from "next/navigation";
@@ -41,9 +42,10 @@ export const List = (props: ListProps) => {
     FetchTeamMembersQuery["members"][number] | null
   >(null);
 
-  const isEnoughPermissions = useMemo(() => {
-    return checkUserPermissions(auth0User, teamId ?? "", [Role_Enum.Owner]);
-  }, [auth0User, teamId]);
+  const userRole = useMemo(
+    () => getUserTeamRole(auth0User, teamId),
+    [auth0User, teamId],
+  );
 
   const items = useMemo(() => {
     if (!membersRes.data) {
@@ -110,7 +112,11 @@ export const List = (props: ListProps) => {
 
   const resendInvite = useCallback(
     async (membership: FetchTeamMembersQuery["members"][number]) => {
-      if (!membership.user.email || resendMutationLoading) {
+      if (
+        !roleCanPerformAction(userRole, "resend_invite") ||
+        !membership.user.email ||
+        resendMutationLoading
+      ) {
         return;
       }
 
@@ -125,7 +131,7 @@ export const List = (props: ListProps) => {
         toast.error("Error inviting team members");
       }
     },
-    [inviteTeamMembers, resendMutationLoading, teamId],
+    [inviteTeamMembers, resendMutationLoading, teamId, userRole],
   );
 
   const [deleteInvite, { loading: deleteInviteMutationLoading }] =
@@ -137,7 +143,7 @@ export const List = (props: ListProps) => {
   const cancelInvite = useCallback(
     async (membership: FetchTeamMembersQuery["members"][number]) => {
       if (
-        !isEnoughPermissions ||
+        !roleCanPerformAction(userRole, "cancel_invite") ||
         !membership.id.startsWith("inv_") ||
         deleteInviteMutationLoading
       ) {
@@ -156,7 +162,7 @@ export const List = (props: ListProps) => {
         return toast.error("Error canceling invite");
       }
     },
-    [deleteInvite, deleteInviteMutationLoading, isEnoughPermissions],
+    [deleteInvite, deleteInviteMutationLoading, userRole],
   );
 
   const isCurrentMember = useCallback(
@@ -200,7 +206,7 @@ export const List = (props: ListProps) => {
               key={item.id}
               item={item}
               isCurrent={isCurrentMember(item)}
-              isEnoughPermissions={isEnoughPermissions}
+              userRole={userRole}
               onEdit={() => onEditUser(item)}
               onRemove={() => onRemoveUser(item)}
               onResendInvite={() => resendInvite(item)}

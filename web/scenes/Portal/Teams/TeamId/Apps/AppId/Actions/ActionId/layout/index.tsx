@@ -7,11 +7,9 @@ import { useAtomValue } from "jotai";
 import { worldId40Atom, isWorldId40Enabled } from "@/lib/feature-flags";
 import { Tab, Tabs } from "@/components/Tabs";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import { Role_Enum } from "@/graphql/graphql";
-import { Auth0SessionUser, EngineType } from "@/lib/types";
+import { EngineType } from "@/lib/types";
+import { useTeamPermission } from "@/lib/team-permissions/use-team-permission";
 import { urls } from "@/lib/urls";
-import { checkUserPermissions } from "@/lib/utils";
-import { useUser } from "@auth0/nextjs-auth0/client";
 import { ReactNode, use } from "react";
 import { useGetSingleActionAndNullifiersQuery } from "../page/graphql/client/get-single-action.generated";
 
@@ -28,9 +26,6 @@ type ActionIdLayout = {
 
 export const ActionIdLayout = (props: ActionIdLayout) => {
   const params = use(props.params);
-  const { user } = useUser() as Auth0SessionUser;
-
-  // Fetch action data for header using user permissions
   const { data, loading } = useGetSingleActionAndNullifiersQuery({
     variables: {
       action_id: params.actionId ?? "",
@@ -45,10 +40,10 @@ export const ActionIdLayout = (props: ActionIdLayout) => {
   const worldId40Config = useAtomValue(worldId40Atom);
   const isEnabled = isWorldId40Enabled(worldId40Config, params.teamId);
 
-  const isEnoughPermissions = checkUserPermissions(user, params.teamId ?? "", [
-    Role_Enum.Owner,
-    Role_Enum.Admin,
-  ]);
+  const deleteActionPerm = useTeamPermission(
+    params.teamId ?? "",
+    "delete_world_id_action",
+  );
 
   // Handle 404 if action not found (only after loading completes)
   if (!loading && !action) {
@@ -122,7 +117,7 @@ export const ActionIdLayout = (props: ActionIdLayout) => {
             </Tab>
           )}
 
-          {isEnoughPermissions && (
+          {deleteActionPerm.allowed && (
             <Tab
               className="md:py-4"
               href={`/teams/${params!.teamId}/apps/${params!.appId}/actions/${params!.actionId}/danger`}

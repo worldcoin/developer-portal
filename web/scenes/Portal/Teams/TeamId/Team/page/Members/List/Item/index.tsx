@@ -1,3 +1,4 @@
+import { type ComponentType } from "react";
 import clsx from "clsx";
 import { FetchTeamMembersQuery } from "../../graphql/client/fetch-team-members.generated";
 import { getNullifierName } from "@/lib/utils";
@@ -10,6 +11,10 @@ import { SendIcon } from "@/components/Icons/SendIcon";
 import { TrashIcon } from "@/components/Icons/TrashIcon";
 import { Role_Enum } from "@/graphql/graphql";
 import Skeleton from "react-loading-skeleton";
+import {
+  getMemberRowActions,
+  type MemberRowAction,
+} from "../member-row-actions";
 
 const roleName: Record<Role_Enum, string> = {
   [Role_Enum.Admin]: "Admin",
@@ -17,10 +22,20 @@ const roleName: Record<Role_Enum, string> = {
   [Role_Enum.Owner]: "Owner",
 };
 
+const actionIcon: Record<
+  MemberRowAction["key"],
+  ComponentType<{ className?: string }>
+> = {
+  edit_member_role: EditUserIcon,
+  remove_member: TrashIcon,
+  resend_invite: SendIcon,
+  cancel_invite: TrashIcon,
+};
+
 type ItemProps = {
   item?: FetchTeamMembersQuery["members"][number];
   isCurrent?: boolean;
-  isEnoughPermissions?: boolean;
+  userRole?: Role_Enum;
   onEdit?: () => void;
   onRemove?: () => void;
   onResendInvite?: () => void;
@@ -28,13 +43,20 @@ type ItemProps = {
 };
 
 export const Item = (props: ItemProps) => {
-  const { item, isCurrent, isEnoughPermissions } = props;
+  const { item, isCurrent, userRole } = props;
   const isInviteRow = item?.id.startsWith("inv_");
   const name =
     item?.user?.name ||
     item?.user?.email ||
     getNullifierName(item?.user?.world_id_nullifier) ||
     "Anonymous User";
+
+  const handlers: Record<MemberRowAction["key"], (() => void) | undefined> = {
+    edit_member_role: props.onEdit,
+    remove_member: props.onRemove,
+    resend_invite: props.onResendInvite,
+    cancel_invite: props.onCancelInvite,
+  };
 
   return (
     <div
@@ -107,67 +129,56 @@ export const Item = (props: ItemProps) => {
         ) : (
           <Dropdown>
             <Dropdown.Button
-              disabled={!isEnoughPermissions || isCurrent}
-              className={clsx("rounded-8 hover:bg-grey-100", {
-                "pointer-events-none invisible":
-                  !isEnoughPermissions || isCurrent,
-              })}
+              className="rounded-8 hover:bg-grey-100"
+              aria-label="Member actions"
             >
               <MoreVerticalIcon className="text-grey-900" />
             </Dropdown.Button>
 
-            <Dropdown.List
-              align="end"
-              heading={name} // TODO: replace heading with member card in separate task
-            >
-              {isEnoughPermissions && !isInviteRow && (
-                <Dropdown.ListItem asChild>
-                  <button onClick={props.onEdit}>
-                    <Dropdown.ListItemIcon asChild>
-                      <EditUserIcon />
-                    </Dropdown.ListItemIcon>
+            <Dropdown.List align="end" heading={name}>
+              {getMemberRowActions({
+                userRole,
+                isCurrent: Boolean(isCurrent),
+                isInviteRow: Boolean(isInviteRow),
+              }).map((action) => {
+                const Icon = actionIcon[action.key];
 
-                    <Dropdown.ListItemText>Edit role</Dropdown.ListItemText>
-                  </button>
-                </Dropdown.ListItem>
-              )}
-
-              {isEnoughPermissions && isInviteRow && (
-                <Dropdown.ListItem asChild>
-                  <button onClick={props.onResendInvite}>
-                    <Dropdown.ListItemIcon asChild>
-                      <SendIcon />
-                    </Dropdown.ListItemIcon>
-
-                    <Dropdown.ListItemText>
-                      Re-send invite
-                    </Dropdown.ListItemText>
-                  </button>
-                </Dropdown.ListItem>
-              )}
-
-              {isEnoughPermissions && (
-                <Dropdown.ListItem className="text-system-error-600" asChild>
-                  <button
-                    onClick={() =>
-                      isInviteRow
-                        ? props.onCancelInvite?.()
-                        : props.onRemove?.()
-                    }
-                  >
-                    <Dropdown.ListItemIcon
-                      className="text-system-error-600"
-                      asChild
+                if (!action.allowed) {
+                  return (
+                    <Dropdown.DisabledListItem
+                      key={action.key}
+                      icon={<Icon />}
+                      description={action.reason}
                     >
-                      <TrashIcon />
-                    </Dropdown.ListItemIcon>
+                      {action.label}
+                    </Dropdown.DisabledListItem>
+                  );
+                }
 
-                    <Dropdown.ListItemText>
-                      {isInviteRow ? "Cancel invite" : "Remove member"}
-                    </Dropdown.ListItemText>
-                  </button>
-                </Dropdown.ListItem>
-              )}
+                return (
+                  <Dropdown.ListItem
+                    key={action.key}
+                    className={
+                      action.danger ? "text-system-error-600" : undefined
+                    }
+                    asChild
+                  >
+                    <button type="button" onClick={handlers[action.key]}>
+                      <Dropdown.ListItemIcon
+                        className={
+                          action.danger ? "text-system-error-600" : undefined
+                        }
+                        asChild
+                      >
+                        <Icon />
+                      </Dropdown.ListItemIcon>
+                      <Dropdown.ListItemText>
+                        {action.label}
+                      </Dropdown.ListItemText>
+                    </button>
+                  </Dropdown.ListItem>
+                );
+              })}
             </Dropdown.List>
           </Dropdown>
         )}

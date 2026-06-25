@@ -33,7 +33,6 @@ export const LocalisationsSection = ({
   errors,
   localisations,
   isEditable,
-  isEnoughPermissions,
   appMetadata,
   appId,
   teamId,
@@ -83,7 +82,6 @@ export const LocalisationsSection = ({
             errors={errors}
             selectedIndex={selectedIndex}
             isEditable={isEditable}
-            isEnoughPermissions={isEnoughPermissions}
             isMiniApp={appMetadata.app_mode === "mini-app"}
           />
 
@@ -101,7 +99,7 @@ export const LocalisationsSection = ({
                     Boolean(url),
                   )}
                   onChange={field.onChange}
-                  disabled={!isEditable || !isEnoughPermissions}
+                  disabled={!isEditable}
                   appId={appId}
                   teamId={teamId}
                   locale={selectedLanguage}
@@ -129,7 +127,7 @@ export const LocalisationsSection = ({
                 <MetaTagImageField
                   value={field.value}
                   onChange={field.onChange}
-                  disabled={!isEditable || !isEnoughPermissions}
+                  disabled={!isEditable}
                   appId={appId}
                   teamId={teamId}
                   locale={selectedLanguage}

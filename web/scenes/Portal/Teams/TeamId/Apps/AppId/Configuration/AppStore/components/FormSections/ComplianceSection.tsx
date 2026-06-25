@@ -11,13 +11,12 @@ type ComplianceSectionProps = FormSectionProps & {
 export const ComplianceSection = ({
   control,
   isEditable,
-  isEnoughPermissions,
 }: ComplianceSectionProps) => {
   return (
     <Controller
       name="is_android_only"
       control={control}
-      disabled={!isEditable || !isEnoughPermissions}
+      disabled={!isEditable}
       render={({ field }) => (
         <div className="rounded-[10px] border border-grey-100 px-6 py-4">
           <div className="flex items-center gap-x-4">
@@ -33,7 +32,7 @@ export const ComplianceSection = ({
             <Toggle
               checked={field.value ?? false}
               onChange={field.onChange}
-              disabled={!isEditable || !isEnoughPermissions}
+              disabled={!isEditable}
             />
           </div>
         </div>
