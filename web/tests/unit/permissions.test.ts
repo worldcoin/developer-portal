@@ -73,7 +73,7 @@ describe("team permission policy", () => {
       message: OWNER_ADMIN_MESSAGE,
     });
     expect(roleCanPerformAction(Role_Enum.Admin, "resend_invite")).toBe(true);
-    expect(roleCanPerformAction(Role_Enum.Admin, "cancel_invite")).toBe(true);
+    expect(roleCanPerformAction(Role_Enum.Admin, "cancel_invite")).toBe(false);
   });
 
   it("checks action permission from the central role rules", () => {
