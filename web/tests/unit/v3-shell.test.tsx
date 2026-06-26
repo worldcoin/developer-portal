@@ -13,6 +13,10 @@ jest.mock("@/scenes/PortalV3/Shell/AppSwitcherContainer", () => ({
   AppSwitcherContainer: () => null,
 }));
 
+jest.mock("@/scenes/PortalV3/Shell/UserPopupContainer", () => ({
+  UserPopupContainer: () => null,
+}));
+
 import { V3Shell } from "@/scenes/PortalV3/Shell";
 
 describe("V3Shell", () => {

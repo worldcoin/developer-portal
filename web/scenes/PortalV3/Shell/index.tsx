@@ -3,13 +3,13 @@ import clsx from "clsx";
 import { ReactNode } from "react";
 import { AppSwitcherContainer } from "./AppSwitcherContainer";
 import { SidebarNav } from "./SidebarNav";
-import { ThemeToggle } from "./ThemeToggle";
+import { UserPopupContainer } from "./UserPopupContainer";
 
 /**
  * v3 app shell. Stable two-column layout on the v3 semantic tokens, with the
  * `.dark` scope applied to the root from the server-resolved theme. SidebarNav,
- * the theme toggle, and the content-header app switcher are real; the team
- * switcher and the full user popup are still placeholders (next in Slice 3).
+ * the content-header app switcher, and the bottom user popup (which houses the
+ * theme toggle) are real; only the team switcher is still a placeholder.
  * See docs/v3-design-foundation.md.
  */
 export const V3Shell = (props: {
@@ -38,15 +38,8 @@ export const V3Shell = (props: {
 
         <SidebarNav />
 
-        {/* User area — full popup is next; the theme toggle is live */}
-        <div className="flex flex-col gap-2 border-t border-border p-3">
-          <ThemeToggle initialTheme={theme} />
-          <div className="flex items-center gap-2.5">
-            <div className="size-6 rounded-full bg-muted" />
-            <span className="truncate font-gta text-14 font-medium">
-              Account
-            </span>
-          </div>
+        <div className="border-t border-border p-2">
+          <UserPopupContainer theme={theme} />
         </div>
       </aside>
 
