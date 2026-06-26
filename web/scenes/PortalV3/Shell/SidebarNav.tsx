@@ -22,7 +22,7 @@ export const SidebarNav = () => {
   const appItems = appBase
     ? [
         { label: "Dashboard", href: appBase, exact: true },
-        { label: "World ID", href: `${appBase}/world-id` },
+        { label: "World ID", href: `${appBase}/world-id-4-0` },
         { label: "Configuration", href: `${appBase}/configuration` },
         { label: "Mini App", href: `${appBase}/mini-app` },
       ]
@@ -30,7 +30,7 @@ export const SidebarNav = () => {
 
   const teamItems = teamId
     ? [
-        { label: "Members", href: `/teams/${teamId}/members` },
+        { label: "Members", href: `/teams/${teamId}`, exact: true },
         { label: "API Keys", href: `/teams/${teamId}/api-keys` },
         { label: "Settings", href: `/teams/${teamId}/settings` },
       ]
@@ -57,7 +57,7 @@ export const SidebarNav = () => {
           key={item.label}
           label={item.label}
           href={item.href}
-          active={isActive(item.href)}
+          active={isActive(item.href, item.exact)}
         />
       ))}
     </nav>
