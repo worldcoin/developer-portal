@@ -17,6 +17,10 @@ jest.mock("@/scenes/PortalV3/Shell/UserPopupContainer", () => ({
   UserPopupContainer: () => null,
 }));
 
+jest.mock("@/scenes/PortalV3/Shell/TeamSwitcherContainer", () => ({
+  TeamSwitcherContainer: () => null,
+}));
+
 import { V3Shell } from "@/scenes/PortalV3/Shell";
 
 describe("V3Shell", () => {

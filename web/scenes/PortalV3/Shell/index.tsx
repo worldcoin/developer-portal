@@ -3,6 +3,7 @@ import clsx from "clsx";
 import { ReactNode } from "react";
 import { AppSwitcherContainer } from "./AppSwitcherContainer";
 import { SidebarNav } from "./SidebarNav";
+import { TeamSwitcherContainer } from "./TeamSwitcherContainer";
 import { UserPopupContainer } from "./UserPopupContainer";
 
 /**
@@ -28,13 +29,7 @@ export const V3Shell = (props: {
       )}
     >
       <aside className="flex flex-col border-r border-border bg-sidebar">
-        {/* Team switcher — placeholder (next) */}
-        <div className="flex h-14 items-center gap-2.5 border-b border-border px-3">
-          <div className="size-6 rounded-8 bg-muted" />
-          <span className="truncate font-gta text-14 font-medium">
-            {props.teamId ? "Team" : "World"}
-          </span>
-        </div>
+        <TeamSwitcherContainer />
 
         <SidebarNav />
 
