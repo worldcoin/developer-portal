@@ -13,7 +13,11 @@ jest.mock("@/lib/auth0", () => ({
 jest.mock("next/navigation", () => ({
   usePathname: () => "/teams/team_1/apps/app_1",
   useParams: () => ({ teamId: "team_1", appId: "app_1" }),
-  useRouter: () => ({ push: jest.fn(), replace: jest.fn(), prefetch: jest.fn() }),
+  useRouter: () => ({
+    push: jest.fn(),
+    replace: jest.fn(),
+    prefetch: jest.fn(),
+  }),
   redirect: jest.fn(),
 }));
 

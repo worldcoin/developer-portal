@@ -10,13 +10,18 @@ import { SidebarNav } from "./SidebarNav";
 import { TeamSwitcher } from "./TeamSwitcher";
 import { UserPopup } from "./UserPopup";
 
-export const V3Shell = async (props: { teamId?: string; children: ReactNode }) => {
+export const V3Shell = async (props: {
+  teamId?: string;
+  children: ReactNode;
+}) => {
   const session = await getSession();
   if (!session) {
     redirect(urls.login());
   }
   const user = (session.user as Auth0SessionUser["user"]) ?? null;
-  const color = calculateColorFromString(user?.name ?? user?.email ?? user?.sid);
+  const color = calculateColorFromString(
+    user?.name ?? user?.email ?? user?.sid,
+  );
 
   const memberships = user?.hasura?.memberships ?? [];
   const teams = memberships
@@ -41,7 +46,10 @@ export const V3Shell = async (props: { teamId?: string; children: ReactNode }) =
         {user ? (
           <div className="border-t border-border p-2">
             <UserPopup
-              user={{ name: user.name ?? user.email ?? "Account", email: user.email }}
+              user={{
+                name: user.name ?? user.email ?? "Account",
+                email: user.email,
+              }}
             />
           </div>
         ) : null}

@@ -11,7 +11,9 @@ import { WorldIcon } from "@/components/Icons/WorldIcon";
 export const AccountShell = async (props: { children: ReactNode }) => {
   const session = await getSession();
   const user = (session?.user as Auth0SessionUser["user"]) ?? null;
-  const color = calculateColorFromString(user?.name ?? user?.email ?? user?.sid);
+  const color = calculateColorFromString(
+    user?.name ?? user?.email ?? user?.sid,
+  );
 
   return (
     <div
@@ -36,7 +38,10 @@ export const AccountShell = async (props: { children: ReactNode }) => {
         {user ? (
           <div className="border-t border-border p-2">
             <UserPopup
-              user={{ name: user.name ?? user.email ?? "Account", email: user.email }}
+              user={{
+                name: user.name ?? user.email ?? "Account",
+                email: user.email,
+              }}
             />
           </div>
         ) : null}

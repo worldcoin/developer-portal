@@ -27,17 +27,17 @@ export const SidebarNav = () => {
         },
         {
           label: "World ID",
-          href: appBase ? `${appBase}/world-id-4-0` : (appsListHref ?? "#"),
+          href: appBase ? `${appBase}/world-id-4-0` : appsListHref ?? "#",
           dimmed: !appBase,
         },
         {
           label: "Configuration",
-          href: appBase ? `${appBase}/configuration` : (appsListHref ?? "#"),
+          href: appBase ? `${appBase}/configuration` : appsListHref ?? "#",
           dimmed: !appBase,
         },
         {
           label: "Mini App",
-          href: appBase ? `${appBase}/mini-app` : (appsListHref ?? "#"),
+          href: appBase ? `${appBase}/mini-app` : appsListHref ?? "#",
           dimmed: !appBase,
         },
       ]

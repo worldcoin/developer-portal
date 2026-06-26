@@ -20,9 +20,15 @@ describe("isPortalV3EnabledServer", () => {
 
   it("returns true when LOCAL_DEV_PORTAL_V3_ENABLED=true in development", async () => {
     const orig = process.env.NODE_ENV;
-    Object.defineProperty(process.env, "NODE_ENV", { value: "development", configurable: true });
+    Object.defineProperty(process.env, "NODE_ENV", {
+      value: "development",
+      configurable: true,
+    });
     process.env.LOCAL_DEV_PORTAL_V3_ENABLED = "true";
     expect(await isPortalV3EnabledServer()).toBe(true);
-    Object.defineProperty(process.env, "NODE_ENV", { value: orig, configurable: true });
+    Object.defineProperty(process.env, "NODE_ENV", {
+      value: orig,
+      configurable: true,
+    });
   });
 });
