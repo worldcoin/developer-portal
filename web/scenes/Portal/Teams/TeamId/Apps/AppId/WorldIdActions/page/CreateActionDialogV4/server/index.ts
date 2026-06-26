@@ -35,7 +35,6 @@ export async function validateAndInsertActionV4(
   const rp_id = rpRegistration?.rp_id;
   const status = rpRegistration?.status;
 
-
   if (!rp_id) {
     return errorFormAction({
       message: "App does not have RP registration",
