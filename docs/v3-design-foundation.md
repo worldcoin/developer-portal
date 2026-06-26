@@ -2,8 +2,9 @@
 
 > Visual language for the v3 shell. Pairs with `docs/v3-ia-spec.md` (structure) and
 > `docs/superpowers/plans/` (build). Direction: **Vercel's structural restraint, World's
-> identity.** World blue `#4940E0` is the *only* color and is spent in one place
-> (active state / focus / primary CTA); everything else is neutral grey + hairlines.
+> identity.** World blue `#4940E0` is reserved for focus rings and primary CTAs; the
+> sidebar active state is a **neutral grey fill** (Vercel-style, no color — per user).
+> Everything else is neutral grey + hairlines.
 
 ## Semantic tokens
 
@@ -24,7 +25,7 @@ values are net-new (the palette was light-only).
 | `muted` | `--v3-muted` | `#F3F4F5` | `#1A1E22` | hover surface |
 | `accent` | `--v3-accent` | `#4940E0` | `#6C63FF` | World blue — active/focus/CTA |
 | `accent-foreground` | `--v3-accent-foreground` | `#FFFFFF` | `#FFFFFF` | text on accent |
-| `accent-muted` | `--v3-accent-muted` | `#F0F0FD` | `rgba(108,99,255,.14)` | active-nav wash |
+| `accent-muted` | `--v3-accent-muted` | `#F0F0FD` | `rgba(108,99,255,.14)` | subtle accent fill (not nav active) |
 | `ring` | `--v3-ring` | `#4940E0` | `#6C63FF` | focus ring |
 
 Examples: `bg-background text-foreground`, `border-border`, `text-muted-foreground`,
@@ -57,7 +58,7 @@ not the sidebar.
 **Nav item — states (disable-not-hide is load-bearing):**
 - default: `text-muted-foreground`, icon inherits.
 - hover: `bg-muted text-foreground`.
-- active: `bg-accent-muted text-accent` + a 2px `bg-accent` left-edge bar. **(Signature.)**
+- active: `bg-muted text-foreground` — a persistent neutral grey fill (the hover fill, made permanent) + foreground text. No accent color, no left bar. This is Vercel's treatment.
 - disabled: `text-faint-foreground cursor-not-allowed`, no hover, `aria-disabled`; a small
   lock icon + tooltip ("Requires Owner/Admin"). Stays visible and inert — never hidden.
 - focus-visible: `ring-2 ring-ring ring-offset-2 ring-offset-sidebar`.
@@ -76,8 +77,9 @@ Responsive to mobile (sidebar collapses to a drawer; content-header app switcher
 reachable), visible keyboard focus (`ring-ring`), `prefers-reduced-motion` respected,
 Radix for all interactive a11y.
 
-## The one risk, justified
+## Brand expression
 
-Vercel keeps the active nav state grey. World asserts its identity *only* there — blue wash +
-blue label + blue left-bar — so the brand reads instantly without turning the shell into a
-color field. Restraint everywhere else is the point.
+Per direction, the sidebar follows Vercel's **neutral** active state (grey fill, no color) —
+no blue nav highlight. World's identity comes through elsewhere: brand blue on primary CTAs
+and focus rings, the World fonts, and the World logo/marks. Color is reserved for *action*,
+not *navigation* — the shell stays disciplined and neutral.
