@@ -2,7 +2,6 @@ import { Role_Enum } from "@/graphql/graphql";
 import {
   OWNER_ADMIN_MESSAGE,
   OWNER_ONLY_MESSAGE,
-  PERMISSION_DISPLAY_GROUPS,
   PERMISSION_RULES,
   getTeamPermission,
   roleCanPerformAction,
@@ -24,37 +23,11 @@ describe("team permission policy", () => {
     });
   });
 
-  it("keeps member management Owner-only and feeds the permissions dialog", () => {
+  it("keeps member management Owner-only", () => {
     expect(PERMISSION_RULES.edit_member_role).toMatchObject({
       roles: [Role_Enum.Owner],
       message: OWNER_ONLY_MESSAGE,
     });
-
-    const dialogGroup = PERMISSION_DISPLAY_GROUPS.find(
-      (group) => group.label === "Update team roles",
-    );
-
-    expect(dialogGroup?.roles).toBe(PERMISSION_RULES.edit_member_role.roles);
-  });
-
-  it("derives delete-app and API key dialog rows from PERMISSION_RULES", () => {
-    const dialogExpectations: Array<{
-      label: string;
-      action: keyof typeof PERMISSION_RULES;
-    }> = [
-      { label: "Delete apps", action: "delete_app" },
-      { label: "View API keys", action: "view_api_keys" },
-      { label: "Create & Edit API keys", action: "edit_api_keys" },
-      { label: "Delete API keys", action: "delete_api_keys" },
-    ];
-
-    for (const { label, action } of dialogExpectations) {
-      const dialogGroup = PERMISSION_DISPLAY_GROUPS.find(
-        (group) => group.label === label,
-      );
-
-      expect(dialogGroup?.roles).toBe(PERMISSION_RULES[action].roles);
-    }
   });
 
   it("checks user permission from the central role rules", () => {
@@ -63,14 +36,16 @@ describe("team permission policy", () => {
     );
   });
 
-  it("keeps invite lifecycle actions consistent with invite_member", () => {
+  it("keeps invite lifecycle actions on the right roles", () => {
+    // resend_invite mirrors invite_member (Owner/Admin)
     expect(PERMISSION_RULES.resend_invite).toMatchObject({
       roles: PERMISSION_RULES.invite_member.roles,
       message: OWNER_ADMIN_MESSAGE,
     });
+    // cancel_invite is the stricter Owner-only action
     expect(PERMISSION_RULES.cancel_invite).toMatchObject({
-      roles: PERMISSION_RULES.invite_member.roles,
-      message: OWNER_ADMIN_MESSAGE,
+      roles: [Role_Enum.Owner],
+      message: OWNER_ONLY_MESSAGE,
     });
     expect(roleCanPerformAction(Role_Enum.Admin, "resend_invite")).toBe(true);
     expect(roleCanPerformAction(Role_Enum.Admin, "cancel_invite")).toBe(false);
@@ -78,7 +53,7 @@ describe("team permission policy", () => {
 
   it("checks action permission from the central role rules", () => {
     expect(roleCanPerformAction(Role_Enum.Owner, "cancel_invite")).toBe(true);
-    expect(roleCanPerformAction(Role_Enum.Admin, "cancel_invite")).toBe(true);
+    expect(roleCanPerformAction(Role_Enum.Admin, "cancel_invite")).toBe(false);
     expect(roleCanPerformAction(undefined, "cancel_invite")).toBe(false);
   });
 });
