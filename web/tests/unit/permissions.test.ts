@@ -1,10 +1,10 @@
 import { Role_Enum } from "@/graphql/graphql";
+import { PERMISSION_REGISTRY } from "@/lib/permissions/policy";
 import {
-  PERMISSION_REGISTRY,
   getPermission,
   permissionMessage,
   roleCanPerformAction,
-} from "@/lib/permissions/policy";
+} from "@/lib/permissions/get-permission";
 
 describe("team permission registry", () => {
   it("keeps core edit actions Owner/Admin and destructive actions Owner-only", () => {

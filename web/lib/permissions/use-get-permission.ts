@@ -5,11 +5,11 @@ import { useUser } from "@auth0/nextjs-auth0/client";
 import { Auth0SessionUser } from "@/lib/types";
 import {
   getPermission,
-  type Permission,
   type PermissionResult,
-} from "@/lib/permissions/policy";
+} from "@/lib/permissions/get-permission";
+import { type Permission } from "@/lib/permissions/policy";
 
-export type { PermissionResult } from "@/lib/permissions/policy";
+export type { PermissionResult } from "@/lib/permissions/get-permission";
 
 export const useGetPermission = (
   teamId: string,
