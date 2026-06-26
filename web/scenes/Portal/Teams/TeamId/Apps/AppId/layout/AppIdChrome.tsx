@@ -129,7 +129,6 @@ export const AppIdChrome = ({
                     label: "Actions",
                     href: `/teams/${teamId}/apps/${appId}/world-id-actions`,
                     segment: "world-id-actions",
-                    hidden: !hasRpRegistration,
                   },
                   {
                     label: "World ID 3.0 Legacy",

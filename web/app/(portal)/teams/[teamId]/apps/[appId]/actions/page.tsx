@@ -24,12 +24,6 @@ export default async function Page(props: Props) {
     searchParams.legacy === "true" && hasLegacyActions;
 
   if (!showLegacyList) {
-    if (!hasLegacyActions) {
-      redirect(
-        `/teams/${params.teamId}/apps/${params.appId}?enableWorldId4=true`,
-      );
-    }
-
     redirect(
       urls.worldIdActions({
         team_id: params.teamId,

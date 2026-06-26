@@ -41,9 +41,8 @@ beforeEach(() => {
   jest.clearAllMocks();
 });
 
-// The World ID tab routing is now driven entirely by real state — no rollout
-// feature flag. These layouts implement "setup stays behind the tab": an app
-// without an RP registration is routed into the enable flow.
+// RP onboarding is gated on the World ID tab (world-id-4-0 settings surface).
+// Action creation and /world-id-actions stay reachable without registration.
 
 const enableFlowUrl = `/teams/${teamId}/apps/${appId}?enableWorldId4=true`;
 
@@ -67,18 +66,10 @@ describe("world-id-4-0 layout [setup behind the tab]", () => {
 });
 // #endregion
 
-// #region world-id-actions layout (the World ID 4.0 surface)
-describe("world-id-actions layout [setup behind the tab]", () => {
-  it("redirects an app without RP registration into the enable flow", async () => {
+// #region world-id-actions layout (actions are not RP-gated)
+describe("world-id-actions layout [actions are not RP-gated]", () => {
+  it("does not redirect when the app has no RP registration", async () => {
     withAppEnv({ rpRegistrations: [] });
-
-    await WorldIdActionsLayout(makeProps());
-
-    expect(redirectMock).toHaveBeenCalledWith(enableFlowUrl);
-  });
-
-  it("does not redirect once the app already has an RP registration", async () => {
-    withAppEnv({ rpRegistrations: [{ rp_id: "rp_abc123" }] });
 
     await WorldIdActionsLayout(makeProps());
 
@@ -89,23 +80,8 @@ describe("world-id-actions layout [setup behind the tab]", () => {
 
 // #region actions page (legacy index routing)
 describe("actions page [legacy index routing]", () => {
-  it("redirects /actions into the RP enable flow when the app has no legacy actions", async () => {
-    withAppEnv({ actions: [] });
-
-    const { default: ActionsPageRoute } = await import(
-      "@/app/(portal)/teams/[teamId]/apps/[appId]/actions/page"
-    );
-
-    await ActionsPageRoute({
-      params: Promise.resolve({ teamId, appId }),
-      searchParams: Promise.resolve({}),
-    });
-
-    expect(redirectMock).toHaveBeenCalledWith(enableFlowUrl);
-  });
-
-  it("redirects /actions to world-id-actions when the app has legacy actions", async () => {
-    withAppEnv({ actions: [{ id: "action_123" }] });
+  it("redirects /actions to world-id-actions without requiring RP registration", async () => {
+    withAppEnv({ actions: [], rpRegistrations: [] });
 
     const { default: ActionsPageRoute } = await import(
       "@/app/(portal)/teams/[teamId]/apps/[appId]/actions/page"

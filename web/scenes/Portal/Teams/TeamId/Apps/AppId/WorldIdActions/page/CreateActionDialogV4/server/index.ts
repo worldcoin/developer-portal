@@ -1,14 +1,47 @@
 "use server";
 
+import { getSdk as getClaimRpSdk } from "@/api/hasura/register-rp/graphql/claim-rp-registration.generated";
 import { errorFormAction } from "@/api/helpers/errors";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { logPortalEvent } from "@/api/helpers/portal-events";
+import { generateRpIdString } from "@/api/helpers/rp-utils";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { getIsUserAllowedToUpdateApp } from "@/lib/permissions";
 import { FormActionResult } from "@/lib/types";
+import { GraphQLClient } from "graphql-request";
 import { getSdk as getAppRpIdSdk } from "../graphql/server/get-app-rp-id.generated";
 import { getSdk as insertActionV4Sdk } from "../graphql/server/insert-action-v4.generated";
 import { createActionSchemaV4, CreateActionSchemaV4 } from "./form-schema-v4";
+
+async function ensureRpIdForAction(
+  client: GraphQLClient,
+  app_id: string,
+): Promise<string | null> {
+  const { app } = await getAppRpIdSdk(client).GetAppRpId({ app_id });
+  const existingRpId = app?.[0]?.rp_registration[0]?.rp_id;
+  if (existingRpId) {
+    return existingRpId;
+  }
+
+  const rpIdString = generateRpIdString(app_id);
+  const { insert_rp_registration_one: claimedSlot } = await getClaimRpSdk(
+    client,
+  ).ClaimRpRegistration({
+    rp_id: rpIdString,
+    app_id,
+    mode: "self_managed",
+    signer_address: null,
+  });
+
+  if (claimedSlot?.rp_id) {
+    return claimedSlot.rp_id;
+  }
+
+  const { app: refetchedApp } = await getAppRpIdSdk(client).GetAppRpId({
+    app_id,
+  });
+  return refetchedApp?.[0]?.rp_registration[0]?.rp_id ?? null;
+}
 
 export async function validateAndInsertActionV4(
   values: CreateActionSchemaV4,
@@ -21,7 +54,6 @@ export async function validateAndInsertActionV4(
     return errorFormAction({ message: "Permission denied" });
   }
 
-  // 2. Get RP registration and validate status
   const client = await getAPIServiceGraphqlClient();
   const { app } = await getAppRpIdSdk(client).GetAppRpId({ app_id });
 
@@ -32,27 +64,19 @@ export async function validateAndInsertActionV4(
     });
   }
 
-  const rpRegistration = app[0]?.rp_registration[0];
-  const rp_id = rpRegistration?.rp_id;
-  const status = rpRegistration?.status;
+  // Lazily claim an RP slot when needed so the
+  // first action create is never blocked by the World ID tab enable dialog.
+  const rp_id = await ensureRpIdForAction(client, app_id);
 
   if (!rp_id) {
     return errorFormAction({
-      message: "App does not have RP registration",
+      message: "Failed to prepare app for action creation",
       additionalInfo: { app_id },
+      logLevel: "error",
     });
   }
 
-  if (status !== "registered") {
-    return errorFormAction({
-      message:
-        "RP registration is not active. Please ensure your app is properly registered.",
-      additionalInfo: { app_id, rp_id, status },
-      logLevel: "warn",
-    });
-  }
-
-  // 3. Validate input
+  // 2. Validate input
   const { isValid, parsedParams } = await validateRequestSchema({
     schema: createActionSchemaV4,
     value: values,
@@ -67,7 +91,7 @@ export async function validateAndInsertActionV4(
     });
   }
 
-  // 4. Insert action_v4
+  // 3. Insert action_v4
   try {
     const { insert_action_v4_one } = await insertActionV4Sdk(
       client,
