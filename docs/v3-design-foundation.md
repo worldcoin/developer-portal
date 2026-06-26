@@ -1,5 +1,10 @@
 # Developer Portal v3 — Design Foundation
 
+> **Scope trimmed (2026-06-25):** light-only (no dark mode / theme toggle), no
+> Platform Status dot, no MRU resolver, no "choose an app" disabling — removed as
+> extras to focus on the core shell. The dark token values documented below are kept
+> for future reference but are **not currently applied**.
+
 > Visual language for the v3 shell. Pairs with `docs/v3-ia-spec.md` (structure) and
 > `docs/superpowers/plans/` (build). Direction: **Vercel's structural restraint, World's
 > identity.** World blue `#4940E0` is reserved for focus rings and primary CTAs; the

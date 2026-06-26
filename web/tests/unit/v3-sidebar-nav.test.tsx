@@ -33,13 +33,12 @@ describe("SidebarNav", () => {
     );
   });
 
-  it("disables app-scope items when no app is selected (choose-an-app)", () => {
+  it("hides the app-scope group when no app is selected", () => {
     useParams.mockReturnValue({ teamId: "team_1" });
     usePathname.mockReturnValue("/teams/team_1/apps");
     render(<SidebarNav />);
-    const dashboard = screen.getByText("Dashboard").closest("[aria-disabled]");
-    expect(dashboard).toHaveAttribute("aria-disabled", "true");
-    expect(dashboard).toHaveAttribute("title", "Choose an app to continue");
+    expect(screen.queryByText("Dashboard")).not.toBeInTheDocument();
+    expect(screen.getByText("API Keys")).toBeInTheDocument();
   });
 
   it("keeps team-scope items available without a selected app", () => {

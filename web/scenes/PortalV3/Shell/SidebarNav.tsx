@@ -5,11 +5,10 @@ import { useParams, usePathname } from "next/navigation";
 import { NavItem } from "./NavItem";
 
 /**
- * The stable sidebar nav. App-scope items reflect the selected app (read from
- * the route); when no app is selected they go disabled with a "choose an app"
- * hint (the decided All-Apps / team-scope behavior). Team-scope items are
- * always available. Permission-driven disabling is wired in a later slice via
- * the central policy.
+ * The stable sidebar nav. The app-scope group renders only when an app is
+ * selected (read from the route); the team-scope group is always available.
+ * Permission-driven disabling (disable-not-hide) wires in later via the central
+ * policy.
  */
 export const SidebarNav = () => {
   const pathname = usePathname() ?? "";
@@ -20,12 +19,14 @@ export const SidebarNav = () => {
   const appBase =
     teamId && appId ? urls.app({ team_id: teamId, app_id: appId }) : undefined;
 
-  const appItems = [
-    { label: "Dashboard", href: appBase ?? "", exact: true },
-    { label: "World ID", href: appBase ? `${appBase}/world-id` : "" },
-    { label: "Configuration", href: appBase ? `${appBase}/configuration` : "" },
-    { label: "Mini App", href: appBase ? `${appBase}/mini-app` : "" },
-  ];
+  const appItems = appBase
+    ? [
+        { label: "Dashboard", href: appBase, exact: true },
+        { label: "World ID", href: `${appBase}/world-id` },
+        { label: "Configuration", href: `${appBase}/configuration` },
+        { label: "Mini App", href: `${appBase}/mini-app` },
+      ]
+    : [];
 
   const teamItems = teamId
     ? [
@@ -36,7 +37,7 @@ export const SidebarNav = () => {
     : [];
 
   const isActive = (href: string, exact?: boolean) =>
-    !!href && (exact ? pathname === href : pathname.startsWith(href));
+    exact ? pathname === href : pathname.startsWith(href);
 
   return (
     <nav className="no-scrollbar flex flex-1 flex-col gap-1 overflow-y-auto p-2">
@@ -46,11 +47,11 @@ export const SidebarNav = () => {
           label={item.label}
           href={item.href}
           active={isActive(item.href, item.exact)}
-          disabled={!appBase}
-          disabledReason={!appBase ? "Choose an app to continue" : undefined}
         />
       ))}
-      <div className="my-2 border-t border-border" />
+      {appItems.length > 0 && teamItems.length > 0 ? (
+        <div className="my-2 border-t border-border" />
+      ) : null}
       {teamItems.map((item) => (
         <NavItem
           key={item.label}

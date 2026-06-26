@@ -17,7 +17,7 @@ import { UserPopup } from "@/scenes/PortalV3/Shell/UserPopup";
 describe("UserPopup", () => {
   it("shows the user's name in the trigger", () => {
     render(
-      <UserPopup user={{ name: "Soam", email: "soam@example.com" }} theme="light" />,
+      <UserPopup user={{ name: "Soam", email: "soam@example.com" }} />,
     );
     expect(screen.getByText("Soam")).toBeInTheDocument();
   });

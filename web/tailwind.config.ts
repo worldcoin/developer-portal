@@ -8,10 +8,6 @@ const gridTemplates = {
 };
 
 const config: Config = {
-  // v3 shell supports a manual (class-based) dark theme via the `.dark` class.
-  // Existing components use no `dark:` variants, so this is a no-op for them.
-  darkMode: "class",
-
   content: ["./components/**/*.{ts,tsx}", "./scenes/**/*.{ts,tsx}"],
 
   theme: {

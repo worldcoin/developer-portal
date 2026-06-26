@@ -2,17 +2,14 @@
 
 import { CaretIcon } from "@/components/Icons/CaretIcon";
 import { Placeholder } from "@/components/PlaceholderImage";
-import { Theme } from "@/lib/portal-v3/theme";
 import { urls } from "@/lib/urls";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import Link from "next/link";
 import { ReactNode } from "react";
-import { ThemeToggle } from "./ThemeToggle";
 
-// External link-outs (config UI lives outside the portal). TODO: confirm exact URLs.
+// External link-outs. TODO: confirm exact URLs.
 const HELP_URL = "https://world.org/support";
 const DOCS_URL = "https://docs.world.org";
-const STATUS_URL = "https://status.world.org/";
 
 export type PortalUser = { name: string; email?: string };
 
@@ -43,12 +40,11 @@ const LinkItem = (props: {
 );
 
 /**
- * Bottom-left user popup (presentational). Profile · My Teams · Help · Docs ·
- * Theme · Log out, plus a Platform Status row. The status dot is static for now;
- * the live status.world.org fetch is wired later (endpoint TBD).
+ * Bottom-left user popup (presentational): Profile · My Teams · Help · Docs ·
+ * Log out.
  */
-export const UserPopup = (props: { user: PortalUser; theme: Theme }) => {
-  const { user, theme } = props;
+export const UserPopup = (props: { user: PortalUser }) => {
+  const { user } = props;
 
   return (
     <DropdownMenu.Root>
@@ -87,24 +83,7 @@ export const UserPopup = (props: { user: PortalUser; theme: Theme }) => {
           </LinkItem>
 
           <DropdownMenu.Separator className="my-1 h-px bg-border" />
-          <div className="px-2.5 py-1.5">
-            <div className="mb-1.5 text-12 text-muted-foreground">Theme</div>
-            <ThemeToggle initialTheme={theme} />
-          </div>
-
-          <DropdownMenu.Separator className="my-1 h-px bg-border" />
           <LinkItem href={urls.logout()}>Log out</LinkItem>
-
-          <DropdownMenu.Separator className="my-1 h-px bg-border" />
-          <a
-            href={STATUS_URL}
-            target="_blank"
-            rel="noreferrer"
-            className="flex items-center gap-2 px-2.5 py-1.5 text-12 text-muted-foreground outline-none hover:text-foreground"
-          >
-            <span className="size-2 shrink-0 rounded-full bg-[#00B800]" />
-            All systems normal
-          </a>
         </DropdownMenu.Content>
       </DropdownMenu.Portal>
     </DropdownMenu.Root>

@@ -111,8 +111,8 @@
 
 /* End Toastify overrides */
 
-/* === v3 design tokens (semantic; light default + .dark). World palette,
-   Vercel structure. World blue is the only accent. === */
+/* === v3 design tokens (semantic, light-only). World palette, Vercel structure.
+   World blue is the accent (focus rings + primary CTAs only). === */
 :root {
   --v3-background: #ffffff; /* grey.0  — content surface */
   --v3-foreground: #191c20; /* grey.900 — primary text */
@@ -125,24 +125,8 @@
   --v3-muted: #f3f4f5; /* grey.100 — hover surface */
   --v3-accent: #4940e0; /* blue.500 — World blue (active / focus / CTA only) */
   --v3-accent-foreground: #ffffff;
-  --v3-accent-muted: #f0f0fd; /* blue.100 — active-nav wash */
+  --v3-accent-muted: #f0f0fd; /* blue.100 — subtle accent fill */
   --v3-ring: #4940e0;
-}
-
-.dark {
-  --v3-background: #0b0e11; /* near-black, cool */
-  --v3-foreground: #f5f6f7;
-  --v3-muted-foreground: #9ba3ae;
-  --v3-faint-foreground: #5a6573;
-  --v3-card: #16191c;
-  --v3-sidebar: #0e1113;
-  --v3-sidebar-foreground: #f5f6f7;
-  --v3-border: #23272b;
-  --v3-muted: #1a1e22;
-  --v3-accent: #6c63ff; /* World blue, lightened to read on near-black */
-  --v3-accent-foreground: #ffffff;
-  --v3-accent-muted: rgba(108, 99, 255, 0.14);
-  --v3-ring: #6c63ff;
 }
 
 @layer utilities {

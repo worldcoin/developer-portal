@@ -4,9 +4,7 @@ import {
   PortalV3Provider,
   WorldId40Provider,
 } from "@/lib/feature-flags";
-import { parseTheme, THEME_COOKIE } from "@/lib/portal-v3/theme";
 import { V3Shell } from "@/scenes/PortalV3/Shell";
-import { cookies } from "next/headers";
 import { ReactNode } from "react";
 
 type Params = {
@@ -30,17 +28,11 @@ export const TeamIdLayout = async (props: TeamIdLayoutProps) => {
   const worldId40Teams = isWorldId40Enabled && teamId ? [teamId] : [];
   const portalV3Teams = isPortalV3Enabled && teamId ? [teamId] : [];
 
-  const theme = isPortalV3Enabled
-    ? parseTheme((await cookies()).get(THEME_COOKIE)?.value)
-    : "light";
-
   return (
     <WorldId40Provider enabledTeams={worldId40Teams}>
       <PortalV3Provider enabledTeams={portalV3Teams}>
         {isPortalV3Enabled ? (
-          <V3Shell teamId={teamId} theme={theme}>
-            {props.children}
-          </V3Shell>
+          <V3Shell teamId={teamId}>{props.children}</V3Shell>
         ) : (
           props.children
         )}

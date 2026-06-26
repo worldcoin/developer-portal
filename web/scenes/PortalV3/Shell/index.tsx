@@ -1,5 +1,3 @@
-import { Theme } from "@/lib/portal-v3/theme";
-import clsx from "clsx";
 import { ReactNode } from "react";
 import { AppSwitcherContainer } from "./AppSwitcherContainer";
 import { SidebarNav } from "./SidebarNav";
@@ -7,34 +5,20 @@ import { TeamSwitcherContainer } from "./TeamSwitcherContainer";
 import { UserPopupContainer } from "./UserPopupContainer";
 
 /**
- * v3 app shell. Stable two-column layout on the v3 semantic tokens, with the
- * `.dark` scope applied to the root from the server-resolved theme. SidebarNav,
- * the content-header app switcher, and the bottom user popup (which houses the
- * theme toggle) are real; only the team switcher is still a placeholder.
- * See docs/v3-design-foundation.md.
+ * v3 app shell. Stable two-column layout on the v3 semantic tokens (light-only).
+ * Team switcher, sidebar nav, content-header app switcher, and the bottom user
+ * popup are all real. See docs/v3-design-foundation.md.
  */
-export const V3Shell = (props: {
-  teamId?: string;
-  theme?: Theme;
-  children: ReactNode;
-}) => {
-  const theme = props.theme ?? "light";
-
+export const V3Shell = (props: { teamId?: string; children: ReactNode }) => {
   return (
-    <div
-      data-v3-root
-      className={clsx(
-        "grid min-h-[100dvh] grid-cols-[16rem_1fr] bg-background text-foreground",
-        theme === "dark" && "dark",
-      )}
-    >
+    <div className="grid min-h-[100dvh] grid-cols-[16rem_1fr] bg-background text-foreground">
       <aside className="flex flex-col border-r border-border bg-sidebar">
         <TeamSwitcherContainer />
 
         <SidebarNav />
 
         <div className="border-t border-border p-2">
-          <UserPopupContainer theme={theme} />
+          <UserPopupContainer />
         </div>
       </aside>
 
