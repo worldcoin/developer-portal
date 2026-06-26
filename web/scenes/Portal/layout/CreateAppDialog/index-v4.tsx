@@ -155,11 +155,10 @@ export const CreateAppDialogV4 = ({
       // server-redirects to an existing app) so the user is never stranded if
       // the id is somehow missing.
       if (newAppId) {
-        window.location.assign(`/teams/${teamId}/apps/${newAppId}`);
+        window.location.replace(`/teams/${teamId}/apps/${newAppId}`);
       } else {
-        window.location.assign(`/teams/${teamId}`);
+        window.location.replace(`/teams/${teamId}`);
       }
-      router.refresh();
     },
     [defaultValues, refetchApps, reset, teamId, props, router],
   );
