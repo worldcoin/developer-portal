@@ -4,7 +4,8 @@ import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Role_Enum } from "@/graphql/graphql";
 import { Auth0SessionUser } from "@/lib/types";
 import { checkUserPermissions } from "@/lib/utils";
-import { auth0 } from "@/lib/auth0";
+import { getSession } from "@/lib/auth0";
+import { isPortalV3EnabledServer } from "@/lib/feature-flags";
 import { ReactNode } from "react";
 
 type Params = {
@@ -18,7 +19,7 @@ type TeamLayoutProps = {
 
 export const TeamLayout = async (props: TeamLayoutProps) => {
   const params = await props.params;
-  const session = await auth0.getSession();
+  const [session, isV3] = await Promise.all([getSession(), isPortalV3EnabledServer()]);
   const user = session?.user as Auth0SessionUser["user"];
   const ownerPermission = checkUserPermissions(user, params.teamId ?? "", [
     Role_Enum.Owner,
@@ -32,7 +33,7 @@ export const TeamLayout = async (props: TeamLayoutProps) => {
 
   return (
     <div className="flex flex-col">
-      <div className="order-2 md:order-1 md:w-full md:border-b md:border-grey-100">
+      {!isV3 && <div className="order-2 md:order-1 md:w-full md:border-b md:border-grey-100">
         <SizingWrapper variant="nav">
           <Tabs className="px-6 py-4 font-gta md:py-0">
             <Tab
@@ -87,7 +88,7 @@ export const TeamLayout = async (props: TeamLayoutProps) => {
             )}
           </Tabs>
         </SizingWrapper>
-      </div>
+      </div>}
 
       {props.children}
     </div>

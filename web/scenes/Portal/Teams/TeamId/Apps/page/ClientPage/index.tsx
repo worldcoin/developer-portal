@@ -7,9 +7,8 @@ import { LockIcon } from "@/components/Icons/LockIcon";
 import { InitialSteps } from "@/components/InitialSteps";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import { createAppDialogOpenedAtom } from "@/scenes/Portal/layout/Header";
-import { useAtom } from "jotai";
-import { Fragment } from "react";
+import { CreateAppDialogV4 } from "@/scenes/Portal/layout/CreateAppDialog/index-v4";
+import { Fragment, useState } from "react";
 
 const pathButtonClassName =
   "flex h-10 w-full items-center justify-center gap-2 rounded-12 border px-4 font-gta text-sm font-medium leading-none shadow-button transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-150 md:h-11";
@@ -59,10 +58,11 @@ const PathStep = (props: {
 };
 
 export const ClientPage = (props: { teamId: string }) => {
-  const [_, setCreateAppDialogOpen] = useAtom(createAppDialogOpenedAtom);
+  const [dialogOpen, setDialogOpen] = useState(false);
 
   return (
     <Fragment>
+      <CreateAppDialogV4 open={dialogOpen} onClose={setDialogOpen} />
       <SizingWrapper
         className="px-4 sm:px-6 md:px-0"
         gridClassName="grow flex justify-center items-center pb-10"
@@ -116,7 +116,7 @@ export const ClientPage = (props: { teamId: string }) => {
 
               <Button
                 type="button"
-                onClick={() => setCreateAppDialogOpen(true)}
+                onClick={() => setDialogOpen(true)}
                 className={`${pathButtonClassName} border-grey-900 bg-grey-900 bg-gradient-to-b from-white/15 to-transparent text-grey-0 hover:bg-grey-700 hover:from-white/20`}
                 data-testid="button-create-an-app"
               >

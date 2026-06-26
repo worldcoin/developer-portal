@@ -18,7 +18,7 @@ import { SectionSubTabs } from "../common/SectionSubTabs";
 
 type AppIdChromeProps = {
   params: { teamId?: string; appId?: string };
-  isOnChainApp: boolean;
+  isV3: boolean;
   showWorldId40Nav: boolean;
   hasRpRegistration: boolean;
   hasLegacyActions: boolean;
@@ -27,7 +27,7 @@ type AppIdChromeProps = {
 
 export const AppIdChrome = ({
   params,
-  isOnChainApp,
+  isV3,
   showWorldId40Nav,
   hasRpRegistration,
   hasLegacyActions,
@@ -68,51 +68,53 @@ export const AppIdChrome = ({
   if (showWorldId40Nav) {
     return (
       <div className="flex min-h-dvh flex-col">
-        <div className="md:border-b md:border-grey-100">
-          <SizingWrapper gridClassName="hidden md:grid" variant="nav">
-            <Tabs className="m-auto font-gta">
-              <Tab
-                href={`/teams/${teamId}/apps/${appId}`}
-                underlined
-                segment={null}
-              >
-                <Typography variant={TYPOGRAPHY.R4}>Dashboard</Typography>
-              </Tab>
+        {!isV3 && (
+          <div className="md:border-b md:border-grey-100">
+            <SizingWrapper gridClassName="hidden md:grid" variant="nav">
+              <Tabs className="m-auto font-gta">
+                <Tab
+                  href={`/teams/${teamId}/apps/${appId}`}
+                  underlined
+                  segment={null}
+                >
+                  <Typography variant={TYPOGRAPHY.R4}>Dashboard</Typography>
+                </Tab>
 
-              <Tab
-                href={
-                  hasRpRegistration
-                    ? `/teams/${teamId}/apps/${appId}/world-id-4-0`
-                    : hasLegacyActions
-                      ? `/teams/${teamId}/apps/${appId}/actions`
-                      : `/teams/${teamId}/apps/${appId}?enableWorldId4=true`
-                }
-                underlined
-                active={isWorldIdSegment}
-                segment={"world-id-4-0"}
-              >
-                <Typography variant={TYPOGRAPHY.R4}>World ID</Typography>
-              </Tab>
+                <Tab
+                  href={
+                    hasRpRegistration
+                      ? `/teams/${teamId}/apps/${appId}/world-id-4-0`
+                      : hasLegacyActions
+                        ? `/teams/${teamId}/apps/${appId}/actions`
+                        : `/teams/${teamId}/apps/${appId}?enableWorldId4=true`
+                  }
+                  underlined
+                  active={isWorldIdSegment}
+                  segment={"world-id-4-0"}
+                >
+                  <Typography variant={TYPOGRAPHY.R4}>World ID</Typography>
+                </Tab>
 
-              <Tab
-                href={`/teams/${teamId}/apps/${appId}/configuration`}
-                underlined
-                segment={"configuration"}
-              >
-                <Typography variant={TYPOGRAPHY.R4}>Configuration</Typography>
-              </Tab>
+                <Tab
+                  href={`/teams/${teamId}/apps/${appId}/configuration`}
+                  underlined
+                  segment={"configuration"}
+                >
+                  <Typography variant={TYPOGRAPHY.R4}>Configuration</Typography>
+                </Tab>
 
-              <Tab
-                href={miniAppPermissionsPath}
-                underlined
-                active={isMiniAppSegment}
-                segment={"mini-app"}
-              >
-                <Typography variant={TYPOGRAPHY.R4}>Mini App</Typography>
-              </Tab>
-            </Tabs>
-          </SizingWrapper>
-        </div>
+                <Tab
+                  href={miniAppPermissionsPath}
+                  underlined
+                  active={isMiniAppSegment}
+                  segment={"mini-app"}
+                >
+                  <Typography variant={TYPOGRAPHY.R4}>Mini App</Typography>
+                </Tab>
+              </Tabs>
+            </SizingWrapper>
+          </div>
+        )}
 
         {isWorldIdSegment && (
           <div className="md:border-b md:border-grey-100 md:bg-grey-50">
@@ -213,73 +215,6 @@ export const AppIdChrome = ({
 
   return (
     <div className="flex min-h-dvh flex-col">
-      <div className="md:border-b md:border-grey-100">
-        <SizingWrapper gridClassName="hidden md:grid" variant="nav">
-          <Tabs className="m-auto font-gta">
-            <Tab
-              href={`/teams/${teamId}/apps/${appId}`}
-              underlined
-              segment={null}
-            >
-              <Typography variant={TYPOGRAPHY.R4}>Dashboard</Typography>
-            </Tab>
-
-            <Tab
-              href={`/teams/${teamId}/apps/${appId}/configuration`}
-              underlined
-              segment={"configuration"}
-            >
-              <Typography variant={TYPOGRAPHY.R4}>Configuration</Typography>
-            </Tab>
-
-            <Tab
-              href={`/teams/${teamId}/apps/${appId}/actions`}
-              underlined
-              segment={"actions"}
-            >
-              <Typography variant={TYPOGRAPHY.R4}>Incognito actions</Typography>
-            </Tab>
-
-            {!isOnChainApp && (
-              <Tab
-                href={`/teams/${teamId}/apps/${appId}/sign-in-with-world-id`}
-                underlined
-                segment={"sign-in-with-world-id"}
-              >
-                <Typography variant={TYPOGRAPHY.R4}>
-                  Sign in with World ID
-                </Typography>
-              </Tab>
-            )}
-
-            <Tab
-              href={miniAppTransactionsPath}
-              underlined
-              segment={"mini-app"}
-              active={isMiniAppTransactions}
-            >
-              <Typography variant={TYPOGRAPHY.R4}>Transactions</Typography>
-            </Tab>
-            <Tab
-              href={miniAppNotificationsPath}
-              underlined
-              segment={"mini-app"}
-              active={isMiniAppNotifications}
-            >
-              <Typography variant={TYPOGRAPHY.R4}>Notifications</Typography>
-            </Tab>
-
-            <Tab
-              href={`/teams/${teamId}/api-keys`}
-              underlined
-              segment={"API Keys"}
-            >
-              <Typography variant={TYPOGRAPHY.R4}>API Keys</Typography>
-            </Tab>
-          </Tabs>
-        </SizingWrapper>
-      </div>
-
       {children}
 
       <BottomBar className="order-last mt-auto">

@@ -13,12 +13,11 @@ import { useFetchAppsQuery } from "./graphql/client/fetch-apps.generated";
 import { Section } from "@/components/Section";
 import { PlusIcon } from "@/components/Icons/PlusIcon";
 import { DecoratedButton } from "@/components/DecoratedButton";
-import { useAtom } from "jotai";
-import { createAppDialogOpenedAtom } from "@/scenes/Portal/layout/Header";
+import { CreateAppDialogV4 } from "@/scenes/Portal/layout/CreateAppDialog/index-v4";
 
 export const Apps = () => {
   const { teamId } = useParams() as { teamId: string };
-  const [_, setCreateAppDialogOpen] = useAtom(createAppDialogOpenedAtom);
+  const [dialogOpen, setDialogOpen] = useState(false);
 
   const { data, refetch, loading } = useFetchAppsQuery({
     variables: { teamId },
@@ -47,6 +46,7 @@ export const Apps = () => {
 
   return (
     <Section>
+      <CreateAppDialogV4 open={dialogOpen} onClose={setDialogOpen} />
       <Section.Header>
         <Section.Header.Title>Apps</Section.Header.Title>
 
@@ -67,7 +67,7 @@ export const Apps = () => {
             type="button"
             variant="primary"
             className="min-w-[200px] py-2.5"
-            onClick={() => setCreateAppDialogOpen(true)}
+            onClick={() => setDialogOpen(true)}
           >
             <PlusIcon className="size-5" />
             New app
@@ -98,7 +98,7 @@ export const Apps = () => {
           <Button
             className="group relative flex flex-col items-center justify-center gap-y-4 rounded-20 border border-dashed border-grey-200 px-8 pb-6 pt-10 transition-colors hover:border-blue-500 max-md:hidden"
             type="button"
-            onClick={() => setCreateAppDialogOpen(true)}
+            onClick={() => setDialogOpen(true)}
           >
             <AddCircleIcon className="size-8 text-grey-500 transition-colors group-hover:text-blue-500" />
             <Typography

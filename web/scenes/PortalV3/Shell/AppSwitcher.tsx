@@ -18,11 +18,21 @@ export const AppSwitcher = (props: {
   teamId: string;
   currentAppId?: string;
   apps: AppSwitcherApp[];
+  onCreateApp?: () => void;
 }) => {
   const router = useRouter();
-  const { teamId, currentAppId, apps } = props;
+  const { teamId, currentAppId, apps, onCreateApp } = props;
 
-  if (apps.length === 0) return null;
+  if (apps.length === 0) {
+    return (
+      <button
+        onClick={() => onCreateApp?.()}
+        className="flex items-center gap-2 rounded-8 border border-border px-2.5 py-1.5 font-gta text-14 font-medium text-muted-foreground outline-none hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
+      >
+        Create app
+      </button>
+    );
+  }
 
   const current = apps.find((app) => app.id === currentAppId);
 
@@ -57,7 +67,7 @@ export const AppSwitcher = (props: {
           ))}
           <DropdownMenu.Separator className="my-1 h-px bg-border" />
           <DropdownMenu.Item
-            onSelect={() => router.push(urls.apps({ team_id: teamId }))}
+            onSelect={() => onCreateApp?.()}
             className="flex cursor-pointer items-center gap-2 rounded-8 px-2.5 py-1.5 font-gta text-14 text-muted-foreground outline-none data-[highlighted]:bg-muted data-[highlighted]:text-foreground"
           >
             Create app

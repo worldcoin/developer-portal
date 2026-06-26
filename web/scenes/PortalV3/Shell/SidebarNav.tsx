@@ -13,12 +13,33 @@ export const SidebarNav = () => {
   const appBase =
     teamId && appId ? urls.app({ team_id: teamId, app_id: appId }) : undefined;
 
-  const appItems = appBase
+  // When no app is selected, app items are still rendered but link to the
+  // apps list so clicking them prompts the user to pick an app.
+  const appsListHref = teamId ? urls.apps({ team_id: teamId }) : undefined;
+
+  const appItems = teamId
     ? [
-        { label: "Dashboard", href: appBase, exact: true },
-        { label: "World ID", href: `${appBase}/world-id-4-0` },
-        { label: "Configuration", href: `${appBase}/configuration` },
-        { label: "Mini App", href: `${appBase}/mini-app` },
+        {
+          label: "Dashboard",
+          href: appBase ?? appsListHref ?? "#",
+          exact: !!appBase,
+          dimmed: !appBase,
+        },
+        {
+          label: "World ID",
+          href: appBase ? `${appBase}/world-id-4-0` : (appsListHref ?? "#"),
+          dimmed: !appBase,
+        },
+        {
+          label: "Configuration",
+          href: appBase ? `${appBase}/configuration` : (appsListHref ?? "#"),
+          dimmed: !appBase,
+        },
+        {
+          label: "Mini App",
+          href: appBase ? `${appBase}/mini-app` : (appsListHref ?? "#"),
+          dimmed: !appBase,
+        },
       ]
     : [];
 
@@ -40,7 +61,8 @@ export const SidebarNav = () => {
           key={item.label}
           label={item.label}
           href={item.href}
-          active={isActive(item.href, item.exact)}
+          active={!item.dimmed && isActive(item.href, item.exact)}
+          dimmed={item.dimmed}
         />
       ))}
       {appItems.length > 0 && teamItems.length > 0 ? (

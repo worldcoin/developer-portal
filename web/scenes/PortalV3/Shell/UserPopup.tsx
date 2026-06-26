@@ -1,11 +1,12 @@
 "use client";
 
 import { CaretIcon } from "@/components/Icons/CaretIcon";
-import { Placeholder } from "@/components/PlaceholderImage";
+import { colorAtom } from "@/scenes/Portal/layout/color-atom";
 import { urls } from "@/lib/urls";
+import { useAtomValue } from "jotai";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import Link from "next/link";
-import { ReactNode } from "react";
+import { CSSProperties, ReactNode } from "react";
 
 // External link-outs. TODO: confirm exact URLs.
 const HELP_URL = "https://world.org/support";
@@ -43,21 +44,36 @@ const LinkItem = (props: {
  * Bottom-left user popup (presentational): Profile · My Teams · Help · Docs ·
  * Log out.
  */
+const UserAvatar = (props: { name: string }) => {
+  const color = useAtomValue(colorAtom);
+  return (
+    <div
+      className="flex size-6 shrink-0 items-center justify-center rounded-full text-xs font-semibold uppercase"
+      style={
+        color
+          ? ({
+              backgroundColor: color[100],
+              color: color[500],
+            } as CSSProperties)
+          : { backgroundColor: "#e5e7eb", color: "#6b7280" }
+      }
+    >
+      {props.name[0]}
+    </div>
+  );
+};
+
 export const UserPopup = (props: { user: PortalUser }) => {
   const { user } = props;
 
   return (
     <DropdownMenu.Root>
       <DropdownMenu.Trigger className="flex w-full items-center gap-2.5 rounded-8 px-2 py-2 text-left outline-none hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring">
-        <Placeholder
-          name={user.name}
-          seed={user.email ?? user.name}
-          className="size-6 shrink-0 text-xs"
-        />
+        <UserAvatar name={user.name} />
         <span className="min-w-0 flex-1 truncate font-gta text-14 font-medium">
           {user.name}
         </span>
-        <CaretIcon className="size-3 shrink-0 text-muted-foreground" />
+        <CaretIcon className="size-3 shrink-0 rotate-180 text-muted-foreground" />
       </DropdownMenu.Trigger>
 
       <DropdownMenu.Portal>
@@ -83,7 +99,18 @@ export const UserPopup = (props: { user: PortalUser }) => {
           </LinkItem>
 
           <DropdownMenu.Separator className="my-1 h-px bg-border" />
-          <LinkItem href={urls.logout()}>Log out</LinkItem>
+          <DropdownMenu.Item asChild>
+            <a
+              href={urls.logout()}
+              onClick={(e) => {
+                e.preventDefault();
+                window.location.assign(urls.logout(window.location.origin));
+              }}
+              className={itemClass}
+            >
+              Log out
+            </a>
+          </DropdownMenu.Item>
         </DropdownMenu.Content>
       </DropdownMenu.Portal>
     </DropdownMenu.Root>

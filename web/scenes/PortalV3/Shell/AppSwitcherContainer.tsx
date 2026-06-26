@@ -4,20 +4,22 @@ import {
   FetchAppsQuery,
   useFetchAppsQuery,
 } from "@/scenes/Portal/layout/AppSelector/graphql/client/fetch-apps.generated";
+import { CreateAppDialogV4 } from "@/scenes/Portal/layout/CreateAppDialog/index-v4";
 import { useParams } from "next/navigation";
-import { useMemo } from "react";
+import { useMemo, useRef, useState } from "react";
 import { AppSwitcher, AppSwitcherApp } from "./AppSwitcher";
 
 const appName = (app: FetchAppsQuery["app"][number]) =>
   app.app_metadata?.[0]?.name ?? "Untitled app";
 
-/**
- * Data wrapper for AppSwitcher — reuses the existing FetchApps query and maps
- * it to the presentational component's props. Kept thin and out of unit tests
- * (the Apollo query is mocked at the boundary in shell tests).
- */
 export const AppSwitcherContainer = () => {
   const { teamId, appId } = useParams() as { teamId?: string; appId?: string };
+  // Keep showing the last selected app when navigating to team-scope routes
+  // (Members, API Keys, Settings) that don't have an appId in the URL.
+  const lastAppIdRef = useRef<string | undefined>(appId);
+  if (appId) lastAppIdRef.current = appId;
+  const currentAppId = appId ?? lastAppIdRef.current;
+  const [dialogOpen, setDialogOpen] = useState(false);
 
   const { data } = useFetchAppsQuery({
     variables: { teamId: teamId! },
@@ -35,5 +37,15 @@ export const AppSwitcherContainer = () => {
 
   if (!teamId) return null;
 
-  return <AppSwitcher teamId={teamId} currentAppId={appId} apps={apps} />;
+  return (
+    <>
+      <CreateAppDialogV4 open={dialogOpen} onClose={setDialogOpen} />
+      <AppSwitcher
+        teamId={teamId}
+        currentAppId={currentAppId}
+        apps={apps}
+        onCreateApp={() => setDialogOpen(true)}
+      />
+    </>
+  );
 };

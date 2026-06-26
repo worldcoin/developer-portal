@@ -1,8 +1,9 @@
 import { ErrorPage } from "@/components/ErrorPage";
 import { logger } from "@/lib/logger";
 import { Auth0SessionUser, EngineType } from "@/lib/types";
-import { auth0 } from "@/lib/auth0";
+import { getSession } from "@/lib/auth0";
 import { ReactNode } from "react";
+import { isPortalV3EnabledServer } from "@/lib/feature-flags";
 import { AppIdChrome } from "./AppIdChrome";
 import { fetchAppEnvCached } from "./server/fetch-app-env";
 
@@ -23,7 +24,7 @@ export const AppIdLayout = async (props: AppIdLayoutProps) => {
   let hasRpRegistration = false;
   let isStagingApp = false;
 
-  const session = await auth0.getSession();
+  const session = await getSession();
   const user = session?.user as Auth0SessionUser["user"];
   const isTeamMember = user?.hasura?.memberships?.some(
     (membership) => membership.team?.id === params.teamId,
@@ -63,11 +64,12 @@ export const AppIdLayout = async (props: AppIdLayoutProps) => {
   // available by default, still subject to real-state product guards: staging
   // apps don't get the tab unless they already have an RP registration.
   const showWorldId40Nav = !isStagingApp || hasRpRegistration;
+  const isV3 = await isPortalV3EnabledServer();
 
   return (
     <AppIdChrome
       params={params}
-      isOnChainApp={isOnChainApp}
+      isV3={isV3}
       showWorldId40Nav={showWorldId40Nav}
       hasRpRegistration={hasRpRegistration}
       hasLegacyActions={hasLegacyActions}

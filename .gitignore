@@ -33,8 +33,3 @@ pnpm-debug.log*
 # typescript
 *.tsbuildinfo
 **/.claude/settings.local.json
-
-# claude code internal planning docs
-docs/superpowers/
-docs/v3-design-foundation.md
-docs/v3-ia-spec.md

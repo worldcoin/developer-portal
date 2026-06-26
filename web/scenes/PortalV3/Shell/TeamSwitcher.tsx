@@ -1,6 +1,7 @@
 "use client";
 
 import { CaretIcon } from "@/components/Icons/CaretIcon";
+import { WorldIcon } from "@/components/Icons/WorldIcon";
 import { Placeholder } from "@/components/PlaceholderImage";
 import { urls } from "@/lib/urls";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
@@ -28,11 +29,7 @@ export const TeamSwitcher = (props: {
         href={urls.apps({ team_id: currentTeam.id })}
         className="flex min-w-0 flex-1 items-center gap-2.5 rounded-8 px-1.5 py-1.5 outline-none hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring"
       >
-        <Placeholder
-          name={currentTeam.name}
-          seed={currentTeam.id}
-          className="size-6 shrink-0 text-xs"
-        />
+        <WorldIcon className="size-6 shrink-0" />
         <span className="min-w-0 flex-1 truncate font-gta text-14 font-medium">
           {currentTeam.name}
         </span>

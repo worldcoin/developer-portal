@@ -1,4 +1,4 @@
-import { isPortalV3EnabledServer, PortalV3Provider } from "@/lib/feature-flags";
+import { isPortalV3EnabledServer } from "@/lib/feature-flags";
 import { V3Shell } from "@/scenes/PortalV3/Shell";
 import { ReactNode } from "react";
 
@@ -15,16 +15,11 @@ export const TeamIdLayout = async (props: TeamIdLayoutProps) => {
   const params = await props.params;
   const teamId = params.teamId;
 
-  const isPortalV3Enabled = await isPortalV3EnabledServer(teamId);
-  const portalV3Teams = isPortalV3Enabled && teamId ? [teamId] : [];
+  const isV3 = await isPortalV3EnabledServer();
 
-  return (
-    <PortalV3Provider enabledTeams={portalV3Teams}>
-      {isPortalV3Enabled ? (
-        <V3Shell teamId={teamId}>{props.children}</V3Shell>
-      ) : (
-        props.children
-      )}
-    </PortalV3Provider>
-  );
+  if (isV3) {
+    return <V3Shell teamId={teamId}>{props.children}</V3Shell>;
+  }
+
+  return <>{props.children}</>;
 };
