@@ -1,6 +1,7 @@
 import ActionsLayout from "@/app/(portal)/teams/[teamId]/apps/[appId]/actions/layout";
 import WorldId40Layout from "@/app/(portal)/teams/[teamId]/apps/[appId]/world-id-4-0/layout";
 import WorldIdActionsLayout from "@/app/(portal)/teams/[teamId]/apps/[appId]/world-id-actions/layout";
+import { FetchAppEnvQuery } from "@/scenes/Portal/Teams/TeamId/Apps/AppId/layout/graphql/server/fetch-app-env.generated";
 
 // #region Mocks
 const redirectMock = jest.fn();
@@ -26,25 +27,35 @@ const makeProps = () => ({
   children: null,
 });
 
+const makeAppEnv = (overrides: {
+  rpRegistrations?: Array<{ rp_id: string }>;
+  actions?: unknown[];
+}): FetchAppEnvQuery =>
+  ({
+    app: [
+      {
+        id: appId,
+        engine: "cloud",
+        is_staging: false,
+        rp_registration: overrides.rpRegistrations ?? [],
+      },
+    ],
+    action: (overrides.actions ?? []) as FetchAppEnvQuery["action"],
+  }) as FetchAppEnvQuery;
+
 const withAppEnv = (overrides: {
   rpRegistrations?: Array<{ rp_id: string }>;
   actions?: unknown[];
 }) => {
-  fetchAppEnvCachedMock.mockResolvedValue({
-    app: [{ rp_registration: overrides.rpRegistrations ?? [] }],
-    action: overrides.actions ?? [],
-  });
+  fetchAppEnvCachedMock.mockResolvedValue(makeAppEnv(overrides));
 };
+
+const enableFlowUrl = `/teams/${teamId}/apps/${appId}?enableWorldId4=true`;
 // #endregion
 
 beforeEach(() => {
   jest.clearAllMocks();
 });
-
-// RP onboarding is gated on the World ID tab (world-id-4-0 settings surface).
-// Action creation and /world-id-actions stay reachable without registration.
-
-const enableFlowUrl = `/teams/${teamId}/apps/${appId}?enableWorldId4=true`;
 
 // #region world-id-4-0 layout (RP settings surface)
 describe("world-id-4-0 layout [setup behind the tab]", () => {
@@ -66,10 +77,18 @@ describe("world-id-4-0 layout [setup behind the tab]", () => {
 });
 // #endregion
 
-// #region world-id-actions layout (actions are not RP-gated)
-describe("world-id-actions layout [actions are not RP-gated]", () => {
-  it("does not redirect when the app has no RP registration", async () => {
+// #region world-id-actions layout (RP required)
+describe("world-id-actions layout [RP required]", () => {
+  it("redirects into the enable flow when the app has no RP registration", async () => {
     withAppEnv({ rpRegistrations: [] });
+
+    await WorldIdActionsLayout(makeProps());
+
+    expect(redirectMock).toHaveBeenCalledWith(enableFlowUrl);
+  });
+
+  it("does not redirect when the app has an RP registration", async () => {
+    withAppEnv({ rpRegistrations: [{ rp_id: "rp_abc123" }] });
 
     await WorldIdActionsLayout(makeProps());
 
@@ -78,10 +97,42 @@ describe("world-id-actions layout [actions are not RP-gated]", () => {
 });
 // #endregion
 
-// #region actions page (legacy index routing)
-describe("actions page [legacy index routing]", () => {
-  it("redirects /actions to world-id-actions without requiring RP registration", async () => {
+// #region actions page (entry router)
+describe("actions page [entry router]", () => {
+  it("redirects a new app into the enable flow", async () => {
     withAppEnv({ actions: [], rpRegistrations: [] });
+
+    const { default: ActionsPageRoute } = await import(
+      "@/app/(portal)/teams/[teamId]/apps/[appId]/actions/page"
+    );
+
+    await ActionsPageRoute({
+      params: Promise.resolve({ teamId, appId }),
+      searchParams: Promise.resolve({}),
+    });
+
+    expect(redirectMock).toHaveBeenCalledWith(enableFlowUrl);
+  });
+
+  it("redirects legacy-only apps to the legacy list", async () => {
+    withAppEnv({ actions: [{ id: "action_123" }], rpRegistrations: [] });
+
+    const { default: ActionsPageRoute } = await import(
+      "@/app/(portal)/teams/[teamId]/apps/[appId]/actions/page"
+    );
+
+    await ActionsPageRoute({
+      params: Promise.resolve({ teamId, appId }),
+      searchParams: Promise.resolve({}),
+    });
+
+    expect(redirectMock).toHaveBeenCalledWith(
+      `/teams/${teamId}/apps/${appId}/actions?legacy=true`,
+    );
+  });
+
+  it("redirects registered apps to world-id-actions", async () => {
+    withAppEnv({ rpRegistrations: [{ rp_id: "rp_abc123" }] });
 
     const { default: ActionsPageRoute } = await import(
       "@/app/(portal)/teams/[teamId]/apps/[appId]/actions/page"
@@ -94,6 +145,23 @@ describe("actions page [legacy index routing]", () => {
 
     expect(redirectMock).toHaveBeenCalledWith(
       `/teams/${teamId}/apps/${appId}/world-id-actions`,
+    );
+  });
+
+  it("preserves createAction deep links for registered apps", async () => {
+    withAppEnv({ rpRegistrations: [{ rp_id: "rp_abc123" }] });
+
+    const { default: ActionsPageRoute } = await import(
+      "@/app/(portal)/teams/[teamId]/apps/[appId]/actions/page"
+    );
+
+    await ActionsPageRoute({
+      params: Promise.resolve({ teamId, appId }),
+      searchParams: Promise.resolve({ createAction: "true" }),
+    });
+
+    expect(redirectMock).toHaveBeenCalledWith(
+      `/teams/${teamId}/apps/${appId}/world-id-actions?createAction=true`,
     );
   });
 

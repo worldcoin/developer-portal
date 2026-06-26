@@ -1,3 +1,6 @@
+import { urls } from "@/lib/urls";
+import { fetchAppEnvCached } from "@/scenes/Portal/Teams/TeamId/Apps/AppId/layout/server/fetch-app-env";
+import { redirect } from "next/navigation";
 import { ReactNode } from "react";
 import { AppLayoutRouteParams } from "../layout-params";
 
@@ -7,6 +10,15 @@ type Props = {
 };
 
 export default async function Layout(props: Props) {
-  await props.params;
-  return <>{props.children}</>;
+  const params = await props.params;
+  const { children } = props;
+  const { app } = await fetchAppEnvCached(params.appId);
+
+  if (!app?.[0]?.rp_registration?.length) {
+    redirect(
+      urls.enableWorldId4({ team_id: params.teamId, app_id: params.appId }),
+    );
+  }
+
+  return <>{children}</>;
 }
