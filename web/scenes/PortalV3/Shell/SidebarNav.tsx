@@ -4,12 +4,6 @@ import { urls } from "@/lib/urls";
 import { useParams, usePathname } from "next/navigation";
 import { NavItem } from "./NavItem";
 
-/**
- * The stable sidebar nav. The app-scope group renders only when an app is
- * selected (read from the route); the team-scope group is always available.
- * Permission-driven disabling (disable-not-hide) wires in later via the central
- * policy.
- */
 export const SidebarNav = () => {
   const pathname = usePathname() ?? "";
   const params = useParams<{ teamId?: string; appId?: string }>();
