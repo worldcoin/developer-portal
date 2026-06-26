@@ -16,6 +16,9 @@ const customJestConfig: Config = {
   moduleNameMapper: {
     "^@/api/(.*)$": "<rootDir>/api/$1",
     "^@/lib/(.*)$": "<rootDir>/lib/$1",
+    // Catch-all so every "@/..." import (e.g. @/scenes, @/components) resolves
+    // deterministically to the project root, matching tsconfig's "@/*": ["./*"].
+    "^@/(.*)$": "<rootDir>/$1",
   },
 };
 
