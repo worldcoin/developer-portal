@@ -23,11 +23,15 @@ export default async function Page(props: Props) {
   const showLegacyList = searchParams.legacy === "true" && hasLegacyActions;
 
   if (!showLegacyList) {
+    const destination = urls.worldIdActions({
+      team_id: params.teamId,
+      app_id: params.appId,
+    });
+
     redirect(
-      urls.worldIdActions({
-        team_id: params.teamId,
-        app_id: params.appId,
-      }),
+      searchParams.createAction === "true"
+        ? `${destination}?createAction=true`
+        : destination,
     );
   }
 

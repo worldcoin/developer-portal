@@ -64,6 +64,15 @@ export async function validateAndInsertActionV4(
     });
   }
 
+  const appRecord = app[0];
+  if (appRecord.is_staging && appRecord.rp_registration.length === 0) {
+    return errorFormAction({
+      message: "Staging apps cannot create World ID 4.0 actions",
+      additionalInfo: { app_id },
+      logLevel: "warn",
+    });
+  }
+
   // Lazily claim an RP slot when needed so the
   // first action create is never blocked by the World ID tab enable dialog.
   const rp_id = await ensureRpIdForAction(client, app_id);

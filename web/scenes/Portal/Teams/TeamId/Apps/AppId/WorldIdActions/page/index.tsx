@@ -4,6 +4,7 @@ import { DecoratedButton } from "@/components/DecoratedButton";
 import { UserStoryIcon } from "@/components/Icons/UserStoryIcon";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { ActionsListV4 } from "./ActionsListV4";
 import { CreateActionDialogV4 } from "./CreateActionDialogV4";
@@ -14,10 +15,18 @@ type WorldIdActionsPageProps = {
   searchParams?: Record<string, string> | null | undefined;
 };
 
-export const WorldIdActionsPage = ({ params }: WorldIdActionsPageProps) => {
+export const WorldIdActionsPage = ({
+  params,
+  searchParams,
+}: WorldIdActionsPageProps) => {
   const appId = params?.appId as `app_${string}`;
   const teamId = params?.teamId ?? "";
-  const [dialogOpen, setDialogOpen] = useState(false);
+  const router = useRouter();
+  const pathname = usePathname();
+  const currentSearchParams = useSearchParams();
+  const [dialogOpen, setDialogOpen] = useState(
+    searchParams?.createAction === "true",
+  );
 
   const { data, loading, error, refetch } = useGetActionsV4Query({
     variables: {
@@ -30,6 +39,17 @@ export const WorldIdActionsPage = ({ params }: WorldIdActionsPageProps) => {
 
   const handleDialogClose = async (success?: boolean) => {
     setDialogOpen(false);
+
+    if (currentSearchParams.has("createAction")) {
+      const nextSearchParams = new URLSearchParams(currentSearchParams);
+      nextSearchParams.delete("createAction");
+      const nextQuery = nextSearchParams.toString();
+
+      router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, {
+        scroll: false,
+      });
+    }
+
     if (success) {
       await refetch();
     }

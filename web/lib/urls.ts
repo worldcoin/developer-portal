@@ -90,7 +90,7 @@ export const urls = {
   },
 
   createAction: (params: { team_id: string; app_id: string }): string =>
-    `/teams/${params.team_id}/apps/${params.app_id}/world-id-actions`,
+    `/teams/${params.team_id}/apps/${params.app_id}/world-id-actions?createAction=true`,
 
   setup: (params: {
     team_id: string;
