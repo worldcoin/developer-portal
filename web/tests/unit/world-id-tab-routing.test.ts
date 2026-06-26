@@ -87,6 +87,58 @@ describe("world-id-actions layout [setup behind the tab]", () => {
 });
 // #endregion
 
+// #region actions page (legacy index routing)
+describe("actions page [legacy index routing]", () => {
+  it("redirects /actions into the RP enable flow when the app has no legacy actions", async () => {
+    withAppEnv({ actions: [] });
+
+    const { default: ActionsPageRoute } = await import(
+      "@/app/(portal)/teams/[teamId]/apps/[appId]/actions/page"
+    );
+
+    await ActionsPageRoute({
+      params: Promise.resolve({ teamId, appId }),
+      searchParams: Promise.resolve({}),
+    });
+
+    expect(redirectMock).toHaveBeenCalledWith(enableFlowUrl);
+  });
+
+  it("redirects /actions to world-id-actions when the app has legacy actions", async () => {
+    withAppEnv({ actions: [{ id: "action_123" }] });
+
+    const { default: ActionsPageRoute } = await import(
+      "@/app/(portal)/teams/[teamId]/apps/[appId]/actions/page"
+    );
+
+    await ActionsPageRoute({
+      params: Promise.resolve({ teamId, appId }),
+      searchParams: Promise.resolve({}),
+    });
+
+    expect(redirectMock).toHaveBeenCalledWith(
+      `/teams/${teamId}/apps/${appId}/world-id-actions`,
+    );
+  });
+
+  it("renders the legacy list when ?legacy=true and the app has legacy actions", async () => {
+    withAppEnv({ actions: [{ id: "action_123" }] });
+
+    const { default: ActionsPageRoute } = await import(
+      "@/app/(portal)/teams/[teamId]/apps/[appId]/actions/page"
+    );
+
+    const result = await ActionsPageRoute({
+      params: Promise.resolve({ teamId, appId }),
+      searchParams: Promise.resolve({ legacy: "true" }),
+    });
+
+    expect(redirectMock).not.toHaveBeenCalled();
+    expect(result).toBeTruthy();
+  });
+});
+// #endregion
+
 // #region actions layout (legacy v3 surface)
 describe("actions layout [legacy route stays reachable]", () => {
   it("does not redirect — legacy /actions remains available for v3 apps", async () => {
