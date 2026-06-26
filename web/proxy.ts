@@ -257,6 +257,9 @@ export async function proxy(request: NextRequest) {
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-nonce", nonce);
   requestHeaders.set("content-security-policy", csp);
+  // Forward the path so RSC layouts can branch on it (e.g. the v3 shell). The
+  // x-current-path set on the response below is browser-only, not visible to RSC.
+  requestHeaders.set("x-current-path", pathname);
 
   const response = NextResponse.next({ request: { headers: requestHeaders } });
   response.headers.set("content-security-policy", csp);
