@@ -10,7 +10,6 @@ export type Permission =
   | "edit_app_store_details"
   | "edit_app_imagery"
   | "delete_app"
-  | "enable_world_id_4_0"
   | "manage_world_id_4_0"
   | "create_world_id_action"
   | "edit_world_id_action"
@@ -43,7 +42,6 @@ export const PERMISSION_REGISTRY: Record<Permission, Role_Enum[]> = {
   edit_app_store_details: [Role_Enum.Owner, Role_Enum.Admin],
   edit_app_imagery: [Role_Enum.Owner, Role_Enum.Admin],
   delete_app: [Role_Enum.Owner],
-  enable_world_id_4_0: [Role_Enum.Owner, Role_Enum.Admin],
   manage_world_id_4_0: [Role_Enum.Owner, Role_Enum.Admin],
   create_world_id_action: [Role_Enum.Owner, Role_Enum.Admin],
   edit_world_id_action: [Role_Enum.Owner, Role_Enum.Admin],
