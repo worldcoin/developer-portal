@@ -21,8 +21,7 @@ export default async function Page(props: Props) {
   const { action, app } = await fetchAppEnvCached(params.appId);
   const hasLegacyActions = (action?.length ?? 0) > 0;
   const hasRpRegistration = (app?.[0]?.rp_registration?.length ?? 0) > 0;
-  const showLegacyList =
-    searchParams.legacy === "true" && hasLegacyActions;
+  const showLegacyList = searchParams.legacy === "true" && hasLegacyActions;
 
   if (showLegacyList) {
     return (

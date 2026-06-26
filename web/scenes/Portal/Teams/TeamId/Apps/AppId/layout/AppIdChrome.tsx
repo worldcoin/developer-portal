@@ -130,7 +130,7 @@ export const AppIdChrome = ({
                     href: hasRpRegistration
                       ? urls.worldIdActions({ team_id: teamId, app_id: appId })
                       : urls.legacyActions({ team_id: teamId, app_id: appId }),
-                    segment: "world-id-actions",
+                    segment: hasRpRegistration ? "world-id-actions" : "actions",
                     hidden: !hasRpRegistration && !hasLegacyActions,
                   },
                   {
@@ -240,7 +240,7 @@ export const AppIdChrome = ({
             <Tab
               href={urls.worldIdActions({ team_id: teamId, app_id: appId })}
               underlined
-              segment={"actions"}
+              segment={"world-id-actions"}
             >
               <Typography variant={TYPOGRAPHY.R4}>Incognito actions</Typography>
             </Tab>
@@ -294,7 +294,7 @@ export const AppIdChrome = ({
 
         <BottomBar.Link
           href={urls.worldIdActions({ team_id: teamId, app_id: appId })}
-          segment={"actions"}
+          segment={"world-id-actions"}
         >
           <IncognitoIcon className="size-7" />
         </BottomBar.Link>
