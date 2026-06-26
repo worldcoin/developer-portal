@@ -20,8 +20,7 @@ export default async function Page(props: Props) {
   const searchParams = await props.searchParams;
   const { action } = await fetchAppEnvCached(params.appId);
   const hasLegacyActions = (action?.length ?? 0) > 0;
-  const showLegacyList =
-    searchParams.legacy === "true" && hasLegacyActions;
+  const showLegacyList = searchParams.legacy === "true" && hasLegacyActions;
 
   if (!showLegacyList) {
     redirect(
