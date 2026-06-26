@@ -7,7 +7,6 @@ import {
 } from "react";
 import * as DropdownPrimitive from "@radix-ui/react-dropdown-menu";
 import { Button } from "./Button";
-import { DisabledListItem } from "./DisabledListItem";
 import { List } from "./List";
 import { ListHeader } from "./ListHeader";
 import { ListItem } from "./ListItem";
@@ -52,7 +51,6 @@ export const Dropdown = (props: DropdownProps) => {
 };
 
 Dropdown.Button = Button;
-Dropdown.DisabledListItem = DisabledListItem;
 Dropdown.List = List;
 Dropdown.ListHeader = ListHeader;
 Dropdown.ListItem = ListItem;
