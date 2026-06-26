@@ -46,17 +46,15 @@ export const ActionsPage = (props: ActionsPageProps) => {
       condition: !keyword
         ? {}
         : [
-            { name: { _ilike: `%${keyword}%` } },
-            { description: { _ilike: `%${keyword}%` } },
-            { action: { _ilike: `%${keyword}%` } },
-          ],
+          { name: { _ilike: `%${keyword}%` } },
+          { description: { _ilike: `%${keyword}%` } },
+          { action: { _ilike: `%${keyword}%` } },
+        ],
     },
     skip: !appId,
   });
 
   const engineType = appRes.data?.app?.engine;
-  const hasRpRegistration =
-    (appRes.data?.app?.rp_registration?.length ?? 0) > 0;
   const hasLegacyActions = (actionsRes.data?.actions?.length ?? 0) > 0;
   const showLegacyList = searchParams.legacy === "true" && hasLegacyActions;
 
@@ -68,17 +66,6 @@ export const ActionsPage = (props: ActionsPageProps) => {
     if (showLegacyList) {
       return;
     }
-
-    if (!hasRpRegistration) {
-      router.replace(
-        urls.enableWorldId4({
-          team_id: teamId,
-          app_id: appId,
-        }),
-      );
-      return;
-    }
-
     const worldIdActionsUrl = urls.worldIdActions({
       team_id: teamId,
       app_id: appId,
@@ -93,7 +80,6 @@ export const ActionsPage = (props: ActionsPageProps) => {
     appRes.loading,
     actionsRes.loading,
     showLegacyList,
-    hasRpRegistration,
     teamId,
     appId,
     router,
