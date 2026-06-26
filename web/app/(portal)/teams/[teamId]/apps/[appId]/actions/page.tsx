@@ -24,21 +24,18 @@ export default async function Page(props: Props) {
   const showLegacyList = searchParams.legacy === "true" && hasLegacyActions;
 
   if (showLegacyList) {
-    return (
-      <ActionsPage
-        params={Promise.resolve(params)}
-        searchParams={Promise.resolve(searchParams)}
-      />
-    );
+    return <ActionsPage {...props} />;
   }
 
   if (hasLegacyActions && !hasRpRegistration) {
-    const query = new URLSearchParams({ legacy: "true" });
-    if (searchParams.createAction === "true") {
-      query.set("createAction", "true");
-    }
+    const legacyUrl = urls.legacyActions({
+      team_id: params.teamId,
+      app_id: params.appId,
+    });
     redirect(
-      `${urls.actions({ team_id: params.teamId, app_id: params.appId })}?${query}`,
+      searchParams.createAction === "true"
+        ? `${legacyUrl}&createAction=true`
+        : legacyUrl,
     );
   }
 

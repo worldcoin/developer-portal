@@ -12,20 +12,16 @@ import { useGetActionsV4Query } from "./graphql/client/get-actions-v4.generated"
 
 type WorldIdActionsPageProps = {
   params: Record<string, string> | null | undefined;
-  searchParams?: Record<string, string> | null | undefined;
 };
 
-export const WorldIdActionsPage = ({
-  params,
-  searchParams,
-}: WorldIdActionsPageProps) => {
+export const WorldIdActionsPage = ({ params }: WorldIdActionsPageProps) => {
   const appId = params?.appId as `app_${string}`;
   const teamId = params?.teamId ?? "";
   const router = useRouter();
   const pathname = usePathname();
   const currentSearchParams = useSearchParams();
   const [dialogOpen, setDialogOpen] = useState(
-    searchParams?.createAction === "true",
+    currentSearchParams.get("createAction") === "true",
   );
 
   const { data, loading, error, refetch } = useGetActionsV4Query({
