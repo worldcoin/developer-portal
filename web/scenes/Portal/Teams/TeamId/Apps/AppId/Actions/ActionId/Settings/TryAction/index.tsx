@@ -23,13 +23,21 @@ type TryActionProps = {
     };
   };
   is_v4_action: boolean;
+  enableKiosk?: boolean;
 };
 
 export const TryAction = (props: TryActionProps) => {
-  const { action, is_v4_action } = props;
+  const { action, is_v4_action, enableKiosk = true } = props;
+  const canShowKiosk = enableKiosk && action.app.engine !== EngineType.OnChain;
+  // World ID verification for Mini Apps is implemented with @worldcoin/idkit
+  // (MiniKit 2.x no longer proxies verification), so the IDKit CodeBlock is the
+  // correct integration path for every app type — show it for all apps.
+  const canShowCode = true;
   const [showCode, setShowCode] = useState(
-    action.app.engine === EngineType.OnChain,
+    action.app.engine === EngineType.OnChain || !canShowKiosk,
   );
+  const showCodeView = canShowCode && (showCode || !canShowKiosk);
+  const showKioskView = canShowKiosk && !showCodeView;
 
   return (
     <div className="grid h-full grid-rows-auto/1fr items-start gap-y-5 lg:w-[480px]">
@@ -38,52 +46,51 @@ export const TryAction = (props: TryActionProps) => {
           Try it out
         </Typography>
         <div className="flex w-full justify-end gap-x-4">
-          <Button
-            type="button"
-            onClick={() => setShowCode(false)}
-            className={clsx(
-              "flex size-11 items-center justify-center rounded-xl bg-white shadow-button hover:bg-grey-50",
-              { "border border-grey-200": !showCode },
-              { hidden: action.app.engine === EngineType.OnChain },
-            )}
-          >
-            <QRIcon
-              className={clsx("size-4", {
-                "text-blue-500": !showCode,
-                "text-grey-700": showCode,
-              })}
-            />
-          </Button>
-          <Button
-            type="button"
-            onClick={() => setShowCode(true)}
-            className={clsx(
-              "flex size-11 items-center justify-center rounded-xl bg-white shadow-button hover:bg-grey-50",
-              { "border border-grey-200": showCode },
-              {
-                hidden: action.app.app_metadata.some(
-                  ({ app_mode }) => app_mode === "mini-app",
-                ),
-              },
-            )}
-          >
-            <CodeIcon
-              className={clsx("size-4", {
-                "text-blue-500 ": showCode,
-                "text-grey-700": !showCode,
-              })}
-            />
-          </Button>
+          {canShowKiosk && (
+            <Button
+              type="button"
+              onClick={() => setShowCode(false)}
+              className={clsx(
+                "flex size-11 items-center justify-center rounded-xl bg-white shadow-button hover:bg-grey-50",
+                { "border border-grey-200": showKioskView },
+              )}
+            >
+              <QRIcon
+                className={clsx("size-4", {
+                  "text-blue-500": showKioskView,
+                  "text-grey-700": !showKioskView,
+                })}
+              />
+            </Button>
+          )}
+          {canShowCode && (
+            <Button
+              type="button"
+              onClick={() => setShowCode(true)}
+              className={clsx(
+                "flex size-11 items-center justify-center rounded-xl bg-white shadow-button hover:bg-grey-50",
+                { "border border-grey-200": showCodeView },
+              )}
+            >
+              <CodeIcon
+                className={clsx("size-4", {
+                  "text-blue-500": showCodeView,
+                  "text-grey-700": !showCodeView,
+                })}
+              />
+            </Button>
+          )}
         </div>
       </div>
       <div className="size-full">
-        {showCode ? (
+        {showCodeView && (
           <CodeBlock
             appId={action.app_id}
             action_identifier={action.action}
             engine={action.app.engine}
           />
-        ) : (
+        )}
+        {showKioskView && (
           <MiniKiosk action={action} is_v4_action={is_v4_action} />
         )}
       </div>

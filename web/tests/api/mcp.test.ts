@@ -585,7 +585,6 @@ describe("/api/mcp", () => {
     expect(submitManagedRpRegistrationMock).toHaveBeenCalledWith(
       expect.objectContaining({
         appId,
-        teamId,
         signerAddress: payload.signing_key.signer_address,
       }),
     );
@@ -611,14 +610,14 @@ describe("/api/mcp", () => {
     expect(submitManagedRpRegistrationMock).not.toHaveBeenCalled();
   });
 
-  it("surfaces feature_not_enabled from the registration helper as -32004", async () => {
+  it("surfaces a caller-fixable registration failure from the helper as -32004", async () => {
     currentAppContextResponse = {
       app: [{ ...appContextResponse.app[0], rp_registration: [] }],
     };
     submitManagedRpRegistrationMock.mockResolvedValueOnce({
       ok: false,
-      code: "feature_not_enabled",
-      detail: "World ID 4.0 is not enabled for this team.",
+      code: "already_registered",
+      detail: "Registration already in progress or completed for this app.",
     });
 
     const res = await POST(callTool("configure_world_id", { app_id: appId }));
@@ -626,7 +625,7 @@ describe("/api/mcp", () => {
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(body.error.code).toBe(-32004);
-    expect(body.error.data.reason).toBe("feature_not_enabled");
+    expect(body.error.data.reason).toBe("already_registered");
   });
 
   it("rotates the signing key via the managed flow when one is missing and rotate_if_unavailable is set", async () => {

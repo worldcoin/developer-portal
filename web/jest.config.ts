@@ -18,6 +18,7 @@ const customJestConfig: Config = {
     "^@/lib/(.*)$": "<rootDir>/lib/$1",
     // Catch-all so every "@/..." import (e.g. @/scenes, @/components) resolves
     // deterministically to the project root, matching tsconfig's "@/*": ["./*"].
+    // Subsumes the explicit @/scenes mapper (for mocking fetch-app-env).
     "^@/(.*)$": "<rootDir>/$1",
   },
 };

@@ -1,21 +1,19 @@
 "use server";
 
-import { isWorldId40EnabledServer } from "@/lib/feature-flags/world-id-4-0/server";
 import { isPortalV3EnabledForTeam } from "./common";
 
 /**
  * Server-side check for whether the v3 portal is enabled for a team.
- * Subset rule: a team is only v3-eligible if World ID 4.0 is already enabled
- * for it (portal-v3 ⊆ world-id-4-0). Fails closed.
+ * Standalone SSM allowlist (portal-v3/enabled-teams) with a local-dev override.
+ * Fails closed.
+ *
+ * (Previously gated on World ID 4.0 — portal-v3 ⊆ world-id-4-0 — but the WID-4.0
+ * rollout flag was removed in #1974, so 4.0 is always available and the subset
+ * precondition no longer applies.)
  */
 export const isPortalV3EnabledServer = async (
   teamId: string | undefined,
 ): Promise<boolean> => {
-  // Subset gate: never enable v3 for a team that is not on World ID 4.0.
-  if (!(await isWorldId40EnabledServer(teamId))) {
-    return false;
-  }
-
   // Local-dev only: never let this env var override SSM in a deployed env.
   const localTeams =
     process.env.NODE_ENV === "development"

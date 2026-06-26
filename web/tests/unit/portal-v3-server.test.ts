@@ -1,9 +1,3 @@
-const isWorldId40EnabledServer = jest.fn();
-jest.mock("@/lib/feature-flags/world-id-4-0/server", () => ({
-  isWorldId40EnabledServer: (...args: unknown[]) =>
-    isWorldId40EnabledServer(...args),
-}));
-
 import { isPortalV3EnabledServer } from "@/lib/feature-flags/portal-v3/server";
 
 const TEAM = "team_123";
@@ -23,33 +17,25 @@ afterEach(() => {
   global.ParameterStore = undefined;
 });
 
-describe("isPortalV3EnabledServer (subset gate + allowlist)", () => {
-  it("returns false when world-id-4-0 is disabled, even if portal-v3 lists the team", async () => {
-    isWorldId40EnabledServer.mockResolvedValue(false);
-    setParameterStore([TEAM]);
-    expect(await isPortalV3EnabledServer(TEAM)).toBe(false);
-  });
-
-  it("returns true when WID4 is enabled and the team is in the portal-v3 list", async () => {
-    isWorldId40EnabledServer.mockResolvedValue(true);
+// World ID 4.0 is always available now (#1974 removed the rollout flag), so v3
+// is a standalone SSM allowlist — no subset gate.
+describe("isPortalV3EnabledServer (SSM allowlist)", () => {
+  it("returns true when the team is in the portal-v3 list", async () => {
     setParameterStore([TEAM]);
     expect(await isPortalV3EnabledServer(TEAM)).toBe(true);
   });
 
-  it("returns true when WID4 is enabled and enable_all_teams is set", async () => {
-    isWorldId40EnabledServer.mockResolvedValue(true);
+  it("returns true when enable_all_teams is set", async () => {
     setParameterStore(["enable_all_teams"]);
     expect(await isPortalV3EnabledServer(TEAM)).toBe(true);
   });
 
-  it("returns false when WID4 is enabled but the team is not listed", async () => {
-    isWorldId40EnabledServer.mockResolvedValue(true);
+  it("returns false when the team is not listed", async () => {
     setParameterStore(["team_other"]);
     expect(await isPortalV3EnabledServer(TEAM)).toBe(false);
   });
 
-  it("fails closed when ParameterStore is unavailable (WID4 enabled)", async () => {
-    isWorldId40EnabledServer.mockResolvedValue(true);
+  it("fails closed when ParameterStore is unavailable", async () => {
     global.ParameterStore = undefined;
     expect(await isPortalV3EnabledServer(TEAM)).toBe(false);
   });
