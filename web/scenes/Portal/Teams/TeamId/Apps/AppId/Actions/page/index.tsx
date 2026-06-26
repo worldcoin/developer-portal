@@ -1,9 +1,11 @@
 "use client";
+
 import { ErrorPage } from "@/components/ErrorPage";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { EngineType } from "@/lib/types";
-import { usePathname } from "next/navigation";
-import { use } from "react";
+import { urls } from "@/lib/urls";
+import { usePathname, useRouter } from "next/navigation";
+import { use, useEffect } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { ActionsList } from "./ActionsList";
 import { useGetActionsQuery } from "./graphql/client/actions.generated";
@@ -16,8 +18,11 @@ type ActionsPageProps = {
 
 export const ActionsPage = (props: ActionsPageProps) => {
   const params = use(props.params);
+  const searchParams = use(props.searchParams);
   const appId = params?.appId as `app_${string}`;
+  const teamId = params?.teamId as string;
   const pathName = usePathname() ?? "";
+  const router = useRouter();
 
   const searchForm = useForm<{ keyword: string }>({
     mode: "onChange",
@@ -32,7 +37,6 @@ export const ActionsPage = (props: ActionsPageProps) => {
     variables: {
       app_id: appId ?? "",
     },
-
     skip: !appId,
   });
 
@@ -42,16 +46,59 @@ export const ActionsPage = (props: ActionsPageProps) => {
       condition: !keyword
         ? {}
         : [
-            { name: { _ilike: `%${keyword}%` } },
-            { description: { _ilike: `%${keyword}%` } },
-            { action: { _ilike: `%${keyword}%` } },
-          ],
+          { name: { _ilike: `%${keyword}%` } },
+          { description: { _ilike: `%${keyword}%` } },
+          { action: { _ilike: `%${keyword}%` } },
+        ],
     },
-
     skip: !appId,
   });
 
   const engineType = appRes.data?.app?.engine;
+  const hasRpRegistration =
+    (appRes.data?.app?.rp_registration?.length ?? 0) > 0;
+  const hasLegacyActions = (actionsRes.data?.actions?.length ?? 0) > 0;
+  const showLegacyList = searchParams.legacy === "true" && hasLegacyActions;
+
+  useEffect(() => {
+    if (appRes.loading || actionsRes.loading) {
+      return;
+    }
+
+    if (showLegacyList) {
+      return;
+    }
+
+    if (!hasRpRegistration) {
+      router.replace(
+        urls.enableWorldId4({
+          team_id: teamId,
+          app_id: appId,
+        }),
+      );
+      return;
+    }
+
+    const worldIdActionsUrl = urls.worldIdActions({
+      team_id: teamId,
+      app_id: appId,
+    });
+
+    router.replace(
+      searchParams.createAction === "true"
+        ? `${worldIdActionsUrl}?createAction=true`
+        : worldIdActionsUrl,
+    );
+  }, [
+    appRes.loading,
+    actionsRes.loading,
+    showLegacyList,
+    hasRpRegistration,
+    teamId,
+    appId,
+    router,
+    searchParams.createAction,
+  ]);
 
   if (!appRes.loading && !appRes.data?.app) {
     return (
@@ -59,6 +106,10 @@ export const ActionsPage = (props: ActionsPageProps) => {
         <ErrorPage statusCode={404} title="App Not found" />
       </SizingWrapper>
     );
+  }
+
+  if (!showLegacyList) {
+    return null;
   }
 
   return (
