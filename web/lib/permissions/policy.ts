@@ -2,7 +2,7 @@ import { Role_Enum } from "@/graphql/graphql";
 import { Auth0SessionUser } from "@/lib/types";
 import { getUserTeamRole } from "@/lib/utils";
 
-export type TeamPermission = {
+export type PermissionResult = {
   allowed: boolean;
   message: string;
 };
@@ -37,6 +37,7 @@ export type Permission =
  * Single source of truth: which roles may perform each team-scoped action.
  * This mirrors the server-side (Hasura RLS) rules — client gating is UX only,
  * so these lists must stay in sync with the actual authorization boundary.
+ * The real server-side checks live alongside this in ./index.ts.
  */
 export const PERMISSION_REGISTRY: Record<Permission, Role_Enum[]> = {
   submit_app_for_review: [Role_Enum.Owner, Role_Enum.Admin],
@@ -97,12 +98,12 @@ export const userCanPerformAction = (
   permission: Permission,
 ): boolean => roleCanPerformAction(getUserTeamRole(user, teamId), permission);
 
-export const getTeamPermission = (
+export const getPermission = (
   user: Auth0SessionUser["user"] | undefined,
   teamId: string,
   permission: Permission,
   message?: string,
-): TeamPermission => ({
+): PermissionResult => ({
   allowed: userCanPerformAction(user, teamId, permission),
   // Default to the role-derived message; callers pass `message` to override
   // with surface-specific copy (e.g. "...manage your team's settings").

@@ -3,7 +3,7 @@
  */
 import { renderHook } from "@testing-library/react";
 import { Role_Enum } from "@/graphql/graphql";
-import { useTeamPermission } from "@/lib/team-permissions/use-team-permission";
+import { useGetPermission } from "@/lib/permissions/use-get-permission";
 
 const useUserMock = jest.fn();
 
@@ -31,12 +31,12 @@ const userWithRole = (role: Role_Enum) => ({
   },
 });
 
-describe("useTeamPermission", () => {
+describe("useGetPermission", () => {
   it("allows Owners on Owner/Admin actions", () => {
     useUserMock.mockReturnValue(userWithRole(Role_Enum.Owner));
 
     const { result } = renderHook(() =>
-      useTeamPermission("team_1", "submit_app_for_review"),
+      useGetPermission("team_1", "submit_app_for_review"),
     );
 
     expect(result.current.allowed).toBe(true);
@@ -46,7 +46,7 @@ describe("useTeamPermission", () => {
     useUserMock.mockReturnValue(userWithRole(Role_Enum.Member));
 
     const { result } = renderHook(() =>
-      useTeamPermission("team_1", "submit_app_for_review"),
+      useGetPermission("team_1", "submit_app_for_review"),
     );
 
     expect(result.current).toEqual({

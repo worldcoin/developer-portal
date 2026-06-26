@@ -4,22 +4,22 @@ import { useMemo } from "react";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { Auth0SessionUser } from "@/lib/types";
 import {
-  getTeamPermission,
+  getPermission,
   type Permission,
-  type TeamPermission,
-} from "@/lib/team-permissions";
+  type PermissionResult,
+} from "@/lib/permissions/policy";
 
-export type { TeamPermission } from "@/lib/team-permissions";
+export type { PermissionResult } from "@/lib/permissions/policy";
 
-export const useTeamPermission = (
+export const useGetPermission = (
   teamId: string,
   permission: Permission,
   message?: string,
-): TeamPermission => {
+): PermissionResult => {
   const { user } = useUser() as Auth0SessionUser;
 
   return useMemo(
-    () => getTeamPermission(user, teamId, permission, message),
+    () => getPermission(user, teamId, permission, message),
     [message, permission, teamId, user],
   );
 };

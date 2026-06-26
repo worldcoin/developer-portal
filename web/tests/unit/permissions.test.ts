@@ -1,10 +1,10 @@
 import { Role_Enum } from "@/graphql/graphql";
 import {
   PERMISSION_REGISTRY,
-  getTeamPermission,
+  getPermission,
   permissionMessage,
   roleCanPerformAction,
-} from "@/lib/team-permissions";
+} from "@/lib/permissions/policy";
 
 describe("team permission registry", () => {
   it("keeps core edit actions Owner/Admin and destructive actions Owner-only", () => {
@@ -54,9 +54,9 @@ describe("permissionMessage", () => {
   });
 });
 
-describe("getTeamPermission", () => {
+describe("getPermission", () => {
   it("denies a user with no membership and derives the message from the registry", () => {
-    const permission = getTeamPermission(undefined, "team_1", "delete_app");
+    const permission = getPermission(undefined, "team_1", "delete_app");
 
     expect(permission.allowed).toBe(false);
     expect(permission.message).toBe("Only Owners can perform this action.");
@@ -65,7 +65,7 @@ describe("getTeamPermission", () => {
   it("uses a caller-supplied message override when provided", () => {
     const override =
       "You need additional permissions to manage your team's settings.";
-    const permission = getTeamPermission(
+    const permission = getPermission(
       undefined,
       "team_1",
       "edit_team_settings",
