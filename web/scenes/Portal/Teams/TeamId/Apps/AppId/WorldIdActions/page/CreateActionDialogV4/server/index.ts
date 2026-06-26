@@ -31,18 +31,10 @@ export async function validateAndInsertActionV4(
     });
   }
 
-  const appRecord = app[0];
-  if (appRecord.is_staging && appRecord.rp_registration.length === 0) {
-    return errorFormAction({
-      message: "Staging apps cannot create World ID 4.0 actions",
-      additionalInfo: { app_id },
-      logLevel: "warn",
-    });
-  }
-
-  const rpRegistration = appRecord.rp_registration[0];
+  const rpRegistration = app[0]?.rp_registration[0];
   const rp_id = rpRegistration?.rp_id;
   const status = rpRegistration?.status;
+
 
   if (!rp_id) {
     return errorFormAction({
