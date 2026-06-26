@@ -28,7 +28,6 @@ export const ActionIdDangerPage = (props: ActionIdDangerPageProps) => {
   });
 
   const action = data?.action_by_pk;
-  const isEnabled = true;
 
   const [deleteActionMutation, { loading: deleteActionLoading }] =
     useDeleteActionMutation();
@@ -78,7 +77,7 @@ export const ActionIdDangerPage = (props: ActionIdDangerPageProps) => {
             actionIdentifier={action?.name ?? ""}
             onDelete={handleDelete}
             isDeleting={deleteActionLoading}
-            canDelete={!isEnabled}
+            canDelete={false}
           />
         )}
       </SizingWrapper>

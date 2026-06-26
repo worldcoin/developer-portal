@@ -111,6 +111,24 @@
 
 /* End Toastify overrides */
 
+/* === v3 design tokens (semantic, light-only). World palette, Vercel structure.
+   World blue is the accent (focus rings + primary CTAs only). === */
+:root {
+  --v3-background: #ffffff; /* grey.0  — content surface */
+  --v3-foreground: #191c20; /* grey.900 — primary text */
+  --v3-muted-foreground: #657080; /* grey.500 — secondary text, default nav */
+  --v3-faint-foreground: #9ba3ae; /* grey.400 — disabled (disable-not-hide) */
+  --v3-card: #ffffff; /* grey.0  — cards on the content surface */
+  --v3-sidebar: #fbfbfc; /* grey.25 — sidebar, a hair off the content bg */
+  --v3-sidebar-foreground: #191c20;
+  --v3-border: #ebecef; /* grey.200 — hairline borders/dividers */
+  --v3-muted: #f3f4f5; /* grey.100 — hover surface */
+  --v3-accent: #4940e0; /* blue.500 — World blue (active / focus / CTA only) */
+  --v3-accent-foreground: #ffffff;
+  --v3-accent-muted: #f0f0fd; /* blue.100 — subtle accent fill */
+  --v3-ring: #4940e0;
+}
+
 @layer utilities {
   /* Hide scrollbar for Chrome, Safari and Opera */
   .no-scrollbar::-webkit-scrollbar {

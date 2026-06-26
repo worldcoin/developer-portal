@@ -4,11 +4,13 @@ import { Input } from "@/components/Input";
 import { Section } from "@/components/Section";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { teamNameSchema } from "@/lib/schema";
+import { truncateString } from "@/lib/utils";
 import { useRefetchQueries } from "@/lib/use-refetch-queries";
 import { FetchMeDocument } from "@/scenes/common/me-query/client/graphql/client/me-query.generated";
+import { DeleteTeamDialog } from "@/scenes/Portal/common/DeleteTeamDialog";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useParams } from "next/navigation";
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import * as yup from "yup";
@@ -26,6 +28,7 @@ type FormValues = yup.InferType<typeof schema>;
 
 export const TeamSettingsPage = () => {
   const { teamId } = useParams() as { teamId: string };
+  const [isOpenDeleteDialog, setIsOpenDeleteDialog] = useState(false);
 
   const { refetch: refetchMe } = useRefetchQueries(FetchMeDocument);
 
@@ -91,7 +94,41 @@ export const TeamSettingsPage = () => {
             </DecoratedButton>
           </form>
         </Section>
+
+        <Section>
+          <Section.Header>
+            <Section.Header.Title>Danger zone</Section.Header.Title>
+          </Section.Header>
+
+          <div className="grid justify-items-start gap-y-8 max-md:pb-8 md:max-w-[36.25rem]">
+            <p className="text-grey-500">
+              This will immediately and permanently delete the team{" "}
+              <strong className="font-medium text-grey-900">
+                {truncateString(fetchTeamQueryRes?.team_by_pk?.name, 30)}
+              </strong>
+              , along with all its applications and its data for everyone. This
+              cannot be undone.
+            </p>
+
+            <DecoratedButton
+              type="button"
+              variant="danger"
+              onClick={() => setIsOpenDeleteDialog(true)}
+            >
+              Delete team
+            </DecoratedButton>
+          </div>
+        </Section>
       </SizingWrapper>
+
+      <DeleteTeamDialog
+        open={isOpenDeleteDialog}
+        onClose={() => setIsOpenDeleteDialog(false)}
+        team={{
+          id: fetchTeamQueryRes?.team_by_pk?.id,
+          name: fetchTeamQueryRes?.team_by_pk?.name,
+        }}
+      />
     </>
   );
 };

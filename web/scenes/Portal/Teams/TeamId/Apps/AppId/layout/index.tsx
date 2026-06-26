@@ -1,7 +1,7 @@
 import { ErrorPage } from "@/components/ErrorPage";
 import { logger } from "@/lib/logger";
 import { Auth0SessionUser, EngineType } from "@/lib/types";
-import { auth0 } from "@/lib/auth0";
+import { getSession } from "@/lib/auth0";
 import { ReactNode } from "react";
 import { AppIdChrome } from "./AppIdChrome";
 import { fetchAppEnvCached } from "./server/fetch-app-env";
@@ -23,7 +23,7 @@ export const AppIdLayout = async (props: AppIdLayoutProps) => {
   let hasRpRegistration = false;
   let isStagingApp = false;
 
-  const session = await auth0.getSession();
+  const session = await getSession();
   const user = session?.user as Auth0SessionUser["user"];
   const isTeamMember = user?.hasura?.memberships?.some(
     (membership) => membership.team?.id === params.teamId,

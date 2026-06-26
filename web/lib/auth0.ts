@@ -2,6 +2,7 @@ import "server-only";
 import { Auth0Client } from "@auth0/nextjs-auth0/server";
 import { NextRequest } from "next/server";
 import { getAllowedAppBaseUrls } from "@/lib/app-base-url";
+import { cache } from "react";
 
 /**
  * Central Auth0 SDK client (v4).
@@ -55,5 +56,9 @@ export const auth0 = new Auth0Client({
  * the body has been read (e.g. via `req.json()`). The SDK only needs cookies, so
  * hand it this body-free copy and read the body off the original request.
  */
+// Deduplicates auth0.getSession() within a single server render pass so that
+// multiple layouts on the same request share one cookie decrypt.
+export const getSession = cache(() => auth0.getSession());
+
 export const toSessionRequest = (req: NextRequest): NextRequest =>
   new NextRequest(req.url, { headers: req.headers });

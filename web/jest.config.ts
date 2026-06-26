@@ -16,10 +16,10 @@ const customJestConfig: Config = {
   moduleNameMapper: {
     "^@/api/(.*)$": "<rootDir>/api/$1",
     "^@/lib/(.*)$": "<rootDir>/lib/$1",
-    // Same explicit style as the two above. Lets a test mock the server-side
-    // data helper (scenes/.../layout/server/fetch-app-env) at the I/O boundary;
-    // without it only @/api and @/lib are resolvable in jest.mock().
-    "^@/scenes/(.*)$": "<rootDir>/scenes/$1",
+    // Catch-all so every "@/..." import (e.g. @/scenes, @/components) resolves
+    // deterministically to the project root, matching tsconfig's "@/*": ["./*"].
+    // Subsumes the explicit @/scenes mapper (for mocking fetch-app-env).
+    "^@/(.*)$": "<rootDir>/$1",
   },
 };
 

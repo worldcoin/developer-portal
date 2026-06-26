@@ -4,7 +4,8 @@ import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Role_Enum } from "@/graphql/graphql";
 import { Auth0SessionUser } from "@/lib/types";
 import { checkUserPermissions } from "@/lib/utils";
-import { auth0 } from "@/lib/auth0";
+import { getSession } from "@/lib/auth0";
+import { isPortalV3EnabledServer } from "@/lib/feature-flags";
 import { ReactNode } from "react";
 
 type Params = {
@@ -18,7 +19,10 @@ type TeamLayoutProps = {
 
 export const TeamLayout = async (props: TeamLayoutProps) => {
   const params = await props.params;
-  const session = await auth0.getSession();
+  const [session, isV3] = await Promise.all([
+    getSession(),
+    isPortalV3EnabledServer(),
+  ]);
   const user = session?.user as Auth0SessionUser["user"];
   const ownerPermission = checkUserPermissions(user, params.teamId ?? "", [
     Role_Enum.Owner,
@@ -32,62 +36,64 @@ export const TeamLayout = async (props: TeamLayoutProps) => {
 
   return (
     <div className="flex flex-col">
-      <div className="order-2 md:order-1 md:w-full md:border-b md:border-grey-100">
-        <SizingWrapper variant="nav">
-          <Tabs className="px-6 py-4 font-gta md:py-0">
-            <Tab
-              className="md:py-4"
-              href={`/teams/${params!.teamId}`}
-              segment={null}
-              underlined
-            >
-              <Typography variant={TYPOGRAPHY.R4}>Members</Typography>
-            </Tab>
-
-            <Tab
-              className="md:hidden"
-              href={`/teams/${params!.teamId}/app`}
-              segment={"app"}
-              underlined
-            >
-              <Typography variant={TYPOGRAPHY.R4}>Apps</Typography>
-            </Tab>
-
-            {ownerPermission && (
+      {!isV3 && (
+        <div className="order-2 md:order-1 md:w-full md:border-b md:border-grey-100">
+          <SizingWrapper variant="nav">
+            <Tabs className="px-6 py-4 font-gta md:py-0">
               <Tab
                 className="md:py-4"
-                href={`/teams/${params!.teamId}/settings`}
-                segment={"settings"}
+                href={`/teams/${params!.teamId}`}
+                segment={null}
                 underlined
               >
-                <Typography variant={TYPOGRAPHY.R4}>Team settings</Typography>
+                <Typography variant={TYPOGRAPHY.R4}>Members</Typography>
               </Tab>
-            )}
 
-            {ownerAndAdminPermission && (
               <Tab
-                className="md:py-4"
-                href={`/teams/${params!.teamId}/api-keys`}
-                segment={"api-keys"}
+                className="md:hidden"
+                href={`/teams/${params!.teamId}/app`}
+                segment={"app"}
                 underlined
               >
-                <Typography variant={TYPOGRAPHY.R4}>API keys</Typography>
+                <Typography variant={TYPOGRAPHY.R4}>Apps</Typography>
               </Tab>
-            )}
 
-            {ownerPermission && (
-              <Tab
-                className="md:py-4"
-                href={`/teams/${params!.teamId}/danger`}
-                segment={"danger"}
-                underlined
-              >
-                <Typography variant={TYPOGRAPHY.R4}>Danger zone</Typography>
-              </Tab>
-            )}
-          </Tabs>
-        </SizingWrapper>
-      </div>
+              {ownerPermission && (
+                <Tab
+                  className="md:py-4"
+                  href={`/teams/${params!.teamId}/settings`}
+                  segment={"settings"}
+                  underlined
+                >
+                  <Typography variant={TYPOGRAPHY.R4}>Team settings</Typography>
+                </Tab>
+              )}
+
+              {ownerAndAdminPermission && (
+                <Tab
+                  className="md:py-4"
+                  href={`/teams/${params!.teamId}/api-keys`}
+                  segment={"api-keys"}
+                  underlined
+                >
+                  <Typography variant={TYPOGRAPHY.R4}>API keys</Typography>
+                </Tab>
+              )}
+
+              {ownerPermission && (
+                <Tab
+                  className="md:py-4"
+                  href={`/teams/${params!.teamId}/danger`}
+                  segment={"danger"}
+                  underlined
+                >
+                  <Typography variant={TYPOGRAPHY.R4}>Danger zone</Typography>
+                </Tab>
+              )}
+            </Tabs>
+          </SizingWrapper>
+        </div>
+      )}
 
       {props.children}
     </div>

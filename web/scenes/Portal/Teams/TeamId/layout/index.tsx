@@ -1,3 +1,5 @@
+import { isPortalV3EnabledServer } from "@/lib/feature-flags";
+import { V3Shell } from "@/scenes/PortalV3/Shell";
 import { ReactNode } from "react";
 
 type Params = {
@@ -10,9 +12,14 @@ type TeamIdLayoutProps = {
 };
 
 export const TeamIdLayout = async (props: TeamIdLayoutProps) => {
-  // World ID 4.0 is always available now, so there's no rollout flag to
-  // hydrate. This layout no longer needs a provider — it just renders children.
-  await props.params;
+  const params = await props.params;
+  const teamId = params.teamId;
+
+  const isV3 = await isPortalV3EnabledServer();
+
+  if (isV3) {
+    return <V3Shell teamId={teamId}>{props.children}</V3Shell>;
+  }
 
   return <>{props.children}</>;
 };
