@@ -9,6 +9,10 @@ jest.mock("next/navigation", () => ({
   useParams: () => ({ teamId: "team_1", appId: "app_1" }),
 }));
 
+jest.mock("@/scenes/PortalV3/Shell/AppSwitcherContainer", () => ({
+  AppSwitcherContainer: () => null,
+}));
+
 import { V3Shell } from "@/scenes/PortalV3/Shell";
 
 describe("V3Shell", () => {

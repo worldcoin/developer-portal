@@ -1,14 +1,16 @@
 import { Theme } from "@/lib/portal-v3/theme";
 import clsx from "clsx";
 import { ReactNode } from "react";
+import { AppSwitcherContainer } from "./AppSwitcherContainer";
 import { SidebarNav } from "./SidebarNav";
 import { ThemeToggle } from "./ThemeToggle";
 
 /**
  * v3 app shell. Stable two-column layout on the v3 semantic tokens, with the
- * `.dark` scope applied to the root from the server-resolved theme. SidebarNav
- * and the theme toggle are real; the team/app switchers and the full user popup
- * are still placeholders (next in Slice 3). See docs/v3-design-foundation.md.
+ * `.dark` scope applied to the root from the server-resolved theme. SidebarNav,
+ * the theme toggle, and the content-header app switcher are real; the team
+ * switcher and the full user popup are still placeholders (next in Slice 3).
+ * See docs/v3-design-foundation.md.
  */
 export const V3Shell = (props: {
   teamId?: string;
@@ -49,11 +51,8 @@ export const V3Shell = (props: {
       </aside>
 
       <div className="flex min-w-0 flex-col">
-        {/* Content header (app switcher) — placeholder (next) */}
-        <header className="flex h-14 items-center border-b border-border px-4">
-          <span className="font-gta text-14 font-medium text-muted-foreground">
-            App switcher
-          </span>
+        <header className="flex h-14 items-center gap-3 border-b border-border px-4">
+          <AppSwitcherContainer />
         </header>
         <main className="min-w-0 flex-1 overflow-auto">{props.children}</main>
       </div>
