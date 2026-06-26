@@ -48,9 +48,9 @@ export const TeamSwitcher = (props: {
 
         <DropdownMenu.Portal>
           <DropdownMenu.Content
-            align="start"
+            align="end"
             sideOffset={6}
-            className="z-50 max-h-[60vh] min-w-[224px] overflow-y-auto rounded-12 border border-border bg-card p-1 text-foreground shadow-lg"
+            className="z-50 max-h-[60vh] w-[248px] overflow-y-auto rounded-12 border border-border bg-card p-1 text-foreground shadow-lg"
           >
             {teams.map((team) => (
               <DropdownMenu.Item
