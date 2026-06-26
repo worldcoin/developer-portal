@@ -50,7 +50,8 @@ export const TeamSwitcher = (props: {
           <DropdownMenu.Content
             align="end"
             sideOffset={6}
-            className="z-50 max-h-[60vh] w-[248px] overflow-y-auto rounded-12 border border-border bg-card p-1 text-foreground shadow-lg"
+            collisionPadding={12}
+            className="z-50 max-h-[60vh] w-[232px] overflow-y-auto rounded-12 border border-border bg-card p-1 text-foreground shadow-lg"
           >
             {teams.map((team) => (
               <DropdownMenu.Item
