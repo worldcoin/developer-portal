@@ -1,59 +1,77 @@
 import { Role_Enum } from "@/graphql/graphql";
 import {
-  OWNER_ADMIN_MESSAGE,
-  OWNER_ONLY_MESSAGE,
-  PERMISSION_RULES,
+  PERMISSION_REGISTRY,
   getTeamPermission,
+  permissionMessage,
   roleCanPerformAction,
 } from "@/lib/team-permissions";
 
-describe("team permission policy", () => {
-  it("keeps the core edit actions Owner/Admin-only", () => {
-    expect(PERMISSION_RULES.submit_app_for_review).toMatchObject({
-      roles: [Role_Enum.Owner, Role_Enum.Admin],
-      message: OWNER_ADMIN_MESSAGE,
-    });
-    expect(PERMISSION_RULES.edit_app_information).toMatchObject({
-      roles: [Role_Enum.Owner, Role_Enum.Admin],
-      message: OWNER_ADMIN_MESSAGE,
-    });
-    expect(PERMISSION_RULES.create_world_id_action).toMatchObject({
-      roles: [Role_Enum.Owner, Role_Enum.Admin],
-      message: OWNER_ADMIN_MESSAGE,
-    });
+describe("team permission registry", () => {
+  it("keeps core edit actions Owner/Admin and destructive actions Owner-only", () => {
+    expect(PERMISSION_REGISTRY.submit_app_for_review).toEqual([
+      Role_Enum.Owner,
+      Role_Enum.Admin,
+    ]);
+    expect(PERMISSION_REGISTRY.edit_app_information).toEqual([
+      Role_Enum.Owner,
+      Role_Enum.Admin,
+    ]);
+    expect(PERMISSION_REGISTRY.delete_app).toEqual([Role_Enum.Owner]);
+    expect(PERMISSION_REGISTRY.edit_member_role).toEqual([Role_Enum.Owner]);
   });
 
-  it("keeps member management Owner-only", () => {
-    expect(PERMISSION_RULES.edit_member_role).toMatchObject({
-      roles: [Role_Enum.Owner],
-      message: OWNER_ONLY_MESSAGE,
-    });
-  });
-
-  it("checks user permission from the central role rules", () => {
-    expect(getTeamPermission(undefined, "team_1", "delete_app").allowed).toBe(
-      false,
+  it("keeps cancel_invite Owner-only to match Hasura (Admins cannot cancel)", () => {
+    // resend mirrors invite (Owner/Admin); cancel is the stricter Owner-only.
+    expect(PERMISSION_REGISTRY.resend_invite).toEqual(
+      PERMISSION_REGISTRY.invite_member,
     );
-  });
-
-  it("keeps invite lifecycle actions on the right roles", () => {
-    // resend_invite mirrors invite_member (Owner/Admin)
-    expect(PERMISSION_RULES.resend_invite).toMatchObject({
-      roles: PERMISSION_RULES.invite_member.roles,
-      message: OWNER_ADMIN_MESSAGE,
-    });
-    // cancel_invite is the stricter Owner-only action
-    expect(PERMISSION_RULES.cancel_invite).toMatchObject({
-      roles: [Role_Enum.Owner],
-      message: OWNER_ONLY_MESSAGE,
-    });
+    expect(PERMISSION_REGISTRY.cancel_invite).toEqual([Role_Enum.Owner]);
     expect(roleCanPerformAction(Role_Enum.Admin, "resend_invite")).toBe(true);
     expect(roleCanPerformAction(Role_Enum.Admin, "cancel_invite")).toBe(false);
   });
 
-  it("checks action permission from the central role rules", () => {
-    expect(roleCanPerformAction(Role_Enum.Owner, "cancel_invite")).toBe(true);
-    expect(roleCanPerformAction(Role_Enum.Admin, "cancel_invite")).toBe(false);
-    expect(roleCanPerformAction(undefined, "cancel_invite")).toBe(false);
+  it("checks role permission from the registry", () => {
+    expect(roleCanPerformAction(Role_Enum.Owner, "delete_app")).toBe(true);
+    expect(roleCanPerformAction(Role_Enum.Admin, "delete_app")).toBe(false);
+    expect(roleCanPerformAction(undefined, "delete_app")).toBe(false);
+  });
+});
+
+describe("permissionMessage", () => {
+  it("builds the message from the allowed roles", () => {
+    expect(permissionMessage([Role_Enum.Owner])).toBe(
+      "Only Owners can perform this action.",
+    );
+    expect(permissionMessage([Role_Enum.Owner, Role_Enum.Admin])).toBe(
+      "Only Owners and Admins can perform this action.",
+    );
+  });
+
+  it("formats three roles with an Oxford comma", () => {
+    expect(
+      permissionMessage([Role_Enum.Owner, Role_Enum.Admin, Role_Enum.Member]),
+    ).toBe("Only Owners, Admins, and Members can perform this action.");
+  });
+});
+
+describe("getTeamPermission", () => {
+  it("denies a user with no membership and derives the message from the registry", () => {
+    const permission = getTeamPermission(undefined, "team_1", "delete_app");
+
+    expect(permission.allowed).toBe(false);
+    expect(permission.message).toBe("Only Owners can perform this action.");
+  });
+
+  it("uses a caller-supplied message override when provided", () => {
+    const override =
+      "You need additional permissions to manage your team's settings.";
+    const permission = getTeamPermission(
+      undefined,
+      "team_1",
+      "edit_team_settings",
+      override,
+    );
+
+    expect(permission.message).toBe(override);
   });
 });

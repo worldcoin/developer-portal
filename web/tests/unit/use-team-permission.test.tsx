@@ -51,7 +51,7 @@ describe("useTeamPermission", () => {
 
     expect(result.current).toEqual({
       allowed: false,
-      message: "Only Owners and Admins can edit this section.",
+      message: "Only Owners and Admins can perform this action.",
     });
   });
 });
