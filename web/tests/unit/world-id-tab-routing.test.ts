@@ -1,6 +1,7 @@
 import ActionsLayout from "@/app/(portal)/teams/[teamId]/apps/[appId]/actions/layout";
 import WorldId40Layout from "@/app/(portal)/teams/[teamId]/apps/[appId]/world-id-4-0/layout";
 import WorldIdActionsLayout from "@/app/(portal)/teams/[teamId]/apps/[appId]/world-id-actions/layout";
+import { FetchAppEnvQuery } from "@/scenes/Portal/Teams/TeamId/Apps/AppId/layout/graphql/server/fetch-app-env.generated";
 
 // #region Mocks
 const redirectMock = jest.fn();
@@ -26,26 +27,35 @@ const makeProps = () => ({
   children: null,
 });
 
+const makeAppEnv = (overrides: {
+  rpRegistrations?: Array<{ rp_id: string }>;
+  actions?: unknown[];
+}): FetchAppEnvQuery =>
+  ({
+    app: [
+      {
+        id: appId,
+        engine: "cloud",
+        is_staging: false,
+        rp_registration: overrides.rpRegistrations ?? [],
+      },
+    ],
+    action: (overrides.actions ?? []) as FetchAppEnvQuery["action"],
+  }) as FetchAppEnvQuery;
+
 const withAppEnv = (overrides: {
   rpRegistrations?: Array<{ rp_id: string }>;
   actions?: unknown[];
 }) => {
-  fetchAppEnvCachedMock.mockResolvedValue({
-    app: [{ rp_registration: overrides.rpRegistrations ?? [] }],
-    action: overrides.actions ?? [],
-  });
+  fetchAppEnvCachedMock.mockResolvedValue(makeAppEnv(overrides));
 };
+
+const enableFlowUrl = `/teams/${teamId}/apps/${appId}?enableWorldId4=true`;
 // #endregion
 
 beforeEach(() => {
   jest.clearAllMocks();
 });
-
-// The World ID tab routing is now driven entirely by real state — no rollout
-// feature flag. These layouts implement "setup stays behind the tab": an app
-// without an RP registration is routed into the enable flow.
-
-const enableFlowUrl = `/teams/${teamId}/apps/${appId}?enableWorldId4=true`;
 
 // #region world-id-4-0 layout (RP settings surface)
 describe("world-id-4-0 layout [setup behind the tab]", () => {
@@ -67,9 +77,9 @@ describe("world-id-4-0 layout [setup behind the tab]", () => {
 });
 // #endregion
 
-// #region world-id-actions layout (the World ID 4.0 surface)
-describe("world-id-actions layout [setup behind the tab]", () => {
-  it("redirects an app without RP registration into the enable flow", async () => {
+// #region world-id-actions layout (RP required)
+describe("world-id-actions layout [RP required]", () => {
+  it("redirects into the enable flow when the app has no RP registration", async () => {
     withAppEnv({ rpRegistrations: [] });
 
     await WorldIdActionsLayout(makeProps());
@@ -77,7 +87,7 @@ describe("world-id-actions layout [setup behind the tab]", () => {
     expect(redirectMock).toHaveBeenCalledWith(enableFlowUrl);
   });
 
-  it("does not redirect once the app already has an RP registration", async () => {
+  it("does not redirect when the app has an RP registration", async () => {
     withAppEnv({ rpRegistrations: [{ rp_id: "rp_abc123" }] });
 
     await WorldIdActionsLayout(makeProps());

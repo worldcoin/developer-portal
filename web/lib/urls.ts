@@ -24,6 +24,12 @@ export const urls = {
   actions: (params: { team_id: string; app_id?: string }): string =>
     `/teams/${params.team_id}/apps/${params.app_id}/actions`,
 
+  // legacyActions: (params: { team_id: string; app_id: string }): string =>
+  //   `/teams/${params.team_id}/apps/${params.app_id}/actions`,
+
+  enableWorldId4: (params: { team_id: string; app_id: string }): string =>
+    `/teams/${params.team_id}/apps/${params.app_id}?enableWorldId4=true`,
+
   worldId40: (params: { team_id: string; app_id: string }): string =>
     `/teams/${params.team_id}/apps/${params.app_id}/world-id-4-0`,
 
@@ -85,9 +91,6 @@ export const urls = {
     const searchParams = new URLSearchParams(params);
     return `/join-callback?${searchParams.toString()}`;
   },
-
-  createAction: (params: { team_id: string; app_id: string }): string =>
-    `/teams/${params.team_id}/apps/${params.app_id}/actions?createAction=true`,
 
   setup: (params: {
     team_id: string;

@@ -3,7 +3,6 @@ query GetApp($app_id: String!) {
     id
     engine
     app_metadata {
-      id
       name
     }
   }

@@ -11,13 +11,18 @@ import { useGetActionsV4Query } from "./graphql/client/get-actions-v4.generated"
 
 type WorldIdActionsPageProps = {
   params: Record<string, string> | null | undefined;
-  searchParams?: Record<string, string> | null | undefined;
+  searchParams: Record<string, string> | null | undefined;
 };
 
-export const WorldIdActionsPage = ({ params }: WorldIdActionsPageProps) => {
+export const WorldIdActionsPage = ({
+  params,
+  searchParams,
+}: WorldIdActionsPageProps) => {
   const appId = params?.appId as `app_${string}`;
   const teamId = params?.teamId ?? "";
-  const [dialogOpen, setDialogOpen] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(
+    searchParams?.createAction === "true",
+  );
 
   const { data, loading, error, refetch } = useGetActionsV4Query({
     variables: {
@@ -30,6 +35,7 @@ export const WorldIdActionsPage = ({ params }: WorldIdActionsPageProps) => {
 
   const handleDialogClose = async (success?: boolean) => {
     setDialogOpen(false);
+
     if (success) {
       await refetch();
     }
