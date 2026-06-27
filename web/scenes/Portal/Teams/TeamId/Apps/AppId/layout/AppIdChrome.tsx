@@ -133,7 +133,7 @@ export const AppIdChrome = ({
                   },
                   {
                     label: "World ID 3.0 Legacy",
-                    href: urls.actions({ //legacyActions URL ref was just a duplicate of actions
+                    href: urls.actions({
                       team_id: teamId,
                       app_id: appId,
                     }),
