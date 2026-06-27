@@ -62,8 +62,8 @@ export const LoggedUserNav = () => {
     variables: !teamId
       ? undefined
       : {
-        id: teamId,
-      },
+          id: teamId,
+        },
     skip: !teamId,
   });
 
