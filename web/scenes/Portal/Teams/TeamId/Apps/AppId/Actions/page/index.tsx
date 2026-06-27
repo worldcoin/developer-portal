@@ -71,11 +71,7 @@ export const ActionsPage = (props: ActionsPageProps) => {
       app_id: appId,
     });
 
-    router.replace(
-      searchParams.createAction === "true"
-        ? `${worldIdActionsUrl}?createAction=true`
-        : worldIdActionsUrl,
-    );
+    router.replace(worldIdActionsUrl);
   }, [
     appRes.loading,
     actionsRes.loading,
@@ -83,7 +79,6 @@ export const ActionsPage = (props: ActionsPageProps) => {
     teamId,
     appId,
     router,
-    searchParams.createAction,
   ]);
 
   if (!appRes.loading && !appRes.data?.app) {
