@@ -1,5 +1,6 @@
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { DecoratedButton } from "@/components/DecoratedButton";
+import { ArrowRightIcon } from "@/components/Icons/ArrowRightIcon";
 import { DiscordIcon } from "@/components/Icons/DiscordIcon";
 import { GithubIcon } from "@/components/Icons/GithubIcon";
 import { WorldIcon } from "@/components/Icons/WorldIcon";
@@ -10,6 +11,7 @@ import { urls } from "@/lib/urls";
 import { redirect } from "next/navigation";
 import { type ComponentProps } from "react";
 import { BasePixelStrip } from "../components/BasePixelStrip";
+import { TypingHeadline } from "../components/TypingHeadline";
 import {
   FetchMembershipsQuery,
   getSdk as getFetchMembershipsSdk,
@@ -235,9 +237,7 @@ export const LoginPage = async () => {
 
         <div className="relative z-10 px-6 pt-10 md:pt-14 lg:px-10 lg:pt-16">
           <div className="mx-auto max-w-[1180px]">
-            <h1 className="max-w-[880px] font-twk text-[52px] font-medium leading-[0.94] tracking-[0] text-grey-900 sm:text-[68px] md:text-[88px] lg:text-[104px]">
-              A new standard of Identity
-            </h1>
+            <TypingHeadline className="max-w-[880px] font-twk text-[52px] font-medium leading-[0.94] tracking-[0] text-grey-900 sm:text-[68px] md:text-[88px] lg:text-[104px]" />
           </div>
         </div>
 
@@ -246,7 +246,7 @@ export const LoginPage = async () => {
             <div className="flex flex-wrap items-center justify-center gap-3">
               <DecoratedButton
                 href={urls.api.authLogin()}
-                className="h-14 rounded-full border-black bg-black bg-none px-5 py-0 text-base text-white shadow-[0_18px_44px_rgba(0,0,0,0.24)] hover:border-black hover:bg-grey-900 hover:bg-none"
+                className="group h-14 rounded-full border-black bg-black bg-none px-5 py-0 text-base text-white shadow-[0_18px_44px_rgba(0,0,0,0.24)] hover:border-black hover:bg-grey-900 hover:bg-none"
                 icon={
                   <span className="grid size-7 place-items-center">
                     <WorldIcon className="size-6 [&_path]:fill-white" />
@@ -254,6 +254,9 @@ export const LoginPage = async () => {
                 }
               >
                 Go to console
+                <span className="-ml-2 flex w-0 items-center overflow-hidden opacity-0 transition-all duration-300 ease-out group-hover:ml-0 group-hover:w-6 group-hover:opacity-100 motion-reduce:transition-none">
+                  <ArrowRightIcon className="size-6" />
+                </span>
               </DecoratedButton>
 
               <DecoratedButton
