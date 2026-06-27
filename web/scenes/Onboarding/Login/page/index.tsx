@@ -1,5 +1,6 @@
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { DecoratedButton } from "@/components/DecoratedButton";
+import { DiscordIcon } from "@/components/Icons/DiscordIcon";
 import { GithubIcon } from "@/components/Icons/GithubIcon";
 import { WorldIcon } from "@/components/Icons/WorldIcon";
 import { auth0 } from "@/lib/auth0";
@@ -7,6 +8,7 @@ import { logger } from "@/lib/logger";
 import { Auth0SessionUser } from "@/lib/types";
 import { urls } from "@/lib/urls";
 import { redirect } from "next/navigation";
+import { type ComponentProps } from "react";
 import {
   FetchMembershipsQuery,
   getSdk as getFetchMembershipsSdk,
@@ -271,11 +273,29 @@ const WORLD_ID_POSTER_SRC =
 const WORLD_ID_VIDEO_SRC =
   "https://worldcoin-company-website.cdn.prismic.io/worldcoin-company-website/ad40YJ1ZCF7ETLQW_World_Website-Videos_World-ID_v2_26-04-01_optimized_260413.mp4";
 
+const XIcon = (props: ComponentProps<"svg">) => (
+  <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" {...props}>
+    <path
+      d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24h-6.657l-5.214-6.817-5.966 6.817H1.68l7.73-8.835L1.254 2.25h6.826l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"
+      fill="currentColor"
+    />
+  </svg>
+);
+
+const RedditIcon = (props: ComponentProps<"svg">) => (
+  <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" {...props}>
+    <path
+      d="M12 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0Zm5.01 4.744c.688 0 1.25.561 1.25 1.249a1.25 1.25 0 0 1-2.498.056l-2.597-.547-.8 3.747c1.824.07 3.48.632 4.674 1.488.308-.309.73-.491 1.207-.491.968 0 1.754.786 1.754 1.754 0 .716-.435 1.333-1.01 1.614.054.295.07.602.07.91 0 2.617-3.049 4.744-6.805 4.744S5.451 17.141 5.451 14.524c0-.308.035-.615.088-.91-.61-.282-1.028-.898-1.028-1.614 0-.968.786-1.754 1.754-1.754.475 0 .898.183 1.207.491 1.207-.856 2.86-1.419 4.693-1.488l.94-4.4a.56.56 0 0 1 .665-.435l3.128.665c.214-.423.649-.719 1.158-.719ZM9.25 12.49a1.25 1.25 0 1 0 0 2.5 1.25 1.25 0 0 0 0-2.5Zm5.5 0a1.25 1.25 0 1 0 0 2.5 1.25 1.25 0 0 0 0-2.5Zm-5.466 3.99a.327.327 0 0 0-.231.558c.719.719 2.073.772 2.947.772s2.227-.053 2.946-.772a.327.327 0 0 0-.462-.462c-.452.452-1.472.58-2.484.58s-2.032-.128-2.484-.58a.326.326 0 0 0-.232-.095Z"
+      fill="currentColor"
+    />
+  </svg>
+);
+
 const FOOTER_SOCIAL_LINKS = [
   {
     href: "https://x.com/worldcoin",
     label: "X",
-    mark: "X",
+    mark: "x",
   },
   {
     href: "https://github.com/worldcoin",
@@ -285,12 +305,12 @@ const FOOTER_SOCIAL_LINKS = [
   {
     href: "https://www.reddit.com/r/worldcoin/",
     label: "Reddit",
-    mark: "r",
+    mark: "reddit",
   },
   {
     href: "https://discord.com/invite/worldcoin",
     label: "Discord",
-    mark: "d",
+    mark: "discord",
   },
   {
     href: "https://www.linkedin.com/company/worldcoin/",
@@ -298,6 +318,30 @@ const FOOTER_SOCIAL_LINKS = [
     mark: "in",
   },
 ];
+
+const FooterSocialIcon = ({
+  mark,
+}: {
+  mark: (typeof FOOTER_SOCIAL_LINKS)[number]["mark"];
+}) => {
+  if (mark === "x") {
+    return <XIcon className="size-4" />;
+  }
+
+  if (mark === "github") {
+    return <GithubIcon className="size-5" />;
+  }
+
+  if (mark === "reddit") {
+    return <RedditIcon className="size-5" />;
+  }
+
+  if (mark === "discord") {
+    return <DiscordIcon className="size-5 [&_path]:fill-current" />;
+  }
+
+  return <span className="font-gta text-[17px] font-semibold">in</span>;
+};
 
 const FOOTER_COLUMNS = [
   {
@@ -586,11 +630,7 @@ export const LoginPage = async () => {
                   href={link.href}
                   key={link.label}
                 >
-                  {link.mark === "github" ? (
-                    <GithubIcon className="size-5" />
-                  ) : (
-                    link.mark
-                  )}
+                  <FooterSocialIcon mark={link.mark} />
                 </a>
               ))}
             </div>
