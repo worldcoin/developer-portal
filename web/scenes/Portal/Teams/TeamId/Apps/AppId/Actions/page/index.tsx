@@ -46,17 +46,17 @@ export const ActionsPage = (props: ActionsPageProps) => {
       condition: !keyword
         ? {}
         : [
-            { name: { _ilike: `%${keyword}%` } },
-            { description: { _ilike: `%${keyword}%` } },
-            { action: { _ilike: `%${keyword}%` } },
-          ],
+          { name: { _ilike: `%${keyword}%` } },
+          { description: { _ilike: `%${keyword}%` } },
+          { action: { _ilike: `%${keyword}%` } },
+        ],
     },
     skip: !appId,
   });
 
   const engineType = appRes.data?.app?.engine;
   const hasLegacyActions = (actionsRes.data?.actions?.length ?? 0) > 0;
-  const showLegacyList = searchParams.legacy === "true" && hasLegacyActions;
+  const showLegacyList = hasLegacyActions;
 
   useEffect(() => {
     if (appRes.loading || actionsRes.loading) {

@@ -84,7 +84,7 @@ export const AppIdChrome = ({
                   hasRpRegistration
                     ? urls.worldId40({ team_id: teamId, app_id: appId })
                     : hasLegacyActions
-                      ? urls.legacyActions({ team_id: teamId, app_id: appId })
+                      ? urls.actions({ team_id: teamId, app_id: appId })
                       : urls.enableWorldId4({ team_id: teamId, app_id: appId })
                 }
                 underlined
@@ -133,7 +133,7 @@ export const AppIdChrome = ({
                   },
                   {
                     label: "World ID 3.0 Legacy",
-                    href: urls.legacyActions({
+                    href: urls.actions({ //legacyActions URL ref was just a duplicate of actions
                       team_id: teamId,
                       app_id: appId,
                     }),
@@ -190,7 +190,7 @@ export const AppIdChrome = ({
               hasRpRegistration
                 ? urls.worldId40({ team_id: teamId, app_id: appId })
                 : hasLegacyActions
-                  ? urls.legacyActions({ team_id: teamId, app_id: appId })
+                  ? urls.actions({ team_id: teamId, app_id: appId })
                   : urls.enableWorldId4({ team_id: teamId, app_id: appId })
             }
             segment={"world-id-4-0"}
