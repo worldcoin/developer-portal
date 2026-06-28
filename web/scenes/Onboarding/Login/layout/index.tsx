@@ -14,7 +14,7 @@ export const LoginLayout = (props: { children: ReactNode }) => {
             <Link
               href="/"
               aria-label="World"
-              className="inline-flex items-center"
+              className="inline-flex items-center animate-fadeInDown motion-reduce:animate-none"
             >
               <WorldTextLogo className="h-8 w-auto" />
             </Link>
@@ -22,7 +22,7 @@ export const LoginLayout = (props: { children: ReactNode }) => {
             <DecoratedButton
               href={urls.api.authLogin()}
               variant="secondary"
-              className="rounded-full group h-14 rounded-full border-neutral-950 bg-neutral-950 px-6 py-0 text-base text-white shadow-[0_18px_44px_rgba(25,28,32,0.12)] backdrop-blur-md"
+              className="rounded-full group h-14 rounded-full border-neutral-950 bg-neutral-950 px-6 py-0 text-base text-white shadow-[0_18px_44px_rgba(25,28,32,0.12)] backdrop-blur-md animate-fadeInDown [animation-delay:100ms] motion-reduce:animate-none"
               testId="log-in"
             >
               Log in

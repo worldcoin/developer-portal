@@ -243,10 +243,10 @@ export const LoginPage = async () => {
 
         <div className="pointer-events-none absolute inset-0 z-10 grid place-items-center px-6">
           <div className="pointer-events-auto grid justify-items-center gap-5">
-            <div className="flex flex-wrap items-center justify-center gap-3">
+            <div className="flex translate-y-[82px] flex-wrap items-center justify-center gap-3">
               <DecoratedButton
                 href={urls.api.authLogin()}
-                className="group h-14 rounded-full border-black bg-black bg-none px-5 py-0 text-base text-white shadow-[0_18px_44px_rgba(0,0,0,0.24)] hover:border-black hover:bg-grey-900 hover:bg-none"
+                className="group h-15 rounded-full border-black bg-black bg-none px-[22px] py-0 text-base text-white shadow-[0_18px_44px_rgba(0,0,0,0.24)] hover:border-black hover:bg-grey-900 hover:bg-none animate-fadeInDown [animation-delay:200ms] motion-reduce:animate-none"
                 icon={
                   <span className="grid size-7 place-items-center">
                     <WorldIcon className="size-6 [&_path]:fill-white" />
@@ -262,7 +262,7 @@ export const LoginPage = async () => {
               <DecoratedButton
                 href="https://docs.world.org"
                 variant="secondary"
-                className="group h-14 rounded-full border-neutral-950 bg-neutral-950 px-6 py-0 text-base text-white shadow-[0_18px_44px_rgba(25,28,32,0.12)] backdrop-blur-md"
+                className="group h-15 rounded-full border-black bg-transparent px-[26px] py-0 text-base text-black hover:border-black hover:bg-transparent hover:text-black animate-fadeInDown [animation-delay:280ms] motion-reduce:animate-none"
               >
                 Explore docs
                 <span className="-ml-2 flex w-0 items-center overflow-hidden opacity-0 transition-all duration-300 ease-out group-hover:ml-0 group-hover:w-6 group-hover:opacity-100 motion-reduce:transition-none">
