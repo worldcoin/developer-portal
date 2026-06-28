@@ -17,18 +17,13 @@ import {
   getSdk as getFetchMembershipsSdk,
 } from "./graphql/server/fetch-memberships.generated";
 
+// `overflow-x: clip` clips horizontal overflow WITHOUT creating a scroll
+// container, so it (unlike `hidden`) does not break the sticky header.
 const LOGIN_PAGE_STYLE = `
 html,
 body,
 main {
-  overflow-x: hidden;
-}
-
-header {
-  background: transparent;
-  border-bottom-color: transparent !important;
-  position: relative;
-  z-index: 20;
+  overflow-x: clip;
 }
 `;
 
@@ -221,7 +216,7 @@ export const LoginPage = async () => {
       <style dangerouslySetInnerHTML={{ __html: LOGIN_PAGE_STYLE }} />
 
       <section
-        className="relative min-h-[calc(100dvh-59px)] overflow-hidden bg-white"
+        className="relative min-h-[calc(100dvh-55px)] overflow-hidden bg-white"
         data-base-pixel-host
       >
         <BasePixelStrip />
@@ -238,15 +233,11 @@ export const LoginPage = async () => {
         <div className="relative z-10 px-6 pt-10 md:pt-14 lg:px-10 lg:pt-16">
           <div className="mx-auto max-w-[1180px]">
             <TypingHeadline className="max-w-[880px] font-twk text-[52px] font-medium leading-[0.94] tracking-[0] text-grey-900 sm:text-[68px] md:text-[88px] lg:text-[104px]" />
-          </div>
-        </div>
 
-        <div className="pointer-events-none absolute inset-0 z-10 grid place-items-center px-6">
-          <div className="pointer-events-auto grid justify-items-center gap-5">
-            <div className="flex translate-y-[82px] flex-wrap items-center justify-center gap-3">
+            <div className="mt-10 flex flex-wrap items-center gap-3">
               <DecoratedButton
                 href={urls.api.authLogin()}
-                className="group h-15 rounded-full border-black bg-black bg-none px-[22px] py-0 text-base text-white shadow-[0_18px_44px_rgba(0,0,0,0.24)] hover:border-black hover:bg-grey-900 hover:bg-none animate-fadeInDown [animation-delay:200ms] motion-reduce:animate-none"
+                className="group h-15 animate-fadeInDown rounded-full border-black bg-black bg-none px-[22px] py-0 text-base text-white shadow-[0_18px_44px_rgba(0,0,0,0.24)] [animation-delay:200ms] hover:border-black hover:bg-grey-900 hover:bg-none motion-reduce:animate-none"
                 icon={
                   <span className="grid size-7 place-items-center">
                     <WorldIcon className="size-6 [&_path]:fill-white" />
@@ -262,7 +253,7 @@ export const LoginPage = async () => {
               <DecoratedButton
                 href="https://docs.world.org"
                 variant="secondary"
-                className="group h-15 rounded-full border-black bg-transparent px-[26px] py-0 text-base text-black hover:border-black hover:bg-transparent hover:text-black animate-fadeInDown [animation-delay:280ms] motion-reduce:animate-none"
+                className="group h-15 animate-fadeInDown rounded-full border-black bg-transparent px-[26px] py-0 text-base text-black [animation-delay:280ms] hover:border-black hover:bg-transparent hover:text-black motion-reduce:animate-none"
               >
                 Explore docs
                 <span className="-ml-2 flex w-0 items-center overflow-hidden opacity-0 transition-all duration-300 ease-out group-hover:ml-0 group-hover:w-6 group-hover:opacity-100 motion-reduce:transition-none">

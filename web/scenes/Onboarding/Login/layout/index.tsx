@@ -8,13 +8,13 @@ import { ReactNode } from "react";
 export const LoginLayout = (props: { children: ReactNode }) => {
   return (
     <div className="grid min-h-[100dvh] w-full grid-rows-auto/1fr">
-      <header className="border-b border-grey-100">
+      <header className="sticky top-0 z-20 border-b border-grey-100/70 bg-white/70 backdrop-blur-md">
         <SizingWrapper>
-          <div className="flex items-center justify-between py-2.5">
+          <div className="flex items-center justify-between py-2">
             <Link
               href="/"
               aria-label="World"
-              className="inline-flex items-center animate-fadeInDown motion-reduce:animate-none"
+              className="inline-flex items-center"
             >
               <WorldTextLogo className="h-8 w-auto" />
             </Link>
@@ -22,7 +22,7 @@ export const LoginLayout = (props: { children: ReactNode }) => {
             <DecoratedButton
               href={urls.api.authLogin()}
               variant="secondary"
-              className="rounded-full group h-14 rounded-full border-neutral-950 bg-neutral-950 px-6 py-0 text-base text-white shadow-[0_18px_44px_rgba(25,28,32,0.12)] backdrop-blur-md animate-fadeInDown [animation-delay:100ms] motion-reduce:animate-none"
+              className="group h-14 rounded-full rounded-full border-neutral-950 bg-neutral-950 px-6 py-0 text-base text-white shadow-[0_18px_44px_rgba(25,28,32,0.12)] backdrop-blur-md"
               testId="log-in"
             >
               Log in
