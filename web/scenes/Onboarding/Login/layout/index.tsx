@@ -16,7 +16,7 @@ export const LoginLayout = (props: { children: ReactNode }) => {
               aria-label="World"
               className="inline-flex items-center"
             >
-              <WorldTextLogo className="h-7 w-auto" />
+              <WorldTextLogo className="h-8 w-auto" />
             </Link>
 
             <DecoratedButton
