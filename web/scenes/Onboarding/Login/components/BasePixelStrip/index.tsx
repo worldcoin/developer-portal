@@ -116,7 +116,10 @@ export const BasePixelStrip = () => {
       );
       const green = clamp(
         Math.round(
-          cell.greenBase + lift * 36 - flash * (72 - color * 28) + flash * color * 52,
+          cell.greenBase +
+            lift * 36 -
+            flash * (72 - color * 28) +
+            flash * color * 52,
         ),
         22,
         220,
@@ -127,7 +130,11 @@ export const BasePixelStrip = () => {
         255,
       );
 
-      if (red === lastFillRed && green === lastFillGreen && blue === lastFillBlue) {
+      if (
+        red === lastFillRed &&
+        green === lastFillGreen &&
+        blue === lastFillBlue
+      ) {
         return lastFillStyle;
       }
 
@@ -256,11 +263,7 @@ export const BasePixelStrip = () => {
       const nextHeight = Math.max(1, Math.floor(rect.height));
       const nextDpr = Math.min(window.devicePixelRatio || 1, 2);
 
-      if (
-        nextWidth === width &&
-        nextHeight === height &&
-        nextDpr === dpr
-      ) {
+      if (nextWidth === width && nextHeight === height && nextDpr === dpr) {
         return;
       }
 
@@ -338,12 +341,7 @@ export const BasePixelStrip = () => {
 
         context.globalAlpha = intensity * (0.144 + glow * 0.396);
         context.fillStyle = FILL_GLOW;
-        context.fillRect(
-          cell.x + 1,
-          cell.y + 1,
-          cell.size - 2,
-          cell.size - 2,
-        );
+        context.fillRect(cell.x + 1, cell.y + 1, cell.size - 2, cell.size - 2);
 
         if (glow > 0.5) {
           context.globalAlpha = intensity * (glow - 0.5) * 1.44;

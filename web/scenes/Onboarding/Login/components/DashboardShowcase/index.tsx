@@ -26,7 +26,7 @@ const BrowserChrome = () => (
       <span className="size-2.5 rounded-full bg-grey-200 md:size-3" />
     </div>
 
-    <div className="mx-auto flex h-7 min-w-0 flex-1 max-w-md items-center rounded-full bg-grey-50 px-4 font-gta text-xs text-grey-400">
+    <div className="mx-auto flex h-7 min-w-0 max-w-md flex-1 items-center rounded-full bg-grey-50 px-4 font-gta text-xs text-grey-400">
       developer.world.org
     </div>
   </div>
