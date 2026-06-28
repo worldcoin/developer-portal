@@ -46,6 +46,7 @@ type DrawCell = {
 };
 
 type Wave = {
+  color: number;
   coverage: number;
   index: number;
   salt: number;
@@ -85,12 +86,14 @@ export const BasePixelStrip = () => {
     let visibleCells: DrawCell[] = [];
     let logoLayout = { left: 0, size: 1, top: 0 };
     let wave: Wave = {
-      coverage: 0.4,
+      color: 0.5,
+      coverage: 0.62,
       index: -1,
       salt: 0,
       x: 0.5,
       y: 0.5,
     };
+    let lastFillRed = -1;
     let lastFillGreen = -1;
     let lastFillBlue = -1;
     let lastFillStyle = "";
@@ -100,25 +103,38 @@ export const BasePixelStrip = () => {
       return value - Math.floor(value);
     };
 
-    const fillStyleForCell = (cell: DrawCell, lift: number, flash: number) => {
+    const fillStyleForCell = (
+      cell: DrawCell,
+      lift: number,
+      flash: number,
+      color: number,
+    ) => {
+      const red = clamp(
+        Math.round(flash * (48 + color * 168) + lift * 10),
+        0,
+        230,
+      );
       const green = clamp(
-        Math.round(cell.greenBase + lift * 36 - flash * 88),
+        Math.round(
+          cell.greenBase + lift * 36 - flash * (72 - color * 28) + flash * color * 52,
+        ),
         22,
-        172,
+        220,
       );
       const blue = clamp(
-        Math.round(cell.blueBase + lift * 28 + flash * 42),
-        202,
+        Math.round(cell.blueBase + lift * 28 + flash * (46 + (1 - color) * 86)),
+        120,
         255,
       );
 
-      if (green === lastFillGreen && blue === lastFillBlue) {
+      if (red === lastFillRed && green === lastFillGreen && blue === lastFillBlue) {
         return lastFillStyle;
       }
 
+      lastFillRed = red;
       lastFillGreen = green;
       lastFillBlue = blue;
-      lastFillStyle = `rgb(0,${green},${blue})`;
+      lastFillStyle = `rgb(${red},${green},${blue})`;
       return lastFillStyle;
     };
 
@@ -223,7 +239,8 @@ export const BasePixelStrip = () => {
       }
 
       wave = {
-        coverage: 0.34 + random(index + 29, 7) * 0.24,
+        color: random(index + 41, 13),
+        coverage: 0.58 + random(index + 29, 7) * 0.32,
         index,
         salt: index + 1000,
         x: 0.08 + random(index + 31, 17) * 0.84,
@@ -284,6 +301,7 @@ export const BasePixelStrip = () => {
             : clamp(1 - (progress - 0.36) / 0.16, 0, 1);
       updateWave(seconds);
 
+      lastFillRed = -1;
       lastFillGreen = -1;
       lastFillBlue = -1;
       context.fillStyle = FILL_GLOW;
@@ -308,7 +326,12 @@ export const BasePixelStrip = () => {
         }
 
         context.globalAlpha = intensity;
-        context.fillStyle = fillStyleForCell(cell, cell.spotlight, flash);
+        context.fillStyle = fillStyleForCell(
+          cell,
+          cell.spotlight,
+          flash,
+          wave.color,
+        );
         context.fillRect(cell.x, cell.y, cell.size, cell.size);
 
         const glow = clamp(flash, 0, 1);

@@ -1,4 +1,5 @@
 import { DecoratedButton } from "@/components/DecoratedButton";
+import { WorldIcon } from "@/components/Icons/WorldIcon";
 import { WorldTextLogo } from "@/components/Icons/WorldTextLogo";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { urls } from "@/lib/urls";
@@ -22,10 +23,15 @@ export const LoginLayout = (props: { children: ReactNode }) => {
             <DecoratedButton
               href={urls.api.authLogin()}
               variant="secondary"
-              className="group h-14 rounded-full rounded-full border-neutral-950 bg-neutral-950 px-6 py-0 text-base text-white shadow-[0_18px_44px_rgba(25,28,32,0.12)] backdrop-blur-md"
+              className="group h-15 rounded-full border-black bg-transparent px-[26px] py-0 text-base text-black hover:border-black hover:bg-transparent hover:text-black"
               testId="log-in"
             >
               Log in
+              <span className="inline-flex w-0 items-center justify-center transition-[width,margin-left] duration-300 ease-out group-hover:ml-1.5 group-hover:w-6 motion-reduce:transition-none">
+                <span className="inline-flex scale-0 opacity-0 transition-[transform,opacity] duration-300 ease-out group-hover:scale-100 group-hover:opacity-100 motion-reduce:scale-100 motion-reduce:opacity-100 motion-reduce:transition-none">
+                  <WorldIcon className="size-6 shrink-0 group-hover:animate-[spin_2.75s_linear_infinite] motion-reduce:animate-none [&_path]:fill-black" />
+                </span>
+              </span>
             </DecoratedButton>
           </div>
         </SizingWrapper>
