@@ -262,9 +262,12 @@ export const LoginPage = async () => {
               <DecoratedButton
                 href="https://docs.world.org"
                 variant="secondary"
-                className="h-14 rounded-full border-white/70 bg-white/80 px-6 py-0 text-base shadow-[0_18px_44px_rgba(25,28,32,0.12)] backdrop-blur-md hover:bg-white"
+                className="group h-14 rounded-full border-neutral-950 bg-neutral-950 px-6 py-0 text-base text-white shadow-[0_18px_44px_rgba(25,28,32,0.12)] backdrop-blur-md"
               >
                 Explore docs
+                <span className="-ml-2 flex w-0 items-center overflow-hidden opacity-0 transition-all duration-300 ease-out group-hover:ml-0 group-hover:w-6 group-hover:opacity-100 motion-reduce:transition-none">
+                  <ArrowRightIcon className="size-6" />
+                </span>
               </DecoratedButton>
             </div>
           </div>
