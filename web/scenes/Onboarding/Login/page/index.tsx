@@ -11,6 +11,7 @@ import { urls } from "@/lib/urls";
 import { redirect } from "next/navigation";
 import { type ComponentProps } from "react";
 import { BasePixelStrip } from "../components/BasePixelStrip";
+import { DashboardShowcase } from "../components/DashboardShowcase";
 import { TypingHeadline } from "../components/TypingHeadline";
 import {
   FetchMembershipsQuery,
@@ -292,31 +293,14 @@ export const LoginPage = async () => {
           <div className="relative z-10 flex min-h-[78vh] flex-col justify-between gap-12 p-7 md:min-h-[82vh] md:p-10 lg:p-12">
             <div>
               <h2 className="max-w-[740px] font-twk text-[40px] font-medium leading-[0.98] tracking-[0] text-white sm:text-[48px] md:text-[68px] lg:text-[78px]">
-                Anonymous Proof-of-Human
+                Build for humans- not AI
               </h2>
-            </div>
-
-            <div className="max-w-[560px]">
-              <div className="mt-8 flex flex-wrap items-center gap-3">
-                <DecoratedButton
-                  href="https://docs.world.org"
-                  className="h-14 rounded-full border-white bg-white bg-none px-6 py-0 text-black hover:border-grey-100 hover:bg-grey-100 hover:bg-none"
-                >
-                  Learn more
-                </DecoratedButton>
-
-                <DecoratedButton
-                  href={urls.api.authLogin()}
-                  variant="secondary"
-                  className="h-14 rounded-full border-white/20 bg-white/[0.08] px-6 py-0 text-white backdrop-blur-md hover:bg-white/[0.14] hover:text-white"
-                >
-                  Go to console
-                </DecoratedButton>
-              </div>
             </div>
           </div>
         </div>
       </section>
+
+      <DashboardShowcase />
 
       <footer className="bg-white px-6 py-16 text-grey-900 md:py-24 lg:px-10">
         <div className="mx-auto grid max-w-[1280px] gap-14 md:grid-cols-[1.25fr_repeat(3,minmax(0,1fr))] lg:gap-20">

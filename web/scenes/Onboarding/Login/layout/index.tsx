@@ -23,11 +23,11 @@ export const LoginLayout = (props: { children: ReactNode }) => {
             <DecoratedButton
               href={urls.api.authLogin()}
               variant="secondary"
-              className="group h-15 rounded-full border-black bg-transparent px-[26px] py-0 text-base text-black hover:border-black hover:bg-transparent hover:text-black"
+              className="group h-12 rounded-full border-black bg-transparent px-5 py-0 text-base text-black hover:border-black hover:bg-transparent hover:text-black"
               testId="log-in"
             >
               Log in
-              <span className="inline-flex w-0 items-center justify-center transition-[width,margin-left] duration-300 ease-out group-hover:ml-1.5 group-hover:w-6 motion-reduce:transition-none">
+              <span className="-ml-2 inline-flex w-0 items-center justify-center overflow-hidden transition-[width,margin-left] duration-300 ease-out group-hover:ml-0 group-hover:w-6 motion-reduce:transition-none">
                 <span className="inline-flex scale-0 opacity-0 transition-[transform,opacity] duration-300 ease-out group-hover:scale-100 group-hover:opacity-100 motion-reduce:scale-100 motion-reduce:opacity-100 motion-reduce:transition-none">
                   <WorldIcon className="size-6 shrink-0 group-hover:animate-[spin_2.75s_linear_infinite] motion-reduce:animate-none [&_path]:fill-black" />
                 </span>
