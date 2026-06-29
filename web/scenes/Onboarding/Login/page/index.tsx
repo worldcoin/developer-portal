@@ -11,7 +11,6 @@ import { urls } from "@/lib/urls";
 import { redirect } from "next/navigation";
 import { type ComponentProps } from "react";
 import { BasePixelStrip } from "../components/BasePixelStrip";
-import { DashboardShowcase } from "../components/DashboardShowcase";
 import { TypingHeadline } from "../components/TypingHeadline";
 import {
   FetchMembershipsQuery,
@@ -25,6 +24,33 @@ html,
 body,
 main {
   overflow-x: clip;
+}
+
+@keyframes revealUp {
+  from {
+    opacity: 0;
+    transform: translateY(28px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@supports (animation-timeline: view()) {
+  .reveal-up {
+    opacity: 0;
+    animation: revealUp linear both;
+    animation-timeline: view();
+    animation-range: entry 0% entry 70%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal-up {
+    opacity: 1;
+    animation: none;
+  }
 }
 `;
 
@@ -161,6 +187,12 @@ const FOOTER_COLUMNS = [
   },
 ];
 
+const NETWORK_STATS = [
+  { label: "Humans verified", value: "18M" },
+  { label: "Countries using World ID", value: "68" },
+  { label: "Proofs generated", value: "240M" },
+];
+
 const TIMELINE_ITEMS = [
   {
     body: "Open the console, create a team, and choose the first app surface.",
@@ -241,7 +273,7 @@ export const LoginPage = async () => {
                 className="group h-15 animate-fadeInDown rounded-full border-black bg-black bg-none px-[22px] py-0 text-base text-white shadow-[0_18px_44px_rgba(0,0,0,0.24)] [animation-delay:200ms] hover:border-black hover:bg-grey-900 hover:bg-none motion-reduce:animate-none"
                 icon={
                   <span className="grid size-7 place-items-center">
-                    <WorldIcon className="size-6 [&_path]:fill-white" />
+                    <WorldIcon className="size-6 animate-[spin_2.75s_linear_infinite] [animation-play-state:paused] group-hover:[animation-play-state:running] motion-reduce:animate-none [&_path]:fill-white" />
                   </span>
                 }
               >
@@ -266,8 +298,33 @@ export const LoginPage = async () => {
         </div>
       </section>
 
-      <section className="bg-black px-4 py-5 text-white md:px-6 md:py-7 lg:px-10">
-        <div className="relative isolate mx-auto min-h-[78vh] max-w-[1280px] overflow-hidden rounded-[28px] bg-[#050505] shadow-[inset_0_0_90px_rgba(255,255,255,0.07),0_28px_90px_rgba(0,0,0,0.32)] md:min-h-[82vh]">
+      <section className="bg-white px-6 py-8 md:py-10 lg:px-10">
+        <div className="mx-auto max-w-[1180px]">
+          <h2 className="reveal-up text-center font-twk text-[28px] font-medium tracking-[0] text-grey-900 sm:text-[32px] md:text-[36px]">
+            Our Network
+          </h2>
+
+          <div
+            className="reveal-up mt-6 grid grid-cols-1 gap-10 sm:grid-cols-3 md:mt-8"
+            style={{ animationRange: "entry 8% entry 78%" }}
+          >
+            {NETWORK_STATS.map((stat) => (
+              <div className="text-center" key={stat.label}>
+                <div className="font-twk text-[56px] font-medium leading-[0.94] tracking-[0] text-grey-900 sm:text-[68px] md:text-[88px]">
+                  {stat.value}
+                </div>
+
+                <div className="mt-3 font-gta text-[16px] leading-[1.3] text-grey-400 md:text-[18px]">
+                  {stat.label}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="bg-black px-2 py-5 text-white md:px-3 md:py-7 lg:px-4">
+        <div className="relative isolate mx-auto min-h-[78vh] max-w-[1600px] overflow-hidden rounded-[28px] bg-[#050505] shadow-[inset_0_0_90px_rgba(255,255,255,0.07),0_28px_90px_rgba(0,0,0,0.32)] md:min-h-[82vh]">
           <video
             aria-label="World ID verification moment"
             autoPlay
@@ -292,15 +349,13 @@ export const LoginPage = async () => {
 
           <div className="relative z-10 flex min-h-[78vh] flex-col justify-between gap-12 p-7 md:min-h-[82vh] md:p-10 lg:p-12">
             <div>
-              <h2 className="max-w-[740px] font-twk text-[40px] font-medium leading-[0.98] tracking-[0] text-white sm:text-[48px] md:text-[68px] lg:text-[78px]">
+              <h2 className="font-twk text-center text-[40px] font-medium leading-[0.98] tracking-[0] text-white sm:text-[48px] md:text-[68px] lg:text-[78px]">
                 Universal Proof of Human
               </h2>
             </div>
           </div>
         </div>
       </section>
-
-      <DashboardShowcase />
 
       <footer className="bg-white px-6 py-16 text-grey-900 md:py-24 lg:px-10">
         <div className="mx-auto grid max-w-[1280px] gap-14 md:grid-cols-[1.25fr_repeat(3,minmax(0,1fr))] lg:gap-20">
