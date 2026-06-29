@@ -79,7 +79,7 @@ export const urls = {
   // Allowed Logout URL.
   logout: (origin?: string): string =>
     `/api/auth/logout?returnTo=${encodeURIComponent(
-      `${origin ?? process.env.NEXT_PUBLIC_APP_URL}/`,
+      `${origin ?? process.env.NEXT_PUBLIC_APP_URL}/login`,
     )}`,
 
   join: (params?: SignupParams): string => {
