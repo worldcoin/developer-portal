@@ -1,7 +1,6 @@
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { GithubIcon } from "@/components/Icons/GithubIcon";
 import { WorldIcon } from "@/components/Icons/WorldIcon";
-import { WorldDevelopersLogo } from "@/components/Icons/WorldDevelopersLogo";
 import { urls } from "@/lib/urls";
 import Link from "next/link";
 import { ReactNode } from "react";
@@ -52,12 +51,19 @@ export const LoginLayout = (props: { children: ReactNode }) => {
       <header className="sticky top-0 z-20 border-b border-grey-100/70 bg-white/70 px-2 backdrop-blur-md">
         <div className="flex h-16 min-w-0 items-center justify-between gap-4">
           <div className="flex min-w-0 items-center gap-6 lg:gap-10">
+            {/* World Developers wordmark lockup. Sizing (icon, gap, clearspace
+                padding, font size) is all derived from the --lockup-h variable;
+                source art is 24px tall with a 14px "o" clearspace unit. */}
             <Link
               href="/"
               aria-label="World Developers"
-              className="inline-flex min-w-0 items-center"
+              className="inline-flex min-w-0 items-center gap-[0.42em] whitespace-nowrap p-[calc(var(--lockup-h)*14/24)] font-world text-[length:calc(var(--lockup-h)*0.72)] leading-none text-grey-900 [--lockup-h:1.75rem]"
             >
-              <WorldDevelopersLogo />
+              <WorldIcon
+                aria-hidden
+                className="size-[var(--lockup-h)] shrink-0 [&_path]:fill-current"
+              />
+              <span aria-hidden>world Developers</span>
             </Link>
             {LOGIN_HEADER_LINKS.map((link) => (
               <a
