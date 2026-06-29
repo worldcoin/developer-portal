@@ -4,6 +4,7 @@ import { ArrowRightIcon } from "@/components/Icons/ArrowRightIcon";
 import { DiscordIcon } from "@/components/Icons/DiscordIcon";
 import { GithubIcon } from "@/components/Icons/GithubIcon";
 import { RedditIcon } from "@/components/Icons/RedditIcon";
+import { WorldIcon } from "@/components/Icons/WorldIcon";
 import { XIcon } from "@/components/Icons/XIcon";
 import { auth0 } from "@/lib/auth0";
 import { logger } from "@/lib/logger";
@@ -12,7 +13,6 @@ import { urls } from "@/lib/urls";
 import { redirect } from "next/navigation";
 import { BasePixelStrip } from "../components/BasePixelStrip";
 import { DeveloperStories } from "../components/DeveloperStories";
-import { SpinningWorldIcon } from "../components/SpinningWorldIcon";
 import { TypingHeadline } from "../components/TypingHeadline";
 import {
   FetchMembershipsQuery,
@@ -212,11 +212,9 @@ export const LoginPage = async () => {
                 href={urls.api.authLogin()}
                 className="group h-15 animate-fadeInDown rounded-full border-black bg-black bg-none px-[22px] py-0 text-base text-white shadow-[0_18px_44px_rgba(0,0,0,0.24)] [animation-delay:200ms] hover:border-black hover:bg-grey-900 hover:bg-none motion-reduce:animate-none"
                 icon={
-                  <SpinningWorldIcon
-                    className="size-6 [&_path]:fill-white"
-                    spinMode="once"
-                    wrapperClassName="grid size-7 place-items-center"
-                  />
+                  <span className="grid size-7 place-items-center">
+                    <WorldIcon className="size-6 [&_path]:fill-white" />
+                  </span>
                 }
               >
                 Go to console

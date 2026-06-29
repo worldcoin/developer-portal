@@ -1,11 +1,11 @@
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { GithubIcon } from "@/components/Icons/GithubIcon";
+import { WorldIcon } from "@/components/Icons/WorldIcon";
 import { WorldTextLogo } from "@/components/Icons/WorldTextLogo";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { urls } from "@/lib/urls";
 import Link from "next/link";
 import { ReactNode } from "react";
-import { SpinningWorldIcon } from "../components/SpinningWorldIcon";
 
 export const LoginLayout = (props: { children: ReactNode }) => {
   return (
@@ -54,10 +54,7 @@ export const LoginLayout = (props: { children: ReactNode }) => {
                 Sign in
                 <span className="-ml-2 inline-flex w-0 items-center justify-center overflow-hidden transition-[width,margin-left] duration-300 ease-out group-hover:ml-0 group-hover:w-6 motion-reduce:transition-none">
                   <span className="inline-flex scale-0 opacity-0 transition-[transform,opacity] duration-300 ease-out group-hover:scale-100 group-hover:opacity-100 motion-reduce:scale-100 motion-reduce:opacity-100 motion-reduce:transition-none">
-                    <SpinningWorldIcon
-                      className="size-6 shrink-0 [&_path]:fill-black"
-                      spinMode="loop"
-                    />
+                    <WorldIcon className="size-6 shrink-0 [&_path]:fill-black" />
                   </span>
                 </span>
               </DecoratedButton>
