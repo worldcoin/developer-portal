@@ -3,7 +3,6 @@ import { DecoratedButton } from "@/components/DecoratedButton";
 import { ArrowRightIcon } from "@/components/Icons/ArrowRightIcon";
 import { DiscordIcon } from "@/components/Icons/DiscordIcon";
 import { GithubIcon } from "@/components/Icons/GithubIcon";
-import { WorldIcon } from "@/components/Icons/WorldIcon";
 import { auth0 } from "@/lib/auth0";
 import { logger } from "@/lib/logger";
 import { Auth0SessionUser } from "@/lib/types";
@@ -11,6 +10,8 @@ import { urls } from "@/lib/urls";
 import { redirect } from "next/navigation";
 import { type ComponentProps } from "react";
 import { BasePixelStrip } from "../components/BasePixelStrip";
+import { DeveloperStories } from "../components/DeveloperStories";
+import { SpinningWorldIcon } from "../components/SpinningWorldIcon";
 import { TypingHeadline } from "../components/TypingHeadline";
 import {
   FetchMembershipsQuery,
@@ -26,32 +27,48 @@ main {
   overflow-x: clip;
 }
 
-@keyframes revealUp {
-  from {
-    opacity: 0;
-    transform: translateY(28px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.reveal-up {
+  opacity: 0;
+  transform: translateY(28px);
+  transition:
+    opacity 0.7s ease-out,
+    transform 0.7s ease-out;
 }
 
-@supports (animation-timeline: view()) {
-  .reveal-up {
-    opacity: 0;
-    animation: revealUp linear both;
-    animation-timeline: view();
-    animation-range: entry 0% entry 70%;
-  }
+.reveal-up.is-visible {
+  opacity: 1;
+  transform: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
   .reveal-up {
     opacity: 1;
-    animation: none;
+    transform: none;
+    transition: none;
   }
 }
+`;
+
+const REVEAL_ON_SCROLL_SCRIPT = `
+(function () {
+  var els = document.querySelectorAll(".reveal-up");
+  if (!("IntersectionObserver" in window)) {
+    els.forEach(function (el) { el.classList.add("is-visible"); });
+    return;
+  }
+  var io = new IntersectionObserver(
+    function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("is-visible");
+          io.unobserve(entry.target);
+        }
+      });
+    },
+    { threshold: 0.2 }
+  );
+  els.forEach(function (el) { io.observe(el); });
+})();
 `;
 
 const WORLD_ID_POSTER_SRC =
@@ -247,6 +264,13 @@ export const LoginPage = async () => {
   return (
     <div className="min-h-full overflow-x-hidden bg-white text-grey-900">
       <style dangerouslySetInnerHTML={{ __html: LOGIN_PAGE_STYLE }} />
+      <noscript>
+        <style
+          dangerouslySetInnerHTML={{
+            __html: ".reveal-up{opacity:1!important;transform:none!important;}",
+          }}
+        />
+      </noscript>
 
       <section
         className="relative min-h-[calc(100dvh-55px)] overflow-hidden bg-white"
@@ -272,9 +296,11 @@ export const LoginPage = async () => {
                 href={urls.api.authLogin()}
                 className="group h-15 animate-fadeInDown rounded-full border-black bg-black bg-none px-[22px] py-0 text-base text-white shadow-[0_18px_44px_rgba(0,0,0,0.24)] [animation-delay:200ms] hover:border-black hover:bg-grey-900 hover:bg-none motion-reduce:animate-none"
                 icon={
-                  <span className="grid size-7 place-items-center">
-                    <WorldIcon className="size-6 animate-[spin_2.75s_linear_infinite] [animation-play-state:paused] group-hover:[animation-play-state:running] motion-reduce:animate-none [&_path]:fill-white" />
-                  </span>
+                  <SpinningWorldIcon
+                    className="size-6 [&_path]:fill-white"
+                    spinMode="once"
+                    wrapperClassName="grid size-7 place-items-center"
+                  />
                 }
               >
                 Go to console
@@ -306,7 +332,7 @@ export const LoginPage = async () => {
 
           <div
             className="reveal-up mt-6 grid grid-cols-1 gap-10 sm:grid-cols-3 md:mt-8"
-            style={{ animationRange: "entry 8% entry 78%" }}
+            style={{ transitionDelay: "120ms" }}
           >
             {NETWORK_STATS.map((stat) => (
               <div className="text-center" key={stat.label}>
@@ -324,7 +350,7 @@ export const LoginPage = async () => {
       </section>
 
       <section className="bg-black px-2 py-5 text-white md:px-3 md:py-7 lg:px-4">
-        <div className="relative isolate mx-auto min-h-[78vh] max-w-[1600px] overflow-hidden rounded-[28px] bg-[#050505] shadow-[inset_0_0_90px_rgba(255,255,255,0.07),0_28px_90px_rgba(0,0,0,0.32)] md:min-h-[82vh]">
+        <div className="relative isolate mx-auto max-w-[1600px] overflow-hidden rounded-[28px] bg-[#050505] shadow-[inset_0_0_90px_rgba(255,255,255,0.07),0_28px_90px_rgba(0,0,0,0.32)] md:min-h-[82vh]">
           <video
             aria-label="World ID verification moment"
             autoPlay
@@ -347,12 +373,14 @@ export const LoginPage = async () => {
             className="pointer-events-none absolute inset-0 shadow-[inset_0_0_120px_rgba(0,0,0,0.86)]"
           />
 
-          <div className="relative z-10 flex min-h-[78vh] flex-col justify-between gap-12 p-7 md:min-h-[82vh] md:p-10 lg:p-12">
+          <div className="relative z-10 flex flex-col gap-10 p-7 md:min-h-[82vh] md:justify-between md:gap-12 md:p-10 lg:p-12">
             <div>
-              <h2 className="font-twk text-center text-[40px] font-medium leading-[0.98] tracking-[0] text-white sm:text-[48px] md:text-[68px] lg:text-[78px]">
+              <h2 className="text-center font-twk text-[40px] font-medium leading-[0.98] tracking-[0] text-white sm:text-[48px] md:text-[68px] lg:text-[78px]">
                 Universal Proof of Human
               </h2>
             </div>
+
+            <DeveloperStories />
           </div>
         </div>
       </section>
@@ -415,6 +443,8 @@ export const LoginPage = async () => {
           </a>
         </div>
       </footer>
+
+      <script dangerouslySetInnerHTML={{ __html: REVEAL_ON_SCROLL_SCRIPT }} />
     </div>
   );
 };
