@@ -114,7 +114,6 @@ export const DeveloperStories = () => {
   return (
     <div className="flex w-full flex-col text-white">
       <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
-
         <div className="flex items-center gap-3">
           <button
             aria-label="Previous stories"

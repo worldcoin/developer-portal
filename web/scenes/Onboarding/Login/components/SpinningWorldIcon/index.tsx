@@ -108,9 +108,7 @@ export const SpinningWorldIcon = ({
 
       const step = (now: number) => {
         const elapsed = now - start;
-        setRotationDegrees(
-          startRotation + (elapsed / LOOP_PERIOD_MS) * 360,
-        );
+        setRotationDegrees(startRotation + (elapsed / LOOP_PERIOD_MS) * 360);
         rafRef.current = requestAnimationFrame(step);
       };
 
@@ -156,7 +154,10 @@ export const SpinningWorldIcon = ({
 
   return (
     <span
-      className={clsx("inline-flex items-center justify-center", wrapperClassName)}
+      className={clsx(
+        "inline-flex items-center justify-center",
+        wrapperClassName,
+      )}
       ref={wrapperRef}
     >
       <WorldIcon
