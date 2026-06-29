@@ -21,7 +21,7 @@ export const LoginLayout = (props: { children: ReactNode }) => {
             </Link>
 
             <DecoratedButton
-              href={urls.api.authLogin()}
+              href={urls.login()}
               variant="secondary"
               className="group h-12 rounded-full border-black bg-transparent px-5 py-0 text-base text-black hover:border-black hover:bg-transparent hover:text-black"
               testId="log-in"
