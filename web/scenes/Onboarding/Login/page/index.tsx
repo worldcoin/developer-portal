@@ -293,7 +293,7 @@ export const LoginPage = async () => {
           <div className="relative z-10 flex min-h-[78vh] flex-col justify-between gap-12 p-7 md:min-h-[82vh] md:p-10 lg:p-12">
             <div>
               <h2 className="max-w-[740px] font-twk text-[40px] font-medium leading-[0.98] tracking-[0] text-white sm:text-[48px] md:text-[68px] lg:text-[78px]">
-                Build for humans- not AI
+                Universal Proof of Human
               </h2>
             </div>
           </div>
