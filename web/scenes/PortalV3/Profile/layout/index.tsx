@@ -1,15 +1,26 @@
 import { CloseIcon } from "@/components/Icons/CloseIcon";
+import { auth0 } from "@/lib/auth0";
+import { calculateColorFromString } from "@/lib/calculate-color-from-string";
+import { Auth0SessionUser } from "@/lib/types";
+import { ColorInitializer } from "@/scenes/PortalV3/Shell/ColorInitializer";
+import { UserPopup } from "@/scenes/PortalV3/Shell/UserPopup";
 import Link from "next/link";
 import { ReactNode } from "react";
 
 /**
  * Minimal v3 chrome for the account area (/profile/**). Mirrors the v3 shell's
- * grid (left rail + content) but the rail holds ONLY a close-X — no nav, no
- * team/app switcher, no account tabs. The v2 account page renders as-is in the
- * content column. The X returns to the main app ("/" resolves a signed-in user
- * back to their team's dashboard). Used for User profile and My Teams.
+ * grid (left rail + content) but the rail holds ONLY a close-X (top) and the
+ * shared user menu (bottom) — no app nav, no team/app switcher, no account
+ * tabs. The v2 account page renders as-is in the content column. The X returns
+ * to the main app ("/" resolves a signed-in user to their team's dashboard).
  */
-export const ProfileLayoutV3 = (props: { children: ReactNode }) => {
+export const ProfileLayoutV3 = async (props: { children: ReactNode }) => {
+  const session = await auth0.getSession();
+  const user = session?.user as Auth0SessionUser["user"];
+  const color = calculateColorFromString(
+    user?.name ?? user?.email ?? user?.sid,
+  );
+
   return (
     <div
       data-testid="portal-v3-account-shell"
@@ -26,6 +37,19 @@ export const ProfileLayoutV3 = (props: { children: ReactNode }) => {
             <CloseIcon className="size-4" strokeWidth={1.5} />
           </Link>
         </div>
+
+        <ColorInitializer color={color} />
+
+        {user ? (
+          <div className="mt-auto border-t border-border p-2">
+            <UserPopup
+              user={{
+                name: user.name ?? user.email ?? "Account",
+                email: user.email,
+              }}
+            />
+          </div>
+        ) : null}
       </aside>
 
       <div className="flex min-w-0 flex-col">
