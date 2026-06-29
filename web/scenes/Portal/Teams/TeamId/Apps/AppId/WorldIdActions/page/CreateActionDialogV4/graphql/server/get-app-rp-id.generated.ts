@@ -12,6 +12,7 @@ export type GetAppRpIdQuery = {
   __typename?: "query_root";
   app: Array<{
     __typename?: "app";
+    is_staging: boolean;
     rp_registration: Array<{
       __typename?: "rp_registration";
       rp_id: string;
@@ -23,6 +24,7 @@ export type GetAppRpIdQuery = {
 export const GetAppRpIdDocument = gql`
   query GetAppRpId($app_id: String!) {
     app(where: { id: { _eq: $app_id } }) {
+      is_staging
       rp_registration {
         rp_id
         status

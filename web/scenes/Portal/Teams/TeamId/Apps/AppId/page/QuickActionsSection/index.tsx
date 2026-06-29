@@ -19,7 +19,7 @@ export const QuickActionsSection = ({
 
       <div className="grid gap-6 lg:grid-cols-3">
         <QuickAction
-          href={urls.createAction({ team_id: teamId, app_id: appId })}
+          href={`${urls.worldIdActions({ team_id: teamId, app_id: appId })}?createAction=true`}
           icon={<MultiplePlusIcon className="size-5" />}
           title="Create an action"
           description="Verify users as unique humans"
