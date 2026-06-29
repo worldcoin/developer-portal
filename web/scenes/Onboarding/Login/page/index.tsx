@@ -207,22 +207,26 @@ const NETWORK_STATS = [
 // Prismic clip on hover and has the shining border (see .product-card styles
 // in LOGIN_PAGE_STYLE).
 const PRODUCT_CARDS: Array<{
+  href: string;
   label: string;
   poster?: string;
   video: string;
 }> = [
   {
+    href: "https://docs.world.org/world-id/overview",
     label: "World ID",
     poster: "/posters/World-ID-thumbnail.png",
     video:
       "https://worldcoin-company-website.cdn.prismic.io/worldcoin-company-website/aeCqpZ1ZCF7ETPYO_Fees-Animated.mp4",
   },
   {
+    href: "https://docs.world.org/world-id/idkit/integrate",
     label: "IDKit",
     video:
       "https://worldcoin-company-website.cdn.prismic.io/worldcoin-company-website/aeIixp1ZCF7ETSvj_dithr-2026-4-14_16-17-58-1-.mp4",
   },
   {
+    href: "https://docs.world.org/agents/agent-kit/integrate",
     label: "Agent Kit",
     video:
       "https://worldcoin-company-website.cdn.prismic.io/worldcoin-company-website/ablVSrbci2UF6Hcw_AgentKitDither-Video-web-.mp4",
@@ -281,7 +285,7 @@ export const LoginPage = async () => {
           }}
         />
 
-        <div className="relative z-10 px-6 pt-10 md:pt-14 lg:px-10 lg:pt-16">
+        <div className="relative z-10 pr-6 pt-10 md:pt-14 lg:pr-10 lg:pt-16">
           <div className="mx-auto max-w-[1180px]">
             <TypingHeadline className="max-w-[880px] font-twk text-[52px] font-medium leading-[0.94] tracking-[0] text-grey-900 sm:text-[68px] md:text-[88px] lg:text-[104px]" />
 
@@ -304,6 +308,8 @@ export const LoginPage = async () => {
               <DecoratedButton
                 href="https://docs.world.org"
                 variant="secondary"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="group h-15 animate-fadeInDown rounded-full border-black bg-transparent px-[26px] py-0 text-base text-black [animation-delay:280ms] hover:border-black hover:bg-transparent hover:text-black motion-reduce:animate-none"
               >
                 Explore docs
@@ -316,72 +322,9 @@ export const LoginPage = async () => {
         </div>
       </section>
 
-      <section className="bg-white px-4 pb-12 pt-8">
-        <div className="mx-auto w-full max-w-[1232px]">
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-            {PRODUCT_CARDS.map(({ label, poster, video }) => (
-              <div
-                className="product-card group relative flex aspect-[3/2] flex-col overflow-hidden rounded-2xl border border-black bg-white p-6 md:p-8"
-                key={label}
-              >
-                <span className="pointer-events-none relative z-10 font-twk text-[22px] font-medium tracking-[0] text-grey-900 md:text-[26px]">
-                  {label}
-                </span>
-
-                <HoverVideo
-                  className="absolute inset-0 size-full object-cover"
-                  poster={poster}
-                  src={video}
-                />
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="bg-black px-2 py-5 text-white md:px-3 md:py-7 lg:px-4">
-        <div className="relative isolate mx-auto max-w-[1600px] overflow-hidden rounded-[28px] bg-[#050505] shadow-[inset_0_0_90px_rgba(255,255,255,0.07),0_28px_90px_rgba(0,0,0,0.32)] md:min-h-[82vh]">
-          <video
-            aria-label="World ID verification moment"
-            autoPlay
-            className="absolute inset-0 -z-10 size-full object-cover opacity-[0.72]"
-            loop
-            muted
-            playsInline
-            poster={WORLD_ID_POSTER_SRC}
-          >
-            <source src={WORLD_ID_VIDEO_SRC} type="video/mp4" />
-          </video>
-
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-0 bg-[radial-gradient(72%_74%_at_76%_18%,rgba(0,122,255,0.28),rgba(0,0,0,0)_62%),linear-gradient(105deg,rgba(0,0,0,0.94)_0%,rgba(0,0,0,0.78)_38%,rgba(0,0,0,0.32)_72%,rgba(0,0,0,0.72)_100%)]"
-          />
-
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-0 shadow-[inset_0_0_120px_rgba(0,0,0,0.86)]"
-          />
-
-          <div className="relative z-10 flex flex-col gap-10 p-7 md:min-h-[82vh] md:justify-between md:gap-12 md:p-10 lg:p-12">
-            <div>
-              <h2 className="text-center font-twk text-[40px] font-medium leading-[0.98] tracking-[0] text-white sm:text-[48px] md:text-[68px] lg:text-[78px]">
-                Developer Stories
-              </h2>
-            </div>
-
-            <DeveloperStories />
-          </div>
-        </div>
-      </section>
-
-      <section className="bg-white px-6 py-8 md:py-10 lg:px-10">
+      <section aria-label="Our network" className="bg-white py-8 md:py-10">
         <div className="mx-auto max-w-[1180px]">
-          <h2 className="text-center font-twk text-[28px] font-medium tracking-[0] text-grey-900 sm:text-[32px] md:text-[36px]">
-            Our Network
-          </h2>
-
-          <div className="mt-6 grid grid-cols-1 gap-10 sm:grid-cols-3 md:mt-8">
+          <div className="grid grid-cols-1 gap-10 sm:grid-cols-3">
             {NETWORK_STATS.map((stat) => (
               <div className="text-center" key={stat.label}>
                 <div className="font-twk text-[56px] font-medium leading-[0.94] tracking-[0] text-grey-900 sm:text-[68px] md:text-[88px]">
@@ -397,8 +340,49 @@ export const LoginPage = async () => {
         </div>
       </section>
 
-      <footer className="bg-white px-6 py-16 text-grey-900 md:py-24 lg:px-10">
-        <div className="mx-auto grid max-w-[1280px] grid-cols-2 gap-x-8 gap-y-12 md:grid-cols-[1.25fr_repeat(3,minmax(0,1fr))] md:gap-14 lg:gap-20">
+      <div className="mx-auto grid max-w-[1180px] grid-cols-1 gap-[30px] pb-[30px] pr-[30px] pt-[30px] sm:grid-cols-3">
+        {PRODUCT_CARDS.map(({ href, label, poster, video }) => (
+          <a
+            className="product-card group relative flex aspect-[3/2] cursor-pointer flex-col overflow-hidden rounded-2xl border border-black bg-white p-6 transition-[transform,box-shadow] duration-300 ease-out hover:z-10 hover:-translate-y-1.5 hover:scale-[1.03] hover:shadow-[0_24px_50px_-12px_rgba(0,0,0,0.3)] md:p-8"
+            href={href}
+            key={label}
+            rel="noopener noreferrer"
+            target="_blank"
+          >
+            <span className="pointer-events-none relative z-10 font-twk text-[22px] font-medium tracking-[0] text-grey-900 md:text-[26px]">
+              {label}
+            </span>
+
+            <HoverVideo
+              className="absolute inset-0 size-full object-cover"
+              poster={poster}
+              src={video}
+            />
+          </a>
+        ))}
+      </div>
+
+      <section className="mt-32 bg-black text-white md:py-7 md:pr-3 lg:pr-4">
+        <div className="relative isolate mx-auto max-w-[2000px] overflow-hidden rounded-[28px] bg-[#050505] shadow-[0_12px_40px_rgba(0,0,0,0.12)] md:min-h-[82vh]">
+          <video
+            aria-label="World ID verification moment"
+            autoPlay
+            className="absolute inset-0 -z-10 size-full scale-125 object-cover"
+            loop
+            muted
+            playsInline
+            poster={WORLD_ID_POSTER_SRC}
+          >
+            <source src={WORLD_ID_VIDEO_SRC} type="video/mp4" />
+          </video>
+          <div className="relative z-10 flex flex-col gap-10 p-7 md:min-h-[82vh] md:justify-between md:gap-12 md:p-10 lg:p-12">
+            <DeveloperStories />
+          </div>
+        </div>
+      </section>
+
+      <footer className="bg-white py-16 text-grey-900 md:py-24">
+        <div className="grid grid-cols-2 gap-x-8 gap-y-12 md:grid-cols-[1.25fr_repeat(3,minmax(0,1fr))] md:gap-14 lg:gap-20">
           <div className="col-span-2 grid content-start gap-5 md:col-span-1">
             <p className="font-gta text-[19px] leading-[1.35] text-grey-400">
               Build the future with World.
@@ -411,6 +395,8 @@ export const LoginPage = async () => {
                   className="grid size-5 place-items-center font-gta text-[17px] font-semibold leading-none text-grey-400 transition-colors hover:text-grey-900"
                   href={link.href}
                   key={link.label}
+                  rel="noopener noreferrer"
+                  target="_blank"
                 >
                   <FooterSocialIcon mark={link.mark} />
                 </a>
@@ -427,16 +413,26 @@ export const LoginPage = async () => {
                   </h2>
 
                   <ul className="grid gap-4">
-                    {group.links.map((link) => (
-                      <li key={link.label}>
-                        <a
-                          className="font-gta text-[18px] leading-none text-grey-400 transition-colors hover:text-grey-900"
-                          href={link.href}
-                        >
-                          {link.label}
-                        </a>
-                      </li>
-                    ))}
+                    {group.links.map((link) => {
+                      const isExternal = link.href.startsWith("http");
+
+                      return (
+                        <li key={link.label}>
+                          <a
+                            className="font-gta text-[18px] leading-none text-grey-400 transition-colors hover:text-grey-900"
+                            href={link.href}
+                            {...(isExternal
+                              ? {
+                                  rel: "noopener noreferrer",
+                                  target: "_blank",
+                                }
+                              : {})}
+                          >
+                            {link.label}
+                          </a>
+                        </li>
+                      );
+                    })}
                   </ul>
                 </div>
               ))}
@@ -444,12 +440,14 @@ export const LoginPage = async () => {
           ))}
         </div>
 
-        <div className="mx-auto mt-20 flex max-w-[1280px] items-center gap-6 font-gta text-sm text-grey-300">
+        <div className="mt-20 flex items-center gap-6 font-gta text-sm text-grey-300">
           <span>&copy; 2026</span>
 
           <a
             className="text-grey-300 transition-colors hover:text-grey-900"
             href="https://world.org/legal/privacy-notice"
+            target="_blank"
+            rel="noopener noreferrer"
           >
             Privacy Policy
           </a>
