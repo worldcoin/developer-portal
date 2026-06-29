@@ -74,6 +74,7 @@ export const BasePixelStrip = () => {
     const reduceMotion = window.matchMedia(
       "(prefers-reduced-motion: reduce)",
     ).matches;
+    const renderStatic = reduceMotion || document.visibilityState !== "visible";
     const logoPath =
       typeof Path2D === "undefined" ? null : new Path2D(WORLD_LOGO_PATH);
     const maskCanvas = document.createElement("canvas");
@@ -306,11 +307,11 @@ export const BasePixelStrip = () => {
       // One-shot intro: cells fill in part by part over ~2s, then the wave
       // flicker eases in over the following ~350ms.
       const introMs = startTime < 0 ? 0 : time - startTime;
-      const intro = reduceMotion ? 1 : clamp(introMs / 2000, 0, 1);
-      const flashGate = reduceMotion ? 1 : clamp((introMs - 2000) / 350, 0, 1);
+      const intro = renderStatic ? 1 : clamp(introMs / 2000, 0, 1);
+      const flashGate = renderStatic ? 1 : clamp((introMs - 2000) / 350, 0, 1);
 
-      const progress = reduceMotion ? 0.5 : seconds - Math.floor(seconds);
-      const pulse = reduceMotion
+      const progress = renderStatic ? 0.5 : seconds - Math.floor(seconds);
+      const pulse = renderStatic
         ? 0.65
         : progress < 0.08
           ? progress / 0.08
@@ -380,7 +381,7 @@ export const BasePixelStrip = () => {
 
       context.globalAlpha = 1;
 
-      if (!reduceMotion) {
+      if (!renderStatic) {
         frame = window.requestAnimationFrame(draw);
       }
     };
@@ -395,7 +396,7 @@ export const BasePixelStrip = () => {
     }
 
     applyResize();
-    draw();
+    draw(renderStatic ? 2600 : 0);
 
     return () => {
       window.cancelAnimationFrame(frame);

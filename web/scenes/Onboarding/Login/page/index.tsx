@@ -271,7 +271,7 @@ export const LoginPage = async () => {
       <style dangerouslySetInnerHTML={{ __html: LOGIN_PAGE_STYLE }} />
 
       <section
-        className="relative min-h-[calc(100dvh-55px)] overflow-hidden bg-white"
+        className="relative min-h-[440px] overflow-hidden bg-white sm:min-h-[500px] md:min-h-[540px] lg:min-h-[560px]"
         data-base-pixel-host
       >
         <BasePixelStrip />
@@ -285,9 +285,9 @@ export const LoginPage = async () => {
           }}
         />
 
-        <div className="relative z-10 pr-6 pt-10 md:pt-14 lg:pr-10 lg:pt-16">
-          <div className="mx-auto max-w-[1180px]">
-            <TypingHeadline className="max-w-[880px] font-twk text-[52px] font-medium leading-[0.94] tracking-[0] text-grey-900 sm:text-[68px] md:text-[88px] lg:text-[104px]" />
+        <div className="relative z-10 px-4 pb-8 pt-8 md:pt-14 lg:px-6 lg:pt-16">
+          <div className="mx-auto w-full max-w-[calc(100vw-32px)] lg:max-w-[calc(100vw-48px)]">
+            <TypingHeadline className="max-w-[1020px] font-twk text-[48px] font-medium leading-[0.94] tracking-[0] text-grey-900 sm:text-[68px] md:text-[88px] lg:text-[104px]" />
 
             <div className="mt-10 flex flex-wrap items-center gap-3">
               <DecoratedButton
@@ -322,16 +322,19 @@ export const LoginPage = async () => {
         </div>
       </section>
 
-      <section aria-label="Our network" className="bg-white py-8 md:py-10">
-        <div className="mx-auto max-w-[1180px]">
-          <div className="grid grid-cols-1 gap-10 sm:grid-cols-3">
+      <section
+        aria-label="Our network"
+        className="bg-white px-4 py-6 md:px-6 md:py-8"
+      >
+        <div className="mx-auto w-full max-w-[calc(100vw-32px)] lg:max-w-[calc(100vw-48px)]">
+          <div className="grid grid-cols-3 gap-3 md:gap-6">
             {NETWORK_STATS.map((stat) => (
               <div className="text-center" key={stat.label}>
-                <div className="font-twk text-[56px] font-medium leading-[0.94] tracking-[0] text-grey-900 sm:text-[68px] md:text-[88px]">
+                <div className="font-twk text-[40px] font-medium leading-[0.94] tracking-[0] text-grey-900 sm:text-[68px] md:text-[88px]">
                   {stat.value}
                 </div>
 
-                <div className="mt-3 font-gta text-[16px] leading-[1.3] text-grey-400 md:text-[18px]">
+                <div className="mt-2 font-gta text-[13px] leading-[1.2] text-grey-400 md:mt-3 md:text-[18px]">
                   {stat.label}
                 </div>
               </div>
@@ -340,10 +343,10 @@ export const LoginPage = async () => {
         </div>
       </section>
 
-      <div className="mx-auto grid max-w-[1180px] grid-cols-1 gap-[30px] pb-[30px] pr-[30px] pt-[30px] sm:grid-cols-3">
+      <div className="mx-auto grid w-full max-w-[calc(100vw-32px)] grid-cols-1 gap-4 py-4 sm:grid-cols-3 md:gap-6 lg:max-w-[calc(100vw-48px)]">
         {PRODUCT_CARDS.map(({ href, label, poster, video }) => (
           <a
-            className="product-card group relative flex aspect-[3/2] cursor-pointer flex-col overflow-hidden rounded-2xl border border-black bg-white p-6 transition-[transform,box-shadow] duration-300 ease-out hover:z-10 hover:-translate-y-1.5 hover:scale-[1.03] hover:shadow-[0_24px_50px_-12px_rgba(0,0,0,0.3)] md:p-8"
+            className="product-card group relative flex aspect-[3/2] cursor-pointer flex-col overflow-hidden rounded-2xl border border-black bg-white p-5 transition-[transform,box-shadow] duration-300 ease-out hover:z-10 hover:-translate-y-1.5 hover:scale-[1.03] hover:shadow-[0_24px_50px_-12px_rgba(0,0,0,0.3)] md:p-8"
             href={href}
             key={label}
             rel="noopener noreferrer"
@@ -362,8 +365,8 @@ export const LoginPage = async () => {
         ))}
       </div>
 
-      <section className="mt-32 bg-black text-white md:py-7 md:pr-3 lg:pr-4">
-        <div className="relative isolate mx-auto max-w-[2000px] overflow-hidden rounded-[28px] bg-[#050505] shadow-[0_12px_40px_rgba(0,0,0,0.12)] md:min-h-[82vh]">
+      <section className="mt-4 bg-black px-2 py-2 text-white md:mt-6 md:px-3 md:py-3 lg:px-4">
+        <div className="relative isolate mx-auto w-full max-w-[calc(100vw-16px)] overflow-hidden rounded-[20px] bg-[#050505] shadow-[0_12px_40px_rgba(0,0,0,0.12)] md:min-h-[82vh] md:max-w-[calc(100vw-24px)] md:rounded-[28px] lg:max-w-[calc(100vw-32px)]">
           <video
             aria-label="World ID verification moment"
             autoPlay
@@ -375,13 +378,13 @@ export const LoginPage = async () => {
           >
             <source src={WORLD_ID_VIDEO_SRC} type="video/mp4" />
           </video>
-          <div className="relative z-10 flex flex-col gap-10 p-7 md:min-h-[82vh] md:justify-between md:gap-12 md:p-10 lg:p-12">
+          <div className="relative z-10 flex flex-col gap-10 p-4 md:min-h-[82vh] md:justify-between md:gap-12 md:p-10 lg:p-12">
             <DeveloperStories />
           </div>
         </div>
       </section>
 
-      <footer className="bg-white py-16 text-grey-900 md:py-24">
+      <footer className="bg-white px-4 py-10 text-grey-900 md:px-6 md:py-16">
         <div className="grid grid-cols-2 gap-x-8 gap-y-12 md:grid-cols-[1.25fr_repeat(3,minmax(0,1fr))] md:gap-14 lg:gap-20">
           <div className="col-span-2 grid content-start gap-5 md:col-span-1">
             <p className="font-gta text-[19px] leading-[1.35] text-grey-400">
