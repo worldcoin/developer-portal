@@ -14,7 +14,7 @@ export const WorldDevelopersLogo = ({
       className={twMerge(
         clsx(
           "inline-flex items-center whitespace-nowrap font-world leading-none text-grey-900",
-          "gap-[0.42em] [--lockup-h:1.75rem] p-[calc(var(--lockup-h)*14/24)] text-[length:calc(var(--lockup-h)*0.72)]",
+          "gap-[0.42em] p-[calc(var(--lockup-h)*14/24)] text-[length:calc(var(--lockup-h)*0.72)] [--lockup-h:1.75rem]",
           className,
         ),
       )}
