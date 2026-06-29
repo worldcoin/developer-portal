@@ -299,8 +299,8 @@ export const LoginPage = async () => {
       </section>
 
       <footer className="bg-white px-6 py-16 text-grey-900 md:py-24 lg:px-10">
-        <div className="mx-auto grid max-w-[1280px] gap-14 md:grid-cols-[1.25fr_repeat(3,minmax(0,1fr))] lg:gap-20">
-          <div className="grid content-start gap-5">
+        <div className="mx-auto grid max-w-[1280px] grid-cols-2 gap-x-8 gap-y-12 md:grid-cols-[1.25fr_repeat(3,minmax(0,1fr))] md:gap-14 lg:gap-20">
+          <div className="col-span-2 grid content-start gap-5 md:col-span-1">
             <p className="font-gta text-[19px] leading-[1.35] text-grey-400">
               Build the future with World.
             </p>
