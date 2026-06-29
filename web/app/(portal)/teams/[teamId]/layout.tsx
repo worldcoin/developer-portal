@@ -1,11 +1,16 @@
-import { pickPortalComponent } from "@/lib/feature-flags/portal-v3/render-portal-scene";
+import { isPortalV3EnabledForTeam } from "@/lib/feature-flags/portal-v3/flag";
 import { TeamIdLayout } from "@/scenes/Portal/Teams/TeamId/layout";
 import { TeamIdLayoutV3 } from "@/scenes/PortalV3/Teams/TeamId/layout";
 import { ComponentProps } from "react";
 
-export default function TeamIdRouteLayout(
+// The team boundary is the single per-team v3 decision point: if the team has
+// the flag on, the whole team subtree renders v3 (the shell), otherwise v2.
+export default async function TeamIdRouteLayout(
   props: ComponentProps<typeof TeamIdLayout>,
 ) {
-  const Layout = pickPortalComponent(TeamIdLayout, TeamIdLayoutV3);
+  const { teamId } = await props.params;
+  const Layout = (await isPortalV3EnabledForTeam(teamId ?? ""))
+    ? TeamIdLayoutV3
+    : TeamIdLayout;
   return <Layout {...props} />;
 }
