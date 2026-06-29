@@ -18,57 +18,15 @@ import {
   getSdk as getFetchMembershipsSdk,
 } from "./graphql/server/fetch-memberships.generated";
 
-// `overflow-x: clip` clips horizontal overflow WITHOUT creating a scroll
-// container, so it (unlike `hidden`) does not break the sticky header.
+// Scoped to this page only (renders just here, not app-wide). `overflow-x:
+// clip` clips horizontal overflow WITHOUT creating a scroll container, so it
+// (unlike `hidden`) does not break the sticky header.
 const LOGIN_PAGE_STYLE = `
 html,
 body,
 main {
   overflow-x: clip;
 }
-
-.reveal-up {
-  opacity: 0;
-  transform: translateY(28px);
-  transition:
-    opacity 0.7s ease-out,
-    transform 0.7s ease-out;
-}
-
-.reveal-up.is-visible {
-  opacity: 1;
-  transform: none;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .reveal-up {
-    opacity: 1;
-    transform: none;
-    transition: none;
-  }
-}
-`;
-
-const REVEAL_ON_SCROLL_SCRIPT = `
-(function () {
-  var els = document.querySelectorAll(".reveal-up");
-  if (!("IntersectionObserver" in window)) {
-    els.forEach(function (el) { el.classList.add("is-visible"); });
-    return;
-  }
-  var io = new IntersectionObserver(
-    function (entries) {
-      entries.forEach(function (entry) {
-        if (entry.isIntersecting) {
-          entry.target.classList.add("is-visible");
-          io.unobserve(entry.target);
-        }
-      });
-    },
-    { threshold: 0.2 }
-  );
-  els.forEach(function (el) { io.observe(el); });
-})();
 `;
 
 const WORLD_ID_POSTER_SRC =
@@ -264,13 +222,6 @@ export const LoginPage = async () => {
   return (
     <div className="min-h-full overflow-x-hidden bg-white text-grey-900">
       <style dangerouslySetInnerHTML={{ __html: LOGIN_PAGE_STYLE }} />
-      <noscript>
-        <style
-          dangerouslySetInnerHTML={{
-            __html: ".reveal-up{opacity:1!important;transform:none!important;}",
-          }}
-        />
-      </noscript>
 
       <section
         className="relative min-h-[calc(100dvh-55px)] overflow-hidden bg-white"
@@ -326,18 +277,11 @@ export const LoginPage = async () => {
 
       <section className="bg-white px-6 py-8 md:py-10 lg:px-10">
         <div className="mx-auto max-w-[1180px]">
-          <h2
-            className="reveal-up text-center font-twk text-[28px] font-medium tracking-[0] text-grey-900 sm:text-[32px] md:text-[36px]"
-            suppressHydrationWarning
-          >
+          <h2 className="text-center font-twk text-[28px] font-medium tracking-[0] text-grey-900 sm:text-[32px] md:text-[36px]">
             Our Network
           </h2>
 
-          <div
-            className="reveal-up mt-6 grid grid-cols-1 gap-10 sm:grid-cols-3 md:mt-8"
-            style={{ transitionDelay: "120ms" }}
-            suppressHydrationWarning
-          >
+          <div className="mt-6 grid grid-cols-1 gap-10 sm:grid-cols-3 md:mt-8">
             {NETWORK_STATS.map((stat) => (
               <div className="text-center" key={stat.label}>
                 <div className="font-twk text-[56px] font-medium leading-[0.94] tracking-[0] text-grey-900 sm:text-[68px] md:text-[88px]">
@@ -447,8 +391,6 @@ export const LoginPage = async () => {
           </a>
         </div>
       </footer>
-
-      <script dangerouslySetInnerHTML={{ __html: REVEAL_ON_SCROLL_SCRIPT }} />
     </div>
   );
 };
