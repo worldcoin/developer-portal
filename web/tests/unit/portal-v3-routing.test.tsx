@@ -3,7 +3,7 @@
  *
  * Routing integration test for the route → flag → chooser wiring. A portal
  * route shim must render the v2 component when the flag is off and the v3
- * component when it's on. The chooser (renderPortalScene) and the flag read
+ * component when it's on. The chooser (pickPortalComponent) and the flag read
  * are the REAL implementations; only the leaf layouts are stubbed so we assert
  * which branch the route takes, not their internals.
  */
