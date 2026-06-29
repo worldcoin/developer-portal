@@ -33,6 +33,12 @@ export const LoginLayout = (props: { children: ReactNode }) => {
               >
                 Blog
               </a>
+              <a
+                href="https://world.org/world-app"
+                className="hidden font-world text-[16px] text-base leading-none tracking-[0.08em] text-black no-underline hover:underline md:inline-flex"
+              >
+                World App
+              </a>
             </div>
             <div className="ml-5 flex items-center gap-3">
               <a

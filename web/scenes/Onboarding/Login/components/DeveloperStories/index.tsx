@@ -8,6 +8,7 @@ type DeveloperStory = {
   name: string;
   poster: string;
   role: string;
+  title: string;
   // YouTube video id; leave empty to show the thumbnail with no play button.
   youtubeId: string;
 };
@@ -19,6 +20,7 @@ const STORIES: DeveloperStory[] = [
     poster:
       "https://images.prismic.io/worldcoin-company-website/ag3QGqYofJOwHb_V_aTmV8HNYClf9oBXK_age-verification-privacy-paradox1-1-.png?auto=format,compress&w=1200",
     role: "Founder",
+    title: "Orb Hunt Seoul",
     youtubeId: "KsOXJx_JQ7w",
   },
   {
@@ -27,6 +29,7 @@ const STORIES: DeveloperStory[] = [
     poster:
       "https://images.prismic.io/worldcoin-company-website/ag7vZKYofJOwHe23_0dde88b74912f140608b064cc58853a26bbda0cc.jpg?auto=format,compress&w=1200",
     role: "Co-Founder",
+    title: "TBD.Vote",
     youtubeId: "cnM2VuLlElw",
   },
 ];
@@ -137,8 +140,12 @@ export const DeveloperStories = () => {
         </div>
       </div>
 
+      <div className="mt-8 text-center font-twk text-[32px] font-medium leading-[1.05] tracking-[0] text-white sm:text-[40px] md:text-[56px] lg:text-[64px]">
+        {STORIES[activeIndex].title}
+      </div>
+
       <div
-        className="mt-8 flex snap-x snap-mandatory items-start gap-5 overflow-x-auto pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        className="mt-4 flex snap-x snap-mandatory items-start gap-5 overflow-x-auto pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         ref={trackRef}
       >
         {STORIES.map((story, index) => (

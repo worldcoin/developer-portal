@@ -13,6 +13,7 @@ import { urls } from "@/lib/urls";
 import { redirect } from "next/navigation";
 import { BasePixelStrip } from "../components/BasePixelStrip";
 import { DeveloperStories } from "../components/DeveloperStories";
+import { HoverVideo } from "../components/HoverVideo";
 import { TypingHeadline } from "../components/TypingHeadline";
 import {
   FetchMembershipsQuery,
@@ -27,6 +28,57 @@ html,
 body,
 main {
   overflow-x: clip;
+}
+
+/* Animatable angle for the product-card "shine" border sweep. */
+@property --product-card-shine-angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+
+/* A blue gradient ring that fades in and rotates on hover. The mask keeps the
+   gradient to a thin border ring only (content-box vs border-box xor). */
+.product-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: inherit;
+  padding: 1.5px;
+  background: conic-gradient(
+    from var(--product-card-shine-angle),
+    transparent 0deg,
+    #4292f4 70deg,
+    #bfdbfe 130deg,
+    transparent 210deg,
+    transparent 360deg
+  );
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 0.35s ease;
+  pointer-events: none;
+}
+
+.product-card:hover::before {
+  opacity: 1;
+  animation: product-card-shine 2.4s linear infinite;
+}
+
+@keyframes product-card-shine {
+  to {
+    --product-card-shine-angle: 360deg;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .product-card:hover::before {
+    animation: none;
+  }
 }
 `;
 
@@ -151,6 +203,32 @@ const NETWORK_STATS = [
   { label: "Proofs generated", value: "240M" },
 ];
 
+// Product cards in the hero-adjacent showcase section. Each plays a muted
+// Prismic clip on hover and has the shining border (see .product-card styles
+// in LOGIN_PAGE_STYLE).
+const PRODUCT_CARDS: Array<{
+  label: string;
+  poster?: string;
+  video: string;
+}> = [
+  {
+    label: "World ID",
+    poster: "/posters/World-ID-thumbnail.png",
+    video:
+      "https://worldcoin-company-website.cdn.prismic.io/worldcoin-company-website/aeCqpZ1ZCF7ETPYO_Fees-Animated.mp4",
+  },
+  {
+    label: "IDKit",
+    video:
+      "https://worldcoin-company-website.cdn.prismic.io/worldcoin-company-website/aeIixp1ZCF7ETSvj_dithr-2026-4-14_16-17-58-1-.mp4",
+  },
+  {
+    label: "Agent Kit",
+    video:
+      "https://worldcoin-company-website.cdn.prismic.io/worldcoin-company-website/ablVSrbci2UF6Hcw_AgentKitDither-Video-web-.mp4",
+  },
+];
+
 export const LoginPage = async () => {
   let session = await auth0.getSession();
   const user = session?.user as Auth0SessionUser["user"];
@@ -238,22 +316,23 @@ export const LoginPage = async () => {
         </div>
       </section>
 
-      <section className="bg-white px-6 py-8 md:py-10 lg:px-10">
-        <div className="mx-auto max-w-[1180px]">
-          <h2 className="text-center font-twk text-[28px] font-medium tracking-[0] text-grey-900 sm:text-[32px] md:text-[36px]">
-            Our Network
-          </h2>
+      <section className="bg-white px-4 pb-12 pt-8">
+        <div className="mx-auto w-full max-w-[1120px]">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+            {PRODUCT_CARDS.map(({ label, poster, video }) => (
+              <div
+                className="product-card group relative flex aspect-[4/3] flex-col overflow-hidden rounded-2xl border border-black bg-white p-6 md:p-8"
+                key={label}
+              >
+                <span className="pointer-events-none relative z-10 font-twk text-[22px] font-medium tracking-[0] text-grey-900 md:text-[26px]">
+                  {label}
+                </span>
 
-          <div className="mt-6 grid grid-cols-1 gap-10 sm:grid-cols-3 md:mt-8">
-            {NETWORK_STATS.map((stat) => (
-              <div className="text-center" key={stat.label}>
-                <div className="font-twk text-[56px] font-medium leading-[0.94] tracking-[0] text-grey-900 sm:text-[68px] md:text-[88px]">
-                  {stat.value}
-                </div>
-
-                <div className="mt-3 font-gta text-[16px] leading-[1.3] text-grey-400 md:text-[18px]">
-                  {stat.label}
-                </div>
+                <HoverVideo
+                  className="absolute inset-0 size-full object-cover"
+                  poster={poster}
+                  src={video}
+                />
               </div>
             ))}
           </div>
@@ -292,6 +371,28 @@ export const LoginPage = async () => {
             </div>
 
             <DeveloperStories />
+          </div>
+        </div>
+      </section>
+
+      <section className="bg-white px-6 py-8 md:py-10 lg:px-10">
+        <div className="mx-auto max-w-[1180px]">
+          <h2 className="text-center font-twk text-[28px] font-medium tracking-[0] text-grey-900 sm:text-[32px] md:text-[36px]">
+            Our Network
+          </h2>
+
+          <div className="mt-6 grid grid-cols-1 gap-10 sm:grid-cols-3 md:mt-8">
+            {NETWORK_STATS.map((stat) => (
+              <div className="text-center" key={stat.label}>
+                <div className="font-twk text-[56px] font-medium leading-[0.94] tracking-[0] text-grey-900 sm:text-[68px] md:text-[88px]">
+                  {stat.value}
+                </div>
+
+                <div className="mt-3 font-gta text-[16px] leading-[1.3] text-grey-400 md:text-[18px]">
+                  {stat.label}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </section>

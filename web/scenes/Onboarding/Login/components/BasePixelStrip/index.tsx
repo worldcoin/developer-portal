@@ -37,6 +37,7 @@ type DrawCell = {
   index: number;
   isActive: boolean;
   logoAlpha: number;
+  reveal: number;
   seed: number;
   size: number;
   spotlight: number;
@@ -83,6 +84,8 @@ export const BasePixelStrip = () => {
     let dpr = 1;
     let frame = 0;
     let resizeFrame = 0;
+    // Timestamp of the first animated frame; drives the one-shot intro reveal.
+    let startTime = -1;
     let visibleCells: DrawCell[] = [];
     let logoLayout = { left: 0, size: 1, top: 0 };
     let wave: Wave = {
@@ -225,6 +228,7 @@ export const BasePixelStrip = () => {
             index,
             isActive: false,
             logoAlpha,
+            reveal: clamp((xMix + yMix) * 0.36 + random(index) * 0.2, 0, 0.82),
             seed: random(index),
             size,
             spotlight: 0,
@@ -294,6 +298,17 @@ export const BasePixelStrip = () => {
       context.clearRect(0, 0, width, height);
 
       const seconds = time / 1000;
+
+      if (startTime < 0 && time > 0) {
+        startTime = time;
+      }
+
+      // One-shot intro: cells fill in part by part over ~2s, then the wave
+      // flicker eases in over the following ~350ms.
+      const introMs = startTime < 0 ? 0 : time - startTime;
+      const intro = reduceMotion ? 1 : clamp(introMs / 2000, 0, 1);
+      const flashGate = reduceMotion ? 1 : clamp((introMs - 2000) / 350, 0, 1);
+
       const progress = reduceMotion ? 0.5 : seconds - Math.floor(seconds);
       const pulse = reduceMotion
         ? 0.65
@@ -310,16 +325,24 @@ export const BasePixelStrip = () => {
       context.fillStyle = FILL_GLOW;
 
       for (const cell of visibleCells) {
+        const revealFactor =
+          intro >= 1 ? 1 : clamp((intro - cell.reveal) / 0.18, 0, 1);
+
+        if (revealFactor <= 0) {
+          continue;
+        }
+
         const flicker = reduceMotion
           ? 1
           : 0.78 +
             Math.sin(seconds * 45 + cell.seed * 22) * 0.24 +
             random(cell.index, wave.salt + 3) * 0.3;
-        const flash = cell.isActive
-          ? pulse * flicker * (0.72 + cell.spotlight * 1.4)
-          : 0;
+        const flash =
+          (cell.isActive
+            ? pulse * flicker * (0.72 + cell.spotlight * 1.4)
+            : 0) * flashGate;
         const intensity = clamp(
-          cell.logoAlpha * cell.texture * (0.48 + flash),
+          cell.logoAlpha * cell.texture * (0.48 + flash) * revealFactor,
           0,
           1,
         );
