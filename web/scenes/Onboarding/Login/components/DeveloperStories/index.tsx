@@ -61,9 +61,6 @@ export const DeveloperStories = () => {
   return (
     <div className="flex w-full flex-col text-white">
       <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
-        <h2 className="font-twk text-[32px] font-medium leading-[1] tracking-[0] text-white md:text-[44px]">
-          Developer Stories
-        </h2>
 
         <div className="flex items-center gap-3">
           <button

@@ -326,13 +326,17 @@ export const LoginPage = async () => {
 
       <section className="bg-white px-6 py-8 md:py-10 lg:px-10">
         <div className="mx-auto max-w-[1180px]">
-          <h2 className="reveal-up text-center font-twk text-[28px] font-medium tracking-[0] text-grey-900 sm:text-[32px] md:text-[36px]">
+          <h2
+            className="reveal-up text-center font-twk text-[28px] font-medium tracking-[0] text-grey-900 sm:text-[32px] md:text-[36px]"
+            suppressHydrationWarning
+          >
             Our Network
           </h2>
 
           <div
             className="reveal-up mt-6 grid grid-cols-1 gap-10 sm:grid-cols-3 md:mt-8"
             style={{ transitionDelay: "120ms" }}
+            suppressHydrationWarning
           >
             {NETWORK_STATS.map((stat) => (
               <div className="text-center" key={stat.label}>
@@ -376,7 +380,7 @@ export const LoginPage = async () => {
           <div className="relative z-10 flex flex-col gap-10 p-7 md:min-h-[82vh] md:justify-between md:gap-12 md:p-10 lg:p-12">
             <div>
               <h2 className="text-center font-twk text-[40px] font-medium leading-[0.98] tracking-[0] text-white sm:text-[48px] md:text-[68px] lg:text-[78px]">
-                Universal Proof of Human
+                Developer Stories
               </h2>
             </div>
 

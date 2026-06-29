@@ -13,7 +13,7 @@ export const LoginLayout = (props: { children: ReactNode }) => {
       <header className="sticky top-0 z-20 border-b border-grey-100/70 bg-white/70 backdrop-blur-md">
         <SizingWrapper>
           <div className="flex items-center justify-between py-2">
-            <div className="-ml-[64px] flex items-center gap-10">
+            <div className="flex items-center gap-6 lg:-ml-[64px] lg:gap-10">
               <Link
                 href="/"
                 aria-label="World"
@@ -23,13 +23,13 @@ export const LoginLayout = (props: { children: ReactNode }) => {
               </Link>
               <a
                 href="https://docs.world.org"
-                className="font-world text-[16px] leading-none tracking-[0.08em] text-base text-black no-underline hover:underline"
+                className="hidden font-world text-[16px] text-base leading-none tracking-[0.08em] text-black no-underline hover:underline md:inline-flex"
               >
                 Docs
               </a>
               <a
                 href="https://world.org/blog"
-                className="font-world text-[16px] leading-none tracking-[0.08em] text-base text-black no-underline hover:underline"
+                className="hidden font-world text-[16px] text-base leading-none tracking-[0.08em] text-black no-underline hover:underline md:inline-flex"
               >
                 Blog
               </a>
