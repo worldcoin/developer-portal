@@ -40,7 +40,6 @@ export const ActionIdLayout = (props: ActionIdLayout) => {
   const app = action?.app;
 
   const isOnChainApp = app?.engine === EngineType.OnChain;
-  const isEnabled = true;
 
   const isEnoughPermissions = checkUserPermissions(user, params.teamId ?? "", [
     Role_Enum.Owner,
@@ -62,15 +61,13 @@ export const ActionIdLayout = (props: ActionIdLayout) => {
       <SizingWrapper gridClassName="order-1 pt-6 md:pt-10">
         <ActionsHeader
           displayText={action?.name ?? ""}
-          backText={
-            isEnabled ? "Back to Legacy Actions" : "Back to Incognito Actions"
-          }
+          backText="Back to Legacy Actions"
           backUrl={urls.actions({
             team_id: params.teamId ?? "",
-            app_id: params.appId,
+            app_id: params.appId ?? "",
           })}
           isLoading={loading}
-          isDeprecated={isEnabled}
+          isDeprecated
           analyticsContext={{
             teamId: params.teamId,
             appId: params.appId,

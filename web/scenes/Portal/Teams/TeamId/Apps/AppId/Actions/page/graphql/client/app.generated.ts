@@ -14,11 +14,7 @@ export type GetAppQuery = {
     __typename?: "app";
     id: string;
     engine: string;
-    app_metadata: Array<{
-      __typename?: "app_metadata";
-      id: string;
-      name: string;
-    }>;
+    app_metadata: Array<{ __typename?: "app_metadata"; name: string }>;
   } | null;
 };
 
@@ -28,7 +24,6 @@ export const GetAppDocument = gql`
       id
       engine
       app_metadata {
-        id
         name
       }
     }
