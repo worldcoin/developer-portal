@@ -75,6 +75,23 @@
   --toastify-icon-color-warning: #ff4732;
 }
 
+/* Portal v3 light semantic tokens. */
+:root {
+  --v3-background: #ffffff;
+  --v3-foreground: #191c20;
+  --v3-muted-foreground: #657080;
+  --v3-faint-foreground: #9ba3ae;
+  --v3-card: #ffffff;
+  --v3-sidebar: #fbfbfc;
+  --v3-sidebar-foreground: #191c20;
+  --v3-border: #ebecef;
+  --v3-muted: #f3f4f5;
+  --v3-accent: #4940e0;
+  --v3-accent-foreground: #ffffff;
+  --v3-accent-muted: #f0f0fd;
+  --v3-ring: #4940e0;
+}
+
 .Toastify__toast {
   border-radius: 0.75rem;
   display: flex;

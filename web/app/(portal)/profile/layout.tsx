@@ -1,2 +1,5 @@
+import { renderPortalScene } from "@/lib/feature-flags/portal-v3";
 import { ProfileLayout } from "@/scenes/Portal/Profile/layout";
-export default ProfileLayout;
+import { ProfileLayoutV3 } from "@/scenes/PortalV3/Profile/layout";
+
+export default renderPortalScene(ProfileLayout, ProfileLayoutV3);

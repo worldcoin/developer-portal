@@ -35,6 +35,19 @@ const config: Config = {
       },
 
       colors: {
+        background: "var(--v3-background)",
+        foreground: "var(--v3-foreground)",
+        "muted-foreground": "var(--v3-muted-foreground)",
+        "faint-foreground": "var(--v3-faint-foreground)",
+        card: "var(--v3-card)",
+        sidebar: "var(--v3-sidebar)",
+        "sidebar-foreground": "var(--v3-sidebar-foreground)",
+        border: "var(--v3-border)",
+        muted: "var(--v3-muted)",
+        accent: "var(--v3-accent)",
+        "accent-foreground": "var(--v3-accent-foreground)",
+        "accent-muted": "var(--v3-accent-muted)",
+        ring: "var(--v3-ring)",
         danger: "#F2280D", // Primary danger red for delete actions
 
         blue: {

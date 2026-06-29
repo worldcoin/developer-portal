@@ -1,3 +1,4 @@
+import { renderPortalScene } from "@/lib/feature-flags/portal-v3";
 import { generateMetaTitle } from "@/lib/genarate-title";
 import { ActionsPage } from "@/scenes/Portal/Teams/TeamId/Apps/AppId/Actions/page";
 import { Metadata } from "next";
@@ -6,4 +7,4 @@ export const metadata: Metadata = {
   title: generateMetaTitle({ left: "Incognito actions" }),
 };
 
-export default ActionsPage;
+export default renderPortalScene(ActionsPage, null);
