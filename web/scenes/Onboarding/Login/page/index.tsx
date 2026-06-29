@@ -271,7 +271,7 @@ export const LoginPage = async () => {
       <style dangerouslySetInnerHTML={{ __html: LOGIN_PAGE_STYLE }} />
 
       <section
-        className="relative min-h-[440px] overflow-hidden bg-white sm:min-h-[500px] md:min-h-[540px] lg:min-h-[560px]"
+        className="relative min-h-[680px] overflow-hidden bg-white sm:min-h-[770px] md:min-h-[840px] lg:min-h-[880px]"
         data-base-pixel-host
       >
         <BasePixelStrip />
