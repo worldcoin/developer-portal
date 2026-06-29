@@ -12,7 +12,8 @@ import { AppSwitcher, AppSwitcherApp } from "./AppSwitcher";
 const appName = (app: FetchAppsQuery["app"][number]) =>
   app.app_metadata?.[0]?.name ?? "Untitled app";
 
-export const AppSwitcherContainer = () => {
+export const AppSwitcherContainer = (props: { canCreateApp?: boolean }) => {
+  const { canCreateApp = false } = props;
   const { teamId, appId } = useParams() as { teamId?: string; appId?: string };
   // Keep showing the last selected app when navigating to team-scope routes
   // (Members, API Keys, Settings) that don't have an appId in the URL.
@@ -39,12 +40,16 @@ export const AppSwitcherContainer = () => {
 
   return (
     <>
-      <CreateAppDialogV4 open={dialogOpen} onClose={setDialogOpen} />
+      {/* Only mount the create dialog for members who can actually create. */}
+      {canCreateApp ? (
+        <CreateAppDialogV4 open={dialogOpen} onClose={setDialogOpen} />
+      ) : null}
       <AppSwitcher
         teamId={teamId}
         currentAppId={currentAppId}
         apps={apps}
-        onCreateApp={() => setDialogOpen(true)}
+        canCreateApp={canCreateApp}
+        onCreateApp={canCreateApp ? () => setDialogOpen(true) : undefined}
       />
     </>
   );

@@ -18,7 +18,7 @@ import { TeamSwitcher } from "./TeamSwitcher";
  *
  * Reuses the SAME session + membership reads v2 already uses (auth0.getSession,
  * user.hasura.memberships) — no new data path. ShellFrame owns the markup +
- * data-testid + ColorInitializer + UserPopup.
+ * data-testid + UserPopup (color is passed through as a prop).
  */
 export const V3Shell = async (props: {
   teamId?: string;
@@ -47,6 +47,8 @@ export const V3Shell = async (props: {
     Role_Enum.Admin,
   ]);
   const canSeeSettings = checkUserPermissions(user, teamId, [Role_Enum.Owner]);
+  // Create-app is Owner/Admin (same set as API Keys), matching v2 AppSelector.
+  const canCreateApp = canSeeApiKeys;
 
   return (
     <ShellFrame
@@ -67,7 +69,7 @@ export const V3Shell = async (props: {
           canSeeSettings={canSeeSettings}
         />
       }
-      header={<AppSwitcherContainer />}
+      header={<AppSwitcherContainer canCreateApp={canCreateApp} />}
     >
       {props.children}
     </ShellFrame>

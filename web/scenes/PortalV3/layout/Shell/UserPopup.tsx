@@ -11,9 +11,8 @@ import {
   WORLD_STATUS_URL,
 } from "@/lib/constants";
 import { urls } from "@/lib/urls";
-import { colorAtom } from "@/scenes/Portal/layout/color-atom";
+import { Color } from "@/scenes/Portal/Profile/types";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
-import { useAtomValue } from "jotai";
 import Link from "next/link";
 import { CSSProperties, ReactNode } from "react";
 
@@ -60,8 +59,8 @@ const Separator = () => (
  * (mirrored from the main repo's <Help />: support · community · references) ·
  * Docs · Log out.
  */
-const UserAvatar = (props: { name: string }) => {
-  const color = useAtomValue(colorAtom);
+const UserAvatar = (props: { name: string; color: Color | null }) => {
+  const { color } = props;
   return (
     <div
       className="flex size-6 shrink-0 items-center justify-center rounded-full text-xs font-semibold uppercase"
@@ -79,13 +78,13 @@ const UserAvatar = (props: { name: string }) => {
   );
 };
 
-export const UserPopup = (props: { user: PortalUser }) => {
-  const { user } = props;
+export const UserPopup = (props: { user: PortalUser; color: Color | null }) => {
+  const { user, color } = props;
 
   return (
     <DropdownMenu.Root>
       <DropdownMenu.Trigger className="flex w-full items-center gap-2.5 rounded-8 p-2 text-left outline-none hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring">
-        <UserAvatar name={user.name} />
+        <UserAvatar name={user.name} color={color} />
         <span className="min-w-0 flex-1 truncate font-gta text-14 font-medium">
           {user.name}
         </span>

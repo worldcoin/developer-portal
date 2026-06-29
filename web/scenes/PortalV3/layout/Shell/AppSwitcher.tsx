@@ -18,12 +18,28 @@ export const AppSwitcher = (props: {
   teamId: string;
   currentAppId?: string;
   apps: AppSwitcherApp[];
+  canCreateApp?: boolean;
   onCreateApp?: () => void;
 }) => {
   const router = useRouter();
-  const { teamId, currentAppId, apps, onCreateApp } = props;
+  const {
+    teamId,
+    currentAppId,
+    apps,
+    canCreateApp = false,
+    onCreateApp,
+  } = props;
 
   if (apps.length === 0) {
+    // Members without create permission see a non-interactive label, not a
+    // create entry point (matches v2 AppSelector's Owner/Admin gate).
+    if (!canCreateApp) {
+      return (
+        <span className="flex items-center gap-2 rounded-8 border border-border px-2.5 py-1.5 font-gta text-14 font-medium text-muted-foreground">
+          No apps
+        </span>
+      );
+    }
     return (
       <button
         onClick={() => onCreateApp?.()}
@@ -65,13 +81,17 @@ export const AppSwitcher = (props: {
               <span className="truncate">{app.name}</span>
             </DropdownMenu.Item>
           ))}
-          <DropdownMenu.Separator className="my-1 h-px bg-border" />
-          <DropdownMenu.Item
-            onSelect={() => onCreateApp?.()}
-            className="flex cursor-pointer items-center gap-2 rounded-8 px-2.5 py-1.5 font-gta text-14 text-muted-foreground outline-none data-[highlighted]:bg-muted data-[highlighted]:text-foreground"
-          >
-            Create app
-          </DropdownMenu.Item>
+          {canCreateApp ? (
+            <>
+              <DropdownMenu.Separator className="my-1 h-px bg-border" />
+              <DropdownMenu.Item
+                onSelect={() => onCreateApp?.()}
+                className="flex cursor-pointer items-center gap-2 rounded-8 px-2.5 py-1.5 font-gta text-14 text-muted-foreground outline-none data-[highlighted]:bg-muted data-[highlighted]:text-foreground"
+              >
+                Create app
+              </DropdownMenu.Item>
+            </>
+          ) : null}
         </DropdownMenu.Content>
       </DropdownMenu.Portal>
     </DropdownMenu.Root>
