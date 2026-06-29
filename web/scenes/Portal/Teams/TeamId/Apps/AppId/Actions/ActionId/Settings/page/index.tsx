@@ -25,8 +25,7 @@ export const ActionIdSettingsPage = (props: ActionIdSettingsPageProps) => {
   });
 
   const action = data?.action[0];
-  const isEnabled = true;
-  const isReadOnly = isEnabled && !isLegacyActionsEditableForTeam(teamId);
+  const isReadOnly = !isLegacyActionsEditableForTeam(teamId);
 
   if (!loading && !action) {
     return (

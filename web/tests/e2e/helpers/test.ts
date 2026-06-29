@@ -33,7 +33,6 @@ export const test = base.extend<{}, { workerStorageState: string }>({
       const page = await context.newPage();
 
       await page.goto("/login");
-      await page.locator("[data-testid='button-log-in']").click();
 
       await page.locator("[name='email']").fill(process.env.TEST_USER_EMAIL);
       await page
