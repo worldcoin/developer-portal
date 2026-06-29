@@ -5,6 +5,7 @@ import { WorldDevelopersLogo } from "@/components/Icons/WorldDevelopersLogo";
 import { urls } from "@/lib/urls";
 import Link from "next/link";
 import { ReactNode } from "react";
+import { LoginMobileNav } from "../components/LoginMobileNav";
 
 const LOGIN_HEADER_LINKS = [
   {
@@ -45,9 +46,6 @@ const LOGIN_MOBILE_NAV_LINKS = [
 const desktopNavLinkClassName =
   "hidden font-world text-[16px] leading-none tracking-[0.08em] text-black no-underline hover:underline md:inline-flex";
 
-const mobileNavLinkClassName =
-  "rounded-xl px-4 py-4 no-underline hover:bg-grey-50";
-
 export const LoginLayout = (props: { children: ReactNode }) => {
   return (
     <div className="grid min-h-[100dvh] w-full grid-rows-auto/1fr">
@@ -74,35 +72,7 @@ export const LoginLayout = (props: { children: ReactNode }) => {
             ))}
           </div>
 
-          <details className="group relative md:hidden">
-            <summary
-              aria-label="Open navigation menu"
-              className="grid size-12 cursor-pointer list-none place-items-center rounded-full border border-black bg-white text-black transition-colors hover:bg-grey-50 [&::-webkit-details-marker]:hidden"
-            >
-              <span className="grid gap-1">
-                <span className="block h-0.5 w-5 rounded-full bg-current" />
-                <span className="block h-0.5 w-5 rounded-full bg-current" />
-                <span className="block h-0.5 w-5 rounded-full bg-current" />
-              </span>
-            </summary>
-
-            <nav
-              aria-label="Mobile navigation"
-              className="fixed inset-x-2 top-16 hidden rounded-2xl border border-grey-100 bg-white p-2 font-world text-[16px] leading-none tracking-[0.08em] text-black shadow-lg group-open:grid"
-            >
-              {LOGIN_MOBILE_NAV_LINKS.map((link) => (
-                <a
-                  className={mobileNavLinkClassName}
-                  href={link.href}
-                  key={link.label}
-                  rel={link.external ? "noopener noreferrer" : undefined}
-                  target={link.external ? "_blank" : undefined}
-                >
-                  {link.label}
-                </a>
-              ))}
-            </nav>
-          </details>
+          <LoginMobileNav links={LOGIN_MOBILE_NAV_LINKS} />
 
           <div className="ml-5 hidden items-center gap-3 md:flex">
             <a

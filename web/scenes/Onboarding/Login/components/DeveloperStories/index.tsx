@@ -112,10 +112,22 @@ export const DeveloperStories = () => {
       setActiveIndex(closestIndex);
     };
 
+    // `scrollend` fires precisely when momentum settles, but Safari does not
+    // support it — fall back to a debounced `scroll` listener so the active
+    // card stays in sync on swipe in every browser.
+    let settleTimeout: ReturnType<typeof setTimeout>;
+    const handleScroll = () => {
+      clearTimeout(settleTimeout);
+      settleTimeout = setTimeout(syncActiveIndex, 120);
+    };
+
     track.addEventListener("scrollend", syncActiveIndex);
+    track.addEventListener("scroll", handleScroll, { passive: true });
 
     return () => {
+      clearTimeout(settleTimeout);
       track.removeEventListener("scrollend", syncActiveIndex);
+      track.removeEventListener("scroll", handleScroll);
     };
   }, []);
 
