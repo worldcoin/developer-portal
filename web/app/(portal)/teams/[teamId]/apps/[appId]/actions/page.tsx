@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   title: generateMetaTitle({ left: "Incognito actions" }),
 };
 
-// v2-compat: V3=null renders the existing v2 ActionsPage body inside the
+// Compat route: V3=null renders the existing v2 ActionsPage body inside the
 // already-mounted v3 shell (the AppId v3 layout drops AppIdChrome). No v3
 // Actions page is created; the v3 sidebar does not link here.
 export default renderPortalScene(ActionsPage, null);

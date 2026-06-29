@@ -4,15 +4,12 @@ import { render, screen } from "@testing-library/react";
 
 describe("PortalV3 kiosk exemption", () => {
   it("kiosk path is public-exempt and never renders the v3 shell/page", async () => {
-    const {
-      getPortalV3RouteMode,
-      shouldRenderPortalV3Shell,
-      shouldRenderPortalV3Page,
-    } = await import("@/lib/feature-flags/portal-v3/route-mode");
+    const { getPortalV3RouteMode, shouldRenderPortalV3Shell } = await import(
+      "@/lib/feature-flags/portal-v3/route-mode"
+    );
     const path = "/kiosk/app_1234/action_5678";
     expect(getPortalV3RouteMode(path)).toBe("public-exempt");
     expect(shouldRenderPortalV3Shell(path)).toBe(false);
-    expect(shouldRenderPortalV3Page(path)).toBe(false);
   });
 
   it("PortalChromeGate keeps the v2 Header and does NOT render portal-v3-shell on kiosk", async () => {

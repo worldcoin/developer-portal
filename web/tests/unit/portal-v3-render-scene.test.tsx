@@ -37,7 +37,7 @@ describe("pickPortalComponent", () => {
     expect(pickPortalComponent(V2, V3)).toBe(V3);
   });
 
-  it("returns V2 when the flag is on but V3 is null (v2-compat shim)", () => {
+  it("returns V2 when the flag is on but V3 is null (compat shim)", () => {
     isPortalV3Enabled.mockReturnValue(true);
     expect(pickPortalComponent(V2, null)).toBe(V2);
   });

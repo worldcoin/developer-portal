@@ -4,7 +4,6 @@ export { isPortalV3Enabled } from "./flag";
 export {
   getPortalV3RouteMode,
   shouldRenderPortalV3Shell,
-  shouldRenderPortalV3Page,
   type PortalV3RouteMode,
 } from "./route-mode";
 export { pickPortalComponent, renderPortalScene } from "./render-portal-scene";

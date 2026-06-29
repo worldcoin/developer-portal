@@ -7,7 +7,7 @@ import { isPortalV3Enabled } from "@/lib/feature-flags/portal-v3/flag";
  *
  * Synchronous on purpose — isPortalV3Enabled() is a plain env read — so this
  * works in both server and client components without an await. Passing
- * V3 = null is the v2-compat shim case: always renders v2.
+ * V3 = null is the compat shim case: always renders the v2 component.
  */
 export function pickPortalComponent<P>(
   V2: ComponentType<P>,
@@ -20,7 +20,7 @@ export function pickPortalComponent<P>(
  * Build a scene component that defers the v2/v3 choice to render time.
  * Used as the Style-A shim default export:
  *   export default renderPortalScene(V2Page, V3Page);
- * A v2-compat route passes V3 = null so the v2 page renders inside the shell.
+ * A compat route passes V3 = null so the v2 page renders inside the shell.
  */
 export function renderPortalScene<P extends object>(
   V2: ComponentType<P>,

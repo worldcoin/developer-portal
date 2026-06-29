@@ -30,13 +30,13 @@ describe("PortalChromeGate", () => {
     expect(queryByTestId("v2-header")).toBeInTheDocument();
   });
 
-  it("hides the v2 Header on a v3-active route (/teams/<id>/apps/<id>)", () => {
+  it("hides the v2 Header on a v3 route (/teams/<id>/apps/<id>)", () => {
     mockPathname = "/teams/team_123/apps/app_00000000000000000000000000000000";
     const { queryByTestId } = render(<PortalChromeGate color={null} />);
     expect(queryByTestId("v2-header")).not.toBeInTheDocument();
   });
 
-  it("hides the v2 Header on a v2-compat route (apps/<id>/actions)", () => {
+  it("hides the v2 Header on a compat route (apps/<id>/actions)", () => {
     mockPathname =
       "/teams/team_123/apps/app_00000000000000000000000000000000/actions";
     const { queryByTestId } = render(<PortalChromeGate color={null} />);
