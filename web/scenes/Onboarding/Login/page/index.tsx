@@ -317,11 +317,11 @@ export const LoginPage = async () => {
       </section>
 
       <section className="bg-white px-4 pb-12 pt-8">
-        <div className="mx-auto w-full max-w-[1120px]">
+        <div className="mx-auto w-full max-w-[1232px]">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             {PRODUCT_CARDS.map(({ label, poster, video }) => (
               <div
-                className="product-card group relative flex aspect-[4/3] flex-col overflow-hidden rounded-2xl border border-black bg-white p-6 md:p-8"
+                className="product-card group relative flex aspect-[3/2] flex-col overflow-hidden rounded-2xl border border-black bg-white p-6 md:p-8"
                 key={label}
               >
                 <span className="pointer-events-none relative z-10 font-twk text-[22px] font-medium tracking-[0] text-grey-900 md:text-[26px]">
