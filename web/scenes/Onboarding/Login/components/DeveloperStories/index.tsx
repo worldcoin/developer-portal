@@ -1,7 +1,7 @@
 "use client";
 
 import { ArrowRightIcon } from "@/components/Icons/ArrowRightIcon";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 type DeveloperStory = {
   company: string;
@@ -43,20 +43,73 @@ const PlayGlyph = () => (
 
 export const DeveloperStories = () => {
   const trackRef = useRef<HTMLDivElement>(null);
+  const cardRefs = useRef<Array<HTMLElement | null>>([]);
+  const [activeIndex, setActiveIndex] = useState(0);
   const [playing, setPlaying] = useState<number | null>(null);
 
+  const scrollToCard = (index: number) => {
+    const card = cardRefs.current[index];
+
+    if (!card) {
+      return;
+    }
+
+    setActiveIndex(index);
+    card.scrollIntoView({
+      behavior: "smooth",
+      block: "nearest",
+      inline: "start",
+    });
+  };
+
   const scrollByCard = (direction: 1 | -1) => {
+    const nextIndex = Math.min(
+      STORIES.length - 1,
+      Math.max(0, activeIndex + direction),
+    );
+
+    scrollToCard(nextIndex);
+  };
+
+  useEffect(() => {
     const track = trackRef.current;
 
     if (!track) {
       return;
     }
 
-    track.scrollBy({
-      behavior: "smooth",
-      left: track.clientWidth * direction,
-    });
-  };
+    const syncActiveIndex = () => {
+      const { left: trackLeft, width: trackWidth } =
+        track.getBoundingClientRect();
+      let closestIndex = 0;
+      let closestDistance = Number.POSITIVE_INFINITY;
+
+      cardRefs.current.forEach((card, index) => {
+        if (!card) {
+          return;
+        }
+
+        const { left: cardLeft, width: cardWidth } =
+          card.getBoundingClientRect();
+        const distance = Math.abs(
+          cardLeft + cardWidth / 2 - (trackLeft + trackWidth / 2),
+        );
+
+        if (distance < closestDistance) {
+          closestDistance = distance;
+          closestIndex = index;
+        }
+      });
+
+      setActiveIndex(closestIndex);
+    };
+
+    track.addEventListener("scrollend", syncActiveIndex);
+
+    return () => {
+      track.removeEventListener("scrollend", syncActiveIndex);
+    };
+  }, []);
 
   return (
     <div className="flex w-full flex-col text-white">
@@ -65,7 +118,8 @@ export const DeveloperStories = () => {
         <div className="flex items-center gap-3">
           <button
             aria-label="Previous stories"
-            className="grid size-12 flex-none place-items-center rounded-full bg-white/10 text-white backdrop-blur transition-colors hover:bg-white/20"
+            className="grid size-12 flex-none place-items-center rounded-full bg-white/10 text-white backdrop-blur transition-colors hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-40"
+            disabled={activeIndex === 0}
             onClick={() => scrollByCard(-1)}
             type="button"
           >
@@ -74,7 +128,8 @@ export const DeveloperStories = () => {
 
           <button
             aria-label="Next stories"
-            className="grid size-12 flex-none place-items-center rounded-full bg-white/10 text-white backdrop-blur transition-colors hover:bg-white/20"
+            className="grid size-12 flex-none place-items-center rounded-full bg-white/10 text-white backdrop-blur transition-colors hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-40"
+            disabled={activeIndex === STORIES.length - 1}
             onClick={() => scrollByCard(1)}
             type="button"
           >
@@ -89,8 +144,11 @@ export const DeveloperStories = () => {
       >
         {STORIES.map((story, index) => (
           <article
-            className="relative aspect-video w-full flex-none snap-start overflow-hidden rounded-[20px] bg-white/5"
+            className="relative aspect-video w-full min-w-full max-w-full flex-[0_0_100%] snap-start overflow-hidden rounded-[20px] bg-white/5"
             key={story.name}
+            ref={(node) => {
+              cardRefs.current[index] = node;
+            }}
           >
             {playing === index && story.youtubeId ? (
               <iframe
@@ -116,7 +174,7 @@ export const DeveloperStories = () => {
                 {story.youtubeId ? (
                   <button
                     aria-label={`Play ${story.name}'s story`}
-                    className="absolute inset-0 grid place-items-center"
+                    className="absolute inset-0 z-10 grid place-items-center"
                     onClick={() => setPlaying(index)}
                     type="button"
                   >
