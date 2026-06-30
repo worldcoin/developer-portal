@@ -4,7 +4,7 @@ import { Auth0SessionUser, EngineType } from "@/lib/types";
 import { auth0 } from "@/lib/auth0";
 import { ReactNode } from "react";
 import { AppIdChrome } from "./AppIdChrome";
-import { fetchAppEnvCached } from "./server/fetch-app-env";
+import { fetchAppEnvCached } from "@/scenes/common/app-env/server/fetch-app-env";
 
 type Params = {
   teamId?: string;

@@ -1,6 +1,6 @@
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { EngineType } from "@/lib/types";
-import { fetchAppEnvCached } from "@/scenes/Portal/Teams/TeamId/Apps/AppId/layout/server/fetch-app-env";
+import { fetchAppEnvCached } from "@/scenes/common/app-env/server/fetch-app-env";
 import { notFound } from "next/navigation";
 import { ReactNode } from "react";
 

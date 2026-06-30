@@ -2,7 +2,7 @@ import { ErrorPage } from "@/components/ErrorPage";
 import { auth0 } from "@/lib/auth0";
 import { logger } from "@/lib/logger";
 import { Auth0SessionUser } from "@/lib/types";
-import { fetchAppEnvCached } from "@/scenes/Portal/Teams/TeamId/Apps/AppId/layout/server/fetch-app-env";
+import { fetchAppEnvCached } from "@/scenes/common/app-env/server/fetch-app-env";
 import { ReactNode } from "react";
 
 type Params = { teamId?: string; appId?: string };

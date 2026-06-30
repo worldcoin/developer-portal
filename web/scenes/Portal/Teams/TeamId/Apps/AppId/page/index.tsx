@@ -4,7 +4,7 @@ import { Role_Enum } from "@/graphql/graphql";
 import { Auth0SessionUser } from "@/lib/types";
 import { auth0 } from "@/lib/auth0";
 import { BanMessageDialog } from "../../common/BanMessageDialog";
-import { getSdk as getAppEnvSdk } from "../layout/graphql/server/fetch-app-env.generated";
+import { getSdk as getAppEnvSdk } from "@/scenes/common/app-env/graphql/server/fetch-app-env.generated";
 import { BanStatusSection } from "./BanStatusSection";
 import { DashboardWrapper } from "./DashboardWrapper";
 import { VerificationStatusSection } from "./VerificationStatusSection";

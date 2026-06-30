@@ -1,7 +1,7 @@
 import ActionsLayout from "@/app/(portal)/teams/[teamId]/apps/[appId]/actions/layout";
 import WorldId40Layout from "@/app/(portal)/teams/[teamId]/apps/[appId]/world-id-4-0/layout";
 import WorldIdActionsLayout from "@/app/(portal)/teams/[teamId]/apps/[appId]/world-id-actions/layout";
-import { FetchAppEnvQuery } from "@/scenes/Portal/Teams/TeamId/Apps/AppId/layout/graphql/server/fetch-app-env.generated";
+import { FetchAppEnvQuery } from "@/scenes/common/app-env/graphql/server/fetch-app-env.generated";
 
 // #region Mocks
 const redirectMock = jest.fn();
@@ -11,7 +11,7 @@ jest.mock("next/navigation", () => ({
 
 const fetchAppEnvCachedMock = jest.fn();
 jest.mock(
-  "@/scenes/Portal/Teams/TeamId/Apps/AppId/layout/server/fetch-app-env",
+  "@/scenes/common/app-env/server/fetch-app-env",
   () => ({
     fetchAppEnvCached: (...args: unknown[]) => fetchAppEnvCachedMock(...args),
   }),
