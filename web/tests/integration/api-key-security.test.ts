@@ -108,8 +108,8 @@ describe("API key security", () => {
 
     // After fix: The update should fail with a GraphQL error
     expect(updateError).toBeDefined();
-    expect(updateError.graphQLErrors).toBeDefined();
-    expect(updateError.graphQLErrors[0]?.message).toContain(
+    expect(updateError.errors).toBeDefined();
+    expect(updateError.errors[0]?.message).toContain(
       "field 'team_id' not found in type: 'api_key_set_input'",
     );
 

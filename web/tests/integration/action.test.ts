@@ -84,12 +84,12 @@ describe("service role", () => {
     `);
 
     try {
-      await client.query<any>({ query });
+      await client.mutate<any>({ mutation: query });
       expect(true).toBe(false); // Fail test if above expression doesn't throw
     } catch (e) {
-      expect((e as Error).toString()).toEqual(
-        "ApolloError: field 'delete_action' not found in type: 'mutation_root'",
-      );
+      expect(
+        (e as { errors?: { message?: string }[] }).errors?.[0]?.message,
+      ).toContain("field 'delete_action' not found in type: 'mutation_root'");
     }
   });
 });
