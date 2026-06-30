@@ -1,5 +1,5 @@
 import { Button } from "@/components/Button";
-import { Color } from "@/scenes/Portal/Profile/types";
+import { Color } from "@/scenes/common/colors";
 import clsx from "clsx";
 import { ButtonHTMLAttributes, CSSProperties } from "react";
 
