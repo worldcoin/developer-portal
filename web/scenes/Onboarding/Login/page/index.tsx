@@ -19,6 +19,7 @@ import {
   FetchMembershipsQuery,
   getSdk as getFetchMembershipsSdk,
 } from "./graphql/server/fetch-memberships.generated";
+import { getNetworkStats } from "./server/get-network-stats";
 
 // Scoped to this page only (renders just here, not app-wide). `overflow-x:
 // clip` clips horizontal overflow WITHOUT creating a scroll container, so it
@@ -73,6 +74,11 @@ main {
   to {
     --product-card-shine-angle: 360deg;
   }
+}
+
+.landing-intro {
+  grid-template-rows: minmax(0, 1fr) auto;
+  min-height: calc(100dvh - 65px);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -191,12 +197,6 @@ const FOOTER_COLUMNS = [
   },
 ];
 
-const NETWORK_STATS = [
-  { label: "Humans verified", value: "18M" },
-  { label: "Countries using World ID", value: "68" },
-  { label: "Proofs generated", value: "240M" },
-];
-
 // Product cards in the hero-adjacent showcase section. Each plays a muted
 // Prismic clip on hover and has the shining border (see .product-card styles
 // in LOGIN_PAGE_STYLE).
@@ -260,81 +260,85 @@ export const LoginPage = async () => {
     }
   }
 
+  const networkStats = await getNetworkStats();
+
   return (
     <div className="min-h-full overflow-x-hidden bg-white text-grey-900">
       <style dangerouslySetInnerHTML={{ __html: LOGIN_PAGE_STYLE }} />
 
-      <section
-        className="relative min-h-[680px] overflow-hidden bg-white sm:min-h-[770px] md:min-h-[840px] lg:min-h-[880px]"
-        data-base-pixel-host
-      >
-        <BasePixelStrip />
-
+      <section className="landing-intro grid bg-white">
         <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0 z-[1]"
-          style={{
-            background:
-              "linear-gradient(105deg, #ffffff 0%, rgba(255,255,255,0.98) 30%, rgba(255,255,255,0.7) 46%, rgba(255,255,255,0) 66%)",
-          }}
-        />
+          className="relative min-h-0 overflow-hidden bg-white"
+          data-base-pixel-host
+        >
+          <BasePixelStrip />
 
-        <div className="relative z-10 px-4 pb-8 pt-8 md:pt-14 lg:px-6 lg:pt-16">
-          <div className="mx-auto w-full max-w-[calc(100vw-32px)] lg:max-w-[calc(100vw-48px)]">
-            <TypingHeadline className="max-w-[1020px] font-twk text-[48px] font-medium leading-[0.94] tracking-[0] text-grey-900 sm:text-[68px] md:text-[88px] lg:text-[104px]" />
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 z-[1]"
+            style={{
+              background:
+                "linear-gradient(105deg, #ffffff 0%, rgba(255,255,255,0.98) 30%, rgba(255,255,255,0.7) 46%, rgba(255,255,255,0) 66%)",
+            }}
+          />
 
-            <div className="mt-10 flex flex-wrap items-center gap-3">
-              <DecoratedButton
-                href={urls.api.authLogin()}
-                className="group h-15 animate-fadeInDown rounded-full border-black bg-black bg-none px-[22px] py-0 text-base text-white shadow-[0_18px_44px_rgba(0,0,0,0.24)] [animation-delay:200ms] hover:border-black hover:bg-grey-900 hover:bg-none motion-reduce:animate-none"
-                icon={
-                  <span className="grid size-7 place-items-center">
-                    <WorldIcon className="size-6 [&_path]:fill-white" />
+          <div className="relative z-10 px-4 pb-8 pt-8 md:pt-14 lg:px-6 lg:pt-16">
+            <div className="mx-auto w-full max-w-[calc(100vw-32px)] lg:max-w-[calc(100vw-48px)]">
+              <TypingHeadline className="max-w-[1020px] font-twk text-[48px] font-medium leading-[0.94] tracking-[0] text-grey-900 sm:text-[68px] md:text-[88px] lg:text-[104px]" />
+
+              <div className="mt-10 flex flex-wrap items-center gap-3">
+                <DecoratedButton
+                  href={urls.api.authLogin()}
+                  className="group h-15 animate-fadeInDown rounded-full border-black bg-black bg-none px-[22px] py-0 text-base text-white shadow-[0_18px_44px_rgba(0,0,0,0.24)] [animation-delay:200ms] hover:border-black hover:bg-grey-900 hover:bg-none motion-reduce:animate-none"
+                  icon={
+                    <span className="grid size-7 place-items-center">
+                      <WorldIcon className="size-6 [&_path]:fill-white" />
+                    </span>
+                  }
+                >
+                  Go to console
+                  <span className="-ml-2 flex w-0 items-center overflow-hidden opacity-0 transition-all duration-300 ease-out group-hover:ml-0 group-hover:w-6 group-hover:opacity-100 motion-reduce:transition-none">
+                    <ArrowRightIcon className="size-6" />
                   </span>
-                }
-              >
-                Go to console
-                <span className="-ml-2 flex w-0 items-center overflow-hidden opacity-0 transition-all duration-300 ease-out group-hover:ml-0 group-hover:w-6 group-hover:opacity-100 motion-reduce:transition-none">
-                  <ArrowRightIcon className="size-6" />
-                </span>
-              </DecoratedButton>
+                </DecoratedButton>
 
-              <DecoratedButton
-                href="https://docs.world.org"
-                variant="secondary"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group h-15 animate-fadeInDown rounded-full border-black bg-transparent px-[26px] py-0 text-base text-black [animation-delay:280ms] hover:border-black hover:bg-transparent hover:text-black motion-reduce:animate-none"
-              >
-                Explore docs
-                <span className="-ml-2 flex w-0 items-center overflow-hidden opacity-0 transition-all duration-300 ease-out group-hover:ml-0 group-hover:w-6 group-hover:opacity-100 motion-reduce:transition-none">
-                  <ArrowRightIcon className="size-6" />
-                </span>
-              </DecoratedButton>
+                <DecoratedButton
+                  href="https://docs.world.org"
+                  variant="secondary"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group h-15 animate-fadeInDown rounded-full border-black bg-transparent px-[26px] py-0 text-base text-black [animation-delay:280ms] hover:border-black hover:bg-transparent hover:text-black motion-reduce:animate-none"
+                >
+                  Explore docs
+                  <span className="-ml-2 flex w-0 items-center overflow-hidden opacity-0 transition-all duration-300 ease-out group-hover:ml-0 group-hover:w-6 group-hover:opacity-100 motion-reduce:transition-none">
+                    <ArrowRightIcon className="size-6" />
+                  </span>
+                </DecoratedButton>
+              </div>
             </div>
           </div>
         </div>
-      </section>
 
-      <section
-        aria-label="Our network"
-        className="bg-white px-4 py-6 md:px-6 md:py-8"
-      >
-        <div className="mx-auto w-full max-w-[calc(100vw-32px)] lg:max-w-[calc(100vw-48px)]">
-          <div className="grid grid-cols-3 gap-3 md:gap-6">
-            {NETWORK_STATS.map((stat) => (
-              <div className="text-center" key={stat.label}>
-                <div className="font-twk text-[40px] font-medium leading-[0.94] tracking-[0] text-grey-900 sm:text-[68px] md:text-[88px]">
-                  {stat.value}
-                </div>
+        <section
+          aria-label="Our network"
+          className="bg-white px-4 py-6 md:px-6 md:py-8"
+        >
+          <div className="mx-auto w-full max-w-[calc(100vw-32px)] lg:max-w-[calc(100vw-48px)]">
+            <div className="grid grid-cols-3 gap-3 md:gap-6">
+              {networkStats.map((stat) => (
+                <div className="text-center" key={stat.label}>
+                  <div className="font-twk text-[40px] font-medium leading-[0.94] tracking-[0] text-grey-900 sm:text-[68px] md:text-[88px]">
+                    {stat.value}
+                  </div>
 
-                <div className="mt-2 font-gta text-[13px] leading-[1.2] text-grey-400 md:mt-3 md:text-[18px]">
-                  {stat.label}
+                  <div className="mt-2 font-gta text-[13px] leading-[1.2] text-grey-400 md:mt-3 md:text-[18px]">
+                    {stat.label}
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
+        </section>
       </section>
 
       <div className="mx-auto grid w-full max-w-[calc(100vw-32px)] grid-cols-1 gap-4 py-4 sm:grid-cols-3 md:gap-6 lg:max-w-[calc(100vw-48px)]">
