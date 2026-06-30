@@ -2,7 +2,7 @@ import "server-only";
 
 /**
  * "true", v3 is turned on. Any other value (unset, "1", "false") is off. defaults to v2.
- * This also makes sure we don't accidentally globally turn for everyone in prod. 
+ * This also makes sure we don't accidentally globally turn for everyone in prod.
  */
 export const isPortalV3Enabled = (): boolean =>
   process.env.NODE_ENV !== "production" &&
@@ -11,7 +11,7 @@ export const isPortalV3Enabled = (): boolean =>
 /**
  * Per-user v3 activation by email. v3 is on when the global switch is on, or
  * when the user's email is in the PORTAL_V3_EMAILS allow-list (comma-separated,
- * case-insensitive). No email -> off. 
+ * case-insensitive). No email -> off.
  */
 export const isPortalV3EnabledForEmail = (email?: string | null): boolean => {
   if (isPortalV3Enabled()) {

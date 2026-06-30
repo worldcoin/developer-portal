@@ -9,7 +9,6 @@ afterEach(() => {
 
 describe("isPortalV3EnabledForEmail", () => {
   it("enables allow-listed emails only", () => {
-    process.env.NODE_ENV = "test";
     delete process.env.LOCAL_DEV_PORTAL_V3_ENABLED;
     process.env.PORTAL_V3_EMAILS = "ada@example.com";
 
@@ -19,7 +18,7 @@ describe("isPortalV3EnabledForEmail", () => {
   });
 
   it("ignores the global switch in production", () => {
-    process.env.NODE_ENV = "production";
+    (process.env as { NODE_ENV?: string }).NODE_ENV = "production";
     process.env.LOCAL_DEV_PORTAL_V3_ENABLED = "true";
 
     expect(isPortalV3EnabledForEmail("bob@example.com")).toBe(false);
