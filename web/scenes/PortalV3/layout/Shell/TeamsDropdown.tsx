@@ -85,7 +85,7 @@ export const TeamsDropdown = (props: { teams: DropdownTeam[] }) => {
             <DropdownMenu.Separator className="bg-border my-1 h-px" />
             <DropdownMenu.Item
               onSelect={() => router.push(urls.createTeam())}
-              className="text-muted-foreground data-[highlighted]:bg-muted flex cursor-pointer items-center gap-2 rounded-8 px-2.5 py-1.5 font-gta text-14 outline-none"
+              className="text-muted-foreground data-[highlighted]:bg-grey-100 flex cursor-pointer items-center gap-2 rounded-8 px-2.5 py-1.5 font-gta text-14 outline-none"
             >
               Create team
             </DropdownMenu.Item>
