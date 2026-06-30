@@ -4,7 +4,7 @@ import "server-only";
  * Local-only kill switch for Developer Portal v3.
  *
  * Gated on LOCAL_DEV_PORTAL_V3_ENABLED so v3 stays off in every deployed
- * environment unless "true" in local shell. 
+ * environment unless "true" in local shell.
  */
 export const isPortalV3Enabled = (): boolean =>
   process.env.LOCAL_DEV_PORTAL_V3_ENABLED === "true";
