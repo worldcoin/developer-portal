@@ -35,7 +35,7 @@ export const PortalShell = (props: {
         {isAccount ? (
           <div className="border-border flex h-14 items-center border-b px-3">
             <Link
-              href="/"
+              href="/teams"
               aria-label="Back to dashboard"
               data-testid="portal-shell-close"
               className="text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:ring-ring flex size-8 items-center justify-center rounded-8 outline-none transition-colors focus-visible:ring-2"
