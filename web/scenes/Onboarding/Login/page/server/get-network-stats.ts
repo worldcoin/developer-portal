@@ -8,6 +8,7 @@ export type NetworkStat = {
 };
 
 const METRICS_ENDPOINT = "https://metrics.worldcoin.org/";
+const METRICS_FETCH_TIMEOUT_MS = 3000;
 
 const FALLBACK_NETWORK_STATS: NetworkStat[] = [
   { label: "Humans verified", value: "18M" },
@@ -43,6 +44,7 @@ export const getNetworkStats = async (): Promise<NetworkStat[]> => {
         revalidate: 300,
         tags: ["landing-network-metrics"],
       },
+      signal: AbortSignal.timeout(METRICS_FETCH_TIMEOUT_MS),
     });
 
     if (!response.ok) {
