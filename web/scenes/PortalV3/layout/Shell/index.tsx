@@ -28,7 +28,7 @@ export const PortalShell = (props: {
   return (
     <div
       data-testid="portal-shell"
-      className="bg-background text-foreground grid min-h-[100dvh]"
+      className="bg-background grid min-h-[100dvh]"
       style={{ gridTemplateColumns: "clamp(4rem, 20%, 16rem) 1fr" }}
     >
       <aside className="border-border bg-sidebar sticky top-0 flex h-[100dvh] flex-col border-r">
@@ -38,7 +38,7 @@ export const PortalShell = (props: {
               href="/teams"
               aria-label="Back to dashboard"
               data-testid="portal-shell-close"
-              className="text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:ring-ring flex size-8 items-center justify-center rounded-8 outline-none transition-colors focus-visible:ring-2"
+              className="text-muted-foreground hover:bg-muted focus-visible:ring-ring flex size-8 items-center justify-center rounded-8 outline-none transition-colors focus-visible:ring-2"
             >
               <CloseIcon className="size-4" />
             </Link>

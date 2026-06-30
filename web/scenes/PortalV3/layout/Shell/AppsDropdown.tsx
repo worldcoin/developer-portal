@@ -29,7 +29,7 @@ const AppsDropdownRow = (props: {
   <DropdownMenu.Item
     onSelect={props.onSelect}
     className={clsx(
-      "data-[highlighted]:bg-muted flex cursor-pointer items-center gap-3 rounded-8 px-2.5 py-1.5 font-gta text-14 outline-none",
+      "data-[highlighted]:bg-grey-100 flex cursor-pointer items-center gap-3 rounded-8 px-2.5 py-1.5 font-gta text-14 outline-none",
       props.isSelected && "font-medium",
     )}
   >
@@ -89,7 +89,7 @@ export const AppsDropdown = () => {
         canCreateApp ? (
           <button
             onClick={() => setDialogOpen(true)}
-            className="border-border text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:ring-ring flex items-center gap-2 rounded-8 border px-2.5 py-1.5 font-gta text-14 font-medium outline-none focus-visible:ring-2"
+            className="border-border text-muted-foreground hover:bg-muted focus-visible:ring-ring flex items-center gap-2 rounded-8 border px-2.5 py-1.5 font-gta text-14 font-medium outline-none focus-visible:ring-2"
           >
             Create app
           </button>
@@ -100,7 +100,7 @@ export const AppsDropdown = () => {
         )
       ) : (
         <DropdownMenu.Root>
-          <DropdownMenu.Trigger className="border-border text-foreground hover:bg-muted focus-visible:ring-ring flex items-center gap-2 rounded-8 border px-2.5 py-1.5 font-gta text-14 font-medium outline-none focus-visible:ring-2">
+          <DropdownMenu.Trigger className="border-border hover:bg-muted focus-visible:ring-ring flex items-center gap-2 rounded-8 border px-2.5 py-1.5 font-gta text-14 font-medium outline-none focus-visible:ring-2">
             <span className="max-w-[220px] truncate">
               {current?.name ?? "Select app"}
             </span>
@@ -111,7 +111,7 @@ export const AppsDropdown = () => {
             <DropdownMenu.Content
               align="start"
               sideOffset={6}
-              className="border-border bg-card text-foreground z-50 max-h-[60vh] min-w-[240px] overflow-y-auto rounded-12 border p-1 shadow-lg"
+              className="border-border bg-white z-50 max-h-[60vh] min-w-[240px] overflow-y-auto rounded-12 border p-1 shadow-lg"
             >
               {apps.map((app) => (
                 <AppsDropdownRow
@@ -128,7 +128,7 @@ export const AppsDropdown = () => {
                   <DropdownMenu.Separator className="bg-border my-1 h-px" />
                   <DropdownMenu.Item
                     onSelect={() => setDialogOpen(true)}
-                    className="text-muted-foreground data-[highlighted]:bg-muted data-[highlighted]:text-foreground flex cursor-pointer items-center gap-2 rounded-8 px-2.5 py-1.5 font-gta text-14 outline-none"
+                    className="text-muted-foreground data-[highlighted]:bg-grey-100 flex cursor-pointer items-center gap-2 rounded-8 px-2.5 py-1.5 font-gta text-14 outline-none"
                   >
                     Create app
                   </DropdownMenu.Item>

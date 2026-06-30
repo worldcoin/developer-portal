@@ -19,7 +19,7 @@ const TeamsDropdownRow = (props: {
   <DropdownMenu.Item
     onSelect={props.onSelect}
     className={clsx(
-      "data-[highlighted]:bg-muted flex cursor-pointer items-center gap-2 rounded-8 px-2.5 py-1.5 font-gta text-14 outline-none",
+      "data-[highlighted]:bg-grey-100 flex cursor-pointer items-center gap-2 rounded-8 px-2.5 py-1.5 font-gta text-14 outline-none",
       props.isCurrent && "font-medium",
     )}
   >
@@ -43,10 +43,10 @@ export const TeamsDropdown = (props: { teams: DropdownTeam[] }) => {
       {currentTeam ? (
         <Link
           href={urls.apps({ team_id: currentTeam.id })}
-          className="hover:bg-muted focus-visible:ring-ring flex min-w-0 flex-1 items-center gap-2.5 rounded-8 p-1.5 outline-none focus-visible:ring-2"
+          className="focus-visible:ring-ring flex min-w-0 flex-1 items-center gap-2.5 rounded-8 p-1.5 outline-none focus-visible:ring-2"
         >
           <WorldIcon className="size-6 shrink-0" />
-          <span className="min-w-0 flex-1 truncate font-gta text-14 font-medium">
+          <span className="min-w-0 flex-1 truncate font-gta text-18 font-medium">
             {currentTeam.name}
           </span>
         </Link>
@@ -62,7 +62,7 @@ export const TeamsDropdown = (props: { teams: DropdownTeam[] }) => {
       <DropdownMenu.Root>
         <DropdownMenu.Trigger
           aria-label="Switch team"
-          className="text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:ring-ring flex size-7 shrink-0 items-center justify-center rounded-8 outline-none focus-visible:ring-2"
+          className="text-muted-foreground hover:bg-muted focus-visible:ring-ring flex size-7 shrink-0 items-center justify-center rounded-8 outline-none focus-visible:ring-2"
         >
           <CaretIcon className="size-3" />
         </DropdownMenu.Trigger>
@@ -72,7 +72,7 @@ export const TeamsDropdown = (props: { teams: DropdownTeam[] }) => {
             align="end"
             sideOffset={6}
             collisionPadding={12}
-            className="border-border bg-card text-foreground z-50 max-h-[60vh] w-[232px] overflow-y-auto rounded-12 border p-1 shadow-lg"
+            className="border-border bg-white z-50 max-h-[60vh] w-[232px] overflow-y-auto rounded-12 border p-1 shadow-lg "
           >
             {teams.map((team) => (
               <TeamsDropdownRow
@@ -85,7 +85,7 @@ export const TeamsDropdown = (props: { teams: DropdownTeam[] }) => {
             <DropdownMenu.Separator className="bg-border my-1 h-px" />
             <DropdownMenu.Item
               onSelect={() => router.push(urls.createTeam())}
-              className="text-muted-foreground data-[highlighted]:bg-muted data-[highlighted]:text-foreground flex cursor-pointer items-center gap-2 rounded-8 px-2.5 py-1.5 font-gta text-14 outline-none"
+              className="text-muted-foreground data-[highlighted]:bg-muted flex cursor-pointer items-center gap-2 rounded-8 px-2.5 py-1.5 font-gta text-14 outline-none"
             >
               Create team
             </DropdownMenu.Item>
