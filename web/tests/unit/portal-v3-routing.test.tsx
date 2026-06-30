@@ -9,11 +9,14 @@ jest.mock("@/lib/feature-flags/portal-v3/activation", () => ({
 jest.mock("@/scenes/Portal/layout", () => ({
   PortalLayout: () => <div data-testid="v2-portal" />,
 }));
+jest.mock("@/scenes/PortalV3/layout", () => ({
+  PortalLayout: () => <div data-testid="v3-portal" />,
+}));
 
 import PortalRootLayout from "../../app/(portal)/layout";
 
-it("v3 path renders children without the v2 portal layout (no double header)", async () => {
-  render(await PortalRootLayout({ children: <div data-testid="body" /> }));
-  expect(screen.getByTestId("body")).toBeInTheDocument();
+it("mounts the v3 shell at the root for v3, not v2", async () => {
+  render(await PortalRootLayout({ children: null }));
+  expect(screen.getByTestId("v3-portal")).toBeInTheDocument();
   expect(screen.queryByTestId("v2-portal")).not.toBeInTheDocument();
 });
