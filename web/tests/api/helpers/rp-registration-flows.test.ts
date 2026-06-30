@@ -99,6 +99,8 @@ const makeRegistration = (overrides: Record<string, unknown> = {}) => ({
   signer_address: "0x1111111111111111111111111111111111111111",
   manager_kms_key_id: "kms-key-123",
   operation_hash: null,
+  // Stale by default; pending-specific tests override to a fresh timestamp.
+  updated_at: "2020-01-01T00:00:00.000Z",
   app: {
     team_id: "team_00000000000000000000000000000001",
     deleted_at: null,
@@ -240,6 +242,48 @@ describe("submitManagedRpDeactivation", () => {
       staging_operation_hash: null,
     });
     expect(RevertToggleStatus).not.toHaveBeenCalled();
+  });
+
+  it("skips a freshly-pending RP without submitting a second toggle", async () => {
+    GetRpRegistration.mockResolvedValue({
+      rp_registration: [
+        makeRegistration({
+          status: "pending",
+          updated_at: new Date().toISOString(),
+        }),
+      ],
+    });
+
+    const res = await submitManagedRpDeactivation({ client, appId });
+
+    expect(res).toMatchObject({
+      ok: true,
+      outcome: "skipped",
+      reason: "in_flight",
+    });
+    // Must not read on-chain or submit while a toggle is genuinely in flight.
+    expect(getRpFromContractMock).not.toHaveBeenCalled();
+    expect(submitToggleRpActiveTransactionMock).not.toHaveBeenCalled();
+  });
+
+  it("resubmits a stale pending RP whose tx never settled (still active on-chain)", async () => {
+    GetRpRegistration.mockResolvedValue({
+      rp_registration: [
+        makeRegistration({
+          status: "pending",
+          updated_at: "2020-01-01T00:00:00.000Z",
+        }),
+      ],
+    });
+
+    const res = await submitManagedRpDeactivation({ client, appId });
+
+    expect(res).toMatchObject({ ok: true, outcome: "submitted" });
+    expect(ClaimToggleSlot).toHaveBeenCalledWith({
+      rp_id: rpId,
+      current_status: "pending",
+    });
+    expect(submitToggleRpActiveTransactionMock).toHaveBeenCalledTimes(1);
   });
 
   it("skips when the rotation slot was claimed by a concurrent operation", async () => {

@@ -26,9 +26,15 @@ export async function deleteApp(appId: string): Promise<FormActionResult> {
     }
 
     const client = await getAPIServiceGraphqlClient();
+    const deleteAppSdk = getDeleteAppSdk(client);
 
-    // Tear down the managed RP signer on-chain before the app leaves the
-    // dashboard. Best-effort: a failure is logged and reconciled by the
+    await deleteAppSdk.DeleteApp({
+      id: appId,
+    });
+
+    // Tear down the managed RP signer on-chain *after* the soft delete commits,
+    // so a failed delete can never leave a live app with an on-chain-disabled
+    // signer. Best-effort: a failure is logged and reconciled by the
     // deactivate-deleted-app-rps cron — it must not block the delete, and the
     // app-state guards already stop a deleted app's signer from being rotated
     // or used in the meantime.
@@ -42,12 +48,6 @@ export async function deleteApp(appId: string): Promise<FormActionResult> {
         detail: deactivation.detail,
       });
     }
-
-    const deleteAppSdk = getDeleteAppSdk(client);
-
-    await deleteAppSdk.DeleteApp({
-      id: appId,
-    });
 
     return {
       success: true,

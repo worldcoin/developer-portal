@@ -50,7 +50,7 @@ beforeEach(() => {
 // #region Auth
 describe("/api/_deactivate-deleted-app-rps [auth]", () => {
   it("rejects requests without the internal secret", async () => {
-    const res = await POST(createRequest());
+    const res = (await POST(createRequest()))!;
 
     expect(res.status).toBe(403);
     expect(GetDeletedAppRps).not.toHaveBeenCalled();
@@ -58,7 +58,7 @@ describe("/api/_deactivate-deleted-app-rps [auth]", () => {
   });
 
   it("rejects requests with the wrong internal secret", async () => {
-    const res = await POST(createRequest("Bearer nope"));
+    const res = (await POST(createRequest("Bearer nope")))!;
 
     expect(res.status).toBe(403);
     expect(GetDeletedAppRps).not.toHaveBeenCalled();
@@ -69,7 +69,7 @@ describe("/api/_deactivate-deleted-app-rps [auth]", () => {
 // #region Reconciliation
 describe("/api/_deactivate-deleted-app-rps [reconciliation]", () => {
   it("returns 204 without deactivating anything when there are no candidates", async () => {
-    const res = await POST(createRequest("Bearer internal-secret"));
+    const res = (await POST(createRequest("Bearer internal-secret")))!;
 
     expect(res.status).toBe(204);
     expect(submitManagedRpDeactivationMock).not.toHaveBeenCalled();
@@ -80,7 +80,7 @@ describe("/api/_deactivate-deleted-app-rps [reconciliation]", () => {
       rp_registration: [candidate(1), candidate(2)],
     });
 
-    const res = await POST(createRequest("Bearer internal-secret"));
+    const res = (await POST(createRequest("Bearer internal-secret")))!;
 
     expect(res.status).toBe(204);
     expect(submitManagedRpDeactivationMock).toHaveBeenCalledTimes(2);
@@ -106,7 +106,7 @@ describe("/api/_deactivate-deleted-app-rps [reconciliation]", () => {
       })
       .mockResolvedValueOnce({ ok: true, outcome: "submitted" });
 
-    const res = await POST(createRequest("Bearer internal-secret"));
+    const res = (await POST(createRequest("Bearer internal-secret")))!;
 
     expect(res.status).toBe(204);
     expect(submitManagedRpDeactivationMock).toHaveBeenCalledTimes(2);

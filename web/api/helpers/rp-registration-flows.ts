@@ -570,7 +570,12 @@ export type ManagedDeactivationResult =
       // "submitted" → we sent an on-chain deactivation tx;
       // "skipped"   → nothing to do (no RP, self-managed, already inactive, raced).
       outcome: "submitted" | "skipped";
-      reason?: "no_rp" | "self_managed" | "already_inactive" | "concurrent";
+      reason?:
+        | "no_rp"
+        | "self_managed"
+        | "in_flight"
+        | "already_inactive"
+        | "concurrent";
       rpIdString?: string;
       operationHash?: string;
     }
@@ -580,6 +585,12 @@ export type ManagedDeactivationResult =
       detail: string;
       rpIdString?: string;
     };
+
+// A managed RP whose status is still `pending` is treated as in flight (skip)
+// until it is older than this, after which a fresh on-chain read decides
+// whether to resubmit. Must comfortably exceed normal on-chain settle time so
+// we never stack a second toggleActive on top of a still-pending one.
+const PENDING_IN_FLIGHT_GRACE_MS = 15 * 60 * 1000;
 
 /**
  * Deactivate a managed RP on-chain when its app is deleted. Shared by the
@@ -633,6 +644,19 @@ export async function submitManagedRpDeactivation({
   const managerKmsKeyId = registration.manager_kms_key_id;
   const currentStatus = registration.status as RpRegistrationStatus;
   const rpId = parseRpId(rpIdString);
+
+  // A `pending` row means a toggle/rotate is already in flight. Don't stack a
+  // second toggleActive on top of it — toggle *flips* the active flag, so two
+  // in-flight toggles can cancel out and leave the RP active. Treat it as
+  // actionable only once it is older than the in-flight grace window; by then
+  // the prior tx has settled and the on-chain read below is authoritative
+  // (mined → inactive → skip; failed → still active → safe to resubmit).
+  if (currentStatus === RpRegistrationStatus.Pending) {
+    const ageMs = Date.now() - new Date(registration.updated_at).getTime();
+    if (ageMs < PENDING_IN_FLIGHT_GRACE_MS) {
+      return { ok: true, outcome: "skipped", reason: "in_flight", rpIdString };
+    }
+  }
 
   // Authoritative on-chain state drives the decision — see the idempotency
   // note above. A failed read is retryable, so don't touch anything.

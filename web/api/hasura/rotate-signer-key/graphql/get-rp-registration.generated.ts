@@ -19,6 +19,7 @@ export type GetRpRegistrationQuery = {
     signer_address?: string | null;
     manager_kms_key_id?: string | null;
     operation_hash?: string | null;
+    updated_at: string;
     app: {
       __typename?: "app";
       team_id: string;
@@ -39,6 +40,7 @@ export const GetRpRegistrationDocument = gql`
       signer_address
       manager_kms_key_id
       operation_hash
+      updated_at
       app {
         team_id
         deleted_at
