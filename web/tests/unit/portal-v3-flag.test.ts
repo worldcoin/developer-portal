@@ -17,10 +17,10 @@ describe("isPortalV3EnabledForEmail", () => {
     expect(isPortalV3EnabledForEmail(undefined)).toBe(false);
   });
 
-  it("ignores the global switch in production", () => {
-    (process.env as { NODE_ENV?: string }).NODE_ENV = "production";
+  it("the global switch enables everyone", () => {
     process.env.LOCAL_DEV_PORTAL_V3_ENABLED = "true";
+    process.env.PORTAL_V3_EMAILS = "";
 
-    expect(isPortalV3EnabledForEmail("bob@example.com")).toBe(false);
+    expect(isPortalV3EnabledForEmail("anyone@example.com")).toBe(true);
   });
 });

@@ -1,11 +1,11 @@
 import "server-only";
 
 /**
- * "true", v3 is turned on. Any other value (unset, "1", "false") is off. defaults to v2.
- * This also makes sure we don't accidentally globally turn for everyone in prod.
+ * Global switch: "true" turns v3 on for everyone in the current environment;
+ * any other value (unset, "1", "false") is off — fail-safe to v2. Leave it
+ * unset in deployed environments; use PORTAL_V3_EMAILS for controlled rollout.
  */
 export const isPortalV3Enabled = (): boolean =>
-  process.env.NODE_ENV !== "production" &&
   process.env.LOCAL_DEV_PORTAL_V3_ENABLED === "true";
 
 /**
