@@ -14,7 +14,7 @@ import { isEmailUser } from "../helpers/is-email-user";
 import { getAppUrlFromRequest } from "../helpers/utils";
 import { validateRequestSchema } from "../helpers/validate-request-schema";
 
-import { auth0 } from "@/lib/auth0";
+import { auth0, toSessionRequest } from "@/lib/auth0";
 
 import {
   GetInviteByIdQuery,
@@ -254,7 +254,9 @@ export const POST = async (req: NextRequest) => {
     returnTo: urls.teams({ team_id: insertedMembership?.team_id }),
   });
 
-  await auth0.updateSession(req, res, {
+  // Body-free request for the SDK (see toSessionRequest): the body was read above,
+  // and on Next 16 the SDK re-wraps + copies the request body, which would throw.
+  await auth0.updateSession(toSessionRequest(req), res, {
     ...session,
     user: {
       ...session.user,

@@ -248,6 +248,9 @@ const RotateConfigureContent = ({
           <Typography as="ul" variant={TYPOGRAPHY.S4} className="mt-0.5">
             <li>• The old signer key will stop working immediately</li>
             <li>• Update your application before rotating</li>
+            <li>
+              • It may take up to 10 minutes for the change to propagate fully
+            </li>
           </Typography>
         </div>
       </Notification>

@@ -70,12 +70,6 @@ jest.mock("@/api/helpers/kms", () => ({
 
 jest.mock("@/api/helpers/kms-eth", () => ({ createManagerKey: jest.fn() }));
 
-const isWorldId40EnabledServerMock = jest.fn();
-jest.mock("@/lib/feature-flags/world-id-4-0/server", () => ({
-  isWorldId40EnabledServer: (...args: unknown[]) =>
-    isWorldId40EnabledServerMock(...args),
-}));
-
 const mockGetRpRegistryConfig = jest.fn();
 jest.mock("@/api/helpers/rp-utils", () => {
   const actual = jest.requireActual("@/api/helpers/rp-utils");
@@ -122,7 +116,6 @@ beforeEach(() => {
     contractAddress: "0xcontract",
     kmsRegion: "us-east-1",
   });
-  isWorldId40EnabledServerMock.mockResolvedValue(true);
   GetRpRegistration.mockResolvedValue({
     rp_registration: [makeRegistration()],
   });
@@ -414,8 +407,7 @@ describe("submitManagedSignerRotation [app-state guard]", () => {
       });
 
       expect(res).toMatchObject({ ok: false, code: "app_inactive" });
-      // Guard runs before the feature-flag check and before claiming the slot.
-      expect(isWorldId40EnabledServerMock).not.toHaveBeenCalled();
+      // Guard runs before claiming the slot.
       expect(ClaimRotationSlot).not.toHaveBeenCalled();
     },
   );

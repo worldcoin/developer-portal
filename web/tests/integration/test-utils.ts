@@ -12,13 +12,10 @@ import {
   gql,
 } from "@apollo/client";
 import { setContext } from "@apollo/client/link/context";
-import getConfig from "next/config";
 import { integrationDBExecuteQuery } from "./setup";
 
-const { publicRuntimeConfig } = getConfig();
-
 const httpLink = createHttpLink({
-  uri: publicRuntimeConfig.NEXT_PUBLIC_GRAPHQL_API_URL,
+  uri: process.env.NEXT_PUBLIC_GRAPHQL_API_URL,
 });
 
 export const testGetDefaultApp = async () => {

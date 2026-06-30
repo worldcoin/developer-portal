@@ -1,14 +1,9 @@
 import IORedis from "ioredis-mock";
-import { setConfig } from "next/config";
 import "whatwg-fetch";
 
-setConfig({
-  publicRuntimeConfig: Object.fromEntries(
-    Object.entries(process.env).filter(([key, value]) =>
-      key.startsWith("NEXT_PUBLIC_"),
-    ),
-  ),
-});
+// `next/config` (runtime config) was removed in Next 16. NEXT_PUBLIC_* values are
+// already on `process.env`, so consumers read them there directly (see
+// tests/integration/test-utils.ts) — no `setConfig` shim needed.
 
 // Create the mock Redis client
 const redisMock = new IORedis();

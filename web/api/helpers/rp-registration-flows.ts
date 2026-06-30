@@ -37,7 +37,6 @@ import { getSdk as getResetStalePendingSdk } from "@/api/hasura/toggle-rp-active
 import { getSdk as getRevertToggleSdk } from "@/api/hasura/toggle-rp-active/graphql/revert-toggle-status.generated";
 import { getSdk as getUpdateToggleSdk } from "@/api/hasura/toggle-rp-active/graphql/update-toggle-result.generated";
 import { getSdk as getUpdateRpStatusSdk } from "@/api/v4/rp-status/[rp_id]/graphql/update-rp-status.generated";
-import { isWorldId40EnabledServer } from "@/lib/feature-flags/world-id-4-0/server";
 import { logger } from "@/lib/logger";
 import { GraphQLClient } from "graphql-request";
 
@@ -55,7 +54,6 @@ export type ManagedRegistrationResult =
   | {
       ok: false;
       code:
-        | "feature_not_enabled"
         | "staging_not_supported"
         | "config_error"
         | "already_registered"
@@ -75,14 +73,12 @@ export type ManagedRegistrationResult =
 export async function submitManagedRpRegistration({
   client,
   appId,
-  teamId,
   signerAddress,
   appName,
   isStaging,
 }: {
   client: GraphQLClient;
   appId: string;
-  teamId: string;
   signerAddress: string;
   appName: string;
   isStaging: boolean;
@@ -92,14 +88,6 @@ export async function submitManagedRpRegistration({
       ok: false,
       code: "staging_not_supported",
       detail: "Staging apps cannot be migrated to World ID 4.0.",
-    };
-  }
-
-  if (!(await isWorldId40EnabledServer(teamId))) {
-    return {
-      ok: false,
-      code: "feature_not_enabled",
-      detail: "World ID 4.0 is not enabled for this team.",
     };
   }
 
@@ -295,7 +283,6 @@ export type ManagedRotationResult =
   | {
       ok: false;
       code:
-        | "feature_not_enabled"
         | "config_error"
         | "rp_not_registered"
         | "app_inactive"
@@ -343,7 +330,6 @@ export async function submitManagedSignerRotation({
 
   const registration = rp_registration[0];
   const rpIdString = registration.rp_id;
-  const teamId = registration.app.team_id;
   const oldSignerAddress = registration.signer_address || "";
 
   // A deleted / archived / inactive app must not be able to rotate its signer.
@@ -355,14 +341,6 @@ export async function submitManagedSignerRotation({
       ok: false,
       code: "app_inactive",
       detail: "App is deleted, archived, or inactive.",
-    };
-  }
-
-  if (!(await isWorldId40EnabledServer(teamId))) {
-    return {
-      ok: false,
-      code: "feature_not_enabled",
-      detail: "World ID 4.0 is not enabled for this team.",
     };
   }
 

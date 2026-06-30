@@ -36,7 +36,7 @@ import {
 
 import { teamNameSchema } from "@/lib/schema";
 import { captureEvent } from "@/services/posthogClient";
-import { auth0 } from "@/lib/auth0";
+import { auth0, toSessionRequest } from "@/lib/auth0";
 
 const schema = yup
   .object({
@@ -300,7 +300,9 @@ export const POST = async (req: NextRequest) => {
 
   const res = NextResponse.json({ returnTo });
 
-  await auth0.updateSession(req, res, {
+  // Body-free request for the SDK (see toSessionRequest): the body was read above,
+  // and on Next 16 the SDK re-wraps + copies the request body, which would throw.
+  await auth0.updateSession(toSessionRequest(req), res, {
     ...session,
     user: {
       ...session.user,

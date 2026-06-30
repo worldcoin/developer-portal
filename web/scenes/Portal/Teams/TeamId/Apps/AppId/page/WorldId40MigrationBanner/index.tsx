@@ -2,17 +2,11 @@
 
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import {
-  isWorldId40Enabled,
-  worldId40Atom,
-} from "@/lib/feature-flags/world-id-4-0/client";
 import { CreateAppDialogV4 } from "@/scenes/Portal/layout/CreateAppDialog/index-v4";
-import { useAtomValue } from "jotai";
-import { useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
 
 interface WorldId40MigrationBannerProps {
-  teamId: string;
   appId: string;
   hasRpRegistration: boolean;
   canRegisterRp: boolean;
@@ -20,14 +14,13 @@ interface WorldId40MigrationBannerProps {
 }
 
 export const WorldId40MigrationBanner = ({
-  teamId,
   appId,
   hasRpRegistration,
   canRegisterRp,
   isStaging,
 }: WorldId40MigrationBannerProps) => {
-  const worldId40Config = useAtomValue(worldId40Atom);
-  const isEnabled = isWorldId40Enabled(worldId40Config, teamId);
+  const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
   const autoOpen = searchParams.get("enableWorldId4") === "true";
   const [dialogOpen, setDialogOpen] = useState(autoOpen && canRegisterRp);
@@ -36,13 +29,28 @@ export const WorldId40MigrationBanner = ({
     if (autoOpen && canRegisterRp) setDialogOpen(true);
   }, [autoOpen, canRegisterRp]);
 
+  const closeDialog = useCallback(() => {
+    setDialogOpen(false);
+
+    // Strip the `enableWorldId4` param so the World ID tab link returns to its
+    // clean state. Otherwise the URL keeps the param and clicking the tab again
+    // is a no-op (same URL), leaving the user unable to re-open the flow.
+    if (searchParams.has("enableWorldId4")) {
+      const params = new URLSearchParams(searchParams);
+      params.delete("enableWorldId4");
+      const query = params.toString();
+      router.replace(query ? `${pathname}?${query}` : pathname, {
+        scroll: false,
+      });
+    }
+  }, [pathname, router, searchParams]);
+
   // Don't show banner if:
-  // - World ID 4.0 is not enabled for this team, OR
   // - App already has RP registration, OR
   // - App is a staging app, OR
   // - User lacks ADMIN/OWNER role (register_rp Hasura action would
   //   reject with `unauthorized` and surface a generic toast).
-  if (!isEnabled || hasRpRegistration || isStaging || !canRegisterRp) {
+  if (hasRpRegistration || isStaging || !canRegisterRp) {
     return null;
   }
 
@@ -90,7 +98,7 @@ export const WorldId40MigrationBanner = ({
 
       <CreateAppDialogV4
         open={dialogOpen}
-        onClose={() => setDialogOpen(false)}
+        onClose={closeDialog}
         initialStep="enable-world-id-4-0"
         appId={appId}
       />

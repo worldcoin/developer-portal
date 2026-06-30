@@ -1,8 +1,10 @@
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
+import { auth0 } from "@/lib/auth0";
 import { logger } from "@/lib/logger";
 import { Auth0SessionUser } from "@/lib/types";
 import { urls } from "@/lib/urls";
-import { auth0 } from "@/lib/auth0";
+import { LoginLayout } from "@/scenes/Onboarding/Login/layout";
+import { LoginPage } from "@/scenes/Onboarding/Login/page";
 import { redirect } from "next/navigation";
 
 import {
@@ -15,7 +17,23 @@ export const RootPage = async () => {
   const auth0User = session?.user as Auth0SessionUser["user"];
 
   if (!auth0User) {
-    return redirect(urls.login());
+    return (
+      <LoginLayout>
+        <LoginPage />
+      </LoginLayout>
+    );
+  }
+
+  // A valid session can still be missing the Hasura claim (e.g. an incomplete
+  // or legacy session). Reading `.id` off an undefined `hasura` throws a
+  // TypeError, so guard it explicitly and re-authenticate instead of crashing.
+  const hasuraUserId = auth0User?.hasura?.id;
+
+  if (!hasuraUserId) {
+    logger.warn(
+      "Active session is missing a Hasura user id on the root page; logging out to re-authenticate",
+    );
+    return redirect(urls.logout());
   }
 
   const client = await getAPIServiceGraphqlClient();
@@ -23,7 +41,7 @@ export const RootPage = async () => {
 
   try {
     const data = await getSdk(client).FetchMemberships({
-      userId: auth0User?.hasura.id,
+      userId: hasuraUserId,
     });
 
     membership = data.membership;

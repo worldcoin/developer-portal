@@ -1,4 +1,4 @@
-import { auth0 } from "@/lib/auth0";
+import { auth0, toSessionRequest } from "@/lib/auth0";
 
 import { NextRequest, NextResponse } from "next/server";
 
@@ -28,9 +28,12 @@ const pickAllowlistedHasuraFields = (input: HasuraPayload = {}) =>
 
 export const POST = async (req: NextRequest) => {
   const res = NextResponse.json({ success: true });
+  // Body-free request for the Auth0 SDK (see toSessionRequest): the body is read
+  // below, and on Next 16 the SDK re-wraps + copies the request body, which throws.
+  const sessionReq = toSessionRequest(req);
   const body = await req.json();
   const user = body?.user;
-  let session = await auth0.getSession(req);
+  let session = await auth0.getSession(sessionReq);
 
   if (!session) {
     return NextResponse.json({ success: false }, { status: 500 });
@@ -62,6 +65,6 @@ export const POST = async (req: NextRequest) => {
   };
 
   session = updatedSession;
-  await auth0.updateSession(req, res, session);
+  await auth0.updateSession(sessionReq, res, session);
   return res;
 };

@@ -64,6 +64,7 @@ export const WorldIdActionIdSettingsPage = (
               },
             })}
             is_v4_action={true}
+            enableKiosk={false}
           />
         )}
       </div>

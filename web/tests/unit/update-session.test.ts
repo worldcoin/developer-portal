@@ -9,6 +9,7 @@ jest.mock("@/lib/auth0", () => ({
     getSession: jest.fn(),
     updateSession: jest.fn(),
   },
+  toSessionRequest: (req: unknown) => req,
 }));
 
 const getSession = auth0.getSession as jest.Mock;
