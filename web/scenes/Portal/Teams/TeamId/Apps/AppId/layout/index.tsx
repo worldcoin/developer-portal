@@ -1,5 +1,4 @@
 import { ErrorPage } from "@/components/ErrorPage";
-import { isWorldId40EnabledServer } from "@/lib/feature-flags/world-id-4-0/server";
 import { logger } from "@/lib/logger";
 import { getIsUserAllowedToReadApp } from "@/lib/permissions";
 import { EngineType } from "@/lib/types";
@@ -57,9 +56,10 @@ export const AppIdLayout = async (props: AppIdLayoutProps) => {
     }
   }
 
-  const showWorldId40Nav =
-    (await isWorldId40EnabledServer(params.teamId)) &&
-    (!isStagingApp || hasRpRegistration);
+  // World ID 4.0 rollout is no longer gated by a team feature flag. The tab is
+  // available by default, still subject to real-state product guards: staging
+  // apps don't get the tab unless they already have an RP registration.
+  const showWorldId40Nav = !isStagingApp || hasRpRegistration;
 
   return (
     <AppIdChrome
