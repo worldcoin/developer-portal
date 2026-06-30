@@ -1,30 +1,28 @@
 import "server-only";
 
 /**
- * Local-only kill switch for Developer Portal v3.
- *
- * Gated on LOCAL_DEV_PORTAL_V3_ENABLED so v3 stays off in every deployed
- * environment unless "true" in local shell.
+ * Global switch: "true" turns v3 on for everyone in the current environment;
+ * any other value (unset, "1", "false") is off — fail-safe to v2. Leave it
+ * unset in deployed environments; use PORTAL_V3_EMAILS for controlled rollout.
  */
 export const isPortalV3Enabled = (): boolean =>
   process.env.LOCAL_DEV_PORTAL_V3_ENABLED === "true";
 
 /**
- * Per-team Developer Portal v3 flag, backed by SSM Parameter Store
- * (`/developer-portal/portal-v3/enabled/<teamId>` → "true"/"false"), mirroring
- * the world-id-4.0 rollout pattern.
- *
- * Falls back to the LOCAL_DEV_PORTAL_V3_ENABLED env var when the parameter — or
- * Parameter Store itself (local dev / tests, where `global.ParameterStore` is
- * undefined) — is absent. Defaults to off (v2): fail-safe.
+ * Per-user v3 activation by email. v3 is on when the global switch is on, or
+ * when the user's email is in the PORTAL_V3_EMAILS allow-list (comma-separated,
+ * case-insensitive). No email -> off.
  */
-export const isPortalV3EnabledForTeam = async (
-  teamId: string,
-): Promise<boolean> => {
-  const fallback = isPortalV3Enabled();
-  const value = await global.ParameterStore?.getParameter<string>(
-    `portal-v3/enabled/${teamId}`,
-    fallback ? "true" : "false",
-  );
-  return value === undefined ? fallback : value === "true";
+export const isPortalV3EnabledForEmail = (email?: string | null): boolean => {
+  if (isPortalV3Enabled()) {
+    return true;
+  }
+  if (!email) {
+    return false;
+  }
+  const allow = (process.env.PORTAL_V3_EMAILS ?? "")
+    .split(",")
+    .map((e) => e.trim().toLowerCase())
+    .filter(Boolean);
+  return allow.includes(email.toLowerCase());
 };
