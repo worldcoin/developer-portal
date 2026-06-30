@@ -10,10 +10,8 @@ import { captureEvent } from "@/services/posthogClient";
 import { hashSignal } from "@worldcoin/idkit/hashing";
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
-import { getSdk as fetchAppReview } from "./graphql/fetch-current-app-review.generated";
 import { getSdk as insertAppReview } from "./graphql/insert-app-review.generated";
 import { getSdk as updateAppReviewRating } from "./graphql/update-app-review-rating.generated";
-import { getSdk as updateReviewCount } from "./graphql/update-review-counter.generated";
 
 const schema = yup
   .object({
@@ -117,12 +115,12 @@ export const POST = async (req: NextRequest) => {
   const nullifierHash = canonicalizeNullifierHash(parsedParams.nullifier_hash);
   const country = parsedParams.country?.toLowerCase() ?? "";
 
-  // Decide new-vs-edit from the atomic INSERT result rather than a
-  // non-transactional read: under concurrent submissions of the same proof
-  // only one INSERT wins (the UNIQUE constraint serializes the rest), so the
-  // review count is incremented exactly once.
-  let isNewReview = false;
-  let previousRating = 0;
+  // Insert the review row; under concurrency one INSERT wins (the UNIQUE
+  // constraint serializes the rest). A per-person nullifier conflict means an
+  // existing review to update in place. app.rating_sum / rating_count are
+  // maintained transactionally by the app_reviews_maintain_rating DB trigger,
+  // so the handler never touches them (no read-modify-write race).
+  let reviewWritten = false;
 
   try {
     const { insert_app_reviews_one } = await insertAppReview(
@@ -133,26 +131,13 @@ export const POST = async (req: NextRequest) => {
       country,
       rating: parsedParams.rating,
     });
-
-    if (!insert_app_reviews_one) {
-      return errorResponse({
-        statusCode: 400,
-        code: "app_review_failed",
-        detail: "Failed to set app review.",
-        attribute: null,
-        req,
-        app_id,
-      });
-    }
-
-    isNewReview = true;
+    reviewWritten = Boolean(insert_app_reviews_one);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
 
     // Only a per-person nullifier uniqueness violation means "already reviewed".
-    // Any other error — including an app_reviews_pkey (friendly-id) collision or
-    // a transport failure — is a genuine failure and must not fall through to
-    // the edit path, which would adjust the aggregate without writing a review.
+    // Any other error (e.g. an app_reviews_pkey collision or a transport
+    // failure) is a genuine failure.
     if (!message.includes("app_reviews_nullifier_hash_key")) {
       logger.error("Failed to insert app review", { error, app_id });
       return errorResponse({
@@ -165,54 +150,27 @@ export const POST = async (req: NextRequest) => {
       });
     }
 
-    // The user already reviewed this app: update their existing rating and
-    // adjust the aggregate by the delta only (count unchanged).
-    const { app_reviews } = await fetchAppReview(serviceClient).GetAppReview({
-      nullifier_hash: nullifierHash,
-      app_id,
-    });
-
-    // The uniqueness violation implies a row exists; if we can't read it back,
-    // do not touch the aggregate with a phantom edit.
-    if (!app_reviews.length) {
-      logger.error("App review nullifier conflict but no existing row found", {
-        app_id,
-      });
-      return errorResponse({
-        statusCode: 500,
-        code: "app_review_failed",
-        detail: "Failed to set app review.",
-        attribute: null,
-        req,
-        app_id,
-      });
-    }
-
-    previousRating = app_reviews[0].rating;
-
-    await updateAppReviewRating(serviceClient).UpdateAppReviewRating({
+    // Existing review for this person — update their rating in place.
+    const { update_app_reviews } = await updateAppReviewRating(
+      serviceClient,
+    ).UpdateAppReviewRating({
       app_id,
       nullifier_hash: nullifierHash,
       rating: parsedParams.rating,
     });
+    reviewWritten = Boolean(update_app_reviews?.affected_rows);
   }
 
-  const ratingSumIncrement = isNewReview
-    ? parsedParams.rating
-    : parsedParams.rating - previousRating;
-  const ratingCountIncrement = isNewReview ? 1 : 0;
-
-  // Anchor: Update App Review Count
-  const { update_app } = await updateReviewCount(
-    serviceClient,
-  ).UpdateAppRatingSumMutation({
-    app_id,
-    rating: ratingSumIncrement,
-    rating_count_inc: ratingCountIncrement,
-  });
-
-  if (!update_app) {
-    logger.warn("Failed to update app review count", { app_id });
+  if (!reviewWritten) {
+    logger.error("App review was neither inserted nor updated", { app_id });
+    return errorResponse({
+      statusCode: 500,
+      code: "app_review_failed",
+      detail: "Failed to set app review.",
+      attribute: null,
+      req,
+      app_id,
+    });
   }
 
   await captureEvent({

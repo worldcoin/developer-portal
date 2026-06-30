@@ -5,8 +5,6 @@ import { appReviewMockProof } from "../../__mocks__/app-review-proof.mock";
 // #region Mocks
 const InsertAppReview = jest.fn();
 const UpdateAppReviewRating = jest.fn();
-const UpdateAppRatingSumMutation = jest.fn();
-const GetAppReview = jest.fn();
 
 jest.mock(
   "../../../../api/v2/app/submit-app-review/graphql/insert-app-review.generated.ts",
@@ -22,24 +20,6 @@ jest.mock(
   jest.fn(() => ({
     getSdk: () => ({
       UpdateAppReviewRating,
-    }),
-  })),
-);
-
-jest.mock(
-  "../../../../api/v2/app/submit-app-review/graphql/update-review-counter.generated.ts",
-  jest.fn(() => ({
-    getSdk: () => ({
-      UpdateAppRatingSumMutation,
-    }),
-  })),
-);
-
-jest.mock(
-  "../../../../api/v2/app/submit-app-review/graphql/fetch-current-app-review.generated.ts",
-  jest.fn(() => ({
-    getSdk: () => ({
-      GetAppReview,
     }),
   })),
 );
@@ -83,16 +63,16 @@ const uniqueViolation = () =>
   );
 // #endregion
 
+// NOTE: app.rating_sum / rating_count are maintained by the
+// app_reviews_maintain_rating DB trigger, so the handler no longer issues a
+// counter mutation — these tests assert only the review-row write + status.
 describe("/api/v2/app/submit-app-review", () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    UpdateAppRatingSumMutation.mockResolvedValue({
-      update_app: { affected_rows: 1 },
-    });
   });
 
   // #region New review (insert path)
-  it("inserts a new review and increments rating_count by 1", async () => {
+  it("inserts a new review and returns 200 without an explicit counter write", async () => {
     InsertAppReview.mockResolvedValue({
       insert_app_reviews_one: { id: "review_1" },
     });
@@ -100,16 +80,12 @@ describe("/api/v2/app/submit-app-review", () => {
     const res = await POST(makeReq(validBody));
 
     expect(res.status).toBe(200);
-    // Counts the review exactly once, using the full rating as the sum delta.
-    expect(UpdateAppRatingSumMutation).toHaveBeenCalledTimes(1);
-    expect(UpdateAppRatingSumMutation).toHaveBeenCalledWith(
+    expect(InsertAppReview).toHaveBeenCalledWith(
       expect.objectContaining({
-        rating_count_inc: 1,
-        rating: 3,
         app_id: validBody.app_id,
+        rating: 3,
       }),
     );
-    // The edit path must not run for a brand-new review.
     expect(UpdateAppReviewRating).not.toHaveBeenCalled();
   });
   // #endregion
@@ -131,9 +107,8 @@ describe("/api/v2/app/submit-app-review", () => {
   // #endregion
 
   // #region Existing review (unique-violation -> edit path) (#3703658)
-  it("treats a unique-violation as an edit: updates rating, does not increment count", async () => {
+  it("treats a unique-violation as an edit and updates the existing rating", async () => {
     InsertAppReview.mockRejectedValue(uniqueViolation());
-    GetAppReview.mockResolvedValue({ app_reviews: [{ rating: 1 }] });
     UpdateAppReviewRating.mockResolvedValue({
       update_app_reviews: { affected_rows: 1 },
     });
@@ -147,22 +122,17 @@ describe("/api/v2/app/submit-app-review", () => {
         rating: 4,
       }),
     );
-    // count unchanged; sum adjusted by the delta only (4 - 1).
-    expect(UpdateAppRatingSumMutation).toHaveBeenCalledWith(
-      expect.objectContaining({ rating_count_inc: 0, rating: 3 }),
-    );
   });
   // #endregion
 
-  // #region Real insert failure
-  it("returns 500 and does not touch the counter on a non-uniqueness insert error", async () => {
+  // #region Failure paths
+  it("returns 500 on a non-uniqueness insert error", async () => {
     InsertAppReview.mockRejectedValue(new Error("connection reset"));
 
     const res = await POST(makeReq(validBody));
 
     expect(res.status).toBe(500);
     expect(UpdateAppReviewRating).not.toHaveBeenCalled();
-    expect(UpdateAppRatingSumMutation).not.toHaveBeenCalled();
   });
 
   it("returns 500 on a non-nullifier unique violation (e.g. friendly-id collision), not an edit", async () => {
@@ -176,18 +146,17 @@ describe("/api/v2/app/submit-app-review", () => {
 
     expect(res.status).toBe(500);
     expect(UpdateAppReviewRating).not.toHaveBeenCalled();
-    expect(UpdateAppRatingSumMutation).not.toHaveBeenCalled();
   });
 
-  it("returns 500 if the nullifier conflicts but the existing review can't be read back", async () => {
+  it("returns 500 if the nullifier conflicts but the edit updates no rows", async () => {
     InsertAppReview.mockRejectedValue(uniqueViolation());
-    GetAppReview.mockResolvedValue({ app_reviews: [] });
+    UpdateAppReviewRating.mockResolvedValue({
+      update_app_reviews: { affected_rows: 0 },
+    });
 
     const res = await POST(makeReq(validBody));
 
     expect(res.status).toBe(500);
-    expect(UpdateAppReviewRating).not.toHaveBeenCalled();
-    expect(UpdateAppRatingSumMutation).not.toHaveBeenCalled();
   });
 
   it("rejects an over-width nullifier_hash with a 400 instead of a 500", async () => {
