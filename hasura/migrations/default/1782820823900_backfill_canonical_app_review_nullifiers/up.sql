@@ -10,7 +10,10 @@
 -- deleted.
 --
 -- Note: normalization assumes ≤ 32-byte values (true for any IDKit-issued
--- nullifier); it lowercases, strips 0x, and left-pads to 64 hex chars.
+-- nullifier); it strips surrounding whitespace (legacy rows could store an
+-- untrimmed value since the old verifier trimmed only for the proof check),
+-- lowercases, strips 0x, and left-pads to 64 hex chars — matching the handler's
+-- canonicalizeNullifierHash.
 
 -- 1. Delete duplicate rows that canonicalize to the same nullifier (same
 --    person + app — the per-app external_nullifier makes the canonical value a
@@ -21,7 +24,7 @@ USING (
     id,
     ROW_NUMBER() OVER (
       PARTITION BY
-        '0x' || lpad(regexp_replace(lower(nullifier_hash), '^0x', ''), 64, '0')
+        '0x' || lpad(regexp_replace(lower(translate(nullifier_hash, E' \t\n\r\f\v', '')), '^0x', ''), 64, '0')
       ORDER BY updated_at DESC NULLS LAST, id DESC
     ) AS rn
   FROM public.app_reviews
@@ -33,6 +36,6 @@ WHERE ar.id = dup.id
 --    "0x" + 64-lowercase-hex values).
 UPDATE public.app_reviews
 SET nullifier_hash =
-  '0x' || lpad(regexp_replace(lower(nullifier_hash), '^0x', ''), 64, '0')
+  '0x' || lpad(regexp_replace(lower(translate(nullifier_hash, E' \t\n\r\f\v', '')), '^0x', ''), 64, '0')
 WHERE nullifier_hash IS DISTINCT FROM
-  '0x' || lpad(regexp_replace(lower(nullifier_hash), '^0x', ''), 64, '0');
+  '0x' || lpad(regexp_replace(lower(translate(nullifier_hash, E' \t\n\r\f\v', '')), '^0x', ''), 64, '0');
