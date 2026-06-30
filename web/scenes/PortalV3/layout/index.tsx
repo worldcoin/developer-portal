@@ -4,18 +4,16 @@ import { ReactNode } from "react";
 import { PortalShell } from "./Shell";
 
 /**
- * Portal layout for the authenticated shell. Fetches the session once and hands
- * the shell everything it needs so chrome lives at the portal level, not under a
- * team route.
- *
- * Auth is NOT enforced here. This layout sits at the (portal) group level, which
- * also wraps the intentionally-public /kiosk/[appId]/[actionId] route, so
- * redirecting on a missing session would turn kiosk into a login-only page.
- * Middleware (web/proxy.ts protectedMatchers) gates /teams, /create-team,
- * /profile, and /join-callback; mirroring v2's PortalLayout we render with
- * whatever session exists (possibly none).
+ * v3 shell layout, mounted per-section by the (portal) shims: the team shim
+ * (variant="app") and the profile shim (variant="account"). NOT mounted at the
+ * (portal) root — the root chooser goes thin for v3 so v3 routes never inherit
+ * the v2 Header (no double-header). Auth is enforced in middleware; this layout
+ * renders with whatever session exists and never redirects.
  */
-export const PortalLayout = async (props: { children: ReactNode }) => {
+export const PortalLayout = async (props: {
+  children: ReactNode;
+  variant?: "app" | "account";
+}) => {
   const session = await auth0.getSession();
   const user = session?.user as Auth0SessionUser["user"];
   const teams = (user?.hasura?.memberships ?? [])
@@ -24,7 +22,11 @@ export const PortalLayout = async (props: { children: ReactNode }) => {
     .map((t) => ({ id: t.id, name: t.name ?? "Untitled team" }));
 
   return (
-    <PortalShell user={{ name: user?.name, email: user?.email }} teams={teams}>
+    <PortalShell
+      variant={props.variant ?? "app"}
+      user={{ name: user?.name, email: user?.email }}
+      teams={teams}
+    >
       {props.children}
     </PortalShell>
   );
