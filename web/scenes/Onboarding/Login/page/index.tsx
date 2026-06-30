@@ -206,26 +206,26 @@ const PRODUCT_CARDS: Array<{
   poster?: string;
   video: string;
 }> = [
-    {
-      href: "https://docs.world.org/world-id/overview",
-      label: "World ID",
-      poster: "/posters/World-ID-thumbnail.png",
-      video:
-        "https://worldcoin-company-website.cdn.prismic.io/worldcoin-company-website/aeCqpZ1ZCF7ETPYO_Fees-Animated.mp4",
-    },
-    {
-      href: "https://docs.world.org/world-id/idkit/integrate",
-      label: "IDKit",
-      video:
-        "https://worldcoin-company-website.cdn.prismic.io/worldcoin-company-website/aeIixp1ZCF7ETSvj_dithr-2026-4-14_16-17-58-1-.mp4",
-    },
-    {
-      href: "https://docs.world.org/agents/agent-kit/integrate",
-      label: "Agent Kit",
-      video:
-        "https://worldcoin-company-website.cdn.prismic.io/worldcoin-company-website/ablVSrbci2UF6Hcw_AgentKitDither-Video-web-.mp4",
-    },
-  ];
+  {
+    href: "https://docs.world.org/world-id/overview",
+    label: "World ID",
+    poster: "/posters/World-ID-thumbnail.png",
+    video:
+      "https://worldcoin-company-website.cdn.prismic.io/worldcoin-company-website/aeCqpZ1ZCF7ETPYO_Fees-Animated.mp4",
+  },
+  {
+    href: "https://docs.world.org/world-id/idkit/integrate",
+    label: "IDKit",
+    video:
+      "https://worldcoin-company-website.cdn.prismic.io/worldcoin-company-website/aeIixp1ZCF7ETSvj_dithr-2026-4-14_16-17-58-1-.mp4",
+  },
+  {
+    href: "https://docs.world.org/agents/agent-kit/integrate",
+    label: "Agent Kit",
+    video:
+      "https://worldcoin-company-website.cdn.prismic.io/worldcoin-company-website/ablVSrbci2UF6Hcw_AgentKitDither-Video-web-.mp4",
+  },
+];
 
 export const LoginPage = async () => {
   let session = await auth0.getSession();
@@ -409,9 +409,9 @@ export const LoginPage = async () => {
                             href={link.href}
                             {...(isExternal
                               ? {
-                                rel: "noopener noreferrer",
-                                target: "_blank",
-                              }
+                                  rel: "noopener noreferrer",
+                                  target: "_blank",
+                                }
                               : {})}
                           >
                             {link.label}
