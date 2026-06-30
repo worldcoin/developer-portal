@@ -15,8 +15,8 @@ export const NavItem = (props: {
     "flex min-w-0 items-center gap-2.5 rounded-8 px-2.5 py-1.5 font-gta text-14 font-medium outline-none transition-colors",
     "focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar",
     active
-      ? "bg-muted text-foreground"
-      : "text-muted-foreground hover:bg-muted hover:text-foreground",
+      ? "bg-grey-100 text-foreground"
+      : "text-muted-foreground hover:bg-grey-100",
     dimmed && "opacity-40",
   );
 
