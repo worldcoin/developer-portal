@@ -12,8 +12,8 @@ import { memo, useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import * as yup from "yup";
-import { FetchKeysDocument } from "../../graphql/client/fetch-keys.generated";
-import { useUpdateKeyMutation } from "./graphql/client/update-key.generated";
+import { FetchKeysDocument } from "@/scenes/common/api-keys/graphql/client/fetch-keys.generated";
+import { useUpdateKeyMutation } from "@/scenes/common/api-keys/graphql/client/update-key.generated";
 
 const schema = yup
   .object()

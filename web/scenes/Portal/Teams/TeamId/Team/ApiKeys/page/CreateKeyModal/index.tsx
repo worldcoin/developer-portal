@@ -13,9 +13,9 @@ import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import * as yup from "yup";
 import { ApiKeySecretFields } from "../ApiKeySecretFields";
-import { useResetApiKeyMutation } from "../ApiKeyTable/ApiKeyRow/graphql/client/reset-api-key.generated";
-import { FetchKeysDocument } from "../graphql/client/fetch-keys.generated";
-import { useInsertKeyMutation } from "./graphql/client/create-key.generated";
+import { useResetApiKeyMutation } from "@/scenes/common/api-keys/graphql/client/reset-api-key.generated";
+import { FetchKeysDocument } from "@/scenes/common/api-keys/graphql/client/fetch-keys.generated";
+import { useInsertKeyMutation } from "@/scenes/common/api-keys/graphql/client/create-key.generated";
 
 const schema = yup
   .object()
