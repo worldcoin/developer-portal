@@ -6,6 +6,7 @@ import gql from "graphql-tag";
 type GraphQLClientRequestHeaders = RequestOptions["requestHeaders"];
 export type ResetStalePendingRpMutationVariables = Types.Exact<{
   rp_id: Types.Scalars["String"]["input"];
+  updated_at: Types.Scalars["timestamptz"]["input"];
 }>;
 
 export type ResetStalePendingRpMutation = {
@@ -17,9 +18,13 @@ export type ResetStalePendingRpMutation = {
 };
 
 export const ResetStalePendingRpDocument = gql`
-  mutation ResetStalePendingRp($rp_id: String!) {
+  mutation ResetStalePendingRp($rp_id: String!, $updated_at: timestamptz!) {
     update_rp_registration(
-      where: { rp_id: { _eq: $rp_id }, status: { _eq: pending } }
+      where: {
+        rp_id: { _eq: $rp_id }
+        status: { _eq: pending }
+        updated_at: { _eq: $updated_at }
+      }
       _set: { status: registered }
     ) {
       affected_rows

@@ -717,12 +717,17 @@ export async function submitManagedRpDeactivation({
   // flip the RP back to active.
   let claimStatus = currentStatus;
   if (currentStatus === RpRegistrationStatus.Pending) {
+    // Scope the reset to the exact row version we observed (updated_at), so a
+    // racing pass that already reset + re-claimed this row to a *fresh*
+    // pending can't have it reset out from under it and re-submitted.
     const { update_rp_registration: resetResult } =
       await getResetStalePendingSdk(client).ResetStalePendingRp({
         rp_id: rpIdString,
+        updated_at: registration.updated_at,
       });
     if (!resetResult || resetResult.affected_rows === 0) {
-      // Another pass already reset/claimed it.
+      // Another pass already reset/claimed it (or it is no longer the stale
+      // row we read).
       return { ok: true, outcome: "skipped", reason: "concurrent", rpIdString };
     }
     claimStatus = RpRegistrationStatus.Registered;

@@ -288,9 +288,13 @@ describe("submitManagedRpDeactivation", () => {
     const res = await submitManagedRpDeactivation({ client, appId });
 
     expect(res).toMatchObject({ ok: true, outcome: "submitted" });
-    // Stale pending is first reset to `registered` (real CAS), then the claim
-    // transitions registered → pending — never a non-serializing pending claim.
-    expect(ResetStalePendingRp).toHaveBeenCalledWith({ rp_id: rpId });
+    // Stale pending is first reset to `registered` (real CAS scoped to the
+    // observed row version), then the claim transitions registered → pending —
+    // never a non-serializing pending claim.
+    expect(ResetStalePendingRp).toHaveBeenCalledWith({
+      rp_id: rpId,
+      updated_at: "2020-01-01T00:00:00.000Z",
+    });
     expect(ClaimToggleSlot).toHaveBeenCalledWith({
       rp_id: rpId,
       current_status: "registered",
