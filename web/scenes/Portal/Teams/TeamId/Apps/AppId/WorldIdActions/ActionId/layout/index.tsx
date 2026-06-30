@@ -11,7 +11,8 @@ import { checkUserPermissions } from "@/lib/utils";
 import { urls } from "@/lib/urls";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { ReactNode, use } from "react";
-import { useGetSingleActionV4Query } from "../page/graphql/client/get-single-action-v4.generated";
+import { useQuery } from "@apollo/client/react";
+import { GetSingleActionV4Document } from "../page/graphql/client/get-single-action-v4.generated";
 
 type Params = {
   teamId?: string;
@@ -29,7 +30,7 @@ export const WorldIdActionIdLayout = (props: WorldIdActionIdLayoutProps) => {
   const { user } = useUser() as Auth0SessionUser;
 
   // Fetch action data for header using user permissions
-  const { data, loading } = useGetSingleActionV4Query({
+  const { data, loading } = useQuery(GetSingleActionV4Document, {
     variables: {
       action_id: params.actionId ?? "",
     },

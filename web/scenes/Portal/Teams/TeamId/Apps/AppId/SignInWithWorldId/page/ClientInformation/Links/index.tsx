@@ -8,7 +8,8 @@ import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import * as yup from "yup";
 import { SignInActionQuery } from "../../graphql/server/fetch-signin.generated";
-import { useUpdateSignInActionMutation } from "../graphql/client/update-sign-in-action.generated";
+import { useMutation } from "@apollo/client/react";
+import { UpdateSignInActionDocument } from "../graphql/client/update-sign-in-action.generated";
 
 const schema = yup
   .object({
@@ -26,7 +27,7 @@ export const LinksForm = memo(function LinksForm(props: {
   canEdit: boolean;
 }) {
   const { teamId, signInAction, canEdit } = props;
-  const [updateSignInActionMutation] = useUpdateSignInActionMutation();
+  const [updateSignInActionMutation] = useMutation(UpdateSignInActionDocument);
 
   const {
     register,

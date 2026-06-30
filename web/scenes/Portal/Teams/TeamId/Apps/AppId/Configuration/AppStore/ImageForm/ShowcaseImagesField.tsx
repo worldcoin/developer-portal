@@ -1,9 +1,10 @@
 import { useCallback, useMemo } from "react";
 import { toast } from "react-toastify";
-import { useFetchImagesQuery } from "../../graphql/client/fetch-images.generated";
-import { useUpsertLocalisedShowcaseImagesMutation } from "../graphql/client/upsert-localised-showcase-images.generated";
+import { FetchImagesDocument } from "../../graphql/client/fetch-images.generated";
+import { UpsertLocalisedShowcaseImagesDocument } from "../graphql/client/upsert-localised-showcase-images.generated";
 import { extractImagePathWithExtensionFromActualUrl } from "../utils";
 import { ImageUploadField } from "./ImageUploadField";
+import { useMutation, useQuery } from "@apollo/client/react";
 
 interface ShowcaseImagesFieldProps {
   value?: string[];
@@ -45,7 +46,7 @@ export const ShowcaseImagesField = (props: ShowcaseImagesFieldProps) => {
     data: unverifiedImagesData,
     loading: isImagesLoading,
     refetch: refetchUnverifiedImages,
-  } = useFetchImagesQuery({
+  } = useQuery(FetchImagesDocument, {
     variables: {
       id: appId,
       team_id: teamId,
@@ -53,17 +54,20 @@ export const ShowcaseImagesField = (props: ShowcaseImagesFieldProps) => {
     },
   });
 
-  const [upsertShowcaseImages] = useUpsertLocalisedShowcaseImagesMutation({
-    onCompleted: () => {
-      toast.success("Showcase images saved successfully");
-      onAutosaveSuccess?.();
+  const [upsertShowcaseImages] = useMutation(
+    UpsertLocalisedShowcaseImagesDocument,
+    {
+      onCompleted: () => {
+        toast.success("Showcase images saved successfully");
+        onAutosaveSuccess?.();
+      },
+      onError: (error) => {
+        console.error("autosave failed:", error);
+        toast.error("Failed to auto-save showcase images");
+        onAutosaveError?.(error);
+      },
     },
-    onError: (error) => {
-      console.error("autosave failed:", error);
-      toast.error("Failed to auto-save showcase images");
-      onAutosaveError?.(error);
-    },
-  });
+  );
 
   const handleAutosave = useCallback(
     async (urls: string[]) => {

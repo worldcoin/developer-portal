@@ -13,6 +13,7 @@ import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { getGraphQLErrorCode } from "@/lib/errors";
 import { useRefetchQueries } from "@/lib/use-refetch-queries";
 import { yupResolver } from "@hookform/resolvers/yup";
+import { useMutation } from "@apollo/client/react";
 import clsx from "clsx";
 import { useParams, useRouter } from "next/navigation";
 import posthog from "posthog-js";
@@ -29,7 +30,7 @@ import { GenerateNewKeyContent } from "../../Teams/TeamId/Apps/AppId/GenerateNew
 import { UseExistingKeyContent } from "../../Teams/TeamId/Apps/AppId/UseExistingKey/UseExistingKeyContent";
 import { FetchAppsDocument } from "../AppSelector/graphql/client/fetch-apps.generated";
 import { MiniappToggleSection } from "./MiniappToggleSection";
-import { useRegisterRpMutation } from "./client/register-rp.generated";
+import { RegisterRpDocument } from "./client/register-rp.generated";
 import { createAppSchemaV4, CreateAppSchemaV4 } from "./form-schema-v4";
 import { validateAndInsertAppServerSideV4 } from "./server/v4/submit";
 
@@ -74,7 +75,8 @@ export const CreateAppDialogV4 = ({
     teamId: teamId,
   });
 
-  const [registerRp, { loading: registeringRp }] = useRegisterRpMutation();
+  const [registerRp, { loading: registeringRp }] =
+    useMutation(RegisterRpDocument);
 
   const [step, setStep] = useState<CreateDialogStep>(initialStep);
   const [createdAppId, setCreatedAppId] = useState<string | null>(

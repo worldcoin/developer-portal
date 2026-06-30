@@ -5,8 +5,9 @@ import { ErrorPage } from "@/components/ErrorPage";
 import Skeleton from "react-loading-skeleton";
 import { ActionStatsGraph } from "./ActionStatsGraph";
 import { VerifiedTable } from "./VerifiedTable";
-import { useGetSingleActionAndNullifiersQuery } from "./graphql/client/get-single-action.generated";
+import { GetSingleActionAndNullifiersDocument } from "./graphql/client/get-single-action.generated";
 import { SizingWrapper } from "@/components/SizingWrapper";
+import { useQuery } from "@apollo/client/react";
 
 type ActionIdPageProps = {
   params: Promise<Record<string, string>>;
@@ -18,7 +19,7 @@ export const ActionIdPage = (props: ActionIdPageProps) => {
   const teamId = params?.teamId;
   const appId = params?.appId;
 
-  const { data, loading } = useGetSingleActionAndNullifiersQuery({
+  const { data, loading } = useQuery(GetSingleActionAndNullifiersDocument, {
     variables: { action_id: actionId ?? "" },
   });
 

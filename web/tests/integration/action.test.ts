@@ -21,7 +21,7 @@ describe("service role", () => {
     }    
     `);
 
-    const response = await client.query({ query });
+    const response = await client.query<any>({ query });
 
     expect(response.data.action[0]).toEqual(
       expect.objectContaining({
@@ -54,7 +54,7 @@ describe("service role", () => {
       }
     }`);
 
-    const response = await client.query({ query });
+    const response = await client.query<any>({ query });
 
     expect(response.data.action.length).toBeGreaterThan(0);
     // Verify return_to fields exist in response (may be null or string)
@@ -84,7 +84,7 @@ describe("service role", () => {
     `);
 
     try {
-      await client.query({ query });
+      await client.query<any>({ query });
       expect(true).toBe(false); // Fail test if above expression doesn't throw
     } catch (e) {
       expect((e as Error).toString()).toEqual(
@@ -113,7 +113,7 @@ describe("user role", () => {
       }
     }`);
 
-    const res = (await serviceClient.query({ query })) as {
+    const res = (await serviceClient.query<any>({ query })) as {
       data: {
         action: [
           {
@@ -154,7 +154,7 @@ describe("user role", () => {
       }
     `);
 
-    const response = await client.mutate({
+    const response = await client.mutate<any>({
       mutation,
       variables: {
         id: actionId,
@@ -183,7 +183,7 @@ describe("user role", () => {
       }
     }`);
 
-    const res = (await serviceClient.query({ query })) as {
+    const res = (await serviceClient.query<any>({ query })) as {
       data: {
         action: [
           {
@@ -223,7 +223,7 @@ describe("user role", () => {
       }
     `);
 
-    const response = await client.mutate({
+    const response = await client.mutate<any>({
       mutation,
     });
     console.log(response);
@@ -248,7 +248,7 @@ describe("user role", () => {
       }
     }`);
 
-    const res = (await serviceClient.query({ query })) as {
+    const res = (await serviceClient.query<any>({ query })) as {
       data: {
         action: [
           {
@@ -287,7 +287,7 @@ describe("user role", () => {
       }
     `;
 
-    const response = await client.mutate({
+    const response = await client.mutate<any>({
       mutation,
       variables: {
         id: actionId,
@@ -314,7 +314,7 @@ describe("user role", () => {
       }
     }`);
 
-    const res = (await serviceClient.query({ query })) as {
+    const res = (await serviceClient.query<any>({ query })) as {
       data: {
         action: [
           {
@@ -353,7 +353,7 @@ describe("user role", () => {
     `;
 
     expect(
-      client.mutate({
+      client.mutate<any>({
         mutation,
         variables: {
           id: actionId,
@@ -374,7 +374,7 @@ describe("user role", () => {
       }
     }`);
 
-    const queryRes = await serviceClient.query({ query });
+    const queryRes = await serviceClient.query<any>({ query });
     const actionId = queryRes.data.action[0].id;
     const originalReturnUrlAndroid =
       queryRes.data.action[0].post_action_deep_link_android;
@@ -405,7 +405,7 @@ describe("user role", () => {
       }
     `;
 
-    const response = await serviceClient.mutate({
+    const response = await serviceClient.mutate<any>({
       mutation,
       variables: {
         id: actionId,
@@ -422,7 +422,7 @@ describe("user role", () => {
     );
 
     // Restore original value
-    await serviceClient.mutate({
+    await serviceClient.mutate<any>({
       mutation,
       variables: {
         id: actionId,
@@ -444,7 +444,7 @@ describe("user role", () => {
       }
     }`);
 
-    const queryRes = await serviceClient.query({ query });
+    const queryRes = await serviceClient.query<any>({ query });
     const actionId = queryRes.data.action[0].id;
     const originalReturnUrlAndroid =
       queryRes.data.action[0].post_action_deep_link_android;
@@ -468,7 +468,7 @@ describe("user role", () => {
       }
     `;
 
-    const response = await serviceClient.mutate({
+    const response = await serviceClient.mutate<any>({
       mutation,
       variables: {
         id: actionId,
@@ -483,7 +483,7 @@ describe("user role", () => {
     ).toBeNull();
 
     // Restore original value
-    await serviceClient.mutate({
+    await serviceClient.mutate<any>({
       mutation: gql`
         mutation UpdateAction(
           $id: String!
@@ -524,7 +524,7 @@ describe("user role", () => {
       }
     }`);
 
-    const response = await serviceClient.query({ query });
+    const response = await serviceClient.query<any>({ query });
 
     expect(response.data.action[0]).toHaveProperty(
       "post_action_deep_link_android",

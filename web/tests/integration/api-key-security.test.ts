@@ -54,7 +54,7 @@ describe("API key security", () => {
       }
     `;
 
-    const createResponse = await attackerClient.mutate({
+    const createResponse = await attackerClient.mutate<any>({
       mutation: createKeyMutation,
       variables: {
         name: "Attacker's API Key",
@@ -93,7 +93,7 @@ describe("API key security", () => {
     // Try to exploit the vulnerability
     let updateError;
     try {
-      await attackerClient.mutate({
+      await attackerClient.mutate<any>({
         mutation: updateKeyMutation,
         variables: {
           id: apiKeyId,
@@ -151,7 +151,7 @@ describe("API key security", () => {
       }
     `;
 
-    const createResponse = await client.mutate({
+    const createResponse = await client.mutate<any>({
       mutation: createKeyMutation,
       variables: {
         name: "Test API Key",
@@ -177,7 +177,7 @@ describe("API key security", () => {
       }
     `;
 
-    const updateResponse = await client.mutate({
+    const updateResponse = await client.mutate<any>({
       mutation: updateKeyMutation,
       variables: {
         id: apiKeyId,
@@ -235,7 +235,7 @@ describe("API key security", () => {
       }
     `;
 
-    const createResponse = await ownerClient.mutate({
+    const createResponse = await ownerClient.mutate<any>({
       mutation: createKeyMutation,
       variables: {
         name: "Owner's API Key",
@@ -260,7 +260,7 @@ describe("API key security", () => {
       }
     `;
 
-    const updateResponse = await adminClient.mutate({
+    const updateResponse = await adminClient.mutate<any>({
       mutation: updateKeyMutation,
       variables: {
         id: apiKeyId,

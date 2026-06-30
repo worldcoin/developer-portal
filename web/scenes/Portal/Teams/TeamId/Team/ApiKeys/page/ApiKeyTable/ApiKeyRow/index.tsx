@@ -10,7 +10,8 @@ import { KeyIcon } from "@/components/Icons/KeyIcon";
 import { TrashIcon } from "@/components/Icons/TrashIcon";
 import { Role_Enum } from "@/graphql/graphql";
 import { Auth0SessionUser } from "@/lib/types";
-import { ApolloError } from "@apollo/client";
+import { CombinedGraphQLErrors } from "@apollo/client";
+import { useMutation } from "@apollo/client/react";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import clsx from "clsx";
 import { useCallback, useMemo, useState } from "react";
@@ -18,7 +19,7 @@ import { toast } from "react-toastify";
 import { ApiKeySecretModal } from "../../ApiKeySecretModal";
 import { FetchKeysDocument } from "../../graphql/client/fetch-keys.generated";
 import { Status } from "./Status";
-import { useResetApiKeyMutation } from "./graphql/client/reset-api-key.generated";
+import { ResetApiKeyDocument } from "./graphql/client/reset-api-key.generated";
 
 export const ApiKeyRow = (props: {
   apiKey: FetchKeysQuery["api_key"][0];
@@ -41,7 +42,7 @@ export const ApiKeyRow = (props: {
     return membership?.role === Role_Enum.Owner;
   }, [teamId, user?.hasura.memberships]);
 
-  const [resetApiKeyMutation, { loading }] = useResetApiKeyMutation();
+  const [resetApiKeyMutation, { loading }] = useMutation(ResetApiKeyDocument);
 
   const resetAPIKey = useCallback(
     async (apiKeyId: string) => {
@@ -58,7 +59,7 @@ export const ApiKeyRow = (props: {
           refetchQueries: [FetchKeysDocument],
         });
 
-        if (result instanceof Error || Boolean(result?.errors)) {
+        if (result instanceof Error || Boolean(result?.error)) {
           throw result;
         }
 
@@ -72,8 +73,8 @@ export const ApiKeyRow = (props: {
       } catch (error) {
         let errorText = "Error occurred while resetting API key.";
 
-        if (error instanceof ApolloError) {
-          for (let graphQLError of error.graphQLErrors) {
+        if (CombinedGraphQLErrors.is(error)) {
+          for (let graphQLError of error.errors) {
             if (
               graphQLError.message ===
               "User does not have sufficient permissions."

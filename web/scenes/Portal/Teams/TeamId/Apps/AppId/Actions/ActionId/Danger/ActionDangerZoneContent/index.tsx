@@ -13,9 +13,10 @@ import { useUser } from "@auth0/nextjs-auth0/client";
 import { useRouter } from "next/navigation";
 import { useCallback, useMemo, useState } from "react";
 import { toast } from "react-toastify";
+import { useMutation } from "@apollo/client/react";
 import { GetActionsDocument } from "../../../page/graphql/client/actions.generated";
 import { GetSingleActionQuery } from "../page/graphql/client/get-single-action.generated";
-import { useDeleteActionMutation } from "./graphql/client/delete-action.generated";
+import { DeleteActionDocument } from "./graphql/client/delete-action.generated";
 
 export const ActionDangerZoneContent = (props: {
   action: GetSingleActionQuery["action_by_pk"];
@@ -39,7 +40,7 @@ export const ActionDangerZoneContent = (props: {
   }, [teamId, user?.hasura.memberships]);
 
   const [deleteActionQuery, { loading: deleteActionLoading }] =
-    useDeleteActionMutation();
+    useMutation(DeleteActionDocument);
 
   const deleteAction = useCallback(async () => {
     try {

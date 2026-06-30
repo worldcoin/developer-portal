@@ -6,8 +6,9 @@ import { ChartData } from "chart.js";
 import dayjs from "dayjs";
 import tz from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
+import { useQuery } from "@apollo/client/react";
 import { useMemo } from "react";
-import { useFetchAppStatsQuery } from "../graphql/client/fetch-app-stats.generated";
+import { FetchAppStatsDocument } from "../graphql/client/fetch-app-stats.generated";
 import { useGetAccumulativeTransactions } from "../GraphsSection/use-get-accumulative-transactions";
 import { useGetMetrics } from "../StatCards/use-get-metrics";
 import { ChartTabType } from "./ChartTabs";
@@ -119,10 +120,12 @@ export interface ChartDataResult {
 export const useChartData = (appId: string, activeTab: ChartTabType) => {
   const { metrics, loading: metricsLoading } = useGetMetrics(appId);
 
-  const { data: appStatsData, loading: appStatsLoading } =
-    useFetchAppStatsQuery({
+  const { data: appStatsData, loading: appStatsLoading } = useQuery(
+    FetchAppStatsDocument,
+    {
       variables: { appId },
-    });
+    },
+  );
 
   const { payments: paymentsData, loading: transactionsLoading } =
     useGetAccumulativeTransactions(appId);

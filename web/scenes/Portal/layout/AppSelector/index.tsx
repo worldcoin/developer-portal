@@ -8,8 +8,8 @@ import {
 } from "@/components/Select";
 
 import {
+  FetchAppsDocument,
   FetchAppsQuery,
-  useFetchAppsQuery,
 } from "./graphql/client/fetch-apps.generated";
 
 import { CaretIcon } from "@/components/Icons/CaretIcon";
@@ -21,6 +21,7 @@ import { Role_Enum } from "@/graphql/graphql";
 import { Auth0SessionUser } from "@/lib/types";
 import { urls } from "@/lib/urls";
 import { checkUserPermissions, getCDNImageUrl } from "@/lib/utils";
+import { useQuery } from "@apollo/client/react";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import clsx from "clsx";
 import { useAtom } from "jotai";
@@ -41,7 +42,7 @@ export const AppSelector = () => {
     ]);
   }, [user, teamId]);
 
-  const { data, loading, error } = useFetchAppsQuery({
+  const { data, loading, error } = useQuery(FetchAppsDocument, {
     variables: { teamId: teamId! },
     skip: !teamId,
   });

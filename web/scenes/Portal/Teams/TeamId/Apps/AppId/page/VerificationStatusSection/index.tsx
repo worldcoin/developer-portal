@@ -5,7 +5,8 @@ import { urls } from "@/lib/urls";
 import { VerificationStatus } from "..";
 import { ReviewStatus } from "../../../common/ReviewStatus";
 import { ResolveModal } from "../../Configuration/ResolveModal";
-import { useGetVerificationDataQuery } from "../graphql/client/get-verification-data.generated";
+import { useQuery } from "@apollo/client/react";
+import { GetVerificationDataDocument } from "../graphql/client/get-verification-data.generated";
 
 export const VerificationStatusSection = ({
   appId,
@@ -16,7 +17,7 @@ export const VerificationStatusSection = ({
 }) => {
   const router = useRouter();
   const [showModal, setShowModal] = useState(false);
-  const { data } = useGetVerificationDataQuery({
+  const { data } = useQuery(GetVerificationDataDocument, {
     variables: {
       id: appId,
     },

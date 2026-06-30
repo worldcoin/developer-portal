@@ -11,11 +11,12 @@ import utc from "dayjs/plugin/utc";
 import { useParams } from "next/navigation";
 import { useMemo } from "react";
 import Skeleton from "react-loading-skeleton";
+import { useQuery } from "@apollo/client/react";
 import { StatCard } from "./StatCard";
 import { Timespan, TimespanSelector } from "./TimespanSelector";
 import {
+  FetchActionStatsDocument,
   FetchActionStatsQuery,
-  useFetchActionStatsQuery,
 } from "./graphql/client/fetch-action-stats.generated";
 
 dayjs.extend(utc);
@@ -100,7 +101,7 @@ export const ActionStatsGraph = () => {
     }
   }, [timespan.value]);
 
-  const { data, loading } = useFetchActionStatsQuery({
+  const { data, loading } = useQuery(FetchActionStatsDocument, {
     variables: {
       actionId,
       startsAt,

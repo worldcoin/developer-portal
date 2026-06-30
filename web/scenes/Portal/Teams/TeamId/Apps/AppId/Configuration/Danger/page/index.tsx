@@ -11,7 +11,8 @@ import { useAtom } from "jotai";
 import { ErrorPage } from "@/components/ErrorPage";
 import { useParams } from "next/navigation";
 import { useMemo, useState } from "react";
-import { useFetchAppMetadataQuery } from "../../graphql/client/fetch-app-metadata.generated";
+import { useQuery } from "@apollo/client/react";
+import { FetchAppMetadataDocument } from "../../graphql/client/fetch-app-metadata.generated";
 import { viewModeAtom } from "../../layout/ImagesProvider";
 import { AppTopBar } from "../../AppTopBar";
 import { DeleteModal } from "./DeleteModal";
@@ -32,7 +33,7 @@ export const AppProfileDangerPage = ({ params }: AppProfileDangerPageProps) => {
     return checkUserPermissions(user, teamId ?? "", [Role_Enum.Owner]);
   }, [user, teamId]);
 
-  const { data, loading } = useFetchAppMetadataQuery({
+  const { data, loading } = useQuery(FetchAppMetadataDocument, {
     variables: {
       id: appId,
     },

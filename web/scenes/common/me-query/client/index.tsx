@@ -2,9 +2,10 @@ import { Auth0SessionUser } from "@/lib/types";
 import { getNullifierName } from "@/lib/utils";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useFetchMeQuery } from "./graphql/client/me-query.generated";
+import { useQuery } from "@apollo/client/react";
+import { FetchMeDocument } from "./graphql/client/me-query.generated";
 
-export const useMeQuery = (options?: Parameters<typeof useFetchMeQuery>[0]) => {
+export const useMeQuery = () => {
   const { user: auth0User } = useUser() as Auth0SessionUser;
   const [updating, setUpdating] = useState(true);
   const { invalidate } = useUser();
@@ -21,10 +22,9 @@ export const useMeQuery = (options?: Parameters<typeof useFetchMeQuery>[0]) => {
     data,
     loading: fetchLoading,
     ...rest
-  } = useFetchMeQuery({
+  } = useQuery(FetchMeDocument, {
     variables: { userId: auth0User?.hasura?.id! },
     skip: !auth0User?.hasura?.id,
-    ...options,
   });
 
   const updateSession = useCallback(async () => {

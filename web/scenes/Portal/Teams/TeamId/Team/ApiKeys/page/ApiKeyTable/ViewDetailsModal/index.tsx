@@ -8,12 +8,13 @@ import { Input } from "@/components/Input";
 import { Switcher } from "@/components/Switch";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { yupResolver } from "@hookform/resolvers/yup";
+import { useMutation } from "@apollo/client/react";
 import { memo, useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import * as yup from "yup";
 import { FetchKeysDocument } from "../../graphql/client/fetch-keys.generated";
-import { useUpdateKeyMutation } from "./graphql/client/update-key.generated";
+import { UpdateKeyDocument } from "./graphql/client/update-key.generated";
 
 const schema = yup
   .object()
@@ -38,7 +39,8 @@ export const ViewDetailsModal = memo(function ViewDetailsModal(
   props: ViewDetailsModalProps,
 ) {
   const { teamId, isOpen, name, isActive, keyId, setIsOpen } = props;
-  const [updateKeyMutation, { loading: updatingKey }] = useUpdateKeyMutation();
+  const [updateKeyMutation, { loading: updatingKey }] =
+    useMutation(UpdateKeyDocument);
 
   const {
     register,

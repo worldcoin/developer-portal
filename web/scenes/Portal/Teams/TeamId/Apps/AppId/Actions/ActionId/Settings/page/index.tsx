@@ -4,9 +4,10 @@ import { ErrorPage } from "@/components/ErrorPage";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { isLegacyActionsEditableForTeam } from "@/lib/feature-flags/world-id-4-0/common";
 import Skeleton from "react-loading-skeleton";
+import { useQuery } from "@apollo/client/react";
 import { TryAction } from "../TryAction";
 import { UpdateActionForm } from "../UpdateAction";
-import { useGetSingleActionQuery } from "./graphql/client/get-single-action.generated";
+import { GetSingleActionDocument } from "./graphql/client/get-single-action.generated";
 
 type ActionIdSettingsPageProps = {
   params: Promise<Record<string, string>>;
@@ -18,7 +19,7 @@ export const ActionIdSettingsPage = (props: ActionIdSettingsPageProps) => {
   const teamId = params?.teamId;
   const appId = params?.appId;
 
-  const { data, loading } = useGetSingleActionQuery({
+  const { data, loading } = useQuery(GetSingleActionDocument, {
     variables: {
       action_id: actionID ?? "",
     },
