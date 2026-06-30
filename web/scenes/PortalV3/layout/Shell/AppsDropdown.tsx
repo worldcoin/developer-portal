@@ -72,6 +72,12 @@ export const AppsDropdown = () => {
 
   if (!teamId) return null;
 
+  // Until the apps query resolves (loading) or if it errors, `data` is
+  // undefined. Render nothing rather than the empty state below, which would
+  // otherwise flash "Create app"/"No apps" during the initial fetch and stick
+  // there on error.
+  if (!data) return null;
+
   const current = apps.find((app) => app.id === currentAppId);
 
   return (
