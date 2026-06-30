@@ -56,7 +56,7 @@ export const AppsDropdown = () => {
   }, [appId]);
   const currentAppId = appId ?? lastAppIdRef.current;
 
-  const { data } = useFetchAppsQuery({
+  const { data, loading, error } = useFetchAppsQuery({
     variables: { teamId: teamId! },
     skip: !teamId,
   });
@@ -72,11 +72,10 @@ export const AppsDropdown = () => {
 
   if (!teamId) return null;
 
-  // Until the apps query resolves (loading) or if it errors, `data` is
-  // undefined. Render nothing rather than the empty state below, which would
-  // otherwise flash "Create app"/"No apps" during the initial fetch and stick
-  // there on error.
-  if (!data) return null;
+  // Reserve the empty-state UI (Create app / No apps) for a confirmed-empty
+  // result. While the query is loading or has errored (`data` still undefined),
+  // render nothing rather than flashing an empty state or swallowing the error.
+  if (loading || error || !data) return null;
 
   const current = apps.find((app) => app.id === currentAppId);
 

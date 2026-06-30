@@ -105,7 +105,7 @@ export const UserPopup = (props: { user: PortalUser; color: Color | null }) => {
           ) : null}
 
           <LinkItem href={urls.profile()}>Profile</LinkItem>
-          <LinkItem href={`${urls.profile()}/teams`}>My Teams</LinkItem>
+          <LinkItem href={urls.profileTeams()}>My Teams</LinkItem>
 
           <Separator />
 

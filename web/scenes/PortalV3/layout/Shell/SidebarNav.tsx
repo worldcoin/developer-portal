@@ -40,12 +40,16 @@ export const SidebarNav = () => {
         },
         {
           label: "World ID",
-          href: appBase ? `${appBase}/world-id-4-0` : appsListHref ?? "#",
+          href: appBase
+            ? urls.worldId40({ team_id: teamId, app_id: appId! })
+            : appsListHref ?? "#",
           dimmed: !appBase,
         },
         {
           label: "Configuration",
-          href: appBase ? `${appBase}/configuration` : appsListHref ?? "#",
+          href: appBase
+            ? urls.configuration({ team_id: teamId, app_id: appId! })
+            : appsListHref ?? "#",
           dimmed: !appBase,
         },
         {
