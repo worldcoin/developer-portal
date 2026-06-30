@@ -82,12 +82,6 @@ main {
 }
 `;
 
-const WORLD_ID_POSTER_SRC =
-  "https://images.prismic.io/worldcoin-company-website/adPKRpGXnQHGZSTS_frame1.webp?auto=format%2Ccompress&w=3840";
-
-const WORLD_ID_VIDEO_SRC =
-  "https://worldcoin-company-website.cdn.prismic.io/worldcoin-company-website/ad40YJ1ZCF7ETLQW_World_Website-Videos_World-ID_v2_26-04-01_optimized_260413.mp4";
-
 const FOOTER_SOCIAL_LINKS = [
   {
     href: "https://x.com/worldcoin",
@@ -212,26 +206,26 @@ const PRODUCT_CARDS: Array<{
   poster?: string;
   video: string;
 }> = [
-  {
-    href: "https://docs.world.org/world-id/overview",
-    label: "World ID",
-    poster: "/posters/World-ID-thumbnail.png",
-    video:
-      "https://worldcoin-company-website.cdn.prismic.io/worldcoin-company-website/aeCqpZ1ZCF7ETPYO_Fees-Animated.mp4",
-  },
-  {
-    href: "https://docs.world.org/world-id/idkit/integrate",
-    label: "IDKit",
-    video:
-      "https://worldcoin-company-website.cdn.prismic.io/worldcoin-company-website/aeIixp1ZCF7ETSvj_dithr-2026-4-14_16-17-58-1-.mp4",
-  },
-  {
-    href: "https://docs.world.org/agents/agent-kit/integrate",
-    label: "Agent Kit",
-    video:
-      "https://worldcoin-company-website.cdn.prismic.io/worldcoin-company-website/ablVSrbci2UF6Hcw_AgentKitDither-Video-web-.mp4",
-  },
-];
+    {
+      href: "https://docs.world.org/world-id/overview",
+      label: "World ID",
+      poster: "/posters/World-ID-thumbnail.png",
+      video:
+        "https://worldcoin-company-website.cdn.prismic.io/worldcoin-company-website/aeCqpZ1ZCF7ETPYO_Fees-Animated.mp4",
+    },
+    {
+      href: "https://docs.world.org/world-id/idkit/integrate",
+      label: "IDKit",
+      video:
+        "https://worldcoin-company-website.cdn.prismic.io/worldcoin-company-website/aeIixp1ZCF7ETSvj_dithr-2026-4-14_16-17-58-1-.mp4",
+    },
+    {
+      href: "https://docs.world.org/agents/agent-kit/integrate",
+      label: "Agent Kit",
+      video:
+        "https://worldcoin-company-website.cdn.prismic.io/worldcoin-company-website/ablVSrbci2UF6Hcw_AgentKitDither-Video-web-.mp4",
+    },
+  ];
 
 export const LoginPage = async () => {
   let session = await auth0.getSession();
@@ -366,19 +360,8 @@ export const LoginPage = async () => {
       </div>
 
       <section className="mt-4 bg-black px-2 py-2 text-white md:mt-6 md:px-3 md:py-3 lg:px-4">
-        <div className="relative isolate mx-auto w-full max-w-[calc(100vw-16px)] overflow-hidden rounded-[20px] bg-[#050505] shadow-[0_12px_40px_rgba(0,0,0,0.12)] md:min-h-[82vh] md:max-w-[calc(100vw-24px)] md:rounded-[28px] lg:max-w-[calc(100vw-32px)]">
-          <video
-            aria-label="World ID verification moment"
-            autoPlay
-            className="absolute inset-0 -z-10 size-full scale-125 object-cover"
-            loop
-            muted
-            playsInline
-            poster={WORLD_ID_POSTER_SRC}
-          >
-            <source src={WORLD_ID_VIDEO_SRC} type="video/mp4" />
-          </video>
-          <div className="relative z-10 flex flex-col gap-10 p-4 md:min-h-[82vh] md:justify-between md:gap-12 md:p-10 lg:p-12">
+        <div className="mx-auto w-full max-w-[calc(100vw-16px)] overflow-hidden rounded-[20px] bg-[#050505] shadow-[0_12px_40px_rgba(0,0,0,0.12)] md:max-w-[1080px] md:rounded-[28px] lg:max-w-[1160px]">
+          <div className="flex flex-col gap-10 p-4 md:gap-8 md:p-[52px] lg:p-[64px]">
             <DeveloperStories />
           </div>
         </div>
@@ -426,9 +409,9 @@ export const LoginPage = async () => {
                             href={link.href}
                             {...(isExternal
                               ? {
-                                  rel: "noopener noreferrer",
-                                  target: "_blank",
-                                }
+                                rel: "noopener noreferrer",
+                                target: "_blank",
+                              }
                               : {})}
                           >
                             {link.label}
