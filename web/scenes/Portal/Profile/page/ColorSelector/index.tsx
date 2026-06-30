@@ -1,5 +1,5 @@
 import { Option } from "@/scenes/Portal/Profile/page/ColorSelector/Option";
-import { Color, colors } from "@/scenes/Portal/Profile/types";
+import { Color, colors } from "@/scenes/common/colors";
 
 type ColorSelectorProps = {
   value: Color;

@@ -8,7 +8,7 @@ import { checkUserPermissions } from "@/lib/utils";
 import {
   FetchAppsQuery,
   useFetchAppsQuery,
-} from "@/scenes/Portal/layout/AppSelector/graphql/client/fetch-apps.generated";
+} from "@/scenes/common/apps/graphql/client/fetch-apps.generated";
 import { CreateAppDialogV4 } from "@/scenes/Portal/layout/CreateAppDialog/index-v4";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";

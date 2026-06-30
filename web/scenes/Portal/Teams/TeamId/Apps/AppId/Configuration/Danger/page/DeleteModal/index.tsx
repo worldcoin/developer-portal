@@ -7,7 +7,7 @@ import { AlertIcon } from "@/components/Icons/AlertIcon";
 import { ModalIcon } from "@/components/ModalIcon";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { useRefetchQueries } from "@/lib/use-refetch-queries";
-import { FetchAppsDocument } from "@/scenes/Portal/layout/AppSelector/graphql/client/fetch-apps.generated";
+import { FetchAppsDocument } from "@/scenes/common/apps/graphql/client/fetch-apps.generated";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
