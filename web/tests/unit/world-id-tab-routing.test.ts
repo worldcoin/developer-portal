@@ -10,12 +10,9 @@ jest.mock("next/navigation", () => ({
 }));
 
 const fetchAppEnvCachedMock = jest.fn();
-jest.mock(
-  "@/scenes/common/app-env/server/fetch-app-env",
-  () => ({
-    fetchAppEnvCached: (...args: unknown[]) => fetchAppEnvCachedMock(...args),
-  }),
-);
+jest.mock("@/scenes/common/app-env/server/fetch-app-env", () => ({
+  fetchAppEnvCached: (...args: unknown[]) => fetchAppEnvCachedMock(...args),
+}));
 // #endregion
 
 // #region Test Data

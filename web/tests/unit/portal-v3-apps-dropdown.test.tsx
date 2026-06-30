@@ -5,10 +5,9 @@ import React from "react";
 
 // Control the apps query result per test.
 const fetchApps = jest.fn();
-jest.mock(
-  "@/scenes/common/apps/graphql/client/fetch-apps.generated",
-  () => ({ useFetchAppsQuery: () => fetchApps() }),
-);
+jest.mock("@/scenes/common/apps/graphql/client/fetch-apps.generated", () => ({
+  useFetchAppsQuery: () => fetchApps(),
+}));
 
 // The create-app dialog pulls in a heavy subtree; stub it.
 jest.mock("@/scenes/Portal/layout/CreateAppDialog/index-v4", () => ({
