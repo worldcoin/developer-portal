@@ -886,6 +886,7 @@ const ROTATION_FLOW_RPC_CODE: Record<
 > = {
   feature_not_enabled: -32004,
   rp_not_registered: -32004,
+  app_inactive: -32004,
   self_managed_mode: -32004,
   rotation_in_progress: -32004,
   config_error: -32603,

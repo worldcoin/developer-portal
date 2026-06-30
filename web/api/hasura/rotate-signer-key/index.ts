@@ -36,6 +36,7 @@ const ROTATION_ERROR_HTTP_CODE: Record<
   feature_not_enabled: "feature_not_enabled",
   config_error: "config_error",
   rp_not_registered: "rp_not_registered",
+  app_inactive: "app_inactive",
   self_managed_mode: "self_managed_mode",
   rotation_in_progress: "rotation_in_progress",
   submission_error: "submission_error",

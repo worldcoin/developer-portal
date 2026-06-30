@@ -2,6 +2,8 @@
 
 import { errorFormAction } from "@/api/helpers/errors";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
+import { submitManagedRpDeactivation } from "@/api/helpers/rp-registration-flows";
+import { logger } from "@/lib/logger";
 import { getIsUserAllowedToDeleteApp } from "@/lib/permissions";
 import { extractIdsFromPath, getPathFromHeaders } from "@/lib/server-utils";
 import { FormActionResult } from "@/lib/types";
@@ -24,6 +26,23 @@ export async function deleteApp(appId: string): Promise<FormActionResult> {
     }
 
     const client = await getAPIServiceGraphqlClient();
+
+    // Tear down the managed RP signer on-chain before the app leaves the
+    // dashboard. Best-effort: a failure is logged and reconciled by the
+    // deactivate-deleted-app-rps cron — it must not block the delete, and the
+    // app-state guards already stop a deleted app's signer from being rotated
+    // or used in the meantime.
+    const deactivation = await submitManagedRpDeactivation({ client, appId });
+    if (!deactivation.ok) {
+      logger.error("Failed to deactivate managed RP during app delete", {
+        app_id: appId,
+        team_id: teamId,
+        rp_id: deactivation.rpIdString,
+        code: deactivation.code,
+        detail: deactivation.detail,
+      });
+    }
+
     const deleteAppSdk = getDeleteAppSdk(client);
 
     await deleteAppSdk.DeleteApp({
