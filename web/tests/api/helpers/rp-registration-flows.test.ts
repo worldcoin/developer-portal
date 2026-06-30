@@ -16,6 +16,12 @@ jest.mock(
   () => ({ getSdk: () => ({ ClaimToggleSlot }) }),
 );
 
+const ResetStalePendingRp = jest.fn();
+jest.mock(
+  "@/api/hasura/toggle-rp-active/graphql/reset-stale-pending-rp.generated",
+  () => ({ getSdk: () => ({ ResetStalePendingRp }) }),
+);
+
 const RevertToggleStatus = jest.fn();
 jest.mock(
   "@/api/hasura/toggle-rp-active/graphql/revert-toggle-status.generated",
@@ -126,6 +132,9 @@ beforeEach(() => {
     signer: "0x1111111111111111111111111111111111111111",
   });
   ClaimToggleSlot.mockResolvedValue({
+    update_rp_registration: { affected_rows: 1 },
+  });
+  ResetStalePendingRp.mockResolvedValue({
     update_rp_registration: { affected_rows: 1 },
   });
   submitToggleRpActiveTransactionMock.mockResolvedValue("0xophash");
@@ -279,11 +288,38 @@ describe("submitManagedRpDeactivation", () => {
     const res = await submitManagedRpDeactivation({ client, appId });
 
     expect(res).toMatchObject({ ok: true, outcome: "submitted" });
+    // Stale pending is first reset to `registered` (real CAS), then the claim
+    // transitions registered → pending — never a non-serializing pending claim.
+    expect(ResetStalePendingRp).toHaveBeenCalledWith({ rp_id: rpId });
     expect(ClaimToggleSlot).toHaveBeenCalledWith({
       rp_id: rpId,
-      current_status: "pending",
+      current_status: "registered",
     });
     expect(submitToggleRpActiveTransactionMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("skips a stale pending RP when another pass already reset/claimed it", async () => {
+    GetRpRegistration.mockResolvedValue({
+      rp_registration: [
+        makeRegistration({
+          status: "pending",
+          updated_at: "2020-01-01T00:00:00.000Z",
+        }),
+      ],
+    });
+    ResetStalePendingRp.mockResolvedValue({
+      update_rp_registration: { affected_rows: 0 },
+    });
+
+    const res = await submitManagedRpDeactivation({ client, appId });
+
+    expect(res).toMatchObject({
+      ok: true,
+      outcome: "skipped",
+      reason: "concurrent",
+    });
+    expect(ClaimToggleSlot).not.toHaveBeenCalled();
+    expect(submitToggleRpActiveTransactionMock).not.toHaveBeenCalled();
   });
 
   it("skips when the rotation slot was claimed by a concurrent operation", async () => {

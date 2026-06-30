@@ -33,6 +33,7 @@ import { getSdk as getRevertStatusSdk } from "@/api/hasura/rotate-signer-key/gra
 import { getSdk as getUpdateResultSdk } from "@/api/hasura/rotate-signer-key/graphql/update-rotation-result.generated";
 import { getSdk as getUpdateStagingResultSdk } from "@/api/hasura/rotate-signer-key/graphql/update-staging-rotation-result.generated";
 import { getSdk as getClaimToggleSdk } from "@/api/hasura/toggle-rp-active/graphql/claim-toggle-slot.generated";
+import { getSdk as getResetStalePendingSdk } from "@/api/hasura/toggle-rp-active/graphql/reset-stale-pending-rp.generated";
 import { getSdk as getRevertToggleSdk } from "@/api/hasura/toggle-rp-active/graphql/revert-toggle-status.generated";
 import { getSdk as getUpdateToggleSdk } from "@/api/hasura/toggle-rp-active/graphql/update-toggle-result.generated";
 import { getSdk as getUpdateRpStatusSdk } from "@/api/v4/rp-status/[rp_id]/graphql/update-rp-status.generated";
@@ -708,12 +709,31 @@ export async function submitManagedRpDeactivation({
     };
   }
 
-  // Claim the slot (current_status → pending) to serialize against a
-  // concurrent toggle/rotate or another cron pass. If the row already moved,
-  // bail rather than risk a double toggle.
+  // On-chain ACTIVE. A stale `pending` row (the only way we reach here with
+  // pending — fresh ones returned above) means the prior toggle never settled;
+  // reset it to `registered` with a compare-and-swap so the claim below is
+  // always gated by a real status transition. A bare `pending → pending` claim
+  // would not serialize concurrent attempts, and two submitted toggles would
+  // flip the RP back to active.
+  let claimStatus = currentStatus;
+  if (currentStatus === RpRegistrationStatus.Pending) {
+    const { update_rp_registration: resetResult } =
+      await getResetStalePendingSdk(client).ResetStalePendingRp({
+        rp_id: rpIdString,
+      });
+    if (!resetResult || resetResult.affected_rows === 0) {
+      // Another pass already reset/claimed it.
+      return { ok: true, outcome: "skipped", reason: "concurrent", rpIdString };
+    }
+    claimStatus = RpRegistrationStatus.Registered;
+  }
+
+  // Claim the slot (claimStatus → pending) — a real status transition, so it
+  // serializes against a concurrent toggle/rotate or another cron pass. If the
+  // row already moved, bail rather than risk a double toggle.
   const { update_rp_registration: claimResult } = await getClaimToggleSdk(
     client,
-  ).ClaimToggleSlot({ rp_id: rpIdString, current_status: currentStatus });
+  ).ClaimToggleSlot({ rp_id: rpIdString, current_status: claimStatus });
   if (!claimResult || claimResult.affected_rows === 0) {
     return { ok: true, outcome: "skipped", reason: "concurrent", rpIdString };
   }
@@ -725,7 +745,7 @@ export async function submitManagedRpDeactivation({
     try {
       await getRevertToggleSdk(client).RevertToggleStatus({
         rp_id: rpIdString,
-        previous_status: currentStatus,
+        previous_status: claimStatus,
       });
     } catch (revertError) {
       logger.error("Failed to revert deactivation status", {

@@ -34,19 +34,27 @@ export async function deleteApp(appId: string): Promise<FormActionResult> {
 
     // Tear down the managed RP signer on-chain *after* the soft delete commits,
     // so a failed delete can never leave a live app with an on-chain-disabled
-    // signer. Best-effort: a failure is logged and reconciled by the
-    // deactivate-deleted-app-rps cron — it must not block the delete, and the
-    // app-state guards already stop a deleted app's signer from being rotated
-    // or used in the meantime.
-    const deactivation = await submitManagedRpDeactivation({ client, appId });
-    if (!deactivation.ok) {
-      logger.error("Failed to deactivate managed RP during app delete", {
-        app_id: appId,
-        team_id: teamId,
-        rp_id: deactivation.rpIdString,
-        code: deactivation.code,
-        detail: deactivation.detail,
-      });
+    // signer. Best-effort and fully isolated in its own try/catch: the delete
+    // has already committed, so neither a tagged failure nor an unexpected
+    // throw here may surface as a delete error. The deactivate-deleted-app-rps
+    // cron reconciles, and the app-state guards already stop a deleted app's
+    // signer from being rotated or used in the meantime.
+    try {
+      const deactivation = await submitManagedRpDeactivation({ client, appId });
+      if (!deactivation.ok) {
+        logger.error("Failed to deactivate managed RP during app delete", {
+          app_id: appId,
+          team_id: teamId,
+          rp_id: deactivation.rpIdString,
+          code: deactivation.code,
+          detail: deactivation.detail,
+        });
+      }
+    } catch (deactivationError) {
+      logger.error(
+        "Unexpected error deactivating managed RP during app delete",
+        { error: deactivationError, app_id: appId, team_id: teamId },
+      );
     }
 
     return {
