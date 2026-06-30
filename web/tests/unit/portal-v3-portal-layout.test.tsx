@@ -6,13 +6,6 @@ import React from "react";
 const getSession = jest.fn();
 jest.mock("@/lib/auth0", () => ({ auth0: { getSession: () => getSession() } }));
 
-const redirectMock = jest.fn((url: string) => {
-  throw new Error("REDIRECT:" + url);
-});
-jest.mock("next/navigation", () => ({
-  redirect: (url: string) => redirectMock(url),
-}));
-
 // Stub the shell so we test only PortalLayout's session -> shell wiring.
 jest.mock("@/scenes/PortalV3/layout/Shell", () => ({
   PortalShell: (props: {
@@ -42,8 +35,9 @@ it("mounts the shell with teams from the session", async () => {
   expect(screen.getByTestId("body")).toBeInTheDocument();
 });
 
-it("redirects to login when there is no session", async () => {
+it("renders the shell without a session (auth is enforced by middleware, not here)", async () => {
   getSession.mockResolvedValue(null);
-  await expect(PortalLayout({ children: null })).rejects.toThrow(/REDIRECT/);
-  expect(redirectMock).toHaveBeenCalledTimes(1);
+  render(await PortalLayout({ children: <div data-testid="body" /> }));
+  expect(screen.getByTestId("shell")).toHaveAttribute("data-team-count", "0");
+  expect(screen.getByTestId("body")).toBeInTheDocument();
 });
