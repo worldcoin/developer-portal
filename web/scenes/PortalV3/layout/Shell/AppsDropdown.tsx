@@ -29,7 +29,7 @@ const AppsDropdownRow = (props: {
   <DropdownMenu.Item
     onSelect={props.onSelect}
     className={clsx(
-      "data-[highlighted]:bg-grey-100 flex cursor-pointer items-center gap-3 rounded-8 px-2.5 py-1.5 font-gta text-14 outline-none",
+      "flex cursor-pointer items-center gap-3 rounded-8 px-2.5 py-1.5 font-gta text-14 outline-none data-[highlighted]:bg-grey-100",
       props.isSelected && "font-medium",
     )}
   >
@@ -111,7 +111,7 @@ export const AppsDropdown = () => {
             <DropdownMenu.Content
               align="start"
               sideOffset={6}
-              className="border-border bg-white z-50 max-h-[60vh] min-w-[240px] overflow-y-auto rounded-12 border p-1 shadow-lg"
+              className="border-border z-50 max-h-[60vh] min-w-[240px] overflow-y-auto rounded-12 border bg-white p-1 shadow-lg"
             >
               {apps.map((app) => (
                 <AppsDropdownRow
@@ -128,7 +128,7 @@ export const AppsDropdown = () => {
                   <DropdownMenu.Separator className="bg-border my-1 h-px" />
                   <DropdownMenu.Item
                     onSelect={() => setDialogOpen(true)}
-                    className="text-muted-foreground data-[highlighted]:bg-grey-100 flex cursor-pointer items-center gap-2 rounded-8 px-2.5 py-1.5 font-gta text-14 outline-none"
+                    className="text-muted-foreground flex cursor-pointer items-center gap-2 rounded-8 px-2.5 py-1.5 font-gta text-14 outline-none data-[highlighted]:bg-grey-100"
                   >
                     Create app
                   </DropdownMenu.Item>

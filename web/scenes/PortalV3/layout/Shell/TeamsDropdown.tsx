@@ -19,7 +19,7 @@ const TeamsDropdownRow = (props: {
   <DropdownMenu.Item
     onSelect={props.onSelect}
     className={clsx(
-      "data-[highlighted]:bg-grey-100 flex cursor-pointer items-center gap-2 rounded-8 px-2.5 py-1.5 font-gta text-14 outline-none",
+      "flex cursor-pointer items-center gap-2 rounded-8 px-2.5 py-1.5 font-gta text-14 outline-none data-[highlighted]:bg-grey-100",
       props.isCurrent && "font-medium",
     )}
   >
@@ -72,7 +72,7 @@ export const TeamsDropdown = (props: { teams: DropdownTeam[] }) => {
             align="end"
             sideOffset={6}
             collisionPadding={12}
-            className="border-border bg-white z-50 max-h-[60vh] w-[232px] overflow-y-auto rounded-12 border p-1 shadow-lg "
+            className="border-border z-50 max-h-[60vh] w-[232px] overflow-y-auto rounded-12 border bg-white p-1 shadow-lg "
           >
             {teams.map((team) => (
               <TeamsDropdownRow
@@ -85,7 +85,7 @@ export const TeamsDropdown = (props: { teams: DropdownTeam[] }) => {
             <DropdownMenu.Separator className="bg-border my-1 h-px" />
             <DropdownMenu.Item
               onSelect={() => router.push(urls.createTeam())}
-              className="text-muted-foreground data-[highlighted]:bg-grey-100 flex cursor-pointer items-center gap-2 rounded-8 px-2.5 py-1.5 font-gta text-14 outline-none"
+              className="text-muted-foreground flex cursor-pointer items-center gap-2 rounded-8 px-2.5 py-1.5 font-gta text-14 outline-none data-[highlighted]:bg-grey-100"
             >
               Create team
             </DropdownMenu.Item>
