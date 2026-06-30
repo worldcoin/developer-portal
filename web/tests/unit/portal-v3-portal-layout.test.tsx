@@ -10,9 +10,14 @@ jest.mock("@/lib/auth0", () => ({ auth0: { getSession: () => getSession() } }));
 jest.mock("@/scenes/PortalV3/layout/Shell", () => ({
   PortalShell: (props: {
     teams: { id: string }[];
+    variant?: string;
     children: React.ReactNode;
   }) => (
-    <div data-testid="shell" data-team-count={props.teams.length}>
+    <div
+      data-testid="shell"
+      data-variant={props.variant ?? "app"}
+      data-team-count={props.teams.length}
+    >
       {props.children}
     </div>
   ),
@@ -35,9 +40,18 @@ it("mounts the shell with teams from the session", async () => {
   expect(screen.getByTestId("body")).toBeInTheDocument();
 });
 
-it("renders the shell without a session (auth is enforced by middleware, not here)", async () => {
-  getSession.mockResolvedValue(null);
-  render(await PortalLayout({ children: <div data-testid="body" /> }));
-  expect(screen.getByTestId("shell")).toHaveAttribute("data-team-count", "0");
-  expect(screen.getByTestId("body")).toBeInTheDocument();
+it("forwards variant=account to the shell", async () => {
+  getSession.mockResolvedValue({
+    user: { name: "Ada", email: "ada@example.com" },
+  });
+  render(
+    await PortalLayout({
+      variant: "account",
+      children: <div data-testid="body" />,
+    }),
+  );
+  expect(screen.getByTestId("shell")).toHaveAttribute(
+    "data-variant",
+    "account",
+  );
 });
