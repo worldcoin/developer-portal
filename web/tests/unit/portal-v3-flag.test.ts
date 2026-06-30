@@ -4,74 +4,52 @@ jest.mock("server-only", () => ({}));
 
 import {
   isPortalV3Enabled,
-  isPortalV3EnabledForTeam,
+  isPortalV3EnabledForEmail,
 } from "@/lib/feature-flags/portal-v3/flag";
 
-const ENV_KEY = "LOCAL_DEV_PORTAL_V3_ENABLED";
+const ORIGINAL = { ...process.env };
+afterEach(() => {
+  process.env = { ...ORIGINAL };
+});
 
-describe("isPortalV3Enabled", () => {
-  const original = process.env[ENV_KEY];
-
-  afterEach(() => {
-    if (original === undefined) {
-      delete process.env[ENV_KEY];
-    } else {
-      process.env[ENV_KEY] = original;
-    }
-  });
-
-  it("returns false when the env var is unset", () => {
-    delete process.env[ENV_KEY];
-    expect(isPortalV3Enabled()).toBe(false);
-  });
-
-  it('returns true only for the exact string "true"', () => {
-    process.env[ENV_KEY] = "true";
+describe("isPortalV3Enabled (global)", () => {
+  it("is true only for the exact string 'true'", () => {
+    process.env.LOCAL_DEV_PORTAL_V3_ENABLED = "true";
     expect(isPortalV3Enabled()).toBe(true);
   });
 
-  it('returns false for a truthy-but-not-"true" value like "1"', () => {
-    process.env[ENV_KEY] = "1";
+  it("is false when unset or any other value", () => {
+    delete process.env.LOCAL_DEV_PORTAL_V3_ENABLED;
     expect(isPortalV3Enabled()).toBe(false);
-  });
-
-  it('returns false for "false"', () => {
-    process.env[ENV_KEY] = "false";
+    process.env.LOCAL_DEV_PORTAL_V3_ENABLED = "1";
     expect(isPortalV3Enabled()).toBe(false);
   });
 });
 
-describe("isPortalV3EnabledForTeam", () => {
-  const original = process.env[ENV_KEY];
-
-  afterEach(() => {
-    delete (global as { ParameterStore?: unknown }).ParameterStore;
-    if (original === undefined) {
-      delete process.env[ENV_KEY];
-    } else {
-      process.env[ENV_KEY] = original;
-    }
+describe("isPortalV3EnabledForEmail", () => {
+  beforeEach(() => {
+    delete process.env.LOCAL_DEV_PORTAL_V3_ENABLED;
+    process.env.PORTAL_V3_EMAILS = "dev@tools.com, Ada@Example.com";
   });
 
-  const mockParameterStore = (value: string | undefined) => {
-    (global as { ParameterStore?: unknown }).ParameterStore = {
-      getParameter: jest.fn().mockResolvedValue(value),
-    };
-  };
-
-  it('is true when the team\'s SSM parameter is "true"', async () => {
-    mockParameterStore("true");
-    expect(await isPortalV3EnabledForTeam("team_1")).toBe(true);
+  it("enables an allow-listed email (case-insensitive, trimmed)", () => {
+    expect(isPortalV3EnabledForEmail("ada@example.com")).toBe(true);
+    expect(isPortalV3EnabledForEmail("dev@tools.com")).toBe(true);
   });
 
-  it('is false when the team\'s SSM parameter is "false"', async () => {
-    mockParameterStore("false");
-    expect(await isPortalV3EnabledForTeam("team_1")).toBe(false);
+  it("rejects a non-listed email", () => {
+    expect(isPortalV3EnabledForEmail("nope@example.com")).toBe(false);
   });
 
-  it("falls back to the env var when Parameter Store is not initialized", async () => {
-    delete (global as { ParameterStore?: unknown }).ParameterStore;
-    process.env[ENV_KEY] = "true";
-    expect(await isPortalV3EnabledForTeam("team_1")).toBe(true);
+  it("rejects missing email", () => {
+    expect(isPortalV3EnabledForEmail(undefined)).toBe(false);
+    expect(isPortalV3EnabledForEmail(null)).toBe(false);
+  });
+
+  it("the global flag forces it on for everyone", () => {
+    process.env.LOCAL_DEV_PORTAL_V3_ENABLED = "true";
+    process.env.PORTAL_V3_EMAILS = "";
+    expect(isPortalV3EnabledForEmail("anyone@example.com")).toBe(true);
+    expect(isPortalV3EnabledForEmail(undefined)).toBe(true);
   });
 });
