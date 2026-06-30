@@ -6,7 +6,7 @@ import React from "react";
 // Control the apps query result per test.
 const fetchApps = jest.fn();
 jest.mock(
-  "@/scenes/Portal/layout/AppSelector/graphql/client/fetch-apps.generated",
+  "@/scenes/common/apps/graphql/client/fetch-apps.generated",
   () => ({ useFetchAppsQuery: () => fetchApps() }),
 );
 
