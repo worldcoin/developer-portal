@@ -51,25 +51,37 @@ export async function POST(request: NextRequest) {
   let skipped = 0;
   let failed = 0;
 
-  // Sequential to keep on-chain submission load bounded.
+  // Sequential to keep on-chain submission load bounded. Each candidate is
+  // isolated in its own try/catch so a single bad row (an unexpected throw
+  // from a GraphQL/RPC call) is counted and logged rather than aborting the
+  // run and blocking reconciliation for the rest of the batch.
   for (const candidate of candidates) {
-    const result = await submitManagedRpDeactivation({
-      client,
-      appId: candidate.app_id,
-    });
+    try {
+      const result = await submitManagedRpDeactivation({
+        client,
+        appId: candidate.app_id,
+      });
 
-    if (!result.ok) {
+      if (!result.ok) {
+        failed += 1;
+        logger.error("Failed to deactivate RP for deleted app", {
+          app_id: candidate.app_id,
+          rp_id: candidate.rp_id,
+          code: result.code,
+          detail: result.detail,
+        });
+      } else if (result.outcome === "submitted") {
+        submitted += 1;
+      } else {
+        skipped += 1;
+      }
+    } catch (error) {
       failed += 1;
-      logger.error("Failed to deactivate RP for deleted app", {
+      logger.error("Unexpected error deactivating RP for deleted app", {
+        error,
         app_id: candidate.app_id,
         rp_id: candidate.rp_id,
-        code: result.code,
-        detail: result.detail,
       });
-    } else if (result.outcome === "submitted") {
-      submitted += 1;
-    } else {
-      skipped += 1;
     }
   }
 

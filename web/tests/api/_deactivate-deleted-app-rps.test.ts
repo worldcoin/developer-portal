@@ -111,5 +111,20 @@ describe("/api/_deactivate-deleted-app-rps [reconciliation]", () => {
     expect(res.status).toBe(204);
     expect(submitManagedRpDeactivationMock).toHaveBeenCalledTimes(2);
   });
+
+  it("continues to the next candidate when a deactivation throws", async () => {
+    GetDeletedAppRps.mockResolvedValue({
+      rp_registration: [candidate(1), candidate(2)],
+    });
+    submitManagedRpDeactivationMock
+      .mockRejectedValueOnce(new Error("graphql exploded"))
+      .mockResolvedValueOnce({ ok: true, outcome: "submitted" });
+
+    const res = (await POST(createRequest("Bearer internal-secret")))!;
+
+    // One bad row must not abort the run or skip the remaining candidates.
+    expect(res.status).toBe(204);
+    expect(submitManagedRpDeactivationMock).toHaveBeenCalledTimes(2);
+  });
 });
 // #endregion
