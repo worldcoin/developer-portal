@@ -5,7 +5,7 @@ import { urls } from "@/lib/urls";
 import { VerificationStatus } from "..";
 import { ReviewStatus } from "../../../common/ReviewStatus";
 import { ResolveModal } from "../../Configuration/ResolveModal";
-import { useGetVerificationDataQuery } from "../graphql/client/get-verification-data.generated";
+import { useGetVerificationDataQuery } from "@/scenes/common/apps/graphql/client/get-verification-data.generated";
 
 export const VerificationStatusSection = ({
   appId,
