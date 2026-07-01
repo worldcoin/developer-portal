@@ -3,7 +3,7 @@ import { Dropdown } from "@/components/Dropdown";
 import { MoreVerticalIcon } from "@/components/Icons/MoreVerticalIcon";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { formatDistanceToNowStrict } from "date-fns";
-import { FetchKeysQuery } from "../../graphql/client/fetch-keys.generated";
+import { FetchKeysQuery } from "@/scenes/common/Teams/TeamId/Team/ApiKeys/page/graphql/client/fetch-keys.generated";
 
 import { EditIcon } from "@/components/Icons/EditIcon";
 import { KeyIcon } from "@/components/Icons/KeyIcon";
@@ -16,9 +16,9 @@ import clsx from "clsx";
 import { useCallback, useMemo, useState } from "react";
 import { toast } from "react-toastify";
 import { ApiKeySecretModal } from "../../ApiKeySecretModal";
-import { FetchKeysDocument } from "../../graphql/client/fetch-keys.generated";
+import { FetchKeysDocument } from "@/scenes/common/Teams/TeamId/Team/ApiKeys/page/graphql/client/fetch-keys.generated";
 import { Status } from "./Status";
-import { useResetApiKeyMutation } from "./graphql/client/reset-api-key.generated";
+import { useResetApiKeyMutation } from "@/scenes/common/Teams/TeamId/Team/ApiKeys/page/ApiKeyTable/ApiKeyRow/graphql/client/reset-api-key.generated";
 
 export const ApiKeyRow = (props: {
   apiKey: FetchKeysQuery["api_key"][0];

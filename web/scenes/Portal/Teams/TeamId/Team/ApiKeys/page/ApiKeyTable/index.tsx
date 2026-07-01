@@ -1,6 +1,6 @@
 "use client";
 import { useCallback, useMemo, useState } from "react";
-import { FetchKeysQuery } from "../graphql/client/fetch-keys.generated";
+import { FetchKeysQuery } from "@/scenes/common/Teams/TeamId/Team/ApiKeys/page/graphql/client/fetch-keys.generated";
 import { ApiKeyRow } from "./ApiKeyRow";
 import { DeleteKeyModal } from "./DeleteKeyModal";
 import { ViewDetailsModal } from "./ViewDetailsModal";
