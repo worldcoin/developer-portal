@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { urls } from "@/lib/urls";
 import { VerificationStatus } from "..";
-import { ReviewStatus } from "../../../common/ReviewStatus";
+import { ReviewStatus } from "@/scenes/Portal/Teams/TeamId/Apps/common/ReviewStatus";
 import { ResolveModal } from "../../Configuration/ResolveModal";
 import { useGetVerificationDataQuery } from "@/scenes/common/Teams/TeamId/Apps/AppId/page/graphql/client/get-verification-data.generated";
 

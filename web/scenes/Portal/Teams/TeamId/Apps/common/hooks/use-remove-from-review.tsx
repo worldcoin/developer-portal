@@ -3,7 +3,7 @@ import { useParams } from "next/navigation";
 import { useCallback, useState } from "react";
 import { toast } from "react-toastify";
 import { FetchAppMetadataDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/graphql/client/fetch-app-metadata.generated";
-import { GetVerificationDataDocument } from "../../AppId/page/graphql/client/get-verification-data.generated";
+import { GetVerificationDataDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/page/graphql/client/get-verification-data.generated";
 import { removeAppFromReview } from "./server";
 
 export const useRemoveFromReview = (props: {
