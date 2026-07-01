@@ -5,8 +5,8 @@ import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { getIsUserAllowedToUpdateApp } from "@/lib/permissions";
 import { FormActionResult } from "@/lib/types";
 import { logger } from "@/lib/logger";
-import { getSdk } from "../graphql/server/delete-action-v4.generated";
-import { getSdk as getActionWithAppSdk } from "../../../Settings/UpdateActionV4Form/server/graphql/server/get-action-v4-with-app.generated";
+import { getSdk } from "@/scenes/common/Teams/TeamId/Apps/AppId/WorldIdActions/ActionId/Danger/page/graphql/server/delete-action-v4.generated";
+import { getSdk as getActionWithAppSdk } from "@/scenes/common/Teams/TeamId/Apps/AppId/WorldIdActions/ActionId/Settings/UpdateActionV4Form/server/graphql/server/get-action-v4-with-app.generated";
 
 export async function deleteActionV4ServerSide(
   actionId: string,

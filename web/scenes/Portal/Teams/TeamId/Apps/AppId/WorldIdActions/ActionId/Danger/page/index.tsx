@@ -7,7 +7,7 @@ import { urls } from "@/lib/urls";
 import { useRouter } from "next/navigation";
 import { useCallback, useState, use } from "react";
 import { toast } from "react-toastify";
-import { useGetSingleActionV4Query } from "../../page/graphql/client/get-single-action-v4.generated";
+import { useGetSingleActionV4Query } from "@/scenes/common/Teams/TeamId/Apps/AppId/WorldIdActions/ActionId/page/graphql/client/get-single-action-v4.generated";
 import { deleteActionV4ServerSide } from "./server";
 
 type WorldIdActionIdDangerPageProps = {

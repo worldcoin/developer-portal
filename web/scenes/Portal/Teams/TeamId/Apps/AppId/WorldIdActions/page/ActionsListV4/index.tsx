@@ -9,7 +9,7 @@ import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { useEffect, useMemo, useState } from "react";
 import { ActionRowV4 } from "./ActionRowV4";
 
-import type { GetActionsV4Query } from "../graphql/client/get-actions-v4.generated";
+import type { GetActionsV4Query } from "@/scenes/common/Teams/TeamId/Apps/AppId/WorldIdActions/page/graphql/client/get-actions-v4.generated";
 
 type ActionsListV4Props = {
   actions: GetActionsV4Query["action_v4"];
