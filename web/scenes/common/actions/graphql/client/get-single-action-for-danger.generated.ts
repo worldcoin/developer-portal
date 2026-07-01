@@ -66,10 +66,10 @@ export function useGetSingleActionForDangerQuery(
     ),
 ) {
   const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useQuery<GetSingleActionForDangerQuery, GetSingleActionForDangerQueryVariables>(
-    GetSingleActionForDangerDocument,
-    options,
-  );
+  return Apollo.useQuery<
+    GetSingleActionForDangerQuery,
+    GetSingleActionForDangerQueryVariables
+  >(GetSingleActionForDangerDocument, options);
 }
 export function useGetSingleActionForDangerLazyQuery(
   baseOptions?: Apollo.LazyQueryHookOptions<
