@@ -6,7 +6,7 @@ import { SizingWrapper } from "@/components/SizingWrapper";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { useState, use } from "react";
 import Skeleton from "react-loading-skeleton";
-import { TeamProfile } from "../../common/TeamProfile";
+import { TeamProfile } from "@/scenes/Portal/Teams/TeamId/Team/common/TeamProfile";
 import { ApiKeysTable } from "./ApiKeyTable";
 import { CreateKeyModal } from "./CreateKeyModal";
 import { useFetchKeysQuery } from "@/scenes/common/Teams/TeamId/Team/ApiKeys/page/graphql/client/fetch-keys.generated";
