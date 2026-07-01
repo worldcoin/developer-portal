@@ -1,6 +1,7 @@
 "use server";
 
 import { errorFormAction } from "@/api/helpers/errors";
+import { getIsUserAllowedToReadApp } from "@/lib/permissions";
 import { extractIdsFromPath, getPathFromHeaders } from "@/lib/server-utils";
 import { DataByCountry, FormActionResult } from "@/lib/types";
 
@@ -39,7 +40,18 @@ export const getAppMetricsData = async (
   appId: string,
 ): Promise<FormActionResult> => {
   const path = (await getPathFromHeaders()) || "";
-  const { Teams: teamId } = extractIdsFromPath(path, ["Teams"]);
+  const { teams: teamId } = extractIdsFromPath(path, ["teams"]);
+
+  // Authorize against the database: this server action is directly invokable
+  // with any appId, so it must not return another tenant's metrics.
+  if (!(await getIsUserAllowedToReadApp(appId))) {
+    return errorFormAction({
+      message: "User is not allowed to access this app",
+      team_id: teamId,
+      app_id: appId,
+      logLevel: "error",
+    });
+  }
 
   const metricsData = await fetch(
     `${process.env.NEXT_PUBLIC_METRICS_SERVICE_ENDPOINT}/stats/data.json`,

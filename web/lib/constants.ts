@@ -10,6 +10,17 @@ import {
 
 export { Categories } from "./categories";
 
+/**
+ * Apps that legitimately use a custom external_nullifier (NOT derived from
+ * app_id + action), kept for legacy nullifier_hash compatibility. For every
+ * other app the portal is the sole authority for external_nullifier, so a
+ * client-supplied value must never be preserved (see HackerOne #3749623) and
+ * precheck computes the value from app_id + action instead of trusting storage.
+ */
+export const APPS_WITH_CUSTOM_EXTERNAL_NULLIFIER = [
+  "app_1f7f2c379f20307a414f6cf8b544ec8a", // Grants app - uses 0xB16B00B5 for humanity verification
+];
+
 // ANCHOR: Production Sequencers
 export const ORB_SEQUENCER = "https://signup-orb-ethereum.crypto.worldcoin.org";
 export const PHONE_SEQUENCER =
