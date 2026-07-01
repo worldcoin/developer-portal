@@ -1,5 +1,5 @@
 import { atom } from "jotai";
-import { Color } from "@/scenes/common/colors";
+import { Color } from "@/scenes/common/Profile/types";
 
 // Shared jotai atom for the per-user accent color. It lives in its own module
 // (not `scenes/Portal/layout`, which is a Server Component that imports the
