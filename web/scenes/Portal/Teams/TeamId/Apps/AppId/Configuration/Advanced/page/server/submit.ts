@@ -10,7 +10,7 @@ import {
   updateSetupInitialSchema,
   UpdateSetupInitialSchema,
 } from "../form-schema";
-import { getSdk as getUpdateSetupSdk } from "../SetupForm/graphql/server/update-setup.generated";
+import { getSdk as getUpdateSetupSdk } from "@/scenes/common/apps/graphql/server/update-setup.generated";
 
 export async function validateAndUpdateSetupServerSide(
   initialValues: UpdateSetupInitialSchema,

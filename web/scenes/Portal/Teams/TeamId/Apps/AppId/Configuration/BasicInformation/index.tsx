@@ -20,7 +20,7 @@ import React, {
 } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
-import { FetchAppMetadataQuery } from "../graphql/client/fetch-app-metadata.generated";
+import { FetchAppMetadataQuery } from "@/scenes/common/apps/graphql/client/fetch-app-metadata.generated";
 import { viewModeAtom } from "../layout/ImagesProvider";
 import * as yup from "yup";
 import { useAutosaveWithStatus } from "../hook/use-autosave-with-status";

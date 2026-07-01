@@ -22,7 +22,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import clsx from "clsx";
 import { ChangeEvent, useCallback, useEffect, useMemo, useRef } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
-import { FetchAppMetadataQuery } from "../../../graphql/client/fetch-app-metadata.generated";
+import { FetchAppMetadataQuery } from "@/scenes/common/apps/graphql/client/fetch-app-metadata.generated";
 import { useAutosaveWithStatus } from "../../../hook/use-autosave-with-status";
 import { useSaveStatus } from "../../../SaveStatus";
 import {

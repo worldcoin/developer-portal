@@ -17,11 +17,11 @@ import { useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import * as yup from "yup";
-import { FetchAppMetadataDocument } from "../../graphql/client/fetch-app-metadata.generated";
+import { FetchAppMetadataDocument } from "@/scenes/common/apps/graphql/client/fetch-app-metadata.generated";
 import { RemainingCharacters } from "../../PageComponents/RemainingCharacters";
 import { submitAppForReviewFormServerSide } from "../server/submit";
 import { SubmitSuccessToast } from "../SubmitSuccessToast";
-import { useValidateLocalisationMutation } from "./graphql/client/validate-localisations.generated";
+import { useValidateLocalisationMutation } from "@/scenes/common/apps/graphql/client/validate-localisations.generated";
 
 const schema = yup
   .object({

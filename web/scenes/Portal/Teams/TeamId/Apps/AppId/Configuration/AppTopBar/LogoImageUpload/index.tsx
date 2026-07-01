@@ -14,11 +14,11 @@ import Image from "next/image";
 import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 import Skeleton from "react-loading-skeleton";
 import { toast } from "react-toastify";
-import { FetchAppMetadataDocument } from "../../graphql/client/fetch-app-metadata.generated";
+import { FetchAppMetadataDocument } from "@/scenes/common/apps/graphql/client/fetch-app-metadata.generated";
 import { ImageValidationError, useImage } from "../../hook/use-image";
 import ImageLoader from "../../AppStore/ImageForm/ImageLoader";
 import { unverifiedImageAtom, viewModeAtom } from "../../layout/ImagesProvider";
-import { useUpdateLogoMutation } from "./graphql/client/update-logo.generated";
+import { useUpdateLogoMutation } from "@/scenes/common/apps/graphql/client/update-logo.generated";
 
 type LogoImageUploadProps = {
   appId: string;

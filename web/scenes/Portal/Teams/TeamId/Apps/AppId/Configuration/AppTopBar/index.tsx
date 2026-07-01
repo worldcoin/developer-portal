@@ -36,16 +36,16 @@ import { useApolloClient } from "@apollo/client";
 import {
   FetchAppMetadataDocument,
   FetchAppMetadataQuery,
-} from "../graphql/client/fetch-app-metadata.generated";
+} from "@/scenes/common/apps/graphql/client/fetch-app-metadata.generated";
 import {
   useFetchImagesLazyQuery,
   useFetchImagesQuery,
-} from "../graphql/client/fetch-images.generated";
+} from "@/scenes/common/apps/graphql/client/fetch-images.generated";
 import { unverifiedImageAtom, viewModeAtom } from "../layout/ImagesProvider";
 import { LogoImageUpload } from "./LogoImageUpload";
 import { SubmitAppModal } from "./SubmitAppModal";
 import { VersionSwitcher } from "./VersionSwitcher";
-import { useCreateEditableRowMutation } from "./graphql/client/create-editable-row.generated";
+import { useCreateEditableRowMutation } from "@/scenes/common/apps/graphql/client/create-editable-row.generated";
 
 type AppTopBarSubmitProps = {
   appMetadata: FetchAppMetadataQuery["app"][0]["app_metadata"][0];

@@ -49,7 +49,7 @@ import {
   getLocalisationFormValues,
   transformMailtoToRawEmail,
 } from "@/scenes/Portal/Teams/TeamId/Apps/AppId/Configuration/AppStore/utils/dataTransforms";
-import { getSdk as getReviewAppMetadataSdk } from "@/scenes/Portal/Teams/TeamId/Apps/AppId/Configuration/AppTopBar/graphql/server/fetch-review-app-metadata.generated";
+import { getSdk as getReviewAppMetadataSdk } from "@/scenes/common/apps/graphql/server/fetch-review-app-metadata.generated";
 import { Wallet } from "ethers";
 import { GraphQLClient } from "graphql-request";
 import { NextRequest, NextResponse } from "next/server";

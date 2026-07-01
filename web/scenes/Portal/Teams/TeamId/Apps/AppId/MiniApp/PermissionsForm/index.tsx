@@ -17,7 +17,7 @@ import clsx from "clsx";
 import { ChangeEvent, ReactNode, useCallback, useEffect, useMemo } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { QrQuickAction } from "../../Configuration/BasicInformation/QrQuickAction";
-import { FetchAppMetadataQuery } from "../../Configuration/graphql/client/fetch-app-metadata.generated";
+import { FetchAppMetadataQuery } from "@/scenes/common/apps/graphql/client/fetch-app-metadata.generated";
 import {
   updateSetupInitialSchema,
   UpdateSetupInitialSchema,

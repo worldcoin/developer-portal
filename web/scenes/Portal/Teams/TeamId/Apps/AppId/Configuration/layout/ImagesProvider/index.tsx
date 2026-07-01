@@ -1,7 +1,7 @@
 "use client";
 import { atom, useSetAtom } from "jotai";
 import { Fragment, ReactNode, useEffect } from "react";
-import { useFetchImagesQuery } from "../../graphql/client/fetch-images.generated";
+import { useFetchImagesQuery } from "@/scenes/common/apps/graphql/client/fetch-images.generated";
 
 type Images = {
   logo_img_url?: string;

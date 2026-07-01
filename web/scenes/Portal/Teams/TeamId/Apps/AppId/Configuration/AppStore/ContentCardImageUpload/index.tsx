@@ -12,11 +12,11 @@ import { useAtom } from "jotai";
 import Image from "next/image";
 import { ChangeEvent, Fragment, useMemo, useRef, useState } from "react";
 import { toast } from "react-toastify";
-import { FetchAppMetadataDocument } from "../../graphql/client/fetch-app-metadata.generated";
+import { FetchAppMetadataDocument } from "@/scenes/common/apps/graphql/client/fetch-app-metadata.generated";
 import { ImageValidationError, useImage } from "../../hook/use-image";
 import ImageLoader from "../ImageForm/ImageLoader";
 import { unverifiedImageAtom, viewModeAtom } from "../../layout/ImagesProvider";
-import { useUpdateContentCardImageMutation } from "./graphql/client/update-content-card-image.generated";
+import { useUpdateContentCardImageMutation } from "@/scenes/common/apps/graphql/client/update-content-card-image.generated";
 
 const PREVIEW_HEIGHT_PX = 200;
 const previewStyle = {

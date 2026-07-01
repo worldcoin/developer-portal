@@ -10,7 +10,7 @@ import {
 import { extractIdsFromPath, getPathFromHeaders } from "@/lib/server-utils";
 import { FormActionResult } from "@/lib/types";
 import { schema } from "../form-schema";
-import { getSdk as getUpdateAppSdk } from "../graphql/server/update-app.generated";
+import { getSdk as getUpdateAppSdk } from "@/scenes/common/apps/graphql/server/update-app.generated";
 
 export async function validateAndSubmitServerSide(
   app_metadata_id: string,
