@@ -1,4 +1,4 @@
-query GetSingleAction($action_id: String!) {
+query GetSingleActionForDanger($action_id: String!) {
   action_by_pk(id: $action_id) {
     id
     name

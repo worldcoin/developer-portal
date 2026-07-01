@@ -9,7 +9,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useForm, useWatch } from "react-hook-form";
 import Skeleton from "react-loading-skeleton";
-import { type useGetActionsQuery } from "../graphql/client/actions.generated";
+import { type useGetActionsQuery } from "@/scenes/common/actions/graphql/client/actions.generated";
 import { Item } from "./Item";
 
 export const ActionsList = (props: {

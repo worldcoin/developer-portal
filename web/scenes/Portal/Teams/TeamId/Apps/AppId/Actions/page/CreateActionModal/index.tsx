@@ -21,7 +21,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import slugify from "slugify";
-import { GetActionsDocument } from "../graphql/client/actions.generated";
+import { GetActionsDocument } from "@/scenes/common/actions/graphql/client/actions.generated";
 import { AppFlowOnCompleteTypeSelector } from "./AppFlowOnCompleteTypeSelector";
 import { MaxVerificationsSelector } from "./MaxVerificationsSelector";
 import { createActionServerSide } from "./server";

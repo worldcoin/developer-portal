@@ -8,8 +8,8 @@ import { usePathname, useRouter } from "next/navigation";
 import { use, useEffect } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { ActionsList } from "./ActionsList";
-import { useGetActionsQuery } from "./graphql/client/actions.generated";
-import { useGetAppQuery } from "./graphql/client/app.generated";
+import { useGetActionsQuery } from "@/scenes/common/actions/graphql/client/actions.generated";
+import { useGetAppQuery } from "@/scenes/common/actions/graphql/client/app.generated";
 
 type ActionsPageProps = {
   params: Promise<Record<string, string>>;

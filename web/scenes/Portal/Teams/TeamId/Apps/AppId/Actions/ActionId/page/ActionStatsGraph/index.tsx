@@ -16,7 +16,7 @@ import { Timespan, TimespanSelector } from "./TimespanSelector";
 import {
   FetchActionStatsQuery,
   useFetchActionStatsQuery,
-} from "./graphql/client/fetch-action-stats.generated";
+} from "@/scenes/common/actions/graphql/client/fetch-action-stats.generated";
 
 dayjs.extend(utc);
 dayjs.extend(tz);

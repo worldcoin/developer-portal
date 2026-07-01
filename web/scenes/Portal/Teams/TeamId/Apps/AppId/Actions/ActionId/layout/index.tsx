@@ -11,7 +11,7 @@ import { urls } from "@/lib/urls";
 import { checkUserPermissions } from "@/lib/utils";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { ReactNode, use } from "react";
-import { useGetSingleActionAndNullifiersQuery } from "../page/graphql/client/get-single-action.generated";
+import { useGetSingleActionAndNullifiersQuery } from "@/scenes/common/actions/graphql/client/get-single-action-and-nullifiers.generated";
 
 type Params = {
   teamId?: string;

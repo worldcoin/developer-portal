@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { GetActionsQuery } from "../../graphql/client/actions.generated";
+import { GetActionsQuery } from "@/scenes/common/actions/graphql/client/actions.generated";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { CopyButton } from "@/components/CopyButton";
 import { Dropdown } from "@/components/Dropdown";

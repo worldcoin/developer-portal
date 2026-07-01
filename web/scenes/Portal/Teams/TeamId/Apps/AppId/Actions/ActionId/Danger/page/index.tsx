@@ -7,9 +7,9 @@ import { useRouter } from "next/navigation";
 import { useCallback, use } from "react";
 import Skeleton from "react-loading-skeleton";
 import { toast } from "react-toastify";
-import { GetActionsDocument } from "../../../page/graphql/client/actions.generated";
-import { useDeleteActionMutation } from "../ActionDangerZoneContent/graphql/client/delete-action.generated";
-import { useGetSingleActionQuery } from "./graphql/client/get-single-action.generated";
+import { GetActionsDocument } from "@/scenes/common/actions/graphql/client/actions.generated";
+import { useDeleteActionMutation } from "@/scenes/common/actions/graphql/client/delete-action.generated";
+import { useGetSingleActionForDangerQuery } from "@/scenes/common/actions/graphql/client/get-single-action-for-danger.generated";
 
 type ActionIdDangerPageProps = {
   params: Promise<Record<string, string>>;
@@ -23,7 +23,7 @@ export const ActionIdDangerPage = (props: ActionIdDangerPageProps) => {
 
   const router = useRouter();
 
-  const { data, loading } = useGetSingleActionQuery({
+  const { data, loading } = useGetSingleActionForDangerQuery({
     variables: { action_id: actionId ?? "" },
   });
 

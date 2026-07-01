@@ -14,11 +14,11 @@ import { Controller, useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import { AppFlowOnCompleteTypeSelector } from "../../../page/CreateActionModal/AppFlowOnCompleteTypeSelector";
 import { MaxVerificationsSelector } from "../../../page/CreateActionModal/MaxVerificationsSelector";
-import { GetActionNameDocument } from "./graphql/client/get-action-name.generated";
+import { GetActionNameDocument } from "@/scenes/common/actions/graphql/client/get-action-name.generated";
 import {
   GetSingleActionDocument,
   GetSingleActionQuery,
-} from "../page/graphql/client/get-single-action.generated";
+} from "@/scenes/common/actions/graphql/client/get-single-action.generated";
 import { updateActionServerSide } from "./server";
 import {
   UpdateActionSchema,
