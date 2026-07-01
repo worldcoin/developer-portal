@@ -10,7 +10,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import { VersionSwitcher } from "../../Configuration/AppTopBar/VersionSwitcher";
 import { MiniAppSubTabs } from "../SubTabs";
-import { useFetchNotificationAppMetadataQuery } from "./graphql/client/fetch-notification-app-metadata.generated";
+import { useFetchNotificationAppMetadataQuery } from "@/scenes/common/mini-app/graphql/client/fetch-notification-app-metadata.generated";
 
 type NotificationFormData = {
   walletAddresses: string;
