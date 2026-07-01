@@ -13,7 +13,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import { isAddress } from "ethers";
 import * as yup from "yup";
-import { useSwitchToSelfManagedMutation } from "./graphql/client/switch-to-self-managed.generated";
+import { useSwitchToSelfManagedMutation } from "@/scenes/common/Teams/TeamId/Apps/AppId/WorldId40/page/graphql/client/switch-to-self-managed.generated";
 
 type Props = {
   open: boolean;
