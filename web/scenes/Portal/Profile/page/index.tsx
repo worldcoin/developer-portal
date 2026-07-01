@@ -10,7 +10,7 @@ import { Auth0SessionUser } from "@/lib/types";
 import { UserInfo } from "@/scenes/Portal/Profile/common/UserInfo";
 import { ColorSelector } from "@/scenes/Portal/Profile/page/ColorSelector";
 import { useUpdateUserMutation } from "@/scenes/Portal/Profile/page/graphql/client/update-user.generated";
-import { Color, colors } from "@/scenes/common/colors";
+import { Color, colors } from "@/scenes/common/Profile/types";
 import { useMeQuery } from "@/scenes/common/me-query/client";
 import { FetchMeDocument } from "@/scenes/common/me-query/client/graphql/client/me-query.generated";
 import { useUser } from "@auth0/nextjs-auth0/client";
