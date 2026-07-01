@@ -1,4 +1,4 @@
-query FetchApps($teamId: String!) {
+query FetchTeamApps($teamId: String!) {
   app(where: { team_id: { _eq: $teamId } }) {
     id
     is_staging
