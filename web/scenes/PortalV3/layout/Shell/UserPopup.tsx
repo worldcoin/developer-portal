@@ -96,7 +96,7 @@ export const UserPopup = (props: { user: PortalUser; color: Color | null }) => {
           side="top"
           align="start"
           sideOffset={8}
-          className="border-border bg-card text-foreground z-50 max-h-[var(--radix-dropdown-menu-content-available-height)] w-[var(--radix-dropdown-menu-trigger-width)] min-w-[224px] overflow-y-auto rounded-12 border p-1 shadow-lg"
+          className="border-border z-50 max-h-[var(--radix-dropdown-menu-content-available-height)] w-[var(--radix-dropdown-menu-trigger-width)] min-w-[224px] overflow-y-auto rounded-12 border bg-white p-1 shadow-lg"
         >
           {user.email ? (
             <div className="text-muted-foreground truncate px-2.5 py-1.5 text-12">

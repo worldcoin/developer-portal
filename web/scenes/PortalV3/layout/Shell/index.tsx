@@ -17,7 +17,7 @@ export const PortalShell = (props: {
   return (
     <div
       data-testid="portal-shell"
-      className="bg-background text-foreground grid min-h-[100dvh]"
+      className="bg-background grid min-h-[100dvh]"
       style={{ gridTemplateColumns: "clamp(4rem, 20%, 16rem) 1fr" }}
     >
       <aside className="border-border bg-sidebar sticky top-0 flex h-[100dvh] flex-col border-r">
