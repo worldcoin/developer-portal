@@ -4,7 +4,7 @@ import { LegacyVerificationLevel } from "@/lib/idkit";
 import { useSearchParams } from "next/navigation";
 import { use } from "react";
 import { ActiveKioskPage } from "../Teams/TeamId/Apps/AppId/Actions/ActionId/Kiosk/ActiveKiosk";
-import { useGetKioskActionQuery } from "../Teams/TeamId/Apps/AppId/Actions/ActionId/Kiosk/graphql/client/get-kiosk-action.generated";
+import { useGetKioskActionQuery } from "@/scenes/common/actions/graphql/client/get-kiosk-action.generated";
 
 type ActionIdKioskPageProps = {
   params: Promise<Record<string, string>>;
