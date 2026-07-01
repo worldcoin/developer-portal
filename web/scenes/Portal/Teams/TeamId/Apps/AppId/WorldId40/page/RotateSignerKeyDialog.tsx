@@ -14,7 +14,7 @@ import { toast } from "react-toastify";
 import { SignerKeySetup } from "../../ConfigureSignerKey/ConfigureSignerKeyContent";
 import { GenerateNewKeyContent } from "../../GenerateNewKey/GenerateNewKeyContent";
 import { UseExistingKeyContent } from "../../UseExistingKey/UseExistingKeyContent";
-import { useRotateSignerKeyMutation } from "./graphql/client/rotate-signer-key.generated";
+import { useRotateSignerKeyMutation } from "@/scenes/common/world-id-4-0/graphql/client/rotate-signer-key.generated";
 
 type RotateStep = "configure" | "generate-new" | "use-existing";
 

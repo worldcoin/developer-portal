@@ -8,7 +8,7 @@ import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import clsx from "clsx";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
-import { useRetryRpMutation } from "./graphql/client/retry-rp.generated";
+import { useRetryRpMutation } from "@/scenes/common/world-id-4-0/graphql/client/retry-rp.generated";
 import { RotateSignerKeyDialog } from "./RotateSignerKeyDialog";
 import { SwitchToSelfManagedDialog } from "./SwitchToSelfManagedDialog";
 
