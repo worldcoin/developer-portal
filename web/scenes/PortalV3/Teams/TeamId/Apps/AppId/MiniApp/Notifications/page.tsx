@@ -8,7 +8,7 @@ import posthog from "posthog-js";
 import { ChangeEvent, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
-import { VersionSwitcher } from "../../Configuration/AppTopBar/VersionSwitcher";
+import { VersionSwitcher } from "@/scenes/Portal/Teams/TeamId/Apps/AppId/Configuration/AppTopBar/VersionSwitcher";
 import { MiniAppSubTabs } from "../SubTabs";
 import { useFetchNotificationAppMetadataQuery } from "@/scenes/common/mini-app/graphql/client/fetch-notification-app-metadata.generated";
 
