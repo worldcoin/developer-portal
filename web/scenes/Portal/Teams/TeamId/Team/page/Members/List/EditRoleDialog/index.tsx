@@ -29,9 +29,9 @@ import * as yup from "yup";
 import {
   FetchTeamMembersDocument,
   FetchTeamMembersQuery,
-} from "../../graphql/client/fetch-team-members.generated";
+} from "@/scenes/common/team-members/graphql/client/fetch-team-members.generated";
 import { permissionsDialogAtom } from "../PermissionsDialog";
-import { useEditRoleMutation } from "./graphql/client/edit-role.generated";
+import { useEditRoleMutation } from "@/scenes/common/team-members/graphql/client/edit-role.generated";
 
 const roles = [Role_Enum.Owner, Role_Enum.Admin, Role_Enum.Member];
 

@@ -16,7 +16,7 @@ import { useEffect, useMemo } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import Skeleton from "react-loading-skeleton";
 import * as yup from "yup";
-import { useFetchTeamMembersQuery } from "./graphql/client/fetch-team-members.generated";
+import { useFetchTeamMembersQuery } from "@/scenes/common/team-members/graphql/client/fetch-team-members.generated";
 import {
   InviteTeamMemberDialog,
   inviteTeamMemberDialogAtom,

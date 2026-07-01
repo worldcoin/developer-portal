@@ -7,10 +7,10 @@ import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { urls } from "@/lib/urls";
 import { useParams } from "next/navigation";
 import { useMemo } from "react";
-import { FetchAppsQuery } from "../graphql/client/fetch-apps.generated";
+import { FetchTeamAppsQuery } from "@/scenes/common/team-apps/graphql/client/fetch-apps.generated";
 import { AppLogo } from "./AppLogo";
 
-export const App = (props: { app: FetchAppsQuery["app"][number] }) => {
+export const App = (props: { app: FetchTeamAppsQuery["app"][number] }) => {
   const { teamId } = useParams() as { teamId: string };
   const app = useMemo(() => props.app, [props.app]);
   const metadata = useMemo(() => app.app_metadata?.[0], [app.app_metadata]);

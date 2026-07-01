@@ -9,7 +9,7 @@ import { useParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import Skeleton from "react-loading-skeleton";
 import { App } from "./App";
-import { useFetchAppsQuery } from "./graphql/client/fetch-apps.generated";
+import { useFetchTeamAppsQuery } from "@/scenes/common/team-apps/graphql/client/fetch-apps.generated";
 import { Section } from "@/components/Section";
 import { PlusIcon } from "@/components/Icons/PlusIcon";
 import { DecoratedButton } from "@/components/DecoratedButton";
@@ -20,7 +20,7 @@ export const Apps = () => {
   const { teamId } = useParams() as { teamId: string };
   const [_, setCreateAppDialogOpen] = useAtom(createAppDialogOpenedAtom);
 
-  const { data, refetch, loading } = useFetchAppsQuery({
+  const { data, refetch, loading } = useFetchTeamAppsQuery({
     variables: { teamId },
     skip: !teamId,
   });
