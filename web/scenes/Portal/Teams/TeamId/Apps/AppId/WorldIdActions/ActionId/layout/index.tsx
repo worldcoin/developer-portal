@@ -11,7 +11,7 @@ import { checkUserPermissions } from "@/lib/utils";
 import { urls } from "@/lib/urls";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { ReactNode, use } from "react";
-import { useGetSingleActionV4Query } from "../page/graphql/client/get-single-action-v4.generated";
+import { useGetSingleActionV4Query } from "@/scenes/common/world-id-actions/graphql/client/get-single-action-v4.generated";
 
 type Params = {
   teamId?: string;

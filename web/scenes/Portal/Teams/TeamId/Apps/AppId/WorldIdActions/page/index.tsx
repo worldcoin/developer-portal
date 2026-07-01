@@ -7,7 +7,7 @@ import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { useState } from "react";
 import { ActionsListV4 } from "./ActionsListV4";
 import { CreateActionDialogV4 } from "./CreateActionDialogV4";
-import { useGetActionsV4Query } from "./graphql/client/get-actions-v4.generated";
+import { useGetActionsV4Query } from "@/scenes/common/world-id-actions/graphql/client/get-actions-v4.generated";
 
 type WorldIdActionsPageProps = {
   params: Record<string, string> | null | undefined;

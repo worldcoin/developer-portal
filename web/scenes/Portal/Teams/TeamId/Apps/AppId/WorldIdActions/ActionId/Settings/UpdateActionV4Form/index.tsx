@@ -13,7 +13,7 @@ import {
   CreateActionSchemaV4,
   createActionSchemaV4,
 } from "../../../page/CreateActionDialogV4/server/form-schema-v4";
-import { GetSingleActionV4Query } from "../../page/graphql/client/get-single-action-v4.generated";
+import { GetSingleActionV4Query } from "@/scenes/common/world-id-actions/graphql/client/get-single-action-v4.generated";
 import { updateActionV4ServerSide } from "./server";
 
 type UpdateActionV4FormProps = {

@@ -6,8 +6,8 @@ import { logPortalEvent } from "@/api/helpers/portal-events";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { getIsUserAllowedToUpdateApp } from "@/lib/permissions";
 import { FormActionResult } from "@/lib/types";
-import { getSdk as getAppRpIdSdk } from "../graphql/server/get-app-rp-id.generated";
-import { getSdk as insertActionV4Sdk } from "../graphql/server/insert-action-v4.generated";
+import { getSdk as getAppRpIdSdk } from "@/scenes/common/world-id-actions/graphql/server/get-app-rp-id.generated";
+import { getSdk as insertActionV4Sdk } from "@/scenes/common/world-id-actions/graphql/server/insert-action-v4.generated";
 import { createActionSchemaV4, CreateActionSchemaV4 } from "./form-schema-v4";
 
 export async function validateAndInsertActionV4(

@@ -10,8 +10,8 @@ import {
   createActionSchemaV4,
   CreateActionSchemaV4,
 } from "../../../../page/CreateActionDialogV4/server/form-schema-v4";
-import { getSdk as getActionWithAppSdk } from "./graphql/server/get-action-v4-with-app.generated";
-import { getSdk } from "./graphql/server/update-action-v4.generated";
+import { getSdk as getActionWithAppSdk } from "@/scenes/common/world-id-actions/graphql/server/get-action-v4-with-app.generated";
+import { getSdk } from "@/scenes/common/world-id-actions/graphql/server/update-action-v4.generated";
 
 export async function updateActionV4ServerSide(
   values: CreateActionSchemaV4,
