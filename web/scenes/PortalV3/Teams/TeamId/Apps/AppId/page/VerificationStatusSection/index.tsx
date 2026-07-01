@@ -3,8 +3,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { urls } from "@/lib/urls";
 import { VerificationStatus } from "..";
-import { ReviewStatus } from "../../../common/ReviewStatus";
-import { ResolveModal } from "../../Configuration/ResolveModal";
+import { ReviewStatus } from "@/scenes/Portal/Teams/TeamId/Apps/common/ReviewStatus";
+import { ResolveModal } from "@/scenes/Portal/Teams/TeamId/Apps/AppId/Configuration/ResolveModal";
 import { useGetVerificationDataQuery } from "@/scenes/common/apps/graphql/client/get-verification-data.generated";
 
 export const VerificationStatusSection = ({
