@@ -1,7 +1,7 @@
 import { useCallback, useMemo } from "react";
 import { toast } from "react-toastify";
-import { useFetchImagesQuery } from "../../graphql/client/fetch-images.generated";
-import { useUpsertLocalisedShowcaseImagesMutation } from "../graphql/client/upsert-localised-showcase-images.generated";
+import { useFetchImagesQuery } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/graphql/client/fetch-images.generated";
+import { useUpsertLocalisedShowcaseImagesMutation } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/AppStore/graphql/client/upsert-localised-showcase-images.generated";
 import { extractImagePathWithExtensionFromActualUrl } from "../utils";
 import { ImageUploadField } from "./ImageUploadField";
 

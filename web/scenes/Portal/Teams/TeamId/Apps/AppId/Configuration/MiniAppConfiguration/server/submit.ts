@@ -5,7 +5,7 @@ import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { getIsUserAllowedToUpdateAppMetadata } from "@/lib/permissions";
 import { extractIdsFromPath, getPathFromHeaders } from "@/lib/server-utils";
 import { FormActionResult } from "@/lib/types";
-import { getSdk as getUpdateAppModeSdk } from "../graphql/server/update-app-mode.generated";
+import { getSdk as getUpdateAppModeSdk } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/MiniAppConfiguration/graphql/server/update-app-mode.generated";
 
 export async function updateAppMode(
   app_metadata_id: string,

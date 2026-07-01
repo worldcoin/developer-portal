@@ -1,7 +1,7 @@
 import { Categories } from "@/lib/categories";
 import { languageMap } from "@/lib/languages";
-import { FetchAppMetadataQuery } from "../../graphql/client/fetch-app-metadata.generated";
-import { FetchLocalisationsQuery } from "../graphql/client/fetch-localisations.generated";
+import { FetchAppMetadataQuery } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/graphql/client/fetch-app-metadata.generated";
+import { FetchLocalisationsQuery } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/AppStore/graphql/client/fetch-localisations.generated";
 
 export type LocalisationData = Readonly<
   Array<

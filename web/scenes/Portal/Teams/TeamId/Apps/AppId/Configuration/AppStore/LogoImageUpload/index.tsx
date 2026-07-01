@@ -15,10 +15,10 @@ import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 import Skeleton from "react-loading-skeleton";
 import { toast } from "react-toastify";
 import { LOGO_IMAGE_UPLOAD_TOAST_ID } from "../../constants";
-import { FetchAppMetadataDocument } from "../../graphql/client/fetch-app-metadata.generated";
+import { FetchAppMetadataDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/graphql/client/fetch-app-metadata.generated";
 import { ImageValidationError, useImage } from "../../hook/use-image";
 import { unverifiedImageAtom, viewModeAtom } from "../../layout/ImagesProvider";
-import { useUpdateLogoMutation } from "./graphql/client/update-logo.generated";
+import { useUpdateLogoMutation } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/AppStore/LogoImageUpload/graphql/client/update-logo.generated";
 
 type LogoImageUploadProps = {
   appId: string;

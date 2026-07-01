@@ -7,8 +7,8 @@ import { extractIdsFromPath, getPathFromHeaders } from "@/lib/server-utils";
 import { FormActionResult } from "@/lib/types";
 import * as yup from "yup";
 import { mainAppStoreFormSchema } from "../FormSchema/form-schema";
-import { getSdk as getDeleteUnusedSdk } from "../graphql/server/delete-unused-localisations.generated";
-import { getSdk as getUpdateAppStoreSdk } from "../graphql/server/update-app-store-complete.generated";
+import { getSdk as getDeleteUnusedSdk } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/AppStore/graphql/server/delete-unused-localisations.generated";
+import { getSdk as getUpdateAppStoreSdk } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/AppStore/graphql/server/update-app-store-complete.generated";
 import {
   encodeDescription,
   extractImagePathWithExtensionFromActualUrl,

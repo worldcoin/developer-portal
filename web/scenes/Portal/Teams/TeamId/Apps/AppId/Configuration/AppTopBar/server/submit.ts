@@ -15,8 +15,8 @@ import {
   getLocalisationFormValues,
   transformMailtoToRawEmail,
 } from "../../AppStore/utils/dataTransforms";
-import { getSdk as getSubmitAppSdk } from "../SubmitAppModal/graphql/server/submit-app.generated";
-import { getSdk as fetchReviewAppMetadataSdk } from "../graphql/server/fetch-review-app-metadata.generated";
+import { getSdk as getSubmitAppSdk } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/AppTopBar/SubmitAppModal/graphql/server/submit-app.generated";
+import { getSdk as fetchReviewAppMetadataSdk } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/AppTopBar/graphql/server/fetch-review-app-metadata.generated";
 
 const schema = yup
   .object({

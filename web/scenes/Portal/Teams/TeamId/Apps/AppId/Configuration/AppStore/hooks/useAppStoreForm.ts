@@ -8,9 +8,9 @@ import {
   useWatch,
 } from "react-hook-form";
 import { toast } from "react-toastify";
-import { FetchAppMetadataDocument } from "../../graphql/client/fetch-app-metadata.generated";
+import { FetchAppMetadataDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/graphql/client/fetch-app-metadata.generated";
 import { AppStoreFormValues } from "../FormSchema/types";
-import { FetchLocalisationsDocument } from "../graphql/client/fetch-localisations.generated";
+import { FetchLocalisationsDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/AppStore/graphql/client/fetch-localisations.generated";
 import { updateAppStoreMetadata } from "../server/update-app-store";
 import { AppMetadata, SupportType } from "../types/AppStoreFormTypes";
 import { getFirstFormError } from "../utils/form-error-utils";
