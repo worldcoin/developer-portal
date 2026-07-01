@@ -1,5 +1,5 @@
 "use client";
-import { useGetIsAppBannedQuery } from "../graphql/client/get-is-app-banned.generated";
+import { useGetIsAppBannedQuery } from "@/scenes/common/Teams/TeamId/Apps/AppId/page/graphql/client/get-is-app-banned.generated";
 import { BanStatus } from "./ban-status";
 
 export const BanStatusSection = ({ appId }: { appId: string }) => {
