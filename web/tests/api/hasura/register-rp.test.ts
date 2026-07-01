@@ -1,5 +1,4 @@
 import { POST } from "@/api/hasura/register-rp";
-import { isWorldId40EnabledServer } from "@/lib/feature-flags/world-id-4-0/server";
 import { NextRequest } from "next/server";
 
 // #region Mocks
@@ -15,10 +14,6 @@ jest.mock("@/api/helpers/rp-registration-flows", () => ({
     submitManagedRpRegistrationMock(...args),
 }));
 
-jest.mock("@/lib/feature-flags/world-id-4-0/server", () => ({
-  isWorldId40EnabledServer: jest.fn(),
-}));
-
 jest.mock("@/lib/logger", () => ({
   logger: {
     info: jest.fn(),
@@ -29,10 +24,15 @@ jest.mock("@/lib/logger", () => ({
 // #endregion
 
 // #region Test Data
-const appId = "app_staging_9cdd0a714aec9ed17dca660bc9ffe72a";
+const appId = "app_9cdd0a714aec9ed17dca660bc9ffe72a";
 const teamId = "team_dd2ecd36c6c45f645e8e5d9a31abdee1";
 const userId = "user_123";
 const signerAddress = "0x1111111111111111111111111111111111111111";
+
+// Per-test knobs the default GraphQL mock reads. `beforeEach` resets them to a
+// non-staging app owned by an authorized user (the happy path).
+let appIsStaging = false;
+let authorizedTeam: Array<{ id: string }> = [{ id: teamId }];
 
 const getOperationName = (query: unknown) => {
   if (typeof query === "string") {
@@ -65,7 +65,19 @@ const createMockRequest = (input: Record<string, unknown>) =>
 beforeEach(() => {
   jest.clearAllMocks();
   process.env.INTERNAL_ENDPOINTS_SECRET = "internal-secret";
-  (isWorldId40EnabledServer as jest.Mock).mockResolvedValue(true);
+  appIsStaging = false;
+  authorizedTeam = [{ id: teamId }];
+
+  submitManagedRpRegistrationMock.mockResolvedValue({
+    ok: true,
+    rpIdString: "rp_abc123",
+    managerAddress: "0x2222222222222222222222222222222222222222",
+    signerAddress,
+    operationHash: "0xophash",
+    status: "pending",
+    stagingOperationHash: null,
+    stagingStatus: null,
+  });
 
   requestMock.mockImplementation(async (query: unknown) => {
     const operationName = getOperationName(query);
@@ -76,24 +88,75 @@ beforeEach(() => {
           {
             id: appId,
             team_id: teamId,
-            is_staging: true,
-            app_metadata: [{ name: "Staging App" }],
+            is_staging: appIsStaging,
+            app_metadata: [{ name: "Test App" }],
           },
         ],
       };
     }
 
     if (operationName.includes("CheckUserInApp")) {
-      return { team: [{ id: teamId }] };
+      return { team: authorizedTeam };
+    }
+
+    if (operationName.includes("ClaimRpRegistration")) {
+      return { insert_rp_registration_one: { rp_id: "rp_abc123" } };
     }
 
     throw new Error(`Unexpected query: ${operationName}`);
   });
 });
 
-// #region Staging app migration
+// #region Successful registration (no rollout feature flag)
+describe("/api/hasura/register-rp [success]", () => {
+  it("registers a managed RP without requiring a rollout feature flag", async () => {
+    const res = (await POST(
+      createMockRequest({
+        app_id: appId,
+        mode: "managed",
+        signer_address: signerAddress,
+      }),
+    ))!;
+
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.rp_id).toBe("rp_abc123");
+    // The managed pipeline runs; it is no longer short-circuited by a
+    // `feature_not_enabled` rollout gate, and the helper is invoked without a
+    // teamId argument.
+    expect(submitManagedRpRegistrationMock).toHaveBeenCalledTimes(1);
+    const callArg = submitManagedRpRegistrationMock.mock.calls[0][0];
+    expect(callArg).toMatchObject({
+      appId,
+      signerAddress,
+      isStaging: false,
+    });
+    expect(callArg).not.toHaveProperty("teamId");
+  });
+
+  it("creates a self-managed registration without requiring a rollout feature flag", async () => {
+    const res = (await POST(
+      createMockRequest({
+        app_id: appId,
+        mode: "self_managed",
+        signer_address: null,
+      }),
+    ))!;
+
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.rp_id).toEqual(expect.any(String));
+    expect(body.status).toBe("pending");
+    // Self-managed skips the managed pipeline entirely.
+    expect(submitManagedRpRegistrationMock).not.toHaveBeenCalled();
+  });
+});
+// #endregion
+
+// #region Staging app migration (product guard — kept)
 describe("/api/hasura/register-rp [staging app migration]", () => {
   it("rejects managed RP registration for staging apps", async () => {
+    appIsStaging = true;
     const res = (await POST(
       createMockRequest({
         app_id: appId,
@@ -112,6 +175,7 @@ describe("/api/hasura/register-rp [staging app migration]", () => {
   });
 
   it("rejects self-managed RP registration for staging apps", async () => {
+    appIsStaging = true;
     const res = (await POST(
       createMockRequest({
         app_id: appId,
@@ -123,6 +187,26 @@ describe("/api/hasura/register-rp [staging app migration]", () => {
     expect(res.status).toBe(400);
     const body = await res.json();
     expect(body.extensions.code).toBe("staging_not_supported");
+    expect(submitManagedRpRegistrationMock).not.toHaveBeenCalled();
+  });
+});
+// #endregion
+
+// #region Authorization (product guard — kept)
+describe("/api/hasura/register-rp [authorization]", () => {
+  it("rejects registration when the user lacks ADMIN/OWNER on the team", async () => {
+    authorizedTeam = [];
+    const res = (await POST(
+      createMockRequest({
+        app_id: appId,
+        mode: "managed",
+        signer_address: signerAddress,
+      }),
+    ))!;
+
+    expect(res.status).toBe(400);
+    const body = await res.json();
+    expect(body.extensions.code).toBe("unauthorized");
     expect(submitManagedRpRegistrationMock).not.toHaveBeenCalled();
   });
 });

@@ -1,0 +1,18 @@
+query FetchUserForSession($userId: String!) {
+  user_by_pk(id: $userId) {
+    id
+    name
+    email
+    world_id_nullifier
+    posthog_id
+    is_allow_tracking
+
+    memberships {
+      role
+      team {
+        id
+        name
+      }
+    }
+  }
+}

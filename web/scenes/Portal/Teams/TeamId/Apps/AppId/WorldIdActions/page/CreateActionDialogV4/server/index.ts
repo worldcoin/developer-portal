@@ -21,7 +21,6 @@ export async function validateAndInsertActionV4(
     return errorFormAction({ message: "Permission denied" });
   }
 
-  // 2. Get RP registration and validate status
   const client = await getAPIServiceGraphqlClient();
   const { app } = await getAppRpIdSdk(client).GetAppRpId({ app_id });
 
@@ -52,7 +51,7 @@ export async function validateAndInsertActionV4(
     });
   }
 
-  // 3. Validate input
+  // 2. Validate input
   const { isValid, parsedParams } = await validateRequestSchema({
     schema: createActionSchemaV4,
     value: values,
@@ -67,7 +66,7 @@ export async function validateAndInsertActionV4(
     });
   }
 
-  // 4. Insert action_v4
+  // 3. Insert action_v4
   try {
     const { insert_action_v4_one } = await insertActionV4Sdk(
       client,
@@ -96,8 +95,6 @@ export async function validateAndInsertActionV4(
   } catch (error: any) {
     const errorStr = JSON.stringify(error);
 
-    // Check if this is our specific unique constraint violation
-    // The constraint name will appear in the error if it's violated
     if (errorStr.includes("action_v4_rp_id_action_environment_key")) {
       return errorFormAction({
         error: error as Error,

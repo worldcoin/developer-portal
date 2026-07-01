@@ -8,6 +8,7 @@ import {
   canonicalizeNullifierHash,
   canVerifyForAction,
 } from "@/api/helpers/verify";
+import { APPS_WITH_CUSTOM_EXTERNAL_NULLIFIER } from "@/lib/constants";
 import { generateExternalNullifier } from "@/lib/hashing";
 import { CanUserVerifyType, EngineType } from "@/lib/types";
 import { getCDNImageUrl } from "@/lib/utils";
@@ -17,15 +18,6 @@ import { getSdk as getAppPrecheckByActionSdk } from "./graphql/app-precheck-by-a
 import { getSdk as getAppPrecheckSdk } from "./graphql/app-precheck.generated";
 import { getSdk as getFetchRpRegistrationForPrecheckSdk } from "./graphql/fetch-rp-registration-for-precheck.generated";
 
-/**
- * Apps that use custom external_nullifier values (not computed from app_id + action).
- * For these apps, we query by action name instead of computed external_nullifier.
- * This supports legacy integrations that need specific external_nullifier values
- * to maintain nullifier_hash compatibility.
- */
-const APPS_WITH_CUSTOM_EXTERNAL_NULLIFIER = [
-  "app_1f7f2c379f20307a414f6cf8b544ec8a", // Grants app - uses 0xB16B00B5 for humanity verification
-];
 // Whitelist some partner demo apps, that are not verified but we want to show their logos
 const APPS_TO_SHOW_UNVERIFIED_LOGO = [
   "app_staging_c8137371ceac59890774ccc932e11dcf",
