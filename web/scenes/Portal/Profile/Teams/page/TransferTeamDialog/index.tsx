@@ -26,9 +26,9 @@ import { toast } from "react-toastify";
 import {
   FetchMembersQuery,
   useFetchMembersQuery,
-} from "./graphql/client/fetch-members.generated";
-import { useFetchUserMembershipQuery } from "./graphql/client/fetch-user-membership.generated";
-import { useTransferOwnershipMutation } from "./graphql/client/transfer-ownership.generated";
+} from "@/scenes/common/Profile/Teams/page/TransferTeamDialog/graphql/client/fetch-members.generated";
+import { useFetchUserMembershipQuery } from "@/scenes/common/Profile/Teams/page/TransferTeamDialog/graphql/client/fetch-user-membership.generated";
+import { useTransferOwnershipMutation } from "@/scenes/common/Profile/Teams/page/TransferTeamDialog/graphql/client/transfer-ownership.generated";
 
 type TransferTeamDialogProps = DialogProps & {
   team?: NonNullable<FetchMeQuery["user_by_pk"]>["memberships"][0]["team"];

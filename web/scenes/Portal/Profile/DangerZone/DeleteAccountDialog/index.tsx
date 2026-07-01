@@ -16,7 +16,7 @@ import { useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import * as yup from "yup";
-import { useDeleteAccountMutation } from "./graphql/client/delete-account.generated";
+import { useDeleteAccountMutation } from "@/scenes/common/Profile/DangerZone/DeleteAccountDialog/graphql/client/delete-account.generated";
 
 const DELETE_WORD = "DELETE";
 
