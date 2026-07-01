@@ -9,7 +9,7 @@ import { Auth0SessionUser } from "@/lib/types";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { useCallback } from "react";
 import { toast } from "react-toastify";
-import { useLeaveTeamMutation } from "./graphql/client/leave-team.generated";
+import { useLeaveTeamMutation } from "@/scenes/common/teams/graphql/client/leave-team.generated";
 
 import {
   FetchMeDocument,

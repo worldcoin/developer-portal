@@ -9,7 +9,7 @@ import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Auth0SessionUser } from "@/lib/types";
 import { UserInfo } from "@/scenes/Portal/Profile/common/UserInfo";
 import { ColorSelector } from "@/scenes/Portal/Profile/page/ColorSelector";
-import { useUpdateUserMutation } from "@/scenes/Portal/Profile/page/graphql/client/update-user.generated";
+import { useUpdateUserMutation } from "@/scenes/common/profile/graphql/client/update-user.generated";
 import { Color, colors } from "@/scenes/common/colors";
 import { useMeQuery } from "@/scenes/common/me-query/client";
 import { FetchMeDocument } from "@/scenes/common/me-query/client/graphql/client/me-query.generated";
