@@ -11,8 +11,8 @@ import { atom, useAtom } from "jotai";
 import { useParams } from "next/navigation";
 import { useCallback } from "react";
 import { toast } from "react-toastify";
-import { FetchTeamMembersDocument } from "../graphql/client/fetch-team-members.generated";
-import { useInviteTeamMembersMutation } from "../graphql/client/invite-team-members.generated";
+import { FetchTeamMembersDocument } from "@/scenes/common/Teams/TeamId/Team/page/Members/graphql/client/fetch-team-members.generated";
+import { useInviteTeamMembersMutation } from "@/scenes/common/Teams/TeamId/Team/page/Members/graphql/client/invite-team-members.generated";
 import { EmailsInput } from "./EmailsInput";
 
 export const inviteTeamMemberDialogAtom = atom(false);

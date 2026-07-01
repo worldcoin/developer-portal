@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { FetchTeamMembersQuery } from "../../graphql/client/fetch-team-members.generated";
+import { FetchTeamMembersQuery } from "@/scenes/common/Teams/TeamId/Team/page/Members/graphql/client/fetch-team-members.generated";
 import { getNullifierName } from "@/lib/utils";
 import { UserLogo } from "./UserLogo";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";

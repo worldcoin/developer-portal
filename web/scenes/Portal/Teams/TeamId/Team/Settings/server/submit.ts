@@ -5,7 +5,7 @@ import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { getIsUserAllowedToUpdateTeam } from "@/lib/permissions";
 import { teamNameSchema } from "@/lib/schema";
 import { FormActionResult } from "@/lib/types";
-import { getSdk as getUpdateTeamSdk } from "../graphql/server/update-team.generated";
+import { getSdk as getUpdateTeamSdk } from "@/scenes/common/Teams/TeamId/Team/Settings/graphql/server/update-team.generated";
 
 export async function validateAndUpdateTeamServerSide(
   teamName: string,

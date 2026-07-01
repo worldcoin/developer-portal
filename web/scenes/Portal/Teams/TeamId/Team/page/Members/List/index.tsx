@@ -9,16 +9,16 @@ import { useAtom } from "jotai";
 import { useParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "react-toastify";
-import { useInviteTeamMembersMutation } from "../graphql/client/invite-team-members.generated";
+import { useInviteTeamMembersMutation } from "@/scenes/common/Teams/TeamId/Team/page/Members/graphql/client/invite-team-members.generated";
 import { EditRoleDialog, editRoleDialogAtom } from "./EditRoleDialog";
 import { PermissionsDialog } from "./PermissionsDialog";
 import { RemoveUserDialog, removeUserDialogAtom } from "./RemoveUserDialog";
-import { useDeleteInviteMutation } from "./graphql/client/delete-invite.generated";
+import { useDeleteInviteMutation } from "@/scenes/common/Teams/TeamId/Team/page/Members/List/graphql/client/delete-invite.generated";
 import {
   FetchTeamMembersDocument,
   FetchTeamMembersQuery,
   useFetchTeamMembersQuery,
-} from "../graphql/client/fetch-team-members.generated";
+} from "@/scenes/common/Teams/TeamId/Team/page/Members/graphql/client/fetch-team-members.generated";
 import { Item } from "./Item";
 
 type ListProps = {

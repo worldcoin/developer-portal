@@ -7,7 +7,7 @@ import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { urls } from "@/lib/urls";
 import { useParams } from "next/navigation";
 import { useMemo } from "react";
-import { FetchAppsQuery } from "../graphql/client/fetch-apps.generated";
+import { FetchAppsQuery } from "@/scenes/common/Teams/TeamId/Team/page/Apps/graphql/client/fetch-apps.generated";
 import { AppLogo } from "./AppLogo";
 
 export const App = (props: { app: FetchAppsQuery["app"][number] }) => {

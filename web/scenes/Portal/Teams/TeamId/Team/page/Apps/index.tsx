@@ -9,7 +9,7 @@ import { useParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import Skeleton from "react-loading-skeleton";
 import { App } from "./App";
-import { useFetchAppsQuery } from "./graphql/client/fetch-apps.generated";
+import { useFetchAppsQuery } from "@/scenes/common/Teams/TeamId/Team/page/Apps/graphql/client/fetch-apps.generated";
 import { Section } from "@/components/Section";
 import { PlusIcon } from "@/components/Icons/PlusIcon";
 import { DecoratedButton } from "@/components/DecoratedButton";
