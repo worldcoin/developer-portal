@@ -17,8 +17,8 @@ import Skeleton from "react-loading-skeleton";
 import { toast } from "react-toastify";
 import { LinksForm } from "./Links";
 import { Redirects } from "./Redirects";
-import { useFetchSignInActionQuery } from "./graphql/client/fetch-sign-in-action.generated";
-import { useResetClientSecretMutation } from "./graphql/client/reset-secret.generated";
+import { useFetchSignInActionQuery } from "@/scenes/common/Teams/TeamId/Apps/AppId/SignInWithWorldId/page/ClientInformation/graphql/client/fetch-sign-in-action.generated";
+import { useResetClientSecretMutation } from "@/scenes/common/Teams/TeamId/Apps/AppId/SignInWithWorldId/page/ClientInformation/graphql/client/reset-secret.generated";
 
 export const ClientInformationPage = (props: {
   appID: string;

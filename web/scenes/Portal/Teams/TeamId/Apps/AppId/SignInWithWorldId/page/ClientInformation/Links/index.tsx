@@ -7,8 +7,8 @@ import { memo, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import * as yup from "yup";
-import { SignInActionQuery } from "../../graphql/server/fetch-signin.generated";
-import { useUpdateSignInActionMutation } from "../graphql/client/update-sign-in-action.generated";
+import { SignInActionQuery } from "@/scenes/common/Teams/TeamId/Apps/AppId/SignInWithWorldId/page/graphql/server/fetch-signin.generated";
+import { useUpdateSignInActionMutation } from "@/scenes/common/Teams/TeamId/Apps/AppId/SignInWithWorldId/page/ClientInformation/graphql/client/update-sign-in-action.generated";
 
 const schema = yup
   .object({

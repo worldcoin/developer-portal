@@ -9,13 +9,13 @@ import posthog from "posthog-js";
 import { memo, useCallback, useState } from "react";
 import { toast } from "react-toastify";
 import { RedirectInput } from "./RedirectInput";
-import { useDeleteRedirectMutation } from "./graphql/client/delete-redirect.generated";
+import { useDeleteRedirectMutation } from "@/scenes/common/Teams/TeamId/Apps/AppId/SignInWithWorldId/page/ClientInformation/Redirects/graphql/client/delete-redirect.generated";
 import {
   RedirectsDocument,
   useRedirectsQuery,
-} from "./graphql/client/fetch-redirect.generated";
-import { useInsertRedirectMutation } from "./graphql/client/insert-redirect.generated";
-import { useUpdateRedirectMutation } from "./graphql/client/update-redirect.generated";
+} from "@/scenes/common/Teams/TeamId/Apps/AppId/SignInWithWorldId/page/ClientInformation/Redirects/graphql/client/fetch-redirect.generated";
+import { useInsertRedirectMutation } from "@/scenes/common/Teams/TeamId/Apps/AppId/SignInWithWorldId/page/ClientInformation/Redirects/graphql/client/insert-redirect.generated";
+import { useUpdateRedirectMutation } from "@/scenes/common/Teams/TeamId/Apps/AppId/SignInWithWorldId/page/ClientInformation/Redirects/graphql/client/update-redirect.generated";
 
 export const Redirects = memo(function Redirects(props: {
   actionId: string;
