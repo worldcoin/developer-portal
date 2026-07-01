@@ -4,43 +4,36 @@ import * as Types from "@/graphql/graphql";
 import { GraphQLClient, RequestOptions } from "graphql-request";
 import gql from "graphql-tag";
 type GraphQLClientRequestHeaders = RequestOptions["requestHeaders"];
-export type GetRpRegistrationQueryVariables = Types.Exact<{
-  app_id: Types.Scalars["String"]["input"];
+export type GetDeletedAppRpsQueryVariables = Types.Exact<{
+  before: Types.Scalars["timestamptz"]["input"];
+  limit: Types.Scalars["Int"]["input"];
 }>;
 
-export type GetRpRegistrationQuery = {
+export type GetDeletedAppRpsQuery = {
   __typename?: "query_root";
   rp_registration: Array<{
     __typename?: "rp_registration";
     rp_id: string;
     app_id: string;
-    mode: unknown;
     status: unknown;
-    manager_kms_key_id?: string | null;
-    app: {
-      __typename?: "app";
-      team_id: string;
-      deleted_at?: string | null;
-      status: string;
-      is_archived: boolean;
-    };
   }>;
 };
 
-export const GetRpRegistrationDocument = gql`
-  query GetRpRegistration($app_id: String!) {
-    rp_registration(where: { app_id: { _eq: $app_id } }) {
+export const GetDeletedAppRpsDocument = gql`
+  query GetDeletedAppRps($before: timestamptz!, $limit: Int!) {
+    rp_registration(
+      where: {
+        mode: { _eq: managed }
+        status: { _neq: deactivated }
+        updated_at: { _lt: $before }
+        app: { deleted_at: { _is_null: false } }
+      }
+      order_by: { updated_at: asc }
+      limit: $limit
+    ) {
       rp_id
       app_id
-      mode
       status
-      manager_kms_key_id
-      app {
-        team_id
-        deleted_at
-        status
-        is_archived
-      }
     }
   }
 `;
@@ -64,18 +57,18 @@ export function getSdk(
   withWrapper: SdkFunctionWrapper = defaultWrapper,
 ) {
   return {
-    GetRpRegistration(
-      variables: GetRpRegistrationQueryVariables,
+    GetDeletedAppRps(
+      variables: GetDeletedAppRpsQueryVariables,
       requestHeaders?: GraphQLClientRequestHeaders,
-    ): Promise<GetRpRegistrationQuery> {
+    ): Promise<GetDeletedAppRpsQuery> {
       return withWrapper(
         (wrappedRequestHeaders) =>
-          client.request<GetRpRegistrationQuery>(
-            GetRpRegistrationDocument,
+          client.request<GetDeletedAppRpsQuery>(
+            GetDeletedAppRpsDocument,
             variables,
             { ...requestHeaders, ...wrappedRequestHeaders },
           ),
-        "GetRpRegistration",
+        "GetDeletedAppRps",
         "query",
         variables,
       );

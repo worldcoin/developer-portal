@@ -120,6 +120,19 @@ export const POST = async (req: NextRequest) => {
     });
   }
 
+  // A deleted / archived / inactive app must not be toggled (e.g. re-activated)
+  // from the dashboard. Deleting an app deactivates its RP on its own.
+  const app = registration.app;
+  if (app.deleted_at || app.status !== "active" || app.is_archived) {
+    return errorHasuraQuery({
+      req,
+      detail: "App is deleted, archived, or inactive.",
+      code: "app_inactive",
+      app_id,
+      logLevel: "warn",
+    });
+  }
+
   // STEP 3: Verify mode is managed
   if (registration.mode !== "managed" || !registration.manager_kms_key_id) {
     return errorHasuraQuery({
