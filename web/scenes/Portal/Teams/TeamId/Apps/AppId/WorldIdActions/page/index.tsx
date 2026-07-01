@@ -7,7 +7,8 @@ import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { useState } from "react";
 import { ActionsListV4 } from "./ActionsListV4";
 import { CreateActionDialogV4 } from "./CreateActionDialogV4";
-import { useGetActionsV4Query } from "./graphql/client/get-actions-v4.generated";
+import { useQuery } from "@apollo/client/react";
+import { GetActionsV4Document } from "./graphql/client/get-actions-v4.generated";
 
 type WorldIdActionsPageProps = {
   params: Record<string, string> | null | undefined;
@@ -24,7 +25,7 @@ export const WorldIdActionsPage = ({
     searchParams?.createAction === "true",
   );
 
-  const { data, loading, error, refetch } = useGetActionsV4Query({
+  const { data, loading, error, refetch } = useQuery(GetActionsV4Document, {
     variables: {
       app_id: appId ?? "",
     },

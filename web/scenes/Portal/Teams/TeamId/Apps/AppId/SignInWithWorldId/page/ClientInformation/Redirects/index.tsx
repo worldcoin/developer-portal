@@ -8,14 +8,12 @@ import clsx from "clsx";
 import posthog from "posthog-js";
 import { memo, useCallback, useState } from "react";
 import { toast } from "react-toastify";
+import { useMutation, useQuery } from "@apollo/client/react";
 import { RedirectInput } from "./RedirectInput";
-import { useDeleteRedirectMutation } from "./graphql/client/delete-redirect.generated";
-import {
-  RedirectsDocument,
-  useRedirectsQuery,
-} from "./graphql/client/fetch-redirect.generated";
-import { useInsertRedirectMutation } from "./graphql/client/insert-redirect.generated";
-import { useUpdateRedirectMutation } from "./graphql/client/update-redirect.generated";
+import { DeleteRedirectDocument } from "./graphql/client/delete-redirect.generated";
+import { RedirectsDocument } from "./graphql/client/fetch-redirect.generated";
+import { InsertRedirectDocument } from "./graphql/client/insert-redirect.generated";
+import { UpdateRedirectDocument } from "./graphql/client/update-redirect.generated";
 
 export const Redirects = memo(function Redirects(props: {
   actionId: string;
@@ -27,15 +25,15 @@ export const Redirects = memo(function Redirects(props: {
   const { actionId, appId, isStaging, teamId, canEdit } = props;
   const [addRedirectFormShown, setAddRedirectFormShown] = useState(false);
 
-  const { data, loading } = useRedirectsQuery({
+  const { data, loading } = useQuery(RedirectsDocument, {
     variables: {
       action_id: actionId ?? "",
     },
   });
 
-  const [insertRedirectMutation] = useInsertRedirectMutation();
-  const [updateRedirectMutation] = useUpdateRedirectMutation();
-  const [deleteRedirectMutation] = useDeleteRedirectMutation();
+  const [insertRedirectMutation] = useMutation(InsertRedirectDocument);
+  const [updateRedirectMutation] = useMutation(UpdateRedirectDocument);
+  const [deleteRedirectMutation] = useMutation(DeleteRedirectDocument);
 
   const addRedirect = useCallback(
     async (redirect_uri: string) => {

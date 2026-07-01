@@ -5,10 +5,11 @@ import { useParams } from "next/navigation";
 import { useEffect } from "react";
 import Skeleton from "react-loading-skeleton";
 import { Image } from "./Image";
-import { useFetchTeamLazyQuery } from "./graphql/client/fetch-team.generated";
+import { useLazyQuery } from "@apollo/client/react";
+import { FetchTeamDocument } from "./graphql/client/fetch-team.generated";
 
 export const TeamProfile = (props: { className?: string }) => {
-  const [fetchTeam, { data }] = useFetchTeamLazyQuery();
+  const [fetchTeam, { data }] = useLazyQuery(FetchTeamDocument);
   const { teamId } = useParams() as { teamId: string };
 
   useEffect(() => {

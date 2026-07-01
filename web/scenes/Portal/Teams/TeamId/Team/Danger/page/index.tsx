@@ -4,14 +4,15 @@ import { DeleteTeamDialog } from "@/scenes/Portal/common/DeleteTeamDialog";
 import { useParams } from "next/navigation";
 import { useState } from "react";
 import { TeamProfile } from "../../common/TeamProfile";
-import { useFetchTeamQuery } from "../../common/TeamProfile/graphql/client/fetch-team.generated";
+import { useQuery } from "@apollo/client/react";
+import { FetchTeamDocument } from "../../common/TeamProfile/graphql/client/fetch-team.generated";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { Section } from "@/components/Section";
 import { truncateString } from "@/lib/utils";
 
 export const TeamDangerPage = () => {
   const { teamId } = useParams() as { teamId: string };
-  const fetchTeamQueryRes = useFetchTeamQuery({
+  const fetchTeamQueryRes = useQuery(FetchTeamDocument, {
     variables: {
       teamId: teamId,
     },

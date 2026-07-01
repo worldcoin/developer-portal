@@ -6,13 +6,11 @@ import { LegacyVerificationLevel } from "@/lib/idkit";
 import { EngineType } from "@/lib/types";
 import clsx from "clsx";
 import { use, useState } from "react";
+import { useMutation, useQuery } from "@apollo/client/react";
 import { KioskError } from "../Components/Kiosk/KioskError";
 import { VerificationLevelPicker } from "../Components/Kiosk/VerificationLevelPicker";
-import {
-  GetKioskActionDocument,
-  useGetKioskActionQuery,
-} from "./graphql/client/get-kiosk-action.generated";
-import { useToggleKioskMutation } from "./graphql/client/toggle-kiosk.generated";
+import { GetKioskActionDocument } from "./graphql/client/get-kiosk-action.generated";
+import { ToggleKioskDocument } from "./graphql/client/toggle-kiosk.generated";
 
 type ActionIdKioskPageProps = {
   params: Promise<Record<string, string>>;
@@ -25,9 +23,9 @@ export const ActionIdKioskPage = (props: ActionIdKioskPageProps) => {
   const appId = params?.appId as `app_${string}`;
   const actionId = params?.actionId as `action_${string}`;
   const teamId = params?.teamId as `team_${string}`;
-  const [toggleKiosk] = useToggleKioskMutation();
+  const [toggleKiosk] = useMutation(ToggleKioskDocument);
 
-  const { data } = useGetKioskActionQuery({
+  const { data } = useQuery(GetKioskActionDocument, {
     variables: {
       action_id: actionId,
       app_id: appId,

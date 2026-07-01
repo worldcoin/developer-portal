@@ -7,9 +7,10 @@ import { useRouter } from "next/navigation";
 import { useCallback, use } from "react";
 import Skeleton from "react-loading-skeleton";
 import { toast } from "react-toastify";
+import { useMutation, useQuery } from "@apollo/client/react";
 import { GetActionsDocument } from "../../../page/graphql/client/actions.generated";
-import { useDeleteActionMutation } from "../ActionDangerZoneContent/graphql/client/delete-action.generated";
-import { useGetSingleActionQuery } from "./graphql/client/get-single-action.generated";
+import { DeleteActionDocument } from "../ActionDangerZoneContent/graphql/client/delete-action.generated";
+import { GetSingleActionDocument } from "./graphql/client/get-single-action.generated";
 
 type ActionIdDangerPageProps = {
   params: Promise<Record<string, string>>;
@@ -23,14 +24,14 @@ export const ActionIdDangerPage = (props: ActionIdDangerPageProps) => {
 
   const router = useRouter();
 
-  const { data, loading } = useGetSingleActionQuery({
+  const { data, loading } = useQuery(GetSingleActionDocument, {
     variables: { action_id: actionId ?? "" },
   });
 
   const action = data?.action_by_pk;
 
   const [deleteActionMutation, { loading: deleteActionLoading }] =
-    useDeleteActionMutation();
+    useMutation(DeleteActionDocument);
 
   const handleDelete = useCallback(async () => {
     try {
@@ -49,7 +50,7 @@ export const ActionIdDangerPage = (props: ActionIdDangerPageProps) => {
         awaitRefetchQueries: true,
       });
 
-      if (result.errors) {
+      if (result.error) {
         throw new Error("Failed to delete action");
       }
 

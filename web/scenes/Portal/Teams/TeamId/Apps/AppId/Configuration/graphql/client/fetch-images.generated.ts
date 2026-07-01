@@ -1,9 +1,7 @@
 /* eslint-disable */
 import * as Types from "@/graphql/graphql";
 
-import { gql } from "@apollo/client";
-import * as Apollo from "@apollo/client";
-const defaultOptions = {} as const;
+import { TypedDocumentNode as DocumentNode } from "@graphql-typed-document-node/core";
 export type FetchImagesQueryVariables = Types.Exact<{
   id: Types.Scalars["String"]["input"];
   team_id: Types.Scalars["String"]["input"];
@@ -22,93 +20,109 @@ export type FetchImagesQuery = {
   } | null;
 };
 
-export const FetchImagesDocument = gql`
-  query FetchImages($id: String!, $team_id: String!, $locale: String) {
-    unverified_images: get_all_unverified_images(
-      app_id: $id
-      team_id: $team_id
-      locale: $locale
-    ) {
-      logo_img_url
-      hero_image_url
-      meta_tag_image_url
-      showcase_img_urls
-      content_card_image_url
-    }
-  }
-`;
-
-/**
- * __useFetchImagesQuery__
- *
- * To run a query within a React component, call `useFetchImagesQuery` and pass it any options that fit your needs.
- * When your component renders, `useFetchImagesQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useFetchImagesQuery({
- *   variables: {
- *      id: // value for 'id'
- *      team_id: // value for 'team_id'
- *      locale: // value for 'locale'
- *   },
- * });
- */
-export function useFetchImagesQuery(
-  baseOptions: Apollo.QueryHookOptions<
-    FetchImagesQuery,
-    FetchImagesQueryVariables
-  > &
-    (
-      | { variables: FetchImagesQueryVariables; skip?: boolean }
-      | { skip: boolean }
-    ),
-) {
-  const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useQuery<FetchImagesQuery, FetchImagesQueryVariables>(
-    FetchImagesDocument,
-    options,
-  );
-}
-export function useFetchImagesLazyQuery(
-  baseOptions?: Apollo.LazyQueryHookOptions<
-    FetchImagesQuery,
-    FetchImagesQueryVariables
-  >,
-) {
-  const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useLazyQuery<FetchImagesQuery, FetchImagesQueryVariables>(
-    FetchImagesDocument,
-    options,
-  );
-}
-export function useFetchImagesSuspenseQuery(
-  baseOptions?:
-    | Apollo.SkipToken
-    | Apollo.SuspenseQueryHookOptions<
-        FetchImagesQuery,
-        FetchImagesQueryVariables
-      >,
-) {
-  const options =
-    baseOptions === Apollo.skipToken
-      ? baseOptions
-      : { ...defaultOptions, ...baseOptions };
-  return Apollo.useSuspenseQuery<FetchImagesQuery, FetchImagesQueryVariables>(
-    FetchImagesDocument,
-    options,
-  );
-}
-export type FetchImagesQueryHookResult = ReturnType<typeof useFetchImagesQuery>;
-export type FetchImagesLazyQueryHookResult = ReturnType<
-  typeof useFetchImagesLazyQuery
->;
-export type FetchImagesSuspenseQueryHookResult = ReturnType<
-  typeof useFetchImagesSuspenseQuery
->;
-export type FetchImagesQueryResult = Apollo.QueryResult<
-  FetchImagesQuery,
-  FetchImagesQueryVariables
->;
+export const FetchImagesDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "query",
+      name: { kind: "Name", value: "FetchImages" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: { kind: "Variable", name: { kind: "Name", value: "id" } },
+          type: {
+            kind: "NonNullType",
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "String" },
+            },
+          },
+        },
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "team_id" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "String" },
+            },
+          },
+        },
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "locale" },
+          },
+          type: { kind: "NamedType", name: { kind: "Name", value: "String" } },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            alias: { kind: "Name", value: "unverified_images" },
+            name: { kind: "Name", value: "get_all_unverified_images" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "app_id" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "id" },
+                },
+              },
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "team_id" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "team_id" },
+                },
+              },
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "locale" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "locale" },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "logo_img_url" },
+                },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "hero_image_url" },
+                },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "meta_tag_image_url" },
+                },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "showcase_img_urls" },
+                },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "content_card_image_url" },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<FetchImagesQuery, FetchImagesQueryVariables>;

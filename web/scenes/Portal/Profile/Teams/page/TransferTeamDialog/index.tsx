@@ -20,15 +20,16 @@ import {
   FetchMeQuery,
 } from "@/scenes/common/me-query/client/graphql/client/me-query.generated";
 import { useUser } from "@auth0/nextjs-auth0/client";
+import { skipToken, useMutation, useQuery } from "@apollo/client/react";
 import { useCallback } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { toast } from "react-toastify";
 import {
+  FetchMembersDocument,
   FetchMembersQuery,
-  useFetchMembersQuery,
 } from "./graphql/client/fetch-members.generated";
-import { useFetchUserMembershipQuery } from "./graphql/client/fetch-user-membership.generated";
-import { useTransferOwnershipMutation } from "./graphql/client/transfer-ownership.generated";
+import { FetchUserMembershipDocument } from "./graphql/client/fetch-user-membership.generated";
+import { TransferOwnershipDocument } from "./graphql/client/transfer-ownership.generated";
 
 type TransferTeamDialogProps = DialogProps & {
   team?: NonNullable<FetchMeQuery["user_by_pk"]>["memberships"][0]["team"];
@@ -42,17 +43,17 @@ export const TransferTeamDialog = (props: TransferTeamDialogProps) => {
   const { team, ...otherProps } = props;
   const { user } = useUser() as Auth0SessionUser;
 
-  const { data } = useFetchMembersQuery({
-    variables:
-      !team || !user?.hasura
-        ? undefined
-        : {
+  const { data } = useQuery(
+    FetchMembersDocument,
+    !team || !user?.hasura
+      ? skipToken
+      : {
+          variables: {
             user_id: user?.hasura.id,
             team_id: team.id,
           },
-
-    skip: !team || !user?.hasura,
-  });
+        },
+  );
 
   const getName = useCallback((member?: FetchMembersQuery["members"][0]) => {
     return (
@@ -63,7 +64,7 @@ export const TransferTeamDialog = (props: TransferTeamDialogProps) => {
     );
   }, []);
 
-  const [transferMembership] = useTransferOwnershipMutation();
+  const [transferMembership] = useMutation(TransferOwnershipDocument);
 
   const {
     control,
@@ -76,7 +77,7 @@ export const TransferTeamDialog = (props: TransferTeamDialogProps) => {
 
   const member = useWatch({ control, name: "member" });
 
-  const { data: userMembership } = useFetchUserMembershipQuery({
+  const { data: userMembership } = useQuery(FetchUserMembershipDocument, {
     variables: {
       user_id: user?.hasura.id ?? "",
       team_id: team?.id ?? "",

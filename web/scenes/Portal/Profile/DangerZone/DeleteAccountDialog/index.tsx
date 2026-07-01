@@ -16,7 +16,8 @@ import { useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import * as yup from "yup";
-import { useDeleteAccountMutation } from "./graphql/client/delete-account.generated";
+import { useMutation } from "@apollo/client/react";
+import { DeleteAccountDocument } from "./graphql/client/delete-account.generated";
 
 const DELETE_WORD = "DELETE";
 
@@ -49,7 +50,7 @@ export const DeleteAccountDialog = (props: DialogProps) => {
     props.onClose(false);
   }, [props, reset]);
 
-  const [deleteAccount] = useDeleteAccountMutation();
+  const [deleteAccount] = useMutation(DeleteAccountDocument);
 
   const submit = useCallback(async () => {
     if (!user?.hasura) return;

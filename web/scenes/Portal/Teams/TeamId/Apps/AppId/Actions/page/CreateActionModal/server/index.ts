@@ -8,7 +8,7 @@ import { normalizePublicKey } from "@/lib/crypto.server";
 import { generateExternalNullifier } from "@/lib/hashing";
 import { FormActionResult } from "@/lib/types";
 import { checkIfPartnerTeam } from "@/lib/utils";
-import { ApolloError } from "@apollo/client";
+import { GraphQLFormattedError } from "graphql";
 import { auth0 } from "@/lib/auth0";
 import { getSdk as getActionInsertPermissionsSdk } from "../graphql/server/get-action-insert-permissions.generated";
 import { getSdk as getCreateActionSdk } from "../graphql/server/insert-action.generated";
@@ -112,8 +112,8 @@ export async function createActionServerSide(
   } catch (error) {
     let message = "An error occurred while creating the action";
     if (
-      (error as ApolloError)?.graphQLErrors?.[0]?.extensions?.code ===
-      "constraint-violation"
+      (error as { graphQLErrors?: readonly GraphQLFormattedError[] })
+        ?.graphQLErrors?.[0]?.extensions?.code === "constraint-violation"
     ) {
       message =
         "An action with this identifier already exists for this app. Please change the 'action' identifier.";

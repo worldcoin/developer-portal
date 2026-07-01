@@ -4,7 +4,8 @@ import { ErrorPage } from "@/components/ErrorPage";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { TryAction } from "@/scenes/Portal/Teams/TeamId/Apps/AppId/Actions/ActionId/Settings/TryAction";
 import Skeleton from "react-loading-skeleton";
-import { useGetSingleActionV4Query } from "../../page/graphql/client/get-single-action-v4.generated";
+import { useQuery } from "@apollo/client/react";
+import { GetSingleActionV4Document } from "../../page/graphql/client/get-single-action-v4.generated";
 import { UpdateActionV4Form } from "../UpdateActionV4Form";
 import { adaptActionV4ForTryAction } from "./utils/adapt-action-v4";
 
@@ -20,7 +21,7 @@ export const WorldIdActionIdSettingsPage = (
   const teamId = params?.teamId;
   const appId = params?.appId;
 
-  const { data, loading, error } = useGetSingleActionV4Query({
+  const { data, loading, error } = useQuery(GetSingleActionV4Document, {
     variables: { action_id: actionId ?? "" },
   });
 

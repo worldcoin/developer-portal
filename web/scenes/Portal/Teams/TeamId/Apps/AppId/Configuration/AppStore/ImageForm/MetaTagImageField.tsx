@@ -1,9 +1,10 @@
 import { useCallback, useMemo } from "react";
 import { toast } from "react-toastify";
-import { useFetchImagesQuery } from "../../graphql/client/fetch-images.generated";
-import { useUpsertLocalisedMetaTagImageMutation } from "../graphql/client/upsert-localised-meta-tag-image.generated";
+import { FetchImagesDocument } from "../../graphql/client/fetch-images.generated";
+import { UpsertLocalisedMetaTagImageDocument } from "../graphql/client/upsert-localised-meta-tag-image.generated";
 import { extractImagePathWithExtensionFromActualUrl } from "../utils";
 import { ImageUploadField } from "./ImageUploadField";
+import { useMutation, useQuery } from "@apollo/client/react";
 
 interface MetaTagImageFieldProps {
   value?: string | null;
@@ -45,7 +46,7 @@ export const MetaTagImageField = (props: MetaTagImageFieldProps) => {
     data: unverifiedImagesData,
     loading: isImagesLoading,
     refetch: refetchUnverifiedImages,
-  } = useFetchImagesQuery({
+  } = useQuery(FetchImagesDocument, {
     variables: {
       id: appId,
       team_id: teamId,
@@ -53,17 +54,20 @@ export const MetaTagImageField = (props: MetaTagImageFieldProps) => {
     },
   });
 
-  const [upsertLocalisedMetaTagImage] = useUpsertLocalisedMetaTagImageMutation({
-    onCompleted: () => {
-      toast.success("Meta tag image saved successfully");
-      onAutosaveSuccess?.();
+  const [upsertLocalisedMetaTagImage] = useMutation(
+    UpsertLocalisedMetaTagImageDocument,
+    {
+      onCompleted: () => {
+        toast.success("Meta tag image saved successfully");
+        onAutosaveSuccess?.();
+      },
+      onError: (error) => {
+        console.error("autosave failed:", error);
+        toast.error("Failed to auto-save meta tag image");
+        onAutosaveError?.(error);
+      },
     },
-    onError: (error) => {
-      console.error("autosave failed:", error);
-      toast.error("Failed to auto-save meta tag image");
-      onAutosaveError?.(error);
-    },
-  });
+  );
 
   const handleAutosave = useCallback(
     async (urls: string[]) => {

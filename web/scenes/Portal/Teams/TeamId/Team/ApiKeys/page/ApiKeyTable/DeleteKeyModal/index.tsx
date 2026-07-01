@@ -5,9 +5,10 @@ import { DialogOverlay } from "@/components/DialogOverlay";
 import { DialogPanel } from "@/components/DialogPanel";
 import { WarningErrorIcon } from "@/components/Icons/WarningErrorIcon";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import { useMutation } from "@apollo/client/react";
 import { toast } from "react-toastify";
 import { FetchKeysDocument } from "../../graphql/client/fetch-keys.generated";
-import { useDeleteKeyMutation } from "./graphql/client/delete-key.generated";
+import { DeleteKeyDocument } from "./graphql/client/delete-key.generated";
 
 type DeleteKeyModalProps = {
   isOpen: boolean;
@@ -19,7 +20,7 @@ type DeleteKeyModalProps = {
 
 export const DeleteKeyModal = (props: DeleteKeyModalProps) => {
   const { isOpen, teamId, keyId, name, setIsOpen } = props;
-  const [deleteKeyMutation, { loading }] = useDeleteKeyMutation();
+  const [deleteKeyMutation, { loading }] = useMutation(DeleteKeyDocument);
 
   const handleDelete = async () => {
     if (!keyId || loading) {

@@ -18,7 +18,8 @@ import { LOGO_IMAGE_UPLOAD_TOAST_ID } from "../../constants";
 import { FetchAppMetadataDocument } from "../../graphql/client/fetch-app-metadata.generated";
 import { ImageValidationError, useImage } from "../../hook/use-image";
 import { unverifiedImageAtom, viewModeAtom } from "../../layout/ImagesProvider";
-import { useUpdateLogoMutation } from "./graphql/client/update-logo.generated";
+import { UpdateLogoDocument } from "./graphql/client/update-logo.generated";
+import { useMutation } from "@apollo/client/react";
 
 type LogoImageUploadProps = {
   appId: string;
@@ -50,7 +51,7 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
   const [disabled] = useState(false);
   const [viewMode] = useAtom(viewModeAtom);
   const [unverifiedImages, setUnverifiedImages] = useAtom(unverifiedImageAtom);
-  const [updateLogoMutation, { loading }] = useUpdateLogoMutation();
+  const [updateLogoMutation, { loading }] = useMutation(UpdateLogoDocument);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const { getImage, uploadViaPresignedPost, validateImageAspectRatio } =
     useImage();

@@ -9,6 +9,7 @@ import { Role_Enum } from "@/graphql/graphql";
 import { Auth0SessionUser } from "@/lib/types";
 import { checkUserPermissions } from "@/lib/utils";
 import { FetchMeDocument } from "@/scenes/common/me-query/client/graphql/client/me-query.generated";
+import { useQuery } from "@apollo/client/react";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useAtom } from "jotai";
@@ -16,7 +17,7 @@ import { useEffect, useMemo } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import Skeleton from "react-loading-skeleton";
 import * as yup from "yup";
-import { useFetchTeamMembersQuery } from "./graphql/client/fetch-team-members.generated";
+import { FetchTeamMembersDocument } from "./graphql/client/fetch-team-members.generated";
 import {
   InviteTeamMemberDialog,
   inviteTeamMemberDialogAtom,
@@ -53,7 +54,7 @@ export const Members = (props: { teamId: string }) => {
     name: "search",
   });
 
-  const membersRes = useFetchTeamMembersQuery({
+  const membersRes = useQuery(FetchTeamMembersDocument, {
     variables: {
       teamId,
       invitesCondition: !search ? {} : [{ email: { _ilike: `%${search}%` } }],

@@ -3,8 +3,9 @@ import { use } from "react";
 import { ErrorPage } from "@/components/ErrorPage";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import Skeleton from "react-loading-skeleton";
+import { useQuery } from "@apollo/client/react";
 import { Debugger } from "../Debugger";
-import { useDebuggerQuery } from "./graphql/client/debugger.generated";
+import { DebuggerDocument } from "./graphql/client/debugger.generated";
 
 type ActionIdSettingsPageProps = {
   params: Promise<Record<string, string>>;
@@ -16,7 +17,7 @@ export const ActionIdProofDebugingPage = (props: ActionIdSettingsPageProps) => {
   const teamId = params?.teamId;
   const actionID = params?.actionId;
 
-  const { data, loading } = useDebuggerQuery({
+  const { data, loading } = useQuery(DebuggerDocument, {
     variables: {
       action_id: actionID ?? "",
     },

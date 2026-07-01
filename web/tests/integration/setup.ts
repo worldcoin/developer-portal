@@ -8,14 +8,14 @@ export const integrationDBClean = async () => {
   pool = new Pool();
 
   try {
-    await pool.query("BEGIN");
+    await pool.query<any>("BEGIN");
 
     // Reset database
     const resetDB = fs.readFileSync(
       path.resolve(__dirname, "./db/resetdb.sql"),
       "utf8",
     );
-    await pool.query(resetDB);
+    await pool.query<any>(resetDB);
 
     // Seed database
     const seedFiles: string[] = fs.readdirSync(
@@ -27,15 +27,15 @@ export const integrationDBClean = async () => {
           path.resolve(__dirname, `./db/default/${file}`),
           "utf8",
         );
-        await pool.query(seedQuery);
+        await pool.query<any>(seedQuery);
       } catch (error) {
         console.error(`Error seeding file ${file}:`, error);
         throw error; // Re-throw the error to trigger rollback
       }
     }
-    await pool.query("COMMIT");
+    await pool.query<any>("COMMIT");
   } catch (error) {
-    await pool.query("ROLLBACK");
+    await pool.query<any>("ROLLBACK");
     throw error;
   } finally {
     await pool.end();
@@ -48,7 +48,7 @@ export const integrationDBExecuteQuery = async (
   values?: any[],
 ) => {
   pool = new Pool();
-  const response = await pool.query(query, values);
+  const response = await pool.query<any>(query, values);
   await pool.end();
   return response;
 };

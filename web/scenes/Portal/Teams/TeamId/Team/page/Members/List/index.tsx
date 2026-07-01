@@ -4,25 +4,28 @@ import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Role_Enum } from "@/graphql/graphql";
 import { Auth0SessionUser } from "@/lib/types";
 import { checkUserPermissions } from "@/lib/utils";
+import { useMutation, useQuery } from "@apollo/client/react";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { useAtom } from "jotai";
 import { useParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "react-toastify";
-import { useInviteTeamMembersMutation } from "../graphql/client/invite-team-members.generated";
+import { InviteTeamMembersDocument } from "../graphql/client/invite-team-members.generated";
 import { EditRoleDialog, editRoleDialogAtom } from "./EditRoleDialog";
 import { PermissionsDialog } from "./PermissionsDialog";
 import { RemoveUserDialog, removeUserDialogAtom } from "./RemoveUserDialog";
-import { useDeleteInviteMutation } from "./graphql/client/delete-invite.generated";
+import { DeleteInviteDocument } from "./graphql/client/delete-invite.generated";
 import {
   FetchTeamMembersDocument,
   FetchTeamMembersQuery,
-  useFetchTeamMembersQuery,
+  FetchTeamMembersQueryVariables,
 } from "../graphql/client/fetch-team-members.generated";
 import { Item } from "./Item";
 
 type ListProps = {
-  membersRes: ReturnType<typeof useFetchTeamMembersQuery>;
+  membersRes: ReturnType<
+    typeof useQuery<FetchTeamMembersQuery, FetchTeamMembersQueryVariables>
+  >;
   keyword?: string;
 };
 
@@ -105,8 +108,9 @@ export const List = (props: ListProps) => {
     [setIsRemoveDialogOpened],
   );
 
-  const [inviteTeamMembers, { loading: resendMutationLoading }] =
-    useInviteTeamMembersMutation();
+  const [inviteTeamMembers, { loading: resendMutationLoading }] = useMutation(
+    InviteTeamMembersDocument,
+  );
 
   const resendInvite = useCallback(
     async (membership: FetchTeamMembersQuery["members"][number]) => {
@@ -128,11 +132,13 @@ export const List = (props: ListProps) => {
     [inviteTeamMembers, resendMutationLoading, teamId],
   );
 
-  const [deleteInvite, { loading: deleteInviteMutationLoading }] =
-    useDeleteInviteMutation({
+  const [deleteInvite, { loading: deleteInviteMutationLoading }] = useMutation(
+    DeleteInviteDocument,
+    {
       refetchQueries: [FetchTeamMembersDocument],
       awaitRefetchQueries: true,
-    });
+    },
+  );
 
   const cancelInvite = useCallback(
     async (membership: FetchTeamMembersQuery["members"][number]) => {

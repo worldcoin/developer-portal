@@ -8,8 +8,9 @@ import { usePathname, useRouter } from "next/navigation";
 import { use, useEffect } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { ActionsList } from "./ActionsList";
-import { useGetActionsQuery } from "./graphql/client/actions.generated";
-import { useGetAppQuery } from "./graphql/client/app.generated";
+import { GetActionsDocument } from "./graphql/client/actions.generated";
+import { GetAppDocument } from "./graphql/client/app.generated";
+import { useQuery } from "@apollo/client/react";
 
 type ActionsPageProps = {
   params: Promise<Record<string, string>>;
@@ -33,14 +34,14 @@ export const ActionsPage = (props: ActionsPageProps) => {
     name: "keyword",
   });
 
-  const appRes = useGetAppQuery({
+  const appRes = useQuery(GetAppDocument, {
     variables: {
       app_id: appId ?? "",
     },
     skip: !appId,
   });
 
-  const actionsRes = useGetActionsQuery({
+  const actionsRes = useQuery(GetActionsDocument, {
     variables: {
       app_id: appId ?? "",
       condition: !keyword

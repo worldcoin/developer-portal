@@ -9,7 +9,8 @@ import { Auth0SessionUser } from "@/lib/types";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { useCallback } from "react";
 import { toast } from "react-toastify";
-import { useLeaveTeamMutation } from "./graphql/client/leave-team.generated";
+import { useMutation } from "@apollo/client/react";
+import { LeaveTeamDocument } from "./graphql/client/leave-team.generated";
 
 import {
   FetchMeDocument,
@@ -23,7 +24,7 @@ type LeaveTeamDialogProps = DialogProps & {
 export const LeaveTeamDialog = (props: LeaveTeamDialogProps) => {
   const { team, ...otherProps } = props;
   const { user: auth0User } = useUser() as Auth0SessionUser;
-  const [leaveTeam, leaveTeamMutationRes] = useLeaveTeamMutation();
+  const [leaveTeam, leaveTeamMutationRes] = useMutation(LeaveTeamDocument);
 
   const submit = useCallback(async () => {
     if (!team || !auth0User?.hasura) {
