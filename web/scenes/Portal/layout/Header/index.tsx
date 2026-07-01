@@ -9,7 +9,7 @@ import { atom, useAtom, useSetAtom } from "jotai";
 import { useParams } from "next/navigation";
 import React, { useEffect, useMemo } from "react";
 import { colorAtom } from "../color-atom";
-import { Color } from "../../Profile/types";
+import { Color } from "@/scenes/common/colors";
 import { AppSelector } from "../AppSelector";
 import { CreateAppDialogV4 } from "../CreateAppDialog/index-v4";
 
