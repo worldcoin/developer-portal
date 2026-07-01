@@ -11,9 +11,9 @@ import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import clsx from "clsx";
 import { useCallback, useState } from "react";
 import { toast } from "react-toastify";
-import { SignerKeySetup } from "../../ConfigureSignerKey/ConfigureSignerKeyContent";
-import { GenerateNewKeyContent } from "../../GenerateNewKey/GenerateNewKeyContent";
-import { UseExistingKeyContent } from "../../UseExistingKey/UseExistingKeyContent";
+import { SignerKeySetup } from "@/scenes/Portal/Teams/TeamId/Apps/AppId/ConfigureSignerKey/ConfigureSignerKeyContent";
+import { GenerateNewKeyContent } from "@/scenes/Portal/Teams/TeamId/Apps/AppId/GenerateNewKey/GenerateNewKeyContent";
+import { UseExistingKeyContent } from "@/scenes/Portal/Teams/TeamId/Apps/AppId/UseExistingKey/UseExistingKeyContent";
 import { useRotateSignerKeyMutation } from "@/scenes/common/world-id-4-0/graphql/client/rotate-signer-key.generated";
 
 type RotateStep = "configure" | "generate-new" | "use-existing";
