@@ -5,7 +5,7 @@ import { ErrorPage } from "@/components/ErrorPage";
 import Skeleton from "react-loading-skeleton";
 import { ActionStatsGraph } from "./ActionStatsGraph";
 import { VerifiedTable } from "./VerifiedTable";
-import { useGetSingleActionAndNullifiersQuery } from "./graphql/client/get-single-action.generated";
+import { useGetSingleActionAndNullifiersQuery } from "@/scenes/common/Teams/TeamId/Apps/AppId/Actions/ActionId/page/graphql/client/get-single-action.generated";
 import { SizingWrapper } from "@/components/SizingWrapper";
 
 type ActionIdPageProps = {

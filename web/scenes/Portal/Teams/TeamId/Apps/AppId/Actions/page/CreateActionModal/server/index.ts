@@ -10,8 +10,8 @@ import { FormActionResult } from "@/lib/types";
 import { checkIfPartnerTeam } from "@/lib/utils";
 import { ApolloError } from "@apollo/client";
 import { auth0 } from "@/lib/auth0";
-import { getSdk as getActionInsertPermissionsSdk } from "../graphql/server/get-action-insert-permissions.generated";
-import { getSdk as getCreateActionSdk } from "../graphql/server/insert-action.generated";
+import { getSdk as getActionInsertPermissionsSdk } from "@/scenes/common/Teams/TeamId/Apps/AppId/Actions/page/CreateActionModal/graphql/server/get-action-insert-permissions.generated";
+import { getSdk as getCreateActionSdk } from "@/scenes/common/Teams/TeamId/Apps/AppId/Actions/page/CreateActionModal/graphql/server/insert-action.generated";
 import { createActionSchema, CreateActionSchema } from "./form-schema";
 
 export const getIsUserAllowedToInsertAction = async (

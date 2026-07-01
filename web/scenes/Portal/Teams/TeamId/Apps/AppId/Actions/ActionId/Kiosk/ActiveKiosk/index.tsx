@@ -25,7 +25,7 @@ import {
   useLegacyKioskRequest,
   type KioskProofResponse,
 } from "../../Components/Kiosk/useLegacyKioskRequest";
-import { GetKioskActionQuery } from "../graphql/client/get-kiosk-action.generated";
+import { GetKioskActionQuery } from "@/scenes/common/Teams/TeamId/Apps/AppId/Actions/ActionId/Kiosk/graphql/client/get-kiosk-action.generated";
 dayjs.extend(dayjsRelative);
 
 interface SuccessParams {

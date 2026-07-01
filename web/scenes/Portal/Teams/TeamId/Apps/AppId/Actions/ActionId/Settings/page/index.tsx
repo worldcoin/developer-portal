@@ -6,7 +6,7 @@ import { isLegacyActionsEditableForTeam } from "@/lib/feature-flags/world-id-4-0
 import Skeleton from "react-loading-skeleton";
 import { TryAction } from "../TryAction";
 import { UpdateActionForm } from "../UpdateAction";
-import { useGetSingleActionQuery } from "./graphql/client/get-single-action.generated";
+import { useGetSingleActionQuery } from "@/scenes/common/Teams/TeamId/Apps/AppId/Actions/ActionId/Settings/page/graphql/client/get-single-action.generated";
 
 type ActionIdSettingsPageProps = {
   params: Promise<Record<string, string>>;

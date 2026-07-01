@@ -8,8 +8,8 @@ import { extractIdsFromPath, getPathFromHeaders } from "@/lib/server-utils";
 import { FormActionResult } from "@/lib/types";
 import { checkIfPartnerTeam } from "@/lib/utils";
 import { auth0 } from "@/lib/auth0";
-import { getSdk as getActionUpdatePermissionsSdk } from "../graphql/server/get-action-update-permissions.generated";
-import { getSdk as getUpdateActionSdk } from "../graphql/server/update-action.generated";
+import { getSdk as getActionUpdatePermissionsSdk } from "@/scenes/common/Teams/TeamId/Apps/AppId/Actions/ActionId/Settings/UpdateAction/graphql/server/get-action-update-permissions.generated";
+import { getSdk as getUpdateActionSdk } from "@/scenes/common/Teams/TeamId/Apps/AppId/Actions/ActionId/Settings/UpdateAction/graphql/server/update-action.generated";
 import { createUpdateActionSchema, UpdateActionSchema } from "./form-schema";
 
 export const getIsUserAllowedToUpdateAction = async (

@@ -13,9 +13,9 @@ import { useUser } from "@auth0/nextjs-auth0/client";
 import { useRouter } from "next/navigation";
 import { useCallback, useMemo, useState } from "react";
 import { toast } from "react-toastify";
-import { GetActionsDocument } from "../../../page/graphql/client/actions.generated";
-import { GetSingleActionQuery } from "../page/graphql/client/get-single-action.generated";
-import { useDeleteActionMutation } from "./graphql/client/delete-action.generated";
+import { GetActionsDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/Actions/page/graphql/client/actions.generated";
+import { GetSingleActionQuery } from "@/scenes/common/Teams/TeamId/Apps/AppId/Actions/ActionId/Danger/page/graphql/client/get-single-action.generated";
+import { useDeleteActionMutation } from "@/scenes/common/Teams/TeamId/Apps/AppId/Actions/ActionId/Danger/ActionDangerZoneContent/graphql/client/delete-action.generated";
 
 export const ActionDangerZoneContent = (props: {
   action: GetSingleActionQuery["action_by_pk"];

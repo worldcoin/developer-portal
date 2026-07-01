@@ -4,7 +4,7 @@ import { ErrorPage } from "@/components/ErrorPage";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import Skeleton from "react-loading-skeleton";
 import { Debugger } from "../Debugger";
-import { useDebuggerQuery } from "./graphql/client/debugger.generated";
+import { useDebuggerQuery } from "@/scenes/common/Teams/TeamId/Apps/AppId/Actions/ActionId/ProofDebuging/page/graphql/client/debugger.generated";
 
 type ActionIdSettingsPageProps = {
   params: Promise<Record<string, string>>;

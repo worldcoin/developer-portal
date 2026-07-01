@@ -11,8 +11,8 @@ import { VerificationLevelPicker } from "../Components/Kiosk/VerificationLevelPi
 import {
   GetKioskActionDocument,
   useGetKioskActionQuery,
-} from "./graphql/client/get-kiosk-action.generated";
-import { useToggleKioskMutation } from "./graphql/client/toggle-kiosk.generated";
+} from "@/scenes/common/Teams/TeamId/Apps/AppId/Actions/ActionId/Kiosk/graphql/client/get-kiosk-action.generated";
+import { useToggleKioskMutation } from "@/scenes/common/Teams/TeamId/Apps/AppId/Actions/ActionId/Kiosk/graphql/client/toggle-kiosk.generated";
 
 type ActionIdKioskPageProps = {
   params: Promise<Record<string, string>>;
