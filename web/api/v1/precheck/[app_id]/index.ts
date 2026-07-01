@@ -4,7 +4,10 @@ import { parseRequestBody } from "@/api/helpers/parse-request-body";
 import { RpRegistrationStatus } from "@/api/helpers/rp-utils";
 import { corsHandler } from "@/api/helpers/utils";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
-import { canVerifyForAction } from "@/api/helpers/verify";
+import {
+  canonicalizeNullifierHash,
+  canVerifyForAction,
+} from "@/api/helpers/verify";
 import { APPS_WITH_CUSTOM_EXTERNAL_NULLIFIER } from "@/lib/constants";
 import { generateExternalNullifier } from "@/lib/hashing";
 import { CanUserVerifyType, EngineType } from "@/lib/types";
@@ -75,7 +78,17 @@ export async function POST(
   }
 
   const action = parsedParams.action ?? "";
-  const nullifier_hash = parsedParams.nullifier_hash;
+  // Canonicalize the nullifier so the dedup lookup matches the canonical value
+  // /api/v2/verify stores, regardless of the caller's hex encoding. Falls back
+  // to the raw value if it is not a valid uint256 (it simply won't match a row).
+  let nullifier_hash = parsedParams.nullifier_hash;
+  if (nullifier_hash) {
+    try {
+      nullifier_hash = canonicalizeNullifierHash(nullifier_hash);
+    } catch {
+      // Leave the raw value as-is; an invalid nullifier matches no stored row.
+    }
+  }
 
   // Check if this app uses custom external_nullifier values
   const useCustomExternalNullifier =
