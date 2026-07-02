@@ -1,0 +1,117 @@
+import { LocalisationFormSchema } from "../FormSchema/types";
+import { AppMetadata, LocalisationData } from "../types/AppStoreFormTypes";
+import { parseDescription } from "../utils";
+
+export const transformMailtoToRawEmail = (email: string) => {
+  return email.replace("mailto:", "");
+};
+
+export const getParsedDescription = (
+  locale: string,
+  appMetadata: Pick<
+    AppMetadata,
+    | "description"
+    | "world_app_description"
+    | "meta_tag_image_url"
+    | "short_name"
+    | "name"
+    | "showcase_img_urls"
+  >,
+  localisationsData: LocalisationData,
+) => {
+  if (locale === "en") {
+    return parseDescription(appMetadata?.description ?? "");
+  } else {
+    return parseDescription(
+      localisationsData.find((obj) => obj.locale === locale)?.description ?? "",
+    );
+  }
+};
+
+export const getAppMetadataFormValuesFromEnLocalisation = (
+  appMetadata: Pick<
+    AppMetadata,
+    | "description"
+    | "world_app_description"
+    | "meta_tag_image_url"
+    | "short_name"
+    | "name"
+    | "showcase_img_urls"
+  >,
+  localisationsData: LocalisationData,
+): LocalisationFormSchema => {
+  const enLocalisationData = localisationsData.find((l) => l.locale === "en");
+  const enLocalisationDescriptionOverview = getParsedDescription(
+    "en",
+    appMetadata,
+    localisationsData,
+  ).description_overview;
+
+  const enLocalisation: LocalisationFormSchema = {
+    language: "en",
+    name: enLocalisationData?.name || appMetadata.name,
+    short_name: enLocalisationData?.short_name || appMetadata.short_name,
+    world_app_description:
+      enLocalisationData?.world_app_description ||
+      appMetadata.world_app_description,
+    description_overview: enLocalisationDescriptionOverview,
+    meta_tag_image_url:
+      enLocalisationData?.meta_tag_image_url || appMetadata.meta_tag_image_url,
+    showcase_img_urls:
+      (enLocalisationData?.showcase_img_urls ||
+        appMetadata.showcase_img_urls) ??
+      [],
+  };
+
+  return {
+    ...enLocalisation,
+    description_overview: enLocalisation.description_overview,
+  };
+};
+
+export const getLocalisationFormValues = (
+  appMetadata: Pick<
+    AppMetadata,
+    | "description"
+    | "world_app_description"
+    | "meta_tag_image_url"
+    | "short_name"
+    | "name"
+    | "showcase_img_urls"
+  >,
+  localisationsData: LocalisationData,
+) => {
+  const localisations: LocalisationFormSchema[] = [];
+  const enLocalisation = getAppMetadataFormValuesFromEnLocalisation(
+    appMetadata,
+    localisationsData,
+  );
+
+  // en is always present in the form
+  localisations.push(enLocalisation);
+
+  const hasLocalisations = localisationsData.length > 0;
+
+  if (!hasLocalisations) {
+    return localisations;
+  }
+
+  for (const localisation of localisationsData) {
+    const descriptionOverview = getParsedDescription(
+      localisation.locale,
+      appMetadata,
+      localisationsData,
+    ).description_overview;
+
+    localisations.push({
+      language: localisation.locale,
+      name: localisation.name || "",
+      short_name: localisation.short_name || "",
+      world_app_description: localisation.world_app_description || "",
+      description_overview: descriptionOverview || "",
+      meta_tag_image_url: localisation.meta_tag_image_url || "",
+      showcase_img_urls: localisation.showcase_img_urls || [],
+    });
+  }
+  return [...new Set([enLocalisation, ...localisations])];
+};
