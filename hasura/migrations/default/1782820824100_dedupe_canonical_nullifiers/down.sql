@@ -1,5 +1,2 @@
--- Irreversible data normalization: duplicate nullifier rows were merged (their
--- uses summed into a keeper) and surviving nullifier_hash values rewritten to
--- canonical form. The original duplicate rows and raw encodings are not
--- recoverable from the table; restore from a database backup if a rollback is
--- required.
+-- No-op.
+SELECT 1;
