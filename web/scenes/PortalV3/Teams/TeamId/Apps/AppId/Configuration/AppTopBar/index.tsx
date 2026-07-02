@@ -11,6 +11,7 @@ import { getCDNImageUrl, getDefaultLogoImgCDNUrl } from "@/lib/utils";
 import { useRemoveFromReview } from "@/scenes/Portal/Teams/TeamId/Apps/common/hooks/use-remove-from-review";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import clsx from "clsx";
+import { Tooltip } from "@/components/Tooltip";
 import { useAtom } from "jotai";
 import { ErrorPage } from "@/components/ErrorPage";
 import { SpinnerIcon } from "@/components/Icons/SpinnerIcon";
@@ -191,21 +192,22 @@ const AppTopBarSubmit = ({
   }, [shouldAutoSubmitForReview, submitForReview]);
 
   return (
-    <DecoratedButton
-      type="submit"
-      title="Submit for review to the mini app store"
-      className={clsx("h-12 px-6 py-3", {
-        hidden:
-          appMetadata.app_id?.includes("staging") &&
-          process.env.NEXT_PUBLIC_APP_ENV === "production",
-      })}
-      disabled={viewMode === "verified" || isSubmittingForReview}
-      onClick={submitForReview}
-    >
-      <Typography variant={TYPOGRAPHY.M3} className="whitespace-nowrap">
-        {isSubmittingForReview ? "Processing..." : "Submit for review"}
-      </Typography>
-    </DecoratedButton>
+    <Tooltip content="Submit for review to the mini app store" side="bottom">
+      <DecoratedButton
+        type="submit"
+        className={clsx("h-12 px-6 py-3", {
+          hidden:
+            appMetadata.app_id?.includes("staging") &&
+            process.env.NEXT_PUBLIC_APP_ENV === "production",
+        })}
+        disabled={viewMode === "verified" || isSubmittingForReview}
+        onClick={submitForReview}
+      >
+        <Typography variant={TYPOGRAPHY.M3} className="whitespace-nowrap">
+          {isSubmittingForReview ? "Processing..." : "Submit for review"}
+        </Typography>
+      </DecoratedButton>
+    </Tooltip>
   );
 };
 
@@ -665,20 +667,44 @@ export const AppTopBar = (props: AppTopBarProps) => {
                       basicInfoRef={basicInfoRef}
                     />
                   ) : (
+                    <Tooltip
+                      content="Submit for review to the mini app store"
+                      side="bottom"
+                    >
+                      <DecoratedButton
+                        type="button"
+                        className={clsx("h-12 px-6 py-3", {
+                          hidden:
+                            appMetadata.app_id?.includes("staging") &&
+                            process.env.NEXT_PUBLIC_APP_ENV === "production",
+                        })}
+                        disabled={!canSubmitForReview}
+                        onClick={() =>
+                          router.push(
+                            `${urls.configuration({ team_id: teamId, app_id: appId })}?submitForReview=true`,
+                          )
+                        }
+                      >
+                        <Typography
+                          variant={TYPOGRAPHY.M3}
+                          className="whitespace-nowrap"
+                        >
+                          Submit for review
+                        </Typography>
+                      </DecoratedButton>
+                    </Tooltip>
+                  )
+                ) : (
+                  // External app — no review path. Keep the button visible but
+                  // disabled so the intent is clear via its hover tooltip.
+                  <Tooltip
+                    content="External apps can't be submitted for review"
+                    side="bottom"
+                  >
                     <DecoratedButton
                       type="button"
-                      title="Submit for review to the mini app store"
-                      className={clsx("h-12 px-6 py-3", {
-                        hidden:
-                          appMetadata.app_id?.includes("staging") &&
-                          process.env.NEXT_PUBLIC_APP_ENV === "production",
-                      })}
-                      disabled={!canSubmitForReview}
-                      onClick={() =>
-                        router.push(
-                          `${urls.configuration({ team_id: teamId, app_id: appId })}?submitForReview=true`,
-                        )
-                      }
+                      disabled
+                      className="h-12 px-6 py-3"
                     >
                       <Typography
                         variant={TYPOGRAPHY.M3}
@@ -687,23 +713,7 @@ export const AppTopBar = (props: AppTopBarProps) => {
                         Submit for review
                       </Typography>
                     </DecoratedButton>
-                  )
-                ) : (
-                  // External app — no review path. Keep the button visible but
-                  // disabled so the intent is clear via its hover tooltip.
-                  <DecoratedButton
-                    type="button"
-                    disabled
-                    title="External apps can't be submitted for review"
-                    className="h-12 px-6 py-3"
-                  >
-                    <Typography
-                      variant={TYPOGRAPHY.M3}
-                      className="whitespace-nowrap"
-                    >
-                      Submit for review
-                    </Typography>
-                  </DecoratedButton>
+                  </Tooltip>
                 )
               ) : app?.app_metadata?.length === 0 ? (
                 <DecoratedButton
