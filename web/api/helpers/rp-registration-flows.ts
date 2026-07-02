@@ -737,10 +737,15 @@ export async function submitManagedRpDeactivation({
         });
       }
     }
-    // Downgrade a stale `registered` staging status now that staging reads
-    // inactive, so the cron (which also selects rows whose staging is still
-    // `registered`) stops re-selecting this row.
-    if (currentStagingStatus === RpRegistrationStatus.Registered) {
+    // Staging reads inactive here, so converge any non-terminal staging status
+    // (registered / pending / failed) to `deactivated`. The cron selects rows
+    // whose staging status is set but not yet `deactivated`, so leaving a stale
+    // `pending`/`failed` here would re-select this row forever. A null staging
+    // status means there is no staging mirror to reconcile, so leave it.
+    if (
+      currentStagingStatus !== null &&
+      currentStagingStatus !== RpRegistrationStatus.Deactivated
+    ) {
       try {
         await getUpdateStagingStatusSdk(client).UpdateStagingStatus({
           rp_id: rpIdString,

@@ -29,7 +29,12 @@ export const GetDeletedAppRpsDocument = gql`
         app: { deleted_at: { _is_null: false } }
         _or: [
           { status: { _neq: deactivated } }
-          { staging_status: { _eq: registered } }
+          {
+            _and: [
+              { staging_status: { _is_null: false } }
+              { staging_status: { _neq: deactivated } }
+            ]
+          }
         ]
       }
       order_by: { updated_at: asc }
