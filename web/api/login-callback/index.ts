@@ -198,6 +198,8 @@ export const loginCallback = async (req: NextRequest) => {
       );
     }
 
+    // Dont require email verification for World ID users, as they don't have an email address
+    // **for team invites**
     if (
       (isEmailUser(auth0User) || isPasswordUser(auth0User)) &&
       auth0User.email_verified &&
