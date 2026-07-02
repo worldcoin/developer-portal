@@ -24,6 +24,7 @@ import {
   RpRegistrationStatus,
 } from "@/api/helpers/rp-utils";
 import { getRpFromContract } from "@/api/helpers/temporal-rpc";
+import { USER_OP_MAX_VALIDITY_MS } from "@/api/helpers/user-operation";
 import { getSdk as getClaimRpSdk } from "@/api/hasura/register-rp/graphql/claim-rp-registration.generated";
 import { getSdk as getDeleteRpSdk } from "@/api/hasura/register-rp/graphql/delete-rp-registration.generated";
 import { getSdk as getUpdateRpSdk } from "@/api/hasura/register-rp/graphql/update-rp-registration.generated";
@@ -565,11 +566,18 @@ export type ManagedDeactivationResult =
       rpIdString?: string;
     };
 
-// A managed RP whose status is still `pending` is treated as in flight (skip)
-// until it is older than this, after which a fresh on-chain read decides
-// whether to resubmit. Must comfortably exceed normal on-chain settle time so
-// we never stack a second toggleActive on top of a still-pending one.
-const PENDING_IN_FLIGHT_GRACE_MS = 15 * 60 * 1000;
+// A `pending` managed RP has an in-flight UserOp (a register / rotate / toggle
+// that has not settled). We must not act on it until that op is *provably dead*
+// — i.e. its on-chain validity window (validUntil = submit + USER_OP_MAX_VALIDITY_MS)
+// has fully elapsed. Acting sooner risks the original op landing *after* we read
+// chain state, which would either (a) re-activate an RP we just marked
+// `deactivated` because it read as not-yet-initialized, or (b) cancel out a
+// fresh toggle we submitted (toggleActive *flips* rather than sets `active`).
+// The extra margin covers server/chain clock skew and the beat between op
+// submission and the `updated_at` write.
+const PENDING_SETTLE_MARGIN_MS = 5 * 60 * 1000;
+const PENDING_IN_FLIGHT_GRACE_MS =
+  USER_OP_MAX_VALIDITY_MS + PENDING_SETTLE_MARGIN_MS;
 
 /**
  * Deactivate a managed RP on-chain when its app is deleted. Shared by the
@@ -664,6 +672,10 @@ export async function submitManagedRpDeactivation({
 
   // Already inactive (or never reached the chain): no transaction needed.
   // Converge the DB so the reconciliation cron stops re-selecting this row.
+  // Reaching here with `!onChainInitialized` for a `pending` row is only
+  // possible once its register op has expired (guaranteed by the in-flight
+  // grace window above), so marking it terminal can't strand a registration
+  // that is still able to land and flip the RP back to active.
   if (!onChainInitialized || !onChainActive) {
     if (currentStatus !== RpRegistrationStatus.Deactivated) {
       try {

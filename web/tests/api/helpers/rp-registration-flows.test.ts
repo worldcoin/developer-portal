@@ -268,6 +268,67 @@ describe("submitManagedRpDeactivation", () => {
     expect(submitToggleRpActiveTransactionMock).not.toHaveBeenCalled();
   });
 
+  it("skips a pending RP still inside its on-chain validity window (op not provably dead yet)", async () => {
+    // Older than a naive settle window but younger than the 30-min UserOp
+    // validity: the in-flight op can still land, so we must not read chain
+    // state or act on it yet.
+    GetRpRegistration.mockResolvedValue({
+      rp_registration: [
+        makeRegistration({
+          status: "pending",
+          updated_at: new Date(Date.now() - 20 * 60 * 1000).toISOString(),
+        }),
+      ],
+    });
+
+    const res = await submitManagedRpDeactivation({ client, appId });
+
+    expect(res).toMatchObject({
+      ok: true,
+      outcome: "skipped",
+      reason: "in_flight",
+    });
+    // Crucially: a still-valid register op must not be read-then-marked
+    // `deactivated`, or a late-landing op would strand the RP active on-chain.
+    expect(getRpFromContractMock).not.toHaveBeenCalled();
+    expect(UpdateRpStatus).not.toHaveBeenCalled();
+    expect(submitToggleRpActiveTransactionMock).not.toHaveBeenCalled();
+  });
+
+  it("marks a long-stale pending registration that never initialized on-chain as deactivated", async () => {
+    // Well past the UserOp validity window and never landed on-chain: the
+    // register op is provably dead, so converging to `deactivated` cannot
+    // strand a registration that could still flip the RP active.
+    GetRpRegistration.mockResolvedValue({
+      rp_registration: [
+        makeRegistration({
+          status: "pending",
+          updated_at: "2020-01-01T00:00:00.000Z",
+        }),
+      ],
+    });
+    getRpFromContractMock.mockResolvedValue({
+      initialized: false,
+      active: false,
+      signer: "0x0",
+    });
+
+    const res = await submitManagedRpDeactivation({ client, appId });
+
+    expect(res).toMatchObject({
+      ok: true,
+      outcome: "skipped",
+      reason: "already_inactive",
+    });
+    expect(UpdateRpStatus).toHaveBeenCalledWith({
+      rp_id: rpId,
+      status: "deactivated",
+    });
+    // No transaction: there is nothing live on-chain to toggle.
+    expect(ClaimToggleSlot).not.toHaveBeenCalled();
+    expect(submitToggleRpActiveTransactionMock).not.toHaveBeenCalled();
+  });
+
   it("resubmits a stale pending RP whose tx never settled (still active on-chain)", async () => {
     GetRpRegistration.mockResolvedValue({
       rp_registration: [

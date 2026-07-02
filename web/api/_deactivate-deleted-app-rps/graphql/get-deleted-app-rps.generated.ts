@@ -24,6 +24,7 @@ export const GetDeletedAppRpsDocument = gql`
     rp_registration(
       where: {
         mode: { _eq: managed }
+        manager_kms_key_id: { _is_null: false }
         status: { _neq: deactivated }
         updated_at: { _lt: $before }
         app: { deleted_at: { _is_null: false } }
