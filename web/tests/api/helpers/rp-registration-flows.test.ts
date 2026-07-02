@@ -42,6 +42,14 @@ jest.mock(
   }),
 );
 
+const UpdateStagingStatus = jest.fn();
+jest.mock(
+  "@/api/v4/rp-status/[rp_id]/graphql/update-staging-status.generated",
+  () => ({
+    getSdk: () => ({ UpdateStagingStatus }),
+  }),
+);
+
 // Rotation slot mutation — only needed to confirm it is NOT reached by the
 // app-state guard.
 const ClaimRotationSlot = jest.fn();
@@ -100,6 +108,7 @@ const makeRegistration = (overrides: Record<string, unknown> = {}) => ({
   signer_address: "0x1111111111111111111111111111111111111111",
   manager_kms_key_id: "kms-key-123",
   operation_hash: null,
+  staging_status: null,
   // Stale by default; pending-specific tests override to a fresh timestamp.
   updated_at: "2020-01-01T00:00:00.000Z",
   app: {
@@ -140,6 +149,9 @@ beforeEach(() => {
     update_rp_registration_by_pk: { rp_id: rpId },
   });
   UpdateRpStatus.mockResolvedValue({
+    update_rp_registration_by_pk: { rp_id: rpId },
+  });
+  UpdateStagingStatus.mockResolvedValue({
     update_rp_registration_by_pk: { rp_id: rpId },
   });
 });
@@ -537,6 +549,104 @@ describe("submitManagedRpDeactivation", () => {
         operation_hash: "0xophash",
         staging_operation_hash: "0xophash",
       });
+    });
+
+    it("reconciles staging even when the primary is already marked deactivated", async () => {
+      // status = deactivated (primary torn down) but staging is still active.
+      // The cron reaches this row via the staging_status selector; the helper
+      // must still tear staging down rather than treating the row as finished.
+      GetRpRegistration.mockResolvedValue({
+        rp_registration: [
+          makeRegistration({
+            status: "deactivated",
+            staging_status: "registered",
+          }),
+        ],
+      });
+      getRpFromContractMock.mockImplementation(
+        (_rpId: unknown, address: string) =>
+          Promise.resolve(
+            address === stagingConfig.contractAddress
+              ? { initialized: true, active: true, signer: "0x0" }
+              : { initialized: true, active: false, signer: "0x0" },
+          ),
+      );
+
+      const res = await submitManagedRpDeactivation({ client, appId });
+
+      expect(res).toMatchObject({ ok: true, outcome: "submitted" });
+      expect(ClaimToggleSlot).toHaveBeenCalledWith({
+        rp_id: rpId,
+        current_status: "deactivated",
+      });
+      expect(submitToggleRpActiveTransactionMock).toHaveBeenCalledTimes(1);
+      expect(submitToggleRpActiveTransactionMock).toHaveBeenCalledWith(
+        stagingConfig,
+        expect.anything(),
+      );
+    });
+
+    it("downgrades a stale registered staging_status once staging reads inactive", async () => {
+      // Both contracts inactive, but staging_status is a stale `registered`.
+      // Must be converged to `deactivated` so the cron stops re-selecting it.
+      GetRpRegistration.mockResolvedValue({
+        rp_registration: [
+          makeRegistration({
+            status: "deactivated",
+            staging_status: "registered",
+          }),
+        ],
+      });
+      getRpFromContractMock.mockResolvedValue({
+        initialized: true,
+        active: false,
+        signer: "0x0",
+      });
+
+      const res = await submitManagedRpDeactivation({ client, appId });
+
+      expect(res).toMatchObject({
+        ok: true,
+        outcome: "skipped",
+        reason: "already_inactive",
+      });
+      expect(UpdateStagingStatus).toHaveBeenCalledWith({
+        rp_id: rpId,
+        staging_status: "deactivated",
+      });
+      // Primary was already deactivated, so its status is left untouched.
+      expect(UpdateRpStatus).not.toHaveBeenCalled();
+      expect(submitToggleRpActiveTransactionMock).not.toHaveBeenCalled();
+    });
+
+    it("does not rewrite staging_status when it is already deactivated", async () => {
+      GetRpRegistration.mockResolvedValue({
+        rp_registration: [
+          makeRegistration({
+            status: "registered",
+            staging_status: "deactivated",
+          }),
+        ],
+      });
+      getRpFromContractMock.mockResolvedValue({
+        initialized: true,
+        active: false,
+        signer: "0x0",
+      });
+
+      const res = await submitManagedRpDeactivation({ client, appId });
+
+      expect(res).toMatchObject({
+        ok: true,
+        outcome: "skipped",
+        reason: "already_inactive",
+      });
+      // Primary converges to deactivated; staging is already there.
+      expect(UpdateRpStatus).toHaveBeenCalledWith({
+        rp_id: rpId,
+        status: "deactivated",
+      });
+      expect(UpdateStagingStatus).not.toHaveBeenCalled();
     });
   });
 });

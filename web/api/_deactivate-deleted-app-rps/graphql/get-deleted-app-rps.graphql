@@ -3,9 +3,12 @@ query GetDeletedAppRps($before: timestamptz!, $limit: Int!) {
     where: {
       mode: { _eq: managed }
       manager_kms_key_id: { _is_null: false }
-      status: { _neq: deactivated }
       updated_at: { _lt: $before }
       app: { deleted_at: { _is_null: false } }
+      _or: [
+        { status: { _neq: deactivated } }
+        { staging_status: { _eq: registered } }
+      ]
     }
     order_by: { updated_at: asc }
     limit: $limit

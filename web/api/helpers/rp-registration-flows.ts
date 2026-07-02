@@ -38,6 +38,7 @@ import { getSdk as getResetStalePendingSdk } from "@/api/hasura/toggle-rp-active
 import { getSdk as getRevertToggleSdk } from "@/api/hasura/toggle-rp-active/graphql/revert-toggle-status.generated";
 import { getSdk as getUpdateToggleSdk } from "@/api/hasura/toggle-rp-active/graphql/update-toggle-result.generated";
 import { getSdk as getUpdateRpStatusSdk } from "@/api/v4/rp-status/[rp_id]/graphql/update-rp-status.generated";
+import { getSdk as getUpdateStagingStatusSdk } from "@/api/v4/rp-status/[rp_id]/graphql/update-staging-status.generated";
 import { logger } from "@/lib/logger";
 import { GraphQLClient } from "graphql-request";
 
@@ -630,6 +631,8 @@ export async function submitManagedRpDeactivation({
   }
   const managerKmsKeyId = registration.manager_kms_key_id;
   const currentStatus = registration.status as RpRegistrationStatus;
+  const currentStagingStatus =
+    registration.staging_status as RpRegistrationStatus | null;
   const rpId = parseRpId(rpIdString);
 
   // A `pending` row means a toggle/rotate is already in flight. Don't stack a
@@ -732,6 +735,26 @@ export async function submitManagedRpDeactivation({
           app_id: appId,
           rpIdString,
         });
+      }
+    }
+    // Downgrade a stale `registered` staging status now that staging reads
+    // inactive, so the cron (which also selects rows whose staging is still
+    // `registered`) stops re-selecting this row.
+    if (currentStagingStatus === RpRegistrationStatus.Registered) {
+      try {
+        await getUpdateStagingStatusSdk(client).UpdateStagingStatus({
+          rp_id: rpIdString,
+          staging_status: RpRegistrationStatus.Deactivated,
+        });
+      } catch (error) {
+        logger.warn(
+          "Failed to mark already-inactive staging RP as deactivated",
+          {
+            error,
+            app_id: appId,
+            rpIdString,
+          },
+        );
       }
     }
     return {
