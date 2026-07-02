@@ -6,9 +6,11 @@ import { Input } from "@/components/Input";
 import { Section } from "@/components/Section";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import { isWorldUser } from "@/lib/is-world-user";
 import { Auth0SessionUser } from "@/lib/types";
 import { UserInfo } from "@/scenes/Portal/Profile/common/UserInfo";
 import { ColorSelector } from "@/scenes/Portal/Profile/page/ColorSelector";
+import { WorldIdAccountMigration } from "@/scenes/Portal/Profile/page/WorldIdAccountMigration";
 import { useUpdateUserMutation } from "@/scenes/Portal/Profile/page/graphql/client/update-user.generated";
 import { Color, colors } from "@/scenes/common/Profile/types";
 import { useMeQuery } from "@/scenes/common/me-query/client";
@@ -177,6 +179,18 @@ export const ProfilePage = () => {
                 </Typography>
               </div>
             </label>
+
+            {/* Feature-flagged (ships dark). A Sign in with World ID session
+                IS a legacy account — the migration only makes sense from an
+                email account. Hide only on a POSITIVE world-id match:
+                useUser() resolves asynchronously, so auth0User is undefined
+                on early renders and the card must not fail closed while it
+                loads (the backend rejects world-id sessions authoritatively
+                anyway). */}
+            {process.env.NEXT_PUBLIC_ENABLE_WORLD_ID_RESTORATION === "true" &&
+              !(auth0User && isWorldUser(auth0User)) && (
+                <WorldIdAccountMigration />
+              )}
 
             <DecoratedButton
               type="submit"
