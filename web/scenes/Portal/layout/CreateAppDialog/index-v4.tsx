@@ -1,7 +1,6 @@
 "use client";
 
 import { Button } from "@/components/Button";
-import { CategorySelector } from "@/components/Category";
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { Dialog, DialogProps } from "@/components/Dialog";
 import { DialogPanel } from "@/components/DialogPanel";
@@ -12,12 +11,13 @@ import { SizingWrapper } from "@/components/SizingWrapper";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { getGraphQLErrorCode } from "@/lib/errors";
 import { useRefetchQueries } from "@/lib/use-refetch-queries";
+import { FetchAppsDocument } from "@/scenes/common/layout/AppSelector/graphql/client/fetch-apps.generated";
 import { yupResolver } from "@hookform/resolvers/yup";
 import clsx from "clsx";
 import { useParams, useRouter } from "next/navigation";
 import posthog from "posthog-js";
 import { useCallback, useMemo, useState } from "react";
-import { Controller, useForm, useWatch } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import {
   ConfigureSignerKeyContent,
@@ -27,8 +27,6 @@ import { EnableWorldId40Content } from "../../Teams/TeamId/Apps/AppId/EnableWorl
 import { SelfManagedTransactionInfoContent } from "../../Teams/TeamId/Apps/AppId/EnableWorldId40/SelfManagedTransactionInfo/SelfManagedTransactionInfoContent";
 import { GenerateNewKeyContent } from "../../Teams/TeamId/Apps/AppId/GenerateNewKey/GenerateNewKeyContent";
 import { UseExistingKeyContent } from "../../Teams/TeamId/Apps/AppId/UseExistingKey/UseExistingKeyContent";
-import { FetchAppsDocument } from "@/scenes/common/layout/AppSelector/graphql/client/fetch-apps.generated";
-import { MiniappToggleSection } from "./MiniappToggleSection";
 import { useRegisterRpMutation } from "./client/register-rp.generated";
 import { createAppSchemaV4, CreateAppSchemaV4 } from "./form-schema-v4";
 import { validateAndInsertAppServerSideV4 } from "./server/v4/submit";
@@ -99,17 +97,11 @@ export const CreateAppDialogV4 = ({
     register,
     formState: { isValid, errors, isSubmitting },
     handleSubmit,
-    control,
     reset,
   } = useForm<CreateAppSchemaV4>({
     mode: "onChange",
     resolver: yupResolver(createAppSchemaV4),
     defaultValues,
-  });
-
-  const isMiniapp = useWatch({
-    control: control,
-    name: "is_miniapp",
   });
 
   const submit = useCallback(
@@ -336,41 +328,6 @@ export const CreateAppDialogV4 = ({
                     errors={errors.name}
                     data-testid="input-app-name"
                   />
-                  <Input
-                    register={register("integration_url")}
-                    label="App URL"
-                    placeholder="URL where users can access your app (ex. https://example.com)"
-                    errors={errors.integration_url}
-                  />
-                  <Controller
-                    name="is_miniapp"
-                    control={control}
-                    render={({ field }) => (
-                      <MiniappToggleSection
-                        checked={field.value}
-                        onChange={field.onChange}
-                      />
-                    )}
-                  />
-                  {isMiniapp && (
-                    <Controller
-                      name="category"
-                      control={control}
-                      render={({ field }) => {
-                        return (
-                          <CategorySelector
-                            value={field.value}
-                            required
-                            disabled={false}
-                            onChange={field.onChange}
-                            errors={errors.category}
-                            label="Category"
-                            data-testid="category-selector"
-                          />
-                        );
-                      }}
-                    />
-                  )}
                 </div>
 
                 <DecoratedButton
