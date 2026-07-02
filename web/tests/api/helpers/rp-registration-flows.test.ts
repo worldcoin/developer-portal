@@ -71,12 +71,13 @@ jest.mock("@/api/helpers/kms", () => ({
 jest.mock("@/api/helpers/kms-eth", () => ({ createManagerKey: jest.fn() }));
 
 const mockGetRpRegistryConfig = jest.fn();
+const mockGetStagingRpRegistryConfig = jest.fn();
 jest.mock("@/api/helpers/rp-utils", () => {
   const actual = jest.requireActual("@/api/helpers/rp-utils");
   return {
     ...actual,
     getRpRegistryConfig: () => mockGetRpRegistryConfig(),
-    getStagingRpRegistryConfig: () => null,
+    getStagingRpRegistryConfig: () => mockGetStagingRpRegistryConfig(),
     parseRpId: () => 123n,
   };
 });
@@ -112,10 +113,14 @@ const makeRegistration = (overrides: Record<string, unknown> = {}) => ({
 
 beforeEach(() => {
   jest.clearAllMocks();
+  // Non-production by default so the staging mirror is out of scope; the
+  // staging suite opts in explicitly.
+  process.env.NEXT_PUBLIC_APP_ENV = "test";
   mockGetRpRegistryConfig.mockReturnValue({
     contractAddress: "0xcontract",
     kmsRegion: "us-east-1",
   });
+  mockGetStagingRpRegistryConfig.mockReturnValue(null);
   GetRpRegistration.mockResolvedValue({
     rp_registration: [makeRegistration()],
   });
@@ -432,6 +437,107 @@ describe("submitManagedRpDeactivation", () => {
       operationHash: "0xophash",
     });
     expect(RevertToggleStatus).not.toHaveBeenCalled();
+  });
+
+  // Staging mirror reconciliation (production only). A managed RP is mirrored on
+  // a staging contract; the row must not be finalized `deactivated` until BOTH
+  // contracts are inactive, or a live staging signer would be stranded.
+  describe("staging mirror", () => {
+    const stagingConfig = {
+      contractAddress: "0xstaging",
+      kmsRegion: "us-east-1",
+    };
+
+    beforeEach(() => {
+      process.env.NEXT_PUBLIC_APP_ENV = "production";
+      mockGetStagingRpRegistryConfig.mockReturnValue(stagingConfig);
+    });
+
+    it("deactivates staging when the primary is already inactive but staging is still active", async () => {
+      getRpFromContractMock.mockImplementation(
+        (_rpId: unknown, address: string) =>
+          Promise.resolve(
+            address === stagingConfig.contractAddress
+              ? { initialized: true, active: true, signer: "0x0" }
+              : { initialized: true, active: false, signer: "0x0" },
+          ),
+      );
+
+      const res = await submitManagedRpDeactivation({ client, appId });
+
+      expect(res).toMatchObject({ ok: true, outcome: "submitted" });
+      // Must NOT finalize on the primary read alone.
+      expect(UpdateRpStatus).not.toHaveBeenCalled();
+      // Claims the slot (so the grace protects the toggle) and toggles ONLY the
+      // staging contract.
+      expect(ClaimToggleSlot).toHaveBeenCalledTimes(1);
+      expect(submitToggleRpActiveTransactionMock).toHaveBeenCalledTimes(1);
+      expect(submitToggleRpActiveTransactionMock).toHaveBeenCalledWith(
+        stagingConfig,
+        expect.anything(),
+      );
+      // No primary op hash to persist for a staging-only toggle.
+      expect(UpdateToggleResult).not.toHaveBeenCalled();
+    });
+
+    it("finalizes deactivated only once both primary and staging are inactive", async () => {
+      getRpFromContractMock.mockResolvedValue({
+        initialized: true,
+        active: false,
+        signer: "0x0",
+      });
+
+      const res = await submitManagedRpDeactivation({ client, appId });
+
+      expect(res).toMatchObject({
+        ok: true,
+        outcome: "skipped",
+        reason: "already_inactive",
+      });
+      expect(UpdateRpStatus).toHaveBeenCalledWith({
+        rp_id: rpId,
+        status: "deactivated",
+      });
+      expect(submitToggleRpActiveTransactionMock).not.toHaveBeenCalled();
+    });
+
+    it("does not finalize when the primary is inactive but the staging read fails", async () => {
+      getRpFromContractMock.mockImplementation(
+        (_rpId: unknown, address: string) =>
+          address === stagingConfig.contractAddress
+            ? Promise.reject(new Error("staging rpc down"))
+            : Promise.resolve({
+                initialized: true,
+                active: false,
+                signer: "0x0",
+              }),
+      );
+
+      const res = await submitManagedRpDeactivation({ client, appId });
+
+      expect(res).toMatchObject({ ok: false, code: "rpc_error" });
+      // Staging state unknown → must not terminally mark the row deactivated.
+      expect(UpdateRpStatus).not.toHaveBeenCalled();
+      expect(ClaimToggleSlot).not.toHaveBeenCalled();
+    });
+
+    it("toggles both contracts when both are active", async () => {
+      getRpFromContractMock.mockResolvedValue({
+        initialized: true,
+        active: true,
+        signer: "0x0",
+      });
+
+      const res = await submitManagedRpDeactivation({ client, appId });
+
+      expect(res).toMatchObject({ ok: true, outcome: "submitted" });
+      expect(submitToggleRpActiveTransactionMock).toHaveBeenCalledTimes(2);
+      expect(UpdateToggleResult).toHaveBeenCalledWith({
+        rp_id: rpId,
+        operation_hash: "0xophash",
+        staging_operation_hash: "0xophash",
+      });
+    });
   });
 });
 // #endregion
