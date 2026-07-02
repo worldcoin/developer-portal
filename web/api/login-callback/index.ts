@@ -198,7 +198,12 @@ export const loginCallback = async (req: NextRequest) => {
       );
     }
 
-    if (invite.email !== auth0User.email) {
+    if (
+      (isEmailUser(auth0User) || isPasswordUser(auth0User)) &&
+      auth0User.email_verified &&
+      auth0User.email &&
+      invite.email.toLowerCase().trim() !== auth0User.email.toLowerCase().trim()
+    ) {
       logger.error("Invite email does not match logged in email", {
         team_id: invite.team_id,
       });

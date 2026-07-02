@@ -353,4 +353,58 @@ describe("test /login-callback", () => {
     expect(getSession).toHaveReturned();
     expect(response.headers.get("location")?.endsWith("/apps")).toBeTruthy();
   });
+
+  it("Should add membership for the invited existing World ID user", async () => {
+    const inviteEmail = "invited-world-user@example.com";
+    const team_id = "team_2222214f17eda7e0ededba7ded6b4222";
+
+    const { rows: insertedInvite } = (await integrationDBExecuteQuery(
+      `INSERT INTO public.invite (team_id, expires_at, email) VALUES ('${team_id}', '2030-01-01 00:00:00+00', '${inviteEmail}') RETURNING  id, team_id, email`,
+    )) as { rows: { id: string; team_id: string; email: string }[] };
+
+    const url = new URL("/login-callback", "http://localhost:3000");
+    url.searchParams.append("invite_id", insertedInvite[0].id);
+
+    const mockReq = {
+      nextUrl: url,
+    } as unknown as NextRequest;
+
+    const mockSession = {
+      user: validNullifierSessionUser,
+    };
+
+    (getSession as jest.Mock).mockResolvedValue(mockSession);
+    const response = await loginCallback(mockReq);
+
+    const userQuery = gql`
+      query FetchUserByNullifier($world_id_nullifier: String!) {
+        user(where: { world_id_nullifier: { _eq: $world_id_nullifier } }) {
+          memberships {
+            team {
+              id
+            }
+          }
+        }
+      }
+    `;
+
+    const client = await getAPIServiceGraphqlClient();
+
+    const fetchUserRes = await client.request<{
+      user: Array<{
+        memberships: Array<{
+          team: {
+            id: string;
+          };
+        }>;
+      }>;
+    }>(userQuery, { world_id_nullifier: "0x123" });
+
+    expect(
+      fetchUserRes.user[0].memberships.some((m) => m.team.id === team_id),
+    ).toBeTruthy();
+
+    expect(getSession).toHaveReturned();
+    expect(response.headers.get("location")).not.toContain("/unauthorized");
+  });
 });
