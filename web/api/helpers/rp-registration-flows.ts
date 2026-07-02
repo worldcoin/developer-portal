@@ -685,14 +685,13 @@ export async function submitManagedRpDeactivation({
   // happy path deactivates both. Read staging up front so the terminal decision
   // considers *both* contracts: marking the row `deactivated` on the primary
   // read alone would let the cron (which skips `deactivated` rows) strand a
-  // still-active staging signer for a deleted app indefinitely. A failed read
-  // means we can't prove staging is inactive, so we must not finalize on it.
+  // still-active staging signer for a deleted app indefinitely. Anything that
+  // leaves staging state unproven (a failed read, or — in production — a missing
+  // staging config while the row still has staging state) must not finalize.
   let stagingActive = false;
   let stagingReadOk = true;
-  const stagingConfig =
-    process.env.NEXT_PUBLIC_APP_ENV === "production"
-      ? getStagingRpRegistryConfig()
-      : null;
+  const isProduction = process.env.NEXT_PUBLIC_APP_ENV === "production";
+  const stagingConfig = isProduction ? getStagingRpRegistryConfig() : null;
   if (stagingConfig) {
     try {
       const stagingRp = await getRpFromContract(
@@ -709,6 +708,21 @@ export async function submitManagedRpDeactivation({
         contractAddress: stagingConfig.contractAddress,
       });
     }
+  } else if (
+    isProduction &&
+    currentStagingStatus !== null &&
+    currentStagingStatus !== RpRegistrationStatus.Deactivated
+  ) {
+    // Production, but the staging registry config is missing (a
+    // misconfiguration) while the row still has staging state to reconcile. We
+    // cannot prove the staging RP is inactive, so treat it like an unreadable
+    // contract and refuse to finalize — otherwise we'd mark staging
+    // `deactivated` and strand a possibly-active signer until manual repair.
+    stagingReadOk = false;
+    logger.error(
+      "Staging registry config missing while staging state needs reconciliation",
+      { app_id: appId, rpIdString, currentStagingStatus },
+    );
   }
 
   // Nothing active on either contract: no transaction needed. Converge the DB

@@ -708,6 +708,60 @@ describe("submitManagedRpDeactivation", () => {
       });
       expect(UpdateStagingStatus).not.toHaveBeenCalled();
     });
+
+    it("does not finalize when the staging config is missing but staging state is unreconciled", async () => {
+      // Production misconfiguration: staging registry env vars missing while the
+      // row still shows staging as active. We cannot prove staging is inactive,
+      // so we must not mark it deactivated (which would strand a live signer).
+      mockGetStagingRpRegistryConfig.mockReturnValue(null);
+      GetRpRegistration.mockResolvedValue({
+        rp_registration: [
+          makeRegistration({
+            status: "deactivated",
+            staging_status: "registered",
+          }),
+        ],
+      });
+      getRpFromContractMock.mockResolvedValue({
+        initialized: true,
+        active: false,
+        signer: "0x0",
+      });
+
+      const res = await submitManagedRpDeactivation({ client, appId });
+
+      expect(res).toMatchObject({ ok: false, code: "rpc_error" });
+      expect(UpdateStagingStatus).not.toHaveBeenCalled();
+      expect(UpdateRpStatus).not.toHaveBeenCalled();
+      expect(submitToggleRpActiveTransactionMock).not.toHaveBeenCalled();
+    });
+
+    it("finalizes when the staging config is missing and there is no staging state", async () => {
+      mockGetStagingRpRegistryConfig.mockReturnValue(null);
+      GetRpRegistration.mockResolvedValue({
+        rp_registration: [
+          makeRegistration({ status: "registered", staging_status: null }),
+        ],
+      });
+      getRpFromContractMock.mockResolvedValue({
+        initialized: true,
+        active: false,
+        signer: "0x0",
+      });
+
+      const res = await submitManagedRpDeactivation({ client, appId });
+
+      expect(res).toMatchObject({
+        ok: true,
+        outcome: "skipped",
+        reason: "already_inactive",
+      });
+      expect(UpdateRpStatus).toHaveBeenCalledWith({
+        rp_id: rpId,
+        status: "deactivated",
+      });
+      expect(UpdateStagingStatus).not.toHaveBeenCalled();
+    });
   });
 });
 // #endregion
