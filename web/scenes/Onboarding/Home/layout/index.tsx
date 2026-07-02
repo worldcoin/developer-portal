@@ -4,9 +4,9 @@ import { WorldIcon } from "@/components/Icons/WorldIcon";
 import { urls } from "@/lib/urls";
 import Link from "next/link";
 import { ReactNode } from "react";
-import { LoginMobileNav } from "../components/LoginMobileNav";
+import { HomeMobileNav } from "../components/HomeMobileNav";
 
-const LOGIN_HEADER_LINKS = [
+const HOME_HEADER_LINKS = [
   {
     external: true,
     href: "https://docs.world.org",
@@ -24,28 +24,28 @@ const LOGIN_HEADER_LINKS = [
   },
 ] as const;
 
-const LOGIN_GITHUB_LINK = {
+const HOME_GITHUB_LINK = {
   external: true,
   href: "https://github.com/worldcoin/developer-portal",
   label: "GitHub",
 } as const;
 
-const LOGIN_SIGN_IN_LINK = {
+const HOME_SIGN_IN_LINK = {
   external: false,
   href: urls.api.authLogin(),
   label: "Sign in",
 } as const;
 
-const LOGIN_MOBILE_NAV_LINKS = [
-  ...LOGIN_HEADER_LINKS,
-  LOGIN_GITHUB_LINK,
-  LOGIN_SIGN_IN_LINK,
+const HOME_MOBILE_NAV_LINKS = [
+  ...HOME_HEADER_LINKS,
+  HOME_GITHUB_LINK,
+  HOME_SIGN_IN_LINK,
 ] as const;
 
 const desktopNavLinkClassName =
   "hidden font-world text-[16px] leading-none tracking-[0.08em] text-black no-underline hover:underline md:inline-flex";
 
-export const LoginLayout = (props: { children: ReactNode }) => {
+export const HomeLayout = (props: { children: ReactNode }) => {
   return (
     <div className="grid min-h-[100dvh] w-full grid-rows-auto/1fr">
       <header className="sticky top-0 z-20 border-b border-grey-100/70 bg-white/70 px-2 backdrop-blur-md">
@@ -65,7 +65,7 @@ export const LoginLayout = (props: { children: ReactNode }) => {
               />
               <span aria-hidden>world Developers</span>
             </Link>
-            {LOGIN_HEADER_LINKS.map((link) => (
+            {HOME_HEADER_LINKS.map((link) => (
               <a
                 className={desktopNavLinkClassName}
                 href={link.href}
@@ -78,13 +78,13 @@ export const LoginLayout = (props: { children: ReactNode }) => {
             ))}
           </div>
 
-          <LoginMobileNav links={LOGIN_MOBILE_NAV_LINKS} />
+          <HomeMobileNav links={HOME_MOBILE_NAV_LINKS} />
 
           <div className="ml-5 hidden items-center gap-3 md:flex">
             <a
-              aria-label={LOGIN_GITHUB_LINK.label}
+              aria-label={HOME_GITHUB_LINK.label}
               className="inline-flex size-12 shrink-0 items-center justify-center rounded-full border border-black bg-transparent text-black transition-colors hover:bg-grey-50"
-              href={LOGIN_GITHUB_LINK.href}
+              href={HOME_GITHUB_LINK.href}
               rel="noopener noreferrer"
               target="_blank"
             >
@@ -92,7 +92,7 @@ export const LoginLayout = (props: { children: ReactNode }) => {
             </a>
 
             <DecoratedButton
-              href={LOGIN_SIGN_IN_LINK.href}
+              href={HOME_SIGN_IN_LINK.href}
               variant="secondary"
               className="group h-12 rounded-full border-black bg-transparent px-5 py-0 text-base text-black hover:border-black hover:bg-white hover:text-black"
               testId="log-in"

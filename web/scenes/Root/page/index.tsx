@@ -3,8 +3,8 @@ import { auth0 } from "@/lib/auth0";
 import { logger } from "@/lib/logger";
 import { Auth0SessionUser } from "@/lib/types";
 import { urls } from "@/lib/urls";
-import { LoginLayout } from "@/scenes/Onboarding/Login/layout";
-import { LoginPage } from "@/scenes/Onboarding/Login/page";
+import { HomeLayout } from "@/scenes/Onboarding/Home/layout";
+import { HomePage } from "@/scenes/Onboarding/Home/page";
 import { redirect } from "next/navigation";
 
 import {
@@ -18,9 +18,9 @@ export const RootPage = async () => {
 
   if (!auth0User) {
     return (
-      <LoginLayout>
-        <LoginPage />
-      </LoginLayout>
+      <HomeLayout>
+        <HomePage />
+      </HomeLayout>
     );
   }
 
