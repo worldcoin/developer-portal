@@ -3,8 +3,6 @@
 import { ErrorPage } from "@/components/ErrorPage";
 import { useAtom } from "jotai";
 import { useMemo, use } from "react";
-import Skeleton from "react-loading-skeleton";
-import { AppTopBar } from "../../Configuration/AppTopBar";
 import { FormSkeleton } from "../../Configuration/AppTopBar/FormSkeleton";
 import { useFetchAppMetadataQuery } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/graphql/client/fetch-app-metadata.generated";
 import { viewModeAtom } from "../../Configuration/layout/ImagesProvider";
@@ -43,19 +41,9 @@ export const AppPermissionsPage = (props: AppPermissionsPageProps) => {
 
   return (
     <SaveStatusProvider>
-      <div className="py-10">
-        {loading ? (
-          <Skeleton count={2} height={50} />
-        ) : (
-          <AppTopBar appId={appId} teamId={teamId} app={app!} />
-        )}
-      </div>
-
       <div className="md:hidden">
         <MiniAppSubTabs />
       </div>
-
-      <div className="border-t border-grey-100" />
 
       <div className="pb-24 pt-8">
         <div className="grid grid-cols-1">

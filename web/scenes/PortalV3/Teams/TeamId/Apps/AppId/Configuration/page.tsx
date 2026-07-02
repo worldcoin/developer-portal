@@ -9,6 +9,7 @@ import Skeleton from "react-loading-skeleton";
 import { useParams } from "next/navigation";
 import { MiniAppConfiguration } from "./MiniAppConfiguration";
 import { AppTopBar } from "./AppTopBar";
+import { VerificationWizard } from "./SubmitForVerification";
 import { FormSkeleton } from "./AppTopBar/FormSkeleton";
 import { AppStoreForm } from "./AppStore/app-store";
 import { AppStoreFormProvider } from "./AppStore/app-store-form-provider";
@@ -24,6 +25,10 @@ import { RejectionBanner } from "./RejectionBanner";
 import { ResolveModal } from "./ResolveModal";
 import { SaveStatusProvider } from "./SaveStatus";
 import { useRemoveFromReview } from "@/scenes/Portal/Teams/TeamId/Apps/common/hooks/use-remove-from-review";
+
+// Submit-for-Verification wizard (portalV3). Flip to `false` to restore the
+// classic stacked configuration page below — the original JSX is kept intact.
+const USE_VERIFICATION_WIZARD = true;
 
 type AppProfilePageProps = {
   params: Record<string, string> | null | undefined;
@@ -126,50 +131,67 @@ export const AppProfilePage = ({ params }: AppProfilePageProps) => {
           </SizingWrapper>
         )}
 
-        <SizingWrapper
-          variant="nav"
-          gridClassName={clsx("order-1 pb-10", isRejected ? "pt-6" : "pt-10")}
-        >
-          <AppTopBar
+        {USE_VERIFICATION_WIZARD ? (
+          <VerificationWizard
             appId={appId}
             teamId={teamId}
             app={app}
-            onResolve={() => setShowResolveModal(true)}
-            hasFormContext
-            basicInfoRef={basicInfoRef}
-          />
-        </SizingWrapper>
-
-        {/* Subtle divider */}
-        <SizingWrapper variant="nav" gridClassName="order-2">
-          <div className="border-t border-grey-100" />
-        </SizingWrapper>
-
-        <SizingWrapper variant="nav" gridClassName="order-3 pt-8 pb-6">
-          <BasicInformation
-            ref={basicInfoRef}
-            appId={appId}
-            teamId={teamId}
-            app={app}
+            appMetadata={appMetadata as AppMetadata}
             teamName={teamName ?? ""}
+            basicInfoRef={basicInfoRef}
+            onResolve={() => setShowResolveModal(true)}
           />
-        </SizingWrapper>
+        ) : (
+          <>
+            <SizingWrapper
+              variant="nav"
+              gridClassName={clsx(
+                "order-1 pb-10",
+                isRejected ? "pt-6" : "pt-10",
+              )}
+            >
+              <AppTopBar
+                appId={appId}
+                teamId={teamId}
+                app={app}
+                onResolve={() => setShowResolveModal(true)}
+                hasFormContext
+                basicInfoRef={basicInfoRef}
+              />
+            </SizingWrapper>
 
-        <SizingWrapper variant="nav" gridClassName="order-4 pt-6 pb-0">
-          <MiniAppConfiguration
-            appId={appId}
-            teamId={teamId}
-            appMetadata={appMetadata as AppMetadata}
-          />
-        </SizingWrapper>
+            {/* Subtle divider */}
+            <SizingWrapper variant="nav" gridClassName="order-2">
+              <div className="border-t border-grey-100" />
+            </SizingWrapper>
 
-        <SizingWrapper variant="nav" gridClassName="order-5 pt-10 pb-24">
-          <AppStoreForm
-            appId={appId}
-            teamId={teamId}
-            appMetadata={appMetadata as AppMetadata}
-          />
-        </SizingWrapper>
+            <SizingWrapper variant="nav" gridClassName="order-3 pt-8 pb-6">
+              <BasicInformation
+                ref={basicInfoRef}
+                appId={appId}
+                teamId={teamId}
+                app={app}
+                teamName={teamName ?? ""}
+              />
+            </SizingWrapper>
+
+            <SizingWrapper variant="nav" gridClassName="order-4 pt-6 pb-0">
+              <MiniAppConfiguration
+                appId={appId}
+                teamId={teamId}
+                appMetadata={appMetadata as AppMetadata}
+              />
+            </SizingWrapper>
+
+            <SizingWrapper variant="nav" gridClassName="order-5 pt-10 pb-24">
+              <AppStoreForm
+                appId={appId}
+                teamId={teamId}
+                appMetadata={appMetadata as AppMetadata}
+              />
+            </SizingWrapper>
+          </>
+        )}
       </SaveStatusProvider>
     </AppStoreFormProvider>
   );

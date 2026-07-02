@@ -21,6 +21,9 @@ export const urls = {
   miniAppNotifications: (params: { team_id: string; app_id: string }): string =>
     `/teams/${params.team_id}/apps/${params.app_id}/mini-app/notifications`,
 
+  miniAppDevelop: (params: { team_id: string; app_id: string }): string =>
+    `/teams/${params.team_id}/apps/${params.app_id}/mini-app/develop`,
+
   actions: (params: { team_id: string; app_id?: string }): string =>
     `/teams/${params.team_id}/apps/${params.app_id}/actions`,
 

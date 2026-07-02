@@ -11,18 +11,18 @@ import { Role_Enum } from "@/graphql/graphql";
 import { AppMode } from "@/lib/constants";
 import { Auth0SessionUser } from "@/lib/types";
 import { checkUserPermissions } from "@/lib/utils";
+import { FetchAppMetadataQuery } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/graphql/client/fetch-app-metadata.generated";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { yupResolver } from "@hookform/resolvers/yup";
 import clsx from "clsx";
 import { ChangeEvent, ReactNode, useCallback, useEffect, useMemo } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
-import { QrQuickAction } from "../../Configuration/BasicInformation/QrQuickAction";
-import { FetchAppMetadataQuery } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/graphql/client/fetch-app-metadata.generated";
 import {
   updateSetupInitialSchema,
   UpdateSetupInitialSchema,
 } from "../../Configuration/Advanced/page/form-schema";
 import { validateAndUpdateSetupServerSide } from "../../Configuration/Advanced/page/server/submit";
+import { QrQuickAction } from "../../Configuration/BasicInformation/QrQuickAction";
 import {
   SaveStatusIndicator,
   useSaveStatus,
@@ -280,44 +280,6 @@ export const SetupForm = ({
           void flushAll();
         }}
       >
-        <Typography
-          variant={TYPOGRAPHY.H7}
-          className="font-normal text-grey-900"
-        >
-          Advanced settings
-        </Typography>
-
-        <div className="grid gap-4 md:grid-cols-2">
-          <ModeCard
-            label="Mini App"
-            description="Create a mini app that runs inside the World App."
-            value="mini-app"
-            selected={appMode === "mini-app"}
-            disabled={!canEdit}
-            onSelect={(value) =>
-              setValue("app_mode", value, {
-                shouldDirty: true,
-                shouldValidate: true,
-              })
-            }
-          />
-
-          <ModeCard
-            label="External"
-            description="Create a World ID app that runs outside the World App."
-            value="external"
-            selected={appMode === "external"}
-            disabled={!canEdit}
-            onSelect={(value) =>
-              setValue("app_mode", value, {
-                shouldDirty: true,
-                shouldValidate: true,
-              })
-            }
-          />
-        </div>
-
-        {!isExternal && <div className="w-full border-t border-grey-100" />}
 
         {!isExternal && (
           <>
@@ -586,12 +548,6 @@ export const SetupForm = ({
           </DecoratedButton>
         </div>
       </form>
-
-      <MiniAppQrPanel
-        appId={appId}
-        appMetadata={appMetadata}
-        appMode={appMode}
-      />
     </div>
   );
 };

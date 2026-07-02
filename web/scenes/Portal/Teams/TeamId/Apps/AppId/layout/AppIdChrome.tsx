@@ -61,9 +61,14 @@ export const AppIdChrome = ({
     team_id: teamId,
     app_id: appId,
   });
+  const miniAppDevelopPath = urls.miniAppDevelop({
+    team_id: teamId,
+    app_id: appId,
+  });
   const isMiniAppPermissions = pathname === miniAppPermissionsPath;
   const isMiniAppTransactions = pathname === miniAppTransactionsPath;
   const isMiniAppNotifications = pathname === miniAppNotificationsPath;
+  const isMiniAppDevelop = pathname === miniAppDevelopPath;
 
   if (showWorldId40Nav) {
     return (
@@ -102,8 +107,9 @@ export const AppIdChrome = ({
                 <Typography variant={TYPOGRAPHY.R4}>Configuration</Typography>
               </Tab>
 
+              {/* User should go to develop path when clicking mini app tab */}
               <Tab
-                href={miniAppPermissionsPath}
+                href={miniAppDevelopPath}
                 underlined
                 active={isMiniAppSegment}
                 segment={"mini-app"}
@@ -152,6 +158,12 @@ export const AppIdChrome = ({
               <SectionSubTabs
                 items={[
                   {
+                    label: "Develop",
+                    href: miniAppDevelopPath,
+                    segment: "mini-app",
+                    active: isMiniAppDevelop,
+                  },
+                  {
                     label: "Permissions",
                     href: miniAppPermissionsPath,
                     segment: "mini-app",
@@ -169,6 +181,7 @@ export const AppIdChrome = ({
                     segment: "mini-app",
                     active: isMiniAppNotifications,
                   },
+
                 ]}
               />
             </SizingWrapper>

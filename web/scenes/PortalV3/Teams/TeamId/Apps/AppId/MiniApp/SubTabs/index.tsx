@@ -20,6 +20,10 @@ export const MiniAppSubTabs = () => {
     team_id: params?.teamId ?? "",
     app_id: params?.appId ?? "",
   });
+  const miniAppDevelopPath = urls.miniAppDevelop({
+    team_id: params?.teamId ?? "",
+    app_id: params?.appId ?? "",
+  });
 
   return (
     <SectionSubTabs
@@ -41,6 +45,12 @@ export const MiniAppSubTabs = () => {
           href: miniAppNotificationsPath,
           segment: "mini-app",
           active: pathname === miniAppNotificationsPath,
+        },
+        {
+          label: "X",
+          href: miniAppDevelopPath,
+          segment: "mini-app",
+          active: pathname === miniAppDevelopPath,
         },
       ]}
     />
