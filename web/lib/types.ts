@@ -50,6 +50,12 @@ export enum CanUserVerifyType {
   OnChain = "on-chain",
 }
 
+// Options for the `experimental_face_auth_config` attribute in the /precheck endpoint
+export enum ExperimentalFaceAuthConfig {
+  Enabled = "enabled",
+  Disabled = "disabled",
+}
+
 export interface JwtConfig {
   key: string;
   type: "HS512" | "HS384" | "HS256";

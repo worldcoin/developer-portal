@@ -41,6 +41,12 @@ const exampleValidRequestPayload = {
     "0x2a6f11552fe9073280e1dc38358aa6b23ec4c14ab56046d4d97695b21b166690",
 };
 
+const mockParameterStoreAppIds = (appIds: string[]) => {
+  global.ParameterStore = {
+    getParameter: jest.fn().mockResolvedValue(appIds),
+  } as unknown as NonNullable<typeof global.ParameterStore>;
+};
+
 jest.mock("@/api/helpers/graphql", () => ({
   getAPIServiceGraphqlClient: jest.fn(),
 }));
@@ -50,6 +56,20 @@ jest.mock("@/api/v1/precheck/[app_id]/graphql/app-precheck.generated", () => ({
     AppPrecheckQuery,
   }),
 }));
+const FetchRpRegistrationForPrecheck = jest.fn();
+jest.mock(
+  "@/api/v1/precheck/[app_id]/graphql/fetch-rp-registration-for-precheck.generated",
+  () => ({
+    getSdk: () => ({
+      FetchRpRegistrationForPrecheck,
+    }),
+  }),
+);
+
+beforeEach(() => {
+  jest.clearAllMocks();
+  global.ParameterStore = undefined;
+});
 
 describe("/api/v1/precheck/[app_id]", () => {
   test("can fetch precheck response verified", async () => {
@@ -82,6 +102,7 @@ describe("/api/v1/precheck/[app_id]", () => {
       verified_app_logo:
         "https://cdn.test.com/app_staging_6d1c9fb86751a40d952749022db1c1/logo_img.png",
       enable_face_check: true,
+      experimental_face_auth_config: "disabled",
       sign_in_with_world_id: false,
       can_user_verify: "undetermined", // Because no `nullifier_hash` was provided
       action: {
@@ -123,6 +144,7 @@ describe("/api/v1/precheck/[app_id]", () => {
       engine: "cloud",
       verified_app_logo: "",
       enable_face_check: true,
+      experimental_face_auth_config: "disabled",
       sign_in_with_world_id: false,
       can_user_verify: "undetermined", // Because no `nullifier_hash` was provided
       action: {
@@ -137,6 +159,136 @@ describe("/api/v1/precheck/[app_id]", () => {
 
   test("creates action on the fly when it does not exist", async () => {
     // TODO
+  });
+
+  test("returns enabled face auth config for allowlisted apps", async () => {
+    mockParameterStoreAppIds([appPayload.id]);
+
+    const request = new NextRequest(
+      "http://localhost:3000/api/v1/precheck/app_staging_6d1c9fb86751a40d952749022db1c1",
+      {
+        method: "POST",
+        body: JSON.stringify(exampleValidRequestPayload),
+      },
+    );
+
+    AppPrecheckQuery.mockResolvedValue({
+      app: [{ ...appPayload }],
+    });
+
+    const response = await POST(request, {
+      params: Promise.resolve({
+        app_id: "app_staging_6d1c9fb86751a40d952749022db1c1",
+      }),
+    });
+
+    expect(response.status).toBe(200);
+    const responseBody = await response.json();
+    expect(responseBody).toMatchObject({
+      id: "app_staging_6d1c9fb86751a40d952749022db1c1",
+      experimental_face_auth_config: "enabled",
+    });
+    expect(global.ParameterStore?.getParameter).toHaveBeenCalledWith(
+      "precheck/experimental-face-auth-config/enabled",
+      [],
+    );
+  });
+
+  test("returns disabled face auth config for apps outside the allowlist", async () => {
+    mockParameterStoreAppIds(["app_staging_00000000000000000000000000000000"]);
+
+    const request = new NextRequest(
+      "http://localhost:3000/api/v1/precheck/app_staging_6d1c9fb86751a40d952749022db1c1",
+      {
+        method: "POST",
+        body: JSON.stringify(exampleValidRequestPayload),
+      },
+    );
+
+    AppPrecheckQuery.mockResolvedValue({
+      app: [{ ...appPayload }],
+    });
+
+    const response = await POST(request, {
+      params: Promise.resolve({
+        app_id: "app_staging_6d1c9fb86751a40d952749022db1c1",
+      }),
+    });
+
+    expect(response.status).toBe(200);
+    const responseBody = await response.json();
+    expect(responseBody).toMatchObject({
+      id: "app_staging_6d1c9fb86751a40d952749022db1c1",
+      experimental_face_auth_config: "disabled",
+    });
+  });
+
+  test("returns disabled face auth config when SSM fails", async () => {
+    global.ParameterStore = {
+      getParameter: jest.fn().mockRejectedValue(new Error("SSM error")),
+    } as unknown as NonNullable<typeof global.ParameterStore>;
+
+    const request = new NextRequest(
+      "http://localhost:3000/api/v1/precheck/app_staging_6d1c9fb86751a40d952749022db1c1",
+      {
+        method: "POST",
+        body: JSON.stringify(exampleValidRequestPayload),
+      },
+    );
+
+    AppPrecheckQuery.mockResolvedValue({
+      app: [{ ...appPayload }],
+    });
+
+    const response = await POST(request, {
+      params: Promise.resolve({
+        app_id: "app_staging_6d1c9fb86751a40d952749022db1c1",
+      }),
+    });
+
+    expect(response.status).toBe(200);
+    const responseBody = await response.json();
+    expect(responseBody).toMatchObject({
+      id: "app_staging_6d1c9fb86751a40d952749022db1c1",
+      experimental_face_auth_config: "disabled",
+    });
+  });
+
+  test("returns face auth config for synthetic RP registration actions", async () => {
+    mockParameterStoreAppIds([appPayload.id]);
+
+    const request = new NextRequest(
+      "http://localhost:3000/api/v1/precheck/app_staging_6d1c9fb86751a40d952749022db1c1",
+      {
+        method: "POST",
+        body: JSON.stringify(exampleValidRequestPayload),
+      },
+    );
+
+    AppPrecheckQuery.mockResolvedValue({
+      app: [{ ...appPayload, actions: [] }],
+    });
+    FetchRpRegistrationForPrecheck.mockResolvedValue({
+      rp_registration: [{ status: "registered" }],
+    });
+
+    const response = await POST(request, {
+      params: Promise.resolve({
+        app_id: "app_staging_6d1c9fb86751a40d952749022db1c1",
+      }),
+    });
+
+    expect(response.status).toBe(200);
+    const responseBody = await response.json();
+    expect(responseBody).toMatchObject({
+      id: "app_staging_6d1c9fb86751a40d952749022db1c1",
+      experimental_face_auth_config: "enabled",
+      action: {
+        action: "swag_pack_2022",
+        status: "active",
+      },
+      can_user_verify: "yes",
+    });
   });
 
   test("can fetch precheck response with nullifier", async () => {

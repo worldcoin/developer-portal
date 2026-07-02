@@ -10,7 +10,11 @@ import {
 } from "@/api/helpers/verify";
 import { APPS_WITH_CUSTOM_EXTERNAL_NULLIFIER } from "@/lib/constants";
 import { generateExternalNullifier } from "@/lib/hashing";
-import { CanUserVerifyType, EngineType } from "@/lib/types";
+import {
+  CanUserVerifyType,
+  EngineType,
+  ExperimentalFaceAuthConfig,
+} from "@/lib/types";
 import { getCDNImageUrl } from "@/lib/utils";
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
@@ -23,6 +27,11 @@ const APPS_TO_SHOW_UNVERIFIED_LOGO = [
   "app_staging_c8137371ceac59890774ccc932e11dcf",
   "app_staging_79640e8c674aedb3f5969a30f80ff6f9",
 ];
+
+const EXPERIMENTAL_FACE_AUTH_CONFIG_PARAMETERS = {
+  [ExperimentalFaceAuthConfig.Enabled]:
+    "precheck/experimental-face-auth-config/enabled",
+} satisfies Partial<Record<ExperimentalFaceAuthConfig, string>>;
 
 const schema = yup
   .object()
@@ -48,6 +57,28 @@ const schema = yup
   .noUnknown();
 
 const corsMethods = ["POST", "OPTIONS"];
+
+async function getExperimentalFaceAuthConfig(
+  app_id: string,
+): Promise<ExperimentalFaceAuthConfig> {
+  try {
+    const enabledAppIds =
+      (await global.ParameterStore?.getParameter<string[]>(
+        EXPERIMENTAL_FACE_AUTH_CONFIG_PARAMETERS[
+          ExperimentalFaceAuthConfig.Enabled
+        ],
+        [],
+      )) ?? [];
+
+    if (Array.isArray(enabledAppIds) && enabledAppIds.includes(app_id)) {
+      return ExperimentalFaceAuthConfig.Enabled;
+    }
+  } catch {
+    return ExperimentalFaceAuthConfig.Disabled;
+  }
+
+  return ExperimentalFaceAuthConfig.Disabled;
+}
 
 /**
  * Fetches public metadata for an app & action.
@@ -176,6 +207,7 @@ export async function POST(
       unverified_app_metadata?.integration_url ??
       "",
     enable_face_check: true, // Default to true now this is GA
+    experimental_face_auth_config: await getExperimentalFaceAuthConfig(app_id),
     actions: rawAppValues.actions,
   };
 
