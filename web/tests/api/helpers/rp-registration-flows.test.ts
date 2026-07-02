@@ -346,6 +346,61 @@ describe("submitManagedRpDeactivation", () => {
     expect(submitToggleRpActiveTransactionMock).not.toHaveBeenCalled();
   });
 
+  it("skips a recently-failed registration whose register op may still be in flight", async () => {
+    // rp-status flips pending→failed after 5 min, but the register op is valid
+    // for 30. A failed row inside the grace window must be treated as in-flight
+    // so we don't finalize it before the op is provably dead.
+    GetRpRegistration.mockResolvedValue({
+      rp_registration: [
+        makeRegistration({
+          status: "failed",
+          updated_at: new Date(Date.now() - 20 * 60 * 1000).toISOString(),
+        }),
+      ],
+    });
+
+    const res = await submitManagedRpDeactivation({ client, appId });
+
+    expect(res).toMatchObject({
+      ok: true,
+      outcome: "skipped",
+      reason: "in_flight",
+    });
+    // A still-valid register op must not be read-then-finalized.
+    expect(getRpFromContractMock).not.toHaveBeenCalled();
+    expect(UpdateRpStatus).not.toHaveBeenCalled();
+    expect(submitToggleRpActiveTransactionMock).not.toHaveBeenCalled();
+  });
+
+  it("finalizes a long-failed registration once its register op has expired", async () => {
+    GetRpRegistration.mockResolvedValue({
+      rp_registration: [
+        makeRegistration({
+          status: "failed",
+          updated_at: "2020-01-01T00:00:00.000Z",
+        }),
+      ],
+    });
+    getRpFromContractMock.mockResolvedValue({
+      initialized: false,
+      active: false,
+      signer: "0x0",
+    });
+
+    const res = await submitManagedRpDeactivation({ client, appId });
+
+    expect(res).toMatchObject({
+      ok: true,
+      outcome: "skipped",
+      reason: "already_inactive",
+    });
+    expect(UpdateRpStatus).toHaveBeenCalledWith({
+      rp_id: rpId,
+      status: "deactivated",
+    });
+    expect(submitToggleRpActiveTransactionMock).not.toHaveBeenCalled();
+  });
+
   it("resubmits a stale pending RP whose tx never settled (still active on-chain)", async () => {
     GetRpRegistration.mockResolvedValue({
       rp_registration: [

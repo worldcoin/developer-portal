@@ -635,13 +635,19 @@ export async function submitManagedRpDeactivation({
     registration.staging_status as RpRegistrationStatus | null;
   const rpId = parseRpId(rpIdString);
 
-  // A `pending` row means a toggle/rotate is already in flight. Don't stack a
-  // second toggleActive on top of it — toggle *flips* the active flag, so two
-  // in-flight toggles can cancel out and leave the RP active. Treat it as
-  // actionable only once it is older than the in-flight grace window; by then
-  // the prior tx has settled and the on-chain read below is authoritative
-  // (mined → inactive → skip; failed → still active → safe to resubmit).
-  if (currentStatus === RpRegistrationStatus.Pending) {
+  // A `pending` row has an in-flight UserOp (register / rotate / toggle). A
+  // `failed` row can too: rp-status flips a managed registration
+  // `pending → failed` after 5 minutes, but its register op stays valid for 30.
+  // Don't act until any in-flight op is provably dead, or we could (a) finalize
+  // a not-yet-initialized row to `deactivated` only for the register op to land
+  // afterwards and strand the RP active, or (b) stack a second toggle that
+  // flips an already-active RP back on. `updated_at` is bumped on op submission
+  // and on the failed transition, so it never precedes the op — waiting out the
+  // grace measured from it guarantees the op has expired.
+  if (
+    currentStatus === RpRegistrationStatus.Pending ||
+    currentStatus === RpRegistrationStatus.Failed
+  ) {
     const ageMs = Date.now() - new Date(registration.updated_at).getTime();
     if (ageMs < PENDING_IN_FLIGHT_GRACE_MS) {
       return { ok: true, outcome: "skipped", reason: "in_flight", rpIdString };
