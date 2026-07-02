@@ -11,12 +11,15 @@ import { Role_Enum } from "@/graphql/graphql";
 import { AppMode } from "@/lib/constants";
 import { Auth0SessionUser } from "@/lib/types";
 import { checkUserPermissions } from "@/lib/utils";
+import { useApolloClient } from "@apollo/client";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { yupResolver } from "@hookform/resolvers/yup";
 import clsx from "clsx";
+import { useAtom } from "jotai";
 import { ChangeEvent, ReactNode, useCallback, useEffect, useMemo } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { QrQuickAction } from "../../Configuration/BasicInformation/QrQuickAction";
+import { isMiniAppAtom } from "../../Configuration/layout/ImagesProvider";
 import { FetchAppMetadataQuery } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/graphql/client/fetch-app-metadata.generated";
 import {
   updateSetupInitialSchema,
@@ -118,13 +121,13 @@ const InlineWarning = ({ children }: { children: ReactNode }) => {
 const MiniAppQrPanel = ({
   appId,
   appMetadata,
-  appMode,
+  isMiniApp,
 }: {
   appId: string;
   appMetadata: PermissionsFormProps["appMetadata"];
-  appMode?: keyof typeof AppMode;
+  isMiniApp: boolean;
 }) => {
-  if (appMode === "external") {
+  if (!isMiniApp) {
     return null;
   }
 
@@ -184,6 +187,7 @@ export const SetupForm = ({
   appMetadata,
 }: PermissionsFormProps) => {
   const { user } = useUser() as Auth0SessionUser;
+  const apolloClient = useApolloClient();
   const isEditable = appMetadata?.verification_status === "unverified";
 
   const isEnoughPermissions = useMemo(() => {
@@ -221,6 +225,17 @@ export const SetupForm = ({
     }
   }, [appMetadata, reset, previousMetadataIdRef]);
 
+  // Shared source of truth for "is this a mini app" — the same atom the
+  // "This is a Mini App" toggle (MiniAppConfiguration, on the Configuration
+  // route) writes to. The QR panel and mini-app sections read it so they
+  // reveal reliably regardless of which route flipped the mode. We re-seed
+  // it from the persisted mode here because that toggle isn't mounted on
+  // this route, so the atom could otherwise be stale on direct entry.
+  const [isMiniApp, setIsMiniApp] = useAtom(isMiniAppAtom);
+  useEffect(() => {
+    setIsMiniApp(appMetadata?.app_mode === "mini-app");
+  }, [appMetadata?.app_mode, setIsMiniApp]);
+
   const canEdit = isEditable && isEnoughPermissions;
 
   const hasInvalidWhitelistCombination = useCallback(
@@ -254,22 +269,45 @@ export const SetupForm = ({
       );
       if (signal?.aborted) throw new DOMException("Aborted", "AbortError");
       if (!result.success) throw new Error(result.message);
-      // Skip refetch — none of the persisted fields are displayed elsewhere
-      // on this page (AppTopBar reads name/logo, QR panel reads
-      // integration_url, neither of which this form writes). Skipping the
-      // refetch avoids the cache-driven re-render flicker.
+      // Patch app_mode into the cache so the QR panel / mini-app sections
+      // stay correct on remount and version switches. We skip a full refetch
+      // to avoid the cache-driven re-render flicker (the other persisted
+      // fields are form-controlled on this page and don't need a cache patch).
+      if (appMetadata?.id && values.app_mode) {
+        apolloClient.cache.modify({
+          id: apolloClient.cache.identify({
+            __typename: "app_metadata",
+            id: appMetadata.id,
+          }),
+          fields: {
+            app_mode: () => values.app_mode,
+          },
+        });
+      }
     },
   });
 
   const { flushAll, displayStatus } = useSaveStatus();
 
-  const appMode = useWatch({ control, name: "app_mode" });
   const isWhitelistDisabled = useWatch({
     control,
     name: "is_whitelist_disabled",
   });
 
-  const isExternal = appMode === "external";
+  // Mini-app sections + the QR panel read isMiniApp (the shared atom) instead
+  // of the local form field so they reveal in lockstep with the toggle.
+  const isExternal = !isMiniApp;
+
+  const handleModeSelect = useCallback(
+    (value: keyof typeof AppMode) => {
+      setIsMiniApp(value === "mini-app");
+      setValue("app_mode", value, {
+        shouldDirty: true,
+        shouldValidate: true,
+      });
+    },
+    [setIsMiniApp, setValue],
+  );
 
   return (
     <div className="grid gap-10 lg:grid-cols-[minmax(0,580px)_minmax(280px,1fr)] lg:items-start">
@@ -292,28 +330,18 @@ export const SetupForm = ({
             label="Mini App"
             description="Create a mini app that runs inside the World App."
             value="mini-app"
-            selected={appMode === "mini-app"}
+            selected={isMiniApp}
             disabled={!canEdit}
-            onSelect={(value) =>
-              setValue("app_mode", value, {
-                shouldDirty: true,
-                shouldValidate: true,
-              })
-            }
+            onSelect={handleModeSelect}
           />
 
           <ModeCard
             label="External"
             description="Create a World ID app that runs outside the World App."
             value="external"
-            selected={appMode === "external"}
+            selected={!isMiniApp}
             disabled={!canEdit}
-            onSelect={(value) =>
-              setValue("app_mode", value, {
-                shouldDirty: true,
-                shouldValidate: true,
-              })
-            }
+            onSelect={handleModeSelect}
           />
         </div>
 
@@ -590,7 +618,7 @@ export const SetupForm = ({
       <MiniAppQrPanel
         appId={appId}
         appMetadata={appMetadata}
-        appMode={appMode}
+        isMiniApp={isMiniApp}
       />
     </div>
   );
