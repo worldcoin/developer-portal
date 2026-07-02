@@ -41,7 +41,7 @@ type FormValues = yup.InferType<typeof schema>;
 
 export const ProfilePage = () => {
   const { user: auth0User } = useUser() as Auth0SessionUser;
-  const { user, loading } = useMeQuery();
+  const { user, loading, refetch: refetchMe } = useMeQuery();
 
   const [updateUser] = useUpdateUserMutation({
     refetchQueries: [FetchMeDocument],
@@ -189,7 +189,10 @@ export const ProfilePage = () => {
                 anyway). */}
             {process.env.NEXT_PUBLIC_ENABLE_WORLD_ID_RESTORATION === "true" &&
               !(auth0User && isWorldUser(auth0User)) && (
-                <WorldIdAccountMigration />
+                <WorldIdAccountMigration
+                  isLinked={Boolean(user?.world_id_nullifier)}
+                  onLinkSuccess={refetchMe}
+                />
               )}
 
             <DecoratedButton
