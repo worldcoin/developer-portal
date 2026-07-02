@@ -14,12 +14,17 @@ import { redirect } from "next/navigation";
 import { BasePixelStrip } from "../components/BasePixelStrip";
 import { DeveloperStories } from "../components/DeveloperStories";
 import { HoverVideo } from "../components/HoverVideo";
-import { TypingHeadline } from "../components/TypingHeadline";
 import {
   FetchMembershipsQuery,
   getSdk as getFetchMembershipsSdk,
 } from "./graphql/server/fetch-memberships.generated";
 import { getNetworkStats } from "./server/get-network-stats";
+
+const LOGIN_HEADLINE = "A new standard of Identity";
+const LOGIN_HEADLINE_STEP_COUNT = LOGIN_HEADLINE.length;
+const LOGIN_HEADLINE_TYPING_MS = 70;
+const LOGIN_HEADLINE_TYPING_DURATION_S =
+  (LOGIN_HEADLINE_STEP_COUNT * LOGIN_HEADLINE_TYPING_MS) / 1000;
 
 // Scoped to this page only (renders just here, not app-wide). `overflow-x:
 // clip` clips horizontal overflow WITHOUT creating a scroll container, so it
@@ -84,6 +89,63 @@ main {
 @media (prefers-reduced-motion: reduce) {
   .product-card:hover::before {
     animation: none;
+  }
+
+  .typing-headline {
+    width: 100%;
+    animation: none;
+    border-right-color: transparent;
+  }
+}
+
+/* Ghost text (::after) sizes the grid cell; the overlay animates width 0→100%
+   of that cell so proportional fonts reveal the full phrase with the caret on
+   the typing edge. */
+.typing-headline-wrap {
+  display: inline-grid;
+  vertical-align: top;
+  max-width: 100%;
+  overflow: visible;
+}
+
+.typing-headline-wrap::after {
+  content: attr(data-text);
+  visibility: hidden;
+  grid-area: 1 / 1;
+  white-space: nowrap;
+  pointer-events: none;
+  padding-bottom: 0.12em;
+  padding-right: 0.15em;
+}
+
+.typing-headline {
+  grid-area: 1 / 1;
+  overflow-x: clip;
+  overflow-y: visible;
+  white-space: nowrap;
+  width: 0;
+  min-width: 0;
+  padding-bottom: 0.12em;
+  border-right: 0.075em solid currentColor;
+  animation:
+    typing-headline-reveal ${LOGIN_HEADLINE_TYPING_DURATION_S}s steps(${LOGIN_HEADLINE_STEP_COUNT}, end) forwards,
+    typing-headline-caret 0.8s step-end infinite;
+}
+
+.typing-headline__text {
+  display: inline-block;
+  padding-right: 0.15em;
+}
+
+@keyframes typing-headline-reveal {
+  to {
+    width: 100%;
+  }
+}
+
+@keyframes typing-headline-caret {
+  50% {
+    border-right-color: transparent;
   }
 }
 `;
@@ -284,7 +346,18 @@ export const LoginPage = async () => {
 
           <div className="relative z-10 px-4 pb-8 pt-8 md:pt-14 lg:px-6 lg:pt-16">
             <div className="mx-auto w-full max-w-[calc(100vw-32px)] lg:max-w-[calc(100vw-48px)]">
-              <TypingHeadline className="max-w-[1020px] font-twk text-[48px] font-medium leading-[0.94] tracking-[0] text-grey-900 sm:text-[68px] md:text-[88px] lg:text-[104px]" />
+              <h1 className="max-w-[1020px] font-twk text-[48px] font-medium leading-[0.94] tracking-[0] text-grey-900 sm:text-[68px] md:text-[88px] lg:text-[104px]">
+                <span
+                  className="typing-headline-wrap"
+                  data-text={LOGIN_HEADLINE}
+                >
+                  <span className="typing-headline">
+                    <span className="typing-headline__text">
+                      {LOGIN_HEADLINE}
+                    </span>
+                  </span>
+                </span>
+              </h1>
 
               <div className="mt-10 flex flex-wrap items-center gap-3">
                 <DecoratedButton

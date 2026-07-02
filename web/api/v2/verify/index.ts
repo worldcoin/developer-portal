@@ -6,6 +6,7 @@ import {
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import {
+  canonicalizeNullifierHash,
   canVerifyForAction,
   encodeNullifierForStorage,
   verifyProof,
@@ -35,9 +36,12 @@ const schema = yup
     nullifier_hash: yup
       .string()
       .strict()
+      // Bound to 64 hex chars (a uint256): rejects over-width values that
+      // would otherwise pass proof verification (decode reads the first 32
+      // bytes) but overflow the canonicalizer's toBeHex(..., 32) as a 500.
       .matches(
-        /^(0x)?[\da-fA-F]+$/,
-        "Invalid nullifier_hash. Must be a hex string with optional 0x prefix.",
+        /^(0x)?[\da-fA-F]{1,64}$/,
+        "Invalid nullifier_hash. Must be a hex string (≤ 64 hex chars) with optional 0x prefix.",
       )
       .required("This attribute is required."),
     merkle_root: yup.string().strict().required("This attribute is required."),
@@ -245,12 +249,23 @@ export async function POST(
     });
   }
 
+  // Store the nullifier in canonical (fixed-width hex) form so that hex
+  // re-encodings of the same nullifier collide on the unique_nullifier_hash
+  // constraint instead of creating sibling rows that each independently pass
+  // the per-row uses-limit trigger and bypass max_verifications. Computed only
+  // after verifyProof succeeds: parseProofInputs has already rejected malformed
+  // / over-width nullifiers with a structured 400, so toBeHex cannot throw an
+  // unhandled 500 here.
+  const canonical_nullifier_hash = canonicalizeNullifierHash(
+    parsedParams.nullifier_hash,
+  );
+
   try {
     const upsertResponse = await atomicUpsertNullifierSdk(
       client,
     ).AtomicUpsertNullifier({
       action_id: action.id,
-      nullifier_hash: parsedParams.nullifier_hash,
+      nullifier_hash: canonical_nullifier_hash,
       nullifier_hash_int: nullifier_hash_int,
     });
 

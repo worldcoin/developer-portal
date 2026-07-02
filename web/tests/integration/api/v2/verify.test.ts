@@ -197,7 +197,7 @@ describe("/api/v2/verify [Security Vulnerabilities Integration Tests]", () => {
       attribute: "nullifier_hash",
       code: "validation_error",
       detail:
-        "Invalid nullifier_hash. Must be a hex string with optional 0x prefix.",
+        "Invalid nullifier_hash. Must be a hex string (≤ 64 hex chars) with optional 0x prefix.",
     });
   });
 
@@ -260,7 +260,7 @@ describe("/api/v2/verify [Security Vulnerabilities Integration Tests]", () => {
       attribute: "nullifier_hash",
       code: "validation_error",
       detail:
-        "Invalid nullifier_hash. Must be a hex string with optional 0x prefix.",
+        "Invalid nullifier_hash. Must be a hex string (≤ 64 hex chars) with optional 0x prefix.",
     });
   });
 

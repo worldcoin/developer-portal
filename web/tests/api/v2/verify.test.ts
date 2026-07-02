@@ -175,6 +175,69 @@ describe("/api/v2/verify", () => {
     });
   });
 
+  it("stores the nullifier canonically so hex re-encodings collide on the unique constraint (#3771261)", async () => {
+    // Same nullifier, uppercased — a dedup/limit-bypass re-encoding.
+    const reEncoded =
+      "0x" + semaphoreProofParamsMock.nullifier_hash.slice(2).toUpperCase();
+    const mockReq = createMockRequest(getUrl(stagingAppId), {
+      ...validBody,
+      nullifier_hash: reEncoded,
+    });
+    const ctx = { params: Promise.resolve({ app_id: stagingAppId }) };
+
+    mockFetch({ body: { valid: true }, ok: true, status: 200 });
+
+    FetchAppAction.mockResolvedValue({
+      app: [{ ...validApp, actions: [{ ...validAction, nullifiers: [] }] }],
+    });
+    AtomicUpsertNullifier.mockResolvedValue({
+      update_nullifier: {
+        affected_rows: 1,
+        returning: [
+          {
+            nullifier_hash: semaphoreProofParamsMock.nullifier_hash,
+            created_at: validNullifier.created_at,
+            uses: 1,
+          },
+        ],
+      },
+    });
+
+    const response = await POST(mockReq, ctx);
+    expect(response.status).toBe(200);
+    // The re-encoding must be persisted as the canonical lowercase value, so it
+    // hits the same unique_nullifier_hash row instead of creating a sibling.
+    expect(AtomicUpsertNullifier).toHaveBeenCalledWith(
+      expect.objectContaining({
+        nullifier_hash: semaphoreProofParamsMock.nullifier_hash,
+      }),
+    );
+  });
+
+  it("returns a structured 400 (not a 500) for an over-width nullifier_hash", async () => {
+    // A valid 64-nibble nullifier with "00" appended (66 nibbles). decode would
+    // read only the first 32 bytes and let verifyProof pass, then the
+    // canonicalizer's toBeHex(..., 32) would overflow to a 500 — the schema
+    // length bound rejects it up front with a structured 400 instead.
+    const overWide =
+      "0x" + semaphoreProofParamsMock.nullifier_hash.slice(2) + "00";
+    const mockReq = createMockRequest(getUrl(stagingAppId), {
+      ...validBody,
+      nullifier_hash: overWide,
+    });
+    const ctx = { params: Promise.resolve({ app_id: stagingAppId }) };
+
+    mockFetch({ body: { valid: true }, ok: true, status: 200 });
+    FetchAppAction.mockResolvedValue({
+      app: [{ ...validApp, actions: [{ ...validAction, nullifiers: [] }] }],
+    });
+
+    const response = await POST(mockReq, ctx);
+    expect(response.status).toBe(400);
+    // Rejected before the nullifier is ever stored.
+    expect(AtomicUpsertNullifier).not.toHaveBeenCalled();
+  });
+
   it("can verify onchain action", async () => {
     const mockReq = createMockRequest(getUrl(stagingAppId), validBody);
     const ctx = { params: Promise.resolve({ app_id: stagingAppId }) };
