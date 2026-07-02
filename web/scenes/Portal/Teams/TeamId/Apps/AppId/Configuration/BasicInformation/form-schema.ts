@@ -12,10 +12,10 @@ const integrationUrlSchema = yup
 
 export const schema = yup
   .object({
-    // Use .notRequired() — yup 1.3.x's .optional() only allows undefined; the
-    // string `required` test still rejects empty strings, which would fail
-    // autosave whenever the user clears the field.
-    name: appNameSchema.notRequired(),
+    // name uses appNameSchema as-is, which is .required() — so an empty app
+    // name fails f.trigger() inside the autosave loop and the save is blocked
+    // (both the debounced autosave and the Save button's flushAll path).
+    name: appNameSchema,
     integration_url: integrationUrlSchema.notRequired(),
     app_website_url: yup
       .string()

@@ -21,7 +21,7 @@ import React, {
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import { FetchAppMetadataQuery } from "../graphql/client/fetch-app-metadata.generated";
-import { viewModeAtom } from "../layout/ImagesProvider";
+import { isMiniAppAtom, viewModeAtom } from "../layout/ImagesProvider";
 import * as yup from "yup";
 import { useAutosaveWithStatus } from "../hook/use-autosave-with-status";
 import {
@@ -50,6 +50,10 @@ export const BasicInformation = forwardRef<
   const apolloClient = useApolloClient();
 
   const [viewMode] = useAtom(viewModeAtom);
+  // App URL + Official Website are Mini App fields — a vanilla (external)
+  // integration only needs name + app id here. They're revealed when the
+  // "This is a Mini App" toggle (MiniAppConfiguration) flips this atom on.
+  const [isMiniApp] = useAtom(isMiniAppAtom);
   const { user } = useUser() as Auth0SessionUser;
 
   const isEnoughPermissions = useMemo(() => {
@@ -246,23 +250,27 @@ export const BasicInformation = forwardRef<
             />
           </div>
 
-          <FloatingInput
-            id="integration_url"
-            label="App URL"
-            required
-            errors={errors.integration_url}
-            disabled={!isEditable || !isEnoughPermissions}
-            register={makeUrlRegister("integration_url")}
-          />
+          {isMiniApp && (
+            <>
+              <FloatingInput
+                id="integration_url"
+                label="App URL"
+                required
+                errors={errors.integration_url}
+                disabled={!isEditable || !isEnoughPermissions}
+                register={makeUrlRegister("integration_url")}
+              />
 
-          <FloatingInput
-            id="app_website_url"
-            label="App Official Website"
-            required
-            errors={errors.app_website_url}
-            disabled={!isEditable || !isEnoughPermissions}
-            register={makeUrlRegister("app_website_url")}
-          />
+              <FloatingInput
+                id="app_website_url"
+                label="App Official Website"
+                required
+                errors={errors.app_website_url}
+                disabled={!isEditable || !isEnoughPermissions}
+                register={makeUrlRegister("app_website_url")}
+              />
+            </>
+          )}
 
           <FloatingInput
             id="app-id"

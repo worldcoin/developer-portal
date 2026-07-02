@@ -193,6 +193,7 @@ const AppTopBarSubmit = ({
   return (
     <DecoratedButton
       type="submit"
+      title="Submit for review to the mini app store"
       className={clsx("h-12 px-6 py-3", {
         hidden:
           appMetadata.app_id?.includes("staging") &&
@@ -414,6 +415,10 @@ export const AppTopBar = (props: AppTopBarProps) => {
   ]);
 
   const isEditable = app?.app_metadata[0]?.verification_status === "unverified";
+  // Only Mini Apps go through the App Store review flow. External (vanilla)
+  // integrations can't be submitted, so the submit button is shown greyed-out
+  // rather than functional — see the submit-button block below.
+  const isMiniApp = appMetadata?.app_mode === "mini-app";
   const [createEditableRowMutation] = useCreateEditableRowMutation({});
   const shouldAutoOpenLogoDialog = searchParams.get("editLogo") === "true";
 
@@ -649,29 +654,48 @@ export const AppTopBar = (props: AppTopBarProps) => {
 
               {/* Submit / Un-submit / Create Draft button */}
               {isEditable ? (
-                hasFormContext ? (
-                  <AppTopBarSubmit
-                    appMetadata={appMetadata}
-                    appId={appId}
-                    teamId={teamId}
-                    viewMode={viewMode}
-                    onSubmitSuccess={handleSubmitSuccess}
-                    basicInfoRef={basicInfoRef}
-                  />
+                isMiniApp ? (
+                  hasFormContext ? (
+                    <AppTopBarSubmit
+                      appMetadata={appMetadata}
+                      appId={appId}
+                      teamId={teamId}
+                      viewMode={viewMode}
+                      onSubmitSuccess={handleSubmitSuccess}
+                      basicInfoRef={basicInfoRef}
+                    />
+                  ) : (
+                    <DecoratedButton
+                      type="button"
+                      title="Submit for review to the mini app store"
+                      className={clsx("h-12 px-6 py-3", {
+                        hidden:
+                          appMetadata.app_id?.includes("staging") &&
+                          process.env.NEXT_PUBLIC_APP_ENV === "production",
+                      })}
+                      disabled={!canSubmitForReview}
+                      onClick={() =>
+                        router.push(
+                          `${urls.configuration({ team_id: teamId, app_id: appId })}?submitForReview=true`,
+                        )
+                      }
+                    >
+                      <Typography
+                        variant={TYPOGRAPHY.M3}
+                        className="whitespace-nowrap"
+                      >
+                        Submit for review
+                      </Typography>
+                    </DecoratedButton>
+                  )
                 ) : (
+                  // External app — no review path. Keep the button visible but
+                  // disabled so the intent is clear via its hover tooltip.
                   <DecoratedButton
                     type="button"
-                    className={clsx("h-12 px-6 py-3", {
-                      hidden:
-                        appMetadata.app_id?.includes("staging") &&
-                        process.env.NEXT_PUBLIC_APP_ENV === "production",
-                    })}
-                    disabled={!canSubmitForReview}
-                    onClick={() =>
-                      router.push(
-                        `${urls.configuration({ team_id: teamId, app_id: appId })}?submitForReview=true`,
-                      )
-                    }
+                    disabled
+                    title="External apps can't be submitted for review"
+                    className="h-12 px-6 py-3"
                   >
                     <Typography
                       variant={TYPOGRAPHY.M3}

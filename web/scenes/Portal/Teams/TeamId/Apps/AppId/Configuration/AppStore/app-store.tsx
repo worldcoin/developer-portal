@@ -62,10 +62,13 @@ export const AppStoreForm = ({
 
   const supportedLanguages = useWatch({ control, name: "supported_languages" });
 
+  // The store autosave is gated on isMiniApp so external apps have no active
+  // store-form subscription (and flush() no-ops via the enabled guard). The
+  // shared Save button still saves their BasicInformation (app name).
   useAutosaveWithStatus<AppStoreFormValues>({
     id: "app-store",
     form,
-    enabled: isEditable && isEnoughPermissions,
+    enabled: isEditable && isEnoughPermissions && isMiniApp,
     save: async (data, signal) => {
       await submitSilent(data, signal);
     },
@@ -123,43 +126,51 @@ export const AppStoreForm = ({
             />
 
             <SectionDivider />
+
+            <CountriesSection
+              control={control}
+              errors={errors}
+              isEditable={isEditable}
+              isEnoughPermissions={isEnoughPermissions}
+            />
+
+            <SectionDivider />
+
+            <LanguagesSection
+              control={control}
+              errors={errors}
+              isEditable={isEditable}
+              isEnoughPermissions={isEnoughPermissions}
+            />
+
+            <SectionDivider />
+
+            <LocalisationsSection
+              control={control}
+              errors={errors}
+              localisations={localisations}
+              isEditable={isEditable}
+              isEnoughPermissions={isEnoughPermissions}
+              appMetadata={appMetadata}
+              appId={appId}
+              teamId={teamId}
+              supportedLanguages={supportedLanguages}
+              onAutosaveSuccess={() => {
+                refetchAppMetadata();
+                refetchLocalisations();
+              }}
+            />
           </>
         )}
 
-        <CountriesSection
-          control={control}
-          errors={errors}
-          isEditable={isEditable}
-          isEnoughPermissions={isEnoughPermissions}
-        />
-
-        <SectionDivider />
-
-        <LanguagesSection
-          control={control}
-          errors={errors}
-          isEditable={isEditable}
-          isEnoughPermissions={isEnoughPermissions}
-        />
-
-        <SectionDivider />
-
-        <LocalisationsSection
-          control={control}
-          errors={errors}
-          localisations={localisations}
-          isEditable={isEditable}
-          isEnoughPermissions={isEnoughPermissions}
-          appMetadata={appMetadata}
-          appId={appId}
-          teamId={teamId}
-          supportedLanguages={supportedLanguages}
-          onAutosaveSuccess={() => {
-            refetchAppMetadata();
-            refetchLocalisations();
-          }}
-        />
-
+        {/*
+          The Save bar is intentionally always rendered, even for external
+          (non-mini) apps. flushAll() runs through the shared SaveStatus
+          registry and lazily flushes only forms with unsaved changes — for an
+          external app that's just BasicInformation (app name). The app icon
+          uploads immediately via its own mutation. So one Save button covers
+          "whatever form-state is visible" without a separate form.
+        */}
         <div className="fixed bottom-[5.25rem] right-6 z-10 flex items-center gap-x-3 md:bottom-6">
           <SaveStatusIndicator />
           <SaveButton
