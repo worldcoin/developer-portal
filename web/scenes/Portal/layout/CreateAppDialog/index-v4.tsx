@@ -11,6 +11,7 @@ import { SizingWrapper } from "@/components/SizingWrapper";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { getGraphQLErrorCode } from "@/lib/errors";
 import { useRefetchQueries } from "@/lib/use-refetch-queries";
+import { FetchAppsDocument } from "@/scenes/common/apps/graphql/client/fetch-apps.generated";
 import { yupResolver } from "@hookform/resolvers/yup";
 import clsx from "clsx";
 import { useParams, useRouter } from "next/navigation";
@@ -26,7 +27,6 @@ import { EnableWorldId40Content } from "../../Teams/TeamId/Apps/AppId/EnableWorl
 import { SelfManagedTransactionInfoContent } from "../../Teams/TeamId/Apps/AppId/EnableWorldId40/SelfManagedTransactionInfo/SelfManagedTransactionInfoContent";
 import { GenerateNewKeyContent } from "../../Teams/TeamId/Apps/AppId/GenerateNewKey/GenerateNewKeyContent";
 import { UseExistingKeyContent } from "../../Teams/TeamId/Apps/AppId/UseExistingKey/UseExistingKeyContent";
-import { FetchAppsDocument } from "@/scenes/common/apps/graphql/client/fetch-apps.generated";
 import { useRegisterRpMutation } from "./client/register-rp.generated";
 import { createAppSchemaV4, CreateAppSchemaV4 } from "./form-schema-v4";
 import { validateAndInsertAppServerSideV4 } from "./server/v4/submit";

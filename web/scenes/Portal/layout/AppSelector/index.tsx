@@ -10,7 +10,7 @@ import {
 import {
   FetchAppsQuery,
   useFetchAppsQuery,
-} from "@/scenes/common/apps/graphql/client/fetch-apps.generated";
+} from "@/scenes/common/layout/AppSelector/graphql/client/fetch-apps.generated";
 
 import { CaretIcon } from "@/components/Icons/CaretIcon";
 import { CheckmarkCircleIcon } from "@/components/Icons/CheckmarkCircleIcon";

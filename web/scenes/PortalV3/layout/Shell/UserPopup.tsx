@@ -11,7 +11,7 @@ import {
   WORLD_STATUS_URL,
 } from "@/lib/constants";
 import { urls } from "@/lib/urls";
-import { Color } from "@/scenes/common/colors";
+import { Color } from "@/scenes/common/Profile/types";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import Link from "next/link";
 import { CSSProperties, ReactNode } from "react";
