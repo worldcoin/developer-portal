@@ -161,6 +161,8 @@ export const loginCallback = async (req: NextRequest) => {
   }
 
   let invite: InviteQuery["invite"][number] | null = null;
+  // If the user claims
+  let team_id_from_invite: string | null = null;
 
   if (invite_id) {
     try {
@@ -259,6 +261,7 @@ export const loginCallback = async (req: NextRequest) => {
       );
     }
 
+    team_id_from_invite = invite.team_id;
     user = membership.user;
 
     try {
@@ -321,7 +324,8 @@ export const loginCallback = async (req: NextRequest) => {
     }
   }
 
-  const teamId = user?.memberships[0]?.team.id;
+  // If a user just accepted an invite, redirect them to that teams page.
+  const teamId = team_id_from_invite ?? user?.memberships[0]?.team.id;
   let url: string = urls.profile();
   const rawReturnTo = req.nextUrl.searchParams.get("returnTo");
   let returnTo: string | null = null;
