@@ -4,6 +4,7 @@ import { DecoratedButton } from "@/components/DecoratedButton";
 import { LinkIcon } from "@/components/Icons/LinkIcon";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { WORLD_ID_MIGRATION_APP_IDS } from "@/lib/constants";
+import { urls } from "@/lib/urls";
 import {
   deviceLegacy,
   IDKitRequestWidget,
@@ -12,7 +13,12 @@ import {
 import clsx from "clsx";
 import { useCallback, useEffect, useState } from "react";
 import { buildMockRpContext } from "../../../../../lib/rp";
-import type { MigrationState } from "./types";
+import type { MigrationResponse, MigrationState } from "./types";
+
+type WorldIdAccountMigrationProps = {
+  isLinked: boolean;
+  onLinkSuccess?: () => void;
+};
 
 const statusCopy: Record<
   MigrationState["type"],
@@ -23,16 +29,39 @@ const statusCopy: Record<
       "Sign in With World ID method is deprecated. If you had a legacy account, link your account to continue using your teams and apps.",
     className: "text-grey-400",
   },
+  checking: {
+    description: "Verifying your World ID proof.",
+    className: "text-grey-400",
+  },
   error: {
     description: "Try again in a moment.",
     className: "text-system-error-600",
   },
+  already_linked: {
+    description: "This profile already has a World ID account.",
+    className: "text-grey-400",
+  },
+  merged: {
+    description:
+      "Your Sign in with World ID account was merged into this profile. Its teams and apps are now available here.",
+    className: "text-system-success-700",
+  },
+  not_found: {
+    description: "No existing account matched your World ID.",
+    className: "text-grey-400",
+  },
 };
 
-export const WorldIdAccountMigration = () => {
+const isDoneState = (type: MigrationState["type"]) =>
+  type === "merged" || type === "already_linked";
+
+export const WorldIdAccountMigration = (
+  props: WorldIdAccountMigrationProps,
+) => {
+  const { onLinkSuccess } = props;
   const [isOpen, setIsOpen] = useState(false);
   const [migrationState, setMigrationState] = useState<MigrationState>({
-    type: "idle",
+    type: props.isLinked ? "already_linked" : "idle",
   });
 
   const appId =
@@ -44,14 +73,26 @@ export const WorldIdAccountMigration = () => {
         type: "error",
         message: "World ID account migration is not configured.",
       });
+      return;
     }
-  }, [appId]);
+
+    if (props.isLinked) {
+      // Don't clobber the richer "merged" success state when the
+      // me query refetch flips isLinked after a successful migration.
+      setMigrationState((state) =>
+        isDoneState(state.type) ? state : { type: "already_linked" },
+      );
+    }
+  }, [props.isLinked, appId]);
 
   const copy = statusCopy[migrationState.type];
   const description =
     migrationState.type === "error" ? migrationState.message : copy.description;
 
   const startMigrationFlow = useCallback(() => {
+    const appId =
+      WORLD_ID_MIGRATION_APP_IDS[process.env.NEXT_PUBLIC_APP_ENV ?? ""];
+
     if (!appId) {
       setMigrationState({
         type: "error",
@@ -62,41 +103,78 @@ export const WorldIdAccountMigration = () => {
 
     setMigrationState({ type: "idle" });
     setIsOpen(true);
-  }, [appId]);
-
-  const handleSuccess = useCallback(async (result: IDKitResult) => {
-    // The migration flow requests device-legacy proofs, so we expect a v3
-    // result whose first response carries the flat proof fields.
-    if (result.protocol_version !== "3.0") {
-      setMigrationState({
-        type: "error",
-        message: "Unsupported World ID proof for account migration.",
-      });
-      return;
-    }
-
-    const response = result.responses[0];
-    if (!response) {
-      setMigrationState({
-        type: "error",
-        message: "World ID proof is missing.",
-      });
-      return;
-    }
-
-    // Part 1 stops here: the verification + legacy account merge endpoint
-    // lands in the follow-up PR. Log the proof so the flow can be exercised
-    // end-to-end in the meantime.
-    console.log("World ID account migration proof", {
-      proof: response.proof,
-      merkle_root: response.merkle_root,
-      nullifier: response.nullifier,
-      signal_hash: response.signal_hash,
-      verification_level: response.identifier,
-    });
-
-    setMigrationState({ type: "idle" });
   }, []);
+
+  const handleSuccess = useCallback(
+    async (result: IDKitResult) => {
+      // The migration flow requests device-legacy proofs, so we expect a v3
+      // result whose first response carries the flat proof fields.
+      if (result.protocol_version !== "3.0") {
+        setMigrationState({
+          type: "error",
+          message: "Unsupported World ID proof for account migration.",
+        });
+        return;
+      }
+
+      const response = result.responses[0];
+      if (!response) {
+        setMigrationState({
+          type: "error",
+          message: "World ID proof is missing.",
+        });
+        return;
+      }
+
+      setMigrationState({ type: "checking" });
+
+      try {
+        const migrationResponse = await fetch(
+          urls.api.worldIdAccountMigration(),
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              proof: response.proof,
+              merkle_root: response.merkle_root,
+              nullifier: response.nullifier,
+              signal_hash: response.signal_hash,
+              verification_level: response.identifier,
+            }),
+          },
+        );
+
+        const payload = (await migrationResponse.json().catch(() => null)) as
+          | MigrationResponse
+          | { detail?: string }
+          | null;
+
+        if (!migrationResponse.ok || !payload || !("status" in payload)) {
+          throw new Error(
+            (payload && "detail" in payload && payload.detail) ||
+              "There was an error linking this World ID.",
+          );
+        }
+
+        setMigrationState({ type: payload.status });
+
+        if (payload.status === "merged") {
+          // Refresh the me query so world_id_nullifier (and any merged
+          // teams) are reflected across the portal.
+          onLinkSuccess?.();
+        }
+      } catch (error) {
+        setMigrationState({
+          type: "error",
+          message:
+            error instanceof Error
+              ? error.message
+              : "There was an error linking this World ID.",
+        });
+      }
+    },
+    [onLinkSuccess],
+  );
 
   return (
     <div className="grid w-full gap-y-5 rounded-12 border border-grey-200 p-6">
