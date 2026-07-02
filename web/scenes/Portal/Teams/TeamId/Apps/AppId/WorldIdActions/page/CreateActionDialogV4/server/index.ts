@@ -18,7 +18,10 @@ export async function validateAndInsertActionV4(
   const isAllowed = await getIsUserAllowedToUpdateApp(app_id);
 
   if (!isAllowed) {
-    return errorFormAction({ message: "Permission denied" });
+    // Authorization rejection (caller lacks update permission on the app) is
+    // expected business logic, not a server fault — log at "warn" so it does
+    // not surface as an error in Error Tracking.
+    return errorFormAction({ message: "Permission denied", logLevel: "warn" });
   }
 
   const client = await getAPIServiceGraphqlClient();
