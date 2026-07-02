@@ -19,7 +19,7 @@ import { CSSProperties, ReactNode } from "react";
 export type PortalUser = { name: string; email?: string };
 
 const itemClass =
-  "flex cursor-pointer items-center gap-2 rounded-8 px-2.5 py-1.5 font-gta text-14 outline-none data-[highlighted]:bg-muted";
+  "flex cursor-pointer items-center gap-2 rounded-8 px-2.5 py-1.5 font-gta text-14 outline-none data-[highlighted]:bg-grey-100";
 
 const LinkItem = (props: {
   href: string;
@@ -67,9 +67,9 @@ const UserAvatar = (props: { name: string; color: Color | null }) => {
       style={
         color
           ? ({
-              backgroundColor: color[100],
-              color: color[500],
-            } as CSSProperties)
+            backgroundColor: color[100],
+            color: color[500],
+          } as CSSProperties)
           : { backgroundColor: "#e5e7eb", color: "#6b7280" }
       }
     >
@@ -83,7 +83,7 @@ export const UserPopup = (props: { user: PortalUser; color: Color | null }) => {
 
   return (
     <DropdownMenu.Root>
-      <DropdownMenu.Trigger className="hover:bg-muted focus-visible:ring-ring flex w-full items-center gap-2.5 rounded-8 p-2 text-left outline-none focus-visible:ring-2">
+      <DropdownMenu.Trigger className="hover:bg-grey-100 focus-visible:ring-ring flex w-full items-center gap-2.5 rounded-8 p-2 text-left outline-none focus-visible:ring-2">
         <UserAvatar name={user.name} color={color} />
         <span className="min-w-0 flex-1 truncate font-gta text-14 font-medium">
           {user.name}
