@@ -358,6 +358,10 @@ describe("test /login-callback", () => {
     const inviteEmail = "invited-world-user@example.com";
     const team_id = "team_2222214f17eda7e0ededba7ded6b4222";
 
+    await integrationDBExecuteQuery(
+      `UPDATE public."user" SET "auth0Id" = '${validNullifierSessionUser.sub}', name = '${validNullifierSessionUser.name}' WHERE world_id_nullifier = '0x123'`,
+    );
+
     const { rows: insertedInvite } = (await integrationDBExecuteQuery(
       `INSERT INTO public.invite (team_id, expires_at, email) VALUES ('${team_id}', '2030-01-01 00:00:00+00', '${inviteEmail}') RETURNING  id, team_id, email`,
     )) as { rows: { id: string; team_id: string; email: string }[] };
@@ -405,6 +409,11 @@ describe("test /login-callback", () => {
     ).toBeTruthy();
 
     expect(getSession).toHaveReturned();
+    expect(
+      updateSession.mock.calls[0][2].user.hasura.memberships.some(
+        (m: { team: { id: string } }) => m.team.id === team_id,
+      ),
+    ).toBeTruthy();
     expect(response.headers.get("location")).not.toContain("/unauthorized");
   });
 });

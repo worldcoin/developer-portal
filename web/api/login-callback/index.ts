@@ -257,6 +257,8 @@ export const loginCallback = async (req: NextRequest) => {
       );
     }
 
+    user = membership.user;
+
     try {
       const deleteInviteResult = await DeleteInviteSdk(client).DeleteInvite({
         invite_id,
