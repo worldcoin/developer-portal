@@ -20,16 +20,16 @@ import {
 } from "./graphql/server/fetch-memberships.generated";
 import { getNetworkStats } from "./server/get-network-stats";
 
-const LOGIN_HEADLINE = "A new standard of Identity";
-const LOGIN_HEADLINE_STEP_COUNT = LOGIN_HEADLINE.length;
-const LOGIN_HEADLINE_TYPING_MS = 70;
-const LOGIN_HEADLINE_TYPING_DURATION_S =
-  (LOGIN_HEADLINE_STEP_COUNT * LOGIN_HEADLINE_TYPING_MS) / 1000;
+const HOME_HEADLINE = "A new standard of Identity";
+const HOME_HEADLINE_STEP_COUNT = HOME_HEADLINE.length;
+const HOME_HEADLINE_TYPING_MS = 70;
+const HOME_HEADLINE_TYPING_DURATION_S =
+  (HOME_HEADLINE_STEP_COUNT * HOME_HEADLINE_TYPING_MS) / 1000;
 
 // Scoped to this page only (renders just here, not app-wide). `overflow-x:
 // clip` clips horizontal overflow WITHOUT creating a scroll container, so it
 // (unlike `hidden`) does not break the sticky header.
-const LOGIN_PAGE_STYLE = `
+const HOME_PAGE_STYLE = `
 html,
 body,
 main {
@@ -128,7 +128,7 @@ main {
   padding-bottom: 0.12em;
   border-right: 0.075em solid currentColor;
   animation:
-    typing-headline-reveal ${LOGIN_HEADLINE_TYPING_DURATION_S}s steps(${LOGIN_HEADLINE_STEP_COUNT}, end) forwards,
+    typing-headline-reveal ${HOME_HEADLINE_TYPING_DURATION_S}s steps(${HOME_HEADLINE_STEP_COUNT}, end) forwards,
     typing-headline-caret 0.8s step-end infinite;
 }
 
@@ -261,7 +261,7 @@ const FOOTER_COLUMNS = [
 
 // Product cards in the hero-adjacent showcase section. Each plays a muted
 // Prismic clip on hover and has the shining border (see .product-card styles
-// in LOGIN_PAGE_STYLE).
+// in HOME_PAGE_STYLE).
 const PRODUCT_CARDS: Array<{
   href: string;
   label: string;
@@ -289,7 +289,7 @@ const PRODUCT_CARDS: Array<{
   },
 ];
 
-export const LoginPage = async () => {
+export const HomePage = async () => {
   let session = await auth0.getSession();
   const user = session?.user as Auth0SessionUser["user"];
 
@@ -306,7 +306,7 @@ export const LoginPage = async () => {
       membership = data.membership;
     } catch (error) {
       logger.error(
-        "Error fetching memberships on login page with active session",
+        "Error fetching memberships on home page with active session",
         { error },
       );
 
@@ -326,7 +326,7 @@ export const LoginPage = async () => {
 
   return (
     <div className="min-h-full overflow-x-hidden bg-white text-grey-900">
-      <style dangerouslySetInnerHTML={{ __html: LOGIN_PAGE_STYLE }} />
+      <style dangerouslySetInnerHTML={{ __html: HOME_PAGE_STYLE }} />
 
       <section className="landing-intro grid bg-white">
         <div
@@ -346,14 +346,14 @@ export const LoginPage = async () => {
 
           <div className="relative z-10 px-4 pb-8 pt-8 md:pt-14 lg:px-6 lg:pt-16">
             <div className="mx-auto w-full max-w-[calc(100vw-32px)] lg:max-w-[calc(100vw-48px)]">
-              <h1 className="max-w-[1020px] font-twk text-[48px] font-medium leading-[0.94] tracking-[0] text-grey-900 sm:text-[68px] md:text-[88px] lg:text-[104px]">
+              <h1 className="max-w-[1020px] font-twk text-[clamp(22px,(100vw-80px)/10.4,98px)] font-medium leading-[0.94] tracking-[0] text-grey-900">
                 <span
                   className="typing-headline-wrap"
-                  data-text={LOGIN_HEADLINE}
+                  data-text={HOME_HEADLINE}
                 >
                   <span className="typing-headline">
                     <span className="typing-headline__text">
-                      {LOGIN_HEADLINE}
+                      {HOME_HEADLINE}
                     </span>
                   </span>
                 </span>

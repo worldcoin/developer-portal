@@ -10,11 +10,11 @@ type MobileNavLink = {
 
 const linkClassName = "rounded-xl px-4 py-4 no-underline hover:bg-grey-50";
 
-// Client island for the login header's mobile menu. Kept separate so the
+// Client island for the home header's mobile menu. Kept separate so the
 // layout stays a server component. The menu is a native <details>; we only
 // close it imperatively (a bare <details> would stay open after tapping a
 // link that opens in a new tab).
-export const LoginMobileNav = ({
+export const HomeMobileNav = ({
   links,
 }: {
   links: ReadonlyArray<MobileNavLink>;
