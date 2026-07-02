@@ -3,14 +3,15 @@ import { CopyButton } from "@/components/CopyButton";
 import { FloatingInput } from "@/components/FloatingInput";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Role_Enum } from "@/graphql/graphql";
-import { Auth0SessionUser } from "@/lib/types";
 import { inferHttps } from "@/lib/schema";
+import { Auth0SessionUser } from "@/lib/types";
 import { checkUserPermissions } from "@/lib/utils";
+import { FetchAppMetadataQuery } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/graphql/client/fetch-app-metadata.generated";
 import { useApolloClient } from "@apollo/client";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useAtom } from "jotai";
-import React, {
+import {
   forwardRef,
   useCallback,
   useEffect,
@@ -20,10 +21,9 @@ import React, {
 } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
-import { FetchAppMetadataQuery } from "../graphql/client/fetch-app-metadata.generated";
-import { isMiniAppAtom, viewModeAtom } from "../layout/ImagesProvider";
 import * as yup from "yup";
 import { useAutosaveWithStatus } from "../hook/use-autosave-with-status";
+import { isMiniAppAtom, viewModeAtom } from "../layout/ImagesProvider";
 import {
   BasicInformationFormValues,
   reviewSchema,
