@@ -28,8 +28,8 @@ const APPS_TO_SHOW_UNVERIFIED_LOGO = [
   "app_staging_79640e8c674aedb3f5969a30f80ff6f9",
 ];
 
-const EXPERIMENTAL_FACE_AUTH_CONFIG_PARAMETERS = {
-  [ExperimentalFaceAuthConfig.Enabled]:
+const EXPERIMENTAL_FACE_AUTH_CONFIG_V1_PARAMETERS = {
+  [ExperimentalFaceAuthConfig.V1]:
     "precheck/experimental-face-auth-config/enabled",
 } satisfies Partial<Record<ExperimentalFaceAuthConfig, string>>;
 
@@ -64,14 +64,14 @@ async function getExperimentalFaceAuthConfig(
   try {
     const enabledAppIds =
       (await global.ParameterStore?.getParameter<string[]>(
-        EXPERIMENTAL_FACE_AUTH_CONFIG_PARAMETERS[
-          ExperimentalFaceAuthConfig.Enabled
+        EXPERIMENTAL_FACE_AUTH_CONFIG_V1_PARAMETERS[
+          ExperimentalFaceAuthConfig.V1
         ],
         [],
       )) ?? [];
 
     if (Array.isArray(enabledAppIds) && enabledAppIds.includes(app_id)) {
-      return ExperimentalFaceAuthConfig.Enabled;
+      return ExperimentalFaceAuthConfig.V1;
     }
   } catch {
     return ExperimentalFaceAuthConfig.Disabled;

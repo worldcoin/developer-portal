@@ -52,7 +52,9 @@ export enum CanUserVerifyType {
 
 // Options for the `experimental_face_auth_config` attribute in the /precheck endpoint
 export enum ExperimentalFaceAuthConfig {
-  Enabled = "enabled",
+  // Versions are mapped on the client side to the corresponding experimental face auth config. The server only returns the version string.
+  V1 = "v1",
+  // Default to Disabled and clients should use their default face auth config
   Disabled = "disabled",
 }
 

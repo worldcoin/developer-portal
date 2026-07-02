@@ -186,7 +186,7 @@ describe("/api/v1/precheck/[app_id]", () => {
     const responseBody = await response.json();
     expect(responseBody).toMatchObject({
       id: "app_staging_6d1c9fb86751a40d952749022db1c1",
-      experimental_face_auth_config: "enabled",
+      experimental_face_auth_config: "v1",
     });
     expect(global.ParameterStore?.getParameter).toHaveBeenCalledWith(
       "precheck/experimental-face-auth-config/enabled",
@@ -282,7 +282,7 @@ describe("/api/v1/precheck/[app_id]", () => {
     const responseBody = await response.json();
     expect(responseBody).toMatchObject({
       id: "app_staging_6d1c9fb86751a40d952749022db1c1",
-      experimental_face_auth_config: "enabled",
+      experimental_face_auth_config: "v1",
       action: {
         action: "swag_pack_2022",
         status: "active",
