@@ -8,6 +8,7 @@ import { useMemo, useRef, useState } from "react";
 import Skeleton from "react-loading-skeleton";
 import { useParams } from "next/navigation";
 import { MiniAppConfiguration } from "./MiniAppConfiguration";
+import { DangerZoneSection } from "./Danger/DangerZoneSection";
 import { AppTopBar } from "./AppTopBar";
 import { FormSkeleton } from "./AppTopBar/FormSkeleton";
 import { AppStoreForm } from "./AppStore/app-store";
@@ -163,11 +164,23 @@ export const AppProfilePage = ({ params }: AppProfilePageProps) => {
           />
         </SizingWrapper>
 
-        <SizingWrapper variant="nav" gridClassName="order-5 pt-10 pb-24">
+        <SizingWrapper variant="nav" gridClassName="order-5 pb-10 pt-10">
           <AppStoreForm
             appId={appId}
             teamId={teamId}
             appMetadata={appMetadata as AppMetadata}
+          />
+        </SizingWrapper>
+
+        <SizingWrapper variant="nav" gridClassName="order-6">
+          <div className="border-t border-grey-100" />
+        </SizingWrapper>
+
+        <SizingWrapper variant="nav" gridClassName="order-7 pb-24 pt-8">
+          <DangerZoneSection
+            appId={appId}
+            teamId={teamId}
+            appName={appMetadata.name}
           />
         </SizingWrapper>
       </SaveStatusProvider>
