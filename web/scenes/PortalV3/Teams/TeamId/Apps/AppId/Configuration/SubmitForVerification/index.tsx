@@ -1,27 +1,27 @@
 "use client";
 
-import { DecoratedButton } from "@/components/DecoratedButton";
 import { ChevronLeftIcon } from "@/components/Icons/ChevronLeftIcon";
+import { DecoratedButton } from "@/components/DecoratedButton";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Role_Enum } from "@/graphql/graphql";
 import { Auth0SessionUser } from "@/lib/types";
 import { checkUserPermissions } from "@/lib/utils";
+import { useRemoveFromReview } from "@/scenes/Portal/Teams/TeamId/Apps/common/hooks/use-remove-from-review";
 import { FetchAppMetadataQuery } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/graphql/client/fetch-app-metadata.generated";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import clsx from "clsx";
 import { useAtomValue } from "jotai";
-import { usePathname, useRouter } from "next/navigation";
 import { MutableRefObject, useMemo, useState } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
 import { AppStoreFormValues } from "../AppStore/FormSchema/types";
 import { useAppStoreForm } from "../AppStore/hooks/useAppStoreForm";
 import { AppMetadata } from "../AppStore/types/AppStoreFormTypes";
-import { AppTopBar } from "../AppTopBar";
 import { BasicInformationHandle } from "../BasicInformation";
 import { useAutosaveWithStatus } from "../hook/use-autosave-with-status";
 import { isMiniAppAtom } from "../layout/ImagesProvider";
 import { SaveStatusIndicator } from "../SaveStatus";
+import { SubmitAppModal } from "../AppTopBar/SubmitAppModal";
 import { STEPS } from "./constants";
 import { Stepper } from "./Stepper";
 import { AppIconStep } from "./steps/AppIconStep";
@@ -30,6 +30,8 @@ import { LocalizationStep } from "./steps/LocalizationStep";
 import { PublishStep } from "./steps/PublishStep";
 import { ShowcaseStep } from "./steps/ShowcaseStep";
 import { UrlsStep } from "./steps/UrlsStep";
+import { SubmittedForReviewScreen } from "./SubmittedForReviewScreen";
+import { useSubmitForReview } from "./use-submit-for-review";
 
 type VerificationWizardProps = {
   appId: `app_${string}`;
@@ -38,7 +40,6 @@ type VerificationWizardProps = {
   appMetadata: AppMetadata;
   teamName: string;
   basicInfoRef: MutableRefObject<BasicInformationHandle | null>;
-  onResolve: () => void;
 };
 
 /**
@@ -47,6 +48,14 @@ type VerificationWizardProps = {
  * stepper. It reuses the existing form context: <useAppStoreForm> and the
  * app-store autosave run once here (exactly like <AppStoreForm> does), and each
  * step scene just composes existing section components with the shared control.
+ *
+ * The submit pipeline lives in <useSubmitForReview> (a duplicate of the one in
+ * <AppTopBarSubmit>, wired only here) — the last step's footer button calls it
+ * directly, with no <AppTopBar> rectangle and no `?submitForReview=true` URL
+ * side-channel. Once the app is `awaiting_review`, this component swaps the
+ * stepper/flow for <SubmittedForReviewScreen>, which lists the app + its status
+ * and exposes an Un-submit action that returns the app to `unverified` and
+ * lands the wizard back on the last step with fields editable again.
  *
  * Must be rendered inside <AppStoreFormProvider> + <SaveStatusProvider> (the
  * configuration page already provides both).
@@ -58,7 +67,6 @@ export const VerificationWizard = ({
   appMetadata,
   teamName,
   basicInfoRef,
-  onResolve,
 }: VerificationWizardProps) => {
   const { user } = useUser() as Auth0SessionUser;
   const form = useFormContext<AppStoreFormValues>();
@@ -99,13 +107,24 @@ export const VerificationWizard = ({
   });
 
   const [step, setStep] = useState(0);
-  const router = useRouter();
-  const pathname = usePathname();
+  const [showSubmitAppModal, setShowSubmitAppModal] = useState(false);
 
   const enIndex = useMemo(() => {
     const index = localisations.findIndex((l) => l.language === "en");
     return index === -1 ? 0 : index;
   }, [localisations]);
+
+  const { submitForReview, isSubmittingForReview } = useSubmitForReview({
+    appId,
+    appMetadata,
+    basicInfoRef,
+    onSubmitSuccess: () => setShowSubmitAppModal(true),
+  });
+
+  const isInReview = appMetadata.verification_status === "awaiting_review";
+  const { removeFromReview, loading: removeLoading } = useRemoveFromReview({
+    metadataId: appMetadata.id,
+  });
 
   const onAutosaveSuccess = () => {
     refetchAppMetadata();
@@ -118,10 +137,7 @@ export const VerificationWizard = ({
 
   const goNext = () => {
     if (isLastStep) {
-      // Reuse the existing, fully-validated submit pipeline in <AppTopBar>: it
-      // auto-runs when `?submitForReview=true` is present, validating the app
-      // store schema and opening <SubmitAppModal> on success. No duplication.
-      router.replace(`${pathname}?submitForReview=true`);
+      void submitForReview();
       return;
     }
     setStep((s) => Math.min(s + 1, STEPS.length - 1));
@@ -129,22 +145,39 @@ export const VerificationWizard = ({
 
   const goBack = () => setStep((s) => Math.max(s - 1, 0));
 
+  const hasRequiredImagesForAppStore = Boolean(
+    appMetadata?.showcase_img_urls &&
+      appMetadata?.showcase_img_urls?.length >= 1,
+  );
+
+  // Once submitted, replace the stepper/flow with the post-submit screen.
+  // Un-submitting flips the status back to `unverified` (handled inside
+  // useRemoveFromReview's refetch), and we pre-position the stepper on the
+  // last step so the user lands back on the editable publish form.
+  if (isInReview) {
+    return (
+      <SubmittedForReviewScreen
+        appMetadata={appMetadata}
+        unsubmitLoading={removeLoading}
+        onUnsubmit={() => {
+          setStep(STEPS.length - 1);
+          void removeFromReview();
+        }}
+      />
+    );
+  }
+
   return (
     <>
-      <SizingWrapper variant="nav" gridClassName="order-2 pb-6 pt-10">
-        <AppTopBar
-          appId={appId}
-          teamId={teamId}
-          app={app}
-          onResolve={onResolve}
-          hasFormContext
-          basicInfoRef={basicInfoRef}
-        />
-      </SizingWrapper>
-
-      <SizingWrapper variant="nav" gridClassName="order-3">
-        <div className="border-t border-grey-100" />
-      </SizingWrapper>
+      <SubmitAppModal
+        open={showSubmitAppModal}
+        setOpen={setShowSubmitAppModal}
+        appMetadataId={appMetadata.id}
+        canSubmitAppStore={hasRequiredImagesForAppStore}
+        teamId={teamId}
+        appId={appId}
+        isDeveloperAllowListing={appMetadata?.is_developer_allow_listing}
+      />
 
       <SizingWrapper variant="nav" gridClassName="order-4 pb-8 pt-8">
         <div className="max-w-[700px]">
@@ -250,11 +283,15 @@ export const VerificationWizard = ({
             <DecoratedButton
               type="button"
               onClick={goNext}
-              disabled={isLastStep && !canSubmit}
+              disabled={(isLastStep && !canSubmit) || isSubmittingForReview}
               className="h-11"
             >
               <Typography variant={TYPOGRAPHY.M3} className="whitespace-nowrap">
-                {isLastStep ? "Submit for review" : "Next"}
+                {isSubmittingForReview
+                  ? "Processing..."
+                  : isLastStep
+                    ? "Submit for review"
+                    : "Next"}
               </Typography>
             </DecoratedButton>
           </div>

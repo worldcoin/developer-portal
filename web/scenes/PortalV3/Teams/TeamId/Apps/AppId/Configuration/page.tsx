@@ -139,7 +139,6 @@ export const AppProfilePage = ({ params }: AppProfilePageProps) => {
             appMetadata={appMetadata as AppMetadata}
             teamName={teamName ?? ""}
             basicInfoRef={basicInfoRef}
-            onResolve={() => setShowResolveModal(true)}
           />
         ) : (
           <>
