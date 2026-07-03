@@ -9,8 +9,6 @@ import { TransactionIcon } from "@/components/Icons/TransactionIcon";
 import { UserAccountIcon } from "@/components/Icons/UserAccountIcon";
 import { WalletIcon } from "@/components/Icons/WalletIcon";
 import { SizingWrapper } from "@/components/SizingWrapper";
-import { Tab, Tabs } from "@/components/Tabs";
-import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { urls } from "@/lib/urls";
 import { usePathname, useSelectedLayoutSegment } from "next/navigation";
 import { ReactNode } from "react";
@@ -73,53 +71,6 @@ export const AppIdChrome = ({
   if (showWorldId40Nav) {
     return (
       <div className="flex min-h-dvh flex-col">
-        <div className="md:border-b md:border-grey-100">
-          <SizingWrapper gridClassName="hidden md:grid" variant="nav">
-            <Tabs className="m-auto font-gta">
-              <Tab
-                href={`/teams/${teamId}/apps/${appId}`}
-                underlined
-                segment={null}
-              >
-                <Typography variant={TYPOGRAPHY.R4}>Dashboard</Typography>
-              </Tab>
-
-              <Tab
-                href={
-                  hasRpRegistration
-                    ? urls.worldId40({ team_id: teamId, app_id: appId })
-                    : hasLegacyActions
-                      ? urls.actions({ team_id: teamId, app_id: appId })
-                      : urls.enableWorldId4({ team_id: teamId, app_id: appId })
-                }
-                underlined
-                active={isWorldIdSegment}
-                segment={"world-id-4-0"}
-              >
-                <Typography variant={TYPOGRAPHY.R4}>World ID</Typography>
-              </Tab>
-
-              <Tab
-                href={`/teams/${teamId}/apps/${appId}/configuration`}
-                underlined
-                segment={"configuration"}
-              >
-                <Typography variant={TYPOGRAPHY.R4}>Configuration</Typography>
-              </Tab>
-
-              {/* User should go to develop path when clicking mini app tab */}
-              <Tab
-                href={miniAppDevelopPath}
-                underlined
-                active={isMiniAppSegment}
-                segment={"mini-app"}
-              >
-                <Typography variant={TYPOGRAPHY.R4}>Mini App</Typography>
-              </Tab>
-            </Tabs>
-          </SizingWrapper>
-        </div>
-
         {isWorldIdSegment && (
           <div className="md:border-b md:border-grey-100 md:bg-grey-50">
             <SizingWrapper variant="nav">
@@ -181,7 +132,6 @@ export const AppIdChrome = ({
                     segment: "mini-app",
                     active: isMiniAppNotifications,
                   },
-
                 ]}
               />
             </SizingWrapper>
@@ -229,73 +179,6 @@ export const AppIdChrome = ({
 
   return (
     <div className="flex min-h-dvh flex-col">
-      <div className="md:border-b md:border-grey-100">
-        <SizingWrapper gridClassName="hidden md:grid" variant="nav">
-          <Tabs className="m-auto font-gta">
-            <Tab
-              href={`/teams/${teamId}/apps/${appId}`}
-              underlined
-              segment={null}
-            >
-              <Typography variant={TYPOGRAPHY.R4}>Dashboard</Typography>
-            </Tab>
-
-            <Tab
-              href={`/teams/${teamId}/apps/${appId}/configuration`}
-              underlined
-              segment={"configuration"}
-            >
-              <Typography variant={TYPOGRAPHY.R4}>Configuration</Typography>
-            </Tab>
-
-            <Tab
-              href={urls.worldIdActions({ team_id: teamId, app_id: appId })}
-              underlined
-              segment={"world-id-actions"}
-            >
-              <Typography variant={TYPOGRAPHY.R4}>Incognito actions</Typography>
-            </Tab>
-
-            {!isOnChainApp && (
-              <Tab
-                href={`/teams/${teamId}/apps/${appId}/sign-in-with-world-id`}
-                underlined
-                segment={"sign-in-with-world-id"}
-              >
-                <Typography variant={TYPOGRAPHY.R4}>
-                  Sign in with World ID
-                </Typography>
-              </Tab>
-            )}
-
-            <Tab
-              href={miniAppTransactionsPath}
-              underlined
-              segment={"mini-app"}
-              active={isMiniAppTransactions}
-            >
-              <Typography variant={TYPOGRAPHY.R4}>Transactions</Typography>
-            </Tab>
-            <Tab
-              href={miniAppNotificationsPath}
-              underlined
-              segment={"mini-app"}
-              active={isMiniAppNotifications}
-            >
-              <Typography variant={TYPOGRAPHY.R4}>Notifications</Typography>
-            </Tab>
-
-            <Tab
-              href={`/teams/${teamId}/api-keys`}
-              underlined
-              segment={"API Keys"}
-            >
-              <Typography variant={TYPOGRAPHY.R4}>API Keys</Typography>
-            </Tab>
-          </Tabs>
-        </SizingWrapper>
-      </div>
-
       {children}
 
       <BottomBar className="order-last mt-auto">
