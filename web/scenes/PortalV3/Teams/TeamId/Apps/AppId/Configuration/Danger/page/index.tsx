@@ -1,19 +1,18 @@
 "use client";
 import { DecoratedButton } from "@/components/DecoratedButton";
+import { ErrorPage } from "@/components/ErrorPage";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Role_Enum } from "@/graphql/graphql";
 import { Auth0SessionUser } from "@/lib/types";
 import { checkUserPermissions, truncateString } from "@/lib/utils";
+import { useFetchAppMetadataQuery } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/graphql/client/fetch-app-metadata.generated";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import clsx from "clsx";
 import { useAtom } from "jotai";
-import { ErrorPage } from "@/components/ErrorPage";
 import { useParams } from "next/navigation";
 import { useMemo, useState } from "react";
-import { useFetchAppMetadataQuery } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/graphql/client/fetch-app-metadata.generated";
 import { viewModeAtom } from "../../layout/ImagesProvider";
-import { AppTopBar } from "../../AppTopBar";
 import { DeleteModal } from "./DeleteModal";
 
 type AppProfileDangerPageProps = {
@@ -59,9 +58,6 @@ export const AppProfileDangerPage = ({ params }: AppProfileDangerPageProps) => {
   } else {
     return (
       <>
-        <SizingWrapper variant="nav" gridClassName="order-1 py-10">
-          <AppTopBar appId={appId} teamId={teamId} app={app} />
-        </SizingWrapper>
 
         <SizingWrapper variant="nav" gridClassName="order-2">
           <div className="border-t border-grey-100" />
