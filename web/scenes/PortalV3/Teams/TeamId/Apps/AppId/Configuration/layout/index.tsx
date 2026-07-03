@@ -1,11 +1,4 @@
-import { SizingWrapper } from "@/components/SizingWrapper";
-import { Role_Enum } from "@/graphql/graphql";
-import { urls } from "@/lib/urls";
-import { Auth0SessionUser } from "@/lib/types";
-import { checkUserPermissions } from "@/lib/utils";
-import { auth0 } from "@/lib/auth0";
 import { ReactNode } from "react";
-import { SectionSubTabs } from "@/scenes/Portal/Teams/TeamId/Apps/AppId/common/SectionSubTabs";
 import { ImagesProvider } from "./ImagesProvider";
 
 type Params = {
@@ -19,44 +12,15 @@ type AppProfileLayout = {
   children: ReactNode;
 };
 
-export const AppProfileLayout = async (props: AppProfileLayout) => {
-  const params = props.params;
-  const session = await auth0.getSession();
-  const user = session?.user as Auth0SessionUser["user"];
-
-  const isEnoughPermissions = checkUserPermissions(user, params.teamId ?? "", [
-    Role_Enum.Owner,
-  ]);
-
+// The configuration section used to surface an "Overview / Danger zone"
+// <SectionSubTabs> bar here. With only two entries it wasn't worth a whole
+// bar, so it was replaced by a "Danger zone" button in <AppTopBar>'s action
+// row (Owner-gated). This layout now just provides the <ImagesProvider> context
+// the configuration and danger pages share.
+export const AppProfileLayout = (props: AppProfileLayout) => {
   return (
     <div className="flex flex-col items-start">
-      <div className="order-2 md:order-1 md:w-full md:border-b md:border-grey-100 md:bg-grey-50">
-        <SizingWrapper variant="nav">
-          <SectionSubTabs
-            items={[
-              {
-                label: "Overview",
-                href: urls.configuration({
-                  team_id: params!.teamId!,
-                  app_id: params!.appId!,
-                }),
-                segment: null,
-              },
-              {
-                label: "Danger zone",
-                href: `${urls.configuration({
-                  team_id: params!.teamId!,
-                  app_id: params!.appId!,
-                })}/danger`,
-                segment: "danger",
-                hidden: !isEnoughPermissions,
-              },
-            ]}
-          />
-        </SizingWrapper>
-      </div>
-
-      <ImagesProvider teamId={params?.teamId} appId={params?.appId}>
+      <ImagesProvider teamId={props.params?.teamId} appId={props.params?.appId}>
         {props.children}
       </ImagesProvider>
     </div>

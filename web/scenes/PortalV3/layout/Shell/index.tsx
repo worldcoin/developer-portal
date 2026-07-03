@@ -1,6 +1,7 @@
 import { calculateColorFromString } from "@/lib/calculate-color-from-string";
 import { ReactNode } from "react";
 import { AppsDropdown } from "./AppsDropdown";
+import { DangerZoneButton } from "./DangerZoneButton";
 import { SidebarNav } from "./SidebarNav";
 import { TeamsDropdown } from "./TeamsDropdown";
 import { UserPopup } from "./UserPopup";
@@ -38,6 +39,7 @@ export const PortalShell = (props: {
       <div className="flex min-w-0 flex-col">
         <header className="border-border flex h-14 items-center gap-3 border-b px-4">
           <AppsDropdown />
+          <DangerZoneButton />
         </header>
         <main className="min-w-0 flex-1 overflow-auto">{children}</main>
       </div>
