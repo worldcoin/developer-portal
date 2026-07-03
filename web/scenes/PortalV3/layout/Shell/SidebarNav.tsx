@@ -32,54 +32,56 @@ export const SidebarNav = () => {
 
   const appItems = teamId
     ? [
-        {
-          label: "Dashboard",
-          href: appBase ?? appsListHref ?? "#",
-          exact: !!appBase,
-          dimmed: !appBase,
-        },
-        {
-          label: "World ID",
-          href: appBase
-            ? urls.worldId40({ team_id: teamId, app_id: appId! })
-            : appsListHref ?? "#",
-          dimmed: !appBase,
-        },
-        {
-          label: "Submit For Review",
-          href: appBase
-            ? urls.configuration({ team_id: teamId, app_id: appId! })
-            : appsListHref ?? "#",
-          dimmed: !appBase,
-        },
-        {
-          label: "Mini App",
-          href: appBase ? `${appBase}/mini-app` : appsListHref ?? "#",
-          dimmed: !appBase,
-        },
-      ]
+      {
+        label: "Dashboard",
+        href: appBase ?? appsListHref ?? "#",
+        exact: !!appBase,
+        dimmed: !appBase,
+      },
+      {
+        label: "World ID Configuration",
+        href: appBase
+          ? urls.worldId40({ team_id: teamId, app_id: appId! })
+          : appsListHref ?? "#",
+        dimmed: !appBase,
+      },
+      {
+        label: "Submit For Review",
+        href: appBase
+          ? urls.configuration({ team_id: teamId, app_id: appId! })
+          : appsListHref ?? "#",
+        dimmed: !appBase,
+      },
+      {
+        label: "Mini App Developer",
+        href: appBase
+          ? urls.miniAppDevelop({ team_id: teamId, app_id: appId! })
+          : appsListHref ?? "#",
+        dimmed: !appBase,
+      },
+    ]
     : [];
 
   const teamItems: { label: string; href: string; exact?: boolean }[] = teamId
     ? [
-        {
-          label: "Members",
-          href: urls.teams({ team_id: teamId }),
-          exact: true,
-        },
-        // No urls helper exists for api-keys (v2 hardcodes this path too).
-        ...(canSeeApiKeys
-          ? [{ label: "API Keys", href: `/teams/${teamId}/api-keys` }]
-          : []),
-        ...(canSeeSettings
-          ? [
-              {
-                label: "Settings",
-                href: urls.teamSettings({ team_id: teamId }),
-              },
-            ]
-          : []),
-      ]
+      {
+        label: "Members",
+        href: urls.teams({ team_id: teamId }),
+        exact: true,
+      },
+      // No urls helper exists for api-keys (v2 hardcodes this path too).
+      ...(canSeeApiKeys
+        ? [{ label: "API Keys", href: `/teams/${teamId}/api-keys` }]
+        : []),
+      ...(canSeeSettings
+        ? [
+          {
+            label: "Settings",
+            href: urls.teamSettings({ team_id: teamId }),
+          },
+        ]
+        : []),
+    ]
     : [];
 
   const isActive = (href: string, exact?: boolean) =>

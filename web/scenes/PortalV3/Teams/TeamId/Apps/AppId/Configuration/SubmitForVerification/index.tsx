@@ -11,8 +11,8 @@ import { useRemoveFromReview } from "@/scenes/Portal/Teams/TeamId/Apps/common/ho
 import { FetchAppMetadataQuery } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/graphql/client/fetch-app-metadata.generated";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import clsx from "clsx";
-import { useAtomValue } from "jotai";
-import { MutableRefObject, useMemo, useState } from "react";
+import { useAtomValue, useSetAtom } from "jotai";
+import { MutableRefObject, useEffect, useMemo, useState } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
 import { AppStoreFormValues } from "../AppStore/FormSchema/types";
 import { useAppStoreForm } from "../AppStore/hooks/useAppStoreForm";
@@ -93,6 +93,19 @@ export const VerificationWizard = ({
   );
 
   const isMiniApp = useAtomValue(isMiniAppAtom);
+  const setIsMiniApp = useSetAtom(isMiniAppAtom);
+  // Initialize mini-app mode from the persisted app_mode before any step
+  // renders. <MiniAppConfiguration> (which also sets this atom) only mounts in
+  // the final Publish step, so without this the earlier icon/details steps see
+  // the atom's default `false` and hide required mini-app fields (content card
+  // image, category, support, compliance, humans-only) — then submit validates
+  // with the real app_mode and errors on fields the wizard never showed.
+  // Toggling the mode in Publish still updates the atom optimistically; this
+  // effect only re-runs when app_mode actually changes (e.g. after a save
+  // refetch), so it never fights the optimistic update.
+  useEffect(() => {
+    setIsMiniApp(appMetadata.app_mode === "mini-app");
+  }, [appMetadata.app_mode, setIsMiniApp]);
   const supportedLanguages = useWatch({ control, name: "supported_languages" });
 
   // Single autosave registration for every app-store field across all steps —
