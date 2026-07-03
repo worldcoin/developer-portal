@@ -1,0 +1,9 @@
+mutation UpdateIntegrationUrl($id: String!, $integration_url: String!) {
+  update_app_metadata_by_pk(
+    pk_columns: { id: $id }
+    _set: { integration_url: $integration_url }
+  ) {
+    id
+    integration_url
+  }
+}
