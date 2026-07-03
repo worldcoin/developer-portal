@@ -58,7 +58,6 @@ export const AppProfileDangerPage = ({ params }: AppProfileDangerPageProps) => {
   } else {
     return (
       <>
-
         <SizingWrapper variant="nav" gridClassName="order-2">
           <div className="border-t border-grey-100" />
         </SizingWrapper>

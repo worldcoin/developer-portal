@@ -280,7 +280,6 @@ export const SetupForm = ({
           void flushAll();
         }}
       >
-
         {!isExternal && (
           <>
             <div className="grid gap-y-5">
