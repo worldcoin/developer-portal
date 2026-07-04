@@ -16,13 +16,8 @@ jest.mock("next/navigation", () => ({
 
 jest.mock("@/lib/urls", () => ({
   urls: {
-    configuration: ({
-      team_id,
-      app_id,
-    }: {
-      team_id: string;
-      app_id: string;
-    }) => `/teams/${team_id}/apps/${app_id}/configuration`,
+    configuration: ({ team_id, app_id }: { team_id: string; app_id: string }) =>
+      `/teams/${team_id}/apps/${app_id}/configuration`,
   },
 }));
 
