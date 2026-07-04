@@ -6,14 +6,15 @@ import { urls } from "@/lib/urls";
 import { checkUserPermissions } from "@/lib/utils";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { useParams, usePathname } from "next/navigation";
+import { useCurrentAppId } from "./AppsDropdown";
 import { NavItem } from "./NavItem";
 
 export const SidebarNav = () => {
   const { user } = useUser() as Auth0SessionUser;
   const pathname = usePathname() ?? "";
-  const params = useParams<{ teamId?: string; appId?: string }>();
+  const params = useParams<{ teamId?: string }>();
   const teamId = params?.teamId;
-  const appId = params?.appId;
+  const appId = useCurrentAppId();
 
   const canSeeApiKeys = checkUserPermissions(user, teamId ?? "", [
     Role_Enum.Owner,
@@ -26,8 +27,10 @@ export const SidebarNav = () => {
   const appBase =
     teamId && appId ? urls.app({ team_id: teamId, app_id: appId }) : undefined;
 
-  // When no app is selected, app items still render but link to the apps
-  // resolver (urls.apps) so clicking them prompts the user to pick an app.
+  // Fallback for when no app has been visited yet this session (appId comes
+  // from useCurrentAppId, which remembers the last app opened under this
+  // team). The apps resolver redirects to an arbitrary app's dashboard, so it
+  // must only ever be the last resort.
   const appsListHref = teamId ? urls.apps({ team_id: teamId }) : undefined;
 
   const appItems = teamId
