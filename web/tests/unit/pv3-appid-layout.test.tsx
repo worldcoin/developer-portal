@@ -2,7 +2,6 @@
 import "@testing-library/jest-dom";
 import { render, screen } from "@testing-library/react";
 import React from "react";
-import { FetchAppEnvQuery } from "@/scenes/Portal/Teams/TeamId/Apps/AppId/layout/graphql/server/fetch-app-env.generated";
 
 // #region Mocks
 const getIsUserAllowedToReadApp = jest.fn();
@@ -11,39 +10,40 @@ jest.mock("@/lib/permissions", () => ({
     getIsUserAllowedToReadApp(...args),
 }));
 
-const fetchAppEnvCached = jest.fn();
-jest.mock(
-  "@/scenes/Portal/Teams/TeamId/Apps/AppId/layout/server/fetch-app-env",
-  () => ({
-    fetchAppEnvCached: (...args: unknown[]) => fetchAppEnvCached(...args),
-  }),
-);
-
-jest.mock("@/lib/logger", () => ({
-  logger: { info: jest.fn(), warn: jest.fn(), error: jest.fn() },
-}));
-
 jest.mock("@/components/ErrorPage", () => ({
   ErrorPage: ({ statusCode }: { statusCode: number }) => (
     <div data-testid="error" data-status={statusCode} />
   ),
 }));
 
+// The World ID sub-tabs are a server component fetched behind <Suspense>; stub
+// it so the layout test stays focused on the auth/existence guard and the slot
+// wiring. Its own behavior lives in pv3-appid-worldid-subtabs.test.tsx.
+jest.mock(
+  "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/layout/AppWorldIdSubTabs",
+  () => ({
+    AppWorldIdSubTabs: () => <div data-testid="world-id-tabs" />,
+  }),
+);
+
+// Assert what the layout hands the chrome: the page children and a worldIdTabs
+// slot (never the removed hasRpRegistration/hasLegacyActions flags).
 jest.mock(
   "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/layout/AppIdChrome",
   () => ({
     AppIdChrome: ({
-      hasRpRegistration,
-      hasLegacyActions,
+      worldIdTabs,
+      children,
     }: {
-      hasRpRegistration: boolean;
-      hasLegacyActions: boolean;
+      worldIdTabs: React.ReactNode;
+      children: React.ReactNode;
     }) => (
       <div
         data-testid="chrome"
-        data-rp={String(hasRpRegistration)}
-        data-legacy={String(hasLegacyActions)}
-      />
+        data-has-worldid-tabs={worldIdTabs ? "true" : "false"}
+      >
+        {children}
+      </div>
     ),
   }),
 );
@@ -55,22 +55,6 @@ import { AppIdLayout } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/layout";
 const teamId = "team_1";
 const appId = "app_9cdd0a714aec9ed17dca660bc9ffe72a";
 
-const makeAppEnv = (overrides: {
-  rpRegistrations?: Array<{ rp_id: string }>;
-  actions?: unknown[];
-}): FetchAppEnvQuery =>
-  ({
-    app: [
-      {
-        id: appId,
-        engine: "cloud",
-        is_staging: false,
-        rp_registration: overrides.rpRegistrations ?? [],
-      },
-    ],
-    action: (overrides.actions ?? []) as FetchAppEnvQuery["action"],
-  }) as FetchAppEnvQuery;
-
 const renderLayout = async (params: { teamId?: string; appId?: string }) =>
   render(await AppIdLayout({ params, children: <div data-testid="page" /> }));
 
@@ -79,74 +63,39 @@ const status = () => screen.getByTestId("error").getAttribute("data-status");
 
 beforeEach(() => {
   jest.clearAllMocks();
-  // clearAllMocks clears call data but not implementations, so reset the
-  // resolved/rejected value between tests to avoid leakage.
-  fetchAppEnvCached.mockReset();
   getIsUserAllowedToReadApp.mockResolvedValue(true);
 });
 
 // #region auth / existence guard
 describe("v3 AppIdLayout [guard]", () => {
-  it("returns 404 when the user is not allowed to read the app (and never fetches app-env)", async () => {
+  it("returns 404 when the user is not allowed to read the app", async () => {
     getIsUserAllowedToReadApp.mockResolvedValue(false);
-    await renderLayout({ teamId, appId });
-    expect(status()).toBe("404");
-    expect(fetchAppEnvCached).not.toHaveBeenCalled();
-  });
-
-  it("returns 404 when appId is missing, short-circuiting the DB check and fetch", async () => {
-    await renderLayout({ teamId });
-    expect(status()).toBe("404");
-    expect(getIsUserAllowedToReadApp).not.toHaveBeenCalled();
-    expect(fetchAppEnvCached).not.toHaveBeenCalled();
-  });
-
-  it("returns 404 when the app cannot be resolved from FetchAppEnv", async () => {
-    fetchAppEnvCached.mockResolvedValue({
-      app: [],
-      action: [],
-    } as unknown as FetchAppEnvQuery);
     await renderLayout({ teamId, appId });
     expect(status()).toBe("404");
     expect(screen.queryByTestId("chrome")).not.toBeInTheDocument();
   });
 
-  it("returns 500 when FetchAppEnv throws — a dependency failure is not masked as 404", async () => {
-    fetchAppEnvCached.mockRejectedValue(new Error("upstream down"));
-    await renderLayout({ teamId, appId });
-    expect(status()).toBe("500");
+  it("returns 404 when appId is missing, short-circuiting the DB check", async () => {
+    await renderLayout({ teamId });
+    expect(status()).toBe("404");
+    expect(getIsUserAllowedToReadApp).not.toHaveBeenCalled();
   });
 });
 // #endregion
 
-// #region success → chrome flags
+// #region success → chrome + world-id tabs slot
 describe("v3 AppIdLayout [renders chrome]", () => {
-  it("passes hasRpRegistration=true when the app has an RP registration", async () => {
-    fetchAppEnvCached.mockResolvedValue(
-      makeAppEnv({ rpRegistrations: [{ rp_id: "rp_abc" }] }),
-    );
+  it("renders the chrome with the page children when authorized", async () => {
     await renderLayout({ teamId, appId });
-    const chrome = screen.getByTestId("chrome");
-    expect(chrome.getAttribute("data-rp")).toBe("true");
-    expect(chrome.getAttribute("data-legacy")).toBe("false");
+    expect(screen.getByTestId("chrome")).toBeInTheDocument();
+    expect(screen.getByTestId("page")).toBeInTheDocument();
   });
 
-  it("passes hasLegacyActions=true when the app has legacy actions", async () => {
-    fetchAppEnvCached.mockResolvedValue(
-      makeAppEnv({ actions: [{ id: "a_1" }] }),
-    );
+  it("passes a World ID sub-tabs slot to the chrome (does not fetch app-env itself)", async () => {
     await renderLayout({ teamId, appId });
-    const chrome = screen.getByTestId("chrome");
-    expect(chrome.getAttribute("data-legacy")).toBe("true");
-    expect(chrome.getAttribute("data-rp")).toBe("false");
-  });
-
-  it("passes both flags false for an app with no RP registration and no legacy actions", async () => {
-    fetchAppEnvCached.mockResolvedValue(makeAppEnv({}));
-    await renderLayout({ teamId, appId });
-    const chrome = screen.getByTestId("chrome");
-    expect(chrome.getAttribute("data-rp")).toBe("false");
-    expect(chrome.getAttribute("data-legacy")).toBe("false");
+    expect(
+      screen.getByTestId("chrome").getAttribute("data-has-worldid-tabs"),
+    ).toBe("true");
   });
 });
 // #endregion

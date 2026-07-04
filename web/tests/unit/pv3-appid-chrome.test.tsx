@@ -19,7 +19,7 @@ jest.mock("@/components/SizingWrapper", () => ({
 }));
 
 // Expose the (visible) items SectionSubTabs receives so tests can assert the
-// hidden-flag logic and active state without depending on Tab markup.
+// Mini App active state without depending on Tab markup.
 jest.mock(
   "@/scenes/Portal/Teams/TeamId/Apps/AppId/common/SectionSubTabs",
   () => ({
@@ -55,6 +55,10 @@ import { AppIdChrome } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/layout/Ap
 
 // #region Test Data
 const params = { teamId: "team_1", appId: "app_1" };
+// The World ID sub-tabs are a server-rendered slot (AppWorldIdSubTabs); the
+// chrome's only job is to mount it on World ID segments. Its own visibility
+// logic is covered by pv3-appid-worldid-subtabs.test.tsx.
+const worldIdTabs = <div data-testid="world-id-tabs-slot" />;
 // #endregion
 
 beforeEach(() => {
@@ -68,56 +72,40 @@ describe("v3 AppIdChrome [missing team/app]", () => {
   it("renders only children when teamId/appId are absent", () => {
     useSelectedLayoutSegment.mockReturnValue("mini-app");
     render(
-      <AppIdChrome params={{}} hasRpRegistration hasLegacyActions>
+      <AppIdChrome params={{}} worldIdTabs={worldIdTabs}>
         <div data-testid="page" />
       </AppIdChrome>,
     );
     expect(screen.getByTestId("page")).toBeInTheDocument();
     expect(screen.queryByTestId("subtabs")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("world-id-tabs-slot")).not.toBeInTheDocument();
   });
 });
 // #endregion
 
-// #region World ID sub-tabs
-describe("v3 AppIdChrome [World ID sub-tabs]", () => {
-  it("shows World ID 4.0 + Actions and hides Legacy for an app with an RP registration only", () => {
-    useSelectedLayoutSegment.mockReturnValue("world-id-4-0");
+// #region World ID slot mounting
+describe("v3 AppIdChrome [World ID slot]", () => {
+  it.each(["world-id-4-0", "world-id-actions", "actions"])(
+    "mounts the World ID sub-tabs slot on the %s segment",
+    (segment) => {
+      useSelectedLayoutSegment.mockReturnValue(segment);
+      render(
+        <AppIdChrome params={params} worldIdTabs={worldIdTabs}>
+          <div />
+        </AppIdChrome>,
+      );
+      expect(screen.getByTestId("world-id-tabs-slot")).toBeInTheDocument();
+    },
+  );
+
+  it("does not mount the World ID slot on non-World-ID segments", () => {
+    useSelectedLayoutSegment.mockReturnValue("mini-app");
     render(
-      <AppIdChrome params={params} hasRpRegistration hasLegacyActions={false}>
+      <AppIdChrome params={params} worldIdTabs={worldIdTabs}>
         <div />
       </AppIdChrome>,
     );
-    expect(screen.getByTestId("subtabs")).toBeInTheDocument();
-    expect(screen.getByText("World ID 4.0")).toBeInTheDocument();
-    expect(screen.getByText("Actions")).toBeInTheDocument();
-    expect(screen.queryByText("World ID 3.0 Legacy")).not.toBeInTheDocument();
-  });
-
-  it("shows only Legacy for an app with legacy actions but no RP registration", () => {
-    useSelectedLayoutSegment.mockReturnValue("actions");
-    render(
-      <AppIdChrome params={params} hasRpRegistration={false} hasLegacyActions>
-        <div />
-      </AppIdChrome>,
-    );
-    expect(screen.getByText("World ID 3.0 Legacy")).toBeInTheDocument();
-    expect(screen.queryByText("World ID 4.0")).not.toBeInTheDocument();
-    expect(screen.queryByText("Actions")).not.toBeInTheDocument();
-  });
-
-  it("renders no sub-tab bar when the app has neither RP registration nor legacy actions", () => {
-    useSelectedLayoutSegment.mockReturnValue("world-id-4-0");
-    render(
-      <AppIdChrome
-        params={params}
-        hasRpRegistration={false}
-        hasLegacyActions={false}
-      >
-        <div data-testid="page" />
-      </AppIdChrome>,
-    );
-    expect(screen.queryByTestId("subtabs")).not.toBeInTheDocument();
-    expect(screen.getByTestId("page")).toBeInTheDocument();
+    expect(screen.queryByTestId("world-id-tabs-slot")).not.toBeInTheDocument();
   });
 });
 // #endregion
@@ -128,7 +116,7 @@ describe("v3 AppIdChrome [Mini App sub-tabs]", () => {
     useSelectedLayoutSegment.mockReturnValue("mini-app");
     usePathname.mockReturnValue("/mini/transactions");
     render(
-      <AppIdChrome params={params} hasRpRegistration hasLegacyActions>
+      <AppIdChrome params={params} worldIdTabs={worldIdTabs}>
         <div />
       </AppIdChrome>,
     );
@@ -150,12 +138,13 @@ describe("v3 AppIdChrome [Configuration]", () => {
   it("renders no sub-tabs and no primary app-nav tabs (sidebar owns nav; Danger zone moved into the page)", () => {
     useSelectedLayoutSegment.mockReturnValue("configuration");
     render(
-      <AppIdChrome params={params} hasRpRegistration hasLegacyActions>
+      <AppIdChrome params={params} worldIdTabs={worldIdTabs}>
         <div data-testid="page" />
       </AppIdChrome>,
     );
     expect(screen.getByTestId("page")).toBeInTheDocument();
     expect(screen.queryByTestId("subtabs")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("world-id-tabs-slot")).not.toBeInTheDocument();
     // The main nav (Dashboard / World ID / Configuration / Mini App) is never
     // rendered by the v3 chrome — it lives in the sidebar shell.
     expect(screen.queryByText("Dashboard")).not.toBeInTheDocument();

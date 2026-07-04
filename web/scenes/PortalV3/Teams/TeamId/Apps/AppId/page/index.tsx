@@ -1,10 +1,12 @@
-import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
+import { ErrorPage } from "@/components/ErrorPage";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { Role_Enum } from "@/graphql/graphql";
-import { Auth0SessionUser } from "@/lib/types";
 import { auth0 } from "@/lib/auth0";
+import { logger } from "@/lib/logger";
+import { Auth0SessionUser } from "@/lib/types";
 import { BanMessageDialog } from "@/scenes/Portal/Teams/TeamId/Apps/common/BanMessageDialog";
-import { getSdk as getAppEnvSdk } from "@/scenes/Portal/Teams/TeamId/Apps/AppId/layout/graphql/server/fetch-app-env.generated";
+import { fetchAppEnvCached } from "@/scenes/Portal/Teams/TeamId/Apps/AppId/layout/server/fetch-app-env";
+import { FetchAppEnvQuery } from "@/scenes/Portal/Teams/TeamId/Apps/AppId/layout/graphql/server/fetch-app-env.generated";
 import { BanStatusSection } from "./BanStatusSection";
 import { DashboardWrapper } from "./DashboardWrapper";
 import { VerificationStatusSection } from "./VerificationStatusSection";
@@ -25,8 +27,19 @@ export const AppIdPage = async (props: {
 }) => {
   const { teamId, appId } = await props.params;
 
-  const client = await getAPIServiceGraphqlClient();
-  const appEnvData = await getAppEnvSdk(client).FetchAppEnv({ id: appId });
+  // Single source of app-env for this navigation. `fetchAppEnvCached` is
+  // React `cache()`-wrapped, so the World ID sub-tabs (AppWorldIdSubTabs) reuse
+  // this exact result rather than issuing a second FetchAppEnv. The layout no
+  // longer fetches app-env, so failures surface here — don't mask an upstream
+  // dependency failure as an empty dashboard.
+  let appEnvData: FetchAppEnvQuery;
+  try {
+    appEnvData = await fetchAppEnvCached(appId);
+  } catch (error) {
+    logger.error("AppIdPage (v3) FetchAppEnv failed", { error, appId, teamId });
+    return <ErrorPage statusCode={500} title="Failed to load app" />;
+  }
+
   const appInfo = appEnvData.app[0];
   const hasRpRegistration = (appInfo?.rp_registration?.length ?? 0) > 0;
 

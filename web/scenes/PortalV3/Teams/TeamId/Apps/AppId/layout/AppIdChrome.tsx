@@ -8,8 +8,12 @@ import { ReactNode } from "react";
 
 type AppIdChromeProps = {
   params: { teamId?: string; appId?: string };
-  hasRpRegistration: boolean;
-  hasLegacyActions: boolean;
+  /**
+   * World ID section sub-tabs, provided as a server-rendered slot (see
+   * `AppWorldIdSubTabs`) so their app-env fetch streams in via <Suspense>
+   * without blocking this client chrome. Only mounted on World ID segments.
+   */
+  worldIdTabs: ReactNode;
   children: ReactNode;
 };
 
@@ -22,8 +26,7 @@ type AppIdChromeProps = {
  */
 export const AppIdChrome = ({
   params,
-  hasRpRegistration,
-  hasLegacyActions,
+  worldIdTabs,
   children,
 }: AppIdChromeProps) => {
   const pathname = usePathname();
@@ -58,34 +61,7 @@ export const AppIdChrome = ({
 
   return (
     <>
-      {isWorldIdSegment && (hasRpRegistration || hasLegacyActions) && (
-        <div className="md:border-b md:border-grey-100 md:bg-grey-50">
-          <SizingWrapper variant="nav">
-            <SectionSubTabs
-              items={[
-                {
-                  label: "World ID 4.0",
-                  href: `/teams/${teamId}/apps/${appId}/world-id-4-0`,
-                  segment: "world-id-4-0",
-                  hidden: !hasRpRegistration,
-                },
-                {
-                  label: "Actions",
-                  href: `/teams/${teamId}/apps/${appId}/world-id-actions`,
-                  segment: "world-id-actions",
-                  hidden: !hasRpRegistration,
-                },
-                {
-                  label: "World ID 3.0 Legacy",
-                  href: urls.actions({ team_id: teamId, app_id: appId }),
-                  segment: "actions",
-                  hidden: !hasLegacyActions,
-                },
-              ]}
-            />
-          </SizingWrapper>
-        </div>
-      )}
+      {isWorldIdSegment && worldIdTabs}
 
       {isMiniAppSegment && (
         <div className="md:border-b md:border-grey-100 md:bg-grey-50">
