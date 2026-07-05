@@ -60,7 +60,10 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
   const [imageToCrop, setImageToCrop] = useState<File | null>(null);
 
   useEffect(() => {
-    if (open) setShowDialog(true);
+    if (open) {
+      setImageToCrop(null);
+      setShowDialog(true);
+    }
   }, [open]);
   const [verifiedImageError, setVerifiedImageError] = useState(false);
   const [isSecondUpload, setIsSecondUpload] = useState(false);
@@ -96,13 +99,14 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
 
       const saveFileType = fileTypeEnding === "jpeg" ? "jpg" : fileTypeEnding;
 
+      // No FetchAppMetadata refetch here: the stored filename rarely changes and
+      // the browser/CDN cache the image path, so fresh data only shows after the
+      // full reload below anyway (which refetches everything).
       await updateLogoMutation({
         variables: {
           id: appMetadataId,
           fileName: `${imageType}.${saveFileType}`,
         },
-
-        refetchQueries: [FetchAppMetadataDocument],
       });
 
       // TODO: This is a hotfix since the path names are fixed the browser caches the image and doesn't update it.
@@ -191,8 +195,9 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
     return getCDNImageUrl(appId, logoFile);
   }, [appId, logoFile, viewMode]);
 
+  // Leave `imageToCrop` set while the dialog animates out — clearing it here
+  // swaps the panel back to the edit view mid-close. It is reset on open.
   const handleClose = () => {
-    setImageToCrop(null);
     setShowDialog(false);
     onClose?.();
   };
@@ -359,7 +364,10 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
         <>
           <Button
             type="button"
-            onClick={() => setShowDialog(true)}
+            onClick={() => {
+              setImageToCrop(null);
+              setShowDialog(true);
+            }}
             className={clsx(
               "absolute -bottom-2 -right-2 rounded-full border-2 border-grey-200 bg-white p-2 text-grey-500 hover:bg-grey-50",
               { hidden: !editable || viewMode === "verified" },
