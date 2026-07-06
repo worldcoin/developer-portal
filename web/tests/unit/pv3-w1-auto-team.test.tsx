@@ -1,6 +1,7 @@
 /** @jest-environment jsdom */
 import "@testing-library/jest-dom";
 import { render, screen, waitFor } from "@testing-library/react";
+import { StrictMode } from "react";
 
 const invalidate = jest.fn().mockResolvedValue(undefined);
 jest.mock("@auth0/nextjs-auth0/client", () => ({
@@ -52,14 +53,28 @@ it("failure → loud error card with manual escape hatch, no redirect", async ()
 });
 
 it("posts exactly once under StrictMode double-effect", async () => {
-  global.fetch = jest.fn().mockResolvedValue({
-    ok: true,
-    json: async () => ({ returnTo: "/t" }),
-  }) as never;
-  const { rerender } = render(
-    <AutoTeamBootstrap defaultName="T" hasUser={false} />,
+  global.fetch = jest
+    .fn()
+    .mockResolvedValue({
+      ok: true,
+      json: async () => ({ returnTo: "/t" }),
+    }) as never;
+  render(
+    <StrictMode>
+      <AutoTeamBootstrap defaultName="T" hasUser={false} />
+    </StrictMode>,
   );
-  rerender(<AutoTeamBootstrap defaultName="T" hasUser={false} />);
   await waitFor(() => expect(push).toHaveBeenCalled());
-  expect(global.fetch).toHaveBeenCalledTimes(1); // idempotence guard (useRef)
+  expect(global.fetch).toHaveBeenCalledTimes(1);
+});
+
+it("network failure (fetch rejects) → error card, no redirect", async () => {
+  global.fetch = jest
+    .fn()
+    .mockRejectedValue(new Error("network down")) as never;
+  render(<AutoTeamBootstrap defaultName="T" hasUser={false} />);
+  await waitFor(() =>
+    expect(screen.getByText(/couldn.t set up your workspace/i)).toBeTruthy(),
+  );
+  expect(push).not.toHaveBeenCalled();
 });
