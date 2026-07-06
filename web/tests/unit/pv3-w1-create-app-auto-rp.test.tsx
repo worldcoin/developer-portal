@@ -114,8 +114,8 @@ const fillAndSubmit = async (name = "My App") => {
 
 const renderDialog = () => {
   const onClose = jest.fn();
-  render(<CreateAppDialogV4 open onClose={onClose} />);
-  return { onClose };
+  const view = render(<CreateAppDialogV4 open onClose={onClose} />);
+  return { onClose, rerender: view.rerender };
 };
 
 // No posthog capture payload should ever contain the raw private key.
@@ -155,7 +155,9 @@ describe("CreateAppDialogV4 — auto RP registration", () => {
             mode: "managed",
             signer_address: "0xADDR1",
           },
-          context: { fetchOptions: { timeout: 30000 } },
+          context: {
+            fetchOptions: { signal: expect.any(AbortSignal) },
+          },
         }),
       ),
     );
@@ -174,7 +176,7 @@ describe("CreateAppDialogV4 — auto RP registration", () => {
 
     expect(replace).toHaveBeenCalledWith("/teams/team_1/apps/app_123");
     expect(refresh).toHaveBeenCalled();
-    expect(onClose).toHaveBeenCalledWith(false);
+    await waitFor(() => expect(onClose).toHaveBeenCalledWith(false));
   });
 
   it("registerRp rejects: shows register-failed with retry/continue, app-created copy", async () => {
@@ -267,5 +269,72 @@ describe("CreateAppDialogV4 — auto RP registration", () => {
 
     expect(onClose).not.toHaveBeenCalled();
     expect(screen.getByText("0xPRIV1")).toBeInTheDocument();
+  });
+
+  it("Escape on register-failed DOES close the dialog (proves the key-ready guard is a real block, not a vacuous no-op)", async () => {
+    validateAndInsertAppServerSideV4.mockResolvedValue({
+      success: true,
+      message: "App created successfully",
+      app_id: "app_555",
+    });
+    registerRpMock.mockRejectedValue(apolloError("internal_error"));
+
+    const { onClose } = renderDialog();
+    await fillAndSubmit();
+
+    expect(await screen.findByText("Retry registration")).toBeInTheDocument();
+
+    fireEvent.keyDown(document, { key: "Escape", code: "Escape" });
+
+    await waitFor(() => expect(onClose).toHaveBeenCalledWith(false));
+  });
+
+  it("explicit exit fully resets the dialog: reopening after 'I saved my key' shows the create form, not the previous app's key", async () => {
+    validateAndInsertAppServerSideV4.mockResolvedValue({
+      success: true,
+      message: "App created successfully",
+      app_id: "app_123",
+    });
+    registerRpMock.mockResolvedValue({
+      data: { register_rp: { rp_id: "rp_1" } },
+    });
+
+    const { onClose, rerender } = renderDialog();
+    await fillAndSubmit();
+
+    expect(await screen.findByText("0xPRIV1")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByText("I saved my key — go to my app"));
+    await waitFor(() => expect(onClose).toHaveBeenCalledWith(false));
+
+    // Dialog stays mounted in the Shell across client-side navigation:
+    // simulate the parent driving `open` false then true again on reopen.
+    rerender(<CreateAppDialogV4 open={false} onClose={onClose} />);
+    rerender(<CreateAppDialogV4 open onClose={onClose} />);
+
+    expect(screen.getByTestId("input-app-name")).toBeInTheDocument();
+    expect(screen.queryByText("0xPRIV1")).not.toBeInTheDocument();
+  });
+
+  it("registration times out (abort) lands in register-failed with a working exit, using an AbortSignal", async () => {
+    validateAndInsertAppServerSideV4.mockResolvedValue({
+      success: true,
+      message: "App created successfully",
+      app_id: "app_777",
+    });
+    const abortError = new DOMException(
+      "The operation was aborted",
+      "AbortError",
+    );
+    registerRpMock.mockRejectedValue(abortError);
+
+    renderDialog();
+    await fillAndSubmit();
+
+    expect(await screen.findByText("Retry registration")).toBeInTheDocument();
+    expect(screen.getByText("Continue without setup")).toBeInTheDocument();
+
+    const [callArgs] = registerRpMock.mock.calls[0];
+    expect(callArgs.context.fetchOptions.signal).toBeInstanceOf(AbortSignal);
   });
 });

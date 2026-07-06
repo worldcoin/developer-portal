@@ -101,6 +101,15 @@ export const CreateAppDialogV4 = (props: CreateAppDialogV4Props) => {
         setSignerKey({ address: key.address, privateKey: key.privateKey });
       }
 
+      // Browser fetch has no `timeout` init — Apollo just spreads fetchOptions
+      // into the fetch call, so a plain `timeout: 30000` field is a silent
+      // no-op. Bind it for real with AbortController (same pattern as
+      // `fetchWithTimeout` in web/lib/utils.ts): an abort rejects the
+      // mutation, which the existing catch below routes to register-failed
+      // (Retry + Continue exits) instead of trapping the user on the spinner.
+      const timeoutController = new AbortController();
+      const timeoutId = setTimeout(() => timeoutController.abort(), 30_000);
+
       try {
         const { data } = await registerRp({
           variables: {
@@ -110,7 +119,7 @@ export const CreateAppDialogV4 = (props: CreateAppDialogV4Props) => {
           },
           context: {
             fetchOptions: {
-              timeout: 30000,
+              signal: timeoutController.signal,
             },
           },
         });
@@ -137,11 +146,16 @@ export const CreateAppDialogV4 = (props: CreateAppDialogV4Props) => {
           return;
         }
 
-        const detail =
-          error instanceof Error ? error.message : "Registration failed";
+        const detail = timeoutController.signal.aborted
+          ? "Registration timed out — retry or continue without setup"
+          : error instanceof Error
+            ? error.message
+            : "Registration failed";
         posthog.capture("v3_auto_rp_failed", { app_id: appId, detail });
         setRegisterError(detail);
         setStep("register-failed");
+      } finally {
+        clearTimeout(timeoutId);
       }
     },
     [registerRp, signerKey],
@@ -225,6 +239,10 @@ export const CreateAppDialogV4 = (props: CreateAppDialogV4Props) => {
 
   // Single exit for key-ready ("I saved my key") and register-failed
   // ("Continue without setup"): the app page owns everything from here.
+  // Routes through the full-reset `onClose` (not props.onClose directly) —
+  // the dialog stays mounted across client-side navigation, so leaving
+  // step/signerKey/createdAppId set would re-display THIS app's private key
+  // if the dialog is reopened for a different app later.
   const goToApp = useCallback(() => {
     if (!teamId || !createdAppId) {
       toast.error(
@@ -234,8 +252,8 @@ export const CreateAppDialogV4 = (props: CreateAppDialogV4Props) => {
     }
     router.replace(`/teams/${teamId}/apps/${createdAppId}`);
     router.refresh();
-    props.onClose(false);
-  }, [teamId, createdAppId, router, props]);
+    onClose();
+  }, [teamId, createdAppId, router, onClose]);
 
   const handleDownloadKey = useCallback(() => {
     if (!signerKey) {
