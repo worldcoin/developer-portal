@@ -1,9 +1,9 @@
 import { ErrorPage } from "@/components/ErrorPage";
 import { logger } from "@/lib/logger";
 import { getIsUserAllowedToReadApp } from "@/lib/permissions";
+import { AppEnvFlagsSync } from "@/scenes/PortalV3/layout/Shell/SidebarNav";
 import { fetchAppEnvCached } from "@/scenes/Portal/Teams/TeamId/Apps/AppId/layout/server/fetch-app-env";
 import { ReactNode } from "react";
-import { AppIdChrome } from "./AppIdChrome";
 
 type Params = {
   teamId?: string;
@@ -55,12 +55,13 @@ export const AppIdLayout = async (props: AppIdLayoutProps) => {
   }
 
   return (
-    <AppIdChrome
-      params={params}
-      hasRpRegistration={hasRpRegistration}
-      hasLegacyActions={hasLegacyActions}
-    >
+    <>
+      <AppEnvFlagsSync
+        appId={params.appId!}
+        hasRpRegistration={hasRpRegistration}
+        hasLegacyActions={hasLegacyActions}
+      />
       {props.children}
-    </AppIdChrome>
+    </>
   );
 };
