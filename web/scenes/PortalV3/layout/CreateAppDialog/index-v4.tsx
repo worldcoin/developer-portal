@@ -87,22 +87,31 @@ export const CreateAppDialogV4 = (props: CreateAppDialogV4Props) => {
     defaultValues,
   });
 
-  // Generates a fresh managed signer key and registers the RP for the app.
-  // Runs automatically after create, and again from "Retry registration".
+  // Generates a managed signer key and registers the RP for the app. Runs
+  // automatically after create, and again from "Retry registration" — reuses
+  // the already-generated key on retry so a retry after a lost response
+  // re-sends the SAME signer_address instead of orphaning the first key.
   const runRegistration = useCallback(
     async (appId: string) => {
       setRegisterError(null);
       setStep("registering");
 
-      const wallet = Wallet.createRandom();
-      setSignerKey({ address: wallet.address, privateKey: wallet.privateKey });
+      const key = signerKey ?? Wallet.createRandom();
+      if (!signerKey) {
+        setSignerKey({ address: key.address, privateKey: key.privateKey });
+      }
 
       try {
         const { data } = await registerRp({
           variables: {
             app_id: appId,
             mode: "managed",
-            signer_address: wallet.address,
+            signer_address: key.address,
+          },
+          context: {
+            fetchOptions: {
+              timeout: 30000,
+            },
           },
         });
 
@@ -135,7 +144,7 @@ export const CreateAppDialogV4 = (props: CreateAppDialogV4Props) => {
         setStep("register-failed");
       }
     },
-    [registerRp],
+    [registerRp, signerKey],
   );
 
   const submit = useCallback(
@@ -203,6 +212,17 @@ export const CreateAppDialogV4 = (props: CreateAppDialogV4Props) => {
     props.onClose(false);
   }, [defaultValues, props, reset]);
 
+  // Implicit dismissal (Escape/backdrop) from headlessui. While a one-time
+  // key is in play ("registering"/"key-ready") it must not be silently
+  // discarded, so those steps ignore the dismissal entirely; other steps
+  // fall back to the same reset-and-close as the explicit button.
+  const handleDialogClose = useCallback(() => {
+    if (step === "registering" || step === "key-ready") {
+      return;
+    }
+    onClose();
+  }, [step, onClose]);
+
   // Single exit for key-ready ("I saved my key") and register-failed
   // ("Continue without setup"): the app page owns everything from here.
   const goToApp = useCallback(() => {
@@ -240,7 +260,7 @@ export const CreateAppDialogV4 = (props: CreateAppDialogV4Props) => {
   }, [signerKey]);
 
   return (
-    <Dialog open={props.open} onClose={onClose} className="z-50 ">
+    <Dialog open={props.open} onClose={handleDialogClose} className="z-50 ">
       <DialogPanel
         className={clsx("fixed inset-0 overflow-y-scroll p-0", props.className)}
       >
