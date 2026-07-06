@@ -29,24 +29,24 @@ jest.mock("@/components/ErrorPage", () => ({
   ),
 }));
 
-jest.mock(
-  "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/layout/AppIdChrome",
-  () => ({
-    AppIdChrome: ({
-      hasRpRegistration,
-      hasLegacyActions,
-    }: {
-      hasRpRegistration: boolean;
-      hasLegacyActions: boolean;
-    }) => (
-      <div
-        data-testid="chrome"
-        data-rp={String(hasRpRegistration)}
-        data-legacy={String(hasLegacyActions)}
-      />
-    ),
-  }),
-);
+jest.mock("@/scenes/PortalV3/layout/Shell/SidebarNav", () => ({
+  AppEnvFlagsSync: ({
+    appId,
+    hasRpRegistration,
+    hasLegacyActions,
+  }: {
+    appId: string;
+    hasRpRegistration: boolean;
+    hasLegacyActions: boolean;
+  }) => (
+    <div
+      data-testid="flags-sync"
+      data-app-id={appId}
+      data-rp={String(hasRpRegistration)}
+      data-legacy={String(hasLegacyActions)}
+    />
+  ),
+}));
 
 import { AppIdLayout } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/layout";
 // #endregion
@@ -108,7 +108,7 @@ describe("v3 AppIdLayout [guard]", () => {
     } as unknown as FetchAppEnvQuery);
     await renderLayout({ teamId, appId });
     expect(status()).toBe("404");
-    expect(screen.queryByTestId("chrome")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("flags-sync")).not.toBeInTheDocument();
   });
 
   it("returns 500 when FetchAppEnv throws — a dependency failure is not masked as 404", async () => {
@@ -119,34 +119,36 @@ describe("v3 AppIdLayout [guard]", () => {
 });
 // #endregion
 
-// #region success → chrome flags
-describe("v3 AppIdLayout [renders chrome]", () => {
-  it("passes hasRpRegistration=true when the app has an RP registration", async () => {
+// #region success → sidebar flags + children
+describe("v3 AppIdLayout [publishes app-env flags]", () => {
+  it("renders children directly (no chrome) and publishes hasRpRegistration=true when the app has an RP registration", async () => {
     fetchAppEnvCached.mockResolvedValue(
       makeAppEnv({ rpRegistrations: [{ rp_id: "rp_abc" }] }),
     );
     await renderLayout({ teamId, appId });
-    const chrome = screen.getByTestId("chrome");
-    expect(chrome.getAttribute("data-rp")).toBe("true");
-    expect(chrome.getAttribute("data-legacy")).toBe("false");
+    expect(screen.getByTestId("page")).toBeInTheDocument();
+    const flags = screen.getByTestId("flags-sync");
+    expect(flags.getAttribute("data-app-id")).toBe(appId);
+    expect(flags.getAttribute("data-rp")).toBe("true");
+    expect(flags.getAttribute("data-legacy")).toBe("false");
   });
 
-  it("passes hasLegacyActions=true when the app has legacy actions", async () => {
+  it("publishes hasLegacyActions=true when the app has legacy actions", async () => {
     fetchAppEnvCached.mockResolvedValue(
       makeAppEnv({ actions: [{ id: "a_1" }] }),
     );
     await renderLayout({ teamId, appId });
-    const chrome = screen.getByTestId("chrome");
-    expect(chrome.getAttribute("data-legacy")).toBe("true");
-    expect(chrome.getAttribute("data-rp")).toBe("false");
+    const flags = screen.getByTestId("flags-sync");
+    expect(flags.getAttribute("data-legacy")).toBe("true");
+    expect(flags.getAttribute("data-rp")).toBe("false");
   });
 
-  it("passes both flags false for an app with no RP registration and no legacy actions", async () => {
+  it("publishes both flags false for an app with no RP registration and no legacy actions", async () => {
     fetchAppEnvCached.mockResolvedValue(makeAppEnv({}));
     await renderLayout({ teamId, appId });
-    const chrome = screen.getByTestId("chrome");
-    expect(chrome.getAttribute("data-rp")).toBe("false");
-    expect(chrome.getAttribute("data-legacy")).toBe("false");
+    const flags = screen.getByTestId("flags-sync");
+    expect(flags.getAttribute("data-rp")).toBe("false");
+    expect(flags.getAttribute("data-legacy")).toBe("false");
   });
 });
 // #endregion
