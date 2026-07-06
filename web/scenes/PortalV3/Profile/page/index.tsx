@@ -20,7 +20,7 @@ import { useCallback, useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import * as yup from "yup";
-import { colorAtom } from "@/scenes/Portal/layout/color-atom";
+import { colorAtom } from "@/scenes/common/layout/color-atom";
 
 const schema = yup
   .object({

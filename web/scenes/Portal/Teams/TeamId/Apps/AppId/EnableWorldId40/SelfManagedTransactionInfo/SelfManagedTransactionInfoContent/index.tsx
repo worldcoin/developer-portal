@@ -10,7 +10,7 @@ import { useEffect, useState } from "react";
 import {
   getSelfManagedRegistrationInfo,
   type SelfManagedRegistrationInfoResult,
-} from "../../SelfManagedRegistrationInfo/server";
+} from "@/scenes/common/Teams/TeamId/Apps/AppId/EnableWorldId40/SelfManagedRegistrationInfo/server";
 
 type SelfManagedTransactionInfoContentProps = {
   appId: string;

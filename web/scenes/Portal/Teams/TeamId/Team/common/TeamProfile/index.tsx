@@ -5,7 +5,7 @@ import { useParams } from "next/navigation";
 import { useEffect } from "react";
 import Skeleton from "react-loading-skeleton";
 import { Image } from "./Image";
-import { useFetchTeamLazyQuery } from "./graphql/client/fetch-team.generated";
+import { useFetchTeamLazyQuery } from "@/scenes/common/Teams/TeamId/Team/common/TeamProfile/graphql/client/fetch-team.generated";
 
 export const TeamProfile = (props: { className?: string }) => {
   const [fetchTeam, { data }] = useFetchTeamLazyQuery();

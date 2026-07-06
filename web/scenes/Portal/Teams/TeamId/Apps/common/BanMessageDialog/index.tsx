@@ -7,10 +7,11 @@ import { DialogOverlay } from "@/components/DialogOverlay";
 import { DialogPanel } from "@/components/DialogPanel";
 import { CloseIcon } from "@/components/Icons/CloseIcon";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import { atom, useAtom } from "jotai";
+import { useAtom } from "jotai";
 import { useCallback } from "react";
 
-export const banMessageDialogOpenedAtom = atom<boolean>(false);
+export { banMessageDialogOpenedAtom } from "@/scenes/common/Teams/TeamId/Apps/common/BanMessageDialog/atoms";
+import { banMessageDialogOpenedAtom } from "@/scenes/common/Teams/TeamId/Apps/common/BanMessageDialog/atoms";
 
 export const BanMessageDialog = () => {
   const [isOpened, setIsOpened] = useAtom(banMessageDialogOpenedAtom);

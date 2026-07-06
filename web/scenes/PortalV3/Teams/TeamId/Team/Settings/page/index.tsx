@@ -13,7 +13,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import * as yup from "yup";
 import { TeamProfile } from "@/scenes/Portal/Teams/TeamId/Team/common/TeamProfile";
-import { useFetchTeamQuery } from "@/scenes/Portal/Teams/TeamId/Team/common/TeamProfile/graphql/client/fetch-team.generated";
+import { useFetchTeamQuery } from "@/scenes/common/Teams/TeamId/Team/common/TeamProfile/graphql/client/fetch-team.generated";
 import { validateAndUpdateTeamServerSide } from "../server/submit";
 
 const schema = yup

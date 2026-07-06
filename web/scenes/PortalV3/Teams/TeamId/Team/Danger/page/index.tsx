@@ -4,7 +4,7 @@ import { DeleteTeamDialog } from "@/scenes/Portal/common/DeleteTeamDialog";
 import { useParams } from "next/navigation";
 import { useState } from "react";
 import { TeamProfile } from "@/scenes/Portal/Teams/TeamId/Team/common/TeamProfile";
-import { useFetchTeamQuery } from "@/scenes/Portal/Teams/TeamId/Team/common/TeamProfile/graphql/client/fetch-team.generated";
+import { useFetchTeamQuery } from "@/scenes/common/Teams/TeamId/Team/common/TeamProfile/graphql/client/fetch-team.generated";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { Section } from "@/components/Section";
 import { truncateString } from "@/lib/utils";
