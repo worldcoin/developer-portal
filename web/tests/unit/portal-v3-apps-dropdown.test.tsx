@@ -13,7 +13,7 @@ jest.mock(
 );
 
 // The create-app dialog pulls in a heavy subtree; stub it.
-jest.mock("@/scenes/Portal/layout/CreateAppDialog/index-v4", () => ({
+jest.mock("@/scenes/PortalV3/layout/CreateAppDialog/index-v4", () => ({
   CreateAppDialogV4: () => null,
 }));
 

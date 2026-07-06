@@ -24,7 +24,7 @@ import { useFetchLocalisationsQuery } from "@/scenes/common/Teams/TeamId/Apps/Ap
 import { RejectionBanner } from "./RejectionBanner";
 import { ResolveModal } from "./ResolveModal";
 import { SaveStatusProvider } from "./SaveStatus";
-import { useRemoveFromReview } from "@/scenes/Portal/Teams/TeamId/Apps/common/hooks/use-remove-from-review";
+import { useRemoveFromReview } from "@/scenes/common/Teams/TeamId/Apps/common/hooks/use-remove-from-review";
 
 type AppProfilePageProps = {
   params: Record<string, string> | null | undefined;

@@ -1,4 +1,5 @@
 import { ReactNode } from "react";
+import { SectionSubTabs } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/common/SectionSubTabs";
 import { ImagesProvider } from "./ImagesProvider";
 
 type Params = {

@@ -9,7 +9,7 @@ import {
   FetchAppsQuery,
   useFetchAppsQuery,
 } from "@/scenes/common/layout/AppSelector/graphql/client/fetch-apps.generated";
-import { CreateAppDialogV4 } from "@/scenes/Portal/layout/CreateAppDialog/index-v4";
+import { CreateAppDialogV4 } from "@/scenes/PortalV3/layout/CreateAppDialog/index-v4";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import clsx from "clsx";
