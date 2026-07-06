@@ -3,7 +3,7 @@ import { SizingWrapper } from "@/components/SizingWrapper";
 import { Role_Enum } from "@/graphql/graphql";
 import { Auth0SessionUser } from "@/lib/types";
 import { auth0 } from "@/lib/auth0";
-import { BanMessageDialog } from "@/scenes/Portal/Teams/TeamId/Apps/common/BanMessageDialog";
+import { BanMessageDialog } from "@/scenes/PortalV3/Teams/TeamId/Apps/common/BanMessageDialog";
 import { getSdk as getAppEnvSdk } from "@/scenes/common/Teams/TeamId/Apps/AppId/layout/graphql/server/fetch-app-env.generated";
 import { BanStatusSection } from "./BanStatusSection";
 import { DashboardWrapper } from "./DashboardWrapper";

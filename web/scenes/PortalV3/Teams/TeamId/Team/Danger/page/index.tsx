@@ -1,9 +1,9 @@
 "use client";
 import { DecoratedButton } from "@/components/DecoratedButton";
-import { DeleteTeamDialog } from "@/scenes/Portal/common/DeleteTeamDialog";
+import { DeleteTeamDialog } from "@/scenes/PortalV3/common/DeleteTeamDialog";
 import { useParams } from "next/navigation";
 import { useState } from "react";
-import { TeamProfile } from "@/scenes/Portal/Teams/TeamId/Team/common/TeamProfile";
+import { TeamProfile } from "@/scenes/PortalV3/Teams/TeamId/Team/common/TeamProfile";
 import { useFetchTeamQuery } from "@/scenes/common/Teams/TeamId/Team/common/TeamProfile/graphql/client/fetch-team.generated";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { Section } from "@/components/Section";
