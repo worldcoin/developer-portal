@@ -12,23 +12,24 @@ import { LoggedUserNav } from "@/components/LoggedUserNav";
 import { Notification } from "@/components/Notification";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import { getGraphQLErrorCode } from "@/lib/errors";
 import { useRefetchQueries } from "@/lib/use-refetch-queries";
 import { FetchAppsDocument } from "@/scenes/common/layout/AppSelector/graphql/client/fetch-apps.generated";
 import { yupResolver } from "@hookform/resolvers/yup";
 import clsx from "clsx";
-import { Wallet } from "ethers";
 import { useParams, useRouter } from "next/navigation";
 import posthog from "posthog-js";
 import { useCallback, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
-import { useRegisterRpMutation } from "@/scenes/common/layout/CreateAppDialog/client/register-rp.generated";
 import {
   createAppSchemaV4,
   CreateAppSchemaV4,
 } from "@/scenes/common/layout/CreateAppDialog/form-schema-v4";
 import { validateAndInsertAppServerSideV4 } from "@/scenes/common/layout/CreateAppDialog/server/v4/submit";
+import {
+  AutoRegisterStatus,
+  useAutoRegisterRp,
+} from "@/scenes/PortalV3/layout/CreateAppDialog/use-auto-register-rp";
 
 type CreateDialogStep =
   | "create"
@@ -48,6 +49,16 @@ const STEP_TITLES: Record<CreateDialogStep, string> = {
 // Advanced page. There is no non-create entry mode.
 type CreateAppDialogV4Props = DialogProps;
 
+// Maps the shared hook's status onto this dialog's step machine. "idle"
+// has no on-screen representation of its own — the dialog is on "create"
+// until the first `run()` call flips the hook out of idle.
+const STEP_BY_STATUS: Record<AutoRegisterStatus, CreateDialogStep> = {
+  idle: "create",
+  registering: "registering",
+  "key-ready": "key-ready",
+  failed: "register-failed",
+};
+
 export const CreateAppDialogV4 = (props: CreateAppDialogV4Props) => {
   const { teamId } = useParams() as { teamId: string | undefined };
   const router = useRouter();
@@ -55,17 +66,21 @@ export const CreateAppDialogV4 = (props: CreateAppDialogV4Props) => {
     teamId: teamId,
   });
 
-  const [registerRp] = useRegisterRpMutation();
+  const {
+    status: registerStatus,
+    signerKey,
+    error: registerError,
+    run: runRegistration,
+    reset: resetRegistration,
+  } = useAutoRegisterRp();
 
-  const [step, setStep] = useState<CreateDialogStep>("create");
+  // "create" persists until the first runRegistration() call; from then on
+  // the hook's status drives the step.
+  const [started, setStarted] = useState(false);
+  const step: CreateDialogStep = started
+    ? STEP_BY_STATUS[registerStatus]
+    : "create";
   const [createdAppId, setCreatedAppId] = useState<string | null>(null);
-  // Kept only in memory, shown once on the key-ready step. Never logged,
-  // never sent to posthog — only the derived address leaves the client.
-  const [signerKey, setSignerKey] = useState<{
-    address: string;
-    privateKey: string;
-  } | null>(null);
-  const [registerError, setRegisterError] = useState<string | null>(null);
 
   const defaultValues: Partial<CreateAppSchemaV4> = useMemo(
     () => ({
@@ -86,80 +101,6 @@ export const CreateAppDialogV4 = (props: CreateAppDialogV4Props) => {
     resolver: yupResolver(createAppSchemaV4),
     defaultValues,
   });
-
-  // Generates a managed signer key and registers the RP for the app. Runs
-  // automatically after create, and again from "Retry registration" — reuses
-  // the already-generated key on retry so a retry after a lost response
-  // re-sends the SAME signer_address instead of orphaning the first key.
-  const runRegistration = useCallback(
-    async (appId: string) => {
-      setRegisterError(null);
-      setStep("registering");
-
-      const key = signerKey ?? Wallet.createRandom();
-      if (!signerKey) {
-        setSignerKey({ address: key.address, privateKey: key.privateKey });
-      }
-
-      // Browser fetch has no `timeout` init — Apollo just spreads fetchOptions
-      // into the fetch call, so a plain `timeout: 30000` field is a silent
-      // no-op. Bind it for real with AbortController (same pattern as
-      // `fetchWithTimeout` in web/lib/utils.ts): an abort rejects the
-      // mutation, which the existing catch below routes to register-failed
-      // (Retry + Continue exits) instead of trapping the user on the spinner.
-      const timeoutController = new AbortController();
-      const timeoutId = setTimeout(() => timeoutController.abort(), 30_000);
-
-      try {
-        const { data } = await registerRp({
-          variables: {
-            app_id: appId,
-            mode: "managed",
-            signer_address: key.address,
-          },
-          context: {
-            fetchOptions: {
-              signal: timeoutController.signal,
-            },
-          },
-        });
-
-        if (!data?.register_rp?.rp_id) {
-          posthog.capture("v3_auto_rp_failed", {
-            app_id: appId,
-            detail: "register_rp returned no rp_id",
-          });
-          setRegisterError("Registration did not return a confirmation.");
-          setStep("register-failed");
-          return;
-        }
-
-        posthog.capture("v3_auto_rp_registered", { app_id: appId });
-        setStep("key-ready");
-      } catch (error) {
-        const code = getGraphQLErrorCode(error);
-
-        if (code === "already_registered") {
-          // Idempotent — treat as success (same precedent as the v2 dialog).
-          posthog.capture("v3_auto_rp_registered", { app_id: appId });
-          setStep("key-ready");
-          return;
-        }
-
-        const detail = timeoutController.signal.aborted
-          ? "Registration timed out — retry or continue without setup"
-          : error instanceof Error
-            ? error.message
-            : "Registration failed";
-        posthog.capture("v3_auto_rp_failed", { app_id: appId, detail });
-        setRegisterError(detail);
-        setStep("register-failed");
-      } finally {
-        clearTimeout(timeoutId);
-      }
-    },
-    [registerRp, signerKey],
-  );
 
   const submit = useCallback(
     async (values: CreateAppSchemaV4) => {
@@ -212,6 +153,7 @@ export const CreateAppDialogV4 = (props: CreateAppDialogV4Props) => {
       // Do not navigate yet: register the RP invisibly, then gate navigation
       // behind the explicit "I saved my key" confirmation.
       setCreatedAppId(newAppId);
+      setStarted(true);
       await runRegistration(newAppId);
     },
     [defaultValues, refetchApps, reset, teamId, props, runRegistration],
@@ -219,12 +161,11 @@ export const CreateAppDialogV4 = (props: CreateAppDialogV4Props) => {
 
   const onClose = useCallback(() => {
     reset(defaultValues);
-    setStep("create");
+    setStarted(false);
     setCreatedAppId(null);
-    setSignerKey(null);
-    setRegisterError(null);
+    resetRegistration();
     props.onClose(false);
-  }, [defaultValues, props, reset]);
+  }, [defaultValues, props, reset, resetRegistration]);
 
   // Implicit dismissal (Escape/backdrop) from headlessui. While a one-time
   // key is in play ("registering"/"key-ready") it must not be silently
