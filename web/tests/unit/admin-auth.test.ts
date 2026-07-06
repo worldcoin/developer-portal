@@ -328,7 +328,7 @@ describe("dev provider", () => {
     expect(await devAdminAuthProvider.authenticate(new Headers())).toBeNull();
   });
 
-  it("reads group membership from ADMIN_AUTH_DEV_GROUPS or debug header", async () => {
+  it("reads group membership from ADMIN_AUTH_DEV_GROUPS", async () => {
     process.env.ADMIN_AUTH_DEV_EMAIL = "dev@example.com";
     process.env.ADMIN_AUTH_DEV_GROUPS = "Team All";
 
@@ -336,14 +336,6 @@ describe("dev provider", () => {
       await devAdminAuthProvider.authenticate(new Headers()),
     ).toMatchObject({
       groups: ["Team All"],
-    });
-
-    expect(
-      await devAdminAuthProvider.authenticate(
-        new Headers({ "x-admin-auth-debug-groups": "Dashboard Admins" }),
-      ),
-    ).toMatchObject({
-      groups: ["Dashboard Admins"],
     });
   });
 

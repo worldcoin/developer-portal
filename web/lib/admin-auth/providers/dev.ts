@@ -2,11 +2,9 @@ import "server-only";
 import { AdminAuthProvider, AdminIdentity } from "../types";
 
 const DEBUG_USER_HEADER = "x-admin-auth-debug-user";
-const DEBUG_GROUPS_HEADER = "x-admin-auth-debug-groups";
 
-const parseDevGroups = (requestHeaders: Headers): string[] => {
-  const fromHeader = requestHeaders.get(DEBUG_GROUPS_HEADER);
-  const raw = fromHeader ?? process.env.ADMIN_AUTH_DEV_GROUPS;
+const parseDevGroups = (): string[] => {
+  const raw = process.env.ADMIN_AUTH_DEV_GROUPS;
 
   if (!raw) {
     return [];
@@ -21,8 +19,8 @@ const parseDevGroups = (requestHeaders: Headers): string[] => {
 /**
  * Local development provider. Authenticates as the email supplied via the
  * x-admin-auth-debug-user header or the ADMIN_AUTH_DEV_EMAIL env var.
- * Group membership comes from x-admin-auth-debug-groups or ADMIN_AUTH_DEV_GROUPS.
- * Hard-disabled in production regardless of configuration.
+ * Group membership comes from ADMIN_AUTH_DEV_GROUPS. Hard-disabled in
+ * production regardless of configuration.
  */
 export const devAdminAuthProvider: AdminAuthProvider = {
   name: "dev",
@@ -44,7 +42,7 @@ export const devAdminAuthProvider: AdminAuthProvider = {
     return {
       email,
       subject: `dev:${email}`,
-      groups: parseDevGroups(requestHeaders),
+      groups: parseDevGroups(),
     };
   },
 };
