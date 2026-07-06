@@ -26,6 +26,7 @@ beforeEach(() => {
   delete process.env.ADMIN_AUTH_GROUP_ROLES;
   delete process.env.ADMIN_AUTH_DEFAULT_ROLE;
   delete process.env.ADMIN_AUTH_DEV_EMAIL;
+  delete process.env.ADMIN_AUTH_DEV_GROUPS;
 });
 
 // #region /api/admin/me

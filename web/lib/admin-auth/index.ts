@@ -8,7 +8,12 @@ import { devAdminAuthProvider } from "./providers/dev";
 import { AdminAuthProvider, AdminRole, AdminUser } from "./types";
 
 export { AdminRole } from "./types";
-export type { AdminAuthProvider, AdminIdentity, AdminUser } from "./types";
+export type {
+  AdminAuthProvider,
+  AdminAuthProviderName,
+  AdminIdentity,
+  AdminUser,
+} from "./types";
 
 const providers: readonly AdminAuthProvider[] = [
   cloudflareAccessAdminAuthProvider,
@@ -157,8 +162,9 @@ export const getAdminUser = cache(async (): Promise<AdminUser | null> => {
  * Per-page auth gate. Layouts are not a reliable auth barrier in Next.js
  * (they can render in parallel with — or be skipped for — the page on soft
  * navigation), so every server component page under /admin must call this
- * before touching any data. Unauthenticated requests are redirected to the
- * app's existing unauthorized page.
+ * before touching any data. This convention is backed by a unit test that
+ * scans admin page files for requireAdminUser. Unauthenticated requests are
+ * redirected to the app's existing unauthorized page.
  */
 export const requireAdminUser = async (): Promise<AdminUser> => {
   const user = await getAdminUser();

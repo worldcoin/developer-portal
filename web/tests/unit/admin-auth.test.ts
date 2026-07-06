@@ -38,10 +38,29 @@ import {
 import { cloudflareAccessAdminAuthProvider } from "@/lib/admin-auth/providers/cloudflare-access";
 import { devAdminAuthProvider } from "@/lib/admin-auth/providers/dev";
 import { logger } from "@/lib/logger";
+import { existsSync, readdirSync, readFileSync, statSync } from "fs";
+import { join, relative } from "path";
 
 // #region Test Data
 const ORIGINAL_ENV = { ...process.env };
 const ORIGINAL_NODE_ENV = process.env.NODE_ENV;
+
+const findAdminPageFiles = (directory: string): string[] => {
+  if (!existsSync(directory)) {
+    return [];
+  }
+
+  return readdirSync(directory).flatMap((entry) => {
+    const path = join(directory, entry);
+    const stats = statSync(path);
+
+    if (stats.isDirectory()) {
+      return findAdminPageFiles(path);
+    }
+
+    return entry === "page.tsx" ? [path] : [];
+  });
+};
 
 const setNodeEnv = (value: string) => {
   Object.defineProperty(process.env, "NODE_ENV", {
@@ -73,6 +92,25 @@ afterAll(() => {
   process.env = { ...ORIGINAL_ENV };
   setNodeEnv(ORIGINAL_NODE_ENV ?? "test");
 });
+
+// #region Admin page guardrail
+describe("admin page guardrail", () => {
+  it("requires every /admin page to call requireAdminUser", () => {
+    const adminPageFiles = findAdminPageFiles(join(process.cwd(), "app/admin"));
+
+    expect(adminPageFiles).toContain(join(process.cwd(), "app/admin/page.tsx"));
+
+    const unguardedPageFiles = adminPageFiles
+      .filter(
+        (pageFile) =>
+          !readFileSync(pageFile, "utf8").includes("requireAdminUser"),
+      )
+      .map((pageFile) => relative(process.cwd(), pageFile));
+
+    expect(unguardedPageFiles).toEqual([]);
+  });
+});
+// #endregion
 
 // #region Provider selection
 describe("resolveAdminAuthProvider", () => {
@@ -324,6 +362,46 @@ describe("cloudflare-access provider", () => {
         headers: { cookie: "CF_Authorization=valid-token" },
       }),
     );
+  });
+
+  it("returns empty groups when get-identity returns malformed group fields", async () => {
+    cloudflareEnv();
+    jwtVerify.mockResolvedValue({
+      payload: { email: "user@example.com", sub: "user-1" },
+    });
+    mockIdentityResponse({
+      email: "user@example.com",
+      groups: "example-readers",
+      idp: { type: "okta", groups: { name: "example-admins" } },
+    });
+
+    const identity = await cloudflareAccessAdminAuthProvider.authenticate(
+      new Headers({ "cf-access-jwt-assertion": "valid-token" }),
+    );
+
+    expect(identity).toMatchObject({ groups: [] });
+  });
+
+  it("treats a successful empty get-identity response as authoritative over token groups", async () => {
+    cloudflareEnv();
+    jwtVerify.mockResolvedValue({
+      payload: {
+        email: "user@example.com",
+        sub: "user-1",
+        custom: { groups: ["example-admins"] },
+      },
+    });
+    mockIdentityResponse({
+      email: "user@example.com",
+      groups: [],
+      idp: { type: "okta", groups: [] },
+    });
+
+    const identity = await cloudflareAccessAdminAuthProvider.authenticate(
+      new Headers({ "cf-access-jwt-assertion": "valid-token" }),
+    );
+
+    expect(identity).toMatchObject({ groups: [] });
   });
 
   it("falls back to the token's custom claim groups when get-identity fails", async () => {
