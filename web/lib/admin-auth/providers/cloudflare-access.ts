@@ -9,10 +9,19 @@ import { AdminAuthProvider, AdminIdentity } from "../types";
 
 const ASSERTION_HEADER = "cf-access-jwt-assertion";
 
-let jwks: ReturnType<typeof createRemoteJWKSet> | undefined;
+const jwksByTeamDomain = new Map<
+  string,
+  ReturnType<typeof createRemoteJWKSet>
+>();
 
 const getJwks = (teamDomain: string) => {
-  jwks ??= createRemoteJWKSet(new URL(`${teamDomain}/cdn-cgi/access/certs`));
+  let jwks = jwksByTeamDomain.get(teamDomain);
+
+  if (!jwks) {
+    jwks = createRemoteJWKSet(new URL(`${teamDomain}/cdn-cgi/access/certs`));
+    jwksByTeamDomain.set(teamDomain, jwks);
+  }
+
   return jwks;
 };
 

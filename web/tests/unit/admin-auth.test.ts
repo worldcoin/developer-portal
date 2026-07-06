@@ -6,8 +6,11 @@ jest.mock("@/lib/logger", () => ({
 }));
 
 const jwtVerify = jest.fn();
+const createRemoteJWKSet = jest.fn(
+  (url: URL) => `mocked-jwks:${url.toString()}`,
+);
 jest.mock("jose", () => ({
-  createRemoteJWKSet: jest.fn(() => "mocked-jwks"),
+  createRemoteJWKSet: (url: URL) => createRemoteJWKSet(url),
   jwtVerify: (...args: unknown[]) => jwtVerify(...args),
 }));
 
@@ -238,10 +241,63 @@ describe("cloudflare-access provider", () => {
       subject: "user-1",
       groups: ["example-readers"],
     });
-    expect(jwtVerify).toHaveBeenCalledWith("valid-token", "mocked-jwks", {
-      issuer: "https://example.cloudflareaccess.com",
-      audience: "test-aud",
+    expect(jwtVerify).toHaveBeenCalledWith(
+      "valid-token",
+      "mocked-jwks:https://example.cloudflareaccess.com/cdn-cgi/access/certs",
+      {
+        issuer: "https://example.cloudflareaccess.com",
+        audience: "test-aud",
+      },
+    );
+  });
+
+  it("caches Cloudflare JWK sets per team domain", async () => {
+    jwtVerify.mockResolvedValue({
+      payload: { email: "user@example.com", sub: "user-1" },
     });
+
+    process.env.CF_ACCESS_AUD = "test-aud";
+
+    process.env.CF_ACCESS_TEAM_DOMAIN = "https://first.cloudflareaccess.com";
+    await cloudflareAccessAdminAuthProvider.authenticate(
+      new Headers({ "cf-access-jwt-assertion": "first-token" }),
+    );
+
+    process.env.CF_ACCESS_TEAM_DOMAIN = "https://second.cloudflareaccess.com";
+    await cloudflareAccessAdminAuthProvider.authenticate(
+      new Headers({ "cf-access-jwt-assertion": "second-token" }),
+    );
+
+    process.env.CF_ACCESS_TEAM_DOMAIN = "https://first.cloudflareaccess.com";
+    await cloudflareAccessAdminAuthProvider.authenticate(
+      new Headers({ "cf-access-jwt-assertion": "third-token" }),
+    );
+
+    expect(createRemoteJWKSet).toHaveBeenCalledWith(
+      new URL("https://first.cloudflareaccess.com/cdn-cgi/access/certs"),
+    );
+    expect(createRemoteJWKSet).toHaveBeenCalledWith(
+      new URL("https://second.cloudflareaccess.com/cdn-cgi/access/certs"),
+    );
+    expect(createRemoteJWKSet).toHaveBeenCalledTimes(2);
+    expect(jwtVerify).toHaveBeenNthCalledWith(
+      1,
+      "first-token",
+      "mocked-jwks:https://first.cloudflareaccess.com/cdn-cgi/access/certs",
+      expect.any(Object),
+    );
+    expect(jwtVerify).toHaveBeenNthCalledWith(
+      2,
+      "second-token",
+      "mocked-jwks:https://second.cloudflareaccess.com/cdn-cgi/access/certs",
+      expect.any(Object),
+    );
+    expect(jwtVerify).toHaveBeenNthCalledWith(
+      3,
+      "third-token",
+      "mocked-jwks:https://first.cloudflareaccess.com/cdn-cgi/access/certs",
+      expect.any(Object),
+    );
   });
 
   it("prefers full group membership from the get-identity endpoint", async () => {
