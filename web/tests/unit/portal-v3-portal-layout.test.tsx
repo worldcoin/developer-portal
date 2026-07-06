@@ -6,6 +6,13 @@ import React from "react";
 const getSession = jest.fn();
 jest.mock("@/lib/auth0", () => ({ auth0: { getSession: () => getSession() } }));
 
+// PortalLayout imports AutoTeamBootstrap (a client component pulling in
+// @auth0/nextjs-auth0/client, an ESM-only package). Mock it out since this
+// suite only exercises the has-team branch that renders PortalShell.
+jest.mock("@auth0/nextjs-auth0/client", () => ({
+  useUser: () => ({ invalidate: jest.fn() }),
+}));
+
 // Stub the shell so we test only PortalLayout's session -> shell wiring.
 jest.mock("@/scenes/PortalV3/layout/Shell", () => ({
   PortalShell: (props: {
