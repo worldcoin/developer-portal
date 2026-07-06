@@ -1,8 +1,8 @@
 import { ErrorPage } from "@/components/ErrorPage";
 import { logger } from "@/lib/logger";
 import { getIsUserAllowedToReadApp } from "@/lib/permissions";
+import { fetchAppEnvCached } from "@/scenes/common/Teams/TeamId/Apps/AppId/layout/server/fetch-app-env";
 import { AppEnvFlagsSync } from "@/scenes/PortalV3/layout/Shell/SidebarNav";
-import { fetchAppEnvCached } from "@/scenes/Portal/Teams/TeamId/Apps/AppId/layout/server/fetch-app-env";
 import { ReactNode } from "react";
 
 type Params = {
