@@ -2,7 +2,7 @@
 import "@testing-library/jest-dom";
 import { render, screen } from "@testing-library/react";
 import React from "react";
-import { FetchAppEnvQuery } from "@/scenes/Portal/Teams/TeamId/Apps/AppId/layout/graphql/server/fetch-app-env.generated";
+import { FetchAppEnvQuery } from "@/scenes/common/Teams/TeamId/Apps/AppId/layout/graphql/server/fetch-app-env.generated";
 
 // #region Mocks
 const getIsUserAllowedToReadApp = jest.fn();
@@ -13,7 +13,7 @@ jest.mock("@/lib/permissions", () => ({
 
 const fetchAppEnvCached = jest.fn();
 jest.mock(
-  "@/scenes/Portal/Teams/TeamId/Apps/AppId/layout/server/fetch-app-env",
+  "@/scenes/common/Teams/TeamId/Apps/AppId/layout/server/fetch-app-env",
   () => ({
     fetchAppEnvCached: (...args: unknown[]) => fetchAppEnvCached(...args),
   }),
