@@ -1,8 +1,8 @@
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { urls } from "@/lib/urls";
-import { List } from "@/scenes/Portal/Profile/Teams/page/List";
-import { UserInfo } from "@/scenes/Portal/Profile/common/UserInfo";
+import { List } from "@/scenes/PortalV3/Profile/Teams/page/List";
+import { UserInfo } from "@/scenes/PortalV3/Profile/common/UserInfo";
 import { PlusIcon } from "@/components/Icons/PlusIcon";
 import { Section } from "@/components/Section";
 

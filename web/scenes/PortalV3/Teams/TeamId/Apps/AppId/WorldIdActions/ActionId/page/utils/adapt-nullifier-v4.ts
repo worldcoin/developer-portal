@@ -1,4 +1,4 @@
-import { NullifierItem } from "@/scenes/Portal/Teams/TeamId/Apps/AppId/Actions/ActionId/page/VerifiedTable";
+import { NullifierItem } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/Actions/ActionId/page/VerifiedTable";
 
 type Nullifier_V4 = {
   id: string;

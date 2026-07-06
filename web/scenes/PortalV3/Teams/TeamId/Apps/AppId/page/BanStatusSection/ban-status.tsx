@@ -5,7 +5,7 @@ import { AlertIcon } from "@/components/Icons/AlertIcon";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import clsx from "clsx";
 import { useAtom } from "jotai";
-import { banMessageDialogOpenedAtom } from "@/scenes/Portal/Teams/TeamId/Apps/common/BanMessageDialog";
+import { banMessageDialogOpenedAtom } from "@/scenes/common/Teams/TeamId/Apps/common/BanMessageDialog/atoms";
 
 export const BanStatus = () => {
   const [isOpened, setIsOpened] = useAtom(banMessageDialogOpenedAtom);
