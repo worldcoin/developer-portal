@@ -7,6 +7,7 @@ import { useGetActionsQuery } from "@/scenes/common/Teams/TeamId/Apps/AppId/Acti
  * Composes existing generated queries — Apollo cache dedupes them with the
  * pages that already run them. `loaded` gates rendering so conditional items
  * never flash in or out.
+ * `loaded` additionally requires at least one query to have returned data — if both settle with no data (total failure), conditional nav items stay hidden (fail closed); core nav is unaffected.
  */
 export const useAppCapabilities = (appId: string | null | undefined) => {
   const skip = !appId;

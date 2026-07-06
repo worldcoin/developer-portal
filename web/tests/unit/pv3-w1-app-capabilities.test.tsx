@@ -67,3 +67,21 @@ it("no appId → skips queries, loaded=false", () => {
     expect.objectContaining({ skip: true }),
   );
 });
+it("both queries settled with no data (e.g. errors) → loaded stays false, capabilities off", () => {
+  useFetchAppMetadataQuery.mockReturnValue({
+    data: undefined,
+    loading: false,
+    error: new Error("boom"),
+  });
+  useGetActionsQuery.mockReturnValue({
+    data: undefined,
+    loading: false,
+    error: new Error("boom"),
+  });
+  const { result } = renderHook(() => useAppCapabilities("app_1"));
+  expect(result.current).toEqual({
+    isMiniApp: false,
+    hasLegacyActions: false,
+    loaded: false,
+  });
+});
