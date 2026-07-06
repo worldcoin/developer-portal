@@ -10,7 +10,6 @@ import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { useAtom } from "jotai";
 import { useCallback } from "react";
 
-export { banMessageDialogOpenedAtom } from "@/scenes/common/Teams/TeamId/Apps/common/BanMessageDialog/atoms";
 import { banMessageDialogOpenedAtom } from "@/scenes/common/Teams/TeamId/Apps/common/BanMessageDialog/atoms";
 
 export const BanMessageDialog = () => {

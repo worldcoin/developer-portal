@@ -13,7 +13,6 @@ import { Color } from "@/scenes/common/Profile/types";
 import { AppSelector } from "../AppSelector";
 import { CreateAppDialogV4 } from "../CreateAppDialog/index-v4";
 
-export { createAppDialogOpenedAtom } from "@/scenes/common/layout/Header/atoms";
 import { createAppDialogOpenedAtom } from "@/scenes/common/layout/Header/atoms";
 
 export const Header = (props: { color: Color | null }) => {
