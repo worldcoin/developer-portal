@@ -1,5 +1,5 @@
 "use client";
-import { use } from "react";
+import { use, useState } from "react";
 import { ErrorPage } from "@/components/ErrorPage";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
@@ -7,20 +7,32 @@ import Skeleton from "react-loading-skeleton";
 import { useGetSingleActionV4Query } from "@/scenes/common/Teams/TeamId/Apps/AppId/WorldIdActions/ActionId/page/graphql/client/get-single-action-v4.generated";
 import { VerifiedTable } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/Actions/ActionId/page/VerifiedTable";
 import { adaptNullifierV4 } from "./utils/adapt-nullifier-v4";
+import { Quickstart } from "./Quickstart";
 
 type WorldIdActionIdPageProps = {
   params: Promise<Record<string, string>>;
 };
 
+// Mirrors `getKioskEnvironment` in
+// Actions/ActionId/Components/Kiosk/useLegacyKioskRequest.ts — the
+// GetSingleActionV4 query does not carry an `environment` field, so staging
+// is derived from the `app_staging_` app_id prefix, same as the kiosk flow.
+const isStagingAppId = (appId: string): boolean =>
+  appId.startsWith("app_staging_");
+
 export const WorldIdActionIdPage = (props: WorldIdActionIdPageProps) => {
   const params = use(props.params);
   const actionId = params?.actionId;
+  const [showQuickstart, setShowQuickstart] = useState(false);
 
   const { data, loading, error } = useGetSingleActionV4Query({
     variables: { action_id: actionId ?? "" },
   });
 
   const action = data?.action_v4_by_pk;
+  const verificationCount = Number(
+    action?.nullifiers_aggregate?.aggregate?.count ?? 0,
+  );
 
   if (error) {
     return (
@@ -62,14 +74,43 @@ export const WorldIdActionIdPage = (props: WorldIdActionIdPageProps) => {
                   {loading ? (
                     <Skeleton width={100} />
                   ) : (
-                    Number(
-                      action?.nullifiers_aggregate?.aggregate?.count ?? 0,
-                    ).toLocaleString()
+                    verificationCount.toLocaleString()
                   )}
                 </Typography>
               </div>
             </div>
           </div>
+
+          {/* Quickstart: shown inline when the action has no verifications
+              yet, otherwise collapsed behind a toggle so it doesn't crowd
+              out the analytics/table once the action is in real use. */}
+          {!loading && action && verificationCount === 0 && (
+            <Quickstart
+              appId={action.rp_registration.app_id}
+              action={action.action}
+              isStaging={isStagingAppId(action.rp_registration.app_id)}
+            />
+          )}
+
+          {!loading && action && verificationCount > 0 && (
+            <div>
+              {!showQuickstart ? (
+                <button
+                  type="button"
+                  onClick={() => setShowQuickstart(true)}
+                  className="text-sm font-medium text-blue-500 hover:underline"
+                >
+                  Show quickstart
+                </button>
+              ) : (
+                <Quickstart
+                  appId={action.rp_registration.app_id}
+                  action={action.action}
+                  isStaging={isStagingAppId(action.rp_registration.app_id)}
+                />
+              )}
+            </div>
+          )}
 
           {/* Placeholder for future graph */}
           <div className="pointer-events-none grid aspect-[580/350] w-full select-none content-center justify-center justify-items-center gap-y-1 rounded-2xl border border-grey-200">
