@@ -5,15 +5,24 @@ import {
   GetAccumulativeTransactionsDataReturnType,
 } from "@/scenes/common/Teams/TeamId/Apps/AppId/MiniApp/Transactions/page/server/getAccumulativeTransactionData";
 
-export const useGetAccumulativeTransactions = (appId: string) => {
+export const useGetAccumulativeTransactions = (
+  appId: string,
+  options?: { skip?: boolean },
+) => {
+  const skip = options?.skip ?? false;
   const [payments, setPayments] =
     useState<GetAccumulativePaymentsDataReturnType | null>(null);
   const [transactions, setTransactions] =
     useState<GetAccumulativeTransactionsDataReturnType | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!skip);
   const [error, setError] = useState<any>(null);
 
   useEffect(() => {
+    if (skip) {
+      setLoading(false);
+      return;
+    }
+
     const fetchTransactions = async () => {
       const result = await getAccumulativePaymentsData(appId);
       if (!result.success) {
@@ -29,7 +38,7 @@ export const useGetAccumulativeTransactions = (appId: string) => {
     };
 
     fetchTransactions();
-  }, [appId]);
+  }, [appId, skip]);
 
   return { payments, transactions, loading, error };
 };

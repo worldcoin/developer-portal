@@ -7,15 +7,26 @@ export type ChartTabType = "verifications" | "payments" | "notifications";
 interface ChartTabsProps {
   activeTab: ChartTabType;
   onTabChange: (tab: ChartTabType) => void;
+  showMiniApp: boolean;
 }
 
-const tabs: { value: ChartTabType; label: string }[] = [
+const allTabs: { value: ChartTabType; label: string }[] = [
   { value: "verifications", label: "Verifications" },
   { value: "payments", label: "Payments" },
   { value: "notifications", label: "Notifications" },
 ];
 
-export const ChartTabs = ({ activeTab, onTabChange }: ChartTabsProps) => {
+export const ChartTabs = ({
+  activeTab,
+  onTabChange,
+  showMiniApp,
+}: ChartTabsProps) => {
+  // Integrator (non-mini) apps only have verification data; Payments and
+  // Notifications are mini-app surfaces.
+  const tabs = showMiniApp
+    ? allTabs
+    : allTabs.filter((tab) => tab.value === "verifications");
+
   return (
     <div className="flex gap-x-6">
       {tabs.map((tab) => (
