@@ -1,6 +1,6 @@
 import { logger } from "@/lib/logger";
 import { headers } from "next/headers";
-import { notFound } from "next/navigation";
+import { redirect } from "next/navigation";
 import { cache } from "react";
 import "server-only";
 import { cloudflareAccessAdminAuthProvider } from "./providers/cloudflare-access";
@@ -157,14 +157,14 @@ export const getAdminUser = cache(async (): Promise<AdminUser | null> => {
  * Per-page auth gate. Layouts are not a reliable auth barrier in Next.js
  * (they can render in parallel with — or be skipped for — the page on soft
  * navigation), so every server component page under /admin must call this
- * before touching any data. Unauthenticated requests get a 404 so the
- * route's existence is not disclosed.
+ * before touching any data. Unauthenticated requests are redirected to the
+ * app's existing unauthorized page.
  */
 export const requireAdminUser = async (): Promise<AdminUser> => {
   const user = await getAdminUser();
 
   if (!user) {
-    notFound();
+    redirect("/unauthorized");
   }
 
   return user;

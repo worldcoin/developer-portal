@@ -16,11 +16,12 @@ jest.mock("next/headers", () => ({
   headers: () => headersMock(),
 }));
 
-const notFoundError = new Error("NEXT_HTTP_ERROR_FALLBACK;404");
+const redirectError = new Error("NEXT_REDIRECT");
+const redirectMock = jest.fn((_: string) => {
+  throw redirectError;
+});
 jest.mock("next/navigation", () => ({
-  notFound: jest.fn(() => {
-    throw notFoundError;
-  }),
+  redirect: (href: string) => redirectMock(href),
 }));
 // #endregion
 
@@ -394,11 +395,12 @@ describe("authenticateAdminRequest", () => {
 
 // #region Page gate
 describe("requireAdminUser", () => {
-  it("throws notFound() for unauthenticated requests", async () => {
+  it("redirects unauthenticated requests to /unauthorized", async () => {
     process.env.ADMIN_AUTH_PROVIDER = "dev";
     headersMock.mockResolvedValue(new Headers());
 
-    await expect(requireAdminUser()).rejects.toThrow(notFoundError);
+    await expect(requireAdminUser()).rejects.toThrow(redirectError);
+    expect(redirectMock).toHaveBeenCalledWith("/unauthorized");
   });
 
   it("returns the admin user when the request is authenticated", async () => {
