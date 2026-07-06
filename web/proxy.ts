@@ -146,8 +146,32 @@ const protectedMatchers = [
 const isProtectedPath = (pathname: string) =>
   protectedMatchers.some((matcher) => matcher.test(pathname));
 
+const isAdminPagePath = (pathname: string) =>
+  pathname === "/admin" || pathname.startsWith("/admin/");
+
+const createSecurityHeadersResponse = (
+  request: NextRequest,
+  pathname: string,
+) => {
+  const { csp, nonce } = generateCsp();
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set("x-nonce", nonce);
+  requestHeaders.set("content-security-policy", csp);
+
+  const response = NextResponse.next({ request: { headers: requestHeaders } });
+  response.headers.set("content-security-policy", csp);
+  response.headers.set("Permissions-Policy", "clipboard-write=(self)");
+  response.headers.set("x-current-path", pathname);
+
+  return response;
+};
+
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+  if (isAdminPagePath(pathname)) {
+    return createSecurityHeadersResponse(request, pathname);
+  }
 
   // In allow-list mode the Auth0 SDK matches the request origin against the
   // `appBaseUrl` list with an exact, un-normalized compare. This deployment's proxy
@@ -253,15 +277,7 @@ export async function proxy(request: NextRequest) {
   // 4. Attach the per-request CSP nonce. It is forwarded on the request headers
   //    so the root layout (`web/scenes/Root/layout`) can read `x-nonce` during
   //    SSR, and set on the response so the browser enforces the policy.
-  const { csp, nonce } = generateCsp();
-  const requestHeaders = new Headers(request.headers);
-  requestHeaders.set("x-nonce", nonce);
-  requestHeaders.set("content-security-policy", csp);
-
-  const response = NextResponse.next({ request: { headers: requestHeaders } });
-  response.headers.set("content-security-policy", csp);
-  response.headers.set("Permissions-Policy", "clipboard-write=(self)");
-  response.headers.set("x-current-path", pathname);
+  const response = createSecurityHeadersResponse(request, pathname);
 
   // Preserve any session-refresh cookies set by `auth0.middleware()`.
   for (const cookie of authRes.cookies.getAll()) {
@@ -278,5 +294,6 @@ export const config = {
     "/create-team",
     "/profile/:path*",
     "/join-callback",
+    "/admin/:path*",
   ],
 };

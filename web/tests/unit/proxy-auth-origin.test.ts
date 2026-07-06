@@ -164,3 +164,21 @@ describe("middleware [auth route, allow-listed origin]", () => {
   });
 });
 // #endregion
+
+// #region admin pages security headers
+describe("proxy [admin pages]", () => {
+  it("sets CSP and permissions headers without invoking Auth0", async () => {
+    const req = new NextRequest(`${CANONICAL}/admin`);
+    const res = await proxy(req);
+
+    expect(auth0Middleware).not.toHaveBeenCalled();
+    expect(res.headers.get("content-security-policy")).toContain(
+      "default-src 'self'",
+    );
+    expect(res.headers.get("Permissions-Policy")).toBe(
+      "clipboard-write=(self)",
+    );
+    expect(res.headers.get("x-current-path")).toBe("/admin");
+  });
+});
+// #endregion
