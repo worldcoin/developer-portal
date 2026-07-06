@@ -16,6 +16,21 @@ const getJwks = (teamDomain: string) => {
   return jwks;
 };
 
+const describeJwtVerifyError = (error: unknown) => {
+  if (!(error instanceof Error)) {
+    return { name: "UnknownError" };
+  }
+
+  return {
+    name: error.name,
+    message: error.message,
+    code:
+      "code" in error && typeof error.code === "string"
+        ? error.code
+        : undefined,
+  };
+};
+
 const parseStringArray = (claim: unknown): string[] => {
   if (!Array.isArray(claim)) {
     return [];
@@ -135,7 +150,11 @@ export const cloudflareAccessAdminAuthProvider: AdminAuthProvider = {
         subject: payload.sub,
         groups,
       };
-    } catch {
+    } catch (error) {
+      logger.warn(
+        "Cloudflare Access JWT verification failed",
+        describeJwtVerifyError(error),
+      );
       return null;
     }
   },

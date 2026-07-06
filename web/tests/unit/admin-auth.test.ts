@@ -34,6 +34,7 @@ import {
 } from "@/lib/admin-auth";
 import { cloudflareAccessAdminAuthProvider } from "@/lib/admin-auth/providers/cloudflare-access";
 import { devAdminAuthProvider } from "@/lib/admin-auth/providers/dev";
+import { logger } from "@/lib/logger";
 
 // #region Test Data
 const ORIGINAL_ENV = { ...process.env };
@@ -187,13 +188,24 @@ describe("cloudflare-access provider", () => {
 
   it("returns null when JWT verification fails", async () => {
     cloudflareEnv();
-    jwtVerify.mockRejectedValue(new Error("bad signature"));
+    const error = new Error("bad signature");
+    error.name = "JWTInvalid";
+    Object.assign(error, { code: "ERR_JWT_INVALID" });
+    jwtVerify.mockRejectedValue(error);
 
     const identity = await cloudflareAccessAdminAuthProvider.authenticate(
       new Headers({ "cf-access-jwt-assertion": "tampered-token" }),
     );
 
     expect(identity).toBeNull();
+    expect(logger.warn).toHaveBeenCalledWith(
+      "Cloudflare Access JWT verification failed",
+      {
+        name: "JWTInvalid",
+        message: "bad signature",
+        code: "ERR_JWT_INVALID",
+      },
+    );
   });
 
   it("returns null when the verified payload has no email/sub", async () => {
