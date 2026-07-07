@@ -32,9 +32,6 @@ export const WorldIdActionIdPage = (props: WorldIdActionIdPageProps) => {
   });
 
   const action = data?.action_v4_by_pk;
-  const verificationCount = Number(
-    action?.nullifiers_aggregate?.aggregate?.count ?? 0,
-  );
 
   if (error) {
     return (
@@ -63,25 +60,6 @@ export const WorldIdActionIdPage = (props: WorldIdActionIdPageProps) => {
           <Typography className="block" variant={TYPOGRAPHY.H7}>
             Overview
           </Typography>
-
-          {/* Verifications stat */}
-          <div>
-            <div className="grid grid-cols-auto/1fr items-center gap-x-1">
-              <div className="size-1.5 rounded-[1px] bg-blue-500" />
-              <Typography variant={TYPOGRAPHY.R5} className="text-grey-400">
-                Verifications
-              </Typography>
-            </div>
-            <div className="mt-1 flex items-center gap-x-2">
-              <Typography variant={TYPOGRAPHY.H6} className="text-grey-700">
-                {loading ? (
-                  <Skeleton width={100} />
-                ) : (
-                  verificationCount.toLocaleString()
-                )}
-              </Typography>
-            </div>
-          </div>
 
           {/* Primary affordance: scan-to-test QR. Same tester the Settings
               page uses, but in kiosk (QR) mode via the default enableKiosk. */}
