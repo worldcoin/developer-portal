@@ -1,3 +1,4 @@
+import { ClaimRotationSlotDocument } from "@/api/hasura/rotate-signer-key/graphql/claim-rotation-slot.generated";
 import { GetRpRegistrationDocument } from "@/api/hasura/rotate-signer-key/graphql/get-rp-registration.generated";
 import { FetchAppSecretDocument } from "@/api/helpers/oidc/graphql/fetch-app-secret-query.generated";
 import { FetchOidcAppDocument } from "@/api/helpers/oidc/graphql/fetch-oidc-app.generated";
@@ -35,6 +36,14 @@ describe("deleted app guards", () => {
     expect(document).toContain("status");
     expect(document).toContain("is_archived");
     expect(document).toContain("deleted_at");
+  });
+
+  it("checks app deletion state atomically when claiming rotation slots", () => {
+    const document = source(ClaimRotationSlotDocument);
+
+    expect(document).toContain('status:{_eq:"active"}');
+    expect(document).toContain("is_archived:{_eq:false}");
+    expect(document).toContain("deleted_at:{_is_null:true}");
   });
 });
 // #endregion
