@@ -6,18 +6,58 @@ import { SpinnerIcon } from "@/components/Icons/SpinnerIcon";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { urls } from "@/lib/urls";
 import { useUser } from "@auth0/nextjs-auth0/client";
-import { useRouter } from "next/navigation";
 import posthog from "posthog-js";
 import { useEffect, useRef, useState } from "react";
 
 type State = "creating" | "error" | "redirecting";
+
+// Hard navigation, deliberately NOT router.push: the create-team response
+// sets a fresh session cookie server-side, and a soft RSC navigation can read
+// a stale (team-less) session and bounce straight back to /create-team —
+// which re-fires the auto-create and collides on the duplicate-user
+// constraint. A full document request guarantees the server sees the new
+// cookie and lands the user in their workspace.
+const hardNavigate = (url: string) => {
+  window.location.assign(url);
+};
+
+// After a failed create, the team may already exist (a lost create race, or a
+// retry after a dropped response). Refresh the session and poll the profile a
+// few times; if a membership now exists, recover into it instead of failing
+// loud over a team the user actually has.
+const findExistingTeamId = async (
+  refreshSession: () => Promise<unknown>,
+): Promise<string | undefined> => {
+  try {
+    await refreshSession();
+  } catch {
+    // ignore — the probe below is the source of truth
+  }
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      const res = await fetch("/api/auth/profile", { cache: "no-store" });
+      if (res.ok) {
+        const profile = await res.json();
+        const membership = profile?.hasura?.memberships?.find?.(
+          (m: { team?: { id?: string } }) => m?.team?.id,
+        );
+        if (membership?.team?.id) {
+          return membership.team.id as string;
+        }
+      }
+    } catch {
+      // transient — retry
+    }
+    await new Promise((resolve) => setTimeout(resolve, 300));
+  }
+  return undefined;
+};
 
 export const AutoTeamBootstrap = (props: {
   defaultName: string;
   hasUser: boolean;
 }) => {
   const { defaultName, hasUser } = props;
-  const router = useRouter();
   const { invalidate } = useUser();
   const [state, setState] = useState<State>("creating");
   const [detail, setDetail] = useState<string | undefined>();
@@ -46,26 +86,16 @@ export const AutoTeamBootstrap = (props: {
 
         posthog.capture("v3_auto_team_created");
         setState("redirecting");
-        await invalidate();
-        router.push(data.returnTo);
+        hardNavigate(data.returnTo);
       } catch (error) {
-        // A concurrent submit (second tab / remount race) may have already
-        // created the team — the browser cookie jar is shared, so a fresh
-        // profile read sees the updated session. Recover as success instead
-        // of failing loud over a race we lost.
-        try {
-          const profileRes = await fetch("/api/auth/profile");
-          const profile = profileRes.ok ? await profileRes.json() : null;
-          const teamId = profile?.hasura?.memberships?.[0]?.team?.id;
-          if (teamId) {
-            posthog.capture("v3_auto_team_recovered", { team_id: teamId });
-            setState("redirecting");
-            await invalidate();
-            router.push(urls.apps({ team_id: teamId }));
-            return;
-          }
-        } catch {
-          // recovery probe failed — fall through to the error card
+        const recoveredTeamId = await findExistingTeamId(invalidate);
+        if (recoveredTeamId) {
+          posthog.capture("v3_auto_team_recovered", {
+            team_id: recoveredTeamId,
+          });
+          setState("redirecting");
+          hardNavigate(urls.apps({ team_id: recoveredTeamId }));
+          return;
         }
         const errorDetail =
           (error as Partial<CreateTeamResponse>)?.detail ??
@@ -77,7 +107,7 @@ export const AutoTeamBootstrap = (props: {
     };
 
     void run();
-  }, [defaultName, hasUser, invalidate, router]);
+  }, [defaultName, hasUser, invalidate]);
 
   if (state === "error") {
     return (
