@@ -62,7 +62,8 @@ export const WorldIdActionIdPage = (props: WorldIdActionIdPageProps) => {
           </Typography>
 
           {/* Primary affordance: scan-to-test QR. Same tester the Settings
-              page uses, but in kiosk (QR) mode via the default enableKiosk. */}
+              page uses, but QR-only (kioskOnly) — integration code lives in the
+              quickstart dropdown below, so the tester's code view is hidden. */}
           {loading ? (
             <Skeleton height={360} />
           ) : (
@@ -74,6 +75,7 @@ export const WorldIdActionIdPage = (props: WorldIdActionIdPageProps) => {
                 rp_registration: { app_id: appId },
               })}
               is_v4_action={true}
+              kioskOnly
             />
           )}
 

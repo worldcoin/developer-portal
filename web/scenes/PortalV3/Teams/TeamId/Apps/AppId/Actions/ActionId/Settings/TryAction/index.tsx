@@ -24,15 +24,20 @@ type TryActionProps = {
   };
   is_v4_action: boolean;
   enableKiosk?: boolean;
+  // When true, render a QR-only tester: hide the code view and its toggle so
+  // integration code lives in a single place (e.g. a separate quickstart). The
+  // code view still shows as a fallback when the QR kiosk isn't available.
+  kioskOnly?: boolean;
 };
 
 export const TryAction = (props: TryActionProps) => {
-  const { action, is_v4_action, enableKiosk = true } = props;
+  const { action, is_v4_action, enableKiosk = true, kioskOnly = false } = props;
   const canShowKiosk = enableKiosk && action.app.engine !== EngineType.OnChain;
   // World ID verification for Mini Apps is implemented with @worldcoin/idkit
   // (MiniKit 2.x no longer proxies verification), so the IDKit CodeBlock is the
-  // correct integration path for every app type — show it for all apps.
-  const canShowCode = true;
+  // correct integration path for every app type. It's shown for all apps unless
+  // the caller opts into a QR-only tester and the kiosk QR is available.
+  const canShowCode = !kioskOnly || !canShowKiosk;
   const [showCode, setShowCode] = useState(
     action.app.engine === EngineType.OnChain || !canShowKiosk,
   );
@@ -45,8 +50,10 @@ export const TryAction = (props: TryActionProps) => {
         <Typography variant={TYPOGRAPHY.M3} className="text-grey-900">
           Try it out
         </Typography>
-        <div className="flex w-full justify-end gap-x-4">
-          {canShowKiosk && (
+        {/* Only render the view toggles when there's an actual choice to make;
+            a QR-only or code-only tester shows no toggle. */}
+        {canShowKiosk && canShowCode && (
+          <div className="flex w-full justify-end gap-x-4">
             <Button
               type="button"
               onClick={() => setShowCode(false)}
@@ -62,8 +69,6 @@ export const TryAction = (props: TryActionProps) => {
                 })}
               />
             </Button>
-          )}
-          {canShowCode && (
             <Button
               type="button"
               onClick={() => setShowCode(true)}
@@ -79,8 +84,8 @@ export const TryAction = (props: TryActionProps) => {
                 })}
               />
             </Button>
-          )}
-        </div>
+          </div>
+        )}
       </div>
       <div className="size-full">
         {showCodeView && (
