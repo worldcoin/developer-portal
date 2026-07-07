@@ -27,8 +27,10 @@ export const deleteAccount = async (req: NextRequest) => {
   const id = session?.user.sub;
 
   if (!id) {
-    logger.error("Session user id not found.");
-
+    // An unauthenticated request (no active session) is an expected client
+    // condition, not a server fault. `errorResponse` already logs the 401 at
+    // "warn"; emitting an extra `logger.error` here double-logs it and tags the
+    // active dd-trace span as an error, surfacing routine 401s in Error Tracking.
     return errorResponse({
       statusCode: 401,
       code: "unauthorized",

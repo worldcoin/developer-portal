@@ -183,8 +183,6 @@ export type RegisterRpOutput = {
   operation_hash?: Maybe<Scalars["String"]["output"]>;
   rp_id: Scalars["String"]["output"];
   signer_address?: Maybe<Scalars["String"]["output"]>;
-  staging_operation_hash?: Maybe<Scalars["String"]["output"]>;
-  staging_status?: Maybe<Scalars["rp_registration_status"]["output"]>;
   status: Scalars["String"]["output"];
 };
 
@@ -10609,8 +10607,8 @@ export type Rp_Registration_Max_Order_By = {
   operation_hash?: InputMaybe<Order_By>;
   rp_id?: InputMaybe<Order_By>;
   signer_address?: InputMaybe<Order_By>;
-  staging_operation_hash?: InputMaybe<Scalars["String"]["input"]>;
-  staging_status?: InputMaybe<Scalars["rp_registration_status"]["input"]>;
+  staging_operation_hash?: InputMaybe<Order_By>;
+  staging_status?: InputMaybe<Order_By>;
   status?: InputMaybe<Order_By>;
   updated_at?: InputMaybe<Order_By>;
 };
@@ -10640,8 +10638,8 @@ export type Rp_Registration_Min_Order_By = {
   operation_hash?: InputMaybe<Order_By>;
   rp_id?: InputMaybe<Order_By>;
   signer_address?: InputMaybe<Order_By>;
-  staging_operation_hash?: InputMaybe<Scalars["String"]["input"]>;
-  staging_status?: InputMaybe<Scalars["rp_registration_status"]["input"]>;
+  staging_operation_hash?: InputMaybe<Order_By>;
+  staging_status?: InputMaybe<Order_By>;
   status?: InputMaybe<Order_By>;
   updated_at?: InputMaybe<Order_By>;
 };
@@ -10693,8 +10691,8 @@ export type Rp_Registration_Order_By = {
   operation_hash?: InputMaybe<Order_By>;
   rp_id?: InputMaybe<Order_By>;
   signer_address?: InputMaybe<Order_By>;
-  staging_operation_hash?: InputMaybe<Scalars["String"]["input"]>;
-  staging_status?: InputMaybe<Scalars["rp_registration_status"]["input"]>;
+  staging_operation_hash?: InputMaybe<Order_By>;
+  staging_status?: InputMaybe<Order_By>;
   status?: InputMaybe<Order_By>;
   updated_at?: InputMaybe<Order_By>;
 };

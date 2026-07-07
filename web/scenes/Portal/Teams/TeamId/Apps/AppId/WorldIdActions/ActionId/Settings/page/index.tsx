@@ -4,7 +4,7 @@ import { ErrorPage } from "@/components/ErrorPage";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { TryAction } from "@/scenes/Portal/Teams/TeamId/Apps/AppId/Actions/ActionId/Settings/TryAction";
 import Skeleton from "react-loading-skeleton";
-import { useGetSingleActionV4Query } from "../../page/graphql/client/get-single-action-v4.generated";
+import { useGetSingleActionV4Query } from "@/scenes/common/Teams/TeamId/Apps/AppId/WorldIdActions/ActionId/page/graphql/client/get-single-action-v4.generated";
 import { UpdateActionV4Form } from "../UpdateActionV4Form";
 import { adaptActionV4ForTryAction } from "./utils/adapt-action-v4";
 

@@ -6,7 +6,10 @@ import * as yup from "yup";
 /** use for entity ids (gen_random_friendly_id) */
 export const entityIdSchema = yup
   .string()
-  .matches(/^[a-zA-Z0-9]+_[a-zA-Z0-9]{32}$/, "Invalid id format");
+  .matches(
+    /^[a-zA-Z0-9]+(?:_[a-zA-Z0-9]+)*_[a-zA-Z0-9]{32}$/,
+    "Invalid id format",
+  );
 
 /** use for app IDs */
 export const appIdRegex = /^app_[a-f0-9]{32}$/;
