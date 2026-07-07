@@ -21,10 +21,15 @@ const hardNavigate = (url: string) => {
   window.location.assign(url);
 };
 
-// After a failed create, the team may already exist (a lost create race, or a
-// retry after a dropped response). Refresh the session and poll the profile a
-// few times; if a membership now exists, recover into it instead of failing
-// loud over a team the user actually has.
+// After a failed create, the team may already exist from a concurrent request
+// that already enriched the session cookie (e.g. a second tab that won the
+// create race). `refreshSession` re-reads that cookie via /api/auth/profile;
+// if a membership is now present, recover into it instead of failing loud.
+// NOTE: this reads the cookie session, it does NOT re-mint it from Hasura — so
+// a create that committed server-side but whose response never reached this
+// client (dropped response) leaves a stale cookie here and falls through to the
+// error card. That case self-heals on the next login (login-callback re-enriches
+// from the DB) and the card offers a manual path, so no one is stranded.
 const findExistingTeamId = async (
   refreshSession: () => Promise<unknown>,
 ): Promise<string | undefined> => {
