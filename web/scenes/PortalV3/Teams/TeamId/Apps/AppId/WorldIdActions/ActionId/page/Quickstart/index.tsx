@@ -4,50 +4,104 @@ import { TYPOGRAPHY, Typography } from "@/components/Typography";
 /**
  * Builds the copy-paste-true code snippets for the embedded quickstart.
  *
- * Frontend snippet: `handleVerify` receives IDKit's `IDKitResult`, which is the
- * exact request body shape expected by `POST /api/v4/verify/:app_id` (see
- * `web/api/v4/verify/request-schema.ts` — `protocol_version`, `nonce`, `action`,
- * `responses`). This mirrors `submitKioskProof` in
- * `web/scenes/.../Components/Kiosk/useLegacyKioskRequest.ts`, which posts
- * `JSON.stringify(result)` verbatim with no reshaping.
+ * This mirrors the product's existing "copy-paste this IDKit snippet"
+ * generator (`Actions/ActionId/Settings/TryAction/CodeBlock`), which is the
+ * verified-correct integration path for `@worldcoin/idkit` v4
+ * (`IDKitRequestWidget` + a legacy preset factory, e.g. `deviceLegacy()`).
+ *
+ * Frontend snippet: `handleVerify` receives IDKit's `IDKitResult`, which is
+ * the exact request body shape expected by `POST /api/v4/verify/:app_id`
+ * (see `web/api/v4/verify/request-schema.ts` — `protocol_version`, `nonce`,
+ * `action`, `responses`). This mirrors `verifyProofCloudCodeString` in the
+ * CodeBlock reference, which posts `JSON.stringify(result)` verbatim with no
+ * reshaping.
  *
  * Backend snippet: forwards that same body to
  * `https://developer.worldcoin.org/api/v4/verify/{appId}` unmodified (the
- * `action` field is already present inside `proof`); a non-200 response means
- * the proof was rejected (validation failure or verification failure both
- * return non-2xx per `web/api/v4/verify/index.ts` and
+ * `action` field is already present inside `result`); a non-200 response
+ * means the proof was rejected (validation failure or verification failure
+ * both return non-2xx per `web/api/v4/verify/index.ts` and
  * `uniqueness-proof/handler.ts`).
  */
 export const buildSnippets = (appId: string, action: string) => {
   const install = "npm install @worldcoin/idkit";
 
-  const frontend = `import { IDKitWidget, VerificationLevel } from "@worldcoin/idkit";
+  const frontend = `import { useState } from "react";
+import { IDKitRequestWidget, deviceLegacy } from "@worldcoin/idkit";
 
-<IDKitWidget
-  app_id="${appId}"
-  action="${action}"
-  verification_level={VerificationLevel.Orb}
-  handleVerify={(proof) => fetch("/api/verify-world-id", {
+const fetchRpContext = async () => {
+  // Fetch a signed rp_context from your backend.
+  const response = await fetch("/api/idkit/rp-context", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(proof),
-  }).then((r) => { if (!r.ok) throw new Error("verification failed"); })}
-  onSuccess={() => console.log("verified human ✓")}
->
-  {({ open }) => <button onClick={open}>Verify with World ID</button>}
-</IDKitWidget>`;
+    // ...
+  });
+
+  return response.json();
+};
+
+const verifyProof = async (result) => {
+  const response = await fetch("/api/v4/verify/${appId}", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(result),
+  });
+
+  if (!response.ok) {
+    // Handle your error response here.
+    throw new Error("Verification failed");
+  }
+};
+
+export default function VerifyWithWorldID() {
+  const [open, setOpen] = useState(false);
+  const [rpContext, setRpContext] = useState(null);
+
+  return (
+    <>
+      <button
+        onClick={async () => {
+          if (!rpContext) {
+            setRpContext(await fetchRpContext());
+          }
+          setOpen(true);
+        }}
+      >
+        Verify with World ID
+      </button>
+
+      {rpContext && (
+        <IDKitRequestWidget
+          open={open}
+          onOpenChange={setOpen}
+          app_id="${appId}"
+          action="${action}"
+          action_description="Describe the action the user is approving."
+          rp_context={rpContext}
+          allow_legacy_proofs={true}
+          preset={deviceLegacy()}
+          handleVerify={verifyProof}
+          onSuccess={(result) => {
+            console.log(result);
+          }}
+        />
+      )}
+    </>
+  );
+}`;
 
   const backend = `// app/api/verify-world-id/route.ts
 export async function POST(req: Request) {
-  const proof = await req.json();
+  const result = await req.json();
 
   const response = await fetch(
     "https://developer.worldcoin.org/api/v4/verify/${appId}",
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      // proof already contains "action": "${action}"
-      body: JSON.stringify(proof),
+      // result already contains "action": "${action}"
+      body: JSON.stringify(result),
     },
   );
 

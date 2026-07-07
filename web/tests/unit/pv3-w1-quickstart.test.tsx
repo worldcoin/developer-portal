@@ -3,7 +3,10 @@ import "@testing-library/jest-dom";
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import React, { Suspense } from "react";
 
-import { Quickstart } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldIdActions/ActionId/page/Quickstart";
+import {
+  buildSnippets,
+  Quickstart,
+} from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldIdActions/ActionId/page/Quickstart";
 
 beforeEach(() => jest.clearAllMocks());
 
@@ -31,6 +34,84 @@ describe("Quickstart", () => {
       "https://developer.worldcoin.org/api/v4/verify/app_abc123",
     );
     expect(backendSnippet.textContent).toContain("my-action");
+  });
+
+  it("imports only real @worldcoin/idkit v4 exports in the frontend snippet (pins the exact import lines)", () => {
+    const { frontend } = buildSnippets("app_abc123", "my-action");
+
+    expect(frontend).toContain('import { useState } from "react";');
+    expect(frontend).toContain(
+      'import { IDKitRequestWidget, deviceLegacy } from "@worldcoin/idkit";',
+    );
+  });
+
+  it("produces the exact frontend snippet template for fixed inputs (no fragment-only assertions)", () => {
+    const { frontend } = buildSnippets("app_abc123", "my-action");
+
+    expect(frontend).toBe(`import { useState } from "react";
+import { IDKitRequestWidget, deviceLegacy } from "@worldcoin/idkit";
+
+const fetchRpContext = async () => {
+  // Fetch a signed rp_context from your backend.
+  const response = await fetch("/api/idkit/rp-context", {
+    method: "POST",
+    // ...
+  });
+
+  return response.json();
+};
+
+const verifyProof = async (result) => {
+  const response = await fetch("/api/v4/verify/app_abc123", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(result),
+  });
+
+  if (!response.ok) {
+    // Handle your error response here.
+    throw new Error("Verification failed");
+  }
+};
+
+export default function VerifyWithWorldID() {
+  const [open, setOpen] = useState(false);
+  const [rpContext, setRpContext] = useState(null);
+
+  return (
+    <>
+      <button
+        onClick={async () => {
+          if (!rpContext) {
+            setRpContext(await fetchRpContext());
+          }
+          setOpen(true);
+        }}
+      >
+        Verify with World ID
+      </button>
+
+      {rpContext && (
+        <IDKitRequestWidget
+          open={open}
+          onOpenChange={setOpen}
+          app_id="app_abc123"
+          action="my-action"
+          action_description="Describe the action the user is approving."
+          rp_context={rpContext}
+          allow_legacy_proofs={true}
+          preset={deviceLegacy()}
+          handleVerify={verifyProof}
+          onSuccess={(result) => {
+            console.log(result);
+          }}
+        />
+      )}
+    </>
+  );
+}`);
   });
 
   it("shows the simulator row only when isStaging is true", () => {
