@@ -5,7 +5,7 @@ import { useParams } from "next/navigation";
 import { useState } from "react";
 import { TeamProfile } from "../../common/TeamProfile";
 import { useQuery } from "@apollo/client/react";
-import { FetchTeamDocument } from "../../common/TeamProfile/graphql/client/fetch-team.generated";
+import { FetchTeamDocument } from "@/scenes/common/Teams/TeamId/Team/common/TeamProfile/graphql/client/fetch-team.generated";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { Section } from "@/components/Section";
 import { truncateString } from "@/lib/utils";

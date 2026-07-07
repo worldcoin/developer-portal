@@ -6,7 +6,7 @@ import { VerificationStatus } from "..";
 import { ReviewStatus } from "../../../common/ReviewStatus";
 import { ResolveModal } from "../../Configuration/ResolveModal";
 import { useQuery } from "@apollo/client/react";
-import { GetVerificationDataDocument } from "../graphql/client/get-verification-data.generated";
+import { GetVerificationDataDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/page/graphql/client/get-verification-data.generated";
 
 export const VerificationStatusSection = ({
   appId,

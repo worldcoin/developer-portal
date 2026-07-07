@@ -10,7 +10,7 @@ import { TeamProfile } from "../../common/TeamProfile";
 import { ApiKeysTable } from "./ApiKeyTable";
 import { CreateKeyModal } from "./CreateKeyModal";
 import { useQuery } from "@apollo/client/react";
-import { FetchKeysDocument } from "./graphql/client/fetch-keys.generated";
+import { FetchKeysDocument } from "@/scenes/common/Teams/TeamId/Team/ApiKeys/page/graphql/client/fetch-keys.generated";
 
 type TeamApiKeysPageProps = {
   params: Promise<Record<string, string>>;

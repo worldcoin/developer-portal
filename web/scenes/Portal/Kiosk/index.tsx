@@ -4,7 +4,7 @@ import { LegacyVerificationLevel } from "@/lib/idkit";
 import { useSearchParams } from "next/navigation";
 import { use } from "react";
 import { ActiveKioskPage } from "../Teams/TeamId/Apps/AppId/Actions/ActionId/Kiosk/ActiveKiosk";
-import { GetKioskActionDocument } from "../Teams/TeamId/Apps/AppId/Actions/ActionId/Kiosk/graphql/client/get-kiosk-action.generated";
+import { GetKioskActionDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/Actions/ActionId/Kiosk/graphql/client/get-kiosk-action.generated";
 import { useQuery } from "@apollo/client/react";
 
 type ActionIdKioskPageProps = {

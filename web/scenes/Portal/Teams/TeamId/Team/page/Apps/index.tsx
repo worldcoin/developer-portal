@@ -10,12 +10,12 @@ import { useEffect, useMemo, useState } from "react";
 import Skeleton from "react-loading-skeleton";
 import { App } from "./App";
 import { useQuery } from "@apollo/client/react";
-import { FetchAppsDocument } from "./graphql/client/fetch-apps.generated";
+import { FetchAppsDocument } from "@/scenes/common/Teams/TeamId/Team/page/Apps/graphql/client/fetch-apps.generated";
 import { Section } from "@/components/Section";
 import { PlusIcon } from "@/components/Icons/PlusIcon";
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { useAtom } from "jotai";
-import { createAppDialogOpenedAtom } from "@/scenes/Portal/layout/Header";
+import { createAppDialogOpenedAtom } from "@/scenes/common/layout/Header/atoms";
 
 export const Apps = () => {
   const { teamId } = useParams() as { teamId: string };

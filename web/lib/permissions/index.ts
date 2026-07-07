@@ -16,6 +16,12 @@ import { getSdk as getTeamUpdatePermissionsSdk } from "./graphql/server/get-team
 import { getSdk as getVerificationStatusUpdatePermissionsSdk } from "./graphql/server/get-verification-status-update-permissions.generated";
 
 const getIsIdValid = async (id: string) => {
+  // `entityIdSchema` is not `.required()`, so `validate(undefined)` resolves
+  // successfully. Guard explicitly so a missing/empty id is rejected here
+  // instead of being forwarded to GraphQL as a null non-nullable variable.
+  if (!id) {
+    return false;
+  }
   try {
     await entityIdSchema.validate(id);
     return true;
@@ -67,7 +73,7 @@ export const getIsUserAllowedToReadApp = async (appId: string) => {
 };
 
 export const getIsUserAllowedToUpdateApp = async (appId: string) => {
-  if (!getIsIdValid(appId)) {
+  if (!(await getIsIdValid(appId))) {
     return false;
   }
 
@@ -88,7 +94,7 @@ export const getIsUserAllowedToUpdateApp = async (appId: string) => {
 };
 
 export const getIsUserAllowedToDeleteApp = async (appId: string) => {
-  if (!getIsIdValid(appId)) {
+  if (!(await getIsIdValid(appId))) {
     return false;
   }
 
@@ -111,7 +117,7 @@ export const getIsUserAllowedToDeleteApp = async (appId: string) => {
 export const getIsUserAllowedToUpdateVerificationStatus = async (
   appMetadataId: string,
 ) => {
-  if (!getIsIdValid(appMetadataId)) {
+  if (!(await getIsIdValid(appMetadataId))) {
     return false;
   }
 
@@ -140,7 +146,7 @@ export const getIsUserAllowedToUpdateVerificationStatus = async (
 export const getIsUserAllowedToUpdateAppMetadata = async (
   appMetadataId: string,
 ) => {
-  if (!getIsIdValid(appMetadataId)) {
+  if (!(await getIsIdValid(appMetadataId))) {
     return false;
   }
 
@@ -188,7 +194,7 @@ export const getAppMetadataPermissionAndMode = async (
 };
 
 export const getIsUserAllowedToInsertLocalisation = async (appId: string) => {
-  if (!getIsIdValid(appId)) {
+  if (!(await getIsIdValid(appId))) {
     return false;
   }
 
@@ -211,7 +217,7 @@ export const getIsUserAllowedToInsertLocalisation = async (appId: string) => {
 export const getIsUserAllowedToUpdateLocalisation = async (
   localisationId: string,
 ) => {
-  if (!getIsIdValid(localisationId)) {
+  if (!(await getIsIdValid(localisationId))) {
     return false;
   }
   const session = await auth0.getSession();
@@ -234,7 +240,7 @@ export const getIsUserAllowedToDeleteLocalisation = async (
   appMetadataId: string,
   locale: string,
 ) => {
-  if (!getIsIdValid(appMetadataId)) {
+  if (!(await getIsIdValid(appMetadataId))) {
     return false;
   }
 
@@ -259,7 +265,7 @@ export const getIsUserAllowedToDeleteLocalisation = async (
 };
 
 export const getIsUserAllowedToUpdateTeam = async (teamId: string) => {
-  if (!getIsIdValid(teamId)) {
+  if (!(await getIsIdValid(teamId))) {
     return false;
   }
 
@@ -280,7 +286,7 @@ export const getIsUserAllowedToUpdateTeam = async (teamId: string) => {
 };
 
 export const getIsUserAllowedToDeleteTeam = async (teamId: string) => {
-  if (!getIsIdValid(teamId)) {
+  if (!(await getIsIdValid(teamId))) {
     return false;
   }
 

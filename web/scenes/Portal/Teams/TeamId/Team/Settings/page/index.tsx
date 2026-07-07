@@ -14,7 +14,7 @@ import { toast } from "react-toastify";
 import * as yup from "yup";
 import { TeamProfile } from "../../common/TeamProfile";
 import { useQuery } from "@apollo/client/react";
-import { FetchTeamDocument } from "../../common/TeamProfile/graphql/client/fetch-team.generated";
+import { FetchTeamDocument } from "@/scenes/common/Teams/TeamId/Team/common/TeamProfile/graphql/client/fetch-team.generated";
 import { validateAndUpdateTeamServerSide } from "../server/submit";
 
 const schema = yup

@@ -9,8 +9,8 @@ import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Auth0SessionUser } from "@/lib/types";
 import { UserInfo } from "@/scenes/Portal/Profile/common/UserInfo";
 import { ColorSelector } from "@/scenes/Portal/Profile/page/ColorSelector";
-import { UpdateUserDocument } from "@/scenes/Portal/Profile/page/graphql/client/update-user.generated";
-import { Color, colors } from "@/scenes/common/colors";
+import { UpdateUserDocument } from "@/scenes/common/Profile/page/graphql/client/update-user.generated";
+import { Color, colors } from "@/scenes/common/Profile/types";
 import { useMeQuery } from "@/scenes/common/me-query/client";
 import { FetchMeDocument } from "@/scenes/common/me-query/client/graphql/client/me-query.generated";
 import { useUser } from "@auth0/nextjs-auth0/client";
@@ -21,7 +21,7 @@ import { useCallback, useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import * as yup from "yup";
-import { colorAtom } from "../../layout/color-atom";
+import { colorAtom } from "@/scenes/common/layout/color-atom";
 
 const schema = yup
   .object({

@@ -10,7 +10,7 @@ import {
 import {
   FetchAppsDocument,
   FetchAppsQuery,
-} from "@/scenes/common/apps/graphql/client/fetch-apps.generated";
+} from "@/scenes/common/layout/AppSelector/graphql/client/fetch-apps.generated";
 
 import { CaretIcon } from "@/components/Icons/CaretIcon";
 import { CheckmarkCircleIcon } from "@/components/Icons/CheckmarkCircleIcon";
@@ -27,7 +27,7 @@ import clsx from "clsx";
 import { useAtom } from "jotai";
 import { useParams, useRouter } from "next/navigation";
 import { useCallback, useMemo } from "react";
-import { createAppDialogOpenedAtom } from "../Header";
+import { createAppDialogOpenedAtom } from "@/scenes/common/layout/Header/atoms";
 
 export const AppSelector = () => {
   const router = useRouter();

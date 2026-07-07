@@ -15,7 +15,7 @@ import { SignerKeySetup } from "../../ConfigureSignerKey/ConfigureSignerKeyConte
 import { GenerateNewKeyContent } from "../../GenerateNewKey/GenerateNewKeyContent";
 import { UseExistingKeyContent } from "../../UseExistingKey/UseExistingKeyContent";
 import { useMutation } from "@apollo/client/react";
-import { RotateSignerKeyDocument } from "./graphql/client/rotate-signer-key.generated";
+import { RotateSignerKeyDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/WorldId40/page/graphql/client/rotate-signer-key.generated";
 
 type RotateStep = "configure" | "generate-new" | "use-existing";
 

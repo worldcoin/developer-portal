@@ -5,15 +5,15 @@ import { WorldIcon } from "@/components/Icons/WorldIcon";
 import { LoggedUserNav } from "@/components/LoggedUserNav";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { urls } from "@/lib/urls";
-import { atom, useAtom, useSetAtom } from "jotai";
+import { useAtom, useSetAtom } from "jotai";
 import { useParams } from "next/navigation";
 import React, { useEffect, useMemo } from "react";
-import { colorAtom } from "../color-atom";
-import { Color } from "@/scenes/common/colors";
+import { colorAtom } from "@/scenes/common/layout/color-atom";
+import { Color } from "@/scenes/common/Profile/types";
 import { AppSelector } from "../AppSelector";
 import { CreateAppDialogV4 } from "../CreateAppDialog/index-v4";
 
-export const createAppDialogOpenedAtom = atom(false);
+import { createAppDialogOpenedAtom } from "@/scenes/common/layout/Header/atoms";
 
 export const Header = (props: { color: Color | null }) => {
   const setColor = useSetAtom(colorAtom);

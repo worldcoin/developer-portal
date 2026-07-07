@@ -10,7 +10,7 @@ import { DOCS_URL } from "@/lib/constants";
 import { Auth0SessionUser } from "@/lib/types";
 import { urls } from "@/lib/urls";
 import { checkUserPermissions } from "@/lib/utils";
-import { colorAtom } from "@/scenes/Portal/layout/color-atom";
+import { colorAtom } from "@/scenes/common/layout/color-atom";
 import { useMeQuery } from "@/scenes/common/me-query/client";
 import { skipToken, useQuery } from "@apollo/client/react";
 import { useUser } from "@auth0/nextjs-auth0/client";
