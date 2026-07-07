@@ -25,8 +25,17 @@ jest.mock("@/api/helpers/graphql", () => ({
     getAPIServiceGraphqlClient(...args),
 }));
 
+const GetIsUserPermittedToReadApp = jest.fn();
+jest.mock(
+  "@/lib/permissions/graphql/server/get-app-read-permissions.generated",
+  () => ({
+    getSdk: () => ({ GetIsUserPermittedToReadApp }),
+  }),
+);
+
 import {
   getIsUserAllowedToInsertApp,
+  getIsUserAllowedToReadApp,
   getIsUserAllowedToUpdateApp,
 } from "@/lib/permissions";
 // #endregion
@@ -67,5 +76,29 @@ describe("permission guards reject invalid ids before hitting GraphQL", () => {
       expect(getAPIServiceGraphqlClient).not.toHaveBeenCalled();
     },
   );
+});
+// #endregion
+
+// #region compound-prefix entity ids are accepted
+describe("permission guards accept generated ids with compound prefixes", () => {
+  it("getIsUserAllowedToReadApp accepts staging app ids and checks GraphQL", async () => {
+    const stagingAppId = "app_staging_6b1925816f364fbb27284a44c01bf5c9";
+    getAPIServiceGraphqlClient.mockResolvedValue({});
+    GetIsUserPermittedToReadApp.mockResolvedValue({
+      app_by_pk: {
+        team: {
+          memberships: [{ user_id: "usr_123", role: "OWNER" }],
+        },
+      },
+    });
+
+    const result = await getIsUserAllowedToReadApp(stagingAppId);
+
+    expect(result).toBe(true);
+    expect(GetIsUserPermittedToReadApp).toHaveBeenCalledWith({
+      appId: stagingAppId,
+      userId: "usr_123",
+    });
+  });
 });
 // #endregion
