@@ -12,9 +12,12 @@ jest.mock(
   }),
 );
 
-// The create-app dialog pulls in a heavy subtree; stub it.
+// The create-app dialog pulls in a heavy subtree; stub it. The marker is
+// gated on `open` so tests can prove the prop actually propagates instead
+// of just asserting the mock was rendered.
 jest.mock("@/scenes/PortalV3/layout/CreateAppDialog/index-v4", () => ({
-  CreateAppDialogV4: () => null,
+  CreateAppDialogV4: (props: { open: boolean }) =>
+    props.open ? <div data-testid="create-app-dialog" /> : null,
 }));
 
 jest.mock("@auth0/nextjs-auth0/client", () => ({
