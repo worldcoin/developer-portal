@@ -1,5 +1,5 @@
 import { urls } from "@/lib/urls";
-import { fetchAppEnvCached } from "@/scenes/Portal/Teams/TeamId/Apps/AppId/layout/server/fetch-app-env";
+import { fetchAppEnvCached } from "@/scenes/common/Teams/TeamId/Apps/AppId/layout/server/fetch-app-env";
 import { redirect } from "next/navigation";
 import { ReactNode } from "react";
 import { AppLayoutRouteParams } from "../layout-params";

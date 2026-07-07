@@ -16,7 +16,7 @@ import { Role_Enum } from "@/graphql/graphql";
 import { AppMode } from "@/lib/constants";
 import { Auth0SessionUser } from "@/lib/types";
 import { checkUserPermissions } from "@/lib/utils";
-import { RadioCard } from "@/scenes/Portal/layout/CreateAppDialog/RadioCard";
+import { RadioCard } from "@/scenes/PortalV3/layout/CreateAppDialog/RadioCard";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { yupResolver } from "@hookform/resolvers/yup";
 import clsx from "clsx";

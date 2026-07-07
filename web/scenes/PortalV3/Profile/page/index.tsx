@@ -7,8 +7,8 @@ import { Section } from "@/components/Section";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Auth0SessionUser } from "@/lib/types";
-import { UserInfo } from "@/scenes/Portal/Profile/common/UserInfo";
-import { ColorSelector } from "@/scenes/Portal/Profile/page/ColorSelector";
+import { UserInfo } from "@/scenes/PortalV3/Profile/common/UserInfo";
+import { ColorSelector } from "@/scenes/PortalV3/Profile/page/ColorSelector";
 import { useUpdateUserMutation } from "@/scenes/common/Profile/page/graphql/client/update-user.generated";
 import { Color, colors } from "@/scenes/common/Profile/types";
 import { useMeQuery } from "@/scenes/common/me-query/client";
@@ -20,7 +20,7 @@ import { useCallback, useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import * as yup from "yup";
-import { colorAtom } from "@/scenes/Portal/layout/color-atom";
+import { colorAtom } from "@/scenes/common/layout/color-atom";
 
 const schema = yup
   .object({
