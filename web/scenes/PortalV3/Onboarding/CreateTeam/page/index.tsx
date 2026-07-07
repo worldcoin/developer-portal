@@ -1,10 +1,8 @@
 import { auth0 } from "@/lib/auth0";
 import { Auth0SessionUser } from "@/lib/types";
 import { CreateTeamPage as ManualCreateTeamPage } from "@/scenes/Onboarding/CreateTeam/page";
-import {
-  AutoTeamBootstrap,
-  deriveTeamName,
-} from "@/scenes/PortalV3/layout/AutoTeamBootstrap";
+import { AutoTeamBootstrap } from "@/scenes/PortalV3/layout/AutoTeamBootstrap";
+import { deriveTeamName } from "@/scenes/PortalV3/layout/derive-team-name";
 
 /**
  * v3 create-team: new users (no memberships) get a personal team created

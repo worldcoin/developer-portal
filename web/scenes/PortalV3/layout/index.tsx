@@ -1,7 +1,8 @@
 import { auth0 } from "@/lib/auth0";
 import { Auth0SessionUser } from "@/lib/types";
 import { ReactNode } from "react";
-import { AutoTeamBootstrap, deriveTeamName } from "./AutoTeamBootstrap";
+import { AutoTeamBootstrap } from "./AutoTeamBootstrap";
+import { deriveTeamName } from "./derive-team-name";
 import { PortalShell } from "./Shell";
 
 /** v3 shell layout, mounted once at app/(portal)/layout.tsx via pickPortalVersion. */

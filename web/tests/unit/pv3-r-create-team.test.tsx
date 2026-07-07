@@ -16,7 +16,6 @@ jest.mock("@/scenes/PortalV3/layout/AutoTeamBootstrap", () => ({
   AutoTeamBootstrap: (props: { defaultName: string; hasUser: boolean }) => (
     <div data-testid="auto-team-bootstrap" data-name={props.defaultName} />
   ),
-  deriveTeamName: () => "Soam's team",
 }));
 import { CreateTeamPage as CreateTeamPageV3 } from "@/scenes/PortalV3/Onboarding/CreateTeam/page";
 

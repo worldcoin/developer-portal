@@ -76,3 +76,31 @@ it("network failure (fetch rejects) → error card, no redirect", async () => {
   );
   expect(push).not.toHaveBeenCalled();
 });
+
+it("lost race (create fails but a concurrent attempt made the team) → recovers to the app, no error card", async () => {
+  global.fetch = jest.fn(async (url: string) => {
+    if (url === "/api/create-team") {
+      return {
+        ok: false,
+        json: async () => ({ code: "server_error", detail: "duplicate" }),
+      };
+    }
+    if (url === "/api/auth/profile") {
+      return {
+        ok: true,
+        json: async () => ({
+          hasura: {
+            memberships: [{ role: "OWNER", team: { id: "team_9", name: "T" } }],
+          },
+        }),
+      };
+    }
+    throw new Error(`unexpected fetch: ${url}`);
+  }) as never;
+  render(<AutoTeamBootstrap defaultName="T" hasUser={false} />);
+  await waitFor(() => expect(push).toHaveBeenCalledWith("/teams/team_9/apps"));
+  expect(invalidate).toHaveBeenCalled();
+  expect(
+    screen.queryByText(/couldn.t set up your workspace/i),
+  ).not.toBeInTheDocument();
+});

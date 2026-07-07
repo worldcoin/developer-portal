@@ -4,21 +4,11 @@ import { CreateTeamBody, CreateTeamResponse } from "@/api/create-team";
 import { Button } from "@/components/Button";
 import { SpinnerIcon } from "@/components/Icons/SpinnerIcon";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import { Auth0SessionUser } from "@/lib/types";
 import { urls } from "@/lib/urls";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { useRouter } from "next/navigation";
 import posthog from "posthog-js";
 import { useEffect, useRef, useState } from "react";
-
-export const deriveTeamName = (
-  user: Auth0SessionUser["user"] | null | undefined,
-): string => {
-  const fromName = user?.name?.split(" ")[0];
-  const fromEmail = user?.email?.split("@")[0];
-  const first = fromName || fromEmail;
-  return first ? `${first}'s team` : "My team";
-};
 
 type State = "creating" | "error" | "redirecting";
 
@@ -59,6 +49,24 @@ export const AutoTeamBootstrap = (props: {
         await invalidate();
         router.push(data.returnTo);
       } catch (error) {
+        // A concurrent submit (second tab / remount race) may have already
+        // created the team — the browser cookie jar is shared, so a fresh
+        // profile read sees the updated session. Recover as success instead
+        // of failing loud over a race we lost.
+        try {
+          const profileRes = await fetch("/api/auth/profile");
+          const profile = profileRes.ok ? await profileRes.json() : null;
+          const teamId = profile?.hasura?.memberships?.[0]?.team?.id;
+          if (teamId) {
+            posthog.capture("v3_auto_team_recovered", { team_id: teamId });
+            setState("redirecting");
+            await invalidate();
+            router.push(urls.apps({ team_id: teamId }));
+            return;
+          }
+        } catch {
+          // recovery probe failed — fall through to the error card
+        }
         const errorDetail =
           (error as Partial<CreateTeamResponse>)?.detail ??
           "Something went wrong";
