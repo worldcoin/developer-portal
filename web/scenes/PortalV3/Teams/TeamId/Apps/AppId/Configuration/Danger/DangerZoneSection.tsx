@@ -17,9 +17,8 @@ type DangerZoneSectionProps = {
 };
 
 /**
- * Danger zone (delete app) content, rendered as a section on the Configuration
- * (Overview) page and on the standalone /configuration/danger route. The delete
- * button is only actionable for team Owners.
+ * Danger zone (delete app) content, rendered as a section on the Configuration page
+ * The delete button is only actionable for team owners.
  */
 export const DangerZoneSection = ({
   appId,
