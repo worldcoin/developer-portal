@@ -53,12 +53,10 @@ it("failure → loud error card with manual escape hatch, no redirect", async ()
 });
 
 it("posts exactly once under StrictMode double-effect", async () => {
-  global.fetch = jest
-    .fn()
-    .mockResolvedValue({
-      ok: true,
-      json: async () => ({ returnTo: "/t" }),
-    }) as never;
+  global.fetch = jest.fn().mockResolvedValue({
+    ok: true,
+    json: async () => ({ returnTo: "/t" }),
+  }) as never;
   render(
     <StrictMode>
       <AutoTeamBootstrap defaultName="T" hasUser={false} />
