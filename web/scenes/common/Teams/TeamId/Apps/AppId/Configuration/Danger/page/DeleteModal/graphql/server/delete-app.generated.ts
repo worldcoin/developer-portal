@@ -15,10 +15,7 @@ export type DeleteAppMutation = {
 
 export const DeleteAppDocument = gql`
   mutation DeleteApp($id: String!) {
-    update_app_by_pk(
-      pk_columns: { id: $id }
-      _set: { deleted_at: "now()", is_archived: true }
-    ) {
+    update_app_by_pk(pk_columns: { id: $id }, _set: { deleted_at: "now()" }) {
       id
     }
   }

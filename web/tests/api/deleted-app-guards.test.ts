@@ -5,7 +5,6 @@ import { AppPrecheckByActionQueryDocument } from "@/api/v1/precheck/[app_id]/gra
 import { AppPrecheckQueryDocument } from "@/api/v1/precheck/[app_id]/graphql/app-precheck.generated";
 import { FetchRpRegistrationForPrecheckDocument } from "@/api/v1/precheck/[app_id]/graphql/fetch-rp-registration-for-precheck.generated";
 import { FetchAppActionDocument } from "@/api/v2/verify/graphql/fetch-app-action.generated";
-import { DeleteAppDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/Danger/page/DeleteModal/graphql/server/delete-app.generated";
 import { print } from "graphql";
 import { DocumentNode } from "graphql/language";
 
@@ -36,10 +35,6 @@ describe("deleted app guards", () => {
     expect(document).toContain("status");
     expect(document).toContain("is_archived");
     expect(document).toContain("deleted_at");
-  });
-
-  it("archives apps when soft-deleting them", () => {
-    expect(source(DeleteAppDocument)).toContain("is_archived:true");
   });
 });
 // #endregion
