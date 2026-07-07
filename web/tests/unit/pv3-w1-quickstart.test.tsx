@@ -176,6 +176,8 @@ describe("WorldIdActionIdPage quickstart integration", () => {
       data: { action_v4_by_pk: makeAction() },
       loading: false,
       error: undefined,
+      startPolling: jest.fn(),
+      stopPolling: jest.fn(),
     });
 
     const { WorldIdActionIdPage } = await import(
@@ -210,6 +212,8 @@ describe("WorldIdActionIdPage quickstart integration", () => {
       },
       loading: false,
       error: undefined,
+      startPolling: jest.fn(),
+      stopPolling: jest.fn(),
     });
 
     const { WorldIdActionIdPage } = await import(

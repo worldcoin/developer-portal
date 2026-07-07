@@ -198,27 +198,8 @@ describe("SetupStrip", () => {
     );
   });
 
-  it("RP ok, actions exist, zero verifications: shows live-wait copy with a pulse dot and starts polling", () => {
+  it("RP ok, actions exist: renders null — setup is done; the first-proof moment lives on the action page, not here", () => {
     getActions.mockReturnValue(actionsQueryResult([{ count: 0 }]));
-    render(
-      <SetupStrip
-        appId="app_1"
-        teamId="team_1"
-        hasRpRegistration
-        canRegisterRp
-      />,
-    );
-    expect(
-      screen.getByText(/waiting for your first verification/i),
-    ).toBeInTheDocument();
-    expect(getActions).toHaveBeenCalledWith(
-      expect.objectContaining({ variables: { app_id: "app_1" } }),
-    );
-    expect(startPolling).toHaveBeenCalledWith(5000);
-  });
-
-  it("RP ok, actions exist, verifications > 0: renders null", () => {
-    getActions.mockReturnValue(actionsQueryResult([{ count: 2 }]));
     const { container } = render(
       <SetupStrip
         appId="app_1"
@@ -228,9 +209,14 @@ describe("SetupStrip", () => {
       />,
     );
     expect(container).toBeEmptyDOMElement();
+    // The strip never owns the verification-waiting moment anymore.
+    expect(
+      screen.queryByText(/waiting for your first verification/i),
+    ).not.toBeInTheDocument();
+    expect(posthog.capture).not.toHaveBeenCalled();
   });
 
-  it("does not poll (skips the query) when RP is missing", () => {
+  it("does not query actions when RP is missing (skip)", () => {
     getActions.mockReturnValue(actionsQueryResult([]));
     render(
       <SetupStrip
@@ -242,10 +228,9 @@ describe("SetupStrip", () => {
     );
     const [options] = getActions.mock.calls[0];
     expect(options.skip).toBe(true);
-    expect(startPolling).not.toHaveBeenCalled();
   });
 
-  it("revalidates on every mount (cache-and-network) so actions created on other pages advance the strip", () => {
+  it("revalidates on every mount (cache-and-network) so an action created elsewhere clears the CTA", () => {
     getActions.mockReturnValue(actionsQueryResult([]));
     render(
       <SetupStrip
@@ -257,62 +242,5 @@ describe("SetupStrip", () => {
     );
     const [options] = getActions.mock.calls[0];
     expect(options.fetchPolicy).toBe("cache-and-network");
-  });
-
-  it("does not start polling when RP is ok but there are zero actions (state 2)", () => {
-    getActions.mockReturnValue(actionsQueryResult([]));
-    render(
-      <SetupStrip
-        appId="app_1"
-        teamId="team_1"
-        hasRpRegistration
-        canRegisterRp
-      />,
-    );
-    expect(startPolling).not.toHaveBeenCalled();
-    expect(stopPolling).toHaveBeenCalled();
-  });
-
-  it("poll transition 0 -> 1 shows the first-proof confirmation, captures posthog exactly once, and stops polling", () => {
-    getActions.mockReturnValue(actionsQueryResult([{ count: 0 }]));
-    const { rerender } = render(
-      <SetupStrip
-        appId="app_1"
-        teamId="team_1"
-        hasRpRegistration
-        canRegisterRp
-      />,
-    );
-    expect(
-      screen.getByText(/waiting for your first verification/i),
-    ).toBeInTheDocument();
-
-    getActions.mockReturnValue(actionsQueryResult([{ count: 1 }]));
-    rerender(
-      <SetupStrip
-        appId="app_1"
-        teamId="team_1"
-        hasRpRegistration
-        canRegisterRp
-      />,
-    );
-
-    expect(screen.getByText(/first proof received/i)).toBeInTheDocument();
-    expect(posthog.capture).toHaveBeenCalledWith("v3_first_proof_received", {
-      app_id: "app_1",
-    });
-    expect(posthog.capture).toHaveBeenCalledTimes(1);
-    expect(stopPolling).toHaveBeenCalled();
-
-    // Rerender again with the same crossed state — capture must not fire twice.
-    rerender(
-      <SetupStrip
-        appId="app_1"
-        teamId="team_1"
-        hasRpRegistration
-        canRegisterRp
-      />,
-    );
-    expect(posthog.capture).toHaveBeenCalledTimes(1);
   });
 });

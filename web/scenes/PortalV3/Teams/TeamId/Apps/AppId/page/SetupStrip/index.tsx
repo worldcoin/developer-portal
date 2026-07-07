@@ -9,8 +9,6 @@ import { urls } from "@/lib/urls";
 import { useAutoRegisterRp } from "@/scenes/PortalV3/layout/CreateAppDialog/use-auto-register-rp";
 import { useGetActionsV4Query } from "@/scenes/common/Teams/TeamId/Apps/AppId/WorldIdActions/page/graphql/client/get-actions-v4.generated";
 import { useRouter } from "next/navigation";
-import posthog from "posthog-js";
-import { useEffect, useRef, useState } from "react";
 
 interface SetupStripProps {
   appId: string;
@@ -19,11 +17,10 @@ interface SetupStripProps {
   canRegisterRp: boolean;
 }
 
-// Dashboard strip mounted above VerificationStatusSection. Renders exactly
-// one of: RP recovery, a first-action CTA, a live wait for the first proof,
-// or nothing once the app has real verification traffic. Polling for the
-// first-proof state is the only network activity beyond the base query —
-// every other state uses `skip` so the query never polls.
+// Dashboard strip mounted above VerificationStatusSection. Guides the app to
+// the point where it can verify: RP recovery, then a first-action CTA, then
+// nothing. The first-verification "waiting → received" moment deliberately
+// lives on the action page (next to the integration snippet), not here.
 export const SetupStrip = ({
   appId,
   teamId,
@@ -39,67 +36,17 @@ export const SetupStrip = ({
     reset: resetRegistration,
   } = useAutoRegisterRp();
 
-  // Actions/verification totals only matter once the RP is registered — skip
-  // the query entirely while the strip is showing the RP-recovery state, so
-  // a broken RP setup doesn't also spam GetActionsV4.
-  const { data, startPolling, stopPolling } = useGetActionsV4Query({
+  // Whether the app has any actions yet decides between the first-action CTA
+  // and rendering nothing. Skipped until the RP is registered so a broken RP
+  // setup doesn't also query actions. Actions are created on OTHER pages, so
+  // revalidate on mount rather than trusting a stale cached "zero actions".
+  const { data } = useGetActionsV4Query({
     variables: { app_id: appId },
     skip: !hasRpRegistration,
-    // Actions are created on OTHER pages; cache-first would freeze the strip
-    // on the stale pre-creation answer (stuck at "create your first action"
-    // after the action exists). Revalidate on every mount, serve cache while
-    // the network answer arrives.
     fetchPolicy: "cache-and-network",
   });
 
-  const actions = data?.action_v4 ?? [];
-  const hasActions = actions.length > 0;
-  const totalVerifications = actions.reduce(
-    (sum, a) => sum + (a.nullifiers_aggregate.aggregate?.count ?? 0),
-    0,
-  );
-  const isWaitingForFirstProof =
-    hasRpRegistration && hasActions && totalVerifications === 0;
-  const verificationsExist =
-    hasRpRegistration && hasActions && totalVerifications > 0;
-
-  // Poll ONLY while genuinely waiting for the first proof (state 3) — states
-  // 1/2/4 never poll. startPolling/stopPolling (rather than a static
-  // pollInterval option) let this flip live as `data` moves the strip in and
-  // out of state 3 without skip/remount churn.
-  useEffect(() => {
-    if (isWaitingForFirstProof) {
-      startPolling(5000);
-    } else {
-      stopPolling();
-    }
-  }, [isWaitingForFirstProof, startPolling, stopPolling]);
-
-  // "First proof received!" is a one-time live-crossing celebration, not a
-  // steady-state banner: mounting directly into an already-verified app
-  // (state 4) must render null, not this. `justCrossed` only flips true
-  // when THIS strip actually observed the 0 -> >0 transition (i.e. it saw
-  // the waiting state at least once before verifications appeared) — a
-  // fresh mount that arrives already-verified never sets it.
-  const hasObservedWaiting = useRef(isWaitingForFirstProof);
-  const hasCapturedFirstProof = useRef(false);
-  const [justCrossed, setJustCrossed] = useState(false);
-  useEffect(() => {
-    if (isWaitingForFirstProof) {
-      hasObservedWaiting.current = true;
-      return;
-    }
-    if (
-      verificationsExist &&
-      hasObservedWaiting.current &&
-      !hasCapturedFirstProof.current
-    ) {
-      hasCapturedFirstProof.current = true;
-      setJustCrossed(true);
-      posthog.capture("v3_first_proof_received", { app_id: appId });
-      stopPolling();
-    }
-  }, [isWaitingForFirstProof, verificationsExist, appId, stopPolling]);
+  const hasActions = (data?.action_v4 ?? []).length > 0;
 
   const handleRetry = () => runRegistration(appId);
 
@@ -237,28 +184,6 @@ export const SetupStrip = ({
         >
           Create your first action
         </DecoratedButton>
-      </div>
-    );
-  }
-
-  if (justCrossed) {
-    return (
-      <div className="flex items-center gap-x-3 rounded-xl border border-grey-200 bg-grey-50 p-6">
-        <Typography variant={TYPOGRAPHY.M4}>✓ First proof received!</Typography>
-      </div>
-    );
-  }
-
-  if (isWaitingForFirstProof) {
-    return (
-      <div className="flex items-center gap-x-3 rounded-xl border border-grey-200 bg-grey-50 p-6">
-        <span
-          className="size-2.5 animate-pulse rounded-full bg-blue-500"
-          aria-hidden="true"
-        />
-        <Typography variant={TYPOGRAPHY.M4}>
-          Waiting for your first verification…
-        </Typography>
       </div>
     );
   }

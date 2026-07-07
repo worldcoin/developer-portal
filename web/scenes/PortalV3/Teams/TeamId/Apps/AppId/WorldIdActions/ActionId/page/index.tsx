@@ -1,12 +1,14 @@
 "use client";
-import { use, useState } from "react";
+import { use, useEffect, useRef, useState } from "react";
 import { ErrorPage } from "@/components/ErrorPage";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import posthog from "posthog-js";
 import Skeleton from "react-loading-skeleton";
 import { useGetSingleActionV4Query } from "@/scenes/common/Teams/TeamId/Apps/AppId/WorldIdActions/ActionId/page/graphql/client/get-single-action-v4.generated";
 import { VerifiedTable } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/Actions/ActionId/page/VerifiedTable";
 import { adaptNullifierV4 } from "./utils/adapt-nullifier-v4";
+import { FirstProofIndicator } from "./FirstProofIndicator";
 import { Quickstart } from "./Quickstart";
 
 type WorldIdActionIdPageProps = {
@@ -25,14 +27,48 @@ export const WorldIdActionIdPage = (props: WorldIdActionIdPageProps) => {
   const actionId = params?.actionId;
   const [showQuickstart, setShowQuickstart] = useState(false);
 
-  const { data, loading, error } = useGetSingleActionV4Query({
-    variables: { action_id: actionId ?? "" },
-  });
+  const { data, loading, error, startPolling, stopPolling } =
+    useGetSingleActionV4Query({
+      variables: { action_id: actionId ?? "" },
+      // The action was just created on another page and proofs arrive from
+      // outside the app — revalidate on mount rather than trusting cache.
+      fetchPolicy: "cache-and-network",
+    });
 
   const action = data?.action_v4_by_pk;
   const verificationCount = Number(
     action?.nullifiers_aggregate?.aggregate?.count ?? 0,
   );
+
+  const waitingForFirstProof = !!action && verificationCount === 0;
+
+  // Poll only while waiting for the first proof, so the indicator flips live
+  // when a verification lands without a manual refresh; stop once it arrives.
+  useEffect(() => {
+    if (waitingForFirstProof) {
+      startPolling(5000);
+      return () => stopPolling();
+    }
+    stopPolling();
+  }, [waitingForFirstProof, startPolling, stopPolling]);
+
+  // "First proof received!" is a one-time live crossing, not a steady banner:
+  // only celebrate if this page actually observed the waiting state before the
+  // proof appeared — arriving on an already-verified action shows nothing.
+  const hasObservedWaiting = useRef(false);
+  const [justReceivedFirst, setJustReceivedFirst] = useState(false);
+  useEffect(() => {
+    if (waitingForFirstProof) {
+      hasObservedWaiting.current = true;
+      return;
+    }
+    if (verificationCount > 0 && hasObservedWaiting.current) {
+      setJustReceivedFirst(true);
+      posthog.capture("v3_first_proof_received", { action_id: actionId });
+      const timer = setTimeout(() => setJustReceivedFirst(false), 8000);
+      return () => clearTimeout(timer);
+    }
+  }, [waitingForFirstProof, verificationCount, actionId]);
 
   if (error) {
     return (
@@ -80,6 +116,16 @@ export const WorldIdActionIdPage = (props: WorldIdActionIdPageProps) => {
               </div>
             </div>
           </div>
+
+          {/* The first-proof moment lives here, beside the integration
+              snippet the developer just used — waiting → ✓ received, in place. */}
+          {!loading &&
+            action &&
+            (waitingForFirstProof || justReceivedFirst) && (
+              <FirstProofIndicator
+                variant={justReceivedFirst ? "received" : "waiting"}
+              />
+            )}
 
           {/* Quickstart: shown inline when the action has no verifications
               yet, otherwise collapsed behind a toggle so it doesn't crowd
