@@ -84,6 +84,16 @@ describe("v3 SidebarNav [main nav]", () => {
       screen.queryByRole("link", { name: "Back" }),
     ).not.toBeInTheDocument();
   });
+
+  it("routes the World ID entry to /world-id-4-0 for an app with an RP registration", () => {
+    renderSidebar({ appId, hasRpRegistration: true, hasLegacyActions: false });
+    expect(link("World ID")).toHaveAttribute("href", `${base}/world-id-4-0`);
+  });
+
+  it("routes the World ID entry to /actions for a legacy-actions-only app (no RP registration)", () => {
+    renderSidebar({ appId, hasRpRegistration: false, hasLegacyActions: true });
+    expect(link("World ID")).toHaveAttribute("href", `${base}/actions`);
+  });
 });
 // #endregion
 
