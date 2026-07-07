@@ -40,7 +40,7 @@ const fetchRpContext = async () => {
 };
 
 const verifyProof = async (result) => {
-  const response = await fetch("/api/v4/verify/${appId}", {
+  const response = await fetch("/api/verify-world-id", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
