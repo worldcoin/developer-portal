@@ -1,7 +1,8 @@
 "use client";
 
-import { Toggle } from "@/components/Toggle";
+import { Radio } from "@/components/Radio";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import clsx from "clsx";
 import { Role_Enum } from "@/graphql/graphql";
 import { Auth0SessionUser } from "@/lib/types";
 import { useRefetchQueries } from "@/lib/use-refetch-queries";
@@ -122,33 +123,54 @@ export const MiniAppConfiguration = ({
   );
   handleAppModeToggleRef.current = handleAppModeToggle;
 
+  const isDisabled = !isEditable || !isEnoughPermissions || isUpdatingMode;
+
+  const modeOptions = [
+    {
+      value: "mini-app",
+      isSelected: isMiniApp,
+      label:
+        "Mini App — runs inside World App, showcased in the Mini App Store",
+    },
+    {
+      value: "external",
+      isSelected: !isMiniApp,
+      label: "External — your own site, World ID only",
+    },
+  ] as const;
+
   return (
-    <div className="flex max-w-[700px] flex-col gap-5">
-      <Typography variant={TYPOGRAPHY.H7} className="font-normal text-grey-900">
-        Mini App Configuration
+    <div className="grid gap-y-5 rounded-2xl border border-grey-200 p-6">
+      <Typography variant={TYPOGRAPHY.M2} className="text-grey-900">
+        How does this app reach users?
       </Typography>
 
-      <div className="grid grid-cols-1 gap-y-10">
-        {/* This is a Mini App toggle */}
-        <div className="rounded-[10px] border border-grey-100 px-6 py-4">
-          <div className="flex items-center gap-x-4">
-            <div className="grid flex-1 gap-y-1">
-              <Typography variant={TYPOGRAPHY.S2} className="text-grey-900">
-                This is a Mini App
-              </Typography>
-              <Typography variant={TYPOGRAPHY.B3} className="text-grey-500">
-                Check this if you have integrated mini-kit into your app and
-                want it to load as a mini-app. Your app will be rejected if this
-                is not true.
-              </Typography>
-            </div>
-            <Toggle
-              checked={isMiniApp}
-              onChange={handleAppModeToggle}
-              disabled={!isEditable || !isEnoughPermissions || isUpdatingMode}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        {modeOptions.map((option) => (
+          <label
+            key={option.value}
+            className={clsx(
+              "flex cursor-pointer items-center gap-x-3 rounded-xl border p-5",
+              option.isSelected ? "border-grey-900" : "border-grey-200",
+              isDisabled && "cursor-default opacity-60",
+            )}
+          >
+            <Radio
+              value={option.value}
+              name="app_mode"
+              checked={option.isSelected}
+              onChange={() => {
+                if (!option.isSelected) {
+                  void handleAppModeToggle(option.value === "mini-app");
+                }
+              }}
+              disabled={isDisabled}
             />
-          </div>
-        </div>
+            <Typography variant={TYPOGRAPHY.R4} className="text-grey-900">
+              {option.label}
+            </Typography>
+          </label>
+        ))}
       </div>
     </div>
   );

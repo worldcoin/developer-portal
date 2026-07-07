@@ -117,7 +117,13 @@ export const useImage = () => {
     });
 
     if (!response.data?.upload_image?.url) {
-      throw new Error("Failed to get upload signed URL");
+      // Surface the server's error (e.g. missing AWS credentials on a local
+      // stack) instead of a blind "failed" — it lands in the console/toast.
+      throw new Error(
+        response.error?.message
+          ? `Failed to get upload signed URL: ${response.error.message}`
+          : "Failed to get upload signed URL",
+      );
     }
 
     const { url, stringifiedFields } = response.data.upload_image;

@@ -9,7 +9,7 @@ import { checkUserPermissions } from "@/lib/utils";
 import { useApolloClient } from "@apollo/client";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { useAtom } from "jotai";
+import { atom, useAtom, useSetAtom } from "jotai";
 import React, {
   forwardRef,
   useCallback,
@@ -38,6 +38,12 @@ export type BasicInformationHandle = {
   }) => Promise<boolean>;
 };
 
+// Live snapshot of this form's values, published as the user types. The
+// review-readiness rail and live-preview phone consume it — this form is a
+// local useForm (not part of the AppStore form context), so without this atom
+// the rail would only see values after autosave lands in the Apollo cache.
+export const basicInfoDraftAtom = atom<Partial<BasicInformationFormValues>>({});
+
 export const BasicInformation = forwardRef<
   BasicInformationHandle,
   {
@@ -51,6 +57,7 @@ export const BasicInformation = forwardRef<
 
   const [viewMode] = useAtom(viewModeAtom);
   const { user } = useUser() as Auth0SessionUser;
+  const setBasicInfoDraft = useSetAtom(basicInfoDraftAtom);
 
   const isEnoughPermissions = useMemo(() => {
     return checkUserPermissions(user, teamId ?? "", [
@@ -92,6 +99,7 @@ export const BasicInformation = forwardRef<
     reset,
     setValue,
     setError,
+    watch,
     formState: { errors },
   } = form;
 
@@ -105,6 +113,19 @@ export const BasicInformation = forwardRef<
       previousMetadataId.current = appMetaData?.id;
     }
   }, [appMetaData?.id, editableAppMetadata, reset]);
+
+  // Publish live values for the review-readiness rail and live preview.
+  useEffect(() => {
+    setBasicInfoDraft(form.getValues());
+    const subscription = watch((values) => {
+      setBasicInfoDraft({
+        name: values.name,
+        integration_url: values.integration_url,
+        app_website_url: values.app_website_url,
+      });
+    });
+    return () => subscription.unsubscribe();
+  }, [form, watch, setBasicInfoDraft]);
 
   const persist = useCallback(
     async (
@@ -215,65 +236,49 @@ export const BasicInformation = forwardRef<
   );
 
   return (
-    <div className="grid max-w-[700px] grid-cols-1fr/auto">
-      <div className="">
-        <div className="grid gap-y-7">
-          <Typography
-            variant={TYPOGRAPHY.H7}
-            className="font-normal text-grey-900"
-          >
-            Basic information
-          </Typography>
+    <div className="grid gap-y-6">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <FloatingInput
+          id="name"
+          register={register("name")}
+          errors={errors.name}
+          label="App name"
+          disabled={!isEditable || !isEnoughPermissions}
+          required
+          maxLength={50}
+        />
 
-          <div className="grid grid-cols-2 gap-x-4">
-            <FloatingInput
-              id="name"
-              register={register("name")}
-              errors={errors.name}
-              label="App name"
-              disabled={!isEditable || !isEnoughPermissions}
-              required
-              maxLength={50}
-            />
+        <FloatingInput
+          id="integration_url"
+          label="App URL"
+          required
+          errors={errors.integration_url}
+          disabled={!isEditable || !isEnoughPermissions}
+          register={makeUrlRegister("integration_url")}
+        />
 
-            <FloatingInput
-              id="publisher"
-              label="Publisher"
-              value={teamName}
-              readOnly
-              tabIndex={-1}
-              className="pointer-events-none"
-            />
-          </div>
+        <FloatingInput
+          id="app_website_url"
+          label="App Official Website"
+          required
+          errors={errors.app_website_url}
+          disabled={!isEditable || !isEnoughPermissions}
+          register={makeUrlRegister("app_website_url")}
+        />
+      </div>
 
-          <FloatingInput
-            id="integration_url"
-            label="App URL"
-            required
-            errors={errors.integration_url}
-            disabled={!isEditable || !isEnoughPermissions}
-            register={makeUrlRegister("integration_url")}
-          />
-
-          <FloatingInput
-            id="app_website_url"
-            label="App Official Website"
-            required
-            errors={errors.app_website_url}
-            disabled={!isEditable || !isEnoughPermissions}
-            register={makeUrlRegister("app_website_url")}
-          />
-
-          <FloatingInput
-            id="app-id"
-            label="ID"
-            value={appId}
-            readOnly
-            tabIndex={-1}
-            style={{ WebkitTextFillColor: "#9BA3AE", color: "#9BA3AE" }}
-            addOnRight={<CopyButton fieldName="App ID" fieldValue={appId} />}
-          />
-        </div>
+      {/* Publisher / ID meta line */}
+      <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+        <Typography variant={TYPOGRAPHY.R4} className="text-grey-500">
+          Publisher: {teamName}
+        </Typography>
+        <Typography variant={TYPOGRAPHY.R4} className="text-grey-300">
+          ·
+        </Typography>
+        <Typography variant={TYPOGRAPHY.R4} className="text-grey-500">
+          ID: {appId}
+        </Typography>
+        <CopyButton fieldName="App ID" fieldValue={appId} />
       </div>
     </div>
   );

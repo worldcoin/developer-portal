@@ -43,7 +43,6 @@ import {
 } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/graphql/client/fetch-images.generated";
 import { unverifiedImageAtom, viewModeAtom } from "../layout/ImagesProvider";
 import { LogoImageUpload } from "./LogoImageUpload";
-import { SubmitAppModal } from "./SubmitAppModal";
 import { VersionSwitcher } from "./VersionSwitcher";
 import { useCreateEditableRowMutation } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/AppTopBar/graphql/client/create-editable-row.generated";
 
@@ -54,15 +53,17 @@ type AppTopBarSubmitProps = {
   viewMode: "unverified" | "verified";
   onSubmitSuccess: () => void;
   basicInfoRef?: MutableRefObject<BasicInformationHandle | null>;
+  className?: string;
 };
 
-const AppTopBarSubmit = ({
+export const AppTopBarSubmit = ({
   appMetadata,
   appId,
   teamId,
   viewMode,
   onSubmitSuccess,
   basicInfoRef,
+  className,
 }: AppTopBarSubmitProps) => {
   const form = useFormContext<AppStoreFormValues>();
   const searchParams = useSearchParams();
@@ -193,7 +194,7 @@ const AppTopBarSubmit = ({
   return (
     <DecoratedButton
       type="submit"
-      className={clsx("h-12 px-6 py-3", {
+      className={clsx("h-12 px-6 py-3", className, {
         hidden:
           appMetadata.app_id?.includes("staging") &&
           process.env.NEXT_PUBLIC_APP_ENV === "production",
@@ -311,29 +312,15 @@ const AppIconButton = ({
   </button>
 );
 
-const AppIconButtonWithFormError = (
-  props: Omit<AppIconButtonProps, "isLogoError">,
-) => {
-  const {
-    formState: { errors },
-  } = useFormContext<AppStoreFormValues & { logo_img_url?: string }>();
-
-  return (
-    <AppIconButton {...props} isLogoError={Boolean(errors.logo_img_url)} />
-  );
-};
-
 type AppTopBarProps = {
   appId: string;
   teamId: string;
   app: FetchAppMetadataQuery["app"][0];
   onResolve?: () => void;
-  hasFormContext?: boolean;
-  basicInfoRef?: MutableRefObject<BasicInformationHandle | null>;
 };
 
 export const AppTopBar = (props: AppTopBarProps) => {
-  const { appId, teamId, app, onResolve, hasFormContext, basicInfoRef } = props;
+  const { appId, teamId, app, onResolve } = props;
   const router = useRouter();
   const searchParams = useSearchParams();
   const [viewMode, setViewMode] = useAtom(viewModeAtom);
@@ -343,11 +330,6 @@ export const AppTopBar = (props: AppTopBarProps) => {
     variables: { id: appId, team_id: teamId },
   });
 
-  const [showSubmitAppModal, setShowSubmitAppModal] = useState(false);
-  const handleSubmitSuccess = useCallback(
-    () => setShowSubmitAppModal(true),
-    [],
-  );
   const [showLogoDialog, setShowLogoDialog] = useState(false);
   const hasAutoOpenedLogoDialog = useRef(false);
   const [unverifiedImages, setUnverifiedImages] = useAtom(unverifiedImageAtom);
@@ -434,13 +416,6 @@ export const AppTopBar = (props: AppTopBarProps) => {
     shouldAutoOpenLogoDialog,
     viewMode,
   ]);
-
-  const hasRequiredImagesForAppStore = useMemo(() => {
-    return Boolean(
-      appMetadata?.showcase_img_urls &&
-        appMetadata?.showcase_img_urls?.length >= 1,
-    );
-  }, [appMetadata?.showcase_img_urls]);
 
   const [fetchImagesQuery] = useFetchImagesLazyQuery();
 
@@ -567,40 +542,20 @@ export const AppTopBar = (props: AppTopBarProps) => {
         onClose={() => setShowLogoDialog(false)}
         dialogOnly
       />
-      <SubmitAppModal
-        open={showSubmitAppModal}
-        setOpen={setShowSubmitAppModal}
-        appMetadataId={appMetadata.id}
-        canSubmitAppStore={hasRequiredImagesForAppStore}
-        teamId={teamId}
-        appId={appId}
-        isDeveloperAllowListing={appMetadata?.is_developer_allow_listing}
-      />
       {/* New layout: Logo + Name/Status/Version on left, Actions on right */}
       <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-center sm:justify-between">
         {/* Left side: Logo + Name + Status + Version */}
         <div className="flex flex-col items-center gap-8 sm:flex-row sm:items-center">
           {/* Logo */}
-          {hasFormContext ? (
-            <AppIconButtonWithFormError
-              hasLogo={hasLogo}
-              logoImgUrl={logoImgUrl}
-              isLogoLoading={isLogoLoading}
-              viewMode={viewMode}
-              isInReview={isInReview}
-              onEdit={() => setShowLogoDialog(true)}
-            />
-          ) : (
-            <AppIconButton
-              hasLogo={hasLogo}
-              logoImgUrl={logoImgUrl}
-              isLogoLoading={isLogoLoading}
-              viewMode={viewMode}
-              isInReview={isInReview}
-              isLogoError={false}
-              onEdit={() => setShowLogoDialog(true)}
-            />
-          )}
+          <AppIconButton
+            hasLogo={hasLogo}
+            logoImgUrl={logoImgUrl}
+            isLogoLoading={isLogoLoading}
+            viewMode={viewMode}
+            isInReview={isInReview}
+            isLogoError={false}
+            onEdit={() => setShowLogoDialog(true)}
+          />
 
           {/* Name, Status, Environment, Version */}
           <div className="flex flex-col items-center gap-2 sm:items-start">
@@ -647,40 +602,31 @@ export const AppTopBar = (props: AppTopBarProps) => {
                 </DecoratedButton>
               )}
 
-              {/* Submit / Un-submit / Create Draft button */}
+              {/* Submit / Un-submit / Create Draft button. On the
+                  Configuration page itself, submit-for-review lives in the
+                  review-readiness rail; this button navigates there. */}
               {isEditable ? (
-                hasFormContext ? (
-                  <AppTopBarSubmit
-                    appMetadata={appMetadata}
-                    appId={appId}
-                    teamId={teamId}
-                    viewMode={viewMode}
-                    onSubmitSuccess={handleSubmitSuccess}
-                    basicInfoRef={basicInfoRef}
-                  />
-                ) : (
-                  <DecoratedButton
-                    type="button"
-                    className={clsx("h-12 px-6 py-3", {
-                      hidden:
-                        appMetadata.app_id?.includes("staging") &&
-                        process.env.NEXT_PUBLIC_APP_ENV === "production",
-                    })}
-                    disabled={!canSubmitForReview}
-                    onClick={() =>
-                      router.push(
-                        `${urls.configuration({ team_id: teamId, app_id: appId })}?submitForReview=true`,
-                      )
-                    }
+                <DecoratedButton
+                  type="button"
+                  className={clsx("h-12 px-6 py-3", {
+                    hidden:
+                      appMetadata.app_id?.includes("staging") &&
+                      process.env.NEXT_PUBLIC_APP_ENV === "production",
+                  })}
+                  disabled={!canSubmitForReview}
+                  onClick={() =>
+                    router.push(
+                      `${urls.configuration({ team_id: teamId, app_id: appId })}?submitForReview=true`,
+                    )
+                  }
+                >
+                  <Typography
+                    variant={TYPOGRAPHY.M3}
+                    className="whitespace-nowrap"
                   >
-                    <Typography
-                      variant={TYPOGRAPHY.M3}
-                      className="whitespace-nowrap"
-                    >
-                      Submit for review
-                    </Typography>
-                  </DecoratedButton>
-                )
+                    Submit for review
+                  </Typography>
+                </DecoratedButton>
               ) : app?.app_metadata?.length === 0 ? (
                 <DecoratedButton
                   type="button"
