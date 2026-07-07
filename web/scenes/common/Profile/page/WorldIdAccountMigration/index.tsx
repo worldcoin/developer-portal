@@ -4,6 +4,9 @@ import { DecoratedButton } from "@/components/DecoratedButton";
 import { LinkIcon } from "@/components/Icons/LinkIcon";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { WORLD_ID_MIGRATION_APP_IDS } from "@/lib/constants";
+import { isWorldUser } from "@/lib/is-world-user";
+import { buildMockRpContext } from "@/lib/rp";
+import type { Auth0SessionUser } from "@/lib/types";
 import {
   deviceLegacy,
   IDKitRequestWidget,
@@ -11,8 +14,11 @@ import {
 } from "@worldcoin/idkit";
 import clsx from "clsx";
 import { useCallback, useEffect, useState } from "react";
-import { buildMockRpContext } from "../../../../../lib/rp";
 import type { MigrationState } from "./types";
+
+type WorldIdAccountMigrationProps = {
+  auth0User: Auth0SessionUser["user"] | undefined;
+};
 
 const statusCopy: Record<
   MigrationState["type"],
@@ -29,7 +35,9 @@ const statusCopy: Record<
   },
 };
 
-export const WorldIdAccountMigration = () => {
+export const WorldIdAccountMigration = ({
+  auth0User,
+}: WorldIdAccountMigrationProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [migrationState, setMigrationState] = useState<MigrationState>({
     type: "idle",
@@ -37,6 +45,10 @@ export const WorldIdAccountMigration = () => {
 
   const appId =
     WORLD_ID_MIGRATION_APP_IDS[process.env.NEXT_PUBLIC_APP_ENV ?? ""];
+
+  const shouldHide =
+    process.env.NEXT_PUBLIC_ENABLE_WORLD_ID_RESTORATION !== "true" ||
+    Boolean(auth0User && isWorldUser(auth0User));
 
   useEffect(() => {
     if (!appId) {
@@ -97,6 +109,15 @@ export const WorldIdAccountMigration = () => {
 
     setMigrationState({ type: "idle" });
   }, []);
+
+  // Feature-flagged (ships dark). A Sign in with World ID session IS a legacy
+  // account, so migration only makes sense from an email account. Hide only on
+  // a positive world-id match: useUser() resolves asynchronously, so auth0User
+  // is undefined on early renders and the card must not fail closed while it
+  // loads.
+  if (shouldHide) {
+    return null;
+  }
 
   return (
     <div className="grid w-full gap-y-5 rounded-12 border border-grey-200 p-6">

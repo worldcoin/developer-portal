@@ -9,8 +9,10 @@ import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Auth0SessionUser } from "@/lib/types";
 import { UserInfo } from "@/scenes/PortalV3/Profile/common/UserInfo";
 import { ColorSelector } from "@/scenes/PortalV3/Profile/page/ColorSelector";
+import { WorldIdAccountMigration } from "@/scenes/common/Profile/page/WorldIdAccountMigration";
 import { useUpdateUserMutation } from "@/scenes/common/Profile/page/graphql/client/update-user.generated";
 import { Color, colors } from "@/scenes/common/Profile/types";
+import { colorAtom } from "@/scenes/common/layout/color-atom";
 import { useMeQuery } from "@/scenes/common/me-query/client";
 import { FetchMeDocument } from "@/scenes/common/me-query/client/graphql/client/me-query.generated";
 import { useUser } from "@auth0/nextjs-auth0/client";
@@ -20,7 +22,6 @@ import { useCallback, useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import * as yup from "yup";
-import { colorAtom } from "@/scenes/common/layout/color-atom";
 
 const schema = yup
   .object({
@@ -177,6 +178,8 @@ export const ProfilePage = () => {
                 </Typography>
               </div>
             </label>
+
+            <WorldIdAccountMigration auth0User={auth0User} />
 
             <DecoratedButton
               type="submit"
