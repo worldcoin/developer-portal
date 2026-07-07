@@ -14,7 +14,7 @@ import { Section } from "@/components/Section";
 import { PlusIcon } from "@/components/Icons/PlusIcon";
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { useAtom } from "jotai";
-import { createAppDialogOpenedAtom } from "@/scenes/Portal/layout/Header";
+import { createAppDialogOpenedAtom } from "@/scenes/common/layout/Header/atoms";
 
 export const Apps = () => {
   const { teamId } = useParams() as { teamId: string };

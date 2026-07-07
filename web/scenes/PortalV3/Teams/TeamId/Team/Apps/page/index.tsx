@@ -1,8 +1,8 @@
 "use client";
 
-import { TeamProfile } from "@/scenes/Portal/Teams/TeamId/Team/common/TeamProfile";
+import { TeamProfile } from "@/scenes/PortalV3/Teams/TeamId/Team/common/TeamProfile";
 import { SizingWrapper } from "@/components/SizingWrapper";
-import { Apps } from "@/scenes/Portal/Teams/TeamId/Team/page/Apps";
+import { Apps } from "@/scenes/PortalV3/Teams/TeamId/Team/page/Apps";
 
 export const AppsPage = () => {
   return (

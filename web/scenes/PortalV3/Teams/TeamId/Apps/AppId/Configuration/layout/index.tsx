@@ -5,7 +5,7 @@ import { Auth0SessionUser } from "@/lib/types";
 import { checkUserPermissions } from "@/lib/utils";
 import { auth0 } from "@/lib/auth0";
 import { ReactNode } from "react";
-import { SectionSubTabs } from "@/scenes/Portal/Teams/TeamId/Apps/AppId/common/SectionSubTabs";
+import { SectionSubTabs } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/common/SectionSubTabs";
 import { ImagesProvider } from "./ImagesProvider";
 
 type Params = {
