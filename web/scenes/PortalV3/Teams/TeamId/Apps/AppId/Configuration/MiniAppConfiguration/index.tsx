@@ -2,19 +2,19 @@
 
 import { Radio } from "@/components/Radio";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import clsx from "clsx";
 import { Role_Enum } from "@/graphql/graphql";
 import { Auth0SessionUser } from "@/lib/types";
 import { useRefetchQueries } from "@/lib/use-refetch-queries";
 import { checkUserPermissions } from "@/lib/utils";
-import { useUser } from "@auth0/nextjs-auth0/client";
-import { useAtom } from "jotai";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { toast } from "react-toastify";
 import {
   FetchAppMetadataDocument,
   FetchAppMetadataQueryVariables,
 } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/graphql/client/fetch-app-metadata.generated";
+import { useUser } from "@auth0/nextjs-auth0/client";
+import clsx from "clsx";
+import { useAtom } from "jotai";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { toast } from "react-toastify";
 import { AppMetadata } from "../AppStore/types/AppStoreFormTypes";
 import { isMiniAppAtom } from "../layout/ImagesProvider";
 import { useSaveStatusActions } from "../SaveStatus";
@@ -130,17 +130,17 @@ export const MiniAppConfiguration = ({
       value: "mini-app",
       isSelected: isMiniApp,
       label:
-        "Mini App — runs inside World App, showcased in the Mini App Store",
+        "Mini App",
     },
     {
       value: "external",
       isSelected: !isMiniApp,
-      label: "External — your own site, World ID only",
+      label: "External Integration",
     },
   ] as const;
 
   return (
-    <div className="grid gap-y-5 rounded-2xl border border-grey-200 p-6">
+    <div className="grid content-start gap-y-5 rounded-2xl border border-grey-200 bg-grey-0 p-6 shadow-button">
       <Typography variant={TYPOGRAPHY.M2} className="text-grey-900">
         How does this app reach users?
       </Typography>
@@ -150,8 +150,10 @@ export const MiniAppConfiguration = ({
           <label
             key={option.value}
             className={clsx(
-              "flex cursor-pointer items-center gap-x-3 rounded-xl border p-5",
-              option.isSelected ? "border-grey-900" : "border-grey-200",
+              "flex cursor-pointer items-center gap-x-3 rounded-xl border p-5 transition-colors",
+              option.isSelected
+                ? "border-blue-500 bg-blue-50"
+                : "border-grey-200 hover:border-grey-300",
               isDisabled && "cursor-default opacity-60",
             )}
           >

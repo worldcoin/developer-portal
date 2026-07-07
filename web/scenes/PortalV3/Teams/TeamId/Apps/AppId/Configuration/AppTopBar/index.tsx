@@ -16,6 +16,7 @@ import { ErrorPage } from "@/components/ErrorPage";
 import { SpinnerIcon } from "@/components/Icons/SpinnerIcon";
 import { urls } from "@/lib/urls";
 import { useRouter, useSearchParams } from "next/navigation";
+import posthog from "posthog-js";
 import {
   MutableRefObject,
   useCallback,
@@ -45,6 +46,19 @@ import { unverifiedImageAtom, viewModeAtom } from "../layout/ImagesProvider";
 import { LogoImageUpload } from "./LogoImageUpload";
 import { VersionSwitcher } from "./VersionSwitcher";
 import { useCreateEditableRowMutation } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/AppTopBar/graphql/client/create-editable-row.generated";
+
+// The submit button lives in the rail, so a failed review validation can put
+// its field errors far off-screen — bring the first one into view. Errored
+// fields render on bg-system-error-50 (FloatingInput, image uploads), which
+// only exists while an error is shown. Deferred a frame so the error styles
+// have rendered; scrollIntoView is optional-called for jsdom.
+const scrollToFirstError = () => {
+  requestAnimationFrame(() => {
+    document
+      .querySelector(".bg-system-error-50")
+      ?.scrollIntoView?.({ behavior: "smooth", block: "center" });
+  });
+};
 
 type AppTopBarSubmitProps = {
   appMetadata: FetchAppMetadataQuery["app"][0]["app_metadata"][0];
@@ -77,6 +91,27 @@ export const AppTopBarSubmit = ({
       toast.error("Only unverified apps can be submitted for review");
       return;
     }
+
+    // The review-schema check below runs entirely client-side — a failed
+    // attempt never reaches a server, so this event is the only way to see
+    // where submissions die.
+    const captureAttempt = (
+      result:
+        | "passed"
+        | "basic_info_failed"
+        | "flush_failed"
+        | "validation_failed"
+        | "error",
+      extra?: Record<string, unknown>,
+    ) => {
+      posthog.capture("app_submit_review_attempted", {
+        app_id: appId,
+        team_id: teamId,
+        result,
+        ...extra,
+      });
+    };
+
     setIsSubmittingForReview(true);
     try {
       if (basicInfoRef?.current) {
@@ -85,9 +120,11 @@ export const AppTopBarSubmit = ({
           forReview: true,
         });
         if (!ok) {
+          captureAttempt("basic_info_failed");
           toast.error(
             "Please fix basic information errors before submitting for review",
           );
+          scrollToFirstError();
           return;
         }
       }
@@ -107,6 +144,7 @@ export const AppTopBarSubmit = ({
       if (saveStatus) {
         const flushed = await saveStatus.flushAll();
         if (!flushed) {
+          captureAttempt("flush_failed");
           toast.error(
             "Some changes could not be saved. Fix any errors and try again.",
           );
@@ -143,6 +181,7 @@ export const AppTopBarSubmit = ({
           context: { isMiniApp },
         },
       );
+      captureAttempt("passed");
       onSubmitSuccess();
     } catch (error) {
       let errorMessage = "Error occurred while submitting app for review";
@@ -160,9 +199,25 @@ export const AppTopBarSubmit = ({
         if (error.inner.length > 1) {
           errorMessage = MULTIPLE_ERRORS_TOAST_MESSAGE;
         }
+        captureAttempt("validation_failed", {
+          first_error_field: error.inner[0]?.path,
+          error_count: error.inner.length,
+        });
         toast.error(errorMessage);
+        const firstPath = error.inner[0]?.path;
+        if (firstPath) {
+          try {
+            // Focus scrolls natively for focusable fields...
+            form.setFocus(firstPath as Parameters<typeof form.setFocus>[0]);
+          } catch {
+            // ...non-registered paths (e.g. image fields) fall through to the
+            // DOM scroll below.
+          }
+        }
+        scrollToFirstError();
         return;
       }
+      captureAttempt("error");
       if (error instanceof Error) {
         toast.error(error.message);
         return;
@@ -174,6 +229,7 @@ export const AppTopBarSubmit = ({
     }
   }, [
     appId,
+    teamId,
     appMetadata,
     basicInfoRef,
     client,

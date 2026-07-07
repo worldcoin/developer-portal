@@ -22,6 +22,8 @@ import { viewModeAtom } from "./layout/ImagesProvider";
 import { useFetchLocalisationsQuery } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/AppStore/graphql/client/fetch-localisations.generated";
 import { AppIconBox } from "./PageComponents/AppIconBox";
 import { NumberedSection } from "./PageComponents/NumberedSection";
+import { SectionToc } from "./PageComponents/SectionToc";
+import { InReviewBanner } from "./InReviewBanner";
 import { RejectionBanner } from "./RejectionBanner";
 import { ResolveModal } from "./ResolveModal";
 import { ReviewRail } from "./ReviewRail";
@@ -51,25 +53,38 @@ const ConfigurationContent = ({
   teamName,
 }: ConfigurationContentProps) => {
   const basicInfoRef = useRef<BasicInformationHandle>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   return (
-    <div className="grid gap-6 lg:h-full lg:grid-cols-[minmax(0,1fr)_minmax(420px,34%)] lg:grid-rows-[minmax(0,1fr)]">
+    <div className="grid gap-6 lg:h-full lg:grid-cols-[11rem_minmax(0,1fr)_minmax(380px,30%)] lg:grid-rows-[minmax(0,1fr)]">
+      {/* Section jump nav: static beside the scrolling form column. */}
+      <div className="hidden pt-8 lg:block">
+        <SectionToc scrollContainerRef={scrollContainerRef} />
+      </div>
+
       {/* Main column: the only scroll container on lg+ — the wheel moves the
           form while the preview pane stays put. */}
-      <div className="grid min-w-0 content-start gap-y-6 pb-24 pt-8 lg:h-full lg:overflow-y-auto lg:pr-4">
-        <MiniAppConfiguration
-          appId={appId}
-          teamId={teamId}
-          appMetadata={appMetadata as AppMetadata}
-        />
+      <div
+        ref={scrollContainerRef}
+        className="grid min-w-0 content-start gap-y-6 pb-24 pt-8 lg:h-full lg:overflow-y-auto lg:pr-4"
+      >
+        {/* Identity band: app icon beside the reach-mode chooser, one row on
+            lg+ so the lone icon circle doesn't occupy a full-width box. */}
+        <div className="grid gap-6 lg:grid-cols-[auto_minmax(0,1fr)]">
+          <AppIconBox
+            appId={appId}
+            teamId={teamId}
+            appMetadataId={appMetadata.id}
+            logoFile={appMetadata.logo_img_url}
+            isEditable={appMetadata.verification_status === "unverified"}
+          />
 
-        <AppIconBox
-          appId={appId}
-          teamId={teamId}
-          appMetadataId={appMetadata.id}
-          logoFile={appMetadata.logo_img_url}
-          isEditable={appMetadata.verification_status === "unverified"}
-        />
+          <MiniAppConfiguration
+            appId={appId}
+            teamId={teamId}
+            appMetadata={appMetadata as AppMetadata}
+          />
+        </div>
 
         <NumberedSection number="01" title="Basic information">
           <BasicInformation
@@ -145,10 +160,12 @@ export const AppProfilePage = ({ params }: AppProfilePageProps) => {
   const [showResolveModal, setShowResolveModal] = useState(false);
 
   const isRejected = appMetadata?.verification_status === "changes_requested";
+  const isInReview = appMetadata?.verification_status === "awaiting_review";
 
-  const { removeFromReview } = useRemoveFromReview({
-    metadataId: appMetadata?.id,
-  });
+  const { removeFromReview, loading: isRemovingFromReview } =
+    useRemoveFromReview({
+      metadataId: appMetadata?.id,
+    });
 
   if (!isMetadataLoading && (error || !app)) {
     return (
@@ -198,6 +215,18 @@ export const AppProfilePage = ({ params }: AppProfilePageProps) => {
               onResolve={() => {
                 setShowResolveModal(true);
               }}
+            />
+          </SizingWrapper>
+        )}
+
+        {/* Locked-state strip: explains the disabled fields while the draft
+            awaits review, and offers the only unlock path (un-submit). */}
+        {isInReview && (
+          <SizingWrapper variant="nav" gridClassName="order-1 pt-6">
+            <InReviewBanner
+              teamId={teamId}
+              onUnsubmit={removeFromReview}
+              loading={isRemovingFromReview}
             />
           </SizingWrapper>
         )}
