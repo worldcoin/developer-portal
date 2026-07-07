@@ -45,11 +45,25 @@ jest.mock("@/api/helpers/graphql", () => ({
   getAPIServiceGraphqlClient: jest.fn(),
 }));
 const AppPrecheckQuery = jest.fn();
+const FetchRpRegistrationForPrecheck = jest.fn();
 jest.mock("@/api/v1/precheck/[app_id]/graphql/app-precheck.generated", () => ({
   getSdk: () => ({
     AppPrecheckQuery,
   }),
 }));
+jest.mock(
+  "@/api/v1/precheck/[app_id]/graphql/fetch-rp-registration-for-precheck.generated",
+  () => ({
+    getSdk: () => ({
+      FetchRpRegistrationForPrecheck,
+    }),
+  }),
+);
+
+beforeEach(() => {
+  jest.clearAllMocks();
+  global.ParameterStore = undefined;
+});
 
 describe("/api/v1/precheck/[app_id]", () => {
   test("can fetch precheck response verified", async () => {
@@ -527,6 +541,65 @@ describe("/api/v1/precheck/[app_id]", () => {
 });
 
 describe("/api/v1/precheck/[action_id] [error cases]", () => {
+  test("returns not found when app is excluded from active app lookup", async () => {
+    const request = new NextRequest(
+      "http://localhost:3000/api/v1/precheck/app_staging_6d1c9fb86751a40d952749022db1c1",
+      {
+        method: "POST",
+        body: JSON.stringify(exampleValidRequestPayload),
+      },
+    );
+
+    AppPrecheckQuery.mockResolvedValue({
+      app: [],
+    });
+
+    const response = await POST(request, {
+      params: Promise.resolve({
+        app_id: "app_staging_6d1c9fb86751a40d952749022db1c1",
+      }),
+    });
+
+    expect(response.status).toBe(404);
+    expect(FetchRpRegistrationForPrecheck).not.toHaveBeenCalled();
+    const responseBody = await response.json();
+    expect(responseBody).toEqual(
+      expect.objectContaining({ code: "not_found" }),
+    );
+  });
+
+  test("does not synthesize a migrated action without an active app registration", async () => {
+    const request = new NextRequest(
+      "http://localhost:3000/api/v1/precheck/app_staging_6d1c9fb86751a40d952749022db1c1",
+      {
+        method: "POST",
+        body: JSON.stringify(exampleValidRequestPayload),
+      },
+    );
+
+    AppPrecheckQuery.mockResolvedValue({
+      app: [{ ...appPayload, actions: [] }],
+    });
+    FetchRpRegistrationForPrecheck.mockResolvedValue({
+      rp_registration: [],
+    });
+
+    const response = await POST(request, {
+      params: Promise.resolve({
+        app_id: "app_staging_6d1c9fb86751a40d952749022db1c1",
+      }),
+    });
+
+    expect(response.status).toBe(400);
+    expect(FetchRpRegistrationForPrecheck).toHaveBeenCalledWith({
+      app_id: "app_staging_6d1c9fb86751a40d952749022db1c1",
+    });
+    const responseBody = await response.json();
+    expect(responseBody).toEqual(
+      expect.objectContaining({ code: "required", attribute: "action" }),
+    );
+  });
+
   test("non-existent action", async () => {
     const request = new NextRequest(
       "http://localhost:3000/api/v1/precheck/app_id_do_not_exist",

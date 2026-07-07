@@ -19,7 +19,13 @@ export type GetRpRegistrationQuery = {
     signer_address?: string | null;
     manager_kms_key_id?: string | null;
     operation_hash?: string | null;
-    app: { __typename?: "app"; team_id: string };
+    app: {
+      __typename?: "app";
+      team_id: string;
+      status: string;
+      is_archived: boolean;
+      deleted_at?: string | null;
+    };
   }>;
 };
 
@@ -35,6 +41,9 @@ export const GetRpRegistrationDocument = gql`
       operation_hash
       app {
         team_id
+        status
+        is_archived
+        deleted_at
       }
     }
   }

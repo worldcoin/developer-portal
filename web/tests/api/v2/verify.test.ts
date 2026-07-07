@@ -405,6 +405,25 @@ describe("/api/v2/verify", () => {
 
 // #region Error cases
 describe("/api/v2/verify [error cases]", () => {
+  it("returns not found when app is excluded from active app lookup", async () => {
+    const mockReq = createMockRequest(getUrl(stagingAppId), validBody);
+    const ctx = { params: Promise.resolve({ app_id: stagingAppId }) };
+
+    FetchAppAction.mockResolvedValue({ app: [] });
+
+    const response = await POST(mockReq, ctx);
+
+    expect(response.status).toBe(404);
+    expect(fetch).not.toHaveBeenCalled();
+    const body = await response.json();
+    expect(body).toEqual({
+      attribute: null,
+      code: "not_found",
+      detail: "App not found. App may be no longer active.",
+      app_id: stagingAppId,
+    });
+  });
+
   it("action inactive or not found", async () => {
     const mockReq = createMockRequest(getUrl(stagingAppId), validBody);
     const ctx = { params: Promise.resolve({ app_id: stagingAppId }) };
