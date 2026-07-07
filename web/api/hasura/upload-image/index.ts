@@ -78,6 +78,9 @@ export const POST = async (req: NextRequest) => {
         code: "invalid_input",
         app_id,
         team_id,
+        // Invalid client-supplied content type is a validation rejection, not a
+        // server fault — log at "warn" so it doesn't surface in Error Tracking.
+        logLevel: "warn",
       });
     }
     const client = await getAPIServiceGraphqlClient();
