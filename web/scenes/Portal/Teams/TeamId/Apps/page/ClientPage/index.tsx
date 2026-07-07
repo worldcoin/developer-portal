@@ -69,8 +69,8 @@ export const ClientPage = (props: { teamId: string }) => {
       >
         <InitialSteps
           className="max-w-[720px]"
-          title="Build your first project"
-          description="Welcome to World ID! Let's get started by creating your first app."
+          title="Verify your first human"
+          description="Prove your users are real, unique people — no personal data required. Two ways to integrate World ID:"
         >
           <div className="mt-2 grid w-full items-stretch gap-4 md:mt-4 md:grid-cols-2">
             <section className="grid h-full grid-rows-[auto_auto_1fr_auto] gap-4 rounded-2xl border border-grey-200 bg-grey-0 p-5 shadow-lg md:gap-5 md:p-6">
@@ -108,7 +108,7 @@ export const ClientPage = (props: { teamId: string }) => {
                 <PathStep
                   variant="manual"
                   index={2}
-                  title="Create action"
+                  title="Create an action & drop in the widget"
                   description="Verify users as unique humans"
                   disabled
                 />
@@ -148,8 +148,8 @@ export const ClientPage = (props: { teamId: string }) => {
                 </Typography>
 
                 <Typography variant={TYPOGRAPHY.R4} className="text-grey-500">
-                  Connect Codex, Claude, or any MCP client to build and manage
-                  your app via natural language.
+                  Connect Codex, Claude, or any MCP client — your agent creates
+                  the app and action, you watch the first proof land.
                 </Typography>
               </div>
 
@@ -182,8 +182,7 @@ export const ClientPage = (props: { teamId: string }) => {
             variant={TYPOGRAPHY.R5}
             className="max-w-[720px] text-center text-grey-400"
           >
-            Both paths use the same World ID. You can switch between them
-            anytime.
+            Both paths end the same way: a verified human in your dashboard.
           </Typography>
         </InitialSteps>
       </SizingWrapper>
