@@ -2,9 +2,8 @@
 
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import { CreateAppDialogV4 } from "@/scenes/PortalV3/layout/CreateAppDialog/index-v4";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { urls } from "@/lib/urls";
+import { useParams } from "next/navigation";
 
 interface WorldId40MigrationBannerProps {
   appId: string;
@@ -19,31 +18,7 @@ export const WorldId40MigrationBanner = ({
   canRegisterRp,
   isStaging,
 }: WorldId40MigrationBannerProps) => {
-  const router = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const autoOpen = searchParams.get("enableWorldId4") === "true";
-  const [dialogOpen, setDialogOpen] = useState(autoOpen && canRegisterRp);
-
-  useEffect(() => {
-    if (autoOpen && canRegisterRp) setDialogOpen(true);
-  }, [autoOpen, canRegisterRp]);
-
-  const closeDialog = useCallback(() => {
-    setDialogOpen(false);
-
-    // Strip the `enableWorldId4` param so the World ID tab link returns to its
-    // clean state. Otherwise the URL keeps the param and clicking the tab again
-    // is a no-op (same URL), leaving the user unable to re-open the flow.
-    if (searchParams.has("enableWorldId4")) {
-      const params = new URLSearchParams(searchParams);
-      params.delete("enableWorldId4");
-      const query = params.toString();
-      router.replace(query ? `${pathname}?${query}` : pathname, {
-        scroll: false,
-      });
-    }
-  }, [pathname, router, searchParams]);
+  const { teamId } = useParams() as { teamId: string };
 
   // Don't show banner if:
   // - App already has RP registration, OR
@@ -77,9 +52,11 @@ export const WorldId40MigrationBanner = ({
         </div>
 
         <div className="flex items-center gap-2">
+          {/* The v3 create dialog is create-only; existing-app enablement goes
+              through the same route the World ID tab redirects to when an app
+              has no rp_registration. */}
           <DecoratedButton
-            type="button"
-            onClick={() => setDialogOpen(true)}
+            href={urls.enableWorldId4({ team_id: teamId, app_id: appId })}
             variant="primary"
             className="h-12 rounded-[10px] border-transparent outline outline-1 outline-offset-[-1px] outline-white/20"
           >
@@ -95,13 +72,6 @@ export const WorldId40MigrationBanner = ({
           </DecoratedButton>
         </div>
       </div>
-
-      <CreateAppDialogV4
-        open={dialogOpen}
-        onClose={closeDialog}
-        initialStep="enable-world-id-4-0"
-        appId={appId}
-      />
     </div>
   );
 };

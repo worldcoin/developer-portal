@@ -10,10 +10,11 @@ import {
   useFetchAppsQuery,
 } from "@/scenes/common/layout/AppSelector/graphql/client/fetch-apps.generated";
 import { CreateAppDialogV4 } from "@/scenes/PortalV3/layout/CreateAppDialog/index-v4";
+import { createAppDialogOpenedAtom } from "@/scenes/common/layout/Header/atoms";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import clsx from "clsx";
-import { atom, useAtomValue, useSetAtom } from "jotai";
+import { atom, useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
@@ -79,6 +80,11 @@ export const AppsDropdown = () => {
     Role_Enum.Admin,
   ]);
   const [dialogOpen, setDialogOpen] = useState(false);
+  // The v3 onboarding page (and the team Apps page) open the create-app
+  // dialog by writing this shared atom instead of rendering their own
+  // dialog instance. This is the only v3 mount of CreateAppDialogV4, so it
+  // must also open in response to the atom, not just local state.
+  const [atomOpen, setAtomOpen] = useAtom(createAppDialogOpenedAtom);
   const currentAppId = useCurrentAppId();
 
   const { data, loading, error } = useFetchAppsQuery({
@@ -104,10 +110,18 @@ export const AppsDropdown = () => {
 
   const current = apps.find((app) => app.id === currentAppId);
 
+  const closeDialog = () => {
+    setDialogOpen(false);
+    setAtomOpen(false);
+  };
+
   return (
     <>
       {canCreateApp && (
-        <CreateAppDialogV4 open={dialogOpen} onClose={setDialogOpen} />
+        <CreateAppDialogV4
+          open={dialogOpen || atomOpen}
+          onClose={closeDialog}
+        />
       )}
 
       {apps.length === 0 ? (

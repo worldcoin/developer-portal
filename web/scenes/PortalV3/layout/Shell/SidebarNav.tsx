@@ -8,6 +8,7 @@ import { useUser } from "@auth0/nextjs-auth0/client";
 import { useParams, usePathname } from "next/navigation";
 import { useCurrentAppId } from "./AppsDropdown";
 import { NavItem } from "./NavItem";
+import { useAppCapabilities } from "@/scenes/PortalV3/layout/Shell/use-app-capabilities";
 
 export const SidebarNav = () => {
   const { user } = useUser() as Auth0SessionUser;
@@ -33,6 +34,8 @@ export const SidebarNav = () => {
   // must only ever be the last resort.
   const appsListHref = teamId ? urls.apps({ team_id: teamId }) : undefined;
 
+  const caps = useAppCapabilities(appId);
+
   const appItems = teamId
     ? [
         {
@@ -42,9 +45,16 @@ export const SidebarNav = () => {
           dimmed: !appBase,
         },
         {
-          label: "World ID",
+          label: "Actions",
           href: appBase
-            ? urls.worldId40({ team_id: teamId, app_id: appId! })
+            ? urls.worldIdActions({ team_id: teamId, app_id: appId! })
+            : appsListHref ?? "#",
+          dimmed: !appBase,
+        },
+        {
+          label: "Sign in",
+          href: appBase
+            ? urls.signInWorldId({ team_id: teamId, app_id: appId! })
             : appsListHref ?? "#",
           dimmed: !appBase,
         },
@@ -56,10 +66,30 @@ export const SidebarNav = () => {
           dimmed: !appBase,
         },
         {
-          label: "Mini App",
-          href: appBase ? `${appBase}/mini-app` : appsListHref ?? "#",
+          label: "Advanced",
+          href: appBase
+            ? urls.worldId40({ team_id: teamId, app_id: appId! })
+            : appsListHref ?? "#",
           dimmed: !appBase,
         },
+        ...(caps.loaded && caps.isMiniApp
+          ? [
+              {
+                label: "Mini App",
+                href: `${appBase}/mini-app`,
+                dimmed: !appBase,
+              },
+            ]
+          : []),
+        ...(caps.loaded && caps.hasLegacyActions
+          ? [
+              {
+                label: "Legacy actions",
+                href: `${appBase}/actions`,
+                dimmed: !appBase,
+              },
+            ]
+          : []),
       ]
     : [];
 

@@ -123,6 +123,12 @@ export interface StatsRowProps {
   isLoading: boolean;
 }
 
+export interface VerificationStats {
+  totalVerifications: number;
+  uniqueHumans: number;
+  verifications7d: number;
+}
+
 interface TimePeriodSelectorProps {
   timePeriod: TimePeriod;
   onTimePeriodChange: (period: TimePeriod) => void;
@@ -156,6 +162,8 @@ export const TimePeriodSelector = ({
 };
 
 export const StatsRow = ({
+  showMiniApp,
+  verificationStats,
   impressions,
   impressionsChange,
   sessions,
@@ -165,7 +173,56 @@ export const StatsRow = ({
   newUsers,
   newUsersChange,
   isLoading,
-}: Omit<StatsRowProps, "timePeriod" | "onTimePeriodChange">) => {
+}: Omit<StatsRowProps, "timePeriod" | "onTimePeriodChange"> & {
+  showMiniApp: boolean;
+  verificationStats: VerificationStats;
+}) => {
+  if (!showMiniApp) {
+    return (
+      <>
+        {/* Mobile: stacked */}
+        <div className="grid grid-cols-2 gap-4 md:hidden">
+          <StatItem
+            label="Total verifications"
+            value={verificationStats.totalVerifications}
+            isLoading={isLoading}
+          />
+          <StatItem
+            label="Unique humans"
+            value={verificationStats.uniqueHumans}
+            isLoading={isLoading}
+          />
+          <StatItem
+            label="Verifications (7d)"
+            value={verificationStats.verifications7d}
+            isLoading={isLoading}
+          />
+        </div>
+
+        {/* Desktop: horizontal row with dividers */}
+        <div className="hidden md:flex md:items-center md:gap-8">
+          <StatItem
+            label="Total verifications"
+            value={verificationStats.totalVerifications}
+            isLoading={isLoading}
+          />
+          <Divider />
+          <StatItem
+            label="Unique humans"
+            value={verificationStats.uniqueHumans}
+            isLoading={isLoading}
+          />
+          <Divider />
+          <StatItem
+            label="Verifications (7d)"
+            value={verificationStats.verifications7d}
+            isLoading={isLoading}
+          />
+        </div>
+      </>
+    );
+  }
+
   return (
     <>
       {/* Mobile: 2x2 grid */}

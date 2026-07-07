@@ -7,8 +7,8 @@ import { BanMessageDialog } from "@/scenes/PortalV3/Teams/TeamId/Apps/common/Ban
 import { getSdk as getAppEnvSdk } from "@/scenes/common/Teams/TeamId/Apps/AppId/layout/graphql/server/fetch-app-env.generated";
 import { BanStatusSection } from "./BanStatusSection";
 import { DashboardWrapper } from "./DashboardWrapper";
+import { SetupStrip } from "./SetupStrip";
 import { VerificationStatusSection } from "./VerificationStatusSection";
-import { WorldId40MigrationBanner } from "./WorldId40MigrationBanner";
 
 export enum VerificationStatus {
   Unverified = "unverified",
@@ -39,11 +39,11 @@ export const AppIdPage = async (props: {
 
   return (
     <SizingWrapper className="flex flex-col gap-y-8 py-4">
-      <WorldId40MigrationBanner
+      <SetupStrip
         appId={appId}
+        teamId={teamId}
         hasRpRegistration={hasRpRegistration}
         canRegisterRp={canRegisterRp}
-        isStaging={Boolean(appInfo?.is_staging)}
       />
 
       <div className="grid gap-y-3">

@@ -7,7 +7,7 @@ import dayjs from "dayjs";
 import tz from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
 import { useMemo } from "react";
-import { useFetchAppStatsQuery } from "@/scenes/common/Teams/TeamId/Apps/AppId/page/AppStatsGraph/graphql/client/fetch-app-stats.generated";
+import type { FetchAppStatsQuery } from "@/scenes/common/Teams/TeamId/Apps/AppId/page/AppStatsGraph/graphql/client/fetch-app-stats.generated";
 import { useGetAccumulativeTransactions } from "../GraphsSection/use-get-accumulative-transactions";
 import { useGetMetrics } from "../StatCards/use-get-metrics";
 import { ChartTabType } from "./ChartTabs";
@@ -116,16 +116,23 @@ export interface ChartDataResult {
   };
 }
 
-export const useChartData = (appId: string, activeTab: ChartTabType) => {
-  const { metrics, loading: metricsLoading } = useGetMetrics(appId);
+export const useChartData = (
+  appId: string,
+  activeTab: ChartTabType,
+  appStatsData: FetchAppStatsQuery | undefined,
+  appStatsLoading: boolean,
+  showMiniApp: boolean,
+) => {
+  // Notifications tab is mini-app only; skip the metrics-endpoint fetch
+  // otherwise (StatsRow no longer needs it either — see AppStatsGraph).
+  const { metrics, loading: metricsLoading } = useGetMetrics(appId, {
+    skip: !showMiniApp,
+  });
 
-  const { data: appStatsData, loading: appStatsLoading } =
-    useFetchAppStatsQuery({
-      variables: { appId },
-    });
-
+  // Payments tab is mini-app only; skip the accumulative-payments call
+  // (a signed backend call) for integrator apps.
   const { payments: paymentsData, loading: transactionsLoading } =
-    useGetAccumulativeTransactions(appId);
+    useGetAccumulativeTransactions(appId, { skip: !showMiniApp });
 
   const engine = useMemo(
     () => appStatsData?.app?.[0]?.engine,

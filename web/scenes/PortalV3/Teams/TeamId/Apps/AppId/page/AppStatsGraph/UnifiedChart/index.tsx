@@ -6,6 +6,7 @@ import { ChartOptions } from "chart.js";
 import clsx from "clsx";
 import { useState } from "react";
 import Skeleton from "react-loading-skeleton";
+import type { FetchAppStatsQuery } from "@/scenes/common/Teams/TeamId/Apps/AppId/page/AppStatsGraph/graphql/client/fetch-app-stats.generated";
 import { ChartTabs, ChartTabType } from "./ChartTabs";
 import { useChartData } from "./use-chart-data";
 
@@ -96,14 +97,28 @@ const StatDisplay = ({
 
 interface UnifiedChartProps {
   appId: string;
+  showMiniApp: boolean;
+  appStatsData: FetchAppStatsQuery | undefined;
+  appStatsLoading: boolean;
 }
 
-export const UnifiedChart = ({ appId }: UnifiedChartProps) => {
+export const UnifiedChart = ({
+  appId,
+  showMiniApp,
+  appStatsData,
+  appStatsLoading,
+}: UnifiedChartProps) => {
   const [activeTab, setActiveTab] = useState<ChartTabType>("verifications");
+  // Integrator apps only ever show the Verifications tab; guard against a
+  // stale non-verifications tab if showMiniApp flips false after mount.
+  const effectiveTab = showMiniApp ? activeTab : "verifications";
 
   const { chartData, isLoading, stats, additionalStats } = useChartData(
     appId,
-    activeTab,
+    effectiveTab,
+    appStatsData,
+    appStatsLoading,
+    showMiniApp,
   );
 
   const mobileChartOptions: ChartOptions<"line"> = {
@@ -119,7 +134,11 @@ export const UnifiedChart = ({ appId }: UnifiedChartProps) => {
   return (
     <div className="flex flex-col gap-y-4">
       {/* Header with tabs */}
-      <ChartTabs activeTab={activeTab} onTabChange={setActiveTab} />
+      <ChartTabs
+        activeTab={effectiveTab}
+        onTabChange={setActiveTab}
+        showMiniApp={showMiniApp}
+      />
 
       {/* Chart area */}
       <div className="rounded-2xl border border-grey-200">
