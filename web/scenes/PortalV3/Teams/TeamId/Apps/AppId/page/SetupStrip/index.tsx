@@ -45,6 +45,11 @@ export const SetupStrip = ({
   const { data, startPolling, stopPolling } = useGetActionsV4Query({
     variables: { app_id: appId },
     skip: !hasRpRegistration,
+    // Actions are created on OTHER pages; cache-first would freeze the strip
+    // on the stale pre-creation answer (stuck at "create your first action"
+    // after the action exists). Revalidate on every mount, serve cache while
+    // the network answer arrives.
+    fetchPolicy: "cache-and-network",
   });
 
   const actions = data?.action_v4 ?? [];

@@ -245,6 +245,20 @@ describe("SetupStrip", () => {
     expect(startPolling).not.toHaveBeenCalled();
   });
 
+  it("revalidates on every mount (cache-and-network) so actions created on other pages advance the strip", () => {
+    getActions.mockReturnValue(actionsQueryResult([]));
+    render(
+      <SetupStrip
+        appId="app_1"
+        teamId="team_1"
+        hasRpRegistration
+        canRegisterRp
+      />,
+    );
+    const [options] = getActions.mock.calls[0];
+    expect(options.fetchPolicy).toBe("cache-and-network");
+  });
+
   it("does not start polling when RP is ok but there are zero actions (state 2)", () => {
     getActions.mockReturnValue(actionsQueryResult([]));
     render(
