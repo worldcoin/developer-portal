@@ -14,7 +14,7 @@ type DeveloperStory = {
 
 const STORIES: DeveloperStory[] = [
   {
-    company: "Credit.cash",
+    company: "Divine",
     name: "Diego Estevez",
     poster:
       "https://images.prismic.io/worldcoin-company-website/agb7nKYofJOwHRRv_Frame2147264383-1-.png?auto=format,compress&w=1200",
@@ -42,7 +42,7 @@ const STORIES: DeveloperStory[] = [
 const PlayGlyph = () => (
   <svg
     aria-hidden="true"
-    className="size-6 translate-x-[1px] fill-grey-900"
+    className="size-6 translate-x-[1px] fill-[#181818]"
     viewBox="0 0 24 24"
   >
     <path d="M8 5v14l11-7z" />
@@ -132,40 +132,50 @@ export const DeveloperStories = () => {
   }, []);
 
   return (
-    <div className="flex w-full flex-col text-white">
-      <div className="text-center font-twk text-[32px] font-medium leading-[1.05] tracking-[0] text-white sm:text-[40px] md:text-[56px] lg:text-[64px]">
-        Developer stories
-      </div>
+    <div className="flex w-full flex-col gap-10 text-[#181818]">
+      <div className="flex items-end justify-between gap-6">
+        <div className="flex max-w-[625px] flex-col gap-4">
+          <h2 className="text-[clamp(32px,2.8vw,48px)] leading-[1.2] tracking-[-0.02em]">
+            Developer Stories
+          </h2>
 
-      <div className="mt-4 flex items-center justify-end gap-3">
-        <button
-          aria-label="Previous stories"
-          className="grid size-12 flex-none place-items-center rounded-full bg-white/10 text-white backdrop-blur transition-colors hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-40"
-          disabled={activeIndex === 0}
-          onClick={() => scrollByCard(-1)}
-          type="button"
-        >
-          <ArrowRightIcon className="size-5 rotate-180" />
-        </button>
+          <p className="text-[20px] leading-[1.4]">
+            Explore stories on how emerging and established developers are
+            building on World with World ID and proof of human infrastructure to
+            create more trusted, human-centered applications.
+          </p>
+        </div>
 
-        <button
-          aria-label="Next stories"
-          className="grid size-12 flex-none place-items-center rounded-full bg-white/10 text-white backdrop-blur transition-colors hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-40"
-          disabled={activeIndex === STORIES.length - 1}
-          onClick={() => scrollByCard(1)}
-          type="button"
-        >
-          <ArrowRightIcon className="size-5" />
-        </button>
+        <div className="hidden items-center gap-1 md:flex">
+          <button
+            aria-label="Previous stories"
+            className="grid h-8 w-[60px] flex-none place-items-center rounded-full bg-[#edece9] transition-colors hover:bg-[#e1dfda] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-[#edece9]"
+            disabled={activeIndex === 0}
+            onClick={() => scrollByCard(-1)}
+            type="button"
+          >
+            <ArrowRightIcon className="size-4 rotate-180" />
+          </button>
+
+          <button
+            aria-label="Next stories"
+            className="grid h-8 w-[60px] flex-none place-items-center rounded-full bg-[#edece9] transition-colors hover:bg-[#e1dfda] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-[#edece9]"
+            disabled={activeIndex === STORIES.length - 1}
+            onClick={() => scrollByCard(1)}
+            type="button"
+          >
+            <ArrowRightIcon className="size-4" />
+          </button>
+        </div>
       </div>
 
       <div
-        className="mt-3 flex snap-x snap-mandatory items-start gap-5 overflow-x-auto pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        className="flex snap-x snap-mandatory items-start gap-6 overflow-x-auto pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         ref={trackRef}
       >
         {STORIES.map((story, index) => (
           <article
-            className="relative aspect-video w-full min-w-full max-w-full flex-[0_0_100%] snap-start overflow-hidden rounded-[20px] bg-white/5"
+            className="relative aspect-[3/2] w-full flex-[0_0_100%] snap-start overflow-hidden rounded-2xl bg-black/5 md:flex-[0_0_calc(50%-12px)]"
             key={story.name}
             ref={(node) => {
               cardRefs.current[index] = node;
@@ -189,8 +199,13 @@ export const DeveloperStories = () => {
                     src={story.poster}
                   />
                 ) : (
-                  <div className="size-full bg-white/10" />
+                  <div className="size-full bg-black/10" />
                 )}
+
+                <div
+                  aria-hidden="true"
+                  className="pointer-events-none absolute inset-0 bg-black/15"
+                />
 
                 {story.youtubeId ? (
                   <button
@@ -199,14 +214,14 @@ export const DeveloperStories = () => {
                     onClick={() => setPlaying(index)}
                     type="button"
                   >
-                    <span className="grid size-16 place-items-center rounded-full bg-white/95 shadow-[0_8px_30px_rgba(0,0,0,0.25)] transition-transform hover:scale-105">
+                    <span className="grid size-14 place-items-center rounded-full bg-white shadow-[0_8px_30px_rgba(0,0,0,0.25)] transition-transform hover:scale-105">
                       <PlayGlyph />
                     </span>
                   </button>
                 ) : null}
 
-                <div className="pointer-events-none absolute inset-x-4 bottom-4 flex">
-                  <span className="rounded-lg bg-black/55 px-3 py-1.5 font-gta text-[15px] leading-none text-white backdrop-blur">
+                <div className="pointer-events-none absolute bottom-6 left-6 z-10 flex">
+                  <span className="rounded-xl bg-black/55 px-3.5 py-2 text-[clamp(14px,1.2vw,20px)] leading-[1.4] text-white">
                     {story.name} / {story.role} / {story.company}
                   </span>
                 </div>
