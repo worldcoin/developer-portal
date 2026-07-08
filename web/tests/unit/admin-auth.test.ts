@@ -62,6 +62,40 @@ const findAdminPageFiles = (directory: string): string[] => {
   });
 };
 
+const httpMethodExportPattern =
+  /export\s+(?:async\s+)?function\s+(GET|POST|PUT|PATCH|DELETE)\b/;
+
+// Route handlers under `api/admin` are the files Next.js's `route.ts` wrappers
+// re-export from (see `app/api/admin/**/route.ts`), so this is where the real
+// auth check has to live. Generated GraphQL SDKs and non-handler helpers are
+// skipped since they don't export HTTP methods and would produce false
+// positives.
+const findAdminApiRouteFiles = (directory: string): string[] => {
+  if (!existsSync(directory)) {
+    return [];
+  }
+
+  return readdirSync(directory).flatMap((entry) => {
+    const path = join(directory, entry);
+    const stats = statSync(path);
+
+    if (stats.isDirectory()) {
+      return findAdminApiRouteFiles(path);
+    }
+
+    if (
+      !entry.endsWith(".ts") ||
+      entry.endsWith(".generated.ts") ||
+      entry.endsWith(".test.ts")
+    ) {
+      return [];
+    }
+
+    const contents = readFileSync(path, "utf8");
+    return httpMethodExportPattern.test(contents) ? [path] : [];
+  });
+};
+
 const setNodeEnv = (value: string) => {
   Object.defineProperty(process.env, "NODE_ENV", {
     value,
@@ -108,6 +142,29 @@ describe("admin page guardrail", () => {
       .map((pageFile) => relative(process.cwd(), pageFile));
 
     expect(unguardedPageFiles).toEqual([]);
+  });
+});
+// #endregion
+
+// #region Admin API route guardrail
+describe("admin API route guardrail", () => {
+  it("requires every /api/admin route handler to call authenticateAdminRequest", () => {
+    const adminApiRouteFiles = findAdminApiRouteFiles(
+      join(process.cwd(), "api/admin"),
+    );
+
+    expect(adminApiRouteFiles).toContain(
+      join(process.cwd(), "api/admin/me/index.ts"),
+    );
+
+    const unguardedRouteFiles = adminApiRouteFiles
+      .filter(
+        (routeFile) =>
+          !readFileSync(routeFile, "utf8").includes("authenticateAdminRequest"),
+      )
+      .map((routeFile) => relative(process.cwd(), routeFile));
+
+    expect(unguardedRouteFiles).toEqual([]);
   });
 });
 // #endregion
