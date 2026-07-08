@@ -1,5 +1,6 @@
 import { NavBar } from "@/components/AdminDashboard/NavBar";
 import { NavProvider } from "@/components/AdminDashboard/NavProvider";
+import clsx from "clsx";
 
 export const AdminLayout = ({ children }: { children: React.ReactNode }) => {
   return (
@@ -12,9 +13,18 @@ export const AdminLayout = ({ children }: { children: React.ReactNode }) => {
         Skip to content
       </a>
 
-      <div className="grid min-h-dvh grid-cols-[auto_1fr]">
+      <div
+        className={clsx(
+          // Common styles
+          "min-h-dvh",
+
+          // Desktop styles
+          "lg:grid lg:grid-cols-[auto_1fr]",
+        )}
+      >
         <NavBar />
-        <main id="main-content" className="size-full">
+        {/* Bottom padding keeps content clear of the fixed mobile tab bar */}
+        <main id="main-content" className="size-full pb-28 lg:pb-0">
           {children}
         </main>
       </div>
