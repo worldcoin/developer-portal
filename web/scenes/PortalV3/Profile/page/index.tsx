@@ -40,7 +40,7 @@ type FormValues = yup.InferType<typeof schema>;
 
 export const ProfilePage = () => {
   const { user: auth0User } = useUser() as Auth0SessionUser;
-  const { user, loading } = useMeQuery();
+  const { user, loading, refetch: refetchMe } = useMeQuery();
 
   const [updateUser] = useUpdateUserMutation({
     refetchQueries: [FetchMeDocument],
@@ -179,7 +179,11 @@ export const ProfilePage = () => {
               </div>
             </label>
 
-            <WorldIdAccountMigration auth0User={auth0User} />
+            <WorldIdAccountMigration
+              auth0User={auth0User}
+              isLinked={Boolean(user?.world_id_nullifier)}
+              onLinkSuccess={refetchMe}
+            />
 
             <DecoratedButton
               type="submit"
