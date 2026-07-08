@@ -308,6 +308,18 @@ export const AppProfilePage = ({ params }: AppProfilePageProps) => {
             teamName={teamName}
           />
         </SizingWrapper>
+
+        <SizingWrapper variant="nav" gridClassName="order-6">
+          <div className="border-t border-grey-100" />
+        </SizingWrapper>
+
+        <SizingWrapper variant="nav" gridClassName="order-7 pb-24 pt-8">
+          <DangerZoneSection
+            appId={appId}
+            teamId={teamId}
+            appName={appMetadata.name}
+          />
+        </SizingWrapper>
       </SaveStatusProvider>
     </AppStoreFormProvider>
   );
