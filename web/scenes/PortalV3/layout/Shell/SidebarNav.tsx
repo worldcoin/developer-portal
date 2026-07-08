@@ -117,26 +117,26 @@ export const SidebarNav = () => {
       const items = [
         ...(flags?.hasRpRegistration
           ? [
-            {
-              label: "World ID 4.0",
-              href: urls.worldId40(ids),
-              active: within("/world-id-4-0"),
-            },
-            {
-              label: "Actions",
-              href: urls.worldIdActions(ids),
-              active: within("/world-id-actions"),
-            },
-          ]
+              {
+                label: "World ID 4.0",
+                href: urls.worldId40(ids),
+                active: within("/world-id-4-0"),
+              },
+              {
+                label: "Actions",
+                href: urls.worldIdActions(ids),
+                active: within("/world-id-actions"),
+              },
+            ]
           : []),
         ...(flags?.hasLegacyActions
           ? [
-            {
-              label: "World ID 3.0 Legacy",
-              href: urls.actions(ids),
-              active: within("/actions"),
-            },
-          ]
+              {
+                label: "World ID 3.0 Legacy",
+                href: urls.actions(ids),
+                active: within("/actions"),
+              },
+            ]
           : []),
       ];
 
@@ -193,52 +193,52 @@ export const SidebarNav = () => {
 
   const appItems = teamId
     ? [
-      {
-        label: "Dashboard",
-        href: appBase ?? appsListHref ?? "#",
-        exact: !!appBase,
-        dimmed: !appBase,
-      },
-      {
-        label: "World ID",
-        href: worldIdHref,
-        dimmed: !appBase,
-      },
-      {
-        label: "Configuration",
-        href: appBase
-          ? urls.configuration({ team_id: teamId, app_id: appId! })
-          : appsListHref ?? "#",
-        dimmed: !appBase,
-      },
-      {
-        label: "Mini App",
-        href: appBase ? `${appBase}/mini-app` : appsListHref ?? "#",
-        dimmed: !appBase,
-      },
-    ]
+        {
+          label: "Dashboard",
+          href: appBase ?? appsListHref ?? "#",
+          exact: !!appBase,
+          dimmed: !appBase,
+        },
+        {
+          label: "World ID",
+          href: worldIdHref,
+          dimmed: !appBase,
+        },
+        {
+          label: "Configuration",
+          href: appBase
+            ? urls.configuration({ team_id: teamId, app_id: appId! })
+            : appsListHref ?? "#",
+          dimmed: !appBase,
+        },
+        {
+          label: "Mini App",
+          href: appBase ? `${appBase}/mini-app` : appsListHref ?? "#",
+          dimmed: !appBase,
+        },
+      ]
     : [];
 
   const teamItems: { label: string; href: string; exact?: boolean }[] = teamId
     ? [
-      {
-        label: "Members",
-        href: urls.teams({ team_id: teamId }),
-        exact: true,
-      },
-      // No urls helper exists for api-keys (v2 hardcodes this path too).
-      ...(canSeeApiKeys
-        ? [{ label: "API Keys", href: `/teams/${teamId}/api-keys` }]
-        : []),
-      ...(canSeeSettings
-        ? [
-          {
-            label: "Settings",
-            href: urls.teamSettings({ team_id: teamId }),
-          },
-        ]
-        : []),
-    ]
+        {
+          label: "Members",
+          href: urls.teams({ team_id: teamId }),
+          exact: true,
+        },
+        // No urls helper exists for api-keys (v2 hardcodes this path too).
+        ...(canSeeApiKeys
+          ? [{ label: "API Keys", href: `/teams/${teamId}/api-keys` }]
+          : []),
+        ...(canSeeSettings
+          ? [
+              {
+                label: "Settings",
+                href: urls.teamSettings({ team_id: teamId }),
+              },
+            ]
+          : []),
+      ]
     : [];
 
   const isActive = (href: string, exact?: boolean) =>

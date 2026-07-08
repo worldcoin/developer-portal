@@ -67,12 +67,14 @@ export const BasicInformation = forwardRef<
   }, [user, teamId]);
 
   const appMetaData = useMemo(() => {
+    const draftMetadata = app.app_metadata?.[0];
+    const verifiedMetadata = app.verified_app_metadata[0];
+
     if (viewMode === "verified") {
-      return app.verified_app_metadata[0];
-    } else {
-      // Null check in case app got verified and has no unverified metadata
-      return app.app_metadata?.[0] ?? app.verified_app_metadata[0];
+      return verifiedMetadata ?? draftMetadata;
     }
+
+    return draftMetadata ?? verifiedMetadata;
   }, [app, viewMode]);
 
   const isEditable = appMetaData?.verification_status === "unverified";

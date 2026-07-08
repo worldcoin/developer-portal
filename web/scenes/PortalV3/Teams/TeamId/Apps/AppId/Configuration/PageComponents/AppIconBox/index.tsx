@@ -3,11 +3,14 @@
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Role_Enum } from "@/graphql/graphql";
 import { Auth0SessionUser } from "@/lib/types";
-import { checkUserPermissions } from "@/lib/utils";
+import { checkUserPermissions, getCDNImageUrl } from "@/lib/utils";
 import { useUser } from "@auth0/nextjs-auth0/client";
+import clsx from "clsx";
 import { useAtomValue } from "jotai";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useFormContext } from "react-hook-form";
 import { LogoImageUpload } from "../../AppTopBar/LogoImageUpload";
+import { AppStoreFormValues } from "../../AppStore/FormSchema/types";
 import { unverifiedImageAtom } from "../../layout/ImagesProvider";
 
 type AppIconBoxProps = {
@@ -16,6 +19,7 @@ type AppIconBoxProps = {
   appMetadataId: string;
   logoFile?: string;
   isEditable: boolean;
+  verificationStatus: string;
 };
 
 /**
@@ -29,9 +33,14 @@ export const AppIconBox = ({
   appMetadataId,
   logoFile,
   isEditable,
+  verificationStatus,
 }: AppIconBoxProps) => {
   const { user } = useUser() as Auth0SessionUser;
   const unverifiedImages = useAtomValue(unverifiedImageAtom);
+  const {
+    clearErrors,
+    formState: { errors },
+  } = useFormContext<AppStoreFormValues>();
   const [showLogoDialog, setShowLogoDialog] = useState(false);
 
   const isEnoughPermissions = useMemo(() => {
@@ -42,10 +51,28 @@ export const AppIconBox = ({
   }, [user, teamId]);
 
   const canEdit = isEditable && isEnoughPermissions;
-  const logoImgUrl =
+  const isVerified = verificationStatus === "verified";
+  const atomLogoImgUrl =
     unverifiedImages.logo_img_url && unverifiedImages.logo_img_url !== "loading"
       ? unverifiedImages.logo_img_url
       : "";
+  const metadataLogoImgUrl = logoFile
+    ? logoFile.startsWith("http")
+      ? logoFile
+      : getCDNImageUrl(appId, logoFile, isVerified)
+    : "";
+  const logoImgUrl = isVerified
+    ? metadataLogoImgUrl
+    : atomLogoImgUrl || metadataLogoImgUrl;
+  const logoError = (errors as Record<string, { message?: string }>)
+    .logo_img_url?.message;
+  const hasLogoError = Boolean(logoError) && !logoImgUrl;
+
+  useEffect(() => {
+    if (logoImgUrl) {
+      clearErrors("logo_img_url" as keyof AppStoreFormValues);
+    }
+  }, [clearErrors, logoImgUrl]);
 
   return (
     <section className="flex items-center justify-center rounded-2xl border border-grey-200 bg-grey-25 p-6 shadow-button">
@@ -66,6 +93,7 @@ export const AppIconBox = ({
         onClick={() => {
           if (canEdit) setShowLogoDialog(true);
         }}
+        aria-invalid={hasLogoError || undefined}
         className={
           "size-[125px] shrink-0 rounded-full" +
           (canEdit ? "" : " cursor-default")
@@ -79,7 +107,14 @@ export const AppIconBox = ({
             className="size-full rounded-full object-cover drop-shadow-lg"
           />
         ) : (
-          <div className="flex size-full flex-col items-center justify-center gap-1 rounded-full border border-dashed border-grey-200 bg-grey-50">
+          <div
+            className={clsx(
+              "flex size-full flex-col items-center justify-center gap-1 rounded-full border border-dashed",
+              hasLogoError
+                ? "border-system-error-500 bg-system-error-50 px-3"
+                : "border-grey-200 bg-grey-50",
+            )}
+          >
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 24 24"
@@ -95,6 +130,14 @@ export const AppIconBox = ({
             <Typography variant={TYPOGRAPHY.R5} className="text-grey-900">
               App icon <span className="text-system-error-500">*</span>
             </Typography>
+            {hasLogoError && (
+              <Typography
+                variant={TYPOGRAPHY.R5}
+                className="text-center text-system-error-500"
+              >
+                {logoError}
+              </Typography>
+            )}
           </div>
         )}
       </button>

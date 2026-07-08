@@ -163,6 +163,20 @@ export const AppTopBarSubmit = ({
       });
       const freshAppMetadata =
         freshData?.app?.[0]?.app_metadata?.[0] ?? appMetadata;
+      if (!freshAppMetadata.logo_img_url?.trim()) {
+        const logoErrorMessage =
+          "Upload an app icon before submitting for review";
+        form.setError("logo_img_url" as keyof AppStoreFormValues, {
+          message: logoErrorMessage,
+        });
+        captureAttempt("validation_failed", {
+          first_error_field: "logo_img_url",
+          error_count: 1,
+        });
+        toast.error(logoErrorMessage);
+        scrollToFirstError();
+        return;
+      }
       await mainAppStoreFormReviewSubmitSchema.validate(
         {
           ...formValues,
@@ -271,7 +285,6 @@ type AppIconButtonProps = {
   isLogoLoading: boolean;
   viewMode: "unverified" | "verified";
   isInReview: boolean;
-  isLogoError: boolean;
   onEdit: () => void;
 };
 
@@ -281,7 +294,6 @@ const AppIconButton = ({
   isLogoLoading,
   viewMode,
   isInReview,
-  isLogoError,
   onEdit,
 }: AppIconButtonProps) => (
   <button
@@ -331,39 +343,23 @@ const AppIconButton = ({
         />
       </div>
     ) : viewMode !== "verified" && !isInReview ? (
-      <>
-        <div
-          className={clsx(
-            "flex size-full flex-col items-center justify-center gap-1 rounded-full border border-dashed border-grey-200 bg-grey-50",
-            isLogoError && "border-system-error-500 bg-system-error-50",
-          )}
+      <div className="flex size-full flex-col items-center justify-center gap-1 rounded-full border border-dashed border-grey-200 bg-grey-50">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill="currentColor"
+          className="size-6 text-grey-900"
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="currentColor"
-            className="size-6 text-grey-900"
-          >
-            <path
-              fillRule="evenodd"
-              d="M1.5 6a2.25 2.25 0 0 1 2.25-2.25h16.5A2.25 2.25 0 0 1 22.5 6v12a2.25 2.25 0 0 1-2.25 2.25H3.75A2.25 2.25 0 0 1 1.5 18V6ZM3 16.06V18c0 .414.336.75.75.75h16.5A.75.75 0 0 0 21 18v-1.94l-2.69-2.689a1.5 1.5 0 0 0-2.12 0l-.88.879.83.83a.75.75 0 1 1-1.06 1.06l-5.16-5.159a1.5 1.5 0 0 0-2.12 0L3 16.061Zm10.125-7.81a1.125 1.125 0 1 1 2.25 0 1.125 1.125 0 0 1-2.25 0Z"
-              clipRule="evenodd"
-            />
-          </svg>
-          <Typography variant={TYPOGRAPHY.R5} className="text-grey-900">
-            App icon <span className="text-system-error-500">*</span>
-          </Typography>
-          {isLogoError && (
-            <Typography
-              variant={TYPOGRAPHY.R5}
-              className="text-center text-system-error-500"
-            >
-              Logo is required.
-            </Typography>
-          )}
-        </div>
-        <div className="absolute inset-0 rounded-full bg-grey-900/50 opacity-0 transition-opacity group-hover:opacity-100" />
-      </>
+          <path
+            fillRule="evenodd"
+            d="M1.5 6a2.25 2.25 0 0 1 2.25-2.25h16.5A2.25 2.25 0 0 1 22.5 6v12a2.25 2.25 0 0 1-2.25 2.25H3.75A2.25 2.25 0 0 1 1.5 18V6ZM3 16.06V18c0 .414.336.75.75.75h16.5A.75.75 0 0 0 21 18v-1.94l-2.69-2.689a1.5 1.5 0 0 0-2.12 0l-.88.879.83.83a.75.75 0 1 1-1.06 1.06l-5.16-5.159a1.5 1.5 0 0 0-2.12 0L3 16.061Zm10.125-7.81a1.125 1.125 0 1 1 2.25 0 1.125 1.125 0 0 1-2.25 0Z"
+            clipRule="evenodd"
+          />
+        </svg>
+        <Typography variant={TYPOGRAPHY.R5} className="text-grey-900">
+          App icon <span className="text-system-error-500">*</span>
+        </Typography>
+      </div>
     ) : null}
   </button>
 );
@@ -609,7 +605,6 @@ export const AppTopBar = (props: AppTopBarProps) => {
             isLogoLoading={isLogoLoading}
             viewMode={viewMode}
             isInReview={isInReview}
-            isLogoError={false}
             onEdit={() => setShowLogoDialog(true)}
           />
 

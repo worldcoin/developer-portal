@@ -1,11 +1,29 @@
 /** @jest-environment jsdom */
 import "@testing-library/jest-dom";
-import { render, screen, within } from "@testing-library/react";
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import React from "react";
 
 // #region Mocks
 jest.mock("@/lib/logger", () => ({
   logger: { info: jest.fn(), warn: jest.fn(), error: jest.fn() },
+}));
+
+const mockToastError = jest.fn();
+jest.mock("react-toastify", () => ({
+  toast: {
+    error: (...args: unknown[]) => mockToastError(...args),
+    success: jest.fn(),
+  },
+}));
+
+jest.mock("posthog-js", () => ({
+  capture: jest.fn(),
 }));
 
 // Loading real utils.ts pulls in idkit/ox, which needs TextEncoder (absent in
@@ -142,7 +160,10 @@ jest.mock("@auth0/nextjs-auth0/client", () => ({
 
 import { getDefaultStore } from "jotai";
 import { AppProfilePage } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/Configuration/page";
-import { unverifiedImageAtom } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/Configuration/layout/ImagesProvider";
+import {
+  unverifiedImageAtom,
+  viewModeAtom,
+} from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/Configuration/layout/ImagesProvider";
 
 type UnverifiedImages = {
   logo_img_url?: string;
@@ -219,6 +240,7 @@ const setImages = (images: Partial<UnverifiedImages>) => {
 
 beforeEach(() => {
   jest.clearAllMocks();
+  getDefaultStore().set(viewModeAtom, "unverified");
   setImages({});
   useFetchAppMetadataQuery.mockReturnValue({
     data: { app: [makeApp(makeAppMetadata())] },
@@ -385,6 +407,110 @@ describe("v3 Configuration redesign [right rail]", () => {
     expect(
       screen.queryByRole("button", { name: /Submit for review/ }),
     ).not.toBeInTheDocument();
+  });
+
+  it("normalizes a stale verified view mode back to draft metadata", async () => {
+    getDefaultStore().set(viewModeAtom, "verified");
+    useFetchAppMetadataQuery.mockReturnValue({
+      data: {
+        app: [
+          makeApp(
+            makeAppMetadata({
+              name: "Draft App",
+              app_website_url: "https://example.com",
+            }),
+          ),
+        ],
+      },
+      loading: false,
+      error: undefined,
+    });
+
+    renderPage();
+
+    await waitFor(() => {
+      expect(screen.getByLabelText(/App name/)).toHaveValue("Draft App");
+    });
+    expect(
+      screen.getByRole("button", { name: /Submit for review/ }),
+    ).toBeEnabled();
+  });
+
+  it("renders a verified-only app as read-only with the submitted logo and exit link", () => {
+    const verifiedMetadata = makeAppMetadata({
+      id: "meta_verified",
+      name: "Verified App",
+      logo_img_url: "logo_img.png",
+      verification_status: "verified",
+      app_website_url: "https://example.com",
+    });
+
+    useFetchAppMetadataQuery.mockReturnValue({
+      data: {
+        app: [
+          {
+            ...makeApp(verifiedMetadata),
+            app_metadata: [],
+            verified_app_metadata: [verifiedMetadata],
+          },
+        ],
+      },
+      loading: false,
+      error: undefined,
+    });
+
+    renderPage();
+
+    expect(
+      screen.getByText("This approved version is read-only."),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Back to app" })).toHaveAttribute(
+      "href",
+      `/teams/${teamId}/apps/${appId}`,
+    );
+    expect(screen.getByAltText("App icon")).toHaveAttribute(
+      "src",
+      "https://cdn/logo_img.png",
+    );
+    expect(screen.getByAltText("App logo preview")).toHaveAttribute(
+      "src",
+      "https://cdn/logo_img.png",
+    );
+    expect(screen.getByLabelText(/App name/)).toBeDisabled();
+    expect(screen.queryByText("Draft saved")).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /Submit for review/ }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("stops submit without a logo and marks the app icon box", async () => {
+    useFetchAppMetadataQuery.mockReturnValue({
+      data: {
+        app: [
+          makeApp(
+            makeAppMetadata({
+              app_website_url: "https://example.com",
+              logo_img_url: "",
+            }),
+          ),
+        ],
+      },
+      loading: false,
+      error: undefined,
+    });
+
+    renderPage();
+
+    fireEvent.click(screen.getByRole("button", { name: /Submit for review/ }));
+
+    await waitFor(() => {
+      expect(mockToastError).toHaveBeenCalledWith(
+        "Upload an app icon before submitting for review",
+      );
+    });
+    expect(
+      screen.getByText("Upload an app icon before submitting for review"),
+    ).toBeInTheDocument();
   });
 });
 // #endregion

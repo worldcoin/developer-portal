@@ -1,5 +1,6 @@
 "use client";
 
+import { AppStatus, StatusVariant } from "@/components/AppStatus";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Role_Enum } from "@/graphql/graphql";
 import { Auth0SessionUser } from "@/lib/types";
@@ -67,6 +68,15 @@ const DraftSavedLine = () => {
     </div>
   );
 };
+
+const MetadataStatusLine = ({ status }: { status: StatusVariant }) => (
+  <div className="flex items-center gap-x-2">
+    <AppStatus status={status} />
+    <Typography variant={TYPOGRAPHY.R4} className="text-grey-500">
+      Read-only
+    </Typography>
+  </div>
+);
 
 type SubmitForReviewProps = {
   appId: string;
@@ -151,6 +161,7 @@ export const ReviewRail = ({
   basicInfoRef,
 }: ReviewRailProps) => {
   const previewLanguage = useAtomValue(selectedLanguageAtom);
+  const isEditable = appMetadata.verification_status === "unverified";
 
   return (
     // The page frame is viewport-height with the form column scrolling
@@ -169,7 +180,11 @@ export const ReviewRail = ({
         </Typography>
 
         <div className="min-h-0 flex-1 overflow-hidden">
-          <LivePreview teamName={teamName} />
+          <LivePreview
+            appId={appId}
+            teamName={teamName}
+            appMetadata={appMetadata}
+          />
         </div>
 
         <SubmitForReview
@@ -179,7 +194,13 @@ export const ReviewRail = ({
           basicInfoRef={basicInfoRef}
         />
 
-        <DraftSavedLine />
+        {isEditable ? (
+          <DraftSavedLine />
+        ) : (
+          <MetadataStatusLine
+            status={appMetadata.verification_status as StatusVariant}
+          />
+        )}
       </div>
     </aside>
   );

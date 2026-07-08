@@ -1,5 +1,6 @@
 "use client";
 
+import { getCDNImageUrl } from "@/lib/utils";
 import { useAtomValue } from "jotai";
 import { useWatch } from "react-hook-form";
 import { selectedLanguageAtom } from "../AppStore/components/FormSections/LocalisationsSection/hooks/useLanguageSelection";
@@ -22,7 +23,27 @@ const ShowcaseSlot = ({ url }: { url?: string }) =>
   );
 
 type LivePreviewProps = {
+  appId: string;
   teamName: string;
+  appMetadata: {
+    verification_status: string;
+    logo_img_url?: string | null;
+    showcase_img_urls?: string[] | null;
+  };
+};
+
+const getImageUrl = (
+  appId: string,
+  path: string | null | undefined,
+  isVerified: boolean,
+) => {
+  if (!path || path === "loading") {
+    return "";
+  }
+
+  return path.startsWith("http")
+    ? path
+    : getCDNImageUrl(appId, path, isVerified);
 };
 
 /**
@@ -31,7 +52,11 @@ type LivePreviewProps = {
  * rendered at the pane's width. Listing bits the portal can't edit (rating,
  * humans count, button label) render as neutral static placeholders.
  */
-export const LivePreview = ({ teamName }: LivePreviewProps) => {
+export const LivePreview = ({
+  appId,
+  teamName,
+  appMetadata,
+}: LivePreviewProps) => {
   const basicInfo = useAtomValue(basicInfoDraftAtom);
   const images = useAtomValue(unverifiedImageAtom);
   const isMiniApp = useAtomValue(isMiniAppAtom);
@@ -51,11 +76,25 @@ export const LivePreview = ({ teamName }: LivePreviewProps) => {
   const description =
     loc?.description_overview?.trim() ||
     "Your description appears here. Explain what your app does, who it's for, and how it works.";
-  const logoImgUrl =
+  const isVerified = appMetadata.verification_status === "verified";
+  const atomLogoImgUrl =
     images.logo_img_url && images.logo_img_url !== "loading"
       ? images.logo_img_url
       : "";
-  const showcaseUrls = images.showcase_image_urls ?? [];
+  const metadataLogoImgUrl = getImageUrl(
+    appId,
+    appMetadata.logo_img_url,
+    isVerified,
+  );
+  const logoImgUrl = isVerified
+    ? metadataLogoImgUrl
+    : atomLogoImgUrl || metadataLogoImgUrl;
+  const metadataShowcaseUrls = (appMetadata.showcase_img_urls ?? [])
+    .map((path) => getImageUrl(appId, path, isVerified))
+    .filter(Boolean);
+  const showcaseUrls = isVerified
+    ? metadataShowcaseUrls
+    : images.showcase_image_urls ?? metadataShowcaseUrls;
   const hasWebsite = Boolean(basicInfo.app_website_url?.trim());
 
   return (

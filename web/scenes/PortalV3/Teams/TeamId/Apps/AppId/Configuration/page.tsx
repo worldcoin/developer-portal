@@ -1,10 +1,14 @@
 "use client";
 
+import { AppStatus } from "@/components/AppStatus";
+import { DecoratedButton } from "@/components/DecoratedButton";
 import { ErrorPage } from "@/components/ErrorPage";
 import { SizingWrapper } from "@/components/SizingWrapper";
+import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import { urls } from "@/lib/urls";
 import clsx from "clsx";
 import { useAtom } from "jotai";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Skeleton from "react-loading-skeleton";
 import { useParams } from "next/navigation";
 import { MiniAppConfiguration } from "./MiniAppConfiguration";
@@ -43,6 +47,33 @@ type ConfigurationContentProps = {
   teamName: string;
 };
 
+const VerifiedAppBanner = ({
+  appId,
+  teamId,
+}: {
+  appId: `app_${string}`;
+  teamId: `team_${string}`;
+}) => (
+  <div className="border-system-success-200 flex flex-col gap-4 rounded-20 border bg-system-success-50 p-5 sm:flex-row sm:items-center">
+    <div className="flex flex-1 items-center gap-3">
+      <AppStatus status="verified" />
+      <Typography variant={TYPOGRAPHY.R4} className="text-system-success-700">
+        This approved version is read-only.
+      </Typography>
+    </div>
+
+    <DecoratedButton
+      href={urls.app({ team_id: teamId, app_id: appId })}
+      variant="secondary"
+      className="h-10 px-4 py-2"
+    >
+      <Typography variant={TYPOGRAPHY.M4} className="whitespace-nowrap">
+        Back to app
+      </Typography>
+    </DecoratedButton>
+  </div>
+);
+
 // Rendered inside AppStoreFormProvider so the review-readiness rail can watch
 // the shared form context.
 const ConfigurationContent = ({
@@ -77,6 +108,7 @@ const ConfigurationContent = ({
             appMetadataId={appMetadata.id}
             logoFile={appMetadata.logo_img_url}
             isEditable={appMetadata.verification_status === "unverified"}
+            verificationStatus={appMetadata.verification_status}
           />
 
           <MiniAppConfiguration
@@ -125,7 +157,7 @@ export const AppProfilePage = ({ params }: AppProfilePageProps) => {
   const routeParams = useParams<{ appId: `app_${string}`; teamId: string }>();
   const appId = (params?.appId || routeParams?.appId) as `app_${string}`;
   const teamId = (params?.teamId || routeParams?.teamId) as `team_${string}`;
-  const [viewMode] = useAtom(viewModeAtom);
+  const [viewMode, setViewMode] = useAtom(viewModeAtom);
 
   const {
     data,
@@ -140,12 +172,28 @@ export const AppProfilePage = ({ params }: AppProfilePageProps) => {
   const app = data?.app[0];
 
   const appMetadata = useMemo(() => {
+    const draftMetadata = app?.app_metadata?.[0];
+    const verifiedMetadata = app?.verified_app_metadata?.[0];
+
     if (viewMode === "verified") {
-      return app?.verified_app_metadata[0];
+      return verifiedMetadata ?? draftMetadata;
     }
 
-    return app?.app_metadata?.[0] ?? app?.verified_app_metadata[0];
+    return draftMetadata ?? verifiedMetadata;
   }, [app, viewMode]);
+
+  useEffect(() => {
+    if (!app) return;
+
+    const hasDraft = app.app_metadata.length > 0;
+    const hasVerified = app.verified_app_metadata.length > 0;
+
+    if (!hasDraft && hasVerified && viewMode !== "verified") {
+      setViewMode("verified");
+    } else if (!hasVerified && hasDraft && viewMode !== "unverified") {
+      setViewMode("unverified");
+    }
+  }, [app, setViewMode, viewMode]);
 
   const { data: localisationsData, loading: isLocalisationsLoading } =
     useFetchLocalisationsQuery({
@@ -161,6 +209,7 @@ export const AppProfilePage = ({ params }: AppProfilePageProps) => {
 
   const isRejected = appMetadata?.verification_status === "changes_requested";
   const isInReview = appMetadata?.verification_status === "awaiting_review";
+  const isVerified = appMetadata?.verification_status === "verified";
 
   const { removeFromReview, loading: isRemovingFromReview } =
     useRemoveFromReview({
@@ -228,6 +277,12 @@ export const AppProfilePage = ({ params }: AppProfilePageProps) => {
               onUnsubmit={removeFromReview}
               loading={isRemovingFromReview}
             />
+          </SizingWrapper>
+        )}
+
+        {isVerified && (
+          <SizingWrapper variant="nav" gridClassName="order-1 pt-6">
+            <VerifiedAppBanner appId={appId} teamId={teamId} />
           </SizingWrapper>
         )}
 

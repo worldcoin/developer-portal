@@ -129,8 +129,7 @@ export const MiniAppConfiguration = ({
     {
       value: "mini-app",
       isSelected: isMiniApp,
-      label:
-        "Mini App",
+      label: "Mini App",
     },
     {
       value: "external",
