@@ -14,10 +14,8 @@ type SectionTocProps = {
 
 /**
  * Jump nav for the numbered sections: mirrors the section headers' numbered
- * badges (the active one lights up in the same blue), under an uppercase
- * label matching the rail's "Live preview" — the two rails flanking the form
- * read as one system. The section list comes from the registry the sections
- * maintain themselves.
+ * badges (the active one lights up in the same blue). The section list comes
+ * from the registry the sections maintain themselves.
  */
 export const SectionToc = ({ scrollContainerRef }: SectionTocProps) => {
   const sections = useAtomValue(sectionsAtom);
@@ -58,13 +56,6 @@ export const SectionToc = ({ scrollContainerRef }: SectionTocProps) => {
 
   return (
     <nav aria-label="Page sections" className="grid content-start gap-y-1">
-      <Typography
-        variant={TYPOGRAPHY.R5}
-        className="pb-2 pl-2 uppercase tracking-[0.2em] text-grey-400"
-      >
-        Sections
-      </Typography>
-
       {sections.map((section) => {
         const isActive = section.id === currentId;
         return (
