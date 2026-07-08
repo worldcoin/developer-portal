@@ -35,11 +35,9 @@ const HOME_SIGN_IN_LINK = {
   label: "Sign in",
 } as const;
 
-const HOME_MOBILE_NAV_LINKS = [
-  ...HOME_HEADER_LINKS,
-  HOME_GITHUB_LINK,
-  HOME_SIGN_IN_LINK,
-] as const;
+// GitHub and Sign in stay visible in the mobile header itself, so the menu
+// only carries the links that collapse below md.
+const HOME_MOBILE_NAV_LINKS = [...HOME_HEADER_LINKS] as const;
 
 export const HomeLayout = (props: { children: ReactNode }) => {
   return (
@@ -52,7 +50,7 @@ export const HomeLayout = (props: { children: ReactNode }) => {
           <Link
             href="/"
             aria-label="World Developers"
-            className="inline-flex min-w-0 items-center gap-[0.42em] whitespace-nowrap py-[calc(var(--lockup-h)*14/24)] font-world text-[length:calc(var(--lockup-h)*0.72)] leading-none text-[#181818] [--lockup-h:1.5rem]"
+            className="inline-flex min-w-0 items-center gap-[0.42em] whitespace-nowrap py-[calc(var(--lockup-h)*14/24)] font-world text-[length:calc(var(--lockup-h)*0.72)] leading-none text-[#181818] [--lockup-h:1.25rem] md:[--lockup-h:1.5rem]"
           >
             <WorldIcon
               aria-hidden
@@ -75,26 +73,26 @@ export const HomeLayout = (props: { children: ReactNode }) => {
             ))}
           </nav>
 
-          <HomeMobileNav links={HOME_MOBILE_NAV_LINKS} />
-
-          <div className="hidden items-center gap-1 md:flex">
+          <div className="flex items-center gap-1">
             <a
               aria-label={HOME_GITHUB_LINK.label}
-              className="inline-flex h-10 items-center justify-center rounded-full border border-[#e1dfda] px-4 text-[#181818] transition-colors hover:bg-white"
+              className="inline-flex h-7 items-center justify-center rounded-full border border-[#e1dfda] px-2.5 text-[#181818] transition-colors hover:bg-white md:h-10 md:px-4"
               href={HOME_GITHUB_LINK.href}
               rel="noopener noreferrer"
               target="_blank"
             >
-              <GithubIcon className="size-6" />
+              <GithubIcon className="size-4 md:size-6" />
             </a>
 
             <a
-              className="inline-flex h-10 items-center justify-center rounded-full bg-[#181818] px-4 text-[16px] leading-[1.4] text-[#f9f9f8] transition-colors hover:bg-black"
+              className="inline-flex h-7 items-center justify-center rounded-full bg-[#181818] px-3 text-[12px] leading-[1.4] text-[#f9f9f8] transition-colors hover:bg-black md:h-10 md:px-4 md:text-[16px]"
               data-testid="log-in"
               href={HOME_SIGN_IN_LINK.href}
             >
               Sign in
             </a>
+
+            <HomeMobileNav links={HOME_MOBILE_NAV_LINKS} />
           </div>
         </div>
       </header>

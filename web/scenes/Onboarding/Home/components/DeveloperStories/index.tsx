@@ -42,7 +42,7 @@ const STORIES: DeveloperStory[] = [
 const PlayGlyph = () => (
   <svg
     aria-hidden="true"
-    className="size-6 translate-x-[1px] fill-[#181818]"
+    className="size-4 translate-x-[1px] fill-[#181818] md:size-6"
     viewBox="0 0 24 24"
   >
     <path d="M8 5v14l11-7z" />
@@ -135,11 +135,11 @@ export const DeveloperStories = () => {
     <div className="flex w-full flex-col gap-10 text-[#181818]">
       <div className="flex items-end justify-between gap-6">
         <div className="flex max-w-[625px] flex-col gap-4">
-          <h2 className="text-[clamp(32px,2.8vw,48px)] leading-[1.2] tracking-[-0.02em]">
+          <h2 className="text-[clamp(30px,2.8vw,48px)] leading-[1.2] tracking-[-0.02em]">
             Developer Stories
           </h2>
 
-          <p className="text-[20px] leading-[1.4]">
+          <p className="text-[18px] leading-[1.4] md:text-[20px]">
             Explore stories on how emerging and established developers are
             building on World with World ID and proof of human infrastructure to
             create more trusted, human-centered applications.
@@ -170,12 +170,12 @@ export const DeveloperStories = () => {
       </div>
 
       <div
-        className="flex snap-x snap-mandatory items-start gap-6 overflow-x-auto pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        className="flex flex-col gap-8 [-ms-overflow-style:none] [scrollbar-width:none] md:snap-x md:snap-mandatory md:flex-row md:items-start md:gap-6 md:overflow-x-auto md:pb-2 [&::-webkit-scrollbar]:hidden"
         ref={trackRef}
       >
         {STORIES.map((story, index) => (
           <article
-            className="relative aspect-[3/2] w-full flex-[0_0_100%] snap-start overflow-hidden rounded-2xl bg-black/5 md:flex-[0_0_calc(50%-12px)]"
+            className="relative aspect-[16/9] w-full overflow-hidden rounded-xl bg-black/5 md:aspect-[3/2] md:flex-[0_0_calc(50%-12px)] md:snap-start md:rounded-2xl"
             key={story.name}
             ref={(node) => {
               cardRefs.current[index] = node;
@@ -214,14 +214,14 @@ export const DeveloperStories = () => {
                     onClick={() => setPlaying(index)}
                     type="button"
                   >
-                    <span className="grid size-14 place-items-center rounded-full bg-white shadow-[0_8px_30px_rgba(0,0,0,0.25)] transition-transform hover:scale-105">
+                    <span className="grid size-10 place-items-center rounded-full bg-white shadow-[0_8px_30px_rgba(0,0,0,0.25)] transition-transform hover:scale-105 md:size-14">
                       <PlayGlyph />
                     </span>
                   </button>
                 ) : null}
 
-                <div className="pointer-events-none absolute bottom-6 left-6 z-10 flex">
-                  <span className="rounded-xl bg-black/55 px-3.5 py-2 text-[clamp(14px,1.2vw,20px)] leading-[1.4] text-white">
+                <div className="pointer-events-none absolute bottom-3 left-3 z-10 flex md:bottom-6 md:left-6">
+                  <span className="rounded-lg bg-black/55 px-1.5 py-1 text-[12px] leading-[1.4] text-white md:rounded-xl md:px-3.5 md:py-2 md:text-[clamp(14px,1.2vw,20px)]">
                     {story.name} / {story.role} / {story.company}
                   </span>
                 </div>

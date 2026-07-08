@@ -372,7 +372,7 @@ export const HomePage = async () => {
       <style dangerouslySetInnerHTML={{ __html: TYPING_HEADLINE_STYLE }} />
 
       <section className={CONTAINER_CLASS}>
-        <div className="grid items-center gap-10 pb-16 pt-10 md:pt-16 lg:grid-cols-2 lg:gap-0 lg:pb-[100px] lg:pt-[102px]">
+        <div className="grid items-center gap-12 pb-[160px] pt-20 md:pt-16 lg:grid-cols-2 lg:gap-0 lg:pb-[100px] lg:pt-[102px]">
           <div className="flex max-w-[680px] flex-col items-start gap-10 lg:gap-16">
             <div className="flex flex-col gap-4">
               <h1 className="text-[clamp(44px,4.6vw,80px)] leading-[1.1] tracking-[-0.02em]">
@@ -406,9 +406,9 @@ export const HomePage = async () => {
               </p>
             </div>
 
-            <div className="flex flex-wrap items-center gap-4">
+            <div className="flex w-full flex-col gap-1 sm:w-auto sm:flex-row sm:flex-wrap sm:items-center sm:gap-4">
               <a
-                className="group inline-flex items-center justify-center gap-2 rounded-full bg-[#181818] px-8 py-4 text-[22px] leading-[1.4] text-[#f9f9f8] transition-colors hover:bg-black"
+                className="group inline-flex items-center justify-center gap-2 rounded-full bg-[#181818] px-5 py-3 text-[18px] leading-[1.4] text-[#f9f9f8] transition-colors hover:bg-black sm:px-8 sm:py-4 sm:text-[22px]"
                 href={urls.api.authLogin()}
               >
                 Go to console
@@ -418,7 +418,7 @@ export const HomePage = async () => {
               </a>
 
               <a
-                className="group inline-flex items-center justify-center gap-2 rounded-full border border-[#181818] px-8 py-4 text-[22px] leading-[1.4] text-[#181818] transition-colors hover:bg-[#181818]/5"
+                className="group inline-flex items-center justify-center gap-2 rounded-full border border-[#181818] px-5 py-3 text-[18px] leading-[1.4] text-[#181818] transition-colors hover:bg-[#181818]/5 sm:px-8 sm:py-4 sm:text-[22px]"
                 href="https://docs.world.org"
                 rel="noopener noreferrer"
                 target="_blank"
@@ -431,22 +431,22 @@ export const HomePage = async () => {
             </div>
           </div>
 
-          <div className="relative hidden h-[700px] w-full lg:block">
+          <div className="relative aspect-[756/700] w-full lg:aspect-auto lg:h-[700px]">
             <BasePixelStrip />
           </div>
         </div>
       </section>
 
       <section aria-label="Our network" className={CONTAINER_CLASS}>
-        <div className="grid gap-4 md:grid-cols-3 md:gap-6">
+        <div className="grid gap-3 md:grid-cols-3 md:gap-6">
           {networkStats.map((stat) => (
             <div
-              className="flex items-center justify-between gap-4 rounded-2xl border border-[#edece9] bg-white p-8"
+              className="flex items-center justify-between gap-4 rounded-2xl border border-[#edece9] bg-white p-6 md:p-8"
               key={stat.label}
             >
               <p className="text-[16px] leading-[1.4]">{stat.label}</p>
 
-              <p className="text-[clamp(40px,3.7vw,64px)] leading-[1.1] tracking-[-0.02em]">
+              <p className="text-[clamp(38px,3.7vw,64px)] leading-[1.1] tracking-[-0.02em]">
                 {stat.value}
               </p>
             </div>
@@ -457,22 +457,22 @@ export const HomePage = async () => {
       <section className={`${CONTAINER_CLASS} mt-[160px] lg:mt-[220px]`}>
         <div className="flex flex-col gap-10">
           <div className="flex max-w-[625px] flex-col gap-4">
-            <h2 className="text-[clamp(32px,2.8vw,48px)] leading-[1.2] tracking-[-0.02em]">
+            <h2 className="text-[clamp(30px,2.8vw,48px)] leading-[1.2] tracking-[-0.02em]">
               Developer tools
             </h2>
 
-            <p className="text-[20px] leading-[1.4]">
+            <p className="text-[18px] leading-[1.4] md:text-[20px]">
               Use World&apos;s developer tools to integrate proof of human,
               enable verified actions, and create experiences for real users
               across the World network.
             </p>
           </div>
 
-          <div className="grid gap-6 md:grid-cols-3">
+          <div className="grid gap-3 md:grid-cols-3 md:gap-6">
             {DEVELOPER_TOOL_CARDS.map(
               ({ description, href, icon: Icon, label, poster, video }) => (
                 <a
-                  className="group relative flex min-h-[340px] flex-col justify-between gap-10 overflow-hidden rounded-2xl border border-[#edece9] bg-white p-8"
+                  className="group relative flex min-h-[300px] flex-col justify-between gap-10 overflow-hidden rounded-2xl border border-[#edece9] bg-white p-6 md:min-h-[340px] md:p-8"
                   href={href}
                   key={label}
                   rel="noopener noreferrer"
@@ -484,19 +484,19 @@ export const HomePage = async () => {
                     src={video}
                   />
 
-                  <Icon className="pointer-events-none relative z-10 size-8" />
+                  <Icon className="pointer-events-none relative z-10 size-6 md:size-8" />
 
-                  <span className="pointer-events-none relative z-10 flex flex-col gap-3">
-                    <span className="text-[32px] leading-[1.3] tracking-[-0.64px]">
+                  <span className="pointer-events-none relative z-10 flex flex-col gap-2 md:gap-3">
+                    <span className="text-[24px] leading-[1.3] tracking-[-0.48px] md:text-[32px] md:tracking-[-0.64px]">
                       {label}
                     </span>
 
                     <span className="flex flex-col items-start gap-6">
-                      <span className="text-[20px] leading-[1.4]">
+                      <span className="text-[18px] leading-[1.4] md:text-[20px]">
                         {description}
                       </span>
 
-                      <span className="text-[20px] leading-[1.4] underline">
+                      <span className="hidden text-[20px] leading-[1.4] underline md:inline">
                         Explore
                       </span>
                     </span>
@@ -508,11 +508,11 @@ export const HomePage = async () => {
         </div>
       </section>
 
-      <section className={`${CONTAINER_CLASS} mt-[120px] lg:mt-[180px]`}>
+      <section className={`${CONTAINER_CLASS} mt-[160px] lg:mt-[180px]`}>
         <DeveloperStories />
       </section>
 
-      <footer className="mt-[120px] bg-[#f3f2f0] lg:mt-[200px]">
+      <footer className="mt-[160px] bg-[#f3f2f0] lg:mt-[200px]">
         <div className={`${CONTAINER_CLASS} py-16`}>
           <div className="grid grid-cols-2 gap-x-8 gap-y-10 sm:grid-cols-3 lg:flex lg:items-start lg:justify-between">
             {FOOTER_LINK_COLUMNS.map((column, columnIndex) => (
