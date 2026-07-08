@@ -1,12 +1,10 @@
 "use client";
 
-import { CaretIcon } from "@/components/Icons/CaretIcon";
-import { WorldIcon } from "@/components/Icons/WorldIcon";
 import { Placeholder } from "@/components/PlaceholderImage";
 import { urls } from "@/lib/urls";
+import { Icon } from "@/scenes/PortalV3/common/Icon";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import clsx from "clsx";
-import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 
 export type DropdownTeam = { id: string; name: string };
@@ -39,40 +37,42 @@ export const TeamsDropdown = (props: { teams: DropdownTeam[] }) => {
   const currentTeam = teams.find((t) => t.id === teamId);
 
   return (
-    <div className="border-border flex h-14 items-center gap-1 border-b px-2">
-      {currentTeam ? (
-        <Link
-          href={urls.apps({ team_id: currentTeam.id })}
-          className="focus-visible:ring-ring flex min-w-0 flex-1 items-center gap-2.5 rounded-8 p-1.5 outline-none focus-visible:ring-2"
-        >
-          <WorldIcon className="size-6 shrink-0" />
-          <span className="min-w-0 flex-1 truncate font-gta text-18 font-medium">
-            {currentTeam.name}
-          </span>
-        </Link>
-      ) : (
-        <div className="flex min-w-0 flex-1 items-center gap-2.5 p-1.5">
-          <WorldIcon className="size-6 shrink-0" />
-          <span className="text-muted-foreground min-w-0 flex-1 truncate font-gta text-14 font-medium">
-            Select team
-          </span>
-        </div>
-      )}
-
+    <div className="px-4 pt-4">
       <DropdownMenu.Root>
         <DropdownMenu.Trigger
           aria-label="Switch team"
-          className="text-muted-foreground hover:bg-muted focus-visible:ring-ring flex size-7 shrink-0 items-center justify-center rounded-8 outline-none focus-visible:ring-2"
+          className="flex h-10 w-full min-w-0 items-center gap-2 rounded-8 px-0 text-left outline-none transition-colors hover:bg-portal-border focus-visible:ring-2 focus-visible:ring-grey-300"
         >
-          <CaretIcon className="size-3" />
+          {currentTeam ? (
+            <Placeholder
+              name={currentTeam.name}
+              seed={currentTeam.id}
+              className="size-6 shrink-0 rounded-full text-10 font-semibold"
+            />
+          ) : (
+            <div className="flex size-6 shrink-0 items-center justify-center rounded-full bg-grey-200 font-world text-10 font-semibold text-portal-muted">
+              T
+            </div>
+          )}
+
+          <span className="grid min-w-0 flex-1 gap-0.5">
+            <span className="truncate font-world text-13 font-medium leading-none text-portal-text">
+              {currentTeam?.name ?? "Select team"}
+            </span>
+            <span className="font-world text-11 leading-none text-portal-subtle">
+              Team
+            </span>
+          </span>
+
+          <Icon name="arrow-separate-vertical" className="size-4 shrink-0" />
         </DropdownMenu.Trigger>
 
         <DropdownMenu.Portal>
           <DropdownMenu.Content
-            align="end"
+            align="start"
             sideOffset={6}
             collisionPadding={12}
-            className="border-border z-50 max-h-[60vh] w-[232px] overflow-y-auto rounded-12 border bg-white p-1 shadow-lg "
+            className="z-50 max-h-[60vh] w-[247px] overflow-y-auto rounded-12 border border-portal-border bg-white p-1 shadow-lg"
           >
             {teams.map((team) => (
               <TeamsDropdownRow

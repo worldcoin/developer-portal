@@ -1,6 +1,5 @@
 "use client";
 
-import { CaretIcon } from "@/components/Icons/CaretIcon";
 import {
   DISCORD_URL,
   DOCS_URL,
@@ -12,6 +11,7 @@ import {
 } from "@/lib/constants";
 import { urls } from "@/lib/urls";
 import { Color } from "@/scenes/common/Profile/types";
+import { Icon } from "@/scenes/PortalV3/common/Icon";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import Link from "next/link";
 import { CSSProperties, ReactNode } from "react";
@@ -59,11 +59,20 @@ const Separator = () => (
  * (mirrored from the main repo's <Help />: support · community · references) ·
  * Docs · Log out.
  */
+const getInitials = (name: string) => {
+  const parts = name
+    .split(/[.\s@_-]+/)
+    .map((part) => part.trim())
+    .filter(Boolean);
+
+  return (parts[0]?.[0] ?? "A") + (parts[1]?.[0] ?? "");
+};
+
 const UserAvatar = (props: { name: string; color: Color | null }) => {
   const { color } = props;
   return (
     <div
-      className="flex size-6 shrink-0 items-center justify-center rounded-full text-xs font-semibold uppercase"
+      className="flex size-6 shrink-0 items-center justify-center rounded-full font-world text-10 font-semibold uppercase"
       style={
         color
           ? ({
@@ -73,7 +82,7 @@ const UserAvatar = (props: { name: string; color: Color | null }) => {
           : { backgroundColor: "#e5e7eb", color: "#6b7280" }
       }
     >
-      {props.name[0]}
+      {getInitials(props.name)}
     </div>
   );
 };
@@ -83,12 +92,17 @@ export const UserPopup = (props: { user: PortalUser; color: Color | null }) => {
 
   return (
     <DropdownMenu.Root>
-      <DropdownMenu.Trigger className="focus-visible:ring-ring flex w-full items-center gap-2.5 rounded-8 p-2 text-left outline-none hover:bg-grey-100 focus-visible:ring-2">
+      <DropdownMenu.Trigger className="flex h-10 w-full min-w-0 items-center gap-2 rounded-8 text-left outline-none transition-colors hover:bg-portal-border focus-visible:ring-2 focus-visible:ring-grey-300">
         <UserAvatar name={user.name} color={color} />
-        <span className="min-w-0 flex-1 truncate font-gta text-14 font-medium">
-          {user.name}
+        <span className="grid min-w-0 flex-1 gap-0.5">
+          <span className="truncate font-world text-13 font-medium leading-none text-portal-text">
+            {user.name}
+          </span>
+          <span className="font-world text-11 leading-none text-portal-subtle">
+            Profile
+          </span>
         </span>
-        <CaretIcon className="text-muted-foreground size-3 shrink-0 rotate-180" />
+        <Icon name="more-horizontal" className="size-4 shrink-0" />
       </DropdownMenu.Trigger>
 
       <DropdownMenu.Portal>
@@ -96,7 +110,7 @@ export const UserPopup = (props: { user: PortalUser; color: Color | null }) => {
           side="top"
           align="start"
           sideOffset={8}
-          className="border-border z-50 max-h-[var(--radix-dropdown-menu-content-available-height)] w-[var(--radix-dropdown-menu-trigger-width)] min-w-[224px] overflow-y-auto rounded-12 border bg-white p-1 shadow-lg"
+          className="z-50 max-h-[var(--radix-dropdown-menu-content-available-height)] w-[247px] overflow-y-auto rounded-12 border border-portal-border bg-white p-1 shadow-lg"
         >
           {user.email ? (
             <div className="text-muted-foreground truncate px-2.5 py-1.5 text-12">

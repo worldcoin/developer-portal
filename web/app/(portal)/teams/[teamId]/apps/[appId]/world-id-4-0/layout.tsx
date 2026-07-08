@@ -1,3 +1,5 @@
+import { pickPortalVersion } from "@/lib/feature-flags/portal-v3/activation";
+import { WorldIdLayout } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldId/layout";
 import { fetchAppEnvCached } from "@/scenes/common/Teams/TeamId/Apps/AppId/layout/server/fetch-app-env";
 import { redirect } from "next/navigation";
 import { ReactNode } from "react";
@@ -21,5 +23,8 @@ export default async function Layout(props: Props) {
     );
   }
 
-  return <>{children}</>;
+  return pickPortalVersion(
+    () => <WorldIdLayout>{children}</WorldIdLayout>,
+    () => <>{children}</>,
+  );
 }

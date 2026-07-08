@@ -32,6 +32,7 @@ const config: Config = {
         qrCode: "0px 16px 20px -8px #E6E9EEA3",
         image: "0px 10px 15px 0px #00000010",
         tab: "0px 1px 2px 0px #191C200F, 0px 1px 3px 0px #191C201A",
+        "portal-card": "0 1px 2px rgba(24, 24, 24, 0.08)", // v3 reskin cards
       },
 
       colors: {
@@ -145,6 +146,25 @@ const config: Config = {
             800: "#935900",
           },
         },
+
+        // Portal v3 reskin palette (exact Figma neutrals + accents). Kept as a
+        // dedicated namespace because these values don't match the existing
+        // `grey` ramp and snapping to it would shift the design.
+        portal: {
+          canvas: "#f7f7f7", // app + sidebar background, hover fills
+          border: "#f1f1f1", // hairlines, card / nav borders
+          heading: "#0b1928", // page titles
+          text: "#181818", // primary text
+          muted: "#757575", // secondary text
+          subtle: "#9c9c9c", // tertiary text
+          faint: "#b8b8b8", // faint icons
+          ink: "#1f1f1f", // dark buttons / selects
+          "ink-hover": "#333333",
+          accent: "#e6f0ff", // info banner surface
+          "accent-ring": "#b8d4ff",
+          blue: "#007cfb", // action-card accent
+          purple: "#7d00fe", // action-card accent + "New" badge
+        },
       },
 
       gridTemplateColumns: gridTemplates,
@@ -161,13 +181,16 @@ const config: Config = {
       fontSize: {
         0: "0",
         6: "calc(6 * 1rem / 16)",
+        10: "calc(10 * 1rem / 16)",
         11: "calc(11 * 1rem / 16)",
         12: "calc(12 * 1rem / 16)",
         13: "calc(13 * 1rem / 16)",
         14: "calc(14 * 1rem / 16)",
         15: "calc(15 * 1rem / 16)",
         16: "calc(16 * 1rem / 16)",
+        17: "calc(17 * 1rem / 16)",
         18: "calc(18 * 1rem / 16)",
+        19: "calc(19 * 1rem / 16)",
         20: "calc(20 * 1rem / 16)",
         24: "calc(24 * 1rem / 16)",
         26: "calc(26 * 1rem / 16)",

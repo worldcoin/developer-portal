@@ -17,14 +17,14 @@ export const PortalShell = (props: {
   return (
     <div
       data-testid="portal-shell"
-      className="bg-background grid min-h-[100dvh]"
-      style={{ gridTemplateColumns: "clamp(4rem, 20%, 16rem) 1fr" }}
+      className="grid min-h-[100dvh] bg-portal-canvas"
+      style={{ gridTemplateColumns: "280px minmax(0, 1fr)" }}
     >
-      <aside className="border-border bg-sidebar sticky top-0 flex h-[100dvh] flex-col border-r">
+      <aside className="sticky top-0 flex h-[100dvh] flex-col bg-portal-canvas">
         <TeamsDropdown teams={teams} />
         <SidebarNav />
 
-        <div className="border-border mt-auto border-t p-2">
+        <div className="mt-auto px-4 pb-4">
           <UserPopup
             user={{
               name: user.name ?? user.email ?? "Account",
@@ -35,11 +35,13 @@ export const PortalShell = (props: {
         </div>
       </aside>
 
-      <div className="flex min-w-0 flex-col">
-        <header className="border-border flex h-14 items-center gap-3 border-b px-4">
+      <div className="flex min-w-0 flex-col bg-white">
+        <header className="flex h-[67px] shrink-0 items-end gap-3 border-b border-l border-portal-border bg-portal-canvas pb-5 pl-[31px] pr-5">
           <AppsDropdown />
         </header>
-        <main className="min-w-0 flex-1 overflow-auto">{children}</main>
+        <main className="min-w-0 flex-1 overflow-auto border-l border-portal-border bg-white">
+          {children}
+        </main>
       </div>
     </div>
   );
