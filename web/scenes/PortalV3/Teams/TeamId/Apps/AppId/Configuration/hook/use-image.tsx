@@ -1,4 +1,5 @@
 import { tryParseJSON } from "@/lib/utils";
+import posthog from "posthog-js";
 import { toast } from "react-toastify";
 import { useGetUploadedImageLazyQuery } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/hook/graphql/client/get-uploaded-image.generated";
 import { useUploadImageLazyQuery } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/hook/graphql/client/upload-image.generated";
@@ -117,7 +118,13 @@ export const useImage = () => {
     });
 
     if (!response.data?.upload_image?.url) {
-      throw new Error("Failed to get upload signed URL");
+      // Surface the server's error (e.g. missing AWS credentials on a local
+      // stack) instead of a blind "failed" — it lands in the console/toast.
+      throw new Error(
+        response.error?.message
+          ? `Failed to get upload signed URL: ${response.error.message}`
+          : "Failed to get upload signed URL",
+      );
     }
 
     const { url, stringifiedFields } = response.data.upload_image;
@@ -145,6 +152,14 @@ export const useImage = () => {
 
     if (!uploadResponse.ok) {
       const errorBody = await uploadResponse.text();
+      // The presigned POST goes browser → S3 without touching our servers, so
+      // this failure is invisible to server logs — emit it from the client.
+      posthog.capture("image_upload_failed", {
+        app_id: appId,
+        team_id: teamId,
+        image_type: imageType,
+        status: uploadResponse.status,
+      });
       throw new Error(
         `Failed to upload file: ${uploadResponse.status} ${uploadResponse.statusText} - ${errorBody}`,
       );

@@ -1,6 +1,6 @@
 import clsx from "clsx";
 import { urls } from "@/lib/urls";
-import { TeamLogo } from "@/scenes/Portal/Profile/Teams/page/List/TeamLogo";
+import { TeamLogo } from "@/scenes/PortalV3/Profile/Teams/page/List/TeamLogo";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Dropdown } from "@/components/Dropdown";
 import { MoreVerticalIcon } from "@/components/Icons/MoreVerticalIcon";

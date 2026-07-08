@@ -10,7 +10,7 @@ import { Toggle } from "@/components/Toggle";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { appChangelogSchema } from "@/lib/schema";
 import { useRefetchQueries } from "@/lib/use-refetch-queries";
-import { removeAppFromReview } from "@/scenes/Portal/Teams/TeamId/Apps/common/hooks/server";
+import { removeAppFromReview } from "@/scenes/common/Teams/TeamId/Apps/common/hooks/server";
 import { yupResolver } from "@hookform/resolvers/yup";
 import posthog from "posthog-js";
 import { useCallback } from "react";

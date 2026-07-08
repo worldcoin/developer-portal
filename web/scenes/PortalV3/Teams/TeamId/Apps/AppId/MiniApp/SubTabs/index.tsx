@@ -2,7 +2,7 @@
 
 import { urls } from "@/lib/urls";
 import { useParams, usePathname } from "next/navigation";
-import { SectionSubTabs } from "@/scenes/Portal/Teams/TeamId/Apps/AppId/common/SectionSubTabs";
+import { SectionSubTabs } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/common/SectionSubTabs";
 
 export const MiniAppSubTabs = () => {
   const params = useParams<{ teamId: string; appId: string }>();

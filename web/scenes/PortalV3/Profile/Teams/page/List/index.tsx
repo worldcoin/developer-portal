@@ -1,8 +1,8 @@
 "use client";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import { LeaveTeamDialog } from "@/scenes/Portal/Profile/Teams/page/LeaveTeamDialog";
-import { TransferTeamDialog } from "@/scenes/Portal/Profile/Teams/page/TransferTeamDialog";
-import { DeleteTeamDialog } from "@/scenes/Portal/common/DeleteTeamDialog";
+import { LeaveTeamDialog } from "@/scenes/PortalV3/Profile/Teams/page/LeaveTeamDialog";
+import { TransferTeamDialog } from "@/scenes/PortalV3/Profile/Teams/page/TransferTeamDialog";
+import { DeleteTeamDialog } from "@/scenes/PortalV3/common/DeleteTeamDialog";
 import { useMeQuery } from "@/scenes/common/me-query/client";
 import { FetchMeQuery } from "@/scenes/common/me-query/client/graphql/client/me-query.generated";
 import { useState } from "react";
