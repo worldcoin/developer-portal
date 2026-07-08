@@ -37,14 +37,25 @@ export const NavBarItem = ({ icon, children, href }: NavBarItemProps) => {
 
         // Desktop: icon and label in a row, collapsible
         "lg:justify-start lg:justify-items-stretch lg:gap-y-0 lg:rounded-8 lg:py-1.5",
+        "3xl:py-2",
+        "4xl:py-2.5",
         {
           "lg:min-w-48 lg:grid-cols-auto/1fr lg:gap-x-2.5": !isCollapsed,
+          "3xl:min-w-60 3xl:gap-x-3": !isCollapsed,
+          "4xl:min-w-[21rem] 4xl:gap-x-4": !isCollapsed,
           "lg:min-w-0 lg:grid-cols-[auto_0fr] lg:gap-x-0": isCollapsed,
         },
       )}
     >
       {icon}
-      <span className="min-w-0 truncate text-11 font-medium leading-none lg:text-14">
+      <span
+        className={clsx(
+          "min-w-0 truncate text-11 font-medium leading-none",
+          "lg:text-14",
+          "3xl:text-18",
+          "4xl:text-24",
+        )}
+      >
         {children}
       </span>
     </Link>

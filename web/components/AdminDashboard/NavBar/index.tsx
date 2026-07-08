@@ -4,7 +4,7 @@ import { UIModule } from "../UIModule";
 import { CollapseButton } from "./CollapseButton";
 import { NavBarItem } from "./NavBarItem";
 
-const iconClassName = "size-6 lg:size-4";
+const iconClassName = clsx("size-6", "lg:size-4", "3xl:size-5", "4xl:size-7");
 
 export const NavBar = () => {
   return (
@@ -17,6 +17,10 @@ export const NavBar = () => {
         "lg:sticky lg:bottom-auto lg:left-auto lg:top-4 lg:translate-x-0",
         "lg:grid lg:h-[calc(100dvh-2rem)] lg:content-start lg:justify-items-start lg:gap-y-1",
         "lg:m-4 lg:mr-0 lg:p-3",
+
+        // Large monitors
+        "3xl:m-5 3xl:mr-0 3xl:p-4",
+        "4xl:m-7 4xl:mr-0 4xl:p-5",
       )}
     >
       <CollapseButton />
@@ -30,6 +34,8 @@ export const NavBar = () => {
 
           // Desktop: vertical list
           "lg:grid lg:gap-x-0 lg:gap-y-0.5",
+          "3xl:gap-y-1",
+          "4xl:gap-y-1.5",
         )}
       >
         <NavBarItem icon={<Home className={iconClassName} />} href="/admin">

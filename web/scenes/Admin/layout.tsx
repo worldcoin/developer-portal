@@ -19,7 +19,7 @@ export const AdminLayout = ({ children }: { children: React.ReactNode }) => {
       <div
         className={clsx(
           // Common styles
-          "min-h-dvh",
+          "min-h-dvh bg-grey-50",
 
           // Desktop styles
           "lg:grid lg:grid-cols-[auto_1fr]",
@@ -28,14 +28,32 @@ export const AdminLayout = ({ children }: { children: React.ReactNode }) => {
         <NavBar />
 
         <div className="grid grid-rows-auto/1fr">
-          <header className="flex items-center gap-x-4 p-4">
-            <BackButton />
-            <Search className="flex-1" />
-            <ProfileBadge />
+          <header
+            className={clsx("flex items-center p-4", "3xl:p-5", "4xl:p-7")}
+          >
+            <div
+              className={clsx(
+                "mx-auto flex w-full max-w-7xl items-center gap-x-4",
+                "3xl:max-w-[1600px] 3xl:gap-x-5",
+                "4xl:max-w-[2240px] 4xl:gap-x-7",
+              )}
+            >
+              <BackButton />
+              <Search className="flex-1" />
+              <ProfileBadge />
+            </div>
           </header>
 
           <main id="main-content" className="size-full">
-            {children}
+            <div
+              className={clsx(
+                "mx-auto size-full max-w-7xl",
+                "3xl:max-w-[1600px]",
+                "4xl:max-w-[2240px]",
+              )}
+            >
+              {children}
+            </div>
           </main>
         </div>
       </div>

@@ -18,13 +18,19 @@ export const CollapseButton = ({ className }: CollapseButtonProps) => {
       aria-expanded={!isCollapsed}
       aria-controls="admin-nav-items"
       className={clsx(
-        // Collapsing only makes sense for the desktop sidebar, hidden on mobile
-        "hidden place-items-center rounded-8 px-3 py-1.5 text-grey-400 outline-none transition-colors hover:bg-grey-100 hover:text-grey-900 focus-visible:ring-2 focus-visible:ring-blue-500 motion-reduce:transition-none lg:grid",
+        "hidden place-items-center rounded-8 px-3 py-1.5 text-grey-400 outline-none transition-colors hover:bg-grey-100 hover:text-grey-900 focus-visible:ring-2 focus-visible:ring-blue-500 motion-reduce:transition-none",
+        "lg:grid",
+        "3xl:px-4 3xl:py-2",
+        "4xl:px-5 4xl:py-2.5",
         className,
       )}
       onClick={() => setIsCollapsed(!isCollapsed)}
     >
-      {isCollapsed ? <PanelLeft size={16} /> : <PanelRight size={16} />}
+      {isCollapsed ? (
+        <PanelLeft className={clsx("size-4", "3xl:size-5", "4xl:size-7")} />
+      ) : (
+        <PanelRight className={clsx("size-4", "3xl:size-5", "4xl:size-7")} />
+      )}
     </button>
   );
 };
