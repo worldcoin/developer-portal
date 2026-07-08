@@ -15,7 +15,10 @@ type NavBarItemProps = {
 export const NavBarItem = ({ icon, children, href }: NavBarItemProps) => {
   const { isCollapsed } = useNav();
   const pathname = usePathname();
-  const isActive = href === "/" ? pathname === href : pathname.startsWith(href);
+  const isActive =
+    href === "/admin"
+      ? pathname === href || pathname === `${href}/`
+      : pathname === href || pathname.startsWith(`${href}/`);
   const label = typeof children === "string" ? children : undefined;
 
   return (
