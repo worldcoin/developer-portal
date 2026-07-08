@@ -1,5 +1,8 @@
+import { BackButton } from "@/components/AdminDashboard/BackButton";
 import { NavBar } from "@/components/AdminDashboard/NavBar";
 import { NavProvider } from "@/components/AdminDashboard/NavProvider";
+import { ProfileBadge } from "@/components/AdminDashboard/ProfileBadge";
+import { Search } from "@/components/AdminDashboard/Search";
 import clsx from "clsx";
 
 export const AdminLayout = ({ children }: { children: React.ReactNode }) => {
@@ -23,10 +26,18 @@ export const AdminLayout = ({ children }: { children: React.ReactNode }) => {
         )}
       >
         <NavBar />
-        {/* Bottom padding keeps content clear of the fixed mobile tab bar */}
-        <main id="main-content" className="size-full pb-28 lg:pb-0">
-          {children}
-        </main>
+
+        <div className="grid grid-rows-auto/1fr">
+          <header className="flex items-center justify-between gap-x-4 p-4">
+            <BackButton />
+            <Search className="flex-1" />
+            <ProfileBadge />
+          </header>
+
+          <main id="main-content" className="size-full">
+            {children}
+          </main>
+        </div>
       </div>
     </NavProvider>
   );
