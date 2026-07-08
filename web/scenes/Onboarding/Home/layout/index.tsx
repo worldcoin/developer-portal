@@ -50,7 +50,7 @@ export const HomeLayout = (props: { children: ReactNode }) => {
           <Link
             href="/"
             aria-label="World Developers"
-            className="inline-flex min-w-0 items-center gap-[0.42em] whitespace-nowrap py-[calc(var(--lockup-h)*14/24)] font-world text-[length:calc(var(--lockup-h)*0.72)] leading-none text-[#181818] [--lockup-h:1.25rem] md:[--lockup-h:1.5rem]"
+            className="inline-flex min-w-0 items-center gap-[0.42em] whitespace-nowrap py-[calc(var(--lockup-h)*14/24)] font-world text-[length:calc(var(--lockup-h)*0.72)] leading-none text-[#181818] [--lockup-h:1.5rem]"
           >
             <WorldIcon
               aria-hidden

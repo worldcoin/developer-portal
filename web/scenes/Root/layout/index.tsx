@@ -6,18 +6,70 @@ import { Auth0Provider } from "@auth0/nextjs-auth0/client";
 import { Provider } from "jotai";
 import { headers } from "next/headers";
 import { IBM_Plex_Mono, Rubik } from "next/font/google";
-import { CSSProperties, Suspense } from "react";
+import localFont from "next/font/local";
+import { Suspense } from "react";
 import { SkeletonTheme } from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
 import { Slide, ToastContainer } from "react-toastify";
 
-const rubik = Rubik({ weight: ["400"], subsets: ["latin"] });
+const rubik = Rubik({
+  display: "swap",
+  subsets: ["latin"],
+  variable: "--font-rubik",
+  weight: ["400"],
+});
 
 const ibmPlexMono = IBM_Plex_Mono({
+  display: "swap",
   subsets: ["latin"],
   style: ["normal"],
+  variable: "--font-mono",
   weight: ["400", "600"],
 });
+
+const gtAmerica = localFont({
+  display: "swap",
+  src: [
+    {
+      path: "../../../app/fonts/GTAmerica-Rg.woff2",
+      style: "normal",
+      weight: "400",
+    },
+    {
+      path: "../../../app/fonts/GTAmerica-RgIt.woff2",
+      style: "italic",
+      weight: "400",
+    },
+    {
+      path: "../../../app/fonts/GT-America-Md.woff2",
+      style: "normal",
+      weight: "500",
+    },
+  ],
+  variable: "--font-gta",
+});
+
+const twkLausanne = localFont({
+  display: "swap",
+  src: "../../../app/fonts/TWKLausanne-550.woff2",
+  variable: "--font-twk",
+  weight: "500",
+});
+
+const worldPro = localFont({
+  display: "swap",
+  src: "../../../app/fonts/WorldProMVP.ttf",
+  variable: "--font-world",
+  weight: "100 900",
+});
+
+const fontVariables = [
+  rubik.variable,
+  ibmPlexMono.variable,
+  gtAmerica.variable,
+  twkLausanne.variable,
+  worldPro.variable,
+].join(" ");
 
 export const RootLayout = async ({
   children,
@@ -31,15 +83,7 @@ export const RootLayout = async ({
   const nonce = (await headers()).get("x-nonce") ?? undefined;
 
   return (
-    <html
-      lang="en"
-      style={
-        {
-          "--font-rubik": rubik.style.fontFamily,
-          "--font-mono": ibmPlexMono.style.fontFamily,
-        } as CSSProperties
-      }
-    >
+    <html lang="en" className={fontVariables}>
       <body>
         <ToastContainer
           autoClose={4000}

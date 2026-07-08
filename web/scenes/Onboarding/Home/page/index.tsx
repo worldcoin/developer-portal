@@ -17,98 +17,6 @@ import { getNetworkStats } from "./server/get-network-stats";
 
 type IconProps = { className?: string };
 
-const HEADLINE_LINE_1 = "A new standard";
-const HEADLINE_LINE_2 = "of identity";
-const HEADLINE_TYPING_MS_PER_CHAR = 70;
-const HEADLINE_LINE_1_S =
-  (HEADLINE_LINE_1.length * HEADLINE_TYPING_MS_PER_CHAR) / 1000;
-const HEADLINE_LINE_2_S =
-  (HEADLINE_LINE_2.length * HEADLINE_TYPING_MS_PER_CHAR) / 1000;
-
-// Pure-CSS typing reveal for the two-line hero headline. A hidden ghost
-// (::after) sizes each grid cell to the full phrase so the overlay can animate
-// width 0→100% in per-character steps; the caret is a right border that blinks
-// on line 1 while it types, then hands off to line 2 exactly when line 1
-// completes.
-const TYPING_HEADLINE_STYLE = `
-.typing-headline-wrap {
-  display: inline-grid;
-  vertical-align: top;
-  max-width: 100%;
-  overflow: visible;
-}
-
-.typing-headline-wrap::after {
-  content: attr(data-text);
-  visibility: hidden;
-  grid-area: 1 / 1;
-  white-space: nowrap;
-  pointer-events: none;
-  padding-right: 0.15em;
-}
-
-.typing-headline {
-  grid-area: 1 / 1;
-  overflow-x: clip;
-  overflow-y: visible;
-  white-space: nowrap;
-  width: 0;
-  min-width: 0;
-  border-right: 0.075em solid currentColor;
-}
-
-.typing-headline__text {
-  display: inline-block;
-  padding-right: 0.15em;
-}
-
-.typing-headline--line1 {
-  animation:
-    typing-headline-reveal ${HEADLINE_LINE_1_S}s steps(${HEADLINE_LINE_1.length}, end) forwards,
-    typing-headline-caret 0.8s step-end infinite,
-    typing-headline-caret-off 0s linear ${HEADLINE_LINE_1_S}s forwards;
-}
-
-.typing-headline--line2 {
-  border-right-color: transparent;
-  animation:
-    typing-headline-reveal ${HEADLINE_LINE_2_S}s steps(${HEADLINE_LINE_2.length}, end) ${HEADLINE_LINE_1_S}s forwards,
-    typing-headline-caret 0.8s step-end ${HEADLINE_LINE_1_S}s infinite;
-}
-
-@keyframes typing-headline-reveal {
-  to {
-    width: 100%;
-  }
-}
-
-@keyframes typing-headline-caret {
-  0% {
-    border-right-color: currentColor;
-  }
-  50% {
-    border-right-color: transparent;
-  }
-  100% {
-    border-right-color: currentColor;
-  }
-}
-
-@keyframes typing-headline-caret-off {
-  to {
-    border-right-color: transparent;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .typing-headline {
-    width: 100%;
-    animation: none !important;
-    border-right-color: transparent !important;
-  }
-}
-`;
-
 const HumanBadgeIcon = ({ className }: IconProps) => (
   <svg
     aria-hidden="true"
@@ -369,37 +277,17 @@ export const HomePage = async () => {
 
   return (
     <div className="min-h-full bg-[#f9f9f8] font-world font-[325] text-[#181818]">
-      <style dangerouslySetInnerHTML={{ __html: TYPING_HEADLINE_STYLE }} />
-
       <section className={CONTAINER_CLASS}>
-        <div className="grid items-center gap-12 pb-[160px] pt-20 md:pt-16 lg:grid-cols-2 lg:gap-0 lg:pb-[100px] lg:pt-[102px]">
-          <div className="flex max-w-[680px] flex-col items-start gap-10 lg:gap-16">
+        <div className="grid items-center gap-12 pb-[160px] pt-20 md:pt-16 lg:grid-cols-[minmax(0,626px)_minmax(0,626px)] lg:justify-between lg:gap-8 lg:pb-[100px] lg:pt-[102px]">
+          <div className="flex max-w-[626px] flex-col items-start gap-10 lg:gap-16">
             <div className="flex flex-col gap-4">
-              <h1 className="text-[clamp(44px,4.6vw,80px)] leading-[1.1] tracking-[-0.02em]">
-                <span
-                  className="typing-headline-wrap"
-                  data-text={HEADLINE_LINE_1}
-                >
-                  <span className="typing-headline typing-headline--line1">
-                    <span className="typing-headline__text">
-                      {HEADLINE_LINE_1}
-                    </span>
-                  </span>
-                </span>
+              <h1 className="text-[clamp(44px,5.2vw,80px)] leading-[1.1] tracking-[-0.02em] lg:text-[80px] lg:tracking-[-1.6px]">
+                A new standard
                 <br />
-                <span
-                  className="typing-headline-wrap"
-                  data-text={HEADLINE_LINE_2}
-                >
-                  <span className="typing-headline typing-headline--line2">
-                    <span className="typing-headline__text">
-                      {HEADLINE_LINE_2}
-                    </span>
-                  </span>
-                </span>
+                of identity
               </h1>
 
-              <p className="max-w-[680px] text-[clamp(24px,2.2vw,38px)] leading-[1.3] tracking-[-0.02em]">
+              <p className="max-w-[607px] text-[clamp(24px,2.2vw,32px)] leading-[1.3] tracking-[-0.02em] lg:text-[32px] lg:tracking-[-0.64px]">
                 World gives developers the tools to build apps, agents, and
                 digital experiences that can verify real people privately and
                 securely.
@@ -408,7 +296,7 @@ export const HomePage = async () => {
 
             <div className="flex w-full flex-col gap-1 sm:w-auto sm:flex-row sm:flex-wrap sm:items-center sm:gap-4">
               <a
-                className="group inline-flex items-center justify-center gap-2 rounded-full bg-[#181818] px-5 py-3 text-[18px] leading-[1.4] text-[#f9f9f8] transition-colors hover:bg-black sm:px-8 sm:py-4 sm:text-[22px]"
+                className="group inline-flex items-center justify-center gap-2 rounded-full bg-[#181818] px-8 py-4 text-[22px] leading-[1.4] text-[#f9f9f8] transition-colors hover:bg-black"
                 href={urls.api.authLogin()}
               >
                 Go to console
@@ -418,7 +306,7 @@ export const HomePage = async () => {
               </a>
 
               <a
-                className="group inline-flex items-center justify-center gap-2 rounded-full border border-[#181818] px-5 py-3 text-[18px] leading-[1.4] text-[#181818] transition-colors hover:bg-[#181818]/5 sm:px-8 sm:py-4 sm:text-[22px]"
+                className="group inline-flex items-center justify-center gap-2 rounded-full border border-[#181818] px-8 py-4 text-[22px] leading-[1.4] text-[#181818] transition-colors hover:bg-[#181818]/5"
                 href="https://docs.world.org"
                 rel="noopener noreferrer"
                 target="_blank"
@@ -431,7 +319,7 @@ export const HomePage = async () => {
             </div>
           </div>
 
-          <div className="relative aspect-[756/700] w-full lg:aspect-auto lg:h-[700px]">
+          <div className="relative aspect-[626/700] w-full overflow-hidden rounded-2xl bg-[#f9f9f8] lg:h-[700px] lg:w-[626px]">
             <BasePixelStrip />
           </div>
         </div>
@@ -457,7 +345,7 @@ export const HomePage = async () => {
       <section className={`${CONTAINER_CLASS} mt-[160px] lg:mt-[220px]`}>
         <div className="flex flex-col gap-10">
           <div className="flex max-w-[625px] flex-col gap-4">
-            <h2 className="text-[clamp(30px,2.8vw,48px)] leading-[1.2] tracking-[-0.02em]">
+            <h2 className="text-[clamp(32px,2.8vw,48px)] leading-[1.2] tracking-[-0.02em]">
               Developer tools
             </h2>
 

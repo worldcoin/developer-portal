@@ -135,7 +135,7 @@ export const DeveloperStories = () => {
     <div className="flex w-full flex-col gap-10 text-[#181818]">
       <div className="flex items-end justify-between gap-6">
         <div className="flex max-w-[625px] flex-col gap-4">
-          <h2 className="text-[clamp(30px,2.8vw,48px)] leading-[1.2] tracking-[-0.02em]">
+          <h2 className="text-[clamp(32px,2.8vw,48px)] leading-[1.2] tracking-[-0.02em]">
             Developer Stories
           </h2>
 
