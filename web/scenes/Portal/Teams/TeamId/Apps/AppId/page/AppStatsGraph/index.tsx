@@ -44,7 +44,9 @@ export const AppStatsGraph = ({
       impressions: metrics.total_impressions ?? null,
       sessions: metrics.total_users ?? null,
       users: metrics.unique_users ?? null,
-      newUsers: metrics.unique_users ?? null, // No separate all-time new users
+      // The metrics feed has no all-time new-users field; render the tile's
+      // no-data state rather than repeating unique_users under a wrong label.
+      newUsers: null,
     };
   }, [metrics]);
 

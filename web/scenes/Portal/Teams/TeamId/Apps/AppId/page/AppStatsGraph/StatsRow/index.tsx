@@ -45,7 +45,9 @@ const StatItem = ({
   isLoading,
 }: StatItemProps) => {
   const formatValue = (val: number | undefined | null) => {
-    if (val === undefined || val === null) return "0";
+    // No data (missing feed field or failed fetch) is not the same as zero —
+    // show a dash instead of a fabricated "0".
+    if (val === undefined || val === null) return "—";
     return val.toLocaleString();
   };
 
