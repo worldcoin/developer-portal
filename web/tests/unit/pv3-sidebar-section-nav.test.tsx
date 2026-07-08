@@ -103,8 +103,7 @@ describe("v3 SidebarNav [Mini App section]", () => {
     usePathname.mockReturnValue(`${base}/mini-app/permissions`);
     renderSidebar();
 
-    expect(link("Back")).toHaveAttribute("href", base);
-    expect(screen.getByText("Mini App")).toBeInTheDocument();
+    expect(link("Mini App")).toHaveAttribute("href", base);
     expect(isCurrent("Permissions")).toBe(true);
     expect(isCurrent("Transactions")).toBe(false);
     expect(isCurrent("Notifications")).toBe(false);
@@ -121,7 +120,7 @@ describe("v3 SidebarNav [Mini App section]", () => {
   it("treats the legacy top-level /transactions route as the Mini App section", () => {
     usePathname.mockReturnValue(`${base}/transactions`);
     renderSidebar();
-    expect(link("Back")).toBeInTheDocument();
+    expect(link("Mini App")).toBeInTheDocument();
     expect(isCurrent("Transactions")).toBe(true);
     expect(link("Transactions")).toHaveAttribute(
       "href",
@@ -137,7 +136,7 @@ describe("v3 SidebarNav [World ID section]", () => {
     usePathname.mockReturnValue(`${base}/world-id-4-0`);
     renderSidebar({ appId, hasRpRegistration: true, hasLegacyActions: false });
 
-    expect(link("Back")).toHaveAttribute("href", base);
+    expect(link("World ID")).toHaveAttribute("href", base);
     expect(isCurrent("World ID 4.0")).toBe(true);
     expect(isCurrent("Actions")).toBe(false);
     expect(

@@ -155,13 +155,10 @@ export const SidebarNav = () => {
     return (
       <nav className="no-scrollbar flex flex-1 flex-col gap-1 overflow-y-auto p-2">
         <NavItem
-          label="Back"
+          label={sectionNav.label}
           href={appBase}
           icon={<ChevronLeftIcon className="size-4" />}
         />
-        <div className="text-muted-foreground px-2.5 pb-1 pt-3 font-gta text-12 font-medium uppercase tracking-wide">
-          {sectionNav.label}
-        </div>
         {sectionNav.items.map((item) => (
           <NavItem
             key={item.label}
