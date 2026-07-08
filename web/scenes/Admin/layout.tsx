@@ -28,7 +28,7 @@ export const AdminLayout = ({ children }: { children: React.ReactNode }) => {
         <NavBar />
 
         <div className="grid grid-rows-auto/1fr">
-          <header className="flex items-center justify-between gap-x-4 p-4">
+          <header className="flex items-center gap-x-4 p-4">
             <BackButton />
             <Search className="flex-1" />
             <ProfileBadge />
