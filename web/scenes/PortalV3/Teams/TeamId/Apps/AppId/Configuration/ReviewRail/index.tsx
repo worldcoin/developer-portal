@@ -5,14 +5,14 @@ import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Role_Enum } from "@/graphql/graphql";
 import { Auth0SessionUser } from "@/lib/types";
 import { checkUserPermissions } from "@/lib/utils";
+import { FetchAppMetadataQuery } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/graphql/client/fetch-app-metadata.generated";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import clsx from "clsx";
 import { useAtomValue } from "jotai";
 import { MutableRefObject, useMemo, useState } from "react";
-import { FetchAppMetadataQuery } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/graphql/client/fetch-app-metadata.generated";
+import { selectedLanguageAtom } from "../AppStore/components/FormSections/LocalisationsSection/hooks/useLanguageSelection";
 import { AppTopBarSubmit } from "../AppTopBar";
 import { SubmitAppModal } from "../AppTopBar/SubmitAppModal";
-import { selectedLanguageAtom } from "../AppStore/components/FormSections/LocalisationsSection/hooks/useLanguageSelection";
 import { BasicInformationHandle } from "../BasicInformation";
 import { unverifiedImageAtom, viewModeAtom } from "../layout/ImagesProvider";
 import { useSaveStatus } from "../SaveStatus";
@@ -171,14 +171,6 @@ export const ReviewRail = ({
     // submit button never sits below the danger zone on small screens.
     <aside className="order-first h-full lg:order-none lg:border-l lg:border-grey-200 lg:pl-10">
       <div className="flex flex-col gap-y-4 py-8 lg:h-full">
-        <Typography
-          variant={TYPOGRAPHY.R5}
-          className="uppercase tracking-[0.2em] text-grey-400"
-        >
-          Live preview
-          {previewLanguage !== "en" && ` · ${previewLanguage.toUpperCase()}`}
-        </Typography>
-
         <div className="min-h-0 flex-1 overflow-hidden">
           <LivePreview
             appId={appId}
