@@ -38,7 +38,7 @@ import {
 import { cloudflareAccessAdminAuthProvider } from "@/lib/admin-auth/providers/cloudflare-access";
 import { devAdminAuthProvider } from "@/lib/admin-auth/providers/dev";
 import { logger } from "@/lib/logger";
-import { existsSync, readdirSync, readFileSync, statSync } from "fs";
+import { existsSync, readdirSync, readFileSync } from "fs";
 import { join, relative } from "path";
 
 // #region Test Data
@@ -50,15 +50,14 @@ const findAdminPageFiles = (directory: string): string[] => {
     return [];
   }
 
-  return readdirSync(directory).flatMap((entry) => {
-    const path = join(directory, entry);
-    const stats = statSync(path);
+  return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
+    const path = join(directory, entry.name);
 
-    if (stats.isDirectory()) {
+    if (entry.isDirectory()) {
       return findAdminPageFiles(path);
     }
 
-    return entry === "page.tsx" ? [path] : [];
+    return entry.name === "page.tsx" ? [path] : [];
   });
 };
 
@@ -75,18 +74,17 @@ const findAdminApiRouteFiles = (directory: string): string[] => {
     return [];
   }
 
-  return readdirSync(directory).flatMap((entry) => {
-    const path = join(directory, entry);
-    const stats = statSync(path);
+  return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
+    const path = join(directory, entry.name);
 
-    if (stats.isDirectory()) {
+    if (entry.isDirectory()) {
       return findAdminApiRouteFiles(path);
     }
 
     if (
-      !entry.endsWith(".ts") ||
-      entry.endsWith(".generated.ts") ||
-      entry.endsWith(".test.ts")
+      !entry.name.endsWith(".ts") ||
+      entry.name.endsWith(".generated.ts") ||
+      entry.name.endsWith(".test.ts")
     ) {
       return [];
     }
