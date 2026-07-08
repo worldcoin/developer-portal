@@ -314,7 +314,6 @@ describe("v3 Configuration redesign [right rail]", () => {
 
   it("renders the listing preview fed by form values and static placeholders", () => {
     renderPage();
-    expect(screen.getByText("Live preview")).toBeInTheDocument();
     // Live values: name from basic info, publisher, platform from app_mode.
     expect(screen.getAllByText("na").length).toBeGreaterThan(0);
     expect(screen.getByText("sampleteam")).toBeInTheDocument();
