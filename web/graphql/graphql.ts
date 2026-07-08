@@ -6306,6 +6306,12 @@ export type Membership_Updates = {
   where: Membership_Bool_Exp;
 };
 
+export type Merge_World_Id_Accounts_Args = {
+  _current_user_id?: InputMaybe<Scalars["String"]["input"]>;
+  _legacy_user_id?: InputMaybe<Scalars["String"]["input"]>;
+  _world_id_nullifier?: InputMaybe<Scalars["String"]["input"]>;
+};
+
 /** mutation root */
 export type Mutation_Root = {
   __typename?: "mutation_root";
@@ -6544,6 +6550,8 @@ export type Mutation_Root = {
   invalidate_cache?: Maybe<InvalidateCacheOutput>;
   /** Create invites and send emails */
   invite_team_members?: Maybe<InviteTeamMembersOutput>;
+  /** execute VOLATILE function "merge_world_id_accounts" which returns "user" */
+  merge_world_id_accounts: Array<User>;
   /** Register an RP (Relying Party) for an app with managed mode */
   register_rp?: Maybe<RegisterRpOutput>;
   /** Reset the given API key for the developer portal */
@@ -7406,6 +7414,16 @@ export type Mutation_RootInsert_User_OneArgs = {
 export type Mutation_RootInvite_Team_MembersArgs = {
   emails?: InputMaybe<Array<Scalars["String"]["input"]>>;
   team_id: Scalars["String"]["input"];
+};
+
+/** mutation root */
+export type Mutation_RootMerge_World_Id_AccountsArgs = {
+  args: Merge_World_Id_Accounts_Args;
+  distinct_on?: InputMaybe<Array<User_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<User_Order_By>>;
+  where?: InputMaybe<User_Bool_Exp>;
 };
 
 /** mutation root */
