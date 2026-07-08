@@ -120,13 +120,29 @@ export const POST = async (req: NextRequest) => {
     });
   }
 
-  // A deleted / archived / inactive app must not be toggled (e.g. re-activated)
-  // from the dashboard. Deleting an app deactivates its RP on its own.
+  // A deleted app's RP is torn down by the reconciliation cron; it must never be
+  // toggled from the dashboard (which could re-activate the signer).
   const app = registration.app;
-  if (app.deleted_at || app.status !== "active" || app.is_archived) {
+  if (app.deleted_at) {
     return errorHasuraQuery({
       req,
-      detail: "App is deleted, archived, or inactive.",
+      detail: "App is deleted.",
+      code: "app_inactive",
+      app_id,
+      logLevel: "warn",
+    });
+  }
+
+  // Archived / inactive apps have no reconciliation cron, so their owners must
+  // still be able to *deactivate* a live RP — but never *re-activate* one. A
+  // `deactivated` current status means this toggle would activate.
+  if (
+    (app.status !== "active" || app.is_archived) &&
+    currentStatus === "deactivated"
+  ) {
+    return errorHasuraQuery({
+      req,
+      detail: "Cannot activate the RP of an archived or inactive app.",
       code: "app_inactive",
       app_id,
       logLevel: "warn",
