@@ -757,14 +757,25 @@ export async function submitManagedRpDeactivation({
         });
       }
     }
-    // Staging reads inactive here, so converge any non-terminal staging status
-    // (registered / pending / failed) to `deactivated`. The cron selects rows
-    // whose staging status is set but not yet `deactivated`, so leaving a stale
-    // `pending`/`failed` here would re-select this row forever. A null staging
-    // status means there is no staging mirror to reconcile, so leave it.
+    // Staging reads inactive here, so converge a non-terminal staging status to
+    // `deactivated` — the cron selects rows whose staging status is set but not
+    // yet `deactivated`, so leaving a stale `registered` here would re-select
+    // this row forever. But a fresh `pending`/`failed` staging status may have
+    // its own register/rotation UserOp still in flight (valid 30 min); staging
+    // reads inactive only because it hasn't landed yet. Finalizing then would
+    // strand staging active if the op lands afterwards (mirrors the production
+    // grace above), so defer those — the row stays cron-eligible for a later
+    // pass. A null staging status means there is no staging mirror to reconcile.
+    const stagingAgeMs =
+      Date.now() - new Date(registration.updated_at).getTime();
+    const stagingOpMaybeInFlight =
+      (currentStagingStatus === RpRegistrationStatus.Pending ||
+        currentStagingStatus === RpRegistrationStatus.Failed) &&
+      stagingAgeMs < PENDING_IN_FLIGHT_GRACE_MS;
     if (
       currentStagingStatus !== null &&
-      currentStagingStatus !== RpRegistrationStatus.Deactivated
+      currentStagingStatus !== RpRegistrationStatus.Deactivated &&
+      !stagingOpMaybeInFlight
     ) {
       try {
         await getUpdateStagingStatusSdk(client).UpdateStagingStatus({

@@ -679,6 +679,37 @@ describe("submitManagedRpDeactivation", () => {
       },
     );
 
+    it.each(["pending", "failed"])(
+      "defers converging a fresh %s staging_status while its op may be in flight",
+      async (freshStagingStatus) => {
+        // status = deactivated (so the production grace doesn't apply); staging
+        // status is a fresh non-terminal value whose own register/rotation op
+        // may still land. Staging reads inactive only because it hasn't landed —
+        // finalizing now would strand staging active if the op lands afterwards.
+        GetRpRegistration.mockResolvedValue({
+          rp_registration: [
+            makeRegistration({
+              status: "deactivated",
+              staging_status: freshStagingStatus,
+              updated_at: new Date(Date.now() - 20 * 60 * 1000).toISOString(),
+            }),
+          ],
+        });
+        getRpFromContractMock.mockResolvedValue({
+          initialized: true,
+          active: false,
+          signer: "0x0",
+        });
+
+        const res = await submitManagedRpDeactivation({ client, appId });
+
+        expect(res).toMatchObject({ ok: true, outcome: "skipped" });
+        // Must not finalize staging while its op could still land.
+        expect(UpdateStagingStatus).not.toHaveBeenCalled();
+        expect(submitToggleRpActiveTransactionMock).not.toHaveBeenCalled();
+      },
+    );
+
     it("does not rewrite staging_status when it is already deactivated", async () => {
       GetRpRegistration.mockResolvedValue({
         rp_registration: [

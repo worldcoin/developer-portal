@@ -138,6 +138,22 @@ export const POST = async (req: NextRequest) => {
     });
   }
 
+  // A deleted / archived / inactive app must not switch its RP to self-managed:
+  // that transfers the manager off our KMS key and flips the row out of managed
+  // mode, so the deactivate-deleted-app-rps cron (managed-only) would never tear
+  // down the still-active on-chain RP. Deleting an app deactivates its RP on its
+  // own; mirrors the guard in toggle_rp_active / rotate_signer_key.
+  const app = registration.app;
+  if (app.deleted_at || app.status !== "active" || app.is_archived) {
+    return errorHasuraQuery({
+      req,
+      detail: "App is deleted, archived, or inactive.",
+      code: "app_inactive",
+      app_id,
+      logLevel: "warn",
+    });
+  }
+
   // STEP 3: Verify mode is managed
   if (registration.mode !== "managed" || !registration.manager_kms_key_id) {
     return errorHasuraQuery({
