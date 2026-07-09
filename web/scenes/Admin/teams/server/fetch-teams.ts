@@ -13,6 +13,11 @@ import {
   DEFAULT_TEAM_COLUMN_VISIBILITY,
   type TeamColumnVisibility,
 } from "@/components/AdminDashboard/Teams/column-visibility";
+import {
+  parseTeamsSearchTokens,
+  type ParsedTeamsSearchToken,
+  type TeamsSearchOperator,
+} from "@/components/AdminDashboard/Teams/search";
 import type { TeamTableRow } from "@/components/AdminDashboard/Teams/types";
 import type { Team_Bool_Exp } from "@/graphql/graphql";
 import { logger } from "@/lib/logger";
@@ -37,26 +42,186 @@ const countByTeamId = (rows: Array<{ team_id: string }>) => {
   return countsByTeamId;
 };
 
+const getStringPredicate = (operator: TeamsSearchOperator, value: string) => {
+  if (operator === "!=") {
+    return {
+      _nilike: `%${value}%`,
+    };
+  }
+
+  if (operator === "=") {
+    return {
+      _eq: value,
+    };
+  }
+
+  return {
+    _ilike: `%${value}%`,
+  };
+};
+
+const getNumberPredicate = (operator: TeamsSearchOperator, value: string) => {
+  const numberValue = Number(value);
+
+  if (!Number.isFinite(numberValue)) {
+    return null;
+  }
+
+  if (operator === ">") {
+    return { _gt: numberValue };
+  }
+
+  if (operator === ">=") {
+    return { _gte: numberValue };
+  }
+
+  if (operator === "<") {
+    return { _lt: numberValue };
+  }
+
+  if (operator === "<=") {
+    return { _lte: numberValue };
+  }
+
+  if (operator === "!=") {
+    return { _neq: numberValue };
+  }
+
+  return { _eq: numberValue };
+};
+
+const getDatePredicate = (operator: TeamsSearchOperator, value: string) => {
+  if (operator === ">") {
+    return { _gt: value };
+  }
+
+  if (operator === ">=") {
+    return { _gte: value };
+  }
+
+  if (operator === "<") {
+    return { _lt: value };
+  }
+
+  if (operator === "<=") {
+    return { _lte: value };
+  }
+
+  if (operator === "!=") {
+    return { _neq: value };
+  }
+
+  return { _eq: value };
+};
+
+const getCountAggregatePredicate = (
+  operator: TeamsSearchOperator,
+  value: string,
+  filter?: object,
+) => {
+  const predicate = getNumberPredicate(operator, value);
+
+  if (!predicate) {
+    return null;
+  }
+
+  return {
+    count: {
+      ...(filter ? { filter } : {}),
+      predicate,
+    },
+  };
+};
+
+const createFieldWhere = (
+  token: Extract<ParsedTeamsSearchToken, { type: "field" }>,
+): Team_Bool_Exp | null => {
+  if (token.field === "id") {
+    return {
+      id: getStringPredicate(token.operator, token.value),
+    };
+  }
+
+  if (token.field === "name") {
+    return {
+      name: getStringPredicate(token.operator, token.value),
+    };
+  }
+
+  if (token.field === "status") {
+    const isDeleted = token.value.toLowerCase() === "deleted";
+    const shouldMatchDeleted =
+      token.operator === "!=" ? !isDeleted : isDeleted;
+
+    return {
+      deleted_at: shouldMatchDeleted ? { _is_null: false } : { _is_null: true },
+    };
+  }
+
+  if (token.field === "created") {
+    return {
+      created_at: getDatePredicate(token.operator, token.value),
+    };
+  }
+
+  if (token.field === "members") {
+    const predicate = getCountAggregatePredicate(token.operator, token.value);
+
+    return predicate ? { memberships_aggregate: predicate } : null;
+  }
+
+  if (token.field === "apps") {
+    const predicate = getCountAggregatePredicate(token.operator, token.value, {
+      deleted_at: {
+        _is_null: true,
+      },
+    });
+
+    return predicate ? { apps_aggregate: predicate } : null;
+  }
+
+  if (token.field === "api_keys") {
+    const predicate = getCountAggregatePredicate(token.operator, token.value, {
+      is_active: {
+        _eq: true,
+      },
+    });
+
+    return predicate ? { api_keys_aggregate: predicate } : null;
+  }
+
+  return null;
+};
+
 const createTeamsWhere = (searchQuery: string): Team_Bool_Exp => {
   if (!searchQuery) {
     return {};
   }
 
-  const searchPattern = `%${searchQuery}%`;
+  const expressions = parseTeamsSearchTokens(searchQuery)
+    .map((token) => {
+      if (token.type === "plain") {
+        return {
+          name: {
+            _ilike: `%${token.value}%`,
+          },
+        };
+      }
+
+      return createFieldWhere(token);
+    })
+    .filter((expression): expression is Team_Bool_Exp => Boolean(expression));
+
+  if (expressions.length === 0) {
+    return {};
+  }
+
+  if (expressions.length === 1) {
+    return expressions[0];
+  }
 
   return {
-    _or: [
-      {
-        name: {
-          _ilike: searchPattern,
-        },
-      },
-      {
-        id: {
-          _ilike: searchPattern,
-        },
-      },
-    ],
+    _and: expressions,
   };
 };
 
