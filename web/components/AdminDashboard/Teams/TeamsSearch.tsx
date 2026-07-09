@@ -136,7 +136,10 @@ export const TeamsSearch = ({ value }: TeamsSearchProps) => {
   };
 
   return (
-    <div className="relative h-9 w-96" style={{ anchorName } as AnchorStyle}>
+    <div
+      className="relative h-9 w-full min-w-0"
+      style={{ anchorName } as AnchorStyle}
+    >
       <Search className="pointer-events-none absolute left-3 top-1/2 z-20 size-4 -translate-y-1/2 text-grey-400" />
       <div
         aria-hidden="true"

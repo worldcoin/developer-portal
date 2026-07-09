@@ -154,9 +154,9 @@ export const TeamsPagination = ({
   return (
     <nav
       aria-label="Teams table pagination"
-      className="grid grid-cols-[7rem_6rem_repeat(9,2.25rem)] items-center justify-end gap-2 text-12 text-grey-500"
+      className="inline-grid justify-self-start grid-cols-[5.5rem_repeat(2,2.25rem)] items-center gap-2 text-12 text-grey-500 sm:grid-cols-[auto_5.5rem_repeat(2,2.25rem)] lg:grid-cols-[7rem_6rem_repeat(9,2.25rem)] lg:justify-end"
     >
-      <div className="whitespace-nowrap text-right">
+      <div className="col-span-full whitespace-nowrap text-left sm:col-auto lg:text-right">
         {range.from}-{range.to} of {teamsAmount}
       </div>
 
@@ -198,14 +198,20 @@ export const TeamsPagination = ({
 
       {paginationSlots.map((slot) => {
         if (slot.type === "empty") {
-          return <span aria-hidden="true" className="size-9" key={slot.id} />;
+          return (
+            <span
+              aria-hidden="true"
+              className="hidden size-9 lg:block"
+              key={slot.id}
+            />
+          );
         }
 
         if (slot.type === "ellipsis") {
           return (
             <span
               aria-hidden="true"
-              className="grid size-9 place-items-center text-grey-400"
+              className="hidden size-9 place-items-center text-grey-400 lg:grid"
               key={slot.id}
             >
               ...
@@ -218,6 +224,7 @@ export const TeamsPagination = ({
             ariaCurrent={slot.page === displayedPage ? "page" : undefined}
             ariaLabel={`Page ${slot.page}`}
             isActive={slot.page === displayedPage}
+            isHiddenOnMobile
             key={slot.page}
             onClick={() => updatePage(slot.page)}
           >
@@ -243,6 +250,7 @@ type PaginationButtonProps = {
   children: ReactNode;
   disabled?: boolean;
   isActive?: boolean;
+  isHiddenOnMobile?: boolean;
   onClick: () => void;
 };
 
@@ -252,6 +260,7 @@ const PaginationButton = ({
   children,
   disabled = false,
   isActive = false,
+  isHiddenOnMobile = false,
   onClick,
 }: PaginationButtonProps) => {
   return (
@@ -259,7 +268,8 @@ const PaginationButton = ({
       aria-current={ariaCurrent}
       aria-label={ariaLabel}
       className={clsx(
-        "grid size-9 place-items-center rounded-12 border font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-40",
+        isHiddenOnMobile ? "hidden lg:grid" : "grid",
+        "size-9 place-items-center rounded-12 border font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-40",
         isActive
           ? "border-grey-300 bg-grey-100 text-grey-900 shadow-button ring-1 ring-inset ring-grey-300 hover:bg-grey-100 hover:text-grey-900"
           : "border-grey-200 bg-grey-0 text-grey-500 hover:bg-grey-100 hover:text-grey-900",
