@@ -19,18 +19,16 @@ export const AdminLayout = ({ children }: { children: React.ReactNode }) => {
       <div
         className={clsx(
           // Common styles
-          "min-h-dvh bg-grey-50",
+          "relative grid min-h-dvh overflow-x-clip bg-grey-50 p-4",
 
           // Desktop styles
-          "lg:grid lg:grid-cols-[auto_1fr]",
+          "lg:grid lg:h-dvh lg:grid-cols-[auto_1fr] lg:gap-x-4 lg:overflow-hidden",
+          "3xl:p-5",
+          "4xl:p-7",
         )}
       >
-        <NavBar />
-
-        <div className="grid grid-rows-auto/1fr">
-          <header
-            className={clsx("flex items-center p-4", "3xl:p-5", "4xl:p-7")}
-          >
+        <div className="grid min-w-0 grid-rows-auto/1fr gap-y-4 pb-4 lg:min-h-0 lg:pb-0">
+          <header className={clsx("flex items-center", "3xl:p-5", "4xl:p-7")}>
             <div
               className={clsx(
                 "mx-auto flex w-full max-w-7xl items-center gap-x-4",
@@ -44,7 +42,10 @@ export const AdminLayout = ({ children }: { children: React.ReactNode }) => {
             </div>
           </header>
 
-          <main id="main-content" className="size-full">
+          <main
+            id="main-content"
+            className="size-full min-h-0 min-w-0 overflow-x-clip"
+          >
             <div
               className={clsx(
                 "mx-auto size-full max-w-7xl",
@@ -56,6 +57,8 @@ export const AdminLayout = ({ children }: { children: React.ReactNode }) => {
             </div>
           </main>
         </div>
+
+        <NavBar />
       </div>
     </NavProvider>
   );

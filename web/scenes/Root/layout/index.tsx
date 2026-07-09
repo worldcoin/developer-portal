@@ -32,6 +32,7 @@ export const RootLayout = async ({
 
   return (
     <html
+      className="overscroll-none"
       lang="en"
       style={
         {

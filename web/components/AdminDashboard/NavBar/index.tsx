@@ -11,16 +11,16 @@ export const NavBar = () => {
     <UIModule
       className={clsx(
         // Base (mobile): floating bottom tab bar
-        "fixed bottom-4 left-1/2 z-40 -translate-x-1/2",
+        "sticky bottom-4 z-40 w-fit justify-self-center",
 
         // Desktop: floating sidebar card, sticky within the viewport
-        "lg:sticky lg:bottom-auto lg:left-auto lg:top-4 lg:translate-x-0",
+        "lg:bottom-auto lg:top-4 lg:order-first lg:mx-0 lg:mb-0 lg:w-full lg:translate-x-0 lg:self-start lg:justify-self-auto",
         "lg:grid lg:h-[calc(100dvh-2rem)] lg:content-start lg:justify-items-start lg:gap-y-1",
-        "lg:m-4 lg:mr-0 lg:p-3",
+        "lg:p-3",
 
         // Large monitors
-        "3xl:m-5 3xl:mr-0 3xl:p-4",
-        "4xl:m-7 4xl:mr-0 4xl:p-5",
+        "3xl:p-4",
+        "4xl:p-5",
       )}
     >
       <CollapseButton />
