@@ -113,7 +113,6 @@ beforeEach(() => {
   setNodeEnv(ORIGINAL_NODE_ENV ?? "test");
   delete process.env.ADMIN_AUTH_PROVIDER;
   delete process.env.ADMIN_AUTH_GROUP_ROLES;
-  delete process.env.ADMIN_AUTH_DEFAULT_ROLE;
   delete process.env.ADMIN_AUTH_DEV_EMAIL;
   delete process.env.ADMIN_AUTH_DEV_GROUPS;
   delete process.env.CF_ACCESS_TEAM_DOMAIN;
@@ -209,32 +208,26 @@ describe("resolveAdminRole", () => {
     );
   });
 
-  it("falls back to ADMIN_AUTH_DEFAULT_ROLE when no group matches", () => {
+  it("falls back to readonly when no group matches", () => {
     process.env.ADMIN_AUTH_GROUP_ROLES = JSON.stringify({
       "Dashboard Admins": "admin",
     });
-    process.env.ADMIN_AUTH_DEFAULT_ROLE = "readonly";
 
     expect(resolveAdminRole(["Unmapped Group"])).toBe(AdminRole.Readonly);
   });
 
-  it("denies when no group matches and there is no default role", () => {
-    expect(resolveAdminRole(["Unmapped Group"])).toBeNull();
+  it("falls back to readonly when no group mapping is configured", () => {
+    expect(resolveAdminRole(["Unmapped Group"])).toBe(AdminRole.Readonly);
   });
 
   it("ignores invalid mapping JSON and invalid role values", () => {
     process.env.ADMIN_AUTH_GROUP_ROLES = "not-json";
-    expect(resolveAdminRole(["Team All"])).toBeNull();
+    expect(resolveAdminRole(["Team All"])).toBe(AdminRole.Readonly);
 
     process.env.ADMIN_AUTH_GROUP_ROLES = JSON.stringify({
       "Team All": "superuser",
     });
-    expect(resolveAdminRole(["Team All"])).toBeNull();
-  });
-
-  it("denies when ADMIN_AUTH_DEFAULT_ROLE is not a known role", () => {
-    process.env.ADMIN_AUTH_DEFAULT_ROLE = "root";
-    expect(resolveAdminRole([])).toBeNull();
+    expect(resolveAdminRole(["Team All"])).toBe(AdminRole.Readonly);
   });
 });
 // #endregion
@@ -557,8 +550,6 @@ describe("dev provider", () => {
 // #region End-to-end authentication
 describe("authenticateAdminRequest", () => {
   it("denies when no provider is configured", async () => {
-    process.env.ADMIN_AUTH_DEFAULT_ROLE = "admin";
-
     const user = await authenticateAdminRequest(
       new Headers({ "x-admin-auth-debug-user": "dev@example.com" }),
     );
@@ -566,19 +557,8 @@ describe("authenticateAdminRequest", () => {
     expect(user).toBeNull();
   });
 
-  it("denies an authenticated identity that resolves no role", async () => {
+  it("returns the admin user with the default readonly role", async () => {
     process.env.ADMIN_AUTH_PROVIDER = "dev";
-
-    const user = await authenticateAdminRequest(
-      new Headers({ "x-admin-auth-debug-user": "dev@example.com" }),
-    );
-
-    expect(user).toBeNull();
-  });
-
-  it("returns the admin user with the resolved role", async () => {
-    process.env.ADMIN_AUTH_PROVIDER = "dev";
-    process.env.ADMIN_AUTH_DEFAULT_ROLE = "readonly";
 
     const user = await authenticateAdminRequest(
       new Headers({ "x-admin-auth-debug-user": "dev@example.com" }),
@@ -589,6 +569,25 @@ describe("authenticateAdminRequest", () => {
       subject: "dev:dev@example.com",
       groups: [],
       role: AdminRole.Readonly,
+    });
+  });
+
+  it("returns the admin user with a group-mapped role", async () => {
+    process.env.ADMIN_AUTH_PROVIDER = "dev";
+    process.env.ADMIN_AUTH_GROUP_ROLES = JSON.stringify({
+      "Dashboard Admins": "admin",
+    });
+    process.env.ADMIN_AUTH_DEV_GROUPS = "Dashboard Admins";
+
+    const user = await authenticateAdminRequest(
+      new Headers({ "x-admin-auth-debug-user": "dev@example.com" }),
+    );
+
+    expect(user).toEqual({
+      email: "dev@example.com",
+      subject: "dev:dev@example.com",
+      groups: ["Dashboard Admins"],
+      role: AdminRole.Admin,
     });
   });
 });
@@ -606,7 +605,10 @@ describe("requireAdminUser", () => {
 
   it("returns the admin user when the request is authenticated", async () => {
     process.env.ADMIN_AUTH_PROVIDER = "dev";
-    process.env.ADMIN_AUTH_DEFAULT_ROLE = "admin";
+    process.env.ADMIN_AUTH_GROUP_ROLES = JSON.stringify({
+      "Dashboard Admins": "admin",
+    });
+    process.env.ADMIN_AUTH_DEV_GROUPS = "Dashboard Admins";
     headersMock.mockResolvedValue(
       new Headers({ "x-admin-auth-debug-user": "dev@example.com" }),
     );
@@ -614,7 +616,7 @@ describe("requireAdminUser", () => {
     await expect(requireAdminUser()).resolves.toEqual({
       email: "dev@example.com",
       subject: "dev:dev@example.com",
-      groups: [],
+      groups: ["Dashboard Admins"],
       role: AdminRole.Admin,
     });
   });

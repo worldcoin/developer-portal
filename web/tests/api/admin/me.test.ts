@@ -24,7 +24,6 @@ beforeEach(() => {
   jest.clearAllMocks();
   delete process.env.ADMIN_AUTH_PROVIDER;
   delete process.env.ADMIN_AUTH_GROUP_ROLES;
-  delete process.env.ADMIN_AUTH_DEFAULT_ROLE;
   delete process.env.ADMIN_AUTH_DEV_EMAIL;
   delete process.env.ADMIN_AUTH_DEV_GROUPS;
 });
@@ -32,8 +31,6 @@ beforeEach(() => {
 // #region /api/admin/me
 describe("/api/admin/me", () => {
   it("returns 401 when no admin auth provider is configured", async () => {
-    process.env.ADMIN_AUTH_DEFAULT_ROLE = "readonly";
-
     const res = await GET(
       createRequest({ "x-admin-auth-debug-user": "dev@example.com" }),
     );
@@ -44,7 +41,6 @@ describe("/api/admin/me", () => {
 
   it("returns 401 when the request is unauthenticated", async () => {
     process.env.ADMIN_AUTH_PROVIDER = "dev";
-    process.env.ADMIN_AUTH_DEFAULT_ROLE = "readonly";
 
     const res = await GET(createRequest());
 
@@ -53,7 +49,6 @@ describe("/api/admin/me", () => {
 
   it("returns the email and role of the authenticated admin", async () => {
     process.env.ADMIN_AUTH_PROVIDER = "dev";
-    process.env.ADMIN_AUTH_DEFAULT_ROLE = "readonly";
 
     const res = await GET(
       createRequest({ "x-admin-auth-debug-user": "dev@example.com" }),
