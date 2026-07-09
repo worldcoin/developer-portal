@@ -18,10 +18,7 @@ type AnchorStyle = CSSProperties & {
   positionAnchor?: string;
 };
 
-export const LimitSelector = ({
-  className,
-  value,
-}: LimitSelectorProps) => {
+export const LimitSelector = ({ className, value }: LimitSelectorProps) => {
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();

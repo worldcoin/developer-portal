@@ -68,11 +68,7 @@ export const ColumnSettings = ({ columnVisibility }: ColumnSettingsProps) => {
         ref={popoverRef}
         style={{ positionAnchor: anchorName } as AnchorStyle}
       >
-        <div
-          aria-labelledby={labelId}
-          className="grid gap-0.5"
-          role="menu"
-        >
+        <div aria-labelledby={labelId} className="grid gap-0.5" role="menu">
           <div
             className="px-2.5 py-2 text-12 font-medium uppercase tracking-wide text-grey-400"
             id={labelId}

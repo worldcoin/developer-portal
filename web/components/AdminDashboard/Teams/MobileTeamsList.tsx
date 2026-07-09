@@ -69,7 +69,10 @@ export const MobileTeamsList = ({
                   />
                 )}
                 {columnVisibility.activeApiKeysCount && (
-                  <TeamMetric label="API keys" value={team.activeApiKeysCount} />
+                  <TeamMetric
+                    label="API keys"
+                    value={team.activeApiKeysCount}
+                  />
                 )}
               </dl>
             )}

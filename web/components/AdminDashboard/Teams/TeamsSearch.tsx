@@ -6,10 +6,7 @@ import type { CSSProperties } from "react";
 import type { KeyboardEvent } from "react";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 
-import {
-  TEAMS_SEARCH_FIELDS,
-  getTeamsSearchVisualSegments,
-} from "./search";
+import { TEAMS_SEARCH_FIELDS, getTeamsSearchVisualSegments } from "./search";
 
 type TeamsSearchProps = {
   value: string;
@@ -159,9 +156,7 @@ export const TeamsSearch = ({ value }: TeamsSearchProps) => {
                     className="relative inline-block text-blue-500"
                     key={`chip-${index}`}
                   >
-                    <span
-                      className="absolute -inset-x-0.5 top-1/2 h-5 -translate-y-1/2 rounded bg-blue-50 ring-2 ring-blue-150/60 transition-[background-color,box-shadow] duration-150 ease-out"
-                    />
+                    <span className="absolute -inset-x-0.5 top-1/2 h-5 -translate-y-1/2 rounded bg-blue-50 ring-2 ring-blue-150/60 transition-[background-color,box-shadow] duration-150 ease-out" />
                     <span className="relative z-10">{segment.value}</span>
                   </span>
                 );
@@ -182,7 +177,7 @@ export const TeamsSearch = ({ value }: TeamsSearchProps) => {
         aria-controls={popoverId}
         aria-label="Search teams"
         aria-haspopup="listbox"
-        className="relative z-20 size-full rounded-12 border border-transparent bg-transparent py-0 pl-9 pr-3 text-14 font-medium text-transparent caret-grey-900 outline-none transition-colors placeholder:text-transparent selection:bg-blue-150/60 focus-visible:ring-2 focus-visible:ring-blue-500"
+        className="relative z-20 size-full rounded-12 border border-transparent bg-transparent py-0 pl-9 pr-3 text-14 font-medium text-transparent caret-grey-900 outline-none transition-colors selection:bg-blue-150/60 placeholder:text-transparent focus-visible:ring-2 focus-visible:ring-blue-500"
         enterKeyHint="search"
         onBlur={hideSuggestions}
         onChange={(event) => setSearchValue(event.target.value)}

@@ -7,7 +7,8 @@ type StatusBadgeProps = {
 };
 
 const statusClassNames: Record<TeamStatus, string> = {
-  Active: "border-system-success-300 bg-system-success-50 text-system-success-700",
+  Active:
+    "border-system-success-300 bg-system-success-50 text-system-success-700",
   Deleted: "border-grey-300 bg-grey-100 text-grey-500",
 };
 

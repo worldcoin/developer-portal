@@ -18,9 +18,7 @@ export const parseTeamsLimit = (
   return DEFAULT_TEAMS_LIMIT;
 };
 
-export const parseTeamsPage = (
-  page: string | string[] | undefined,
-): number => {
+export const parseTeamsPage = (page: string | string[] | undefined): number => {
   const rawPage = Array.isArray(page) ? page[0] : page;
   const parsedPage = Number(rawPage);
 

@@ -154,7 +154,7 @@ export const TeamsPagination = ({
   return (
     <nav
       aria-label="Teams table pagination"
-      className="inline-grid justify-self-start grid-cols-[5.5rem_repeat(2,2.25rem)] items-center gap-2 text-12 text-grey-500 sm:grid-cols-[auto_5.5rem_repeat(2,2.25rem)] lg:grid-cols-[7rem_6rem_repeat(9,2.25rem)] lg:justify-end"
+      className="inline-grid grid-cols-[5.5rem_repeat(2,2.25rem)] items-center gap-2 justify-self-start text-12 text-grey-500 sm:grid-cols-[auto_5.5rem_repeat(2,2.25rem)] lg:grid-cols-[7rem_6rem_repeat(9,2.25rem)] lg:justify-end"
     >
       <div className="col-span-full whitespace-nowrap text-left sm:col-auto lg:text-right">
         {range.from}-{range.to} of {teamsAmount}
