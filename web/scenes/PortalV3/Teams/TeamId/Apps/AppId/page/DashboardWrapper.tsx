@@ -55,7 +55,8 @@ const StatCard = (props: {
   changePercent: number | null;
 }) => {
   const value = props.value ?? 0;
-  const change = props.changePercent ?? 0;
+  const change = props.changePercent;
+  const isDecrease = change !== null && change < 0;
 
   return (
     <div className="rounded-[10px] border border-portal-border bg-white p-6">
@@ -63,17 +64,25 @@ const StatCard = (props: {
         <div className="font-world text-19 font-medium leading-[1.2] text-portal-ink">
           {value.toLocaleString()}
         </div>
-        <div className="flex h-[19px] items-center gap-1 text-portal-faint">
-          <span className="flex h-[5px] w-[7px] items-center justify-center">
-            <Icon
-              name="stat-triangle"
-              className="h-[7px] w-[5px] rotate-90 -scale-y-100"
-            />
-          </span>
-          <span className="font-world text-13 leading-[1.2]">
-            {Math.abs(change).toFixed(0)}%
-          </span>
-        </div>
+        {/* Only show the trend badge when a real comparison exists. All-time
+            (and first-week weekly) have no prior period, so `change` is null —
+            rendering "0%" there would misreport a flat trend. The triangle
+            points down for a decrease. */}
+        {change !== null ? (
+          <div className="flex h-[19px] items-center gap-1 text-portal-faint">
+            <span className="flex h-[5px] w-[7px] items-center justify-center">
+              <Icon
+                name="stat-triangle"
+                className={`h-[7px] w-[5px] -scale-y-100 ${
+                  isDecrease ? "-rotate-90" : "rotate-90"
+                }`}
+              />
+            </span>
+            <span className="font-world text-13 leading-[1.2]">
+              {Math.abs(change).toFixed(0)}%
+            </span>
+          </div>
+        ) : null}
       </div>
       <div className="mt-0.5 font-world text-13 leading-[1.3] text-portal-muted">
         {props.label}

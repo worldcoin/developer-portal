@@ -152,7 +152,6 @@ export const SidebarNav = () => {
           active={notificationsActive}
           dimmed={!teamId}
           icon={<NavIcon name="nav-bell" active={notificationsActive} />}
-          trailing={<Icon name="nav-notification-dot" className="size-[6px]" />}
         />
       </div>
 

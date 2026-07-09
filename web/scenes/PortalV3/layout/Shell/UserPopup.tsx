@@ -1,29 +1,22 @@
 "use client";
 
-import {
-  DISCORD_URL,
-  DOCS_URL,
-  FAQ_URL,
-  TELEGRAM_DEVELOPERS_GROUP_URL,
-  TELEGRAM_MATEO_URL,
-  WORLD_PRIVACY_URL,
-  WORLD_STATUS_URL,
-} from "@/lib/constants";
+import { DOCS_URL, FAQ_URL, WORLD_STATUS_URL } from "@/lib/constants";
 import { urls } from "@/lib/urls";
 import { Color } from "@/scenes/common/Profile/types";
 import { Icon } from "@/scenes/PortalV3/common/Icon";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import Link from "next/link";
-import { CSSProperties, ReactNode } from "react";
+import { CSSProperties } from "react";
 
 export type PortalUser = { name: string; email?: string };
 
 const itemClass =
-  "flex cursor-pointer items-center gap-2 rounded-8 px-2.5 py-1.5 font-gta text-14 outline-none data-[highlighted]:bg-grey-100";
+  "flex h-12 w-full cursor-pointer items-center gap-2 rounded-8 bg-white px-4 py-2 font-world text-13 font-medium leading-[1.2] text-portal-text outline-none data-[highlighted]:bg-grey-50";
 
 const LinkItem = (props: {
   href: string;
-  children: ReactNode;
+  label: string;
+  icon: string;
   external?: boolean;
 }) => (
   <DropdownMenu.Item asChild>
@@ -34,31 +27,23 @@ const LinkItem = (props: {
         rel="noreferrer"
         className={itemClass}
       >
-        {props.children}
+        <Icon name={props.icon} className="size-4 shrink-0" />
+        <span className="min-w-0 flex-1 truncate">{props.label}</span>
       </a>
     ) : (
       <Link href={props.href} className={itemClass}>
-        {props.children}
+        <Icon name={props.icon} className="size-4 shrink-0" />
+        <span className="min-w-0 flex-1 truncate">{props.label}</span>
       </Link>
     )}
   </DropdownMenu.Item>
 );
 
-const SectionHeader = (props: { children: ReactNode }) => (
-  <DropdownMenu.Label className="text-muted-foreground px-2.5 pb-1 pt-2 font-gta text-12">
-    {props.children}
-  </DropdownMenu.Label>
-);
-
 const Separator = () => (
-  <DropdownMenu.Separator className="bg-border my-1 h-px" />
+  <Icon name="profile-menu-divider" className="h-2 w-full shrink-0" />
 );
 
-/**
- * Bottom-left user popup (presentational): Profile · My Teams · the help menu
- * (mirrored from the main repo's <Help />: support · community · references) ·
- * Docs · Log out.
- */
+/** Bottom-left account switcher and profile/status menu. */
 const getInitials = (name: string) => {
   const parts = name
     .split(/[.\s@_-]+/)
@@ -109,74 +94,66 @@ export const UserPopup = (props: { user: PortalUser; color: Color | null }) => {
         <DropdownMenu.Content
           side="top"
           align="start"
-          sideOffset={8}
-          className="z-50 max-h-[var(--radix-dropdown-menu-content-available-height)] w-[247px] overflow-y-auto rounded-12 border border-portal-border bg-white p-1 shadow-lg"
+          sideOffset={16}
+          className="z-50 max-h-[var(--radix-dropdown-menu-content-available-height)] w-[279px] overflow-hidden rounded-[10px] border border-portal-border bg-white p-0 shadow-[0_18px_11px_0_rgba(24,24,24,0.02),0_8px_8px_0_rgba(24,24,24,0.03),0_2px_4px_0_rgba(24,24,24,0.03)]"
         >
-          {user.email ? (
-            <div className="text-muted-foreground truncate px-2.5 py-1.5 text-12">
-              {user.email}
+          <div className="flex w-full flex-col items-start pt-2">
+            <div className="flex min-h-[51px] w-full items-center px-4 py-2">
+              <div className="flex min-w-0 flex-1 flex-col justify-center gap-0.5 font-world text-13">
+                <div className="truncate font-medium leading-[1.2] text-portal-text">
+                  {user.name}
+                </div>
+                <div className="truncate leading-[1.3] text-portal-muted">
+                  {user.email ?? ""}
+                </div>
+              </div>
             </div>
-          ) : null}
-
-          <LinkItem href={urls.profile()}>Profile</LinkItem>
-          <LinkItem href={urls.profileTeams()}>My Teams</LinkItem>
-
-          <Separator />
-
-          <SectionHeader>Need help with your app?</SectionHeader>
-          <LinkItem href={WORLD_PRIVACY_URL} external>
-            Data Privacy & Security
-          </LinkItem>
-          <LinkItem href={WORLD_STATUS_URL} external>
-            World Status
-          </LinkItem>
-          <LinkItem href={FAQ_URL} external>
-            FAQ
-          </LinkItem>
-
-          <Separator />
-
-          <SectionHeader>Community support</SectionHeader>
-          <LinkItem href={TELEGRAM_DEVELOPERS_GROUP_URL} external>
-            Join our Telegram
-          </LinkItem>
-          <LinkItem href={TELEGRAM_MATEO_URL} external>
-            Text Mateo
-          </LinkItem>
-          <LinkItem href={DISCORD_URL} external>
-            Join our Discord
-          </LinkItem>
-
-          <Separator />
-
-          <SectionHeader>References</SectionHeader>
-          <LinkItem href={urls.privacyStatement()} external>
-            Privacy Policy
-          </LinkItem>
-          <LinkItem href={urls.tos()} external>
-            Terms of service
-          </LinkItem>
-
-          <Separator />
-
-          <LinkItem href={DOCS_URL} external>
-            Docs
-          </LinkItem>
-
-          <Separator />
-
-          <DropdownMenu.Item asChild>
-            <a
-              href={urls.logout()}
-              onClick={(e) => {
-                e.preventDefault();
-                window.location.assign(urls.logout(window.location.origin));
-              }}
-              className={itemClass}
-            >
-              Log out
-            </a>
-          </DropdownMenu.Item>
+            <LinkItem
+              href={urls.profile()}
+              label="Profile"
+              icon="profile-menu-profile"
+            />
+            <Separator />
+            <LinkItem
+              href={FAQ_URL}
+              label="Help and support"
+              icon="profile-menu-help"
+              external
+            />
+            <LinkItem
+              href={DOCS_URL}
+              label="Resources"
+              icon="profile-menu-resources"
+              external
+            />
+            <DropdownMenu.Item asChild>
+              <a
+                href={urls.logout()}
+                onClick={(e) => {
+                  e.preventDefault();
+                  window.location.assign(urls.logout(window.location.origin));
+                }}
+                className={itemClass}
+              >
+                <Icon name="profile-menu-log-out" className="size-4 shrink-0" />
+                <span className="min-w-0 flex-1 truncate">Log out</span>
+              </a>
+            </DropdownMenu.Item>
+            <DropdownMenu.Item asChild>
+              <a
+                href={WORLD_STATUS_URL}
+                target="_blank"
+                rel="noreferrer"
+                className="flex h-12 w-full cursor-pointer items-center justify-between border-t border-portal-border bg-portal-canvas px-4 py-2 font-world text-13 leading-[1.3] text-portal-muted outline-none data-[highlighted]:bg-portal-border"
+              >
+                <span className="truncate">All systems normal</span>
+                <Icon
+                  name="profile-menu-status-dot"
+                  className="size-[6px] shrink-0"
+                />
+              </a>
+            </DropdownMenu.Item>
+          </div>
         </DropdownMenu.Content>
       </DropdownMenu.Portal>
     </DropdownMenu.Root>

@@ -1,13 +1,19 @@
 "use client";
 
-import { Placeholder } from "@/components/PlaceholderImage";
 import { urls } from "@/lib/urls";
 import { Icon } from "@/scenes/PortalV3/common/Icon";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
-import clsx from "clsx";
 import { useParams, useRouter } from "next/navigation";
 
 export type DropdownTeam = { id: string; name: string };
+
+const TeamAvatar = (props: { name: string; className?: string }) => (
+  <div
+    className={`flex shrink-0 items-center justify-center rounded-full bg-[#f5d1ff] font-world text-[11px] font-normal leading-none text-[#d501fd] ${props.className ?? ""}`}
+  >
+    {props.name[0]?.toUpperCase() ?? "T"}
+  </div>
+);
 
 const TeamsDropdownRow = (props: {
   team: DropdownTeam;
@@ -16,17 +22,13 @@ const TeamsDropdownRow = (props: {
 }) => (
   <DropdownMenu.Item
     onSelect={props.onSelect}
-    className={clsx(
-      "flex cursor-pointer items-center gap-2 rounded-8 px-2.5 py-1.5 font-gta text-14 outline-none data-[highlighted]:bg-grey-100",
-      props.isCurrent && "font-medium",
-    )}
+    className="flex h-12 w-full cursor-pointer items-center gap-2 rounded-8 bg-white px-4 py-2 font-world text-13 font-medium leading-[1.2] text-portal-text outline-none data-[highlighted]:bg-grey-50"
   >
-    <Placeholder
-      name={props.team.name}
-      seed={props.team.id}
-      className="size-5 shrink-0 text-xs"
-    />
-    <span className="truncate">{props.team.name}</span>
+    <TeamAvatar name={props.team.name} className="size-6" />
+    <span className="min-w-0 flex-1 truncate">{props.team.name}</span>
+    {props.isCurrent ? (
+      <Icon name="dropdown-check" className="size-4 shrink-0" />
+    ) : null}
   </DropdownMenu.Item>
 );
 
@@ -44,13 +46,9 @@ export const TeamsDropdown = (props: { teams: DropdownTeam[] }) => {
           className="flex h-10 w-full min-w-0 items-center gap-2 rounded-8 px-0 text-left outline-none transition-colors hover:bg-portal-border focus-visible:ring-2 focus-visible:ring-grey-300"
         >
           {currentTeam ? (
-            <Placeholder
-              name={currentTeam.name}
-              seed={currentTeam.id}
-              className="size-6 shrink-0 rounded-full text-10 font-semibold"
-            />
+            <TeamAvatar name={currentTeam.name} className="size-6" />
           ) : (
-            <div className="flex size-6 shrink-0 items-center justify-center rounded-full bg-grey-200 font-world text-10 font-semibold text-portal-muted">
+            <div className="flex size-6 shrink-0 items-center justify-center rounded-full bg-[#f5d1ff] font-world text-[11px] font-normal text-[#d501fd]">
               T
             </div>
           )}
@@ -70,25 +68,28 @@ export const TeamsDropdown = (props: { teams: DropdownTeam[] }) => {
         <DropdownMenu.Portal>
           <DropdownMenu.Content
             align="start"
-            sideOffset={6}
+            sideOffset={16}
             collisionPadding={12}
-            className="z-50 max-h-[60vh] w-[247px] overflow-y-auto rounded-12 border border-portal-border bg-white p-1 shadow-lg"
+            className="z-50 max-h-[60vh] w-[279px] overflow-y-auto rounded-[10px] border border-portal-border bg-white p-0 shadow-[0_18px_11px_0_rgba(24,24,24,0.02),0_8px_8px_0_rgba(24,24,24,0.03),0_2px_4px_0_rgba(24,24,24,0.03)]"
           >
-            {teams.map((team) => (
-              <TeamsDropdownRow
-                key={team.id}
-                team={team}
-                isCurrent={team.id === currentTeam?.id}
-                onSelect={() => router.push(urls.teams({ team_id: team.id }))}
-              />
-            ))}
-            <DropdownMenu.Separator className="bg-border my-1 h-px" />
-            <DropdownMenu.Item
-              onSelect={() => router.push(urls.createTeam())}
-              className="text-muted-foreground flex cursor-pointer items-center gap-2 rounded-8 px-2.5 py-1.5 font-gta text-14 outline-none data-[highlighted]:bg-grey-100"
-            >
-              Create team
-            </DropdownMenu.Item>
+            <div className="flex w-full flex-col items-start py-2">
+              {teams.map((team) => (
+                <TeamsDropdownRow
+                  key={team.id}
+                  team={team}
+                  isCurrent={team.id === currentTeam?.id}
+                  onSelect={() => router.push(urls.teams({ team_id: team.id }))}
+                />
+              ))}
+              <Icon name="dropdown-divider" className="h-2 w-full shrink-0" />
+              <DropdownMenu.Item
+                onSelect={() => router.push(urls.createTeam())}
+                className="flex h-12 w-full cursor-pointer items-center gap-2 rounded-8 bg-white px-4 py-2 font-world text-13 font-medium leading-[1.2] text-portal-text outline-none data-[highlighted]:bg-grey-50"
+              >
+                <Icon name="dropdown-plus" className="size-4 shrink-0" />
+                <span className="min-w-0 flex-1 truncate">Create new team</span>
+              </DropdownMenu.Item>
+            </div>
           </DropdownMenu.Content>
         </DropdownMenu.Portal>
       </DropdownMenu.Root>
