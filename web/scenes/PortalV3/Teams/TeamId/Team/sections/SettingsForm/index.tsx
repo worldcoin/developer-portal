@@ -22,12 +22,14 @@ type FormValues = yup.InferType<typeof schema>;
 
 // Team name comes from the parent settings page (single fetch); `onSaved` lets
 // the parent refetch after a successful update so its copy stays in sync.
+// `canWrite` blanks the display-name field + save for non-owners.
 export const TeamSettingsForm = (props: {
   teamId: string;
   teamName: string;
+  canWrite: boolean;
   onSaved?: () => void;
 }) => {
-  const { teamId, teamName, onSaved } = props;
+  const { teamId, teamName, canWrite, onSaved } = props;
   const { refetch: refetchMe } = useRefetchQueries(FetchMeDocument);
 
   const {
@@ -44,6 +46,10 @@ export const TeamSettingsForm = (props: {
 
   const submit = useCallback(
     async (values: FormValues) => {
+      if (!canWrite) {
+        return;
+      }
+
       const result = await validateAndUpdateTeamServerSide(values.name, teamId);
       if (!result.success) {
         toast.error(result.message);
@@ -52,7 +58,7 @@ export const TeamSettingsForm = (props: {
         await Promise.all([onSaved?.(), refetchMe()]);
       }
     },
-    [teamId, onSaved, refetchMe],
+    [canWrite, teamId, onSaved, refetchMe],
   );
 
   return (
@@ -69,12 +75,13 @@ export const TeamSettingsForm = (props: {
           label="Display name"
           register={register("name")}
           errors={errors.name}
+          disabled={!canWrite}
         />
 
         <DecoratedButton
           type="submit"
           variant="primary"
-          disabled={!isValid || isSubmitting}
+          disabled={!canWrite || !isValid || isSubmitting}
         >
           Save changes
         </DecoratedButton>

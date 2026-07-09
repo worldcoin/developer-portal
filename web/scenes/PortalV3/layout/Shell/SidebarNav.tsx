@@ -1,12 +1,8 @@
 "use client";
 
 import { DOCS_URL } from "@/lib/constants";
-import { Role_Enum } from "@/graphql/graphql";
-import { Auth0SessionUser } from "@/lib/types";
 import { urls } from "@/lib/urls";
-import { checkUserPermissions } from "@/lib/utils";
 import { Icon } from "@/scenes/PortalV3/common/Icon";
-import { useUser } from "@auth0/nextjs-auth0/client";
 import { atom, useAtomValue, useSetAtom } from "jotai";
 import { useParams, usePathname } from "next/navigation";
 import { useEffect } from "react";
@@ -45,17 +41,12 @@ const NavIcon = (props: { name: string; active?: boolean }) => (
 );
 
 export const SidebarNav = () => {
-  const { user } = useUser() as Auth0SessionUser;
   const pathname = usePathname() ?? "";
   const params = useParams<{ teamId?: string; appId?: string }>();
   const teamId = params?.teamId;
   const routeAppId = params?.appId;
   const appId = useCurrentAppId();
   const appEnvFlags = useAtomValue(appEnvFlagsAtom);
-
-  const canSeeSettings = checkUserPermissions(user, teamId ?? "", [
-    Role_Enum.Owner,
-  ]);
 
   const appsListHref = teamId ? urls.apps({ team_id: teamId }) : "#";
   const appBase =
@@ -160,15 +151,13 @@ export const SidebarNav = () => {
       </div>
 
       <div className="grid gap-2">
-        {canSeeSettings ? (
-          <NavItem
-            label="Team settings"
-            href={teamSettingsHref}
-            active={settingsActive}
-            dimmed={!teamId}
-            icon={<NavIcon name="nav-settings" active={settingsActive} />}
-          />
-        ) : null}
+        <NavItem
+          label="Team settings"
+          href={teamSettingsHref}
+          active={settingsActive}
+          dimmed={!teamId}
+          icon={<NavIcon name="nav-settings" active={settingsActive} />}
+        />
         <NavItem
           label="Help center"
           href={DOCS_URL}
