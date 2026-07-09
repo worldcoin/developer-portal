@@ -4,31 +4,34 @@ import * as Types from "@/graphql/graphql";
 import { GraphQLClient, RequestOptions } from "graphql-request";
 import gql from "graphql-tag";
 type GraphQLClientRequestHeaders = RequestOptions["requestHeaders"];
-export type UpdateAppRatingSumMutationMutationVariables = Types.Exact<{
+export type InsertAppReviewMutationVariables = Types.Exact<{
+  nullifier_hash: Types.Scalars["String"]["input"];
   app_id: Types.Scalars["String"]["input"];
+  country: Types.Scalars["String"]["input"];
   rating: Types.Scalars["Int"]["input"];
-  rating_count_inc: Types.Scalars["Int"]["input"];
 }>;
 
-export type UpdateAppRatingSumMutationMutation = {
+export type InsertAppReviewMutation = {
   __typename?: "mutation_root";
-  update_app?: {
-    __typename?: "app_mutation_response";
-    affected_rows: number;
-  } | null;
+  insert_app_reviews_one?: { __typename?: "app_reviews"; id: string } | null;
 };
 
-export const UpdateAppRatingSumMutationDocument = gql`
-  mutation UpdateAppRatingSumMutation(
+export const InsertAppReviewDocument = gql`
+  mutation InsertAppReview(
+    $nullifier_hash: String!
     $app_id: String!
+    $country: String!
     $rating: Int!
-    $rating_count_inc: Int!
   ) {
-    update_app(
-      where: { id: { _eq: $app_id } }
-      _inc: { rating_sum: $rating, rating_count: $rating_count_inc }
+    insert_app_reviews_one(
+      object: {
+        nullifier_hash: $nullifier_hash
+        app_id: $app_id
+        country: $country
+        rating: $rating
+      }
     ) {
-      affected_rows
+      id
     }
   }
 `;
@@ -52,18 +55,18 @@ export function getSdk(
   withWrapper: SdkFunctionWrapper = defaultWrapper,
 ) {
   return {
-    UpdateAppRatingSumMutation(
-      variables: UpdateAppRatingSumMutationMutationVariables,
+    InsertAppReview(
+      variables: InsertAppReviewMutationVariables,
       requestHeaders?: GraphQLClientRequestHeaders,
-    ): Promise<UpdateAppRatingSumMutationMutation> {
+    ): Promise<InsertAppReviewMutation> {
       return withWrapper(
         (wrappedRequestHeaders) =>
-          client.request<UpdateAppRatingSumMutationMutation>(
-            UpdateAppRatingSumMutationDocument,
+          client.request<InsertAppReviewMutation>(
+            InsertAppReviewDocument,
             variables,
             { ...requestHeaders, ...wrappedRequestHeaders },
           ),
-        "UpdateAppRatingSumMutation",
+        "InsertAppReview",
         "mutation",
         variables,
       );

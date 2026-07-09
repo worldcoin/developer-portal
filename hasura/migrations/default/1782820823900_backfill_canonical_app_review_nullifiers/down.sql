@@ -1,0 +1,4 @@
+-- Irreversible data normalization: duplicate reviews were merged and
+-- nullifier_hash values rewritten to canonical form. There is no safe automatic
+-- rollback (the original raw encodings and merged rows are not recoverable from
+-- the table). Restore from a database backup if a rollback is required.
