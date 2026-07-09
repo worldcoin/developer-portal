@@ -10,7 +10,11 @@ import type { TeamsTableProps } from "./types";
 
 export type { TeamTableRow } from "./types";
 
-export const TeamsTable = ({ columnVisibility, data, sort }: TeamsTableProps) => {
+export const TeamsTable = ({
+  columnVisibility,
+  data,
+  sort,
+}: TeamsTableProps) => {
   const table = useReactTable({
     data,
     columns,

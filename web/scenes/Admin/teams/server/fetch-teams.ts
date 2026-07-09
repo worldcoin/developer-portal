@@ -2,6 +2,10 @@ import "server-only";
 
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import {
+  DEFAULT_TEAM_COLUMN_VISIBILITY,
+  type TeamColumnVisibility,
+} from "@/components/AdminDashboard/Teams/column-visibility";
+import {
   DEFAULT_TEAMS_LIMIT,
   DEFAULT_TEAMS_PAGE,
   clampTeamsPage,
@@ -9,10 +13,6 @@ import {
   getTeamsTotalPages,
   type TeamsLimit,
 } from "@/components/AdminDashboard/Teams/pagination";
-import {
-  DEFAULT_TEAM_COLUMN_VISIBILITY,
-  type TeamColumnVisibility,
-} from "@/components/AdminDashboard/Teams/column-visibility";
 import {
   parseTeamsSearchTokens,
   type ParsedTeamsSearchToken,
@@ -158,8 +158,7 @@ const createFieldWhere = (
 
   if (token.field === "status") {
     const isDeleted = token.value.toLowerCase() === "deleted";
-    const shouldMatchDeleted =
-      token.operator === "!=" ? !isDeleted : isDeleted;
+    const shouldMatchDeleted = token.operator === "!=" ? !isDeleted : isDeleted;
 
     return {
       deleted_at: shouldMatchDeleted ? { _is_null: false } : { _is_null: true },
@@ -306,19 +305,21 @@ type FetchAdminTeamsOptions = {
   sort: TeamsSort | null;
 };
 
-export const fetchAdminTeamsPage = async ({
-  columnVisibility,
-  limit,
-  page,
-  searchQuery,
-  sort,
-}: FetchAdminTeamsOptions = {
-  columnVisibility: DEFAULT_TEAM_COLUMN_VISIBILITY,
-  limit: DEFAULT_TEAMS_LIMIT,
-  page: DEFAULT_TEAMS_PAGE,
-  searchQuery: "",
-  sort: null,
-}) => {
+export const fetchAdminTeamsPage = async (
+  {
+    columnVisibility,
+    limit,
+    page,
+    searchQuery,
+    sort,
+  }: FetchAdminTeamsOptions = {
+    columnVisibility: DEFAULT_TEAM_COLUMN_VISIBILITY,
+    limit: DEFAULT_TEAMS_LIMIT,
+    page: DEFAULT_TEAMS_PAGE,
+    searchQuery: "",
+    sort: null,
+  },
+) => {
   const client = await getAPIServiceGraphqlClient();
   const offset = getTeamsOffset(page, limit);
   const where = createTeamsWhere(searchQuery);

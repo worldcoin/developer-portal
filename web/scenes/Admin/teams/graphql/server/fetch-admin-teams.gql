@@ -10,12 +10,7 @@ query FetchAdminTeams(
   $orderBy: [team_order_by!]!
   $where: team_bool_exp!
 ) {
-  team(
-    limit: $limit
-    offset: $offset
-    order_by: $orderBy
-    where: $where
-  ) {
+  team(limit: $limit, offset: $offset, order_by: $orderBy, where: $where) {
     id
     name
     created_at @include(if: $includeCreatedAt)
@@ -29,19 +24,16 @@ query FetchAdminTeams(
   membership @include(if: $includeMembersCount) {
     team_id
   }
-  app(
-    where: { deleted_at: { _is_null: true } }
-  ) @include(if: $includeAppsCount) {
+  app(where: { deleted_at: { _is_null: true } })
+    @include(if: $includeAppsCount) {
     team_id
   }
-  api_key(
-    where: { is_active: { _eq: true } }
-  ) @include(if: $includeActiveApiKeysCount) {
+  api_key(where: { is_active: { _eq: true } })
+    @include(if: $includeActiveApiKeysCount) {
     team_id
   }
-  invite(
-    where: { expires_at: { _gte: "now()" } }
-  ) @include(if: $includePendingInvitesCount) {
+  invite(where: { expires_at: { _gte: "now()" } })
+    @include(if: $includePendingInvitesCount) {
     team_id
   }
 }

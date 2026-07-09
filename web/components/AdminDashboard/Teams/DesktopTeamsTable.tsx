@@ -13,6 +13,14 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { KeyboardEvent, ReactNode } from "react";
 
 import {
+  SORTABLE_TEAM_COLUMN_IDS,
+  getEffectiveTeamsSort,
+  getNextTeamsSort,
+  serializeTeamsSort,
+  type TeamsSort,
+  type TeamsSortField,
+} from "./sorting";
+import {
   clampColumnSize,
   getColumnMaxSize,
   getColumnMinSize,
@@ -22,14 +30,6 @@ import {
   isNumericColumn,
   isRowHeaderColumn,
 } from "./table-utils";
-import {
-  SORTABLE_TEAM_COLUMN_IDS,
-  getEffectiveTeamsSort,
-  getNextTeamsSort,
-  serializeTeamsSort,
-  type TeamsSort,
-  type TeamsSortField,
-} from "./sorting";
 import type { TeamTableRow } from "./types";
 
 type DesktopTeamsTableProps = {
@@ -77,7 +77,11 @@ export const DesktopTeamsTable = ({
           {table.getHeaderGroups().map((headerGroup) => (
             <tr key={headerGroup.id}>
               {headerGroup.headers.map((header) => (
-                <DesktopHeaderCell key={header.id} header={header} sort={sort} />
+                <DesktopHeaderCell
+                  key={header.id}
+                  header={header}
+                  sort={sort}
+                />
               ))}
             </tr>
           ))}
@@ -257,8 +261,8 @@ const ResizeHandle = ({ header }: ResizeHandleProps) => {
         )}
       />
       <span className="sr-only" id={instructionsId}>
-        Use arrow keys to resize. Hold Shift for larger steps. Press Home or
-        End for minimum or maximum width. Press Enter or Space to reset.
+        Use arrow keys to resize. Hold Shift for larger steps. Press Home or End
+        for minimum or maximum width. Press Enter or Space to reset.
       </span>
     </>
   );

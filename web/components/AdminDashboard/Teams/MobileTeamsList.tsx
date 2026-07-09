@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import type { TeamColumnVisibility } from "./column-visibility";
 import { StatusBadge } from "./StatusBadge";
 import { TeamMetric } from "./TeamMetric";
@@ -30,17 +32,22 @@ export const MobileTeamsList = ({
             className="min-w-0 overflow-hidden rounded-16 border border-grey-100 bg-grey-0 p-3 shadow-sm min-[360px]:p-4"
           >
             <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-start gap-x-2 min-[360px]:gap-x-3">
-              <div className="min-w-0">
+              <Link
+                className="group min-w-0 rounded-8 outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                href={`/admin/teams/${team.id}`}
+                rel="noreferrer"
+                target="_blank"
+              >
                 <h2
-                  className="truncate text-16 font-medium text-grey-900"
+                  className="truncate text-16 font-medium text-grey-900 transition-colors group-hover:text-blue-500"
                   id={titleId}
                 >
                   {team.name}
                 </h2>
-                <div className="mt-1 truncate font-mono text-12 text-grey-400">
+                <div className="mt-1 truncate font-mono text-12 text-grey-400 transition-colors group-hover:text-blue-400">
                   {team.id}
                 </div>
-              </div>
+              </Link>
 
               {columnVisibility.status && team.status && (
                 <StatusBadge status={team.status} />
