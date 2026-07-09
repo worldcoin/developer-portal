@@ -122,35 +122,35 @@ const DEVELOPER_TOOL_CARDS: Array<{
   poster?: string;
   video: string;
 }> = [
-    {
-      description:
-        "Verify unique humans while preserving privacy. Add proof of human to your app, platform, or protocol.",
-      href: "https://docs.world.org/world-id/overview",
-      icon: HumanBadgeIcon,
-      label: "World ID",
-      poster: "/posters/World-ID-thumbnail.png",
-      video:
-        "https://worldcoin-company-website.cdn.prismic.io/worldcoin-company-website/aeCqpZ1ZCF7ETPYO_Fees-Animated.mp4",
-    },
-    {
-      description:
-        "A simple integration toolkit for adding World ID verification flows to web and mobile experiences.",
-      href: "https://docs.world.org/world-id/idkit/integrate",
-      icon: ViewGridIcon,
-      label: "IDKit",
-      video:
-        "https://worldcoin-company-website.cdn.prismic.io/worldcoin-company-website/aeIixp1ZCF7ETSvj_dithr-2026-4-14_16-17-58-1-.mp4",
-    },
-    {
-      description:
-        "Build AI agents that can interact with verified humans and take trusted actions across digital environments.",
-      href: "https://docs.world.org/agents/agent-kit/integrate",
-      icon: CursorPointerIcon,
-      label: "Agent Kit",
-      video:
-        "https://worldcoin-company-website.cdn.prismic.io/worldcoin-company-website/ablVSrbci2UF6Hcw_AgentKitDither-Video-web-.mp4",
-    },
-  ];
+  {
+    description:
+      "Verify unique humans while preserving privacy. Add proof of human to your app, platform, or protocol.",
+    href: "https://docs.world.org/world-id/overview",
+    icon: HumanBadgeIcon,
+    label: "World ID",
+    poster: "/posters/World-ID-thumbnail.png",
+    video:
+      "https://worldcoin-company-website.cdn.prismic.io/worldcoin-company-website/aeCqpZ1ZCF7ETPYO_Fees-Animated.mp4",
+  },
+  {
+    description:
+      "A simple integration toolkit for adding World ID verification flows to web and mobile experiences.",
+    href: "https://docs.world.org/world-id/idkit/integrate",
+    icon: ViewGridIcon,
+    label: "IDKit",
+    video:
+      "https://worldcoin-company-website.cdn.prismic.io/worldcoin-company-website/aeIixp1ZCF7ETSvj_dithr-2026-4-14_16-17-58-1-.mp4",
+  },
+  {
+    description:
+      "Build AI agents that can interact with verified humans and take trusted actions across digital environments.",
+    href: "https://docs.world.org/agents/agent-kit/integrate",
+    icon: CursorPointerIcon,
+    label: "Agent Kit",
+    video:
+      "https://worldcoin-company-website.cdn.prismic.io/worldcoin-company-website/ablVSrbci2UF6Hcw_AgentKitDither-Video-web-.mp4",
+  },
+];
 
 type FooterLink = { href: string; label: string; nested?: boolean };
 
