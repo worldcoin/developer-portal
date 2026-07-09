@@ -7,6 +7,7 @@ import { useState } from "react";
 import Skeleton from "react-loading-skeleton";
 import { ChartTabs, ChartTabType } from "./ChartTabs";
 import { useChartData } from "./use-chart-data";
+import type { AppMetricsData } from "../../server";
 
 const axisTicks = {
   color: "#9c9c9c", // portal-subtle
@@ -91,14 +92,18 @@ const EmptyState = () => (
 
 interface UnifiedChartProps {
   appId: string;
+  // Reuse the metrics the dashboard already fetched server-side instead of
+  // re-fetching the whole metrics payload client-side.
+  metrics: AppMetricsData | null;
 }
 
-export const UnifiedChart = ({ appId }: UnifiedChartProps) => {
+export const UnifiedChart = ({ appId, metrics }: UnifiedChartProps) => {
   const [activeTab, setActiveTab] = useState<ChartTabType>("verifications");
 
   const { chartData, isLoading, stats, additionalStats } = useChartData(
     appId,
     activeTab,
+    metrics,
   );
 
   const mobileChartOptions: ChartOptions<"line"> = {

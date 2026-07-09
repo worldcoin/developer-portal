@@ -170,7 +170,7 @@ export const DashboardWrapper = ({
           </div>
 
           <div className="mt-8">
-            <UnifiedChart appId={appId} />
+            <UnifiedChart appId={appId} metrics={metrics} />
           </div>
 
           <div className="mt-8 grid gap-6 md:grid-cols-3">
