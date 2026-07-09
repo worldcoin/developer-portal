@@ -7,26 +7,32 @@ export const TEAM_COLUMN_OPTIONS = [
   {
     id: "status",
     label: "Status",
+    isRequired: false,
   },
   {
     id: "membersCount",
     label: "Members",
+    isRequired: false,
   },
   {
     id: "appsCount",
     label: "Apps",
+    isRequired: false,
   },
   {
     id: "pendingInvitesCount",
     label: "Invites",
+    isRequired: false,
   },
   {
     id: "activeApiKeysCount",
     label: "API keys",
+    isRequired: false,
   },
   {
     id: "createdAt",
     label: "Created",
+    isRequired: false,
   },
 ] as const;
 
