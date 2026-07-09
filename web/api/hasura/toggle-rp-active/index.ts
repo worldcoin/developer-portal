@@ -127,7 +127,7 @@ export const POST = async (req: NextRequest) => {
     return errorHasuraQuery({
       req,
       detail: "App is deleted.",
-      code: "app_inactive",
+      code: "app_not_active",
       app_id,
       logLevel: "warn",
     });
@@ -143,7 +143,7 @@ export const POST = async (req: NextRequest) => {
     return errorHasuraQuery({
       req,
       detail: "Cannot activate the RP of an archived or inactive app.",
-      code: "app_inactive",
+      code: "app_not_active",
       app_id,
       logLevel: "warn",
     });

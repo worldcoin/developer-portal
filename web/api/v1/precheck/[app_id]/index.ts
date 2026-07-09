@@ -4,7 +4,11 @@ import { parseRequestBody } from "@/api/helpers/parse-request-body";
 import { RpRegistrationStatus } from "@/api/helpers/rp-utils";
 import { corsHandler } from "@/api/helpers/utils";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
-import { canVerifyForAction } from "@/api/helpers/verify";
+import {
+  canonicalizeNullifierHash,
+  canVerifyForAction,
+} from "@/api/helpers/verify";
+import { APPS_WITH_CUSTOM_EXTERNAL_NULLIFIER } from "@/lib/constants";
 import { generateExternalNullifier } from "@/lib/hashing";
 import { CanUserVerifyType, EngineType } from "@/lib/types";
 import { getCDNImageUrl } from "@/lib/utils";
@@ -14,15 +18,7 @@ import { getSdk as getAppPrecheckByActionSdk } from "./graphql/app-precheck-by-a
 import { getSdk as getAppPrecheckSdk } from "./graphql/app-precheck.generated";
 import { getSdk as getFetchRpRegistrationForPrecheckSdk } from "./graphql/fetch-rp-registration-for-precheck.generated";
 
-/**
- * Apps that use custom external_nullifier values (not computed from app_id + action).
- * For these apps, we query by action name instead of computed external_nullifier.
- * This supports legacy integrations that need specific external_nullifier values
- * to maintain nullifier_hash compatibility.
- */
-const APPS_WITH_CUSTOM_EXTERNAL_NULLIFIER = [
-  "app_1f7f2c379f20307a414f6cf8b544ec8a", // Grants app - uses 0xB16B00B5 for humanity verification
-];
+const FACE_CHECK_ENABLED_APPS_PARAMETER = "whitelisted-apps/face-check";
 // Whitelist some partner demo apps, that are not verified but we want to show their logos
 const APPS_TO_SHOW_UNVERIFIED_LOGO = [
   "app_staging_c8137371ceac59890774ccc932e11dcf",
@@ -83,7 +79,23 @@ export async function POST(
   }
 
   const action = parsedParams.action ?? "";
-  const nullifier_hash = parsedParams.nullifier_hash;
+  // Canonicalize the nullifier so the dedup lookup matches the canonical value
+  // /api/v2/verify stores, regardless of the caller's hex encoding. Falls back
+  // to the raw value if it is not a valid uint256 (it simply won't match a row).
+  let nullifier_hash = parsedParams.nullifier_hash;
+  if (nullifier_hash) {
+    try {
+      nullifier_hash = canonicalizeNullifierHash(nullifier_hash);
+    } catch {
+      // Leave the raw value as-is; an invalid nullifier matches no stored row.
+    }
+  }
+
+  const faceCheckEnabledAppsPromise =
+    global.ParameterStore?.getParameter<string[]>(
+      FACE_CHECK_ENABLED_APPS_PARAMETER,
+      [],
+    ) ?? Promise.resolve([] as string[]);
 
   // Check if this app uses custom external_nullifier values
   const useCustomExternalNullifier =
@@ -136,6 +148,8 @@ export async function POST(
 
   const unverified_app_metadata = rawAppValues.app_metadata[0];
   const verified_app_metadata = rawAppValues.verified_app_metadata[0];
+  const faceCheckEnabledApps = await faceCheckEnabledAppsPromise;
+  const enableFaceCheck = faceCheckEnabledApps?.includes(app_id) ?? false;
   // If an image is present it should store it's relative path and extension ie logo.png
   let logo_img_url = verified_app_metadata?.logo_img_url
     ? getCDNImageUrl(rawAppValues.id, verified_app_metadata?.logo_img_url)
@@ -170,7 +184,7 @@ export async function POST(
       verified_app_metadata?.integration_url ??
       unverified_app_metadata?.integration_url ??
       "",
-    enable_face_check: true, // Default to true now this is GA
+    enable_face_check: enableFaceCheck,
     actions: rawAppValues.actions,
   };
 

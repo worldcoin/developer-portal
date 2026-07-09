@@ -287,7 +287,7 @@ export type ManagedRotationResult =
       code:
         | "config_error"
         | "rp_not_registered"
-        | "app_inactive"
+        | "app_not_active"
         | "self_managed_mode"
         | "rotation_in_progress"
         | "submission_error"
@@ -333,16 +333,16 @@ export async function submitManagedSignerRotation({
   const registration = rp_registration[0];
   const rpIdString = registration.rp_id;
   const oldSignerAddress = registration.signer_address || "";
+  const app = registration.app;
 
   // A deleted / archived / inactive app must not be able to rotate its signer.
   // Mirrors the app-state guard in the v4 verify endpoint so a soft-deleted
   // app's managed signer can't be rotated or kept alive from the dashboard.
-  const app = registration.app;
-  if (app.deleted_at || app.status !== "active" || app.is_archived) {
+  if (app.status !== "active" || app.is_archived || app.deleted_at) {
     return {
       ok: false,
-      code: "app_inactive",
-      detail: "App is deleted, archived, or inactive.",
+      code: "app_not_active",
+      detail: "App not found. App may be inactive, archived, or deleted.",
     };
   }
 

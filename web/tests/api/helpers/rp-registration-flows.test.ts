@@ -828,7 +828,7 @@ describe("submitManagedSignerRotation [app-state guard]", () => {
         newSignerAddress,
       });
 
-      expect(res).toMatchObject({ ok: false, code: "app_inactive" });
+      expect(res).toMatchObject({ ok: false, code: "app_not_active" });
       // Guard runs before claiming the slot.
       expect(ClaimRotationSlot).not.toHaveBeenCalled();
     },

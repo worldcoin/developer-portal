@@ -9,8 +9,10 @@ import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Auth0SessionUser } from "@/lib/types";
 import { UserInfo } from "@/scenes/Portal/Profile/common/UserInfo";
 import { ColorSelector } from "@/scenes/Portal/Profile/page/ColorSelector";
-import { useUpdateUserMutation } from "@/scenes/Portal/Profile/page/graphql/client/update-user.generated";
-import { Color, colors } from "@/scenes/Portal/Profile/types";
+import { WorldIdAccountMigration } from "@/scenes/common/Profile/page/WorldIdAccountMigration";
+import { useUpdateUserMutation } from "@/scenes/common/Profile/page/graphql/client/update-user.generated";
+import { Color, colors } from "@/scenes/common/Profile/types";
+import { colorAtom } from "@/scenes/common/layout/color-atom";
 import { useMeQuery } from "@/scenes/common/me-query/client";
 import { FetchMeDocument } from "@/scenes/common/me-query/client/graphql/client/me-query.generated";
 import { useUser } from "@auth0/nextjs-auth0/client";
@@ -20,7 +22,6 @@ import { useCallback, useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import * as yup from "yup";
-import { colorAtom } from "../../layout/color-atom";
 
 const schema = yup
   .object({
@@ -39,7 +40,7 @@ type FormValues = yup.InferType<typeof schema>;
 
 export const ProfilePage = () => {
   const { user: auth0User } = useUser() as Auth0SessionUser;
-  const { user, loading } = useMeQuery();
+  const { user, loading, refetch: refetchMe } = useMeQuery();
 
   const [updateUser] = useUpdateUserMutation({
     refetchQueries: [FetchMeDocument],
@@ -177,6 +178,12 @@ export const ProfilePage = () => {
                 </Typography>
               </div>
             </label>
+
+            <WorldIdAccountMigration
+              auth0User={auth0User}
+              isLinked={Boolean(user?.world_id_nullifier)}
+              onLinkSuccess={refetchMe}
+            />
 
             <DecoratedButton
               type="submit"

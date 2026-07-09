@@ -7,7 +7,7 @@ import { LockIcon } from "@/components/Icons/LockIcon";
 import { InitialSteps } from "@/components/InitialSteps";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import { createAppDialogOpenedAtom } from "@/scenes/Portal/layout/Header";
+import { createAppDialogOpenedAtom } from "@/scenes/common/layout/Header/atoms";
 import { useAtom } from "jotai";
 import { Fragment } from "react";
 

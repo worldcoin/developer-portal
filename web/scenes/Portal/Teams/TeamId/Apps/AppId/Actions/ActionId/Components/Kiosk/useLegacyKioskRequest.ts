@@ -1,5 +1,5 @@
 import { LegacyVerificationLevel } from "@/lib/idkit";
-import { generateRpIdString } from "@/lib/rp";
+import { buildMockRpContext } from "@/lib/rp";
 import { KioskScreen } from "@/lib/types";
 import {
   IDKitErrorCodes,
@@ -11,15 +11,11 @@ import {
   useIDKitRequest,
   type IDKitResult,
   type Preset,
-  type RpContext,
 } from "@worldcoin/idkit";
-import { hashSignal } from "@worldcoin/idkit/hashing";
 import { useEffect, useMemo, useReducer } from "react";
 
 const POLLING_INTERVAL_MS = 3000;
 const POLLING_TIMEOUT_MS = 300000;
-const RP_CONTEXT_TTL_SECONDS = 300;
-const MOCK_RP_SIGNATURE = `0x${"00".repeat(64)}1b` as const;
 
 type UseLegacyKioskRequestOptions = {
   appId: `app_${string}`;
@@ -47,25 +43,6 @@ type LegacyVerifyPayload = {
   merkle_root: string;
   verification_level: LegacyVerificationLevel;
 };
-
-function createNonce(): string {
-  const bytes = new Uint8Array(32);
-  crypto.getRandomValues(bytes);
-  // hashSignal is hashToFieldElement under the hood, we can reuse it to hash the nonce
-  return hashSignal(bytes);
-}
-
-function buildMockRpContext(appId: `app_${string}`): RpContext {
-  const now = Math.floor(Date.now() / 1000);
-
-  return {
-    rp_id: generateRpIdString(appId),
-    nonce: createNonce(),
-    created_at: now,
-    expires_at: now + RP_CONTEXT_TTL_SECONDS,
-    signature: MOCK_RP_SIGNATURE,
-  };
-}
 
 function getLegacyPreset(verificationLevel: LegacyVerificationLevel): Preset {
   switch (verificationLevel) {
@@ -196,10 +173,7 @@ export function useLegacyKioskRequest({
     0,
   );
 
-  const rpContext = useMemo(
-    () => buildMockRpContext(appId),
-    [appId, requestVersion],
-  );
+  const rpContext = useMemo(() => buildMockRpContext(appId), [appId]);
   const preset = useMemo(
     () => getLegacyPreset(verificationLevel),
     [verificationLevel],

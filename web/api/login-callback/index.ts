@@ -161,6 +161,8 @@ export const loginCallback = async (req: NextRequest) => {
   }
 
   let invite: InviteQuery["invite"][number] | null = null;
+  // If the user claims
+  let team_id_from_invite: string | null = null;
 
   if (invite_id) {
     try {
@@ -198,7 +200,14 @@ export const loginCallback = async (req: NextRequest) => {
       );
     }
 
-    if (invite.email !== auth0User.email) {
+    // Dont require email verification for World ID users, as they don't have an email address
+    // **for team invites**
+    if (
+      (isEmailUser(auth0User) || isPasswordUser(auth0User)) &&
+      auth0User.email_verified &&
+      auth0User.email &&
+      invite.email.toLowerCase().trim() !== auth0User.email.toLowerCase().trim()
+    ) {
       logger.error("Invite email does not match logged in email", {
         team_id: invite.team_id,
       });
@@ -251,6 +260,9 @@ export const loginCallback = async (req: NextRequest) => {
         307,
       );
     }
+
+    team_id_from_invite = invite.team_id;
+    user = membership.user;
 
     try {
       const deleteInviteResult = await DeleteInviteSdk(client).DeleteInvite({
@@ -312,7 +324,8 @@ export const loginCallback = async (req: NextRequest) => {
     }
   }
 
-  const teamId = user?.memberships[0]?.team.id;
+  // If a user just accepted an invite, redirect them to that teams page.
+  const teamId = team_id_from_invite ?? user?.memberships[0]?.team.id;
   let url: string = urls.profile();
   const rawReturnTo = req.nextUrl.searchParams.get("returnTo");
   let returnTo: string | null = null;

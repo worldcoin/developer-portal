@@ -1,7 +1,7 @@
 import { tryParseJSON } from "@/lib/utils";
 import { toast } from "react-toastify";
-import { useGetUploadedImageLazyQuery } from "./graphql/client/get-uploaded-image.generated";
-import { useUploadImageLazyQuery } from "./graphql/client/upload-image.generated";
+import { useGetUploadedImageLazyQuery } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/hook/graphql/client/get-uploaded-image.generated";
+import { useUploadImageLazyQuery } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/hook/graphql/client/upload-image.generated";
 
 export class ImageValidationError extends Error {
   public readonly toastId: string;

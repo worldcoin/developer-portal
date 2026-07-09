@@ -49,7 +49,7 @@ import {
   getLocalisationFormValues,
   transformMailtoToRawEmail,
 } from "@/scenes/Portal/Teams/TeamId/Apps/AppId/Configuration/AppStore/utils/dataTransforms";
-import { getSdk as getReviewAppMetadataSdk } from "@/scenes/Portal/Teams/TeamId/Apps/AppId/Configuration/AppTopBar/graphql/server/fetch-review-app-metadata.generated";
+import { getSdk as getReviewAppMetadataSdk } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/AppTopBar/graphql/server/fetch-review-app-metadata.generated";
 import { Wallet } from "ethers";
 import { GraphQLClient } from "graphql-request";
 import { NextRequest, NextResponse } from "next/server";
@@ -884,7 +884,7 @@ const ROTATION_FLOW_RPC_CODE: Record<
   number
 > = {
   rp_not_registered: -32004,
-  app_inactive: -32004,
+  app_not_active: -32004,
   self_managed_mode: -32004,
   rotation_in_progress: -32004,
   config_error: -32603,

@@ -24,9 +24,9 @@ export type GetRpRegistrationQuery = {
     app: {
       __typename?: "app";
       team_id: string;
-      deleted_at?: string | null;
       status: string;
       is_archived: boolean;
+      deleted_at?: string | null;
     };
   }>;
 };
@@ -45,9 +45,9 @@ export const GetRpRegistrationDocument = gql`
       updated_at
       app {
         team_id
-        deleted_at
         status
         is_archived
+        deleted_at
       }
     }
   }

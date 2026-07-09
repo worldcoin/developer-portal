@@ -8,7 +8,7 @@ import { Role_Enum } from "@/graphql/graphql";
 import { Button } from "@/components/Button";
 import { Auth0SessionUser } from "@/lib/types";
 import { getCDNImageUrl, getDefaultLogoImgCDNUrl } from "@/lib/utils";
-import { useRemoveFromReview } from "@/scenes/Portal/Teams/TeamId/Apps/common/hooks/use-remove-from-review";
+import { useRemoveFromReview } from "@/scenes/common/Teams/TeamId/Apps/common/hooks/use-remove-from-review";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import clsx from "clsx";
 import { useAtom } from "jotai";
@@ -36,16 +36,16 @@ import { useApolloClient } from "@apollo/client";
 import {
   FetchAppMetadataDocument,
   FetchAppMetadataQuery,
-} from "../graphql/client/fetch-app-metadata.generated";
+} from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/graphql/client/fetch-app-metadata.generated";
 import {
   useFetchImagesLazyQuery,
   useFetchImagesQuery,
-} from "../graphql/client/fetch-images.generated";
+} from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/graphql/client/fetch-images.generated";
 import { unverifiedImageAtom, viewModeAtom } from "../layout/ImagesProvider";
 import { LogoImageUpload } from "./LogoImageUpload";
 import { SubmitAppModal } from "./SubmitAppModal";
 import { VersionSwitcher } from "./VersionSwitcher";
-import { useCreateEditableRowMutation } from "./graphql/client/create-editable-row.generated";
+import { useCreateEditableRowMutation } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/AppTopBar/graphql/client/create-editable-row.generated";
 
 type AppTopBarSubmitProps = {
   appMetadata: FetchAppMetadataQuery["app"][0]["app_metadata"][0];

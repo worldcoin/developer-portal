@@ -148,7 +148,7 @@ export const POST = async (req: NextRequest) => {
     return errorHasuraQuery({
       req,
       detail: "App is deleted, archived, or inactive.",
-      code: "app_inactive",
+      code: "app_not_active",
       app_id,
       logLevel: "warn",
     });

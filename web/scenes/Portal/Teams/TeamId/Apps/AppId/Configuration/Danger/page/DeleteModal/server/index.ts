@@ -7,7 +7,7 @@ import { logger } from "@/lib/logger";
 import { getIsUserAllowedToDeleteApp } from "@/lib/permissions";
 import { extractIdsFromPath, getPathFromHeaders } from "@/lib/server-utils";
 import { FormActionResult } from "@/lib/types";
-import { getSdk as getDeleteAppSdk } from "../graphql/server/delete-app.generated";
+import { getSdk as getDeleteAppSdk } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/Danger/page/DeleteModal/graphql/server/delete-app.generated";
 
 export async function deleteApp(appId: string): Promise<FormActionResult> {
   const path = (await getPathFromHeaders()) || "";
