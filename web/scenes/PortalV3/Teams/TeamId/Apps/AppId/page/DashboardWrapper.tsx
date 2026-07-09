@@ -9,13 +9,18 @@ import {
 import { Icon } from "@/scenes/PortalV3/common/Icon";
 import { useMemo, useState } from "react";
 import { useCachedMetrics } from "./AppStatsGraph/StatsRow/use-cached-metrics";
-import { useGetMetrics } from "./AppStatsGraph/StatCards/use-get-metrics";
 import { UnifiedChart } from "./AppStatsGraph/UnifiedChart";
+import type { AppMetricsData } from "./server";
 
 type TimePeriod = "weekly" | "all-time";
 
 interface DashboardWrapperProps {
   appId: string;
+  // Fetched server-side by AppIdPage and passed in, so the cards render real
+  // numbers in the initial HTML. `null` means the fetch failed — surfaced as an
+  // error state rather than silently rendering zeros.
+  metrics: AppMetricsData | null;
+  metricsError?: boolean;
 }
 
 const timePeriodOptions = [
@@ -91,9 +96,12 @@ const StatCard = (props: {
   );
 };
 
-export const DashboardWrapper = ({ appId }: DashboardWrapperProps) => {
+export const DashboardWrapper = ({
+  appId,
+  metrics,
+  metricsError,
+}: DashboardWrapperProps) => {
   const [timePeriod, setTimePeriod] = useState<TimePeriod>("all-time");
-  const { metrics, loading: metricsLoading } = useGetMetrics(appId);
 
   const weeklyMetrics = useMemo(() => {
     if (!metrics) return null;
@@ -111,16 +119,19 @@ export const DashboardWrapper = ({ appId }: DashboardWrapperProps) => {
       impressions: metrics.total_impressions ?? null,
       sessions: metrics.total_users ?? null,
       users: metrics.unique_users ?? null,
-      newUsers: metrics.unique_users ?? null,
+      // The metrics service has no all-time "new users"; the 7-day figure is
+      // the only real value, so reuse it here rather than mislabeling
+      // `unique_users` (total users) as new users.
+      newUsers: metrics.new_users_last_7_days ?? null,
     };
   }, [metrics]);
 
-  const metricsWithChange = useCachedMetrics(
-    appId,
-    timePeriod === "weekly" ? weeklyMetrics : allTimeMetrics,
-    metricsLoading,
-    timePeriod,
-  );
+  const current = timePeriod === "weekly" ? weeklyMetrics : allTimeMetrics;
+
+  // Base values come straight from the server-fetched `current` so the cards
+  // never flash "0". Only the week-over-week change badges depend on the
+  // client-only localStorage history, so those still come from this hook.
+  const metricsWithChange = useCachedMetrics(appId, current, false, timePeriod);
 
   return (
     <section className="w-full">
@@ -134,27 +145,43 @@ export const DashboardWrapper = ({ appId }: DashboardWrapperProps) => {
         />
       </div>
 
-      <div className="mt-8 grid gap-6 md:grid-cols-3">
-        <StatCard
-          label="Impressions"
-          value={metricsWithChange.impressions}
-          changePercent={metricsWithChange.impressionsChange}
-        />
-        <StatCard
-          label="Sessions"
-          value={metricsWithChange.sessions}
-          changePercent={metricsWithChange.sessionsChange}
-        />
-        <StatCard
-          label="Total users"
-          value={metricsWithChange.users}
-          changePercent={metricsWithChange.usersChange}
-        />
-      </div>
+      {metricsError ? (
+        <div className="mt-8 rounded-[10px] border border-portal-border bg-white p-6 font-world text-13 leading-[1.4] text-portal-muted">
+          Metrics are temporarily unavailable. Please refresh to try again.
+        </div>
+      ) : (
+        <>
+          <div className="mt-8 grid gap-6 md:grid-cols-3">
+            <StatCard
+              label="Impressions"
+              value={current?.impressions ?? null}
+              changePercent={metricsWithChange.impressionsChange}
+            />
+            <StatCard
+              label="Sessions"
+              value={current?.sessions ?? null}
+              changePercent={metricsWithChange.sessionsChange}
+            />
+            <StatCard
+              label="Total users"
+              value={current?.users ?? null}
+              changePercent={metricsWithChange.usersChange}
+            />
+          </div>
 
-      <div className="mt-8">
-        <UnifiedChart appId={appId} />
-      </div>
+          <div className="mt-8">
+            <UnifiedChart appId={appId} />
+          </div>
+
+          <div className="mt-8 grid gap-6 md:grid-cols-3">
+            <StatCard
+              label="New users"
+              value={current?.newUsers ?? null}
+              changePercent={metricsWithChange.newUsersChange}
+            />
+          </div>
+        </>
+      )}
     </section>
   );
 };

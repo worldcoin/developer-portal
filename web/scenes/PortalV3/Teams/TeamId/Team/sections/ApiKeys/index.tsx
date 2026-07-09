@@ -2,18 +2,12 @@
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { PlusIcon } from "@/components/Icons/PlusIcon";
 import { Section } from "@/components/Section";
-import { SizingWrapper } from "@/components/SizingWrapper";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import { useState, use } from "react";
+import { useState } from "react";
 import Skeleton from "react-loading-skeleton";
-import { TeamProfile } from "@/scenes/PortalV3/Teams/TeamId/Team/common/TeamProfile";
 import { ApiKeysTable } from "./ApiKeyTable";
 import { CreateKeyModal } from "./CreateKeyModal";
 import { useFetchKeysQuery } from "@/scenes/common/Teams/TeamId/Team/ApiKeys/page/graphql/client/fetch-keys.generated";
-
-type TeamApiKeysPageProps = {
-  params: Promise<Record<string, string>>;
-};
 
 export const ApiKeys = (props: { teamId?: string }) => {
   const { teamId } = props;
@@ -84,22 +78,5 @@ export const ApiKeys = (props: { teamId?: string }) => {
         </div>
       )}
     </Section>
-  );
-};
-
-export const TeamApiKeysPage = (props: TeamApiKeysPageProps) => {
-  const params = use(props.params);
-  const teamId = params?.teamId;
-
-  return (
-    <>
-      <SizingWrapper gridClassName="order-1">
-        <TeamProfile />
-      </SizingWrapper>
-
-      <SizingWrapper gridClassName="order-2 grow" className="flex flex-col">
-        <ApiKeys teamId={teamId} />
-      </SizingWrapper>
-    </>
   );
 };
