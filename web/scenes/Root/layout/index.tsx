@@ -56,11 +56,15 @@ const twkLausanne = localFont({
   weight: "500",
 });
 
+// WorldProMVP.ttf is a variable font whose real wght axis is 300–800 (default
+// 300). Declaring "100 900" advertised a range the file doesn't have, so weight
+// requests outside 300–800 clamped and the mapping didn't match Figma. Declare
+// the true axis so `font-[325]`, medium, semibold, etc. all resolve correctly.
 const worldPro = localFont({
   display: "swap",
   src: "../../../app/fonts/WorldProMVP.ttf",
   variable: "--font-world",
-  weight: "100 900",
+  weight: "300 800",
 });
 
 const fontVariables = [

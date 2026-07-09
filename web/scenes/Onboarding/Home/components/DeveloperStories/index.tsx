@@ -175,7 +175,7 @@ export const DeveloperStories = () => {
       >
         {STORIES.map((story, index) => (
           <article
-            className="relative aspect-[16/9] w-full overflow-hidden rounded-xl bg-black/5 md:aspect-[3/2] md:flex-[0_0_calc(50%-12px)] md:snap-start md:rounded-2xl"
+            className="relative aspect-[16/9] w-full overflow-hidden rounded-xl bg-black/5 md:aspect-[3/2] md:flex-[0_0_calc(50%_-_12px)] md:snap-start md:rounded-2xl"
             key={story.name}
             ref={(node) => {
               cardRefs.current[index] = node;

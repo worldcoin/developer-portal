@@ -1,9 +1,9 @@
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
+import { ArrowRightIcon } from "@/components/Icons/ArrowRightIcon";
 import { auth0 } from "@/lib/auth0";
 import { logger } from "@/lib/logger";
 import { Auth0SessionUser } from "@/lib/types";
 import { urls } from "@/lib/urls";
-import { ArrowRightIcon } from "@/components/Icons/ArrowRightIcon";
 import { redirect } from "next/navigation";
 import { ComponentType } from "react";
 import { BasePixelStrip } from "../components/BasePixelStrip";
@@ -122,35 +122,35 @@ const DEVELOPER_TOOL_CARDS: Array<{
   poster?: string;
   video: string;
 }> = [
-  {
-    description:
-      "Verify unique humans while preserving privacy. Add proof of human to your app, platform, or protocol.",
-    href: "https://docs.world.org/world-id/overview",
-    icon: HumanBadgeIcon,
-    label: "World ID",
-    poster: "/posters/World-ID-thumbnail.png",
-    video:
-      "https://worldcoin-company-website.cdn.prismic.io/worldcoin-company-website/aeCqpZ1ZCF7ETPYO_Fees-Animated.mp4",
-  },
-  {
-    description:
-      "A simple integration toolkit for adding World ID verification flows to web and mobile experiences.",
-    href: "https://docs.world.org/world-id/idkit/integrate",
-    icon: ViewGridIcon,
-    label: "IDKit",
-    video:
-      "https://worldcoin-company-website.cdn.prismic.io/worldcoin-company-website/aeIixp1ZCF7ETSvj_dithr-2026-4-14_16-17-58-1-.mp4",
-  },
-  {
-    description:
-      "Build AI agents that can interact with verified humans and take trusted actions across digital environments.",
-    href: "https://docs.world.org/agents/agent-kit/integrate",
-    icon: CursorPointerIcon,
-    label: "Agent Kit",
-    video:
-      "https://worldcoin-company-website.cdn.prismic.io/worldcoin-company-website/ablVSrbci2UF6Hcw_AgentKitDither-Video-web-.mp4",
-  },
-];
+    {
+      description:
+        "Verify unique humans while preserving privacy. Add proof of human to your app, platform, or protocol.",
+      href: "https://docs.world.org/world-id/overview",
+      icon: HumanBadgeIcon,
+      label: "World ID",
+      poster: "/posters/World-ID-thumbnail.png",
+      video:
+        "https://worldcoin-company-website.cdn.prismic.io/worldcoin-company-website/aeCqpZ1ZCF7ETPYO_Fees-Animated.mp4",
+    },
+    {
+      description:
+        "A simple integration toolkit for adding World ID verification flows to web and mobile experiences.",
+      href: "https://docs.world.org/world-id/idkit/integrate",
+      icon: ViewGridIcon,
+      label: "IDKit",
+      video:
+        "https://worldcoin-company-website.cdn.prismic.io/worldcoin-company-website/aeIixp1ZCF7ETSvj_dithr-2026-4-14_16-17-58-1-.mp4",
+    },
+    {
+      description:
+        "Build AI agents that can interact with verified humans and take trusted actions across digital environments.",
+      href: "https://docs.world.org/agents/agent-kit/integrate",
+      icon: CursorPointerIcon,
+      label: "Agent Kit",
+      video:
+        "https://worldcoin-company-website.cdn.prismic.io/worldcoin-company-website/ablVSrbci2UF6Hcw_AgentKitDither-Video-web-.mp4",
+    },
+  ];
 
 type FooterLink = { href: string; label: string; nested?: boolean };
 
@@ -281,13 +281,17 @@ export const HomePage = async () => {
         <div className="grid items-center gap-12 pb-[160px] pt-20 md:pt-16 lg:grid-cols-[minmax(0,626px)_minmax(0,626px)] lg:justify-between lg:gap-8 lg:pb-[100px] lg:pt-[102px]">
           <div className="flex max-w-[626px] flex-col items-start gap-10 lg:gap-16">
             <div className="flex flex-col gap-4">
-              <h1 className="text-[clamp(44px,5.2vw,80px)] leading-[1.1] tracking-[-0.02em] lg:text-[80px] lg:tracking-[-1.6px]">
+              <h1 className="text-[clamp(44px,5.2vw,80px)] font-[500] leading-[1.1] tracking-[-0.02em] lg:text-[80px] lg:tracking-[-1.6px]">
                 A new standard
                 <br />
                 of identity
               </h1>
 
-              <p className="max-w-[607px] text-[clamp(24px,2.2vw,32px)] leading-[1.3] tracking-[-0.02em] lg:text-[32px] lg:tracking-[-0.64px]">
+              {/* Subheading sits a step below the title in weight (light floor
+                  vs the title's heavier anchor) so the hero hierarchy reads —
+                  otherwise both inherit the wrapper's font-[] and look
+                  equally heavy. Confirm exact weights against Figma. */}
+              <p className="max-w-[607px] text-[clamp(24px,2.2vw,32px)] font-[300] leading-[1.3] tracking-[-0.02em] lg:text-[32px] lg:tracking-[-0.64px]">
                 World gives developers the tools to build apps, agents, and
                 digital experiences that can verify real people privately and
                 securely.
