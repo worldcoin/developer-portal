@@ -4,34 +4,36 @@ import * as Types from "@/graphql/graphql";
 import { GraphQLClient, RequestOptions } from "graphql-request";
 import gql from "graphql-tag";
 type GraphQLClientRequestHeaders = RequestOptions["requestHeaders"];
-export type FetchAppSecretQueryVariables = Types.Exact<{
-  app_id: Types.Scalars["String"]["input"];
+export type MergeWorldIdAccountsMutationVariables = Types.Exact<{
+  current_user_id: Types.Scalars["String"]["input"];
+  legacy_user_id: Types.Scalars["String"]["input"];
+  world_id_nullifier: Types.Scalars["String"]["input"];
 }>;
 
-export type FetchAppSecretQuery = {
-  __typename?: "query_root";
-  app: Array<{
-    __typename?: "app";
+export type MergeWorldIdAccountsMutation = {
+  __typename?: "mutation_root";
+  merge_world_id_accounts: Array<{
+    __typename?: "user";
     id: string;
-    actions: Array<{ __typename?: "action"; client_secret: string }>;
+    world_id_nullifier?: string | null;
   }>;
 };
 
-export const FetchAppSecretDocument = gql`
-  query FetchAppSecret($app_id: String!) {
-    app(
-      where: {
-        id: { _eq: $app_id }
-        status: { _eq: "active" }
-        is_archived: { _eq: false }
-        deleted_at: { _is_null: true }
-        engine: { _eq: "cloud" }
+export const MergeWorldIdAccountsDocument = gql`
+  mutation MergeWorldIdAccounts(
+    $current_user_id: String!
+    $legacy_user_id: String!
+    $world_id_nullifier: String!
+  ) {
+    merge_world_id_accounts(
+      args: {
+        _current_user_id: $current_user_id
+        _legacy_user_id: $legacy_user_id
+        _world_id_nullifier: $world_id_nullifier
       }
     ) {
       id
-      actions(limit: 1, where: { action: { _eq: "" } }) {
-        client_secret
-      }
+      world_id_nullifier
     }
   }
 `;
@@ -55,19 +57,19 @@ export function getSdk(
   withWrapper: SdkFunctionWrapper = defaultWrapper,
 ) {
   return {
-    FetchAppSecret(
-      variables: FetchAppSecretQueryVariables,
+    MergeWorldIdAccounts(
+      variables: MergeWorldIdAccountsMutationVariables,
       requestHeaders?: GraphQLClientRequestHeaders,
-    ): Promise<FetchAppSecretQuery> {
+    ): Promise<MergeWorldIdAccountsMutation> {
       return withWrapper(
         (wrappedRequestHeaders) =>
-          client.request<FetchAppSecretQuery>(
-            FetchAppSecretDocument,
+          client.request<MergeWorldIdAccountsMutation>(
+            MergeWorldIdAccountsDocument,
             variables,
             { ...requestHeaders, ...wrappedRequestHeaders },
           ),
-        "FetchAppSecret",
-        "query",
+        "MergeWorldIdAccounts",
+        "mutation",
         variables,
       );
     },
