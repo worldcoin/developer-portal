@@ -369,7 +369,7 @@ describe("API key action insert permissions", () => {
       }
 
       expect(error).toBeDefined();
-      expect(error.graphQLErrors?.[0]?.message).toContain(
+      expect(error.errors?.[0]?.message).toContain(
         `field '${column}' not found in type: 'action_insert_input'`,
       );
 
