@@ -1,3 +1,4 @@
+import { parseTeamColumnVisibility } from "@/components/AdminDashboard/Teams/column-visibility";
 import {
   parseTeamsLimit,
   parseTeamsPage,
@@ -9,6 +10,7 @@ import { Metadata } from "next";
 
 type PageProps = {
   searchParams: Promise<{
+    columns?: string | string[];
     limit?: string | string[];
     page?: string | string[];
   }>;
@@ -22,8 +24,15 @@ export default async function Page({ searchParams }: PageProps) {
   await requireAdminUser();
 
   const params = await searchParams;
+  const columnVisibility = parseTeamColumnVisibility(params.columns);
   const limit = parseTeamsLimit(params.limit);
   const page = parseTeamsPage(params.page);
 
-  return <AdminTeamsPage limit={limit} page={page} />;
+  return (
+    <AdminTeamsPage
+      columnVisibility={columnVisibility}
+      limit={limit}
+      page={page}
+    />
+  );
 }

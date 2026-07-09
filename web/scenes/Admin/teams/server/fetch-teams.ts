@@ -9,6 +9,10 @@ import {
   getTeamsTotalPages,
   type TeamsLimit,
 } from "@/components/AdminDashboard/Teams/pagination";
+import {
+  DEFAULT_TEAM_COLUMN_VISIBILITY,
+  type TeamColumnVisibility,
+} from "@/components/AdminDashboard/Teams/column-visibility";
 import type { TeamTableRow } from "@/components/AdminDashboard/Teams/types";
 import { logger } from "@/lib/logger";
 
@@ -34,6 +38,7 @@ const countByTeamId = (rows: Array<{ team_id: string }>) => {
 
 const mapTeamToTableRow = (
   team: FetchAdminTeamsQuery["team"][number],
+  columnVisibility: TeamColumnVisibility,
   membersByTeamId: Map<string, number>,
   appsByTeamId: Map<string, number>,
   apiKeysByTeamId: Map<string, number>,
@@ -42,24 +47,34 @@ const mapTeamToTableRow = (
   return {
     id: team.id,
     name: team.name ?? "Unnamed team",
-    status: team.deleted_at ? "Deleted" : "Active",
+    status: columnVisibility.status
+      ? team.deleted_at
+        ? "Deleted"
+        : "Active"
+      : undefined,
     membersCount: membersByTeamId.get(team.id) ?? 0,
     appsCount: appsByTeamId.get(team.id) ?? 0,
     pendingInvitesCount: pendingInvitesByTeamId.get(team.id) ?? 0,
     activeApiKeysCount: apiKeysByTeamId.get(team.id) ?? 0,
-    createdAt: formatCreatedAt(team.created_at),
+    createdAt:
+      columnVisibility.createdAt && team.created_at
+        ? formatCreatedAt(team.created_at)
+        : undefined,
   };
 };
 
 type FetchAdminTeamsOptions = {
+  columnVisibility: TeamColumnVisibility;
   limit: TeamsLimit;
   page: number;
 };
 
 export const fetchAdminTeamsPage = async ({
+  columnVisibility,
   limit,
   page,
 }: FetchAdminTeamsOptions = {
+  columnVisibility: DEFAULT_TEAM_COLUMN_VISIBILITY,
   limit: DEFAULT_TEAMS_LIMIT,
   page: DEFAULT_TEAMS_PAGE,
 }) => {
@@ -67,16 +82,26 @@ export const fetchAdminTeamsPage = async ({
   const offset = getTeamsOffset(page, limit);
 
   try {
-    const data = await getSdk(client).FetchAdminTeams({ limit, offset });
+    const data = await getSdk(client).FetchAdminTeams({
+      includeActiveApiKeysCount: columnVisibility.activeApiKeysCount,
+      includeAppsCount: columnVisibility.appsCount,
+      includeCreatedAt: columnVisibility.createdAt,
+      includeMembersCount: columnVisibility.membersCount,
+      includePendingInvitesCount: columnVisibility.pendingInvitesCount,
+      includeStatus: columnVisibility.status,
+      limit,
+      offset,
+    });
 
-    const membersByTeamId = countByTeamId(data.membership);
-    const appsByTeamId = countByTeamId(data.app);
-    const apiKeysByTeamId = countByTeamId(data.api_key);
-    const pendingInvitesByTeamId = countByTeamId(data.invite);
+    const membersByTeamId = countByTeamId(data.membership ?? []);
+    const appsByTeamId = countByTeamId(data.app ?? []);
+    const apiKeysByTeamId = countByTeamId(data.api_key ?? []);
+    const pendingInvitesByTeamId = countByTeamId(data.invite ?? []);
 
     const teams = data.team.map((team) =>
       mapTeamToTableRow(
         team,
+        columnVisibility,
         membersByTeamId,
         appsByTeamId,
         apiKeysByTeamId,

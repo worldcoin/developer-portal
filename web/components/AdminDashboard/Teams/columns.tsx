@@ -19,9 +19,15 @@ export const columns: ColumnDef<TeamTableRow>[] = [
     size: 110,
     minSize: 90,
     maxSize: 160,
-    cell: ({ getValue }) => (
-      <StatusBadge status={getValue<TeamTableRow["status"]>()} />
-    ),
+    cell: ({ getValue }) => {
+      const status = getValue<TeamTableRow["status"]>();
+
+      if (!status) {
+        return null;
+      }
+
+      return <StatusBadge status={status} />;
+    },
   },
   {
     accessorKey: "membersCount",

@@ -5,6 +5,12 @@ import { GraphQLClient, RequestOptions } from "graphql-request";
 import gql from "graphql-tag";
 type GraphQLClientRequestHeaders = RequestOptions["requestHeaders"];
 export type FetchAdminTeamsQueryVariables = Types.Exact<{
+  includeActiveApiKeysCount: Types.Scalars["Boolean"]["input"];
+  includeAppsCount: Types.Scalars["Boolean"]["input"];
+  includeCreatedAt: Types.Scalars["Boolean"]["input"];
+  includeMembersCount: Types.Scalars["Boolean"]["input"];
+  includePendingInvitesCount: Types.Scalars["Boolean"]["input"];
+  includeStatus: Types.Scalars["Boolean"]["input"];
   limit: Types.Scalars["Int"]["input"];
   offset: Types.Scalars["Int"]["input"];
 }>;
@@ -15,7 +21,7 @@ export type FetchAdminTeamsQuery = {
     __typename?: "team";
     id: string;
     name?: string | null;
-    created_at: string;
+    created_at?: string;
     deleted_at?: string | null;
   }>;
   team_aggregate: {
@@ -25,35 +31,47 @@ export type FetchAdminTeamsQuery = {
       count: number;
     } | null;
   };
-  membership: Array<{ __typename?: "membership"; team_id: string }>;
-  app: Array<{ __typename?: "app"; team_id: string }>;
-  api_key: Array<{ __typename?: "api_key"; team_id: string }>;
-  invite: Array<{ __typename?: "invite"; team_id: string }>;
+  membership?: Array<{ __typename?: "membership"; team_id: string }>;
+  app?: Array<{ __typename?: "app"; team_id: string }>;
+  api_key?: Array<{ __typename?: "api_key"; team_id: string }>;
+  invite?: Array<{ __typename?: "invite"; team_id: string }>;
 };
 
 export const FetchAdminTeamsDocument = gql`
-  query FetchAdminTeams($limit: Int!, $offset: Int!) {
+  query FetchAdminTeams(
+    $includeActiveApiKeysCount: Boolean!
+    $includeAppsCount: Boolean!
+    $includeCreatedAt: Boolean!
+    $includeMembersCount: Boolean!
+    $includePendingInvitesCount: Boolean!
+    $includeStatus: Boolean!
+    $limit: Int!
+    $offset: Int!
+  ) {
     team(limit: $limit, offset: $offset, order_by: { created_at: desc }) {
       id
       name
-      created_at
-      deleted_at
+      created_at @include(if: $includeCreatedAt)
+      deleted_at @include(if: $includeStatus)
     }
     team_aggregate {
       aggregate {
         count
       }
     }
-    membership {
+    membership @include(if: $includeMembersCount) {
       team_id
     }
-    app(where: { deleted_at: { _is_null: true } }) {
+    app(where: { deleted_at: { _is_null: true } })
+      @include(if: $includeAppsCount) {
       team_id
     }
-    api_key(where: { is_active: { _eq: true } }) {
+    api_key(where: { is_active: { _eq: true } })
+      @include(if: $includeActiveApiKeysCount) {
       team_id
     }
-    invite(where: { expires_at: { _gte: "now()" } }) {
+    invite(where: { expires_at: { _gte: "now()" } })
+      @include(if: $includePendingInvitesCount) {
       team_id
     }
   }
