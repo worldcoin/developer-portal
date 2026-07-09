@@ -1,11 +1,20 @@
 import { LimitSelector } from "./LimitSelector";
+import { TeamsPagination } from "./TeamsPagination";
 import type { TeamsLimit } from "./pagination";
 
 type TeamsTableControlsProps = {
+  currentPage: number;
   limit: TeamsLimit;
+  teamsAmount: number;
+  totalPages: number;
 };
 
-export const TeamsTableControls = ({ limit }: TeamsTableControlsProps) => {
+export const TeamsTableControls = ({
+  currentPage,
+  limit,
+  teamsAmount,
+  totalPages,
+}: TeamsTableControlsProps) => {
   return (
     <div
       aria-label="Teams table controls"
@@ -20,9 +29,12 @@ export const TeamsTableControls = ({ limit }: TeamsTableControlsProps) => {
 
       <div className="flex shrink-0 flex-wrap items-center gap-3">
         <LimitSelector value={limit} />
-        <div className="text-12 font-medium uppercase tracking-wide text-grey-400">
-          Pagination
-        </div>
+        <TeamsPagination
+          currentPage={currentPage}
+          limit={limit}
+          teamsAmount={teamsAmount}
+          totalPages={totalPages}
+        />
       </div>
     </div>
   );

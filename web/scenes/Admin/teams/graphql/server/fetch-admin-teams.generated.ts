@@ -6,6 +6,7 @@ import gql from "graphql-tag";
 type GraphQLClientRequestHeaders = RequestOptions["requestHeaders"];
 export type FetchAdminTeamsQueryVariables = Types.Exact<{
   limit: Types.Scalars["Int"]["input"];
+  offset: Types.Scalars["Int"]["input"];
 }>;
 
 export type FetchAdminTeamsQuery = {
@@ -31,8 +32,8 @@ export type FetchAdminTeamsQuery = {
 };
 
 export const FetchAdminTeamsDocument = gql`
-  query FetchAdminTeams($limit: Int!) {
-    team(limit: $limit, order_by: { created_at: desc }) {
+  query FetchAdminTeams($limit: Int!, $offset: Int!) {
+    team(limit: $limit, offset: $offset, order_by: { created_at: desc }) {
       id
       name
       created_at

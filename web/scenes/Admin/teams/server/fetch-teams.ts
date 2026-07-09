@@ -3,6 +3,10 @@ import "server-only";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import {
   DEFAULT_TEAMS_LIMIT,
+  DEFAULT_TEAMS_PAGE,
+  clampTeamsPage,
+  getTeamsOffset,
+  getTeamsTotalPages,
   type TeamsLimit,
 } from "@/components/AdminDashboard/Teams/pagination";
 import type { TeamTableRow } from "@/components/AdminDashboard/Teams/types";
@@ -49,15 +53,21 @@ const mapTeamToTableRow = (
 
 type FetchAdminTeamsOptions = {
   limit: TeamsLimit;
+  page: number;
 };
 
 export const fetchAdminTeamsPage = async ({
   limit,
-}: FetchAdminTeamsOptions = { limit: DEFAULT_TEAMS_LIMIT }) => {
+  page,
+}: FetchAdminTeamsOptions = {
+  limit: DEFAULT_TEAMS_LIMIT,
+  page: DEFAULT_TEAMS_PAGE,
+}) => {
   const client = await getAPIServiceGraphqlClient();
+  const offset = getTeamsOffset(page, limit);
 
   try {
-    const data = await getSdk(client).FetchAdminTeams({ limit });
+    const data = await getSdk(client).FetchAdminTeams({ limit, offset });
 
     const membersByTeamId = countByTeamId(data.membership);
     const appsByTeamId = countByTeamId(data.app);
@@ -74,9 +84,15 @@ export const fetchAdminTeamsPage = async ({
       ),
     );
 
+    const teamsAmount = data.team_aggregate.aggregate?.count ?? teams.length;
+    const totalPages = getTeamsTotalPages(teamsAmount, limit);
+    const currentPage = clampTeamsPage(page, totalPages);
+
     return {
       teams,
-      teamsAmount: data.team_aggregate.aggregate?.count ?? teams.length,
+      teamsAmount,
+      currentPage,
+      totalPages,
     };
   } catch (error) {
     logger.error("Failed to fetch admin teams", { error });
