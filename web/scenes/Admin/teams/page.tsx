@@ -1,8 +1,10 @@
 import { TeamsTable } from "@/components/AdminDashboard/Teams/Table";
 import { UIModule } from "@/components/AdminDashboard/UIModule";
 
-export const AdminTeamsPage = () => {
-  const teamsAmount = 12;
+import { fetchAdminTeams } from "./server/fetch-teams";
+
+export const AdminTeamsPage = async () => {
+  const { teams, teamsAmount } = await fetchAdminTeams();
 
   return (
     <div className="grid h-full min-h-0 grid-rows-auto/1fr gap-y-4">
@@ -14,7 +16,7 @@ export const AdminTeamsPage = () => {
       </UIModule>
 
       <UIModule className="min-h-0 min-w-0 overflow-hidden p-4">
-        <TeamsTable />
+        <TeamsTable data={teams} />
       </UIModule>
     </div>
   );

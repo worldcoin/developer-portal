@@ -12,5 +12,5 @@ export type TeamTableRow = {
 };
 
 export type TeamsTableProps = {
-  data?: TeamTableRow[];
+  data: TeamTableRow[];
 };

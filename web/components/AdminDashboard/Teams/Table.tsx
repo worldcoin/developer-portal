@@ -3,7 +3,6 @@
 import { getCoreRowModel, useReactTable } from "@tanstack/react-table";
 
 import { columns } from "./columns";
-import { demoTeams } from "./demo-data";
 import { DesktopTeamsTable } from "./DesktopTeamsTable";
 import { EmptyState } from "./EmptyState";
 import { MobileTeamsList } from "./MobileTeamsList";
@@ -11,7 +10,7 @@ import type { TeamsTableProps } from "./types";
 
 export type { TeamTableRow } from "./types";
 
-export const TeamsTable = ({ data = demoTeams }: TeamsTableProps) => {
+export const TeamsTable = ({ data }: TeamsTableProps) => {
   const table = useReactTable({
     data,
     columns,

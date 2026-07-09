@@ -1,0 +1,20 @@
+query FetchAdminTeams {
+  team(order_by: { created_at: desc }) {
+    id
+    name
+    created_at
+    deleted_at
+  }
+  membership {
+    team_id
+  }
+  app(where: { deleted_at: { _is_null: true } }) {
+    team_id
+  }
+  api_key(where: { is_active: { _eq: true } }) {
+    team_id
+  }
+  invite(where: { expires_at: { _gte: "now()" } }) {
+    team_id
+  }
+}
