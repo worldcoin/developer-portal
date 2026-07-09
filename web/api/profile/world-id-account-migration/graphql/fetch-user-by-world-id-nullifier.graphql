@@ -1,0 +1,33 @@
+query FetchUserByWorldIdNullifier(
+  $world_id_nullifiers: [String!]!
+  $current_user_id: String!
+) {
+  # limit 3 so the handler can distinguish "current user + one legacy account"
+  # (merge) from an ambiguous multi-account match (abort).
+  user(where: { world_id_nullifier: { _in: $world_id_nullifiers } }, limit: 3) {
+    id
+    email
+    name
+    auth0Id
+    world_id_nullifier
+    # Captured in the merge audit log: the legacy row is neutralized by the
+    # merge, so this is the only pre-merge record of what it held.
+    memberships {
+      id
+      team_id
+      role
+    }
+  }
+
+  # The current user's own nullifier, for the overwrite guard (never silently
+  # replace a different already-linked World ID); memberships for the audit log.
+  current_user: user_by_pk(id: $current_user_id) {
+    id
+    world_id_nullifier
+    memberships {
+      id
+      team_id
+      role
+    }
+  }
+}

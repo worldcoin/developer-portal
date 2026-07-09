@@ -45,7 +45,7 @@ const getApiKeyPreview = (apiKey: string) => {
 };
 
 export const getClaudeMcpCommand = (apiKey: string) =>
-  `claude mcp add --transport http --scope project --header "Authorization: Bearer ${apiKey}" ${MCP_SERVER_NAME} ${MCP_ENDPOINT}`;
+  `claude mcp add ${MCP_SERVER_NAME} ${MCP_ENDPOINT} --transport http --scope project --header "Authorization: Bearer ${apiKey}"`;
 
 export const getCodexMcpCommand = (apiKey: string) =>
   `codex mcp add ${MCP_SERVER_NAME} --env ${MCP_API_KEY_ENV_VAR}=${shellQuote(apiKey)} -- npx -y mcp-remote ${MCP_ENDPOINT} --transport http-only --header 'Authorization:Bearer ${envReference(MCP_API_KEY_ENV_VAR)}'`;

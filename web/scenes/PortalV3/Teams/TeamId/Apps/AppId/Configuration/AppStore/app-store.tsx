@@ -1,3 +1,5 @@
+import { AlertIcon } from "@/components/Icons/AlertIcon";
+import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Role_Enum } from "@/graphql/graphql";
 import { Auth0SessionUser } from "@/lib/types";
 import { checkUserPermissions } from "@/lib/utils";
@@ -5,9 +7,9 @@ import { useUser } from "@auth0/nextjs-auth0/client";
 import { useAtomValue } from "jotai";
 import { useMemo } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
-import { useSaveStatus } from "../SaveStatus";
 import { useAutosaveWithStatus } from "../hook/use-autosave-with-status";
 import { isMiniAppAtom } from "../layout/ImagesProvider";
+import { NumberedSection } from "../PageComponents/NumberedSection";
 import { CategorySection } from "./components/FormSections/CategorySection";
 import { ComplianceSection } from "./components/FormSections/ComplianceSection";
 import { ContentCardImageSection } from "./components/FormSections/ContentCardImageSection";
@@ -16,14 +18,24 @@ import { HumansOnlySection } from "./components/FormSections/HumansOnlySection";
 import { LanguagesSection } from "./components/FormSections/LanguagesSection";
 import { LocalisationsSection } from "./components/FormSections/LocalisationsSection";
 import { SupportSection } from "./components/FormSections/SupportSection";
-import { SaveStatusIndicator } from "../SaveStatus";
-import { SaveButton } from "./components/SaveButton";
 import { AppStoreFormValues } from "./FormSchema/types";
 import { useAppStoreForm } from "./hooks/useAppStoreForm";
 import { AppStoreFormProps } from "./types/AppStoreFormTypes";
 
-const SectionDivider = () => (
-  <div className="w-full border-t border-grey-100" aria-hidden />
+const LawsAndRegulationsBanner = () => (
+  <div className="flex items-center gap-3 rounded-[10px] bg-system-warning-100 p-5">
+    <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-system-warning-600">
+      <AlertIcon className="size-4 text-white" />
+    </div>
+    <Typography
+      variant={TYPOGRAPHY.B3}
+      className="flex-1 text-system-warning-600"
+    >
+      Laws and regulations governing mini apps vary by country and region.
+      Before launching, ensure your app complies with all relevant local rules,
+      especially regarding chance-based or gambling-like features.
+    </Typography>
+  </div>
 );
 
 export const AppStoreForm = ({
@@ -46,10 +58,6 @@ export const AppStoreForm = ({
   } = useAppStoreForm(appId, appMetadata);
 
   const form = useFormContext<AppStoreFormValues>();
-  // Read displayStatus (debounced/held view of the save state) so the button
-  // tracks the indicator's visible "Saving…" pill — disabling and changing
-  // copy only while the blue pill is showing, not on every raw status flip.
-  const { flushAll, displayStatus } = useSaveStatus();
 
   const isEnoughPermissions = useMemo(() => {
     return checkUserPermissions(user, teamId ?? "", [
@@ -72,15 +80,40 @@ export const AppStoreForm = ({
   });
 
   return (
-    <div className="grid max-w-[700px] grid-cols-1fr/auto">
-      <form
-        className="grid gap-y-10"
-        onSubmit={(event) => {
-          event.preventDefault();
-        }}
-      >
-        {isMiniApp && (
-          <>
+    <form
+      className="grid gap-y-6"
+      onSubmit={(event) => {
+        event.preventDefault();
+      }}
+    >
+      {isMiniApp && (
+        <NumberedSection number="02" title="Store listing">
+          <div className="grid gap-y-8">
+            <CategorySection
+              control={control}
+              errors={errors}
+              isEditable={isEditable}
+              isEnoughPermissions={isEnoughPermissions}
+            />
+
+            <SupportSection
+              control={control}
+              errors={errors}
+              isEditable={isEditable}
+              isEnoughPermissions={isEnoughPermissions}
+              supportType={supportType}
+              onSupportTypeChange={handleSupportTypeChange}
+            />
+
+            <ContentCardImageSection
+              appId={appId}
+              teamId={teamId}
+              appMetadata={appMetadata}
+              isEditable={isEditable}
+              isEnoughPermissions={isEnoughPermissions}
+              errors={errors}
+            />
+
             <ComplianceSection
               control={control}
               isEditable={isEditable}
@@ -92,58 +125,36 @@ export const AppStoreForm = ({
               isEditable={isEditable}
               isEnoughPermissions={isEnoughPermissions}
             />
+          </div>
+        </NumberedSection>
+      )}
 
-            <CategorySection
-              control={control}
-              errors={errors}
-              isEditable={isEditable}
-              isEnoughPermissions={isEnoughPermissions}
-            />
+      <NumberedSection
+        number={isMiniApp ? "03" : "02"}
+        title="Availability"
+        banner={isMiniApp ? <LawsAndRegulationsBanner /> : undefined}
+      >
+        <div className="grid gap-y-8">
+          <CountriesSection
+            control={control}
+            errors={errors}
+            isEditable={isEditable}
+            isEnoughPermissions={isEnoughPermissions}
+          />
 
-            <SectionDivider />
+          <LanguagesSection
+            control={control}
+            errors={errors}
+            isEditable={isEditable}
+            isEnoughPermissions={isEnoughPermissions}
+          />
+        </div>
+      </NumberedSection>
 
-            <SupportSection
-              control={control}
-              errors={errors}
-              isEditable={isEditable}
-              isEnoughPermissions={isEnoughPermissions}
-              supportType={supportType}
-              onSupportTypeChange={handleSupportTypeChange}
-            />
-
-            <SectionDivider />
-
-            <ContentCardImageSection
-              appId={appId}
-              teamId={teamId}
-              appMetadata={appMetadata}
-              isEditable={isEditable}
-              isEnoughPermissions={isEnoughPermissions}
-              errors={errors}
-            />
-
-            <SectionDivider />
-          </>
-        )}
-
-        <CountriesSection
-          control={control}
-          errors={errors}
-          isEditable={isEditable}
-          isEnoughPermissions={isEnoughPermissions}
-        />
-
-        <SectionDivider />
-
-        <LanguagesSection
-          control={control}
-          errors={errors}
-          isEditable={isEditable}
-          isEnoughPermissions={isEnoughPermissions}
-        />
-
-        <SectionDivider />
-
+      <NumberedSection
+        number={isMiniApp ? "04" : "03"}
+        title="Localized content"
+      >
         <LocalisationsSection
           control={control}
           errors={errors}
@@ -159,22 +170,7 @@ export const AppStoreForm = ({
             refetchLocalisations();
           }}
         />
-
-        <div className="fixed bottom-[5.25rem] right-6 z-10 flex items-center gap-x-3 md:bottom-6">
-          <SaveStatusIndicator />
-          <SaveButton
-            isSubmitting={displayStatus.state === "saving"}
-            isDisabled={
-              !isEditable ||
-              !isEnoughPermissions ||
-              displayStatus.state === "saving"
-            }
-            onSubmit={() => {
-              void flushAll();
-            }}
-          />
-        </div>
-      </form>
-    </div>
+      </NumberedSection>
+    </form>
   );
 };

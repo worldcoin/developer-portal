@@ -24,6 +24,7 @@ export const FetchAppSecretDocument = gql`
         id: { _eq: $app_id }
         status: { _eq: "active" }
         is_archived: { _eq: false }
+        deleted_at: { _is_null: true }
         engine: { _eq: "cloud" }
       }
     ) {

@@ -179,7 +179,7 @@ update_permissions:
         app_metadata:
           _and:
             - verification_status:
-                _neq: verified
+                _eq: unverified
             - app:
                 deleted_at:
                   _is_null: true
@@ -198,9 +198,7 @@ update_permissions:
         app_metadata:
           _and:
             - verification_status:
-                _in:
-                  - unverified
-                  - awaiting_review
+                _eq: unverified
     comment: ""
 delete_permissions:
   - role: service
@@ -213,7 +211,7 @@ delete_permissions:
         app_metadata:
           _and:
             - verification_status:
-                _neq: verified
+                _eq: unverified
             - app:
                 deleted_at:
                   _is_null: true

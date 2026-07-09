@@ -2,6 +2,7 @@ import * as yup from "yup";
 import {
   allowCommonCharactersAndEmojisRegex,
   allowTitleAndEmojisRegex,
+  entityIdSchema,
   notificationTitleSchema,
 } from "./index";
 const emojiSuccessTestCases = [
@@ -23,6 +24,29 @@ const emojiFailureTestCases = [
 ];
 
 describe("schema validators", () => {
+  describe("entityIdSchema", () => {
+    it.each([
+      ["standard entity id", "team_f76d3a9cebb549bf69742557278af9e1"],
+      ["staging app entity id", "app_staging_6b1925816f364fbb27284a44c01bf5c9"],
+      ["v4 action entity id", "action_v4_6b1925816f364fbb27284a44c01bf5c9"],
+      [
+        "compound prefix entity id",
+        "report_appeal_6b1925816f364fbb27284a44c01bf5c9",
+      ],
+    ])("should accept %s", (_, input) => {
+      expect(entityIdSchema.isValidSync(input)).toBe(true);
+    });
+
+    it.each([
+      ["empty string", ""],
+      ["missing suffix", "app_staging"],
+      ["short suffix", "app_staging_6b1925816f364fbb27284a44c01bf5"],
+      ["empty prefix segment", "app__6b1925816f364fbb27284a44c01bf5c9"],
+    ])("should reject %s", (_, input) => {
+      expect(entityIdSchema.isValidSync(input)).toBe(false);
+    });
+  });
+
   describe("allowTitleAndEmojisRegex", () => {
     // create a yup validator that uses our test function
     const validator = yup

@@ -1,6 +1,6 @@
 import { gql } from "@apollo/client";
 import { integrationDBClean, integrationDBExecuteQuery } from "./setup";
-import { getAPIUserClient } from "./test-utils";
+import { getAPIClient, getAPIUserClient } from "./test-utils";
 
 /**
  * Integration tests for API key security
@@ -272,4 +272,112 @@ describe("API key security", () => {
     // Admin should not be able to update
     expect(updateResponse.data?.update_api_key_by_pk).toBeNull();
   });
+});
+
+/**
+ * Integration tests for the api_key role's action insert permission.
+ *
+ * H1 Report Reference: #3846290
+ *
+ * The partner-only action columns (webhook_uri, webhook_pem,
+ * app_flow_on_complete, post_action_deep_link_ios/android) are gated to partner
+ * teams in the UI create/update flows via checkIfPartnerTeam(). That check only
+ * runs in the Next.js server actions, but the public /api/v1/graphql proxy
+ * forwards raw mutations to Hasura with the api_key role, so a non-partner team
+ * could set these columns directly by calling insert_action_one. They are now
+ * removed from the api_key insert permission — partners set them through the
+ * service-role UI path — so Hasura rejects them regardless of the caller.
+ */
+describe("API key action insert permissions", () => {
+  // Each entry is [column, GraphQL literal] embedded inline in the insert input.
+  const PARTNER_ONLY_COLUMNS: Array<[string, string]> = [
+    ["webhook_uri", '"https://attacker.example.com/webhook"'],
+    ["webhook_pem", '"attacker-pem"'],
+    ["app_flow_on_complete", "VERIFY"],
+    ["post_action_deep_link_ios", '"worldapp://attacker-ios"'],
+    ["post_action_deep_link_android", '"worldapp://attacker-android"'],
+  ];
+
+  const getSeededApp = async () => {
+    const { rows } = (await integrationDBExecuteQuery(
+      `SELECT id AS app_id, team_id FROM "public"."app" WHERE team_id IS NOT NULL LIMIT 1`,
+    )) as { rows: Array<{ app_id: string; team_id: string }> };
+
+    expect(rows.length).toBe(1);
+    return rows[0];
+  };
+
+  test("api_key role can insert an action with the standard columns", async () => {
+    const { app_id, team_id } = await getSeededApp();
+    const client = await getAPIClient({ team_id });
+
+    const mutation = gql`
+      mutation InsertAction($object: action_insert_input!) {
+        insert_action_one(object: $object) {
+          id
+          action
+          name
+        }
+      }
+    `;
+
+    const response = await client.mutate<any>({
+      mutation,
+      variables: {
+        object: {
+          app_id,
+          action: "regression_standard_action",
+          name: "Standard Action",
+          description: "created via api_key role",
+          max_verifications: 3,
+        },
+      },
+    });
+
+    expect(response.data?.insert_action_one?.id).toEqual(
+      expect.stringContaining("action_"),
+    );
+  });
+
+  test.each(PARTNER_ONLY_COLUMNS)(
+    "api_key role cannot set partner-only column '%s' on insert",
+    async (column, literal) => {
+      const { app_id, team_id } = await getSeededApp();
+      const client = await getAPIClient({ team_id });
+
+      // The forbidden field is placed inline in the insert input so it is
+      // validated against the api_key role's action_insert_input type.
+      const mutation = gql`
+        mutation InsertActionWithPartnerColumn($app_id: String!) {
+          insert_action_one(
+            object: {
+              app_id: $app_id
+              action: "regression_${column}"
+              ${column}: ${literal}
+            }
+          ) {
+            id
+          }
+        }
+      `;
+
+      let error: any;
+      try {
+        await client.mutate<any>({ mutation, variables: { app_id } });
+      } catch (e) {
+        error = e;
+      }
+
+      expect(error).toBeDefined();
+      expect(error.graphQLErrors?.[0]?.message).toContain(
+        `field '${column}' not found in type: 'action_insert_input'`,
+      );
+
+      // The mutation is rejected at validation, so nothing is inserted.
+      const { rows } = (await integrationDBExecuteQuery(
+        `SELECT COUNT(*)::int AS count FROM "public"."action" WHERE action = 'regression_${column}'`,
+      )) as { rows: Array<{ count: number }> };
+      expect(rows[0].count).toBe(0);
+    },
+  );
 });

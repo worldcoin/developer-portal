@@ -1,6 +1,14 @@
 mutation ClaimRotationSlot($rp_id: String!) {
   update_rp_registration(
-    where: { rp_id: { _eq: $rp_id }, status: { _eq: registered } }
+    where: {
+      rp_id: { _eq: $rp_id }
+      status: { _eq: registered }
+      app: {
+        status: { _eq: "active" }
+        is_archived: { _eq: false }
+        deleted_at: { _is_null: true }
+      }
+    }
     _set: { status: pending }
   ) {
     affected_rows

@@ -96,6 +96,15 @@ export const NativeAppToAppIdMapping: Record<string, Record<string, string>> = {
   },
 };
 
+// The World ID Migration `app_id` is the legacy "Sign in with World ID" auth0 `client_id`.
+// It is a public identifier (not a secret), so we keep it in source rather than an env var,
+// giving the frontend and backend a single source of truth keyed by `NEXT_PUBLIC_APP_ENV`.
+export const WORLD_ID_MIGRATION_APP_IDS: Record<string, `app_${string}`> = {
+  dev: "app_988ffc5a91d98cf3930b481b28189d5c",
+  staging: "app_988ffc5a91d98cf3930b481b28189d5c",
+  production: "app_369183bd38f1641b6964ab51d7a20434",
+};
+
 export const NativeApps: Record<string, NativeAppsMap> = {
   dev: {
     app_test_123: {

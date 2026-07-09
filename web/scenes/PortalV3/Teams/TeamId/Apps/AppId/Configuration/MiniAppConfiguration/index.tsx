@@ -1,19 +1,20 @@
 "use client";
 
-import { Toggle } from "@/components/Toggle";
+import { Radio } from "@/components/Radio";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Role_Enum } from "@/graphql/graphql";
 import { Auth0SessionUser } from "@/lib/types";
 import { useRefetchQueries } from "@/lib/use-refetch-queries";
 import { checkUserPermissions } from "@/lib/utils";
-import { useUser } from "@auth0/nextjs-auth0/client";
-import { useAtom } from "jotai";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { toast } from "react-toastify";
 import {
   FetchAppMetadataDocument,
   FetchAppMetadataQueryVariables,
 } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/graphql/client/fetch-app-metadata.generated";
+import { useUser } from "@auth0/nextjs-auth0/client";
+import clsx from "clsx";
+import { useAtom } from "jotai";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { toast } from "react-toastify";
 import { AppMetadata } from "../AppStore/types/AppStoreFormTypes";
 import { isMiniAppAtom } from "../layout/ImagesProvider";
 import { useSaveStatusActions } from "../SaveStatus";
@@ -122,33 +123,55 @@ export const MiniAppConfiguration = ({
   );
   handleAppModeToggleRef.current = handleAppModeToggle;
 
+  const isDisabled = !isEditable || !isEnoughPermissions || isUpdatingMode;
+
+  const modeOptions = [
+    {
+      value: "mini-app",
+      isSelected: isMiniApp,
+      label: "Mini App",
+    },
+    {
+      value: "external",
+      isSelected: !isMiniApp,
+      label: "External Integration",
+    },
+  ] as const;
+
   return (
-    <div className="flex max-w-[700px] flex-col gap-5">
-      <Typography variant={TYPOGRAPHY.H7} className="font-normal text-grey-900">
-        Mini App Configuration
+    <div className="grid content-start gap-y-5 rounded-2xl border border-grey-200 bg-grey-0 p-6 shadow-button">
+      <Typography variant={TYPOGRAPHY.M2} className="text-grey-900">
+        How does this app reach users?
       </Typography>
 
-      <div className="grid grid-cols-1 gap-y-10">
-        {/* This is a Mini App toggle */}
-        <div className="rounded-[10px] border border-grey-100 px-6 py-4">
-          <div className="flex items-center gap-x-4">
-            <div className="grid flex-1 gap-y-1">
-              <Typography variant={TYPOGRAPHY.S2} className="text-grey-900">
-                This is a Mini App
-              </Typography>
-              <Typography variant={TYPOGRAPHY.B3} className="text-grey-500">
-                Check this if you have integrated mini-kit into your app and
-                want it to load as a mini-app. Your app will be rejected if this
-                is not true.
-              </Typography>
-            </div>
-            <Toggle
-              checked={isMiniApp}
-              onChange={handleAppModeToggle}
-              disabled={!isEditable || !isEnoughPermissions || isUpdatingMode}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        {modeOptions.map((option) => (
+          <label
+            key={option.value}
+            className={clsx(
+              "flex cursor-pointer items-center gap-x-3 rounded-xl border p-5 transition-colors",
+              option.isSelected
+                ? "border-blue-500 bg-blue-50"
+                : "border-grey-200 hover:border-grey-300",
+              isDisabled && "cursor-default opacity-60",
+            )}
+          >
+            <Radio
+              value={option.value}
+              name="app_mode"
+              checked={option.isSelected}
+              onChange={() => {
+                if (!option.isSelected) {
+                  void handleAppModeToggle(option.value === "mini-app");
+                }
+              }}
+              disabled={isDisabled}
             />
-          </div>
-        </div>
+            <Typography variant={TYPOGRAPHY.R4} className="text-grey-900">
+              {option.label}
+            </Typography>
+          </label>
+        ))}
       </div>
     </div>
   );

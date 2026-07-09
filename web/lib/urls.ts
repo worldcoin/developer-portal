@@ -157,5 +157,9 @@ export const urls = {
 
     authDeleteAccount: (): "/api/auth/delete-account" =>
       "/api/auth/delete-account",
+
+    // API endpoint that helps recover an account created with "Sign in With World"
+    worldIdAccountMigration: (): "/api/profile/world-id-account-migration" =>
+      "/api/profile/world-id-account-migration",
   },
 };
