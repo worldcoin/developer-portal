@@ -218,6 +218,26 @@ describe("/api/v1/oidc/authorize [request validation]", () => {
 });
 
 describe("/api/v1/oidc/authorize [authorization code flow]", () => {
+  test("rejects apps excluded from active OIDC lookup", async () => {
+    FetchOIDCApp.mockResolvedValueOnce({ app: [] });
+
+    const req = new NextRequest("http://localhost:3000/api/v1/oidc/authorize", {
+      method: "POST",
+      body: JSON.stringify({ ...VALID_REQUEST }),
+    });
+
+    const response = await POST(req);
+    const data = await response.json();
+
+    expect(response.status).toBe(404);
+    expect(data).toMatchObject({
+      code: "app_not_found",
+      attribute: "app_id",
+      detail: "App not found or not active.",
+    });
+    expect(mockVerifyProof).not.toHaveBeenCalled();
+  });
+
   test("returns an authorization code", async () => {
     const req = new NextRequest("http://localhost:3000/api/v1/oidc/authorize", {
       method: "POST",

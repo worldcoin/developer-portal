@@ -1,0 +1,49 @@
+import { ClaimRotationSlotDocument } from "@/api/hasura/rotate-signer-key/graphql/claim-rotation-slot.generated";
+import { GetRpRegistrationDocument } from "@/api/hasura/rotate-signer-key/graphql/get-rp-registration.generated";
+import { FetchAppSecretDocument } from "@/api/helpers/oidc/graphql/fetch-app-secret-query.generated";
+import { FetchOidcAppDocument } from "@/api/helpers/oidc/graphql/fetch-oidc-app.generated";
+import { AppPrecheckByActionQueryDocument } from "@/api/v1/precheck/[app_id]/graphql/app-precheck-by-action.generated";
+import { AppPrecheckQueryDocument } from "@/api/v1/precheck/[app_id]/graphql/app-precheck.generated";
+import { FetchRpRegistrationForPrecheckDocument } from "@/api/v1/precheck/[app_id]/graphql/fetch-rp-registration-for-precheck.generated";
+import { FetchAppActionDocument } from "@/api/v2/verify/graphql/fetch-app-action.generated";
+import { print } from "graphql";
+import { DocumentNode } from "graphql/language";
+
+// #region Test Data
+const source = (document: DocumentNode) => print(document).replace(/\s+/g, "");
+// #endregion
+
+// #region Deleted app guards
+describe("deleted app guards", () => {
+  it("filters deleted apps from public active-app lookups", () => {
+    const documents = [
+      AppPrecheckQueryDocument,
+      AppPrecheckByActionQueryDocument,
+      FetchRpRegistrationForPrecheckDocument,
+      FetchAppActionDocument,
+      FetchOidcAppDocument,
+      FetchAppSecretDocument,
+    ];
+
+    for (const document of documents) {
+      expect(source(document)).toContain("deleted_at:{_is_null:true}");
+    }
+  });
+
+  it("selects app deletion state before rotating signer keys", () => {
+    const document = source(GetRpRegistrationDocument);
+
+    expect(document).toContain("status");
+    expect(document).toContain("is_archived");
+    expect(document).toContain("deleted_at");
+  });
+
+  it("checks app deletion state atomically when claiming rotation slots", () => {
+    const document = source(ClaimRotationSlotDocument);
+
+    expect(document).toContain('status:{_eq:"active"}');
+    expect(document).toContain("is_archived:{_eq:false}");
+    expect(document).toContain("deleted_at:{_is_null:true}");
+  });
+});
+// #endregion
