@@ -141,6 +141,7 @@ export const cloudflareAccessAdminAuthProvider: AdminAuthProvider = {
       const { payload } = await jwtVerify(token, getJwks(teamDomain), {
         issuer: teamDomain,
         audience,
+        algorithms: ["RS256"],
       });
 
       if (
