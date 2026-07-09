@@ -4,6 +4,7 @@ import { protectInternalEndpoint } from "@/api/helpers/utils";
 import { logger } from "@/lib/logger";
 import { NextRequest, NextResponse } from "next/server";
 import { getSdk as getDeletedAppRpsSdk } from "./graphql/get-deleted-app-rps.generated";
+import { getSdk as getTouchDeletedAppRpSdk } from "./graphql/touch-deleted-app-rp.generated";
 
 // Only reconcile rows whose last update is older than this, so we don't stomp
 // a deactivation transaction the delete flow just submitted and is still
@@ -51,6 +52,27 @@ export async function POST(request: NextRequest) {
   let skipped = 0;
   let failed = 0;
 
+  // On a failed attempt, bump the row's updated_at so it rotates to the back of
+  // the `updated_at asc` batch and is excluded by RECONCILE_GRACE next run.
+  // Without this, a persistently-failing row (e.g. a per-row RPC error, or the
+  // missing-staging-config case) keeps its old updated_at, stays among the
+  // oldest rows, and monopolizes the bounded batch — starving newer deleted
+  // apps whose RPs would then never be reconciled. Best-effort: a failed touch
+  // just means the row is retried on the next run instead of after a cooldown.
+  const touchAfterFailure = async (rpId: string) => {
+    try {
+      await getTouchDeletedAppRpSdk(client).TouchDeletedAppRp({
+        rp_id: rpId,
+        now: new Date().toISOString(),
+      });
+    } catch (touchError) {
+      logger.warn("Failed to touch RP after failed deactivation", {
+        error: touchError,
+        rp_id: rpId,
+      });
+    }
+  };
+
   // Sequential to keep on-chain submission load bounded. Each candidate is
   // isolated in its own try/catch so a single bad row (an unexpected throw
   // from a GraphQL/RPC call) is counted and logged rather than aborting the
@@ -70,6 +92,7 @@ export async function POST(request: NextRequest) {
           code: result.code,
           detail: result.detail,
         });
+        await touchAfterFailure(candidate.rp_id);
       } else if (result.outcome === "submitted") {
         submitted += 1;
       } else {
@@ -82,6 +105,7 @@ export async function POST(request: NextRequest) {
         app_id: candidate.app_id,
         rp_id: candidate.rp_id,
       });
+      await touchAfterFailure(candidate.rp_id);
     }
   }
 
