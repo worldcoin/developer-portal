@@ -233,10 +233,12 @@ export async function proxy(request: NextRequest) {
   // treat it as the dashboard entry point there. Every other host keeps
   // today's behavior of not running middleware on "/" at all (it wasn't in
   // `config.matcher` before this route was added).
+  if (pathname === "/" && isInternalDashboardHost(request)) {
+    return createDashboardRewriteResponse(request);
+  }
+
   if (pathname === "/") {
-    return isInternalDashboardHost(request)
-      ? createDashboardRewriteResponse(request)
-      : NextResponse.next();
+    return NextResponse.next();
   }
 
   if (isAdminPagePath(pathname)) {
