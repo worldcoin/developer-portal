@@ -84,10 +84,25 @@ export const AdminTeamsPage = async ({
 
   return (
     <div className="grid h-full min-h-0 grid-rows-auto/1fr gap-y-4">
-      <UIModule className="p-4">
-        <h1 className="text-lg font-medium">Teams</h1>
-        <div className="text-sm text-grey-500">
-          Teams amount: <span className="font-medium">{teamsAmount}</span>
+      <UIModule className="p-5">
+        <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
+          <div className="min-w-0">
+            <h1 className="text-24 font-semibold tracking-[-0.02em] text-grey-900">
+              Teams
+            </h1>
+            <p className="mt-2 max-w-2xl text-14 text-grey-500">
+              Browse, search, sort, and inspect registered developer teams.
+            </p>
+          </div>
+
+          <div className="rounded-12 border border-grey-200 bg-grey-50 px-3 py-2">
+            <div className="text-11 font-medium uppercase tracking-wide text-grey-400">
+              Total teams
+            </div>
+            <div className="mt-1 text-20 font-semibold text-grey-900">
+              {teamsAmount}
+            </div>
+          </div>
         </div>
       </UIModule>
 
