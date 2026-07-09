@@ -1,6 +1,10 @@
 import "server-only";
 
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
+import {
+  DEFAULT_TEAMS_LIMIT,
+  type TeamsLimit,
+} from "@/components/AdminDashboard/Teams/pagination";
 import type { TeamTableRow } from "@/components/AdminDashboard/Teams/types";
 import { logger } from "@/lib/logger";
 
@@ -43,11 +47,17 @@ const mapTeamToTableRow = (
   };
 };
 
-export const fetchAdminTeams = async () => {
+type FetchAdminTeamsOptions = {
+  limit: TeamsLimit;
+};
+
+export const fetchAdminTeamsPage = async ({
+  limit,
+}: FetchAdminTeamsOptions = { limit: DEFAULT_TEAMS_LIMIT }) => {
   const client = await getAPIServiceGraphqlClient();
 
   try {
-    const data = await getSdk(client).FetchAdminTeams();
+    const data = await getSdk(client).FetchAdminTeams({ limit });
 
     const membersByTeamId = countByTeamId(data.membership);
     const appsByTeamId = countByTeamId(data.app);
@@ -66,7 +76,7 @@ export const fetchAdminTeams = async () => {
 
     return {
       teams,
-      teamsAmount: teams.length,
+      teamsAmount: data.team_aggregate.aggregate?.count ?? teams.length,
     };
   } catch (error) {
     logger.error("Failed to fetch admin teams", { error });

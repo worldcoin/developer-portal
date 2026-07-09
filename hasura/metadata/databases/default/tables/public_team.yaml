@@ -73,6 +73,7 @@ select_permissions:
         - name
         - updated_at
       filter: {}
+      allow_aggregations: true
   - role: user
     permission:
       columns:

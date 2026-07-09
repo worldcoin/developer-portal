@@ -1,9 +1,14 @@
-query FetchAdminTeams {
-  team(order_by: { created_at: desc }) {
+query FetchAdminTeams($limit: Int!) {
+  team(limit: $limit, order_by: { created_at: desc }) {
     id
     name
     created_at
     deleted_at
+  }
+  team_aggregate {
+    aggregate {
+      count
+    }
   }
   membership {
     team_id

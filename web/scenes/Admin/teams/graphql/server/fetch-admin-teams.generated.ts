@@ -5,7 +5,7 @@ import { GraphQLClient, RequestOptions } from "graphql-request";
 import gql from "graphql-tag";
 type GraphQLClientRequestHeaders = RequestOptions["requestHeaders"];
 export type FetchAdminTeamsQueryVariables = Types.Exact<{
-  [key: string]: never;
+  limit: Types.Scalars["Int"]["input"];
 }>;
 
 export type FetchAdminTeamsQuery = {
@@ -17,6 +17,13 @@ export type FetchAdminTeamsQuery = {
     created_at: string;
     deleted_at?: string | null;
   }>;
+  team_aggregate: {
+    __typename?: "team_aggregate";
+    aggregate?: {
+      __typename?: "team_aggregate_fields";
+      count: number;
+    } | null;
+  };
   membership: Array<{ __typename?: "membership"; team_id: string }>;
   app: Array<{ __typename?: "app"; team_id: string }>;
   api_key: Array<{ __typename?: "api_key"; team_id: string }>;
@@ -24,12 +31,17 @@ export type FetchAdminTeamsQuery = {
 };
 
 export const FetchAdminTeamsDocument = gql`
-  query FetchAdminTeams {
-    team(order_by: { created_at: desc }) {
+  query FetchAdminTeams($limit: Int!) {
+    team(limit: $limit, order_by: { created_at: desc }) {
       id
       name
       created_at
       deleted_at
+    }
+    team_aggregate {
+      aggregate {
+        count
+      }
     }
     membership {
       team_id
