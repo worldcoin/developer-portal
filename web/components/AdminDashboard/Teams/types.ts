@@ -1,4 +1,5 @@
 import type { TeamColumnVisibility } from "./column-visibility";
+import type { TeamsSort } from "./sorting";
 
 export type TeamStatus = "Active" | "Deleted";
 
@@ -16,4 +17,5 @@ export type TeamTableRow = {
 export type TeamsTableProps = {
   columnVisibility: TeamColumnVisibility;
   data: TeamTableRow[];
+  sort: TeamsSort | null;
 };

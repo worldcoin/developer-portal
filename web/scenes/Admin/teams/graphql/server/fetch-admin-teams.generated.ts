@@ -13,6 +13,7 @@ export type FetchAdminTeamsQueryVariables = Types.Exact<{
   includeStatus: Types.Scalars["Boolean"]["input"];
   limit: Types.Scalars["Int"]["input"];
   offset: Types.Scalars["Int"]["input"];
+  orderBy: Array<Types.Team_Order_By> | Types.Team_Order_By;
   where: Types.Team_Bool_Exp;
 }>;
 
@@ -48,14 +49,10 @@ export const FetchAdminTeamsDocument = gql`
     $includeStatus: Boolean!
     $limit: Int!
     $offset: Int!
+    $orderBy: [team_order_by!]!
     $where: team_bool_exp!
   ) {
-    team(
-      limit: $limit
-      offset: $offset
-      order_by: { created_at: desc }
-      where: $where
-    ) {
+    team(limit: $limit, offset: $offset, order_by: $orderBy, where: $where) {
       id
       name
       created_at @include(if: $includeCreatedAt)

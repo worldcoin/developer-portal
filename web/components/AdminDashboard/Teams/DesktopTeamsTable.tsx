@@ -1,3 +1,5 @@
+"use client";
+
 import type {
   Cell,
   Header,
@@ -6,7 +8,9 @@ import type {
 } from "@tanstack/react-table";
 import { flexRender } from "@tanstack/react-table";
 import clsx from "clsx";
-import type { KeyboardEvent } from "react";
+import { ArrowDown, ArrowUp } from "lucide-react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import type { KeyboardEvent, ReactNode } from "react";
 
 import {
   clampColumnSize,
@@ -18,14 +22,28 @@ import {
   isNumericColumn,
   isRowHeaderColumn,
 } from "./table-utils";
+import {
+  SORTABLE_TEAM_COLUMN_IDS,
+  getEffectiveTeamsSort,
+  getNextTeamsSort,
+  serializeTeamsSort,
+  type TeamsSort,
+  type TeamsSortField,
+} from "./sorting";
 import type { TeamTableRow } from "./types";
 
 type DesktopTeamsTableProps = {
+  sort: TeamsSort | null;
   table: TableInstance<TeamTableRow>;
   rows: Row<TeamTableRow>[];
 };
 
 type DesktopHeaderCellProps = {
+  header: Header<TeamTableRow, unknown>;
+  sort: TeamsSort | null;
+};
+
+type ResizeHandleProps = {
   header: Header<TeamTableRow, unknown>;
 };
 
@@ -33,7 +51,13 @@ type DesktopBodyCellProps = {
   cell: Cell<TeamTableRow, unknown>;
 };
 
-export const DesktopTeamsTable = ({ table, rows }: DesktopTeamsTableProps) => {
+const SORTABLE_TEAM_COLUMN_IDS_SET = new Set<string>(SORTABLE_TEAM_COLUMN_IDS);
+
+export const DesktopTeamsTable = ({
+  rows,
+  sort,
+  table,
+}: DesktopTeamsTableProps) => {
   return (
     <div
       aria-label="Scrollable teams table"
@@ -53,7 +77,7 @@ export const DesktopTeamsTable = ({ table, rows }: DesktopTeamsTableProps) => {
           {table.getHeaderGroups().map((headerGroup) => (
             <tr key={headerGroup.id}>
               {headerGroup.headers.map((header) => (
-                <DesktopHeaderCell key={header.id} header={header} />
+                <DesktopHeaderCell key={header.id} header={header} sort={sort} />
               ))}
             </tr>
           ))}
@@ -73,12 +97,17 @@ export const DesktopTeamsTable = ({ table, rows }: DesktopTeamsTableProps) => {
   );
 };
 
-const DesktopHeaderCell = ({ header }: DesktopHeaderCellProps) => {
+const DesktopHeaderCell = ({ header, sort }: DesktopHeaderCellProps) => {
   const headerContent = getHeaderContent(header);
   const isPinned = header.column.getIsPinned();
+  const sortField = getHeaderSortField(header);
+  const effectiveSort = getEffectiveTeamsSort(sort);
+  const isSorted = Boolean(sortField && effectiveSort.field === sortField);
+  const ariaSort = getHeaderAriaSort(sortField, effectiveSort);
 
   return (
     <th
+      aria-sort={ariaSort}
       scope="col"
       style={{
         width: header.getSize(),
@@ -91,9 +120,82 @@ const DesktopHeaderCell = ({ header }: DesktopHeaderCellProps) => {
         isNumericColumn(header.column.id) && "text-right",
       )}
     >
-      {headerContent}
+      {sortField ? (
+        <SortableHeaderButton
+          isNumeric={isNumericColumn(header.column.id)}
+          isSorted={isSorted}
+          sort={sort}
+          sortField={sortField}
+        >
+          {headerContent}
+        </SortableHeaderButton>
+      ) : (
+        headerContent
+      )}
       <ResizeHandle header={header} />
     </th>
+  );
+};
+
+type SortableHeaderButtonProps = {
+  children: ReactNode;
+  isNumeric: boolean;
+  isSorted: boolean;
+  sort: TeamsSort | null;
+  sortField: TeamsSortField;
+};
+
+const SortableHeaderButton = ({
+  children,
+  isNumeric,
+  isSorted,
+  sort,
+  sortField,
+}: SortableHeaderButtonProps) => {
+  const pathname = usePathname();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const effectiveSort = getEffectiveTeamsSort(sort);
+  const nextSort = getNextTeamsSort(sort, sortField);
+
+  const updateSort = () => {
+    const params = new URLSearchParams(searchParams.toString());
+
+    if (nextSort) {
+      params.set("sort", serializeTeamsSort(nextSort));
+    } else {
+      params.delete("sort");
+    }
+
+    params.delete("page");
+
+    const query = params.toString();
+
+    router.replace(query ? `${pathname}?${query}` : pathname, {
+      scroll: false,
+    });
+  };
+
+  return (
+    <button
+      className={clsx(
+        "inline-flex max-w-full items-center gap-1.5 rounded-8 text-left outline-none transition-colors hover:text-grey-900 focus-visible:ring-2 focus-visible:ring-blue-500",
+        isNumeric && "ml-auto",
+        isSorted ? "text-grey-900" : "text-grey-400",
+      )}
+      onClick={updateSort}
+      type="button"
+    >
+      <span className="min-w-0 truncate">{children}</span>
+      <span className="grid size-4 shrink-0 place-items-center">
+        {isSorted &&
+          (effectiveSort.direction === "asc" ? (
+            <ArrowUp className="size-3.5" />
+          ) : (
+            <ArrowDown className="size-3.5" />
+          ))}
+      </span>
+    </button>
   );
 };
 
@@ -126,7 +228,7 @@ const DesktopBodyCell = ({ cell }: DesktopBodyCellProps) => {
   );
 };
 
-const ResizeHandle = ({ header }: DesktopHeaderCellProps) => {
+const ResizeHandle = ({ header }: ResizeHandleProps) => {
   if (!header.column.getCanResize()) {
     return null;
   }
@@ -168,6 +270,29 @@ const getHeaderContent = (header: Header<TeamTableRow, unknown>) => {
   }
 
   return flexRender(header.column.columnDef.header, header.getContext());
+};
+
+const getHeaderSortField = (header: Header<TeamTableRow, unknown>) => {
+  if (header.isPlaceholder) {
+    return null;
+  }
+
+  if (!SORTABLE_TEAM_COLUMN_IDS_SET.has(header.column.id)) {
+    return null;
+  }
+
+  return header.column.id as TeamsSortField;
+};
+
+const getHeaderAriaSort = (
+  sortField: TeamsSortField | null,
+  effectiveSort: TeamsSort,
+) => {
+  if (!sortField || sortField !== effectiveSort.field) {
+    return undefined;
+  }
+
+  return effectiveSort.direction === "asc" ? "ascending" : "descending";
 };
 
 const getHeaderLabel = (header: Header<TeamTableRow, unknown>) => {

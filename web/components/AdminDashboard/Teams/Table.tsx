@@ -10,7 +10,7 @@ import type { TeamsTableProps } from "./types";
 
 export type { TeamTableRow } from "./types";
 
-export const TeamsTable = ({ columnVisibility, data }: TeamsTableProps) => {
+export const TeamsTable = ({ columnVisibility, data, sort }: TeamsTableProps) => {
   const table = useReactTable({
     data,
     columns,
@@ -41,7 +41,7 @@ export const TeamsTable = ({ columnVisibility, data }: TeamsTableProps) => {
   return (
     <>
       <MobileTeamsList columnVisibility={columnVisibility} teams={data} />
-      <DesktopTeamsTable table={table} rows={rows} />
+      <DesktopTeamsTable rows={rows} sort={sort} table={table} />
     </>
   );
 };

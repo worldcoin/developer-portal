@@ -4,6 +4,7 @@ import {
   parseTeamsPage,
 } from "@/components/AdminDashboard/Teams/pagination";
 import { parseTeamsSearchQuery } from "@/components/AdminDashboard/Teams/search";
+import { parseTeamsSort } from "@/components/AdminDashboard/Teams/sorting";
 import { requireAdminUser } from "@/lib/admin-auth";
 import { generateMetaTitle } from "@/lib/genarate-title";
 import { AdminTeamsPage } from "@/scenes/Admin/teams/page";
@@ -15,6 +16,7 @@ type PageProps = {
     limit?: string | string[];
     page?: string | string[];
     query?: string | string[];
+    sort?: string | string[];
   }>;
 };
 
@@ -30,6 +32,7 @@ export default async function Page({ searchParams }: PageProps) {
   const limit = parseTeamsLimit(params.limit);
   const page = parseTeamsPage(params.page);
   const searchQuery = parseTeamsSearchQuery(params.query);
+  const sort = parseTeamsSort(params.sort);
 
   return (
     <AdminTeamsPage
@@ -37,6 +40,7 @@ export default async function Page({ searchParams }: PageProps) {
       limit={limit}
       page={page}
       searchQuery={searchQuery}
+      sort={sort}
     />
   );
 }

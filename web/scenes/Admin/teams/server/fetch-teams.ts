@@ -18,8 +18,16 @@ import {
   type ParsedTeamsSearchToken,
   type TeamsSearchOperator,
 } from "@/components/AdminDashboard/Teams/search";
+import {
+  getEffectiveTeamsSort,
+  type TeamsSort,
+} from "@/components/AdminDashboard/Teams/sorting";
 import type { TeamTableRow } from "@/components/AdminDashboard/Teams/types";
-import type { Team_Bool_Exp } from "@/graphql/graphql";
+import {
+  Order_By,
+  type Team_Bool_Exp,
+  type Team_Order_By,
+} from "@/graphql/graphql";
 import { logger } from "@/lib/logger";
 
 import {
@@ -225,6 +233,44 @@ const createTeamsWhere = (searchQuery: string): Team_Bool_Exp => {
   };
 };
 
+const getHasuraSortDirection = (sort: TeamsSort) => {
+  return sort.direction === "asc" ? Order_By.Asc : Order_By.Desc;
+};
+
+const createTeamsOrderBy = (sort: TeamsSort | null): Team_Order_By[] => {
+  const effectiveSort = getEffectiveTeamsSort(sort);
+  const direction = getHasuraSortDirection(effectiveSort);
+
+  if (effectiveSort.field === "name") {
+    return [{ name: direction }];
+  }
+
+  if (effectiveSort.field === "status") {
+    return [
+      {
+        deleted_at:
+          effectiveSort.direction === "asc"
+            ? Order_By.AscNullsFirst
+            : Order_By.DescNullsLast,
+      },
+      { name: Order_By.Asc },
+    ];
+  }
+
+  if (effectiveSort.field === "membersCount") {
+    return [
+      { memberships_aggregate: { count: direction } },
+      { name: Order_By.Asc },
+    ];
+  }
+
+  if (effectiveSort.field === "createdAt") {
+    return [{ created_at: direction }, { name: Order_By.Asc }];
+  }
+
+  return [{ name: Order_By.Asc }];
+};
+
 const mapTeamToTableRow = (
   team: FetchAdminTeamsQuery["team"][number],
   columnVisibility: TeamColumnVisibility,
@@ -257,6 +303,7 @@ type FetchAdminTeamsOptions = {
   limit: TeamsLimit;
   page: number;
   searchQuery: string;
+  sort: TeamsSort | null;
 };
 
 export const fetchAdminTeamsPage = async ({
@@ -264,15 +311,18 @@ export const fetchAdminTeamsPage = async ({
   limit,
   page,
   searchQuery,
+  sort,
 }: FetchAdminTeamsOptions = {
   columnVisibility: DEFAULT_TEAM_COLUMN_VISIBILITY,
   limit: DEFAULT_TEAMS_LIMIT,
   page: DEFAULT_TEAMS_PAGE,
   searchQuery: "",
+  sort: null,
 }) => {
   const client = await getAPIServiceGraphqlClient();
   const offset = getTeamsOffset(page, limit);
   const where = createTeamsWhere(searchQuery);
+  const orderBy = createTeamsOrderBy(sort);
 
   try {
     const data = await getSdk(client).FetchAdminTeams({
@@ -284,6 +334,7 @@ export const fetchAdminTeamsPage = async ({
       includeStatus: columnVisibility.status,
       limit,
       offset,
+      orderBy,
       where,
     });
 

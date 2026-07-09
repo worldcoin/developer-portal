@@ -7,12 +7,13 @@ query FetchAdminTeams(
   $includeStatus: Boolean!
   $limit: Int!
   $offset: Int!
+  $orderBy: [team_order_by!]!
   $where: team_bool_exp!
 ) {
   team(
     limit: $limit
     offset: $offset
-    order_by: { created_at: desc }
+    order_by: $orderBy
     where: $where
   ) {
     id

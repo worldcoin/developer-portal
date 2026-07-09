@@ -5,6 +5,10 @@ import {
   type TeamColumnVisibility,
 } from "@/components/AdminDashboard/Teams/column-visibility";
 import type { TeamsLimit } from "@/components/AdminDashboard/Teams/pagination";
+import {
+  serializeTeamsSort,
+  type TeamsSort,
+} from "@/components/AdminDashboard/Teams/sorting";
 import { UIModule } from "@/components/AdminDashboard/UIModule";
 import { redirect } from "next/navigation";
 
@@ -15,6 +19,7 @@ type AdminTeamsPageProps = {
   limit: TeamsLimit;
   page: number;
   searchQuery: string;
+  sort: TeamsSort | null;
 };
 
 const createAdminTeamsPageUrl = ({
@@ -22,11 +27,13 @@ const createAdminTeamsPageUrl = ({
   limit,
   page,
   searchQuery,
+  sort,
 }: {
   columnVisibility: TeamColumnVisibility;
   limit: TeamsLimit;
   page: number;
   searchQuery: string;
+  sort: TeamsSort | null;
 }) => {
   const params = new URLSearchParams();
   params.set("columns", serializeTeamColumnVisibility(columnVisibility));
@@ -34,6 +41,10 @@ const createAdminTeamsPageUrl = ({
 
   if (searchQuery) {
     params.set("query", searchQuery);
+  }
+
+  if (sort) {
+    params.set("sort", serializeTeamsSort(sort));
   }
 
   if (page > 1) {
@@ -48,9 +59,16 @@ export const AdminTeamsPage = async ({
   limit,
   page,
   searchQuery,
+  sort,
 }: AdminTeamsPageProps) => {
   const { teams, teamsAmount, currentPage, totalPages } =
-    await fetchAdminTeamsPage({ columnVisibility, limit, page, searchQuery });
+    await fetchAdminTeamsPage({
+      columnVisibility,
+      limit,
+      page,
+      searchQuery,
+      sort,
+    });
 
   if (page !== currentPage) {
     redirect(
@@ -59,6 +77,7 @@ export const AdminTeamsPage = async ({
         limit,
         page: currentPage,
         searchQuery,
+        sort,
       }),
     );
   }
@@ -82,7 +101,11 @@ export const AdminTeamsPage = async ({
           totalPages={totalPages}
         />
         <div className="min-h-0 min-w-0 overflow-hidden">
-          <TeamsTable columnVisibility={columnVisibility} data={teams} />
+          <TeamsTable
+            columnVisibility={columnVisibility}
+            data={teams}
+            sort={sort}
+          />
         </div>
       </UIModule>
     </div>
