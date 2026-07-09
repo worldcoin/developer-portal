@@ -14,20 +14,27 @@ type AdminTeamsPageProps = {
   columnVisibility: TeamColumnVisibility;
   limit: TeamsLimit;
   page: number;
+  searchQuery: string;
 };
 
 const createAdminTeamsPageUrl = ({
   columnVisibility,
   limit,
   page,
+  searchQuery,
 }: {
   columnVisibility: TeamColumnVisibility;
   limit: TeamsLimit;
   page: number;
+  searchQuery: string;
 }) => {
   const params = new URLSearchParams();
   params.set("columns", serializeTeamColumnVisibility(columnVisibility));
   params.set("limit", String(limit));
+
+  if (searchQuery) {
+    params.set("query", searchQuery);
+  }
 
   if (page > 1) {
     params.set("page", String(page));
@@ -40,9 +47,10 @@ export const AdminTeamsPage = async ({
   columnVisibility,
   limit,
   page,
+  searchQuery,
 }: AdminTeamsPageProps) => {
   const { teams, teamsAmount, currentPage, totalPages } =
-    await fetchAdminTeamsPage({ columnVisibility, limit, page });
+    await fetchAdminTeamsPage({ columnVisibility, limit, page, searchQuery });
 
   if (page !== currentPage) {
     redirect(
@@ -50,6 +58,7 @@ export const AdminTeamsPage = async ({
         columnVisibility,
         limit,
         page: currentPage,
+        searchQuery,
       }),
     );
   }
@@ -68,6 +77,7 @@ export const AdminTeamsPage = async ({
           columnVisibility={columnVisibility}
           currentPage={currentPage}
           limit={limit}
+          searchQuery={searchQuery}
           teamsAmount={teamsAmount}
           totalPages={totalPages}
         />

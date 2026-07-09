@@ -3,6 +3,7 @@ import {
   parseTeamsLimit,
   parseTeamsPage,
 } from "@/components/AdminDashboard/Teams/pagination";
+import { parseTeamsSearchQuery } from "@/components/AdminDashboard/Teams/search";
 import { requireAdminUser } from "@/lib/admin-auth";
 import { generateMetaTitle } from "@/lib/genarate-title";
 import { AdminTeamsPage } from "@/scenes/Admin/teams/page";
@@ -13,6 +14,7 @@ type PageProps = {
     columns?: string | string[];
     limit?: string | string[];
     page?: string | string[];
+    query?: string | string[];
   }>;
 };
 
@@ -27,12 +29,14 @@ export default async function Page({ searchParams }: PageProps) {
   const columnVisibility = parseTeamColumnVisibility(params.columns);
   const limit = parseTeamsLimit(params.limit);
   const page = parseTeamsPage(params.page);
+  const searchQuery = parseTeamsSearchQuery(params.query);
 
   return (
     <AdminTeamsPage
       columnVisibility={columnVisibility}
       limit={limit}
       page={page}
+      searchQuery={searchQuery}
     />
   );
 }

@@ -14,6 +14,7 @@ import {
   type TeamColumnVisibility,
 } from "@/components/AdminDashboard/Teams/column-visibility";
 import type { TeamTableRow } from "@/components/AdminDashboard/Teams/types";
+import type { Team_Bool_Exp } from "@/graphql/graphql";
 import { logger } from "@/lib/logger";
 
 import {
@@ -34,6 +35,29 @@ const countByTeamId = (rows: Array<{ team_id: string }>) => {
   }
 
   return countsByTeamId;
+};
+
+const createTeamsWhere = (searchQuery: string): Team_Bool_Exp => {
+  if (!searchQuery) {
+    return {};
+  }
+
+  const searchPattern = `%${searchQuery}%`;
+
+  return {
+    _or: [
+      {
+        name: {
+          _ilike: searchPattern,
+        },
+      },
+      {
+        id: {
+          _ilike: searchPattern,
+        },
+      },
+    ],
+  };
 };
 
 const mapTeamToTableRow = (
@@ -67,19 +91,23 @@ type FetchAdminTeamsOptions = {
   columnVisibility: TeamColumnVisibility;
   limit: TeamsLimit;
   page: number;
+  searchQuery: string;
 };
 
 export const fetchAdminTeamsPage = async ({
   columnVisibility,
   limit,
   page,
+  searchQuery,
 }: FetchAdminTeamsOptions = {
   columnVisibility: DEFAULT_TEAM_COLUMN_VISIBILITY,
   limit: DEFAULT_TEAMS_LIMIT,
   page: DEFAULT_TEAMS_PAGE,
+  searchQuery: "",
 }) => {
   const client = await getAPIServiceGraphqlClient();
   const offset = getTeamsOffset(page, limit);
+  const where = createTeamsWhere(searchQuery);
 
   try {
     const data = await getSdk(client).FetchAdminTeams({
@@ -91,6 +119,7 @@ export const fetchAdminTeamsPage = async ({
       includeStatus: columnVisibility.status,
       limit,
       offset,
+      where,
     });
 
     const membersByTeamId = countByTeamId(data.membership ?? []);
