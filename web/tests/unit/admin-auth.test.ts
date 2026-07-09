@@ -333,6 +333,7 @@ describe("cloudflare-access provider", () => {
       {
         issuer: "https://example.cloudflareaccess.com",
         audience: "test-aud",
+        algorithms: ["RS256"],
       },
     );
   });
@@ -393,8 +394,25 @@ describe("cloudflare-access provider", () => {
     });
     mockIdentityResponse({
       email: "user@example.com",
-      groups: ["example-readers"],
-      idp: { type: "okta", groups: ["example-readers", "example-admins"] },
+      groups: [
+        {
+          id: "fdaedb59-e9be-4ab7-8001-3e069da54185",
+          name: "example-readers",
+        },
+      ],
+      idp: {
+        type: "okta",
+        groups: [
+          {
+            id: "d42637ab-09d0-4bdb-891e-8db18ca133f5",
+            name: "example-readers",
+          },
+          {
+            id: "91878cb4-bde9-4e69-b6ca-76140f832a57",
+            name: "example-admins",
+          },
+        ],
+      },
     });
 
     const identity = await cloudflareAccessAdminAuthProvider.authenticate(
