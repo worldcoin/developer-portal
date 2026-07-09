@@ -1,13 +1,17 @@
 "use client";
 
 import { Chart } from "@/components/Chart";
-import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { ChartOptions } from "chart.js";
 import clsx from "clsx";
 import { useState } from "react";
 import Skeleton from "react-loading-skeleton";
 import { ChartTabs, ChartTabType } from "./ChartTabs";
 import { useChartData } from "./use-chart-data";
+
+const axisTicks = {
+  color: "#9c9c9c", // portal-subtle
+  font: { family: "World Pro", size: 12 },
+};
 
 const commonChartConfig: ChartOptions<"line"> = {
   layout: {
@@ -17,41 +21,23 @@ const commonChartConfig: ChartOptions<"line"> = {
     y: {
       display: true,
       beginAtZero: true,
-      border: {
-        display: false,
-      },
+      border: { display: false },
       grid: {
-        color: "#E5E7EB", // gray-200
+        color: "#f1f1f1", // portal-border
         lineWidth: 1,
       },
       ticks: {
         display: true,
         padding: 12,
-        color: "#9CA3AF", // gray-400
-        font: {
-          family: "GT America",
-          size: 12,
-        },
         maxTicksLimit: 5,
         precision: 0,
+        ...axisTicks,
       },
     },
     x: {
-      border: {
-        display: false,
-      },
-      grid: {
-        display: false,
-      },
-      ticks: {
-        maxTicksLimit: 6,
-        crossAlign: "center",
-        color: "#9CA3AF", // gray-400
-        font: {
-          family: "GT America",
-          size: 12,
-        },
-      },
+      border: { display: false },
+      grid: { display: false },
+      ticks: { maxTicksLimit: 6, crossAlign: "center", ...axisTicks },
     },
   },
 };
@@ -82,17 +68,26 @@ const StatDisplay = ({
       {colorClassName && (
         <div className={clsx("size-2 rounded-full", colorClassName)} />
       )}
-      <Typography variant={TYPOGRAPHY.R4} className="text-grey-500">
-        {label}
-      </Typography>
-      <Typography variant={TYPOGRAPHY.M3} className="text-grey-900">
+      <span className="font-world text-13 text-portal-muted">{label}</span>
+      <span className="font-world text-13 font-medium text-portal-text">
         {valuePrefix}
         {formattedValue ?? "—"}
         {valueSuffix}
-      </Typography>
+      </span>
     </div>
   );
 };
+
+const EmptyState = () => (
+  <div className="text-center">
+    <div className="font-world text-19 font-medium leading-[1.2] text-portal-muted">
+      No available data
+    </div>
+    <div className="mt-1 font-world text-15 leading-[1.3] text-portal-subtle">
+      Your data will show up here
+    </div>
+  </div>
+);
 
 interface UnifiedChartProps {
   appId: string;
@@ -122,23 +117,20 @@ export const UnifiedChart = ({ appId }: UnifiedChartProps) => {
       <ChartTabs activeTab={activeTab} onTabChange={setActiveTab} />
 
       {/* Chart area */}
-      <div className="rounded-2xl border border-grey-200">
+      <div className="rounded-[10px] border border-portal-border">
         {/* Loading state */}
         {isLoading && (
           <div className="py-5">
-            {/* Stats skeleton */}
             <div className="flex gap-4 px-6 pb-4">
               <Skeleton width={120} height={24} />
               <Skeleton width={100} height={24} />
             </div>
-            {/* Chart skeleton - mobile */}
             <div
               className="block px-5 sm:hidden"
               style={{ aspectRatio: mobileAspectRatio }}
             >
               <Skeleton className="size-full rounded-xl" />
             </div>
-            {/* Chart skeleton - desktop */}
             <div
               className="hidden px-5 sm:block"
               style={{ aspectRatio: desktopAspectRatio }}
@@ -151,43 +143,18 @@ export const UnifiedChart = ({ appId }: UnifiedChartProps) => {
         {/* Empty state */}
         {!isLoading && !chartData && (
           <div className="py-5">
-            {/* Empty stats placeholder */}
             <div className="h-6 px-6 pb-4" />
-            {/* Empty chart area - mobile */}
             <div
-              className="grid content-center justify-center justify-items-center gap-y-2 px-12 sm:hidden"
+              className="grid content-center justify-items-center px-12 sm:hidden"
               style={{ aspectRatio: mobileAspectRatio }}
             >
-              <Typography
-                variant={TYPOGRAPHY.H6}
-                className="text-center text-gray-500"
-              >
-                No available data
-              </Typography>
-              <Typography
-                variant={TYPOGRAPHY.R3}
-                className="text-center text-gray-400"
-              >
-                Your data will show up here
-              </Typography>
+              <EmptyState />
             </div>
-            {/* Empty chart area - desktop */}
             <div
-              className="hidden content-center justify-center justify-items-center gap-y-2 px-12 sm:grid"
+              className="hidden content-center justify-items-center px-12 sm:grid"
               style={{ aspectRatio: desktopAspectRatio }}
             >
-              <Typography
-                variant={TYPOGRAPHY.H6}
-                className="text-center text-gray-500"
-              >
-                No available data
-              </Typography>
-              <Typography
-                variant={TYPOGRAPHY.R3}
-                className="text-center text-gray-400"
-              >
-                Your data will show up here
-              </Typography>
+              <EmptyState />
             </div>
           </div>
         )}
@@ -195,7 +162,6 @@ export const UnifiedChart = ({ appId }: UnifiedChartProps) => {
         {/* Chart with stats */}
         {!isLoading && chartData && (
           <div className="py-5">
-            {/* Stats row */}
             <div className="flex flex-wrap gap-4 px-6 pb-4">
               {stats.map((stat, index) => (
                 <StatDisplay
