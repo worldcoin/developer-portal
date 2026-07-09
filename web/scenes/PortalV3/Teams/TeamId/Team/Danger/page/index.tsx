@@ -9,8 +9,8 @@ import { SizingWrapper } from "@/components/SizingWrapper";
 import { Section } from "@/components/Section";
 import { truncateString } from "@/lib/utils";
 
-export const TeamDangerPage = () => {
-  const { teamId } = useParams() as { teamId: string };
+export const TeamDangerZone = (props: { teamId: string }) => {
+  const { teamId } = props;
   const fetchTeamQueryRes = useFetchTeamQuery({
     variables: {
       teamId: teamId,
@@ -25,36 +25,30 @@ export const TeamDangerPage = () => {
 
   return (
     <>
-      <SizingWrapper gridClassName="order-1">
-        <TeamProfile />
-      </SizingWrapper>
+      <Section>
+        <Section.Header>
+          <Section.Header.Title>Danger zone</Section.Header.Title>
+        </Section.Header>
 
-      <SizingWrapper gridClassName="order-2 grow" className="flex flex-col">
-        <Section>
-          <Section.Header>
-            <Section.Header.Title>Danger zone</Section.Header.Title>
-          </Section.Header>
+        <div className="grid justify-items-start gap-y-8 max-md:pb-8 md:max-w-[36.25rem]">
+          <p className="text-grey-500">
+            This will immediately and permanently delete the team{" "}
+            <strong className="font-medium text-grey-900">
+              {truncateString(fetchTeamQueryRes.data?.team_by_pk?.name, 30)}
+            </strong>
+            , along with all its applications and its data for everyone. This
+            cannot be undone.
+          </p>
 
-          <div className="grid justify-items-start gap-y-8 max-md:pb-8 md:max-w-[36.25rem]">
-            <p className="text-grey-500">
-              This will immediately and permanently delete the team{" "}
-              <strong className="font-medium text-grey-900">
-                {truncateString(fetchTeamQueryRes.data?.team_by_pk?.name, 30)}
-              </strong>
-              , along with all its applications and its data for everyone. This
-              cannot be undone.
-            </p>
-
-            <DecoratedButton
-              type="submit"
-              variant="danger"
-              onClick={() => setIsOpenDeleteDialog(true)}
-            >
-              Delete team
-            </DecoratedButton>
-          </div>
-        </Section>
-      </SizingWrapper>
+          <DecoratedButton
+            type="submit"
+            variant="danger"
+            onClick={() => setIsOpenDeleteDialog(true)}
+          >
+            Delete team
+          </DecoratedButton>
+        </div>
+      </Section>
 
       <DeleteTeamDialog
         open={isOpenDeleteDialog}
@@ -64,6 +58,22 @@ export const TeamDangerPage = () => {
           name: fetchTeamQueryRes.data.team_by_pk?.name,
         }}
       />
+    </>
+  );
+};
+
+export const TeamDangerPage = () => {
+  const { teamId } = useParams() as { teamId: string };
+
+  return (
+    <>
+      <SizingWrapper gridClassName="order-1">
+        <TeamProfile />
+      </SizingWrapper>
+
+      <SizingWrapper gridClassName="order-2 grow" className="flex flex-col">
+        <TeamDangerZone teamId={teamId} />
+      </SizingWrapper>
     </>
   );
 };

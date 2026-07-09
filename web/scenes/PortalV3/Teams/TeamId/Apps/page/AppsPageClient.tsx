@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/Button";
+import { urls } from "@/lib/urls";
 import { Icon } from "@/scenes/PortalV3/common/Icon";
 import { CreateAppDialogV4 } from "@/scenes/PortalV3/layout/CreateAppDialog/index-v4";
 import { ReactNode, useState } from "react";
@@ -84,7 +85,7 @@ export const AppsPageClient = (props: { teamId: string }) => {
             badge="New"
           >
             <Button
-              href={`/teams/${props.teamId}/api-keys`}
+              href={urls.teamSettings({ team_id: props.teamId })}
               className={actionButtonClassName}
             >
               Create API key

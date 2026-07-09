@@ -14,6 +14,9 @@ import { toast } from "react-toastify";
 import * as yup from "yup";
 import { TeamProfile } from "@/scenes/PortalV3/Teams/TeamId/Team/common/TeamProfile";
 import { useFetchTeamQuery } from "@/scenes/common/Teams/TeamId/Team/common/TeamProfile/graphql/client/fetch-team.generated";
+import { ApiKeys } from "../../ApiKeys/page";
+import { TeamDangerZone } from "../../Danger/page";
+import { Members } from "../../page/Members";
 import { validateAndUpdateTeamServerSide } from "../server/submit";
 
 const schema = yup
@@ -24,9 +27,8 @@ const schema = yup
 
 type FormValues = yup.InferType<typeof schema>;
 
-export const TeamSettingsPage = () => {
-  const { teamId } = useParams() as { teamId: string };
-
+export const TeamSettingsForm = (props: { teamId: string }) => {
+  const { teamId } = props;
   const { refetch: refetchMe } = useRefetchQueries(FetchMeDocument);
 
   const { data: fetchTeamQueryRes, refetch: refetchTeam } = useFetchTeamQuery({
@@ -61,36 +63,47 @@ export const TeamSettingsPage = () => {
   );
 
   return (
+    <Section>
+      <Section.Header>
+        <Section.Header.Title>Team settings</Section.Header.Title>
+      </Section.Header>
+
+      <form
+        className="grid justify-items-start gap-y-8 max-md:pb-8 md:max-w-[36.25rem]"
+        onSubmit={handleSubmit(submit)}
+      >
+        <Input
+          label="Display name"
+          register={register("name")}
+          errors={errors.name}
+        />
+
+        <DecoratedButton
+          type="submit"
+          variant="primary"
+          disabled={!isValid || isSubmitting}
+        >
+          Save changes
+        </DecoratedButton>
+      </form>
+    </Section>
+  );
+};
+
+export const TeamSettingsPage = () => {
+  const { teamId } = useParams() as { teamId: string };
+
+  return (
     <>
       <SizingWrapper gridClassName="order-1">
         <TeamProfile />
       </SizingWrapper>
 
       <SizingWrapper gridClassName="order-2 grow" className="flex flex-col">
-        <Section>
-          <Section.Header>
-            <Section.Header.Title>Team settings</Section.Header.Title>
-          </Section.Header>
-
-          <form
-            className="grid justify-items-start gap-y-8 max-md:pb-8 md:max-w-[36.25rem]"
-            onSubmit={handleSubmit(submit)}
-          >
-            <Input
-              label="Display name"
-              register={register("name")}
-              errors={errors.name}
-            />
-
-            <DecoratedButton
-              type="submit"
-              variant="primary"
-              disabled={!isValid || isSubmitting}
-            >
-              Save changes
-            </DecoratedButton>
-          </form>
-        </Section>
+        <TeamSettingsForm teamId={teamId} />
+        <Members teamId={teamId} />
+        <ApiKeys teamId={teamId} />
+        <TeamDangerZone teamId={teamId} />
       </SizingWrapper>
     </>
   );

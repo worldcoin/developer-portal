@@ -1,16 +1,21 @@
 import { pickPortalVersion } from "@/lib/feature-flags/portal-v3/activation";
 import { generateMetaTitle } from "@/lib/genarate-title";
+import { urls } from "@/lib/urls";
 import { TeamDangerPage } from "@/scenes/Portal/Teams/TeamId/Team/Danger/page";
-import { TeamDangerPage as TeamDangerPageV3 } from "@/scenes/PortalV3/Teams/TeamId/Team/Danger/page";
 import { Metadata } from "next";
+import { redirect } from "next/navigation";
 
 export const metadata: Metadata = {
   title: generateMetaTitle({ left: "Danger zone" }),
 };
 
-export default async function Page() {
+type Props = { params: Promise<Record<string, string>> };
+
+export default async function Page(props: Props) {
+  const params = await props.params;
+
   return pickPortalVersion(
-    () => <TeamDangerPageV3 />,
+    () => redirect(urls.teamSettings({ team_id: params.teamId })),
     () => <TeamDangerPage />,
   );
 }
