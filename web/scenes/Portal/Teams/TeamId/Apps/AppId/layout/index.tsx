@@ -4,7 +4,7 @@ import { getIsUserAllowedToReadApp } from "@/lib/permissions";
 import { EngineType } from "@/lib/types";
 import { ReactNode } from "react";
 import { AppIdChrome } from "./AppIdChrome";
-import { fetchAppEnvCached } from "./server/fetch-app-env";
+import { fetchAppEnvCached } from "@/scenes/common/Teams/TeamId/Apps/AppId/layout/server/fetch-app-env";
 
 type Params = {
   teamId?: string;

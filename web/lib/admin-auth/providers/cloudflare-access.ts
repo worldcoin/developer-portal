@@ -40,11 +40,25 @@ const describeJwtVerifyError = (error: unknown) => {
   };
 };
 
-const parseStringArray = (claim: unknown): string[] => {
+// Cloudflare get-identity returns groups as { id, name } objects.
+// https://developers.cloudflare.com/cloudflare-one/tutorials/extend-sso-with-workers/#2-view-the-users-identity
+const parseGroupNames = (claim: unknown): string[] => {
   if (!Array.isArray(claim)) {
     return [];
   }
-  return claim.filter((group): group is string => typeof group === "string");
+
+  return claim.flatMap((group) => {
+    if (typeof group === "string") {
+      return [group];
+    }
+
+    if (typeof group !== "object" || group === null) {
+      return [];
+    }
+
+    const name = (group as Record<string, unknown>).name;
+    return typeof name === "string" ? [name] : [];
+  });
 };
 
 // The Access JWT carries no groups by default. They appear — under the
@@ -58,10 +72,10 @@ const parseTokenGroups = (payload: Record<string, unknown>): string[] => {
   const custom = payload.custom;
 
   if (typeof custom === "object" && custom !== null && "groups" in custom) {
-    return parseStringArray((custom as Record<string, unknown>).groups);
+    return parseGroupNames((custom as Record<string, unknown>).groups);
   }
 
-  return parseStringArray(payload.groups);
+  return parseGroupNames(payload.groups);
 };
 
 const GET_IDENTITY_TIMEOUT_MS = 5_000;
@@ -103,8 +117,8 @@ const fetchIdentityGroups = async (
 
     return [
       ...new Set([
-        ...parseStringArray(identity.groups),
-        ...parseStringArray(idpGroups),
+        ...parseGroupNames(identity.groups),
+        ...parseGroupNames(idpGroups),
       ]),
     ];
   } catch (error) {
@@ -141,6 +155,7 @@ export const cloudflareAccessAdminAuthProvider: AdminAuthProvider = {
       const { payload } = await jwtVerify(token, getJwks(teamDomain), {
         issuer: teamDomain,
         audience,
+        algorithms: ["RS256"],
       });
 
       if (

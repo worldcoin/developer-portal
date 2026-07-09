@@ -20,6 +20,9 @@ const customJestConfig: Config = {
     // data helper (scenes/.../layout/server/fetch-app-env) at the I/O boundary;
     // without it only @/api and @/lib are resolvable in jest.mock().
     "^@/scenes/(.*)$": "<rootDir>/scenes/$1",
+    // Lets component tests resolve/mock shared UI primitives (e.g. ErrorPage,
+    // SizingWrapper) that scene components import via @/components.
+    "^@/components/(.*)$": "<rootDir>/components/$1",
   },
 };
 

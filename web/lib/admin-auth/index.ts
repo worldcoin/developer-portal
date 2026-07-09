@@ -54,6 +54,8 @@ const rolePrecedence: readonly AdminRole[] = [
   AdminRole.Readonly,
 ];
 
+const defaultRole = AdminRole.Readonly;
+
 const parseGroupRoleMapping = (): Record<string, AdminRole> => {
   const rawMapping = process.env.ADMIN_AUTH_GROUP_ROLES;
 
@@ -92,7 +94,7 @@ const parseGroupRoleMapping = (): Record<string, AdminRole> => {
  * Maps provider-reported groups to a dashboard role via the
  * ADMIN_AUTH_GROUP_ROLES JSON mapping (e.g. {"example-readers":"readonly"}). When
  * several groups match, the most privileged role wins. When none match,
- * falls back to ADMIN_AUTH_DEFAULT_ROLE; without that, access is denied.
+ * falls back to the audited default dashboard role.
  */
 export const resolveAdminRole = (groups: string[]): AdminRole | null => {
   const mapping = parseGroupRoleMapping();
@@ -108,12 +110,7 @@ export const resolveAdminRole = (groups: string[]): AdminRole | null => {
     }
   }
 
-  const defaultRole = process.env.ADMIN_AUTH_DEFAULT_ROLE;
-  if (defaultRole && isAdminRole(defaultRole)) {
-    return defaultRole;
-  }
-
-  return null;
+  return defaultRole;
 };
 
 /**

@@ -8,7 +8,7 @@ import { Role_Enum } from "@/graphql/graphql";
 import { Button } from "@/components/Button";
 import { Auth0SessionUser } from "@/lib/types";
 import { getCDNImageUrl, getDefaultLogoImgCDNUrl } from "@/lib/utils";
-import { useRemoveFromReview } from "@/scenes/Portal/Teams/TeamId/Apps/common/hooks/use-remove-from-review";
+import { useRemoveFromReview } from "@/scenes/common/Teams/TeamId/Apps/common/hooks/use-remove-from-review";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import clsx from "clsx";
 import { useAtom } from "jotai";
@@ -16,6 +16,7 @@ import { ErrorPage } from "@/components/ErrorPage";
 import { SpinnerIcon } from "@/components/Icons/SpinnerIcon";
 import { urls } from "@/lib/urls";
 import { useRouter, useSearchParams } from "next/navigation";
+import posthog from "posthog-js";
 import {
   MutableRefObject,
   useCallback,
@@ -43,9 +44,21 @@ import {
 } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/graphql/client/fetch-images.generated";
 import { unverifiedImageAtom, viewModeAtom } from "../layout/ImagesProvider";
 import { LogoImageUpload } from "./LogoImageUpload";
-import { SubmitAppModal } from "./SubmitAppModal";
 import { VersionSwitcher } from "./VersionSwitcher";
 import { useCreateEditableRowMutation } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/AppTopBar/graphql/client/create-editable-row.generated";
+
+// The submit button lives in the rail, so a failed review validation can put
+// its field errors far off-screen — bring the first one into view. Errored
+// fields render on bg-system-error-50 (FloatingInput, image uploads), which
+// only exists while an error is shown. Deferred a frame so the error styles
+// have rendered; scrollIntoView is optional-called for jsdom.
+const scrollToFirstError = () => {
+  requestAnimationFrame(() => {
+    document
+      .querySelector(".bg-system-error-50")
+      ?.scrollIntoView?.({ behavior: "smooth", block: "center" });
+  });
+};
 
 type AppTopBarSubmitProps = {
   appMetadata: FetchAppMetadataQuery["app"][0]["app_metadata"][0];
@@ -54,15 +67,17 @@ type AppTopBarSubmitProps = {
   viewMode: "unverified" | "verified";
   onSubmitSuccess: () => void;
   basicInfoRef?: MutableRefObject<BasicInformationHandle | null>;
+  className?: string;
 };
 
-const AppTopBarSubmit = ({
+export const AppTopBarSubmit = ({
   appMetadata,
   appId,
   teamId,
   viewMode,
   onSubmitSuccess,
   basicInfoRef,
+  className,
 }: AppTopBarSubmitProps) => {
   const form = useFormContext<AppStoreFormValues>();
   const searchParams = useSearchParams();
@@ -76,6 +91,27 @@ const AppTopBarSubmit = ({
       toast.error("Only unverified apps can be submitted for review");
       return;
     }
+
+    // The review-schema check below runs entirely client-side — a failed
+    // attempt never reaches a server, so this event is the only way to see
+    // where submissions die.
+    const captureAttempt = (
+      result:
+        | "passed"
+        | "basic_info_failed"
+        | "flush_failed"
+        | "validation_failed"
+        | "error",
+      extra?: Record<string, unknown>,
+    ) => {
+      posthog.capture("app_submit_review_attempted", {
+        app_id: appId,
+        team_id: teamId,
+        result,
+        ...extra,
+      });
+    };
+
     setIsSubmittingForReview(true);
     try {
       if (basicInfoRef?.current) {
@@ -84,9 +120,11 @@ const AppTopBarSubmit = ({
           forReview: true,
         });
         if (!ok) {
+          captureAttempt("basic_info_failed");
           toast.error(
             "Please fix basic information errors before submitting for review",
           );
+          scrollToFirstError();
           return;
         }
       }
@@ -106,6 +144,7 @@ const AppTopBarSubmit = ({
       if (saveStatus) {
         const flushed = await saveStatus.flushAll();
         if (!flushed) {
+          captureAttempt("flush_failed");
           toast.error(
             "Some changes could not be saved. Fix any errors and try again.",
           );
@@ -124,6 +163,20 @@ const AppTopBarSubmit = ({
       });
       const freshAppMetadata =
         freshData?.app?.[0]?.app_metadata?.[0] ?? appMetadata;
+      if (!freshAppMetadata.logo_img_url?.trim()) {
+        const logoErrorMessage =
+          "Upload an app icon before submitting for review";
+        form.setError("logo_img_url" as keyof AppStoreFormValues, {
+          message: logoErrorMessage,
+        });
+        captureAttempt("validation_failed", {
+          first_error_field: "logo_img_url",
+          error_count: 1,
+        });
+        toast.error(logoErrorMessage);
+        scrollToFirstError();
+        return;
+      }
       await mainAppStoreFormReviewSubmitSchema.validate(
         {
           ...formValues,
@@ -142,6 +195,7 @@ const AppTopBarSubmit = ({
           context: { isMiniApp },
         },
       );
+      captureAttempt("passed");
       onSubmitSuccess();
     } catch (error) {
       let errorMessage = "Error occurred while submitting app for review";
@@ -159,9 +213,25 @@ const AppTopBarSubmit = ({
         if (error.inner.length > 1) {
           errorMessage = MULTIPLE_ERRORS_TOAST_MESSAGE;
         }
+        captureAttempt("validation_failed", {
+          first_error_field: error.inner[0]?.path,
+          error_count: error.inner.length,
+        });
         toast.error(errorMessage);
+        const firstPath = error.inner[0]?.path;
+        if (firstPath) {
+          try {
+            // Focus scrolls natively for focusable fields...
+            form.setFocus(firstPath as Parameters<typeof form.setFocus>[0]);
+          } catch {
+            // ...non-registered paths (e.g. image fields) fall through to the
+            // DOM scroll below.
+          }
+        }
+        scrollToFirstError();
         return;
       }
+      captureAttempt("error");
       if (error instanceof Error) {
         toast.error(error.message);
         return;
@@ -173,6 +243,7 @@ const AppTopBarSubmit = ({
     }
   }, [
     appId,
+    teamId,
     appMetadata,
     basicInfoRef,
     client,
@@ -193,7 +264,7 @@ const AppTopBarSubmit = ({
   return (
     <DecoratedButton
       type="submit"
-      className={clsx("h-12 px-6 py-3", {
+      className={clsx("h-12 px-6 py-3", className, {
         hidden:
           appMetadata.app_id?.includes("staging") &&
           process.env.NEXT_PUBLIC_APP_ENV === "production",
@@ -214,7 +285,6 @@ type AppIconButtonProps = {
   isLogoLoading: boolean;
   viewMode: "unverified" | "verified";
   isInReview: boolean;
-  isLogoError: boolean;
   onEdit: () => void;
 };
 
@@ -224,7 +294,6 @@ const AppIconButton = ({
   isLogoLoading,
   viewMode,
   isInReview,
-  isLogoError,
   onEdit,
 }: AppIconButtonProps) => (
   <button
@@ -274,66 +343,36 @@ const AppIconButton = ({
         />
       </div>
     ) : viewMode !== "verified" && !isInReview ? (
-      <>
-        <div
-          className={clsx(
-            "flex size-full flex-col items-center justify-center gap-1 rounded-full border border-dashed border-grey-200 bg-grey-50",
-            isLogoError && "border-system-error-500 bg-system-error-50",
-          )}
+      <div className="flex size-full flex-col items-center justify-center gap-1 rounded-full border border-dashed border-grey-200 bg-grey-50">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill="currentColor"
+          className="size-6 text-grey-900"
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="currentColor"
-            className="size-6 text-grey-900"
-          >
-            <path
-              fillRule="evenodd"
-              d="M1.5 6a2.25 2.25 0 0 1 2.25-2.25h16.5A2.25 2.25 0 0 1 22.5 6v12a2.25 2.25 0 0 1-2.25 2.25H3.75A2.25 2.25 0 0 1 1.5 18V6ZM3 16.06V18c0 .414.336.75.75.75h16.5A.75.75 0 0 0 21 18v-1.94l-2.69-2.689a1.5 1.5 0 0 0-2.12 0l-.88.879.83.83a.75.75 0 1 1-1.06 1.06l-5.16-5.159a1.5 1.5 0 0 0-2.12 0L3 16.061Zm10.125-7.81a1.125 1.125 0 1 1 2.25 0 1.125 1.125 0 0 1-2.25 0Z"
-              clipRule="evenodd"
-            />
-          </svg>
-          <Typography variant={TYPOGRAPHY.R5} className="text-grey-900">
-            App icon <span className="text-system-error-500">*</span>
-          </Typography>
-          {isLogoError && (
-            <Typography
-              variant={TYPOGRAPHY.R5}
-              className="text-center text-system-error-500"
-            >
-              Logo is required.
-            </Typography>
-          )}
-        </div>
-        <div className="absolute inset-0 rounded-full bg-grey-900/50 opacity-0 transition-opacity group-hover:opacity-100" />
-      </>
+          <path
+            fillRule="evenodd"
+            d="M1.5 6a2.25 2.25 0 0 1 2.25-2.25h16.5A2.25 2.25 0 0 1 22.5 6v12a2.25 2.25 0 0 1-2.25 2.25H3.75A2.25 2.25 0 0 1 1.5 18V6ZM3 16.06V18c0 .414.336.75.75.75h16.5A.75.75 0 0 0 21 18v-1.94l-2.69-2.689a1.5 1.5 0 0 0-2.12 0l-.88.879.83.83a.75.75 0 1 1-1.06 1.06l-5.16-5.159a1.5 1.5 0 0 0-2.12 0L3 16.061Zm10.125-7.81a1.125 1.125 0 1 1 2.25 0 1.125 1.125 0 0 1-2.25 0Z"
+            clipRule="evenodd"
+          />
+        </svg>
+        <Typography variant={TYPOGRAPHY.R5} className="text-grey-900">
+          App icon <span className="text-system-error-500">*</span>
+        </Typography>
+      </div>
     ) : null}
   </button>
 );
-
-const AppIconButtonWithFormError = (
-  props: Omit<AppIconButtonProps, "isLogoError">,
-) => {
-  const {
-    formState: { errors },
-  } = useFormContext<AppStoreFormValues & { logo_img_url?: string }>();
-
-  return (
-    <AppIconButton {...props} isLogoError={Boolean(errors.logo_img_url)} />
-  );
-};
 
 type AppTopBarProps = {
   appId: string;
   teamId: string;
   app: FetchAppMetadataQuery["app"][0];
   onResolve?: () => void;
-  hasFormContext?: boolean;
-  basicInfoRef?: MutableRefObject<BasicInformationHandle | null>;
 };
 
 export const AppTopBar = (props: AppTopBarProps) => {
-  const { appId, teamId, app, onResolve, hasFormContext, basicInfoRef } = props;
+  const { appId, teamId, app, onResolve } = props;
   const router = useRouter();
   const searchParams = useSearchParams();
   const [viewMode, setViewMode] = useAtom(viewModeAtom);
@@ -343,11 +382,6 @@ export const AppTopBar = (props: AppTopBarProps) => {
     variables: { id: appId, team_id: teamId },
   });
 
-  const [showSubmitAppModal, setShowSubmitAppModal] = useState(false);
-  const handleSubmitSuccess = useCallback(
-    () => setShowSubmitAppModal(true),
-    [],
-  );
   const [showLogoDialog, setShowLogoDialog] = useState(false);
   const hasAutoOpenedLogoDialog = useRef(false);
   const [unverifiedImages, setUnverifiedImages] = useAtom(unverifiedImageAtom);
@@ -434,13 +468,6 @@ export const AppTopBar = (props: AppTopBarProps) => {
     shouldAutoOpenLogoDialog,
     viewMode,
   ]);
-
-  const hasRequiredImagesForAppStore = useMemo(() => {
-    return Boolean(
-      appMetadata?.showcase_img_urls &&
-        appMetadata?.showcase_img_urls?.length >= 1,
-    );
-  }, [appMetadata?.showcase_img_urls]);
 
   const [fetchImagesQuery] = useFetchImagesLazyQuery();
 
@@ -567,40 +594,19 @@ export const AppTopBar = (props: AppTopBarProps) => {
         onClose={() => setShowLogoDialog(false)}
         dialogOnly
       />
-      <SubmitAppModal
-        open={showSubmitAppModal}
-        setOpen={setShowSubmitAppModal}
-        appMetadataId={appMetadata.id}
-        canSubmitAppStore={hasRequiredImagesForAppStore}
-        teamId={teamId}
-        appId={appId}
-        isDeveloperAllowListing={appMetadata?.is_developer_allow_listing}
-      />
       {/* New layout: Logo + Name/Status/Version on left, Actions on right */}
       <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-center sm:justify-between">
         {/* Left side: Logo + Name + Status + Version */}
         <div className="flex flex-col items-center gap-8 sm:flex-row sm:items-center">
           {/* Logo */}
-          {hasFormContext ? (
-            <AppIconButtonWithFormError
-              hasLogo={hasLogo}
-              logoImgUrl={logoImgUrl}
-              isLogoLoading={isLogoLoading}
-              viewMode={viewMode}
-              isInReview={isInReview}
-              onEdit={() => setShowLogoDialog(true)}
-            />
-          ) : (
-            <AppIconButton
-              hasLogo={hasLogo}
-              logoImgUrl={logoImgUrl}
-              isLogoLoading={isLogoLoading}
-              viewMode={viewMode}
-              isInReview={isInReview}
-              isLogoError={false}
-              onEdit={() => setShowLogoDialog(true)}
-            />
-          )}
+          <AppIconButton
+            hasLogo={hasLogo}
+            logoImgUrl={logoImgUrl}
+            isLogoLoading={isLogoLoading}
+            viewMode={viewMode}
+            isInReview={isInReview}
+            onEdit={() => setShowLogoDialog(true)}
+          />
 
           {/* Name, Status, Environment, Version */}
           <div className="flex flex-col items-center gap-2 sm:items-start">
@@ -647,40 +653,31 @@ export const AppTopBar = (props: AppTopBarProps) => {
                 </DecoratedButton>
               )}
 
-              {/* Submit / Un-submit / Create Draft button */}
+              {/* Submit / Un-submit / Create Draft button. On the
+                  Configuration page itself, submit-for-review lives in the
+                  review-readiness rail; this button navigates there. */}
               {isEditable ? (
-                hasFormContext ? (
-                  <AppTopBarSubmit
-                    appMetadata={appMetadata}
-                    appId={appId}
-                    teamId={teamId}
-                    viewMode={viewMode}
-                    onSubmitSuccess={handleSubmitSuccess}
-                    basicInfoRef={basicInfoRef}
-                  />
-                ) : (
-                  <DecoratedButton
-                    type="button"
-                    className={clsx("h-12 px-6 py-3", {
-                      hidden:
-                        appMetadata.app_id?.includes("staging") &&
-                        process.env.NEXT_PUBLIC_APP_ENV === "production",
-                    })}
-                    disabled={!canSubmitForReview}
-                    onClick={() =>
-                      router.push(
-                        `${urls.configuration({ team_id: teamId, app_id: appId })}?submitForReview=true`,
-                      )
-                    }
+                <DecoratedButton
+                  type="button"
+                  className={clsx("h-12 px-6 py-3", {
+                    hidden:
+                      appMetadata.app_id?.includes("staging") &&
+                      process.env.NEXT_PUBLIC_APP_ENV === "production",
+                  })}
+                  disabled={!canSubmitForReview}
+                  onClick={() =>
+                    router.push(
+                      `${urls.configuration({ team_id: teamId, app_id: appId })}?submitForReview=true`,
+                    )
+                  }
+                >
+                  <Typography
+                    variant={TYPOGRAPHY.M3}
+                    className="whitespace-nowrap"
                   >
-                    <Typography
-                      variant={TYPOGRAPHY.M3}
-                      className="whitespace-nowrap"
-                    >
-                      Submit for review
-                    </Typography>
-                  </DecoratedButton>
-                )
+                    Submit for review
+                  </Typography>
+                </DecoratedButton>
               ) : app?.app_metadata?.length === 0 ? (
                 <DecoratedButton
                   type="button"

@@ -38,7 +38,7 @@ import {
 import { cloudflareAccessAdminAuthProvider } from "@/lib/admin-auth/providers/cloudflare-access";
 import { devAdminAuthProvider } from "@/lib/admin-auth/providers/dev";
 import { logger } from "@/lib/logger";
-import { existsSync, readdirSync, readFileSync, statSync } from "fs";
+import { existsSync, readdirSync, readFileSync } from "fs";
 import { join, relative } from "path";
 
 // #region Test Data
@@ -50,15 +50,47 @@ const findAdminPageFiles = (directory: string): string[] => {
     return [];
   }
 
-  return readdirSync(directory).flatMap((entry) => {
-    const path = join(directory, entry);
-    const stats = statSync(path);
+  return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
+    const path = join(directory, entry.name);
 
-    if (stats.isDirectory()) {
+    if (entry.isDirectory()) {
       return findAdminPageFiles(path);
     }
 
-    return entry === "page.tsx" ? [path] : [];
+    return entry.name === "page.tsx" ? [path] : [];
+  });
+};
+
+const httpMethodExportPattern =
+  /export\s+(?:async\s+)?function\s+(GET|POST|PUT|PATCH|DELETE)\b/;
+
+// Route handlers under `api/admin` are the files Next.js's `route.ts` wrappers
+// re-export from (see `app/api/admin/**/route.ts`), so this is where the real
+// auth check has to live. Generated GraphQL SDKs and non-handler helpers are
+// skipped since they don't export HTTP methods and would produce false
+// positives.
+const findAdminApiRouteFiles = (directory: string): string[] => {
+  if (!existsSync(directory)) {
+    return [];
+  }
+
+  return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
+    const path = join(directory, entry.name);
+
+    if (entry.isDirectory()) {
+      return findAdminApiRouteFiles(path);
+    }
+
+    if (
+      !entry.name.endsWith(".ts") ||
+      entry.name.endsWith(".generated.ts") ||
+      entry.name.endsWith(".test.ts")
+    ) {
+      return [];
+    }
+
+    const contents = readFileSync(path, "utf8");
+    return httpMethodExportPattern.test(contents) ? [path] : [];
   });
 };
 
@@ -81,7 +113,6 @@ beforeEach(() => {
   setNodeEnv(ORIGINAL_NODE_ENV ?? "test");
   delete process.env.ADMIN_AUTH_PROVIDER;
   delete process.env.ADMIN_AUTH_GROUP_ROLES;
-  delete process.env.ADMIN_AUTH_DEFAULT_ROLE;
   delete process.env.ADMIN_AUTH_DEV_EMAIL;
   delete process.env.ADMIN_AUTH_DEV_GROUPS;
   delete process.env.CF_ACCESS_TEAM_DOMAIN;
@@ -108,6 +139,29 @@ describe("admin page guardrail", () => {
       .map((pageFile) => relative(process.cwd(), pageFile));
 
     expect(unguardedPageFiles).toEqual([]);
+  });
+});
+// #endregion
+
+// #region Admin API route guardrail
+describe("admin API route guardrail", () => {
+  it("requires every /api/admin route handler to call authenticateAdminRequest", () => {
+    const adminApiRouteFiles = findAdminApiRouteFiles(
+      join(process.cwd(), "api/admin"),
+    );
+
+    expect(adminApiRouteFiles).toContain(
+      join(process.cwd(), "api/admin/me/index.ts"),
+    );
+
+    const unguardedRouteFiles = adminApiRouteFiles
+      .filter(
+        (routeFile) =>
+          !readFileSync(routeFile, "utf8").includes("authenticateAdminRequest"),
+      )
+      .map((routeFile) => relative(process.cwd(), routeFile));
+
+    expect(unguardedRouteFiles).toEqual([]);
   });
 });
 // #endregion
@@ -154,32 +208,26 @@ describe("resolveAdminRole", () => {
     );
   });
 
-  it("falls back to ADMIN_AUTH_DEFAULT_ROLE when no group matches", () => {
+  it("falls back to readonly when no group matches", () => {
     process.env.ADMIN_AUTH_GROUP_ROLES = JSON.stringify({
       "Dashboard Admins": "admin",
     });
-    process.env.ADMIN_AUTH_DEFAULT_ROLE = "readonly";
 
     expect(resolveAdminRole(["Unmapped Group"])).toBe(AdminRole.Readonly);
   });
 
-  it("denies when no group matches and there is no default role", () => {
-    expect(resolveAdminRole(["Unmapped Group"])).toBeNull();
+  it("falls back to readonly when no group mapping is configured", () => {
+    expect(resolveAdminRole(["Unmapped Group"])).toBe(AdminRole.Readonly);
   });
 
   it("ignores invalid mapping JSON and invalid role values", () => {
     process.env.ADMIN_AUTH_GROUP_ROLES = "not-json";
-    expect(resolveAdminRole(["Team All"])).toBeNull();
+    expect(resolveAdminRole(["Team All"])).toBe(AdminRole.Readonly);
 
     process.env.ADMIN_AUTH_GROUP_ROLES = JSON.stringify({
       "Team All": "superuser",
     });
-    expect(resolveAdminRole(["Team All"])).toBeNull();
-  });
-
-  it("denies when ADMIN_AUTH_DEFAULT_ROLE is not a known role", () => {
-    process.env.ADMIN_AUTH_DEFAULT_ROLE = "root";
-    expect(resolveAdminRole([])).toBeNull();
+    expect(resolveAdminRole(["Team All"])).toBe(AdminRole.Readonly);
   });
 });
 // #endregion
@@ -285,6 +333,7 @@ describe("cloudflare-access provider", () => {
       {
         issuer: "https://example.cloudflareaccess.com",
         audience: "test-aud",
+        algorithms: ["RS256"],
       },
     );
   });
@@ -345,8 +394,25 @@ describe("cloudflare-access provider", () => {
     });
     mockIdentityResponse({
       email: "user@example.com",
-      groups: ["example-readers"],
-      idp: { type: "okta", groups: ["example-readers", "example-admins"] },
+      groups: [
+        {
+          id: "fdaedb59-e9be-4ab7-8001-3e069da54185",
+          name: "example-readers",
+        },
+      ],
+      idp: {
+        type: "okta",
+        groups: [
+          {
+            id: "d42637ab-09d0-4bdb-891e-8db18ca133f5",
+            name: "example-readers",
+          },
+          {
+            id: "91878cb4-bde9-4e69-b6ca-76140f832a57",
+            name: "example-admins",
+          },
+        ],
+      },
     });
 
     const identity = await cloudflareAccessAdminAuthProvider.authenticate(
@@ -502,8 +568,6 @@ describe("dev provider", () => {
 // #region End-to-end authentication
 describe("authenticateAdminRequest", () => {
   it("denies when no provider is configured", async () => {
-    process.env.ADMIN_AUTH_DEFAULT_ROLE = "admin";
-
     const user = await authenticateAdminRequest(
       new Headers({ "x-admin-auth-debug-user": "dev@example.com" }),
     );
@@ -511,19 +575,8 @@ describe("authenticateAdminRequest", () => {
     expect(user).toBeNull();
   });
 
-  it("denies an authenticated identity that resolves no role", async () => {
+  it("returns the admin user with the default readonly role", async () => {
     process.env.ADMIN_AUTH_PROVIDER = "dev";
-
-    const user = await authenticateAdminRequest(
-      new Headers({ "x-admin-auth-debug-user": "dev@example.com" }),
-    );
-
-    expect(user).toBeNull();
-  });
-
-  it("returns the admin user with the resolved role", async () => {
-    process.env.ADMIN_AUTH_PROVIDER = "dev";
-    process.env.ADMIN_AUTH_DEFAULT_ROLE = "readonly";
 
     const user = await authenticateAdminRequest(
       new Headers({ "x-admin-auth-debug-user": "dev@example.com" }),
@@ -534,6 +587,25 @@ describe("authenticateAdminRequest", () => {
       subject: "dev:dev@example.com",
       groups: [],
       role: AdminRole.Readonly,
+    });
+  });
+
+  it("returns the admin user with a group-mapped role", async () => {
+    process.env.ADMIN_AUTH_PROVIDER = "dev";
+    process.env.ADMIN_AUTH_GROUP_ROLES = JSON.stringify({
+      "Dashboard Admins": "admin",
+    });
+    process.env.ADMIN_AUTH_DEV_GROUPS = "Dashboard Admins";
+
+    const user = await authenticateAdminRequest(
+      new Headers({ "x-admin-auth-debug-user": "dev@example.com" }),
+    );
+
+    expect(user).toEqual({
+      email: "dev@example.com",
+      subject: "dev:dev@example.com",
+      groups: ["Dashboard Admins"],
+      role: AdminRole.Admin,
     });
   });
 });
@@ -551,7 +623,10 @@ describe("requireAdminUser", () => {
 
   it("returns the admin user when the request is authenticated", async () => {
     process.env.ADMIN_AUTH_PROVIDER = "dev";
-    process.env.ADMIN_AUTH_DEFAULT_ROLE = "admin";
+    process.env.ADMIN_AUTH_GROUP_ROLES = JSON.stringify({
+      "Dashboard Admins": "admin",
+    });
+    process.env.ADMIN_AUTH_DEV_GROUPS = "Dashboard Admins";
     headersMock.mockResolvedValue(
       new Headers({ "x-admin-auth-debug-user": "dev@example.com" }),
     );
@@ -559,7 +634,7 @@ describe("requireAdminUser", () => {
     await expect(requireAdminUser()).resolves.toEqual({
       email: "dev@example.com",
       subject: "dev:dev@example.com",
-      groups: [],
+      groups: ["Dashboard Admins"],
       role: AdminRole.Admin,
     });
   });
