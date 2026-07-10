@@ -72,7 +72,10 @@ describe("v3 SidebarNav [flat nav]", () => {
     expect(link("World ID")).toBeInTheDocument();
     expect(link("Configuration")).toBeInTheDocument();
     expect(link("Mini App")).toBeInTheDocument();
-    expect(link("Notifications")).toBeInTheDocument();
+    // Notifications is a Mini App sub-route, not a top-level sidebar entry.
+    expect(
+      screen.queryByRole("link", { name: "Notifications" }),
+    ).not.toBeInTheDocument();
     expect(link("Team settings")).toBeInTheDocument();
     expect(link("Help center")).toBeInTheDocument();
     expect(
@@ -109,6 +112,12 @@ describe("v3 SidebarNav [active section]", () => {
 
   it("treats the legacy top-level /transactions route as the Mini App section", () => {
     usePathname.mockReturnValue(`${base}/transactions`);
+    renderSidebar();
+    expect(isCurrent("Mini App")).toBe(true);
+  });
+
+  it("marks Mini App current on the notifications route now that Notifications has no sidebar entry", () => {
+    usePathname.mockReturnValue(`${base}/mini-app/notifications`);
     renderSidebar();
     expect(isCurrent("Mini App")).toBe(true);
   });

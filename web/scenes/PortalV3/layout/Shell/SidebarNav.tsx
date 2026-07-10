@@ -74,7 +74,6 @@ export const SidebarNav = () => {
 
   const configurationHref = ids ? urls.configuration(ids) : appsListHref;
   const miniAppHref = appBase ? `${appBase}/mini-app` : appsListHref;
-  const notificationsHref = ids ? urls.miniAppNotifications(ids) : appsListHref;
   const teamSettingsHref = teamId
     ? urls.teamSettings({ team_id: teamId })
     : teamsLandingHref;
@@ -98,8 +97,6 @@ export const SidebarNav = () => {
     withinApp("/mini-app") ||
     withinApp("/transactions") ||
     withinApp("/notifications");
-  const notificationsActive =
-    withinApp("/mini-app/notifications") || withinApp("/notifications");
   const settingsActive = teamId ? pathname.startsWith(teamSettingsHref) : false;
 
   return (
@@ -134,23 +131,11 @@ export const SidebarNav = () => {
             <NavItem
               label="Mini App"
               href={miniAppHref}
-              active={miniAppActive && !notificationsActive}
-              icon={
-                <NavIcon
-                  name="nav-mini-app"
-                  active={miniAppActive && !notificationsActive}
-                />
-              }
+              active={miniAppActive}
+              icon={<NavIcon name="nav-mini-app" active={miniAppActive} />}
             />
           </>
         ) : null}
-
-        <NavItem
-          label="Notifications"
-          href={notificationsHref}
-          active={notificationsActive}
-          icon={<NavIcon name="nav-bell" active={notificationsActive} />}
-        />
       </div>
 
       <div className="my-2 h-px w-full">

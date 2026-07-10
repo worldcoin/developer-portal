@@ -73,7 +73,7 @@ const AppsDropdownRow = (props: {
     <AppAvatar name={props.app.name} className="size-6" />
     <span className="min-w-0 flex-1 truncate">{props.app.name}</span>
     {props.isSelected ? (
-      <Icon name="dropdown-check" className="size-4 shrink-0" />
+      <Icon name="dropdown-check" className="size-4 shrink-0 -translate-y-px" />
     ) : null}
   </DropdownMenu.Item>
 );
@@ -125,7 +125,13 @@ export const AppsDropdown = () => {
             <AppAvatar name={current.name} className="size-6" />
           ) : null}
           <span className="max-w-[260px] truncate">{currentLabel}</span>
-          <Icon name="arrow-separate-vertical" className="size-4 shrink-0" />
+          {/* -translate-y-px: same optical nudge as NavItem — the cap-height
+              label sits high in its leading-none line box, so a geometrically
+              centered icon reads as slightly low next to it. */}
+          <Icon
+            name="arrow-separate-vertical"
+            className="size-4 shrink-0 -translate-y-px"
+          />
         </DropdownMenu.Trigger>
 
         <DropdownMenu.Portal>
@@ -168,7 +174,14 @@ export const AppsDropdown = () => {
                     onSelect={() => setDialogOpen(true)}
                     className="flex h-12 w-full cursor-pointer items-center gap-2 rounded-8 bg-white px-4 py-2 font-world text-13 font-medium leading-[1.2] text-portal-text outline-none data-[highlighted]:bg-grey-50"
                   >
-                    <Icon name="dropdown-plus" className="size-4 shrink-0" />
+                    {/* size-6 slot matches the app-avatar column so the label
+                        text lines up with every other row */}
+                    <span className="flex size-6 shrink-0 items-center justify-center">
+                      <Icon
+                        name="dropdown-plus"
+                        className="size-4 -translate-y-px"
+                      />
+                    </span>
                     <span className="min-w-0 flex-1 truncate">
                       Create new app
                     </span>

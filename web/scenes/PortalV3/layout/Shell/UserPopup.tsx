@@ -24,7 +24,7 @@ const itemClass =
 const LinkItem = (props: {
   href: string;
   label: string;
-  icon?: string;
+  icon: string;
   external?: boolean;
 }) => (
   <DropdownMenu.Item asChild>
@@ -35,20 +35,14 @@ const LinkItem = (props: {
         rel="noreferrer"
         className={itemClass}
       >
-        {props.icon ? (
-          <Icon name={props.icon} className="size-4 shrink-0" />
-        ) : (
-          <span className="size-4 shrink-0" />
-        )}
+        {/* -translate-y-px: same optical nudge as NavItem — cap-height text
+            sits high in its line box, so a centered icon reads as low. */}
+        <Icon name={props.icon} className="size-4 shrink-0 -translate-y-px" />
         <span className="min-w-0 flex-1 truncate">{props.label}</span>
       </a>
     ) : (
       <Link href={props.href} className={itemClass}>
-        {props.icon ? (
-          <Icon name={props.icon} className="size-4 shrink-0" />
-        ) : (
-          <span className="size-4 shrink-0" />
-        )}
+        <Icon name={props.icon} className="size-4 shrink-0 -translate-y-px" />
         <span className="min-w-0 flex-1 truncate">{props.label}</span>
       </Link>
     )}
@@ -113,50 +107,74 @@ export const UserPopup = (props: { user: PortalUser; color: Color | null }) => {
           sideOffset={16}
           className="z-50 max-h-[var(--radix-dropdown-menu-content-available-height)] w-[279px] overflow-y-auto rounded-[10px] border border-portal-border bg-white p-0 shadow-[0_18px_11px_0_rgba(24,24,24,0.02),0_8px_8px_0_rgba(24,24,24,0.03),0_2px_4px_0_rgba(24,24,24,0.03)]"
         >
-          <div className="flex w-full flex-col items-start pt-2">
-            <div className="flex min-h-[51px] w-full items-center px-4 py-2">
-              <div className="flex min-w-0 flex-1 flex-col justify-center gap-0.5 font-world text-13">
-                <div className="truncate font-medium leading-[1.2] text-portal-text">
-                  {user.name}
-                </div>
-                <div className="truncate leading-[1.3] text-portal-muted">
-                  {user.email ?? ""}
-                </div>
-              </div>
-            </div>
+          <div className="flex w-full flex-col items-start py-2">
             <LinkItem
               href={urls.profile()}
               label="Profile"
               icon="profile-menu-profile"
             />
-            <LinkItem href={urls.profileTeams()} label="My Teams" />
+            <LinkItem
+              href={urls.profileTeams()}
+              label="My Teams"
+              icon="profile-menu-teams"
+            />
             <Separator />
             <LinkItem
               href={WORLD_PRIVACY_URL}
               label="Data Privacy & Security"
+              icon="profile-menu-privacy"
+              external
+            />
+            <LinkItem
+              href={WORLD_STATUS_URL}
+              label="World Status"
+              icon="profile-menu-status"
+              external
+            />
+            <LinkItem
+              href={FAQ_URL}
+              label="FAQ"
               icon="profile-menu-help"
               external
             />
-            <LinkItem href={WORLD_STATUS_URL} label="World Status" external />
-            <LinkItem href={FAQ_URL} label="FAQ" external />
             <Separator />
             <LinkItem
               href={TELEGRAM_DEVELOPERS_GROUP_URL}
               label="Join our Telegram"
-              icon="profile-menu-help"
+              icon="profile-menu-telegram"
               external
             />
-            <LinkItem href={TELEGRAM_MATEO_URL} label="Text Mateo" external />
-            <LinkItem href={DISCORD_URL} label="Join our Discord" external />
+            <LinkItem
+              href={TELEGRAM_MATEO_URL}
+              label="Text Mateo"
+              icon="profile-menu-message"
+              external
+            />
+            <LinkItem
+              href={DISCORD_URL}
+              label="Join our Discord"
+              icon="profile-menu-discord"
+              external
+            />
             <Separator />
             <LinkItem
               href={urls.privacyStatement()}
               label="Privacy Policy"
-              icon="profile-menu-resources"
+              icon="profile-menu-policy"
               external
             />
-            <LinkItem href={urls.tos()} label="Terms of service" external />
-            <LinkItem href={DOCS_URL} label="Docs" external />
+            <LinkItem
+              href={urls.tos()}
+              label="Terms of service"
+              icon="profile-menu-terms"
+              external
+            />
+            <LinkItem
+              href={DOCS_URL}
+              label="Docs"
+              icon="profile-menu-docs"
+              external
+            />
             <Separator />
             <DropdownMenu.Item asChild>
               <a
@@ -167,7 +185,10 @@ export const UserPopup = (props: { user: PortalUser; color: Color | null }) => {
                 }}
                 className={itemClass}
               >
-                <Icon name="profile-menu-log-out" className="size-4 shrink-0" />
+                <Icon
+                  name="profile-menu-log-out"
+                  className="size-4 shrink-0 -translate-y-px"
+                />
                 <span className="min-w-0 flex-1 truncate">Log out</span>
               </a>
             </DropdownMenu.Item>
