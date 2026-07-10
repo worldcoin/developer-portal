@@ -11,7 +11,7 @@ import { getCDNImageUrl, getDefaultLogoImgCDNUrl } from "@/lib/utils";
 import { useRemoveFromReview } from "@/scenes/common/Teams/TeamId/Apps/common/hooks/use-remove-from-review";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import clsx from "clsx";
-import { useAtom } from "jotai";
+import { useAtom, useAtomValue } from "jotai";
 import { ErrorPage } from "@/components/ErrorPage";
 import { SpinnerIcon } from "@/components/Icons/SpinnerIcon";
 import { urls } from "@/lib/urls";
@@ -38,14 +38,11 @@ import {
   FetchAppMetadataDocument,
   FetchAppMetadataQuery,
 } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/graphql/client/fetch-app-metadata.generated";
-import {
-  useFetchImagesLazyQuery,
-  useFetchImagesQuery,
-} from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/graphql/client/fetch-images.generated";
+import { useFetchImagesQuery } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/graphql/client/fetch-images.generated";
 import { unverifiedImageAtom, viewModeAtom } from "../layout/ImagesProvider";
+import { useCreateNewDraft } from "../hook/use-create-new-draft";
 import { LogoImageUpload } from "./LogoImageUpload";
 import { VersionSwitcher } from "./VersionSwitcher";
-import { useCreateEditableRowMutation } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/AppTopBar/graphql/client/create-editable-row.generated";
 
 // The submit button lives in the rail, so a failed review validation can put
 // its field errors far off-screen — bring the first one into view. Errored
@@ -384,7 +381,7 @@ export const AppTopBar = (props: AppTopBarProps) => {
 
   const [showLogoDialog, setShowLogoDialog] = useState(false);
   const hasAutoOpenedLogoDialog = useRef(false);
-  const [unverifiedImages, setUnverifiedImages] = useAtom(unverifiedImageAtom);
+  const unverifiedImages = useAtomValue(unverifiedImageAtom);
   const [localUnverifiedLogoOverride, setLocalUnverifiedLogoOverride] =
     useState<string | null>(null);
 
@@ -448,7 +445,12 @@ export const AppTopBar = (props: AppTopBarProps) => {
   ]);
 
   const isEditable = app?.app_metadata[0]?.verification_status === "unverified";
-  const [createEditableRowMutation] = useCreateEditableRowMutation({});
+  const { createNewDraft, isCreating } = useCreateNewDraft({
+    appId,
+    teamId,
+    hasDraft: app.app_metadata.length > 0,
+    hasVerifiedVersion: app.verified_app_metadata.length > 0,
+  });
   const shouldAutoOpenLogoDialog = searchParams.get("editLogo") === "true";
 
   useEffect(() => {
@@ -467,53 +469,6 @@ export const AppTopBar = (props: AppTopBarProps) => {
     setViewMode,
     shouldAutoOpenLogoDialog,
     viewMode,
-  ]);
-
-  const [fetchImagesQuery] = useFetchImagesLazyQuery();
-
-  const createNewDraft = useCallback(async () => {
-    try {
-      if (!app || app?.app_metadata?.length > 0) {
-        throw new Error("Your app must be already verified for this action");
-      }
-
-      await createEditableRowMutation({
-        variables: {
-          app_id: appId,
-          team_id: teamId,
-        },
-        refetchQueries: [FetchAppMetadataDocument],
-        awaitRefetchQueries: true,
-      });
-
-      await fetchImagesQuery({
-        variables: {
-          id: appId,
-          team_id: teamId,
-        },
-
-        onCompleted: (data) => {
-          setUnverifiedImages({
-            logo_img_url: data?.unverified_images?.logo_img_url ?? "",
-            showcase_image_urls: data?.unverified_images?.showcase_img_urls,
-          });
-        },
-      });
-
-      setViewMode("unverified");
-      toast.success("New app draft created");
-    } catch (error: any) {
-      console.error("Failed to create a new draft: ", error.message);
-      toast.error("Error creating a new draft");
-    }
-  }, [
-    app,
-    createEditableRowMutation,
-    appId,
-    fetchImagesQuery,
-    teamId,
-    setViewMode,
-    setUnverifiedImages,
   ]);
 
   const logoImgUrl = useMemo(() => {
@@ -682,6 +637,7 @@ export const AppTopBar = (props: AppTopBarProps) => {
                 <DecoratedButton
                   type="button"
                   className="h-12 px-6 py-3"
+                  loading={isCreating}
                   onClick={createNewDraft}
                 >
                   <Typography variant={TYPOGRAPHY.M3}>

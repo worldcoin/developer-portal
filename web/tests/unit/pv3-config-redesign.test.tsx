@@ -321,6 +321,12 @@ describe("v3 Configuration redesign [right rail]", () => {
     expect(submitButton).toBeEnabled();
     expect(within(actions).getByText("Draft saved")).toBeInTheDocument();
     expect(
+      within(actions).getByRole("link", { name: "Versions" }),
+    ).toHaveAttribute(
+      "href",
+      `/teams/${teamId}/apps/${appId}/configuration/versions`,
+    );
+    expect(
       within(
         screen.getByRole("complementary", { name: "Live preview" }),
       ).queryByRole("button", { name: /Submit for review/ }),

@@ -23,7 +23,7 @@ const appEnvFlagsAtom = atom<AppEnvFlags | undefined>(undefined);
  */
 export const AppEnvFlagsSync = (props: AppEnvFlags) => {
   const { appId, hasRpRegistration, hasLegacyActions } = props;
-  const setFlags = useSetAtom(appEnvironmentFlagsAtom);
+  const setFlags = useSetAtom(appEnvFlagsAtom);
 
   useEffect(() => {
     setFlags({ appId, hasRpRegistration, hasLegacyActions });
