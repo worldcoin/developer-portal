@@ -9,6 +9,10 @@ jest.mock("next/navigation", () => ({
   redirect: (...args: unknown[]) => redirectMock(...args),
 }));
 
+jest.mock("@/lib/feature-flags/portal-v3/activation", () => ({
+  pickPortalVersion: async (v3: () => unknown) => v3(),
+}));
+
 const fetchAppEnvCachedMock = jest.fn();
 jest.mock(
   "@/scenes/common/Teams/TeamId/Apps/AppId/layout/server/fetch-app-env",

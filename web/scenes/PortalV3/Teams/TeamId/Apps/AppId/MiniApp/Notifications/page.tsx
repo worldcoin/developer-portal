@@ -9,7 +9,6 @@ import { ChangeEvent, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import { VersionSwitcher } from "../../Configuration/AppTopBar/VersionSwitcher";
-import { MiniAppSubTabs } from "../SubTabs";
 import { useFetchNotificationAppMetadataQuery } from "@/scenes/common/Teams/TeamId/Apps/AppId/MiniApp/Notifications/graphql/client/fetch-notification-app-metadata.generated";
 
 type NotificationFormData = {
@@ -210,10 +209,6 @@ export const NotificationsPage = () => {
   if (isExternalApp) {
     return (
       <div className="my-8 grid max-w-[1180px] gap-y-10">
-        <div className="md:hidden">
-          <MiniAppSubTabs />
-        </div>
-
         <div className="grid grid-cols-auto/1fr items-start gap-x-3 rounded-[10px] bg-grey-50 p-4 sm:p-5">
           <NotificationBellIcon className="size-8" aria-hidden="true" />
 
@@ -232,10 +227,6 @@ export const NotificationsPage = () => {
 
   return (
     <div className="my-8 grid max-w-[1180px] gap-y-10">
-      <div className="md:hidden">
-        <MiniAppSubTabs />
-      </div>
-
       <div className="grid grid-cols-auto/1fr items-start gap-x-3 rounded-[10px] bg-[#E6F0FF] p-4 sm:p-5">
         <NotificationBellIcon className="size-8" aria-hidden="true" />
 

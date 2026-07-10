@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { Link } from "@/components/Link";
 import { ReactNode } from "react";
 import { twMerge } from "tailwind-merge";
 
@@ -6,24 +6,32 @@ export const NavItem = (props: {
   href: string;
   label: string;
   icon?: ReactNode;
+  trailing?: ReactNode;
   active?: boolean;
   dimmed?: boolean;
 }) => {
-  const { href, label, icon, active, dimmed } = props;
+  const { href, label, icon, trailing, active, dimmed } = props;
 
   const className = twMerge(
-    "flex min-w-0 items-center gap-2.5 rounded-8 px-2.5 py-1.5 font-gta text-14 font-medium outline-none transition-colors",
-    "focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar",
+    "flex h-10 min-w-0 items-center gap-2 rounded-[10px] pl-3 pr-4 font-world text-13 font-normal leading-none outline-none transition-colors",
+    "focus-visible:ring-2 focus-visible:ring-grey-300 focus-visible:ring-offset-2 focus-visible:ring-offset-portal-canvas",
     active
-      ? "bg-grey-100 text-foreground"
-      : "text-muted-foreground hover:bg-grey-100",
+      ? "border border-portal-border bg-white text-portal-text shadow-portal-card"
+      : "text-portal-muted hover:bg-portal-border hover:text-portal-text",
     dimmed && "opacity-40",
   );
 
   const content = (
     <>
-      {icon ? <span className="shrink-0">{icon}</span> : null}
-      <span className="truncate">{label}</span>
+      {/* -translate-y-px: the 16px icon centers geometrically on the row, but
+          the cap-height label sits high in its leading-none line box, so
+          dead-center reads as slightly low. This nudges the icon onto the
+          text's optical center. */}
+      {icon ? (
+        <span className="shrink-0 -translate-y-px text-current">{icon}</span>
+      ) : null}
+      <span className="min-w-0 flex-1 truncate">{label}</span>
+      {trailing ? <span className="shrink-0">{trailing}</span> : null}
     </>
   );
 

@@ -1,21 +1,14 @@
 "use client";
 
-import { ChevronLeftIcon } from "@/components/Icons/ChevronLeftIcon";
-import { Role_Enum } from "@/graphql/graphql";
-import { Auth0SessionUser } from "@/lib/types";
+import { DOCS_URL } from "@/lib/constants";
 import { urls } from "@/lib/urls";
-import { checkUserPermissions } from "@/lib/utils";
-import { useUser } from "@auth0/nextjs-auth0/client";
+import { Icon } from "@/scenes/PortalV3/common/Icon";
 import { atom, useAtomValue, useSetAtom } from "jotai";
 import { useParams, usePathname } from "next/navigation";
 import { useEffect } from "react";
 import { useCurrentAppId } from "./AppsDropdown";
 import { NavItem } from "./NavItem";
 
-// App-env flags fetched server-side by the v3 AppIdLayout. The sidebar needs
-// them to gate the World ID section items (which sub-pages exist depends on
-// whether the app has an RP registration / legacy actions). Keyed by appId so
-// flags from a previously viewed app are never applied to another.
 type AppEnvFlags = {
   appId: string;
   hasRpRegistration: boolean;
@@ -39,13 +32,15 @@ export const AppEnvFlagsSync = (props: AppEnvFlags) => {
   return null;
 };
 
-type SectionNav = {
-  label: string;
-  items: { label: string; href: string; active: boolean }[];
-};
+// Nav icons ship as `<name>.svg` (inactive) + `<name>-active.svg` (active).
+const NavIcon = (props: { name: string; active?: boolean }) => (
+  <Icon
+    name={props.active ? `${props.name}-active` : props.name}
+    className="size-4"
+  />
+);
 
 export const SidebarNav = () => {
-  const { user } = useUser() as Auth0SessionUser;
   const pathname = usePathname() ?? "";
   const params = useParams<{ teamId?: string; appId?: string }>();
   const teamId = params?.teamId;
@@ -53,219 +48,113 @@ export const SidebarNav = () => {
   const appId = useCurrentAppId();
   const appEnvFlags = useAtomValue(appEnvFlagsAtom);
 
-  const canSeeApiKeys = checkUserPermissions(user, teamId ?? "", [
-    Role_Enum.Owner,
-    Role_Enum.Admin,
-  ]);
-  const canSeeSettings = checkUserPermissions(user, teamId ?? "", [
-    Role_Enum.Owner,
-  ]);
+  // Team-less pages (e.g. /profile) carry no teamId in the URL, so team-scoped
+  // links can't be built directly. Rather than pick a team here, fall back to
+  // the /teams landing route, which resolves the user's team server-side — the
+  // same way login does (and it also handles the no-teams / broken-session
+  // cases). urls.teams({}) === "/teams".
+  const teamsLandingHref = urls.teams({});
 
+  const appsListHref = teamId
+    ? urls.apps({ team_id: teamId })
+    : teamsLandingHref;
   const appBase =
     teamId && appId ? urls.app({ team_id: teamId, app_id: appId }) : undefined;
 
-  // When inside a section with sub-pages (Mini App, World ID), the sidebar
-  // swaps to that section's items with a back link — sub-navigation lives
-  // here instead of a tab bar above the page content.
-  const getSectionNav = (): SectionNav | undefined => {
-    if (!teamId || !routeAppId) return undefined;
+  const appHref = appBase ?? appsListHref;
+  const ids = teamId && appId ? { team_id: teamId, app_id: appId } : undefined;
+  const flags = appEnvFlags?.appId === appId ? appEnvFlags : undefined;
 
-    const base = urls.app({ team_id: teamId, app_id: routeAppId });
-    if (!pathname.startsWith(base)) return undefined;
-    const rel = pathname.slice(base.length);
-    const within = (prefix: string) =>
-      rel === prefix || rel.startsWith(`${prefix}/`);
-
-    // /transactions and /notifications are legacy top-level aliases of the
-    // /mini-app/* routes.
-    if (
-      within("/mini-app") ||
-      within("/transactions") ||
-      within("/notifications")
-    ) {
-      const ids = { team_id: teamId, app_id: routeAppId };
-      return {
-        label: "Mini App",
-        items: [
-          {
-            label: "Permissions",
-            href: urls.miniAppPermissions(ids),
-            active: within("/mini-app/permissions"),
-          },
-          {
-            label: "Transactions",
-            href: urls.miniAppTransactions(ids),
-            active: within("/mini-app/transactions") || within("/transactions"),
-          },
-          {
-            label: "Notifications",
-            href: urls.miniAppNotifications(ids),
-            active:
-              within("/mini-app/notifications") || within("/notifications"),
-          },
-        ],
-      };
-    }
-
-    if (
-      within("/world-id-4-0") ||
-      within("/world-id-actions") ||
-      within("/actions")
-    ) {
-      const ids = { team_id: teamId, app_id: routeAppId };
-      const flags = appEnvFlags?.appId === routeAppId ? appEnvFlags : undefined;
-      const items = [
-        ...(flags?.hasRpRegistration
-          ? [
-              {
-                label: "World ID 4.0",
-                href: urls.worldId40(ids),
-                active: within("/world-id-4-0"),
-              },
-              {
-                label: "Actions",
-                href: urls.worldIdActions(ids),
-                active: within("/world-id-actions"),
-              },
-            ]
-          : []),
-        ...(flags?.hasLegacyActions
-          ? [
-              {
-                label: "World ID 3.0 Legacy",
-                href: urls.actions(ids),
-                active: within("/actions"),
-              },
-            ]
-          : []),
-      ];
-
-      // An app with neither an RP registration nor legacy actions has no
-      // World ID sub-pages (the page shows enable/migration UI), so keep the
-      // main nav.
-      return items.length > 0 ? { label: "World ID", items } : undefined;
-    }
-
-    return undefined;
-  };
-
-  const sectionNav = getSectionNav();
-
-  if (sectionNav && appBase) {
-    return (
-      <nav className="no-scrollbar flex flex-1 flex-col gap-1 overflow-y-auto p-2">
-        <NavItem
-          label={sectionNav.label}
-          href={appBase}
-          icon={<ChevronLeftIcon className="size-4" />}
-        />
-        {sectionNav.items.map((item) => (
-          <NavItem
-            key={item.label}
-            label={item.label}
-            href={item.href}
-            active={item.active}
-          />
-        ))}
-      </nav>
-    );
-  }
-
-  // Fallback for when no app has been visited yet this session (appId comes
-  // from useCurrentAppId, which remembers the last app opened under this
-  // team). The apps resolver redirects to an arbitrary app's dashboard, so it
-  // must only ever be the last resort.
-  const appsListHref = teamId ? urls.apps({ team_id: teamId }) : undefined;
-
-  // Mirror v2 AppIdChrome: route the World ID entry to the legacy actions page
-  // when the app has legacy actions but no RP registration, so a legacy-only
-  // app's World ID tab surfaces its legacy actions instead of the 4.0
-  // enable/migration page. Falls back to worldId40 when flags aren't synced
-  // for this app yet (the section nav corrects once they arrive).
   const worldIdHref = (() => {
-    if (!appBase || !teamId || !appId) return appsListHref ?? "#";
-    const ids = { team_id: teamId, app_id: appId };
-    const flags = appEnvFlags?.appId === appId ? appEnvFlags : undefined;
+    if (!ids) return appsListHref;
     if (flags?.hasRpRegistration) return urls.worldId40(ids);
     if (flags?.hasLegacyActions) return urls.actions(ids);
     return urls.worldId40(ids);
   })();
 
-  const appItems = teamId
-    ? [
-        {
-          label: "Dashboard",
-          href: appBase ?? appsListHref ?? "#",
-          exact: !!appBase,
-          dimmed: !appBase,
-        },
-        {
-          label: "World ID",
-          href: worldIdHref,
-          dimmed: !appBase,
-        },
-        {
-          label: "Configuration",
-          href: appBase
-            ? urls.configuration({ team_id: teamId, app_id: appId! })
-            : appsListHref ?? "#",
-          dimmed: !appBase,
-        },
-        {
-          label: "Mini App",
-          href: appBase ? `${appBase}/mini-app` : appsListHref ?? "#",
-          dimmed: !appBase,
-        },
-      ]
-    : [];
+  const configurationHref = ids ? urls.configuration(ids) : appsListHref;
+  const miniAppHref = appBase ? `${appBase}/mini-app` : appsListHref;
+  const teamSettingsHref = teamId
+    ? urls.teamSettings({ team_id: teamId })
+    : teamsLandingHref;
 
-  const teamItems: { label: string; href: string; exact?: boolean }[] = teamId
-    ? [
-        {
-          label: "Members",
-          href: urls.teams({ team_id: teamId }),
-          exact: true,
-        },
-        // No urls helper exists for api-keys (v2 hardcodes this path too).
-        ...(canSeeApiKeys
-          ? [{ label: "API Keys", href: `/teams/${teamId}/api-keys` }]
-          : []),
-        ...(canSeeSettings
-          ? [
-              {
-                label: "Settings",
-                href: urls.teamSettings({ team_id: teamId }),
-              },
-            ]
-          : []),
-      ]
-    : [];
+  const withinApp = (prefix: string) => {
+    if (!routeAppId || !teamId) return false;
+    const routeBase = urls.app({ team_id: teamId, app_id: routeAppId });
+    if (!pathname.startsWith(routeBase)) return false;
+    const rel = pathname.slice(routeBase.length);
+    return rel === prefix || rel.startsWith(`${prefix}/`);
+  };
 
-  const isActive = (href: string, exact?: boolean) =>
-    exact ? pathname === href : pathname.startsWith(href);
+  const dashboardActive =
+    pathname === appsListHref || (Boolean(appBase) && pathname === appBase);
+  const worldIdActive =
+    withinApp("/world-id-4-0") ||
+    withinApp("/world-id-actions") ||
+    withinApp("/actions");
+  const configurationActive = withinApp("/configuration");
+  const miniAppActive =
+    withinApp("/mini-app") ||
+    withinApp("/transactions") ||
+    withinApp("/notifications");
+  const settingsActive = teamId ? pathname.startsWith(teamSettingsHref) : false;
 
   return (
-    <nav className="no-scrollbar flex flex-1 flex-col gap-1 overflow-y-auto p-2">
-      {appItems.map((item) => (
+    <nav className="no-scrollbar flex flex-1 flex-col overflow-y-auto px-4 pt-[27px]">
+      <div className="grid gap-2">
         <NavItem
-          key={item.label}
-          label={item.label}
-          href={item.href}
-          active={!item.dimmed && isActive(item.href, item.exact)}
-          dimmed={item.dimmed}
+          label="Dashboard"
+          href={appHref}
+          active={dashboardActive}
+          icon={<NavIcon name="nav-home" active={dashboardActive} />}
         />
-      ))}
-      {appItems.length > 0 && teamItems.length > 0 ? (
-        <div className="border-border my-2 border-t" />
-      ) : null}
-      {teamItems.map((item) => (
+
+        {appId ? (
+          <>
+            <NavItem
+              label="World ID"
+              href={worldIdHref}
+              active={worldIdActive}
+              icon={<NavIcon name="nav-world-id" active={worldIdActive} />}
+            />
+            <NavItem
+              label="Configuration"
+              href={configurationHref}
+              active={configurationActive}
+              icon={
+                <NavIcon
+                  name="nav-configuration"
+                  active={configurationActive}
+                />
+              }
+            />
+            <NavItem
+              label="Mini App"
+              href={miniAppHref}
+              active={miniAppActive}
+              icon={<NavIcon name="nav-mini-app" active={miniAppActive} />}
+            />
+          </>
+        ) : null}
+      </div>
+
+      <div className="my-2 h-px w-full">
+        <Icon name="nav-separator" className="h-px w-full" />
+      </div>
+
+      <div className="grid gap-2">
         <NavItem
-          key={item.label}
-          label={item.label}
-          href={item.href}
-          active={isActive(item.href, item.exact)}
+          label="Team settings"
+          href={teamSettingsHref}
+          active={settingsActive}
+          icon={<NavIcon name="nav-settings" active={settingsActive} />}
         />
-      ))}
+        <NavItem
+          label="Help center"
+          href={DOCS_URL}
+          icon={<Icon name="nav-help" className="size-4" />}
+        />
+      </div>
     </nav>
   );
 };

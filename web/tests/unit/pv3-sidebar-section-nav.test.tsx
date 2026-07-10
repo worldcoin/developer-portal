@@ -61,94 +61,71 @@ beforeEach(() => {
   usePathname.mockReturnValue(base);
 });
 
-// #region main nav
-describe("v3 SidebarNav [main nav]", () => {
-  it("shows the app + team items on the dashboard (no section sidebar)", () => {
+// The v3 sidebar is a single flat nav — section sub-navigation (Mini App,
+// World ID) lives in an in-page tab bar now, not a sidebar that swaps in and
+// out. These cover that the nav stays put and the right entry is highlighted.
+// #region flat nav
+describe("v3 SidebarNav [flat nav]", () => {
+  it("shows the flat nav and never swaps to a section sidebar (no back link)", () => {
     renderSidebar();
     expect(link("Dashboard")).toBeInTheDocument();
     expect(link("World ID")).toBeInTheDocument();
     expect(link("Configuration")).toBeInTheDocument();
     expect(link("Mini App")).toBeInTheDocument();
-    expect(link("Members")).toBeInTheDocument();
+    // Notifications is a Mini App sub-route, not a top-level sidebar entry.
+    expect(
+      screen.queryByRole("link", { name: "Notifications" }),
+    ).not.toBeInTheDocument();
+    expect(link("Team settings")).toBeInTheDocument();
+    expect(link("Help center")).toBeInTheDocument();
     expect(
       screen.queryByRole("link", { name: "Back" }),
     ).not.toBeInTheDocument();
   });
 
-  it("keeps the main nav on Configuration (a section without sub-pages)", () => {
-    usePathname.mockReturnValue(`${base}/configuration`);
+  it("marks Dashboard current on the app root", () => {
     renderSidebar();
-    expect(link("Dashboard")).toBeInTheDocument();
-    expect(isCurrent("Configuration")).toBe(true);
-    expect(
-      screen.queryByRole("link", { name: "Back" }),
-    ).not.toBeInTheDocument();
-  });
-
-  it("routes the World ID entry to /world-id-4-0 for an app with an RP registration", () => {
-    renderSidebar({ appId, hasRpRegistration: true, hasLegacyActions: false });
-    expect(link("World ID")).toHaveAttribute("href", `${base}/world-id-4-0`);
-  });
-
-  it("routes the World ID entry to /actions for a legacy-actions-only app (no RP registration)", () => {
-    renderSidebar({ appId, hasRpRegistration: false, hasLegacyActions: true });
-    expect(link("World ID")).toHaveAttribute("href", `${base}/actions`);
+    expect(isCurrent("Dashboard")).toBe(true);
   });
 });
 // #endregion
 
-// #region Mini App section
-describe("v3 SidebarNav [Mini App section]", () => {
-  it("swaps to the Mini App items with a back link to the app dashboard", () => {
+// #region active section
+describe("v3 SidebarNav [active section]", () => {
+  it("marks Configuration current on a configuration route", () => {
+    usePathname.mockReturnValue(`${base}/configuration`);
+    renderSidebar();
+    expect(isCurrent("Configuration")).toBe(true);
+  });
+
+  it("marks Mini App current on a mini-app route without swapping the nav", () => {
     usePathname.mockReturnValue(`${base}/mini-app/permissions`);
     renderSidebar();
-
-    expect(link("Mini App")).toHaveAttribute("href", base);
-    expect(isCurrent("Permissions")).toBe(true);
-    expect(isCurrent("Transactions")).toBe(false);
-    expect(isCurrent("Notifications")).toBe(false);
-
-    // The main nav is replaced, not appended to.
+    expect(isCurrent("Mini App")).toBe(true);
+    // Full nav stays — it is not replaced by section items.
+    expect(link("Dashboard")).toBeInTheDocument();
+    // Sub-pages moved to an in-page tab bar, so they are not sidebar links.
     expect(
-      screen.queryByRole("link", { name: "Dashboard" }),
-    ).not.toBeInTheDocument();
-    expect(
-      screen.queryByRole("link", { name: "Members" }),
+      screen.queryByRole("link", { name: "Permissions" }),
     ).not.toBeInTheDocument();
   });
 
   it("treats the legacy top-level /transactions route as the Mini App section", () => {
     usePathname.mockReturnValue(`${base}/transactions`);
     renderSidebar();
-    expect(link("Mini App")).toBeInTheDocument();
-    expect(isCurrent("Transactions")).toBe(true);
-    expect(link("Transactions")).toHaveAttribute(
-      "href",
-      `${base}/mini-app/transactions`,
-    );
+    expect(isCurrent("Mini App")).toBe(true);
   });
-});
-// #endregion
 
-// #region World ID section
-describe("v3 SidebarNav [World ID section]", () => {
-  it("shows World ID 4.0 + Actions (no Legacy) for an app with an RP registration only", () => {
+  it("marks Mini App current on the notifications route now that Notifications has no sidebar entry", () => {
+    usePathname.mockReturnValue(`${base}/mini-app/notifications`);
+    renderSidebar();
+    expect(isCurrent("Mini App")).toBe(true);
+  });
+
+  it("marks World ID current on a world-id route with no sidebar sub-items", () => {
     usePathname.mockReturnValue(`${base}/world-id-4-0`);
     renderSidebar({ appId, hasRpRegistration: true, hasLegacyActions: false });
-
-    expect(link("World ID")).toHaveAttribute("href", base);
-    expect(isCurrent("World ID 4.0")).toBe(true);
-    expect(isCurrent("Actions")).toBe(false);
-    expect(
-      screen.queryByRole("link", { name: "World ID 3.0 Legacy" }),
-    ).not.toBeInTheDocument();
-  });
-
-  it("shows only Legacy for an app with legacy actions but no RP registration", () => {
-    usePathname.mockReturnValue(`${base}/actions`);
-    renderSidebar({ appId, hasRpRegistration: false, hasLegacyActions: true });
-
-    expect(isCurrent("World ID 3.0 Legacy")).toBe(true);
+    expect(isCurrent("World ID")).toBe(true);
     expect(
       screen.queryByRole("link", { name: "World ID 4.0" }),
     ).not.toBeInTheDocument();
@@ -156,30 +133,60 @@ describe("v3 SidebarNav [World ID section]", () => {
       screen.queryByRole("link", { name: "Actions" }),
     ).not.toBeInTheDocument();
   });
+});
+// #endregion
 
-  it("falls back to the main nav when the app has neither RP registration nor legacy actions", () => {
-    usePathname.mockReturnValue(`${base}/world-id-4-0`);
-    renderSidebar({ appId, hasRpRegistration: false, hasLegacyActions: false });
+// Team-less pages (e.g. /profile) carry no teamId in the URL. Team-scoped links
+// must still go somewhere real — the /teams landing route, which resolves the
+// user's team server-side — instead of a dead "#".
+// #region team-less pages
+describe("v3 SidebarNav [team-less pages]", () => {
+  beforeEach(() => {
+    // /profile: no teamId/appId anywhere in the URL, no app context.
+    useParams.mockReturnValue({});
+    useCurrentAppId.mockReturnValue(undefined);
+    usePathname.mockReturnValue("/profile");
+  });
 
-    expect(link("Dashboard")).toBeInTheDocument();
-    expect(
-      screen.queryByRole("link", { name: "Back" }),
-    ).not.toBeInTheDocument();
+  it("routes Dashboard to the /teams landing when the route has no teamId", () => {
+    renderSidebar();
+    expect(link("Dashboard")).toHaveAttribute("href", "/teams");
+    // ...but it is not the current page while we are on /profile.
+    expect(isCurrent("Dashboard")).toBe(false);
+  });
+
+  it("routes Team settings to the /teams landing rather than a dead link", () => {
+    renderSidebar();
+    expect(link("Team settings")).toHaveAttribute("href", "/teams");
+  });
+});
+// #endregion
+
+// #region World ID href routing
+describe("v3 SidebarNav [World ID routing]", () => {
+  it("routes World ID to /world-id-4-0 for an app with an RP registration", () => {
+    renderSidebar({ appId, hasRpRegistration: true, hasLegacyActions: false });
+    expect(link("World ID")).toHaveAttribute("href", `${base}/world-id-4-0`);
+  });
+
+  it("routes World ID to /actions for a legacy-actions-only app (no RP registration)", () => {
+    renderSidebar({ appId, hasRpRegistration: false, hasLegacyActions: true });
+    expect(link("World ID")).toHaveAttribute("href", `${base}/actions`);
+  });
+
+  it("defaults World ID to /world-id-4-0 before any flags sync", () => {
+    renderSidebar();
+    expect(link("World ID")).toHaveAttribute("href", `${base}/world-id-4-0`);
   });
 
   it("ignores flags published for a different app", () => {
-    usePathname.mockReturnValue(`${base}/world-id-4-0`);
     renderSidebar({
       appId: "app_other",
-      hasRpRegistration: true,
+      hasRpRegistration: false,
       hasLegacyActions: true,
     });
-
-    // Stale flags from another app must not gate this app's section items.
-    expect(link("Dashboard")).toBeInTheDocument();
-    expect(
-      screen.queryByRole("link", { name: "Back" }),
-    ).not.toBeInTheDocument();
+    // Stale flags from another app must not change this app's World ID href.
+    expect(link("World ID")).toHaveAttribute("href", `${base}/world-id-4-0`);
   });
 });
 // #endregion
