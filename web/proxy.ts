@@ -144,8 +144,104 @@ const protectedMatchers = [
 const isProtectedPath = (pathname: string) =>
   protectedMatchers.some((matcher) => matcher.test(pathname));
 
+const isAdminPagePath = (pathname: string) =>
+  pathname === "/admin" || pathname.startsWith("/admin/");
+
+// Mirrors the auth0 host normalization below (first comma-separated
+// x-forwarded-host value, default port stripped) plus a lowercase pass,
+// since Host/X-Forwarded-Host comparisons must be case-insensitive.
+const normalizeHost = (host: string) =>
+  host
+    .trim()
+    .replace(/:(80|443)$/, "")
+    .toLowerCase();
+
+const getForwardedHost = (request: NextRequest): string | undefined => {
+  const raw =
+    request.headers.get("x-forwarded-host") ||
+    request.headers.get("host") ||
+    request.nextUrl.host;
+  const first = raw?.split(",")[0];
+
+  return first ? normalizeHost(first) : undefined;
+};
+
+// Cloudflare Access protects INTERNAL_DASHBOARD_HOST as a separate hostname
+// from the public portal. Unset (the default) means no host is treated as
+// the dashboard entry point, so "/" keeps serving the public portal.
+const isInternalDashboardHost = (request: NextRequest): boolean => {
+  const dashboardHost = process.env.INTERNAL_DASHBOARD_HOST;
+
+  if (!dashboardHost) {
+    return false;
+  }
+
+  return getForwardedHost(request) === normalizeHost(dashboardHost);
+};
+
+const withSecurityHeaders = (
+  response: NextResponse,
+  csp: string,
+  pathname: string,
+) => {
+  response.headers.set("content-security-policy", csp);
+  response.headers.set("Permissions-Policy", "clipboard-write=(self)");
+  response.headers.set("x-current-path", pathname);
+
+  return response;
+};
+
+const createSecurityHeadersResponse = (
+  request: NextRequest,
+  pathname: string,
+) => {
+  const { csp, nonce } = generateCsp();
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set("x-nonce", nonce);
+  requestHeaders.set("content-security-policy", csp);
+
+  const response = NextResponse.next({ request: { headers: requestHeaders } });
+
+  return withSecurityHeaders(response, csp, pathname);
+};
+
+// The browser keeps seeing the protected dashboard hostname during
+// navigation (developer-dashboard.toolsforhumanity.com/admin, not a
+// redirect to the origin host), so this rewrites rather than redirects.
+const createDashboardRewriteResponse = (request: NextRequest) => {
+  const url = request.nextUrl.clone();
+  url.pathname = "/admin";
+
+  const { csp, nonce } = generateCsp();
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set("x-nonce", nonce);
+  requestHeaders.set("content-security-policy", csp);
+
+  const response = NextResponse.rewrite(url, {
+    request: { headers: requestHeaders },
+  });
+
+  return withSecurityHeaders(response, csp, "/admin");
+};
+
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+  // "/" has no product meaning of its own on the dashboard hostname, so
+  // treat it as the dashboard entry point there. Every other host keeps
+  // today's behavior of not running middleware on "/" at all (it wasn't in
+  // `config.matcher` before this route was added).
+  if (pathname === "/" && isInternalDashboardHost(request)) {
+    return createDashboardRewriteResponse(request);
+  }
+
+  if (pathname === "/") {
+    return NextResponse.next();
+  }
+
+  if (isAdminPagePath(pathname)) {
+    return createSecurityHeadersResponse(request, pathname);
+  }
 
   // In allow-list mode the Auth0 SDK matches the request origin against the
   // `appBaseUrl` list with an exact, un-normalized compare. This deployment's proxy
@@ -251,15 +347,7 @@ export async function proxy(request: NextRequest) {
   // 4. Attach the per-request CSP nonce. It is forwarded on the request headers
   //    so the root layout (`web/scenes/Root/layout`) can read `x-nonce` during
   //    SSR, and set on the response so the browser enforces the policy.
-  const { csp, nonce } = generateCsp();
-  const requestHeaders = new Headers(request.headers);
-  requestHeaders.set("x-nonce", nonce);
-  requestHeaders.set("content-security-policy", csp);
-
-  const response = NextResponse.next({ request: { headers: requestHeaders } });
-  response.headers.set("content-security-policy", csp);
-  response.headers.set("Permissions-Policy", "clipboard-write=(self)");
-  response.headers.set("x-current-path", pathname);
+  const response = createSecurityHeadersResponse(request, pathname);
 
   // Preserve any session-refresh cookies set by `auth0.middleware()`.
   for (const cookie of authRes.cookies.getAll()) {
@@ -271,10 +359,12 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
+    "/",
     "/api/auth/:path*",
     "/teams/:path*",
     "/create-team",
     "/profile/:path*",
     "/join-callback",
+    "/admin/:path*",
   ],
 };
