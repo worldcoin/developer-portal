@@ -12,7 +12,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Skeleton from "react-loading-skeleton";
 import { useParams } from "next/navigation";
 import { MiniAppConfiguration } from "./MiniAppConfiguration";
-import { DangerZoneSection } from "./Danger/DangerZoneSection";
 import { FormSkeleton } from "./AppTopBar/FormSkeleton";
 import { AppStoreForm } from "./AppStore/app-store";
 import { AppStoreFormProvider } from "./AppStore/app-store-form-provider";
@@ -30,7 +29,7 @@ import { SectionToc } from "./PageComponents/SectionToc";
 import { InReviewBanner } from "./InReviewBanner";
 import { RejectionBanner } from "./RejectionBanner";
 import { ResolveModal } from "./ResolveModal";
-import { ReviewRail } from "./ReviewRail";
+import { ConfigurationActions, ReviewRail } from "./ReviewRail";
 import { SaveStatusProvider } from "./SaveStatus";
 import { useRemoveFromReview } from "@/scenes/common/Teams/TeamId/Apps/common/hooks/use-remove-from-review";
 import { FetchAppMetadataQuery } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/graphql/client/fetch-app-metadata.generated";
@@ -88,67 +87,70 @@ const ConfigurationContent = ({
 
   return (
     <div className="grid gap-6 lg:h-full lg:grid-cols-[11rem_minmax(0,1fr)_minmax(380px,30%)] lg:grid-rows-[minmax(0,1fr)]">
-      {/* Section jump nav: static beside the scrolling form column. */}
-      <div className="hidden pt-8 lg:block">
-        <SectionToc scrollContainerRef={scrollContainerRef} />
+      {/* Section jump nav on desktop; on smaller screens it collapses to the
+          separated Danger zone destination above the form. */}
+      <div className="pt-2 lg:pt-8">
+        <SectionToc
+          appId={appId}
+          teamId={teamId}
+          scrollContainerRef={scrollContainerRef}
+        />
       </div>
 
-      {/* Main column: the only scroll container on lg+ — the wheel moves the
-          form while the preview pane stays put. */}
-      <div
-        ref={scrollContainerRef}
-        className="grid min-w-0 content-start gap-y-6 pb-24 pt-8 lg:h-full lg:overflow-y-auto lg:pr-4"
-      >
-        {/* Identity band: app icon beside the reach-mode chooser, one row on
-            lg+ so the lone icon circle doesn't occupy a full-width box. */}
-        <div className="grid gap-6 lg:grid-cols-[auto_minmax(0,1fr)]">
-          <AppIconBox
-            appId={appId}
-            teamId={teamId}
-            appMetadataId={appMetadata.id}
-            logoFile={appMetadata.logo_img_url}
-            isEditable={appMetadata.verification_status === "unverified"}
-            verificationStatus={appMetadata.verification_status}
-          />
+      {/* The form and its action shelf share one column. Only the form body
+          scrolls on desktop, keeping the shelf visibly beneath it. */}
+      <div className="flex min-h-0 min-w-0 flex-col">
+        <div
+          ref={scrollContainerRef}
+          className="grid min-w-0 content-start gap-y-6 pb-28 pt-8 lg:min-h-0 lg:flex-1 lg:overflow-y-auto lg:pb-8 lg:pr-4"
+        >
+          {/* Identity band: app icon beside the reach-mode chooser, one row on
+              lg+ so the lone icon circle doesn't occupy a full-width box. */}
+          <div className="grid gap-6 lg:grid-cols-[auto_minmax(0,1fr)]">
+            <AppIconBox
+              appId={appId}
+              teamId={teamId}
+              appMetadataId={appMetadata.id}
+              logoFile={appMetadata.logo_img_url}
+              isEditable={appMetadata.verification_status === "unverified"}
+              verificationStatus={appMetadata.verification_status}
+            />
 
-          <MiniAppConfiguration
+            <MiniAppConfiguration
+              appId={appId}
+              teamId={teamId}
+              appMetadata={appMetadata as AppMetadata}
+            />
+          </div>
+
+          <NumberedSection number="01" title="Basic information">
+            <BasicInformation
+              ref={basicInfoRef}
+              appId={appId}
+              teamId={teamId}
+              app={app}
+              teamName={teamName}
+            />
+          </NumberedSection>
+
+          <AppStoreForm
             appId={appId}
             teamId={teamId}
             appMetadata={appMetadata as AppMetadata}
           />
         </div>
 
-        <NumberedSection number="01" title="Basic information">
-          <BasicInformation
-            ref={basicInfoRef}
-            appId={appId}
-            teamId={teamId}
-            app={app}
-            teamName={teamName}
-          />
-        </NumberedSection>
-
-        <AppStoreForm
+        <ConfigurationActions
           appId={appId}
           teamId={teamId}
-          appMetadata={appMetadata as AppMetadata}
-        />
-
-        <DangerZoneSection
-          appId={appId}
-          teamId={teamId}
-          appName={appMetadata.name}
+          appMetadata={appMetadata}
+          basicInfoRef={basicInfoRef}
         />
       </div>
 
-      {/* Sticky right rail: live listing preview + submit + save status */}
-      <ReviewRail
-        appId={appId}
-        teamId={teamId}
-        teamName={teamName}
-        appMetadata={appMetadata}
-        basicInfoRef={basicInfoRef}
-      />
+      {/* The preview is a read-only visual aid; page actions live with the
+          form in the neighboring column. */}
+      <ReviewRail appId={appId} teamName={teamName} appMetadata={appMetadata} />
     </div>
   );
 };

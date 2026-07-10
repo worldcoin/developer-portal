@@ -160,6 +160,7 @@ jest.mock("@auth0/nextjs-auth0/client", () => ({
 
 import { getDefaultStore } from "jotai";
 import { AppProfilePage } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/Configuration/page";
+import { AppDangerZonePage } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/Configuration/Danger/page";
 import {
   unverifiedImageAtom,
   viewModeAtom,
@@ -224,6 +225,8 @@ const makeApp = (metadata: Record<string, unknown>) => ({
 });
 
 const renderPage = () => render(<AppProfilePage params={{ teamId, appId }} />);
+const renderDangerPage = () =>
+  render(<AppDangerZonePage params={{ teamId, appId }} />);
 
 // Components read jotai's default store (no Provider), so tests can seed the
 // images atom the same way LogoImageUpload / ImagesProvider write it.
@@ -268,7 +271,7 @@ describe("v3 Configuration redesign [layout]", () => {
     expect(externalRadio).not.toBeChecked();
   });
 
-  it("renders the app icon box and all four numbered sections with bodies exposed, plus the danger zone", () => {
+  it("renders the app icon box, all four numbered sections, and a separated danger-zone destination", () => {
     renderPage();
     // Standalone app icon box (extracted from Basic information).
     expect(screen.getByText(/App icon/)).toBeInTheDocument();
@@ -293,10 +296,13 @@ describe("v3 Configuration redesign [layout]", () => {
     expect(
       screen.getByText(/Laws and regulations governing mini apps/),
     ).toBeInTheDocument();
-    expect(screen.getByText("Danger zone")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Danger zone" })).toHaveAttribute(
+      "href",
+      `/teams/${teamId}/apps/${appId}/configuration/danger`,
+    );
     expect(
-      screen.getByRole("button", { name: "Delete app" }),
-    ).toBeInTheDocument();
+      screen.queryByRole("button", { name: "Delete app" }),
+    ).not.toBeInTheDocument();
   });
 });
 // #endregion
@@ -306,10 +312,19 @@ describe("v3 Configuration redesign [right rail]", () => {
   it("shows an always-active submit button (validation responds on click instead of a gate)", () => {
     renderPage();
 
+    const actions = screen.getByRole("region", {
+      name: "Configuration actions",
+    });
     const submitButton = screen.getByRole("button", {
       name: /Submit for review/,
     });
     expect(submitButton).toBeEnabled();
+    expect(within(actions).getByText("Draft saved")).toBeInTheDocument();
+    expect(
+      within(
+        screen.getByRole("complementary", { name: "Live preview" }),
+      ).queryByRole("button", { name: /Submit for review/ }),
+    ).not.toBeInTheDocument();
   });
 
   it("renders the listing preview fed by form values and static placeholders", () => {
@@ -318,7 +333,7 @@ describe("v3 Configuration redesign [right rail]", () => {
     expect(screen.getAllByText("na").length).toBeGreaterThan(0);
     expect(screen.getByText("sampleteam")).toBeInTheDocument();
     // Scoped to the rail: "Mini App" also appears as an app-mode radio label.
-    const rail = screen.getByRole("complementary");
+    const rail = screen.getByRole("complementary", { name: "Live preview" });
     expect(within(rail).getByText("Mini App")).toBeInTheDocument();
     // Static placeholders for the non-editable listing bits.
     expect(screen.getByText("Not yet rated")).toBeInTheDocument();
@@ -332,7 +347,7 @@ describe("v3 Configuration redesign [right rail]", () => {
       screen.getByText(/Your description appears here/),
     ).toBeInTheDocument();
     expect(screen.getAllByText("Showcase image")).toHaveLength(2);
-    expect(screen.getByText("Draft saved")).toBeInTheDocument();
+    expect(within(rail).queryByText("Draft saved")).not.toBeInTheDocument();
   });
 
   it("shows uploaded logo and showcase images in the preview and icon box", () => {
@@ -509,6 +524,25 @@ describe("v3 Configuration redesign [right rail]", () => {
     });
     expect(
       screen.getByText("Upload an app icon before submitting for review"),
+    ).toBeInTheDocument();
+  });
+});
+// #endregion
+
+// #region Danger zone destination
+describe("v3 Configuration redesign [danger zone]", () => {
+  it("keeps destructive settings on a dedicated page with a path back", () => {
+    renderDangerPage();
+
+    expect(
+      screen.getByRole("heading", { name: "Danger zone" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: "Back to configuration" }),
+    ).toHaveAttribute("href", `/teams/${teamId}/apps/${appId}/configuration`);
+    expect(screen.getByText(/Permanently delete/)).toHaveTextContent("na");
+    expect(
+      screen.getByRole("button", { name: "Delete app" }),
     ).toBeInTheDocument();
   });
 });

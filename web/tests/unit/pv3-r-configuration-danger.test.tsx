@@ -9,24 +9,17 @@ jest.mock("@/lib/feature-flags/portal-v3/activation", () => ({
   pickPortalVersion: (...args: unknown[]) => pickPortalVersion(...args),
 }));
 
-const redirect = jest.fn();
-jest.mock("next/navigation", () => ({
-  redirect: (...args: unknown[]) => redirect(...args),
-}));
-
-jest.mock("@/lib/urls", () => ({
-  urls: {
-    configuration: ({ team_id, app_id }: { team_id: string; app_id: string }) =>
-      `/teams/${team_id}/apps/${app_id}/configuration`,
-  },
-}));
-
 jest.mock("@/lib/genarate-title", () => ({
   generateMetaTitle: () => "title",
 }));
 
-// v3 no longer has a standalone danger page — Danger zone is a section on the
-// Configuration page — so only the v2 page component is imported by the shim.
+jest.mock(
+  "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/Configuration/Danger/page",
+  () => ({
+    AppDangerZonePage: () => <div data-testid="v3-danger-page" />,
+  }),
+);
+
 jest.mock(
   "@/scenes/Portal/Teams/TeamId/Apps/AppId/Configuration/Danger/page",
   () => ({
@@ -43,19 +36,18 @@ const props = () => ({
 
 beforeEach(() => jest.clearAllMocks());
 
-it("redirects v3 to the Configuration page — Danger zone is a section there now", async () => {
+it("renders the separated Danger page for v3", async () => {
   pickPortalVersion.mockImplementation(async (v3: () => unknown) => v3());
-  await Page(props());
-  expect(redirect).toHaveBeenCalledWith(
-    "/teams/team_1/apps/app_1/configuration",
-  );
+  render(await Page(props()));
+  expect(screen.getByTestId("v3-danger-page")).toBeInTheDocument();
+  expect(screen.queryByTestId("v2-danger-page")).not.toBeInTheDocument();
 });
 
-it("renders the standalone Danger page for v2, without redirecting", async () => {
+it("renders the standalone Danger page for v2", async () => {
   pickPortalVersion.mockImplementation(
     async (_v3: () => unknown, v2: () => unknown) => v2(),
   );
   render(await Page(props()));
   expect(screen.getByTestId("v2-danger-page")).toBeInTheDocument();
-  expect(redirect).not.toHaveBeenCalled();
+  expect(screen.queryByTestId("v3-danger-page")).not.toBeInTheDocument();
 });

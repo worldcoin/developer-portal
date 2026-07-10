@@ -10,7 +10,6 @@ import { useUser } from "@auth0/nextjs-auth0/client";
 import clsx from "clsx";
 import { useAtomValue } from "jotai";
 import { MutableRefObject, useMemo, useState } from "react";
-import { selectedLanguageAtom } from "../AppStore/components/FormSections/LocalisationsSection/hooks/useLanguageSelection";
 import { AppTopBarSubmit } from "../AppTopBar";
 import { SubmitAppModal } from "../AppTopBar/SubmitAppModal";
 import { BasicInformationHandle } from "../BasicInformation";
@@ -134,65 +133,92 @@ const SubmitForReview = ({
         viewMode={viewMode}
         onSubmitSuccess={() => setShowSubmitAppModal(true)}
         basicInfoRef={basicInfoRef}
-        className="w-full"
+        className="shrink-0"
       />
     </>
   );
 };
 
-type ReviewRailProps = {
+type ConfigurationActionsProps = {
   appId: string;
   teamId: string;
-  teamName: string;
   appMetadata: FullAppMetadata;
   basicInfoRef?: MutableRefObject<BasicInformationHandle | null>;
 };
 
 /**
- * Sticky right rail for the Configuration page: live listing preview, submit
- * for review, and autosave status. Follows the viewport as the (much taller)
- * form column scrolls.
+ * Persistent action shelf owned by the form column. On desktop it sits below
+ * the independently scrolling form; on smaller screens it becomes a compact
+ * floating dock so save state and review submission never disappear.
  */
-export const ReviewRail = ({
+export const ConfigurationActions = ({
   appId,
   teamId,
-  teamName,
   appMetadata,
   basicInfoRef,
-}: ReviewRailProps) => {
-  const previewLanguage = useAtomValue(selectedLanguageAtom);
+}: ConfigurationActionsProps) => {
   const isEditable = appMetadata.verification_status === "unverified";
 
   return (
-    // The page frame is viewport-height with the form column scrolling
-    // internally, so the pane is simply static: it never moves and is never
-    // cut off — the Submit button and save status always sit within view.
-    // Below lg the grid is one column and the rail renders first, so the
-    // submit button never sits below the danger zone on small screens.
-    <aside className="order-first h-full lg:order-none lg:border-l lg:border-grey-200 lg:pl-10">
-      <div className="flex flex-col gap-y-4 py-8 lg:h-full">
-        <div className="min-h-0 flex-1 overflow-hidden">
-          <LivePreview
-            appId={appId}
-            teamName={teamName}
-            appMetadata={appMetadata}
-          />
+    <section
+      aria-label="Configuration actions"
+      className="fixed inset-x-4 bottom-4 z-30 rounded-2xl border border-grey-200 bg-grey-0/95 p-3 shadow-xl backdrop-blur-md lg:static lg:z-auto lg:mb-8 lg:mr-4 lg:shrink-0 lg:p-4 lg:shadow-lg"
+    >
+      <div className="flex items-center justify-between gap-x-4">
+        <div className="min-w-0">
+          {isEditable ? (
+            <DraftSavedLine />
+          ) : (
+            <MetadataStatusLine
+              status={appMetadata.verification_status as StatusVariant}
+            />
+          )}
         </div>
-
         <SubmitForReview
           appId={appId}
           teamId={teamId}
           appMetadata={appMetadata}
           basicInfoRef={basicInfoRef}
         />
+      </div>
+    </section>
+  );
+};
 
-        {isEditable ? (
-          <DraftSavedLine />
-        ) : (
-          <MetadataStatusLine
-            status={appMetadata.verification_status as StatusVariant}
+type ReviewRailProps = {
+  appId: string;
+  teamName: string;
+  appMetadata: FullAppMetadata;
+};
+
+/** Live listing preview, intentionally isolated from page-level actions. */
+export const ReviewRail = ({
+  appId,
+  teamName,
+  appMetadata,
+}: ReviewRailProps) => {
+  return (
+    <aside
+      aria-label="Live preview"
+      className="order-first h-full lg:order-none lg:border-l lg:border-grey-200 lg:pl-10"
+    >
+      <div className="flex flex-col gap-y-5 py-8 lg:h-full">
+        <div className="flex items-center justify-between gap-x-4">
+          <Typography variant={TYPOGRAPHY.M4} className="text-grey-900">
+            Live preview
+          </Typography>
+          <Typography variant={TYPOGRAPHY.R5} className="text-grey-400">
+            Updates as you edit
+          </Typography>
+        </div>
+
+        <div className="min-h-0 flex-1 overflow-y-auto pr-1">
+          <LivePreview
+            appId={appId}
+            teamName={teamName}
+            appMetadata={appMetadata}
           />
-        )}
+        </div>
       </div>
     </aside>
   );
