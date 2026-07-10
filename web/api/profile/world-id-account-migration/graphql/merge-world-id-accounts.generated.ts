@@ -4,47 +4,36 @@ import * as Types from "@/graphql/graphql";
 import { GraphQLClient, RequestOptions } from "graphql-request";
 import gql from "graphql-tag";
 type GraphQLClientRequestHeaders = RequestOptions["requestHeaders"];
-export type UpsertAppReviewMutationVariables = Types.Exact<{
-  nullifier_hash: Types.Scalars["String"]["input"];
-  app_id: Types.Scalars["String"]["input"];
-  country: Types.Scalars["String"]["input"];
-  rating: Types.Scalars["Int"]["input"];
+export type MergeWorldIdAccountsMutationVariables = Types.Exact<{
+  current_user_id: Types.Scalars["String"]["input"];
+  legacy_user_id: Types.Scalars["String"]["input"];
+  world_id_nullifier: Types.Scalars["String"]["input"];
 }>;
 
-export type UpsertAppReviewMutation = {
+export type MergeWorldIdAccountsMutation = {
   __typename?: "mutation_root";
-  insert_app_reviews_one?: {
-    __typename?: "app_reviews";
+  merge_world_id_accounts: Array<{
+    __typename?: "user";
     id: string;
-    app_id: string;
-    country: string;
-    rating: number;
-  } | null;
+    world_id_nullifier?: string | null;
+  }>;
 };
 
-export const UpsertAppReviewDocument = gql`
-  mutation UpsertAppReview(
-    $nullifier_hash: String!
-    $app_id: String!
-    $country: String!
-    $rating: Int!
+export const MergeWorldIdAccountsDocument = gql`
+  mutation MergeWorldIdAccounts(
+    $current_user_id: String!
+    $legacy_user_id: String!
+    $world_id_nullifier: String!
   ) {
-    insert_app_reviews_one(
-      object: {
-        nullifier_hash: $nullifier_hash
-        app_id: $app_id
-        country: $country
-        rating: $rating
-      }
-      on_conflict: {
-        constraint: app_reviews_nullifier_hash_key
-        update_columns: [rating]
+    merge_world_id_accounts(
+      args: {
+        _current_user_id: $current_user_id
+        _legacy_user_id: $legacy_user_id
+        _world_id_nullifier: $world_id_nullifier
       }
     ) {
       id
-      app_id
-      country
-      rating
+      world_id_nullifier
     }
   }
 `;
@@ -68,18 +57,18 @@ export function getSdk(
   withWrapper: SdkFunctionWrapper = defaultWrapper,
 ) {
   return {
-    UpsertAppReview(
-      variables: UpsertAppReviewMutationVariables,
+    MergeWorldIdAccounts(
+      variables: MergeWorldIdAccountsMutationVariables,
       requestHeaders?: GraphQLClientRequestHeaders,
-    ): Promise<UpsertAppReviewMutation> {
+    ): Promise<MergeWorldIdAccountsMutation> {
       return withWrapper(
         (wrappedRequestHeaders) =>
-          client.request<UpsertAppReviewMutation>(
-            UpsertAppReviewDocument,
+          client.request<MergeWorldIdAccountsMutation>(
+            MergeWorldIdAccountsDocument,
             variables,
             { ...requestHeaders, ...wrappedRequestHeaders },
           ),
-        "UpsertAppReview",
+        "MergeWorldIdAccounts",
         "mutation",
         variables,
       );

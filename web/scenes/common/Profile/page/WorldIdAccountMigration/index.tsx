@@ -7,6 +7,7 @@ import { WORLD_ID_MIGRATION_APP_IDS } from "@/lib/constants";
 import { isWorldUser } from "@/lib/is-world-user";
 import { buildMockRpContext } from "@/lib/rp";
 import type { Auth0SessionUser } from "@/lib/types";
+import { urls } from "@/lib/urls";
 import {
   deviceLegacy,
   IDKitRequestWidget,
@@ -14,10 +15,12 @@ import {
 } from "@worldcoin/idkit";
 import clsx from "clsx";
 import { useCallback, useEffect, useState } from "react";
-import type { MigrationState } from "./types";
+import type { MigrationResponse, MigrationState } from "./types";
 
 type WorldIdAccountMigrationProps = {
   auth0User: Auth0SessionUser["user"] | undefined;
+  isLinked: boolean;
+  onLinkSuccess?: () => void;
 };
 
 const statusCopy: Record<
@@ -29,18 +32,40 @@ const statusCopy: Record<
       "Sign in With World ID method is deprecated. If you had a legacy account, link your account to continue using your teams and apps.",
     className: "text-grey-400",
   },
+  checking: {
+    description: "Verifying your World ID proof.",
+    className: "text-grey-400",
+  },
   error: {
     description: "Try again in a moment.",
     className: "text-system-error-600",
   },
+  already_linked: {
+    description: "This profile already has a World ID account.",
+    className: "text-grey-400",
+  },
+  merged: {
+    description:
+      "Your Sign in with World ID account was merged into this profile. Its teams and apps are now available here.",
+    className: "text-system-success-700",
+  },
+  not_found: {
+    description: "No existing account matched your World ID.",
+    className: "text-grey-400",
+  },
 };
+
+const isDoneState = (type: MigrationState["type"]) =>
+  type === "merged" || type === "already_linked";
 
 export const WorldIdAccountMigration = ({
   auth0User,
+  isLinked,
+  onLinkSuccess,
 }: WorldIdAccountMigrationProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [migrationState, setMigrationState] = useState<MigrationState>({
-    type: "idle",
+    type: isLinked ? "already_linked" : "idle",
   });
 
   const appId =
@@ -56,8 +81,17 @@ export const WorldIdAccountMigration = ({
         type: "error",
         message: "World ID account migration is not configured.",
       });
+      return;
     }
-  }, [appId]);
+
+    if (isLinked) {
+      // Don't clobber the richer "merged" success state when the
+      // me query refetch flips isLinked after a successful migration.
+      setMigrationState((state) =>
+        isDoneState(state.type) ? state : { type: "already_linked" },
+      );
+    }
+  }, [isLinked, appId]);
 
   const copy = statusCopy[migrationState.type];
   const description =
@@ -76,39 +110,76 @@ export const WorldIdAccountMigration = ({
     setIsOpen(true);
   }, [appId]);
 
-  const handleSuccess = useCallback(async (result: IDKitResult) => {
-    // The migration flow requests device-legacy proofs, so we expect a v3
-    // result whose first response carries the flat proof fields.
-    if (result.protocol_version !== "3.0") {
-      setMigrationState({
-        type: "error",
-        message: "Unsupported World ID proof for account migration.",
-      });
-      return;
-    }
+  const handleSuccess = useCallback(
+    async (result: IDKitResult) => {
+      // The migration flow requests device-legacy proofs, so we expect a v3
+      // result whose first response carries the flat proof fields.
+      if (result.protocol_version !== "3.0") {
+        setMigrationState({
+          type: "error",
+          message: "Unsupported World ID proof for account migration.",
+        });
+        return;
+      }
 
-    const response = result.responses[0];
-    if (!response) {
-      setMigrationState({
-        type: "error",
-        message: "World ID proof is missing.",
-      });
-      return;
-    }
+      const response = result.responses[0];
+      if (!response) {
+        setMigrationState({
+          type: "error",
+          message: "World ID proof is missing.",
+        });
+        return;
+      }
 
-    // Part 1 stops here: the verification + legacy account merge endpoint
-    // lands in the follow-up PR. Log the proof so the flow can be exercised
-    // end-to-end in the meantime.
-    console.log("World ID account migration proof", {
-      proof: response.proof,
-      merkle_root: response.merkle_root,
-      nullifier: response.nullifier,
-      signal_hash: response.signal_hash,
-      verification_level: response.identifier,
-    });
+      setMigrationState({ type: "checking" });
 
-    setMigrationState({ type: "idle" });
-  }, []);
+      try {
+        const migrationResponse = await fetch(
+          urls.api.worldIdAccountMigration(),
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              proof: response.proof,
+              merkle_root: response.merkle_root,
+              nullifier: response.nullifier,
+              signal_hash: response.signal_hash,
+              verification_level: response.identifier,
+            }),
+          },
+        );
+
+        const payload = (await migrationResponse.json().catch(() => null)) as
+          | MigrationResponse
+          | { detail?: string }
+          | null;
+
+        if (!migrationResponse.ok || !payload || !("status" in payload)) {
+          throw new Error(
+            (payload && "detail" in payload && payload.detail) ||
+              "There was an error linking this World ID.",
+          );
+        }
+
+        setMigrationState({ type: payload.status });
+
+        if (payload.status === "merged") {
+          // Refresh the me query so world_id_nullifier (and any merged
+          // teams) are reflected across the portal.
+          onLinkSuccess?.();
+        }
+      } catch (error) {
+        setMigrationState({
+          type: "error",
+          message:
+            error instanceof Error
+              ? error.message
+              : "There was an error linking this World ID.",
+        });
+      }
+    },
+    [onLinkSuccess],
+  );
 
   // Feature-flagged (ships dark). A Sign in with World ID session IS a legacy
   // account, so migration only makes sense from an email account. Hide only on

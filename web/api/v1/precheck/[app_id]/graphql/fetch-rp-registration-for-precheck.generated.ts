@@ -20,7 +20,16 @@ export type FetchRpRegistrationForPrecheckQuery = {
 
 export const FetchRpRegistrationForPrecheckDocument = gql`
   query FetchRpRegistrationForPrecheck($app_id: String!) {
-    rp_registration(where: { app_id: { _eq: $app_id } }) {
+    rp_registration(
+      where: {
+        app_id: { _eq: $app_id }
+        app: {
+          status: { _eq: "active" }
+          is_archived: { _eq: false }
+          deleted_at: { _is_null: true }
+        }
+      }
+    ) {
       rp_id
       app_id
       status

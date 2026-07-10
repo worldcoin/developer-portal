@@ -44,9 +44,8 @@ const generateCsp = () => {
       name: "font-src",
       values: [
         "'self'",
-        // Font files are served from https://world-id-assets.com (see
-        // `web/styles/globals.css`), so the source must match the https
-        // scheme — http-only source expressions don't match https requests.
+        // IDKit's bundled UI still injects TWK Lausanne font faces from this
+        // asset host. App-level fonts are self-hosted by next/font.
         "https://world-id-assets.com",
         "https://staging.world-id-assets.com",
       ],
@@ -56,7 +55,6 @@ const generateCsp = () => {
       values: [
         "'self'",
         "'unsafe-inline'",
-        "fonts.googleapis.com",
         ...(isDev ? ["'unsafe-inline'"] : []),
       ],
     },
