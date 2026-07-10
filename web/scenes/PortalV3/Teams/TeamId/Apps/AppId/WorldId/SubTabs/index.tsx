@@ -4,11 +4,7 @@ import { urls } from "@/lib/urls";
 import { SectionSubTabs } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/common/SectionSubTabs";
 import { useParams, usePathname } from "next/navigation";
 
-// World ID section tabs. Reaching /world-id-4-0 or /world-id-actions implies an
-// RP registration (the route layouts redirect otherwise), so both tabs are
-// always valid here — no per-tab flag gating needed. Legacy /actions is left
-// out for now.
-export const WorldIdSubTabs = () => {
+export const WorldIdSubTabs = (props: { hasLegacyActions: boolean }) => {
   const params = useParams<{ teamId: string; appId: string }>();
   const pathname = usePathname() ?? "";
 
@@ -18,6 +14,7 @@ export const WorldIdSubTabs = () => {
   };
   const worldId40Path = urls.worldId40(ids);
   const actionsPath = urls.worldIdActions(ids);
+  const legacyActionsPath = urls.actions(ids);
 
   return (
     <SectionSubTabs
@@ -34,6 +31,16 @@ export const WorldIdSubTabs = () => {
           segment: "world-id-actions",
           active: pathname.startsWith(actionsPath),
         },
+        ...(props.hasLegacyActions
+          ? [
+              {
+                label: "World ID 3.0 Legacy",
+                href: legacyActionsPath,
+                segment: "actions",
+                active: pathname.startsWith(legacyActionsPath),
+              },
+            ]
+          : []),
       ]}
     />
   );

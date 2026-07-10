@@ -48,7 +48,16 @@ export const SidebarNav = () => {
   const appId = useCurrentAppId();
   const appEnvFlags = useAtomValue(appEnvFlagsAtom);
 
-  const appsListHref = teamId ? urls.apps({ team_id: teamId }) : "#";
+  // Team-less pages (e.g. /profile) carry no teamId in the URL, so team-scoped
+  // links can't be built directly. Rather than pick a team here, fall back to
+  // the /teams landing route, which resolves the user's team server-side — the
+  // same way login does (and it also handles the no-teams / broken-session
+  // cases). urls.teams({}) === "/teams".
+  const teamsLandingHref = urls.teams({});
+
+  const appsListHref = teamId
+    ? urls.apps({ team_id: teamId })
+    : teamsLandingHref;
   const appBase =
     teamId && appId ? urls.app({ team_id: teamId, app_id: appId }) : undefined;
 
@@ -68,7 +77,7 @@ export const SidebarNav = () => {
   const notificationsHref = ids ? urls.miniAppNotifications(ids) : appsListHref;
   const teamSettingsHref = teamId
     ? urls.teamSettings({ team_id: teamId })
-    : "#";
+    : teamsLandingHref;
 
   const withinApp = (prefix: string) => {
     if (!routeAppId || !teamId) return false;
@@ -100,7 +109,6 @@ export const SidebarNav = () => {
           label="Dashboard"
           href={appHref}
           active={dashboardActive}
-          dimmed={!teamId}
           icon={<NavIcon name="nav-home" active={dashboardActive} />}
         />
 
@@ -141,7 +149,6 @@ export const SidebarNav = () => {
           label="Notifications"
           href={notificationsHref}
           active={notificationsActive}
-          dimmed={!teamId}
           icon={<NavIcon name="nav-bell" active={notificationsActive} />}
         />
       </div>
@@ -155,7 +162,6 @@ export const SidebarNav = () => {
           label="Team settings"
           href={teamSettingsHref}
           active={settingsActive}
-          dimmed={!teamId}
           icon={<NavIcon name="nav-settings" active={settingsActive} />}
         />
         <NavItem

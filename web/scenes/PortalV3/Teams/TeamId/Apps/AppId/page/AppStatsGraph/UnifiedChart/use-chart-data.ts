@@ -77,6 +77,7 @@ export const useChartData = (
   appId: string,
   activeTab: ChartTabType,
   metrics: AppMetricsData | null,
+  metricsLoading: boolean,
 ) => {
   const { data: appStatsData, loading: appStatsLoading } =
     useFetchAppStatsQuery({
@@ -266,7 +267,7 @@ export const useChartData = (
         const hasRealData = !!formattedNotificationOpenRateChartData;
         return {
           chartData: formattedNotificationOpenRateChartData,
-          isLoading: false,
+          isLoading: metricsLoading,
           emptyStateTitle: "No data available yet",
           emptyStateDescription:
             "Your notification open rate will show up here.",
@@ -297,6 +298,7 @@ export const useChartData = (
     formattedNotificationOpenRateChartData,
     appStatsLoading,
     transactionsLoading,
+    metricsLoading,
     engine,
     totalVerifications,
     totalUniqueUsers,

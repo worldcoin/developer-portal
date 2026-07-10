@@ -7,7 +7,6 @@ import { getSdk as getAppEnvSdk } from "@/scenes/common/Teams/TeamId/Apps/AppId/
 import { BanStatusSection } from "./BanStatusSection";
 import { DashboardWrapper } from "./DashboardWrapper";
 import { QuickActionsSection } from "./QuickActionsSection";
-import { getAppMetricsData, type AppMetricsData } from "./server";
 import { VerificationStatusSection } from "./VerificationStatusSection";
 import { WorldId40MigrationBanner } from "./WorldId40MigrationBanner";
 
@@ -38,14 +37,6 @@ export const AppIdPage = async (props: {
   )?.role;
   const canRegisterRp = role === Role_Enum.Owner || role === Role_Enum.Admin;
 
-  // Fetch metrics server-side so the dashboard cards render real numbers in the
-  // initial HTML instead of a client-side loading waterfall. A failed fetch is
-  // passed through as an error state (not silent zeros).
-  const metricsResult = await getAppMetricsData(appId);
-  const metrics = (
-    metricsResult.success ? metricsResult.data : null
-  ) as AppMetricsData | null;
-
   return (
     <div className="px-6 py-10 lg:px-10">
       {/* Banner / status sections self-hide (return null) when not applicable,
@@ -61,11 +52,7 @@ export const AppIdPage = async (props: {
         <VerificationStatusSection appId={appId} teamId={teamId} />
         <BanStatusSection appId={appId} />
 
-        <DashboardWrapper
-          appId={appId}
-          metrics={metrics}
-          metricsError={!metricsResult.success}
-        />
+        <DashboardWrapper appId={appId} />
 
         <QuickActionsSection appId={appId} teamId={teamId} />
       </div>

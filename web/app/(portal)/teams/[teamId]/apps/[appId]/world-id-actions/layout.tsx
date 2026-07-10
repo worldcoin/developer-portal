@@ -14,7 +14,7 @@ type Props = {
 export default async function Layout(props: Props) {
   const params = await props.params;
   const { children } = props;
-  const { app } = await fetchAppEnvCached(params.appId);
+  const { app, action } = await fetchAppEnvCached(params.appId);
 
   if (!app?.[0]?.rp_registration?.length) {
     redirect(
@@ -23,7 +23,11 @@ export default async function Layout(props: Props) {
   }
 
   return pickPortalVersion(
-    () => <WorldIdLayout>{children}</WorldIdLayout>,
+    () => (
+      <WorldIdLayout hasLegacyActions={action.length > 0}>
+        {children}
+      </WorldIdLayout>
+    ),
     () => <>{children}</>,
   );
 }

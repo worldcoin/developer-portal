@@ -96,7 +96,7 @@ export const AppsDropdown = () => {
 
   const apps = useMemo<DropdownApp[]>(() => {
     const list = data?.app ?? [];
-    return [...list]
+    return list
       .map((app) => ({ id: app.id, name: appName(app) }))
       .sort((a, b) =>
         a.name.localeCompare(b.name, undefined, { sensitivity: "base" }),
@@ -161,7 +161,7 @@ export const AppsDropdown = () => {
               {canCreateApp ? (
                 <>
                   <Icon
-                    name="dropdown-divider"
+                    name="generic-divider"
                     className="h-2 w-full shrink-0"
                   />
                   <DropdownMenu.Item

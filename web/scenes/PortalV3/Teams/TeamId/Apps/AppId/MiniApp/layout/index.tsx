@@ -6,7 +6,7 @@ export const MiniAppLayout = (props: { children: ReactNode }) => {
   return (
     <div>
       <SizingWrapper variant="nav" className="w-full">
-        <div className="hidden border-b border-portal-border pt-6 md:block">
+        <div className="border-b border-portal-border pt-6">
           <MiniAppSubTabs />
         </div>
         {props.children}

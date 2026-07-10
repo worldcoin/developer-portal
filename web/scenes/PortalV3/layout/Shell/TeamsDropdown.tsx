@@ -39,7 +39,7 @@ export const TeamsDropdown = (props: { teams: DropdownTeam[] }) => {
   const currentTeam = teams.find((t) => t.id === teamId);
 
   return (
-    <div className="px-4 pt-4">
+    <div className="px-4 pt-0 md:pt-4">
       <DropdownMenu.Root>
         <DropdownMenu.Trigger
           aria-label="Switch team"
@@ -81,7 +81,7 @@ export const TeamsDropdown = (props: { teams: DropdownTeam[] }) => {
                   onSelect={() => router.push(urls.teams({ team_id: team.id }))}
                 />
               ))}
-              <Icon name="dropdown-divider" className="h-2 w-full shrink-0" />
+              <Icon name="generic-divider" className="h-2 w-full shrink-0" />
               <DropdownMenu.Item
                 onSelect={() => router.push(urls.createTeam())}
                 className="flex h-12 w-full cursor-pointer items-center gap-2 rounded-8 bg-white px-4 py-2 font-world text-13 font-medium leading-[1.2] text-portal-text outline-none data-[highlighted]:bg-grey-50"

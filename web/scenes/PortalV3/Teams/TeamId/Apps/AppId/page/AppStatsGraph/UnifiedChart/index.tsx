@@ -92,18 +92,22 @@ const EmptyState = () => (
 
 interface UnifiedChartProps {
   appId: string;
-  // Reuse the metrics the dashboard already fetched server-side instead of
-  // re-fetching the whole metrics payload client-side.
   metrics: AppMetricsData | null;
+  metricsLoading: boolean;
 }
 
-export const UnifiedChart = ({ appId, metrics }: UnifiedChartProps) => {
+export const UnifiedChart = ({
+  appId,
+  metrics,
+  metricsLoading,
+}: UnifiedChartProps) => {
   const [activeTab, setActiveTab] = useState<ChartTabType>("verifications");
 
   const { chartData, isLoading, stats, additionalStats } = useChartData(
     appId,
     activeTab,
     metrics,
+    metricsLoading,
   );
 
   const mobileChartOptions: ChartOptions<"line"> = {

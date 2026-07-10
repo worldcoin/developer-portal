@@ -8,19 +8,15 @@ import {
 } from "@/components/Select";
 import { Icon } from "@/scenes/PortalV3/common/Icon";
 import { useMemo, useState } from "react";
+import Skeleton from "react-loading-skeleton";
 import { useCachedMetrics } from "./AppStatsGraph/StatsRow/use-cached-metrics";
 import { UnifiedChart } from "./AppStatsGraph/UnifiedChart";
-import type { AppMetricsData } from "./server";
+import { useGetMetrics } from "./use-get-metrics";
 
 type TimePeriod = "weekly" | "all-time";
 
 interface DashboardWrapperProps {
   appId: string;
-  // Fetched server-side by AppIdPage and passed in, so the cards render real
-  // numbers in the initial HTML. `null` means the fetch failed — surfaced as an
-  // error state rather than silently rendering zeros.
-  metrics: AppMetricsData | null;
-  metricsError?: boolean;
 }
 
 const timePeriodOptions = [
@@ -58,6 +54,7 @@ const StatCard = (props: {
   label: string;
   value: number | null;
   changePercent: number | null;
+  isLoading?: boolean;
 }) => {
   const value = props.value ?? 0;
   const change = props.changePercent;
@@ -67,13 +64,17 @@ const StatCard = (props: {
     <div className="rounded-[10px] border border-portal-border bg-white p-6">
       <div className="flex items-end gap-2">
         <div className="font-world text-19 font-medium leading-[1.2] text-portal-ink">
-          {value.toLocaleString()}
+          {props.isLoading ? (
+            <Skeleton width={60} height={23} />
+          ) : (
+            value.toLocaleString()
+          )}
         </div>
         {/* Only show the trend badge when a real comparison exists. All-time
             (and first-week weekly) have no prior period, so `change` is null —
             rendering "0%" there would misreport a flat trend. The triangle
             points down for a decrease. */}
-        {change !== null ? (
+        {!props.isLoading && change !== null ? (
           <div className="flex h-[19px] items-center gap-1 text-portal-faint">
             <span className="flex h-[5px] w-[7px] items-center justify-center">
               <Icon
@@ -96,12 +97,13 @@ const StatCard = (props: {
   );
 };
 
-export const DashboardWrapper = ({
-  appId,
-  metrics,
-  metricsError,
-}: DashboardWrapperProps) => {
+export const DashboardWrapper = ({ appId }: DashboardWrapperProps) => {
   const [timePeriod, setTimePeriod] = useState<TimePeriod>("all-time");
+  const {
+    metrics,
+    loading: metricsLoading,
+    error: metricsError,
+  } = useGetMetrics(appId);
 
   const weeklyMetrics = useMemo(() => {
     if (!metrics) return null;
@@ -128,10 +130,12 @@ export const DashboardWrapper = ({
 
   const current = timePeriod === "weekly" ? weeklyMetrics : allTimeMetrics;
 
-  // Base values come straight from the server-fetched `current` so the cards
-  // never flash "0". Only the week-over-week change badges depend on the
-  // client-only localStorage history, so those still come from this hook.
-  const metricsWithChange = useCachedMetrics(appId, current, false, timePeriod);
+  const metricsWithChange = useCachedMetrics(
+    appId,
+    current,
+    metricsLoading,
+    timePeriod,
+  );
 
   return (
     <section className="w-full">
@@ -150,38 +154,46 @@ export const DashboardWrapper = ({
           Metrics are temporarily unavailable. Please refresh to try again.
         </div>
       ) : (
-        <>
-          <div className="mt-8 grid gap-6 md:grid-cols-3">
-            <StatCard
-              label="Impressions"
-              value={current?.impressions ?? null}
-              changePercent={metricsWithChange.impressionsChange}
-            />
-            <StatCard
-              label="Sessions"
-              value={current?.sessions ?? null}
-              changePercent={metricsWithChange.sessionsChange}
-            />
-            <StatCard
-              label="Total users"
-              value={current?.users ?? null}
-              changePercent={metricsWithChange.usersChange}
-            />
-          </div>
-
-          <div className="mt-8">
-            <UnifiedChart appId={appId} metrics={metrics} />
-          </div>
-
-          <div className="mt-8 grid gap-6 md:grid-cols-3">
-            <StatCard
-              label="New users"
-              value={current?.newUsers ?? null}
-              changePercent={metricsWithChange.newUsersChange}
-            />
-          </div>
-        </>
+        <div className="mt-8 grid gap-6 md:grid-cols-3">
+          <StatCard
+            label="Impressions"
+            value={current?.impressions ?? null}
+            changePercent={metricsWithChange.impressionsChange}
+            isLoading={metricsLoading}
+          />
+          <StatCard
+            label="Sessions"
+            value={current?.sessions ?? null}
+            changePercent={metricsWithChange.sessionsChange}
+            isLoading={metricsLoading}
+          />
+          <StatCard
+            label="Total users"
+            value={current?.users ?? null}
+            changePercent={metricsWithChange.usersChange}
+            isLoading={metricsLoading}
+          />
+        </div>
       )}
+
+      <div className="mt-8">
+        <UnifiedChart
+          appId={appId}
+          metrics={metrics}
+          metricsLoading={metricsLoading}
+        />
+      </div>
+
+      {!metricsError ? (
+        <div className="mt-8 grid gap-6 md:grid-cols-3">
+          <StatCard
+            label="New users"
+            value={current?.newUsers ?? null}
+            changePercent={metricsWithChange.newUsersChange}
+            isLoading={metricsLoading}
+          />
+        </div>
+      ) : null}
     </section>
   );
 };

@@ -1,6 +1,14 @@
 "use client";
 
-import { DOCS_URL, FAQ_URL, WORLD_STATUS_URL } from "@/lib/constants";
+import {
+  DISCORD_URL,
+  DOCS_URL,
+  FAQ_URL,
+  TELEGRAM_DEVELOPERS_GROUP_URL,
+  TELEGRAM_MATEO_URL,
+  WORLD_PRIVACY_URL,
+  WORLD_STATUS_URL,
+} from "@/lib/constants";
 import { urls } from "@/lib/urls";
 import { Color } from "@/scenes/common/Profile/types";
 import { Icon } from "@/scenes/PortalV3/common/Icon";
@@ -16,7 +24,7 @@ const itemClass =
 const LinkItem = (props: {
   href: string;
   label: string;
-  icon: string;
+  icon?: string;
   external?: boolean;
 }) => (
   <DropdownMenu.Item asChild>
@@ -27,12 +35,20 @@ const LinkItem = (props: {
         rel="noreferrer"
         className={itemClass}
       >
-        <Icon name={props.icon} className="size-4 shrink-0" />
+        {props.icon ? (
+          <Icon name={props.icon} className="size-4 shrink-0" />
+        ) : (
+          <span className="size-4 shrink-0" />
+        )}
         <span className="min-w-0 flex-1 truncate">{props.label}</span>
       </a>
     ) : (
       <Link href={props.href} className={itemClass}>
-        <Icon name={props.icon} className="size-4 shrink-0" />
+        {props.icon ? (
+          <Icon name={props.icon} className="size-4 shrink-0" />
+        ) : (
+          <span className="size-4 shrink-0" />
+        )}
         <span className="min-w-0 flex-1 truncate">{props.label}</span>
       </Link>
     )}
@@ -40,7 +56,7 @@ const LinkItem = (props: {
 );
 
 const Separator = () => (
-  <Icon name="profile-menu-divider" className="h-2 w-full shrink-0" />
+  <Icon name="generic-divider" className="h-2 w-full shrink-0" />
 );
 
 /** Bottom-left account switcher and profile/status menu. */
@@ -95,7 +111,7 @@ export const UserPopup = (props: { user: PortalUser; color: Color | null }) => {
           side="top"
           align="start"
           sideOffset={16}
-          className="z-50 max-h-[var(--radix-dropdown-menu-content-available-height)] w-[279px] overflow-hidden rounded-[10px] border border-portal-border bg-white p-0 shadow-[0_18px_11px_0_rgba(24,24,24,0.02),0_8px_8px_0_rgba(24,24,24,0.03),0_2px_4px_0_rgba(24,24,24,0.03)]"
+          className="z-50 max-h-[var(--radix-dropdown-menu-content-available-height)] w-[279px] overflow-y-auto rounded-[10px] border border-portal-border bg-white p-0 shadow-[0_18px_11px_0_rgba(24,24,24,0.02),0_8px_8px_0_rgba(24,24,24,0.03),0_2px_4px_0_rgba(24,24,24,0.03)]"
         >
           <div className="flex w-full flex-col items-start pt-2">
             <div className="flex min-h-[51px] w-full items-center px-4 py-2">
@@ -113,19 +129,35 @@ export const UserPopup = (props: { user: PortalUser; color: Color | null }) => {
               label="Profile"
               icon="profile-menu-profile"
             />
+            <LinkItem href={urls.profileTeams()} label="My Teams" />
             <Separator />
             <LinkItem
-              href={FAQ_URL}
-              label="Help and support"
+              href={WORLD_PRIVACY_URL}
+              label="Data Privacy & Security"
               icon="profile-menu-help"
               external
             />
+            <LinkItem href={WORLD_STATUS_URL} label="World Status" external />
+            <LinkItem href={FAQ_URL} label="FAQ" external />
+            <Separator />
             <LinkItem
-              href={DOCS_URL}
-              label="Resources"
+              href={TELEGRAM_DEVELOPERS_GROUP_URL}
+              label="Join our Telegram"
+              icon="profile-menu-help"
+              external
+            />
+            <LinkItem href={TELEGRAM_MATEO_URL} label="Text Mateo" external />
+            <LinkItem href={DISCORD_URL} label="Join our Discord" external />
+            <Separator />
+            <LinkItem
+              href={urls.privacyStatement()}
+              label="Privacy Policy"
               icon="profile-menu-resources"
               external
             />
+            <LinkItem href={urls.tos()} label="Terms of service" external />
+            <LinkItem href={DOCS_URL} label="Docs" external />
+            <Separator />
             <DropdownMenu.Item asChild>
               <a
                 href={urls.logout()}
@@ -137,20 +169,6 @@ export const UserPopup = (props: { user: PortalUser; color: Color | null }) => {
               >
                 <Icon name="profile-menu-log-out" className="size-4 shrink-0" />
                 <span className="min-w-0 flex-1 truncate">Log out</span>
-              </a>
-            </DropdownMenu.Item>
-            <DropdownMenu.Item asChild>
-              <a
-                href={WORLD_STATUS_URL}
-                target="_blank"
-                rel="noreferrer"
-                className="flex h-12 w-full cursor-pointer items-center justify-between border-t border-portal-border bg-portal-canvas px-4 py-2 font-world text-13 leading-[1.3] text-portal-muted outline-none data-[highlighted]:bg-portal-border"
-              >
-                <span className="truncate">All systems normal</span>
-                <Icon
-                  name="profile-menu-status-dot"
-                  className="size-[6px] shrink-0"
-                />
               </a>
             </DropdownMenu.Item>
           </div>
