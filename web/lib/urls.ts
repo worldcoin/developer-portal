@@ -12,6 +12,12 @@ export const urls = {
   configuration: (params: { team_id: string; app_id: string }): string =>
     `/teams/${params.team_id}/apps/${params.app_id}/configuration`,
 
+  configurationVersions: (params: {
+    team_id: string;
+    app_id: string;
+  }): string =>
+    `/teams/${params.team_id}/apps/${params.app_id}/configuration/versions`,
+
   configurationDanger: (params: { team_id: string; app_id: string }): string =>
     `/teams/${params.team_id}/apps/${params.app_id}/configuration/danger`,
 
