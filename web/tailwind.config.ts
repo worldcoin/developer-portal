@@ -12,6 +12,11 @@ const config: Config = {
 
   theme: {
     extend: {
+      screens: {
+        "3xl": "1920px",
+        "4xl": "2560px",
+      },
+
       backgroundImage: {
         "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
         "gradient-conic":
@@ -151,11 +156,11 @@ const config: Config = {
       gridTemplateRows: gridTemplates,
 
       fontFamily: {
-        gta: ["GT America", ...defaultTheme.fontFamily.sans],
+        gta: ["var(--font-gta)", ...defaultTheme.fontFamily.sans],
         rubik: ["var(--font-rubik)", ...defaultTheme.fontFamily.sans],
-        twk: ["TWK Lausanne", ...defaultTheme.fontFamily.sans],
+        twk: ["var(--font-twk)", ...defaultTheme.fontFamily.sans],
         ibm: ["var(--font-mono)", "monospace"],
-        world: ["World Pro", ...defaultTheme.fontFamily.sans],
+        world: ["var(--font-world)", ...defaultTheme.fontFamily.sans],
       },
 
       fontSize: {

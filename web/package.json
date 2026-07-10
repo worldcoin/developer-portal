@@ -44,6 +44,7 @@
     "jotai": "^2.9.1",
     "jsdom": "^25.0.1",
     "json5": "^2.2.3",
+    "lucide-react": "^1.23.0",
     "next": "16.2.9",
     "next-useragent": "^2.8.0",
     "node-cache": "^5.1.2",
