@@ -74,8 +74,7 @@ export const LivePreview = ({
   const tagLine =
     loc?.world_app_description?.trim() || "A one-line summary of your app";
   const description =
-    loc?.description_overview?.trim() ||
-    "Your description appears here. Explain what your app does, who it's for, and how it works.";
+    loc?.description_overview?.trim() || "Your description appears here.";
   const isVerified = appMetadata.verification_status === "verified";
   const atomLogoImgUrl =
     images.logo_img_url && images.logo_img_url !== "loading"

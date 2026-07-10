@@ -12,7 +12,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Skeleton from "react-loading-skeleton";
 import { useParams } from "next/navigation";
 import { MiniAppConfiguration } from "./MiniAppConfiguration";
-import { FormSkeleton } from "./AppTopBar/FormSkeleton";
+import { FormSkeleton } from "./PageComponents/FormSkeleton";
 import { AppStoreForm } from "./AppStore/app-store";
 import { AppStoreFormProvider } from "./AppStore/app-store-form-provider";
 import {

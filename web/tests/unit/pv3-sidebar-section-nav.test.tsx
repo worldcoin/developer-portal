@@ -61,26 +61,23 @@ beforeEach(() => {
   usePathname.mockReturnValue(base);
 });
 
-// The v3 sidebar is a single flat nav — section sub-navigation (Mini App,
-// World ID) lives in an in-page tab bar now, not a sidebar that swaps in and
-// out. These cover that the nav stays put and the right entry is highlighted.
-// #region flat nav
-describe("v3 SidebarNav [flat nav]", () => {
-  it("shows the flat nav and never swaps to a section sidebar (no back link)", () => {
+// Mini App exposes its three durable child routes under the parent entry while
+// leaving the rest of the app navigation in place.
+// #region navigation hierarchy
+describe("v3 SidebarNav [navigation hierarchy]", () => {
+  it("keeps Mini App children collapsed outside the Mini App section", () => {
     renderSidebar();
     expect(link("Dashboard")).toBeInTheDocument();
     expect(link("World ID")).toBeInTheDocument();
     expect(link("Configuration")).toBeInTheDocument();
     expect(link("Mini App")).toBeInTheDocument();
-    // Notifications is a Mini App sub-route, not a top-level sidebar entry.
     expect(
       screen.queryByRole("link", { name: "Notifications" }),
     ).not.toBeInTheDocument();
     expect(link("Team settings")).toBeInTheDocument();
-    expect(link("Help center")).toBeInTheDocument();
     expect(
-      screen.queryByRole("link", { name: "Back" }),
-    ).not.toBeInTheDocument();
+      screen.getByRole("button", { name: "Help center" }),
+    ).toBeInTheDocument();
   });
 
   it("marks Dashboard current on the app root", () => {
@@ -98,28 +95,30 @@ describe("v3 SidebarNav [active section]", () => {
     expect(isCurrent("Configuration")).toBe(true);
   });
 
-  it("marks Mini App current on a mini-app route without swapping the nav", () => {
+  it("expands Mini App children and marks the current child route", () => {
     usePathname.mockReturnValue(`${base}/mini-app/permissions`);
     renderSidebar();
-    expect(isCurrent("Mini App")).toBe(true);
-    // Full nav stays — it is not replaced by section items.
+    expect(link("Mini App")).toHaveClass("bg-white");
+    expect(isCurrent("Mini App")).toBe(false);
     expect(link("Dashboard")).toBeInTheDocument();
-    // Sub-pages moved to an in-page tab bar, so they are not sidebar links.
-    expect(
-      screen.queryByRole("link", { name: "Permissions" }),
-    ).not.toBeInTheDocument();
+    expect(link("Permissions")).toHaveAttribute("aria-current", "page");
+    expect(link("Transactions")).toBeInTheDocument();
+    expect(link("Notifications")).toBeInTheDocument();
   });
 
   it("treats the legacy top-level /transactions route as the Mini App section", () => {
     usePathname.mockReturnValue(`${base}/transactions`);
     renderSidebar();
-    expect(isCurrent("Mini App")).toBe(true);
+    expect(link("Mini App")).toHaveClass("bg-white");
+    expect(isCurrent("Transactions")).toBe(true);
   });
 
-  it("marks Mini App current on the notifications route now that Notifications has no sidebar entry", () => {
+  it("marks Notifications current on its Mini App route", () => {
     usePathname.mockReturnValue(`${base}/mini-app/notifications`);
     renderSidebar();
-    expect(isCurrent("Mini App")).toBe(true);
+    expect(link("Mini App")).toHaveClass("bg-white");
+    expect(isCurrent("Mini App")).toBe(false);
+    expect(isCurrent("Notifications")).toBe(true);
   });
 
   it("marks World ID current on a world-id route with no sidebar sub-items", () => {

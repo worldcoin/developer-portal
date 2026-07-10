@@ -13,15 +13,15 @@ import clsx from "clsx";
 import { useAtomValue } from "jotai";
 import { MutableRefObject, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { AppTopBarSubmit } from "../AppTopBar";
 import { SubmitAppModal } from "../AppTopBar/SubmitAppModal";
 import { BasicInformationHandle } from "../BasicInformation";
 import { unverifiedImageAtom, viewModeAtom } from "../layout/ImagesProvider";
 import { useSaveStatus } from "../SaveStatus";
 import { LivePreview } from "./LivePreview";
+import { ReviewSubmissionButton } from "./ReviewSubmissionButton";
 
-// The full generated metadata row — AppTopBarSubmit's review validation reads
-// fields the narrowed AppMetadata pick omits.
+// The full generated metadata row — review validation reads fields the
+// narrowed AppMetadata pick omits.
 export type FullAppMetadata =
   FetchAppMetadataQuery["app"][0]["app_metadata"][0];
 
@@ -88,8 +88,8 @@ type SubmitForReviewProps = {
 };
 
 // Always-active submit button: clicking with missing required fields surfaces
-// the validation errors (field errors + toast) from AppTopBarSubmit's
-// review-schema check rather than being locked behind a completion gate.
+// the validation errors (field errors + toast) from the review-schema check
+// rather than being locked behind a completion gate.
 const SubmitForReview = ({
   appId,
   teamId,
@@ -138,7 +138,7 @@ const SubmitForReview = ({
           )
         }
       />
-      <AppTopBarSubmit
+      <ReviewSubmissionButton
         appMetadata={appMetadata}
         appId={appId}
         teamId={teamId}

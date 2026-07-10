@@ -1,12 +1,15 @@
 "use client";
 
-import { DOCS_URL } from "@/lib/constants";
+import { LockIcon } from "@/components/Icons/LockIcon";
+import { SendIcon } from "@/components/Icons/SendIcon";
+import { WalletIcon } from "@/components/Icons/WalletIcon";
 import { urls } from "@/lib/urls";
 import { Icon } from "@/scenes/PortalV3/common/Icon";
 import { atom, useAtomValue, useSetAtom } from "jotai";
 import { useParams, usePathname } from "next/navigation";
 import { useEffect } from "react";
 import { useCurrentAppId } from "./AppsDropdown";
+import { HelpCenterMenu } from "./HelpCenterMenu";
 import { NavItem } from "./NavItem";
 
 type AppEnvFlags = {
@@ -73,7 +76,7 @@ export const SidebarNav = () => {
   })();
 
   const configurationHref = ids ? urls.configuration(ids) : appsListHref;
-  const miniAppHref = appBase ? `${appBase}/mini-app` : appsListHref;
+  const miniAppHref = ids ? urls.miniAppPermissions(ids) : appsListHref;
   const teamSettingsHref = teamId
     ? urls.teamSettings({ team_id: teamId })
     : teamsLandingHref;
@@ -98,6 +101,13 @@ export const SidebarNav = () => {
     withinApp("/transactions") ||
     withinApp("/notifications");
   const settingsActive = teamId ? pathname.startsWith(teamSettingsHref) : false;
+  const miniAppPermissionsActive =
+    pathname === (appBase ? `${appBase}/mini-app` : "") ||
+    withinApp("/mini-app/permissions");
+  const miniAppTransactionsActive =
+    withinApp("/mini-app/transactions") || withinApp("/transactions");
+  const miniAppNotificationsActive =
+    withinApp("/mini-app/notifications") || withinApp("/notifications");
 
   return (
     <nav className="no-scrollbar flex flex-1 flex-col overflow-y-auto px-4 pt-[27px]">
@@ -132,8 +142,34 @@ export const SidebarNav = () => {
               label="Mini App"
               href={miniAppHref}
               active={miniAppActive}
+              current={false}
               icon={<NavIcon name="nav-mini-app" active={miniAppActive} />}
             />
+            {miniAppActive && ids ? (
+              <div className="ml-5 grid gap-1 border-l border-portal-border pl-2">
+                <NavItem
+                  label="Permissions"
+                  href={urls.miniAppPermissions(ids)}
+                  active={miniAppPermissionsActive}
+                  className="h-9 rounded-8 pl-3 pr-3 text-12"
+                  icon={<LockIcon className="size-3.5" />}
+                />
+                <NavItem
+                  label="Transactions"
+                  href={urls.miniAppTransactions(ids)}
+                  active={miniAppTransactionsActive}
+                  className="h-9 rounded-8 pl-3 pr-3 text-12"
+                  icon={<WalletIcon className="size-3.5" />}
+                />
+                <NavItem
+                  label="Notifications"
+                  href={urls.miniAppNotifications(ids)}
+                  active={miniAppNotificationsActive}
+                  className="h-9 rounded-8 pl-3 pr-3 text-12"
+                  icon={<SendIcon className="size-3.5" />}
+                />
+              </div>
+            ) : null}
           </>
         ) : null}
       </div>
@@ -149,11 +185,7 @@ export const SidebarNav = () => {
           active={settingsActive}
           icon={<NavIcon name="nav-settings" active={settingsActive} />}
         />
-        <NavItem
-          label="Help center"
-          href={DOCS_URL}
-          icon={<Icon name="nav-help" className="size-4" />}
-        />
+        <HelpCenterMenu />
       </div>
     </nav>
   );
