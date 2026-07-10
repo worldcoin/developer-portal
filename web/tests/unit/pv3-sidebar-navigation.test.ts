@@ -111,20 +111,37 @@ describe("buildSidebarNavigation [section navigation]", () => {
 
 // #region World ID capabilities
 describe("buildSidebarNavigation [World ID capabilities]", () => {
-  it("routes a legacy-only selected app to Actions", () => {
-    const navigation = build({
+  it("routes legacy-only apps to Actions but prefers 4.0 when RP registration exists", () => {
+    const legacyNavigation = build({
       appEnvironmentFlags: {
         appId: selectedAppId,
         hasRpRegistration: false,
         hasLegacyActions: true,
       },
     });
+    const registeredNavigation = build({
+      appEnvironmentFlags: {
+        appId: selectedAppId,
+        hasRpRegistration: true,
+        hasLegacyActions: true,
+      },
+    });
 
-    expect(navigation.kind).toBe("main");
-    if (navigation.kind !== "main") return;
+    expect(legacyNavigation.kind).toBe("main");
+    expect(registeredNavigation.kind).toBe("main");
+    if (
+      legacyNavigation.kind !== "main" ||
+      registeredNavigation.kind !== "main"
+    ) {
+      return;
+    }
     expect(
-      navigation.appItems.find((item) => item.label === "World ID")?.href,
+      legacyNavigation.appItems.find((item) => item.label === "World ID")?.href,
     ).toBe(`${selectedAppBase}/actions`);
+    expect(
+      registeredNavigation.appItems.find((item) => item.label === "World ID")
+        ?.href,
+    ).toBe(`${selectedAppBase}/world-id-4-0`);
   });
 
   it("ignores capabilities belonging to another app", () => {

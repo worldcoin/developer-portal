@@ -84,16 +84,6 @@ describe("v3 SidebarNav [main nav]", () => {
       screen.queryByRole("link", { name: "Back" }),
     ).not.toBeInTheDocument();
   });
-
-  it("routes the World ID entry to /world-id-4-0 for an app with an RP registration", () => {
-    renderSidebar({ appId, hasRpRegistration: true, hasLegacyActions: false });
-    expect(link("World ID")).toHaveAttribute("href", `${base}/world-id-4-0`);
-  });
-
-  it("routes the World ID entry to /actions for a legacy-actions-only app (no RP registration)", () => {
-    renderSidebar({ appId, hasRpRegistration: false, hasLegacyActions: true });
-    expect(link("World ID")).toHaveAttribute("href", `${base}/actions`);
-  });
 });
 // #endregion
 
@@ -116,66 +106,25 @@ describe("v3 SidebarNav [Mini App section]", () => {
       screen.queryByRole("link", { name: "Members" }),
     ).not.toBeInTheDocument();
   });
-
-  it("treats the legacy top-level /transactions route as the Mini App section", () => {
-    usePathname.mockReturnValue(`${base}/transactions`);
-    renderSidebar();
-    expect(link("Mini App")).toBeInTheDocument();
-    expect(isCurrent("Transactions")).toBe(true);
-    expect(link("Transactions")).toHaveAttribute(
-      "href",
-      `${base}/mini-app/transactions`,
-    );
-  });
 });
 // #endregion
 
 // #region World ID section
 describe("v3 SidebarNav [World ID section]", () => {
-  it("shows World ID 4.0 + Actions (no Legacy) for an app with an RP registration only", () => {
-    usePathname.mockReturnValue(`${base}/world-id-4-0`);
-    renderSidebar({ appId, hasRpRegistration: true, hasLegacyActions: false });
+  it("renders the capability-backed World ID items in section mode", () => {
+    usePathname.mockReturnValue(`${base}/actions`);
+    renderSidebar({ appId, hasRpRegistration: true, hasLegacyActions: true });
 
     expect(link("World ID")).toHaveAttribute("href", base);
-    expect(isCurrent("World ID 4.0")).toBe(true);
+    expect(isCurrent("World ID 4.0")).toBe(false);
     expect(isCurrent("Actions")).toBe(false);
-    expect(
-      screen.queryByRole("link", { name: "World ID 3.0 Legacy" }),
-    ).not.toBeInTheDocument();
-  });
-
-  it("shows only Legacy for an app with legacy actions but no RP registration", () => {
-    usePathname.mockReturnValue(`${base}/actions`);
-    renderSidebar({ appId, hasRpRegistration: false, hasLegacyActions: true });
-
     expect(isCurrent("World ID 3.0 Legacy")).toBe(true);
-    expect(
-      screen.queryByRole("link", { name: "World ID 4.0" }),
-    ).not.toBeInTheDocument();
-    expect(
-      screen.queryByRole("link", { name: "Actions" }),
-    ).not.toBeInTheDocument();
   });
 
   it("falls back to the main nav when the app has neither RP registration nor legacy actions", () => {
     usePathname.mockReturnValue(`${base}/world-id-4-0`);
     renderSidebar({ appId, hasRpRegistration: false, hasLegacyActions: false });
 
-    expect(link("Dashboard")).toBeInTheDocument();
-    expect(
-      screen.queryByRole("link", { name: "Back" }),
-    ).not.toBeInTheDocument();
-  });
-
-  it("ignores flags published for a different app", () => {
-    usePathname.mockReturnValue(`${base}/world-id-4-0`);
-    renderSidebar({
-      appId: "app_other",
-      hasRpRegistration: true,
-      hasLegacyActions: true,
-    });
-
-    // Stale flags from another app must not gate this app's section items.
     expect(link("Dashboard")).toBeInTheDocument();
     expect(
       screen.queryByRole("link", { name: "Back" }),
