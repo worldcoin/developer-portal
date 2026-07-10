@@ -127,6 +127,32 @@ describe("v3 SidebarNav [active section]", () => {
 });
 // #endregion
 
+// Team-less pages (e.g. /profile) carry no teamId in the URL. Team-scoped links
+// must still go somewhere real — the /teams landing route, which resolves the
+// user's team server-side — instead of a dead "#".
+// #region team-less pages
+describe("v3 SidebarNav [team-less pages]", () => {
+  beforeEach(() => {
+    // /profile: no teamId/appId anywhere in the URL, no app context.
+    useParams.mockReturnValue({});
+    useCurrentAppId.mockReturnValue(undefined);
+    usePathname.mockReturnValue("/profile");
+  });
+
+  it("routes Dashboard to the /teams landing when the route has no teamId", () => {
+    renderSidebar();
+    expect(link("Dashboard")).toHaveAttribute("href", "/teams");
+    // ...but it is not the current page while we are on /profile.
+    expect(isCurrent("Dashboard")).toBe(false);
+  });
+
+  it("routes Team settings to the /teams landing rather than a dead link", () => {
+    renderSidebar();
+    expect(link("Team settings")).toHaveAttribute("href", "/teams");
+  });
+});
+// #endregion
+
 // #region World ID href routing
 describe("v3 SidebarNav [World ID routing]", () => {
   it("routes World ID to /world-id-4-0 for an app with an RP registration", () => {
