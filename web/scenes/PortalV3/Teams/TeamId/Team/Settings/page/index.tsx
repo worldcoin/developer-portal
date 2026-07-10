@@ -21,6 +21,10 @@ export const TeamSettingsPage = () => {
   const canWriteTeamSettings = checkUserPermissions(user, teamId, [
     Role_Enum.Owner,
   ]);
+  const canViewApiKeys = checkUserPermissions(user, teamId, [
+    Role_Enum.Owner,
+    Role_Enum.Admin,
+  ]);
 
   // Single team fetch for the whole settings page. The name form and the danger
   // zone read from this instead of each firing their own useFetchTeamQuery.
@@ -43,7 +47,9 @@ export const TeamSettingsPage = () => {
           onSaved={refetchTeam}
         />
         <Members teamId={teamId} />
-        <ApiKeys teamId={teamId} />
+        {canViewApiKeys ? (
+          <ApiKeys teamId={teamId} canWrite={canWriteTeamSettings} />
+        ) : null}
         <TeamDangerZone
           team={team ? { id: team.id, name: team.name } : null}
           canWrite={canWriteTeamSettings}

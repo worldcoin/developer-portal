@@ -9,8 +9,8 @@ import { ApiKeysTable } from "./ApiKeyTable";
 import { CreateKeyModal } from "./CreateKeyModal";
 import { useFetchKeysQuery } from "@/scenes/common/Teams/TeamId/Team/ApiKeys/page/graphql/client/fetch-keys.generated";
 
-export const ApiKeys = (props: { teamId?: string }) => {
-  const { teamId } = props;
+export const ApiKeys = (props: { teamId?: string; canWrite: boolean }) => {
+  const { teamId, canWrite } = props;
   const [showCreateKeyModal, setShowCreateKeyModal] = useState(false);
   const { data, loading } = useFetchKeysQuery({
     variables: { teamId: teamId ?? "" },
@@ -22,27 +22,31 @@ export const ApiKeys = (props: { teamId?: string }) => {
       <Section.Header>
         <Section.Header.Title>API keys</Section.Header.Title>
 
-        <Section.Header.Button>
-          {loading ? (
-            <Skeleton width={150} />
-          ) : apiKeys?.length ? (
-            <DecoratedButton
-              type="button"
-              variant="primary"
-              onClick={() => setShowCreateKeyModal(true)}
-              className="py-3"
-            >
-              <PlusIcon className="size-5" /> New key
-            </DecoratedButton>
-          ) : null}
-        </Section.Header.Button>
+        {canWrite ? (
+          <Section.Header.Button>
+            {loading ? (
+              <Skeleton width={150} />
+            ) : apiKeys?.length ? (
+              <DecoratedButton
+                type="button"
+                variant="primary"
+                onClick={() => setShowCreateKeyModal(true)}
+                className="py-3"
+              >
+                <PlusIcon className="size-5" /> New key
+              </DecoratedButton>
+            ) : null}
+          </Section.Header.Button>
+        ) : null}
       </Section.Header>
 
-      <CreateKeyModal
-        teamId={teamId ?? ""}
-        isOpen={showCreateKeyModal}
-        setIsOpen={setShowCreateKeyModal}
-      />
+      {canWrite ? (
+        <CreateKeyModal
+          teamId={teamId ?? ""}
+          isOpen={showCreateKeyModal}
+          setIsOpen={setShowCreateKeyModal}
+        />
+      ) : null}
 
       {!loading && apiKeys?.length === 0 ? (
         <div className="grid grid-cols-1 justify-items-center gap-y-8 pt-12">
@@ -61,12 +65,14 @@ export const ApiKeys = (props: { teamId?: string }) => {
             </Typography>
           </div>
 
-          <DecoratedButton
-            type="button"
-            onClick={() => setShowCreateKeyModal(true)}
-          >
-            Create new key
-          </DecoratedButton>
+          {canWrite ? (
+            <DecoratedButton
+              type="button"
+              onClick={() => setShowCreateKeyModal(true)}
+            >
+              Create new key
+            </DecoratedButton>
+          ) : null}
         </div>
       ) : (
         <div className="order-2 md:pb-8">
