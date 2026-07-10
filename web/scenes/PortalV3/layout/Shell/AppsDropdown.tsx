@@ -146,7 +146,10 @@ export const AppsDropdown = () => {
                   disabled
                   className="flex h-12 w-full cursor-default items-center gap-2 rounded-8 bg-white px-4 py-2 font-world text-13 font-medium leading-[1.2] text-portal-muted outline-none"
                 >
-                  <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-portal-canvas">
+                  {/* -translate-y-px: the circle is geometrically centered but
+                      the label renders high in its line box, so the circle
+                      reads low without the optical nudge (NavItem precedent) */}
+                  <span className="flex size-6 shrink-0 -translate-y-px items-center justify-center rounded-full bg-portal-canvas">
                     <Icon name="apps-empty-icon" className="size-3.5" />
                   </span>
                   <span className="min-w-0 flex-1 truncate">No apps, yet</span>
@@ -174,14 +177,12 @@ export const AppsDropdown = () => {
                     onSelect={() => setDialogOpen(true)}
                     className="flex h-12 w-full cursor-pointer items-center gap-2 rounded-8 bg-white px-4 py-2 font-world text-13 font-medium leading-[1.2] text-portal-text outline-none data-[highlighted]:bg-grey-50"
                   >
-                    {/* size-6 slot matches the app-avatar column so the label
-                        text lines up with every other row */}
-                    <span className="flex size-6 shrink-0 items-center justify-center">
-                      <Icon
-                        name="dropdown-plus"
-                        className="size-4 -translate-y-px"
-                      />
-                    </span>
+                    {/* Bare 16px icon per Figma (2123:1919): icons left-align
+                        at the row padding; text columns differ per row. */}
+                    <Icon
+                      name="dropdown-plus"
+                      className="size-4 shrink-0 -translate-y-px"
+                    />
                     <span className="min-w-0 flex-1 truncate">
                       Create new app
                     </span>

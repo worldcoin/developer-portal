@@ -97,7 +97,7 @@ export const UserPopup = (props: { user: PortalUser; color: Color | null }) => {
             Profile
           </span>
         </span>
-        <Icon name="more-horizontal" className="size-4 shrink-0" />
+        <Icon name="arrow-separate-vertical" className="size-4 shrink-0" />
       </DropdownMenu.Trigger>
 
       <DropdownMenu.Portal>
