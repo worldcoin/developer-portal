@@ -28,9 +28,12 @@ import { proxy } from "../../proxy";
 
 const CANONICAL = "https://developer.worldcoin.org";
 
+const DASHBOARD_HOST = "developer-dashboard.toolsforhumanity.com";
+
 beforeEach(() => {
   jest.clearAllMocks();
   process.env.APP_BASE_URL = CANONICAL;
+  delete process.env.INTERNAL_DASHBOARD_HOST;
 });
 
 // #region appBaseUrl allow-list miss → graceful canonical redirect
@@ -160,6 +163,89 @@ describe("middleware [auth route, allow-listed origin]", () => {
     const res = await proxy(req);
 
     expect(res).toBe(sdkRes);
+    expect(auth0Middleware).toHaveBeenCalledTimes(1);
+  });
+});
+// #endregion
+
+// #region admin pages security headers
+describe("proxy [admin pages]", () => {
+  it("sets CSP and permissions headers without invoking Auth0", async () => {
+    const req = new NextRequest(`${CANONICAL}/admin`);
+    const res = await proxy(req);
+
+    expect(auth0Middleware).not.toHaveBeenCalled();
+    expect(res.headers.get("content-security-policy")).toContain(
+      "default-src 'self'",
+    );
+    expect(res.headers.get("Permissions-Policy")).toBe(
+      "clipboard-write=(self)",
+    );
+    expect(res.headers.get("x-current-path")).toBe("/admin");
+  });
+});
+// #endregion
+
+// #region dashboard host root rewrite
+describe("proxy [internal dashboard host]", () => {
+  it('rewrites "/" to /admin when the host matches INTERNAL_DASHBOARD_HOST', async () => {
+    process.env.INTERNAL_DASHBOARD_HOST = DASHBOARD_HOST;
+
+    const req = new NextRequest(`https://${DASHBOARD_HOST}/`);
+    const res = await proxy(req);
+
+    expect(auth0Middleware).not.toHaveBeenCalled();
+    expect(res.headers.get("x-middleware-rewrite")).toBe(
+      `https://${DASHBOARD_HOST}/admin`,
+    );
+    expect(res.headers.get("content-security-policy")).toContain(
+      "default-src 'self'",
+    );
+    expect(res.headers.get("Permissions-Policy")).toBe(
+      "clipboard-write=(self)",
+    );
+    expect(res.headers.get("x-current-path")).toBe("/admin");
+  });
+
+  it("matches the dashboard host via x-forwarded-host, normalizing port and extra proxies", async () => {
+    process.env.INTERNAL_DASHBOARD_HOST = DASHBOARD_HOST;
+
+    const req = new NextRequest(`${CANONICAL}/`, {
+      headers: {
+        "x-forwarded-host": `${DASHBOARD_HOST}:443, proxy.internal`,
+      },
+    });
+    const res = await proxy(req);
+
+    expect(res.headers.get("x-middleware-rewrite")).toBe(`${CANONICAL}/admin`);
+  });
+
+  it('leaves "/" on the canonical host untouched and does not invoke Auth0', async () => {
+    const req = new NextRequest(`${CANONICAL}/`);
+    const res = await proxy(req);
+
+    expect(auth0Middleware).not.toHaveBeenCalled();
+    expect(res.headers.get("x-middleware-rewrite")).toBeNull();
+  });
+
+  it('does not rewrite "/" on the dashboard host when INTERNAL_DASHBOARD_HOST is unset', async () => {
+    const req = new NextRequest(`https://${DASHBOARD_HOST}/`);
+    const res = await proxy(req);
+
+    expect(auth0Middleware).not.toHaveBeenCalled();
+    expect(res.headers.get("x-middleware-rewrite")).toBeNull();
+  });
+
+  it("does not affect non-root paths on the dashboard host", async () => {
+    process.env.INTERNAL_DASHBOARD_HOST = DASHBOARD_HOST;
+    const sdkRes = NextResponse.json({ ok: true });
+    auth0Middleware.mockResolvedValue(sdkRes);
+
+    const req = new NextRequest(`https://${DASHBOARD_HOST}/api/auth/login`);
+    const res = await proxy(req);
+
+    expect(res).toBe(sdkRes);
+    expect(res.headers.get("x-middleware-rewrite")).toBeNull();
     expect(auth0Middleware).toHaveBeenCalledTimes(1);
   });
 });
