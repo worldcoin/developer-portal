@@ -10,7 +10,6 @@ import { useFetchAppMetadataQuery } from "@/scenes/common/Teams/TeamId/Apps/AppI
 import { viewModeAtom } from "../../Configuration/layout/ImagesProvider";
 import { SaveStatusProvider } from "../../Configuration/SaveStatus";
 import { SetupForm } from "../../MiniApp/PermissionsForm";
-import { MiniAppSubTabs } from "../SubTabs";
 
 type AppPermissionsPageProps = {
   params: Promise<Record<string, string>>;
@@ -49,10 +48,6 @@ export const AppPermissionsPage = (props: AppPermissionsPageProps) => {
         ) : (
           <AppTopBar appId={appId} teamId={teamId} app={app!} />
         )}
-      </div>
-
-      <div className="md:hidden">
-        <MiniAppSubTabs />
       </div>
 
       <div className="border-t border-grey-100" />

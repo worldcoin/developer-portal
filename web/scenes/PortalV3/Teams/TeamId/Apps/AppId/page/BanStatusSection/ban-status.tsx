@@ -2,38 +2,25 @@
 
 import { Button } from "@/components/Button";
 import { AlertIcon } from "@/components/Icons/AlertIcon";
-import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import clsx from "clsx";
 import { useAtom } from "jotai";
 import { banMessageDialogOpenedAtom } from "@/scenes/common/Teams/TeamId/Apps/common/BanMessageDialog/atoms";
 
 export const BanStatus = () => {
-  const [isOpened, setIsOpened] = useAtom(banMessageDialogOpenedAtom);
-  const onClick = () => {
-    if (isOpened) {
-    }
-    setIsOpened(true);
-  };
+  const [, setIsOpened] = useAtom(banMessageDialogOpenedAtom);
 
   return (
-    <div
-      className={
-        "grid grid-cols-auto/1fr/auto items-center gap-x-3 rounded-lg border border-system-error-200 bg-system-error-50 px-3 py-2 text-system-error-600 sm:py-0 md:px-5"
-      }
-    >
-      <AlertIcon className="text-system-error-600" />
-      <Typography variant={TYPOGRAPHY.R4}>
+    <div className="flex items-center gap-3 rounded-[10px] border border-system-error-200 bg-system-error-50 px-5 py-3 text-system-error-600">
+      <AlertIcon className="shrink-0 text-system-error-600" />
+      <span className="min-w-0 flex-1 font-world text-13 leading-[1.3]">
         Your app was banned, users cannot access it anymore
-      </Typography>
+      </span>
 
       <Button
         type="button"
-        onClick={onClick}
-        className={clsx(
-          "items-center py-3 text-system-error-600 hover:text-system-error-700",
-        )}
+        onClick={() => setIsOpened(true)}
+        className="shrink-0 font-world text-13 font-medium text-system-error-600 transition-colors hover:text-system-error-700"
       >
-        <Typography variant={TYPOGRAPHY.R4}>More Information</Typography>
+        More Information
       </Button>
     </div>
   );
