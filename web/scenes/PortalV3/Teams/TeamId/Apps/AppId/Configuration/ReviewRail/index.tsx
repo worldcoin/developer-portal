@@ -203,15 +203,6 @@ export const ReviewRail = ({
       className="order-first h-full lg:order-none lg:border-l lg:border-grey-200 lg:pl-10"
     >
       <div className="flex flex-col gap-y-5 py-8 lg:h-full">
-        <div className="flex items-center justify-between gap-x-4">
-          <Typography variant={TYPOGRAPHY.M4} className="text-grey-900">
-            Live preview
-          </Typography>
-          <Typography variant={TYPOGRAPHY.R5} className="text-grey-400">
-            Updates as you edit
-          </Typography>
-        </div>
-
         <div className="min-h-0 flex-1 overflow-y-auto pr-1">
           <LivePreview
             appId={appId}
