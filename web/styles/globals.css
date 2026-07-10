@@ -3,55 +3,6 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Fonts start */
-
-@font-face {
-  font-display: block;
-  font-family: "GT America";
-  src: url("https://world-id-assets.com/fonts/GTAmerica-Rg.woff2")
-    format("woff2");
-  font-weight: 400;
-  font-style: normal;
-}
-
-@font-face {
-  font-display: block;
-  font-family: "GT America";
-  src: url("https://world-id-assets.com/fonts/GTAmerica-RgIt.woff2")
-    format("woff2");
-  font-weight: 400;
-  font-style: italic;
-}
-
-@font-face {
-  font-display: block;
-  font-family: "GT America";
-  src: url("https://world-id-assets.com/fonts/GT-America-Md.woff2")
-    format("woff2");
-  font-weight: 500;
-  font-style: normal;
-}
-
-@font-face {
-  font-family: "TWK Lausanne";
-  src: url("https://world-id-assets.com/fonts/TWKLausanne-550.woff2")
-    format("woff2");
-  font-weight: 500;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "World Pro";
-  src: url("https://world-id-assets.com/fonts/WorldProMVP.ttf")
-    format("truetype");
-  font-weight: 100 900;
-  font-style: normal;
-  font-display: swap;
-}
-
-/* Fonts end */
-
 @layer utilities {
   /* Hide scrollbar for Chrome, Safari and Opera */
   .no-scrollbar::-webkit-scrollbar {

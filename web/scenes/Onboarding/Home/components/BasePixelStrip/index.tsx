@@ -1,458 +1,99 @@
-"use client";
-
-import { useEffect, useRef, type CSSProperties } from "react";
-
-const WORLD_LOGO_PATH =
-  "M10 18.333q-2.26 0-4.176-1.122a8.3 8.3 0 0 1-3.036-3.036A8.1 8.1 0 0 1 1.667 10q0-2.26 1.121-4.176a8.3 8.3 0 0 1 3.036-3.035A8.1 8.1 0 0 1 10 1.666q2.26 0 4.176 1.122a8.35 8.35 0 0 1 3.036 3.035A8.13 8.13 0 0 1 18.333 10q0 2.261-1.121 4.176a8.3 8.3 0 0 1-3.036 3.036A8.13 8.13 0 0 1 10 18.333m-7.629-7.467V9.167h15.274v1.7zM10 16.597a6.3 6.3 0 0 0 3.281-.885 6.5 6.5 0 0 0 2.36-2.394q.867-1.509.866-3.316 0-1.807-.867-3.317a6.5 6.5 0 0 0-2.359-2.393A6.3 6.3 0 0 0 10 3.406a6.3 6.3 0 0 0-3.281.886 6.53 6.53 0 0 0-2.36 2.393q-.867 1.51-.866 3.317t.866 3.316a6.5 6.5 0 0 0 2.36 2.394q1.491.885 3.281.885m-4.447-6.473v-.217q0-1.283.614-2.322a4.35 4.35 0 0 1 1.726-1.636q1.113-.597 2.54-.596h5.585l.795 1.664h-6.308q-1.41 0-2.269.813-.859.814-.86 2.079v.218q.001 1.284.86 2.088.858.803 2.27.804h6.307l-.795 1.664h-5.585q-1.428-.001-2.54-.596a4.35 4.35 0 0 1-1.726-1.636q-.614-1.04-.614-2.322z";
-
-const OVERLAY_RADIAL: CSSProperties = {
-  background:
-    "radial-gradient(54% 58% at 50% 50%, rgba(255,255,255,0) 46%, rgba(255,255,255,0.2) 76%, #ffffff 100%)",
-};
-
-const OVERLAY_TOP: CSSProperties = {
-  background: "linear-gradient(to bottom, #ffffff, transparent)",
-};
-
-const OVERLAY_LEFT: CSSProperties = {
-  background: "linear-gradient(to right, #ffffff, transparent)",
-};
-
-const OVERLAY_RIGHT: CSSProperties = {
-  background: "linear-gradient(to left, #ffffff, transparent)",
-};
-
-const OVERLAY_BOTTOM: CSSProperties = {
-  background: "linear-gradient(to top, #ffffff, transparent)",
-};
-
-const FILL_GLOW = "#9bf6ff";
-const FILL_WHITE = "#ffffff";
-
-type DrawCell = {
-  blueBase: number;
-  centerX: number;
-  centerY: number;
-  greenBase: number;
-  index: number;
-  isActive: boolean;
-  logoAlpha: number;
-  reveal: number;
-  seed: number;
-  size: number;
-  spotlight: number;
-  texture: number;
-  x: number;
-  y: number;
-};
-
-type Wave = {
-  color: number;
-  coverage: number;
-  index: number;
-  salt: number;
-  x: number;
-  y: number;
-};
-
-const clamp = (value: number, min: number, max: number) =>
-  Math.min(Math.max(value, min), max);
-
-export const BasePixelStrip = () => {
-  const rootRef = useRef<HTMLElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-
-  useEffect(() => {
-    const root = rootRef.current;
-    const canvas = canvasRef.current;
-    const context = canvas?.getContext("2d");
-
-    if (!root || !canvas || !context) {
-      return;
-    }
-
-    const reduceMotion = window.matchMedia(
-      "(prefers-reduced-motion: reduce)",
-    ).matches;
-    const renderStatic = reduceMotion || document.visibilityState !== "visible";
-    const logoPath =
-      typeof Path2D === "undefined" ? null : new Path2D(WORLD_LOGO_PATH);
-    const maskCanvas = document.createElement("canvas");
-    const maskContext = maskCanvas.getContext("2d");
-
-    let width = 0;
-    let height = 0;
-    let dpr = 1;
-    let frame = 0;
-    let resizeFrame = 0;
-    // Timestamp of the first animated frame; drives the one-shot intro reveal.
-    let startTime = -1;
-    let visibleCells: DrawCell[] = [];
-    let logoLayout = { left: 0, size: 1, top: 0 };
-    let wave: Wave = {
-      color: 0.5,
-      coverage: 0.62,
-      index: -1,
-      salt: 0,
-      x: 0.5,
-      y: 0.5,
-    };
-    let lastFillRed = -1;
-    let lastFillGreen = -1;
-    let lastFillBlue = -1;
-    let lastFillStyle = "";
-
-    const random = (index: number, salt = 0) => {
-      const value = Math.sin(index * 947.173 + salt * 117.31) * 10000;
-      return value - Math.floor(value);
-    };
-
-    const fillStyleForCell = (
-      cell: DrawCell,
-      lift: number,
-      flash: number,
-      color: number,
-    ) => {
-      const red = clamp(
-        Math.round(flash * (48 + color * 168) + lift * 10),
-        0,
-        230,
-      );
-      const green = clamp(
-        Math.round(
-          cell.greenBase +
-            lift * 36 -
-            flash * (72 - color * 28) +
-            flash * color * 52,
-        ),
-        22,
-        220,
-      );
-      const blue = clamp(
-        Math.round(cell.blueBase + lift * 28 + flash * (46 + (1 - color) * 86)),
-        120,
-        255,
-      );
-
-      if (
-        red === lastFillRed &&
-        green === lastFillGreen &&
-        blue === lastFillBlue
-      ) {
-        return lastFillStyle;
-      }
-
-      lastFillRed = red;
-      lastFillGreen = green;
-      lastFillBlue = blue;
-      lastFillStyle = `rgb(${red},${green},${blue})`;
-      return lastFillStyle;
-    };
-
-    const rebuildLogoMask = (): Uint8ClampedArray | null => {
-      if (!logoPath || !maskContext) {
-        return null;
-      }
-
-      maskCanvas.width = width;
-      maskCanvas.height = height;
-      maskContext.clearRect(0, 0, width, height);
-
-      const size = Math.min(width, height) * 0.92;
-
-      logoLayout = {
-        left: width / 2 - size / 2,
-        size,
-        top: height / 2 - size / 2,
-      };
-
-      maskContext.save();
-      maskContext.translate(logoLayout.left, logoLayout.top);
-      maskContext.scale(logoLayout.size / 20, logoLayout.size / 20);
-      maskContext.fillStyle = "#000000";
-      maskContext.fill(logoPath);
-      maskContext.restore();
-
-      return maskContext.getImageData(0, 0, width, height).data;
-    };
-
-    const recomputeWaveCellState = () => {
-      const spotlightX = wave.x * width;
-      const spotlightY = wave.y * height;
-
-      const radius = Math.max(96, Math.min(width * 0.22, 220));
-
-      for (const cell of visibleCells) {
-        const dx = cell.centerX - spotlightX;
-        const dy = cell.centerY - spotlightY;
-        cell.spotlight = clamp(1 - Math.hypot(dx, dy) / radius, 0, 1);
-        cell.isActive = random(cell.index, wave.salt) < wave.coverage;
-      }
-    };
-
-    const rebuildGrid = () => {
-      visibleCells = [];
-      const logoMask = rebuildLogoMask();
-
-      const size = width < 640 ? 7 : 8;
-      const gap = width < 640 ? 3 : 4;
-      const step = size + gap;
-      const columns = Math.ceil(width / step) + 2;
-      const rows = Math.ceil(height / step) + 2;
-      const offsetX = (width - (columns - 1) * step - size) / 2;
-      const offsetY = (height - (rows - 1) * step - size) / 2;
-      const halfSize = size / 2;
-
-      for (let row = 0; row < rows; row += 1) {
-        for (let column = 0; column < columns; column += 1) {
-          const index = row * columns + column;
-          const x = offsetX + column * step;
-          const y = offsetY + row * step;
-          const sampleX = clamp(Math.round(x + halfSize), 0, width - 1);
-          const sampleY = clamp(Math.round(y + halfSize), 0, height - 1);
-          const logoAlpha = logoMask
-            ? logoMask[(sampleY * width + sampleX) * 4 + 3] / 255
-            : 0;
-
-          if (logoAlpha < 0.08) {
-            continue;
-          }
-
-          const xMix = clamp((x - logoLayout.left) / logoLayout.size, 0, 1);
-          const yMix = clamp((y - logoLayout.top) / logoLayout.size, 0, 1);
-
-          visibleCells.push({
-            blueBase: 206,
-            centerX: x + halfSize,
-            centerY: y + halfSize,
-            greenBase: 136 - xMix * 58 - yMix * 14,
-            index,
-            isActive: false,
-            logoAlpha,
-            reveal: clamp((xMix + yMix) * 0.36 + random(index) * 0.2, 0, 0.82),
-            seed: random(index),
-            size,
-            spotlight: 0,
-            texture: random(index, 43) < 0.04 ? 0.55 : 1,
-            x,
-            y,
-          });
-        }
-      }
-
-      recomputeWaveCellState();
-    };
-
-    const updateWave = (seconds: number) => {
-      const index = reduceMotion ? 0 : Math.floor(seconds);
-
-      if (wave.index === index) {
-        return;
-      }
-
-      wave = {
-        color: random(index + 41, 13),
-        coverage: 0.58 + random(index + 29, 7) * 0.32,
-        index,
-        salt: index + 1000,
-        x: 0.08 + random(index + 31, 17) * 0.84,
-        y: 0.2 + random(index + 37, 23) * 0.6,
-      };
-
-      recomputeWaveCellState();
-    };
-
-    const applyResize = () => {
-      const rect = root.getBoundingClientRect();
-      const nextWidth = Math.max(1, Math.floor(rect.width));
-      const nextHeight = Math.max(1, Math.floor(rect.height));
-      const nextDpr = Math.min(window.devicePixelRatio || 1, 2);
-
-      if (nextWidth === width && nextHeight === height && nextDpr === dpr) {
-        return;
-      }
-
-      width = nextWidth;
-      height = nextHeight;
-      dpr = nextDpr;
-      canvas.width = Math.floor(width * dpr);
-      canvas.height = Math.floor(height * dpr);
-      canvas.style.width = width + "px";
-      canvas.style.height = height + "px";
-      context.setTransform(dpr, 0, 0, dpr, 0, 0);
-
-      rebuildGrid();
-    };
-
-    const scheduleResize = () => {
-      if (resizeFrame) {
-        return;
-      }
-
-      resizeFrame = window.requestAnimationFrame(() => {
-        resizeFrame = 0;
-        applyResize();
-      });
-    };
-
-    const draw = (time = 0) => {
-      context.clearRect(0, 0, width, height);
-
-      const seconds = time / 1000;
-
-      if (startTime < 0 && time > 0) {
-        startTime = time;
-      }
-
-      // One-shot intro: cells fill in part by part over ~2s, then the wave
-      // flicker eases in over the following ~350ms.
-      const introMs = startTime < 0 ? 0 : time - startTime;
-      const intro = renderStatic ? 1 : clamp(introMs / 2000, 0, 1);
-      const flashGate = renderStatic ? 1 : clamp((introMs - 2000) / 350, 0, 1);
-
-      const progress = renderStatic ? 0.5 : seconds - Math.floor(seconds);
-      const pulse = renderStatic
-        ? 0.65
-        : progress < 0.08
-          ? progress / 0.08
-          : progress < 0.36
-            ? 1
-            : clamp(1 - (progress - 0.36) / 0.16, 0, 1);
-      updateWave(seconds);
-
-      lastFillRed = -1;
-      lastFillGreen = -1;
-      lastFillBlue = -1;
-      context.fillStyle = FILL_GLOW;
-
-      for (const cell of visibleCells) {
-        const revealFactor =
-          intro >= 1 ? 1 : clamp((intro - cell.reveal) / 0.18, 0, 1);
-
-        if (revealFactor <= 0) {
-          continue;
-        }
-
-        const flicker = reduceMotion
-          ? 1
-          : 0.78 +
-            Math.sin(seconds * 45 + cell.seed * 22) * 0.24 +
-            random(cell.index, wave.salt + 3) * 0.3;
-        const flash =
-          (cell.isActive
-            ? pulse * flicker * (0.72 + cell.spotlight * 1.4)
-            : 0) * flashGate;
-        const intensity = clamp(
-          cell.logoAlpha * cell.texture * (0.48 + flash) * revealFactor,
-          0,
-          1,
-        );
-
-        if (intensity < 0.04) {
-          continue;
-        }
-
-        context.globalAlpha = intensity;
-        context.fillStyle = fillStyleForCell(
-          cell,
-          cell.spotlight,
-          flash,
-          wave.color,
-        );
-        context.fillRect(cell.x, cell.y, cell.size, cell.size);
-
-        const glow = clamp(flash, 0, 1);
-
-        context.globalAlpha = intensity * (0.144 + glow * 0.396);
-        context.fillStyle = FILL_GLOW;
-        context.fillRect(cell.x + 1, cell.y + 1, cell.size - 2, cell.size - 2);
-
-        if (glow > 0.5) {
-          context.globalAlpha = intensity * (glow - 0.5) * 1.44;
-          context.fillStyle = FILL_WHITE;
-          context.fillRect(
-            cell.x + 2,
-            cell.y + 2,
-            cell.size - 4,
-            cell.size - 4,
-          );
-        }
-      }
-
-      context.globalAlpha = 1;
-
-      if (!renderStatic) {
-        frame = window.requestAnimationFrame(draw);
-      }
-    };
-
-    let observer: ResizeObserver | null = null;
-
-    if (typeof ResizeObserver !== "undefined") {
-      observer = new ResizeObserver(scheduleResize);
-      observer.observe(root);
-    } else {
-      window.addEventListener("resize", scheduleResize);
-    }
-
-    applyResize();
-    draw(renderStatic ? 2600 : 0);
-
-    return () => {
-      window.cancelAnimationFrame(frame);
-      window.cancelAnimationFrame(resizeFrame);
-
-      if (observer) {
-        observer.disconnect();
-      } else {
-        window.removeEventListener("resize", scheduleResize);
-      }
-    };
-  }, []);
-
-  return (
-    <section
-      aria-label="Interactive pixel field"
-      className="absolute inset-0 overflow-hidden bg-white"
-      ref={rootRef}
-      suppressHydrationWarning
+// The World logomark as a static halftone pixel field, pre-rendered to SVG
+// path data so it ships inline in the server HTML (no client JS, no fetch) and
+// paints on first render. The whole mark fades in via a one-shot CSS animation.
+//
+// HALFTONE_GROUPS is generated: the 20x20 World logo path is rasterized into a
+// 756x700 grid (8px cells, 4px gaps, logo drawn at 1.18x the short edge,
+// centered; cells kept where sampled mask alpha >= 0.08). Each cell's opacity
+// is maskAlpha * grain, where grain uses rand(i, s) = frac(sin(i * 947.173 +
+// s * 117.31) * 10000) over the cell's row-major index: rand(i, 43) < 0.06
+// ? 0.5 : 0.78 + rand(i, 3) * 0.22. Opacities are quantized to 0.05 steps and
+// merged into one <path> per level.
+
+// Opacity-only so the animation runs entirely on the compositor and can't
+// stutter while hydration occupies the main thread.
+const FADE_IN_STYLE = `
+.base-pixel-mark {
+  animation: base-pixel-fade 0.9s ease-out both;
+}
+
+@keyframes base-pixel-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+`;
+
+const HALFTONE_GROUPS: Array<{ opacity: number; d: string }> = [
+  {
+    opacity: 0.2,
+    d: "M182 154h8v8h-8zM374 154h8v8h-8zM638 298h8v8h-8zM518 658h8v8h-8z",
+  },
+  { opacity: 0.25, d: "M314 166h8v8h-8zM326 238h8v8h-8zM122 442h8v8h-8z" },
+  { opacity: 0.35, d: "M230 658h8v8h-8z" },
+  { opacity: 0.4, d: "M206 646h8v8h-8z" },
+  {
+    opacity: 0.45,
+    d: "M194 142h8v8h-8zM278 286h8v8h-8zM638 394h8v8h-8zM710 418h8v8h-8zM266 502h8v8h-8zM650 550h8v8h-8z",
+  },
+  {
+    opacity: 0.5,
+    d: "M386 22h8v8h-8zM230 34h8v8h-8zM434 34h8v8h-8zM446 34h8v8h-8zM326 70h8v8h-8zM338 70h8v8h-8zM470 82h8v8h-8zM146 106h8v8h-8zM182 106h8v8h-8zM218 106h8v8h-8zM614 106h8v8h-8zM578 118h8v8h-8zM566 142h8v8h-8zM146 154h8v8h-8zM158 154h8v8h-8zM518 154h8v8h-8zM614 154h8v8h-8zM530 166h8v8h-8zM302 178h8v8h-8zM374 178h8v8h-8zM458 178h8v8h-8zM518 178h8v8h-8zM122 190h8v8h-8zM134 190h8v8h-8zM350 190h8v8h-8zM458 190h8v8h-8zM626 190h8v8h-8zM410 202h8v8h-8zM98 226h8v8h-8zM350 226h8v8h-8zM50 250h8v8h-8zM266 274h8v8h-8zM674 310h8v8h-8zM290 322h8v8h-8zM350 322h8v8h-8zM458 322h8v8h-8zM698 322h8v8h-8zM158 334h8v8h-8zM266 334h8v8h-8zM278 334h8v8h-8zM506 334h8v8h-8zM566 334h8v8h-8zM578 334h8v8h-8zM710 334h8v8h-8zM182 346h8v8h-8zM578 346h8v8h-8zM602 346h8v8h-8zM518 358h8v8h-8zM542 358h8v8h-8zM650 358h8v8h-8zM278 370h8v8h-8zM350 370h8v8h-8zM554 370h8v8h-8zM662 370h8v8h-8zM50 382h8v8h-8zM38 394h8v8h-8zM218 394h8v8h-8zM686 394h8v8h-8zM74 406h8v8h-8zM206 406h8v8h-8zM266 442h8v8h-8zM50 454h8v8h-8zM314 454h8v8h-8zM674 454h8v8h-8zM698 454h8v8h-8zM110 478h8v8h-8zM530 478h8v8h-8zM554 478h8v8h-8zM578 478h8v8h-8zM338 490h8v8h-8zM566 490h8v8h-8zM686 490h8v8h-8zM74 502h8v8h-8zM422 502h8v8h-8zM506 514h8v8h-8zM506 526h8v8h-8zM626 550h8v8h-8zM122 574h8v8h-8zM242 586h8v8h-8zM518 586h8v8h-8zM266 598h8v8h-8zM218 622h8v8h-8zM302 622h8v8h-8zM350 622h8v8h-8zM470 622h8v8h-8zM206 634h8v8h-8zM218 634h8v8h-8zM314 646h8v8h-8zM422 646h8v8h-8zM386 658h8v8h-8zM338 670h8v8h-8z",
+  },
+  { opacity: 0.6, d: "M182 538h8v8h-8zM302 682h8v8h-8z" },
+  { opacity: 0.65, d: "M386 154h8v8h-8zM578 622h8v8h-8z" },
+  {
+    opacity: 0.7,
+    d: "M686 202h8v8h-8zM626 250h8v8h-8zM710 274h8v8h-8zM314 526h8v8h-8zM374 538h8v8h-8zM446 682h8v8h-8z",
+  },
+  { opacity: 0.75, d: "M674 178h8v8h-8z" },
+  {
+    opacity: 0.8,
+    d: "M314 10h8v8h-8zM398 10h8v8h-8zM314 22h8v8h-8zM350 22h8v8h-8zM446 22h8v8h-8zM290 34h8v8h-8zM398 34h8v8h-8zM410 34h8v8h-8zM422 34h8v8h-8zM206 46h8v8h-8zM242 46h8v8h-8zM254 46h8v8h-8zM338 46h8v8h-8zM362 46h8v8h-8zM446 46h8v8h-8zM506 46h8v8h-8zM242 58h8v8h-8zM266 58h8v8h-8zM302 58h8v8h-8zM386 58h8v8h-8zM446 58h8v8h-8zM494 58h8v8h-8zM194 70h8v8h-8zM242 70h8v8h-8zM278 70h8v8h-8zM398 70h8v8h-8zM434 70h8v8h-8zM446 70h8v8h-8zM506 70h8v8h-8zM554 70h8v8h-8zM578 70h8v8h-8zM206 82h8v8h-8zM230 82h8v8h-8zM242 82h8v8h-8zM278 82h8v8h-8zM302 82h8v8h-8zM494 82h8v8h-8zM518 82h8v8h-8zM530 94h8v8h-8zM554 94h8v8h-8zM170 106h8v8h-8zM242 106h8v8h-8zM542 106h8v8h-8zM554 106h8v8h-8zM626 118h8v8h-8zM146 130h8v8h-8zM158 130h8v8h-8zM194 130h8v8h-8zM206 130h8v8h-8zM542 130h8v8h-8zM566 130h8v8h-8zM578 130h8v8h-8zM98 142h8v8h-8zM158 142h8v8h-8zM182 142h8v8h-8zM134 154h8v8h-8zM170 154h8v8h-8zM494 154h8v8h-8zM638 154h8v8h-8zM86 166h8v8h-8zM170 166h8v8h-8zM350 166h8v8h-8zM386 166h8v8h-8zM422 166h8v8h-8zM470 166h8v8h-8zM494 166h8v8h-8zM566 166h8v8h-8zM650 166h8v8h-8zM662 166h8v8h-8zM134 178h8v8h-8zM158 178h8v8h-8zM362 178h8v8h-8zM470 178h8v8h-8zM506 178h8v8h-8zM74 190h8v8h-8zM86 190h8v8h-8zM290 190h8v8h-8zM326 190h8v8h-8zM386 190h8v8h-8zM398 190h8v8h-8zM446 190h8v8h-8zM470 190h8v8h-8zM482 190h8v8h-8zM554 190h8v8h-8zM638 190h8v8h-8zM650 190h8v8h-8zM86 202h8v8h-8zM374 202h8v8h-8zM398 202h8v8h-8zM434 202h8v8h-8zM542 202h8v8h-8zM554 202h8v8h-8zM326 214h8v8h-8zM338 214h8v8h-8zM362 214h8v8h-8zM410 214h8v8h-8zM446 214h8v8h-8zM458 214h8v8h-8zM470 214h8v8h-8zM494 214h8v8h-8zM506 214h8v8h-8zM542 214h8v8h-8zM566 214h8v8h-8zM74 226h8v8h-8zM122 226h8v8h-8zM338 226h8v8h-8zM62 238h8v8h-8zM122 238h8v8h-8zM290 238h8v8h-8zM314 238h8v8h-8zM62 250h8v8h-8zM218 250h8v8h-8zM254 250h8v8h-8zM278 250h8v8h-8zM302 250h8v8h-8zM218 262h8v8h-8zM242 262h8v8h-8zM278 262h8v8h-8zM638 262h8v8h-8zM230 274h8v8h-8zM278 274h8v8h-8zM218 286h8v8h-8zM242 286h8v8h-8zM266 286h8v8h-8zM662 286h8v8h-8zM698 286h8v8h-8zM98 298h8v8h-8zM242 298h8v8h-8zM662 298h8v8h-8zM710 298h8v8h-8zM206 310h8v8h-8zM710 310h8v8h-8zM74 322h8v8h-8zM110 322h8v8h-8zM194 322h8v8h-8zM218 322h8v8h-8zM314 322h8v8h-8zM362 322h8v8h-8zM398 322h8v8h-8zM422 322h8v8h-8zM434 322h8v8h-8zM446 322h8v8h-8zM506 322h8v8h-8zM530 322h8v8h-8zM638 322h8v8h-8zM650 322h8v8h-8zM710 322h8v8h-8zM98 334h8v8h-8zM350 334h8v8h-8zM458 334h8v8h-8zM518 334h8v8h-8zM614 334h8v8h-8zM50 346h8v8h-8zM230 346h8v8h-8zM266 346h8v8h-8zM350 346h8v8h-8zM362 346h8v8h-8zM410 346h8v8h-8zM494 346h8v8h-8zM506 346h8v8h-8zM530 346h8v8h-8zM566 346h8v8h-8zM674 346h8v8h-8zM62 358h8v8h-8zM98 358h8v8h-8zM122 358h8v8h-8zM194 358h8v8h-8zM206 358h8v8h-8zM266 358h8v8h-8zM422 358h8v8h-8zM446 358h8v8h-8zM470 358h8v8h-8zM506 358h8v8h-8zM38 370h8v8h-8zM86 370h8v8h-8zM134 370h8v8h-8zM158 370h8v8h-8zM230 370h8v8h-8zM374 370h8v8h-8zM470 370h8v8h-8zM482 370h8v8h-8zM518 370h8v8h-8zM710 370h8v8h-8zM194 382h8v8h-8zM242 382h8v8h-8zM650 382h8v8h-8zM674 382h8v8h-8zM254 394h8v8h-8zM674 394h8v8h-8zM50 406h8v8h-8zM266 406h8v8h-8zM638 406h8v8h-8zM674 406h8v8h-8zM38 418h8v8h-8zM50 418h8v8h-8zM98 418h8v8h-8zM62 430h8v8h-8zM242 430h8v8h-8zM674 430h8v8h-8zM686 430h8v8h-8zM278 442h8v8h-8zM290 442h8v8h-8zM302 442h8v8h-8zM278 454h8v8h-8zM626 454h8v8h-8zM650 454h8v8h-8zM662 454h8v8h-8zM98 466h8v8h-8zM110 466h8v8h-8zM326 466h8v8h-8zM242 478h8v8h-8zM254 478h8v8h-8zM266 478h8v8h-8zM398 478h8v8h-8zM470 478h8v8h-8zM590 478h8v8h-8zM134 490h8v8h-8zM254 490h8v8h-8zM266 490h8v8h-8zM362 490h8v8h-8zM518 490h8v8h-8zM602 490h8v8h-8zM614 490h8v8h-8zM662 490h8v8h-8zM134 502h8v8h-8zM146 502h8v8h-8zM290 502h8v8h-8zM494 502h8v8h-8zM506 502h8v8h-8zM554 502h8v8h-8zM602 502h8v8h-8zM662 502h8v8h-8zM86 514h8v8h-8zM98 514h8v8h-8zM122 514h8v8h-8zM146 514h8v8h-8zM338 514h8v8h-8zM434 514h8v8h-8zM470 514h8v8h-8zM482 514h8v8h-8zM518 514h8v8h-8zM554 514h8v8h-8zM602 514h8v8h-8zM650 514h8v8h-8zM110 526h8v8h-8zM146 526h8v8h-8zM494 526h8v8h-8zM542 526h8v8h-8zM554 526h8v8h-8zM122 538h8v8h-8zM518 538h8v8h-8zM530 538h8v8h-8zM578 538h8v8h-8zM626 538h8v8h-8zM650 538h8v8h-8zM170 550h8v8h-8zM590 550h8v8h-8zM122 562h8v8h-8zM134 562h8v8h-8zM578 562h8v8h-8zM626 562h8v8h-8zM638 562h8v8h-8zM182 574h8v8h-8zM542 574h8v8h-8zM554 574h8v8h-8zM566 574h8v8h-8zM590 574h8v8h-8zM614 574h8v8h-8zM194 586h8v8h-8zM482 598h8v8h-8zM542 598h8v8h-8zM158 610h8v8h-8zM170 610h8v8h-8zM182 610h8v8h-8zM206 610h8v8h-8zM230 610h8v8h-8zM254 610h8v8h-8zM278 610h8v8h-8zM458 610h8v8h-8zM482 610h8v8h-8zM530 610h8v8h-8zM398 622h8v8h-8zM410 622h8v8h-8zM518 622h8v8h-8zM266 634h8v8h-8zM386 634h8v8h-8zM434 634h8v8h-8zM218 646h8v8h-8zM230 646h8v8h-8zM242 646h8v8h-8zM266 646h8v8h-8zM278 646h8v8h-8zM290 646h8v8h-8zM302 646h8v8h-8zM350 646h8v8h-8zM362 646h8v8h-8zM446 646h8v8h-8zM254 658h8v8h-8zM338 658h8v8h-8zM410 658h8v8h-8zM434 658h8v8h-8zM278 670h8v8h-8zM326 670h8v8h-8zM350 670h8v8h-8zM374 670h8v8h-8zM338 682h8v8h-8z",
+  },
+  {
+    opacity: 0.85,
+    d: "M350 10h8v8h-8zM410 10h8v8h-8zM422 10h8v8h-8zM446 10h8v8h-8zM278 22h8v8h-8zM290 22h8v8h-8zM362 22h8v8h-8zM458 22h8v8h-8zM242 34h8v8h-8zM254 34h8v8h-8zM338 34h8v8h-8zM374 34h8v8h-8zM386 34h8v8h-8zM482 34h8v8h-8zM494 34h8v8h-8zM266 46h8v8h-8zM278 46h8v8h-8zM302 46h8v8h-8zM314 46h8v8h-8zM326 46h8v8h-8zM386 46h8v8h-8zM254 58h8v8h-8zM290 58h8v8h-8zM362 58h8v8h-8zM374 58h8v8h-8zM422 58h8v8h-8zM470 58h8v8h-8zM554 58h8v8h-8zM182 70h8v8h-8zM206 70h8v8h-8zM230 70h8v8h-8zM254 70h8v8h-8zM314 70h8v8h-8zM350 70h8v8h-8zM410 70h8v8h-8zM458 70h8v8h-8zM470 70h8v8h-8zM482 70h8v8h-8zM518 70h8v8h-8zM182 82h8v8h-8zM506 82h8v8h-8zM566 82h8v8h-8zM578 82h8v8h-8zM146 94h8v8h-8zM182 94h8v8h-8zM254 94h8v8h-8zM506 94h8v8h-8zM542 94h8v8h-8zM566 94h8v8h-8zM578 94h8v8h-8zM590 94h8v8h-8zM158 106h8v8h-8zM194 106h8v8h-8zM566 106h8v8h-8zM146 118h8v8h-8zM170 118h8v8h-8zM182 118h8v8h-8zM218 118h8v8h-8zM530 118h8v8h-8zM182 130h8v8h-8zM134 142h8v8h-8zM578 142h8v8h-8zM590 142h8v8h-8zM602 142h8v8h-8zM638 142h8v8h-8zM410 154h8v8h-8zM470 154h8v8h-8zM530 154h8v8h-8zM566 154h8v8h-8zM578 154h8v8h-8zM590 154h8v8h-8zM626 154h8v8h-8zM650 154h8v8h-8zM98 166h8v8h-8zM338 166h8v8h-8zM362 166h8v8h-8zM410 166h8v8h-8zM458 166h8v8h-8zM578 166h8v8h-8zM626 166h8v8h-8zM98 178h8v8h-8zM350 178h8v8h-8zM422 178h8v8h-8zM434 178h8v8h-8zM482 178h8v8h-8zM98 190h8v8h-8zM302 190h8v8h-8zM338 190h8v8h-8zM422 190h8v8h-8zM518 190h8v8h-8zM530 190h8v8h-8zM542 190h8v8h-8zM578 190h8v8h-8zM74 202h8v8h-8zM110 202h8v8h-8zM122 202h8v8h-8zM254 202h8v8h-8zM278 202h8v8h-8zM326 202h8v8h-8zM338 202h8v8h-8zM422 202h8v8h-8zM458 202h8v8h-8zM494 202h8v8h-8zM614 202h8v8h-8zM122 214h8v8h-8zM254 214h8v8h-8zM266 214h8v8h-8zM386 214h8v8h-8zM422 214h8v8h-8zM434 214h8v8h-8zM554 214h8v8h-8zM578 214h8v8h-8zM626 214h8v8h-8zM686 214h8v8h-8zM62 226h8v8h-8zM278 226h8v8h-8zM290 226h8v8h-8zM662 226h8v8h-8zM674 226h8v8h-8zM98 238h8v8h-8zM254 238h8v8h-8zM278 238h8v8h-8zM638 238h8v8h-8zM638 250h8v8h-8zM650 250h8v8h-8zM662 250h8v8h-8zM674 250h8v8h-8zM98 262h8v8h-8zM230 262h8v8h-8zM254 262h8v8h-8zM662 262h8v8h-8zM686 262h8v8h-8zM38 274h8v8h-8zM650 274h8v8h-8zM50 286h8v8h-8zM74 286h8v8h-8zM686 286h8v8h-8zM254 298h8v8h-8zM38 310h8v8h-8zM62 310h8v8h-8zM230 310h8v8h-8zM242 310h8v8h-8zM38 322h8v8h-8zM134 322h8v8h-8zM158 322h8v8h-8zM182 322h8v8h-8zM206 322h8v8h-8zM230 322h8v8h-8zM266 322h8v8h-8zM386 322h8v8h-8zM410 322h8v8h-8zM518 322h8v8h-8zM542 322h8v8h-8zM686 322h8v8h-8zM50 334h8v8h-8zM86 334h8v8h-8zM122 334h8v8h-8zM182 334h8v8h-8zM254 334h8v8h-8zM290 334h8v8h-8zM314 334h8v8h-8zM338 334h8v8h-8zM398 334h8v8h-8zM542 334h8v8h-8zM554 334h8v8h-8zM626 334h8v8h-8zM650 334h8v8h-8zM698 334h8v8h-8zM62 346h8v8h-8zM86 346h8v8h-8zM122 346h8v8h-8zM158 346h8v8h-8zM206 346h8v8h-8zM398 346h8v8h-8zM434 346h8v8h-8zM74 358h8v8h-8zM134 358h8v8h-8zM146 358h8v8h-8zM182 358h8v8h-8zM218 358h8v8h-8zM242 358h8v8h-8zM254 358h8v8h-8zM350 358h8v8h-8zM386 358h8v8h-8zM458 358h8v8h-8zM530 358h8v8h-8zM566 358h8v8h-8zM602 358h8v8h-8zM614 358h8v8h-8zM626 358h8v8h-8zM638 358h8v8h-8zM110 370h8v8h-8zM122 370h8v8h-8zM170 370h8v8h-8zM182 370h8v8h-8zM302 370h8v8h-8zM362 370h8v8h-8zM410 370h8v8h-8zM422 370h8v8h-8zM446 370h8v8h-8zM458 370h8v8h-8zM506 370h8v8h-8zM530 370h8v8h-8zM578 370h8v8h-8zM626 370h8v8h-8zM62 382h8v8h-8zM206 382h8v8h-8zM218 382h8v8h-8zM662 382h8v8h-8zM686 382h8v8h-8zM206 394h8v8h-8zM230 394h8v8h-8zM650 394h8v8h-8zM86 406h8v8h-8zM98 406h8v8h-8zM218 406h8v8h-8zM686 406h8v8h-8zM698 406h8v8h-8zM110 418h8v8h-8zM254 418h8v8h-8zM686 418h8v8h-8zM110 430h8v8h-8zM218 430h8v8h-8zM638 430h8v8h-8zM698 430h8v8h-8zM74 442h8v8h-8zM86 442h8v8h-8zM650 442h8v8h-8zM662 442h8v8h-8zM674 442h8v8h-8zM62 454h8v8h-8zM110 454h8v8h-8zM254 454h8v8h-8zM290 454h8v8h-8zM302 454h8v8h-8zM62 466h8v8h-8zM242 466h8v8h-8zM254 466h8v8h-8zM302 466h8v8h-8zM62 478h8v8h-8zM74 478h8v8h-8zM134 478h8v8h-8zM302 478h8v8h-8zM350 478h8v8h-8zM374 478h8v8h-8zM410 478h8v8h-8zM446 478h8v8h-8zM542 478h8v8h-8zM602 478h8v8h-8zM638 478h8v8h-8zM674 478h8v8h-8zM62 490h8v8h-8zM74 490h8v8h-8zM86 490h8v8h-8zM122 490h8v8h-8zM290 490h8v8h-8zM302 490h8v8h-8zM374 490h8v8h-8zM398 490h8v8h-8zM434 490h8v8h-8zM458 490h8v8h-8zM554 490h8v8h-8zM590 490h8v8h-8zM302 502h8v8h-8zM398 502h8v8h-8zM458 502h8v8h-8zM530 502h8v8h-8zM626 502h8v8h-8zM674 502h8v8h-8zM290 514h8v8h-8zM350 514h8v8h-8zM374 514h8v8h-8zM398 514h8v8h-8zM422 514h8v8h-8zM446 514h8v8h-8zM494 514h8v8h-8zM566 514h8v8h-8zM626 514h8v8h-8zM86 526h8v8h-8zM158 526h8v8h-8zM170 526h8v8h-8zM326 526h8v8h-8zM350 526h8v8h-8zM362 526h8v8h-8zM398 526h8v8h-8zM530 526h8v8h-8zM578 526h8v8h-8zM602 526h8v8h-8zM614 526h8v8h-8zM626 526h8v8h-8zM98 538h8v8h-8zM146 538h8v8h-8zM410 538h8v8h-8zM446 538h8v8h-8zM458 538h8v8h-8zM506 538h8v8h-8zM602 538h8v8h-8zM110 550h8v8h-8zM554 550h8v8h-8zM578 550h8v8h-8zM602 550h8v8h-8zM638 550h8v8h-8zM110 562h8v8h-8zM194 562h8v8h-8zM206 562h8v8h-8zM566 562h8v8h-8zM218 574h8v8h-8zM602 574h8v8h-8zM158 586h8v8h-8zM182 586h8v8h-8zM206 586h8v8h-8zM230 586h8v8h-8zM578 586h8v8h-8zM590 586h8v8h-8zM146 598h8v8h-8zM254 598h8v8h-8zM494 598h8v8h-8zM566 598h8v8h-8zM578 598h8v8h-8zM242 610h8v8h-8zM470 610h8v8h-8zM506 610h8v8h-8zM566 610h8v8h-8zM182 622h8v8h-8zM230 622h8v8h-8zM266 622h8v8h-8zM278 622h8v8h-8zM422 622h8v8h-8zM458 622h8v8h-8zM506 622h8v8h-8zM230 634h8v8h-8zM242 634h8v8h-8zM254 634h8v8h-8zM350 634h8v8h-8zM362 634h8v8h-8zM410 634h8v8h-8zM458 634h8v8h-8zM482 634h8v8h-8zM518 634h8v8h-8zM542 634h8v8h-8zM374 646h8v8h-8zM410 646h8v8h-8zM434 646h8v8h-8zM350 658h8v8h-8zM362 658h8v8h-8zM422 658h8v8h-8zM446 658h8v8h-8zM458 658h8v8h-8zM470 658h8v8h-8zM266 670h8v8h-8zM314 670h8v8h-8zM446 670h8v8h-8zM470 670h8v8h-8zM314 682h8v8h-8zM362 682h8v8h-8zM374 682h8v8h-8zM386 682h8v8h-8zM434 682h8v8h-8z",
+  },
+  {
+    opacity: 0.9,
+    d: "M302 10h8v8h-8zM326 10h8v8h-8zM434 10h8v8h-8zM374 22h8v8h-8zM470 22h8v8h-8zM278 34h8v8h-8zM302 34h8v8h-8zM314 34h8v8h-8zM350 34h8v8h-8zM362 34h8v8h-8zM458 34h8v8h-8zM506 34h8v8h-8zM518 34h8v8h-8zM230 46h8v8h-8zM374 46h8v8h-8zM494 46h8v8h-8zM530 46h8v8h-8zM230 58h8v8h-8zM326 58h8v8h-8zM350 58h8v8h-8zM434 58h8v8h-8zM506 58h8v8h-8zM530 58h8v8h-8zM542 58h8v8h-8zM170 70h8v8h-8zM386 70h8v8h-8zM422 70h8v8h-8zM494 70h8v8h-8zM566 70h8v8h-8zM458 82h8v8h-8zM590 82h8v8h-8zM158 94h8v8h-8zM206 94h8v8h-8zM266 94h8v8h-8zM518 94h8v8h-8zM602 94h8v8h-8zM134 106h8v8h-8zM206 106h8v8h-8zM230 106h8v8h-8zM530 106h8v8h-8zM602 106h8v8h-8zM122 118h8v8h-8zM158 118h8v8h-8zM206 118h8v8h-8zM566 118h8v8h-8zM590 118h8v8h-8zM134 130h8v8h-8zM170 130h8v8h-8zM554 130h8v8h-8zM626 130h8v8h-8zM146 142h8v8h-8zM626 142h8v8h-8zM650 142h8v8h-8zM110 154h8v8h-8zM122 154h8v8h-8zM398 154h8v8h-8zM422 154h8v8h-8zM482 154h8v8h-8zM542 154h8v8h-8zM602 154h8v8h-8zM122 166h8v8h-8zM398 166h8v8h-8zM434 166h8v8h-8zM446 166h8v8h-8zM506 166h8v8h-8zM554 166h8v8h-8zM590 166h8v8h-8zM602 166h8v8h-8zM614 166h8v8h-8zM86 178h8v8h-8zM110 178h8v8h-8zM314 178h8v8h-8zM326 178h8v8h-8zM338 178h8v8h-8zM386 178h8v8h-8zM410 178h8v8h-8zM446 178h8v8h-8zM494 178h8v8h-8zM542 178h8v8h-8zM590 178h8v8h-8zM650 178h8v8h-8zM662 178h8v8h-8zM278 190h8v8h-8zM602 190h8v8h-8zM614 190h8v8h-8zM662 190h8v8h-8zM674 190h8v8h-8zM98 202h8v8h-8zM290 202h8v8h-8zM314 202h8v8h-8zM350 202h8v8h-8zM362 202h8v8h-8zM386 202h8v8h-8zM470 202h8v8h-8zM482 202h8v8h-8zM590 202h8v8h-8zM650 202h8v8h-8zM662 202h8v8h-8zM674 202h8v8h-8zM110 214h8v8h-8zM134 214h8v8h-8zM290 214h8v8h-8zM374 214h8v8h-8zM518 214h8v8h-8zM530 214h8v8h-8zM638 214h8v8h-8zM650 214h8v8h-8zM674 214h8v8h-8zM86 226h8v8h-8zM110 226h8v8h-8zM230 226h8v8h-8zM254 226h8v8h-8zM302 226h8v8h-8zM314 226h8v8h-8zM626 226h8v8h-8zM650 226h8v8h-8zM686 226h8v8h-8zM50 238h8v8h-8zM74 238h8v8h-8zM230 238h8v8h-8zM242 238h8v8h-8zM266 238h8v8h-8zM302 238h8v8h-8zM626 238h8v8h-8zM650 238h8v8h-8zM98 250h8v8h-8zM110 250h8v8h-8zM230 250h8v8h-8zM266 250h8v8h-8zM290 250h8v8h-8zM50 262h8v8h-8zM266 262h8v8h-8zM650 262h8v8h-8zM662 274h8v8h-8zM674 274h8v8h-8zM698 274h8v8h-8zM38 286h8v8h-8zM62 286h8v8h-8zM98 286h8v8h-8zM206 286h8v8h-8zM638 286h8v8h-8zM650 286h8v8h-8zM710 286h8v8h-8zM74 298h8v8h-8zM206 298h8v8h-8zM218 298h8v8h-8zM230 298h8v8h-8zM674 298h8v8h-8zM698 298h8v8h-8zM98 310h8v8h-8zM218 310h8v8h-8zM122 322h8v8h-8zM242 322h8v8h-8zM254 322h8v8h-8zM326 322h8v8h-8zM554 322h8v8h-8zM566 322h8v8h-8zM578 322h8v8h-8zM674 322h8v8h-8zM38 334h8v8h-8zM206 334h8v8h-8zM230 334h8v8h-8zM242 334h8v8h-8zM374 334h8v8h-8zM386 334h8v8h-8zM422 334h8v8h-8zM638 334h8v8h-8zM686 334h8v8h-8zM98 346h8v8h-8zM170 346h8v8h-8zM254 346h8v8h-8zM302 346h8v8h-8zM326 346h8v8h-8zM374 346h8v8h-8zM446 346h8v8h-8zM482 346h8v8h-8zM554 346h8v8h-8zM590 346h8v8h-8zM626 346h8v8h-8zM638 346h8v8h-8zM650 346h8v8h-8zM686 346h8v8h-8zM698 346h8v8h-8zM86 358h8v8h-8zM230 358h8v8h-8zM278 358h8v8h-8zM434 358h8v8h-8zM482 358h8v8h-8zM494 358h8v8h-8zM590 358h8v8h-8zM674 358h8v8h-8zM698 358h8v8h-8zM710 358h8v8h-8zM98 370h8v8h-8zM146 370h8v8h-8zM194 370h8v8h-8zM218 370h8v8h-8zM254 370h8v8h-8zM326 370h8v8h-8zM386 370h8v8h-8zM398 370h8v8h-8zM434 370h8v8h-8zM542 370h8v8h-8zM602 370h8v8h-8zM614 370h8v8h-8zM698 370h8v8h-8zM98 382h8v8h-8zM230 382h8v8h-8zM254 382h8v8h-8zM266 382h8v8h-8zM698 382h8v8h-8zM50 394h8v8h-8zM62 394h8v8h-8zM266 394h8v8h-8zM62 406h8v8h-8zM242 406h8v8h-8zM254 406h8v8h-8zM206 418h8v8h-8zM230 418h8v8h-8zM266 418h8v8h-8zM662 418h8v8h-8zM50 430h8v8h-8zM74 430h8v8h-8zM98 430h8v8h-8zM230 430h8v8h-8zM266 430h8v8h-8zM278 430h8v8h-8zM290 430h8v8h-8zM662 430h8v8h-8zM62 442h8v8h-8zM98 442h8v8h-8zM230 442h8v8h-8zM686 442h8v8h-8zM74 454h8v8h-8zM122 454h8v8h-8zM230 454h8v8h-8zM242 454h8v8h-8zM686 454h8v8h-8zM122 466h8v8h-8zM266 466h8v8h-8zM278 466h8v8h-8zM338 466h8v8h-8zM626 466h8v8h-8zM86 478h8v8h-8zM98 478h8v8h-8zM278 478h8v8h-8zM362 478h8v8h-8zM422 478h8v8h-8zM482 478h8v8h-8zM494 478h8v8h-8zM506 478h8v8h-8zM626 478h8v8h-8zM110 490h8v8h-8zM278 490h8v8h-8zM386 490h8v8h-8zM422 490h8v8h-8zM446 490h8v8h-8zM470 490h8v8h-8zM482 490h8v8h-8zM494 490h8v8h-8zM506 490h8v8h-8zM542 490h8v8h-8zM638 490h8v8h-8zM314 502h8v8h-8zM338 502h8v8h-8zM446 502h8v8h-8zM470 502h8v8h-8zM482 502h8v8h-8zM590 502h8v8h-8zM302 514h8v8h-8zM314 514h8v8h-8zM386 514h8v8h-8zM410 514h8v8h-8zM542 514h8v8h-8zM98 526h8v8h-8zM122 526h8v8h-8zM134 526h8v8h-8zM338 526h8v8h-8zM422 526h8v8h-8zM434 526h8v8h-8zM446 526h8v8h-8zM458 526h8v8h-8zM470 526h8v8h-8zM590 526h8v8h-8zM650 526h8v8h-8zM134 538h8v8h-8zM158 538h8v8h-8zM170 538h8v8h-8zM434 538h8v8h-8zM482 538h8v8h-8zM542 538h8v8h-8zM554 538h8v8h-8zM566 538h8v8h-8zM98 550h8v8h-8zM146 550h8v8h-8zM182 550h8v8h-8zM566 550h8v8h-8zM146 562h8v8h-8zM158 562h8v8h-8zM170 562h8v8h-8zM182 562h8v8h-8zM542 562h8v8h-8zM590 562h8v8h-8zM134 574h8v8h-8zM170 574h8v8h-8zM194 574h8v8h-8zM206 574h8v8h-8zM626 574h8v8h-8zM218 586h8v8h-8zM506 586h8v8h-8zM542 586h8v8h-8zM554 586h8v8h-8zM614 586h8v8h-8zM170 598h8v8h-8zM182 598h8v8h-8zM194 598h8v8h-8zM218 598h8v8h-8zM230 598h8v8h-8zM518 598h8v8h-8zM530 598h8v8h-8zM554 598h8v8h-8zM302 610h8v8h-8zM446 610h8v8h-8zM518 610h8v8h-8zM194 622h8v8h-8zM326 622h8v8h-8zM338 622h8v8h-8zM374 622h8v8h-8zM386 622h8v8h-8zM494 622h8v8h-8zM530 622h8v8h-8zM566 622h8v8h-8zM278 634h8v8h-8zM290 634h8v8h-8zM314 634h8v8h-8zM398 634h8v8h-8zM446 634h8v8h-8zM494 634h8v8h-8zM506 634h8v8h-8zM338 646h8v8h-8zM398 646h8v8h-8zM458 646h8v8h-8zM242 658h8v8h-8zM326 658h8v8h-8zM482 658h8v8h-8zM506 658h8v8h-8zM386 670h8v8h-8zM410 670h8v8h-8zM434 670h8v8h-8zM350 682h8v8h-8z",
+  },
+  {
+    opacity: 0.95,
+    d: "M338 10h8v8h-8zM374 10h8v8h-8zM266 22h8v8h-8zM302 22h8v8h-8zM326 22h8v8h-8zM338 22h8v8h-8zM398 22h8v8h-8zM422 22h8v8h-8zM482 22h8v8h-8zM266 34h8v8h-8zM326 34h8v8h-8zM470 34h8v8h-8zM218 46h8v8h-8zM290 46h8v8h-8zM350 46h8v8h-8zM398 46h8v8h-8zM422 46h8v8h-8zM434 46h8v8h-8zM458 46h8v8h-8zM470 46h8v8h-8zM482 46h8v8h-8zM542 46h8v8h-8zM194 58h8v8h-8zM278 58h8v8h-8zM314 58h8v8h-8zM338 58h8v8h-8zM410 58h8v8h-8zM458 58h8v8h-8zM482 58h8v8h-8zM218 70h8v8h-8zM266 70h8v8h-8zM290 70h8v8h-8zM302 70h8v8h-8zM362 70h8v8h-8zM374 70h8v8h-8zM530 70h8v8h-8zM542 70h8v8h-8zM158 82h8v8h-8zM170 82h8v8h-8zM218 82h8v8h-8zM266 82h8v8h-8zM446 82h8v8h-8zM530 82h8v8h-8zM554 82h8v8h-8zM170 94h8v8h-8zM194 94h8v8h-8zM218 94h8v8h-8zM230 94h8v8h-8zM242 94h8v8h-8zM482 94h8v8h-8zM494 94h8v8h-8zM518 106h8v8h-8zM134 118h8v8h-8zM542 118h8v8h-8zM554 118h8v8h-8zM602 118h8v8h-8zM602 130h8v8h-8zM614 130h8v8h-8zM638 130h8v8h-8zM554 142h8v8h-8zM614 142h8v8h-8zM434 154h8v8h-8zM554 154h8v8h-8zM134 166h8v8h-8zM146 166h8v8h-8zM326 166h8v8h-8zM374 166h8v8h-8zM542 166h8v8h-8zM638 166h8v8h-8zM122 178h8v8h-8zM146 178h8v8h-8zM530 178h8v8h-8zM566 178h8v8h-8zM578 178h8v8h-8zM614 178h8v8h-8zM638 178h8v8h-8zM314 190h8v8h-8zM410 190h8v8h-8zM494 190h8v8h-8zM566 190h8v8h-8zM590 190h8v8h-8zM134 202h8v8h-8zM302 202h8v8h-8zM446 202h8v8h-8zM506 202h8v8h-8zM518 202h8v8h-8zM530 202h8v8h-8zM626 202h8v8h-8zM62 214h8v8h-8zM74 214h8v8h-8zM86 214h8v8h-8zM98 214h8v8h-8zM302 214h8v8h-8zM314 214h8v8h-8zM350 214h8v8h-8zM398 214h8v8h-8zM482 214h8v8h-8zM614 214h8v8h-8zM662 214h8v8h-8zM242 226h8v8h-8zM266 226h8v8h-8zM326 226h8v8h-8zM638 226h8v8h-8zM86 238h8v8h-8zM110 238h8v8h-8zM662 238h8v8h-8zM674 238h8v8h-8zM686 238h8v8h-8zM698 238h8v8h-8zM74 250h8v8h-8zM242 250h8v8h-8zM686 250h8v8h-8zM62 262h8v8h-8zM110 262h8v8h-8zM290 262h8v8h-8zM698 262h8v8h-8zM50 274h8v8h-8zM62 274h8v8h-8zM74 274h8v8h-8zM86 274h8v8h-8zM98 274h8v8h-8zM110 274h8v8h-8zM218 274h8v8h-8zM242 274h8v8h-8zM254 274h8v8h-8zM638 274h8v8h-8zM230 286h8v8h-8zM38 298h8v8h-8zM62 298h8v8h-8zM266 298h8v8h-8zM650 298h8v8h-8zM686 298h8v8h-8zM50 310h8v8h-8zM74 310h8v8h-8zM86 310h8v8h-8zM194 310h8v8h-8zM254 310h8v8h-8zM266 310h8v8h-8zM650 310h8v8h-8zM662 310h8v8h-8zM698 310h8v8h-8zM50 322h8v8h-8zM62 322h8v8h-8zM98 322h8v8h-8zM146 322h8v8h-8zM278 322h8v8h-8zM302 322h8v8h-8zM338 322h8v8h-8zM470 322h8v8h-8zM482 322h8v8h-8zM494 322h8v8h-8zM614 322h8v8h-8zM662 322h8v8h-8zM62 334h8v8h-8zM74 334h8v8h-8zM110 334h8v8h-8zM134 334h8v8h-8zM146 334h8v8h-8zM170 334h8v8h-8zM194 334h8v8h-8zM218 334h8v8h-8zM302 334h8v8h-8zM362 334h8v8h-8zM410 334h8v8h-8zM446 334h8v8h-8zM470 334h8v8h-8zM494 334h8v8h-8zM530 334h8v8h-8zM590 334h8v8h-8zM602 334h8v8h-8zM662 334h8v8h-8zM674 334h8v8h-8zM110 346h8v8h-8zM134 346h8v8h-8zM146 346h8v8h-8zM194 346h8v8h-8zM242 346h8v8h-8zM278 346h8v8h-8zM314 346h8v8h-8zM338 346h8v8h-8zM458 346h8v8h-8zM470 346h8v8h-8zM518 346h8v8h-8zM542 346h8v8h-8zM614 346h8v8h-8zM662 346h8v8h-8zM710 346h8v8h-8zM38 358h8v8h-8zM50 358h8v8h-8zM110 358h8v8h-8zM170 358h8v8h-8zM302 358h8v8h-8zM326 358h8v8h-8zM362 358h8v8h-8zM374 358h8v8h-8zM410 358h8v8h-8zM554 358h8v8h-8zM578 358h8v8h-8zM50 370h8v8h-8zM62 370h8v8h-8zM266 370h8v8h-8zM314 370h8v8h-8zM338 370h8v8h-8zM494 370h8v8h-8zM566 370h8v8h-8zM638 370h8v8h-8zM650 370h8v8h-8zM686 370h8v8h-8zM38 382h8v8h-8zM710 382h8v8h-8zM74 394h8v8h-8zM86 394h8v8h-8zM98 394h8v8h-8zM242 394h8v8h-8zM662 394h8v8h-8zM698 394h8v8h-8zM710 394h8v8h-8zM38 406h8v8h-8zM230 406h8v8h-8zM650 406h8v8h-8zM710 406h8v8h-8zM62 418h8v8h-8zM74 418h8v8h-8zM86 418h8v8h-8zM218 418h8v8h-8zM242 418h8v8h-8zM278 418h8v8h-8zM638 418h8v8h-8zM650 418h8v8h-8zM674 418h8v8h-8zM698 418h8v8h-8zM86 430h8v8h-8zM650 430h8v8h-8zM50 442h8v8h-8zM218 442h8v8h-8zM242 442h8v8h-8zM254 442h8v8h-8zM638 442h8v8h-8zM698 442h8v8h-8zM86 454h8v8h-8zM638 454h8v8h-8zM74 466h8v8h-8zM86 466h8v8h-8zM290 466h8v8h-8zM638 466h8v8h-8zM662 466h8v8h-8zM674 466h8v8h-8zM686 466h8v8h-8zM122 478h8v8h-8zM290 478h8v8h-8zM326 478h8v8h-8zM338 478h8v8h-8zM386 478h8v8h-8zM458 478h8v8h-8zM518 478h8v8h-8zM566 478h8v8h-8zM662 478h8v8h-8zM686 478h8v8h-8zM98 490h8v8h-8zM314 490h8v8h-8zM326 490h8v8h-8zM350 490h8v8h-8zM410 490h8v8h-8zM578 490h8v8h-8zM626 490h8v8h-8zM674 490h8v8h-8zM86 502h8v8h-8zM98 502h8v8h-8zM110 502h8v8h-8zM278 502h8v8h-8zM350 502h8v8h-8zM374 502h8v8h-8zM410 502h8v8h-8zM434 502h8v8h-8zM518 502h8v8h-8zM566 502h8v8h-8zM578 502h8v8h-8zM614 502h8v8h-8zM74 514h8v8h-8zM158 514h8v8h-8zM362 514h8v8h-8zM530 514h8v8h-8zM578 514h8v8h-8zM638 514h8v8h-8zM662 514h8v8h-8zM386 526h8v8h-8zM638 526h8v8h-8zM110 538h8v8h-8zM386 538h8v8h-8zM398 538h8v8h-8zM422 538h8v8h-8zM470 538h8v8h-8zM494 538h8v8h-8zM590 538h8v8h-8zM614 538h8v8h-8zM638 538h8v8h-8zM122 550h8v8h-8zM134 550h8v8h-8zM158 550h8v8h-8zM614 550h8v8h-8zM554 562h8v8h-8zM602 562h8v8h-8zM614 562h8v8h-8zM158 574h8v8h-8zM530 574h8v8h-8zM578 574h8v8h-8zM134 586h8v8h-8zM170 586h8v8h-8zM602 586h8v8h-8zM158 598h8v8h-8zM206 598h8v8h-8zM242 598h8v8h-8zM590 598h8v8h-8zM602 598h8v8h-8zM194 610h8v8h-8zM218 610h8v8h-8zM266 610h8v8h-8zM542 610h8v8h-8zM554 610h8v8h-8zM578 610h8v8h-8zM170 622h8v8h-8zM242 622h8v8h-8zM254 622h8v8h-8zM290 622h8v8h-8zM314 622h8v8h-8zM362 622h8v8h-8zM434 622h8v8h-8zM446 622h8v8h-8zM482 622h8v8h-8zM194 634h8v8h-8zM302 634h8v8h-8zM326 634h8v8h-8zM338 634h8v8h-8zM374 634h8v8h-8zM470 634h8v8h-8zM254 646h8v8h-8zM326 646h8v8h-8zM470 646h8v8h-8zM506 646h8v8h-8zM518 646h8v8h-8zM530 646h8v8h-8zM266 658h8v8h-8zM278 658h8v8h-8zM290 658h8v8h-8zM374 658h8v8h-8zM398 658h8v8h-8zM290 670h8v8h-8zM362 670h8v8h-8zM398 670h8v8h-8zM422 670h8v8h-8zM458 670h8v8h-8zM326 682h8v8h-8zM398 682h8v8h-8zM410 682h8v8h-8zM422 682h8v8h-8z",
+  },
+  {
+    opacity: 1,
+    d: "M362 10h8v8h-8zM386 10h8v8h-8zM410 22h8v8h-8zM434 22h8v8h-8zM410 46h8v8h-8zM518 46h8v8h-8zM206 58h8v8h-8zM218 58h8v8h-8zM398 58h8v8h-8zM518 58h8v8h-8zM194 82h8v8h-8zM254 82h8v8h-8zM290 82h8v8h-8zM482 82h8v8h-8zM542 82h8v8h-8zM506 106h8v8h-8zM578 106h8v8h-8zM590 106h8v8h-8zM194 118h8v8h-8zM614 118h8v8h-8zM110 130h8v8h-8zM122 130h8v8h-8zM590 130h8v8h-8zM110 142h8v8h-8zM122 142h8v8h-8zM170 142h8v8h-8zM98 154h8v8h-8zM446 154h8v8h-8zM458 154h8v8h-8zM506 154h8v8h-8zM110 166h8v8h-8zM158 166h8v8h-8zM482 166h8v8h-8zM518 166h8v8h-8zM74 178h8v8h-8zM290 178h8v8h-8zM398 178h8v8h-8zM554 178h8v8h-8zM602 178h8v8h-8zM626 178h8v8h-8zM110 190h8v8h-8zM146 190h8v8h-8zM362 190h8v8h-8zM374 190h8v8h-8zM434 190h8v8h-8zM506 190h8v8h-8zM62 202h8v8h-8zM266 202h8v8h-8zM566 202h8v8h-8zM578 202h8v8h-8zM602 202h8v8h-8zM638 202h8v8h-8zM242 214h8v8h-8zM278 214h8v8h-8zM590 214h8v8h-8zM602 214h8v8h-8zM86 250h8v8h-8zM698 250h8v8h-8zM74 262h8v8h-8zM86 262h8v8h-8zM674 262h8v8h-8zM206 274h8v8h-8zM686 274h8v8h-8zM86 286h8v8h-8zM110 286h8v8h-8zM254 286h8v8h-8zM674 286h8v8h-8zM50 298h8v8h-8zM86 298h8v8h-8zM686 310h8v8h-8zM86 322h8v8h-8zM170 322h8v8h-8zM374 322h8v8h-8zM590 322h8v8h-8zM602 322h8v8h-8zM626 322h8v8h-8zM326 334h8v8h-8zM434 334h8v8h-8zM482 334h8v8h-8zM38 346h8v8h-8zM74 346h8v8h-8zM218 346h8v8h-8zM290 346h8v8h-8zM386 346h8v8h-8zM422 346h8v8h-8zM158 358h8v8h-8zM290 358h8v8h-8zM314 358h8v8h-8zM338 358h8v8h-8zM398 358h8v8h-8zM662 358h8v8h-8zM686 358h8v8h-8zM74 370h8v8h-8zM206 370h8v8h-8zM242 370h8v8h-8zM290 370h8v8h-8zM590 370h8v8h-8zM674 370h8v8h-8zM74 382h8v8h-8zM86 382h8v8h-8zM110 406h8v8h-8zM662 406h8v8h-8zM254 430h8v8h-8zM110 442h8v8h-8zM626 442h8v8h-8zM98 454h8v8h-8zM266 454h8v8h-8zM230 466h8v8h-8zM314 466h8v8h-8zM350 466h8v8h-8zM650 466h8v8h-8zM314 478h8v8h-8zM434 478h8v8h-8zM614 478h8v8h-8zM650 478h8v8h-8zM530 490h8v8h-8zM650 490h8v8h-8zM122 502h8v8h-8zM326 502h8v8h-8zM362 502h8v8h-8zM386 502h8v8h-8zM542 502h8v8h-8zM638 502h8v8h-8zM650 502h8v8h-8zM110 514h8v8h-8zM134 514h8v8h-8zM326 514h8v8h-8zM458 514h8v8h-8zM590 514h8v8h-8zM614 514h8v8h-8zM374 526h8v8h-8zM410 526h8v8h-8zM482 526h8v8h-8zM518 526h8v8h-8zM566 526h8v8h-8zM662 526h8v8h-8zM194 550h8v8h-8zM146 574h8v8h-8zM146 586h8v8h-8zM530 586h8v8h-8zM566 586h8v8h-8zM506 598h8v8h-8zM290 610h8v8h-8zM494 610h8v8h-8zM590 610h8v8h-8zM206 622h8v8h-8zM542 622h8v8h-8zM554 622h8v8h-8zM422 634h8v8h-8zM530 634h8v8h-8zM554 634h8v8h-8zM386 646h8v8h-8zM482 646h8v8h-8zM494 646h8v8h-8zM302 658h8v8h-8zM314 658h8v8h-8zM494 658h8v8h-8zM302 670h8v8h-8zM482 670h8v8h-8z",
+  },
+];
+
+export const BasePixelStrip = () => (
+  <section
+    aria-label="World logomark pixel field"
+    className="absolute inset-0 bg-[#f9f9f8]"
+  >
+    <style dangerouslySetInnerHTML={{ __html: FADE_IN_STYLE }} />
+
+    <svg
+      aria-hidden="true"
+      className="base-pixel-mark size-full"
+      fill="none"
+      viewBox="0 0 756 700"
+      xmlns="http://www.w3.org/2000/svg"
     >
-      <canvas
-        aria-hidden="true"
-        className="absolute inset-0 size-full"
-        ref={canvasRef}
-        suppressHydrationWarning
-      />
-
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0"
-        style={OVERLAY_RADIAL}
-      />
-
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 top-0 h-24"
-        style={OVERLAY_TOP}
-      />
-
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-y-0 left-0 w-32"
-        style={OVERLAY_LEFT}
-      />
-
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-y-0 right-0 w-32"
-        style={OVERLAY_RIGHT}
-      />
-
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 bottom-0 h-32"
-        style={OVERLAY_BOTTOM}
-      />
-    </section>
-  );
-};
+      {HALFTONE_GROUPS.map((group) => (
+        <path
+          d={group.d}
+          fill="#181818"
+          fillOpacity={group.opacity}
+          key={group.opacity}
+        />
+      ))}
+    </svg>
+  </section>
+);
