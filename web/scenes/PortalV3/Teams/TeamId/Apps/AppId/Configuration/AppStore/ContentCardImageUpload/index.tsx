@@ -13,7 +13,12 @@ import Image from "next/image";
 import { ChangeEvent, Fragment, useMemo, useRef, useState } from "react";
 import { toast } from "react-toastify";
 import { FetchAppMetadataDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/graphql/client/fetch-app-metadata.generated";
-import { ImageValidationError, useImage } from "../../hook/use-image";
+import {
+  getImageUploadAction,
+  ImageValidationError,
+  useImage,
+} from "../../hook/use-image";
+import { ImageCropDialog } from "../ImageForm/ImageCropDialog";
 import ImageLoader from "../ImageForm/ImageLoader";
 import { unverifiedImageAtom, viewModeAtom } from "../../layout/ImagesProvider";
 import { useUpdateContentCardImageMutation } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/AppStore/ContentCardImageUpload/graphql/client/update-content-card-image.generated";
@@ -45,6 +50,7 @@ export const ContentCardImageUpload = (props: ContentCardImageUploadProps) => {
   const [verifiedImageError, setVerifiedImageError] = useState(false);
   const [isSecondUpload, setIsSecondUpload] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [cropCandidate, setCropCandidate] = useState<File>();
   const [disabled] = useState(false);
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
   const [viewMode] = useAtom(viewModeAtom);
@@ -58,60 +64,74 @@ export const ContentCardImageUpload = (props: ContentCardImageUploadProps) => {
     imageInputRef.current?.click();
   };
 
-  const handleFileInput = async (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files ? e.target.files[0] : null;
+  const uploadContentCardImage = async (file: File): Promise<boolean> => {
     const imageType = "content_card_image";
+    const fileTypeEnding = file.type.split("/")[1];
 
-    if (file && (file.type === "image/png" || file.type === "image/jpeg")) {
-      const fileTypeEnding = file.type.split("/")[1];
+    try {
+      await validateImageAspectRatio(file, 345, 240);
 
-      try {
-        // Aspect ratio of 345px width and 240px height
-        await validateImageAspectRatio(file, 345, 240);
+      setIsUploading(true);
+      toast.dismiss(ImageValidationError.prototype.toastId);
+      await uploadViaPresignedPost(file, appId, teamId, imageType);
 
-        setIsUploading(true);
-        toast.dismiss(ImageValidationError.prototype.toastId);
-        await uploadViaPresignedPost(file, appId, teamId, imageType);
+      const imageUrl = await getImage(fileTypeEnding, appId, teamId, imageType);
 
-        const imageUrl = await getImage(
-          fileTypeEnding,
-          appId,
-          teamId,
-          imageType,
-        );
+      setUnverifiedImages({
+        ...unverifiedImages,
+        content_card_image_url: imageUrl,
+      });
 
-        setUnverifiedImages({
-          ...unverifiedImages,
-          content_card_image_url: imageUrl,
-        });
+      const saveFileType = fileTypeEnding === "jpeg" ? "jpg" : fileTypeEnding;
 
-        const saveFileType = fileTypeEnding === "jpeg" ? "jpg" : fileTypeEnding;
+      await updateContentCardImageMutation({
+        variables: {
+          id: appMetadataId,
+          fileName: `${imageType}.${saveFileType}`,
+        },
 
-        await updateContentCardImageMutation({
-          variables: {
-            id: appMetadataId,
-            fileName: `${imageType}.${saveFileType}`,
-          },
+        refetchQueries: [FetchAppMetadataDocument],
+      });
 
-          refetchQueries: [FetchAppMetadataDocument],
-        });
-
-        // TODO: This is a hotfix since the path names are fixed the browser caches the image and doesn't update it.
-        // Will be fixed after the dev-portal update is done to avoid large backend changes for now.
-        if (isSecondUpload) {
-          window.location.reload();
-        } else {
-          setIsSecondUpload(true);
-        }
-      } catch (error) {
-        console.error("Content Card Image Upload Failed: ", error);
-
-        if (!(error instanceof ImageValidationError)) {
-          toast.error("Error uploading image");
-        }
-      } finally {
-        setIsUploading(false);
+      // TODO: This is a hotfix since the path names are fixed the browser caches the image and doesn't update it.
+      // Will be fixed after the dev-portal update is done to avoid large backend changes for now.
+      if (isSecondUpload) {
+        window.location.reload();
+      } else {
+        setIsSecondUpload(true);
       }
+      return true;
+    } catch (error) {
+      console.error("Content Card Image Upload Failed: ", error);
+
+      if (!(error instanceof ImageValidationError)) {
+        toast.error("Error uploading image");
+      }
+      return false;
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleFileInput = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+
+    try {
+      if ((await getImageUploadAction(file, 345, 240)) === "crop") {
+        setCropCandidate(file);
+        return;
+      }
+
+      await uploadContentCardImage(file);
+    } catch (error) {
+      if (!(error instanceof ImageValidationError)) {
+        console.error("Content card image selection failed: ", error);
+      }
+      toast.error(
+        error instanceof Error ? error.message : "Unable to read this image",
+      );
     }
   };
 
@@ -165,6 +185,17 @@ export const ContentCardImageUpload = (props: ContentCardImageUploadProps) => {
         disabled={disabled}
         onChange={handleFileInput}
         style={{ display: "none" }}
+      />
+
+      <ImageCropDialog
+        file={cropCandidate}
+        title="Crop content card image"
+        targetWidth={345}
+        targetHeight={240}
+        isApplying={isUploading}
+        onApply={uploadContentCardImage}
+        onClosed={() => setCropCandidate(undefined)}
+        previewAlt="Content card image crop preview"
       />
 
       {/* Verified: thumbnail */}
@@ -284,7 +315,7 @@ export const ContentCardImageUpload = (props: ContentCardImageUploadProps) => {
                   className="text-center text-system-error-500"
                 >
                   Content card image is required. Required aspect ratio is
-                  345x240px.
+                  345:240.
                 </Typography>
               )}
             </div>

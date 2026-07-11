@@ -10,22 +10,28 @@ import ReactCrop, {
   type Crop,
   type PixelCrop,
 } from "react-image-crop";
-import { createSquareImage } from "./create-square-image";
+import { createCroppedImage } from "./create-cropped-image";
 
-type SquareImageCropperProps = {
+type ImageCropperProps = {
   file: File;
+  targetWidth: number;
+  targetHeight: number;
   isApplying: boolean;
   onCancel: () => void;
   onApply: (file: File) => Promise<void>;
+  previewAlt?: string;
 };
 
 /** Adds our upload/export behavior around react-image-crop's interaction UI. */
-export const SquareImageCropper = ({
+export const ImageCropper = ({
   file,
+  targetWidth,
+  targetHeight,
   isApplying,
   onCancel,
   onApply,
-}: SquareImageCropperProps) => {
+  previewAlt = "Image crop preview",
+}: ImageCropperProps) => {
   const imageRef = useRef<HTMLImageElement>(null);
   const [crop, setCrop] = useState<Crop>();
   const [completedCrop, setCompletedCrop] = useState<PixelCrop>();
@@ -51,7 +57,12 @@ export const SquareImageCropper = ({
     if (!width || !height) return;
 
     const initialCrop = centerCrop(
-      makeAspectCrop({ unit: "%", width: 78 }, 1, width, height),
+      makeAspectCrop(
+        { unit: "%", width: 78 },
+        targetWidth / targetHeight,
+        width,
+        height,
+      ),
       width,
       height,
     );
@@ -65,7 +76,10 @@ export const SquareImageCropper = ({
 
     try {
       await onApply(
-        await createSquareImage(file, imageRef.current, completedCrop),
+        await createCroppedImage(file, imageRef.current, completedCrop, {
+          width: targetWidth,
+          height: targetHeight,
+        }),
       );
     } catch (cropError) {
       setError(
@@ -79,7 +93,7 @@ export const SquareImageCropper = ({
   return (
     <div className="grid justify-items-center gap-6">
       <Typography variant={TYPOGRAPHY.R4} className="text-center text-grey-500">
-        Drag the square to move it. Pull any corner to resize it.
+        Drag the crop area to move it. Pull any corner to resize it.
       </Typography>
 
       <div className="flex max-h-[420px] w-full max-w-[520px] justify-center overflow-auto rounded-2xl bg-grey-100">
@@ -87,7 +101,7 @@ export const SquareImageCropper = ({
           crop={crop}
           onChange={(_, percentCrop) => setCrop(percentCrop)}
           onComplete={setCompletedCrop}
-          aspect={1}
+          aspect={targetWidth / targetHeight}
           minWidth={48}
           keepSelection
           ruleOfThirds
@@ -96,7 +110,7 @@ export const SquareImageCropper = ({
           <img
             ref={imageRef}
             src={safePreviewUrl}
-            alt="Logo crop preview"
+            alt={previewAlt}
             onLoad={(event) => initializeCrop(event.currentTarget)}
             className="block max-h-[420px] max-w-full object-contain"
           />

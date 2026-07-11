@@ -18,6 +18,8 @@ export type ImageDimensions = {
   height: number;
 };
 
+export const MAX_IMAGE_BYTES = 500 * 1024;
+
 /** Decodes a local image once and returns its intrinsic pixel dimensions. */
 export const readImageDimensions = (file: File): Promise<ImageDimensions> =>
   new Promise((resolve, reject) => {
@@ -42,6 +44,22 @@ export const hasAspectRatio = (
   width: number,
   height: number,
 ) => Math.abs(dimensions.width / dimensions.height - width / height) <= 0.01;
+
+export const getImageUploadAction = async (
+  file: File,
+  width: number,
+  height: number,
+): Promise<"upload" | "crop"> => {
+  if (!["image/jpeg", "image/png"].includes(file.type)) {
+    throw new ImageValidationError("Image must be a jpeg or png");
+  }
+  if (file.size >= MAX_IMAGE_BYTES) {
+    throw new ImageValidationError("Image size must be under 500kB");
+  }
+
+  const dimensions = await readImageDimensions(file);
+  return hasAspectRatio(dimensions, width, height) ? "upload" : "crop";
+};
 
 export const useImage = () => {
   const [getUploadedImage, { refetch }] = useGetUploadedImageLazyQuery();
@@ -96,7 +114,7 @@ export const useImage = () => {
       fail(`Image must have an aspect ratio of ${width}:${height}`);
     }
 
-    if (file.size >= 500 * 1024) {
+    if (file.size >= MAX_IMAGE_BYTES) {
       fail("Image size must be under 500kB");
     }
   };

@@ -16,13 +16,12 @@ import Skeleton from "react-loading-skeleton";
 import { toast } from "react-toastify";
 import { FetchAppMetadataDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/graphql/client/fetch-app-metadata.generated";
 import {
-  hasAspectRatio,
+  getImageUploadAction,
   ImageValidationError,
-  readImageDimensions,
   useImage,
 } from "../../hook/use-image";
 import ImageLoader from "../../AppStore/ImageForm/ImageLoader";
-import { SquareImageCropper } from "../../AppStore/ImageForm/SquareImageCropper";
+import { ImageCropper } from "../../AppStore/ImageForm/ImageCropper";
 import { unverifiedImageAtom, viewModeAtom } from "../../layout/ImagesProvider";
 import { useUpdateLogoMutation } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/AppTopBar/LogoImageUpload/graphql/client/update-logo.generated";
 
@@ -37,8 +36,6 @@ type LogoImageUploadProps = {
   onClose?: () => void;
   dialogOnly?: boolean;
 };
-
-const MAX_CROP_SOURCE_BYTES = 10 * 1024 * 1024;
 
 export const LogoImageUpload = (props: LogoImageUploadProps) => {
   const {
@@ -73,7 +70,6 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
   };
 
   const handleClose = () => {
-    setCropCandidate(undefined);
     setShowDialog(false);
     onClose?.();
   };
@@ -132,26 +128,17 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
     event.target.value = "";
     if (!file) return;
 
-    if (!["image/png", "image/jpeg"].includes(file.type)) {
-      toast.error("Image must be a jpeg or png");
-      return;
-    }
-
-    if (file.size >= MAX_CROP_SOURCE_BYTES) {
-      toast.error("Select an image smaller than 10 MB");
-      return;
-    }
-
     try {
-      const dimensions = await readImageDimensions(file);
-      if (!hasAspectRatio(dimensions, 1, 1)) {
+      if ((await getImageUploadAction(file, 1, 1)) === "crop") {
         setCropCandidate(file);
         return;
       }
 
       await uploadLogo(file);
     } catch (error) {
-      console.error("Logo selection failed: ", error);
+      if (!(error instanceof ImageValidationError)) {
+        console.error("Logo selection failed: ", error);
+      }
       toast.error(
         error instanceof Error ? error.message : "Unable to read this image",
       );
@@ -196,7 +183,11 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
         dialogOnly && "contents",
       )}
     >
-      <Dialog open={showDialog} onClose={handleClose}>
+      <Dialog
+        open={showDialog}
+        onClose={handleClose}
+        afterLeave={() => setCropCandidate(undefined)}
+      >
         <DialogOverlay />
         <DialogPanel
           className={clsx(
@@ -218,13 +209,16 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
             </Button>
           </div>
           {cropCandidate ? (
-            <SquareImageCropper
+            <ImageCropper
               file={cropCandidate}
+              targetWidth={512}
+              targetHeight={512}
               isApplying={isUploading}
               onCancel={handleClose}
               onApply={async (croppedFile) => {
                 await uploadLogo(croppedFile);
               }}
+              previewAlt="Logo crop preview"
             />
           ) : (
             <>
@@ -259,7 +253,7 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
                   Image requirements
                 </Typography>
                 <Typography variant={TYPOGRAPHY.R4} className="text-grey-500">
-                  Upload a PNG or JPG. Square images under 500 kb upload
+                  Upload a PNG or JPG under 500 kB. Square images upload
                   directly; other aspect ratios can be cropped to 1:1.
                 </Typography>
               </div>

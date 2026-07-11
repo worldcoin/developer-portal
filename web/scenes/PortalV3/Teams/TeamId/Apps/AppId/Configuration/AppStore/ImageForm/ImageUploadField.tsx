@@ -17,10 +17,15 @@ import {
 } from "react";
 import Skeleton from "react-loading-skeleton";
 import { toast } from "react-toastify";
-import { ImageValidationError, useImage } from "../../hook/use-image";
+import {
+  getImageUploadAction,
+  ImageValidationError,
+  useImage,
+} from "../../hook/use-image";
 import { extractImagePathWithExtensionFromActualUrl } from "../utils";
 import { ImageDisplay } from "./ImageDisplay";
 import ImageLoader from "./ImageLoader";
+import { ImageCropDialog } from "./ImageCropDialog";
 
 const PREVIEW_HEIGHT_PX = 200;
 
@@ -84,6 +89,11 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
   } = props;
 
   const [isUploading, setIsUploading] = useState(false);
+  const [cropCandidate, setCropCandidate] = useState<{
+    file: File;
+    width: number;
+    height: number;
+  }>();
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
   const isMountedRef = useRef(true);
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -92,19 +102,8 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
   const { validateImageAspectRatio, uploadViaPresignedPost, getImage } =
     useImage();
 
-  const uploadImage = useCallback(
-    async (_imageType: string, file: File, height: number, width: number) => {
-      if (!file || !(file.type === "image/png" || file.type === "image/jpeg")) {
-        return;
-      }
-
-      if (value.length >= maxImages) {
-        toast.error(
-          `maximum of ${maxImages} image${maxImages > 1 ? "s" : ""} allowed`,
-        );
-        return;
-      }
-
+  const uploadAcceptedImage = useCallback(
+    async (file: File, height: number, width: number): Promise<boolean> => {
       const abortController = new AbortController();
       abortControllerRef.current = abortController;
 
@@ -141,7 +140,7 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
 
         // check if component is still mounted/valid before updating
         if (!isMountedRef.current) {
-          return;
+          return false;
         }
 
         const extractedPath =
@@ -154,17 +153,19 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
         onChange(newUrls);
 
         onUploadSuccess?.();
+        return true;
       } catch (error) {
         console.error("error uploading image:", error);
 
         if (error instanceof Error && error.name === "AbortError") {
           toast.error("Upload was cancelled", { autoClose: 5000 });
-          return;
+          return false;
         }
 
         if (!(error instanceof ImageValidationError)) {
           onUploadError?.(error);
         }
+        return false;
       } finally {
         abortControllerRef.current = null;
         if (isMountedRef.current) {
@@ -190,6 +191,36 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
       onUploadSuccess,
       onUploadError,
     ],
+  );
+
+  const uploadImage = useCallback(
+    async (_imageType: string, file: File, height: number, width: number) => {
+      if (!file) return;
+
+      if (value.length >= maxImages) {
+        toast.error(
+          `maximum of ${maxImages} image${maxImages > 1 ? "s" : ""} allowed`,
+        );
+        return;
+      }
+
+      try {
+        if ((await getImageUploadAction(file, width, height)) === "crop") {
+          setCropCandidate({ file, width, height });
+          return;
+        }
+
+        await uploadAcceptedImage(file, height, width);
+      } catch (error) {
+        if (!(error instanceof ImageValidationError)) {
+          console.error("image selection failed:", error);
+        }
+        toast.error(
+          error instanceof Error ? error.message : "Unable to read this image",
+        );
+      }
+    },
+    [maxImages, uploadAcceptedImage, value.length],
   );
 
   const handleDelete = useCallback(
@@ -427,6 +458,25 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
           ))}
         </div>
       )}
+
+      <ImageCropDialog
+        file={cropCandidate?.file}
+        title={`Crop ${title.toLowerCase()}`}
+        targetWidth={cropCandidate?.width ?? imageConstraints.width}
+        targetHeight={cropCandidate?.height ?? imageConstraints.height}
+        isApplying={isUploading}
+        onApply={(file) =>
+          cropCandidate
+            ? uploadAcceptedImage(
+                file,
+                cropCandidate.height,
+                cropCandidate.width,
+              )
+            : Promise.resolve(false)
+        }
+        onClosed={() => setCropCandidate(undefined)}
+        previewAlt={`${title} crop preview`}
+      />
 
       <Dialog open={!!lightboxUrl} onClose={() => setLightboxUrl(null)}>
         <DialogOverlay />
