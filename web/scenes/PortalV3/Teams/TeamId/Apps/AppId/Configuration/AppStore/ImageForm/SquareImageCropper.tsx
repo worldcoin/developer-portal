@@ -31,6 +31,12 @@ export const SquareImageCropper = ({
   const [completedCrop, setCompletedCrop] = useState<PixelCrop>();
   const [error, setError] = useState<string>();
   const previewUrl = useMemo(() => URL.createObjectURL(file), [file]);
+  const safePreviewUrl = useMemo(() => {
+    if (!previewUrl.startsWith("blob:")) {
+      throw new Error("Invalid image preview URL");
+    }
+    return encodeURI(previewUrl);
+  }, [previewUrl]);
 
   useEffect(
     () => () => {
@@ -89,7 +95,7 @@ export const SquareImageCropper = ({
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             ref={imageRef}
-            src={previewUrl}
+            src={safePreviewUrl}
             alt="Logo crop preview"
             onLoad={(event) => initializeCrop(event.currentTarget)}
             className="block max-h-[420px] max-w-full object-contain"
