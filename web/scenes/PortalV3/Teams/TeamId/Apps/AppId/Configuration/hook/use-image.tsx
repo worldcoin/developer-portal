@@ -13,6 +13,36 @@ export class ImageValidationError extends Error {
   }
 }
 
+export type ImageDimensions = {
+  width: number;
+  height: number;
+};
+
+/** Decodes a local image once and returns its intrinsic pixel dimensions. */
+export const readImageDimensions = (file: File): Promise<ImageDimensions> =>
+  new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const image = new window.Image();
+
+    const cleanUp = () => URL.revokeObjectURL(url);
+
+    image.onload = () => {
+      cleanUp();
+      resolve({ width: image.naturalWidth, height: image.naturalHeight });
+    };
+    image.onerror = () => {
+      cleanUp();
+      reject(new ImageValidationError("Unable to read this image"));
+    };
+    image.src = url;
+  });
+
+export const hasAspectRatio = (
+  dimensions: ImageDimensions,
+  width: number,
+  height: number,
+) => Math.abs(dimensions.width / dimensions.height - width / height) <= 0.01;
+
 export const useImage = () => {
   const [getUploadedImage, { refetch }] = useGetUploadedImageLazyQuery();
 
@@ -42,58 +72,33 @@ export const useImage = () => {
     return imageUrl;
   };
 
-  const validateImageAspectRatio = (
+  const validateImageAspectRatio = async (
     file: File,
     width: number,
     height: number,
   ): Promise<void> => {
-    return new Promise((resolve, reject) => {
-      const url = URL.createObjectURL(file);
-      const img = new window.Image();
-      img.onload = () => {
-        URL.revokeObjectURL(url); // Clean up the URL object
+    const fail = (message: string): never => {
+      toast(message, {
+        toastId: ImageValidationError.prototype.toastId,
+        type: "error",
+      });
+      throw new ImageValidationError(message);
+    };
 
-        if (!["image/jpeg", "image/png"].includes(file.type)) {
-          toast("Image must be a jpeg or png", {
-            toastId: ImageValidationError.prototype.toastId,
-            type: "error",
-          });
-          reject(new ImageValidationError(`Image must be a jpeg or png`));
-        }
+    if (!["image/jpeg", "image/png"].includes(file.type)) {
+      fail("Image must be a jpeg or png");
+    }
 
-        const imageAspectRatio = img.naturalWidth / img.naturalHeight;
-        const targetAspectRatio = width / height;
+    const dimensions = await readImageDimensions(file).catch(() =>
+      fail("Unable to read this image"),
+    );
+    if (!hasAspectRatio(dimensions, width, height)) {
+      fail(`Image must have an aspect ratio of ${width}:${height}`);
+    }
 
-        if (Math.abs(imageAspectRatio - targetAspectRatio) > 0.01) {
-          toast(`Image must have an aspect ratio of ${width}:${height}`, {
-            toastId: ImageValidationError.prototype.toastId,
-            type: "error",
-          });
-          reject(new ImageValidationError(`Image aspect ratio is incorrect`));
-        }
-
-        if (file.size >= 500 * 1024) {
-          toast("Image size must be under 500kB", {
-            toastId: ImageValidationError.prototype.toastId,
-            type: "error",
-          });
-          reject(new ImageValidationError(`Image size must be under 500kB`));
-        }
-        resolve();
-      };
-
-      img.onerror = () => {
-        URL.revokeObjectURL(url);
-        reject("Error loading image");
-      };
-
-      const parsedUrl = new URL(url);
-      if (parsedUrl.protocol !== "blob:") {
-        reject("Invalid image URL");
-      }
-
-      img.src = parsedUrl.href;
-    });
+    if (file.size >= 500 * 1024) {
+      fail("Image size must be under 500kB");
+    }
   };
   const [uploadImage] = useUploadImageLazyQuery({
     fetchPolicy: "network-only",
