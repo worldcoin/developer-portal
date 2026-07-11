@@ -25,10 +25,10 @@ const previewStyle = {
   width: `${(PREVIEW_HEIGHT_PX * 345) / 240}px`,
 };
 
-// The store card renders at 345x240 CSS px; export crops at 3x so the stored
-// asset stays sharp on high-DPI phones.
-const EXPORT_WIDTH_PX = 345 * 3;
-const EXPORT_HEIGHT_PX = 240 * 3;
+// 345:240 defines the required aspect ratio only — crops export at native
+// resolution, constrained by nothing but the byte limit.
+const TARGET_WIDTH_PX = 345;
+const TARGET_HEIGHT_PX = 240;
 
 type ContentCardImageUploadProps = {
   appId: string;
@@ -108,8 +108,8 @@ export const ContentCardImageUpload = (props: ContentCardImageUploadProps) => {
 
   const { cropCandidate, clearCropCandidate, handleFileSelected } =
     useCroppedImageUpload({
-      targetWidth: EXPORT_WIDTH_PX,
-      targetHeight: EXPORT_HEIGHT_PX,
+      targetWidth: TARGET_WIDTH_PX,
+      targetHeight: TARGET_HEIGHT_PX,
       upload: uploadContentCardImage,
     });
 
@@ -175,8 +175,8 @@ export const ContentCardImageUpload = (props: ContentCardImageUploadProps) => {
       <ImageCropDialog
         file={cropCandidate}
         title="Crop content card image"
-        targetWidth={EXPORT_WIDTH_PX}
-        targetHeight={EXPORT_HEIGHT_PX}
+        targetWidth={TARGET_WIDTH_PX}
+        targetHeight={TARGET_HEIGHT_PX}
         isApplying={isUploading}
         onApply={uploadContentCardImage}
         onClosed={clearCropCandidate}

@@ -10,7 +10,10 @@ import ReactCrop, {
   type Crop,
   type PixelCrop,
 } from "react-image-crop";
-import { createCroppedImage } from "./create-cropped-image";
+import {
+  createCroppedImage,
+  getCroppedOutputSize,
+} from "./create-cropped-image";
 
 type ImageCropperProps = {
   file: File;
@@ -35,6 +38,10 @@ export const ImageCropper = ({
   const imageRef = useRef<HTMLImageElement>(null);
   const [crop, setCrop] = useState<Crop>();
   const [completedCrop, setCompletedCrop] = useState<PixelCrop>();
+  const [naturalSize, setNaturalSize] = useState<{
+    width: number;
+    height: number;
+  }>();
   const [error, setError] = useState<string>();
   const previewUrl = useMemo(() => URL.createObjectURL(file), [file]);
   const safePreviewUrl = useMemo(() => {
@@ -51,10 +58,23 @@ export const ImageCropper = ({
     [previewUrl],
   );
 
+  // Best-case export size for the current selection; the byte-limit ladder
+  // can only shrink it further.
+  const outputSize = useMemo(() => {
+    const image = imageRef.current;
+    if (!image || !completedCrop) return undefined;
+    return getCroppedOutputSize(image, completedCrop, {
+      width: targetWidth,
+      height: targetHeight,
+    });
+  }, [completedCrop, targetWidth, targetHeight]);
+
   const initializeCrop = (image: HTMLImageElement) => {
     const width = image.width;
     const height = image.height;
     if (!width || !height) return;
+
+    setNaturalSize({ width: image.naturalWidth, height: image.naturalHeight });
 
     const initialCrop = centerCrop(
       makeAspectCrop(
@@ -96,7 +116,19 @@ export const ImageCropper = ({
         Drag the crop area to move it. Pull any corner to resize it.
       </Typography>
 
-      <div className="flex max-h-[420px] w-full max-w-[520px] justify-center overflow-auto rounded-2xl bg-grey-100">
+      {naturalSize && outputSize ? (
+        <Typography
+          variant={TYPOGRAPHY.R5}
+          className="text-center text-grey-400"
+        >
+          Final Resolution: {outputSize.width}×
+          {outputSize.height}
+        </Typography>
+      ) : null}
+
+      {/* overflow-hidden + padding: the crop handles overhang the image edge
+          by a few px, which under overflow-auto spawned scrollbars mid-drag. */}
+      <div className="flex max-h-[420px] w-full max-w-[520px] justify-center overflow-hidden rounded-2xl bg-grey-100 p-2">
         <ReactCrop
           crop={crop}
           onChange={(_, percentCrop) => setCrop(percentCrop)}
@@ -112,7 +144,7 @@ export const ImageCropper = ({
             src={safePreviewUrl}
             alt={previewAlt}
             onLoad={(event) => initializeCrop(event.currentTarget)}
-            className="block max-h-[420px] max-w-full object-contain"
+            className="block max-h-[404px] max-w-full object-contain"
           />
         </ReactCrop>
       </div>

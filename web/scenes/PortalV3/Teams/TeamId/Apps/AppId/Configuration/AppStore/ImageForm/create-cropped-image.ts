@@ -11,6 +11,27 @@ const toBlob = (canvas: HTMLCanvasElement, type: string, quality?: number) =>
     ),
   );
 
+/**
+ * Pixel size the export will have at full quality: the crop region at the
+ * image's native resolution. We deliberately do not cap resolution — only
+ * aspect ratio and the byte limit are enforced, so the file-size ladder in
+ * createCroppedImage is the only thing that can shrink it.
+ */
+export const getCroppedOutputSize = (
+  image: HTMLImageElement,
+  crop: PixelCrop,
+  target: { width: number; height: number },
+) => {
+  const width = Math.max(
+    1,
+    Math.floor(crop.width * (image.naturalWidth / image.width)),
+  );
+  return {
+    width,
+    height: Math.max(1, Math.round(width / (target.width / target.height))),
+  };
+};
+
 export const createCroppedImage = async (
   file: File,
   image: HTMLImageElement,
@@ -25,17 +46,19 @@ export const createCroppedImage = async (
   if (!context) throw new Error("Image cropping is unavailable");
 
   const aspectRatio = target.width / target.height;
-  const sourceWidth = crop.width * (image.naturalWidth / image.width);
-  const sourceHeight = crop.height * (image.naturalHeight / image.height);
-  const maxScale = Math.min(
-    1,
-    target.width / sourceWidth,
-    target.height / sourceHeight,
-  );
-  const maxWidth = sourceWidth * maxScale;
+  const maxWidth = getCroppedOutputSize(image, crop, target).width;
   const qualities = file.type === "image/jpeg" ? [0.92, 0.82, 0.72] : [1];
 
-  for (const scale of [1, 0.8, 0.625, 0.5, 0.4]) {
+  // Native resolution first; step down geometrically only as far as the byte
+  // limit demands. The descent always reaches a width every encoder fits
+  // under the limit, so no crop can dead-end on file size.
+  const scales: number[] = [];
+  for (let scale = 1; ; scale *= 0.8) {
+    scales.push(scale);
+    if (maxWidth * scale <= 256) break;
+  }
+
+  for (const scale of scales) {
     output.width = Math.max(1, Math.floor(maxWidth * scale));
     output.height = Math.max(1, Math.round(output.width / aspectRatio));
     context.clearRect(0, 0, output.width, output.height);
