@@ -1,7 +1,7 @@
 "use client";
 
 import { urls } from "@/lib/urls";
-import { Icon } from "@/scenes/PortalV3/common/Icon";
+import { Icon, opticalIconClassName } from "@/scenes/PortalV3/common/Icon";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { useParams, useRouter } from "next/navigation";
 
@@ -27,7 +27,10 @@ const TeamsDropdownRow = (props: {
     <TeamAvatar name={props.team.name} className="size-6" />
     <span className="min-w-0 flex-1 truncate">{props.team.name}</span>
     {props.isCurrent ? (
-      <Icon name="dropdown-check" className="size-4 shrink-0" />
+      <Icon
+        name="dropdown-check"
+        className={`${opticalIconClassName} size-4`}
+      />
     ) : null}
   </DropdownMenu.Item>
 );
@@ -62,7 +65,10 @@ export const TeamsDropdown = (props: { teams: DropdownTeam[] }) => {
             </span>
           </span>
 
-          <Icon name="arrow-separate-vertical" className="size-4 shrink-0" />
+          <Icon
+            name="arrow-separate-vertical"
+            className={`${opticalIconClassName} size-4`}
+          />
         </DropdownMenu.Trigger>
 
         <DropdownMenu.Portal>
@@ -86,7 +92,10 @@ export const TeamsDropdown = (props: { teams: DropdownTeam[] }) => {
                 onSelect={() => router.push(urls.createTeam())}
                 className="flex h-12 w-full cursor-pointer items-center gap-2 rounded-8 bg-white px-4 py-2 font-world text-13 font-medium leading-[1.2] text-portal-text outline-none data-[highlighted]:bg-grey-50"
               >
-                <Icon name="dropdown-plus" className="size-4 shrink-0" />
+                <Icon
+                  name="dropdown-plus"
+                  className={`${opticalIconClassName} size-4`}
+                />
                 <span className="min-w-0 flex-1 truncate">Create new team</span>
               </DropdownMenu.Item>
             </div>

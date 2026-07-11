@@ -1,4 +1,5 @@
 import { Link } from "@/components/Link";
+import { opticalIconClassName } from "@/scenes/PortalV3/common/Icon";
 import { ReactNode } from "react";
 import { twMerge } from "tailwind-merge";
 
@@ -32,12 +33,8 @@ export const NavItem = (props: {
 
   const content = (
     <>
-      {/* -translate-y-px: the 16px icon centers geometrically on the row, but
-          the cap-height label sits high in its leading-none line box, so
-          dead-center reads as slightly low. This nudges the icon onto the
-          text's optical center. */}
       {icon ? (
-        <span className="shrink-0 -translate-y-px text-current">{icon}</span>
+        <span className={`${opticalIconClassName} text-current`}>{icon}</span>
       ) : null}
       <span className="min-w-0 flex-1 truncate">{label}</span>
       {trailing ? <span className="shrink-0">{trailing}</span> : null}

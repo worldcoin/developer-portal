@@ -3,6 +3,16 @@ import { twMerge } from "tailwind-merge";
 const ICON_PATH = "/images/portal-v3/icons";
 
 /**
+ * Optical alignment for an icon sitting beside cap-height text. Labels use
+ * tight leading (`leading-none` / `leading-[1.2]`), so their glyphs sit high
+ * in the line box while the descender space hangs below — a geometrically
+ * centered icon therefore reads ~1px low next to the text. Put this on the
+ * icon (or its wrapping slot) in any icon+label row instead of re-deriving
+ * the nudge per call site.
+ */
+export const opticalIconClassName = "shrink-0 -translate-y-px";
+
+/**
  * Renders a static SVG asset from `public/images/portal-v3/icons`. Decorative
  * by default (`alt=""` + `aria-hidden`), so give the surrounding control its
  * own accessible label. Pass `className` for sizing/color.

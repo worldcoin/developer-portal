@@ -63,10 +63,13 @@ jest.mock(
   }),
 );
 
+const createEditableRowMock = jest.fn();
 jest.mock(
   "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/AppTopBar/graphql/client/create-editable-row.generated",
   () => ({
-    useCreateEditableRowMutation: () => [jest.fn()],
+    useCreateEditableRowMutation: () => [
+      (...args: unknown[]) => createEditableRowMock(...args),
+    ],
   }),
 );
 
@@ -321,11 +324,8 @@ describe("v3 Configuration redesign [right rail]", () => {
     expect(submitButton).toBeEnabled();
     expect(within(actions).getByText("Draft saved")).toBeInTheDocument();
     expect(
-      within(actions).getByRole("link", { name: "Versions" }),
-    ).toHaveAttribute(
-      "href",
-      `/teams/${teamId}/apps/${appId}/configuration/versions`,
-    );
+      within(actions).queryByRole("link", { name: "Versions" }),
+    ).not.toBeInTheDocument();
     expect(
       within(
         screen.getByRole("complementary", { name: "Live preview" }),
@@ -456,7 +456,7 @@ describe("v3 Configuration redesign [right rail]", () => {
     ).toBeEnabled();
   });
 
-  it("renders a verified-only app as read-only with the submitted logo and exit link", () => {
+  it("renders a verified-only app as read-only behind the Verified version header", () => {
     const verifiedMetadata = makeAppMetadata({
       id: "meta_verified",
       name: "Verified App",
@@ -481,13 +481,11 @@ describe("v3 Configuration redesign [right rail]", () => {
 
     renderPage();
 
+    expect(screen.getByText("Verified version")).toBeInTheDocument();
     expect(
-      screen.getByText("This approved version is read-only."),
+      screen.getByText("This is the version currently approved for users."),
     ).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Back to app" })).toHaveAttribute(
-      "href",
-      `/teams/${teamId}/apps/${appId}`,
-    );
+    expect(screen.getByRole("button", { name: "Open draft" })).toBeEnabled();
     expect(screen.getByAltText("App icon")).toHaveAttribute(
       "src",
       "https://cdn/logo_img.png",
@@ -501,6 +499,93 @@ describe("v3 Configuration redesign [right rail]", () => {
     expect(
       screen.queryByRole("button", { name: /Submit for review/ }),
     ).not.toBeInTheDocument();
+  });
+
+  it("creates the single allowed draft from the Verified version header", async () => {
+    createEditableRowMock.mockResolvedValue({
+      data: { create_new_draft: { success: true } },
+    });
+    const verifiedMetadata = makeAppMetadata({
+      id: "meta_verified",
+      name: "Verified App",
+      verification_status: "verified",
+      app_website_url: "https://example.com",
+    });
+
+    useFetchAppMetadataQuery.mockReturnValue({
+      data: {
+        app: [
+          {
+            ...makeApp(verifiedMetadata),
+            app_metadata: [],
+            verified_app_metadata: [verifiedMetadata],
+          },
+        ],
+      },
+      loading: false,
+      error: undefined,
+    });
+
+    renderPage();
+
+    fireEvent.click(screen.getByRole("button", { name: "Open draft" }));
+
+    await waitFor(() =>
+      expect(createEditableRowMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          variables: { app_id: appId, team_id: teamId },
+        }),
+      ),
+    );
+  });
+
+  it("switches between the draft and the verified version without creating rows", async () => {
+    const draftMetadata = makeAppMetadata({
+      id: "meta_draft",
+      name: "Draft App",
+      app_website_url: "https://example.com",
+    });
+    const verifiedMetadata = makeAppMetadata({
+      id: "meta_verified",
+      name: "Verified App",
+      verification_status: "verified",
+      app_website_url: "https://example.com",
+    });
+
+    useFetchAppMetadataQuery.mockReturnValue({
+      data: {
+        app: [
+          {
+            ...makeApp(draftMetadata),
+            verified_app_metadata: [verifiedMetadata],
+          },
+        ],
+      },
+      loading: false,
+      error: undefined,
+    });
+
+    renderPage();
+
+    // Draft view: autosave framing plus the way back to the approved copy.
+    expect(
+      screen.getByText(
+        "Saved automatically. Changes remain here until approved.",
+      ),
+    ).toBeInTheDocument();
+
+    fireEvent.click(
+      screen.getByRole("button", { name: /View verified version/ }),
+    );
+    await screen.findByText(
+      "This is the version currently approved for users.",
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Open draft" }));
+    await screen.findByText(
+      "Saved automatically. Changes remain here until approved.",
+    );
+    expect(createEditableRowMock).not.toHaveBeenCalled();
   });
 
   it("stops submit without a logo and marks the app icon box", async () => {

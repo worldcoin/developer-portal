@@ -4,7 +4,7 @@ import clsx from "clsx";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ReactNode } from "react";
-import { Icon } from "@/scenes/PortalV3/common/Icon";
+import { Icon, opticalIconClassName } from "@/scenes/PortalV3/common/Icon";
 import { useNav } from "../NavProvider";
 
 type NavBarItemProps = {
@@ -57,7 +57,7 @@ export const NavBarItem = ({
     >
       <Icon
         name={isActive ? `${iconName}-active` : iconName}
-        className={iconClassName}
+        className={clsx(opticalIconClassName, iconClassName)}
       />
       <span
         className={clsx(

@@ -5,14 +5,12 @@ import { DecoratedButton } from "@/components/DecoratedButton";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Role_Enum } from "@/graphql/graphql";
 import { Auth0SessionUser } from "@/lib/types";
-import { urls } from "@/lib/urls";
 import { checkUserPermissions } from "@/lib/utils";
 import { FetchAppMetadataQuery } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/graphql/client/fetch-app-metadata.generated";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import clsx from "clsx";
 import { useAtomValue } from "jotai";
 import { MutableRefObject, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
 import { SubmitAppModal } from "../AppTopBar/SubmitAppModal";
 import { BasicInformationHandle } from "../BasicInformation";
 import { unverifiedImageAtom, viewModeAtom } from "../layout/ImagesProvider";
@@ -98,7 +96,6 @@ const SubmitForReview = ({
 }: SubmitForReviewProps) => {
   const viewMode = useAtomValue(viewModeAtom);
   const { user } = useUser() as Auth0SessionUser;
-  const router = useRouter();
   const [showSubmitAppModal, setShowSubmitAppModal] = useState(false);
 
   const isEnoughPermissions = useMemo(() => {
@@ -129,14 +126,6 @@ const SubmitForReview = ({
         teamId={teamId}
         appId={appId}
         isDeveloperAllowListing={appMetadata?.is_developer_allow_listing}
-        onSubmitted={() =>
-          router.push(
-            urls.configurationVersions({
-              team_id: teamId,
-              app_id: appId,
-            }),
-          )
-        }
       />
       <ReviewSubmissionButton
         appMetadata={appMetadata}
@@ -170,10 +159,6 @@ export const ConfigurationActions = ({
   basicInfoRef,
 }: ConfigurationActionsProps) => {
   const isEditable = appMetadata.verification_status === "unverified";
-  const versionsHref = urls.configurationVersions({
-    team_id: teamId,
-    app_id: appId,
-  });
 
   return (
     <section
@@ -191,13 +176,6 @@ export const ConfigurationActions = ({
           )}
         </div>
         <div className="flex shrink-0 items-center gap-2">
-          <DecoratedButton
-            href={versionsHref}
-            variant="secondary"
-            className="h-10 px-4 py-2"
-          >
-            <Typography variant={TYPOGRAPHY.M4}>Versions</Typography>
-          </DecoratedButton>
           <SubmitForReview
             appId={appId}
             teamId={teamId}

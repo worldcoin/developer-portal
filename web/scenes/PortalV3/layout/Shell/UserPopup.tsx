@@ -2,7 +2,7 @@
 
 import { urls } from "@/lib/urls";
 import { Color } from "@/scenes/common/Profile/types";
-import { Icon } from "@/scenes/PortalV3/common/Icon";
+import { Icon, opticalIconClassName } from "@/scenes/PortalV3/common/Icon";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import Link from "next/link";
 import { CSSProperties } from "react";
@@ -15,8 +15,7 @@ const itemClass =
 const LinkItem = (props: { href: string; label: string; icon: string }) => (
   <DropdownMenu.Item asChild>
     <Link href={props.href} className={itemClass}>
-      {/* Optical nudge shared with sidebar items. */}
-      <Icon name={props.icon} className="size-4 shrink-0 -translate-y-px" />
+      <Icon name={props.icon} className={`${opticalIconClassName} size-4`} />
       <span className="min-w-0 flex-1 truncate">{props.label}</span>
     </Link>
   </DropdownMenu.Item>
@@ -70,7 +69,10 @@ export const UserPopup = (props: { user: PortalUser; color: Color | null }) => {
             Profile
           </span>
         </span>
-        <Icon name="arrow-separate-vertical" className="size-4 shrink-0" />
+        <Icon
+          name="arrow-separate-vertical"
+          className={`${opticalIconClassName} size-4`}
+        />
       </DropdownMenu.Trigger>
 
       <DropdownMenu.Portal>
@@ -103,7 +105,7 @@ export const UserPopup = (props: { user: PortalUser; color: Color | null }) => {
               >
                 <Icon
                   name="profile-menu-log-out"
-                  className="size-4 shrink-0 -translate-y-px"
+                  className={`${opticalIconClassName} size-4`}
                 />
                 <span className="min-w-0 flex-1 truncate">Log out</span>
               </a>

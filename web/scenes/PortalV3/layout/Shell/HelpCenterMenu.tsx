@@ -10,7 +10,7 @@ import {
   WORLD_STATUS_URL,
 } from "@/lib/constants";
 import { urls } from "@/lib/urls";
-import { Icon } from "@/scenes/PortalV3/common/Icon";
+import { Icon, opticalIconClassName } from "@/scenes/PortalV3/common/Icon";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { useParams } from "next/navigation";
 import posthog from "posthog-js";
@@ -34,7 +34,7 @@ const HelpLink = (props: {
       className={itemClass}
       onClick={props.onSelect}
     >
-      <Icon name={props.icon} className="size-4 shrink-0" />
+      <Icon name={props.icon} className={`${opticalIconClassName} size-4`} />
       <span className="min-w-0 flex-1 truncate">{props.label}</span>
     </a>
   </DropdownMenu.Item>
@@ -74,7 +74,7 @@ export const HelpCenterMenu = () => {
         className={sidebarNavItemClassName()}
         aria-label="Help center"
       >
-        <Icon name="nav-help" className="size-4 shrink-0 -translate-y-px" />
+        <Icon name="nav-help" className={`${opticalIconClassName} size-4`} />
         <span className="min-w-0 flex-1 truncate text-left">Help center</span>
       </DropdownMenu.Trigger>
 
