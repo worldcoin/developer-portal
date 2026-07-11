@@ -121,8 +121,7 @@ export const ImageCropper = ({
           variant={TYPOGRAPHY.R5}
           className="text-center text-grey-400"
         >
-          Final Resolution: {outputSize.width}×
-          {outputSize.height}
+          Final Resolution: {outputSize.width}×{outputSize.height}
         </Typography>
       ) : null}
 
