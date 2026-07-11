@@ -13,11 +13,7 @@ import Image from "next/image";
 import { ChangeEvent, Fragment, useMemo, useRef, useState } from "react";
 import { toast } from "react-toastify";
 import { FetchAppMetadataDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/graphql/client/fetch-app-metadata.generated";
-import {
-  getImageUploadAction,
-  ImageValidationError,
-  useImage,
-} from "../../hook/use-image";
+import { useCroppedImageUpload, useImage } from "../../hook/use-image";
 import { ImageCropDialog } from "../ImageForm/ImageCropDialog";
 import ImageLoader from "../ImageForm/ImageLoader";
 import { unverifiedImageAtom, viewModeAtom } from "../../layout/ImagesProvider";
@@ -28,6 +24,11 @@ const previewStyle = {
   height: `${PREVIEW_HEIGHT_PX}px`,
   width: `${(PREVIEW_HEIGHT_PX * 345) / 240}px`,
 };
+
+// The store card renders at 345x240 CSS px; export crops at 3x so the stored
+// asset stays sharp on high-DPI phones.
+const EXPORT_WIDTH_PX = 345 * 3;
+const EXPORT_HEIGHT_PX = 240 * 3;
 
 type ContentCardImageUploadProps = {
   appId: string;
@@ -50,7 +51,6 @@ export const ContentCardImageUpload = (props: ContentCardImageUploadProps) => {
   const [verifiedImageError, setVerifiedImageError] = useState(false);
   const [isSecondUpload, setIsSecondUpload] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
-  const [cropCandidate, setCropCandidate] = useState<File>();
   const [disabled] = useState(false);
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
   const [viewMode] = useAtom(viewModeAtom);
@@ -58,8 +58,7 @@ export const ContentCardImageUpload = (props: ContentCardImageUploadProps) => {
   const [updateContentCardImageMutation, { loading }] =
     useUpdateContentCardImageMutation();
   const imageInputRef = useRef<HTMLInputElement>(null);
-  const { getImage, uploadViaPresignedPost, validateImageAspectRatio } =
-    useImage();
+  const { getImage, uploadViaPresignedPost } = useImage();
   const handleUpload = () => {
     imageInputRef.current?.click();
   };
@@ -69,10 +68,7 @@ export const ContentCardImageUpload = (props: ContentCardImageUploadProps) => {
     const fileTypeEnding = file.type.split("/")[1];
 
     try {
-      await validateImageAspectRatio(file, 345, 240);
-
       setIsUploading(true);
-      toast.dismiss(ImageValidationError.prototype.toastId);
       await uploadViaPresignedPost(file, appId, teamId, imageType);
 
       const imageUrl = await getImage(fileTypeEnding, appId, teamId, imageType);
@@ -103,36 +99,25 @@ export const ContentCardImageUpload = (props: ContentCardImageUploadProps) => {
       return true;
     } catch (error) {
       console.error("Content Card Image Upload Failed: ", error);
-
-      if (!(error instanceof ImageValidationError)) {
-        toast.error("Error uploading image");
-      }
+      toast.error("Error uploading image");
       return false;
     } finally {
       setIsUploading(false);
     }
   };
 
+  const { cropCandidate, clearCropCandidate, handleFileSelected } =
+    useCroppedImageUpload({
+      targetWidth: EXPORT_WIDTH_PX,
+      targetHeight: EXPORT_HEIGHT_PX,
+      upload: uploadContentCardImage,
+    });
+
   const handleFileInput = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     event.target.value = "";
     if (!file) return;
-
-    try {
-      if ((await getImageUploadAction(file, 345, 240)) === "crop") {
-        setCropCandidate(file);
-        return;
-      }
-
-      await uploadContentCardImage(file);
-    } catch (error) {
-      if (!(error instanceof ImageValidationError)) {
-        console.error("Content card image selection failed: ", error);
-      }
-      toast.error(
-        error instanceof Error ? error.message : "Unable to read this image",
-      );
-    }
+    await handleFileSelected(file);
   };
 
   const removeImage = async () => {
@@ -190,11 +175,11 @@ export const ContentCardImageUpload = (props: ContentCardImageUploadProps) => {
       <ImageCropDialog
         file={cropCandidate}
         title="Crop content card image"
-        targetWidth={345}
-        targetHeight={240}
+        targetWidth={EXPORT_WIDTH_PX}
+        targetHeight={EXPORT_HEIGHT_PX}
         isApplying={isUploading}
         onApply={uploadContentCardImage}
-        onClosed={() => setCropCandidate(undefined)}
+        onClosed={clearCropCandidate}
         previewAlt="Content card image crop preview"
       />
 

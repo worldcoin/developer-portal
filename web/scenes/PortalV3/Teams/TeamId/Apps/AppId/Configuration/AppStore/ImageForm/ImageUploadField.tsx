@@ -17,11 +17,7 @@ import {
 } from "react";
 import Skeleton from "react-loading-skeleton";
 import { toast } from "react-toastify";
-import {
-  getImageUploadAction,
-  ImageValidationError,
-  useImage,
-} from "../../hook/use-image";
+import { useCroppedImageUpload, useImage } from "../../hook/use-image";
 import { extractImagePathWithExtensionFromActualUrl } from "../utils";
 import { ImageDisplay } from "./ImageDisplay";
 import ImageLoader from "./ImageLoader";
@@ -89,18 +85,12 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
   } = props;
 
   const [isUploading, setIsUploading] = useState(false);
-  const [cropCandidate, setCropCandidate] = useState<{
-    file: File;
-    width: number;
-    height: number;
-  }>();
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
   const isMountedRef = useRef(true);
   const abortControllerRef = useRef<AbortController | null>(null);
   const isLocalized = locale !== "en";
 
-  const { validateImageAspectRatio, uploadViaPresignedPost, getImage } =
-    useImage();
+  const { uploadViaPresignedPost, getImage } = useImage();
 
   const uploadAcceptedImage = useCallback(
     async (file: File, height: number, width: number): Promise<boolean> => {
@@ -110,14 +100,8 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
       const fileTypeEnding = file.type.split("/")[1];
 
       try {
-        // validate first, before showing any progress
-        await validateImageAspectRatio(file, width, height);
-
-        // only start showing progress after validation passes
         setIsUploading(true);
         onUploadStart?.();
-
-        toast.dismiss(ImageValidationError.prototype.toastId);
 
         const imageType = imageTypeNamer(value.length);
 
@@ -162,9 +146,7 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
           return false;
         }
 
-        if (!(error instanceof ImageValidationError)) {
-          onUploadError?.(error);
-        }
+        onUploadError?.(error);
         return false;
       } finally {
         abortControllerRef.current = null;
@@ -176,7 +158,6 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
     [
       value,
       maxImages,
-      validateImageAspectRatio,
       onUploadStart,
       imageTypeNamer,
       uploadViaPresignedPost,
@@ -193,8 +174,20 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
     ],
   );
 
+  const { cropCandidate, clearCropCandidate, handleFileSelected } =
+    useCroppedImageUpload({
+      targetWidth: imageConstraints.width,
+      targetHeight: imageConstraints.height,
+      upload: (file) =>
+        uploadAcceptedImage(
+          file,
+          imageConstraints.height,
+          imageConstraints.width,
+        ),
+    });
+
   const uploadImage = useCallback(
-    async (_imageType: string, file: File, height: number, width: number) => {
+    async (_imageType: string, file: File) => {
       if (!file) return;
 
       if (value.length >= maxImages) {
@@ -204,23 +197,9 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
         return;
       }
 
-      try {
-        if ((await getImageUploadAction(file, width, height)) === "crop") {
-          setCropCandidate({ file, width, height });
-          return;
-        }
-
-        await uploadAcceptedImage(file, height, width);
-      } catch (error) {
-        if (!(error instanceof ImageValidationError)) {
-          console.error("image selection failed:", error);
-        }
-        toast.error(
-          error instanceof Error ? error.message : "Unable to read this image",
-        );
-      }
+      await handleFileSelected(file);
     },
-    [maxImages, uploadAcceptedImage, value.length],
+    [maxImages, handleFileSelected, value.length],
   );
 
   const handleDelete = useCallback(
@@ -460,21 +439,19 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
       )}
 
       <ImageCropDialog
-        file={cropCandidate?.file}
+        file={cropCandidate}
         title={`Crop ${title.toLowerCase()}`}
-        targetWidth={cropCandidate?.width ?? imageConstraints.width}
-        targetHeight={cropCandidate?.height ?? imageConstraints.height}
+        targetWidth={imageConstraints.width}
+        targetHeight={imageConstraints.height}
         isApplying={isUploading}
         onApply={(file) =>
-          cropCandidate
-            ? uploadAcceptedImage(
-                file,
-                cropCandidate.height,
-                cropCandidate.width,
-              )
-            : Promise.resolve(false)
+          uploadAcceptedImage(
+            file,
+            imageConstraints.height,
+            imageConstraints.width,
+          )
         }
-        onClosed={() => setCropCandidate(undefined)}
+        onClosed={clearCropCandidate}
         previewAlt={`${title} crop preview`}
       />
 

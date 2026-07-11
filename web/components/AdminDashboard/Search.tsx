@@ -1,5 +1,5 @@
 import { clsx } from "clsx";
-import { Search as SearchIcon } from "lucide-react";
+import { SearchIcon } from "@/components/Icons/SearchIcon";
 import { UIModule } from "./UIModule";
 
 type SearchProps = {

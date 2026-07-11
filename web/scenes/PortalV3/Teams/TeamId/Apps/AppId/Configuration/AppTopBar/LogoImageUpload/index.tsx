@@ -15,11 +15,7 @@ import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 import Skeleton from "react-loading-skeleton";
 import { toast } from "react-toastify";
 import { FetchAppMetadataDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/graphql/client/fetch-app-metadata.generated";
-import {
-  getImageUploadAction,
-  ImageValidationError,
-  useImage,
-} from "../../hook/use-image";
+import { useCroppedImageUpload, useImage } from "../../hook/use-image";
 import ImageLoader from "../../AppStore/ImageForm/ImageLoader";
 import { ImageCropper } from "../../AppStore/ImageForm/ImageCropper";
 import { unverifiedImageAtom, viewModeAtom } from "../../layout/ImagesProvider";
@@ -57,14 +53,12 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
   const [verifiedImageError, setVerifiedImageError] = useState(false);
   const [isSecondUpload, setIsSecondUpload] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
-  const [cropCandidate, setCropCandidate] = useState<File>();
   const [disabled] = useState(false);
   const [viewMode] = useAtom(viewModeAtom);
   const [unverifiedImages, setUnverifiedImages] = useAtom(unverifiedImageAtom);
   const [updateLogoMutation, { loading }] = useUpdateLogoMutation();
   const imageInputRef = useRef<HTMLInputElement>(null);
-  const { getImage, uploadViaPresignedPost, validateImageAspectRatio } =
-    useImage();
+  const { getImage, uploadViaPresignedPost } = useImage();
   const handleUpload = () => {
     imageInputRef.current?.click();
   };
@@ -79,8 +73,6 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
     const fileTypeEnding = file.type.split("/")[1];
 
     try {
-      await validateImageAspectRatio(file, 1, 1);
-
       setIsUploading(true);
       await uploadViaPresignedPost(file, appId, teamId, imageType);
 
@@ -113,36 +105,25 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
       return true;
     } catch (error) {
       console.error("Logo Upload Failed: ", error);
-
-      if (!(error instanceof ImageValidationError)) {
-        toast.error("Error uploading image");
-      }
+      toast.error("Error uploading image");
       return false;
     } finally {
       setIsUploading(false);
     }
   };
 
+  const { cropCandidate, clearCropCandidate, handleFileSelected } =
+    useCroppedImageUpload({
+      targetWidth: 512,
+      targetHeight: 512,
+      upload: uploadLogo,
+    });
+
   const handleFileInput = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     event.target.value = "";
     if (!file) return;
-
-    try {
-      if ((await getImageUploadAction(file, 1, 1)) === "crop") {
-        setCropCandidate(file);
-        return;
-      }
-
-      await uploadLogo(file);
-    } catch (error) {
-      if (!(error instanceof ImageValidationError)) {
-        console.error("Logo selection failed: ", error);
-      }
-      toast.error(
-        error instanceof Error ? error.message : "Unable to read this image",
-      );
-    }
+    await handleFileSelected(file);
   };
 
   const removeImage = async () => {
@@ -186,7 +167,7 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
       <Dialog
         open={showDialog}
         onClose={handleClose}
-        afterLeave={() => setCropCandidate(undefined)}
+        afterLeave={clearCropCandidate}
       >
         <DialogOverlay />
         <DialogPanel

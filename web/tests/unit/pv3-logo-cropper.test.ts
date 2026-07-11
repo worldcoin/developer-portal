@@ -3,12 +3,9 @@
 import "@testing-library/jest-dom";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import React from "react";
-import { ImageValidationError } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/Configuration/hook/use-image";
 
-const getImageUploadActionMock = jest.fn();
 const getImageMock = jest.fn();
 const uploadViaPresignedPostMock = jest.fn();
-const validateImageAspectRatioMock = jest.fn();
 const toastErrorMock = jest.fn();
 
 jest.mock("react-toastify", () => ({
@@ -27,12 +24,9 @@ jest.mock(
     );
     return {
       ...actual,
-      getImageUploadAction: (...args: unknown[]) =>
-        getImageUploadActionMock(...args),
       useImage: () => ({
         getImage: getImageMock,
         uploadViaPresignedPost: uploadViaPresignedPostMock,
-        validateImageAspectRatio: validateImageAspectRatioMock,
       }),
     };
   },
@@ -65,6 +59,10 @@ const selectFile = (file: File) =>
     target: { files: [file] },
   });
 
+// Selection-time validation runs for real; the image decode (the I/O) is
+// faked by stubbing window.Image with controllable dimensions.
+let decodedDimensions = { width: 800, height: 400 };
+
 describe("logo upload crop flow", () => {
   beforeAll(() => {
     Object.defineProperty(Element.prototype, "getAnimations", {
@@ -75,7 +73,7 @@ describe("logo upload crop flow", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    getImageUploadActionMock.mockResolvedValue("crop");
+    decodedDimensions = { width: 800, height: 400 };
     getImageMock.mockResolvedValue("https://cdn/logo_img.png");
     Object.defineProperty(URL, "createObjectURL", {
       configurable: true,
@@ -84,6 +82,24 @@ describe("logo upload crop flow", () => {
     Object.defineProperty(URL, "revokeObjectURL", {
       configurable: true,
       value: jest.fn(),
+    });
+    Object.defineProperty(window, "Image", {
+      configurable: true,
+      value: class {
+        onload?: () => void;
+
+        get naturalWidth() {
+          return decodedDimensions.width;
+        }
+
+        get naturalHeight() {
+          return decodedDimensions.height;
+        }
+
+        set src(_value: string) {
+          queueMicrotask(() => this.onload?.());
+        }
+      },
     });
   });
 
@@ -123,7 +139,7 @@ describe("logo upload crop flow", () => {
   });
 
   it("uploads a square logo under 500 kB without opening the cropper", async () => {
-    getImageUploadActionMock.mockResolvedValue("upload");
+    decodedDimensions = { width: 512, height: 512 };
     renderUploader();
     await screen.findByRole("button", { name: "Upload" });
 
@@ -142,9 +158,6 @@ describe("logo upload crop flow", () => {
   });
 
   it("rejects a square logo at the 500 kB upload limit", async () => {
-    getImageUploadActionMock.mockRejectedValue(
-      new ImageValidationError("Image size must be under 500kB"),
-    );
     renderUploader();
     await screen.findByRole("button", { name: "Upload" });
 

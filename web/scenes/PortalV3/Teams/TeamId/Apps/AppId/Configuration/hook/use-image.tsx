@@ -1,5 +1,6 @@
 import { tryParseJSON } from "@/lib/utils";
 import posthog from "posthog-js";
+import { useState } from "react";
 import { toast } from "react-toastify";
 import { useGetUploadedImageLazyQuery } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/hook/graphql/client/get-uploaded-image.generated";
 import { useUploadImageLazyQuery } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/hook/graphql/client/upload-image.generated";
@@ -61,6 +62,48 @@ export const getImageUploadAction = async (
   return hasAspectRatio(dimensions, width, height) ? "upload" : "crop";
 };
 
+/**
+ * Shared select → validate-once → crop-or-upload flow for image uploaders.
+ * Validation happens only here, at selection time: cropper output is
+ * exact-ratio and under the size limit by construction, so `upload` must not
+ * re-validate the files it receives.
+ */
+export const useCroppedImageUpload = (params: {
+  targetWidth: number;
+  targetHeight: number;
+  upload: (file: File) => Promise<unknown>;
+}) => {
+  const [cropCandidate, setCropCandidate] = useState<File>();
+
+  const handleFileSelected = async (file: File) => {
+    try {
+      const action = await getImageUploadAction(
+        file,
+        params.targetWidth,
+        params.targetHeight,
+      );
+      if (action === "crop") {
+        setCropCandidate(file);
+        return;
+      }
+      await params.upload(file);
+    } catch (error) {
+      if (!(error instanceof ImageValidationError)) {
+        console.error("Image selection failed: ", error);
+      }
+      toast.error(
+        error instanceof Error ? error.message : "Unable to read this image",
+      );
+    }
+  };
+
+  return {
+    cropCandidate,
+    clearCropCandidate: () => setCropCandidate(undefined),
+    handleFileSelected,
+  };
+};
+
 export const useImage = () => {
   const [getUploadedImage, { refetch }] = useGetUploadedImageLazyQuery();
 
@@ -90,34 +133,6 @@ export const useImage = () => {
     return imageUrl;
   };
 
-  const validateImageAspectRatio = async (
-    file: File,
-    width: number,
-    height: number,
-  ): Promise<void> => {
-    const fail = (message: string): never => {
-      toast(message, {
-        toastId: ImageValidationError.prototype.toastId,
-        type: "error",
-      });
-      throw new ImageValidationError(message);
-    };
-
-    if (!["image/jpeg", "image/png"].includes(file.type)) {
-      fail("Image must be a jpeg or png");
-    }
-
-    const dimensions = await readImageDimensions(file).catch(() =>
-      fail("Unable to read this image"),
-    );
-    if (!hasAspectRatio(dimensions, width, height)) {
-      fail(`Image must have an aspect ratio of ${width}:${height}`);
-    }
-
-    if (file.size >= MAX_IMAGE_BYTES) {
-      fail("Image size must be under 500kB");
-    }
-  };
   const [uploadImage] = useUploadImageLazyQuery({
     fetchPolicy: "network-only",
   });
@@ -199,7 +214,6 @@ export const useImage = () => {
 
   return {
     getImage,
-    validateImageAspectRatio,
     uploadViaPresignedPost,
   };
 };
