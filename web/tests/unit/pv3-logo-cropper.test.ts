@@ -47,10 +47,8 @@ const renderUploader = () =>
       appId: "app_9cdd0a714aec9ed17dca660bc9ffe72a",
       appMetadataId: "metadata_1",
       teamId: "team_1",
-      editable: true,
-      isError: false,
       open: true,
-      dialogOnly: true,
+      onClose: jest.fn(),
     }),
   );
 
@@ -103,10 +101,9 @@ describe("logo upload crop flow", () => {
     });
   });
 
-  it("opens the square crop step for a non-square logo", async () => {
+  it("goes straight from file selection to the crop step for a non-square logo", async () => {
     renderUploader();
 
-    const uploadButton = await screen.findByRole("button", { name: "Upload" });
     selectFile(new File(["not-square"], "logo.png", { type: "image/png" }));
 
     const preview = await screen.findByAltText("Logo crop preview");
@@ -125,23 +122,23 @@ describe("logo upload crop flow", () => {
         name: "Use the arrow keys to move the crop selection area",
       }),
     ).toBeInTheDocument();
-    expect(uploadButton).not.toBeInTheDocument();
     expect(screen.queryByRole("slider", { name: "Crop zoom" })).toBeNull();
     expect(screen.getByRole("button", { name: "Crop & upload" })).toBeEnabled();
 
-    fireEvent.click(screen.getByRole("button", { name: "Close image editor" }));
-    expect(screen.queryByRole("button", { name: "Upload" })).toBeNull();
+    fireEvent.click(
+      screen.getByRole("button", { name: "Close image cropper" }),
+    );
     await waitFor(() =>
       expect(
         screen.queryByAltText("Logo crop preview"),
       ).not.toBeInTheDocument(),
     );
+    expect(uploadViaPresignedPostMock).not.toHaveBeenCalled();
   });
 
   it("uploads a square logo under 500 kB without opening the cropper", async () => {
     decodedDimensions = { width: 512, height: 512 };
     renderUploader();
-    await screen.findByRole("button", { name: "Upload" });
 
     const file = new File(["square"], "logo.png", { type: "image/png" });
     selectFile(file);
@@ -159,7 +156,6 @@ describe("logo upload crop flow", () => {
 
   it("rejects a square logo at the 500 kB upload limit", async () => {
     renderUploader();
-    await screen.findByRole("button", { name: "Upload" });
 
     selectFile(
       new File([new Uint8Array(500 * 1024)], "logo.png", {
