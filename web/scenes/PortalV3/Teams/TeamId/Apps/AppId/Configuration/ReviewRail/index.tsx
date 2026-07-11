@@ -1,7 +1,5 @@
 "use client";
 
-import { AppStatus, StatusVariant } from "@/components/AppStatus";
-import { DecoratedButton } from "@/components/DecoratedButton";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Role_Enum } from "@/graphql/graphql";
 import { Auth0SessionUser } from "@/lib/types";
@@ -68,15 +66,6 @@ const DraftSavedLine = () => {
     </div>
   );
 };
-
-const MetadataStatusLine = ({ status }: { status: StatusVariant }) => (
-  <div className="flex items-center gap-x-2">
-    <AppStatus status={status} />
-    <Typography variant={TYPOGRAPHY.R4} className="text-grey-500">
-      Read-only
-    </Typography>
-  </div>
-);
 
 type SubmitForReviewProps = {
   appId: string;
@@ -160,6 +149,10 @@ export const ConfigurationActions = ({
 }: ConfigurationActionsProps) => {
   const isEditable = appMetadata.verification_status === "unverified";
 
+  // Read-only states carry their status in the page's version header — a bar
+  // holding only a status line would duplicate it.
+  if (!isEditable) return null;
+
   return (
     <section
       aria-label="Configuration actions"
@@ -167,13 +160,7 @@ export const ConfigurationActions = ({
     >
       <div className="flex items-center justify-between gap-x-4">
         <div className="min-w-0">
-          {isEditable ? (
-            <DraftSavedLine />
-          ) : (
-            <MetadataStatusLine
-              status={appMetadata.verification_status as StatusVariant}
-            />
-          )}
+          <DraftSavedLine />
         </div>
         <div className="flex shrink-0 items-center gap-2">
           <SubmitForReview

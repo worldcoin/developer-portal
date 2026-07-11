@@ -417,13 +417,18 @@ describe("v3 Configuration redesign [right rail]", () => {
     });
     renderPage();
 
+    expect(screen.getByText("Awaiting review")).toBeInTheDocument();
     expect(
       screen.getByText(/In review — editing is locked/),
     ).toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: "Un-submit" }),
     ).toBeInTheDocument();
-    // The rail's submit button is gone for non-editable drafts.
+    // The whole bottom bar is gone for non-editable drafts — the version
+    // header is the only status surface.
+    expect(
+      screen.queryByRole("region", { name: "Configuration actions" }),
+    ).not.toBeInTheDocument();
     expect(
       screen.queryByRole("button", { name: /Submit for review/ }),
     ).not.toBeInTheDocument();

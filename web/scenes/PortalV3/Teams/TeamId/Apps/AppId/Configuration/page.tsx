@@ -25,13 +25,16 @@ import { useFetchLocalisationsQuery } from "@/scenes/common/Teams/TeamId/Apps/Ap
 import { AppIconBox } from "./PageComponents/AppIconBox";
 import { NumberedSection } from "./PageComponents/NumberedSection";
 import { SectionToc } from "./PageComponents/SectionToc";
-import { InReviewBanner } from "./InReviewBanner";
 import { RejectionBanner } from "./RejectionBanner";
 import { ResolveModal } from "./ResolveModal";
 import { ConfigurationActions, ReviewRail } from "./ReviewRail";
 import { SaveStatusProvider } from "./SaveStatus";
 import { useCreateNewDraft } from "./hook/use-create-new-draft";
 import { useRemoveFromReview } from "@/scenes/common/Teams/TeamId/Apps/common/hooks/use-remove-from-review";
+import { Role_Enum } from "@/graphql/graphql";
+import { Auth0SessionUser } from "@/lib/types";
+import { checkUserPermissions } from "@/lib/utils";
+import { useUser } from "@auth0/nextjs-auth0/client";
 import { FetchAppMetadataQuery } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/graphql/client/fetch-app-metadata.generated";
 
 type AppProfilePageProps = {
@@ -48,9 +51,10 @@ type ConfigurationContentProps = {
 
 /**
  * Version header above the form: names which metadata row is on screen and
- * carries the single switch between them. "Open draft" creates the draft on
- * first use (one draft max — useCreateNewDraft enforces it) and simply flips
- * the view when one already exists.
+ * carries that row's one action — switch to the draft (created on first use;
+ * one draft max, useCreateNewDraft enforces it), switch back to the verified
+ * copy, or un-submit while the draft awaits review. The page's bottom bar
+ * shows no status: this header is the single source of state.
  */
 const VersionBanner = ({
   app,
@@ -62,8 +66,10 @@ const VersionBanner = ({
   teamId: `team_${string}`;
 }) => {
   const [viewMode, setViewMode] = useAtom(viewModeAtom);
+  const { user } = useUser() as Auth0SessionUser;
   const hasDraft = app.app_metadata.length > 0;
   const hasVerified = app.verified_app_metadata.length > 0;
+  const draft = app.app_metadata[0];
 
   const { createNewDraft, isCreating } = useCreateNewDraft({
     appId,
@@ -72,10 +78,16 @@ const VersionBanner = ({
     hasVerifiedVersion: hasVerified,
   });
 
-  // Before first verification there is only the draft — nothing to switch to.
-  if (!hasVerified) return null;
+  const { removeFromReview, loading: isUnsubmitting } = useRemoveFromReview({
+    metadataId: draft?.id,
+  });
 
-  if (viewMode === "verified") {
+  const canUnsubmit = checkUserPermissions(user, teamId ?? "", [
+    Role_Enum.Owner,
+    Role_Enum.Admin,
+  ]);
+
+  if (viewMode === "verified" && hasVerified) {
     return (
       <div className="flex flex-col gap-4 border-b border-grey-100 pb-5 pt-8 sm:flex-row sm:items-center">
         <div className="flex min-w-0 flex-1 items-center gap-3">
@@ -116,8 +128,45 @@ const VersionBanner = ({
     );
   }
 
-  // In-review and rejection states have their own page-level banners.
-  if (app.app_metadata[0]?.verification_status !== "unverified") return null;
+  // Viewing the draft while it awaits review: locked fields, un-submit is
+  // the only unlock path. Rejections keep their own RejectionBanner.
+  if (draft?.verification_status === "awaiting_review") {
+    return (
+      <div className="flex flex-col gap-4 border-b border-grey-100 pb-5 pt-8 sm:flex-row sm:items-center">
+        <div className="flex min-w-0 flex-1 items-center gap-3">
+          <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-additional-blue-100">
+            <Icon name="clock" className="size-4" />
+          </span>
+          <Typography variant={TYPOGRAPHY.M3} className="whitespace-nowrap">
+            Awaiting review
+          </Typography>
+          <Typography
+            variant={TYPOGRAPHY.R4}
+            className="truncate text-grey-500"
+          >
+            In review — editing is locked until review completes.
+          </Typography>
+        </div>
+
+        {canUnsubmit ? (
+          <DecoratedButton
+            type="button"
+            variant="secondary"
+            className="h-10 shrink-0 px-4 py-2"
+            loading={isUnsubmitting}
+            onClick={removeFromReview}
+          >
+            <Typography variant={TYPOGRAPHY.M4} className="whitespace-nowrap">
+              Un-submit
+            </Typography>
+          </DecoratedButton>
+        ) : null}
+      </div>
+    );
+  }
+
+  // Editable draft with a verified counterpart to switch back to.
+  if (!hasVerified || draft?.verification_status !== "unverified") return null;
 
   return (
     <div className="flex flex-col gap-4 border-b border-grey-100 pb-5 pt-8 sm:flex-row sm:items-center">
@@ -288,12 +337,10 @@ export const AppProfilePage = ({ params }: AppProfilePageProps) => {
   const [showResolveModal, setShowResolveModal] = useState(false);
 
   const isRejected = appMetadata?.verification_status === "changes_requested";
-  const isInReview = appMetadata?.verification_status === "awaiting_review";
 
-  const { removeFromReview, loading: isRemovingFromReview } =
-    useRemoveFromReview({
-      metadataId: appMetadata?.id,
-    });
+  const { removeFromReview } = useRemoveFromReview({
+    metadataId: appMetadata?.id,
+  });
 
   if (!isMetadataLoading && (error || !app)) {
     return (
@@ -343,18 +390,6 @@ export const AppProfilePage = ({ params }: AppProfilePageProps) => {
               onResolve={() => {
                 setShowResolveModal(true);
               }}
-            />
-          </SizingWrapper>
-        )}
-
-        {/* Locked-state strip: explains the disabled fields while the draft
-            awaits review, and offers the only unlock path (un-submit). */}
-        {isInReview && (
-          <SizingWrapper variant="nav" gridClassName="order-1 pt-6">
-            <InReviewBanner
-              teamId={teamId}
-              onUnsubmit={removeFromReview}
-              loading={isRemovingFromReview}
             />
           </SizingWrapper>
         )}
