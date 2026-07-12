@@ -82,7 +82,10 @@ const VersionBanner = ({
     metadataId: draft?.id,
   });
 
-  const canUnsubmit = checkUserPermissions(user, teamId ?? "", [
+  // Creating a draft and un-submitting both mutate review state — same
+  // Owner/Admin bar the old AppTopBar actions had. Viewing an existing draft
+  // is unrestricted (fields stay read-only via their own gates).
+  const canManageDraft = checkUserPermissions(user, teamId ?? "", [
     Role_Enum.Owner,
     Role_Enum.Admin,
   ]);
@@ -106,24 +109,26 @@ const VersionBanner = ({
           </Typography>
         </div>
 
-        <DecoratedButton
-          type="button"
-          variant="secondary"
-          className="h-10 shrink-0 px-4 py-2"
-          loading={isCreating}
-          onClick={() => {
-            if (hasDraft) {
-              setViewMode("unverified");
-            } else {
-              // Flips the view itself after the row lands.
-              void createNewDraft();
-            }
-          }}
-        >
-          <Typography variant={TYPOGRAPHY.M4} className="whitespace-nowrap">
-            Open draft
-          </Typography>
-        </DecoratedButton>
+        {hasDraft || canManageDraft ? (
+          <DecoratedButton
+            type="button"
+            variant="secondary"
+            className="h-10 shrink-0 px-4 py-2"
+            loading={isCreating}
+            onClick={() => {
+              if (hasDraft) {
+                setViewMode("unverified");
+              } else {
+                // Flips the view itself after the row lands.
+                void createNewDraft();
+              }
+            }}
+          >
+            <Typography variant={TYPOGRAPHY.M4} className="whitespace-nowrap">
+              Open draft
+            </Typography>
+          </DecoratedButton>
+        ) : null}
       </div>
     );
   }
@@ -148,7 +153,7 @@ const VersionBanner = ({
           </Typography>
         </div>
 
-        {canUnsubmit ? (
+        {canManageDraft ? (
           <DecoratedButton
             type="button"
             variant="secondary"

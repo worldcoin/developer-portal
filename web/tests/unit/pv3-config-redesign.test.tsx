@@ -28,8 +28,10 @@ jest.mock("posthog-js", () => ({
 
 // Loading real utils.ts pulls in idkit/ox, which needs TextEncoder (absent in
 // jsdom) — mock just what this page tree uses.
+const checkUserPermissionsMock = jest.fn((..._args: unknown[]) => true);
 jest.mock("@/lib/utils", () => ({
-  checkUserPermissions: () => true,
+  checkUserPermissions: (...args: unknown[]) =>
+    checkUserPermissionsMock(...args),
   getCDNImageUrl: (_appId: string, path: string) => `https://cdn/${path}`,
   getDefaultLogoImgCDNUrl: () => "",
   truncateString: (value?: string) => value ?? "",
@@ -246,6 +248,7 @@ const setImages = (images: Partial<UnverifiedImages>) => {
 
 beforeEach(() => {
   jest.clearAllMocks();
+  checkUserPermissionsMock.mockReturnValue(true);
   getDefaultStore().set(viewModeAtom, "unverified");
   setImages({});
   useFetchAppMetadataQuery.mockReturnValue({
@@ -542,6 +545,40 @@ describe("v3 Configuration redesign [right rail]", () => {
         }),
       ),
     );
+  });
+
+  it("hides draft creation from members without draft permissions", () => {
+    checkUserPermissionsMock.mockReturnValue(false);
+    const verifiedMetadata = makeAppMetadata({
+      id: "meta_verified",
+      name: "Verified App",
+      verification_status: "verified",
+      app_website_url: "https://example.com",
+    });
+
+    useFetchAppMetadataQuery.mockReturnValue({
+      data: {
+        app: [
+          {
+            ...makeApp(verifiedMetadata),
+            app_metadata: [],
+            verified_app_metadata: [verifiedMetadata],
+          },
+        ],
+      },
+      loading: false,
+      error: undefined,
+    });
+
+    renderPage();
+
+    // The header still names the state, but the create action is Owner/Admin
+    // only — a member's click could only fail server-side.
+    expect(screen.getByText("Verified version")).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Open draft" }),
+    ).not.toBeInTheDocument();
+    expect(createEditableRowMock).not.toHaveBeenCalled();
   });
 
   it("switches between the draft and the verified version without creating rows", async () => {
