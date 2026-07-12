@@ -1,13 +1,9 @@
 "use client";
 
 import { ErrorPage } from "@/components/ErrorPage";
-import { useAtom } from "jotai";
-import { useMemo, use } from "react";
-import Skeleton from "react-loading-skeleton";
-import { AppTopBar } from "../../Configuration/AppTopBar";
-import { FormSkeleton } from "../../Configuration/AppTopBar/FormSkeleton";
+import { use } from "react";
+import { FormSkeleton } from "../../Configuration/PageComponents/FormSkeleton";
 import { useFetchAppMetadataQuery } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/graphql/client/fetch-app-metadata.generated";
-import { viewModeAtom } from "../../Configuration/layout/ImagesProvider";
 import { SaveStatusProvider } from "../../Configuration/SaveStatus";
 import { SetupForm } from "../../MiniApp/PermissionsForm";
 
@@ -19,7 +15,6 @@ export const AppPermissionsPage = (props: AppPermissionsPageProps) => {
   const params = use(props.params);
   const appId = params?.appId as `app_${string}`;
   const teamId = params?.teamId as `team_${string}`;
-  const [viewMode] = useAtom(viewModeAtom);
 
   const { data, loading, error } = useFetchAppMetadataQuery({
     variables: {
@@ -28,13 +23,9 @@ export const AppPermissionsPage = (props: AppPermissionsPageProps) => {
   });
 
   const app = data?.app[0];
-  const appMetadata = useMemo(() => {
-    if (viewMode === "verified") {
-      return app?.verified_app_metadata[0];
-    }
-    // Null check in case app got verified and has no unverified metadata
-    return app?.app_metadata?.[0] ?? app?.verified_app_metadata[0];
-  }, [app, viewMode]);
+  // Permissions always target the active draft. Approved metadata is the
+  // read-only fallback for apps that do not currently have a draft.
+  const appMetadata = app?.app_metadata?.[0] ?? app?.verified_app_metadata[0];
 
   if (!loading && (error || !app)) {
     return <ErrorPage statusCode={404} title="App not found" />;
@@ -42,17 +33,7 @@ export const AppPermissionsPage = (props: AppPermissionsPageProps) => {
 
   return (
     <SaveStatusProvider>
-      <div className="py-10">
-        {loading ? (
-          <Skeleton count={2} height={50} />
-        ) : (
-          <AppTopBar appId={appId} teamId={teamId} app={app!} />
-        )}
-      </div>
-
-      <div className="border-t border-grey-100" />
-
-      <div className="pb-24 pt-8">
+      <div className="pb-24 pt-10">
         <div className="grid grid-cols-1">
           {loading ? (
             <FormSkeleton count={3} />

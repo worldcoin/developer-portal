@@ -24,8 +24,8 @@ type AppIconBoxProps = {
 
 /**
  * Standalone app-icon upload box: shows the current icon (from the unverified
- * images atom, so it updates live after upload) and opens the existing logo
- * upload dialog.
+ * images atom, so it updates live after upload). Clicking it opens the native
+ * file picker directly; the cropper appears only for non-square files.
  */
 export const AppIconBox = ({
   appId,
@@ -80,12 +80,8 @@ export const AppIconBox = ({
         appId={appId}
         appMetadataId={appMetadataId}
         teamId={teamId}
-        editable={isEditable}
-        isError={false}
-        logoFile={logoFile}
         open={showLogoDialog}
         onClose={() => setShowLogoDialog(false)}
-        dialogOnly
       />
 
       <button
@@ -95,17 +91,26 @@ export const AppIconBox = ({
         }}
         aria-invalid={hasLogoError || undefined}
         className={
-          "size-[125px] shrink-0 rounded-full" +
+          "group size-[125px] shrink-0 rounded-full" +
           (canEdit ? "" : " cursor-default")
         }
       >
         {logoImgUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={logoImgUrl}
-            alt="App icon"
-            className="size-full rounded-full object-cover drop-shadow-lg"
-          />
+          <span className="relative block size-full">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={logoImgUrl}
+              alt="App icon"
+              className="size-full rounded-full object-cover drop-shadow-lg"
+            />
+            {canEdit && (
+              <span className="absolute inset-0 flex items-center justify-center rounded-full bg-grey-900/50 opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
+                <Typography variant={TYPOGRAPHY.R5} className="text-white">
+                  Upload new logo?
+                </Typography>
+              </span>
+            )}
+          </span>
         ) : (
           <div
             className={clsx(

@@ -1,17 +1,8 @@
 "use client";
 
-import {
-  DISCORD_URL,
-  DOCS_URL,
-  FAQ_URL,
-  TELEGRAM_DEVELOPERS_GROUP_URL,
-  TELEGRAM_MATEO_URL,
-  WORLD_PRIVACY_URL,
-  WORLD_STATUS_URL,
-} from "@/lib/constants";
 import { urls } from "@/lib/urls";
 import { Color } from "@/scenes/common/Profile/types";
-import { Icon } from "@/scenes/PortalV3/common/Icon";
+import { Icon, opticalIconClassName } from "@/scenes/PortalV3/common/Icon";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import Link from "next/link";
 import { CSSProperties } from "react";
@@ -21,31 +12,12 @@ export type PortalUser = { name: string; email?: string };
 const itemClass =
   "flex h-12 w-full cursor-pointer items-center gap-2 rounded-8 bg-white px-4 py-2 font-world text-13 font-medium leading-[1.2] text-portal-text outline-none data-[highlighted]:bg-grey-50";
 
-const LinkItem = (props: {
-  href: string;
-  label: string;
-  icon: string;
-  external?: boolean;
-}) => (
+const LinkItem = (props: { href: string; label: string; icon: string }) => (
   <DropdownMenu.Item asChild>
-    {props.external ? (
-      <a
-        href={props.href}
-        target="_blank"
-        rel="noreferrer"
-        className={itemClass}
-      >
-        {/* -translate-y-px: same optical nudge as NavItem — cap-height text
-            sits high in its line box, so a centered icon reads as low. */}
-        <Icon name={props.icon} className="size-4 shrink-0 -translate-y-px" />
-        <span className="min-w-0 flex-1 truncate">{props.label}</span>
-      </a>
-    ) : (
-      <Link href={props.href} className={itemClass}>
-        <Icon name={props.icon} className="size-4 shrink-0 -translate-y-px" />
-        <span className="min-w-0 flex-1 truncate">{props.label}</span>
-      </Link>
-    )}
+    <Link href={props.href} className={itemClass}>
+      <Icon name={props.icon} className={`${opticalIconClassName} size-4`} />
+      <span className="min-w-0 flex-1 truncate">{props.label}</span>
+    </Link>
   </DropdownMenu.Item>
 );
 
@@ -97,7 +69,10 @@ export const UserPopup = (props: { user: PortalUser; color: Color | null }) => {
             Profile
           </span>
         </span>
-        <Icon name="arrow-separate-vertical" className="size-4 shrink-0" />
+        <Icon
+          name="arrow-separate-vertical"
+          className={`${opticalIconClassName} size-4`}
+        />
       </DropdownMenu.Trigger>
 
       <DropdownMenu.Portal>
@@ -119,63 +94,6 @@ export const UserPopup = (props: { user: PortalUser; color: Color | null }) => {
               icon="profile-menu-teams"
             />
             <Separator />
-            <LinkItem
-              href={WORLD_PRIVACY_URL}
-              label="Data Privacy & Security"
-              icon="profile-menu-privacy"
-              external
-            />
-            <LinkItem
-              href={WORLD_STATUS_URL}
-              label="World Status"
-              icon="profile-menu-status"
-              external
-            />
-            <LinkItem
-              href={FAQ_URL}
-              label="FAQ"
-              icon="profile-menu-help"
-              external
-            />
-            <Separator />
-            <LinkItem
-              href={TELEGRAM_DEVELOPERS_GROUP_URL}
-              label="Join our Telegram"
-              icon="profile-menu-telegram"
-              external
-            />
-            <LinkItem
-              href={TELEGRAM_MATEO_URL}
-              label="Text Mateo"
-              icon="profile-menu-message"
-              external
-            />
-            <LinkItem
-              href={DISCORD_URL}
-              label="Join our Discord"
-              icon="profile-menu-discord"
-              external
-            />
-            <Separator />
-            <LinkItem
-              href={urls.privacyStatement()}
-              label="Privacy Policy"
-              icon="profile-menu-policy"
-              external
-            />
-            <LinkItem
-              href={urls.tos()}
-              label="Terms of service"
-              icon="profile-menu-terms"
-              external
-            />
-            <LinkItem
-              href={DOCS_URL}
-              label="Docs"
-              icon="profile-menu-docs"
-              external
-            />
-            <Separator />
             <DropdownMenu.Item asChild>
               <a
                 href={urls.logout()}
@@ -187,7 +105,7 @@ export const UserPopup = (props: { user: PortalUser; color: Color | null }) => {
               >
                 <Icon
                   name="profile-menu-log-out"
-                  className="size-4 shrink-0 -translate-y-px"
+                  className={`${opticalIconClassName} size-4`}
                 />
                 <span className="min-w-0 flex-1 truncate">Log out</span>
               </a>

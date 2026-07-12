@@ -8,7 +8,7 @@ import {
   FetchAppsQuery,
   useFetchAppsQuery,
 } from "@/scenes/common/layout/AppSelector/graphql/client/fetch-apps.generated";
-import { Icon } from "@/scenes/PortalV3/common/Icon";
+import { Icon, opticalIconClassName } from "@/scenes/PortalV3/common/Icon";
 import { CreateAppDialogV4 } from "@/scenes/PortalV3/layout/CreateAppDialog/index-v4";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
@@ -73,7 +73,10 @@ const AppsDropdownRow = (props: {
     <AppAvatar name={props.app.name} className="size-6" />
     <span className="min-w-0 flex-1 truncate">{props.app.name}</span>
     {props.isSelected ? (
-      <Icon name="dropdown-check" className="size-4 shrink-0 -translate-y-px" />
+      <Icon
+        name="dropdown-check"
+        className={`${opticalIconClassName} size-4`}
+      />
     ) : null}
   </DropdownMenu.Item>
 );
@@ -125,12 +128,9 @@ export const AppsDropdown = () => {
             <AppAvatar name={current.name} className="size-6" />
           ) : null}
           <span className="max-w-[260px] truncate">{currentLabel}</span>
-          {/* -translate-y-px: same optical nudge as NavItem — the cap-height
-              label sits high in its leading-none line box, so a geometrically
-              centered icon reads as slightly low next to it. */}
           <Icon
             name="arrow-separate-vertical"
-            className="size-4 shrink-0 -translate-y-px"
+            className={`${opticalIconClassName} size-4`}
           />
         </DropdownMenu.Trigger>
 
@@ -146,10 +146,9 @@ export const AppsDropdown = () => {
                   disabled
                   className="flex h-12 w-full cursor-default items-center gap-2 rounded-8 bg-white px-4 py-2 font-world text-13 font-medium leading-[1.2] text-portal-muted outline-none"
                 >
-                  {/* -translate-y-px: the circle is geometrically centered but
-                      the label renders high in its line box, so the circle
-                      reads low without the optical nudge (NavItem precedent) */}
-                  <span className="flex size-6 shrink-0 -translate-y-px items-center justify-center rounded-full bg-portal-canvas">
+                  <span
+                    className={`${opticalIconClassName} flex size-6 items-center justify-center rounded-full bg-portal-canvas`}
+                  >
                     <Icon name="apps-empty-icon" className="size-3.5" />
                   </span>
                   <span className="min-w-0 flex-1 truncate">No apps, yet</span>
@@ -181,7 +180,7 @@ export const AppsDropdown = () => {
                         at the row padding; text columns differ per row. */}
                     <Icon
                       name="dropdown-plus"
-                      className="size-4 shrink-0 -translate-y-px"
+                      className={`${opticalIconClassName} size-4`}
                     />
                     <span className="min-w-0 flex-1 truncate">
                       Create new app

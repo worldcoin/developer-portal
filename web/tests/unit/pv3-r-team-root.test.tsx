@@ -14,8 +14,7 @@ jest.mock("next/navigation", () => ({
 
 jest.mock("@/lib/urls", () => ({
   urls: {
-    teamSettings: ({ team_id }: { team_id: string }) =>
-      `/teams/${team_id}/settings`,
+    apps: ({ team_id }: { team_id: string }) => `/teams/${team_id}/apps`,
   },
 }));
 jest.mock("@/scenes/Portal/Teams/TeamId/Team/page", () => ({
@@ -30,8 +29,8 @@ const props = () => ({
 
 beforeEach(() => jest.clearAllMocks());
 
-it("redirects v3 team root to consolidated team settings", async () => {
+it("redirects v3 team root to the apps list", async () => {
   pickPortalVersion.mockImplementation(async (v3: () => unknown) => v3());
   await RoutePage(props());
-  expect(redirect).toHaveBeenCalledWith("/teams/team_1/settings");
+  expect(redirect).toHaveBeenCalledWith("/teams/team_1/apps");
 });

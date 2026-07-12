@@ -18,7 +18,7 @@ export default async function Page(props: {
     props.searchParams,
   ]);
   return pickPortalVersion(
-    () => redirect(urls.teamSettings({ team_id: params.teamId })),
+    () => redirect(urls.apps({ team_id: params.teamId })),
     () => <TeamIdPage params={params} searchParams={searchParams} />,
   );
 }

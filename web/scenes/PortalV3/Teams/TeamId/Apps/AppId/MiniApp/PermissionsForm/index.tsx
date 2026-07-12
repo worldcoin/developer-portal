@@ -254,10 +254,8 @@ export const SetupForm = ({
       );
       if (signal?.aborted) throw new DOMException("Aborted", "AbortError");
       if (!result.success) throw new Error(result.message);
-      // Skip refetch — none of the persisted fields are displayed elsewhere
-      // on this page (AppTopBar reads name/logo, QR panel reads
-      // integration_url, neither of which this form writes). Skipping the
-      // refetch avoids the cache-driven re-render flicker.
+      // Skip refetch — none of the persisted fields feed another surface on
+      // this page, so a cache round-trip would only introduce visible flicker.
     },
   });
 

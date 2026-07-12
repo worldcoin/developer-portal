@@ -38,6 +38,7 @@ type SubmitAppModalProps = {
   appMetadataId: string;
   canSubmitAppStore: boolean;
   isDeveloperAllowListing: boolean;
+  onSubmitted?: () => void;
 };
 
 export type SubmitAppFormValues = yup.InferType<typeof schema>;
@@ -51,6 +52,7 @@ export const SubmitAppModal = (props: SubmitAppModalProps) => {
     canSubmitAppStore,
     isDeveloperAllowListing,
     appMetadataId,
+    onSubmitted,
   } = props;
 
   const { refetch: refetchAppMetadata } = useRefetchQueries(
@@ -146,12 +148,14 @@ export const SubmitAppModal = (props: SubmitAppModalProps) => {
         },
       );
       setOpen(false);
+      onSubmitted?.();
     },
     [
       appId,
       appMetadataId,
       canSubmitAppStore,
       refetchAppMetadata,
+      onSubmitted,
       setOpen,
       teamId,
       validateLocalisation,

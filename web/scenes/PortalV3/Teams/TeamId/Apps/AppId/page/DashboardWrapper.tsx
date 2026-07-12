@@ -98,7 +98,7 @@ const StatCard = (props: {
 };
 
 export const DashboardWrapper = ({ appId }: DashboardWrapperProps) => {
-  const [timePeriod, setTimePeriod] = useState<TimePeriod>("all-time");
+  const [timePeriod, setTimePeriod] = useState<TimePeriod>("weekly");
   const {
     metrics,
     loading: metricsLoading,
