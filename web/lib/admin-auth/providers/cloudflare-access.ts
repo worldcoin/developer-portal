@@ -1,7 +1,12 @@
 import { logger } from "@/lib/logger";
 import { createRemoteJWKSet, jwtVerify } from "jose";
 import "server-only";
-import { AdminAuthProvider, AdminIdentity } from "../types";
+import {
+  AdminAuthResult,
+  AdminAuthProvider,
+  DashboardAccessLevel,
+  isDashboardAccessLevel,
+} from "../types";
 
 // All Cloudflare Access / Okta specifics live in this file only. The rest of
 // the app depends on the generic AdminAuthProvider interface, so a fork can
@@ -40,14 +45,12 @@ const describeJwtVerifyError = (error: unknown) => {
   };
 };
 
-// Cloudflare get-identity returns groups as { id, name } objects.
-// https://developers.cloudflare.com/cloudflare-one/tutorials/extend-sso-with-workers/#2-view-the-users-identity
-const parseGroupNames = (claim: unknown): string[] => {
-  if (!Array.isArray(claim)) {
+const parseGroupIdentifiers = (value: unknown): string[] => {
+  if (!Array.isArray(value)) {
     return [];
   }
 
-  return claim.flatMap((group) => {
+  return value.flatMap((group) => {
     if (typeof group === "string") {
       return [group];
     }
@@ -56,9 +59,81 @@ const parseGroupNames = (claim: unknown): string[] => {
       return [];
     }
 
+    const id = (group as Record<string, unknown>).id;
     const name = (group as Record<string, unknown>).name;
-    return typeof name === "string" ? [name] : [];
+
+    return [
+      typeof id === "string" ? id : null,
+      typeof name === "string" ? name : null,
+    ].filter((accessGroup): accessGroup is string => Boolean(accessGroup));
   });
+};
+
+type GroupsByAccessLevel = Partial<Record<DashboardAccessLevel, string[]>>;
+
+const parseGroupsByAccessLevel = (): GroupsByAccessLevel | null => {
+  const rawMapping = process.env.CF_ACCESS_GROUPS_BY_ACCESS_LEVEL;
+
+  if (!rawMapping) {
+    return null;
+  }
+
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(rawMapping);
+  } catch {
+    logger.error("CF_ACCESS_GROUPS_BY_ACCESS_LEVEL is not valid JSON");
+    return null;
+  }
+
+  if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) {
+    logger.error("CF_ACCESS_GROUPS_BY_ACCESS_LEVEL must be a JSON object");
+    return null;
+  }
+
+  const groupsByAccessLevel: GroupsByAccessLevel = {};
+
+  for (const [accessLevel, groups] of Object.entries(parsed)) {
+    if (!isDashboardAccessLevel(accessLevel)) {
+      logger.error(
+        "CF_ACCESS_GROUPS_BY_ACCESS_LEVEL contains an invalid access level",
+        { accessLevel },
+      );
+      return null;
+    }
+
+    if (
+      !Array.isArray(groups) ||
+      groups.some((group) => typeof group !== "string")
+    ) {
+      logger.error(
+        "CF_ACCESS_GROUPS_BY_ACCESS_LEVEL access level must map to a string array",
+        { accessLevel },
+      );
+      return null;
+    }
+
+    groupsByAccessLevel[accessLevel] = groups;
+  }
+
+  return groupsByAccessLevel;
+};
+
+const resolveCloudflareAccessLevel = (
+  providerGroups: string[],
+): DashboardAccessLevel | null => {
+  const groupsByAccessLevel = parseGroupsByAccessLevel();
+
+  if (!groupsByAccessLevel) {
+    return null;
+  }
+
+  const groups = new Set(providerGroups);
+  const readGroups = groupsByAccessLevel[DashboardAccessLevel.Read] ?? [];
+
+  return readGroups.some((group) => groups.has(group))
+    ? DashboardAccessLevel.Read
+    : null;
 };
 
 // The Access JWT carries no groups by default. They appear — under the
@@ -72,10 +147,10 @@ const parseTokenGroups = (payload: Record<string, unknown>): string[] => {
   const custom = payload.custom;
 
   if (typeof custom === "object" && custom !== null && "groups" in custom) {
-    return parseGroupNames((custom as Record<string, unknown>).groups);
+    return parseGroupIdentifiers((custom as Record<string, unknown>).groups);
   }
 
-  return parseGroupNames(payload.groups);
+  return parseGroupIdentifiers(payload.groups);
 };
 
 const GET_IDENTITY_TIMEOUT_MS = 5_000;
@@ -117,8 +192,8 @@ const fetchIdentityGroups = async (
 
     return [
       ...new Set([
-        ...parseGroupNames(identity.groups),
-        ...parseGroupNames(idpGroups),
+        ...parseGroupIdentifiers(identity.groups),
+        ...parseGroupIdentifiers(idpGroups),
       ]),
     ];
   } catch (error) {
@@ -135,7 +210,7 @@ export const cloudflareAccessAdminAuthProvider: AdminAuthProvider = {
   // Cloudflare Access gate rather than hitting the origin host directly.
   authenticate: async (
     requestHeaders: Headers,
-  ): Promise<AdminIdentity | null> => {
+  ): Promise<AdminAuthResult | null> => {
     const teamDomain = process.env.CF_ACCESS_TEAM_DOMAIN;
     const audience = process.env.CF_ACCESS_AUD;
     const token = requestHeaders.get(ASSERTION_HEADER);
@@ -168,11 +243,12 @@ export const cloudflareAccessAdminAuthProvider: AdminAuthProvider = {
       const groups =
         (await fetchIdentityGroups(teamDomain, token)) ??
         parseTokenGroups(payload);
+      const accessLevel = resolveCloudflareAccessLevel(groups);
 
       return {
         email: payload.email,
         subject: payload.sub,
-        groups,
+        accessLevel,
       };
     } catch (error) {
       logger.warn(

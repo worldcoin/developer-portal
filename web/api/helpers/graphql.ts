@@ -2,6 +2,7 @@ import "server-only";
 
 import {
   generateAPIKeyJWT,
+  generateInternalDashboardJWT,
   generateReviewerJWT,
   generateServiceJWT,
 } from "@/api/helpers/jwts";
@@ -295,6 +296,18 @@ export const getAPIReviewerGraphqlClient = async () => {
     ...sharedFetchConfig,
     headers: {
       authorization: `Bearer ${await generateReviewerJWT()}`,
+    },
+  });
+};
+
+export const getInternalDashboardGraphqlClient = async () => {
+  const { requireAdminUser } = await import("@/lib/admin-auth");
+  const user = await requireAdminUser();
+
+  return new GraphQLClient(process.env.NEXT_PUBLIC_GRAPHQL_API_URL!, {
+    ...sharedFetchConfig,
+    headers: {
+      authorization: `Bearer ${await generateInternalDashboardJWT(user)}`,
     },
   });
 };

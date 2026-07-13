@@ -35,6 +35,12 @@ select_permissions:
         - role
       filter: {}
     comment: ""
+  - role: internal_dashboard_readonly
+    permission:
+      columns:
+        - team_id
+      filter: {}
+      allow_aggregations: true
   - role: service
     permission:
       columns:

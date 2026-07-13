@@ -5,13 +5,18 @@ import { cache } from "react";
 import "server-only";
 import { cloudflareAccessAdminAuthProvider } from "./providers/cloudflare-access";
 import { devAdminAuthProvider } from "./providers/dev";
-import { AdminAuthProvider, AdminRole, AdminUser } from "./types";
+import {
+  AdminAuthProvider,
+  AdminHasuraRole,
+  AdminUser,
+  DashboardAccessLevel,
+} from "./types";
 
-export { AdminRole } from "./types";
+export { AdminHasuraRole, DashboardAccessLevel } from "./types";
 export type {
+  AdminAuthResult,
   AdminAuthProvider,
   AdminAuthProviderName,
-  AdminIdentity,
   AdminUser,
 } from "./types";
 
@@ -41,82 +46,13 @@ export const resolveAdminAuthProvider = (): AdminAuthProvider | null => {
   return provider;
 };
 
-const roleValues = new Set<string>(Object.values(AdminRole));
-
-const isAdminRole = (value: string): value is AdminRole =>
-  roleValues.has(value);
-
-// Most privileged first, so a user matching several groups gets the widest
-// role they are entitled to.
-const rolePrecedence: readonly AdminRole[] = [
-  AdminRole.Admin,
-  AdminRole.Operator,
-  AdminRole.Readonly,
-];
-
-const defaultRole = AdminRole.Readonly;
-
-const parseGroupRoleMapping = (): Record<string, AdminRole> => {
-  const rawMapping = process.env.ADMIN_AUTH_GROUP_ROLES;
-
-  if (!rawMapping) {
-    return {};
-  }
-
-  let parsed: unknown;
-  try {
-    parsed = JSON.parse(rawMapping);
-  } catch {
-    logger.error("ADMIN_AUTH_GROUP_ROLES is not valid JSON");
-    return {};
-  }
-
-  if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) {
-    logger.error("ADMIN_AUTH_GROUP_ROLES must be a JSON object");
-    return {};
-  }
-
-  const mapping: Record<string, AdminRole> = {};
-  for (const [group, role] of Object.entries(parsed)) {
-    if (typeof role === "string" && isAdminRole(role)) {
-      mapping[group] = role;
-    } else {
-      logger.error("ADMIN_AUTH_GROUP_ROLES contains an invalid role", {
-        group,
-        role,
-      });
-    }
-  }
-  return mapping;
-};
+const roleByAccessLevel = {
+  [DashboardAccessLevel.Read]: AdminHasuraRole.Readonly,
+} satisfies Record<DashboardAccessLevel, AdminHasuraRole>;
 
 /**
- * Maps provider-reported groups to a dashboard role via the
- * ADMIN_AUTH_GROUP_ROLES JSON mapping (e.g. {"example-readers":"readonly"}). When
- * several groups match, the most privileged role wins. When none match,
- * falls back to the audited default dashboard role.
- */
-export const resolveAdminRole = (groups: string[]): AdminRole | null => {
-  const mapping = parseGroupRoleMapping();
-  const matchedRoles = new Set(
-    groups
-      .map((group) => mapping[group])
-      .filter((role): role is AdminRole => Boolean(role)),
-  );
-
-  for (const role of rolePrecedence) {
-    if (matchedRoles.has(role)) {
-      return role;
-    }
-  }
-
-  return defaultRole;
-};
-
-/**
- * Authenticates an admin request: provider -> identity -> role. Returns null
- * (deny) when no provider is configured, the request is unauthenticated, or
- * no role can be resolved for the identity.
+ * Returns the dashboard user authorized by the selected provider. Returns null
+ * when no provider is configured, authentication fails, or no access is granted.
  */
 export const authenticateAdminRequest = async (
   requestHeaders: Headers,
@@ -127,23 +63,17 @@ export const authenticateAdminRequest = async (
     return null;
   }
 
-  const identity = await provider.authenticate(requestHeaders);
+  const result = await provider.authenticate(requestHeaders);
 
-  if (!identity) {
+  if (!result?.accessLevel) {
     return null;
   }
 
-  const role = resolveAdminRole(identity.groups);
-
-  if (!role) {
-    logger.warn("Admin identity authenticated but no role resolved", {
-      provider: provider.name,
-      subject: identity.subject,
-    });
-    return null;
-  }
-
-  return { ...identity, role };
+  return {
+    email: result.email,
+    subject: result.subject,
+    role: roleByAccessLevel[result.accessLevel],
+  };
 };
 
 /**

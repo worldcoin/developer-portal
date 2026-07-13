@@ -24,6 +24,13 @@ insert_permissions:
         - name
         - team_id
 select_permissions:
+  - role: internal_dashboard_readonly
+    permission:
+      columns:
+        - is_active
+        - team_id
+      filter: {}
+      allow_aggregations: true
   - role: service
     permission:
       columns:

@@ -1,6 +1,6 @@
 import "server-only";
 
-import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
+import { getInternalDashboardGraphqlClient } from "@/api/helpers/graphql";
 import {
   DEFAULT_TEAM_COLUMN_VISIBILITY,
   type TeamColumnVisibility,
@@ -320,7 +320,7 @@ export const fetchAdminTeamsPage = async (
     sort: null,
   },
 ) => {
-  const client = await getAPIServiceGraphqlClient();
+  const client = await getInternalDashboardGraphqlClient();
   const offset = getTeamsOffset(page, limit);
   const where = createTeamsWhere(searchQuery);
   const orderBy = createTeamsOrderBy(sort);

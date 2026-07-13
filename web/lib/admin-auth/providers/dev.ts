@@ -1,25 +1,16 @@
 import "server-only";
-import { AdminAuthProvider, AdminIdentity } from "../types";
+import {
+  AdminAuthProvider,
+  AdminAuthResult,
+  isDashboardAccessLevel,
+} from "../types";
 
 const DEBUG_USER_HEADER = "x-admin-auth-debug-user";
-
-const parseDevGroups = (): string[] => {
-  const raw = process.env.ADMIN_AUTH_DEV_GROUPS;
-
-  if (!raw) {
-    return [];
-  }
-
-  return raw
-    .split(",")
-    .map((group) => group.trim())
-    .filter(Boolean);
-};
 
 /**
  * Local development provider. Authenticates as the email supplied via the
  * x-admin-auth-debug-user header or the ADMIN_AUTH_DEV_EMAIL env var.
- * Group membership comes from ADMIN_AUTH_DEV_GROUPS. Hard-disabled in
+ * ADMIN_AUTH_DEV_ACCESS_LEVEL determines dashboard access. Hard-disabled in
  * production regardless of configuration.
  */
 export const devAdminAuthProvider: AdminAuthProvider = {
@@ -27,7 +18,7 @@ export const devAdminAuthProvider: AdminAuthProvider = {
 
   authenticate: async (
     requestHeaders: Headers,
-  ): Promise<AdminIdentity | null> => {
+  ): Promise<AdminAuthResult | null> => {
     if (process.env.NODE_ENV === "production") {
       return null;
     }
@@ -39,10 +30,16 @@ export const devAdminAuthProvider: AdminAuthProvider = {
       return null;
     }
 
+    const configuredAccessLevel = process.env.ADMIN_AUTH_DEV_ACCESS_LEVEL;
+    const accessLevel =
+      configuredAccessLevel && isDashboardAccessLevel(configuredAccessLevel)
+        ? configuredAccessLevel
+        : null;
+
     return {
       email,
       subject: `dev:${email}`,
-      groups: parseDevGroups(),
+      accessLevel,
     };
   },
 };
