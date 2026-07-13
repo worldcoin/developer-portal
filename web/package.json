@@ -163,7 +163,7 @@
     "test:e2e": "playwright test",
     "test:integration": "node tests/verifyHasuraIsUp.js && jest tests/integration --runInBand",
     "test:integration:server": "docker compose -f ../docker-compose-test.yaml up --abort-on-container-exit",
-    "test:unit": "jest tests/unit && jest web/lib/schema",
+    "test:unit": "jest tests/unit --runInBand && jest web/lib/schema",
     "typecheck": "tsc"
   },
   "version": "0.1.0"
