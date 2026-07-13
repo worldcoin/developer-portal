@@ -1,0 +1,146 @@
+# Period-specific sparkline data. These operations are separate from the main
+# landing/detail queries so selecting All time does not change action-card
+# charts, weekly stats, or the live verification feed.
+query GetWorldIdAppTrend(
+  $app_id: String!
+  $d0: timestamptz!
+  $d1: timestamptz!
+  $d2: timestamptz!
+  $d3: timestamptz!
+  $d4: timestamptz!
+  $d5: timestamptz!
+  $d6: timestamptz!
+  $d7: timestamptz!
+) {
+  b0: nullifier_v4_aggregate(
+    where: {
+      created_at: { _gte: $d0, _lt: $d1 }
+      action_v4: {
+        environment: { _eq: "production" }
+        rp_registration: { app_id: { _eq: $app_id } }
+      }
+    }
+  ) {
+    ...WorldIdTrendCount
+  }
+  b1: nullifier_v4_aggregate(
+    where: {
+      created_at: { _gte: $d1, _lt: $d2 }
+      action_v4: {
+        environment: { _eq: "production" }
+        rp_registration: { app_id: { _eq: $app_id } }
+      }
+    }
+  ) {
+    ...WorldIdTrendCount
+  }
+  b2: nullifier_v4_aggregate(
+    where: {
+      created_at: { _gte: $d2, _lt: $d3 }
+      action_v4: {
+        environment: { _eq: "production" }
+        rp_registration: { app_id: { _eq: $app_id } }
+      }
+    }
+  ) {
+    ...WorldIdTrendCount
+  }
+  b3: nullifier_v4_aggregate(
+    where: {
+      created_at: { _gte: $d3, _lt: $d4 }
+      action_v4: {
+        environment: { _eq: "production" }
+        rp_registration: { app_id: { _eq: $app_id } }
+      }
+    }
+  ) {
+    ...WorldIdTrendCount
+  }
+  b4: nullifier_v4_aggregate(
+    where: {
+      created_at: { _gte: $d4, _lt: $d5 }
+      action_v4: {
+        environment: { _eq: "production" }
+        rp_registration: { app_id: { _eq: $app_id } }
+      }
+    }
+  ) {
+    ...WorldIdTrendCount
+  }
+  b5: nullifier_v4_aggregate(
+    where: {
+      created_at: { _gte: $d5, _lt: $d6 }
+      action_v4: {
+        environment: { _eq: "production" }
+        rp_registration: { app_id: { _eq: $app_id } }
+      }
+    }
+  ) {
+    ...WorldIdTrendCount
+  }
+  b6: nullifier_v4_aggregate(
+    where: {
+      created_at: { _gte: $d6, _lt: $d7 }
+      action_v4: {
+        environment: { _eq: "production" }
+        rp_registration: { app_id: { _eq: $app_id } }
+      }
+    }
+  ) {
+    ...WorldIdTrendCount
+  }
+}
+
+query GetWorldIdActionTrend(
+  $app_id: String!
+  $action_id: String!
+  $d0: timestamptz!
+  $d1: timestamptz!
+  $d2: timestamptz!
+  $d3: timestamptz!
+  $d4: timestamptz!
+  $d5: timestamptz!
+  $d6: timestamptz!
+  $d7: timestamptz!
+) {
+  action_v4(
+    where: {
+      id: { _eq: $action_id }
+      environment: { _eq: "production" }
+      rp_registration: { app_id: { _eq: $app_id } }
+    }
+    limit: 1
+  ) {
+    ...WorldIdActionTrendBuckets
+  }
+}
+
+fragment WorldIdActionTrendBuckets on action_v4 {
+  b0: nullifiers_aggregate(where: { created_at: { _gte: $d0, _lt: $d1 } }) {
+    ...WorldIdTrendCount
+  }
+  b1: nullifiers_aggregate(where: { created_at: { _gte: $d1, _lt: $d2 } }) {
+    ...WorldIdTrendCount
+  }
+  b2: nullifiers_aggregate(where: { created_at: { _gte: $d2, _lt: $d3 } }) {
+    ...WorldIdTrendCount
+  }
+  b3: nullifiers_aggregate(where: { created_at: { _gte: $d3, _lt: $d4 } }) {
+    ...WorldIdTrendCount
+  }
+  b4: nullifiers_aggregate(where: { created_at: { _gte: $d4, _lt: $d5 } }) {
+    ...WorldIdTrendCount
+  }
+  b5: nullifiers_aggregate(where: { created_at: { _gte: $d5, _lt: $d6 } }) {
+    ...WorldIdTrendCount
+  }
+  b6: nullifiers_aggregate(where: { created_at: { _gte: $d6, _lt: $d7 } }) {
+    ...WorldIdTrendCount
+  }
+}
+
+fragment WorldIdTrendCount on nullifier_v4_aggregate {
+  aggregate {
+    count
+  }
+}
