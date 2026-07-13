@@ -18,7 +18,7 @@ import { ReactNode } from "react";
 import { sidebarNavItemClassName } from "./NavItem";
 
 const itemClass =
-  "flex h-11 w-full cursor-pointer items-center gap-3 rounded-8 px-3 font-world text-13 font-medium text-portal-text outline-none transition-colors data-[highlighted]:bg-grey-50";
+  "flex h-11 w-full cursor-pointer items-center gap-3 rounded-8 px-3 font-world text-13 font-medium text-portal-text outline-hidden transition-colors data-highlighted:bg-grey-50";
 
 const HelpLink = (props: {
   href: string;
@@ -42,7 +42,7 @@ const HelpLink = (props: {
 
 const Section = (props: { title: string; children: ReactNode }) => (
   <section className="grid gap-1 px-2 py-2">
-    <p className="px-3 pb-1 pt-2 font-world text-12 font-medium text-portal-subtle">
+    <p className="px-3 pt-2 pb-1 font-world text-12 font-medium text-portal-subtle">
       {props.title}
     </p>
     {props.children}
@@ -84,7 +84,7 @@ export const HelpCenterMenu = () => {
           align="end"
           sideOffset={12}
           collisionPadding={16}
-          className="z-50 max-h-[var(--radix-dropdown-menu-content-available-height)] w-[300px] overflow-y-auto rounded-[12px] border border-portal-border bg-white shadow-[0_18px_30px_rgba(24,24,24,0.12)]"
+          className="z-50 max-h-(--radix-dropdown-menu-content-available-height) w-[300px] overflow-y-auto rounded-[12px] border border-portal-border bg-white shadow-[0_18px_30px_rgba(24,24,24,0.12)]"
         >
           <Section title="Need help with your app?">
             <HelpLink

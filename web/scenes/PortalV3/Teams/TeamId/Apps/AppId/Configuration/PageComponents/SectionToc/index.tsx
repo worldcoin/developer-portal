@@ -115,7 +115,7 @@ export const SectionToc = ({
             team_id: teamId,
             app_id: appId,
           })}
-          className="group flex items-center gap-x-2.5 rounded-full border border-grey-200 bg-grey-0 px-3 py-2 text-grey-500 shadow-sm transition-colors hover:border-system-error-200 hover:bg-system-error-50 hover:text-system-error-600 lg:rounded-lg lg:border-0 lg:bg-transparent lg:px-2 lg:shadow-none"
+          className="group flex items-center gap-x-2.5 rounded-full border border-grey-200 bg-grey-0 px-3 py-2 text-grey-500 shadow-xs transition-colors hover:border-system-error-200 hover:bg-system-error-50 hover:text-system-error-600 lg:rounded-lg lg:border-0 lg:bg-transparent lg:px-2 lg:shadow-none"
         >
           <span className="grid size-6 shrink-0 place-items-center">
             <TrashIcon className="size-4" />

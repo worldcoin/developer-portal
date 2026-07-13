@@ -74,7 +74,7 @@ export const ClientInformationPage = (props: {
 
   if (fetchingAction) {
     return (
-      <div className="grid w-full gap-y-10 pb-10 pt-5">
+      <div className="grid w-full gap-y-10 pt-5 pb-10">
         <Skeleton height={200} />
       </div>
     );
@@ -82,7 +82,7 @@ export const ClientInformationPage = (props: {
 
   if (isAppCreatedAfterCutoff) {
     return (
-      <div className="grid w-full gap-y-10 pb-10 pt-5">
+      <div className="grid w-full gap-y-10 pt-5 pb-10">
         <div className="grid gap-y-3">
           <Typography variant={TYPOGRAPHY.H7}>Feature Not Available</Typography>
           <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
@@ -104,7 +104,7 @@ export const ClientInformationPage = (props: {
   }
 
   return (
-    <div className="grid w-full gap-y-10 pb-10 pt-5">
+    <div className="grid w-full gap-y-10 pt-5 pb-10">
       <div className="grid gap-y-5">
         <div className="grid gap-y-3">
           <Typography variant={TYPOGRAPHY.H7}>Client information</Typography>

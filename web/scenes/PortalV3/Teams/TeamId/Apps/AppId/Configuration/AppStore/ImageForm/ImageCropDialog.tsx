@@ -41,7 +41,7 @@ export const ImageCropDialog = ({
   return (
     <Dialog open={open} onClose={close} afterLeave={onClosed}>
       <DialogOverlay />
-      <DialogPanel className="grid gap-y-10 md:max-w-[36rem]">
+      <DialogPanel className="grid gap-y-10 md:max-w-xl">
         <div className="grid w-full grid-cols-1fr/auto justify-between">
           <Typography variant={TYPOGRAPHY.H6}>{title}</Typography>
           <Button

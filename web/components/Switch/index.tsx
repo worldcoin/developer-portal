@@ -19,7 +19,7 @@ export const Switcher = (props: SwitchProps) => {
           "bg-gray-200": !enabled,
         },
         {
-          " bg-gradient-to-b from-white/15 to-transparent ": enabled,
+          "bg-linear-to-b from-white/15 to-transparent": enabled,
         },
 
         "relative inline-flex h-6 w-10 items-center rounded-full",
@@ -32,7 +32,7 @@ export const Switcher = (props: SwitchProps) => {
             "translate-x-[.15rem]": !enabled,
           },
           "inline-block size-[20px] rounded-full bg-white transition",
-          "from-[#D3D4D645] to-white after:absolute after:left-1/2 after:top-1/2 after:size-[17px] after:-translate-x-1/2 after:-translate-y-1/2 after:rounded-full after:bg-gradient-to-b after:content-[''] ",
+          "from-[#D3D4D645] to-white after:absolute after:top-1/2 after:left-1/2 after:size-[17px] after:-translate-x-1/2 after:-translate-y-1/2 after:rounded-full after:bg-linear-to-b after:content-['']",
         )}
       />
     </Switch>

@@ -69,7 +69,7 @@ export const Item = (props: ItemsProps) => {
         },
       )}
     >
-      <div className="max-md:grid max-md:grid-cols-auto/1fr/auto max-md:items-center max-md:gap-x-4 max-md:p-4 md:contents">
+      <div className="max-md:grid-cols-auto/1fr/auto max-md:grid max-md:items-center max-md:gap-x-4 max-md:p-4 md:contents">
         <div className="md:py-4 md:pr-4">
           {!item ? (
             <Skeleton className="size-12 rounded-lg leading-normal" inline />

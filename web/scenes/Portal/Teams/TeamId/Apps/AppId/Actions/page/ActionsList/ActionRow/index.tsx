@@ -25,7 +25,7 @@ export const ActionRow = (props: {
       key={`${key}_1`}
       className="group flex flex-row items-center gap-x-4 px-2 py-4 md:w-[500px]"
     >
-      <div className="flex size-12 items-center justify-center rounded-full bg-blue-100 uppercase text-blue-500 ">
+      <div className="flex size-12 items-center justify-center rounded-full bg-blue-100 text-blue-500 uppercase">
         <Typography variant={TYPOGRAPHY.M3}>{action.name[0]}</Typography>
       </div>
       <div className="max-w-[150px] md:max-w-[400px]">
@@ -44,7 +44,7 @@ export const ActionRow = (props: {
         </div>
       </div>
     </div>,
-    <div className="md:w-[150px] " key={`${key}_2`}>
+    <div className="md:w-[150px]" key={`${key}_2`}>
       <Typography variant={TYPOGRAPHY.R4}>{uses}</Typography>
     </div>,
     <div

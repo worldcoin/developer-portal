@@ -11,7 +11,7 @@ export const Header = (props: HeaderProps) => {
   return (
     <div
       className={clsx(
-        "contents md:mb-4 md:mt-8 md:grid md:grid-cols-2",
+        "contents md:mt-8 md:mb-4 md:grid md:grid-cols-2",
         className,
       )}
       {...otherProps}

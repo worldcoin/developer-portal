@@ -86,14 +86,14 @@ export const Pagination: React.FC<FooterProps> = ({
         >
           <CaretIcon
             className={clsx("size-4 -rotate-90 text-grey-400", {
-              "group-hover:text-grey-700 group-disabled:group-hover:text-grey-400":
+              "group-hover:text-grey-700 group-hover:group-disabled:text-grey-400":
                 currentPage >= 1,
             })}
           />
         </Button>
       </div>
       {rowsPerPageOptions && handleRowsPerPageChange && (
-        <div className="flex w-full justify-end ">
+        <div className="flex w-full justify-end">
           <PaginationSelect
             rowsPerPageOptions={rowsPerPageOptions}
             value={rowsPerPage}
@@ -132,12 +132,12 @@ const PaginationSelect = (props: {
 
       <SelectOptions
         className={clsx(
-          "mb-2 mt-1 max-h-24 text-xs focus:outline-none focus:ring-0",
+          "mt-1 mb-2 max-h-24 text-xs focus:ring-0 focus:outline-hidden",
         )}
       >
         {rowsPerPageOptions.map((option, index) => (
           <SelectOption key={index} value={option} className="hover:bg-grey-50">
-            <div className="grid grid-cols-1fr/auto ">
+            <div className="grid grid-cols-1fr/auto">
               {rowsPerPageOptions[index]}
             </div>
           </SelectOption>

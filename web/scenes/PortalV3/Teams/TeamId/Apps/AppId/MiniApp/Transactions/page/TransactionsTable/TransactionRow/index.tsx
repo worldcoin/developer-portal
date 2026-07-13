@@ -51,7 +51,7 @@ export const TransactionRow = (props: {
       </td>
 
       <td
-        className=" items-center border-b border-grey-200"
+        className="items-center border-b border-grey-200"
         key={`transaction_${index}_1`}
       >
         <div className="px-2 py-3">
@@ -106,7 +106,7 @@ export const TransactionRow = (props: {
 
       <td
         key={`transaction_${index}_6`}
-        className=" border-b border-grey-200 px-2 py-3 "
+        className="border-b border-grey-200 px-2 py-3"
       >
         <Typography variant={TYPOGRAPHY.R4} className="whitespace-nowrap">
           {formatDate(transaction.updatedAt)}
@@ -115,7 +115,7 @@ export const TransactionRow = (props: {
 
       <td
         key={`transaction_${index}_7`}
-        className=" border-b border-grey-200 px-2 py-3"
+        className="border-b border-grey-200 px-2 py-3"
       >
         <TransactionStatusBadge status={transaction.transactionStatus} />
       </td>
