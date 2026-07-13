@@ -2,9 +2,9 @@
 # poll only re-runs the feed selection, not the stats aggregates.
 
 # Live verifications feed (`nullifiers`, polled every 5s while on page 1) plus
-# the fields the page needs fresh on every tick. There is one nullifier row per
-# human for a given action, so "Total verifications" == "Unique humans"; the
-# stat and pagination both use `total`.
+# the fields the page needs fresh on every tick. Each stored nullifier is one
+# unique verification for this action; replayed proofs do not add another row.
+# The headline stat and pagination both use `total`.
 query GetActionVerificationsFeed(
   $action_id: String!
   $app_id: String!

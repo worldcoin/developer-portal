@@ -162,9 +162,9 @@ export const WorldIdActionDetailPage = (props: {
     );
   }
 
-  // Total verifications === unique humans (one nullifier row per human per
-  // action), rendered as two cards per the design.
-  const totalCount = total ?? 0;
+  // Each stored nullifier is one unique verification for this action; replayed
+  // proofs do not add another row.
+  const uniqueVerificationCount = total ?? 0;
   const stats = statsData?.action_v4?.[0];
   const weekCount = stats?.week.aggregate?.count ?? 0;
   const sparkPoints =
@@ -233,7 +233,10 @@ export const WorldIdActionDetailPage = (props: {
               </div>
 
               <div className="flex flex-wrap items-end gap-x-14 gap-y-6">
-                <Stat label="Unique humans" value={totalCount} />
+                <Stat
+                  label="Unique verifications"
+                  value={uniqueVerificationCount}
+                />
                 <Stat label="This week" value={weekCount} />
                 <div className="ml-auto">
                   <TrendSparkline
@@ -255,7 +258,7 @@ export const WorldIdActionDetailPage = (props: {
         ) : (
           <VerificationsFeed
             nullifiers={action.nullifiers}
-            total={totalCount}
+            total={uniqueVerificationCount}
             page={page}
             rowsPerPage={LIMIT}
             onPageChange={setPage}
