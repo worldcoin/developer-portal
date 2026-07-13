@@ -7,6 +7,7 @@ import {
   siblingOrigin,
 } from "@/lib/app-base-url";
 import { Role_Enum } from "./graphql/graphql";
+import { isPortalV3EnabledForEmail } from "./lib/feature-flags/portal-v3/flag";
 import { Auth0SessionUser } from "./lib/types";
 import { urls } from "./lib/urls";
 import { checkUserPermissions } from "./lib/utils";
@@ -111,8 +112,8 @@ const checkRouteRolesRestrictions = (
   const ownerOnlyRoutes = [
     "/teams/[a-zA-Z0-9_]+/apps/[a-zA-Z0-9_]+/configuration/danger$",
     "/teams/[a-zA-Z0-9_]+/danger$",
-    "/teams/[a-zA-Z0-9_]+/settings$",
   ];
+  const teamSettingsRoutes = ["/teams/[a-zA-Z0-9_]+/settings$"];
   const ownerAndAdminRoutes = [
     "/teams/[a-zA-Z0-9_]+/apps/[a-zA-Z0-9_]+/actions/[a-zA-Z0-9_]+/danger$",
     "/teams/[a-zA-Z0-9_]+/apps/[a-zA-Z0-9_]+/world-id-actions/[a-zA-Z0-9_]+/danger$",
@@ -121,6 +122,16 @@ const checkRouteRolesRestrictions = (
 
   if (ownerOnlyRoutes.some((route) => pathname.match(route))) {
     if (!checkUserPermissions(user, teamId, [Role_Enum.Owner])) {
+      return NextResponse.rewrite(new URL("/unauthorized", request.url));
+    }
+  }
+
+  if (teamSettingsRoutes.some((route) => pathname.match(route))) {
+    const validRoles = isPortalV3EnabledForEmail(user?.email)
+      ? [Role_Enum.Owner, Role_Enum.Admin, Role_Enum.Member]
+      : [Role_Enum.Owner];
+
+    if (!checkUserPermissions(user, teamId, validRoles)) {
       return NextResponse.rewrite(new URL("/unauthorized", request.url));
     }
   }
