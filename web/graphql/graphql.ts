@@ -308,6 +308,7 @@ export enum ViolationEnum {
 
 export type Accept_Team_Invite_Args = {
   _invite_id?: InputMaybe<Scalars["String"]["input"]>;
+  _team_id?: InputMaybe<Scalars["String"]["input"]>;
   _user_id?: InputMaybe<Scalars["String"]["input"]>;
 };
 

@@ -3,8 +3,14 @@
 # invite and inserts the resulting membership in one transaction. The delete is
 # the concurrency gate, so a single invite can only ever produce one membership.
 # An empty result means the invite was already consumed.
-mutation AcceptTeamInvite($invite_id: String!, $user_id: String!) {
-  accept_team_invite(args: { _invite_id: $invite_id, _user_id: $user_id }) {
+mutation AcceptTeamInvite(
+  $invite_id: String!
+  $team_id: String!
+  $user_id: String!
+) {
+  accept_team_invite(
+    args: { _invite_id: $invite_id, _team_id: $team_id, _user_id: $user_id }
+  ) {
     team_id
     role
     team {

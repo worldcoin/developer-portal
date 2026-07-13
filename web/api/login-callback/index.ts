@@ -235,6 +235,7 @@ export const loginCallback = async (req: NextRequest) => {
         client,
       ).AcceptTeamInvite({
         invite_id,
+        team_id: invite.team_id,
         user_id: user.id,
       });
 

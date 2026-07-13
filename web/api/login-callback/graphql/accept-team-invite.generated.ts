@@ -6,6 +6,7 @@ import gql from "graphql-tag";
 type GraphQLClientRequestHeaders = RequestOptions["requestHeaders"];
 export type AcceptTeamInviteMutationVariables = Types.Exact<{
   invite_id: Types.Scalars["String"]["input"];
+  team_id: Types.Scalars["String"]["input"];
   user_id: Types.Scalars["String"]["input"];
 }>;
 
@@ -34,8 +35,14 @@ export type AcceptTeamInviteMutation = {
 };
 
 export const AcceptTeamInviteDocument = gql`
-  mutation AcceptTeamInvite($invite_id: String!, $user_id: String!) {
-    accept_team_invite(args: { _invite_id: $invite_id, _user_id: $user_id }) {
+  mutation AcceptTeamInvite(
+    $invite_id: String!
+    $team_id: String!
+    $user_id: String!
+  ) {
+    accept_team_invite(
+      args: { _invite_id: $invite_id, _team_id: $team_id, _user_id: $user_id }
+    ) {
       team_id
       role
       team {

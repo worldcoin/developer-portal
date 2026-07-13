@@ -498,4 +498,52 @@ describe("test /login-callback", () => {
     )) as { rows: { count: number }[] };
     expect(membershipRows[0].count).toBe(1);
   });
+
+  // Exercises the accept_team_invite DB function directly for the branches a
+  // handler test can't force deterministically (a race between fetch and
+  // consume): idempotent re-consume by the winner vs. an empty result for a
+  // different user. This is what keeps a duplicate callback from the same user
+  // (browser retry, second tab) from logging them out after they just joined.
+  it("accept_team_invite is idempotent for the winner and empty for others", async () => {
+    const team_id = "team_d7cde14f17eda7e0ededba7ded6b4467";
+    const winner = "usr_a78f59e547fa5bd3d76bc1a1817c6d94"; // seeded in team_2222, not team_d7cde
+    const loser = "usr_a78f59e547fa5bd3d76bc1a1817c6d93"; // seeded in team_2222, not team_d7cde
+
+    const { rows: inv } = (await integrationDBExecuteQuery(
+      `INSERT INTO public.invite (team_id, expires_at, email) VALUES ('${team_id}','2030-01-01 00:00:00+00','invite-fn@example.com') RETURNING id`,
+    )) as { rows: { id: string }[] };
+    const inviteId = inv[0].id;
+
+    // First call consumes the invite and creates the membership.
+    const first = await integrationDBExecuteQuery(
+      `SELECT team_id, user_id, role FROM public.accept_team_invite('${inviteId}', '${team_id}', '${winner}')`,
+    );
+    expect(first.rows).toHaveLength(1);
+    expect(first.rows[0]).toMatchObject({
+      team_id,
+      user_id: winner,
+      role: "MEMBER",
+    });
+
+    // Re-consuming the now-deleted invite as the same user is idempotent: it
+    // returns the existing membership (not an empty/logout result) and creates
+    // no duplicate.
+    const second = await integrationDBExecuteQuery(
+      `SELECT team_id, user_id FROM public.accept_team_invite('${inviteId}', '${team_id}', '${winner}')`,
+    );
+    expect(second.rows).toHaveLength(1);
+    expect(second.rows[0]).toMatchObject({ team_id, user_id: winner });
+
+    // A different user who never won the invite gets nothing.
+    const other = await integrationDBExecuteQuery(
+      `SELECT team_id, user_id FROM public.accept_team_invite('${inviteId}', '${team_id}', '${loser}')`,
+    );
+    expect(other.rows).toHaveLength(0);
+
+    // Exactly one membership was created for the winner.
+    const { rows: countRows } = (await integrationDBExecuteQuery(
+      `SELECT count(*)::int AS count FROM public.membership WHERE team_id='${team_id}' AND user_id='${winner}'`,
+    )) as { rows: { count: number }[] };
+    expect(countRows[0].count).toBe(1);
+  });
 });

@@ -45576,6 +45576,18 @@
             "deprecationReason": null
           },
           {
+            "name": "_team_id",
+            "description": null,
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "_user_id",
             "description": null,
             "type": {
