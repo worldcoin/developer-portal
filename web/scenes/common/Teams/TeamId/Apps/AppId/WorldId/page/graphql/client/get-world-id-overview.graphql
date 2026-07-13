@@ -1,0 +1,71 @@
+# Feeds the World ID landing page (hero stats + sparkline, actions grid) and the
+# World ID 4.0 pane. For World ID 4.0 there is exactly one nullifier row per
+# (human, action) and the nullifier column is globally unique, so "Unique
+# humans" is definitionally equal to "Total verifications" at every level; both
+# stat slots are sourced from the same `count`. The b0..b6 aliases are per-day
+# buckets (7 days) whose bounds ($d0..$d7) are local-midnight boundaries from
+# `weekBucketBounds`; the hero sparkline sums the buckets across actions, and
+# the hero totals are likewise summed client-side from the per-action counts
+# (same filters; every nullifier row belongs to exactly one action).
+query GetWorldIdOverview(
+  $app_id: String!
+  $d0: timestamptz!
+  $d1: timestamptz!
+  $d2: timestamptz!
+  $d3: timestamptz!
+  $d4: timestamptz!
+  $d5: timestamptz!
+  $d6: timestamptz!
+  $d7: timestamptz!
+) {
+  app(where: { id: { _eq: $app_id } }) {
+    id
+    is_banned
+    is_staging
+    app_metadata {
+      name
+    }
+    rp_registration {
+      rp_id
+      app_id
+      status
+      staging_status
+      mode
+      signer_address
+      created_at
+    }
+  }
+
+  action_v4(
+    where: {
+      environment: { _eq: "production" }
+      rp_registration: { app: { id: { _eq: $app_id } } }
+    }
+    order_by: { created_at: desc }
+  ) {
+    id
+    action
+    description
+    created_at
+    total: nullifiers_aggregate {
+      aggregate {
+        count
+      }
+    }
+    latest: nullifiers_aggregate {
+      aggregate {
+        max {
+          created_at
+        }
+      }
+    }
+    ...WorldIdActionTrendBuckets
+  }
+
+  # Presence of a legacy (World ID 3.0) action drives the optional
+  # "World ID 3.0 Legacy" switcher tab. Exclude the auto-created Sign in with
+  # World ID action (action = "").
+  action(where: { app_id: { _eq: $app_id }, action: { _neq: "" } }, limit: 1) {
+    id
+  }
+}
