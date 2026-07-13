@@ -416,4 +416,86 @@ describe("test /login-callback", () => {
     ).toBeTruthy();
     expect(response.headers.get("location")).not.toContain("/unauthorized");
   });
+
+  // Regression test for HackerOne #3857870. A single-use invite must yield at
+  // most one membership even when /login-callback is hit concurrently with the
+  // same invite_id. The previous flow inserted the membership and deleted the
+  // invite in two separate, un-transactioned mutations with no unique
+  // constraint on (team_id, user_id), so a concurrent burst produced multiple
+  // memberships from one invite. The accept_team_invite function now consumes
+  // the invite (DELETE) and creates the membership in one transaction, so the
+  // delete is the concurrency gate.
+  it("consumes a single-use invite exactly once under a concurrent burst", async () => {
+    // usr_...d94: seeded into team_2222..., NOT into the team below.
+    const email = "test1-member@team2.example.com";
+    const team_id = "team_d7cde14f17eda7e0ededba7ded6b4467";
+
+    const { rows: insertedInvite } = (await integrationDBExecuteQuery(
+      `INSERT INTO public.invite (team_id, expires_at, email) VALUES ('${team_id}', '2030-01-01 00:00:00+00', '${email}') RETURNING id`,
+    )) as { rows: { id: string }[] };
+
+    const url = new URL("/login-callback", "http://localhost:3000");
+    url.searchParams.append("invite_id", insertedInvite[0].id);
+    const mockReq = { nextUrl: url } as unknown as NextRequest;
+
+    (getSession as jest.Mock).mockResolvedValue({
+      user: { ...validEmailSessionUser, email },
+    });
+
+    const CONCURRENCY = 8;
+    await Promise.all(
+      Array.from({ length: CONCURRENCY }, () => loginCallback(mockReq)),
+    );
+
+    // Exactly one membership created for this user in the invited team...
+    const { rows: membershipRows } = (await integrationDBExecuteQuery(
+      `SELECT count(*)::int AS count
+         FROM public.membership m
+         JOIN public."user" u ON u.id = m.user_id
+        WHERE m.team_id = '${team_id}' AND u.email = '${email}'`,
+    )) as { rows: { count: number }[] };
+    expect(membershipRows[0].count).toBe(1);
+
+    // ...and the single-use invite is consumed exactly once.
+    const { rowCount: remainingInvites } = await integrationDBExecuteQuery(
+      `SELECT id FROM public.invite WHERE id = '${insertedInvite[0].id}'`,
+    );
+    expect(remainingInvites).toBe(0);
+  });
+
+  it("does not re-add a member when the invite was already consumed", async () => {
+    const email = "test1-member@team2.example.com";
+    const team_id = "team_d7cde14f17eda7e0ededba7ded6b4467";
+
+    const { rows: insertedInvite } = (await integrationDBExecuteQuery(
+      `INSERT INTO public.invite (team_id, expires_at, email) VALUES ('${team_id}', '2030-01-01 00:00:00+00', '${email}') RETURNING id`,
+    )) as { rows: { id: string }[] };
+
+    const url = new URL("/login-callback", "http://localhost:3000");
+    url.searchParams.append("invite_id", insertedInvite[0].id);
+    const mockReq = { nextUrl: url } as unknown as NextRequest;
+
+    (getSession as jest.Mock).mockResolvedValue({
+      user: { ...validEmailSessionUser, email },
+    });
+
+    // First acceptance succeeds and consumes the invite.
+    const first = await loginCallback(mockReq);
+    expect(first.headers.get("location")?.endsWith("/apps")).toBeTruthy();
+
+    // Second attempt with the same (now-consumed) invite must not create a
+    // second membership; it falls through to the logout redirect.
+    const second = await loginCallback(mockReq);
+    expect(
+      second.headers.get("location")?.includes("/api/auth/logout"),
+    ).toBeTruthy();
+
+    const { rows: membershipRows } = (await integrationDBExecuteQuery(
+      `SELECT count(*)::int AS count
+         FROM public.membership m
+         JOIN public."user" u ON u.id = m.user_id
+        WHERE m.team_id = '${team_id}' AND u.email = '${email}'`,
+    )) as { rows: { count: number }[] };
+    expect(membershipRows[0].count).toBe(1);
+  });
 });

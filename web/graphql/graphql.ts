@@ -306,6 +306,11 @@ export enum ViolationEnum {
   MaliciousApp = "MALICIOUS_APP",
 }
 
+export type Accept_Team_Invite_Args = {
+  _invite_id?: InputMaybe<Scalars["String"]["input"]>;
+  _user_id?: InputMaybe<Scalars["String"]["input"]>;
+};
+
 /** columns and relationships of "action" */
 export type Action = {
   __typename?: "action";
@@ -6315,6 +6320,8 @@ export type Merge_World_Id_Accounts_Args = {
 /** mutation root */
 export type Mutation_Root = {
   __typename?: "mutation_root";
+  /** execute VOLATILE function "accept_team_invite" which returns "membership" */
+  accept_team_invite: Array<Membership>;
   /** Bans app by app_id */
   ban_app: BanAppOutput;
   /** Closes the report with a decision */
@@ -6763,6 +6770,16 @@ export type Mutation_Root = {
   validate_localisation?: Maybe<ValidateLocalisationOutput>;
   /** Verify an App */
   verify_app?: Maybe<VerifyAppOutput>;
+};
+
+/** mutation root */
+export type Mutation_RootAccept_Team_InviteArgs = {
+  args: Accept_Team_Invite_Args;
+  distinct_on?: InputMaybe<Array<Membership_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Membership_Order_By>>;
+  where?: InputMaybe<Membership_Bool_Exp>;
 };
 
 /** mutation root */

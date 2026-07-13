@@ -4,17 +4,18 @@ import * as Types from "@/graphql/graphql";
 import { GraphQLClient, RequestOptions } from "graphql-request";
 import gql from "graphql-tag";
 type GraphQLClientRequestHeaders = RequestOptions["requestHeaders"];
-export type InsertMembershipMutationVariables = Types.Exact<{
-  team_id: Types.Scalars["String"]["input"];
-  user_id?: Types.InputMaybe<Types.Scalars["String"]["input"]>;
-  role?: Types.InputMaybe<Types.Role_Enum>;
+export type AcceptTeamInviteMutationVariables = Types.Exact<{
+  invite_id: Types.Scalars["String"]["input"];
+  user_id: Types.Scalars["String"]["input"];
 }>;
 
-export type InsertMembershipMutation = {
+export type AcceptTeamInviteMutation = {
   __typename?: "mutation_root";
-  insert_membership_one?: {
+  accept_team_invite: Array<{
     __typename?: "membership";
     team_id: string;
+    role: Types.Role_Enum;
+    team: { __typename?: "team"; id: string; name?: string | null };
     user: {
       __typename?: "user";
       id: string;
@@ -29,18 +30,18 @@ export type InsertMembershipMutation = {
         team: { __typename?: "team"; id: string; name?: string | null };
       }>;
     };
-  } | null;
+  }>;
 };
 
-export const InsertMembershipDocument = gql`
-  mutation InsertMembership(
-    $team_id: String!
-    $user_id: String
-    $role: role_enum
-  ) {
-    insert_membership_one(
-      object: { team_id: $team_id, user_id: $user_id, role: $role }
-    ) {
+export const AcceptTeamInviteDocument = gql`
+  mutation AcceptTeamInvite($invite_id: String!, $user_id: String!) {
+    accept_team_invite(args: { _invite_id: $invite_id, _user_id: $user_id }) {
+      team_id
+      role
+      team {
+        id
+        name
+      }
       user {
         id
         email
@@ -48,7 +49,6 @@ export const InsertMembershipDocument = gql`
         auth0Id
         posthog_id
         is_allow_tracking
-        name
         memberships {
           team {
             id
@@ -57,7 +57,6 @@ export const InsertMembershipDocument = gql`
           role
         }
       }
-      team_id
     }
   }
 `;
@@ -81,18 +80,18 @@ export function getSdk(
   withWrapper: SdkFunctionWrapper = defaultWrapper,
 ) {
   return {
-    InsertMembership(
-      variables: InsertMembershipMutationVariables,
+    AcceptTeamInvite(
+      variables: AcceptTeamInviteMutationVariables,
       requestHeaders?: GraphQLClientRequestHeaders,
-    ): Promise<InsertMembershipMutation> {
+    ): Promise<AcceptTeamInviteMutation> {
       return withWrapper(
         (wrappedRequestHeaders) =>
-          client.request<InsertMembershipMutation>(
-            InsertMembershipDocument,
+          client.request<AcceptTeamInviteMutation>(
+            AcceptTeamInviteDocument,
             variables,
             { ...requestHeaders, ...wrappedRequestHeaders },
           ),
-        "InsertMembership",
+        "AcceptTeamInvite",
         "mutation",
         variables,
       );
