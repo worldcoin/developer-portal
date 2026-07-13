@@ -2,31 +2,39 @@
 
 import { CopyButton } from "@/components/CopyButton";
 import { CloseIcon } from "@/components/Icons/CloseIcon";
-import { MagnifierIcon } from "@/components/Icons/MagnifierIcon";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import clsx from "clsx";
 import { useState } from "react";
 
-const ETH_ADDRESS_REGEX = /^0x[a-fA-F0-9]{40}$/;
-
-const truncateAddress = (address: string) =>
-  `${address.slice(0, 6)}...${address.slice(-4)}`;
-
-type AddressEntryListProps = {
+type EntryListProps = {
   values: string[];
   onChange: (next: string[]) => void;
   placeholder: string;
   disabled: boolean;
-  emptyText: string;
+  validate: (value: string) => boolean;
+  invalidMessage: string;
+  duplicateMessage: string;
+  copyFieldName: string;
+  formatDisplay?: (value: string) => string;
+  /** Applied to each entry before validation/storage (e.g. prepend https://). */
+  normalize?: (value: string) => string;
+  /** Omit to render nothing when the list is empty. */
+  emptyText?: string;
   allowCommaSeparated?: boolean;
 };
 
-export const AddressEntryList = (props: AddressEntryListProps) => {
+export const EntryList = (props: EntryListProps) => {
   const {
     values,
     onChange,
     placeholder,
     disabled,
+    validate,
+    invalidMessage,
+    duplicateMessage,
+    copyFieldName,
+    formatDisplay = (value) => value,
+    normalize = (value) => value,
     emptyText,
     allowCommaSeparated = false,
   } = props;
@@ -34,60 +42,46 @@ export const AddressEntryList = (props: AddressEntryListProps) => {
   const [error, setError] = useState<string | null>(null);
 
   const add = () => {
-    const addresses = (allowCommaSeparated ? draft.split(",") : [draft])
-      .map((address) => address.trim())
+    const entries = (allowCommaSeparated ? draft.split(",") : [draft])
+      .map((entry) => normalize(entry.trim()))
       .filter(Boolean);
-    if (addresses.length === 0) return;
+    if (entries.length === 0) return;
 
-    if (addresses.some((address) => !ETH_ADDRESS_REGEX.test(address))) {
-      setError(
-        allowCommaSeparated
-          ? "Enter valid Worldchain addresses separated by commas (each must be 0x followed by 40 hex characters)."
-          : "Enter a valid Worldchain address (0x followed by 40 hex characters).",
-      );
+    if (entries.some((entry) => !validate(entry))) {
+      setError(invalidMessage);
       return;
     }
 
-    const seenAddresses = new Set(values.map((value) => value.toLowerCase()));
-    const hasDuplicate = addresses.some((address) => {
-      const normalizedAddress = address.toLowerCase();
-
-      if (seenAddresses.has(normalizedAddress)) {
-        return true;
-      }
-
-      seenAddresses.add(normalizedAddress);
+    const seen = new Set(values.map((value) => value.toLowerCase()));
+    const hasDuplicate = entries.some((entry) => {
+      const normalized = entry.toLowerCase();
+      if (seen.has(normalized)) return true;
+      seen.add(normalized);
       return false;
     });
 
     if (hasDuplicate) {
-      setError(
-        addresses.length > 1
-          ? "Remove duplicate or previously added addresses before adding."
-          : "This address has already been added.",
-      );
+      setError(duplicateMessage);
       return;
     }
 
-    onChange([...values, ...addresses]);
+    onChange([...values, ...entries]);
     setDraft("");
     setError(null);
   };
 
   return (
-    <div className="grid gap-y-3">
+    <div className="grid gap-y-2">
       {!disabled && (
         <div className="grid gap-y-1.5">
           <div
             className={clsx(
-              "flex h-12 items-center gap-x-3 rounded-xl border bg-grey-0 px-4 transition-colors",
+              "flex h-11 items-center gap-x-3 rounded-xl border bg-grey-0 px-4 transition-colors",
               error
                 ? "border-system-error-500"
                 : "border-grey-200 focus-within:border-blue-500",
             )}
           >
-            <MagnifierIcon className="size-5 shrink-0 text-grey-400" />
-
             <input
               type="text"
               value={draft}
@@ -123,27 +117,23 @@ export const AddressEntryList = (props: AddressEntryListProps) => {
         </div>
       )}
 
-      {values.length === 0 ? (
-        <Typography variant={TYPOGRAPHY.R4} className="px-1 text-grey-400">
-          {emptyText}
-        </Typography>
-      ) : (
+      {values.length > 0 ? (
         <div className="grid gap-y-2">
-          {values.map((address) => (
+          {values.map((value) => (
             <div
-              key={address}
-              className="flex h-[52px] items-center gap-x-3 rounded-xl border border-grey-100 pl-4 pr-2"
+              key={value}
+              className="flex h-11 items-center gap-x-3 rounded-xl border border-grey-100 pl-4 pr-2"
             >
               <span
                 className="min-w-0 flex-1 truncate font-world text-[15px] text-grey-900"
-                title={address}
+                title={value}
               >
-                {truncateAddress(address)}
+                {formatDisplay(value)}
               </span>
 
               <CopyButton
-                fieldName="Address"
-                fieldValue={address}
+                fieldName={copyFieldName}
+                fieldValue={value}
                 className="rounded-lg p-2 !pr-2 hover:bg-grey-100"
                 iconClassName="size-4 text-grey-500"
               />
@@ -151,8 +141,8 @@ export const AddressEntryList = (props: AddressEntryListProps) => {
               {!disabled && (
                 <button
                   type="button"
-                  onClick={() => onChange(values.filter((v) => v !== address))}
-                  aria-label={`Remove ${address}`}
+                  onClick={() => onChange(values.filter((v) => v !== value))}
+                  aria-label={`Remove ${value}`}
                   className="flex size-8 shrink-0 items-center justify-center rounded-lg text-grey-500 hover:bg-grey-100 hover:text-grey-900"
                 >
                   <CloseIcon className="size-3.5" strokeWidth={1.5} />
@@ -161,7 +151,11 @@ export const AddressEntryList = (props: AddressEntryListProps) => {
             </div>
           ))}
         </div>
-      )}
+      ) : emptyText ? (
+        <Typography variant={TYPOGRAPHY.R4} className="px-1 text-grey-400">
+          {emptyText}
+        </Typography>
+      ) : null}
     </div>
   );
 };

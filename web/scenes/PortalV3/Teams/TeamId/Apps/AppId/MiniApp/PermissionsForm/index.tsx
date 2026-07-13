@@ -7,7 +7,6 @@ import { CheckIcon } from "@/components/Icons/CheckIcon";
 import { FlaskIcon } from "@/components/Icons/FlaskIcon";
 import { HelpIcon } from "@/components/Icons/HelpIcon";
 import { LockIcon } from "@/components/Icons/LockIcon";
-import { PlusIcon } from "@/components/Icons/PlusIcon";
 import { Link } from "@/components/Link";
 import { Switcher } from "@/components/Switch";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
@@ -33,9 +32,8 @@ import {
   useSaveStatus,
 } from "../../Configuration/SaveStatus";
 import { useAutosaveWithStatus } from "../../Configuration/hook/use-autosave-with-status";
-import { AddressEntryList } from "./AddressEntryList";
-import { DomainDialog } from "./DomainDialog";
-import { DomainRow } from "./DomainRow";
+import { EntryList } from "./EntryList";
+import { isValidHttpsDomain, normalizeDomainInput } from "./domain-utils";
 
 type PermissionsFormProps = {
   appId: string;
@@ -50,6 +48,15 @@ type ListFieldName =
   | "contracts";
 
 const maxNotificationPerDayOptions = [0, 1, 2, "unlimited"] as const;
+
+// Kept in sync with the validation rules in
+// ../../Configuration/Advanced/page/form-schema
+const ETH_ADDRESS_REGEX = /^0x[a-fA-F0-9]{40}$/;
+
+const isEthAddress = (value: string) => ETH_ADDRESS_REGEX.test(value);
+
+const truncateAddress = (address: string) =>
+  `${address.slice(0, 6)}...${address.slice(-4)}`;
 
 const splitList = (value?: string | null): string[] =>
   value
@@ -132,7 +139,7 @@ const SectionHeader = (props: {
 
 const InlineWarning = ({ children }: { children: ReactNode }) => {
   return (
-    <div className="flex items-center gap-x-3 rounded-[10px] bg-system-warning-100 p-5">
+    <div className="flex items-center gap-x-3 rounded-[10px] bg-system-warning-100 p-4">
       <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-system-warning-600">
         <AlertIcon className="size-4 text-grey-0" />
       </div>
@@ -189,80 +196,54 @@ const MiniAppPreviewCard = ({
   }
 
   return (
-    <div className="grid gap-y-4">
-      <div className="overflow-hidden rounded-2xl border border-grey-200 bg-grey-0 shadow-button">
-        <div className="flex items-start justify-between gap-x-3 p-5">
-          <div className="flex items-center gap-x-3">
-            <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-500">
-              <FlaskIcon className="size-5" />
-            </div>
-
-            <div className="grid gap-y-0.5">
-              <Typography
-                as="p"
-                className="font-world text-[15px] font-semibold leading-[120%] text-grey-900"
-              >
-                Mini App preview
-              </Typography>
-
-              <Typography
-                as="p"
-                className="font-world text-[13px] font-medium leading-[130%] text-grey-500"
-              >
-                Scan or copy the preview link
-              </Typography>
-            </div>
+    <div className="overflow-hidden rounded-2xl border border-grey-200 bg-grey-0 shadow-button">
+      <div className="flex items-start justify-between gap-x-3 p-5">
+        <div className="flex items-center gap-x-3">
+          <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-500">
+            <FlaskIcon className="size-5" />
           </div>
 
-          <CopyButton
-            fieldName="Mini App preview link"
-            fieldValue={miniAppUrl}
-            className="rounded-lg border border-grey-200 p-2 !pr-2 hover:bg-grey-50"
-            iconClassName="size-4 text-grey-700"
-          />
-        </div>
-
-        <div className="px-6 pb-6">
-          {qrCodeDataUrl ? (
-            <Image
-              src={qrCodeDataUrl}
-              width={512}
-              height={512}
-              alt="Mini App preview QR code"
-              className="h-auto w-full"
-              unoptimized
-            />
-          ) : (
-            <div className="aspect-square w-full">
-              <Skeleton height="100%" containerClassName="block h-full" />
-            </div>
-          )}
-        </div>
-      </div>
-
-      {showDraftMiniAppFlag && (
-        <div className="grid gap-y-1 px-1">
-          <div className="flex items-center gap-x-2">
-            <span
-              className="size-2 shrink-0 rounded-full bg-system-warning-600"
-              aria-hidden
-            />
+          <div className="grid gap-y-0.5">
             <Typography
               as="p"
-              className="font-world text-[13px] font-semibold leading-[130%] text-grey-900"
+              className="font-world text-[15px] font-semibold leading-[120%] text-grey-900"
             >
-              Developer preview
+              Mini App preview
+            </Typography>
+
+            <Typography
+              as="p"
+              className="font-world text-[13px] font-medium leading-[130%] text-grey-500"
+            >
+              Scan or copy the preview link
             </Typography>
           </div>
-
-          <Typography
-            as="p"
-            className="pl-4 font-world text-[13px] font-medium leading-[130%] text-grey-500"
-          >
-            Testing only; switches to the approved link after verification.
-          </Typography>
         </div>
-      )}
+
+        <CopyButton
+          fieldName="Mini App preview link"
+          fieldValue={miniAppUrl}
+          className="rounded-lg border border-grey-200 p-2 !pr-2 hover:bg-grey-50"
+          iconClassName="size-4 text-grey-700"
+        />
+      </div>
+
+      <div className="px-6 pb-6">
+        {qrCodeDataUrl ? (
+          <Image
+            src={qrCodeDataUrl}
+            width={512}
+            height={512}
+            alt="Mini App preview QR code"
+            className="h-auto w-full"
+            unoptimized
+          />
+        ) : (
+          <div className="aspect-square w-full">
+            <Skeleton height="100%" containerClassName="block h-full" />
+          </div>
+        )}
+      </div>
     </div>
   );
 };
@@ -402,16 +383,6 @@ export const SetupForm = ({
     [setValue],
   );
 
-  const [domainDialog, setDomainDialog] = useState<{
-    open: boolean;
-    editingDomain: string | null;
-  }>({ open: false, editingDomain: null });
-
-  const closeDomainDialog = useCallback(
-    () => setDomainDialog({ open: false, editingDomain: null }),
-    [],
-  );
-
   // The mode toggle lives on the Configuration page now, so this page only
   // serves Mini Apps.
   if (appMetadata?.app_mode === "external") {
@@ -432,97 +403,52 @@ export const SetupForm = ({
   }
 
   return (
-    <>
-      <DomainDialog
-        open={domainDialog.open}
-        editingDomain={domainDialog.editingDomain}
-        existingDomains={domains}
-        onClose={closeDomainDialog}
-        onSave={(domain) => {
-          const next = domainDialog.editingDomain
-            ? domains.map((d) =>
-                d === domainDialog.editingDomain ? domain : d,
-              )
-            : [...domains, domain];
-          setListValue("associated_domains", next);
-        }}
-      />
+    <form
+      onSubmit={(event) => {
+        event.preventDefault();
+        void flushAll();
+      }}
+    >
+      <div className="flex flex-col gap-10 lg:flex-row lg:items-start lg:justify-between lg:gap-x-12 xl:gap-x-20">
+        <div className="grid w-full gap-y-5 lg:max-w-[720px]">
+          <div className="grid gap-y-2">
+            <Typography
+              as="h1"
+              className="font-world text-[26px] font-semibold leading-[120%] tracking-[-0.01em] text-[#191C20]"
+            >
+              Permissions
+            </Typography>
 
-      <form
-        onSubmit={(event) => {
-          event.preventDefault();
-          void flushAll();
-        }}
-      >
-        <div className="flex flex-col gap-10 lg:flex-row lg:items-start lg:justify-between lg:gap-x-12 xl:gap-x-20">
-          <div className="grid w-full gap-y-8 lg:max-w-[720px]">
-            <div className="grid gap-y-2">
-              <Typography
-                as="h1"
-                className="font-world text-[26px] font-semibold leading-[120%] tracking-[-0.01em] text-[#191C20]"
-              >
-                Permissions
-              </Typography>
+            <Typography
+              as="p"
+              className="font-world text-[15px] font-medium leading-[130%] text-grey-500"
+            >
+              Control which resources your Mini App can access.
+            </Typography>
+          </div>
 
-              <Typography
-                as="p"
-                className="font-world text-[15px] font-medium leading-[130%] text-grey-500"
-              >
-                Control which resources your Mini App can access.
-              </Typography>
-            </div>
+          <div className="border-t border-grey-100" />
 
-            <div className="border-t border-grey-100" />
-
-            <section className="grid gap-y-5">
+          <div className="grid">
+            <section className="grid gap-y-3 pb-4">
               <SectionHeader
                 title="Additional Domains"
-                description="Your Mini App can interact with these domains. All other domains are blocked. You do not need to specify subdomains."
                 tooltip="Additional Domains are the external websites your Mini App is allowed to open or make requests to from inside World App. Anything you don't list here is blocked, so add every domain your app needs to reach — you don't need to include subdomains, as they're covered automatically."
-                action={
-                  canEdit && (
-                    <DecoratedButton
-                      type="button"
-                      variant="secondary"
-                      className="h-10 whitespace-nowrap rounded-xl px-4 py-0 text-[13px] font-semibold"
-                      onClick={() =>
-                        setDomainDialog({ open: true, editingDomain: null })
-                      }
-                    >
-                      <PlusIcon className="size-4" />
-                      Add domain
-                    </DecoratedButton>
-                  )
-                }
               />
 
-              {domains.length === 0 ? (
-                <Typography
-                  variant={TYPOGRAPHY.R4}
-                  className="px-1 text-grey-400"
-                >
-                  No additional domains yet.
-                </Typography>
-              ) : (
-                <div className="grid gap-y-2">
-                  {domains.map((domain) => (
-                    <DomainRow
-                      key={domain}
-                      domain={domain}
-                      canEdit={canEdit}
-                      onEdit={() =>
-                        setDomainDialog({ open: true, editingDomain: domain })
-                      }
-                      onDelete={() =>
-                        setListValue(
-                          "associated_domains",
-                          domains.filter((d) => d !== domain),
-                        )
-                      }
-                    />
-                  ))}
-                </div>
-              )}
+              <EntryList
+                values={domains}
+                onChange={(next) => setListValue("associated_domains", next)}
+                placeholder="Paste domains, separated by commas"
+                disabled={!canEdit}
+                validate={isValidHttpsDomain}
+                normalize={normalizeDomainInput}
+                invalidMessage="Enter valid domains, e.g. example.com"
+                duplicateMessage="That domain has already been added."
+                copyFieldName="Domain"
+                emptyText="Which domains do you want to allow? Subdomains are allowed automatically."
+                allowCommaSeparated
+              />
 
               {errors.associated_domains?.message && (
                 <p className="px-1 font-world text-xs text-system-error-500">
@@ -531,29 +457,16 @@ export const SetupForm = ({
               )}
             </section>
 
-            <div className="border-t border-grey-100" />
-
-            <section className="grid gap-y-5">
+            <section className="grid gap-y-3 border-t border-grey-100 py-4">
               <SectionHeader title="Whitelisted Payment Addresses" />
 
               <div className="flex items-center justify-between gap-x-5">
-                <div className="grid gap-y-1">
-                  <Typography
-                    as="p"
-                    className="font-world text-[15px] font-medium leading-[120%] text-grey-900"
-                  >
-                    Enforce payment allowlist
-                  </Typography>
-
-                  <Typography
-                    as="p"
-                    className="font-world text-[13px] font-medium leading-[130%] text-grey-500"
-                  >
-                    {isWhitelistDisabled
-                      ? "Payment requests can be sent to any address."
-                      : "Payment requests to addresses outside the allowlist are rejected."}
-                  </Typography>
-                </div>
+                <Typography
+                  as="p"
+                  className="font-world text-[15px] font-medium leading-[120%] text-grey-900"
+                >
+                  Enforce payment allowlist
+                </Typography>
 
                 <Switcher
                   enabled={!isWhitelistDisabled}
@@ -572,7 +485,7 @@ export const SetupForm = ({
 
               {!isWhitelistDisabled && (
                 <>
-                  <AddressEntryList
+                  <EntryList
                     values={whitelist}
                     onChange={(next) => {
                       setListValue("whitelisted_addresses", next);
@@ -582,6 +495,11 @@ export const SetupForm = ({
                     }}
                     placeholder="Paste wallet address"
                     disabled={!canEdit}
+                    validate={isEthAddress}
+                    invalidMessage="Enter a valid Worldchain address (0x followed by 40 hex characters)."
+                    duplicateMessage="That address has already been added."
+                    copyFieldName="Address"
+                    formatDisplay={truncateAddress}
                     emptyText="No addresses yet. Add at least one address that can receive payments."
                   />
 
@@ -594,21 +512,23 @@ export const SetupForm = ({
               )}
             </section>
 
-            <div className="border-t border-grey-100" />
-
-            <section className="grid gap-y-5">
+            <section className="grid gap-y-3 border-t border-grey-100 py-4">
               <SectionHeader
                 title="Permit2 Tokens"
                 description="List all the tokens that you intend to use in your Mini App. Any other tokens will be blocked."
                 tooltip="Permit2 is Uniswap's shared approval contract that lets users authorize token spending with a single signature instead of a separate on-chain approval per token. List the ERC-20 tokens your Mini App will move through Permit2 — only these tokens can be used for payments or transfers, and any token not listed here is rejected."
               />
 
-              <AddressEntryList
+              <EntryList
                 values={tokens}
                 onChange={(next) => setListValue("permit2_tokens", next)}
                 placeholder="Paste token addresses, separated by commas"
                 disabled={!canEdit}
-                emptyText="No tokens yet."
+                validate={isEthAddress}
+                invalidMessage="Enter valid Worldchain token addresses (0x followed by 40 hex characters)."
+                duplicateMessage="That token has already been added."
+                copyFieldName="Token address"
+                formatDisplay={truncateAddress}
                 allowCommaSeparated
               />
 
@@ -619,21 +539,23 @@ export const SetupForm = ({
               )}
             </section>
 
-            <div className="border-t border-grey-100" />
-
-            <section className="grid gap-y-5">
+            <section className="grid gap-y-3 border-t border-grey-100 py-4">
               <SectionHeader
                 title="Contract Entrypoints"
                 description="List here contracts that you intend to call functions directly on."
                 tooltip="Contract Entrypoints are the smart contracts your Mini App is allowed to call functions on directly. List every contract address your app interacts with — calls to any contract not listed here are blocked, which keeps your app scoped to only the on-chain interactions you expect."
               />
 
-              <AddressEntryList
+              <EntryList
                 values={contractList}
                 onChange={(next) => setListValue("contracts", next)}
                 placeholder="Paste contract addresses, separated by commas"
                 disabled={!canEdit}
-                emptyText="No contracts yet."
+                validate={isEthAddress}
+                invalidMessage="Enter valid Worldchain contract addresses (0x followed by 40 hex characters)."
+                duplicateMessage="That contract has already been added."
+                copyFieldName="Contract address"
+                formatDisplay={truncateAddress}
                 allowCommaSeparated
               />
 
@@ -644,9 +566,7 @@ export const SetupForm = ({
               )}
             </section>
 
-            <div className="border-t border-grey-100" />
-
-            <section className="grid gap-y-5">
+            <section className="grid gap-y-3 border-t border-grey-100 pt-4">
               <SectionHeader
                 title="Notifications"
                 description="Select your desired maximum notifications per day."
@@ -715,33 +635,29 @@ export const SetupForm = ({
               />
             </section>
           </div>
-
-          <aside className="w-full shrink-0 lg:sticky lg:top-8 lg:w-[340px] xl:w-[380px]">
-            <MiniAppPreviewCard appId={appId} appMetadata={appMetadata} />
-          </aside>
         </div>
 
-        <div className="sticky bottom-[5.25rem] z-10 mt-10 md:bottom-6">
-          <div className="flex items-center justify-between gap-x-4 rounded-2xl border border-grey-200 bg-grey-0 px-5 py-3 shadow-button">
-            <div className="flex min-h-9 items-center">
-              <SaveStatusIndicator />
-            </div>
+        <aside className="w-full shrink-0 lg:sticky lg:top-8 lg:w-[340px] xl:w-[380px]">
+          <MiniAppPreviewCard appId={appId} appMetadata={appMetadata} />
+        </aside>
+      </div>
 
-            <DecoratedButton
-              type="button"
-              className="h-11 min-w-40 rounded-xl"
-              disabled={!canEdit || displayStatus.state === "saving"}
-              onClick={() => {
-                void flushAll();
-              }}
-            >
-              <Typography variant={TYPOGRAPHY.M3}>
-                {displayStatus.state === "saving" ? "Saving…" : "Save changes"}
-              </Typography>
-            </DecoratedButton>
-          </div>
-        </div>
-      </form>
-    </>
+      <div className="mt-8 flex items-center justify-end gap-x-3">
+        <SaveStatusIndicator />
+
+        <DecoratedButton
+          type="button"
+          className="h-11 min-w-40 rounded-xl"
+          disabled={!canEdit || displayStatus.state === "saving"}
+          onClick={() => {
+            void flushAll();
+          }}
+        >
+          <Typography variant={TYPOGRAPHY.M3}>
+            {displayStatus.state === "saving" ? "Saving…" : "Save changes"}
+          </Typography>
+        </DecoratedButton>
+      </div>
+    </form>
   );
 };

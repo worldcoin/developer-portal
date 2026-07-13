@@ -19,6 +19,29 @@ type NotificationFormData = {
   apiKey: string;
 };
 
+const NotificationsNotice = ({
+  title,
+  body,
+}: {
+  title: string;
+  body: string;
+}) => (
+  <div className="my-8 grid max-w-[1180px] gap-y-10">
+    <div className="grid grid-cols-auto/1fr items-start gap-x-3 rounded-[10px] bg-grey-50 p-4 sm:p-5">
+      <NotificationBellIcon className="size-8" aria-hidden="true" />
+
+      <div className="min-w-0 font-world text-[13px] leading-[120%] text-grey-900">
+        <Typography as="p" className="font-world text-[13px] font-semibold">
+          {title}
+        </Typography>
+        <Typography as="p" className="font-world text-[13px] font-medium">
+          {body}
+        </Typography>
+      </div>
+    </div>
+  </div>
+);
+
 export const NotificationsPage = () => {
   const params = useParams<{ teamId: string; appId: string }>();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -38,14 +61,17 @@ export const NotificationsPage = () => {
     (appData?.app_metadata.length ?? 0) > 0 &&
     (appData?.verified_app_metadata.length ?? 0) > 0;
 
-  const isExternalApp = [
-    appData?.verified_app_metadata[0],
-    appData?.app_metadata[0],
-  ].some(
-    (meta) =>
-      meta?.app_mode === "external" ||
-      meta?.category?.toLowerCase() === "external",
-  );
+  const verifiedMeta = appData?.verified_app_metadata[0];
+  const activeMeta = verifiedMeta ?? appData?.app_metadata[0];
+
+  // `category` may be the "External" app-store category even for a Mini App, so
+  // the external check must look at app_mode only — never the category.
+  const isExternalApp = activeMeta?.app_mode === "external";
+
+  // Notifications reach real users of the approved app, so they require a
+  // verified Mini App. A draft/unverified app has no published presence yet.
+  const hasVerifiedMiniApp =
+    Boolean(verifiedMeta) && verifiedMeta?.app_mode !== "external";
 
   const {
     register,
@@ -208,20 +234,19 @@ export const NotificationsPage = () => {
 
   if (isExternalApp) {
     return (
-      <div className="my-8 grid max-w-[1180px] gap-y-10">
-        <div className="grid grid-cols-auto/1fr items-start gap-x-3 rounded-[10px] bg-grey-50 p-4 sm:p-5">
-          <NotificationBellIcon className="size-8" aria-hidden="true" />
+      <NotificationsNotice
+        title="Notifications unavailable"
+        body="Notifications aren't available for external apps."
+      />
+    );
+  }
 
-          <div className="min-w-0 font-world text-[13px] leading-[120%] text-grey-900">
-            <Typography as="p" className="font-world text-[13px] font-semibold">
-              Notifications unavailable
-            </Typography>
-            <Typography as="p" className="font-world text-[13px] font-medium">
-              Notifications aren't available for external apps.
-            </Typography>
-          </div>
-        </div>
-      </div>
+  if (!hasVerifiedMiniApp) {
+    return (
+      <NotificationsNotice
+        title="Verify your Mini App first"
+        body="You need a verified Mini App before you can send notifications. Submit your Mini App for review and get it approved first."
+      />
     );
   }
 

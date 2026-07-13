@@ -1,13 +1,18 @@
 /** @jest-environment jsdom */
 
 import "@testing-library/jest-dom";
-import { AddressEntryList } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/MiniApp/PermissionsForm/AddressEntryList";
+import { EntryList } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/MiniApp/PermissionsForm/EntryList";
 import { normalizeDomainInput } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/MiniApp/PermissionsForm/domain-utils";
 import { fireEvent, render, screen } from "@testing-library/react";
 
 // #region Test Data
 const addressA = "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
 const addressB = "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";
+
+const ETH_ADDRESS_REGEX = /^0x[a-fA-F0-9]{40}$/;
+const INVALID_MESSAGE =
+  "Enter a valid Worldchain address (0x followed by 40 hex characters).";
+const DUPLICATE_MESSAGE = "That address has already been added.";
 
 const renderAddressEntryList = (props?: {
   values?: string[];
@@ -16,11 +21,15 @@ const renderAddressEntryList = (props?: {
   const onChange = jest.fn();
 
   render(
-    <AddressEntryList
+    <EntryList
       values={props?.values ?? []}
       onChange={onChange}
       placeholder="Paste addresses"
       disabled={false}
+      validate={(value) => ETH_ADDRESS_REGEX.test(value)}
+      invalidMessage={INVALID_MESSAGE}
+      duplicateMessage={DUPLICATE_MESSAGE}
+      copyFieldName="Address"
       emptyText="No addresses yet."
       allowCommaSeparated={props?.allowCommaSeparated}
     />,
@@ -79,9 +88,7 @@ describe("Mini App permissions address entry", () => {
     fireEvent.click(screen.getByRole("button", { name: "Add" }));
 
     expect(onChange).not.toHaveBeenCalled();
-    expect(
-      screen.getByText(/Enter valid Worldchain addresses separated by commas/),
-    ).toBeInTheDocument();
+    expect(screen.getByText(INVALID_MESSAGE)).toBeInTheDocument();
   });
 
   it("rejects duplicate addresses within a batch", () => {
@@ -97,11 +104,7 @@ describe("Mini App permissions address entry", () => {
     fireEvent.click(screen.getByRole("button", { name: "Add" }));
 
     expect(onChange).not.toHaveBeenCalled();
-    expect(
-      screen.getByText(
-        "Remove duplicate or previously added addresses before adding.",
-      ),
-    ).toBeInTheDocument();
+    expect(screen.getByText(DUPLICATE_MESSAGE)).toBeInTheDocument();
   });
 
   it("keeps comma-separated input disabled by default", () => {
@@ -113,11 +116,7 @@ describe("Mini App permissions address entry", () => {
     fireEvent.click(screen.getByRole("button", { name: "Add" }));
 
     expect(onChange).not.toHaveBeenCalled();
-    expect(
-      screen.getByText(
-        "Enter a valid Worldchain address (0x followed by 40 hex characters).",
-      ),
-    ).toBeInTheDocument();
+    expect(screen.getByText(INVALID_MESSAGE)).toBeInTheDocument();
   });
 });
 // #endregion
