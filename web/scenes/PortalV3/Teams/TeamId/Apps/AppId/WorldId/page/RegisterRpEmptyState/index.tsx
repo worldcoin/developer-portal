@@ -14,9 +14,6 @@ import { useEffect, useState } from "react";
 export const RegisterRpEmptyState = (props: {
   appId: string;
   initialOpen?: boolean;
-  // The register_rp Hasura action rejects non-OWNER/ADMIN callers with
-  // `unauthorized`, so members get an explanation instead of a dead-end CTA.
-  canRegisterRp: boolean;
   // The backend rejects staging registration with `staging_not_supported`, so
   // the Enable CTA would be a guaranteed dead-end for staging apps.
   isStaging: boolean;
@@ -28,12 +25,12 @@ export const RegisterRpEmptyState = (props: {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const canEnable = props.canRegisterRp && !props.isStaging;
+  // Staging apps can't register an RP (the backend rejects them), so the enable
+  // flow is suppressed for them; everyone else can open it and the register_rp
+  // action enforces owner/admin server-side.
+  const canEnable = !props.isStaging;
   const [open, setOpen] = useState(Boolean(props.initialOpen) && canEnable);
 
-  // Auto-open only for users who can actually register (mirrors the old
-  // migration banner's gating). The effect covers the Auth0 user resolving
-  // after mount, which flips `canRegisterRp`.
   useEffect(() => {
     if (props.initialOpen && canEnable) setOpen(true);
   }, [props.initialOpen, canEnable]);
@@ -74,10 +71,6 @@ export const RegisterRpEmptyState = (props: {
         >
           Enable World ID 4.0
         </DecoratedButton>
-      ) : !props.isStaging ? (
-        <Typography variant={TYPOGRAPHY.R4} className="text-grey-400">
-          Ask a team owner or admin to enable World ID 4.0
-        </Typography>
       ) : null}
 
       {props.legacyActionsHref ? (
