@@ -15,7 +15,7 @@ import { banMessageDialogOpenedAtom } from "@/scenes/common/Teams/TeamId/Apps/co
 import { useGetWorldIdAppTrendQuery } from "@/scenes/common/Teams/TeamId/Apps/AppId/WorldId/graphql/client/get-world-id-trends.generated";
 import { useGetWorldIdOverviewQuery } from "@/scenes/common/Teams/TeamId/Apps/AppId/WorldId/page/graphql/client/get-world-id-overview.generated";
 import { useAtom } from "jotai";
-import { useEffect, useState } from "react";
+import { type ReactNode, useEffect, useState } from "react";
 import Skeleton from "react-loading-skeleton";
 import { ActionsGrid } from "./ActionsGrid";
 import { HeroCard } from "./HeroCard";
@@ -54,9 +54,13 @@ export const WorldIdPage = (props: {
 }) => {
   const teamId = props.params.teamId ?? "";
   const appId = props.params.appId ?? "";
+  const enableWorldId4Requested = props.searchParams.enableWorldId4 === "true";
+  const createActionRequested = props.searchParams.createAction === "true";
 
   const [tab, setTab] = useState<WorldIdTab>(
-    props.searchParams.tab === "world-id-4-0" ? "world-id-4-0" : "actions",
+    props.searchParams.tab === "world-id-4-0" || enableWorldId4Requested
+      ? "world-id-4-0"
+      : "actions",
   );
   const [search, setSearch] = useState("");
   const [timePeriod, setTimePeriod] = useState<TrendPeriod>("weekly");
@@ -73,10 +77,27 @@ export const WorldIdPage = (props: {
     skip: !appId,
   });
 
-  const fetchedRpCreatedAt = data?.app?.[0]?.rp_registration?.[0]?.created_at;
+  const app = data?.app?.[0];
+  const rp = app?.rp_registration?.[0];
+  const hasResolvedApp = Boolean(app);
+  const hasRpRegistration = Boolean(rp);
+  const fetchedRpCreatedAt = rp?.created_at;
   useEffect(() => {
     if (fetchedRpCreatedAt) setRpCreatedAt(fetchedRpCreatedAt as string);
   }, [fetchedRpCreatedAt]);
+
+  // A create-action deep link cannot open the action dialog until the app has
+  // an RP. Send RP-less apps to the same setup pane as the in-page + card.
+  useEffect(() => {
+    if (
+      !loading &&
+      hasResolvedApp &&
+      !hasRpRegistration &&
+      createActionRequested
+    ) {
+      setTab("world-id-4-0");
+    }
+  }, [createActionRequested, hasResolvedApp, hasRpRegistration, loading]);
 
   const {
     data: appTrendData,
@@ -114,8 +135,6 @@ export const WorldIdPage = (props: {
     );
   }
 
-  const app = data?.app?.[0];
-
   if (!app) {
     return (
       <SizingWrapper className="py-8">
@@ -124,28 +143,11 @@ export const WorldIdPage = (props: {
     );
   }
 
-  const rp = app.rp_registration?.[0];
   const name = app.app_metadata?.[0]?.name ?? "Untitled app";
   const hasLegacyActions = (data?.action?.length ?? 0) > 0;
   const legacyActionsHref = hasLegacyActions
     ? urls.actions({ team_id: teamId, app_id: appId })
     : undefined;
-  // No RP registration yet → nudge into the existing enable-World-ID-4.0 flow.
-  if (!rp) {
-    return (
-      <SizingWrapper className="flex flex-col gap-8 py-8">
-        {app.is_banned ? <BanBanner /> : null}
-
-        <RegisterRpEmptyState
-          appId={appId}
-          initialOpen={props.searchParams.enableWorldId4 === "true"}
-          isStaging={app.is_staging}
-          onRegistered={refetchOverview}
-          legacyActionsHref={legacyActionsHref}
-        />
-      </SizingWrapper>
-    );
-  }
 
   const actionItems = (data?.action_v4 ?? []).map((action) => ({
     id: action.id,
@@ -177,6 +179,47 @@ export const WorldIdPage = (props: {
   );
   const week = weeklyHeroPoints.reduce((sum, count) => sum + count, 0);
 
+  let tabContent: ReactNode;
+  if (tab === "actions") {
+    tabContent = (
+      <ActionsGrid
+        actions={actionItems}
+        teamId={teamId}
+        appId={appId}
+        search={search}
+        initialDialogOpen={hasRpRegistration && createActionRequested}
+        onCreateActionRequested={
+          hasRpRegistration ? undefined : () => setTab("world-id-4-0")
+        }
+        onActionsChanged={refetchOverview}
+      />
+    );
+  } else if (rp) {
+    tabContent = (
+      <WorldId40Pane
+        appId={appId}
+        rpId={rp.rp_id}
+        initialStatus={(rp.status as RpStatus) ?? "pending"}
+        initialStagingStatus={
+          rp.staging_status == null ? null : (rp.staging_status as RpStatus)
+        }
+        mode={rp.mode as string}
+        createdAt={rp.created_at}
+        onRpChanged={refetchOverview}
+      />
+    );
+  } else {
+    tabContent = (
+      <RegisterRpEmptyState
+        appId={appId}
+        initialOpen={enableWorldId4Requested}
+        isStaging={app.is_staging}
+        onRegistered={refetchOverview}
+        legacyActionsHref={legacyActionsHref}
+      />
+    );
+  }
+
   return (
     <SizingWrapper className="flex flex-col gap-8 py-8">
       {app.is_banned ? <BanBanner /> : null}
@@ -200,29 +243,7 @@ export const WorldIdPage = (props: {
           search={search}
           onSearchChange={setSearch}
         />
-
-        {tab === "actions" ? (
-          <ActionsGrid
-            actions={actionItems}
-            teamId={teamId}
-            appId={appId}
-            search={search}
-            initialDialogOpen={props.searchParams.createAction === "true"}
-            onActionsChanged={refetchOverview}
-          />
-        ) : (
-          <WorldId40Pane
-            appId={appId}
-            rpId={rp.rp_id}
-            initialStatus={(rp.status as RpStatus) ?? "pending"}
-            initialStagingStatus={
-              rp.staging_status == null ? null : (rp.staging_status as RpStatus)
-            }
-            mode={rp.mode as string}
-            createdAt={rp.created_at}
-            onRpChanged={refetchOverview}
-          />
-        )}
+        {tabContent}
       </div>
     </SizingWrapper>
   );

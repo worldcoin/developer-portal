@@ -10,6 +10,7 @@ export const ActionsGrid = (props: {
   appId: string;
   search: string;
   initialDialogOpen?: boolean;
+  onCreateActionRequested?: () => void;
   onActionsChanged: () => void;
 }) => {
   const [dialogOpen, setDialogOpen] = useState(
@@ -28,6 +29,15 @@ export const ActionsGrid = (props: {
     }
   };
 
+  const handleCreateAction = () => {
+    if (props.onCreateActionRequested) {
+      props.onCreateActionRequested();
+      return;
+    }
+
+    setDialogOpen(true);
+  };
+
   return (
     <>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -42,7 +52,7 @@ export const ActionsGrid = (props: {
 
         <button
           type="button"
-          onClick={() => setDialogOpen(true)}
+          onClick={handleCreateAction}
           className="flex min-h-[220px] flex-col items-center justify-center gap-3 rounded-[10px] border border-dashed border-portal-border text-portal-muted transition-colors hover:border-portal-ink hover:text-portal-ink"
           aria-label="Create action"
         >
