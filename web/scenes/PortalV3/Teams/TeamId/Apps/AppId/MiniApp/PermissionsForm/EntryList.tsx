@@ -1,6 +1,7 @@
 "use client";
 
 import { CopyButton } from "@/components/CopyButton";
+import { CaretIcon } from "@/components/Icons/CaretIcon";
 import { CloseIcon } from "@/components/Icons/CloseIcon";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import clsx from "clsx";
@@ -21,6 +22,56 @@ type EntryListProps = {
   /** Omit to render nothing when the list is empty. */
   emptyText?: string;
   allowCommaSeparated?: boolean;
+  /** Number of entries shown before the inline disclosure. */
+  maxVisibleRows?: number;
+};
+
+const REVEAL_BATCH_SIZE = 10;
+
+type EntryRowProps = {
+  value: string;
+  disabled: boolean;
+  copyFieldName: string;
+  formatDisplay: (value: string) => string;
+  onRemove: () => void;
+  testId: string;
+};
+
+const EntryRow = (props: EntryRowProps) => {
+  const { value, disabled, copyFieldName, formatDisplay, onRemove, testId } =
+    props;
+
+  return (
+    <div
+      className="flex h-11 items-center gap-x-3 rounded-xl border border-grey-100 bg-grey-0 pl-4 pr-2"
+      data-testid={testId}
+    >
+      <span
+        className="min-w-0 flex-1 truncate font-world text-[15px] text-grey-900"
+        title={value}
+      >
+        {formatDisplay(value)}
+      </span>
+
+      <CopyButton
+        fieldName={copyFieldName}
+        fieldValue={value}
+        className="rounded-lg p-2 !pr-2 hover:bg-grey-100"
+        iconClassName="size-4 text-grey-500"
+      />
+
+      {!disabled && (
+        <button
+          type="button"
+          onClick={onRemove}
+          aria-label={`Remove ${value}`}
+          className="flex size-8 shrink-0 items-center justify-center rounded-lg text-grey-500 hover:bg-grey-100 hover:text-grey-900"
+        >
+          <CloseIcon className="size-3.5" strokeWidth={1.5} />
+        </button>
+      )}
+    </div>
+  );
 };
 
 export const EntryList = (props: EntryListProps) => {
@@ -37,14 +88,31 @@ export const EntryList = (props: EntryListProps) => {
     normalize = (value) => value,
     emptyText,
     allowCommaSeparated = false,
+    maxVisibleRows = 2,
   } = props;
   const [draft, setDraft] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [revealedCount, setRevealedCount] = useState(0);
+
+  const visibleRowLimit = Math.max(1, maxVisibleRows);
+  const visibleValues = values.slice(0, visibleRowLimit + revealedCount);
+  const remainingCount = values.length - visibleValues.length;
+  const nextRevealCount = Math.min(REVEAL_BATCH_SIZE, remainingCount);
+  const isExpanded = revealedCount > 0 && values.length > visibleRowLimit;
+
+  const remove = (value: string) => {
+    const nextValues = values.filter((entry) => entry !== value);
+    const nextOverflowCount = Math.max(0, nextValues.length - visibleRowLimit);
+
+    setRevealedCount((count) => Math.min(count, nextOverflowCount));
+    onChange(nextValues);
+  };
 
   const add = () => {
     const entries = (allowCommaSeparated ? draft.split(",") : [draft])
-      .map((entry) => normalize(entry.trim()))
-      .filter(Boolean);
+      .map((entry) => entry.trim())
+      .filter(Boolean)
+      .map(normalize);
     if (entries.length === 0) return;
 
     if (entries.some((entry) => !validate(entry))) {
@@ -119,37 +187,58 @@ export const EntryList = (props: EntryListProps) => {
 
       {values.length > 0 ? (
         <div className="grid gap-y-2">
-          {values.map((value) => (
-            <div
+          {visibleValues.map((value) => (
+            <EntryRow
               key={value}
-              className="flex h-11 items-center gap-x-3 rounded-xl border border-grey-100 pl-4 pr-2"
-            >
-              <span
-                className="min-w-0 flex-1 truncate font-world text-[15px] text-grey-900"
-                title={value}
-              >
-                {formatDisplay(value)}
-              </span>
+              value={value}
+              disabled={disabled}
+              copyFieldName={copyFieldName}
+              formatDisplay={formatDisplay}
+              onRemove={() => remove(value)}
+              testId="entry-list-visible-row"
+            />
+          ))}
 
-              <CopyButton
-                fieldName={copyFieldName}
-                fieldValue={value}
-                className="rounded-lg p-2 !pr-2 hover:bg-grey-100"
-                iconClassName="size-4 text-grey-500"
-              />
-
-              {!disabled && (
+          {(remainingCount > 0 || isExpanded) && (
+            <div className="flex h-11 overflow-hidden rounded-xl border border-grey-100 bg-grey-0 text-grey-700">
+              {remainingCount > 0 && (
                 <button
                   type="button"
-                  onClick={() => onChange(values.filter((v) => v !== value))}
-                  aria-label={`Remove ${value}`}
-                  className="flex size-8 shrink-0 items-center justify-center rounded-lg text-grey-500 hover:bg-grey-100 hover:text-grey-900"
+                  onClick={() =>
+                    setRevealedCount((count) => count + nextRevealCount)
+                  }
+                  aria-expanded={isExpanded}
+                  aria-label={`Show ${nextRevealCount} more ${copyFieldName.toLowerCase()} entries`}
+                  className="flex min-w-0 flex-1 items-center justify-between gap-x-3 px-4 text-left transition-colors hover:bg-grey-50"
                 >
-                  <CloseIcon className="size-3.5" strokeWidth={1.5} />
+                  <span className="font-world text-[14px] font-medium">
+                    Show {nextRevealCount} more
+                  </span>
+                  <CaretIcon className="size-4 shrink-0" />
+                </button>
+              )}
+
+              {isExpanded && (
+                <button
+                  type="button"
+                  onClick={() => setRevealedCount(0)}
+                  aria-expanded="true"
+                  aria-label={`Show fewer ${copyFieldName.toLowerCase()} entries`}
+                  className={clsx(
+                    "flex min-w-0 items-center justify-between gap-x-3 px-4 text-left transition-colors hover:bg-grey-50",
+                    remainingCount > 0
+                      ? "flex-1 border-l border-grey-100"
+                      : "w-full",
+                  )}
+                >
+                  <span className="font-world text-[14px] font-medium">
+                    Show less
+                  </span>
+                  <CaretIcon className="size-4 shrink-0 rotate-180" />
                 </button>
               )}
             </div>
-          ))}
+          )}
         </div>
       ) : emptyText ? (
         <Typography variant={TYPOGRAPHY.R4} className="px-1 text-grey-400">

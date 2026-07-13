@@ -642,7 +642,7 @@ export const SetupForm = ({
         </aside>
       </div>
 
-      <div className="mt-8 flex items-center justify-end gap-x-3">
+      <div className="sticky bottom-0 z-10 mt-8 flex items-center justify-end gap-x-3 bg-grey-0 py-4">
         <SaveStatusIndicator />
 
         <DecoratedButton

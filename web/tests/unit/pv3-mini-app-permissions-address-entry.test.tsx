@@ -8,6 +8,8 @@ import { fireEvent, render, screen } from "@testing-library/react";
 // #region Test Data
 const addressA = "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
 const addressB = "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";
+const makeAddress = (value: number) =>
+  `0x${value.toString(16).padStart(40, "0")}`;
 
 const ETH_ADDRESS_REGEX = /^0x[a-fA-F0-9]{40}$/;
 const INVALID_MESSAGE =
@@ -17,6 +19,8 @@ const DUPLICATE_MESSAGE = "That address has already been added.";
 const renderAddressEntryList = (props?: {
   values?: string[];
   allowCommaSeparated?: boolean;
+  normalize?: (value: string) => string;
+  validate?: (value: string) => boolean;
 }) => {
   const onChange = jest.fn();
 
@@ -26,12 +30,13 @@ const renderAddressEntryList = (props?: {
       onChange={onChange}
       placeholder="Paste addresses"
       disabled={false}
-      validate={(value) => ETH_ADDRESS_REGEX.test(value)}
+      validate={props?.validate ?? ((value) => ETH_ADDRESS_REGEX.test(value))}
       invalidMessage={INVALID_MESSAGE}
       duplicateMessage={DUPLICATE_MESSAGE}
       copyFieldName="Address"
       emptyText="No addresses yet."
       allowCommaSeparated={props?.allowCommaSeparated}
+      normalize={props?.normalize}
     />,
   );
 
@@ -51,11 +56,83 @@ describe("Mini App permissions domain entry", () => {
       "https://example.com",
     );
   });
+
+  it("drops empty comma segments before normalizing a domain batch", () => {
+    const { onChange } = renderAddressEntryList({
+      allowCommaSeparated: true,
+      normalize: normalizeDomainInput,
+      validate: (value) => /^https:\/\//.test(value),
+    });
+
+    fireEvent.change(screen.getByPlaceholderText("Paste addresses"), {
+      target: { value: "example.com,," },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Add" }));
+
+    expect(onChange).toHaveBeenCalledWith(["https://example.com"]);
+  });
 });
 // #endregion
 
 // #region Comma-separated address entry
 describe("Mini App permissions address entry", () => {
+  it("shows two entries and expands additional entries inline", () => {
+    renderAddressEntryList({
+      values: [addressA, addressB, makeAddress(3)],
+    });
+
+    expect(screen.getAllByTestId("entry-list-visible-row")).toHaveLength(2);
+    const moreButton = screen.getByRole("button", {
+      name: "Show 1 more address entries",
+    });
+
+    fireEvent.click(moreButton);
+
+    expect(screen.getAllByTestId("entry-list-visible-row")).toHaveLength(3);
+    expect(
+      screen.getByRole("button", { name: "Show fewer address entries" }),
+    ).toHaveTextContent("Show less");
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Show fewer address entries" }),
+    );
+
+    expect(screen.getAllByTestId("entry-list-visible-row")).toHaveLength(2);
+  });
+
+  it("shows two entries directly when the list does not overflow", () => {
+    renderAddressEntryList({ values: [addressA, addressB] });
+
+    expect(screen.getAllByTestId("entry-list-visible-row")).toHaveLength(2);
+    expect(
+      screen.queryByRole("button", { name: /more address entries/ }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("reveals very large lists in batches of ten", () => {
+    renderAddressEntryList({
+      values: Array.from({ length: 13 }, (_, index) => makeAddress(index + 1)),
+    });
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Show 10 more address entries" }),
+    );
+
+    expect(screen.getAllByTestId("entry-list-visible-row")).toHaveLength(12);
+    expect(
+      screen.getByRole("button", { name: "Show 1 more address entries" }),
+    ).toBeInTheDocument();
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Show 1 more address entries" }),
+    );
+
+    expect(screen.getAllByTestId("entry-list-visible-row")).toHaveLength(13);
+    expect(
+      screen.queryByRole("button", { name: /Show \d+ more address entries/ }),
+    ).not.toBeInTheDocument();
+  });
+
   it("adds each comma-separated address as a separate list value", () => {
     const { onChange } = renderAddressEntryList({
       values: [addressA],

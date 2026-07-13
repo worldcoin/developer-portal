@@ -8,6 +8,7 @@ import posthog from "posthog-js";
 import { ChangeEvent, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
+import { FormSkeleton } from "../../Configuration/PageComponents/FormSkeleton";
 import { VersionSwitcher } from "../../Configuration/AppTopBar/VersionSwitcher";
 import { useFetchNotificationAppMetadataQuery } from "@/scenes/common/Teams/TeamId/Apps/AppId/MiniApp/Notifications/graphql/client/fetch-notification-app-metadata.generated";
 
@@ -50,28 +51,24 @@ export const NotificationsPage = () => {
   );
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const { data: appMetadataData } = useFetchNotificationAppMetadataQuery({
-    variables: { id: params?.appId ?? "" },
-    skip: !params?.appId,
-  });
+  const { data: appMetadataData, loading } =
+    useFetchNotificationAppMetadataQuery({
+      variables: { id: params?.appId ?? "" },
+      skip: !params?.appId,
+    });
 
   const appData = appMetadataData?.app[0];
-  const draftId = appData?.app_metadata[0]?.id;
-  const hasBothVersions =
-    (appData?.app_metadata.length ?? 0) > 0 &&
-    (appData?.verified_app_metadata.length ?? 0) > 0;
-
+  const draftMeta = appData?.app_metadata[0];
   const verifiedMeta = appData?.verified_app_metadata[0];
-  const activeMeta = verifiedMeta ?? appData?.app_metadata[0];
+  const hasBothVersions = Boolean(draftMeta && verifiedMeta);
+  const effectiveViewMode =
+    draftMeta && (!verifiedMeta || viewMode === "unverified")
+      ? "unverified"
+      : "verified";
 
   // `category` may be the "External" app-store category even for a Mini App, so
   // the external check must look at app_mode only — never the category.
-  const isExternalApp = activeMeta?.app_mode === "external";
-
-  // Notifications reach real users of the approved app, so they require a
-  // verified Mini App. A draft/unverified app has no published presence yet.
-  const hasVerifiedMiniApp =
-    Boolean(verifiedMeta) && verifiedMeta?.app_mode !== "external";
+  const isExternalApp = (verifiedMeta ?? draftMeta)?.app_mode === "external";
 
   const {
     register,
@@ -186,7 +183,9 @@ export const NotificationsPage = () => {
         title: data.title || undefined,
         message: data.message,
         mini_app_path: data.miniAppPath,
-        ...(viewMode === "unverified" && draftId ? { draft_id: draftId } : {}),
+        ...(effectiveViewMode === "unverified" && draftMeta?.id
+          ? { draft_id: draftMeta.id }
+          : {}),
       };
 
       const response = await fetch("/api/v2/minikit/send-notification", {
@@ -232,20 +231,19 @@ export const NotificationsPage = () => {
       ?.split(",")
       .filter((address) => address.trim().length > 0).length ?? 0;
 
+  if (loading) {
+    return (
+      <div className="my-8 max-w-[1180px]">
+        <FormSkeleton count={5} />
+      </div>
+    );
+  }
+
   if (isExternalApp) {
     return (
       <NotificationsNotice
         title="Notifications unavailable"
         body="Notifications aren't available for external apps."
-      />
-    );
-  }
-
-  if (!hasVerifiedMiniApp) {
-    return (
-      <NotificationsNotice
-        title="Verify your Mini App first"
-        body="You need a verified Mini App before you can send notifications. Submit your Mini App for review and get it approved first."
       />
     );
   }
