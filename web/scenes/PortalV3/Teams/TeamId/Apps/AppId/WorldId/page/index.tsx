@@ -178,7 +178,10 @@ export const WorldIdPage = (props: {
   // Hero totals are summed client-side from the per-action aggregates: the
   // per-action counts use the same filters an app-level aggregate would, and
   // every nullifier row belongs to exactly one action.
-  const total = actionItems.reduce((sum, action) => sum + action.total, 0);
+  const uniqueVerifications = actionItems.reduce(
+    (sum, action) => sum + action.total,
+    0,
+  );
   const week = weeklyHeroPoints.reduce((sum, count) => sum + count, 0);
 
   return (
@@ -188,7 +191,7 @@ export const WorldIdPage = (props: {
       <HeroCard
         name={name}
         appId={appId}
-        unique={total}
+        uniqueVerifications={uniqueVerifications}
         week={week}
         timePeriod={timePeriod}
         onTimePeriodChange={setTimePeriod}
