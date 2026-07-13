@@ -45,6 +45,7 @@ export type AdminUser = {
  */
 export type AdminAuthProvider = {
   name: AdminAuthProviderName;
+  hasAuthenticationEvidence: (requestHeaders: Headers) => Promise<boolean>;
   /**
    * Returns an authenticated principal with its dashboard access level, or
    * null when the request is unauthenticated. A null access level means the

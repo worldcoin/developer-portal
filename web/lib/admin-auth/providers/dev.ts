@@ -16,6 +16,20 @@ const DEBUG_USER_HEADER = "x-admin-auth-debug-user";
 export const devAdminAuthProvider: AdminAuthProvider = {
   name: "dev",
 
+  hasAuthenticationEvidence: async (
+    requestHeaders: Headers,
+  ): Promise<boolean> => {
+    if (process.env.NODE_ENV === "production") {
+      return false;
+    }
+
+    const email =
+      requestHeaders.get(DEBUG_USER_HEADER) ?? process.env.ADMIN_AUTH_DEV_EMAIL;
+    const accessLevel = process.env.ADMIN_AUTH_DEV_ACCESS_LEVEL;
+
+    return Boolean(email && accessLevel && isDashboardAccessLevel(accessLevel));
+  },
+
   authenticate: async (
     requestHeaders: Headers,
   ): Promise<AdminAuthResult | null> => {

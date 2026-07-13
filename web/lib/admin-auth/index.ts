@@ -14,9 +14,9 @@ import {
 
 export { AdminHasuraRole, DashboardAccessLevel } from "./types";
 export type {
-  AdminAuthResult,
   AdminAuthProvider,
   AdminAuthProviderName,
+  AdminAuthResult,
   AdminUser,
 } from "./types";
 
@@ -44,6 +44,15 @@ export const resolveAdminAuthProvider = (): AdminAuthProvider | null => {
   }
 
   return provider;
+};
+
+export const hasAdminAuthenticationEvidence = (
+  requestHeaders: Headers,
+): Promise<boolean> => {
+  return (
+    resolveAdminAuthProvider()?.hasAuthenticationEvidence(requestHeaders) ??
+    Promise.resolve(false)
+  );
 };
 
 const roleByAccessLevel = {

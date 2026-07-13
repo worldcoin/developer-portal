@@ -1,9 +1,9 @@
 import { logger } from "@/lib/logger";
-import { createRemoteJWKSet, jwtVerify } from "jose";
+import { createRemoteJWKSet, jwtVerify, type JWTPayload } from "jose";
 import "server-only";
 import {
-  AdminAuthResult,
   AdminAuthProvider,
+  AdminAuthResult,
   DashboardAccessLevel,
   isDashboardAccessLevel,
 } from "../types";
@@ -202,8 +202,75 @@ const fetchIdentityGroups = async (
   }
 };
 
+type CloudflareAccessConfig = {
+  audience: string;
+  teamDomain: string;
+};
+
+type VerifiedCloudflareAccessToken = {
+  payload: JWTPayload;
+  teamDomain: string;
+  token: string;
+};
+
+const getCloudflareAccessConfig = (
+  logConfigurationError: boolean,
+): CloudflareAccessConfig | null => {
+  const teamDomain = process.env.CF_ACCESS_TEAM_DOMAIN;
+  const audience = process.env.CF_ACCESS_AUD;
+
+  if (!teamDomain || !audience) {
+    if (logConfigurationError) {
+      logger.error(
+        "cloudflare-access admin auth provider is selected but CF_ACCESS_TEAM_DOMAIN or CF_ACCESS_AUD is not configured",
+      );
+    }
+    return null;
+  }
+
+  return { audience, teamDomain };
+};
+
+const verifyCloudflareAccessToken = async (
+  requestHeaders: Headers,
+  logValidationError: boolean,
+): Promise<VerifiedCloudflareAccessToken | null> => {
+  const config = getCloudflareAccessConfig(logValidationError);
+  const token = requestHeaders.get(ASSERTION_HEADER);
+
+  if (!config || !token) {
+    return null;
+  }
+
+  try {
+    const { payload } = await jwtVerify(token, getJwks(config.teamDomain), {
+      issuer: config.teamDomain,
+      audience: config.audience,
+      algorithms: ["RS256"],
+    });
+
+    return { payload, teamDomain: config.teamDomain, token };
+  } catch (error) {
+    if (logValidationError) {
+      logger.warn(
+        "Cloudflare Access JWT verification failed",
+        describeJwtVerifyError(error),
+      );
+    }
+    return null;
+  }
+};
+
 export const cloudflareAccessAdminAuthProvider: AdminAuthProvider = {
   name: "cloudflare-access",
+
+  // The proxy validates the assertion's signature, issuer, audience, and
+  // algorithm, but only authenticate() resolves groups and authorizes access.
+  hasAuthenticationEvidence: async (
+    requestHeaders: Headers,
+  ): Promise<boolean> => {
+    return Boolean(await verifyCloudflareAccessToken(requestHeaders, false));
+  },
 
   // Never trust identity headers (e.g. cf-access-authenticated-user-email)
   // on their own — only a verified JWT proves the request went through the
@@ -211,51 +278,30 @@ export const cloudflareAccessAdminAuthProvider: AdminAuthProvider = {
   authenticate: async (
     requestHeaders: Headers,
   ): Promise<AdminAuthResult | null> => {
-    const teamDomain = process.env.CF_ACCESS_TEAM_DOMAIN;
-    const audience = process.env.CF_ACCESS_AUD;
-    const token = requestHeaders.get(ASSERTION_HEADER);
+    const verifiedToken = await verifyCloudflareAccessToken(
+      requestHeaders,
+      true,
+    );
 
-    if (!teamDomain || !audience) {
-      logger.error(
-        "cloudflare-access admin auth provider is selected but CF_ACCESS_TEAM_DOMAIN or CF_ACCESS_AUD is not configured",
-      );
+    if (
+      !verifiedToken ||
+      typeof verifiedToken.payload.email !== "string" ||
+      typeof verifiedToken.payload.sub !== "string"
+    ) {
       return null;
     }
 
-    if (!token) {
-      return null;
-    }
+    const groups =
+      (await fetchIdentityGroups(
+        verifiedToken.teamDomain,
+        verifiedToken.token,
+      )) ?? parseTokenGroups(verifiedToken.payload);
+    const accessLevel = resolveCloudflareAccessLevel(groups);
 
-    try {
-      const { payload } = await jwtVerify(token, getJwks(teamDomain), {
-        issuer: teamDomain,
-        audience,
-        algorithms: ["RS256"],
-      });
-
-      if (
-        typeof payload.email !== "string" ||
-        typeof payload.sub !== "string"
-      ) {
-        return null;
-      }
-
-      const groups =
-        (await fetchIdentityGroups(teamDomain, token)) ??
-        parseTokenGroups(payload);
-      const accessLevel = resolveCloudflareAccessLevel(groups);
-
-      return {
-        email: payload.email,
-        subject: payload.sub,
-        accessLevel,
-      };
-    } catch (error) {
-      logger.warn(
-        "Cloudflare Access JWT verification failed",
-        describeJwtVerifyError(error),
-      );
-      return null;
-    }
+    return {
+      email: verifiedToken.payload.email,
+      subject: verifiedToken.payload.sub,
+      accessLevel,
+    };
   },
 };

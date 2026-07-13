@@ -31,6 +31,7 @@ jest.mock("next/navigation", () => ({
 import {
   AdminHasuraRole,
   authenticateAdminRequest,
+  hasAdminAuthenticationEvidence,
   requireAdminUser,
   resolveAdminAuthProvider,
 } from "@/lib/admin-auth";
@@ -226,6 +227,35 @@ describe("resolveAdminAuthProvider", () => {
 });
 // #endregion
 
+// #region Authentication evidence prefilter
+describe("hasAdminAuthenticationEvidence", () => {
+  it("fails closed when the provider is unset or unknown", async () => {
+    await expect(hasAdminAuthenticationEvidence(new Headers())).resolves.toBe(
+      false,
+    );
+
+    process.env.ADMIN_AUTH_PROVIDER = "something-else";
+    await expect(hasAdminAuthenticationEvidence(new Headers())).resolves.toBe(
+      false,
+    );
+  });
+
+  it("delegates the configured provider's JWT prefilter", async () => {
+    process.env.ADMIN_AUTH_PROVIDER = "dev";
+    process.env.ADMIN_AUTH_DEV_ACCESS_LEVEL = "read";
+
+    await expect(
+      hasAdminAuthenticationEvidence(
+        new Headers({ "x-admin-auth-debug-user": "dev@example.com" }),
+      ),
+    ).resolves.toBe(true);
+    await expect(hasAdminAuthenticationEvidence(new Headers())).resolves.toBe(
+      false,
+    );
+  });
+});
+// #endregion
+
 // #region Cloudflare Access provider
 describe("cloudflare-access provider", () => {
   const fetchMock = jest.fn();
@@ -247,6 +277,43 @@ describe("cloudflare-access provider", () => {
 
   afterAll(() => {
     global.fetch = originalFetch;
+  });
+
+  it("validates assertion evidence with the configured JWKS", async () => {
+    cloudflareEnv();
+    jwtVerify.mockResolvedValue({
+      payload: { email: "user@example.com", sub: "user-1" },
+    });
+
+    await expect(
+      cloudflareAccessAdminAuthProvider.hasAuthenticationEvidence(
+        new Headers(),
+      ),
+    ).resolves.toBe(false);
+
+    await expect(
+      cloudflareAccessAdminAuthProvider.hasAuthenticationEvidence(
+        new Headers({ "cf-access-jwt-assertion": "some-token" }),
+      ),
+    ).resolves.toBe(true);
+    expect(jwtVerify).toHaveBeenCalledWith(
+      "some-token",
+      "mocked-jwks:https://example.cloudflareaccess.com/cdn-cgi/access/certs",
+      {
+        issuer: "https://example.cloudflareaccess.com",
+        audience: "test-aud",
+        algorithms: ["RS256"],
+      },
+    );
+    expect(fetchMock).not.toHaveBeenCalled();
+
+    delete process.env.CF_ACCESS_AUD;
+    await expect(
+      cloudflareAccessAdminAuthProvider.hasAuthenticationEvidence(
+        new Headers({ "cf-access-jwt-assertion": "some-token" }),
+      ),
+    ).resolves.toBe(false);
+    expect(jwtVerify).toHaveBeenCalledTimes(1);
   });
 
   it("returns null when the assertion header is missing", async () => {
@@ -540,6 +607,37 @@ describe("cloudflare-access provider", () => {
 
 // #region Dev provider
 describe("dev provider", () => {
+  it("requires a valid development identity and access level", async () => {
+    process.env.ADMIN_AUTH_DEV_ACCESS_LEVEL = "read";
+
+    await expect(
+      devAdminAuthProvider.hasAuthenticationEvidence(
+        new Headers({ "x-admin-auth-debug-user": "dev@example.com" }),
+      ),
+    ).resolves.toBe(true);
+    await expect(
+      devAdminAuthProvider.hasAuthenticationEvidence(new Headers()),
+    ).resolves.toBe(false);
+
+    process.env.ADMIN_AUTH_DEV_ACCESS_LEVEL = "invalid";
+    await expect(
+      devAdminAuthProvider.hasAuthenticationEvidence(
+        new Headers({ "x-admin-auth-debug-user": "dev@example.com" }),
+      ),
+    ).resolves.toBe(false);
+  });
+
+  it("does not accept development evidence in production", async () => {
+    setNodeEnv("production");
+    process.env.ADMIN_AUTH_DEV_ACCESS_LEVEL = "read";
+
+    await expect(
+      devAdminAuthProvider.hasAuthenticationEvidence(
+        new Headers({ "x-admin-auth-debug-user": "dev@example.com" }),
+      ),
+    ).resolves.toBe(false);
+  });
+
   it("authenticates from the debug header outside production", async () => {
     process.env.ADMIN_AUTH_DEV_ACCESS_LEVEL = "read";
 
@@ -590,6 +688,11 @@ describe("dev provider", () => {
     );
 
     expect(user).toBeNull();
+    await expect(
+      devAdminAuthProvider.hasAuthenticationEvidence(
+        new Headers({ "x-admin-auth-debug-user": "dev@example.com" }),
+      ),
+    ).resolves.toBe(false);
   });
 });
 // #endregion
