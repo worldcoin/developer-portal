@@ -4,11 +4,8 @@ import { Button } from "@/components/Button";
 import { ErrorPage } from "@/components/ErrorPage";
 import { AlertIcon } from "@/components/Icons/AlertIcon";
 import { SizingWrapper } from "@/components/SizingWrapper";
-import { Role_Enum } from "@/graphql/graphql";
 import { trendPoints, type TrendPeriod } from "@/lib/day-buckets";
-import { Auth0SessionUser } from "@/lib/types";
 import { urls } from "@/lib/urls";
-import { checkUserPermissions } from "@/lib/utils";
 import {
   buildTrendState,
   useTrendWindow,
@@ -17,7 +14,6 @@ import { BanMessageDialog } from "@/scenes/PortalV3/Teams/TeamId/Apps/common/Ban
 import { banMessageDialogOpenedAtom } from "@/scenes/common/Teams/TeamId/Apps/common/BanMessageDialog/atoms";
 import { useGetWorldIdAppTrendQuery } from "@/scenes/common/Teams/TeamId/Apps/AppId/WorldId/graphql/client/get-world-id-trends.generated";
 import { useGetWorldIdOverviewQuery } from "@/scenes/common/Teams/TeamId/Apps/AppId/WorldId/page/graphql/client/get-world-id-overview.generated";
-import { useUser } from "@auth0/nextjs-auth0/client";
 import { useAtom } from "jotai";
 import { useEffect, useState } from "react";
 import Skeleton from "react-loading-skeleton";
@@ -60,7 +56,6 @@ export const WorldIdPage = (props: {
 }) => {
   const teamId = props.params.teamId ?? "";
   const appId = props.params.appId ?? "";
-  const { user } = useUser() as Auth0SessionUser;
 
   const [tab, setTab] = useState<WorldIdTab>(
     props.searchParams.tab === "world-id-4-0" ? "world-id-4-0" : "actions",
@@ -138,11 +133,6 @@ export const WorldIdPage = (props: {
   const legacyActionsHref = hasLegacyActions
     ? urls.actions({ team_id: teamId, app_id: appId })
     : undefined;
-  const canRegisterRp = checkUserPermissions(user, teamId, [
-    Role_Enum.Owner,
-    Role_Enum.Admin,
-  ]);
-
   // No RP registration yet → nudge into the existing enable-World-ID-4.0 flow.
   if (!rp) {
     return (
@@ -152,7 +142,6 @@ export const WorldIdPage = (props: {
         <RegisterRpEmptyState
           appId={appId}
           initialOpen={props.searchParams.enableWorldId4 === "true"}
-          canRegisterRp={canRegisterRp}
           isStaging={app.is_staging}
           onRegistered={() => refetch()}
           legacyActionsHref={legacyActionsHref}
