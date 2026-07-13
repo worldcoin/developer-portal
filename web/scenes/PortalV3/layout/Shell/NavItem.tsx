@@ -1,37 +1,51 @@
-import Link from "next/link";
+import { Link } from "@/components/Link";
+import { opticalIconClassName } from "@/scenes/PortalV3/common/Icon";
 import { ReactNode } from "react";
 import { twMerge } from "tailwind-merge";
+
+export const sidebarNavItemClassName = (props?: {
+  active?: boolean;
+  dimmed?: boolean;
+  className?: string;
+}) =>
+  twMerge(
+    "flex h-10 min-w-0 items-center gap-2 rounded-[10px] pl-3 pr-4 font-world text-13 font-normal leading-none outline-none transition-colors",
+    "focus-visible:ring-2 focus-visible:ring-grey-300 focus-visible:ring-offset-2 focus-visible:ring-offset-portal-canvas",
+    props?.active
+      ? "border border-portal-border bg-white text-portal-text shadow-portal-card"
+      : "text-portal-muted hover:bg-portal-border hover:text-portal-text",
+    props?.dimmed && "opacity-40",
+    props?.className,
+  );
 
 export const NavItem = (props: {
   href: string;
   label: string;
   icon?: ReactNode;
+  trailing?: ReactNode;
   active?: boolean;
+  current?: boolean;
   dimmed?: boolean;
+  className?: string;
 }) => {
-  const { href, label, icon, active, dimmed } = props;
-
-  const className = twMerge(
-    "flex min-w-0 items-center gap-2.5 rounded-8 px-2.5 py-1.5 font-gta text-14 font-medium outline-none transition-colors",
-    "focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar",
-    active
-      ? "bg-grey-100 text-foreground"
-      : "text-muted-foreground hover:bg-grey-100",
-    dimmed && "opacity-40",
-  );
+  const { href, label, icon, trailing, active, current, dimmed, className } =
+    props;
 
   const content = (
     <>
-      {icon ? <span className="shrink-0">{icon}</span> : null}
-      <span className="truncate">{label}</span>
+      {icon ? (
+        <span className={`${opticalIconClassName} text-current`}>{icon}</span>
+      ) : null}
+      <span className="min-w-0 flex-1 truncate">{label}</span>
+      {trailing ? <span className="shrink-0">{trailing}</span> : null}
     </>
   );
 
   return (
     <Link
       href={href}
-      className={className}
-      aria-current={active ? "page" : undefined}
+      className={sidebarNavItemClassName({ active, dimmed, className })}
+      aria-current={current === false ? undefined : active ? "page" : undefined}
     >
       {content}
     </Link>

@@ -4,15 +4,23 @@ import clsx from "clsx";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ReactNode } from "react";
+import { Icon, opticalIconClassName } from "@/scenes/PortalV3/common/Icon";
 import { useNav } from "../NavProvider";
 
 type NavBarItemProps = {
-  icon: ReactNode;
+  /** UI Kit asset name in /images/portal-v3/icons; `{name}-active` must exist too. */
+  iconName: string;
+  iconClassName?: string;
   children: ReactNode;
   href: string;
 };
 
-export const NavBarItem = ({ icon, children, href }: NavBarItemProps) => {
+export const NavBarItem = ({
+  iconName,
+  iconClassName,
+  children,
+  href,
+}: NavBarItemProps) => {
   const { isCollapsed } = useNav();
   const pathname = usePathname();
   const isActive =
@@ -47,7 +55,10 @@ export const NavBarItem = ({ icon, children, href }: NavBarItemProps) => {
         },
       )}
     >
-      {icon}
+      <Icon
+        name={isActive ? `${iconName}-active` : iconName}
+        className={clsx(opticalIconClassName, iconClassName)}
+      />
       <span
         className={clsx(
           "min-w-0 truncate text-11 font-medium leading-none",

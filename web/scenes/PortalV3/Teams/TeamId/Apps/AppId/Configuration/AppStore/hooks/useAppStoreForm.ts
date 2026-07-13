@@ -144,10 +144,8 @@ export const useAppStoreForm = (appId: string, appMetadata: AppMetadata) => {
         throw new Error(result.message);
       }
       // Patch the Apollo cache locally instead of refetching. A network
-      // round-trip would re-render the entire AppTopBar header (including the
-      // logo container), which the user perceives as a "page reload".
-      // Update the en-localisation mirror columns on app_metadata for any
-      // fields the user just dirtied — that's what the AppTopBar reads.
+      // round-trip would refresh every metadata consumer and look like a page
+      // reload. Keep the en-localisation mirror columns current for previews.
       const en = localisations.find((l) => l.language === "en") as
         | Record<string, unknown>
         | undefined;

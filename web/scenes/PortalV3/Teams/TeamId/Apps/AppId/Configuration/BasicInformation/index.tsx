@@ -144,9 +144,8 @@ export const BasicInformation = forwardRef<
       if (!result.success) {
         throw new Error(result.message);
       }
-      // Patch the Apollo cache with the saved values so dependent surfaces
-      // (e.g. AppTopBar's app name + logo header) reflect the change instantly,
-      // without the visible re-render flicker that a full refetch causes.
+      // Patch the Apollo cache so previews and other dependent surfaces update
+      // instantly, without the flicker of a full metadata refetch.
       if (appMetaData?.id) {
         apolloClient.cache.modify({
           id: apolloClient.cache.identify({

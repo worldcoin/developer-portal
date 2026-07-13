@@ -1,5 +1,4 @@
 import clsx from "clsx";
-import { Building2, Home, LayoutGrid, Users } from "lucide-react";
 import { UIModule } from "../UIModule";
 import { CollapseButton } from "./CollapseButton";
 import { NavBarItem } from "./NavBarItem";
@@ -38,26 +37,29 @@ export const NavBar = () => {
           "4xl:gap-y-1.5",
         )}
       >
-        <NavBarItem icon={<Home className={iconClassName} />} href="/admin">
+        <NavBarItem iconName="home" iconClassName={iconClassName} href="/admin">
           Home
         </NavBarItem>
 
         <NavBarItem
-          icon={<Building2 className={iconClassName} />}
+          iconName="group"
+          iconClassName={iconClassName}
           href="/admin/teams"
         >
           Teams
         </NavBarItem>
 
         <NavBarItem
-          icon={<LayoutGrid className={iconClassName} />}
+          iconName="view-grid"
+          iconClassName={iconClassName}
           href="/admin/apps"
         >
           Apps
         </NavBarItem>
 
         <NavBarItem
-          icon={<Users className={iconClassName} />}
+          iconName="user"
+          iconClassName={iconClassName}
           href="/admin/users"
         >
           Users

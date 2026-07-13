@@ -10,6 +10,7 @@ import localFont from "next/font/local";
 import { Suspense } from "react";
 import { SkeletonTheme } from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
+import "react-image-crop/dist/ReactCrop.css";
 import { Slide, ToastContainer } from "react-toastify";
 
 const rubik = Rubik({

@@ -1,19 +1,17 @@
 "use client";
 
-import { AppStatus } from "@/components/AppStatus";
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { ErrorPage } from "@/components/ErrorPage";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import { urls } from "@/lib/urls";
+import { Icon } from "@/scenes/PortalV3/common/Icon";
 import clsx from "clsx";
 import { useAtom } from "jotai";
 import { useEffect, useMemo, useRef, useState } from "react";
 import Skeleton from "react-loading-skeleton";
 import { useParams } from "next/navigation";
 import { MiniAppConfiguration } from "./MiniAppConfiguration";
-import { DangerZoneSection } from "./Danger/DangerZoneSection";
-import { FormSkeleton } from "./AppTopBar/FormSkeleton";
+import { FormSkeleton } from "./PageComponents/FormSkeleton";
 import { AppStoreForm } from "./AppStore/app-store";
 import { AppStoreFormProvider } from "./AppStore/app-store-form-provider";
 import {
@@ -28,12 +26,16 @@ import { FetchLocalisationsDocument } from "@/scenes/common/Teams/TeamId/Apps/Ap
 import { AppIconBox } from "./PageComponents/AppIconBox";
 import { NumberedSection } from "./PageComponents/NumberedSection";
 import { SectionToc } from "./PageComponents/SectionToc";
-import { InReviewBanner } from "./InReviewBanner";
 import { RejectionBanner } from "./RejectionBanner";
 import { ResolveModal } from "./ResolveModal";
-import { ReviewRail } from "./ReviewRail";
+import { ConfigurationActions, ReviewRail } from "./ReviewRail";
 import { SaveStatusProvider } from "./SaveStatus";
+import { useCreateNewDraft } from "./hook/use-create-new-draft";
 import { useRemoveFromReview } from "@/scenes/common/Teams/TeamId/Apps/common/hooks/use-remove-from-review";
+import { Role_Enum } from "@/graphql/graphql";
+import { Auth0SessionUser } from "@/lib/types";
+import { checkUserPermissions } from "@/lib/utils";
+import { useUser } from "@auth0/nextjs-auth0/client";
 import { FetchAppMetadataQuery } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/graphql/client/fetch-app-metadata.generated";
 
 type AppProfilePageProps = {
@@ -48,32 +50,160 @@ type ConfigurationContentProps = {
   teamName: string;
 };
 
-const VerifiedAppBanner = ({
+/**
+ * Version header above the form: names which metadata row is on screen and
+ * carries that row's one action — switch to the draft (created on first use;
+ * one draft max, useCreateNewDraft enforces it), switch back to the verified
+ * copy, or un-submit while the draft awaits review. The page's bottom bar
+ * shows no status: this header is the single source of state.
+ */
+const VersionBanner = ({
+  app,
   appId,
   teamId,
 }: {
+  app: FetchAppMetadataQuery["app"][0];
   appId: `app_${string}`;
   teamId: `team_${string}`;
-}) => (
-  <div className="border-system-success-200 flex flex-col gap-4 rounded-20 border bg-system-success-50 p-5 sm:flex-row sm:items-center">
-    <div className="flex flex-1 items-center gap-3">
-      <AppStatus status="verified" />
-      <Typography variant={TYPOGRAPHY.R4} className="text-system-success-700">
-        This approved version is read-only.
-      </Typography>
-    </div>
+}) => {
+  const [viewMode, setViewMode] = useAtom(viewModeAtom);
+  const { user } = useUser() as Auth0SessionUser;
+  const hasDraft = app.app_metadata.length > 0;
+  const hasVerified = app.verified_app_metadata.length > 0;
+  const draft = app.app_metadata[0];
 
-    <DecoratedButton
-      href={urls.app({ team_id: teamId, app_id: appId })}
-      variant="secondary"
-      className="h-10 px-4 py-2"
-    >
-      <Typography variant={TYPOGRAPHY.M4} className="whitespace-nowrap">
-        Back to app
-      </Typography>
-    </DecoratedButton>
-  </div>
-);
+  const { createNewDraft, isCreating } = useCreateNewDraft({
+    appId,
+    teamId,
+    hasDraft,
+    hasVerifiedVersion: hasVerified,
+  });
+
+  const { removeFromReview, loading: isUnsubmitting } = useRemoveFromReview({
+    metadataId: draft?.id,
+  });
+
+  // Creating a draft and un-submitting both mutate review state — same
+  // Owner/Admin bar the old AppTopBar actions had. Viewing an existing draft
+  // is unrestricted (fields stay read-only via their own gates).
+  const canManageDraft = checkUserPermissions(user, teamId ?? "", [
+    Role_Enum.Owner,
+    Role_Enum.Admin,
+  ]);
+
+  if (viewMode === "verified" && hasVerified) {
+    return (
+      <div className="flex flex-col gap-4 border-b border-grey-100 pb-5 pt-8 sm:flex-row sm:items-center">
+        <div className="flex min-w-0 flex-1 items-center gap-3">
+          <Icon name="check-circle" className="size-5 shrink-0" />
+          <Typography variant={TYPOGRAPHY.M3} className="whitespace-nowrap">
+            Verified version
+          </Typography>
+          <span aria-hidden className="text-grey-300">
+            ·
+          </span>
+          <Typography
+            variant={TYPOGRAPHY.R4}
+            className="truncate text-grey-500"
+          >
+            This is the version currently approved for users.
+          </Typography>
+        </div>
+
+        {hasDraft || canManageDraft ? (
+          <DecoratedButton
+            type="button"
+            variant="secondary"
+            className="h-10 shrink-0 px-4 py-2"
+            loading={isCreating}
+            onClick={() => {
+              if (hasDraft) {
+                setViewMode("unverified");
+              } else {
+                // Flips the view itself after the row lands.
+                void createNewDraft();
+              }
+            }}
+          >
+            <Typography variant={TYPOGRAPHY.M4} className="whitespace-nowrap">
+              Open draft
+            </Typography>
+          </DecoratedButton>
+        ) : null}
+      </div>
+    );
+  }
+
+  // Viewing the draft while it awaits review: locked fields, un-submit is
+  // the only unlock path. Rejections keep their own RejectionBanner.
+  if (draft?.verification_status === "awaiting_review") {
+    return (
+      <div className="flex flex-col gap-4 border-b border-grey-100 pb-5 pt-8 sm:flex-row sm:items-center">
+        <div className="flex min-w-0 flex-1 items-center gap-3">
+          <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-additional-blue-100">
+            <Icon name="clock" className="size-4" />
+          </span>
+          <Typography variant={TYPOGRAPHY.M3} className="whitespace-nowrap">
+            Awaiting review
+          </Typography>
+          <Typography
+            variant={TYPOGRAPHY.R4}
+            className="truncate text-grey-500"
+          >
+            In review — editing is locked until review completes.
+          </Typography>
+        </div>
+
+        {canManageDraft ? (
+          <DecoratedButton
+            type="button"
+            variant="secondary"
+            className="h-10 shrink-0 px-4 py-2"
+            loading={isUnsubmitting}
+            onClick={removeFromReview}
+          >
+            <Typography variant={TYPOGRAPHY.M4} className="whitespace-nowrap">
+              Un-submit
+            </Typography>
+          </DecoratedButton>
+        ) : null}
+      </div>
+    );
+  }
+
+  // Editable draft with a verified counterpart to switch back to.
+  if (!hasVerified || draft?.verification_status !== "unverified") return null;
+
+  return (
+    <div className="flex flex-col gap-4 border-b border-grey-100 pb-5 pt-8 sm:flex-row sm:items-center">
+      <div className="flex min-w-0 flex-1 items-center gap-3">
+        <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-blue-100">
+          <Icon name="edit-pencil" className="size-4" />
+        </span>
+        <Typography variant={TYPOGRAPHY.M3} className="whitespace-nowrap">
+          Draft
+        </Typography>
+        <Typography variant={TYPOGRAPHY.R4} className="truncate text-grey-500">
+          Saved automatically. Changes remain here until approved.
+        </Typography>
+      </div>
+
+      <DecoratedButton
+        type="button"
+        variant="secondary"
+        className="h-10 shrink-0 px-4 py-2"
+        onClick={() => setViewMode("verified")}
+      >
+        <div className="flex items-center gap-x-2">
+          <Icon name="eye" className="size-4 shrink-0" />
+          <Typography variant={TYPOGRAPHY.M4} className="whitespace-nowrap">
+            View verified version
+          </Typography>
+        </div>
+      </DecoratedButton>
+    </div>
+  );
+};
 
 // Rendered inside AppStoreFormProvider so the review-readiness rail can watch
 // the shared form context.
@@ -89,67 +219,71 @@ const ConfigurationContent = ({
 
   return (
     <div className="grid gap-6 lg:h-full lg:grid-cols-[11rem_minmax(0,1fr)_minmax(380px,30%)] lg:grid-rows-[minmax(0,1fr)]">
-      {/* Section jump nav: static beside the scrolling form column. */}
-      <div className="hidden pt-8 lg:block">
-        <SectionToc scrollContainerRef={scrollContainerRef} />
+      {/* Section jump nav on desktop; on smaller screens it collapses to the
+          separated Danger zone destination above the form. */}
+      <div className="pt-2 lg:pt-8">
+        <SectionToc
+          appId={appId}
+          teamId={teamId}
+          scrollContainerRef={scrollContainerRef}
+        />
       </div>
 
-      {/* Main column: the only scroll container on lg+ — the wheel moves the
-          form while the preview pane stays put. */}
-      <div
-        ref={scrollContainerRef}
-        className="grid min-w-0 content-start gap-y-6 pb-24 pt-8 lg:h-full lg:overflow-y-auto lg:pr-4"
-      >
-        {/* Identity band: app icon beside the reach-mode chooser, one row on
-            lg+ so the lone icon circle doesn't occupy a full-width box. */}
-        <div className="grid gap-6 lg:grid-cols-[auto_minmax(0,1fr)]">
-          <AppIconBox
-            appId={appId}
-            teamId={teamId}
-            appMetadataId={appMetadata.id}
-            logoFile={appMetadata.logo_img_url}
-            isEditable={appMetadata.verification_status === "unverified"}
-            verificationStatus={appMetadata.verification_status}
-          />
+      {/* The form and its action shelf share one column. Only the form body
+          scrolls on desktop, keeping the shelf visibly beneath it. */}
+      <div className="flex min-h-0 min-w-0 flex-col">
+        <VersionBanner app={app} appId={appId} teamId={teamId} />
+        <div
+          ref={scrollContainerRef}
+          className="grid min-w-0 content-start gap-y-6 pb-28 pt-8 lg:min-h-0 lg:flex-1 lg:overflow-y-auto lg:pb-8 lg:pr-4"
+        >
+          {/* Identity band: app icon beside the reach-mode chooser, one row on
+              lg+ so the lone icon circle doesn't occupy a full-width box. */}
+          <div className="grid gap-6 lg:grid-cols-[auto_minmax(0,1fr)]">
+            <AppIconBox
+              appId={appId}
+              teamId={teamId}
+              appMetadataId={appMetadata.id}
+              logoFile={appMetadata.logo_img_url}
+              isEditable={appMetadata.verification_status === "unverified"}
+              verificationStatus={appMetadata.verification_status}
+            />
 
-          <MiniAppConfiguration
+            <MiniAppConfiguration
+              appId={appId}
+              teamId={teamId}
+              appMetadata={appMetadata as AppMetadata}
+            />
+          </div>
+
+          <NumberedSection number="01" title="Basic information">
+            <BasicInformation
+              ref={basicInfoRef}
+              appId={appId}
+              teamId={teamId}
+              app={app}
+              teamName={teamName}
+            />
+          </NumberedSection>
+
+          <AppStoreForm
             appId={appId}
             teamId={teamId}
             appMetadata={appMetadata as AppMetadata}
           />
         </div>
 
-        <NumberedSection number="01" title="Basic information">
-          <BasicInformation
-            ref={basicInfoRef}
-            appId={appId}
-            teamId={teamId}
-            app={app}
-            teamName={teamName}
-          />
-        </NumberedSection>
-
-        <AppStoreForm
+        <ConfigurationActions
           appId={appId}
           teamId={teamId}
-          appMetadata={appMetadata as AppMetadata}
-        />
-
-        <DangerZoneSection
-          appId={appId}
-          teamId={teamId}
-          appName={appMetadata.name}
+          appMetadata={appMetadata}
+          basicInfoRef={basicInfoRef}
         />
       </div>
 
-      {/* Sticky right rail: live listing preview + submit + save status */}
-      <ReviewRail
-        appId={appId}
-        teamId={teamId}
-        teamName={teamName}
-        appMetadata={appMetadata}
-        basicInfoRef={basicInfoRef}
-      />
+      {/* The preview is a read-only visual aid; page actions live with the
+          form in the neighboring column. */}
+      <ReviewRail appId={appId} teamName={teamName} appMetadata={appMetadata} />
     </div>
   );
 };
@@ -211,13 +345,10 @@ export const AppProfilePage = ({ params }: AppProfilePageProps) => {
   const [showResolveModal, setShowResolveModal] = useState(false);
 
   const isRejected = appMetadata?.verification_status === "changes_requested";
-  const isInReview = appMetadata?.verification_status === "awaiting_review";
-  const isVerified = appMetadata?.verification_status === "verified";
 
-  const { removeFromReview, loading: isRemovingFromReview } =
-    useRemoveFromReview({
-      metadataId: appMetadata?.id,
-    });
+  const { removeFromReview } = useRemoveFromReview({
+    metadataId: appMetadata?.id,
+  });
 
   if (!isMetadataLoading && (error || !app)) {
     return (
@@ -268,24 +399,6 @@ export const AppProfilePage = ({ params }: AppProfilePageProps) => {
                 setShowResolveModal(true);
               }}
             />
-          </SizingWrapper>
-        )}
-
-        {/* Locked-state strip: explains the disabled fields while the draft
-            awaits review, and offers the only unlock path (un-submit). */}
-        {isInReview && (
-          <SizingWrapper variant="nav" gridClassName="order-1 pt-6">
-            <InReviewBanner
-              teamId={teamId}
-              onUnsubmit={removeFromReview}
-              loading={isRemovingFromReview}
-            />
-          </SizingWrapper>
-        )}
-
-        {isVerified && (
-          <SizingWrapper variant="nav" gridClassName="order-1 pt-6">
-            <VerifiedAppBanner appId={appId} teamId={teamId} />
           </SizingWrapper>
         )}
 

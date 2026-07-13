@@ -12,6 +12,12 @@ export const urls = {
   configuration: (params: { team_id: string; app_id: string }): string =>
     `/teams/${params.team_id}/apps/${params.app_id}/configuration`,
 
+  configurationDanger: (params: { team_id: string; app_id: string }): string =>
+    `/teams/${params.team_id}/apps/${params.app_id}/configuration/danger`,
+
+  miniApp: (params: { team_id: string; app_id: string }): string =>
+    `/teams/${params.team_id}/apps/${params.app_id}/mini-app`,
+
   miniAppPermissions: (params: { team_id: string; app_id: string }): string =>
     `/teams/${params.team_id}/apps/${params.app_id}/mini-app/permissions`,
 
@@ -100,7 +106,10 @@ export const urls = {
     `/teams/${params.team_id}/apps/${params.app_id}/profile/setup${params.language ? "#languages" : ""}`,
 
   teams: (params: { team_id?: string }): string =>
-    `/teams/${params.team_id ? params.team_id : ""}`,
+    params.team_id ? `/teams/${params.team_id}` : "/teams",
+
+  teamApiKeys: (params: { team_id: string }): string =>
+    `/teams/${params.team_id}/api-keys`,
 
   teamSettings: (params: { team_id: string }): string =>
     `/teams/${params.team_id}/settings`,

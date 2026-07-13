@@ -24,8 +24,6 @@ jest.mock("@auth0/nextjs-auth0/client", () => ({
   useUser: () => ({ user: { name: "Ada" } }),
 }));
 
-// canCreateApp = true so the empty state renders the "Create app" button —
-// that makes "renders nothing while loading/errored" a meaningful assertion.
 // AppsDropdown only uses checkUserPermissions from this module, so mock just
 // that (loading real utils.ts pulls in idkit/ox, which needs TextEncoder).
 jest.mock("@/lib/utils", () => ({
@@ -33,53 +31,72 @@ jest.mock("@/lib/utils", () => ({
 }));
 
 const push = jest.fn();
+// Mutable so a test can put an appId in the route (mock-prefixed name is
+// required for jest to allow the reference inside the factory).
+let mockParams: Record<string, string | undefined> = { teamId: "team_1" };
 jest.mock("next/navigation", () => ({
   useRouter: () => ({ push }),
-  useParams: () => ({ teamId: "team_1" }),
+  useParams: () => mockParams,
 }));
 
 import { AppsDropdown } from "@/scenes/PortalV3/layout/Shell/AppsDropdown";
 
-beforeEach(() => jest.clearAllMocks());
+// The trigger is the only <button> in the closed dropdown (menu items are
+// role="menuitem"), so this uniquely selects it without an accessible name.
+const trigger = () => screen.getByRole("button");
 
-it("renders nothing while the apps query is loading", () => {
+beforeEach(() => {
+  jest.clearAllMocks();
+  mockParams = { teamId: "team_1" };
+});
+
+// While the query is in flight the trigger is disabled — the dropdown never
+// flashes content before the app list is known.
+it("disables the trigger while the apps query is loading", () => {
   fetchApps.mockReturnValue({
     data: undefined,
     loading: true,
     error: undefined,
   });
-  const { container } = render(<AppsDropdown />);
-  expect(container).toBeEmptyDOMElement();
+  render(<AppsDropdown />);
+  expect(trigger()).toBeDisabled();
 });
 
-it("renders nothing when the apps query errors (no misleading empty state)", () => {
+// On error the trigger is disabled and no empty-state ("No apps, yet") leaks —
+// we don't present a misleading empty result when the query actually failed.
+it("disables the trigger when the apps query errors (no misleading empty state)", () => {
   fetchApps.mockReturnValue({
     data: undefined,
     loading: false,
     error: new Error("network down"),
   });
-  const { container } = render(<AppsDropdown />);
-  expect(container).toBeEmptyDOMElement();
-  expect(screen.queryByText("No apps")).not.toBeInTheDocument();
-  expect(screen.queryByText("Create app")).not.toBeInTheDocument();
+  render(<AppsDropdown />);
+  expect(trigger()).toBeDisabled();
+  expect(screen.queryByText("No apps, yet")).not.toBeInTheDocument();
 });
 
-it("shows the empty state only once data has loaded and is empty", () => {
+// Once data resolves the trigger is interactive and shows the default
+// all-projects label (no specific app selected).
+it("enables the trigger with the default label once data has loaded", () => {
   fetchApps.mockReturnValue({
     data: { app: [] },
     loading: false,
     error: undefined,
   });
   render(<AppsDropdown />);
-  expect(screen.getByText("Create app")).toBeInTheDocument();
+  expect(trigger()).toBeEnabled();
+  expect(trigger()).toHaveTextContent("All projects");
 });
 
-it("renders the dropdown trigger once apps load", () => {
+// When the route points at an app, the trigger reflects that app's name
+// instead of the default label.
+it("shows the current app in the trigger when one is selected", () => {
+  mockParams = { teamId: "team_1", appId: "app_1" };
   fetchApps.mockReturnValue({
     data: { app: [{ id: "app_1", app_metadata: [{ name: "My App" }] }] },
     loading: false,
     error: undefined,
   });
   render(<AppsDropdown />);
-  expect(screen.getByText("Select app")).toBeInTheDocument();
+  expect(trigger()).toHaveTextContent("My App");
 });
