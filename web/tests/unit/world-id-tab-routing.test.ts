@@ -9,8 +9,9 @@ jest.mock("next/navigation", () => ({
   redirect: (...args: unknown[]) => redirectMock(...args),
 }));
 
+const pickPortalVersion = jest.fn();
 jest.mock("@/lib/feature-flags/portal-v3/activation", () => ({
-  pickPortalVersion: async (v3: () => unknown) => v3(),
+  pickPortalVersion: (...args: unknown[]) => pickPortalVersion(...args),
 }));
 
 const fetchAppEnvCachedMock = jest.fn();
@@ -54,11 +55,18 @@ const withAppEnv = (overrides: {
   fetchAppEnvCachedMock.mockResolvedValue(makeAppEnv(overrides));
 };
 
+const driveV2 = () =>
+  pickPortalVersion.mockImplementation(
+    async (_v3: () => unknown, v2: () => unknown) => v2(),
+  );
+
 const enableFlowUrl = `/teams/${teamId}/apps/${appId}?enableWorldId4=true`;
 // #endregion
 
 beforeEach(() => {
   jest.clearAllMocks();
+  // Default: drive the v3 branch; individual tests opt into v2.
+  pickPortalVersion.mockImplementation(async (v3: () => unknown) => v3());
 });
 
 // #region world-id-4-0 layout (RP settings surface)
@@ -81,9 +89,21 @@ describe("world-id-4-0 layout [setup behind the tab]", () => {
 });
 // #endregion
 
-// #region world-id-actions layout (RP required)
-describe("world-id-actions layout [RP required]", () => {
-  it("redirects into the enable flow when the app has no RP registration", async () => {
+// #region world-id-actions layout (RP guard now v2-only)
+// v3 folds World ID actions into /world-id (the routes under this layout redirect
+// there and /world-id owns the no-RP register state), so the v3 branch is a bare
+// pass-through. The "register an RP first" guard stays on the v2 branch.
+describe("world-id-actions layout [RP guard moved to v2]", () => {
+  it("passes through without redirecting for v3", async () => {
+    withAppEnv({ rpRegistrations: [] });
+
+    await WorldIdActionsLayout(makeProps());
+
+    expect(redirectMock).not.toHaveBeenCalled();
+  });
+
+  it("redirects a v2 app without RP registration into the enable flow", async () => {
+    driveV2();
     withAppEnv({ rpRegistrations: [] });
 
     await WorldIdActionsLayout(makeProps());
@@ -91,7 +111,8 @@ describe("world-id-actions layout [RP required]", () => {
     expect(redirectMock).toHaveBeenCalledWith(enableFlowUrl);
   });
 
-  it("does not redirect when the app has an RP registration", async () => {
+  it("does not redirect a v2 app that already has an RP registration", async () => {
+    driveV2();
     withAppEnv({ rpRegistrations: [{ rp_id: "rp_abc123" }] });
 
     await WorldIdActionsLayout(makeProps());

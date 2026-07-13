@@ -1,12 +1,27 @@
 import { pickPortalVersion } from "@/lib/feature-flags/portal-v3/activation";
+import { appendSearchParams, urls } from "@/lib/urls";
 import { WorldIdActionIdDangerPage } from "@/scenes/Portal/Teams/TeamId/Apps/AppId/WorldIdActions/ActionId/Danger/page";
-import { WorldIdActionIdDangerPage as WorldIdActionIdDangerPageV3 } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldIdActions/ActionId/Danger/page";
+import { redirect } from "next/navigation";
 
 export default async function Page(props: {
   params: Promise<Record<string, string>>;
+  searchParams: Promise<Record<string, string>>;
 }) {
+  const params = await props.params;
+  const searchParams = await props.searchParams;
   return pickPortalVersion(
-    () => <WorldIdActionIdDangerPageV3 params={props.params} />,
+    // v3 danger zone folds into the /world-id/actions/[id] detail Settings card.
+    () =>
+      redirect(
+        appendSearchParams(
+          urls.worldIdActionDetail({
+            team_id: params.teamId,
+            app_id: params.appId,
+            action_id: params.actionId,
+          }),
+          searchParams,
+        ),
+      ),
     () => <WorldIdActionIdDangerPage params={props.params} />,
   );
 }

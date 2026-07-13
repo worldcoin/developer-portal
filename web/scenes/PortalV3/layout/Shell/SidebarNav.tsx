@@ -5,7 +5,7 @@ import { SendIcon } from "@/components/Icons/SendIcon";
 import { WalletIcon } from "@/components/Icons/WalletIcon";
 import { urls } from "@/lib/urls";
 import { Icon } from "@/scenes/PortalV3/common/Icon";
-import { atom, useAtomValue, useSetAtom } from "jotai";
+import { atom, useSetAtom } from "jotai";
 import { useParams, usePathname } from "next/navigation";
 import { useEffect } from "react";
 import { useCurrentAppId } from "./AppsDropdown";
@@ -49,7 +49,6 @@ export const SidebarNav = () => {
   const teamId = params?.teamId;
   const routeAppId = params?.appId;
   const appId = useCurrentAppId();
-  const appEnvFlags = useAtomValue(appEnvFlagsAtom);
 
   // Team-less pages (e.g. /profile) carry no teamId in the URL, so team-scoped
   // links can't be built directly. Rather than pick a team here, fall back to
@@ -64,16 +63,12 @@ export const SidebarNav = () => {
   const appBase =
     teamId && appId ? urls.app({ team_id: teamId, app_id: appId }) : undefined;
 
-  const appHref = appBase ?? appsListHref;
   const ids = teamId && appId ? { team_id: teamId, app_id: appId } : undefined;
-  const flags = appEnvFlags?.appId === appId ? appEnvFlags : undefined;
 
-  const worldIdHref = (() => {
-    if (!ids) return appsListHref;
-    if (flags?.hasRpRegistration) return urls.worldId40(ids);
-    if (flags?.hasLegacyActions) return urls.actions(ids);
-    return urls.worldId40(ids);
-  })();
+  // World ID replaces the old Dashboard as the app landing. Team-less pages fall
+  // back to the /teams landing (which renders the no-app "Welcome to World ID"
+  // page), same as the old Dashboard item did.
+  const worldIdHref = ids ? urls.worldId(ids) : appsListHref;
 
   const configurationHref = ids ? urls.configuration(ids) : appsListHref;
   const miniAppHref = ids ? urls.miniAppPermissions(ids) : appsListHref;
@@ -89,9 +84,13 @@ export const SidebarNav = () => {
     return rel === prefix || rel.startsWith(`${prefix}/`);
   };
 
-  const dashboardActive =
-    pathname === appsListHref || (Boolean(appBase) && pathname === appBase);
+  // World ID is the app landing (the old Dashboard route now redirects here), so
+  // it is active on the apps list, the app base, and every World ID surface
+  // (new /world-id, plus the legacy 4.0 / actions routes that redirect in).
   const worldIdActive =
+    pathname === appsListHref ||
+    (Boolean(appBase) && pathname === appBase) ||
+    withinApp("/world-id") ||
     withinApp("/world-id-4-0") ||
     withinApp("/world-id-actions") ||
     withinApp("/actions");
@@ -113,20 +112,14 @@ export const SidebarNav = () => {
     <nav className="no-scrollbar flex flex-1 flex-col overflow-y-auto px-4 pt-[27px]">
       <div className="grid gap-2">
         <NavItem
-          label="Dashboard"
-          href={appHref}
-          active={dashboardActive}
-          icon={<NavIcon name="nav-home" active={dashboardActive} />}
+          label="World ID"
+          href={worldIdHref}
+          active={worldIdActive}
+          icon={<NavIcon name="nav-world-id" active={worldIdActive} />}
         />
 
         {appId ? (
           <>
-            <NavItem
-              label="World ID"
-              href={worldIdHref}
-              active={worldIdActive}
-              icon={<NavIcon name="nav-world-id" active={worldIdActive} />}
-            />
             <NavItem
               label="Configuration"
               href={configurationHref}
