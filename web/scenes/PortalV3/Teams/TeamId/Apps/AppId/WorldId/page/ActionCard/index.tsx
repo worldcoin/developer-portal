@@ -20,12 +20,14 @@ export const ActionCard = (props: {
   action: ActionCardItem;
 }) => {
   const { action } = props;
+  const verificationLabel =
+    action.total === 1 ? "unique verification" : "unique verifications";
   const footer =
     action.total > 0 && action.latestAt
-      ? `${action.total.toLocaleString()} uses · last ${relativeTimeShort(
+      ? `${action.total.toLocaleString()} ${verificationLabel} · last ${relativeTimeShort(
           action.latestAt,
         )}`
-      : `${action.total.toLocaleString()} uses`;
+      : `${action.total.toLocaleString()} ${verificationLabel}`;
 
   return (
     <Link

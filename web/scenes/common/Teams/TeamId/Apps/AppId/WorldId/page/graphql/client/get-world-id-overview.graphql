@@ -1,12 +1,11 @@
 # Feeds the World ID landing page (hero stats + sparkline, actions grid) and the
-# World ID 4.0 pane. For World ID 4.0 there is exactly one nullifier row per
-# (human, action) and the nullifier column is globally unique, so "Unique
-# humans" is definitionally equal to "Total verifications" at every level; both
-# stat slots are sourced from the same `count`. The b0..b6 aliases are per-day
-# buckets (7 days) whose bounds ($d0..$d7) are local-midnight boundaries from
-# `weekBucketBounds`; the hero sparkline sums the buckets across actions, and
-# the hero totals are likewise summed client-side from the per-action counts
-# (same filters; every nullifier row belongs to exactly one action).
+# World ID 4.0 pane. Each stored nullifier represents one unique verification
+# for a specific (human, RP, action) context. Repeated proofs for that context
+# do not add another row, while different actions intentionally produce
+# unlinkable nullifiers. The b0..b6 aliases are per-day buckets (7 days) whose
+# bounds ($d0..$d7) are local-midnight boundaries from `weekBucketBounds`; the
+# hero sparkline and unique-verification total are summed across actions (same
+# filters; every nullifier row belongs to exactly one action).
 query GetWorldIdOverview(
   $app_id: String!
   $d0: timestamptz!

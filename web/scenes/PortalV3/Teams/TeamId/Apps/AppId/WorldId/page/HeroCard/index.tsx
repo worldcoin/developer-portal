@@ -18,7 +18,7 @@ const HeroStat = (props: { label: string; value: number }) => (
 export const HeroCard = (props: {
   name: string;
   appId: string;
-  unique: number;
+  uniqueVerifications: number;
   week: number;
   timePeriod: TrendPeriod;
   onTimePeriodChange: (period: TrendPeriod) => void;
@@ -50,7 +50,10 @@ export const HeroCard = (props: {
 
     <div className="mt-6 flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
       <div className="flex flex-wrap gap-x-12 gap-y-6">
-        <HeroStat label="Unique humans" value={props.unique} />
+        <HeroStat
+          label="Unique verifications"
+          value={props.uniqueVerifications}
+        />
         <HeroStat label="This week" value={props.week} />
       </div>
       <TrendSparkline
