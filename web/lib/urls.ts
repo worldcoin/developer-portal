@@ -2,6 +2,27 @@ type SignupParams = {
   invite_id?: string;
 };
 
+/**
+ * Merge `searchParams` into `path`'s query string. Params already present in
+ * the path take precedence; an empty `searchParams` returns the path untouched.
+ * Used by the v3 route redirects so deep-link params survive uniformly.
+ */
+export const appendSearchParams = (
+  path: string,
+  searchParams: Record<string, string>,
+): string => {
+  if (Object.keys(searchParams).length === 0) {
+    return path;
+  }
+
+  const [basePath, existingQuery] = path.split("?", 2);
+  const merged = new URLSearchParams(searchParams);
+  for (const [key, value] of new URLSearchParams(existingQuery)) {
+    merged.set(key, value);
+  }
+  return `${basePath}?${merged.toString()}`;
+};
+
 export const urls = {
   app: (params: { team_id: string; app_id?: string }): string =>
     `/teams/${params.team_id}/apps/${params.app_id || ""}`,
@@ -35,6 +56,13 @@ export const urls = {
 
   enableWorldId4: (params: { team_id: string; app_id: string }): string =>
     `/teams/${params.team_id}/apps/${params.app_id}?enableWorldId4=true`,
+
+  worldId: (params: {
+    team_id: string;
+    app_id: string;
+    tab?: "world-id-4-0";
+  }): string =>
+    `/teams/${params.team_id}/apps/${params.app_id}/world-id${params.tab ? `?tab=${params.tab}` : ""}`,
 
   worldId40: (params: { team_id: string; app_id: string }): string =>
     `/teams/${params.team_id}/apps/${params.app_id}/world-id-4-0`,
