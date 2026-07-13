@@ -1,23 +1,28 @@
 "use client";
 
-import { Checkbox } from "@/components/Checkbox";
+import { CopyButton } from "@/components/CopyButton";
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { AlertIcon } from "@/components/Icons/AlertIcon";
 import { CheckIcon } from "@/components/Icons/CheckIcon";
+import { FlaskIcon } from "@/components/Icons/FlaskIcon";
+import { HelpIcon } from "@/components/Icons/HelpIcon";
+import { LockIcon } from "@/components/Icons/LockIcon";
+import { PlusIcon } from "@/components/Icons/PlusIcon";
 import { Link } from "@/components/Link";
-import { TextArea } from "@/components/TextArea";
+import { Switcher } from "@/components/Switch";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Role_Enum } from "@/graphql/graphql";
-import { AppMode } from "@/lib/constants";
 import { Auth0SessionUser } from "@/lib/types";
 import { checkUserPermissions } from "@/lib/utils";
+import { FetchAppMetadataQuery } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/graphql/client/fetch-app-metadata.generated";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { yupResolver } from "@hookform/resolvers/yup";
 import clsx from "clsx";
-import { ChangeEvent, ReactNode, useCallback, useEffect, useMemo } from "react";
+import Image from "next/image";
+import QRCode from "qrcode";
+import { ReactNode, useCallback, useEffect, useMemo, useState } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
-import { QrQuickAction } from "../../Configuration/BasicInformation/QrQuickAction";
-import { FetchAppMetadataQuery } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/graphql/client/fetch-app-metadata.generated";
+import Skeleton from "react-loading-skeleton";
 import {
   updateSetupInitialSchema,
   UpdateSetupInitialSchema,
@@ -28,6 +33,9 @@ import {
   useSaveStatus,
 } from "../../Configuration/SaveStatus";
 import { useAutosaveWithStatus } from "../../Configuration/hook/use-autosave-with-status";
+import { AddressEntryList } from "./AddressEntryList";
+import { DomainDialog } from "./DomainDialog";
+import { DomainRow } from "./DomainRow";
 
 type PermissionsFormProps = {
   appId: string;
@@ -35,76 +43,96 @@ type PermissionsFormProps = {
   appMetadata?: FetchAppMetadataQuery["app"][0]["app_metadata"][0];
 };
 
+type ListFieldName =
+  | "associated_domains"
+  | "whitelisted_addresses"
+  | "permit2_tokens"
+  | "contracts";
+
 const maxNotificationPerDayOptions = [0, 1, 2, "unlimited"] as const;
 
-const formatArrayInput = (e: ChangeEvent<HTMLTextAreaElement>) => {
-  const inputValue = e.target.value;
-  const inputEvent = e.nativeEvent as InputEvent;
+const splitList = (value?: string | null): string[] =>
+  value
+    ? value
+        .split(",")
+        .map((entry) => entry.trim())
+        .filter(Boolean)
+    : [];
 
-  if (
-    inputValue.length > 0 &&
-    inputValue[inputValue.length - 1] === "," &&
-    inputEvent.inputType !== "deleteContentBackward"
-  ) {
-    const formattedValue = inputValue
-      .split(",")
-      .map((domain) => domain.trim())
-      .join(", ");
+const joinList = (values: string[]): string | null =>
+  values.length > 0 ? values.join(",") : null;
 
-    e.target.value = formattedValue;
-  }
-};
-
-const ModeCard = (props: {
+const HelpTooltip = ({
+  label,
+  children,
+}: {
   label: string;
-  description: string;
-  value: keyof typeof AppMode;
-  selected: boolean;
-  disabled: boolean;
-  onSelect: (value: keyof typeof AppMode) => void;
-}) => {
-  const { label, description, value, selected, disabled, onSelect } = props;
-
-  return (
+  children: ReactNode;
+}) => (
+  <span className="group relative mt-px inline-flex shrink-0">
     <button
       type="button"
-      disabled={disabled}
-      onClick={() => onSelect(value)}
-      className={clsx(
-        "flex h-[110px] flex-col items-start gap-3 rounded-[10px] border px-6 py-5 text-left transition-colors",
-        "border-grey-100",
-        !selected && "hover:border-grey-300",
-        disabled && "cursor-not-allowed opacity-60",
-      )}
+      aria-label={label}
+      className="flex size-4 shrink-0 items-center justify-center rounded-full p-0 leading-none text-grey-300 transition-colors hover:text-grey-500 focus:outline-none focus-visible:text-grey-500"
     >
-      <div className="flex w-[234px] items-center justify-between gap-3">
-        <Typography variant={TYPOGRAPHY.S2} className="text-grey-900">
-          {label}
+      <HelpIcon className="size-4" />
+    </button>
+
+    <span
+      role="tooltip"
+      className="pointer-events-none absolute left-1/2 top-full z-30 mt-2 w-72 -translate-x-1/2 rounded-xl bg-grey-900 px-3.5 py-3 opacity-0 shadow-lg transition-opacity duration-150 group-focus-within:opacity-100 group-hover:opacity-100"
+    >
+      <span className="font-world text-[13px] font-medium leading-[145%] text-grey-0">
+        {children}
+      </span>
+      <span
+        className="absolute bottom-full left-1/2 size-2.5 -translate-x-1/2 translate-y-1/2 rotate-45 rounded-[2px] bg-grey-900"
+        aria-hidden
+      />
+    </span>
+  </span>
+);
+
+const SectionHeader = (props: {
+  title: string;
+  description?: string;
+  tooltip?: ReactNode;
+  action?: ReactNode;
+}) => (
+  <div className="flex items-start justify-between gap-x-5">
+    <div className="grid gap-y-2">
+      <div className="flex min-w-0 items-start gap-x-1.5">
+        <Typography
+          as="h2"
+          className="min-w-0 font-world text-[17px] font-medium leading-[120%] text-grey-900"
+        >
+          {props.title}
         </Typography>
 
-        <span
-          className={clsx(
-            "flex size-5 items-center justify-center rounded-full border-[1.25px]",
-            selected
-              ? "border-grey-900 bg-grey-900 text-grey-0"
-              : "border-grey-200 bg-grey-0",
-          )}
-          aria-hidden
-        >
-          {selected && <CheckIcon size="16" className="size-[13px]" />}
-        </span>
+        {props.tooltip && (
+          <HelpTooltip label={`About ${props.title}`}>
+            {props.tooltip}
+          </HelpTooltip>
+        )}
       </div>
 
-      <Typography variant={TYPOGRAPHY.B3} className="w-[218px] text-[#657080]">
-        {description}
-      </Typography>
-    </button>
-  );
-};
+      {props.description && (
+        <Typography
+          as="p"
+          className="font-world text-[13px] font-medium leading-[130%] text-grey-500"
+        >
+          {props.description}
+        </Typography>
+      )}
+    </div>
+
+    {props.action}
+  </div>
+);
 
 const InlineWarning = ({ children }: { children: ReactNode }) => {
   return (
-    <div className="flex h-[72px] items-center gap-x-3 rounded-[10px] bg-system-warning-100 px-5">
+    <div className="flex items-center gap-x-3 rounded-[10px] bg-system-warning-100 p-5">
       <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-system-warning-600">
         <AlertIcon className="size-4 text-grey-0" />
       </div>
@@ -115,18 +143,14 @@ const InlineWarning = ({ children }: { children: ReactNode }) => {
   );
 };
 
-const MiniAppQrPanel = ({
+const MiniAppPreviewCard = ({
   appId,
   appMetadata,
-  appMode,
 }: {
   appId: string;
   appMetadata: PermissionsFormProps["appMetadata"];
-  appMode?: keyof typeof AppMode;
 }) => {
-  if (appMode === "external") {
-    return null;
-  }
+  const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string | null>(null);
 
   const showDraftMiniAppFlag = appMetadata?.verification_status !== "verified";
   let miniAppUrl = `https://world.org/mini-app?app_id=${appId}&path=`;
@@ -135,27 +159,111 @@ const MiniAppQrPanel = ({
     miniAppUrl += `&draft_id=${appMetadata.id}`;
   }
 
+  const hasPreview = Boolean(appMetadata?.integration_url);
+
+  useEffect(() => {
+    if (!hasPreview) return;
+
+    QRCode.toDataURL(miniAppUrl, { width: 512, margin: 1 })
+      .then(setQrCodeDataUrl)
+      .catch((error) => {
+        console.error(error);
+        setQrCodeDataUrl(null);
+      });
+  }, [hasPreview, miniAppUrl]);
+
+  if (!hasPreview) {
+    return (
+      <div className="flex items-center gap-3 rounded-[10px] bg-system-warning-100 p-5">
+        <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-system-warning-600">
+          <AlertIcon className="size-4 text-white" />
+        </div>
+        <Typography
+          variant={TYPOGRAPHY.B3}
+          className="flex-1 text-system-warning-600"
+        >
+          Add a valid App URL and save changes to enable the QR code preview.
+        </Typography>
+      </div>
+    );
+  }
+
   return (
-    <aside className="lg:sticky lg:top-8">
-      {!!appMetadata?.integration_url ? (
-        <QrQuickAction
-          url={miniAppUrl}
-          showDraftMiniAppFlag={showDraftMiniAppFlag}
-        />
-      ) : (
-        <div className="flex items-center gap-3 rounded-[10px] bg-system-warning-100 p-5">
-          <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-system-warning-600">
-            <AlertIcon className="size-4 text-white" />
+    <div className="grid gap-y-4">
+      <div className="overflow-hidden rounded-2xl border border-grey-200 bg-grey-0 shadow-button">
+        <div className="flex items-start justify-between gap-x-3 p-5">
+          <div className="flex items-center gap-x-3">
+            <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-500">
+              <FlaskIcon className="size-5" />
+            </div>
+
+            <div className="grid gap-y-0.5">
+              <Typography
+                as="p"
+                className="font-world text-[15px] font-semibold leading-[120%] text-grey-900"
+              >
+                Mini App preview
+              </Typography>
+
+              <Typography
+                as="p"
+                className="font-world text-[13px] font-medium leading-[130%] text-grey-500"
+              >
+                Scan or copy the preview link
+              </Typography>
+            </div>
           </div>
+
+          <CopyButton
+            fieldName="Mini App preview link"
+            fieldValue={miniAppUrl}
+            className="rounded-lg border border-grey-200 p-2 !pr-2 hover:bg-grey-50"
+            iconClassName="size-4 text-grey-700"
+          />
+        </div>
+
+        <div className="px-6 pb-6">
+          {qrCodeDataUrl ? (
+            <Image
+              src={qrCodeDataUrl}
+              width={512}
+              height={512}
+              alt="Mini App preview QR code"
+              className="h-auto w-full"
+              unoptimized
+            />
+          ) : (
+            <div className="aspect-square w-full">
+              <Skeleton height="100%" containerClassName="block h-full" />
+            </div>
+          )}
+        </div>
+      </div>
+
+      {showDraftMiniAppFlag && (
+        <div className="grid gap-y-1 px-1">
+          <div className="flex items-center gap-x-2">
+            <span
+              className="size-2 shrink-0 rounded-full bg-system-warning-600"
+              aria-hidden
+            />
+            <Typography
+              as="p"
+              className="font-world text-[13px] font-semibold leading-[130%] text-grey-900"
+            >
+              Developer preview
+            </Typography>
+          </div>
+
           <Typography
-            variant={TYPOGRAPHY.B3}
-            className="flex-1 text-system-warning-600"
+            as="p"
+            className="pl-4 font-world text-[13px] font-medium leading-[130%] text-grey-500"
           >
-            Add a valid App URL and save changes to enable the QR code preview.
+            Testing only; switches to the approved link after verification.
           </Typography>
         </div>
       )}
-    </aside>
+    </div>
   );
 };
 
@@ -163,7 +271,7 @@ const getFormValuesFromMetadata = (
   appMetadata: PermissionsFormProps["appMetadata"],
 ): UpdateSetupInitialSchema => ({
   whitelisted_addresses: appMetadata?.whitelisted_addresses?.join(",") ?? null,
-  app_mode: appMetadata?.app_mode as keyof typeof AppMode,
+  app_mode: appMetadata?.app_mode as UpdateSetupInitialSchema["app_mode"],
   is_whitelist_disabled: !Boolean(appMetadata?.whitelisted_addresses),
   associated_domains: appMetadata?.associated_domains?.join(",") ?? null,
   contracts: appMetadata?.contracts?.join(",") ?? null,
@@ -199,10 +307,10 @@ export const SetupForm = ({
     defaultValues: getFormValuesFromMetadata(appMetadata),
   });
   const {
-    register,
     reset,
     formState: { errors },
     setError,
+    clearErrors,
     control,
     setValue,
   } = form;
@@ -261,242 +369,288 @@ export const SetupForm = ({
 
   const { flushAll, displayStatus } = useSaveStatus();
 
-  const appMode = useWatch({ control, name: "app_mode" });
+  const associatedDomains = useWatch({ control, name: "associated_domains" });
+  const whitelistedAddresses = useWatch({
+    control,
+    name: "whitelisted_addresses",
+  });
+  const permit2Tokens = useWatch({ control, name: "permit2_tokens" });
+  const contracts = useWatch({ control, name: "contracts" });
   const isWhitelistDisabled = useWatch({
     control,
     name: "is_whitelist_disabled",
   });
 
-  const isExternal = appMode === "external";
+  const domains = useMemo(
+    () => splitList(associatedDomains),
+    [associatedDomains],
+  );
+  const whitelist = useMemo(
+    () => splitList(whitelistedAddresses),
+    [whitelistedAddresses],
+  );
+  const tokens = useMemo(() => splitList(permit2Tokens), [permit2Tokens]);
+  const contractList = useMemo(() => splitList(contracts), [contracts]);
+
+  const setListValue = useCallback(
+    (name: ListFieldName, next: string[]) => {
+      setValue(name, joinList(next), {
+        shouldDirty: true,
+        shouldValidate: true,
+      });
+    },
+    [setValue],
+  );
+
+  const [domainDialog, setDomainDialog] = useState<{
+    open: boolean;
+    editingDomain: string | null;
+  }>({ open: false, editingDomain: null });
+
+  const closeDomainDialog = useCallback(
+    () => setDomainDialog({ open: false, editingDomain: null }),
+    [],
+  );
+
+  // The mode toggle lives on the Configuration page now, so this page only
+  // serves Mini Apps.
+  if (appMetadata?.app_mode === "external") {
+    return (
+      <div className="grid grid-cols-auto/1fr items-start gap-x-3 rounded-[10px] bg-grey-50 p-4 sm:p-5">
+        <LockIcon className="size-8 text-grey-900" aria-hidden="true" />
+
+        <div className="min-w-0 font-world text-[13px] leading-[120%] text-grey-900">
+          <Typography as="p" className="font-world text-[13px] font-semibold">
+            Permissions unavailable
+          </Typography>
+          <Typography as="p" className="font-world text-[13px] font-medium">
+            Mini App permissions aren&apos;t available for external apps.
+          </Typography>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="grid gap-10 lg:grid-cols-[minmax(0,580px)_minmax(280px,1fr)] lg:items-start">
+    <>
+      <DomainDialog
+        open={domainDialog.open}
+        editingDomain={domainDialog.editingDomain}
+        existingDomains={domains}
+        onClose={closeDomainDialog}
+        onSave={(domain) => {
+          const next = domainDialog.editingDomain
+            ? domains.map((d) =>
+                d === domainDialog.editingDomain ? domain : d,
+              )
+            : [...domains, domain];
+          setListValue("associated_domains", next);
+        }}
+      />
+
       <form
-        className="grid max-w-[580px] gap-y-10"
         onSubmit={(event) => {
           event.preventDefault();
           void flushAll();
         }}
       >
-        <Typography
-          variant={TYPOGRAPHY.H7}
-          className="font-normal text-grey-900"
-        >
-          Advanced settings
-        </Typography>
+        <div className="flex flex-col gap-10 lg:flex-row lg:items-start lg:justify-between lg:gap-x-12 xl:gap-x-20">
+          <div className="grid w-full gap-y-8 lg:max-w-[720px]">
+            <div className="grid gap-y-2">
+              <Typography
+                as="h1"
+                className="font-world text-[26px] font-semibold leading-[120%] tracking-[-0.01em] text-[#191C20]"
+              >
+                Permissions
+              </Typography>
 
-        <div className="grid gap-4 md:grid-cols-2">
-          <ModeCard
-            label="Mini App"
-            description="Create a mini app that runs inside the World App."
-            value="mini-app"
-            selected={appMode === "mini-app"}
-            disabled={!canEdit}
-            onSelect={(value) =>
-              setValue("app_mode", value, {
-                shouldDirty: true,
-                shouldValidate: true,
-              })
-            }
-          />
-
-          <ModeCard
-            label="External"
-            description="Create a World ID app that runs outside the World App."
-            value="external"
-            selected={appMode === "external"}
-            disabled={!canEdit}
-            onSelect={(value) =>
-              setValue("app_mode", value, {
-                shouldDirty: true,
-                shouldValidate: true,
-              })
-            }
-          />
-        </div>
-
-        {!isExternal && <div className="w-full border-t border-grey-100" />}
-
-        {!isExternal && (
-          <>
-            <div className="grid gap-y-5">
-              <div className="grid gap-y-3">
-                <Typography
-                  variant={TYPOGRAPHY.H7}
-                  className="font-normal text-grey-900"
-                >
-                  Additional Domains
-                </Typography>
-                <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
-                  Add additional domains that your Mini App can interact with.
-                  All other domains will be blocked. You do not need to specify
-                  subdomains. Ex: https://example.com
-                </Typography>
-              </div>
-
-              <TextArea
-                label=""
-                disabled={!canEdit}
-                placeholder="https://example.com, https://example2.com"
-                register={register("associated_domains", {
-                  onChange: formatArrayInput,
-                })}
-                enableResize={false}
-                rows={4}
-                className={clsx(
-                  "h-[120px] max-h-[120px] min-h-[120px] !rounded-[10px] !bg-grey-50 placeholder:!text-[#717680]",
-                  errors.associated_domains
-                    ? "!border !border-system-error-500"
-                    : "!border-0",
-                )}
-                errors={errors.associated_domains}
-              />
+              <Typography
+                as="p"
+                className="font-world text-[15px] font-medium leading-[130%] text-grey-500"
+              >
+                Control which resources your Mini App can access.
+              </Typography>
             </div>
 
-            <div className="w-full border-t border-grey-100" />
+            <div className="border-t border-grey-100" />
 
-            <div className="grid gap-y-5">
-              <div className="grid gap-y-3">
+            <section className="grid gap-y-5">
+              <SectionHeader
+                title="Additional Domains"
+                description="Your Mini App can interact with these domains. All other domains are blocked. You do not need to specify subdomains."
+                tooltip="Additional Domains are the external websites your Mini App is allowed to open or make requests to from inside World App. Anything you don't list here is blocked, so add every domain your app needs to reach — you don't need to include subdomains, as they're covered automatically."
+                action={
+                  canEdit && (
+                    <DecoratedButton
+                      type="button"
+                      variant="secondary"
+                      className="h-10 whitespace-nowrap rounded-xl px-4 py-0 text-[13px] font-semibold"
+                      onClick={() =>
+                        setDomainDialog({ open: true, editingDomain: null })
+                      }
+                    >
+                      <PlusIcon className="size-4" />
+                      Add domain
+                    </DecoratedButton>
+                  )
+                }
+              />
+
+              {domains.length === 0 ? (
                 <Typography
-                  variant={TYPOGRAPHY.H7}
-                  className="font-normal text-grey-900"
+                  variant={TYPOGRAPHY.R4}
+                  className="px-1 text-grey-400"
                 >
-                  Whitelisted Payment Addresses
+                  No additional domains yet.
                 </Typography>
-                <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
-                  These addresses are authorised to receive payments for your
-                  mini app. Payment requests to other addresses will be
-                  rejected.
-                </Typography>
-              </div>
-
-              {isWhitelistDisabled && (
-                <InlineWarning>
-                  Disabling the whitelist removes protection from payments to
-                  invalid addresses.
-                </InlineWarning>
+              ) : (
+                <div className="grid gap-y-2">
+                  {domains.map((domain) => (
+                    <DomainRow
+                      key={domain}
+                      domain={domain}
+                      canEdit={canEdit}
+                      onEdit={() =>
+                        setDomainDialog({ open: true, editingDomain: domain })
+                      }
+                      onDelete={() =>
+                        setListValue(
+                          "associated_domains",
+                          domains.filter((d) => d !== domain),
+                        )
+                      }
+                    />
+                  ))}
+                </div>
               )}
 
-              <TextArea
-                label=""
-                disabled={!canEdit || isWhitelistDisabled}
-                placeholder="Whitelisted Payment Addresses"
-                register={register("whitelisted_addresses", {
-                  onChange: formatArrayInput,
-                })}
-                enableResize={false}
-                rows={4}
-                className={clsx(
-                  "h-[120px] max-h-[120px] min-h-[120px] !rounded-[10px] !border-0 !bg-grey-50",
-                  errors.whitelisted_addresses
-                    ? "!border !border-system-error-500"
-                    : "!border-0",
-                  isWhitelistDisabled
-                    ? "placeholder:!text-[#B1B8C2]"
-                    : "placeholder:!text-[#717680]",
-                )}
-                errors={errors.whitelisted_addresses}
-              />
+              {errors.associated_domains?.message && (
+                <p className="px-1 font-world text-xs text-system-error-500">
+                  {errors.associated_domains.message}
+                </p>
+              )}
+            </section>
 
-              <label
-                htmlFor="is_whitelist_disabled"
-                className="grid w-fit cursor-pointer grid-cols-auto/1fr items-center gap-x-4"
-              >
-                <Checkbox
-                  id="is_whitelist_disabled"
-                  register={register("is_whitelist_disabled")}
+            <div className="border-t border-grey-100" />
+
+            <section className="grid gap-y-5">
+              <SectionHeader title="Whitelisted Payment Addresses" />
+
+              <div className="flex items-center justify-between gap-x-5">
+                <div className="grid gap-y-1">
+                  <Typography
+                    as="p"
+                    className="font-world text-[15px] font-medium leading-[120%] text-grey-900"
+                  >
+                    Enforce payment allowlist
+                  </Typography>
+
+                  <Typography
+                    as="p"
+                    className="font-world text-[13px] font-medium leading-[130%] text-grey-500"
+                  >
+                    {isWhitelistDisabled
+                      ? "Payment requests can be sent to any address."
+                      : "Payment requests to addresses outside the allowlist are rejected."}
+                  </Typography>
+                </div>
+
+                <Switcher
+                  enabled={!isWhitelistDisabled}
                   disabled={!canEdit}
+                  setEnabled={(enabled) => {
+                    setValue("is_whitelist_disabled", !enabled, {
+                      shouldDirty: true,
+                      shouldValidate: true,
+                    });
+                    if (!enabled) {
+                      clearErrors("whitelisted_addresses");
+                    }
+                  }}
                 />
-                <Typography variant={TYPOGRAPHY.S2} className="text-grey-900">
-                  Disable whitelist
-                </Typography>
-              </label>
-            </div>
-
-            <div className="w-full border-t border-grey-100" />
-
-            <div className="grid gap-y-5">
-              <div className="grid gap-y-3">
-                <Typography
-                  variant={TYPOGRAPHY.H7}
-                  className="font-normal text-grey-900"
-                >
-                  Permit2 Tokens
-                </Typography>
-                <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
-                  List all the tokens that you intend to use in your Mini App.
-                  Any other tokens will be blocked.
-                </Typography>
               </div>
 
-              <TextArea
-                label=""
-                disabled={!canEdit}
-                placeholder="0xad312321..., 0xE901e312..."
-                register={register("permit2_tokens", {
-                  onChange: formatArrayInput,
-                })}
-                enableResize={false}
-                rows={4}
-                className={clsx(
-                  "h-[120px] max-h-[120px] min-h-[120px] !rounded-[10px] !bg-grey-50 placeholder:!text-[#717680]",
-                  errors.permit2_tokens
-                    ? "!border !border-system-error-500"
-                    : "!border-0",
-                )}
-                errors={errors.permit2_tokens}
+              {!isWhitelistDisabled && (
+                <>
+                  <AddressEntryList
+                    values={whitelist}
+                    onChange={(next) => {
+                      setListValue("whitelisted_addresses", next);
+                      if (next.length > 0) {
+                        clearErrors("whitelisted_addresses");
+                      }
+                    }}
+                    placeholder="Paste wallet address"
+                    disabled={!canEdit}
+                    emptyText="No addresses yet. Add at least one address that can receive payments."
+                  />
+
+                  {errors.whitelisted_addresses?.message && (
+                    <p className="px-1 font-world text-xs text-system-error-500">
+                      {errors.whitelisted_addresses.message}
+                    </p>
+                  )}
+                </>
+              )}
+            </section>
+
+            <div className="border-t border-grey-100" />
+
+            <section className="grid gap-y-5">
+              <SectionHeader
+                title="Permit2 Tokens"
+                description="List all the tokens that you intend to use in your Mini App. Any other tokens will be blocked."
+                tooltip="Permit2 is Uniswap's shared approval contract that lets users authorize token spending with a single signature instead of a separate on-chain approval per token. List the ERC-20 tokens your Mini App will move through Permit2 — only these tokens can be used for payments or transfers, and any token not listed here is rejected."
               />
-            </div>
 
-            <div className="w-full border-t border-grey-100" />
-
-            <div className="grid gap-y-5">
-              <div className="grid gap-y-3">
-                <Typography
-                  variant={TYPOGRAPHY.H7}
-                  className="font-normal text-grey-900"
-                >
-                  Contract Entrypoints
-                </Typography>
-                <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
-                  List here contracts that you intend to call functions directly
-                  on.
-                </Typography>
-              </div>
-
-              <TextArea
-                label=""
+              <AddressEntryList
+                values={tokens}
+                onChange={(next) => setListValue("permit2_tokens", next)}
+                placeholder="Paste token addresses, separated by commas"
                 disabled={!canEdit}
-                placeholder="0xb731d321..., 0xF2310312..."
-                register={register("contracts", {
-                  onChange: formatArrayInput,
-                })}
-                enableResize={false}
-                rows={4}
-                className={clsx(
-                  "h-[120px] max-h-[120px] min-h-[120px] !rounded-[10px] !bg-grey-50 placeholder:!text-[#717680]",
-                  errors.contracts
-                    ? "!border !border-system-error-500"
-                    : "!border-0",
-                )}
-                errors={errors.contracts}
+                emptyText="No tokens yet."
+                allowCommaSeparated
               />
-            </div>
 
-            <div className="w-full border-t border-grey-100" />
+              {errors.permit2_tokens?.message && (
+                <p className="px-1 font-world text-xs text-system-error-500">
+                  {errors.permit2_tokens.message}
+                </p>
+              )}
+            </section>
 
-            <div className="grid gap-y-5">
-              <div className="grid gap-y-3">
-                <Typography
-                  variant={TYPOGRAPHY.H7}
-                  className="font-normal text-grey-900"
-                >
-                  Permissions
-                </Typography>
-                <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
-                  Request permissions to access notifications or contacts.
-                </Typography>
-              </div>
+            <div className="border-t border-grey-100" />
+
+            <section className="grid gap-y-5">
+              <SectionHeader
+                title="Contract Entrypoints"
+                description="List here contracts that you intend to call functions directly on."
+                tooltip="Contract Entrypoints are the smart contracts your Mini App is allowed to call functions on directly. List every contract address your app interacts with — calls to any contract not listed here are blocked, which keeps your app scoped to only the on-chain interactions you expect."
+              />
+
+              <AddressEntryList
+                values={contractList}
+                onChange={(next) => setListValue("contracts", next)}
+                placeholder="Paste contract addresses, separated by commas"
+                disabled={!canEdit}
+                emptyText="No contracts yet."
+                allowCommaSeparated
+              />
+
+              {errors.contracts?.message && (
+                <p className="px-1 font-world text-xs text-system-error-500">
+                  {errors.contracts.message}
+                </p>
+              )}
+            </section>
+
+            <div className="border-t border-grey-100" />
+
+            <section className="grid gap-y-5">
+              <SectionHeader
+                title="Notifications"
+                description="Select your desired maximum notifications per day."
+              />
 
               <InlineWarning>
                 <>
@@ -512,10 +666,6 @@ export const SetupForm = ({
                 </>
               </InlineWarning>
 
-              <Typography variant={TYPOGRAPHY.R3} className="text-grey-900">
-                Select your desired maximum notifications per day:
-              </Typography>
-
               <Controller
                 name="max_notifications_per_day"
                 control={control}
@@ -523,8 +673,7 @@ export const SetupForm = ({
                   return (
                     <div className="flex items-center gap-x-8">
                       {maxNotificationPerDayOptions.map((option) => {
-                        const optionValue = option;
-                        const isSelected = field.value === optionValue;
+                        const isSelected = field.value === option;
 
                         return (
                           <label
@@ -537,7 +686,7 @@ export const SetupForm = ({
                             <button
                               type="button"
                               disabled={!canEdit}
-                              onClick={() => field.onChange(optionValue)}
+                              onClick={() => field.onChange(option)}
                               className={clsx(
                                 "flex size-5 items-center justify-center rounded-full border-[1.25px]",
                                 isSelected
@@ -564,32 +713,35 @@ export const SetupForm = ({
                   );
                 }}
               />
-            </div>
-          </>
-        )}
+            </section>
+          </div>
 
-        <div className="fixed bottom-[5.25rem] right-6 z-10 flex items-center gap-x-3 md:bottom-6">
-          <SaveStatusIndicator />
-          <DecoratedButton
-            type="button"
-            className="h-12 w-40"
-            disabled={!canEdit || displayStatus.state === "saving"}
-            onClick={() => {
-              void flushAll();
-            }}
-          >
-            <Typography variant={TYPOGRAPHY.M3}>
-              {displayStatus.state === "saving" ? "Saving…" : "Save changes"}
-            </Typography>
-          </DecoratedButton>
+          <aside className="w-full shrink-0 lg:sticky lg:top-8 lg:w-[340px] xl:w-[380px]">
+            <MiniAppPreviewCard appId={appId} appMetadata={appMetadata} />
+          </aside>
+        </div>
+
+        <div className="sticky bottom-[5.25rem] z-10 mt-10 md:bottom-6">
+          <div className="flex items-center justify-between gap-x-4 rounded-2xl border border-grey-200 bg-grey-0 px-5 py-3 shadow-button">
+            <div className="flex min-h-9 items-center">
+              <SaveStatusIndicator />
+            </div>
+
+            <DecoratedButton
+              type="button"
+              className="h-11 min-w-40 rounded-xl"
+              disabled={!canEdit || displayStatus.state === "saving"}
+              onClick={() => {
+                void flushAll();
+              }}
+            >
+              <Typography variant={TYPOGRAPHY.M3}>
+                {displayStatus.state === "saving" ? "Saving…" : "Save changes"}
+              </Typography>
+            </DecoratedButton>
+          </div>
         </div>
       </form>
-
-      <MiniAppQrPanel
-        appId={appId}
-        appMetadata={appMetadata}
-        appMode={appMode}
-      />
-    </div>
+    </>
   );
 };
