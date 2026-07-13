@@ -17,7 +17,12 @@ import { GetSingleActionV4Query } from "@/scenes/common/Teams/TeamId/Apps/AppId/
 import { updateActionV4ServerSide } from "./server";
 
 type UpdateActionV4FormProps = {
-  action: NonNullable<GetSingleActionV4Query["action_v4_by_pk"]>;
+  // Only the fields the form reads, so callers with wider query shapes can
+  // pass their action straight through.
+  action: Pick<
+    NonNullable<GetSingleActionV4Query["action_v4_by_pk"]>,
+    "id" | "action" | "description"
+  >;
   appId: string;
 };
 

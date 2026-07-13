@@ -1,0 +1,80 @@
+# Powers the action detail page. Split into two operations so the 5s live-feed
+# poll only re-runs the feed selection, not the stats aggregates.
+
+# Live verifications feed (`nullifiers`, polled every 5s while on page 1) plus
+# the fields the page needs fresh on every tick. There is one nullifier row per
+# human for a given action, so "Total verifications" == "Unique humans"; the
+# stat and pagination both use `total`.
+query GetActionVerificationsFeed(
+  $action_id: String!
+  $app_id: String!
+  $limit: Int!
+  $offset: Int!
+) {
+  action_v4(
+    where: {
+      id: { _eq: $action_id }
+      environment: { _eq: "production" }
+      rp_registration: { app_id: { _eq: $app_id } }
+    }
+    limit: 1
+  ) {
+    id
+    action
+    description
+    rp_id
+    created_at
+    rp_registration {
+      app_id
+    }
+    total: nullifiers_aggregate {
+      aggregate {
+        count
+      }
+    }
+    # id tie-breaker keeps the sort stable across pages when rows share a
+    # created_at timestamp.
+    nullifiers(
+      limit: $limit
+      offset: $offset
+      order_by: [{ created_at: desc }, { id: desc }]
+    ) {
+      id
+      created_at
+      nullifier
+    }
+  }
+}
+
+# "This week" count plus the per-day sparkline (b0..b6 driven by local-midnight
+# bounds from `weekBucketBounds`). Fetched once per view, not polled. `week` is
+# bounded to [d0, d7) so it matches the b0..b6 buckets exactly.
+query GetActionStats(
+  $action_id: String!
+  $app_id: String!
+  $d0: timestamptz!
+  $d1: timestamptz!
+  $d2: timestamptz!
+  $d3: timestamptz!
+  $d4: timestamptz!
+  $d5: timestamptz!
+  $d6: timestamptz!
+  $d7: timestamptz!
+) {
+  action_v4(
+    where: {
+      id: { _eq: $action_id }
+      environment: { _eq: "production" }
+      rp_registration: { app_id: { _eq: $app_id } }
+    }
+    limit: 1
+  ) {
+    id
+    week: nullifiers_aggregate(where: { created_at: { _gte: $d0, _lt: $d7 } }) {
+      aggregate {
+        count
+      }
+    }
+    ...WorldIdActionTrendBuckets
+  }
+}
