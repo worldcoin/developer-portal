@@ -67,7 +67,7 @@ export const QrQuickAction = (props: {
             <CopyButton
               fieldName="Miniapp URL"
               fieldValue={url}
-              className="flex items-center justify-center rounded-full border p-2 !pr-2 text-blue-500"
+              className="flex items-center justify-center rounded-full border p-2 pr-2! text-blue-500"
             />
           }
           title="See your mini app"

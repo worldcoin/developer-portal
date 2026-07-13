@@ -79,7 +79,7 @@ export const CreateActionDialogV4 = (props: CreateActionDialogV4Props) => {
 
   return (
     <div className="fixed inset-0 z-10 grid w-full justify-center bg-white">
-      <div className="grid h-[100dvh] w-[100dvw] grid-rows-auto/1fr">
+      <div className="grid h-dvh w-dvw grid-rows-auto/1fr">
         <header className="max-h-[56px] w-full border-b border-grey-100 py-4">
           <SizingWrapper>
             <div className="flex items-center justify-between">

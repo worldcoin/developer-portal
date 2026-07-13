@@ -16,7 +16,7 @@ export const ToggleSection = (props: ToggleSectionProps) => {
   return (
     <div
       className={clsx(
-        "grid grid-cols-auto/1fr/auto items-center gap-x-4 rounded-lg border-[1px] border-grey-200 bg-grey-0 px-2 py-4 transition-colors hover:border-grey-700",
+        "grid-cols-auto/1fr/auto grid items-center gap-x-4 rounded-lg border border-grey-200 bg-grey-0 px-2 py-4 transition-colors hover:border-grey-700",
         className,
       )}
     >
@@ -32,7 +32,7 @@ export const ToggleSection = (props: ToggleSectionProps) => {
         <Toggle
           checked={checked}
           onChange={onChange}
-          className="focus:!ring-grey-900 aria-checked:!bg-grey-900"
+          className="focus:ring-grey-900! aria-checked:bg-grey-900!"
         />
       </div>
     </div>

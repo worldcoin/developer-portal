@@ -42,7 +42,7 @@ const STORIES: DeveloperStory[] = [
 const PlayGlyph = () => (
   <svg
     aria-hidden="true"
-    className="size-4 translate-x-[1px] fill-[#181818] md:size-6"
+    className="size-4 translate-x-px fill-portal-text md:size-6"
     viewBox="0 0 24 24"
   >
     <path d="M8 5v14l11-7z" />
@@ -132,7 +132,7 @@ export const DeveloperStories = () => {
   }, []);
 
   return (
-    <div className="flex w-full flex-col gap-10 text-[#181818]">
+    <div className="flex w-full flex-col gap-10 text-portal-text">
       <div className="flex items-end justify-between gap-6">
         <div className="flex max-w-[625px] flex-col gap-4">
           <h2 className="text-[clamp(32px,2.8vw,48px)] leading-[1.2] tracking-[-0.02em]">
@@ -170,12 +170,12 @@ export const DeveloperStories = () => {
       </div>
 
       <div
-        className="flex flex-col gap-8 [-ms-overflow-style:none] [scrollbar-width:none] md:snap-x md:snap-mandatory md:flex-row md:items-start md:gap-6 md:overflow-x-auto md:pb-2 [&::-webkit-scrollbar]:hidden"
+        className="flex scrollbar-none flex-col gap-8 [-ms-overflow-style:none] md:snap-x md:snap-mandatory md:flex-row md:items-start md:gap-6 md:overflow-x-auto md:pb-2 [&::-webkit-scrollbar]:hidden"
         ref={trackRef}
       >
         {STORIES.map((story, index) => (
           <article
-            className="relative aspect-[16/9] w-full overflow-hidden rounded-xl bg-black/5 md:aspect-[3/2] md:flex-[0_0_calc(50%_-_12px)] md:snap-start md:rounded-2xl"
+            className="relative aspect-video w-full overflow-hidden rounded-xl bg-black/5 md:aspect-3/2 md:flex-[0_0_calc(50%-12px)] md:snap-start md:rounded-2xl"
             key={story.name}
             ref={(node) => {
               cardRefs.current[index] = node;

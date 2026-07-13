@@ -10,9 +10,9 @@ export const AppStatus = (props: {
   const { disabled, status, setStatus } = props;
 
   return (
-    <div className="grid grid-cols-auto/1fr/auto gap-x-4 rounded-xl border-[1px] p-5">
+    <div className="grid-cols-auto/1fr/auto grid gap-x-4 rounded-xl border p-5">
       <Switcher enabled={status} setEnabled={setStatus} disabled={disabled} />
-      <div className="grid gap-y-2 ">
+      <div className="grid gap-y-2">
         <Typography variant={TYPOGRAPHY.R3}>Activate the App</Typography>
         <Typography variant={TYPOGRAPHY.R4} className="text-grey-400">
           Enables users to verify with World ID for this app
@@ -20,7 +20,7 @@ export const AppStatus = (props: {
       </div>
       <div
         className={clsx(
-          "grid h-fit grid-cols-auto/1fr items-center gap-x-1.5 rounded-xl px-3 py-1 ",
+          "grid h-fit grid-cols-auto/1fr items-center gap-x-1.5 rounded-xl px-3 py-1",
           {
             "bg-system-success-50 text-system-success-500": status,
             "bg-gray-50 text-grey-400": !status,

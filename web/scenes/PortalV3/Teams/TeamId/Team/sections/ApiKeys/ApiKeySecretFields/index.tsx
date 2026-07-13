@@ -223,7 +223,7 @@ const CopyControl = (props: {
     <button
       type="button"
       className={clsx(
-        "flex shrink-0 items-center justify-center text-blue-500 transition-colors hover:text-grey-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-150",
+        "flex shrink-0 items-center justify-center text-blue-500 transition-colors hover:text-grey-900 focus-visible:ring-2 focus-visible:ring-blue-150 focus-visible:outline-hidden",
         {
           "h-9 gap-1.5 rounded-12 border border-grey-200 bg-grey-0 px-3 text-sm font-medium shadow-button":
             variant === "pill",
@@ -243,7 +243,7 @@ const SnippetText = (props: { value: string; isRawConfig: boolean }) => {
 
   if (isRawConfig) {
     return (
-      <pre className="min-w-0 overflow-x-auto whitespace-pre font-ibm text-xs leading-5 text-grey-900">
+      <pre className="min-w-0 overflow-x-auto font-ibm text-xs leading-5 whitespace-pre text-grey-900">
         <code>{value}</code>
       </pre>
     );
@@ -261,7 +261,7 @@ const SnippetText = (props: { value: string; isRawConfig: boolean }) => {
   const rest = splitAt === -1 ? "" : value.slice(splitAt);
 
   return (
-    <pre className="min-w-0 overflow-x-auto whitespace-pre font-ibm text-xs leading-5 text-grey-900 md:text-sm">
+    <pre className="min-w-0 overflow-x-auto font-ibm text-xs leading-5 whitespace-pre text-grey-900 md:text-sm">
       <code>
         <span className="text-blue-500">{firstToken}</span>
         {rest}
@@ -286,7 +286,7 @@ export const ApiKeySecretFields = (props: { apiKey: string }) => {
         <div className="flex items-center justify-between gap-4 px-1">
           <Typography
             variant={TYPOGRAPHY.M4}
-            className="uppercase text-grey-400"
+            className="text-grey-400 uppercase"
           >
             API key
           </Typography>
@@ -301,7 +301,7 @@ export const ApiKeySecretFields = (props: { apiKey: string }) => {
         </div>
 
         <div className="grid min-h-12 grid-cols-[minmax(0,1fr)_auto] items-center gap-2 rounded-12 border border-blue-150 bg-blue-50 p-1.5 pl-3">
-          <code className="min-w-0 break-all font-ibm text-sm text-grey-900">
+          <code className="min-w-0 font-ibm text-sm break-all text-grey-900">
             {apiKeyPreview}
           </code>
 
@@ -313,14 +313,14 @@ export const ApiKeySecretFields = (props: { apiKey: string }) => {
         <div className="flex items-center justify-between gap-4 px-1">
           <Typography
             variant={TYPOGRAPHY.M4}
-            className="uppercase text-grey-400"
+            className="text-grey-400 uppercase"
           >
             Connect to
           </Typography>
 
           <button
             type="button"
-            className="flex items-center gap-1 text-sm font-medium text-blue-500 transition-colors hover:text-grey-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-150"
+            className="flex items-center gap-1 text-sm font-medium text-blue-500 transition-colors hover:text-grey-900 focus-visible:ring-2 focus-visible:ring-blue-150 focus-visible:outline-hidden"
             onClick={() => setShowRawConfig((value) => !value)}
           >
             {showRawConfig ? "Command" : "Raw config"}
@@ -337,7 +337,7 @@ export const ApiKeySecretFields = (props: { apiKey: string }) => {
                 key={item.id}
                 type="button"
                 className={clsx(
-                  "flex h-9 items-center rounded-full border px-3 text-grey-500 transition-colors hover:border-blue-150 hover:bg-blue-50 hover:text-grey-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-150",
+                  "flex h-9 items-center rounded-full border px-3 text-grey-500 transition-colors hover:border-blue-150 hover:bg-blue-50 hover:text-grey-900 focus-visible:ring-2 focus-visible:ring-blue-150 focus-visible:outline-hidden",
                   {
                     "border-blue-150 bg-blue-50 text-grey-900": isSelected,
                     "border-transparent bg-grey-0": !isSelected,

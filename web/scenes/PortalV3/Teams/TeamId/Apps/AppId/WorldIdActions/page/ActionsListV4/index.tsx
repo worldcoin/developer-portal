@@ -90,7 +90,7 @@ export const ActionsListV4 = (props: ActionsListV4Props) => {
             />
           </Section.Header.Search>
 
-          <Section.Header.Button className="max-md:!bottom-[4.25rem] md:row-start-1 md:items-start">
+          <Section.Header.Button className="max-md:bottom-17! md:row-start-1 md:items-start">
             <DecoratedButton
               type="button"
               variant="primary"

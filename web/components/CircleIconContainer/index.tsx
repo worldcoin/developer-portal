@@ -54,7 +54,7 @@ export const CircleIconContainer = (props: CircleIconContainerProps) => {
   };
 
   return (
-    <div className="relative size-[5.5rem]">
+    <div className="relative size-22">
       <svg
         width="88"
         height="88"

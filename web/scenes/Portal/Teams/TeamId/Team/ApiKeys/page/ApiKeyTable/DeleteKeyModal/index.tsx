@@ -49,7 +49,7 @@ export const DeleteKeyModal = (props: DeleteKeyModalProps) => {
       <DialogOverlay />
 
       <DialogPanel>
-        <div className="grid grid-cols-1 justify-items-center gap-y-8 px-2 md:w-full md:max-w-[25rem]">
+        <div className="grid grid-cols-1 justify-items-center gap-y-8 px-2 md:w-full md:max-w-100">
           <CircleIconContainer variant={"error"}>
             <WarningErrorIcon className="w-6" />
           </CircleIconContainer>

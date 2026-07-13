@@ -21,7 +21,7 @@ export const ApiKeySecretModal = (props: {
     <Dialog open={isOpen} onClose={onClose}>
       <DialogOverlay />
 
-      <DialogPanel className="max-h-[calc(100dvh-2rem)] overflow-y-auto rounded-20 p-5 sm:p-6 md:w-[34rem] md:max-w-[calc(100vw-2rem)]">
+      <DialogPanel className="max-h-[calc(100dvh-2rem)] overflow-y-auto rounded-20 p-5 sm:p-6 md:w-136 md:max-w-[calc(100vw-2rem)]">
         <div className="grid grid-cols-1 justify-items-center gap-y-5">
           <div className="flex size-12 items-center justify-center rounded-full border border-blue-150 bg-blue-50 text-blue-500">
             <KeyIcon className="size-5" />

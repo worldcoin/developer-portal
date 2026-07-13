@@ -104,9 +104,9 @@ export const EmailsInput = memo(function EmailsInput(props: EmailsInputProps) {
 
       <input
         className={clsx(
-          "h-8 grow bg-transparent px-2 outline-none",
-          "font-gta text-base font-normal leading-[1.5] text-grey-900",
-          "placeholder:font-gta placeholder:text-base placeholder:font-normal placeholder:leading-[1.5] placeholder:text-grey-400",
+          "h-8 grow bg-transparent px-2 outline-hidden",
+          "font-gta text-base leading-normal font-normal text-grey-900",
+          "placeholder:font-gta placeholder:text-base placeholder:leading-normal placeholder:font-normal placeholder:text-grey-400",
           {
             "w-5": !focused && emails.length === 0,
           },

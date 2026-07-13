@@ -23,7 +23,7 @@ const QuickActionCard = (props: {
       {props.icon}
     </span>
     <span className="min-w-0">
-      <span className="block font-world text-15 font-medium leading-[1.3] text-portal-text">
+      <span className="block font-world text-15 leading-[1.3] font-medium text-portal-text">
         {props.title}
       </span>
       <span className="mt-1 block font-world text-13 leading-[1.4] text-portal-muted">
@@ -39,7 +39,7 @@ export const QuickActionsSection = ({
 }: QuickActionsSectionProps) => {
   return (
     <div className="grid gap-y-4">
-      <h2 className="font-world text-17 font-medium leading-[1.2] text-portal-heading">
+      <h2 className="font-world text-17 leading-[1.2] font-medium text-portal-heading">
         Quick actions
       </h2>
 

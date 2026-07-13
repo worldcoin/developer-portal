@@ -81,7 +81,7 @@ export const ViewDetailsModal = memo(function ViewDetailsModal(
         <span className="">
           API key{" "}
           <span className="inline-flex">
-            <b className="max-w-20 truncate ">{values.name}</b>
+            <b className="max-w-20 truncate">{values.name}</b>
           </span>{" "}
           was updated
         </span>,
@@ -97,7 +97,7 @@ export const ViewDetailsModal = memo(function ViewDetailsModal(
     <Dialog open={isOpen} onClose={() => setIsOpen(false)}>
       <DialogOverlay />
 
-      <DialogPanel className="md:max-w-[36rem]">
+      <DialogPanel className="md:max-w-xl">
         <div className="grid w-full grid-cols-1 justify-items-center gap-y-8">
           <CircleIconContainer variant={"info"}>
             <KeyIcon className="text-blue-500" />

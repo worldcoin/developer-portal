@@ -164,7 +164,7 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
     >
       <Dialog open={showDialog} onClose={handleClose}>
         <DialogOverlay />
-        <DialogPanel className="grid gap-y-10 md:max-w-[28rem]">
+        <DialogPanel className="grid gap-y-10 md:max-w-md">
           <div className="grid w-full grid-cols-1fr/auto justify-between">
             <Typography variant={TYPOGRAPHY.H6}>Edit app image</Typography>
             <Button
@@ -241,7 +241,7 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
         viewMode === "verified" &&
         (verifiedImageError ? (
           <div className="flex size-full items-center justify-center rounded-2xl bg-blue-100">
-            <WorldIcon className="size-10  text-blue-500" />
+            <WorldIcon className="size-10 text-blue-500" />
           </div>
         ) : (
           // eslint-disable-next-line @next/next/no-img-element
@@ -295,7 +295,7 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
             type="button"
             onClick={() => setShowDialog(true)}
             className={clsx(
-              "absolute -bottom-2 -right-2 rounded-full border-2 border-grey-200 bg-white p-2 text-grey-500 hover:bg-grey-50",
+              "absolute -right-2 -bottom-2 rounded-full border-2 border-grey-200 bg-white p-2 text-grey-500 hover:bg-grey-50",
               { hidden: !editable || viewMode === "verified" },
             )}
           >

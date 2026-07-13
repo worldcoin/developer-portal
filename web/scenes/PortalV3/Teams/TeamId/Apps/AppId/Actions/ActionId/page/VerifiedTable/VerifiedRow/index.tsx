@@ -55,7 +55,7 @@ export const VerifiedRow = (props: {
   };
 
   return (
-    <div className="max-md:grid max-md:grid-cols-[1fr_auto] max-md:rounded-20 max-md:border max-md:border-grey-100 max-md:px-5 max-md:py-4 md:contents md:[&>*]:border-b md:[&>*]:border-grey-100 md:[&>*]:py-3">
+    <div className="max-md:grid max-md:grid-cols-[1fr_auto] max-md:rounded-20 max-md:border max-md:border-grey-100 max-md:px-5 max-md:py-4 md:contents md:*:border-b md:*:border-grey-100 md:*:py-3">
       {columns.map((column) => (
         <React.Fragment key={column}>{renderColumn(column)}</React.Fragment>
       ))}

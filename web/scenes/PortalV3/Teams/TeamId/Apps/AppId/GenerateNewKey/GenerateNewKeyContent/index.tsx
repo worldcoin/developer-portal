@@ -145,13 +145,13 @@ export const GenerateNewKeyContent = ({
             Important
           </Typography>
           <Typography as="ul" variant={TYPOGRAPHY.S4} className="grid">
-            <li className="pl-4 indent-[-1rem]">
+            <li className="pl-4 -indent-4">
               • Save this private key securely - it cannot be recovered if lost
             </li>
-            <li className="pl-4 indent-[-1rem]">
+            <li className="pl-4 -indent-4">
               • Never share your private key or commit it to version control
             </li>
-            <li className="pl-4 indent-[-1rem]">
+            <li className="pl-4 -indent-4">
               • Use environment variables to store the key in your application
             </li>
           </Typography>

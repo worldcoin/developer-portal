@@ -25,10 +25,10 @@ export const SwitcherBox = (props: {
 
   return (
     <div
-      className={clsx("grid grid-cols-auto/1fr/auto gap-x-4 p-5", className)}
+      className={clsx("grid-cols-auto/1fr/auto grid gap-x-4 p-5", className)}
     >
       <Switcher enabled={status} setEnabled={setStatus} disabled={disabled} />
-      <div className="grid gap-y-2 ">
+      <div className="grid gap-y-2">
         <Typography variant={TYPOGRAPHY.R3}>{title}</Typography>
         {description && (
           <Typography variant={TYPOGRAPHY.R4} className="text-grey-400">
@@ -38,7 +38,7 @@ export const SwitcherBox = (props: {
       </div>
       <div
         className={clsx(
-          "grid h-fit grid-cols-auto/1fr items-center gap-x-1.5 rounded-xl px-3 py-1 ",
+          "grid h-fit grid-cols-auto/1fr items-center gap-x-1.5 rounded-xl px-3 py-1",
           {
             "bg-system-success-50 text-system-success-500": status,
             "bg-gray-50 text-grey-400": !status,

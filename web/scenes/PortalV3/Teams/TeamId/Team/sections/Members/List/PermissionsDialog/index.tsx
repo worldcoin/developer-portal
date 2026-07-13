@@ -120,7 +120,7 @@ export const PermissionsDialog = () => {
     >
       <DialogOverlay />
 
-      <DialogPanel className="grid gap-y-8 md:max-w-[66rem]">
+      <DialogPanel className="grid gap-y-8 md:max-w-264">
         <header className="flex w-full items-center justify-start">
           <Button
             type="button"
@@ -182,7 +182,7 @@ export const PermissionsDialog = () => {
             <Disclosure key={index}>
               {({ open }) => (
                 <div className="rounded-16 border border-grey-200">
-                  <Disclosure.Button className="flex w-full justify-between px-5 py-4 text-18 font-medium leading-6">
+                  <Disclosure.Button className="flex w-full justify-between px-5 py-4 text-18 leading-6 font-medium">
                     {role}
 
                     {open ? <CollapseIcon /> : <ExpandIcon />}

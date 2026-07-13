@@ -15,10 +15,10 @@ export const List = (props: ListProps) => {
 
   return (
     <DropdownPrimitive.Portal>
-      <div className="contents [&>*]:!z-[1000] max-md:[&>*]:pointer-events-none max-md:[&>*]:!inset-0 max-md:[&>*]:!transform-none">
+      <div className="contents *:z-1000! max-md:*:pointer-events-none max-md:*:inset-0! max-md:*:transform-none!">
         <DropdownPrimitive.Content forceMount asChild {...otherProps}>
-          <div className="group data-[state=open]:animate-DropdownOverlayEnter max-md:!pointer-events-none max-md:fixed max-md:inset-0 max-md:flex max-md:flex-col max-md:overflow-y-auto max-md:bg-black/40 max-md:pt-5">
-            <div className="pointer-events-auto grid gap-y-1 rounded-t-20 border border-grey-100 bg-grey-0 font-gta shadow-lg max-md:mt-auto max-md:px-6 max-md:pb-8 max-md:group-data-[state=open]:animate-DropdownContentEnter@device md:min-w-[12.5rem] md:max-w-[20rem] md:gap-y-0 md:rounded-12 md:py-1 md:group-data-[state=open]:animate-DropdownContentEnter@desktop">
+          <div className="group data-[state=open]:animate-dropdown-overlay-enter max-md:pointer-events-none! max-md:fixed max-md:inset-0 max-md:flex max-md:flex-col max-md:overflow-y-auto max-md:bg-black/40 max-md:pt-5">
+            <div className="pointer-events-auto grid gap-y-1 rounded-t-20 border border-grey-100 bg-grey-0 font-gta shadow-lg max-md:mt-auto max-md:px-6 max-md:pb-8 max-md:group-data-[state=open]:animate-dropdown-content-enter-device md:max-w-[20rem] md:min-w-50 md:gap-y-0 md:rounded-12 md:py-1 md:group-data-[state=open]:animate-dropdown-content-enter-desktop">
               <div className="mb-8 pb-2.5 md:hidden">
                 <div className="mx-auto mt-2.5 h-1 w-9 rounded-full bg-grey-200" />
 
@@ -35,7 +35,7 @@ export const List = (props: ListProps) => {
                     <ChevronLeftIcon className="size-4" />
                   </button>
 
-                  <div className="truncate px-4 text-center font-twk text-18 font-medium leading-6">
+                  <div className="truncate px-4 text-center font-twk text-18 leading-6 font-medium">
                     {heading}
                   </div>
                 </div>

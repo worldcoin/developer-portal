@@ -7,8 +7,8 @@ export const ProfileBadge = () => {
     <UIModule
       className={clsx(
         "grid size-10 place-items-center p-0",
-        "3xl:size-[3.125rem]",
-        "4xl:size-[4.375rem]",
+        "3xl:size-12.5",
+        "4xl:size-17.5",
       )}
     >
       <Icon

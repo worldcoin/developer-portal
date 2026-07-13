@@ -171,11 +171,11 @@ export const ActiveKioskPage = (props: ActiveKioskPageProps) => {
   }, [proofResult, verifyProof]);
   return (
     <div className={clsx("fixed inset-0 grid w-full justify-center bg-white")}>
-      <div className="grid h-[100dvh] w-[100dvw] grid-rows-auto/1fr overflow-auto">
+      <div className="grid h-dvh w-dvw grid-rows-auto/1fr overflow-auto">
         <header className="relative flex min-h-[80px] items-center justify-between">
           <div className="left-0 flex w-1/3 items-center pl-4">
             <Button
-              className="flex size-9 items-center justify-center rounded-full bg-[#ebecef]"
+              className="flex size-9 items-center justify-center rounded-full bg-grey-200"
               onClick={() => router.back()}
               type="button"
             >
@@ -187,7 +187,7 @@ export const ActiveKioskPage = (props: ActiveKioskPageProps) => {
             <WorldTextLogo className="h-6" />
           </div>
 
-          <div className="z-[100] flex w-1/3 flex-col items-center justify-end md:flex-row md:gap-x-4 md:pr-6">
+          <div className="z-100 flex w-1/3 flex-col items-center justify-end md:flex-row md:gap-x-4 md:pr-6">
             <Dropdown>
               <Dropdown.Button className="grid grid-cols-1fr/auto">
                 Reset Interval
@@ -201,7 +201,7 @@ export const ActiveKioskPage = (props: ActiveKioskPageProps) => {
 
                 <Dropdown.ListItem asChild className="grid-cols-1fr/auto">
                   <button onClick={() => setResetInterval(30000)}>
-                    <Dropdown.ListItemText className="md:!leading-4">
+                    <Dropdown.ListItemText className="md:leading-4!">
                       30 seconds
                     </Dropdown.ListItemText>
 
@@ -218,7 +218,7 @@ export const ActiveKioskPage = (props: ActiveKioskPageProps) => {
 
                 <Dropdown.ListItem asChild className="grid-cols-1fr/auto">
                   <button onClick={() => setResetInterval(60000)}>
-                    <Dropdown.ListItemText className="md:!leading-4">
+                    <Dropdown.ListItemText className="md:leading-4!">
                       1 minute
                     </Dropdown.ListItemText>
 
@@ -235,7 +235,7 @@ export const ActiveKioskPage = (props: ActiveKioskPageProps) => {
 
                 <Dropdown.ListItem asChild className="grid-cols-1fr/auto">
                   <button onClick={() => setResetInterval(300000)}>
-                    <Dropdown.ListItemText className="md:!leading-4">
+                    <Dropdown.ListItemText className="md:leading-4!">
                       5 minutes
                     </Dropdown.ListItemText>
 
@@ -252,7 +252,7 @@ export const ActiveKioskPage = (props: ActiveKioskPageProps) => {
 
                 <Dropdown.ListItem asChild className="grid-cols-1fr/auto">
                   <button onClick={() => setResetInterval(0)}>
-                    <Dropdown.ListItemText className="md:!leading-4">
+                    <Dropdown.ListItemText className="md:leading-4!">
                       Never
                     </Dropdown.ListItemText>
 
