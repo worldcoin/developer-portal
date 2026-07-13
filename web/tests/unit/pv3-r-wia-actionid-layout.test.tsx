@@ -2,9 +2,12 @@
 import "@testing-library/jest-dom";
 import { render, screen } from "@testing-library/react";
 import React from "react";
+
+// #region Mocks
 jest.mock("@/lib/feature-flags/portal-v3/activation", () => ({
   pickPortalVersion: async (v3: () => unknown) => v3(),
 }));
+
 jest.mock(
   "@/scenes/Portal/Teams/TeamId/Apps/AppId/WorldIdActions/ActionId/layout",
   () => ({

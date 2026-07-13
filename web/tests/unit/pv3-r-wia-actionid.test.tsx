@@ -1,6 +1,5 @@
 /** @jest-environment jsdom */
 import "@testing-library/jest-dom";
-import { render, screen } from "@testing-library/react";
 import React from "react";
 
 const mockGetIsUserAllowedToUpdateApp = jest.fn();
@@ -14,6 +13,14 @@ jest.mock("@/lib/permissions", () => ({
   getIsUserAllowedToUpdateApp: (...args: unknown[]) =>
     mockGetIsUserAllowedToUpdateApp(...args),
 }));
+
+const redirect = jest.fn();
+jest.mock("next/navigation", () => ({
+  redirect: (...args: unknown[]) => redirect(...args),
+}));
+
+// @/lib/urls is intentionally NOT mocked — the redirect target shape
+// (urls.worldIdActionDetail + appendSearchParams) is what's under test.
 jest.mock(
   "@/scenes/Portal/Teams/TeamId/Apps/AppId/WorldIdActions/ActionId/page",
   () => ({ WorldIdActionIdPage: () => <div data-testid="v2-wia-actionid" /> }),
