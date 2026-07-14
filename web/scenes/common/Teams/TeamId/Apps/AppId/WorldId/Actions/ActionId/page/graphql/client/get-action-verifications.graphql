@@ -1,10 +1,4 @@
-# Powers the action detail page. Split into two operations so the 5s live-feed
-# poll only re-runs the feed selection, not the stats aggregates.
-
-# Live verifications feed (`nullifiers`, polled every 5s while on page 1) plus
-# the fields the page needs fresh on every tick. Each stored nullifier is one
-# unique verification for this action; replayed proofs do not add another row.
-# The headline stat and pagination both use `total`.
+# Split so the 5s feed poll does not refetch aggregates.
 query GetActionVerificationsFeed(
   $action_id: String!
   $app_id: String!
@@ -32,8 +26,7 @@ query GetActionVerificationsFeed(
         count
       }
     }
-    # id tie-breaker keeps the sort stable across pages when rows share a
-    # created_at timestamp.
+    # Stable tie-breaker for rows sharing a timestamp.
     nullifiers(
       limit: $limit
       offset: $offset
@@ -46,9 +39,6 @@ query GetActionVerificationsFeed(
   }
 }
 
-# "This week" count plus the per-day sparkline (b0..b6 driven by local-midnight
-# bounds from `weekBucketBounds`). Fetched once per view, not polled. `week` is
-# bounded to [d0, d7) so it matches the b0..b6 buckets exactly.
 query GetActionStats(
   $action_id: String!
   $app_id: String!
