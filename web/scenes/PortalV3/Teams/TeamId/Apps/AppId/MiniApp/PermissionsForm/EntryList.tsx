@@ -43,7 +43,7 @@ const EntryRow = (props: EntryRowProps) => {
 
   return (
     <div
-      className="flex h-11 items-center gap-x-3 rounded-xl border border-grey-100 bg-grey-0 pl-4 pr-2"
+      className="flex h-11 items-center gap-x-3 rounded-xl border border-grey-100 bg-grey-0 pr-2 pl-4"
       data-testid={testId}
     >
       <span
@@ -164,7 +164,7 @@ export const EntryList = (props: EntryListProps) => {
                   add();
                 }
               }}
-              className="h-full min-w-0 flex-1 bg-transparent font-world text-[15px] text-grey-900 placeholder:text-grey-400 focus:outline-none focus:ring-0"
+              className="h-full min-w-0 flex-1 bg-transparent font-world text-[15px] text-grey-900 placeholder:text-grey-400 focus:ring-0 focus:outline-none"
             />
 
             <button

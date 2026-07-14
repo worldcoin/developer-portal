@@ -87,9 +87,9 @@ const HelpTooltip = ({
 
     <span
       role="tooltip"
-      className="pointer-events-none absolute left-1/2 top-full z-30 mt-2 w-72 -translate-x-1/2 rounded-xl bg-grey-900 px-3.5 py-3 opacity-0 shadow-lg transition-opacity duration-150 group-focus-within:opacity-100 group-hover:opacity-100"
+      className="pointer-events-none absolute top-full left-1/2 z-30 mt-2 w-72 -translate-x-1/2 rounded-xl bg-grey-900 px-3.5 py-3 opacity-0 shadow-lg transition-opacity duration-150 group-focus-within:opacity-100 group-hover:opacity-100"
     >
-      <span className="font-world text-[13px] font-medium leading-[145%] text-grey-0">
+      <span className="font-world text-[13px] leading-[145%] font-medium text-grey-0">
         {children}
       </span>
       <span
@@ -111,7 +111,7 @@ const SectionHeader = (props: {
       <div className="flex min-w-0 items-start gap-x-1.5">
         <Typography
           as="h2"
-          className="min-w-0 font-world text-[17px] font-medium leading-[120%] text-grey-900"
+          className="min-w-0 font-world text-[17px] leading-[120%] font-medium text-grey-900"
         >
           {props.title}
         </Typography>
@@ -126,7 +126,7 @@ const SectionHeader = (props: {
       {props.description && (
         <Typography
           as="p"
-          className="font-world text-[13px] font-medium leading-[130%] text-grey-500"
+          className="font-world text-[13px] leading-[130%] font-medium text-grey-500"
         >
           {props.description}
         </Typography>
@@ -206,14 +206,14 @@ const MiniAppPreviewCard = ({
           <div className="grid gap-y-0.5">
             <Typography
               as="p"
-              className="font-world text-[15px] font-semibold leading-[120%] text-grey-900"
+              className="font-world text-[15px] leading-[120%] font-semibold text-grey-900"
             >
               Mini App preview
             </Typography>
 
             <Typography
               as="p"
-              className="font-world text-[13px] font-medium leading-[130%] text-grey-500"
+              className="font-world text-[13px] leading-[130%] font-medium text-grey-500"
             >
               Scan or copy the preview link
             </Typography>
@@ -414,14 +414,14 @@ export const SetupForm = ({
           <div className="grid gap-y-2">
             <Typography
               as="h1"
-              className="font-world text-[26px] font-semibold leading-[120%] tracking-[-0.01em] text-[#191C20]"
+              className="font-world text-[26px] leading-[120%] font-semibold tracking-[-0.01em] text-[#191C20]"
             >
               Permissions
             </Typography>
 
             <Typography
               as="p"
-              className="font-world text-[15px] font-medium leading-[130%] text-grey-500"
+              className="font-world text-[15px] leading-[130%] font-medium text-grey-500"
             >
               Control which resources your Mini App can access.
             </Typography>
@@ -463,7 +463,7 @@ export const SetupForm = ({
               <div className="flex items-center justify-between gap-x-5">
                 <Typography
                   as="p"
-                  className="font-world text-[15px] font-medium leading-[120%] text-grey-900"
+                  className="font-world text-[15px] leading-[120%] font-medium text-grey-900"
                 >
                   Enforce payment allowlist
                 </Typography>

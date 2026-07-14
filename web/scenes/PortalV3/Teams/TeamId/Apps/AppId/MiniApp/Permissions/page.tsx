@@ -33,7 +33,7 @@ export const AppPermissionsPage = (props: AppPermissionsPageProps) => {
 
   return (
     <SaveStatusProvider>
-      <div className="pb-12 pt-8">
+      <div className="pt-8 pb-12">
         <div className="grid grid-cols-1">
           {loading ? (
             <FormSkeleton count={3} />
