@@ -1,8 +1,7 @@
 "use client";
 
 import clsx from "clsx";
-import { CollapseIcon } from "@/components/Icons/CollapseIcon";
-import { ExpandIcon } from "@/components/Icons/ExpandIcon";
+import { PanelLeft, PanelRight } from "lucide-react";
 import { useNav } from "../NavProvider";
 
 type CollapseButtonProps = {
@@ -28,9 +27,9 @@ export const CollapseButton = ({ className }: CollapseButtonProps) => {
       onClick={() => setIsCollapsed(!isCollapsed)}
     >
       {isCollapsed ? (
-        <ExpandIcon className={clsx("size-4", "3xl:size-5", "4xl:size-7")} />
+        <PanelLeft className={clsx("size-4", "3xl:size-5", "4xl:size-7")} />
       ) : (
-        <CollapseIcon className={clsx("size-4", "3xl:size-5", "4xl:size-7")} />
+        <PanelRight className={clsx("size-4", "3xl:size-5", "4xl:size-7")} />
       )}
     </button>
   );
