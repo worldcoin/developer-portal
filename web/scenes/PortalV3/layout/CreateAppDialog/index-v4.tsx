@@ -174,8 +174,9 @@ export const CreateAppDialogV4 = ({
 
     if (!existingAppId && teamId && createdAppId) {
       router.replace(`/teams/${teamId}/apps/${createdAppId}`);
-      router.refresh();
     }
+
+    router.refresh();
 
     onClose();
   }, [createdAppId, existingAppId, onClose, onComplete, router, teamId]);
