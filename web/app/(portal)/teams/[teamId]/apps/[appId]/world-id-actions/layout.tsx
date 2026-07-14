@@ -1,4 +1,5 @@
 import { urls } from "@/lib/urls";
+import { WorldIdLayout } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldId/layout";
 import { fetchAppEnvCached } from "@/scenes/common/Teams/TeamId/Apps/AppId/layout/server/fetch-app-env";
 import { redirect } from "next/navigation";
 import { ReactNode } from "react";

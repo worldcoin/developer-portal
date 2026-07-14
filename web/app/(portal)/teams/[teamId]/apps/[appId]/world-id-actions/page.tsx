@@ -1,5 +1,4 @@
 import { pickPortalVersion } from "@/lib/feature-flags/portal-v3/activation";
-import { urls } from "@/lib/urls";
 import { WorldIdActionsPage } from "@/scenes/Portal/Teams/TeamId/Apps/AppId/WorldIdActions/page";
 import { WorldIdLayout } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldId/layout";
 import { WorldIdActionsPage as WorldIdActionsPageV3 } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldIdActions/page";
@@ -11,11 +10,6 @@ export default async function Page(props: {
 }) {
   const params = await props.params;
   const searchParams = await props.searchParams;
-  const worldIdPath = urls.worldId({
-    team_id: params.teamId,
-    app_id: params.appId,
-  });
-
   return pickPortalVersion(
     async () => {
       const { action } = await fetchAppEnvCached(params.appId);

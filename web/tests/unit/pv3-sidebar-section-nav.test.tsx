@@ -134,7 +134,7 @@ describe("v3 SidebarNav [active section]", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("keeps World ID current on the legacy routes that redirect into it", () => {
+  it("keeps World ID current on legacy World ID routes", () => {
     for (const suffix of ["/world-id-4-0", "/world-id-actions", "/actions"]) {
       usePathname.mockReturnValue(`${base}${suffix}`);
       const { unmount } = renderSidebar();

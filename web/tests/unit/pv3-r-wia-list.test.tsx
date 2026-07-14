@@ -1,22 +1,17 @@
 /** @jest-environment jsdom */
 import "@testing-library/jest-dom";
+import { render, screen } from "@testing-library/react";
 import React from "react";
-
-// #region Mocks
 jest.mock("@/lib/feature-flags/portal-v3/activation", () => ({
   pickPortalVersion: async (v3: () => unknown) => v3(),
 }));
-
-const redirect = jest.fn();
-jest.mock("next/navigation", () => ({
-  redirect: (...args: unknown[]) => redirect(...args),
-}));
-
 jest.mock(
   "@/scenes/Portal/Teams/TeamId/Apps/AppId/WorldIdActions/page",
-  () => ({
-    WorldIdActionsPage: () => <div data-testid="v2-wia-list" />,
-  }),
+  () => ({ WorldIdActionsPage: () => <div data-testid="v2-wia-list" /> }),
+);
+jest.mock(
+  "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldIdActions/page",
+  () => ({ WorldIdActionsPage: () => <div data-testid="v3-wia-list" /> }),
 );
 jest.mock("@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldId/layout", () => ({
   WorldIdLayout: ({ children }: { children: React.ReactNode }) => (

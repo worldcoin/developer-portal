@@ -1,5 +1,6 @@
 /** @jest-environment jsdom */
 import "@testing-library/jest-dom";
+import { render, screen } from "@testing-library/react";
 import React from "react";
 
 let mockPortalV3Enabled = true;
@@ -12,12 +13,6 @@ jest.mock("@/lib/feature-flags/portal-v3/activation", () => ({
 jest.mock("next/navigation", () => ({
   redirect: (...args: unknown[]) => redirectMock(...args),
 }));
-
-const redirect = jest.fn();
-jest.mock("next/navigation", () => ({
-  redirect: (...args: unknown[]) => redirect(...args),
-}));
-
 jest.mock(
   "@/scenes/Portal/Teams/TeamId/Apps/AppId/WorldIdActions/ActionId/Danger/page",
   () => ({
