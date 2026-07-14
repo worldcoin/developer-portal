@@ -24,11 +24,11 @@ const props = (searchParams: Record<string, string> = {}) => ({
   searchParams: Promise.resolve(searchParams),
 });
 
-it("redirects v3 users to the World ID landing, preserving the query string", async () => {
+it("redirects v3 users to World ID and only preserves the enable flow", async () => {
   await RoutePage(props());
   expect(redirect).toHaveBeenCalledWith("/teams/team_1/apps/app_1/world-id");
 
-  await RoutePage(props({ enableWorldId4: "true" }));
+  await RoutePage(props({ enableWorldId4: "true", ignored: "value" }));
   expect(redirect).toHaveBeenCalledWith(
     "/teams/team_1/apps/app_1/world-id?enableWorldId4=true",
   );

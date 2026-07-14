@@ -1,6 +1,6 @@
 import { pickPortalVersion } from "@/lib/feature-flags/portal-v3/activation";
 import { generateMetaTitle } from "@/lib/genarate-title";
-import { appendSearchParams, urls } from "@/lib/urls";
+import { urls } from "@/lib/urls";
 import { WorldIdPage } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldId/page";
 import { Metadata } from "next";
 import { redirect } from "next/navigation";
@@ -19,10 +19,7 @@ export default async function Page(props: {
     () => <WorldIdPage params={params} searchParams={searchParams} />,
     () =>
       redirect(
-        appendSearchParams(
-          urls.worldId40({ team_id: params.teamId, app_id: params.appId }),
-          searchParams,
-        ),
+        urls.worldId40({ team_id: params.teamId, app_id: params.appId }),
       ),
   );
 }

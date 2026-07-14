@@ -5,10 +5,8 @@ import { WorldIdActionDetailPage } from "@/scenes/PortalV3/Teams/TeamId/Apps/App
 
 export default async function Page(props: {
   params: Promise<Record<string, string>>;
-  searchParams: Promise<Record<string, string>>;
 }) {
   const params = await props.params;
-  const searchParams = await props.searchParams;
   return pickPortalVersion(
     async () => {
       const params = await props.params;

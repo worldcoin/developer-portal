@@ -30,7 +30,9 @@ it("redirects v3 users to the World ID landing with the 4.0 tab open", async () 
     "/teams/team_1/apps/app_1/world-id?tab=world-id-4-0",
   );
 
-  await RoutePage(props({ tab: "overridden", createAction: "true" }));
+  await RoutePage(
+    props({ tab: "overridden", createAction: "true", ignored: "value" }),
+  );
   expect(redirect).toHaveBeenCalledWith(
     "/teams/team_1/apps/app_1/world-id?tab=world-id-4-0&createAction=true",
   );

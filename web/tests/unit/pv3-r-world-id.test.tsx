@@ -33,7 +33,7 @@ it("renders the v3 World ID page", async () => {
   expect(screen.getByTestId("v3-world-id")).toBeInTheDocument();
 });
 
-it("preserves the query when v2 falls back to World ID 4.0", async () => {
+it("redirects v2 users to World ID 4.0 without forwarding query params", async () => {
   pickPortalVersion.mockImplementation(
     async (_v3: () => unknown, v2: () => unknown) => v2(),
   );
@@ -44,6 +44,6 @@ it("preserves the query when v2 falls back to World ID 4.0", async () => {
   });
 
   expect(redirect).toHaveBeenCalledWith(
-    "/teams/team_1/apps/app_1/world-id-4-0?createAction=true",
+    "/teams/team_1/apps/app_1/world-id-4-0",
   );
 });
