@@ -29,7 +29,7 @@ export const ResolveModal = ({
   return (
     <Dialog open={open} onClose={() => setOpen(false)}>
       <DialogOverlay />
-      <DialogPanel className="gap-y-10 p-8 md:max-w-[36rem]">
+      <DialogPanel className="gap-y-10 p-8 md:max-w-xl">
         {/* Icon + Copy */}
         <div className="grid grid-cols-1 justify-items-center gap-y-8 text-center">
           <ModalIcon variant="neutral">

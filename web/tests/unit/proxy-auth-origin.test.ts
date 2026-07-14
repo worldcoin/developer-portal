@@ -16,10 +16,11 @@ jest.mock("@auth0/nextjs-auth0/errors", () => {
 // Mock the Auth0 client so the real Auth0Client (server-only, env-dependent) is
 // never constructed and we can drive auth0.middleware()'s outcome per test.
 const auth0Middleware = jest.fn();
+const auth0GetSession = jest.fn();
 jest.mock("@/lib/auth0", () => ({
   auth0: {
     middleware: (...args: unknown[]) => auth0Middleware(...args),
-    getSession: jest.fn(),
+    getSession: (...args: unknown[]) => auth0GetSession(...args),
   },
 }));
 
@@ -39,6 +40,8 @@ const DASHBOARD_HOST = "developer-dashboard.toolsforhumanity.com";
 beforeEach(() => {
   jest.clearAllMocks();
   process.env.APP_BASE_URL = CANONICAL;
+  delete process.env.LOCAL_DEV_PORTAL_V3_ENABLED;
+  delete process.env.PORTAL_V3_EMAILS;
   delete process.env.INTERNAL_DASHBOARD_HOST;
   hasAdminAuthenticationEvidence.mockReturnValue(false);
 });
@@ -171,6 +174,69 @@ describe("middleware [auth route, allow-listed origin]", () => {
 
     expect(res).toBe(sdkRes);
     expect(auth0Middleware).toHaveBeenCalledTimes(1);
+  });
+});
+// #endregion
+
+// #region protected route role restrictions
+describe("proxy [protected route role restrictions]", () => {
+  const teamId = "team_0123456789abcdef";
+  const memberSession = {
+    user: {
+      email: "member@example.com",
+      hasura: {
+        memberships: [
+          {
+            role: "MEMBER",
+            team: { id: teamId },
+          },
+        ],
+      },
+    },
+  };
+
+  beforeEach(() => {
+    auth0Middleware.mockResolvedValue(NextResponse.next());
+    auth0GetSession.mockResolvedValue(memberSession);
+  });
+
+  it("allows a member to open the consolidated team settings page", async () => {
+    process.env.PORTAL_V3_EMAILS = "member@example.com";
+    const req = new NextRequest(`${CANONICAL}/teams/${teamId}/settings`);
+    const res = await proxy(req);
+
+    expect(res.headers.get("x-middleware-rewrite")).toBeNull();
+    expect(res.headers.get("x-current-path")).toBe(`/teams/${teamId}/settings`);
+  });
+
+  it("keeps team settings owner-only for a v2 member", async () => {
+    const req = new NextRequest(`${CANONICAL}/teams/${teamId}/settings`);
+    const res = await proxy(req);
+
+    expect(res.headers.get("x-middleware-rewrite")).toBe(
+      `${CANONICAL}/unauthorized`,
+    );
+  });
+
+  it("keeps another team's settings restricted for a member", async () => {
+    process.env.PORTAL_V3_EMAILS = "member@example.com";
+    const req = new NextRequest(
+      `${CANONICAL}/teams/team_abcdef0123456789/settings`,
+    );
+    const res = await proxy(req);
+
+    expect(res.headers.get("x-middleware-rewrite")).toBe(
+      `${CANONICAL}/unauthorized`,
+    );
+  });
+
+  it("keeps owner-only team routes restricted for a member", async () => {
+    const req = new NextRequest(`${CANONICAL}/teams/${teamId}/danger`);
+    const res = await proxy(req);
+
+    expect(res.headers.get("x-middleware-rewrite")).toBe(
+      `${CANONICAL}/unauthorized`,
+    );
   });
 });
 // #endregion

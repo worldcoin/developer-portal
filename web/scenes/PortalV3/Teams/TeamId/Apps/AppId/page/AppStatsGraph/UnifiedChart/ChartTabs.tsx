@@ -23,10 +23,10 @@ export const ChartTabs = ({ activeTab, onTabChange }: ChartTabsProps) => {
           key={tab.value}
           onClick={() => onTabChange(tab.value)}
           className={clsx(
-            "pb-2 text-14 font-medium transition-colors",
+            "border-b-2 pb-2 font-world text-13 leading-none font-medium transition-colors",
             activeTab === tab.value
-              ? "border-b-2 border-grey-900 text-grey-900"
-              : "text-grey-500 hover:text-grey-700",
+              ? "border-portal-text text-portal-text"
+              : "border-transparent text-portal-muted hover:text-portal-text",
           )}
         >
           {tab.label}

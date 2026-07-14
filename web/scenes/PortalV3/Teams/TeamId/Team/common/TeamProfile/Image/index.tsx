@@ -27,7 +27,7 @@ export const Image = (props: {
       }
       className={twMerge(
         clsx(
-          "flex size-full items-center justify-center overflow-hidden rounded-2xl bg-[var(--color-100)] text-[var(--color-500)]",
+          "flex size-full items-center justify-center overflow-hidden rounded-2xl bg-(--color-100) text-(--color-500)",
           props.className,
         ),
       )}

@@ -38,6 +38,7 @@ type SubmitAppModalProps = {
   appMetadataId: string;
   canSubmitAppStore: boolean;
   isDeveloperAllowListing: boolean;
+  onSubmitted?: () => void;
 };
 
 export type SubmitAppFormValues = yup.InferType<typeof schema>;
@@ -51,6 +52,7 @@ export const SubmitAppModal = (props: SubmitAppModalProps) => {
     canSubmitAppStore,
     isDeveloperAllowListing,
     appMetadataId,
+    onSubmitted,
   } = props;
 
   const { refetch: refetchAppMetadata } = useRefetchQueries(
@@ -146,12 +148,14 @@ export const SubmitAppModal = (props: SubmitAppModalProps) => {
         },
       );
       setOpen(false);
+      onSubmitted?.();
     },
     [
       appId,
       appMetadataId,
       canSubmitAppStore,
       refetchAppMetadata,
+      onSubmitted,
       setOpen,
       teamId,
       validateLocalisation,
@@ -161,7 +165,7 @@ export const SubmitAppModal = (props: SubmitAppModalProps) => {
   return (
     <Dialog open={open} onClose={() => setOpen(false)}>
       <DialogOverlay />
-      <DialogPanel className="gap-y-8 md:max-w-[36rem]">
+      <DialogPanel className="gap-y-8 md:max-w-xl">
         <ModalIcon variant="info">
           <SendIcon className="size-10 text-white" />
         </ModalIcon>

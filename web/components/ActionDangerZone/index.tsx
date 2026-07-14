@@ -79,7 +79,7 @@ export const ActionDangerZone = (props: ActionDangerZoneProps) => {
             <div className="grid w-full place-items-center gap-y-2 px-2">
               <Typography
                 as="h3"
-                className="text-center text-[26px] font-semibold leading-[1.2] tracking-[-0.01em] text-grey-900"
+                className="text-center text-[26px] leading-[1.2] font-semibold tracking-[-0.01em] text-grey-900"
               >
                 Do you want to remove
                 <br />
@@ -105,7 +105,7 @@ export const ActionDangerZone = (props: ActionDangerZoneProps) => {
             >
               <Typography
                 variant={TYPOGRAPHY.R3}
-                className="font-world text-[17px] font-semibold leading-[1.2] text-grey-900"
+                className="font-world text-[17px] leading-[1.2] font-semibold text-grey-900"
               >
                 No
               </Typography>
@@ -120,7 +120,7 @@ export const ActionDangerZone = (props: ActionDangerZoneProps) => {
             >
               <Typography
                 variant={TYPOGRAPHY.R3}
-                className="font-world text-[17px] font-semibold leading-[1.2] text-white"
+                className="font-world text-[17px] leading-[1.2] font-semibold text-white"
               >
                 Yes
               </Typography>

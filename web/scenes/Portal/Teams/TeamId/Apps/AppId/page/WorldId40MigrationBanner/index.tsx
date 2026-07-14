@@ -58,7 +58,7 @@ export const WorldId40MigrationBanner = ({
     <div className="relative w-full overflow-hidden rounded-xl bg-[#E6F0FF] shadow-[0px_1px_2px_0px_rgba(11,25,40,0.08)]">
       {/* Left side - gradient with diagonal edge (27.17deg) */}
       <div
-        className="absolute inset-y-0 left-0 w-[65%] bg-gradient-to-r from-[#E6F0FF] to-[#F3F8FF]"
+        className="absolute inset-y-0 left-0 w-[65%] bg-linear-to-r from-[#E6F0FF] to-[#F3F8FF]"
         style={{
           clipPath: "polygon(0 0, 100% 0, calc(100% - 50px) 100%, 0 100%)",
         }}
@@ -81,7 +81,7 @@ export const WorldId40MigrationBanner = ({
             type="button"
             onClick={() => setDialogOpen(true)}
             variant="primary"
-            className="h-12 rounded-[10px] border-transparent outline outline-1 outline-offset-[-1px] outline-white/20"
+            className="h-12 rounded-[10px] border-transparent outline-1 -outline-offset-1 outline-white/20 outline-solid"
           >
             Get started
           </DecoratedButton>
@@ -89,7 +89,7 @@ export const WorldId40MigrationBanner = ({
           <DecoratedButton
             href="https://world.org/blog/engineering/introducing-world-id-4.0"
             variant="secondary"
-            className="h-12 rounded-[10px] border-transparent outline outline-1 outline-offset-[-1px] outline-white/20"
+            className="h-12 rounded-[10px] border-transparent outline-1 -outline-offset-1 outline-white/20 outline-solid"
           >
             Learn more
           </DecoratedButton>

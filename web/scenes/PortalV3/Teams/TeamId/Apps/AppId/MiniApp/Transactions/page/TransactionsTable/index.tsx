@@ -48,7 +48,7 @@ export const TransactionsTable = (props: TransactionsTableProps) => {
     <div className="py-5">
       <div className="no-scrollbar overflow-auto">
         <table className="w-full min-w-[700px] table-auto overflow-scroll">
-          <thead className="text-left text-xs font-[400] text-grey-400 md:[&>*]:border-b md:[&>*]:border-grey-100">
+          <thead className="text-left text-xs font-normal text-grey-400 md:*:border-b md:*:border-grey-100">
             <tr>
               <th className="border-b border-grey-200 px-2 py-3">
                 <Typography variant={TYPOGRAPHY.R5}>Amount</Typography>

@@ -59,7 +59,7 @@ export const CodeDisplayComponent = (props: CodeDisplayComponentProps) => {
                   code={panelText}
                   language="javascript"
                   theme={"neutral"}
-                  className="w-full text-xs text-grey-700 "
+                  className="w-full text-xs text-grey-700"
                 />
                 <Button
                   type="button"

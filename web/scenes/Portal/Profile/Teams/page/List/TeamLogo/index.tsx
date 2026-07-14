@@ -23,7 +23,7 @@ export const TeamLogo = (props: {
 
       {!src && (
         <div className="flex size-12 items-center justify-center rounded-lg bg-grey-100">
-          <span className="text-14 uppercase text-grey-400">
+          <span className="text-14 text-grey-400 uppercase">
             {props.name[0]}
           </span>
         </div>

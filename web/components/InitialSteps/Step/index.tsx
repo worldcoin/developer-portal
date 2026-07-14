@@ -33,9 +33,9 @@ export const Step = (
     <div
       className={twMerge(
         clsx(
-          "grid w-full grid-cols-auto/1fr/auto items-center gap-x-4 border-t-[1px] p-6 first-of-type:border-t-0 md:min-w-[480px]",
+          "grid w-full grid-cols-auto-1fr-auto items-center gap-x-4 border-t p-6 first-of-type:border-t-0 md:min-w-[480px]",
           {
-            "cursor-not-allowed select-none grayscale": disabled,
+            "cursor-not-allowed grayscale select-none": disabled,
           },
           className,
         ),
@@ -72,7 +72,7 @@ export const Step = (
 
       {completed && (
         <div
-          className="pointer-events-none grid max-h-[40px] w-full min-w-[80px] select-none grid-cols-auto/1fr items-center gap-x-2 rounded-lg border border-system-success-400 px-2 py-2.5 text-system-success-400"
+          className="pointer-events-none grid max-h-[40px] w-full min-w-[80px] grid-cols-auto/1fr items-center gap-x-2 rounded-lg border border-system-success-400 px-2 py-2.5 text-system-success-400 select-none"
           {...(testId ? { "data-testid": `button-${testId}` } : {})}
         >
           <CheckIcon size="16" />

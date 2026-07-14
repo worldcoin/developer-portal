@@ -11,7 +11,7 @@ export const AdminLayout = ({ children }: { children: React.ReactNode }) => {
       {/* NOTE: accessibility skip link, hidden until focused via keyboard */}
       <a
         href="#main-content"
-        className="fixed left-4 top-4 z-50 -translate-y-20 rounded-8 bg-grey-0 px-3 py-2 text-sm font-medium text-grey-900 opacity-0 shadow-lg outline-none transition-all duration-200 focus:translate-y-0 focus:opacity-100 focus-visible:ring-2 focus-visible:ring-blue-500 motion-reduce:transition-none"
+        className="fixed top-4 left-4 z-50 -translate-y-20 rounded-8 bg-grey-0 px-3 py-2 text-sm font-medium text-grey-900 opacity-0 shadow-lg outline-hidden transition-all duration-200 focus:translate-y-0 focus:opacity-100 focus-visible:ring-2 focus-visible:ring-blue-500 motion-reduce:transition-none"
       >
         Skip to content
       </a>

@@ -30,7 +30,7 @@ export const QuickAction = (
       {...buttonProps}
     >
       <div className="flex gap-x-4">
-        <div className=" flex size-12 items-center justify-center rounded-full bg-additional-blue-100 text-additional-blue-600">
+        <div className="flex size-12 items-center justify-center rounded-full bg-additional-blue-100 text-additional-blue-600">
           {icon}
         </div>
 

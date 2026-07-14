@@ -23,7 +23,7 @@ export const Environment = (props: EnvironmentProps) => {
       <div className="rounded-3xl py-1">
         <div className="flex flex-row gap-x-2">
           {environment === "production" && (
-            <StartUpIcon className="h-auto w-4 text-system-success-300 " />
+            <StartUpIcon className="h-auto w-4 text-system-success-300" />
           )}
           {environment === "staging" && (
             <SmartPhoneIcon className="h-auto w-4 text-system-warning-500" />

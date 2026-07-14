@@ -95,7 +95,7 @@ const ModeCard = (props: {
         </span>
       </div>
 
-      <Typography variant={TYPOGRAPHY.B3} className="w-[218px] text-[#657080]">
+      <Typography variant={TYPOGRAPHY.B3} className="w-[218px] text-grey-500">
         {description}
       </Typography>
     </button>
@@ -254,10 +254,8 @@ export const SetupForm = ({
       );
       if (signal?.aborted) throw new DOMException("Aborted", "AbortError");
       if (!result.success) throw new Error(result.message);
-      // Skip refetch — none of the persisted fields are displayed elsewhere
-      // on this page (AppTopBar reads name/logo, QR panel reads
-      // integration_url, neither of which this form writes). Skipping the
-      // refetch avoids the cache-driven re-render flicker.
+      // Skip refetch — none of the persisted fields feed another surface on
+      // this page, so a cache round-trip would only introduce visible flicker.
     },
   });
 
@@ -346,10 +344,10 @@ export const SetupForm = ({
                 enableResize={false}
                 rows={4}
                 className={clsx(
-                  "h-[120px] max-h-[120px] min-h-[120px] !rounded-[10px] !bg-grey-50 placeholder:!text-[#717680]",
+                  "h-[120px] max-h-[120px] min-h-[120px] rounded-[10px]! bg-grey-50! placeholder:text-[#717680]!",
                   errors.associated_domains
-                    ? "!border !border-system-error-500"
-                    : "!border-0",
+                    ? "border! border-system-error-500!"
+                    : "border-0!",
                 )}
                 errors={errors.associated_domains}
               />
@@ -389,13 +387,13 @@ export const SetupForm = ({
                 enableResize={false}
                 rows={4}
                 className={clsx(
-                  "h-[120px] max-h-[120px] min-h-[120px] !rounded-[10px] !border-0 !bg-grey-50",
+                  "h-[120px] max-h-[120px] min-h-[120px] rounded-[10px]! border-0! bg-grey-50!",
                   errors.whitelisted_addresses
-                    ? "!border !border-system-error-500"
-                    : "!border-0",
+                    ? "border! border-system-error-500!"
+                    : "border-0!",
                   isWhitelistDisabled
-                    ? "placeholder:!text-[#B1B8C2]"
-                    : "placeholder:!text-[#717680]",
+                    ? "placeholder:text-[#B1B8C2]!"
+                    : "placeholder:text-[#717680]!",
                 )}
                 errors={errors.whitelisted_addresses}
               />
@@ -441,10 +439,10 @@ export const SetupForm = ({
                 enableResize={false}
                 rows={4}
                 className={clsx(
-                  "h-[120px] max-h-[120px] min-h-[120px] !rounded-[10px] !bg-grey-50 placeholder:!text-[#717680]",
+                  "h-[120px] max-h-[120px] min-h-[120px] rounded-[10px]! bg-grey-50! placeholder:text-[#717680]!",
                   errors.permit2_tokens
-                    ? "!border !border-system-error-500"
-                    : "!border-0",
+                    ? "border! border-system-error-500!"
+                    : "border-0!",
                 )}
                 errors={errors.permit2_tokens}
               />
@@ -476,10 +474,10 @@ export const SetupForm = ({
                 enableResize={false}
                 rows={4}
                 className={clsx(
-                  "h-[120px] max-h-[120px] min-h-[120px] !rounded-[10px] !bg-grey-50 placeholder:!text-[#717680]",
+                  "h-[120px] max-h-[120px] min-h-[120px] rounded-[10px]! bg-grey-50! placeholder:text-[#717680]!",
                   errors.contracts
-                    ? "!border !border-system-error-500"
-                    : "!border-0",
+                    ? "border! border-system-error-500!"
+                    : "border-0!",
                 )}
                 errors={errors.contracts}
               />
@@ -570,7 +568,7 @@ export const SetupForm = ({
           </>
         )}
 
-        <div className="fixed bottom-[5.25rem] right-6 z-10 flex items-center gap-x-3 md:bottom-6">
+        <div className="fixed right-6 bottom-21 z-10 flex items-center gap-x-3 md:bottom-6">
           <SaveStatusIndicator />
           <DecoratedButton
             type="button"

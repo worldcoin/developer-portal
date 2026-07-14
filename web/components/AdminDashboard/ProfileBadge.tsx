@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { User } from "lucide-react";
+import { Icon } from "@/scenes/PortalV3/common/Icon";
 import { UIModule } from "./UIModule";
 
 export const ProfileBadge = () => {
@@ -7,11 +7,14 @@ export const ProfileBadge = () => {
     <UIModule
       className={clsx(
         "grid size-10 place-items-center p-0",
-        "3xl:size-[3.125rem]",
-        "4xl:size-[4.375rem]",
+        "3xl:size-12.5",
+        "4xl:size-17.5",
       )}
     >
-      <User className={clsx("size-5", "3xl:size-6", "4xl:size-9")} />
+      <Icon
+        name="profile-circle"
+        className={clsx("size-5", "3xl:size-6", "4xl:size-9")}
+      />
     </UIModule>
   );
 };
