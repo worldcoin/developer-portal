@@ -17,9 +17,10 @@ export const SettingsCard = (props: {
   action: Action;
   teamId: string;
   appId: string;
+  canDelete: boolean;
   onDeleted?: () => void;
 }) => {
-  const { action, teamId, appId, onDeleted } = props;
+  const { action, teamId, appId, canDelete, onDeleted } = props;
   const router = useRouter();
   const apolloClient = useApolloClient();
   const [isDeleting, setIsDeleting] = useState(false);
@@ -29,15 +30,9 @@ export const SettingsCard = (props: {
     try {
       const result = await deleteActionV4ServerSide(action.id, appId);
       if (!result.success) {
-        // Surface the failure so ActionDangerZone keeps the modal open + toasts.
         throw new Error(result.message || "Failed to delete action");
       }
-      // Flip the parent into its loading state before the evict so it never
-      // renders a 404 while navigation is pending.
       onDeleted?.();
-      // Evict the action (and the app-level aggregates, which counted its
-      // nullifiers) from the client cache; the delete ran server-side, so the
-      // cached overview would otherwise still show it back on the landing.
       const cacheId = apolloClient.cache.identify({
         __typename: "action_v4",
         id: action.id,
@@ -55,8 +50,8 @@ export const SettingsCard = (props: {
   }, [action.id, appId, teamId, router, apolloClient, onDeleted]);
 
   return (
-    <details className="setcard group flex flex-col overflow-hidden rounded-16 border border-portal-border bg-white shadow-portal-card">
-      <summary className="flex cursor-pointer select-none items-center gap-2.5 px-4 py-3.5">
+    <details className="group flex flex-col overflow-hidden rounded-16 border border-portal-border bg-white shadow-portal-card">
+      <summary className="flex cursor-pointer items-center gap-2.5 px-4 py-3.5 select-none">
         <Icon
           name="chevron-down"
           className="size-3 -rotate-90 text-portal-muted transition-transform group-open:rotate-0"
@@ -67,14 +62,16 @@ export const SettingsCard = (props: {
       </summary>
       <div className="flex flex-col gap-8 border-t border-portal-border p-4 pt-6">
         <UpdateActionV4Form action={action} appId={appId} />
-        <div className="border-t border-portal-border pt-6">
-          <ActionDangerZone
-            actionIdentifier={action.action}
-            onDelete={handleDelete}
-            isDeleting={isDeleting}
-            canDelete={true}
-          />
-        </div>
+        {canDelete ? (
+          <div className="border-t border-portal-border pt-6">
+            <ActionDangerZone
+              actionIdentifier={action.action}
+              onDelete={handleDelete}
+              isDeleting={isDeleting}
+              canDelete
+            />
+          </div>
+        ) : null}
       </div>
     </details>
   );

@@ -42,7 +42,7 @@ export const VerificationsFeed = (props: {
                 {formatNullifierHex(nullifier.nullifier)}
               </span>
               <span className="flex-1" />
-              <span className="whitespace-nowrap font-world text-12 text-portal-subtle">
+              <span className="font-world text-12 whitespace-nowrap text-portal-subtle">
                 {relativeTimeShort(nullifier.created_at)}
               </span>
             </div>
@@ -50,13 +50,15 @@ export const VerificationsFeed = (props: {
         </div>
       )}
 
-      <Pagination
-        totalResults={total}
-        currentPage={page}
-        rowsPerPage={rowsPerPage}
-        handlePageChange={onPageChange}
-        className="px-4"
-      />
+      {total > 0 ? (
+        <Pagination
+          totalResults={total}
+          currentPage={page}
+          rowsPerPage={rowsPerPage}
+          handlePageChange={onPageChange}
+          className="px-4"
+        />
+      ) : null}
     </div>
   );
 };

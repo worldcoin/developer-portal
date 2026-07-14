@@ -15,6 +15,7 @@ import {
   useGetActionVerificationsFeedQuery,
 } from "@/scenes/common/Teams/TeamId/Apps/AppId/WorldId/Actions/ActionId/page/graphql/client/get-action-verifications.generated";
 import { useGetWorldIdActionTrendQuery } from "@/scenes/common/Teams/TeamId/Apps/AppId/WorldId/graphql/client/get-world-id-trends.generated";
+import { NetworkStatus } from "@apollo/client";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import Skeleton from "react-loading-skeleton";
@@ -22,46 +23,55 @@ import { SettingsCard } from "./SettingsCard";
 import { VerificationsFeed } from "./VerificationsFeed";
 
 const LIMIT = 6;
-// Live-total changes refresh the aggregate queries at most this often.
 const AGGREGATE_REFRESH_MS = 60_000;
 
-const Stat = (props: { label: string; value: number }) => (
+const Stat = (props: { label: string; value?: number }) => (
   <div className="flex flex-col gap-1.5">
     <span className="font-world text-13 text-portal-muted">{props.label}</span>
-    <span className="font-twk text-[32px] font-medium leading-none tracking-[-0.01em] text-portal-heading">
-      {props.value.toLocaleString()}
+    <span className="font-twk text-[32px] leading-none font-medium tracking-[-0.01em] text-portal-heading">
+      {props.value === undefined ? "—" : props.value.toLocaleString()}
     </span>
   </div>
 );
 
 export const WorldIdActionDetailPage = (props: {
   params: Record<string, string>;
+  canDelete: boolean;
 }) => {
-  const { params } = props;
+  const { params, canDelete } = props;
   const teamId = params.teamId;
   const appId = params.appId;
   const actionId = params.actionId;
 
   const [page, setPage] = useState(1);
+  const [loadedPage, setLoadedPage] = useState<number>();
   const [timePeriod, setTimePeriod] = useState<TrendPeriod>("weekly");
   const [deleted, setDeleted] = useState(false);
   const offset = (page - 1) * LIMIT;
 
-  const { data, loading, error } = useGetActionVerificationsFeedQuery({
-    variables: {
-      action_id: actionId,
-      app_id: appId,
-      limit: LIMIT,
-      offset,
-    },
-    skip: !actionId,
-    // Poll only on page 1 so paging back through history isn't reset under us.
-    pollInterval: page === 1 ? 5000 : 0,
-    // Pause polling while the tab is hidden (`document` guard for SSR).
-    skipPollAttempt: () => typeof document !== "undefined" && document.hidden,
-  });
+  const { data, previousData, loading, error, networkStatus } =
+    useGetActionVerificationsFeedQuery({
+      variables: {
+        action_id: actionId,
+        app_id: appId,
+        limit: LIMIT,
+        offset,
+      },
+      skip: !actionId,
+      // Poll only on page 1 so paging back through history isn't reset under us.
+      pollInterval: page === 1 ? 5000 : 0,
+      // Pause polling while the tab is hidden (`document` guard for SSR).
+      skipPollAttempt: () => typeof document !== "undefined" && document.hidden,
+      onCompleted: () => setLoadedPage(page),
+    });
 
-  const action = data?.action_v4?.[0];
+  const queriedAction = data?.action_v4?.[0];
+  const previousAction = previousData?.action_v4?.[0];
+  const currentAction =
+    queriedAction?.id === actionId ? queriedAction : undefined;
+  const action =
+    currentAction ??
+    (previousAction?.id === actionId ? previousAction : undefined);
   const total = action?.total.aggregate?.count;
 
   const trend = useTrendWindow({
@@ -69,8 +79,6 @@ export const WorldIdActionDetailPage = (props: {
     timePeriod,
   });
 
-  // Feed total + timestamp captured at each fetch of an aggregate query; used
-  // to throttle the live refreshes in the effect below.
   const statsFetchRef = useRef<{ total: number; at: number } | undefined>(
     undefined,
   );
@@ -107,44 +115,62 @@ export const WorldIdActionDetailPage = (props: {
       ...trend.allTimeVariables,
     },
     skip: timePeriod !== "all-time" || !appId || !action,
-    // Revalidate cached buckets whenever the all-time view is (re)entered.
     fetchPolicy: "cache-and-network",
     onCompleted: () => {
       trendFetchRef.current = { total: total ?? 0, at: Date.now() };
     },
   });
 
-  // When the polled feed reports new verifications, refresh the aggregate
-  // queries — throttled so a busy action doesn't refetch on every 5s tick.
   useEffect(() => {
     if (total === undefined) {
       return;
     }
     const now = Date.now();
+    const timers: ReturnType<typeof setTimeout>[] = [];
+    const scheduleTrailingRefresh = (
+      fetchRef: typeof statsFetchRef,
+      refetch: () => Promise<unknown>,
+    ) => {
+      const fetched = fetchRef.current;
+      if (!fetched || fetched.total === total) {
+        return;
+      }
 
-    const statsFetch = statsFetchRef.current;
-    if (
-      statsFetch &&
-      statsFetch.total !== total &&
-      now - statsFetch.at >= AGGREGATE_REFRESH_MS
-    ) {
-      statsFetchRef.current = { total, at: now };
-      void refetchStats();
+      const refresh = () => {
+        if (fetchRef.current?.total === total) {
+          return;
+        }
+        // Keep the last successful total so failed refetches remain retryable.
+        fetchRef.current = { total: fetched.total, at: Date.now() };
+        void refetch();
+      };
+      const delay = AGGREGATE_REFRESH_MS - (now - fetched.at);
+      if (delay <= 0) {
+        refresh();
+      } else {
+        timers.push(setTimeout(refresh, delay));
+      }
+    };
+
+    // Avoid duplicate refreshes while an aggregate query is in flight.
+    if (!statsLoading) {
+      scheduleTrailingRefresh(statsFetchRef, refetchStats);
+    }
+    if (timePeriod === "all-time" && !actionTrendLoading) {
+      scheduleTrailingRefresh(trendFetchRef, refetchActionTrend);
     }
 
-    const trendFetch = trendFetchRef.current;
-    if (
-      timePeriod === "all-time" &&
-      trendFetch &&
-      trendFetch.total !== total &&
-      now - trendFetch.at >= AGGREGATE_REFRESH_MS
-    ) {
-      trendFetchRef.current = { total, at: now };
-      void refetchActionTrend();
-    }
-  }, [refetchActionTrend, refetchStats, timePeriod, total]);
+    return () => timers.forEach((timer) => clearTimeout(timer));
+  }, [
+    actionTrendLoading,
+    refetchActionTrend,
+    refetchStats,
+    statsLoading,
+    timePeriod,
+    total,
+  ]);
 
-  if (error) {
+  if (error && !action) {
     return (
       <SizingWrapper gridClassName="order-1 md:order-2">
         <ErrorPage statusCode={500} title="Failed to load action" />
@@ -152,8 +178,7 @@ export const WorldIdActionDetailPage = (props: {
     );
   }
 
-  // After a delete the action is evicted from the cache before navigation
-  // completes, so keep showing the skeletons instead of flashing a 404.
+  // Avoid flashing a 404 while deletion navigation completes.
   if (!loading && !action && !deleted) {
     return (
       <SizingWrapper gridClassName="order-1 md:order-2">
@@ -162,11 +187,9 @@ export const WorldIdActionDetailPage = (props: {
     );
   }
 
-  // Each stored nullifier is one unique verification for this action; replayed
-  // proofs do not add another row.
   const uniqueVerificationCount = total ?? 0;
   const stats = statsData?.action_v4?.[0];
-  const weekCount = stats?.week.aggregate?.count ?? 0;
+  const weekCount = stats?.week.aggregate?.count;
   const sparkPoints =
     timePeriod === "all-time"
       ? trendPoints(actionTrendData?.action_v4?.[0])
@@ -179,16 +202,16 @@ export const WorldIdActionDetailPage = (props: {
         : Boolean(statsError),
     points: sparkPoints,
     labels: trend.labels,
+    // Apollo exposes refetch failures through query error state.
     onRetry: () =>
-      void (timePeriod === "all-time" ? refetchActionTrend() : refetchStats()),
+      void (
+        timePeriod === "all-time" ? refetchActionTrend() : refetchStats()
+      ).catch(() => {}),
   });
 
   return (
     <SizingWrapper gridClassName="pb-6 pt-6 md:pb-10">
       <div className="mx-auto flex w-full max-w-[900px] flex-col gap-4">
-        {/* Breadcrumb — items-baseline, not items-center: the world-font link
-            and the mono identifier have different vertical metrics, so center
-            alignment leaves the mono text visually sagging. */}
         <div className="flex items-baseline gap-2.5">
           <Link
             href={urls.worldId({ team_id: teamId, app_id: appId })}
@@ -197,7 +220,7 @@ export const WorldIdActionDetailPage = (props: {
             Actions
           </Link>
           <span className="font-world text-13 text-portal-subtle">/</span>
-          {loading || !action ? (
+          {!action ? (
             <Skeleton width={120} />
           ) : (
             <span className="font-ibm text-13 font-medium text-portal-heading">
@@ -206,20 +229,16 @@ export const WorldIdActionDetailPage = (props: {
           )}
         </div>
 
-        {/* Stats card */}
         <div className="flex flex-col gap-7 rounded-16 border border-portal-border bg-white p-8 shadow-portal-card">
-          {loading || !action ? (
+          {!action ? (
             <Skeleton height={128} />
           ) : (
             <>
               <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-                <span className="font-ibm text-[20px] font-medium leading-none text-portal-heading">
+                <span className="font-ibm text-[20px] leading-none font-medium text-portal-heading">
                   {action.action}
                 </span>
                 {action.description ? (
-                  // translate: optical correction — the mono heading's glyphs sit
-                  // low in their em box, so pure box-centering leaves the
-                  // description looking high against the mono ink.
                   <span className="translate-y-[3px] font-world text-sm leading-none text-portal-muted">
                     {action.description}
                   </span>
@@ -250,27 +269,28 @@ export const WorldIdActionDetailPage = (props: {
           )}
         </div>
 
-        {/* Verifications feed */}
-        {loading || !action ? (
+        {networkStatus === NetworkStatus.setVariables ||
+        loadedPage !== page ||
+        !currentAction ? (
           <div className="rounded-16 border border-portal-border bg-white p-4 shadow-portal-card">
             <Skeleton height={40} count={6} />
           </div>
         ) : (
           <VerificationsFeed
-            nullifiers={action.nullifiers}
-            total={uniqueVerificationCount}
+            nullifiers={currentAction.nullifiers}
+            total={currentAction.total.aggregate?.count ?? 0}
             page={page}
             rowsPerPage={LIMIT}
             onPageChange={setPage}
           />
         )}
 
-        {/* Settings */}
-        {!loading && action ? (
+        {action ? (
           <SettingsCard
             action={action}
             teamId={teamId}
             appId={appId}
+            canDelete={canDelete}
             onDeleted={() => setDeleted(true)}
           />
         ) : null}
