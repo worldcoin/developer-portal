@@ -4,20 +4,15 @@ import { render, screen } from "@testing-library/react";
 import React from "react";
 
 let mockPortalV3Enabled = true;
+const redirectMock = jest.fn();
 
 jest.mock("@/lib/feature-flags/portal-v3/activation", () => ({
   pickPortalVersion: async (v3: () => unknown, v2: () => unknown) =>
     mockPortalV3Enabled ? v3() : v2(),
 }));
-jest.mock("@/lib/permissions", () => ({
-  getIsUserAllowedToUpdateApp: jest.fn().mockResolvedValue(true),
+jest.mock("next/navigation", () => ({
+  redirect: (...args: unknown[]) => redirectMock(...args),
 }));
-jest.mock(
-  "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldId/Actions/ActionId/page",
-  () => ({
-    WorldIdActionDetailPage: () => <div data-testid="v3-wia-actionid" />,
-  }),
-);
 jest.mock(
   "@/scenes/Portal/Teams/TeamId/Apps/AppId/WorldIdActions/ActionId/Danger/page",
   () => ({
@@ -35,10 +30,10 @@ beforeEach(() => {
   mockPortalV3Enabled = true;
 });
 
-it("renders the v3 detail for danger links", async () => {
-  render(await RoutePage(props()));
+it("redirects v3 danger links to the action detail", async () => {
+  await RoutePage(props());
 
-  expect(screen.getByTestId("v3-wia-actionid")).toBeInTheDocument();
+  expect(redirectMock).toHaveBeenCalledWith("../");
 });
 
 it("keeps the danger page for v2", async () => {
@@ -47,4 +42,5 @@ it("keeps the danger page for v2", async () => {
   render(await RoutePage(props()));
 
   expect(screen.getByTestId("v2-wia-danger")).toBeInTheDocument();
+  expect(redirectMock).not.toHaveBeenCalled();
 });

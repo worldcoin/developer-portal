@@ -19,7 +19,7 @@ jest.mock(
   () => ({ WorldIdActionIdPage: () => <div data-testid="v2-wia-actionid" /> }),
 );
 jest.mock(
-  "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldId/Actions/ActionId/page",
+  "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldIdActions/ActionId/page",
   () => ({
     WorldIdActionDetailPage: (props: { canDelete: boolean }) => (
       <div
