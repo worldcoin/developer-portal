@@ -2,34 +2,6 @@ type SignupParams = {
   invite_id?: string;
 };
 
-/** Adds missing search params without overriding params already in the path. */
-export const appendSearchParams = (
-  path: string,
-  searchParams: Record<string, string | string[] | undefined>,
-): string => {
-  const merged = new URLSearchParams();
-  for (const [key, value] of Object.entries(searchParams)) {
-    if (value === undefined) {
-      continue;
-    }
-
-    for (const entry of Array.isArray(value) ? value : [value]) {
-      merged.append(key, entry);
-    }
-  }
-
-  if (!merged.toString()) {
-    return path;
-  }
-
-  const [basePath, existingQuery] = path.split("?", 2);
-  for (const [key, value] of new URLSearchParams(existingQuery)) {
-    merged.set(key, value);
-  }
-
-  return `${basePath}?${merged.toString()}`;
-};
-
 export const urls = {
   app: (params: { team_id: string; app_id?: string }): string =>
     `/teams/${params.team_id}/apps/${params.app_id || ""}`,

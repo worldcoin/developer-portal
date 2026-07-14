@@ -36,15 +36,12 @@ beforeEach(() => {
   mockPortalV3Enabled = true;
 });
 
-const props = (
-  searchParams: Record<string, string | string[] | undefined> = {},
-) => ({
+const props = () => ({
   params: Promise.resolve({
     teamId: "team_1",
     appId: "app_1",
     actionId: "action_1",
   }),
-  searchParams: Promise.resolve(searchParams),
 });
 
 it("passes the current delete permission to the v3 detail page", async () => {
@@ -60,13 +57,13 @@ it("passes the current delete permission to the v3 detail page", async () => {
   expect(mockGetIsUserAllowedToUpdateApp).toHaveBeenCalledWith("app_1");
 });
 
-it("preserves legacy query params without querying the v3 permission", async () => {
+it("redirects v2 users to the legacy action without querying v3 permissions", async () => {
   mockPortalV3Enabled = false;
 
-  await Page(props({ foo: ["bar", "baz"], skipped: undefined }));
+  await Page(props());
 
   expect(mockRedirect).toHaveBeenCalledWith(
-    "/teams/team_1/apps/app_1/world-id-actions/action_1?foo=bar&foo=baz",
+    "/teams/team_1/apps/app_1/world-id-actions/action_1",
   );
   expect(mockGetIsUserAllowedToUpdateApp).not.toHaveBeenCalled();
 });
