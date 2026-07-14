@@ -63,13 +63,6 @@ export const urls = {
   }): string =>
     `/teams/${params.team_id}/apps/${params.app_id}/world-id-actions/${params.action_id}/danger`,
 
-  worldIdActionDetail: (params: {
-    team_id: string;
-    app_id: string;
-    action_id: string;
-  }): string =>
-    `/teams/${params.team_id}/apps/${params.app_id}/world-id/actions/${params.action_id}`,
-
   createTeam: (): "/create-team" => "/create-team",
 
   signInWorldId: (params: { team_id: string; app_id?: string }): string =>
