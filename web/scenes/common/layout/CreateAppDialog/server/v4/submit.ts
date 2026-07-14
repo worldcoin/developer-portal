@@ -3,6 +3,7 @@ import { errorFormAction } from "@/api/helpers/errors";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { logPortalEvent } from "@/api/helpers/portal-events";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
+import { resolveAppStoreCategory } from "@/lib/categories";
 import { getIsUserAllowedToInsertApp } from "@/lib/permissions";
 import { FormActionResult } from "@/lib/types";
 import { createAppSchemaV4, CreateAppSchemaV4 } from "../../form-schema-v4";
@@ -46,9 +47,10 @@ export async function validateAndInsertAppServerSideV4(
       name: parsedInitialValues.name,
       is_staging: parsedInitialValues.build === "staging",
       engine: parsedInitialValues.verification,
-      category:
-        parsedInitialValues.category ??
-        (app_mode === "mini-app" ? "Other" : "External"),
+      category: resolveAppStoreCategory(
+        parsedInitialValues.category,
+        app_mode === "mini-app",
+      ),
       integration_url:
         parsedInitialValues.integration_url ?? "https://docs.world.org/",
       app_mode,
