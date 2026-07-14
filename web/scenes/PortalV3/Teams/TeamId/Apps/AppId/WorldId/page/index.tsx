@@ -21,6 +21,7 @@ import Skeleton from "react-loading-skeleton";
 import { ActionsGrid } from "./ActionsGrid";
 import { HeroCard } from "./HeroCard";
 import { RegisterRpEmptyState } from "./RegisterRpEmptyState";
+import { getSetupIntent } from "./setup-intent";
 import { WorldId40Pane, type RpStatus } from "./WorldId40Pane";
 import { WorldIdTab, WorldIdTabs } from "./WorldIdTabs";
 
@@ -61,12 +62,12 @@ export const WorldIdPage = (props: {
   const enableWorldId4Requested = searchParams.get("enableWorldId4") === "true";
   const createActionRequested = searchParams.get("createAction") === "true";
 
-  const consumeSearchParam = useCallback(
-    (name: string) => {
-      if (!searchParams.has(name)) return;
+  const consumeSearchParams = useCallback(
+    (...names: string[]) => {
+      if (!names.some((name) => searchParams.has(name))) return;
 
       const nextSearchParams = new URLSearchParams(searchParams);
-      nextSearchParams.delete(name);
+      for (const name of names) nextSearchParams.delete(name);
       const query = nextSearchParams.toString();
       router.replace(query ? `${pathname}?${query}` : pathname, {
         scroll: false,
@@ -100,6 +101,14 @@ export const WorldIdPage = (props: {
   const hasResolvedApp = Boolean(app);
   const hasRpRegistration = Boolean(rp);
   const hasActiveRp = rp?.status === "registered";
+  const { openSetup, openAction, consumeEnable, consumeCreate } =
+    getSetupIntent({
+      enableRequested: enableWorldId4Requested,
+      createRequested: createActionRequested,
+      hasRpRegistration,
+      hasActiveRp,
+      isStaging: Boolean(app?.is_staging),
+    });
   const fetchedRpCreatedAt = rp?.created_at;
   useEffect(() => {
     if (fetchedRpCreatedAt) setRpCreatedAt(fetchedRpCreatedAt as string);
@@ -112,22 +121,17 @@ export const WorldIdPage = (props: {
     }
   }, [createActionRequested, hasActiveRp, hasResolvedApp, loading]);
 
-  // Apps without an enable dialog consume the one-shot deep link immediately.
   useEffect(() => {
-    if (
-      enableWorldId4Requested &&
-      hasResolvedApp &&
-      (hasRpRegistration || app?.is_staging)
-    ) {
-      consumeSearchParam("enableWorldId4");
+    if (consumeEnable) {
+      consumeSearchParams("enableWorldId4");
     }
-  }, [
-    app?.is_staging,
-    consumeSearchParam,
-    enableWorldId4Requested,
-    hasResolvedApp,
-    hasRpRegistration,
-  ]);
+  }, [consumeEnable, consumeSearchParams]);
+
+  useEffect(() => {
+    if (consumeCreate) {
+      consumeSearchParams("createAction");
+    }
+  }, [consumeCreate, consumeSearchParams]);
 
   const {
     data: appTrendData,
@@ -220,11 +224,11 @@ export const WorldIdPage = (props: {
         teamId={teamId}
         appId={appId}
         search={search}
-        initialDialogOpen={hasActiveRp && createActionRequested}
+        initialDialogOpen={openAction}
         onCreateActionRequested={
           hasActiveRp ? undefined : () => setTab("world-id-4-0")
         }
-        onCreateActionConsumed={() => consumeSearchParam("createAction")}
+        onCreateActionConsumed={() => consumeSearchParams("createAction")}
         onActionsChanged={refetchOverview}
       />
     );
@@ -246,10 +250,12 @@ export const WorldIdPage = (props: {
     tabContent = (
       <RegisterRpEmptyState
         appId={appId}
-        initialOpen={enableWorldId4Requested}
+        initialOpen={openSetup}
         isStaging={app.is_staging}
         onRegistered={refetchOverview}
-        onEnableWorldId4Consumed={() => consumeSearchParam("enableWorldId4")}
+        onSetupIntentConsumed={() =>
+          consumeSearchParams("enableWorldId4", "createAction")
+        }
         legacyActionsHref={legacyActionsHref}
       />
     );

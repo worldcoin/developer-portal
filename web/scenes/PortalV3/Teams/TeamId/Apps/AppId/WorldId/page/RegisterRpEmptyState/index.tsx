@@ -11,7 +11,7 @@ export const RegisterRpEmptyState = (props: {
   initialOpen?: boolean;
   isStaging: boolean;
   onRegistered: () => void;
-  onEnableWorldId4Consumed: () => void;
+  onSetupIntentConsumed: () => void;
   legacyActionsHref?: string;
 }) => {
   const canEnable = !props.isStaging;
@@ -24,7 +24,7 @@ export const RegisterRpEmptyState = (props: {
   const closeDialog = () => {
     setOpen(false);
     props.onRegistered();
-    props.onEnableWorldId4Consumed();
+    props.onSetupIntentConsumed();
   };
 
   return (
