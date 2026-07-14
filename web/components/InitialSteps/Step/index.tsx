@@ -33,7 +33,7 @@ export const Step = (
     <div
       className={twMerge(
         clsx(
-          "grid-cols-auto/1fr/auto grid w-full items-center gap-x-4 border-t p-6 first-of-type:border-t-0 md:min-w-[480px]",
+          "grid w-full grid-cols-auto-1fr-auto items-center gap-x-4 border-t p-6 first-of-type:border-t-0 md:min-w-[480px]",
           {
             "cursor-not-allowed grayscale select-none": disabled,
           },

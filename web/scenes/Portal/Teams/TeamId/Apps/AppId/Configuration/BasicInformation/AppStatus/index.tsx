@@ -10,7 +10,7 @@ export const AppStatus = (props: {
   const { disabled, status, setStatus } = props;
 
   return (
-    <div className="grid-cols-auto/1fr/auto grid gap-x-4 rounded-xl border p-5">
+    <div className="grid grid-cols-auto-1fr-auto gap-x-4 rounded-xl border p-5">
       <Switcher enabled={status} setEnabled={setStatus} disabled={disabled} />
       <div className="grid gap-y-2">
         <Typography variant={TYPOGRAPHY.R3}>Activate the App</Typography>
