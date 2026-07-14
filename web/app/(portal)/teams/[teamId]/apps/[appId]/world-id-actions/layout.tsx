@@ -14,9 +14,6 @@ export default async function Layout(props: Props) {
   const params = await props.params;
   const { children } = props;
 
-  // v3 folds World ID actions into /world-id (the routes under here redirect
-  // there), so the v3 branch is a bare pass-through. v2 keeps the "register an
-  // RP first" guard it had before.
   return pickPortalVersion(
     () => <>{children}</>,
     async () => {

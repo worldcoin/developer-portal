@@ -4,7 +4,6 @@ import { DecoratedButton } from "@/components/DecoratedButton";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { CreateAppDialogV4 } from "@/scenes/PortalV3/layout/CreateAppDialog/index-v4";
 import Link from "next/link";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
 export const RegisterRpEmptyState = (props: {
@@ -12,11 +11,9 @@ export const RegisterRpEmptyState = (props: {
   initialOpen?: boolean;
   isStaging: boolean;
   onRegistered: () => void;
+  onEnableWorldId4Consumed: () => void;
   legacyActionsHref?: string;
 }) => {
-  const router = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
   const canEnable = !props.isStaging;
   const [open, setOpen] = useState(Boolean(props.initialOpen) && canEnable);
 
@@ -27,15 +24,7 @@ export const RegisterRpEmptyState = (props: {
   const closeDialog = () => {
     setOpen(false);
     props.onRegistered();
-
-    if (searchParams.has("enableWorldId4")) {
-      const params = new URLSearchParams(searchParams);
-      params.delete("enableWorldId4");
-      const query = params.toString();
-      router.replace(query ? `${pathname}?${query}` : pathname, {
-        scroll: false,
-      });
-    }
+    props.onEnableWorldId4Consumed();
   };
 
   return (

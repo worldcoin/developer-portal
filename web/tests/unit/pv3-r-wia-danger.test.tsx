@@ -12,8 +12,6 @@ jest.mock("next/navigation", () => ({
   redirect: (...args: unknown[]) => redirect(...args),
 }));
 
-// @/lib/urls is intentionally NOT mocked — the redirect target shape
-// (urls.worldIdActionDetail + appendSearchParams) is what's under test.
 jest.mock(
   "@/scenes/Portal/Teams/TeamId/Apps/AppId/WorldIdActions/ActionId/Danger/page",
   () => ({

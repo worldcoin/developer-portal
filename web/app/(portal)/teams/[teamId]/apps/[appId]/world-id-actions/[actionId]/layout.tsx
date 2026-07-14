@@ -6,9 +6,6 @@ export default async function Layout(props: {
   params: Promise<Record<string, string>>;
   children: ReactNode;
 }) {
-  // v3 action detail lives at /world-id/actions/[id]; the page here redirects
-  // there, so the v3 branch just passes children through (no v2 "Back to
-  // Actions" chrome).
   return pickPortalVersion(
     () => <>{props.children}</>,
     () => (

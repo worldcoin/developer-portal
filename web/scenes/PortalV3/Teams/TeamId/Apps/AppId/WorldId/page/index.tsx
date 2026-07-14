@@ -15,7 +15,8 @@ import { banMessageDialogOpenedAtom } from "@/scenes/common/Teams/TeamId/Apps/co
 import { useGetWorldIdAppTrendQuery } from "@/scenes/common/Teams/TeamId/Apps/AppId/WorldId/graphql/client/get-world-id-trends.generated";
 import { useGetWorldIdOverviewQuery } from "@/scenes/common/Teams/TeamId/Apps/AppId/WorldId/page/graphql/client/get-world-id-overview.generated";
 import { useAtom } from "jotai";
-import { type ReactNode, useEffect, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { type ReactNode, useCallback, useEffect, useState } from "react";
 import Skeleton from "react-loading-skeleton";
 import { ActionsGrid } from "./ActionsGrid";
 import { HeroCard } from "./HeroCard";
@@ -54,8 +55,25 @@ export const WorldIdPage = (props: {
 }) => {
   const teamId = props.params.teamId ?? "";
   const appId = props.params.appId ?? "";
-  const enableWorldId4Requested = props.searchParams.enableWorldId4 === "true";
-  const createActionRequested = props.searchParams.createAction === "true";
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const enableWorldId4Requested = searchParams.get("enableWorldId4") === "true";
+  const createActionRequested = searchParams.get("createAction") === "true";
+
+  const consumeSearchParam = useCallback(
+    (name: string) => {
+      if (!searchParams.has(name)) return;
+
+      const nextSearchParams = new URLSearchParams(searchParams);
+      nextSearchParams.delete(name);
+      const query = nextSearchParams.toString();
+      router.replace(query ? `${pathname}?${query}` : pathname, {
+        scroll: false,
+      });
+    },
+    [pathname, router, searchParams],
+  );
 
   const [tab, setTab] = useState<WorldIdTab>(
     props.searchParams.tab === "world-id-4-0" || enableWorldId4Requested
@@ -81,23 +99,35 @@ export const WorldIdPage = (props: {
   const rp = app?.rp_registration?.[0];
   const hasResolvedApp = Boolean(app);
   const hasRpRegistration = Boolean(rp);
+  const hasActiveRp = rp?.status === "registered";
   const fetchedRpCreatedAt = rp?.created_at;
   useEffect(() => {
     if (fetchedRpCreatedAt) setRpCreatedAt(fetchedRpCreatedAt as string);
   }, [fetchedRpCreatedAt]);
 
-  // A create-action deep link cannot open the action dialog until the app has
-  // an RP. Send RP-less apps to the same setup pane as the in-page + card.
+  // Inactive RPs must complete setup before action creation.
   useEffect(() => {
-    if (
-      !loading &&
-      hasResolvedApp &&
-      !hasRpRegistration &&
-      createActionRequested
-    ) {
+    if (!loading && hasResolvedApp && !hasActiveRp && createActionRequested) {
       setTab("world-id-4-0");
     }
-  }, [createActionRequested, hasResolvedApp, hasRpRegistration, loading]);
+  }, [createActionRequested, hasActiveRp, hasResolvedApp, loading]);
+
+  // Apps without an enable dialog consume the one-shot deep link immediately.
+  useEffect(() => {
+    if (
+      enableWorldId4Requested &&
+      hasResolvedApp &&
+      (hasRpRegistration || app?.is_staging)
+    ) {
+      consumeSearchParam("enableWorldId4");
+    }
+  }, [
+    app?.is_staging,
+    consumeSearchParam,
+    enableWorldId4Requested,
+    hasResolvedApp,
+    hasRpRegistration,
+  ]);
 
   const {
     data: appTrendData,
@@ -161,7 +191,10 @@ export const WorldIdPage = (props: {
   const weeklyHeroPoints = Array.from({ length: 7 }, (_, day) =>
     actionItems.reduce((sum, action) => sum + (action.points[day] ?? 0), 0),
   );
-  const allTimeHeroPoints = trendPoints(appTrendData);
+  // No RP means no all-time query; retain the weekly zero baseline.
+  const allTimeHeroPoints = rpCreatedAt
+    ? trendPoints(appTrendData)
+    : weeklyHeroPoints.map(() => 0);
   const heroPoints =
     timePeriod === "all-time" ? allTimeHeroPoints : weeklyHeroPoints;
   const trendState = buildTrendState({
@@ -187,10 +220,11 @@ export const WorldIdPage = (props: {
         teamId={teamId}
         appId={appId}
         search={search}
-        initialDialogOpen={hasRpRegistration && createActionRequested}
+        initialDialogOpen={hasActiveRp && createActionRequested}
         onCreateActionRequested={
-          hasRpRegistration ? undefined : () => setTab("world-id-4-0")
+          hasActiveRp ? undefined : () => setTab("world-id-4-0")
         }
+        onCreateActionConsumed={() => consumeSearchParam("createAction")}
         onActionsChanged={refetchOverview}
       />
     );
@@ -215,6 +249,7 @@ export const WorldIdPage = (props: {
         initialOpen={enableWorldId4Requested}
         isStaging={app.is_staging}
         onRegistered={refetchOverview}
+        onEnableWorldId4Consumed={() => consumeSearchParam("enableWorldId4")}
         legacyActionsHref={legacyActionsHref}
       />
     );

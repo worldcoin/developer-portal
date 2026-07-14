@@ -11,6 +11,7 @@ export const ActionsGrid = (props: {
   search: string;
   initialDialogOpen?: boolean;
   onCreateActionRequested?: () => void;
+  onCreateActionConsumed: () => void;
   onActionsChanged: () => void;
 }) => {
   const [dialogOpen, setDialogOpen] = useState(
@@ -24,6 +25,7 @@ export const ActionsGrid = (props: {
 
   const handleDialogClose = (success?: boolean) => {
     setDialogOpen(false);
+    props.onCreateActionConsumed();
     if (success) {
       props.onActionsChanged();
     }

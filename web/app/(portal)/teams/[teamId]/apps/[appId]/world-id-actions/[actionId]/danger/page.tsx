@@ -10,7 +10,6 @@ export default async function Page(props: {
   const params = await props.params;
   const searchParams = await props.searchParams;
   return pickPortalVersion(
-    // v3 danger zone folds into the /world-id/actions/[id] detail Settings card.
     () =>
       redirect(
         appendSearchParams(
