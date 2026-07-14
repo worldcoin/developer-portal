@@ -23,8 +23,6 @@ import { RegisterRpEmptyState } from "./RegisterRpEmptyState";
 import { WorldId40Pane, type RpStatus } from "./WorldId40Pane";
 import { WorldIdTab, WorldIdTabs } from "./WorldIdTabs";
 
-// Compact ban notice mirroring the old dashboard's BanStatusSection; opens the
-// shared BanMessageDialog (mounted alongside) via its jotai atom.
 const BanBanner = () => {
   const [, setIsOpened] = useAtom(banMessageDialogOpenedAtom);
 
@@ -63,10 +61,7 @@ export const WorldIdPage = (props: {
   const [search, setSearch] = useState("");
   const [timePeriod, setTimePeriod] = useState<TrendPeriod>("weekly");
 
-  // The overview query both consumes the weekly bucket variables and is the
-  // source of the RP's created_at (which drives the all-time window), so
-  // created_at is mirrored through state to break the cycle. The trend hook
-  // falls back to the weekly window until it's set.
+  // RP creation time determines the all-time query window.
   const [rpCreatedAt, setRpCreatedAt] = useState<string>();
   const trend = useTrendWindow({ createdAt: rpCreatedAt, timePeriod });
 
@@ -96,6 +91,9 @@ export const WorldIdPage = (props: {
     skip: timePeriod !== "all-time" || !appId || !rpCreatedAt,
   });
 
+  // Apollo exposes refetch failures through query error state.
+  const refetchOverview = () => void refetch().catch(() => {});
+
   if (loading) {
     return (
       <SizingWrapper className="flex flex-col gap-8 py-8">
@@ -107,8 +105,7 @@ export const WorldIdPage = (props: {
     );
   }
 
-  // Only hard-fail without cached data: a failed refetch (e.g. after closing
-  // the enable dialog) sets `error` while `data` is still valid.
+  // Preserve cached content when a refetch fails.
   if (error && !data) {
     return (
       <SizingWrapper className="py-8">
@@ -143,7 +140,7 @@ export const WorldIdPage = (props: {
           appId={appId}
           initialOpen={props.searchParams.enableWorldId4 === "true"}
           isStaging={app.is_staging}
-          onRegistered={() => refetch()}
+          onRegistered={refetchOverview}
           legacyActionsHref={legacyActionsHref}
         />
       </SizingWrapper>
@@ -159,8 +156,6 @@ export const WorldIdPage = (props: {
     points: trendPoints(action),
   }));
 
-  // The weekly hero trend reuses the per-action daily buckets. All time uses a
-  // separate app-level query so action-card sparklines remain weekly.
   const weeklyHeroPoints = Array.from({ length: 7 }, (_, day) =>
     actionItems.reduce((sum, action) => sum + (action.points[day] ?? 0), 0),
   );
@@ -172,12 +167,10 @@ export const WorldIdPage = (props: {
     error: timePeriod === "all-time" && Boolean(appTrendError),
     points: heroPoints,
     labels: trend.labels,
-    onRetry: () => void refetchAppTrend(),
+    onRetry: () => void refetchAppTrend().catch(() => {}),
   });
 
-  // Hero totals are summed client-side from the per-action aggregates: the
-  // per-action counts use the same filters an app-level aggregate would, and
-  // every nullifier row belongs to exactly one action.
+  // Each nullifier belongs to exactly one action.
   const uniqueVerifications = actionItems.reduce(
     (sum, action) => sum + action.total,
     0,
@@ -215,7 +208,7 @@ export const WorldIdPage = (props: {
             appId={appId}
             search={search}
             initialDialogOpen={props.searchParams.createAction === "true"}
-            onActionsChanged={() => refetch()}
+            onActionsChanged={refetchOverview}
           />
         ) : (
           <WorldId40Pane
@@ -227,7 +220,7 @@ export const WorldIdPage = (props: {
             }
             mode={rp.mode as string}
             createdAt={rp.created_at}
-            onRpChanged={() => refetch()}
+            onRpChanged={refetchOverview}
           />
         )}
       </div>

@@ -27,6 +27,7 @@ export const WorldIdTabs = (props: {
       <button
         type="button"
         className={tabClass(props.tab === "actions")}
+        aria-current={props.tab === "actions" ? "true" : undefined}
         onClick={() => props.onTabChange("actions")}
       >
         Actions
@@ -34,6 +35,7 @@ export const WorldIdTabs = (props: {
       <button
         type="button"
         className={tabClass(props.tab === "world-id-4-0")}
+        aria-current={props.tab === "world-id-4-0" ? "true" : undefined}
         onClick={() => props.onTabChange("world-id-4-0")}
       >
         World ID 4.0
@@ -51,8 +53,9 @@ export const WorldIdTabs = (props: {
           value={props.search}
           onChange={(e) => props.onSearchChange(e.target.value)}
           label=""
+          aria-label="Search actions"
           placeholder="Search actions"
-          className="w-full text-sm"
+          className="h-10 w-full py-0 text-sm"
           addOnLeft={<SearchIcon className="mx-2 text-grey-400" />}
         />
       </div>

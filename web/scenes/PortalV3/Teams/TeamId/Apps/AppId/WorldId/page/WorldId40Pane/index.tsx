@@ -32,10 +32,6 @@ const FieldRow = (props: { label: string; value: string; copy?: boolean }) => (
   </div>
 );
 
-// The World ID 4.0 pane of the World ID page. Adapted from the standalone
-// WorldId40Content: the Production/Staging status rows are intentionally dropped
-// (they carry no actionable signal); a failed registration surfaces a banner +
-// Retry instead, and status is polled only while pending.
 export const WorldId40Pane = (props: {
   appId: string;
   rpId: string;
@@ -43,9 +39,6 @@ export const WorldId40Pane = (props: {
   initialStagingStatus: RpStatus | null;
   mode: string;
   createdAt: string;
-  // Re-runs the parent's Apollo overview query. `mode` comes from that query
-  // (client cache), so router.refresh() would NOT update it — a stale "managed"
-  // mode would re-enable the managed-only controls once polling settles.
   onRpChanged?: () => void;
 }) => {
   const [retryRpMutation] = useRetryRpMutation();
@@ -59,7 +52,6 @@ export const WorldId40Pane = (props: {
     "production" | "staging" | null
   >(null);
 
-  // Guards against a slow status fetch piling up behind the 5s poll ticks.
   const statusFetchInFlight = useRef(false);
 
   const fetchStatus = useCallback(async () => {
@@ -73,22 +65,30 @@ export const WorldId40Pane = (props: {
       });
       if (response.ok) {
         const data = await response.json();
-        setStatus(data.production_status as RpStatus);
-        setStagingStatus(
+        const nextStatus = data.production_status as RpStatus;
+        const nextStagingStatus =
           data.staging_status == null
             ? null
-            : (data.staging_status as RpStatus),
-        );
+            : (data.staging_status as RpStatus);
+        setStatus(nextStatus);
+        setStagingStatus(nextStagingStatus);
+
+        // Sync the parent after reconciling DB status with the chain.
+        if (nextStatus !== props.initialStatus) {
+          props.onRpChanged?.();
+        }
       }
     } catch {
-      // Keep the current status on error.
     } finally {
       statusFetchInFlight.current = false;
     }
-  }, [props.rpId]);
+  }, [props.initialStatus, props.onRpChanged, props.rpId]);
 
-  // Poll every 5 seconds only while the registration is still settling; skip
-  // ticks while the tab is hidden.
+  // Reconcile stale DB status with the chain on mount.
+  useEffect(() => {
+    void fetchStatus();
+  }, [fetchStatus]);
+
   useEffect(() => {
     if (status === "pending" || stagingStatus === "pending") {
       const interval = setInterval(() => {
