@@ -72,7 +72,7 @@ export const Input = memo(function Input(props: InputInterface) {
       <fieldset
         className={twMerge(
           clsx(
-            "group grid-cols-auto/1fr/auto grid pb-2 transition-colors",
+            "group grid grid-cols-[auto_1fr_auto] pb-2 transition-colors",
             { "py-2": !label },
             parentClassNames,
           ),
