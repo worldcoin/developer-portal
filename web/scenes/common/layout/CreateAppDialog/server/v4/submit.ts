@@ -46,7 +46,9 @@ export async function validateAndInsertAppServerSideV4(
       name: parsedInitialValues.name,
       is_staging: parsedInitialValues.build === "staging",
       engine: parsedInitialValues.verification,
-      category: parsedInitialValues.category ?? "External",
+      category:
+        parsedInitialValues.category ??
+        (app_mode === "mini-app" ? "Other" : "External"),
       integration_url:
         parsedInitialValues.integration_url ?? "https://docs.world.org/",
       app_mode,

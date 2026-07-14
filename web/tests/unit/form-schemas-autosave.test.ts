@@ -1,4 +1,8 @@
-import { localisationFormSchema } from "@/scenes/Portal/Teams/TeamId/Apps/AppId/Configuration/AppStore/FormSchema/form-schema";
+import {
+  localisationFormSchema,
+  mainAppStoreFormReviewSubmitSchema as portalReviewSubmitSchema,
+} from "@/scenes/Portal/Teams/TeamId/Apps/AppId/Configuration/AppStore/FormSchema/form-schema";
+import { mainAppStoreFormReviewSubmitSchema as portalV3ReviewSubmitSchema } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/Configuration/AppStore/FormSchema/form-schema";
 import {
   reviewSchema as basicReviewSchema,
   schema as basicSchema,
@@ -73,5 +77,31 @@ describe("AppStore localisationFormSchema", () => {
         name: "x".repeat(60),
       }),
     ).toBe(false);
+  });
+});
+
+// The Portal and PortalV3 review schemas are duplicated copies; test both so
+// they can't silently drift apart.
+describe.each([
+  ["Portal", portalReviewSubmitSchema],
+  ["PortalV3", portalV3ReviewSubmitSchema],
+])("%s review submit schema — category vs mini app", (_name, schema) => {
+  const validateCategory = (category: string | undefined, isMiniApp: boolean) =>
+    schema.validateSyncAt("category", { category }, { context: { isMiniApp } });
+
+  it("rejects the External category for mini apps", () => {
+    expect(() => validateCategory("External", true)).toThrow();
+  });
+
+  it("rejects External case-insensitively for mini apps", () => {
+    expect(() => validateCategory("external", true)).toThrow();
+  });
+
+  it("accepts a normal category for mini apps", () => {
+    expect(() => validateCategory("Social", true)).not.toThrow();
+  });
+
+  it("does not require a category for non-mini apps", () => {
+    expect(() => validateCategory(undefined, false)).not.toThrow();
   });
 });
