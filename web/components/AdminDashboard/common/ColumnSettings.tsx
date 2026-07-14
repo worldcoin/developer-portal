@@ -6,23 +6,24 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { CSSProperties } from "react";
 import { useId, useRef } from "react";
 
-import {
-  TEAM_COLUMN_OPTIONS,
-  serializeTeamColumnVisibility,
-  type TeamColumnId,
-  type TeamColumnVisibility,
-} from "./column-visibility";
-
-type ColumnSettingsProps = {
-  columnVisibility: TeamColumnVisibility;
-};
+import type { ColumnOption } from "./types";
 
 type AnchorStyle = CSSProperties & {
   anchorName?: string;
   positionAnchor?: string;
 };
 
-export const ColumnSettings = ({ columnVisibility }: ColumnSettingsProps) => {
+type ColumnSettingsProps<ColumnId extends string> = {
+  columnOptions: readonly ColumnOption<ColumnId>[];
+  columnVisibility: Record<ColumnId, boolean>;
+  serializeColumnVisibility: (visibility: Record<ColumnId, boolean>) => string;
+};
+
+export const ColumnSettings = <ColumnId extends string>({
+  columnOptions,
+  columnVisibility,
+  serializeColumnVisibility,
+}: ColumnSettingsProps<ColumnId>) => {
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -32,16 +33,16 @@ export const ColumnSettings = ({ columnVisibility }: ColumnSettingsProps) => {
   const popoverId = `${id}-column-settings-popover`;
   const anchorName = `--${id}-column-settings-anchor`;
 
-  const updateColumnVisibility = (columnId: TeamColumnId) => {
-    const nextVisibility = {
-      ...columnVisibility,
-      [columnId]: !columnVisibility[columnId],
-    };
+  const updateColumnVisibility = (columnId: ColumnId) => {
     const params = new URLSearchParams(searchParams.toString());
-    params.set("columns", serializeTeamColumnVisibility(nextVisibility));
-
+    params.set(
+      "columns",
+      serializeColumnVisibility({
+        ...columnVisibility,
+        [columnId]: !columnVisibility[columnId],
+      }),
+    );
     const query = params.toString();
-
     router.replace(query ? `${pathname}?${query}` : pathname, {
       scroll: false,
     });
@@ -50,9 +51,9 @@ export const ColumnSettings = ({ columnVisibility }: ColumnSettingsProps) => {
   return (
     <div className="flex items-center gap-2">
       <button
-        aria-label="Choose visible columns"
         aria-controls={popoverId}
         aria-haspopup="menu"
+        aria-label="Choose visible columns"
         className="grid size-9 place-items-center rounded-12 border border-grey-200 bg-grey-0 text-grey-500 transition-colors outline-none hover:bg-grey-100 hover:text-grey-900 focus-visible:ring-2 focus-visible:ring-blue-500"
         popoverTarget={popoverId}
         style={{ anchorName } as AnchorStyle}
@@ -60,7 +61,6 @@ export const ColumnSettings = ({ columnVisibility }: ColumnSettingsProps) => {
       >
         <Settings className="size-4" />
       </button>
-
       <div
         className="fixed inset-auto [top:anchor(bottom)] [left:anchor(left)] m-0 mt-1 min-w-48 rounded-12 border border-grey-200 bg-grey-0 p-1 shadow-lg backdrop:bg-transparent"
         id={popoverId}
@@ -75,8 +75,7 @@ export const ColumnSettings = ({ columnVisibility }: ColumnSettingsProps) => {
           >
             Visible columns
           </div>
-
-          {TEAM_COLUMN_OPTIONS.map((column) => {
+          {columnOptions.map((column) => {
             const isChecked = columnVisibility[column.id];
             const isDisabled = Boolean(column.isRequired);
 

@@ -4,58 +4,58 @@ import { ColumnSettings } from "../common/ColumnSettings";
 import { FieldSearch } from "../common/FieldSearch";
 import { LimitSelector } from "../common/LimitSelector";
 import { ListPagination } from "../common/ListPagination";
-import type { TeamColumnVisibility } from "./column-visibility";
+import type { UserColumnVisibility } from "./column-visibility";
 import {
-  TEAM_COLUMN_OPTIONS,
-  serializeTeamColumnVisibility,
+  USER_COLUMN_OPTIONS,
+  serializeUserColumnVisibility,
 } from "./column-visibility";
-import { TEAMS_LIMIT_OPTIONS, type TeamsLimit } from "./pagination";
-import { TEAMS_SEARCH_FIELDS, getTeamsSearchVisualSegments } from "./search";
+import { USERS_LIMIT_OPTIONS, type UsersLimit } from "./pagination";
+import { USERS_SEARCH_FIELDS, getUsersSearchVisualSegments } from "./search";
 
-type TeamsTableControlsProps = {
-  columnVisibility: TeamColumnVisibility;
+type UsersTableControlsProps = {
+  columnVisibility: UserColumnVisibility;
   currentPage: number;
-  limit: TeamsLimit;
+  limit: UsersLimit;
   searchQuery: string;
-  teamsAmount: number;
+  usersAmount: number;
   totalPages: number;
 };
 
-export const TeamsTableControls = ({
+export const UsersTableControls = ({
   columnVisibility,
   currentPage,
   limit,
   searchQuery,
-  teamsAmount,
+  usersAmount,
   totalPages,
-}: TeamsTableControlsProps) => {
+}: UsersTableControlsProps) => {
   return (
     <div
-      aria-label="Teams table controls"
+      aria-label="Users table controls"
       className="grid gap-3 rounded-16 border border-grey-100 bg-grey-50/70 p-3 text-14 text-grey-500"
     >
       <div className="grid min-w-0 grid-cols-[auto_minmax(0,1fr)] items-center gap-3">
         <ColumnSettings
-          columnOptions={TEAM_COLUMN_OPTIONS}
+          columnOptions={USER_COLUMN_OPTIONS}
           columnVisibility={columnVisibility}
-          serializeColumnVisibility={serializeTeamColumnVisibility}
+          serializeColumnVisibility={serializeUserColumnVisibility}
         />
         <FieldSearch
-          fields={TEAMS_SEARCH_FIELDS}
-          getVisualSegments={getTeamsSearchVisualSegments}
-          placeholder="Search teams"
+          fields={USERS_SEARCH_FIELDS}
+          getVisualSegments={getUsersSearchVisualSegments}
+          placeholder="Search users"
           value={searchQuery}
         />
       </div>
 
       <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <LimitSelector options={TEAMS_LIMIT_OPTIONS} value={limit} />
+        <LimitSelector options={USERS_LIMIT_OPTIONS} value={limit} />
         <ListPagination
-          ariaLabel="Teams table pagination"
+          ariaLabel="Users table pagination"
           currentPage={currentPage}
           limit={limit}
-          pageInputId="teams-page-jump"
-          totalItems={teamsAmount}
+          pageInputId="users-page-jump"
+          totalItems={usersAmount}
           totalPages={totalPages}
         />
       </div>

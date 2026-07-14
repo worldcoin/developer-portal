@@ -1,11 +1,18 @@
 import { TeamsTable } from "@/components/AdminDashboard/Teams/Table";
 import { TeamsTableControls } from "@/components/AdminDashboard/Teams/TableControls";
 import {
+  parseTeamColumnVisibility,
   serializeTeamColumnVisibility,
   type TeamColumnVisibility,
 } from "@/components/AdminDashboard/Teams/column-visibility";
-import type { TeamsLimit } from "@/components/AdminDashboard/Teams/pagination";
 import {
+  parseTeamsLimit,
+  parseTeamsPage,
+  type TeamsLimit,
+} from "@/components/AdminDashboard/Teams/pagination";
+import { parseTeamsSearchQuery } from "@/components/AdminDashboard/Teams/search";
+import {
+  parseTeamsSort,
   serializeTeamsSort,
   type TeamsSort,
 } from "@/components/AdminDashboard/Teams/sorting";
@@ -15,6 +22,16 @@ import { redirect } from "next/navigation";
 import { fetchAdminTeamsPage } from "./server/fetch-teams";
 
 type AdminTeamsPageProps = {
+  searchParams?: Promise<{
+    columns?: string | string[];
+    limit?: string | string[];
+    page?: string | string[];
+    query?: string | string[];
+    sort?: string | string[];
+  }>;
+};
+
+type AdminTeamsPageUrlProps = {
   columnVisibility: TeamColumnVisibility;
   limit: TeamsLimit;
   page: number;
@@ -28,13 +45,7 @@ const createAdminTeamsPageUrl = ({
   page,
   searchQuery,
   sort,
-}: {
-  columnVisibility: TeamColumnVisibility;
-  limit: TeamsLimit;
-  page: number;
-  searchQuery: string;
-  sort: TeamsSort | null;
-}) => {
+}: AdminTeamsPageUrlProps) => {
   const params = new URLSearchParams();
   params.set("columns", serializeTeamColumnVisibility(columnVisibility));
   params.set("limit", String(limit));
@@ -55,12 +66,15 @@ const createAdminTeamsPageUrl = ({
 };
 
 export const AdminTeamsPage = async ({
-  columnVisibility,
-  limit,
-  page,
-  searchQuery,
-  sort,
-}: AdminTeamsPageProps) => {
+  searchParams = Promise.resolve({}),
+}: AdminTeamsPageProps = {}) => {
+  const params = await searchParams;
+  const columnVisibility = parseTeamColumnVisibility(params.columns);
+  const limit = parseTeamsLimit(params.limit);
+  const page = parseTeamsPage(params.page);
+  const searchQuery = parseTeamsSearchQuery(params.query);
+  const sort = parseTeamsSort(params.sort);
+
   const { teams, teamsAmount, currentPage, totalPages } =
     await fetchAdminTeamsPage({
       columnVisibility,
