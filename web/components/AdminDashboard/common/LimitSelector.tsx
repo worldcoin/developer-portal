@@ -13,13 +13,17 @@ type AnchorStyle = CSSProperties & {
 
 type LimitSelectorProps<Limit extends number> = {
   className?: string;
+  limitParam?: string;
   options: readonly Limit[];
+  pageParam?: string;
   value: Limit;
 };
 
 export const LimitSelector = <Limit extends number>({
   className,
+  limitParam = "limit",
   options,
+  pageParam = "page",
   value,
 }: LimitSelectorProps<Limit>) => {
   const pathname = usePathname();
@@ -33,8 +37,8 @@ export const LimitSelector = <Limit extends number>({
 
   const handleSelect = (nextValue: Limit) => {
     const params = new URLSearchParams(searchParams.toString());
-    params.set("limit", String(nextValue));
-    params.delete("page");
+    params.set(limitParam, String(nextValue));
+    params.delete(pageParam);
     const query = params.toString();
     router.replace(query ? `${pathname}?${query}` : pathname, {
       scroll: false,
@@ -62,7 +66,7 @@ export const LimitSelector = <Limit extends number>({
         <ChevronDown className="size-4 text-grey-400" />
       </button>
       <div
-        className="fixed inset-auto [top:anchor(bottom)] [left:anchor(left)] m-0 mt-1 min-w-28 rounded-12 border border-grey-200 bg-grey-0 p-1 shadow-lg backdrop:bg-transparent"
+        className="fixed inset-auto top-[anchor(bottom)] left-[anchor(left)] m-0 mt-1 min-w-28 rounded-12 border border-grey-200 bg-grey-0 p-1 shadow-lg backdrop:bg-transparent"
         id={popoverId}
         popover="auto"
         ref={popoverRef}
