@@ -59,9 +59,9 @@ const truncateAddress = (address: string) =>
 const splitList = (value?: string | null): string[] =>
   value
     ? value
-        .split(",")
-        .map((entry) => entry.trim())
-        .filter(Boolean)
+      .split(",")
+      .map((entry) => entry.trim())
+      .filter(Boolean)
     : [];
 
 const joinList = (values: string[]): string | null =>
@@ -581,6 +581,7 @@ export const SetupForm = ({
                 copyFieldName="Address"
                 formatDisplay={truncateAddress}
                 emptyText="No addresses yet. Add an address to enforce the payment allowlist."
+                allowCommaSeparated
               />
 
               {errors.whitelisted_addresses?.message && (
