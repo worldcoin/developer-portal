@@ -25,7 +25,7 @@ export const SwitcherBox = (props: {
 
   return (
     <div
-      className={clsx("grid-cols-auto/1fr/auto grid gap-x-4 p-5", className)}
+      className={clsx("grid grid-cols-auto-1fr-auto gap-x-4 p-5", className)}
     >
       <Switcher enabled={status} setEnabled={setStatus} disabled={disabled} />
       <div className="grid gap-y-2">
