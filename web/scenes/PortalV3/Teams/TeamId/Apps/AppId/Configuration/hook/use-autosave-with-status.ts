@@ -1,5 +1,6 @@
 "use client";
 
+import posthog from "posthog-js";
 import { useCallback, useEffect, useRef } from "react";
 import { FieldValues, UseFormReturn } from "react-hook-form";
 import { useSaveStatusActions } from "../SaveStatus";
@@ -29,6 +30,10 @@ export const useAutosaveWithStatus = <T extends FieldValues>(
   const ctxRef = useRef(ctx);
   ctxRef.current = ctx;
 
+  // Last observed status.state, so we report a failure once per transition
+  // into "error" rather than on every re-render / status push.
+  const lastStateRef = useRef<AutosaveStatus["state"]>("idle");
+
   // Funnel every save through the provider's shared queue so concurrent
   // debounced saves from different forms can't race on overlapping
   // app_metadata columns. Falls back to direct invocation if no provider.
@@ -45,6 +50,19 @@ export const useAutosaveWithStatus = <T extends FieldValues>(
     enabled: options.enabled,
     debounceMs: options.debounceMs,
     onStatus: (status: AutosaveStatus) => {
+      // Report save failures to telemetry. Without this, a failed autosave
+      // (network error, WAF/proxy rejection, server error) only surfaces as a
+      // local "Couldn't save" pill and — when it happens during the
+      // submit-for-review flushAll — as a generic toast, leaving us with no
+      // signal about which form failed or why. `form_id` + `message` make this
+      // class of failure diagnosable.
+      if (status.state === "error" && lastStateRef.current !== "error") {
+        posthog.capture("config_autosave_failed", {
+          form_id: idRef.current,
+          message: status.error?.message,
+        });
+      }
+      lastStateRef.current = status.state;
       ctxRef.current?.pushStatus(idRef.current, status);
     },
     onPendingChange: (isPending: boolean) => {
