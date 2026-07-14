@@ -18,7 +18,7 @@ export const IconFrame = (props: {
         props.className,
       )}
     >
-      <div className="pointer-events-none absolute inset-0 rounded-full bg-gradient-to-b from-grey-0 to-transparent opacity-20" />
+      <div className="pointer-events-none absolute inset-0 rounded-full bg-linear-to-b from-grey-0 to-transparent opacity-20" />
       {props.children}
     </div>
   );

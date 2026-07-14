@@ -21,7 +21,7 @@ export const KioskError = memo(function KioskError(props: {
 
   return (
     <div className="flex min-h-[400px] flex-col items-center justify-center gap-y-6 text-center">
-      <div className="grid max-w-[300px] justify-items-center gap-y-4 ">
+      <div className="grid max-w-[300px] justify-items-center gap-y-4">
         <div className="grid gap-y-2 font-rubik leading-[1.2]">
           <CircleIconContainer variant="error">
             <CloseIcon className="size-4 text-system-error-500" />

@@ -26,7 +26,7 @@ export const Option = (props: OptionProps) => {
     >
       <div
         className={clsx(
-          "flex size-6 items-center justify-center rounded-full bg-[var(--color-500)] transition-all",
+          "flex size-6 items-center justify-center rounded-full bg-(--color-500) transition-all",
           {
             "shadow-[0_0_0_2px_rgba(255,255,255,.12)_inset]": selected,
             "opacity-40 shadow-[0_0_0_0_rgba(255,255,255,0)_inset]": !selected,

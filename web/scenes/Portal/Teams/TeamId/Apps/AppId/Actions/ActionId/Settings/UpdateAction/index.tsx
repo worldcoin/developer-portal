@@ -184,7 +184,7 @@ export const UpdateActionForm = (props: UpdateActionProps) => {
                 showCustomInput
                 required
                 disabled={isReadOnly}
-                className="w-full " // border is 2 px
+                className="w-full" // border is 2 px
                 label="Max verifications per user"
                 helperText="The number of verifications the same person can do for this action"
               />

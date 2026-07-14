@@ -1,12 +1,17 @@
 "use client";
 
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import { TrashIcon } from "@/components/Icons/TrashIcon";
+import { urls } from "@/lib/urls";
 import clsx from "clsx";
 import { useAtomValue } from "jotai";
+import Link from "next/link";
 import { RefObject, useEffect, useState } from "react";
 import { sectionsAtom } from "../NumberedSection";
 
 type SectionTocProps = {
+  appId: string;
+  teamId: string;
   // The form column that scrolls internally on lg+ — used as the observer
   // root so the highlight tracks that container's scroll, not the window's.
   scrollContainerRef: RefObject<HTMLElement | null>;
@@ -17,7 +22,11 @@ type SectionTocProps = {
  * badges (the active one lights up in the same blue). The section list comes
  * from the registry the sections maintain themselves.
  */
-export const SectionToc = ({ scrollContainerRef }: SectionTocProps) => {
+export const SectionToc = ({
+  appId,
+  teamId,
+  scrollContainerRef,
+}: SectionTocProps) => {
   const sections = useAtomValue(sectionsAtom);
   const [activeId, setActiveId] = useState<string | null>(null);
 
@@ -55,7 +64,10 @@ export const SectionToc = ({ scrollContainerRef }: SectionTocProps) => {
   const currentId = activeId ?? sections[0]?.id;
 
   return (
-    <nav aria-label="Page sections" className="grid content-start gap-y-1">
+    <nav
+      aria-label="Page sections"
+      className="flex content-start justify-end lg:grid lg:gap-y-1"
+    >
       {sections.map((section) => {
         const isActive = section.id === currentId;
         return (
@@ -68,7 +80,7 @@ export const SectionToc = ({ scrollContainerRef }: SectionTocProps) => {
                 ?.scrollIntoView?.({ behavior: "smooth", block: "start" })
             }
             className={clsx(
-              "group flex items-center gap-x-2.5 rounded-lg px-2 py-1.5 text-left transition-colors",
+              "group hidden items-center gap-x-2.5 rounded-lg px-2 py-1.5 text-left transition-colors lg:flex",
               isActive ? "bg-grey-50" : "hover:bg-grey-25",
             )}
           >
@@ -96,6 +108,21 @@ export const SectionToc = ({ scrollContainerRef }: SectionTocProps) => {
           </button>
         );
       })}
+
+      <div className="lg:mt-4 lg:border-t lg:border-grey-200 lg:pt-4">
+        <Link
+          href={urls.configurationDanger({
+            team_id: teamId,
+            app_id: appId,
+          })}
+          className="group flex items-center gap-x-2.5 rounded-full border border-grey-200 bg-grey-0 px-3 py-2 text-grey-500 shadow-xs transition-colors hover:border-system-error-200 hover:bg-system-error-50 hover:text-system-error-600 lg:rounded-lg lg:border-0 lg:bg-transparent lg:px-2 lg:shadow-none"
+        >
+          <span className="grid size-6 shrink-0 place-items-center">
+            <TrashIcon className="size-4" />
+          </span>
+          <Typography variant={TYPOGRAPHY.R4}>Danger zone</Typography>
+        </Link>
+      </div>
     </nav>
   );
 };

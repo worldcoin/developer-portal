@@ -27,7 +27,7 @@ export const JoinPage = async (props: {
   });
 
   return (
-    <div className="flex min-h-[100dvh] w-full items-center justify-center">
+    <div className="flex min-h-dvh w-full items-center justify-center">
       <div className="grid max-w-[360px] gap-y-6">
         <LayersIconFrame>
           <Logo src={null} />

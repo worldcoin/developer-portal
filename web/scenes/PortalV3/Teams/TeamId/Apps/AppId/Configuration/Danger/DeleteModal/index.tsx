@@ -101,7 +101,7 @@ export const DeleteModal = (props: DeleteModalProps) => {
     <Dialog open={openDeleteModal} onClose={() => setOpenDeleteModal(false)}>
       <DialogOverlay />
 
-      <DialogPanel className="grid gap-y-6 md:max-w-[36rem]">
+      <DialogPanel className="grid gap-y-6 md:max-w-xl">
         <ModalIcon variant="error">
           <AlertIcon className="size-7 text-white" />
         </ModalIcon>

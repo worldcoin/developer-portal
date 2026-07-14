@@ -4,7 +4,6 @@ import { PaymentMetadata } from "@/lib/types";
 import { ComponentProps } from "react";
 import { Suspense } from "react";
 import Skeleton from "react-loading-skeleton";
-import { MiniAppSubTabs } from "../../SubTabs";
 import { ErrorState } from "./ErrorState";
 import { TransactionsTable } from "./TransactionsTable";
 import { getTransactionData } from "./server";
@@ -21,11 +20,7 @@ const TransactionsPageLayout = ({
   showHeading?: boolean;
 }) => {
   return (
-    <div className="my-6 min-h-[100dvh]">
-      <div className="md:hidden">
-        <MiniAppSubTabs />
-      </div>
-
+    <div className="my-6 min-h-dvh">
       {showHeading && (
         <div className="flex items-center justify-start text-gray-900">
           <Typography variant={TYPOGRAPHY.H6}>Transactions</Typography>

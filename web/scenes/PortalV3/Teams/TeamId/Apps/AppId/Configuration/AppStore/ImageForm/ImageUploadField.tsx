@@ -17,10 +17,11 @@ import {
 } from "react";
 import Skeleton from "react-loading-skeleton";
 import { toast } from "react-toastify";
-import { ImageValidationError, useImage } from "../../hook/use-image";
+import { useCroppedImageUpload, useImage } from "../../hook/use-image";
 import { extractImagePathWithExtensionFromActualUrl } from "../utils";
 import { ImageDisplay } from "./ImageDisplay";
 import ImageLoader from "./ImageLoader";
+import { ImageCropDialog } from "./ImageCropDialog";
 
 const PREVIEW_HEIGHT_PX = 200;
 
@@ -89,36 +90,18 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
   const abortControllerRef = useRef<AbortController | null>(null);
   const isLocalized = locale !== "en";
 
-  const { validateImageAspectRatio, uploadViaPresignedPost, getImage } =
-    useImage();
+  const { uploadViaPresignedPost, getImage } = useImage();
 
-  const uploadImage = useCallback(
-    async (_imageType: string, file: File, height: number, width: number) => {
-      if (!file || !(file.type === "image/png" || file.type === "image/jpeg")) {
-        return;
-      }
-
-      if (value.length >= maxImages) {
-        toast.error(
-          `maximum of ${maxImages} image${maxImages > 1 ? "s" : ""} allowed`,
-        );
-        return;
-      }
-
+  const uploadAcceptedImage = useCallback(
+    async (file: File, height: number, width: number): Promise<boolean> => {
       const abortController = new AbortController();
       abortControllerRef.current = abortController;
 
       const fileTypeEnding = file.type.split("/")[1];
 
       try {
-        // validate first, before showing any progress
-        await validateImageAspectRatio(file, width, height);
-
-        // only start showing progress after validation passes
         setIsUploading(true);
         onUploadStart?.();
-
-        toast.dismiss(ImageValidationError.prototype.toastId);
 
         const imageType = imageTypeNamer(value.length);
 
@@ -141,7 +124,7 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
 
         // check if component is still mounted/valid before updating
         if (!isMountedRef.current) {
-          return;
+          return false;
         }
 
         const extractedPath =
@@ -154,17 +137,17 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
         onChange(newUrls);
 
         onUploadSuccess?.();
+        return true;
       } catch (error) {
         console.error("error uploading image:", error);
 
         if (error instanceof Error && error.name === "AbortError") {
           toast.error("Upload was cancelled", { autoClose: 5000 });
-          return;
+          return false;
         }
 
-        if (!(error instanceof ImageValidationError)) {
-          onUploadError?.(error);
-        }
+        onUploadError?.(error);
+        return false;
       } finally {
         abortControllerRef.current = null;
         if (isMountedRef.current) {
@@ -175,7 +158,6 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
     [
       value,
       maxImages,
-      validateImageAspectRatio,
       onUploadStart,
       imageTypeNamer,
       uploadViaPresignedPost,
@@ -190,6 +172,34 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
       onUploadSuccess,
       onUploadError,
     ],
+  );
+
+  const { cropCandidate, clearCropCandidate, handleFileSelected } =
+    useCroppedImageUpload({
+      targetWidth: imageConstraints.width,
+      targetHeight: imageConstraints.height,
+      upload: (file) =>
+        uploadAcceptedImage(
+          file,
+          imageConstraints.height,
+          imageConstraints.width,
+        ),
+    });
+
+  const uploadImage = useCallback(
+    async (_imageType: string, file: File) => {
+      if (!file) return;
+
+      if (value.length >= maxImages) {
+        toast.error(
+          `maximum of ${maxImages} image${maxImages > 1 ? "s" : ""} allowed`,
+        );
+        return;
+      }
+
+      await handleFileSelected(file);
+    },
+    [maxImages, handleFileSelected, value.length],
   );
 
   const handleDelete = useCallback(
@@ -272,7 +282,7 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
           uploadImage={uploadImage}
           imageType={imageTypeNamer(0)}
           error={error}
-          className="h-[168px] !rounded-xl"
+          className="h-[168px] rounded-xl!"
         >
           {dropZoneChildren}
         </ImageDropZone>
@@ -320,7 +330,7 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
                   type="button"
                   onClick={() => handleDelete(imagePath)}
                   disabled={disabled}
-                  className="absolute right-4 top-4 flex size-8 items-center justify-center rounded-full border border-grey-200 bg-white shadow-sm transition-colors hover:bg-grey-100 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="absolute top-4 right-4 flex size-8 items-center justify-center rounded-full border border-grey-200 bg-white shadow-xs transition-colors hover:bg-grey-100 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   <TrashIcon className="text-grey-500" />
                 </Button>
@@ -378,7 +388,7 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
                   type="button"
                   onClick={() => handleDelete(imagePath)}
                   disabled={disabled}
-                  className="absolute right-4 top-4 flex size-8 items-center justify-center rounded-full border border-grey-200 bg-white shadow-sm transition-colors hover:bg-grey-100 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="absolute top-4 right-4 flex size-8 items-center justify-center rounded-full border border-grey-200 bg-white shadow-xs transition-colors hover:bg-grey-100 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   <TrashIcon className="text-grey-500" />
                 </Button>
@@ -406,7 +416,7 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
                 uploadImage={uploadImage}
                 imageType={imageTypeNamer(value.length)}
                 error={error}
-                className="h-full !rounded-xl"
+                className="h-full rounded-xl!"
               >
                 {dropZoneChildren}
               </ImageDropZone>
@@ -427,6 +437,23 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
           ))}
         </div>
       )}
+
+      <ImageCropDialog
+        file={cropCandidate}
+        title={`Crop ${title.toLowerCase()}`}
+        targetWidth={imageConstraints.width}
+        targetHeight={imageConstraints.height}
+        isApplying={isUploading}
+        onApply={(file) =>
+          uploadAcceptedImage(
+            file,
+            imageConstraints.height,
+            imageConstraints.width,
+          )
+        }
+        onClosed={clearCropCandidate}
+        previewAlt={`${title} crop preview`}
+      />
 
       <Dialog open={!!lightboxUrl} onClose={() => setLightboxUrl(null)}>
         <DialogOverlay />
@@ -452,7 +479,7 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
               <button
                 type="button"
                 onClick={() => setLightboxUrl(null)}
-                className="absolute right-3 top-3 flex size-9 items-center justify-center rounded-full bg-white/95 text-grey-700 shadow-md transition-colors hover:bg-white"
+                className="absolute top-3 right-3 flex size-9 items-center justify-center rounded-full bg-white/95 text-grey-700 shadow-md transition-colors hover:bg-white"
                 aria-label="Close"
               >
                 <CloseIcon className="size-4" />

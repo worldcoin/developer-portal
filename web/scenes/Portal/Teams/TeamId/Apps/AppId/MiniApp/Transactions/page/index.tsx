@@ -21,7 +21,7 @@ const TransactionsPageLayout = ({
   showHeading?: boolean;
 }) => {
   return (
-    <div className="my-6 min-h-[100dvh]">
+    <div className="my-6 min-h-dvh">
       <div className="md:hidden">
         <MiniAppSubTabs />
       </div>

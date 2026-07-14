@@ -54,7 +54,7 @@ export const Placeholder = (props: {
         ),
       )}
     >
-      <p className="capitalize text-grey-0">{props.name[0]}</p>
+      <p className="text-grey-0 capitalize">{props.name[0]}</p>
     </div>
   );
 };

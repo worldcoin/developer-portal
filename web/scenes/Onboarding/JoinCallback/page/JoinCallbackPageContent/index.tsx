@@ -54,7 +54,7 @@ export const JoinCallbackPageContent = (props: { invite_id: string }) => {
   }, [joinUser]);
 
   return (
-    <div className="flex min-h-[100dvh] w-full items-center justify-center">
+    <div className="flex min-h-dvh w-full items-center justify-center">
       <WorldIcon className="animate-ping" />
     </div>
   );

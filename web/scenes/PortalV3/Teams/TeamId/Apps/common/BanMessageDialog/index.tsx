@@ -23,7 +23,7 @@ export const BanMessageDialog = () => {
     <Dialog onClose={closeModal} open={isOpened}>
       <DialogOverlay />
 
-      <DialogPanel className="grid gap-y-8 md:max-w-[32rem]">
+      <DialogPanel className="grid gap-y-8 md:max-w-lg">
         <CircleIconContainer variant={"error"}>
           <CloseIcon className="size-5 text-system-error-600" strokeWidth={3} />
         </CircleIconContainer>
@@ -38,7 +38,7 @@ export const BanMessageDialog = () => {
 
           <Typography
             variant={TYPOGRAPHY.R3}
-            className="text-center text-grey-500 "
+            className="text-center text-grey-500"
           >
             {`Due to user reports, or our own investigation your app was banned.
             This means it cannot be accessed by users anymore and it's not

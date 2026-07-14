@@ -4,7 +4,7 @@ import { Auth0SessionUser } from "@/lib/types";
 import { auth0 } from "@/lib/auth0";
 import { TeamProfile } from "@/scenes/PortalV3/Teams/TeamId/Team/common/TeamProfile";
 import { Apps } from "./Apps";
-import { Members } from "./Members";
+import { Members } from "../sections/Members";
 
 type TeamIdPageProps = {
   params: Record<string, string> | null | undefined;

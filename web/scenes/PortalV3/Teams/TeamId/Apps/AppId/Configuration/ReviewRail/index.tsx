@@ -1,6 +1,5 @@
 "use client";
 
-import { AppStatus, StatusVariant } from "@/components/AppStatus";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Role_Enum } from "@/graphql/graphql";
 import { Auth0SessionUser } from "@/lib/types";
@@ -10,16 +9,15 @@ import { useUser } from "@auth0/nextjs-auth0/client";
 import clsx from "clsx";
 import { useAtomValue } from "jotai";
 import { MutableRefObject, useMemo, useState } from "react";
-import { selectedLanguageAtom } from "../AppStore/components/FormSections/LocalisationsSection/hooks/useLanguageSelection";
-import { AppTopBarSubmit } from "../AppTopBar";
 import { SubmitAppModal } from "../AppTopBar/SubmitAppModal";
 import { BasicInformationHandle } from "../BasicInformation";
 import { unverifiedImageAtom, viewModeAtom } from "../layout/ImagesProvider";
 import { useSaveStatus } from "../SaveStatus";
 import { LivePreview } from "./LivePreview";
+import { ReviewSubmissionButton } from "./ReviewSubmissionButton";
 
-// The full generated metadata row — AppTopBarSubmit's review validation reads
-// fields the narrowed AppMetadata pick omits.
+// The full generated metadata row — review validation reads fields the
+// narrowed AppMetadata pick omits.
 export type FullAppMetadata =
   FetchAppMetadataQuery["app"][0]["app_metadata"][0];
 
@@ -69,15 +67,6 @@ const DraftSavedLine = () => {
   );
 };
 
-const MetadataStatusLine = ({ status }: { status: StatusVariant }) => (
-  <div className="flex items-center gap-x-2">
-    <AppStatus status={status} />
-    <Typography variant={TYPOGRAPHY.R4} className="text-grey-500">
-      Read-only
-    </Typography>
-  </div>
-);
-
 type SubmitForReviewProps = {
   appId: string;
   teamId: string;
@@ -86,8 +75,8 @@ type SubmitForReviewProps = {
 };
 
 // Always-active submit button: clicking with missing required fields surfaces
-// the validation errors (field errors + toast) from AppTopBarSubmit's
-// review-schema check rather than being locked behind a completion gate.
+// the validation errors (field errors + toast) from the review-schema check
+// rather than being locked behind a completion gate.
 const SubmitForReview = ({
   appId,
   teamId,
@@ -127,72 +116,90 @@ const SubmitForReview = ({
         appId={appId}
         isDeveloperAllowListing={appMetadata?.is_developer_allow_listing}
       />
-      <AppTopBarSubmit
+      <ReviewSubmissionButton
         appMetadata={appMetadata}
         appId={appId}
         teamId={teamId}
         viewMode={viewMode}
         onSubmitSuccess={() => setShowSubmitAppModal(true)}
         basicInfoRef={basicInfoRef}
-        className="w-full"
+        className="shrink-0"
       />
     </>
   );
 };
 
-type ReviewRailProps = {
+type ConfigurationActionsProps = {
   appId: string;
   teamId: string;
-  teamName: string;
   appMetadata: FullAppMetadata;
   basicInfoRef?: MutableRefObject<BasicInformationHandle | null>;
 };
 
 /**
- * Sticky right rail for the Configuration page: live listing preview, submit
- * for review, and autosave status. Follows the viewport as the (much taller)
- * form column scrolls.
+ * Persistent action shelf owned by the form column. On desktop it sits below
+ * the independently scrolling form; on smaller screens it becomes a compact
+ * floating dock so save state and review submission never disappear.
  */
-export const ReviewRail = ({
+export const ConfigurationActions = ({
   appId,
   teamId,
-  teamName,
   appMetadata,
   basicInfoRef,
-}: ReviewRailProps) => {
-  const previewLanguage = useAtomValue(selectedLanguageAtom);
+}: ConfigurationActionsProps) => {
   const isEditable = appMetadata.verification_status === "unverified";
 
+  // Read-only states carry their status in the page's version header — a bar
+  // holding only a status line would duplicate it.
+  if (!isEditable) return null;
+
   return (
-    // The page frame is viewport-height with the form column scrolling
-    // internally, so the pane is simply static: it never moves and is never
-    // cut off — the Submit button and save status always sit within view.
-    // Below lg the grid is one column and the rail renders first, so the
-    // submit button never sits below the danger zone on small screens.
-    <aside className="order-first h-full lg:order-none lg:border-l lg:border-grey-200 lg:pl-10">
-      <div className="flex flex-col gap-y-4 py-8 lg:h-full">
-        <div className="min-h-0 flex-1 overflow-hidden">
+    <section
+      aria-label="Configuration actions"
+      className="fixed inset-x-4 bottom-4 z-30 rounded-2xl border border-grey-200 bg-grey-0/95 p-3 shadow-xl backdrop-blur-md lg:static lg:z-auto lg:mr-4 lg:mb-8 lg:shrink-0 lg:p-4 lg:shadow-lg"
+    >
+      <div className="flex items-center justify-between gap-x-4">
+        <div className="min-w-0">
+          <DraftSavedLine />
+        </div>
+        <div className="flex shrink-0 items-center gap-2">
+          <SubmitForReview
+            appId={appId}
+            teamId={teamId}
+            appMetadata={appMetadata}
+            basicInfoRef={basicInfoRef}
+          />
+        </div>
+      </div>
+    </section>
+  );
+};
+
+type ReviewRailProps = {
+  appId: string;
+  teamName: string;
+  appMetadata: FullAppMetadata;
+};
+
+/** Live listing preview, intentionally isolated from page-level actions. */
+export const ReviewRail = ({
+  appId,
+  teamName,
+  appMetadata,
+}: ReviewRailProps) => {
+  return (
+    <aside
+      aria-label="Live preview"
+      className="order-first h-full lg:order-0 lg:border-l lg:border-grey-200 lg:pl-10"
+    >
+      <div className="flex flex-col gap-y-5 py-8 lg:h-full">
+        <div className="min-h-0 flex-1 overflow-y-auto pr-1">
           <LivePreview
             appId={appId}
             teamName={teamName}
             appMetadata={appMetadata}
           />
         </div>
-
-        <SubmitForReview
-          appId={appId}
-          teamId={teamId}
-          appMetadata={appMetadata}
-          basicInfoRef={basicInfoRef}
-        />
-
-        {isEditable ? (
-          <DraftSavedLine />
-        ) : (
-          <MetadataStatusLine
-            status={appMetadata.verification_status as StatusVariant}
-          />
-        )}
       </div>
     </aside>
   );

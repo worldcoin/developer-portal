@@ -62,7 +62,7 @@ export const RedirectInput = memo(function Input(props: InputInterface) {
   });
 
   const parentClassNames = clsx(
-    "rounded-lg border-[1px] bg-grey-0 px-2 text-sm text-grey-700",
+    "rounded-lg border bg-grey-0 px-2 text-sm text-grey-700",
     {
       "border-grey-200 focus-within:border-blue-500 focus-within:hover:border-blue-500 hover:border-grey-700 ":
         !errors.url && !disabled,
@@ -76,10 +76,10 @@ export const RedirectInput = memo(function Input(props: InputInterface) {
   );
 
   const inputClassNames = clsx(
-    "peer size-full bg-transparent p-2 focus:outline-none focus:ring-0",
+    "peer size-full bg-transparent p-2 focus:outline-hidden focus:ring-0",
     {
       "placeholder:text-grey-400": !errors.url,
-      "group-hover:placeholder:text-grey-700 group-hover:focus:placeholder:text-grey-400 ":
+      "group-hover:placeholder:text-grey-700 focus:group-hover:placeholder:text-grey-400 ":
         !disabled,
     },
   );

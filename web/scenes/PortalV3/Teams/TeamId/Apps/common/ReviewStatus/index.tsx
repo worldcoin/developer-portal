@@ -4,7 +4,6 @@ import { Button } from "@/components/Button";
 import { AlertIcon } from "@/components/Icons/AlertIcon";
 import { ArrowRightIcon } from "@/components/Icons/ArrowRightIcon";
 import { CheckmarkBadge } from "@/components/Icons/CheckmarkBadge";
-import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import clsx from "clsx";
 import { useAtom } from "jotai";
 import { useCallback, useMemo } from "react";
@@ -17,20 +16,16 @@ type ReviewStatusProps = {
   onResolveClick?: () => void;
 };
 
+const statusStyles: Record<ReviewStatusProps["status"], string> = {
+  verified:
+    "border-system-success-200 bg-system-success-50 text-system-success-600",
+  changes_requested:
+    "border-system-warning-200 bg-system-warning-50 text-system-warning-600",
+};
+
 export const ReviewStatus = (props: ReviewStatusProps) => {
   const { status, message, className, onResolveClick } = props;
   const [showReviewStatus, setShowReviewStatus] = useAtom(showReviewStatusAtom);
-
-  const statusStyles = {
-    verified: {
-      normal:
-        "bg-system-success-50 border border-system-success-200 text-system-success-600",
-    },
-    changes_requested: {
-      normal:
-        "bg-system-warning-50 border border-system-warning-200 text-system-warning-600",
-    },
-  };
 
   const formattedMessage = useMemo(() => {
     if (status === "changes_requested") {
@@ -59,34 +54,31 @@ export const ReviewStatus = (props: ReviewStatusProps) => {
   return (
     <div
       className={clsx(
-        statusStyles[status]?.normal,
-        "grid grid-cols-auto/1fr/auto items-center gap-x-3 rounded-lg px-3 py-2 sm:py-0 md:px-5",
+        "flex items-center gap-3 rounded-[10px] border px-5 py-3",
+        statusStyles[status],
         className,
       )}
     >
       {status === "changes_requested" ? (
-        <AlertIcon className="text-system-warning-500" />
+        <AlertIcon className="shrink-0 text-system-warning-500" />
       ) : (
-        <CheckmarkBadge className="text-system-success-500" />
+        <CheckmarkBadge className="shrink-0 text-system-success-500" />
       )}
-      <Typography variant={TYPOGRAPHY.R4}>{formattedMessage}</Typography>
+      <span className="min-w-0 flex-1 font-world text-13 leading-[1.3]">
+        {formattedMessage}
+      </span>
 
       <Button
         type="button"
         onClick={onClick}
         className={clsx(
-          "grid h-12 grid-cols-1fr/auto items-center gap-x-2 py-3 ",
-          {
-            "text-system-warning-600 hover:text-system-warning-700":
-              status === "changes_requested",
-            "text-system-success-600": status === "verified",
-          },
+          "flex shrink-0 items-center gap-x-1 font-world text-13 font-medium transition-colors",
+          status === "changes_requested"
+            ? "text-system-warning-600 hover:text-system-warning-700"
+            : "text-system-success-600",
         )}
       >
-        <Typography variant={TYPOGRAPHY.R4}>
-          {status === "changes_requested" ? "Resolve" : "Dismiss"}
-        </Typography>
-
+        {status === "changes_requested" ? "Resolve" : "Dismiss"}
         {status === "changes_requested" && <ArrowRightIcon />}
       </Button>
     </div>

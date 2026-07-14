@@ -19,12 +19,12 @@ export const UserInfo = (props: UserInfoProps) => {
     <div
       className={twMerge(
         clsx(
-          "grid items-center gap-5 max-md:mb-6 max-md:justify-items-center max-md:rounded-2xl max-md:border max-md:border-grey-200 max-md:p-8 md:grid-cols-auto/1fr md:border-b md:border-dashed md:pb-8 md:pt-8",
+          "grid items-center gap-5 max-md:mb-6 max-md:justify-items-center max-md:rounded-2xl max-md:border max-md:border-grey-200 max-md:p-8 md:grid-cols-auto/1fr md:border-b md:border-dashed md:pt-8 md:pb-8",
           props.className,
         ),
       )}
     >
-      <div className="leading-[0] max-md:pt-2">
+      <div className="leading-0 max-md:pt-2">
         {!user ? (
           <Skeleton width={72} height={72} circle={true} inline={true} />
         ) : (

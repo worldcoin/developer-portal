@@ -314,7 +314,7 @@ export const SetupForm = (props: LinksFormProps) => {
         )}
         <label
           htmlFor="is_whitelist_disabled"
-          className="grid w-fit cursor-pointer grid-cols-auto/1fr gap-x-4  border-grey-200 py-1"
+          className="grid w-fit cursor-pointer grid-cols-auto/1fr gap-x-4 border-grey-200 py-1"
         >
           <Checkbox
             id="is_whitelist_disabled"
