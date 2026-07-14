@@ -1,0 +1,36 @@
+# Calls the accept_team_invite Postgres function (see the
+# accept_team_invite_function Hasura migration), which deletes the single-use
+# invite and inserts the resulting membership in one transaction. The delete is
+# the concurrency gate, so a single invite can only ever produce one membership.
+# An empty result means the invite was already consumed.
+mutation AcceptTeamInvite(
+  $invite_id: String!
+  $team_id: String!
+  $user_id: String!
+) {
+  accept_team_invite(
+    args: { _invite_id: $invite_id, _team_id: $team_id, _user_id: $user_id }
+  ) {
+    team_id
+    role
+    team {
+      id
+      name
+    }
+    user {
+      id
+      email
+      name
+      auth0Id
+      posthog_id
+      is_allow_tracking
+      memberships {
+        team {
+          id
+          name
+        }
+        role
+      }
+    }
+  }
+}
