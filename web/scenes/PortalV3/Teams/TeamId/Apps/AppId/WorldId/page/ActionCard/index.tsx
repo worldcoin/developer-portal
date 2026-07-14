@@ -31,7 +31,7 @@ export const ActionCard = (props: {
 
   return (
     <Link
-      href={urls.worldIdAction({
+      href={urls.worldIdActionDetail({
         team_id: props.teamId,
         app_id: props.appId,
         action_id: action.id,

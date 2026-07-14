@@ -21,6 +21,6 @@ it("links to the action route available in this stack slice", () => {
 
   expect(screen.getByRole("link")).toHaveAttribute(
     "href",
-    "/teams/team_1/apps/app_1/world-id-actions/action_1",
+    "/teams/team_1/apps/app_1/world-id/actions/action_1",
   );
 });
