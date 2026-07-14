@@ -18,7 +18,7 @@ export const BanStatus = () => {
   return (
     <div
       className={
-        "grid-cols-auto/1fr/auto grid items-center gap-x-3 rounded-lg border border-system-error-200 bg-system-error-50 px-3 py-2 text-system-error-600 sm:py-0 md:px-5"
+        "grid grid-cols-auto-1fr-auto items-center gap-x-3 rounded-lg border border-system-error-200 bg-system-error-50 px-3 py-2 text-system-error-600 sm:py-0 md:px-5"
       }
     >
       <AlertIcon className="text-system-error-600" />

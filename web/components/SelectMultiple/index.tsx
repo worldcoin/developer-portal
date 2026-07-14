@@ -360,7 +360,7 @@ const Item = (props: {
         "grid cursor-pointer items-center gap-x-2 py-2 pr-5 pl-2 hover:bg-grey-50",
         {
           "grid-cols-1fr/auto": !icon,
-          "grid-cols-auto/1fr/auto": icon,
+          "grid-cols-auto-1fr-auto": icon,
         },
       )}
     >
