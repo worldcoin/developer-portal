@@ -7,27 +7,16 @@ import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
-// Apps without an RP registration can't have v4 actions yet. Reuse the existing
-// create-app wizard opened at its enable step for this app (it supports
-// `initialStep` + `appId` for exactly this case) rather than rebuilding the
-// multi-step signer-key flow.
 export const RegisterRpEmptyState = (props: {
   appId: string;
   initialOpen?: boolean;
-  // The backend rejects staging registration with `staging_not_supported`, so
-  // the Enable CTA would be a guaranteed dead-end for staging apps.
   isStaging: boolean;
   onRegistered: () => void;
-  // RP-less apps can still have World ID 3.0 legacy actions; without this link
-  // they'd have no navigation to those pages at all.
   legacyActionsHref?: string;
 }) => {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  // Staging apps can't register an RP (the backend rejects them), so the enable
-  // flow is suppressed for them; everyone else can open it and the register_rp
-  // action enforces owner/admin server-side.
   const canEnable = !props.isStaging;
   const [open, setOpen] = useState(Boolean(props.initialOpen) && canEnable);
 
@@ -39,9 +28,6 @@ export const RegisterRpEmptyState = (props: {
     setOpen(false);
     props.onRegistered();
 
-    // Strip the `enableWorldId4` param so the World ID tab link returns to its
-    // clean state. Otherwise the URL keeps the param and clicking the tab again
-    // is a no-op (same URL), leaving the user unable to re-open the flow.
     if (searchParams.has("enableWorldId4")) {
       const params = new URLSearchParams(searchParams);
       params.delete("enableWorldId4");
