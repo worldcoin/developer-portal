@@ -156,7 +156,7 @@ export const ConfigurationActions = ({
   return (
     <section
       aria-label="Configuration actions"
-      className="fixed inset-x-4 bottom-4 z-30 rounded-2xl border border-grey-200 bg-grey-0/95 p-3 shadow-xl backdrop-blur-md lg:static lg:z-auto lg:mb-8 lg:mr-4 lg:shrink-0 lg:p-4 lg:shadow-lg"
+      className="fixed inset-x-4 bottom-4 z-30 rounded-2xl border border-grey-200 bg-grey-0/95 p-3 shadow-xl backdrop-blur-md lg:static lg:z-auto lg:mr-4 lg:mb-8 lg:shrink-0 lg:p-4 lg:shadow-lg"
     >
       <div className="flex items-center justify-between gap-x-4">
         <div className="min-w-0">
@@ -190,7 +190,7 @@ export const ReviewRail = ({
   return (
     <aside
       aria-label="Live preview"
-      className="order-first h-full lg:order-none lg:border-l lg:border-grey-200 lg:pl-10"
+      className="order-first h-full lg:order-0 lg:border-l lg:border-grey-200 lg:pl-10"
     >
       <div className="flex flex-col gap-y-5 py-8 lg:h-full">
         <div className="min-h-0 flex-1 overflow-y-auto pr-1">

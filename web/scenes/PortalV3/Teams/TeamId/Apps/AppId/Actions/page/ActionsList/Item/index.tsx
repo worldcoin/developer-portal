@@ -18,7 +18,7 @@ export const Item = (props: ItemProps) => {
   return (
     <div
       className={clsx(
-        "group max-md:grid max-md:grid-cols-1fr/auto max-md:rounded-2xl max-md:border max-md:px-2 max-md:hover:bg-grey-25 md:contents [&>*]:border-gray-100 [&>*]:px-2 md:[&>*]:border-b",
+        "group *:border-gray-100 *:px-2 max-md:grid max-md:grid-cols-1fr/auto max-md:rounded-2xl max-md:border max-md:px-2 max-md:hover:bg-grey-25 md:contents md:*:border-b",
         {
           "cursor-pointer": !!item,
         },
@@ -26,7 +26,7 @@ export const Item = (props: ItemProps) => {
     >
       <div className="grid grid-cols-auto/1fr items-center gap-x-4 py-4 md:group-hover:bg-grey-25">
         {item ? (
-          <div className="flex size-12 items-center justify-center rounded-full bg-blue-100 uppercase text-blue-500">
+          <div className="flex size-12 items-center justify-center rounded-full bg-blue-100 text-blue-500 uppercase">
             <Typography variant={TYPOGRAPHY.M3}>{item.name[0]}</Typography>
           </div>
         ) : (

@@ -10,7 +10,7 @@ import { CSSProperties } from "react";
 export type PortalUser = { name: string; email?: string };
 
 const itemClass =
-  "flex h-12 w-full cursor-pointer items-center gap-2 rounded-8 bg-white px-4 py-2 font-world text-13 font-medium leading-[1.2] text-portal-text outline-none data-[highlighted]:bg-grey-50";
+  "flex h-12 w-full cursor-pointer items-center gap-2 rounded-8 bg-white px-4 py-2 font-world text-13 font-medium leading-[1.2] text-portal-text outline-hidden data-highlighted:bg-grey-50";
 
 const LinkItem = (props: { href: string; label: string; icon: string }) => (
   <DropdownMenu.Item asChild>
@@ -59,10 +59,10 @@ export const UserPopup = (props: { user: PortalUser; color: Color | null }) => {
 
   return (
     <DropdownMenu.Root>
-      <DropdownMenu.Trigger className="flex h-10 w-full min-w-0 items-center gap-2 rounded-8 text-left outline-none transition-colors hover:bg-portal-border focus-visible:ring-2 focus-visible:ring-grey-300">
+      <DropdownMenu.Trigger className="flex h-10 w-full min-w-0 items-center gap-2 rounded-8 text-left outline-hidden transition-colors hover:bg-portal-border focus-visible:ring-2 focus-visible:ring-grey-300">
         <UserAvatar name={user.name} color={color} />
         <span className="grid min-w-0 flex-1 gap-0.5">
-          <span className="truncate font-world text-13 font-medium leading-none text-portal-text">
+          <span className="truncate font-world text-13 leading-none font-medium text-portal-text">
             {user.name}
           </span>
           <span className="font-world text-11 leading-none text-portal-subtle">
@@ -80,7 +80,7 @@ export const UserPopup = (props: { user: PortalUser; color: Color | null }) => {
           side="top"
           align="start"
           sideOffset={16}
-          className="z-50 max-h-[var(--radix-dropdown-menu-content-available-height)] w-[279px] overflow-y-auto rounded-[10px] border border-portal-border bg-white p-0 shadow-[0_18px_11px_0_rgba(24,24,24,0.02),0_8px_8px_0_rgba(24,24,24,0.03),0_2px_4px_0_rgba(24,24,24,0.03)]"
+          className="z-50 max-h-(--radix-dropdown-menu-content-available-height) w-[279px] overflow-y-auto rounded-[10px] border border-portal-border bg-white p-0 shadow-[0_18px_11px_0_rgba(24,24,24,0.02),0_8px_8px_0_rgba(24,24,24,0.03),0_2px_4px_0_rgba(24,24,24,0.03)]"
         >
           <div className="flex w-full flex-col items-start py-2">
             <LinkItem

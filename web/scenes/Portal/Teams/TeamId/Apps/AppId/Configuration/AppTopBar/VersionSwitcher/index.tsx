@@ -52,7 +52,7 @@ export const VersionSwitcher = (props: VersionSwitcherProps) => {
       >
         <Dropdown.ListItem className="grid-cols-1fr/auto" asChild>
           <button onClick={() => setMode("unverified")}>
-            <Dropdown.ListItemText className="md:!leading-4">
+            <Dropdown.ListItemText className="md:leading-4!">
               Current version
             </Dropdown.ListItemText>
 
@@ -66,7 +66,7 @@ export const VersionSwitcher = (props: VersionSwitcherProps) => {
 
         <Dropdown.ListItem className="grid-cols-1fr/auto" asChild>
           <button onClick={() => setMode("verified")}>
-            <Dropdown.ListItemText className="md:!leading-4">
+            <Dropdown.ListItemText className="md:leading-4!">
               Approved version
             </Dropdown.ListItemText>
 
@@ -77,7 +77,7 @@ export const VersionSwitcher = (props: VersionSwitcherProps) => {
             )}
 
             {viewMode !== "verified" && (
-              <Dropdown.ListItemText className="text-grey-500 max-md:text-sm md:text-xs md:!leading-4">
+              <Dropdown.ListItemText className="text-grey-500 max-md:text-sm md:text-xs md:leading-4!">
                 {formattedDate}
               </Dropdown.ListItemText>
             )}

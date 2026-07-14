@@ -64,7 +64,7 @@ export const Item = (props: ItemProps) => {
 
         <Typography
           variant={TYPOGRAPHY.R4}
-          className="inline-grid grid-cols-[auto_1fr]  text-grey-500"
+          className="inline-grid grid-cols-[auto_1fr] text-grey-500"
         >
           {!item ? (
             <Skeleton width={150} inline />

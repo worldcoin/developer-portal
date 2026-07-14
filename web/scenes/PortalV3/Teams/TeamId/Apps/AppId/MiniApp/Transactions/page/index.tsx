@@ -20,7 +20,7 @@ const TransactionsPageLayout = ({
   showHeading?: boolean;
 }) => {
   return (
-    <div className="my-6 min-h-[100dvh]">
+    <div className="my-6 min-h-dvh">
       {showHeading && (
         <div className="flex items-center justify-start text-gray-900">
           <Typography variant={TYPOGRAPHY.H6}>Transactions</Typography>

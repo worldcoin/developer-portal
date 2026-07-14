@@ -18,7 +18,7 @@ export const SignInWithWorldIdPage = async (
 
   return (
     <div className="size-full py-5">
-      <div className="grid grid-cols-1 items-center justify-center justify-items-center gap-x-7 gap-y-6 rounded-3xl border p-8 md:grid-cols-auto/1fr/auto md:justify-items-start md:border-none md:px-0">
+      <div className="md:grid-cols-auto/1fr/auto grid grid-cols-1 items-center justify-center justify-items-center gap-x-7 gap-y-6 rounded-3xl border p-8 md:justify-items-start md:border-none md:px-0">
         <Image
           src="/passport.png"
           alt="passport"
@@ -75,7 +75,7 @@ export const SignInWithWorldIdPage = async (
         target="_blank"
         className="block w-full"
       >
-        <div className="mb-8 mt-6 flex w-full items-center gap-3 rounded-xl border-2 border-orange-300 bg-orange-50 px-6 py-4 shadow-sm transition-all hover:bg-orange-100 hover:shadow-md">
+        <div className="mt-6 mb-8 flex w-full items-center gap-3 rounded-xl border-2 border-orange-300 bg-orange-50 px-6 py-4 shadow-xs transition-all hover:bg-orange-100 hover:shadow-md">
           <WarningErrorIcon className="h-full w-12 shrink-0 text-orange-600" />
           <div className="grow">
             <div className="text-base text-orange-800">

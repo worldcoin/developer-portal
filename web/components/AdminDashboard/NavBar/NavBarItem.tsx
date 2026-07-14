@@ -36,7 +36,7 @@ export const NavBarItem = ({
       title={isCollapsed ? label : undefined}
       className={clsx(
         // Base (mobile): icon stacked above label, centered tab
-        "grid min-w-16 cursor-pointer items-center justify-items-center gap-y-1 rounded-12 px-3 py-2 outline-none",
+        "grid min-w-16 cursor-pointer items-center justify-items-center gap-y-1 rounded-12 px-3 py-2 outline-hidden",
         "transition-[grid-template-columns,gap,background-color,color] motion-reduce:transition-none",
         "focus-visible:ring-2 focus-visible:ring-blue-500",
         isActive
@@ -50,7 +50,7 @@ export const NavBarItem = ({
         {
           "lg:min-w-48 lg:grid-cols-auto/1fr lg:gap-x-2.5": !isCollapsed,
           "3xl:min-w-60 3xl:gap-x-3": !isCollapsed,
-          "4xl:min-w-[21rem] 4xl:gap-x-4": !isCollapsed,
+          "4xl:min-w-84 4xl:gap-x-4": !isCollapsed,
           "lg:min-w-0 lg:grid-cols-[auto_0fr] lg:gap-x-0": isCollapsed,
         },
       )}
@@ -61,7 +61,7 @@ export const NavBarItem = ({
       />
       <span
         className={clsx(
-          "min-w-0 truncate text-11 font-medium leading-none",
+          "min-w-0 truncate text-11 leading-none font-medium",
           "lg:text-14",
           "3xl:text-18",
           "4xl:text-24",

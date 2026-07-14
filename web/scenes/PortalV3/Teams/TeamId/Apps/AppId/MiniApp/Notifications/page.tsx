@@ -253,7 +253,7 @@ export const NotificationsPage = () => {
         <div className="flex items-center justify-between gap-x-5">
           <Typography
             as="h1"
-            className="font-world text-[26px] font-semibold leading-[120%] tracking-[-0.01em] text-[#191C20]"
+            className="font-world text-[26px] leading-[120%] font-semibold tracking-[-0.01em] text-[#191C20]"
           >
             Notifications
           </Typography>
@@ -276,7 +276,7 @@ export const NotificationsPage = () => {
             <div className="flex items-center justify-between gap-x-5">
               <Typography
                 as="h2"
-                className="font-world text-[17px] font-medium leading-[120%] text-grey-900"
+                className="font-world text-[17px] leading-[120%] font-medium text-grey-900"
               >
                 Wallet addresses
               </Typography>
@@ -330,7 +330,7 @@ export const NotificationsPage = () => {
                 })}
                 rows={4}
                 placeholder="Enter wallet addresses separated by commas"
-                className="h-[120px] resize-none rounded-[10px] border-0 bg-grey-50 p-4 font-world text-[15px] leading-[130%] text-grey-900 placeholder:text-grey-500 focus:outline-none focus:ring-0"
+                className="h-[120px] resize-none rounded-[10px] border-0 bg-grey-50 p-4 font-world text-[15px] leading-[130%] text-grey-900 placeholder:text-grey-500 focus:ring-0 focus:outline-hidden"
                 aria-invalid={errors.walletAddresses ? "true" : "false"}
               />
 
@@ -356,7 +356,7 @@ export const NotificationsPage = () => {
               })}
               maxLength={30}
               placeholder="Notification title"
-              className="h-14 rounded-[10px] border-0 bg-grey-50 px-4 py-3 font-world text-[15px] leading-[130%] text-grey-900 placeholder:text-grey-500 focus:outline-none focus:ring-0"
+              className="h-14 rounded-[10px] border-0 bg-grey-50 px-4 py-3 font-world text-[15px] leading-[130%] text-grey-900 placeholder:text-grey-500 focus:ring-0 focus:outline-hidden"
               aria-invalid={errors.title ? "true" : "false"}
             />
             <p className="px-2 font-world text-xs leading-[130%] text-grey-500">
@@ -381,7 +381,7 @@ export const NotificationsPage = () => {
               maxLength={200}
               rows={1}
               placeholder="Notification message"
-              className="h-14 resize-none rounded-[10px] border-0 bg-grey-50 px-4 py-3 font-world text-[15px] leading-[130%] text-grey-900 placeholder:text-grey-500 focus:outline-none focus:ring-0"
+              className="h-14 resize-none rounded-[10px] border-0 bg-grey-50 px-4 py-3 font-world text-[15px] leading-[130%] text-grey-900 placeholder:text-grey-500 focus:ring-0 focus:outline-hidden"
               aria-invalid={errors.message ? "true" : "false"}
             />
             <p className="px-2 font-world text-xs leading-[130%] text-grey-500">
@@ -400,7 +400,7 @@ export const NotificationsPage = () => {
                 required: "Mini App Path is required",
               })}
               placeholder="Mini App Path"
-              className="h-14 rounded-[10px] border-0 bg-grey-50 px-4 py-3 font-world text-[15px] leading-[130%] text-grey-900 placeholder:text-grey-500 focus:outline-none focus:ring-0"
+              className="h-14 rounded-[10px] border-0 bg-grey-50 px-4 py-3 font-world text-[15px] leading-[130%] text-grey-900 placeholder:text-grey-500 focus:ring-0 focus:outline-hidden"
               aria-invalid={errors.miniAppPath ? "true" : "false"}
             />
             <p className="px-2 font-world text-xs leading-[130%] text-grey-500">
@@ -420,7 +420,7 @@ export const NotificationsPage = () => {
                 required: "API Key is required",
               })}
               placeholder="API Key"
-              className="h-14 rounded-[10px] border-0 bg-grey-50 px-4 py-3 font-world text-[15px] leading-[130%] text-grey-900 placeholder:text-grey-500 focus:outline-none focus:ring-0"
+              className="h-14 rounded-[10px] border-0 bg-grey-50 px-4 py-3 font-world text-[15px] leading-[130%] text-grey-900 placeholder:text-grey-500 focus:ring-0 focus:outline-hidden"
               aria-invalid={errors.apiKey ? "true" : "false"}
             />
             <p className="px-2 font-world text-xs leading-[130%] text-grey-500">

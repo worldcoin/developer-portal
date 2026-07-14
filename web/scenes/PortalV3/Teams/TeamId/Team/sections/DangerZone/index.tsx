@@ -27,7 +27,7 @@ export const TeamDangerZone = (props: {
           <Section.Header.Title>Danger zone</Section.Header.Title>
         </Section.Header>
 
-        <div className="grid justify-items-start gap-y-8 max-md:pb-8 md:max-w-[36.25rem]">
+        <div className="grid justify-items-start gap-y-8 max-md:pb-8 md:max-w-145">
           <p className={!canWrite ? "text-grey-400" : "text-grey-500"}>
             This will immediately and permanently delete the team{" "}
             <strong

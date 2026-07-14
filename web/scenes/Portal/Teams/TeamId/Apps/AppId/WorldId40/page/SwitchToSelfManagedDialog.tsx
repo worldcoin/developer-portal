@@ -207,13 +207,13 @@ export const SwitchToSelfManagedDialog = (props: Props) => {
                   }
                   onFocus={() => setIsFocused(true)}
                   onBlur={() => setIsFocused(false)}
-                  className="w-full bg-transparent font-gta text-[15px] leading-[130%] text-grey-900 placeholder:text-grey-500 placeholder:opacity-60 focus:outline-none"
+                  className="w-full bg-transparent font-gta text-[15px] leading-[130%] text-grey-900 placeholder:text-grey-500 placeholder:opacity-60 focus:outline-hidden"
                 />
               </div>
               {errors.manager_address && (
                 <Typography
                   variant={TYPOGRAPHY.B4}
-                  className="absolute left-0 top-full pt-2 text-system-error-500"
+                  className="absolute top-full left-0 pt-2 text-system-error-500"
                 >
                   {errors.manager_address.message}
                 </Typography>

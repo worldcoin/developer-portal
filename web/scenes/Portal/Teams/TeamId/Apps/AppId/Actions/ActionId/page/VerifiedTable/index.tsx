@@ -127,7 +127,7 @@ export const VerifiedTable = (props: {
                 .join(" "),
             }}
           >
-            <div className="text-left text-xs font-[400] text-grey-400 max-md:flex max-md:justify-between md:contents md:[&>*]:border-b md:[&>*]:border-grey-100">
+            <div className="text-left text-xs font-normal text-grey-400 max-md:flex max-md:justify-between md:contents md:*:border-b md:*:border-grey-100">
               {columns.map((column) => (
                 <div
                   key={column}

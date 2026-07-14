@@ -286,7 +286,7 @@ export const CreateAppDialogV4 = ({
   );
 
   return (
-    <Dialog open={props.open} onClose={onClose} className="z-50 ">
+    <Dialog open={props.open} onClose={onClose} className="z-50">
       <DialogPanel
         className={clsx("fixed inset-0 overflow-y-scroll p-0", props.className)}
       >

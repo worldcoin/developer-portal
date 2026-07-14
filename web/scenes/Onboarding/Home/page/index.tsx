@@ -276,12 +276,12 @@ export const HomePage = async () => {
   const networkStats = await getNetworkStats();
 
   return (
-    <div className="min-h-full bg-[#f9f9f8] font-world font-[325] text-[#181818]">
+    <div className="min-h-full bg-[#f9f9f8] font-world font-[325] text-portal-text">
       <section className={CONTAINER_CLASS}>
-        <div className="grid items-center gap-12 pb-[160px] pt-20 md:pt-16 lg:grid-cols-[minmax(0,626px)_minmax(0,626px)] lg:justify-between lg:gap-8 lg:pb-[100px] lg:pt-[102px]">
+        <div className="grid items-center gap-12 pt-20 pb-[160px] md:pt-16 lg:grid-cols-[minmax(0,626px)_minmax(0,626px)] lg:justify-between lg:gap-8 lg:pt-[102px] lg:pb-[100px]">
           <div className="flex max-w-[626px] flex-col items-start gap-10 lg:gap-16">
             <div className="flex flex-col gap-4">
-              <h1 className="text-[clamp(44px,5.2vw,80px)] font-[500] leading-[1.1] tracking-[-0.02em] lg:text-[80px] lg:tracking-[-1.6px]">
+              <h1 className="text-[clamp(44px,5.2vw,80px)] leading-[1.1] font-medium tracking-[-0.02em] lg:text-[80px] lg:tracking-[-1.6px]">
                 A new standard
                 <br />
                 of identity
@@ -291,7 +291,7 @@ export const HomePage = async () => {
                   vs the title's heavier anchor) so the hero hierarchy reads —
                   otherwise both inherit the wrapper's font-[] and look
                   equally heavy. Confirm exact weights against Figma. */}
-              <p className="max-w-[607px] text-[clamp(24px,2.2vw,32px)] font-[300] leading-[1.3] tracking-[-0.02em] lg:text-[32px] lg:tracking-[-0.64px]">
+              <p className="max-w-[607px] text-[clamp(24px,2.2vw,32px)] leading-[1.3] font-light tracking-[-0.02em] lg:text-[32px] lg:tracking-[-0.64px]">
                 World gives developers the tools to build apps, agents, and
                 digital experiences that can verify real people privately and
                 securely.
@@ -300,7 +300,7 @@ export const HomePage = async () => {
 
             <div className="flex w-full flex-col gap-1 sm:w-auto sm:flex-row sm:flex-wrap sm:items-center sm:gap-4">
               <a
-                className="group inline-flex items-center justify-center gap-2 rounded-full bg-[#181818] px-8 py-4 text-[22px] leading-[1.4] text-[#f9f9f8] transition-colors hover:bg-black"
+                className="group inline-flex items-center justify-center gap-2 rounded-full bg-portal-text px-8 py-4 text-[22px] leading-[1.4] text-[#f9f9f8] transition-colors hover:bg-black"
                 href={urls.api.authLogin()}
               >
                 Go to console
@@ -310,7 +310,7 @@ export const HomePage = async () => {
               </a>
 
               <a
-                className="group inline-flex items-center justify-center gap-2 rounded-full border border-[#181818] px-8 py-4 text-[22px] leading-[1.4] text-[#181818] transition-colors hover:bg-[#181818]/5"
+                className="group inline-flex items-center justify-center gap-2 rounded-full border border-portal-text px-8 py-4 text-[22px] leading-[1.4] text-portal-text transition-colors hover:bg-portal-text/5"
                 href="https://docs.world.org"
                 rel="noopener noreferrer"
                 target="_blank"
@@ -323,7 +323,7 @@ export const HomePage = async () => {
             </div>
           </div>
 
-          <div className="relative aspect-[626/700] w-full overflow-hidden rounded-2xl bg-[#f9f9f8] lg:h-[700px] lg:w-[626px]">
+          <div className="relative aspect-626/700 w-full overflow-hidden rounded-2xl bg-[#f9f9f8] lg:h-[700px] lg:w-[626px]">
             <BasePixelStrip />
           </div>
         </div>

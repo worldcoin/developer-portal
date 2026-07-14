@@ -66,7 +66,7 @@ export const NumberedSection = ({
         </Typography>
       </div>
       {banner && <div className="px-6 pt-4">{banner}</div>}
-      <div className="px-6 pb-6 pt-5">{children}</div>
+      <div className="px-6 pt-5 pb-6">{children}</div>
     </section>
   );
 };

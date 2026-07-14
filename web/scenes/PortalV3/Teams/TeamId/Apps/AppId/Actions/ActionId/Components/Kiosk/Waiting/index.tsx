@@ -53,7 +53,7 @@ export const Waiting = memo(function Waiting(props: {
         {qrData && (
           <QRCode
             size={qrCodeSize}
-            className="h-auto w-full max-w-full "
+            className="h-auto w-full max-w-full"
             value={qrData}
           />
         )}
@@ -67,7 +67,7 @@ export const Waiting = memo(function Waiting(props: {
           className="flex flex-row items-center text-14 font-medium"
         >
           <CopyIcon
-            className={clsx("mr-2 font-[500]", copied && "text-grey-900")}
+            className={clsx("mr-2 font-medium", copied && "text-grey-900")}
           />
           <Typography variant={TYPOGRAPHY.M3}>
             {copied ? "Copied!" : "Copy QR code"}

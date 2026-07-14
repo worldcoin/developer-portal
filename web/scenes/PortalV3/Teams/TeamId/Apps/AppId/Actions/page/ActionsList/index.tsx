@@ -63,12 +63,12 @@ export const ActionsList = (props: {
         </Section.Header.Search>
 
         {!isReadOnly && (
-          <Section.Header.Button className="max-md:!bottom-[4.25rem] md:row-start-1 md:items-start">
+          <Section.Header.Button className="max-md:bottom-17! md:row-start-1 md:items-start">
             {!keyword && items.loading ? (
-              <Skeleton className="h-12 w-[12rem] rounded-xl" />
+              <Skeleton className="h-12 w-48 rounded-xl" />
             ) : (
               <DecoratedButton
-                className="h-12 min-w-[12rem]"
+                className="h-12 min-w-48"
                 href="?createAction=true"
               >
                 <Typography

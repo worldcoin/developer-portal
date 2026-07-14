@@ -160,7 +160,7 @@ export const AppStoreForm = ({
           }}
         />
 
-        <div className="fixed bottom-[5.25rem] right-6 z-10 flex items-center gap-x-3 md:bottom-6">
+        <div className="fixed right-6 bottom-21 z-10 flex items-center gap-x-3 md:bottom-6">
           <SaveStatusIndicator />
           <SaveButton
             isSubmitting={displayStatus.state === "saving"}

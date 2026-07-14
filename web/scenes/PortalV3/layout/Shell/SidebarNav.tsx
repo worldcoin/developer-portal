@@ -151,21 +151,21 @@ export const SidebarNav = () => {
                   label="Permissions"
                   href={urls.miniAppPermissions(ids)}
                   active={miniAppPermissionsActive}
-                  className="h-9 rounded-8 pl-3 pr-3 text-12"
+                  className="h-9 rounded-8 pr-3 pl-3 text-12"
                   icon={<LockIcon className="size-3.5" />}
                 />
                 <NavItem
                   label="Transactions"
                   href={urls.miniAppTransactions(ids)}
                   active={miniAppTransactionsActive}
-                  className="h-9 rounded-8 pl-3 pr-3 text-12"
+                  className="h-9 rounded-8 pr-3 pl-3 text-12"
                   icon={<WalletIcon className="size-3.5" />}
                 />
                 <NavItem
                   label="Notifications"
                   href={urls.miniAppNotifications(ids)}
                   active={miniAppNotificationsActive}
-                  className="h-9 rounded-8 pl-3 pr-3 text-12"
+                  className="h-9 rounded-8 pr-3 pl-3 text-12"
                   icon={<SendIcon className="size-3.5" />}
                 />
               </div>

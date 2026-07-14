@@ -112,7 +112,7 @@ export const TransferTeamDialog = (props: TransferTeamDialogProps) => {
     <Dialog {...otherProps}>
       <DialogOverlay />
 
-      <DialogPanel className="grid gap-y-8 md:max-w-[32rem]">
+      <DialogPanel className="grid gap-y-8 md:max-w-lg">
         <CircleIconContainer variant="info">
           <ExchangeIcon />
         </CircleIconContainer>
@@ -163,7 +163,7 @@ export const TransferTeamDialog = (props: TransferTeamDialogProps) => {
                       )}
                     </Typography>
 
-                    <fieldset className="pointer-events-none absolute inset-x-0 bottom-0 top-[-12px] rounded-lg border border-grey-200">
+                    <fieldset className="pointer-events-none absolute inset-x-0 top-[-12px] bottom-0 rounded-lg border border-grey-200">
                       <legend className="ml-4 px-0.5 text-grey-400">
                         <Typography variant={TYPOGRAPHY.R4}>User</Typography>
                       </legend>

@@ -207,7 +207,7 @@ export const SelectMultiple = <T extends FieldValues>(
             onChange={(e) => setSearch(e.target.value)}
             className={twMerge(
               clsx(
-                "w-full bg-transparent py-0 pl-0 text-grey-900 outline-none placeholder:text-grey-500",
+                "w-full bg-transparent py-0 pl-0 text-grey-900 outline-hidden placeholder:text-grey-500",
               ),
             )}
             disabled={disabled}
@@ -299,10 +299,10 @@ export const SelectMultiple = <T extends FieldValues>(
                 {inputVisibleItems.map((item, index) => (
                   <div
                     key={`select-multiple-option-${item?.label}-${index}`}
-                    className="flex h-8 items-center gap-2 rounded-full border border-grey-100 bg-grey-100 pl-1.5 pr-3"
+                    className="flex h-8 items-center gap-2 rounded-full border border-grey-100 bg-grey-100 pr-3 pl-1.5"
                   >
                     {props.renderBadgeIcon?.(item)}
-                    <span className="select-none text-[13px] font-semibold text-grey-900">
+                    <span className="text-[13px] font-semibold text-grey-900 select-none">
                       {item?.label}
                     </span>
 
@@ -329,7 +329,7 @@ export const SelectMultiple = <T extends FieldValues>(
               {restSelectedCount > 0 && (
                 <Typography
                   variant={TYPOGRAPHY.R5}
-                  className="select-none text-grey-400"
+                  className="text-grey-400 select-none"
                 >
                   +{restSelectedCount} more
                 </Typography>
@@ -357,7 +357,7 @@ const Item = (props: {
     <label
       key={`select-multiple-${item.value}-${index}`}
       className={clsx(
-        "grid cursor-pointer items-center gap-x-2 py-2 pl-2 pr-5 hover:bg-grey-50",
+        "grid cursor-pointer items-center gap-x-2 py-2 pr-5 pl-2 hover:bg-grey-50",
         {
           "grid-cols-1fr/auto": !icon,
           "grid-cols-auto/1fr/auto": icon,
@@ -389,7 +389,7 @@ const Item = (props: {
         />
 
         <div className="invisible absolute inset-0 flex cursor-pointer items-center justify-center rounded-full bg-grey-900 opacity-0 transition-[visibility,opacity] peer-checked:visible peer-checked:opacity-100">
-          <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-grey-0/10 to-transparent" />
+          <div className="pointer-events-none absolute inset-0 bg-linear-to-b from-grey-0/10 to-transparent" />
           <CheckIcon size="16" className="text-grey-0" />
         </div>
       </div>

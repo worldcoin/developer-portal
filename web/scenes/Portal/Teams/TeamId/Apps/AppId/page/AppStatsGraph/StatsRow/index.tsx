@@ -69,7 +69,7 @@ const StatItem = ({
 
   return (
     <div className="flex flex-col gap-y-0.5">
-      <span className="font-gta text-xs font-normal leading-4 text-gray-400">
+      <span className="font-gta text-xs leading-4 font-normal text-gray-400">
         {label}
       </span>
 
@@ -89,7 +89,7 @@ const StatItem = ({
               <ChangeArrowIcon direction={getChangeDirection(changePercent)} />
               <span
                 className={clsx(
-                  "font-gta text-xs font-medium leading-4",
+                  "font-gta text-xs leading-4 font-medium",
                   getChangeColor(changePercent),
                 )}
               >

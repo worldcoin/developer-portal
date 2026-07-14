@@ -37,7 +37,7 @@ export const ClearConfirmationModal = ({
   return (
     <Dialog open={open} onClose={() => setOpen(false)}>
       <DialogOverlay />
-      <DialogPanel className="gap-y-5 md:max-w-[36rem]">
+      <DialogPanel className="gap-y-5 md:max-w-xl">
         <ModalIcon variant="error">
           <TrashIcon className="size-6 text-white" />
         </ModalIcon>

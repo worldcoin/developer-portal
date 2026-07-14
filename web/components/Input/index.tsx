@@ -33,7 +33,7 @@ export const Input = memo(function Input(props: InputInterface) {
   } = props;
 
   const parentClassNames = clsx(
-    "rounded-lg border-[1px] bg-grey-0 px-2 text-base text-grey-700 md:text-sm",
+    "rounded-lg border bg-grey-0 px-2 text-base text-grey-700 md:text-sm",
 
     {
       "border-grey-200 focus-within:border-blue-500 focus-within:hover:border-blue-500 hover:border-grey-700 ":
@@ -48,11 +48,11 @@ export const Input = memo(function Input(props: InputInterface) {
     },
   );
   const inputClassNames = clsx(
-    "peer h-full min-w-0 bg-transparent p-2 transition-colors placeholder:transition-colors focus:outline-none focus:ring-0",
+    "peer h-full min-w-0 bg-transparent p-2 transition-colors placeholder:transition-colors focus:outline-hidden focus:ring-0",
 
     {
       "placeholder:text-grey-400": !errors,
-      "group-hover:placeholder:text-grey-700 group-hover:focus:placeholder:text-grey-400 ":
+      "group-hover:placeholder:text-grey-700 focus:group-hover:placeholder:text-grey-400 ":
         !disabled,
     },
   );
@@ -72,7 +72,7 @@ export const Input = memo(function Input(props: InputInterface) {
       <fieldset
         className={twMerge(
           clsx(
-            "group grid grid-cols-auto/1fr/auto pb-2 transition-colors",
+            "group grid-cols-auto/1fr/auto grid pb-2 transition-colors",
             { "py-2": !label },
             parentClassNames,
           ),
@@ -97,7 +97,7 @@ export const Input = memo(function Input(props: InputInterface) {
         {label && (
           <legend
             className={twMerge(
-              clsx("select-none whitespace-nowrap", labelClassNames),
+              clsx("whitespace-nowrap select-none", labelClassNames),
             )}
           >
             {label}{" "}

@@ -92,7 +92,7 @@ export const ActionsHeader = memo(function ActionsHeader(
                 />
                 <Typography
                   variant={TYPOGRAPHY.R5}
-                  className="capitalize text-grey-700"
+                  className="text-grey-700 capitalize"
                 >
                   {environment}
                 </Typography>
