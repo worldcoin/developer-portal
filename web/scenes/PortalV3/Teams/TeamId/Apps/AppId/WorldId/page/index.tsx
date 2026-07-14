@@ -1,0 +1,246 @@
+"use client";
+
+import { Button } from "@/components/Button";
+import { ErrorPage } from "@/components/ErrorPage";
+import { AlertIcon } from "@/components/Icons/AlertIcon";
+import { SizingWrapper } from "@/components/SizingWrapper";
+import { urls } from "@/lib/urls";
+import { BanMessageDialog } from "@/scenes/PortalV3/Teams/TeamId/Apps/common/BanMessageDialog";
+import { banMessageDialogOpenedAtom } from "@/scenes/common/Teams/TeamId/Apps/common/BanMessageDialog/atoms";
+import { useGetWorldIdOverviewQuery } from "@/scenes/common/Teams/TeamId/Apps/AppId/WorldId/page/graphql/client/get-world-id-overview.generated";
+import { useAtom } from "jotai";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { type ReactNode, useCallback, useEffect, useState } from "react";
+import Skeleton from "react-loading-skeleton";
+import { ActionsGrid } from "./ActionsGrid";
+import { HeroCard } from "./HeroCard";
+import { RegisterRpEmptyState } from "./RegisterRpEmptyState";
+import { getSetupIntent } from "./setup-intent";
+import { WorldId40Pane, type RpStatus } from "./WorldId40Pane";
+import { WorldIdTab, WorldIdTabs } from "./WorldIdTabs";
+
+const BanBanner = () => {
+  const [, setIsOpened] = useAtom(banMessageDialogOpenedAtom);
+
+  return (
+    <>
+      <div className="flex items-center gap-3 rounded-[10px] border border-system-error-200 bg-system-error-50 px-5 py-3 text-system-error-600">
+        <AlertIcon className="shrink-0 text-system-error-600" />
+        <span className="min-w-0 flex-1 font-world text-13 leading-[1.3]">
+          Your app was banned, users cannot access it anymore
+        </span>
+
+        <Button
+          type="button"
+          onClick={() => setIsOpened(true)}
+          className="shrink-0 font-world text-13 font-medium text-system-error-600 transition-colors hover:text-system-error-700"
+        >
+          More Information
+        </Button>
+      </div>
+
+      <BanMessageDialog />
+    </>
+  );
+};
+
+export const WorldIdPage = (props: {
+  params: Record<string, string>;
+  searchParams: Record<string, string>;
+  canManageWorldId: boolean;
+}) => {
+  const teamId = props.params.teamId ?? "";
+  const appId = props.params.appId ?? "";
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const enableWorldId4Requested = searchParams.get("enableWorldId4") === "true";
+  const createActionRequested = searchParams.get("createAction") === "true";
+
+  const consumeSearchParams = useCallback(
+    (...names: string[]) => {
+      if (!names.some((name) => searchParams.has(name))) return;
+
+      const nextSearchParams = new URLSearchParams(searchParams);
+      for (const name of names) nextSearchParams.delete(name);
+      const query = nextSearchParams.toString();
+      router.replace(query ? `${pathname}?${query}` : pathname, {
+        scroll: false,
+      });
+    },
+    [pathname, router, searchParams],
+  );
+
+  const [tab, setTab] = useState<WorldIdTab>(
+    props.searchParams.tab === "world-id-4-0" || enableWorldId4Requested
+      ? "world-id-4-0"
+      : "actions",
+  );
+  const [createAfterSetup, setCreateAfterSetup] = useState(
+    createActionRequested && props.canManageWorldId,
+  );
+  const [search, setSearch] = useState("");
+
+  const { data, loading, error, refetch } = useGetWorldIdOverviewQuery({
+    variables: { app_id: appId },
+    skip: !appId,
+  });
+
+  const app = data?.app?.[0];
+  const rp = app?.rp_registration?.[0];
+  const hasResolvedApp = Boolean(app);
+  const hasRpRegistration = Boolean(rp);
+  const hasActiveRp = rp?.status === "registered";
+  const { openSetup, openAction, consumeEnable, consumeCreate } =
+    getSetupIntent({
+      enableRequested: enableWorldId4Requested,
+      createRequested: createActionRequested,
+      hasRpRegistration,
+      hasActiveRp,
+      isStaging: Boolean(app?.is_staging),
+      canManageWorldId: props.canManageWorldId,
+    });
+
+  useEffect(() => {
+    if (loading || !hasResolvedApp || !createAfterSetup) return;
+    setTab(hasActiveRp ? "actions" : "world-id-4-0");
+  }, [createAfterSetup, hasActiveRp, hasResolvedApp, loading]);
+
+  useEffect(() => {
+    if (consumeEnable) {
+      consumeSearchParams("enableWorldId4");
+    }
+  }, [consumeEnable, consumeSearchParams]);
+
+  useEffect(() => {
+    if (consumeCreate) {
+      setCreateAfterSetup(false);
+      consumeSearchParams("createAction");
+    }
+  }, [consumeCreate, consumeSearchParams]);
+
+  // Apollo exposes refetch failures through query error state.
+  const refetchOverview = () => void refetch().catch(() => {});
+
+  if (loading) {
+    return (
+      <SizingWrapper className="flex flex-col gap-8 py-8">
+        <Skeleton height={76} className="rounded-[10px]" />
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <Skeleton height={144} count={3} className="rounded-[10px]" />
+        </div>
+      </SizingWrapper>
+    );
+  }
+
+  // Preserve cached content when a refetch fails.
+  if (error && !data) {
+    return (
+      <SizingWrapper className="py-8">
+        <ErrorPage statusCode={500} title="Failed to load World ID" />
+      </SizingWrapper>
+    );
+  }
+
+  if (!app) {
+    return (
+      <SizingWrapper className="py-8">
+        <ErrorPage statusCode={404} title="App not found" />
+      </SizingWrapper>
+    );
+  }
+
+  const hasLegacyActions = (data?.action?.length ?? 0) > 0;
+  const legacyActionsHref = hasLegacyActions
+    ? urls.actions({ team_id: teamId, app_id: appId })
+    : undefined;
+
+  const actionItems = (data?.action_v4 ?? []).map((action) => ({
+    id: action.id,
+    action: action.action,
+    description: action.description,
+  }));
+
+  let tabContent: ReactNode;
+  if (tab === "actions") {
+    tabContent = (
+      <ActionsGrid
+        actions={actionItems}
+        teamId={teamId}
+        appId={appId}
+        search={search}
+        canCreate={props.canManageWorldId}
+        initialDialogOpen={openAction || (createAfterSetup && hasActiveRp)}
+        onCreateActionRequested={
+          hasActiveRp
+            ? undefined
+            : () => {
+                setCreateAfterSetup(true);
+                setTab("world-id-4-0");
+              }
+        }
+        onCreateActionConsumed={() => {
+          setCreateAfterSetup(false);
+          consumeSearchParams("createAction");
+        }}
+        onActionsChanged={refetchOverview}
+      />
+    );
+  } else if (rp) {
+    tabContent = (
+      <WorldId40Pane
+        appId={appId}
+        rpId={rp.rp_id}
+        initialStatus={(rp.status as RpStatus) ?? "pending"}
+        initialStagingStatus={
+          rp.staging_status == null ? null : (rp.staging_status as RpStatus)
+        }
+        mode={rp.mode as string}
+        createdAt={rp.created_at}
+        canManageWorldId={props.canManageWorldId}
+        onRpChanged={refetchOverview}
+      />
+    );
+  } else {
+    tabContent = (
+      <RegisterRpEmptyState
+        appId={appId}
+        initialOpen={openSetup}
+        isStaging={app.is_staging}
+        canManageWorldId={props.canManageWorldId}
+        onRegistered={refetchOverview}
+        onSetupClosed={(completed) => {
+          if (completed) {
+            consumeSearchParams("enableWorldId4");
+          } else {
+            setCreateAfterSetup(false);
+            consumeSearchParams("enableWorldId4", "createAction");
+          }
+        }}
+        legacyActionsHref={legacyActionsHref}
+      />
+    );
+  }
+
+  return (
+    <SizingWrapper className="flex flex-col gap-8 py-8">
+      {app.is_banned ? <BanBanner /> : null}
+
+      <HeroCard
+        name={app.app_metadata?.[0]?.name ?? "Untitled app"}
+        appId={appId}
+      />
+
+      <div className="flex flex-col gap-6">
+        <WorldIdTabs
+          tab={tab}
+          onTabChange={setTab}
+          legacyActionsHref={legacyActionsHref}
+          search={search}
+          onSearchChange={setSearch}
+        />
+        {tabContent}
+      </div>
+    </SizingWrapper>
+  );
+};

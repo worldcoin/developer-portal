@@ -1,6 +1,7 @@
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import { getIsUserAllowedToUpdateApp } from "@/lib/permissions";
 import { getSdk } from "@/scenes/common/Teams/TeamId/Apps/AppId/WorldId40/page/graphql/server/fetch-rp-registration.generated";
 import { WorldId40Content } from "./WorldId40Content";
 
@@ -34,6 +35,8 @@ export const WorldId40Page = async ({ params }: Props) => {
     );
   }
 
+  const canManageWorldId = await getIsUserAllowedToUpdateApp(appId);
+
   return (
     <WorldId40Content
       appId={appId}
@@ -51,8 +54,8 @@ export const WorldId40Page = async ({ params }: Props) => {
           | undefined) ?? null
       }
       mode={rpData.mode as string}
-      signerAddress={rpData.signer_address ?? null}
       createdAt={rpData.created_at}
+      canManageWorldId={canManageWorldId}
     />
   );
 };
