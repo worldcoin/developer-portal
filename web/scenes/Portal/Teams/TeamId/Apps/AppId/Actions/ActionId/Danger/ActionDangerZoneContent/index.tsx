@@ -76,7 +76,7 @@ export const ActionDangerZoneContent = (props: {
       <Dialog open={openDeleteModal} onClose={() => setOpenDeleteModal(false)}>
         <DialogOverlay />
 
-        <DialogPanel className="grid gap-y-6 md:max-w-[26rem]">
+        <DialogPanel className="grid gap-y-6 md:max-w-104">
           <CircleIconContainer variant={"error"}>
             <AlertIcon />
           </CircleIconContainer>
@@ -139,7 +139,7 @@ export const ActionDangerZoneContent = (props: {
             variant="danger"
             onClick={() => setOpenDeleteModal(true)}
             disabled={deleteActionLoading || !isEnoughPermissions}
-            className="w-40 bg-system-error-100 "
+            className="w-40 bg-system-error-100"
           >
             <Typography variant={TYPOGRAPHY.R3}>Delete action</Typography>
           </DecoratedButton>

@@ -92,7 +92,7 @@ const VersionBanner = ({
 
   if (viewMode === "verified" && hasVerified) {
     return (
-      <div className="flex flex-col gap-4 border-b border-grey-100 pb-5 pt-8 sm:flex-row sm:items-center">
+      <div className="flex flex-col gap-4 border-b border-grey-100 pt-8 pb-5 sm:flex-row sm:items-center">
         <div className="flex min-w-0 flex-1 items-center gap-3">
           <Icon name="check-circle" className="size-5 shrink-0" />
           <Typography variant={TYPOGRAPHY.M3} className="whitespace-nowrap">
@@ -137,7 +137,7 @@ const VersionBanner = ({
   // the only unlock path. Rejections keep their own RejectionBanner.
   if (draft?.verification_status === "awaiting_review") {
     return (
-      <div className="flex flex-col gap-4 border-b border-grey-100 pb-5 pt-8 sm:flex-row sm:items-center">
+      <div className="flex flex-col gap-4 border-b border-grey-100 pt-8 pb-5 sm:flex-row sm:items-center">
         <div className="flex min-w-0 flex-1 items-center gap-3">
           <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-additional-blue-100">
             <Icon name="clock" className="size-4" />
@@ -174,7 +174,7 @@ const VersionBanner = ({
   if (!hasVerified || draft?.verification_status !== "unverified") return null;
 
   return (
-    <div className="flex flex-col gap-4 border-b border-grey-100 pb-5 pt-8 sm:flex-row sm:items-center">
+    <div className="flex flex-col gap-4 border-b border-grey-100 pt-8 pb-5 sm:flex-row sm:items-center">
       <div className="flex min-w-0 flex-1 items-center gap-3">
         <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-blue-100">
           <Icon name="edit-pencil" className="size-4" />
@@ -234,7 +234,7 @@ const ConfigurationContent = ({
         <VersionBanner app={app} appId={appId} teamId={teamId} />
         <div
           ref={scrollContainerRef}
-          className="grid min-w-0 content-start gap-y-6 pb-28 pt-8 lg:min-h-0 lg:flex-1 lg:overflow-y-auto lg:pb-8 lg:pr-4"
+          className="grid min-w-0 content-start gap-y-6 pt-8 pb-28 lg:min-h-0 lg:flex-1 lg:overflow-y-auto lg:pr-4 lg:pb-8"
         >
           {/* Identity band: app icon beside the reach-mode chooser, one row on
               lg+ so the lone icon circle doesn't occupy a full-width box. */}

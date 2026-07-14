@@ -1,18 +1,232 @@
-@import "react-toastify/dist/ReactToastify.css";
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "react-toastify/dist/ReactToastify.css" layer(base);
+@import "tailwindcss";
 
-@layer utilities {
+@theme {
+  --breakpoint-3xl: 1920px;
+  --breakpoint-4xl: 2560px;
+
+  --background-image-gradient-radial: radial-gradient(var(--tw-gradient-stops));
+  --background-image-gradient-conic: conic-gradient(
+    from 180deg at 50% 50%,
+    var(--tw-gradient-stops)
+  );
+
+  --radius-8: 0.5rem;
+  --radius-12: 0.75rem;
+  --radius-16: 1rem;
+  --radius-20: 1.25em;
+  --radius-32: 2em;
+
+  --shadow-button: 0px 1px 2px 0px #191c200f;
+  --shadow-lg: 0px 4px 6px -2px rgba(25, 28, 32, 0.03),
+    0px 12px 16px -4px rgba(25, 28, 32, 0.08);
+  --shadow-qrCode: 0px 16px 20px -8px #e6e9eea3;
+  --shadow-image: 0px 10px 15px 0px #00000010;
+  --shadow-tab: 0px 1px 2px 0px #191c200f, 0px 1px 3px 0px #191c201a;
+  --shadow-portal-card: 0 1px 2px rgba(24, 24, 24, 0.08);
+
+  --color-danger: #f2280d;
+
+  --color-blue-50: #f9f9fe;
+  --color-blue-100: #f0f0fd;
+  --color-blue-150: #dcd9fd;
+  --color-blue-500: #4940e0;
+
+  --color-grey-0: #ffffff;
+  --color-grey-25: #fbfbfc;
+  --color-grey-50: #f9fafb;
+  --color-grey-70: #f5f5f7;
+  --color-grey-100: #f3f4f5;
+  --color-grey-200: #ebecef;
+  --color-grey-300: #d6d9dd;
+  --color-grey-400: #9ba3ae;
+  --color-grey-500: #657080;
+  --color-grey-700: #3c424b;
+  --color-grey-900: #191c20;
+
+  --color-additional-blue-100: #e4f2fe;
+  --color-additional-blue-500: #4292f4;
+  --color-additional-blue-600: #005cff;
+
+  --color-additional-azure-100: #e8f2ff;
+  --color-additional-azure-500: #4572fe;
+
+  --color-additional-purple-100: #f7f1ff;
+  --color-additional-purple-500: #9d50ff;
+
+  --color-additional-green-100: #ebfaec;
+  --color-additional-green-500: #00c313;
+
+  --color-additional-sea-100: #ebfaf9;
+  --color-additional-sea-500: #00c3b6;
+
+  --color-additional-yellow-100: #fffbeb;
+  --color-additional-yellow-500: #ffc700;
+
+  --color-additional-orange-100: #fff3f0;
+  --color-additional-orange-500: #ff6848;
+
+  --color-additional-lightOrange-100: #fff7f0;
+  --color-additional-lightOrange-500: #ffa048;
+
+  --color-additional-pink-100: #fff1f7;
+  --color-additional-pink-500: #ff5096;
+
+  --color-system-error-50: #fff5f3;
+  --color-system-error-100: #fff2f0;
+  --color-system-error-200: #ffe5e2;
+  --color-system-error-300: #ffcbc5;
+  --color-system-error-400: #ff897c;
+  --color-system-error-500: #ff4732;
+  --color-system-error-600: #db2824;
+  --color-system-error-700: #ff5a76;
+  --color-system-error-800: #930f22;
+  --color-system-error-900: #7a0922;
+
+  --color-system-success-50: #e9f8e9;
+  --color-system-success-100: #f5fdf6;
+  --color-system-success-300: #66cc66;
+  --color-system-success-400: #29cc29;
+  --color-system-success-500: #00b800;
+  --color-system-success-600: #008000;
+  --color-system-success-700: #00c313;
+  --color-system-success-800: #004d00;
+  --color-system-success-900: #003700;
+
+  --color-system-warning-50: #fffae5;
+  --color-system-warning-75: #fff6e6;
+  --color-system-warning-100: #fff9ef;
+  --color-system-warning-200: #ffe999;
+  --color-system-warning-300: #ffda66;
+  --color-system-warning-500: #ffb200;
+  --color-system-warning-600: #db9200;
+  --color-system-warning-650: #cc8b00;
+  --color-system-warning-700: #ffb11b;
+  --color-system-warning-800: #935900;
+
+  --color-portal-canvas: #f7f7f7;
+  --color-portal-border: #f1f1f1;
+  --color-portal-heading: #0b1928;
+  --color-portal-text: #181818;
+  --color-portal-muted: #757575;
+  --color-portal-subtle: #9c9c9c;
+  --color-portal-faint: #b8b8b8;
+  --color-portal-ink: #1f1f1f;
+  --color-portal-ink-hover: #333333;
+  --color-portal-accent: #e6f0ff;
+  --color-portal-accent-ring: #b8d4ff;
+  --color-portal-blue: #007cfb;
+  --color-portal-purple: #7d00fe;
+
+  --grid-template-columns-1fr\/auto: 1fr auto;
+  --grid-template-columns-auto\/1fr: auto 1fr;
+  --grid-template-columns-auto\/1fr\/auto: auto 1fr auto;
+
+  --grid-template-rows-1fr\/auto: 1fr auto;
+  --grid-template-rows-auto\/1fr: auto 1fr;
+  --grid-template-rows-auto\/1fr\/auto: auto 1fr auto;
+
+  --text-0: 0;
+  --text-6: calc(6 * 1rem / 16);
+  --text-10: calc(10 * 1rem / 16);
+  --text-11: calc(11 * 1rem / 16);
+  --text-12: calc(12 * 1rem / 16);
+  --text-13: calc(13 * 1rem / 16);
+  --text-14: calc(14 * 1rem / 16);
+  --text-15: calc(15 * 1rem / 16);
+  --text-16: calc(16 * 1rem / 16);
+  --text-17: calc(17 * 1rem / 16);
+  --text-18: calc(18 * 1rem / 16);
+  --text-19: calc(19 * 1rem / 16);
+  --text-20: calc(20 * 1rem / 16);
+  --text-24: calc(24 * 1rem / 16);
+  --text-26: calc(26 * 1rem / 16);
+  --text-30: calc(30 * 1rem / 16);
+  --text-32: calc(32 * 1rem / 16);
+
+  --animate-dropdown-overlay-enter: dropdown-overlay-enter 0.3s ease;
+  --animate-dropdown-content-enter-desktop: dropdown-content-enter-desktop 0.3s
+    ease;
+  --animate-dropdown-content-enter-device: dropdown-content-enter-device 0.3s
+    ease;
+  --animate-fade-in-down: fade-in-down 0.5s ease-out both;
+
+  @keyframes dropdown-overlay-enter {
+    0% {
+      opacity: 0;
+    }
+    100% {
+      opacity: 1;
+    }
+  }
+  @keyframes dropdown-content-enter-desktop {
+    0% {
+      opacity: 0;
+    }
+    100% {
+      opacity: 1;
+    }
+  }
+  @keyframes dropdown-content-enter-device {
+    0% {
+      opacity: 0;
+      transform: translateY(100%);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  @keyframes fade-in-down {
+    0% {
+      opacity: 0;
+      transform: translateY(-12px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}
+
+@theme inline {
+  --font-gta: var(--font-gta-source), ui-sans-serif, system-ui, sans-serif,
+    "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  --font-rubik: var(--font-rubik-source), ui-sans-serif, system-ui, sans-serif,
+    "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  --font-twk: var(--font-twk-source), ui-sans-serif, system-ui, sans-serif,
+    "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  --font-ibm: var(--font-mono-source), monospace;
+  --font-world: var(--font-world-source), ui-sans-serif, system-ui, sans-serif,
+    "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+}
+
+/*
+  The default border color has changed to `currentcolor` in Tailwind CSS v4,
+  so we've added these compatibility styles to make sure everything still
+  looks the same as it did with Tailwind CSS v3.
+
+  If we ever want to remove these styles, we need to add an explicit border
+  color utility to any element that depends on these defaults.
+*/
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentcolor);
+  }
+}
+
+@utility no-scrollbar {
   /* Hide scrollbar for Chrome, Safari and Opera */
-  .no-scrollbar::-webkit-scrollbar {
+  &::-webkit-scrollbar {
     display: none;
   }
   /* Hide scrollbar for IE, Edge and Firefox */
-  .no-scrollbar {
-    -ms-overflow-style: none; /* IE and Edge */
-    scrollbar-width: none; /* Firefox */
-  }
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
 }
 
 /* Begin Toastify overrides */
@@ -61,15 +275,3 @@
 }
 
 /* End Toastify overrides */
-
-@layer utilities {
-  /* Hide scrollbar for Chrome, Safari and Opera */
-  .no-scrollbar::-webkit-scrollbar {
-    display: none;
-  }
-  /* Hide scrollbar for IE, Edge and Firefox */
-  .no-scrollbar {
-    -ms-overflow-style: none; /* IE and Edge */
-    scrollbar-width: none; /* Firefox */
-  }
-}

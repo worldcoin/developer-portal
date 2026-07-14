@@ -23,11 +23,11 @@ export const App = (props: { app: FetchAppsQuery["app"][number] }) => {
   return (
     <Button
       href={urls.app({ team_id: teamId, app_id: app.id })}
-      className="relative grid justify-center justify-items-center gap-y-4 rounded-20 border border-grey-200 px-8 pb-6 pt-10 transition-colors hover:border-blue-500"
+      className="relative grid justify-center justify-items-center gap-y-4 rounded-20 border border-grey-200 px-8 pt-10 pb-6 transition-colors hover:border-blue-500"
     >
       <AppStatus
         status={metadata.verification_status as StatusVariant}
-        className="absolute right-4 top-4 px-2 py-1"
+        className="absolute top-4 right-4 px-2 py-1"
         typography={TYPOGRAPHY.R5}
       />
 

@@ -145,7 +145,7 @@ export const EditRoleDialog = (props: {
     <Dialog open={isOpened} onClose={onClose}>
       <DialogOverlay />
 
-      <DialogPanel className="grid md:max-w-[36rem] md:gap-y-10">
+      <DialogPanel className="grid md:max-w-xl md:gap-y-10">
         <div className="grid justify-items-center gap-y-4">
           <CircleIconContainer variant="info">
             <UserEditIcon />

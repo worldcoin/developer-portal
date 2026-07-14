@@ -22,7 +22,7 @@ export const InitialSteps = (props: {
   return (
     <div
       className={clsx(
-        "grid w-full max-w-[480px] items-center justify-items-center gap-y-6 ",
+        "grid w-full max-w-[480px] items-center justify-items-center gap-y-6",
         props.className,
       )}
     >

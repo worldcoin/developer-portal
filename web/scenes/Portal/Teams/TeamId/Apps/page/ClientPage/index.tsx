@@ -12,7 +12,7 @@ import { useAtom } from "jotai";
 import { Fragment } from "react";
 
 const pathButtonClassName =
-  "flex h-10 w-full items-center justify-center gap-2 rounded-12 border px-4 font-gta text-sm font-medium leading-none shadow-button transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-150 md:h-11";
+  "flex h-10 w-full items-center justify-center gap-2 rounded-12 border px-4 font-gta text-sm font-medium leading-none shadow-button transition-colors focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-blue-150 md:h-11";
 
 const PathStep = (props: {
   index: number;
@@ -81,7 +81,7 @@ export const ClientPage = (props: { teamId: string }) => {
 
                 <Typography
                   variant={TYPOGRAPHY.M5}
-                  className="uppercase tracking-[0.04em] text-grey-500"
+                  className="tracking-[0.04em] text-grey-500 uppercase"
                 >
                   Build manually
                 </Typography>
@@ -117,15 +117,15 @@ export const ClientPage = (props: { teamId: string }) => {
               <Button
                 type="button"
                 onClick={() => setCreateAppDialogOpen(true)}
-                className={`${pathButtonClassName} border-grey-900 bg-grey-900 bg-gradient-to-b from-white/15 to-transparent text-grey-0 hover:bg-grey-700 hover:from-white/20`}
+                className={`${pathButtonClassName} border-grey-900 bg-grey-900 bg-linear-to-b from-white/15 to-transparent text-grey-0 hover:bg-grey-700 hover:from-white/20`}
                 data-testid="button-create-an-app"
               >
                 Start
               </Button>
             </section>
 
-            <section className="relative grid h-full grid-rows-[auto_auto_1fr_auto] gap-4 rounded-2xl border border-blue-150 bg-gradient-to-b from-blue-50 to-additional-purple-100 p-5 shadow-lg md:gap-5 md:p-6">
-              <div className="absolute right-4 top-4 rounded-full border border-blue-150 bg-grey-0 px-2 py-1 text-[10px] font-medium tracking-[0.02em] text-blue-500">
+            <section className="relative grid h-full grid-rows-[auto_auto_1fr_auto] gap-4 rounded-2xl border border-blue-150 bg-linear-to-b from-blue-50 to-additional-purple-100 p-5 shadow-lg md:gap-5 md:p-6">
+              <div className="absolute top-4 right-4 rounded-full border border-blue-150 bg-grey-0 px-2 py-1 text-[10px] font-medium tracking-[0.02em] text-blue-500">
                 NEW
               </div>
 
@@ -136,7 +136,7 @@ export const ClientPage = (props: { teamId: string }) => {
 
                 <Typography
                   variant={TYPOGRAPHY.M5}
-                  className="uppercase tracking-[0.04em] text-blue-500"
+                  className="tracking-[0.04em] text-blue-500 uppercase"
                 >
                   Build with agents
                 </Typography>

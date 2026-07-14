@@ -16,7 +16,7 @@ export const ShellFrame = (props: {
   return (
     <div
       data-testid="portal-shell"
-      className="grid min-h-[100dvh] grid-cols-1 bg-portal-canvas md:grid-cols-[280px_minmax(0,1fr)]"
+      className="grid min-h-dvh grid-cols-1 bg-portal-canvas md:grid-cols-[280px_minmax(0,1fr)]"
     >
       {sidebarOpen ? (
         <button
@@ -29,7 +29,7 @@ export const ShellFrame = (props: {
 
       <aside
         id="portal-sidebar"
-        className={`fixed inset-y-0 left-0 z-50 flex h-[100dvh] w-[280px] flex-col bg-portal-canvas transition-transform md:sticky md:top-0 md:z-auto md:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-50 flex h-dvh w-[280px] flex-col bg-portal-canvas transition-transform md:sticky md:top-0 md:z-auto md:translate-x-0 ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
@@ -47,7 +47,7 @@ export const ShellFrame = (props: {
       </aside>
 
       <div className="flex min-w-0 flex-col bg-white">
-        <header className="flex h-[67px] shrink-0 items-center gap-3 border-b border-portal-border bg-portal-canvas px-4 md:items-end md:border-l md:pb-5 md:pl-[31px] md:pr-5">
+        <header className="flex h-[67px] shrink-0 items-center gap-3 border-b border-portal-border bg-portal-canvas px-4 md:items-end md:border-l md:pr-5 md:pb-5 md:pl-[31px]">
           <button
             type="button"
             aria-label="Open navigation"

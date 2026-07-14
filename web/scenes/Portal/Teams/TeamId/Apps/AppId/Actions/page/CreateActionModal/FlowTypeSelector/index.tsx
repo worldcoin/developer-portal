@@ -33,7 +33,7 @@ export const FlowTypeSelector = (props: {
   } = props;
 
   const parentClassNames = clsx(
-    "rounded-lg border-[1px] bg-grey-0 text-sm text-grey-700",
+    "rounded-lg border bg-grey-0 text-sm text-grey-700",
     {
       "border-grey-200 focus-within:border-blue-500 focus-within:hover:border-blue-500 hover:border-grey-700":
         !errors && !disabled,
@@ -43,10 +43,10 @@ export const FlowTypeSelector = (props: {
   );
 
   const selectorClassNames = clsx(
-    "peer h-full bg-transparent py-1.5 focus:outline-none focus:ring-0",
+    "peer h-full bg-transparent py-1.5 focus:outline-hidden focus:ring-0",
     {
       "placeholder:text-grey-400": !errors,
-      "group-hover:placeholder:text-grey-700 group-hover:focus:placeholder:text-blue-400":
+      "group-hover:placeholder:text-grey-700 focus:group-hover:placeholder:text-blue-400":
         true,
     },
   );
@@ -92,7 +92,7 @@ export const FlowTypeSelector = (props: {
 
           <SelectOptions
             className={clsx(
-              "mt-3 max-h-36 text-sm focus:outline-none focus:ring-0",
+              "mt-3 max-h-36 text-sm focus:ring-0 focus:outline-hidden",
             )}
           >
             {flowOptions.map((option) => (

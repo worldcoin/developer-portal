@@ -26,7 +26,7 @@ export const AppLogo = (props: {
   return (
     <div>
       {src && props.verification_status === "verified" && (
-        <div className={clsx("relative size-16 ")}>
+        <div className={clsx("relative size-16")}>
           <Image
             className={clsx("size-16 rounded-2xl shadow-image", {
               "absolute opacity-0": isLoading,

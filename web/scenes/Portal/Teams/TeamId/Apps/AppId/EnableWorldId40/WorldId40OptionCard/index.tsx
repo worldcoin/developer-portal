@@ -36,7 +36,7 @@ export const WorldId40OptionCard = (
       className={twMerge(
         clsx(
           "grid gap-y-3 rounded-lg border border-grey-100 bg-white px-6 py-5 shadow-[0_1.3px_2.6px_rgba(0,0,0,0.053)] transition-colors",
-          !disabled && "cursor-pointer ",
+          !disabled && "cursor-pointer",
           disabled && "cursor-not-allowed opacity-60",
           props.className,
         ),
@@ -73,13 +73,13 @@ export const WorldId40OptionCard = (
                   tabIndex={0}
                   aria-label={props.disabledReason}
                   title={props.disabledReason}
-                  className="inline-flex outline-none focus-visible:ring-2 focus-visible:ring-grey-300 focus-visible:ring-offset-1"
+                  className="inline-flex outline-hidden focus-visible:ring-2 focus-visible:ring-grey-300 focus-visible:ring-offset-1"
                 >
                   <InformationCircleIcon className="size-4 text-grey-400" />
                 </span>
                 <div className="pointer-events-none absolute -top-2 right-0 z-20 w-48 -translate-y-full rounded-md bg-grey-900 px-2 py-1.5 text-xs text-grey-0 opacity-0 shadow-lg transition-opacity group-focus-within:opacity-100 group-hover:opacity-100">
                   {props.disabledReason}
-                  <div className="absolute -bottom-1 right-3 h-2 w-2 rotate-45 bg-grey-900" />
+                  <div className="absolute right-3 -bottom-1 h-2 w-2 rotate-45 bg-grey-900" />
                 </div>
               </div>
             )}

@@ -20,7 +20,7 @@ export const SubmitSuccessToast = ({
 
   return (
     <div className="flex items-center gap-x-3">
-      <CheckmarkBadge className="size-5 flex-shrink-0 text-system-success-500" />
+      <CheckmarkBadge className="size-5 shrink-0 text-system-success-500" />
       <Typography variant={TYPOGRAPHY.R3} className="flex-1 text-grey-900">
         Your app was submitted for review
       </Typography>

@@ -14,7 +14,7 @@ export const ActionAvatar = (props: ActionAvatarProps) => {
   return (
     <div
       className={clsx(
-        "flex size-12 items-center justify-center rounded-full bg-blue-50 uppercase text-blue-500",
+        "flex size-12 items-center justify-center rounded-full bg-blue-50 text-blue-500 uppercase",
         className,
       )}
     >
