@@ -3,7 +3,7 @@ import "@testing-library/jest-dom";
 import { render, screen } from "@testing-library/react";
 import { ActionCard } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldId/page/ActionCard";
 
-it("links to the action route available in this stack slice", () => {
+it("links to the canonical action route", () => {
   render(
     <ActionCard
       teamId="team_1"
@@ -21,6 +21,6 @@ it("links to the action route available in this stack slice", () => {
 
   expect(screen.getByRole("link")).toHaveAttribute(
     "href",
-    "/teams/team_1/apps/app_1/world-id/actions/action_1",
+    "/teams/team_1/apps/app_1/world-id-actions/action_1",
   );
 });

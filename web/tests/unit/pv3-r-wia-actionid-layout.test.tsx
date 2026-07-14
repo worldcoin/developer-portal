@@ -11,21 +11,15 @@ jest.mock(
     WorldIdActionIdLayout: () => <div data-testid="v2-wia-actionid-layout" />,
   }),
 );
-jest.mock(
-  "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldIdActions/ActionId/layout",
-  () => ({
-    WorldIdActionIdLayout: () => <div data-testid="v3-wia-actionid-layout" />,
-  }),
-);
 import Layout from "../../app/(portal)/teams/[teamId]/apps/[appId]/world-id-actions/[actionId]/layout";
-it("renders v3 wia-actionid-layout", async () => {
+it("leaves the self-contained v3 detail unwrapped", async () => {
   render(
     await Layout({
       params: Promise.resolve({ teamId: "t", appId: "a", actionId: "x" }),
-      children: null,
+      children: <div data-testid="action-detail" />,
     }),
   );
-  expect(screen.getByTestId("v3-wia-actionid-layout")).toBeInTheDocument();
+  expect(screen.getByTestId("action-detail")).toBeInTheDocument();
   expect(
     screen.queryByTestId("v2-wia-actionid-layout"),
   ).not.toBeInTheDocument();
