@@ -1,1 +1,2 @@
-DROP INDEX IF EXISTS "public"."nullifier_v4_action_created_id_idx";
+-- The index lifecycle is managed out of band.
+SELECT 1;

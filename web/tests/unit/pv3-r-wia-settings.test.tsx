@@ -33,7 +33,12 @@ beforeEach(() => {
 it("redirects v3 settings links to the action detail", async () => {
   await RoutePage(props());
 
-  expect(redirectMock).toHaveBeenCalledWith("../");
+  expect(
+    new URL(
+      redirectMock.mock.calls[0][0],
+      "https://portal.test/teams/t/apps/a/world-id-actions/x/settings",
+    ).pathname,
+  ).toBe("/teams/t/apps/a/world-id-actions/x/");
 });
 
 it("keeps the settings page for v2", async () => {

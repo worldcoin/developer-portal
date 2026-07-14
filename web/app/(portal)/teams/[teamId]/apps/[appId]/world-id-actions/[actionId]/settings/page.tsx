@@ -6,7 +6,7 @@ export default async function Page(props: {
   params: Promise<Record<string, string>>;
 }) {
   return pickPortalVersion(
-    () => redirect("../"),
+    () => redirect("./"),
     () => <WorldIdActionIdSettingsPage params={props.params} />,
   );
 }
