@@ -37,8 +37,8 @@ export const useTrendWindow = (opts: {
   const weeklyBounds = useMemo(() => weekBucketBounds(now), [now]);
   const allTimeBounds = useMemo(
     () =>
-      createdAt ? lifetimeBucketBounds(new Date(createdAt), now) : weeklyBounds,
-    [createdAt, now, weeklyBounds],
+      lifetimeBucketBounds(createdAt ? new Date(createdAt) : new Date(0), now),
+    [createdAt, now],
   );
   const selectedBounds =
     timePeriod === "all-time" ? allTimeBounds : weeklyBounds;
