@@ -1,28 +1,108 @@
 "use client";
-import { use } from "react";
+
 import { ErrorPage } from "@/components/ErrorPage";
 import { SizingWrapper } from "@/components/SizingWrapper";
-import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import { urls } from "@/lib/urls";
+import {
+  GetActionVerificationsFeedQuery,
+  useGetActionVerificationsFeedQuery,
+} from "@/scenes/common/Teams/TeamId/Apps/AppId/WorldId/Actions/ActionId/page/graphql/client/get-action-verifications.generated";
+import { NetworkStatus } from "@apollo/client";
+import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
 import Skeleton from "react-loading-skeleton";
-import { useGetSingleActionV4Query } from "@/scenes/common/Teams/TeamId/Apps/AppId/WorldIdActions/ActionId/page/graphql/client/get-single-action-v4.generated";
-import { VerifiedTable } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/Actions/ActionId/page/VerifiedTable";
-import { adaptNullifierV4 } from "./utils/adapt-nullifier-v4";
+import { SettingsCard } from "./SettingsCard";
+import { VerificationsFeed } from "./VerificationsFeed";
 
-type WorldIdActionIdPageProps = {
-  params: Promise<Record<string, string>>;
+const PAGE_SIZE = 6;
+
+type Action = GetActionVerificationsFeedQuery["action_v4"][number];
+
+type Cursor = {
+  createdAt: string;
+  id: string;
 };
 
-export const WorldIdActionIdPage = (props: WorldIdActionIdPageProps) => {
-  const params = use(props.params);
-  const actionId = params?.actionId;
+const cursorKey = (cursor: Cursor | null) =>
+  cursor ? `${cursor.createdAt}:${cursor.id}` : "first";
 
-  const { data, loading, error } = useGetSingleActionV4Query({
-    variables: { action_id: actionId ?? "" },
-  });
+export const WorldIdActionDetailPage = (props: {
+  params: Record<string, string>;
+  canDelete: boolean;
+}) => {
+  const { params, canDelete } = props;
+  const teamId = params.teamId;
+  const appId = params.appId;
+  const actionId = params.actionId;
 
-  const action = data?.action_v4_by_pk;
+  const [page, setPage] = useState(0);
+  const [cursors, setCursors] = useState<Array<Cursor | null>>([null]);
+  const [pageCache, setPageCache] = useState<Record<string, Action>>({});
+  const [deleted, setDeleted] = useState(false);
+  const cursor = cursors[page] ?? null;
+  const currentCursorKey = cursorKey(cursor);
 
-  if (error) {
+  useEffect(() => {
+    setPage(0);
+    setCursors([null]);
+    setPageCache({});
+  }, [actionId, appId]);
+
+  const nullifierWhere = useMemo(
+    () =>
+      cursor
+        ? {
+            _or: [
+              { created_at: { _lt: cursor.createdAt } },
+              {
+                created_at: { _eq: cursor.createdAt },
+                id: { _lt: cursor.id },
+              },
+            ],
+          }
+        : {},
+    [cursor],
+  );
+
+  const { data, loading, error, networkStatus, refetch } =
+    useGetActionVerificationsFeedQuery({
+      variables: {
+        action_id: actionId,
+        app_id: appId,
+        limit: PAGE_SIZE + 1,
+        nullifier_where: nullifierWhere,
+      },
+      skip: !actionId,
+      fetchPolicy: "cache-and-network",
+      notifyOnNetworkStatusChange: true,
+      pollInterval: page === 0 ? 5000 : 0,
+      skipPollAttempt: () => typeof document !== "undefined" && document.hidden,
+      onCompleted: (result) => {
+        const resultAction = result.action_v4[0];
+        if (!resultAction) {
+          setPageCache({});
+          return;
+        }
+        setPageCache((current) => ({
+          ...current,
+          [currentCursorKey]: resultAction,
+        }));
+      },
+    });
+
+  const queriedAction = data?.action_v4?.[0];
+  const cachedPageAction = pageCache[currentCursorKey];
+  const actionForPage =
+    networkStatus !== NetworkStatus.setVariables &&
+    queriedAction?.id === actionId
+      ? queriedAction
+      : cachedPageAction?.id === actionId
+        ? cachedPageAction
+        : undefined;
+  const action =
+    actionForPage ?? Object.values(pageCache).find(({ id }) => id === actionId);
+
+  if (error && !action) {
     return (
       <SizingWrapper gridClassName="order-1 md:order-2">
         <ErrorPage statusCode={500} title="Failed to load action" />
@@ -30,7 +110,7 @@ export const WorldIdActionIdPage = (props: WorldIdActionIdPageProps) => {
     );
   }
 
-  if (!loading && !action) {
+  if (!loading && !error && !action && !deleted) {
     return (
       <SizingWrapper gridClassName="order-1 md:order-2">
         <ErrorPage statusCode={404} title="Action not found" />
@@ -38,61 +118,98 @@ export const WorldIdActionIdPage = (props: WorldIdActionIdPageProps) => {
     );
   }
 
+  const nullifiers = actionForPage?.nullifiers.slice(0, PAGE_SIZE) ?? [];
+  const hasNextPage = (actionForPage?.nullifiers.length ?? 0) > PAGE_SIZE;
+
+  const handleNextPage = () => {
+    const lastNullifier = nullifiers.at(-1);
+    if (!hasNextPage || !lastNullifier) {
+      return;
+    }
+
+    const nextCursor = {
+      createdAt: lastNullifier.created_at,
+      id: lastNullifier.id,
+    };
+    setCursors((current) => [...current.slice(0, page + 1), nextCursor]);
+    setPage((current) => current + 1);
+  };
+
   return (
-    <SizingWrapper gridClassName="order-1 pt-6 pb-6 md:pb-10">
-      <div className="grid w-full grid-cols-1 items-start justify-between gap-y-10 lg:grid-cols-2 lg:gap-x-32">
-        {/* Left: Stats overview */}
-        <div className="grid gap-y-6">
-          <Typography className="block" variant={TYPOGRAPHY.H7}>
-            Overview
-          </Typography>
-
-          {/* Stats summary */}
-          <div className="flex flex-col gap-y-6">
-            {/* Verifications stat */}
-            <div>
-              <div className="grid grid-cols-auto/1fr items-center gap-x-1">
-                <div className="size-1.5 rounded-[1px] bg-blue-500" />
-                <Typography variant={TYPOGRAPHY.R5} className="text-grey-400">
-                  Verifications
-                </Typography>
-              </div>
-              <div className="mt-1 flex items-center gap-x-2">
-                <Typography variant={TYPOGRAPHY.H6} className="text-grey-700">
-                  {loading ? (
-                    <Skeleton width={100} />
-                  ) : (
-                    Number(
-                      action?.nullifiers_aggregate?.aggregate?.count ?? 0,
-                    ).toLocaleString()
-                  )}
-                </Typography>
-              </div>
-            </div>
-          </div>
-
-          {/* Placeholder for future graph */}
-          <div className="pointer-events-none grid aspect-580/350 w-full content-center justify-center justify-items-center gap-y-1 rounded-2xl border border-grey-200 select-none">
-            <Typography variant={TYPOGRAPHY.H7} className="text-grey-500">
-              Detailed analytics coming soon
-            </Typography>
-            <Typography variant={TYPOGRAPHY.R4} className="text-grey-400">
-              Verification trends will show up here
-            </Typography>
-          </div>
+    <SizingWrapper gridClassName="pb-6 pt-6 md:pb-10">
+      <div className="mx-auto flex w-full max-w-[900px] flex-col gap-4">
+        <div className="flex items-baseline gap-2.5">
+          <Link
+            href={urls.worldId({ team_id: teamId, app_id: appId })}
+            className="font-world text-13 text-portal-muted transition-colors hover:text-portal-text"
+          >
+            Actions
+          </Link>
+          <span className="font-world text-13 text-portal-subtle">/</span>
+          {!action ? (
+            <Skeleton width={120} />
+          ) : (
+            <span className="font-ibm text-13 font-medium text-portal-heading">
+              {action.action}
+            </span>
+          )}
         </div>
 
-        {/* Right: Verified humans table */}
-        {loading ? (
-          <div>
-            <Skeleton count={5} />
-          </div>
+        <div className="rounded-16 border border-portal-border bg-white p-6 shadow-portal-card">
+          {!action ? (
+            <Skeleton height={48} />
+          ) : (
+            <div className="flex flex-col gap-2">
+              <span className="font-ibm text-[20px] leading-none font-medium text-portal-heading">
+                {action.action}
+              </span>
+              {action.description ? (
+                <span className="font-world text-sm text-portal-muted">
+                  {action.description}
+                </span>
+              ) : null}
+            </div>
+          )}
+        </div>
+
+        {!actionForPage ? (
+          loading || networkStatus === NetworkStatus.setVariables ? (
+            <div className="rounded-16 border border-portal-border bg-white p-4 shadow-portal-card">
+              <Skeleton height={40} count={6} />
+            </div>
+          ) : (
+            <div className="rounded-16 border border-portal-border bg-white px-4 py-12 text-center font-world text-13 text-portal-muted shadow-portal-card">
+              Failed to load verifications.{" "}
+              <button
+                type="button"
+                className="font-medium text-portal-heading underline"
+                onClick={() => void refetch()}
+              >
+                Retry
+              </button>
+            </div>
+          )
         ) : (
-          <VerifiedTable
-            columns={["human", "time"]}
-            nullifiers={adaptNullifierV4(action?.nullifiers ?? [])}
+          <VerificationsFeed
+            nullifiers={nullifiers}
+            page={page + 1}
+            hasPreviousPage={page > 0}
+            hasNextPage={hasNextPage}
+            onPreviousPage={() => setPage((current) => current - 1)}
+            onNextPage={handleNextPage}
           />
         )}
+
+        {action && canDelete ? (
+          <SettingsCard
+            action={action}
+            teamId={teamId}
+            appId={appId}
+            canDelete={canDelete}
+            onDeleted={() => setDeleted(true)}
+            onUpdated={() => void refetch().catch(() => {})}
+          />
+        ) : null}
       </div>
     </SizingWrapper>
   );

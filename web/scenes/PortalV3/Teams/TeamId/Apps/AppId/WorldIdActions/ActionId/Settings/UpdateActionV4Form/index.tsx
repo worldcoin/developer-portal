@@ -17,12 +17,16 @@ import { GetSingleActionV4Query } from "@/scenes/common/Teams/TeamId/Apps/AppId/
 import { updateActionV4ServerSide } from "./server";
 
 type UpdateActionV4FormProps = {
-  action: NonNullable<GetSingleActionV4Query["action_v4_by_pk"]>;
+  action: Pick<
+    NonNullable<GetSingleActionV4Query["action_v4_by_pk"]>,
+    "id" | "action" | "description"
+  >;
   appId: string;
+  onUpdated?: () => void;
 };
 
 export const UpdateActionV4Form = (props: UpdateActionV4FormProps) => {
-  const { action, appId } = props;
+  const { action, appId, onUpdated } = props;
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -53,10 +57,11 @@ export const UpdateActionV4Form = (props: UpdateActionV4FormProps) => {
       } else {
         toast.success(result.message);
         reset(values);
+        onUpdated?.();
         router.refresh();
       }
     },
-    [action.id, appId, reset, router],
+    [action.id, appId, onUpdated, reset, router],
   );
 
   return (

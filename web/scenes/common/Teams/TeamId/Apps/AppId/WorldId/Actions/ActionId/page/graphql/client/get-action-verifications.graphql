@@ -1,0 +1,28 @@
+query GetActionVerificationsFeed(
+  $action_id: String!
+  $app_id: String!
+  $limit: Int!
+  $nullifier_where: nullifier_v4_bool_exp!
+) {
+  action_v4(
+    where: {
+      id: { _eq: $action_id }
+      environment: { _eq: "production" }
+      rp_registration: { app_id: { _eq: $app_id } }
+    }
+    limit: 1
+  ) {
+    id
+    action
+    description
+    nullifiers(
+      where: $nullifier_where
+      limit: $limit
+      order_by: [{ created_at: desc }, { id: desc }]
+    ) {
+      id
+      created_at
+      nullifier
+    }
+  }
+}
