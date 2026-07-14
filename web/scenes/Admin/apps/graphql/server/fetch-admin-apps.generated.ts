@@ -53,14 +53,14 @@ export const FetchAdminAppsDocument = gql`
       team_id @include(if: $includeTeamId)
       created_at @include(if: $includeCreatedAt)
       draft_metadata: app_metadata(
-        where: { verification_status: { _neq: verified } }
+        where: { verification_status: { _neq: "verified" } }
         order_by: { updated_at: desc }
         limit: 1
       ) @include(if: $includeDraftMetadata) {
         name
       }
       verified_metadata: app_metadata(
-        where: { verification_status: { _eq: verified } }
+        where: { verification_status: { _eq: "verified" } }
         order_by: { verified_at: desc }
         limit: 1
       ) @include(if: $includeVerifiedMetadata) {
