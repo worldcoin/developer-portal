@@ -77,7 +77,11 @@ export const createAdminUserTeamsWhere = (
   return { _and: [scope, searchWhere] };
 };
 
-export type AdminUserTeam = FetchAdminUserTeamsQuery["membership"][number];
+type RawAdminUserTeam = FetchAdminUserTeamsQuery["membership"][number];
+
+export type AdminUserTeam = Omit<RawAdminUserTeam, "team"> & {
+  team: Omit<RawAdminUserTeam["team"], "name"> & { name: string };
+};
 
 export const fetchAdminUserTeamsPage = async ({
   page,
@@ -100,10 +104,17 @@ export const fetchAdminUserTeamsPage = async ({
     const teamsAmount =
       data.membership_aggregate.aggregate?.count ?? data.membership.length;
     const totalPages = getUsersTotalPages(teamsAmount, USER_DETAIL_LIST_LIMIT);
+    const teams: AdminUserTeam[] = data.membership.map((membership) => ({
+      ...membership,
+      team: {
+        ...membership.team,
+        name: membership.team.name ?? "Unnamed team",
+      },
+    }));
 
     return {
       currentPage: clampUsersPage(page, totalPages),
-      teams: data.membership,
+      teams,
       teamsAmount,
       totalPages,
     };

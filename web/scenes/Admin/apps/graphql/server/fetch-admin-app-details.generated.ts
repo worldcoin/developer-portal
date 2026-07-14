@@ -1,10 +1,9 @@
+/* eslint-disable */
 import * as Types from "@/graphql/graphql";
 
 import { GraphQLClient, RequestOptions } from "graphql-request";
 import gql from "graphql-tag";
-
 type GraphQLClientRequestHeaders = RequestOptions["requestHeaders"];
-
 export type FetchAdminAppDetailsQueryVariables = Types.Exact<{
   appId: Types.Scalars["String"]["input"];
 }>;
@@ -21,7 +20,7 @@ export type FetchAdminAppDetailsQuery = {
     team: {
       __typename?: "team";
       id: string;
-      name: string;
+      name?: string | null;
       created_at: string;
       deleted_at?: string | null;
     };
@@ -101,10 +100,15 @@ export type SdkFunctionWrapper = <T>(
   action: (requestHeaders?: Record<string, string>) => Promise<T>,
   operationName: string,
   operationType?: string,
-  variables?: unknown,
+  variables?: any,
 ) => Promise<T>;
 
-const defaultWrapper: SdkFunctionWrapper = (action) => action();
+const defaultWrapper: SdkFunctionWrapper = (
+  action,
+  _operationName,
+  _operationType,
+  _variables,
+) => action();
 
 export function getSdk(
   client: GraphQLClient,
@@ -112,7 +116,7 @@ export function getSdk(
 ) {
   return {
     FetchAdminAppDetails(
-      variables?: FetchAdminAppDetailsQueryVariables,
+      variables: FetchAdminAppDetailsQueryVariables,
       requestHeaders?: GraphQLClientRequestHeaders,
     ): Promise<FetchAdminAppDetailsQuery> {
       return withWrapper(
@@ -129,5 +133,4 @@ export function getSdk(
     },
   };
 }
-
 export type Sdk = ReturnType<typeof getSdk>;
