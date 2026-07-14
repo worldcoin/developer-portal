@@ -22,7 +22,7 @@ export const WorldIdTabs = (props: {
   search: string;
   onSearchChange: (value: string) => void;
 }) => (
-  <div className="flex flex-wrap items-end justify-between gap-2 border-b border-portal-border">
+  <div className="flex flex-wrap items-end justify-between gap-2 border-b border-portal-border sm:min-h-[49px]">
     <div className="flex items-center gap-6">
       <button
         type="button"
