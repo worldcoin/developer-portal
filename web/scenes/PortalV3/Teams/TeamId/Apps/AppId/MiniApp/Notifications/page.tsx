@@ -9,7 +9,6 @@ import { ChangeEvent, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import { FormSkeleton } from "../../Configuration/PageComponents/FormSkeleton";
-import { VersionSwitcher } from "../../Configuration/AppTopBar/VersionSwitcher";
 import { useFetchNotificationAppMetadataQuery } from "@/scenes/common/Teams/TeamId/Apps/AppId/MiniApp/Notifications/graphql/client/fetch-notification-app-metadata.generated";
 
 type NotificationFormData = {
@@ -46,9 +45,6 @@ const NotificationsNotice = ({
 export const NotificationsPage = () => {
   const params = useParams<{ teamId: string; appId: string }>();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [viewMode, setViewMode] = useState<"verified" | "unverified">(
-    "verified",
-  );
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { data: appMetadataData, loading } =
@@ -60,15 +56,13 @@ export const NotificationsPage = () => {
   const appData = appMetadataData?.app[0];
   const draftMeta = appData?.app_metadata[0];
   const verifiedMeta = appData?.verified_app_metadata[0];
-  const hasBothVersions = Boolean(draftMeta && verifiedMeta);
-  const effectiveViewMode =
-    draftMeta && (!verifiedMeta || viewMode === "unverified")
-      ? "unverified"
-      : "verified";
+  const notificationMeta = verifiedMeta ?? draftMeta;
 
   // `category` may be the "External" app-store category even for a Mini App, so
-  // the external check must look at app_mode only — never the category.
-  const isExternalApp = (verifiedMeta ?? draftMeta)?.app_mode === "external";
+  // the external check must look at app_mode only — never the category. The
+  // API also prioritizes verified metadata, falling back to the autosaved draft
+  // only when the app has no verified version.
+  const isExternalApp = notificationMeta?.app_mode === "external";
 
   const {
     register,
@@ -183,9 +177,7 @@ export const NotificationsPage = () => {
         title: data.title || undefined,
         message: data.message,
         mini_app_path: data.miniAppPath,
-        ...(effectiveViewMode === "unverified" && draftMeta?.id
-          ? { draft_id: draftMeta.id }
-          : {}),
+        ...(!verifiedMeta && draftMeta?.id ? { draft_id: draftMeta.id } : {}),
       };
 
       const response = await fetch("/api/v2/minikit/send-notification", {
@@ -273,23 +265,12 @@ export const NotificationsPage = () => {
       </div>
 
       <div className="grid gap-y-10">
-        <div className="flex items-center justify-between gap-x-5">
-          <Typography
-            as="h1"
-            className="font-world text-[26px] leading-[120%] font-semibold tracking-[-0.01em] text-[#191C20]"
-          >
-            Notifications
-          </Typography>
-
-          {hasBothVersions && (
-            <VersionSwitcher
-              viewMode={viewMode}
-              setMode={setViewMode}
-              verifiedAt={appData?.verified_app_metadata[0]?.verified_at}
-              buttonClassName="px-3 py-1.5 text-sm"
-            />
-          )}
-        </div>
+        <Typography
+          as="h1"
+          className="font-world text-[26px] leading-[120%] font-semibold tracking-[-0.01em] text-[#191C20]"
+        >
+          Notifications
+        </Typography>
 
         <form
           onSubmit={handleSubmit(onSubmit)}

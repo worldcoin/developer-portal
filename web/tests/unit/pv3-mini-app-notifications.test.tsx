@@ -22,29 +22,6 @@ jest.mock(
   }),
 );
 
-jest.mock(
-  "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/Configuration/AppTopBar/VersionSwitcher",
-  () => ({
-    VersionSwitcher: ({
-      viewMode,
-      setMode,
-    }: {
-      viewMode: "verified" | "unverified";
-      setMode: (mode: "verified" | "unverified") => void;
-    }) => (
-      <div>
-        <span>Selected: {viewMode}</span>
-        <button type="button" onClick={() => setMode("unverified")}>
-          Current version
-        </button>
-        <button type="button" onClick={() => setMode("verified")}>
-          Approved version
-        </button>
-      </div>
-    ),
-  }),
-);
-
 jest.mock("posthog-js", () => ({
   __esModule: true,
   default: { capture: jest.fn() },
@@ -72,12 +49,14 @@ const verifiedMetadata = {
 const setMetadata = ({
   draft = false,
   verified = false,
-  appMode = "mini-app",
+  draftAppMode = "mini-app",
+  verifiedAppMode = "mini-app",
   category = null,
 }: {
   draft?: boolean;
   verified?: boolean;
-  appMode?: "mini-app" | "external";
+  draftAppMode?: "mini-app" | "external";
+  verifiedAppMode?: "mini-app" | "external";
   category?: string | null;
 }) => {
   mockUseFetchNotificationAppMetadataQuery.mockReturnValue({
@@ -87,10 +66,10 @@ const setMetadata = ({
         {
           id: appId,
           app_metadata: draft
-            ? [{ ...draftMetadata, app_mode: appMode, category }]
+            ? [{ ...draftMetadata, app_mode: draftAppMode, category }]
             : [],
           verified_app_metadata: verified
-            ? [{ ...verifiedMetadata, app_mode: appMode, category }]
+            ? [{ ...verifiedMetadata, app_mode: verifiedAppMode, category }]
             : [],
         },
       ],
@@ -154,7 +133,7 @@ describe("NotificationsPage metadata states", () => {
   });
 
   it("keeps external apps blocked", () => {
-    setMetadata({ draft: true, appMode: "external" });
+    setMetadata({ draft: true, draftAppMode: "external" });
 
     render(<NotificationsPage />);
 
@@ -173,6 +152,35 @@ describe("NotificationsPage metadata states", () => {
       screen.getByRole("button", { name: "Send notification" }),
     ).toBeInTheDocument();
   });
+
+  it("uses verified Mini App metadata before an external draft", () => {
+    setMetadata({
+      draft: true,
+      verified: true,
+      draftAppMode: "external",
+    });
+
+    render(<NotificationsPage />);
+
+    expect(
+      screen.getByRole("button", { name: "Send notification" }),
+    ).toBeInTheDocument();
+  });
+
+  it("uses verified external metadata before a Mini App draft", () => {
+    setMetadata({
+      draft: true,
+      verified: true,
+      verifiedAppMode: "external",
+    });
+
+    render(<NotificationsPage />);
+
+    expect(screen.getByText("Notifications unavailable")).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Send notification" }),
+    ).not.toBeInTheDocument();
+  });
 });
 // #endregion
 
@@ -183,7 +191,6 @@ describe("NotificationsPage version-specific submissions", () => {
 
     render(<NotificationsPage />);
 
-    expect(screen.queryByText(/Selected:/)).not.toBeInTheDocument();
     expect(await submitNotification()).toMatchObject({ draft_id: draftId });
   });
 
@@ -192,18 +199,15 @@ describe("NotificationsPage version-specific submissions", () => {
 
     render(<NotificationsPage />);
 
-    expect(screen.queryByText(/Selected:/)).not.toBeInTheDocument();
     expect(await submitNotification()).not.toHaveProperty("draft_id");
   });
 
-  it("uses the selected draft when both versions exist", async () => {
+  it("uses verified metadata when both versions exist", async () => {
     setMetadata({ draft: true, verified: true });
 
     render(<NotificationsPage />);
-    fireEvent.click(screen.getByRole("button", { name: "Current version" }));
 
-    expect(screen.getByText("Selected: unverified")).toBeInTheDocument();
-    expect(await submitNotification()).toMatchObject({ draft_id: draftId });
+    expect(await submitNotification()).not.toHaveProperty("draft_id");
   });
 });
 // #endregion

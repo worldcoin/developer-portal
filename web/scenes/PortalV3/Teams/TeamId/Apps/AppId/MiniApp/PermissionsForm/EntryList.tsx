@@ -56,7 +56,7 @@ const EntryRow = (props: EntryRowProps) => {
       <CopyButton
         fieldName={copyFieldName}
         fieldValue={value}
-        className="rounded-lg p-2 !pr-2 hover:bg-grey-100"
+        className="rounded-lg p-2 pr-2! hover:bg-grey-100"
         iconClassName="size-4 text-grey-500"
       />
 

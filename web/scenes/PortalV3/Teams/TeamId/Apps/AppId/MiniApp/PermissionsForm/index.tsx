@@ -3,12 +3,10 @@
 import { CopyButton } from "@/components/CopyButton";
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { AlertIcon } from "@/components/Icons/AlertIcon";
-import { CheckIcon } from "@/components/Icons/CheckIcon";
 import { FlaskIcon } from "@/components/Icons/FlaskIcon";
 import { HelpIcon } from "@/components/Icons/HelpIcon";
 import { LockIcon } from "@/components/Icons/LockIcon";
 import { Link } from "@/components/Link";
-import { Switcher } from "@/components/Switch";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Role_Enum } from "@/graphql/graphql";
 import { Auth0SessionUser } from "@/lib/types";
@@ -20,7 +18,7 @@ import clsx from "clsx";
 import Image from "next/image";
 import QRCode from "qrcode";
 import { ReactNode, useCallback, useEffect, useMemo, useState } from "react";
-import { Controller, useForm, useWatch } from "react-hook-form";
+import { Control, Controller, useForm, useWatch } from "react-hook-form";
 import Skeleton from "react-loading-skeleton";
 import {
   updateSetupInitialSchema,
@@ -150,6 +148,133 @@ const InlineWarning = ({ children }: { children: ReactNode }) => {
   );
 };
 
+const NotificationLimitCard = ({
+  control,
+  disabled,
+}: {
+  control: Control<UpdateSetupInitialSchema>;
+  disabled: boolean;
+}) => (
+  <section className="grid gap-y-5 rounded-2xl border border-grey-200 bg-grey-0 p-5 shadow-button">
+    <div className="grid gap-y-1">
+      <Typography
+        as="h2"
+        className="font-world text-[17px] leading-[120%] font-medium text-grey-900"
+      >
+        Notifications
+      </Typography>
+      <Typography
+        as="p"
+        className="font-world text-[13px] leading-[130%] font-medium text-grey-500"
+      >
+        Maximum notifications per user each day
+      </Typography>
+    </div>
+
+    <Controller
+      name="max_notifications_per_day"
+      control={control}
+      render={({ field }) => {
+        const selectedIndex = Math.max(
+          0,
+          maxNotificationPerDayOptions.indexOf(
+            field.value as (typeof maxNotificationPerDayOptions)[number],
+          ),
+        );
+        const selectedLabel = maxNotificationPerDayOptions[selectedIndex];
+
+        return (
+          <div className="grid gap-y-1.5 px-1">
+            <div className="relative h-7">
+              <div className="absolute top-1/2 right-0 left-0 h-1 -translate-y-1/2 rounded-full bg-grey-100" />
+              <div
+                className="absolute top-1/2 left-0 h-1 -translate-y-1/2 rounded-full bg-blue-500"
+                style={{ width: `${(selectedIndex / 3) * 100}%` }}
+              />
+
+              {maxNotificationPerDayOptions.map((option, index) => {
+                const isSelected = index === selectedIndex;
+                const isPassed = index < selectedIndex;
+
+                return (
+                  <span
+                    key={String(option)}
+                    className={clsx(
+                      "pointer-events-none absolute top-1/2 z-[1] -translate-x-1/2 -translate-y-1/2 rounded-full border-2",
+                      isSelected
+                        ? "size-4 border-blue-500 bg-grey-0 shadow-sm"
+                        : "size-3",
+                      isPassed
+                        ? "border-blue-500 bg-blue-500"
+                        : !isSelected && "border-grey-200 bg-grey-0",
+                    )}
+                    style={{ left: `${(index / 3) * 100}%` }}
+                    aria-hidden="true"
+                  />
+                );
+              })}
+
+              <input
+                type="range"
+                min={0}
+                max={3}
+                step={1}
+                value={selectedIndex}
+                disabled={disabled}
+                onChange={(event) => {
+                  field.onChange(
+                    maxNotificationPerDayOptions[Number(event.target.value)],
+                  );
+                }}
+                aria-label="Maximum notifications per user each day"
+                aria-valuetext={
+                  selectedLabel === "unlimited"
+                    ? "Unlimited"
+                    : String(selectedLabel)
+                }
+                className="absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0 disabled:cursor-not-allowed"
+              />
+            </div>
+
+            <div className="relative h-5">
+              {maxNotificationPerDayOptions.map((option, index) => (
+                <span
+                  key={String(option)}
+                  className={clsx(
+                    "absolute font-world text-[12px] leading-none font-medium",
+                    index === 0
+                      ? ""
+                      : index === maxNotificationPerDayOptions.length - 1
+                        ? "-translate-x-full"
+                        : "-translate-x-1/2",
+                    index === selectedIndex ? "text-grey-900" : "text-grey-400",
+                  )}
+                  style={{ left: `${(index / 3) * 100}%` }}
+                >
+                  {option === "unlimited" ? "Unlimited" : option}
+                </span>
+              ))}
+            </div>
+          </div>
+        );
+      }}
+    />
+
+    <InlineWarning>
+      <>
+        Unlimited notifications are rarely granted and usually rejected. See{" "}
+        <Link
+          href="https://docs.world.org/mini-apps/commands/how-to-send-notifications"
+          className="underline"
+        >
+          docs
+        </Link>{" "}
+        for guidelines.
+      </>
+    </InlineWarning>
+  </section>
+);
+
 const MiniAppPreviewCard = ({
   appId,
   appMetadata,
@@ -223,7 +348,7 @@ const MiniAppPreviewCard = ({
         <CopyButton
           fieldName="Mini App preview link"
           fieldValue={miniAppUrl}
-          className="rounded-lg border border-grey-200 p-2 !pr-2 hover:bg-grey-50"
+          className="rounded-lg border border-grey-200 p-2 pr-2! hover:bg-grey-50"
           iconClassName="size-4 text-grey-700"
         />
       </div>
@@ -253,7 +378,8 @@ const getFormValuesFromMetadata = (
 ): UpdateSetupInitialSchema => ({
   whitelisted_addresses: appMetadata?.whitelisted_addresses?.join(",") ?? null,
   app_mode: appMetadata?.app_mode as UpdateSetupInitialSchema["app_mode"],
-  is_whitelist_disabled: !Boolean(appMetadata?.whitelisted_addresses),
+  is_whitelist_disabled:
+    (appMetadata?.whitelisted_addresses?.length ?? 0) === 0,
   associated_domains: appMetadata?.associated_domains?.join(",") ?? null,
   contracts: appMetadata?.contracts?.join(",") ?? null,
   permit2_tokens: appMetadata?.permit2_tokens?.join(",") ?? null,
@@ -290,7 +416,6 @@ export const SetupForm = ({
   const {
     reset,
     formState: { errors },
-    setError,
     clearErrors,
     control,
     setValue,
@@ -312,31 +437,12 @@ export const SetupForm = ({
 
   const canEdit = isEditable && isEnoughPermissions;
 
-  const hasInvalidWhitelistCombination = useCallback(
-    (values: UpdateSetupInitialSchema) =>
-      values.app_mode === "mini-app" &&
-      !values.is_whitelist_disabled &&
-      (!values.whitelisted_addresses ||
-        values.whitelisted_addresses.length === 0),
-    [],
-  );
-
   useAutosaveWithStatus<UpdateSetupInitialSchema>({
     id: "mini-app-permissions",
     form,
     enabled: canEdit,
     save: async (values, signal) => {
       if (signal?.aborted) throw new DOMException("Aborted", "AbortError");
-      if (hasInvalidWhitelistCombination(values)) {
-        setError("whitelisted_addresses", {
-          type: "manual",
-          message:
-            "Mini Apps must have at least one whitelisted payment address.",
-        });
-        throw new Error(
-          "Mini Apps must have at least one whitelisted payment address.",
-        );
-      }
       const result = await validateAndUpdateSetupServerSide(
         values,
         appMetadata?.id ?? "",
@@ -357,10 +463,6 @@ export const SetupForm = ({
   });
   const permit2Tokens = useWatch({ control, name: "permit2_tokens" });
   const contracts = useWatch({ control, name: "contracts" });
-  const isWhitelistDisabled = useWatch({
-    control,
-    name: "is_whitelist_disabled",
-  });
 
   const domains = useMemo(
     () => splitList(associatedDomains),
@@ -460,55 +562,31 @@ export const SetupForm = ({
             <section className="grid gap-y-3 border-t border-grey-100 py-4">
               <SectionHeader title="Whitelisted Payment Addresses" />
 
-              <div className="flex items-center justify-between gap-x-5">
-                <Typography
-                  as="p"
-                  className="font-world text-[15px] leading-[120%] font-medium text-grey-900"
-                >
-                  Enforce payment allowlist
-                </Typography>
+              <EntryList
+                values={whitelist}
+                onChange={(next) => {
+                  setValue("whitelisted_addresses", joinList(next), {
+                    shouldDirty: true,
+                  });
+                  setValue("is_whitelist_disabled", next.length === 0, {
+                    shouldDirty: true,
+                  });
+                  clearErrors("whitelisted_addresses");
+                }}
+                placeholder="Paste wallet address"
+                disabled={!canEdit}
+                validate={isEthAddress}
+                invalidMessage="Enter a valid Worldchain address (0x followed by 40 hex characters)."
+                duplicateMessage="That address has already been added."
+                copyFieldName="Address"
+                formatDisplay={truncateAddress}
+                emptyText="No addresses yet. Add an address to enforce the payment allowlist."
+              />
 
-                <Switcher
-                  enabled={!isWhitelistDisabled}
-                  disabled={!canEdit}
-                  setEnabled={(enabled) => {
-                    setValue("is_whitelist_disabled", !enabled, {
-                      shouldDirty: true,
-                      shouldValidate: true,
-                    });
-                    if (!enabled) {
-                      clearErrors("whitelisted_addresses");
-                    }
-                  }}
-                />
-              </div>
-
-              {!isWhitelistDisabled && (
-                <>
-                  <EntryList
-                    values={whitelist}
-                    onChange={(next) => {
-                      setListValue("whitelisted_addresses", next);
-                      if (next.length > 0) {
-                        clearErrors("whitelisted_addresses");
-                      }
-                    }}
-                    placeholder="Paste wallet address"
-                    disabled={!canEdit}
-                    validate={isEthAddress}
-                    invalidMessage="Enter a valid Worldchain address (0x followed by 40 hex characters)."
-                    duplicateMessage="That address has already been added."
-                    copyFieldName="Address"
-                    formatDisplay={truncateAddress}
-                    emptyText="No addresses yet. Add at least one address that can receive payments."
-                  />
-
-                  {errors.whitelisted_addresses?.message && (
-                    <p className="px-1 font-world text-xs text-system-error-500">
-                      {errors.whitelisted_addresses.message}
-                    </p>
-                  )}
-                </>
+              {errors.whitelisted_addresses?.message && (
+                <p className="px-1 font-world text-xs text-system-error-500">
+                  {errors.whitelisted_addresses.message}
+                </p>
               )}
             </section>
 
@@ -565,80 +643,12 @@ export const SetupForm = ({
                 </p>
               )}
             </section>
-
-            <section className="grid gap-y-3 border-t border-grey-100 pt-4">
-              <SectionHeader
-                title="Notifications"
-                description="Select your desired maximum notifications per day."
-              />
-
-              <InlineWarning>
-                <>
-                  Unlimited notifications are very rarely granted and will be
-                  rejected most of the time. Refer to{" "}
-                  <Link
-                    href="https://docs.world.org/mini-apps/commands/how-to-send-notifications"
-                    className="underline"
-                  >
-                    docs
-                  </Link>{" "}
-                  for guidelines.
-                </>
-              </InlineWarning>
-
-              <Controller
-                name="max_notifications_per_day"
-                control={control}
-                render={({ field }) => {
-                  return (
-                    <div className="flex items-center gap-x-8">
-                      {maxNotificationPerDayOptions.map((option) => {
-                        const isSelected = field.value === option;
-
-                        return (
-                          <label
-                            key={String(option)}
-                            className={clsx(
-                              "flex items-center gap-x-4",
-                              canEdit ? "cursor-pointer" : "cursor-not-allowed",
-                            )}
-                          >
-                            <button
-                              type="button"
-                              disabled={!canEdit}
-                              onClick={() => field.onChange(option)}
-                              className={clsx(
-                                "flex size-5 items-center justify-center rounded-full border-[1.25px]",
-                                isSelected
-                                  ? "border-grey-900 bg-grey-900 text-grey-0"
-                                  : "border-grey-200 bg-transparent",
-                              )}
-                              aria-pressed={isSelected}
-                              aria-label={`Set notifications per day to ${option === "unlimited" ? "Unlimited" : option}`}
-                            >
-                              {isSelected && (
-                                <CheckIcon size="16" className="size-[13px]" />
-                              )}
-                            </button>
-                            <Typography
-                              variant={TYPOGRAPHY.S2}
-                              className="text-grey-900"
-                            >
-                              {option === "unlimited" ? "Unlimited" : option}
-                            </Typography>
-                          </label>
-                        );
-                      })}
-                    </div>
-                  );
-                }}
-              />
-            </section>
           </div>
         </div>
 
-        <aside className="w-full shrink-0 lg:sticky lg:top-8 lg:w-[340px] xl:w-[380px]">
+        <aside className="grid w-full shrink-0 gap-y-4 lg:sticky lg:top-8 lg:w-[340px] xl:w-[380px]">
           <MiniAppPreviewCard appId={appId} appMetadata={appMetadata} />
+          <NotificationLimitCard control={control} disabled={!canEdit} />
         </aside>
       </div>
 
