@@ -137,10 +137,10 @@ export const TeamsSearch = ({ value }: TeamsSearchProps) => {
       className="relative h-9 w-full min-w-0"
       style={{ anchorName } as AnchorStyle}
     >
-      <Search className="pointer-events-none absolute left-3 top-1/2 z-20 size-4 -translate-y-1/2 text-grey-400" />
+      <Search className="pointer-events-none absolute top-1/2 left-3 z-20 size-4 -translate-y-1/2 text-grey-400" />
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0 z-10 flex min-w-0 items-center overflow-hidden rounded-12 border border-grey-200 bg-grey-0 py-0 pl-9 pr-3 text-14 font-medium"
+        className="pointer-events-none absolute inset-0 z-10 flex min-w-0 items-center overflow-hidden rounded-12 border border-grey-200 bg-grey-0 py-0 pr-3 pl-9 text-14 font-medium"
       >
         {searchValue ? (
           <div
@@ -177,7 +177,7 @@ export const TeamsSearch = ({ value }: TeamsSearchProps) => {
         aria-controls={popoverId}
         aria-label="Search teams"
         aria-haspopup="listbox"
-        className="relative z-20 size-full rounded-12 border border-transparent bg-transparent py-0 pl-9 pr-3 text-14 font-medium text-transparent caret-grey-900 outline-none transition-colors selection:bg-blue-150/60 placeholder:text-transparent focus-visible:ring-2 focus-visible:ring-blue-500"
+        className="relative z-20 size-full rounded-12 border border-transparent bg-transparent py-0 pr-3 pl-9 text-14 font-medium text-transparent caret-grey-900 transition-colors outline-none selection:bg-blue-150/60 placeholder:text-transparent focus-visible:ring-2 focus-visible:ring-blue-500"
         enterKeyHint="search"
         onBlur={hideSuggestions}
         onChange={(event) => setSearchValue(event.target.value)}
@@ -195,7 +195,7 @@ export const TeamsSearch = ({ value }: TeamsSearchProps) => {
       />
 
       <div
-        className="fixed inset-auto m-0 mt-1 w-96 rounded-12 border border-grey-200 bg-grey-0 p-1 shadow-lg [left:anchor(left)] [top:anchor(bottom)] backdrop:bg-transparent"
+        className="fixed inset-auto [top:anchor(bottom)] [left:anchor(left)] m-0 mt-1 w-96 rounded-12 border border-grey-200 bg-grey-0 p-1 shadow-lg backdrop:bg-transparent"
         id={popoverId}
         popover="manual"
         ref={popoverRef}
@@ -203,7 +203,7 @@ export const TeamsSearch = ({ value }: TeamsSearchProps) => {
         style={{ positionAnchor: anchorName } as AnchorStyle}
       >
         <div className="grid gap-0.5">
-          <div className="px-2.5 py-2 text-12 font-medium uppercase tracking-wide text-grey-400">
+          <div className="px-2.5 py-2 text-12 font-medium tracking-wide text-grey-400 uppercase">
             Search fields
           </div>
 
@@ -213,7 +213,7 @@ export const TeamsSearch = ({ value }: TeamsSearchProps) => {
 
             return (
               <button
-                className="grid grid-cols-[5rem_1fr] items-start gap-3 rounded-8 px-2.5 py-2 text-left outline-none transition-colors hover:bg-grey-100 focus-visible:ring-2 focus-visible:ring-blue-500"
+                className="grid grid-cols-[5rem_1fr] items-start gap-3 rounded-8 px-2.5 py-2 text-left transition-colors outline-none hover:bg-grey-100 focus-visible:ring-2 focus-visible:ring-blue-500"
                 key={field.field}
                 onMouseDown={(event) => event.preventDefault()}
                 onClick={() => insertSnippet(snippet)}

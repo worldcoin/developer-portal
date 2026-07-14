@@ -7,7 +7,7 @@ export const TeamMetric = ({ label, value }: TeamMetricProps) => {
   return (
     <div className="min-w-0 rounded-12 bg-grey-50 p-2.5 min-[360px]:p-3">
       <dt
-        className="truncate text-12 font-medium uppercase tracking-wide text-grey-400"
+        className="truncate text-12 font-medium tracking-wide text-grey-400 uppercase"
         title={label}
       >
         {label}

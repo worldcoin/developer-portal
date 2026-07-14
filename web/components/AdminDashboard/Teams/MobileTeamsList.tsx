@@ -79,7 +79,7 @@ export const MobileTeamsList = ({
 
             {columnVisibility.createdAt && team.createdAt && (
               <dl className="mt-3 grid min-w-0 gap-y-1.5 min-[360px]:mt-4 min-[360px]:gap-y-2">
-                <dt className="text-12 font-medium uppercase tracking-wide text-grey-400">
+                <dt className="text-12 font-medium tracking-wide text-grey-400 uppercase">
                   Created
                 </dt>
                 <dd className="truncate text-14 text-grey-700">

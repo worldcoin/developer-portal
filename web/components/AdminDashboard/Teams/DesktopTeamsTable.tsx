@@ -61,7 +61,7 @@ export const DesktopTeamsTable = ({
   return (
     <div
       aria-label="Scrollable teams table"
-      className="no-scrollbar hidden size-full min-w-0 overflow-auto overscroll-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 lg:block"
+      className="no-scrollbar hidden size-full min-w-0 overflow-auto overscroll-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none lg:block"
       role="region"
       tabIndex={0}
     >
@@ -73,7 +73,7 @@ export const DesktopTeamsTable = ({
           Teams table with status, member count, app count, pending invites,
           active API keys, and creation date.
         </caption>
-        <thead className="text-12 font-medium uppercase tracking-wide text-grey-400">
+        <thead className="text-12 font-medium tracking-wide text-grey-400 uppercase">
           {table.getHeaderGroups().map((headerGroup) => (
             <tr key={headerGroup.id}>
               {headerGroup.headers.map((header) => (
@@ -183,7 +183,7 @@ const SortableHeaderButton = ({
   return (
     <button
       className={clsx(
-        "inline-flex max-w-full items-center gap-1.5 rounded-8 text-left outline-none transition-colors hover:text-grey-900 focus-visible:ring-2 focus-visible:ring-blue-500",
+        "inline-flex max-w-full items-center gap-1.5 rounded-8 text-left transition-colors outline-none hover:text-grey-900 focus-visible:ring-2 focus-visible:ring-blue-500",
         isNumeric && "ml-auto",
         isSorted ? "text-grey-900" : "text-grey-400",
       )}
@@ -256,7 +256,7 @@ const ResizeHandle = ({ header }: ResizeHandleProps) => {
         onDoubleClick={() => header.column.resetSize()}
         tabIndex={0}
         className={clsx(
-          "absolute right-0 top-0 h-full w-1 cursor-col-resize touch-none select-none focus-visible:w-2 focus-visible:bg-blue-500 focus-visible:outline-none",
+          "absolute top-0 right-0 h-full w-1 cursor-col-resize touch-none select-none focus-visible:w-2 focus-visible:bg-blue-500 focus-visible:outline-none",
           getResizeHandleClassName(header.column.getIsResizing()),
         )}
       />

@@ -96,7 +96,7 @@ export const AdminTeamsPage = async ({
           </div>
 
           <div className="rounded-12 border border-grey-200 bg-grey-50 px-3 py-2">
-            <div className="text-11 font-medium uppercase tracking-wide text-grey-400">
+            <div className="text-11 font-medium tracking-wide text-grey-400 uppercase">
               Total teams
             </div>
             <div className="mt-1 text-20 font-semibold text-grey-900">

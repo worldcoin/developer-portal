@@ -156,7 +156,7 @@ export const TeamsPagination = ({
       aria-label="Teams table pagination"
       className="inline-grid grid-cols-[5.5rem_repeat(2,2.25rem)] items-center gap-2 justify-self-start text-12 text-grey-500 sm:grid-cols-[auto_5.5rem_repeat(2,2.25rem)] lg:grid-cols-[7rem_6rem_repeat(9,2.25rem)] lg:justify-end"
     >
-      <div className="col-span-full whitespace-nowrap text-left sm:col-auto lg:text-right">
+      <div className="col-span-full text-left whitespace-nowrap sm:col-auto lg:text-right">
         {range.from}-{range.to} of {teamsAmount}
       </div>
 
@@ -165,7 +165,7 @@ export const TeamsPagination = ({
           Go to page
         </label>
         <input
-          className="h-9 w-full rounded-12 border border-grey-200 bg-grey-0 py-0 pl-3 pr-9 text-left font-medium text-grey-700 outline-none transition-colors placeholder:text-grey-400 focus-visible:ring-2 focus-visible:ring-blue-500"
+          className="h-9 w-full rounded-12 border border-grey-200 bg-grey-0 py-0 pr-9 pl-3 text-left font-medium text-grey-700 transition-colors outline-none placeholder:text-grey-400 focus-visible:ring-2 focus-visible:ring-blue-500"
           id="teams-page-jump"
           inputMode="numeric"
           max={totalPages}
@@ -181,7 +181,7 @@ export const TeamsPagination = ({
         />
         <button
           aria-label="Go to page"
-          className="absolute right-1 top-1/2 grid size-7 -translate-y-1/2 place-items-center rounded-8 bg-grey-100 text-grey-500 outline-none transition-colors hover:bg-grey-200 hover:text-grey-900 focus-visible:ring-2 focus-visible:ring-blue-500"
+          className="absolute top-1/2 right-1 grid size-7 -translate-y-1/2 place-items-center rounded-8 bg-grey-100 text-grey-500 transition-colors outline-none hover:bg-grey-200 hover:text-grey-900 focus-visible:ring-2 focus-visible:ring-blue-500"
           type="submit"
         >
           <ChevronRight className="size-4" />
@@ -269,9 +269,9 @@ const PaginationButton = ({
       aria-label={ariaLabel}
       className={clsx(
         isHiddenOnMobile ? "hidden lg:grid" : "grid",
-        "size-9 place-items-center rounded-12 border font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-40",
+        "size-9 place-items-center rounded-12 border font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-40",
         isActive
-          ? "border-grey-300 bg-grey-100 text-grey-900 shadow-button ring-1 ring-inset ring-grey-300 hover:bg-grey-100 hover:text-grey-900"
+          ? "border-grey-300 bg-grey-100 text-grey-900 shadow-button ring-1 ring-grey-300 ring-inset hover:bg-grey-100 hover:text-grey-900"
           : "border-grey-200 bg-grey-0 text-grey-500 hover:bg-grey-100 hover:text-grey-900",
       )}
       disabled={disabled}

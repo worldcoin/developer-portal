@@ -44,7 +44,7 @@ export const LimitSelector = ({ className, value }: LimitSelectorProps) => {
   return (
     <div className={clsx("flex items-center gap-2", className)}>
       <span
-        className="text-12 font-medium uppercase tracking-wide text-grey-400"
+        className="text-12 font-medium tracking-wide text-grey-400 uppercase"
         id={labelId}
       >
         Limit
@@ -53,7 +53,7 @@ export const LimitSelector = ({ className, value }: LimitSelectorProps) => {
       <button
         aria-controls={popoverId}
         aria-haspopup="listbox"
-        className="inline-flex h-9 items-center gap-2 rounded-12 border border-grey-200 bg-grey-0 px-3 text-14 font-medium text-grey-900 outline-none transition-colors hover:bg-grey-100 focus-visible:ring-2 focus-visible:ring-blue-500"
+        className="inline-flex h-9 items-center gap-2 rounded-12 border border-grey-200 bg-grey-0 px-3 text-14 font-medium text-grey-900 transition-colors outline-none hover:bg-grey-100 focus-visible:ring-2 focus-visible:ring-blue-500"
         popoverTarget={popoverId}
         style={{ anchorName } as AnchorStyle}
         type="button"
@@ -63,7 +63,7 @@ export const LimitSelector = ({ className, value }: LimitSelectorProps) => {
       </button>
 
       <div
-        className="fixed inset-auto m-0 mt-1 min-w-28 rounded-12 border border-grey-200 bg-grey-0 p-1 shadow-lg [left:anchor(left)] [top:anchor(bottom)] backdrop:bg-transparent"
+        className="fixed inset-auto [top:anchor(bottom)] [left:anchor(left)] m-0 mt-1 min-w-28 rounded-12 border border-grey-200 bg-grey-0 p-1 shadow-lg backdrop:bg-transparent"
         id={popoverId}
         popover="auto"
         ref={popoverRef}
@@ -77,7 +77,7 @@ export const LimitSelector = ({ className, value }: LimitSelectorProps) => {
               <button
                 aria-selected={isSelected}
                 className={clsx(
-                  "grid grid-cols-[1rem_1fr] items-center gap-2 rounded-8 px-2.5 py-2 text-left text-14 outline-none transition-colors hover:bg-grey-100 focus-visible:ring-2 focus-visible:ring-blue-500",
+                  "grid grid-cols-[1rem_1fr] items-center gap-2 rounded-8 px-2.5 py-2 text-left text-14 transition-colors outline-none hover:bg-grey-100 focus-visible:ring-2 focus-visible:ring-blue-500",
                   isSelected ? "text-grey-900" : "text-grey-500",
                 )}
                 key={option}

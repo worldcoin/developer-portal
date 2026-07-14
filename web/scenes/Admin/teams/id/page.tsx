@@ -10,7 +10,7 @@ export const AdminTeamPage = ({ teamId }: AdminTeamPageProps) => {
       <UIModule className="p-5">
         <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-start">
           <div className="min-w-0">
-            <div className="mb-2 text-12 font-medium uppercase tracking-wide text-grey-400">
+            <div className="mb-2 text-12 font-medium tracking-wide text-grey-400 uppercase">
               Admin / Teams
             </div>
             <h1 className="text-24 font-semibold tracking-[-0.02em] text-grey-900">
@@ -22,7 +22,7 @@ export const AdminTeamPage = ({ teamId }: AdminTeamPageProps) => {
           </div>
 
           <div className="min-w-0 rounded-12 border border-grey-200 bg-grey-50 px-3 py-2">
-            <div className="text-11 font-medium uppercase tracking-wide text-grey-400">
+            <div className="text-11 font-medium tracking-wide text-grey-400 uppercase">
               Team ID
             </div>
             <div className="mt-1 truncate font-mono text-13 font-medium text-grey-900">
