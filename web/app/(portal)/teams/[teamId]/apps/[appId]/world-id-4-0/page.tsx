@@ -14,8 +14,6 @@ export default async function Page(props: Props) {
   return pickPortalVersion(
     () =>
       redirect(
-        // The explicit tab wins over any incoming ?tab — appendSearchParams
-        // gives params already in the path precedence.
         appendSearchParams(
           urls.worldId({
             team_id: params.teamId,

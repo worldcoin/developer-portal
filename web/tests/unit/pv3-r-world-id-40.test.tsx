@@ -12,8 +12,6 @@ jest.mock("next/navigation", () => ({
   redirect: (...args: unknown[]) => redirect(...args),
 }));
 
-// @/lib/urls is intentionally NOT mocked — the redirect target shape
-// (urls.worldId + appendSearchParams) is what's under test.
 jest.mock("@/scenes/Portal/Teams/TeamId/Apps/AppId/WorldId40/page", () => ({
   WorldId40Page: () => <div data-testid="v2-world-id-40" />,
 }));
@@ -32,8 +30,6 @@ it("redirects v3 users to the World ID landing with the 4.0 tab open", async () 
     "/teams/team_1/apps/app_1/world-id?tab=world-id-4-0",
   );
 
-  // Forwards the caller's query string; the explicit 4.0 tab wins over any
-  // incoming ?tab.
   await RoutePage(props({ tab: "overridden", createAction: "true" }));
   expect(redirect).toHaveBeenCalledWith(
     "/teams/team_1/apps/app_1/world-id?tab=world-id-4-0&createAction=true",

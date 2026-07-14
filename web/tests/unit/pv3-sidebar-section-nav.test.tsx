@@ -61,9 +61,7 @@ beforeEach(() => {
   usePathname.mockReturnValue(base);
 });
 
-// World ID replaces the old Dashboard as the first item and the app landing.
-// Mini App exposes its three durable child routes under the parent entry while
-// leaving the rest of the app navigation in place.
+// Mini App keeps its durable child routes.
 // #region navigation hierarchy
 describe("v3 SidebarNav [navigation hierarchy]", () => {
   it("leads with World ID (no Dashboard) and keeps Mini App children collapsed", () => {
@@ -155,8 +153,6 @@ describe("v3 SidebarNav [World ID href]", () => {
   });
 
   it("routes World ID to /world-id regardless of app-env flags", () => {
-    // The href no longer branches on RP-registration / legacy-actions flags; the
-    // /world-id page resolves which pane to show. Stale flags must not matter.
     renderSidebar({
       appId: "app_other",
       hasRpRegistration: false,
@@ -170,9 +166,6 @@ describe("v3 SidebarNav [World ID href]", () => {
 // #region no app selected
 describe("v3 SidebarNav [no app selected]", () => {
   beforeEach(() => {
-    // Team chosen but no app yet: the World ID item points at the apps list,
-    // which renders the "Welcome to World ID" page, and the app-scoped items
-    // (Configuration / Mini App) are hidden.
     useParams.mockReturnValue({ teamId });
     useCurrentAppId.mockReturnValue(undefined);
     usePathname.mockReturnValue(`/teams/${teamId}/apps`);
@@ -192,13 +185,10 @@ describe("v3 SidebarNav [no app selected]", () => {
 });
 // #endregion
 
-// Team-less pages (e.g. /profile) carry no teamId in the URL. Team-scoped links
-// must still go somewhere real — the /teams landing route, which resolves the
-// user's team server-side — instead of a dead "#".
+// Team-less links fall back to /teams.
 // #region team-less pages
 describe("v3 SidebarNav [team-less pages]", () => {
   beforeEach(() => {
-    // /profile: no teamId/appId anywhere in the URL, no app context.
     useParams.mockReturnValue({});
     useCurrentAppId.mockReturnValue(undefined);
     usePathname.mockReturnValue("/profile");
@@ -207,7 +197,6 @@ describe("v3 SidebarNav [team-less pages]", () => {
   it("routes World ID to the /teams landing when the route has no teamId", () => {
     renderSidebar();
     expect(link("World ID")).toHaveAttribute("href", "/teams");
-    // ...but it is not the current page while we are on /profile.
     expect(isCurrent("World ID")).toBe(false);
   });
 

@@ -1,11 +1,4 @@
-# Feeds the World ID landing page (hero stats + sparkline, actions grid) and the
-# World ID 4.0 pane. Each stored nullifier represents one unique verification
-# for a specific (human, RP, action) context. Repeated proofs for that context
-# do not add another row, while different actions intentionally produce
-# unlinkable nullifiers. The b0..b6 aliases are per-day buckets (7 days) whose
-# bounds ($d0..$d7) are local-midnight boundaries from `weekBucketBounds`; the
-# hero sparkline and unique-verification total are summed across actions (same
-# filters; every nullifier row belongs to exactly one action).
+# One nullifier row is one unique verification for its action.
 query GetWorldIdOverview(
   $app_id: String!
   $d0: timestamptz!
@@ -61,9 +54,7 @@ query GetWorldIdOverview(
     ...WorldIdActionTrendBuckets
   }
 
-  # Presence of a legacy (World ID 3.0) action drives the optional
-  # "World ID 3.0 Legacy" switcher tab. Exclude the auto-created Sign in with
-  # World ID action (action = "").
+  # Show the legacy tab only when a non-sign-in v3 action exists.
   action(where: { app_id: { _eq: $app_id }, action: { _neq: "" } }, limit: 1) {
     id
   }

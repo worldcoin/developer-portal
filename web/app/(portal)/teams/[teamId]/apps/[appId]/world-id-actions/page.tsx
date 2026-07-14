@@ -12,8 +12,6 @@ export default async function Page(props: {
   const params = await props.params;
   const searchParams = await props.searchParams;
 
-  // Preserve deep-link params through the v3 redirect (?createAction=true is
-  // honored by the /world-id landing).
   const target = appendSearchParams(
     urls.worldId({ team_id: params.teamId, app_id: params.appId }),
     searchParams,

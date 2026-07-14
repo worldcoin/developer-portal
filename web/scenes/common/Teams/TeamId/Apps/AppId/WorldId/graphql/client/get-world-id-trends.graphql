@@ -1,6 +1,4 @@
-# Period-specific sparkline data. These operations are separate from the main
-# landing/detail queries so selecting All time does not change action-card
-# charts, weekly stats, or the live verification feed.
+# Kept separate so all-time trends do not alter weekly cards or live feeds.
 query GetWorldIdAppTrend(
   $app_id: String!
   $d0: timestamptz!

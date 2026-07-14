@@ -65,7 +65,6 @@ const enableFlowUrl = `/teams/${teamId}/apps/${appId}?enableWorldId4=true`;
 
 beforeEach(() => {
   jest.clearAllMocks();
-  // Default: drive the v3 branch; individual tests opt into v2.
   pickPortalVersion.mockImplementation(async (v3: () => unknown) => v3());
 });
 
@@ -90,9 +89,6 @@ describe("world-id-4-0 layout [setup behind the tab]", () => {
 // #endregion
 
 // #region world-id-actions layout (RP guard now v2-only)
-// v3 folds World ID actions into /world-id (the routes under this layout redirect
-// there and /world-id owns the no-RP register state), so the v3 branch is a bare
-// pass-through. The "register an RP first" guard stays on the v2 branch.
 describe("world-id-actions layout [RP guard moved to v2]", () => {
   it("passes through without redirecting for v3", async () => {
     withAppEnv({ rpRegistrations: [] });

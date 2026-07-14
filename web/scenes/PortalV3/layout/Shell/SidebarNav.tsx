@@ -20,10 +20,6 @@ type AppEnvFlags = {
 
 const appEnvFlagsAtom = atom<AppEnvFlags | undefined>(undefined);
 
-/**
- * Rendered by the (server) v3 AppIdLayout to publish app-env flags to the
- * sidebar. Renders nothing.
- */
 export const AppEnvFlagsSync = (props: AppEnvFlags) => {
   const { appId, hasRpRegistration, hasLegacyActions } = props;
   const setFlags = useSetAtom(appEnvFlagsAtom);
@@ -35,7 +31,6 @@ export const AppEnvFlagsSync = (props: AppEnvFlags) => {
   return null;
 };
 
-// Nav icons ship as `<name>.svg` (inactive) + `<name>-active.svg` (active).
 const NavIcon = (props: { name: string; active?: boolean }) => (
   <Icon
     name={props.active ? `${props.name}-active` : props.name}
@@ -50,11 +45,6 @@ export const SidebarNav = () => {
   const routeAppId = params?.appId;
   const appId = useCurrentAppId();
 
-  // Team-less pages (e.g. /profile) carry no teamId in the URL, so team-scoped
-  // links can't be built directly. Rather than pick a team here, fall back to
-  // the /teams landing route, which resolves the user's team server-side — the
-  // same way login does (and it also handles the no-teams / broken-session
-  // cases). urls.teams({}) === "/teams".
   const teamsLandingHref = urls.teams({});
 
   const appsListHref = teamId
@@ -65,9 +55,6 @@ export const SidebarNav = () => {
 
   const ids = teamId && appId ? { team_id: teamId, app_id: appId } : undefined;
 
-  // World ID replaces the old Dashboard as the app landing. Team-less pages fall
-  // back to the /teams landing (which renders the no-app "Welcome to World ID"
-  // page), same as the old Dashboard item did.
   const worldIdHref = ids ? urls.worldId(ids) : appsListHref;
 
   const configurationHref = ids ? urls.configuration(ids) : appsListHref;
@@ -84,9 +71,6 @@ export const SidebarNav = () => {
     return rel === prefix || rel.startsWith(`${prefix}/`);
   };
 
-  // World ID is the app landing (the old Dashboard route now redirects here), so
-  // it is active on the apps list, the app base, and every World ID surface
-  // (new /world-id, plus the legacy 4.0 / actions routes that redirect in).
   const worldIdActive =
     pathname === appsListHref ||
     (Boolean(appBase) && pathname === appBase) ||

@@ -18,9 +18,6 @@ export default async function Page(props: Props) {
   const params = await props.params;
   const searchParams = await props.searchParams;
 
-  // v3 folds the app dashboard into the World ID landing. Preserve any query
-  // string so deep links (?enableWorldId4=true, ?createAction=true) survive the
-  // redirect.
   const target = appendSearchParams(
     urls.worldId({ team_id: params.teamId, app_id: params.appId }),
     searchParams,
