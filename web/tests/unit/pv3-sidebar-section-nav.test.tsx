@@ -1,7 +1,6 @@
 /** @jest-environment jsdom */
 import "@testing-library/jest-dom";
 import { render, screen } from "@testing-library/react";
-import { Provider } from "jotai";
 import React from "react";
 
 // #region Mocks
@@ -25,10 +24,7 @@ jest.mock("@/scenes/PortalV3/layout/Shell/AppsDropdown", () => ({
   useCurrentAppId: () => useCurrentAppId(),
 }));
 
-import {
-  AppEnvFlagsSync,
-  SidebarNav,
-} from "@/scenes/PortalV3/layout/Shell/SidebarNav";
+import { SidebarNav } from "@/scenes/PortalV3/layout/Shell/SidebarNav";
 // #endregion
 
 // #region Test Data
@@ -36,18 +32,7 @@ const teamId = "team_1";
 const appId = "app_1";
 const base = `/teams/${teamId}/apps/${appId}`;
 
-// Fresh jotai Provider per render so app-env flags never leak between tests.
-const renderSidebar = (flags?: {
-  appId: string;
-  hasRpRegistration: boolean;
-  hasLegacyActions: boolean;
-}) =>
-  render(
-    <Provider>
-      {flags ? <AppEnvFlagsSync {...flags} /> : null}
-      <SidebarNav />
-    </Provider>,
-  );
+const renderSidebar = () => render(<SidebarNav />);
 
 const link = (label: string) => screen.getByRole("link", { name: label });
 const isCurrent = (label: string) =>
@@ -61,14 +46,15 @@ beforeEach(() => {
   usePathname.mockReturnValue(base);
 });
 
-// Mini App exposes its three durable child routes under the parent entry while
-// leaving the rest of the app navigation in place.
+// Mini App keeps its durable child routes.
 // #region navigation hierarchy
 describe("v3 SidebarNav [navigation hierarchy]", () => {
-  it("keeps Mini App children collapsed outside the Mini App section", () => {
+  it("leads with World ID (no Dashboard) and keeps Mini App children collapsed", () => {
     renderSidebar();
-    expect(link("Dashboard")).toBeInTheDocument();
     expect(link("World ID")).toBeInTheDocument();
+    expect(
+      screen.queryByRole("link", { name: "Dashboard" }),
+    ).not.toBeInTheDocument();
     expect(link("Configuration")).toBeInTheDocument();
     expect(link("Mini App")).toBeInTheDocument();
     expect(
@@ -80,9 +66,9 @@ describe("v3 SidebarNav [navigation hierarchy]", () => {
     ).toBeInTheDocument();
   });
 
-  it("marks Dashboard current on the app root", () => {
+  it("marks World ID current on the app root", () => {
     renderSidebar();
-    expect(isCurrent("Dashboard")).toBe(true);
+    expect(isCurrent("World ID")).toBe(true);
   });
 });
 // #endregion
@@ -100,7 +86,7 @@ describe("v3 SidebarNav [active section]", () => {
     renderSidebar();
     expect(link("Mini App")).toHaveClass("bg-white");
     expect(isCurrent("Mini App")).toBe(false);
-    expect(link("Dashboard")).toBeInTheDocument();
+    expect(link("World ID")).toBeInTheDocument();
     expect(link("Permissions")).toHaveAttribute("aria-current", "page");
     expect(link("Transactions")).toBeInTheDocument();
     expect(link("Notifications")).toBeInTheDocument();
@@ -121,9 +107,9 @@ describe("v3 SidebarNav [active section]", () => {
     expect(isCurrent("Notifications")).toBe(true);
   });
 
-  it("marks World ID current on a world-id route with no sidebar sub-items", () => {
-    usePathname.mockReturnValue(`${base}/world-id-4-0`);
-    renderSidebar({ appId, hasRpRegistration: true, hasLegacyActions: false });
+  it("marks World ID current on the new /world-id route with no sidebar sub-items", () => {
+    usePathname.mockReturnValue(`${base}/world-id`);
+    renderSidebar();
     expect(isCurrent("World ID")).toBe(true);
     expect(
       screen.queryByRole("link", { name: "World ID 4.0" }),
@@ -132,60 +118,67 @@ describe("v3 SidebarNav [active section]", () => {
       screen.queryByRole("link", { name: "Actions" }),
     ).not.toBeInTheDocument();
   });
+
+  it("keeps World ID current on legacy World ID routes", () => {
+    for (const suffix of ["/world-id-4-0", "/world-id-actions", "/actions"]) {
+      usePathname.mockReturnValue(`${base}${suffix}`);
+      const { unmount } = renderSidebar();
+      expect(isCurrent("World ID")).toBe(true);
+      unmount();
+    }
+  });
 });
 // #endregion
 
-// Team-less pages (e.g. /profile) carry no teamId in the URL. Team-scoped links
-// must still go somewhere real — the /teams landing route, which resolves the
-// user's team server-side — instead of a dead "#".
+// #region World ID href
+describe("v3 SidebarNav [World ID href]", () => {
+  it("routes World ID to the new /world-id landing for the selected app", () => {
+    renderSidebar();
+    expect(link("World ID")).toHaveAttribute("href", `${base}/world-id`);
+  });
+});
+// #endregion
+
+// #region no app selected
+describe("v3 SidebarNav [no app selected]", () => {
+  beforeEach(() => {
+    useParams.mockReturnValue({ teamId });
+    useCurrentAppId.mockReturnValue(undefined);
+    usePathname.mockReturnValue(`/teams/${teamId}/apps`);
+  });
+
+  it("keeps World ID first, pointed at the apps list, and current there", () => {
+    renderSidebar();
+    expect(link("World ID")).toHaveAttribute("href", `/teams/${teamId}/apps`);
+    expect(isCurrent("World ID")).toBe(true);
+    expect(
+      screen.queryByRole("link", { name: "Configuration" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("link", { name: "Mini App" }),
+    ).not.toBeInTheDocument();
+  });
+});
+// #endregion
+
+// Team-less links fall back to /teams.
 // #region team-less pages
 describe("v3 SidebarNav [team-less pages]", () => {
   beforeEach(() => {
-    // /profile: no teamId/appId anywhere in the URL, no app context.
     useParams.mockReturnValue({});
     useCurrentAppId.mockReturnValue(undefined);
     usePathname.mockReturnValue("/profile");
   });
 
-  it("routes Dashboard to the /teams landing when the route has no teamId", () => {
+  it("routes World ID to the /teams landing when the route has no teamId", () => {
     renderSidebar();
-    expect(link("Dashboard")).toHaveAttribute("href", "/teams");
-    // ...but it is not the current page while we are on /profile.
-    expect(isCurrent("Dashboard")).toBe(false);
+    expect(link("World ID")).toHaveAttribute("href", "/teams");
+    expect(isCurrent("World ID")).toBe(false);
   });
 
   it("routes Team settings to the /teams landing rather than a dead link", () => {
     renderSidebar();
     expect(link("Team settings")).toHaveAttribute("href", "/teams");
-  });
-});
-// #endregion
-
-// #region World ID href routing
-describe("v3 SidebarNav [World ID routing]", () => {
-  it("routes World ID to /world-id-4-0 for an app with an RP registration", () => {
-    renderSidebar({ appId, hasRpRegistration: true, hasLegacyActions: false });
-    expect(link("World ID")).toHaveAttribute("href", `${base}/world-id-4-0`);
-  });
-
-  it("routes World ID to /actions for a legacy-actions-only app (no RP registration)", () => {
-    renderSidebar({ appId, hasRpRegistration: false, hasLegacyActions: true });
-    expect(link("World ID")).toHaveAttribute("href", `${base}/actions`);
-  });
-
-  it("defaults World ID to /world-id-4-0 before any flags sync", () => {
-    renderSidebar();
-    expect(link("World ID")).toHaveAttribute("href", `${base}/world-id-4-0`);
-  });
-
-  it("ignores flags published for a different app", () => {
-    renderSidebar({
-      appId: "app_other",
-      hasRpRegistration: false,
-      hasLegacyActions: true,
-    });
-    // Stale flags from another app must not change this app's World ID href.
-    expect(link("World ID")).toHaveAttribute("href", `${base}/world-id-4-0`);
   });
 });
 // #endregion
