@@ -59,9 +59,9 @@ const truncateAddress = (address: string) =>
 const splitList = (value?: string | null): string[] =>
   value
     ? value
-      .split(",")
-      .map((entry) => entry.trim())
-      .filter(Boolean)
+        .split(",")
+        .map((entry) => entry.trim())
+        .filter(Boolean)
     : [];
 
 const joinList = (values: string[]): string | null =>
