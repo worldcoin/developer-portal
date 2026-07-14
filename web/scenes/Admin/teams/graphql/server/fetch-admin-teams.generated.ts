@@ -9,7 +9,6 @@ export type FetchAdminTeamsQueryVariables = Types.Exact<{
   includeAppsCount: Types.Scalars["Boolean"]["input"];
   includeCreatedAt: Types.Scalars["Boolean"]["input"];
   includeMembersCount: Types.Scalars["Boolean"]["input"];
-  includePendingInvitesCount: Types.Scalars["Boolean"]["input"];
   includeStatus: Types.Scalars["Boolean"]["input"];
   limit: Types.Scalars["Int"]["input"];
   offset: Types.Scalars["Int"]["input"];
@@ -25,18 +24,40 @@ export type FetchAdminTeamsQuery = {
     name?: string | null;
     created_at?: string;
     deleted_at?: string | null;
+    memberships_aggregate?: {
+      __typename?: "membership_aggregate";
+      aggregate?: {
+        __typename?: "membership_aggregate_fields";
+        count: number;
+      } | null;
+    };
+    apps_aggregate?: {
+      __typename?: "app_aggregate";
+      aggregate?: { __typename?: "app_aggregate_fields"; count: number } | null;
+    };
+    api_keys_aggregate?: {
+      __typename?: "api_key_aggregate";
+      aggregate?: {
+        __typename?: "api_key_aggregate_fields";
+        count: number;
+      } | null;
+    };
   }>;
   team_aggregate: {
     __typename?: "team_aggregate";
-    aggregate?: {
-      __typename?: "team_aggregate_fields";
-      count: number;
-    } | null;
+    aggregate?: { __typename?: "team_aggregate_fields"; count: number } | null;
   };
-  membership?: Array<{ __typename?: "membership"; team_id: string }>;
-  app?: Array<{ __typename?: "app"; team_id: string }>;
-  api_key?: Array<{ __typename?: "api_key"; team_id: string }>;
-  invite?: Array<{ __typename?: "invite"; team_id: string }>;
+};
+
+export type FetchAdminTeamPendingInvitesQueryVariables = Types.Exact<{
+  teamIds:
+    | Array<Types.Scalars["String"]["input"]>
+    | Types.Scalars["String"]["input"];
+}>;
+
+export type FetchAdminTeamPendingInvitesQuery = {
+  __typename?: "query_root";
+  invite: Array<{ __typename?: "invite"; team_id: string }>;
 };
 
 export const FetchAdminTeamsDocument = gql`
@@ -45,7 +66,6 @@ export const FetchAdminTeamsDocument = gql`
     $includeAppsCount: Boolean!
     $includeCreatedAt: Boolean!
     $includeMembersCount: Boolean!
-    $includePendingInvitesCount: Boolean!
     $includeStatus: Boolean!
     $limit: Int!
     $offset: Int!
@@ -57,25 +77,36 @@ export const FetchAdminTeamsDocument = gql`
       name
       created_at @include(if: $includeCreatedAt)
       deleted_at @include(if: $includeStatus)
+      memberships_aggregate @include(if: $includeMembersCount) {
+        aggregate {
+          count
+        }
+      }
+      apps_aggregate(where: { deleted_at: { _is_null: true } })
+        @include(if: $includeAppsCount) {
+        aggregate {
+          count
+        }
+      }
+      api_keys_aggregate(where: { is_active: { _eq: true } })
+        @include(if: $includeActiveApiKeysCount) {
+        aggregate {
+          count
+        }
+      }
     }
     team_aggregate(where: $where) {
       aggregate {
         count
       }
     }
-    membership @include(if: $includeMembersCount) {
-      team_id
-    }
-    app(where: { deleted_at: { _is_null: true } })
-      @include(if: $includeAppsCount) {
-      team_id
-    }
-    api_key(where: { is_active: { _eq: true } })
-      @include(if: $includeActiveApiKeysCount) {
-      team_id
-    }
-    invite(where: { expires_at: { _gte: "now()" } })
-      @include(if: $includePendingInvitesCount) {
+  }
+`;
+export const FetchAdminTeamPendingInvitesDocument = gql`
+  query FetchAdminTeamPendingInvites($teamIds: [String!]!) {
+    invite(
+      where: { expires_at: { _gte: "now()" }, team_id: { _in: $teamIds } }
+    ) {
       team_id
     }
   }
@@ -101,7 +132,7 @@ export function getSdk(
 ) {
   return {
     FetchAdminTeams(
-      variables?: FetchAdminTeamsQueryVariables,
+      variables: FetchAdminTeamsQueryVariables,
       requestHeaders?: GraphQLClientRequestHeaders,
     ): Promise<FetchAdminTeamsQuery> {
       return withWrapper(
@@ -112,6 +143,22 @@ export function getSdk(
             { ...requestHeaders, ...wrappedRequestHeaders },
           ),
         "FetchAdminTeams",
+        "query",
+        variables,
+      );
+    },
+    FetchAdminTeamPendingInvites(
+      variables: FetchAdminTeamPendingInvitesQueryVariables,
+      requestHeaders?: GraphQLClientRequestHeaders,
+    ): Promise<FetchAdminTeamPendingInvitesQuery> {
+      return withWrapper(
+        (wrappedRequestHeaders) =>
+          client.request<FetchAdminTeamPendingInvitesQuery>(
+            FetchAdminTeamPendingInvitesDocument,
+            variables,
+            { ...requestHeaders, ...wrappedRequestHeaders },
+          ),
+        "FetchAdminTeamPendingInvites",
         "query",
         variables,
       );
