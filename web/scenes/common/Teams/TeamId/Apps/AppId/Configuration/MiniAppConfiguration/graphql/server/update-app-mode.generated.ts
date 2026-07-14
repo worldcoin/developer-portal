@@ -7,6 +7,7 @@ type GraphQLClientRequestHeaders = RequestOptions["requestHeaders"];
 export type UpdateAppModeMutationVariables = Types.Exact<{
   app_metadata_id: Types.Scalars["String"]["input"];
   app_mode: Types.Scalars["String"]["input"];
+  clear_external_category?: Types.InputMaybe<Types.Scalars["Boolean"]["input"]>;
 }>;
 
 export type UpdateAppModeMutation = {
@@ -15,15 +16,29 @@ export type UpdateAppModeMutation = {
     __typename?: "app_metadata";
     id: string;
   } | null;
+  cleared_external_category?: {
+    __typename?: "app_metadata_mutation_response";
+    affected_rows: number;
+  } | null;
 };
 
 export const UpdateAppModeDocument = gql`
-  mutation UpdateAppMode($app_metadata_id: String!, $app_mode: String!) {
+  mutation UpdateAppMode(
+    $app_metadata_id: String!
+    $app_mode: String!
+    $clear_external_category: Boolean = false
+  ) {
     update_app_metadata_by_pk(
       pk_columns: { id: $app_metadata_id }
       _set: { app_mode: $app_mode }
     ) {
       id
+    }
+    cleared_external_category: update_app_metadata(
+      where: { id: { _eq: $app_metadata_id }, category: { _eq: "External" } }
+      _set: { category: "Other" }
+    ) @include(if: $clear_external_category) {
+      affected_rows
     }
   }
 `;
