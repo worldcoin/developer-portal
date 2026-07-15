@@ -90,12 +90,12 @@ beforeEach(() => {
 
 // #region Integrity bundle environment
 describe("/api/v4/verify [integrity bundle]", () => {
-  it("passes the request environment to integrity bundle verification", async () => {
+  it('treats the "sandbox" environment as "staging"', async () => {
     const req = createRequest({
       protocol_version: "4.0",
       nonce: "1",
       action: "verify",
-      environment: "staging",
+      environment: "sandbox",
       integrity_bundle: integrityBundle,
       responses: [v4Response],
     });
