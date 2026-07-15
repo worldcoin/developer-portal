@@ -4,27 +4,15 @@ import { ErrorPage } from "@/components/ErrorPage";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { urls } from "@/lib/urls";
 import {
-  GetActionVerificationsFeedQuery,
-  useGetActionVerificationsFeedQuery,
-} from "@/scenes/common/Teams/TeamId/Apps/AppId/WorldId/Actions/ActionId/page/graphql/client/get-action-verifications.generated";
-import { NetworkStatus } from "@apollo/client";
+  GetWorldIdOverviewQuery,
+  useGetWorldIdOverviewQuery,
+} from "@/scenes/common/Teams/TeamId/Apps/AppId/WorldId/page/graphql/client/get-world-id-overview.generated";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useState } from "react";
 import Skeleton from "react-loading-skeleton";
 import { SettingsCard } from "./SettingsCard";
-import { VerificationsFeed } from "./VerificationsFeed";
 
-const PAGE_SIZE = 6;
-
-type Action = GetActionVerificationsFeedQuery["action_v4"][number];
-
-type Cursor = {
-  createdAt: string;
-  id: string;
-};
-
-const cursorKey = (cursor: Cursor | null) =>
-  cursor ? `${cursor.createdAt}:${cursor.id}` : "first";
+type Action = GetWorldIdOverviewQuery["action_v4"][number];
 
 export const WorldIdActionDetailPage = (props: {
   params: Record<string, string>;
@@ -35,72 +23,14 @@ export const WorldIdActionDetailPage = (props: {
   const appId = params.appId;
   const actionId = params.actionId;
 
-  const [page, setPage] = useState(0);
-  const [cursors, setCursors] = useState<Array<Cursor | null>>([null]);
-  const [pageCache, setPageCache] = useState<Record<string, Action>>({});
   const [deleted, setDeleted] = useState(false);
-  const cursor = cursors[page] ?? null;
-  const currentCursorKey = cursorKey(cursor);
-
-  useEffect(() => {
-    setPage(0);
-    setCursors([null]);
-    setPageCache({});
-  }, [actionId, appId]);
-
-  const nullifierWhere = useMemo(
-    () =>
-      cursor
-        ? {
-            _or: [
-              { created_at: { _lt: cursor.createdAt } },
-              {
-                created_at: { _eq: cursor.createdAt },
-                id: { _lt: cursor.id },
-              },
-            ],
-          }
-        : {},
-    [cursor],
+  const { data, loading, error, refetch } = useGetWorldIdOverviewQuery({
+    variables: { app_id: appId },
+    skip: !appId,
+  });
+  const action: Action | undefined = data?.action_v4.find(
+    ({ id }) => id === actionId,
   );
-
-  const { data, loading, error, networkStatus, refetch } =
-    useGetActionVerificationsFeedQuery({
-      variables: {
-        action_id: actionId,
-        app_id: appId,
-        limit: PAGE_SIZE + 1,
-        nullifier_where: nullifierWhere,
-      },
-      skip: !actionId,
-      fetchPolicy: "cache-and-network",
-      notifyOnNetworkStatusChange: true,
-      pollInterval: page === 0 ? 5000 : 0,
-      skipPollAttempt: () => typeof document !== "undefined" && document.hidden,
-      onCompleted: (result) => {
-        const resultAction = result.action_v4[0];
-        if (!resultAction) {
-          setPageCache({});
-          return;
-        }
-        setPageCache((current) => ({
-          ...current,
-          [currentCursorKey]: resultAction,
-        }));
-      },
-    });
-
-  const queriedAction = data?.action_v4?.[0];
-  const cachedPageAction = pageCache[currentCursorKey];
-  const actionForPage =
-    networkStatus !== NetworkStatus.setVariables &&
-    queriedAction?.id === actionId
-      ? queriedAction
-      : cachedPageAction?.id === actionId
-        ? cachedPageAction
-        : undefined;
-  const action =
-    actionForPage ?? Object.values(pageCache).find(({ id }) => id === actionId);
 
   if (error && !action) {
     return (
@@ -117,23 +47,6 @@ export const WorldIdActionDetailPage = (props: {
       </SizingWrapper>
     );
   }
-
-  const nullifiers = actionForPage?.nullifiers.slice(0, PAGE_SIZE) ?? [];
-  const hasNextPage = (actionForPage?.nullifiers.length ?? 0) > PAGE_SIZE;
-
-  const handleNextPage = () => {
-    const lastNullifier = nullifiers.at(-1);
-    if (!hasNextPage || !lastNullifier) {
-      return;
-    }
-
-    const nextCursor = {
-      createdAt: lastNullifier.created_at,
-      id: lastNullifier.id,
-    };
-    setCursors((current) => [...current.slice(0, page + 1), nextCursor]);
-    setPage((current) => current + 1);
-  };
 
   return (
     <SizingWrapper gridClassName="pb-6 pt-6 md:pb-10">
@@ -171,34 +84,6 @@ export const WorldIdActionDetailPage = (props: {
             </div>
           )}
         </div>
-
-        {!actionForPage ? (
-          loading || networkStatus === NetworkStatus.setVariables ? (
-            <div className="rounded-16 border border-portal-border bg-white p-4 shadow-portal-card">
-              <Skeleton height={40} count={6} />
-            </div>
-          ) : (
-            <div className="rounded-16 border border-portal-border bg-white px-4 py-12 text-center font-world text-13 text-portal-muted shadow-portal-card">
-              Failed to load verifications.{" "}
-              <button
-                type="button"
-                className="font-medium text-portal-heading underline"
-                onClick={() => void refetch()}
-              >
-                Retry
-              </button>
-            </div>
-          )
-        ) : (
-          <VerificationsFeed
-            nullifiers={nullifiers}
-            page={page + 1}
-            hasPreviousPage={page > 0}
-            hasNextPage={hasNextPage}
-            onPreviousPage={() => setPage((current) => current - 1)}
-            onNextPage={handleNextPage}
-          />
-        )}
 
         {action && canDelete ? (
           <SettingsCard

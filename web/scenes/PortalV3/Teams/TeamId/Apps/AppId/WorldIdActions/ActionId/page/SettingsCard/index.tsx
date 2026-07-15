@@ -5,13 +5,13 @@ import { urls } from "@/lib/urls";
 import { Icon } from "@/scenes/PortalV3/common/Icon";
 import { deleteActionV4ServerSide } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldIdActions/ActionId/Danger/page/server";
 import { UpdateActionV4Form } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldIdActions/ActionId/Settings/UpdateActionV4Form";
-import { GetActionVerificationsFeedQuery } from "@/scenes/common/Teams/TeamId/Apps/AppId/WorldId/Actions/ActionId/page/graphql/client/get-action-verifications.generated";
+import { GetWorldIdOverviewQuery } from "@/scenes/common/Teams/TeamId/Apps/AppId/WorldId/page/graphql/client/get-world-id-overview.generated";
 import { useApolloClient } from "@apollo/client";
 import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 import { toast } from "react-toastify";
 
-type Action = GetActionVerificationsFeedQuery["action_v4"][number];
+type Action = GetWorldIdOverviewQuery["action_v4"][number];
 
 export const SettingsCard = (props: {
   action: Action;
