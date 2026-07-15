@@ -1,3 +1,4 @@
+import { hasAdminAuthenticationEvidence } from "@/lib/admin-auth";
 import {
   getAllowedAppBaseUrls,
   getPrimaryAppBaseUrl,
@@ -159,6 +160,9 @@ const isProtectedPath = (pathname: string) =>
 const isAdminPagePath = (pathname: string) =>
   pathname === "/admin" || pathname.startsWith("/admin/");
 
+const isAdminApiPath = (pathname: string) =>
+  pathname === "/api/admin" || pathname.startsWith("/api/admin/");
+
 // Mirrors the auth0 host normalization below (first comma-separated
 // x-forwarded-host value, default port stripped) plus a lowercase pass,
 // since Host/X-Forwarded-Host comparisons must be case-insensitive.
@@ -236,6 +240,14 @@ const createDashboardRewriteResponse = (request: NextRequest) => {
   return withSecurityHeaders(response, csp, "/admin");
 };
 
+const createAdminUnauthorizedResponse = (request: NextRequest) => {
+  if (isAdminApiPath(request.nextUrl.pathname)) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  return NextResponse.redirect(new URL("/unauthorized", request.url));
+};
+
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
@@ -243,16 +255,36 @@ export async function proxy(request: NextRequest) {
   // treat it as the dashboard entry point there. Every other host keeps
   // today's behavior of not running middleware on "/" at all (it wasn't in
   // `config.matcher` before this route was added).
-  if (pathname === "/" && isInternalDashboardHost(request)) {
-    return createDashboardRewriteResponse(request);
+  const isDashboardRoot = pathname === "/" && isInternalDashboardHost(request);
+
+  const isAdminRequest =
+    isDashboardRoot || isAdminPagePath(pathname) || isAdminApiPath(pathname);
+
+  if (isAdminRequest) {
+    if (
+      process.env.INTERNAL_DASHBOARD_HOST &&
+      !isInternalDashboardHost(request)
+    ) {
+      return createAdminUnauthorizedResponse(request);
+    }
+
+    if (!(await hasAdminAuthenticationEvidence(request.headers))) {
+      return createAdminUnauthorizedResponse(request);
+    }
+
+    if (isDashboardRoot) {
+      return createDashboardRewriteResponse(request);
+    }
+
+    if (isAdminPagePath(pathname)) {
+      return createSecurityHeadersResponse(request, pathname);
+    }
+
+    return NextResponse.next();
   }
 
   if (pathname === "/") {
     return NextResponse.next();
-  }
-
-  if (isAdminPagePath(pathname)) {
-    return createSecurityHeadersResponse(request, pathname);
   }
 
   // In allow-list mode the Auth0 SDK matches the request origin against the
@@ -377,6 +409,9 @@ export const config = {
     "/create-team",
     "/profile/:path*",
     "/join-callback",
+    "/admin",
     "/admin/:path*",
+    "/api/admin",
+    "/api/admin/:path*",
   ],
 };
