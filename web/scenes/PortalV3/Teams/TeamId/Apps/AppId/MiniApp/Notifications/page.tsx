@@ -8,7 +8,7 @@ import posthog from "posthog-js";
 import { ChangeEvent, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
-import { VersionSwitcher } from "../../Configuration/AppTopBar/VersionSwitcher";
+import { FormSkeleton } from "../../Configuration/PageComponents/FormSkeleton";
 import { useFetchNotificationAppMetadataQuery } from "@/scenes/common/Teams/TeamId/Apps/AppId/MiniApp/Notifications/graphql/client/fetch-notification-app-metadata.generated";
 
 type NotificationFormData = {
@@ -19,33 +19,50 @@ type NotificationFormData = {
   apiKey: string;
 };
 
+const NotificationsNotice = ({
+  title,
+  body,
+}: {
+  title: string;
+  body: string;
+}) => (
+  <div className="my-8 grid max-w-[1180px] gap-y-10">
+    <div className="grid grid-cols-auto/1fr items-start gap-x-3 rounded-[10px] bg-grey-50 p-4 sm:p-5">
+      <NotificationBellIcon className="size-8" aria-hidden="true" />
+
+      <div className="min-w-0 font-world text-[13px] leading-[120%] text-grey-900">
+        <Typography as="p" className="font-world text-[13px] font-semibold">
+          {title}
+        </Typography>
+        <Typography as="p" className="font-world text-[13px] font-medium">
+          {body}
+        </Typography>
+      </div>
+    </div>
+  </div>
+);
+
 export const NotificationsPage = () => {
   const params = useParams<{ teamId: string; appId: string }>();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [viewMode, setViewMode] = useState<"verified" | "unverified">(
-    "verified",
-  );
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const { data: appMetadataData } = useFetchNotificationAppMetadataQuery({
-    variables: { id: params?.appId ?? "" },
-    skip: !params?.appId,
-  });
+  const { data: appMetadataData, loading } =
+    useFetchNotificationAppMetadataQuery({
+      variables: { id: params?.appId ?? "" },
+      skip: !params?.appId,
+    });
 
   const appData = appMetadataData?.app[0];
-  const draftId = appData?.app_metadata[0]?.id;
-  const hasBothVersions =
-    (appData?.app_metadata.length ?? 0) > 0 &&
-    (appData?.verified_app_metadata.length ?? 0) > 0;
+  const draftMeta = appData?.app_metadata[0];
+  const verifiedMeta = appData?.verified_app_metadata[0];
+  const notificationMeta = verifiedMeta ?? draftMeta;
 
-  const isExternalApp = [
-    appData?.verified_app_metadata[0],
-    appData?.app_metadata[0],
-  ].some(
-    (meta) =>
-      meta?.app_mode === "external" ||
-      meta?.category?.toLowerCase() === "external",
-  );
+  // `category` may be the "External" app-store category even for a Mini App, so
+  // the external check must look at app_mode only — never the category. The
+  // API also prioritizes verified metadata, falling back to the autosaved draft
+  // only when the app has no verified version.
+  const isExternalApp = notificationMeta?.app_mode === "external";
 
   const {
     register,
@@ -160,7 +177,7 @@ export const NotificationsPage = () => {
         title: data.title || undefined,
         message: data.message,
         mini_app_path: data.miniAppPath,
-        ...(viewMode === "unverified" && draftId ? { draft_id: draftId } : {}),
+        ...(!verifiedMeta && draftMeta?.id ? { draft_id: draftMeta.id } : {}),
       };
 
       const response = await fetch("/api/v2/minikit/send-notification", {
@@ -206,22 +223,20 @@ export const NotificationsPage = () => {
       ?.split(",")
       .filter((address) => address.trim().length > 0).length ?? 0;
 
+  if (loading) {
+    return (
+      <div className="my-8 max-w-[1180px]">
+        <FormSkeleton count={5} />
+      </div>
+    );
+  }
+
   if (isExternalApp) {
     return (
-      <div className="my-8 grid max-w-[1180px] gap-y-10">
-        <div className="grid grid-cols-auto/1fr items-start gap-x-3 rounded-[10px] bg-grey-50 p-4 sm:p-5">
-          <NotificationBellIcon className="size-8" aria-hidden="true" />
-
-          <div className="min-w-0 font-world text-[13px] leading-[120%] text-grey-900">
-            <Typography as="p" className="font-world text-[13px] font-semibold">
-              Notifications unavailable
-            </Typography>
-            <Typography as="p" className="font-world text-[13px] font-medium">
-              Notifications aren't available for external apps.
-            </Typography>
-          </div>
-        </div>
-      </div>
+      <NotificationsNotice
+        title="Notifications unavailable"
+        body="Notifications aren't available for external apps."
+      />
     );
   }
 
@@ -250,23 +265,12 @@ export const NotificationsPage = () => {
       </div>
 
       <div className="grid gap-y-10">
-        <div className="flex items-center justify-between gap-x-5">
-          <Typography
-            as="h1"
-            className="font-world text-[26px] leading-[120%] font-semibold tracking-[-0.01em] text-[#191C20]"
-          >
-            Notifications
-          </Typography>
-
-          {hasBothVersions && (
-            <VersionSwitcher
-              viewMode={viewMode}
-              setMode={setViewMode}
-              verifiedAt={appData?.verified_app_metadata[0]?.verified_at}
-              buttonClassName="px-3 py-1.5 text-sm"
-            />
-          )}
-        </div>
+        <Typography
+          as="h1"
+          className="font-world text-[26px] leading-[120%] font-semibold tracking-[-0.01em] text-[#191C20]"
+        >
+          Notifications
+        </Typography>
 
         <form
           onSubmit={handleSubmit(onSubmit)}

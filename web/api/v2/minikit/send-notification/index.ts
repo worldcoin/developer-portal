@@ -292,10 +292,7 @@ export const POST = async (req: NextRequest) => {
   const appMetadata = app_metadata?.[0];
   const teamId = appMetadata.app.team.id;
 
-  if (
-    verifiedOrDefaultApp.app_mode === "external" ||
-    verifiedOrDefaultApp.category?.toLowerCase() === "external"
-  ) {
+  if (verifiedOrDefaultApp.app_mode === "external") {
     return errorResponse({
       statusCode: 400,
       code: "external_app_not_allowed",
