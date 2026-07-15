@@ -7,7 +7,7 @@ import { SizingWrapper } from "@/components/SizingWrapper";
 import { urls } from "@/lib/urls";
 import { useAtom, useSetAtom } from "jotai";
 import { useParams } from "next/navigation";
-import React, { useEffect, useMemo } from "react";
+import React, { useEffect } from "react";
 import { colorAtom } from "@/scenes/common/layout/color-atom";
 import { Color } from "@/scenes/common/Profile/types";
 import { AppSelector } from "../AppSelector";
@@ -18,21 +18,13 @@ import { createAppDialogOpenedAtom } from "@/scenes/common/layout/Header/atoms";
 export const Header = (props: { color: Color | null }) => {
   const setColor = useSetAtom(colorAtom);
   const [open, setOpen] = useAtom(createAppDialogOpenedAtom);
-  const { teamId, appId } = useParams() as { teamId?: string; appId?: string };
+  const { teamId } = useParams() as { teamId?: string };
 
   useEffect(() => {
     setColor(props.color);
   }, [props.color, setColor]);
 
-  const logoHref = useMemo(() => {
-    if (teamId && appId) {
-      return urls.app({ team_id: teamId, app_id: appId });
-    }
-    if (teamId) {
-      return urls.teams({ team_id: teamId });
-    }
-    return "/";
-  }, [teamId, appId]);
+  const logoHref = teamId ? urls.teams({ team_id: teamId }) : "/";
 
   return (
     <header className="max-md:sticky max-md:top-0 max-md:z-10 max-md:mb-6 max-md:border-b max-md:border-gray-200 max-md:bg-grey-0">

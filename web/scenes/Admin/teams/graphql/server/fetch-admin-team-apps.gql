@@ -1,0 +1,34 @@
+query FetchAdminTeamApps($limit: Int!, $offset: Int!, $where: app_bool_exp!) {
+  app(
+    limit: $limit
+    offset: $offset
+    order_by: [{ name: asc }, { id: asc }]
+    where: $where
+  ) {
+    id
+    name
+    created_at
+    deleted_at
+    draft_metadata: app_metadata(
+      where: { verification_status: { _neq: "verified" } }
+      order_by: { updated_at: desc }
+      limit: 1
+    ) {
+      name
+      verification_status
+    }
+    verified_metadata: app_metadata(
+      where: { verification_status: { _eq: "verified" } }
+      order_by: { verified_at: desc }
+      limit: 1
+    ) {
+      name
+      verified_at
+    }
+  }
+  app_aggregate(where: $where) {
+    aggregate {
+      count
+    }
+  }
+}
