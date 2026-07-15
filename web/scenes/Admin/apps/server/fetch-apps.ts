@@ -18,6 +18,7 @@ import {
   type AppsSearchOperator,
   type ParsedAppsSearchToken,
 } from "@/components/AdminDashboard/Apps/search";
+import { parseDateSearchValue } from "@/components/AdminDashboard/common/search-tokens";
 import {
   getEffectiveAppsSort,
   type AppsSort,
@@ -48,12 +49,18 @@ const getStringPredicate = (operator: AppsSearchOperator, value: string) => {
 };
 
 const getDatePredicate = (operator: AppsSearchOperator, value: string) => {
-  if (operator === ">") return { _gt: value };
-  if (operator === ">=") return { _gte: value };
-  if (operator === "<") return { _lt: value };
-  if (operator === "<=") return { _lte: value };
-  if (operator === "!=") return { _neq: value };
-  return { _eq: value };
+  const date = parseDateSearchValue(value);
+
+  if (!date) {
+    return null;
+  }
+
+  if (operator === ">") return { _gt: date };
+  if (operator === ">=") return { _gte: date };
+  if (operator === "<") return { _lt: date };
+  if (operator === "<=") return { _lte: date };
+  if (operator === "!=") return { _neq: date };
+  return { _eq: date };
 };
 
 const createFieldWhere = (
@@ -65,8 +72,11 @@ const createFieldWhere = (
     return { name: getStringPredicate(token.operator, token.value) };
   if (token.field === "team")
     return { team_id: getStringPredicate(token.operator, token.value) };
-  if (token.field === "created")
-    return { created_at: getDatePredicate(token.operator, token.value) };
+  if (token.field === "created") {
+    const predicate = getDatePredicate(token.operator, token.value);
+
+    return predicate ? { created_at: predicate } : { id: { _in: [] } };
+  }
 
   return {
     app_metadata: {
@@ -113,11 +123,19 @@ export const createAppsOrderBy = (sort: AppsSort | null): App_Order_By[] => {
     effectiveSort.direction === "asc" ? Order_By.Asc : Order_By.Desc;
 
   if (effectiveSort.field === "teamId") {
-    return [{ team_id: direction }, { name: Order_By.Asc }];
+    return [
+      { team_id: direction },
+      { name: Order_By.Asc },
+      { id: Order_By.Asc },
+    ];
   }
 
   if (effectiveSort.field === "createdAt") {
-    return [{ created_at: direction }, { name: Order_By.Asc }];
+    return [
+      { created_at: direction },
+      { name: Order_By.Asc },
+      { id: Order_By.Asc },
+    ];
   }
 
   return [{ name: direction }, { id: Order_By.Asc }];

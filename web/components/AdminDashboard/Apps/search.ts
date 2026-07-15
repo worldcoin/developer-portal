@@ -1,4 +1,10 @@
 import type { SearchField } from "../common/types";
+import {
+  getSearchVisualSegments,
+  parseSearchTokens,
+  type ParsedSearchToken,
+  type SearchOperator,
+} from "../common/search-tokens";
 
 export const parseAppsSearchQuery = (query: string | string[] | undefined) => {
   const rawQuery = Array.isArray(query) ? query[0] : query;
@@ -12,15 +18,8 @@ export type AppsSearchField =
   | "team"
   | "verified"
   | "created";
-export type AppsSearchOperator = ":" | "=" | "!=" | ">" | ">=" | "<" | "<=";
-export type ParsedAppsSearchToken =
-  | {
-      field: AppsSearchField;
-      operator: AppsSearchOperator;
-      type: "field";
-      value: string;
-    }
-  | { type: "plain"; value: string };
+export type AppsSearchOperator = SearchOperator;
+export type ParsedAppsSearchToken = ParsedSearchToken<AppsSearchField>;
 
 export const APPS_SEARCH_FIELDS: Array<SearchField & { label: string }> = [
   { field: "id", label: "ID", type: "string", examples: ["id:app_"] },
@@ -61,67 +60,9 @@ const FIELD_ALIASES: Record<string, AppsSearchField> = {
   team_id: "team",
   verified: "verified",
 };
-const FIELD_TOKEN_PATTERN = /^([A-Za-z_][A-Za-z0-9_]*)(>=|<=|!=|:|=|>|<)(.+)$/;
-const FIELD_VISUAL_TOKEN_PATTERN =
-  /^([A-Za-z_][A-Za-z0-9_]*)(>=|<=|!=|:|=|>|<)(.*)$/;
-
-const stripQuotes = (value: string) =>
-  (value.startsWith('"') && value.endsWith('"')) ||
-  (value.startsWith("'") && value.endsWith("'"))
-    ? value.slice(1, -1)
-    : value;
 
 export const parseAppsSearchTokens = (query: string): ParsedAppsSearchToken[] =>
-  query.match(/(?:"[^"]*"|'[^']*'|\S)+/g)?.map((token) => {
-    const match = token.match(FIELD_TOKEN_PATTERN);
+  parseSearchTokens(query, FIELD_ALIASES);
 
-    if (!match) {
-      return { type: "plain", value: stripQuotes(token) };
-    }
-
-    const [, rawField, rawOperator, rawValue] = match;
-    const field = FIELD_ALIASES[rawField];
-    const value = stripQuotes(rawValue.trim());
-
-    return field && value
-      ? {
-          field,
-          operator: rawOperator as AppsSearchOperator,
-          type: "field",
-          value,
-        }
-      : { type: "plain", value: stripQuotes(token) };
-  }) ?? [];
-
-export const getAppsSearchVisualSegments = (query: string) => {
-  const segments: Array<{ type: "chip" | "text"; value: string }> = [];
-  let lastIndex = 0;
-
-  for (const match of query.matchAll(/(?:"[^"]*"|'[^']*'|\S)+/g)) {
-    if (!match[0].match(FIELD_VISUAL_TOKEN_PATTERN)) {
-      continue;
-    }
-
-    const field = match[0].match(FIELD_VISUAL_TOKEN_PATTERN)?.[1];
-    if (!field || !FIELD_ALIASES[field] || match.index === undefined) {
-      continue;
-    }
-
-    if (match.index > lastIndex) {
-      segments.push({
-        type: "text",
-        value: query.slice(lastIndex, match.index),
-      });
-    }
-    segments.push({ type: "chip", value: match[0] });
-    lastIndex = match.index + match[0].length;
-  }
-
-  if (lastIndex < query.length) {
-    segments.push({ type: "text", value: query.slice(lastIndex) });
-  }
-
-  return segments.length > 0
-    ? segments
-    : [{ type: "text" as const, value: query }];
-};
+export const getAppsSearchVisualSegments = (query: string) =>
+  getSearchVisualSegments(query, FIELD_ALIASES);

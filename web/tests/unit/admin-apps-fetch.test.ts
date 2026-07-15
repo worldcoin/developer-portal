@@ -47,9 +47,17 @@ describe("admin apps query mapping", () => {
     });
   });
 
-  it("uses a stable secondary name sort for creation date", () => {
+  it("uses a unique final sort key for creation date", () => {
     expect(
       createAppsOrderBy({ field: "createdAt", direction: "desc" }),
-    ).toEqual([{ created_at: Order_By.Desc }, { name: Order_By.Asc }]);
+    ).toEqual([
+      { created_at: Order_By.Desc },
+      { name: Order_By.Asc },
+      { id: Order_By.Asc },
+    ]);
+  });
+
+  it("returns no matches for an invalid date filter", () => {
+    expect(createAppsWhere("created>=invalid")).toEqual({ id: { _in: [] } });
   });
 });

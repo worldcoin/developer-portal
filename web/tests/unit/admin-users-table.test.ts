@@ -48,6 +48,12 @@ describe("admin users table URL state", () => {
     ]);
   });
 
+  it("normalizes field aliases before parsing", () => {
+    expect(parseUsersSearchTokens('NAME:"Jane Doe"')).toEqual([
+      { type: "field", field: "name", operator: ":", value: "Jane Doe" },
+    ]);
+  });
+
   it("cycles sorting from descending to ascending to default", () => {
     const initial = parseUsersSort("email:desc");
 

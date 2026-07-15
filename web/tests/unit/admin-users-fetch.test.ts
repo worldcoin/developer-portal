@@ -36,12 +36,17 @@ describe("admin users query mapping", () => {
     });
   });
 
-  it("uses a stable secondary name sort for team counts", () => {
+  it("uses a unique final sort key for team counts", () => {
     expect(
       createUsersOrderBy({ field: "teamsCount", direction: "desc" }),
     ).toEqual([
       { memberships_aggregate: { count: Order_By.Desc } },
       { name: Order_By.Asc },
+      { id: Order_By.Asc },
     ]);
+  });
+
+  it("returns no matches for an invalid date filter", () => {
+    expect(createUsersWhere("created>=invalid")).toEqual({ id: { _in: [] } });
   });
 });

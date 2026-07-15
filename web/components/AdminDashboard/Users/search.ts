@@ -1,3 +1,9 @@
+import {
+  parseSearchTokens,
+  type ParsedSearchToken,
+  type SearchOperator,
+} from "../common/search-tokens";
+
 export const parseUsersSearchQuery = (query: string | string[] | undefined) => {
   const rawQuery = Array.isArray(query) ? query[0] : query;
 
@@ -8,19 +14,9 @@ export type UsersSearchFieldType = "string" | "number" | "date";
 
 export type UsersSearchField = "id" | "name" | "email" | "teams" | "created";
 
-export type UsersSearchOperator = ":" | "=" | "!=" | ">" | ">=" | "<" | "<=";
+export type UsersSearchOperator = SearchOperator;
 
-export type ParsedUsersSearchToken =
-  | {
-      type: "field";
-      field: UsersSearchField;
-      operator: UsersSearchOperator;
-      value: string;
-    }
-  | {
-      type: "plain";
-      value: string;
-    };
+export type ParsedUsersSearchToken = ParsedSearchToken<UsersSearchField>;
 
 export const USERS_SEARCH_FIELDS: Array<{
   field: UsersSearchField;
@@ -70,20 +66,8 @@ const FIELD_ALIASES: Record<string, UsersSearchField> = {
   created_at: "created",
 };
 
-const FIELD_TOKEN_PATTERN = /^([A-Za-z_][A-Za-z0-9_]*)(>=|<=|!=|:|=|>|<)(.+)$/;
 const FIELD_VISUAL_TOKEN_PATTERN =
   /^([A-Za-z_][A-Za-z0-9_]*)(>=|<=|!=|:|=|>|<)(.*)$/;
-
-const stripQuotes = (value: string) => {
-  if (
-    (value.startsWith('"') && value.endsWith('"')) ||
-    (value.startsWith("'") && value.endsWith("'"))
-  ) {
-    return value.slice(1, -1);
-  }
-
-  return value;
-};
 
 export const tokenizeUsersSearchQuery = (query: string) => {
   const tokens: string[] = [];
@@ -176,38 +160,7 @@ const tokenizeUsersSearchQueryWithRanges = (query: string) => {
 
 export const parseUsersSearchTokens = (
   query: string,
-): ParsedUsersSearchToken[] => {
-  return tokenizeUsersSearchQuery(query)
-    .map((token): ParsedUsersSearchToken | null => {
-      const fieldTokenMatch = token.match(FIELD_TOKEN_PATTERN);
-
-      if (!fieldTokenMatch) {
-        return {
-          type: "plain",
-          value: stripQuotes(token),
-        };
-      }
-
-      const [, rawField, rawOperator, rawValue] = fieldTokenMatch;
-      const field = FIELD_ALIASES[rawField];
-      const value = stripQuotes(rawValue.trim());
-
-      if (!field || !value) {
-        return {
-          type: "plain",
-          value: stripQuotes(token),
-        };
-      }
-
-      return {
-        type: "field",
-        field,
-        operator: rawOperator as UsersSearchOperator,
-        value,
-      };
-    })
-    .filter((token): token is ParsedUsersSearchToken => Boolean(token));
-};
+): ParsedUsersSearchToken[] => parseSearchTokens(query, FIELD_ALIASES);
 
 export type UsersSearchVisualSegment =
   | {
@@ -233,7 +186,7 @@ export const getUsersSearchVisualSegments = (
     }
 
     const [, rawField] = match;
-    const field = FIELD_ALIASES[rawField];
+    const field = FIELD_ALIASES[rawField.toLowerCase()];
 
     if (!field) {
       continue;

@@ -1,3 +1,9 @@
+import {
+  parseSearchTokens,
+  type ParsedSearchToken,
+  type SearchOperator,
+} from "../common/search-tokens";
+
 export const parseTeamsSearchQuery = (query: string | string[] | undefined) => {
   const rawQuery = Array.isArray(query) ? query[0] : query;
 
@@ -15,19 +21,9 @@ export type TeamsSearchField =
   | "api_keys"
   | "created";
 
-export type TeamsSearchOperator = ":" | "=" | "!=" | ">" | ">=" | "<" | "<=";
+export type TeamsSearchOperator = SearchOperator;
 
-export type ParsedTeamsSearchToken =
-  | {
-      type: "field";
-      field: TeamsSearchField;
-      operator: TeamsSearchOperator;
-      value: string;
-    }
-  | {
-      type: "plain";
-      value: string;
-    };
+export type ParsedTeamsSearchToken = ParsedSearchToken<TeamsSearchField>;
 
 export const TEAMS_SEARCH_FIELDS: Array<{
   field: TeamsSearchField;
@@ -87,25 +83,13 @@ const FIELD_ALIASES: Record<string, TeamsSearchField> = {
   memberships: "members",
   apps: "apps",
   api_keys: "api_keys",
-  apiKeys: "api_keys",
+  apikeys: "api_keys",
   created: "created",
   created_at: "created",
 };
 
-const FIELD_TOKEN_PATTERN = /^([A-Za-z_][A-Za-z0-9_]*)(>=|<=|!=|:|=|>|<)(.+)$/;
 const FIELD_VISUAL_TOKEN_PATTERN =
   /^([A-Za-z_][A-Za-z0-9_]*)(>=|<=|!=|:|=|>|<)(.*)$/;
-
-const stripQuotes = (value: string) => {
-  if (
-    (value.startsWith('"') && value.endsWith('"')) ||
-    (value.startsWith("'") && value.endsWith("'"))
-  ) {
-    return value.slice(1, -1);
-  }
-
-  return value;
-};
 
 export const tokenizeTeamsSearchQuery = (query: string) => {
   const tokens: string[] = [];
@@ -198,38 +182,7 @@ const tokenizeTeamsSearchQueryWithRanges = (query: string) => {
 
 export const parseTeamsSearchTokens = (
   query: string,
-): ParsedTeamsSearchToken[] => {
-  return tokenizeTeamsSearchQuery(query)
-    .map((token): ParsedTeamsSearchToken | null => {
-      const fieldTokenMatch = token.match(FIELD_TOKEN_PATTERN);
-
-      if (!fieldTokenMatch) {
-        return {
-          type: "plain",
-          value: stripQuotes(token),
-        };
-      }
-
-      const [, rawField, rawOperator, rawValue] = fieldTokenMatch;
-      const field = FIELD_ALIASES[rawField];
-      const value = stripQuotes(rawValue.trim());
-
-      if (!field || !value) {
-        return {
-          type: "plain",
-          value: stripQuotes(token),
-        };
-      }
-
-      return {
-        type: "field",
-        field,
-        operator: rawOperator as TeamsSearchOperator,
-        value,
-      };
-    })
-    .filter((token): token is ParsedTeamsSearchToken => Boolean(token));
-};
+): ParsedTeamsSearchToken[] => parseSearchTokens(query, FIELD_ALIASES);
 
 export type TeamsSearchVisualSegment =
   | {
@@ -255,7 +208,7 @@ export const getTeamsSearchVisualSegments = (
     }
 
     const [, rawField] = match;
-    const field = FIELD_ALIASES[rawField];
+    const field = FIELD_ALIASES[rawField.toLowerCase()];
 
     if (!field) {
       continue;

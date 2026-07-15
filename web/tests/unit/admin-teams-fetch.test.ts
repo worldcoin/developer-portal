@@ -26,7 +26,10 @@ jest.mock("@/lib/logger", () => ({
 }));
 
 import { DEFAULT_TEAM_COLUMN_VISIBILITY } from "@/components/AdminDashboard/Teams/column-visibility";
-import { fetchAdminTeamsPage } from "@/scenes/Admin/teams/server/fetch-teams";
+import {
+  createTeamsWhere,
+  fetchAdminTeamsPage,
+} from "@/scenes/Admin/teams/server/fetch-teams";
 
 const makeTeam = (id: string) => ({
   id,
@@ -63,6 +66,12 @@ beforeEach(() => {
 });
 
 describe("admin teams metric queries", () => {
+  it("returns no matches for unknown statuses and invalid dates", () => {
+    expect(createTeamsWhere("status:archived")).toEqual({ id: { _in: [] } });
+    expect(createTeamsWhere("status!=archived")).toEqual({ id: { _in: [] } });
+    expect(createTeamsWhere("created>=invalid")).toEqual({ id: { _in: [] } });
+  });
+
   it("uses relationship aggregates and scopes invites to the current page", async () => {
     mockFetchAdminTeamPendingInvites.mockResolvedValue({
       invite: [

@@ -18,6 +18,7 @@ import {
   type ParsedUsersSearchToken,
   type UsersSearchOperator,
 } from "@/components/AdminDashboard/Users/search";
+import { parseDateSearchValue } from "@/components/AdminDashboard/common/search-tokens";
 import {
   getEffectiveUsersSort,
   type UsersSort,
@@ -80,27 +81,33 @@ const getNumberPredicate = (operator: UsersSearchOperator, value: string) => {
 };
 
 const getDatePredicate = (operator: UsersSearchOperator, value: string) => {
+  const date = parseDateSearchValue(value);
+
+  if (!date) {
+    return null;
+  }
+
   if (operator === ">") {
-    return { _gt: value };
+    return { _gt: date };
   }
 
   if (operator === ">=") {
-    return { _gte: value };
+    return { _gte: date };
   }
 
   if (operator === "<") {
-    return { _lt: value };
+    return { _lt: date };
   }
 
   if (operator === "<=") {
-    return { _lte: value };
+    return { _lte: date };
   }
 
   if (operator === "!=") {
-    return { _neq: value };
+    return { _neq: date };
   }
 
-  return { _eq: value };
+  return { _eq: date };
 };
 
 const createFieldWhere = (
@@ -126,7 +133,9 @@ const createFieldWhere = (
   }
 
   if (token.field === "created") {
-    return { created_at: getDatePredicate(token.operator, token.value) };
+    const predicate = getDatePredicate(token.operator, token.value);
+
+    return predicate ? { created_at: predicate } : { id: { _in: [] } };
   }
 
   return null;
@@ -167,25 +176,30 @@ export const createUsersOrderBy = (sort: UsersSort | null): User_Order_By[] => {
   const direction = getHasuraSortDirection(effectiveSort);
 
   if (effectiveSort.field === "name") {
-    return [{ name: direction }];
+    return [{ name: direction }, { id: Order_By.Asc }];
   }
 
   if (effectiveSort.field === "email") {
-    return [{ email: direction }, { name: Order_By.Asc }];
+    return [{ email: direction }, { name: Order_By.Asc }, { id: Order_By.Asc }];
   }
 
   if (effectiveSort.field === "teamsCount") {
     return [
       { memberships_aggregate: { count: direction } },
       { name: Order_By.Asc },
+      { id: Order_By.Asc },
     ];
   }
 
   if (effectiveSort.field === "createdAt") {
-    return [{ created_at: direction }, { name: Order_By.Asc }];
+    return [
+      { created_at: direction },
+      { name: Order_By.Asc },
+      { id: Order_By.Asc },
+    ];
   }
 
-  return [{ name: Order_By.Asc }];
+  return [{ name: Order_By.Asc }, { id: Order_By.Asc }];
 };
 
 const mapUserToTableRow = (
