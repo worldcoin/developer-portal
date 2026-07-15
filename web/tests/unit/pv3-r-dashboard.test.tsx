@@ -26,10 +26,12 @@ const props = (searchParams: Record<string, string> = {}) => ({
 
 it("redirects v3 users to World ID and only preserves the enable flow", async () => {
   await RoutePage(props());
-  expect(redirect).toHaveBeenCalledWith("/teams/team_1/apps/app_1/world-id");
+  expect(redirect).toHaveBeenCalledWith(
+    "/teams/team_1/apps/app_1/world-id-4-0",
+  );
 
   await RoutePage(props({ enableWorldId4: "true", ignored: "value" }));
   expect(redirect).toHaveBeenCalledWith(
-    "/teams/team_1/apps/app_1/world-id?enableWorldId4=true",
+    "/teams/team_1/apps/app_1/world-id-4-0?enableWorldId4=true",
   );
 });

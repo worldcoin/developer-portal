@@ -108,7 +108,7 @@ describe("v3 SidebarNav [active section]", () => {
   });
 
   it("marks World ID current on the new /world-id route with no sidebar sub-items", () => {
-    usePathname.mockReturnValue(`${base}/world-id`);
+    usePathname.mockReturnValue(`${base}/world-id-4-0`);
     renderSidebar();
     expect(isCurrent("World ID")).toBe(true);
     expect(
@@ -134,7 +134,7 @@ describe("v3 SidebarNav [active section]", () => {
 describe("v3 SidebarNav [World ID href]", () => {
   it("routes World ID to the new /world-id landing for the selected app", () => {
     renderSidebar();
-    expect(link("World ID")).toHaveAttribute("href", `${base}/world-id`);
+    expect(link("World ID")).toHaveAttribute("href", `${base}/world-id-4-0`);
   });
 });
 // #endregion

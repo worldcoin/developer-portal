@@ -34,7 +34,7 @@ export const SidebarNav = () => {
 
   const ids = teamId && appId ? { team_id: teamId, app_id: appId } : undefined;
 
-  const worldIdHref = ids ? urls.worldId(ids) : appsListHref;
+  const worldIdHref = ids ? urls.worldId40(ids) : appsListHref;
 
   const configurationHref = ids ? urls.configuration(ids) : appsListHref;
   const miniAppHref = ids ? urls.miniAppPermissions(ids) : appsListHref;
@@ -53,7 +53,6 @@ export const SidebarNav = () => {
   const worldIdActive =
     pathname === appsListHref ||
     (Boolean(appBase) && pathname === appBase) ||
-    withinApp("/world-id") ||
     withinApp("/world-id-4-0") ||
     withinApp("/world-id-actions") ||
     withinApp("/actions");

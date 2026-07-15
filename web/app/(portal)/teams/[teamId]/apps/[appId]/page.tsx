@@ -17,7 +17,7 @@ type Props = {
 export default async function Page(props: Props) {
   const params = await props.params;
   const searchParams = await props.searchParams;
-  const worldIdPath = urls.worldId({
+  const worldIdPath = urls.worldId40({
     team_id: params.teamId,
     app_id: params.appId,
   });
