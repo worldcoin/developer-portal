@@ -3,7 +3,7 @@
 import { CopyButton } from "@/components/CopyButton";
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import type { RpStatus } from "@/scenes/common/Teams/TeamId/Apps/AppId/WorldId40/page/use-rp-registration-controller";
+import { RpRegistrationStatus } from "@/lib/rp-registration-status";
 import clsx from "clsx";
 import type { ReactNode } from "react";
 import { useState } from "react";
@@ -34,7 +34,7 @@ type Props = {
   appId: string;
   rpId: string;
   mode: string;
-  productionStatus: RpStatus;
+  productionStatus: RpRegistrationStatus;
   statusContent?: ReactNode;
   variant: "embedded" | "standalone";
   canManageWorldId: boolean;
@@ -45,7 +45,7 @@ type Props = {
 export const WorldId40Settings = (props: Props) => {
   const [isRotateOpen, setIsRotateOpen] = useState(false);
   const [isSwitchOpen, setIsSwitchOpen] = useState(false);
-  const isActive = props.productionStatus === "registered";
+  const isActive = props.productionStatus === RpRegistrationStatus.Registered;
   const isSelfManaged = props.mode === "self_managed";
   const isStandalone = props.variant === "standalone";
   const modeLabel = props.mode === "managed" ? "Managed" : "Self-Managed";
