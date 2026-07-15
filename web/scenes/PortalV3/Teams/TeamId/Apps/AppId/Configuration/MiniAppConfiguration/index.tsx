@@ -139,17 +139,19 @@ export const MiniAppConfiguration = ({
   ] as const;
 
   return (
-    <div className="grid content-start gap-y-5 rounded-2xl border border-grey-200 bg-grey-0 p-6 shadow-button">
+    <div className="@container grid min-w-0 content-start gap-y-5 rounded-2xl border border-grey-200 bg-grey-0 p-6 shadow-button">
       <Typography variant={TYPOGRAPHY.M2} className="text-grey-900">
         How does this app reach users?
       </Typography>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      {/* This card sits inside the portal sidebar and configuration rails, so
+          its columns must respond to card width rather than viewport width. */}
+      <div className="grid grid-cols-1 gap-4 @lg:grid-cols-2">
         {modeOptions.map((option) => (
           <label
             key={option.value}
             className={clsx(
-              "flex cursor-pointer items-center gap-x-3 rounded-xl border p-5 transition-colors",
+              "flex min-w-0 cursor-pointer items-center gap-x-3 rounded-xl border p-5 transition-colors",
               option.isSelected
                 ? "border-blue-500 bg-blue-50"
                 : "border-grey-200 hover:border-grey-300",
@@ -166,8 +168,12 @@ export const MiniAppConfiguration = ({
                 }
               }}
               disabled={isDisabled}
+              className="shrink-0"
             />
-            <Typography variant={TYPOGRAPHY.R4} className="text-grey-900">
+            <Typography
+              variant={TYPOGRAPHY.R4}
+              className="min-w-0 break-words text-grey-900"
+            >
               {option.label}
             </Typography>
           </label>
