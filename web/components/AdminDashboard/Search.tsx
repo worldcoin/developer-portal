@@ -43,6 +43,7 @@ export const Search = ({ className }: SearchProps) => {
   const [isFocused, setIsFocused] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const [shortcutLabel, setShortcutLabel] = useState("Ctrl K");
+  const requestIdRef = useRef(0);
   const normalizedQuery = query.trim();
   const results = useMemo<SearchResult[]>(
     () => [
@@ -98,6 +99,7 @@ export const Search = ({ className }: SearchProps) => {
     }
 
     const controller = new AbortController();
+    const requestId = ++requestIdRef.current;
     const timeoutId = window.setTimeout(async () => {
       setStatus("loading");
       setSelectedIndex(-1);
@@ -113,10 +115,15 @@ export const Search = ({ className }: SearchProps) => {
         }
 
         const data = (await apiResponse.json()) as SearchResponse;
-        setResponse(data);
-        setStatus("ready");
+        if (requestId === requestIdRef.current) {
+          setResponse(data);
+          setStatus("ready");
+        }
       } catch (error) {
-        if ((error as Error).name !== "AbortError") {
+        if (
+          (error as Error).name !== "AbortError" &&
+          requestId === requestIdRef.current
+        ) {
           setResponse(null);
           setStatus("error");
         }
@@ -194,7 +201,11 @@ export const Search = ({ className }: SearchProps) => {
           onBlur={() => {
             window.setTimeout(() => setIsFocused(false), 100);
           }}
-          onChange={(event) => setQuery(event.target.value)}
+          onChange={(event) => {
+            setQuery(event.target.value);
+            setResponse(null);
+            setSelectedIndex(-1);
+          }}
           onFocus={() => setIsFocused(true)}
           onKeyDown={handleKeyDown}
           placeholder="Search teams, apps, and users"

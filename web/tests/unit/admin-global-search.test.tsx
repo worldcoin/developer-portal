@@ -99,6 +99,35 @@ describe("admin global search", () => {
     expect(mockPush).toHaveBeenCalledWith("/admin/apps/app_current");
   });
 
+  it("clears a selected result before debouncing a changed query", async () => {
+    mockFetch.mockResolvedValue({
+      json: async () => ({
+        apps: [
+          { id: "app_current", name: "Current app", teamId: "team_current" },
+        ],
+        teams: [],
+        users: [],
+      }),
+      ok: true,
+    });
+
+    render(<Search />);
+    fireEvent.focus(searchInput());
+    fireEvent.change(searchInput(), { target: { value: "current" } });
+
+    await act(async () => {
+      jest.advanceTimersByTime(300);
+      await Promise.resolve();
+    });
+
+    fireEvent.keyDown(searchInput(), { key: "ArrowDown" });
+    fireEvent.change(searchInput(), { target: { value: "next" } });
+    fireEvent.keyDown(searchInput(), { key: "Enter" });
+
+    expect(mockPush).not.toHaveBeenCalled();
+    expect(screen.queryByRole("option", { name: /Current app/i })).toBeNull();
+  });
+
   it("aborts an outstanding request when the query changes", async () => {
     mockFetch.mockImplementation(() => new Promise(() => {}));
 

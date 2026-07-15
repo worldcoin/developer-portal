@@ -88,6 +88,14 @@ export const AppsTable = ({ columnVisibility, data, sort }: AppsTableProps) => {
                   </dd>
                 </>
               )}
+              {columnVisibility.createdAt && app.createdAt && (
+                <>
+                  <dt className="text-12 font-medium tracking-wide text-grey-400 uppercase">
+                    Created
+                  </dt>
+                  <dd className="text-grey-700">{app.createdAt}</dd>
+                </>
+              )}
             </dl>
           </article>
         )}
