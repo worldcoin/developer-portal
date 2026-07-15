@@ -1,6 +1,6 @@
 /** @jest-environment jsdom */
 import "@testing-library/jest-dom";
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { ActionCard } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldId/page/ActionCard";
 import { ActionsGrid } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldId/page/ActionsGrid";
 
@@ -50,6 +50,29 @@ it("renders the create action card before existing actions", () => {
   expect(
     create.compareDocumentPosition(action) & Node.DOCUMENT_POSITION_FOLLOWING,
   ).toBeTruthy();
+});
+
+it("paginates action cards", () => {
+  render(
+    <ActionsGrid
+      actions={Array.from({ length: 13 }, (_, index) => ({
+        id: `action_${index + 1}`,
+        action: `action-${index + 1}`,
+        description: "",
+      }))}
+      teamId="team_1"
+      appId="app_1"
+      search=""
+      canCreate={false}
+      onCreateActionConsumed={jest.fn()}
+      onActionsChanged={jest.fn()}
+    />,
+  );
+
+  expect(screen.getByText("Page 1 of 2")).toBeInTheDocument();
+  expect(screen.queryByRole("link", { name: "action-13" })).toBeNull();
+  fireEvent.click(screen.getByRole("button", { name: "Next" }));
+  expect(screen.getByRole("link", { name: "action-13" })).toBeInTheDocument();
 });
 
 it("opens a deferred create intent when it becomes actionable", async () => {
