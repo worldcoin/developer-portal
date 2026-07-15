@@ -28,8 +28,9 @@ const getColumnLabel = (column: VerifiedTableColumn): string => {
 export const VerifiedTable = (props: {
   nullifiers: NullifierItem[];
   columns: VerifiedTableColumn[];
+  showIcons?: boolean;
 }) => {
-  const { nullifiers, columns } = props;
+  const { nullifiers, columns, showIcons = true } = props;
   const rowsPerPageOptions = [5, 10, 20]; // Rows per page options
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(5);
@@ -151,6 +152,7 @@ export const VerifiedTable = (props: {
                   key={index}
                   logo={_selectImage(nullifier.nullifier_hash)}
                   columns={columns}
+                  showIcon={showIcons}
                 />
               ))}
             </div>

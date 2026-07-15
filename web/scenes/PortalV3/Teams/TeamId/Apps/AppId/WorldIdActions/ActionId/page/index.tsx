@@ -4,15 +4,17 @@ import { ErrorPage } from "@/components/ErrorPage";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { urls } from "@/lib/urls";
 import {
-  GetWorldIdOverviewQuery,
-  useGetWorldIdOverviewQuery,
-} from "@/scenes/common/Teams/TeamId/Apps/AppId/WorldId/page/graphql/client/get-world-id-overview.generated";
+  GetSingleActionV4Query,
+  useGetSingleActionV4Query,
+} from "@/scenes/common/Teams/TeamId/Apps/AppId/WorldIdActions/ActionId/page/graphql/client/get-single-action-v4.generated";
+import { VerifiedTable } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/Actions/ActionId/page/VerifiedTable";
+import { adaptNullifierV4 } from "@/scenes/Portal/Teams/TeamId/Apps/AppId/WorldIdActions/ActionId/page/utils/adapt-nullifier-v4";
 import Link from "next/link";
 import { useState } from "react";
 import Skeleton from "react-loading-skeleton";
 import { SettingsCard } from "./SettingsCard";
 
-type Action = GetWorldIdOverviewQuery["action_v4"][number];
+type Action = NonNullable<GetSingleActionV4Query["action_v4_by_pk"]>;
 
 export const WorldIdActionDetailPage = (props: {
   params: Record<string, string>;
@@ -24,13 +26,11 @@ export const WorldIdActionDetailPage = (props: {
   const actionId = params.actionId;
 
   const [deleted, setDeleted] = useState(false);
-  const { data, loading, error, refetch } = useGetWorldIdOverviewQuery({
-    variables: { app_id: appId },
-    skip: !appId,
+  const { data, loading, error, refetch } = useGetSingleActionV4Query({
+    variables: { action_id: actionId },
+    skip: !actionId,
   });
-  const action: Action | undefined = data?.action_v4.find(
-    ({ id }) => id === actionId,
-  );
+  const action: Action | undefined = data?.action_v4_by_pk ?? undefined;
 
   if (error && !action) {
     return (
@@ -84,6 +84,26 @@ export const WorldIdActionDetailPage = (props: {
             </div>
           )}
         </div>
+
+        {action ? (
+          <div className="rounded-16 border border-portal-border bg-white p-6 shadow-portal-card">
+            <div className="flex flex-col gap-1">
+              <span className="font-world text-sm text-portal-muted">
+                Verifications
+              </span>
+              <span className="font-ibm text-[28px] leading-none font-medium text-portal-heading">
+                {Number(
+                  action.nullifiers_aggregate?.aggregate?.count ?? 0,
+                ).toLocaleString()}
+              </span>
+            </div>
+            <VerifiedTable
+              columns={["human", "time"]}
+              nullifiers={adaptNullifierV4(action.nullifiers)}
+              showIcons={false}
+            />
+          </div>
+        ) : null}
 
         {action && canDelete ? (
           <SettingsCard
