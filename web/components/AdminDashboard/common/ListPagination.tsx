@@ -10,6 +10,7 @@ type ListPaginationProps = {
   ariaLabel: string;
   currentPage: number;
   limit: number;
+  pageParam?: string;
   pageInputId: string;
   totalItems: number;
   totalPages: number;
@@ -44,6 +45,7 @@ export const ListPagination = ({
   ariaLabel,
   currentPage,
   limit,
+  pageParam = "page",
   pageInputId,
   totalItems,
   totalPages,
@@ -66,8 +68,8 @@ export const ListPagination = ({
     const params = new URLSearchParams(searchParams.toString());
     setDisplayedPage(nextPage);
     setPageInputValue(String(nextPage));
-    if (nextPage === 1) params.delete("page");
-    else params.set("page", String(nextPage));
+    if (nextPage === 1) params.delete(pageParam);
+    else params.set(pageParam, String(nextPage));
     const query = params.toString();
     router.replace(query ? `${pathname}?${query}` : pathname, {
       scroll: false,
