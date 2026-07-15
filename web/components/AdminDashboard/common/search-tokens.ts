@@ -142,6 +142,10 @@ export const getSearchVisualSegments = <TField extends string>(
     lastIndex = token.end;
   }
 
+  if (lastIndex < query.length) {
+    segments.push({ type: "text", value: query.slice(lastIndex) });
+  }
+
   return segments.length > 0 ? segments : [{ type: "text", value: query }];
 };
 

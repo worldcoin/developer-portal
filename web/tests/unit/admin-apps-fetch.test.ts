@@ -15,6 +15,7 @@ import {
   createAppsOrderBy,
   createAppsWhere,
 } from "@/scenes/Admin/apps/server/fetch-apps";
+import { getAppsSearchVisualSegments } from "@/components/AdminDashboard/Apps/search";
 import { Order_By } from "@/graphql/graphql";
 
 describe("admin apps query mapping", () => {
@@ -59,5 +60,17 @@ describe("admin apps query mapping", () => {
 
   it("returns no matches for an invalid date filter", () => {
     expect(createAppsWhere("created>=invalid")).toEqual({ id: { _in: [] } });
+  });
+
+  it("preserves text before, between, and after field chips", () => {
+    expect(
+      getAppsSearchVisualSegments("test name:wallet team:world trailing"),
+    ).toEqual([
+      { type: "text", value: "test " },
+      { type: "chip", value: "name:wallet" },
+      { type: "text", value: " " },
+      { type: "chip", value: "team:world" },
+      { type: "text", value: " trailing" },
+    ]);
   });
 });
