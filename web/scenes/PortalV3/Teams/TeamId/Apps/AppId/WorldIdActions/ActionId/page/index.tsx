@@ -101,6 +101,7 @@ export const WorldIdActionDetailPage = (props: {
               columns={["human", "time"]}
               nullifiers={adaptNullifierV4(action.nullifiers)}
               showIcons={false}
+              showCount={false}
             />
           </div>
         ) : null}
