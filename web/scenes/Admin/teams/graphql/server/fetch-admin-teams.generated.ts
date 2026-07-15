@@ -28,10 +28,7 @@ export type FetchAdminTeamsQuery = {
   }>;
   team_aggregate: {
     __typename?: "team_aggregate";
-    aggregate?: {
-      __typename?: "team_aggregate_fields";
-      count: number;
-    } | null;
+    aggregate?: { __typename?: "team_aggregate_fields"; count: number } | null;
   };
   membership?: Array<{ __typename?: "membership"; team_id: string }>;
   app?: Array<{ __typename?: "app"; team_id: string }>;
@@ -101,7 +98,7 @@ export function getSdk(
 ) {
   return {
     FetchAdminTeams(
-      variables?: FetchAdminTeamsQueryVariables,
+      variables: FetchAdminTeamsQueryVariables,
       requestHeaders?: GraphQLClientRequestHeaders,
     ): Promise<FetchAdminTeamsQuery> {
       return withWrapper(

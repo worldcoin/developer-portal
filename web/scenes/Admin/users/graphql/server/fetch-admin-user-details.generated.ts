@@ -1,10 +1,9 @@
+/* eslint-disable */
 import * as Types from "@/graphql/graphql";
 
 import { GraphQLClient, RequestOptions } from "graphql-request";
 import gql from "graphql-tag";
-
 type GraphQLClientRequestHeaders = RequestOptions["requestHeaders"];
-
 export type FetchAdminUserDetailsQueryVariables = Types.Exact<{
   userId: Types.Scalars["String"]["input"];
 }>;
@@ -56,7 +55,7 @@ export type FetchAdminUserDetailsQuery = {
     team: {
       __typename?: "team";
       id: string;
-      name: string;
+      name?: string | null;
       deleted_at?: string | null;
       memberships_aggregate: {
         __typename?: "membership_aggregate";
@@ -73,7 +72,7 @@ export type FetchAdminUserDetailsQuery = {
     team: {
       __typename?: "team";
       id: string;
-      name: string;
+      name?: string | null;
       deleted_at?: string | null;
     };
   }>;
@@ -158,10 +157,15 @@ export type SdkFunctionWrapper = <T>(
   action: (requestHeaders?: Record<string, string>) => Promise<T>,
   operationName: string,
   operationType?: string,
-  variables?: unknown,
+  variables?: any,
 ) => Promise<T>;
 
-const defaultWrapper: SdkFunctionWrapper = (action) => action();
+const defaultWrapper: SdkFunctionWrapper = (
+  action,
+  _operationName,
+  _operationType,
+  _variables,
+) => action();
 
 export function getSdk(
   client: GraphQLClient,
@@ -169,7 +173,7 @@ export function getSdk(
 ) {
   return {
     FetchAdminUserDetails(
-      variables?: FetchAdminUserDetailsQueryVariables,
+      variables: FetchAdminUserDetailsQueryVariables,
       requestHeaders?: GraphQLClientRequestHeaders,
     ): Promise<FetchAdminUserDetailsQuery> {
       return withWrapper(
@@ -186,5 +190,4 @@ export function getSdk(
     },
   };
 }
-
 export type Sdk = ReturnType<typeof getSdk>;

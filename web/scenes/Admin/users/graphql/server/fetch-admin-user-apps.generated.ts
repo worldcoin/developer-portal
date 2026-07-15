@@ -1,10 +1,9 @@
+/* eslint-disable */
 import * as Types from "@/graphql/graphql";
 
 import { GraphQLClient, RequestOptions } from "graphql-request";
 import gql from "graphql-tag";
-
 type GraphQLClientRequestHeaders = RequestOptions["requestHeaders"];
-
 export type FetchAdminUserAppsQueryVariables = Types.Exact<{
   limit: Types.Scalars["Int"]["input"];
   offset: Types.Scalars["Int"]["input"];
@@ -19,7 +18,7 @@ export type FetchAdminUserAppsQuery = {
     name: string;
     created_at: string;
     deleted_at?: string | null;
-    team: { __typename?: "team"; id: string; name: string };
+    team: { __typename?: "team"; id: string; name?: string | null };
     draft_metadata: Array<{
       __typename?: "app_metadata";
       name: string;
@@ -82,10 +81,15 @@ export type SdkFunctionWrapper = <T>(
   action: (requestHeaders?: Record<string, string>) => Promise<T>,
   operationName: string,
   operationType?: string,
-  variables?: unknown,
+  variables?: any,
 ) => Promise<T>;
 
-const defaultWrapper: SdkFunctionWrapper = (action) => action();
+const defaultWrapper: SdkFunctionWrapper = (
+  action,
+  _operationName,
+  _operationType,
+  _variables,
+) => action();
 
 export function getSdk(
   client: GraphQLClient,
@@ -93,7 +97,7 @@ export function getSdk(
 ) {
   return {
     FetchAdminUserApps(
-      variables?: FetchAdminUserAppsQueryVariables,
+      variables: FetchAdminUserAppsQueryVariables,
       requestHeaders?: GraphQLClientRequestHeaders,
     ): Promise<FetchAdminUserAppsQuery> {
       return withWrapper(
@@ -110,5 +114,4 @@ export function getSdk(
     },
   };
 }
-
 export type Sdk = ReturnType<typeof getSdk>;
