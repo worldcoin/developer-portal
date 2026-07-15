@@ -26,6 +26,44 @@ const createHomeResponse = () => ({
   active_api_keys: aggregate(3),
   active_apps: aggregate(7),
   active_teams: aggregate(5),
+  apps_awaiting_review: [
+    {
+      draft_metadata: [
+        {
+          name: "Waiting app",
+          updated_at: "2026-07-09T00:00:00.000Z",
+          verification_status: "awaiting_review",
+        },
+      ],
+      id: "app_waiting_review",
+      name: "Waiting source app",
+      team_id: "team_current",
+      verified_metadata: [],
+    },
+  ],
+  apps_awaiting_review_count: aggregate(7),
+  apps_changes_requested: [
+    {
+      draft_metadata: [
+        {
+          name: "Reviewed app",
+          updated_at: "2026-07-10T00:00:00.000Z",
+          verification_status: "changes_requested",
+        },
+      ],
+      id: "app_changes_requested",
+      name: "Source app name",
+      team_id: "team_current",
+      verified_metadata: [
+        {
+          name: "Previously verified app",
+          verification_status: "verified",
+          verified_at: "2026-07-01T00:00:00.000Z",
+        },
+      ],
+    },
+  ],
+  apps_changes_requested_count: aggregate(8),
   apps_without_metadata: [
     {
       created_at: "2026-07-01T00:00:00.000Z",
@@ -34,12 +72,13 @@ const createHomeResponse = () => ({
       team_id: "team_current",
     },
   ],
+  apps_without_metadata_count: aggregate(9),
   deleted_apps: aggregate(2),
   deleted_teams: aggregate(1),
   new_apps: aggregate(4),
   new_teams: aggregate(2),
   new_users: aggregate(6),
-  owner_memberships: [
+  sole_owner_memberships: [
     {
       team: {
         id: "team_sole_owner",
@@ -52,19 +91,8 @@ const createHomeResponse = () => ({
         name: "Owner",
       },
     },
-    {
-      team: {
-        id: "team_multiple_owners",
-        memberships_aggregate: aggregate(2),
-        name: "Multiple owners",
-      },
-      user: {
-        email: "second@example.com",
-        id: "user_second",
-        name: "Second owner",
-      },
-    },
   ],
+  sole_owner_memberships_count: aggregate(10),
   pending_invites: aggregate(2),
   recent_apps: [
     {
@@ -107,6 +135,7 @@ const createHomeResponse = () => ({
       name: "No owner team",
     },
   ],
+  teams_without_owner_count: aggregate(11),
   total_users: aggregate(11),
   users_without_teams: [
     {
@@ -116,40 +145,7 @@ const createHomeResponse = () => ({
       name: "Unassigned user",
     },
   ],
-  workflow_apps: [
-    {
-      draft_metadata: [
-        {
-          name: "Reviewed app",
-          updated_at: "2026-07-10T00:00:00.000Z",
-          verification_status: "changes_requested",
-        },
-      ],
-      id: "app_changes_requested",
-      name: "Source app name",
-      team_id: "team_current",
-      verified_metadata: [
-        {
-          name: "Previously verified app",
-          verification_status: "verified",
-          verified_at: "2026-07-01T00:00:00.000Z",
-        },
-      ],
-    },
-    {
-      draft_metadata: [
-        {
-          name: "Waiting app",
-          updated_at: "2026-07-09T00:00:00.000Z",
-          verification_status: "awaiting_review",
-        },
-      ],
-      id: "app_waiting_review",
-      name: "Waiting source app",
-      team_id: "team_current",
-      verified_metadata: [],
-    },
-  ],
+  users_without_teams_count: aggregate(12),
 });
 
 beforeEach(() => {
@@ -186,6 +182,14 @@ describe("admin home fetch", () => {
     expect(home.queues.usersWithoutTeams).toEqual([
       expect.objectContaining({ id: "user_without_team" }),
     ]);
+    expect(home.queueCounts).toEqual({
+      appsAwaitingReview: 7,
+      appsChangesRequested: 8,
+      appsWithoutMetadata: 9,
+      soleOwnerTeams: 10,
+      teamsWithoutOwner: 11,
+      usersWithoutTeams: 12,
+    });
   });
 
   it("prioritizes the latest non-verified metadata over verified metadata", () => {

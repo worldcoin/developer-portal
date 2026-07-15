@@ -7,8 +7,6 @@ import { fetchAdminHome, type AdminMetadataStatus } from "./server/fetch-home";
 
 const formatDate = (value: string) => value.slice(0, 10);
 
-const preview = <Value,>(items: Value[]) => items.slice(0, 5);
-
 const isAppStatus = (
   status: AdminMetadataStatus | null,
 ): status is StatusVariant => Boolean(status);
@@ -141,10 +139,10 @@ export const AdminPage = async () => {
           </div>
           <div className="mt-4 grid min-h-0 gap-3 overflow-y-auto pr-1">
             <QueueSection
-              count={home.queues.appsAwaitingReview.length}
+              count={home.queueCounts.appsAwaitingReview}
               title="Apps in review"
             >
-              {preview(home.queues.appsAwaitingReview).map((app) => (
+              {home.queues.appsAwaitingReview.map((app) => (
                 <EntityLink
                   detail={app.updatedAt ? formatDate(app.updatedAt) : undefined}
                   href={`/admin/apps/${app.id}`}
@@ -154,10 +152,10 @@ export const AdminPage = async () => {
               ))}
             </QueueSection>
             <QueueSection
-              count={home.queues.appsChangesRequested.length}
+              count={home.queueCounts.appsChangesRequested}
               title="Apps with changes requested"
             >
-              {preview(home.queues.appsChangesRequested).map((app) => (
+              {home.queues.appsChangesRequested.map((app) => (
                 <EntityLink
                   detail={app.updatedAt ? formatDate(app.updatedAt) : undefined}
                   href={`/admin/apps/${app.id}`}
@@ -167,10 +165,10 @@ export const AdminPage = async () => {
               ))}
             </QueueSection>
             <QueueSection
-              count={home.queues.appsWithoutMetadata.length}
+              count={home.queueCounts.appsWithoutMetadata}
               title="Apps without metadata"
             >
-              {preview(home.queues.appsWithoutMetadata).map((app) => (
+              {home.queues.appsWithoutMetadata.map((app) => (
                 <EntityLink
                   detail={app.teamId}
                   href={`/admin/apps/${app.id}`}
@@ -180,10 +178,10 @@ export const AdminPage = async () => {
               ))}
             </QueueSection>
             <QueueSection
-              count={home.queues.teamsWithoutOwner.length}
+              count={home.queueCounts.teamsWithoutOwner}
               title="Teams without an owner"
             >
-              {preview(home.queues.teamsWithoutOwner).map((team) => (
+              {home.queues.teamsWithoutOwner.map((team) => (
                 <EntityLink
                   href={`/admin/teams/${team.id}`}
                   key={team.id}
@@ -192,10 +190,10 @@ export const AdminPage = async () => {
               ))}
             </QueueSection>
             <QueueSection
-              count={home.queues.soleOwnerTeams.length}
+              count={home.queueCounts.soleOwnerTeams}
               title="Teams with one owner"
             >
-              {preview(home.queues.soleOwnerTeams).map((team) => (
+              {home.queues.soleOwnerTeams.map((team) => (
                 <EntityLink
                   detail={team.owner.name}
                   href={`/admin/teams/${team.id}`}
@@ -205,10 +203,10 @@ export const AdminPage = async () => {
               ))}
             </QueueSection>
             <QueueSection
-              count={home.queues.usersWithoutTeams.length}
+              count={home.queueCounts.usersWithoutTeams}
               title="Users without a team"
             >
-              {preview(home.queues.usersWithoutTeams).map((user) => (
+              {home.queues.usersWithoutTeams.map((user) => (
                 <EntityLink
                   detail={user.email}
                   href={`/admin/users/${user.id}`}

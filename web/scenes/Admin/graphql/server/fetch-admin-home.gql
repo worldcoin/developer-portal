@@ -67,33 +67,71 @@ query FetchAdminHome($recentSince: timestamptz!, $recentLimit: Int!) {
       ]
     }
     order_by: { created_at: desc }
+    limit: $recentLimit
   ) {
     id
     name
     created_at
   }
+  teams_without_owner_count: team_aggregate(
+    where: {
+      _and: [
+        { deleted_at: { _is_null: true } }
+        { _not: { memberships: { role: { _eq: OWNER } } } }
+      ]
+    }
+  ) {
+    aggregate {
+      count
+    }
+  }
   users_without_teams: user(
     where: { _not: { memberships: {} } }
     order_by: { created_at: desc }
+    limit: $recentLimit
   ) {
     id
     name
     email
     created_at
   }
+  users_without_teams_count: user_aggregate(
+    where: { _not: { memberships: {} } }
+  ) {
+    aggregate {
+      count
+    }
+  }
   apps_without_metadata: app(
     where: {
       _and: [{ deleted_at: { _is_null: true } }, { _not: { app_metadata: {} } }]
     }
     order_by: { created_at: desc }
+    limit: $recentLimit
   ) {
     id
     name
     team_id
     created_at
   }
-  owner_memberships: membership(
-    where: { role: { _eq: OWNER }, team: { deleted_at: { _is_null: true } } }
+  apps_without_metadata_count: app_aggregate(
+    where: {
+      _and: [{ deleted_at: { _is_null: true } }, { _not: { app_metadata: {} } }]
+    }
+  ) {
+    aggregate {
+      count
+    }
+  }
+  sole_owner_memberships: membership(
+    where: {
+      role: { _eq: OWNER }
+      team: {
+        deleted_at: { _is_null: true }
+        memberships_aggregate: { count: { predicate: { _eq: 1 } } }
+      }
+    }
+    limit: $recentLimit
   ) {
     user {
       id
@@ -110,9 +148,26 @@ query FetchAdminHome($recentSince: timestamptz!, $recentLimit: Int!) {
       }
     }
   }
-  workflow_apps: app(
-    where: { deleted_at: { _is_null: true } }
+  sole_owner_memberships_count: membership_aggregate(
+    where: {
+      role: { _eq: OWNER }
+      team: {
+        deleted_at: { _is_null: true }
+        memberships_aggregate: { count: { predicate: { _eq: 1 } } }
+      }
+    }
+  ) {
+    aggregate {
+      count
+    }
+  }
+  apps_awaiting_review: app(
+    where: {
+      deleted_at: { _is_null: true }
+      app_metadata: { verification_status: { _eq: "awaiting_review" } }
+    }
     order_by: { created_at: desc }
+    limit: $recentLimit
   ) {
     id
     name
@@ -134,6 +189,56 @@ query FetchAdminHome($recentSince: timestamptz!, $recentLimit: Int!) {
       name
       verified_at
       verification_status
+    }
+  }
+  apps_awaiting_review_count: app_aggregate(
+    where: {
+      deleted_at: { _is_null: true }
+      app_metadata: { verification_status: { _eq: "awaiting_review" } }
+    }
+  ) {
+    aggregate {
+      count
+    }
+  }
+  apps_changes_requested: app(
+    where: {
+      deleted_at: { _is_null: true }
+      app_metadata: { verification_status: { _eq: "changes_requested" } }
+    }
+    order_by: { created_at: desc }
+    limit: $recentLimit
+  ) {
+    id
+    name
+    team_id
+    draft_metadata: app_metadata(
+      where: { verification_status: { _neq: "verified" } }
+      order_by: { updated_at: desc }
+      limit: 1
+    ) {
+      name
+      updated_at
+      verification_status
+    }
+    verified_metadata: app_metadata(
+      where: { verification_status: { _eq: "verified" } }
+      order_by: { verified_at: desc }
+      limit: 1
+    ) {
+      name
+      verified_at
+      verification_status
+    }
+  }
+  apps_changes_requested_count: app_aggregate(
+    where: {
+      deleted_at: { _is_null: true }
+      app_metadata: { verification_status: { _eq: "changes_requested" } }
+    }
+  ) {
+    aggregate {
+      count
     }
   }
   recent_teams: team(order_by: { created_at: desc }, limit: $recentLimit) {

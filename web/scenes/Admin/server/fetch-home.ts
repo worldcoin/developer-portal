@@ -14,7 +14,7 @@ export type AdminMetadataStatus =
   | "unverified"
   | "verified";
 
-type HomeWorkflowApp = FetchAdminHomeQuery["workflow_apps"][number];
+type HomeWorkflowApp = FetchAdminHomeQuery["apps_awaiting_review"][number];
 type WorkflowStatusSource = {
   draft_metadata: ReadonlyArray<{ verification_status: string }>;
   verified_metadata: ReadonlyArray<{ verification_status: string }>;
@@ -62,21 +62,15 @@ export const fetchAdminHome = async () => {
       recentLimit: 5,
       recentSince,
     });
-    const workflowApps = data.workflow_apps.map(mapWorkflowApp);
-    const soleOwnerTeams = data.owner_memberships
-      .filter(
-        (membership) =>
-          membership.team.memberships_aggregate.aggregate?.count === 1,
-      )
-      .map((membership) => ({
-        id: membership.team.id,
-        name: membership.team.name ?? "Unnamed team",
-        owner: {
-          email: membership.user.email,
-          id: membership.user.id,
-          name: membership.user.name,
-        },
-      }));
+    const soleOwnerTeams = data.sole_owner_memberships.map((membership) => ({
+      id: membership.team.id,
+      name: membership.team.name ?? "Unnamed team",
+      owner: {
+        email: membership.user.email,
+        id: membership.user.id,
+        name: membership.user.name,
+      },
+    }));
 
     return {
       inventory: {
@@ -92,12 +86,8 @@ export const fetchAdminHome = async () => {
         totalUsers: getCount(data.total_users),
       },
       queues: {
-        appsAwaitingReview: workflowApps.filter(
-          (app) => app.status === "awaiting_review",
-        ),
-        appsChangesRequested: workflowApps.filter(
-          (app) => app.status === "changes_requested",
-        ),
+        appsAwaitingReview: data.apps_awaiting_review.map(mapWorkflowApp),
+        appsChangesRequested: data.apps_changes_requested.map(mapWorkflowApp),
         appsWithoutMetadata: data.apps_without_metadata.map((app) => ({
           id: app.id,
           name: app.name,
@@ -113,6 +103,14 @@ export const fetchAdminHome = async () => {
           id: user.id,
           name: user.name,
         })),
+      },
+      queueCounts: {
+        appsAwaitingReview: getCount(data.apps_awaiting_review_count),
+        appsChangesRequested: getCount(data.apps_changes_requested_count),
+        appsWithoutMetadata: getCount(data.apps_without_metadata_count),
+        soleOwnerTeams: getCount(data.sole_owner_memberships_count),
+        teamsWithoutOwner: getCount(data.teams_without_owner_count),
+        usersWithoutTeams: getCount(data.users_without_teams_count),
       },
       recent: {
         apps: data.recent_apps.map((app) => ({
