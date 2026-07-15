@@ -27,7 +27,11 @@ export const createAdminUserAppsWhere = (
   ],
 });
 
-export type AdminUserApp = FetchAdminUserAppsQuery["app"][number];
+type RawAdminUserApp = FetchAdminUserAppsQuery["app"][number];
+
+export type AdminUserApp = Omit<RawAdminUserApp, "team"> & {
+  team: Omit<RawAdminUserApp["team"], "name"> & { name: string };
+};
 
 export const fetchAdminUserAppsPage = async ({
   page,
@@ -49,9 +53,16 @@ export const fetchAdminUserAppsPage = async ({
     });
     const appsAmount = data.app_aggregate.aggregate?.count ?? data.app.length;
     const totalPages = getAppsTotalPages(appsAmount, USER_DETAIL_LIST_LIMIT);
+    const apps: AdminUserApp[] = data.app.map((app) => ({
+      ...app,
+      team: {
+        ...app.team,
+        name: app.team.name ?? "Unnamed team",
+      },
+    }));
 
     return {
-      apps: data.app,
+      apps,
       appsAmount,
       currentPage: clampAppsPage(page, totalPages),
       totalPages,
