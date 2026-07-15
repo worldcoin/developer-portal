@@ -122,8 +122,8 @@ const setNodeEnv = (value: string) => {
 const cloudflareEnv = () => {
   process.env.CF_ACCESS_TEAM_DOMAIN = "https://example.cloudflareaccess.com";
   process.env.CF_ACCESS_AUD = "test-aud";
-  process.env.CF_ACCESS_GROUPS_BY_ACCESS_LEVEL = JSON.stringify({
-    read: ["example-readers"],
+  process.env.CF_GROUP_TO_ACCESS_LEVEL = JSON.stringify({
+    "example-readers": "read",
   });
 };
 // #endregion
@@ -137,7 +137,7 @@ beforeEach(() => {
   delete process.env.ADMIN_AUTH_DEV_ACCESS_LEVEL;
   delete process.env.CF_ACCESS_TEAM_DOMAIN;
   delete process.env.CF_ACCESS_AUD;
-  delete process.env.CF_ACCESS_GROUPS_BY_ACCESS_LEVEL;
+  delete process.env.CF_GROUP_TO_ACCESS_LEVEL;
 });
 
 afterAll(() => {
@@ -401,8 +401,8 @@ describe("cloudflare-access provider", () => {
 
   it("returns no access for an unsupported configured access level", async () => {
     cloudflareEnv();
-    process.env.CF_ACCESS_GROUPS_BY_ACCESS_LEVEL = JSON.stringify({
-      write: ["example-readers"],
+    process.env.CF_GROUP_TO_ACCESS_LEVEL = JSON.stringify({
+      "example-readers": "write",
     });
     jwtVerify.mockResolvedValue({
       payload: {
@@ -418,8 +418,8 @@ describe("cloudflare-access provider", () => {
 
     expect(result).toMatchObject({ accessLevel: null });
     expect(logger.error).toHaveBeenCalledWith(
-      "CF_ACCESS_GROUPS_BY_ACCESS_LEVEL contains an invalid access level",
-      { accessLevel: "write" },
+      "CF_GROUP_TO_ACCESS_LEVEL group must map to a valid access level",
+      { group: "example-readers", accessLevel: "write" },
     );
   });
 
@@ -474,8 +474,8 @@ describe("cloudflare-access provider", () => {
 
   it("prefers full group membership from the get-identity endpoint", async () => {
     cloudflareEnv();
-    process.env.CF_ACCESS_GROUPS_BY_ACCESS_LEVEL = JSON.stringify({
-      read: ["91878cb4-bde9-4e69-b6ca-76140f832a57"],
+    process.env.CF_GROUP_TO_ACCESS_LEVEL = JSON.stringify({
+      "91878cb4-bde9-4e69-b6ca-76140f832a57": "read",
     });
     jwtVerify.mockResolvedValue({
       payload: { email: "user@example.com", sub: "user-1" },
@@ -558,8 +558,8 @@ describe("cloudflare-access provider", () => {
 
   it("falls back to the token's custom groups when get-identity fails", async () => {
     cloudflareEnv();
-    process.env.CF_ACCESS_GROUPS_BY_ACCESS_LEVEL = JSON.stringify({
-      read: ["example-admins"],
+    process.env.CF_GROUP_TO_ACCESS_LEVEL = JSON.stringify({
+      "example-admins": "read",
     });
     jwtVerify.mockResolvedValue({
       payload: {

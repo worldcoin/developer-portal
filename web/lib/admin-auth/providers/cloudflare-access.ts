@@ -68,10 +68,10 @@ const parseGroupIdentifiers = (value: unknown): string[] => {
   });
 };
 
-type GroupsByAccessLevel = Partial<Record<DashboardAccessLevel, string[]>>;
+type GroupToAccessLevel = Record<string, DashboardAccessLevel>;
 
-const parseGroupsByAccessLevel = (): GroupsByAccessLevel | null => {
-  const rawMapping = process.env.CF_ACCESS_GROUPS_BY_ACCESS_LEVEL;
+const parseGroupToAccessLevel = (): GroupToAccessLevel | null => {
+  const rawMapping = process.env.CF_GROUP_TO_ACCESS_LEVEL;
 
   if (!rawMapping) {
     return null;
@@ -81,58 +81,50 @@ const parseGroupsByAccessLevel = (): GroupsByAccessLevel | null => {
   try {
     parsed = JSON.parse(rawMapping);
   } catch {
-    logger.error("CF_ACCESS_GROUPS_BY_ACCESS_LEVEL is not valid JSON");
+    logger.error("CF_GROUP_TO_ACCESS_LEVEL is not valid JSON");
     return null;
   }
 
   if (!isRecord(parsed) || Array.isArray(parsed)) {
-    logger.error("CF_ACCESS_GROUPS_BY_ACCESS_LEVEL must be a JSON object");
+    logger.error("CF_GROUP_TO_ACCESS_LEVEL must be a JSON object");
     return null;
   }
 
-  const groupsByAccessLevel: GroupsByAccessLevel = {};
+  const groupToAccessLevel: GroupToAccessLevel = {};
 
-  for (const [accessLevel, groups] of Object.entries(parsed)) {
-    if (!isDashboardAccessLevel(accessLevel)) {
-      logger.error(
-        "CF_ACCESS_GROUPS_BY_ACCESS_LEVEL contains an invalid access level",
-        { accessLevel },
-      );
-      return null;
-    }
-
+  for (const [group, accessLevel] of Object.entries(parsed)) {
     if (
-      !Array.isArray(groups) ||
-      groups.some((group) => typeof group !== "string")
+      typeof accessLevel !== "string" ||
+      !isDashboardAccessLevel(accessLevel)
     ) {
       logger.error(
-        "CF_ACCESS_GROUPS_BY_ACCESS_LEVEL access level must map to a string array",
-        { accessLevel },
+        "CF_GROUP_TO_ACCESS_LEVEL group must map to a valid access level",
+        { group, accessLevel },
       );
       return null;
     }
 
-    groupsByAccessLevel[accessLevel] = groups;
+    groupToAccessLevel[group] = accessLevel;
   }
 
-  return groupsByAccessLevel;
+  return groupToAccessLevel;
 };
 
 const resolveCloudflareAccessLevel = (
   groupIdentifiers: string[],
 ): DashboardAccessLevel | null => {
-  const groupsByAccessLevel = parseGroupsByAccessLevel();
+  const groupToAccessLevel = parseGroupToAccessLevel();
 
-  if (!groupsByAccessLevel) {
+  if (!groupToAccessLevel) {
     return null;
   }
 
-  const userGroups = new Set(groupIdentifiers);
-  const configuredReadGroups =
-    groupsByAccessLevel[DashboardAccessLevel.Read] ?? [];
+  for (const group of groupIdentifiers) {
+    const accessLevel = groupToAccessLevel[group];
 
-  if (configuredReadGroups.some((group) => userGroups.has(group))) {
-    return DashboardAccessLevel.Read;
+    if (accessLevel) {
+      return accessLevel;
+    }
   }
 
   return null;
