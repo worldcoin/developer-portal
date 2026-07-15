@@ -4,27 +4,31 @@ import * as Types from "@/graphql/graphql";
 import { GraphQLClient, RequestOptions } from "graphql-request";
 import gql from "graphql-tag";
 type GraphQLClientRequestHeaders = RequestOptions["requestHeaders"];
-export type FetchAdminAppsQueryVariables = Types.Exact<{
-  includeCreatedAt: Types.Scalars["Boolean"]["input"];
-  includeDraftMetadata: Types.Scalars["Boolean"]["input"];
-  includeTeamId: Types.Scalars["Boolean"]["input"];
-  includeVerifiedMetadata: Types.Scalars["Boolean"]["input"];
+export type FetchAdminUserAppsQueryVariables = Types.Exact<{
   limit: Types.Scalars["Int"]["input"];
   offset: Types.Scalars["Int"]["input"];
-  orderBy: Array<Types.App_Order_By> | Types.App_Order_By;
   where: Types.App_Bool_Exp;
 }>;
 
-export type FetchAdminAppsQuery = {
+export type FetchAdminUserAppsQuery = {
   __typename?: "query_root";
   app: Array<{
     __typename?: "app";
     id: string;
     name: string;
-    team_id?: string;
-    created_at?: string;
-    draft_metadata?: Array<{ __typename?: "app_metadata"; name: string }>;
-    verified_metadata?: Array<{ __typename?: "app_metadata"; name: string }>;
+    created_at: string;
+    deleted_at?: string | null;
+    team: { __typename?: "team"; id: string; name?: string | null };
+    draft_metadata: Array<{
+      __typename?: "app_metadata";
+      name: string;
+      verification_status: string;
+    }>;
+    verified_metadata: Array<{
+      __typename?: "app_metadata";
+      name: string;
+      verified_at?: string | null;
+    }>;
   }>;
   app_aggregate: {
     __typename?: "app_aggregate";
@@ -32,35 +36,37 @@ export type FetchAdminAppsQuery = {
   };
 };
 
-export const FetchAdminAppsDocument = gql`
-  query FetchAdminApps(
-    $includeCreatedAt: Boolean!
-    $includeDraftMetadata: Boolean!
-    $includeTeamId: Boolean!
-    $includeVerifiedMetadata: Boolean!
-    $limit: Int!
-    $offset: Int!
-    $orderBy: [app_order_by!]!
-    $where: app_bool_exp!
-  ) {
-    app(limit: $limit, offset: $offset, order_by: $orderBy, where: $where) {
+export const FetchAdminUserAppsDocument = gql`
+  query FetchAdminUserApps($limit: Int!, $offset: Int!, $where: app_bool_exp!) {
+    app(
+      limit: $limit
+      offset: $offset
+      order_by: { name: asc }
+      where: $where
+    ) {
       id
       name
-      team_id @include(if: $includeTeamId)
-      created_at @include(if: $includeCreatedAt)
+      created_at
+      deleted_at
+      team {
+        id
+        name
+      }
       draft_metadata: app_metadata(
         where: { verification_status: { _neq: "verified" } }
         order_by: { updated_at: desc }
         limit: 1
-      ) @include(if: $includeDraftMetadata) {
+      ) {
         name
+        verification_status
       }
       verified_metadata: app_metadata(
         where: { verification_status: { _eq: "verified" } }
         order_by: { verified_at: desc }
         limit: 1
-      ) @include(if: $includeVerifiedMetadata) {
+      ) {
         name
+        verified_at
       }
     }
     app_aggregate(where: $where) {
@@ -90,18 +96,18 @@ export function getSdk(
   withWrapper: SdkFunctionWrapper = defaultWrapper,
 ) {
   return {
-    FetchAdminApps(
-      variables: FetchAdminAppsQueryVariables,
+    FetchAdminUserApps(
+      variables: FetchAdminUserAppsQueryVariables,
       requestHeaders?: GraphQLClientRequestHeaders,
-    ): Promise<FetchAdminAppsQuery> {
+    ): Promise<FetchAdminUserAppsQuery> {
       return withWrapper(
         (wrappedRequestHeaders) =>
-          client.request<FetchAdminAppsQuery>(
-            FetchAdminAppsDocument,
+          client.request<FetchAdminUserAppsQuery>(
+            FetchAdminUserAppsDocument,
             variables,
             { ...requestHeaders, ...wrappedRequestHeaders },
           ),
-        "FetchAdminApps",
+        "FetchAdminUserApps",
         "query",
         variables,
       );

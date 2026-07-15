@@ -7,16 +7,22 @@ type PageProps = {
   params: Promise<{
     id: string;
   }>;
+  searchParams: Promise<{
+    appsPage?: string | string[];
+    appsQuery?: string | string[];
+    teamsPage?: string | string[];
+    teamsQuery?: string | string[];
+  }>;
 };
 
 export const metadata: Metadata = {
   title: generateMetaTitle({ left: "User" }),
 };
 
-export default async function Page({ params }: PageProps) {
+export default async function Page({ params, searchParams }: PageProps) {
   await requireAdminUser();
 
   const { id } = await params;
 
-  return <AdminUserPage userId={id} />;
+  return <AdminUserPage searchParams={searchParams} userId={id} />;
 }
