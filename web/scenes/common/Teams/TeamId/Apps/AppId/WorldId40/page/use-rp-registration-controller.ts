@@ -1,22 +1,22 @@
 "use client";
 
+import { RpRegistrationStatus } from "@/lib/rp-registration-status";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRetryRpMutation } from "./graphql/client/retry-rp.generated";
 
-export type RpStatus = "pending" | "registered" | "failed" | "deactivated";
 export type RpEnvironment = "production" | "staging";
 
 type Options = {
   rpId: string;
-  initialProductionStatus: RpStatus;
-  initialStagingStatus: RpStatus | null;
-  onStatusReconciled?: () => void;
+  initialProductionStatus: RpRegistrationStatus;
+  initialStagingStatus: RpRegistrationStatus | null;
+  onStatusReconciled?: (status: RpRegistrationStatus) => void;
   onRetryError?: () => void;
 };
 
 type RpStatusResponse = {
-  production_status: RpStatus;
-  staging_status: RpStatus | null;
+  production_status: RpRegistrationStatus;
+  staging_status: RpRegistrationStatus | null;
 };
 
 export const useRpRegistrationController = ({
@@ -41,7 +41,7 @@ export const useRpRegistrationController = ({
   onStatusReconciledRef.current = onStatusReconciled;
   onRetryErrorRef.current = onRetryError;
 
-  const updateProductionStatus = useCallback((status: RpStatus) => {
+  const updateProductionStatus = useCallback((status: RpRegistrationStatus) => {
     productionStatusRef.current = status;
     setProductionStatus(status);
   }, []);
@@ -73,7 +73,9 @@ export const useRpRegistrationController = ({
       updateProductionStatus(result.production_status);
       setStagingStatus(result.staging_status);
 
-      if (productionChanged) onStatusReconciledRef.current?.();
+      if (productionChanged) {
+        onStatusReconciledRef.current?.(result.production_status);
+      }
     } catch {
       // Retain the last known status when reconciliation is unavailable.
     } finally {
@@ -88,7 +90,12 @@ export const useRpRegistrationController = ({
   }, [fetchStatus]);
 
   useEffect(() => {
-    if (productionStatus !== "pending" && stagingStatus !== "pending") return;
+    if (
+      productionStatus !== RpRegistrationStatus.Pending &&
+      stagingStatus !== RpRegistrationStatus.Pending
+    ) {
+      return;
+    }
 
     const interval = setInterval(() => {
       if (!document.hidden) void fetchStatus();
@@ -107,9 +114,9 @@ export const useRpRegistrationController = ({
 
         if (data?.retry_rp?.success) {
           if (environment === "production") {
-            updateProductionStatus("pending");
+            updateProductionStatus(RpRegistrationStatus.Pending);
           } else {
-            setStagingStatus("pending");
+            setStagingStatus(RpRegistrationStatus.Pending);
           }
         }
       } catch {
@@ -126,6 +133,7 @@ export const useRpRegistrationController = ({
     stagingStatus,
     retryingEnvironment,
     retryRegistration,
-    markProductionPending: () => updateProductionStatus("pending"),
+    markProductionPending: () =>
+      updateProductionStatus(RpRegistrationStatus.Pending),
   };
 };

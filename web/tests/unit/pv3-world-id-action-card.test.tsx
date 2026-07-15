@@ -30,7 +30,29 @@ it("links to the canonical action route", () => {
   );
 });
 
-it("opens a deferred create intent when it becomes actionable", () => {
+it("renders the create action card before existing actions", () => {
+  render(
+    <ActionsGrid
+      actions={[
+        { id: "action_1", action: "verify", description: "Verify a human" },
+      ]}
+      teamId="team_1"
+      appId="app_1"
+      search=""
+      canCreate
+      onCreateActionConsumed={jest.fn()}
+      onActionsChanged={jest.fn()}
+    />,
+  );
+
+  const create = screen.getByRole("button", { name: "Create action" });
+  const action = screen.getByRole("link", { name: /verify/i });
+  expect(
+    create.compareDocumentPosition(action) & Node.DOCUMENT_POSITION_FOLLOWING,
+  ).toBeTruthy();
+});
+
+it("opens a deferred create intent when it becomes actionable", async () => {
   const props = {
     actions: [],
     teamId: "team_1",
@@ -46,5 +68,5 @@ it("opens a deferred create intent when it becomes actionable", () => {
 
   expect(screen.queryByTestId("create-action-dialog")).not.toBeInTheDocument();
   rerender(<ActionsGrid {...props} initialDialogOpen />);
-  expect(screen.getByTestId("create-action-dialog")).toBeInTheDocument();
+  expect(await screen.findByTestId("create-action-dialog")).toBeInTheDocument();
 });

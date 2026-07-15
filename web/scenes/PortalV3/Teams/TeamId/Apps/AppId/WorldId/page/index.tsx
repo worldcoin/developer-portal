@@ -4,6 +4,7 @@ import { Button } from "@/components/Button";
 import { ErrorPage } from "@/components/ErrorPage";
 import { AlertIcon } from "@/components/Icons/AlertIcon";
 import { SizingWrapper } from "@/components/SizingWrapper";
+import { RpRegistrationStatus } from "@/lib/rp-registration-status";
 import { urls } from "@/lib/urls";
 import { BanMessageDialog } from "@/scenes/PortalV3/Teams/TeamId/Apps/common/BanMessageDialog";
 import { banMessageDialogOpenedAtom } from "@/scenes/common/Teams/TeamId/Apps/common/BanMessageDialog/atoms";
@@ -16,7 +17,7 @@ import { ActionsGrid } from "./ActionsGrid";
 import { HeroCard } from "./HeroCard";
 import { RegisterRpEmptyState } from "./RegisterRpEmptyState";
 import { getSetupIntent } from "./setup-intent";
-import { WorldId40Pane, type RpStatus } from "./WorldId40Pane";
+import { WorldId40Pane } from "./WorldId40Pane";
 import { WorldIdTab, WorldIdTabs } from "./WorldIdTabs";
 
 const BanBanner = () => {
@@ -80,6 +81,39 @@ export const WorldIdPage = (props: {
     createActionRequested && props.canManageWorldId,
   );
   const [search, setSearch] = useState("");
+  const [reconciledRpStatus, setReconciledRpStatus] = useState<{
+    rpId: string;
+    status: RpRegistrationStatus;
+  } | null>(null);
+
+  const selectTab = useCallback(
+    (nextTab: WorldIdTab) => {
+      setTab(nextTab);
+
+      const nextSearchParams = new URLSearchParams(searchParams.toString());
+      if (nextTab === "world-id-4-0") {
+        nextSearchParams.set("tab", "world-id-4-0");
+      } else {
+        nextSearchParams.delete("tab");
+      }
+
+      const query = nextSearchParams.toString();
+      if (query === searchParams.toString()) return;
+      router.replace(query ? `${pathname}?${query}` : pathname, {
+        scroll: false,
+      });
+    },
+    [pathname, router, searchParams],
+  );
+
+  const requestedTab: WorldIdTab =
+    searchParams.get("tab") === "world-id-4-0" || enableWorldId4Requested
+      ? "world-id-4-0"
+      : "actions";
+
+  useEffect(() => {
+    setTab(requestedTab);
+  }, [requestedTab]);
 
   const { data, loading, error, refetch } = useGetWorldIdOverviewQuery({
     variables: { app_id: appId },
@@ -90,7 +124,11 @@ export const WorldIdPage = (props: {
   const rp = app?.rp_registration?.[0];
   const hasResolvedApp = Boolean(app);
   const hasRpRegistration = Boolean(rp);
-  const hasActiveRp = rp?.status === "registered";
+  const effectiveRpStatus =
+    reconciledRpStatus && reconciledRpStatus.rpId === rp?.rp_id
+      ? reconciledRpStatus.status
+      : rp?.status;
+  const hasActiveRp = effectiveRpStatus === RpRegistrationStatus.Registered;
   const { openSetup, openAction, consumeEnable, consumeCreate } =
     getSetupIntent({
       enableRequested: enableWorldId4Requested,
@@ -103,8 +141,8 @@ export const WorldIdPage = (props: {
 
   useEffect(() => {
     if (loading || !hasResolvedApp || !createAfterSetup) return;
-    setTab(hasActiveRp ? "actions" : "world-id-4-0");
-  }, [createAfterSetup, hasActiveRp, hasResolvedApp, loading]);
+    selectTab(hasActiveRp ? "actions" : "world-id-4-0");
+  }, [createAfterSetup, hasActiveRp, hasResolvedApp, loading, selectTab]);
 
   useEffect(() => {
     if (consumeEnable) {
@@ -119,8 +157,20 @@ export const WorldIdPage = (props: {
     }
   }, [consumeCreate, consumeSearchParams]);
 
-  // Apollo exposes refetch failures through query error state.
-  const refetchOverview = () => void refetch().catch(() => {});
+  const refetchOverview = useCallback(
+    () => void refetch().catch(() => {}),
+    [refetch],
+  );
+
+  const handleRpChanged = useCallback(
+    (status?: RpRegistrationStatus) => {
+      if (status && rp) {
+        setReconciledRpStatus({ rpId: rp.rp_id, status });
+      }
+      refetchOverview();
+    },
+    [refetchOverview, rp],
+  );
 
   if (loading) {
     return (
@@ -176,7 +226,7 @@ export const WorldIdPage = (props: {
             ? undefined
             : () => {
                 setCreateAfterSetup(true);
-                setTab("world-id-4-0");
+                selectTab("world-id-4-0");
               }
         }
         onCreateActionConsumed={() => {
@@ -191,14 +241,19 @@ export const WorldIdPage = (props: {
       <WorldId40Pane
         appId={appId}
         rpId={rp.rp_id}
-        initialStatus={(rp.status as RpStatus) ?? "pending"}
+        initialStatus={
+          (effectiveRpStatus as RpRegistrationStatus) ??
+          RpRegistrationStatus.Pending
+        }
         initialStagingStatus={
-          rp.staging_status == null ? null : (rp.staging_status as RpStatus)
+          rp.staging_status == null
+            ? null
+            : (rp.staging_status as RpRegistrationStatus)
         }
         mode={rp.mode as string}
         createdAt={rp.created_at}
         canManageWorldId={props.canManageWorldId}
-        onRpChanged={refetchOverview}
+        onRpChanged={handleRpChanged}
       />
     );
   } else {
@@ -234,7 +289,7 @@ export const WorldIdPage = (props: {
       <div className="flex flex-col gap-6">
         <WorldIdTabs
           tab={tab}
-          onTabChange={setTab}
+          onTabChange={selectTab}
           legacyActionsHref={legacyActionsHref}
           search={search}
           onSearchChange={setSearch}

@@ -3,25 +3,23 @@
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { Notification } from "@/components/Notification";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import { RpRegistrationStatus } from "@/lib/rp-registration-status";
 import { WorldId40Settings } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldId40/page/WorldId40Settings";
 import {
   type RpEnvironment,
-  type RpStatus,
   useRpRegistrationController,
 } from "@/scenes/common/Teams/TeamId/Apps/AppId/WorldId40/page/use-rp-registration-controller";
 import { toast } from "react-toastify";
 
-export type { RpStatus } from "@/scenes/common/Teams/TeamId/Apps/AppId/WorldId40/page/use-rp-registration-controller";
-
 export const WorldId40Pane = (props: {
   appId: string;
   rpId: string;
-  initialStatus: RpStatus;
-  initialStagingStatus: RpStatus | null;
+  initialStatus: RpRegistrationStatus;
+  initialStagingStatus: RpRegistrationStatus | null;
   mode: string;
   createdAt: string;
   canManageWorldId: boolean;
-  onRpChanged?: () => void;
+  onRpChanged?: (status?: RpRegistrationStatus) => void;
 }) => {
   const {
     productionStatus,
@@ -47,7 +45,7 @@ export const WorldId40Pane = (props: {
   const renderFailure = (environment: RpEnvironment) => {
     const status =
       environment === "production" ? productionStatus : stagingStatus;
-    if (status !== "failed") return null;
+    if (status !== RpRegistrationStatus.Failed) return null;
 
     const isRetrying = retryingEnvironment === environment;
     return (
@@ -82,25 +80,65 @@ export const WorldId40Pane = (props: {
     );
   };
 
+  const productionStatusContent =
+    productionStatus === RpRegistrationStatus.Pending ? (
+      <Notification variant="info">
+        <div>
+          <Typography as="p" variant={TYPOGRAPHY.S3}>
+            Registration in progress
+          </Typography>
+          <Typography
+            as="p"
+            variant={TYPOGRAPHY.S4}
+            className="mt-1 text-grey-500"
+          >
+            World ID 4.0 settings will be available after registration.
+          </Typography>
+        </div>
+      </Notification>
+    ) : productionStatus === RpRegistrationStatus.Deactivated ? (
+      <Notification variant="warning">
+        <div>
+          <Typography as="p" variant={TYPOGRAPHY.S3}>
+            Registration deactivated
+          </Typography>
+          <Typography
+            as="p"
+            variant={TYPOGRAPHY.S4}
+            className="mt-1 text-grey-500"
+          >
+            This RP is no longer active.
+          </Typography>
+        </div>
+      </Notification>
+    ) : null;
+
+  const isRegistered = productionStatus === RpRegistrationStatus.Registered;
+
   return (
     <div className="flex max-w-[580px] flex-col gap-y-8 py-2">
-      <Typography variant={TYPOGRAPHY.B3} className="text-grey-500">
-        Registered {formattedDate}
-      </Typography>
+      {isRegistered ? (
+        <Typography variant={TYPOGRAPHY.B3} className="text-grey-500">
+          Registered {formattedDate}
+        </Typography>
+      ) : null}
 
+      {productionStatusContent}
       {renderFailure("production")}
       {renderFailure("staging")}
 
-      <WorldId40Settings
-        appId={props.appId}
-        rpId={props.rpId}
-        mode={props.mode}
-        productionStatus={productionStatus}
-        variant="embedded"
-        canManageWorldId={props.canManageWorldId}
-        onProductionPending={markProductionPending}
-        onModeSwitchSuccess={props.onRpChanged}
-      />
+      {isRegistered ? (
+        <WorldId40Settings
+          appId={props.appId}
+          rpId={props.rpId}
+          mode={props.mode}
+          productionStatus={productionStatus}
+          variant="embedded"
+          canManageWorldId={props.canManageWorldId}
+          onProductionPending={markProductionPending}
+          onModeSwitchSuccess={() => props.onRpChanged?.()}
+        />
+      ) : null}
     </div>
   );
 };

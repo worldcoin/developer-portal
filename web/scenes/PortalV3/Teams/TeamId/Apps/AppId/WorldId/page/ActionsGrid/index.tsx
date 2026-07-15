@@ -1,8 +1,14 @@
 "use client";
 
-import { CreateActionDialogV4 } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldIdActions/page/CreateActionDialogV4";
+import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
 import { ActionCard, ActionCardItem } from "../ActionCard";
+
+const CreateActionDialogV4 = dynamic(() =>
+  import(
+    "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldIdActions/page/CreateActionDialogV4"
+  ).then((module) => module.CreateActionDialogV4),
+);
 
 export const ActionsGrid = (props: {
   actions: ActionCardItem[];
@@ -50,15 +56,6 @@ export const ActionsGrid = (props: {
   return (
     <>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {filtered.map((action) => (
-          <ActionCard
-            key={action.id}
-            teamId={props.teamId}
-            appId={props.appId}
-            action={action}
-          />
-        ))}
-
         {props.canCreate ? (
           <button
             type="button"
@@ -78,6 +75,15 @@ export const ActionsGrid = (props: {
             <span className="font-world text-13">Create action</span>
           </button>
         ) : null}
+
+        {filtered.map((action) => (
+          <ActionCard
+            key={action.id}
+            teamId={props.teamId}
+            appId={props.appId}
+            action={action}
+          />
+        ))}
       </div>
 
       {props.canCreate && dialogOpen ? (
