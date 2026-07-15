@@ -1,0 +1,54 @@
+query FetchAdminTeamDetails($teamId: String!) {
+  team_by_pk(id: $teamId) {
+    id
+    name
+    created_at
+    deleted_at
+  }
+  membership_aggregate(where: { team_id: { _eq: $teamId } }) {
+    aggregate {
+      count
+    }
+  }
+  app_aggregate(
+    where: { team_id: { _eq: $teamId }, deleted_at: { _is_null: true } }
+  ) {
+    aggregate {
+      count
+    }
+  }
+  invite_aggregate(
+    where: { team_id: { _eq: $teamId }, expires_at: { _gte: "now()" } }
+  ) {
+    aggregate {
+      count
+    }
+  }
+  api_key_aggregate(
+    where: { team_id: { _eq: $teamId }, is_active: { _eq: true } }
+  ) {
+    aggregate {
+      count
+    }
+  }
+  invite(
+    where: { team_id: { _eq: $teamId } }
+    order_by: { expires_at: asc }
+    limit: 25
+  ) {
+    id
+    email
+    expires_at
+  }
+  api_key(
+    where: { team_id: { _eq: $teamId } }
+    order_by: [{ is_active: desc }, { created_at: desc }]
+    limit: 25
+  ) {
+    id
+    name
+    created_at
+    updated_at
+    is_active
+  }
+}

@@ -1,6 +1,6 @@
 import "server-only";
 
-import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
+import { getInternalDashboardGraphqlClient } from "@/api/helpers/graphql";
 import {
   DEFAULT_TEAM_COLUMN_VISIBILITY,
   type TeamColumnVisibility,
@@ -273,9 +273,6 @@ const createTeamsOrderBy = (sort: TeamsSort | null): Team_Order_By[] => {
 const mapTeamToTableRow = (
   team: FetchAdminTeamsQuery["team"][number],
   columnVisibility: TeamColumnVisibility,
-  membersByTeamId: Map<string, number>,
-  appsByTeamId: Map<string, number>,
-  apiKeysByTeamId: Map<string, number>,
   pendingInvitesByTeamId: Map<string, number>,
 ): TeamTableRow => {
   return {
@@ -286,10 +283,10 @@ const mapTeamToTableRow = (
         ? "Deleted"
         : "Active"
       : undefined,
-    membersCount: membersByTeamId.get(team.id) ?? 0,
-    appsCount: appsByTeamId.get(team.id) ?? 0,
+    membersCount: team.memberships_aggregate?.aggregate?.count ?? 0,
+    appsCount: team.apps_aggregate?.aggregate?.count ?? 0,
     pendingInvitesCount: pendingInvitesByTeamId.get(team.id) ?? 0,
-    activeApiKeysCount: apiKeysByTeamId.get(team.id) ?? 0,
+    activeApiKeysCount: team.api_keys_aggregate?.aggregate?.count ?? 0,
     createdAt:
       columnVisibility.createdAt && team.created_at
         ? formatCreatedAt(team.created_at)
@@ -320,18 +317,18 @@ export const fetchAdminTeamsPage = async (
     sort: null,
   },
 ) => {
-  const client = await getAPIServiceGraphqlClient();
+  const client = await getInternalDashboardGraphqlClient();
   const offset = getTeamsOffset(page, limit);
   const where = createTeamsWhere(searchQuery);
   const orderBy = createTeamsOrderBy(sort);
 
   try {
-    const data = await getSdk(client).FetchAdminTeams({
+    const sdk = getSdk(client);
+    const data = await sdk.FetchAdminTeams({
       includeActiveApiKeysCount: columnVisibility.activeApiKeysCount,
       includeAppsCount: columnVisibility.appsCount,
       includeCreatedAt: columnVisibility.createdAt,
       includeMembersCount: columnVisibility.membersCount,
-      includePendingInvitesCount: columnVisibility.pendingInvitesCount,
       includeStatus: columnVisibility.status,
       limit,
       offset,
@@ -339,20 +336,19 @@ export const fetchAdminTeamsPage = async (
       where,
     });
 
-    const membersByTeamId = countByTeamId(data.membership ?? []);
-    const appsByTeamId = countByTeamId(data.app ?? []);
-    const apiKeysByTeamId = countByTeamId(data.api_key ?? []);
-    const pendingInvitesByTeamId = countByTeamId(data.invite ?? []);
+    const pendingInvitesByTeamId =
+      columnVisibility.pendingInvitesCount && data.team.length > 0
+        ? countByTeamId(
+            (
+              await sdk.FetchAdminTeamPendingInvites({
+                teamIds: data.team.map((team) => team.id),
+              })
+            ).invite,
+          )
+        : new Map<string, number>();
 
     const teams = data.team.map((team) =>
-      mapTeamToTableRow(
-        team,
-        columnVisibility,
-        membersByTeamId,
-        appsByTeamId,
-        apiKeysByTeamId,
-        pendingInvitesByTeamId,
-      ),
+      mapTeamToTableRow(team, columnVisibility, pendingInvitesByTeamId),
     );
 
     const teamsAmount = data.team_aggregate.aggregate?.count ?? teams.length;

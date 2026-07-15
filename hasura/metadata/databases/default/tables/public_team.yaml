@@ -23,6 +23,13 @@ array_relationships:
         table:
           name: membership
           schema: public
+  - name: invites
+    using:
+      foreign_key_constraint_on:
+        column: team_id
+        table:
+          name: invite
+          schema: public
 computed_fields:
   - name: team_owners_count
     definition:
@@ -64,6 +71,15 @@ select_permissions:
       filter:
         deleted_at:
           _is_null: true
+  - role: internal_dashboard_readonly
+    permission:
+      columns:
+        - created_at
+        - deleted_at
+        - id
+        - name
+      filter: {}
+      allow_aggregations: true
   - role: service
     permission:
       columns:
@@ -73,7 +89,6 @@ select_permissions:
         - name
         - updated_at
       filter: {}
-      allow_aggregations: true
   - role: user
     permission:
       columns:
