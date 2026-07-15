@@ -21,10 +21,10 @@ jest.mock(
 jest.mock(
   "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldIdActions/ActionId/page",
   () => ({
-    WorldIdActionDetailPage: (props: { canDelete: boolean }) => (
+    WorldIdActionDetailPage: (props: { canModify: boolean }) => (
       <div
         data-testid="v3-wia-actionid"
-        data-can-delete={String(props.canDelete)}
+        data-can-modify={String(props.canModify)}
       />
     ),
   }),
@@ -40,18 +40,29 @@ beforeEach(() => {
   mockPortalV3Enabled = true;
 });
 
-it("renders the new v3 detail with delete permission", async () => {
+it("renders the new v3 detail without modify permission", async () => {
   mockGetIsUserAllowedToUpdateApp.mockResolvedValue(false);
 
   render(await RoutePage(props()));
 
   expect(screen.getByTestId("v3-wia-actionid")).toBeInTheDocument();
   expect(screen.getByTestId("v3-wia-actionid")).toHaveAttribute(
-    "data-can-delete",
+    "data-can-modify",
     "false",
   );
   expect(mockGetIsUserAllowedToUpdateApp).toHaveBeenCalledWith("a");
   expect(screen.queryByTestId("v2-wia-actionid")).not.toBeInTheDocument();
+});
+
+it("renders the new v3 detail with modify permission", async () => {
+  mockGetIsUserAllowedToUpdateApp.mockResolvedValue(true);
+
+  render(await RoutePage(props()));
+
+  expect(screen.getByTestId("v3-wia-actionid")).toHaveAttribute(
+    "data-can-modify",
+    "true",
+  );
 });
 
 it("keeps the legacy detail for v2", async () => {

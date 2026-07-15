@@ -4,9 +4,9 @@ import { ErrorPage } from "@/components/ErrorPage";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { urls } from "@/lib/urls";
 import {
-  GetSingleActionV4Query,
-  useGetSingleActionV4Query,
-} from "@/scenes/common/Teams/TeamId/Apps/AppId/WorldIdActions/ActionId/page/graphql/client/get-single-action-v4.generated";
+  GetWorldIdActionDetailQuery,
+  useGetWorldIdActionDetailQuery,
+} from "./graphql/client/get-world-id-action-detail.generated";
 import { VerifiedTable } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/Actions/ActionId/page/VerifiedTable";
 import { adaptNullifierV4 } from "@/scenes/Portal/Teams/TeamId/Apps/AppId/WorldIdActions/ActionId/page/utils/adapt-nullifier-v4";
 import Link from "next/link";
@@ -14,23 +14,23 @@ import { useState } from "react";
 import Skeleton from "react-loading-skeleton";
 import { SettingsCard } from "./SettingsCard";
 
-type Action = NonNullable<GetSingleActionV4Query["action_v4_by_pk"]>;
+type Action = GetWorldIdActionDetailQuery["action_v4"][number];
 
 export const WorldIdActionDetailPage = (props: {
   params: Record<string, string>;
-  canDelete: boolean;
+  canModify: boolean;
 }) => {
-  const { params, canDelete } = props;
+  const { params, canModify } = props;
   const teamId = params.teamId;
   const appId = params.appId;
   const actionId = params.actionId;
 
   const [deleted, setDeleted] = useState(false);
-  const { data, loading, error, refetch } = useGetSingleActionV4Query({
-    variables: { action_id: actionId },
-    skip: !actionId,
+  const { data, loading, error, refetch } = useGetWorldIdActionDetailQuery({
+    variables: { action_id: actionId, app_id: appId },
+    skip: !actionId || !appId,
   });
-  const action: Action | undefined = data?.action_v4_by_pk ?? undefined;
+  const action: Action | undefined = data?.action_v4[0];
 
   if (error && !action) {
     return (
@@ -106,12 +106,12 @@ export const WorldIdActionDetailPage = (props: {
           </div>
         ) : null}
 
-        {action && canDelete ? (
+        {action && canModify ? (
           <SettingsCard
             action={action}
             teamId={teamId}
             appId={appId}
-            canDelete={canDelete}
+            canModify={canModify}
             onDeleted={() => setDeleted(true)}
             onUpdated={() => void refetch().catch(() => {})}
           />

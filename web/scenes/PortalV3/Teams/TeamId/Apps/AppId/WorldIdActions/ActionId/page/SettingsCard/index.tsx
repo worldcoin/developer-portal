@@ -3,25 +3,25 @@
 import { ActionDangerZone } from "@/components/ActionDangerZone";
 import { urls } from "@/lib/urls";
 import { Icon } from "@/scenes/PortalV3/common/Icon";
-import { deleteActionV4ServerSide } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldIdActions/ActionId/Danger/page/server";
 import { UpdateActionV4Form } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldIdActions/ActionId/Settings/UpdateActionV4Form";
-import { GetSingleActionV4Query } from "@/scenes/common/Teams/TeamId/Apps/AppId/WorldIdActions/ActionId/page/graphql/client/get-single-action-v4.generated";
 import { useApolloClient } from "@apollo/client";
 import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 import { toast } from "react-toastify";
+import { GetWorldIdActionDetailQuery } from "../graphql/client/get-world-id-action-detail.generated";
+import { deleteActionV4ServerSide } from "./server";
 
-type Action = NonNullable<GetSingleActionV4Query["action_v4_by_pk"]>;
+type Action = GetWorldIdActionDetailQuery["action_v4"][number];
 
 export const SettingsCard = (props: {
   action: Action;
   teamId: string;
   appId: string;
-  canDelete: boolean;
+  canModify: boolean;
   onDeleted?: () => void;
   onUpdated?: () => void;
 }) => {
-  const { action, teamId, appId, canDelete, onDeleted, onUpdated } = props;
+  const { action, teamId, appId, canModify, onDeleted, onUpdated } = props;
   const router = useRouter();
   const apolloClient = useApolloClient();
   const [isDeleting, setIsDeleting] = useState(false);
@@ -66,7 +66,7 @@ export const SettingsCard = (props: {
           appId={appId}
           onUpdated={onUpdated}
         />
-        {canDelete ? (
+        {canModify ? (
           <div className="border-t border-portal-border pt-6">
             <ActionDangerZone
               actionIdentifier={action.action}

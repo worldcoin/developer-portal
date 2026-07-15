@@ -13,7 +13,7 @@ export default async function Page(props: {
       return (
         <WorldIdActionDetailPage
           params={params}
-          canDelete={await getIsUserAllowedToUpdateApp(params.appId)}
+          canModify={await getIsUserAllowedToUpdateApp(params.appId)}
         />
       );
     },
