@@ -2,22 +2,33 @@
 
 import { Search } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import type { CSSProperties } from "react";
-import type { KeyboardEvent } from "react";
+import type { CSSProperties, KeyboardEvent } from "react";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 
-import { TEAMS_SEARCH_FIELDS, getTeamsSearchVisualSegments } from "./search";
-
-type TeamsSearchProps = {
-  value: string;
-};
+import type { SearchField, SearchVisualSegment } from "./types";
 
 type AnchorStyle = CSSProperties & {
   anchorName?: string;
   positionAnchor?: string;
 };
 
-export const TeamsSearch = ({ value }: TeamsSearchProps) => {
+type FieldSearchProps = {
+  fields: readonly SearchField[];
+  getVisualSegments: (query: string) => SearchVisualSegment[];
+  pageParam?: string;
+  placeholder: string;
+  queryParam?: string;
+  value: string;
+};
+
+export const FieldSearch = ({
+  fields,
+  getVisualSegments,
+  pageParam = "page",
+  placeholder,
+  queryParam = "query",
+  value,
+}: FieldSearchProps) => {
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -27,9 +38,9 @@ export const TeamsSearch = ({ value }: TeamsSearchProps) => {
   const popoverRef = useRef<HTMLDivElement>(null);
   const committedSearchValueRef = useRef(value);
   const id = useId().replaceAll(":", "");
-  const popoverId = `${id}-teams-search-popover`;
-  const anchorName = `--${id}-teams-search-anchor`;
-  const visualSegments = getTeamsSearchVisualSegments(searchValue);
+  const popoverId = `${id}-search-popover`;
+  const anchorName = `--${id}-search-anchor`;
+  const visualSegments = getVisualSegments(searchValue);
 
   const syncSearchScrollLeft = useCallback(() => {
     setSearchScrollLeft(inputRef.current?.scrollLeft ?? 0);
@@ -37,19 +48,14 @@ export const TeamsSearch = ({ value }: TeamsSearchProps) => {
 
   useEffect(() => {
     const frameId = window.requestAnimationFrame(syncSearchScrollLeft);
-
-    return () => {
-      window.cancelAnimationFrame(frameId);
-    };
+    return () => window.cancelAnimationFrame(frameId);
   }, [searchValue, syncSearchScrollLeft]);
 
   useEffect(() => {
-    if (document.activeElement === inputRef.current) {
-      return;
+    if (document.activeElement !== inputRef.current) {
+      committedSearchValueRef.current = value;
+      setSearchValue(value);
     }
-
-    committedSearchValueRef.current = value;
-    setSearchValue(value);
   }, [value]);
 
   useEffect(() => {
@@ -61,43 +67,31 @@ export const TeamsSearch = ({ value }: TeamsSearchProps) => {
       }
 
       const params = new URLSearchParams(searchParams.toString());
-
       if (nextValue) {
-        params.set("query", nextValue);
+        params.set(queryParam, nextValue);
       } else {
-        params.delete("query");
+        params.delete(queryParam);
       }
 
-      params.delete("page");
-
-      const query = params.toString();
-
+      params.delete(pageParam);
       committedSearchValueRef.current = nextValue;
+      const query = params.toString();
       router.replace(query ? `${pathname}?${query}` : pathname, {
         scroll: false,
       });
     }, 300);
 
-    return () => {
-      window.clearTimeout(timeoutId);
-    };
-  }, [pathname, router, searchParams, searchValue]);
+    return () => window.clearTimeout(timeoutId);
+  }, [pageParam, pathname, queryParam, router, searchParams, searchValue]);
 
-  const showSuggestions = () => {
-    popoverRef.current?.showPopover();
-  };
-
-  const hideSuggestions = () => {
-    window.setTimeout(() => {
-      if (document.activeElement !== inputRef.current) {
-        popoverRef.current?.hidePopover();
-      }
-    }, 100);
-  };
+  useEffect(() => {
+    if (searchValue) {
+      popoverRef.current?.hidePopover();
+    }
+  }, [searchValue]);
 
   const insertSnippet = (snippet: string) => {
     const input = inputRef.current;
-
     if (!input) {
       return;
     }
@@ -116,20 +110,25 @@ export const TeamsSearch = ({ value }: TeamsSearchProps) => {
 
     setSearchValue(nextValue);
     input.focus();
-
     window.requestAnimationFrame(() => {
       input.setSelectionRange(nextCursorPosition, nextCursorPosition);
       syncSearchScrollLeft();
     });
   };
 
-  const handleSearchKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
-    if (event.key !== "Escape") {
-      return;
-    }
+  const hideSuggestions = () => {
+    window.setTimeout(() => {
+      if (document.activeElement !== inputRef.current) {
+        popoverRef.current?.hidePopover();
+      }
+    }, 100);
+  };
 
-    event.currentTarget.blur();
-    popoverRef.current?.hidePopover();
+  const handleSearchKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === "Escape") {
+      event.currentTarget.blur();
+      popoverRef.current?.hidePopover();
+    }
   };
 
   return (
@@ -145,55 +144,52 @@ export const TeamsSearch = ({ value }: TeamsSearchProps) => {
         {searchValue ? (
           <div
             className="flex min-w-max items-center whitespace-pre"
-            style={{
-              transform: `translateX(-${searchScrollLeft}px)`,
-            }}
+            style={{ transform: `translateX(-${searchScrollLeft}px)` }}
           >
-            {visualSegments.map((segment, index) => {
-              if (segment.type === "chip") {
-                return (
-                  <span
-                    className="relative inline-block text-blue-500"
-                    key={`chip-${index}`}
-                  >
-                    <span className="absolute -inset-x-0.5 top-1/2 h-5 -translate-y-1/2 rounded bg-blue-50 ring-2 ring-blue-150/60 transition-[background-color,box-shadow] duration-150 ease-out" />
-                    <span className="relative z-10">{segment.value}</span>
-                  </span>
-                );
-              }
-
-              return (
+            {visualSegments.map((segment, index) =>
+              segment.type === "chip" ? (
+                <span
+                  className="relative inline-block text-blue-500"
+                  key={`chip-${index}`}
+                >
+                  <span className="absolute -inset-x-0.5 top-1/2 h-5 -translate-y-1/2 rounded bg-blue-50 ring-2 ring-blue-150/60 transition-[background-color,box-shadow] duration-150 ease-out" />
+                  <span className="relative z-10">{segment.value}</span>
+                </span>
+              ) : (
                 <span className="text-grey-700" key={`text-${index}`}>
                   {segment.value}
                 </span>
-              );
-            })}
+              ),
+            )}
           </div>
         ) : (
-          <span className="text-grey-400">Search teams</span>
+          <span className="text-grey-400">{placeholder}</span>
         )}
       </div>
       <input
         aria-controls={popoverId}
-        aria-label="Search teams"
         aria-haspopup="listbox"
+        aria-label={placeholder}
         className="relative z-20 size-full rounded-12 border border-transparent bg-transparent py-0 pr-3 pl-9 text-14 font-medium text-transparent caret-grey-900 transition-colors outline-none selection:bg-blue-150/60 placeholder:text-transparent focus-visible:ring-2 focus-visible:ring-blue-500"
         enterKeyHint="search"
         onBlur={hideSuggestions}
         onChange={(event) => setSearchValue(event.target.value)}
         onClick={syncSearchScrollLeft}
-        onFocus={showSuggestions}
+        onFocus={() => {
+          if (!searchValue) {
+            popoverRef.current?.showPopover();
+          }
+        }}
         onKeyDown={handleSearchKeyDown}
         onKeyUp={syncSearchScrollLeft}
         onScroll={syncSearchScrollLeft}
         onSelect={syncSearchScrollLeft}
-        placeholder="Search teams"
+        placeholder={placeholder}
         ref={inputRef}
         role="searchbox"
         type="text"
         value={searchValue}
       />
-
       <div
         className="fixed inset-auto [top:anchor(bottom)] [left:anchor(left)] m-0 mt-1 w-96 rounded-12 border border-grey-200 bg-grey-0 p-1 shadow-lg backdrop:bg-transparent"
         id={popoverId}
@@ -206,8 +202,7 @@ export const TeamsSearch = ({ value }: TeamsSearchProps) => {
           <div className="px-2.5 py-2 text-12 font-medium tracking-wide text-grey-400 uppercase">
             Search fields
           </div>
-
-          {TEAMS_SEARCH_FIELDS.map((field) => {
+          {fields.map((field) => {
             const snippet =
               field.type === "string" ? `${field.field}:` : `${field.field}>=`;
 
@@ -215,8 +210,8 @@ export const TeamsSearch = ({ value }: TeamsSearchProps) => {
               <button
                 className="grid grid-cols-[5rem_1fr] items-start gap-3 rounded-8 px-2.5 py-2 text-left transition-colors outline-none hover:bg-grey-100 focus-visible:ring-2 focus-visible:ring-blue-500"
                 key={field.field}
-                onMouseDown={(event) => event.preventDefault()}
                 onClick={() => insertSnippet(snippet)}
+                onMouseDown={(event) => event.preventDefault()}
                 role="option"
                 type="button"
               >

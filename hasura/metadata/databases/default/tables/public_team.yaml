@@ -23,6 +23,13 @@ array_relationships:
         table:
           name: membership
           schema: public
+  - name: invites
+    using:
+      foreign_key_constraint_on:
+        column: team_id
+        table:
+          name: invite
+          schema: public
 computed_fields:
   - name: team_owners_count
     definition:

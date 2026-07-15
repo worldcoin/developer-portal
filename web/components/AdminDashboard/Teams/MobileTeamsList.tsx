@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { MobileAdminList } from "../common/MobileAdminList";
 import type { TeamColumnVisibility } from "./column-visibility";
 import { StatusBadge } from "./StatusBadge";
 import { TeamMetric } from "./TeamMetric";
@@ -21,8 +22,9 @@ export const MobileTeamsList = ({
     columnVisibility.activeApiKeysCount;
 
   return (
-    <div className="grid gap-3 lg:hidden">
-      {teams.map((team) => {
+    <MobileAdminList
+      data={teams}
+      renderCard={(team) => {
         const titleId = `${team.id}-title`;
 
         return (
@@ -89,7 +91,7 @@ export const MobileTeamsList = ({
             )}
           </article>
         );
-      })}
-    </div>
+      }}
+    />
   );
 };

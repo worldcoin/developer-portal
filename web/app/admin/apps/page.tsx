@@ -7,8 +7,18 @@ export const metadata: Metadata = {
   title: generateMetaTitle({ left: "Apps" }),
 };
 
-export default async function Page() {
+type PageProps = {
+  searchParams: Promise<{
+    columns?: string | string[];
+    limit?: string | string[];
+    page?: string | string[];
+    query?: string | string[];
+    sort?: string | string[];
+  }>;
+};
+
+export default async function Page({ searchParams }: PageProps) {
   await requireAdminUser();
 
-  return <AdminAppsPage />;
+  return <AdminAppsPage searchParams={searchParams} />;
 }

@@ -7,8 +7,12 @@ export const metadata: Metadata = {
   title: generateMetaTitle({ left: "Users" }),
 };
 
-export default async function Page() {
+export default async function Page({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   await requireAdminUser();
 
-  return <AdminUsersPage />;
+  return <AdminUsersPage searchParams={searchParams} />;
 }

@@ -19,7 +19,7 @@ export const AdminLayout = ({ children }: { children: React.ReactNode }) => {
       <div
         className={clsx(
           // Common styles
-          "relative grid min-h-dvh overflow-x-clip bg-grey-50 p-4",
+          "relative grid min-h-dvh overflow-x-clip bg-grey-100 p-4",
 
           // Desktop styles
           "lg:grid lg:h-dvh lg:grid-cols-[auto_1fr] lg:gap-x-4 lg:overflow-hidden",
