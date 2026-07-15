@@ -15,14 +15,18 @@ type AnchorStyle = CSSProperties & {
 type FieldSearchProps = {
   fields: readonly SearchField[];
   getVisualSegments: (query: string) => SearchVisualSegment[];
+  pageParam?: string;
   placeholder: string;
+  queryParam?: string;
   value: string;
 };
 
 export const FieldSearch = ({
   fields,
   getVisualSegments,
+  pageParam = "page",
   placeholder,
+  queryParam = "query",
   value,
 }: FieldSearchProps) => {
   const pathname = usePathname();
@@ -64,12 +68,12 @@ export const FieldSearch = ({
 
       const params = new URLSearchParams(searchParams.toString());
       if (nextValue) {
-        params.set("query", nextValue);
+        params.set(queryParam, nextValue);
       } else {
-        params.delete("query");
+        params.delete(queryParam);
       }
 
-      params.delete("page");
+      params.delete(pageParam);
       committedSearchValueRef.current = nextValue;
       const query = params.toString();
       router.replace(query ? `${pathname}?${query}` : pathname, {
@@ -78,7 +82,13 @@ export const FieldSearch = ({
     }, 300);
 
     return () => window.clearTimeout(timeoutId);
-  }, [pathname, router, searchParams, searchValue]);
+  }, [pageParam, pathname, queryParam, router, searchParams, searchValue]);
+
+  useEffect(() => {
+    if (searchValue) {
+      popoverRef.current?.hidePopover();
+    }
+  }, [searchValue]);
 
   const insertSnippet = (snippet: string) => {
     const input = inputRef.current;
@@ -165,7 +175,11 @@ export const FieldSearch = ({
         onBlur={hideSuggestions}
         onChange={(event) => setSearchValue(event.target.value)}
         onClick={syncSearchScrollLeft}
-        onFocus={() => popoverRef.current?.showPopover()}
+        onFocus={() => {
+          if (!searchValue) {
+            popoverRef.current?.showPopover();
+          }
+        }}
         onKeyDown={handleSearchKeyDown}
         onKeyUp={syncSearchScrollLeft}
         onScroll={syncSearchScrollLeft}
