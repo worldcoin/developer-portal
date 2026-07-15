@@ -61,22 +61,15 @@ beforeEach(() => {
   jest.clearAllMocks();
 });
 
-// #region world-id-4-0 layout (RP settings surface)
-describe("world-id-4-0 layout [setup behind the tab]", () => {
-  it("redirects an app without RP registration into the enable flow", async () => {
+// #region world-id-4-0 layout (combined v3 surface)
+describe("world-id-4-0 layout [combined v3 surface]", () => {
+  it("lets the page handle setup when an app has no RP registration", async () => {
     withAppEnv({ rpRegistrations: [] });
 
     await WorldId40Layout(makeProps());
 
-    expect(redirectMock).toHaveBeenCalledWith(enableFlowUrl);
-  });
-
-  it("does not redirect once the app already has an RP registration", async () => {
-    withAppEnv({ rpRegistrations: [{ rp_id: "rp_abc123" }] });
-
-    await WorldId40Layout(makeProps());
-
     expect(redirectMock).not.toHaveBeenCalled();
+    expect(fetchAppEnvCachedMock).not.toHaveBeenCalled();
   });
 });
 // #endregion
