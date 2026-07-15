@@ -41,7 +41,7 @@ export const FetchAdminUserAppsDocument = gql`
     app(
       limit: $limit
       offset: $offset
-      order_by: { name: asc }
+      order_by: [{ name: asc }, { id: asc }]
       where: $where
     ) {
       id

@@ -43,7 +43,7 @@ export const FetchAdminTeamMembersDocument = gql`
     membership(
       limit: $limit
       offset: $offset
-      order_by: { user: { name: asc } }
+      order_by: [{ user: { name: asc } }, { id: asc }]
       where: $where
     ) {
       id

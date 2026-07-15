@@ -1,5 +1,10 @@
 query FetchAdminTeamApps($limit: Int!, $offset: Int!, $where: app_bool_exp!) {
-  app(limit: $limit, offset: $offset, order_by: { name: asc }, where: $where) {
+  app(
+    limit: $limit
+    offset: $offset
+    order_by: [{ name: asc }, { id: asc }]
+    where: $where
+  ) {
     id
     name
     created_at
