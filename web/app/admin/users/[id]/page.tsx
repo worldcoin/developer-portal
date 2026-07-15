@@ -1,6 +1,7 @@
 import { requireAdminUser } from "@/lib/admin-auth";
 import { generateMetaTitle } from "@/lib/genarate-title";
 import { AdminUserPage } from "@/scenes/Admin/users/id/page";
+import { AdminSearchParamsController } from "@/components/AdminDashboard/common/SearchParamsController";
 import { Metadata } from "next";
 
 type PageProps = {
@@ -24,5 +25,9 @@ export default async function Page({ params, searchParams }: PageProps) {
 
   const { id } = await params;
 
-  return <AdminUserPage searchParams={searchParams} userId={id} />;
+  return (
+    <AdminSearchParamsController>
+      <AdminUserPage searchParams={searchParams} userId={id} />
+    </AdminSearchParamsController>
+  );
 }

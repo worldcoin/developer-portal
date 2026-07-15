@@ -1,10 +1,10 @@
 "use client";
 
 import { Search } from "lucide-react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { CSSProperties, KeyboardEvent } from "react";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 
+import { useAdminSearchParamsPatch } from "./SearchParamsController";
 import type { SearchField, SearchVisualSegment } from "./types";
 
 type AnchorStyle = CSSProperties & {
@@ -29,9 +29,7 @@ export const FieldSearch = ({
   queryParam = "query",
   value,
 }: FieldSearchProps) => {
-  const pathname = usePathname();
-  const router = useRouter();
-  const searchParams = useSearchParams();
+  const patchSearchParams = useAdminSearchParamsPatch();
   const [searchValue, setSearchValue] = useState(value);
   const [searchScrollLeft, setSearchScrollLeft] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -66,23 +64,15 @@ export const FieldSearch = ({
         return;
       }
 
-      const params = new URLSearchParams(searchParams.toString());
-      if (nextValue) {
-        params.set(queryParam, nextValue);
-      } else {
-        params.delete(queryParam);
-      }
-
-      params.delete(pageParam);
       committedSearchValueRef.current = nextValue;
-      const query = params.toString();
-      router.replace(query ? `${pathname}?${query}` : pathname, {
-        scroll: false,
+      patchSearchParams({
+        [pageParam]: null,
+        [queryParam]: nextValue || null,
       });
     }, 300);
 
     return () => window.clearTimeout(timeoutId);
-  }, [pageParam, pathname, queryParam, router, searchParams, searchValue]);
+  }, [pageParam, patchSearchParams, queryParam, searchValue]);
 
   useEffect(() => {
     if (searchValue) {

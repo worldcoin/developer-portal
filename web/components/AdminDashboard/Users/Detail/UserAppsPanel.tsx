@@ -35,9 +35,7 @@ export const UserAppsPanel = async ({
         <UserAppsInfiniteList
           apps={apps}
           currentPage={currentPage}
-          searchQuery={appsQuery}
           totalPages={totalPages}
-          userId={userId}
         />
       </div>
     </UIModule>

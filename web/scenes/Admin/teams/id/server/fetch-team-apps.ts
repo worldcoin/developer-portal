@@ -2,7 +2,6 @@ import "server-only";
 
 import {
   clampAppsPage,
-  getAppsOffset,
   getAppsTotalPages,
 } from "@/components/AdminDashboard/Apps/pagination";
 import { createAppsWhere } from "@/scenes/Admin/apps/server/fetch-apps";
@@ -34,18 +33,26 @@ export const fetchAdminTeamAppsPage = async ({
   const where = createAdminTeamAppsWhere(teamId, searchQuery);
 
   try {
-    const data = await getSdk(client).FetchAdminTeamApps({
-      limit: TEAM_DETAIL_LIST_LIMIT,
-      offset: getAppsOffset(page, TEAM_DETAIL_LIST_LIMIT),
+    const sdk = getSdk(client);
+    const countData = await sdk.FetchAdminTeamApps({
+      limit: 0,
+      offset: 0,
       where,
     });
-    const appsAmount = data.app_aggregate.aggregate?.count ?? data.app.length;
+    const appsAmount =
+      countData.app_aggregate.aggregate?.count ?? countData.app.length;
     const totalPages = getAppsTotalPages(appsAmount, TEAM_DETAIL_LIST_LIMIT);
+    const currentPage = clampAppsPage(page, totalPages);
+    const data = await sdk.FetchAdminTeamApps({
+      limit: currentPage * TEAM_DETAIL_LIST_LIMIT,
+      offset: 0,
+      where,
+    });
 
     return {
       apps: data.app,
       appsAmount,
-      currentPage: clampAppsPage(page, totalPages),
+      currentPage,
       totalPages,
     };
   } catch (error) {

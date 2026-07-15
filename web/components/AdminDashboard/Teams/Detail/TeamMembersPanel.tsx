@@ -33,8 +33,6 @@ export const TeamMembersPanel = async ({
         <TeamMembersInfiniteList
           currentPage={currentPage}
           members={members}
-          searchQuery={membersQuery}
-          teamId={teamId}
           totalPages={totalPages}
         />
       </div>

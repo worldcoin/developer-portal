@@ -81,6 +81,17 @@ describe("admin user detail fetch", () => {
     );
   });
 
+  it("strips quotes and normalizes detail-search field names", () => {
+    expect(createAdminUserTeamsWhere("user_current", 'NAME:"My team"')).toEqual(
+      {
+        _and: [
+          { user_id: { _eq: "user_current" } },
+          { team: { name: { _ilike: "%My team%" } } },
+        ],
+      },
+    );
+  });
+
   it("maps aggregates and support warnings", async () => {
     mockFetchAdminUserDetails.mockResolvedValue({
       admins: { aggregate: { count: 1 } },
@@ -158,7 +169,7 @@ describe("admin user detail fetch", () => {
     await expect(fetchAdminUserDetails("user_missing")).resolves.toBeNull();
   });
 
-  it("uses offset pagination for apps and teams", async () => {
+  it("loads all pages through the current infinite-scroll page", async () => {
     mockFetchAdminUserApps.mockResolvedValue({
       app: [],
       app_aggregate: { aggregate: { count: 21 } },
@@ -179,10 +190,11 @@ describe("admin user detail fetch", () => {
       userId: "user_current",
     });
 
-    expect(mockFetchAdminUserApps).toHaveBeenCalledWith(
+    expect(mockFetchAdminUserApps).toHaveBeenNthCalledWith(
+      1,
       expect.objectContaining({
-        limit: 10,
-        offset: 10,
+        limit: 0,
+        offset: 0,
         where: {
           _and: [
             { team: { memberships: { user_id: { _eq: "user_current" } } } },
@@ -191,10 +203,32 @@ describe("admin user detail fetch", () => {
         },
       }),
     );
-    expect(mockFetchAdminUserTeams).toHaveBeenCalledWith(
+    expect(mockFetchAdminUserApps).toHaveBeenNthCalledWith(
+      2,
       expect.objectContaining({
-        limit: 10,
-        offset: 10,
+        limit: 20,
+        offset: 0,
+        where: {
+          _and: [
+            { team: { memberships: { user_id: { _eq: "user_current" } } } },
+            {},
+          ],
+        },
+      }),
+    );
+    expect(mockFetchAdminUserTeams).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({
+        limit: 0,
+        offset: 0,
+        where: { user_id: { _eq: "user_current" } },
+      }),
+    );
+    expect(mockFetchAdminUserTeams).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({
+        limit: 20,
+        offset: 0,
         where: { user_id: { _eq: "user_current" } },
       }),
     );

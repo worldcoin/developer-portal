@@ -32,10 +32,8 @@ export const UserTeamsPanel = async ({
       <div className="min-w-0 pt-1">
         <UserTeamsInfiniteList
           currentPage={currentPage}
-          searchQuery={teamsQuery}
           teams={teams}
           totalPages={totalPages}
-          userId={userId}
         />
       </div>
     </UIModule>

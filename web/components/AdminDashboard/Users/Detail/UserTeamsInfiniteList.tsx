@@ -1,8 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useInfiniteDetailList } from "@/components/AdminDashboard/common/useInfiniteDetailList";
 
 import { StatusBadge } from "@/components/AdminDashboard/Teams/StatusBadge";
 
@@ -18,100 +17,35 @@ type UserTeam = {
 
 type UserTeamsInfiniteListProps = {
   currentPage: number;
-  searchQuery: string;
   teams: UserTeam[];
   totalPages: number;
-  userId: string;
 };
 
 export const UserTeamsInfiniteList = ({
   currentPage,
-  searchQuery,
   teams,
   totalPages,
-  userId,
 }: UserTeamsInfiniteListProps) => {
-  const pathname = usePathname();
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const cacheKey = `${userId}:${searchQuery}`;
-  const cacheRef = useRef(new Map<string, Map<number, UserTeam[]>>());
-  const requestedPageRef = useRef<number | null>(null);
-  const sentinelRef = useRef<HTMLDivElement>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [version, setVersion] = useState(0);
+  const {
+    isLoading,
+    items: visibleTeams,
+    sentinelRef,
+  } = useInfiniteDetailList({
+    currentPage,
+    getId: (team: UserTeam) => team.id,
+    items: teams,
+    pageParam: "teamsPage",
+    totalPages,
+  });
 
-  useEffect(() => {
-    const pages =
-      cacheRef.current.get(cacheKey) ?? new Map<number, UserTeam[]>();
-    pages.set(currentPage, teams);
-    cacheRef.current.set(cacheKey, pages);
-    requestedPageRef.current = null;
-    setIsLoading(false);
-    setVersion((value) => value + 1);
-  }, [cacheKey, currentPage, teams]);
-
-  const cachedTeams = useMemo(() => {
-    const pages = cacheRef.current.get(cacheKey);
-
-    if (!pages) {
-      return teams;
-    }
-
-    const seenIds = new Set<string>();
-
-    return [...pages.entries()]
-      .sort(([firstPage], [secondPage]) => firstPage - secondPage)
-      .flatMap(([, pageTeams]) => pageTeams)
-      .filter((membership) => {
-        if (seenIds.has(membership.id)) {
-          return false;
-        }
-
-        seenIds.add(membership.id);
-        return true;
-      });
-  }, [cacheKey, teams, version]);
-
-  useEffect(() => {
-    const sentinel = sentinelRef.current;
-
-    if (!sentinel || currentPage >= totalPages) {
-      return;
-    }
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (!entry.isIntersecting || requestedPageRef.current) {
-          return;
-        }
-
-        const nextPage = currentPage + 1;
-        requestedPageRef.current = nextPage;
-        setIsLoading(true);
-        const params = new URLSearchParams(searchParams.toString());
-        params.set("teamsPage", String(nextPage));
-        const query = params.toString();
-
-        router.replace(query ? `${pathname}?${query}` : pathname, {
-          scroll: false,
-        });
-      },
-      { rootMargin: "160px" },
-    );
-
-    observer.observe(sentinel);
-    return () => observer.disconnect();
-  }, [currentPage, pathname, router, searchParams, totalPages]);
-
-  if (cachedTeams.length === 0) {
+  if (visibleTeams.length === 0) {
     return <p className="py-3 text-14 text-grey-500">No teams found.</p>;
   }
 
   return (
     <div className="min-w-0">
       <ul className="min-w-0 divide-y divide-grey-100">
-        {cachedTeams.map((membership) => {
+        {visibleTeams.map((membership) => {
           const status = membership.team.deleted_at ? "Deleted" : "Active";
 
           return (

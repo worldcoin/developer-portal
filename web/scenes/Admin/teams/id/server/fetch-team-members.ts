@@ -2,9 +2,9 @@ import "server-only";
 
 import {
   clampUsersPage,
-  getUsersOffset,
   getUsersTotalPages,
 } from "@/components/AdminDashboard/Users/pagination";
+import { parseSingleSearchToken } from "@/components/AdminDashboard/common/search-tokens";
 import { getInternalDashboardGraphqlClient } from "@/api/helpers/graphql";
 import type { Membership_Bool_Exp, Role_Enum } from "@/graphql/graphql";
 import { logger } from "@/lib/logger";
@@ -18,6 +18,12 @@ import { TEAM_DETAIL_LIST_LIMIT } from "./fetch-team-apps";
 
 const getSearchPredicate = (value: string) => ({ _ilike: `%${value}%` });
 const roleValues = ["ADMIN", "MEMBER", "OWNER"] as const;
+const memberSearchFields = {
+  email: "email",
+  id: "id",
+  name: "name",
+  role: "role",
+} as const;
 
 export const createAdminTeamMembersWhere = (
   teamId: string,
@@ -29,9 +35,7 @@ export const createAdminTeamMembersWhere = (
     return { team_id: { _eq: teamId } };
   }
 
-  const fieldMatch = search.match(/^(id|name|email|role):(.+)$/i);
-  const [, field, rawValue] = fieldMatch ?? [];
-  const value = rawValue?.trim() ?? search;
+  const { field, value } = parseSingleSearchToken(search, memberSearchFields);
   const role = value.toUpperCase();
   const isRole = roleValues.includes(role as Role_Enum);
 
@@ -88,20 +92,28 @@ export const fetchAdminTeamMembersPage = async ({
   const where = createAdminTeamMembersWhere(teamId, searchQuery);
 
   try {
-    const data = await getSdk(client).FetchAdminTeamMembers({
-      limit: TEAM_DETAIL_LIST_LIMIT,
-      offset: getUsersOffset(page, TEAM_DETAIL_LIST_LIMIT),
+    const sdk = getSdk(client);
+    const countData = await sdk.FetchAdminTeamMembers({
+      limit: 0,
+      offset: 0,
       where,
     });
     const membersAmount =
-      data.membership_aggregate.aggregate?.count ?? data.membership.length;
+      countData.membership_aggregate.aggregate?.count ??
+      countData.membership.length;
     const totalPages = getUsersTotalPages(
       membersAmount,
       TEAM_DETAIL_LIST_LIMIT,
     );
+    const currentPage = clampUsersPage(page, totalPages);
+    const data = await sdk.FetchAdminTeamMembers({
+      limit: currentPage * TEAM_DETAIL_LIST_LIMIT,
+      offset: 0,
+      where,
+    });
 
     return {
-      currentPage: clampUsersPage(page, totalPages),
+      currentPage,
       members: data.membership,
       membersAmount,
       totalPages,

@@ -87,6 +87,17 @@ describe("admin team detail fetch", () => {
     });
   });
 
+  it("strips quotes and normalizes detail-search field names", () => {
+    expect(
+      createAdminTeamMembersWhere("team_current", 'NAME:"Jane Doe"'),
+    ).toEqual({
+      _and: [
+        { team_id: { _eq: "team_current" } },
+        { user: { name: { _ilike: "%Jane Doe%" } } },
+      ],
+    });
+  });
+
   it("maps overview aggregates and inventories", async () => {
     mockFetchAdminTeamDetails.mockResolvedValue({
       api_key: [{ id: "key_1", is_active: true }],
@@ -129,7 +140,7 @@ describe("admin team detail fetch", () => {
     await expect(fetchAdminTeamDetails("team_missing")).resolves.toBeNull();
   });
 
-  it("uses offset pagination for apps and members", async () => {
+  it("loads all pages through the current infinite-scroll page", async () => {
     mockFetchAdminTeamApps.mockResolvedValue({
       app: [],
       app_aggregate: { aggregate: { count: 21 } },
@@ -150,19 +161,55 @@ describe("admin team detail fetch", () => {
       teamId: "team_current",
     });
 
-    expect(mockFetchAdminTeamApps).toHaveBeenCalledWith(
+    expect(mockFetchAdminTeamApps).toHaveBeenNthCalledWith(
+      1,
       expect.objectContaining({
-        limit: 10,
-        offset: 10,
+        limit: 0,
+        offset: 0,
         where: { _and: [{ team_id: { _eq: "team_current" } }, {}] },
       }),
     );
-    expect(mockFetchAdminTeamMembers).toHaveBeenCalledWith(
+    expect(mockFetchAdminTeamApps).toHaveBeenNthCalledWith(
+      2,
       expect.objectContaining({
-        limit: 10,
-        offset: 10,
+        limit: 20,
+        offset: 0,
+        where: { _and: [{ team_id: { _eq: "team_current" } }, {}] },
+      }),
+    );
+    expect(mockFetchAdminTeamMembers).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({
+        limit: 0,
+        offset: 0,
         where: { team_id: { _eq: "team_current" } },
       }),
+    );
+    expect(mockFetchAdminTeamMembers).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({
+        limit: 20,
+        offset: 0,
+        where: { team_id: { _eq: "team_current" } },
+      }),
+    );
+  });
+
+  it("clamps an out-of-range detail page before fetching cumulative items", async () => {
+    mockFetchAdminTeamApps.mockResolvedValue({
+      app: [{ id: "app_current" }],
+      app_aggregate: { aggregate: { count: 21 } },
+    });
+
+    const result = await fetchAdminTeamAppsPage({
+      page: 99,
+      searchQuery: "",
+      teamId: "team_current",
+    });
+
+    expect(result.currentPage).toBe(3);
+    expect(mockFetchAdminTeamApps).toHaveBeenLastCalledWith(
+      expect.objectContaining({ limit: 30, offset: 0 }),
     );
   });
 });

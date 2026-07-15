@@ -41,8 +41,6 @@ export const TeamAppsPanel = async ({
         <TeamAppsInfiniteList
           apps={apps}
           currentPage={currentPage}
-          searchQuery={appsQuery}
-          teamId={teamId}
           totalPages={totalPages}
         />
       </div>
