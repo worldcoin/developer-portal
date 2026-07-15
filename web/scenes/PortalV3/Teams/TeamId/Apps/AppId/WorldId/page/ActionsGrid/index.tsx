@@ -42,10 +42,7 @@ export const ActionsGrid = (props: {
   const filtered = props.actions.filter((action) =>
     `${action.action} ${action.description}`.toLowerCase().includes(query),
   );
-  const totalPages = Math.max(
-    1,
-    Math.ceil(filtered.length / ACTIONS_PER_PAGE),
-  );
+  const totalPages = Math.max(1, Math.ceil(filtered.length / ACTIONS_PER_PAGE));
   const page = Math.min(currentPage, totalPages);
   const pageActions = filtered.slice(
     (page - 1) * ACTIONS_PER_PAGE,
