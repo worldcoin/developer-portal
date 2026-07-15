@@ -14,6 +14,11 @@ import {
 
 const ASSERTION_HEADER = "cf-access-jwt-assertion";
 
+const isString = (value: unknown): value is string => typeof value === "string";
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null;
+
 const jwksByTeamDomain = new Map<
   string,
   ReturnType<typeof createRemoteJWKSet>
@@ -55,17 +60,11 @@ const parseGroupIdentifiers = (value: unknown): string[] => {
       return [group];
     }
 
-    if (typeof group !== "object" || group === null) {
+    if (!isRecord(group)) {
       return [];
     }
 
-    const id = (group as Record<string, unknown>).id;
-    const name = (group as Record<string, unknown>).name;
-
-    return [
-      typeof id === "string" ? id : null,
-      typeof name === "string" ? name : null,
-    ].filter((accessGroup): accessGroup is string => Boolean(accessGroup));
+    return [group.id, group.name].filter(isString);
   });
 };
 
@@ -86,7 +85,7 @@ const parseGroupsByAccessLevel = (): GroupsByAccessLevel | null => {
     return null;
   }
 
-  if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) {
+  if (!isRecord(parsed) || Array.isArray(parsed)) {
     logger.error("CF_ACCESS_GROUPS_BY_ACCESS_LEVEL must be a JSON object");
     return null;
   }
@@ -120,7 +119,7 @@ const parseGroupsByAccessLevel = (): GroupsByAccessLevel | null => {
 };
 
 const resolveCloudflareAccessLevel = (
-  providerGroups: string[],
+  groupIdentifiers: string[],
 ): DashboardAccessLevel | null => {
   const groupsByAccessLevel = parseGroupsByAccessLevel();
 
@@ -128,12 +127,15 @@ const resolveCloudflareAccessLevel = (
     return null;
   }
 
-  const groups = new Set(providerGroups);
-  const readGroups = groupsByAccessLevel[DashboardAccessLevel.Read] ?? [];
+  const userGroups = new Set(groupIdentifiers);
+  const configuredReadGroups =
+    groupsByAccessLevel[DashboardAccessLevel.Read] ?? [];
 
-  return readGroups.some((group) => groups.has(group))
-    ? DashboardAccessLevel.Read
-    : null;
+  if (configuredReadGroups.some((group) => userGroups.has(group))) {
+    return DashboardAccessLevel.Read;
+  }
+
+  return null;
 };
 
 // The Access JWT carries no groups by default. They appear — under the
@@ -146,8 +148,8 @@ const resolveCloudflareAccessLevel = (
 const parseTokenGroups = (payload: Record<string, unknown>): string[] => {
   const custom = payload.custom;
 
-  if (typeof custom === "object" && custom !== null && "groups" in custom) {
-    return parseGroupIdentifiers((custom as Record<string, unknown>).groups);
+  if (isRecord(custom) && "groups" in custom) {
+    return parseGroupIdentifiers(custom.groups);
   }
 
   return parseGroupIdentifiers(payload.groups);
@@ -180,15 +182,16 @@ const fetchIdentityGroups = async (
       return null;
     }
 
-    const identity = (await response.json()) as Record<string, unknown>;
+    const identity: unknown = await response.json();
+
+    if (!isRecord(identity)) {
+      return null;
+    }
 
     // Okta-backed identities expose groups at idp.groups; other setups use
     // the top-level groups field. Merge both, deduplicated.
     const idp = identity.idp;
-    const idpGroups =
-      typeof idp === "object" && idp !== null
-        ? (idp as Record<string, unknown>).groups
-        : undefined;
+    const idpGroups = isRecord(idp) ? idp.groups : undefined;
 
     return [
       ...new Set([
@@ -291,12 +294,15 @@ export const cloudflareAccessAdminAuthProvider: AdminAuthProvider = {
       return null;
     }
 
-    const groups =
-      (await fetchIdentityGroups(
-        verifiedToken.teamDomain,
-        verifiedToken.token,
-      )) ?? parseTokenGroups(verifiedToken.payload);
-    const accessLevel = resolveCloudflareAccessLevel(groups);
+    const identityGroups = await fetchIdentityGroups(
+      verifiedToken.teamDomain,
+      verifiedToken.token,
+    );
+
+    const groupIdentifiers =
+      identityGroups ?? parseTokenGroups(verifiedToken.payload);
+
+    const accessLevel = resolveCloudflareAccessLevel(groupIdentifiers);
 
     return {
       email: verifiedToken.payload.email,
