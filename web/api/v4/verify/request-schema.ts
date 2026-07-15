@@ -185,8 +185,14 @@ export const schema = yup
     // We use this field to detect session proofs in custom validation
     session_id: yup.string().strict().optional(),
 
-    // Optional environment to specify which verifier contract to use
-    environment: yup.string().oneOf(["production", "staging"]).optional(),
+    // Sandbox uses the staging verifier and storage partition.
+    environment: yup
+      .string()
+      .transform((environment) =>
+        environment === "sandbox" ? "staging" : environment,
+      )
+      .oneOf(["production", "staging"])
+      .optional(),
 
     // Optional World App integrity attestation bundle. When present, it is
     // verified before proof verification.
