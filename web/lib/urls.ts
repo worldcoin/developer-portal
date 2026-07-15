@@ -36,13 +36,6 @@ export const urls = {
   enableWorldId4: (params: { team_id: string; app_id: string }): string =>
     `/teams/${params.team_id}/apps/${params.app_id}?enableWorldId4=true`,
 
-  worldId: (params: {
-    team_id: string;
-    app_id: string;
-    tab?: "world-id-4-0";
-  }): string =>
-    `/teams/${params.team_id}/apps/${params.app_id}/world-id${params.tab ? `?tab=${params.tab}` : ""}`,
-
   worldId40: (params: { team_id: string; app_id: string }): string =>
     `/teams/${params.team_id}/apps/${params.app_id}/world-id-4-0`,
 
