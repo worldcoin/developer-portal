@@ -53,7 +53,7 @@ export const WorldIdActionDetailPage = (props: {
       <div className="mx-auto flex w-full max-w-[900px] flex-col gap-4">
         <div className="flex items-baseline gap-2.5">
           <Link
-            href={urls.worldId({ team_id: teamId, app_id: appId })}
+            href={urls.worldId40({ team_id: teamId, app_id: appId })}
             className="font-world text-13 text-portal-muted transition-colors hover:text-portal-text"
           >
             Actions

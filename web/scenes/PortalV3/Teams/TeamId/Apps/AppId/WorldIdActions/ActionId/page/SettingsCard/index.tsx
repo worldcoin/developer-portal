@@ -43,7 +43,7 @@ export const SettingsCard = (props: {
       }
       apolloClient.cache.gc();
       toast.success("Action deleted successfully");
-      router.push(urls.worldId({ team_id: teamId, app_id: appId }));
+      router.push(urls.worldId40({ team_id: teamId, app_id: appId }));
     } finally {
       setIsDeleting(false);
     }
