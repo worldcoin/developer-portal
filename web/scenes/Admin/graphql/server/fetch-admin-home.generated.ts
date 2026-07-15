@@ -338,7 +338,9 @@ export const FetchAdminHomeDocument = gql`
         role: { _eq: OWNER }
         team: {
           deleted_at: { _is_null: true }
-          memberships_aggregate: { count: { predicate: { _eq: 1 } } }
+          memberships_aggregate: {
+            count: { filter: { role: { _eq: OWNER } }, predicate: { _eq: 1 } }
+          }
         }
       }
       limit: $recentLimit
@@ -363,7 +365,9 @@ export const FetchAdminHomeDocument = gql`
         role: { _eq: OWNER }
         team: {
           deleted_at: { _is_null: true }
-          memberships_aggregate: { count: { predicate: { _eq: 1 } } }
+          memberships_aggregate: {
+            count: { filter: { role: { _eq: OWNER } }, predicate: { _eq: 1 } }
+          }
         }
       }
     ) {
