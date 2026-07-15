@@ -1,0 +1,53 @@
+query FetchAdminGlobalSearch(
+  $appsWhere: app_bool_exp!
+  $includeApps: Boolean!
+  $includeTeams: Boolean!
+  $includeUsers: Boolean!
+  $limit: Int!
+  $teamsWhere: team_bool_exp!
+  $usersWhere: user_bool_exp!
+) {
+  apps: app(
+    where: $appsWhere
+    order_by: [{ name: asc }, { id: asc }]
+    limit: $limit
+  ) @include(if: $includeApps) {
+    id
+    name
+    team_id
+  }
+  apps_aggregate: app_aggregate(where: $appsWhere) @include(if: $includeApps) {
+    aggregate {
+      count
+    }
+  }
+  teams: team(
+    where: $teamsWhere
+    order_by: [{ name: asc }, { id: asc }]
+    limit: $limit
+  ) @include(if: $includeTeams) {
+    id
+    name
+  }
+  teams_aggregate: team_aggregate(where: $teamsWhere)
+    @include(if: $includeTeams) {
+    aggregate {
+      count
+    }
+  }
+  users: user(
+    where: $usersWhere
+    order_by: [{ name: asc }, { id: asc }]
+    limit: $limit
+  ) @include(if: $includeUsers) {
+    id
+    name
+    email
+  }
+  users_aggregate: user_aggregate(where: $usersWhere)
+    @include(if: $includeUsers) {
+    aggregate {
+      count
+    }
+  }
+}

@@ -186,6 +186,52 @@ describe("/api/v2/minikit/send-notification [success cases]", () => {
     expect(res.status).toBe(200);
   });
 
+  it("allows a Mini App whose store category is External", async () => {
+    GetAppMetadata.mockResolvedValue({
+      app_metadata: [
+        {
+          ...validAppMetadata.app_metadata[0],
+          app_mode: "mini-app",
+          category: "External",
+        },
+      ],
+    });
+
+    const mockReq = createMockRequest({
+      url: "http://localhost:3000/api/v2/minikit/send-notification",
+      api_key: validApiKey,
+    });
+
+    const res = await POST(mockReq);
+
+    expect(res.status).toBe(200);
+  });
+
+  it("prioritizes a verified Mini App over an external draft", async () => {
+    GetAppMetadata.mockResolvedValue({
+      app_metadata: [
+        {
+          ...validAppMetadata.app_metadata[0],
+          verification_status: "unverified",
+          app_mode: "external",
+        },
+        {
+          ...validAppMetadata.app_metadata[0],
+          app_mode: "mini-app",
+        },
+      ],
+    });
+
+    const mockReq = createMockRequest({
+      url: "http://localhost:3000/api/v2/minikit/send-notification",
+      api_key: validApiKey,
+    });
+
+    const res = await POST(mockReq);
+
+    expect(res.status).toBe(200);
+  });
+
   it("prioritizes localisations over title/message fields", async () => {
     const requestWithBothFormats = new NextRequest(
       "http://localhost:3000/api/v2/minikit/send-notification",
@@ -358,18 +404,7 @@ describe("/api/v2/minikit/send-notification [error cases]", () => {
     expect((await res.json()).detail).toBe("API key is inactive.");
   });
 
-  it.each([
-    {
-      label: "app_mode is external",
-      app_mode: "external",
-      category: "Social",
-    },
-    {
-      label: "category is External",
-      app_mode: "mini-app",
-      category: "External",
-    },
-  ])("returns 400 when $label", async ({ app_mode, category }) => {
+  it("returns 400 when app_mode is external", async () => {
     const mockReq = createMockRequest({
       url: "http://localhost:3000/api/v2/minikit/send-notification",
       api_key: validApiKey,
@@ -380,8 +415,8 @@ describe("/api/v2/minikit/send-notification [error cases]", () => {
         {
           name: "Example App",
           app_id: "app_staging_9cdd0a714aec9ed17dca660bc9ffe72a",
-          app_mode,
-          category,
+          app_mode: "external",
+          category: "Social",
           is_reviewer_app_store_approved: true,
           is_allowed_unlimited_notifications: true,
           max_notifications_per_day: 10,
