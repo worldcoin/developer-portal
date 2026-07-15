@@ -17,16 +17,20 @@ const REQUEST_TIMEOUT_MS = 15_000;
 const QUERY_RETRY_BACKOFFS_MS = [200, 500];
 
 /**
- * HTTP statuses that mean a transient gateway/upstream failure where no healthy
- * backend served the request — so the request never actually reached Hasura's
- * GraphQL engine and retrying an idempotent query is safe. Deliberately narrow:
- * 502/503/504 are what the ALB/nginx in front of Hasura returns when a target
- * is briefly unavailable (deploy, restart, scale event) and are the canonical
- * "try again" signal. We intentionally exclude 500 (Hasura's own errors usually
- * recur and would just amplify load) and 429 (retrying ignores rate-limit
- * backpressure).
+ * HTTP statuses that mean *no target served the request* — the ALB/nginx in
+ * front of Hasura had no healthy backend to route to (a target briefly
+ * unavailable due to deploy, restart, or scale event), so the query never
+ * reached the GraphQL engine and retrying an idempotent query is safe + useful.
+ *
+ * Deliberately narrow. We exclude:
+ *  - 504 Gateway Timeout: the gateway *did* reach a backend that then ran too
+ *    long — the (possibly expensive) query may already be executing, so
+ *    retrying amplifies the upstream slowdown and rarely helps (cascading
+ *    failure risk), and only delays the final error for the caller.
+ *  - 500: Hasura's own errors usually recur and would just amplify load.
+ *  - 429: retrying ignores rate-limit backpressure.
  */
-const RETRYABLE_STATUS_CODES = new Set([502, 503, 504]);
+const RETRYABLE_STATUS_CODES = new Set([502, 503]);
 
 /**
  * Inspect a serialized GraphQL request body (the JSON `graphql-request` puts on
@@ -211,10 +215,10 @@ const combineSignals = (
  * that:
  *   - applies a 15s `AbortSignal.timeout` to every attempt
  *   - retries up to 2 extra times (3 attempts total), with backoff + jitter, on
- *     either a transport-level error OR a transient gateway status
- *     (502/503/504), but ONLY when the body is provably a `query` operation
- *   - never retries other HTTP responses (4xx, 500, 429, …), and never retries
- *     mutations or batch requests
+ *     either a transport-level error OR a "no healthy backend" gateway status
+ *     (502/503), but ONLY when the body is provably a `query` operation
+ *   - never retries other HTTP responses (4xx, 500, 504, 429, …), and never
+ *     retries mutations or batch requests
  *
  * Takes the underlying fetch as an argument so tests can inject a mock without
  * having to override `globalThis.fetch` (which would also intercept unrelated
@@ -240,12 +244,13 @@ export const makeGraphqlFetchWithRetry = (
         // Pass through everything we received, swapping in our combined signal.
         const response = await fetchImpl(input, { ...init, signal });
 
-        // A gateway 5xx (502/503/504) is a *received* response, so `fetch`
-        // resolved instead of throwing — the transport-error path below never
-        // sees it. Treat it as a transient upstream failure and retry the
-        // (idempotent) query, discarding this body so the socket returns to the
-        // pool. On the final attempt we fall through and return the response so
-        // `graphql-request` surfaces the upstream error to the caller as before.
+        // A "no healthy backend" gateway status (502/503) is a *received*
+        // response, so `fetch` resolved instead of throwing — the transport-
+        // error path below never sees it. Treat it as a transient upstream
+        // failure and retry the (idempotent) query, discarding this body so the
+        // socket returns to the pool. On the final attempt we fall through and
+        // return the response so `graphql-request` surfaces the upstream error
+        // to the caller as before.
         if (!isLast && RETRYABLE_STATUS_CODES.has(response.status)) {
           void response.body?.cancel()?.catch(() => {});
           const delay = withJitter(backoffs[attempt - 1]);
