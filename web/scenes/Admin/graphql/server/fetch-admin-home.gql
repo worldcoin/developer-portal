@@ -129,10 +129,7 @@ query FetchAdminHome($recentSince: timestamptz!, $recentLimit: Int!) {
       team: {
         deleted_at: { _is_null: true }
         memberships_aggregate: {
-          count: {
-            filter: { role: { _eq: OWNER } }
-            predicate: { _eq: 1 }
-          }
+          count: { filter: { role: { _eq: OWNER } }, predicate: { _eq: 1 } }
         }
       }
     }
@@ -159,10 +156,7 @@ query FetchAdminHome($recentSince: timestamptz!, $recentLimit: Int!) {
       team: {
         deleted_at: { _is_null: true }
         memberships_aggregate: {
-          count: {
-            filter: { role: { _eq: OWNER } }
-            predicate: { _eq: 1 }
-          }
+          count: { filter: { role: { _eq: OWNER } }, predicate: { _eq: 1 } }
         }
       }
     }
