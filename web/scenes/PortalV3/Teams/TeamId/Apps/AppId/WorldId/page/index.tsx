@@ -14,7 +14,6 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { type ReactNode, useCallback, useEffect, useState } from "react";
 import Skeleton from "react-loading-skeleton";
 import { ActionsGrid } from "./ActionsGrid";
-import { HeroCard } from "./HeroCard";
 import { RegisterRpEmptyState } from "./RegisterRpEmptyState";
 import { getSetupIntent } from "./setup-intent";
 import { WorldId40Pane } from "./WorldId40Pane";
@@ -280,11 +279,6 @@ export const WorldIdPage = (props: {
   return (
     <SizingWrapper className="flex flex-col gap-8 py-8">
       {app.is_banned ? <BanBanner /> : null}
-
-      <HeroCard
-        name={app.app_metadata?.[0]?.name ?? "Untitled app"}
-        appId={appId}
-      />
 
       <div className="flex flex-col gap-6">
         <WorldIdTabs

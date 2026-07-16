@@ -15,7 +15,6 @@ export type GetWorldIdOverviewQuery = {
     id: string;
     is_banned: boolean;
     is_staging: boolean;
-    app_metadata: Array<{ __typename?: "app_metadata"; name: string }>;
     rp_registration: Array<{
       __typename?: "rp_registration";
       rp_id: string;
@@ -42,9 +41,6 @@ export const GetWorldIdOverviewDocument = gql`
       id
       is_banned
       is_staging
-      app_metadata {
-        name
-      }
       rp_registration {
         rp_id
         app_id
