@@ -32,9 +32,7 @@ jest.mock(
   }),
 );
 
-import {
-  SidebarNav,
-} from "@/scenes/PortalV3/layout/Shell/SidebarNav";
+import { SidebarNav } from "@/scenes/PortalV3/layout/Shell/SidebarNav";
 // #endregion
 
 // #region Test Data
