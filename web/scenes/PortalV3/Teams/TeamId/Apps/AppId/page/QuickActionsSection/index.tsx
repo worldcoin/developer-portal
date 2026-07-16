@@ -45,7 +45,7 @@ export const QuickActionsSection = ({
 
       <div className="grid gap-6 md:grid-cols-2">
         <QuickActionCard
-          href={`${urls.worldIdActions({ team_id: teamId, app_id: appId })}?createAction=true`}
+          href={`${urls.worldId40({ team_id: teamId, app_id: appId })}?createAction=true`}
           icon={<MultiplePlusIcon className="size-5" />}
           title="Create an action"
           description="Verify users as unique humans"
