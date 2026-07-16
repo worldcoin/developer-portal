@@ -41,6 +41,7 @@ type ReviewSubmissionButtonProps = {
   viewMode: "unverified" | "verified";
   onSubmitSuccess: () => void;
   basicInfoRef?: MutableRefObject<BasicInformationHandle | null>;
+  onValidationError?: (fieldPath?: string) => void;
   className?: string;
 };
 
@@ -52,6 +53,7 @@ export const ReviewSubmissionButton = ({
   viewMode,
   onSubmitSuccess,
   basicInfoRef,
+  onValidationError,
   className,
 }: ReviewSubmissionButtonProps) => {
   const form = useFormContext<AppStoreFormValues>();
@@ -93,6 +95,7 @@ export const ReviewSubmissionButton = ({
         });
         if (!ok) {
           captureAttempt("basic_info_failed");
+          onValidationError?.("basic_information");
           toast.error(
             "Please fix basic information errors before submitting for review",
           );
@@ -144,6 +147,7 @@ export const ReviewSubmissionButton = ({
           first_error_field: "logo_img_url",
           error_count: 1,
         });
+        onValidationError?.("logo_img_url");
         toast.error(message);
         scrollToFirstError();
         return;
@@ -188,6 +192,7 @@ export const ReviewSubmissionButton = ({
           first_error_field: firstPath,
           error_count: error.inner.length,
         });
+        onValidationError?.(firstPath);
         toast.error(errorMessage);
         if (firstPath) {
           try {
@@ -217,6 +222,7 @@ export const ReviewSubmissionButton = ({
     basicInfoRef,
     client,
     form,
+    onValidationError,
     onSubmitSuccess,
     saveStatus,
     teamId,

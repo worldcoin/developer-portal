@@ -21,7 +21,7 @@ import { ReviewSubmissionButton } from "./ReviewSubmissionButton";
 export type FullAppMetadata =
   FetchAppMetadataQuery["app"][0]["app_metadata"][0];
 
-const DraftSavedLine = () => {
+export const DraftSavedLine = () => {
   const { displayStatus } = useSaveStatus();
 
   if (displayStatus.state === "error") {
@@ -72,16 +72,20 @@ type SubmitForReviewProps = {
   teamId: string;
   appMetadata: FullAppMetadata;
   basicInfoRef?: MutableRefObject<BasicInformationHandle | null>;
+  onValidationError?: (fieldPath?: string) => void;
+  className?: string;
 };
 
 // Always-active submit button: clicking with missing required fields surfaces
 // the validation errors (field errors + toast) from the review-schema check
 // rather than being locked behind a completion gate.
-const SubmitForReview = ({
+export const SubmitForReview = ({
   appId,
   teamId,
   appMetadata,
   basicInfoRef,
+  onValidationError,
+  className,
 }: SubmitForReviewProps) => {
   const viewMode = useAtomValue(viewModeAtom);
   const { user } = useUser() as Auth0SessionUser;
@@ -123,55 +127,10 @@ const SubmitForReview = ({
         viewMode={viewMode}
         onSubmitSuccess={() => setShowSubmitAppModal(true)}
         basicInfoRef={basicInfoRef}
-        className="shrink-0"
+        onValidationError={onValidationError}
+        className={clsx("shrink-0", className)}
       />
     </>
-  );
-};
-
-type ConfigurationActionsProps = {
-  appId: string;
-  teamId: string;
-  appMetadata: FullAppMetadata;
-  basicInfoRef?: MutableRefObject<BasicInformationHandle | null>;
-};
-
-/**
- * Persistent action shelf owned by the form column. On desktop it sits below
- * the independently scrolling form; on smaller screens it becomes a compact
- * floating dock so save state and review submission never disappear.
- */
-export const ConfigurationActions = ({
-  appId,
-  teamId,
-  appMetadata,
-  basicInfoRef,
-}: ConfigurationActionsProps) => {
-  const isEditable = appMetadata.verification_status === "unverified";
-
-  // Read-only states carry their status in the page's version header — a bar
-  // holding only a status line would duplicate it.
-  if (!isEditable) return null;
-
-  return (
-    <section
-      aria-label="Configuration actions"
-      className="fixed inset-x-4 bottom-4 z-30 rounded-2xl border border-grey-200 bg-grey-0/95 p-3 shadow-xl backdrop-blur-md lg:static lg:z-auto lg:mr-4 lg:mb-8 lg:shrink-0 lg:p-4 lg:shadow-lg"
-    >
-      <div className="flex items-center justify-between gap-x-4">
-        <div className="min-w-0">
-          <DraftSavedLine />
-        </div>
-        <div className="flex shrink-0 items-center gap-2">
-          <SubmitForReview
-            appId={appId}
-            teamId={teamId}
-            appMetadata={appMetadata}
-            basicInfoRef={basicInfoRef}
-          />
-        </div>
-      </div>
-    </section>
   );
 };
 

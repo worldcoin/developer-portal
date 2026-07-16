@@ -167,6 +167,7 @@ import { getDefaultStore } from "jotai";
 import { AppProfilePage } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/Configuration/page";
 import { AppDangerZonePage } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/Configuration/Danger/page";
 import {
+  isMiniAppAtom,
   unverifiedImageAtom,
   viewModeAtom,
 } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/Configuration/layout/ImagesProvider";
@@ -232,6 +233,14 @@ const makeApp = (metadata: Record<string, unknown>) => ({
 const renderPage = () => render(<AppProfilePage params={{ teamId, appId }} />);
 const renderDangerPage = () =>
   render(<AppDangerZonePage params={{ teamId, appId }} />);
+const goToStep = (title: string) => {
+  const wizard = screen.getByRole("navigation", {
+    name: "Configuration steps",
+  });
+  fireEvent.click(
+    within(wizard).getByRole("button", { name: new RegExp(title) }),
+  );
+};
 
 // Components read jotai's default store (no Provider), so tests can seed the
 // images atom the same way LogoImageUpload / ImagesProvider write it.
@@ -250,6 +259,7 @@ beforeEach(() => {
   jest.clearAllMocks();
   checkUserPermissionsMock.mockReturnValue(true);
   getDefaultStore().set(viewModeAtom, "unverified");
+  getDefaultStore().set(isMiniAppAtom, false);
   setImages({});
   useFetchAppMetadataQuery.mockReturnValue({
     data: { app: [makeApp(makeAppMetadata())] },
@@ -277,31 +287,42 @@ describe("v3 Configuration redesign [layout]", () => {
     expect(externalRadio).not.toBeChecked();
   });
 
-  it("renders the app icon box, all four numbered sections, and a separated danger-zone destination", () => {
+  it("renders a horizontal four-step wizard with focused chapter navigation", () => {
     renderPage();
-    // Standalone app icon box (extracted from Basic information).
+
     expect(screen.getByText(/App icon/)).toBeInTheDocument();
+    const wizard = screen.getByRole("navigation", {
+      name: "Configuration steps",
+    });
     for (const [number, title] of [
       ["01", "Basic information"],
       ["02", "Store listing"],
       ["03", "Availability"],
       ["04", "Localized content"],
     ]) {
-      // Once in the section header badge, once in the jump nav badge.
+      // Once in the horizontal stepper and once in its matching panel header.
       expect(screen.getAllByText(number)).toHaveLength(2);
-      expect(screen.getByRole("heading", { name: title })).toBeInTheDocument();
+      expect(
+        within(wizard).getByRole("button", { name: new RegExp(title) }),
+      ).toBeInTheDocument();
     }
-    // Jump nav lists the same sections (registered by the sections
-    // themselves on mount).
-    const toc = screen.getByRole("navigation", { name: "Page sections" });
+
     expect(
-      within(toc).getByRole("button", { name: /Store listing/ }),
-    ).toBeInTheDocument();
-    // Bodies are always exposed (no dropdowns): a field from each section.
-    expect(screen.getByLabelText(/App name/)).toBeInTheDocument();
+      screen.getByRole("heading", { name: "Basic information" }),
+    ).toBeVisible();
+    expect(
+      screen.queryByRole("heading", { name: "Store listing" }),
+    ).not.toBeInTheDocument();
+
+    goToStep("Store listing");
+    expect(
+      screen.getByRole("heading", { name: "Store listing" }),
+    ).toBeVisible();
+
+    goToStep("Availability");
     expect(
       screen.getByText(/Laws and regulations governing mini apps/),
-    ).toBeInTheDocument();
+    ).toBeVisible();
     expect(screen.getByRole("link", { name: "Danger zone" })).toHaveAttribute(
       "href",
       `/teams/${teamId}/apps/${appId}/configuration/danger`,
@@ -315,20 +336,32 @@ describe("v3 Configuration redesign [layout]", () => {
 
 // #region Right rail
 describe("v3 Configuration redesign [right rail]", () => {
-  it("shows an always-active submit button (validation responds on click instead of a gate)", () => {
+  it("floors step navigation, save status, and submit without a boxed bar", () => {
     renderPage();
 
-    const actions = screen.getByRole("region", {
-      name: "Configuration actions",
-    });
-    const submitButton = screen.getByRole("button", {
-      name: /Submit for review/,
-    });
-    expect(submitButton).toBeEnabled();
-    expect(within(actions).getByText("Draft saved")).toBeInTheDocument();
+    // No boxed action shelf — navigation and actions sit bare at the floor.
     expect(
-      within(actions).queryByRole("link", { name: "Versions" }),
+      screen.queryByRole("region", { name: "Configuration actions" }),
     ).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Back" })).toBeDisabled();
+    expect(screen.getByText("Draft saved")).toBeInTheDocument();
+
+    // Submit appears only on the final chapter; Continue drives the rest.
+    expect(
+      screen.queryByRole("button", { name: /Submit for review/ }),
+    ).not.toBeInTheDocument();
+    fireEvent.click(
+      screen.getByRole("button", { name: "Continue to Store listing" }),
+    );
+    expect(
+      screen.getByRole("heading", { name: "Store listing" }),
+    ).toBeVisible();
+    expect(screen.getByRole("button", { name: "Back" })).toBeEnabled();
+
+    goToStep("Localized content");
+    expect(
+      screen.getByRole("button", { name: /Submit for review/ }),
+    ).toBeEnabled();
     expect(
       within(
         screen.getByRole("complementary", { name: "Live preview" }),
@@ -394,17 +427,18 @@ describe("v3 Configuration redesign [right rail]", () => {
 
     expect(screen.queryByText("Store listing")).not.toBeInTheDocument();
     // Sections renumber: Availability 02, Localized content 03, no 04
-    // (each number renders in the header badge and the jump nav badge).
+    // (each number renders in the header badge and horizontal stepper).
     expect(screen.getAllByText("02")).toHaveLength(2);
     expect(screen.getAllByText("03")).toHaveLength(2);
     expect(screen.queryAllByText("04")).toHaveLength(0);
-    // The jump nav follows the registry: no Store listing entry either.
-    const toc = screen.getByRole("navigation", { name: "Page sections" });
+    const wizard = screen.getByRole("navigation", {
+      name: "Configuration steps",
+    });
     expect(
-      within(toc).queryByRole("button", { name: /Store listing/ }),
+      within(wizard).queryByRole("button", { name: /Store listing/ }),
     ).not.toBeInTheDocument();
     expect(
-      within(toc).getByRole("button", { name: /Availability/ }),
+      within(wizard).getByRole("button", { name: /Availability/ }),
     ).toBeInTheDocument();
   });
 
@@ -420,15 +454,13 @@ describe("v3 Configuration redesign [right rail]", () => {
     });
     renderPage();
 
-    expect(screen.getByText("Awaiting review")).toBeInTheDocument();
     expect(
       screen.getByText(/In review — editing is locked/),
     ).toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: "Un-submit" }),
     ).toBeInTheDocument();
-    // The whole bottom bar is gone for non-editable drafts — the version
-    // header is the only status surface.
+    // No bottom bar in read-only states — the header is the only surface.
     expect(
       screen.queryByRole("region", { name: "Configuration actions" }),
     ).not.toBeInTheDocument();
@@ -459,12 +491,13 @@ describe("v3 Configuration redesign [right rail]", () => {
     await waitFor(() => {
       expect(screen.getByLabelText(/App name/)).toHaveValue("Draft App");
     });
+    goToStep("Localized content");
     expect(
       screen.getByRole("button", { name: /Submit for review/ }),
     ).toBeEnabled();
   });
 
-  it("renders a verified-only app as read-only behind the Verified version header", () => {
+  it("renders a verified-only app read-only with only the corner switch", () => {
     const verifiedMetadata = makeAppMetadata({
       id: "meta_verified",
       name: "Verified App",
@@ -489,10 +522,8 @@ describe("v3 Configuration redesign [right rail]", () => {
 
     renderPage();
 
-    expect(screen.getByText("Verified version")).toBeInTheDocument();
-    expect(
-      screen.getByText("This is the version currently approved for users."),
-    ).toBeInTheDocument();
+    // No status strip — the only version trace is the corner switch.
+    expect(screen.queryByText("Verified version")).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Open draft" })).toBeEnabled();
     expect(screen.getByAltText("App icon")).toHaveAttribute(
       "src",
@@ -509,7 +540,7 @@ describe("v3 Configuration redesign [right rail]", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("creates the single allowed draft from the Verified version header", async () => {
+  it("creates the single allowed draft from the corner switch", async () => {
     createEditableRowMock.mockResolvedValue({
       data: { create_new_draft: { success: true } },
     });
@@ -572,9 +603,9 @@ describe("v3 Configuration redesign [right rail]", () => {
 
     renderPage();
 
-    // The header still names the state, but the create action is Owner/Admin
-    // only — a member's click could only fail server-side.
-    expect(screen.getByText("Verified version")).toBeInTheDocument();
+    // The create action is Owner/Admin only — a member's click could only
+    // fail server-side, so the corner switch doesn't render at all.
+    expect(screen.getByLabelText(/App name/)).toBeDisabled();
     expect(
       screen.queryByRole("button", { name: "Open draft" }),
     ).not.toBeInTheDocument();
@@ -609,24 +640,19 @@ describe("v3 Configuration redesign [right rail]", () => {
 
     renderPage();
 
-    // Draft view: autosave framing plus the way back to the approved copy.
-    expect(
-      screen.getByText(
-        "Saved automatically. Changes remain here until approved.",
-      ),
-    ).toBeInTheDocument();
+    // Draft view: floored save status plus the corner way back to the
+    // approved copy.
+    expect(screen.getByText("Draft saved")).toBeInTheDocument();
 
     fireEvent.click(
       screen.getByRole("button", { name: /View verified version/ }),
     );
-    await screen.findByText(
-      "This is the version currently approved for users.",
-    );
+    await screen.findByRole("button", { name: "Open draft" });
+    expect(screen.queryByText("Draft saved")).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "Open draft" }));
-    await screen.findByText(
-      "Saved automatically. Changes remain here until approved.",
-    );
+    await screen.findByRole("button", { name: /View verified version/ });
+    expect(screen.getByText("Draft saved")).toBeInTheDocument();
     expect(createEditableRowMock).not.toHaveBeenCalled();
   });
 
@@ -648,6 +674,7 @@ describe("v3 Configuration redesign [right rail]", () => {
 
     renderPage();
 
+    goToStep("Localized content");
     fireEvent.click(screen.getByRole("button", { name: /Submit for review/ }));
 
     await waitFor(() => {
@@ -657,7 +684,10 @@ describe("v3 Configuration redesign [right rail]", () => {
     });
     expect(
       screen.getByText("Upload an app icon before submitting for review"),
-    ).toBeInTheDocument();
+    ).toBeVisible();
+    expect(
+      screen.getByRole("heading", { name: "Basic information" }),
+    ).toBeVisible();
   });
 });
 // #endregion

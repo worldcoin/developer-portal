@@ -9,6 +9,7 @@ import { useMemo } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
 import { useAutosaveWithStatus } from "../hook/use-autosave-with-status";
 import { isMiniAppAtom } from "../layout/ImagesProvider";
+import type { ConfigurationStepId } from "../PageComponents/ConfigurationWizard";
 import { NumberedSection } from "../PageComponents/NumberedSection";
 import { CategorySection } from "./components/FormSections/CategorySection";
 import { ComplianceSection } from "./components/FormSections/ComplianceSection";
@@ -38,11 +39,16 @@ const LawsAndRegulationsBanner = () => (
   </div>
 );
 
+type AppStoreWizardFormProps = AppStoreFormProps & {
+  activeStep: ConfigurationStepId;
+};
+
 export const AppStoreForm = ({
   appId,
   teamId,
   appMetadata,
-}: AppStoreFormProps) => {
+  activeStep,
+}: AppStoreWizardFormProps) => {
   const { user } = useUser() as Auth0SessionUser;
 
   const {
@@ -87,7 +93,12 @@ export const AppStoreForm = ({
       }}
     >
       {isMiniApp && (
-        <NumberedSection number="02" title="Store listing">
+        <NumberedSection
+          number="02"
+          title="Store listing"
+          description="Shape how your app appears when people discover it in the store."
+          isActive={activeStep === "store-listing"}
+        >
           <div className="grid gap-y-8">
             <CategorySection
               control={control}
@@ -132,6 +143,8 @@ export const AppStoreForm = ({
       <NumberedSection
         number={isMiniApp ? "03" : "02"}
         title="Availability"
+        description="Choose the countries and languages where your app can launch."
+        isActive={activeStep === "availability"}
         banner={isMiniApp ? <LawsAndRegulationsBanner /> : undefined}
       >
         <div className="grid gap-y-8">
@@ -154,6 +167,8 @@ export const AppStoreForm = ({
       <NumberedSection
         number={isMiniApp ? "04" : "03"}
         title="Localized content"
+        description="Make your listing feel native in every language you support."
+        isActive={activeStep === "localized-content"}
       >
         <LocalisationsSection
           control={control}
