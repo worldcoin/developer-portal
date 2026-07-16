@@ -58,9 +58,7 @@ export const SidebarNav = () => {
     skip: !teamId,
   });
   const hasConfirmedApp = Boolean(
-    appId &&
-      !appsLoading &&
-      appsData?.app?.some((app) => app.id === appId),
+    appId && !appsLoading && appsData?.app?.some((app) => app.id === appId),
   );
   const appEnvFlags = useAtomValue(appEnvFlagsAtom);
 
@@ -91,7 +89,7 @@ export const SidebarNav = () => {
   const configurationHref = ids ? urls.configuration(ids) : appsListHref;
   const configurationDangerHref =
     ids && hasConfirmedApp ? urls.configurationDanger(ids) : undefined;
-  const miniAppHref = ids ? urls.miniAppPermissions(ids) : appsListHref
+  const miniAppHref = ids ? urls.miniAppPermissions(ids) : appsListHref;
   const teamSettingsHref = teamId
     ? urls.teamSettings({ team_id: teamId })
     : teamsLandingHref;

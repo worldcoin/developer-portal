@@ -219,7 +219,9 @@ const ActionsFooter = ({
         }}
       >
         <ChevronLeftIcon className="size-4" />
-        <Typography variant={TYPOGRAPHY.M4} className="leading-none">Back</Typography>
+        <Typography variant={TYPOGRAPHY.M4} className="leading-none">
+          Back
+        </Typography>
       </button>
 
       {isAwaiting && (
@@ -257,7 +259,9 @@ const ActionsFooter = ({
             className={clsx(primaryStepActionClassName, "ml-2")}
             onClick={() => onStepChange(nextStep.id)}
           >
-            <Typography variant={TYPOGRAPHY.M4} className="leading-none">Continue</Typography>
+            <Typography variant={TYPOGRAPHY.M4} className="leading-none">
+              Continue
+            </Typography>
             <ArrowRightIcon className="size-4" />
           </button>
         ) : isEditable ? (

@@ -256,7 +256,7 @@ export const ReviewSubmissionButton = ({
     >
       <Typography
         variant={TYPOGRAPHY.M4}
-        className="whitespace-nowrap leading-none"
+        className="leading-none whitespace-nowrap"
       >
         {isSubmittingForReview ? "Processing..." : "Submit for review"}
       </Typography>
