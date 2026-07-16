@@ -25,6 +25,14 @@ jest.mock("@/scenes/PortalV3/layout/Shell/AppsDropdown", () => ({
   useCurrentAppId: () => useCurrentAppId(),
 }));
 
+const useFetchAppsQuery = jest.fn();
+jest.mock(
+  "@/scenes/common/layout/AppSelector/graphql/client/fetch-apps.generated",
+  () => ({
+    useFetchAppsQuery: (options: unknown) => useFetchAppsQuery(options),
+  }),
+);
+
 import {
   AppEnvFlagsSync,
   SidebarNav,
@@ -58,6 +66,11 @@ beforeEach(() => {
   jest.clearAllMocks();
   useParams.mockReturnValue({ teamId, appId });
   useCurrentAppId.mockReturnValue(appId);
+  // Default: FetchApps has already confirmed the current app exists.
+  useFetchAppsQuery.mockReturnValue({
+    data: { app: [{ id: appId }] },
+    loading: false,
+  });
   usePathname.mockReturnValue(base);
 });
 
@@ -78,6 +91,10 @@ describe("v3 SidebarNav [navigation hierarchy]", () => {
     expect(
       screen.getByRole("button", { name: "Help center" }),
     ).toBeInTheDocument();
+    expect(link("Danger zone")).toHaveAttribute(
+      "href",
+      `${base}/configuration/danger`,
+    );
   });
 
   it("marks Dashboard current on the app root", () => {
@@ -93,6 +110,13 @@ describe("v3 SidebarNav [active section]", () => {
     usePathname.mockReturnValue(`${base}/configuration`);
     renderSidebar();
     expect(isCurrent("Configuration")).toBe(true);
+  });
+
+  it("marks Danger zone current on the configuration danger route", () => {
+    usePathname.mockReturnValue(`${base}/configuration/danger`);
+    renderSidebar();
+    expect(isCurrent("Danger zone")).toBe(true);
+    expect(isCurrent("Configuration")).toBe(false);
   });
 
   it("expands Mini App children and marks the current child route", () => {
@@ -157,6 +181,41 @@ describe("v3 SidebarNav [team-less pages]", () => {
   it("routes Team settings to the /teams landing rather than a dead link", () => {
     renderSidebar();
     expect(link("Team settings")).toHaveAttribute("href", "/teams");
+  });
+
+  it("hides Danger zone when there is no app context", () => {
+    renderSidebar();
+    expect(
+      screen.queryByRole("link", { name: "Danger zone" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("hides Danger zone until FetchApps confirms the app exists", () => {
+    useParams.mockReturnValue({ teamId, appId });
+    useCurrentAppId.mockReturnValue(appId);
+    useFetchAppsQuery.mockReturnValue({
+      data: undefined,
+      loading: true,
+    });
+    usePathname.mockReturnValue(base);
+    renderSidebar();
+    expect(
+      screen.queryByRole("link", { name: "Danger zone" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("hides Danger zone when FetchApps returns no apps", () => {
+    useParams.mockReturnValue({ teamId, appId });
+    useCurrentAppId.mockReturnValue(appId);
+    useFetchAppsQuery.mockReturnValue({
+      data: { app: [] },
+      loading: false,
+    });
+    usePathname.mockReturnValue(base);
+    renderSidebar();
+    expect(
+      screen.queryByRole("link", { name: "Danger zone" }),
+    ).not.toBeInTheDocument();
   });
 });
 // #endregion

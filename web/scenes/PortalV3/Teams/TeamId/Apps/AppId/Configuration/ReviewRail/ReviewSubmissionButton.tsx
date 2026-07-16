@@ -1,6 +1,7 @@
 "use client";
 
-import { DecoratedButton } from "@/components/DecoratedButton";
+import { Button } from "@/components/Button";
+import { ArrowRightIcon } from "@/components/Icons/ArrowRightIcon";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { useApolloClient } from "@apollo/client";
 import {
@@ -8,6 +9,7 @@ import {
   FetchAppMetadataQuery,
 } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/graphql/client/fetch-app-metadata.generated";
 import clsx from "clsx";
+import { twMerge } from "tailwind-merge";
 import { useSearchParams } from "next/navigation";
 import posthog from "posthog-js";
 import {
@@ -42,7 +44,7 @@ type ReviewSubmissionButtonProps = {
   onSubmitSuccess: () => void;
   basicInfoRef?: MutableRefObject<BasicInformationHandle | null>;
   onValidationError?: (fieldPath?: string) => void;
-  className?: string;
+  className: string;
 };
 
 /** Review validation and submission entry point owned by Configuration. */
@@ -238,19 +240,27 @@ export const ReviewSubmissionButton = ({
   }, [shouldAutoSubmitForReview, submitForReview]);
 
   return (
-    <DecoratedButton
+    <Button
       type="submit"
-      className={clsx("h-12 px-6 py-3", className, {
-        hidden:
-          appMetadata.app_id?.includes("staging") &&
-          process.env.NEXT_PUBLIC_APP_ENV === "production",
-      })}
+      className={twMerge(
+        "inline-flex items-center justify-center",
+        className,
+        clsx({
+          hidden:
+            appMetadata.app_id?.includes("staging") &&
+            process.env.NEXT_PUBLIC_APP_ENV === "production",
+        }),
+      )}
       disabled={viewMode === "verified" || isSubmittingForReview}
       onClick={submitForReview}
     >
-      <Typography variant={TYPOGRAPHY.M3} className="whitespace-nowrap">
+      <Typography
+        variant={TYPOGRAPHY.M4}
+        className="whitespace-nowrap leading-none"
+      >
         {isSubmittingForReview ? "Processing..." : "Submit for review"}
       </Typography>
-    </DecoratedButton>
+      <ArrowRightIcon className="size-4 shrink-0" />
+    </Button>
   );
 };

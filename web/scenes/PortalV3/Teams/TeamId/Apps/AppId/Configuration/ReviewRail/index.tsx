@@ -12,7 +12,6 @@ import { MutableRefObject, useMemo, useState } from "react";
 import { SubmitAppModal } from "../AppTopBar/SubmitAppModal";
 import { BasicInformationHandle } from "../BasicInformation";
 import { unverifiedImageAtom, viewModeAtom } from "../layout/ImagesProvider";
-import { useSaveStatus } from "../SaveStatus";
 import { LivePreview } from "./LivePreview";
 import { ReviewSubmissionButton } from "./ReviewSubmissionButton";
 
@@ -21,59 +20,13 @@ import { ReviewSubmissionButton } from "./ReviewSubmissionButton";
 export type FullAppMetadata =
   FetchAppMetadataQuery["app"][0]["app_metadata"][0];
 
-export const DraftSavedLine = () => {
-  const { displayStatus } = useSaveStatus();
-
-  if (displayStatus.state === "error") {
-    return (
-      <div className="flex items-center gap-x-2">
-        <span
-          className="size-2 shrink-0 rounded-full bg-system-error-500"
-          aria-hidden
-        />
-        <Typography variant={TYPOGRAPHY.R4} className="text-grey-500">
-          Couldn&apos;t save
-        </Typography>
-        <button
-          type="button"
-          onClick={displayStatus.retry}
-          className="text-grey-700 underline underline-offset-2"
-        >
-          <Typography variant={TYPOGRAPHY.R4}>Retry</Typography>
-        </button>
-      </div>
-    );
-  }
-
-  const isSaving = displayStatus.state === "saving";
-
-  return (
-    <div className="flex items-center gap-x-2">
-      <span
-        className={clsx(
-          "size-2 shrink-0 rounded-full",
-          isSaving ? "animate-pulse bg-grey-300" : "bg-system-success-500",
-        )}
-        aria-hidden
-      />
-      <Typography variant={TYPOGRAPHY.R4} className="text-grey-500">
-        {isSaving
-          ? "Saving draft…"
-          : displayStatus.state === "saved"
-            ? "Draft saved · just now"
-            : "Draft saved"}
-      </Typography>
-    </div>
-  );
-};
-
 type SubmitForReviewProps = {
   appId: string;
   teamId: string;
   appMetadata: FullAppMetadata;
   basicInfoRef?: MutableRefObject<BasicInformationHandle | null>;
   onValidationError?: (fieldPath?: string) => void;
-  className?: string;
+  className: string;
 };
 
 // Always-active submit button: clicking with missing required fields surfaces

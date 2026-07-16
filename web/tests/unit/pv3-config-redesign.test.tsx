@@ -234,12 +234,9 @@ const renderPage = () => render(<AppProfilePage params={{ teamId, appId }} />);
 const renderDangerPage = () =>
   render(<AppDangerZonePage params={{ teamId, appId }} />);
 const goToStep = (title: string) => {
-  const wizard = screen.getByRole("navigation", {
-    name: "Configuration steps",
-  });
-  fireEvent.click(
-    within(wizard).getByRole("button", { name: new RegExp(title) }),
-  );
+  while (!screen.queryByRole("heading", { name: title })) {
+    fireEvent.click(screen.getByRole("button", { name: /^Continue to / }));
+  }
 };
 
 // Components read jotai's default store (no Provider), so tests can seed the
@@ -287,34 +284,33 @@ describe("v3 Configuration redesign [layout]", () => {
     expect(externalRadio).not.toBeChecked();
   });
 
-  it("renders a horizontal four-step wizard with focused chapter navigation", () => {
+  it("renders the standard progress bar with a dynamic step fraction", () => {
     renderPage();
 
     expect(screen.getByText(/App icon/)).toBeInTheDocument();
-    const wizard = screen.getByRole("navigation", {
-      name: "Configuration steps",
+    const progress = screen.getByRole("progressbar", {
+      name: "Configuration progress",
     });
-    for (const [number, title] of [
-      ["01", "Basic information"],
-      ["02", "Store listing"],
-      ["03", "Availability"],
-      ["04", "Localized content"],
-    ]) {
-      // Once in the horizontal stepper and once in its matching panel header.
-      expect(screen.getAllByText(number)).toHaveLength(2);
-      expect(
-        within(wizard).getByRole("button", { name: new RegExp(title) }),
-      ).toBeInTheDocument();
-    }
+    expect(progress).toHaveAttribute("aria-valuenow", "1");
+    expect(progress).toHaveAttribute("aria-valuemax", "4");
+    expect(screen.getByText("1/4")).toHaveAccessibleName("Step 1 of 4");
+    expect(progress.parentElement).not.toHaveClass("border-t");
 
+    const basicHeading = screen.getByRole("heading", {
+      name: "Basic information",
+    });
+    expect(basicHeading).toBeVisible();
     expect(
-      screen.getByRole("heading", { name: "Basic information" }),
-    ).toBeVisible();
+      progress.compareDocumentPosition(basicHeading) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
     expect(
       screen.queryByRole("heading", { name: "Store listing" }),
     ).not.toBeInTheDocument();
 
     goToStep("Store listing");
+    expect(progress).toHaveAttribute("aria-valuenow", "2");
+    expect(screen.getByText("2/4")).toHaveAccessibleName("Step 2 of 4");
     expect(
       screen.getByRole("heading", { name: "Store listing" }),
     ).toBeVisible();
@@ -323,10 +319,10 @@ describe("v3 Configuration redesign [layout]", () => {
     expect(
       screen.getByText(/Laws and regulations governing mini apps/),
     ).toBeVisible();
-    expect(screen.getByRole("link", { name: "Danger zone" })).toHaveAttribute(
-      "href",
-      `/teams/${teamId}/apps/${appId}/configuration/danger`,
-    );
+    // Danger zone lives in the shell sidebar, not the step footer.
+    expect(
+      screen.queryByRole("link", { name: "Danger zone" }),
+    ).not.toBeInTheDocument();
     expect(
       screen.queryByRole("button", { name: "Delete app" }),
     ).not.toBeInTheDocument();
@@ -336,32 +332,49 @@ describe("v3 Configuration redesign [layout]", () => {
 
 // #region Right rail
 describe("v3 Configuration redesign [right rail]", () => {
-  it("floors step navigation, save status, and submit without a boxed bar", () => {
+  it("floors step navigation and submit without a boxed bar", () => {
     renderPage();
 
     // No boxed action shelf — navigation and actions sit bare at the floor.
     expect(
       screen.queryByRole("region", { name: "Configuration actions" }),
     ).not.toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Back" })).toBeDisabled();
-    expect(screen.getByText("Draft saved")).toBeInTheDocument();
+    const backButton = screen.getByRole("button", { name: "Back" });
+    const continueButton = screen.getByRole("button", {
+      name: "Continue to Store listing",
+    });
+    expect(backButton).toBeDisabled();
+    expect(backButton).toHaveClass("h-10", "min-w-36", "rounded-lg", "px-5");
+    expect(continueButton).toHaveClass(
+      "h-10",
+      "min-w-36",
+      "rounded-lg",
+      "px-5",
+    );
+    expect(screen.queryByText(/Draft saved/)).not.toBeInTheDocument();
 
     // Submit appears only on the final chapter; Continue drives the rest.
     expect(
       screen.queryByRole("button", { name: /Submit for review/ }),
     ).not.toBeInTheDocument();
-    fireEvent.click(
-      screen.getByRole("button", { name: "Continue to Store listing" }),
-    );
+    fireEvent.click(continueButton);
     expect(
       screen.getByRole("heading", { name: "Store listing" }),
     ).toBeVisible();
     expect(screen.getByRole("button", { name: "Back" })).toBeEnabled();
 
     goToStep("Localized content");
-    expect(
-      screen.getByRole("button", { name: /Submit for review/ }),
-    ).toBeEnabled();
+    const submitButton = screen.getByRole("button", {
+      name: /Submit for review/,
+    });
+    expect(submitButton).toBeEnabled();
+    expect(submitButton).toHaveClass(
+      "h-10",
+      "min-w-36",
+      "rounded-lg",
+      "px-5",
+      "bg-grey-900",
+    );
     expect(
       within(
         screen.getByRole("complementary", { name: "Live preview" }),
@@ -426,20 +439,16 @@ describe("v3 Configuration redesign [right rail]", () => {
     renderPage();
 
     expect(screen.queryByText("Store listing")).not.toBeInTheDocument();
-    // Sections renumber: Availability 02, Localized content 03, no 04
-    // (each number renders in the header badge and horizontal stepper).
-    expect(screen.getAllByText("02")).toHaveLength(2);
-    expect(screen.getAllByText("03")).toHaveLength(2);
-    expect(screen.queryAllByText("04")).toHaveLength(0);
-    const wizard = screen.getByRole("navigation", {
-      name: "Configuration steps",
+    // Sections renumber and the progress total follows the three-step flow.
+    expect(screen.getByText("02")).toBeInTheDocument();
+    expect(screen.getByText("03")).toBeInTheDocument();
+    expect(screen.queryByText("04")).not.toBeInTheDocument();
+    expect(screen.getByText("1/3")).toHaveAccessibleName("Step 1 of 3");
+    const progress = screen.getByRole("progressbar", {
+      name: "Configuration progress",
     });
-    expect(
-      within(wizard).queryByRole("button", { name: /Store listing/ }),
-    ).not.toBeInTheDocument();
-    expect(
-      within(wizard).getByRole("button", { name: /Availability/ }),
-    ).toBeInTheDocument();
+    expect(progress).toHaveAttribute("aria-valuenow", "1");
+    expect(progress).toHaveAttribute("aria-valuemax", "3");
   });
 
   it("shows the locked-state banner with un-submit while awaiting review", () => {
@@ -640,9 +649,9 @@ describe("v3 Configuration redesign [right rail]", () => {
 
     renderPage();
 
-    // Draft view: floored save status plus the corner way back to the
-    // approved copy.
-    expect(screen.getByText("Draft saved")).toBeInTheDocument();
+    // Draft view keeps the corner way back to the approved copy without a
+    // persistent save-status indicator.
+    expect(screen.queryByText(/Draft saved/)).not.toBeInTheDocument();
 
     fireEvent.click(
       screen.getByRole("button", { name: /View verified version/ }),
@@ -652,7 +661,7 @@ describe("v3 Configuration redesign [right rail]", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Open draft" }));
     await screen.findByRole("button", { name: /View verified version/ });
-    expect(screen.getByText("Draft saved")).toBeInTheDocument();
+    expect(screen.queryByText(/Draft saved/)).not.toBeInTheDocument();
     expect(createEditableRowMock).not.toHaveBeenCalled();
   });
 

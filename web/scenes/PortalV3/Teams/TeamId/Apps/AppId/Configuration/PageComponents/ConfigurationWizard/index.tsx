@@ -1,7 +1,7 @@
 "use client";
 
+import { ProgressBar } from "@/components/ProgressBar";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import clsx from "clsx";
 
 export type ConfigurationStepId =
   | "basic"
@@ -85,84 +85,46 @@ export const getStepForField = (fieldPath?: string): ConfigurationStepId => {
 type ConfigurationWizardProps = {
   steps: ConfigurationStep[];
   activeStep: ConfigurationStepId;
-  onStepChange: (step: ConfigurationStepId) => void;
 };
 
 /**
- * Horizontal progress story for the configuration flow — the bare step row
- * only (no heading), floored beneath the panel so the form owns the screen.
+ * Standard progress treatment for the configuration flow. It sits above the
+ * active section without a surrounding divider; Back and Continue handle
+ * navigation separately at the bottom of the form column.
  */
 export const ConfigurationWizard = ({
   steps,
   activeStep,
-  onStepChange,
 }: ConfigurationWizardProps) => {
   const activeIndex = Math.max(
     0,
     steps.findIndex((step) => step.id === activeStep),
   );
+  const currentStep = steps[activeIndex];
+  const currentStepNumber = activeIndex + 1;
 
   return (
-    <div className="shrink-0 border-t border-grey-100 pt-3">
-      <nav aria-label="Configuration steps" className="overflow-x-auto pb-1">
-        <ol
-          className="grid min-w-[620px]"
-          style={{
-            gridTemplateColumns: `repeat(${steps.length}, minmax(0, 1fr))`,
-          }}
+    <div className="grid shrink-0 gap-2">
+      <div className="flex min-w-0 items-center justify-between gap-4">
+        <Typography
+          variant={TYPOGRAPHY.M5}
+          className="min-w-0 truncate text-grey-700"
         >
-          {steps.map((step, index) => {
-            const isActive = step.id === activeStep;
-            const isComplete = index < activeIndex;
-
-            return (
-              <li key={step.id} className="relative min-w-0">
-                {index < steps.length - 1 && (
-                  <span
-                    aria-hidden
-                    className={clsx(
-                      "absolute top-4 right-[calc(-50%+1.25rem)] left-[calc(50%+1.25rem)] h-px transition-colors",
-                      index < activeIndex ? "bg-blue-500" : "bg-grey-200",
-                    )}
-                  />
-                )}
-
-                <button
-                  type="button"
-                  aria-current={isActive ? "step" : undefined}
-                  onClick={() => onStepChange(step.id)}
-                  className="group relative z-10 flex w-full min-w-0 flex-col items-center gap-2 px-2 text-center"
-                >
-                  <span
-                    className={clsx(
-                      "grid size-8 place-items-center rounded-full border text-xs font-medium transition-colors",
-                      isActive &&
-                        "border-blue-500 bg-blue-500 text-white shadow-sm",
-                      isComplete && "border-blue-500 bg-blue-50 text-blue-600",
-                      !isActive &&
-                        !isComplete &&
-                        "group-hover:text-grey-600 border-grey-200 bg-grey-0 text-grey-400 group-hover:border-grey-300",
-                    )}
-                  >
-                    {isComplete ? "✓" : step.number}
-                  </span>
-                  <Typography
-                    variant={isActive ? TYPOGRAPHY.M5 : TYPOGRAPHY.R5}
-                    className={clsx(
-                      "max-w-full truncate transition-colors",
-                      isActive
-                        ? "text-grey-900"
-                        : "text-grey-500 group-hover:text-grey-700",
-                    )}
-                  >
-                    {step.title}
-                  </Typography>
-                </button>
-              </li>
-            );
-          })}
-        </ol>
-      </nav>
+          {currentStep?.title}
+        </Typography>
+        <Typography
+          variant={TYPOGRAPHY.M5}
+          className="shrink-0 text-grey-500 tabular-nums"
+          aria-label={`Step ${currentStepNumber} of ${steps.length}`}
+        >
+          {currentStepNumber}/{steps.length}
+        </Typography>
+      </div>
+      <ProgressBar
+        value={currentStepNumber}
+        max={steps.length}
+        label="Configuration progress"
+      />
     </div>
   );
 };

@@ -2,15 +2,24 @@
 
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { ErrorPage } from "@/components/ErrorPage";
+import { ArrowRightIcon } from "@/components/Icons/ArrowRightIcon";
 import { ChevronLeftIcon } from "@/components/Icons/ChevronLeftIcon";
-import { TrashIcon } from "@/components/Icons/TrashIcon";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import { Role_Enum } from "@/graphql/graphql";
+import { Auth0SessionUser } from "@/lib/types";
+import { checkUserPermissions } from "@/lib/utils";
 import { Icon } from "@/scenes/PortalV3/common/Icon";
-import { urls } from "@/lib/urls";
+import { useFetchLocalisationsQuery } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/AppStore/graphql/client/fetch-localisations.generated";
+import {
+  FetchAppMetadataQuery,
+  useFetchAppMetadataQuery,
+} from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/graphql/client/fetch-app-metadata.generated";
+import { useRemoveFromReview } from "@/scenes/common/Teams/TeamId/Apps/common/hooks/use-remove-from-review";
+import { useUser } from "@auth0/nextjs-auth0/client";
 import clsx from "clsx";
-import Link from "next/link";
 import { useAtom } from "jotai";
+import { useParams } from "next/navigation";
 import {
   MutableRefObject,
   useCallback,
@@ -20,9 +29,6 @@ import {
   useState,
 } from "react";
 import Skeleton from "react-loading-skeleton";
-import { useParams } from "next/navigation";
-import { MiniAppConfiguration } from "./MiniAppConfiguration";
-import { FormSkeleton } from "./PageComponents/FormSkeleton";
 import { AppStoreForm } from "./AppStore/app-store";
 import { AppStoreFormProvider } from "./AppStore/app-store-form-provider";
 import {
@@ -30,28 +36,22 @@ import {
   LocalisationData,
 } from "./AppStore/types/AppStoreFormTypes";
 import { BasicInformation, BasicInformationHandle } from "./BasicInformation";
-import { useFetchAppMetadataQuery } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/graphql/client/fetch-app-metadata.generated";
-import { isMiniAppAtom, viewModeAtom } from "./layout/ImagesProvider";
-import { useFetchLocalisationsQuery } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/AppStore/graphql/client/fetch-localisations.generated";
+import { MiniAppConfiguration } from "./MiniAppConfiguration";
 import { AppIconBox } from "./PageComponents/AppIconBox";
+import type { ConfigurationStepId } from "./PageComponents/ConfigurationWizard";
 import {
   ConfigurationWizard,
   getConfigurationSteps,
   getStepForField,
 } from "./PageComponents/ConfigurationWizard";
-import type { ConfigurationStepId } from "./PageComponents/ConfigurationWizard";
+import { FormSkeleton } from "./PageComponents/FormSkeleton";
 import { NumberedSection } from "./PageComponents/NumberedSection";
 import { RejectionBanner } from "./RejectionBanner";
 import { ResolveModal } from "./ResolveModal";
-import { DraftSavedLine, ReviewRail, SubmitForReview } from "./ReviewRail";
+import { ReviewRail, SubmitForReview } from "./ReviewRail";
 import { SaveStatusProvider } from "./SaveStatus";
 import { useCreateNewDraft } from "./hook/use-create-new-draft";
-import { useRemoveFromReview } from "@/scenes/common/Teams/TeamId/Apps/common/hooks/use-remove-from-review";
-import { Role_Enum } from "@/graphql/graphql";
-import { Auth0SessionUser } from "@/lib/types";
-import { checkUserPermissions } from "@/lib/utils";
-import { useUser } from "@auth0/nextjs-auth0/client";
-import { FetchAppMetadataQuery } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/graphql/client/fetch-app-metadata.generated";
+import { isMiniAppAtom, viewModeAtom } from "./layout/ImagesProvider";
 
 type AppProfilePageProps = {
   params: Record<string, string> | null | undefined;
@@ -65,10 +65,17 @@ type ConfigurationContentProps = {
   teamName: string;
 };
 
-// Quiet pill shared by the footer's secondary actions (version switch, back,
-// danger zone) so the primary Continue/Submit button is the loudest element.
+// Quiet pill for the footer's version switch so the primary action remains
+// the loudest element.
 const ghostActionClassName =
   "inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1.5 text-grey-500 transition-colors hover:bg-grey-50 hover:text-grey-900 disabled:cursor-not-allowed disabled:opacity-50";
+
+const stepActionClassName =
+  "inline-flex h-10 min-w-36 shrink-0 items-center justify-center gap-2 rounded-lg px-5 text-center leading-none transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-grey-300 focus-visible:ring-offset-2";
+const primaryStepActionClassName = clsx(
+  stepActionClassName,
+  "bg-grey-900 text-white hover:bg-grey-700 disabled:cursor-not-allowed disabled:bg-grey-100 disabled:text-grey-400",
+);
 
 /**
  * Ghost version switch — the only trace of draft/verified state on the page,
@@ -203,41 +210,31 @@ const ActionsFooter = ({
       <button
         type="button"
         disabled={!previousStep}
-        className={ghostActionClassName}
+        className={clsx(
+          stepActionClassName,
+          "border border-grey-200 bg-grey-0 text-grey-700 hover:bg-grey-50 disabled:cursor-not-allowed disabled:border-grey-100 disabled:text-grey-300",
+        )}
         onClick={() => {
           if (previousStep) onStepChange(previousStep.id);
         }}
       >
-        <ChevronLeftIcon className="size-3.5" />
-        <Typography variant={TYPOGRAPHY.R5}>Back</Typography>
+        <ChevronLeftIcon className="size-4" />
+        <Typography variant={TYPOGRAPHY.M4} className="leading-none">Back</Typography>
       </button>
 
-      <div className="hidden min-w-0 sm:block">
-        {isEditable ? (
-          <DraftSavedLine />
-        ) : isAwaiting ? (
+      {isAwaiting && (
+        <div className="hidden min-w-0 sm:block">
           <Typography
             variant={TYPOGRAPHY.R5}
             className="min-w-0 truncate text-grey-500"
           >
             In review — editing is locked until review completes.
           </Typography>
-        ) : null}
-      </div>
+        </div>
+      )}
 
       <div className="flex shrink-0 flex-wrap items-center gap-x-1 gap-y-2">
         <VersionSwitchButton app={app} appId={appId} teamId={teamId} />
-
-        <Link
-          href={urls.configurationDanger({ team_id: teamId, app_id: appId })}
-          className={clsx(
-            ghostActionClassName,
-            "text-grey-400 hover:bg-system-error-50 hover:text-system-error-600",
-          )}
-        >
-          <TrashIcon className="size-3.5" />
-          <Typography variant={TYPOGRAPHY.R5}>Danger zone</Typography>
-        </Link>
 
         {isAwaiting && canManageDraft && (
           <DecoratedButton
@@ -254,15 +251,15 @@ const ActionsFooter = ({
         )}
 
         {nextStep ? (
-          <DecoratedButton
+          <button
             type="button"
-            showArrowRight
             aria-label={`Continue to ${nextStep.title}`}
-            className="ml-2 h-9 shrink-0 px-4 py-1.5"
+            className={clsx(primaryStepActionClassName, "ml-2")}
             onClick={() => onStepChange(nextStep.id)}
           >
-            <Typography variant={TYPOGRAPHY.M4}>Continue</Typography>
-          </DecoratedButton>
+            <Typography variant={TYPOGRAPHY.M4} className="leading-none">Continue</Typography>
+            <ArrowRightIcon className="size-4" />
+          </button>
         ) : isEditable ? (
           <SubmitForReview
             appId={appId}
@@ -270,7 +267,7 @@ const ActionsFooter = ({
             appMetadata={draft}
             basicInfoRef={basicInfoRef}
             onValidationError={onValidationError}
-            className="ml-2 h-9 px-4 py-1.5"
+            className={clsx(primaryStepActionClassName, "ml-2")}
           />
         ) : null}
       </div>
@@ -339,6 +336,8 @@ const ConfigurationContent = ({
           ref={scrollContainerRef}
           className="grid min-w-0 content-start gap-y-6 pt-6 pb-6 lg:min-h-0 lg:flex-1 lg:overflow-y-auto lg:pr-6"
         >
+          <ConfigurationWizard steps={steps} activeStep={activeStep} />
+
           <NumberedSection
             number="01"
             title="Basic information"
@@ -392,11 +391,6 @@ const ConfigurationContent = ({
           />
         </div>
 
-        <ConfigurationWizard
-          steps={steps}
-          activeStep={activeStep}
-          onStepChange={handleStepChange}
-        />
         <ActionsFooter
           app={app}
           appId={appId}

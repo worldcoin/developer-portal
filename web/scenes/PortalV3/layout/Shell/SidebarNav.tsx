@@ -2,8 +2,10 @@
 
 import { LockIcon } from "@/components/Icons/LockIcon";
 import { SendIcon } from "@/components/Icons/SendIcon";
+import { TrashIcon } from "@/components/Icons/TrashIcon";
 import { WalletIcon } from "@/components/Icons/WalletIcon";
 import { urls } from "@/lib/urls";
+import { useFetchAppsQuery } from "@/scenes/common/layout/AppSelector/graphql/client/fetch-apps.generated";
 import { Icon } from "@/scenes/PortalV3/common/Icon";
 import { atom, useAtomValue, useSetAtom } from "jotai";
 import { useParams, usePathname } from "next/navigation";
@@ -49,6 +51,17 @@ export const SidebarNav = () => {
   const teamId = params?.teamId;
   const routeAppId = params?.appId;
   const appId = useCurrentAppId();
+  // Same FetchApps as AppsDropdown — Apollo serves the cache after the first
+  // fetch, so this is not a second network round-trip.
+  const { data: appsData, loading: appsLoading } = useFetchAppsQuery({
+    variables: { teamId: teamId! },
+    skip: !teamId,
+  });
+  const hasConfirmedApp = Boolean(
+    appId &&
+      !appsLoading &&
+      appsData?.app?.some((app) => app.id === appId),
+  );
   const appEnvFlags = useAtomValue(appEnvFlagsAtom);
 
   // Team-less pages (e.g. /profile) carry no teamId in the URL, so team-scoped
@@ -76,7 +89,9 @@ export const SidebarNav = () => {
   })();
 
   const configurationHref = ids ? urls.configuration(ids) : appsListHref;
-  const miniAppHref = ids ? urls.miniAppPermissions(ids) : appsListHref;
+  const configurationDangerHref =
+    ids && hasConfirmedApp ? urls.configurationDanger(ids) : undefined;
+  const miniAppHref = ids ? urls.miniAppPermissions(ids) : appsListHref
   const teamSettingsHref = teamId
     ? urls.teamSettings({ team_id: teamId })
     : teamsLandingHref;
@@ -95,7 +110,9 @@ export const SidebarNav = () => {
     withinApp("/world-id-4-0") ||
     withinApp("/world-id-actions") ||
     withinApp("/actions");
-  const configurationActive = withinApp("/configuration");
+  const configurationActive =
+    withinApp("/configuration") && !withinApp("/configuration/danger");
+  const configurationDangerActive = withinApp("/configuration/danger");
   const miniAppActive =
     withinApp("/mini-app") ||
     withinApp("/transactions") ||
@@ -186,6 +203,19 @@ export const SidebarNav = () => {
           icon={<NavIcon name="nav-settings" active={settingsActive} />}
         />
         <HelpCenterMenu />
+        {configurationDangerHref ? (
+          <NavItem
+            label="Danger zone"
+            href={configurationDangerHref}
+            active={configurationDangerActive}
+            icon={<TrashIcon className="size-4" />}
+            className={
+              configurationDangerActive
+                ? "border-system-error-200 bg-system-error-50 text-system-error-600 shadow-none hover:bg-system-error-50 hover:text-system-error-600"
+                : "hover:bg-system-error-50 hover:text-system-error-600"
+            }
+          />
+        ) : null}
       </div>
     </nav>
   );

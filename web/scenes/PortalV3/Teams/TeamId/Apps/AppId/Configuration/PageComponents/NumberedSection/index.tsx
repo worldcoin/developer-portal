@@ -2,22 +2,7 @@
 
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import clsx from "clsx";
-import { atom, useSetAtom } from "jotai";
-import { ReactNode, useEffect } from "react";
-
-export type RegisteredSection = {
-  number: string;
-  title: string;
-  id: string;
-};
-
-// Sections register themselves on mount so the jump nav (SectionToc) derives
-// its list from what's actually rendered — external mode drops Store listing
-// and renumbers the rest, and the registry follows automatically.
-export const sectionsAtom = atom<RegisteredSection[]>([]);
-
-const sectionAnchorId = (title: string) =>
-  `section-${title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
+import { ReactNode } from "react";
 
 type NumberedSectionProps = {
   number: string;
@@ -42,21 +27,8 @@ export const NumberedSection = ({
   banner,
   children,
 }: NumberedSectionProps) => {
-  const setSections = useSetAtom(sectionsAtom);
-  const id = sectionAnchorId(title);
-
-  useEffect(() => {
-    setSections((prev) =>
-      [...prev.filter((s) => s.id !== id), { number, title, id }].sort((a, b) =>
-        a.number.localeCompare(b.number),
-      ),
-    );
-    return () => setSections((prev) => prev.filter((s) => s.id !== id));
-  }, [id, number, title, setSections]);
-
   return (
     <section
-      id={id}
       aria-hidden={!isActive}
       className={clsx(
         "scroll-mt-2 rounded-2xl border border-grey-200 bg-grey-0 shadow-button",
