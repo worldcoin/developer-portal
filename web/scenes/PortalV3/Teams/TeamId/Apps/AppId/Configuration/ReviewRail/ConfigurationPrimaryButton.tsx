@@ -35,6 +35,18 @@ const scrollToFirstError = () => {
   });
 };
 
+// app_metadata's top-level localized columns mirror the EN localisation. The
+// review schema validates that row shape, so these fields are copied out of
+// the EN localisation before .validate() and their error paths are mapped
+// back to the registered localisations.{en}.* inputs after. Single list so
+// the copy and the un-copy can't drift.
+const EN_TOP_LEVEL_FIELDS = [
+  "name",
+  "short_name",
+  "world_app_description",
+  "description_overview",
+] as const;
+
 type ConfigurationPrimaryButtonProps = {
   appMetadata: FullAppMetadata;
   appId: string;
@@ -170,10 +182,12 @@ export const ConfigurationPrimaryButton = ({
       await mainAppStoreFormReviewSubmitSchema.validate(
         {
           ...formValues,
-          name: enLocalization?.name,
-          short_name: enLocalization?.short_name,
-          world_app_description: enLocalization?.world_app_description,
-          description_overview: enLocalization?.description_overview,
+          ...Object.fromEntries(
+            EN_TOP_LEVEL_FIELDS.map((field) => [
+              field,
+              enLocalization?.[field],
+            ]),
+          ),
           logo_img_url: freshAppMetadata.logo_img_url,
           content_card_image_url: freshAppMetadata.content_card_image_url,
           app_website_url: freshAppMetadata.app_website_url,
@@ -189,11 +203,25 @@ export const ConfigurationPrimaryButton = ({
       onSubmitSuccess();
     } catch (error) {
       if (error instanceof yup.ValidationError) {
+        // Un-alias: map row-shaped paths back to the registered
+        // localisations.{en}.* inputs so setError paints the real field,
+        // setFocus works, and the wizard opens the step that contains it.
+        const enIndex = form
+          .getValues("localisations")
+          .findIndex((localisation) => localisation.language === "en");
+        const toRegisteredPath = (path?: string) =>
+          path &&
+          (EN_TOP_LEVEL_FIELDS as readonly string[]).includes(path) &&
+          enIndex !== -1
+            ? `localisations.${enIndex}.${path}`
+            : path;
+
         let errorMessage = error.message;
         error.inner.forEach((validationError) => {
           errorMessage = validationError.message;
-          if (validationError.path) {
-            form.setError(validationError.path as keyof AppStoreFormValues, {
+          const path = toRegisteredPath(validationError.path ?? undefined);
+          if (path) {
+            form.setError(path as keyof AppStoreFormValues, {
               message: validationError.message,
             });
           }
@@ -201,9 +229,10 @@ export const ConfigurationPrimaryButton = ({
         if (error.inner.length > 1) {
           errorMessage = MULTIPLE_ERRORS_TOAST_MESSAGE;
         }
-        const firstPath = error.inner[0]?.path;
+        const firstPath = toRegisteredPath(error.inner[0]?.path ?? undefined);
         captureAttempt("validation_failed", {
-          first_error_field: firstPath,
+          // Analytics keeps the schema's own path so dashboards stay stable.
+          first_error_field: error.inner[0]?.path,
           error_count: error.inner.length,
         });
         onValidationError?.(firstPath);
