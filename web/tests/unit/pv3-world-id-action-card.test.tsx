@@ -4,6 +4,19 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { ActionCard } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldId/page/ActionCard";
 import { ActionsGrid } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldId/page/ActionsGrid";
 import { WorldIdTabs } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldId/page/WorldIdTabs";
+import { WorldIdSubTabs } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldId/SubTabs";
+
+jest.mock("next/navigation", () => ({
+  useParams: () => ({ teamId: "team_1", appId: "app_1" }),
+  usePathname: () => "/teams/team_1/apps/app_1/actions",
+  useSelectedLayoutSegment: () => "actions",
+}));
+
+global.ResizeObserver = class {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+} as typeof ResizeObserver;
 
 jest.mock(
   "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldIdActions/page/CreateActionDialogV4",
@@ -110,5 +123,24 @@ it("only shows Legacy Actions when the app has legacy actions", () => {
   expect(screen.getByRole("link", { name: "Legacy Actions" })).toHaveAttribute(
     "href",
     "/legacy-actions",
+  );
+});
+
+it("keeps the route-level tabs in the same order as the overview", () => {
+  render(<WorldIdSubTabs hasLegacyActions />);
+
+  const links = screen.getAllByRole("link");
+  expect(links.map((link) => link.textContent)).toEqual([
+    "Actions",
+    "World ID",
+    "Legacy Actions",
+  ]);
+  expect(links[0]).toHaveAttribute(
+    "href",
+    "/teams/team_1/apps/app_1/world-id-4-0",
+  );
+  expect(links[1]).toHaveAttribute(
+    "href",
+    "/teams/team_1/apps/app_1/world-id-4-0?tab=world-id-4-0",
   );
 });
