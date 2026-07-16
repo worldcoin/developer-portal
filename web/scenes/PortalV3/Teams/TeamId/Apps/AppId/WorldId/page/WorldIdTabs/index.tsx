@@ -42,7 +42,7 @@ export const WorldIdTabs = (props: {
       </button>
       {props.legacyActionsHref ? (
         <Link href={props.legacyActionsHref} className={tabClass(false)}>
-          World ID 3.0 Legacy
+          Legacy Actions
         </Link>
       ) : null}
     </div>

@@ -34,7 +34,7 @@ export const WorldIdSubTabs = (props: { hasLegacyActions: boolean }) => {
         ...(props.hasLegacyActions
           ? [
               {
-                label: "World ID 3.0 Legacy",
+                label: "Legacy Actions",
                 href: legacyActionsPath,
                 segment: "actions",
                 active: pathname.startsWith(legacyActionsPath),
