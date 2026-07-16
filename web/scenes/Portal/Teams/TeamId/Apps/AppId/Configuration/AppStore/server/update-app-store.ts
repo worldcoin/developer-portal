@@ -2,6 +2,7 @@
 
 import { errorFormAction } from "@/api/helpers/errors";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
+import { resolveAppStoreCategory } from "@/lib/categories";
 import { getAppMetadataPermissionAndMode } from "@/lib/permissions";
 import { extractIdsFromPath, getPathFromHeaders } from "@/lib/server-utils";
 import { FormActionResult } from "@/lib/types";
@@ -51,12 +52,14 @@ export async function updateAppStoreMetadata(
       });
     }
 
+    const isMiniApp = appMode === "mini-app";
+
     let parsedParams: Schema;
 
     try {
       parsedParams = await schema.validate(formData, {
         abortEarly: false,
-        context: { isMiniApp: appMode === "mini-app" },
+        context: { isMiniApp },
       });
     } catch (validationError) {
       return errorFormAction({
@@ -83,7 +86,7 @@ export async function updateAppStoreMetadata(
     // edits to overlapping columns). Treat undefined here as "do not touch the
     // column"; only forward keys the client explicitly sent.
     const appMetadataInput: Record<string, unknown> = {
-      category: parsedParams.category || "External",
+      category: resolveAppStoreCategory(parsedParams.category, isMiniApp),
       is_android_only: parsedParams.is_android_only,
       is_for_humans_only: parsedParams.is_for_humans_only,
       support_link: supportLink,

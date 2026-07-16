@@ -155,7 +155,7 @@ export const GET = async (request: NextRequest) => {
     );
     highlightsApps = highlightsApps.filter(
       (app) =>
-        app.category.toLowerCase() !== "external" ||
+        app.category.toLowerCase() !== "external" &&
         app.app_mode !== "external",
     );
   }
