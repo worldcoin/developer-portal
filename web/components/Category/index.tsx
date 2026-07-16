@@ -22,6 +22,9 @@ export const CategorySelector = (props: {
   required?: boolean;
   disabled: boolean;
   variant?: "flat";
+  // When true, hides the "External" category. External integrations are hidden
+  // from the mini app store, so it must never be offered to mini apps.
+  excludeExternal?: boolean;
 }) => {
   const {
     value,
@@ -33,9 +36,16 @@ export const CategorySelector = (props: {
     required,
     disabled,
     variant,
+    excludeExternal,
   } = props;
 
-  const categories = useMemo(() => Categories.map((i) => i.name), []);
+  const categories = useMemo(
+    () =>
+      Categories.filter(
+        (category) => !excludeExternal || category.id !== "external",
+      ).map((i) => i.name),
+    [excludeExternal],
+  );
 
   const parentClassNames = clsx(
     "rounded-lg border bg-grey-0 text-sm text-grey-700",
