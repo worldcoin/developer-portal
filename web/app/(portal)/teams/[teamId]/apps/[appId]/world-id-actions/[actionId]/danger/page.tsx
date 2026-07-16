@@ -6,6 +6,8 @@ export default async function Page(props: {
   params: Promise<Record<string, string>>;
 }) {
   return pickPortalVersion(
+    // Danger controls now live on the consolidated action-detail page. From
+    // this subroute, "./" resolves to the parent action route.
     () => redirect("./"),
     () => <WorldIdActionIdDangerPage params={props.params} />,
   );

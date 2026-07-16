@@ -6,6 +6,8 @@ export default async function Page(props: {
   params: Promise<Record<string, string>>;
 }) {
   return pickPortalVersion(
+    // Settings now live on the consolidated action-detail page. From this
+    // subroute, "./" resolves to the parent action route.
     () => redirect("./"),
     () => <WorldIdActionIdSettingsPage params={props.params} />,
   );
