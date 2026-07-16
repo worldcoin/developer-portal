@@ -81,7 +81,7 @@ const StatDisplay = ({
 
 const EmptyState = () => (
   <div className="text-center">
-    <div className="font-world text-19 font-medium leading-[1.2] text-portal-muted">
+    <div className="font-world text-19 leading-[1.2] font-medium text-portal-muted">
       No available data
     </div>
     <div className="mt-1 font-world text-15 leading-[1.3] text-portal-subtle">

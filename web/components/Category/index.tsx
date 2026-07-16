@@ -22,6 +22,9 @@ export const CategorySelector = (props: {
   required?: boolean;
   disabled: boolean;
   variant?: "flat";
+  // When true, hides the "External" category. External integrations are hidden
+  // from the mini app store, so it must never be offered to mini apps.
+  excludeExternal?: boolean;
 }) => {
   const {
     value,
@@ -33,12 +36,19 @@ export const CategorySelector = (props: {
     required,
     disabled,
     variant,
+    excludeExternal,
   } = props;
 
-  const categories = useMemo(() => Categories.map((i) => i.name), []);
+  const categories = useMemo(
+    () =>
+      Categories.filter(
+        (category) => !excludeExternal || category.id !== "external",
+      ).map((i) => i.name),
+    [excludeExternal],
+  );
 
   const parentClassNames = clsx(
-    "rounded-lg border-[1px] bg-grey-0 text-sm text-grey-700",
+    "rounded-lg border bg-grey-0 text-sm text-grey-700",
     {
       "border-grey-200 focus-within:border-blue-500 focus-within:hover:border-blue-500 hover:border-grey-700 ":
         !errors && !disabled,
@@ -48,10 +58,10 @@ export const CategorySelector = (props: {
     },
   );
   const selectorClassNames = clsx(
-    "peer h-full bg-transparent py-1.5 focus:outline-none focus:ring-0",
+    "peer h-full bg-transparent py-1.5 focus:outline-hidden focus:ring-0",
     {
       "text-grey-400": !errors && !value,
-      "group-hover:placeholder:text-grey-700 group-hover:focus:placeholder:text-blue-400 ":
+      "group-hover:placeholder:text-grey-700 focus:group-hover:placeholder:text-blue-400 ":
         !disabled,
     },
   );
@@ -113,7 +123,7 @@ export const CategorySelector = (props: {
             />
           </SelectButton>
 
-          <SelectOptions className="mt-1 max-h-40 text-sm focus:outline-none focus:ring-0">
+          <SelectOptions className="mt-1 max-h-40 text-sm focus:ring-0 focus:outline-hidden">
             {categories.map((_, index) => (
               <SelectOption
                 key={index}
@@ -175,7 +185,7 @@ export const CategorySelector = (props: {
 
           <SelectOptions
             className={clsx(
-              "mt-3 max-h-40 text-sm focus:outline-none focus:ring-0",
+              "mt-3 max-h-40 text-sm focus:ring-0 focus:outline-hidden",
             )}
           >
             {categories.map((_, index) => (

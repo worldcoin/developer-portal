@@ -125,7 +125,7 @@ export const ProfilePage = () => {
           </Section.Header>
 
           <form
-            className="grid justify-items-start gap-y-8 max-md:pb-8 md:max-w-[36.25rem]"
+            className="grid justify-items-start gap-y-8 max-md:pb-8 md:max-w-145"
             onSubmit={handleSubmit(submit)}
           >
             <div className="w-full rounded-12 border border-grey-200 p-6">
@@ -136,7 +136,7 @@ export const ProfilePage = () => {
               <Typography
                 as="p"
                 variant={TYPOGRAPHY.R4}
-                className="mb-6 mt-3 max-w-[22.5rem] text-grey-500"
+                className="mt-3 mb-6 max-w-90 text-grey-500"
               >
                 Avatar colors are assigned randomly, change as preferred
               </Typography>
@@ -162,7 +162,7 @@ export const ProfilePage = () => {
 
             <label
               htmlFor="is_allow_tracking"
-              className="grid cursor-pointer grid-cols-auto/1fr gap-x-4 rounded-xl border-[1px] border-grey-200 px-5 py-6"
+              className="grid cursor-pointer grid-cols-auto/1fr gap-x-4 rounded-xl border border-grey-200 px-5 py-6"
             >
               <Checkbox
                 register={register("isAllowTracking")}

@@ -169,7 +169,7 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
     >
       <Dialog open={showDialog} onClose={() => setShowDialog(false)}>
         <DialogOverlay />
-        <DialogPanel className="grid gap-y-10 md:max-w-[28rem]">
+        <DialogPanel className="grid gap-y-10 md:max-w-md">
           <div className="grid w-full grid-cols-1fr/auto justify-between">
             <Typography variant={TYPOGRAPHY.H6}>Edit app image</Typography>
             <Button
@@ -238,7 +238,7 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
       {viewMode === "verified" &&
         (verifiedImageError ? (
           <div className="flex size-full items-center justify-center rounded-2xl bg-blue-100">
-            <WorldIcon className="size-10  text-blue-500" />
+            <WorldIcon className="size-10 text-blue-500" />
           </div>
         ) : (
           // eslint-disable-next-line @next/next/no-img-element
@@ -267,14 +267,14 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
               },
             )}
           >
-            <WorldIcon className="size-10  text-blue-500" />
+            <WorldIcon className="size-10 text-blue-500" />
           </div>
         ))}
       <Button
         type="button"
         onClick={() => setShowDialog(true)}
         className={clsx(
-          "absolute -bottom-2 -right-2 rounded-full border-2 border-grey-200 bg-white p-2 text-grey-500 hover:bg-grey-50",
+          "absolute -right-2 -bottom-2 rounded-full border-2 border-grey-200 bg-white p-2 text-grey-500 hover:bg-grey-50",
           { hidden: !isEditable || viewMode === "verified" },
         )}
       >
@@ -283,7 +283,7 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
       {isError && (
         <Typography
           variant={TYPOGRAPHY.R5}
-          className="absolute left-0 top-[84px] mt-4 flex w-max shrink text-red-500"
+          className="absolute top-[84px] left-0 mt-4 flex w-max shrink text-red-500"
         >
           Logo is required.
         </Typography>

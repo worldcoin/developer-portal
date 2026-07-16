@@ -9,7 +9,7 @@ export const sidebarNavItemClassName = (props?: {
   className?: string;
 }) =>
   twMerge(
-    "flex h-10 min-w-0 items-center gap-2 rounded-[10px] pl-3 pr-4 font-world text-13 font-normal leading-none outline-none transition-colors",
+    "flex h-10 min-w-0 items-center gap-2 rounded-[10px] pl-3 pr-4 font-world text-13 font-normal leading-none outline-hidden transition-colors",
     "focus-visible:ring-2 focus-visible:ring-grey-300 focus-visible:ring-offset-2 focus-visible:ring-offset-portal-canvas",
     props?.active
       ? "border border-portal-border bg-white text-portal-text shadow-portal-card"

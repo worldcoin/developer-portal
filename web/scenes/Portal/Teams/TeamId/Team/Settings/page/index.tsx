@@ -77,7 +77,7 @@ export const TeamSettingsPage = () => {
           </Section.Header>
 
           <form
-            className="grid justify-items-start gap-y-8 max-md:pb-8 md:max-w-[36.25rem]"
+            className="grid justify-items-start gap-y-8 max-md:pb-8 md:max-w-145"
             onSubmit={handleSubmit(submit)}
           >
             <Input

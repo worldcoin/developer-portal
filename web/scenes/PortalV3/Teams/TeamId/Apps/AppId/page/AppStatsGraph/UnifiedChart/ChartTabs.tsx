@@ -23,7 +23,7 @@ export const ChartTabs = ({ activeTab, onTabChange }: ChartTabsProps) => {
           key={tab.value}
           onClick={() => onTabChange(tab.value)}
           className={clsx(
-            "border-b-2 pb-2 font-world text-13 font-medium leading-none transition-colors",
+            "border-b-2 pb-2 font-world text-13 leading-none font-medium transition-colors",
             activeTab === tab.value
               ? "border-portal-text text-portal-text"
               : "border-transparent text-portal-muted hover:text-portal-text",

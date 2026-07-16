@@ -4,9 +4,9 @@ import WithPostHogIdentifier from "@/scenes/Root/providers/providers";
 import "@/styles/globals.css";
 import { Auth0Provider } from "@auth0/nextjs-auth0/client";
 import { Provider } from "jotai";
-import { headers } from "next/headers";
 import { IBM_Plex_Mono, Rubik } from "next/font/google";
 import localFont from "next/font/local";
+import { headers } from "next/headers";
 import { Suspense } from "react";
 import { SkeletonTheme } from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
@@ -16,7 +16,7 @@ import { Slide, ToastContainer } from "react-toastify";
 const rubik = Rubik({
   display: "swap",
   subsets: ["latin"],
-  variable: "--font-rubik",
+  variable: "--font-rubik-source",
   weight: ["400"],
 });
 
@@ -24,7 +24,7 @@ const ibmPlexMono = IBM_Plex_Mono({
   display: "swap",
   subsets: ["latin"],
   style: ["normal"],
-  variable: "--font-mono",
+  variable: "--font-mono-source",
   weight: ["400", "600"],
 });
 
@@ -47,13 +47,13 @@ const gtAmerica = localFont({
       weight: "500",
     },
   ],
-  variable: "--font-gta",
+  variable: "--font-gta-source",
 });
 
 const twkLausanne = localFont({
   display: "swap",
   src: "../../../app/fonts/TWKLausanne-550.woff2",
-  variable: "--font-twk",
+  variable: "--font-twk-source",
   weight: "500",
 });
 
@@ -64,7 +64,7 @@ const twkLausanne = localFont({
 const worldPro = localFont({
   display: "swap",
   src: "../../../app/fonts/WorldProMVP.ttf",
-  variable: "--font-world",
+  variable: "--font-world-source",
   weight: "300 800",
 });
 

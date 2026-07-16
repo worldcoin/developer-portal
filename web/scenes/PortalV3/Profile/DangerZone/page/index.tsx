@@ -23,7 +23,7 @@ export const DangerZone = () => {
             <Section.Header.Title>Danger zone</Section.Header.Title>
           </Section.Header>
 
-          <div className="grid justify-items-start gap-y-8 max-md:pb-8 md:max-w-[36.25rem]">
+          <div className="grid justify-items-start gap-y-8 max-md:pb-8 md:max-w-145">
             <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
               This will immediately and permanently delete your user account and
               will remove your from all your existing teams. This cannot be

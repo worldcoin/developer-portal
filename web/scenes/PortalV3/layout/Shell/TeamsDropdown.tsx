@@ -9,7 +9,7 @@ export type DropdownTeam = { id: string; name: string };
 
 const TeamAvatar = (props: { name: string; className?: string }) => (
   <div
-    className={`flex shrink-0 items-center justify-center rounded-full bg-[#f5d1ff] font-world text-[11px] font-normal leading-none text-[#d501fd] ${props.className ?? ""}`}
+    className={`flex shrink-0 items-center justify-center rounded-full bg-[#f5d1ff] font-world text-[11px] leading-none font-normal text-[#d501fd] ${props.className ?? ""}`}
   >
     {props.name[0]?.toUpperCase() ?? "T"}
   </div>
@@ -22,7 +22,7 @@ const TeamsDropdownRow = (props: {
 }) => (
   <DropdownMenu.Item
     onSelect={props.onSelect}
-    className="flex h-12 w-full cursor-pointer items-center gap-2 rounded-8 bg-white px-4 py-2 font-world text-13 font-medium leading-[1.2] text-portal-text outline-none data-[highlighted]:bg-grey-50"
+    className="flex h-12 w-full cursor-pointer items-center gap-2 rounded-8 bg-white px-4 py-2 font-world text-13 leading-[1.2] font-medium text-portal-text outline-hidden data-highlighted:bg-grey-50"
   >
     <TeamAvatar name={props.team.name} className="size-6" />
     <span className="min-w-0 flex-1 truncate">{props.team.name}</span>
@@ -46,7 +46,7 @@ export const TeamsDropdown = (props: { teams: DropdownTeam[] }) => {
       <DropdownMenu.Root>
         <DropdownMenu.Trigger
           aria-label="Switch team"
-          className="flex h-10 w-full min-w-0 items-center gap-2 rounded-8 px-0 text-left outline-none transition-colors hover:bg-portal-border focus-visible:ring-2 focus-visible:ring-grey-300"
+          className="flex h-10 w-full min-w-0 items-center gap-2 rounded-8 px-0 text-left outline-hidden transition-colors hover:bg-portal-border focus-visible:ring-2 focus-visible:ring-grey-300"
         >
           {currentTeam ? (
             <TeamAvatar name={currentTeam.name} className="size-6" />
@@ -57,7 +57,7 @@ export const TeamsDropdown = (props: { teams: DropdownTeam[] }) => {
           )}
 
           <span className="grid min-w-0 flex-1 gap-0.5">
-            <span className="truncate font-world text-13 font-medium leading-none text-portal-text">
+            <span className="truncate font-world text-13 leading-none font-medium text-portal-text">
               {currentTeam?.name ?? "Select team"}
             </span>
             <span className="font-world text-11 leading-none text-portal-subtle">
@@ -90,7 +90,7 @@ export const TeamsDropdown = (props: { teams: DropdownTeam[] }) => {
               <Icon name="generic-divider" className="h-2 w-full shrink-0" />
               <DropdownMenu.Item
                 onSelect={() => router.push(urls.createTeam())}
-                className="flex h-12 w-full cursor-pointer items-center gap-2 rounded-8 bg-white px-4 py-2 font-world text-13 font-medium leading-[1.2] text-portal-text outline-none data-[highlighted]:bg-grey-50"
+                className="flex h-12 w-full cursor-pointer items-center gap-2 rounded-8 bg-white px-4 py-2 font-world text-13 leading-[1.2] font-medium text-portal-text outline-hidden data-highlighted:bg-grey-50"
               >
                 <Icon
                   name="dropdown-plus"

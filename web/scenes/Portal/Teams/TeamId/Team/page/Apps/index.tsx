@@ -97,7 +97,7 @@ export const Apps = () => {
 
         {!loading && app && !searchQuery && (
           <Button
-            className="group relative flex flex-col items-center justify-center gap-y-4 rounded-20 border border-dashed border-grey-200 px-8 pb-6 pt-10 transition-colors hover:border-blue-500 max-md:hidden"
+            className="group relative flex flex-col items-center justify-center gap-y-4 rounded-20 border border-dashed border-grey-200 px-8 pt-10 pb-6 transition-colors hover:border-blue-500 max-md:hidden"
             type="button"
             onClick={() => setCreateAppDialogOpen(true)}
           >

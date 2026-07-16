@@ -56,7 +56,7 @@ const appName = (app: FetchAppsQuery["app"][number]) =>
 
 const AppAvatar = (props: { name: string; className?: string }) => (
   <div
-    className={`flex shrink-0 items-center justify-center rounded-full bg-[#d6f0d5] font-world text-[11px] font-normal leading-none text-[#00c230] ${props.className ?? ""}`}
+    className={`flex shrink-0 items-center justify-center rounded-full bg-[#d6f0d5] font-world text-[11px] leading-none font-normal text-[#00c230] ${props.className ?? ""}`}
   >
     {props.name[0]?.toUpperCase() ?? "A"}
   </div>
@@ -69,7 +69,7 @@ const AppsDropdownRow = (props: {
 }) => (
   <DropdownMenu.Item
     onSelect={props.onSelect}
-    className="flex h-12 w-full cursor-pointer items-center gap-2 rounded-8 bg-white px-4 py-2 font-world text-13 font-medium leading-[1.2] text-portal-text outline-none data-[highlighted]:bg-grey-50"
+    className="flex h-12 w-full cursor-pointer items-center gap-2 rounded-8 bg-white px-4 py-2 font-world text-13 leading-[1.2] font-medium text-portal-text outline-hidden data-highlighted:bg-grey-50"
   >
     <AppAvatar name={props.app.name} className="size-6" />
     <span className="min-w-0 flex-1 truncate">{props.app.name}</span>
@@ -123,7 +123,7 @@ export const AppsDropdown = () => {
       <DropdownMenu.Root>
         <DropdownMenu.Trigger
           disabled={isUnavailable}
-          className="flex h-6 min-w-0 items-center gap-2 rounded-8 font-world text-13 font-medium leading-none text-portal-text outline-none transition-colors hover:text-portal-muted focus-visible:ring-2 focus-visible:ring-grey-300 disabled:cursor-default disabled:opacity-60"
+          className="flex h-6 min-w-0 items-center gap-2 rounded-8 font-world text-13 leading-none font-medium text-portal-text outline-hidden transition-colors hover:text-portal-muted focus-visible:ring-2 focus-visible:ring-grey-300 disabled:cursor-default disabled:opacity-60"
         >
           {current ? (
             <AppAvatar name={current.name} className="size-6" />
@@ -145,7 +145,7 @@ export const AppsDropdown = () => {
               {showEmptyAppRow ? (
                 <DropdownMenu.Item
                   disabled
-                  className="flex h-12 w-full cursor-default items-center gap-2 rounded-8 bg-white px-4 py-2 font-world text-13 font-medium leading-[1.2] text-portal-muted outline-none"
+                  className="flex h-12 w-full cursor-default items-center gap-2 rounded-8 bg-white px-4 py-2 font-world text-13 leading-[1.2] font-medium text-portal-muted outline-hidden"
                 >
                   <span
                     className={`${opticalIconClassName} flex size-6 items-center justify-center rounded-full bg-portal-canvas`}
@@ -175,7 +175,7 @@ export const AppsDropdown = () => {
                   />
                   <DropdownMenu.Item
                     onSelect={() => setDialogOpen(true)}
-                    className="flex h-12 w-full cursor-pointer items-center gap-2 rounded-8 bg-white px-4 py-2 font-world text-13 font-medium leading-[1.2] text-portal-text outline-none data-[highlighted]:bg-grey-50"
+                    className="flex h-12 w-full cursor-pointer items-center gap-2 rounded-8 bg-white px-4 py-2 font-world text-13 leading-[1.2] font-medium text-portal-text outline-hidden data-highlighted:bg-grey-50"
                   >
                     {/* Bare 16px icon per Figma (2123:1919): icons left-align
                         at the row padding; text columns differ per row. */}

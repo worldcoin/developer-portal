@@ -6,7 +6,7 @@ import { CloseButton } from "./CloseButton";
 
 export const CreateTeamLayout = (props: { children: ReactNode }) => {
   return (
-    <div className="grid min-h-[100dvh] w-full grid-rows-auto/1fr">
+    <div className="grid min-h-dvh w-full grid-rows-auto/1fr">
       <header className="max-h-[56px] border-b border-grey-100 py-4">
         <SizingWrapper>
           <div className="flex items-center justify-between">

@@ -87,7 +87,7 @@ export const AppSelector = () => {
     >
       <SelectButton className={clsx({ hidden: !appId }, "px-0")}>
         {({ value }: { value: FetchAppsQuery["app"][number] }) => (
-          <div className="grid max-w-[400px] grid-cols-auto/1fr/auto items-center gap-x-2 md:max-w-[200px]">
+          <div className="grid max-w-[400px] grid-cols-auto-1fr-auto items-center gap-x-2 md:max-w-[200px]">
             {value?.verified_app_metadata?.[0]?.logo_img_url ? (
               // CDN urls should not use Next Image
               // eslint-disable-next-line @next/next/no-img-element
@@ -124,7 +124,7 @@ export const AppSelector = () => {
         {sortedApps.map((app) => (
           <SelectOption key={app.id} value={app}>
             {({ selected }) => (
-              <div className="grid grid-cols-auto/1fr/auto items-center gap-x-2 truncate">
+              <div className="grid grid-cols-auto-1fr-auto items-center gap-x-2 truncate">
                 {app?.verified_app_metadata?.[0]?.logo_img_url ? (
                   // CDN urls should not use Next Image
                   // eslint-disable-next-line @next/next/no-img-element
@@ -160,7 +160,7 @@ export const AppSelector = () => {
         ))}
         {isEnoughPermissions && (
           <SelectOption value={null}>
-            <div className="grid grid-cols-auto/1fr/auto items-center gap-x-2">
+            <div className="grid grid-cols-auto-1fr-auto items-center gap-x-2">
               <PlusCircleIcon className="size-4 text-gray-500" />
 
               <Typography variant={TYPOGRAPHY.R4}>Create new app</Typography>

@@ -6,3 +6,4 @@ disabled_for_roles:
   - qa
   - service
   - analytics
+  - internal_dashboard_readonly

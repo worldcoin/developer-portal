@@ -128,7 +128,7 @@ export const MiniKiosk = (props: MiniKioskProps) => {
         },
       )}
     >
-      <div className="grid grow grid-rows-auto/1fr/auto items-center justify-center">
+      <div className="grid grow grid-rows-auto-1fr-auto items-center justify-center">
         {!action && (
           <KioskError title="This request is invalid." reset={resetKiosk} />
         )}

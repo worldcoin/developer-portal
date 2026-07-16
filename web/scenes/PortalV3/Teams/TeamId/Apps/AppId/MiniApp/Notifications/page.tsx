@@ -8,7 +8,7 @@ import posthog from "posthog-js";
 import { ChangeEvent, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
-import { VersionSwitcher } from "../../Configuration/AppTopBar/VersionSwitcher";
+import { FormSkeleton } from "../../Configuration/PageComponents/FormSkeleton";
 import { useQuery } from "@apollo/client/react";
 import { FetchNotificationAppMetadataDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/MiniApp/Notifications/graphql/client/fetch-notification-app-metadata.generated";
 
@@ -20,15 +20,35 @@ type NotificationFormData = {
   apiKey: string;
 };
 
+const NotificationsNotice = ({
+  title,
+  body,
+}: {
+  title: string;
+  body: string;
+}) => (
+  <div className="my-8 grid max-w-[1180px] gap-y-10">
+    <div className="grid grid-cols-auto/1fr items-start gap-x-3 rounded-[10px] bg-grey-50 p-4 sm:p-5">
+      <NotificationBellIcon className="size-8" aria-hidden="true" />
+
+      <div className="min-w-0 font-world text-[13px] leading-[120%] text-grey-900">
+        <Typography as="p" className="font-world text-[13px] font-semibold">
+          {title}
+        </Typography>
+        <Typography as="p" className="font-world text-[13px] font-medium">
+          {body}
+        </Typography>
+      </div>
+    </div>
+  </div>
+);
+
 export const NotificationsPage = () => {
   const params = useParams<{ teamId: string; appId: string }>();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [viewMode, setViewMode] = useState<"verified" | "unverified">(
-    "verified",
-  );
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const { data: appMetadataData } = useQuery(
+  const { data: appMetadataData, loading } = useQuery(
     FetchNotificationAppMetadataDocument,
     {
       variables: { id: params?.appId ?? "" },
@@ -37,19 +57,15 @@ export const NotificationsPage = () => {
   );
 
   const appData = appMetadataData?.app[0];
-  const draftId = appData?.app_metadata[0]?.id;
-  const hasBothVersions =
-    (appData?.app_metadata.length ?? 0) > 0 &&
-    (appData?.verified_app_metadata.length ?? 0) > 0;
+  const draftMeta = appData?.app_metadata[0];
+  const verifiedMeta = appData?.verified_app_metadata[0];
+  const notificationMeta = verifiedMeta ?? draftMeta;
 
-  const isExternalApp = [
-    appData?.verified_app_metadata[0],
-    appData?.app_metadata[0],
-  ].some(
-    (meta) =>
-      meta?.app_mode === "external" ||
-      meta?.category?.toLowerCase() === "external",
-  );
+  // `category` may be the "External" app-store category even for a Mini App, so
+  // the external check must look at app_mode only — never the category. The
+  // API also prioritizes verified metadata, falling back to the autosaved draft
+  // only when the app has no verified version.
+  const isExternalApp = notificationMeta?.app_mode === "external";
 
   const {
     register,
@@ -164,7 +180,7 @@ export const NotificationsPage = () => {
         title: data.title || undefined,
         message: data.message,
         mini_app_path: data.miniAppPath,
-        ...(viewMode === "unverified" && draftId ? { draft_id: draftId } : {}),
+        ...(!verifiedMeta && draftMeta?.id ? { draft_id: draftMeta.id } : {}),
       };
 
       const response = await fetch("/api/v2/minikit/send-notification", {
@@ -210,22 +226,20 @@ export const NotificationsPage = () => {
       ?.split(",")
       .filter((address) => address.trim().length > 0).length ?? 0;
 
+  if (loading) {
+    return (
+      <div className="my-8 max-w-[1180px]">
+        <FormSkeleton count={5} />
+      </div>
+    );
+  }
+
   if (isExternalApp) {
     return (
-      <div className="my-8 grid max-w-[1180px] gap-y-10">
-        <div className="grid grid-cols-auto/1fr items-start gap-x-3 rounded-[10px] bg-grey-50 p-4 sm:p-5">
-          <NotificationBellIcon className="size-8" aria-hidden="true" />
-
-          <div className="min-w-0 font-world text-[13px] leading-[120%] text-grey-900">
-            <Typography as="p" className="font-world text-[13px] font-semibold">
-              Notifications unavailable
-            </Typography>
-            <Typography as="p" className="font-world text-[13px] font-medium">
-              Notifications aren't available for external apps.
-            </Typography>
-          </div>
-        </div>
-      </div>
+      <NotificationsNotice
+        title="Notifications unavailable"
+        body="Notifications aren't available for external apps."
+      />
     );
   }
 
@@ -254,23 +268,12 @@ export const NotificationsPage = () => {
       </div>
 
       <div className="grid gap-y-10">
-        <div className="flex items-center justify-between gap-x-5">
-          <Typography
-            as="h1"
-            className="font-world text-[26px] font-semibold leading-[120%] tracking-[-0.01em] text-[#191C20]"
-          >
-            Notifications
-          </Typography>
-
-          {hasBothVersions && (
-            <VersionSwitcher
-              viewMode={viewMode}
-              setMode={setViewMode}
-              verifiedAt={appData?.verified_app_metadata[0]?.verified_at}
-              buttonClassName="px-3 py-1.5 text-sm"
-            />
-          )}
-        </div>
+        <Typography
+          as="h1"
+          className="font-world text-[26px] leading-[120%] font-semibold tracking-[-0.01em] text-[#191C20]"
+        >
+          Notifications
+        </Typography>
 
         <form
           onSubmit={handleSubmit(onSubmit)}
@@ -280,7 +283,7 @@ export const NotificationsPage = () => {
             <div className="flex items-center justify-between gap-x-5">
               <Typography
                 as="h2"
-                className="font-world text-[17px] font-medium leading-[120%] text-grey-900"
+                className="font-world text-[17px] leading-[120%] font-medium text-grey-900"
               >
                 Wallet addresses
               </Typography>
@@ -334,7 +337,7 @@ export const NotificationsPage = () => {
                 })}
                 rows={4}
                 placeholder="Enter wallet addresses separated by commas"
-                className="h-[120px] resize-none rounded-[10px] border-0 bg-grey-50 p-4 font-world text-[15px] leading-[130%] text-grey-900 placeholder:text-grey-500 focus:outline-none focus:ring-0"
+                className="h-[120px] resize-none rounded-[10px] border-0 bg-grey-50 p-4 font-world text-[15px] leading-[130%] text-grey-900 placeholder:text-grey-500 focus:ring-0 focus:outline-hidden"
                 aria-invalid={errors.walletAddresses ? "true" : "false"}
               />
 
@@ -360,7 +363,7 @@ export const NotificationsPage = () => {
               })}
               maxLength={30}
               placeholder="Notification title"
-              className="h-14 rounded-[10px] border-0 bg-grey-50 px-4 py-3 font-world text-[15px] leading-[130%] text-grey-900 placeholder:text-grey-500 focus:outline-none focus:ring-0"
+              className="h-14 rounded-[10px] border-0 bg-grey-50 px-4 py-3 font-world text-[15px] leading-[130%] text-grey-900 placeholder:text-grey-500 focus:ring-0 focus:outline-hidden"
               aria-invalid={errors.title ? "true" : "false"}
             />
             <p className="px-2 font-world text-xs leading-[130%] text-grey-500">
@@ -385,7 +388,7 @@ export const NotificationsPage = () => {
               maxLength={200}
               rows={1}
               placeholder="Notification message"
-              className="h-14 resize-none rounded-[10px] border-0 bg-grey-50 px-4 py-3 font-world text-[15px] leading-[130%] text-grey-900 placeholder:text-grey-500 focus:outline-none focus:ring-0"
+              className="h-14 resize-none rounded-[10px] border-0 bg-grey-50 px-4 py-3 font-world text-[15px] leading-[130%] text-grey-900 placeholder:text-grey-500 focus:ring-0 focus:outline-hidden"
               aria-invalid={errors.message ? "true" : "false"}
             />
             <p className="px-2 font-world text-xs leading-[130%] text-grey-500">
@@ -404,7 +407,7 @@ export const NotificationsPage = () => {
                 required: "Mini App Path is required",
               })}
               placeholder="Mini App Path"
-              className="h-14 rounded-[10px] border-0 bg-grey-50 px-4 py-3 font-world text-[15px] leading-[130%] text-grey-900 placeholder:text-grey-500 focus:outline-none focus:ring-0"
+              className="h-14 rounded-[10px] border-0 bg-grey-50 px-4 py-3 font-world text-[15px] leading-[130%] text-grey-900 placeholder:text-grey-500 focus:ring-0 focus:outline-hidden"
               aria-invalid={errors.miniAppPath ? "true" : "false"}
             />
             <p className="px-2 font-world text-xs leading-[130%] text-grey-500">
@@ -424,7 +427,7 @@ export const NotificationsPage = () => {
                 required: "API Key is required",
               })}
               placeholder="API Key"
-              className="h-14 rounded-[10px] border-0 bg-grey-50 px-4 py-3 font-world text-[15px] leading-[130%] text-grey-900 placeholder:text-grey-500 focus:outline-none focus:ring-0"
+              className="h-14 rounded-[10px] border-0 bg-grey-50 px-4 py-3 font-world text-[15px] leading-[130%] text-grey-900 placeholder:text-grey-500 focus:ring-0 focus:outline-hidden"
               aria-invalid={errors.apiKey ? "true" : "false"}
             />
             <p className="px-2 font-world text-xs leading-[130%] text-grey-500">

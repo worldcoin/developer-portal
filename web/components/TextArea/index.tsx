@@ -38,7 +38,7 @@ export const TextArea = memo(function TextArea(props: TextAreaInterface) {
   } = props;
 
   const parentClassNames = clsx(
-    "rounded-lg border-[1px] bg-grey-0 px-2 text-base text-grey-700 md:text-sm",
+    "rounded-lg border bg-grey-0 px-2 text-base text-grey-700 md:text-sm",
     {
       "border-grey-200 focus-within:border-blue-500 focus-within:hover:border-blue-500 hover:border-grey-700 ":
         !errors && !disabled,
@@ -51,10 +51,10 @@ export const TextArea = memo(function TextArea(props: TextAreaInterface) {
     },
   );
   const inputClassNames = clsx(
-    "peer h-full bg-transparent p-2 focus:outline-none focus:ring-0",
+    "peer h-full bg-transparent p-2 focus:outline-hidden focus:ring-0",
     {
       "placeholder:text-grey-400": !errors,
-      "group-hover:placeholder:text-grey-700 group-hover:focus:placeholder:text-grey-400 ":
+      "group-hover:placeholder:text-grey-700 focus:group-hover:placeholder:text-grey-400 ":
         !disabled,
       "resize-none": !enableResize,
     },
@@ -91,7 +91,7 @@ export const TextArea = memo(function TextArea(props: TextAreaInterface) {
           aria-invalid={errors ? "true" : "false"}
         />
 
-        <div className="absolute inset-y-0 bottom-3 right-2 flex items-end pr-2">
+        <div className="absolute inset-y-0 right-2 bottom-3 flex items-end pr-2">
           {addOn && addOn}
         </div>
 

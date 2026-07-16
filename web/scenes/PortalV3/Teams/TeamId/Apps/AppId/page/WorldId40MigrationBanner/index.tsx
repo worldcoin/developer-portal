@@ -61,7 +61,7 @@ export const WorldId40MigrationBanner = ({
       </div>
 
       <div className="min-w-0 flex-1">
-        <div className="font-world text-19 font-medium leading-[1.2] text-portal-text">
+        <div className="font-world text-19 leading-[1.2] font-medium text-portal-text">
           Enable World ID 4.0
         </div>
         <div className="mt-1 font-world text-13 leading-[1.3] text-portal-text">
@@ -72,7 +72,7 @@ export const WorldId40MigrationBanner = ({
       <div className="flex w-full shrink-0 flex-wrap items-center gap-2 md:w-auto">
         <Button
           href="https://world.org/blog/engineering/introducing-world-id-4.0"
-          className="flex h-10 items-center justify-center rounded-[20px] px-5 font-world text-15 font-medium leading-none text-portal-ink transition-colors hover:bg-white/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-portal-accent-ring"
+          className="flex h-10 items-center justify-center rounded-[20px] px-5 font-world text-15 leading-none font-medium text-portal-ink transition-colors hover:bg-white/30 focus-visible:ring-2 focus-visible:ring-portal-accent-ring focus-visible:outline-hidden"
         >
           Learn more
         </Button>
@@ -80,7 +80,7 @@ export const WorldId40MigrationBanner = ({
         <Button
           type="button"
           onClick={() => setDialogOpen(true)}
-          className="flex h-10 items-center justify-center rounded-8 bg-portal-ink px-5 font-world text-15 font-medium leading-none text-white transition-colors hover:bg-portal-ink-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-portal-accent-ring"
+          className="flex h-10 items-center justify-center rounded-8 bg-portal-ink px-5 font-world text-15 leading-none font-medium text-white transition-colors hover:bg-portal-ink-hover focus-visible:ring-2 focus-visible:ring-portal-accent-ring focus-visible:outline-hidden"
         >
           Get started
         </Button>

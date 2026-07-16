@@ -58,7 +58,7 @@ const deepMerge = (
 };
 
 const LEGACY_CHART_FONT_FAMILY = "GT America";
-const GTA_FONT_VARIABLE = "--font-gta";
+const GTA_FONT_VARIABLE = "--font-gta-source";
 
 const applyChartFontFamily = <T,>(value: T, fontFamily: string): T => {
   if (Array.isArray(value)) {

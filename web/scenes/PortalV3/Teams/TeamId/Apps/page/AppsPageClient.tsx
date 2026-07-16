@@ -7,7 +7,7 @@ import { CreateAppDialogV4 } from "@/scenes/PortalV3/layout/CreateAppDialog/inde
 import { ReactNode, useState } from "react";
 
 const actionButtonClassName =
-  "inline-flex h-10 items-center justify-center rounded-8 bg-portal-ink px-4 font-world text-13 font-medium leading-none text-white transition-colors hover:bg-portal-ink-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-grey-300 focus-visible:ring-offset-2";
+  "inline-flex h-10 items-center justify-center rounded-8 bg-portal-ink px-4 font-world text-13 font-medium leading-none text-white transition-colors hover:bg-portal-ink-hover focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-grey-300 focus-visible:ring-offset-2";
 
 const ActionCard = (props: {
   icon: ReactNode;
@@ -19,7 +19,7 @@ const ActionCard = (props: {
 }) => (
   <section className="relative flex min-h-[244px] flex-col rounded-[10px] border border-portal-border bg-white p-6 shadow-portal-card">
     {props.badge ? (
-      <div className="absolute right-6 top-6 rounded-full bg-portal-purple/10 px-2 py-1 font-world text-12 font-medium leading-none text-portal-purple">
+      <div className="absolute top-6 right-6 rounded-full bg-portal-purple/10 px-2 py-1 font-world text-12 leading-none font-medium text-portal-purple">
         {props.badge}
       </div>
     ) : null}
@@ -31,7 +31,7 @@ const ActionCard = (props: {
     </div>
 
     <div className="mt-6 max-w-[420px]">
-      <h2 className="font-world text-20 font-medium leading-[1.2] text-portal-text">
+      <h2 className="font-world text-20 leading-[1.2] font-medium text-portal-text">
         {props.title}
       </h2>
       <p className="mt-2 font-world text-15 leading-[1.45] text-portal-muted">
@@ -52,7 +52,7 @@ export const AppsPageClient = (props: { teamId: string }) => {
 
       <div className="px-6 py-10 lg:px-10">
         <div>
-          <h1 className="font-world text-26 font-medium leading-[1.2] text-portal-heading">
+          <h1 className="font-world text-26 leading-[1.2] font-medium text-portal-heading">
             Welcome to World ID
           </h1>
           <p className="mt-1 font-world text-15 leading-[1.45] text-portal-muted">

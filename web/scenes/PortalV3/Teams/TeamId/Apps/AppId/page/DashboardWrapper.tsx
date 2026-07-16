@@ -29,7 +29,7 @@ const TimePeriodSelector = (props: {
   onTimePeriodChange: (period: TimePeriod) => void;
 }) => (
   <Select value={props.timePeriod} onChange={props.onTimePeriodChange}>
-    <SelectButton className="flex h-10 items-center justify-center gap-2 rounded-8 border border-portal-border bg-white py-2.5 pl-4 pr-3 font-world text-13 leading-none text-portal-ink outline-none transition-colors hover:bg-portal-canvas focus-visible:ring-2 focus-visible:ring-grey-300">
+    <SelectButton className="flex h-10 items-center justify-center gap-2 rounded-8 border border-portal-border bg-white py-2.5 pr-3 pl-4 font-world text-13 leading-none text-portal-ink outline-hidden transition-colors hover:bg-portal-canvas focus-visible:ring-2 focus-visible:ring-grey-300">
       <span>
         {timePeriodOptions.find((option) => option.value === props.timePeriod)
           ?.label ?? "All time"}
@@ -63,7 +63,7 @@ const StatCard = (props: {
   return (
     <div className="rounded-[10px] border border-portal-border bg-white p-6">
       <div className="flex items-end gap-2">
-        <div className="font-world text-19 font-medium leading-[1.2] text-portal-ink">
+        <div className="font-world text-19 leading-[1.2] font-medium text-portal-ink">
           {props.isLoading ? (
             <Skeleton width={60} height={23} />
           ) : (
@@ -140,7 +140,7 @@ export const DashboardWrapper = ({ appId }: DashboardWrapperProps) => {
   return (
     <section className="w-full">
       <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:gap-6">
-        <h1 className="font-world text-26 font-medium leading-[1.2] text-portal-heading">
+        <h1 className="font-world text-26 leading-[1.2] font-medium text-portal-heading">
           Overview
         </h1>
         <TimePeriodSelector

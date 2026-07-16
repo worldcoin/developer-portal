@@ -94,13 +94,13 @@ export const Members = (props: { teamId: string }) => {
 
         <Section.Header.Button className="md:row-start-1">
           {membersRes.loading ? (
-            <Skeleton className="h-12 w-[12rem] rounded-xl" />
+            <Skeleton className="h-12 w-48 rounded-xl" />
           ) : (
             <DecoratedButton
               type="button"
               onClick={() => setInviteTeamMemberDialogOpened(true)}
               variant="primary"
-              className="min-w-[12rem] py-2.5"
+              className="min-w-48 py-2.5"
               disabled={membersRes.data && !isEnoughPermissions}
             >
               <PlusIcon className="size-5 md:hidden" />

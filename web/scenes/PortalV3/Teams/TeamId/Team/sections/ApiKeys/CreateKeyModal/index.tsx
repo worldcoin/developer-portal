@@ -129,8 +129,8 @@ export const CreateKeyModal = (props: CreateKeyModal) => {
       <DialogPanel
         className={
           createdKey
-            ? "max-h-[calc(100dvh-2rem)] overflow-y-auto rounded-20 p-5 sm:p-6 md:w-[34rem] md:max-w-[calc(100vw-2rem)]"
-            : "md:max-w-[36rem]"
+            ? "max-h-[calc(100dvh-2rem)] overflow-y-auto rounded-20 p-5 sm:p-6 md:w-136 md:max-w-[calc(100vw-2rem)]"
+            : "md:max-w-xl"
         }
       >
         <div

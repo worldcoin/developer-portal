@@ -220,13 +220,13 @@ export const ActionStatsGraph = () => {
       )}
 
       {loading && (
-        <div className="relative aspect-[1180/350] w-full rounded-2xl">
+        <div className="relative aspect-1180/350 w-full rounded-2xl">
           <Skeleton className="absolute inset-0 size-full rounded-2xl" />
         </div>
       )}
 
       {!loading && !formattedData && (
-        <div className="pointer-events-none grid aspect-[1180/350] w-full select-none content-center justify-center justify-items-center gap-y-1 rounded-2xl border border-grey-200">
+        <div className="pointer-events-none grid aspect-1180/350 w-full content-center justify-center justify-items-center gap-y-1 rounded-2xl border border-grey-200 select-none">
           <Typography variant={TYPOGRAPHY.H7} className="text-grey-500">
             No data available yet
           </Typography>

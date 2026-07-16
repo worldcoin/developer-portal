@@ -98,13 +98,13 @@ export const LoggedUserNav = () => {
 
       <Dropdown>
         <Dropdown.Button
-          className="flex size-6 items-center justify-center rounded-full bg-[var(--color-100)] text-xs transition-colors duration-300"
+          className="flex size-6 items-center justify-center rounded-full bg-(--color-100) text-xs transition-colors duration-300"
           asChild
         >
           <div>
             <Typography
               variant={TYPOGRAPHY.M5}
-              className="text-[var(--color-500)] transition-colors duration-500"
+              className="text-(--color-500) transition-colors duration-500"
             >
               {nameFirstLetter}
             </Typography>

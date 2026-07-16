@@ -23,9 +23,8 @@ const createRequest = (requestHeaders?: Record<string, string>) =>
 beforeEach(() => {
   jest.clearAllMocks();
   delete process.env.ADMIN_AUTH_PROVIDER;
-  delete process.env.ADMIN_AUTH_GROUP_ROLES;
   delete process.env.ADMIN_AUTH_DEV_EMAIL;
-  delete process.env.ADMIN_AUTH_DEV_GROUPS;
+  delete process.env.ADMIN_AUTH_DEV_ACCESS_LEVEL;
 });
 
 // #region /api/admin/me
@@ -49,6 +48,7 @@ describe("/api/admin/me", () => {
 
   it("returns the email and role of the authenticated admin", async () => {
     process.env.ADMIN_AUTH_PROVIDER = "dev";
+    process.env.ADMIN_AUTH_DEV_ACCESS_LEVEL = "read";
 
     const res = await GET(
       createRequest({ "x-admin-auth-debug-user": "dev@example.com" }),
@@ -57,7 +57,7 @@ describe("/api/admin/me", () => {
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual({
       email: "dev@example.com",
-      role: "readonly",
+      role: "internal_dashboard_readonly",
     });
   });
 });

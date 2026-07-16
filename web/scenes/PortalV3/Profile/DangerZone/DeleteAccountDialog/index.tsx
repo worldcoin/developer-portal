@@ -72,7 +72,7 @@ export const DeleteAccountDialog = (props: DialogProps) => {
     <Dialog {...props} onClose={onClose}>
       <DialogOverlay />
 
-      <DialogPanel className="grid gap-y-8 md:max-w-[25rem]">
+      <DialogPanel className="grid gap-y-8 md:max-w-100">
         <CircleIconContainer variant="error">
           <AlertIcon />
         </CircleIconContainer>

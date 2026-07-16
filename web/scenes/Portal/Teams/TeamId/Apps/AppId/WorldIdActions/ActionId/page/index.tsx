@@ -73,7 +73,7 @@ export const WorldIdActionIdPage = (props: WorldIdActionIdPageProps) => {
           </div>
 
           {/* Placeholder for future graph */}
-          <div className="pointer-events-none grid aspect-[580/350] w-full select-none content-center justify-center justify-items-center gap-y-1 rounded-2xl border border-grey-200">
+          <div className="pointer-events-none grid aspect-580/350 w-full content-center justify-center justify-items-center gap-y-1 rounded-2xl border border-grey-200 select-none">
             <Typography variant={TYPOGRAPHY.H7} className="text-grey-500">
               Detailed analytics coming soon
             </Typography>

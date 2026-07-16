@@ -1,12 +1,14 @@
-import { NextRequest, NextResponse } from "next/server";
-import { InvalidConfigurationError } from "@auth0/nextjs-auth0/errors";
-import { auth0 } from "@/lib/auth0";
+import { hasAdminAuthenticationEvidence } from "@/lib/admin-auth";
 import {
   getAllowedAppBaseUrls,
   getPrimaryAppBaseUrl,
   siblingOrigin,
 } from "@/lib/app-base-url";
+import { auth0 } from "@/lib/auth0";
+import { InvalidConfigurationError } from "@auth0/nextjs-auth0/errors";
+import { NextRequest, NextResponse } from "next/server";
 import { Role_Enum } from "./graphql/graphql";
+import { isPortalV3EnabledForEmail } from "./lib/feature-flags/portal-v3/flag";
 import { Auth0SessionUser } from "./lib/types";
 import { urls } from "./lib/urls";
 import { checkUserPermissions } from "./lib/utils";
@@ -111,8 +113,8 @@ const checkRouteRolesRestrictions = (
   const ownerOnlyRoutes = [
     "/teams/[a-zA-Z0-9_]+/apps/[a-zA-Z0-9_]+/configuration/danger$",
     "/teams/[a-zA-Z0-9_]+/danger$",
-    "/teams/[a-zA-Z0-9_]+/settings$",
   ];
+  const teamSettingsRoutes = ["/teams/[a-zA-Z0-9_]+/settings$"];
   const ownerAndAdminRoutes = [
     "/teams/[a-zA-Z0-9_]+/apps/[a-zA-Z0-9_]+/actions/[a-zA-Z0-9_]+/danger$",
     "/teams/[a-zA-Z0-9_]+/apps/[a-zA-Z0-9_]+/world-id-actions/[a-zA-Z0-9_]+/danger$",
@@ -121,6 +123,17 @@ const checkRouteRolesRestrictions = (
 
   if (ownerOnlyRoutes.some((route) => pathname.match(route))) {
     if (!checkUserPermissions(user, teamId, [Role_Enum.Owner])) {
+      return NextResponse.rewrite(new URL("/unauthorized", request.url));
+    }
+  }
+
+  if (teamSettingsRoutes.some((route) => pathname.match(route))) {
+    // The V3 portal allows team members to access the team settings page, but the V2 portal does not. Therefore, we check if the user has access to the V3 portal and allow them to access the team settings page if they do.
+    const validRoles = isPortalV3EnabledForEmail(user?.email)
+      ? [Role_Enum.Owner, Role_Enum.Admin, Role_Enum.Member]
+      : [Role_Enum.Owner];
+
+    if (!checkUserPermissions(user, teamId, validRoles)) {
       return NextResponse.rewrite(new URL("/unauthorized", request.url));
     }
   }
@@ -146,6 +159,9 @@ const isProtectedPath = (pathname: string) =>
 
 const isAdminPagePath = (pathname: string) =>
   pathname === "/admin" || pathname.startsWith("/admin/");
+
+const isAdminApiPath = (pathname: string) =>
+  pathname === "/api/admin" || pathname.startsWith("/api/admin/");
 
 // Mirrors the auth0 host normalization below (first comma-separated
 // x-forwarded-host value, default port stripped) plus a lowercase pass,
@@ -224,6 +240,14 @@ const createDashboardRewriteResponse = (request: NextRequest) => {
   return withSecurityHeaders(response, csp, "/admin");
 };
 
+const createAdminUnauthorizedResponse = (request: NextRequest) => {
+  if (isAdminApiPath(request.nextUrl.pathname)) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  return NextResponse.redirect(new URL("/unauthorized", request.url));
+};
+
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
@@ -231,16 +255,36 @@ export async function proxy(request: NextRequest) {
   // treat it as the dashboard entry point there. Every other host keeps
   // today's behavior of not running middleware on "/" at all (it wasn't in
   // `config.matcher` before this route was added).
-  if (pathname === "/" && isInternalDashboardHost(request)) {
-    return createDashboardRewriteResponse(request);
+  const isDashboardRoot = pathname === "/" && isInternalDashboardHost(request);
+
+  const isAdminRequest =
+    isDashboardRoot || isAdminPagePath(pathname) || isAdminApiPath(pathname);
+
+  if (isAdminRequest) {
+    if (
+      process.env.INTERNAL_DASHBOARD_HOST &&
+      !isInternalDashboardHost(request)
+    ) {
+      return createAdminUnauthorizedResponse(request);
+    }
+
+    if (!(await hasAdminAuthenticationEvidence(request.headers))) {
+      return createAdminUnauthorizedResponse(request);
+    }
+
+    if (isDashboardRoot) {
+      return createDashboardRewriteResponse(request);
+    }
+
+    if (isAdminPagePath(pathname)) {
+      return createSecurityHeadersResponse(request, pathname);
+    }
+
+    return NextResponse.next();
   }
 
   if (pathname === "/") {
     return NextResponse.next();
-  }
-
-  if (isAdminPagePath(pathname)) {
-    return createSecurityHeadersResponse(request, pathname);
   }
 
   // In allow-list mode the Auth0 SDK matches the request origin against the
@@ -365,6 +409,9 @@ export const config = {
     "/create-team",
     "/profile/:path*",
     "/join-callback",
+    "/admin",
     "/admin/:path*",
+    "/api/admin",
+    "/api/admin/:path*",
   ],
 };

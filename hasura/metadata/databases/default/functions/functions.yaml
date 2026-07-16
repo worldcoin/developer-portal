@@ -1,3 +1,4 @@
+- "!include public_accept_team_invite.yaml"
 - "!include public_action_stats.yaml"
 - "!include public_merge_world_id_accounts.yaml"
 - "!include public_rollup_app_stats.yaml"

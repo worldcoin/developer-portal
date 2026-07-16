@@ -11,7 +11,7 @@ export const AdminLayout = ({ children }: { children: React.ReactNode }) => {
       {/* NOTE: accessibility skip link, hidden until focused via keyboard */}
       <a
         href="#main-content"
-        className="fixed left-4 top-4 z-50 -translate-y-20 rounded-8 bg-grey-0 px-3 py-2 text-sm font-medium text-grey-900 opacity-0 shadow-lg outline-none transition-all duration-200 focus:translate-y-0 focus:opacity-100 focus-visible:ring-2 focus-visible:ring-blue-500 motion-reduce:transition-none"
+        className="fixed top-4 left-4 z-50 -translate-y-20 rounded-8 bg-grey-0 px-3 py-2 text-sm font-medium text-grey-900 opacity-0 shadow-lg outline-hidden transition-all duration-200 focus:translate-y-0 focus:opacity-100 focus-visible:ring-2 focus-visible:ring-blue-500 motion-reduce:transition-none"
       >
         Skip to content
       </a>
@@ -19,18 +19,16 @@ export const AdminLayout = ({ children }: { children: React.ReactNode }) => {
       <div
         className={clsx(
           // Common styles
-          "min-h-dvh bg-grey-50",
+          "relative grid min-h-dvh overflow-x-clip bg-grey-100 p-4",
 
           // Desktop styles
-          "lg:grid lg:grid-cols-[auto_1fr]",
+          "lg:grid lg:h-dvh lg:grid-cols-[auto_1fr] lg:gap-x-4 lg:overflow-hidden",
+          "3xl:p-5",
+          "4xl:p-7",
         )}
       >
-        <NavBar />
-
-        <div className="grid grid-rows-auto/1fr">
-          <header
-            className={clsx("flex items-center p-4", "3xl:p-5", "4xl:p-7")}
-          >
+        <div className="grid min-w-0 grid-rows-auto/1fr gap-y-4 pb-4 lg:min-h-0 lg:pb-0">
+          <header className={clsx("flex items-center", "3xl:p-5", "4xl:p-7")}>
             <div
               className={clsx(
                 "mx-auto flex w-full max-w-7xl items-center gap-x-4",
@@ -44,7 +42,10 @@ export const AdminLayout = ({ children }: { children: React.ReactNode }) => {
             </div>
           </header>
 
-          <main id="main-content" className="size-full">
+          <main
+            id="main-content"
+            className="size-full min-h-0 min-w-0 overflow-x-clip"
+          >
             <div
               className={clsx(
                 "mx-auto size-full max-w-7xl",
@@ -56,6 +57,8 @@ export const AdminLayout = ({ children }: { children: React.ReactNode }) => {
             </div>
           </main>
         </div>
+
+        <NavBar />
       </div>
     </NavProvider>
   );

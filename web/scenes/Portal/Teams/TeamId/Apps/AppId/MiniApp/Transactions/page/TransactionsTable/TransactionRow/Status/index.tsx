@@ -14,7 +14,7 @@ export const TransactionStatusBadge = memo(function Status(props: {
         <div className="flex items-center">
           <div
             className={clsx(
-              "w-fit  rounded-full  px-3 py-1",
+              "w-fit rounded-full px-3 py-1",
               {
                 "bg-system-success-50 text-system-success-500":
                   status === TransactionStatus.Mined,

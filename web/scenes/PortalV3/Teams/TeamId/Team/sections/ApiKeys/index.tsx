@@ -51,7 +51,7 @@ export const ApiKeys = (props: { teamId?: string; canWrite: boolean }) => {
 
       {!loading && apiKeys?.length === 0 ? (
         <div className="grid grid-cols-1 justify-items-center gap-y-8 pt-12">
-          <div className="grid justify-items-center gap-y-5 ">
+          <div className="grid justify-items-center gap-y-5">
             <Typography variant={TYPOGRAPHY.H6}>No API keys found</Typography>
 
             <Typography

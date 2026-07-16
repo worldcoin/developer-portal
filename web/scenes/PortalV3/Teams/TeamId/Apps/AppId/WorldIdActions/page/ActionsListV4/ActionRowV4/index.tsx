@@ -27,7 +27,7 @@ export const ActionRowV4 = (props: ActionRowV4Props) => {
         action_id: action.id,
       })}
       className={clsx(
-        "group max-md:grid max-md:grid-cols-1fr/auto max-md:rounded-2xl max-md:border max-md:px-2 max-md:hover:bg-grey-25 md:contents [&>*]:border-gray-100 [&>*]:px-2 md:[&>*]:border-b",
+        "group *:border-gray-100 *:px-2 max-md:grid max-md:grid-cols-1fr/auto max-md:rounded-2xl max-md:border max-md:px-2 max-md:hover:bg-grey-25 md:contents md:*:border-b",
       )}
     >
       <div className="grid grid-cols-auto/1fr items-center gap-x-4 py-4 md:group-hover:bg-grey-25">

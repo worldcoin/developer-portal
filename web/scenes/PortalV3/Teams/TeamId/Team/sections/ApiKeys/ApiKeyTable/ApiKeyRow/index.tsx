@@ -107,13 +107,13 @@ export const ApiKeyRow = (props: {
       >
         <div
           key={`api_key_${index}_1`}
-          className="group max-md:col-start-2 max-md:col-end-3 max-md:row-start-1 max-md:row-end-2 md:table-cell md:border-b md:border-grey-200 md:py-4 md:pl-2 md:pr-4"
+          className="group max-md:col-start-2 max-md:col-end-3 max-md:row-start-1 max-md:row-end-2 md:table-cell md:border-b md:border-grey-200 md:py-4 md:pr-4 md:pl-2"
         >
           <div className="grid">
             <Typography
               variant={TYPOGRAPHY.R3}
               as="div"
-              className="truncate md:!leading-6"
+              className="truncate md:leading-6!"
             >
               {apiKey.name}
             </Typography>
@@ -128,7 +128,7 @@ export const ApiKeyRow = (props: {
             <Typography
               variant={TYPOGRAPHY.R4}
               as="div"
-              className="truncate md:!leading-6"
+              className="truncate md:leading-6!"
             >
               Reset to view
             </Typography>
@@ -143,7 +143,7 @@ export const ApiKeyRow = (props: {
             <Typography
               variant={TYPOGRAPHY.R4}
               as="div"
-              className="max-md:truncate md:whitespace-nowrap md:!leading-6"
+              className="max-md:truncate md:leading-6! md:whitespace-nowrap"
             >
               {timeAgo}
             </Typography>
@@ -159,7 +159,7 @@ export const ApiKeyRow = (props: {
           </Typography>
         </div>
 
-        <div className="max-md:col-start-4 max-md:col-end-5 max-md:row-start-1 max-md:row-end-3 max-md:pl-2 md:table-cell md:border-b md:border-grey-200 md:pl-4 md:pr-2 md:align-middle">
+        <div className="max-md:col-start-4 max-md:col-end-5 max-md:row-start-1 max-md:row-end-3 max-md:pl-2 md:table-cell md:border-b md:border-grey-200 md:pr-2 md:pl-4 md:align-middle">
           <div
             key={`api_key_${index}_5`}
             className={clsx("flex w-full justify-end", {

@@ -112,7 +112,7 @@ export const DeleteTeamDialog = (props: DeleteTeamDialogProps) => {
     <Dialog {...props} onClose={onClose}>
       <DialogOverlay />
 
-      <DialogPanel className="grid gap-y-8 md:max-w-[25rem]">
+      <DialogPanel className="grid gap-y-8 md:max-w-100">
         <CircleIconContainer variant="error">
           <AlertIcon />
         </CircleIconContainer>
@@ -127,7 +127,7 @@ export const DeleteTeamDialog = (props: DeleteTeamDialogProps) => {
             className="max-w-[344px] text-center text-grey-500"
           >
             The{" "}
-            <span className="select-none break-all font-medium text-gray-900">
+            <span className="font-medium break-all text-gray-900 select-none">
               {team?.name}
             </span>{" "}
             will be deleted, along with all of its apps, actions, configurations

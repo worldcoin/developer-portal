@@ -57,7 +57,7 @@ export const LeaveTeamDialog = (props: LeaveTeamDialogProps) => {
     <Dialog {...otherProps}>
       <DialogOverlay />
 
-      <DialogPanel className="grid gap-y-8 md:max-w-[28rem]">
+      <DialogPanel className="grid gap-y-8 md:max-w-md">
         <CircleIconContainer variant="error">
           <AlertIcon />
         </CircleIconContainer>
@@ -67,7 +67,7 @@ export const LeaveTeamDialog = (props: LeaveTeamDialogProps) => {
             Are you sure?
           </Typography>
 
-          <p className="text-center text-16 font-medium leading-6 text-grey-500">
+          <p className="text-center text-16 leading-6 font-medium text-grey-500">
             If you choose to leave the{" "}
             <span className="font-medium text-grey-900">{team?.name}</span>{" "}
             team, you will need to be invited again in order to rejoin if you
