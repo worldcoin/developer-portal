@@ -1,5 +1,5 @@
 import { validatePublicKey } from "@/lib/crypto.server";
-import { validateUri, validateUrl } from "@/lib/utils";
+import { validateUri, validateWebhookUrl } from "@/lib/utils";
 import * as yup from "yup";
 
 export type ActionContext = {
@@ -20,10 +20,14 @@ export const createUpdateActionSchema = (context: ActionContext) => {
       webhook_uri: yup
         .string()
         .optional()
-        .test("is-url", "Must be a valid URL", (value) => {
-          if (!value || !context.isProduction) return true;
-          return validateUrl(value, !context.isProduction);
-        }),
+        .test(
+          "is-webhook-url",
+          "Webhook URL must be a valid HTTPS URL and cannot target a private, loopback, or internal network address",
+          (value) => {
+            if (!value) return true;
+            return validateWebhookUrl(value);
+          },
+        ),
       webhook_pem: yup
         .string()
         .optional()
