@@ -122,7 +122,7 @@ export const AppsDropdown = () => {
       <DropdownMenu.Root>
         <DropdownMenu.Trigger
           disabled={isUnavailable}
-          className="flex h-6 min-w-0 items-center gap-2 rounded-8 font-world text-13 leading-none font-medium text-portal-text outline-hidden transition-colors hover:text-portal-muted focus-visible:ring-2 focus-visible:ring-grey-300 disabled:cursor-default disabled:opacity-60"
+          className="flex h-6 min-w-0 items-center gap-2 rounded-8 font-world text-13 leading-none font-medium text-portal-text outline-hidden transition-colors hover:text-portal-muted focus-visible:text-portal-muted disabled:cursor-default disabled:opacity-60"
         >
           {current ? (
             <AppAvatar name={current.name} className="size-6" />

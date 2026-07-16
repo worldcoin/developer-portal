@@ -83,6 +83,8 @@ it("enables the trigger with the default label once data has loaded", () => {
   render(<AppsDropdown />);
   expect(trigger()).toBeEnabled();
   expect(trigger()).toHaveTextContent("All projects");
+  expect(trigger().className).not.toContain("focus-visible:ring");
+  expect(trigger()).toHaveClass("focus-visible:text-portal-muted");
 });
 
 // When the route points at an app, the trigger reflects that app's name
