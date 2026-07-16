@@ -2,9 +2,9 @@
 
 import { errorFormAction } from "@/api/helpers/errors";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
+import { logger } from "@/lib/logger";
 import { getIsUserAllowedToUpdateApp } from "@/lib/permissions";
 import { FormActionResult } from "@/lib/types";
-import { logger } from "@/lib/logger";
 import { getSdk } from "@/scenes/common/Teams/TeamId/Apps/AppId/WorldIdActions/ActionId/Danger/page/graphql/server/delete-action-v4.generated";
 import { getSdk as getActionWithAppSdk } from "@/scenes/common/Teams/TeamId/Apps/AppId/WorldIdActions/ActionId/Settings/UpdateActionV4Form/server/graphql/server/get-action-v4-with-app.generated";
 
@@ -12,7 +12,6 @@ export async function deleteActionV4ServerSide(
   actionId: string,
   appId: string,
 ): Promise<FormActionResult> {
-  // 1. Check app-level permissions
   const isAllowed = await getIsUserAllowedToUpdateApp(appId);
 
   if (!isAllowed) {
@@ -21,7 +20,6 @@ export async function deleteActionV4ServerSide(
     });
   }
 
-  // 2. Verify action ownership (IDOR protection)
   const client = await getAPIServiceGraphqlClient();
   const { action_v4_by_pk } = await getActionWithAppSdk(
     client,
@@ -50,7 +48,6 @@ export async function deleteActionV4ServerSide(
     });
   }
 
-  // 3. Verify production-only
   if (action_v4_by_pk.environment !== "production") {
     logger.warn("Attempted to delete non-production action", {
       action_id: actionId,
@@ -62,7 +59,6 @@ export async function deleteActionV4ServerSide(
     });
   }
 
-  // 4. Delete action_v4
   try {
     await getSdk(client).DeleteActionV4({
       id: actionId,
@@ -72,7 +68,7 @@ export async function deleteActionV4ServerSide(
       success: true,
       message: "Action deleted successfully",
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     logger.error("Failed to delete action_v4", {
       error,
       action_id: actionId,

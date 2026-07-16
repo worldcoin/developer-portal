@@ -9,8 +9,9 @@ export const VerifiedRow = (props: {
   nullifier: NullifierItem;
   logo: string;
   columns: VerifiedTableColumn[];
+  showIcon: boolean;
 }) => {
-  const { nullifier, logo, columns } = props;
+  const { nullifier, logo, columns, showIcon } = props;
   const timeAgo = formatDistanceToNowStrict(new Date(nullifier.updated_at), {
     addSuffix: true,
   });
@@ -20,7 +21,14 @@ export const VerifiedRow = (props: {
       case "human":
         return (
           <div className="group flex flex-row items-center gap-x-4">
-            <Image src={`/avatars/${logo}`} alt="user" width={48} height={48} />
+            {showIcon ? (
+              <Image
+                src={`/avatars/${logo}`}
+                alt="user"
+                width={48}
+                height={48}
+              />
+            ) : null}
 
             <div className="flex flex-col text-ellipsis">
               <Typography

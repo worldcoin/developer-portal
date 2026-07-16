@@ -13,6 +13,15 @@ jest.mock(
   "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldIdActions/page",
   () => ({ WorldIdActionsPage: () => <div data-testid="v3-wia-list" /> }),
 );
+jest.mock("@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldId/layout", () => ({
+  WorldIdLayout: ({ children }: { children: React.ReactNode }) => (
+    <div data-testid="v3-world-id-layout">{children}</div>
+  ),
+}));
+jest.mock(
+  "@/scenes/common/Teams/TeamId/Apps/AppId/layout/server/fetch-app-env",
+  () => ({ fetchAppEnvCached: jest.fn().mockResolvedValue({ action: [] }) }),
+);
 import RoutePage from "../../app/(portal)/teams/[teamId]/apps/[appId]/world-id-actions/page";
 it("renders v3 wia-list", async () => {
   render(
@@ -21,6 +30,7 @@ it("renders v3 wia-list", async () => {
       searchParams: Promise.resolve({}),
     }),
   );
+  expect(screen.getByTestId("v3-world-id-layout")).toBeInTheDocument();
   expect(screen.getByTestId("v3-wia-list")).toBeInTheDocument();
   expect(screen.queryByTestId("v2-wia-list")).not.toBeInTheDocument();
 });
