@@ -13,23 +13,24 @@ export const WorldIdSubTabs = (props: { hasLegacyActions: boolean }) => {
     app_id: params?.appId ?? "",
   };
   const worldId40Path = urls.worldId40(ids);
-  const actionsPath = urls.worldIdActions(ids);
+  const worldIdPath = `${worldId40Path}?tab=world-id-4-0`;
+  const actionDetailPath = urls.worldIdActions(ids);
   const legacyActionsPath = urls.actions(ids);
 
   return (
     <SectionSubTabs
       items={[
         {
-          label: "World ID",
+          label: "Actions",
           href: worldId40Path,
-          segment: "world-id-4-0",
-          active: pathname.startsWith(worldId40Path),
+          segment: "world-id-actions",
+          active: pathname.startsWith(actionDetailPath),
         },
         {
-          label: "Actions",
-          href: actionsPath,
-          segment: "world-id-actions",
-          active: pathname.startsWith(actionsPath),
+          label: "World ID",
+          href: worldIdPath,
+          segment: "world-id-4-0",
+          active: pathname.startsWith(worldId40Path),
         },
         ...(props.hasLegacyActions
           ? [
