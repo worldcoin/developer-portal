@@ -3,6 +3,7 @@ import "@testing-library/jest-dom";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { ActionCard } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldId/page/ActionCard";
 import { ActionsGrid } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldId/page/ActionsGrid";
+import { WorldIdTabs } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldId/page/WorldIdTabs";
 
 jest.mock(
   "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/WorldIdActions/page/CreateActionDialogV4",
@@ -92,4 +93,22 @@ it("opens a deferred create intent when it becomes actionable", async () => {
   expect(screen.queryByTestId("create-action-dialog")).not.toBeInTheDocument();
   rerender(<ActionsGrid {...props} initialDialogOpen />);
   expect(await screen.findByTestId("create-action-dialog")).toBeInTheDocument();
+});
+
+it("only shows Legacy Actions when the app has legacy actions", () => {
+  const props = {
+    tab: "actions" as const,
+    onTabChange: jest.fn(),
+    search: "",
+    onSearchChange: jest.fn(),
+  };
+  const { rerender } = render(<WorldIdTabs {...props} />);
+
+  expect(screen.queryByRole("link", { name: "Legacy Actions" })).toBeNull();
+
+  rerender(<WorldIdTabs {...props} legacyActionsHref="/legacy-actions" />);
+  expect(screen.getByRole("link", { name: "Legacy Actions" })).toHaveAttribute(
+    "href",
+    "/legacy-actions",
+  );
 });
