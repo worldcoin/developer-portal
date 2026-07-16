@@ -83,6 +83,9 @@ export async function validateAndUpdateSetupServerSide(
     await getUpdateSetupSdk(client).UpdateSetup({
       app_metadata_id,
       app_mode: parsedInitialValues.app_mode,
+      // Switching to a mini app must not leave the store-hiding "External"
+      // category behind; clear it as part of the same update.
+      clear_external_category: parsedInitialValues.app_mode === "mini-app",
       associated_domains,
       contracts,
       permit2_tokens,

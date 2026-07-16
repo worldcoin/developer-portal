@@ -35,7 +35,10 @@ import {
   uploadAppImage,
 } from "@/api/helpers/app-image-storage";
 import { checkRateLimit } from "@/api/helpers/rate-limit";
-import { CategoryNameIterable } from "@/lib/categories";
+import {
+  CategoryNameIterable,
+  resolveAppStoreCategory,
+} from "@/lib/categories";
 import { logger } from "@/lib/logger";
 import { getImageEndpoint } from "@/lib/utils";
 import { mainAppStoreFormReviewSubmitSchema } from "@/scenes/Portal/Teams/TeamId/Apps/AppId/Configuration/AppStore/FormSchema/form-schema";
@@ -959,8 +962,10 @@ const tools = {
 
   create_app: async (input, ctx) => {
     const args = await parseInput(createAppSchema, input);
-    const category =
-      args.category ?? (args.app_mode === "mini-app" ? "Other" : "External");
+    const category = resolveAppStoreCategory(
+      args.category,
+      args.app_mode === "mini-app",
+    );
 
     if (!CategoryNameIterable.includes(category as any)) {
       throw new McpError("Invalid app category.", -32602);
