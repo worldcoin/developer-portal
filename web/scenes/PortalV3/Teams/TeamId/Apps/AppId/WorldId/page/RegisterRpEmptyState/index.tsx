@@ -34,12 +34,12 @@ export const RegisterRpEmptyState = (props: {
   return (
     <div className="flex flex-col items-center justify-center gap-6 py-20 text-center">
       <div className="flex flex-col items-center gap-2">
-        <Typography variant={TYPOGRAPHY.H6}>Set up World ID 4.0</Typography>
+        <Typography variant={TYPOGRAPHY.H6}>Set up World ID</Typography>
         <Typography variant={TYPOGRAPHY.R4} className="max-w-md text-grey-500">
           {props.isStaging
-            ? "World ID 4.0 isn't available for staging apps."
+            ? "World ID isn't available for staging apps."
             : !props.canManageWorldId
-              ? "Ask a team owner or admin to enable World ID 4.0."
+              ? "Ask a team owner or admin to enable World ID."
               : "Register a Relying Party to start requesting World ID verifications for this app."}
         </Typography>
       </div>
@@ -50,7 +50,7 @@ export const RegisterRpEmptyState = (props: {
           variant="primary"
           onClick={() => setOpen(true)}
         >
-          Enable World ID 4.0
+          Enable World ID
         </DecoratedButton>
       ) : null}
 
