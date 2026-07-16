@@ -20,7 +20,7 @@ export const WorldIdSubTabs = (props: { hasLegacyActions: boolean }) => {
     <SectionSubTabs
       items={[
         {
-          label: "World ID 4.0",
+          label: "World ID",
           href: worldId40Path,
           segment: "world-id-4-0",
           active: pathname.startsWith(worldId40Path),

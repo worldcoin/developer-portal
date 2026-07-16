@@ -92,7 +92,7 @@ export const WorldId40Pane = (props: {
             variant={TYPOGRAPHY.S4}
             className="mt-1 text-grey-500"
           >
-            World ID 4.0 settings will be available after registration.
+            World ID settings will be available after registration.
           </Typography>
         </div>
       </Notification>

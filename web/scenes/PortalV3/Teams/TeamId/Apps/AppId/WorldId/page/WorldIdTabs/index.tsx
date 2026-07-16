@@ -38,7 +38,7 @@ export const WorldIdTabs = (props: {
         aria-current={props.tab === "world-id-4-0" ? "true" : undefined}
         onClick={() => props.onTabChange("world-id-4-0")}
       >
-        World ID 4.0
+        World ID
       </button>
       {props.legacyActionsHref ? (
         <Link href={props.legacyActionsHref} className={tabClass(false)}>
