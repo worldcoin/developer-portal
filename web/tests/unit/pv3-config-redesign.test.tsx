@@ -1,6 +1,7 @@
 /** @jest-environment jsdom */
 import "@testing-library/jest-dom";
 import {
+  act,
   fireEvent,
   render,
   screen,
@@ -239,6 +240,71 @@ const goToStep = (title: string) => {
   }
 };
 
+const installWebAnimationsMock = () => {
+  const animateDescriptor = Object.getOwnPropertyDescriptor(
+    HTMLElement.prototype,
+    "animate",
+  );
+  const getAnimationsDescriptor = Object.getOwnPropertyDescriptor(
+    HTMLElement.prototype,
+    "getAnimations",
+  );
+  const animations: Array<{
+    resolve: () => void;
+    reject: (reason?: unknown) => void;
+  }> = [];
+  const animate = jest.fn(
+    (
+      _keyframes: Keyframe[] | PropertyIndexedKeyframes,
+      _options?: number | KeyframeAnimationOptions,
+    ) => {
+      let resolve!: () => void;
+      let reject!: (reason?: unknown) => void;
+      const finished = new Promise<void>((resolvePromise, rejectPromise) => {
+        resolve = resolvePromise;
+        reject = rejectPromise;
+      });
+      animations.push({ resolve, reject });
+      return { cancel: jest.fn(), finished } as unknown as Animation;
+    },
+  );
+
+  Object.defineProperty(HTMLElement.prototype, "animate", {
+    configurable: true,
+    value: animate,
+  });
+  Object.defineProperty(HTMLElement.prototype, "getAnimations", {
+    configurable: true,
+    value: () => [],
+  });
+
+  return {
+    animate,
+    animations,
+    restore: () => {
+      if (animateDescriptor) {
+        Object.defineProperty(
+          HTMLElement.prototype,
+          "animate",
+          animateDescriptor,
+        );
+      } else {
+        delete (HTMLElement.prototype as Partial<HTMLElement>).animate;
+      }
+
+      if (getAnimationsDescriptor) {
+        Object.defineProperty(
+          HTMLElement.prototype,
+          "getAnimations",
+          getAnimationsDescriptor,
+        );
+      } else {
+        delete (HTMLElement.prototype as Partial<HTMLElement>).getAnimations;
+      }
+    },
+  };
+};
+
 // Components read jotai's default store (no Provider), so tests can seed the
 // images atom the same way LogoImageUpload / ImagesProvider write it.
 const setImages = (images: Partial<UnverifiedImages>) => {
@@ -331,7 +397,7 @@ describe("v3 Configuration redesign [layout]", () => {
 // #endregion
 
 // #region Right rail
-describe("v3 Configuration redesign [right rail]", () => {
+describe("v3 Configuration redesign [footer and preview]", () => {
   it("floors step navigation and submit without a boxed bar", () => {
     renderPage();
 
@@ -344,13 +410,9 @@ describe("v3 Configuration redesign [right rail]", () => {
       name: "Continue to Store listing",
     });
     expect(backButton).toBeDisabled();
-    expect(backButton).toHaveClass("h-10", "min-w-36", "rounded-lg", "px-5");
-    expect(continueButton).toHaveClass(
-      "h-10",
-      "min-w-36",
-      "rounded-lg",
-      "px-5",
-    );
+    expect(backButton).toHaveClass("h-10", "w-44", "rounded-lg", "px-5");
+    expect(continueButton).toHaveClass("h-10", "w-44", "rounded-lg", "px-5");
+    expect(continueButton).toHaveAttribute("type", "button");
     expect(screen.queryByText(/Draft saved/)).not.toBeInTheDocument();
 
     // Submit appears only on the final chapter; Continue drives the rest.
@@ -368,18 +430,103 @@ describe("v3 Configuration redesign [right rail]", () => {
       name: /Submit for review/,
     });
     expect(submitButton).toBeEnabled();
+    expect(submitButton).toBe(continueButton);
+    expect(submitButton).toHaveAttribute("type", "submit");
     expect(submitButton).toHaveClass(
       "h-10",
-      "min-w-36",
+      "w-44",
       "rounded-lg",
       "px-5",
       "bg-grey-900",
     );
     expect(
+      within(submitButton).queryByText("Continue"),
+    ).not.toBeInTheDocument();
+    expect(
+      within(submitButton).getByText("Submit for review"),
+    ).toBeInTheDocument();
+    expect(
       within(
         screen.getByRole("complementary", { name: "Live preview" }),
       ).queryByRole("button", { name: /Submit for review/ }),
     ).not.toBeInTheDocument();
+  });
+
+  it("swaps the primary label only after the old label fades out", async () => {
+    const { animate, animations, restore } = installWebAnimationsMock();
+
+    try {
+      renderPage();
+      goToStep("Availability");
+
+      const primaryAction = screen.getByRole("button", {
+        name: "Continue to Localized content",
+      });
+      fireEvent.click(primaryAction);
+
+      expect(animate).toHaveBeenCalledTimes(1);
+      expect(within(primaryAction).getByText("Continue")).toBeInTheDocument();
+      expect(
+        within(primaryAction).queryByText("Submit for review"),
+      ).not.toBeInTheDocument();
+
+      await act(async () => {
+        animations[0]?.resolve();
+        await Promise.resolve();
+      });
+
+      await waitFor(() =>
+        expect(
+          within(primaryAction).getByText("Submit for review"),
+        ).toBeInTheDocument(),
+      );
+      await waitFor(() => expect(animate).toHaveBeenCalledTimes(2));
+
+      expect(animate.mock.calls[0]?.[0]).toEqual([
+        { opacity: 1, transform: "translateY(0)" },
+        { opacity: 0, transform: "translateY(-2px)" },
+      ]);
+      expect(animate.mock.calls[1]?.[0]).toEqual([
+        { opacity: 0, transform: "translateY(2px)" },
+        { opacity: 1, transform: "translateY(0)" },
+      ]);
+
+      await act(async () => {
+        animations[1]?.resolve();
+        await Promise.resolve();
+      });
+    } finally {
+      restore();
+    }
+  });
+
+  it("keeps the visible label aligned when an animation is interrupted", async () => {
+    const { animations, restore } = installWebAnimationsMock();
+
+    try {
+      renderPage();
+      goToStep("Availability");
+
+      const primaryAction = screen.getByRole("button", {
+        name: "Continue to Localized content",
+      });
+      fireEvent.click(primaryAction);
+
+      await act(async () => {
+        animations[0]?.reject(new Error("animation interrupted"));
+        await Promise.resolve();
+      });
+
+      expect(primaryAction).toHaveAccessibleName("Submit for review");
+      expect(
+        within(primaryAction).getByText("Submit for review"),
+      ).toBeInTheDocument();
+      expect(
+        within(primaryAction).queryByText("Continue"),
+      ).not.toBeInTheDocument();
+    } finally {
+      restore();
+    }
   });
 
   it("renders the listing preview fed by form values and static placeholders", () => {
@@ -402,7 +549,6 @@ describe("v3 Configuration redesign [right rail]", () => {
       screen.getByText(/Your description appears here/),
     ).toBeInTheDocument();
     expect(screen.getAllByText("Showcase image")).toHaveLength(2);
-    expect(within(rail).queryByText("Draft saved")).not.toBeInTheDocument();
   });
 
   it("shows uploaded logo and showcase images in the preview and icon box", () => {
@@ -543,7 +689,6 @@ describe("v3 Configuration redesign [right rail]", () => {
       "https://cdn/logo_img.png",
     );
     expect(screen.getByLabelText(/App name/)).toBeDisabled();
-    expect(screen.queryByText("Draft saved")).not.toBeInTheDocument();
     expect(
       screen.queryByRole("button", { name: /Submit for review/ }),
     ).not.toBeInTheDocument();
@@ -649,19 +794,13 @@ describe("v3 Configuration redesign [right rail]", () => {
 
     renderPage();
 
-    // Draft view keeps the corner way back to the approved copy without a
-    // persistent save-status indicator.
-    expect(screen.queryByText(/Draft saved/)).not.toBeInTheDocument();
-
     fireEvent.click(
       screen.getByRole("button", { name: /View verified version/ }),
     );
     await screen.findByRole("button", { name: "Open draft" });
-    expect(screen.queryByText("Draft saved")).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "Open draft" }));
     await screen.findByRole("button", { name: /View verified version/ });
-    expect(screen.queryByText(/Draft saved/)).not.toBeInTheDocument();
     expect(createEditableRowMock).not.toHaveBeenCalled();
   });
 

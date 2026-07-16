@@ -4,29 +4,28 @@ import { Button } from "@/components/Button";
 import { ArrowRightIcon } from "@/components/Icons/ArrowRightIcon";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { useApolloClient } from "@apollo/client";
-import {
-  FetchAppMetadataDocument,
-  FetchAppMetadataQuery,
-} from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/graphql/client/fetch-app-metadata.generated";
+import { FetchAppMetadataDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/graphql/client/fetch-app-metadata.generated";
+import type { FetchAppMetadataQuery } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/graphql/client/fetch-app-metadata.generated";
 import clsx from "clsx";
 import { twMerge } from "tailwind-merge";
 import { useSearchParams } from "next/navigation";
 import posthog from "posthog-js";
-import {
-  MutableRefObject,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import type { MutableRefObject } from "react";
 import { useFormContext } from "react-hook-form";
 import { toast } from "react-toastify";
 import * as yup from "yup";
-import { AppStoreFormValues } from "../AppStore/FormSchema/types";
+import type { AppStoreFormValues } from "../AppStore/FormSchema/types";
 import { mainAppStoreFormReviewSubmitSchema } from "../AppStore/FormSchema/form-schema";
 import { MULTIPLE_ERRORS_TOAST_MESSAGE } from "../AppStore/utils/form-error-utils";
-import { BasicInformationHandle } from "../BasicInformation";
+import type { BasicInformationHandle } from "../BasicInformation";
 import { useSaveStatusActions } from "../SaveStatus";
+import type {
+  ConfigurationNextStep,
+  ConfigurationPrimaryActionKind,
+  FullAppMetadata,
+} from "./types";
+import { usePrimaryActionLabelTransition } from "./usePrimaryActionLabelTransition";
 
 const scrollToFirstError = () => {
   requestAnimationFrame(() => {
@@ -36,37 +35,50 @@ const scrollToFirstError = () => {
   });
 };
 
-type ReviewSubmissionButtonProps = {
-  appMetadata: FetchAppMetadataQuery["app"][0]["app_metadata"][0];
+type ConfigurationPrimaryButtonProps = {
+  appMetadata: FullAppMetadata;
   appId: string;
   teamId: string;
   viewMode: "unverified" | "verified";
+  nextStep?: ConfigurationNextStep;
+  onContinue: () => void;
   onSubmitSuccess: () => void;
   basicInfoRef?: MutableRefObject<BasicInformationHandle | null>;
   onValidationError?: (fieldPath?: string) => void;
   className: string;
 };
 
-/** Review validation and submission entry point owned by Configuration. */
-export const ReviewSubmissionButton = ({
+/** Persistent footer action that advances steps, then submits on the last one. */
+export const ConfigurationPrimaryButton = ({
   appMetadata,
   appId,
   teamId,
   viewMode,
+  nextStep,
+  onContinue,
   onSubmitSuccess,
   basicInfoRef,
   onValidationError,
   className,
-}: ReviewSubmissionButtonProps) => {
+}: ConfigurationPrimaryButtonProps) => {
   const form = useFormContext<AppStoreFormValues>();
   const searchParams = useSearchParams();
   const client = useApolloClient();
   const [isSubmittingForReview, setIsSubmittingForReview] = useState(false);
   const hasAutoSubmitted = useRef(false);
   const saveStatus = useSaveStatusActions();
+  const isFinalStep = !nextStep;
+  const targetActionKind: ConfigurationPrimaryActionKind = isFinalStep
+    ? "submit"
+    : "continue";
+  const {
+    contentRef: actionContentRef,
+    displayedActionKind,
+    isTransitioningRef: isActionTransitioningRef,
+  } = usePrimaryActionLabelTransition(targetActionKind);
 
   const submitForReview = useCallback(async () => {
-    if (appMetadata?.verification_status !== "unverified") {
+    if (appMetadata.verification_status !== "unverified") {
       toast.error("Only unverified apps can be submitted for review");
       return;
     }
@@ -233,34 +245,62 @@ export const ReviewSubmissionButton = ({
   const shouldAutoSubmitForReview =
     searchParams.get("submitForReview") === "true";
   useEffect(() => {
-    if (shouldAutoSubmitForReview && !hasAutoSubmitted.current) {
+    if (isFinalStep && shouldAutoSubmitForReview && !hasAutoSubmitted.current) {
       void submitForReview();
       hasAutoSubmitted.current = true;
     }
-  }, [shouldAutoSubmitForReview, submitForReview]);
+  }, [isFinalStep, shouldAutoSubmitForReview, submitForReview]);
+
+  const actionLabel = isFinalStep
+    ? isSubmittingForReview
+      ? "Processing..."
+      : "Submit for review"
+    : `Continue to ${nextStep.title}`;
 
   return (
     <Button
-      type="submit"
+      type={isFinalStep ? "submit" : "button"}
+      aria-label={actionLabel}
       className={twMerge(
         "inline-flex items-center justify-center",
         className,
         clsx({
           hidden:
+            isFinalStep &&
             appMetadata.app_id?.includes("staging") &&
             process.env.NEXT_PUBLIC_APP_ENV === "production",
         }),
       )}
-      disabled={viewMode === "verified" || isSubmittingForReview}
-      onClick={submitForReview}
+      disabled={
+        isFinalStep && (viewMode === "verified" || isSubmittingForReview)
+      }
+      onClick={(event) => {
+        if (isActionTransitioningRef.current) {
+          event.preventDefault();
+          return;
+        }
+
+        if (isFinalStep) {
+          void submitForReview();
+          return;
+        }
+
+        onContinue();
+      }}
     >
-      <Typography
-        variant={TYPOGRAPHY.M4}
-        className="leading-none whitespace-nowrap"
-      >
-        {isSubmittingForReview ? "Processing..." : "Submit for review"}
-      </Typography>
-      <ArrowRightIcon className="size-4 shrink-0" />
+      <span ref={actionContentRef} className="inline-flex items-center gap-2">
+        <Typography
+          variant={TYPOGRAPHY.M4}
+          className="leading-none whitespace-nowrap"
+        >
+          {displayedActionKind === "continue"
+            ? "Continue"
+            : isSubmittingForReview
+              ? "Processing..."
+              : "Submit for review"}
+        </Typography>
+        <ArrowRightIcon className="size-4 shrink-0" />
+      </span>
     </Button>
   );
 };

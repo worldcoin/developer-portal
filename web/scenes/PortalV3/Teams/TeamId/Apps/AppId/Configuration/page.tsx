@@ -2,7 +2,6 @@
 
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { ErrorPage } from "@/components/ErrorPage";
-import { ArrowRightIcon } from "@/components/Icons/ArrowRightIcon";
 import { ChevronLeftIcon } from "@/components/Icons/ChevronLeftIcon";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
@@ -48,7 +47,7 @@ import { FormSkeleton } from "./PageComponents/FormSkeleton";
 import { NumberedSection } from "./PageComponents/NumberedSection";
 import { RejectionBanner } from "./RejectionBanner";
 import { ResolveModal } from "./ResolveModal";
-import { ReviewRail, SubmitForReview } from "./ReviewRail";
+import { ConfigurationPrimaryAction, ReviewRail } from "./ReviewRail";
 import { SaveStatusProvider } from "./SaveStatus";
 import { useCreateNewDraft } from "./hook/use-create-new-draft";
 import { isMiniAppAtom, viewModeAtom } from "./layout/ImagesProvider";
@@ -71,7 +70,7 @@ const ghostActionClassName =
   "inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1.5 text-grey-500 transition-colors hover:bg-grey-50 hover:text-grey-900 disabled:cursor-not-allowed disabled:opacity-50";
 
 const stepActionClassName =
-  "inline-flex h-10 min-w-36 shrink-0 items-center justify-center gap-2 rounded-lg px-5 text-center leading-none transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-grey-300 focus-visible:ring-offset-2";
+  "inline-flex h-10 w-44 shrink-0 items-center justify-center gap-2 rounded-lg px-5 text-center leading-none transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-grey-300 focus-visible:ring-offset-2";
 const primaryStepActionClassName = clsx(
   stepActionClassName,
   "bg-grey-900 text-white hover:bg-grey-700 disabled:cursor-not-allowed disabled:bg-grey-100 disabled:text-grey-400",
@@ -106,7 +105,7 @@ const VersionSwitchButton = ({
 
   // Creating a draft mutates review state — same Owner/Admin bar the old
   // AppTopBar action had. Viewing an existing row is unrestricted.
-  const canManageDraft = checkUserPermissions(user, teamId ?? "", [
+  const canManageDraft = checkUserPermissions(user, teamId, [
     Role_Enum.Owner,
     Role_Enum.Admin,
   ]);
@@ -153,14 +152,15 @@ const VersionSwitchButton = ({
 };
 
 /**
- * Floored actions beneath the storyboard row — bare (no boxed dock). Back +
- * Continue are the always-present way to switch panels; the right cluster
- * carries the quiet extras (version switch, danger zone) and the state's
- * primary action on the last step: submit while drafting, un-submit while
- * the draft awaits review.
+ * Actions beneath the active section, without a boxed dock. Back and the
+ * primary action are the persistent way to switch panels; the right cluster
+ * carries the quiet extras and the persistent primary action, which becomes
+ * Submit for review on the last step. Un-submit replaces it while the draft
+ * awaits review.
  */
 const ActionsFooter = ({
   app,
+  appMetadata,
   appId,
   teamId,
   basicInfoRef,
@@ -170,6 +170,7 @@ const ActionsFooter = ({
   onStepChange,
 }: {
   app: FetchAppMetadataQuery["app"][0];
+  appMetadata: ConfigurationContentProps["appMetadata"];
   appId: `app_${string}`;
   teamId: `team_${string}`;
   basicInfoRef?: MutableRefObject<BasicInformationHandle | null>;
@@ -187,7 +188,7 @@ const ActionsFooter = ({
     metadataId: draft?.id,
   });
 
-  const canManageDraft = checkUserPermissions(user, teamId ?? "", [
+  const canManageDraft = checkUserPermissions(user, teamId, [
     Role_Enum.Owner,
     Role_Enum.Admin,
   ]);
@@ -202,9 +203,6 @@ const ActionsFooter = ({
   const isVerifiedView = viewMode === "verified" && hasVerified;
   const isAwaiting =
     !isVerifiedView && draft?.verification_status === "awaiting_review";
-  const isEditable =
-    !isVerifiedView && draft?.verification_status === "unverified";
-
   return (
     <div className="flex shrink-0 flex-wrap items-center justify-between gap-x-4 gap-y-2 py-3 lg:mr-6">
       <button
@@ -252,28 +250,18 @@ const ActionsFooter = ({
           </DecoratedButton>
         )}
 
-        {nextStep ? (
-          <button
-            type="button"
-            aria-label={`Continue to ${nextStep.title}`}
-            className={clsx(primaryStepActionClassName, "ml-2")}
-            onClick={() => onStepChange(nextStep.id)}
-          >
-            <Typography variant={TYPOGRAPHY.M4} className="leading-none">
-              Continue
-            </Typography>
-            <ArrowRightIcon className="size-4" />
-          </button>
-        ) : isEditable ? (
-          <SubmitForReview
-            appId={appId}
-            teamId={teamId}
-            appMetadata={draft}
-            basicInfoRef={basicInfoRef}
-            onValidationError={onValidationError}
-            className={clsx(primaryStepActionClassName, "ml-2")}
-          />
-        ) : null}
+        <ConfigurationPrimaryAction
+          appId={appId}
+          teamId={teamId}
+          appMetadata={appMetadata}
+          nextStep={nextStep}
+          onContinue={() => {
+            if (nextStep) onStepChange(nextStep.id);
+          }}
+          basicInfoRef={basicInfoRef}
+          onValidationError={onValidationError}
+          className={clsx(primaryStepActionClassName, "ml-2")}
+        />
       </div>
     </div>
   );
@@ -332,8 +320,8 @@ const ConfigurationContent = ({
 
   return (
     <div className="grid gap-6 lg:h-full lg:grid-cols-[minmax(0,1fr)_minmax(380px,31%)] lg:grid-rows-[minmax(0,1fr)]">
-      {/* The form and its action shelf share one column. The horizontal
-          storyboard keeps one chapter in focus while all form fields stay
+      {/* The form and its actions share one column. The step flow keeps one
+          section in focus while all form fields stay
           mounted so autosave and final validation keep their existing data. */}
       <div className="flex min-h-0 min-w-0 flex-col">
         <div
@@ -397,6 +385,7 @@ const ConfigurationContent = ({
 
         <ActionsFooter
           app={app}
+          appMetadata={appMetadata}
           appId={appId}
           teamId={teamId}
           basicInfoRef={basicInfoRef}
