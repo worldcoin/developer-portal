@@ -77,7 +77,7 @@ export const EnableWorldId40Content = ({
     >
       <div className="grid gap-y-3">
         <Typography as="h1" variant={TYPOGRAPHY.H6}>
-          Enable World ID 4.0
+          Enable World ID
         </Typography>
         <Typography as="p" variant={TYPOGRAPHY.R3} className="text-grey-500">
           Enable the next generation of World ID with improved privacy,

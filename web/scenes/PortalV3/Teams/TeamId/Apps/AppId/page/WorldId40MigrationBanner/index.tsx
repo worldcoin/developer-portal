@@ -62,7 +62,7 @@ export const WorldId40MigrationBanner = ({
 
       <div className="min-w-0 flex-1">
         <div className="font-world text-19 leading-[1.2] font-medium text-portal-text">
-          Enable World ID 4.0
+          Enable World ID
         </div>
         <div className="mt-1 font-world text-13 leading-[1.3] text-portal-text">
           Let users sign in to your app with their World ID.

@@ -44,11 +44,11 @@ type CreateDialogStep =
 
 const STEP_TITLES: Record<CreateDialogStep, string> = {
   create: "Create a new app",
-  "enable-world-id-4-0": "Enable World ID 4.0",
-  "configure-signer-key": "Enable World ID 4.0",
-  "use-existing-key": "Enable World ID 4.0",
-  "generate-new-key": "Enable World ID 4.0",
-  "self-managed-transaction": "Enable World ID 4.0",
+  "enable-world-id-4-0": "Enable World ID",
+  "configure-signer-key": "Enable World ID",
+  "use-existing-key": "Enable World ID",
+  "generate-new-key": "Enable World ID",
+  "self-managed-transaction": "Enable World ID",
 };
 
 type CreateAppDialogV4Props = DialogProps & {
