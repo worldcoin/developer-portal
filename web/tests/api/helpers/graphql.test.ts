@@ -30,11 +30,13 @@ jest.mock("@/api/helpers/jwts", () => ({
 
 import {
   getInternalDashboardGraphqlClient,
+  internalDashboardGraphqlFetchPolicy,
   isRetryableOperation,
   makeGraphqlFetchWithRetry,
 } from "@/api/helpers/graphql";
 import { generateInternalDashboardJWT } from "@/api/helpers/jwts";
 import { AdminHasuraRole } from "@/lib/admin-auth/types";
+import { logger } from "@/lib/logger";
 
 // #region Test data
 const QUERY_BODY = JSON.stringify({
@@ -157,6 +159,30 @@ describe("graphqlFetchWithRetry", () => {
       }),
     ).rejects.toBeDefined();
     expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("does NOT retry an internal dashboard query on transport error", async () => {
+    fetchMock.mockRejectedValueOnce(transportError("ETIMEDOUT"));
+    const internalDashboardFetch = makeGraphqlFetchWithRetry(
+      fetchMock as unknown as typeof fetch,
+      internalDashboardGraphqlFetchPolicy,
+    );
+
+    await expect(
+      internalDashboardFetch("https://example.test/v1/graphql", {
+        method: "POST",
+        body: QUERY_BODY,
+      }),
+    ).rejects.toBeDefined();
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(logger.warn).toHaveBeenCalledWith(
+      "graphql transport request failed",
+      expect.objectContaining({
+        graphqlClient: "internal_dashboard",
+        operationName: "GetThing",
+      }),
+    );
   });
 
   it("does NOT retry on a 5xx HTTP response (fetch resolved, didn't throw)", async () => {
