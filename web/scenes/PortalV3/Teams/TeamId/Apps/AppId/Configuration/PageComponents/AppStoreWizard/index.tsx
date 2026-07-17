@@ -106,10 +106,7 @@ type AppStoreWizardProps = {
  * active section without a surrounding divider; Back and Continue handle
  * navigation separately at the bottom of the form column.
  */
-export const AppStoreWizard = ({
-  steps,
-  activeStep,
-}: AppStoreWizardProps) => {
+export const AppStoreWizard = ({ steps, activeStep }: AppStoreWizardProps) => {
   const activeIndex = Math.max(
     0,
     steps.findIndex((step) => step.id === activeStep),
