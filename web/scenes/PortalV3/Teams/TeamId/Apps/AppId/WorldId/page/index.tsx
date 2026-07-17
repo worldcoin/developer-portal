@@ -92,7 +92,13 @@ export const WorldIdPage = (props: {
   } | null>(null);
 
   const selectTab = useCallback(
-    (nextTab: WorldIdTab) => {
+    (
+      nextTab: WorldIdTab,
+      options?: {
+        /** Drop funnel params in the same replace so a second stale replace can't revive them. */
+        clearParams?: string[];
+      },
+    ) => {
       setTab(nextTab);
 
       const nextSearchParams = new URLSearchParams(searchParams.toString());
@@ -100,6 +106,9 @@ export const WorldIdPage = (props: {
         nextSearchParams.set("tab", "world-id-4-0");
       } else {
         nextSearchParams.delete("tab");
+      }
+      for (const name of options?.clearParams ?? []) {
+        nextSearchParams.delete(name);
       }
 
       const query = nextSearchParams.toString();
@@ -117,10 +126,9 @@ export const WorldIdPage = (props: {
   const handleTabChange = useCallback(
     (nextTab: WorldIdTab) => {
       setCreateAfterSetup(false);
-      consumeSearchParams("createAction");
-      selectTab(nextTab);
+      selectTab(nextTab, { clearParams: ["createAction"] });
     },
-    [consumeSearchParams, selectTab],
+    [selectTab],
   );
 
   const requestedTab: WorldIdTab =
