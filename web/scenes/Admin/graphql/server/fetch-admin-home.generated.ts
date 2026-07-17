@@ -1,10 +1,9 @@
+/* eslint-disable */
 import * as Types from "@/graphql/graphql";
 
 import { GraphQLClient, RequestOptions } from "graphql-request";
 import gql from "graphql-tag";
-
 type GraphQLClientRequestHeaders = RequestOptions["requestHeaders"];
-
 export type FetchAdminHomeQueryVariables = Types.Exact<{
   recentLimit: Types.Scalars["Int"]["input"];
 }>;
@@ -37,16 +36,30 @@ export type FetchAdminHomeQuery = {
     total_count: number;
     updated_at?: string | null;
   }>;
+  recent_teams: Array<{
+    __typename?: "team";
+    id: string;
+    name?: string | null;
+    created_at: string;
+    deleted_at?: string | null;
+  }>;
+  recent_users: Array<{
+    __typename?: "user";
+    id: string;
+    name: string;
+    email?: string | null;
+    created_at: string;
+  }>;
   recent_apps: Array<{
     __typename?: "app";
+    id: string;
+    name: string;
+    team_id: string;
     created_at: string;
     draft_metadata: Array<{
       __typename?: "app_metadata";
       verification_status: string;
     }>;
-    id: string;
-    name: string;
-    team_id: string;
     verified_metadata: Array<{
       __typename?: "app_metadata";
       verification_status: string;
@@ -58,20 +71,6 @@ export type FetchAdminHomeQuery = {
     name: string;
     updated_at: string;
     verification_status: string;
-  }>;
-  recent_teams: Array<{
-    __typename?: "team";
-    created_at: string;
-    deleted_at?: string | null;
-    id: string;
-    name?: string | null;
-  }>;
-  recent_users: Array<{
-    __typename?: "user";
-    created_at: string;
-    email?: string | null;
-    id: string;
-    name: string;
   }>;
 };
 
@@ -153,10 +152,15 @@ export type SdkFunctionWrapper = <T>(
   action: (requestHeaders?: Record<string, string>) => Promise<T>,
   operationName: string,
   operationType?: string,
-  variables?: unknown,
+  variables?: any,
 ) => Promise<T>;
 
-const defaultWrapper: SdkFunctionWrapper = (action) => action();
+const defaultWrapper: SdkFunctionWrapper = (
+  action,
+  _operationName,
+  _operationType,
+  _variables,
+) => action();
 
 export function getSdk(
   client: GraphQLClient,
@@ -181,5 +185,4 @@ export function getSdk(
     },
   };
 }
-
 export type Sdk = ReturnType<typeof getSdk>;
