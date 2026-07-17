@@ -5,6 +5,7 @@ import "server-only";
  */
 
 import { generateRpId, generateRpIdString } from "@/lib/rp";
+import { RpRegistrationStatus } from "@/lib/rp-registration-status";
 import { keccak256, toUtf8Bytes } from "ethers";
 import { GraphQLClient } from "graphql-request";
 import { getSdk as getFetchRpRegistrationSdk } from "./graphql/fetch-rp-registration.generated";
@@ -13,12 +14,7 @@ import { getSdk as getFetchRpRegistrationSdk } from "./graphql/fetch-rp-registra
 // Types
 // =============================================================================
 
-export enum RpRegistrationStatus {
-  Pending = "pending",
-  Registered = "registered",
-  Failed = "failed",
-  Deactivated = "deactivated",
-}
+export { RpRegistrationStatus } from "@/lib/rp-registration-status";
 
 // =============================================================================
 // RP ID Utilities

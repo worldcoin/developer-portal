@@ -45,11 +45,11 @@ type CreateDialogStep =
 
 const STEP_TITLES: Record<CreateDialogStep, string> = {
   create: "Create a new app",
-  "enable-world-id-4-0": "Enable World ID 4.0",
-  "configure-signer-key": "Enable World ID 4.0",
-  "use-existing-key": "Enable World ID 4.0",
-  "generate-new-key": "Enable World ID 4.0",
-  "self-managed-transaction": "Enable World ID 4.0",
+  "enable-world-id-4-0": "Enable World ID",
+  "configure-signer-key": "Enable World ID",
+  "use-existing-key": "Enable World ID",
+  "generate-new-key": "Enable World ID",
+  "self-managed-transaction": "Enable World ID",
 };
 
 type CreateAppDialogV4Props = DialogProps & {
@@ -57,11 +57,13 @@ type CreateAppDialogV4Props = DialogProps & {
   initialStep?: CreateDialogStep;
   /** App ID for existing apps (required when initialStep is not "create") */
   appId?: string;
+  onComplete?: () => void;
 };
 
 export const CreateAppDialogV4 = ({
   initialStep = "create",
   appId: existingAppId,
+  onComplete,
   ...props
 }: CreateAppDialogV4Props) => {
   const { teamId } = useParams() as { teamId: string | undefined };
@@ -157,7 +159,7 @@ export const CreateAppDialogV4 = ({
         window.location.replace(`/teams/${teamId}`);
       }
     },
-    [defaultValues, refetchApps, reset, teamId, props, router],
+    [defaultValues, refetchApps, reset, teamId, props],
   );
 
   const onClose = useCallback(() => {
@@ -168,6 +170,18 @@ export const CreateAppDialogV4 = ({
     setSignerKeySetup("generate");
     props.onClose(false);
   }, [defaultValues, props, reset, initialStep, existingAppId]);
+
+  const completeRpSetup = useCallback(() => {
+    onComplete?.();
+
+    if (!existingAppId && teamId && createdAppId) {
+      router.replace(`/teams/${teamId}/apps/${createdAppId}`);
+    }
+
+    router.refresh();
+
+    onClose();
+  }, [createdAppId, existingAppId, onClose, onComplete, router, teamId]);
 
   const onEnableContinue = useCallback(
     (mode: "managed" | "self-managed") => {
@@ -209,26 +223,20 @@ export const CreateAppDialogV4 = ({
       }
 
       toast.success("App configured successfully");
-      const redirect = `/teams/${teamId}/apps/${createdAppId}`;
-      router.replace(redirect);
-      router.refresh();
-      onClose();
+      completeRpSetup();
     } catch (error) {
       const code = getGraphQLErrorCode(error);
 
       if (code === "already_registered") {
         // Idempotent — treat as success
         toast.success("App configured successfully");
-        const redirect = `/teams/${teamId}/apps/${createdAppId}`;
-        router.replace(redirect);
-        router.refresh();
-        onClose();
+        completeRpSetup();
         return;
       }
 
       toast.error("Failed to create registration record");
     }
-  }, [teamId, createdAppId, registerRp, router, onClose]);
+  }, [teamId, createdAppId, registerRp, completeRpSetup]);
 
   const onConfigureBack = useCallback(() => {
     setStep("enable-world-id-4-0");
@@ -272,19 +280,13 @@ export const CreateAppDialogV4 = ({
           return;
         }
 
-        // Success - redirect to app dashboard
-        const redirect = `/teams/${teamId}/apps/${createdAppId}`;
-
         toast.success("App configured successfully");
-        // Refresh server components to pick up the new rp_registration row
-        router.replace(redirect);
-        router.refresh();
-        onClose();
+        completeRpSetup();
       } catch (error) {
         toast.error("Failed to register Relying Party");
       }
     },
-    [teamId, createdAppId, worldIdMode, router, onClose, registerRp],
+    [teamId, createdAppId, worldIdMode, registerRp, completeRpSetup],
   );
 
   return (

@@ -28,8 +28,10 @@ const getColumnLabel = (column: VerifiedTableColumn): string => {
 export const VerifiedTable = (props: {
   nullifiers: NullifierItem[];
   columns: VerifiedTableColumn[];
+  showIcons?: boolean;
+  showCount?: boolean;
 }) => {
-  const { nullifiers, columns } = props;
+  const { nullifiers, columns, showIcons = true, showCount = true } = props;
   const rowsPerPageOptions = [5, 10, 20]; // Rows per page options
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(5);
@@ -110,12 +112,14 @@ export const VerifiedTable = (props: {
         <div className="mt-6 flex items-center justify-start gap-x-2">
           <Typography variant={TYPOGRAPHY.H7}>Verified humans</Typography>
 
-          <Typography
-            variant={TYPOGRAPHY.R5}
-            className="w-8 rounded-xl bg-grey-100 py-1 text-center"
-          >
-            {nullifiers.length}
-          </Typography>
+          {showCount ? (
+            <Typography
+              variant={TYPOGRAPHY.R5}
+              className="w-8 rounded-xl bg-grey-100 py-1 text-center"
+            >
+              {nullifiers.length}
+            </Typography>
+          ) : null}
         </div>
 
         <div className="no-scrollbar w-full overflow-auto">
@@ -151,6 +155,7 @@ export const VerifiedTable = (props: {
                   key={index}
                   logo={_selectImage(nullifier.nullifier_hash)}
                   columns={columns}
+                  showIcon={showIcons}
                 />
               ))}
             </div>
