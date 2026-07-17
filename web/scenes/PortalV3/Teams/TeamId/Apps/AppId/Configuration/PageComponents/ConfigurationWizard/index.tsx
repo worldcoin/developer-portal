@@ -3,7 +3,7 @@
 import { ProgressBar } from "@/components/ProgressBar";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 
-export enum ConfigurationWizardStep {
+export enum AppStoreWizardStep {
   BASIC = "basic",
   STORE_LISTING = "store-listing",
   AVAILABILITY = "availability",
@@ -11,7 +11,7 @@ export enum ConfigurationWizardStep {
 }
 
 export type ConfigurationStep = {
-  id: ConfigurationWizardStep;
+  id: AppStoreWizardStep;
   number: string;
   title: string;
   description: string;
@@ -22,7 +22,7 @@ export const getConfigurationSteps = (
 ): ConfigurationStep[] => {
   const steps: ConfigurationStep[] = [
     {
-      id: ConfigurationWizardStep.BASIC,
+      id: AppStoreWizardStep.BASIC,
       number: "01",
       title: "Basic information",
       description:
@@ -32,7 +32,7 @@ export const getConfigurationSteps = (
 
   if (isMiniApp) {
     steps.push({
-      id: ConfigurationWizardStep.STORE_LISTING,
+      id: AppStoreWizardStep.STORE_LISTING,
       number: "02",
       title: "Store listing",
       description:
@@ -42,14 +42,14 @@ export const getConfigurationSteps = (
 
   steps.push(
     {
-      id: ConfigurationWizardStep.AVAILABILITY,
+      id: AppStoreWizardStep.AVAILABILITY,
       number: isMiniApp ? "03" : "02",
       title: "Availability",
       description:
         "Choose the countries and languages where your app can launch.",
     },
     {
-      id: ConfigurationWizardStep.LOCALIZED_CONTENT,
+      id: AppStoreWizardStep.LOCALIZED_CONTENT,
       number: isMiniApp ? "04" : "03",
       title: "Localized content",
       description:
@@ -67,40 +67,38 @@ export const getConfigurationSteps = (
  */
 export const getConfigurationStep = (
   isMiniApp: boolean,
-  id: ConfigurationWizardStep,
+  id: AppStoreWizardStep,
 ): ConfigurationStep => {
   const steps = getConfigurationSteps(isMiniApp);
   return steps.find((step) => step.id === id) ?? steps[0];
 };
 
-export const getStepForField = (
-  fieldPath?: string,
-): ConfigurationWizardStep => {
+export const getStepForField = (fieldPath?: string): AppStoreWizardStep => {
   if (
     !fieldPath ||
     fieldPath === "basic_information" ||
     fieldPath === "logo_img_url"
   ) {
-    return ConfigurationWizardStep.BASIC;
+    return AppStoreWizardStep.BASIC;
   }
 
   if (
     fieldPath.startsWith("supported_countries") ||
     fieldPath.startsWith("supported_languages")
   ) {
-    return ConfigurationWizardStep.AVAILABILITY;
+    return AppStoreWizardStep.AVAILABILITY;
   }
 
   if (fieldPath.startsWith("localisations")) {
-    return ConfigurationWizardStep.LOCALIZED_CONTENT;
+    return AppStoreWizardStep.LOCALIZED_CONTENT;
   }
 
-  return ConfigurationWizardStep.STORE_LISTING;
+  return AppStoreWizardStep.STORE_LISTING;
 };
 
 type ConfigurationWizardProps = {
   steps: ConfigurationStep[];
-  activeStep: ConfigurationWizardStep;
+  activeStep: AppStoreWizardStep;
 };
 
 /**

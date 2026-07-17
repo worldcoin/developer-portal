@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import type { ConfigActionKind } from "./types";
+import type { AppStoreActionsKind } from "./types";
 
 const EXIT_KEYFRAMES: Keyframe[] = [
   { opacity: 1, transform: "translateY(0)" },
@@ -17,11 +17,11 @@ const ENTER_KEYFRAMES: Keyframe[] = [
  * Swaps the action label while it is invisible. A single live label avoids the
  * ghosting that overlapping incoming and outgoing text can cause.
  */
-export const useConfigActionLabelTransition = (
-  targetActionKind: ConfigActionKind,
+export const useAppStoreActionsLabelTransition = (
+  targetActionKind: AppStoreActionsKind,
 ) => {
   const [displayedActionKind, setDisplayedActionKind] =
-    useState<ConfigActionKind>(targetActionKind);
+    useState<AppStoreActionsKind>(targetActionKind);
   const displayedActionKindRef = useRef(displayedActionKind);
   const contentRef = useRef<HTMLSpanElement>(null);
   const isTransitioningRef = useRef(false);

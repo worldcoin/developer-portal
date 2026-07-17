@@ -11,14 +11,14 @@ import type { MutableRefObject } from "react";
 import { SubmitAppModal } from "../AppTopBar/SubmitAppModal";
 import type { BasicInformationHandle } from "../BasicInformation";
 import { unverifiedImageAtom, viewModeAtom } from "../layout/ImagesProvider";
-import { ConfigActionButton } from "./ConfigActionButton";
-import type { ConfigNextStep, FullAppMetadata } from "./types";
+import { AppStoreActionsButton } from "./AppStoreActionsButton";
+import type { AppStoreNextStep, FullAppMetadata } from "./types";
 
-type ConfigActionProps = {
+type AppStoreActionsProps = {
   appId: string;
   teamId: string;
   appMetadata: FullAppMetadata;
-  nextStep?: ConfigNextStep;
+  nextStep?: AppStoreNextStep;
   onContinue: () => void;
   basicInfoRef?: MutableRefObject<BasicInformationHandle | null>;
   onValidationError?: (fieldPath?: string) => void;
@@ -29,7 +29,7 @@ type ConfigActionProps = {
  * Keeps the footer's primary action mounted across every step so Continue can
  * become Submit for review without resizing or replacing the button shell.
  */
-export const ConfigAction = ({
+export const AppStoreActions = ({
   appId,
   teamId,
   appMetadata,
@@ -38,7 +38,7 @@ export const ConfigAction = ({
   basicInfoRef,
   onValidationError,
   className,
-}: ConfigActionProps) => {
+}: AppStoreActionsProps) => {
   const viewMode = useAtomValue(viewModeAtom);
   const { user } = useUser() as Auth0SessionUser;
   const [showSubmitAppModal, setShowSubmitAppModal] = useState(false);
@@ -69,7 +69,7 @@ export const ConfigAction = ({
         appId={appId}
         isDeveloperAllowListing={appMetadata.is_developer_allow_listing}
       />
-      <ConfigActionButton
+      <AppStoreActionsButton
         appMetadata={appMetadata}
         appId={appId}
         teamId={teamId}
