@@ -503,6 +503,40 @@ describe("/api/mcp", () => {
     );
   });
 
+  it("coerces the External category to Other for a mini app", async () => {
+    const res = await POST(
+      callTool("create_app", {
+        name: "MCP Mini External",
+        app_mode: "mini-app",
+        integration_url: "https://example.com",
+        category: "External",
+      }),
+    );
+
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    const payload = JSON.parse(body.result.content[0].text);
+    // A mini app must never be persisted under the store-hiding External
+    // category, even when explicitly requested via MCP.
+    expect(payload.app.app_metadata[0].category).toBe("Other");
+  });
+
+  it("keeps the External category for an external app", async () => {
+    const res = await POST(
+      callTool("create_app", {
+        name: "MCP External",
+        app_mode: "external",
+        integration_url: "https://example.com",
+        category: "External",
+      }),
+    );
+
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    const payload = JSON.parse(body.result.content[0].text);
+    expect(payload.app.app_metadata[0].category).toBe("External");
+  });
+
   it("rejects staging app creation", async () => {
     const res = await POST(
       callTool("create_app", {
