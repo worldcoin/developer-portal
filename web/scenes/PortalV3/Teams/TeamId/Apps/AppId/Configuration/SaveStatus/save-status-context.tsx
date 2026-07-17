@@ -15,7 +15,7 @@ import { AutosaveStatus } from "../hook/use-autosave";
 const MIN_SAVING_VISIBLE_MS = 600;
 // How long the "Changes saved" pill stays visible after a successful save
 // before fading back to nothing.
-const SAVED_VISIBLE_MS = 1000;
+const SAVED_VISIBLE_MS = 3000;
 
 type Registered = {
   flush: () => Promise<boolean>;
