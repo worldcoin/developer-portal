@@ -10,6 +10,7 @@ import { useFormContext, useWatch } from "react-hook-form";
 import { useAutosaveWithStatus } from "../hook/use-autosave-with-status";
 import { isMiniAppAtom } from "../layout/ImagesProvider";
 import type { ConfigurationStepId } from "../PageComponents/ConfigurationWizard";
+import { getConfigurationStep } from "../PageComponents/ConfigurationWizard";
 import { NumberedSection } from "../PageComponents/NumberedSection";
 import { CategorySection } from "./components/FormSections/CategorySection";
 import { ComplianceSection } from "./components/FormSections/ComplianceSection";
@@ -94,9 +95,7 @@ export const AppStoreForm = ({
     >
       {isMiniApp && (
         <NumberedSection
-          number="02"
-          title="Store listing"
-          description="Shape how your app appears when people discover it in the store."
+          step={getConfigurationStep(isMiniApp, "store-listing")}
           isActive={activeStep === "store-listing"}
         >
           <div className="grid gap-y-8">
@@ -141,9 +140,7 @@ export const AppStoreForm = ({
       )}
 
       <NumberedSection
-        number={isMiniApp ? "03" : "02"}
-        title="Availability"
-        description="Choose the countries and languages where your app can launch."
+        step={getConfigurationStep(isMiniApp, "availability")}
         isActive={activeStep === "availability"}
         banner={isMiniApp ? <LawsAndRegulationsBanner /> : undefined}
       >
@@ -165,9 +162,7 @@ export const AppStoreForm = ({
       </NumberedSection>
 
       <NumberedSection
-        number={isMiniApp ? "04" : "03"}
-        title="Localized content"
-        description="Make your listing feel native in every language you support."
+        step={getConfigurationStep(isMiniApp, "localized-content")}
         isActive={activeStep === "localized-content"}
       >
         <LocalisationsSection

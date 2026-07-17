@@ -2,13 +2,14 @@
 
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { ErrorPage } from "@/components/ErrorPage";
+import { CheckmarkBadge } from "@/components/Icons/CheckmarkBadge";
 import { ChevronLeftIcon } from "@/components/Icons/ChevronLeftIcon";
+import { EditIcon } from "@/components/Icons/EditIcon";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Role_Enum } from "@/graphql/graphql";
 import { Auth0SessionUser } from "@/lib/types";
 import { checkUserPermissions } from "@/lib/utils";
-import { Icon } from "@/scenes/PortalV3/common/Icon";
 import { useFetchLocalisationsQuery } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/AppStore/graphql/client/fetch-localisations.generated";
 import {
   FetchAppMetadataQuery,
@@ -40,6 +41,7 @@ import { AppIconBox } from "./PageComponents/AppIconBox";
 import type { ConfigurationStepId } from "./PageComponents/ConfigurationWizard";
 import {
   ConfigurationWizard,
+  getConfigurationStep,
   getConfigurationSteps,
   getStepForField,
 } from "./PageComponents/ConfigurationWizard";
@@ -48,7 +50,7 @@ import { NumberedSection } from "./PageComponents/NumberedSection";
 import { RejectionBanner } from "./RejectionBanner";
 import { ResolveModal } from "./ResolveModal";
 import { ConfigurationPrimaryAction, ReviewRail } from "./ReviewRail";
-import { SaveStatusProvider } from "./SaveStatus";
+import { SaveStatusIndicator, SaveStatusProvider } from "./SaveStatus";
 import { useCreateNewDraft } from "./hook/use-create-new-draft";
 import { isMiniAppAtom, viewModeAtom } from "./layout/ImagesProvider";
 
@@ -64,90 +66,45 @@ type ConfigurationContentProps = {
   teamName: string;
 };
 
-// Quiet pill for the footer's version switch so the primary action remains
-// the loudest element.
-const ghostActionClassName =
-  "inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1.5 text-grey-500 transition-colors hover:bg-grey-50 hover:text-grey-900 disabled:cursor-not-allowed disabled:opacity-50";
-
 const stepActionClassName =
   "inline-flex h-10 w-44 shrink-0 items-center justify-center gap-2 rounded-lg px-5 text-center leading-none transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-grey-300 focus-visible:ring-offset-2";
+const secondaryStepActionClassName = clsx(
+  stepActionClassName,
+  "border border-grey-200 bg-grey-0 text-grey-700 hover:bg-grey-50 disabled:cursor-not-allowed disabled:border-grey-100 disabled:text-grey-300",
+);
 const primaryStepActionClassName = clsx(
   stepActionClassName,
   "bg-grey-900 text-white hover:bg-grey-700 disabled:cursor-not-allowed disabled:bg-grey-100 disabled:text-grey-400",
 );
 
-/**
- * Ghost version switch — the only trace of draft/verified state on the page,
- * deliberately indicator-free so the form-filling UI stays the focus.
- * Creates the one allowed draft on first use (useCreateNewDraft enforces
- * the limit).
- */
-const VersionSwitchButton = ({
+/** Static top-right cue for which version the form shows — not a control. */
+const VersionIndicator = ({
   app,
-  appId,
-  teamId,
 }: {
   app: FetchAppMetadataQuery["app"][0];
-  appId: `app_${string}`;
-  teamId: `team_${string}`;
 }) => {
-  const [viewMode, setViewMode] = useAtom(viewModeAtom);
-  const { user } = useUser() as Auth0SessionUser;
-  const hasDraft = app.app_metadata.length > 0;
+  const [viewMode] = useAtom(viewModeAtom);
   const hasVerified = app.verified_app_metadata.length > 0;
 
-  const { createNewDraft, isCreating } = useCreateNewDraft({
-    appId,
-    teamId,
-    hasDraft,
-    hasVerifiedVersion: hasVerified,
-  });
-
-  // Creating a draft mutates review state — same Owner/Admin bar the old
-  // AppTopBar action had. Viewing an existing row is unrestricted.
-  const canManageDraft = checkUserPermissions(user, teamId, [
-    Role_Enum.Owner,
-    Role_Enum.Admin,
-  ]);
-
-  // Nothing to switch between before first verification.
+  // Draft-only apps have a single version; nothing worth labelling.
   if (!hasVerified) return null;
 
-  if (viewMode === "verified") {
-    if (!hasDraft && !canManageDraft) return null;
-    return (
-      <button
-        type="button"
-        disabled={isCreating}
-        className={ghostActionClassName}
-        onClick={() => {
-          if (hasDraft) {
-            setViewMode("unverified");
-          } else {
-            // Flips the view itself after the row lands.
-            void createNewDraft();
-          }
-        }}
-      >
-        <Icon name="edit-pencil" className="size-3.5" />
-        <Typography variant={TYPOGRAPHY.R5} className="whitespace-nowrap">
-          {isCreating ? "Opening…" : "Open draft"}
-        </Typography>
-      </button>
-    );
-  }
-
+  const isVerifiedView = viewMode === "verified";
+  const label = isVerifiedView ? "Verified version" : "Draft version";
   return (
-    <button
-      type="button"
-      className={ghostActionClassName}
-      onClick={() => setViewMode("verified")}
+    <div
+      data-testid="configuration-version-indicator"
+      role="img"
+      aria-label={label}
+      title={label}
+      className="flex shrink-0 items-center text-grey-500"
     >
-      <Icon name="eye" className="size-3.5" />
-      <Typography variant={TYPOGRAPHY.R5} className="whitespace-nowrap">
-        View verified version
-      </Typography>
-    </button>
+      {isVerifiedView ? (
+        <CheckmarkBadge className="size-4 text-system-warning-500" />
+      ) : (
+        <EditIcon className="size-4 text-grey-700" />
+      )}
+    </div>
   );
 };
 
@@ -179,13 +136,21 @@ const ActionsFooter = ({
   activeStep: ConfigurationStepId;
   onStepChange: (step: ConfigurationStepId) => void;
 }) => {
-  const [viewMode] = useAtom(viewModeAtom);
+  const [viewMode, setViewMode] = useAtom(viewModeAtom);
   const { user } = useUser() as Auth0SessionUser;
+  const hasDraft = app.app_metadata.length > 0;
   const hasVerified = app.verified_app_metadata.length > 0;
   const draft = app.app_metadata[0];
 
   const { removeFromReview, loading: isUnsubmitting } = useRemoveFromReview({
     metadataId: draft?.id,
+  });
+
+  const { createNewDraft, isCreating } = useCreateNewDraft({
+    appId,
+    teamId,
+    hasDraft,
+    hasVerifiedVersion: hasVerified,
   });
 
   const canManageDraft = checkUserPermissions(user, teamId, [
@@ -203,15 +168,19 @@ const ActionsFooter = ({
   const isVerifiedView = viewMode === "verified" && hasVerified;
   const isAwaiting =
     !isVerifiedView && draft?.verification_status === "awaiting_review";
+  const isEditable =
+    !isVerifiedView && draft?.verification_status === "unverified";
+  // Verified view without a draft: only Owner/Admin may create one.
+  const showVersionAction =
+    hasVerified && (!isVerifiedView || hasDraft || canManageDraft);
   return (
-    <div className="flex shrink-0 flex-wrap items-center justify-between gap-x-4 gap-y-2 py-3 lg:mr-6">
+    // Three equal tracks so the version switch sits dead-center regardless
+    // of how wide the Back or primary clusters are.
+    <div className="grid shrink-0 grid-cols-[1fr_auto_1fr] items-center gap-3 py-3 lg:mr-6">
       <button
         type="button"
         disabled={!previousStep}
-        className={clsx(
-          stepActionClassName,
-          "border border-grey-200 bg-grey-0 text-grey-700 hover:bg-grey-50 disabled:cursor-not-allowed disabled:border-grey-100 disabled:text-grey-300",
-        )}
+        className={clsx(secondaryStepActionClassName, "justify-self-start")}
         onClick={() => {
           if (previousStep) onStepChange(previousStep.id);
         }}
@@ -222,20 +191,51 @@ const ActionsFooter = ({
         </Typography>
       </button>
 
-      {isAwaiting && (
-        <div className="hidden min-w-0 sm:block">
-          <Typography
-            variant={TYPOGRAPHY.R5}
-            className="min-w-0 truncate text-grey-500"
+      <div className="flex min-w-0 items-center justify-center gap-3">
+        {showVersionAction && (
+          <button
+            type="button"
+            disabled={isCreating}
+            className={secondaryStepActionClassName}
+            onClick={() => {
+              if (!isVerifiedView) {
+                setViewMode("verified");
+                return;
+              }
+              if (hasDraft) {
+                setViewMode("unverified");
+              } else {
+                // The draft hook flips the view after the new row lands.
+                void createNewDraft();
+              }
+            }}
           >
-            In review — editing is locked until review completes.
-          </Typography>
+            {isVerifiedView ? (
+              <EditIcon className="size-4" />
+            ) : (
+              <CheckmarkBadge className="size-4 text-system-warning-500" />
+            )}
+            <Typography variant={TYPOGRAPHY.M4} className="leading-none">
+              {isVerifiedView ? "New draft" : "Verified"}
+            </Typography>
+          </button>
+        )}
+
+        <div className="hidden min-w-0 items-center sm:flex">
+          {isAwaiting ? (
+            <Typography
+              variant={TYPOGRAPHY.R5}
+              className="min-w-0 truncate text-grey-500"
+            >
+              In review — editing is locked until review completes.
+            </Typography>
+          ) : isEditable ? (
+            <SaveStatusIndicator />
+          ) : null}
         </div>
-      )}
+      </div>
 
-      <div className="flex shrink-0 flex-wrap items-center gap-x-1 gap-y-2">
-        <VersionSwitchButton app={app} appId={appId} teamId={teamId} />
-
+      <div className="flex shrink-0 flex-wrap items-center justify-end gap-x-1 gap-y-2">
         {isAwaiting && canManageDraft && (
           <DecoratedButton
             type="button"
@@ -328,12 +328,15 @@ const ConfigurationContent = ({
           ref={scrollContainerRef}
           className="grid min-w-0 content-start gap-y-6 pt-6 pb-6 lg:min-h-0 lg:flex-1 lg:overflow-y-auto lg:pr-6"
         >
-          <ConfigurationWizard steps={steps} activeStep={activeStep} />
+          <div className="flex min-w-0 items-center gap-2">
+            <div className="min-w-0 flex-1">
+              <ConfigurationWizard steps={steps} activeStep={activeStep} />
+            </div>
+            <VersionIndicator app={app} />
+          </div>
 
           <NumberedSection
-            number="01"
-            title="Basic information"
-            description="Start with the details people need to recognize and open your app."
+            step={getConfigurationStep(isMiniApp, "basic")}
             isActive={activeStep === "basic"}
           >
             <div className="grid gap-y-6">

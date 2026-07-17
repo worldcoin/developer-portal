@@ -59,6 +59,19 @@ export const getConfigurationSteps = (
   return steps;
 };
 
+/**
+ * Single source for a step's number/title/description. Falls back to the
+ * first step ("basic", always present) so callers never handle undefined —
+ * render sites only look up steps they actually render.
+ */
+export const getConfigurationStep = (
+  isMiniApp: boolean,
+  id: ConfigurationStepId,
+): ConfigurationStep => {
+  const steps = getConfigurationSteps(isMiniApp);
+  return steps.find((step) => step.id === id) ?? steps[0];
+};
+
 export const getStepForField = (fieldPath?: string): ConfigurationStepId => {
   if (
     !fieldPath ||

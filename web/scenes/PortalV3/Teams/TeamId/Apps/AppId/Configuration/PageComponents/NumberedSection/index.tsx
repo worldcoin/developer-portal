@@ -5,9 +5,11 @@ import clsx from "clsx";
 import { ReactNode } from "react";
 
 type NumberedSectionProps = {
-  number: string;
-  title: string;
-  description?: string;
+  /**
+   * The step this section renders — sourced from getConfigurationSteps so the
+   * wizard header and the section header can never drift.
+   */
+  step: { number: string; title: string; description?: string };
   isActive?: boolean;
   // Rendered between the header and the body (e.g. the Availability
   // laws/regulations warning).
@@ -20,9 +22,7 @@ type NumberedSectionProps = {
  * the body always exposed inside the border.
  */
 export const NumberedSection = ({
-  number,
-  title,
-  description,
+  step: { number, title, description },
   isActive = true,
   banner,
   children,

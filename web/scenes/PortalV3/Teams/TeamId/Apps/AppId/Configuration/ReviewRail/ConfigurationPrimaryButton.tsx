@@ -8,7 +8,7 @@ import { FetchAppMetadataDocument } from "@/scenes/common/Teams/TeamId/Apps/AppI
 import type { FetchAppMetadataQuery } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/graphql/client/fetch-app-metadata.generated";
 import clsx from "clsx";
 import { twMerge } from "tailwind-merge";
-import { useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import posthog from "posthog-js";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { MutableRefObject } from "react";
@@ -75,6 +75,8 @@ export const ConfigurationPrimaryButton = ({
 }: ConfigurationPrimaryButtonProps) => {
   const form = useFormContext<AppStoreFormValues>();
   const searchParams = useSearchParams();
+  const pathname = usePathname();
+  const router = useRouter();
   const client = useApolloClient();
   const [isSubmittingForReview, setIsSubmittingForReview] = useState(false);
   const hasAutoSubmitted = useRef(false);
@@ -271,14 +273,31 @@ export const ConfigurationPrimaryButton = ({
     teamId,
   ]);
 
+  // Deep link: ?submitForReview=true runs the review flow once on arrival —
+  // success opens the submit modal, validation failures route the wizard to
+  // the failing step. The param is consumed immediately (ref + URL strip) so
+  // reaching the final step later never re-triggers it.
   const shouldAutoSubmitForReview =
     searchParams.get("submitForReview") === "true";
   useEffect(() => {
-    if (isFinalStep && shouldAutoSubmitForReview && !hasAutoSubmitted.current) {
-      void submitForReview();
-      hasAutoSubmitted.current = true;
-    }
-  }, [isFinalStep, shouldAutoSubmitForReview, submitForReview]);
+    if (!shouldAutoSubmitForReview || hasAutoSubmitted.current) return;
+    hasAutoSubmitted.current = true;
+
+    const nextParams = new URLSearchParams(searchParams.toString());
+    nextParams.delete("submitForReview");
+    const query = nextParams.toString();
+    router.replace(query ? `${pathname}?${query}` : pathname, {
+      scroll: false,
+    });
+
+    void submitForReview();
+  }, [
+    pathname,
+    router,
+    searchParams,
+    shouldAutoSubmitForReview,
+    submitForReview,
+  ]);
 
   const actionLabel = isFinalStep
     ? isSubmittingForReview

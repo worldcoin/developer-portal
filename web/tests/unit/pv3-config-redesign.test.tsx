@@ -150,6 +150,7 @@ const appId = "app_9cdd0a714aec9ed17dca660bc9ffe72a";
 
 jest.mock("next/navigation", () => ({
   useParams: () => ({ teamId, appId }),
+  usePathname: () => `/teams/${teamId}/apps/${appId}/configuration`,
   useRouter: () => ({ push: jest.fn(), replace: jest.fn() }),
   useSearchParams: () => new URLSearchParams(),
 }));
@@ -652,7 +653,7 @@ describe("v3 Configuration redesign [footer and preview]", () => {
     ).toBeEnabled();
   });
 
-  it("renders a verified-only app read-only with only the corner switch", () => {
+  it("renders a verified-only app read-only with only the form switch", () => {
     const verifiedMetadata = makeAppMetadata({
       id: "meta_verified",
       name: "Verified App",
@@ -677,9 +678,17 @@ describe("v3 Configuration redesign [footer and preview]", () => {
 
     renderPage();
 
-    // No status strip — the only version trace is the corner switch.
-    expect(screen.queryByText("Verified version")).not.toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Open draft" })).toBeEnabled();
+    // The top-right badge is a static indicator, not a control; the version
+    // action lives in the footer next to Back.
+    const indicator = screen.getByTestId("configuration-version-indicator");
+    expect(indicator).toHaveAccessibleName("Verified version");
+    expect(within(indicator).queryByRole("button")).toBeNull();
+    const progress = screen.getByRole("progressbar", {
+      name: "Configuration progress",
+    });
+    expect(indicator.parentElement).toContainElement(progress);
+
+    expect(screen.getByRole("button", { name: /New draft/ })).toBeEnabled();
     expect(screen.getByAltText("App icon")).toHaveAttribute(
       "src",
       "https://cdn/logo_img.png",
@@ -694,7 +703,7 @@ describe("v3 Configuration redesign [footer and preview]", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("creates the single allowed draft from the corner switch", async () => {
+  it("creates the single allowed draft from the form switch", async () => {
     createEditableRowMock.mockResolvedValue({
       data: { create_new_draft: { success: true } },
     });
@@ -721,7 +730,7 @@ describe("v3 Configuration redesign [footer and preview]", () => {
 
     renderPage();
 
-    fireEvent.click(screen.getByRole("button", { name: "Open draft" }));
+    fireEvent.click(screen.getByRole("button", { name: /New draft/ }));
 
     await waitFor(() =>
       expect(createEditableRowMock).toHaveBeenCalledWith(
@@ -758,10 +767,10 @@ describe("v3 Configuration redesign [footer and preview]", () => {
     renderPage();
 
     // The create action is Owner/Admin only — a member's click could only
-    // fail server-side, so the corner switch doesn't render at all.
+    // fail server-side, so the footer version button doesn't render at all.
     expect(screen.getByLabelText(/App name/)).toBeDisabled();
     expect(
-      screen.queryByRole("button", { name: "Open draft" }),
+      screen.queryByRole("button", { name: /New draft/ }),
     ).not.toBeInTheDocument();
     expect(createEditableRowMock).not.toHaveBeenCalled();
   });
@@ -794,13 +803,26 @@ describe("v3 Configuration redesign [footer and preview]", () => {
 
     renderPage();
 
-    fireEvent.click(
-      screen.getByRole("button", { name: /View verified version/ }),
-    );
-    await screen.findByRole("button", { name: "Open draft" });
+    // Draft view: static "Draft" indicator top-right, "Verified" switch in
+    // the footer between Back and the primary action.
+    const indicator = screen.getByTestId("configuration-version-indicator");
+    expect(indicator).toHaveAccessibleName("Draft version");
 
-    fireEvent.click(screen.getByRole("button", { name: "Open draft" }));
-    await screen.findByRole("button", { name: /View verified version/ });
+    fireEvent.click(screen.getByRole("button", { name: /Verified/ }));
+    const openDraftButton = await screen.findByRole("button", {
+      name: /New draft/,
+    });
+    expect(
+      screen.getByTestId("configuration-version-indicator"),
+    ).toHaveAccessibleName("Verified version");
+
+    // With a draft already in place, the footer button opens it instead of
+    // creating another row.
+    fireEvent.click(openDraftButton);
+    await screen.findByRole("button", { name: /Verified/ });
+    expect(
+      screen.getByTestId("configuration-version-indicator"),
+    ).toHaveAccessibleName("Draft version");
     expect(createEditableRowMock).not.toHaveBeenCalled();
   });
 
