@@ -17,7 +17,7 @@ import {
   Tooltip,
 } from "chart.js";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Line } from "react-chartjs-2";
 
 export type ChartProps = {
@@ -35,6 +35,28 @@ ChartJS.register(
   Legend,
   Filler,
 );
+
+const LEGACY_CHART_FONT_FAMILY = "GT America";
+const GTA_FONT_VARIABLE = "--font-gta-source";
+
+const applyChartFontFamily = <T,>(value: T, fontFamily: string): T => {
+  if (Array.isArray(value)) {
+    return value.map((item) => applyChartFontFamily(item, fontFamily)) as T;
+  }
+
+  if (value && typeof value === "object") {
+    return Object.fromEntries(
+      Object.entries(value as Record<string, unknown>).map(([key, item]) => [
+        key,
+        key === "family" && item === LEGACY_CHART_FONT_FAMILY
+          ? fontFamily
+          : applyChartFontFamily(item, fontFamily),
+      ]),
+    ) as T;
+  }
+
+  return value;
+};
 
 const defaultOptions: ChartOptions<"line"> = {
   responsive: true,
@@ -113,6 +135,20 @@ const defaultOptions: ChartOptions<"line"> = {
 };
 
 export const Chart = (props: ChartProps) => {
+  const [chartFontFamily, setChartFontFamily] = useState(
+    LEGACY_CHART_FONT_FAMILY,
+  );
+
+  useEffect(() => {
+    const fontFamily = getComputedStyle(document.documentElement)
+      .getPropertyValue(GTA_FONT_VARIABLE)
+      .trim();
+
+    if (fontFamily) {
+      setChartFontFamily(fontFamily);
+    }
+  }, []);
+
   const data: ChartData<"line"> = useMemo(
     () => ({
       labels: props.data.x,
@@ -140,12 +176,12 @@ export const Chart = (props: ChartProps) => {
   );
 
   const options = useMemo(() => {
-    if (!props.options) {
-      return defaultOptions;
-    }
+    const mergedOptions = props.options
+      ? mergeDeep(defaultOptions, props.options)
+      : defaultOptions;
 
-    return mergeDeep(defaultOptions, props.options);
-  }, [props.options]);
+    return applyChartFontFamily(mergedOptions, chartFontFamily);
+  }, [chartFontFamily, props.options]);
 
   return <Line options={options} data={data} />;
 };

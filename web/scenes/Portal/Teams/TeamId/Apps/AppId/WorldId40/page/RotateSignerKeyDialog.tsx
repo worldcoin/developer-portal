@@ -14,7 +14,7 @@ import { toast } from "react-toastify";
 import { SignerKeySetup } from "../../ConfigureSignerKey/ConfigureSignerKeyContent";
 import { GenerateNewKeyContent } from "../../GenerateNewKey/GenerateNewKeyContent";
 import { UseExistingKeyContent } from "../../UseExistingKey/UseExistingKeyContent";
-import { useRotateSignerKeyMutation } from "./graphql/client/rotate-signer-key.generated";
+import { useRotateSignerKeyMutation } from "@/scenes/common/Teams/TeamId/Apps/AppId/WorldId40/page/graphql/client/rotate-signer-key.generated";
 
 type RotateStep = "configure" | "generate-new" | "use-existing";
 
@@ -248,6 +248,9 @@ const RotateConfigureContent = ({
           <Typography as="ul" variant={TYPOGRAPHY.S4} className="mt-0.5">
             <li>• The old signer key will stop working immediately</li>
             <li>• Update your application before rotating</li>
+            <li>
+              • It may take up to 10 minutes for the change to propagate fully
+            </li>
           </Typography>
         </div>
       </Notification>

@@ -1,7 +1,6 @@
 "use client";
 
 import { Button } from "@/components/Button";
-import { CategorySelector } from "@/components/Category";
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { Dialog, DialogProps } from "@/components/Dialog";
 import { DialogPanel } from "@/components/DialogPanel";
@@ -11,15 +10,14 @@ import { LoggedUserNav } from "@/components/LoggedUserNav";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { getGraphQLErrorCode } from "@/lib/errors";
-import { isWorldId40Enabled, worldId40Atom } from "@/lib/feature-flags";
 import { useRefetchQueries } from "@/lib/use-refetch-queries";
+import { FetchAppsDocument } from "@/scenes/common/layout/AppSelector/graphql/client/fetch-apps.generated";
 import { yupResolver } from "@hookform/resolvers/yup";
 import clsx from "clsx";
-import { useAtomValue } from "jotai";
 import { useParams, useRouter } from "next/navigation";
 import posthog from "posthog-js";
 import { useCallback, useMemo, useState } from "react";
-import { Controller, useForm, useWatch } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import {
   ConfigureSignerKeyContent,
@@ -29,11 +27,12 @@ import { EnableWorldId40Content } from "../../Teams/TeamId/Apps/AppId/EnableWorl
 import { SelfManagedTransactionInfoContent } from "../../Teams/TeamId/Apps/AppId/EnableWorldId40/SelfManagedTransactionInfo/SelfManagedTransactionInfoContent";
 import { GenerateNewKeyContent } from "../../Teams/TeamId/Apps/AppId/GenerateNewKey/GenerateNewKeyContent";
 import { UseExistingKeyContent } from "../../Teams/TeamId/Apps/AppId/UseExistingKey/UseExistingKeyContent";
-import { FetchAppsDocument } from "../AppSelector/graphql/client/fetch-apps.generated";
-import { MiniappToggleSection } from "./MiniappToggleSection";
-import { useRegisterRpMutation } from "./client/register-rp.generated";
-import { createAppSchemaV4, CreateAppSchemaV4 } from "./form-schema-v4";
-import { validateAndInsertAppServerSideV4 } from "./server/v4/submit";
+import { useRegisterRpMutation } from "@/scenes/common/layout/CreateAppDialog/client/register-rp.generated";
+import {
+  createAppSchemaV4,
+  CreateAppSchemaV4,
+} from "@/scenes/common/layout/CreateAppDialog/form-schema-v4";
+import { validateAndInsertAppServerSideV4 } from "@/scenes/common/layout/CreateAppDialog/server/v4/submit";
 
 type CreateDialogStep =
   | "create"
@@ -66,8 +65,12 @@ export const CreateAppDialogV4 = ({
 }: CreateAppDialogV4Props) => {
   const { teamId } = useParams() as { teamId: string | undefined };
   const router = useRouter();
-  const worldId40Config = useAtomValue(worldId40Atom);
-  const isSelfManagedEnabled = isWorldId40Enabled(worldId40Config, teamId);
+  // Self-Managed availability previously read the World ID 4.0 rollout flag,
+  // but that gate was already true wherever this dialog could actually render
+  // (the dialog itself was flag-gated). With the flag removed (v4 is the
+  // default), hardcoding true preserves the existing behavior — it is not a new
+  // self-managed product change.
+  const isSelfManagedEnabled = true;
   const { refetch: refetchApps } = useRefetchQueries(FetchAppsDocument, {
     teamId: teamId,
   });
@@ -97,17 +100,11 @@ export const CreateAppDialogV4 = ({
     register,
     formState: { isValid, errors, isSubmitting },
     handleSubmit,
-    control,
     reset,
   } = useForm<CreateAppSchemaV4>({
     mode: "onChange",
     resolver: yupResolver(createAppSchemaV4),
     defaultValues,
-  });
-
-  const isMiniapp = useWatch({
-    control: control,
-    name: "is_miniapp",
   });
 
   const submit = useCallback(
@@ -126,36 +123,39 @@ export const CreateAppDialogV4 = ({
         });
         return;
       }
-      const [refetched] = await refetchApps();
+      // Navigate using the id the server action returns — NOT a guess derived
+      // from refetchApps(). On staging the user-facing read can lag the insert
+      // (replica/cache), so the refetch-and-sort approach returned a stale list
+      // and left users stranded on a stale apps page with no redirect/refresh.
+      const newAppId =
+        typeof result.app_id === "string" ? result.app_id : undefined;
 
-      const latestApp = refetched.data.app.toSorted(
-        (a: any, b: any) =>
-          new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
-      )[0];
+      // Keep the client-side app list (AppSelector) fresh, but do not gate
+      // navigation on it.
+      await refetchApps();
 
       posthog.capture("app_creation_successful", {
         team_id: teamId,
-        app_id: latestApp?.id,
+        app_id: newAppId,
         environment: values.build,
         engine: values.verification,
       });
 
-      setWorldIdMode("managed");
-      setSignerKeySetup("generate");
-      setCreatedAppId(latestApp?.id ?? null);
-      setStep("enable-world-id-4-0");
+      // App creation is decoupled from World ID 4.0 onboarding: send the user
+      // straight to the new app's dashboard. World ID 4.0 setup is launched
+      // later, on demand, from the World ID tab — not automatically here.
       reset(defaultValues);
+      props.onClose(false);
+      // Always navigate + refresh. Fall back to the apps index (which
+      // server-redirects to an existing app) so the user is never stranded if
+      // the id is somehow missing.
+      if (newAppId) {
+        window.location.replace(`/teams/${teamId}/apps/${newAppId}`);
+      } else {
+        window.location.replace(`/teams/${teamId}`);
+      }
     },
-    [
-      defaultValues,
-      refetchApps,
-      reset,
-      teamId,
-      setCreatedAppId,
-      setSignerKeySetup,
-      setStep,
-      setWorldIdMode,
-    ],
+    [defaultValues, refetchApps, reset, teamId, props, router],
   );
 
   const onClose = useCallback(() => {
@@ -286,7 +286,7 @@ export const CreateAppDialogV4 = ({
   );
 
   return (
-    <Dialog open={props.open} onClose={onClose} className="z-50 ">
+    <Dialog open={props.open} onClose={onClose} className="z-50">
       <DialogPanel
         className={clsx("fixed inset-0 overflow-y-scroll p-0", props.className)}
       >
@@ -331,41 +331,6 @@ export const CreateAppDialogV4 = ({
                     errors={errors.name}
                     data-testid="input-app-name"
                   />
-                  <Input
-                    register={register("integration_url")}
-                    label="App URL"
-                    placeholder="URL where users can access your app (ex. https://example.com)"
-                    errors={errors.integration_url}
-                  />
-                  <Controller
-                    name="is_miniapp"
-                    control={control}
-                    render={({ field }) => (
-                      <MiniappToggleSection
-                        checked={field.value}
-                        onChange={field.onChange}
-                      />
-                    )}
-                  />
-                  {isMiniapp && (
-                    <Controller
-                      name="category"
-                      control={control}
-                      render={({ field }) => {
-                        return (
-                          <CategorySelector
-                            value={field.value}
-                            required
-                            disabled={false}
-                            onChange={field.onChange}
-                            errors={errors.category}
-                            label="Category"
-                            data-testid="category-selector"
-                          />
-                        );
-                      }}
-                    />
-                  )}
                 </div>
 
                 <DecoratedButton

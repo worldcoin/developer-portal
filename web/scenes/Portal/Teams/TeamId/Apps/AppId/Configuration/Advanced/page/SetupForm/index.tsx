@@ -22,7 +22,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import clsx from "clsx";
 import { ChangeEvent, useCallback, useEffect, useMemo, useRef } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
-import { FetchAppMetadataQuery } from "../../../graphql/client/fetch-app-metadata.generated";
+import { FetchAppMetadataQuery } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/graphql/client/fetch-app-metadata.generated";
 import { useAutosaveWithStatus } from "../../../hook/use-autosave-with-status";
 import { useSaveStatus } from "../../../SaveStatus";
 import {
@@ -314,7 +314,7 @@ export const SetupForm = (props: LinksFormProps) => {
         )}
         <label
           htmlFor="is_whitelist_disabled"
-          className="grid w-fit cursor-pointer grid-cols-auto/1fr gap-x-4  border-grey-200 py-1"
+          className="grid w-fit cursor-pointer grid-cols-auto/1fr gap-x-4 border-grey-200 py-1"
         >
           <Checkbox
             id="is_whitelist_disabled"

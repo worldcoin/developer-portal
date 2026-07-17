@@ -4,43 +4,27 @@ import { Button } from "@/components/Button";
 import { WorldIcon } from "@/components/Icons/WorldIcon";
 import { LoggedUserNav } from "@/components/LoggedUserNav";
 import { SizingWrapper } from "@/components/SizingWrapper";
-import { isWorldId40Enabled, worldId40Atom } from "@/lib/feature-flags";
 import { urls } from "@/lib/urls";
-import { atom, useAtom, useSetAtom } from "jotai";
+import { useAtom, useSetAtom } from "jotai";
 import { useParams } from "next/navigation";
-import React, { useEffect, useMemo } from "react";
-import { colorAtom } from "../color-atom";
-import { Color } from "../../Profile/types";
+import React, { useEffect } from "react";
+import { colorAtom } from "@/scenes/common/layout/color-atom";
+import { Color } from "@/scenes/common/Profile/types";
 import { AppSelector } from "../AppSelector";
-import { CreateAppDialog } from "../CreateAppDialog";
 import { CreateAppDialogV4 } from "../CreateAppDialog/index-v4";
 
-export const createAppDialogOpenedAtom = atom(false);
+import { createAppDialogOpenedAtom } from "@/scenes/common/layout/Header/atoms";
 
 export const Header = (props: { color: Color | null }) => {
   const setColor = useSetAtom(colorAtom);
   const [open, setOpen] = useAtom(createAppDialogOpenedAtom);
-  const [worldId40Config] = useAtom(worldId40Atom);
-  const { teamId, appId } = useParams() as { teamId?: string; appId?: string };
+  const { teamId } = useParams() as { teamId?: string };
 
   useEffect(() => {
     setColor(props.color);
   }, [props.color, setColor]);
 
-  const logoHref = useMemo(() => {
-    if (teamId && appId) {
-      return urls.app({ team_id: teamId, app_id: appId });
-    }
-    if (teamId) {
-      return urls.teams({ team_id: teamId });
-    }
-    return "/";
-  }, [teamId, appId]);
-
-  const useNewCreateAppDialog = useMemo(
-    () => isWorldId40Enabled(worldId40Config, teamId),
-    [worldId40Config, teamId],
-  );
+  const logoHref = teamId ? urls.teams({ team_id: teamId }) : "/";
 
   return (
     <header className="max-md:sticky max-md:top-0 max-md:z-10 max-md:mb-6 max-md:border-b max-md:border-gray-200 max-md:bg-grey-0">
@@ -60,11 +44,7 @@ export const Header = (props: { color: Color | null }) => {
         <LoggedUserNav />
       </SizingWrapper>
 
-      {useNewCreateAppDialog ? (
-        <CreateAppDialogV4 open={open} onClose={setOpen} className={"mx-0"} />
-      ) : (
-        <CreateAppDialog open={open} onClose={setOpen} className={"mx-0"} />
-      )}
+      <CreateAppDialogV4 open={open} onClose={setOpen} className={"mx-0"} />
     </header>
   );
 };

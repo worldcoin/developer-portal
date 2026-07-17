@@ -29,7 +29,7 @@ export const FloatingTextArea = ({
     <div className="grid gap-y-1">
       <div
         className={clsx(
-          "relative rounded-[10px] px-4 pb-3 pt-7",
+          "relative rounded-[10px] px-4 pt-7 pb-3",
           errors ? "bg-system-error-50" : "bg-grey-50",
           className,
         )}
@@ -39,10 +39,10 @@ export const FloatingTextArea = ({
           {...register}
           {...restProps}
           placeholder=" "
-          className="peer w-full resize-none bg-transparent text-sm text-grey-900 focus:outline-none disabled:text-grey-700 disabled:opacity-100 disabled:[-webkit-text-fill-color:#3C424B]"
+          className="peer w-full resize-none bg-transparent text-sm text-grey-900 focus:outline-hidden disabled:text-grey-700 disabled:opacity-100 disabled:[-webkit-text-fill-color:#3C424B]"
         />
         {addOnRight && (
-          <div className="absolute bottom-3 right-4 z-10">{addOnRight}</div>
+          <div className="absolute right-4 bottom-3 z-10">{addOnRight}</div>
         )}
         <label
           htmlFor={id}
@@ -54,7 +54,7 @@ export const FloatingTextArea = ({
               : [
                   "top-7 translate-y-0 text-sm",
                   "peer-focus:top-4 peer-focus:text-xs",
-                  "peer-[:not(:placeholder-shown)]:top-4 peer-[:not(:placeholder-shown)]:text-xs",
+                  "peer-not-placeholder-shown:top-4 peer-not-placeholder-shown:text-xs",
                 ],
           )}
         >

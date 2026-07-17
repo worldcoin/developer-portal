@@ -13,7 +13,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import * as yup from "yup";
 import { TeamProfile } from "../../common/TeamProfile";
-import { useFetchTeamQuery } from "../../common/TeamProfile/graphql/client/fetch-team.generated";
+import { useFetchTeamQuery } from "@/scenes/common/Teams/TeamId/Team/common/TeamProfile/graphql/client/fetch-team.generated";
 import { validateAndUpdateTeamServerSide } from "../server/submit";
 
 const schema = yup
@@ -73,7 +73,7 @@ export const TeamSettingsPage = () => {
           </Section.Header>
 
           <form
-            className="grid justify-items-start gap-y-8 max-md:pb-8 md:max-w-[36.25rem]"
+            className="grid justify-items-start gap-y-8 max-md:pb-8 md:max-w-145"
             onSubmit={handleSubmit(submit)}
           >
             <Input

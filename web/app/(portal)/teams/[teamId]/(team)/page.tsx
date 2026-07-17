@@ -1,13 +1,14 @@
+import { pickPortalVersion } from "@/lib/feature-flags/portal-v3/activation";
 import { generateMetaTitle } from "@/lib/genarate-title";
+import { urls } from "@/lib/urls";
 import { TeamIdPage } from "@/scenes/Portal/Teams/TeamId/Team/page";
 import { Metadata } from "next";
+import { redirect } from "next/navigation";
 
 export const metadata: Metadata = {
   title: generateMetaTitle({ left: "Overview" }),
 };
 
-// Next 16: params/searchParams are Promises. Resolve them here and pass the plain
-// objects to the scene component (the await-wrapper pattern used across the app).
 export default async function Page(props: {
   params: Promise<Record<string, string>>;
   searchParams: Promise<Record<string, string>>;
@@ -16,5 +17,8 @@ export default async function Page(props: {
     props.params,
     props.searchParams,
   ]);
-  return <TeamIdPage params={params} searchParams={searchParams} />;
+  return pickPortalVersion(
+    () => redirect(urls.apps({ team_id: params.teamId })),
+    () => <TeamIdPage params={params} searchParams={searchParams} />,
+  );
 }

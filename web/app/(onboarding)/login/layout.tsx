@@ -1,2 +1,2 @@
-import { LoginLayout } from "@/scenes/Onboarding/Login/layout";
-export default LoginLayout;
+import { HomeLayout } from "@/scenes/Onboarding/Home/layout";
+export default HomeLayout;

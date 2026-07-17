@@ -7,7 +7,7 @@ import dayjs from "dayjs";
 import tz from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
 import { useMemo } from "react";
-import { useFetchAppStatsQuery } from "../graphql/client/fetch-app-stats.generated";
+import { useFetchAppStatsQuery } from "@/scenes/common/Teams/TeamId/Apps/AppId/page/AppStatsGraph/graphql/client/fetch-app-stats.generated";
 import { useGetAccumulativeTransactions } from "../GraphsSection/use-get-accumulative-transactions";
 import { useGetMetrics } from "../StatCards/use-get-metrics";
 import { ChartTabType } from "./ChartTabs";

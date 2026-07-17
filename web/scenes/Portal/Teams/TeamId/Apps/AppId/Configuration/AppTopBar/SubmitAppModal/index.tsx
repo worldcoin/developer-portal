@@ -10,18 +10,18 @@ import { Toggle } from "@/components/Toggle";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { appChangelogSchema } from "@/lib/schema";
 import { useRefetchQueries } from "@/lib/use-refetch-queries";
-import { removeAppFromReview } from "@/scenes/Portal/Teams/TeamId/Apps/common/hooks/server";
+import { removeAppFromReview } from "@/scenes/common/Teams/TeamId/Apps/common/hooks/server";
 import { yupResolver } from "@hookform/resolvers/yup";
 import posthog from "posthog-js";
 import { useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import * as yup from "yup";
-import { FetchAppMetadataDocument } from "../../graphql/client/fetch-app-metadata.generated";
+import { FetchAppMetadataDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/graphql/client/fetch-app-metadata.generated";
 import { RemainingCharacters } from "../../PageComponents/RemainingCharacters";
 import { submitAppForReviewFormServerSide } from "../server/submit";
 import { SubmitSuccessToast } from "../SubmitSuccessToast";
-import { useValidateLocalisationMutation } from "./graphql/client/validate-localisations.generated";
+import { useValidateLocalisationMutation } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/AppTopBar/SubmitAppModal/graphql/client/validate-localisations.generated";
 
 const schema = yup
   .object({
@@ -161,7 +161,7 @@ export const SubmitAppModal = (props: SubmitAppModalProps) => {
   return (
     <Dialog open={open} onClose={() => setOpen(false)}>
       <DialogOverlay />
-      <DialogPanel className="gap-y-8 md:max-w-[36rem]">
+      <DialogPanel className="gap-y-8 md:max-w-xl">
         <ModalIcon variant="info">
           <SendIcon className="size-10 text-white" />
         </ModalIcon>

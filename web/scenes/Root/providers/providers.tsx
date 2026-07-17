@@ -18,7 +18,9 @@ interface HasuraUserData {
   name: string;
 }
 
-if (typeof window !== "undefined") {
+const isPostHogDisabled = process.env.NEXT_PUBLIC_POSTHOG_DISABLED === "true";
+
+if (typeof window !== "undefined" && !isPostHogDisabled) {
   posthog.init(process.env.NEXT_PUBLIC_POSTHOG_API_KEY!, {
     api_host: "https://us.i.posthog.com",
     ui_host: "https://app.posthog.com",

@@ -60,7 +60,7 @@ export const ReviewStatus = (props: ReviewStatusProps) => {
     <div
       className={clsx(
         statusStyles[status]?.normal,
-        "grid grid-cols-auto/1fr/auto items-center gap-x-3 rounded-lg px-3 py-2 sm:py-0 md:px-5",
+        "grid grid-cols-auto-1fr-auto items-center gap-x-3 rounded-lg px-3 py-2 sm:py-0 md:px-5",
         className,
       )}
     >
@@ -75,7 +75,7 @@ export const ReviewStatus = (props: ReviewStatusProps) => {
         type="button"
         onClick={onClick}
         className={clsx(
-          "grid h-12 grid-cols-1fr/auto items-center gap-x-2 py-3 ",
+          "grid h-12 grid-cols-1fr/auto items-center gap-x-2 py-3",
           {
             "text-system-warning-600 hover:text-system-warning-700":
               status === "changes_requested",

@@ -1,0 +1,33 @@
+query GetWorldIdOverview($app_id: String!) {
+  app(where: { id: { _eq: $app_id } }) {
+    id
+    is_banned
+    is_staging
+    rp_registration {
+      rp_id
+      app_id
+      status
+      staging_status
+      mode
+      signer_address
+      created_at
+    }
+  }
+
+  action_v4(
+    where: {
+      environment: { _eq: "production" }
+      rp_registration: { app: { id: { _eq: $app_id } } }
+    }
+    order_by: { created_at: desc }
+  ) {
+    id
+    action
+    description
+  }
+
+  # Show the legacy tab only when a non-sign-in v3 action exists.
+  action(where: { app_id: { _eq: $app_id }, action: { _neq: "" } }, limit: 1) {
+    id
+  }
+}

@@ -4,7 +4,7 @@ import { Role_Enum } from "@/graphql/graphql";
 import { Auth0SessionUser } from "@/lib/types";
 import { auth0 } from "@/lib/auth0";
 import { BanMessageDialog } from "../../common/BanMessageDialog";
-import { getSdk as getAppEnvSdk } from "../layout/graphql/server/fetch-app-env.generated";
+import { getSdk as getAppEnvSdk } from "@/scenes/common/Teams/TeamId/Apps/AppId/layout/graphql/server/fetch-app-env.generated";
 import { BanStatusSection } from "./BanStatusSection";
 import { DashboardWrapper } from "./DashboardWrapper";
 import { VerificationStatusSection } from "./VerificationStatusSection";
@@ -40,7 +40,6 @@ export const AppIdPage = async (props: {
   return (
     <SizingWrapper className="flex flex-col gap-y-8 py-4">
       <WorldId40MigrationBanner
-        teamId={teamId}
         appId={appId}
         hasRpRegistration={hasRpRegistration}
         canRegisterRp={canRegisterRp}

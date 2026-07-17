@@ -14,11 +14,11 @@ import Image from "next/image";
 import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 import Skeleton from "react-loading-skeleton";
 import { toast } from "react-toastify";
-import { FetchAppMetadataDocument } from "../../graphql/client/fetch-app-metadata.generated";
+import { FetchAppMetadataDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/graphql/client/fetch-app-metadata.generated";
 import { ImageValidationError, useImage } from "../../hook/use-image";
 import ImageLoader from "../../AppStore/ImageForm/ImageLoader";
 import { unverifiedImageAtom, viewModeAtom } from "../../layout/ImagesProvider";
-import { useUpdateLogoMutation } from "./graphql/client/update-logo.generated";
+import { useUpdateLogoMutation } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/AppTopBar/LogoImageUpload/graphql/client/update-logo.generated";
 
 type LogoImageUploadProps = {
   appId: string;
@@ -164,7 +164,7 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
     >
       <Dialog open={showDialog} onClose={handleClose}>
         <DialogOverlay />
-        <DialogPanel className="grid gap-y-10 md:max-w-[28rem]">
+        <DialogPanel className="grid gap-y-10 md:max-w-md">
           <div className="grid w-full grid-cols-1fr/auto justify-between">
             <Typography variant={TYPOGRAPHY.H6}>Edit app image</Typography>
             <Button
@@ -241,7 +241,7 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
         viewMode === "verified" &&
         (verifiedImageError ? (
           <div className="flex size-full items-center justify-center rounded-2xl bg-blue-100">
-            <WorldIcon className="size-10  text-blue-500" />
+            <WorldIcon className="size-10 text-blue-500" />
           </div>
         ) : (
           // eslint-disable-next-line @next/next/no-img-element
@@ -295,7 +295,7 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
             type="button"
             onClick={() => setShowDialog(true)}
             className={clsx(
-              "absolute -bottom-2 -right-2 rounded-full border-2 border-grey-200 bg-white p-2 text-grey-500 hover:bg-grey-50",
+              "absolute -right-2 -bottom-2 rounded-full border-2 border-grey-200 bg-white p-2 text-grey-500 hover:bg-grey-50",
               { hidden: !editable || viewMode === "verified" },
             )}
           >

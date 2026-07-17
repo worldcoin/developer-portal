@@ -11,7 +11,7 @@ import { useAtom } from "jotai";
 import { ErrorPage } from "@/components/ErrorPage";
 import { useParams } from "next/navigation";
 import { useMemo, useState } from "react";
-import { useFetchAppMetadataQuery } from "../../graphql/client/fetch-app-metadata.generated";
+import { useFetchAppMetadataQuery } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/graphql/client/fetch-app-metadata.generated";
 import { viewModeAtom } from "../../layout/ImagesProvider";
 import { AppTopBar } from "../../AppTopBar";
 import { DeleteModal } from "./DeleteModal";

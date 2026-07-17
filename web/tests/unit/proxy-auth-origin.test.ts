@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
 import { InvalidConfigurationError } from "@auth0/nextjs-auth0/errors";
+import { NextRequest, NextResponse } from "next/server";
 
 // #region Mocks
 // The Auth0 SDK ships ESM-only, which jest (ts-jest, node_modules untransformed)
@@ -16,11 +16,18 @@ jest.mock("@auth0/nextjs-auth0/errors", () => {
 // Mock the Auth0 client so the real Auth0Client (server-only, env-dependent) is
 // never constructed and we can drive auth0.middleware()'s outcome per test.
 const auth0Middleware = jest.fn();
+const auth0GetSession = jest.fn();
 jest.mock("@/lib/auth0", () => ({
   auth0: {
     middleware: (...args: unknown[]) => auth0Middleware(...args),
-    getSession: jest.fn(),
+    getSession: (...args: unknown[]) => auth0GetSession(...args),
   },
+}));
+
+const hasAdminAuthenticationEvidence = jest.fn();
+jest.mock("@/lib/admin-auth", () => ({
+  hasAdminAuthenticationEvidence: (...args: unknown[]) =>
+    hasAdminAuthenticationEvidence(...args),
 }));
 
 import { proxy } from "../../proxy";
@@ -28,9 +35,15 @@ import { proxy } from "../../proxy";
 
 const CANONICAL = "https://developer.worldcoin.org";
 
+const DASHBOARD_HOST = "developer-dashboard.toolsforhumanity.com";
+
 beforeEach(() => {
   jest.clearAllMocks();
   process.env.APP_BASE_URL = CANONICAL;
+  delete process.env.LOCAL_DEV_PORTAL_V3_ENABLED;
+  delete process.env.PORTAL_V3_EMAILS;
+  delete process.env.INTERNAL_DASHBOARD_HOST;
+  hasAdminAuthenticationEvidence.mockReturnValue(false);
 });
 
 // #region appBaseUrl allow-list miss → graceful canonical redirect
@@ -160,6 +173,206 @@ describe("middleware [auth route, allow-listed origin]", () => {
     const res = await proxy(req);
 
     expect(res).toBe(sdkRes);
+    expect(auth0Middleware).toHaveBeenCalledTimes(1);
+  });
+});
+// #endregion
+
+// #region protected route role restrictions
+describe("proxy [protected route role restrictions]", () => {
+  const teamId = "team_0123456789abcdef";
+  const memberSession = {
+    user: {
+      email: "member@example.com",
+      hasura: {
+        memberships: [
+          {
+            role: "MEMBER",
+            team: { id: teamId },
+          },
+        ],
+      },
+    },
+  };
+
+  beforeEach(() => {
+    auth0Middleware.mockResolvedValue(NextResponse.next());
+    auth0GetSession.mockResolvedValue(memberSession);
+  });
+
+  it("allows a member to open the consolidated team settings page", async () => {
+    process.env.PORTAL_V3_EMAILS = "member@example.com";
+    const req = new NextRequest(`${CANONICAL}/teams/${teamId}/settings`);
+    const res = await proxy(req);
+
+    expect(res.headers.get("x-middleware-rewrite")).toBeNull();
+    expect(res.headers.get("x-current-path")).toBe(`/teams/${teamId}/settings`);
+  });
+
+  it("keeps team settings owner-only for a v2 member", async () => {
+    const req = new NextRequest(`${CANONICAL}/teams/${teamId}/settings`);
+    const res = await proxy(req);
+
+    expect(res.headers.get("x-middleware-rewrite")).toBe(
+      `${CANONICAL}/unauthorized`,
+    );
+  });
+
+  it("keeps another team's settings restricted for a member", async () => {
+    process.env.PORTAL_V3_EMAILS = "member@example.com";
+    const req = new NextRequest(
+      `${CANONICAL}/teams/team_abcdef0123456789/settings`,
+    );
+    const res = await proxy(req);
+
+    expect(res.headers.get("x-middleware-rewrite")).toBe(
+      `${CANONICAL}/unauthorized`,
+    );
+  });
+
+  it("keeps owner-only team routes restricted for a member", async () => {
+    const req = new NextRequest(`${CANONICAL}/teams/${teamId}/danger`);
+    const res = await proxy(req);
+
+    expect(res.headers.get("x-middleware-rewrite")).toBe(
+      `${CANONICAL}/unauthorized`,
+    );
+  });
+});
+// #endregion
+
+// #region admin pages security headers
+describe("proxy [admin pages]", () => {
+  it("sets CSP and permissions headers without invoking Auth0", async () => {
+    hasAdminAuthenticationEvidence.mockReturnValue(true);
+    const req = new NextRequest(`${CANONICAL}/admin`);
+    const res = await proxy(req);
+
+    expect(auth0Middleware).not.toHaveBeenCalled();
+    expect(res.headers.get("content-security-policy")).toContain(
+      "default-src 'self'",
+    );
+    expect(res.headers.get("Permissions-Policy")).toBe(
+      "clipboard-write=(self)",
+    );
+    expect(res.headers.get("x-current-path")).toBe("/admin");
+  });
+
+  it("redirects admin pages without authentication evidence", async () => {
+    const req = new NextRequest(`${CANONICAL}/admin`);
+    const res = await proxy(req);
+
+    expect(res.status).toBe(307);
+    expect(res.headers.get("location")).toBe(`${CANONICAL}/unauthorized`);
+    expect(auth0Middleware).not.toHaveBeenCalled();
+  });
+
+  it("rejects admin API requests without authentication evidence", async () => {
+    const req = new NextRequest(`${CANONICAL}/api/admin/me`);
+    const res = await proxy(req);
+
+    expect(res.status).toBe(401);
+    await expect(res.json()).resolves.toEqual({ error: "Unauthorized" });
+    expect(auth0Middleware).not.toHaveBeenCalled();
+  });
+
+  it("passes authenticated admin API requests through without invoking Auth0", async () => {
+    hasAdminAuthenticationEvidence.mockReturnValue(true);
+    const req = new NextRequest(`${CANONICAL}/api/admin/me`);
+    const res = await proxy(req);
+
+    expect(res.status).toBe(200);
+    expect(auth0Middleware).not.toHaveBeenCalled();
+    expect(hasAdminAuthenticationEvidence).toHaveBeenCalledWith(req.headers);
+  });
+
+  it("rejects admin paths outside the configured dashboard host", async () => {
+    process.env.INTERNAL_DASHBOARD_HOST = DASHBOARD_HOST;
+    hasAdminAuthenticationEvidence.mockReturnValue(true);
+
+    const req = new NextRequest(`${CANONICAL}/admin`);
+    const res = await proxy(req);
+
+    expect(res.status).toBe(307);
+    expect(res.headers.get("location")).toBe(`${CANONICAL}/unauthorized`);
+  });
+});
+// #endregion
+
+// #region dashboard host root rewrite
+describe("proxy [internal dashboard host]", () => {
+  it('rewrites "/" to /admin when the host matches INTERNAL_DASHBOARD_HOST', async () => {
+    process.env.INTERNAL_DASHBOARD_HOST = DASHBOARD_HOST;
+    hasAdminAuthenticationEvidence.mockReturnValue(true);
+
+    const req = new NextRequest(`https://${DASHBOARD_HOST}/`);
+    const res = await proxy(req);
+
+    expect(auth0Middleware).not.toHaveBeenCalled();
+    expect(res.headers.get("x-middleware-rewrite")).toBe(
+      `https://${DASHBOARD_HOST}/admin`,
+    );
+    expect(res.headers.get("content-security-policy")).toContain(
+      "default-src 'self'",
+    );
+    expect(res.headers.get("Permissions-Policy")).toBe(
+      "clipboard-write=(self)",
+    );
+    expect(res.headers.get("x-current-path")).toBe("/admin");
+  });
+
+  it("matches the dashboard host via x-forwarded-host, normalizing port and extra proxies", async () => {
+    process.env.INTERNAL_DASHBOARD_HOST = DASHBOARD_HOST;
+    hasAdminAuthenticationEvidence.mockReturnValue(true);
+
+    const req = new NextRequest(`${CANONICAL}/`, {
+      headers: {
+        "x-forwarded-host": `${DASHBOARD_HOST}:443, proxy.internal`,
+      },
+    });
+    const res = await proxy(req);
+
+    expect(res.headers.get("x-middleware-rewrite")).toBe(`${CANONICAL}/admin`);
+  });
+
+  it('leaves "/" on the canonical host untouched and does not invoke Auth0', async () => {
+    const req = new NextRequest(`${CANONICAL}/`);
+    const res = await proxy(req);
+
+    expect(auth0Middleware).not.toHaveBeenCalled();
+    expect(res.headers.get("x-middleware-rewrite")).toBeNull();
+  });
+
+  it('does not rewrite "/" on the dashboard host when INTERNAL_DASHBOARD_HOST is unset', async () => {
+    const req = new NextRequest(`https://${DASHBOARD_HOST}/`);
+    const res = await proxy(req);
+
+    expect(auth0Middleware).not.toHaveBeenCalled();
+    expect(res.headers.get("x-middleware-rewrite")).toBeNull();
+  });
+
+  it('rejects "/" on the dashboard host without authentication evidence', async () => {
+    process.env.INTERNAL_DASHBOARD_HOST = DASHBOARD_HOST;
+
+    const req = new NextRequest(`https://${DASHBOARD_HOST}/`);
+    const res = await proxy(req);
+
+    expect(res.status).toBe(307);
+    expect(res.headers.get("location")).toBe(
+      `https://${DASHBOARD_HOST}/unauthorized`,
+    );
+  });
+
+  it("does not affect non-root paths on the dashboard host", async () => {
+    process.env.INTERNAL_DASHBOARD_HOST = DASHBOARD_HOST;
+    const sdkRes = NextResponse.json({ ok: true });
+    auth0Middleware.mockResolvedValue(sdkRes);
+
+    const req = new NextRequest(`https://${DASHBOARD_HOST}/api/auth/login`);
+    const res = await proxy(req);
+
+    expect(res).toBe(sdkRes);
+    expect(res.headers.get("x-middleware-rewrite")).toBeNull();
     expect(auth0Middleware).toHaveBeenCalledTimes(1);
   });
 });

@@ -17,13 +17,13 @@ import {
   LocalisationData,
 } from "./AppStore/types/AppStoreFormTypes";
 import { BasicInformation, BasicInformationHandle } from "./BasicInformation";
-import { useFetchAppMetadataQuery } from "./graphql/client/fetch-app-metadata.generated";
+import { useFetchAppMetadataQuery } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/graphql/client/fetch-app-metadata.generated";
 import { viewModeAtom } from "./layout/ImagesProvider";
-import { useFetchLocalisationsQuery } from "./AppStore/graphql/client/fetch-localisations.generated";
+import { useFetchLocalisationsQuery } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/AppStore/graphql/client/fetch-localisations.generated";
 import { RejectionBanner } from "./RejectionBanner";
 import { ResolveModal } from "./ResolveModal";
 import { SaveStatusProvider } from "./SaveStatus";
-import { useRemoveFromReview } from "@/scenes/Portal/Teams/TeamId/Apps/common/hooks/use-remove-from-review";
+import { useRemoveFromReview } from "@/scenes/common/Teams/TeamId/Apps/common/hooks/use-remove-from-review";
 
 type AppProfilePageProps = {
   params: Record<string, string> | null | undefined;

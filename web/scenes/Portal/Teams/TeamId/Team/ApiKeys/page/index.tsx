@@ -9,7 +9,7 @@ import Skeleton from "react-loading-skeleton";
 import { TeamProfile } from "../../common/TeamProfile";
 import { ApiKeysTable } from "./ApiKeyTable";
 import { CreateKeyModal } from "./CreateKeyModal";
-import { useFetchKeysQuery } from "./graphql/client/fetch-keys.generated";
+import { useFetchKeysQuery } from "@/scenes/common/Teams/TeamId/Team/ApiKeys/page/graphql/client/fetch-keys.generated";
 
 type TeamApiKeysPageProps = {
   params: Promise<Record<string, string>>;
@@ -39,7 +39,7 @@ export const TeamApiKeysPage = (props: TeamApiKeysPageProps) => {
 
         {!loading && apiKeys?.length === 0 ? (
           <div className="grid grid-cols-1 justify-items-center gap-y-8 pt-12">
-            <div className="grid justify-items-center gap-y-5 ">
+            <div className="grid justify-items-center gap-y-5">
               <Typography variant={TYPOGRAPHY.H6}>No API keys found</Typography>
 
               <Typography

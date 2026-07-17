@@ -10,7 +10,7 @@ import { DOCS_URL } from "@/lib/constants";
 import { Auth0SessionUser } from "@/lib/types";
 import { urls } from "@/lib/urls";
 import { checkUserPermissions } from "@/lib/utils";
-import { colorAtom } from "@/scenes/Portal/layout/color-atom";
+import { colorAtom } from "@/scenes/common/layout/color-atom";
 import { useMeQuery } from "@/scenes/common/me-query/client";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { useAtom } from "jotai";
@@ -101,13 +101,13 @@ export const LoggedUserNav = () => {
 
       <Dropdown>
         <Dropdown.Button
-          className="flex size-6 items-center justify-center rounded-full bg-[var(--color-100)] text-xs transition-colors duration-300"
+          className="flex size-6 items-center justify-center rounded-full bg-(--color-100) text-xs transition-colors duration-300"
           asChild
         >
           <div>
             <Typography
               variant={TYPOGRAPHY.M5}
-              className="text-[var(--color-500)] transition-colors duration-500"
+              className="text-(--color-500) transition-colors duration-500"
             >
               {nameFirstLetter}
             </Typography>
@@ -232,7 +232,7 @@ export const LoggedUserNav = () => {
               href={urls.logout()}
               onClick={(e) => {
                 // Log out against the host the user is actually on (worldcoin.org
-                // vs world.org) so they land on that host's /login and aren't
+                // vs world.org) so they land on that host's landing page and aren't
                 // bounced back in by a stale session cookie on the other domain.
                 e.preventDefault();
                 window.location.assign(urls.logout(window.location.origin));

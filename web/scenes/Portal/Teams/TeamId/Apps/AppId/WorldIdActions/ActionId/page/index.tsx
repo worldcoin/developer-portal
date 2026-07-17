@@ -4,7 +4,7 @@ import { ErrorPage } from "@/components/ErrorPage";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import Skeleton from "react-loading-skeleton";
-import { useGetSingleActionV4Query } from "./graphql/client/get-single-action-v4.generated";
+import { useGetSingleActionV4Query } from "@/scenes/common/Teams/TeamId/Apps/AppId/WorldIdActions/ActionId/page/graphql/client/get-single-action-v4.generated";
 import { VerifiedTable } from "@/scenes/Portal/Teams/TeamId/Apps/AppId/Actions/ActionId/page/VerifiedTable";
 import { adaptNullifierV4 } from "./utils/adapt-nullifier-v4";
 
@@ -72,7 +72,7 @@ export const WorldIdActionIdPage = (props: WorldIdActionIdPageProps) => {
           </div>
 
           {/* Placeholder for future graph */}
-          <div className="pointer-events-none grid aspect-[580/350] w-full select-none content-center justify-center justify-items-center gap-y-1 rounded-2xl border border-grey-200">
+          <div className="pointer-events-none grid aspect-580/350 w-full content-center justify-center justify-items-center gap-y-1 rounded-2xl border border-grey-200 select-none">
             <Typography variant={TYPOGRAPHY.H7} className="text-grey-500">
               Detailed analytics coming soon
             </Typography>

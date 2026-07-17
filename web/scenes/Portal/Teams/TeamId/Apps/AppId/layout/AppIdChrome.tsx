@@ -82,10 +82,10 @@ export const AppIdChrome = ({
               <Tab
                 href={
                   hasRpRegistration
-                    ? `/teams/${teamId}/apps/${appId}/world-id-4-0`
+                    ? urls.worldId40({ team_id: teamId, app_id: appId })
                     : hasLegacyActions
-                      ? `/teams/${teamId}/apps/${appId}/actions`
-                      : `/teams/${teamId}/apps/${appId}?enableWorldId4=true`
+                      ? urls.actions({ team_id: teamId, app_id: appId })
+                      : urls.enableWorldId4({ team_id: teamId, app_id: appId })
                 }
                 underlined
                 active={isWorldIdSegment}
@@ -133,7 +133,10 @@ export const AppIdChrome = ({
                   },
                   {
                     label: "World ID 3.0 Legacy",
-                    href: `/teams/${teamId}/apps/${appId}/actions`,
+                    href: urls.actions({
+                      team_id: teamId,
+                      app_id: appId,
+                    }),
                     segment: "actions",
                     hidden: !hasLegacyActions,
                   },
@@ -185,10 +188,10 @@ export const AppIdChrome = ({
           <BottomBar.Link
             href={
               hasRpRegistration
-                ? `/teams/${teamId}/apps/${appId}/world-id-4-0`
+                ? urls.worldId40({ team_id: teamId, app_id: appId })
                 : hasLegacyActions
-                  ? `/teams/${teamId}/apps/${appId}/actions`
-                  : `/teams/${teamId}/apps/${appId}?enableWorldId4=true`
+                  ? urls.actions({ team_id: teamId, app_id: appId })
+                  : urls.enableWorldId4({ team_id: teamId, app_id: appId })
             }
             segment={"world-id-4-0"}
             active={isWorldIdSegment}
@@ -233,9 +236,9 @@ export const AppIdChrome = ({
             </Tab>
 
             <Tab
-              href={`/teams/${teamId}/apps/${appId}/actions`}
+              href={urls.worldIdActions({ team_id: teamId, app_id: appId })}
               underlined
-              segment={"actions"}
+              segment={"world-id-actions"}
             >
               <Typography variant={TYPOGRAPHY.R4}>Incognito actions</Typography>
             </Tab>
@@ -288,8 +291,8 @@ export const AppIdChrome = ({
         </BottomBar.Link>
 
         <BottomBar.Link
-          href={`/teams/${teamId}/apps/${appId}/actions`}
-          segment={"actions"}
+          href={urls.worldIdActions({ team_id: teamId, app_id: appId })}
+          segment={"world-id-actions"}
         >
           <IncognitoIcon className="size-7" />
         </BottomBar.Link>

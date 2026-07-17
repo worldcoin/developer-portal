@@ -30,7 +30,7 @@ export const FloatingInput = ({
       <div
         className={clsx(
           "relative flex items-center gap-2 rounded-[10px] px-4",
-          label ? "pb-3 pt-7" : "py-3.5",
+          label ? "pt-7 pb-3" : "py-3.5",
           errors ? "bg-system-error-50" : "bg-grey-50",
           className,
         )}
@@ -40,7 +40,7 @@ export const FloatingInput = ({
           {...register}
           placeholder=" "
           {...restProps}
-          className="peer w-full min-w-0 flex-1 bg-transparent text-sm text-grey-900 focus:outline-none disabled:text-grey-700 disabled:opacity-100 disabled:[-webkit-text-fill-color:#3C424B]"
+          className="peer w-full min-w-0 flex-1 bg-transparent text-sm text-grey-900 focus:outline-hidden disabled:text-grey-700 disabled:opacity-100 disabled:[-webkit-text-fill-color:#3C424B]"
         />
         {label && (
           <label
@@ -53,7 +53,7 @@ export const FloatingInput = ({
                 : [
                     "top-1/2 -translate-y-1/2 text-sm",
                     "peer-focus:top-4 peer-focus:translate-y-0 peer-focus:text-xs",
-                    "peer-[:not(:placeholder-shown)]:top-4 peer-[:not(:placeholder-shown)]:translate-y-0 peer-[:not(:placeholder-shown)]:text-xs",
+                    "peer-not-placeholder-shown:top-4 peer-not-placeholder-shown:translate-y-0 peer-not-placeholder-shown:text-xs",
                   ],
             )}
           >

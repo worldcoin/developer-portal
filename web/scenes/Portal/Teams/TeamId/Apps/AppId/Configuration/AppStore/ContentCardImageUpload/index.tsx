@@ -12,11 +12,11 @@ import { useAtom } from "jotai";
 import Image from "next/image";
 import { ChangeEvent, Fragment, useMemo, useRef, useState } from "react";
 import { toast } from "react-toastify";
-import { FetchAppMetadataDocument } from "../../graphql/client/fetch-app-metadata.generated";
+import { FetchAppMetadataDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/graphql/client/fetch-app-metadata.generated";
 import { ImageValidationError, useImage } from "../../hook/use-image";
 import ImageLoader from "../ImageForm/ImageLoader";
 import { unverifiedImageAtom, viewModeAtom } from "../../layout/ImagesProvider";
-import { useUpdateContentCardImageMutation } from "./graphql/client/update-content-card-image.generated";
+import { useUpdateContentCardImageMutation } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/AppStore/ContentCardImageUpload/graphql/client/update-content-card-image.generated";
 
 const PREVIEW_HEIGHT_PX = 200;
 const previewStyle = {
@@ -188,7 +188,7 @@ export const ContentCardImageUpload = (props: ContentCardImageUploadProps) => {
               <img
                 src={verifiedImageURL}
                 alt="content card image"
-                className="size-full rounded-xl object-contain drop-shadow-sm"
+                className="size-full rounded-xl object-contain drop-shadow-xs"
                 onError={() => setVerifiedImageError(true)}
               />
             </button>
@@ -231,7 +231,7 @@ export const ContentCardImageUpload = (props: ContentCardImageUploadProps) => {
               onClick={removeImage}
               disabled={loading || !isEditable}
               className={clsx(
-                "absolute right-4 top-4 flex size-8 items-center justify-center rounded-full border border-grey-200 bg-white shadow-sm transition-colors hover:bg-grey-100 disabled:cursor-not-allowed disabled:opacity-50",
+                "absolute top-4 right-4 flex size-8 items-center justify-center rounded-full border border-grey-200 bg-white shadow-xs transition-colors hover:bg-grey-100 disabled:cursor-not-allowed disabled:opacity-50",
                 { hidden: !isEditable },
               )}
             >
@@ -315,7 +315,7 @@ export const ContentCardImageUpload = (props: ContentCardImageUploadProps) => {
               <button
                 type="button"
                 onClick={() => setLightboxUrl(null)}
-                className="absolute right-3 top-3 flex size-9 items-center justify-center rounded-full bg-white/95 text-grey-700 shadow-md transition-colors hover:bg-white"
+                className="absolute top-3 right-3 flex size-9 items-center justify-center rounded-full bg-white/95 text-grey-700 shadow-md transition-colors hover:bg-white"
                 aria-label="Close"
               >
                 <CloseIcon className="size-4" />

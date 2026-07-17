@@ -1,8 +1,10 @@
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
+import { auth0 } from "@/lib/auth0";
 import { logger } from "@/lib/logger";
 import { Auth0SessionUser } from "@/lib/types";
 import { urls } from "@/lib/urls";
-import { auth0 } from "@/lib/auth0";
+import { HomeLayout } from "@/scenes/Onboarding/Home/layout";
+import { HomePage } from "@/scenes/Onboarding/Home/page";
 import { redirect } from "next/navigation";
 
 import {
@@ -15,7 +17,11 @@ export const RootPage = async () => {
   const auth0User = session?.user as Auth0SessionUser["user"];
 
   if (!auth0User) {
-    return redirect(urls.login());
+    return (
+      <HomeLayout>
+        <HomePage />
+      </HomeLayout>
+    );
   }
 
   // A valid session can still be missing the Hasura claim (e.g. an incomplete

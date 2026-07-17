@@ -20,18 +20,16 @@ import {
 } from "./graphql/fetch-invite.generated";
 
 import {
-  InsertMembershipMutation,
-  getSdk as InsertMembershipSdk,
-} from "./graphql/insert-membership.generated";
+  AcceptTeamInviteMutation,
+  getSdk as AcceptTeamInviteSdk,
+} from "./graphql/accept-team-invite.generated";
 
-import { Role_Enum } from "@/graphql/graphql";
 import { logger } from "@/lib/logger";
 import { Auth0User } from "@/lib/types";
 import { urls } from "@/lib/urls";
 import { isEmailUser } from "../helpers/is-email-user";
 import { isPasswordUser } from "../helpers/is-password-user";
 import { getAppUrlFromRequest } from "../helpers/utils";
-import { getSdk as DeleteInviteSdk } from "./graphql/delete-invite.generated";
 import { getSdk as updateUserSdk } from "./graphql/update-user.generated";
 
 export const loginCallback = async (req: NextRequest) => {
@@ -161,6 +159,8 @@ export const loginCallback = async (req: NextRequest) => {
   }
 
   let invite: InviteQuery["invite"][number] | null = null;
+  // If the user claims
+  let team_id_from_invite: string | null = null;
 
   if (invite_id) {
     try {
@@ -198,7 +198,14 @@ export const loginCallback = async (req: NextRequest) => {
       );
     }
 
-    if (invite.email !== auth0User.email) {
+    // Dont require email verification for World ID users, as they don't have an email address
+    // **for team invites**
+    if (
+      (isEmailUser(auth0User) || isPasswordUser(auth0User)) &&
+      auth0User.email_verified &&
+      auth0User.email &&
+      invite.email.toLowerCase().trim() !== auth0User.email.toLowerCase().trim()
+    ) {
       logger.error("Invite email does not match logged in email", {
         team_id: invite.team_id,
       });
@@ -214,27 +221,30 @@ export const loginCallback = async (req: NextRequest) => {
       );
     }
 
-    let membership: InsertMembershipMutation["insert_membership_one"] | null =
-      null;
+    // Consume the invite and create the membership atomically. The DB function
+    // deletes the single-use invite (the concurrency gate) and inserts the
+    // membership in one transaction, so concurrent requests bearing the same
+    // invite_id can only ever produce one membership, and a failed insert rolls
+    // back the delete — leaving the invite intact for a retry.
+    let membership:
+      | AcceptTeamInviteMutation["accept_team_invite"][number]
+      | null = null;
 
     try {
-      const insertMembershipResult = await InsertMembershipSdk(
+      const acceptInviteResult = await AcceptTeamInviteSdk(
         client,
-      ).InsertMembership({
+      ).AcceptTeamInvite({
+        invite_id,
         team_id: invite.team_id,
         user_id: user.id,
-        role: Role_Enum.Member,
       });
 
-      membership = insertMembershipResult.insert_membership_one;
+      membership = acceptInviteResult.accept_team_invite[0] ?? null;
     } catch (error) {
-      logger.error(
-        "Error while inserting membership for InsertMembershipSdk.",
-        {
-          error,
-          team_id: invite.team_id,
-        },
-      );
+      logger.error("Error while accepting invite for AcceptTeamInviteSdk.", {
+        error,
+        team_id: invite.team_id,
+      });
 
       return NextResponse.redirect(
         new URL(urls.logout(), appUrl).toString(),
@@ -243,7 +253,9 @@ export const loginCallback = async (req: NextRequest) => {
     }
 
     if (!membership) {
-      logger.error("Membership not found after inserting.", {
+      // The invite was already consumed — a concurrent request claimed it, or
+      // it was already used. Do not create a second membership from one invite.
+      logger.warn("Invite already consumed; no membership created.", {
         team_id: invite.team_id,
       });
       return NextResponse.redirect(
@@ -252,25 +264,26 @@ export const loginCallback = async (req: NextRequest) => {
       );
     }
 
-    try {
-      const deleteInviteResult = await DeleteInviteSdk(client).DeleteInvite({
-        invite_id,
-      });
+    const acceptedMembership = membership;
+    team_id_from_invite = acceptedMembership.team_id;
 
-      if (!deleteInviteResult.delete_invite_by_pk) {
-        logger.error(
-          `Error while deleting invite: ${invite_id}, invite not found.`,
-          {
-            team_id: invite.team_id,
-          },
-        );
-      }
-    } catch (error) {
-      logger.error("Error while deleting invite for DeleteInviteSdk.", {
-        error,
-        team_id: invite.team_id,
-      });
-    }
+    // Hasura resolves the function's nested `user.memberships` from a snapshot
+    // taken before the function's own INSERT, so the membership just created is
+    // missing from it. Add it back — guarding against it already being present —
+    // so the session reflects the team the user just joined.
+    const priorMemberships = acceptedMembership.user.memberships;
+    const joinedTeamPresent = priorMemberships.some(
+      (m) => m.team.id === acceptedMembership.team.id,
+    );
+    user = {
+      ...acceptedMembership.user,
+      memberships: joinedTeamPresent
+        ? priorMemberships
+        : [
+            ...priorMemberships,
+            { team: acceptedMembership.team, role: acceptedMembership.role },
+          ],
+    };
   }
 
   // ANCHOR: Sync relevant attributes from Auth0 (also sets the user's Auth0Id if not set before)
@@ -312,7 +325,8 @@ export const loginCallback = async (req: NextRequest) => {
     }
   }
 
-  const teamId = user?.memberships[0]?.team.id;
+  // If a user just accepted an invite, redirect them to that teams page.
+  const teamId = team_id_from_invite ?? user?.memberships[0]?.team.id;
   let url: string = urls.profile();
   const rawReturnTo = req.nextUrl.searchParams.get("returnTo");
   let returnTo: string | null = null;

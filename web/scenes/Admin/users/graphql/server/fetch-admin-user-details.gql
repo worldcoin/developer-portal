@@ -1,0 +1,72 @@
+query FetchAdminUserDetails($userId: String!) {
+  user_by_pk(id: $userId) {
+    id
+    name
+    email
+    created_at
+  }
+  memberships: membership_aggregate(where: { user_id: { _eq: $userId } }) {
+    aggregate {
+      count
+    }
+  }
+  owners: membership_aggregate(
+    where: { user_id: { _eq: $userId }, role: { _eq: OWNER } }
+  ) {
+    aggregate {
+      count
+    }
+  }
+  admins: membership_aggregate(
+    where: { user_id: { _eq: $userId }, role: { _eq: ADMIN } }
+  ) {
+    aggregate {
+      count
+    }
+  }
+  members: membership_aggregate(
+    where: { user_id: { _eq: $userId }, role: { _eq: MEMBER } }
+  ) {
+    aggregate {
+      count
+    }
+  }
+  apps: app_aggregate(
+    where: {
+      deleted_at: { _is_null: true }
+      team: { memberships: { user_id: { _eq: $userId } } }
+    }
+  ) {
+    aggregate {
+      count
+    }
+  }
+  owner_memberships: membership(
+    where: { user_id: { _eq: $userId }, role: { _eq: OWNER } }
+  ) {
+    id
+    team {
+      id
+      name
+      deleted_at
+      memberships_aggregate(where: { role: { _eq: OWNER } }) {
+        aggregate {
+          count
+        }
+      }
+    }
+  }
+  deleted_team_memberships: membership(
+    where: {
+      user_id: { _eq: $userId }
+      team: { deleted_at: { _is_null: false } }
+    }
+  ) {
+    id
+    team {
+      id
+      name
+      deleted_at
+    }
+  }
+}

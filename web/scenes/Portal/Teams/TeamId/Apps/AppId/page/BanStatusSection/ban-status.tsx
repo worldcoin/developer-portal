@@ -5,7 +5,7 @@ import { AlertIcon } from "@/components/Icons/AlertIcon";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import clsx from "clsx";
 import { useAtom } from "jotai";
-import { banMessageDialogOpenedAtom } from "../../../common/BanMessageDialog";
+import { banMessageDialogOpenedAtom } from "@/scenes/common/Teams/TeamId/Apps/common/BanMessageDialog/atoms";
 
 export const BanStatus = () => {
   const [isOpened, setIsOpened] = useAtom(banMessageDialogOpenedAtom);
@@ -18,7 +18,7 @@ export const BanStatus = () => {
   return (
     <div
       className={
-        "grid grid-cols-auto/1fr/auto items-center gap-x-3 rounded-lg border border-system-error-200 bg-system-error-50 px-3 py-2 text-system-error-600 sm:py-0 md:px-5"
+        "grid grid-cols-auto-1fr-auto items-center gap-x-3 rounded-lg border border-system-error-200 bg-system-error-50 px-3 py-2 text-system-error-600 sm:py-0 md:px-5"
       }
     >
       <AlertIcon className="text-system-error-600" />

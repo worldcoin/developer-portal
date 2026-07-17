@@ -30,7 +30,6 @@ import { getSdk as getRpRegistrationSdk } from "@/api/hasura/rotate-signer-key/g
 import { getSdk as getRevertStatusSdk } from "@/api/hasura/rotate-signer-key/graphql/revert-rotation-status.generated";
 import { getSdk as getUpdateResultSdk } from "@/api/hasura/rotate-signer-key/graphql/update-rotation-result.generated";
 import { getSdk as getUpdateStagingResultSdk } from "@/api/hasura/rotate-signer-key/graphql/update-staging-rotation-result.generated";
-import { isWorldId40EnabledServer } from "@/lib/feature-flags/world-id-4-0/server";
 import { logger } from "@/lib/logger";
 import { GraphQLClient } from "graphql-request";
 
@@ -48,7 +47,6 @@ export type ManagedRegistrationResult =
   | {
       ok: false;
       code:
-        | "feature_not_enabled"
         | "staging_not_supported"
         | "config_error"
         | "already_registered"
@@ -68,14 +66,12 @@ export type ManagedRegistrationResult =
 export async function submitManagedRpRegistration({
   client,
   appId,
-  teamId,
   signerAddress,
   appName,
   isStaging,
 }: {
   client: GraphQLClient;
   appId: string;
-  teamId: string;
   signerAddress: string;
   appName: string;
   isStaging: boolean;
@@ -85,14 +81,6 @@ export async function submitManagedRpRegistration({
       ok: false,
       code: "staging_not_supported",
       detail: "Staging apps cannot be migrated to World ID 4.0.",
-    };
-  }
-
-  if (!(await isWorldId40EnabledServer(teamId))) {
-    return {
-      ok: false,
-      code: "feature_not_enabled",
-      detail: "World ID 4.0 is not enabled for this team.",
     };
   }
 
@@ -288,9 +276,9 @@ export type ManagedRotationResult =
   | {
       ok: false;
       code:
-        | "feature_not_enabled"
         | "config_error"
         | "rp_not_registered"
+        | "app_not_active"
         | "self_managed_mode"
         | "rotation_in_progress"
         | "submission_error"
@@ -335,14 +323,14 @@ export async function submitManagedSignerRotation({
 
   const registration = rp_registration[0];
   const rpIdString = registration.rp_id;
-  const teamId = registration.app.team_id;
   const oldSignerAddress = registration.signer_address || "";
+  const app = registration.app;
 
-  if (!(await isWorldId40EnabledServer(teamId))) {
+  if (app.status !== "active" || app.is_archived || app.deleted_at) {
     return {
       ok: false,
-      code: "feature_not_enabled",
-      detail: "World ID 4.0 is not enabled for this team.",
+      code: "app_not_active",
+      detail: "App not found. App may be inactive, archived, or deleted.",
     };
   }
 

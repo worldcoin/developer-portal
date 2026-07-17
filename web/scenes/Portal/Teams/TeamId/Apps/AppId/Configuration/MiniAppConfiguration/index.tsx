@@ -13,7 +13,7 @@ import { toast } from "react-toastify";
 import {
   FetchAppMetadataDocument,
   FetchAppMetadataQueryVariables,
-} from "../graphql/client/fetch-app-metadata.generated";
+} from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/graphql/client/fetch-app-metadata.generated";
 import { AppMetadata } from "../AppStore/types/AppStoreFormTypes";
 import { isMiniAppAtom } from "../layout/ImagesProvider";
 import { useSaveStatusActions } from "../SaveStatus";

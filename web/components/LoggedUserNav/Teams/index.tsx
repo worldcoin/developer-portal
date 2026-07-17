@@ -27,7 +27,7 @@ export const Teams = (props: { selectedTeamId?: string }) => {
               name={team.name ?? ""}
             />
 
-            <Dropdown.ListItemText className="truncate md:!leading-4">
+            <Dropdown.ListItemText className="truncate md:leading-4!">
               {team.name}
             </Dropdown.ListItemText>
 

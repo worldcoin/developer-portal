@@ -9,8 +9,10 @@ import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Auth0SessionUser } from "@/lib/types";
 import { UserInfo } from "@/scenes/Portal/Profile/common/UserInfo";
 import { ColorSelector } from "@/scenes/Portal/Profile/page/ColorSelector";
-import { useUpdateUserMutation } from "@/scenes/Portal/Profile/page/graphql/client/update-user.generated";
-import { Color, colors } from "@/scenes/Portal/Profile/types";
+import { WorldIdAccountMigration } from "@/scenes/common/Profile/page/WorldIdAccountMigration";
+import { useUpdateUserMutation } from "@/scenes/common/Profile/page/graphql/client/update-user.generated";
+import { Color, colors } from "@/scenes/common/Profile/types";
+import { colorAtom } from "@/scenes/common/layout/color-atom";
 import { useMeQuery } from "@/scenes/common/me-query/client";
 import { FetchMeDocument } from "@/scenes/common/me-query/client/graphql/client/me-query.generated";
 import { useUser } from "@auth0/nextjs-auth0/client";
@@ -20,7 +22,6 @@ import { useCallback, useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import * as yup from "yup";
-import { colorAtom } from "../../layout/color-atom";
 
 const schema = yup
   .object({
@@ -39,7 +40,7 @@ type FormValues = yup.InferType<typeof schema>;
 
 export const ProfilePage = () => {
   const { user: auth0User } = useUser() as Auth0SessionUser;
-  const { user, loading } = useMeQuery();
+  const { user, loading, refetch: refetchMe } = useMeQuery();
 
   const [updateUser] = useUpdateUserMutation({
     refetchQueries: [FetchMeDocument],
@@ -123,7 +124,7 @@ export const ProfilePage = () => {
           </Section.Header>
 
           <form
-            className="grid justify-items-start gap-y-8 max-md:pb-8 md:max-w-[36.25rem]"
+            className="grid justify-items-start gap-y-8 max-md:pb-8 md:max-w-145"
             onSubmit={handleSubmit(submit)}
           >
             <div className="w-full rounded-12 border border-grey-200 p-6">
@@ -134,7 +135,7 @@ export const ProfilePage = () => {
               <Typography
                 as="p"
                 variant={TYPOGRAPHY.R4}
-                className="mb-6 mt-3 max-w-[22.5rem] text-grey-500"
+                className="mt-3 mb-6 max-w-90 text-grey-500"
               >
                 Avatar colors are assigned randomly, change as preferred
               </Typography>
@@ -160,7 +161,7 @@ export const ProfilePage = () => {
 
             <label
               htmlFor="is_allow_tracking"
-              className="grid cursor-pointer grid-cols-auto/1fr gap-x-4 rounded-xl border-[1px] border-grey-200 px-5 py-6"
+              className="grid cursor-pointer grid-cols-auto/1fr gap-x-4 rounded-xl border border-grey-200 px-5 py-6"
             >
               <Checkbox
                 register={register("isAllowTracking")}
@@ -177,6 +178,12 @@ export const ProfilePage = () => {
                 </Typography>
               </div>
             </label>
+
+            <WorldIdAccountMigration
+              auth0User={auth0User}
+              isLinked={Boolean(user?.world_id_nullifier)}
+              onLinkSuccess={refetchMe}
+            />
 
             <DecoratedButton
               type="submit"

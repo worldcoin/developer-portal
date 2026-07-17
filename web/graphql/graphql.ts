@@ -183,8 +183,6 @@ export type RegisterRpOutput = {
   operation_hash?: Maybe<Scalars["String"]["output"]>;
   rp_id: Scalars["String"]["output"];
   signer_address?: Maybe<Scalars["String"]["output"]>;
-  staging_operation_hash?: Maybe<Scalars["String"]["output"]>;
-  staging_status?: Maybe<Scalars["rp_registration_status"]["output"]>;
   status: Scalars["String"]["output"];
 };
 
@@ -307,6 +305,12 @@ export enum ViolationEnum {
   Features = "FEATURES",
   MaliciousApp = "MALICIOUS_APP",
 }
+
+export type Accept_Team_Invite_Args = {
+  _invite_id?: InputMaybe<Scalars["String"]["input"]>;
+  _team_id?: InputMaybe<Scalars["String"]["input"]>;
+  _user_id?: InputMaybe<Scalars["String"]["input"]>;
+};
 
 /** columns and relationships of "action" */
 export type Action = {
@@ -5352,6 +5356,17 @@ export type Invite_Aggregate = {
   nodes: Array<Invite>;
 };
 
+export type Invite_Aggregate_Bool_Exp = {
+  count?: InputMaybe<Invite_Aggregate_Bool_Exp_Count>;
+};
+
+export type Invite_Aggregate_Bool_Exp_Count = {
+  arguments?: InputMaybe<Array<Invite_Select_Column>>;
+  distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
+  filter?: InputMaybe<Invite_Bool_Exp>;
+  predicate: Int_Comparison_Exp;
+};
+
 /** aggregate fields of "invite" */
 export type Invite_Aggregate_Fields = {
   __typename?: "invite_aggregate_fields";
@@ -5364,6 +5379,20 @@ export type Invite_Aggregate_Fields = {
 export type Invite_Aggregate_FieldsCountArgs = {
   columns?: InputMaybe<Array<Invite_Select_Column>>;
   distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
+};
+
+/** order by aggregate values of table "invite" */
+export type Invite_Aggregate_Order_By = {
+  count?: InputMaybe<Order_By>;
+  max?: InputMaybe<Invite_Max_Order_By>;
+  min?: InputMaybe<Invite_Min_Order_By>;
+};
+
+/** input type for inserting array relation for remote table "invite" */
+export type Invite_Arr_Rel_Insert_Input = {
+  data: Array<Invite_Insert_Input>;
+  /** upsert condition */
+  on_conflict?: InputMaybe<Invite_On_Conflict>;
 };
 
 /** Boolean expression to filter rows from the table "invite". All fields are combined with a logical 'AND'. */
@@ -5402,6 +5431,14 @@ export type Invite_Max_Fields = {
   team_id?: Maybe<Scalars["String"]["output"]>;
 };
 
+/** order by max() on columns of table "invite" */
+export type Invite_Max_Order_By = {
+  email?: InputMaybe<Order_By>;
+  expires_at?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  team_id?: InputMaybe<Order_By>;
+};
+
 /** aggregate min on columns */
 export type Invite_Min_Fields = {
   __typename?: "invite_min_fields";
@@ -5409,6 +5446,14 @@ export type Invite_Min_Fields = {
   expires_at?: Maybe<Scalars["timestamptz"]["output"]>;
   id?: Maybe<Scalars["String"]["output"]>;
   team_id?: Maybe<Scalars["String"]["output"]>;
+};
+
+/** order by min() on columns of table "invite" */
+export type Invite_Min_Order_By = {
+  email?: InputMaybe<Order_By>;
+  expires_at?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  team_id?: InputMaybe<Order_By>;
 };
 
 /** response of any mutation on the table "invite" */
@@ -6308,9 +6353,17 @@ export type Membership_Updates = {
   where: Membership_Bool_Exp;
 };
 
+export type Merge_World_Id_Accounts_Args = {
+  _current_user_id?: InputMaybe<Scalars["String"]["input"]>;
+  _legacy_user_id?: InputMaybe<Scalars["String"]["input"]>;
+  _world_id_nullifier?: InputMaybe<Scalars["String"]["input"]>;
+};
+
 /** mutation root */
 export type Mutation_Root = {
   __typename?: "mutation_root";
+  /** execute VOLATILE function "accept_team_invite" which returns "membership" */
+  accept_team_invite: Array<Membership>;
   /** Bans app by app_id */
   ban_app: BanAppOutput;
   /** Closes the report with a decision */
@@ -6546,6 +6599,8 @@ export type Mutation_Root = {
   invalidate_cache?: Maybe<InvalidateCacheOutput>;
   /** Create invites and send emails */
   invite_team_members?: Maybe<InviteTeamMembersOutput>;
+  /** execute VOLATILE function "merge_world_id_accounts" which returns "user" */
+  merge_world_id_accounts: Array<User>;
   /** Register an RP (Relying Party) for an app with managed mode */
   register_rp?: Maybe<RegisterRpOutput>;
   /** Reset the given API key for the developer portal */
@@ -6757,6 +6812,16 @@ export type Mutation_Root = {
   validate_localisation?: Maybe<ValidateLocalisationOutput>;
   /** Verify an App */
   verify_app?: Maybe<VerifyAppOutput>;
+};
+
+/** mutation root */
+export type Mutation_RootAccept_Team_InviteArgs = {
+  args: Accept_Team_Invite_Args;
+  distinct_on?: InputMaybe<Array<Membership_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Membership_Order_By>>;
+  where?: InputMaybe<Membership_Bool_Exp>;
 };
 
 /** mutation root */
@@ -7408,6 +7473,16 @@ export type Mutation_RootInsert_User_OneArgs = {
 export type Mutation_RootInvite_Team_MembersArgs = {
   emails?: InputMaybe<Array<Scalars["String"]["input"]>>;
   team_id: Scalars["String"]["input"];
+};
+
+/** mutation root */
+export type Mutation_RootMerge_World_Id_AccountsArgs = {
+  args: Merge_World_Id_Accounts_Args;
+  distinct_on?: InputMaybe<Array<User_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<User_Order_By>>;
+  where?: InputMaybe<User_Bool_Exp>;
 };
 
 /** mutation root */
@@ -10609,8 +10684,8 @@ export type Rp_Registration_Max_Order_By = {
   operation_hash?: InputMaybe<Order_By>;
   rp_id?: InputMaybe<Order_By>;
   signer_address?: InputMaybe<Order_By>;
-  staging_operation_hash?: InputMaybe<Scalars["String"]["input"]>;
-  staging_status?: InputMaybe<Scalars["rp_registration_status"]["input"]>;
+  staging_operation_hash?: InputMaybe<Order_By>;
+  staging_status?: InputMaybe<Order_By>;
   status?: InputMaybe<Order_By>;
   updated_at?: InputMaybe<Order_By>;
 };
@@ -10640,8 +10715,8 @@ export type Rp_Registration_Min_Order_By = {
   operation_hash?: InputMaybe<Order_By>;
   rp_id?: InputMaybe<Order_By>;
   signer_address?: InputMaybe<Order_By>;
-  staging_operation_hash?: InputMaybe<Scalars["String"]["input"]>;
-  staging_status?: InputMaybe<Scalars["rp_registration_status"]["input"]>;
+  staging_operation_hash?: InputMaybe<Order_By>;
+  staging_status?: InputMaybe<Order_By>;
   status?: InputMaybe<Order_By>;
   updated_at?: InputMaybe<Order_By>;
 };
@@ -10693,8 +10768,8 @@ export type Rp_Registration_Order_By = {
   operation_hash?: InputMaybe<Order_By>;
   rp_id?: InputMaybe<Order_By>;
   signer_address?: InputMaybe<Order_By>;
-  staging_operation_hash?: InputMaybe<Scalars["String"]["input"]>;
-  staging_status?: InputMaybe<Scalars["rp_registration_status"]["input"]>;
+  staging_operation_hash?: InputMaybe<Order_By>;
+  staging_status?: InputMaybe<Order_By>;
   status?: InputMaybe<Order_By>;
   updated_at?: InputMaybe<Order_By>;
 };
@@ -11816,6 +11891,10 @@ export type Team = {
   deleted_at?: Maybe<Scalars["timestamptz"]["output"]>;
   id: Scalars["String"]["output"];
   /** An array relationship */
+  invites: Array<Invite>;
+  /** An aggregate relationship */
+  invites_aggregate: Invite_Aggregate;
+  /** An array relationship */
   memberships: Array<Membership>;
   /** An aggregate relationship */
   memberships_aggregate: Membership_Aggregate;
@@ -11859,6 +11938,24 @@ export type TeamApps_AggregateArgs = {
   offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<App_Order_By>>;
   where?: InputMaybe<App_Bool_Exp>;
+};
+
+/** columns and relationships of "team" */
+export type TeamInvitesArgs = {
+  distinct_on?: InputMaybe<Array<Invite_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Invite_Order_By>>;
+  where?: InputMaybe<Invite_Bool_Exp>;
+};
+
+/** columns and relationships of "team" */
+export type TeamInvites_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Invite_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Invite_Order_By>>;
+  where?: InputMaybe<Invite_Bool_Exp>;
 };
 
 /** columns and relationships of "team" */
@@ -11927,6 +12024,8 @@ export type Team_Bool_Exp = {
   created_at?: InputMaybe<Timestamptz_Comparison_Exp>;
   deleted_at?: InputMaybe<Timestamptz_Comparison_Exp>;
   id?: InputMaybe<String_Comparison_Exp>;
+  invites?: InputMaybe<Invite_Bool_Exp>;
+  invites_aggregate?: InputMaybe<Invite_Aggregate_Bool_Exp>;
   memberships?: InputMaybe<Membership_Bool_Exp>;
   memberships_aggregate?: InputMaybe<Membership_Aggregate_Bool_Exp>;
   name?: InputMaybe<String_Comparison_Exp>;
@@ -11947,6 +12046,7 @@ export type Team_Insert_Input = {
   created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
   deleted_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
   id?: InputMaybe<Scalars["String"]["input"]>;
+  invites?: InputMaybe<Invite_Arr_Rel_Insert_Input>;
   memberships?: InputMaybe<Membership_Arr_Rel_Insert_Input>;
   name?: InputMaybe<Scalars["String"]["input"]>;
   updated_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
@@ -12006,6 +12106,7 @@ export type Team_Order_By = {
   created_at?: InputMaybe<Order_By>;
   deleted_at?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  invites_aggregate?: InputMaybe<Invite_Aggregate_Order_By>;
   memberships_aggregate?: InputMaybe<Membership_Aggregate_Order_By>;
   name?: InputMaybe<Order_By>;
   team_owners_count?: InputMaybe<Order_By>;

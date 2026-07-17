@@ -10,6 +10,17 @@ import {
 
 export { Categories } from "./categories";
 
+/**
+ * Apps that legitimately use a custom external_nullifier (NOT derived from
+ * app_id + action), kept for legacy nullifier_hash compatibility. For every
+ * other app the portal is the sole authority for external_nullifier, so a
+ * client-supplied value must never be preserved (see HackerOne #3749623) and
+ * precheck computes the value from app_id + action instead of trusting storage.
+ */
+export const APPS_WITH_CUSTOM_EXTERNAL_NULLIFIER = [
+  "app_1f7f2c379f20307a414f6cf8b544ec8a", // Grants app - uses 0xB16B00B5 for humanity verification
+];
+
 // ANCHOR: Production Sequencers
 export const ORB_SEQUENCER = "https://signup-orb-ethereum.crypto.worldcoin.org";
 export const PHONE_SEQUENCER =
@@ -83,6 +94,15 @@ export const NativeAppToAppIdMapping: Record<string, Record<string, string>> = {
     network: "app_a23c6398432498825962a9b96294dde1",
     contacts: "app_32fa11ef4b55fc5865dcd6e45ef281f5",
   },
+};
+
+// The World ID Migration `app_id` is the legacy "Sign in with World ID" auth0 `client_id`.
+// It is a public identifier (not a secret), so we keep it in source rather than an env var,
+// giving the frontend and backend a single source of truth keyed by `NEXT_PUBLIC_APP_ENV`.
+export const WORLD_ID_MIGRATION_APP_IDS: Record<string, `app_${string}`> = {
+  dev: "app_988ffc5a91d98cf3930b481b28189d5c",
+  staging: "app_988ffc5a91d98cf3930b481b28189d5c",
+  production: "app_369183bd38f1641b6964ab51d7a20434",
 };
 
 export const NativeApps: Record<string, NativeAppsMap> = {

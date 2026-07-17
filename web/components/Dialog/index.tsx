@@ -6,13 +6,15 @@ import {
 import { twMerge } from "tailwind-merge";
 import { Fragment } from "react";
 
-export type DialogProps = DialogPropsBase<"div">;
+export type DialogProps = DialogPropsBase<"div"> & {
+  afterLeave?: () => void;
+};
 
 export const Dialog = (props: DialogProps) => {
-  const { className, children, open, ...otherProps } = props;
+  const { afterLeave, className, children, open, ...otherProps } = props;
 
   return (
-    <Transition show={open} as={Fragment}>
+    <Transition show={open} afterLeave={afterLeave} as={Fragment}>
       <DialogBase
         className={twMerge(
           "fixed inset-0 z-50",

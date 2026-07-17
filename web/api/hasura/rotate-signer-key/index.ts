@@ -33,9 +33,9 @@ const ROTATION_ERROR_HTTP_CODE: Record<
   Exclude<ManagedRotationResult, { ok: true }>["code"],
   string
 > = {
-  feature_not_enabled: "feature_not_enabled",
   config_error: "config_error",
   rp_not_registered: "rp_not_registered",
+  app_not_active: "app_not_active",
   self_managed_mode: "self_managed_mode",
   rotation_in_progress: "rotation_in_progress",
   submission_error: "submission_error",

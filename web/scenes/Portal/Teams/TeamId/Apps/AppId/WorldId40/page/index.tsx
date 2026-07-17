@@ -1,7 +1,7 @@
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import { getSdk } from "./graphql/server/fetch-rp-registration.generated";
+import { getSdk } from "@/scenes/common/Teams/TeamId/Apps/AppId/WorldId40/page/graphql/server/fetch-rp-registration.generated";
 import { WorldId40Content } from "./WorldId40Content";
 
 type Props = {
