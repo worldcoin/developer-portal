@@ -10,17 +10,17 @@ export enum AppStoreWizardStep {
   LOCALIZED_CONTENT = "localized-content",
 }
 
-export type ConfigurationStep = {
+export type AppStoreWizardStepConfig = {
   id: AppStoreWizardStep;
   number: string;
   title: string;
   description: string;
 };
 
-export const getConfigurationSteps = (
+export const getAppStoreWizardSteps = (
   isMiniApp: boolean,
-): ConfigurationStep[] => {
-  const steps: ConfigurationStep[] = [
+): AppStoreWizardStepConfig[] => {
+  const steps: AppStoreWizardStepConfig[] = [
     {
       id: AppStoreWizardStep.BASIC,
       number: "01",
@@ -65,11 +65,11 @@ export const getConfigurationSteps = (
  * first step ("basic", always present) so callers never handle undefined —
  * render sites only look up steps they actually render.
  */
-export const getConfigurationStep = (
+export const getAppStoreWizardStep = (
   isMiniApp: boolean,
   id: AppStoreWizardStep,
-): ConfigurationStep => {
-  const steps = getConfigurationSteps(isMiniApp);
+): AppStoreWizardStepConfig => {
+  const steps = getAppStoreWizardSteps(isMiniApp);
   return steps.find((step) => step.id === id) ?? steps[0];
 };
 
@@ -96,8 +96,8 @@ export const getStepForField = (fieldPath?: string): AppStoreWizardStep => {
   return AppStoreWizardStep.STORE_LISTING;
 };
 
-type ConfigurationWizardProps = {
-  steps: ConfigurationStep[];
+type AppStoreWizardProps = {
+  steps: AppStoreWizardStepConfig[];
   activeStep: AppStoreWizardStep;
 };
 
@@ -106,10 +106,10 @@ type ConfigurationWizardProps = {
  * active section without a surrounding divider; Back and Continue handle
  * navigation separately at the bottom of the form column.
  */
-export const ConfigurationWizard = ({
+export const AppStoreWizard = ({
   steps,
   activeStep,
-}: ConfigurationWizardProps) => {
+}: AppStoreWizardProps) => {
   const activeIndex = Math.max(
     0,
     steps.findIndex((step) => step.id === activeStep),

@@ -6,7 +6,7 @@ import { ReactNode } from "react";
 
 type NumberedSectionProps = {
   /**
-   * The step this section renders — sourced from getConfigurationSteps so the
+   * The step this section renders — sourced from getAppStoreWizardSteps so the
    * wizard header and the section header can never drift.
    */
   step: { number: string; title: string; description?: string };

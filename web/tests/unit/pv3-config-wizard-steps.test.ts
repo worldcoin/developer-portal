@@ -1,4 +1,4 @@
-import { getStepForField } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/Configuration/PageComponents/ConfigurationWizard";
+import { getStepForField } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/Configuration/PageComponents/AppStoreWizard";
 
 describe("getStepForField", () => {
   it("routes basic-info and logo failures to the first step", () => {

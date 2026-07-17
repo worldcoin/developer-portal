@@ -47,11 +47,11 @@ import { MiniAppConfiguration } from "./MiniAppConfiguration";
 import { AppIconBox } from "./PageComponents/AppIconBox";
 import {
   AppStoreWizardStep,
-  ConfigurationWizard,
-  getConfigurationStep,
-  getConfigurationSteps,
+  AppStoreWizard,
+  getAppStoreWizardStep,
+  getAppStoreWizardSteps,
   getStepForField,
-} from "./PageComponents/ConfigurationWizard";
+} from "./PageComponents/AppStoreWizard";
 import { FormSkeleton } from "./PageComponents/FormSkeleton";
 import { NumberedSection } from "./PageComponents/NumberedSection";
 import { RejectionBanner } from "./RejectionBanner";
@@ -139,7 +139,7 @@ const ActionsFooter = ({
   teamId: `team_${string}`;
   basicInfoRef?: MutableRefObject<BasicInformationHandle | null>;
   onValidationError?: (fieldPath?: string) => void;
-  steps: ReturnType<typeof getConfigurationSteps>;
+  steps: ReturnType<typeof getAppStoreWizardSteps>;
   activeStep: AppStoreWizardStep;
   onStepChange: (step: AppStoreWizardStep) => void;
 }) => {
@@ -291,7 +291,7 @@ const ConfigurationContent = ({
     modeMetadataId === appMetadata.id
       ? optimisticIsMiniApp
       : appMetadata.app_mode === "mini-app";
-  const steps = useMemo(() => getConfigurationSteps(isMiniApp), [isMiniApp]);
+  const steps = useMemo(() => getAppStoreWizardSteps(isMiniApp), [isMiniApp]);
   const [activeStep, setActiveStep] = useState<AppStoreWizardStep>(
     AppStoreWizardStep.BASIC,
   );
@@ -341,13 +341,13 @@ const ConfigurationContent = ({
         >
           <div className="flex min-w-0 items-center gap-2">
             <div className="min-w-0 flex-1">
-              <ConfigurationWizard steps={steps} activeStep={activeStep} />
+              <AppStoreWizard steps={steps} activeStep={activeStep} />
             </div>
             <VersionIndicator app={app} />
           </div>
 
           <NumberedSection
-            step={getConfigurationStep(isMiniApp, AppStoreWizardStep.BASIC)}
+            step={getAppStoreWizardStep(isMiniApp, AppStoreWizardStep.BASIC)}
             isActive={activeStep === AppStoreWizardStep.BASIC}
           >
             <div className="grid gap-y-6">
@@ -396,7 +396,7 @@ const ConfigurationContent = ({
           >
             {isMiniApp && (
               <NumberedSection
-                step={getConfigurationStep(
+                step={getAppStoreWizardStep(
                   isMiniApp,
                   AppStoreWizardStep.STORE_LISTING,
                 )}
@@ -407,7 +407,7 @@ const ConfigurationContent = ({
             )}
 
             <NumberedSection
-              step={getConfigurationStep(
+              step={getAppStoreWizardStep(
                 isMiniApp,
                 AppStoreWizardStep.AVAILABILITY,
               )}
@@ -418,7 +418,7 @@ const ConfigurationContent = ({
             </NumberedSection>
 
             <NumberedSection
-              step={getConfigurationStep(
+              step={getAppStoreWizardStep(
                 isMiniApp,
                 AppStoreWizardStep.LOCALIZED_CONTENT,
               )}
