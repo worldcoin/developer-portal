@@ -179,9 +179,7 @@ describe("admin home fetch", () => {
     expect(home.inventory.activeTeams + home.inventory.deletedTeams).toBe(
       120602,
     );
-    expect(home.inventory.activeApps + home.inventory.deletedApps).toBe(
-      120610,
-    );
+    expect(home.inventory.activeApps + home.inventory.deletedApps).toBe(120610);
     expect(home.queueCounts.appsAwaitingReview).toBe(7);
   });
 
