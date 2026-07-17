@@ -2,6 +2,7 @@
 
 import { ProgressBar } from "@/components/ProgressBar";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import type { ReactNode } from "react";
 
 export enum AppStoreWizardStep {
   BASIC = "basic",
@@ -99,6 +100,8 @@ export const getStepForField = (fieldPath?: string): AppStoreWizardStep => {
 type AppStoreWizardProps = {
   steps: AppStoreWizardStepConfig[];
   activeStep: AppStoreWizardStep;
+  /** Optional cue aligned with the step count (e.g. verified/draft indicator). */
+  accessory?: ReactNode;
 };
 
 /**
@@ -106,7 +109,11 @@ type AppStoreWizardProps = {
  * active section without a surrounding divider; Back and Continue handle
  * navigation separately at the bottom of the form column.
  */
-export const AppStoreWizard = ({ steps, activeStep }: AppStoreWizardProps) => {
+export const AppStoreWizard = ({
+  steps,
+  activeStep,
+  accessory,
+}: AppStoreWizardProps) => {
   const activeIndex = Math.max(
     0,
     steps.findIndex((step) => step.id === activeStep),
@@ -123,13 +130,16 @@ export const AppStoreWizard = ({ steps, activeStep }: AppStoreWizardProps) => {
         >
           {currentStep?.title}
         </Typography>
-        <Typography
-          variant={TYPOGRAPHY.M5}
-          className="shrink-0 text-grey-500 tabular-nums"
-          aria-label={`Step ${currentStepNumber} of ${steps.length}`}
-        >
-          {currentStepNumber}/{steps.length}
-        </Typography>
+        <div className="flex shrink-0 items-center gap-2">
+          {accessory}
+          <Typography
+            variant={TYPOGRAPHY.M5}
+            className="shrink-0 text-grey-500 tabular-nums"
+            aria-label={`Step ${currentStepNumber} of ${steps.length}`}
+          >
+            {currentStepNumber}/{steps.length}
+          </Typography>
+        </div>
       </div>
       <ProgressBar
         value={currentStepNumber}

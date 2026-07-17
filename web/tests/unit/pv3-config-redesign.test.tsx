@@ -678,7 +678,7 @@ describe("v3 Configuration redesign [footer and preview]", () => {
 
     renderPage();
 
-    // The top-right badge is a static indicator, not a control; the version
+    // The header badge is a static indicator, not a control; the version
     // action lives in the footer next to Back.
     const indicator = screen.getByTestId("configuration-version-indicator");
     expect(indicator).toHaveAccessibleName("Verified version");
@@ -686,7 +686,8 @@ describe("v3 Configuration redesign [footer and preview]", () => {
     const progress = screen.getByRole("progressbar", {
       name: "Configuration progress",
     });
-    expect(indicator.parentElement).toContainElement(progress);
+    // Indicator sits in the wizard header row above the progress bar.
+    expect(progress.parentElement).toContainElement(indicator);
 
     expect(screen.getByRole("button", { name: /New draft/ })).toBeEnabled();
     expect(screen.getByAltText("App icon")).toHaveAttribute(

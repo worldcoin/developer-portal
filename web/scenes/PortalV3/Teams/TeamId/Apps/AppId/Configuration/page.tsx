@@ -104,7 +104,7 @@ const VersionIndicator = ({
       role="img"
       aria-label={label}
       title={label}
-      className="flex shrink-0 items-center text-grey-500"
+      className="inline-flex size-4 shrink-0 items-center justify-center text-grey-500"
     >
       {isVerifiedView ? (
         <CheckmarkBadge className="size-4 text-system-warning-500" />
@@ -339,12 +339,11 @@ const ConfigurationContent = ({
           ref={scrollContainerRef}
           className="grid min-w-0 content-start gap-y-6 pt-6 pb-6 lg:min-h-0 lg:flex-1 lg:overflow-y-auto lg:pr-6"
         >
-          <div className="flex min-w-0 items-center gap-2">
-            <div className="min-w-0 flex-1">
-              <AppStoreWizard steps={steps} activeStep={activeStep} />
-            </div>
-            <VersionIndicator app={app} />
-          </div>
+          <AppStoreWizard
+            steps={steps}
+            activeStep={activeStep}
+            accessory={<VersionIndicator app={app} />}
+          />
 
           <NumberedSection
             step={getAppStoreWizardStep(isMiniApp, AppStoreWizardStep.BASIC)}
