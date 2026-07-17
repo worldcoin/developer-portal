@@ -3,14 +3,15 @@
 import { ProgressBar } from "@/components/ProgressBar";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 
-export type ConfigurationStepId =
-  | "basic"
-  | "store-listing"
-  | "availability"
-  | "localized-content";
+export enum ConfigurationWizardStep {
+  BASIC = "basic",
+  STORE_LISTING = "store-listing",
+  AVAILABILITY = "availability",
+  LOCALIZED_CONTENT = "localized-content",
+}
 
 export type ConfigurationStep = {
-  id: ConfigurationStepId;
+  id: ConfigurationWizardStep;
   number: string;
   title: string;
   description: string;
@@ -21,7 +22,7 @@ export const getConfigurationSteps = (
 ): ConfigurationStep[] => {
   const steps: ConfigurationStep[] = [
     {
-      id: "basic",
+      id: ConfigurationWizardStep.BASIC,
       number: "01",
       title: "Basic information",
       description:
@@ -31,7 +32,7 @@ export const getConfigurationSteps = (
 
   if (isMiniApp) {
     steps.push({
-      id: "store-listing",
+      id: ConfigurationWizardStep.STORE_LISTING,
       number: "02",
       title: "Store listing",
       description:
@@ -41,14 +42,14 @@ export const getConfigurationSteps = (
 
   steps.push(
     {
-      id: "availability",
+      id: ConfigurationWizardStep.AVAILABILITY,
       number: isMiniApp ? "03" : "02",
       title: "Availability",
       description:
         "Choose the countries and languages where your app can launch.",
     },
     {
-      id: "localized-content",
+      id: ConfigurationWizardStep.LOCALIZED_CONTENT,
       number: isMiniApp ? "04" : "03",
       title: "Localized content",
       description:
@@ -66,38 +67,40 @@ export const getConfigurationSteps = (
  */
 export const getConfigurationStep = (
   isMiniApp: boolean,
-  id: ConfigurationStepId,
+  id: ConfigurationWizardStep,
 ): ConfigurationStep => {
   const steps = getConfigurationSteps(isMiniApp);
   return steps.find((step) => step.id === id) ?? steps[0];
 };
 
-export const getStepForField = (fieldPath?: string): ConfigurationStepId => {
+export const getStepForField = (
+  fieldPath?: string,
+): ConfigurationWizardStep => {
   if (
     !fieldPath ||
     fieldPath === "basic_information" ||
     fieldPath === "logo_img_url"
   ) {
-    return "basic";
+    return ConfigurationWizardStep.BASIC;
   }
 
   if (
     fieldPath.startsWith("supported_countries") ||
     fieldPath.startsWith("supported_languages")
   ) {
-    return "availability";
+    return ConfigurationWizardStep.AVAILABILITY;
   }
 
   if (fieldPath.startsWith("localisations")) {
-    return "localized-content";
+    return ConfigurationWizardStep.LOCALIZED_CONTENT;
   }
 
-  return "store-listing";
+  return ConfigurationWizardStep.STORE_LISTING;
 };
 
 type ConfigurationWizardProps = {
   steps: ConfigurationStep[];
-  activeStep: ConfigurationStepId;
+  activeStep: ConfigurationWizardStep;
 };
 
 /**

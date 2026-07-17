@@ -29,17 +29,24 @@ import {
   useState,
 } from "react";
 import Skeleton from "react-loading-skeleton";
-import { AppStoreForm } from "./AppStore/app-store";
+import {
+  AppStoreForm,
+  AvailabilityFields,
+  LawsAndRegulationsBanner,
+  LocalizedContentFields,
+  StoreListingFields,
+} from "./AppStore/app-store";
 import { AppStoreFormProvider } from "./AppStore/app-store-form-provider";
 import {
   AppMetadata,
   LocalisationData,
 } from "./AppStore/types/AppStoreFormTypes";
 import { BasicInformation, BasicInformationHandle } from "./BasicInformation";
+import { ConfigAction } from "./ConfigAction";
 import { MiniAppConfiguration } from "./MiniAppConfiguration";
 import { AppIconBox } from "./PageComponents/AppIconBox";
-import type { ConfigurationStepId } from "./PageComponents/ConfigurationWizard";
 import {
+  ConfigurationWizardStep,
   ConfigurationWizard,
   getConfigurationStep,
   getConfigurationSteps,
@@ -49,7 +56,7 @@ import { FormSkeleton } from "./PageComponents/FormSkeleton";
 import { NumberedSection } from "./PageComponents/NumberedSection";
 import { RejectionBanner } from "./RejectionBanner";
 import { ResolveModal } from "./ResolveModal";
-import { ConfigurationPrimaryAction, ReviewRail } from "./ReviewRail";
+import { LivePreview } from "./LivePreview";
 import { SaveStatusIndicator, SaveStatusProvider } from "./SaveStatus";
 import { useCreateNewDraft } from "./hook/use-create-new-draft";
 import { isMiniAppAtom, viewModeAtom } from "./layout/ImagesProvider";
@@ -133,8 +140,8 @@ const ActionsFooter = ({
   basicInfoRef?: MutableRefObject<BasicInformationHandle | null>;
   onValidationError?: (fieldPath?: string) => void;
   steps: ReturnType<typeof getConfigurationSteps>;
-  activeStep: ConfigurationStepId;
-  onStepChange: (step: ConfigurationStepId) => void;
+  activeStep: ConfigurationWizardStep;
+  onStepChange: (step: ConfigurationWizardStep) => void;
 }) => {
   const [viewMode, setViewMode] = useAtom(viewModeAtom);
   const { user } = useUser() as Auth0SessionUser;
@@ -250,7 +257,7 @@ const ActionsFooter = ({
           </DecoratedButton>
         )}
 
-        <ConfigurationPrimaryAction
+        <ConfigAction
           appId={appId}
           teamId={teamId}
           appMetadata={appMetadata}
@@ -267,8 +274,8 @@ const ActionsFooter = ({
   );
 };
 
-// Rendered inside AppStoreFormProvider so the review-readiness rail can watch
-// the shared form context.
+// Rendered inside AppStoreFormProvider so the live preview can watch the shared
+// form context.
 const ConfigurationContent = ({
   appId,
   teamId,
@@ -285,9 +292,11 @@ const ConfigurationContent = ({
       ? optimisticIsMiniApp
       : appMetadata.app_mode === "mini-app";
   const steps = useMemo(() => getConfigurationSteps(isMiniApp), [isMiniApp]);
-  const [activeStep, setActiveStep] = useState<ConfigurationStepId>("basic");
+  const [activeStep, setActiveStep] = useState<ConfigurationWizardStep>(
+    ConfigurationWizardStep.BASIC,
+  );
 
-  const handleStepChange = useCallback((step: ConfigurationStepId) => {
+  const handleStepChange = useCallback((step: ConfigurationWizardStep) => {
     setActiveStep(step);
     requestAnimationFrame(() => {
       scrollContainerRef.current?.scrollTo?.({ top: 0, behavior: "smooth" });
@@ -304,7 +313,7 @@ const ConfigurationContent = ({
 
   useEffect(() => {
     if (!steps.some((step) => step.id === activeStep)) {
-      handleStepChange("availability");
+      handleStepChange(ConfigurationWizardStep.AVAILABILITY);
     }
   }, [activeStep, handleStepChange, steps]);
 
@@ -312,7 +321,9 @@ const ConfigurationContent = ({
     (fieldPath?: string) => {
       const targetStep = getStepForField(fieldPath);
       handleStepChange(
-        steps.some((step) => step.id === targetStep) ? targetStep : "basic",
+        steps.some((step) => step.id === targetStep)
+          ? targetStep
+          : ConfigurationWizardStep.BASIC,
       );
     },
     [handleStepChange, steps],
@@ -336,8 +347,11 @@ const ConfigurationContent = ({
           </div>
 
           <NumberedSection
-            step={getConfigurationStep(isMiniApp, "basic")}
-            isActive={activeStep === "basic"}
+            step={getConfigurationStep(
+              isMiniApp,
+              ConfigurationWizardStep.BASIC,
+            )}
+            isActive={activeStep === ConfigurationWizardStep.BASIC}
           >
             <div className="grid gap-y-6">
               <div className="grid gap-4 xl:grid-cols-[11.75rem_minmax(0,1fr)]">
@@ -382,8 +396,42 @@ const ConfigurationContent = ({
             appId={appId}
             teamId={teamId}
             appMetadata={appMetadata as AppMetadata}
-            activeStep={activeStep}
-          />
+          >
+            {isMiniApp && (
+              <NumberedSection
+                step={getConfigurationStep(
+                  isMiniApp,
+                  ConfigurationWizardStep.STORE_LISTING,
+                )}
+                isActive={activeStep === ConfigurationWizardStep.STORE_LISTING}
+              >
+                <StoreListingFields />
+              </NumberedSection>
+            )}
+
+            <NumberedSection
+              step={getConfigurationStep(
+                isMiniApp,
+                ConfigurationWizardStep.AVAILABILITY,
+              )}
+              isActive={activeStep === ConfigurationWizardStep.AVAILABILITY}
+              banner={isMiniApp ? <LawsAndRegulationsBanner /> : undefined}
+            >
+              <AvailabilityFields />
+            </NumberedSection>
+
+            <NumberedSection
+              step={getConfigurationStep(
+                isMiniApp,
+                ConfigurationWizardStep.LOCALIZED_CONTENT,
+              )}
+              isActive={
+                activeStep === ConfigurationWizardStep.LOCALIZED_CONTENT
+              }
+            >
+              <LocalizedContentFields />
+            </NumberedSection>
+          </AppStoreForm>
         </div>
 
         <ActionsFooter
@@ -401,7 +449,11 @@ const ConfigurationContent = ({
 
       {/* The preview is a read-only visual aid; page actions live with the
           form in the neighboring column. */}
-      <ReviewRail appId={appId} teamName={teamName} appMetadata={appMetadata} />
+      <LivePreview
+        appId={appId}
+        teamName={teamName}
+        appMetadata={appMetadata}
+      />
     </div>
   );
 };

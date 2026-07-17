@@ -1,20 +1,18 @@
-import { LivePreview } from "./LivePreview";
+import { LivePreview as LivePreviewContent } from "./LivePreview";
 import type { FullAppMetadata } from "./types";
 
-export { ConfigurationPrimaryAction } from "./ConfigurationPrimaryAction";
-
-type ReviewRailProps = {
+type LivePreviewProps = {
   appId: string;
   teamName: string;
   appMetadata: FullAppMetadata;
 };
 
 /** Live listing preview, intentionally isolated from page-level actions. */
-export const ReviewRail = ({
+export const LivePreview = ({
   appId,
   teamName,
   appMetadata,
-}: ReviewRailProps) => {
+}: LivePreviewProps) => {
   return (
     <aside
       aria-label="Live preview"
@@ -22,7 +20,7 @@ export const ReviewRail = ({
     >
       <div className="flex flex-col gap-y-5 py-8 lg:h-full">
         <div className="min-h-0 flex-1 overflow-y-auto pr-1">
-          <LivePreview
+          <LivePreviewContent
             appId={appId}
             teamName={teamName}
             appMetadata={appMetadata}

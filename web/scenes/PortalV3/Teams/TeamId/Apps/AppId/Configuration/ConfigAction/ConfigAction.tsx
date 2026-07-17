@@ -11,14 +11,14 @@ import type { MutableRefObject } from "react";
 import { SubmitAppModal } from "../AppTopBar/SubmitAppModal";
 import type { BasicInformationHandle } from "../BasicInformation";
 import { unverifiedImageAtom, viewModeAtom } from "../layout/ImagesProvider";
-import { ConfigurationPrimaryButton } from "./ConfigurationPrimaryButton";
-import type { ConfigurationNextStep, FullAppMetadata } from "./types";
+import { ConfigActionButton } from "./ConfigActionButton";
+import type { ConfigNextStep, FullAppMetadata } from "./types";
 
-type ConfigurationPrimaryActionProps = {
+type ConfigActionProps = {
   appId: string;
   teamId: string;
   appMetadata: FullAppMetadata;
-  nextStep?: ConfigurationNextStep;
+  nextStep?: ConfigNextStep;
   onContinue: () => void;
   basicInfoRef?: MutableRefObject<BasicInformationHandle | null>;
   onValidationError?: (fieldPath?: string) => void;
@@ -29,7 +29,7 @@ type ConfigurationPrimaryActionProps = {
  * Keeps the footer's primary action mounted across every step so Continue can
  * become Submit for review without resizing or replacing the button shell.
  */
-export const ConfigurationPrimaryAction = ({
+export const ConfigAction = ({
   appId,
   teamId,
   appMetadata,
@@ -38,7 +38,7 @@ export const ConfigurationPrimaryAction = ({
   basicInfoRef,
   onValidationError,
   className,
-}: ConfigurationPrimaryActionProps) => {
+}: ConfigActionProps) => {
   const viewMode = useAtomValue(viewModeAtom);
   const { user } = useUser() as Auth0SessionUser;
   const [showSubmitAppModal, setShowSubmitAppModal] = useState(false);
@@ -69,7 +69,7 @@ export const ConfigurationPrimaryAction = ({
         appId={appId}
         isDeveloperAllowListing={appMetadata.is_developer_allow_listing}
       />
-      <ConfigurationPrimaryButton
+      <ConfigActionButton
         appMetadata={appMetadata}
         appId={appId}
         teamId={teamId}

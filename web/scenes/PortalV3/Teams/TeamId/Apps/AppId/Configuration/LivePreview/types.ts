@@ -2,7 +2,3 @@ import type { FetchAppMetadataQuery } from "@/scenes/common/Teams/TeamId/Apps/Ap
 
 export type FullAppMetadata =
   FetchAppMetadataQuery["app"][0]["app_metadata"][0];
-
-export type ConfigurationNextStep = { title: string };
-
-export type ConfigurationPrimaryActionKind = "continue" | "submit";

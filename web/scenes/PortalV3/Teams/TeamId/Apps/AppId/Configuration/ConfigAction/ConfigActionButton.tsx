@@ -21,11 +21,11 @@ import { MULTIPLE_ERRORS_TOAST_MESSAGE } from "../AppStore/utils/form-error-util
 import type { BasicInformationHandle } from "../BasicInformation";
 import { useSaveStatusActions } from "../SaveStatus";
 import type {
-  ConfigurationNextStep,
-  ConfigurationPrimaryActionKind,
+  ConfigActionKind,
+  ConfigNextStep,
   FullAppMetadata,
 } from "./types";
-import { usePrimaryActionLabelTransition } from "./usePrimaryActionLabelTransition";
+import { useConfigActionLabelTransition } from "./useConfigActionLabelTransition";
 
 const scrollToFirstError = () => {
   requestAnimationFrame(() => {
@@ -47,12 +47,12 @@ const EN_TOP_LEVEL_FIELDS = [
   "description_overview",
 ] as const;
 
-type ConfigurationPrimaryButtonProps = {
+type ConfigActionButtonProps = {
   appMetadata: FullAppMetadata;
   appId: string;
   teamId: string;
   viewMode: "unverified" | "verified";
-  nextStep?: ConfigurationNextStep;
+  nextStep?: ConfigNextStep;
   onContinue: () => void;
   onSubmitSuccess: () => void;
   basicInfoRef?: MutableRefObject<BasicInformationHandle | null>;
@@ -61,7 +61,7 @@ type ConfigurationPrimaryButtonProps = {
 };
 
 /** Persistent footer action that advances steps, then submits on the last one. */
-export const ConfigurationPrimaryButton = ({
+export const ConfigActionButton = ({
   appMetadata,
   appId,
   teamId,
@@ -72,7 +72,7 @@ export const ConfigurationPrimaryButton = ({
   basicInfoRef,
   onValidationError,
   className,
-}: ConfigurationPrimaryButtonProps) => {
+}: ConfigActionButtonProps) => {
   const form = useFormContext<AppStoreFormValues>();
   const searchParams = useSearchParams();
   const pathname = usePathname();
@@ -82,14 +82,14 @@ export const ConfigurationPrimaryButton = ({
   const hasAutoSubmitted = useRef(false);
   const saveStatus = useSaveStatusActions();
   const isFinalStep = !nextStep;
-  const targetActionKind: ConfigurationPrimaryActionKind = isFinalStep
+  const targetActionKind: ConfigActionKind = isFinalStep
     ? "submit"
     : "continue";
   const {
     contentRef: actionContentRef,
     displayedActionKind,
     isTransitioningRef: isActionTransitioningRef,
-  } = usePrimaryActionLabelTransition(targetActionKind);
+  } = useConfigActionLabelTransition(targetActionKind);
 
   const submitForReview = useCallback(async () => {
     if (appMetadata.verification_status !== "unverified") {

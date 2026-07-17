@@ -14,7 +14,7 @@ describe("getStepForField", () => {
 
   it("routes localisation paths", () => {
     // Row-shaped aliases (top-level short_name etc.) are translated to
-    // localisations.{en}.* by ConfigurationPrimaryButton before this mapping
+    // localisations.{en}.* by ConfigActionButton before this mapping
     // ever sees them, so the prefix check is the single localized branch.
     expect(getStepForField("localisations.1.short_name")).toBe(
       "localized-content",
