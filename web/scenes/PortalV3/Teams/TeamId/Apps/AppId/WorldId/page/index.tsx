@@ -11,7 +11,13 @@ import { banMessageDialogOpenedAtom } from "@/scenes/common/Teams/TeamId/Apps/co
 import { useGetWorldIdOverviewQuery } from "@/scenes/common/Teams/TeamId/Apps/AppId/WorldId/page/graphql/client/get-world-id-overview.generated";
 import { useAtom } from "jotai";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { type ReactNode, useCallback, useEffect, useState } from "react";
+import {
+  type ReactNode,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import Skeleton from "react-loading-skeleton";
 import { ActionsGrid } from "./ActionsGrid";
 import { RegisterRpEmptyState } from "./RegisterRpEmptyState";
@@ -86,7 +92,13 @@ export const WorldIdPage = (props: {
   } | null>(null);
 
   const selectTab = useCallback(
-    (nextTab: WorldIdTab) => {
+    (
+      nextTab: WorldIdTab,
+      options?: {
+        /** Drop funnel params in the same replace so a second stale replace can't revive them. */
+        clearParams?: string[];
+      },
+    ) => {
       setTab(nextTab);
 
       const nextSearchParams = new URLSearchParams(searchParams.toString());
@@ -94,6 +106,9 @@ export const WorldIdPage = (props: {
         nextSearchParams.set("tab", "world-id-4-0");
       } else {
         nextSearchParams.delete("tab");
+      }
+      for (const name of options?.clearParams ?? []) {
+        nextSearchParams.delete(name);
       }
 
       const query = nextSearchParams.toString();
@@ -103,6 +118,17 @@ export const WorldIdPage = (props: {
       });
     },
     [pathname, router, searchParams],
+  );
+
+  // User-initiated tab changes abandon the deferred create-after-setup funnel.
+  // Programmatic selectTab calls (deep-link bootstrap / post-setup resume) must
+  // not go through this, or they'd clear the intent before the create dialog opens.
+  const handleTabChange = useCallback(
+    (nextTab: WorldIdTab) => {
+      setCreateAfterSetup(false);
+      selectTab(nextTab, { clearParams: ["createAction"] });
+    },
+    [selectTab],
   );
 
   const requestedTab: WorldIdTab =
@@ -138,9 +164,22 @@ export const WorldIdPage = (props: {
       canManageWorldId: props.canManageWorldId,
     });
 
+  // Only react to async RP/data for the create-after-setup funnel:
+  // - one-shot: deep-link with no RP → World ID setup tab
+  // - resume: RP becomes registered → Actions (create dialog opens via state)
+  // Button clicks already call selectTab; do not re-force World ID after that.
+  const hasBootstrappedCreateIntent = useRef(false);
   useEffect(() => {
     if (loading || !hasResolvedApp || !createAfterSetup) return;
-    selectTab(hasActiveRp ? "actions" : "world-id-4-0");
+
+    if (hasActiveRp) {
+      selectTab("actions");
+      return;
+    }
+
+    if (hasBootstrappedCreateIntent.current) return;
+    hasBootstrappedCreateIntent.current = true;
+    selectTab("world-id-4-0");
   }, [createAfterSetup, hasActiveRp, hasResolvedApp, loading, selectTab]);
 
   useEffect(() => {
@@ -283,7 +322,7 @@ export const WorldIdPage = (props: {
       <div className="flex flex-col gap-6">
         <WorldIdTabs
           tab={tab}
-          onTabChange={selectTab}
+          onTabChange={handleTabChange}
           legacyActionsHref={legacyActionsHref}
           search={search}
           onSearchChange={setSearch}
