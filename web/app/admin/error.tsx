@@ -5,10 +5,10 @@ import { toast } from "react-toastify";
 
 type AdminErrorProps = {
   error: Error & { digest?: string };
-  unstable_retry: () => void;
+  reset: () => void;
 };
 
-export default function AdminError({ error, unstable_retry }: AdminErrorProps) {
+export default function AdminError({ error, reset }: AdminErrorProps) {
   useEffect(() => {
     toast.error("Unable to load the admin dashboard. Please try again.", {
       toastId: "admin-dashboard-load-error",
@@ -29,7 +29,7 @@ export default function AdminError({ error, unstable_retry }: AdminErrorProps) {
         </p>
         <button
           className="mt-4 rounded-8 bg-grey-900 px-4 py-2 text-14 font-medium text-grey-0 transition-colors hover:bg-grey-700 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
-          onClick={unstable_retry}
+          onClick={reset}
           type="button"
         >
           Try again
