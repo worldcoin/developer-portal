@@ -142,9 +142,14 @@ export async function POST(
     const rpId = rpRegistration.rp_id;
     const appId = rpRegistration.app_id;
 
+    const verifierEnvironment =
+      parsedParams.environment === "sandbox"
+        ? "staging"
+        : parsedParams.environment;
+
     if (parsedParams.integrity_bundle) {
       const integrityResult = await verifyIntegrityBundle({
-        environment: parsedParams.environment,
+        environment: verifierEnvironment,
         integrityBundle: parsedParams.integrity_bundle,
         nonce: parsedParams.nonce!,
         protocolVersion: parsedParams.protocol_version as "3.0" | "4.0",

@@ -9,7 +9,7 @@ import { processSessionProof, SessionResult } from "./verify-util";
 type SessionProofSuccessResponse = {
   success: true;
   session_id: string;
-  environment: "production" | "staging";
+  environment: "production" | "staging" | "sandbox";
   results: SessionResult[];
   message: string;
 };
@@ -37,14 +37,17 @@ export async function handleSessionProofVerification(
     nonce: string;
     protocol_version: string;
     responses: SessionProofRequest["responses"];
-    environment?: "production" | "staging";
+    environment?: "production" | "staging" | "sandbox";
   },
 ): Promise<NextResponse<SessionProofResponse>> {
-  // Get verifier address based on requested environment (defaults to production)
+  // Get verifier address based on requested environment (defaults to production).
+  // Sandbox uses staging verifier but remains sandbox in the API response.
   const requestedEnvironment = parsedParams.environment ?? "production";
+  const verificationEnvironment =
+    requestedEnvironment === "sandbox" ? "staging" : requestedEnvironment;
 
   const verifierAddress =
-    requestedEnvironment === "staging"
+    verificationEnvironment === "staging"
       ? process.env.VERIFIER_CONTRACT_ADDRESS_STAGING
       : process.env.VERIFIER_CONTRACT_ADDRESS;
 
@@ -53,7 +56,7 @@ export async function handleSessionProofVerification(
       {
         success: false,
         code: "configuration_error",
-        detail: `Verifier contract address not configured for ${requestedEnvironment} environment.`,
+        detail: `Verifier contract address not configured for ${verificationEnvironment} environment.`,
       },
       { status: 400 },
     );
