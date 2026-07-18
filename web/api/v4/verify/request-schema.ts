@@ -185,13 +185,11 @@ export const schema = yup
     // We use this field to detect session proofs in custom validation
     session_id: yup.string().strict().optional(),
 
-    // Sandbox uses the staging verifier and storage partition.
+    // Sandbox is accepted as a distinct request environment and is
+    // normalized to staging only where verifier/storage environment is needed.
     environment: yup
       .string()
-      .transform((environment) =>
-        environment === "sandbox" ? "staging" : environment,
-      )
-      .oneOf(["production", "staging"])
+      .oneOf(["production", "staging", "sandbox"])
       .optional(),
 
     // Optional World App integrity attestation bundle. When present, it is
@@ -284,7 +282,7 @@ export interface UniquenessProofRequestV3 {
   nonce: string;
   action: string;
   action_description?: string;
-  environment?: "production" | "staging";
+  environment?: "production" | "staging" | "sandbox";
   integrity_bundle?: IntegrityBundle;
   responses: UniquenessProofResponseV3[];
 }
@@ -304,7 +302,7 @@ export interface UniquenessProofRequestV4 {
   nonce: string;
   action: string;
   action_description?: string;
-  environment?: "production" | "staging";
+  environment?: "production" | "staging" | "sandbox";
   integrity_bundle?: IntegrityBundle;
   responses: UniquenessProofResponseV4[];
 }
@@ -323,7 +321,7 @@ export interface SessionProofRequest {
   session_id: string;
   nonce: string;
   protocol_version: "4.0";
-  environment?: "production" | "staging";
+  environment?: "production" | "staging" | "sandbox";
   integrity_bundle?: IntegrityBundle;
   responses: SessionResponseItem[];
 }

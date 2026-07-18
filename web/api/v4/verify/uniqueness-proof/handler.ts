@@ -66,12 +66,15 @@ export async function handleUniquenessProofVerification(
     nonce?: string;
     protocol_version: "3.0" | "4.0";
     responses: UniquenessProofResponseV3[] | UniquenessProofResponseV4[];
-    environment?: "production" | "staging";
+    environment?: "production" | "staging" | "sandbox";
   },
   req: NextRequest,
 ): Promise<NextResponse<UniquenessProofResponse | ErrorResponseBody>> {
-  // Resolve environment upfront: explicit request environment or default to "production"
-  const verificationEnvironment = parsedParams.environment ?? "production";
+  // Resolve sandbox to staging for verifier/storage while preserving the
+  // requested environment for API responses.
+  const requestedEnvironment = parsedParams.environment ?? "production";
+  const verificationEnvironment =
+    requestedEnvironment === "sandbox" ? "staging" : requestedEnvironment;
 
   // Fetch existing action filtered by environment
   let existingActionV4 = null;
@@ -229,7 +232,7 @@ export async function handleUniquenessProofVerification(
         rp_id: rpId,
         app_id: appId,
         action: parsedParams.action,
-        environment: actionV4.environment as string,
+        environment: requestedEnvironment,
         nullifier_reused: true,
         protocol_version: protocolVersion,
       },
@@ -242,7 +245,7 @@ export async function handleUniquenessProofVerification(
       action: parsedParams.action,
       metadata: {
         rp_id: rpId,
-        environment: actionV4.environment as string,
+        environment: requestedEnvironment,
         nullifier_reused: true,
         protocol_version: protocolVersion,
       },
@@ -254,7 +257,7 @@ export async function handleUniquenessProofVerification(
         action: actionV4.action,
         nullifier: normalizedNullifier,
         created_at: existingNullifier.created_at,
-        environment: actionV4.environment as string,
+        environment: requestedEnvironment,
         results: verificationResults,
         message: "Proof verified successfully (nullifier reuse)",
       },
@@ -289,7 +292,7 @@ export async function handleUniquenessProofVerification(
         rp_id: rpId,
         app_id: appId,
         action: parsedParams.action,
-        environment: actionV4.environment as string,
+        environment: requestedEnvironment,
         nullifier_reused: false,
         protocol_version: protocolVersion,
       },
@@ -302,7 +305,7 @@ export async function handleUniquenessProofVerification(
       action: parsedParams.action,
       metadata: {
         rp_id: rpId,
-        environment: actionV4.environment as string,
+        environment: requestedEnvironment,
         nullifier_reused: false,
         protocol_version: protocolVersion,
       },
@@ -314,7 +317,7 @@ export async function handleUniquenessProofVerification(
         action: actionV4.action,
         nullifier: normalizedNullifier,
         created_at: insertResult.insert_nullifier_v4_one.created_at,
-        environment: actionV4.environment as string,
+        environment: requestedEnvironment,
         results: verificationResults,
         message: "Proof verified successfully",
       },
@@ -332,7 +335,7 @@ export async function handleUniquenessProofVerification(
         action: parsedParams.action,
         metadata: {
           rp_id: rpId,
-          environment: actionV4.environment as string,
+          environment: requestedEnvironment,
           nullifier_reused: true,
           protocol_version: protocolVersion,
         },
@@ -343,7 +346,7 @@ export async function handleUniquenessProofVerification(
           success: true,
           action: actionV4.action,
           nullifier: normalizedNullifier,
-          environment: actionV4.environment as string,
+          environment: requestedEnvironment,
           results: verificationResults,
           message: "Proof verified successfully (nullifier reuse)",
         },

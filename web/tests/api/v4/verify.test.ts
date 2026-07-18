@@ -90,7 +90,7 @@ beforeEach(() => {
 
 // #region Integrity bundle environment
 describe("/api/v4/verify [integrity bundle]", () => {
-  it('treats the "sandbox" environment as "staging"', async () => {
+  it('normalizes "sandbox" only for integrity verification', async () => {
     const req = createRequest({
       protocol_version: "4.0",
       nonce: "1",
@@ -116,7 +116,7 @@ describe("/api/v4/verify [integrity bundle]", () => {
       expect.anything(),
       rpId,
       appId,
-      expect.objectContaining({ environment: "staging" }),
+      expect.objectContaining({ environment: "sandbox" }),
       req,
     );
     expect(mockHandleSessionProofVerification).not.toHaveBeenCalled();
