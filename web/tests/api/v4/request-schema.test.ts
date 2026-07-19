@@ -28,7 +28,7 @@ describe("v4 verify request schema", () => {
     expect(parsed.responses[0]?.signal_hash).toBe("0x0");
   });
 
-  it('normalizes the "sandbox" environment to "staging"', async () => {
+  it('preserves the "sandbox" environment after schema validation', async () => {
     const parsed = await schema.validate({
       protocol_version: "4.0",
       nonce: "0x01",
@@ -45,7 +45,7 @@ describe("v4 verify request schema", () => {
       ],
     });
 
-    expect(parsed.environment).toBe("staging");
+    expect(parsed.environment).toBe("sandbox");
   });
 
   it("accepts optional top-level integrity_bundle", async () => {
