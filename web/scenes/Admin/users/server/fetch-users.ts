@@ -205,12 +205,13 @@ export const createUsersOrderBy = (sort: UsersSort | null): User_Order_By[] => {
 const mapUserToTableRow = (
   user: FetchAdminUsersQuery["user"][number],
   columnVisibility: UserColumnVisibility,
+  teamsCountByUserId: ReadonlyMap<string, number>,
 ): UserTableRow => ({
   id: user.id,
   name: user.name ?? "Unnamed user",
   email: columnVisibility.email ? user.email : undefined,
   teamsCount: columnVisibility.teamsCount
-    ? user.memberships_aggregate?.aggregate?.count ?? 0
+    ? teamsCountByUserId.get(user.id) ?? 0
     : undefined,
   createdAt:
     columnVisibility.createdAt && user.created_at
@@ -247,17 +248,32 @@ export const fetchAdminUsersPage = async (
   const orderBy = createUsersOrderBy(sort);
 
   try {
-    const data = await getSdk(client).FetchAdminUsers({
+    const sdk = getSdk(client);
+    const data = await sdk.FetchAdminUsers({
       includeCreatedAt: columnVisibility.createdAt,
       includeEmail: columnVisibility.email,
-      includeTeamsCount: columnVisibility.teamsCount,
       limit,
       offset,
       orderBy,
       where,
     });
+    const teamsCountByUserId = new Map<string, number>();
+
+    if (columnVisibility.teamsCount && data.user.length > 0) {
+      const memberships = await sdk.FetchAdminUserMemberships({
+        userIds: data.user.map((user) => user.id),
+      });
+
+      for (const membership of memberships.membership) {
+        teamsCountByUserId.set(
+          membership.user_id,
+          (teamsCountByUserId.get(membership.user_id) ?? 0) + 1,
+        );
+      }
+    }
+
     const users = data.user.map((user) =>
-      mapUserToTableRow(user, columnVisibility),
+      mapUserToTableRow(user, columnVisibility, teamsCountByUserId),
     );
     const usersAmount = data.user_aggregate.aggregate?.count ?? users.length;
     const totalPages = getUsersTotalPages(usersAmount, limit);

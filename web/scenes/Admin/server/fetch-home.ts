@@ -14,7 +14,7 @@ export type AdminMetadataStatus =
   | "unverified"
   | "verified";
 
-type HomeWorkflowApp = FetchAdminHomeQuery["apps_awaiting_review"][number];
+type RecentWorkflowApp = FetchAdminHomeQuery["recent_apps"][number];
 type WorkflowStatusSource = {
   draft_metadata: ReadonlyArray<{ verification_status: string }>;
   verified_metadata: ReadonlyArray<{ verification_status: string }>;
@@ -27,8 +27,26 @@ const metadataStatuses = new Set<AdminMetadataStatus>([
   "verified",
 ]);
 
-const getCount = (aggregate: { aggregate?: { count: number } | null }) =>
-  aggregate.aggregate?.count ?? 0;
+// Hasura returns bigint as string when STRINGIFY_NUMERIC_TYPES=true.
+const toCount = (value: number | string | null | undefined): number => {
+  const count = Number(value ?? 0);
+  return Number.isFinite(count) ? count : 0;
+};
+
+const getQueueCount = <Row extends { total_count: number | string }>(
+  rows: ReadonlyArray<Row>,
+) => toCount(rows[0]?.total_count);
+
+const getRequiredValue = <Value>(
+  value: Value | null | undefined,
+  field: string,
+): Value => {
+  if (value === null || value === undefined) {
+    throw new Error(`admin_dashboard_queues returned no ${field}`);
+  }
+
+  return value;
+};
 
 export const getWorkflowStatus = (
   app: WorkflowStatusSource,
@@ -42,84 +60,94 @@ export const getWorkflowStatus = (
     : null;
 };
 
-const mapWorkflowApp = (app: HomeWorkflowApp) => ({
+const mapRecentWorkflowApp = (app: RecentWorkflowApp) => ({
+  createdAt: app.created_at,
   id: app.id,
-  name:
-    app.draft_metadata[0]?.name ?? app.verified_metadata[0]?.name ?? app.name,
+  name: app.name,
   status: getWorkflowStatus(app),
   teamId: app.team_id,
-  updatedAt: app.draft_metadata[0]?.updated_at ?? null,
 });
 
 export const fetchAdminHome = async () => {
   const client = await getInternalDashboardGraphqlClient();
-  const recentSince = new Date(
-    Date.now() - 30 * 24 * 60 * 60 * 1000,
-  ).toISOString();
 
   try {
-    const data = await getSdk(client).FetchAdminHome({
-      recentLimit: 5,
-      recentSince,
-    });
-    const soleOwnerTeams = data.sole_owner_memberships.map((membership) => ({
-      id: membership.team.id,
-      name: membership.team.name ?? "Unnamed team",
-      owner: {
-        email: membership.user.email,
-        id: membership.user.id,
-        name: membership.user.name,
-      },
-    }));
+    const data = await getSdk(client).FetchAdminHome({ recentLimit: 5 });
+    const inventory = data.inventory[0];
+
+    if (!inventory) {
+      throw new Error("admin_dashboard_inventory returned no rows");
+    }
+
+    const getQueueRows = (kind: string) =>
+      data.queues.filter((queue) => queue.kind === kind);
+    const appsAwaitingReview = getQueueRows("apps_awaiting_review");
+    const appsChangesRequested = getQueueRows("apps_changes_requested");
+    const appsWithoutMetadata = getQueueRows("apps_without_metadata");
+    const teamsWithoutOwner = getQueueRows("teams_without_owner");
+    const soleOwnerTeams = getQueueRows("sole_owner_teams");
+    const usersWithoutTeams = getQueueRows("users_without_teams");
 
     return {
       inventory: {
-        activeApiKeys: getCount(data.active_api_keys),
-        activeApps: getCount(data.active_apps),
-        activeTeams: getCount(data.active_teams),
-        deletedApps: getCount(data.deleted_apps),
-        deletedTeams: getCount(data.deleted_teams),
-        newApps: getCount(data.new_apps),
-        newTeams: getCount(data.new_teams),
-        newUsers: getCount(data.new_users),
-        pendingInvites: getCount(data.pending_invites),
-        totalUsers: getCount(data.total_users),
+        activeApiKeys: toCount(inventory.active_api_keys),
+        activeApps: toCount(inventory.active_apps),
+        activeTeams: toCount(inventory.active_teams),
+        deletedApps: toCount(inventory.deleted_apps),
+        deletedTeams: toCount(inventory.deleted_teams),
+        newApps: toCount(inventory.new_apps),
+        newTeams: toCount(inventory.new_teams),
+        newUsers: toCount(inventory.new_users),
+        pendingInvites: toCount(inventory.pending_invites),
+        totalUsers: toCount(inventory.total_users),
       },
       queues: {
-        appsAwaitingReview: data.apps_awaiting_review.map(mapWorkflowApp),
-        appsChangesRequested: data.apps_changes_requested.map(mapWorkflowApp),
-        appsWithoutMetadata: data.apps_without_metadata.map((app) => ({
+        appsAwaitingReview: appsAwaitingReview.map((app) => ({
           id: app.id,
-          name: app.name,
-          teamId: app.team_id,
+          name: app.name ?? "Unnamed app",
+          teamId: getRequiredValue(app.team_id, "team_id"),
+          updatedAt: app.updated_at ?? null,
         })),
-        soleOwnerTeams,
-        teamsWithoutOwner: data.teams_without_owner.map((team) => ({
+        appsChangesRequested: appsChangesRequested.map((app) => ({
+          id: app.id,
+          name: app.name ?? "Unnamed app",
+          teamId: getRequiredValue(app.team_id, "team_id"),
+          updatedAt: app.updated_at ?? null,
+        })),
+        appsWithoutMetadata: appsWithoutMetadata.map((app) => ({
+          id: app.id,
+          name: app.name ?? "Unnamed app",
+          teamId: getRequiredValue(app.team_id, "team_id"),
+        })),
+        soleOwnerTeams: soleOwnerTeams.map((team) => ({
+          id: team.id,
+          name: team.name ?? "Unnamed team",
+          owner: {
+            email: team.owner_email,
+            id: getRequiredValue(team.owner_id, "owner_id"),
+            name: team.owner_name ?? "Unnamed user",
+          },
+        })),
+        teamsWithoutOwner: teamsWithoutOwner.map((team) => ({
           id: team.id,
           name: team.name ?? "Unnamed team",
         })),
-        usersWithoutTeams: data.users_without_teams.map((user) => ({
+        usersWithoutTeams: usersWithoutTeams.map((user) => ({
           email: user.email,
           id: user.id,
-          name: user.name,
+          name: user.name ?? "Unnamed user",
         })),
       },
       queueCounts: {
-        appsAwaitingReview: getCount(data.apps_awaiting_review_count),
-        appsChangesRequested: getCount(data.apps_changes_requested_count),
-        appsWithoutMetadata: getCount(data.apps_without_metadata_count),
-        soleOwnerTeams: getCount(data.sole_owner_memberships_count),
-        teamsWithoutOwner: getCount(data.teams_without_owner_count),
-        usersWithoutTeams: getCount(data.users_without_teams_count),
+        appsAwaitingReview: getQueueCount(appsAwaitingReview),
+        appsChangesRequested: getQueueCount(appsChangesRequested),
+        appsWithoutMetadata: getQueueCount(appsWithoutMetadata),
+        soleOwnerTeams: getQueueCount(soleOwnerTeams),
+        teamsWithoutOwner: getQueueCount(teamsWithoutOwner),
+        usersWithoutTeams: getQueueCount(usersWithoutTeams),
       },
       recent: {
-        apps: data.recent_apps.map((app) => ({
-          createdAt: app.created_at,
-          id: app.id,
-          name: app.name,
-          status: getWorkflowStatus(app),
-          teamId: app.team_id,
-        })),
+        apps: data.recent_apps.map(mapRecentWorkflowApp),
         metadata: data.recent_metadata.map((metadata) => ({
           appId: metadata.app_id,
           name: metadata.name,
@@ -140,7 +168,7 @@ export const fetchAdminHome = async () => {
           createdAt: user.created_at,
           email: user.email,
           id: user.id,
-          name: user.name,
+          name: user.name ?? "Unnamed user",
         })),
       },
     };
