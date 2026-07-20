@@ -38,6 +38,12 @@ type Query {
 }
 
 type Query {
+  get_sandbox_email_enrollment(
+    team_id: String!
+  ): SandboxEmailEnrollmentOutput
+}
+
+type Query {
   get_app_review_images(
     app_id: String!
     locale: String
@@ -292,6 +298,20 @@ type ImageGetAllUnverifiedImagesOutput {
   meta_tag_image_url: String
   showcase_img_urls: [String!]
   content_card_image_url: String
+}
+
+type SandboxEmailEnrollmentRow {
+  id: String!
+  team_id: String!
+  user_id: String!
+  email: String!
+  created_at: String!
+  updated_at: String!
+}
+
+type SandboxEmailEnrollmentOutput {
+  enrolled: Boolean!
+  enrollment: SandboxEmailEnrollmentRow
 }
 
 type PresignedPostOutput {

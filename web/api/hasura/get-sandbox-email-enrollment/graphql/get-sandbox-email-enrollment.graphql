@@ -1,0 +1,24 @@
+query GetSandboxEmailEnrollment($team_id: String!, $user_id: String!) {
+  sandbox_email_enrollment(
+    where: {
+      team_id: { _eq: $team_id }
+      user_id: { _eq: $user_id }
+    }
+    limit: 1
+  ) {
+    id
+    team_id
+    user_id
+    email
+    created_at
+    updated_at
+  }
+  team(
+    where: {
+      id: { _eq: $team_id }
+      memberships: { user_id: { _eq: $user_id } }
+    }
+  ) {
+    id
+  }
+}

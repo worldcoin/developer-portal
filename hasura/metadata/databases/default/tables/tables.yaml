@@ -24,5 +24,6 @@
 - "!include public_redirect.yaml"
 - "!include public_role.yaml"
 - "!include public_rp_registration.yaml"
+- "!include public_sandbox_email_enrollment.yaml"
 - "!include public_team.yaml"
 - "!include public_user.yaml"

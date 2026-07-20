@@ -1,0 +1,44 @@
+table:
+  name: sandbox_email_enrollment
+  schema: public
+object_relationships:
+  - name: team
+    using:
+      foreign_key_constraint_on: team_id
+  - name: user
+    using:
+      foreign_key_constraint_on: user_id
+insert_permissions:
+  - role: service
+    permission:
+      check: {}
+      columns:
+        - id
+        - team_id
+        - user_id
+        - email
+        - created_at
+        - updated_at
+select_permissions:
+  - role: service
+    permission:
+      columns:
+        - id
+        - team_id
+        - user_id
+        - email
+        - created_at
+        - updated_at
+      filter: {}
+update_permissions:
+  - role: service
+    permission:
+      columns:
+        - email
+        - updated_at
+      filter: {}
+      check: null
+delete_permissions:
+  - role: service
+    permission:
+      filter: {}

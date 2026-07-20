@@ -72,6 +72,16 @@ actions:
     permissions:
       - role: user
       - role: api_key
+  - name: get_sandbox_email_enrollment
+    definition:
+      kind: ""
+      handler: "{{NEXT_API_URL}}/hasura/get-sandbox-email-enrollment"
+      headers:
+        - name: Authorization
+          value_from_env: INTERNAL_ENDPOINTS_SECRET
+    permissions:
+      - role: user
+    comment: Return whether the current user is enrolled in WID sandbox for a team
   - name: get_app_review_images
     definition:
       kind: ""
@@ -399,6 +409,8 @@ custom_types:
     - name: ImageUrls
     - name: ImageGetAllUnverifiedImagesResponse
     - name: ImageGetAllUnverifiedImagesOutput
+    - name: SandboxEmailEnrollmentRow
+    - name: SandboxEmailEnrollmentOutput
     - name: PresignedPostOutput
     - name: DeleteImageOutput
     - name: VerifyAppOutput

@@ -9,6 +9,7 @@ import { useParams, usePathname } from "next/navigation";
 import { useCurrentAppId } from "./AppsDropdown";
 import { HelpCenterMenu } from "./HelpCenterMenu";
 import { NavItem } from "./NavItem";
+import { WidSandboxButton } from "./WidSandboxButton";
 
 const NavIcon = (props: { name: string; active?: boolean }) => (
   <Icon
@@ -140,6 +141,9 @@ export const SidebarNav = () => {
           active={settingsActive}
           icon={<NavIcon name="nav-settings" active={settingsActive} />}
         />
+        {teamId && appId ? (
+          <WidSandboxButton appId={appId} teamId={teamId} />
+        ) : null}
         <HelpCenterMenu />
       </div>
     </nav>
