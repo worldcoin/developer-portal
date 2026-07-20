@@ -7,7 +7,6 @@ type GraphQLClientRequestHeaders = RequestOptions["requestHeaders"];
 export type FetchAdminUsersQueryVariables = Types.Exact<{
   includeCreatedAt: Types.Scalars["Boolean"]["input"];
   includeEmail: Types.Scalars["Boolean"]["input"];
-  includeTeamsCount: Types.Scalars["Boolean"]["input"];
   limit: Types.Scalars["Int"]["input"];
   offset: Types.Scalars["Int"]["input"];
   orderBy: Array<Types.User_Order_By> | Types.User_Order_By;
@@ -22,13 +21,6 @@ export type FetchAdminUsersQuery = {
     name: string;
     email?: string | null;
     created_at?: string;
-    memberships_aggregate?: {
-      __typename?: "membership_aggregate";
-      aggregate?: {
-        __typename?: "membership_aggregate_fields";
-        count: number;
-      } | null;
-    };
   }>;
   user_aggregate: {
     __typename?: "user_aggregate";
@@ -36,11 +28,21 @@ export type FetchAdminUsersQuery = {
   };
 };
 
+export type FetchAdminUserMembershipsQueryVariables = Types.Exact<{
+  userIds:
+    | Array<Types.Scalars["String"]["input"]>
+    | Types.Scalars["String"]["input"];
+}>;
+
+export type FetchAdminUserMembershipsQuery = {
+  __typename?: "query_root";
+  membership: Array<{ __typename?: "membership"; user_id: string }>;
+};
+
 export const FetchAdminUsersDocument = gql`
   query FetchAdminUsers(
     $includeCreatedAt: Boolean!
     $includeEmail: Boolean!
-    $includeTeamsCount: Boolean!
     $limit: Int!
     $offset: Int!
     $orderBy: [user_order_by!]!
@@ -51,16 +53,18 @@ export const FetchAdminUsersDocument = gql`
       name
       email @include(if: $includeEmail)
       created_at @include(if: $includeCreatedAt)
-      memberships_aggregate @include(if: $includeTeamsCount) {
-        aggregate {
-          count
-        }
-      }
     }
     user_aggregate(where: $where) {
       aggregate {
         count
       }
+    }
+  }
+`;
+export const FetchAdminUserMembershipsDocument = gql`
+  query FetchAdminUserMemberships($userIds: [String!]!) {
+    membership(where: { user_id: { _in: $userIds } }) {
+      user_id
     }
   }
 `;
@@ -96,6 +100,22 @@ export function getSdk(
             { ...requestHeaders, ...wrappedRequestHeaders },
           ),
         "FetchAdminUsers",
+        "query",
+        variables,
+      );
+    },
+    FetchAdminUserMemberships(
+      variables: FetchAdminUserMembershipsQueryVariables,
+      requestHeaders?: GraphQLClientRequestHeaders,
+    ): Promise<FetchAdminUserMembershipsQuery> {
+      return withWrapper(
+        (wrappedRequestHeaders) =>
+          client.request<FetchAdminUserMembershipsQuery>(
+            FetchAdminUserMembershipsDocument,
+            variables,
+            { ...requestHeaders, ...wrappedRequestHeaders },
+          ),
+        "FetchAdminUserMemberships",
         "query",
         variables,
       );
