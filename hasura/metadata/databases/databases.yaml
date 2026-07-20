@@ -11,3 +11,359 @@
       use_prepared_statements: true
   tables: "!include default/tables/tables.yaml"
   functions: "!include default/functions/functions.yaml"
+  logical_models:
+    - name: admin_dashboard_inventory
+      fields:
+        - name: active_api_keys
+          type:
+            scalar: bigint
+            nullable: false
+        - name: active_apps
+          type:
+            scalar: bigint
+            nullable: false
+        - name: active_teams
+          type:
+            scalar: bigint
+            nullable: false
+        - name: deleted_apps
+          type:
+            scalar: bigint
+            nullable: false
+        - name: deleted_teams
+          type:
+            scalar: bigint
+            nullable: false
+        - name: new_apps
+          type:
+            scalar: bigint
+            nullable: false
+        - name: new_teams
+          type:
+            scalar: bigint
+            nullable: false
+        - name: new_users
+          type:
+            scalar: bigint
+            nullable: false
+        - name: pending_invites
+          type:
+            scalar: bigint
+            nullable: false
+        - name: total_users
+          type:
+            scalar: bigint
+            nullable: false
+      select_permissions:
+        - role: internal_dashboard_readonly
+          permission:
+            columns:
+              - active_api_keys
+              - active_apps
+              - active_teams
+              - deleted_apps
+              - deleted_teams
+              - new_apps
+              - new_teams
+              - new_users
+              - pending_invites
+              - total_users
+            filter: {}
+    - name: admin_dashboard_queue
+      fields:
+        - name: email
+          type:
+            scalar: varchar
+            nullable: true
+        - name: id
+          type:
+            scalar: varchar
+            nullable: false
+        - name: kind
+          type:
+            scalar: varchar
+            nullable: false
+        - name: name
+          type:
+            scalar: varchar
+            nullable: true
+        - name: owner_email
+          type:
+            scalar: varchar
+            nullable: true
+        - name: owner_id
+          type:
+            scalar: varchar
+            nullable: true
+        - name: owner_name
+          type:
+            scalar: varchar
+            nullable: true
+        - name: team_id
+          type:
+            scalar: varchar
+            nullable: true
+        - name: total_count
+          type:
+            scalar: bigint
+            nullable: false
+        - name: updated_at
+          type:
+            scalar: timestamptz
+            nullable: true
+      select_permissions:
+        - role: internal_dashboard_readonly
+          permission:
+            columns:
+              - email
+              - id
+              - kind
+              - name
+              - owner_email
+              - owner_id
+              - owner_name
+              - team_id
+              - total_count
+              - updated_at
+            filter: {}
+  native_queries:
+    - root_field_name: admin_dashboard_inventory
+      arguments: {}
+      code: |
+        WITH team_counts AS (
+          SELECT
+            COUNT(*) FILTER (WHERE deleted_at IS NULL) AS active_teams,
+            COUNT(*) FILTER (WHERE deleted_at IS NOT NULL) AS deleted_teams,
+            COUNT(*) FILTER (
+              WHERE deleted_at IS NULL
+                AND created_at >= CURRENT_TIMESTAMP - INTERVAL '30 days'
+            ) AS new_teams
+          FROM public.team
+        ),
+        user_counts AS (
+          SELECT
+            COUNT(*) AS total_users,
+            COUNT(*) FILTER (
+              WHERE created_at >= CURRENT_TIMESTAMP - INTERVAL '30 days'
+            ) AS new_users
+          FROM public."user"
+        ),
+        app_counts AS (
+          SELECT
+            COUNT(*) FILTER (WHERE deleted_at IS NULL) AS active_apps,
+            COUNT(*) FILTER (WHERE deleted_at IS NOT NULL) AS deleted_apps,
+            COUNT(*) FILTER (
+              WHERE deleted_at IS NULL
+                AND created_at >= CURRENT_TIMESTAMP - INTERVAL '30 days'
+            ) AS new_apps
+          FROM public.app
+        ),
+        invite_counts AS (
+          SELECT COUNT(*) AS pending_invites
+          FROM public.invite
+          WHERE expires_at >= CURRENT_TIMESTAMP
+        ),
+        api_key_counts AS (
+          SELECT COUNT(*) AS active_api_keys
+          FROM public.api_key
+          WHERE is_active = true
+        )
+        SELECT
+          api_key_counts.active_api_keys,
+          app_counts.active_apps,
+          team_counts.active_teams,
+          app_counts.deleted_apps,
+          team_counts.deleted_teams,
+          app_counts.new_apps,
+          team_counts.new_teams,
+          user_counts.new_users,
+          invite_counts.pending_invites,
+          user_counts.total_users
+        FROM team_counts, user_counts, app_counts, invite_counts, api_key_counts
+      returns: admin_dashboard_inventory
+    - root_field_name: admin_dashboard_queues
+      arguments: {}
+      code: |
+        WITH apps_awaiting_review AS (
+          SELECT
+            'apps_awaiting_review'::varchar AS kind,
+            app.id,
+            COALESCE(app_metadata.name, app.name) AS name,
+            app.team_id,
+            COUNT(*) OVER() AS total_count,
+            app_metadata.updated_at
+          FROM public.app
+          JOIN public.app_metadata ON app_metadata.app_id = app.id
+          WHERE app.deleted_at IS NULL
+            AND app_metadata.verification_status = 'awaiting_review'
+          ORDER BY app.created_at DESC
+          LIMIT 5
+        ),
+        apps_changes_requested AS (
+          SELECT
+            'apps_changes_requested'::varchar AS kind,
+            app.id,
+            COALESCE(app_metadata.name, app.name) AS name,
+            app.team_id,
+            COUNT(*) OVER() AS total_count,
+            app_metadata.updated_at
+          FROM public.app
+          JOIN public.app_metadata ON app_metadata.app_id = app.id
+          WHERE app.deleted_at IS NULL
+            AND app_metadata.verification_status = 'changes_requested'
+          ORDER BY app.created_at DESC
+          LIMIT 5
+        ),
+        apps_without_metadata AS (
+          SELECT
+            'apps_without_metadata'::varchar AS kind,
+            app.id,
+            app.name,
+            app.team_id,
+            COUNT(*) OVER() AS total_count,
+            NULL::timestamptz AS updated_at
+          FROM public.app
+          WHERE app.deleted_at IS NULL
+            AND NOT EXISTS (
+              SELECT 1
+              FROM public.app_metadata
+              WHERE app_metadata.app_id = app.id
+            )
+          ORDER BY app.created_at DESC
+          LIMIT 5
+        ),
+        teams_without_owner AS (
+          SELECT
+            'teams_without_owner'::varchar AS kind,
+            team.id,
+            team.name,
+            COUNT(*) OVER() AS total_count
+          FROM public.team
+          WHERE team.deleted_at IS NULL
+            AND NOT EXISTS (
+              SELECT 1
+              FROM public.membership
+              WHERE membership.team_id = team.id
+                AND membership.role = 'OWNER'
+            )
+          ORDER BY team.created_at DESC
+          LIMIT 5
+        ),
+        sole_owner_teams AS (
+          SELECT
+            'sole_owner_teams'::varchar AS kind,
+            team.id,
+            team.name,
+            owner.email AS owner_email,
+            owner.id AS owner_id,
+            owner.name AS owner_name,
+            COUNT(*) OVER() AS total_count
+          FROM (
+            SELECT membership.team_id
+            FROM public.membership
+            WHERE membership.role = 'OWNER'
+            GROUP BY membership.team_id
+            HAVING COUNT(*) = 1
+          ) AS sole_owner_memberships
+          JOIN public.team ON team.id = sole_owner_memberships.team_id
+          JOIN public.membership ON membership.team_id = team.id
+            AND membership.role = 'OWNER'
+          JOIN public."user" AS owner ON owner.id = membership.user_id
+          WHERE team.deleted_at IS NULL
+          ORDER BY team.created_at DESC
+          LIMIT 5
+        ),
+        users_without_teams AS (
+          SELECT
+            'users_without_teams'::varchar AS kind,
+            "user".id,
+            "user".name,
+            "user".email,
+            COUNT(*) OVER() AS total_count
+          FROM public."user"
+          WHERE NOT EXISTS (
+            SELECT 1
+            FROM public.membership
+            WHERE membership.user_id = "user".id
+          )
+          ORDER BY "user".created_at DESC
+          LIMIT 5
+        )
+        SELECT
+          kind,
+          id,
+          name,
+          team_id,
+          NULL::varchar AS email,
+          NULL::varchar AS owner_email,
+          NULL::varchar AS owner_id,
+          NULL::varchar AS owner_name,
+          total_count,
+          updated_at
+        FROM apps_awaiting_review
+        UNION ALL
+        SELECT
+          kind,
+          id,
+          name,
+          team_id,
+          NULL::varchar,
+          NULL::varchar,
+          NULL::varchar,
+          NULL::varchar,
+          total_count,
+          updated_at
+        FROM apps_changes_requested
+        UNION ALL
+        SELECT
+          kind,
+          id,
+          name,
+          team_id,
+          NULL::varchar,
+          NULL::varchar,
+          NULL::varchar,
+          NULL::varchar,
+          total_count,
+          updated_at
+        FROM apps_without_metadata
+        UNION ALL
+        SELECT
+          kind,
+          id,
+          name,
+          NULL::varchar,
+          NULL::varchar,
+          NULL::varchar,
+          NULL::varchar,
+          NULL::varchar,
+          total_count,
+          NULL::timestamptz
+        FROM teams_without_owner
+        UNION ALL
+        SELECT
+          kind,
+          id,
+          name,
+          NULL::varchar,
+          NULL::varchar,
+          owner_email,
+          owner_id,
+          owner_name,
+          total_count,
+          NULL::timestamptz
+        FROM sole_owner_teams
+        UNION ALL
+        SELECT
+          kind,
+          id,
+          name,
+          NULL::varchar,
+          email,
+          NULL::varchar,
+          NULL::varchar,
+          NULL::varchar,
+          total_count,
+          NULL::timestamptz
+        FROM users_without_teams
+      returns: admin_dashboard_queue
