@@ -6,10 +6,9 @@ import { DialogPanel } from "@/components/DialogPanel";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Icon } from "@/scenes/PortalV3/common/Icon";
 import clsx from "clsx";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import posthog from "posthog-js";
 import QRCode from "react-qr-code";
-import { useCallback, useState } from "react";
+import { useState } from "react";
 
 /** Static distribution links for the sandbox builds. Update here only. */
 const IOS_TESTFLIGHT_URL = "https://testflight.apple.com/join/VZEurhHe";
@@ -56,44 +55,18 @@ const PLATFORMS: Record<
 const PLATFORM_ORDER: readonly Platform[] = ["ios", "android"];
 
 /**
- * `?dialog=sandbox` opens the install dialog on any portal page. The URL is
- * the single source of truth for open state, so docs/support/onboarding can
- * deep-link to it.
- */
-const DIALOG_PARAM = "dialog";
-const DIALOG_VALUE = "sandbox";
-
-/**
  * Sidebar entry point for the World ID sandbox. Purely a distribution
  * shortcut: a modal with a QR code and store links for the sandbox builds.
  * No backend, no per-user state.
  */
 export const SandboxButton = () => {
-  const router = useRouter();
-  const pathname = usePathname() ?? "";
-  const searchParams = useSearchParams();
-  const open = searchParams?.get(DIALOG_PARAM) === DIALOG_VALUE;
-
+  const [open, setOpen] = useState(false);
   const [platform, setPlatform] = useState<Platform>("ios");
   const active = PLATFORMS[platform];
 
-  // replace (not push) both ways: back never steps through dialog states.
-  const setDialogOpen = useCallback(
-    (next: boolean) => {
-      const params = new URLSearchParams(searchParams ?? undefined);
-      if (next) params.set(DIALOG_PARAM, DIALOG_VALUE);
-      else params.delete(DIALOG_PARAM);
-      const query = params.toString();
-      router.replace(query ? `${pathname}?${query}` : pathname, {
-        scroll: false,
-      });
-    },
-    [pathname, router, searchParams],
-  );
-
   const openDialog = () => {
     posthog.capture("sandbox_tile_clicked");
-    setDialogOpen(true);
+    setOpen(true);
   };
 
   const switchPlatform = (next: Platform) => {
@@ -142,7 +115,7 @@ export const SandboxButton = () => {
         </span>
       </button>
 
-      <Dialog open={open} onClose={() => setDialogOpen(false)}>
+      <Dialog open={open} onClose={() => setOpen(false)}>
         <DialogOverlay />
         <DialogPanel className="max-h-[calc(100dvh-2rem)] gap-y-0 overflow-y-auto rounded-12 p-6 sm:p-8 md:w-[680px] md:max-w-[calc(100vw-2rem)] md:rounded-12">
           <div className="grid w-full gap-y-8">
