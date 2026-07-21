@@ -56,6 +56,7 @@ it("mounts the selected v3 shell and page inside Apollo", async () => {
   await renderLayout();
 
   const apolloWrapper = screen.getByTestId("apollo-wrapper");
+  expect(mockHeaderGet).toHaveBeenCalledWith("x-nonce");
   expect(apolloWrapper).toHaveAttribute("data-nonce", "test-nonce");
   expect(within(apolloWrapper).getByTestId("portal-page")).toBeInTheDocument();
   expect(screen.getByTestId("v3-portal")).toBeInTheDocument();

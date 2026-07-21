@@ -42,6 +42,7 @@ it("mounts the create-team layout and page inside Apollo", async () => {
   );
 
   const apolloWrapper = screen.getByTestId("apollo-wrapper");
+  expect(mockHeaderGet).toHaveBeenCalledWith("x-nonce");
   expect(apolloWrapper).toHaveAttribute("data-nonce", "create-team-nonce");
   expect(
     within(apolloWrapper).getByTestId("create-team-layout"),
