@@ -170,7 +170,9 @@ export const AppsDropdown = () => {
                   app={app}
                   isSelected={app.id === currentAppId}
                   onSelect={() =>
-                    router.push(urls.app({ team_id: teamId, app_id: app.id }))
+                    router.push(
+                      urls.worldId40({ team_id: teamId, app_id: app.id }),
+                    )
                   }
                 />
               ))}

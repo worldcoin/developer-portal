@@ -26,6 +26,5 @@ handling.
 
 ## Verification
 
-- Add a focused `AppsPage` test for the first-app destination.
 - Extend the existing `AppsDropdown` test to assert its selected destination.
-- Run both focused Jest suites, TypeScript, and formatting checks.
+- Run the existing V3 routing tests, TypeScript, and formatting checks.
