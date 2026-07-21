@@ -21,7 +21,8 @@ import { FetchAppMetadataDocument } from "@/scenes/common/Teams/TeamId/Apps/AppI
 import { RemainingCharacters } from "../../PageComponents/RemainingCharacters";
 import { submitAppForReviewFormServerSide } from "../server/submit";
 import { SubmitSuccessToast } from "../SubmitSuccessToast";
-import { useValidateLocalisationMutation } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/AppTopBar/SubmitAppModal/graphql/client/validate-localisations.generated";
+import { useMutation } from "@apollo/client/react";
+import { ValidateLocalisationDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/AppTopBar/SubmitAppModal/graphql/client/validate-localisations.generated";
 
 const schema = yup
   .object({
@@ -62,7 +63,7 @@ export const SubmitAppModal = (props: SubmitAppModalProps) => {
     },
   );
 
-  const [validateLocalisation, {}] = useValidateLocalisationMutation();
+  const [validateLocalisation, {}] = useMutation(ValidateLocalisationDocument);
 
   const {
     register,

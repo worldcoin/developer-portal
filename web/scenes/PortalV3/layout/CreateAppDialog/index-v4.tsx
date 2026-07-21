@@ -13,7 +13,9 @@ import { getGraphQLErrorCode } from "@/lib/errors";
 import { useRefetchQueries } from "@/lib/use-refetch-queries";
 import { FetchAppsDocument } from "@/scenes/common/layout/AppSelector/graphql/client/fetch-apps.generated";
 import { yupResolver } from "@hookform/resolvers/yup";
+import { useMutation } from "@apollo/client/react";
 import clsx from "clsx";
+import dynamic from "next/dynamic";
 import { useParams, useRouter } from "next/navigation";
 import posthog from "posthog-js";
 import { useCallback, useMemo, useState } from "react";
@@ -25,14 +27,24 @@ import {
 } from "../../Teams/TeamId/Apps/AppId/ConfigureSignerKey/ConfigureSignerKeyContent";
 import { EnableWorldId40Content } from "../../Teams/TeamId/Apps/AppId/EnableWorldId40/EnableWorldId40Content";
 import { SelfManagedTransactionInfoContent } from "../../Teams/TeamId/Apps/AppId/EnableWorldId40/SelfManagedTransactionInfo/SelfManagedTransactionInfoContent";
-import { GenerateNewKeyContent } from "../../Teams/TeamId/Apps/AppId/GenerateNewKey/GenerateNewKeyContent";
-import { UseExistingKeyContent } from "../../Teams/TeamId/Apps/AppId/UseExistingKey/UseExistingKeyContent";
-import { useRegisterRpMutation } from "@/scenes/common/layout/CreateAppDialog/client/register-rp.generated";
+import { RegisterRpDocument } from "@/scenes/common/layout/CreateAppDialog/client/register-rp.generated";
 import {
   createAppSchemaV4,
   CreateAppSchemaV4,
 } from "@/scenes/common/layout/CreateAppDialog/form-schema-v4";
 import { validateAndInsertAppServerSideV4 } from "@/scenes/common/layout/CreateAppDialog/server/v4/submit";
+
+const GenerateNewKeyContent = dynamic(() =>
+  import(
+    "../../Teams/TeamId/Apps/AppId/GenerateNewKey/GenerateNewKeyContent"
+  ).then((module) => module.GenerateNewKeyContent),
+);
+
+const UseExistingKeyContent = dynamic(() =>
+  import(
+    "../../Teams/TeamId/Apps/AppId/UseExistingKey/UseExistingKeyContent"
+  ).then((module) => module.UseExistingKeyContent),
+);
 
 type CreateDialogStep =
   | "create"
@@ -77,7 +89,8 @@ export const CreateAppDialogV4 = ({
     teamId: teamId,
   });
 
-  const [registerRp, { loading: registeringRp }] = useRegisterRpMutation();
+  const [registerRp, { loading: registeringRp }] =
+    useMutation(RegisterRpDocument);
 
   const [step, setStep] = useState<CreateDialogStep>(initialStep);
   const [createdAppId, setCreatedAppId] = useState<string | null>(
@@ -288,7 +301,8 @@ export const CreateAppDialogV4 = ({
   );
 
   return (
-    <Dialog open={props.open} onClose={onClose} className="z-50">
+    // Animate the initial lazy-mounted open.
+    <Dialog open={props.open} onClose={onClose} className="z-50" appear>
       <DialogPanel
         className={clsx("fixed inset-0 overflow-y-scroll p-0", props.className)}
       >

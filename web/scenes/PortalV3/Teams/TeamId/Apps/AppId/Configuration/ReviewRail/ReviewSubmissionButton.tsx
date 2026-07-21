@@ -2,7 +2,7 @@
 
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import { useApolloClient } from "@apollo/client";
+import { useApolloClient } from "@apollo/client/react";
 import {
   FetchAppMetadataDocument,
   FetchAppMetadataQuery,

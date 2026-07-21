@@ -32,20 +32,22 @@ import { BasicInformationHandle } from "../BasicInformation";
 import { AppStoreFormValues } from "../AppStore/FormSchema/types";
 import { MULTIPLE_ERRORS_TOAST_MESSAGE } from "../AppStore/utils/form-error-utils";
 import { useSaveStatusActions } from "../SaveStatus";
-import { useApolloClient } from "@apollo/client";
+import {
+  useApolloClient,
+  useLazyQuery,
+  useMutation,
+  useQuery,
+} from "@apollo/client/react";
 import {
   FetchAppMetadataDocument,
   FetchAppMetadataQuery,
 } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/graphql/client/fetch-app-metadata.generated";
-import {
-  useFetchImagesLazyQuery,
-  useFetchImagesQuery,
-} from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/graphql/client/fetch-images.generated";
+import { FetchImagesDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/graphql/client/fetch-images.generated";
 import { unverifiedImageAtom, viewModeAtom } from "../layout/ImagesProvider";
 import { LogoImageUpload } from "./LogoImageUpload";
 import { SubmitAppModal } from "./SubmitAppModal";
 import { VersionSwitcher } from "./VersionSwitcher";
-import { useCreateEditableRowMutation } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/AppTopBar/graphql/client/create-editable-row.generated";
+import { CreateEditableRowDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/AppTopBar/graphql/client/create-editable-row.generated";
 
 type AppTopBarSubmitProps = {
   appMetadata: FetchAppMetadataQuery["app"][0]["app_metadata"][0];
@@ -339,7 +341,7 @@ export const AppTopBar = (props: AppTopBarProps) => {
   const [viewMode, setViewMode] = useAtom(viewModeAtom);
   const { user } = useUser() as Auth0SessionUser;
 
-  const { data: unverifiedImagesData } = useFetchImagesQuery({
+  const { data: unverifiedImagesData } = useQuery(FetchImagesDocument, {
     variables: { id: appId, team_id: teamId },
   });
 
@@ -414,7 +416,10 @@ export const AppTopBar = (props: AppTopBarProps) => {
   ]);
 
   const isEditable = app?.app_metadata[0]?.verification_status === "unverified";
-  const [createEditableRowMutation] = useCreateEditableRowMutation({});
+  const [createEditableRowMutation] = useMutation(
+    CreateEditableRowDocument,
+    {},
+  );
   const shouldAutoOpenLogoDialog = searchParams.get("editLogo") === "true";
 
   useEffect(() => {
@@ -442,7 +447,7 @@ export const AppTopBar = (props: AppTopBarProps) => {
     );
   }, [appMetadata?.showcase_img_urls]);
 
-  const [fetchImagesQuery] = useFetchImagesLazyQuery();
+  const [fetchImagesQuery] = useLazyQuery(FetchImagesDocument);
 
   const createNewDraft = useCallback(async () => {
     try {
@@ -459,18 +464,17 @@ export const AppTopBar = (props: AppTopBarProps) => {
         awaitRefetchQueries: true,
       });
 
-      await fetchImagesQuery({
+      const { data: fetchedImages } = await fetchImagesQuery({
         variables: {
           id: appId,
           team_id: teamId,
         },
+      });
 
-        onCompleted: (data) => {
-          setUnverifiedImages({
-            logo_img_url: data?.unverified_images?.logo_img_url ?? "",
-            showcase_image_urls: data?.unverified_images?.showcase_img_urls,
-          });
-        },
+      setUnverifiedImages({
+        logo_img_url: fetchedImages?.unverified_images?.logo_img_url ?? "",
+        showcase_image_urls:
+          fetchedImages?.unverified_images?.showcase_img_urls,
       });
 
       setViewMode("unverified");

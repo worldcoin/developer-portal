@@ -12,10 +12,11 @@ import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import * as yup from "yup";
+import { useMutation } from "@apollo/client/react";
 import { ApiKeySecretFields } from "../ApiKeySecretFields";
-import { useResetApiKeyMutation } from "@/scenes/common/Teams/TeamId/Team/ApiKeys/page/ApiKeyTable/ApiKeyRow/graphql/client/reset-api-key.generated";
+import { ResetApiKeyDocument } from "@/scenes/common/Teams/TeamId/Team/ApiKeys/page/ApiKeyTable/ApiKeyRow/graphql/client/reset-api-key.generated";
 import { FetchKeysDocument } from "@/scenes/common/Teams/TeamId/Team/ApiKeys/page/graphql/client/fetch-keys.generated";
-import { useInsertKeyMutation } from "@/scenes/common/Teams/TeamId/Team/ApiKeys/page/CreateKeyModal/graphql/client/create-key.generated";
+import { InsertKeyDocument } from "@/scenes/common/Teams/TeamId/Team/ApiKeys/page/CreateKeyModal/graphql/client/create-key.generated";
 
 const schema = yup
   .object()
@@ -36,9 +37,10 @@ export const CreateKeyModal = (props: CreateKeyModal) => {
   const [createdKey, setCreatedKey] = useState<string | null>(null);
   const isOpenRef = useRef(isOpen);
   const requestIdRef = useRef(0);
-  const [insertKeyMutation, { loading: creatingKey }] = useInsertKeyMutation();
+  const [insertKeyMutation, { loading: creatingKey }] =
+    useMutation(InsertKeyDocument);
   const [resetApiKeyMutation, { loading: revealingKey }] =
-    useResetApiKeyMutation();
+    useMutation(ResetApiKeyDocument);
 
   const {
     register,
@@ -73,7 +75,7 @@ export const CreateKeyModal = (props: CreateKeyModal) => {
         },
         refetchQueries: [FetchKeysDocument],
       });
-      if (result instanceof Error || Boolean(result?.errors)) {
+      if (result instanceof Error || Boolean(result?.error)) {
         throw result;
       }
 
@@ -89,7 +91,7 @@ export const CreateKeyModal = (props: CreateKeyModal) => {
         },
         refetchQueries: [FetchKeysDocument],
       });
-      if (resetResult instanceof Error || Boolean(resetResult?.errors)) {
+      if (resetResult instanceof Error || Boolean(resetResult?.error)) {
         throw resetResult;
       }
 

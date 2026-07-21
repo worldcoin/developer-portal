@@ -22,6 +22,7 @@ export type GetRpRegistrationQuery = {
     operation_hash?: string | null;
     staging_status?: unknown | null;
     staging_operation_hash?: string | null;
+    app: { __typename?: "app"; deleted_at?: string | null };
   } | null;
 };
 
@@ -38,6 +39,9 @@ export const GetRpRegistrationDocument = gql`
       operation_hash
       staging_status
       staging_operation_hash
+      app {
+        deleted_at
+      }
     }
   }
 `;

@@ -1,9 +1,7 @@
 /* eslint-disable */
 import * as Types from "@/graphql/graphql";
 
-import { gql } from "@apollo/client";
-import * as Apollo from "@apollo/client";
-const defaultOptions = {} as const;
+import { TypedDocumentNode as DocumentNode } from "@graphql-typed-document-node/core";
 export type GetActionsQueryVariables = Types.Exact<{
   app_id: Types.Scalars["String"]["input"];
   condition?: Types.InputMaybe<
@@ -45,110 +43,205 @@ export type GetActionsQuery = {
   }>;
 };
 
-export const GetActionsDocument = gql`
-  query GetActions($app_id: String!, $condition: [action_bool_exp!]) {
-    actions: action(
-      order_by: { created_at: asc }
-      where: { app_id: { _eq: $app_id }, action: { _neq: "" }, _or: $condition }
-    ) {
-      id
-      app_id
-      action
-      created_at
-      creation_mode
-      description
-      external_nullifier
-      kiosk_enabled
-      name
-      max_accounts_per_user
-      max_verifications
-      app_flow_on_complete
-      webhook_uri
-      webhook_pem
-      post_action_deep_link_ios
-      post_action_deep_link_android
-      updated_at
-      nullifiers: nullifiers_aggregate {
-        aggregate {
-          sum {
-            uses
-          }
-        }
-      }
-    }
-  }
-`;
-
-/**
- * __useGetActionsQuery__
- *
- * To run a query within a React component, call `useGetActionsQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetActionsQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetActionsQuery({
- *   variables: {
- *      app_id: // value for 'app_id'
- *      condition: // value for 'condition'
- *   },
- * });
- */
-export function useGetActionsQuery(
-  baseOptions: Apollo.QueryHookOptions<
-    GetActionsQuery,
-    GetActionsQueryVariables
-  > &
-    (
-      | { variables: GetActionsQueryVariables; skip?: boolean }
-      | { skip: boolean }
-    ),
-) {
-  const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useQuery<GetActionsQuery, GetActionsQueryVariables>(
-    GetActionsDocument,
-    options,
-  );
-}
-export function useGetActionsLazyQuery(
-  baseOptions?: Apollo.LazyQueryHookOptions<
-    GetActionsQuery,
-    GetActionsQueryVariables
-  >,
-) {
-  const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useLazyQuery<GetActionsQuery, GetActionsQueryVariables>(
-    GetActionsDocument,
-    options,
-  );
-}
-export function useGetActionsSuspenseQuery(
-  baseOptions?:
-    | Apollo.SkipToken
-    | Apollo.SuspenseQueryHookOptions<
-        GetActionsQuery,
-        GetActionsQueryVariables
-      >,
-) {
-  const options =
-    baseOptions === Apollo.skipToken
-      ? baseOptions
-      : { ...defaultOptions, ...baseOptions };
-  return Apollo.useSuspenseQuery<GetActionsQuery, GetActionsQueryVariables>(
-    GetActionsDocument,
-    options,
-  );
-}
-export type GetActionsQueryHookResult = ReturnType<typeof useGetActionsQuery>;
-export type GetActionsLazyQueryHookResult = ReturnType<
-  typeof useGetActionsLazyQuery
->;
-export type GetActionsSuspenseQueryHookResult = ReturnType<
-  typeof useGetActionsSuspenseQuery
->;
-export type GetActionsQueryResult = Apollo.QueryResult<
-  GetActionsQuery,
-  GetActionsQueryVariables
->;
+export const GetActionsDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "query",
+      name: { kind: "Name", value: "GetActions" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "app_id" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "String" },
+            },
+          },
+        },
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "condition" },
+          },
+          type: {
+            kind: "ListType",
+            type: {
+              kind: "NonNullType",
+              type: {
+                kind: "NamedType",
+                name: { kind: "Name", value: "action_bool_exp" },
+              },
+            },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            alias: { kind: "Name", value: "actions" },
+            name: { kind: "Name", value: "action" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "order_by" },
+                value: {
+                  kind: "ObjectValue",
+                  fields: [
+                    {
+                      kind: "ObjectField",
+                      name: { kind: "Name", value: "created_at" },
+                      value: { kind: "EnumValue", value: "asc" },
+                    },
+                  ],
+                },
+              },
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "where" },
+                value: {
+                  kind: "ObjectValue",
+                  fields: [
+                    {
+                      kind: "ObjectField",
+                      name: { kind: "Name", value: "app_id" },
+                      value: {
+                        kind: "ObjectValue",
+                        fields: [
+                          {
+                            kind: "ObjectField",
+                            name: { kind: "Name", value: "_eq" },
+                            value: {
+                              kind: "Variable",
+                              name: { kind: "Name", value: "app_id" },
+                            },
+                          },
+                        ],
+                      },
+                    },
+                    {
+                      kind: "ObjectField",
+                      name: { kind: "Name", value: "action" },
+                      value: {
+                        kind: "ObjectValue",
+                        fields: [
+                          {
+                            kind: "ObjectField",
+                            name: { kind: "Name", value: "_neq" },
+                            value: {
+                              kind: "StringValue",
+                              value: "",
+                              block: false,
+                            },
+                          },
+                        ],
+                      },
+                    },
+                    {
+                      kind: "ObjectField",
+                      name: { kind: "Name", value: "_or" },
+                      value: {
+                        kind: "Variable",
+                        name: { kind: "Name", value: "condition" },
+                      },
+                    },
+                  ],
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
+                { kind: "Field", name: { kind: "Name", value: "app_id" } },
+                { kind: "Field", name: { kind: "Name", value: "action" } },
+                { kind: "Field", name: { kind: "Name", value: "created_at" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "creation_mode" },
+                },
+                { kind: "Field", name: { kind: "Name", value: "description" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "external_nullifier" },
+                },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "kiosk_enabled" },
+                },
+                { kind: "Field", name: { kind: "Name", value: "name" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "max_accounts_per_user" },
+                },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "max_verifications" },
+                },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "app_flow_on_complete" },
+                },
+                { kind: "Field", name: { kind: "Name", value: "webhook_uri" } },
+                { kind: "Field", name: { kind: "Name", value: "webhook_pem" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "post_action_deep_link_ios" },
+                },
+                {
+                  kind: "Field",
+                  name: {
+                    kind: "Name",
+                    value: "post_action_deep_link_android",
+                  },
+                },
+                { kind: "Field", name: { kind: "Name", value: "updated_at" } },
+                {
+                  kind: "Field",
+                  alias: { kind: "Name", value: "nullifiers" },
+                  name: { kind: "Name", value: "nullifiers_aggregate" },
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "aggregate" },
+                        selectionSet: {
+                          kind: "SelectionSet",
+                          selections: [
+                            {
+                              kind: "Field",
+                              name: { kind: "Name", value: "sum" },
+                              selectionSet: {
+                                kind: "SelectionSet",
+                                selections: [
+                                  {
+                                    kind: "Field",
+                                    name: { kind: "Name", value: "uses" },
+                                  },
+                                ],
+                              },
+                            },
+                          ],
+                        },
+                      },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<GetActionsQuery, GetActionsQueryVariables>;

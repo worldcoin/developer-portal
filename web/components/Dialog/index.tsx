@@ -8,13 +8,21 @@ import { Fragment } from "react";
 
 export type DialogProps = DialogPropsBase<"div"> & {
   afterLeave?: () => void;
+  // Animate dialogs that mount already open.
+  appear?: boolean;
 };
 
 export const Dialog = (props: DialogProps) => {
-  const { afterLeave, className, children, open, ...otherProps } = props;
+  const { afterLeave, appear, className, children, open, ...otherProps } =
+    props;
 
   return (
-    <Transition show={open} afterLeave={afterLeave} as={Fragment}>
+    <Transition
+      show={open}
+      appear={appear}
+      afterLeave={afterLeave}
+      as={Fragment}
+    >
       <DialogBase
         className={twMerge(
           "fixed inset-0 z-50",
