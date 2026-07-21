@@ -96,6 +96,9 @@ export const AppsDropdown = () => {
     Role_Enum.Admin,
   ]);
   const [dialogOpen, setDialogOpen] = useState(false);
+  // Latched on first open: keeps the dialog mounted so `open` drives its
+  // enter/leave animations, while still deferring the chunk until first use.
+  const [dialogMounted, setDialogMounted] = useState(false);
   const currentAppId = useCurrentAppId();
 
   const { data, loading, error } = useFetchAppsQuery({
@@ -121,8 +124,8 @@ export const AppsDropdown = () => {
 
   return (
     <>
-      {canCreateApp && dialogOpen ? (
-        <CreateAppDialogV4 open onClose={setDialogOpen} />
+      {canCreateApp && dialogMounted ? (
+        <CreateAppDialogV4 open={dialogOpen} onClose={setDialogOpen} />
       ) : null}
 
       <DropdownMenu.Root>
@@ -179,7 +182,10 @@ export const AppsDropdown = () => {
                     className="h-2 w-full shrink-0"
                   />
                   <DropdownMenu.Item
-                    onSelect={() => setDialogOpen(true)}
+                    onSelect={() => {
+                      setDialogMounted(true);
+                      setDialogOpen(true);
+                    }}
                     className="flex h-12 w-full cursor-pointer items-center gap-2 rounded-8 bg-white px-4 py-2 font-world text-13 leading-[1.2] font-medium text-portal-text outline-hidden data-highlighted:bg-grey-50"
                   >
                     {/* Bare 16px icon per Figma (2123:1919): icons left-align

@@ -3,8 +3,14 @@
 import { Button } from "@/components/Button";
 import { urls } from "@/lib/urls";
 import { Icon } from "@/scenes/PortalV3/common/Icon";
-import { CreateAppDialogV4 } from "@/scenes/PortalV3/layout/CreateAppDialog/index-v4";
+import dynamic from "next/dynamic";
 import { ReactNode, useState } from "react";
+
+const CreateAppDialogV4 = dynamic(() =>
+  import("@/scenes/PortalV3/layout/CreateAppDialog/index-v4").then(
+    (module) => module.CreateAppDialogV4,
+  ),
+);
 
 const actionButtonClassName =
   "inline-flex h-10 items-center justify-center rounded-8 bg-portal-ink px-4 font-world text-13 font-medium leading-none text-white transition-colors hover:bg-portal-ink-hover focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-grey-300 focus-visible:ring-offset-2";
@@ -45,10 +51,15 @@ const ActionCard = (props: {
 
 export const AppsPageClient = (props: { teamId: string }) => {
   const [createAppOpen, setCreateAppOpen] = useState(false);
+  // Latched on first open: keeps the dialog mounted so `open` drives its
+  // enter/leave animations, while still deferring the chunk until first use.
+  const [dialogMounted, setDialogMounted] = useState(false);
 
   return (
     <>
-      <CreateAppDialogV4 open={createAppOpen} onClose={setCreateAppOpen} />
+      {dialogMounted ? (
+        <CreateAppDialogV4 open={createAppOpen} onClose={setCreateAppOpen} />
+      ) : null}
 
       <div className="px-6 py-10 lg:px-10">
         <div>
@@ -69,7 +80,10 @@ export const AppsPageClient = (props: { teamId: string }) => {
           >
             <Button
               type="button"
-              onClick={() => setCreateAppOpen(true)}
+              onClick={() => {
+                setDialogMounted(true);
+                setCreateAppOpen(true);
+              }}
               className={actionButtonClassName}
               data-testid="button-create-new-app"
             >

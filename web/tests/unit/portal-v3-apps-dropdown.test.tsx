@@ -12,9 +12,25 @@ jest.mock(
   }),
 );
 
+// Stub the lazily-imported dialog with one that mirrors `open` and exposes a
+// close control, so tests can assert mount/open state without the real chunk.
 jest.mock("next/dynamic", () => ({
   __esModule: true,
-  default: () => () => <div data-testid="create-app-dialog" />,
+  default:
+    () =>
+    ({
+      open,
+      onClose,
+    }: {
+      open: boolean;
+      onClose: (value: boolean) => void;
+    }) => (
+      <div data-testid="create-app-dialog" data-open={String(open)}>
+        <button type="button" onClick={() => onClose(false)}>
+          close-dialog
+        </button>
+      </div>
+    ),
 }));
 
 jest.mock("@radix-ui/react-dropdown-menu", () => ({
@@ -128,4 +144,29 @@ it("mounts the create-app dialog only after the create action is selected", asyn
   fireEvent.click(screen.getByRole("menuitem", { name: "Create new app" }));
 
   expect(await screen.findByTestId("create-app-dialog")).toBeInTheDocument();
+});
+
+// The dialog is latched mounted on first open (`dialogMounted`): closing sets
+// open=false but must NOT unmount it, so the close/reopen transitions and any
+// in-dialog state survive.
+it("keeps the create-app dialog mounted (closed) after it is dismissed", async () => {
+  fetchApps.mockReturnValue({
+    data: { app: [] },
+    loading: false,
+    error: undefined,
+  });
+  render(<AppsDropdown />);
+
+  fireEvent.click(screen.getByRole("menuitem", { name: "Create new app" }));
+  expect(await screen.findByTestId("create-app-dialog")).toHaveAttribute(
+    "data-open",
+    "true",
+  );
+
+  fireEvent.click(screen.getByText("close-dialog"));
+
+  expect(screen.getByTestId("create-app-dialog")).toHaveAttribute(
+    "data-open",
+    "false",
+  );
 });
