@@ -259,6 +259,9 @@ describe("validateWebhookUrl()", () => {
       "https://169.253.255.255/hook", // just below link-local 169.254.0.0/16
       "https://[2606:4700:4700::1111]/hook", // public IPv6
       "https://collector.example.com./hook", // trailing root dot, public FQDN
+      "https://223.255.255.255/hook", // just below multicast 224.0.0.0/4
+      "https://198.17.255.255/hook", // just below benchmarking 198.18.0.0/15
+      "https://198.20.0.1/hook", // just above benchmarking 198.18.0.0/15
     ])("accepts %s", (url) => {
       expect(validateWebhookUrl(url)).toBe(true);
     });
@@ -307,6 +310,24 @@ describe("validateWebhookUrl()", () => {
       "https://169.254.0.1/hook", // link-local
       "https://100.64.0.1/hook", // CGNAT
       "https://100.127.255.255/hook",
+    ])("rejects %s", (url) => {
+      expect(validateWebhookUrl(url)).toBe(false);
+    });
+  });
+
+  describe("rejects multicast, reserved, and special-purpose IPv4", () => {
+    test.each([
+      "https://192.0.0.1/hook", // 192.0.0.0/24 protocol assignments
+      "https://192.0.2.1/hook", // TEST-NET-1
+      "https://192.88.99.1/hook", // 6to4 relay anycast
+      "https://198.18.0.1/hook", // benchmarking
+      "https://198.19.255.255/hook", // benchmarking (top of /15)
+      "https://198.51.100.1/hook", // TEST-NET-2
+      "https://203.0.113.1/hook", // TEST-NET-3
+      "https://224.0.0.1/hook", // multicast
+      "https://239.255.255.250/hook", // SSDP multicast
+      "https://240.0.0.1/hook", // reserved
+      "https://255.255.255.255/hook", // limited broadcast
     ])("rejects %s", (url) => {
       expect(validateWebhookUrl(url)).toBe(false);
     });
@@ -383,6 +404,10 @@ describe("validateWebhookUrl()", () => {
       "https://example.com/" + CR + LF + "x",
       "https://example.com/" + TAB + "x",
       "https://example.com/" + NUL,
+      "https://collector.example.com/hook" + LF, // trailing (trim() would strip)
+      LF + "https://collector.example.com/hook", // leading (trim() would strip)
+      "https://collector.example.com/hook" + TAB, // trailing tab
+      CR + "https://collector.example.com/hook", // leading CR
     ])("rejects url with an embedded control character", (url) => {
       expect(validateWebhookUrl(url)).toBe(false);
     });
