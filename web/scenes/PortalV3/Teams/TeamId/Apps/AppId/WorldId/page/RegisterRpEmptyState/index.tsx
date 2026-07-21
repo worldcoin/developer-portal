@@ -1,10 +1,26 @@
 "use client";
 
 import { DecoratedButton } from "@/components/DecoratedButton";
+import { SpinnerIcon } from "@/components/Icons/SpinnerIcon";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import { CreateAppDialogV4 } from "@/scenes/PortalV3/layout/CreateAppDialog/index-v4";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+
+// Show a fallback while an initially open dialog loads.
+const CreateAppDialogV4 = dynamic(
+  () =>
+    import("@/scenes/PortalV3/layout/CreateAppDialog/index-v4").then(
+      (module) => module.CreateAppDialogV4,
+    ),
+  {
+    loading: () => (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-white">
+        <SpinnerIcon className="size-6 animate-spin text-grey-500" />
+      </div>
+    ),
+  },
+);
 
 export const RegisterRpEmptyState = (props: {
   appId: string;
