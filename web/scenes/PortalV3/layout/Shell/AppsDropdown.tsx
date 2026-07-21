@@ -9,14 +9,20 @@ import {
   useFetchAppsQuery,
 } from "@/scenes/common/layout/AppSelector/graphql/client/fetch-apps.generated";
 import { Icon, opticalIconClassName } from "@/scenes/PortalV3/common/Icon";
-import { CreateAppDialogV4 } from "@/scenes/PortalV3/layout/CreateAppDialog/index-v4";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { atom, useAtomValue, useSetAtom } from "jotai";
+import dynamic from "next/dynamic";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
 type DropdownApp = { id: string; name: string };
+
+const CreateAppDialogV4 = dynamic(() =>
+  import("@/scenes/PortalV3/layout/CreateAppDialog/index-v4").then(
+    (module) => module.CreateAppDialogV4,
+  ),
+);
 
 // Which app is "selected": the URL on app routes, otherwise the last app
 // visited under this team — remembered so team-scoped routes (Team settings,
@@ -115,9 +121,9 @@ export const AppsDropdown = () => {
 
   return (
     <>
-      {canCreateApp && (
-        <CreateAppDialogV4 open={dialogOpen} onClose={setDialogOpen} />
-      )}
+      {canCreateApp && dialogOpen ? (
+        <CreateAppDialogV4 open onClose={setDialogOpen} />
+      ) : null}
 
       <DropdownMenu.Root>
         <DropdownMenu.Trigger

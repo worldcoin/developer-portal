@@ -1,6 +1,6 @@
 /** @jest-environment jsdom */
 import "@testing-library/jest-dom";
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import React from "react";
 
 // Control the apps query result per test.
@@ -12,9 +12,27 @@ jest.mock(
   }),
 );
 
-// The create-app dialog pulls in a heavy subtree; stub it.
-jest.mock("@/scenes/PortalV3/layout/CreateAppDialog/index-v4", () => ({
-  CreateAppDialogV4: () => null,
+jest.mock("next/dynamic", () => ({
+  __esModule: true,
+  default: () => () => <div data-testid="create-app-dialog" />,
+}));
+
+jest.mock("@radix-ui/react-dropdown-menu", () => ({
+  Root: ({ children }: React.PropsWithChildren) => <>{children}</>,
+  Trigger: ({ children, ...props }: React.ComponentProps<"button">) => (
+    <button {...props}>{children}</button>
+  ),
+  Portal: ({ children }: React.PropsWithChildren) => <>{children}</>,
+  Content: ({ children }: React.PropsWithChildren) => <div>{children}</div>,
+  Item: ({
+    children,
+    onSelect,
+    ...props
+  }: React.ComponentProps<"button"> & { onSelect?: () => void }) => (
+    <button role="menuitem" onClick={onSelect} {...props}>
+      {children}
+    </button>
+  ),
 }));
 
 jest.mock("@auth0/nextjs-auth0/client", () => ({
@@ -38,8 +56,7 @@ jest.mock("next/navigation", () => ({
 
 import { AppsDropdown } from "@/scenes/PortalV3/layout/Shell/AppsDropdown";
 
-// The trigger is the only <button> in the closed dropdown (menu items are
-// role="menuitem"), so this uniquely selects it without an accessible name.
+// Items use role="menuitem", so this selects the dropdown trigger.
 const trigger = () => screen.getByRole("button");
 
 beforeEach(() => {
@@ -96,4 +113,19 @@ it("shows the current app in the trigger when one is selected", () => {
   });
   render(<AppsDropdown />);
   expect(trigger()).toHaveTextContent("My App");
+});
+
+it("mounts the create-app dialog only after the create action is selected", async () => {
+  fetchApps.mockReturnValue({
+    data: { app: [] },
+    loading: false,
+    error: undefined,
+  });
+  render(<AppsDropdown />);
+
+  expect(screen.queryByTestId("create-app-dialog")).not.toBeInTheDocument();
+
+  fireEvent.click(screen.getByRole("menuitem", { name: "Create new app" }));
+
+  expect(await screen.findByTestId("create-app-dialog")).toBeInTheDocument();
 });
