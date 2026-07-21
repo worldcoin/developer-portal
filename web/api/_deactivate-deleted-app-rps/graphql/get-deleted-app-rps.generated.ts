@@ -4,44 +4,45 @@ import * as Types from "@/graphql/graphql";
 import { GraphQLClient, RequestOptions } from "graphql-request";
 import gql from "graphql-tag";
 type GraphQLClientRequestHeaders = RequestOptions["requestHeaders"];
-export type GetRpRegistrationQueryVariables = Types.Exact<{
-  rp_id: Types.Scalars["String"]["input"];
+export type GetDeletedAppRpsQueryVariables = Types.Exact<{
+  before: Types.Scalars["timestamptz"]["input"];
+  limit: Types.Scalars["Int"]["input"];
 }>;
 
-export type GetRpRegistrationQuery = {
+export type GetDeletedAppRpsQuery = {
   __typename?: "query_root";
-  rp_registration_by_pk?: {
+  rp_registration: Array<{
     __typename?: "rp_registration";
     rp_id: string;
     app_id: string;
     status: unknown;
-    mode: unknown;
-    signer_address?: string | null;
-    created_at: string;
-    updated_at: string;
-    operation_hash?: string | null;
-    staging_status?: unknown | null;
-    staging_operation_hash?: string | null;
-    app: { __typename?: "app"; deleted_at?: string | null };
-  } | null;
+  }>;
 };
 
-export const GetRpRegistrationDocument = gql`
-  query GetRpRegistration($rp_id: String!) {
-    rp_registration_by_pk(rp_id: $rp_id) {
+export const GetDeletedAppRpsDocument = gql`
+  query GetDeletedAppRps($before: timestamptz!, $limit: Int!) {
+    rp_registration(
+      where: {
+        mode: { _eq: managed }
+        manager_kms_key_id: { _is_null: false }
+        updated_at: { _lt: $before }
+        app: { deleted_at: { _is_null: false } }
+        _or: [
+          { status: { _neq: deactivated } }
+          {
+            _and: [
+              { staging_status: { _is_null: false } }
+              { staging_status: { _neq: deactivated } }
+            ]
+          }
+        ]
+      }
+      order_by: { updated_at: asc }
+      limit: $limit
+    ) {
       rp_id
       app_id
       status
-      mode
-      signer_address
-      created_at
-      updated_at
-      operation_hash
-      staging_status
-      staging_operation_hash
-      app {
-        deleted_at
-      }
     }
   }
 `;
@@ -65,18 +66,18 @@ export function getSdk(
   withWrapper: SdkFunctionWrapper = defaultWrapper,
 ) {
   return {
-    GetRpRegistration(
-      variables: GetRpRegistrationQueryVariables,
+    GetDeletedAppRps(
+      variables: GetDeletedAppRpsQueryVariables,
       requestHeaders?: GraphQLClientRequestHeaders,
-    ): Promise<GetRpRegistrationQuery> {
+    ): Promise<GetDeletedAppRpsQuery> {
       return withWrapper(
         (wrappedRequestHeaders) =>
-          client.request<GetRpRegistrationQuery>(
-            GetRpRegistrationDocument,
+          client.request<GetDeletedAppRpsQuery>(
+            GetDeletedAppRpsDocument,
             variables,
             { ...requestHeaders, ...wrappedRequestHeaders },
           ),
-        "GetRpRegistration",
+        "GetDeletedAppRps",
         "query",
         variables,
       );

@@ -4,44 +4,28 @@ import * as Types from "@/graphql/graphql";
 import { GraphQLClient, RequestOptions } from "graphql-request";
 import gql from "graphql-tag";
 type GraphQLClientRequestHeaders = RequestOptions["requestHeaders"];
-export type GetRpRegistrationQueryVariables = Types.Exact<{
+export type TouchDeletedAppRpMutationVariables = Types.Exact<{
   rp_id: Types.Scalars["String"]["input"];
+  now: Types.Scalars["timestamptz"]["input"];
 }>;
 
-export type GetRpRegistrationQuery = {
-  __typename?: "query_root";
-  rp_registration_by_pk?: {
+export type TouchDeletedAppRpMutation = {
+  __typename?: "mutation_root";
+  update_rp_registration_by_pk?: {
     __typename?: "rp_registration";
     rp_id: string;
-    app_id: string;
-    status: unknown;
-    mode: unknown;
-    signer_address?: string | null;
-    created_at: string;
     updated_at: string;
-    operation_hash?: string | null;
-    staging_status?: unknown | null;
-    staging_operation_hash?: string | null;
-    app: { __typename?: "app"; deleted_at?: string | null };
   } | null;
 };
 
-export const GetRpRegistrationDocument = gql`
-  query GetRpRegistration($rp_id: String!) {
-    rp_registration_by_pk(rp_id: $rp_id) {
+export const TouchDeletedAppRpDocument = gql`
+  mutation TouchDeletedAppRp($rp_id: String!, $now: timestamptz!) {
+    update_rp_registration_by_pk(
+      pk_columns: { rp_id: $rp_id }
+      _set: { updated_at: $now }
+    ) {
       rp_id
-      app_id
-      status
-      mode
-      signer_address
-      created_at
       updated_at
-      operation_hash
-      staging_status
-      staging_operation_hash
-      app {
-        deleted_at
-      }
     }
   }
 `;
@@ -65,19 +49,19 @@ export function getSdk(
   withWrapper: SdkFunctionWrapper = defaultWrapper,
 ) {
   return {
-    GetRpRegistration(
-      variables: GetRpRegistrationQueryVariables,
+    TouchDeletedAppRp(
+      variables: TouchDeletedAppRpMutationVariables,
       requestHeaders?: GraphQLClientRequestHeaders,
-    ): Promise<GetRpRegistrationQuery> {
+    ): Promise<TouchDeletedAppRpMutation> {
       return withWrapper(
         (wrappedRequestHeaders) =>
-          client.request<GetRpRegistrationQuery>(
-            GetRpRegistrationDocument,
+          client.request<TouchDeletedAppRpMutation>(
+            TouchDeletedAppRpDocument,
             variables,
             { ...requestHeaders, ...wrappedRequestHeaders },
           ),
-        "GetRpRegistration",
-        "query",
+        "TouchDeletedAppRp",
+        "mutation",
         variables,
       );
     },
