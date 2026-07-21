@@ -3,8 +3,8 @@ import { auth0 } from "@/lib/auth0";
 import { logger } from "@/lib/logger";
 import { NextRequest, NextResponse } from "next/server";
 
-// TODO: replace with the real owner alias for the Play internal-tester list.
-const OPS_EMAIL = "sandbox-access@toolsforhumanity.com";
+// replace with the real owner alias for the Play internal-tester list. at some point
+const OPS_EMAIL = "kartike.chawla@toolsforhumanity.com";
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 /**
