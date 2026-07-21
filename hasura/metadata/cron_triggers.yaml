@@ -54,3 +54,17 @@
     - name: Authorization
       value_from_env: INTERNAL_ENDPOINTS_SECRET
   comment: Update the app stats table with the latest increment of nullifier data
+- name: Deactivate RPs for deleted apps
+  webhook: '{{NEXT_API_URL}}/_deactivate-deleted-app-rps'
+  schedule: '*/15 * * * *'
+  include_in_metadata: true
+  payload: {}
+  retry_conf:
+    num_retries: 1
+    retry_interval_seconds: 10
+    timeout_seconds: 120
+    tolerance_seconds: 21600
+  headers:
+    - name: Authorization
+      value_from_env: INTERNAL_ENDPOINTS_SECRET
+  comment: Deactivate the managed RP signer on-chain for soft-deleted apps whose RP is still live (reconciles delete-time failures and backfills apps deleted before delete-time deactivation existed).

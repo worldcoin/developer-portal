@@ -1,4 +1,3 @@
-import { ApolloWrapper } from "@/lib/apollo-wrapper";
 import PostHogPageView from "@/scenes/Root/providers/PostHogPageView";
 import WithPostHogIdentifier from "@/scenes/Root/providers/providers";
 import "@/styles/globals.css";
@@ -81,11 +80,9 @@ export const RootLayout = async ({
 }: Readonly<{
   children: React.ReactNode;
 }>) => {
-  // Read the per-request CSP nonce set by the proxy (`web/proxy.ts`)
-  // so client-only providers that inject inline <script> tags during SSR
-  // (Apollo's data-transport rehydration script) can attach the nonce and
-  // pass our strict script-src.
-  const nonce = (await headers()).get("x-nonce") ?? undefined;
+  // Force request-time rendering so Next can apply the per-request CSP nonce
+  // from `web/proxy.ts` to framework and page scripts.
+  await headers();
 
   return (
     <html lang="en" className={fontVariables}>
@@ -99,16 +96,14 @@ export const RootLayout = async ({
 
         <Auth0Provider>
           <WithPostHogIdentifier>
-            <ApolloWrapper nonce={nonce}>
-              <SkeletonTheme baseColor="#F3F4F5" highlightColor="#EBECEF">
-                <Provider>
-                  <Suspense fallback={null}>
-                    <PostHogPageView />
-                  </Suspense>
-                  {children}
-                </Provider>
-              </SkeletonTheme>
-            </ApolloWrapper>
+            <SkeletonTheme baseColor="#F3F4F5" highlightColor="#EBECEF">
+              <Provider>
+                <Suspense fallback={null}>
+                  <PostHogPageView />
+                </Suspense>
+                {children}
+              </Provider>
+            </SkeletonTheme>
           </WithPostHogIdentifier>
         </Auth0Provider>
       </body>

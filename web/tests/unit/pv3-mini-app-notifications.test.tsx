@@ -17,10 +17,16 @@ jest.mock("next/navigation", () => ({
 jest.mock(
   "@/scenes/common/Teams/TeamId/Apps/AppId/MiniApp/Notifications/graphql/client/fetch-notification-app-metadata.generated",
   () => ({
-    useFetchNotificationAppMetadataQuery: (...args: unknown[]) =>
-      mockUseFetchNotificationAppMetadataQuery(...args),
+    FetchNotificationAppMetadataDocument: {},
   }),
 );
+
+// AC4: the page calls useQuery(FetchNotificationAppMetadataDocument) from
+// @apollo/client/react. Route it to the same data fn the tests configure.
+jest.mock("@apollo/client/react", () => ({
+  useQuery: (...args: unknown[]) =>
+    mockUseFetchNotificationAppMetadataQuery(...args),
+}));
 
 jest.mock("posthog-js", () => ({
   __esModule: true,

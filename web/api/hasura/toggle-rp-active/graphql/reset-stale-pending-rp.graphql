@@ -1,0 +1,12 @@
+mutation ResetStalePendingRp($rp_id: String!, $updated_at: timestamptz!) {
+  update_rp_registration(
+    where: {
+      rp_id: { _eq: $rp_id }
+      status: { _eq: pending }
+      updated_at: { _eq: $updated_at }
+    }
+    _set: { status: registered }
+  ) {
+    affected_rows
+  }
+}

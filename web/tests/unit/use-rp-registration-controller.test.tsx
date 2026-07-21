@@ -5,8 +5,13 @@ import { renderHook, waitFor } from "@testing-library/react";
 
 jest.mock(
   "@/scenes/common/Teams/TeamId/Apps/AppId/WorldId40/page/graphql/client/retry-rp.generated",
-  () => ({ useRetryRpMutation: () => [jest.fn()] }),
+  () => ({ RetryRpDocument: {} }),
 );
+
+// AC4: the controller calls useMutation(RetryRpDocument) from @apollo/client/react.
+jest.mock("@apollo/client/react", () => ({
+  useMutation: () => [jest.fn(), { loading: false }],
+}));
 
 it("publishes a reconciled production status before the overview refetch", async () => {
   const onStatusReconciled = jest.fn();

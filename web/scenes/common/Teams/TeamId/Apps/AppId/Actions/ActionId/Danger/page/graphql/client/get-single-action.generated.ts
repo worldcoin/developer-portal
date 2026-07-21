@@ -1,9 +1,7 @@
 /* eslint-disable */
 import * as Types from "@/graphql/graphql";
 
-import { gql } from "@apollo/client";
-import * as Apollo from "@apollo/client";
-const defaultOptions = {} as const;
+import { TypedDocumentNode as DocumentNode } from "@graphql-typed-document-node/core";
 export type GetSingleActionQueryVariables = Types.Exact<{
   action_id: Types.Scalars["String"]["input"];
 }>;
@@ -23,93 +21,82 @@ export type GetSingleActionQuery = {
   } | null;
 };
 
-export const GetSingleActionDocument = gql`
-  query GetSingleAction($action_id: String!) {
-    action_by_pk(id: $action_id) {
-      id
-      name
-      app_id
-      app {
-        id
-        rp_registration {
-          rp_id
-        }
-      }
-    }
-  }
-`;
-
-/**
- * __useGetSingleActionQuery__
- *
- * To run a query within a React component, call `useGetSingleActionQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetSingleActionQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetSingleActionQuery({
- *   variables: {
- *      action_id: // value for 'action_id'
- *   },
- * });
- */
-export function useGetSingleActionQuery(
-  baseOptions: Apollo.QueryHookOptions<
-    GetSingleActionQuery,
-    GetSingleActionQueryVariables
-  > &
-    (
-      | { variables: GetSingleActionQueryVariables; skip?: boolean }
-      | { skip: boolean }
-    ),
-) {
-  const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useQuery<GetSingleActionQuery, GetSingleActionQueryVariables>(
-    GetSingleActionDocument,
-    options,
-  );
-}
-export function useGetSingleActionLazyQuery(
-  baseOptions?: Apollo.LazyQueryHookOptions<
-    GetSingleActionQuery,
-    GetSingleActionQueryVariables
-  >,
-) {
-  const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useLazyQuery<
-    GetSingleActionQuery,
-    GetSingleActionQueryVariables
-  >(GetSingleActionDocument, options);
-}
-export function useGetSingleActionSuspenseQuery(
-  baseOptions?:
-    | Apollo.SkipToken
-    | Apollo.SuspenseQueryHookOptions<
-        GetSingleActionQuery,
-        GetSingleActionQueryVariables
-      >,
-) {
-  const options =
-    baseOptions === Apollo.skipToken
-      ? baseOptions
-      : { ...defaultOptions, ...baseOptions };
-  return Apollo.useSuspenseQuery<
-    GetSingleActionQuery,
-    GetSingleActionQueryVariables
-  >(GetSingleActionDocument, options);
-}
-export type GetSingleActionQueryHookResult = ReturnType<
-  typeof useGetSingleActionQuery
->;
-export type GetSingleActionLazyQueryHookResult = ReturnType<
-  typeof useGetSingleActionLazyQuery
->;
-export type GetSingleActionSuspenseQueryHookResult = ReturnType<
-  typeof useGetSingleActionSuspenseQuery
->;
-export type GetSingleActionQueryResult = Apollo.QueryResult<
+export const GetSingleActionDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "query",
+      name: { kind: "Name", value: "GetSingleAction" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "action_id" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "String" },
+            },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "action_by_pk" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "id" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "action_id" },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
+                { kind: "Field", name: { kind: "Name", value: "name" } },
+                { kind: "Field", name: { kind: "Name", value: "app_id" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "app" },
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      { kind: "Field", name: { kind: "Name", value: "id" } },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "rp_registration" },
+                        selectionSet: {
+                          kind: "SelectionSet",
+                          selections: [
+                            {
+                              kind: "Field",
+                              name: { kind: "Name", value: "rp_id" },
+                            },
+                          ],
+                        },
+                      },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<
   GetSingleActionQuery,
   GetSingleActionQueryVariables
 >;
