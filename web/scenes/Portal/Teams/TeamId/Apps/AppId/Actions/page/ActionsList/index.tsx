@@ -9,12 +9,12 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useForm, useWatch } from "react-hook-form";
 import Skeleton from "react-loading-skeleton";
-import { type useGetActionsQuery } from "@/scenes/common/Teams/TeamId/Apps/AppId/Actions/page/graphql/client/actions.generated";
+import { type GetActionsQuery } from "@/scenes/common/Teams/TeamId/Apps/AppId/Actions/page/graphql/client/actions.generated";
 import { Item } from "./Item";
 
 export const ActionsList = (props: {
   searchForm: ReturnType<typeof useForm<{ keyword: string }>>;
-  items: ReturnType<typeof useGetActionsQuery>;
+  items: { loading: boolean; data?: GetActionsQuery };
   generateItemHref: (id: string) => string;
   engineType?: string;
   isReadOnly?: boolean;

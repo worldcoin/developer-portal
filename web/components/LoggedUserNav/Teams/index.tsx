@@ -1,17 +1,18 @@
 import { Dropdown } from "components/Dropdown";
 import { AddCircleIcon } from "@/components/Icons/AddCircleIcon";
 import { CheckmarkCircleIcon } from "@/components/Icons/CheckmarkCircleIcon";
-import { useFetchTeamsQuery } from "@/components/LoggedUserNav/Teams/graphql/client/fetch-teams.generated";
+import { FetchTeamsDocument } from "@/components/LoggedUserNav/Teams/graphql/client/fetch-teams.generated";
 import { Auth0SessionUser } from "@/lib/types";
 import { urls } from "@/lib/urls";
 import { useUser } from "@auth0/nextjs-auth0/client";
+import { useQuery } from "@apollo/client/react";
 import Link from "next/link";
 import { TeamLogo } from "./TeamLogo";
 
 export const Teams = (props: { selectedTeamId?: string }) => {
   const { user } = useUser() as Auth0SessionUser;
 
-  const teamsQueryRes = useFetchTeamsQuery({
+  const teamsQueryRes = useQuery(FetchTeamsDocument, {
     skip: !user?.hasura,
     fetchPolicy: "cache-and-network", // NOTE: To make it refetch after create-team
   });

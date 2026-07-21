@@ -84,6 +84,15 @@ export async function GET(
   const currentDbStagingStatus =
     (dbRecord.staging_status as RpRegistrationStatus) ?? null;
 
+  // A deleted app's RP lifecycle is owned by the deactivation flow (delete-time
+  // teardown + the reconciliation cron), which relies on the `pending` status as
+  // an in-flight marker so it never double-submits a `toggleActive`. Public
+  // status polling must therefore not write this row back — clobbering `pending`
+  // with the still-active on-chain reading would let the cron fire a second
+  // toggle while the first is still valid, and two flips leave the RP active.
+  // Reads still return live on-chain state; only the DB writeback is skipped.
+  const isAppDeleted = Boolean(dbRecord.app?.deleted_at);
+
   const productionContractAddress = process.env.RP_REGISTRY_CONTRACT_ADDRESS;
   if (!productionContractAddress) {
     logger.error("RP_REGISTRY_CONTRACT_ADDRESS not configured");
@@ -184,8 +193,13 @@ export async function GET(
   const ageMs = Date.now() - new Date(dbRecord.created_at).getTime();
   const isPastGracePeriod = ageMs > PENDING_TIMEOUT_MS;
 
-  // Sync DB status based on production contract only
-  if (productionInitialized && productionStatus !== currentDbStatus) {
+  // Sync DB status based on production contract only (never for deleted apps —
+  // see isAppDeleted above).
+  if (
+    !isAppDeleted &&
+    productionInitialized &&
+    productionStatus !== currentDbStatus
+  ) {
     try {
       await getUpdateRpStatusSdk(client).UpdateRpStatus({
         rp_id: rpId,
@@ -207,6 +221,7 @@ export async function GET(
   // would clobber a legit "pending"/"failed" that rotate-signer-key or
   // rp-retry persisted while a rotation is in flight or after a failure.
   if (
+    !isAppDeleted &&
     stagingRpcSucceeded &&
     stagingInitialized &&
     canTrustOnChainStaging &&
@@ -233,6 +248,7 @@ export async function GET(
   // Self-managed RPs intentionally stay pending until the developer completes
   // on-chain setup manually, so we skip the timeout for those.
   if (
+    !isAppDeleted &&
     !productionInitialized &&
     currentDbStatus === RpRegistrationStatus.Pending &&
     isPastGracePeriod &&
@@ -268,6 +284,7 @@ export async function GET(
   const stagingAgeMs = Date.now() - new Date(dbRecord.updated_at).getTime();
   const isStagingPastGracePeriod = stagingAgeMs > PENDING_TIMEOUT_MS;
   if (
+    !isAppDeleted &&
     stagingContractAddress &&
     stagingRpcSucceeded &&
     !stagingInitialized &&

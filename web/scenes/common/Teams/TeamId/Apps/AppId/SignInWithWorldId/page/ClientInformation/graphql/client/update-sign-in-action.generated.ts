@@ -1,9 +1,7 @@
 /* eslint-disable */
 import * as Types from "@/graphql/graphql";
 
-import { gql } from "@apollo/client";
-import * as Apollo from "@apollo/client";
-const defaultOptions = {} as const;
+import { TypedDocumentNode as DocumentNode } from "@graphql-typed-document-node/core";
 export type UpdateSignInActionMutationVariables = Types.Exact<{
   id: Types.Scalars["String"]["input"];
   input?: Types.InputMaybe<Types.Action_Set_Input>;
@@ -14,54 +12,82 @@ export type UpdateSignInActionMutation = {
   update_action_by_pk?: { __typename?: "action"; id: string } | null;
 };
 
-export const UpdateSignInActionDocument = gql`
-  mutation UpdateSignInAction($id: String!, $input: action_set_input) {
-    update_action_by_pk(pk_columns: { id: $id }, _set: $input) {
-      id
-    }
-  }
-`;
-export type UpdateSignInActionMutationFn = Apollo.MutationFunction<
-  UpdateSignInActionMutation,
-  UpdateSignInActionMutationVariables
->;
-
-/**
- * __useUpdateSignInActionMutation__
- *
- * To run a mutation, you first call `useUpdateSignInActionMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useUpdateSignInActionMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [updateSignInActionMutation, { data, loading, error }] = useUpdateSignInActionMutation({
- *   variables: {
- *      id: // value for 'id'
- *      input: // value for 'input'
- *   },
- * });
- */
-export function useUpdateSignInActionMutation(
-  baseOptions?: Apollo.MutationHookOptions<
-    UpdateSignInActionMutation,
-    UpdateSignInActionMutationVariables
-  >,
-) {
-  const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useMutation<
-    UpdateSignInActionMutation,
-    UpdateSignInActionMutationVariables
-  >(UpdateSignInActionDocument, options);
-}
-export type UpdateSignInActionMutationHookResult = ReturnType<
-  typeof useUpdateSignInActionMutation
->;
-export type UpdateSignInActionMutationResult =
-  Apollo.MutationResult<UpdateSignInActionMutation>;
-export type UpdateSignInActionMutationOptions = Apollo.BaseMutationOptions<
+export const UpdateSignInActionDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "mutation",
+      name: { kind: "Name", value: "UpdateSignInAction" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: { kind: "Variable", name: { kind: "Name", value: "id" } },
+          type: {
+            kind: "NonNullType",
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "String" },
+            },
+          },
+        },
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "input" },
+          },
+          type: {
+            kind: "NamedType",
+            name: { kind: "Name", value: "action_set_input" },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "update_action_by_pk" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "pk_columns" },
+                value: {
+                  kind: "ObjectValue",
+                  fields: [
+                    {
+                      kind: "ObjectField",
+                      name: { kind: "Name", value: "id" },
+                      value: {
+                        kind: "Variable",
+                        name: { kind: "Name", value: "id" },
+                      },
+                    },
+                  ],
+                },
+              },
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "_set" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "input" },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<
   UpdateSignInActionMutation,
   UpdateSignInActionMutationVariables
 >;

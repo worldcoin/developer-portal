@@ -9,7 +9,8 @@ import { ChangeEvent, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import { FormSkeleton } from "../../Configuration/PageComponents/FormSkeleton";
-import { useFetchNotificationAppMetadataQuery } from "@/scenes/common/Teams/TeamId/Apps/AppId/MiniApp/Notifications/graphql/client/fetch-notification-app-metadata.generated";
+import { useQuery } from "@apollo/client/react";
+import { FetchNotificationAppMetadataDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/MiniApp/Notifications/graphql/client/fetch-notification-app-metadata.generated";
 
 type NotificationFormData = {
   walletAddresses: string;
@@ -47,11 +48,13 @@ export const NotificationsPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const { data: appMetadataData, loading } =
-    useFetchNotificationAppMetadataQuery({
+  const { data: appMetadataData, loading } = useQuery(
+    FetchNotificationAppMetadataDocument,
+    {
       variables: { id: params?.appId ?? "" },
       skip: !params?.appId,
-    });
+    },
+  );
 
   const appData = appMetadataData?.app[0];
   const draftMeta = appData?.app_metadata[0];

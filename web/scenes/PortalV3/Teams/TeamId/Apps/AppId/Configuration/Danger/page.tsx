@@ -5,7 +5,8 @@ import { ErrorPage } from "@/components/ErrorPage";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { urls } from "@/lib/urls";
-import { useFetchAppMetadataQuery } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/graphql/client/fetch-app-metadata.generated";
+import { useQuery } from "@apollo/client/react";
+import { FetchAppMetadataDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/graphql/client/fetch-app-metadata.generated";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import Skeleton from "react-loading-skeleton";
@@ -19,7 +20,7 @@ export const AppDangerZonePage = ({ params }: AppDangerZonePageProps) => {
   const routeParams = useParams<{ appId: `app_${string}`; teamId: string }>();
   const appId = (params?.appId || routeParams?.appId) as `app_${string}`;
   const teamId = (params?.teamId || routeParams?.teamId) as `team_${string}`;
-  const { data, loading, error } = useFetchAppMetadataQuery({
+  const { data, loading, error } = useQuery(FetchAppMetadataDocument, {
     variables: { id: appId },
   });
 

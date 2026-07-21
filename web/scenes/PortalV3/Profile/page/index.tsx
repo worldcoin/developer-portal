@@ -10,12 +10,13 @@ import { Auth0SessionUser } from "@/lib/types";
 import { UserInfo } from "@/scenes/PortalV3/Profile/common/UserInfo";
 import { ColorSelector } from "@/scenes/PortalV3/Profile/page/ColorSelector";
 import { WorldIdAccountMigration } from "@/scenes/common/Profile/page/WorldIdAccountMigration";
-import { useUpdateUserMutation } from "@/scenes/common/Profile/page/graphql/client/update-user.generated";
+import { UpdateUserDocument } from "@/scenes/common/Profile/page/graphql/client/update-user.generated";
 import { Color, colors } from "@/scenes/common/Profile/types";
 import { colorAtom } from "@/scenes/common/layout/color-atom";
 import { useMeQuery } from "@/scenes/common/me-query/client";
 import { FetchMeDocument } from "@/scenes/common/me-query/client/graphql/client/me-query.generated";
 import { useUser } from "@auth0/nextjs-auth0/client";
+import { useMutation } from "@apollo/client/react";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useAtom } from "jotai";
 import { useCallback, useEffect } from "react";
@@ -42,7 +43,7 @@ export const ProfilePage = () => {
   const { user: auth0User } = useUser() as Auth0SessionUser;
   const { user, loading, refetch: refetchMe } = useMeQuery();
 
-  const [updateUser] = useUpdateUserMutation({
+  const [updateUser] = useMutation(UpdateUserDocument, {
     refetchQueries: [FetchMeDocument],
   });
 

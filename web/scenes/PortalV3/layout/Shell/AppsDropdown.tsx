@@ -5,11 +5,12 @@ import { Auth0SessionUser } from "@/lib/types";
 import { urls } from "@/lib/urls";
 import { checkUserPermissions } from "@/lib/utils";
 import {
+  FetchAppsDocument,
   FetchAppsQuery,
-  useFetchAppsQuery,
 } from "@/scenes/common/layout/AppSelector/graphql/client/fetch-apps.generated";
 import { Icon, opticalIconClassName } from "@/scenes/PortalV3/common/Icon";
 import { CreateAppDialogV4 } from "@/scenes/PortalV3/layout/CreateAppDialog/index-v4";
+import { useQuery } from "@apollo/client/react";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { atom, useAtomValue, useSetAtom } from "jotai";
@@ -92,7 +93,7 @@ export const AppsDropdown = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const currentAppId = useCurrentAppId();
 
-  const { data, loading, error } = useFetchAppsQuery({
+  const { data, loading, error } = useQuery(FetchAppsDocument, {
     variables: { teamId: teamId! },
     skip: !teamId,
   });
