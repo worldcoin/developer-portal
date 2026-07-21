@@ -46,7 +46,7 @@ export const TeamsDropdown = (props: { teams: DropdownTeam[] }) => {
       <DropdownMenu.Root>
         <DropdownMenu.Trigger
           aria-label="Switch team"
-          className="flex h-10 w-full min-w-0 items-center gap-2 rounded-8 px-0 text-left outline-hidden transition-colors hover:bg-portal-border focus-visible:ring-2 focus-visible:ring-grey-300"
+          className="flex h-10 w-full min-w-0 items-center gap-2 rounded-8 px-0 text-left outline-hidden transition-colors hover:bg-portal-border focus-visible:bg-portal-border"
         >
           {currentTeam ? (
             <TeamAvatar name={currentTeam.name} className="size-6" />
