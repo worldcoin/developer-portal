@@ -1,14 +1,18 @@
 "use client";
 
+import { DecoratedButton } from "@/components/DecoratedButton";
 import { Dialog } from "@/components/Dialog";
 import { DialogOverlay } from "@/components/DialogOverlay";
 import { DialogPanel } from "@/components/DialogPanel";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import { Auth0SessionUser } from "@/lib/types";
 import { Icon } from "@/scenes/PortalV3/common/Icon";
+import { useUser } from "@auth0/nextjs-auth0/client";
 import clsx from "clsx";
 import posthog from "posthog-js";
 import QRCode from "react-qr-code";
 import { useState } from "react";
+import { toast } from "react-toastify";
 
 /** Static distribution links for the sandbox builds. Update here only. */
 const IOS_TESTFLIGHT_URL = "https://testflight.apple.com/join/VZEurhHe";
@@ -16,11 +20,6 @@ const IOS_TESTFLIGHT_URL = "https://testflight.apple.com/join/VZEurhHe";
 // internal-tester allowlist (managed in Play Console, outside this repo).
 const ANDROID_URL: string | null =
   "https://play.google.com/apps/internaltest/4701115249455610230";
-// TODO: replace with the real owner alias for the Play internal-tester list.
-const ANDROID_ACCESS_REQUEST_MAILTO =
-  "mailto:sandbox-access@toolsforhumanity.com" +
-  "?subject=WID%20Sandbox%20Android%20access" +
-  "&body=Google%20account%20email%20to%20allowlist%3A%20";
 
 type Platform = "ios" | "android";
 
@@ -63,6 +62,38 @@ export const SandboxButton = () => {
   const [open, setOpen] = useState(false);
   const [platform, setPlatform] = useState<Platform>("ios");
   const active = PLATFORMS[platform];
+  const { user } = useUser() as Auth0SessionUser;
+
+  // null = form collapsed; a string = form open with that value in the field.
+  const [requestEmail, setRequestEmail] = useState<string | null>(null);
+  const [requestSending, setRequestSending] = useState(false);
+  const [requestSent, setRequestSent] = useState(false);
+
+  const submitAccessRequest = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (requestSending || !requestEmail) return;
+
+    setRequestSending(true);
+    try {
+      const response = await fetch("/api/v2/sandbox-access-request", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: requestEmail }),
+      });
+
+      if (!response.ok) {
+        toast.error("Couldn't send your request — please try again.");
+        return;
+      }
+
+      posthog.capture("sandbox_access_requested", { platform: "android" });
+      setRequestSent(true);
+    } catch {
+      toast.error("Couldn't send your request — please try again.");
+    } finally {
+      setRequestSending(false);
+    }
+  };
 
   const openDialog = () => {
     posthog.capture("sandbox_tile_clicked");
@@ -171,18 +202,51 @@ export const SandboxButton = () => {
                   The Android build is distributed as a Google Play internal
                   test — your Google account email must be approved before the
                   link works.{" "}
-                  <a
-                    href={ANDROID_ACCESS_REQUEST_MAILTO}
-                    onClick={() =>
-                      posthog.capture("sandbox_access_requested", {
-                        platform: "android",
-                      })
-                    }
-                    className="hover:text-grey-600 text-grey-900 underline underline-offset-2 transition-colors"
-                  >
-                    Request access
-                  </a>
+                  {requestEmail === null && !requestSent ? (
+                    <button
+                      type="button"
+                      onClick={() => setRequestEmail(user?.email ?? "")}
+                      className="hover:text-grey-600 text-grey-900 underline underline-offset-2 transition-colors"
+                    >
+                      Request access
+                    </button>
+                  ) : null}
                 </Typography>
+
+                {requestSent ? (
+                  <Typography
+                    variant={TYPOGRAPHY.M4}
+                    className="mt-2 block text-grey-900"
+                  >
+                    Request sent — you&apos;ll get an email at {requestEmail}{" "}
+                    once you&apos;re approved.
+                  </Typography>
+                ) : requestEmail !== null ? (
+                  <form
+                    className="mt-3 flex flex-wrap items-center gap-2"
+                    onSubmit={submitAccessRequest}
+                  >
+                    <input
+                      type="email"
+                      required
+                      value={requestEmail}
+                      onChange={(e) => setRequestEmail(e.target.value)}
+                      aria-label="Google account email"
+                      placeholder="google-account@gmail.com"
+                      className="h-9 min-w-0 flex-1 rounded-8 border border-grey-200 bg-white px-3 font-world text-14 text-grey-900 outline-hidden focus:ring-2 focus:ring-grey-300"
+                    />
+                    <DecoratedButton
+                      type="submit"
+                      variant="primary"
+                      loading={requestSending}
+                      className="h-9 shrink-0 px-4"
+                    >
+                      <Typography variant={TYPOGRAPHY.M4}>
+                        Send request
+                      </Typography>
+                    </DecoratedButton>
+                  </form>
+                ) : null}
               </div>
             ) : null}
 
