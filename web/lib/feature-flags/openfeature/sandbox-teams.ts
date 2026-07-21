@@ -15,5 +15,6 @@ export const SANDBOX_TEAMS: string[] = isProduction
   ]
   : [
     // TODO: staging + local dev team ids.
-    "team_4dba92ae461f1fa715e31e553d04b0ce"
+    "team_4dba92ae461f1fa715e31e553d04b0ce",
+    "team_11b24953b07d196ed3d95d60776598d2"
   ];
