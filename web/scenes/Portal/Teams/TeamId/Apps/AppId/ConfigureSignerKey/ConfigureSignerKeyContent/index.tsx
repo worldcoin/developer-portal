@@ -4,7 +4,7 @@ import { DecoratedButton } from "@/components/DecoratedButton";
 import { SpinnerIcon } from "@/components/Icons/SpinnerIcon";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import clsx from "clsx";
-import { useMemo } from "react";
+import { useMemo, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { WorldId40OptionCard } from "../../EnableWorldId40/WorldId40OptionCard";
 
@@ -23,7 +23,6 @@ export type ConfigureSignerKeyContentProps = {
   onBack: () => void;
   onContinue: (setup: SignerKeySetup) => void;
   initialSetup?: SignerKeySetup;
-  loading?: boolean;
   className?: string;
 };
 
@@ -31,9 +30,9 @@ export const ConfigureSignerKeyContent = ({
   onBack,
   onContinue,
   initialSetup = "generate",
-  loading = false,
   className,
 }: ConfigureSignerKeyContentProps) => {
+  const [loading, startTransition] = useTransition();
   const defaultValues: FormValues = useMemo(
     () => ({ signer_key_setup: initialSetup }),
     [initialSetup],
@@ -44,7 +43,7 @@ export const ConfigureSignerKeyContent = ({
   });
 
   const onSubmit = (values: FormValues) => {
-    onContinue(values.signer_key_setup);
+    startTransition(() => onContinue(values.signer_key_setup));
   };
 
   return (

@@ -18,7 +18,7 @@ import clsx from "clsx";
 import dynamic from "next/dynamic";
 import { useParams, useRouter } from "next/navigation";
 import posthog from "posthog-js";
-import { useCallback, useMemo, useState, useTransition } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import {
@@ -93,7 +93,6 @@ export const CreateAppDialogV4 = ({
     useMutation(RegisterRpDocument);
 
   const [step, setStep] = useState<CreateDialogStep>(initialStep);
-  const [isKeyStepPending, startKeyStepTransition] = useTransition();
   const [createdAppId, setCreatedAppId] = useState<string | null>(
     existingAppId ?? null,
   );
@@ -254,15 +253,14 @@ export const CreateAppDialogV4 = ({
     setStep("enable-world-id-4-0");
   }, [setStep]);
 
-  const onConfigureContinue = useCallback(
-    (setup: SignerKeySetup) => {
-      startKeyStepTransition(() => {
-        setSignerKeySetup(setup);
-        setStep(setup === "existing" ? "use-existing-key" : "generate-new-key");
-      });
-    },
-    [startKeyStepTransition],
-  );
+  const onConfigureContinue = useCallback((setup: SignerKeySetup) => {
+    setSignerKeySetup(setup);
+    if (setup === "existing") {
+      setStep("use-existing-key");
+    } else {
+      setStep("generate-new-key");
+    }
+  }, []);
 
   const onSignerKeyBack = useCallback(() => {
     setStep("configure-signer-key");
@@ -393,7 +391,6 @@ export const CreateAppDialogV4 = ({
                 onBack={onConfigureBack}
                 onContinue={onConfigureContinue}
                 initialSetup={signerKeySetup}
-                loading={isKeyStepPending}
                 className="justify-self-center py-10"
               />
             )}
