@@ -1,46 +1,67 @@
 "use client";
 
-import { DecoratedButton } from "@/components/DecoratedButton";
 import { Dialog } from "@/components/Dialog";
 import { DialogOverlay } from "@/components/DialogOverlay";
 import { DialogPanel } from "@/components/DialogPanel";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Icon } from "@/scenes/PortalV3/common/Icon";
+import clsx from "clsx";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import posthog from "posthog-js";
 import QRCode from "react-qr-code";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 
 /** Static distribution links for the sandbox builds. Update here only. */
 const IOS_TESTFLIGHT_URL = "https://testflight.apple.com/join/VZEurhHe";
-// TODO: set once the Android build has a link; null renders a "coming soon" state.
-const ANDROID_URL: string | null = null;
+// Google Play internal test: works only for Google accounts already on the
+// internal-tester allowlist (managed in Play Console, outside this repo).
+const ANDROID_URL: string | null =
+  "https://play.google.com/apps/internaltest/4701115249455610230";
+// TODO: replace with the real owner alias for the Play internal-tester list.
+const ANDROID_ACCESS_REQUEST_MAILTO =
+  "mailto:sandbox-access@toolsforhumanity.com" +
+  "?subject=WID%20Sandbox%20Android%20access" +
+  "&body=Google%20account%20email%20to%20allowlist%3A%20";
 
-const INSTALL_STEPS = [
-  "Open the camera on your iPhone",
-  "Scan the QR code",
-  "Join TestFlight and install the build",
-] as const;
+type Platform = "ios" | "android";
 
-const StoreLink = (props: {
-  platform: "ios" | "android";
-  url: string;
-  children: string;
-}) => {
-  const { platform, url, children } = props;
-
-  return (
-    <DecoratedButton
-      href={url}
-      variant="secondary"
-      className="h-9 w-full px-3 py-1.5"
-      onClick={() =>
-        posthog.capture("sandbox_store_link_clicked", { platform })
-      }
-    >
-      <Typography variant={TYPOGRAPHY.M4}>{children}</Typography>
-    </DecoratedButton>
-  );
+const PLATFORMS: Record<
+  Platform,
+  {
+    label: string;
+    url: string | null;
+    steps: readonly string[];
+  }
+> = {
+  ios: {
+    label: "iOS",
+    url: IOS_TESTFLIGHT_URL,
+    steps: [
+      "Open the camera on your iPhone",
+      "Scan the QR code",
+      "Join TestFlight and install the build",
+    ],
+  },
+  android: {
+    label: "Android",
+    url: ANDROID_URL,
+    steps: [
+      "Request access for your Google account",
+      "Once approved, scan the QR code",
+      "Join the internal test and install the build",
+    ],
+  },
 };
+
+const PLATFORM_ORDER: readonly Platform[] = ["ios", "android"];
+
+/**
+ * `?dialog=sandbox` opens the install dialog on any portal page. The URL is
+ * the single source of truth for open state, so docs/support/onboarding can
+ * deep-link to it.
+ */
+const DIALOG_PARAM = "dialog";
+const DIALOG_VALUE = "sandbox";
 
 /**
  * Sidebar entry point for the World ID sandbox. Purely a distribution
@@ -48,11 +69,37 @@ const StoreLink = (props: {
  * No backend, no per-user state.
  */
 export const SandboxButton = () => {
-  const [open, setOpen] = useState(false);
+  const router = useRouter();
+  const pathname = usePathname() ?? "";
+  const searchParams = useSearchParams();
+  const open = searchParams?.get(DIALOG_PARAM) === DIALOG_VALUE;
+
+  const [platform, setPlatform] = useState<Platform>("ios");
+  const active = PLATFORMS[platform];
+
+  // replace (not push) both ways: back never steps through dialog states.
+  const setDialogOpen = useCallback(
+    (next: boolean) => {
+      const params = new URLSearchParams(searchParams ?? undefined);
+      if (next) params.set(DIALOG_PARAM, DIALOG_VALUE);
+      else params.delete(DIALOG_PARAM);
+      const query = params.toString();
+      router.replace(query ? `${pathname}?${query}` : pathname, {
+        scroll: false,
+      });
+    },
+    [pathname, router, searchParams],
+  );
 
   const openDialog = () => {
     posthog.capture("sandbox_tile_clicked");
-    setOpen(true);
+    setDialogOpen(true);
+  };
+
+  const switchPlatform = (next: Platform) => {
+    if (next === platform) return;
+    posthog.capture("sandbox_platform_switched", { platform: next });
+    setPlatform(next);
   };
 
   return (
@@ -61,39 +108,41 @@ export const SandboxButton = () => {
         type="button"
         onClick={openDialog}
         aria-haspopup="dialog"
-        className="group relative mt-6 flex aspect-square w-full shrink-0 flex-col gap-y-0.5 overflow-hidden rounded-[10px] bg-grey-900 p-4 text-left outline-hidden transition-shadow hover:shadow-portal-card focus-visible:ring-2 focus-visible:ring-grey-300 focus-visible:ring-offset-2 focus-visible:ring-offset-portal-canvas"
+        className="group relative mt-6 flex w-full shrink-0 items-center gap-x-3 overflow-hidden rounded-[10px] bg-grey-900 p-3 text-left outline-hidden transition-shadow hover:shadow-portal-card focus-visible:ring-2 focus-visible:ring-grey-300 focus-visible:ring-offset-2 focus-visible:ring-offset-portal-canvas"
       >
         {/* Static halftone ground, echoing the landing hero mark. */}
         <div
           aria-hidden
-          className="absolute inset-0 [background-image:radial-gradient(circle,rgba(255,255,255,0.25)_1px,transparent_1.5px)] [background-size:10px_10px]"
+          className="absolute inset-0 [background-image:radial-gradient(circle,rgba(255,255,255,0.2)_1px,transparent_1.5px)] [background-size:10px_10px]"
         />
         {/* Soft glow in the sandbox icon's purple, anchoring it on the halftone. */}
         <div
           aria-hidden
-          className="absolute inset-0 [background-image:radial-gradient(circle_at_50%_38%,rgba(146,96,247,0.4),transparent_58%)]"
+          className="absolute inset-0 [background-image:radial-gradient(circle_at_12%_50%,rgba(146,96,247,0.4),transparent_45%)]"
         />
-        <div
-          aria-hidden
-          className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-grey-900 to-transparent"
+        {/* The sandbox build's actual app icon, so banner → TestFlight →
+                home screen all show the same mark. */}
+        <Icon
+          name="world-id-sandbox-app-icon"
+          className="relative size-10 shrink-0 drop-shadow-md"
         />
-        <div className="relative flex w-full flex-1 items-center justify-center">
-          {/* The sandbox build's actual app icon, so tile → TestFlight → home
-              screen all show the same mark. */}
-          <Icon
-            name="world-id-sandbox-app-icon"
-            className="size-14 drop-shadow-md transition-transform duration-200 group-hover:scale-105"
-          />
-        </div>
-        <span className="relative font-world text-14 font-medium text-white">
-          World ID Sandbox
+        <span className="relative grid min-w-0 flex-1 gap-y-0.5">
+          <span className="font-world text-13 font-medium text-white">
+            World ID Sandbox
+          </span>
+          <span className="font-world text-11 text-grey-400">
+            Install the test build
+          </span>
         </span>
-        <span className="relative font-world text-11 text-grey-400">
-          Install the test build
+        <span
+          aria-hidden
+          className="relative pr-0.5 font-world text-13 text-grey-400 transition-transform duration-200 group-hover:translate-x-0.5"
+        >
+          →
         </span>
       </button>
 
-      <Dialog open={open} onClose={() => setOpen(false)}>
+      <Dialog open={open} onClose={() => setDialogOpen(false)}>
         <DialogOverlay />
         <DialogPanel className="max-h-[calc(100dvh-2rem)] gap-y-0 overflow-y-auto rounded-12 p-6 sm:p-8 md:w-[680px] md:max-w-[calc(100vw-2rem)] md:rounded-12">
           <div className="grid w-full gap-y-8">
@@ -118,9 +167,55 @@ export const SandboxButton = () => {
               </div>
             </header>
 
+            <div
+              role="group"
+              aria-label="Platform"
+              className="grid w-fit grid-cols-2 gap-1 rounded-[10px] bg-grey-100 p-1"
+            >
+              {PLATFORM_ORDER.map((p) => (
+                <button
+                  key={p}
+                  type="button"
+                  aria-pressed={platform === p}
+                  onClick={() => switchPlatform(p)}
+                  className={clsx(
+                    "flex h-8 items-center justify-center rounded-8 px-5 outline-hidden transition-colors focus-visible:ring-2 focus-visible:ring-grey-300",
+                    platform === p
+                      ? "bg-white text-grey-900 shadow-portal-card"
+                      : "text-grey-500 hover:text-grey-700",
+                  )}
+                >
+                  <Typography variant={TYPOGRAPHY.M4}>
+                    {PLATFORMS[p].label}
+                  </Typography>
+                </button>
+              ))}
+            </div>
+
+            {platform === "android" ? (
+              <div className="rounded-12 bg-grey-50 px-4 py-3">
+                <Typography variant={TYPOGRAPHY.R4} className="text-grey-700">
+                  The Android build is distributed as a Google Play internal
+                  test — your Google account email must be approved before the
+                  link works.{" "}
+                  <a
+                    href={ANDROID_ACCESS_REQUEST_MAILTO}
+                    onClick={() =>
+                      posthog.capture("sandbox_access_requested", {
+                        platform: "android",
+                      })
+                    }
+                    className="hover:text-grey-600 text-grey-900 underline underline-offset-2 transition-colors"
+                  >
+                    Request access
+                  </a>
+                </Typography>
+              </div>
+            ) : null}
+
             <div className="grid items-center gap-8 md:grid-cols-[minmax(0,1fr)_auto] md:gap-12">
               <ol className="grid gap-y-5">
-                {INSTALL_STEPS.map((step, index) => (
+                {active.steps.map((step, index) => (
                   <li
                     key={step}
                     className="grid grid-cols-[24px_minmax(0,1fr)] items-start gap-x-3"
@@ -143,72 +238,47 @@ export const SandboxButton = () => {
               </ol>
 
               <div className="grid justify-items-center gap-y-3">
+                {active.url ? (
+                  <Typography variant={TYPOGRAPHY.R5} className="text-grey-500">
+                    On the web?{" "}
+                    <a
+                      href={active.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={() =>
+                        posthog.capture("sandbox_store_link_clicked", {
+                          platform,
+                        })
+                      }
+                      className="hover:text-grey-600 text-grey-900 underline underline-offset-2 transition-colors"
+                    >
+                      Click here
+                    </a>
+                  </Typography>
+                ) : null}
                 <div className="w-full max-w-[236px] rounded-12 bg-grey-50 p-5">
-                  <QRCode
-                    value={IOS_TESTFLIGHT_URL}
-                    size={196}
-                    className="h-auto w-full"
-                    aria-label="QR code to install the iOS sandbox build"
-                  />
-                </div>
-                <Typography variant={TYPOGRAPHY.S4} className="text-grey-500">
-                  iOS · TestFlight
-                </Typography>
-              </div>
-            </div>
-
-            <details className="group rounded-12 bg-grey-50">
-              <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-x-4 rounded-12 px-4 py-3 outline-hidden transition-colors select-none hover:bg-grey-100 focus-visible:ring-2 focus-visible:ring-grey-300 focus-visible:ring-offset-2 [&::-webkit-details-marker]:hidden">
-                <Typography variant={TYPOGRAPHY.M4} className="text-grey-700">
-                  Other install options
-                </Typography>
-                <Typography
-                  aria-hidden
-                  variant={TYPOGRAPHY.M3}
-                  className="text-grey-400 group-open:hidden"
-                >
-                  +
-                </Typography>
-                <Typography
-                  aria-hidden
-                  variant={TYPOGRAPHY.M3}
-                  className="hidden text-grey-400 group-open:inline"
-                >
-                  −
-                </Typography>
-              </summary>
-
-              <div className="grid gap-y-5 px-4 pt-1 pb-4 sm:grid-cols-2 sm:gap-x-4 sm:gap-y-0">
-                <div className="grid content-start gap-y-2">
-                  <Typography variant={TYPOGRAPHY.R5} className="text-grey-500">
-                    Installing on this iPhone?
-                  </Typography>
-                  <StoreLink platform="ios" url={IOS_TESTFLIGHT_URL}>
-                    Join TestFlight
-                  </StoreLink>
-                </div>
-
-                <div className="grid content-start gap-y-2">
-                  <Typography variant={TYPOGRAPHY.R5} className="text-grey-500">
-                    Android
-                  </Typography>
-                  {ANDROID_URL === null ? (
-                    <div className="flex h-9 items-center rounded-[10px] bg-grey-100 px-3">
+                  {active.url ? (
+                    <QRCode
+                      value={active.url}
+                      size={196}
+                      className="h-auto w-full"
+                      aria-label={`QR code to install the ${active.label} sandbox build`}
+                    />
+                  ) : (
+                    <div className="flex aspect-square w-full items-center justify-center rounded-8 border border-dashed border-grey-300">
                       <Typography
                         variant={TYPOGRAPHY.R4}
-                        className="text-grey-500"
+                        className="text-center text-grey-400"
                       >
-                        Coming soon
+                        {active.label} build
+                        <br />
+                        coming soon
                       </Typography>
                     </div>
-                  ) : (
-                    <StoreLink platform="android" url={ANDROID_URL}>
-                      Get the build
-                    </StoreLink>
                   )}
                 </div>
               </div>
-            </details>
+            </div>
           </div>
         </DialogPanel>
       </Dialog>
