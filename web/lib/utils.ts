@@ -183,15 +183,16 @@ const isBlockedIPv4 = (octets: number[]): boolean => {
 };
 
 /**
- * Extracts the embedded IPv4 address from an IPv4-mapped (`::ffff:a.b.c.d`) or
- * deprecated IPv4-compatible (`::a.b.c.d`) IPv6 literal. `URL.hostname`
- * canonicalizes the trailing IPv4 to two hex groups (e.g. `::ffff:7f00:1`), so
- * both the dotted and the hex forms are handled. Anchored to `::` so a genuine
- * global IPv6 address is never misread as an embedded IPv4.
+ * Extracts the embedded IPv4 address from an IPv4-mapped IPv6 literal
+ * (`::ffff:a.b.c.d`). `URL.hostname` canonicalizes the trailing IPv4 to two hex
+ * groups (e.g. `::ffff:7f00:1`), so both the dotted and the hex forms are
+ * handled. Requires the `::ffff:` marker so only genuine IPv4-mapped addresses
+ * match; the deprecated IPv4-compatible form (`::a.b.c.d`) and other `::/96`
+ * literals are handled by isBlockedIPv6's `::/96` rule instead.
  */
 const extractEmbeddedIPv4 = (addr: string): number[] | null => {
-  const dotted = addr.match(/^::(ffff:)?(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})$/);
-  if (dotted) return parseIPv4Octets(dotted[2]);
+  const dotted = addr.match(/^::ffff:(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})$/);
+  if (dotted) return parseIPv4Octets(dotted[1]);
 
   const mapped = addr.match(/^::ffff:([0-9a-f]{1,4}):([0-9a-f]{1,4})$/);
   if (mapped) {
@@ -204,16 +205,28 @@ const extractEmbeddedIPv4 = (addr: string): number[] | null => {
 
 /**
  * True when an IPv6 address (without surrounding brackets) is loopback,
- * unspecified, unique-local, link-local, or an IPv4-mapped address that itself
- * points at a blocked IPv4 range.
+ * unspecified, unique-local, link-local, an IPv4-mapped address that itself
+ * points at a blocked IPv4 range, or any other `::/96` literal.
  */
 const isBlockedIPv6 = (host: string): boolean => {
   const addr = host.toLowerCase();
 
   if (addr === "::" || addr === "::1") return true; // unspecified / loopback
 
+  // IPv4-mapped (::ffff:a.b.c.d): block based on the embedded IPv4.
   const embedded = extractEmbeddedIPv4(addr);
   if (embedded) return isBlockedIPv4(embedded);
+
+  // ::/96 (first 96 bits zero) covers the unspecified range and the deprecated
+  // IPv4-compatible form (::a.b.c.d, which URL canonicalizes to ::hhhh:hhhh —
+  // e.g. ::127.0.0.1 -> ::7f00:1). None of it is publicly routable, so block
+  // the whole range: "::" followed by at most the low 32 bits (<=2 hextets or a
+  // dotted quad).
+  if (
+    /^::([0-9a-f]{1,4}(:[0-9a-f]{1,4})?|\d{1,3}(\.\d{1,3}){3})?$/.test(addr)
+  ) {
+    return true;
+  }
 
   const firstHextet = addr.split(":")[0];
   if (firstHextet) {
@@ -271,8 +284,14 @@ export const validateWebhookUrl = (candidate: string): boolean => {
   // require HTTPS regardless of environment.
   if (parsed.protocol !== "https:") return false;
 
-  // `URL.hostname` keeps the brackets around IPv6 literals; strip them.
-  const hostname = parsed.hostname.replace(/^\[|\]$/g, "").toLowerCase();
+  // `URL.hostname` keeps the brackets around IPv6 literals; strip them. Also
+  // strip a trailing "root" dot: URL preserves it on names (`localhost.`,
+  // `foo.localhost.`) though not on IPs, and a resolver may treat the
+  // root-qualified special-use name as loopback — normalize before the checks.
+  const hostname = parsed.hostname
+    .replace(/^\[|\]$/g, "")
+    .replace(/\.+$/, "")
+    .toLowerCase();
   if (!hostname) return false;
 
   // Block localhost by name (and any *.localhost subdomain).

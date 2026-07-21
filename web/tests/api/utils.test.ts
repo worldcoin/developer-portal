@@ -258,6 +258,7 @@ describe("validateWebhookUrl()", () => {
       "https://100.128.0.1/hook", // just above CGNAT 100.64.0.0/10
       "https://169.253.255.255/hook", // just below link-local 169.254.0.0/16
       "https://[2606:4700:4700::1111]/hook", // public IPv6
+      "https://collector.example.com./hook", // trailing root dot, public FQDN
     ])("accepts %s", (url) => {
       expect(validateWebhookUrl(url)).toBe(true);
     });
@@ -285,6 +286,8 @@ describe("validateWebhookUrl()", () => {
       "https://localhost:8443/hook",
       "https://foo.localhost/hook",
       "https://api.internal.localhost/hook",
+      "https://localhost./hook", // root-qualified (trailing dot)
+      "https://foo.localhost./hook", // root-qualified subdomain
     ])("rejects %s", (url) => {
       expect(validateWebhookUrl(url)).toBe(false);
     });
@@ -353,6 +356,17 @@ describe("validateWebhookUrl()", () => {
       "https://[::ffff:10.0.0.1]/hook",
       "https://[::ffff:7f00:1]/hook", // hex form of 127.0.0.1
       "https://[::ffff:a9fe:a9fe]/hook", // hex form of 169.254.169.254
+    ])("rejects %s", (url) => {
+      expect(validateWebhookUrl(url)).toBe(false);
+    });
+  });
+
+  describe("rejects IPv4-compatible and other ::/96 IPv6 literals", () => {
+    test.each([
+      "https://[::127.0.0.1]/hook", // canonicalizes to ::7f00:1
+      "https://[::7f00:1]/hook", // hex form of ::127.0.0.1
+      "https://[::a9fe:a9fe]/hook", // ::169.254.169.254
+      "https://[::8.8.8.8]/hook", // deprecated IPv4-compatible, not publicly routable
     ])("rejects %s", (url) => {
       expect(validateWebhookUrl(url)).toBe(false);
     });
