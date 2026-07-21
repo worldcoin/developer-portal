@@ -18,10 +18,12 @@ const NavIcon = (props: { name: string; active?: boolean }) => (
   />
 );
 
-export const SidebarNav = () => {
+export const SidebarNav = (props: { sandboxTeamIds?: string[] }) => {
+  const { sandboxTeamIds = [] } = props;
   const pathname = usePathname() ?? "";
   const params = useParams<{ teamId?: string; appId?: string }>();
   const teamId = params?.teamId;
+  const sandboxEnabled = Boolean(teamId && sandboxTeamIds.includes(teamId));
   const routeAppId = params?.appId;
   const appId = useCurrentAppId();
 
@@ -144,7 +146,7 @@ export const SidebarNav = () => {
         <HelpCenterMenu />
       </div>
 
-      <SandboxButton />
+      {sandboxEnabled ? <SandboxButton /> : null}
     </nav>
   );
 };
