@@ -34,16 +34,26 @@ import {
 } from "@/scenes/common/layout/CreateAppDialog/form-schema-v4";
 import { validateAndInsertAppServerSideV4 } from "@/scenes/common/layout/CreateAppDialog/server/v4/submit";
 
-const GenerateNewKeyContent = dynamic(() =>
-  import(
-    "../../Teams/TeamId/Apps/AppId/GenerateNewKey/GenerateNewKeyContent"
-  ).then((module) => module.GenerateNewKeyContent),
+const KeyStepLoading = () => (
+  <div className="flex items-center justify-center py-10">
+    <Typography variant={TYPOGRAPHY.R3}>Loading...</Typography>
+  </div>
 );
 
-const UseExistingKeyContent = dynamic(() =>
-  import(
-    "../../Teams/TeamId/Apps/AppId/UseExistingKey/UseExistingKeyContent"
-  ).then((module) => module.UseExistingKeyContent),
+const GenerateNewKeyContent = dynamic(
+  () =>
+    import(
+      "../../Teams/TeamId/Apps/AppId/GenerateNewKey/GenerateNewKeyContent"
+    ).then((module) => module.GenerateNewKeyContent),
+  { loading: KeyStepLoading },
+);
+
+const UseExistingKeyContent = dynamic(
+  () =>
+    import(
+      "../../Teams/TeamId/Apps/AppId/UseExistingKey/UseExistingKeyContent"
+    ).then((module) => module.UseExistingKeyContent),
+  { loading: KeyStepLoading },
 );
 
 type CreateDialogStep =

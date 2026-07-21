@@ -62,7 +62,7 @@ Retain one parameterized Jest test in `web/tests/unit/world-id-key-step-loading.
 
 - Cover Portal and PortalV3.
 - Cover Generate New Key and Use Existing Key.
-- Mock `next/dynamic` with App Router semantics: a dynamic without `options.loading` suspends to the outer boundary, while a dynamic with `options.loading` handles suspension locally.
+- Map `next/dynamic` to Next's installed App Router implementation and make the mocked key screens suspend indefinitely, so the test executes the real local-boundary behavior.
 - Drive the real dialog step state through lightweight mocked Continue buttons.
 - Assert the outer fallback never appears, the dialog remains present, and the in-dialog `Loading...` fallback is visible.
 
@@ -79,6 +79,6 @@ Run, in order:
 
 ## Expected Scope
 
-- Production code: approximately 18 net added lines across two files.
+- Production code: 20 net added lines across two files.
 - Retained test: one parameterized test, approximately 100-140 lines including mocks.
 - No dependency, GraphQL, API, Hasura, or generated-file changes.
