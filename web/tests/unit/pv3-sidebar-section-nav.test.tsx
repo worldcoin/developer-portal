@@ -24,11 +24,15 @@ jest.mock("@/scenes/PortalV3/layout/Shell/AppsDropdown", () => ({
   useCurrentAppId: () => useCurrentAppId(),
 }));
 
-const useFetchAppsQuery = jest.fn();
+// Control the apps query result per test.
+const fetchApps = jest.fn();
+jest.mock("@apollo/client/react", () => ({
+  useQuery: () => fetchApps(),
+}));
 jest.mock(
   "@/scenes/common/layout/AppSelector/graphql/client/fetch-apps.generated",
   () => ({
-    useFetchAppsQuery: (options: unknown) => useFetchAppsQuery(options),
+    FetchAppsDocument: {},
   }),
 );
 
@@ -52,7 +56,7 @@ beforeEach(() => {
   useParams.mockReturnValue({ teamId, appId });
   useCurrentAppId.mockReturnValue(appId);
   // Default: FetchApps has already confirmed the current app exists.
-  useFetchAppsQuery.mockReturnValue({
+  fetchApps.mockReturnValue({
     data: { app: [{ id: appId }] },
     loading: false,
   });
@@ -193,7 +197,7 @@ describe("v3 SidebarNav [no app selected]", () => {
   it("hides Danger zone until FetchApps confirms the app exists", () => {
     useParams.mockReturnValue({ teamId, appId });
     useCurrentAppId.mockReturnValue(appId);
-    useFetchAppsQuery.mockReturnValue({
+    fetchApps.mockReturnValue({
       data: undefined,
       loading: true,
     });
@@ -207,7 +211,7 @@ describe("v3 SidebarNav [no app selected]", () => {
   it("hides Danger zone when FetchApps returns no apps", () => {
     useParams.mockReturnValue({ teamId, appId });
     useCurrentAppId.mockReturnValue(appId);
-    useFetchAppsQuery.mockReturnValue({
+    fetchApps.mockReturnValue({
       data: { app: [] },
       loading: false,
     });
