@@ -49,7 +49,9 @@ export const useAppStoreActionsLabelTransition = (
     isTransitioningRef.current = true;
 
     const transitionLabel = async () => {
-      content.getAnimations().forEach((animation) => animation.cancel());
+      // getAnimations can be absent even when animate exists (partial Web
+      // Animations support / test polyfills), so every call feature-detects.
+      content.getAnimations?.().forEach((animation) => animation.cancel());
 
       try {
         await content.animate(EXIT_KEYFRAMES, {
@@ -73,7 +75,7 @@ export const useAppStoreActionsLabelTransition = (
       );
       if (cancelled) return;
 
-      content.getAnimations().forEach((animation) => animation.cancel());
+      content.getAnimations?.().forEach((animation) => animation.cancel());
 
       try {
         await content.animate(ENTER_KEYFRAMES, {
@@ -93,7 +95,7 @@ export const useAppStoreActionsLabelTransition = (
     return () => {
       cancelled = true;
       isTransitioningRef.current = false;
-      content.getAnimations().forEach((animation) => animation.cancel());
+      content.getAnimations?.().forEach((animation) => animation.cancel());
     };
   }, [targetActionKind]);
 
