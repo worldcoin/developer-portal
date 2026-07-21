@@ -12,8 +12,7 @@ jest.mock(
   }),
 );
 
-// Stub the lazily-imported dialog with one that mirrors `open` and exposes a
-// close control, so tests can assert mount/open state without the real chunk.
+// Mirror open/close state without loading the real dialog.
 jest.mock("next/dynamic", () => ({
   __esModule: true,
   default:
@@ -146,9 +145,7 @@ it("mounts the create-app dialog only after the create action is selected", asyn
   expect(await screen.findByTestId("create-app-dialog")).toBeInTheDocument();
 });
 
-// The dialog is latched mounted on first open (`dialogMounted`): closing sets
-// open=false but must NOT unmount it, so the close/reopen transitions and any
-// in-dialog state survive.
+// Closing hides the dialog without unmounting it.
 it("keeps the create-app dialog mounted (closed) after it is dismissed", async () => {
   fetchApps.mockReturnValue({
     data: { app: [] },

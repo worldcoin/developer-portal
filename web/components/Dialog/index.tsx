@@ -8,9 +8,7 @@ import { Fragment } from "react";
 
 export type DialogProps = DialogPropsBase<"div"> & {
   afterLeave?: () => void;
-  // Opt-in: animate the enter transition on initial mount. Off by default so
-  // existing always-mounted dialogs are unaffected; used by dialogs that are
-  // lazy-mounted already open, which would otherwise pop in without animating.
+  // Animate dialogs that mount already open.
   appear?: boolean;
 };
 

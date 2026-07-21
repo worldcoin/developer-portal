@@ -51,8 +51,7 @@ const ActionCard = (props: {
 
 export const AppsPageClient = (props: { teamId: string }) => {
   const [createAppOpen, setCreateAppOpen] = useState(false);
-  // Latched on first open: keeps the dialog mounted so `open` drives its
-  // enter/leave animations, while still deferring the chunk until first use.
+  // Keep mounted after first open to preserve transitions and state.
   const [dialogMounted, setDialogMounted] = useState(false);
 
   return (

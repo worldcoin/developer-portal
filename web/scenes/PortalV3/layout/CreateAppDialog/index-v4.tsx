@@ -299,8 +299,7 @@ export const CreateAppDialogV4 = ({
   );
 
   return (
-    // `appear` because this dialog is lazy-mounted already open at its call
-    // sites, so the first open needs the enter transition to play on mount.
+    // Animate the initial lazy-mounted open.
     <Dialog open={props.open} onClose={onClose} className="z-50" appear>
       <DialogPanel
         className={clsx("fixed inset-0 overflow-y-scroll p-0", props.className)}

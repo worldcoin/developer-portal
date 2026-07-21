@@ -7,9 +7,7 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
-// Deferred so the chunk loads only on open. A loading fallback covers the
-// `initialOpen` case, where the dialog is expected on-screen at mount and would
-// otherwise show nothing until the chunk resolves.
+// Show a fallback while an initially open dialog loads.
 const CreateAppDialogV4 = dynamic(
   () =>
     import("@/scenes/PortalV3/layout/CreateAppDialog/index-v4").then(

@@ -96,8 +96,7 @@ export const AppsDropdown = () => {
     Role_Enum.Admin,
   ]);
   const [dialogOpen, setDialogOpen] = useState(false);
-  // Latched on first open: keeps the dialog mounted so `open` drives its
-  // enter/leave animations, while still deferring the chunk until first use.
+  // Keep mounted after first open to preserve transitions and state.
   const [dialogMounted, setDialogMounted] = useState(false);
   const currentAppId = useCurrentAppId();
 
