@@ -3,9 +3,10 @@
 import { ErrorPage } from "@/components/ErrorPage";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { urls } from "@/lib/urls";
+import { useQuery } from "@apollo/client/react";
 import {
+  GetWorldIdActionDetailDocument,
   GetWorldIdActionDetailQuery,
-  useGetWorldIdActionDetailQuery,
 } from "./graphql/client/get-world-id-action-detail.generated";
 import { VerifiedTable } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/Actions/ActionId/page/VerifiedTable";
 import { adaptNullifierV4 } from "@/scenes/Portal/Teams/TeamId/Apps/AppId/WorldIdActions/ActionId/page/utils/adapt-nullifier-v4";
@@ -26,10 +27,13 @@ export const WorldIdActionDetailPage = (props: {
   const actionId = params.actionId;
 
   const [deleted, setDeleted] = useState(false);
-  const { data, loading, error, refetch } = useGetWorldIdActionDetailQuery({
-    variables: { action_id: actionId, app_id: appId },
-    skip: !actionId || !appId,
-  });
+  const { data, loading, error, refetch } = useQuery(
+    GetWorldIdActionDetailDocument,
+    {
+      variables: { action_id: actionId, app_id: appId },
+      skip: !actionId || !appId,
+    },
+  );
   const action: Action | undefined = data?.action_v4[0];
 
   if (error && !action) {

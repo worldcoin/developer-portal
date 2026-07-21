@@ -54,7 +54,7 @@ describe("API key security", () => {
       }
     `;
 
-    const createResponse = await attackerClient.mutate({
+    const createResponse = await attackerClient.mutate<any>({
       mutation: createKeyMutation,
       variables: {
         name: "Attacker's API Key",
@@ -93,7 +93,7 @@ describe("API key security", () => {
     // Try to exploit the vulnerability
     let updateError;
     try {
-      await attackerClient.mutate({
+      await attackerClient.mutate<any>({
         mutation: updateKeyMutation,
         variables: {
           id: apiKeyId,
@@ -108,8 +108,8 @@ describe("API key security", () => {
 
     // After fix: The update should fail with a GraphQL error
     expect(updateError).toBeDefined();
-    expect(updateError.graphQLErrors).toBeDefined();
-    expect(updateError.graphQLErrors[0]?.message).toContain(
+    expect(updateError.errors).toBeDefined();
+    expect(updateError.errors[0]?.message).toContain(
       "field 'team_id' not found in type: 'api_key_set_input'",
     );
 
@@ -151,7 +151,7 @@ describe("API key security", () => {
       }
     `;
 
-    const createResponse = await client.mutate({
+    const createResponse = await client.mutate<any>({
       mutation: createKeyMutation,
       variables: {
         name: "Test API Key",
@@ -177,7 +177,7 @@ describe("API key security", () => {
       }
     `;
 
-    const updateResponse = await client.mutate({
+    const updateResponse = await client.mutate<any>({
       mutation: updateKeyMutation,
       variables: {
         id: apiKeyId,
@@ -235,7 +235,7 @@ describe("API key security", () => {
       }
     `;
 
-    const createResponse = await ownerClient.mutate({
+    const createResponse = await ownerClient.mutate<any>({
       mutation: createKeyMutation,
       variables: {
         name: "Owner's API Key",
@@ -260,7 +260,7 @@ describe("API key security", () => {
       }
     `;
 
-    const updateResponse = await adminClient.mutate({
+    const updateResponse = await adminClient.mutate<any>({
       mutation: updateKeyMutation,
       variables: {
         id: apiKeyId,
@@ -321,7 +321,7 @@ describe("API key action insert permissions", () => {
       }
     `;
 
-    const response = await client.mutate({
+    const response = await client.mutate<any>({
       mutation,
       variables: {
         object: {
@@ -363,13 +363,13 @@ describe("API key action insert permissions", () => {
 
       let error: any;
       try {
-        await client.mutate({ mutation, variables: { app_id } });
+        await client.mutate<any>({ mutation, variables: { app_id } });
       } catch (e) {
         error = e;
       }
 
       expect(error).toBeDefined();
-      expect(error.graphQLErrors?.[0]?.message).toContain(
+      expect(error.errors?.[0]?.message).toContain(
         `field '${column}' not found in type: 'action_insert_input'`,
       );
 

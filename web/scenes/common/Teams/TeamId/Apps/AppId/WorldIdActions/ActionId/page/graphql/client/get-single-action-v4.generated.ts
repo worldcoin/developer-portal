@@ -1,9 +1,7 @@
 /* eslint-disable */
 import * as Types from "@/graphql/graphql";
 
-import { gql } from "@apollo/client";
-import * as Apollo from "@apollo/client";
-const defaultOptions = {} as const;
+import { TypedDocumentNode as DocumentNode } from "@graphql-typed-document-node/core";
 export type GetSingleActionV4QueryVariables = Types.Exact<{
   action_id: Types.Scalars["String"]["input"];
 }>;
@@ -35,103 +33,139 @@ export type GetSingleActionV4Query = {
   } | null;
 };
 
-export const GetSingleActionV4Document = gql`
-  query GetSingleActionV4($action_id: String!) {
-    action_v4_by_pk(id: $action_id) {
-      id
-      action
-      description
-      rp_id
-      created_at
-      rp_registration {
-        app_id
-      }
-      nullifiers_aggregate {
-        aggregate {
-          count
-        }
-      }
-      nullifiers(limit: 100, order_by: { created_at: desc }) {
-        id
-        created_at
-        nullifier
-        action_v4_id
-      }
-    }
-  }
-`;
-
-/**
- * __useGetSingleActionV4Query__
- *
- * To run a query within a React component, call `useGetSingleActionV4Query` and pass it any options that fit your needs.
- * When your component renders, `useGetSingleActionV4Query` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetSingleActionV4Query({
- *   variables: {
- *      action_id: // value for 'action_id'
- *   },
- * });
- */
-export function useGetSingleActionV4Query(
-  baseOptions: Apollo.QueryHookOptions<
-    GetSingleActionV4Query,
-    GetSingleActionV4QueryVariables
-  > &
-    (
-      | { variables: GetSingleActionV4QueryVariables; skip?: boolean }
-      | { skip: boolean }
-    ),
-) {
-  const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useQuery<
-    GetSingleActionV4Query,
-    GetSingleActionV4QueryVariables
-  >(GetSingleActionV4Document, options);
-}
-export function useGetSingleActionV4LazyQuery(
-  baseOptions?: Apollo.LazyQueryHookOptions<
-    GetSingleActionV4Query,
-    GetSingleActionV4QueryVariables
-  >,
-) {
-  const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useLazyQuery<
-    GetSingleActionV4Query,
-    GetSingleActionV4QueryVariables
-  >(GetSingleActionV4Document, options);
-}
-export function useGetSingleActionV4SuspenseQuery(
-  baseOptions?:
-    | Apollo.SkipToken
-    | Apollo.SuspenseQueryHookOptions<
-        GetSingleActionV4Query,
-        GetSingleActionV4QueryVariables
-      >,
-) {
-  const options =
-    baseOptions === Apollo.skipToken
-      ? baseOptions
-      : { ...defaultOptions, ...baseOptions };
-  return Apollo.useSuspenseQuery<
-    GetSingleActionV4Query,
-    GetSingleActionV4QueryVariables
-  >(GetSingleActionV4Document, options);
-}
-export type GetSingleActionV4QueryHookResult = ReturnType<
-  typeof useGetSingleActionV4Query
->;
-export type GetSingleActionV4LazyQueryHookResult = ReturnType<
-  typeof useGetSingleActionV4LazyQuery
->;
-export type GetSingleActionV4SuspenseQueryHookResult = ReturnType<
-  typeof useGetSingleActionV4SuspenseQuery
->;
-export type GetSingleActionV4QueryResult = Apollo.QueryResult<
+export const GetSingleActionV4Document = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "query",
+      name: { kind: "Name", value: "GetSingleActionV4" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "action_id" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "String" },
+            },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "action_v4_by_pk" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "id" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "action_id" },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
+                { kind: "Field", name: { kind: "Name", value: "action" } },
+                { kind: "Field", name: { kind: "Name", value: "description" } },
+                { kind: "Field", name: { kind: "Name", value: "rp_id" } },
+                { kind: "Field", name: { kind: "Name", value: "created_at" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "rp_registration" },
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "app_id" },
+                      },
+                    ],
+                  },
+                },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "nullifiers_aggregate" },
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "aggregate" },
+                        selectionSet: {
+                          kind: "SelectionSet",
+                          selections: [
+                            {
+                              kind: "Field",
+                              name: { kind: "Name", value: "count" },
+                            },
+                          ],
+                        },
+                      },
+                    ],
+                  },
+                },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "nullifiers" },
+                  arguments: [
+                    {
+                      kind: "Argument",
+                      name: { kind: "Name", value: "limit" },
+                      value: { kind: "IntValue", value: "100" },
+                    },
+                    {
+                      kind: "Argument",
+                      name: { kind: "Name", value: "order_by" },
+                      value: {
+                        kind: "ObjectValue",
+                        fields: [
+                          {
+                            kind: "ObjectField",
+                            name: { kind: "Name", value: "created_at" },
+                            value: { kind: "EnumValue", value: "desc" },
+                          },
+                        ],
+                      },
+                    },
+                  ],
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      { kind: "Field", name: { kind: "Name", value: "id" } },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "created_at" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "nullifier" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "action_v4_id" },
+                      },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<
   GetSingleActionV4Query,
   GetSingleActionV4QueryVariables
 >;

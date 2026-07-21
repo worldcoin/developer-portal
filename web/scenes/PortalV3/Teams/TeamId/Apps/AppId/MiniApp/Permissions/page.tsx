@@ -3,7 +3,8 @@
 import { ErrorPage } from "@/components/ErrorPage";
 import { use } from "react";
 import { FormSkeleton } from "../../Configuration/PageComponents/FormSkeleton";
-import { useFetchAppMetadataQuery } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/graphql/client/fetch-app-metadata.generated";
+import { useQuery } from "@apollo/client/react";
+import { FetchAppMetadataDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/graphql/client/fetch-app-metadata.generated";
 import { SaveStatusProvider } from "../../Configuration/SaveStatus";
 import { SetupForm } from "../../MiniApp/PermissionsForm";
 
@@ -16,7 +17,7 @@ export const AppPermissionsPage = (props: AppPermissionsPageProps) => {
   const appId = params?.appId as `app_${string}`;
   const teamId = params?.teamId as `team_${string}`;
 
-  const { data, loading, error } = useFetchAppMetadataQuery({
+  const { data, loading, error } = useQuery(FetchAppMetadataDocument, {
     variables: {
       id: appId,
     },
