@@ -110,29 +110,45 @@ describe("worldcoin.org portal sunset [UI paths]", () => {
       location: "https://staging-developer.world.org/login",
     });
   });
+
+  it("redirects the Auth0 browser routes so login stays on one domain", () => {
+    // /api/auth/* are browser flows whose cookies are bound to the host they
+    // run on; they must migrate with the UI, unlike the machine API below.
+    expect(
+      resolve("developer.worldcoin.org", "/api/auth/login", {
+        returnTo: "/teams",
+      }),
+    ).toEqual({
+      status: 308,
+      location: "https://developer.world.org/api/auth/login?returnTo=%2Fteams",
+    });
+    expect(resolve("developer.worldcoin.org", "/api/auth/callback")).toEqual({
+      status: 308,
+      location: "https://developer.world.org/api/auth/callback",
+    });
+  });
 });
 // #endregion
 
 // #region API and OIDC stay on worldcoin.org
 describe("worldcoin.org portal sunset [API/OIDC excluded]", () => {
-  it("does not redirect /api/* (POST verify etc. keep working)", () => {
+  it("does not redirect the machine API (POST verify etc. keep working)", () => {
     expect(
       resolve("developer.worldcoin.org", "/api/v4/verify/app_123"),
     ).toBeUndefined();
+    expect(
+      resolve("developer.worldcoin.org", "/api/v2/verify/app_123"),
+    ).toBeUndefined();
+    expect(resolve("developer.worldcoin.org", "/api/mcp")).toBeUndefined();
   });
 
   it("does not redirect the API health endpoint", () => {
-    expect(
-      resolve("developer.worldcoin.org", "/api/health"),
-    ).toBeUndefined();
+    expect(resolve("developer.worldcoin.org", "/api/health")).toBeUndefined();
   });
 
   it("does not redirect /.well-known/* (OIDC discovery)", () => {
     expect(
-      resolve(
-        "developer.worldcoin.org",
-        "/.well-known/openid-configuration",
-      ),
+      resolve("developer.worldcoin.org", "/.well-known/openid-configuration"),
     ).toBeUndefined();
   });
 });
