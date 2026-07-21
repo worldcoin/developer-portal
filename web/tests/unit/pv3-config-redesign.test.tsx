@@ -37,13 +37,16 @@ jest.mock("@/lib/utils", () => ({
   truncateString: (value?: string) => value ?? "",
 }));
 
+// In AC4 the rendered tree calls useQuery/useLazyQuery/useMutation from
+// "@apollo/client/react" with a typed Document (FooDocument). The generated
+// modules now only need to hand back a distinctly-tagged Document that the
+// react-hook mock below routes on; the data jest.fns stay and are configured
+// via .mockReturnValue in beforeEach.
 const useFetchAppMetadataQuery = jest.fn();
 jest.mock(
   "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/graphql/client/fetch-app-metadata.generated",
   () => ({
-    useFetchAppMetadataQuery: (...args: unknown[]) =>
-      useFetchAppMetadataQuery(...args),
-    FetchAppMetadataDocument: {},
+    FetchAppMetadataDocument: { __mockDoc: "appMetadata" },
   }),
 );
 
@@ -51,17 +54,14 @@ const useFetchLocalisationsQuery = jest.fn();
 jest.mock(
   "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/AppStore/graphql/client/fetch-localisations.generated",
   () => ({
-    useFetchLocalisationsQuery: (...args: unknown[]) =>
-      useFetchLocalisationsQuery(...args),
-    FetchLocalisationsDocument: {},
+    FetchLocalisationsDocument: { __mockDoc: "localisations" },
   }),
 );
 
 jest.mock(
   "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/graphql/client/fetch-images.generated",
   () => ({
-    useFetchImagesQuery: () => ({ data: undefined }),
-    useFetchImagesLazyQuery: () => [jest.fn()],
+    FetchImagesDocument: { __mockDoc: "images" },
   }),
 );
 
@@ -69,9 +69,7 @@ const createEditableRowMock = jest.fn();
 jest.mock(
   "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/AppTopBar/graphql/client/create-editable-row.generated",
   () => ({
-    useCreateEditableRowMutation: () => [
-      (...args: unknown[]) => createEditableRowMock(...args),
-    ],
+    CreateEditableRowDocument: { __mockDoc: "createEditableRow" },
   }),
 );
 
@@ -79,11 +77,43 @@ jest.mock("@/lib/use-refetch-queries", () => ({
   useRefetchQueries: () => ({ refetch: jest.fn() }),
 }));
 
-jest.mock("@apollo/client", () => ({
+// AC4: the react hooks (useQuery/useLazyQuery/useMutation/useApolloClient)
+// moved to "@apollo/client/react". Route by the Document's __mockDoc tag.
+jest.mock("@apollo/client/react", () => ({
+  useQuery: (doc: { __mockDoc?: string } | undefined) => {
+    switch (doc?.__mockDoc) {
+      case "appMetadata":
+        return useFetchAppMetadataQuery();
+      case "localisations":
+        return useFetchLocalisationsQuery();
+      default:
+        return {
+          data: undefined,
+          loading: false,
+          error: undefined,
+          refetch: jest.fn(),
+        };
+    }
+  },
+  useLazyQuery: () => [
+    jest.fn(),
+    { data: undefined, loading: false, called: false },
+  ],
+  useMutation: (doc: { __mockDoc?: string } | undefined) => {
+    if (doc?.__mockDoc === "createEditableRow") {
+      return [
+        (...args: unknown[]) => createEditableRowMock(...args),
+        { loading: false },
+      ];
+    }
+    return [jest.fn().mockResolvedValue({ data: {} }), { loading: false }];
+  },
   useApolloClient: () => ({
     cache: { modify: jest.fn(), identify: jest.fn() },
     readQuery: () => null,
+    writeQuery: jest.fn(),
   }),
+  skipToken: Symbol.for("apollo.skipToken"),
 }));
 
 jest.mock(

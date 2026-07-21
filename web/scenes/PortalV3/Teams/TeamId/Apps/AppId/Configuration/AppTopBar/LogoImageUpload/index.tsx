@@ -5,7 +5,8 @@ import { FetchAppMetadataDocument } from "@/scenes/common/Teams/TeamId/Apps/AppI
 import { useCroppedImageUpload, useImage } from "../../hook/use-image";
 import { ImageCropDialog } from "../../AppStore/ImageForm/ImageCropDialog";
 import { unverifiedImageAtom } from "../../layout/ImagesProvider";
-import { useUpdateLogoMutation } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/AppTopBar/LogoImageUpload/graphql/client/update-logo.generated";
+import { useMutation } from "@apollo/client/react";
+import { UpdateLogoDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/AppTopBar/LogoImageUpload/graphql/client/update-logo.generated";
 
 type LogoImageUploadProps = {
   appId: string;
@@ -35,7 +36,7 @@ export const LogoImageUpload = ({
   const [isSecondUpload, setIsSecondUpload] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [unverifiedImages, setUnverifiedImages] = useAtom(unverifiedImageAtom);
-  const [updateLogoMutation] = useUpdateLogoMutation();
+  const [updateLogoMutation] = useMutation(UpdateLogoDocument);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const { getImage, uploadViaPresignedPost } = useImage();
 

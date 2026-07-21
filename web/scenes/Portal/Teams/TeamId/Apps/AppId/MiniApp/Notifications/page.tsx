@@ -10,7 +10,8 @@ import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import { VersionSwitcher } from "../../Configuration/AppTopBar/VersionSwitcher";
 import { MiniAppSubTabs } from "../SubTabs";
-import { useFetchNotificationAppMetadataQuery } from "@/scenes/common/Teams/TeamId/Apps/AppId/MiniApp/Notifications/graphql/client/fetch-notification-app-metadata.generated";
+import { useQuery } from "@apollo/client/react";
+import { FetchNotificationAppMetadataDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/MiniApp/Notifications/graphql/client/fetch-notification-app-metadata.generated";
 
 type NotificationFormData = {
   walletAddresses: string;
@@ -28,10 +29,13 @@ export const NotificationsPage = () => {
   );
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const { data: appMetadataData } = useFetchNotificationAppMetadataQuery({
-    variables: { id: params?.appId ?? "" },
-    skip: !params?.appId,
-  });
+  const { data: appMetadataData } = useQuery(
+    FetchNotificationAppMetadataDocument,
+    {
+      variables: { id: params?.appId ?? "" },
+      skip: !params?.appId,
+    },
+  );
 
   const appData = appMetadataData?.app[0];
   const draftId = appData?.app_metadata[0]?.id;

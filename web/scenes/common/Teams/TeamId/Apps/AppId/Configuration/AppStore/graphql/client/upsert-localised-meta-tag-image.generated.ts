@@ -1,9 +1,7 @@
 /* eslint-disable */
 import * as Types from "@/graphql/graphql";
 
-import { gql } from "@apollo/client";
-import * as Apollo from "@apollo/client";
-const defaultOptions = {} as const;
+import { TypedDocumentNode as DocumentNode } from "@graphql-typed-document-node/core";
 export type UpsertLocalisedMetaTagImageMutationVariables = Types.Exact<{
   app_metadata_id: Types.Scalars["String"]["input"];
   meta_tag_image_url: Types.Scalars["String"]["input"];
@@ -32,90 +30,301 @@ export type UpsertLocalisedMetaTagImageMutation = {
   } | null;
 };
 
-export const UpsertLocalisedMetaTagImageDocument = gql`
-  mutation UpsertLocalisedMetaTagImage(
-    $app_metadata_id: String!
-    $meta_tag_image_url: String!
-    $supported_languages: [String!]!
-    $locale: String
-    $is_localized: Boolean!
-  ) {
-    update_supported_languages: update_app_metadata_by_pk(
-      pk_columns: { id: $app_metadata_id }
-      _set: { supported_languages: $supported_languages }
-    ) {
-      id
-      supported_languages
-    }
-    update_app_metadata_by_pk(
-      pk_columns: { id: $app_metadata_id }
-      _set: { meta_tag_image_url: $meta_tag_image_url }
-    ) @skip(if: $is_localized) {
-      id
-      meta_tag_image_url
-    }
-    insert_localisations(
-      objects: [
+export const UpsertLocalisedMetaTagImageDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "mutation",
+      name: { kind: "Name", value: "UpsertLocalisedMetaTagImage" },
+      variableDefinitions: [
         {
-          app_metadata_id: $app_metadata_id
-          locale: $locale
-          meta_tag_image_url: $meta_tag_image_url
-        }
-      ]
-      on_conflict: {
-        constraint: unique_app_metadata_locale
-        update_columns: meta_tag_image_url
-      }
-    ) @include(if: $is_localized) {
-      affected_rows
-    }
-  }
-`;
-export type UpsertLocalisedMetaTagImageMutationFn = Apollo.MutationFunction<
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "app_metadata_id" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "String" },
+            },
+          },
+        },
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "meta_tag_image_url" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "String" },
+            },
+          },
+        },
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "supported_languages" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: {
+              kind: "ListType",
+              type: {
+                kind: "NonNullType",
+                type: {
+                  kind: "NamedType",
+                  name: { kind: "Name", value: "String" },
+                },
+              },
+            },
+          },
+        },
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "locale" },
+          },
+          type: { kind: "NamedType", name: { kind: "Name", value: "String" } },
+        },
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "is_localized" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "Boolean" },
+            },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            alias: { kind: "Name", value: "update_supported_languages" },
+            name: { kind: "Name", value: "update_app_metadata_by_pk" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "pk_columns" },
+                value: {
+                  kind: "ObjectValue",
+                  fields: [
+                    {
+                      kind: "ObjectField",
+                      name: { kind: "Name", value: "id" },
+                      value: {
+                        kind: "Variable",
+                        name: { kind: "Name", value: "app_metadata_id" },
+                      },
+                    },
+                  ],
+                },
+              },
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "_set" },
+                value: {
+                  kind: "ObjectValue",
+                  fields: [
+                    {
+                      kind: "ObjectField",
+                      name: { kind: "Name", value: "supported_languages" },
+                      value: {
+                        kind: "Variable",
+                        name: { kind: "Name", value: "supported_languages" },
+                      },
+                    },
+                  ],
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "supported_languages" },
+                },
+              ],
+            },
+          },
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "update_app_metadata_by_pk" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "pk_columns" },
+                value: {
+                  kind: "ObjectValue",
+                  fields: [
+                    {
+                      kind: "ObjectField",
+                      name: { kind: "Name", value: "id" },
+                      value: {
+                        kind: "Variable",
+                        name: { kind: "Name", value: "app_metadata_id" },
+                      },
+                    },
+                  ],
+                },
+              },
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "_set" },
+                value: {
+                  kind: "ObjectValue",
+                  fields: [
+                    {
+                      kind: "ObjectField",
+                      name: { kind: "Name", value: "meta_tag_image_url" },
+                      value: {
+                        kind: "Variable",
+                        name: { kind: "Name", value: "meta_tag_image_url" },
+                      },
+                    },
+                  ],
+                },
+              },
+            ],
+            directives: [
+              {
+                kind: "Directive",
+                name: { kind: "Name", value: "skip" },
+                arguments: [
+                  {
+                    kind: "Argument",
+                    name: { kind: "Name", value: "if" },
+                    value: {
+                      kind: "Variable",
+                      name: { kind: "Name", value: "is_localized" },
+                    },
+                  },
+                ],
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "meta_tag_image_url" },
+                },
+              ],
+            },
+          },
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "insert_localisations" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "objects" },
+                value: {
+                  kind: "ListValue",
+                  values: [
+                    {
+                      kind: "ObjectValue",
+                      fields: [
+                        {
+                          kind: "ObjectField",
+                          name: { kind: "Name", value: "app_metadata_id" },
+                          value: {
+                            kind: "Variable",
+                            name: { kind: "Name", value: "app_metadata_id" },
+                          },
+                        },
+                        {
+                          kind: "ObjectField",
+                          name: { kind: "Name", value: "locale" },
+                          value: {
+                            kind: "Variable",
+                            name: { kind: "Name", value: "locale" },
+                          },
+                        },
+                        {
+                          kind: "ObjectField",
+                          name: { kind: "Name", value: "meta_tag_image_url" },
+                          value: {
+                            kind: "Variable",
+                            name: { kind: "Name", value: "meta_tag_image_url" },
+                          },
+                        },
+                      ],
+                    },
+                  ],
+                },
+              },
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "on_conflict" },
+                value: {
+                  kind: "ObjectValue",
+                  fields: [
+                    {
+                      kind: "ObjectField",
+                      name: { kind: "Name", value: "constraint" },
+                      value: {
+                        kind: "EnumValue",
+                        value: "unique_app_metadata_locale",
+                      },
+                    },
+                    {
+                      kind: "ObjectField",
+                      name: { kind: "Name", value: "update_columns" },
+                      value: { kind: "EnumValue", value: "meta_tag_image_url" },
+                    },
+                  ],
+                },
+              },
+            ],
+            directives: [
+              {
+                kind: "Directive",
+                name: { kind: "Name", value: "include" },
+                arguments: [
+                  {
+                    kind: "Argument",
+                    name: { kind: "Name", value: "if" },
+                    value: {
+                      kind: "Variable",
+                      name: { kind: "Name", value: "is_localized" },
+                    },
+                  },
+                ],
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "affected_rows" },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<
   UpsertLocalisedMetaTagImageMutation,
   UpsertLocalisedMetaTagImageMutationVariables
 >;
-
-/**
- * __useUpsertLocalisedMetaTagImageMutation__
- *
- * To run a mutation, you first call `useUpsertLocalisedMetaTagImageMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useUpsertLocalisedMetaTagImageMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [upsertLocalisedMetaTagImageMutation, { data, loading, error }] = useUpsertLocalisedMetaTagImageMutation({
- *   variables: {
- *      app_metadata_id: // value for 'app_metadata_id'
- *      meta_tag_image_url: // value for 'meta_tag_image_url'
- *      supported_languages: // value for 'supported_languages'
- *      locale: // value for 'locale'
- *      is_localized: // value for 'is_localized'
- *   },
- * });
- */
-export function useUpsertLocalisedMetaTagImageMutation(
-  baseOptions?: Apollo.MutationHookOptions<
-    UpsertLocalisedMetaTagImageMutation,
-    UpsertLocalisedMetaTagImageMutationVariables
-  >,
-) {
-  const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useMutation<
-    UpsertLocalisedMetaTagImageMutation,
-    UpsertLocalisedMetaTagImageMutationVariables
-  >(UpsertLocalisedMetaTagImageDocument, options);
-}
-export type UpsertLocalisedMetaTagImageMutationHookResult = ReturnType<
-  typeof useUpsertLocalisedMetaTagImageMutation
->;
-export type UpsertLocalisedMetaTagImageMutationResult =
-  Apollo.MutationResult<UpsertLocalisedMetaTagImageMutation>;
-export type UpsertLocalisedMetaTagImageMutationOptions =
-  Apollo.BaseMutationOptions<
-    UpsertLocalisedMetaTagImageMutation,
-    UpsertLocalisedMetaTagImageMutationVariables
-  >;

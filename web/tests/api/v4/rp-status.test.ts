@@ -73,6 +73,7 @@ const makeDbRecord = (
     signer_address: string | null;
     staging_status: string | null;
     staging_operation_hash: string | null;
+    app: { deleted_at: string | null };
   }> = {},
 ) => ({
   rp_id: rpId,
@@ -85,6 +86,7 @@ const makeDbRecord = (
   operation_hash: null,
   staging_status: null,
   staging_operation_hash: null,
+  app: { deleted_at: null },
   ...overrides,
 });
 
@@ -525,6 +527,63 @@ describe("/api/v4/rp-status [staging DB sync]", () => {
     const body = await res.json();
     // Should stay pending, not timeout to failed
     expect(body.staging_status).toBe("pending");
+    expect(UpdateStagingStatus).not.toHaveBeenCalled();
+  });
+});
+// #endregion
+
+// #region Deleted app — read-only, no writeback
+describe("/api/v4/rp-status [deleted app]", () => {
+  it("does not write a deleted app's status back to the DB", async () => {
+    // RP mid-deactivation: DB says `pending`, but on-chain still reads active
+    // because the toggle has not mined. A public poll must NOT clobber
+    // `pending` back to `registered` — the reconciliation cron relies on that
+    // marker to avoid firing a second toggle that would re-activate the RP.
+    GetRpRegistration.mockResolvedValue({
+      rp_registration_by_pk: makeDbRecord({
+        status: "pending",
+        staging_status: "registered",
+        app: { deleted_at: new Date().toISOString() },
+      }),
+    });
+
+    getRpFromContractMock.mockResolvedValue({
+      initialized: true,
+      active: true,
+      signer: "0x1234",
+    });
+
+    const res = await GET(createRequest(), ctx);
+    expect(res.status).toBe(200);
+
+    // The response still reflects live on-chain state...
+    const body = await res.json();
+    expect(body.production_status).toBe("registered");
+    // ...but the DB row is left untouched for the deactivation flow to own.
+    expect(UpdateRpStatus).not.toHaveBeenCalled();
+    expect(UpdateStagingStatus).not.toHaveBeenCalled();
+  });
+
+  it("does not time a deleted app's registration out to failed", async () => {
+    const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
+    GetRpRegistration.mockResolvedValue({
+      rp_registration_by_pk: makeDbRecord({
+        status: "pending",
+        created_at: tenMinutesAgo,
+        updated_at: tenMinutesAgo,
+        app: { deleted_at: new Date().toISOString() },
+      }),
+    });
+
+    getRpFromContractMock.mockResolvedValue({
+      initialized: false,
+      active: false,
+    });
+
+    const res = await GET(createRequest(), ctx);
+    expect(res.status).toBe(200);
+
+    expect(UpdateRpStatus).not.toHaveBeenCalled();
     expect(UpdateStagingStatus).not.toHaveBeenCalled();
   });
 });

@@ -2,8 +2,9 @@ import { tryParseJSON } from "@/lib/utils";
 import posthog from "posthog-js";
 import { useState } from "react";
 import { toast } from "react-toastify";
-import { useGetUploadedImageLazyQuery } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/hook/graphql/client/get-uploaded-image.generated";
-import { useUploadImageLazyQuery } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/hook/graphql/client/upload-image.generated";
+import { useLazyQuery } from "@apollo/client/react";
+import { GetUploadedImageDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/hook/graphql/client/get-uploaded-image.generated";
+import { UploadImageDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/hook/graphql/client/upload-image.generated";
 
 export class ImageValidationError extends Error {
   public readonly toastId: string;
@@ -105,7 +106,9 @@ export const useCroppedImageUpload = (params: {
 };
 
 export const useImage = () => {
-  const [getUploadedImage, { refetch }] = useGetUploadedImageLazyQuery();
+  const [getUploadedImage, { refetch }] = useLazyQuery(
+    GetUploadedImageDocument,
+  );
 
   const getImage = async (
     fileType: string, // png, jpeg
@@ -133,7 +136,7 @@ export const useImage = () => {
     return imageUrl;
   };
 
-  const [uploadImage] = useUploadImageLazyQuery({
+  const [uploadImage] = useLazyQuery(UploadImageDocument, {
     fetchPolicy: "network-only",
   });
 

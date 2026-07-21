@@ -17,7 +17,8 @@ import { useCroppedImageUpload, useImage } from "../../hook/use-image";
 import { ImageCropDialog } from "../ImageForm/ImageCropDialog";
 import ImageLoader from "../ImageForm/ImageLoader";
 import { unverifiedImageAtom, viewModeAtom } from "../../layout/ImagesProvider";
-import { useUpdateContentCardImageMutation } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/AppStore/ContentCardImageUpload/graphql/client/update-content-card-image.generated";
+import { UpdateContentCardImageDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/AppStore/ContentCardImageUpload/graphql/client/update-content-card-image.generated";
+import { useMutation } from "@apollo/client/react";
 
 const PREVIEW_HEIGHT_PX = 200;
 const previewStyle = {
@@ -55,8 +56,9 @@ export const ContentCardImageUpload = (props: ContentCardImageUploadProps) => {
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
   const [viewMode] = useAtom(viewModeAtom);
   const [unverifiedImages, setUnverifiedImages] = useAtom(unverifiedImageAtom);
-  const [updateContentCardImageMutation, { loading }] =
-    useUpdateContentCardImageMutation();
+  const [updateContentCardImageMutation, { loading }] = useMutation(
+    UpdateContentCardImageDocument,
+  );
   const imageInputRef = useRef<HTMLInputElement>(null);
   const { getImage, uploadViaPresignedPost } = useImage();
   const handleUpload = () => {

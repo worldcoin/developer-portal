@@ -1,9 +1,7 @@
 /* eslint-disable */
 import * as Types from "@/graphql/graphql";
 
-import { gql } from "@apollo/client";
-import * as Apollo from "@apollo/client";
-const defaultOptions = {} as const;
+import { TypedDocumentNode as DocumentNode } from "@graphql-typed-document-node/core";
 export type FetchAppMetadataQueryVariables = Types.Exact<{
   id: Types.Scalars["String"]["input"];
 }>;
@@ -94,165 +92,452 @@ export type FetchAppMetadataQuery = {
   }>;
 };
 
-export const FetchAppMetadataDocument = gql`
-  query FetchAppMetadata($id: String!) {
-    app(where: { id: { _eq: $id } }) {
-      id
-      engine
-      is_staging
-      status
-      team {
-        name
-      }
-      app_metadata(where: { verification_status: { _neq: "verified" } }) {
-        id
-        app_id
-        name
-        logo_img_url
-        hero_image_url
-        meta_tag_image_url
-        showcase_img_urls
-        description
-        world_app_description
-        category
-        is_developer_allow_listing
-        world_app_button_text
-        integration_url
-        app_website_url
-        source_code_url
-        verified_at
-        review_message
-        verification_status
-        app_mode
-        whitelisted_addresses
-        support_link
-        supported_countries
-        supported_languages
-        short_name
-        associated_domains
-        contracts
-        permit2_tokens
-        can_import_all_contacts
-        can_use_attestation
-        is_allowed_unlimited_notifications
-        max_notifications_per_day
-        is_android_only
-        is_for_humans_only
-        content_card_image_url
-      }
-      verified_app_metadata: app_metadata(
-        where: { verification_status: { _eq: "verified" } }
-      ) {
-        id
-        app_id
-        name
-        logo_img_url
-        hero_image_url
-        meta_tag_image_url
-        showcase_img_urls
-        description
-        world_app_description
-        category
-        is_developer_allow_listing
-        world_app_button_text
-        integration_url
-        app_website_url
-        source_code_url
-        verified_at
-        review_message
-        verification_status
-        app_mode
-        whitelisted_addresses
-        support_link
-        supported_countries
-        supported_languages
-        short_name
-        associated_domains
-        contracts
-        permit2_tokens
-        can_import_all_contacts
-        can_use_attestation
-        is_allowed_unlimited_notifications
-        max_notifications_per_day
-        is_android_only
-        is_for_humans_only
-        content_card_image_url
-      }
-    }
-  }
-`;
-
-/**
- * __useFetchAppMetadataQuery__
- *
- * To run a query within a React component, call `useFetchAppMetadataQuery` and pass it any options that fit your needs.
- * When your component renders, `useFetchAppMetadataQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useFetchAppMetadataQuery({
- *   variables: {
- *      id: // value for 'id'
- *   },
- * });
- */
-export function useFetchAppMetadataQuery(
-  baseOptions: Apollo.QueryHookOptions<
-    FetchAppMetadataQuery,
-    FetchAppMetadataQueryVariables
-  > &
-    (
-      | { variables: FetchAppMetadataQueryVariables; skip?: boolean }
-      | { skip: boolean }
-    ),
-) {
-  const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useQuery<FetchAppMetadataQuery, FetchAppMetadataQueryVariables>(
-    FetchAppMetadataDocument,
-    options,
-  );
-}
-export function useFetchAppMetadataLazyQuery(
-  baseOptions?: Apollo.LazyQueryHookOptions<
-    FetchAppMetadataQuery,
-    FetchAppMetadataQueryVariables
-  >,
-) {
-  const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useLazyQuery<
-    FetchAppMetadataQuery,
-    FetchAppMetadataQueryVariables
-  >(FetchAppMetadataDocument, options);
-}
-export function useFetchAppMetadataSuspenseQuery(
-  baseOptions?:
-    | Apollo.SkipToken
-    | Apollo.SuspenseQueryHookOptions<
-        FetchAppMetadataQuery,
-        FetchAppMetadataQueryVariables
-      >,
-) {
-  const options =
-    baseOptions === Apollo.skipToken
-      ? baseOptions
-      : { ...defaultOptions, ...baseOptions };
-  return Apollo.useSuspenseQuery<
-    FetchAppMetadataQuery,
-    FetchAppMetadataQueryVariables
-  >(FetchAppMetadataDocument, options);
-}
-export type FetchAppMetadataQueryHookResult = ReturnType<
-  typeof useFetchAppMetadataQuery
->;
-export type FetchAppMetadataLazyQueryHookResult = ReturnType<
-  typeof useFetchAppMetadataLazyQuery
->;
-export type FetchAppMetadataSuspenseQueryHookResult = ReturnType<
-  typeof useFetchAppMetadataSuspenseQuery
->;
-export type FetchAppMetadataQueryResult = Apollo.QueryResult<
+export const FetchAppMetadataDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "query",
+      name: { kind: "Name", value: "FetchAppMetadata" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: { kind: "Variable", name: { kind: "Name", value: "id" } },
+          type: {
+            kind: "NonNullType",
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "String" },
+            },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "app" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "where" },
+                value: {
+                  kind: "ObjectValue",
+                  fields: [
+                    {
+                      kind: "ObjectField",
+                      name: { kind: "Name", value: "id" },
+                      value: {
+                        kind: "ObjectValue",
+                        fields: [
+                          {
+                            kind: "ObjectField",
+                            name: { kind: "Name", value: "_eq" },
+                            value: {
+                              kind: "Variable",
+                              name: { kind: "Name", value: "id" },
+                            },
+                          },
+                        ],
+                      },
+                    },
+                  ],
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
+                { kind: "Field", name: { kind: "Name", value: "engine" } },
+                { kind: "Field", name: { kind: "Name", value: "is_staging" } },
+                { kind: "Field", name: { kind: "Name", value: "status" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "team" },
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      { kind: "Field", name: { kind: "Name", value: "name" } },
+                    ],
+                  },
+                },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "app_metadata" },
+                  arguments: [
+                    {
+                      kind: "Argument",
+                      name: { kind: "Name", value: "where" },
+                      value: {
+                        kind: "ObjectValue",
+                        fields: [
+                          {
+                            kind: "ObjectField",
+                            name: {
+                              kind: "Name",
+                              value: "verification_status",
+                            },
+                            value: {
+                              kind: "ObjectValue",
+                              fields: [
+                                {
+                                  kind: "ObjectField",
+                                  name: { kind: "Name", value: "_neq" },
+                                  value: {
+                                    kind: "StringValue",
+                                    value: "verified",
+                                    block: false,
+                                  },
+                                },
+                              ],
+                            },
+                          },
+                        ],
+                      },
+                    },
+                  ],
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      { kind: "Field", name: { kind: "Name", value: "id" } },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "app_id" },
+                      },
+                      { kind: "Field", name: { kind: "Name", value: "name" } },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "logo_img_url" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "hero_image_url" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "meta_tag_image_url" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "showcase_img_urls" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "description" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "world_app_description" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "category" },
+                      },
+                      {
+                        kind: "Field",
+                        name: {
+                          kind: "Name",
+                          value: "is_developer_allow_listing",
+                        },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "world_app_button_text" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "integration_url" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "app_website_url" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "source_code_url" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "verified_at" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "review_message" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "verification_status" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "app_mode" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "whitelisted_addresses" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "support_link" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "supported_countries" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "supported_languages" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "short_name" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "associated_domains" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "contracts" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "permit2_tokens" },
+                      },
+                      {
+                        kind: "Field",
+                        name: {
+                          kind: "Name",
+                          value: "can_import_all_contacts",
+                        },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "can_use_attestation" },
+                      },
+                      {
+                        kind: "Field",
+                        name: {
+                          kind: "Name",
+                          value: "is_allowed_unlimited_notifications",
+                        },
+                      },
+                      {
+                        kind: "Field",
+                        name: {
+                          kind: "Name",
+                          value: "max_notifications_per_day",
+                        },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "is_android_only" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "is_for_humans_only" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "content_card_image_url" },
+                      },
+                    ],
+                  },
+                },
+                {
+                  kind: "Field",
+                  alias: { kind: "Name", value: "verified_app_metadata" },
+                  name: { kind: "Name", value: "app_metadata" },
+                  arguments: [
+                    {
+                      kind: "Argument",
+                      name: { kind: "Name", value: "where" },
+                      value: {
+                        kind: "ObjectValue",
+                        fields: [
+                          {
+                            kind: "ObjectField",
+                            name: {
+                              kind: "Name",
+                              value: "verification_status",
+                            },
+                            value: {
+                              kind: "ObjectValue",
+                              fields: [
+                                {
+                                  kind: "ObjectField",
+                                  name: { kind: "Name", value: "_eq" },
+                                  value: {
+                                    kind: "StringValue",
+                                    value: "verified",
+                                    block: false,
+                                  },
+                                },
+                              ],
+                            },
+                          },
+                        ],
+                      },
+                    },
+                  ],
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      { kind: "Field", name: { kind: "Name", value: "id" } },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "app_id" },
+                      },
+                      { kind: "Field", name: { kind: "Name", value: "name" } },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "logo_img_url" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "hero_image_url" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "meta_tag_image_url" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "showcase_img_urls" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "description" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "world_app_description" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "category" },
+                      },
+                      {
+                        kind: "Field",
+                        name: {
+                          kind: "Name",
+                          value: "is_developer_allow_listing",
+                        },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "world_app_button_text" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "integration_url" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "app_website_url" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "source_code_url" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "verified_at" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "review_message" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "verification_status" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "app_mode" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "whitelisted_addresses" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "support_link" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "supported_countries" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "supported_languages" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "short_name" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "associated_domains" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "contracts" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "permit2_tokens" },
+                      },
+                      {
+                        kind: "Field",
+                        name: {
+                          kind: "Name",
+                          value: "can_import_all_contacts",
+                        },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "can_use_attestation" },
+                      },
+                      {
+                        kind: "Field",
+                        name: {
+                          kind: "Name",
+                          value: "is_allowed_unlimited_notifications",
+                        },
+                      },
+                      {
+                        kind: "Field",
+                        name: {
+                          kind: "Name",
+                          value: "max_notifications_per_day",
+                        },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "is_android_only" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "is_for_humans_only" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "content_card_image_url" },
+                      },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<
   FetchAppMetadataQuery,
   FetchAppMetadataQueryVariables
 >;

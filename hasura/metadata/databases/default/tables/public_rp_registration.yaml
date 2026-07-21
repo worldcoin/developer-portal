@@ -76,6 +76,7 @@ update_permissions:
         - operation_hash
         - staging_status
         - staging_operation_hash
+        - updated_at
       filter: {}
       check: {}
 delete_permissions:
