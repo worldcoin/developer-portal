@@ -14,7 +14,8 @@ import { toast } from "react-toastify";
 import { SignerKeySetup } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/ConfigureSignerKey/ConfigureSignerKeyContent";
 import { GenerateNewKeyContent } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/GenerateNewKey/GenerateNewKeyContent";
 import { UseExistingKeyContent } from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/UseExistingKey/UseExistingKeyContent";
-import { useRotateSignerKeyMutation } from "@/scenes/common/Teams/TeamId/Apps/AppId/WorldId40/page/graphql/client/rotate-signer-key.generated";
+import { useMutation } from "@apollo/client/react";
+import { RotateSignerKeyDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/WorldId40/page/graphql/client/rotate-signer-key.generated";
 
 type RotateStep = "configure" | "generate-new" | "use-existing";
 
@@ -41,7 +42,7 @@ export const RotateSignerKeyDialog = ({
   const [signerKeySetup, setSignerKeySetup] =
     useState<SignerKeySetup>("generate");
 
-  const [rotateSignerKey, { loading }] = useRotateSignerKeyMutation();
+  const [rotateSignerKey, { loading }] = useMutation(RotateSignerKeyDocument);
 
   const handleClose = useCallback(() => {
     setStep("configure");

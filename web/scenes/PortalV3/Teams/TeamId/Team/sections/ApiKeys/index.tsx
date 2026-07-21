@@ -7,12 +7,13 @@ import { useState } from "react";
 import Skeleton from "react-loading-skeleton";
 import { ApiKeysTable } from "./ApiKeyTable";
 import { CreateKeyModal } from "./CreateKeyModal";
-import { useFetchKeysQuery } from "@/scenes/common/Teams/TeamId/Team/ApiKeys/page/graphql/client/fetch-keys.generated";
+import { FetchKeysDocument } from "@/scenes/common/Teams/TeamId/Team/ApiKeys/page/graphql/client/fetch-keys.generated";
+import { useQuery } from "@apollo/client/react";
 
 export const ApiKeys = (props: { teamId?: string; canWrite: boolean }) => {
   const { teamId, canWrite } = props;
   const [showCreateKeyModal, setShowCreateKeyModal] = useState(false);
-  const { data, loading } = useFetchKeysQuery({
+  const { data, loading } = useQuery(FetchKeysDocument, {
     variables: { teamId: teamId ?? "" },
   });
 

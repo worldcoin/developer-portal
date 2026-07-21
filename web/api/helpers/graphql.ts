@@ -2,19 +2,55 @@ import "server-only";
 
 import {
   generateAPIKeyJWT,
+  generateInternalDashboardJWT,
   generateReviewerJWT,
   generateServiceJWT,
 } from "@/api/helpers/jwts";
+import type { AdminUser } from "@/lib/admin-auth";
 import { logger } from "@/lib/logger";
 import { parse } from "graphql";
 import { GraphQLClient } from "graphql-request";
 
-/** Total per-request timeout, including any retry attempts. */
 const REQUEST_TIMEOUT_MS = 15_000;
 
 /** Retry plan for idempotent (query) operations only. Backoffs in ms, applied
  *  between attempts. Length = max retries beyond the first attempt. */
 const QUERY_RETRY_BACKOFFS_MS = [200, 500];
+
+export type GraphqlFetchPolicy = {
+  clientName: string;
+  retryBackoffsMs: readonly number[];
+  timeoutMs: number;
+};
+
+const defaultGraphqlFetchPolicy: GraphqlFetchPolicy = {
+  clientName: "default",
+  retryBackoffsMs: QUERY_RETRY_BACKOFFS_MS,
+  timeoutMs: REQUEST_TIMEOUT_MS,
+};
+
+export const internalDashboardGraphqlFetchPolicy: GraphqlFetchPolicy = {
+  clientName: "internal_dashboard",
+  retryBackoffsMs: [],
+  timeoutMs: REQUEST_TIMEOUT_MS,
+};
+
+const getOperationName = (body: BodyInit | null | undefined) => {
+  if (typeof body !== "string" || body.length === 0) {
+    return undefined;
+  }
+
+  try {
+    const parsed: unknown = JSON.parse(body);
+    return parsed &&
+      typeof parsed === "object" &&
+      typeof (parsed as { operationName?: unknown }).operationName === "string"
+      ? (parsed as { operationName: string }).operationName
+      : undefined;
+  } catch {
+    return undefined;
+  }
+};
 
 /**
  * HTTP statuses that mean *no target served the request* — the ALB/nginx in
@@ -227,18 +263,21 @@ const combineSignals = (
  */
 export const makeGraphqlFetchWithRetry = (
   fetchImpl: typeof fetch,
+  policy: GraphqlFetchPolicy = defaultGraphqlFetchPolicy,
 ): typeof fetch => {
   return async (input, init) => {
     const body = init?.body ?? null;
     const retryable = isRetryableOperation(body);
     const callerSignal = init?.signal ?? null;
-    const backoffs = retryable ? QUERY_RETRY_BACKOFFS_MS : [];
+    const backoffs = retryable ? policy.retryBackoffsMs : [];
     const maxAttempts = backoffs.length + 1;
+    const operationName = getOperationName(body);
+    const startedAt = Date.now();
 
     let lastError: unknown;
 
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-      const signal = combineSignals(callerSignal, REQUEST_TIMEOUT_MS);
+      const signal = combineSignals(callerSignal, policy.timeoutMs);
       const isLast = attempt === maxAttempts;
       try {
         // Pass through everything we received, swapping in our combined signal.
@@ -259,6 +298,8 @@ export const makeGraphqlFetchWithRetry = (
             maxAttempts,
             delay,
             status: response.status,
+            graphqlClient: policy.clientName,
+            operationName,
           });
           await sleep(delay);
           continue;
@@ -273,6 +314,19 @@ export const makeGraphqlFetchWithRetry = (
         // the resulting AbortError as a retryable transport failure.
         const callerAborted = callerSignal?.aborted ?? false;
 
+        logger.warn("graphql transport request failed", {
+          attempt,
+          elapsedMs: Date.now() - startedAt,
+          error:
+            err instanceof Error
+              ? { name: err.name, message: err.message }
+              : String(err),
+          graphqlClient: policy.clientName,
+          maxAttempts,
+          operationName,
+          retryable,
+        });
+
         if (isLast || !transport || callerAborted) {
           throw err;
         }
@@ -286,6 +340,8 @@ export const makeGraphqlFetchWithRetry = (
             err instanceof Error
               ? { name: err.name, message: err.message }
               : String(err),
+          graphqlClient: policy.clientName,
+          operationName,
         });
         await sleep(delay);
       }
@@ -304,6 +360,12 @@ export const graphqlFetchWithRetry: typeof fetch =
   makeGraphqlFetchWithRetry(baseFetch);
 
 const sharedFetchConfig = { fetch: graphqlFetchWithRetry } as const;
+const internalDashboardFetchConfig = {
+  fetch: makeGraphqlFetchWithRetry(
+    baseFetch,
+    internalDashboardGraphqlFetchPolicy,
+  ),
+} as const;
 
 /**
  * Used for generated requests
@@ -346,4 +408,20 @@ export const getAPIReviewerGraphqlClient = async () => {
       authorization: `Bearer ${await generateReviewerJWT()}`,
     },
   });
+};
+
+export const getInternalDashboardGraphqlClientForUser = async (
+  user: AdminUser,
+) => {
+  return new GraphQLClient(process.env.NEXT_PUBLIC_GRAPHQL_API_URL!, {
+    ...internalDashboardFetchConfig,
+    headers: {
+      authorization: `Bearer ${await generateInternalDashboardJWT(user)}`,
+    },
+  });
+};
+
+export const getInternalDashboardGraphqlClient = async () => {
+  const { requireAdminUser } = await import("@/lib/admin-auth");
+  return getInternalDashboardGraphqlClientForUser(await requireAdminUser());
 };

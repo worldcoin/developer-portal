@@ -126,7 +126,14 @@ export const mainAppStoreFormReviewSubmitSchema = yup
     }),
     category: categorySchema.when("$isMiniApp", {
       is: true,
-      then: (s) => s.required("Category is required"),
+      then: (s) =>
+        s
+          .required("Category is required")
+          .test(
+            "category-not-external",
+            "Mini apps can't use the External category. Please choose a different category.",
+            (value) => value?.toLowerCase() !== "external",
+          ),
       otherwise: (s) => s.notRequired(),
     }),
     world_app_description: appWorldAppDescriptionSchema.when("$isMiniApp", {

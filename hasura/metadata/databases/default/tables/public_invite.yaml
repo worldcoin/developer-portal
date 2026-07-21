@@ -13,6 +13,15 @@ insert_permissions:
         - email
         - team_id
 select_permissions:
+  - role: internal_dashboard_readonly
+    permission:
+      columns:
+        - id
+        - email
+        - expires_at
+        - team_id
+      filter: {}
+      allow_aggregations: true
   - role: service
     permission:
       columns:

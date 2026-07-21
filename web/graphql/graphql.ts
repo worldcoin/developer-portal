@@ -1668,6 +1668,142 @@ export type Action_Variance_Order_By = {
   max_verifications?: InputMaybe<Order_By>;
 };
 
+export type Admin_Dashboard_Inventory = {
+  __typename?: "admin_dashboard_inventory";
+  active_api_keys: Scalars["bigint"]["output"];
+  active_apps: Scalars["bigint"]["output"];
+  active_teams: Scalars["bigint"]["output"];
+  deleted_apps: Scalars["bigint"]["output"];
+  deleted_teams: Scalars["bigint"]["output"];
+  new_apps: Scalars["bigint"]["output"];
+  new_teams: Scalars["bigint"]["output"];
+  new_users: Scalars["bigint"]["output"];
+  pending_invites: Scalars["bigint"]["output"];
+  total_users: Scalars["bigint"]["output"];
+};
+
+/** Boolean expression to filter rows from the logical model for "admin_dashboard_inventory". All fields are combined with a logical 'AND'. */
+export type Admin_Dashboard_Inventory_Bool_Exp_Bool_Exp = {
+  _and?: InputMaybe<Array<Admin_Dashboard_Inventory_Bool_Exp_Bool_Exp>>;
+  _not?: InputMaybe<Admin_Dashboard_Inventory_Bool_Exp_Bool_Exp>;
+  _or?: InputMaybe<Array<Admin_Dashboard_Inventory_Bool_Exp_Bool_Exp>>;
+  active_api_keys?: InputMaybe<Bigint_Comparison_Exp>;
+  active_apps?: InputMaybe<Bigint_Comparison_Exp>;
+  active_teams?: InputMaybe<Bigint_Comparison_Exp>;
+  deleted_apps?: InputMaybe<Bigint_Comparison_Exp>;
+  deleted_teams?: InputMaybe<Bigint_Comparison_Exp>;
+  new_apps?: InputMaybe<Bigint_Comparison_Exp>;
+  new_teams?: InputMaybe<Bigint_Comparison_Exp>;
+  new_users?: InputMaybe<Bigint_Comparison_Exp>;
+  pending_invites?: InputMaybe<Bigint_Comparison_Exp>;
+  total_users?: InputMaybe<Bigint_Comparison_Exp>;
+};
+
+export enum Admin_Dashboard_Inventory_Enum_Name {
+  /** column name */
+  ActiveApiKeys = "active_api_keys",
+  /** column name */
+  ActiveApps = "active_apps",
+  /** column name */
+  ActiveTeams = "active_teams",
+  /** column name */
+  DeletedApps = "deleted_apps",
+  /** column name */
+  DeletedTeams = "deleted_teams",
+  /** column name */
+  NewApps = "new_apps",
+  /** column name */
+  NewTeams = "new_teams",
+  /** column name */
+  NewUsers = "new_users",
+  /** column name */
+  PendingInvites = "pending_invites",
+  /** column name */
+  TotalUsers = "total_users",
+}
+
+/** Ordering options when selecting data from "admin_dashboard_inventory". */
+export type Admin_Dashboard_Inventory_Order_By = {
+  active_api_keys?: InputMaybe<Order_By>;
+  active_apps?: InputMaybe<Order_By>;
+  active_teams?: InputMaybe<Order_By>;
+  deleted_apps?: InputMaybe<Order_By>;
+  deleted_teams?: InputMaybe<Order_By>;
+  new_apps?: InputMaybe<Order_By>;
+  new_teams?: InputMaybe<Order_By>;
+  new_users?: InputMaybe<Order_By>;
+  pending_invites?: InputMaybe<Order_By>;
+  total_users?: InputMaybe<Order_By>;
+};
+
+export type Admin_Dashboard_Queue = {
+  __typename?: "admin_dashboard_queue";
+  email?: Maybe<Scalars["String"]["output"]>;
+  id: Scalars["String"]["output"];
+  kind: Scalars["String"]["output"];
+  name?: Maybe<Scalars["String"]["output"]>;
+  owner_email?: Maybe<Scalars["String"]["output"]>;
+  owner_id?: Maybe<Scalars["String"]["output"]>;
+  owner_name?: Maybe<Scalars["String"]["output"]>;
+  team_id?: Maybe<Scalars["String"]["output"]>;
+  total_count: Scalars["bigint"]["output"];
+  updated_at?: Maybe<Scalars["timestamptz"]["output"]>;
+};
+
+/** Boolean expression to filter rows from the logical model for "admin_dashboard_queue". All fields are combined with a logical 'AND'. */
+export type Admin_Dashboard_Queue_Bool_Exp_Bool_Exp = {
+  _and?: InputMaybe<Array<Admin_Dashboard_Queue_Bool_Exp_Bool_Exp>>;
+  _not?: InputMaybe<Admin_Dashboard_Queue_Bool_Exp_Bool_Exp>;
+  _or?: InputMaybe<Array<Admin_Dashboard_Queue_Bool_Exp_Bool_Exp>>;
+  email?: InputMaybe<String_Comparison_Exp>;
+  id?: InputMaybe<String_Comparison_Exp>;
+  kind?: InputMaybe<String_Comparison_Exp>;
+  name?: InputMaybe<String_Comparison_Exp>;
+  owner_email?: InputMaybe<String_Comparison_Exp>;
+  owner_id?: InputMaybe<String_Comparison_Exp>;
+  owner_name?: InputMaybe<String_Comparison_Exp>;
+  team_id?: InputMaybe<String_Comparison_Exp>;
+  total_count?: InputMaybe<Bigint_Comparison_Exp>;
+  updated_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+};
+
+export enum Admin_Dashboard_Queue_Enum_Name {
+  /** column name */
+  Email = "email",
+  /** column name */
+  Id = "id",
+  /** column name */
+  Kind = "kind",
+  /** column name */
+  Name = "name",
+  /** column name */
+  OwnerEmail = "owner_email",
+  /** column name */
+  OwnerId = "owner_id",
+  /** column name */
+  OwnerName = "owner_name",
+  /** column name */
+  TeamId = "team_id",
+  /** column name */
+  TotalCount = "total_count",
+  /** column name */
+  UpdatedAt = "updated_at",
+}
+
+/** Ordering options when selecting data from "admin_dashboard_queue". */
+export type Admin_Dashboard_Queue_Order_By = {
+  email?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  kind?: InputMaybe<Order_By>;
+  name?: InputMaybe<Order_By>;
+  owner_email?: InputMaybe<Order_By>;
+  owner_id?: InputMaybe<Order_By>;
+  owner_name?: InputMaybe<Order_By>;
+  team_id?: InputMaybe<Order_By>;
+  total_count?: InputMaybe<Order_By>;
+  updated_at?: InputMaybe<Order_By>;
+};
+
 /** columns and relationships of "api_key" */
 export type Api_Key = {
   __typename?: "api_key";
@@ -5356,6 +5492,17 @@ export type Invite_Aggregate = {
   nodes: Array<Invite>;
 };
 
+export type Invite_Aggregate_Bool_Exp = {
+  count?: InputMaybe<Invite_Aggregate_Bool_Exp_Count>;
+};
+
+export type Invite_Aggregate_Bool_Exp_Count = {
+  arguments?: InputMaybe<Array<Invite_Select_Column>>;
+  distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
+  filter?: InputMaybe<Invite_Bool_Exp>;
+  predicate: Int_Comparison_Exp;
+};
+
 /** aggregate fields of "invite" */
 export type Invite_Aggregate_Fields = {
   __typename?: "invite_aggregate_fields";
@@ -5368,6 +5515,20 @@ export type Invite_Aggregate_Fields = {
 export type Invite_Aggregate_FieldsCountArgs = {
   columns?: InputMaybe<Array<Invite_Select_Column>>;
   distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
+};
+
+/** order by aggregate values of table "invite" */
+export type Invite_Aggregate_Order_By = {
+  count?: InputMaybe<Order_By>;
+  max?: InputMaybe<Invite_Max_Order_By>;
+  min?: InputMaybe<Invite_Min_Order_By>;
+};
+
+/** input type for inserting array relation for remote table "invite" */
+export type Invite_Arr_Rel_Insert_Input = {
+  data: Array<Invite_Insert_Input>;
+  /** upsert condition */
+  on_conflict?: InputMaybe<Invite_On_Conflict>;
 };
 
 /** Boolean expression to filter rows from the table "invite". All fields are combined with a logical 'AND'. */
@@ -5406,6 +5567,14 @@ export type Invite_Max_Fields = {
   team_id?: Maybe<Scalars["String"]["output"]>;
 };
 
+/** order by max() on columns of table "invite" */
+export type Invite_Max_Order_By = {
+  email?: InputMaybe<Order_By>;
+  expires_at?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  team_id?: InputMaybe<Order_By>;
+};
+
 /** aggregate min on columns */
 export type Invite_Min_Fields = {
   __typename?: "invite_min_fields";
@@ -5413,6 +5582,14 @@ export type Invite_Min_Fields = {
   expires_at?: Maybe<Scalars["timestamptz"]["output"]>;
   id?: Maybe<Scalars["String"]["output"]>;
   team_id?: Maybe<Scalars["String"]["output"]>;
+};
+
+/** order by min() on columns of table "invite" */
+export type Invite_Min_Order_By = {
+  email?: InputMaybe<Order_By>;
+  expires_at?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  team_id?: InputMaybe<Order_By>;
 };
 
 /** response of any mutation on the table "invite" */
@@ -9328,6 +9505,8 @@ export type Query_Root = {
   action_v4_aggregate: Action_V4_Aggregate;
   /** fetch data from the table: "action_v4" using primary key columns */
   action_v4_by_pk?: Maybe<Action_V4>;
+  admin_dashboard_inventory: Array<Admin_Dashboard_Inventory>;
+  admin_dashboard_queues: Array<Admin_Dashboard_Queue>;
   /** fetch data from the table: "api_key" */
   api_key: Array<Api_Key>;
   /** fetch aggregated fields from the table: "api_key" */
@@ -9563,6 +9742,22 @@ export type Query_RootAction_V4_AggregateArgs = {
 
 export type Query_RootAction_V4_By_PkArgs = {
   id: Scalars["String"]["input"];
+};
+
+export type Query_RootAdmin_Dashboard_InventoryArgs = {
+  distinct_on?: InputMaybe<Array<Admin_Dashboard_Inventory_Enum_Name>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Admin_Dashboard_Inventory_Order_By>>;
+  where?: InputMaybe<Admin_Dashboard_Inventory_Bool_Exp_Bool_Exp>;
+};
+
+export type Query_RootAdmin_Dashboard_QueuesArgs = {
+  distinct_on?: InputMaybe<Array<Admin_Dashboard_Queue_Enum_Name>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Admin_Dashboard_Queue_Order_By>>;
+  where?: InputMaybe<Admin_Dashboard_Queue_Bool_Exp_Bool_Exp>;
 };
 
 export type Query_RootApi_KeyArgs = {
@@ -10878,6 +11073,8 @@ export type Subscription_Root = {
   action_v4_by_pk?: Maybe<Action_V4>;
   /** fetch data from the table in a streaming manner: "action_v4" */
   action_v4_stream: Array<Action_V4>;
+  admin_dashboard_inventory: Array<Admin_Dashboard_Inventory>;
+  admin_dashboard_queues: Array<Admin_Dashboard_Queue>;
   /** fetch data from the table: "api_key" */
   api_key: Array<Api_Key>;
   /** fetch aggregated fields from the table: "api_key" */
@@ -11174,6 +11371,22 @@ export type Subscription_RootAction_V4_StreamArgs = {
   batch_size: Scalars["Int"]["input"];
   cursor: Array<InputMaybe<Action_V4_Stream_Cursor_Input>>;
   where?: InputMaybe<Action_V4_Bool_Exp>;
+};
+
+export type Subscription_RootAdmin_Dashboard_InventoryArgs = {
+  distinct_on?: InputMaybe<Array<Admin_Dashboard_Inventory_Enum_Name>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Admin_Dashboard_Inventory_Order_By>>;
+  where?: InputMaybe<Admin_Dashboard_Inventory_Bool_Exp_Bool_Exp>;
+};
+
+export type Subscription_RootAdmin_Dashboard_QueuesArgs = {
+  distinct_on?: InputMaybe<Array<Admin_Dashboard_Queue_Enum_Name>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Admin_Dashboard_Queue_Order_By>>;
+  where?: InputMaybe<Admin_Dashboard_Queue_Bool_Exp_Bool_Exp>;
 };
 
 export type Subscription_RootApi_KeyArgs = {
@@ -11850,6 +12063,10 @@ export type Team = {
   deleted_at?: Maybe<Scalars["timestamptz"]["output"]>;
   id: Scalars["String"]["output"];
   /** An array relationship */
+  invites: Array<Invite>;
+  /** An aggregate relationship */
+  invites_aggregate: Invite_Aggregate;
+  /** An array relationship */
   memberships: Array<Membership>;
   /** An aggregate relationship */
   memberships_aggregate: Membership_Aggregate;
@@ -11893,6 +12110,24 @@ export type TeamApps_AggregateArgs = {
   offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<App_Order_By>>;
   where?: InputMaybe<App_Bool_Exp>;
+};
+
+/** columns and relationships of "team" */
+export type TeamInvitesArgs = {
+  distinct_on?: InputMaybe<Array<Invite_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Invite_Order_By>>;
+  where?: InputMaybe<Invite_Bool_Exp>;
+};
+
+/** columns and relationships of "team" */
+export type TeamInvites_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Invite_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Invite_Order_By>>;
+  where?: InputMaybe<Invite_Bool_Exp>;
 };
 
 /** columns and relationships of "team" */
@@ -11961,6 +12196,8 @@ export type Team_Bool_Exp = {
   created_at?: InputMaybe<Timestamptz_Comparison_Exp>;
   deleted_at?: InputMaybe<Timestamptz_Comparison_Exp>;
   id?: InputMaybe<String_Comparison_Exp>;
+  invites?: InputMaybe<Invite_Bool_Exp>;
+  invites_aggregate?: InputMaybe<Invite_Aggregate_Bool_Exp>;
   memberships?: InputMaybe<Membership_Bool_Exp>;
   memberships_aggregate?: InputMaybe<Membership_Aggregate_Bool_Exp>;
   name?: InputMaybe<String_Comparison_Exp>;
@@ -11981,6 +12218,7 @@ export type Team_Insert_Input = {
   created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
   deleted_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
   id?: InputMaybe<Scalars["String"]["input"]>;
+  invites?: InputMaybe<Invite_Arr_Rel_Insert_Input>;
   memberships?: InputMaybe<Membership_Arr_Rel_Insert_Input>;
   name?: InputMaybe<Scalars["String"]["input"]>;
   updated_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
@@ -12040,6 +12278,7 @@ export type Team_Order_By = {
   created_at?: InputMaybe<Order_By>;
   deleted_at?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  invites_aggregate?: InputMaybe<Invite_Aggregate_Order_By>;
   memberships_aggregate?: InputMaybe<Membership_Aggregate_Order_By>;
   name?: InputMaybe<Order_By>;
   team_owners_count?: InputMaybe<Order_By>;

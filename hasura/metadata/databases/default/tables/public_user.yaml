@@ -43,6 +43,15 @@ insert_permissions:
         - team_id
         - world_id_nullifier
 select_permissions:
+  - role: internal_dashboard_readonly
+    permission:
+      columns:
+        - created_at
+        - email
+        - id
+        - name
+      filter: {}
+      allow_aggregations: true
   - role: qa
     permission:
       columns:

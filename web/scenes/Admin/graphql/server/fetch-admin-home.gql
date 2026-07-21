@@ -1,0 +1,71 @@
+query FetchAdminHome($recentLimit: Int!) {
+  inventory: admin_dashboard_inventory {
+    active_api_keys
+    active_apps
+    active_teams
+    deleted_apps
+    deleted_teams
+    new_apps
+    new_teams
+    new_users
+    pending_invites
+    total_users
+  }
+  queues: admin_dashboard_queues {
+    email
+    id
+    kind
+    name
+    owner_email
+    owner_id
+    owner_name
+    team_id
+    total_count
+    updated_at
+  }
+  recent_teams: team(order_by: { created_at: desc }, limit: $recentLimit) {
+    id
+    name
+    created_at
+    deleted_at
+  }
+  recent_users: user(order_by: { created_at: desc }, limit: $recentLimit) {
+    id
+    name
+    email
+    created_at
+  }
+  recent_apps: app(
+    where: { deleted_at: { _is_null: true } }
+    order_by: { created_at: desc }
+    limit: $recentLimit
+  ) {
+    id
+    name
+    team_id
+    created_at
+    draft_metadata: app_metadata(
+      where: { verification_status: { _neq: "verified" } }
+      order_by: { updated_at: desc }
+      limit: 1
+    ) {
+      verification_status
+    }
+    verified_metadata: app_metadata(
+      where: { verification_status: { _eq: "verified" } }
+      order_by: { verified_at: desc }
+      limit: 1
+    ) {
+      verification_status
+    }
+  }
+  recent_metadata: app_metadata(
+    order_by: { updated_at: desc }
+    limit: $recentLimit
+  ) {
+    app_id
+    name
+    updated_at
+    verification_status
+  }
+}

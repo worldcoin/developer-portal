@@ -1,7 +1,8 @@
 "use client";
 import { atom, useSetAtom } from "jotai";
 import { Fragment, ReactNode, useEffect } from "react";
-import { useFetchImagesQuery } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/graphql/client/fetch-images.generated";
+import { useQuery } from "@apollo/client/react";
+import { FetchImagesDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/graphql/client/fetch-images.generated";
 
 type Images = {
   logo_img_url?: string;
@@ -37,7 +38,7 @@ export const ImagesProvider = (props: {
   const { appId, teamId, locale } = props;
   const setUnverifiedImages = useSetAtom(unverifiedImageAtom);
 
-  const { data } = useFetchImagesQuery({
+  const { data } = useQuery(FetchImagesDocument, {
     variables: {
       id: appId ?? "",
       team_id: teamId ?? "",

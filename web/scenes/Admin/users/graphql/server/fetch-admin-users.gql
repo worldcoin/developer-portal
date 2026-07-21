@@ -1,0 +1,26 @@
+query FetchAdminUsers(
+  $includeCreatedAt: Boolean!
+  $includeEmail: Boolean!
+  $limit: Int!
+  $offset: Int!
+  $orderBy: [user_order_by!]!
+  $where: user_bool_exp!
+) {
+  user(limit: $limit, offset: $offset, order_by: $orderBy, where: $where) {
+    id
+    name
+    email @include(if: $includeEmail)
+    created_at @include(if: $includeCreatedAt)
+  }
+  user_aggregate(where: $where) {
+    aggregate {
+      count
+    }
+  }
+}
+
+query FetchAdminUserMemberships($userIds: [String!]!) {
+  membership(where: { user_id: { _in: $userIds } }) {
+    user_id
+  }
+}

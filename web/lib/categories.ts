@@ -371,3 +371,22 @@ export const getAppStoreLocalisedCategoriesWithUrls = (
     return { id, name, icon_url: category.icon_url };
   }).filter((category) => category !== null);
 };
+
+/**
+ * Resolve the category to persist for an app. A mini app must never be stored
+ * under the "External" category: like the external app_mode, that category
+ * hides the app from the mini app store (see web/api/v2/public/apps), so it
+ * only makes sense for external integrations. Keep the provided category unless
+ * it is missing (or "External" for a mini app); otherwise fall back to "Other"
+ * for mini apps and "External" for external apps.
+ */
+export const resolveAppStoreCategory = (
+  category: string | null | undefined,
+  isMiniApp: boolean,
+): string => {
+  const trimmed = category?.trim();
+  if (trimmed && !(isMiniApp && trimmed.toLowerCase() === "external")) {
+    return trimmed;
+  }
+  return isMiniApp ? "Other" : "External";
+};

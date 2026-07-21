@@ -5,10 +5,11 @@ import { DecoratedButton } from "@/components/DecoratedButton";
 import { Notification } from "@/components/Notification";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import { useMutation } from "@apollo/client/react";
 import clsx from "clsx";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
-import { useRetryRpMutation } from "@/scenes/common/Teams/TeamId/Apps/AppId/WorldId40/page/graphql/client/retry-rp.generated";
+import { RetryRpDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/WorldId40/page/graphql/client/retry-rp.generated";
 import { RotateSignerKeyDialog } from "./RotateSignerKeyDialog";
 import { SwitchToSelfManagedDialog } from "./SwitchToSelfManagedDialog";
 
@@ -62,7 +63,7 @@ export const WorldId40Content = ({
   mode,
   createdAt,
 }: WorldId40ContentProps) => {
-  const [retryRpMutation] = useRetryRpMutation();
+  const [retryRpMutation] = useMutation(RetryRpDocument);
   const router = useRouter();
   const [productionStatus, setProductionStatus] =
     useState<RpStatus>(initialStatus);

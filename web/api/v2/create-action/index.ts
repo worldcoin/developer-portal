@@ -6,7 +6,7 @@ import {
 import { verifyHashedSecret } from "@/api/helpers/utils";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { generateExternalNullifier } from "@/lib/hashing";
-import { ApolloError } from "@apollo/client";
+import { GraphQLFormattedError } from "graphql";
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
 import {
@@ -174,7 +174,7 @@ export const POST = async (
     insertedAction = insert_action_one;
   } catch (error) {
     const e = error as {
-      response: { errors: ApolloError["graphQLErrors"] };
+      response: { errors: readonly GraphQLFormattedError[] };
     };
 
     if (e.response.errors[0]?.extensions?.code === "constraint-violation") {
