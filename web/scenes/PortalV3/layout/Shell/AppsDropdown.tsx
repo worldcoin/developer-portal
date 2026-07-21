@@ -5,18 +5,25 @@ import { Auth0SessionUser } from "@/lib/types";
 import { urls } from "@/lib/urls";
 import { checkUserPermissions } from "@/lib/utils";
 import {
+  FetchAppsDocument,
   FetchAppsQuery,
-  useFetchAppsQuery,
 } from "@/scenes/common/layout/AppSelector/graphql/client/fetch-apps.generated";
 import { Icon, opticalIconClassName } from "@/scenes/PortalV3/common/Icon";
-import { CreateAppDialogV4 } from "@/scenes/PortalV3/layout/CreateAppDialog/index-v4";
+import { useQuery } from "@apollo/client/react";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { atom, useAtomValue, useSetAtom } from "jotai";
+import dynamic from "next/dynamic";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
 type DropdownApp = { id: string; name: string };
+
+const CreateAppDialogV4 = dynamic(() =>
+  import("@/scenes/PortalV3/layout/CreateAppDialog/index-v4").then(
+    (module) => module.CreateAppDialogV4,
+  ),
+);
 
 // Which app is "selected": the URL on app routes, otherwise the last app
 // visited under this team — remembered so team-scoped routes (Team settings,
@@ -90,9 +97,11 @@ export const AppsDropdown = () => {
     Role_Enum.Admin,
   ]);
   const [dialogOpen, setDialogOpen] = useState(false);
+  // Keep mounted after first open to preserve transitions and state.
+  const [dialogMounted, setDialogMounted] = useState(false);
   const currentAppId = useCurrentAppId();
 
-  const { data, loading, error } = useFetchAppsQuery({
+  const { data, loading, error } = useQuery(FetchAppsDocument, {
     variables: { teamId: teamId! },
     skip: !teamId,
   });
@@ -115,9 +124,9 @@ export const AppsDropdown = () => {
 
   return (
     <>
-      {canCreateApp && (
+      {canCreateApp && dialogMounted ? (
         <CreateAppDialogV4 open={dialogOpen} onClose={setDialogOpen} />
-      )}
+      ) : null}
 
       <DropdownMenu.Root>
         <DropdownMenu.Trigger
@@ -173,7 +182,10 @@ export const AppsDropdown = () => {
                     className="h-2 w-full shrink-0"
                   />
                   <DropdownMenu.Item
-                    onSelect={() => setDialogOpen(true)}
+                    onSelect={() => {
+                      setDialogMounted(true);
+                      setDialogOpen(true);
+                    }}
                     className="flex h-12 w-full cursor-pointer items-center gap-2 rounded-8 bg-white px-4 py-2 font-world text-13 leading-[1.2] font-medium text-portal-text outline-hidden data-highlighted:bg-grey-50"
                   >
                     {/* Bare 16px icon per Figma (2123:1919): icons left-align

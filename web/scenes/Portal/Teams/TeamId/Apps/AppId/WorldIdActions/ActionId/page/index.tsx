@@ -4,7 +4,8 @@ import { ErrorPage } from "@/components/ErrorPage";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import Skeleton from "react-loading-skeleton";
-import { useGetSingleActionV4Query } from "@/scenes/common/Teams/TeamId/Apps/AppId/WorldIdActions/ActionId/page/graphql/client/get-single-action-v4.generated";
+import { useQuery } from "@apollo/client/react";
+import { GetSingleActionV4Document } from "@/scenes/common/Teams/TeamId/Apps/AppId/WorldIdActions/ActionId/page/graphql/client/get-single-action-v4.generated";
 import { VerifiedTable } from "@/scenes/Portal/Teams/TeamId/Apps/AppId/Actions/ActionId/page/VerifiedTable";
 import { adaptNullifierV4 } from "./utils/adapt-nullifier-v4";
 
@@ -16,7 +17,7 @@ export const WorldIdActionIdPage = (props: WorldIdActionIdPageProps) => {
   const params = use(props.params);
   const actionId = params?.actionId;
 
-  const { data, loading, error } = useGetSingleActionV4Query({
+  const { data, loading, error } = useQuery(GetSingleActionV4Document, {
     variables: { action_id: actionId ?? "" },
   });
 

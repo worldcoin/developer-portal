@@ -10,11 +10,7 @@ import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { Role_Enum } from "@/graphql/graphql";
 import { Auth0SessionUser } from "@/lib/types";
 import { checkUserPermissions } from "@/lib/utils";
-import { useFetchLocalisationsQuery } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/AppStore/graphql/client/fetch-localisations.generated";
-import {
-  FetchAppMetadataQuery,
-  useFetchAppMetadataQuery,
-} from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/graphql/client/fetch-app-metadata.generated";
+import { FetchAppMetadataQuery } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/graphql/client/fetch-app-metadata.generated";
 import { useRemoveFromReview } from "@/scenes/common/Teams/TeamId/Apps/common/hooks/use-remove-from-review";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import clsx from "clsx";
@@ -44,6 +40,9 @@ import {
 import { BasicInformation, BasicInformationHandle } from "./BasicInformation";
 import { AppStoreActions } from "./AppStoreActions";
 import { MiniAppConfiguration } from "./MiniAppConfiguration";
+import { useQuery } from "@apollo/client/react";
+import { FetchAppMetadataDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/graphql/client/fetch-app-metadata.generated";
+import { FetchLocalisationsDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/AppStore/graphql/client/fetch-localisations.generated";
 import { AppIconBox } from "./PageComponents/AppIconBox";
 import {
   AppStoreWizardStep,
@@ -462,7 +461,7 @@ export const AppProfilePage = ({ params }: AppProfilePageProps) => {
     data,
     loading: isMetadataLoading,
     error,
-  } = useFetchAppMetadataQuery({
+  } = useQuery(FetchAppMetadataDocument, {
     variables: {
       id: appId,
     },
@@ -494,13 +493,15 @@ export const AppProfilePage = ({ params }: AppProfilePageProps) => {
     }
   }, [app, setViewMode, viewMode]);
 
-  const { data: localisationsData, loading: isLocalisationsLoading } =
-    useFetchLocalisationsQuery({
+  const { data: localisationsData, loading: isLocalisationsLoading } = useQuery(
+    FetchLocalisationsDocument,
+    {
       variables: {
         app_metadata_id: appMetadata?.id || "",
       },
       skip: !appMetadata?.id,
-    });
+    },
+  );
 
   const teamName = app?.team?.name ?? "";
   const isLoading = isMetadataLoading || isLocalisationsLoading;

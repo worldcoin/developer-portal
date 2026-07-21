@@ -1,9 +1,7 @@
 /* eslint-disable */
 import * as Types from "@/graphql/graphql";
 
-import { gql } from "@apollo/client";
-import * as Apollo from "@apollo/client";
-const defaultOptions = {} as const;
+import { TypedDocumentNode as DocumentNode } from "@graphql-typed-document-node/core";
 export type FetchSignInActionQueryVariables = Types.Exact<{
   app_id: Types.Scalars["String"]["input"];
 }>;
@@ -21,93 +19,139 @@ export type FetchSignInActionQuery = {
   app: Array<{ __typename?: "app"; is_staging: boolean; created_at: string }>;
 };
 
-export const FetchSignInActionDocument = gql`
-  query FetchSignInAction($app_id: String!) {
-    action(where: { app_id: { _eq: $app_id }, action: { _eq: "" } }) {
-      id
-      app_id
-      status
-      privacy_policy_uri
-      terms_uri
-    }
-    app(where: { id: { _eq: $app_id } }) {
-      is_staging
-      created_at
-    }
-  }
-`;
-
-/**
- * __useFetchSignInActionQuery__
- *
- * To run a query within a React component, call `useFetchSignInActionQuery` and pass it any options that fit your needs.
- * When your component renders, `useFetchSignInActionQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useFetchSignInActionQuery({
- *   variables: {
- *      app_id: // value for 'app_id'
- *   },
- * });
- */
-export function useFetchSignInActionQuery(
-  baseOptions: Apollo.QueryHookOptions<
-    FetchSignInActionQuery,
-    FetchSignInActionQueryVariables
-  > &
-    (
-      | { variables: FetchSignInActionQueryVariables; skip?: boolean }
-      | { skip: boolean }
-    ),
-) {
-  const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useQuery<
-    FetchSignInActionQuery,
-    FetchSignInActionQueryVariables
-  >(FetchSignInActionDocument, options);
-}
-export function useFetchSignInActionLazyQuery(
-  baseOptions?: Apollo.LazyQueryHookOptions<
-    FetchSignInActionQuery,
-    FetchSignInActionQueryVariables
-  >,
-) {
-  const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useLazyQuery<
-    FetchSignInActionQuery,
-    FetchSignInActionQueryVariables
-  >(FetchSignInActionDocument, options);
-}
-export function useFetchSignInActionSuspenseQuery(
-  baseOptions?:
-    | Apollo.SkipToken
-    | Apollo.SuspenseQueryHookOptions<
-        FetchSignInActionQuery,
-        FetchSignInActionQueryVariables
-      >,
-) {
-  const options =
-    baseOptions === Apollo.skipToken
-      ? baseOptions
-      : { ...defaultOptions, ...baseOptions };
-  return Apollo.useSuspenseQuery<
-    FetchSignInActionQuery,
-    FetchSignInActionQueryVariables
-  >(FetchSignInActionDocument, options);
-}
-export type FetchSignInActionQueryHookResult = ReturnType<
-  typeof useFetchSignInActionQuery
->;
-export type FetchSignInActionLazyQueryHookResult = ReturnType<
-  typeof useFetchSignInActionLazyQuery
->;
-export type FetchSignInActionSuspenseQueryHookResult = ReturnType<
-  typeof useFetchSignInActionSuspenseQuery
->;
-export type FetchSignInActionQueryResult = Apollo.QueryResult<
+export const FetchSignInActionDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "query",
+      name: { kind: "Name", value: "FetchSignInAction" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "app_id" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "String" },
+            },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "action" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "where" },
+                value: {
+                  kind: "ObjectValue",
+                  fields: [
+                    {
+                      kind: "ObjectField",
+                      name: { kind: "Name", value: "app_id" },
+                      value: {
+                        kind: "ObjectValue",
+                        fields: [
+                          {
+                            kind: "ObjectField",
+                            name: { kind: "Name", value: "_eq" },
+                            value: {
+                              kind: "Variable",
+                              name: { kind: "Name", value: "app_id" },
+                            },
+                          },
+                        ],
+                      },
+                    },
+                    {
+                      kind: "ObjectField",
+                      name: { kind: "Name", value: "action" },
+                      value: {
+                        kind: "ObjectValue",
+                        fields: [
+                          {
+                            kind: "ObjectField",
+                            name: { kind: "Name", value: "_eq" },
+                            value: {
+                              kind: "StringValue",
+                              value: "",
+                              block: false,
+                            },
+                          },
+                        ],
+                      },
+                    },
+                  ],
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
+                { kind: "Field", name: { kind: "Name", value: "app_id" } },
+                { kind: "Field", name: { kind: "Name", value: "status" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "privacy_policy_uri" },
+                },
+                { kind: "Field", name: { kind: "Name", value: "terms_uri" } },
+              ],
+            },
+          },
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "app" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "where" },
+                value: {
+                  kind: "ObjectValue",
+                  fields: [
+                    {
+                      kind: "ObjectField",
+                      name: { kind: "Name", value: "id" },
+                      value: {
+                        kind: "ObjectValue",
+                        fields: [
+                          {
+                            kind: "ObjectField",
+                            name: { kind: "Name", value: "_eq" },
+                            value: {
+                              kind: "Variable",
+                              name: { kind: "Name", value: "app_id" },
+                            },
+                          },
+                        ],
+                      },
+                    },
+                  ],
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "is_staging" } },
+                { kind: "Field", name: { kind: "Name", value: "created_at" } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<
   FetchSignInActionQuery,
   FetchSignInActionQueryVariables
 >;

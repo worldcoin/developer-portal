@@ -3,9 +3,11 @@
 import { Button } from "@/components/Button";
 import { ArrowRightIcon } from "@/components/Icons/ArrowRightIcon";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import { useApolloClient } from "@apollo/client";
-import { FetchAppMetadataDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/graphql/client/fetch-app-metadata.generated";
-import type { FetchAppMetadataQuery } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/graphql/client/fetch-app-metadata.generated";
+import { useApolloClient } from "@apollo/client/react";
+import {
+  FetchAppMetadataDocument,
+  FetchAppMetadataQuery,
+} from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/graphql/client/fetch-app-metadata.generated";
 import clsx from "clsx";
 import { twMerge } from "tailwind-merge";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";

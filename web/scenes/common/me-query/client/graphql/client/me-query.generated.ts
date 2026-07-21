@@ -1,9 +1,7 @@
 /* eslint-disable */
 import * as Types from "@/graphql/graphql";
 
-import { gql } from "@apollo/client";
-import * as Apollo from "@apollo/client";
-const defaultOptions = {} as const;
+import { TypedDocumentNode as DocumentNode } from "@graphql-typed-document-node/core";
 export type FetchMeQueryVariables = Types.Exact<{
   userId: Types.Scalars["String"]["input"];
 }>;
@@ -26,84 +24,92 @@ export type FetchMeQuery = {
   } | null;
 };
 
-export const FetchMeDocument = gql`
-  query FetchMe($userId: String!) {
-    user_by_pk(id: $userId) {
-      id
-      name
-      email
-      world_id_nullifier
-      posthog_id
-      is_allow_tracking
-      memberships {
-        role
-        team {
-          id
-          name
-        }
-      }
-    }
-  }
-`;
-
-/**
- * __useFetchMeQuery__
- *
- * To run a query within a React component, call `useFetchMeQuery` and pass it any options that fit your needs.
- * When your component renders, `useFetchMeQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useFetchMeQuery({
- *   variables: {
- *      userId: // value for 'userId'
- *   },
- * });
- */
-export function useFetchMeQuery(
-  baseOptions: Apollo.QueryHookOptions<FetchMeQuery, FetchMeQueryVariables> &
-    ({ variables: FetchMeQueryVariables; skip?: boolean } | { skip: boolean }),
-) {
-  const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useQuery<FetchMeQuery, FetchMeQueryVariables>(
-    FetchMeDocument,
-    options,
-  );
-}
-export function useFetchMeLazyQuery(
-  baseOptions?: Apollo.LazyQueryHookOptions<
-    FetchMeQuery,
-    FetchMeQueryVariables
-  >,
-) {
-  const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useLazyQuery<FetchMeQuery, FetchMeQueryVariables>(
-    FetchMeDocument,
-    options,
-  );
-}
-export function useFetchMeSuspenseQuery(
-  baseOptions?:
-    | Apollo.SkipToken
-    | Apollo.SuspenseQueryHookOptions<FetchMeQuery, FetchMeQueryVariables>,
-) {
-  const options =
-    baseOptions === Apollo.skipToken
-      ? baseOptions
-      : { ...defaultOptions, ...baseOptions };
-  return Apollo.useSuspenseQuery<FetchMeQuery, FetchMeQueryVariables>(
-    FetchMeDocument,
-    options,
-  );
-}
-export type FetchMeQueryHookResult = ReturnType<typeof useFetchMeQuery>;
-export type FetchMeLazyQueryHookResult = ReturnType<typeof useFetchMeLazyQuery>;
-export type FetchMeSuspenseQueryHookResult = ReturnType<
-  typeof useFetchMeSuspenseQuery
->;
-export type FetchMeQueryResult = Apollo.QueryResult<
-  FetchMeQuery,
-  FetchMeQueryVariables
->;
+export const FetchMeDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "query",
+      name: { kind: "Name", value: "FetchMe" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "userId" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "String" },
+            },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "user_by_pk" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "id" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "userId" },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
+                { kind: "Field", name: { kind: "Name", value: "name" } },
+                { kind: "Field", name: { kind: "Name", value: "email" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "world_id_nullifier" },
+                },
+                { kind: "Field", name: { kind: "Name", value: "posthog_id" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "is_allow_tracking" },
+                },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "memberships" },
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      { kind: "Field", name: { kind: "Name", value: "role" } },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "team" },
+                        selectionSet: {
+                          kind: "SelectionSet",
+                          selections: [
+                            {
+                              kind: "Field",
+                              name: { kind: "Name", value: "id" },
+                            },
+                            {
+                              kind: "Field",
+                              name: { kind: "Name", value: "name" },
+                            },
+                          ],
+                        },
+                      },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<FetchMeQuery, FetchMeQueryVariables>;

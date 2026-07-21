@@ -128,7 +128,7 @@ const DEVELOPER_TOOL_CARDS: Array<{
     href: "https://docs.world.org/world-id/overview",
     icon: HumanBadgeIcon,
     label: "World ID",
-    poster: "/posters/World-ID-thumbnail.png",
+    poster: "/posters/World-ID-thumbnail-800.webp",
     video:
       "https://worldcoin-company-website.cdn.prismic.io/worldcoin-company-website/aeCqpZ1ZCF7ETPYO_Fees-Animated.mp4",
   },

@@ -5,8 +5,9 @@ import { SendIcon } from "@/components/Icons/SendIcon";
 import { TrashIcon } from "@/components/Icons/TrashIcon";
 import { WalletIcon } from "@/components/Icons/WalletIcon";
 import { urls } from "@/lib/urls";
-import { useFetchAppsQuery } from "@/scenes/common/layout/AppSelector/graphql/client/fetch-apps.generated";
+import { FetchAppsDocument } from "@/scenes/common/layout/AppSelector/graphql/client/fetch-apps.generated";
 import { Icon } from "@/scenes/PortalV3/common/Icon";
+import { useQuery } from "@apollo/client/react";
 import { useParams, usePathname } from "next/navigation";
 import { useCurrentAppId } from "./AppsDropdown";
 import { HelpCenterMenu } from "./HelpCenterMenu";
@@ -27,7 +28,7 @@ export const SidebarNav = () => {
   const appId = useCurrentAppId();
   // Same FetchApps as AppsDropdown — Apollo serves the cache after the first
   // fetch, so this is not a second network round-trip.
-  const { data: appsData, loading: appsLoading } = useFetchAppsQuery({
+  const { data: appsData, loading: appsLoading } = useQuery(FetchAppsDocument, {
     variables: { teamId: teamId! },
     skip: !teamId,
   });

@@ -7,13 +7,14 @@ import { DialogOverlay } from "@/components/DialogOverlay";
 import { DialogPanel } from "@/components/DialogPanel";
 import { AlertIcon } from "@/components/Icons/AlertIcon";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
+import { useMutation } from "@apollo/client/react";
 import { atom, useAtom } from "jotai";
 import { useParams } from "next/navigation";
 import { useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import { FetchTeamMembersDocument } from "@/scenes/common/Teams/TeamId/Team/page/Members/graphql/client/fetch-team-members.generated";
-import { useRemoveUserMutation } from "@/scenes/common/Teams/TeamId/Team/page/Members/List/RemoveUserDialog/graphql/client/remove-user.generated";
+import { RemoveUserDocument } from "@/scenes/common/Teams/TeamId/Team/page/Members/List/RemoveUserDialog/graphql/client/remove-user.generated";
 
 export const removeUserDialogAtom = atom(false);
 
@@ -29,7 +30,7 @@ export const RemoveUserDialog = (props: {
     formState: { isSubmitting },
   } = useForm();
 
-  const [removeUser] = useRemoveUserMutation();
+  const [removeUser] = useMutation(RemoveUserDocument);
 
   const submit = useCallback(async () => {
     if (!props.id || !teamId) {

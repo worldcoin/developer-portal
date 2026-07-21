@@ -9,7 +9,11 @@ import { useParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import Skeleton from "react-loading-skeleton";
 import { App } from "./App";
-import { useFetchAppsQuery } from "@/scenes/common/Teams/TeamId/Team/page/Apps/graphql/client/fetch-apps.generated";
+import { useQuery } from "@apollo/client/react";
+import {
+  FetchAppsDocument,
+  FetchAppsQuery,
+} from "@/scenes/common/Teams/TeamId/Team/page/Apps/graphql/client/fetch-apps.generated";
 import { Section } from "@/components/Section";
 import { PlusIcon } from "@/components/Icons/PlusIcon";
 import { DecoratedButton } from "@/components/DecoratedButton";
@@ -20,7 +24,7 @@ export const Apps = () => {
   const { teamId } = useParams() as { teamId: string };
   const [_, setCreateAppDialogOpen] = useAtom(createAppDialogOpenedAtom);
 
-  const { data, refetch, loading } = useFetchAppsQuery({
+  const { data, refetch, loading } = useQuery(FetchAppsDocument, {
     variables: { teamId },
     skip: !teamId,
   });
@@ -37,7 +41,7 @@ export const Apps = () => {
 
   const filteredApps = useMemo(
     () =>
-      app?.filter((a) =>
+      app?.filter((a: FetchAppsQuery["app"][number]) =>
         (a.app_metadata?.[0]?.name ?? "")
           .toLowerCase()
           .includes(searchQuery.toLowerCase()),
@@ -76,7 +80,10 @@ export const Apps = () => {
       </Section.Header>
 
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
-        {!loading && filteredApps?.map((app) => <App key={app.id} app={app} />)}
+        {!loading &&
+          filteredApps?.map((app: FetchAppsQuery["app"][number]) => (
+            <App key={app.id} app={app} />
+          ))}
 
         {!loading && searchQuery && filteredApps?.length === 0 && (
           <div className="col-span-full flex h-[200px] items-center justify-center rounded-2xl border border-grey-200">

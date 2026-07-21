@@ -9,7 +9,8 @@ import { useParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import Skeleton from "react-loading-skeleton";
 import { App } from "./App";
-import { useFetchAppsQuery } from "@/scenes/common/Teams/TeamId/Team/page/Apps/graphql/client/fetch-apps.generated";
+import { useQuery } from "@apollo/client/react";
+import { FetchAppsDocument } from "@/scenes/common/Teams/TeamId/Team/page/Apps/graphql/client/fetch-apps.generated";
 import { Section } from "@/components/Section";
 import { PlusIcon } from "@/components/Icons/PlusIcon";
 import { DecoratedButton } from "@/components/DecoratedButton";
@@ -20,7 +21,7 @@ export const Apps = () => {
   const { teamId } = useParams() as { teamId: string };
   const [_, setCreateAppDialogOpen] = useAtom(createAppDialogOpenedAtom);
 
-  const { data, refetch, loading } = useFetchAppsQuery({
+  const { data, refetch, loading } = useQuery(FetchAppsDocument, {
     variables: { teamId },
     skip: !teamId,
   });

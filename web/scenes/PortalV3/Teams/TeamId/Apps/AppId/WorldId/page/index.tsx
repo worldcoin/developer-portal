@@ -8,7 +8,11 @@ import { RpRegistrationStatus } from "@/lib/rp-registration-status";
 import { urls } from "@/lib/urls";
 import { BanMessageDialog } from "@/scenes/PortalV3/Teams/TeamId/Apps/common/BanMessageDialog";
 import { banMessageDialogOpenedAtom } from "@/scenes/common/Teams/TeamId/Apps/common/BanMessageDialog/atoms";
-import { useGetWorldIdOverviewQuery } from "@/scenes/common/Teams/TeamId/Apps/AppId/WorldId/page/graphql/client/get-world-id-overview.generated";
+import {
+  GetWorldIdOverviewDocument,
+  type GetWorldIdOverviewQuery,
+} from "@/scenes/common/Teams/TeamId/Apps/AppId/WorldId/page/graphql/client/get-world-id-overview.generated";
+import { useQuery } from "@apollo/client/react";
 import { useAtom } from "jotai";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
@@ -140,10 +144,13 @@ export const WorldIdPage = (props: {
     setTab(requestedTab);
   }, [requestedTab]);
 
-  const { data, loading, error, refetch } = useGetWorldIdOverviewQuery({
-    variables: { app_id: appId },
-    skip: !appId,
-  });
+  const { data, loading, error, refetch } = useQuery(
+    GetWorldIdOverviewDocument,
+    {
+      variables: { app_id: appId },
+      skip: !appId,
+    },
+  );
 
   const app = data?.app?.[0];
   const rp = app?.rp_registration?.[0];
@@ -243,11 +250,13 @@ export const WorldIdPage = (props: {
     ? urls.actions({ team_id: teamId, app_id: appId })
     : undefined;
 
-  const actionItems = (data?.action_v4 ?? []).map((action) => ({
-    id: action.id,
-    action: action.action,
-    description: action.description,
-  }));
+  const actionItems = (data?.action_v4 ?? []).map(
+    (action: GetWorldIdOverviewQuery["action_v4"][number]) => ({
+      id: action.id,
+      action: action.action,
+      description: action.description,
+    }),
+  );
 
   let tabContent: ReactNode;
   if (tab === "actions") {
