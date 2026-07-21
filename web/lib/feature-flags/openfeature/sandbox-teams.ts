@@ -11,10 +11,10 @@ const isProduction = process.env.NEXT_PUBLIC_APP_ENV === "production";
  */
 export const SANDBOX_TEAMS: string[] = isProduction
   ? [
-    // TODO: prod team ids (e.g. World ID TFH team) before enabling in prod.
-  ]
+      // TODO: prod team ids (e.g. World ID TFH team) before enabling in prod.
+    ]
   : [
-    // TODO: staging + local dev team ids.
-    "team_4dba92ae461f1fa715e31e553d04b0ce",
-    "team_11b24953b07d196ed3d95d60776598d2"
-  ];
+      // TODO: staging + local dev team ids.
+      "team_4dba92ae461f1fa715e31e553d04b0ce",
+      "team_11b24953b07d196ed3d95d60776598d2",
+    ];
