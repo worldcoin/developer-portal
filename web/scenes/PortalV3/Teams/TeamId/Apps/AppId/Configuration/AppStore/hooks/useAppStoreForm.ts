@@ -1,5 +1,5 @@
 import { useRefetchQueries } from "@/lib/use-refetch-queries";
-import { useApolloClient } from "@apollo/client";
+import { useApolloClient } from "@apollo/client/react";
 import { useCallback, useEffect } from "react";
 import {
   FieldErrors,

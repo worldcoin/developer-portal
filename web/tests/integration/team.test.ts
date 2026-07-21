@@ -51,7 +51,7 @@ describe("user role", () => {
         user_id: teamMember.user_id,
       });
 
-      const response = await client.mutate({
+      const response = await client.mutate<any>({
         mutation,
         variables: {
           id: team_id,
@@ -100,7 +100,7 @@ describe("user role", () => {
         }
       `;
 
-      const response = await client.query({ query });
+      const response = await client.query<any>({ query });
       expect(response.data.team.length).toEqual(1);
       expect(response.data.team[0].id).toEqual(team.id);
     }
@@ -128,7 +128,7 @@ describe("user role", () => {
         }
       }`;
 
-    const response = await testInvalidClient.query({ query });
+    const response = await testInvalidClient.query<any>({ query });
     expect(response.data.team.length).toEqual(0);
   });
 
@@ -159,7 +159,7 @@ describe("user role", () => {
       }
     `;
 
-    const response = await client.mutate({
+    const response = await client.mutate<any>({
       mutation: query,
 
       variables: {
@@ -297,7 +297,7 @@ describe("api_key role", () => {
         }
       `;
 
-      const response = await client.query({ query });
+      const response = await client.query<any>({ query });
       expect(response.data.team.length).toEqual(1);
       expect(response.data.team[0].id).toEqual(team.id);
     }

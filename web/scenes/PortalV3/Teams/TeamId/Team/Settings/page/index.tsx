@@ -4,8 +4,9 @@ import { Role_Enum } from "@/graphql/graphql";
 import { Auth0SessionUser } from "@/lib/types";
 import { checkUserPermissions } from "@/lib/utils";
 import { TeamProfile } from "@/scenes/PortalV3/Teams/TeamId/Team/common/TeamProfile";
-import { useFetchTeamQuery } from "@/scenes/common/Teams/TeamId/Team/common/TeamProfile/graphql/client/fetch-team.generated";
+import { FetchTeamDocument } from "@/scenes/common/Teams/TeamId/Team/common/TeamProfile/graphql/client/fetch-team.generated";
 import { useUser } from "@auth0/nextjs-auth0/client";
+import { useQuery } from "@apollo/client/react";
 import { useParams } from "next/navigation";
 import { ApiKeys } from "../../sections/ApiKeys";
 import { TeamDangerZone } from "../../sections/DangerZone";
@@ -28,7 +29,7 @@ export const TeamSettingsPage = () => {
 
   // Single team fetch for the whole settings page. The name form and the danger
   // zone read from this instead of each firing their own useFetchTeamQuery.
-  const { data, refetch: refetchTeam } = useFetchTeamQuery({
+  const { data, refetch: refetchTeam } = useQuery(FetchTeamDocument, {
     variables: { teamId },
   });
   const team = data?.team_by_pk;

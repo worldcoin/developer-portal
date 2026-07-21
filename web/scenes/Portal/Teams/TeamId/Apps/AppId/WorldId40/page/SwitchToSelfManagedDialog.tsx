@@ -13,7 +13,8 @@ import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import { isAddress } from "ethers";
 import * as yup from "yup";
-import { useSwitchToSelfManagedMutation } from "@/scenes/common/Teams/TeamId/Apps/AppId/WorldId40/page/graphql/client/switch-to-self-managed.generated";
+import { useMutation } from "@apollo/client/react";
+import { SwitchToSelfManagedDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/WorldId40/page/graphql/client/switch-to-self-managed.generated";
 
 type Props = {
   open: boolean;
@@ -77,7 +78,9 @@ export const SwitchToSelfManagedDialog = (props: Props) => {
 
   // Check if there's any text in the input (even if invalid)
   const hasInputValue = !!managerAddress;
-  const [switchToSelfManaged, { loading }] = useSwitchToSelfManagedMutation();
+  const [switchToSelfManaged, { loading }] = useMutation(
+    SwitchToSelfManagedDocument,
+  );
 
   const handleClose = useCallback(() => {
     if (loading) return;

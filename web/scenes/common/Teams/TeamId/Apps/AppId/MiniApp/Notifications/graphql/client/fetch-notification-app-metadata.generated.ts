@@ -1,9 +1,7 @@
 /* eslint-disable */
 import * as Types from "@/graphql/graphql";
 
-import { gql } from "@apollo/client";
-import * as Apollo from "@apollo/client";
-const defaultOptions = {} as const;
+import { TypedDocumentNode as DocumentNode } from "@graphql-typed-document-node/core";
 export type FetchNotificationAppMetadataQueryVariables = Types.Exact<{
   id: Types.Scalars["String"]["input"];
 }>;
@@ -30,102 +28,181 @@ export type FetchNotificationAppMetadataQuery = {
   }>;
 };
 
-export const FetchNotificationAppMetadataDocument = gql`
-  query FetchNotificationAppMetadata($id: String!) {
-    app(where: { id: { _eq: $id } }) {
-      id
-      app_metadata(where: { verification_status: { _neq: "verified" } }) {
-        id
-        verification_status
-        app_mode
-        category
-      }
-      verified_app_metadata: app_metadata(
-        where: { verification_status: { _eq: "verified" } }
-      ) {
-        id
-        verified_at
-        app_mode
-        category
-      }
-    }
-  }
-`;
-
-/**
- * __useFetchNotificationAppMetadataQuery__
- *
- * To run a query within a React component, call `useFetchNotificationAppMetadataQuery` and pass it any options that fit your needs.
- * When your component renders, `useFetchNotificationAppMetadataQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useFetchNotificationAppMetadataQuery({
- *   variables: {
- *      id: // value for 'id'
- *   },
- * });
- */
-export function useFetchNotificationAppMetadataQuery(
-  baseOptions: Apollo.QueryHookOptions<
-    FetchNotificationAppMetadataQuery,
-    FetchNotificationAppMetadataQueryVariables
-  > &
-    (
-      | {
-          variables: FetchNotificationAppMetadataQueryVariables;
-          skip?: boolean;
-        }
-      | { skip: boolean }
-    ),
-) {
-  const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useQuery<
-    FetchNotificationAppMetadataQuery,
-    FetchNotificationAppMetadataQueryVariables
-  >(FetchNotificationAppMetadataDocument, options);
-}
-export function useFetchNotificationAppMetadataLazyQuery(
-  baseOptions?: Apollo.LazyQueryHookOptions<
-    FetchNotificationAppMetadataQuery,
-    FetchNotificationAppMetadataQueryVariables
-  >,
-) {
-  const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useLazyQuery<
-    FetchNotificationAppMetadataQuery,
-    FetchNotificationAppMetadataQueryVariables
-  >(FetchNotificationAppMetadataDocument, options);
-}
-export function useFetchNotificationAppMetadataSuspenseQuery(
-  baseOptions?:
-    | Apollo.SkipToken
-    | Apollo.SuspenseQueryHookOptions<
-        FetchNotificationAppMetadataQuery,
-        FetchNotificationAppMetadataQueryVariables
-      >,
-) {
-  const options =
-    baseOptions === Apollo.skipToken
-      ? baseOptions
-      : { ...defaultOptions, ...baseOptions };
-  return Apollo.useSuspenseQuery<
-    FetchNotificationAppMetadataQuery,
-    FetchNotificationAppMetadataQueryVariables
-  >(FetchNotificationAppMetadataDocument, options);
-}
-export type FetchNotificationAppMetadataQueryHookResult = ReturnType<
-  typeof useFetchNotificationAppMetadataQuery
->;
-export type FetchNotificationAppMetadataLazyQueryHookResult = ReturnType<
-  typeof useFetchNotificationAppMetadataLazyQuery
->;
-export type FetchNotificationAppMetadataSuspenseQueryHookResult = ReturnType<
-  typeof useFetchNotificationAppMetadataSuspenseQuery
->;
-export type FetchNotificationAppMetadataQueryResult = Apollo.QueryResult<
+export const FetchNotificationAppMetadataDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "query",
+      name: { kind: "Name", value: "FetchNotificationAppMetadata" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: { kind: "Variable", name: { kind: "Name", value: "id" } },
+          type: {
+            kind: "NonNullType",
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "String" },
+            },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "app" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "where" },
+                value: {
+                  kind: "ObjectValue",
+                  fields: [
+                    {
+                      kind: "ObjectField",
+                      name: { kind: "Name", value: "id" },
+                      value: {
+                        kind: "ObjectValue",
+                        fields: [
+                          {
+                            kind: "ObjectField",
+                            name: { kind: "Name", value: "_eq" },
+                            value: {
+                              kind: "Variable",
+                              name: { kind: "Name", value: "id" },
+                            },
+                          },
+                        ],
+                      },
+                    },
+                  ],
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "app_metadata" },
+                  arguments: [
+                    {
+                      kind: "Argument",
+                      name: { kind: "Name", value: "where" },
+                      value: {
+                        kind: "ObjectValue",
+                        fields: [
+                          {
+                            kind: "ObjectField",
+                            name: {
+                              kind: "Name",
+                              value: "verification_status",
+                            },
+                            value: {
+                              kind: "ObjectValue",
+                              fields: [
+                                {
+                                  kind: "ObjectField",
+                                  name: { kind: "Name", value: "_neq" },
+                                  value: {
+                                    kind: "StringValue",
+                                    value: "verified",
+                                    block: false,
+                                  },
+                                },
+                              ],
+                            },
+                          },
+                        ],
+                      },
+                    },
+                  ],
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      { kind: "Field", name: { kind: "Name", value: "id" } },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "verification_status" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "app_mode" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "category" },
+                      },
+                    ],
+                  },
+                },
+                {
+                  kind: "Field",
+                  alias: { kind: "Name", value: "verified_app_metadata" },
+                  name: { kind: "Name", value: "app_metadata" },
+                  arguments: [
+                    {
+                      kind: "Argument",
+                      name: { kind: "Name", value: "where" },
+                      value: {
+                        kind: "ObjectValue",
+                        fields: [
+                          {
+                            kind: "ObjectField",
+                            name: {
+                              kind: "Name",
+                              value: "verification_status",
+                            },
+                            value: {
+                              kind: "ObjectValue",
+                              fields: [
+                                {
+                                  kind: "ObjectField",
+                                  name: { kind: "Name", value: "_eq" },
+                                  value: {
+                                    kind: "StringValue",
+                                    value: "verified",
+                                    block: false,
+                                  },
+                                },
+                              ],
+                            },
+                          },
+                        ],
+                      },
+                    },
+                  ],
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      { kind: "Field", name: { kind: "Name", value: "id" } },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "verified_at" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "app_mode" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "category" },
+                      },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<
   FetchNotificationAppMetadataQuery,
   FetchNotificationAppMetadataQueryVariables
 >;

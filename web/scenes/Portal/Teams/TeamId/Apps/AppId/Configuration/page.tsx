@@ -17,9 +17,10 @@ import {
   LocalisationData,
 } from "./AppStore/types/AppStoreFormTypes";
 import { BasicInformation, BasicInformationHandle } from "./BasicInformation";
-import { useFetchAppMetadataQuery } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/graphql/client/fetch-app-metadata.generated";
+import { useQuery } from "@apollo/client/react";
+import { FetchAppMetadataDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/graphql/client/fetch-app-metadata.generated";
 import { viewModeAtom } from "./layout/ImagesProvider";
-import { useFetchLocalisationsQuery } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/AppStore/graphql/client/fetch-localisations.generated";
+import { FetchLocalisationsDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/AppStore/graphql/client/fetch-localisations.generated";
 import { RejectionBanner } from "./RejectionBanner";
 import { ResolveModal } from "./ResolveModal";
 import { SaveStatusProvider } from "./SaveStatus";
@@ -39,7 +40,7 @@ export const AppProfilePage = ({ params }: AppProfilePageProps) => {
     data,
     loading: isMetadataLoading,
     error,
-  } = useFetchAppMetadataQuery({
+  } = useQuery(FetchAppMetadataDocument, {
     variables: {
       id: appId,
     },
@@ -55,13 +56,15 @@ export const AppProfilePage = ({ params }: AppProfilePageProps) => {
     return app?.app_metadata?.[0] ?? app?.verified_app_metadata[0];
   }, [app, viewMode]);
 
-  const { data: localisationsData, loading: isLocalisationsLoading } =
-    useFetchLocalisationsQuery({
+  const { data: localisationsData, loading: isLocalisationsLoading } = useQuery(
+    FetchLocalisationsDocument,
+    {
       variables: {
         app_metadata_id: appMetadata?.id || "",
       },
       skip: !appMetadata?.id,
-    });
+    },
+  );
 
   const teamName = app?.team?.name ?? "";
   const isLoading = isMetadataLoading || isLocalisationsLoading;

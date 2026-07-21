@@ -1,9 +1,7 @@
 /* eslint-disable */
 import * as Types from "@/graphql/graphql";
 
-import { gql } from "@apollo/client";
-import * as Apollo from "@apollo/client";
-const defaultOptions = {} as const;
+import { TypedDocumentNode as DocumentNode } from "@graphql-typed-document-node/core";
 export type GetWorldIdOverviewQueryVariables = Types.Exact<{
   app_id: Types.Scalars["String"]["input"];
 }>;
@@ -35,113 +33,262 @@ export type GetWorldIdOverviewQuery = {
   action: Array<{ __typename?: "action"; id: string }>;
 };
 
-export const GetWorldIdOverviewDocument = gql`
-  query GetWorldIdOverview($app_id: String!) {
-    app(where: { id: { _eq: $app_id } }) {
-      id
-      is_banned
-      is_staging
-      rp_registration {
-        rp_id
-        app_id
-        status
-        staging_status
-        mode
-        signer_address
-        created_at
-      }
-    }
-    action_v4(
-      where: {
-        environment: { _eq: "production" }
-        rp_registration: { app: { id: { _eq: $app_id } } }
-      }
-      order_by: { created_at: desc }
-    ) {
-      id
-      action
-      description
-    }
-    action(
-      where: { app_id: { _eq: $app_id }, action: { _neq: "" } }
-      limit: 1
-    ) {
-      id
-    }
-  }
-`;
-
-/**
- * __useGetWorldIdOverviewQuery__
- *
- * To run a query within a React component, call `useGetWorldIdOverviewQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetWorldIdOverviewQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetWorldIdOverviewQuery({
- *   variables: {
- *      app_id: // value for 'app_id'
- *   },
- * });
- */
-export function useGetWorldIdOverviewQuery(
-  baseOptions: Apollo.QueryHookOptions<
-    GetWorldIdOverviewQuery,
-    GetWorldIdOverviewQueryVariables
-  > &
-    (
-      | { variables: GetWorldIdOverviewQueryVariables; skip?: boolean }
-      | { skip: boolean }
-    ),
-) {
-  const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useQuery<
-    GetWorldIdOverviewQuery,
-    GetWorldIdOverviewQueryVariables
-  >(GetWorldIdOverviewDocument, options);
-}
-export function useGetWorldIdOverviewLazyQuery(
-  baseOptions?: Apollo.LazyQueryHookOptions<
-    GetWorldIdOverviewQuery,
-    GetWorldIdOverviewQueryVariables
-  >,
-) {
-  const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useLazyQuery<
-    GetWorldIdOverviewQuery,
-    GetWorldIdOverviewQueryVariables
-  >(GetWorldIdOverviewDocument, options);
-}
-export function useGetWorldIdOverviewSuspenseQuery(
-  baseOptions?:
-    | Apollo.SkipToken
-    | Apollo.SuspenseQueryHookOptions<
-        GetWorldIdOverviewQuery,
-        GetWorldIdOverviewQueryVariables
-      >,
-) {
-  const options =
-    baseOptions === Apollo.skipToken
-      ? baseOptions
-      : { ...defaultOptions, ...baseOptions };
-  return Apollo.useSuspenseQuery<
-    GetWorldIdOverviewQuery,
-    GetWorldIdOverviewQueryVariables
-  >(GetWorldIdOverviewDocument, options);
-}
-export type GetWorldIdOverviewQueryHookResult = ReturnType<
-  typeof useGetWorldIdOverviewQuery
->;
-export type GetWorldIdOverviewLazyQueryHookResult = ReturnType<
-  typeof useGetWorldIdOverviewLazyQuery
->;
-export type GetWorldIdOverviewSuspenseQueryHookResult = ReturnType<
-  typeof useGetWorldIdOverviewSuspenseQuery
->;
-export type GetWorldIdOverviewQueryResult = Apollo.QueryResult<
+export const GetWorldIdOverviewDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "query",
+      name: { kind: "Name", value: "GetWorldIdOverview" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: {
+            kind: "Variable",
+            name: { kind: "Name", value: "app_id" },
+          },
+          type: {
+            kind: "NonNullType",
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "String" },
+            },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "app" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "where" },
+                value: {
+                  kind: "ObjectValue",
+                  fields: [
+                    {
+                      kind: "ObjectField",
+                      name: { kind: "Name", value: "id" },
+                      value: {
+                        kind: "ObjectValue",
+                        fields: [
+                          {
+                            kind: "ObjectField",
+                            name: { kind: "Name", value: "_eq" },
+                            value: {
+                              kind: "Variable",
+                              name: { kind: "Name", value: "app_id" },
+                            },
+                          },
+                        ],
+                      },
+                    },
+                  ],
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
+                { kind: "Field", name: { kind: "Name", value: "is_banned" } },
+                { kind: "Field", name: { kind: "Name", value: "is_staging" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "rp_registration" },
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      { kind: "Field", name: { kind: "Name", value: "rp_id" } },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "app_id" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "status" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "staging_status" },
+                      },
+                      { kind: "Field", name: { kind: "Name", value: "mode" } },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "signer_address" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "created_at" },
+                      },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "action_v4" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "where" },
+                value: {
+                  kind: "ObjectValue",
+                  fields: [
+                    {
+                      kind: "ObjectField",
+                      name: { kind: "Name", value: "environment" },
+                      value: {
+                        kind: "ObjectValue",
+                        fields: [
+                          {
+                            kind: "ObjectField",
+                            name: { kind: "Name", value: "_eq" },
+                            value: {
+                              kind: "StringValue",
+                              value: "production",
+                              block: false,
+                            },
+                          },
+                        ],
+                      },
+                    },
+                    {
+                      kind: "ObjectField",
+                      name: { kind: "Name", value: "rp_registration" },
+                      value: {
+                        kind: "ObjectValue",
+                        fields: [
+                          {
+                            kind: "ObjectField",
+                            name: { kind: "Name", value: "app" },
+                            value: {
+                              kind: "ObjectValue",
+                              fields: [
+                                {
+                                  kind: "ObjectField",
+                                  name: { kind: "Name", value: "id" },
+                                  value: {
+                                    kind: "ObjectValue",
+                                    fields: [
+                                      {
+                                        kind: "ObjectField",
+                                        name: { kind: "Name", value: "_eq" },
+                                        value: {
+                                          kind: "Variable",
+                                          name: {
+                                            kind: "Name",
+                                            value: "app_id",
+                                          },
+                                        },
+                                      },
+                                    ],
+                                  },
+                                },
+                              ],
+                            },
+                          },
+                        ],
+                      },
+                    },
+                  ],
+                },
+              },
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "order_by" },
+                value: {
+                  kind: "ObjectValue",
+                  fields: [
+                    {
+                      kind: "ObjectField",
+                      name: { kind: "Name", value: "created_at" },
+                      value: { kind: "EnumValue", value: "desc" },
+                    },
+                  ],
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
+                { kind: "Field", name: { kind: "Name", value: "action" } },
+                { kind: "Field", name: { kind: "Name", value: "description" } },
+              ],
+            },
+          },
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "action" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "where" },
+                value: {
+                  kind: "ObjectValue",
+                  fields: [
+                    {
+                      kind: "ObjectField",
+                      name: { kind: "Name", value: "app_id" },
+                      value: {
+                        kind: "ObjectValue",
+                        fields: [
+                          {
+                            kind: "ObjectField",
+                            name: { kind: "Name", value: "_eq" },
+                            value: {
+                              kind: "Variable",
+                              name: { kind: "Name", value: "app_id" },
+                            },
+                          },
+                        ],
+                      },
+                    },
+                    {
+                      kind: "ObjectField",
+                      name: { kind: "Name", value: "action" },
+                      value: {
+                        kind: "ObjectValue",
+                        fields: [
+                          {
+                            kind: "ObjectField",
+                            name: { kind: "Name", value: "_neq" },
+                            value: {
+                              kind: "StringValue",
+                              value: "",
+                              block: false,
+                            },
+                          },
+                        ],
+                      },
+                    },
+                  ],
+                },
+              },
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "limit" },
+                value: { kind: "IntValue", value: "1" },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<
   GetWorldIdOverviewQuery,
   GetWorldIdOverviewQueryVariables
 >;

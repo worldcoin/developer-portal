@@ -5,10 +5,13 @@ import React from "react";
 
 // Control the apps query result per test.
 const fetchApps = jest.fn();
+jest.mock("@apollo/client/react", () => ({
+  useQuery: () => fetchApps(),
+}));
 jest.mock(
   "@/scenes/common/layout/AppSelector/graphql/client/fetch-apps.generated",
   () => ({
-    useFetchAppsQuery: () => fetchApps(),
+    FetchAppsDocument: {},
   }),
 );
 

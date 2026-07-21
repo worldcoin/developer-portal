@@ -13,6 +13,7 @@ import { getGraphQLErrorCode } from "@/lib/errors";
 import { useRefetchQueries } from "@/lib/use-refetch-queries";
 import { FetchAppsDocument } from "@/scenes/common/layout/AppSelector/graphql/client/fetch-apps.generated";
 import { yupResolver } from "@hookform/resolvers/yup";
+import { useMutation } from "@apollo/client/react";
 import clsx from "clsx";
 import dynamic from "next/dynamic";
 import { useParams, useRouter } from "next/navigation";
@@ -26,7 +27,7 @@ import {
 } from "../../Teams/TeamId/Apps/AppId/ConfigureSignerKey/ConfigureSignerKeyContent";
 import { EnableWorldId40Content } from "../../Teams/TeamId/Apps/AppId/EnableWorldId40/EnableWorldId40Content";
 import { SelfManagedTransactionInfoContent } from "../../Teams/TeamId/Apps/AppId/EnableWorldId40/SelfManagedTransactionInfo/SelfManagedTransactionInfoContent";
-import { useRegisterRpMutation } from "@/scenes/common/layout/CreateAppDialog/client/register-rp.generated";
+import { RegisterRpDocument } from "@/scenes/common/layout/CreateAppDialog/client/register-rp.generated";
 import {
   createAppSchemaV4,
   CreateAppSchemaV4,
@@ -88,7 +89,8 @@ export const CreateAppDialogV4 = ({
     teamId: teamId,
   });
 
-  const [registerRp, { loading: registeringRp }] = useRegisterRpMutation();
+  const [registerRp, { loading: registeringRp }] =
+    useMutation(RegisterRpDocument);
 
   const [step, setStep] = useState<CreateDialogStep>(initialStep);
   const [createdAppId, setCreatedAppId] = useState<string | null>(

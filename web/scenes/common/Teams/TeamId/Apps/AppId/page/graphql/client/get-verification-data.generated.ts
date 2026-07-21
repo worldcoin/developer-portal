@@ -1,9 +1,7 @@
 /* eslint-disable */
 import * as Types from "@/graphql/graphql";
 
-import { gql } from "@apollo/client";
-import * as Apollo from "@apollo/client";
-const defaultOptions = {} as const;
+import { TypedDocumentNode as DocumentNode } from "@graphql-typed-document-node/core";
 export type GetVerificationDataQueryVariables = Types.Exact<{
   id: Types.Scalars["String"]["input"];
 }>;
@@ -22,97 +20,151 @@ export type GetVerificationDataQuery = {
   } | null;
 };
 
-export const GetVerificationDataDocument = gql`
-  query GetVerificationData($id: String!) {
-    app: app_by_pk(id: $id) {
-      id
-      app_metadata(
-        where: {
-          _or: [
-            { verification_status: { _eq: "changes_requested" } }
-            { verification_status: { _eq: "verified" } }
-          ]
-        }
-      ) {
-        id
-        review_message
-        verification_status
-      }
-    }
-  }
-`;
-
-/**
- * __useGetVerificationDataQuery__
- *
- * To run a query within a React component, call `useGetVerificationDataQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetVerificationDataQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetVerificationDataQuery({
- *   variables: {
- *      id: // value for 'id'
- *   },
- * });
- */
-export function useGetVerificationDataQuery(
-  baseOptions: Apollo.QueryHookOptions<
-    GetVerificationDataQuery,
-    GetVerificationDataQueryVariables
-  > &
-    (
-      | { variables: GetVerificationDataQueryVariables; skip?: boolean }
-      | { skip: boolean }
-    ),
-) {
-  const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useQuery<
-    GetVerificationDataQuery,
-    GetVerificationDataQueryVariables
-  >(GetVerificationDataDocument, options);
-}
-export function useGetVerificationDataLazyQuery(
-  baseOptions?: Apollo.LazyQueryHookOptions<
-    GetVerificationDataQuery,
-    GetVerificationDataQueryVariables
-  >,
-) {
-  const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useLazyQuery<
-    GetVerificationDataQuery,
-    GetVerificationDataQueryVariables
-  >(GetVerificationDataDocument, options);
-}
-export function useGetVerificationDataSuspenseQuery(
-  baseOptions?:
-    | Apollo.SkipToken
-    | Apollo.SuspenseQueryHookOptions<
-        GetVerificationDataQuery,
-        GetVerificationDataQueryVariables
-      >,
-) {
-  const options =
-    baseOptions === Apollo.skipToken
-      ? baseOptions
-      : { ...defaultOptions, ...baseOptions };
-  return Apollo.useSuspenseQuery<
-    GetVerificationDataQuery,
-    GetVerificationDataQueryVariables
-  >(GetVerificationDataDocument, options);
-}
-export type GetVerificationDataQueryHookResult = ReturnType<
-  typeof useGetVerificationDataQuery
->;
-export type GetVerificationDataLazyQueryHookResult = ReturnType<
-  typeof useGetVerificationDataLazyQuery
->;
-export type GetVerificationDataSuspenseQueryHookResult = ReturnType<
-  typeof useGetVerificationDataSuspenseQuery
->;
-export type GetVerificationDataQueryResult = Apollo.QueryResult<
+export const GetVerificationDataDocument = {
+  kind: "Document",
+  definitions: [
+    {
+      kind: "OperationDefinition",
+      operation: "query",
+      name: { kind: "Name", value: "GetVerificationData" },
+      variableDefinitions: [
+        {
+          kind: "VariableDefinition",
+          variable: { kind: "Variable", name: { kind: "Name", value: "id" } },
+          type: {
+            kind: "NonNullType",
+            type: {
+              kind: "NamedType",
+              name: { kind: "Name", value: "String" },
+            },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: "SelectionSet",
+        selections: [
+          {
+            kind: "Field",
+            alias: { kind: "Name", value: "app" },
+            name: { kind: "Name", value: "app_by_pk" },
+            arguments: [
+              {
+                kind: "Argument",
+                name: { kind: "Name", value: "id" },
+                value: {
+                  kind: "Variable",
+                  name: { kind: "Name", value: "id" },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: "SelectionSet",
+              selections: [
+                { kind: "Field", name: { kind: "Name", value: "id" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "app_metadata" },
+                  arguments: [
+                    {
+                      kind: "Argument",
+                      name: { kind: "Name", value: "where" },
+                      value: {
+                        kind: "ObjectValue",
+                        fields: [
+                          {
+                            kind: "ObjectField",
+                            name: { kind: "Name", value: "_or" },
+                            value: {
+                              kind: "ListValue",
+                              values: [
+                                {
+                                  kind: "ObjectValue",
+                                  fields: [
+                                    {
+                                      kind: "ObjectField",
+                                      name: {
+                                        kind: "Name",
+                                        value: "verification_status",
+                                      },
+                                      value: {
+                                        kind: "ObjectValue",
+                                        fields: [
+                                          {
+                                            kind: "ObjectField",
+                                            name: {
+                                              kind: "Name",
+                                              value: "_eq",
+                                            },
+                                            value: {
+                                              kind: "StringValue",
+                                              value: "changes_requested",
+                                              block: false,
+                                            },
+                                          },
+                                        ],
+                                      },
+                                    },
+                                  ],
+                                },
+                                {
+                                  kind: "ObjectValue",
+                                  fields: [
+                                    {
+                                      kind: "ObjectField",
+                                      name: {
+                                        kind: "Name",
+                                        value: "verification_status",
+                                      },
+                                      value: {
+                                        kind: "ObjectValue",
+                                        fields: [
+                                          {
+                                            kind: "ObjectField",
+                                            name: {
+                                              kind: "Name",
+                                              value: "_eq",
+                                            },
+                                            value: {
+                                              kind: "StringValue",
+                                              value: "verified",
+                                              block: false,
+                                            },
+                                          },
+                                        ],
+                                      },
+                                    },
+                                  ],
+                                },
+                              ],
+                            },
+                          },
+                        ],
+                      },
+                    },
+                  ],
+                  selectionSet: {
+                    kind: "SelectionSet",
+                    selections: [
+                      { kind: "Field", name: { kind: "Name", value: "id" } },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "review_message" },
+                      },
+                      {
+                        kind: "Field",
+                        name: { kind: "Name", value: "verification_status" },
+                      },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<
   GetVerificationDataQuery,
   GetVerificationDataQueryVariables
 >;
