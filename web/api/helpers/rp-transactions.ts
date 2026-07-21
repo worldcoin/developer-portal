@@ -14,7 +14,9 @@ import {
 import {
   getERC20Allowance,
   getRpNonceFromContract,
+  getUserOperationReceipt,
   sendUserOperation,
+  UserOperationReceipt,
 } from "@/api/helpers/temporal-rpc";
 import {
   ADDRESS_ZERO,
@@ -94,6 +96,88 @@ async function submitWldApprovalTransaction(
   return result.operationHash;
 }
 
+// 15s nominal wait fits the register_rp Hasura action budget (60s explicit
+// timeout) even when the production staging duplicate runs a second wait.
+// The deadline bounds sleeps and poll starts; a poll already in flight may
+// overshoot by up to the RPC timeout.
+const APPROVAL_MINE_TIMEOUT_MS = 15_000;
+const APPROVAL_POLL_INITIAL_DELAY_MS = 1_000;
+const APPROVAL_POLL_MAX_DELAY_MS = 5_000;
+
+/**
+ * Waits for the WLD approval UserOperation to mine by polling for its
+ * receipt. Transient RPC failures are tolerated until the deadline — the
+ * approval is already in flight, so aborting on a poll error would fail a
+ * registration that is about to become valid. If the receipt never surfaces
+ * (dropped/replaced op, receipt API lag), falls back to reading the
+ * allowance directly: the allowance, not the specific operation, is the
+ * precondition the registration is simulated against. Single-caller poll
+ * against the internal bundler RPC, so capped exponential backoff without
+ * jitter is sufficient.
+ */
+async function waitForWldApprovalMined(
+  config: RpRegistryConfig,
+  approvalHash: string,
+  timeoutMs: number,
+): Promise<void> {
+  const startedAt = Date.now();
+  const deadline = startedAt + timeoutMs;
+  let delayMs = APPROVAL_POLL_INITIAL_DELAY_MS;
+  let failedPolls = 0;
+
+  for (;;) {
+    let receipt: UserOperationReceipt | null = null;
+    try {
+      receipt = await getUserOperationReceipt(approvalHash);
+    } catch (error) {
+      failedPolls += 1;
+      logger.warn("WLD approval receipt poll failed", {
+        approvalHash,
+        failedPolls,
+        error,
+      });
+    }
+
+    if (receipt) {
+      if (!receipt.success) {
+        throw new Error(
+          `WLD approval UserOperation reverted on-chain (operationHash: ${approvalHash})`,
+        );
+      }
+      logger.info("WLD approval mined", {
+        approvalHash,
+        transactionHash: receipt.receipt.transactionHash,
+        waitMs: Date.now() - startedAt,
+        failedPolls,
+      });
+      return;
+    }
+
+    const remainingMs = deadline - Date.now();
+    if (remainingMs <= 0) break;
+    await new Promise((res) => setTimeout(res, Math.min(delayMs, remainingMs)));
+    delayMs = Math.min(delayMs * 2, APPROVAL_POLL_MAX_DELAY_MS);
+  }
+
+  const allowance = await getERC20Allowance(
+    config.safeAddress,
+    config.credentialSchemaIssuerRegistryAddress,
+    WLD_TOKEN_ADDRESS,
+  );
+  if (allowance >= MaxUint256) {
+    logger.info("WLD approval receipt not found but allowance is granted", {
+      approvalHash,
+      waitMs: Date.now() - startedAt,
+      failedPolls,
+    });
+    return;
+  }
+
+  throw new Error(
+    `WLD approval receipt not found and allowance not granted after ${timeoutMs}ms (operationHash: ${approvalHash}, failedPolls: ${failedPolls})`,
+  );
+}
+
 /**
  * Builds, signs, and submits a registerRp transaction for a given config.
  * Returns the operation hash on success.
@@ -126,8 +210,15 @@ export async function submitRegisterRpTransaction(
       safeAddress: config.safeAddress,
       spender: config.credentialSchemaIssuerRegistryAddress,
     });
-    // give a couple of seconds for the tx to mine
-    await new Promise((res) => setTimeout(res, 2000));
+
+    // The registration UserOp is simulated against current chain state, where
+    // the registry pulls the WLD fee via transferFrom — so the approval must
+    // be mined before registration is submitted, not merely accepted.
+    await waitForWldApprovalMined(
+      config,
+      approvalHash,
+      APPROVAL_MINE_TIMEOUT_MS,
+    );
   }
 
   const innerCalldata = buildRegisterRpCalldata(

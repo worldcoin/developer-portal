@@ -133,6 +133,7 @@ actions:
     definition:
       kind: synchronous
       handler: "{{NEXT_API_URL}}/hasura/register-rp"
+      timeout: 60
       headers:
         - name: Authorization
           value_from_env: INTERNAL_ENDPOINTS_SECRET
@@ -143,6 +144,7 @@ actions:
     definition:
       kind: synchronous
       handler: "{{NEXT_API_URL}}/hasura/rp-retry"
+      timeout: 60
       headers:
         - name: Authorization
           value_from_env: INTERNAL_ENDPOINTS_SECRET
