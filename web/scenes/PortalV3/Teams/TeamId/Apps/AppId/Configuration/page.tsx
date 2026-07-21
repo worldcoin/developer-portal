@@ -2,41 +2,63 @@
 
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { ErrorPage } from "@/components/ErrorPage";
+import { CheckmarkBadge } from "@/components/Icons/CheckmarkBadge";
+import { ChevronLeftIcon } from "@/components/Icons/ChevronLeftIcon";
+import { EditIcon } from "@/components/Icons/EditIcon";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
-import { Icon } from "@/scenes/PortalV3/common/Icon";
+import { Role_Enum } from "@/graphql/graphql";
+import { Auth0SessionUser } from "@/lib/types";
+import { checkUserPermissions } from "@/lib/utils";
+import { FetchAppMetadataQuery } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/graphql/client/fetch-app-metadata.generated";
+import { useRemoveFromReview } from "@/scenes/common/Teams/TeamId/Apps/common/hooks/use-remove-from-review";
+import { useUser } from "@auth0/nextjs-auth0/client";
 import clsx from "clsx";
 import { useAtom } from "jotai";
-import { useEffect, useMemo, useRef, useState } from "react";
-import Skeleton from "react-loading-skeleton";
 import { useParams } from "next/navigation";
-import { MiniAppConfiguration } from "./MiniAppConfiguration";
-import { FormSkeleton } from "./PageComponents/FormSkeleton";
-import { AppStoreForm } from "./AppStore/app-store";
+import {
+  MutableRefObject,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import Skeleton from "react-loading-skeleton";
+import {
+  AppStoreForm,
+  AvailabilityFields,
+  LawsAndRegulationsBanner,
+  LocalizedContentFields,
+  StoreListingFields,
+} from "./AppStore/app-store";
 import { AppStoreFormProvider } from "./AppStore/app-store-form-provider";
 import {
   AppMetadata,
   LocalisationData,
 } from "./AppStore/types/AppStoreFormTypes";
 import { BasicInformation, BasicInformationHandle } from "./BasicInformation";
+import { AppStoreActions } from "./AppStoreActions";
+import { MiniAppConfiguration } from "./MiniAppConfiguration";
 import { useQuery } from "@apollo/client/react";
 import { FetchAppMetadataDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/graphql/client/fetch-app-metadata.generated";
-import { viewModeAtom } from "./layout/ImagesProvider";
 import { FetchLocalisationsDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/AppStore/graphql/client/fetch-localisations.generated";
 import { AppIconBox } from "./PageComponents/AppIconBox";
+import {
+  AppStoreWizardStep,
+  AppStoreWizard,
+  getAppStoreWizardStep,
+  getAppStoreWizardSteps,
+  getStepForField,
+} from "./PageComponents/AppStoreWizard";
+import { FormSkeleton } from "./PageComponents/FormSkeleton";
 import { NumberedSection } from "./PageComponents/NumberedSection";
-import { SectionToc } from "./PageComponents/SectionToc";
 import { RejectionBanner } from "./RejectionBanner";
 import { ResolveModal } from "./ResolveModal";
-import { ConfigurationActions, ReviewRail } from "./ReviewRail";
-import { SaveStatusProvider } from "./SaveStatus";
+import { LivePreview } from "./LivePreview";
+import { SaveStatusIndicator, SaveStatusProvider } from "./SaveStatus";
 import { useCreateNewDraft } from "./hook/use-create-new-draft";
-import { useRemoveFromReview } from "@/scenes/common/Teams/TeamId/Apps/common/hooks/use-remove-from-review";
-import { Role_Enum } from "@/graphql/graphql";
-import { Auth0SessionUser } from "@/lib/types";
-import { checkUserPermissions } from "@/lib/utils";
-import { useUser } from "@auth0/nextjs-auth0/client";
-import { FetchAppMetadataQuery } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/graphql/client/fetch-app-metadata.generated";
+import { isMiniAppAtom, viewModeAtom } from "./layout/ImagesProvider";
 
 type AppProfilePageProps = {
   params: Record<string, string> | null | undefined;
@@ -50,27 +72,85 @@ type ConfigurationContentProps = {
   teamName: string;
 };
 
-/**
- * Version header above the form: names which metadata row is on screen and
- * carries that row's one action — switch to the draft (created on first use;
- * one draft max, useCreateNewDraft enforces it), switch back to the verified
- * copy, or un-submit while the draft awaits review. The page's bottom bar
- * shows no status: this header is the single source of state.
- */
-const VersionBanner = ({
+const stepActionClassName =
+  "inline-flex h-10 w-44 shrink-0 items-center justify-center gap-2 rounded-lg px-5 text-center leading-none transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-grey-300 focus-visible:ring-offset-2";
+const secondaryStepActionClassName = clsx(
+  stepActionClassName,
+  "border border-grey-200 bg-grey-0 text-grey-700 hover:bg-grey-50 disabled:cursor-not-allowed disabled:border-grey-100 disabled:text-grey-300",
+);
+const primaryStepActionClassName = clsx(
+  stepActionClassName,
+  "bg-grey-900 text-white hover:bg-grey-700 disabled:cursor-not-allowed disabled:bg-grey-100 disabled:text-grey-400",
+);
+
+/** Static top-right cue for which version the form shows — not a control. */
+const VersionIndicator = ({
   app,
-  appId,
-  teamId,
 }: {
   app: FetchAppMetadataQuery["app"][0];
+}) => {
+  const [viewMode] = useAtom(viewModeAtom);
+  const hasVerified = app.verified_app_metadata.length > 0;
+
+  // Draft-only apps have a single version; nothing worth labelling.
+  if (!hasVerified) return null;
+
+  const isVerifiedView = viewMode === "verified";
+  const label = isVerifiedView ? "Verified version" : "Draft version";
+  return (
+    <div
+      data-testid="configuration-version-indicator"
+      role="img"
+      aria-label={label}
+      title={label}
+      className="inline-flex size-4 shrink-0 items-center justify-center text-grey-500"
+    >
+      {isVerifiedView ? (
+        <CheckmarkBadge className="size-4 text-system-warning-500" />
+      ) : (
+        <EditIcon className="size-4 text-grey-700" />
+      )}
+    </div>
+  );
+};
+
+/**
+ * Actions beneath the active section, without a boxed dock. Back and the
+ * primary action are the persistent way to switch panels; the right cluster
+ * carries the quiet extras and the persistent primary action, which becomes
+ * Submit for review on the last step. Un-submit replaces it while the draft
+ * awaits review.
+ */
+const ActionsFooter = ({
+  app,
+  appMetadata,
+  appId,
+  teamId,
+  basicInfoRef,
+  onValidationError,
+  steps,
+  activeStep,
+  onStepChange,
+}: {
+  app: FetchAppMetadataQuery["app"][0];
+  appMetadata: ConfigurationContentProps["appMetadata"];
   appId: `app_${string}`;
   teamId: `team_${string}`;
+  basicInfoRef?: MutableRefObject<BasicInformationHandle | null>;
+  onValidationError?: (fieldPath?: string) => void;
+  steps: ReturnType<typeof getAppStoreWizardSteps>;
+  activeStep: AppStoreWizardStep;
+  onStepChange: (step: AppStoreWizardStep) => void;
 }) => {
   const [viewMode, setViewMode] = useAtom(viewModeAtom);
   const { user } = useUser() as Auth0SessionUser;
   const hasDraft = app.app_metadata.length > 0;
   const hasVerified = app.verified_app_metadata.length > 0;
   const draft = app.app_metadata[0];
+
+  const { removeFromReview, loading: isUnsubmitting } = useRemoveFromReview({
+    metadataId: draft?.id,
+  });
 
   const { createNewDraft, isCreating } = useCreateNewDraft({
     appId,
@@ -79,86 +159,94 @@ const VersionBanner = ({
     hasVerifiedVersion: hasVerified,
   });
 
-  const { removeFromReview, loading: isUnsubmitting } = useRemoveFromReview({
-    metadataId: draft?.id,
-  });
-
-  // Creating a draft and un-submitting both mutate review state — same
-  // Owner/Admin bar the old AppTopBar actions had. Viewing an existing draft
-  // is unrestricted (fields stay read-only via their own gates).
-  const canManageDraft = checkUserPermissions(user, teamId ?? "", [
+  const canManageDraft = checkUserPermissions(user, teamId, [
     Role_Enum.Owner,
     Role_Enum.Admin,
   ]);
 
-  if (viewMode === "verified" && hasVerified) {
-    return (
-      <div className="flex flex-col gap-4 border-b border-grey-100 pt-8 pb-5 sm:flex-row sm:items-center">
-        <div className="flex min-w-0 flex-1 items-center gap-3">
-          <Icon name="check-circle" className="size-5 shrink-0" />
-          <Typography variant={TYPOGRAPHY.M3} className="whitespace-nowrap">
-            Verified version
-          </Typography>
-          <span aria-hidden className="text-grey-300">
-            ·
-          </span>
-          <Typography
-            variant={TYPOGRAPHY.R4}
-            className="truncate text-grey-500"
-          >
-            This is the version currently approved for users.
-          </Typography>
-        </div>
+  const activeIndex = Math.max(
+    0,
+    steps.findIndex((step) => step.id === activeStep),
+  );
+  const previousStep = steps[activeIndex - 1];
+  const nextStep = steps[activeIndex + 1];
 
-        {hasDraft || canManageDraft ? (
-          <DecoratedButton
+  const isVerifiedView = viewMode === "verified" && hasVerified;
+  const isAwaiting =
+    !isVerifiedView && draft?.verification_status === "awaiting_review";
+  const isEditable =
+    !isVerifiedView && draft?.verification_status === "unverified";
+  // Verified view without a draft: only Owner/Admin may create one.
+  const showVersionAction =
+    hasVerified && (!isVerifiedView || hasDraft || canManageDraft);
+  return (
+    // Three equal tracks so the version switch sits dead-center regardless
+    // of how wide the Back or primary clusters are.
+    <div className="grid shrink-0 grid-cols-[1fr_auto_1fr] items-center gap-3 py-3 lg:mr-6">
+      <button
+        type="button"
+        disabled={!previousStep}
+        className={clsx(secondaryStepActionClassName, "justify-self-start")}
+        onClick={() => {
+          if (previousStep) onStepChange(previousStep.id);
+        }}
+      >
+        <ChevronLeftIcon className="size-4" />
+        <Typography variant={TYPOGRAPHY.M4} className="leading-none">
+          Back
+        </Typography>
+      </button>
+
+      <div className="flex min-w-0 items-center justify-center gap-3">
+        {showVersionAction && (
+          <button
             type="button"
-            variant="secondary"
-            className="h-10 shrink-0 px-4 py-2"
-            loading={isCreating}
+            disabled={isCreating}
+            className={secondaryStepActionClassName}
             onClick={() => {
+              if (!isVerifiedView) {
+                setViewMode("verified");
+                return;
+              }
               if (hasDraft) {
                 setViewMode("unverified");
               } else {
-                // Flips the view itself after the row lands.
+                // The draft hook flips the view after the new row lands.
                 void createNewDraft();
               }
             }}
           >
-            <Typography variant={TYPOGRAPHY.M4} className="whitespace-nowrap">
-              Open draft
+            {isVerifiedView ? (
+              <EditIcon className="size-4" />
+            ) : (
+              <CheckmarkBadge className="size-4 text-system-warning-500" />
+            )}
+            <Typography variant={TYPOGRAPHY.M4} className="leading-none">
+              {isVerifiedView ? "New draft" : "Verified"}
             </Typography>
-          </DecoratedButton>
-        ) : null}
-      </div>
-    );
-  }
+          </button>
+        )}
 
-  // Viewing the draft while it awaits review: locked fields, un-submit is
-  // the only unlock path. Rejections keep their own RejectionBanner.
-  if (draft?.verification_status === "awaiting_review") {
-    return (
-      <div className="flex flex-col gap-4 border-b border-grey-100 pt-8 pb-5 sm:flex-row sm:items-center">
-        <div className="flex min-w-0 flex-1 items-center gap-3">
-          <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-additional-blue-100">
-            <Icon name="clock" className="size-4" />
-          </span>
-          <Typography variant={TYPOGRAPHY.M3} className="whitespace-nowrap">
-            Awaiting review
-          </Typography>
-          <Typography
-            variant={TYPOGRAPHY.R4}
-            className="truncate text-grey-500"
-          >
-            In review — editing is locked until review completes.
-          </Typography>
+        <div className="hidden min-w-0 items-center sm:flex">
+          {isAwaiting ? (
+            <Typography
+              variant={TYPOGRAPHY.R5}
+              className="min-w-0 truncate text-grey-500"
+            >
+              In review — editing is locked until review completes.
+            </Typography>
+          ) : isEditable ? (
+            <SaveStatusIndicator />
+          ) : null}
         </div>
+      </div>
 
-        {canManageDraft ? (
+      <div className="flex shrink-0 flex-wrap items-center justify-end gap-x-1 gap-y-2">
+        {isAwaiting && canManageDraft && (
           <DecoratedButton
             type="button"
             variant="secondary"
-            className="h-10 shrink-0 px-4 py-2"
+            className="ml-2 h-9 shrink-0 px-3 py-1.5"
             loading={isUnsubmitting}
             onClick={removeFromReview}
           >
@@ -166,47 +254,27 @@ const VersionBanner = ({
               Un-submit
             </Typography>
           </DecoratedButton>
-        ) : null}
+        )}
+
+        <AppStoreActions
+          appId={appId}
+          teamId={teamId}
+          appMetadata={appMetadata}
+          nextStep={nextStep}
+          onContinue={() => {
+            if (nextStep) onStepChange(nextStep.id);
+          }}
+          basicInfoRef={basicInfoRef}
+          onValidationError={onValidationError}
+          className={clsx(primaryStepActionClassName, "ml-2")}
+        />
       </div>
-    );
-  }
-
-  // Editable draft with a verified counterpart to switch back to.
-  if (!hasVerified || draft?.verification_status !== "unverified") return null;
-
-  return (
-    <div className="flex flex-col gap-4 border-b border-grey-100 pt-8 pb-5 sm:flex-row sm:items-center">
-      <div className="flex min-w-0 flex-1 items-center gap-3">
-        <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-blue-100">
-          <Icon name="edit-pencil" className="size-4" />
-        </span>
-        <Typography variant={TYPOGRAPHY.M3} className="whitespace-nowrap">
-          Draft
-        </Typography>
-        <Typography variant={TYPOGRAPHY.R4} className="truncate text-grey-500">
-          Saved automatically. Changes remain here until approved.
-        </Typography>
-      </div>
-
-      <DecoratedButton
-        type="button"
-        variant="secondary"
-        className="h-10 shrink-0 px-4 py-2"
-        onClick={() => setViewMode("verified")}
-      >
-        <div className="flex items-center gap-x-2">
-          <Icon name="eye" className="size-4 shrink-0" />
-          <Typography variant={TYPOGRAPHY.M4} className="whitespace-nowrap">
-            View verified version
-          </Typography>
-        </div>
-      </DecoratedButton>
     </div>
   );
 };
 
-// Rendered inside AppStoreFormProvider so the review-readiness rail can watch
-// the shared form context.
+// Rendered inside AppStoreFormProvider so the live preview can watch the shared
+// form context.
 const ConfigurationContent = ({
   appId,
   teamId,
@@ -216,74 +284,169 @@ const ConfigurationContent = ({
 }: ConfigurationContentProps) => {
   const basicInfoRef = useRef<BasicInformationHandle>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [optimisticIsMiniApp, setOptimisticIsMiniApp] = useAtom(isMiniAppAtom);
+  const [modeMetadataId, setModeMetadataId] = useState<string | null>(null);
+  const isMiniApp =
+    modeMetadataId === appMetadata.id
+      ? optimisticIsMiniApp
+      : appMetadata.app_mode === "mini-app";
+  const steps = useMemo(() => getAppStoreWizardSteps(isMiniApp), [isMiniApp]);
+  const [activeStep, setActiveStep] = useState<AppStoreWizardStep>(
+    AppStoreWizardStep.BASIC,
+  );
+
+  const handleStepChange = useCallback((step: AppStoreWizardStep) => {
+    setActiveStep(step);
+    requestAnimationFrame(() => {
+      scrollContainerRef.current?.scrollTo?.({ top: 0, behavior: "smooth" });
+    });
+  }, []);
+
+  // Seed the optimistic mode atom from the row before using it for later
+  // in-place mode changes. Until this row is synced, derive the first render
+  // directly from metadata so the step count never flashes from 3 to 4.
+  useEffect(() => {
+    setOptimisticIsMiniApp(appMetadata.app_mode === "mini-app");
+    setModeMetadataId(appMetadata.id);
+  }, [appMetadata.app_mode, appMetadata.id, setOptimisticIsMiniApp]);
+
+  useEffect(() => {
+    if (!steps.some((step) => step.id === activeStep)) {
+      handleStepChange(AppStoreWizardStep.AVAILABILITY);
+    }
+  }, [activeStep, handleStepChange, steps]);
+
+  const handleValidationError = useCallback(
+    (fieldPath?: string) => {
+      const targetStep = getStepForField(fieldPath);
+      handleStepChange(
+        steps.some((step) => step.id === targetStep)
+          ? targetStep
+          : AppStoreWizardStep.BASIC,
+      );
+    },
+    [handleStepChange, steps],
+  );
 
   return (
-    <div className="grid gap-6 lg:h-full lg:grid-cols-[11rem_minmax(0,1fr)_minmax(380px,30%)] lg:grid-rows-[minmax(0,1fr)]">
-      {/* Section jump nav on desktop; on smaller screens it collapses to the
-          separated Danger zone destination above the form. */}
-      <div className="pt-2 lg:pt-8">
-        <SectionToc
-          appId={appId}
-          teamId={teamId}
-          scrollContainerRef={scrollContainerRef}
-        />
-      </div>
-
-      {/* The form and its action shelf share one column. Only the form body
-          scrolls on desktop, keeping the shelf visibly beneath it. */}
+    <div className="grid gap-6 lg:h-full lg:grid-cols-[minmax(0,1fr)_minmax(380px,31%)] lg:grid-rows-[minmax(0,1fr)]">
+      {/* The form and its actions share one column. The step flow keeps one
+          section in focus while all form fields stay
+          mounted so autosave and final validation keep their existing data. */}
       <div className="flex min-h-0 min-w-0 flex-col">
-        <VersionBanner app={app} appId={appId} teamId={teamId} />
         <div
           ref={scrollContainerRef}
-          className="grid min-w-0 content-start gap-y-6 pt-8 pb-28 lg:min-h-0 lg:flex-1 lg:overflow-y-auto lg:pr-4 lg:pb-8"
+          className="grid min-w-0 content-start gap-y-6 pt-6 pb-6 lg:min-h-0 lg:flex-1 lg:overflow-y-auto lg:pr-6"
         >
-          {/* Identity band: app icon beside the reach-mode chooser, one row on
-              lg+ so the lone icon circle doesn't occupy a full-width box. */}
-          <div className="grid gap-6 lg:grid-cols-[auto_minmax(0,1fr)]">
-            <AppIconBox
-              appId={appId}
-              teamId={teamId}
-              appMetadataId={appMetadata.id}
-              logoFile={appMetadata.logo_img_url}
-              isEditable={appMetadata.verification_status === "unverified"}
-              verificationStatus={appMetadata.verification_status}
-            />
+          <AppStoreWizard
+            steps={steps}
+            activeStep={activeStep}
+            accessory={<VersionIndicator app={app} />}
+          />
 
-            <MiniAppConfiguration
-              appId={appId}
-              teamId={teamId}
-              appMetadata={appMetadata as AppMetadata}
-            />
-          </div>
+          <NumberedSection
+            step={getAppStoreWizardStep(isMiniApp, AppStoreWizardStep.BASIC)}
+            isActive={activeStep === AppStoreWizardStep.BASIC}
+          >
+            <div className="grid gap-y-6">
+              <div className="grid gap-4 xl:grid-cols-[11.75rem_minmax(0,1fr)]">
+                <AppIconBox
+                  appId={appId}
+                  teamId={teamId}
+                  appMetadataId={appMetadata.id}
+                  logoFile={appMetadata.logo_img_url}
+                  isEditable={appMetadata.verification_status === "unverified"}
+                  verificationStatus={appMetadata.verification_status}
+                />
 
-          <NumberedSection number="01" title="Basic information">
-            <BasicInformation
-              ref={basicInfoRef}
-              appId={appId}
-              teamId={teamId}
-              app={app}
-              teamName={teamName}
-            />
+                <MiniAppConfiguration
+                  appId={appId}
+                  teamId={teamId}
+                  appMetadata={appMetadata as AppMetadata}
+                />
+              </div>
+
+              <div className="border-t border-grey-100 pt-6">
+                <div className="mb-5 grid gap-y-1">
+                  <Typography variant={TYPOGRAPHY.M3} className="text-grey-900">
+                    App details
+                  </Typography>
+                  <Typography variant={TYPOGRAPHY.R4} className="text-grey-500">
+                    Add the name and destinations people will use to find your
+                    app.
+                  </Typography>
+                </div>
+                <BasicInformation
+                  ref={basicInfoRef}
+                  appId={appId}
+                  teamId={teamId}
+                  app={app}
+                  teamName={teamName}
+                />
+              </div>
+            </div>
           </NumberedSection>
 
           <AppStoreForm
             appId={appId}
             teamId={teamId}
             appMetadata={appMetadata as AppMetadata}
-          />
+          >
+            {isMiniApp && (
+              <NumberedSection
+                step={getAppStoreWizardStep(
+                  isMiniApp,
+                  AppStoreWizardStep.STORE_LISTING,
+                )}
+                isActive={activeStep === AppStoreWizardStep.STORE_LISTING}
+              >
+                <StoreListingFields />
+              </NumberedSection>
+            )}
+
+            <NumberedSection
+              step={getAppStoreWizardStep(
+                isMiniApp,
+                AppStoreWizardStep.AVAILABILITY,
+              )}
+              isActive={activeStep === AppStoreWizardStep.AVAILABILITY}
+              banner={isMiniApp ? <LawsAndRegulationsBanner /> : undefined}
+            >
+              <AvailabilityFields />
+            </NumberedSection>
+
+            <NumberedSection
+              step={getAppStoreWizardStep(
+                isMiniApp,
+                AppStoreWizardStep.LOCALIZED_CONTENT,
+              )}
+              isActive={activeStep === AppStoreWizardStep.LOCALIZED_CONTENT}
+            >
+              <LocalizedContentFields />
+            </NumberedSection>
+          </AppStoreForm>
         </div>
 
-        <ConfigurationActions
+        <ActionsFooter
+          app={app}
+          appMetadata={appMetadata}
           appId={appId}
           teamId={teamId}
-          appMetadata={appMetadata}
           basicInfoRef={basicInfoRef}
+          onValidationError={handleValidationError}
+          steps={steps}
+          activeStep={activeStep}
+          onStepChange={handleStepChange}
         />
       </div>
 
       {/* The preview is a read-only visual aid; page actions live with the
           form in the neighboring column. */}
-      <ReviewRail appId={appId} teamName={teamName} appMetadata={appMetadata} />
+      <LivePreview
+        appId={appId}
+        teamName={teamName}
+        appMetadata={appMetadata}
+      />
     </div>
   );
 };
@@ -403,7 +566,7 @@ export const AppProfilePage = ({ params }: AppProfilePageProps) => {
         )}
 
         {/* Left-aligned full-width app frame (overrides SizingWrapper's
-            centered column): fills the viewport below the shell's h-14
+            centered column): fills the viewport below the shell's 67px
             header, so the window never scrolls — the form column scrolls
             internally and the preview pane stays fixed in place. */}
         <SizingWrapper
@@ -412,8 +575,10 @@ export const AppProfilePage = ({ params }: AppProfilePageProps) => {
             "order-2 grid-cols-[40px_minmax(0,1fr)_40px]",
             // Cap the single implicit row at the container height — without
             // this the row auto-sizes to the tall form and overflow-hidden
-            // just clips it, leaving nothing scrollable.
-            "lg:h-[calc(100dvh-3.5rem)] lg:grid-rows-[minmax(0,1fr)] lg:overflow-hidden",
+            // just clips it, leaving nothing scrollable. The 67px must match
+            // ShellFrame's header height exactly or the window grows a
+            // permanent sliver of scroll.
+            "lg:h-[calc(100dvh-67px)] lg:grid-rows-[minmax(0,1fr)] lg:overflow-hidden",
           )}
         >
           <ConfigurationContent

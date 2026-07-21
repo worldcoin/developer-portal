@@ -38,10 +38,10 @@ export type BasicInformationHandle = {
   }) => Promise<boolean>;
 };
 
-// Live snapshot of this form's values, published as the user types. The
-// review-readiness rail and live-preview phone consume it — this form is a
-// local useForm (not part of the AppStore form context), so without this atom
-// the rail would only see values after autosave lands in the Apollo cache.
+// Live snapshot of this form's values, published as the user types. The preview
+// consumes it because this local useForm is separate from the App Store form
+// context; without the atom, the preview would update only after autosave lands
+// in the Apollo cache.
 export const basicInfoDraftAtom = atom<Partial<BasicInformationFormValues>>({});
 
 export const BasicInformation = forwardRef<
@@ -116,7 +116,7 @@ export const BasicInformation = forwardRef<
     }
   }, [appMetaData?.id, editableAppMetadata, reset]);
 
-  // Publish live values for the review-readiness rail and live preview.
+  // Publish live values for the live preview.
   useEffect(() => {
     setBasicInfoDraft(form.getValues());
     const subscription = watch((values) => {
