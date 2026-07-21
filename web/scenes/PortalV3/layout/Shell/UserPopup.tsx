@@ -59,7 +59,10 @@ export const UserPopup = (props: { user: PortalUser; color: Color | null }) => {
 
   return (
     <DropdownMenu.Root>
-      <DropdownMenu.Trigger className="flex h-10 w-full min-w-0 items-center gap-2 rounded-8 text-left outline-hidden transition-colors hover:bg-portal-border focus-visible:ring-2 focus-visible:ring-grey-300">
+      <DropdownMenu.Trigger
+        aria-label="Open profile menu"
+        className="flex h-10 w-full min-w-0 items-center gap-2 rounded-8 text-left outline-hidden transition-colors hover:bg-portal-border focus-visible:bg-portal-border"
+      >
         <UserAvatar name={user.name} color={color} />
         <span className="grid min-w-0 flex-1 gap-0.5">
           <span className="truncate font-world text-13 leading-none font-medium text-portal-text">
