@@ -20,6 +20,9 @@ const IOS_TESTFLIGHT_URL = "https://testflight.apple.com/join/VZEurhHe";
 // internal-tester allowlist (managed in Play Console, outside this repo).
 const ANDROID_URL: string | null =
   "https://play.google.com/apps/internaltest/4701115249455610230";
+/** TestFlight's own App Store page, for testers who don't have it yet. */
+const TESTFLIGHT_APP_STORE_URL =
+  "https://apps.apple.com/app/testflight/id899247664";
 
 type Platform = "ios" | "android";
 
@@ -314,6 +317,19 @@ export const SandboxButton = () => {
                     </div>
                   )}
                 </div>
+                {platform === "ios" ? (
+                  <Typography variant={TYPOGRAPHY.R5} className="text-grey-500">
+                    Installing World ID Sandbox requires{" "}
+                    <a
+                      href={TESTFLIGHT_APP_STORE_URL}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="hover:text-grey-600 text-grey-900 underline underline-offset-2 transition-colors"
+                    >
+                      TestFlight
+                    </a>
+                  </Typography>
+                ) : null}
               </div>
             </div>
           </div>
