@@ -1,6 +1,7 @@
 "use client";
 
 import { DecoratedButton } from "@/components/DecoratedButton";
+import { SpinnerIcon } from "@/components/Icons/SpinnerIcon";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import clsx from "clsx";
 import { useMemo } from "react";
@@ -22,6 +23,7 @@ export type ConfigureSignerKeyContentProps = {
   onBack: () => void;
   onContinue: (setup: SignerKeySetup) => void;
   initialSetup?: SignerKeySetup;
+  loading?: boolean;
   className?: string;
 };
 
@@ -29,6 +31,7 @@ export const ConfigureSignerKeyContent = ({
   onBack,
   onContinue,
   initialSetup = "generate",
+  loading = false,
   className,
 }: ConfigureSignerKeyContentProps) => {
   const defaultValues: FormValues = useMemo(
@@ -91,9 +94,16 @@ export const ConfigureSignerKeyContent = ({
           type="submit"
           variant="primary"
           className="py-3"
+          disabled={loading}
+          loading={loading}
+          aria-label={loading ? "Loading signer key step" : undefined}
           testId="configure-signer-key-continue"
         >
-          Continue
+          {loading ? (
+            <SpinnerIcon className="size-6 animate-spin" />
+          ) : (
+            "Continue"
+          )}
         </DecoratedButton>
       </div>
     </form>

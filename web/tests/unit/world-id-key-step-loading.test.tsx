@@ -1,13 +1,27 @@
 /** @jest-environment jsdom */
 
 import "@testing-library/jest-dom";
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import React, { Suspense } from "react";
 
-const mockPendingKeyStep = new Promise<never>(() => undefined);
+let mockKeyStepReady = false;
+let mockPendingKeyStep: Promise<void>;
+let mockResolvePendingKeyStep: () => void;
 
-function mockSuspendingKeyStep() {
-  throw mockPendingKeyStep;
+function mockGenerateKeyStep() {
+  if (!mockKeyStepReady) {
+    throw mockPendingKeyStep;
+  }
+
+  return <div data-testid="generate-key-step">Generate key step loaded</div>;
+}
+
+function mockExistingKeyStep() {
+  if (!mockKeyStepReady) {
+    throw mockPendingKeyStep;
+  }
+
+  return <div data-testid="existing-key-step">Existing key step loaded</div>;
 }
 
 // Exercise the installed App Router implementation, not a test reimplementation
@@ -60,19 +74,19 @@ jest.mock(
 );
 jest.mock(
   "@/scenes/Portal/Teams/TeamId/Apps/AppId/GenerateNewKey/GenerateNewKeyContent",
-  () => ({ GenerateNewKeyContent: mockSuspendingKeyStep }),
+  () => ({ GenerateNewKeyContent: mockGenerateKeyStep }),
 );
 jest.mock(
   "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/GenerateNewKey/GenerateNewKeyContent",
-  () => ({ GenerateNewKeyContent: mockSuspendingKeyStep }),
+  () => ({ GenerateNewKeyContent: mockGenerateKeyStep }),
 );
 jest.mock(
   "@/scenes/Portal/Teams/TeamId/Apps/AppId/UseExistingKey/UseExistingKeyContent",
-  () => ({ UseExistingKeyContent: mockSuspendingKeyStep }),
+  () => ({ UseExistingKeyContent: mockExistingKeyStep }),
 );
 jest.mock(
   "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/UseExistingKey/UseExistingKeyContent",
-  () => ({ UseExistingKeyContent: mockSuspendingKeyStep }),
+  () => ({ UseExistingKeyContent: mockExistingKeyStep }),
 );
 
 import { CreateAppDialogV4 as PortalDialog } from "@/scenes/Portal/layout/CreateAppDialog/index-v4";
@@ -85,8 +99,18 @@ const cases = [
   ["PortalV3", "existing", PortalV3Dialog],
 ] as const;
 
+beforeEach(() => {
+  mockKeyStepReady = false;
+  mockPendingKeyStep = new Promise((resolve) => {
+    mockResolvePendingKeyStep = () => {
+      mockKeyStepReady = true;
+      resolve();
+    };
+  });
+});
+
 it.each(cases)(
-  "%s contains the %s key-step suspension inside the dialog",
+  "%s keeps Configure visible while the %s key step suspends",
   async (_portal, setup, DialogComponent) => {
     render(
       <Suspense fallback={<div data-testid="outer-loading" />}>
@@ -106,10 +130,31 @@ it.each(cases)(
       fireEvent.click(screen.getByTestId("radio-existing"));
     }
 
-    fireEvent.click(screen.getByTestId("button-configure-signer-key-continue"));
+    await act(async () => {
+      fireEvent.click(
+        screen.getByTestId("button-configure-signer-key-continue"),
+      );
+    });
 
     const dialog = screen.getByRole("dialog");
-    expect(await within(dialog).findByText("Loading...")).toBeInTheDocument();
+    expect(
+      within(dialog).getByText("Configure Signer Key"),
+    ).toBeInTheDocument();
+    expect(
+      within(dialog).getByRole("button", { name: "Loading signer key step" }),
+    ).toBeDisabled();
     expect(screen.queryByTestId("outer-loading")).not.toBeInTheDocument();
+
+    await act(async () => {
+      mockResolvePendingKeyStep();
+      await mockPendingKeyStep;
+    });
+
+    expect(
+      await within(dialog).findByTestId(`${setup}-key-step`),
+    ).toBeInTheDocument();
+    expect(
+      within(dialog).queryByText("Configure Signer Key"),
+    ).not.toBeInTheDocument();
   },
 );

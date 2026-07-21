@@ -18,7 +18,7 @@ import clsx from "clsx";
 import dynamic from "next/dynamic";
 import { useParams, useRouter } from "next/navigation";
 import posthog from "posthog-js";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import {
@@ -34,26 +34,16 @@ import {
 } from "@/scenes/common/layout/CreateAppDialog/form-schema-v4";
 import { validateAndInsertAppServerSideV4 } from "@/scenes/common/layout/CreateAppDialog/server/v4/submit";
 
-const KeyStepLoading = () => (
-  <div className="flex items-center justify-center py-10">
-    <Typography variant={TYPOGRAPHY.R3}>Loading...</Typography>
-  </div>
+const GenerateNewKeyContent = dynamic(() =>
+  import(
+    "../../Teams/TeamId/Apps/AppId/GenerateNewKey/GenerateNewKeyContent"
+  ).then((module) => module.GenerateNewKeyContent),
 );
 
-const GenerateNewKeyContent = dynamic(
-  () =>
-    import(
-      "../../Teams/TeamId/Apps/AppId/GenerateNewKey/GenerateNewKeyContent"
-    ).then((module) => module.GenerateNewKeyContent),
-  { loading: KeyStepLoading },
-);
-
-const UseExistingKeyContent = dynamic(
-  () =>
-    import(
-      "../../Teams/TeamId/Apps/AppId/UseExistingKey/UseExistingKeyContent"
-    ).then((module) => module.UseExistingKeyContent),
-  { loading: KeyStepLoading },
+const UseExistingKeyContent = dynamic(() =>
+  import(
+    "../../Teams/TeamId/Apps/AppId/UseExistingKey/UseExistingKeyContent"
+  ).then((module) => module.UseExistingKeyContent),
 );
 
 type CreateDialogStep =
@@ -103,6 +93,7 @@ export const CreateAppDialogV4 = ({
     useMutation(RegisterRpDocument);
 
   const [step, setStep] = useState<CreateDialogStep>(initialStep);
+  const [isKeyStepPending, startKeyStepTransition] = useTransition();
   const [createdAppId, setCreatedAppId] = useState<string | null>(
     existingAppId ?? null,
   );
@@ -263,14 +254,15 @@ export const CreateAppDialogV4 = ({
     setStep("enable-world-id-4-0");
   }, [setStep]);
 
-  const onConfigureContinue = useCallback((setup: SignerKeySetup) => {
-    setSignerKeySetup(setup);
-    if (setup === "existing") {
-      setStep("use-existing-key");
-    } else {
-      setStep("generate-new-key");
-    }
-  }, []);
+  const onConfigureContinue = useCallback(
+    (setup: SignerKeySetup) => {
+      startKeyStepTransition(() => {
+        setSignerKeySetup(setup);
+        setStep(setup === "existing" ? "use-existing-key" : "generate-new-key");
+      });
+    },
+    [startKeyStepTransition],
+  );
 
   const onSignerKeyBack = useCallback(() => {
     setStep("configure-signer-key");
@@ -401,6 +393,7 @@ export const CreateAppDialogV4 = ({
                 onBack={onConfigureBack}
                 onContinue={onConfigureContinue}
                 initialSetup={signerKeySetup}
+                loading={isKeyStepPending}
                 className="justify-self-center py-10"
               />
             )}
