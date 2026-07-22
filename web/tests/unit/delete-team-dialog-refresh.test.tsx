@@ -24,7 +24,10 @@ jest.mock("@/scenes/common/me-query/client", () => ({
   useMeQuery: () => ({
     user: { memberships: mockMemberships },
     loading: false,
-    refetch: jest.fn(),
+    refetch: () =>
+      Promise.resolve({
+        data: { user_by_pk: { memberships: mockMemberships } },
+      }),
   }),
 }));
 
@@ -35,6 +38,8 @@ jest.mock("react-toastify", () => ({
 import { DeleteTeamDialog } from "@/scenes/PortalV3/common/DeleteTeamDialog";
 
 const TEAM = { id: "7f0e2a4c-9d31-4b8e-a5f6-1c2d3e4f5a6b", name: "doomed" };
+
+let sessionSynced = false;
 
 const deleteViaDialog = async () => {
   render(<DeleteTeamDialog open onClose={jest.fn()} team={TEAM} />);
@@ -50,15 +55,28 @@ const deleteViaDialog = async () => {
 
 beforeEach(() => {
   jest.clearAllMocks();
+  sessionSynced = false;
+  global.fetch = jest.fn(async () => {
+    sessionSynced = true;
+    return { ok: true } as Response;
+  }) as unknown as typeof fetch;
   mockDeleteTeam.mockResolvedValue({ success: true });
 });
 
-it("refreshes the router after a delete so the session-rendered sidebar updates", async () => {
+it("refreshes the router only after the session cookie sync completes", async () => {
   mockMemberships = [{ team: { id: "t2", name: "other" } }];
+  let refreshedAfterSync = false;
+  mockRefresh.mockImplementation(() => {
+    refreshedAfterSync = sessionSynced;
+  });
 
   await deleteViaDialog();
 
   await waitFor(() => expect(mockRefresh).toHaveBeenCalled());
+  expect(global.fetch).toHaveBeenCalledWith("/api/update-session", {
+    method: "POST",
+  });
+  expect(refreshedAfterSync).toBe(true);
   expect(mockPush).not.toHaveBeenCalled();
 });
 

@@ -71,7 +71,14 @@ export const DeleteTeamDialog = (props: DeleteTeamDialogProps) => {
       const result = await deleteTeamServerSide(team.id);
 
       if (result.success) {
-        await refetch();
+        const { data } = await refetch();
+        // Sync the session cookie before re-rendering the session-fed sidebar
+        await fetch("/api/update-session", { method: "POST" }).catch(
+          () => null,
+        );
+        if (data?.user_by_pk?.memberships?.length) {
+          router.refresh();
+        }
         toast.success("Team deleted!");
         setDeleteFinished(true);
       } else {
@@ -81,7 +88,7 @@ export const DeleteTeamDialog = (props: DeleteTeamDialogProps) => {
       console.error("Delete Team Dialog: ", e);
       toast.error("Error deleting team");
     }
-  }, [team?.id, auth0User?.hasura?.id, refetch]);
+  }, [team?.id, auth0User?.hasura?.id, refetch, router]);
 
   useEffect(() => {
     if (!deleteFinished || loading) {
@@ -93,9 +100,6 @@ export const DeleteTeamDialog = (props: DeleteTeamDialogProps) => {
     if (typeof membershipsCount === "number" && membershipsCount === 0) {
       return router.push(urls.createTeam());
     }
-
-    // Re-render the session-fed server components (sidebar TeamsDropdown)
-    router.refresh();
 
     if (path !== urls.profileTeams()) {
       return router.push(urls.profileTeams());
