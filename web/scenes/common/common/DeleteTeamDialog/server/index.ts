@@ -10,7 +10,7 @@ import { getSdk as getDeleteTeamSdk } from "../graphql/server/delete-team.genera
 
 export async function deleteTeamServerSide(
   teamId: string,
-): Promise<FormActionResult> {
+): Promise<FormActionResult & { sessionUpdated?: boolean }> {
   try {
     const isUserAllowedToDeleteTeam =
       await getIsUserAllowedToDeleteTeam(teamId);
@@ -29,6 +29,7 @@ export async function deleteTeamServerSide(
 
     // Rewrite the session cookie before resolving, so callers can re-render
     // session-fed UI without racing a client-side sync
+    let sessionUpdated = false;
     try {
       const session = await auth0.getSession();
       const userId = session?.user?.hasura?.id;
@@ -43,6 +44,7 @@ export async function deleteTeamServerSide(
             ...session,
             user: { ...session.user, hasura: user_by_pk },
           });
+          sessionUpdated = true;
         }
       }
     } catch (error) {
@@ -54,6 +56,7 @@ export async function deleteTeamServerSide(
 
     return {
       success: true,
+      sessionUpdated,
       message: "Team deleted successfully",
     };
   } catch (error) {

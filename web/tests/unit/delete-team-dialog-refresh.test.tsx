@@ -37,6 +37,7 @@ import { DeleteTeamDialog } from "@/scenes/PortalV3/common/DeleteTeamDialog";
 
 const TEAM = { id: "7f0e2a4c-9d31-4b8e-a5f6-1c2d3e4f5a6b", name: "doomed" };
 const onCloseProp = jest.fn();
+let sessionSynced = false;
 
 const submitDelete = async () => {
   const view = render(
@@ -55,7 +56,12 @@ const submitDelete = async () => {
 
 beforeEach(() => {
   jest.clearAllMocks();
-  mockDeleteTeam.mockResolvedValue({ success: true });
+  sessionSynced = false;
+  global.fetch = jest.fn(async () => {
+    sessionSynced = true;
+    return { ok: true } as Response;
+  }) as unknown as typeof fetch;
+  mockDeleteTeam.mockResolvedValue({ success: true, sessionUpdated: true });
 });
 
 it("refreshes the sidebar and closes when teams remain", async () => {
@@ -66,6 +72,7 @@ it("refreshes the sidebar and closes when teams remain", async () => {
   await waitFor(() => expect(mockRefresh).toHaveBeenCalled());
   expect(onCloseProp).toHaveBeenCalledWith(false);
   expect(mockPush).not.toHaveBeenCalled();
+  expect(global.fetch).not.toHaveBeenCalled();
 });
 
 it("redirects to team creation without refreshing when the last team is deleted", async () => {
@@ -85,4 +92,21 @@ it("still refreshes and closes when the dialog unmounts mid-delete", async () =>
 
   await waitFor(() => expect(mockRefresh).toHaveBeenCalled());
   expect(onCloseProp).toHaveBeenCalledWith(false);
+});
+
+it("awaits the session-sync fallback before refreshing when the action reports a failed sync", async () => {
+  mockMemberships = [{ team: { id: "t2", name: "other" } }];
+  mockDeleteTeam.mockResolvedValue({ success: true, sessionUpdated: false });
+  let refreshedAfterSync = false;
+  mockRefresh.mockImplementation(() => {
+    refreshedAfterSync = sessionSynced;
+  });
+
+  await submitDelete();
+
+  await waitFor(() => expect(mockRefresh).toHaveBeenCalled());
+  expect(global.fetch).toHaveBeenCalledWith("/api/update-session", {
+    method: "POST",
+  });
+  expect(refreshedAfterSync).toBe(true);
 });

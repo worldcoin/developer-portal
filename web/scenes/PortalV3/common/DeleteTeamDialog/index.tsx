@@ -74,6 +74,13 @@ export const DeleteTeamDialog = (props: DeleteTeamDialogProps) => {
         return toast.error(result.message || "Error deleting team");
       }
 
+      if (!result.sessionUpdated) {
+        // Fallback sync — the cookie must be correct before the refresh below
+        await fetch("/api/update-session", { method: "POST" }).catch(
+          () => null,
+        );
+      }
+
       const { data } = await refetch();
       toast.success("Team deleted!");
 
