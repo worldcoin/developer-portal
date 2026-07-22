@@ -63,6 +63,26 @@ const nextConfig = {
 
   async redirects() {
     return [
+      // Sunset the worldcoin.org portal hosts in favor of world.org. Browser
+      // paths are redirected, including the Auth0 browser routes under
+      // /api/auth/* so the whole login flow (and its cookies) stays on one
+      // registrable domain. The machine API (other /api/*) and /.well-known/*
+      // stay on worldcoin.org so existing API and OIDC consumers (POST verify,
+      // CORS preflight, discovery/JWKS) keep working. :subdomain maps each env to
+      // its world.org sibling; runs before middleware so auth never sees the
+      // legacy host.
+      {
+        source: "/:path((?!api/(?!auth/)|\\.well-known/).*)",
+        has: [
+          {
+            type: "host",
+            value:
+              "(?<subdomain>developer|staging-developer)\\.worldcoin\\.org",
+          },
+        ],
+        destination: "https://:subdomain.world.org/:path",
+        permanent: true,
+      },
       {
         source: "/teams/:teamId/apps/:appId/configuration/app-store",
         permanent: false,
