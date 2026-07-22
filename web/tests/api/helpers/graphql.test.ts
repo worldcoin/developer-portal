@@ -161,6 +161,30 @@ describe("graphqlFetchWithRetry", () => {
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
+  it("retries a query on a 502 gateway response and succeeds", async () => {
+    fetchMock
+      .mockResolvedValueOnce(new Response("bad gateway", { status: 502 }))
+      .mockResolvedValueOnce(okResponse());
+    const res = await graphqlFetchWithRetry("https://example.test/v1/graphql", {
+      method: "POST",
+      body: QUERY_BODY,
+    });
+    expect(res.status).toBe(200);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("returns the last gateway 5xx after exhausting retries (query)", async () => {
+    fetchMock.mockResolvedValue(new Response("unavailable", { status: 503 }));
+    const res = await graphqlFetchWithRetry("https://example.test/v1/graphql", {
+      method: "POST",
+      body: QUERY_BODY,
+    });
+    // On the final attempt we hand the upstream error back to graphql-request
+    // rather than swallowing it — no hidden failure.
+    expect(res.status).toBe(503);
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+  });
+
   it("does NOT retry an internal dashboard query on transport error", async () => {
     fetchMock.mockRejectedValueOnce(transportError("ETIMEDOUT"));
     const internalDashboardFetch = makeGraphqlFetchWithRetry(
@@ -185,15 +209,41 @@ describe("graphqlFetchWithRetry", () => {
     );
   });
 
-  it("does NOT retry on a 5xx HTTP response (fetch resolved, didn't throw)", async () => {
+  it("does NOT retry a mutation on a 502 gateway response", async () => {
     fetchMock.mockResolvedValueOnce(
-      new Response("upstream blew up", { status: 502 }),
+      new Response("bad gateway", { status: 502 }),
+    );
+    const res = await graphqlFetchWithRetry("https://example.test/v1/graphql", {
+      method: "POST",
+      body: MUTATION_BODY,
+    });
+    expect(res.status).toBe(502);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("does NOT retry a non-gateway HTTP error (e.g. 500)", async () => {
+    fetchMock.mockResolvedValueOnce(
+      new Response("server error", { status: 500 }),
     );
     const res = await graphqlFetchWithRetry("https://example.test/v1/graphql", {
       method: "POST",
       body: QUERY_BODY,
     });
-    expect(res.status).toBe(502);
+    expect(res.status).toBe(500);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("does NOT retry a 504 gateway timeout (query may already be running)", async () => {
+    // Unlike 502/503, a 504 means a backend received the request but ran too
+    // long — retrying would amplify the slowdown, so we return it as-is.
+    fetchMock.mockResolvedValueOnce(
+      new Response("gateway timeout", { status: 504 }),
+    );
+    const res = await graphqlFetchWithRetry("https://example.test/v1/graphql", {
+      method: "POST",
+      body: QUERY_BODY,
+    });
+    expect(res.status).toBe(504);
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
