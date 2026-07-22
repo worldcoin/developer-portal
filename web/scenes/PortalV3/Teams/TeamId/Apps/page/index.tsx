@@ -33,7 +33,7 @@ export const AppsPage = async (props: AppsPageProps) => {
   const { app } = await getInitialAppSdk(client).InitialApp({ teamId });
 
   if (app.length > 0) {
-    return redirect(`/teams/${teamId}/apps/${app[0].id}`);
+    return redirect(`/teams/${teamId}/apps/${app[0].id}/world-id-4-0`);
   }
 
   return <AppsPageClient teamId={teamId} />;

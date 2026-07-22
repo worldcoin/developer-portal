@@ -124,7 +124,7 @@ it("enables the trigger with the default label once data has loaded", () => {
 
 // When the route points at an app, the trigger reflects that app's name
 // instead of the default label.
-it("shows the current app in the trigger when one is selected", () => {
+it("shows the current app and navigates directly when selected", () => {
   mockParams = { teamId: "team_1", appId: "app_1" };
   fetchApps.mockReturnValue({
     data: { app: [{ id: "app_1", app_metadata: [{ name: "My App" }] }] },
@@ -133,6 +133,9 @@ it("shows the current app in the trigger when one is selected", () => {
   });
   render(<AppsDropdown />);
   expect(trigger()).toHaveTextContent("My App");
+
+  fireEvent.click(screen.getByRole("menuitem", { name: /My App/ }));
+  expect(push).toHaveBeenCalledWith("/teams/team_1/apps/app_1/world-id-4-0");
 });
 
 it("mounts the create-app dialog only after the create action is selected", async () => {
