@@ -98,6 +98,10 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
       abortControllerRef.current = abortController;
 
       const fileTypeEnding = file.type.split("/")[1];
+      // Flips once S3 accepts the file: aborts after this point are unmount
+      // bookkeeping (e.g. the keyed provider remounting and killing an
+      // in-flight refetch), NOT a cancelled upload — don't toast for them.
+      let s3UploadCompleted = false;
 
       try {
         setIsUploading(true);
@@ -113,6 +117,7 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
           isLocalized ? locale : undefined,
           abortController.signal,
         );
+        s3UploadCompleted = true;
 
         // S3 has the file from here on — the remaining steps are bookkeeping
         // and must run even if this component instance unmounts mid-flight
@@ -144,13 +149,16 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
         onUploadSuccess?.();
         return true;
       } catch (error) {
-        console.error("error uploading image:", error);
-
-        if (error instanceof Error && error.name === "AbortError") {
-          toast.error("Upload was cancelled", { autoClose: 5000 });
+        const isAbort = error instanceof Error && error.name === "AbortError";
+        if (isAbort) {
+          // Intentional cancel only matters if S3 never got the file.
+          if (!s3UploadCompleted) {
+            toast.error("Upload was cancelled", { autoClose: 5000 });
+          }
           return false;
         }
 
+        console.error("error uploading image:", error);
         onUploadError?.(error);
         return false;
       } finally {
