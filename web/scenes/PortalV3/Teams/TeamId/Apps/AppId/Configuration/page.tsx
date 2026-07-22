@@ -462,10 +462,15 @@ export const AppProfilePage = ({ params }: AppProfilePageProps) => {
   const [viewMode, setViewMode] = useAtom(viewModeAtom);
   // Lives here — ABOVE the keyed AppStoreFormProvider — so a provider remount
   // (metadata row change / view switch mid-autosave) can't yank the user back
-  // to the first wizard step.
+  // to the first wizard step. Reset only when the route app changes; do not
+  // key this on appMetadata.id or the lift would be pointless.
   const [activeStep, setActiveStep] = useState<AppStoreWizardStep>(
     AppStoreWizardStep.BASIC,
   );
+
+  useEffect(() => {
+    setActiveStep(AppStoreWizardStep.BASIC);
+  }, [appId]);
 
   const {
     data,
