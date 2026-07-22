@@ -155,8 +155,9 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
 
         if (isMountedRef.current) {
           onChange(newUrls);
-          onUploadSuccess?.();
         }
+        // Parent toast / bookkeeping — must not be skipped on remount mid-upload.
+        onUploadSuccess?.();
       } catch (error) {
         console.error("error uploading image:", error);
 
