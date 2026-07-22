@@ -13,7 +13,7 @@ import { useMeQuery } from "@/scenes/common/me-query/client";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { usePathname, useRouter } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import * as yup from "yup";
@@ -42,7 +42,7 @@ export const DeleteTeamDialog = (props: DeleteTeamDialogProps) => {
   const router = useRouter();
   const path = usePathname();
   const { user: auth0User } = useUser() as Auth0SessionUser;
-  const [deleteFinished, setDeleteFinished] = useState(false);
+  const { invalidate } = useUser();
 
   const {
     register,
@@ -56,12 +56,12 @@ export const DeleteTeamDialog = (props: DeleteTeamDialogProps) => {
 
   const onClose = useCallback(() => {
     reset();
-    setDeleteFinished(false);
     props.onClose(false);
-  }, [props, reset, setDeleteFinished]);
+  }, [props, reset]);
 
-  const { user, loading, refetch } = useMeQuery();
+  const { refetch } = useMeQuery();
 
+  // Post-delete flow lives here, not in an effect: the settings page unmounts this dialog when canWrite collapses, but an async handler keeps running.
   const submit = useCallback(async () => {
     if (!team?.id || !auth0User?.hasura?.id) {
       return toast.error("Error deleting team. Try again later");
@@ -70,42 +70,46 @@ export const DeleteTeamDialog = (props: DeleteTeamDialogProps) => {
     try {
       const result = await deleteTeamServerSide(team.id);
 
-      if (result.success) {
-        await refetch();
-        toast.success("Team deleted!");
-        setDeleteFinished(true);
-      } else {
-        toast.error(result.message || "Error deleting team");
+      if (!result.success) {
+        return toast.error(result.message || "Error deleting team");
       }
+
+      const refetched = await refetch();
+      const membershipsCount = refetched?.data?.user_by_pk?.memberships?.length;
+
+      // Refresh session claims before navigating — server guards read memberships from the cookie.
+      try {
+        const res = await fetch("/api/update-session", { method: "POST" });
+        if (res.ok) {
+          await invalidate();
+        }
+      } catch {
+        // Best effort — the next me-query pass heals the session.
+      }
+
+      toast.success("Team deleted!");
+
+      if (typeof membershipsCount === "number" && membershipsCount === 0) {
+        return router.push(urls.createTeam());
+      }
+
+      if (path !== urls.profileTeams()) {
+        return router.push(urls.profileTeams());
+      }
+
+      onClose();
     } catch (e) {
       console.error("Delete Team Dialog: ", e);
       toast.error("Error deleting team");
     }
-  }, [team?.id, auth0User?.hasura?.id, refetch]);
-
-  useEffect(() => {
-    if (!deleteFinished || loading) {
-      return;
-    }
-
-    const membershipsCount = user.memberships?.length;
-
-    if (typeof membershipsCount === "number" && membershipsCount === 0) {
-      return router.push(urls.createTeam());
-    }
-
-    if (path !== urls.profileTeams()) {
-      return router.push(urls.profileTeams());
-    }
-
-    onClose();
   }, [
-    deleteFinished,
-    loading,
-    onClose,
-    path,
+    team?.id,
+    auth0User?.hasura?.id,
+    refetch,
+    invalidate,
     router,
-    user.memberships?.length,
+    path,
+    onClose,
   ]);
 
   return (

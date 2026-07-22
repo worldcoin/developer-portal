@@ -3,44 +3,50 @@
 import { Button } from "@/components/Button";
 import { CloseIcon } from "@/components/Icons/CloseIcon";
 import { Auth0SessionUser } from "@/lib/types";
-import { urls } from "@/lib/urls";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { useRouter } from "next/navigation";
-import { Fragment, useCallback, useMemo } from "react";
+import { Fragment, useCallback, useMemo, useRef } from "react";
 
 type Props = {
   href?: string;
 };
+
+// Only rendered when the user has a team to return to — closing with no teams used to strand users on the logged-out landing page.
 export const CloseButton = (props: Props) => {
-  const { user } = useUser() as Auth0SessionUser;
+  const { user, isLoading } = useUser();
+  const auth0User = (user ?? undefined) as Auth0SessionUser["user"];
   const router = useRouter();
-  const hasUser = useMemo(() => Boolean(user?.hasura?.id), [user?.hasura?.id]);
+
+  const hasTeams = useMemo(
+    () => (auth0User?.hasura?.memberships?.length ?? 0) > 0,
+    [auth0User?.hasura?.memberships],
+  );
+
+  // Latch hidden once the session resolves to no teams: the post-create session refresh lands before navigation finishes and would otherwise flash the X back in.
+  const sawNoTeams = useRef(false);
+  if (!isLoading && !hasTeams) {
+    sawNoTeams.current = true;
+  }
 
   const closeCreateTeam = useCallback(() => {
-    if (!hasUser) {
-      return router.push(urls.logout());
-    }
-
     if (props.href) {
       return router.push(props.href);
     }
 
     return router.back();
-  }, [hasUser, router, props.href]);
+  }, [router, props.href]);
+
+  if (sawNoTeams.current || !hasTeams) {
+    return null;
+  }
 
   return (
     <Fragment>
-      {hasUser && (
-        <Button type="button" onClick={closeCreateTeam} className="flex">
-          <CloseIcon />
-        </Button>
-      )}
+      <Button type="button" onClick={closeCreateTeam} className="flex">
+        <CloseIcon />
+      </Button>
 
-      {!hasUser && (
-        <Button href={urls.logout()} className="flex">
-          <CloseIcon />
-        </Button>
-      )}
+      <span className="text-grey-200">|</span>
     </Fragment>
   );
 };
