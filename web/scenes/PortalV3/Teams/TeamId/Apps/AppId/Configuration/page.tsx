@@ -70,6 +70,8 @@ type ConfigurationContentProps = {
   app: FetchAppMetadataQuery["app"][0];
   appMetadata: FetchAppMetadataQuery["app"][0]["app_metadata"][0];
   teamName: string;
+  activeStep: AppStoreWizardStep;
+  setActiveStep: (step: AppStoreWizardStep) => void;
 };
 
 const stepActionClassName =
@@ -281,6 +283,8 @@ const ConfigurationContent = ({
   app,
   appMetadata,
   teamName,
+  activeStep,
+  setActiveStep,
 }: ConfigurationContentProps) => {
   const basicInfoRef = useRef<BasicInformationHandle>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -291,16 +295,16 @@ const ConfigurationContent = ({
       ? optimisticIsMiniApp
       : appMetadata.app_mode === "mini-app";
   const steps = useMemo(() => getAppStoreWizardSteps(isMiniApp), [isMiniApp]);
-  const [activeStep, setActiveStep] = useState<AppStoreWizardStep>(
-    AppStoreWizardStep.BASIC,
-  );
 
-  const handleStepChange = useCallback((step: AppStoreWizardStep) => {
-    setActiveStep(step);
-    requestAnimationFrame(() => {
-      scrollContainerRef.current?.scrollTo?.({ top: 0, behavior: "smooth" });
-    });
-  }, []);
+  const handleStepChange = useCallback(
+    (step: AppStoreWizardStep) => {
+      setActiveStep(step);
+      requestAnimationFrame(() => {
+        scrollContainerRef.current?.scrollTo?.({ top: 0, behavior: "smooth" });
+      });
+    },
+    [setActiveStep],
+  );
 
   // Seed the optimistic mode atom from the row before using it for later
   // in-place mode changes. Until this row is synced, derive the first render
@@ -456,6 +460,12 @@ export const AppProfilePage = ({ params }: AppProfilePageProps) => {
   const appId = (params?.appId || routeParams?.appId) as `app_${string}`;
   const teamId = (params?.teamId || routeParams?.teamId) as `team_${string}`;
   const [viewMode, setViewMode] = useAtom(viewModeAtom);
+  // Lives here — ABOVE the keyed AppStoreFormProvider — so a provider remount
+  // (metadata row change / view switch mid-autosave) can't yank the user back
+  // to the first wizard step.
+  const [activeStep, setActiveStep] = useState<AppStoreWizardStep>(
+    AppStoreWizardStep.BASIC,
+  );
 
   const {
     data,
@@ -587,6 +597,8 @@ export const AppProfilePage = ({ params }: AppProfilePageProps) => {
             app={app}
             appMetadata={appMetadata}
             teamName={teamName}
+            activeStep={activeStep}
+            setActiveStep={setActiveStep}
           />
         </SizingWrapper>
       </SaveStatusProvider>

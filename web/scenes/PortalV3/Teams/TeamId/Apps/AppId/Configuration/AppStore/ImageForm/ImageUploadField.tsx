@@ -114,6 +114,11 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
           abortController.signal,
         );
 
+        // S3 has the file from here on — the remaining steps are bookkeeping
+        // and must run even if this component instance unmounts mid-flight
+        // (the form provider is keyed on metadata id + view mode and can
+        // remount during autosave). Persistence is ownerless; only UI
+        // updates below are gated on being mounted.
         const imageUrl = await getImage(
           fileTypeEnding,
           appId,
@@ -122,21 +127,20 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
           isLocalized ? locale : undefined,
         );
 
-        // check if component is still mounted/valid before updating
-        if (!isMountedRef.current) {
-          return false;
-        }
-
         const extractedPath =
           extractImagePathWithExtensionFromActualUrl(imageUrl);
         const newUrls =
           maxImages === 1 ? [extractedPath] : [...value, extractedPath];
 
         await onAutosave(newUrls);
+        // Writes into the shared Apollo cache, so a remounted successor
+        // instance watching the same query re-renders with the new image.
         await onRefetchImages();
-        onChange(newUrls);
 
-        onUploadSuccess?.();
+        if (isMountedRef.current) {
+          onChange(newUrls);
+          onUploadSuccess?.();
+        }
         return true;
       } catch (error) {
         console.error("error uploading image:", error);
