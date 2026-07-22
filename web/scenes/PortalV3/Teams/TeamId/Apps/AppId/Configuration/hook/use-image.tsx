@@ -207,17 +207,8 @@ export const useImage = () => {
       );
     }
 
-    // Re-execute (not refetch): refetch throws if the lazy query has never
-    // run, and callers invoke uploadViaPresignedPost before any getImage.
-    await getUploadedImage({
-      variables: {
-        app_id: appId,
-        image_type: imageType,
-        content_type_ending: file.type.split("/")[1],
-        team_id: teamId,
-        locale: locale,
-      },
-    });
+    // No post-upload request needed: S3's 2xx above is the upload
+    // confirmation, and callers fetch the display URL via getImage themselves.
   };
 
   return {
