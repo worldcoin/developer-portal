@@ -135,6 +135,9 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
           abortController.signal,
         );
         s3UploadCompleted = true;
+        // File is on S3 — don't let unmount abort() invent a cancel toast
+        // while getImage / autosave bookkeeping finishes.
+        abortControllerRef.current = null;
 
         const imageUrl = await getImage(
           fileTypeEnding,
@@ -166,8 +169,10 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
       } catch (error) {
         const isAbort = error instanceof Error && error.name === "AbortError";
         if (isAbort) {
-          // Intentional cancel only matters if S3 never got the file.
-          if (!s3UploadCompleted) {
+          // Abort only comes from unmount cleanup. By then isMountedRef is
+          // false — never toast "cancelled" for remount-after-success. Only
+          // toast if we're somehow still mounted and S3 never got the file.
+          if (isMountedRef.current && !s3UploadCompleted) {
             toast.error("Upload was cancelled", { autoClose: 5000 });
           }
           return;
