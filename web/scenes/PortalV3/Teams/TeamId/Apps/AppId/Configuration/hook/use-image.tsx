@@ -106,9 +106,10 @@ export const useCroppedImageUpload = (params: {
 };
 
 export const useImage = () => {
-  const [getUploadedImage, { refetch }] = useLazyQuery(
-    GetUploadedImageDocument,
-  );
+  // network-only: presigned URLs expire, so a cached result is never useful.
+  const [getUploadedImage] = useLazyQuery(GetUploadedImageDocument, {
+    fetchPolicy: "network-only",
+  });
 
   const getImage = async (
     fileType: string, // png, jpeg
@@ -206,13 +207,8 @@ export const useImage = () => {
       );
     }
 
-    await refetch({
-      app_id: appId,
-      image_type: imageType,
-      content_type_ending: file.type.split("/")[1],
-      team_id: teamId,
-      locale: locale,
-    });
+    // No post-upload request needed: S3's 2xx above is the upload
+    // confirmation, and callers fetch the display URL via getImage themselves.
   };
 
   return {
