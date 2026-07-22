@@ -94,6 +94,9 @@ export const DeleteTeamDialog = (props: DeleteTeamDialogProps) => {
       return router.push(urls.createTeam());
     }
 
+    // Re-render the session-fed server components (sidebar TeamsDropdown)
+    router.refresh();
+
     if (path !== urls.profileTeams()) {
       return router.push(urls.profileTeams());
     }
