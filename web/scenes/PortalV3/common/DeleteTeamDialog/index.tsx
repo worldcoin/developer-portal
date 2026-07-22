@@ -97,6 +97,8 @@ export const DeleteTeamDialog = (props: DeleteTeamDialogProps) => {
         return router.push(urls.profileTeams());
       }
 
+      // Already on the teams page: no navigation to re-render the session-fed sidebar, so force it.
+      router.refresh();
       onClose();
     } catch (e) {
       console.error("Delete Team Dialog: ", e);

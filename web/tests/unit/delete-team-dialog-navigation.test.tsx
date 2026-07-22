@@ -9,9 +9,10 @@ jest.mock("react-toastify", () => ({
 }));
 
 const push = jest.fn();
+const refresh = jest.fn();
 let pathname = "/teams/team_1/settings";
 jest.mock("next/navigation", () => ({
-  useRouter: () => ({ push }),
+  useRouter: () => ({ push, refresh }),
   usePathname: () => pathname,
 }));
 
@@ -106,6 +107,17 @@ describe("DeleteTeamDialog [post-delete navigation]", () => {
     await confirmAndSubmit();
 
     await waitFor(() => expect(push).toHaveBeenCalledWith("/profile/teams"));
+  });
+
+  it("refreshes the session-fed sidebar when already on the teams page", async () => {
+    pathname = "/profile/teams";
+    refetch.mockResolvedValue(refetchResultWithMemberships(2));
+
+    renderDialog();
+    await confirmAndSubmit();
+
+    await waitFor(() => expect(refresh).toHaveBeenCalled());
+    expect(push).not.toHaveBeenCalled();
   });
 
   it("still navigates when the session refresh fails", async () => {
