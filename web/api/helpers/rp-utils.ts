@@ -65,6 +65,38 @@ export function normalizeAddress(address: string): string {
   return `0x${address}`;
 }
 
+/**
+ * Whether an on-chain RP reading may be trusted as authoritative for the
+ * Portal's stored registration, judged by the signer.
+ *
+ * Returns true when there is no expected signer to compare against
+ * (self-managed mode — the developer owns the on-chain signer, so on-chain is
+ * authoritative by definition), or when the on-chain signer matches the
+ * Portal's expected `signer_address`.
+ *
+ * Returns false when a managed RP's on-chain signer does NOT match the expected
+ * signer. That happens (a) mid-signer-rotation, before the on-chain update
+ * settles, or (b) when a party other than the Portal won the permissionless
+ * on-chain `register()` for this rp_id — e.g. after a failed managed
+ * registration someone else registered the same rp_id with their own signer.
+ * In case (b), trusting the on-chain "registered"/"active" reading would
+ * promote the Portal row to `registered` and bind the app's verified branding
+ * to a foreign OPRF signer (impersonation), so callers must preserve the stored
+ * status instead of writing the on-chain state back.
+ */
+export function canTrustOnChainSigner(
+  onChainSigner: string,
+  expectedSigner: string | null | undefined,
+): boolean {
+  if (!expectedSigner) {
+    return true;
+  }
+  return (
+    normalizeAddress(onChainSigner).toLowerCase() ===
+    normalizeAddress(expectedSigner).toLowerCase()
+  );
+}
+
 // =============================================================================
 // Configuration
 // =============================================================================

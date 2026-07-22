@@ -1,9 +1,9 @@
 import { errorResponse } from "@/api/helpers/errors";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import {
+  canTrustOnChainSigner,
   isValidRpId,
   mapOnChainToDbStatus,
-  normalizeAddress,
   parseRpId,
   RpRegistrationStatus,
 } from "@/api/helpers/rp-utils";
@@ -113,6 +113,13 @@ export async function GET(
   // Fetch production on-chain state
   let productionStatus: string;
   let productionInitialized = false;
+  // Whether the on-chain production reading is authoritative for this row — see
+  // canTrustOnChainSigner. Mirrors the staging check below: a managed RP is only
+  // promoted to the on-chain status when the on-chain signer matches the
+  // Portal's expected signer, so a foreign on-chain register()/rotation can't
+  // flip the row to `registered` and bind the app's branding to a foreign
+  // OPRF signer.
+  let canTrustOnChainProduction = false;
   try {
     const onChainRp = await getRpFromContract(
       numericRpId,
@@ -121,10 +128,32 @@ export async function GET(
     productionInitialized = onChainRp.initialized;
 
     if (onChainRp.initialized) {
-      productionStatus = mapOnChainToDbStatus(
-        onChainRp.initialized,
-        onChainRp.active,
+      canTrustOnChainProduction = canTrustOnChainSigner(
+        onChainRp.signer,
+        dbRecord.signer_address,
       );
+
+      if (canTrustOnChainProduction) {
+        productionStatus = mapOnChainToDbStatus(
+          onChainRp.initialized,
+          onChainRp.active,
+        );
+      } else {
+        // On-chain signer differs from the Portal's expected signer. Preserve
+        // the DB status instead of promoting — for a managed RP this is either
+        // an in-flight signer rotation or a foreign takeover of the rp_id.
+        productionStatus = currentDbStatus;
+        logger.warn(
+          "On-chain RP signer does not match expected signer; preserving DB status",
+          {
+            rpId,
+            mode: dbRecord.mode,
+            dbStatus: currentDbStatus,
+            expectedSigner: dbRecord.signer_address,
+            onChainSigner: onChainRp.signer,
+          },
+        );
+      }
     } else {
       // Not initialized on-chain — use DB status (tracks production)
       productionStatus = currentDbStatus;
@@ -147,12 +176,9 @@ export async function GET(
   let stagingStatus: string | null = null;
   let stagingInitialized = false;
   let stagingRpcSucceeded = false;
-  // Whether to treat on-chain as authoritative for staging. True when we
-  // have no DB signer to compare (self-managed mode), or when the on-chain
-  // signer matches the DB signer (rotation has settled). False during a
-  // rotation in flight, after a failed rotation, or while a retry is
-  // pending — in those cases the on-chain "registered" reading is
-  // misleading and we must preserve the DB staging_status.
+  // Whether to treat the on-chain staging reading as authoritative — see
+  // canTrustOnChainSigner. Preserves the DB staging_status during/after a
+  // signer rotation or a foreign takeover.
   let canTrustOnChainStaging = false;
   if (stagingContractAddress) {
     try {
@@ -164,11 +190,10 @@ export async function GET(
       stagingInitialized = stagingOnChainRp.initialized;
 
       if (stagingOnChainRp.initialized) {
-        const expectedSigner = dbRecord.signer_address;
-        canTrustOnChainStaging =
-          !expectedSigner ||
-          normalizeAddress(stagingOnChainRp.signer).toLowerCase() ===
-            normalizeAddress(expectedSigner).toLowerCase();
+        canTrustOnChainStaging = canTrustOnChainSigner(
+          stagingOnChainRp.signer,
+          dbRecord.signer_address,
+        );
 
         const onChainMappedStatus = mapOnChainToDbStatus(
           stagingOnChainRp.initialized,
@@ -194,10 +219,13 @@ export async function GET(
   const isPastGracePeriod = ageMs > PENDING_TIMEOUT_MS;
 
   // Sync DB status based on production contract only (never for deleted apps —
-  // see isAppDeleted above).
+  // see isAppDeleted above). Only when the on-chain reading is trusted (signer
+  // matches, or self-managed with no expected signer) — otherwise a foreign
+  // on-chain register()/rotation would clobber the row into `registered`.
   if (
     !isAppDeleted &&
     productionInitialized &&
+    canTrustOnChainProduction &&
     productionStatus !== currentDbStatus
   ) {
     try {

@@ -227,6 +227,85 @@ describe("/api/v4/rp-status [pending timeout]", () => {
 });
 // #endregion
 
+// #region Production signer verification (rp_id takeover protection)
+describe("/api/v4/rp-status [production signer verification]", () => {
+  it("does not promote a managed RP to registered when the on-chain signer is foreign", async () => {
+    // The security case: a managed registration failed, leaving the rp_id row
+    // in `failed` while the RP is unregistered on-chain. An attacker then wins
+    // the permissionless on-chain register() for the same rp_id with their OWN
+    // signer. rp-status must NOT adopt that on-chain "registered" reading — that
+    // would flip the row to `registered` and let proof-context serve the app's
+    // verified branding bound to the attacker's OPRF signer. (Same guard also
+    // keeps an in-flight signer rotation from prematurely reading as registered.)
+    GetRpRegistration.mockResolvedValue({
+      rp_registration_by_pk: makeDbRecord({
+        status: "failed",
+        mode: "managed",
+        signer_address: "0xExpectedSigner",
+        created_at: new Date().toISOString(),
+      }),
+    });
+
+    getRpFromContractMock.mockImplementation(
+      (_rpId: unknown, contractAddress: string) => {
+        if (contractAddress === productionContract) {
+          // Attacker registered on-chain with a different signer.
+          return {
+            initialized: true,
+            active: true,
+            signer: "0xAttackerSigner",
+          };
+        }
+        return { initialized: false, active: false };
+      },
+    );
+
+    const res = await GET(createRequest(), ctx);
+    expect(res.status).toBe(200);
+
+    const body = await res.json();
+    // Status stays `failed`; the untrusted on-chain reading is not adopted...
+    expect(body.production_status).toBe("failed");
+    // ...and never written back to the DB.
+    expect(UpdateRpStatus).not.toHaveBeenCalled();
+  });
+
+  it("promotes a self-managed RP to registered for any on-chain signer (no expected signer to check)", async () => {
+    // Self-managed RPs have no Portal-stored signer to compare against — the
+    // developer owns the on-chain signer — so the on-chain reading stays
+    // authoritative and a completed on-chain registration flips it to registered.
+    GetRpRegistration.mockResolvedValue({
+      rp_registration_by_pk: makeDbRecord({
+        status: "pending",
+        mode: "self_managed",
+        signer_address: null,
+        created_at: new Date().toISOString(),
+      }),
+    });
+
+    getRpFromContractMock.mockResolvedValue({
+      initialized: true,
+      active: true,
+      signer: "0xDeveloperOwnedSigner",
+    });
+
+    UpdateRpStatus.mockResolvedValue({
+      update_rp_registration_by_pk: { rp_id: rpId },
+    });
+
+    const res = await GET(createRequest(), ctx);
+    expect(res.status).toBe(200);
+
+    const body = await res.json();
+    expect(body.production_status).toBe("registered");
+    expect(UpdateRpStatus).toHaveBeenCalledWith({
+      rp_id: rpId,
+      status: RpRegistrationStatus.Registered,
+    });
+  });
+});
+// #endregion
+
 // #region Staging status is derived from on-chain, not DB
 describe("/api/v4/rp-status [staging timeout]", () => {
   it("reports staging as pending when production initialized first but within grace period", async () => {
@@ -241,7 +320,7 @@ describe("/api/v4/rp-status [staging timeout]", () => {
     getRpFromContractMock.mockImplementation(
       (_rpId: unknown, contractAddress: string) => {
         if (contractAddress === productionContract) {
-          return { initialized: true, active: true };
+          return { initialized: true, active: true, signer: "0x1234" };
         }
         return { initialized: false, active: false };
       },
@@ -269,7 +348,7 @@ describe("/api/v4/rp-status [staging timeout]", () => {
     getRpFromContractMock.mockImplementation(
       (_rpId: unknown, contractAddress: string) => {
         if (contractAddress === productionContract) {
-          return { initialized: true, active: true };
+          return { initialized: true, active: true, signer: "0x1234" };
         }
         return { initialized: false, active: false };
       },
@@ -305,7 +384,7 @@ describe("/api/v4/rp-status [staging DB sync]", () => {
     getRpFromContractMock.mockImplementation(
       (_rpId: unknown, contractAddress: string) => {
         if (contractAddress === productionContract) {
-          return { initialized: true, active: true };
+          return { initialized: true, active: true, signer: "0x1234" };
         }
         return { initialized: true, active: true, signer: "0x1234" };
       },
@@ -366,7 +445,7 @@ describe("/api/v4/rp-status [staging DB sync]", () => {
     getRpFromContractMock.mockImplementation(
       (_rpId: unknown, contractAddress: string) => {
         if (contractAddress === productionContract) {
-          return { initialized: true, active: true };
+          return { initialized: true, active: true, signer: "0x1234" };
         }
         return { initialized: true, active: true, signer: "0xoldSigner" };
       },
@@ -425,7 +504,7 @@ describe("/api/v4/rp-status [staging DB sync]", () => {
     getRpFromContractMock.mockImplementation(
       (_rpId: unknown, contractAddress: string) => {
         if (contractAddress === productionContract) {
-          return { initialized: true, active: true };
+          return { initialized: true, active: true, signer: "0x1234" };
         }
         return { initialized: true, active: true, signer: "0xoldSigner" };
       },
@@ -453,7 +532,7 @@ describe("/api/v4/rp-status [staging DB sync]", () => {
     getRpFromContractMock.mockImplementation(
       (_rpId: unknown, contractAddress: string) => {
         if (contractAddress === productionContract) {
-          return { initialized: true, active: true };
+          return { initialized: true, active: true, signer: "0x1234" };
         }
         return { initialized: false, active: false };
       },
@@ -482,7 +561,7 @@ describe("/api/v4/rp-status [staging DB sync]", () => {
     getRpFromContractMock.mockImplementation(
       (_rpId: unknown, contractAddress: string) => {
         if (contractAddress === productionContract) {
-          return { initialized: true, active: true };
+          return { initialized: true, active: true, signer: "0x1234" };
         }
         // Staging RPC throws — transient error
         throw new Error("RPC timeout");
@@ -514,7 +593,7 @@ describe("/api/v4/rp-status [staging DB sync]", () => {
     getRpFromContractMock.mockImplementation(
       (_rpId: unknown, contractAddress: string) => {
         if (contractAddress === productionContract) {
-          return { initialized: true, active: true };
+          return { initialized: true, active: true, signer: "0x1234" };
         }
         // Staging not yet initialized (retry tx still in flight)
         return { initialized: false, active: false };
