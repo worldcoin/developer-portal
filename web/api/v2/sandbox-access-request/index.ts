@@ -11,14 +11,14 @@ const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 /**
  * Records an Android sandbox tester request in `sandbox_access_request`.
  * Whoever manages the Google Play internal-tester allowlist works the
- * `pending` rows and marks them processed.
+ * unaccepted rows and flips `accepted` once the email is allowlisted.
  *
  * Authorization: sandbox kill switch must be on and the caller must have a
  * Hasura user id. The sidebar only hides the entry point; this check closes
  * the direct-POST bypass.
  *
- * Upsert on user_id: a repeat request resets status to pending, clears
- * processed_at, and refreshes google_email / portal_email — no delete.
+ * Upsert on user_id: a repeat request resets accepted to false, clears
+ * processed_at, and refreshes google_email — no delete.
  */
 export async function POST(req: NextRequest) {
   if (!WORLD_ID_SANDBOX_ENABLED) {
@@ -51,12 +51,10 @@ export async function POST(req: NextRequest) {
     const client = await getAPIServiceGraphqlClient();
     await getInsertSandboxAccessRequestSdk(client).InsertSandboxAccessRequest({
       google_email: email,
-      portal_email: user.email ?? "unknown",
       user_id: userId,
     });
   } catch (error) {
     logger.error("Failed to record sandbox access request", {
-      portalEmail: user.email,
       userId,
       error,
     });

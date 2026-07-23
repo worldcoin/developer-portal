@@ -1,22 +1,17 @@
-mutation InsertSandboxAccessRequest(
-  $google_email: String!
-  $portal_email: String!
-  $user_id: String!
-) {
+mutation InsertSandboxAccessRequest($google_email: String!, $user_id: String!) {
   insert_sandbox_access_request_one(
     object: {
       google_email: $google_email
-      portal_email: $portal_email
       user_id: $user_id
-      status: "pending"
+      accepted: false
       processed_at: null
     }
     on_conflict: {
       constraint: unique_sandbox_access_request_user_id
-      update_columns: [google_email, status, processed_at, portal_email]
+      update_columns: [google_email, accepted, processed_at]
     }
   ) {
     id
-    status
+    accepted
   }
 }

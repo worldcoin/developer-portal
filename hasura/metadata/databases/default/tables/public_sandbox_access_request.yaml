@@ -11,9 +11,8 @@ insert_permissions:
       check: {}
       columns:
         - google_email
-        - portal_email
         - user_id
-        - status
+        - accepted
         - processed_at
 select_permissions:
   - role: service
@@ -21,9 +20,8 @@ select_permissions:
       columns:
         - id
         - google_email
-        - portal_email
         - user_id
-        - status
+        - accepted
         - created_at
         - processed_at
       filter: {}
@@ -31,9 +29,8 @@ update_permissions:
   - role: service
     permission:
       columns:
-        - status
+        - accepted
         - processed_at
-        - portal_email
         - google_email
       filter: {}
       check: {}

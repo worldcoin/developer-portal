@@ -11127,14 +11127,13 @@ export type Rp_Registration_Updates = {
 /** columns and relationships of "sandbox_access_request" */
 export type Sandbox_Access_Request = {
   __typename?: "sandbox_access_request";
+  accepted: Scalars["Boolean"]["output"];
   created_at: Scalars["timestamptz"]["output"];
   google_email: Scalars["String"]["output"];
   id: Scalars["String"]["output"];
   processed_at?: Maybe<Scalars["timestamptz"]["output"]>;
-  portal_email: Scalars["String"]["output"];
-  status: Scalars["String"]["output"];
   /** An object relationship */
-  user?: Maybe<User>;
+  user: User;
   user_id: Scalars["String"]["output"];
 };
 
@@ -11143,6 +11142,33 @@ export type Sandbox_Access_Request_Aggregate = {
   __typename?: "sandbox_access_request_aggregate";
   aggregate?: Maybe<Sandbox_Access_Request_Aggregate_Fields>;
   nodes: Array<Sandbox_Access_Request>;
+};
+
+export type Sandbox_Access_Request_Aggregate_Bool_Exp = {
+  bool_and?: InputMaybe<Sandbox_Access_Request_Aggregate_Bool_Exp_Bool_And>;
+  bool_or?: InputMaybe<Sandbox_Access_Request_Aggregate_Bool_Exp_Bool_Or>;
+  count?: InputMaybe<Sandbox_Access_Request_Aggregate_Bool_Exp_Count>;
+};
+
+export type Sandbox_Access_Request_Aggregate_Bool_Exp_Bool_And = {
+  arguments: Sandbox_Access_Request_Select_Column_Sandbox_Access_Request_Aggregate_Bool_Exp_Bool_And_Arguments_Columns;
+  distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
+  filter?: InputMaybe<Sandbox_Access_Request_Bool_Exp>;
+  predicate: Boolean_Comparison_Exp;
+};
+
+export type Sandbox_Access_Request_Aggregate_Bool_Exp_Bool_Or = {
+  arguments: Sandbox_Access_Request_Select_Column_Sandbox_Access_Request_Aggregate_Bool_Exp_Bool_Or_Arguments_Columns;
+  distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
+  filter?: InputMaybe<Sandbox_Access_Request_Bool_Exp>;
+  predicate: Boolean_Comparison_Exp;
+};
+
+export type Sandbox_Access_Request_Aggregate_Bool_Exp_Count = {
+  arguments?: InputMaybe<Array<Sandbox_Access_Request_Select_Column>>;
+  distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
+  filter?: InputMaybe<Sandbox_Access_Request_Bool_Exp>;
+  predicate: Int_Comparison_Exp;
 };
 
 /** aggregate fields of "sandbox_access_request" */
@@ -11159,17 +11185,30 @@ export type Sandbox_Access_Request_Aggregate_FieldsCountArgs = {
   distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
 };
 
+/** order by aggregate values of table "sandbox_access_request" */
+export type Sandbox_Access_Request_Aggregate_Order_By = {
+  count?: InputMaybe<Order_By>;
+  max?: InputMaybe<Sandbox_Access_Request_Max_Order_By>;
+  min?: InputMaybe<Sandbox_Access_Request_Min_Order_By>;
+};
+
+/** input type for inserting array relation for remote table "sandbox_access_request" */
+export type Sandbox_Access_Request_Arr_Rel_Insert_Input = {
+  data: Array<Sandbox_Access_Request_Insert_Input>;
+  /** upsert condition */
+  on_conflict?: InputMaybe<Sandbox_Access_Request_On_Conflict>;
+};
+
 /** Boolean expression to filter rows from the table "sandbox_access_request". All fields are combined with a logical 'AND'. */
 export type Sandbox_Access_Request_Bool_Exp = {
   _and?: InputMaybe<Array<Sandbox_Access_Request_Bool_Exp>>;
   _not?: InputMaybe<Sandbox_Access_Request_Bool_Exp>;
   _or?: InputMaybe<Array<Sandbox_Access_Request_Bool_Exp>>;
+  accepted?: InputMaybe<Boolean_Comparison_Exp>;
   created_at?: InputMaybe<Timestamptz_Comparison_Exp>;
   google_email?: InputMaybe<String_Comparison_Exp>;
   id?: InputMaybe<String_Comparison_Exp>;
   processed_at?: InputMaybe<Timestamptz_Comparison_Exp>;
-  portal_email?: InputMaybe<String_Comparison_Exp>;
-  status?: InputMaybe<String_Comparison_Exp>;
   user?: InputMaybe<User_Bool_Exp>;
   user_id?: InputMaybe<String_Comparison_Exp>;
 };
@@ -11184,12 +11223,11 @@ export enum Sandbox_Access_Request_Constraint {
 
 /** input type for inserting data into table "sandbox_access_request" */
 export type Sandbox_Access_Request_Insert_Input = {
+  accepted?: InputMaybe<Scalars["Boolean"]["input"]>;
   created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
   google_email?: InputMaybe<Scalars["String"]["input"]>;
   id?: InputMaybe<Scalars["String"]["input"]>;
   processed_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
-  portal_email?: InputMaybe<Scalars["String"]["input"]>;
-  status?: InputMaybe<Scalars["String"]["input"]>;
   user?: InputMaybe<User_Obj_Rel_Insert_Input>;
   user_id?: InputMaybe<Scalars["String"]["input"]>;
 };
@@ -11201,9 +11239,16 @@ export type Sandbox_Access_Request_Max_Fields = {
   google_email?: Maybe<Scalars["String"]["output"]>;
   id?: Maybe<Scalars["String"]["output"]>;
   processed_at?: Maybe<Scalars["timestamptz"]["output"]>;
-  portal_email?: Maybe<Scalars["String"]["output"]>;
-  status?: Maybe<Scalars["String"]["output"]>;
   user_id?: Maybe<Scalars["String"]["output"]>;
+};
+
+/** order by max() on columns of table "sandbox_access_request" */
+export type Sandbox_Access_Request_Max_Order_By = {
+  created_at?: InputMaybe<Order_By>;
+  google_email?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  processed_at?: InputMaybe<Order_By>;
+  user_id?: InputMaybe<Order_By>;
 };
 
 /** aggregate min on columns */
@@ -11213,9 +11258,16 @@ export type Sandbox_Access_Request_Min_Fields = {
   google_email?: Maybe<Scalars["String"]["output"]>;
   id?: Maybe<Scalars["String"]["output"]>;
   processed_at?: Maybe<Scalars["timestamptz"]["output"]>;
-  portal_email?: Maybe<Scalars["String"]["output"]>;
-  status?: Maybe<Scalars["String"]["output"]>;
   user_id?: Maybe<Scalars["String"]["output"]>;
+};
+
+/** order by min() on columns of table "sandbox_access_request" */
+export type Sandbox_Access_Request_Min_Order_By = {
+  created_at?: InputMaybe<Order_By>;
+  google_email?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  processed_at?: InputMaybe<Order_By>;
+  user_id?: InputMaybe<Order_By>;
 };
 
 /** response of any mutation on the table "sandbox_access_request" */
@@ -11236,12 +11288,11 @@ export type Sandbox_Access_Request_On_Conflict = {
 
 /** Ordering options when selecting data from "sandbox_access_request". */
 export type Sandbox_Access_Request_Order_By = {
+  accepted?: InputMaybe<Order_By>;
   created_at?: InputMaybe<Order_By>;
   google_email?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   processed_at?: InputMaybe<Order_By>;
-  portal_email?: InputMaybe<Order_By>;
-  status?: InputMaybe<Order_By>;
   user?: InputMaybe<User_Order_By>;
   user_id?: InputMaybe<Order_By>;
 };
@@ -11254,6 +11305,8 @@ export type Sandbox_Access_Request_Pk_Columns_Input = {
 /** select columns of table "sandbox_access_request" */
 export enum Sandbox_Access_Request_Select_Column {
   /** column name */
+  Accepted = "accepted",
+  /** column name */
   CreatedAt = "created_at",
   /** column name */
   GoogleEmail = "google_email",
@@ -11262,21 +11315,28 @@ export enum Sandbox_Access_Request_Select_Column {
   /** column name */
   ProcessedAt = "processed_at",
   /** column name */
-  PortalEmail = "portal_email",
-  /** column name */
-  Status = "status",
-  /** column name */
   UserId = "user_id",
+}
+
+/** select "sandbox_access_request_aggregate_bool_exp_bool_and_arguments_columns" columns of table "sandbox_access_request" */
+export enum Sandbox_Access_Request_Select_Column_Sandbox_Access_Request_Aggregate_Bool_Exp_Bool_And_Arguments_Columns {
+  /** column name */
+  Accepted = "accepted",
+}
+
+/** select "sandbox_access_request_aggregate_bool_exp_bool_or_arguments_columns" columns of table "sandbox_access_request" */
+export enum Sandbox_Access_Request_Select_Column_Sandbox_Access_Request_Aggregate_Bool_Exp_Bool_Or_Arguments_Columns {
+  /** column name */
+  Accepted = "accepted",
 }
 
 /** input type for updating data in table "sandbox_access_request" */
 export type Sandbox_Access_Request_Set_Input = {
+  accepted?: InputMaybe<Scalars["Boolean"]["input"]>;
   created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
   google_email?: InputMaybe<Scalars["String"]["input"]>;
   id?: InputMaybe<Scalars["String"]["input"]>;
   processed_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
-  portal_email?: InputMaybe<Scalars["String"]["input"]>;
-  status?: InputMaybe<Scalars["String"]["input"]>;
   user_id?: InputMaybe<Scalars["String"]["input"]>;
 };
 
@@ -11290,17 +11350,18 @@ export type Sandbox_Access_Request_Stream_Cursor_Input = {
 
 /** Initial value of the column from where the streaming should start */
 export type Sandbox_Access_Request_Stream_Cursor_Value_Input = {
+  accepted?: InputMaybe<Scalars["Boolean"]["input"]>;
   created_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
   google_email?: InputMaybe<Scalars["String"]["input"]>;
   id?: InputMaybe<Scalars["String"]["input"]>;
   processed_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
-  portal_email?: InputMaybe<Scalars["String"]["input"]>;
-  status?: InputMaybe<Scalars["String"]["input"]>;
   user_id?: InputMaybe<Scalars["String"]["input"]>;
 };
 
 /** update columns of table "sandbox_access_request" */
 export enum Sandbox_Access_Request_Update_Column {
+  /** column name */
+  Accepted = "accepted",
   /** column name */
   CreatedAt = "created_at",
   /** column name */
@@ -11309,10 +11370,6 @@ export enum Sandbox_Access_Request_Update_Column {
   Id = "id",
   /** column name */
   ProcessedAt = "processed_at",
-  /** column name */
-  PortalEmail = "portal_email",
-  /** column name */
-  Status = "status",
   /** column name */
   UserId = "user_id",
 }
@@ -12757,6 +12814,10 @@ export type User = {
   memberships_aggregate: Membership_Aggregate;
   name: Scalars["String"]["output"];
   posthog_id?: Maybe<Scalars["String"]["output"]>;
+  /** An array relationship */
+  sandbox_access_requests: Array<Sandbox_Access_Request>;
+  /** An aggregate relationship */
+  sandbox_access_requests_aggregate: Sandbox_Access_Request_Aggregate;
   /** An object relationship */
   team?: Maybe<Team>;
   team_id?: Maybe<Scalars["String"]["output"]>;
@@ -12780,6 +12841,24 @@ export type UserMemberships_AggregateArgs = {
   offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<Membership_Order_By>>;
   where?: InputMaybe<Membership_Bool_Exp>;
+};
+
+/** columns and relationships of "user" */
+export type UserSandbox_Access_RequestsArgs = {
+  distinct_on?: InputMaybe<Array<Sandbox_Access_Request_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Sandbox_Access_Request_Order_By>>;
+  where?: InputMaybe<Sandbox_Access_Request_Bool_Exp>;
+};
+
+/** columns and relationships of "user" */
+export type UserSandbox_Access_Requests_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Sandbox_Access_Request_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Sandbox_Access_Request_Order_By>>;
+  where?: InputMaybe<Sandbox_Access_Request_Bool_Exp>;
 };
 
 /** aggregated selection of "user" */
@@ -12819,6 +12898,8 @@ export type User_Bool_Exp = {
   memberships_aggregate?: InputMaybe<Membership_Aggregate_Bool_Exp>;
   name?: InputMaybe<String_Comparison_Exp>;
   posthog_id?: InputMaybe<String_Comparison_Exp>;
+  sandbox_access_requests?: InputMaybe<Sandbox_Access_Request_Bool_Exp>;
+  sandbox_access_requests_aggregate?: InputMaybe<Sandbox_Access_Request_Aggregate_Bool_Exp>;
   team?: InputMaybe<Team_Bool_Exp>;
   team_id?: InputMaybe<String_Comparison_Exp>;
   updated_at?: InputMaybe<Timestamptz_Comparison_Exp>;
@@ -12849,6 +12930,7 @@ export type User_Insert_Input = {
   memberships?: InputMaybe<Membership_Arr_Rel_Insert_Input>;
   name?: InputMaybe<Scalars["String"]["input"]>;
   posthog_id?: InputMaybe<Scalars["String"]["input"]>;
+  sandbox_access_requests?: InputMaybe<Sandbox_Access_Request_Arr_Rel_Insert_Input>;
   team?: InputMaybe<Team_Obj_Rel_Insert_Input>;
   team_id?: InputMaybe<Scalars["String"]["input"]>;
   updated_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
@@ -12920,6 +13002,7 @@ export type User_Order_By = {
   memberships_aggregate?: InputMaybe<Membership_Aggregate_Order_By>;
   name?: InputMaybe<Order_By>;
   posthog_id?: InputMaybe<Order_By>;
+  sandbox_access_requests_aggregate?: InputMaybe<Sandbox_Access_Request_Aggregate_Order_By>;
   team?: InputMaybe<Team_Order_By>;
   team_id?: InputMaybe<Order_By>;
   updated_at?: InputMaybe<Order_By>;

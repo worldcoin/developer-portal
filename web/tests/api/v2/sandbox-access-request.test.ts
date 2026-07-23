@@ -67,7 +67,7 @@ beforeEach(() => {
   InsertSandboxAccessRequest.mockResolvedValue({
     insert_sandbox_access_request_one: {
       id: "sbxreq_abc123",
-      status: "pending",
+      accepted: false,
     },
   });
 });
@@ -122,17 +122,16 @@ describe("/api/v2/sandbox-access-request", () => {
     expect(await res.json()).toEqual({ success: true });
     expect(InsertSandboxAccessRequest).toHaveBeenCalledWith({
       google_email: "tester@gmail.com",
-      portal_email: "dev@example.com",
       user_id: USER_ID,
     });
   });
 
-  it("treats a repeat request as success (upsert resets pending)", async () => {
+  it("treats a repeat request as success (upsert resets accepted)", async () => {
     getSession.mockResolvedValue(authedSession);
     InsertSandboxAccessRequest.mockResolvedValue({
       insert_sandbox_access_request_one: {
         id: "sbxreq_existing",
-        status: "pending",
+        accepted: false,
       },
     });
 
@@ -142,7 +141,6 @@ describe("/api/v2/sandbox-access-request", () => {
     expect(await res.json()).toEqual({ success: true });
     expect(InsertSandboxAccessRequest).toHaveBeenCalledWith({
       google_email: "tester@gmail.com",
-      portal_email: "dev@example.com",
       user_id: USER_ID,
     });
   });
