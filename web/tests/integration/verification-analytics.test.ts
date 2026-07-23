@@ -1,3 +1,4 @@
+import { Pool } from "pg";
 import { integrationDBClean, integrationDBExecuteQuery } from "./setup";
 
 jest.setTimeout(30_000);
@@ -83,10 +84,18 @@ const runRollup = async (secondsAhead: number): Promise<JobRow> =>
     [secondsAhead],
   );
 
-const runReconciliation = async (batchSize: number): Promise<JobRow> =>
-  queryOne<JobRow>("SELECT * FROM reconcile_verification_stats($1);", [
-    batchSize,
-  ]);
+// The function asserts REPEATABLE READ (§12.3); in production the route reaches it
+// through the repeatable-read Hasura source.
+const runReconciliation = async (batchSize: number): Promise<JobRow> => {
+  const results = (await integrationDBExecuteQuery(`
+    BEGIN;
+    SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;
+    SELECT * FROM reconcile_verification_stats(${Number(batchSize)});
+    COMMIT;
+  `)) as unknown as Array<{ rows: JobRow[] }>;
+
+  return results[2].rows[0];
+};
 
 const expectJob = (
   row: JobRow,
@@ -1414,5 +1423,137 @@ describe("reconcile_verification_stats", () => {
       repaired: 0,
       alerts: 0,
     });
+  });
+});
+
+describe("review fixes: deletion lock, snapshot purge, missing-total repair", () => {
+  it("rejects reconciliation outside REPEATABLE READ", async () => {
+    await expect(
+      integrationDBExecuteQuery(
+        "SELECT * FROM reconcile_verification_stats(500);",
+      ),
+    ).rejects.toMatchObject({ code: "P0001" });
+  });
+
+  it("makes action deletion wait on the analytics advisory lock", async () => {
+    await createCanonicalFixture();
+    await runSeed();
+
+    const pool = new Pool();
+    const holder = await pool.connect();
+    try {
+      await holder.query("BEGIN");
+      await holder.query("SELECT pg_advisory_xact_lock(533214, 42)");
+
+      await expect(
+        integrationDBExecuteQuery(
+          "SET statement_timeout = '1500ms'; DELETE FROM action WHERE id = 'action_prod1';",
+        ),
+      ).rejects.toMatchObject({ code: "57014" });
+
+      const survivor = await queryOne<{ count: string }>(
+        "SELECT count(*) FROM action WHERE id = 'action_prod1';",
+      );
+      expect(Number(survivor.count)).toBe(1);
+
+      await holder.query("ROLLBACK");
+    } finally {
+      holder.release();
+      await pool.end();
+    }
+
+    await integrationDBExecuteQuery(
+      "DELETE FROM action WHERE id = 'action_prod1';",
+    );
+    const gone = await queryOne<{ count: string }>(
+      "SELECT count(*) FROM action WHERE id = 'action_prod1';",
+    );
+    expect(Number(gone.count)).toBe(0);
+  });
+
+  it("purges legacy snapshots on delete so recreated hashes count as unique", async () => {
+    const fixture = await createCanonicalFixture();
+    await runSeed();
+
+    await integrationDBExecuteQuery(
+      "DELETE FROM action WHERE id = 'action_prod1';",
+    );
+
+    const orphanSnapshots = await queryOne<{ count: string }>(`
+      SELECT count(*)
+      FROM nullifier_uses_seen
+      WHERE nullifier_hash IN ('0xhash1', '0xhash2', '0xhash3', '0xhash4');
+    `);
+    expect(Number(orphanSnapshots.count)).toBe(0);
+
+    await integrationDBExecuteQuery(
+      `
+        INSERT INTO action (id, app_id, action, name, max_verifications, external_nullifier)
+        VALUES ('action_prod1b', $1, 'test-action', 'A1b', 0, '0xext1b');
+      `,
+      [fixture.prodAppId],
+    );
+    await integrationDBExecuteQuery(`
+      INSERT INTO nullifier (id, action_id, nullifier_hash, uses)
+      VALUES ('nil_1b', 'action_prod1b', '0xhash1', 1);
+    `);
+
+    await runRollup(1);
+
+    const recreated = await queryOne<MeasureRow>(`
+      SELECT verifications, unique_verifications, repeated_verifications
+      FROM action_verification_stats_total
+      WHERE action_id = 'action_prod1b'
+        AND source = 'legacy'
+        AND environment = 'production';
+    `);
+    expectMeasures(recreated, 1, 1, 0);
+  });
+
+  it("repairs missing action and app totals from snapshot sums", async () => {
+    await createCanonicalFixture();
+    await runSeed();
+
+    await integrationDBExecuteQuery(`
+      DELETE FROM action_verification_stats_total;
+      DELETE FROM app_verification_stats_total;
+    `);
+
+    // Phase-2 restores the action rows AND carries the same diffs into the app rows,
+    // so the app-only phase finds nothing left to do: repaired = 2 actions.
+    const result = await runReconciliation(500);
+    expectJob(result, {
+      job: "reconciliation",
+      status: "done",
+      repaired: 2,
+      alerts: 0,
+    });
+
+    const actionTotal = await queryOne<MeasureRow>(`
+      SELECT verifications, unique_verifications, repeated_verifications
+      FROM action_verification_stats_total
+      WHERE action_id = 'action_prod1'
+        AND source = 'legacy'
+        AND environment = 'production';
+    `);
+    expectMeasures(actionTotal, 15, 3, 12);
+
+    const appTotal = await queryOne<MeasureRow>(`
+      SELECT verifications, unique_verifications, repeated_verifications
+      FROM app_verification_stats_total
+      WHERE source = 'legacy'
+        AND environment = 'production';
+    `);
+    expectMeasures(appTotal, 15, 3, 12);
+
+    const todayDaily = await queryOne<MeasureRow>(`
+      SELECT verifications, unique_verifications, repeated_verifications
+      FROM action_verification_stats_daily
+      WHERE action_id = 'action_prod1'
+        AND source = 'legacy'
+        AND environment = 'production'
+        AND date = (now() AT TIME ZONE 'UTC')::date;
+    `);
+    expectMeasures(todayDaily, 19, 3, 16);
   });
 });

@@ -367,3 +367,21 @@
           NULL::timestamptz
         FROM users_without_teams
       returns: admin_dashboard_queue
+- name: analytics_rr
+  kind: postgres
+  configuration:
+    connection_info:
+      database_url:
+        from_env: HASURA_GRAPHQL_DATABASE_URL
+      isolation_level: repeatable-read
+      pool_settings:
+        connection_lifetime: 300
+        max_connections: 5
+      use_prepared_statements: true
+  customization:
+    root_fields:
+      prefix: rr_
+    type_names:
+      prefix: rr_
+  tables: "!include analytics_rr/tables/tables.yaml"
+  functions: "!include analytics_rr/functions/functions.yaml"

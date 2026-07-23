@@ -1,5 +1,5 @@
 mutation ReconcileVerificationStats($batch_size: Int) {
-  reconcile_verification_stats(args: { _batch_size: $batch_size }) {
+  rr_reconcile_verification_stats(args: { _batch_size: $batch_size }) {
     job
     status
     items

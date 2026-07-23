@@ -7977,8 +7977,6 @@ export type Mutation_Root = {
   invite_team_members?: Maybe<InviteTeamMembersOutput>;
   /** execute VOLATILE function "merge_world_id_accounts" which returns "user" */
   merge_world_id_accounts: Array<User>;
-  /** execute VOLATILE function "reconcile_verification_stats" which returns "verification_job_returning" */
-  reconcile_verification_stats: Array<Verification_Job_Returning>;
   /** Register an RP (Relying Party) for an app with managed mode */
   register_rp?: Maybe<RegisterRpOutput>;
   /** Reset the given API key for the developer portal */
@@ -7993,6 +7991,20 @@ export type Mutation_Root = {
   rollup_verification_stats: Array<Verification_Job_Returning>;
   /** Rotate the signer key for an RP (Relying Party) */
   rotate_signer_key?: Maybe<RotateSignerKeyOutput>;
+  /** delete data from the table: "verification_job_returning" */
+  rr_delete_verification_job_returning?: Maybe<Rr_Verification_Job_Returning_Mutation_Response>;
+  /** insert data into the table: "verification_job_returning" */
+  rr_insert_verification_job_returning?: Maybe<Rr_Verification_Job_Returning_Mutation_Response>;
+  /** insert a single row into the table: "verification_job_returning" */
+  rr_insert_verification_job_returning_one?: Maybe<Rr_Verification_Job_Returning>;
+  /** execute VOLATILE function "reconcile_verification_stats" which returns "verification_job_returning" */
+  rr_reconcile_verification_stats: Array<Rr_Verification_Job_Returning>;
+  /** update data of the table: "verification_job_returning" */
+  rr_update_verification_job_returning?: Maybe<Rr_Verification_Job_Returning_Mutation_Response>;
+  /** update multiples rows of table: "verification_job_returning" */
+  rr_update_verification_job_returning_many?: Maybe<
+    Array<Maybe<Rr_Verification_Job_Returning_Mutation_Response>>
+  >;
   /** Switch an RP from managed to self-managed mode by transferring the on-chain manager key */
   switch_to_self_managed?: Maybe<SwitchToSelfManagedOutput>;
   /** Activate or deactivate a managed RP on-chain */
@@ -9017,16 +9029,6 @@ export type Mutation_RootMerge_World_Id_AccountsArgs = {
 };
 
 /** mutation root */
-export type Mutation_RootReconcile_Verification_StatsArgs = {
-  args?: InputMaybe<Reconcile_Verification_Stats_Args>;
-  distinct_on?: InputMaybe<Array<Verification_Job_Returning_Select_Column>>;
-  limit?: InputMaybe<Scalars["Int"]["input"]>;
-  offset?: InputMaybe<Scalars["Int"]["input"]>;
-  order_by?: InputMaybe<Array<Verification_Job_Returning_Order_By>>;
-  where?: InputMaybe<Verification_Job_Returning_Bool_Exp>;
-};
-
-/** mutation root */
 export type Mutation_RootRegister_RpArgs = {
   app_id: Scalars["String"]["input"];
   mode?: InputMaybe<Scalars["String"]["input"]>;
@@ -9075,6 +9077,43 @@ export type Mutation_RootRollup_Verification_StatsArgs = {
 export type Mutation_RootRotate_Signer_KeyArgs = {
   app_id: Scalars["String"]["input"];
   new_signer_address: Scalars["String"]["input"];
+};
+
+/** mutation root */
+export type Mutation_RootRr_Delete_Verification_Job_ReturningArgs = {
+  where: Rr_Verification_Job_Returning_Bool_Exp;
+};
+
+/** mutation root */
+export type Mutation_RootRr_Insert_Verification_Job_ReturningArgs = {
+  objects: Array<Rr_Verification_Job_Returning_Insert_Input>;
+};
+
+/** mutation root */
+export type Mutation_RootRr_Insert_Verification_Job_Returning_OneArgs = {
+  object: Rr_Verification_Job_Returning_Insert_Input;
+};
+
+/** mutation root */
+export type Mutation_RootRr_Reconcile_Verification_StatsArgs = {
+  args?: InputMaybe<Rr_Reconcile_Verification_Stats_Args>;
+  distinct_on?: InputMaybe<Array<Rr_Verification_Job_Returning_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Rr_Verification_Job_Returning_Order_By>>;
+  where?: InputMaybe<Rr_Verification_Job_Returning_Bool_Exp>;
+};
+
+/** mutation root */
+export type Mutation_RootRr_Update_Verification_Job_ReturningArgs = {
+  _inc?: InputMaybe<Rr_Verification_Job_Returning_Inc_Input>;
+  _set?: InputMaybe<Rr_Verification_Job_Returning_Set_Input>;
+  where: Rr_Verification_Job_Returning_Bool_Exp;
+};
+
+/** mutation root */
+export type Mutation_RootRr_Update_Verification_Job_Returning_ManyArgs = {
+  updates: Array<Rr_Verification_Job_Returning_Updates>;
 };
 
 /** mutation root */
@@ -11177,6 +11216,10 @@ export type Query_Root = {
   rp_registration_aggregate: Rp_Registration_Aggregate;
   /** fetch data from the table: "rp_registration" using primary key columns */
   rp_registration_by_pk?: Maybe<Rp_Registration>;
+  /** fetch data from the table: "verification_job_returning" */
+  rr_verification_job_returning: Array<Rr_Verification_Job_Returning>;
+  /** fetch aggregated fields from the table: "verification_job_returning" */
+  rr_verification_job_returning_aggregate: Rr_Verification_Job_Returning_Aggregate;
   /** fetch data from the table: "team" */
   team: Array<Team>;
   /** fetch aggregated fields from the table: "team" */
@@ -11876,6 +11919,22 @@ export type Query_RootRp_Registration_By_PkArgs = {
   rp_id: Scalars["String"]["input"];
 };
 
+export type Query_RootRr_Verification_Job_ReturningArgs = {
+  distinct_on?: InputMaybe<Array<Rr_Verification_Job_Returning_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Rr_Verification_Job_Returning_Order_By>>;
+  where?: InputMaybe<Rr_Verification_Job_Returning_Bool_Exp>;
+};
+
+export type Query_RootRr_Verification_Job_Returning_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Rr_Verification_Job_Returning_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Rr_Verification_Job_Returning_Order_By>>;
+  where?: InputMaybe<Rr_Verification_Job_Returning_Bool_Exp>;
+};
+
 export type Query_RootTeamArgs = {
   distinct_on?: InputMaybe<Array<Team_Select_Column>>;
   limit?: InputMaybe<Scalars["Int"]["input"]>;
@@ -11938,10 +11997,6 @@ export type Query_RootVerification_Job_Returning_AggregateArgs = {
   offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<Verification_Job_Returning_Order_By>>;
   where?: InputMaybe<Verification_Job_Returning_Bool_Exp>;
-};
-
-export type Reconcile_Verification_Stats_Args = {
-  _batch_size?: InputMaybe<Scalars["Int"]["input"]>;
 };
 
 /** columns and relationships of "redirect" */
@@ -12696,6 +12751,246 @@ export type Rp_Registration_Updates = {
   where: Rp_Registration_Bool_Exp;
 };
 
+/** ordering argument of a cursor */
+export enum Rr_Cursor_Ordering {
+  /** ascending ordering of the cursor */
+  Asc = "ASC",
+  /** descending ordering of the cursor */
+  Desc = "DESC",
+}
+
+export type Rr_Reconcile_Verification_Stats_Args = {
+  _batch_size?: InputMaybe<Scalars["Int"]["input"]>;
+};
+
+/** Returning value of rollup_verification_stats / reconcile_verification_stats functions */
+export type Rr_Verification_Job_Returning = {
+  __typename?: "rr_verification_job_returning";
+  alerts: Scalars["bigint"]["output"];
+  detail?: Maybe<Scalars["String"]["output"]>;
+  items: Scalars["bigint"]["output"];
+  job: Scalars["String"]["output"];
+  repaired: Scalars["bigint"]["output"];
+  status: Scalars["String"]["output"];
+};
+
+/** aggregated selection of "verification_job_returning" */
+export type Rr_Verification_Job_Returning_Aggregate = {
+  __typename?: "rr_verification_job_returning_aggregate";
+  aggregate?: Maybe<Rr_Verification_Job_Returning_Aggregate_Fields>;
+  nodes: Array<Rr_Verification_Job_Returning>;
+};
+
+/** aggregate fields of "verification_job_returning" */
+export type Rr_Verification_Job_Returning_Aggregate_Fields = {
+  __typename?: "rr_verification_job_returning_aggregate_fields";
+  avg?: Maybe<Rr_Verification_Job_Returning_Avg_Fields>;
+  count: Scalars["Int"]["output"];
+  max?: Maybe<Rr_Verification_Job_Returning_Max_Fields>;
+  min?: Maybe<Rr_Verification_Job_Returning_Min_Fields>;
+  stddev?: Maybe<Rr_Verification_Job_Returning_Stddev_Fields>;
+  stddev_pop?: Maybe<Rr_Verification_Job_Returning_Stddev_Pop_Fields>;
+  stddev_samp?: Maybe<Rr_Verification_Job_Returning_Stddev_Samp_Fields>;
+  sum?: Maybe<Rr_Verification_Job_Returning_Sum_Fields>;
+  var_pop?: Maybe<Rr_Verification_Job_Returning_Var_Pop_Fields>;
+  var_samp?: Maybe<Rr_Verification_Job_Returning_Var_Samp_Fields>;
+  variance?: Maybe<Rr_Verification_Job_Returning_Variance_Fields>;
+};
+
+/** aggregate fields of "verification_job_returning" */
+export type Rr_Verification_Job_Returning_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<Rr_Verification_Job_Returning_Select_Column>>;
+  distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
+};
+
+/** aggregate avg on columns */
+export type Rr_Verification_Job_Returning_Avg_Fields = {
+  __typename?: "rr_verification_job_returning_avg_fields";
+  alerts?: Maybe<Scalars["Float"]["output"]>;
+  items?: Maybe<Scalars["Float"]["output"]>;
+  repaired?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** Boolean expression to filter rows from the table "verification_job_returning". All fields are combined with a logical 'AND'. */
+export type Rr_Verification_Job_Returning_Bool_Exp = {
+  _and?: InputMaybe<Array<Rr_Verification_Job_Returning_Bool_Exp>>;
+  _not?: InputMaybe<Rr_Verification_Job_Returning_Bool_Exp>;
+  _or?: InputMaybe<Array<Rr_Verification_Job_Returning_Bool_Exp>>;
+  alerts?: InputMaybe<Bigint_Comparison_Exp>;
+  detail?: InputMaybe<String_Comparison_Exp>;
+  items?: InputMaybe<Bigint_Comparison_Exp>;
+  job?: InputMaybe<String_Comparison_Exp>;
+  repaired?: InputMaybe<Bigint_Comparison_Exp>;
+  status?: InputMaybe<String_Comparison_Exp>;
+};
+
+/** input type for incrementing numeric columns in table "verification_job_returning" */
+export type Rr_Verification_Job_Returning_Inc_Input = {
+  alerts?: InputMaybe<Scalars["bigint"]["input"]>;
+  items?: InputMaybe<Scalars["bigint"]["input"]>;
+  repaired?: InputMaybe<Scalars["bigint"]["input"]>;
+};
+
+/** input type for inserting data into table "verification_job_returning" */
+export type Rr_Verification_Job_Returning_Insert_Input = {
+  alerts?: InputMaybe<Scalars["bigint"]["input"]>;
+  detail?: InputMaybe<Scalars["String"]["input"]>;
+  items?: InputMaybe<Scalars["bigint"]["input"]>;
+  job?: InputMaybe<Scalars["String"]["input"]>;
+  repaired?: InputMaybe<Scalars["bigint"]["input"]>;
+  status?: InputMaybe<Scalars["String"]["input"]>;
+};
+
+/** aggregate max on columns */
+export type Rr_Verification_Job_Returning_Max_Fields = {
+  __typename?: "rr_verification_job_returning_max_fields";
+  alerts?: Maybe<Scalars["bigint"]["output"]>;
+  detail?: Maybe<Scalars["String"]["output"]>;
+  items?: Maybe<Scalars["bigint"]["output"]>;
+  job?: Maybe<Scalars["String"]["output"]>;
+  repaired?: Maybe<Scalars["bigint"]["output"]>;
+  status?: Maybe<Scalars["String"]["output"]>;
+};
+
+/** aggregate min on columns */
+export type Rr_Verification_Job_Returning_Min_Fields = {
+  __typename?: "rr_verification_job_returning_min_fields";
+  alerts?: Maybe<Scalars["bigint"]["output"]>;
+  detail?: Maybe<Scalars["String"]["output"]>;
+  items?: Maybe<Scalars["bigint"]["output"]>;
+  job?: Maybe<Scalars["String"]["output"]>;
+  repaired?: Maybe<Scalars["bigint"]["output"]>;
+  status?: Maybe<Scalars["String"]["output"]>;
+};
+
+/** response of any mutation on the table "verification_job_returning" */
+export type Rr_Verification_Job_Returning_Mutation_Response = {
+  __typename?: "rr_verification_job_returning_mutation_response";
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars["Int"]["output"];
+  /** data from the rows affected by the mutation */
+  returning: Array<Rr_Verification_Job_Returning>;
+};
+
+/** Ordering options when selecting data from "verification_job_returning". */
+export type Rr_Verification_Job_Returning_Order_By = {
+  alerts?: InputMaybe<Order_By>;
+  detail?: InputMaybe<Order_By>;
+  items?: InputMaybe<Order_By>;
+  job?: InputMaybe<Order_By>;
+  repaired?: InputMaybe<Order_By>;
+  status?: InputMaybe<Order_By>;
+};
+
+/** select columns of table "verification_job_returning" */
+export enum Rr_Verification_Job_Returning_Select_Column {
+  /** column name */
+  Alerts = "alerts",
+  /** column name */
+  Detail = "detail",
+  /** column name */
+  Items = "items",
+  /** column name */
+  Job = "job",
+  /** column name */
+  Repaired = "repaired",
+  /** column name */
+  Status = "status",
+}
+
+/** input type for updating data in table "verification_job_returning" */
+export type Rr_Verification_Job_Returning_Set_Input = {
+  alerts?: InputMaybe<Scalars["bigint"]["input"]>;
+  detail?: InputMaybe<Scalars["String"]["input"]>;
+  items?: InputMaybe<Scalars["bigint"]["input"]>;
+  job?: InputMaybe<Scalars["String"]["input"]>;
+  repaired?: InputMaybe<Scalars["bigint"]["input"]>;
+  status?: InputMaybe<Scalars["String"]["input"]>;
+};
+
+/** aggregate stddev on columns */
+export type Rr_Verification_Job_Returning_Stddev_Fields = {
+  __typename?: "rr_verification_job_returning_stddev_fields";
+  alerts?: Maybe<Scalars["Float"]["output"]>;
+  items?: Maybe<Scalars["Float"]["output"]>;
+  repaired?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** aggregate stddev_pop on columns */
+export type Rr_Verification_Job_Returning_Stddev_Pop_Fields = {
+  __typename?: "rr_verification_job_returning_stddev_pop_fields";
+  alerts?: Maybe<Scalars["Float"]["output"]>;
+  items?: Maybe<Scalars["Float"]["output"]>;
+  repaired?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** aggregate stddev_samp on columns */
+export type Rr_Verification_Job_Returning_Stddev_Samp_Fields = {
+  __typename?: "rr_verification_job_returning_stddev_samp_fields";
+  alerts?: Maybe<Scalars["Float"]["output"]>;
+  items?: Maybe<Scalars["Float"]["output"]>;
+  repaired?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** Streaming cursor of the table "verification_job_returning" */
+export type Rr_Verification_Job_Returning_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: Rr_Verification_Job_Returning_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Rr_Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type Rr_Verification_Job_Returning_Stream_Cursor_Value_Input = {
+  alerts?: InputMaybe<Scalars["bigint"]["input"]>;
+  detail?: InputMaybe<Scalars["String"]["input"]>;
+  items?: InputMaybe<Scalars["bigint"]["input"]>;
+  job?: InputMaybe<Scalars["String"]["input"]>;
+  repaired?: InputMaybe<Scalars["bigint"]["input"]>;
+  status?: InputMaybe<Scalars["String"]["input"]>;
+};
+
+/** aggregate sum on columns */
+export type Rr_Verification_Job_Returning_Sum_Fields = {
+  __typename?: "rr_verification_job_returning_sum_fields";
+  alerts?: Maybe<Scalars["bigint"]["output"]>;
+  items?: Maybe<Scalars["bigint"]["output"]>;
+  repaired?: Maybe<Scalars["bigint"]["output"]>;
+};
+
+export type Rr_Verification_Job_Returning_Updates = {
+  /** increments the numeric columns with given value of the filtered values */
+  _inc?: InputMaybe<Rr_Verification_Job_Returning_Inc_Input>;
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<Rr_Verification_Job_Returning_Set_Input>;
+  /** filter the rows which have to be updated */
+  where: Rr_Verification_Job_Returning_Bool_Exp;
+};
+
+/** aggregate var_pop on columns */
+export type Rr_Verification_Job_Returning_Var_Pop_Fields = {
+  __typename?: "rr_verification_job_returning_var_pop_fields";
+  alerts?: Maybe<Scalars["Float"]["output"]>;
+  items?: Maybe<Scalars["Float"]["output"]>;
+  repaired?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** aggregate var_samp on columns */
+export type Rr_Verification_Job_Returning_Var_Samp_Fields = {
+  __typename?: "rr_verification_job_returning_var_samp_fields";
+  alerts?: Maybe<Scalars["Float"]["output"]>;
+  items?: Maybe<Scalars["Float"]["output"]>;
+  repaired?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** aggregate variance on columns */
+export type Rr_Verification_Job_Returning_Variance_Fields = {
+  __typename?: "rr_verification_job_returning_variance_fields";
+  alerts?: Maybe<Scalars["Float"]["output"]>;
+  items?: Maybe<Scalars["Float"]["output"]>;
+  repaired?: Maybe<Scalars["Float"]["output"]>;
+};
+
 export type Subscription_Root = {
   __typename?: "subscription_root";
   /** fetch data from the table: "action" */
@@ -12944,6 +13239,12 @@ export type Subscription_Root = {
   rp_registration_by_pk?: Maybe<Rp_Registration>;
   /** fetch data from the table in a streaming manner: "rp_registration" */
   rp_registration_stream: Array<Rp_Registration>;
+  /** fetch data from the table: "verification_job_returning" */
+  rr_verification_job_returning: Array<Rr_Verification_Job_Returning>;
+  /** fetch aggregated fields from the table: "verification_job_returning" */
+  rr_verification_job_returning_aggregate: Rr_Verification_Job_Returning_Aggregate;
+  /** fetch data from the table in a streaming manner: "verification_job_returning" */
+  rr_verification_job_returning_stream: Array<Rr_Verification_Job_Returning>;
   /** fetch data from the table: "team" */
   team: Array<Team>;
   /** fetch aggregated fields from the table: "team" */
@@ -13811,6 +14112,28 @@ export type Subscription_RootRp_Registration_StreamArgs = {
   batch_size: Scalars["Int"]["input"];
   cursor: Array<InputMaybe<Rp_Registration_Stream_Cursor_Input>>;
   where?: InputMaybe<Rp_Registration_Bool_Exp>;
+};
+
+export type Subscription_RootRr_Verification_Job_ReturningArgs = {
+  distinct_on?: InputMaybe<Array<Rr_Verification_Job_Returning_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Rr_Verification_Job_Returning_Order_By>>;
+  where?: InputMaybe<Rr_Verification_Job_Returning_Bool_Exp>;
+};
+
+export type Subscription_RootRr_Verification_Job_Returning_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Rr_Verification_Job_Returning_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Rr_Verification_Job_Returning_Order_By>>;
+  where?: InputMaybe<Rr_Verification_Job_Returning_Bool_Exp>;
+};
+
+export type Subscription_RootRr_Verification_Job_Returning_StreamArgs = {
+  batch_size: Scalars["Int"]["input"];
+  cursor: Array<InputMaybe<Rr_Verification_Job_Returning_Stream_Cursor_Input>>;
+  where?: InputMaybe<Rr_Verification_Job_Returning_Bool_Exp>;
 };
 
 export type Subscription_RootTeamArgs = {

@@ -71,7 +71,7 @@ describe("/api/_reconcile-verification-stats [auth]", () => {
 describe("/api/_reconcile-verification-stats [reconciliation]", () => {
   it("returns a completed single-batch reconciliation", async () => {
     ReconcileVerificationStats.mockResolvedValue({
-      reconcile_verification_stats: [makeRow()],
+      rr_reconcile_verification_stats: [makeRow()],
     });
 
     const res = (await POST(createRequest("Bearer test-secret")))!;
@@ -92,11 +92,11 @@ describe("/api/_reconcile-verification-stats [reconciliation]", () => {
 
   it("continues across batches and sums repaired items and alerts", async () => {
     ReconcileVerificationStats.mockResolvedValueOnce({
-      reconcile_verification_stats: [
+      rr_reconcile_verification_stats: [
         makeRow({ status: "continue", repaired: 2, alerts: 1 }),
       ],
     }).mockResolvedValueOnce({
-      reconcile_verification_stats: [
+      rr_reconcile_verification_stats: [
         makeRow({ status: "done", repaired: 3, alerts: 2 }),
       ],
     });
@@ -123,7 +123,7 @@ describe("/api/_reconcile-verification-stats [reconciliation]", () => {
   it("logs reconciliation drift and includes alerts in the response", async () => {
     const row = makeRow({ alerts: 2 });
     ReconcileVerificationStats.mockResolvedValue({
-      reconcile_verification_stats: [row],
+      rr_reconcile_verification_stats: [row],
     });
 
     const res = (await POST(createRequest("Bearer test-secret")))!;
@@ -144,9 +144,11 @@ describe("/api/_reconcile-verification-stats [reconciliation]", () => {
 
   it("retries a lock miss without counting it as a batch", async () => {
     ReconcileVerificationStats.mockResolvedValueOnce({
-      reconcile_verification_stats: [makeRow({ status: "lock_not_acquired" })],
+      rr_reconcile_verification_stats: [
+        makeRow({ status: "lock_not_acquired" }),
+      ],
     }).mockResolvedValueOnce({
-      reconcile_verification_stats: [makeRow()],
+      rr_reconcile_verification_stats: [makeRow()],
     });
 
     const res = (await POST(createRequest("Bearer test-secret")))!;
@@ -169,7 +171,7 @@ describe("/api/_reconcile-verification-stats [reconciliation]", () => {
       return now;
     });
     ReconcileVerificationStats.mockResolvedValue({
-      reconcile_verification_stats: [makeRow({ status: "continue" })],
+      rr_reconcile_verification_stats: [makeRow({ status: "continue" })],
     });
 
     try {
@@ -191,7 +193,7 @@ describe("/api/_reconcile-verification-stats [reconciliation]", () => {
 
   it("returns a 500 response when reconciliation returns no rows", async () => {
     ReconcileVerificationStats.mockResolvedValue({
-      reconcile_verification_stats: [],
+      rr_reconcile_verification_stats: [],
     });
 
     const res = (await POST(createRequest("Bearer test-secret")))!;
@@ -199,7 +201,7 @@ describe("/api/_reconcile-verification-stats [reconciliation]", () => {
     expect(res.status).toBe(500);
     expect(await res.json()).toEqual({
       success: false,
-      error: "reconcile_verification_stats returned no rows",
+      error: "rr_reconcile_verification_stats returned no rows",
     });
   });
 });

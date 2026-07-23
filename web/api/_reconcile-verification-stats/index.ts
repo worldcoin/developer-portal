@@ -30,9 +30,9 @@ export async function POST(request: NextRequest) {
       const res = await sdk.ReconcileVerificationStats({
         batch_size: BATCH_SIZE,
       });
-      const row = res.reconcile_verification_stats?.[0];
+      const row = res.rr_reconcile_verification_stats?.[0];
       if (!row) {
-        throw new Error("reconcile_verification_stats returned no rows");
+        throw new Error("rr_reconcile_verification_stats returned no rows");
       }
 
       status = row.status;

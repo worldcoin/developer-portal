@@ -10,8 +10,8 @@ export type ReconcileVerificationStatsMutationVariables = Types.Exact<{
 
 export type ReconcileVerificationStatsMutation = {
   __typename?: "mutation_root";
-  reconcile_verification_stats: Array<{
-    __typename?: "verification_job_returning";
+  rr_reconcile_verification_stats: Array<{
+    __typename?: "rr_verification_job_returning";
     job: string;
     status: string;
     items: number;
@@ -23,7 +23,7 @@ export type ReconcileVerificationStatsMutation = {
 
 export const ReconcileVerificationStatsDocument = gql`
   mutation ReconcileVerificationStats($batch_size: Int) {
-    reconcile_verification_stats(args: { _batch_size: $batch_size }) {
+    rr_reconcile_verification_stats(args: { _batch_size: $batch_size }) {
       job
       status
       items
