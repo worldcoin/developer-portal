@@ -72,7 +72,7 @@ export const LivePreview = ({
     localisations?.find((l) => l?.language === "en");
   const name = basicInfo.name?.trim() || loc?.name?.trim() || "Untitled app";
   const tagLine =
-    loc?.world_app_description?.trim() || "A one-line summary of your app";
+    loc?.world_app_description?.trim() || "";
   const description =
     loc?.description_overview?.trim() || "Your description appears here.";
   const isVerified = appMetadata.verification_status === "verified";
