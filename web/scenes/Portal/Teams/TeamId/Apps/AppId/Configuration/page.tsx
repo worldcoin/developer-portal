@@ -67,7 +67,12 @@ export const AppProfilePage = ({ params }: AppProfilePageProps) => {
   );
 
   const teamName = app?.team?.name ?? "";
-  const isLoading = isMetadataLoading || isLocalisationsLoading;
+  // A refetch keeps the previous Apollo data available. Reserve the full-page
+  // skeleton for a cold load so background reconciliation does not unmount the
+  // configuration form.
+  const isInitialLoading =
+    (isMetadataLoading && !data) ||
+    (isLocalisationsLoading && !localisationsData);
   const [showResolveModal, setShowResolveModal] = useState(false);
   const basicInfoRef = useRef<BasicInformationHandle>(null);
 
@@ -85,7 +90,7 @@ export const AppProfilePage = ({ params }: AppProfilePageProps) => {
     );
   }
 
-  if (isLoading || !app || !appMetadata) {
+  if (isInitialLoading || !app || !appMetadata) {
     return (
       <>
         <SizingWrapper variant="nav" gridClassName="order-1 pt-8">
