@@ -1,0 +1,19 @@
+table:
+  name: action_verification_stats_daily
+  schema: public
+select_permissions:
+  - role: service
+    permission:
+      columns:
+        - action_id
+        - app_id
+        - source
+        - environment
+        - date
+        - verifications
+        - unique_verifications
+        - repeated_verifications
+        - latest_verification_at
+        - updated_at
+      filter: {}
+    comment: Service-only read model; the portal endpoint is the customer read path.

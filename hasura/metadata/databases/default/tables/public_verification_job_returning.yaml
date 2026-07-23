@@ -1,0 +1,15 @@
+table:
+  name: verification_job_returning
+  schema: public
+select_permissions:
+  - role: service
+    permission:
+      columns:
+        - job
+        - status
+        - items
+        - repaired
+        - alerts
+        - detail
+      filter: {}
+    comment: Returning shape of rollup_verification_stats / reconcile_verification_stats.

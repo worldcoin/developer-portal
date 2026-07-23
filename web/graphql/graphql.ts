@@ -1668,6 +1668,619 @@ export type Action_Variance_Order_By = {
   max_verifications?: InputMaybe<Order_By>;
 };
 
+/** columns and relationships of "action_verification_stats_daily" */
+export type Action_Verification_Stats_Daily = {
+  __typename?: "action_verification_stats_daily";
+  action_id: Scalars["String"]["output"];
+  app_id: Scalars["String"]["output"];
+  date: Scalars["date"]["output"];
+  environment: Scalars["String"]["output"];
+  latest_verification_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  repeated_verifications: Scalars["bigint"]["output"];
+  source: Scalars["String"]["output"];
+  unique_verifications: Scalars["bigint"]["output"];
+  updated_at: Scalars["timestamptz"]["output"];
+  verifications: Scalars["bigint"]["output"];
+};
+
+/** aggregated selection of "action_verification_stats_daily" */
+export type Action_Verification_Stats_Daily_Aggregate = {
+  __typename?: "action_verification_stats_daily_aggregate";
+  aggregate?: Maybe<Action_Verification_Stats_Daily_Aggregate_Fields>;
+  nodes: Array<Action_Verification_Stats_Daily>;
+};
+
+/** aggregate fields of "action_verification_stats_daily" */
+export type Action_Verification_Stats_Daily_Aggregate_Fields = {
+  __typename?: "action_verification_stats_daily_aggregate_fields";
+  avg?: Maybe<Action_Verification_Stats_Daily_Avg_Fields>;
+  count: Scalars["Int"]["output"];
+  max?: Maybe<Action_Verification_Stats_Daily_Max_Fields>;
+  min?: Maybe<Action_Verification_Stats_Daily_Min_Fields>;
+  stddev?: Maybe<Action_Verification_Stats_Daily_Stddev_Fields>;
+  stddev_pop?: Maybe<Action_Verification_Stats_Daily_Stddev_Pop_Fields>;
+  stddev_samp?: Maybe<Action_Verification_Stats_Daily_Stddev_Samp_Fields>;
+  sum?: Maybe<Action_Verification_Stats_Daily_Sum_Fields>;
+  var_pop?: Maybe<Action_Verification_Stats_Daily_Var_Pop_Fields>;
+  var_samp?: Maybe<Action_Verification_Stats_Daily_Var_Samp_Fields>;
+  variance?: Maybe<Action_Verification_Stats_Daily_Variance_Fields>;
+};
+
+/** aggregate fields of "action_verification_stats_daily" */
+export type Action_Verification_Stats_Daily_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<Action_Verification_Stats_Daily_Select_Column>>;
+  distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
+};
+
+/** aggregate avg on columns */
+export type Action_Verification_Stats_Daily_Avg_Fields = {
+  __typename?: "action_verification_stats_daily_avg_fields";
+  repeated_verifications?: Maybe<Scalars["Float"]["output"]>;
+  unique_verifications?: Maybe<Scalars["Float"]["output"]>;
+  verifications?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** Boolean expression to filter rows from the table "action_verification_stats_daily". All fields are combined with a logical 'AND'. */
+export type Action_Verification_Stats_Daily_Bool_Exp = {
+  _and?: InputMaybe<Array<Action_Verification_Stats_Daily_Bool_Exp>>;
+  _not?: InputMaybe<Action_Verification_Stats_Daily_Bool_Exp>;
+  _or?: InputMaybe<Array<Action_Verification_Stats_Daily_Bool_Exp>>;
+  action_id?: InputMaybe<String_Comparison_Exp>;
+  app_id?: InputMaybe<String_Comparison_Exp>;
+  date?: InputMaybe<Date_Comparison_Exp>;
+  environment?: InputMaybe<String_Comparison_Exp>;
+  latest_verification_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+  repeated_verifications?: InputMaybe<Bigint_Comparison_Exp>;
+  source?: InputMaybe<String_Comparison_Exp>;
+  unique_verifications?: InputMaybe<Bigint_Comparison_Exp>;
+  updated_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+  verifications?: InputMaybe<Bigint_Comparison_Exp>;
+};
+
+/** unique or primary key constraints on table "action_verification_stats_daily" */
+export enum Action_Verification_Stats_Daily_Constraint {
+  /** unique or primary key constraint on columns "environment", "action_id", "date", "source" */
+  ActionVerificationStatsDailyPkey = "action_verification_stats_daily_pkey",
+}
+
+/** input type for incrementing numeric columns in table "action_verification_stats_daily" */
+export type Action_Verification_Stats_Daily_Inc_Input = {
+  repeated_verifications?: InputMaybe<Scalars["bigint"]["input"]>;
+  unique_verifications?: InputMaybe<Scalars["bigint"]["input"]>;
+  verifications?: InputMaybe<Scalars["bigint"]["input"]>;
+};
+
+/** input type for inserting data into table "action_verification_stats_daily" */
+export type Action_Verification_Stats_Daily_Insert_Input = {
+  action_id?: InputMaybe<Scalars["String"]["input"]>;
+  app_id?: InputMaybe<Scalars["String"]["input"]>;
+  date?: InputMaybe<Scalars["date"]["input"]>;
+  environment?: InputMaybe<Scalars["String"]["input"]>;
+  latest_verification_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  repeated_verifications?: InputMaybe<Scalars["bigint"]["input"]>;
+  source?: InputMaybe<Scalars["String"]["input"]>;
+  unique_verifications?: InputMaybe<Scalars["bigint"]["input"]>;
+  updated_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  verifications?: InputMaybe<Scalars["bigint"]["input"]>;
+};
+
+/** aggregate max on columns */
+export type Action_Verification_Stats_Daily_Max_Fields = {
+  __typename?: "action_verification_stats_daily_max_fields";
+  action_id?: Maybe<Scalars["String"]["output"]>;
+  app_id?: Maybe<Scalars["String"]["output"]>;
+  date?: Maybe<Scalars["date"]["output"]>;
+  environment?: Maybe<Scalars["String"]["output"]>;
+  latest_verification_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  repeated_verifications?: Maybe<Scalars["bigint"]["output"]>;
+  source?: Maybe<Scalars["String"]["output"]>;
+  unique_verifications?: Maybe<Scalars["bigint"]["output"]>;
+  updated_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  verifications?: Maybe<Scalars["bigint"]["output"]>;
+};
+
+/** aggregate min on columns */
+export type Action_Verification_Stats_Daily_Min_Fields = {
+  __typename?: "action_verification_stats_daily_min_fields";
+  action_id?: Maybe<Scalars["String"]["output"]>;
+  app_id?: Maybe<Scalars["String"]["output"]>;
+  date?: Maybe<Scalars["date"]["output"]>;
+  environment?: Maybe<Scalars["String"]["output"]>;
+  latest_verification_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  repeated_verifications?: Maybe<Scalars["bigint"]["output"]>;
+  source?: Maybe<Scalars["String"]["output"]>;
+  unique_verifications?: Maybe<Scalars["bigint"]["output"]>;
+  updated_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  verifications?: Maybe<Scalars["bigint"]["output"]>;
+};
+
+/** response of any mutation on the table "action_verification_stats_daily" */
+export type Action_Verification_Stats_Daily_Mutation_Response = {
+  __typename?: "action_verification_stats_daily_mutation_response";
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars["Int"]["output"];
+  /** data from the rows affected by the mutation */
+  returning: Array<Action_Verification_Stats_Daily>;
+};
+
+/** on_conflict condition type for table "action_verification_stats_daily" */
+export type Action_Verification_Stats_Daily_On_Conflict = {
+  constraint: Action_Verification_Stats_Daily_Constraint;
+  update_columns?: Array<Action_Verification_Stats_Daily_Update_Column>;
+  where?: InputMaybe<Action_Verification_Stats_Daily_Bool_Exp>;
+};
+
+/** Ordering options when selecting data from "action_verification_stats_daily". */
+export type Action_Verification_Stats_Daily_Order_By = {
+  action_id?: InputMaybe<Order_By>;
+  app_id?: InputMaybe<Order_By>;
+  date?: InputMaybe<Order_By>;
+  environment?: InputMaybe<Order_By>;
+  latest_verification_at?: InputMaybe<Order_By>;
+  repeated_verifications?: InputMaybe<Order_By>;
+  source?: InputMaybe<Order_By>;
+  unique_verifications?: InputMaybe<Order_By>;
+  updated_at?: InputMaybe<Order_By>;
+  verifications?: InputMaybe<Order_By>;
+};
+
+/** primary key columns input for table: action_verification_stats_daily */
+export type Action_Verification_Stats_Daily_Pk_Columns_Input = {
+  action_id: Scalars["String"]["input"];
+  date: Scalars["date"]["input"];
+  environment: Scalars["String"]["input"];
+  source: Scalars["String"]["input"];
+};
+
+/** select columns of table "action_verification_stats_daily" */
+export enum Action_Verification_Stats_Daily_Select_Column {
+  /** column name */
+  ActionId = "action_id",
+  /** column name */
+  AppId = "app_id",
+  /** column name */
+  Date = "date",
+  /** column name */
+  Environment = "environment",
+  /** column name */
+  LatestVerificationAt = "latest_verification_at",
+  /** column name */
+  RepeatedVerifications = "repeated_verifications",
+  /** column name */
+  Source = "source",
+  /** column name */
+  UniqueVerifications = "unique_verifications",
+  /** column name */
+  UpdatedAt = "updated_at",
+  /** column name */
+  Verifications = "verifications",
+}
+
+/** input type for updating data in table "action_verification_stats_daily" */
+export type Action_Verification_Stats_Daily_Set_Input = {
+  action_id?: InputMaybe<Scalars["String"]["input"]>;
+  app_id?: InputMaybe<Scalars["String"]["input"]>;
+  date?: InputMaybe<Scalars["date"]["input"]>;
+  environment?: InputMaybe<Scalars["String"]["input"]>;
+  latest_verification_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  repeated_verifications?: InputMaybe<Scalars["bigint"]["input"]>;
+  source?: InputMaybe<Scalars["String"]["input"]>;
+  unique_verifications?: InputMaybe<Scalars["bigint"]["input"]>;
+  updated_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  verifications?: InputMaybe<Scalars["bigint"]["input"]>;
+};
+
+/** aggregate stddev on columns */
+export type Action_Verification_Stats_Daily_Stddev_Fields = {
+  __typename?: "action_verification_stats_daily_stddev_fields";
+  repeated_verifications?: Maybe<Scalars["Float"]["output"]>;
+  unique_verifications?: Maybe<Scalars["Float"]["output"]>;
+  verifications?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** aggregate stddev_pop on columns */
+export type Action_Verification_Stats_Daily_Stddev_Pop_Fields = {
+  __typename?: "action_verification_stats_daily_stddev_pop_fields";
+  repeated_verifications?: Maybe<Scalars["Float"]["output"]>;
+  unique_verifications?: Maybe<Scalars["Float"]["output"]>;
+  verifications?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** aggregate stddev_samp on columns */
+export type Action_Verification_Stats_Daily_Stddev_Samp_Fields = {
+  __typename?: "action_verification_stats_daily_stddev_samp_fields";
+  repeated_verifications?: Maybe<Scalars["Float"]["output"]>;
+  unique_verifications?: Maybe<Scalars["Float"]["output"]>;
+  verifications?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** Streaming cursor of the table "action_verification_stats_daily" */
+export type Action_Verification_Stats_Daily_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: Action_Verification_Stats_Daily_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type Action_Verification_Stats_Daily_Stream_Cursor_Value_Input = {
+  action_id?: InputMaybe<Scalars["String"]["input"]>;
+  app_id?: InputMaybe<Scalars["String"]["input"]>;
+  date?: InputMaybe<Scalars["date"]["input"]>;
+  environment?: InputMaybe<Scalars["String"]["input"]>;
+  latest_verification_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  repeated_verifications?: InputMaybe<Scalars["bigint"]["input"]>;
+  source?: InputMaybe<Scalars["String"]["input"]>;
+  unique_verifications?: InputMaybe<Scalars["bigint"]["input"]>;
+  updated_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  verifications?: InputMaybe<Scalars["bigint"]["input"]>;
+};
+
+/** aggregate sum on columns */
+export type Action_Verification_Stats_Daily_Sum_Fields = {
+  __typename?: "action_verification_stats_daily_sum_fields";
+  repeated_verifications?: Maybe<Scalars["bigint"]["output"]>;
+  unique_verifications?: Maybe<Scalars["bigint"]["output"]>;
+  verifications?: Maybe<Scalars["bigint"]["output"]>;
+};
+
+/** update columns of table "action_verification_stats_daily" */
+export enum Action_Verification_Stats_Daily_Update_Column {
+  /** column name */
+  ActionId = "action_id",
+  /** column name */
+  AppId = "app_id",
+  /** column name */
+  Date = "date",
+  /** column name */
+  Environment = "environment",
+  /** column name */
+  LatestVerificationAt = "latest_verification_at",
+  /** column name */
+  RepeatedVerifications = "repeated_verifications",
+  /** column name */
+  Source = "source",
+  /** column name */
+  UniqueVerifications = "unique_verifications",
+  /** column name */
+  UpdatedAt = "updated_at",
+  /** column name */
+  Verifications = "verifications",
+}
+
+export type Action_Verification_Stats_Daily_Updates = {
+  /** increments the numeric columns with given value of the filtered values */
+  _inc?: InputMaybe<Action_Verification_Stats_Daily_Inc_Input>;
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<Action_Verification_Stats_Daily_Set_Input>;
+  /** filter the rows which have to be updated */
+  where: Action_Verification_Stats_Daily_Bool_Exp;
+};
+
+/** aggregate var_pop on columns */
+export type Action_Verification_Stats_Daily_Var_Pop_Fields = {
+  __typename?: "action_verification_stats_daily_var_pop_fields";
+  repeated_verifications?: Maybe<Scalars["Float"]["output"]>;
+  unique_verifications?: Maybe<Scalars["Float"]["output"]>;
+  verifications?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** aggregate var_samp on columns */
+export type Action_Verification_Stats_Daily_Var_Samp_Fields = {
+  __typename?: "action_verification_stats_daily_var_samp_fields";
+  repeated_verifications?: Maybe<Scalars["Float"]["output"]>;
+  unique_verifications?: Maybe<Scalars["Float"]["output"]>;
+  verifications?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** aggregate variance on columns */
+export type Action_Verification_Stats_Daily_Variance_Fields = {
+  __typename?: "action_verification_stats_daily_variance_fields";
+  repeated_verifications?: Maybe<Scalars["Float"]["output"]>;
+  unique_verifications?: Maybe<Scalars["Float"]["output"]>;
+  verifications?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** columns and relationships of "action_verification_stats_total" */
+export type Action_Verification_Stats_Total = {
+  __typename?: "action_verification_stats_total";
+  action_id: Scalars["String"]["output"];
+  app_id: Scalars["String"]["output"];
+  environment: Scalars["String"]["output"];
+  latest_verification_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  repeated_verifications: Scalars["bigint"]["output"];
+  source: Scalars["String"]["output"];
+  unique_verifications: Scalars["bigint"]["output"];
+  updated_at: Scalars["timestamptz"]["output"];
+  verifications: Scalars["bigint"]["output"];
+};
+
+/** aggregated selection of "action_verification_stats_total" */
+export type Action_Verification_Stats_Total_Aggregate = {
+  __typename?: "action_verification_stats_total_aggregate";
+  aggregate?: Maybe<Action_Verification_Stats_Total_Aggregate_Fields>;
+  nodes: Array<Action_Verification_Stats_Total>;
+};
+
+/** aggregate fields of "action_verification_stats_total" */
+export type Action_Verification_Stats_Total_Aggregate_Fields = {
+  __typename?: "action_verification_stats_total_aggregate_fields";
+  avg?: Maybe<Action_Verification_Stats_Total_Avg_Fields>;
+  count: Scalars["Int"]["output"];
+  max?: Maybe<Action_Verification_Stats_Total_Max_Fields>;
+  min?: Maybe<Action_Verification_Stats_Total_Min_Fields>;
+  stddev?: Maybe<Action_Verification_Stats_Total_Stddev_Fields>;
+  stddev_pop?: Maybe<Action_Verification_Stats_Total_Stddev_Pop_Fields>;
+  stddev_samp?: Maybe<Action_Verification_Stats_Total_Stddev_Samp_Fields>;
+  sum?: Maybe<Action_Verification_Stats_Total_Sum_Fields>;
+  var_pop?: Maybe<Action_Verification_Stats_Total_Var_Pop_Fields>;
+  var_samp?: Maybe<Action_Verification_Stats_Total_Var_Samp_Fields>;
+  variance?: Maybe<Action_Verification_Stats_Total_Variance_Fields>;
+};
+
+/** aggregate fields of "action_verification_stats_total" */
+export type Action_Verification_Stats_Total_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<Action_Verification_Stats_Total_Select_Column>>;
+  distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
+};
+
+/** aggregate avg on columns */
+export type Action_Verification_Stats_Total_Avg_Fields = {
+  __typename?: "action_verification_stats_total_avg_fields";
+  repeated_verifications?: Maybe<Scalars["Float"]["output"]>;
+  unique_verifications?: Maybe<Scalars["Float"]["output"]>;
+  verifications?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** Boolean expression to filter rows from the table "action_verification_stats_total". All fields are combined with a logical 'AND'. */
+export type Action_Verification_Stats_Total_Bool_Exp = {
+  _and?: InputMaybe<Array<Action_Verification_Stats_Total_Bool_Exp>>;
+  _not?: InputMaybe<Action_Verification_Stats_Total_Bool_Exp>;
+  _or?: InputMaybe<Array<Action_Verification_Stats_Total_Bool_Exp>>;
+  action_id?: InputMaybe<String_Comparison_Exp>;
+  app_id?: InputMaybe<String_Comparison_Exp>;
+  environment?: InputMaybe<String_Comparison_Exp>;
+  latest_verification_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+  repeated_verifications?: InputMaybe<Bigint_Comparison_Exp>;
+  source?: InputMaybe<String_Comparison_Exp>;
+  unique_verifications?: InputMaybe<Bigint_Comparison_Exp>;
+  updated_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+  verifications?: InputMaybe<Bigint_Comparison_Exp>;
+};
+
+/** unique or primary key constraints on table "action_verification_stats_total" */
+export enum Action_Verification_Stats_Total_Constraint {
+  /** unique or primary key constraint on columns "environment", "action_id", "source" */
+  ActionVerificationStatsTotalPkey = "action_verification_stats_total_pkey",
+}
+
+/** input type for incrementing numeric columns in table "action_verification_stats_total" */
+export type Action_Verification_Stats_Total_Inc_Input = {
+  repeated_verifications?: InputMaybe<Scalars["bigint"]["input"]>;
+  unique_verifications?: InputMaybe<Scalars["bigint"]["input"]>;
+  verifications?: InputMaybe<Scalars["bigint"]["input"]>;
+};
+
+/** input type for inserting data into table "action_verification_stats_total" */
+export type Action_Verification_Stats_Total_Insert_Input = {
+  action_id?: InputMaybe<Scalars["String"]["input"]>;
+  app_id?: InputMaybe<Scalars["String"]["input"]>;
+  environment?: InputMaybe<Scalars["String"]["input"]>;
+  latest_verification_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  repeated_verifications?: InputMaybe<Scalars["bigint"]["input"]>;
+  source?: InputMaybe<Scalars["String"]["input"]>;
+  unique_verifications?: InputMaybe<Scalars["bigint"]["input"]>;
+  updated_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  verifications?: InputMaybe<Scalars["bigint"]["input"]>;
+};
+
+/** aggregate max on columns */
+export type Action_Verification_Stats_Total_Max_Fields = {
+  __typename?: "action_verification_stats_total_max_fields";
+  action_id?: Maybe<Scalars["String"]["output"]>;
+  app_id?: Maybe<Scalars["String"]["output"]>;
+  environment?: Maybe<Scalars["String"]["output"]>;
+  latest_verification_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  repeated_verifications?: Maybe<Scalars["bigint"]["output"]>;
+  source?: Maybe<Scalars["String"]["output"]>;
+  unique_verifications?: Maybe<Scalars["bigint"]["output"]>;
+  updated_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  verifications?: Maybe<Scalars["bigint"]["output"]>;
+};
+
+/** aggregate min on columns */
+export type Action_Verification_Stats_Total_Min_Fields = {
+  __typename?: "action_verification_stats_total_min_fields";
+  action_id?: Maybe<Scalars["String"]["output"]>;
+  app_id?: Maybe<Scalars["String"]["output"]>;
+  environment?: Maybe<Scalars["String"]["output"]>;
+  latest_verification_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  repeated_verifications?: Maybe<Scalars["bigint"]["output"]>;
+  source?: Maybe<Scalars["String"]["output"]>;
+  unique_verifications?: Maybe<Scalars["bigint"]["output"]>;
+  updated_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  verifications?: Maybe<Scalars["bigint"]["output"]>;
+};
+
+/** response of any mutation on the table "action_verification_stats_total" */
+export type Action_Verification_Stats_Total_Mutation_Response = {
+  __typename?: "action_verification_stats_total_mutation_response";
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars["Int"]["output"];
+  /** data from the rows affected by the mutation */
+  returning: Array<Action_Verification_Stats_Total>;
+};
+
+/** on_conflict condition type for table "action_verification_stats_total" */
+export type Action_Verification_Stats_Total_On_Conflict = {
+  constraint: Action_Verification_Stats_Total_Constraint;
+  update_columns?: Array<Action_Verification_Stats_Total_Update_Column>;
+  where?: InputMaybe<Action_Verification_Stats_Total_Bool_Exp>;
+};
+
+/** Ordering options when selecting data from "action_verification_stats_total". */
+export type Action_Verification_Stats_Total_Order_By = {
+  action_id?: InputMaybe<Order_By>;
+  app_id?: InputMaybe<Order_By>;
+  environment?: InputMaybe<Order_By>;
+  latest_verification_at?: InputMaybe<Order_By>;
+  repeated_verifications?: InputMaybe<Order_By>;
+  source?: InputMaybe<Order_By>;
+  unique_verifications?: InputMaybe<Order_By>;
+  updated_at?: InputMaybe<Order_By>;
+  verifications?: InputMaybe<Order_By>;
+};
+
+/** primary key columns input for table: action_verification_stats_total */
+export type Action_Verification_Stats_Total_Pk_Columns_Input = {
+  action_id: Scalars["String"]["input"];
+  environment: Scalars["String"]["input"];
+  source: Scalars["String"]["input"];
+};
+
+/** select columns of table "action_verification_stats_total" */
+export enum Action_Verification_Stats_Total_Select_Column {
+  /** column name */
+  ActionId = "action_id",
+  /** column name */
+  AppId = "app_id",
+  /** column name */
+  Environment = "environment",
+  /** column name */
+  LatestVerificationAt = "latest_verification_at",
+  /** column name */
+  RepeatedVerifications = "repeated_verifications",
+  /** column name */
+  Source = "source",
+  /** column name */
+  UniqueVerifications = "unique_verifications",
+  /** column name */
+  UpdatedAt = "updated_at",
+  /** column name */
+  Verifications = "verifications",
+}
+
+/** input type for updating data in table "action_verification_stats_total" */
+export type Action_Verification_Stats_Total_Set_Input = {
+  action_id?: InputMaybe<Scalars["String"]["input"]>;
+  app_id?: InputMaybe<Scalars["String"]["input"]>;
+  environment?: InputMaybe<Scalars["String"]["input"]>;
+  latest_verification_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  repeated_verifications?: InputMaybe<Scalars["bigint"]["input"]>;
+  source?: InputMaybe<Scalars["String"]["input"]>;
+  unique_verifications?: InputMaybe<Scalars["bigint"]["input"]>;
+  updated_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  verifications?: InputMaybe<Scalars["bigint"]["input"]>;
+};
+
+/** aggregate stddev on columns */
+export type Action_Verification_Stats_Total_Stddev_Fields = {
+  __typename?: "action_verification_stats_total_stddev_fields";
+  repeated_verifications?: Maybe<Scalars["Float"]["output"]>;
+  unique_verifications?: Maybe<Scalars["Float"]["output"]>;
+  verifications?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** aggregate stddev_pop on columns */
+export type Action_Verification_Stats_Total_Stddev_Pop_Fields = {
+  __typename?: "action_verification_stats_total_stddev_pop_fields";
+  repeated_verifications?: Maybe<Scalars["Float"]["output"]>;
+  unique_verifications?: Maybe<Scalars["Float"]["output"]>;
+  verifications?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** aggregate stddev_samp on columns */
+export type Action_Verification_Stats_Total_Stddev_Samp_Fields = {
+  __typename?: "action_verification_stats_total_stddev_samp_fields";
+  repeated_verifications?: Maybe<Scalars["Float"]["output"]>;
+  unique_verifications?: Maybe<Scalars["Float"]["output"]>;
+  verifications?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** Streaming cursor of the table "action_verification_stats_total" */
+export type Action_Verification_Stats_Total_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: Action_Verification_Stats_Total_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type Action_Verification_Stats_Total_Stream_Cursor_Value_Input = {
+  action_id?: InputMaybe<Scalars["String"]["input"]>;
+  app_id?: InputMaybe<Scalars["String"]["input"]>;
+  environment?: InputMaybe<Scalars["String"]["input"]>;
+  latest_verification_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  repeated_verifications?: InputMaybe<Scalars["bigint"]["input"]>;
+  source?: InputMaybe<Scalars["String"]["input"]>;
+  unique_verifications?: InputMaybe<Scalars["bigint"]["input"]>;
+  updated_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  verifications?: InputMaybe<Scalars["bigint"]["input"]>;
+};
+
+/** aggregate sum on columns */
+export type Action_Verification_Stats_Total_Sum_Fields = {
+  __typename?: "action_verification_stats_total_sum_fields";
+  repeated_verifications?: Maybe<Scalars["bigint"]["output"]>;
+  unique_verifications?: Maybe<Scalars["bigint"]["output"]>;
+  verifications?: Maybe<Scalars["bigint"]["output"]>;
+};
+
+/** update columns of table "action_verification_stats_total" */
+export enum Action_Verification_Stats_Total_Update_Column {
+  /** column name */
+  ActionId = "action_id",
+  /** column name */
+  AppId = "app_id",
+  /** column name */
+  Environment = "environment",
+  /** column name */
+  LatestVerificationAt = "latest_verification_at",
+  /** column name */
+  RepeatedVerifications = "repeated_verifications",
+  /** column name */
+  Source = "source",
+  /** column name */
+  UniqueVerifications = "unique_verifications",
+  /** column name */
+  UpdatedAt = "updated_at",
+  /** column name */
+  Verifications = "verifications",
+}
+
+export type Action_Verification_Stats_Total_Updates = {
+  /** increments the numeric columns with given value of the filtered values */
+  _inc?: InputMaybe<Action_Verification_Stats_Total_Inc_Input>;
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<Action_Verification_Stats_Total_Set_Input>;
+  /** filter the rows which have to be updated */
+  where: Action_Verification_Stats_Total_Bool_Exp;
+};
+
+/** aggregate var_pop on columns */
+export type Action_Verification_Stats_Total_Var_Pop_Fields = {
+  __typename?: "action_verification_stats_total_var_pop_fields";
+  repeated_verifications?: Maybe<Scalars["Float"]["output"]>;
+  unique_verifications?: Maybe<Scalars["Float"]["output"]>;
+  verifications?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** aggregate var_samp on columns */
+export type Action_Verification_Stats_Total_Var_Samp_Fields = {
+  __typename?: "action_verification_stats_total_var_samp_fields";
+  repeated_verifications?: Maybe<Scalars["Float"]["output"]>;
+  unique_verifications?: Maybe<Scalars["Float"]["output"]>;
+  verifications?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** aggregate variance on columns */
+export type Action_Verification_Stats_Total_Variance_Fields = {
+  __typename?: "action_verification_stats_total_variance_fields";
+  repeated_verifications?: Maybe<Scalars["Float"]["output"]>;
+  unique_verifications?: Maybe<Scalars["Float"]["output"]>;
+  verifications?: Maybe<Scalars["Float"]["output"]>;
+};
+
 export type Admin_Dashboard_Inventory = {
   __typename?: "admin_dashboard_inventory";
   active_api_keys: Scalars["bigint"]["output"];
@@ -4949,6 +5562,595 @@ export type App_Variance_Order_By = {
   rating_sum?: InputMaybe<Order_By>;
 };
 
+/** columns and relationships of "app_verification_stats_daily" */
+export type App_Verification_Stats_Daily = {
+  __typename?: "app_verification_stats_daily";
+  app_id: Scalars["String"]["output"];
+  date: Scalars["date"]["output"];
+  environment: Scalars["String"]["output"];
+  latest_verification_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  repeated_verifications: Scalars["bigint"]["output"];
+  source: Scalars["String"]["output"];
+  unique_verifications: Scalars["bigint"]["output"];
+  updated_at: Scalars["timestamptz"]["output"];
+  verifications: Scalars["bigint"]["output"];
+};
+
+/** aggregated selection of "app_verification_stats_daily" */
+export type App_Verification_Stats_Daily_Aggregate = {
+  __typename?: "app_verification_stats_daily_aggregate";
+  aggregate?: Maybe<App_Verification_Stats_Daily_Aggregate_Fields>;
+  nodes: Array<App_Verification_Stats_Daily>;
+};
+
+/** aggregate fields of "app_verification_stats_daily" */
+export type App_Verification_Stats_Daily_Aggregate_Fields = {
+  __typename?: "app_verification_stats_daily_aggregate_fields";
+  avg?: Maybe<App_Verification_Stats_Daily_Avg_Fields>;
+  count: Scalars["Int"]["output"];
+  max?: Maybe<App_Verification_Stats_Daily_Max_Fields>;
+  min?: Maybe<App_Verification_Stats_Daily_Min_Fields>;
+  stddev?: Maybe<App_Verification_Stats_Daily_Stddev_Fields>;
+  stddev_pop?: Maybe<App_Verification_Stats_Daily_Stddev_Pop_Fields>;
+  stddev_samp?: Maybe<App_Verification_Stats_Daily_Stddev_Samp_Fields>;
+  sum?: Maybe<App_Verification_Stats_Daily_Sum_Fields>;
+  var_pop?: Maybe<App_Verification_Stats_Daily_Var_Pop_Fields>;
+  var_samp?: Maybe<App_Verification_Stats_Daily_Var_Samp_Fields>;
+  variance?: Maybe<App_Verification_Stats_Daily_Variance_Fields>;
+};
+
+/** aggregate fields of "app_verification_stats_daily" */
+export type App_Verification_Stats_Daily_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<App_Verification_Stats_Daily_Select_Column>>;
+  distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
+};
+
+/** aggregate avg on columns */
+export type App_Verification_Stats_Daily_Avg_Fields = {
+  __typename?: "app_verification_stats_daily_avg_fields";
+  repeated_verifications?: Maybe<Scalars["Float"]["output"]>;
+  unique_verifications?: Maybe<Scalars["Float"]["output"]>;
+  verifications?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** Boolean expression to filter rows from the table "app_verification_stats_daily". All fields are combined with a logical 'AND'. */
+export type App_Verification_Stats_Daily_Bool_Exp = {
+  _and?: InputMaybe<Array<App_Verification_Stats_Daily_Bool_Exp>>;
+  _not?: InputMaybe<App_Verification_Stats_Daily_Bool_Exp>;
+  _or?: InputMaybe<Array<App_Verification_Stats_Daily_Bool_Exp>>;
+  app_id?: InputMaybe<String_Comparison_Exp>;
+  date?: InputMaybe<Date_Comparison_Exp>;
+  environment?: InputMaybe<String_Comparison_Exp>;
+  latest_verification_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+  repeated_verifications?: InputMaybe<Bigint_Comparison_Exp>;
+  source?: InputMaybe<String_Comparison_Exp>;
+  unique_verifications?: InputMaybe<Bigint_Comparison_Exp>;
+  updated_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+  verifications?: InputMaybe<Bigint_Comparison_Exp>;
+};
+
+/** unique or primary key constraints on table "app_verification_stats_daily" */
+export enum App_Verification_Stats_Daily_Constraint {
+  /** unique or primary key constraint on columns "environment", "date", "app_id", "source" */
+  AppVerificationStatsDailyPkey = "app_verification_stats_daily_pkey",
+}
+
+/** input type for incrementing numeric columns in table "app_verification_stats_daily" */
+export type App_Verification_Stats_Daily_Inc_Input = {
+  repeated_verifications?: InputMaybe<Scalars["bigint"]["input"]>;
+  unique_verifications?: InputMaybe<Scalars["bigint"]["input"]>;
+  verifications?: InputMaybe<Scalars["bigint"]["input"]>;
+};
+
+/** input type for inserting data into table "app_verification_stats_daily" */
+export type App_Verification_Stats_Daily_Insert_Input = {
+  app_id?: InputMaybe<Scalars["String"]["input"]>;
+  date?: InputMaybe<Scalars["date"]["input"]>;
+  environment?: InputMaybe<Scalars["String"]["input"]>;
+  latest_verification_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  repeated_verifications?: InputMaybe<Scalars["bigint"]["input"]>;
+  source?: InputMaybe<Scalars["String"]["input"]>;
+  unique_verifications?: InputMaybe<Scalars["bigint"]["input"]>;
+  updated_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  verifications?: InputMaybe<Scalars["bigint"]["input"]>;
+};
+
+/** aggregate max on columns */
+export type App_Verification_Stats_Daily_Max_Fields = {
+  __typename?: "app_verification_stats_daily_max_fields";
+  app_id?: Maybe<Scalars["String"]["output"]>;
+  date?: Maybe<Scalars["date"]["output"]>;
+  environment?: Maybe<Scalars["String"]["output"]>;
+  latest_verification_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  repeated_verifications?: Maybe<Scalars["bigint"]["output"]>;
+  source?: Maybe<Scalars["String"]["output"]>;
+  unique_verifications?: Maybe<Scalars["bigint"]["output"]>;
+  updated_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  verifications?: Maybe<Scalars["bigint"]["output"]>;
+};
+
+/** aggregate min on columns */
+export type App_Verification_Stats_Daily_Min_Fields = {
+  __typename?: "app_verification_stats_daily_min_fields";
+  app_id?: Maybe<Scalars["String"]["output"]>;
+  date?: Maybe<Scalars["date"]["output"]>;
+  environment?: Maybe<Scalars["String"]["output"]>;
+  latest_verification_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  repeated_verifications?: Maybe<Scalars["bigint"]["output"]>;
+  source?: Maybe<Scalars["String"]["output"]>;
+  unique_verifications?: Maybe<Scalars["bigint"]["output"]>;
+  updated_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  verifications?: Maybe<Scalars["bigint"]["output"]>;
+};
+
+/** response of any mutation on the table "app_verification_stats_daily" */
+export type App_Verification_Stats_Daily_Mutation_Response = {
+  __typename?: "app_verification_stats_daily_mutation_response";
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars["Int"]["output"];
+  /** data from the rows affected by the mutation */
+  returning: Array<App_Verification_Stats_Daily>;
+};
+
+/** on_conflict condition type for table "app_verification_stats_daily" */
+export type App_Verification_Stats_Daily_On_Conflict = {
+  constraint: App_Verification_Stats_Daily_Constraint;
+  update_columns?: Array<App_Verification_Stats_Daily_Update_Column>;
+  where?: InputMaybe<App_Verification_Stats_Daily_Bool_Exp>;
+};
+
+/** Ordering options when selecting data from "app_verification_stats_daily". */
+export type App_Verification_Stats_Daily_Order_By = {
+  app_id?: InputMaybe<Order_By>;
+  date?: InputMaybe<Order_By>;
+  environment?: InputMaybe<Order_By>;
+  latest_verification_at?: InputMaybe<Order_By>;
+  repeated_verifications?: InputMaybe<Order_By>;
+  source?: InputMaybe<Order_By>;
+  unique_verifications?: InputMaybe<Order_By>;
+  updated_at?: InputMaybe<Order_By>;
+  verifications?: InputMaybe<Order_By>;
+};
+
+/** primary key columns input for table: app_verification_stats_daily */
+export type App_Verification_Stats_Daily_Pk_Columns_Input = {
+  app_id: Scalars["String"]["input"];
+  date: Scalars["date"]["input"];
+  environment: Scalars["String"]["input"];
+  source: Scalars["String"]["input"];
+};
+
+/** select columns of table "app_verification_stats_daily" */
+export enum App_Verification_Stats_Daily_Select_Column {
+  /** column name */
+  AppId = "app_id",
+  /** column name */
+  Date = "date",
+  /** column name */
+  Environment = "environment",
+  /** column name */
+  LatestVerificationAt = "latest_verification_at",
+  /** column name */
+  RepeatedVerifications = "repeated_verifications",
+  /** column name */
+  Source = "source",
+  /** column name */
+  UniqueVerifications = "unique_verifications",
+  /** column name */
+  UpdatedAt = "updated_at",
+  /** column name */
+  Verifications = "verifications",
+}
+
+/** input type for updating data in table "app_verification_stats_daily" */
+export type App_Verification_Stats_Daily_Set_Input = {
+  app_id?: InputMaybe<Scalars["String"]["input"]>;
+  date?: InputMaybe<Scalars["date"]["input"]>;
+  environment?: InputMaybe<Scalars["String"]["input"]>;
+  latest_verification_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  repeated_verifications?: InputMaybe<Scalars["bigint"]["input"]>;
+  source?: InputMaybe<Scalars["String"]["input"]>;
+  unique_verifications?: InputMaybe<Scalars["bigint"]["input"]>;
+  updated_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  verifications?: InputMaybe<Scalars["bigint"]["input"]>;
+};
+
+/** aggregate stddev on columns */
+export type App_Verification_Stats_Daily_Stddev_Fields = {
+  __typename?: "app_verification_stats_daily_stddev_fields";
+  repeated_verifications?: Maybe<Scalars["Float"]["output"]>;
+  unique_verifications?: Maybe<Scalars["Float"]["output"]>;
+  verifications?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** aggregate stddev_pop on columns */
+export type App_Verification_Stats_Daily_Stddev_Pop_Fields = {
+  __typename?: "app_verification_stats_daily_stddev_pop_fields";
+  repeated_verifications?: Maybe<Scalars["Float"]["output"]>;
+  unique_verifications?: Maybe<Scalars["Float"]["output"]>;
+  verifications?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** aggregate stddev_samp on columns */
+export type App_Verification_Stats_Daily_Stddev_Samp_Fields = {
+  __typename?: "app_verification_stats_daily_stddev_samp_fields";
+  repeated_verifications?: Maybe<Scalars["Float"]["output"]>;
+  unique_verifications?: Maybe<Scalars["Float"]["output"]>;
+  verifications?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** Streaming cursor of the table "app_verification_stats_daily" */
+export type App_Verification_Stats_Daily_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: App_Verification_Stats_Daily_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type App_Verification_Stats_Daily_Stream_Cursor_Value_Input = {
+  app_id?: InputMaybe<Scalars["String"]["input"]>;
+  date?: InputMaybe<Scalars["date"]["input"]>;
+  environment?: InputMaybe<Scalars["String"]["input"]>;
+  latest_verification_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  repeated_verifications?: InputMaybe<Scalars["bigint"]["input"]>;
+  source?: InputMaybe<Scalars["String"]["input"]>;
+  unique_verifications?: InputMaybe<Scalars["bigint"]["input"]>;
+  updated_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  verifications?: InputMaybe<Scalars["bigint"]["input"]>;
+};
+
+/** aggregate sum on columns */
+export type App_Verification_Stats_Daily_Sum_Fields = {
+  __typename?: "app_verification_stats_daily_sum_fields";
+  repeated_verifications?: Maybe<Scalars["bigint"]["output"]>;
+  unique_verifications?: Maybe<Scalars["bigint"]["output"]>;
+  verifications?: Maybe<Scalars["bigint"]["output"]>;
+};
+
+/** update columns of table "app_verification_stats_daily" */
+export enum App_Verification_Stats_Daily_Update_Column {
+  /** column name */
+  AppId = "app_id",
+  /** column name */
+  Date = "date",
+  /** column name */
+  Environment = "environment",
+  /** column name */
+  LatestVerificationAt = "latest_verification_at",
+  /** column name */
+  RepeatedVerifications = "repeated_verifications",
+  /** column name */
+  Source = "source",
+  /** column name */
+  UniqueVerifications = "unique_verifications",
+  /** column name */
+  UpdatedAt = "updated_at",
+  /** column name */
+  Verifications = "verifications",
+}
+
+export type App_Verification_Stats_Daily_Updates = {
+  /** increments the numeric columns with given value of the filtered values */
+  _inc?: InputMaybe<App_Verification_Stats_Daily_Inc_Input>;
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<App_Verification_Stats_Daily_Set_Input>;
+  /** filter the rows which have to be updated */
+  where: App_Verification_Stats_Daily_Bool_Exp;
+};
+
+/** aggregate var_pop on columns */
+export type App_Verification_Stats_Daily_Var_Pop_Fields = {
+  __typename?: "app_verification_stats_daily_var_pop_fields";
+  repeated_verifications?: Maybe<Scalars["Float"]["output"]>;
+  unique_verifications?: Maybe<Scalars["Float"]["output"]>;
+  verifications?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** aggregate var_samp on columns */
+export type App_Verification_Stats_Daily_Var_Samp_Fields = {
+  __typename?: "app_verification_stats_daily_var_samp_fields";
+  repeated_verifications?: Maybe<Scalars["Float"]["output"]>;
+  unique_verifications?: Maybe<Scalars["Float"]["output"]>;
+  verifications?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** aggregate variance on columns */
+export type App_Verification_Stats_Daily_Variance_Fields = {
+  __typename?: "app_verification_stats_daily_variance_fields";
+  repeated_verifications?: Maybe<Scalars["Float"]["output"]>;
+  unique_verifications?: Maybe<Scalars["Float"]["output"]>;
+  verifications?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** columns and relationships of "app_verification_stats_total" */
+export type App_Verification_Stats_Total = {
+  __typename?: "app_verification_stats_total";
+  app_id: Scalars["String"]["output"];
+  environment: Scalars["String"]["output"];
+  latest_verification_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  repeated_verifications: Scalars["bigint"]["output"];
+  source: Scalars["String"]["output"];
+  unique_verifications: Scalars["bigint"]["output"];
+  updated_at: Scalars["timestamptz"]["output"];
+  verifications: Scalars["bigint"]["output"];
+};
+
+/** aggregated selection of "app_verification_stats_total" */
+export type App_Verification_Stats_Total_Aggregate = {
+  __typename?: "app_verification_stats_total_aggregate";
+  aggregate?: Maybe<App_Verification_Stats_Total_Aggregate_Fields>;
+  nodes: Array<App_Verification_Stats_Total>;
+};
+
+/** aggregate fields of "app_verification_stats_total" */
+export type App_Verification_Stats_Total_Aggregate_Fields = {
+  __typename?: "app_verification_stats_total_aggregate_fields";
+  avg?: Maybe<App_Verification_Stats_Total_Avg_Fields>;
+  count: Scalars["Int"]["output"];
+  max?: Maybe<App_Verification_Stats_Total_Max_Fields>;
+  min?: Maybe<App_Verification_Stats_Total_Min_Fields>;
+  stddev?: Maybe<App_Verification_Stats_Total_Stddev_Fields>;
+  stddev_pop?: Maybe<App_Verification_Stats_Total_Stddev_Pop_Fields>;
+  stddev_samp?: Maybe<App_Verification_Stats_Total_Stddev_Samp_Fields>;
+  sum?: Maybe<App_Verification_Stats_Total_Sum_Fields>;
+  var_pop?: Maybe<App_Verification_Stats_Total_Var_Pop_Fields>;
+  var_samp?: Maybe<App_Verification_Stats_Total_Var_Samp_Fields>;
+  variance?: Maybe<App_Verification_Stats_Total_Variance_Fields>;
+};
+
+/** aggregate fields of "app_verification_stats_total" */
+export type App_Verification_Stats_Total_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<App_Verification_Stats_Total_Select_Column>>;
+  distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
+};
+
+/** aggregate avg on columns */
+export type App_Verification_Stats_Total_Avg_Fields = {
+  __typename?: "app_verification_stats_total_avg_fields";
+  repeated_verifications?: Maybe<Scalars["Float"]["output"]>;
+  unique_verifications?: Maybe<Scalars["Float"]["output"]>;
+  verifications?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** Boolean expression to filter rows from the table "app_verification_stats_total". All fields are combined with a logical 'AND'. */
+export type App_Verification_Stats_Total_Bool_Exp = {
+  _and?: InputMaybe<Array<App_Verification_Stats_Total_Bool_Exp>>;
+  _not?: InputMaybe<App_Verification_Stats_Total_Bool_Exp>;
+  _or?: InputMaybe<Array<App_Verification_Stats_Total_Bool_Exp>>;
+  app_id?: InputMaybe<String_Comparison_Exp>;
+  environment?: InputMaybe<String_Comparison_Exp>;
+  latest_verification_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+  repeated_verifications?: InputMaybe<Bigint_Comparison_Exp>;
+  source?: InputMaybe<String_Comparison_Exp>;
+  unique_verifications?: InputMaybe<Bigint_Comparison_Exp>;
+  updated_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+  verifications?: InputMaybe<Bigint_Comparison_Exp>;
+};
+
+/** unique or primary key constraints on table "app_verification_stats_total" */
+export enum App_Verification_Stats_Total_Constraint {
+  /** unique or primary key constraint on columns "environment", "app_id", "source" */
+  AppVerificationStatsTotalPkey = "app_verification_stats_total_pkey",
+}
+
+/** input type for incrementing numeric columns in table "app_verification_stats_total" */
+export type App_Verification_Stats_Total_Inc_Input = {
+  repeated_verifications?: InputMaybe<Scalars["bigint"]["input"]>;
+  unique_verifications?: InputMaybe<Scalars["bigint"]["input"]>;
+  verifications?: InputMaybe<Scalars["bigint"]["input"]>;
+};
+
+/** input type for inserting data into table "app_verification_stats_total" */
+export type App_Verification_Stats_Total_Insert_Input = {
+  app_id?: InputMaybe<Scalars["String"]["input"]>;
+  environment?: InputMaybe<Scalars["String"]["input"]>;
+  latest_verification_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  repeated_verifications?: InputMaybe<Scalars["bigint"]["input"]>;
+  source?: InputMaybe<Scalars["String"]["input"]>;
+  unique_verifications?: InputMaybe<Scalars["bigint"]["input"]>;
+  updated_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  verifications?: InputMaybe<Scalars["bigint"]["input"]>;
+};
+
+/** aggregate max on columns */
+export type App_Verification_Stats_Total_Max_Fields = {
+  __typename?: "app_verification_stats_total_max_fields";
+  app_id?: Maybe<Scalars["String"]["output"]>;
+  environment?: Maybe<Scalars["String"]["output"]>;
+  latest_verification_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  repeated_verifications?: Maybe<Scalars["bigint"]["output"]>;
+  source?: Maybe<Scalars["String"]["output"]>;
+  unique_verifications?: Maybe<Scalars["bigint"]["output"]>;
+  updated_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  verifications?: Maybe<Scalars["bigint"]["output"]>;
+};
+
+/** aggregate min on columns */
+export type App_Verification_Stats_Total_Min_Fields = {
+  __typename?: "app_verification_stats_total_min_fields";
+  app_id?: Maybe<Scalars["String"]["output"]>;
+  environment?: Maybe<Scalars["String"]["output"]>;
+  latest_verification_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  repeated_verifications?: Maybe<Scalars["bigint"]["output"]>;
+  source?: Maybe<Scalars["String"]["output"]>;
+  unique_verifications?: Maybe<Scalars["bigint"]["output"]>;
+  updated_at?: Maybe<Scalars["timestamptz"]["output"]>;
+  verifications?: Maybe<Scalars["bigint"]["output"]>;
+};
+
+/** response of any mutation on the table "app_verification_stats_total" */
+export type App_Verification_Stats_Total_Mutation_Response = {
+  __typename?: "app_verification_stats_total_mutation_response";
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars["Int"]["output"];
+  /** data from the rows affected by the mutation */
+  returning: Array<App_Verification_Stats_Total>;
+};
+
+/** on_conflict condition type for table "app_verification_stats_total" */
+export type App_Verification_Stats_Total_On_Conflict = {
+  constraint: App_Verification_Stats_Total_Constraint;
+  update_columns?: Array<App_Verification_Stats_Total_Update_Column>;
+  where?: InputMaybe<App_Verification_Stats_Total_Bool_Exp>;
+};
+
+/** Ordering options when selecting data from "app_verification_stats_total". */
+export type App_Verification_Stats_Total_Order_By = {
+  app_id?: InputMaybe<Order_By>;
+  environment?: InputMaybe<Order_By>;
+  latest_verification_at?: InputMaybe<Order_By>;
+  repeated_verifications?: InputMaybe<Order_By>;
+  source?: InputMaybe<Order_By>;
+  unique_verifications?: InputMaybe<Order_By>;
+  updated_at?: InputMaybe<Order_By>;
+  verifications?: InputMaybe<Order_By>;
+};
+
+/** primary key columns input for table: app_verification_stats_total */
+export type App_Verification_Stats_Total_Pk_Columns_Input = {
+  app_id: Scalars["String"]["input"];
+  environment: Scalars["String"]["input"];
+  source: Scalars["String"]["input"];
+};
+
+/** select columns of table "app_verification_stats_total" */
+export enum App_Verification_Stats_Total_Select_Column {
+  /** column name */
+  AppId = "app_id",
+  /** column name */
+  Environment = "environment",
+  /** column name */
+  LatestVerificationAt = "latest_verification_at",
+  /** column name */
+  RepeatedVerifications = "repeated_verifications",
+  /** column name */
+  Source = "source",
+  /** column name */
+  UniqueVerifications = "unique_verifications",
+  /** column name */
+  UpdatedAt = "updated_at",
+  /** column name */
+  Verifications = "verifications",
+}
+
+/** input type for updating data in table "app_verification_stats_total" */
+export type App_Verification_Stats_Total_Set_Input = {
+  app_id?: InputMaybe<Scalars["String"]["input"]>;
+  environment?: InputMaybe<Scalars["String"]["input"]>;
+  latest_verification_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  repeated_verifications?: InputMaybe<Scalars["bigint"]["input"]>;
+  source?: InputMaybe<Scalars["String"]["input"]>;
+  unique_verifications?: InputMaybe<Scalars["bigint"]["input"]>;
+  updated_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  verifications?: InputMaybe<Scalars["bigint"]["input"]>;
+};
+
+/** aggregate stddev on columns */
+export type App_Verification_Stats_Total_Stddev_Fields = {
+  __typename?: "app_verification_stats_total_stddev_fields";
+  repeated_verifications?: Maybe<Scalars["Float"]["output"]>;
+  unique_verifications?: Maybe<Scalars["Float"]["output"]>;
+  verifications?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** aggregate stddev_pop on columns */
+export type App_Verification_Stats_Total_Stddev_Pop_Fields = {
+  __typename?: "app_verification_stats_total_stddev_pop_fields";
+  repeated_verifications?: Maybe<Scalars["Float"]["output"]>;
+  unique_verifications?: Maybe<Scalars["Float"]["output"]>;
+  verifications?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** aggregate stddev_samp on columns */
+export type App_Verification_Stats_Total_Stddev_Samp_Fields = {
+  __typename?: "app_verification_stats_total_stddev_samp_fields";
+  repeated_verifications?: Maybe<Scalars["Float"]["output"]>;
+  unique_verifications?: Maybe<Scalars["Float"]["output"]>;
+  verifications?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** Streaming cursor of the table "app_verification_stats_total" */
+export type App_Verification_Stats_Total_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: App_Verification_Stats_Total_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type App_Verification_Stats_Total_Stream_Cursor_Value_Input = {
+  app_id?: InputMaybe<Scalars["String"]["input"]>;
+  environment?: InputMaybe<Scalars["String"]["input"]>;
+  latest_verification_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  repeated_verifications?: InputMaybe<Scalars["bigint"]["input"]>;
+  source?: InputMaybe<Scalars["String"]["input"]>;
+  unique_verifications?: InputMaybe<Scalars["bigint"]["input"]>;
+  updated_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  verifications?: InputMaybe<Scalars["bigint"]["input"]>;
+};
+
+/** aggregate sum on columns */
+export type App_Verification_Stats_Total_Sum_Fields = {
+  __typename?: "app_verification_stats_total_sum_fields";
+  repeated_verifications?: Maybe<Scalars["bigint"]["output"]>;
+  unique_verifications?: Maybe<Scalars["bigint"]["output"]>;
+  verifications?: Maybe<Scalars["bigint"]["output"]>;
+};
+
+/** update columns of table "app_verification_stats_total" */
+export enum App_Verification_Stats_Total_Update_Column {
+  /** column name */
+  AppId = "app_id",
+  /** column name */
+  Environment = "environment",
+  /** column name */
+  LatestVerificationAt = "latest_verification_at",
+  /** column name */
+  RepeatedVerifications = "repeated_verifications",
+  /** column name */
+  Source = "source",
+  /** column name */
+  UniqueVerifications = "unique_verifications",
+  /** column name */
+  UpdatedAt = "updated_at",
+  /** column name */
+  Verifications = "verifications",
+}
+
+export type App_Verification_Stats_Total_Updates = {
+  /** increments the numeric columns with given value of the filtered values */
+  _inc?: InputMaybe<App_Verification_Stats_Total_Inc_Input>;
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<App_Verification_Stats_Total_Set_Input>;
+  /** filter the rows which have to be updated */
+  where: App_Verification_Stats_Total_Bool_Exp;
+};
+
+/** aggregate var_pop on columns */
+export type App_Verification_Stats_Total_Var_Pop_Fields = {
+  __typename?: "app_verification_stats_total_var_pop_fields";
+  repeated_verifications?: Maybe<Scalars["Float"]["output"]>;
+  unique_verifications?: Maybe<Scalars["Float"]["output"]>;
+  verifications?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** aggregate var_samp on columns */
+export type App_Verification_Stats_Total_Var_Samp_Fields = {
+  __typename?: "app_verification_stats_total_var_samp_fields";
+  repeated_verifications?: Maybe<Scalars["Float"]["output"]>;
+  unique_verifications?: Maybe<Scalars["Float"]["output"]>;
+  verifications?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** aggregate variance on columns */
+export type App_Verification_Stats_Total_Variance_Fields = {
+  __typename?: "app_verification_stats_total_variance_fields";
+  repeated_verifications?: Maybe<Scalars["Float"]["output"]>;
+  unique_verifications?: Maybe<Scalars["Float"]["output"]>;
+  verifications?: Maybe<Scalars["Float"]["output"]>;
+};
+
 /** columns and relationships of "auth_code" */
 export type Auth_Code = {
   __typename?: "auth_code";
@@ -6519,6 +7721,14 @@ export type Mutation_Root = {
   delete_action_v4?: Maybe<Action_V4_Mutation_Response>;
   /** delete single row from the table: "action_v4" */
   delete_action_v4_by_pk?: Maybe<Action_V4>;
+  /** delete data from the table: "action_verification_stats_daily" */
+  delete_action_verification_stats_daily?: Maybe<Action_Verification_Stats_Daily_Mutation_Response>;
+  /** delete single row from the table: "action_verification_stats_daily" */
+  delete_action_verification_stats_daily_by_pk?: Maybe<Action_Verification_Stats_Daily>;
+  /** delete data from the table: "action_verification_stats_total" */
+  delete_action_verification_stats_total?: Maybe<Action_Verification_Stats_Total_Mutation_Response>;
+  /** delete single row from the table: "action_verification_stats_total" */
+  delete_action_verification_stats_total_by_pk?: Maybe<Action_Verification_Stats_Total>;
   /** delete data from the table: "api_key" */
   delete_api_key?: Maybe<Api_Key_Mutation_Response>;
   /** delete single row from the table: "api_key" */
@@ -6555,6 +7765,14 @@ export type Mutation_Root = {
   delete_app_stats?: Maybe<App_Stats_Mutation_Response>;
   /** delete single row from the table: "app_stats" */
   delete_app_stats_by_pk?: Maybe<App_Stats>;
+  /** delete data from the table: "app_verification_stats_daily" */
+  delete_app_verification_stats_daily?: Maybe<App_Verification_Stats_Daily_Mutation_Response>;
+  /** delete single row from the table: "app_verification_stats_daily" */
+  delete_app_verification_stats_daily_by_pk?: Maybe<App_Verification_Stats_Daily>;
+  /** delete data from the table: "app_verification_stats_total" */
+  delete_app_verification_stats_total?: Maybe<App_Verification_Stats_Total_Mutation_Response>;
+  /** delete single row from the table: "app_verification_stats_total" */
+  delete_app_verification_stats_total_by_pk?: Maybe<App_Verification_Stats_Total>;
   /** delete data from the table: "auth_code" */
   delete_auth_code?: Maybe<Auth_Code_Mutation_Response>;
   /** delete single row from the table: "auth_code" */
@@ -6620,6 +7838,8 @@ export type Mutation_Root = {
   delete_user?: Maybe<User_Mutation_Response>;
   /** delete single row from the table: "user" */
   delete_user_by_pk?: Maybe<User>;
+  /** delete data from the table: "verification_job_returning" */
+  delete_verification_job_returning?: Maybe<Verification_Job_Returning_Mutation_Response>;
   /** insert data into the table: "action" */
   insert_action?: Maybe<Action_Mutation_Response>;
   /** insert a single row into the table: "action" */
@@ -6632,6 +7852,14 @@ export type Mutation_Root = {
   insert_action_v4?: Maybe<Action_V4_Mutation_Response>;
   /** insert a single row into the table: "action_v4" */
   insert_action_v4_one?: Maybe<Action_V4>;
+  /** insert data into the table: "action_verification_stats_daily" */
+  insert_action_verification_stats_daily?: Maybe<Action_Verification_Stats_Daily_Mutation_Response>;
+  /** insert a single row into the table: "action_verification_stats_daily" */
+  insert_action_verification_stats_daily_one?: Maybe<Action_Verification_Stats_Daily>;
+  /** insert data into the table: "action_verification_stats_total" */
+  insert_action_verification_stats_total?: Maybe<Action_Verification_Stats_Total_Mutation_Response>;
+  /** insert a single row into the table: "action_verification_stats_total" */
+  insert_action_verification_stats_total_one?: Maybe<Action_Verification_Stats_Total>;
   /** insert data into the table: "api_key" */
   insert_api_key?: Maybe<Api_Key_Mutation_Response>;
   /** insert a single row into the table: "api_key" */
@@ -6668,6 +7896,14 @@ export type Mutation_Root = {
   insert_app_stats?: Maybe<App_Stats_Mutation_Response>;
   /** insert a single row into the table: "app_stats" */
   insert_app_stats_one?: Maybe<App_Stats>;
+  /** insert data into the table: "app_verification_stats_daily" */
+  insert_app_verification_stats_daily?: Maybe<App_Verification_Stats_Daily_Mutation_Response>;
+  /** insert a single row into the table: "app_verification_stats_daily" */
+  insert_app_verification_stats_daily_one?: Maybe<App_Verification_Stats_Daily>;
+  /** insert data into the table: "app_verification_stats_total" */
+  insert_app_verification_stats_total?: Maybe<App_Verification_Stats_Total_Mutation_Response>;
+  /** insert a single row into the table: "app_verification_stats_total" */
+  insert_app_verification_stats_total_one?: Maybe<App_Verification_Stats_Total>;
   /** insert data into the table: "auth_code" */
   insert_auth_code?: Maybe<Auth_Code_Mutation_Response>;
   /** insert a single row into the table: "auth_code" */
@@ -6732,11 +7968,17 @@ export type Mutation_Root = {
   insert_user?: Maybe<User_Mutation_Response>;
   /** insert a single row into the table: "user" */
   insert_user_one?: Maybe<User>;
+  /** insert data into the table: "verification_job_returning" */
+  insert_verification_job_returning?: Maybe<Verification_Job_Returning_Mutation_Response>;
+  /** insert a single row into the table: "verification_job_returning" */
+  insert_verification_job_returning_one?: Maybe<Verification_Job_Returning>;
   invalidate_cache?: Maybe<InvalidateCacheOutput>;
   /** Create invites and send emails */
   invite_team_members?: Maybe<InviteTeamMembersOutput>;
   /** execute VOLATILE function "merge_world_id_accounts" which returns "user" */
   merge_world_id_accounts: Array<User>;
+  /** execute VOLATILE function "reconcile_verification_stats" which returns "verification_job_returning" */
+  reconcile_verification_stats: Array<Verification_Job_Returning>;
   /** Register an RP (Relying Party) for an app with managed mode */
   register_rp?: Maybe<RegisterRpOutput>;
   /** Reset the given API key for the developer portal */
@@ -6747,6 +7989,8 @@ export type Mutation_Root = {
   retry_rp?: Maybe<RetryRpOutput>;
   /** execute VOLATILE function "rollup_app_stats" which returns "app_stats" */
   rollup_app_stats: Array<App_Stats>;
+  /** execute VOLATILE function "rollup_verification_stats" which returns "verification_job_returning" */
+  rollup_verification_stats: Array<Verification_Job_Returning>;
   /** Rotate the signer key for an RP (Relying Party) */
   rotate_signer_key?: Maybe<RotateSignerKeyOutput>;
   /** Switch an RP from managed to self-managed mode by transferring the on-chain manager key */
@@ -6775,6 +8019,22 @@ export type Mutation_Root = {
   update_action_v4_by_pk?: Maybe<Action_V4>;
   /** update multiples rows of table: "action_v4" */
   update_action_v4_many?: Maybe<Array<Maybe<Action_V4_Mutation_Response>>>;
+  /** update data of the table: "action_verification_stats_daily" */
+  update_action_verification_stats_daily?: Maybe<Action_Verification_Stats_Daily_Mutation_Response>;
+  /** update single row of the table: "action_verification_stats_daily" */
+  update_action_verification_stats_daily_by_pk?: Maybe<Action_Verification_Stats_Daily>;
+  /** update multiples rows of table: "action_verification_stats_daily" */
+  update_action_verification_stats_daily_many?: Maybe<
+    Array<Maybe<Action_Verification_Stats_Daily_Mutation_Response>>
+  >;
+  /** update data of the table: "action_verification_stats_total" */
+  update_action_verification_stats_total?: Maybe<Action_Verification_Stats_Total_Mutation_Response>;
+  /** update single row of the table: "action_verification_stats_total" */
+  update_action_verification_stats_total_by_pk?: Maybe<Action_Verification_Stats_Total>;
+  /** update multiples rows of table: "action_verification_stats_total" */
+  update_action_verification_stats_total_many?: Maybe<
+    Array<Maybe<Action_Verification_Stats_Total_Mutation_Response>>
+  >;
   /** update data of the table: "api_key" */
   update_api_key?: Maybe<Api_Key_Mutation_Response>;
   /** update single row of the table: "api_key" */
@@ -6837,6 +8097,22 @@ export type Mutation_Root = {
   update_app_stats_by_pk?: Maybe<App_Stats>;
   /** update multiples rows of table: "app_stats" */
   update_app_stats_many?: Maybe<Array<Maybe<App_Stats_Mutation_Response>>>;
+  /** update data of the table: "app_verification_stats_daily" */
+  update_app_verification_stats_daily?: Maybe<App_Verification_Stats_Daily_Mutation_Response>;
+  /** update single row of the table: "app_verification_stats_daily" */
+  update_app_verification_stats_daily_by_pk?: Maybe<App_Verification_Stats_Daily>;
+  /** update multiples rows of table: "app_verification_stats_daily" */
+  update_app_verification_stats_daily_many?: Maybe<
+    Array<Maybe<App_Verification_Stats_Daily_Mutation_Response>>
+  >;
+  /** update data of the table: "app_verification_stats_total" */
+  update_app_verification_stats_total?: Maybe<App_Verification_Stats_Total_Mutation_Response>;
+  /** update single row of the table: "app_verification_stats_total" */
+  update_app_verification_stats_total_by_pk?: Maybe<App_Verification_Stats_Total>;
+  /** update multiples rows of table: "app_verification_stats_total" */
+  update_app_verification_stats_total_many?: Maybe<
+    Array<Maybe<App_Verification_Stats_Total_Mutation_Response>>
+  >;
   /** update data of the table: "auth_code" */
   update_auth_code?: Maybe<Auth_Code_Mutation_Response>;
   /** update single row of the table: "auth_code" */
@@ -6945,6 +8221,12 @@ export type Mutation_Root = {
   update_user_by_pk?: Maybe<User>;
   /** update multiples rows of table: "user" */
   update_user_many?: Maybe<Array<Maybe<User_Mutation_Response>>>;
+  /** update data of the table: "verification_job_returning" */
+  update_verification_job_returning?: Maybe<Verification_Job_Returning_Mutation_Response>;
+  /** update multiples rows of table: "verification_job_returning" */
+  update_verification_job_returning_many?: Maybe<
+    Array<Maybe<Verification_Job_Returning_Mutation_Response>>
+  >;
   validate_localisation?: Maybe<ValidateLocalisationOutput>;
   /** Verify an App */
   verify_app?: Maybe<VerifyAppOutput>;
@@ -7009,6 +8291,31 @@ export type Mutation_RootDelete_Action_V4Args = {
 /** mutation root */
 export type Mutation_RootDelete_Action_V4_By_PkArgs = {
   id: Scalars["String"]["input"];
+};
+
+/** mutation root */
+export type Mutation_RootDelete_Action_Verification_Stats_DailyArgs = {
+  where: Action_Verification_Stats_Daily_Bool_Exp;
+};
+
+/** mutation root */
+export type Mutation_RootDelete_Action_Verification_Stats_Daily_By_PkArgs = {
+  action_id: Scalars["String"]["input"];
+  date: Scalars["date"]["input"];
+  environment: Scalars["String"]["input"];
+  source: Scalars["String"]["input"];
+};
+
+/** mutation root */
+export type Mutation_RootDelete_Action_Verification_Stats_TotalArgs = {
+  where: Action_Verification_Stats_Total_Bool_Exp;
+};
+
+/** mutation root */
+export type Mutation_RootDelete_Action_Verification_Stats_Total_By_PkArgs = {
+  action_id: Scalars["String"]["input"];
+  environment: Scalars["String"]["input"];
+  source: Scalars["String"]["input"];
 };
 
 /** mutation root */
@@ -7102,6 +8409,31 @@ export type Mutation_RootDelete_App_StatsArgs = {
 export type Mutation_RootDelete_App_Stats_By_PkArgs = {
   app_id: Scalars["String"]["input"];
   date: Scalars["date"]["input"];
+};
+
+/** mutation root */
+export type Mutation_RootDelete_App_Verification_Stats_DailyArgs = {
+  where: App_Verification_Stats_Daily_Bool_Exp;
+};
+
+/** mutation root */
+export type Mutation_RootDelete_App_Verification_Stats_Daily_By_PkArgs = {
+  app_id: Scalars["String"]["input"];
+  date: Scalars["date"]["input"];
+  environment: Scalars["String"]["input"];
+  source: Scalars["String"]["input"];
+};
+
+/** mutation root */
+export type Mutation_RootDelete_App_Verification_Stats_TotalArgs = {
+  where: App_Verification_Stats_Total_Bool_Exp;
+};
+
+/** mutation root */
+export type Mutation_RootDelete_App_Verification_Stats_Total_By_PkArgs = {
+  app_id: Scalars["String"]["input"];
+  environment: Scalars["String"]["input"];
+  source: Scalars["String"]["input"];
 };
 
 /** mutation root */
@@ -7270,6 +8602,11 @@ export type Mutation_RootDelete_User_By_PkArgs = {
 };
 
 /** mutation root */
+export type Mutation_RootDelete_Verification_Job_ReturningArgs = {
+  where: Verification_Job_Returning_Bool_Exp;
+};
+
+/** mutation root */
 export type Mutation_RootInsert_ActionArgs = {
   objects: Array<Action_Insert_Input>;
   on_conflict?: InputMaybe<Action_On_Conflict>;
@@ -7303,6 +8640,30 @@ export type Mutation_RootInsert_Action_V4Args = {
 export type Mutation_RootInsert_Action_V4_OneArgs = {
   object: Action_V4_Insert_Input;
   on_conflict?: InputMaybe<Action_V4_On_Conflict>;
+};
+
+/** mutation root */
+export type Mutation_RootInsert_Action_Verification_Stats_DailyArgs = {
+  objects: Array<Action_Verification_Stats_Daily_Insert_Input>;
+  on_conflict?: InputMaybe<Action_Verification_Stats_Daily_On_Conflict>;
+};
+
+/** mutation root */
+export type Mutation_RootInsert_Action_Verification_Stats_Daily_OneArgs = {
+  object: Action_Verification_Stats_Daily_Insert_Input;
+  on_conflict?: InputMaybe<Action_Verification_Stats_Daily_On_Conflict>;
+};
+
+/** mutation root */
+export type Mutation_RootInsert_Action_Verification_Stats_TotalArgs = {
+  objects: Array<Action_Verification_Stats_Total_Insert_Input>;
+  on_conflict?: InputMaybe<Action_Verification_Stats_Total_On_Conflict>;
+};
+
+/** mutation root */
+export type Mutation_RootInsert_Action_Verification_Stats_Total_OneArgs = {
+  object: Action_Verification_Stats_Total_Insert_Input;
+  on_conflict?: InputMaybe<Action_Verification_Stats_Total_On_Conflict>;
 };
 
 /** mutation root */
@@ -7411,6 +8772,30 @@ export type Mutation_RootInsert_App_StatsArgs = {
 export type Mutation_RootInsert_App_Stats_OneArgs = {
   object: App_Stats_Insert_Input;
   on_conflict?: InputMaybe<App_Stats_On_Conflict>;
+};
+
+/** mutation root */
+export type Mutation_RootInsert_App_Verification_Stats_DailyArgs = {
+  objects: Array<App_Verification_Stats_Daily_Insert_Input>;
+  on_conflict?: InputMaybe<App_Verification_Stats_Daily_On_Conflict>;
+};
+
+/** mutation root */
+export type Mutation_RootInsert_App_Verification_Stats_Daily_OneArgs = {
+  object: App_Verification_Stats_Daily_Insert_Input;
+  on_conflict?: InputMaybe<App_Verification_Stats_Daily_On_Conflict>;
+};
+
+/** mutation root */
+export type Mutation_RootInsert_App_Verification_Stats_TotalArgs = {
+  objects: Array<App_Verification_Stats_Total_Insert_Input>;
+  on_conflict?: InputMaybe<App_Verification_Stats_Total_On_Conflict>;
+};
+
+/** mutation root */
+export type Mutation_RootInsert_App_Verification_Stats_Total_OneArgs = {
+  object: App_Verification_Stats_Total_Insert_Input;
+  on_conflict?: InputMaybe<App_Verification_Stats_Total_On_Conflict>;
 };
 
 /** mutation root */
@@ -7606,6 +8991,16 @@ export type Mutation_RootInsert_User_OneArgs = {
 };
 
 /** mutation root */
+export type Mutation_RootInsert_Verification_Job_ReturningArgs = {
+  objects: Array<Verification_Job_Returning_Insert_Input>;
+};
+
+/** mutation root */
+export type Mutation_RootInsert_Verification_Job_Returning_OneArgs = {
+  object: Verification_Job_Returning_Insert_Input;
+};
+
+/** mutation root */
 export type Mutation_RootInvite_Team_MembersArgs = {
   emails?: InputMaybe<Array<Scalars["String"]["input"]>>;
   team_id: Scalars["String"]["input"];
@@ -7619,6 +9014,16 @@ export type Mutation_RootMerge_World_Id_AccountsArgs = {
   offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<User_Order_By>>;
   where?: InputMaybe<User_Bool_Exp>;
+};
+
+/** mutation root */
+export type Mutation_RootReconcile_Verification_StatsArgs = {
+  args?: InputMaybe<Reconcile_Verification_Stats_Args>;
+  distinct_on?: InputMaybe<Array<Verification_Job_Returning_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Verification_Job_Returning_Order_By>>;
+  where?: InputMaybe<Verification_Job_Returning_Bool_Exp>;
 };
 
 /** mutation root */
@@ -7654,6 +9059,16 @@ export type Mutation_RootRollup_App_StatsArgs = {
   offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<App_Stats_Order_By>>;
   where?: InputMaybe<App_Stats_Bool_Exp>;
+};
+
+/** mutation root */
+export type Mutation_RootRollup_Verification_StatsArgs = {
+  args?: InputMaybe<Rollup_Verification_Stats_Args>;
+  distinct_on?: InputMaybe<Array<Verification_Job_Returning_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Verification_Job_Returning_Order_By>>;
+  where?: InputMaybe<Verification_Job_Returning_Bool_Exp>;
 };
 
 /** mutation root */
@@ -7731,6 +9146,44 @@ export type Mutation_RootUpdate_Action_V4_By_PkArgs = {
 /** mutation root */
 export type Mutation_RootUpdate_Action_V4_ManyArgs = {
   updates: Array<Action_V4_Updates>;
+};
+
+/** mutation root */
+export type Mutation_RootUpdate_Action_Verification_Stats_DailyArgs = {
+  _inc?: InputMaybe<Action_Verification_Stats_Daily_Inc_Input>;
+  _set?: InputMaybe<Action_Verification_Stats_Daily_Set_Input>;
+  where: Action_Verification_Stats_Daily_Bool_Exp;
+};
+
+/** mutation root */
+export type Mutation_RootUpdate_Action_Verification_Stats_Daily_By_PkArgs = {
+  _inc?: InputMaybe<Action_Verification_Stats_Daily_Inc_Input>;
+  _set?: InputMaybe<Action_Verification_Stats_Daily_Set_Input>;
+  pk_columns: Action_Verification_Stats_Daily_Pk_Columns_Input;
+};
+
+/** mutation root */
+export type Mutation_RootUpdate_Action_Verification_Stats_Daily_ManyArgs = {
+  updates: Array<Action_Verification_Stats_Daily_Updates>;
+};
+
+/** mutation root */
+export type Mutation_RootUpdate_Action_Verification_Stats_TotalArgs = {
+  _inc?: InputMaybe<Action_Verification_Stats_Total_Inc_Input>;
+  _set?: InputMaybe<Action_Verification_Stats_Total_Set_Input>;
+  where: Action_Verification_Stats_Total_Bool_Exp;
+};
+
+/** mutation root */
+export type Mutation_RootUpdate_Action_Verification_Stats_Total_By_PkArgs = {
+  _inc?: InputMaybe<Action_Verification_Stats_Total_Inc_Input>;
+  _set?: InputMaybe<Action_Verification_Stats_Total_Set_Input>;
+  pk_columns: Action_Verification_Stats_Total_Pk_Columns_Input;
+};
+
+/** mutation root */
+export type Mutation_RootUpdate_Action_Verification_Stats_Total_ManyArgs = {
+  updates: Array<Action_Verification_Stats_Total_Updates>;
 };
 
 /** mutation root */
@@ -7892,6 +9345,44 @@ export type Mutation_RootUpdate_App_Stats_By_PkArgs = {
 /** mutation root */
 export type Mutation_RootUpdate_App_Stats_ManyArgs = {
   updates: Array<App_Stats_Updates>;
+};
+
+/** mutation root */
+export type Mutation_RootUpdate_App_Verification_Stats_DailyArgs = {
+  _inc?: InputMaybe<App_Verification_Stats_Daily_Inc_Input>;
+  _set?: InputMaybe<App_Verification_Stats_Daily_Set_Input>;
+  where: App_Verification_Stats_Daily_Bool_Exp;
+};
+
+/** mutation root */
+export type Mutation_RootUpdate_App_Verification_Stats_Daily_By_PkArgs = {
+  _inc?: InputMaybe<App_Verification_Stats_Daily_Inc_Input>;
+  _set?: InputMaybe<App_Verification_Stats_Daily_Set_Input>;
+  pk_columns: App_Verification_Stats_Daily_Pk_Columns_Input;
+};
+
+/** mutation root */
+export type Mutation_RootUpdate_App_Verification_Stats_Daily_ManyArgs = {
+  updates: Array<App_Verification_Stats_Daily_Updates>;
+};
+
+/** mutation root */
+export type Mutation_RootUpdate_App_Verification_Stats_TotalArgs = {
+  _inc?: InputMaybe<App_Verification_Stats_Total_Inc_Input>;
+  _set?: InputMaybe<App_Verification_Stats_Total_Set_Input>;
+  where: App_Verification_Stats_Total_Bool_Exp;
+};
+
+/** mutation root */
+export type Mutation_RootUpdate_App_Verification_Stats_Total_By_PkArgs = {
+  _inc?: InputMaybe<App_Verification_Stats_Total_Inc_Input>;
+  _set?: InputMaybe<App_Verification_Stats_Total_Set_Input>;
+  pk_columns: App_Verification_Stats_Total_Pk_Columns_Input;
+};
+
+/** mutation root */
+export type Mutation_RootUpdate_App_Verification_Stats_Total_ManyArgs = {
+  updates: Array<App_Verification_Stats_Total_Updates>;
 };
 
 /** mutation root */
@@ -8190,6 +9681,18 @@ export type Mutation_RootUpdate_User_By_PkArgs = {
 /** mutation root */
 export type Mutation_RootUpdate_User_ManyArgs = {
   updates: Array<User_Updates>;
+};
+
+/** mutation root */
+export type Mutation_RootUpdate_Verification_Job_ReturningArgs = {
+  _inc?: InputMaybe<Verification_Job_Returning_Inc_Input>;
+  _set?: InputMaybe<Verification_Job_Returning_Set_Input>;
+  where: Verification_Job_Returning_Bool_Exp;
+};
+
+/** mutation root */
+export type Mutation_RootUpdate_Verification_Job_Returning_ManyArgs = {
+  updates: Array<Verification_Job_Returning_Updates>;
 };
 
 /** mutation root */
@@ -9505,6 +11008,18 @@ export type Query_Root = {
   action_v4_aggregate: Action_V4_Aggregate;
   /** fetch data from the table: "action_v4" using primary key columns */
   action_v4_by_pk?: Maybe<Action_V4>;
+  /** fetch data from the table: "action_verification_stats_daily" */
+  action_verification_stats_daily: Array<Action_Verification_Stats_Daily>;
+  /** fetch aggregated fields from the table: "action_verification_stats_daily" */
+  action_verification_stats_daily_aggregate: Action_Verification_Stats_Daily_Aggregate;
+  /** fetch data from the table: "action_verification_stats_daily" using primary key columns */
+  action_verification_stats_daily_by_pk?: Maybe<Action_Verification_Stats_Daily>;
+  /** fetch data from the table: "action_verification_stats_total" */
+  action_verification_stats_total: Array<Action_Verification_Stats_Total>;
+  /** fetch aggregated fields from the table: "action_verification_stats_total" */
+  action_verification_stats_total_aggregate: Action_Verification_Stats_Total_Aggregate;
+  /** fetch data from the table: "action_verification_stats_total" using primary key columns */
+  action_verification_stats_total_by_pk?: Maybe<Action_Verification_Stats_Total>;
   admin_dashboard_inventory: Array<Admin_Dashboard_Inventory>;
   admin_dashboard_queues: Array<Admin_Dashboard_Queue>;
   /** fetch data from the table: "api_key" */
@@ -9561,6 +11076,18 @@ export type Query_Root = {
   app_stats_aggregate: App_Stats_Aggregate;
   /** fetch data from the table: "app_stats" using primary key columns */
   app_stats_by_pk?: Maybe<App_Stats>;
+  /** fetch data from the table: "app_verification_stats_daily" */
+  app_verification_stats_daily: Array<App_Verification_Stats_Daily>;
+  /** fetch aggregated fields from the table: "app_verification_stats_daily" */
+  app_verification_stats_daily_aggregate: App_Verification_Stats_Daily_Aggregate;
+  /** fetch data from the table: "app_verification_stats_daily" using primary key columns */
+  app_verification_stats_daily_by_pk?: Maybe<App_Verification_Stats_Daily>;
+  /** fetch data from the table: "app_verification_stats_total" */
+  app_verification_stats_total: Array<App_Verification_Stats_Total>;
+  /** fetch aggregated fields from the table: "app_verification_stats_total" */
+  app_verification_stats_total_aggregate: App_Verification_Stats_Total_Aggregate;
+  /** fetch data from the table: "app_verification_stats_total" using primary key columns */
+  app_verification_stats_total_by_pk?: Maybe<App_Verification_Stats_Total>;
   /** fetch data from the table: "auth_code" */
   auth_code: Array<Auth_Code>;
   /** fetch aggregated fields from the table: "auth_code" */
@@ -9664,6 +11191,10 @@ export type Query_Root = {
   user_aggregate: User_Aggregate;
   /** fetch data from the table: "user" using primary key columns */
   user_by_pk?: Maybe<User>;
+  /** fetch data from the table: "verification_job_returning" */
+  verification_job_returning: Array<Verification_Job_Returning>;
+  /** fetch aggregated fields from the table: "verification_job_returning" */
+  verification_job_returning_aggregate: Verification_Job_Returning_Aggregate;
 };
 
 export type Query_RootActionArgs = {
@@ -9742,6 +11273,59 @@ export type Query_RootAction_V4_AggregateArgs = {
 
 export type Query_RootAction_V4_By_PkArgs = {
   id: Scalars["String"]["input"];
+};
+
+export type Query_RootAction_Verification_Stats_DailyArgs = {
+  distinct_on?: InputMaybe<
+    Array<Action_Verification_Stats_Daily_Select_Column>
+  >;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Action_Verification_Stats_Daily_Order_By>>;
+  where?: InputMaybe<Action_Verification_Stats_Daily_Bool_Exp>;
+};
+
+export type Query_RootAction_Verification_Stats_Daily_AggregateArgs = {
+  distinct_on?: InputMaybe<
+    Array<Action_Verification_Stats_Daily_Select_Column>
+  >;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Action_Verification_Stats_Daily_Order_By>>;
+  where?: InputMaybe<Action_Verification_Stats_Daily_Bool_Exp>;
+};
+
+export type Query_RootAction_Verification_Stats_Daily_By_PkArgs = {
+  action_id: Scalars["String"]["input"];
+  date: Scalars["date"]["input"];
+  environment: Scalars["String"]["input"];
+  source: Scalars["String"]["input"];
+};
+
+export type Query_RootAction_Verification_Stats_TotalArgs = {
+  distinct_on?: InputMaybe<
+    Array<Action_Verification_Stats_Total_Select_Column>
+  >;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Action_Verification_Stats_Total_Order_By>>;
+  where?: InputMaybe<Action_Verification_Stats_Total_Bool_Exp>;
+};
+
+export type Query_RootAction_Verification_Stats_Total_AggregateArgs = {
+  distinct_on?: InputMaybe<
+    Array<Action_Verification_Stats_Total_Select_Column>
+  >;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Action_Verification_Stats_Total_Order_By>>;
+  where?: InputMaybe<Action_Verification_Stats_Total_Bool_Exp>;
+};
+
+export type Query_RootAction_Verification_Stats_Total_By_PkArgs = {
+  action_id: Scalars["String"]["input"];
+  environment: Scalars["String"]["input"];
+  source: Scalars["String"]["input"];
 };
 
 export type Query_RootAdmin_Dashboard_InventoryArgs = {
@@ -9941,6 +11525,51 @@ export type Query_RootApp_Stats_AggregateArgs = {
 export type Query_RootApp_Stats_By_PkArgs = {
   app_id: Scalars["String"]["input"];
   date: Scalars["date"]["input"];
+};
+
+export type Query_RootApp_Verification_Stats_DailyArgs = {
+  distinct_on?: InputMaybe<Array<App_Verification_Stats_Daily_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<App_Verification_Stats_Daily_Order_By>>;
+  where?: InputMaybe<App_Verification_Stats_Daily_Bool_Exp>;
+};
+
+export type Query_RootApp_Verification_Stats_Daily_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<App_Verification_Stats_Daily_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<App_Verification_Stats_Daily_Order_By>>;
+  where?: InputMaybe<App_Verification_Stats_Daily_Bool_Exp>;
+};
+
+export type Query_RootApp_Verification_Stats_Daily_By_PkArgs = {
+  app_id: Scalars["String"]["input"];
+  date: Scalars["date"]["input"];
+  environment: Scalars["String"]["input"];
+  source: Scalars["String"]["input"];
+};
+
+export type Query_RootApp_Verification_Stats_TotalArgs = {
+  distinct_on?: InputMaybe<Array<App_Verification_Stats_Total_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<App_Verification_Stats_Total_Order_By>>;
+  where?: InputMaybe<App_Verification_Stats_Total_Bool_Exp>;
+};
+
+export type Query_RootApp_Verification_Stats_Total_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<App_Verification_Stats_Total_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<App_Verification_Stats_Total_Order_By>>;
+  where?: InputMaybe<App_Verification_Stats_Total_Bool_Exp>;
+};
+
+export type Query_RootApp_Verification_Stats_Total_By_PkArgs = {
+  app_id: Scalars["String"]["input"];
+  environment: Scalars["String"]["input"];
+  source: Scalars["String"]["input"];
 };
 
 export type Query_RootAuth_CodeArgs = {
@@ -10293,6 +11922,26 @@ export type Query_RootUser_AggregateArgs = {
 
 export type Query_RootUser_By_PkArgs = {
   id: Scalars["String"]["input"];
+};
+
+export type Query_RootVerification_Job_ReturningArgs = {
+  distinct_on?: InputMaybe<Array<Verification_Job_Returning_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Verification_Job_Returning_Order_By>>;
+  where?: InputMaybe<Verification_Job_Returning_Bool_Exp>;
+};
+
+export type Query_RootVerification_Job_Returning_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Verification_Job_Returning_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Verification_Job_Returning_Order_By>>;
+  where?: InputMaybe<Verification_Job_Returning_Bool_Exp>;
+};
+
+export type Reconcile_Verification_Stats_Args = {
+  _batch_size?: InputMaybe<Scalars["Int"]["input"]>;
 };
 
 /** columns and relationships of "redirect" */
@@ -10678,6 +12327,10 @@ export type Role_Updates = {
 
 export type Rollup_App_Stats_Args = {
   _since?: InputMaybe<Scalars["timestamptz"]["input"]>;
+  _until?: InputMaybe<Scalars["timestamptz"]["input"]>;
+};
+
+export type Rollup_Verification_Stats_Args = {
   _until?: InputMaybe<Scalars["timestamptz"]["input"]>;
 };
 
@@ -11073,6 +12726,22 @@ export type Subscription_Root = {
   action_v4_by_pk?: Maybe<Action_V4>;
   /** fetch data from the table in a streaming manner: "action_v4" */
   action_v4_stream: Array<Action_V4>;
+  /** fetch data from the table: "action_verification_stats_daily" */
+  action_verification_stats_daily: Array<Action_Verification_Stats_Daily>;
+  /** fetch aggregated fields from the table: "action_verification_stats_daily" */
+  action_verification_stats_daily_aggregate: Action_Verification_Stats_Daily_Aggregate;
+  /** fetch data from the table: "action_verification_stats_daily" using primary key columns */
+  action_verification_stats_daily_by_pk?: Maybe<Action_Verification_Stats_Daily>;
+  /** fetch data from the table in a streaming manner: "action_verification_stats_daily" */
+  action_verification_stats_daily_stream: Array<Action_Verification_Stats_Daily>;
+  /** fetch data from the table: "action_verification_stats_total" */
+  action_verification_stats_total: Array<Action_Verification_Stats_Total>;
+  /** fetch aggregated fields from the table: "action_verification_stats_total" */
+  action_verification_stats_total_aggregate: Action_Verification_Stats_Total_Aggregate;
+  /** fetch data from the table: "action_verification_stats_total" using primary key columns */
+  action_verification_stats_total_by_pk?: Maybe<Action_Verification_Stats_Total>;
+  /** fetch data from the table in a streaming manner: "action_verification_stats_total" */
+  action_verification_stats_total_stream: Array<Action_Verification_Stats_Total>;
   admin_dashboard_inventory: Array<Admin_Dashboard_Inventory>;
   admin_dashboard_queues: Array<Admin_Dashboard_Queue>;
   /** fetch data from the table: "api_key" */
@@ -11147,6 +12816,22 @@ export type Subscription_Root = {
   app_stats_stream: Array<App_Stats>;
   /** fetch data from the table in a streaming manner: "app" */
   app_stream: Array<App>;
+  /** fetch data from the table: "app_verification_stats_daily" */
+  app_verification_stats_daily: Array<App_Verification_Stats_Daily>;
+  /** fetch aggregated fields from the table: "app_verification_stats_daily" */
+  app_verification_stats_daily_aggregate: App_Verification_Stats_Daily_Aggregate;
+  /** fetch data from the table: "app_verification_stats_daily" using primary key columns */
+  app_verification_stats_daily_by_pk?: Maybe<App_Verification_Stats_Daily>;
+  /** fetch data from the table in a streaming manner: "app_verification_stats_daily" */
+  app_verification_stats_daily_stream: Array<App_Verification_Stats_Daily>;
+  /** fetch data from the table: "app_verification_stats_total" */
+  app_verification_stats_total: Array<App_Verification_Stats_Total>;
+  /** fetch aggregated fields from the table: "app_verification_stats_total" */
+  app_verification_stats_total_aggregate: App_Verification_Stats_Total_Aggregate;
+  /** fetch data from the table: "app_verification_stats_total" using primary key columns */
+  app_verification_stats_total_by_pk?: Maybe<App_Verification_Stats_Total>;
+  /** fetch data from the table in a streaming manner: "app_verification_stats_total" */
+  app_verification_stats_total_stream: Array<App_Verification_Stats_Total>;
   /** fetch data from the table: "auth_code" */
   auth_code: Array<Auth_Code>;
   /** fetch aggregated fields from the table: "auth_code" */
@@ -11275,6 +12960,12 @@ export type Subscription_Root = {
   user_by_pk?: Maybe<User>;
   /** fetch data from the table in a streaming manner: "user" */
   user_stream: Array<User>;
+  /** fetch data from the table: "verification_job_returning" */
+  verification_job_returning: Array<Verification_Job_Returning>;
+  /** fetch aggregated fields from the table: "verification_job_returning" */
+  verification_job_returning_aggregate: Verification_Job_Returning_Aggregate;
+  /** fetch data from the table in a streaming manner: "verification_job_returning" */
+  verification_job_returning_stream: Array<Verification_Job_Returning>;
 };
 
 export type Subscription_RootActionArgs = {
@@ -11371,6 +13062,75 @@ export type Subscription_RootAction_V4_StreamArgs = {
   batch_size: Scalars["Int"]["input"];
   cursor: Array<InputMaybe<Action_V4_Stream_Cursor_Input>>;
   where?: InputMaybe<Action_V4_Bool_Exp>;
+};
+
+export type Subscription_RootAction_Verification_Stats_DailyArgs = {
+  distinct_on?: InputMaybe<
+    Array<Action_Verification_Stats_Daily_Select_Column>
+  >;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Action_Verification_Stats_Daily_Order_By>>;
+  where?: InputMaybe<Action_Verification_Stats_Daily_Bool_Exp>;
+};
+
+export type Subscription_RootAction_Verification_Stats_Daily_AggregateArgs = {
+  distinct_on?: InputMaybe<
+    Array<Action_Verification_Stats_Daily_Select_Column>
+  >;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Action_Verification_Stats_Daily_Order_By>>;
+  where?: InputMaybe<Action_Verification_Stats_Daily_Bool_Exp>;
+};
+
+export type Subscription_RootAction_Verification_Stats_Daily_By_PkArgs = {
+  action_id: Scalars["String"]["input"];
+  date: Scalars["date"]["input"];
+  environment: Scalars["String"]["input"];
+  source: Scalars["String"]["input"];
+};
+
+export type Subscription_RootAction_Verification_Stats_Daily_StreamArgs = {
+  batch_size: Scalars["Int"]["input"];
+  cursor: Array<
+    InputMaybe<Action_Verification_Stats_Daily_Stream_Cursor_Input>
+  >;
+  where?: InputMaybe<Action_Verification_Stats_Daily_Bool_Exp>;
+};
+
+export type Subscription_RootAction_Verification_Stats_TotalArgs = {
+  distinct_on?: InputMaybe<
+    Array<Action_Verification_Stats_Total_Select_Column>
+  >;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Action_Verification_Stats_Total_Order_By>>;
+  where?: InputMaybe<Action_Verification_Stats_Total_Bool_Exp>;
+};
+
+export type Subscription_RootAction_Verification_Stats_Total_AggregateArgs = {
+  distinct_on?: InputMaybe<
+    Array<Action_Verification_Stats_Total_Select_Column>
+  >;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Action_Verification_Stats_Total_Order_By>>;
+  where?: InputMaybe<Action_Verification_Stats_Total_Bool_Exp>;
+};
+
+export type Subscription_RootAction_Verification_Stats_Total_By_PkArgs = {
+  action_id: Scalars["String"]["input"];
+  environment: Scalars["String"]["input"];
+  source: Scalars["String"]["input"];
+};
+
+export type Subscription_RootAction_Verification_Stats_Total_StreamArgs = {
+  batch_size: Scalars["Int"]["input"];
+  cursor: Array<
+    InputMaybe<Action_Verification_Stats_Total_Stream_Cursor_Input>
+  >;
+  where?: InputMaybe<Action_Verification_Stats_Total_Bool_Exp>;
 };
 
 export type Subscription_RootAdmin_Dashboard_InventoryArgs = {
@@ -11624,6 +13384,63 @@ export type Subscription_RootApp_StreamArgs = {
   batch_size: Scalars["Int"]["input"];
   cursor: Array<InputMaybe<App_Stream_Cursor_Input>>;
   where?: InputMaybe<App_Bool_Exp>;
+};
+
+export type Subscription_RootApp_Verification_Stats_DailyArgs = {
+  distinct_on?: InputMaybe<Array<App_Verification_Stats_Daily_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<App_Verification_Stats_Daily_Order_By>>;
+  where?: InputMaybe<App_Verification_Stats_Daily_Bool_Exp>;
+};
+
+export type Subscription_RootApp_Verification_Stats_Daily_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<App_Verification_Stats_Daily_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<App_Verification_Stats_Daily_Order_By>>;
+  where?: InputMaybe<App_Verification_Stats_Daily_Bool_Exp>;
+};
+
+export type Subscription_RootApp_Verification_Stats_Daily_By_PkArgs = {
+  app_id: Scalars["String"]["input"];
+  date: Scalars["date"]["input"];
+  environment: Scalars["String"]["input"];
+  source: Scalars["String"]["input"];
+};
+
+export type Subscription_RootApp_Verification_Stats_Daily_StreamArgs = {
+  batch_size: Scalars["Int"]["input"];
+  cursor: Array<InputMaybe<App_Verification_Stats_Daily_Stream_Cursor_Input>>;
+  where?: InputMaybe<App_Verification_Stats_Daily_Bool_Exp>;
+};
+
+export type Subscription_RootApp_Verification_Stats_TotalArgs = {
+  distinct_on?: InputMaybe<Array<App_Verification_Stats_Total_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<App_Verification_Stats_Total_Order_By>>;
+  where?: InputMaybe<App_Verification_Stats_Total_Bool_Exp>;
+};
+
+export type Subscription_RootApp_Verification_Stats_Total_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<App_Verification_Stats_Total_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<App_Verification_Stats_Total_Order_By>>;
+  where?: InputMaybe<App_Verification_Stats_Total_Bool_Exp>;
+};
+
+export type Subscription_RootApp_Verification_Stats_Total_By_PkArgs = {
+  app_id: Scalars["String"]["input"];
+  environment: Scalars["String"]["input"];
+  source: Scalars["String"]["input"];
+};
+
+export type Subscription_RootApp_Verification_Stats_Total_StreamArgs = {
+  batch_size: Scalars["Int"]["input"];
+  cursor: Array<InputMaybe<App_Verification_Stats_Total_Stream_Cursor_Input>>;
+  where?: InputMaybe<App_Verification_Stats_Total_Bool_Exp>;
 };
 
 export type Subscription_RootAuth_CodeArgs = {
@@ -12046,6 +13863,28 @@ export type Subscription_RootUser_StreamArgs = {
   batch_size: Scalars["Int"]["input"];
   cursor: Array<InputMaybe<User_Stream_Cursor_Input>>;
   where?: InputMaybe<User_Bool_Exp>;
+};
+
+export type Subscription_RootVerification_Job_ReturningArgs = {
+  distinct_on?: InputMaybe<Array<Verification_Job_Returning_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Verification_Job_Returning_Order_By>>;
+  where?: InputMaybe<Verification_Job_Returning_Bool_Exp>;
+};
+
+export type Subscription_RootVerification_Job_Returning_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Verification_Job_Returning_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Verification_Job_Returning_Order_By>>;
+  where?: InputMaybe<Verification_Job_Returning_Bool_Exp>;
+};
+
+export type Subscription_RootVerification_Job_Returning_StreamArgs = {
+  batch_size: Scalars["Int"]["input"];
+  cursor: Array<InputMaybe<Verification_Job_Returning_Stream_Cursor_Input>>;
+  where?: InputMaybe<Verification_Job_Returning_Bool_Exp>;
 };
 
 /** columns and relationships of "team" */
@@ -12717,6 +14556,234 @@ export type User_Updates = {
   _set?: InputMaybe<User_Set_Input>;
   /** filter the rows which have to be updated */
   where: User_Bool_Exp;
+};
+
+/** Returning value of rollup_verification_stats / reconcile_verification_stats functions */
+export type Verification_Job_Returning = {
+  __typename?: "verification_job_returning";
+  alerts: Scalars["bigint"]["output"];
+  detail?: Maybe<Scalars["String"]["output"]>;
+  items: Scalars["bigint"]["output"];
+  job: Scalars["String"]["output"];
+  repaired: Scalars["bigint"]["output"];
+  status: Scalars["String"]["output"];
+};
+
+/** aggregated selection of "verification_job_returning" */
+export type Verification_Job_Returning_Aggregate = {
+  __typename?: "verification_job_returning_aggregate";
+  aggregate?: Maybe<Verification_Job_Returning_Aggregate_Fields>;
+  nodes: Array<Verification_Job_Returning>;
+};
+
+/** aggregate fields of "verification_job_returning" */
+export type Verification_Job_Returning_Aggregate_Fields = {
+  __typename?: "verification_job_returning_aggregate_fields";
+  avg?: Maybe<Verification_Job_Returning_Avg_Fields>;
+  count: Scalars["Int"]["output"];
+  max?: Maybe<Verification_Job_Returning_Max_Fields>;
+  min?: Maybe<Verification_Job_Returning_Min_Fields>;
+  stddev?: Maybe<Verification_Job_Returning_Stddev_Fields>;
+  stddev_pop?: Maybe<Verification_Job_Returning_Stddev_Pop_Fields>;
+  stddev_samp?: Maybe<Verification_Job_Returning_Stddev_Samp_Fields>;
+  sum?: Maybe<Verification_Job_Returning_Sum_Fields>;
+  var_pop?: Maybe<Verification_Job_Returning_Var_Pop_Fields>;
+  var_samp?: Maybe<Verification_Job_Returning_Var_Samp_Fields>;
+  variance?: Maybe<Verification_Job_Returning_Variance_Fields>;
+};
+
+/** aggregate fields of "verification_job_returning" */
+export type Verification_Job_Returning_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<Verification_Job_Returning_Select_Column>>;
+  distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
+};
+
+/** aggregate avg on columns */
+export type Verification_Job_Returning_Avg_Fields = {
+  __typename?: "verification_job_returning_avg_fields";
+  alerts?: Maybe<Scalars["Float"]["output"]>;
+  items?: Maybe<Scalars["Float"]["output"]>;
+  repaired?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** Boolean expression to filter rows from the table "verification_job_returning". All fields are combined with a logical 'AND'. */
+export type Verification_Job_Returning_Bool_Exp = {
+  _and?: InputMaybe<Array<Verification_Job_Returning_Bool_Exp>>;
+  _not?: InputMaybe<Verification_Job_Returning_Bool_Exp>;
+  _or?: InputMaybe<Array<Verification_Job_Returning_Bool_Exp>>;
+  alerts?: InputMaybe<Bigint_Comparison_Exp>;
+  detail?: InputMaybe<String_Comparison_Exp>;
+  items?: InputMaybe<Bigint_Comparison_Exp>;
+  job?: InputMaybe<String_Comparison_Exp>;
+  repaired?: InputMaybe<Bigint_Comparison_Exp>;
+  status?: InputMaybe<String_Comparison_Exp>;
+};
+
+/** input type for incrementing numeric columns in table "verification_job_returning" */
+export type Verification_Job_Returning_Inc_Input = {
+  alerts?: InputMaybe<Scalars["bigint"]["input"]>;
+  items?: InputMaybe<Scalars["bigint"]["input"]>;
+  repaired?: InputMaybe<Scalars["bigint"]["input"]>;
+};
+
+/** input type for inserting data into table "verification_job_returning" */
+export type Verification_Job_Returning_Insert_Input = {
+  alerts?: InputMaybe<Scalars["bigint"]["input"]>;
+  detail?: InputMaybe<Scalars["String"]["input"]>;
+  items?: InputMaybe<Scalars["bigint"]["input"]>;
+  job?: InputMaybe<Scalars["String"]["input"]>;
+  repaired?: InputMaybe<Scalars["bigint"]["input"]>;
+  status?: InputMaybe<Scalars["String"]["input"]>;
+};
+
+/** aggregate max on columns */
+export type Verification_Job_Returning_Max_Fields = {
+  __typename?: "verification_job_returning_max_fields";
+  alerts?: Maybe<Scalars["bigint"]["output"]>;
+  detail?: Maybe<Scalars["String"]["output"]>;
+  items?: Maybe<Scalars["bigint"]["output"]>;
+  job?: Maybe<Scalars["String"]["output"]>;
+  repaired?: Maybe<Scalars["bigint"]["output"]>;
+  status?: Maybe<Scalars["String"]["output"]>;
+};
+
+/** aggregate min on columns */
+export type Verification_Job_Returning_Min_Fields = {
+  __typename?: "verification_job_returning_min_fields";
+  alerts?: Maybe<Scalars["bigint"]["output"]>;
+  detail?: Maybe<Scalars["String"]["output"]>;
+  items?: Maybe<Scalars["bigint"]["output"]>;
+  job?: Maybe<Scalars["String"]["output"]>;
+  repaired?: Maybe<Scalars["bigint"]["output"]>;
+  status?: Maybe<Scalars["String"]["output"]>;
+};
+
+/** response of any mutation on the table "verification_job_returning" */
+export type Verification_Job_Returning_Mutation_Response = {
+  __typename?: "verification_job_returning_mutation_response";
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars["Int"]["output"];
+  /** data from the rows affected by the mutation */
+  returning: Array<Verification_Job_Returning>;
+};
+
+/** Ordering options when selecting data from "verification_job_returning". */
+export type Verification_Job_Returning_Order_By = {
+  alerts?: InputMaybe<Order_By>;
+  detail?: InputMaybe<Order_By>;
+  items?: InputMaybe<Order_By>;
+  job?: InputMaybe<Order_By>;
+  repaired?: InputMaybe<Order_By>;
+  status?: InputMaybe<Order_By>;
+};
+
+/** select columns of table "verification_job_returning" */
+export enum Verification_Job_Returning_Select_Column {
+  /** column name */
+  Alerts = "alerts",
+  /** column name */
+  Detail = "detail",
+  /** column name */
+  Items = "items",
+  /** column name */
+  Job = "job",
+  /** column name */
+  Repaired = "repaired",
+  /** column name */
+  Status = "status",
+}
+
+/** input type for updating data in table "verification_job_returning" */
+export type Verification_Job_Returning_Set_Input = {
+  alerts?: InputMaybe<Scalars["bigint"]["input"]>;
+  detail?: InputMaybe<Scalars["String"]["input"]>;
+  items?: InputMaybe<Scalars["bigint"]["input"]>;
+  job?: InputMaybe<Scalars["String"]["input"]>;
+  repaired?: InputMaybe<Scalars["bigint"]["input"]>;
+  status?: InputMaybe<Scalars["String"]["input"]>;
+};
+
+/** aggregate stddev on columns */
+export type Verification_Job_Returning_Stddev_Fields = {
+  __typename?: "verification_job_returning_stddev_fields";
+  alerts?: Maybe<Scalars["Float"]["output"]>;
+  items?: Maybe<Scalars["Float"]["output"]>;
+  repaired?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** aggregate stddev_pop on columns */
+export type Verification_Job_Returning_Stddev_Pop_Fields = {
+  __typename?: "verification_job_returning_stddev_pop_fields";
+  alerts?: Maybe<Scalars["Float"]["output"]>;
+  items?: Maybe<Scalars["Float"]["output"]>;
+  repaired?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** aggregate stddev_samp on columns */
+export type Verification_Job_Returning_Stddev_Samp_Fields = {
+  __typename?: "verification_job_returning_stddev_samp_fields";
+  alerts?: Maybe<Scalars["Float"]["output"]>;
+  items?: Maybe<Scalars["Float"]["output"]>;
+  repaired?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** Streaming cursor of the table "verification_job_returning" */
+export type Verification_Job_Returning_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: Verification_Job_Returning_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type Verification_Job_Returning_Stream_Cursor_Value_Input = {
+  alerts?: InputMaybe<Scalars["bigint"]["input"]>;
+  detail?: InputMaybe<Scalars["String"]["input"]>;
+  items?: InputMaybe<Scalars["bigint"]["input"]>;
+  job?: InputMaybe<Scalars["String"]["input"]>;
+  repaired?: InputMaybe<Scalars["bigint"]["input"]>;
+  status?: InputMaybe<Scalars["String"]["input"]>;
+};
+
+/** aggregate sum on columns */
+export type Verification_Job_Returning_Sum_Fields = {
+  __typename?: "verification_job_returning_sum_fields";
+  alerts?: Maybe<Scalars["bigint"]["output"]>;
+  items?: Maybe<Scalars["bigint"]["output"]>;
+  repaired?: Maybe<Scalars["bigint"]["output"]>;
+};
+
+export type Verification_Job_Returning_Updates = {
+  /** increments the numeric columns with given value of the filtered values */
+  _inc?: InputMaybe<Verification_Job_Returning_Inc_Input>;
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<Verification_Job_Returning_Set_Input>;
+  /** filter the rows which have to be updated */
+  where: Verification_Job_Returning_Bool_Exp;
+};
+
+/** aggregate var_pop on columns */
+export type Verification_Job_Returning_Var_Pop_Fields = {
+  __typename?: "verification_job_returning_var_pop_fields";
+  alerts?: Maybe<Scalars["Float"]["output"]>;
+  items?: Maybe<Scalars["Float"]["output"]>;
+  repaired?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** aggregate var_samp on columns */
+export type Verification_Job_Returning_Var_Samp_Fields = {
+  __typename?: "verification_job_returning_var_samp_fields";
+  alerts?: Maybe<Scalars["Float"]["output"]>;
+  items?: Maybe<Scalars["Float"]["output"]>;
+  repaired?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** aggregate variance on columns */
+export type Verification_Job_Returning_Variance_Fields = {
+  __typename?: "verification_job_returning_variance_fields";
+  alerts?: Maybe<Scalars["Float"]["output"]>;
+  items?: Maybe<Scalars["Float"]["output"]>;
+  repaired?: Maybe<Scalars["Float"]["output"]>;
 };
 
 /** Boolean expression to compare columns of type "violation_enum". All fields are combined with logical 'AND'. */
