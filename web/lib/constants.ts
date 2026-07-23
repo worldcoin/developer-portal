@@ -21,6 +21,14 @@ export const APPS_WITH_CUSTOM_EXTERNAL_NULLIFIER = [
   "app_1f7f2c379f20307a414f6cf8b544ec8a", // Grants app - uses 0xB16B00B5 for humanity verification
 ];
 
+/**
+ * Kill switch for the World ID sandbox distribution tile (and its
+ * access-request endpoint). A plain constant, not a feature flag — per PR
+ * review, per-team targeting was dropped and this needs no runtime
+ * evaluation. Flip to false to hide the sandbox everywhere.
+ */
+export const WORLD_ID_SANDBOX_ENABLED: boolean = true;
+
 // ANCHOR: Production Sequencers
 export const ORB_SEQUENCER = "https://signup-orb-ethereum.crypto.worldcoin.org";
 export const PHONE_SEQUENCER =

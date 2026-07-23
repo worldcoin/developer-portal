@@ -6,8 +6,8 @@ import gql from "graphql-tag";
 type GraphQLClientRequestHeaders = RequestOptions["requestHeaders"];
 export type InsertSandboxAccessRequestMutationVariables = Types.Exact<{
   google_email: Types.Scalars["String"]["input"];
-  requested_by: Types.Scalars["String"]["input"];
-  team_id: Types.Scalars["String"]["input"];
+  portal_email: Types.Scalars["String"]["input"];
+  user_id: Types.Scalars["String"]["input"];
 }>;
 
 export type InsertSandboxAccessRequestMutation = {
@@ -22,20 +22,20 @@ export type InsertSandboxAccessRequestMutation = {
 export const InsertSandboxAccessRequestDocument = gql`
   mutation InsertSandboxAccessRequest(
     $google_email: String!
-    $requested_by: String!
-    $team_id: String!
+    $portal_email: String!
+    $user_id: String!
   ) {
     insert_sandbox_access_request_one(
       object: {
         google_email: $google_email
-        requested_by: $requested_by
-        team_id: $team_id
+        portal_email: $portal_email
+        user_id: $user_id
         status: "pending"
         processed_at: null
       }
       on_conflict: {
-        constraint: unique_sandbox_access_request_email_team
-        update_columns: [status, processed_at, requested_by]
+        constraint: unique_sandbox_access_request_user_id
+        update_columns: [google_email, status, processed_at, portal_email]
       }
     ) {
       id
@@ -45,7 +45,7 @@ export const InsertSandboxAccessRequestDocument = gql`
 `;
 
 export type SdkFunctionWrapper = <T>(
-  action: (requestHeaders?: Record<string, string>) => Promise<T>,
+  action: (requestHeaders?: GraphQLClientRequestHeaders) => Promise<T>,
   operationName: string,
   operationType?: string,
   variables?: any,

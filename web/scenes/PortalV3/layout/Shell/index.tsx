@@ -10,11 +10,9 @@ import { UserPopup } from "./UserPopup";
 export const PortalShell = (props: {
   user: { name?: string | null; email?: string | null };
   teams?: { id: string; name: string }[];
-  /** Teams allowed to see the sandbox tile (server-evaluated flag decision). */
-  sandboxTeamIds?: string[];
   children?: ReactNode;
 }) => {
-  const { user, teams = [], sandboxTeamIds = [], children } = props;
+  const { user, teams = [], children } = props;
   const color = calculateColorFromString(user.name ?? user.email ?? "");
 
   return (
@@ -23,7 +21,7 @@ export const PortalShell = (props: {
       sidebar={
         <>
           <TeamsDropdown teams={teams} />
-          <SidebarNav sandboxTeamIds={sandboxTeamIds} />
+          <SidebarNav />
 
           <div className="mt-auto px-4 pb-4">
             <UserPopup

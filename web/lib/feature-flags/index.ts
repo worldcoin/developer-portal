@@ -1,9 +1,5 @@
 import "server-only";
 import { isPortalV3Enabled, isPortalV3EnabledForEmail } from "./portal-v3/flag";
-import {
-  getSandboxTeamIds,
-  isWorldIdSandboxEnabled,
-} from "./world-id-sandbox/flag";
 
 /**
  * Single entry point for every feature flag: featureFlags.<feature>.<accessor>.
@@ -13,10 +9,6 @@ import {
  * client entry point, not a spot in this object.
  */
 export const featureFlags = {
-  worldIdSandbox: {
-    isEnabled: isWorldIdSandboxEnabled,
-    getSandboxTeamIds,
-  },
   portalV3: {
     isEnabled: isPortalV3Enabled,
     isEnabledForEmail: isPortalV3EnabledForEmail,

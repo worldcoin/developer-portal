@@ -4,6 +4,7 @@ import { LockIcon } from "@/components/Icons/LockIcon";
 import { SendIcon } from "@/components/Icons/SendIcon";
 import { TrashIcon } from "@/components/Icons/TrashIcon";
 import { WalletIcon } from "@/components/Icons/WalletIcon";
+import { WORLD_ID_SANDBOX_ENABLED } from "@/lib/constants";
 import { urls } from "@/lib/urls";
 import { FetchAppsDocument } from "@/scenes/common/layout/AppSelector/graphql/client/fetch-apps.generated";
 import { Icon } from "@/scenes/PortalV3/common/Icon";
@@ -21,12 +22,12 @@ const NavIcon = (props: { name: string; active?: boolean }) => (
   />
 );
 
-export const SidebarNav = (props: { sandboxTeamIds?: string[] }) => {
-  const { sandboxTeamIds = [] } = props;
+export const SidebarNav = () => {
   const pathname = usePathname() ?? "";
   const params = useParams<{ teamId?: string; appId?: string }>();
   const teamId = params?.teamId;
-  const sandboxEnabled = Boolean(teamId && sandboxTeamIds.includes(teamId));
+  // Team routes only — the sandbox dialog's access-request form needs a teamId.
+  const sandboxEnabled = Boolean(teamId) && WORLD_ID_SANDBOX_ENABLED;
   const routeAppId = params?.appId;
   const appId = useCurrentAppId();
   // Same FetchApps as AppsDropdown — Apollo serves the cache after the first

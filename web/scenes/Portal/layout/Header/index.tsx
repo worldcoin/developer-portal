@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/Button";
+import { WORLD_ID_SANDBOX_ENABLED } from "@/lib/constants";
 import { WorldIcon } from "@/components/Icons/WorldIcon";
 import { LoggedUserNav } from "@/components/LoggedUserNav";
 import { SizingWrapper } from "@/components/SizingWrapper";
@@ -16,16 +17,13 @@ import { CreateAppDialogV4 } from "../CreateAppDialog/index-v4";
 
 import { createAppDialogOpenedAtom } from "@/scenes/common/layout/Header/atoms";
 
-export const Header = (props: {
-  color: Color | null;
-  sandboxTeamIds?: string[];
-}) => {
-  const { sandboxTeamIds = [] } = props;
+export const Header = (props: { color: Color | null }) => {
   const setColor = useSetAtom(colorAtom);
   const [open, setOpen] = useAtom(createAppDialogOpenedAtom);
   const { teamId } = useParams() as { teamId?: string };
-  // Same gate as the v3 sidebar: only for the team currently in the URL.
-  const sandboxEnabled = Boolean(teamId && sandboxTeamIds.includes(teamId));
+  // Same gate as the v3 sidebar: team routes only — the sandbox dialog's
+  // access-request form needs a teamId to submit.
+  const sandboxEnabled = Boolean(teamId) && WORLD_ID_SANDBOX_ENABLED;
 
   useEffect(() => {
     setColor(props.color);

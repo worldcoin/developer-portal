@@ -76965,7 +76965,7 @@
             "deprecationReason": null
           },
           {
-            "name": "requested_by",
+            "name": "portal_email",
             "description": null,
             "args": [],
             "type": {
@@ -76997,7 +76997,19 @@
             "deprecationReason": null
           },
           {
-            "name": "team_id",
+            "name": "user",
+            "description": "An object relationship",
+            "args": [],
+            "type": {
+              "kind": "OBJECT",
+              "name": "user",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "user_id",
             "description": null,
             "args": [],
             "type": {
@@ -77256,7 +77268,7 @@
             "deprecationReason": null
           },
           {
-            "name": "requested_by",
+            "name": "portal_email",
             "description": null,
             "type": {
               "kind": "INPUT_OBJECT",
@@ -77280,7 +77292,7 @@
             "deprecationReason": null
           },
           {
-            "name": "team_id",
+            "name": "user_id",
             "description": null,
             "type": {
               "kind": "INPUT_OBJECT",
@@ -77311,8 +77323,8 @@
             "deprecationReason": null
           },
           {
-            "name": "unique_sandbox_access_request_email_team",
-            "description": "unique or primary key constraint on columns \"google_email\", \"team_id\"",
+            "name": "unique_sandbox_access_request_user_id",
+            "description": "unique or primary key constraint on columns \"user_id\"",
             "isDeprecated": false,
             "deprecationReason": null
           }
@@ -77374,7 +77386,7 @@
             "deprecationReason": null
           },
           {
-            "name": "requested_by",
+            "name": "portal_email",
             "description": null,
             "type": {
               "kind": "SCALAR",
@@ -77398,7 +77410,7 @@
             "deprecationReason": null
           },
           {
-            "name": "team_id",
+            "name": "user_id",
             "description": null,
             "type": {
               "kind": "SCALAR",
@@ -77468,7 +77480,7 @@
             "deprecationReason": null
           },
           {
-            "name": "requested_by",
+            "name": "portal_email",
             "description": null,
             "args": [],
             "type": {
@@ -77492,7 +77504,7 @@
             "deprecationReason": null
           },
           {
-            "name": "team_id",
+            "name": "user_id",
             "description": null,
             "args": [],
             "type": {
@@ -77563,7 +77575,7 @@
             "deprecationReason": null
           },
           {
-            "name": "requested_by",
+            "name": "portal_email",
             "description": null,
             "args": [],
             "type": {
@@ -77587,7 +77599,7 @@
             "deprecationReason": null
           },
           {
-            "name": "team_id",
+            "name": "user_id",
             "description": null,
             "args": [],
             "type": {
@@ -77773,7 +77785,7 @@
             "deprecationReason": null
           },
           {
-            "name": "requested_by",
+            "name": "portal_email",
             "description": null,
             "type": {
               "kind": "ENUM",
@@ -77797,7 +77809,7 @@
             "deprecationReason": null
           },
           {
-            "name": "team_id",
+            "name": "user_id",
             "description": null,
             "type": {
               "kind": "ENUM",
@@ -77873,7 +77885,7 @@
             "deprecationReason": null
           },
           {
-            "name": "requested_by",
+            "name": "portal_email",
             "description": "column name",
             "isDeprecated": false,
             "deprecationReason": null
@@ -77885,7 +77897,7 @@
             "deprecationReason": null
           },
           {
-            "name": "team_id",
+            "name": "user_id",
             "description": "column name",
             "isDeprecated": false,
             "deprecationReason": null
@@ -77948,7 +77960,7 @@
             "deprecationReason": null
           },
           {
-            "name": "requested_by",
+            "name": "portal_email",
             "description": null,
             "type": {
               "kind": "SCALAR",
@@ -77972,7 +77984,7 @@
             "deprecationReason": null
           },
           {
-            "name": "team_id",
+            "name": "user_id",
             "description": null,
             "type": {
               "kind": "SCALAR",
@@ -78082,7 +78094,7 @@
             "deprecationReason": null
           },
           {
-            "name": "requested_by",
+            "name": "portal_email",
             "description": null,
             "type": {
               "kind": "SCALAR",
@@ -78106,7 +78118,7 @@
             "deprecationReason": null
           },
           {
-            "name": "team_id",
+            "name": "user_id",
             "description": null,
             "type": {
               "kind": "SCALAR",
@@ -78155,7 +78167,7 @@
             "deprecationReason": null
           },
           {
-            "name": "requested_by",
+            "name": "portal_email",
             "description": "column name",
             "isDeprecated": false,
             "deprecationReason": null
@@ -78167,7 +78179,7 @@
             "deprecationReason": null
           },
           {
-            "name": "team_id",
+            "name": "user_id",
             "description": "column name",
             "isDeprecated": false,
             "deprecationReason": null

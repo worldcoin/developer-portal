@@ -9,7 +9,6 @@ import { Auth0SessionUser } from "@/lib/types";
 import { Icon } from "@/scenes/PortalV3/common/Icon";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import clsx from "clsx";
-import { useParams } from "next/navigation";
 import posthog from "posthog-js";
 import QRCode from "react-qr-code";
 import { useState } from "react";
@@ -61,16 +60,14 @@ const PLATFORMS: Record<
 const PLATFORM_ORDER: readonly Platform[] = ["ios", "android"];
 
 /**
- * Sidebar entry point for the World ID sandbox. Purely a distribution
- * shortcut: a modal with a QR code and store links for the sandbox builds.
- * No backend, no per-user state.
+ * Sidebar entry point for the World ID sandbox: a modal with QR codes / store
+ * links, plus an Android form that records a Play allowlist request.
  */
 export const SandboxButton = (props: { className?: string }) => {
   const [open, setOpen] = useState(false);
   const [platform, setPlatform] = useState<Platform>("ios");
   const active = PLATFORMS[platform];
   const { user } = useUser() as Auth0SessionUser;
-  const { teamId } = useParams<{ teamId?: string }>();
 
   // null = form collapsed; a string = form open with that value in the field.
   const [requestEmail, setRequestEmail] = useState<string | null>(null);
@@ -79,14 +76,14 @@ export const SandboxButton = (props: { className?: string }) => {
 
   const submitAccessRequest = async (event: React.FormEvent) => {
     event.preventDefault();
-    if (requestSending || !requestEmail || !teamId) return;
+    if (requestSending || !requestEmail) return;
 
     setRequestSending(true);
     try {
       const response = await fetch("/api/v2/sandbox-access-request", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: requestEmail, teamId }),
+        body: JSON.stringify({ email: requestEmail }),
       });
 
       if (!response.ok) {

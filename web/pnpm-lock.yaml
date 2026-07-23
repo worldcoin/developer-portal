@@ -69,9 +69,6 @@ importers:
       '@noble/curves':
         specifier: 1.9.1
         version: 1.9.1
-      '@openfeature/server-sdk':
-        specifier: ^1.22.0
-        version: 1.22.0(@openfeature/core@1.11.0)
       '@opensearch-project/opensearch':
         specifier: ^3.5.1
         version: 3.5.1
@@ -9772,11 +9769,13 @@ snapshots:
       '@nodelib/fs.scandir': 2.1.5
       fastq: 1.17.1
 
-  '@openfeature/core@1.11.0': {}
+  '@openfeature/core@1.11.0':
+    optional: true
 
   '@openfeature/server-sdk@1.22.0(@openfeature/core@1.11.0)':
     dependencies:
       '@openfeature/core': 1.11.0
+    optional: true
 
   '@opensearch-project/opensearch@3.5.1':
     dependencies:

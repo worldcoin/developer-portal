@@ -11131,9 +11131,11 @@ export type Sandbox_Access_Request = {
   google_email: Scalars["String"]["output"];
   id: Scalars["String"]["output"];
   processed_at?: Maybe<Scalars["timestamptz"]["output"]>;
-  requested_by: Scalars["String"]["output"];
+  portal_email: Scalars["String"]["output"];
   status: Scalars["String"]["output"];
-  team_id: Scalars["String"]["output"];
+  /** An object relationship */
+  user?: Maybe<User>;
+  user_id: Scalars["String"]["output"];
 };
 
 /** aggregated selection of "sandbox_access_request" */
@@ -11166,17 +11168,18 @@ export type Sandbox_Access_Request_Bool_Exp = {
   google_email?: InputMaybe<String_Comparison_Exp>;
   id?: InputMaybe<String_Comparison_Exp>;
   processed_at?: InputMaybe<Timestamptz_Comparison_Exp>;
-  requested_by?: InputMaybe<String_Comparison_Exp>;
+  portal_email?: InputMaybe<String_Comparison_Exp>;
   status?: InputMaybe<String_Comparison_Exp>;
-  team_id?: InputMaybe<String_Comparison_Exp>;
+  user?: InputMaybe<User_Bool_Exp>;
+  user_id?: InputMaybe<String_Comparison_Exp>;
 };
 
 /** unique or primary key constraints on table "sandbox_access_request" */
 export enum Sandbox_Access_Request_Constraint {
   /** unique or primary key constraint on columns "id" */
   SandboxAccessRequestPkey = "sandbox_access_request_pkey",
-  /** unique or primary key constraint on columns "google_email", "team_id" */
-  UniqueSandboxAccessRequestEmailTeam = "unique_sandbox_access_request_email_team",
+  /** unique or primary key constraint on columns "user_id" */
+  UniqueSandboxAccessRequestUserId = "unique_sandbox_access_request_user_id",
 }
 
 /** input type for inserting data into table "sandbox_access_request" */
@@ -11185,9 +11188,10 @@ export type Sandbox_Access_Request_Insert_Input = {
   google_email?: InputMaybe<Scalars["String"]["input"]>;
   id?: InputMaybe<Scalars["String"]["input"]>;
   processed_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
-  requested_by?: InputMaybe<Scalars["String"]["input"]>;
+  portal_email?: InputMaybe<Scalars["String"]["input"]>;
   status?: InputMaybe<Scalars["String"]["input"]>;
-  team_id?: InputMaybe<Scalars["String"]["input"]>;
+  user?: InputMaybe<User_Obj_Rel_Insert_Input>;
+  user_id?: InputMaybe<Scalars["String"]["input"]>;
 };
 
 /** aggregate max on columns */
@@ -11197,9 +11201,9 @@ export type Sandbox_Access_Request_Max_Fields = {
   google_email?: Maybe<Scalars["String"]["output"]>;
   id?: Maybe<Scalars["String"]["output"]>;
   processed_at?: Maybe<Scalars["timestamptz"]["output"]>;
-  requested_by?: Maybe<Scalars["String"]["output"]>;
+  portal_email?: Maybe<Scalars["String"]["output"]>;
   status?: Maybe<Scalars["String"]["output"]>;
-  team_id?: Maybe<Scalars["String"]["output"]>;
+  user_id?: Maybe<Scalars["String"]["output"]>;
 };
 
 /** aggregate min on columns */
@@ -11209,9 +11213,9 @@ export type Sandbox_Access_Request_Min_Fields = {
   google_email?: Maybe<Scalars["String"]["output"]>;
   id?: Maybe<Scalars["String"]["output"]>;
   processed_at?: Maybe<Scalars["timestamptz"]["output"]>;
-  requested_by?: Maybe<Scalars["String"]["output"]>;
+  portal_email?: Maybe<Scalars["String"]["output"]>;
   status?: Maybe<Scalars["String"]["output"]>;
-  team_id?: Maybe<Scalars["String"]["output"]>;
+  user_id?: Maybe<Scalars["String"]["output"]>;
 };
 
 /** response of any mutation on the table "sandbox_access_request" */
@@ -11236,9 +11240,10 @@ export type Sandbox_Access_Request_Order_By = {
   google_email?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   processed_at?: InputMaybe<Order_By>;
-  requested_by?: InputMaybe<Order_By>;
+  portal_email?: InputMaybe<Order_By>;
   status?: InputMaybe<Order_By>;
-  team_id?: InputMaybe<Order_By>;
+  user?: InputMaybe<User_Order_By>;
+  user_id?: InputMaybe<Order_By>;
 };
 
 /** primary key columns input for table: sandbox_access_request */
@@ -11257,11 +11262,11 @@ export enum Sandbox_Access_Request_Select_Column {
   /** column name */
   ProcessedAt = "processed_at",
   /** column name */
-  RequestedBy = "requested_by",
+  PortalEmail = "portal_email",
   /** column name */
   Status = "status",
   /** column name */
-  TeamId = "team_id",
+  UserId = "user_id",
 }
 
 /** input type for updating data in table "sandbox_access_request" */
@@ -11270,9 +11275,9 @@ export type Sandbox_Access_Request_Set_Input = {
   google_email?: InputMaybe<Scalars["String"]["input"]>;
   id?: InputMaybe<Scalars["String"]["input"]>;
   processed_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
-  requested_by?: InputMaybe<Scalars["String"]["input"]>;
+  portal_email?: InputMaybe<Scalars["String"]["input"]>;
   status?: InputMaybe<Scalars["String"]["input"]>;
-  team_id?: InputMaybe<Scalars["String"]["input"]>;
+  user_id?: InputMaybe<Scalars["String"]["input"]>;
 };
 
 /** Streaming cursor of the table "sandbox_access_request" */
@@ -11289,9 +11294,9 @@ export type Sandbox_Access_Request_Stream_Cursor_Value_Input = {
   google_email?: InputMaybe<Scalars["String"]["input"]>;
   id?: InputMaybe<Scalars["String"]["input"]>;
   processed_at?: InputMaybe<Scalars["timestamptz"]["input"]>;
-  requested_by?: InputMaybe<Scalars["String"]["input"]>;
+  portal_email?: InputMaybe<Scalars["String"]["input"]>;
   status?: InputMaybe<Scalars["String"]["input"]>;
-  team_id?: InputMaybe<Scalars["String"]["input"]>;
+  user_id?: InputMaybe<Scalars["String"]["input"]>;
 };
 
 /** update columns of table "sandbox_access_request" */
@@ -11305,11 +11310,11 @@ export enum Sandbox_Access_Request_Update_Column {
   /** column name */
   ProcessedAt = "processed_at",
   /** column name */
-  RequestedBy = "requested_by",
+  PortalEmail = "portal_email",
   /** column name */
   Status = "status",
   /** column name */
-  TeamId = "team_id",
+  UserId = "user_id",
 }
 
 export type Sandbox_Access_Request_Updates = {

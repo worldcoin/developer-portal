@@ -1,5 +1,4 @@
 import { auth0 } from "@/lib/auth0";
-import { featureFlags } from "@/lib/feature-flags";
 import { Auth0SessionUser } from "@/lib/types";
 import { ReactNode } from "react";
 import { PortalShell } from "./Shell";
@@ -13,18 +12,8 @@ export const PortalLayout = async (props: { children: ReactNode }) => {
     .filter((t): t is NonNullable<typeof t> => !!t?.id)
     .map((t) => ({ id: t.id, name: t.name ?? "Untitled team" }));
 
-  // Flags evaluate server-side only; the shell receives decisions, never lists.
-  const sandboxTeamIds = await featureFlags.worldIdSandbox.getSandboxTeamIds(
-    teams.map((t) => t.id),
-    user?.email,
-  );
-
   return (
-    <PortalShell
-      user={{ name: user?.name, email: user?.email }}
-      teams={teams}
-      sandboxTeamIds={sandboxTeamIds}
-    >
+    <PortalShell user={{ name: user?.name, email: user?.email }} teams={teams}>
       {props.children}
     </PortalShell>
   );

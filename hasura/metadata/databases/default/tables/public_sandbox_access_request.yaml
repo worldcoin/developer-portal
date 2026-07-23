@@ -1,14 +1,18 @@
 table:
   name: sandbox_access_request
   schema: public
+object_relationships:
+  - name: user
+    using:
+      foreign_key_constraint_on: user_id
 insert_permissions:
   - role: service
     permission:
       check: {}
       columns:
         - google_email
-        - requested_by
-        - team_id
+        - portal_email
+        - user_id
         - status
         - processed_at
 select_permissions:
@@ -17,8 +21,8 @@ select_permissions:
       columns:
         - id
         - google_email
-        - requested_by
-        - team_id
+        - portal_email
+        - user_id
         - status
         - created_at
         - processed_at
@@ -29,6 +33,7 @@ update_permissions:
       columns:
         - status
         - processed_at
-        - requested_by
+        - portal_email
+        - google_email
       filter: {}
       check: {}
