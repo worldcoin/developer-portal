@@ -95,7 +95,11 @@ export const LivePreview = ({
   const hasWebsite = Boolean(basicInfo.app_website_url?.trim());
 
   return (
-    <div className="grid w-full content-start gap-y-8">
+    // Strictly inert: the replica is a picture of the listing, not a second
+    // set of controls — nothing here reacts to hover, click, or selection.
+    // Wheel scrolling still works because events fall through to the
+    // scroll container behind it.
+    <div className="pointer-events-none grid w-full content-start gap-y-8 select-none">
       {/* Logo */}
       {logoImgUrl ? (
         // eslint-disable-next-line @next/next/no-img-element
