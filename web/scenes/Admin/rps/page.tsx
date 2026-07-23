@@ -192,7 +192,7 @@ export const AdminRpsPage = async ({
   }
 
   return (
-    <div className="grid-rows-auto/auto/1fr grid h-full min-h-0 gap-y-4">
+    <div className="grid h-full min-h-0 grid-rows-[auto_1fr] gap-y-4">
       <UIModule className="p-5">
         <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
           <div className="min-w-0">
