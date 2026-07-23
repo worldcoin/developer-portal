@@ -9,6 +9,7 @@ import { Auth0SessionUser } from "@/lib/types";
 import { Icon } from "@/scenes/PortalV3/common/Icon";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import clsx from "clsx";
+import { useParams } from "next/navigation";
 import posthog from "posthog-js";
 import QRCode from "react-qr-code";
 import { useState } from "react";
@@ -61,11 +62,12 @@ const PLATFORM_ORDER: readonly Platform[] = ["ios", "android"];
  * shortcut: a modal with a QR code and store links for the sandbox builds.
  * No backend, no per-user state.
  */
-export const SandboxButton = () => {
+export const SandboxButton = (props: { className?: string }) => {
   const [open, setOpen] = useState(false);
   const [platform, setPlatform] = useState<Platform>("ios");
   const active = PLATFORMS[platform];
   const { user } = useUser() as Auth0SessionUser;
+  const { teamId } = useParams<{ teamId?: string }>();
 
   // null = form collapsed; a string = form open with that value in the field.
   const [requestEmail, setRequestEmail] = useState<string | null>(null);
@@ -74,14 +76,14 @@ export const SandboxButton = () => {
 
   const submitAccessRequest = async (event: React.FormEvent) => {
     event.preventDefault();
-    if (requestSending || !requestEmail) return;
+    if (requestSending || !requestEmail || !teamId) return;
 
     setRequestSending(true);
     try {
       const response = await fetch("/api/v2/sandbox-access-request", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: requestEmail }),
+        body: JSON.stringify({ email: requestEmail, teamId }),
       });
 
       if (!response.ok) {
@@ -115,7 +117,10 @@ export const SandboxButton = () => {
         type="button"
         onClick={openDialog}
         aria-haspopup="dialog"
-        className="group relative mt-6 flex w-full shrink-0 items-center gap-x-3 overflow-hidden rounded-[10px] bg-grey-900 p-3 text-left outline-hidden transition-shadow hover:shadow-portal-card focus-visible:ring-2 focus-visible:ring-grey-300 focus-visible:ring-offset-2 focus-visible:ring-offset-portal-canvas"
+        className={clsx(
+          "group relative flex shrink-0 items-center gap-x-3 overflow-hidden rounded-[10px] bg-grey-900 p-3 text-left outline-hidden transition-shadow hover:shadow-portal-card focus-visible:ring-2 focus-visible:ring-grey-300 focus-visible:ring-offset-2 focus-visible:ring-offset-portal-canvas",
+          props.className,
+        )}
       >
         {/* Static halftone ground, echoing the landing hero mark. */}
         <div

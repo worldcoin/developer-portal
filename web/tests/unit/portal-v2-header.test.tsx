@@ -25,6 +25,10 @@ jest.mock("@/scenes/Portal/layout/CreateAppDialog/index-v4", () => ({
   CreateAppDialogV4: () => null,
 }));
 
+jest.mock("@/scenes/PortalV3/layout/Shell/SandboxButton", () => ({
+  SandboxButton: () => <button>World ID Sandbox</button>,
+}));
+
 import { Header } from "@/scenes/Portal/layout/Header";
 // #endregion
 
@@ -54,6 +58,40 @@ describe("v2 Header [World logo routing]", () => {
       "href",
       "/",
     );
+  });
+});
+// #endregion
+
+// #region Sandbox button gating
+describe("v2 Header [sandbox button gating]", () => {
+  it("shows the sandbox button when the current team is allowlisted", () => {
+    useParams.mockReturnValue({ teamId: "team_1" });
+
+    render(<Header color={null} sandboxTeamIds={["team_1"]} />);
+
+    expect(
+      screen.getByRole("button", { name: "World ID Sandbox" }),
+    ).toBeInTheDocument();
+  });
+
+  it("hides the sandbox button when the current team is not allowlisted", () => {
+    useParams.mockReturnValue({ teamId: "team_1" });
+
+    render(<Header color={null} sandboxTeamIds={["team_2"]} />);
+
+    expect(
+      screen.queryByRole("button", { name: "World ID Sandbox" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("hides the sandbox button outside a team route", () => {
+    useParams.mockReturnValue({});
+
+    render(<Header color={null} sandboxTeamIds={["team_1"]} />);
+
+    expect(
+      screen.queryByRole("button", { name: "World ID Sandbox" }),
+    ).not.toBeInTheDocument();
   });
 });
 // #endregion

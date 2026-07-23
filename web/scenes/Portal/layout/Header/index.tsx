@@ -10,15 +10,22 @@ import { useParams } from "next/navigation";
 import React, { useEffect } from "react";
 import { colorAtom } from "@/scenes/common/layout/color-atom";
 import { Color } from "@/scenes/common/Profile/types";
+import { SandboxButton } from "@/scenes/PortalV3/layout/Shell/SandboxButton";
 import { AppSelector } from "../AppSelector";
 import { CreateAppDialogV4 } from "../CreateAppDialog/index-v4";
 
 import { createAppDialogOpenedAtom } from "@/scenes/common/layout/Header/atoms";
 
-export const Header = (props: { color: Color | null }) => {
+export const Header = (props: {
+  color: Color | null;
+  sandboxTeamIds?: string[];
+}) => {
+  const { sandboxTeamIds = [] } = props;
   const setColor = useSetAtom(colorAtom);
   const [open, setOpen] = useAtom(createAppDialogOpenedAtom);
   const { teamId } = useParams() as { teamId?: string };
+  // Same gate as the v3 sidebar: only for the team currently in the URL.
+  const sandboxEnabled = Boolean(teamId && sandboxTeamIds.includes(teamId));
 
   useEffect(() => {
     setColor(props.color);
@@ -41,7 +48,12 @@ export const Header = (props: { color: Color | null }) => {
           <AppSelector />
         </div>
 
-        <LoggedUserNav />
+        <div className="flex items-center gap-x-4">
+          {sandboxEnabled ? (
+            <SandboxButton className="w-60 max-md:hidden" />
+          ) : null}
+          <LoggedUserNav />
+        </div>
       </SizingWrapper>
 
       <CreateAppDialogV4 open={open} onClose={setOpen} className={"mx-0"} />

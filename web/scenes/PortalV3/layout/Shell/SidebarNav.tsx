@@ -175,7 +175,7 @@ export const SidebarNav = (props: { sandboxTeamIds?: string[] }) => {
         ) : null}
       </div>
 
-      {sandboxEnabled ? <SandboxButton /> : null}
+      {sandboxEnabled ? <SandboxButton className="mt-6 w-full" /> : null}
     </nav>
   );
 };
