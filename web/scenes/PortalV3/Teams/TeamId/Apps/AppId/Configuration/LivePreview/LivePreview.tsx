@@ -71,7 +71,12 @@ export const LivePreview = ({
     localisations?.find((l) => l?.language === "en");
   const enteredName = basicInfo.name?.trim() || loc?.name?.trim() || "";
   const name = enteredName || "Untitled app";
-  const tagLine = loc?.world_app_description?.trim() || "";
+  const tagLine = isMiniApp
+    ? (selectedLanguage === "en"
+        ? basicInfo.world_app_description
+        : loc?.world_app_description
+      )?.trim() || ""
+    : "";
   const description = loc?.description_overview?.trim() || "";
   const isVerified = appMetadata.verification_status === "verified";
   const atomLogoImgUrl =

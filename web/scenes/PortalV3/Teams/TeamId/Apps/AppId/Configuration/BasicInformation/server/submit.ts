@@ -17,6 +17,7 @@ export async function validateAndSubmitServerSide(
   app_id: string,
   input: {
     name?: string | null;
+    world_app_description?: string | null;
     integration_url?: string | null;
     app_website_url?: string | null;
   },
@@ -71,6 +72,9 @@ export async function validateAndSubmitServerSide(
       // forward that to the DB rather than silently dropping the empty value.
       input: {
         ...(parsedInput.name != null && { name: parsedInput.name }),
+        ...(parsedInput.world_app_description != null && {
+          world_app_description: parsedInput.world_app_description,
+        }),
         ...(parsedInput.integration_url != null && {
           integration_url: parsedInput.integration_url,
         }),

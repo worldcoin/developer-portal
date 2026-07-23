@@ -7,6 +7,10 @@ import {
   reviewSchema as basicReviewSchema,
   schema as basicSchema,
 } from "@/scenes/Portal/Teams/TeamId/Apps/AppId/Configuration/BasicInformation/form-schema";
+import {
+  reviewSchema as basicV3ReviewSchema,
+  schema as basicV3Schema,
+} from "@/scenes/PortalV3/Teams/TeamId/Apps/AppId/Configuration/BasicInformation/form-schema";
 
 describe("BasicInformation editing schema", () => {
   it("accepts empty strings for all fields (autosave-friendly)", () => {
@@ -37,6 +41,39 @@ describe("BasicInformation editing schema", () => {
         app_website_url: "",
       }),
     ).toBe(false);
+  });
+});
+
+describe("PortalV3 BasicInformation tagline schema", () => {
+  it("allows an empty tagline while autosaving a draft", () => {
+    expect(
+      basicV3Schema.isValidSync({
+        name: "",
+        world_app_description: "",
+        integration_url: "",
+        app_website_url: "",
+      }),
+    ).toBe(true);
+  });
+
+  it("requires a tagline for Mini App review only", () => {
+    const values = {
+      name: "Example",
+      world_app_description: "",
+      integration_url: "https://example.com/app",
+      app_website_url: "https://example.com",
+    };
+
+    expect(
+      basicV3ReviewSchema.isValidSync(values, {
+        context: { isMiniApp: true },
+      }),
+    ).toBe(false);
+    expect(
+      basicV3ReviewSchema.isValidSync(values, {
+        context: { isMiniApp: false },
+      }),
+    ).toBe(true);
   });
 });
 
