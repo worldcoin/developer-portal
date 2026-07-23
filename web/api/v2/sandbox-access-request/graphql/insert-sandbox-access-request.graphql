@@ -1,0 +1,22 @@
+mutation InsertSandboxAccessRequest(
+  $google_email: String!
+  $requested_by: String!
+  $team_id: String!
+) {
+  insert_sandbox_access_request_one(
+    object: {
+      google_email: $google_email
+      requested_by: $requested_by
+      team_id: $team_id
+      status: "pending"
+      processed_at: null
+    }
+    on_conflict: {
+      constraint: unique_sandbox_access_request_email_team
+      update_columns: [status, processed_at, requested_by]
+    }
+  ) {
+    id
+    status
+  }
+}

@@ -2,8 +2,8 @@ import { NextRequest } from "next/server";
 
 // #region Mocks
 const getSession = jest.fn();
-const sendEmail = jest.fn();
 const getSandboxTeamIds = jest.fn();
+const InsertSandboxAccessRequest = jest.fn();
 
 jest.mock("server-only", () => ({}));
 
@@ -11,9 +11,16 @@ jest.mock("@/lib/auth0", () => ({
   auth0: { getSession: (...args: unknown[]) => getSession(...args) },
 }));
 
-jest.mock("@/api/helpers/send-email", () => ({
-  sendEmail: (...args: unknown[]) => sendEmail(...args),
+jest.mock("@/api/helpers/graphql", () => ({
+  getAPIServiceGraphqlClient: jest.fn().mockResolvedValue({}),
 }));
+
+jest.mock(
+  "../../../api/v2/sandbox-access-request/graphql/insert-sandbox-access-request.generated",
+  () => ({
+    getSdk: () => ({ InsertSandboxAccessRequest }),
+  }),
+);
 
 jest.mock("@/lib/feature-flags", () => ({
   featureFlags: {
@@ -61,12 +68,15 @@ const multiTeamSession = {
 
 beforeEach(() => {
   jest.clearAllMocks();
-  process.env.SENDGRID_API_KEY = "test-key";
-  process.env.SENDGRID_EMAIL_FROM = "noreply@example.com";
   getSandboxTeamIds.mockImplementation(async (teamIds: string[]) =>
     teamIds.filter((id) => id === TEAM_ALLOWED),
   );
-  sendEmail.mockResolvedValue(true);
+  InsertSandboxAccessRequest.mockResolvedValue({
+    insert_sandbox_access_request_one: {
+      id: "sandbox_request_abc123",
+      status: "pending",
+    },
+  });
 });
 
 // #region /api/v2/sandbox-access-request
@@ -77,7 +87,7 @@ describe("/api/v2/sandbox-access-request", () => {
     const res = await POST(makeRequest(validBody));
 
     expect(res.status).toBe(401);
-    expect(sendEmail).not.toHaveBeenCalled();
+    expect(InsertSandboxAccessRequest).not.toHaveBeenCalled();
   });
 
   it("returns 400 for an invalid email or teamId", async () => {
@@ -90,7 +100,7 @@ describe("/api/v2/sandbox-access-request", () => {
       POST(makeRequest({ email: "tester@gmail.com", teamId: "team_nope" })),
     ).resolves.toMatchObject({ status: 400 });
     expect(getSandboxTeamIds).not.toHaveBeenCalled();
-    expect(sendEmail).not.toHaveBeenCalled();
+    expect(InsertSandboxAccessRequest).not.toHaveBeenCalled();
   });
 
   it("returns 403 when the teamId is not one of the user's memberships", async () => {
@@ -105,7 +115,7 @@ describe("/api/v2/sandbox-access-request", () => {
 
     expect(res.status).toBe(403);
     expect(getSandboxTeamIds).not.toHaveBeenCalled();
-    expect(sendEmail).not.toHaveBeenCalled();
+    expect(InsertSandboxAccessRequest).not.toHaveBeenCalled();
   });
 
   it("returns 403 when the requested team is not sandbox-allowlisted", async () => {
@@ -120,10 +130,10 @@ describe("/api/v2/sandbox-access-request", () => {
       [TEAM_OTHER],
       "dev@example.com",
     );
-    expect(sendEmail).not.toHaveBeenCalled();
+    expect(InsertSandboxAccessRequest).not.toHaveBeenCalled();
   });
 
-  it("relays the request only for the allowlisted team currently requested", async () => {
+  it("records the request for the allowlisted team currently requested", async () => {
     getSession.mockResolvedValue(multiTeamSession);
 
     const res = await POST(makeRequest(validBody));
@@ -134,11 +144,41 @@ describe("/api/v2/sandbox-access-request", () => {
       [TEAM_ALLOWED],
       "dev@example.com",
     );
-    expect(sendEmail).toHaveBeenCalledWith(
-      expect.objectContaining({
-        text: expect.stringContaining(TEAM_ALLOWED),
-      }),
-    );
+    expect(InsertSandboxAccessRequest).toHaveBeenCalledWith({
+      google_email: "tester@gmail.com",
+      requested_by: "dev@example.com",
+      team_id: TEAM_ALLOWED,
+    });
+  });
+
+  it("treats a repeat request as success (upsert resets pending)", async () => {
+    getSession.mockResolvedValue(multiTeamSession);
+    InsertSandboxAccessRequest.mockResolvedValue({
+      insert_sandbox_access_request_one: {
+        id: "sandbox_request_existing",
+        status: "pending",
+      },
+    });
+
+    const res = await POST(makeRequest(validBody));
+
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({ success: true });
+    expect(InsertSandboxAccessRequest).toHaveBeenCalledWith({
+      google_email: "tester@gmail.com",
+      requested_by: "dev@example.com",
+      team_id: TEAM_ALLOWED,
+    });
+  });
+
+  it("returns 500 when the insert fails", async () => {
+    getSession.mockResolvedValue(multiTeamSession);
+    InsertSandboxAccessRequest.mockRejectedValue(new Error("hasura down"));
+
+    const res = await POST(makeRequest(validBody));
+
+    expect(res.status).toBe(500);
+    expect(await res.json()).toEqual({ success: false });
   });
 });
 // #endregion
