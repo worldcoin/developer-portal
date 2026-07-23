@@ -5,6 +5,7 @@ const { getSandboxTeamIds } = featureFlags.worldIdSandbox;
 
 beforeEach(() => {
   process.env.WORLD_ID_SANDBOX_TEAM_IDS = "team_allowed_a, team_allowed_b";
+  delete process.env.LOCAL_DEV_WORLD_ID_SANDBOX_ENABLED;
 });
 
 // #region sandbox-distribution flag resolution
@@ -29,6 +30,18 @@ describe("sandbox-distribution flag", () => {
     expect(
       await getSandboxTeamIds(["team_allowed_a"], "dev@example.com"),
     ).toEqual([]);
+  });
+
+  it("returns every membership when the local/dev switch is on", async () => {
+    process.env.LOCAL_DEV_WORLD_ID_SANDBOX_ENABLED = "true";
+    delete process.env.WORLD_ID_SANDBOX_TEAM_IDS;
+
+    await expect(
+      getSandboxTeamIds(
+        ["team_allowed_a", "team_other"],
+        "dev@example.com",
+      ),
+    ).resolves.toEqual(["team_allowed_a", "team_other"]);
   });
 
   it("denies when teamId context is missing", async () => {
