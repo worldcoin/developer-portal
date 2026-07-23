@@ -18,7 +18,6 @@ const ShowcaseSlot = ({ url }: { url?: string }) =>
     />
   ) : (
     <div className="flex aspect-16/10 w-full items-center justify-center rounded-xl border border-dashed border-grey-300 bg-grey-50">
-      <span className="text-sm text-grey-400">Showcase image</span>
     </div>
   );
 
