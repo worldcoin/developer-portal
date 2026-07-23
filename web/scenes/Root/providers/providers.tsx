@@ -3,10 +3,12 @@
 import { useUser } from "@auth0/nextjs-auth0/client";
 import posthog from "posthog-js";
 import { PostHogProvider } from "posthog-js/react";
+import { usePathname } from "next/navigation";
 import React, { useEffect } from "react";
 
 interface WithPostHogProps {
   children: React.ReactNode;
+  isAdminRequest?: boolean;
 }
 interface HasuraUserData {
   posthog_id: string;
@@ -32,7 +34,7 @@ if (typeof window !== "undefined" && !isPostHogDisabled) {
   });
 }
 
-const WithPostHogIdentifier: React.FC<WithPostHogProps> = ({ children }) => {
+const PostHogUserIdentifier: React.FC<WithPostHogProps> = ({ children }) => {
   const { user } = useUser();
 
   useEffect(() => {
@@ -55,10 +57,33 @@ const WithPostHogIdentifier: React.FC<WithPostHogProps> = ({ children }) => {
     }
   }, [user]);
 
+  return children;
+};
+
+const WithPostHogIdentifier: React.FC<WithPostHogProps> = ({
+  children,
+  isAdminRequest = false,
+}) => {
+  const pathname = usePathname();
+  const isAdminPage =
+    pathname === "/admin" ||
+    pathname?.startsWith("/admin/") ||
+    (isAdminRequest && pathname === "/");
+
+  useEffect(() => {
+    if (isAdminPage) {
+      posthog.reset();
+    }
+  }, [isAdminPage]);
+
   return (
-    <>
-      <PostHogProvider client={posthog}>{children}</PostHogProvider>
-    </>
+    <PostHogProvider client={posthog}>
+      {isAdminPage ? (
+        children
+      ) : (
+        <PostHogUserIdentifier>{children}</PostHogUserIdentifier>
+      )}
+    </PostHogProvider>
   );
 };
 

@@ -82,7 +82,10 @@ export const RootLayout = async ({
 }>) => {
   // Force request-time rendering so Next can apply the per-request CSP nonce
   // from `web/proxy.ts` to framework and page scripts.
-  await headers();
+  const requestHeaders = await headers();
+  const currentPath = requestHeaders.get("x-current-path");
+  const isAdminRequest =
+    currentPath === "/admin" || currentPath?.startsWith("/admin/");
 
   return (
     <html lang="en" className={fontVariables}>
@@ -95,7 +98,7 @@ export const RootLayout = async ({
         />
 
         <Auth0Provider>
-          <WithPostHogIdentifier>
+          <WithPostHogIdentifier isAdminRequest={isAdminRequest}>
             <SkeletonTheme baseColor="#F3F4F5" highlightColor="#EBECEF">
               <Provider>
                 <Suspense fallback={null}>
