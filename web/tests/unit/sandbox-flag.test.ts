@@ -4,10 +4,10 @@ jest.mock("@/lib/feature-flags/openfeature/sandbox-teams", () => ({
 }));
 // #endregion
 
-import {
-  getFlagClient,
-  getSandboxTeamIds,
-} from "@/lib/feature-flags/openfeature/provider";
+import { featureFlags } from "@/lib/feature-flags";
+import { getFlagClient } from "@/lib/feature-flags/openfeature/provider";
+
+const { getSandboxTeamIds } = featureFlags.worldIdSandbox;
 
 // #region sandbox-distribution flag resolution
 describe("sandbox-distribution flag", () => {

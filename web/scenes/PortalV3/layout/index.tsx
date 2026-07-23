@@ -1,5 +1,5 @@
 import { auth0 } from "@/lib/auth0";
-import { getSandboxTeamIds } from "@/lib/feature-flags/openfeature/provider";
+import { featureFlags } from "@/lib/feature-flags";
 import { Auth0SessionUser } from "@/lib/types";
 import { ReactNode } from "react";
 import { PortalShell } from "./Shell";
@@ -14,7 +14,7 @@ export const PortalLayout = async (props: { children: ReactNode }) => {
     .map((t) => ({ id: t.id, name: t.name ?? "Untitled team" }));
 
   // Flags evaluate server-side only; the shell receives decisions, never lists.
-  const sandboxTeamIds = await getSandboxTeamIds(
+  const sandboxTeamIds = await featureFlags.worldIdSandbox.getSandboxTeamIds(
     teams.map((t) => t.id),
     user?.email,
   );
