@@ -10,8 +10,8 @@ import { Icon } from "@/scenes/PortalV3/common/Icon";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import clsx from "clsx";
 import posthog from "posthog-js";
+import { useEffect, useState } from "react";
 import QRCode from "react-qr-code";
-import { useState } from "react";
 import { toast } from "react-toastify";
 
 // Distribution links for the sandbox builds. Values come from the deploy
@@ -61,7 +61,9 @@ const PLATFORM_ORDER: readonly Platform[] = ["ios", "android"];
 
 /**
  * Sidebar entry point for the World ID sandbox: a modal with QR codes / store
- * links, plus an Android form that records a Play allowlist request.
+ * links, plus an Android form that records a Play allowlist request
+ * (sandbox_access_request). The caller's request is looked up on open so a
+ * past submission renders as a persistent confirmation.
  */
 export const SandboxButton = (props: { className?: string }) => {
   const [open, setOpen] = useState(false);
@@ -72,7 +74,42 @@ export const SandboxButton = (props: { className?: string }) => {
   // null = form collapsed; a string = form open with that value in the field.
   const [requestEmail, setRequestEmail] = useState<string | null>(null);
   const [requestSending, setRequestSending] = useState(false);
-  const [requestSent, setRequestSent] = useState(false);
+  // The caller's recorded request, if any. Checked once per dialog open so a
+  // past submission shows as a persistent confirmation instead of another
+  // request form.
+  const [existingRequest, setExistingRequest] = useState<{
+    email: string;
+    accepted: boolean;
+  } | null>(null);
+  const [requestChecked, setRequestChecked] = useState(false);
+
+  useEffect(() => {
+    if (!open || requestChecked) return;
+
+    let cancelled = false;
+    (async () => {
+      try {
+        const response = await fetch("/api/v2/sandbox-access-request");
+        // Lookup failures fail open to the request form: POST is an
+        // idempotent upsert, so the worst case is a harmless resubmit.
+        if (!response.ok) return;
+        const data = await response.json();
+        if (!cancelled && data.request) {
+          setExistingRequest({
+            email: data.request.email,
+            accepted: Boolean(data.request.accepted),
+          });
+        }
+      } catch {
+      } finally {
+        if (!cancelled) setRequestChecked(true);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [open, requestChecked]);
 
   const submitAccessRequest = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -92,7 +129,7 @@ export const SandboxButton = (props: { className?: string }) => {
       }
 
       posthog.capture("sandbox_access_requested", { platform: "android" });
-      setRequestSent(true);
+      setExistingRequest({ email: requestEmail, accepted: false });
     } catch {
       toast.error("Couldn't send your request — please try again.");
     } finally {
@@ -210,7 +247,9 @@ export const SandboxButton = (props: { className?: string }) => {
                   The Android build is distributed as a Google Play internal
                   test — your Google account email must be approved before the
                   link works.{" "}
-                  {requestEmail === null && !requestSent ? (
+                  {requestChecked &&
+                  existingRequest === null &&
+                  requestEmail === null ? (
                     <button
                       type="button"
                       onClick={() => setRequestEmail(user?.email ?? "")}
@@ -221,13 +260,23 @@ export const SandboxButton = (props: { className?: string }) => {
                   ) : null}
                 </Typography>
 
-                {requestSent ? (
+                {existingRequest ? (
                   <Typography
                     variant={TYPOGRAPHY.M4}
                     className="mt-2 block text-grey-900"
                   >
-                    Request sent — you&apos;ll get an email at {requestEmail}{" "}
-                    once you&apos;re approved.
+                    {existingRequest.accepted ? (
+                      <>
+                        {existingRequest.email} has been approved — scan the QR
+                        code to install.
+                      </>
+                    ) : (
+                      <>
+                        Request sent — you&apos;ll get an email at
+                        {" " + existingRequest.email + " "} once you&apos;re
+                        approved.
+                      </>
+                    )}
                   </Typography>
                 ) : requestEmail !== null ? (
                   <form

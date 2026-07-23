@@ -4,9 +4,55 @@ import { WORLD_ID_SANDBOX_ENABLED } from "@/lib/constants";
 import { logger } from "@/lib/logger";
 import { Auth0SessionUser } from "@/lib/types";
 import { NextRequest, NextResponse } from "next/server";
+import { getSdk as getGetSandboxAccessRequestSdk } from "./graphql/get-sandbox-access-request.generated";
 import { getSdk as getInsertSandboxAccessRequestSdk } from "./graphql/insert-sandbox-access-request.generated";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+/**
+ * Returns the caller's access request (or `request: null`), so the dialog can
+ * show a persistent confirmation instead of offering a resubmit. Requests are
+ * unique per user, so the session's Hasura user id is the whole lookup key.
+ */
+export async function GET() {
+  if (!WORLD_ID_SANDBOX_ENABLED) {
+    return NextResponse.json({ success: false }, { status: 403 });
+  }
+
+  const session = await auth0.getSession();
+  const user = session?.user as Auth0SessionUser["user"] | undefined;
+  const userId = user?.hasura?.id;
+  if (!user || !userId) {
+    return NextResponse.json({ success: false }, { status: 401 });
+  }
+
+  try {
+    const client = await getAPIServiceGraphqlClient();
+    const data = await getGetSandboxAccessRequestSdk(
+      client,
+    ).GetSandboxAccessRequest({
+      user_id: userId,
+    });
+
+    const request = data.sandbox_access_request[0] ?? null;
+    return NextResponse.json({
+      success: true,
+      request: request
+        ? {
+            email: request.google_email,
+            accepted: request.accepted,
+            createdAt: request.created_at,
+          }
+        : null,
+    });
+  } catch (error) {
+    logger.error("Failed to look up sandbox access request", {
+      userId,
+      error,
+    });
+    return NextResponse.json({ success: false }, { status: 500 });
+  }
+}
 
 /**
  * Records an Android sandbox tester request in `sandbox_access_request`.

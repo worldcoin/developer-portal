@@ -1,0 +1,26 @@
+query FetchSandboxAccessRequests($limit: Int!) {
+  sandbox_access_request(order_by: { created_at: desc }, limit: $limit) {
+    id
+    google_email
+    user_id
+    accepted
+    created_at
+    processed_at
+    user {
+      name
+      email
+    }
+  }
+  total: sandbox_access_request_aggregate {
+    aggregate {
+      count
+    }
+  }
+  pending: sandbox_access_request_aggregate(
+    where: { accepted: { _eq: false } }
+  ) {
+    aggregate {
+      count
+    }
+  }
+}

@@ -4,6 +4,7 @@ import { NextRequest } from "next/server";
 const getSession = jest.fn();
 const sandboxEnabled = jest.fn<boolean, []>();
 const InsertSandboxAccessRequest = jest.fn();
+const GetSandboxAccessRequest = jest.fn();
 
 jest.mock("server-only", () => ({}));
 
@@ -22,6 +23,13 @@ jest.mock(
   }),
 );
 
+jest.mock(
+  "../../../api/v2/sandbox-access-request/graphql/get-sandbox-access-request.generated",
+  () => ({
+    getSdk: () => ({ GetSandboxAccessRequest }),
+  }),
+);
+
 // Getter so each test can flip the kill switch (a plain constant in prod).
 jest.mock("@/lib/constants", () => ({
   ...jest.requireActual("@/lib/constants"),
@@ -35,7 +43,7 @@ jest.mock("@/lib/logger", () => ({
 }));
 // #endregion
 
-import { POST } from "@/api/v2/sandbox-access-request";
+import { GET, POST } from "@/api/v2/sandbox-access-request";
 
 // #region Test Data
 const USER_ID = "usr_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
@@ -150,6 +158,88 @@ describe("/api/v2/sandbox-access-request", () => {
     InsertSandboxAccessRequest.mockRejectedValue(new Error("hasura down"));
 
     const res = await POST(makeRequest(validBody));
+
+    expect(res.status).toBe(500);
+    expect(await res.json()).toEqual({ success: false });
+  });
+});
+// #endregion
+
+// #region GET /api/v2/sandbox-access-request
+describe("GET /api/v2/sandbox-access-request", () => {
+  it("returns 403 when the sandbox kill switch is off", async () => {
+    sandboxEnabled.mockReturnValue(false);
+    getSession.mockResolvedValue(authedSession);
+
+    const res = await GET();
+
+    expect(res.status).toBe(403);
+    expect(GetSandboxAccessRequest).not.toHaveBeenCalled();
+  });
+
+  it("returns 401 when unauthenticated", async () => {
+    getSession.mockResolvedValue(null);
+
+    const res = await GET();
+
+    expect(res.status).toBe(401);
+    expect(GetSandboxAccessRequest).not.toHaveBeenCalled();
+  });
+
+  it("returns 401 when the session has no Hasura user id", async () => {
+    getSession.mockResolvedValue({
+      user: { email: "dev@example.com", hasura: {} },
+    });
+
+    const res = await GET();
+
+    expect(res.status).toBe(401);
+    expect(GetSandboxAccessRequest).not.toHaveBeenCalled();
+  });
+
+  it("returns the caller's existing request", async () => {
+    getSession.mockResolvedValue(authedSession);
+    GetSandboxAccessRequest.mockResolvedValue({
+      sandbox_access_request: [
+        {
+          google_email: "tester@gmail.com",
+          accepted: false,
+          created_at: "2026-07-23T00:00:00Z",
+        },
+      ],
+    });
+
+    const res = await GET();
+
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({
+      success: true,
+      request: {
+        email: "tester@gmail.com",
+        accepted: false,
+        createdAt: "2026-07-23T00:00:00Z",
+      },
+    });
+    expect(GetSandboxAccessRequest).toHaveBeenCalledWith({
+      user_id: USER_ID,
+    });
+  });
+
+  it("returns request: null when the caller has not submitted one", async () => {
+    getSession.mockResolvedValue(authedSession);
+    GetSandboxAccessRequest.mockResolvedValue({ sandbox_access_request: [] });
+
+    const res = await GET();
+
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({ success: true, request: null });
+  });
+
+  it("returns 500 when the lookup fails", async () => {
+    getSession.mockResolvedValue(authedSession);
+    GetSandboxAccessRequest.mockRejectedValue(new Error("hasura down"));
+
+    const res = await GET();
 
     expect(res.status).toBe(500);
     expect(await res.json()).toEqual({ success: false });
