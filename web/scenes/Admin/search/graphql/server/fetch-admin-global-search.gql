@@ -1,9 +1,11 @@
 query FetchAdminGlobalSearch(
   $appsWhere: app_bool_exp!
   $includeApps: Boolean!
+  $includeRps: Boolean!
   $includeTeams: Boolean!
   $includeUsers: Boolean!
   $limit: Int!
+  $rpsWhere: rp_registration_bool_exp!
   $teamsWhere: team_bool_exp!
   $usersWhere: user_bool_exp!
 ) {
@@ -17,6 +19,23 @@ query FetchAdminGlobalSearch(
     team_id
   }
   apps_aggregate: app_aggregate(where: $appsWhere) @include(if: $includeApps) {
+    aggregate {
+      count
+    }
+  }
+  rps: rp_registration(
+    where: $rpsWhere
+    order_by: [{ rp_id: asc }]
+    limit: $limit
+  ) @include(if: $includeRps) {
+    rp_id
+    app_id
+    app {
+      name
+    }
+  }
+  rps_aggregate: rp_registration_aggregate(where: $rpsWhere)
+    @include(if: $includeRps) {
     aggregate {
       count
     }

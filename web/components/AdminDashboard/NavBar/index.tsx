@@ -58,6 +58,14 @@ export const NavBar = () => {
         </NavBarItem>
 
         <NavBarItem
+          iconName="nav-world-id"
+          iconClassName={iconClassName}
+          href="/admin/rps"
+        >
+          RPs
+        </NavBarItem>
+
+        <NavBarItem
           iconName="user"
           iconClassName={iconClassName}
           href="/admin/users"

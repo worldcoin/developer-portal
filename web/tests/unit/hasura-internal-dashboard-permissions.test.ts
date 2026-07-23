@@ -46,4 +46,19 @@ describe("internal dashboard detail permissions", () => {
     expect(permission).toContain("- is_active");
     expect(permission).not.toContain("- api_key");
   });
+
+  it("allows RP registration reads without manager KMS key IDs", () => {
+    const permission = getReadonlyPermission("public_rp_registration.yaml");
+
+    expect(permission).toContain("- rp_id");
+    expect(permission).toContain("- app_id");
+    expect(permission).toContain("- mode");
+    expect(permission).toContain("- status");
+    expect(permission).toContain("- staging_status");
+    expect(permission).toContain("- signer_address");
+    expect(permission).toContain("- operation_hash");
+    expect(permission).toContain("- staging_operation_hash");
+    expect(permission).toContain("allow_aggregations: true");
+    expect(permission).not.toContain("- manager_kms_key_id");
+  });
 });

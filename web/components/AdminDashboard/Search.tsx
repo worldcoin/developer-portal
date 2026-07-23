@@ -22,11 +22,12 @@ type SearchResult = {
   name: string;
   detail?: string | null;
   href: string;
-  type: "App" | "Team" | "User";
+  type: "App" | "RP" | "Team" | "User";
 };
 
 type SearchResponse = {
   apps: Array<{ id: string; name: string; teamId: string }>;
+  rps: Array<{ appId: string; appName: string; id: string }>;
   teams: Array<{ id: string; name: string }>;
   users: Array<{ email: string | null; id: string; name: string }>;
 };
@@ -59,6 +60,13 @@ export const Search = ({ className }: SearchProps) => {
         id: app.id,
         name: app.name,
         type: "App" as const,
+      })) ?? []),
+      ...(response?.rps.map((rp) => ({
+        detail: rp.appName,
+        href: `/admin/rps/${rp.id}`,
+        id: rp.id,
+        name: rp.id,
+        type: "RP" as const,
       })) ?? []),
       ...(response?.users.map((user) => ({
         detail: user.email,
@@ -190,7 +198,7 @@ export const Search = ({ className }: SearchProps) => {
           aria-autocomplete="list"
           aria-controls={listboxId}
           aria-expanded={isOpen}
-          aria-label="Search teams, apps, and users"
+          aria-label="Search teams, apps, RPs, and users"
           aria-busy={status === "loading"}
           className={clsx(
             "size-full rounded-16 bg-transparent py-2 pr-20 pl-9 text-14 outline-hidden placeholder:text-grey-400 focus-visible:ring-2 focus-visible:ring-blue-500",
@@ -208,7 +216,7 @@ export const Search = ({ className }: SearchProps) => {
           }}
           onFocus={() => setIsFocused(true)}
           onKeyDown={handleKeyDown}
-          placeholder="Search teams, apps, and users"
+          placeholder="Search teams, apps, RPs, and users"
           ref={inputRef}
           role="combobox"
           type="search"
@@ -239,7 +247,7 @@ export const Search = ({ className }: SearchProps) => {
           )}
           {status === "ready" && results.length === 0 && (
             <p aria-live="polite" className="px-3 py-2 text-13 text-grey-500">
-              No matching teams, apps, or users.
+              No matching teams, apps, RPs, or users.
             </p>
           )}
           {status === "ready" &&

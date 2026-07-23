@@ -126,6 +126,98 @@
               - total_count
               - updated_at
             filter: {}
+    - name: admin_rp_inventory
+      fields:
+        - name: total_rps
+          type:
+            scalar: bigint
+            nullable: false
+        - name: managed_rps
+          type:
+            scalar: bigint
+            nullable: false
+        - name: self_managed_rps
+          type:
+            scalar: bigint
+            nullable: false
+        - name: managed_with_key
+          type:
+            scalar: bigint
+            nullable: false
+        - name: managed_without_key
+          type:
+            scalar: bigint
+            nullable: false
+        - name: distinct_manager_keys
+          type:
+            scalar: bigint
+            nullable: false
+        - name: shared_key_groups
+          type:
+            scalar: bigint
+            nullable: false
+        - name: rps_on_shared_keys
+          type:
+            scalar: bigint
+            nullable: false
+        - name: status_pending
+          type:
+            scalar: bigint
+            nullable: false
+        - name: status_registered
+          type:
+            scalar: bigint
+            nullable: false
+        - name: status_failed
+          type:
+            scalar: bigint
+            nullable: false
+        - name: status_deactivated
+          type:
+            scalar: bigint
+            nullable: false
+        - name: staging_status_pending
+          type:
+            scalar: bigint
+            nullable: false
+        - name: staging_status_registered
+          type:
+            scalar: bigint
+            nullable: false
+        - name: staging_status_failed
+          type:
+            scalar: bigint
+            nullable: false
+        - name: staging_status_deactivated
+          type:
+            scalar: bigint
+            nullable: false
+        - name: staging_status_null
+          type:
+            scalar: bigint
+            nullable: false
+      select_permissions:
+        - role: internal_dashboard_readonly
+          permission:
+            columns:
+              - total_rps
+              - managed_rps
+              - self_managed_rps
+              - managed_with_key
+              - managed_without_key
+              - distinct_manager_keys
+              - shared_key_groups
+              - rps_on_shared_keys
+              - status_pending
+              - status_registered
+              - status_failed
+              - status_deactivated
+              - staging_status_pending
+              - staging_status_registered
+              - staging_status_failed
+              - staging_status_deactivated
+              - staging_status_null
+            filter: {}
   native_queries:
     - root_field_name: admin_dashboard_inventory
       arguments: {}
@@ -181,6 +273,49 @@
           user_counts.total_users
         FROM team_counts, user_counts, app_counts, invite_counts, api_key_counts
       returns: admin_dashboard_inventory
+    - root_field_name: admin_rp_inventory
+      arguments: {}
+      code: |
+        WITH key_counts AS (
+          SELECT
+            manager_kms_key_id,
+            COUNT(*)::bigint AS rp_count
+          FROM public.rp_registration
+          WHERE manager_kms_key_id IS NOT NULL
+          GROUP BY manager_kms_key_id
+        )
+        SELECT
+          COUNT(*)::bigint AS total_rps,
+          COUNT(*) FILTER (WHERE mode = 'managed')::bigint AS managed_rps,
+          COUNT(*) FILTER (WHERE mode = 'self_managed')::bigint AS self_managed_rps,
+          COUNT(*) FILTER (
+            WHERE mode = 'managed' AND manager_kms_key_id IS NOT NULL
+          )::bigint AS managed_with_key,
+          COUNT(*) FILTER (
+            WHERE mode = 'managed' AND manager_kms_key_id IS NULL
+          )::bigint AS managed_without_key,
+          (
+            SELECT COUNT(*)::bigint FROM key_counts
+          ) AS distinct_manager_keys,
+          (
+            SELECT COUNT(*)::bigint FROM key_counts WHERE rp_count > 1
+          ) AS shared_key_groups,
+          (
+            SELECT COALESCE(SUM(rp_count), 0)::bigint
+            FROM key_counts
+            WHERE rp_count > 1
+          ) AS rps_on_shared_keys,
+          COUNT(*) FILTER (WHERE status = 'pending')::bigint AS status_pending,
+          COUNT(*) FILTER (WHERE status = 'registered')::bigint AS status_registered,
+          COUNT(*) FILTER (WHERE status = 'failed')::bigint AS status_failed,
+          COUNT(*) FILTER (WHERE status = 'deactivated')::bigint AS status_deactivated,
+          COUNT(*) FILTER (WHERE staging_status = 'pending')::bigint AS staging_status_pending,
+          COUNT(*) FILTER (WHERE staging_status = 'registered')::bigint AS staging_status_registered,
+          COUNT(*) FILTER (WHERE staging_status = 'failed')::bigint AS staging_status_failed,
+          COUNT(*) FILTER (WHERE staging_status = 'deactivated')::bigint AS staging_status_deactivated,
+          COUNT(*) FILTER (WHERE staging_status IS NULL)::bigint AS staging_status_null
+        FROM public.rp_registration
+      returns: admin_rp_inventory
     - root_field_name: admin_dashboard_queues
       arguments: {}
       code: |

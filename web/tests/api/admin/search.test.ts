@@ -54,8 +54,15 @@ describe("/api/admin/search", () => {
         { id: "app_current", name: "Current app", teamId: "team_current" },
       ],
       query: "current",
+      rps: [
+        {
+          appId: "app_current",
+          appName: "Current app",
+          id: "rp_0123456789abcdef",
+        },
+      ],
       teams: [],
-      totals: { apps: 1, teams: 0, users: 0 },
+      totals: { apps: 1, rps: 1, teams: 0, users: 0 },
       users: [],
     });
 
@@ -68,8 +75,15 @@ describe("/api/admin/search", () => {
         { id: "app_current", name: "Current app", teamId: "team_current" },
       ],
       query: "current",
+      rps: [
+        {
+          appId: "app_current",
+          appName: "Current app",
+          id: "rp_0123456789abcdef",
+        },
+      ],
       teams: [],
-      totals: { apps: 1, teams: 0, users: 0 },
+      totals: { apps: 1, rps: 1, teams: 0, users: 0 },
       users: [],
     });
   });
