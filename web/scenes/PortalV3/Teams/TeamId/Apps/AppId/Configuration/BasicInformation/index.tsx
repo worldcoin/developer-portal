@@ -51,8 +51,9 @@ export const BasicInformation = forwardRef<
     teamId: string;
     app: FetchAppMetadataQuery["app"][0];
     teamName: string;
+    isMiniApp: boolean;
   }
->(({ appId, teamId, app, teamName }, ref) => {
+>(({ appId, teamId, app, teamName, isMiniApp }, ref) => {
   const apolloClient = useApolloClient();
 
   const [viewMode] = useAtom(viewModeAtom);
@@ -82,6 +83,10 @@ export const BasicInformation = forwardRef<
   const editableAppMetadata = useMemo(() => {
     return {
       name: appMetaData?.name,
+      world_app_description:
+        appMetaData?.app_mode === "mini-app"
+          ? appMetaData?.world_app_description ?? ""
+          : undefined,
       integration_url: appMetaData?.integration_url,
       app_website_url: appMetaData?.app_website_url ?? "",
     };
@@ -122,6 +127,7 @@ export const BasicInformation = forwardRef<
     const subscription = watch((values) => {
       setBasicInfoDraft({
         name: values.name,
+        world_app_description: values.world_app_description,
         integration_url: values.integration_url,
         app_website_url: values.app_website_url,
       });
@@ -135,10 +141,13 @@ export const BasicInformation = forwardRef<
       signal?: AbortSignal,
     ): Promise<boolean> => {
       if (signal?.aborted) throw new DOMException("Aborted", "AbortError");
+      const submittedData = isMiniApp
+        ? data
+        : { ...data, world_app_description: undefined };
       const result = await validateAndSubmitServerSide(
         appMetaData?.id,
         appId,
-        data,
+        submittedData,
       );
       if (signal?.aborted) throw new DOMException("Aborted", "AbortError");
       if (!result.success) {
@@ -156,6 +165,10 @@ export const BasicInformation = forwardRef<
             ...(data.name !== undefined && {
               name: () => data.name ?? "",
             }),
+            ...(submittedData.world_app_description !== undefined && {
+              world_app_description: () =>
+                submittedData.world_app_description ?? "",
+            }),
             ...(data.integration_url !== undefined && {
               integration_url: () => data.integration_url ?? "",
             }),
@@ -167,7 +180,7 @@ export const BasicInformation = forwardRef<
       }
       return true;
     },
-    [appMetaData?.id, appId, apolloClient],
+    [appMetaData?.id, appId, apolloClient, isMiniApp],
   );
 
   const autosave = useAutosaveWithStatus<BasicInformationFormValues>({
@@ -186,7 +199,12 @@ export const BasicInformation = forwardRef<
           async (data) => {
             if (opts?.forReview) {
               try {
-                await reviewSchema.validate(data, { abortEarly: false });
+                await reviewSchema.validate(data, {
+                  abortEarly: false,
+                  context: {
+                    isMiniApp,
+                  },
+                });
               } catch (err) {
                 if (err instanceof yup.ValidationError) {
                   err.inner.forEach((e) => {
@@ -239,33 +257,51 @@ export const BasicInformation = forwardRef<
   return (
     <div className="grid gap-y-6">
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <FloatingInput
-          id="name"
-          register={register("name")}
-          errors={errors.name}
-          label="App name"
-          disabled={!isEditable || !isEnoughPermissions}
-          required
-          maxLength={50}
-        />
+        <div className={isMiniApp ? undefined : "sm:col-span-2"}>
+          <FloatingInput
+            id="name"
+            register={register("name")}
+            errors={errors.name}
+            label="App name"
+            disabled={!isEditable || !isEnoughPermissions}
+            required
+            maxLength={50}
+          />
+        </div>
 
-        <FloatingInput
-          id="integration_url"
-          label="App URL"
-          required
-          errors={errors.integration_url}
-          disabled={!isEditable || !isEnoughPermissions}
-          register={makeUrlRegister("integration_url")}
-        />
+        {isMiniApp && (
+          <FloatingInput
+            id="world_app_description"
+            register={register("world_app_description")}
+            errors={errors.world_app_description}
+            label="App Tag Line"
+            disabled={!isEditable || !isEnoughPermissions}
+            required
+            maxLength={40}
+          />
+        )}
 
-        <FloatingInput
-          id="app_website_url"
-          label="App Official Website"
-          required
-          errors={errors.app_website_url}
-          disabled={!isEditable || !isEnoughPermissions}
-          register={makeUrlRegister("app_website_url")}
-        />
+        <div className="sm:col-span-2">
+          <FloatingInput
+            id="integration_url"
+            label="App URL"
+            required
+            errors={errors.integration_url}
+            disabled={!isEditable || !isEnoughPermissions}
+            register={makeUrlRegister("integration_url")}
+          />
+        </div>
+
+        <div className="sm:col-span-2">
+          <FloatingInput
+            id="app_website_url"
+            label="App Official Website"
+            required
+            errors={errors.app_website_url}
+            disabled={!isEditable || !isEnoughPermissions}
+            register={makeUrlRegister("app_website_url")}
+          />
+        </div>
       </div>
 
       {/* Publisher / ID meta line */}
