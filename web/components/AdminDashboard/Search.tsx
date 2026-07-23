@@ -61,7 +61,7 @@ export const Search = ({ className }: SearchProps) => {
         name: app.name,
         type: "App" as const,
       })) ?? []),
-      ...(response?.rps.map((rp) => ({
+      ...(response?.rps?.map((rp) => ({
         detail: rp.appName,
         href: `/admin/rps/${rp.id}`,
         id: rp.id,
