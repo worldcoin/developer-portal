@@ -3,6 +3,7 @@ import { ActionDangerZone } from "@/components/ActionDangerZone";
 import { ActionsHeader } from "@/components/ActionsHeader";
 import { ErrorPage } from "@/components/ErrorPage";
 import { SizingWrapper } from "@/components/SizingWrapper";
+import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { useRouter } from "next/navigation";
 import { useCallback, use } from "react";
 import Skeleton from "react-loading-skeleton";
@@ -72,7 +73,17 @@ export const ActionIdDangerPage = (props: ActionIdDangerPageProps) => {
     return (
       <SizingWrapper gridClassName="pt-6 pb-6 md:pb-10">
         {loading ? (
-          <Skeleton height={150} />
+          // Danger-zone copy is static; only the action name and button wait on data.
+          <div className="grid w-full max-w-[480px] gap-y-10">
+            <div className="grid gap-y-2">
+              <Typography variant={TYPOGRAPHY.H7} className="text-grey-900">
+                Danger zone
+              </Typography>
+              <Skeleton count={2} height={12} />
+            </div>
+
+            <Skeleton width={180} height={56} className="rounded-full" />
+          </div>
         ) : (
           <ActionDangerZone
             actionIdentifier={action?.name ?? ""}

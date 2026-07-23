@@ -3,7 +3,7 @@ import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { PaymentMetadata } from "@/lib/types";
 import { ComponentProps } from "react";
 import { Suspense } from "react";
-import Skeleton from "react-loading-skeleton";
+import { SkeletonTable } from "@/components/Skeletons";
 import { ErrorState } from "./ErrorState";
 import { TransactionsTable } from "./TransactionsTable";
 import { getTransactionData } from "./server";
@@ -112,7 +112,23 @@ const TransactionsContent = ({
   transactionData: PaymentMetadata[];
 }) => {
   return (
-    <Suspense fallback={<Skeleton />}>
+    <Suspense
+      fallback={
+        <SkeletonTable
+          className="py-5"
+          rows={5}
+          columns={[
+            "Amount",
+            "Reference Id",
+            "Transaction Hash",
+            "From",
+            "To",
+            "Timestamp",
+            "Status",
+          ]}
+        />
+      }
+    >
       <TransactionsTable transactionData={transactionData} />
     </Suspense>
   );

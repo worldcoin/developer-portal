@@ -7,8 +7,8 @@ import { Input } from "@/components/Input";
 import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { useParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-import Skeleton from "react-loading-skeleton";
 import { App } from "./App";
+import { AppCardSkeleton } from "./App/Skeleton";
 import { useQuery } from "@apollo/client/react";
 import {
   FetchAppsDocument,
@@ -96,9 +96,7 @@ export const Apps = () => {
         {loading &&
           !app &&
           Array.from({ length: 4 }).map((_, index) => (
-            <div key={index}>
-              <Skeleton height={200} />
-            </div>
+            <AppCardSkeleton key={index} />
           ))}
 
         {!loading && app && !searchQuery && (

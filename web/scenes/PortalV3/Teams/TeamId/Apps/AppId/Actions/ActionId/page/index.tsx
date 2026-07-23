@@ -2,7 +2,8 @@
 import { use } from "react";
 import { EngineType } from "@/lib/types";
 import { ErrorPage } from "@/components/ErrorPage";
-import Skeleton from "react-loading-skeleton";
+import { SkeletonTable } from "@/components/Skeletons";
+import { TYPOGRAPHY, Typography } from "@/components/Typography";
 import { ActionStatsGraph } from "./ActionStatsGraph";
 import { VerifiedTable } from "./VerifiedTable";
 import { GetSingleActionAndNullifiersDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/Actions/ActionId/page/graphql/client/get-single-action.generated";
@@ -44,8 +45,11 @@ export const ActionIdPage = (props: ActionIdPageProps) => {
           <ActionStatsGraph />
 
           {loading ? (
-            <div>
-              <Skeleton count={5} />
+            <div className="grid w-full gap-y-6">
+              <Typography variant={TYPOGRAPHY.H7} className="mt-6">
+                Verified humans
+              </Typography>
+              <SkeletonTable columns={["Human", "Uses", "Time"]} rows={5} />
             </div>
           ) : (
             <VerifiedTable
