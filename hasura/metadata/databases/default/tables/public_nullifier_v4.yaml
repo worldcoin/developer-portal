@@ -12,14 +12,17 @@ insert_permissions:
       columns:
         - action_v4_id
         - nullifier
+        - uses
 select_permissions:
   - role: service
     permission:
       columns:
         - id
         - created_at
+        - updated_at
         - action_v4_id
         - nullifier
+        - uses
       filter: {}
   - role: user
     permission:
@@ -40,3 +43,11 @@ select_permissions:
                       user_id:
                         _eq: X-Hasura-User-Id
       allow_aggregations: true
+update_permissions:
+  - role: service
+    permission:
+      columns:
+        - uses
+      filter: {}
+      check: {}
+    comment: Only the atomic verify mutation increments uses.

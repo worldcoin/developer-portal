@@ -1,0 +1,23 @@
+mutation AtomicUpsertNullifierV4($action_v4_id: String!, $nullifier: numeric!) {
+  insert_nullifier_v4_one(
+    object: { action_v4_id: $action_v4_id, nullifier: $nullifier, uses: 0 }
+    on_conflict: { constraint: nullifier_v4_nullifier_key, update_columns: [] }
+  ) {
+    id
+  }
+  update_nullifier_v4(
+    where: {
+      nullifier: { _eq: $nullifier }
+      action_v4_id: { _eq: $action_v4_id }
+    }
+    _inc: { uses: 1 }
+  ) {
+    affected_rows
+    returning {
+      id
+      uses
+      created_at
+      updated_at
+    }
+  }
+}

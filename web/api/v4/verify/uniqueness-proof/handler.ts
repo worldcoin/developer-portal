@@ -9,10 +9,9 @@ import { logger } from "@/lib/logger";
 import { captureEvent } from "@/services/posthogClient";
 import { GraphQLClient } from "graphql-request";
 import { NextRequest, NextResponse } from "next/server";
-import { getSdk as getCheckNullifierV4Sdk } from "../graphql/check-nullifier-v4.generated";
+import { getSdk as getAtomicUpsertNullifierV4Sdk } from "../graphql/atomic-upsert-nullifier-v4.generated";
 import { getSdk as getCreateActionV4Sdk } from "../graphql/create-action-v4.generated";
 import { getSdk as getFetchActionV4Sdk } from "../graphql/fetch-action-v4.generated";
-import { getSdk as getInsertNullifierV4Sdk } from "../graphql/insert-nullifier-v4.generated";
 import {
   UniquenessProofResponseV3,
   UniquenessProofResponseV4,
@@ -207,154 +206,23 @@ export async function handleUniquenessProofVerification(
     });
   }
 
-  // Check if nullifier already exists
-  const checkNullifierResult = await getCheckNullifierV4Sdk(
-    client,
-  ).CheckNullifierV4({
-    nullifier: nullifierForStorage,
-  });
-
-  const existingNullifier = checkNullifierResult.nullifier_v4[0];
-
-  if (existingNullifier) {
-    // Nullifier already exists — skip saving and return success
-    logger.info("Nullifier already exists, skipping save", {
-      nullifier: nullifierForStorage,
-      rpId,
-      action: parsedParams.action,
-      protocol_version: protocolVersion,
-    });
-
-    await captureEvent({
-      event: "action_verify_v4_success",
-      distinctId: rpId,
-      properties: {
-        rp_id: rpId,
-        app_id: appId,
-        action: parsedParams.action,
-        environment: requestedEnvironment,
-        nullifier_reused: true,
-        protocol_version: protocolVersion,
-      },
-    });
-
-    logPortalEvent({
-      event: "action_verification",
-      actor: "human",
-      app_id: appId,
-      action: parsedParams.action,
-      metadata: {
-        rp_id: rpId,
-        environment: requestedEnvironment,
-        nullifier_reused: true,
-        protocol_version: protocolVersion,
-      },
-    });
-
-    return NextResponse.json<UniquenessProofSuccessResponse>(
-      {
-        success: true,
-        action: actionV4.action,
-        nullifier: normalizedNullifier,
-        created_at: existingNullifier.created_at,
-        environment: requestedEnvironment,
-        results: verificationResults,
-        message: "Proof verified successfully (nullifier reuse)",
-      },
-      { status: 200 },
-    );
-  }
-
-  // Save the new nullifier
+  // Atomically count the verification: insert with uses: 0 (on conflict do nothing),
+  // then increment by 1 filtered by action — both fields run in one Hasura transaction.
+  // The action_v4_id filter is the cross-action guard; anything other than exactly one
+  // updated row is a server error, so there is no HTTP success without a committed count.
+  let upsertResult;
   try {
-    const insertResult = await getInsertNullifierV4Sdk(
+    upsertResult = await getAtomicUpsertNullifierV4Sdk(
       client,
-    ).InsertNullifierV4({
+    ).AtomicUpsertNullifierV4({
       action_v4_id: actionV4.id,
       nullifier: nullifierForStorage,
     });
-
-    if (!insertResult.insert_nullifier_v4_one) {
-      return errorResponse({
-        statusCode: 500,
-        code: "internal_error",
-        detail: "Failed to save nullifier.",
-        attribute: null,
-        req,
-        app_id: appId,
-      });
-    }
-
-    await captureEvent({
-      event: "action_verify_v4_success",
-      distinctId: rpId,
-      properties: {
-        rp_id: rpId,
-        app_id: appId,
-        action: parsedParams.action,
-        environment: requestedEnvironment,
-        nullifier_reused: false,
-        protocol_version: protocolVersion,
-      },
-    });
-
-    logPortalEvent({
-      event: "action_verification",
-      actor: "human",
-      app_id: appId,
-      action: parsedParams.action,
-      metadata: {
-        rp_id: rpId,
-        environment: requestedEnvironment,
-        nullifier_reused: false,
-        protocol_version: protocolVersion,
-      },
-    });
-
-    return NextResponse.json<UniquenessProofSuccessResponse>(
-      {
-        success: true,
-        action: actionV4.action,
-        nullifier: normalizedNullifier,
-        created_at: insertResult.insert_nullifier_v4_one.created_at,
-        environment: requestedEnvironment,
-        results: verificationResults,
-        message: "Proof verified successfully",
-      },
-      { status: 200 },
-    );
   } catch (e: unknown) {
-    const errorMessage = e instanceof Error ? e.message : String(e);
-
-    // Race condition: another request inserted the same nullifier — treat as success
-    if (errorMessage.includes("unique") || errorMessage.includes("duplicate")) {
-      logPortalEvent({
-        event: "action_verification",
-        actor: "human",
-        app_id: appId,
-        action: parsedParams.action,
-        metadata: {
-          rp_id: rpId,
-          environment: requestedEnvironment,
-          nullifier_reused: true,
-          protocol_version: protocolVersion,
-        },
-      });
-
-      return NextResponse.json<UniquenessProofSuccessResponse>(
-        {
-          success: true,
-          action: actionV4.action,
-          nullifier: normalizedNullifier,
-          environment: requestedEnvironment,
-          results: verificationResults,
-          message: "Proof verified successfully (nullifier reuse)",
-        },
-        { status: 200 },
-      );
-    }
-
-    logger.error("Error inserting nullifier", { error: errorMessage, rpId });
+    logger.error("Error upserting nullifier", {
+      error: e instanceof Error ? e.message : String(e),
+      rpId,
+    });
 
     return NextResponse.json<UniquenessProofErrorResponse>(
       {
@@ -365,4 +233,80 @@ export async function handleUniquenessProofVerification(
       { status: 500 },
     );
   }
+
+  const updatedRows = upsertResult.update_nullifier_v4?.affected_rows ?? 0;
+  const nullifierRow = upsertResult.update_nullifier_v4?.returning?.[0];
+
+  if (updatedRows !== 1 || !nullifierRow) {
+    // Zero rows means the nullifier exists under a different action.
+    logger.error("Nullifier upsert affected an unexpected row count", {
+      affectedRows: updatedRows,
+      rpId,
+      actionId: actionV4.id,
+      action: parsedParams.action,
+      protocol_version: protocolVersion,
+    });
+
+    return NextResponse.json<UniquenessProofErrorResponse>(
+      {
+        success: false,
+        code: "internal_error",
+        detail: "Failed to save nullifier.",
+      },
+      { status: 500 },
+    );
+  }
+
+  const nullifierReused = !upsertResult.insert_nullifier_v4_one;
+
+  if (nullifierReused) {
+    logger.info("Nullifier reused", {
+      nullifier: nullifierForStorage,
+      rpId,
+      action: parsedParams.action,
+      uses: nullifierRow.uses,
+      protocol_version: protocolVersion,
+    });
+  }
+
+  await captureEvent({
+    event: "action_verify_v4_success",
+    distinctId: rpId,
+    properties: {
+      rp_id: rpId,
+      app_id: appId,
+      action: parsedParams.action,
+      environment: requestedEnvironment,
+      nullifier_reused: nullifierReused,
+      protocol_version: protocolVersion,
+    },
+  });
+
+  logPortalEvent({
+    event: "action_verification",
+    actor: "human",
+    app_id: appId,
+    action: parsedParams.action,
+    metadata: {
+      rp_id: rpId,
+      environment: requestedEnvironment,
+      nullifier_reused: nullifierReused,
+      protocol_version: protocolVersion,
+    },
+  });
+
+  return NextResponse.json<UniquenessProofSuccessResponse>(
+    {
+      success: true,
+      action: actionV4.action,
+      nullifier: normalizedNullifier,
+      created_at: nullifierRow.created_at,
+      environment: requestedEnvironment,
+      results: verificationResults,
+      message: nullifierReused
+        ? "Proof verified successfully (nullifier reuse)"
+        : "Proof verified successfully",
+    },
+    { status: 200 },
+  );
 }
