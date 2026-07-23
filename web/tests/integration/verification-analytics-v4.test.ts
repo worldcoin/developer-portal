@@ -108,10 +108,18 @@ const runRollup = async (secondsAhead: number): Promise<JobRow> =>
     [secondsAhead],
   );
 
-const runReconciliation = async (batchSize: number): Promise<JobRow> =>
-  queryOne<JobRow>("SELECT * FROM reconcile_verification_stats($1);", [
-    batchSize,
-  ]);
+// The function asserts REPEATABLE READ (§12.3); in production the route reaches it
+// through the repeatable-read Hasura source.
+const runReconciliation = async (batchSize: number): Promise<JobRow> => {
+  const results = (await integrationDBExecuteQuery(`
+    BEGIN;
+    SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;
+    SELECT * FROM reconcile_verification_stats(${Number(batchSize)});
+    COMMIT;
+  `)) as unknown as Array<{ rows: JobRow[] }>;
+
+  return results[2].rows[0];
+};
 
 const expectJob = (
   row: JobRow,
