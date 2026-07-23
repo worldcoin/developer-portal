@@ -15,15 +15,18 @@ import QRCode from "react-qr-code";
 import { useState } from "react";
 import { toast } from "react-toastify";
 
-/** Static distribution links for the sandbox builds. Update here only. */
-const IOS_TESTFLIGHT_URL = "https://testflight.apple.com/join/VZEurhHe";
+// Distribution links for the sandbox builds. Values come from the deploy
+// config (world-id-deploy stacks/web/parameters.ts) and are inlined at build
+// time; an unset link degrades to the "coming soon" placeholder below.
+const IOS_TESTFLIGHT_URL: string | null =
+  process.env.NEXT_PUBLIC_IOS_TESTFLIGHT_URL || null;
 // Google Play internal test: works only for Google accounts already on the
 // internal-tester allowlist (managed in Play Console, outside this repo).
 const ANDROID_URL: string | null =
-  "https://play.google.com/apps/internaltest/4701115249455610230";
+  process.env.NEXT_PUBLIC_ANDROID_INTERNAL_TEST_URL || null;
 /** TestFlight's own App Store page, for testers who don't have it yet. */
-const TESTFLIGHT_APP_STORE_URL =
-  "https://apps.apple.com/app/testflight/id899247664";
+const TESTFLIGHT_APP_STORE_URL: string | null =
+  process.env.NEXT_PUBLIC_TESTFLIGHT_APP_STORE_URL || null;
 
 type Platform = "ios" | "android";
 
@@ -322,7 +325,7 @@ export const SandboxButton = (props: { className?: string }) => {
                     </div>
                   )}
                 </div>
-                {platform === "ios" ? (
+                {platform === "ios" && TESTFLIGHT_APP_STORE_URL ? (
                   <Typography variant={TYPOGRAPHY.R5} className="text-grey-500">
                     Installing World ID Sandbox requires{" "}
                     <a
