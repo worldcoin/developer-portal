@@ -416,10 +416,21 @@ BEGIN
   END IF;
 
   IF _app_id IS NOT NULL AND EXISTS (SELECT 1 FROM public.app WHERE id = _app_id) THEN
+    -- latest_verification_at is recomputed from surviving actions so app rows do not keep
+    -- reporting a timestamp produced by the action being deleted.
     UPDATE public.app_verification_stats_daily d
     SET verifications = d.verifications - s.verifications,
         unique_verifications = d.unique_verifications - s.unique_verifications,
         repeated_verifications = d.repeated_verifications - s.repeated_verifications,
+        latest_verification_at = (
+          SELECT MAX(s2.latest_verification_at)
+          FROM public.action_verification_stats_daily s2
+          WHERE s2.app_id = d.app_id
+            AND s2.source = d.source
+            AND s2.environment = d.environment
+            AND s2.date = d.date
+            AND s2.action_id <> OLD.id
+        ),
         updated_at = now()
     FROM public.action_verification_stats_daily s
     WHERE s.action_id = OLD.id
@@ -432,6 +443,14 @@ BEGIN
     SET verifications = d.verifications - s.verifications,
         unique_verifications = d.unique_verifications - s.unique_verifications,
         repeated_verifications = d.repeated_verifications - s.repeated_verifications,
+        latest_verification_at = (
+          SELECT MAX(s2.latest_verification_at)
+          FROM public.action_verification_stats_total s2
+          WHERE s2.app_id = d.app_id
+            AND s2.source = d.source
+            AND s2.environment = d.environment
+            AND s2.action_id <> OLD.id
+        ),
         updated_at = now()
     FROM public.action_verification_stats_total s
     WHERE s.action_id = OLD.id
@@ -473,6 +492,8 @@ EXECUTE PROCEDURE public.subtract_action_verification_stats();
 -- statement, so aggregates and snapshots come from one MVCC snapshot. Structural drift
 -- (stored totals vs snapshot sums, app totals vs sum of retained action totals, snapshots
 -- ahead of uses) is alerted, never auto-decremented. PR 1 covers the legacy source.
+-- Old app_stats is deliberately NOT repaired here: reconciliation recoveries feed only the
+-- new read models (approved ruling; the seed healed pre-cutover residue once).
 -- ---------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION public.reconcile_verification_stats(_batch_size integer DEFAULT 500)
 RETURNS SETOF public.verification_job_returning

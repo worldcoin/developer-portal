@@ -1047,6 +1047,32 @@ describe("action deletion verification analytics triggers", () => {
     );
     expectMeasures(appTotal, 5, 2, 3);
 
+    const latests = await queryOne<{
+      app_latest: Date | null;
+      x_latest: Date | null;
+    }>(
+      `
+        SELECT
+          (
+            SELECT latest_verification_at
+            FROM app_verification_stats_total
+            WHERE app_id = $1
+              AND source = 'legacy'
+              AND environment = 'production'
+          ) AS app_latest,
+          (
+            SELECT latest_verification_at
+            FROM action_verification_stats_total
+            WHERE action_id = 'action_dx'
+              AND source = 'legacy'
+              AND environment = 'production'
+          ) AS x_latest;
+      `,
+      [fixture.prodAppId],
+    );
+    expect(latests.app_latest).not.toBeNull();
+    expect(latests.app_latest?.getTime()).toBe(latests.x_latest?.getTime());
+
     const rowCounts = await queryOne<{
       y_daily: string;
       y_total: string;
