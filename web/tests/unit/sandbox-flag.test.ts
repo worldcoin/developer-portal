@@ -1,13 +1,11 @@
-// #region Mocks
-jest.mock("@/lib/feature-flags/openfeature/sandbox-teams", () => ({
-  SANDBOX_TEAMS: ["team_allowed_a", "team_allowed_b"],
-}));
-// #endregion
-
 import { featureFlags } from "@/lib/feature-flags";
 import { getFlagClient } from "@/lib/feature-flags/openfeature/provider";
 
 const { getSandboxTeamIds } = featureFlags.worldIdSandbox;
+
+beforeEach(() => {
+  process.env.WORLD_ID_SANDBOX_TEAM_IDS = "team_allowed_a, team_allowed_b";
+});
 
 // #region sandbox-distribution flag resolution
 describe("sandbox-distribution flag", () => {
@@ -24,6 +22,13 @@ describe("sandbox-distribution flag", () => {
       [],
     );
     expect(await getSandboxTeamIds([], null)).toEqual([]);
+  });
+
+  it("denies everyone when the env var is unset", async () => {
+    delete process.env.WORLD_ID_SANDBOX_TEAM_IDS;
+    expect(
+      await getSandboxTeamIds(["team_allowed_a"], "dev@example.com"),
+    ).toEqual([]);
   });
 
   it("denies when teamId context is missing", async () => {
