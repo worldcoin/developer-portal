@@ -37,10 +37,7 @@ describe("sandbox-distribution flag", () => {
     delete process.env.WORLD_ID_SANDBOX_TEAM_IDS;
 
     await expect(
-      getSandboxTeamIds(
-        ["team_allowed_a", "team_other"],
-        "dev@example.com",
-      ),
+      getSandboxTeamIds(["team_allowed_a", "team_other"], "dev@example.com"),
     ).resolves.toEqual(["team_allowed_a", "team_other"]);
   });
 
