@@ -223,7 +223,7 @@ const makeAppMetadata = (overrides: Record<string, unknown> = {}) => ({
   meta_tag_image_url: "",
   showcase_img_urls: [] as string[],
   description: "",
-  world_app_description: "",
+  world_app_description: "A useful test app",
   category: "",
   is_developer_allow_listing: false,
   world_app_button_text: "",
@@ -368,6 +368,102 @@ beforeEach(() => {
 
 // #region Configuration redesign layout
 describe("v3 Configuration redesign [layout]", () => {
+  it("shows the full skeleton while configuration data is cold-loading", () => {
+    useFetchAppMetadataQuery.mockReturnValue({
+      data: undefined,
+      loading: true,
+      error: undefined,
+    });
+    useFetchLocalisationsQuery.mockReturnValue({
+      data: undefined,
+      loading: true,
+    });
+
+    const { container } = renderPage();
+
+    expect(container.querySelector(".react-loading-skeleton")).not.toBeNull();
+    expect(
+      screen.queryByText("How does this app reach users?"),
+    ).not.toBeInTheDocument();
+  });
+
+  it("keeps cached configuration mounted during a metadata refetch", () => {
+    useFetchAppMetadataQuery.mockReturnValue({
+      data: { app: [makeApp(makeAppMetadata())] },
+      loading: true,
+      error: undefined,
+    });
+
+    const { container } = renderPage();
+
+    expect(container.querySelector(".react-loading-skeleton")).toBeNull();
+    expect(
+      screen.getByText("How does this app reach users?"),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("radio", { name: "Mini App" })).toBeChecked();
+  });
+
+  it("places the canonical app tagline in Basic information", () => {
+    renderPage();
+
+    const basicSection = screen
+      .getByRole("heading", { name: "Basic information" })
+      .closest("section");
+    expect(basicSection).not.toBeNull();
+
+    const basicInputs = within(basicSection as HTMLElement)
+      .getAllByRole("textbox")
+      .map((input) => input.id);
+    expect(basicInputs).toEqual([
+      "name",
+      "world_app_description",
+      "integration_url",
+      "app_website_url",
+    ]);
+    expect(
+      within(basicSection as HTMLElement).getByLabelText(/App Tag Line/),
+    ).toHaveValue("A useful test app");
+
+    goToStep("Localized content");
+    const localizedSection = screen
+      .getByRole("heading", { name: "Localized content" })
+      .closest("section");
+    expect(localizedSection).not.toBeNull();
+    expect(
+      within(localizedSection as HTMLElement).queryByLabelText(/App Tag Line/),
+    ).not.toBeInTheDocument();
+  });
+
+  it("hides the Mini App tagline for external integrations", () => {
+    useFetchAppMetadataQuery.mockReturnValue({
+      data: {
+        app: [
+          makeApp(
+            makeAppMetadata({
+              app_mode: "external",
+              world_app_description: "Legacy mini app tagline",
+            }),
+          ),
+        ],
+      },
+      loading: false,
+      error: undefined,
+    });
+
+    renderPage();
+
+    expect(screen.queryByLabelText(/App Tag Line/)).not.toBeInTheDocument();
+
+    goToStep("Localized content");
+    const localizedSection = screen
+      .getByRole("heading", { name: "Localized content" })
+      .closest("section");
+    expect(localizedSection).not.toBeNull();
+    expect(
+      within(localizedSection as HTMLElement).getByLabelText("Description"),
+    ).toBeInTheDocument();
+  });
+
   it("renders the app-mode radio cards with mini-app selected", () => {
     renderPage();
     expect(
@@ -570,16 +666,14 @@ describe("v3 Configuration redesign [footer and preview]", () => {
     expect(within(rail).getByText("Mini App")).toBeInTheDocument();
     // Static placeholders for the non-editable listing bits.
     expect(screen.getByText("Not yet rated")).toBeInTheDocument();
-    expect(screen.getByText("Available at launch")).toBeInTheDocument();
-    expect(screen.getByText("Open Mini App ↗")).toBeInTheDocument();
-    // Empty-field placeholders.
+    expect(screen.getByText("Counted after launch")).toBeInTheDocument();
+    expect(screen.getByText("Open Mini App")).toBeInTheDocument();
+    // Empty fields render as quiet empty states, not filler copy: no
+    // description paragraph, and two empty (imageless) showcase slots.
+    expect(within(rail).queryByText(/description/i)).not.toBeInTheDocument();
     expect(
-      screen.getByText("A one-line summary of your app"),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText(/Your description appears here/),
-    ).toBeInTheDocument();
-    expect(screen.getAllByText("Showcase image")).toHaveLength(2);
+      within(rail).queryByAltText("Showcase preview"),
+    ).not.toBeInTheDocument();
   });
 
   it("shows uploaded logo and showcase images in the preview and icon box", () => {
@@ -599,12 +693,12 @@ describe("v3 Configuration redesign [footer and preview]", () => {
       "src",
       "https://cdn.example/unverified/logo.png",
     );
+    // Exactly one slot has an image; the second stays an empty placeholder.
+    expect(screen.getAllByAltText("Showcase preview")).toHaveLength(1);
     expect(screen.getByAltText("Showcase preview")).toHaveAttribute(
       "src",
       "https://cdn.example/unverified/showcase_1.png",
     );
-    // Second showcase slot is still empty.
-    expect(screen.getAllByText("Showcase image")).toHaveLength(1);
   });
 
   it("drops the Store listing section and renumbers for external apps", () => {
@@ -641,7 +735,7 @@ describe("v3 Configuration redesign [footer and preview]", () => {
     renderPage();
 
     expect(
-      screen.getByText(/In review — editing is locked/),
+      screen.getByText(/Editing is locked while your app is in review/),
     ).toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: "Un-submit" }),

@@ -1,4 +1,9 @@
-import { appNameSchema, httpsLinkSchema, inferHttps } from "@/lib/schema";
+import {
+  appNameSchema,
+  appWorldAppDescriptionSchema,
+  httpsLinkSchema,
+  inferHttps,
+} from "@/lib/schema";
 import * as yup from "yup";
 
 const integrationUrlSchema = yup
@@ -16,6 +21,7 @@ export const schema = yup
     // string `required` test still rejects empty strings, which would fail
     // autosave whenever the user clears the field.
     name: appNameSchema.notRequired(),
+    world_app_description: appWorldAppDescriptionSchema.notRequired(),
     integration_url: integrationUrlSchema.notRequired(),
     app_website_url: yup
       .string()
@@ -33,6 +39,11 @@ export type BasicInformationFormValues = yup.Asserts<typeof schema>;
 
 export const reviewSchema = schema.shape({
   name: appNameSchema.required("App name is required"),
+  world_app_description: appWorldAppDescriptionSchema.when("$isMiniApp", {
+    is: true,
+    then: (s) => s.required("App tag line is required"),
+    otherwise: (s) => s.notRequired(),
+  }),
   integration_url: integrationUrlSchema.required("This field is required"),
   app_website_url: yup
     .string()

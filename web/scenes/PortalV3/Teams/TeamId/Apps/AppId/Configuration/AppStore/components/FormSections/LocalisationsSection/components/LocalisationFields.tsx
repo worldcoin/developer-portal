@@ -8,6 +8,7 @@ interface LocalisationFieldsProps {
   control: Control<AppStoreFormValues>;
   errors: FieldErrors<AppStoreFormValues>;
   selectedIndex: number;
+  selectedLanguage: string;
   isEditable: boolean;
   isEnoughPermissions: boolean;
   isMiniApp: boolean;
@@ -17,6 +18,7 @@ export const LocalisationFields = ({
   control,
   errors,
   selectedIndex,
+  selectedLanguage,
   isEditable,
   isEnoughPermissions,
   isMiniApp,
@@ -42,9 +44,14 @@ export const LocalisationFields = ({
         )}
       />
 
-      {/* short_name + world_app_description — mini-app only, side by side */}
+      {/* The canonical English tagline lives in Basic information. Keep a
+          localized tagline next to Short Name for additional languages. */}
       {isMiniApp && (
-        <div className="grid grid-cols-2 gap-x-5">
+        <div
+          className={
+            selectedLanguage === "en" ? "grid" : "grid grid-cols-2 gap-x-5"
+          }
+        >
           <Controller
             control={control}
             name={`localisations.${selectedIndex}.short_name`}
@@ -60,20 +67,22 @@ export const LocalisationFields = ({
             )}
           />
 
-          <Controller
-            control={control}
-            name={`localisations.${selectedIndex}.world_app_description`}
-            render={({ field: descField }) => (
-              <FloatingInput
-                id={`localisation-${selectedIndex}-world-app-description`}
-                label="App Tag Line"
-                value={descField.value || ""}
-                onChange={descField.onChange}
-                disabled={disabled}
-                errors={fieldErrors?.world_app_description}
-              />
-            )}
-          />
+          {selectedLanguage !== "en" && (
+            <Controller
+              control={control}
+              name={`localisations.${selectedIndex}.world_app_description`}
+              render={({ field: descField }) => (
+                <FloatingInput
+                  id={`localisation-${selectedIndex}-world-app-description`}
+                  label="App Tag Line"
+                  value={descField.value || ""}
+                  onChange={descField.onChange}
+                  disabled={disabled}
+                  errors={fieldErrors?.world_app_description}
+                />
+              )}
+            />
+          )}
         </div>
       )}
 

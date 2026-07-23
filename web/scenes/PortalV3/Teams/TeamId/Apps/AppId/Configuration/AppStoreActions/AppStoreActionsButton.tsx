@@ -37,15 +37,14 @@ const scrollToFirstError = () => {
   });
 };
 
-// app_metadata's top-level localized columns mirror the EN localisation. The
-// review schema validates that row shape, so these fields are copied out of
-// the EN localisation before .validate() and their error paths are mapped
-// back to the registered localisations.{en}.* inputs after. Single list so
-// the copy and the un-copy can't drift.
+// Most app_metadata top-level localized columns mirror the EN localisation.
+// The canonical tagline is owned by BasicInformation and injected separately
+// from freshly saved metadata below. The remaining mirrored fields are copied
+// out of the EN localisation before .validate(), then their error paths are
+// mapped back to the registered localisations.{en}.* inputs.
 const EN_TOP_LEVEL_FIELDS = [
   "name",
   "short_name",
-  "world_app_description",
   "description_overview",
 ] as const;
 
@@ -186,6 +185,14 @@ export const AppStoreActionsButton = ({
       await mainAppStoreFormReviewSubmitSchema.validate(
         {
           ...formValues,
+          localisations: formValues.localisations.map((localisation) =>
+            localisation.language === "en"
+              ? {
+                  ...localisation,
+                  world_app_description: freshAppMetadata.world_app_description,
+                }
+              : localisation,
+          ),
           ...Object.fromEntries(
             EN_TOP_LEVEL_FIELDS.map((field) => [
               field,
@@ -194,6 +201,7 @@ export const AppStoreActionsButton = ({
           ),
           logo_img_url: freshAppMetadata.logo_img_url,
           content_card_image_url: freshAppMetadata.content_card_image_url,
+          world_app_description: freshAppMetadata.world_app_description,
           app_website_url: freshAppMetadata.app_website_url,
         },
         {

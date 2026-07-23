@@ -235,7 +235,7 @@ const ActionsFooter = ({
               variant={TYPOGRAPHY.R5}
               className="min-w-0 truncate text-grey-500"
             >
-              In review — editing is locked until review completes.
+              Editing is locked while your app is in review.
             </Typography>
           ) : isEditable ? (
             <SaveStatusIndicator />
@@ -376,8 +376,7 @@ const ConfigurationContent = ({
                     App details
                   </Typography>
                   <Typography variant={TYPOGRAPHY.R4} className="text-grey-500">
-                    Add the name and destinations people will use to find your
-                    app.
+                    Add the name and links people use to open your app.
                   </Typography>
                 </div>
                 <BasicInformation
@@ -386,6 +385,7 @@ const ConfigurationContent = ({
                   teamId={teamId}
                   app={app}
                   teamName={teamName}
+                  isMiniApp={isMiniApp}
                 />
               </div>
             </div>
@@ -519,7 +519,12 @@ export const AppProfilePage = ({ params }: AppProfilePageProps) => {
   );
 
   const teamName = app?.team?.name ?? "";
-  const isLoading = isMetadataLoading || isLocalisationsLoading;
+  // A refetch keeps the previous Apollo data available. Reserve the full-page
+  // skeleton for a cold load so background reconciliation does not unmount the
+  // configuration form.
+  const isInitialLoading =
+    (isMetadataLoading && !data) ||
+    (isLocalisationsLoading && !localisationsData);
   const [showResolveModal, setShowResolveModal] = useState(false);
 
   const isRejected = appMetadata?.verification_status === "changes_requested";
@@ -536,7 +541,7 @@ export const AppProfilePage = ({ params }: AppProfilePageProps) => {
     );
   }
 
-  if (isLoading || !app || !appMetadata) {
+  if (isInitialLoading || !app || !appMetadata) {
     return (
       <>
         <SizingWrapper variant="nav" gridClassName="order-1 pt-8">

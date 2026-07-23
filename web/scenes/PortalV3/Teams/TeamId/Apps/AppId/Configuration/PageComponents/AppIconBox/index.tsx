@@ -106,7 +106,7 @@ export const AppIconBox = ({
             {canEdit && (
               <span className="absolute inset-0 flex items-center justify-center rounded-full bg-grey-900/50 opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
                 <Typography variant={TYPOGRAPHY.R5} className="text-white">
-                  Upload new logo?
+                  Change icon
                 </Typography>
               </span>
             )}
