@@ -6,18 +6,7 @@ import {
   ResolutionDetails,
 } from "@openfeature/server-sdk";
 import "server-only";
-
-/**
- * Teams whose members see the WID sandbox distribution tile. Set per
- * environment in world-id-deploy (parameters.ts), comma-separated; unset or
- * empty means no one — fail-safe off. Read at evaluation time, not module
- * scope, so a task-definition change needs no code change here.
- */
-const getSandboxTeams = (): string[] =>
-  (process.env.WORLD_ID_SANDBOX_TEAM_IDS ?? "")
-    .split(",")
-    .map((id) => id.trim())
-    .filter(Boolean);
+import { getSandboxTeams } from "../world-id-sandbox/teams";
 
 const notFound = <T>(value: T): ResolutionDetails<T> => ({
   value,
@@ -26,9 +15,10 @@ const notFound = <T>(value: T): ResolutionDetails<T> => ({
 });
 
 /**
- * In-process OpenFeature provider backed by hardcoded lists today. As flags
- * migrate to the OpenFeature standard, their resolution moves here (env, SSM,
- * or a vendor backend) without touching evaluation call sites.
+ * In-process OpenFeature provider. Flag-specific targeting lives in each
+ * feature's module; this class only routes keys to those evaluators so a
+ * future SSM / Flagd / vendor provider can replace it without touching call
+ * sites.
  */
 class PortalFlagProvider implements Provider {
   readonly metadata = { name: "portal-in-process" } as const;
@@ -74,23 +64,3 @@ class PortalFlagProvider implements Provider {
 OpenFeature.setProvider(new PortalFlagProvider());
 
 export const getFlagClient = () => OpenFeature.getClient();
-
-/**
- * Which of the given teams may see the sandbox tile. Context-heavy flags get
- * a thin typed wrapper here so call sites stay one line.
- */
-export const getSandboxTeamIds = async (
-  memberTeamIds: string[],
-  email?: string | null,
-): Promise<string[]> => {
-  const client = getFlagClient();
-  const allowed = await Promise.all(
-    memberTeamIds.map((teamId) =>
-      client.getBooleanValue("sandbox-distribution", false, {
-        targetingKey: email ?? "anonymous",
-        teamId,
-      }),
-    ),
-  );
-  return memberTeamIds.filter((_, i) => allowed[i]);
-};

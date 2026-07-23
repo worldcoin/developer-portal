@@ -1,6 +1,6 @@
 import "server-only";
-import { getSandboxTeamIds } from "./openfeature/provider";
 import { isPortalV3Enabled, isPortalV3EnabledForEmail } from "./portal-v3/flag";
+import { getSandboxTeamIds } from "./world-id-sandbox/flag";
 
 /**
  * Single entry point for every feature flag: featureFlags.<feature>.<accessor>.
