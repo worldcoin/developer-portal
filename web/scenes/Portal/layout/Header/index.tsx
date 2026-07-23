@@ -21,8 +21,6 @@ export const Header = (props: { color: Color | null }) => {
   const setColor = useSetAtom(colorAtom);
   const [open, setOpen] = useAtom(createAppDialogOpenedAtom);
   const { teamId } = useParams() as { teamId?: string };
-  // Same gate as the v3 sidebar: team routes only — the sandbox dialog's
-  // access-request form needs a teamId to submit.
   const sandboxEnabled = Boolean(teamId) && WORLD_ID_SANDBOX_ENABLED;
 
   useEffect(() => {

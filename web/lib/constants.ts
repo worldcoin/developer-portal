@@ -22,10 +22,8 @@ export const APPS_WITH_CUSTOM_EXTERNAL_NULLIFIER = [
 ];
 
 /**
- * Kill switch for the World ID sandbox distribution tile (and its
- * access-request endpoint). A plain constant, not a feature flag — per PR
- * review, per-team targeting was dropped and this needs no runtime
- * evaluation. Flip to false to hide the sandbox everywhere.
+ * Kill switch for the World ID sandbox distribution tile and its
+ * access-request endpoint. Flip to false to hide the sandbox everywhere.
  */
 export const WORLD_ID_SANDBOX_ENABLED: boolean = true;
 

@@ -66,7 +66,7 @@ beforeEach(() => {
   sandboxEnabled.mockReturnValue(true);
   InsertSandboxAccessRequest.mockResolvedValue({
     insert_sandbox_access_request_one: {
-      id: "sandbox_request_abc123",
+      id: "sbxreq_abc123",
       status: "pending",
     },
   });
@@ -131,7 +131,7 @@ describe("/api/v2/sandbox-access-request", () => {
     getSession.mockResolvedValue(authedSession);
     InsertSandboxAccessRequest.mockResolvedValue({
       insert_sandbox_access_request_one: {
-        id: "sandbox_request_existing",
+        id: "sbxreq_existing",
         status: "pending",
       },
     });

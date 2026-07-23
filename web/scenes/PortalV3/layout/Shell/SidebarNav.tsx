@@ -26,7 +26,6 @@ export const SidebarNav = () => {
   const pathname = usePathname() ?? "";
   const params = useParams<{ teamId?: string; appId?: string }>();
   const teamId = params?.teamId;
-  // Team routes only — the sandbox dialog's access-request form needs a teamId.
   const sandboxEnabled = Boolean(teamId) && WORLD_ID_SANDBOX_ENABLED;
   const routeAppId = params?.appId;
   const appId = useCurrentAppId();
