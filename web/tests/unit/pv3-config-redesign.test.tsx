@@ -570,16 +570,14 @@ describe("v3 Configuration redesign [footer and preview]", () => {
     expect(within(rail).getByText("Mini App")).toBeInTheDocument();
     // Static placeholders for the non-editable listing bits.
     expect(screen.getByText("Not yet rated")).toBeInTheDocument();
-    expect(screen.getByText("Available at launch")).toBeInTheDocument();
-    expect(screen.getByText("Open Mini App ↗")).toBeInTheDocument();
-    // Empty-field placeholders.
+    expect(screen.getByText("Counted after launch")).toBeInTheDocument();
+    expect(screen.getByText("Open Mini App")).toBeInTheDocument();
+    // Empty fields render as quiet empty states, not filler copy: no
+    // description paragraph, and two empty (imageless) showcase slots.
+    expect(within(rail).queryByText(/description/i)).not.toBeInTheDocument();
     expect(
-      screen.getByText("A one-line summary of your app"),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText(/Your description appears here/),
-    ).toBeInTheDocument();
-    expect(screen.getAllByText("Showcase image")).toHaveLength(2);
+      within(rail).queryByAltText("Showcase preview"),
+    ).not.toBeInTheDocument();
   });
 
   it("shows uploaded logo and showcase images in the preview and icon box", () => {
@@ -599,12 +597,12 @@ describe("v3 Configuration redesign [footer and preview]", () => {
       "src",
       "https://cdn.example/unverified/logo.png",
     );
+    // Exactly one slot has an image; the second stays an empty placeholder.
+    expect(screen.getAllByAltText("Showcase preview")).toHaveLength(1);
     expect(screen.getByAltText("Showcase preview")).toHaveAttribute(
       "src",
       "https://cdn.example/unverified/showcase_1.png",
     );
-    // Second showcase slot is still empty.
-    expect(screen.getAllByText("Showcase image")).toHaveLength(1);
   });
 
   it("drops the Store listing section and renumbers for external apps", () => {
@@ -641,7 +639,7 @@ describe("v3 Configuration redesign [footer and preview]", () => {
     renderPage();
 
     expect(
-      screen.getByText(/In review — editing is locked/),
+      screen.getByText(/Editing is locked while your app is in review/),
     ).toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: "Un-submit" }),

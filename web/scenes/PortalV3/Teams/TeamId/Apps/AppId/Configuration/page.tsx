@@ -235,7 +235,7 @@ const ActionsFooter = ({
               variant={TYPOGRAPHY.R5}
               className="min-w-0 truncate text-grey-500"
             >
-              In review — editing is locked until review completes.
+              Editing is locked while your app is in review.
             </Typography>
           ) : isEditable ? (
             <SaveStatusIndicator />
@@ -376,8 +376,7 @@ const ConfigurationContent = ({
                     App details
                   </Typography>
                   <Typography variant={TYPOGRAPHY.R4} className="text-grey-500">
-                    Add the name and destinations people will use to find your
-                    app.
+                    Add the name and links people use to open your app.
                   </Typography>
                 </div>
                 <BasicInformation

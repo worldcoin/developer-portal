@@ -1,6 +1,7 @@
 "use client";
 
 import { getCDNImageUrl } from "@/lib/utils";
+import clsx from "clsx";
 import { useAtomValue } from "jotai";
 import { useWatch } from "react-hook-form";
 import { selectedLanguageAtom } from "../AppStore/components/FormSections/LocalisationsSection/hooks/useLanguageSelection";
@@ -17,8 +18,7 @@ const ShowcaseSlot = ({ url }: { url?: string }) =>
       className="aspect-16/10 w-full rounded-xl object-cover"
     />
   ) : (
-    <div className="flex aspect-16/10 w-full items-center justify-center rounded-xl border border-dashed border-grey-300 bg-grey-50">
-    </div>
+    <div className="aspect-16/10 w-full rounded-xl border border-dashed border-grey-300 bg-grey-50" />
   );
 
 type LivePreviewProps = {
@@ -69,11 +69,10 @@ export const LivePreview = ({
   const loc =
     localisations?.find((l) => l?.language === selectedLanguage) ??
     localisations?.find((l) => l?.language === "en");
-  const name = basicInfo.name?.trim() || loc?.name?.trim() || "Untitled app";
-  const tagLine =
-    loc?.world_app_description?.trim() || "";
-  const description =
-    loc?.description_overview?.trim() || "Your description appears here.";
+  const enteredName = basicInfo.name?.trim() || loc?.name?.trim() || "";
+  const name = enteredName || "Untitled app";
+  const tagLine = loc?.world_app_description?.trim() || "";
+  const description = loc?.description_overview?.trim() || "";
   const isVerified = appMetadata.verification_status === "verified";
   const atomLogoImgUrl =
     images.logo_img_url && images.logo_img_url !== "loading"
@@ -112,11 +111,18 @@ export const LivePreview = ({
       {/* Name + tag line, button on the right */}
       <div className="flex items-center justify-between gap-x-6">
         <div className="grid min-w-0 gap-y-1">
-          <span className="truncate text-3xl text-grey-900">{name}</span>
+          <span
+            className={clsx(
+              "truncate text-3xl",
+              enteredName ? "text-grey-900" : "text-grey-300",
+            )}
+          >
+            {name}
+          </span>
           <span className="truncate text-base text-grey-500">{tagLine}</span>
         </div>
         <span className="shrink-0 rounded-full bg-grey-900 px-4 py-2 text-sm whitespace-nowrap text-white">
-          {isMiniApp ? "Open Mini App ↗" : "Use Integration ↗"}
+          {isMiniApp ? "Open Mini App" : "Use Integration"}
         </span>
       </div>
 
@@ -127,7 +133,7 @@ export const LivePreview = ({
             ["Rating", "Not yet rated"],
             ["Built by", teamName],
             ["Platform", isMiniApp ? "Mini App" : "External"],
-            ["Humans", "Available at launch"],
+            ["Humans", "Counted after launch"],
           ] as const
         ).map(([label, value]) => (
           <div key={label} className="grid gap-y-0.5">
@@ -137,10 +143,13 @@ export const LivePreview = ({
         ))}
       </div>
 
-      {/* Description */}
-      <p className="line-clamp-6 text-sm leading-relaxed whitespace-pre-line text-grey-900">
-        {description}
-      </p>
+      {/* Description — omitted until the user writes one, like the real
+          listing before launch. */}
+      {description && (
+        <p className="line-clamp-6 text-sm leading-relaxed whitespace-pre-line text-grey-900">
+          {description}
+        </p>
+      )}
 
       {/* Showcase images */}
       <div className="grid grid-cols-2 gap-x-3">
@@ -158,10 +167,10 @@ export const LivePreview = ({
               : "border-grey-200 text-grey-300")
           }
         >
-          🔗 Website
+          Website
         </span>
         <span className="rounded-full border border-grey-300 px-3 py-1 text-xs text-grey-900">
-          ⓘ Report
+          Report
         </span>
       </div>
     </div>
