@@ -12,7 +12,7 @@ export default async function Page() {
 
   return (
     <AdminSandboxRequestsPage
-      canMarkInviteSent={admin.role === AdminHasuraRole.Write}
+      canApproveRequests={admin.role === AdminHasuraRole.Write}
     />
   );
 }

@@ -5,12 +5,12 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "react-toastify";
 
-export const MarkInviteSentButton = (props: { requestId: string }) => {
+export const ApproveSandboxRequestButton = (props: { requestId: string }) => {
   const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
   const [completed, setCompleted] = useState(false);
 
-  const markInviteSent = async () => {
+  const approveRequest = async () => {
     if (submitting || completed) return;
 
     setSubmitting(true);
@@ -21,14 +21,14 @@ export const MarkInviteSentButton = (props: { requestId: string }) => {
       );
 
       if (!response.ok) {
-        toast.error("Couldn't mark the invite as sent. Please try again.");
+        toast.error("Couldn't approve the request. Please try again.");
         return;
       }
 
       setCompleted(true);
       router.refresh();
     } catch {
-      toast.error("Couldn't mark the invite as sent. Please try again.");
+      toast.error("Couldn't approve the request. Please try again.");
     } finally {
       setSubmitting(false);
     }
@@ -40,10 +40,10 @@ export const MarkInviteSentButton = (props: { requestId: string }) => {
       variant="secondary"
       disabled={completed}
       loading={submitting}
-      onClick={markInviteSent}
+      onClick={approveRequest}
       className="h-8 px-3 py-1.5 text-12 whitespace-nowrap"
     >
-      {completed ? "Invite sent" : "Mark invite sent"}
+      {completed ? "Approved" : "Approve"}
     </DecoratedButton>
   );
 };

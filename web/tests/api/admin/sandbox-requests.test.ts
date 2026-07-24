@@ -91,7 +91,7 @@ describe("POST /api/admin/sandbox-requests/[id]/accept", () => {
     expect(MarkSandboxInviteSent).not.toHaveBeenCalled();
   });
 
-  it("marks a pending request as invite sent", async () => {
+  it("approves a pending request", async () => {
     const response = await POST(createRequest(), createContext());
 
     expect(response.status).toBe(200);

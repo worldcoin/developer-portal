@@ -9,9 +9,9 @@ const isSandboxRequestId = (id: string) =>
   id.length <= 100 && SANDBOX_REQUEST_ID_REGEX.test(id);
 
 /**
- * Marks a sandbox request as processed by an authenticated dashboard user.
- * The mutation is one-way and idempotent: accepted requests keep their
- * original processed_at timestamp.
+ * Approves a sandbox request after an authenticated dashboard user grants
+ * access in Google Play Console. The mutation is one-way and idempotent:
+ * accepted requests keep their original processed_at timestamp.
  */
 export async function POST(
   req: NextRequest,
@@ -45,7 +45,7 @@ export async function POST(
       changed: result.update_sandbox_access_request?.affected_rows === 1,
     });
   } catch (error) {
-    logger.error("Failed to mark sandbox invite sent", {
+    logger.error("Failed to approve sandbox request", {
       requestId: id,
       adminSubject: admin.subject,
       error,

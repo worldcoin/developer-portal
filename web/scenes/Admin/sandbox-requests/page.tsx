@@ -5,7 +5,7 @@ import {
   SANDBOX_REQUESTS_LIMIT,
   fetchSandboxAccessRequests,
 } from "./server/fetch-sandbox-requests";
-import { MarkInviteSentButton } from "./MarkInviteSentButton";
+import { ApproveSandboxRequestButton } from "./ApproveSandboxRequestButton";
 
 const formatDate = (isoDate: string) => isoDate.slice(0, 10);
 
@@ -18,16 +18,17 @@ const StatusBadge = ({ accepted }: { accepted: boolean }) => (
         : "bg-system-warning-50 text-system-warning-700",
     )}
   >
-    {accepted ? "invite sent" : "pending"}
+    {accepted ? "approved" : "pending"}
   </span>
 );
 
 /**
- * Queue of World ID sandbox Android tester requests. Dashboard users mark a
- * request after its invite has been sent; accepted is never user-controlled.
+ * Queue of World ID sandbox Android tester requests. Dashboard users approve a
+ * request after granting access in Play Console; accepted is never
+ * user-controlled.
  */
 export const AdminSandboxRequestsPage = async (props: {
-  canMarkInviteSent: boolean;
+  canApproveRequests: boolean;
 }) => {
   const { requests, totalCount, pendingCount } =
     await fetchSandboxAccessRequests();
@@ -42,7 +43,7 @@ export const AdminSandboxRequestsPage = async (props: {
             </h1>
             <p className="mt-2 max-w-2xl text-14 text-grey-500">
               Android tester access requests for the World ID sandbox build.
-              Mark each request after its invite has been sent.
+              Approve each request after granting access in Google Play Console.
             </p>
           </div>
 
@@ -111,9 +112,9 @@ export const AdminSandboxRequestsPage = async (props: {
                   </td>
                   <td className="px-3 py-2.5">
                     {request.accepted ? (
-                      <span className="text-grey-400">Invite sent</span>
-                    ) : props.canMarkInviteSent ? (
-                      <MarkInviteSentButton requestId={request.id} />
+                      <span className="text-grey-400">Approved</span>
+                    ) : props.canApproveRequests ? (
+                      <ApproveSandboxRequestButton requestId={request.id} />
                     ) : (
                       <span className="text-grey-400">Read only</span>
                     )}
