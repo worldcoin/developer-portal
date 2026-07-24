@@ -67,6 +67,11 @@ beforeEach(() => {
 
 describe("/api/v1/precheck/[app_id]", () => {
   test("can fetch precheck response verified", async () => {
+    const getParameter = jest.fn();
+    global.ParameterStore = {
+      getParameter,
+    } as unknown as NonNullable<typeof global.ParameterStore>;
+
     const request = new NextRequest(
       "http://localhost:3000/api/v1/precheck/app_staging_6d1c9fb86751a40d952749022db1c1",
       {
@@ -95,7 +100,7 @@ describe("/api/v1/precheck/[app_id]", () => {
       engine: "cloud",
       verified_app_logo:
         "https://cdn.test.com/app_staging_6d1c9fb86751a40d952749022db1c1/logo_img.png",
-      enable_face_check: false,
+      enable_face_check: true,
       sign_in_with_world_id: false,
       can_user_verify: "undetermined", // Because no `nullifier_hash` was provided
       action: {
@@ -106,6 +111,7 @@ describe("/api/v1/precheck/[app_id]", () => {
         max_accounts_per_user: 1,
       },
     });
+    expect(getParameter).not.toHaveBeenCalled();
   });
 
   test("can fetch precheck response unverified", async () => {
@@ -136,7 +142,7 @@ describe("/api/v1/precheck/[app_id]", () => {
       is_staging: true,
       engine: "cloud",
       verified_app_logo: "",
-      enable_face_check: false,
+      enable_face_check: true,
       sign_in_with_world_id: false,
       can_user_verify: "undetermined", // Because no `nullifier_hash` was provided
       action: {
@@ -151,49 +157,6 @@ describe("/api/v1/precheck/[app_id]", () => {
 
   test("creates action on the fly when it does not exist", async () => {
     // TODO
-  });
-
-  test("can fetch precheck response with face check enabled", async () => {
-    const request = new NextRequest(
-      "http://localhost:3000/api/v1/precheck/app_staging_6d1c9fb86751a40d952749022db1c1",
-      {
-        method: "POST",
-        body: JSON.stringify(exampleValidRequestPayload),
-      },
-    );
-
-    const getParameter = jest
-      .fn()
-      .mockResolvedValue(["app_staging_6d1c9fb86751a40d952749022db1c1"]);
-    global.ParameterStore = {
-      getParameter,
-    } as unknown as NonNullable<typeof global.ParameterStore>;
-
-    try {
-      AppPrecheckQuery.mockResolvedValue({
-        app: [{ ...appPayload }],
-      });
-
-      const response = await POST(request, {
-        params: Promise.resolve({
-          app_id: "app_staging_6d1c9fb86751a40d952749022db1c1",
-        }),
-      });
-
-      expect(response.status).toBe(200);
-      const responseBody = await response.json();
-      expect(responseBody).toMatchObject({
-        id: "app_staging_6d1c9fb86751a40d952749022db1c1",
-        enable_face_check: true,
-      });
-
-      expect(getParameter).toHaveBeenCalledWith(
-        "whitelisted-apps/face-check",
-        [],
-      );
-    } finally {
-      global.ParameterStore = undefined;
-    }
   });
 
   test("can fetch precheck response with nullifier", async () => {
