@@ -1,7 +1,6 @@
 "use client";
 
 import { Button } from "@/components/Button";
-import { WORLD_ID_SANDBOX_ENABLED } from "@/lib/constants";
 import { WorldIcon } from "@/components/Icons/WorldIcon";
 import { LoggedUserNav } from "@/components/LoggedUserNav";
 import { SizingWrapper } from "@/components/SizingWrapper";
@@ -21,7 +20,6 @@ export const Header = (props: { color: Color | null }) => {
   const setColor = useSetAtom(colorAtom);
   const [open, setOpen] = useAtom(createAppDialogOpenedAtom);
   const { teamId } = useParams() as { teamId?: string };
-  const sandboxEnabled = Boolean(teamId) && WORLD_ID_SANDBOX_ENABLED;
 
   useEffect(() => {
     setColor(props.color);
@@ -45,9 +43,7 @@ export const Header = (props: { color: Color | null }) => {
         </div>
 
         <div className="flex items-center gap-x-4">
-          {sandboxEnabled ? (
-            <SandboxButton className="w-60 max-md:hidden" />
-          ) : null}
+          <SandboxButton className="w-60 max-md:hidden" />
           <LoggedUserNav />
         </div>
       </SizingWrapper>

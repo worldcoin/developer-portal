@@ -1,6 +1,5 @@
 import { fetchSandboxAccessRequest } from "@/api/v2/sandbox-access-request/server/fetch-sandbox-access-request";
 import { auth0 } from "@/lib/auth0";
-import { WORLD_ID_SANDBOX_ENABLED } from "@/lib/constants";
 import { logger } from "@/lib/logger";
 import { Auth0SessionUser } from "@/lib/types";
 import { ReactNode } from "react";
@@ -17,7 +16,7 @@ export const PortalLayout = async (props: { children: ReactNode }) => {
 
   let sandboxRequest = null;
   const userId = user?.hasura?.id;
-  if (WORLD_ID_SANDBOX_ENABLED && userId) {
+  if (userId) {
     try {
       sandboxRequest = await fetchSandboxAccessRequest(userId);
     } catch (error) {

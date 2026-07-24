@@ -1,6 +1,5 @@
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { auth0 } from "@/lib/auth0";
-import { WORLD_ID_SANDBOX_ENABLED } from "@/lib/constants";
 import { logger } from "@/lib/logger";
 import { Auth0SessionUser } from "@/lib/types";
 import { NextRequest, NextResponse } from "next/server";
@@ -15,10 +14,6 @@ const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
  * unique per user, so the session's Hasura user id is the whole lookup key.
  */
 export async function GET() {
-  if (!WORLD_ID_SANDBOX_ENABLED) {
-    return NextResponse.json({ success: false }, { status: 403 });
-  }
-
   const session = await auth0.getSession();
   const user = session?.user as Auth0SessionUser["user"] | undefined;
   const userId = user?.hasura?.id;
@@ -46,19 +41,13 @@ export async function GET() {
  * Dashboard operators work the pending rows and flip `accepted` only after
  * the invite has been sent.
  *
- * Authorization: sandbox kill switch must be on and the caller must have a
- * Hasura user id. The sidebar only hides the entry point; this check closes
- * the direct-POST bypass.
+ * Authorization: the caller must have a Hasura user id.
  *
  * Requests are immutable from this endpoint after creation. A repeat POST is
  * treated as success and returns the stored row without changing the email or
  * backend-owned accepted/processed state.
  */
 export async function POST(req: NextRequest) {
-  if (!WORLD_ID_SANDBOX_ENABLED) {
-    return NextResponse.json({ success: false }, { status: 403 });
-  }
-
   const session = await auth0.getSession();
   const user = session?.user as Auth0SessionUser["user"] | undefined;
   const userId = user?.hasura?.id;

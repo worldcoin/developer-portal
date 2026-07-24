@@ -2,7 +2,6 @@ import { NextRequest } from "next/server";
 
 // #region Mocks
 const getSession = jest.fn();
-const sandboxEnabled = jest.fn<boolean, []>();
 const InsertSandboxAccessRequest = jest.fn();
 const GetSandboxAccessRequest = jest.fn();
 
@@ -29,14 +28,6 @@ jest.mock(
     getSdk: () => ({ GetSandboxAccessRequest }),
   }),
 );
-
-// Getter so each test can flip the kill switch (a plain constant in prod).
-jest.mock("@/lib/constants", () => ({
-  ...jest.requireActual("@/lib/constants"),
-  get WORLD_ID_SANDBOX_ENABLED() {
-    return sandboxEnabled();
-  },
-}));
 
 jest.mock("@/lib/logger", () => ({
   logger: { info: jest.fn(), warn: jest.fn(), error: jest.fn() },
@@ -77,7 +68,6 @@ const authedSession = {
 
 beforeEach(() => {
   jest.clearAllMocks();
-  sandboxEnabled.mockReturnValue(true);
   InsertSandboxAccessRequest.mockResolvedValue({
     insert_sandbox_access_request_one: {
       id: "sbxreq_abc123",
@@ -119,16 +109,6 @@ describe("/api/v2/sandbox-access-request", () => {
     await expect(
       POST(makeRequest({ email: "not-an-email" })),
     ).resolves.toMatchObject({ status: 400 });
-    expect(InsertSandboxAccessRequest).not.toHaveBeenCalled();
-  });
-
-  it("returns 403 when the sandbox kill switch is off", async () => {
-    sandboxEnabled.mockReturnValue(false);
-    getSession.mockResolvedValue(authedSession);
-
-    const res = await POST(makeRequest(validBody));
-
-    expect(res.status).toBe(403);
     expect(InsertSandboxAccessRequest).not.toHaveBeenCalled();
   });
 
@@ -198,16 +178,6 @@ describe("/api/v2/sandbox-access-request", () => {
 
 // #region GET /api/v2/sandbox-access-request
 describe("GET /api/v2/sandbox-access-request", () => {
-  it("returns 403 when the sandbox kill switch is off", async () => {
-    sandboxEnabled.mockReturnValue(false);
-    getSession.mockResolvedValue(authedSession);
-
-    const res = await GET();
-
-    expect(res.status).toBe(403);
-    expect(GetSandboxAccessRequest).not.toHaveBeenCalled();
-  });
-
   it("returns 401 when unauthenticated", async () => {
     getSession.mockResolvedValue(null);
 
