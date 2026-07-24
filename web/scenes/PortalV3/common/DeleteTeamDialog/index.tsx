@@ -77,28 +77,39 @@ export const DeleteTeamDialog = (props: DeleteTeamDialogProps) => {
       const refetched = await refetch();
       const membershipsCount = refetched?.data?.user_by_pk?.memberships?.length;
 
-      // Refresh session claims before navigating — server guards read memberships from the cookie.
-      try {
-        const res = await fetch("/api/update-session", { method: "POST" });
-        if (res.ok) {
-          await invalidate();
-        }
-      } catch {
-        // Best effort — the next me-query pass heals the session.
+      // The action rewrites the cookie itself; this only covers its failure.
+      let sessionSynced = Boolean(result.sessionUpdated);
+
+      if (!sessionSynced) {
+        const response = await fetch("/api/update-session", {
+          method: "POST",
+        }).catch(() => null);
+
+        const data = response?.ok
+          ? await response.json().catch(() => null)
+          : null;
+
+        sessionSynced = Boolean(data?.success);
       }
 
-      toast.success("Team deleted!");
+      await invalidate();
+      toast.success("Team deleted");
+
+      if (!sessionSynced) {
+        console.error("Delete Team Dialog: session sync failed after delete");
+      }
 
       if (typeof membershipsCount === "number" && membershipsCount === 0) {
         return router.push(urls.createTeam());
       }
 
+      // A push inside the same layout won't re-render the session-fed sidebar.
+      router.refresh();
+
       if (path !== urls.profileTeams()) {
         return router.push(urls.profileTeams());
       }
 
-      // Already on the teams page: no navigation to re-render the session-fed sidebar, so force it.
-      router.refresh();
       onClose();
     } catch (e) {
       console.error("Delete Team Dialog: ", e);

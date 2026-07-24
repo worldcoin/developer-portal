@@ -48,6 +48,8 @@ jest.mock("@/components/DialogPanel", () => ({
 // #endregion
 
 import { DeleteTeamDialog } from "@/scenes/PortalV3/common/DeleteTeamDialog";
+import { DeleteTeamDialog as DeleteTeamDialogV2 } from "@/scenes/Portal/common/DeleteTeamDialog";
+import { toast } from "react-toastify";
 
 // #region Test Data
 const team = { id: "team_1", name: "My team" };
@@ -80,13 +82,18 @@ const confirmAndSubmit = async () => {
 beforeEach(() => {
   jest.clearAllMocks();
   pathname = "/teams/team_1/settings";
-  deleteTeamServerSide.mockResolvedValue({ success: true });
-  global.fetch = jest.fn().mockResolvedValue({ ok: true });
+  deleteTeamServerSide.mockResolvedValue({
+    success: true,
+    sessionUpdated: true,
+  });
+  global.fetch = jest
+    .fn()
+    .mockResolvedValue({ ok: true, json: async () => ({ success: true }) });
 });
 
 // #region Post-delete navigation
 describe("DeleteTeamDialog [post-delete navigation]", () => {
-  it("deletes, refreshes the session, and navigates to create-team when no teams remain", async () => {
+  it("navigates to create-team when no teams remain, without re-syncing the session", async () => {
     refetch.mockResolvedValue(refetchResultWithMemberships(0));
 
     renderDialog();
@@ -94,19 +101,36 @@ describe("DeleteTeamDialog [post-delete navigation]", () => {
 
     await waitFor(() => expect(push).toHaveBeenCalledWith("/create-team"));
     expect(deleteTeamServerSide).toHaveBeenCalledWith("team_1");
-    expect(global.fetch).toHaveBeenCalledWith("/api/update-session", {
-      method: "POST",
-    });
+    // The action already rewrote the cookie, so the fallback route stays idle.
+    expect(global.fetch).not.toHaveBeenCalled();
     expect(invalidate).toHaveBeenCalled();
+    expect(refresh).not.toHaveBeenCalled();
   });
 
-  it("navigates to profile teams when other teams remain", async () => {
+  it("navigates to profile teams when other teams remain, refreshing first", async () => {
     refetch.mockResolvedValue(refetchResultWithMemberships(2));
 
     renderDialog();
     await confirmAndSubmit();
 
     await waitFor(() => expect(push).toHaveBeenCalledWith("/profile/teams"));
+    expect(refresh).toHaveBeenCalled();
+  });
+
+  it("falls back to the update-session route when the action could not rewrite the cookie", async () => {
+    deleteTeamServerSide.mockResolvedValue({
+      success: true,
+      sessionUpdated: false,
+    });
+    refetch.mockResolvedValue(refetchResultWithMemberships(2));
+
+    renderDialog();
+    await confirmAndSubmit();
+
+    await waitFor(() => expect(push).toHaveBeenCalledWith("/profile/teams"));
+    expect(global.fetch).toHaveBeenCalledWith("/api/update-session", {
+      method: "POST",
+    });
   });
 
   it("refreshes the session-fed sidebar when already on the teams page", async () => {
@@ -120,7 +144,11 @@ describe("DeleteTeamDialog [post-delete navigation]", () => {
     expect(push).not.toHaveBeenCalled();
   });
 
-  it("still navigates when the session refresh fails", async () => {
+  it("still navigates when the fallback session refresh throws", async () => {
+    deleteTeamServerSide.mockResolvedValue({
+      success: true,
+      sessionUpdated: false,
+    });
     refetch.mockResolvedValue(refetchResultWithMemberships(0));
     (global.fetch as jest.Mock).mockRejectedValue(new Error("offline"));
 
@@ -128,7 +156,35 @@ describe("DeleteTeamDialog [post-delete navigation]", () => {
     await confirmAndSubmit();
 
     await waitFor(() => expect(push).toHaveBeenCalledWith("/create-team"));
-    expect(invalidate).not.toHaveBeenCalled();
+    // The delete itself succeeded, so the user is told so either way.
+    expect(toast.success).toHaveBeenCalledWith("Team deleted");
+  });
+
+  it("navigates and still reports success when the fallback returns a non-ok status", async () => {
+    // fetch resolves on 401/500 — the failure is only visible via res.ok.
+    deleteTeamServerSide.mockResolvedValue({
+      success: true,
+      sessionUpdated: false,
+    });
+    refetch.mockResolvedValue(refetchResultWithMemberships(2));
+    (global.fetch as jest.Mock).mockResolvedValue({
+      ok: false,
+      status: 500,
+      json: async () => ({ success: false }),
+    });
+
+    const logged = jest.spyOn(console, "error").mockImplementation(() => {});
+
+    renderDialog();
+    await confirmAndSubmit();
+
+    await waitFor(() => expect(push).toHaveBeenCalledWith("/profile/teams"));
+    expect(toast.success).toHaveBeenCalledWith("Team deleted");
+    expect(logged).toHaveBeenCalledWith(
+      "Delete Team Dialog: session sync failed after delete",
+    );
+
+    logged.mockRestore();
   });
 
   it("does not navigate when the delete fails", async () => {
@@ -140,6 +196,22 @@ describe("DeleteTeamDialog [post-delete navigation]", () => {
     await waitFor(() => expect(deleteTeamServerSide).toHaveBeenCalled());
     expect(refetch).not.toHaveBeenCalled();
     expect(push).not.toHaveBeenCalled();
+  });
+});
+// #endregion
+
+// #region v2 dialog — same session gate, but its nav is client-fetched so it never refreshes
+describe("DeleteTeamDialog [v2]", () => {
+  it("skips the fallback route and does not refresh the router", async () => {
+    refetch.mockResolvedValue(refetchResultWithMemberships(2));
+
+    render(<DeleteTeamDialogV2 open onClose={jest.fn()} team={team} />);
+    await confirmAndSubmit();
+
+    await waitFor(() => expect(push).toHaveBeenCalledWith("/profile/teams"));
+    expect(global.fetch).not.toHaveBeenCalled();
+    expect(invalidate).toHaveBeenCalled();
+    expect(refresh).not.toHaveBeenCalled();
   });
 });
 // #endregion
