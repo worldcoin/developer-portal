@@ -109,6 +109,15 @@ const checkRouteRolesRestrictions = (
   const urlSegments = pathname.split("/");
   const teamId = urlSegments[2];
 
+  // No membership in the URL's team (deleted/foreign) → send home; a member with the wrong role still gets the 401.
+  const isTeamMember = Boolean(
+    user?.hasura?.memberships?.some((m) => m.team?.id === teamId),
+  );
+  const restrictedRouteResponse = () =>
+    isTeamMember
+      ? NextResponse.rewrite(new URL("/unauthorized", request.url))
+      : NextResponse.redirect(new URL("/", request.url));
+
   // Route Subset Restriction
   const ownerOnlyRoutes = [
     "/teams/[a-zA-Z0-9_]+/apps/[a-zA-Z0-9_]+/configuration/danger$",
@@ -123,7 +132,7 @@ const checkRouteRolesRestrictions = (
 
   if (ownerOnlyRoutes.some((route) => pathname.match(route))) {
     if (!checkUserPermissions(user, teamId, [Role_Enum.Owner])) {
-      return NextResponse.rewrite(new URL("/unauthorized", request.url));
+      return restrictedRouteResponse();
     }
   }
 
@@ -134,7 +143,7 @@ const checkRouteRolesRestrictions = (
       : [Role_Enum.Owner];
 
     if (!checkUserPermissions(user, teamId, validRoles)) {
-      return NextResponse.rewrite(new URL("/unauthorized", request.url));
+      return restrictedRouteResponse();
     }
   }
 
@@ -142,7 +151,7 @@ const checkRouteRolesRestrictions = (
     if (
       !checkUserPermissions(user, teamId, [Role_Enum.Owner, Role_Enum.Admin])
     ) {
-      return NextResponse.rewrite(new URL("/unauthorized", request.url));
+      return restrictedRouteResponse();
     }
   }
   return false;

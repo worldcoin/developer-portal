@@ -218,16 +218,16 @@ describe("proxy [protected route role restrictions]", () => {
     );
   });
 
-  it("keeps another team's settings restricted for a member", async () => {
+  it("sends another team's settings to the root for a non-member", async () => {
+    // No membership in the URL's team at all → home (root routes onward) instead of a dead-end 401.
     process.env.PORTAL_V3_EMAILS = "member@example.com";
     const req = new NextRequest(
       `${CANONICAL}/teams/team_abcdef0123456789/settings`,
     );
     const res = await proxy(req);
 
-    expect(res.headers.get("x-middleware-rewrite")).toBe(
-      `${CANONICAL}/unauthorized`,
-    );
+    expect(res.status).toBe(307);
+    expect(res.headers.get("location")).toBe(`${CANONICAL}/`);
   });
 
   it("keeps owner-only team routes restricted for a member", async () => {
