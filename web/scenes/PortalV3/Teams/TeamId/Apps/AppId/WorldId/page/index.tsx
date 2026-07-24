@@ -4,6 +4,7 @@ import { Button } from "@/components/Button";
 import { ErrorPage } from "@/components/ErrorPage";
 import { AlertIcon } from "@/components/Icons/AlertIcon";
 import { SizingWrapper } from "@/components/SizingWrapper";
+import { SkeletonForm } from "@/components/Skeletons";
 import { RpRegistrationStatus } from "@/lib/rp-registration-status";
 import { urls } from "@/lib/urls";
 import { BanMessageDialog } from "@/scenes/PortalV3/Teams/TeamId/Apps/common/BanMessageDialog";
@@ -22,8 +23,9 @@ import {
   useRef,
   useState,
 } from "react";
-import Skeleton from "react-loading-skeleton";
+import { ActionCardSkeleton } from "./ActionCard/Skeleton";
 import { ActionsGrid } from "./ActionsGrid";
+import { CreateActionTile } from "./ActionsGrid/CreateActionTile";
 import { RegisterRpEmptyState } from "./RegisterRpEmptyState";
 import { getSetupIntent } from "./setup-intent";
 import { WorldId40Pane } from "./WorldId40Pane";
@@ -217,12 +219,27 @@ export const WorldIdPage = (props: {
     [refetchOverview, rp],
   );
 
+  // Tabs and search are real during load — only the data-backed cards are skeletons.
   if (loading) {
     return (
       <SizingWrapper className="flex flex-col gap-8 py-8">
-        <Skeleton height={76} className="rounded-[10px]" />
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          <Skeleton height={144} count={3} className="rounded-[10px]" />
+        <div className="flex flex-col gap-6">
+          <WorldIdTabs
+            tab={tab}
+            onTabChange={handleTabChange}
+            search={search}
+            onSearchChange={setSearch}
+          />
+
+          {tab === "actions" ? (
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {props.canManageWorldId ? <CreateActionTile /> : null}
+              <ActionCardSkeleton />
+              <ActionCardSkeleton />
+            </div>
+          ) : (
+            <SkeletonForm count={3} className="max-w-[580px] py-2" />
+          )}
         </div>
       </SizingWrapper>
     );

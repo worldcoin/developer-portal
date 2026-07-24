@@ -9,6 +9,13 @@ export type ActionCardItem = {
   description: string;
 };
 
+/** Card chrome, shared with the loading skeleton. */
+export const actionCardFrameClassName =
+  "flex min-h-[144px] flex-col gap-1 rounded-[10px] border border-portal-border bg-white p-5";
+export const actionCardTitleClassName = "font-ibm text-13 text-portal-heading";
+export const actionCardDescriptionClassName =
+  "font-world text-13 text-portal-muted";
+
 export const ActionCard = (props: {
   teamId: string;
   appId: string;
@@ -23,14 +30,12 @@ export const ActionCard = (props: {
         app_id: props.appId,
         action_id: action.id,
       })}
-      className="flex min-h-[144px] flex-col gap-1 rounded-[10px] border border-portal-border bg-white p-5 transition-shadow hover:shadow-portal-card"
+      className={`${actionCardFrameClassName} transition-shadow hover:shadow-portal-card`}
     >
       <div className="flex flex-col gap-1">
-        <span className="font-ibm text-13 text-portal-heading">
-          {action.action}
-        </span>
+        <span className={actionCardTitleClassName}>{action.action}</span>
         {action.description ? (
-          <span className="font-world text-13 text-portal-muted">
+          <span className={actionCardDescriptionClassName}>
             {action.description}
           </span>
         ) : null}
