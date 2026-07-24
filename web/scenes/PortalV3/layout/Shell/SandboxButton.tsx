@@ -118,7 +118,7 @@ export const SandboxButton = (props: { className?: string }) => {
         onClick={openDialog}
         aria-haspopup="dialog"
         className={clsx(
-          "group relative flex shrink-0 items-center gap-x-3 overflow-hidden rounded-[10px] bg-grey-900 p-3 text-left outline-hidden transition-shadow hover:shadow-portal-card focus-visible:ring-2 focus-visible:ring-grey-300 focus-visible:ring-offset-2 focus-visible:ring-offset-portal-canvas",
+          "group relative flex shrink-0 cursor-pointer items-center gap-x-3 overflow-hidden rounded-[10px] bg-grey-900 p-3 text-left outline-hidden transition-shadow hover:shadow-portal-card focus-visible:ring-2 focus-visible:ring-grey-300 focus-visible:ring-offset-2 focus-visible:ring-offset-portal-canvas",
           props.className,
         )}
       >
@@ -191,7 +191,7 @@ export const SandboxButton = (props: { className?: string }) => {
                   aria-pressed={platform === p}
                   onClick={() => switchPlatform(p)}
                   className={clsx(
-                    "flex h-8 items-center justify-center rounded-8 px-5 outline-hidden transition-colors focus-visible:ring-2 focus-visible:ring-grey-300",
+                    "flex h-8 cursor-pointer items-center justify-center rounded-8 px-5 outline-hidden transition-colors focus-visible:ring-2 focus-visible:ring-grey-300",
                     platform === p
                       ? "bg-white text-grey-900 shadow-portal-card"
                       : "text-grey-500 hover:text-grey-700",
@@ -214,7 +214,7 @@ export const SandboxButton = (props: { className?: string }) => {
                     <button
                       type="button"
                       onClick={() => setRequestEmail(user?.email ?? "")}
-                      className="hover:text-grey-600 text-grey-900 underline underline-offset-2 transition-colors"
+                      className="hover:text-grey-600 cursor-pointer text-grey-900 underline underline-offset-2 transition-colors"
                     >
                       Request access
                     </button>
