@@ -81,30 +81,76 @@ const resolveField = <TField extends string>(
 export const tokenizeSearchQuery = (query: string) =>
   tokenizeWithRanges(query).map((token) => token.value);
 
+const INCOMPLETE_FIELD_PATTERN = /^([A-Za-z_][A-Za-z0-9_]*)(>=|<=|!=|:|=|>|<)$/;
+
+const normalizeSearchValue = (value: string) =>
+  stripBalancedQuotes(value.replace(/[\u200B-\u200D\uFEFF]/g, "").trim());
+
+const parseFieldToken = <TField extends string>(
+  aliases: Record<string, TField>,
+  rawField: string,
+  rawOperator: string,
+  rawValue: string,
+): ParsedSearchToken<TField> | null => {
+  const field = resolveField(aliases, rawField);
+  const value = normalizeSearchValue(rawValue);
+
+  return field && value
+    ? {
+        field,
+        operator: rawOperator as SearchOperator,
+        type: "field",
+        value,
+      }
+    : null;
+};
+
 export const parseSearchTokens = <TField extends string>(
   query: string,
   aliases: Record<string, TField>,
-): ParsedSearchToken<TField>[] =>
-  tokenizeWithRanges(query).map((token): ParsedSearchToken<TField> => {
-    const match = token.value.match(FIELD_TOKEN_PATTERN);
+): ParsedSearchToken<TField>[] => {
+  const tokens = tokenizeWithRanges(query);
+  const parsed: ParsedSearchToken<TField>[] = [];
 
-    if (!match) {
-      return { type: "plain", value: stripBalancedQuotes(token.value) };
+  for (let index = 0; index < tokens.length; index += 1) {
+    const token = tokens[index];
+    const completeMatch = token.value.match(FIELD_TOKEN_PATTERN);
+
+    if (completeMatch) {
+      const [, rawField, rawOperator, rawValue] = completeMatch;
+      parsed.push(
+        parseFieldToken(aliases, rawField, rawOperator, rawValue) ?? {
+          type: "plain",
+          value: stripBalancedQuotes(token.value),
+        },
+      );
+      continue;
     }
 
-    const [, rawField, rawOperator, rawValue] = match;
-    const field = resolveField(aliases, rawField);
-    const value = stripBalancedQuotes(rawValue.trim());
+    const incompleteMatch = token.value.match(INCOMPLETE_FIELD_PATTERN);
+    const nextToken = tokens[index + 1];
 
-    return field && value
-      ? {
-          field,
-          operator: rawOperator as SearchOperator,
-          type: "field",
-          value,
-        }
-      : { type: "plain", value: stripBalancedQuotes(token.value) };
-  });
+    if (incompleteMatch && nextToken) {
+      const [, rawField, rawOperator] = incompleteMatch;
+      const fieldToken = parseFieldToken(
+        aliases,
+        rawField,
+        rawOperator,
+        nextToken.value,
+      );
+
+      if (fieldToken) {
+        parsed.push(fieldToken);
+        index += 1;
+        continue;
+      }
+    }
+
+    parsed.push({ type: "plain", value: stripBalancedQuotes(token.value) });
+  }
+
+  return parsed;
+};
 
 export const parseSingleSearchToken = <TField extends string>(
   query: string,
@@ -122,24 +168,57 @@ export const getSearchVisualSegments = <TField extends string>(
   aliases: Record<string, TField>,
 ): SearchVisualSegment[] => {
   const segments: SearchVisualSegment[] = [];
+  const tokens = tokenizeWithRanges(query);
   let lastIndex = 0;
 
-  for (const token of tokenizeWithRanges(query)) {
-    const match = token.value.match(FIELD_VISUAL_TOKEN_PATTERN);
+  for (let index = 0; index < tokens.length; index += 1) {
+    const token = tokens[index];
+    const completeMatch = token.value.match(FIELD_VISUAL_TOKEN_PATTERN);
+    const incompleteMatch = token.value.match(INCOMPLETE_FIELD_PATTERN);
+    const nextToken = tokens[index + 1];
 
-    if (!match || !resolveField(aliases, match[1])) {
+    const completeField =
+      completeMatch &&
+      resolveField(aliases, completeMatch[1]) &&
+      completeMatch[3]
+        ? {
+            end: token.end,
+            start: token.start,
+            value: token.value,
+          }
+        : null;
+
+    const mergedField =
+      !completeField &&
+      incompleteMatch &&
+      resolveField(aliases, incompleteMatch[1]) &&
+      nextToken
+        ? {
+            end: nextToken.end,
+            start: token.start,
+            value: `${token.value}${query.slice(token.end, nextToken.start)}${nextToken.value}`,
+          }
+        : null;
+
+    const fieldSegment = completeField ?? mergedField;
+
+    if (!fieldSegment) {
       continue;
     }
 
-    if (token.start > lastIndex) {
+    if (mergedField) {
+      index += 1;
+    }
+
+    if (fieldSegment.start > lastIndex) {
       segments.push({
         type: "text",
-        value: query.slice(lastIndex, token.start),
+        value: query.slice(lastIndex, fieldSegment.start),
       });
     }
 
-    segments.push({ type: "chip", value: token.value });
-    lastIndex = token.end;
+    segments.push({ type: "chip", value: fieldSegment.value });
+    lastIndex = fieldSegment.end;
   }
 
   if (lastIndex < query.length) {

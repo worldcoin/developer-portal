@@ -7,9 +7,11 @@ type GraphQLClientRequestHeaders = RequestOptions["requestHeaders"];
 export type FetchAdminGlobalSearchQueryVariables = Types.Exact<{
   appsWhere: Types.App_Bool_Exp;
   includeApps: Types.Scalars["Boolean"]["input"];
+  includeRps: Types.Scalars["Boolean"]["input"];
   includeTeams: Types.Scalars["Boolean"]["input"];
   includeUsers: Types.Scalars["Boolean"]["input"];
   limit: Types.Scalars["Int"]["input"];
+  rpsWhere: Types.Rp_Registration_Bool_Exp;
   teamsWhere: Types.Team_Bool_Exp;
   usersWhere: Types.User_Bool_Exp;
 }>;
@@ -25,6 +27,19 @@ export type FetchAdminGlobalSearchQuery = {
   apps_aggregate?: {
     __typename?: "app_aggregate";
     aggregate?: { __typename?: "app_aggregate_fields"; count: number } | null;
+  };
+  rps?: Array<{
+    __typename?: "rp_registration";
+    rp_id: string;
+    app_id: string;
+    app: { __typename?: "app"; name: string };
+  }>;
+  rps_aggregate?: {
+    __typename?: "rp_registration_aggregate";
+    aggregate?: {
+      __typename?: "rp_registration_aggregate_fields";
+      count: number;
+    } | null;
   };
   teams?: Array<{ __typename?: "team"; id: string; name?: string | null }>;
   teams_aggregate?: {
@@ -47,9 +62,11 @@ export const FetchAdminGlobalSearchDocument = gql`
   query FetchAdminGlobalSearch(
     $appsWhere: app_bool_exp!
     $includeApps: Boolean!
+    $includeRps: Boolean!
     $includeTeams: Boolean!
     $includeUsers: Boolean!
     $limit: Int!
+    $rpsWhere: rp_registration_bool_exp!
     $teamsWhere: team_bool_exp!
     $usersWhere: user_bool_exp!
   ) {
@@ -64,6 +81,23 @@ export const FetchAdminGlobalSearchDocument = gql`
     }
     apps_aggregate: app_aggregate(where: $appsWhere)
       @include(if: $includeApps) {
+      aggregate {
+        count
+      }
+    }
+    rps: rp_registration(
+      where: $rpsWhere
+      order_by: [{ rp_id: asc }]
+      limit: $limit
+    ) @include(if: $includeRps) {
+      rp_id
+      app_id
+      app {
+        name
+      }
+    }
+    rps_aggregate: rp_registration_aggregate(where: $rpsWhere)
+      @include(if: $includeRps) {
       aggregate {
         count
       }
