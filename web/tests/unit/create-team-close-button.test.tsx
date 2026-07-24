@@ -69,6 +69,24 @@ describe("CloseButton", () => {
     expect(screen.getByRole("button")).toBeInTheDocument();
   });
 
+  it("does not latch hidden when the profile fetch fails", () => {
+    // useUser reports `user: null, isLoading: false` on any failed /api/auth/profile
+    // fetch, and SWR keeps that state across its retry backoff.
+    useUser.mockReturnValue({
+      user: null,
+      isLoading: false,
+      error: new Error("Unauthorized"),
+    });
+
+    const { container, rerender } = render(<CloseButton />);
+    expect(container).toBeEmptyDOMElement();
+
+    useUser.mockReturnValue(sessionState([{ team: { id: "team_1" } }]));
+    rerender(<CloseButton />);
+
+    expect(screen.getByRole("button")).toBeInTheDocument();
+  });
+
   it("renders the X and divider for a user with teams and navigates back", () => {
     useUser.mockReturnValue(sessionState([{ team: { id: "team_1" } }]));
 

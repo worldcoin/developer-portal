@@ -5,7 +5,7 @@ import { CloseIcon } from "@/components/Icons/CloseIcon";
 import { Auth0SessionUser } from "@/lib/types";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { useRouter } from "next/navigation";
-import { Fragment, useCallback, useMemo, useRef } from "react";
+import { Fragment, useCallback, useMemo, useState } from "react";
 
 type Props = {
   href?: string;
@@ -22,10 +22,10 @@ export const CloseButton = (props: Props) => {
     [auth0User?.hasura?.memberships],
   );
 
-  // Latch hidden once the session resolves to no teams: the post-create session refresh lands before navigation finishes and would otherwise flash the X back in.
-  const sawNoTeams = useRef(false);
-  if (!isLoading && !hasTeams) {
-    sawNoTeams.current = true;
+  // Latch hidden once the session resolves to no teams: the post-create session refresh lands before navigation finishes and would otherwise flash the X back in. A failed profile fetch also reports `isLoading: false`, so latch only on a session we actually read.
+  const [sawNoTeams, setSawNoTeams] = useState(false);
+  if (!isLoading && auth0User && !hasTeams && !sawNoTeams) {
+    setSawNoTeams(true);
   }
 
   const closeCreateTeam = useCallback(() => {
@@ -36,7 +36,7 @@ export const CloseButton = (props: Props) => {
     return router.back();
   }, [router, props.href]);
 
-  if (sawNoTeams.current || !hasTeams) {
+  if (sawNoTeams || !hasTeams) {
     return null;
   }
 
