@@ -1,0 +1,14 @@
+mutation InsertSandboxAccessRequest($google_email: String!, $user_id: String!) {
+  insert_sandbox_access_request_one(
+    object: { google_email: $google_email, user_id: $user_id }
+    on_conflict: {
+      constraint: unique_sandbox_access_request_user_id
+      update_columns: []
+    }
+  ) {
+    id
+    google_email
+    accepted
+    created_at
+  }
+}
