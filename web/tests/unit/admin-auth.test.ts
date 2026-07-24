@@ -402,7 +402,7 @@ describe("cloudflare-access provider", () => {
   it("returns no access for an unsupported configured access level", async () => {
     cloudflareEnv();
     process.env.CF_GROUP_TO_ACCESS_LEVEL = JSON.stringify({
-      "example-readers": "write",
+      "example-readers": "manage",
     });
     jwtVerify.mockResolvedValue({
       payload: {
@@ -419,7 +419,7 @@ describe("cloudflare-access provider", () => {
     expect(result).toMatchObject({ accessLevel: null });
     expect(logger.error).toHaveBeenCalledWith(
       "CF_GROUP_TO_ACCESS_LEVEL group must map to a valid access level",
-      { group: "example-readers", accessLevel: "write" },
+      { group: "example-readers", accessLevel: "manage" },
     );
   });
 

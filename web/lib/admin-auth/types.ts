@@ -3,17 +3,8 @@ export enum AdminHasuraRole {
 }
 
 /**
- * Provider-neutral dashboard access levels.
- *
- * Add `Write` and `Manage` only when matching Hasura roles and permissions are
- * implemented.
- *
- * @example
- * enum DashboardAccessLevel {
- *   Read = "read",
- *   Write = "write",
- *   Manage = "manage",
- * }
+ * Provider-neutral dashboard access levels. The read-level role may perform
+ * the intentionally low-stakes sandbox invite acknowledgement.
  */
 export enum DashboardAccessLevel {
   Read = "read",
