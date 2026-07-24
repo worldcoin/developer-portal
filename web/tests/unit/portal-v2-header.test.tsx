@@ -9,15 +9,6 @@ jest.mock("next/navigation", () => ({
   useParams: () => useParams(),
 }));
 
-// Getter so each test can flip the kill switch (a plain constant in prod).
-const sandboxEnabled = jest.fn<boolean, []>();
-jest.mock("@/lib/constants", () => ({
-  ...jest.requireActual("@/lib/constants"),
-  get WORLD_ID_SANDBOX_ENABLED() {
-    return sandboxEnabled();
-  },
-}));
-
 jest.mock("@/components/Icons/WorldIcon", () => ({
   WorldIcon: () => <span>World logo</span>,
 }));
@@ -43,7 +34,6 @@ import { Header } from "@/scenes/Portal/layout/Header";
 
 beforeEach(() => {
   jest.clearAllMocks();
-  sandboxEnabled.mockReturnValue(true);
 });
 
 // #region World logo routing
@@ -72,9 +62,9 @@ describe("v2 Header [World logo routing]", () => {
 });
 // #endregion
 
-// #region Sandbox button gating
-describe("v2 Header [sandbox button gating]", () => {
-  it("shows the sandbox button on a team route when the switch is on", () => {
+// #region Sandbox button
+describe("v2 Header [sandbox button]", () => {
+  it("shows the sandbox button on a team route", () => {
     useParams.mockReturnValue({ teamId: "team_1" });
 
     render(<Header color={null} />);
@@ -84,25 +74,14 @@ describe("v2 Header [sandbox button gating]", () => {
     ).toBeInTheDocument();
   });
 
-  it("hides the sandbox button when the switch is off", () => {
-    useParams.mockReturnValue({ teamId: "team_1" });
-    sandboxEnabled.mockReturnValue(false);
-
-    render(<Header color={null} />);
-
-    expect(
-      screen.queryByRole("button", { name: "World ID Sandbox" }),
-    ).not.toBeInTheDocument();
-  });
-
-  it("hides the sandbox button outside a team route", () => {
+  it("shows the sandbox button outside a team route", () => {
     useParams.mockReturnValue({});
 
     render(<Header color={null} />);
 
     expect(
-      screen.queryByRole("button", { name: "World ID Sandbox" }),
-    ).not.toBeInTheDocument();
+      screen.getByRole("button", { name: "World ID Sandbox" }),
+    ).toBeInTheDocument();
   });
 });
 // #endregion
