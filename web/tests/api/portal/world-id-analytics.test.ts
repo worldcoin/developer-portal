@@ -316,6 +316,7 @@ describe("GET /api/portal/apps/[app_id]/world-id-analytics [validation]", () => 
   it.each([
     [{ period: "month" }, "invalid_period"],
     [{ page: "0" }, "invalid_page"],
+    [{ page: "178956972", page_size: "12" }, "invalid_page"],
     [{ page_size: "13" }, "invalid_page_size"],
     [{ search: "x".repeat(65) }, "invalid_search"],
   ])("rejects invalid query params %p", async (params, expectedCode) => {

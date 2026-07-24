@@ -20,6 +20,8 @@ const STALE_AFTER_MS = 15 * 60 * 1000;
 const DEFAULT_PAGE = 1;
 const DEFAULT_PAGE_SIZE = 12;
 const MAX_PAGE_SIZE = 12;
+// Hasura offsets are GraphQL Int (32-bit); overflowing pages are client errors, not 500s.
+const MAX_GRAPHQL_INT = 2_147_483_647;
 const ALL_TIME_FROM = "0001-01-01";
 
 type AnalyticsClient = Awaited<ReturnType<typeof getAPIServiceGraphqlClient>>;
@@ -406,6 +408,17 @@ export async function GET(
         code: "invalid_page_size",
         detail: "Page size must be an integer from 1 to 12.",
         attribute: "page_size",
+        app_id: appId,
+        req,
+      });
+    }
+
+    if ((page - 1) * pageSize > MAX_GRAPHQL_INT) {
+      return errorResponse({
+        statusCode: 400,
+        code: "invalid_page",
+        detail: "Page is out of range.",
+        attribute: "page",
         app_id: appId,
         req,
       });
