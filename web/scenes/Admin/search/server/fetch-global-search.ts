@@ -13,6 +13,7 @@ import { getSdk } from "../graphql/server/fetch-admin-global-search.generated";
 export type GlobalSearchResult = {
   apps: Array<{ id: string; name: string; teamId: string }>;
   query: string;
+  rps: Array<{ appId: string; appName: string; id: string }>;
   teams: Array<{ id: string; name: string }>;
   totals: Record<GlobalSearchTarget, number>;
   users: Array<{ email: string | null; id: string; name: string }>;
@@ -26,7 +27,7 @@ export const fetchAdminGlobalSearch = async (
   user: AdminUser,
 ): Promise<GlobalSearchResult> => {
   const trimmedQuery = query.trim();
-  const { appsWhere, targets, teamsWhere, usersWhere } =
+  const { appsWhere, rpsWhere, targets, teamsWhere, usersWhere } =
     createGlobalSearchQuery(trimmedQuery);
   const client = await getInternalDashboardGraphqlClientForUser(user);
 
@@ -34,9 +35,11 @@ export const fetchAdminGlobalSearch = async (
     const data = await getSdk(client).FetchAdminGlobalSearch({
       appsWhere,
       includeApps: targets.has("apps"),
+      includeRps: targets.has("rps"),
       includeTeams: targets.has("teams"),
       includeUsers: targets.has("users"),
       limit: 5,
+      rpsWhere,
       teamsWhere,
       usersWhere,
     });
@@ -48,12 +51,18 @@ export const fetchAdminGlobalSearch = async (
         teamId: app.team_id,
       })),
       query: trimmedQuery,
+      rps: (data.rps ?? []).map((rp) => ({
+        appId: rp.app_id,
+        appName: rp.app.name || "Unnamed app",
+        id: rp.rp_id,
+      })),
       teams: (data.teams ?? []).map((team) => ({
         id: team.id,
         name: team.name ?? "Unnamed team",
       })),
       totals: {
         apps: getCount(data.apps_aggregate),
+        rps: getCount(data.rps_aggregate),
         teams: getCount(data.teams_aggregate),
         users: getCount(data.users_aggregate),
       },

@@ -1804,6 +1804,109 @@ export type Admin_Dashboard_Queue_Order_By = {
   updated_at?: InputMaybe<Order_By>;
 };
 
+export type Admin_Rp_Inventory = {
+  __typename?: "admin_rp_inventory";
+  distinct_manager_keys: Scalars["bigint"]["output"];
+  managed_rps: Scalars["bigint"]["output"];
+  managed_with_key: Scalars["bigint"]["output"];
+  managed_without_key: Scalars["bigint"]["output"];
+  rps_on_shared_keys: Scalars["bigint"]["output"];
+  self_managed_rps: Scalars["bigint"]["output"];
+  shared_key_groups: Scalars["bigint"]["output"];
+  staging_status_deactivated: Scalars["bigint"]["output"];
+  staging_status_failed: Scalars["bigint"]["output"];
+  staging_status_null: Scalars["bigint"]["output"];
+  staging_status_pending: Scalars["bigint"]["output"];
+  staging_status_registered: Scalars["bigint"]["output"];
+  status_deactivated: Scalars["bigint"]["output"];
+  status_failed: Scalars["bigint"]["output"];
+  status_pending: Scalars["bigint"]["output"];
+  status_registered: Scalars["bigint"]["output"];
+  total_rps: Scalars["bigint"]["output"];
+};
+
+/** Boolean expression to filter rows from the logical model for "admin_rp_inventory". All fields are combined with a logical 'AND'. */
+export type Admin_Rp_Inventory_Bool_Exp_Bool_Exp = {
+  _and?: InputMaybe<Array<Admin_Rp_Inventory_Bool_Exp_Bool_Exp>>;
+  _not?: InputMaybe<Admin_Rp_Inventory_Bool_Exp_Bool_Exp>;
+  _or?: InputMaybe<Array<Admin_Rp_Inventory_Bool_Exp_Bool_Exp>>;
+  distinct_manager_keys?: InputMaybe<Bigint_Comparison_Exp>;
+  managed_rps?: InputMaybe<Bigint_Comparison_Exp>;
+  managed_with_key?: InputMaybe<Bigint_Comparison_Exp>;
+  managed_without_key?: InputMaybe<Bigint_Comparison_Exp>;
+  rps_on_shared_keys?: InputMaybe<Bigint_Comparison_Exp>;
+  self_managed_rps?: InputMaybe<Bigint_Comparison_Exp>;
+  shared_key_groups?: InputMaybe<Bigint_Comparison_Exp>;
+  staging_status_deactivated?: InputMaybe<Bigint_Comparison_Exp>;
+  staging_status_failed?: InputMaybe<Bigint_Comparison_Exp>;
+  staging_status_null?: InputMaybe<Bigint_Comparison_Exp>;
+  staging_status_pending?: InputMaybe<Bigint_Comparison_Exp>;
+  staging_status_registered?: InputMaybe<Bigint_Comparison_Exp>;
+  status_deactivated?: InputMaybe<Bigint_Comparison_Exp>;
+  status_failed?: InputMaybe<Bigint_Comparison_Exp>;
+  status_pending?: InputMaybe<Bigint_Comparison_Exp>;
+  status_registered?: InputMaybe<Bigint_Comparison_Exp>;
+  total_rps?: InputMaybe<Bigint_Comparison_Exp>;
+};
+
+export enum Admin_Rp_Inventory_Enum_Name {
+  /** column name */
+  DistinctManagerKeys = "distinct_manager_keys",
+  /** column name */
+  ManagedRps = "managed_rps",
+  /** column name */
+  ManagedWithKey = "managed_with_key",
+  /** column name */
+  ManagedWithoutKey = "managed_without_key",
+  /** column name */
+  RpsOnSharedKeys = "rps_on_shared_keys",
+  /** column name */
+  SelfManagedRps = "self_managed_rps",
+  /** column name */
+  SharedKeyGroups = "shared_key_groups",
+  /** column name */
+  StagingStatusDeactivated = "staging_status_deactivated",
+  /** column name */
+  StagingStatusFailed = "staging_status_failed",
+  /** column name */
+  StagingStatusNull = "staging_status_null",
+  /** column name */
+  StagingStatusPending = "staging_status_pending",
+  /** column name */
+  StagingStatusRegistered = "staging_status_registered",
+  /** column name */
+  StatusDeactivated = "status_deactivated",
+  /** column name */
+  StatusFailed = "status_failed",
+  /** column name */
+  StatusPending = "status_pending",
+  /** column name */
+  StatusRegistered = "status_registered",
+  /** column name */
+  TotalRps = "total_rps",
+}
+
+/** Ordering options when selecting data from "admin_rp_inventory". */
+export type Admin_Rp_Inventory_Order_By = {
+  distinct_manager_keys?: InputMaybe<Order_By>;
+  managed_rps?: InputMaybe<Order_By>;
+  managed_with_key?: InputMaybe<Order_By>;
+  managed_without_key?: InputMaybe<Order_By>;
+  rps_on_shared_keys?: InputMaybe<Order_By>;
+  self_managed_rps?: InputMaybe<Order_By>;
+  shared_key_groups?: InputMaybe<Order_By>;
+  staging_status_deactivated?: InputMaybe<Order_By>;
+  staging_status_failed?: InputMaybe<Order_By>;
+  staging_status_null?: InputMaybe<Order_By>;
+  staging_status_pending?: InputMaybe<Order_By>;
+  staging_status_registered?: InputMaybe<Order_By>;
+  status_deactivated?: InputMaybe<Order_By>;
+  status_failed?: InputMaybe<Order_By>;
+  status_pending?: InputMaybe<Order_By>;
+  status_registered?: InputMaybe<Order_By>;
+  total_rps?: InputMaybe<Order_By>;
+};
+
 /** columns and relationships of "api_key" */
 export type Api_Key = {
   __typename?: "api_key";
@@ -9562,6 +9665,7 @@ export type Query_Root = {
   action_v4_by_pk?: Maybe<Action_V4>;
   admin_dashboard_inventory: Array<Admin_Dashboard_Inventory>;
   admin_dashboard_queues: Array<Admin_Dashboard_Queue>;
+  admin_rp_inventory: Array<Admin_Rp_Inventory>;
   /** fetch data from the table: "api_key" */
   api_key: Array<Api_Key>;
   /** fetch aggregated fields from the table: "api_key" */
@@ -9819,6 +9923,14 @@ export type Query_RootAdmin_Dashboard_QueuesArgs = {
   offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<Admin_Dashboard_Queue_Order_By>>;
   where?: InputMaybe<Admin_Dashboard_Queue_Bool_Exp_Bool_Exp>;
+};
+
+export type Query_RootAdmin_Rp_InventoryArgs = {
+  distinct_on?: InputMaybe<Array<Admin_Rp_Inventory_Enum_Name>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Admin_Rp_Inventory_Order_By>>;
+  where?: InputMaybe<Admin_Rp_Inventory_Bool_Exp_Bool_Exp>;
 };
 
 export type Query_RootApi_KeyArgs = {
@@ -11413,6 +11525,7 @@ export type Subscription_Root = {
   action_v4_stream: Array<Action_V4>;
   admin_dashboard_inventory: Array<Admin_Dashboard_Inventory>;
   admin_dashboard_queues: Array<Admin_Dashboard_Queue>;
+  admin_rp_inventory: Array<Admin_Rp_Inventory>;
   /** fetch data from the table: "api_key" */
   api_key: Array<Api_Key>;
   /** fetch aggregated fields from the table: "api_key" */
@@ -11733,6 +11846,14 @@ export type Subscription_RootAdmin_Dashboard_QueuesArgs = {
   offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<Admin_Dashboard_Queue_Order_By>>;
   where?: InputMaybe<Admin_Dashboard_Queue_Bool_Exp_Bool_Exp>;
+};
+
+export type Subscription_RootAdmin_Rp_InventoryArgs = {
+  distinct_on?: InputMaybe<Array<Admin_Rp_Inventory_Enum_Name>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Admin_Rp_Inventory_Order_By>>;
+  where?: InputMaybe<Admin_Rp_Inventory_Bool_Exp_Bool_Exp>;
 };
 
 export type Subscription_RootApi_KeyArgs = {

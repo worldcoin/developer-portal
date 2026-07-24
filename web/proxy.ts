@@ -215,6 +215,7 @@ const createSecurityHeadersResponse = (
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-nonce", nonce);
   requestHeaders.set("content-security-policy", csp);
+  requestHeaders.set("x-current-path", pathname);
 
   const response = NextResponse.next({ request: { headers: requestHeaders } });
 
@@ -232,6 +233,7 @@ const createDashboardRewriteResponse = (request: NextRequest) => {
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-nonce", nonce);
   requestHeaders.set("content-security-policy", csp);
+  requestHeaders.set("x-current-path", "/admin");
 
   const response = NextResponse.rewrite(url, {
     request: { headers: requestHeaders },

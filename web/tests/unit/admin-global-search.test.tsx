@@ -47,6 +47,7 @@ describe("admin global search", () => {
             teamId: "team_current",
           },
         ],
+        rps: [],
         teams: [{ id: "team_current", name: "Current team" }],
         users: [],
       }),
@@ -78,6 +79,7 @@ describe("admin global search", () => {
         apps: [
           { id: "app_current", name: "Current app", teamId: "team_current" },
         ],
+        rps: [],
         teams: [],
         users: [],
       }),
@@ -105,6 +107,7 @@ describe("admin global search", () => {
         apps: [
           { id: "app_current", name: "Current app", teamId: "team_current" },
         ],
+        rps: [],
         teams: [],
         users: [],
       }),
