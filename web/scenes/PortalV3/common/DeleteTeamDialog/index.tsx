@@ -93,7 +93,7 @@ export const DeleteTeamDialog = (props: DeleteTeamDialogProps) => {
       }
 
       await invalidate();
-      toast.success("Team deleted!");
+      toast.success("Team deleted");
 
       if (!sessionSynced) {
         console.error("Delete Team Dialog: session sync failed after delete");

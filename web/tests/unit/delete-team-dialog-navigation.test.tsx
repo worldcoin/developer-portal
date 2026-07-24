@@ -157,7 +157,7 @@ describe("DeleteTeamDialog [post-delete navigation]", () => {
 
     await waitFor(() => expect(push).toHaveBeenCalledWith("/create-team"));
     // The delete itself succeeded, so the user is told so either way.
-    expect(toast.success).toHaveBeenCalledWith("Team deleted!");
+    expect(toast.success).toHaveBeenCalledWith("Team deleted");
   });
 
   it("navigates and still reports success when the fallback returns a non-ok status", async () => {
@@ -179,7 +179,7 @@ describe("DeleteTeamDialog [post-delete navigation]", () => {
     await confirmAndSubmit();
 
     await waitFor(() => expect(push).toHaveBeenCalledWith("/profile/teams"));
-    expect(toast.success).toHaveBeenCalledWith("Team deleted!");
+    expect(toast.success).toHaveBeenCalledWith("Team deleted");
     expect(logged).toHaveBeenCalledWith(
       "Delete Team Dialog: session sync failed after delete",
     );
