@@ -156,13 +156,11 @@ describe("DeleteTeamDialog [post-delete navigation]", () => {
     await confirmAndSubmit();
 
     await waitFor(() => expect(push).toHaveBeenCalledWith("/create-team"));
-    expect(toast.error).toHaveBeenCalledWith(
-      "Team deleted, but your session may be briefly out of date",
-    );
-    expect(toast.success).not.toHaveBeenCalled();
+    // The delete itself succeeded, so the user is told so either way.
+    expect(toast.success).toHaveBeenCalledWith("Team deleted!");
   });
 
-  it("reports a stale session when the fallback returns a non-ok status", async () => {
+  it("navigates and still reports success when the fallback returns a non-ok status", async () => {
     // fetch resolves on 401/500 — the failure is only visible via res.ok.
     deleteTeamServerSide.mockResolvedValue({
       success: true,
@@ -175,14 +173,18 @@ describe("DeleteTeamDialog [post-delete navigation]", () => {
       json: async () => ({ success: false }),
     });
 
+    const logged = jest.spyOn(console, "error").mockImplementation(() => {});
+
     renderDialog();
     await confirmAndSubmit();
 
     await waitFor(() => expect(push).toHaveBeenCalledWith("/profile/teams"));
-    expect(toast.error).toHaveBeenCalledWith(
-      "Team deleted, but your session may be briefly out of date",
+    expect(toast.success).toHaveBeenCalledWith("Team deleted!");
+    expect(logged).toHaveBeenCalledWith(
+      "Delete Team Dialog: session sync failed after delete",
     );
-    expect(toast.success).not.toHaveBeenCalled();
+
+    logged.mockRestore();
   });
 
   it("does not navigate when the delete fails", async () => {

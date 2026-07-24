@@ -93,15 +93,10 @@ export const DeleteTeamDialog = (props: DeleteTeamDialogProps) => {
       }
 
       await invalidate();
+      toast.success("Team deleted!");
 
-      if (sessionSynced) {
-        toast.success("Team deleted!");
-      } else {
-        // Navigate anyway — staying on the deleted team's page is the dead end
-        // this flow exists to avoid, and the next me-query pass heals the cookie.
-        toast.error(
-          "Team deleted, but your session may be briefly out of date",
-        );
+      if (!sessionSynced) {
+        console.error("Delete Team Dialog: session sync failed after delete");
       }
 
       if (typeof membershipsCount === "number" && membershipsCount === 0) {
