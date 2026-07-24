@@ -15,6 +15,17 @@ insert_permissions:
         - accepted
         - processed_at
 select_permissions:
+  - role: internal_dashboard_readonly
+    permission:
+      columns:
+        - id
+        - google_email
+        - user_id
+        - accepted
+        - created_at
+        - processed_at
+      filter: {}
+      allow_aggregations: true
   - role: service
     permission:
       columns:
@@ -26,6 +37,15 @@ select_permissions:
         - processed_at
       filter: {}
 update_permissions:
+  # Marking a sandbox invite as sent is a low-stakes operational update, so
+  # every authenticated dashboard user may process these requests.
+  - role: internal_dashboard_readonly
+    permission:
+      columns:
+        - accepted
+        - processed_at
+      filter: {}
+      check: {}
   - role: service
     permission:
       columns:

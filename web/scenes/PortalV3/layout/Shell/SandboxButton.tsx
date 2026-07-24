@@ -1,5 +1,6 @@
 "use client";
 
+import type { SandboxAccessRequestState } from "@/api/v2/sandbox-access-request/server/fetch-sandbox-access-request";
 import { DecoratedButton } from "@/components/DecoratedButton";
 import { Dialog } from "@/components/Dialog";
 import { DialogOverlay } from "@/components/DialogOverlay";
@@ -10,8 +11,8 @@ import { Icon } from "@/scenes/PortalV3/common/Icon";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import clsx from "clsx";
 import posthog from "posthog-js";
+import { useEffect, useState } from "react";
 import QRCode from "react-qr-code";
-import { useState } from "react";
 import { toast } from "react-toastify";
 
 // Distribution links for the sandbox builds. Values come from the deploy
@@ -51,8 +52,8 @@ const PLATFORMS: Record<
     url: ANDROID_URL,
     steps: [
       "Request access for your Google account",
-      "Once approved, scan the QR code",
-      "Join the internal test and install the build",
+      "Wait for your invite confirmation",
+      "Scan the QR code and install the build",
     ],
   },
 };
@@ -61,18 +62,58 @@ const PLATFORM_ORDER: readonly Platform[] = ["ios", "android"];
 
 /**
  * Sidebar entry point for the World ID sandbox: a modal with QR codes / store
- * links, plus an Android form that records a Play allowlist request.
+ * links, plus an Android form that records a Play allowlist request
+ * (sandbox_access_request). The caller's request is looked up on open so a
+ * past submission renders as a persistent confirmation.
  */
-export const SandboxButton = (props: { className?: string }) => {
+export const SandboxButton = (props: {
+  className?: string;
+  initialRequest?: SandboxAccessRequestState | null;
+}) => {
   const [open, setOpen] = useState(false);
   const [platform, setPlatform] = useState<Platform>("ios");
   const active = PLATFORMS[platform];
   const { user } = useUser() as Auth0SessionUser;
 
-  // null = form collapsed; a string = form open with that value in the field.
-  const [requestEmail, setRequestEmail] = useState<string | null>(null);
+  const [requestEmail, setRequestEmail] = useState(
+    props.initialRequest?.email ?? user?.email ?? "",
+  );
   const [requestSending, setRequestSending] = useState(false);
-  const [requestSent, setRequestSent] = useState(false);
+  const [requestRefreshing, setRequestRefreshing] = useState(false);
+  const [existingRequest, setExistingRequest] =
+    useState<SandboxAccessRequestState | null>(props.initialRequest ?? null);
+
+  useEffect(() => {
+    if (props.initialRequest || !user?.email) return;
+    setRequestEmail((current) => current || user.email);
+  }, [props.initialRequest, user?.email]);
+
+  useEffect(() => {
+    if (!open) return;
+
+    let cancelled = false;
+    (async () => {
+      setRequestRefreshing(true);
+      try {
+        const response = await fetch("/api/v2/sandbox-access-request");
+        if (!response.ok) return;
+        const data = await response.json();
+        if (!cancelled) {
+          setExistingRequest(data.request ?? null);
+          if (data.request?.email) {
+            setRequestEmail(data.request.email);
+          }
+        }
+      } catch {
+      } finally {
+        if (!cancelled) setRequestRefreshing(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [open]);
 
   const submitAccessRequest = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -91,8 +132,14 @@ export const SandboxButton = (props: { className?: string }) => {
         return;
       }
 
+      const data = await response.json();
+      if (!data.request) {
+        throw new Error("Request state missing from response");
+      }
+
       posthog.capture("sandbox_access_requested", { platform: "android" });
-      setRequestSent(true);
+      setExistingRequest(data.request);
+      setRequestEmail(data.request.email);
     } catch {
       toast.error("Couldn't send your request — please try again.");
     } finally {
@@ -209,51 +256,57 @@ export const SandboxButton = (props: { className?: string }) => {
                 <Typography variant={TYPOGRAPHY.R4} className="text-grey-700">
                   The Android build is distributed as a Google Play internal
                   test — your Google account email must be approved before the
-                  link works.{" "}
-                  {requestEmail === null && !requestSent ? (
-                    <button
-                      type="button"
-                      onClick={() => setRequestEmail(user?.email ?? "")}
-                      className="hover:text-grey-600 cursor-pointer text-grey-900 underline underline-offset-2 transition-colors"
-                    >
-                      Request access
-                    </button>
-                  ) : null}
+                  link works.
                 </Typography>
 
-                {requestSent ? (
+                <form
+                  className="mt-3 flex flex-wrap items-center gap-2"
+                  onSubmit={submitAccessRequest}
+                >
+                  <input
+                    type="email"
+                    required
+                    disabled={existingRequest !== null || requestRefreshing}
+                    value={requestEmail}
+                    onChange={(e) => setRequestEmail(e.target.value)}
+                    aria-label="Google account email"
+                    placeholder="google-account@gmail.com"
+                    className="h-9 min-w-0 flex-1 rounded-8 border border-grey-200 bg-white px-3 font-world text-14 text-grey-900 outline-hidden focus:ring-2 focus:ring-grey-300 disabled:bg-grey-100 disabled:text-grey-500"
+                  />
+                  <DecoratedButton
+                    type="submit"
+                    variant="primary"
+                    disabled={existingRequest !== null || requestRefreshing}
+                    loading={requestSending}
+                    className="h-9 shrink-0 px-4"
+                  >
+                    <Typography variant={TYPOGRAPHY.M4}>
+                      {existingRequest?.accepted
+                        ? "Invite sent"
+                        : existingRequest
+                          ? "Request submitted"
+                          : "Request invite"}
+                    </Typography>
+                  </DecoratedButton>
+                </form>
+
+                {existingRequest ? (
                   <Typography
                     variant={TYPOGRAPHY.M4}
                     className="mt-2 block text-grey-900"
                   >
-                    Request sent — you&apos;ll get an email at {requestEmail}{" "}
-                    once you&apos;re approved.
+                    {existingRequest.accepted ? (
+                      <>
+                        An invite has been sent to {existingRequest.email}. Scan
+                        the QR code to install.
+                      </>
+                    ) : (
+                      <>
+                        Your request for {existingRequest.email} is pending.
+                        We&apos;ll email you when the invite has been sent.
+                      </>
+                    )}
                   </Typography>
-                ) : requestEmail !== null ? (
-                  <form
-                    className="mt-3 flex flex-wrap items-center gap-2"
-                    onSubmit={submitAccessRequest}
-                  >
-                    <input
-                      type="email"
-                      required
-                      value={requestEmail}
-                      onChange={(e) => setRequestEmail(e.target.value)}
-                      aria-label="Google account email"
-                      placeholder="google-account@gmail.com"
-                      className="h-9 min-w-0 flex-1 rounded-8 border border-grey-200 bg-white px-3 font-world text-14 text-grey-900 outline-hidden focus:ring-2 focus:ring-grey-300"
-                    />
-                    <DecoratedButton
-                      type="submit"
-                      variant="primary"
-                      loading={requestSending}
-                      className="h-9 shrink-0 px-4"
-                    >
-                      <Typography variant={TYPOGRAPHY.M4}>
-                        Send request
-                      </Typography>
-                    </DecoratedButton>
-                  </form>
                 ) : null}
               </div>
             ) : null}

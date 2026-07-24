@@ -64,6 +64,14 @@ export const NavBar = () => {
         >
           Users
         </NavBarItem>
+
+        <NavBarItem
+          iconName="clock"
+          iconClassName={iconClassName}
+          href="/admin/sandbox-requests"
+        >
+          Sandbox
+        </NavBarItem>
       </nav>
     </UIModule>
   );

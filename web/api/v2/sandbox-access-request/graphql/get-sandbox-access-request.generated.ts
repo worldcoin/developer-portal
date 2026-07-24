@@ -4,35 +4,23 @@ import * as Types from "@/graphql/graphql";
 import { GraphQLClient, RequestOptions } from "graphql-request";
 import gql from "graphql-tag";
 type GraphQLClientRequestHeaders = RequestOptions["requestHeaders"];
-export type InsertSandboxAccessRequestMutationVariables = Types.Exact<{
-  google_email: Types.Scalars["String"]["input"];
+export type GetSandboxAccessRequestQueryVariables = Types.Exact<{
   user_id: Types.Scalars["String"]["input"];
 }>;
 
-export type InsertSandboxAccessRequestMutation = {
-  __typename?: "mutation_root";
-  insert_sandbox_access_request_one?: {
+export type GetSandboxAccessRequestQuery = {
+  __typename?: "query_root";
+  sandbox_access_request: Array<{
     __typename?: "sandbox_access_request";
-    id: string;
     google_email: string;
     accepted: boolean;
     created_at: string;
-  } | null;
+  }>;
 };
 
-export const InsertSandboxAccessRequestDocument = gql`
-  mutation InsertSandboxAccessRequest(
-    $google_email: String!
-    $user_id: String!
-  ) {
-    insert_sandbox_access_request_one(
-      object: { google_email: $google_email, user_id: $user_id }
-      on_conflict: {
-        constraint: unique_sandbox_access_request_user_id
-        update_columns: []
-      }
-    ) {
-      id
+export const GetSandboxAccessRequestDocument = gql`
+  query GetSandboxAccessRequest($user_id: String!) {
+    sandbox_access_request(where: { user_id: { _eq: $user_id } }, limit: 1) {
       google_email
       accepted
       created_at
@@ -59,19 +47,19 @@ export function getSdk(
   withWrapper: SdkFunctionWrapper = defaultWrapper,
 ) {
   return {
-    InsertSandboxAccessRequest(
-      variables: InsertSandboxAccessRequestMutationVariables,
+    GetSandboxAccessRequest(
+      variables: GetSandboxAccessRequestQueryVariables,
       requestHeaders?: GraphQLClientRequestHeaders,
-    ): Promise<InsertSandboxAccessRequestMutation> {
+    ): Promise<GetSandboxAccessRequestQuery> {
       return withWrapper(
         (wrappedRequestHeaders) =>
-          client.request<InsertSandboxAccessRequestMutation>(
-            InsertSandboxAccessRequestDocument,
+          client.request<GetSandboxAccessRequestQuery>(
+            GetSandboxAccessRequestDocument,
             variables,
             { ...requestHeaders, ...wrappedRequestHeaders },
           ),
-        "InsertSandboxAccessRequest",
-        "mutation",
+        "GetSandboxAccessRequest",
+        "query",
         variables,
       );
     },
