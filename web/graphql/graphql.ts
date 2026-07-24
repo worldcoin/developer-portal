@@ -7840,6 +7840,8 @@ export type Mutation_Root = {
   delete_user_by_pk?: Maybe<User>;
   /** delete data from the table: "verification_job_returning" */
   delete_verification_job_returning?: Maybe<Verification_Job_Returning_Mutation_Response>;
+  /** delete data from the table: "verification_meta_returning" */
+  delete_verification_meta_returning?: Maybe<Verification_Meta_Returning_Mutation_Response>;
   /** insert data into the table: "action" */
   insert_action?: Maybe<Action_Mutation_Response>;
   /** insert a single row into the table: "action" */
@@ -7972,6 +7974,10 @@ export type Mutation_Root = {
   insert_verification_job_returning?: Maybe<Verification_Job_Returning_Mutation_Response>;
   /** insert a single row into the table: "verification_job_returning" */
   insert_verification_job_returning_one?: Maybe<Verification_Job_Returning>;
+  /** insert data into the table: "verification_meta_returning" */
+  insert_verification_meta_returning?: Maybe<Verification_Meta_Returning_Mutation_Response>;
+  /** insert a single row into the table: "verification_meta_returning" */
+  insert_verification_meta_returning_one?: Maybe<Verification_Meta_Returning>;
   invalidate_cache?: Maybe<InvalidateCacheOutput>;
   /** Create invites and send emails */
   invite_team_members?: Maybe<InviteTeamMembersOutput>;
@@ -8238,6 +8244,12 @@ export type Mutation_Root = {
   /** update multiples rows of table: "verification_job_returning" */
   update_verification_job_returning_many?: Maybe<
     Array<Maybe<Verification_Job_Returning_Mutation_Response>>
+  >;
+  /** update data of the table: "verification_meta_returning" */
+  update_verification_meta_returning?: Maybe<Verification_Meta_Returning_Mutation_Response>;
+  /** update multiples rows of table: "verification_meta_returning" */
+  update_verification_meta_returning_many?: Maybe<
+    Array<Maybe<Verification_Meta_Returning_Mutation_Response>>
   >;
   validate_localisation?: Maybe<ValidateLocalisationOutput>;
   /** Verify an App */
@@ -8616,6 +8628,11 @@ export type Mutation_RootDelete_User_By_PkArgs = {
 /** mutation root */
 export type Mutation_RootDelete_Verification_Job_ReturningArgs = {
   where: Verification_Job_Returning_Bool_Exp;
+};
+
+/** mutation root */
+export type Mutation_RootDelete_Verification_Meta_ReturningArgs = {
+  where: Verification_Meta_Returning_Bool_Exp;
 };
 
 /** mutation root */
@@ -9010,6 +9027,16 @@ export type Mutation_RootInsert_Verification_Job_ReturningArgs = {
 /** mutation root */
 export type Mutation_RootInsert_Verification_Job_Returning_OneArgs = {
   object: Verification_Job_Returning_Insert_Input;
+};
+
+/** mutation root */
+export type Mutation_RootInsert_Verification_Meta_ReturningArgs = {
+  objects: Array<Verification_Meta_Returning_Insert_Input>;
+};
+
+/** mutation root */
+export type Mutation_RootInsert_Verification_Meta_Returning_OneArgs = {
+  object: Verification_Meta_Returning_Insert_Input;
 };
 
 /** mutation root */
@@ -9732,6 +9759,17 @@ export type Mutation_RootUpdate_Verification_Job_ReturningArgs = {
 /** mutation root */
 export type Mutation_RootUpdate_Verification_Job_Returning_ManyArgs = {
   updates: Array<Verification_Job_Returning_Updates>;
+};
+
+/** mutation root */
+export type Mutation_RootUpdate_Verification_Meta_ReturningArgs = {
+  _set?: InputMaybe<Verification_Meta_Returning_Set_Input>;
+  where: Verification_Meta_Returning_Bool_Exp;
+};
+
+/** mutation root */
+export type Mutation_RootUpdate_Verification_Meta_Returning_ManyArgs = {
+  updates: Array<Verification_Meta_Returning_Updates>;
 };
 
 /** mutation root */
@@ -11279,10 +11317,18 @@ export type Query_Root = {
   user_aggregate: User_Aggregate;
   /** fetch data from the table: "user" using primary key columns */
   user_by_pk?: Maybe<User>;
+  /** execute function "verification_analytics_meta" which returns "verification_meta_returning" */
+  verification_analytics_meta: Array<Verification_Meta_Returning>;
+  /** execute function "verification_analytics_meta" and query aggregates on result of table type "verification_meta_returning" */
+  verification_analytics_meta_aggregate: Verification_Meta_Returning_Aggregate;
   /** fetch data from the table: "verification_job_returning" */
   verification_job_returning: Array<Verification_Job_Returning>;
   /** fetch aggregated fields from the table: "verification_job_returning" */
   verification_job_returning_aggregate: Verification_Job_Returning_Aggregate;
+  /** fetch data from the table: "verification_meta_returning" */
+  verification_meta_returning: Array<Verification_Meta_Returning>;
+  /** fetch aggregated fields from the table: "verification_meta_returning" */
+  verification_meta_returning_aggregate: Verification_Meta_Returning_Aggregate;
 };
 
 export type Query_RootActionArgs = {
@@ -12028,6 +12074,22 @@ export type Query_RootUser_By_PkArgs = {
   id: Scalars["String"]["input"];
 };
 
+export type Query_RootVerification_Analytics_MetaArgs = {
+  distinct_on?: InputMaybe<Array<Verification_Meta_Returning_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Verification_Meta_Returning_Order_By>>;
+  where?: InputMaybe<Verification_Meta_Returning_Bool_Exp>;
+};
+
+export type Query_RootVerification_Analytics_Meta_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Verification_Meta_Returning_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Verification_Meta_Returning_Order_By>>;
+  where?: InputMaybe<Verification_Meta_Returning_Bool_Exp>;
+};
+
 export type Query_RootVerification_Job_ReturningArgs = {
   distinct_on?: InputMaybe<Array<Verification_Job_Returning_Select_Column>>;
   limit?: InputMaybe<Scalars["Int"]["input"]>;
@@ -12042,6 +12104,22 @@ export type Query_RootVerification_Job_Returning_AggregateArgs = {
   offset?: InputMaybe<Scalars["Int"]["input"]>;
   order_by?: InputMaybe<Array<Verification_Job_Returning_Order_By>>;
   where?: InputMaybe<Verification_Job_Returning_Bool_Exp>;
+};
+
+export type Query_RootVerification_Meta_ReturningArgs = {
+  distinct_on?: InputMaybe<Array<Verification_Meta_Returning_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Verification_Meta_Returning_Order_By>>;
+  where?: InputMaybe<Verification_Meta_Returning_Bool_Exp>;
+};
+
+export type Query_RootVerification_Meta_Returning_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Verification_Meta_Returning_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Verification_Meta_Returning_Order_By>>;
+  where?: InputMaybe<Verification_Meta_Returning_Bool_Exp>;
 };
 
 /** columns and relationships of "redirect" */
@@ -13306,12 +13384,22 @@ export type Subscription_Root = {
   user_by_pk?: Maybe<User>;
   /** fetch data from the table in a streaming manner: "user" */
   user_stream: Array<User>;
+  /** execute function "verification_analytics_meta" which returns "verification_meta_returning" */
+  verification_analytics_meta: Array<Verification_Meta_Returning>;
+  /** execute function "verification_analytics_meta" and query aggregates on result of table type "verification_meta_returning" */
+  verification_analytics_meta_aggregate: Verification_Meta_Returning_Aggregate;
   /** fetch data from the table: "verification_job_returning" */
   verification_job_returning: Array<Verification_Job_Returning>;
   /** fetch aggregated fields from the table: "verification_job_returning" */
   verification_job_returning_aggregate: Verification_Job_Returning_Aggregate;
   /** fetch data from the table in a streaming manner: "verification_job_returning" */
   verification_job_returning_stream: Array<Verification_Job_Returning>;
+  /** fetch data from the table: "verification_meta_returning" */
+  verification_meta_returning: Array<Verification_Meta_Returning>;
+  /** fetch aggregated fields from the table: "verification_meta_returning" */
+  verification_meta_returning_aggregate: Verification_Meta_Returning_Aggregate;
+  /** fetch data from the table in a streaming manner: "verification_meta_returning" */
+  verification_meta_returning_stream: Array<Verification_Meta_Returning>;
 };
 
 export type Subscription_RootActionArgs = {
@@ -14233,6 +14321,22 @@ export type Subscription_RootUser_StreamArgs = {
   where?: InputMaybe<User_Bool_Exp>;
 };
 
+export type Subscription_RootVerification_Analytics_MetaArgs = {
+  distinct_on?: InputMaybe<Array<Verification_Meta_Returning_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Verification_Meta_Returning_Order_By>>;
+  where?: InputMaybe<Verification_Meta_Returning_Bool_Exp>;
+};
+
+export type Subscription_RootVerification_Analytics_Meta_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Verification_Meta_Returning_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Verification_Meta_Returning_Order_By>>;
+  where?: InputMaybe<Verification_Meta_Returning_Bool_Exp>;
+};
+
 export type Subscription_RootVerification_Job_ReturningArgs = {
   distinct_on?: InputMaybe<Array<Verification_Job_Returning_Select_Column>>;
   limit?: InputMaybe<Scalars["Int"]["input"]>;
@@ -14253,6 +14357,28 @@ export type Subscription_RootVerification_Job_Returning_StreamArgs = {
   batch_size: Scalars["Int"]["input"];
   cursor: Array<InputMaybe<Verification_Job_Returning_Stream_Cursor_Input>>;
   where?: InputMaybe<Verification_Job_Returning_Bool_Exp>;
+};
+
+export type Subscription_RootVerification_Meta_ReturningArgs = {
+  distinct_on?: InputMaybe<Array<Verification_Meta_Returning_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Verification_Meta_Returning_Order_By>>;
+  where?: InputMaybe<Verification_Meta_Returning_Bool_Exp>;
+};
+
+export type Subscription_RootVerification_Meta_Returning_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Verification_Meta_Returning_Select_Column>>;
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  order_by?: InputMaybe<Array<Verification_Meta_Returning_Order_By>>;
+  where?: InputMaybe<Verification_Meta_Returning_Bool_Exp>;
+};
+
+export type Subscription_RootVerification_Meta_Returning_StreamArgs = {
+  batch_size: Scalars["Int"]["input"];
+  cursor: Array<InputMaybe<Verification_Meta_Returning_Stream_Cursor_Input>>;
+  where?: InputMaybe<Verification_Meta_Returning_Bool_Exp>;
 };
 
 /** columns and relationships of "team" */
@@ -15152,6 +15278,112 @@ export type Verification_Job_Returning_Variance_Fields = {
   alerts?: Maybe<Scalars["Float"]["output"]>;
   items?: Maybe<Scalars["Float"]["output"]>;
   repaired?: Maybe<Scalars["Float"]["output"]>;
+};
+
+/** Returning value of verification_analytics_meta function */
+export type Verification_Meta_Returning = {
+  __typename?: "verification_meta_returning";
+  key: Scalars["String"]["output"];
+  timestamp_value?: Maybe<Scalars["timestamptz"]["output"]>;
+};
+
+export type Verification_Meta_Returning_Aggregate = {
+  __typename?: "verification_meta_returning_aggregate";
+  aggregate?: Maybe<Verification_Meta_Returning_Aggregate_Fields>;
+  nodes: Array<Verification_Meta_Returning>;
+};
+
+/** aggregate fields of "verification_meta_returning" */
+export type Verification_Meta_Returning_Aggregate_Fields = {
+  __typename?: "verification_meta_returning_aggregate_fields";
+  count: Scalars["Int"]["output"];
+  max?: Maybe<Verification_Meta_Returning_Max_Fields>;
+  min?: Maybe<Verification_Meta_Returning_Min_Fields>;
+};
+
+/** aggregate fields of "verification_meta_returning" */
+export type Verification_Meta_Returning_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<Verification_Meta_Returning_Select_Column>>;
+  distinct?: InputMaybe<Scalars["Boolean"]["input"]>;
+};
+
+/** Boolean expression to filter rows from the table "verification_meta_returning". All fields are combined with a logical 'AND'. */
+export type Verification_Meta_Returning_Bool_Exp = {
+  _and?: InputMaybe<Array<Verification_Meta_Returning_Bool_Exp>>;
+  _not?: InputMaybe<Verification_Meta_Returning_Bool_Exp>;
+  _or?: InputMaybe<Array<Verification_Meta_Returning_Bool_Exp>>;
+  key?: InputMaybe<String_Comparison_Exp>;
+  timestamp_value?: InputMaybe<Timestamptz_Comparison_Exp>;
+};
+
+/** input type for inserting data into table "verification_meta_returning" */
+export type Verification_Meta_Returning_Insert_Input = {
+  key?: InputMaybe<Scalars["String"]["input"]>;
+  timestamp_value?: InputMaybe<Scalars["timestamptz"]["input"]>;
+};
+
+/** aggregate max on columns */
+export type Verification_Meta_Returning_Max_Fields = {
+  __typename?: "verification_meta_returning_max_fields";
+  key?: Maybe<Scalars["String"]["output"]>;
+  timestamp_value?: Maybe<Scalars["timestamptz"]["output"]>;
+};
+
+/** aggregate min on columns */
+export type Verification_Meta_Returning_Min_Fields = {
+  __typename?: "verification_meta_returning_min_fields";
+  key?: Maybe<Scalars["String"]["output"]>;
+  timestamp_value?: Maybe<Scalars["timestamptz"]["output"]>;
+};
+
+/** response of any mutation on the table "verification_meta_returning" */
+export type Verification_Meta_Returning_Mutation_Response = {
+  __typename?: "verification_meta_returning_mutation_response";
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars["Int"]["output"];
+  /** data from the rows affected by the mutation */
+  returning: Array<Verification_Meta_Returning>;
+};
+
+/** Ordering options when selecting data from "verification_meta_returning". */
+export type Verification_Meta_Returning_Order_By = {
+  key?: InputMaybe<Order_By>;
+  timestamp_value?: InputMaybe<Order_By>;
+};
+
+/** select columns of table "verification_meta_returning" */
+export enum Verification_Meta_Returning_Select_Column {
+  /** column name */
+  Key = "key",
+  /** column name */
+  TimestampValue = "timestamp_value",
+}
+
+/** input type for updating data in table "verification_meta_returning" */
+export type Verification_Meta_Returning_Set_Input = {
+  key?: InputMaybe<Scalars["String"]["input"]>;
+  timestamp_value?: InputMaybe<Scalars["timestamptz"]["input"]>;
+};
+
+/** Streaming cursor of the table "verification_meta_returning" */
+export type Verification_Meta_Returning_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: Verification_Meta_Returning_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type Verification_Meta_Returning_Stream_Cursor_Value_Input = {
+  key?: InputMaybe<Scalars["String"]["input"]>;
+  timestamp_value?: InputMaybe<Scalars["timestamptz"]["input"]>;
+};
+
+export type Verification_Meta_Returning_Updates = {
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<Verification_Meta_Returning_Set_Input>;
+  /** filter the rows which have to be updated */
+  where: Verification_Meta_Returning_Bool_Exp;
 };
 
 /** Boolean expression to compare columns of type "violation_enum". All fields are combined with logical 'AND'. */

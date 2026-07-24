@@ -1,0 +1,8 @@
+function:
+  name: verification_analytics_meta
+  schema: public
+configuration:
+  custom_root_fields: {}
+  exposed_as: query
+permissions:
+  - role: service

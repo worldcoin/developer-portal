@@ -1,0 +1,6 @@
+query GetWorldIdAnalyticsMeta {
+  verification_analytics_meta {
+    key
+    timestamp_value
+  }
+}

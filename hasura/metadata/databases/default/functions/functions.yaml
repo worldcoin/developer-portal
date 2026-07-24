@@ -3,3 +3,4 @@
 - "!include public_merge_world_id_accounts.yaml"
 - "!include public_rollup_app_stats.yaml"
 - "!include public_rollup_verification_stats.yaml"
+- "!include public_verification_analytics_meta.yaml"

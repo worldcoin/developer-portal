@@ -1,0 +1,12 @@
+query GetWorldIdAnalyticsRecentActivity($action_id: String!, $limit: Int!) {
+  nullifier_v4(
+    where: { action_v4_id: { _eq: $action_id } }
+    order_by: [{ updated_at: desc }, { id: desc }]
+    limit: $limit
+  ) {
+    nullifier
+    created_at
+    updated_at
+    uses
+  }
+}

@@ -1,0 +1,5 @@
+query GetWorldIdAnalyticsRpForApp($app_id: String!) {
+  rp_registration(where: { app_id: { _eq: $app_id } }, limit: 1) {
+    rp_id
+  }
+}

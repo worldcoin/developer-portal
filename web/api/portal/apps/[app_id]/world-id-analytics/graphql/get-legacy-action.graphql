@@ -1,0 +1,5 @@
+query GetWorldIdAnalyticsLegacyAction($action_id: String!) {
+  action_by_pk(id: $action_id) {
+    app_id
+  }
+}
