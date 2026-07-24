@@ -1262,8 +1262,16 @@ describe("reconcile_verification_stats", () => {
 
     expectJob(result, {
       job: "reconciliation",
-      status: "done",
+      status: "continue",
       repaired: 1,
+      alerts: 0,
+    });
+
+    const appsLeg = await runReconciliation(500);
+    expectJob(appsLeg, {
+      job: "reconciliation",
+      status: "done",
+      repaired: 0,
       alerts: 0,
     });
 
@@ -1331,9 +1339,9 @@ describe("reconcile_verification_stats", () => {
     const result = await runReconciliation(500);
     expectJob(result, {
       job: "reconciliation",
-      status: "done",
+      status: "continue",
       repaired: 1,
-      alerts: 2,
+      alerts: 1,
     });
 
     const corruptedTotal = await queryOne<MeasureRow>(`
@@ -1344,6 +1352,27 @@ describe("reconcile_verification_stats", () => {
         AND environment = 'production';
     `);
     expectMeasures(corruptedTotal, 23, 2, 21);
+
+    // Apps leg: the app row follows the (corrupt) action sum; the action mismatch
+    // keeps alerting on the action leg every cycle until a human repairs it.
+    const appsLeg = await runReconciliation(500);
+    expectJob(appsLeg, {
+      job: "reconciliation",
+      status: "done",
+      repaired: 1,
+      alerts: 0,
+    });
+    const toppedApp = await queryOne<MeasureRow>(
+      `
+        SELECT verifications, unique_verifications, repeated_verifications
+        FROM app_verification_stats_total
+        WHERE app_id = $1
+          AND source = 'legacy'
+          AND environment = 'production';
+      `,
+      [prodAppId],
+    );
+    expectMeasures(toppedApp, 23, 2, 21);
 
     await integrationDBExecuteQuery(`
       UPDATE action_verification_stats_total
@@ -1390,9 +1419,14 @@ describe("reconcile_verification_stats", () => {
     `);
     expect(firstCursor.last_action_id).not.toBeNull();
 
+    const appCountRow = await queryOne<{ count: string }>(
+      "SELECT count(*) FROM app;",
+    );
+    const appCount = Number(appCountRow.count);
+
     let totalItems = Number(result.items);
     let iterations = 0;
-    const maxIterations = actionCount + 2;
+    const maxIterations = actionCount + appCount + 4;
 
     while (result.status !== "done" && iterations < maxIterations) {
       result = await runReconciliation(1);
@@ -1402,7 +1436,7 @@ describe("reconcile_verification_stats", () => {
 
     expect(iterations).toBeLessThan(maxIterations);
     expect(result.status).toBe("done");
-    expect(totalItems).toBe(actionCount);
+    expect(totalItems).toBe(actionCount + appCount);
 
     const finalCursor = await queryOne<{ last_action_id: string | null }>(`
       SELECT last_action_id
@@ -1519,13 +1553,98 @@ describe("review fixes: deletion lock, snapshot purge, missing-total repair", ()
       DELETE FROM app_verification_stats_total;
     `);
 
-    // Phase-2 restores the action rows AND carries the same diffs into the app rows,
-    // so the app-only phase finds nothing left to do: repaired = 2 actions.
+    // Action leg restores the two action rows (with canonical latest); the apps leg
+    // then tops both app rows up to the restored sums.
     const result = await runReconciliation(500);
     expectJob(result, {
       job: "reconciliation",
+      status: "continue",
+      repaired: 2,
+      alerts: 0,
+    });
+    const appsLeg = await runReconciliation(500);
+    expectJob(appsLeg, {
+      job: "reconciliation",
       status: "done",
       repaired: 2,
+      alerts: 0,
+    });
+
+    const actionTotal = await queryOne<MeasureRow>(`
+      SELECT verifications, unique_verifications, repeated_verifications
+      FROM action_verification_stats_total
+      WHERE action_id = 'action_prod1'
+        AND source = 'legacy'
+        AND environment = 'production';
+    `);
+    expectMeasures(actionTotal, 15, 3, 12);
+
+    const restoredLatest = await queryOne<{
+      latest_verification_at: Date | null;
+    }>(`
+      SELECT latest_verification_at
+      FROM action_verification_stats_total
+      WHERE action_id = 'action_prod1'
+        AND source = 'legacy'
+        AND environment = 'production';
+    `);
+    expect(restoredLatest.latest_verification_at).toBeInstanceOf(Date);
+
+    const appTotal = await queryOne<MeasureRow>(`
+      SELECT verifications, unique_verifications, repeated_verifications
+      FROM app_verification_stats_total
+      WHERE source = 'legacy'
+        AND environment = 'production';
+    `);
+    expectMeasures(appTotal, 15, 3, 12);
+
+    // Stock reconstruction repairs totals only; dailies keep their own history
+    // (today's row still carries just the seeded residue).
+    const todayDaily = await queryOne<MeasureRow>(`
+      SELECT verifications, unique_verifications, repeated_verifications
+      FROM action_verification_stats_daily
+      WHERE action_id = 'action_prod1'
+        AND source = 'legacy'
+        AND environment = 'production'
+        AND date = (now() AT TIME ZONE 'UTC')::date;
+    `);
+    expectMeasures(todayDaily, 4, 0, 4);
+  });
+});
+
+describe("reconciliation grain isolation and latest repair", () => {
+  beforeEach(async () => {
+    await createCanonicalFixture();
+    await runSeed();
+  });
+
+  const walkCycle = async () => {
+    let result = await runReconciliation(500);
+    let guard = 0;
+    while (result.status !== "done" && guard < 10) {
+      result = await runReconciliation(500);
+      guard += 1;
+    }
+    expect(result.status).toBe("done");
+  };
+
+  it("restores an action-only loss without inflating the intact app row", async () => {
+    await integrationDBExecuteQuery(`
+      DELETE FROM action_verification_stats_total WHERE action_id = 'action_prod1';
+    `);
+
+    const legacyLeg = await runReconciliation(500);
+    expectJob(legacyLeg, {
+      job: "reconciliation",
+      status: "continue",
+      repaired: 1,
+      alerts: 0,
+    });
+    const appsLeg = await runReconciliation(500);
+    expectJob(appsLeg, {
+      job: "reconciliation",
+      status: "done",
+      repaired: 0,
       alerts: 0,
     });
 
@@ -1545,15 +1664,35 @@ describe("review fixes: deletion lock, snapshot purge, missing-total repair", ()
         AND environment = 'production';
     `);
     expectMeasures(appTotal, 15, 3, 12);
+  });
 
-    const todayDaily = await queryOne<MeasureRow>(`
-      SELECT verifications, unique_verifications, repeated_verifications
-      FROM action_verification_stats_daily
+  it("advances a stale latest_verification_at without touching counts", async () => {
+    await integrationDBExecuteQuery(`
+      UPDATE action_verification_stats_total
+      SET latest_verification_at = NULL
+      WHERE action_id = 'action_prod1';
+    `);
+
+    const legacyLeg = await runReconciliation(500);
+    expectJob(legacyLeg, {
+      job: "reconciliation",
+      status: "continue",
+      repaired: 0,
+      alerts: 0,
+    });
+    expect(legacyLeg.detail).toContain("repaired_latest=1");
+    await walkCycle();
+
+    const repaired = await queryOne<
+      MeasureRow & { latest_verification_at: Date | null }
+    >(`
+      SELECT verifications, unique_verifications, repeated_verifications, latest_verification_at
+      FROM action_verification_stats_total
       WHERE action_id = 'action_prod1'
         AND source = 'legacy'
-        AND environment = 'production'
-        AND date = (now() AT TIME ZONE 'UTC')::date;
+        AND environment = 'production';
     `);
-    expectMeasures(todayDaily, 19, 3, 16);
+    expectMeasures(repaired, 15, 3, 12);
+    expect(repaired.latest_verification_at).toBeInstanceOf(Date);
   });
 });
