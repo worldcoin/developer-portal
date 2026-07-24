@@ -3,7 +3,7 @@ import {
   allowedCommonCharactersRegex,
   allowedTitleCharactersRegex,
 } from "@/lib/schema";
-import { validateUri, validateUrl } from "@/lib/utils";
+import { validateUri, validateWebhookUrl } from "@/lib/utils";
 import * as yup from "yup";
 
 // Check if not in production
@@ -41,10 +41,14 @@ export const createActionSchema = (context: ActionContext) => {
       webhook_uri: yup
         .string()
         .optional()
-        .test("is-url", "Must be a valid URL", (value) => {
-          if (!value || !context.isProduction) return true;
-          return validateUrl(value, !context.isProduction);
-        }),
+        .test(
+          "is-webhook-url",
+          "Webhook URL must be a valid HTTPS URL and cannot target a private, loopback, or internal network address",
+          (value) => {
+            if (!value) return true;
+            return validateWebhookUrl(value);
+          },
+        ),
       webhook_pem: yup
         .string()
         .optional()

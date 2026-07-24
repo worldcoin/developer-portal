@@ -142,6 +142,186 @@ export const validateUri = (candidate: string, isStaging: boolean): boolean => {
 };
 
 /**
+ * Parses a canonical dotted-decimal IPv4 string into its four octets.
+ * Returns null when the value is not a plain dotted-decimal IPv4 literal.
+ *
+ * The WHATWG URL parser already canonicalizes alternate IPv4 encodings
+ * (hex `0x7f000001`, octal `0177.0.0.1`, decimal `2130706433`, shorthand
+ * `127.1`, bare integers) to dotted-decimal in `URL.hostname`, so only the
+ * canonical form needs to be handled here.
+ */
+const parseIPv4Octets = (host: string): number[] | null => {
+  const parts = host.split(".");
+  if (parts.length !== 4) return null;
+
+  const octets: number[] = [];
+  for (const part of parts) {
+    if (!/^\d{1,3}$/.test(part)) return null;
+    const value = Number(part);
+    if (value > 255) return null;
+    octets.push(value);
+  }
+  return octets;
+};
+
+/**
+ * True when an IPv4 address is anything other than a public unicast address:
+ * loopback, private, link-local, CGNAT, documentation/benchmarking/special-use,
+ * multicast, or reserved/broadcast. A webhook target must never point at these.
+ */
+const isBlockedIPv4 = (octets: number[]): boolean => {
+  const [a, b, c] = octets;
+
+  if (a === 0) return true; // 0.0.0.0/8 "this host"
+  if (a === 10) return true; // 10.0.0.0/8 private
+  if (a === 127) return true; // 127.0.0.0/8 loopback
+  if (a === 100 && b >= 64 && b <= 127) return true; // 100.64.0.0/10 CGNAT
+  if (a === 169 && b === 254) return true; // 169.254.0.0/16 link-local (incl. cloud metadata 169.254.169.254)
+  if (a === 172 && b >= 16 && b <= 31) return true; // 172.16.0.0/12 private
+  if (a === 192 && b === 0 && c === 0) return true; // 192.0.0.0/24 IETF protocol assignments
+  if (a === 192 && b === 0 && c === 2) return true; // 192.0.2.0/24 TEST-NET-1
+  if (a === 192 && b === 88 && c === 99) return true; // 192.88.99.0/24 6to4 relay anycast
+  if (a === 192 && b === 168) return true; // 192.168.0.0/16 private
+  if (a === 198 && (b === 18 || b === 19)) return true; // 198.18.0.0/15 benchmarking
+  if (a === 198 && b === 51 && c === 100) return true; // 198.51.100.0/24 TEST-NET-2
+  if (a === 203 && b === 0 && c === 113) return true; // 203.0.113.0/24 TEST-NET-3
+  if (a >= 224) return true; // 224.0.0.0/4 multicast + 240.0.0.0/4 reserved (incl. 255.255.255.255 broadcast)
+
+  return false;
+};
+
+/**
+ * Extracts the embedded IPv4 address from an IPv4-mapped IPv6 literal
+ * (`::ffff:a.b.c.d`). `URL.hostname` canonicalizes the trailing IPv4 to two hex
+ * groups (e.g. `::ffff:7f00:1`), so both the dotted and the hex forms are
+ * handled. Requires the `::ffff:` marker so only genuine IPv4-mapped addresses
+ * match; the deprecated IPv4-compatible form (`::a.b.c.d`) and other `::/96`
+ * literals are handled by isBlockedIPv6's `::/96` rule instead.
+ */
+const extractEmbeddedIPv4 = (addr: string): number[] | null => {
+  const dotted = addr.match(/^::ffff:(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})$/);
+  if (dotted) return parseIPv4Octets(dotted[1]);
+
+  const mapped = addr.match(/^::ffff:([0-9a-f]{1,4}):([0-9a-f]{1,4})$/);
+  if (mapped) {
+    const hi = parseInt(mapped[1], 16);
+    const lo = parseInt(mapped[2], 16);
+    return [(hi >> 8) & 0xff, hi & 0xff, (lo >> 8) & 0xff, lo & 0xff];
+  }
+  return null;
+};
+
+/**
+ * True when an IPv6 address (without surrounding brackets) is loopback,
+ * unspecified, unique-local, link-local, an IPv4-mapped address that itself
+ * points at a blocked IPv4 range, or any other `::/96` literal.
+ */
+const isBlockedIPv6 = (host: string): boolean => {
+  const addr = host.toLowerCase();
+
+  if (addr === "::" || addr === "::1") return true; // unspecified / loopback
+
+  // IPv4-mapped (::ffff:a.b.c.d): block based on the embedded IPv4.
+  const embedded = extractEmbeddedIPv4(addr);
+  if (embedded) return isBlockedIPv4(embedded);
+
+  // ::/96 (first 96 bits zero) covers the unspecified range and the deprecated
+  // IPv4-compatible form (::a.b.c.d, which URL canonicalizes to ::hhhh:hhhh —
+  // e.g. ::127.0.0.1 -> ::7f00:1). None of it is publicly routable, so block
+  // the whole range: "::" followed by at most the low 32 bits (<=2 hextets or a
+  // dotted quad).
+  if (
+    /^::([0-9a-f]{1,4}(:[0-9a-f]{1,4})?|\d{1,3}(\.\d{1,3}){3})?$/.test(addr)
+  ) {
+    return true;
+  }
+
+  const firstHextet = addr.split(":")[0];
+  if (firstHextet) {
+    const value = parseInt(firstHextet, 16);
+    if (!Number.isNaN(value)) {
+      if (value >= 0xfc00 && value <= 0xfdff) return true; // fc00::/7 unique-local
+      if (value >= 0xfe80 && value <= 0xfebf) return true; // fe80::/10 link-local
+      if (value >= 0xfec0 && value <= 0xfeff) return true; // fec0::/10 deprecated site-local
+    }
+  }
+  return false;
+};
+
+/**
+ * True when the string contains an ASCII control character (0x00-0x1F) or DEL
+ * (0x7F). Used to reject request/header smuggling attempts in a webhook URL.
+ */
+const containsControlCharacter = (value: string): boolean => {
+  for (let i = 0; i < value.length; i++) {
+    const code = value.charCodeAt(i);
+    if (code <= 0x1f || code === 0x7f) return true;
+  }
+  return false;
+};
+
+/**
+ * Validates a partner action webhook URL before it is stored.
+ *
+ * app-backend later fetches this value server-side and POSTs the (RSA-encrypted)
+ * proof payload to it, so an attacker-controlled URL is a Server-Side Request
+ * Forgery (SSRF) sink (VULN-6369 / CE25-C014). This is the write-layer denylist:
+ * it requires HTTPS and rejects literal loopback, private, link-local, cloud
+ * metadata, and IPv6 loopback/unique-local/link-local targets — including
+ * alternate IPv4 encodings and IPv4-mapped IPv6 that `URL` canonicalizes.
+ *
+ * This does NOT resolve DNS: a hostname that resolves to a private address, and
+ * DNS-rebinding between validation and fetch, must be defended at egress time in
+ * app-backend, which is the component that performs the request.
+ */
+export const validateWebhookUrl = (candidate: string): boolean => {
+  if (!candidate) return false;
+
+  // Reject control characters / newlines on the RAW value, before trimming.
+  // trim() would strip leading/trailing controls (e.g. a trailing newline) and
+  // let them slip past this smuggling check, while the form schema still
+  // persists the untrimmed string.
+  if (containsControlCharacter(candidate)) return false;
+
+  const value = candidate.trim();
+  if (!value) return false;
+
+  let parsed: URL;
+  try {
+    parsed = new URL(value);
+  } catch {
+    return false;
+  }
+
+  // Webhooks carry sensitive proof payloads and are fetched server-side, so
+  // require HTTPS regardless of environment.
+  if (parsed.protocol !== "https:") return false;
+
+  // `URL.hostname` keeps the brackets around IPv6 literals; strip them. Also
+  // strip a trailing "root" dot: URL preserves it on names (`localhost.`,
+  // `foo.localhost.`) though not on IPs, and a resolver may treat the
+  // root-qualified special-use name as loopback — normalize before the checks.
+  const hostname = parsed.hostname
+    .replace(/^\[|\]$/g, "")
+    .replace(/\.+$/, "")
+    .toLowerCase();
+  if (!hostname) return false;
+
+  // Block localhost by name (and any *.localhost subdomain).
+  if (hostname === "localhost" || hostname.endsWith(".localhost")) {
+    return false;
+  }
+
+  const ipv4 = parseIPv4Octets(hostname);
+  if (ipv4) return !isBlockedIPv4(ipv4);
+
+  if (hostname.includes(":")) return !isBlockedIPv6(hostname);
+
+  // A DNS name that is not a literal IP — allowed at the write layer.
+  return true;
+};
+
+/**
  * Checks if the code is running in the server
  * @returns True if the code is running in the server, false otherwise
  */
