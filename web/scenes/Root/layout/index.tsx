@@ -7,9 +7,9 @@ import { IBM_Plex_Mono, Rubik } from "next/font/google";
 import localFont from "next/font/local";
 import { headers } from "next/headers";
 import { Suspense } from "react";
+import "react-image-crop/dist/ReactCrop.css";
 import { SkeletonTheme } from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
-import "react-image-crop/dist/ReactCrop.css";
 import { Slide, ToastContainer } from "react-toastify";
 
 const rubik = Rubik({
@@ -84,7 +84,7 @@ export const RootLayout = async ({
   // from `web/proxy.ts` to framework and page scripts.
   const requestHeaders = await headers();
   const currentPath = requestHeaders.get("x-current-path");
-  const isAdminRequest =
+  const disableUserIdentification =
     currentPath === "/admin" || currentPath?.startsWith("/admin/");
 
   return (
@@ -98,7 +98,9 @@ export const RootLayout = async ({
         />
 
         <Auth0Provider>
-          <WithPostHogIdentifier isAdminRequest={isAdminRequest}>
+          <WithPostHogIdentifier
+            disableUserIdentification={disableUserIdentification}
+          >
             <SkeletonTheme baseColor="#F3F4F5" highlightColor="#EBECEF">
               <Provider>
                 <Suspense fallback={null}>

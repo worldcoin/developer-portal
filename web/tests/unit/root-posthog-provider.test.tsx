@@ -71,7 +71,7 @@ describe("root PostHog provider", () => {
     mockUsePathname.mockReturnValue("/");
 
     render(
-      <WithPostHogIdentifier isAdminRequest>
+      <WithPostHogIdentifier disableUserIdentification>
         <div>Admin content</div>
       </WithPostHogIdentifier>,
     );
@@ -83,14 +83,14 @@ describe("root PostHog provider", () => {
   it("loads the Auth0 user after leaving an admin host root rewrite", () => {
     mockUsePathname.mockReturnValue("/");
     const { rerender } = render(
-      <WithPostHogIdentifier isAdminRequest>
+      <WithPostHogIdentifier disableUserIdentification>
         <div>Content</div>
       </WithPostHogIdentifier>,
     );
 
     mockUsePathname.mockReturnValue("/teams/team_1/apps");
     rerender(
-      <WithPostHogIdentifier isAdminRequest>
+      <WithPostHogIdentifier disableUserIdentification>
         <div>Content</div>
       </WithPostHogIdentifier>,
     );
