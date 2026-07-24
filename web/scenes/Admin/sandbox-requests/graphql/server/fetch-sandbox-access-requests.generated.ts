@@ -5,7 +5,7 @@ import { GraphQLClient, RequestOptions } from "graphql-request";
 import gql from "graphql-tag";
 type GraphQLClientRequestHeaders = RequestOptions["requestHeaders"];
 export type FetchSandboxAccessRequestsQueryVariables = Types.Exact<{
-  limit: Types.Scalars["Int"]["input"];
+  [key: string]: never;
 }>;
 
 export type FetchSandboxAccessRequestsQuery = {
@@ -37,8 +37,8 @@ export type FetchSandboxAccessRequestsQuery = {
 };
 
 export const FetchSandboxAccessRequestsDocument = gql`
-  query FetchSandboxAccessRequests($limit: Int!) {
-    sandbox_access_request(order_by: { created_at: desc }, limit: $limit) {
+  query FetchSandboxAccessRequests {
+    sandbox_access_request(order_by: { created_at: desc }) {
       id
       google_email
       user_id
@@ -85,7 +85,7 @@ export function getSdk(
 ) {
   return {
     FetchSandboxAccessRequests(
-      variables: FetchSandboxAccessRequestsQueryVariables,
+      variables?: FetchSandboxAccessRequestsQueryVariables,
       requestHeaders?: GraphQLClientRequestHeaders,
     ): Promise<FetchSandboxAccessRequestsQuery> {
       return withWrapper(

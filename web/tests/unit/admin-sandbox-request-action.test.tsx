@@ -36,7 +36,6 @@ jest.mock("@/components/DecoratedButton", () => ({
 jest.mock(
   "@/scenes/Admin/sandbox-requests/server/fetch-sandbox-requests",
   () => ({
-    SANDBOX_REQUESTS_LIMIT: 200,
     fetchSandboxAccessRequests: (...args: unknown[]) =>
       fetchSandboxAccessRequests(...args),
   }),

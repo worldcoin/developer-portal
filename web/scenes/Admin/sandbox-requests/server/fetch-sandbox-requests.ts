@@ -4,10 +4,6 @@ import { getInternalDashboardGraphqlClient } from "@/api/helpers/graphql";
 import { logger } from "@/lib/logger";
 import { getSdk } from "../graphql/server/fetch-sandbox-access-requests.generated";
 
-/** Requests are engineer-triaged and low-volume; cap the page at a bound that
- * is effectively "everything" while keeping the query cost fixed. */
-export const SANDBOX_REQUESTS_LIMIT = 200;
-
 export type SandboxAccessRequestRow = {
   id: string;
   googleEmail: string;
@@ -27,9 +23,7 @@ export const fetchSandboxAccessRequests = async (): Promise<{
   const client = await getInternalDashboardGraphqlClient();
 
   try {
-    const data = await getSdk(client).FetchSandboxAccessRequests({
-      limit: SANDBOX_REQUESTS_LIMIT,
-    });
+    const data = await getSdk(client).FetchSandboxAccessRequests();
 
     return {
       requests: data.sandbox_access_request.map((request) => ({

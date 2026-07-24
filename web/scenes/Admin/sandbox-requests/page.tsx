@@ -1,10 +1,7 @@
 import { EmptyState } from "@/components/AdminDashboard/common/EmptyState";
 import { UIModule } from "@/components/AdminDashboard/UIModule";
 import clsx from "clsx";
-import {
-  SANDBOX_REQUESTS_LIMIT,
-  fetchSandboxAccessRequests,
-} from "./server/fetch-sandbox-requests";
+import { fetchSandboxAccessRequests } from "./server/fetch-sandbox-requests";
 import { ApproveSandboxRequestButton } from "./ApproveSandboxRequestButton";
 
 const formatDate = (isoDate: string) => isoDate.slice(0, 10);
@@ -120,12 +117,6 @@ export const AdminSandboxRequestsPage = async () => {
             </tbody>
           </table>
         )}
-        {totalCount > SANDBOX_REQUESTS_LIMIT ? (
-          <p className="mt-3 text-12 text-grey-500">
-            Showing the {SANDBOX_REQUESTS_LIMIT} most recent of {totalCount}{" "}
-            requests.
-          </p>
-        ) : null}
       </UIModule>
     </div>
   );
