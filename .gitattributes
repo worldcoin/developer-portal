@@ -1,0 +1,4 @@
+# Codegen output: collapse in PR diffs and exclude from language stats.
+web/graphql/graphql.schema.json linguist-generated=true
+web/graphql/graphql.ts linguist-generated=true
+web/**/*.generated.ts linguist-generated=true

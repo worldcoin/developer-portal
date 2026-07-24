@@ -1,0 +1,9 @@
+DROP INDEX IF EXISTS "public"."nullifier_updated_at_idx";
+DROP TABLE IF EXISTS "public"."verification_job_returning";
+DROP TABLE IF EXISTS "public"."verification_analytics_config";
+DROP TABLE IF EXISTS "public"."verification_reconciliation_state";
+DROP TABLE IF EXISTS "public"."rollup_watermark";
+DROP TABLE IF EXISTS "public"."app_verification_stats_total";
+DROP TABLE IF EXISTS "public"."app_verification_stats_daily";
+DROP TABLE IF EXISTS "public"."action_verification_stats_total";
+DROP TABLE IF EXISTS "public"."action_verification_stats_daily";

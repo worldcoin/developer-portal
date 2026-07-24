@@ -4,29 +4,32 @@ import * as Types from "@/graphql/graphql";
 import { GraphQLClient, RequestOptions } from "graphql-request";
 import gql from "graphql-tag";
 type GraphQLClientRequestHeaders = RequestOptions["requestHeaders"];
-export type RollupAppStatsMutationVariables = Types.Exact<{
-  since?: Types.InputMaybe<Types.Scalars["timestamptz"]["input"]>;
-  until?: Types.InputMaybe<Types.Scalars["timestamptz"]["input"]>;
+export type RollupVerificationStatsMutationVariables = Types.Exact<{
+  [key: string]: never;
 }>;
 
-export type RollupAppStatsMutation = {
+export type RollupVerificationStatsMutation = {
   __typename?: "mutation_root";
-  rollup_app_stats: Array<{
-    __typename?: "app_stats";
-    app_id: string;
-    date: string;
-    verifications: number;
-    unique_users: number;
+  rollup_verification_stats: Array<{
+    __typename?: "verification_job_returning";
+    job: string;
+    status: string;
+    items: number;
+    repaired: number;
+    alerts: number;
+    detail?: string | null;
   }>;
 };
 
-export const RollupAppStatsDocument = gql`
-  mutation RollupAppStats($since: timestamptz, $until: timestamptz) {
-    rollup_app_stats(args: { _since: $since, _until: $until }) {
-      app_id
-      date
-      verifications
-      unique_users
+export const RollupVerificationStatsDocument = gql`
+  mutation RollupVerificationStats {
+    rollup_verification_stats(args: {}) {
+      job
+      status
+      items
+      repaired
+      alerts
+      detail
     }
   }
 `;
@@ -50,18 +53,18 @@ export function getSdk(
   withWrapper: SdkFunctionWrapper = defaultWrapper,
 ) {
   return {
-    RollupAppStats(
-      variables?: RollupAppStatsMutationVariables,
+    RollupVerificationStats(
+      variables?: RollupVerificationStatsMutationVariables,
       requestHeaders?: GraphQLClientRequestHeaders,
-    ): Promise<RollupAppStatsMutation> {
+    ): Promise<RollupVerificationStatsMutation> {
       return withWrapper(
         (wrappedRequestHeaders) =>
-          client.request<RollupAppStatsMutation>(
-            RollupAppStatsDocument,
+          client.request<RollupVerificationStatsMutation>(
+            RollupVerificationStatsDocument,
             variables,
             { ...requestHeaders, ...wrappedRequestHeaders },
           ),
-        "RollupAppStats",
+        "RollupVerificationStats",
         "mutation",
         variables,
       );

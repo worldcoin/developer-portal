@@ -1,0 +1,10 @@
+mutation RollupVerificationStats {
+  rollup_verification_stats(args: {}) {
+    job
+    status
+    items
+    repaired
+    alerts
+    detail
+  }
+}

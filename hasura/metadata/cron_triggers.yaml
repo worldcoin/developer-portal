@@ -42,7 +42,7 @@
   comment: Schedules all expired JWKS for deletion by KMS
 - name: Rollup app stats
   webhook: '{{NEXT_API_URL}}/_rollup-app-stats'
-  schedule: 0 * * * *
+  schedule: '*/5 * * * *'
   include_in_metadata: true
   payload: {}
   retry_conf:
@@ -53,7 +53,21 @@
   headers:
     - name: Authorization
       value_from_env: INTERNAL_ENDPOINTS_SECRET
-  comment: Update the app stats table with the latest increment of nullifier data
+  comment: Watermark-driven verification stats rollup (new read models + legacy app_stats compatibility)
+- name: Reconcile verification stats
+  webhook: '{{NEXT_API_URL}}/_reconcile-verification-stats'
+  schedule: '45 3 * * *'
+  include_in_metadata: true
+  payload: {}
+  retry_conf:
+    num_retries: 1
+    retry_interval_seconds: 60
+    timeout_seconds: 120
+    tolerance_seconds: 21600
+  headers:
+    - name: Authorization
+      value_from_env: INTERNAL_ENDPOINTS_SECRET
+  comment: Nightly bounded reconciliation of verification stats read models (cursor-resumable batches)
 - name: Deactivate RPs for deleted apps
   webhook: '{{NEXT_API_URL}}/_deactivate-deleted-app-rps'
   schedule: '*/15 * * * *'
