@@ -13,7 +13,7 @@ import clsx from "clsx";
 import { ErrorPage } from "@/components/ErrorPage";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { useCallback, useMemo, useState } from "react";
-import Skeleton from "react-loading-skeleton";
+import { SkeletonForm } from "@/components/Skeletons";
 import { toast } from "react-toastify";
 import { useMutation, useQuery } from "@apollo/client/react";
 import { LinksForm } from "./Links";
@@ -79,7 +79,18 @@ export const ClientInformationPage = (props: {
   if (fetchingAction) {
     return (
       <div className="grid w-full gap-y-10 pt-5 pb-10">
-        <Skeleton height={200} />
+        <div className="grid gap-y-5">
+          <div className="grid gap-y-3">
+            <Typography variant={TYPOGRAPHY.H7}>Client information</Typography>
+
+            <Typography variant={TYPOGRAPHY.R3} className="text-grey-500">
+              Use these attributes to configure Sign in with World ID in your
+              app
+            </Typography>
+          </div>
+
+          <SkeletonForm count={2} fieldHeight={64} className="w-full" />
+        </div>
       </div>
     );
   }
