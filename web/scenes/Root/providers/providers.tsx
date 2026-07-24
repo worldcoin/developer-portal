@@ -1,12 +1,14 @@
 "use client";
 
 import { useUser } from "@auth0/nextjs-auth0/client";
+import { usePathname } from "next/navigation";
 import posthog from "posthog-js";
 import { PostHogProvider } from "posthog-js/react";
 import React, { useEffect } from "react";
 
 interface WithPostHogProps {
   children: React.ReactNode;
+  disableUserIdentification?: boolean;
 }
 interface HasuraUserData {
   posthog_id: string;
@@ -32,7 +34,7 @@ if (typeof window !== "undefined" && !isPostHogDisabled) {
   });
 }
 
-const WithPostHogIdentifier: React.FC<WithPostHogProps> = ({ children }) => {
+const PostHogUserIdentifier: React.FC<WithPostHogProps> = ({ children }) => {
   const { user } = useUser();
 
   useEffect(() => {
@@ -55,10 +57,33 @@ const WithPostHogIdentifier: React.FC<WithPostHogProps> = ({ children }) => {
     }
   }, [user]);
 
+  return children;
+};
+
+const WithPostHogIdentifier: React.FC<WithPostHogProps> = ({
+  children,
+  disableUserIdentification = false,
+}) => {
+  const pathname = usePathname();
+  const shouldDisableUserIdentification =
+    pathname === "/admin" ||
+    pathname?.startsWith("/admin/") ||
+    (disableUserIdentification && pathname === "/");
+
+  useEffect(() => {
+    if (shouldDisableUserIdentification) {
+      posthog.reset();
+    }
+  }, [shouldDisableUserIdentification]);
+
   return (
-    <>
-      <PostHogProvider client={posthog}>{children}</PostHogProvider>
-    </>
+    <PostHogProvider client={posthog}>
+      {shouldDisableUserIdentification ? (
+        children
+      ) : (
+        <PostHogUserIdentifier>{children}</PostHogUserIdentifier>
+      )}
+    </PostHogProvider>
   );
 };
 

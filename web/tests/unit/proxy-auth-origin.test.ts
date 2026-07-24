@@ -256,6 +256,9 @@ describe("proxy [admin pages]", () => {
       "clipboard-write=(self)",
     );
     expect(res.headers.get("x-current-path")).toBe("/admin");
+    expect(res.headers.get("x-middleware-request-x-current-path")).toBe(
+      "/admin",
+    );
   });
 
   it("redirects admin pages without authentication evidence", async () => {
@@ -319,6 +322,9 @@ describe("proxy [internal dashboard host]", () => {
       "clipboard-write=(self)",
     );
     expect(res.headers.get("x-current-path")).toBe("/admin");
+    expect(res.headers.get("x-middleware-request-x-current-path")).toBe(
+      "/admin",
+    );
   });
 
   it("matches the dashboard host via x-forwarded-host, normalizing port and extra proxies", async () => {
