@@ -411,9 +411,10 @@ DECLARE
   _boundary timestamptz;
   _last_id varchar(50);
   _checked bigint := 0;
-  _repaired bigint := 0;
+  _stranded bigint := 0;
   _repaired_actions bigint := 0;
   _repaired_apps bigint := 0;
+  _repaired_latest bigint := 0;
   _action_mismatch bigint := 0;
   _app_mismatch bigint := 0;
   _impossible bigint := 0;
@@ -421,6 +422,7 @@ DECLARE
   _done boolean := false;
   _next_source text;
   _next_cursor text;
+  _app_batch integer := LEAST(_batch_size, 100);
   _v4_enabled boolean;
 BEGIN
   -- Implementation law (plan section 12.3): every batch runs snapshot-consistent. The
@@ -468,7 +470,9 @@ BEGIN
     _exhausted := _checked < _batch_size;
 
     IF _checked > 0 THEN
-      -- Repair pass: stranded positive deltas (behind the window the rollup will scan again).
+      -- Repair pass 1: stranded positive deltas (behind the window the rollup will scan
+      -- again). Flow-class repair: the delta is new consumption, so it lands on BOTH
+      -- grains, exactly like the rollup.
       WITH stranded AS (
         SELECT n.nullifier_hash,
                n.action_id,
@@ -570,19 +574,23 @@ BEGIN
           last_seen_uses = EXCLUDED.last_seen_uses,
           last_seen_at   = EXCLUDED.last_seen_at
       )
-      SELECT COUNT(*) INTO _repaired FROM stranded;
+      SELECT COUNT(*) INTO _stranded FROM stranded;
 
-      -- Positive-missing repair, action grain (plan section 6): stored totals below the
-      -- snapshot-consumed level (e.g. lost/deleted rows) are restored from the canonical
-      -- snapshot sums when the difference is componentwise nonnegative and
-      -- invariant-preserving. The daily delta lands on the reconciliation-day row.
+      -- Repair pass 2, ACTION GRAIN ONLY (plan section 6): stored action totals below the
+      -- snapshot-consumed level are restored from canonical snapshot sums, including
+      -- canonical latest_verification_at. Deliberately writes nothing at the app grain
+      -- (the apps cursor leg owns app rows) and nothing at the daily grain (stock
+      -- reconstruction repairs totals; dailies keep their own history — writing them
+      -- would break the per-day app >= action balance the deletion trigger enforces).
       WITH canonical AS (
         SELECT n.action_id,
                SUM(s.last_seen_uses)::bigint AS v,
-               COUNT(*)::bigint AS u
+               COUNT(*)::bigint AS u,
+               MAX(n.updated_at) AS latest
         FROM public.nullifier n
         JOIN _batch b ON b.id = n.action_id
         JOIN public.nullifier_uses_seen s ON s.nullifier_hash = n.nullifier_hash
+        WHERE n.uses > 0
         GROUP BY n.action_id
       ),
       stored AS (
@@ -597,7 +605,8 @@ BEGIN
       diffs AS (
         SELECT c.action_id,
                (c.v - COALESCE(st.v, 0))::bigint AS dv,
-               (c.u - COALESCE(st.u, 0))::bigint AS du
+               (c.u - COALESCE(st.u, 0))::bigint AS du,
+               c.latest
         FROM canonical c
         LEFT JOIN stored st ON st.action_id = c.action_id
         WHERE (c.v - COALESCE(st.v, 0)) >= 0
@@ -610,6 +619,7 @@ BEGIN
                d.dv,
                d.du,
                (d.dv - d.du)::bigint AS dr,
+               d.latest,
                a.app_id,
                CASE WHEN app.is_staging THEN 'staging' ELSE 'production' END AS environment,
                (now() AT TIME ZONE 'UTC')::date AS day
@@ -619,153 +629,33 @@ BEGIN
       ),
       rep_action_total AS (
         INSERT INTO public.action_verification_stats_total AS t
-          (action_id, app_id, source, environment, verifications, unique_verifications, repeated_verifications)
-        SELECT action_id, app_id, 'legacy', environment, dv, du, dr
+          (action_id, app_id, source, environment, verifications, unique_verifications, repeated_verifications, latest_verification_at)
+        SELECT action_id, app_id, 'legacy', environment, dv, du, dr, latest
         FROM with_dims
         ON CONFLICT (action_id, source, environment) DO UPDATE SET
           verifications = t.verifications + EXCLUDED.verifications,
           unique_verifications = t.unique_verifications + EXCLUDED.unique_verifications,
           repeated_verifications = t.repeated_verifications + EXCLUDED.repeated_verifications,
+          latest_verification_at = GREATEST(t.latest_verification_at, EXCLUDED.latest_verification_at),
           updated_at = now()
       ),
-      rep_action_daily AS (
-        INSERT INTO public.action_verification_stats_daily AS t
-          (action_id, app_id, source, environment, date, verifications, unique_verifications, repeated_verifications)
-        SELECT action_id, app_id, 'legacy', environment, day, dv, du, dr
-        FROM with_dims
-        ON CONFLICT (action_id, source, environment, date) DO UPDATE SET
-          verifications = t.verifications + EXCLUDED.verifications,
-          unique_verifications = t.unique_verifications + EXCLUDED.unique_verifications,
-          repeated_verifications = t.repeated_verifications + EXCLUDED.repeated_verifications,
-          updated_at = now()
-      ),
-      rep_app_total AS (
-        INSERT INTO public.app_verification_stats_total AS t
-          (app_id, source, environment, verifications, unique_verifications, repeated_verifications)
-        SELECT app_id, 'legacy', environment, SUM(dv), SUM(du), SUM(dr)
-        FROM with_dims
-        GROUP BY app_id, environment
-        ON CONFLICT (app_id, source, environment) DO UPDATE SET
-          verifications = t.verifications + EXCLUDED.verifications,
-          unique_verifications = t.unique_verifications + EXCLUDED.unique_verifications,
-          repeated_verifications = t.repeated_verifications + EXCLUDED.repeated_verifications,
-          updated_at = now()
-      ),
-      rep_app_daily AS (
-        INSERT INTO public.app_verification_stats_daily AS t
-          (app_id, source, environment, date, verifications, unique_verifications, repeated_verifications)
-        SELECT app_id, 'legacy', environment, day, SUM(dv), SUM(du), SUM(dr)
-        FROM with_dims
-        GROUP BY app_id, environment, day
-        ON CONFLICT (app_id, source, environment, date) DO UPDATE SET
-          verifications = t.verifications + EXCLUDED.verifications,
-          unique_verifications = t.unique_verifications + EXCLUDED.unique_verifications,
-          repeated_verifications = t.repeated_verifications + EXCLUDED.repeated_verifications,
-          updated_at = now()
+      latest_rep AS (
+        UPDATE public.action_verification_stats_total t
+        SET latest_verification_at = c.latest,
+            updated_at = now()
+        FROM canonical c
+        WHERE t.action_id = c.action_id
+          AND t.source = 'legacy'
+          AND c.latest IS NOT NULL
+          AND (t.latest_verification_at IS NULL OR t.latest_verification_at < c.latest)
+          AND c.action_id NOT IN (SELECT action_id FROM diffs)
+        RETURNING t.action_id
       )
-      SELECT COUNT(*) INTO _repaired_actions FROM diffs;
+      SELECT (SELECT COUNT(*) FROM diffs),
+             (SELECT COUNT(*) FROM latest_rep)
+      INTO _repaired_actions, _repaired_latest;
 
-      -- Positive-missing repair, app grain: app rows below the sum of retained action
-      -- totals (e.g. the app row itself was lost) are topped up per (source, environment).
-      -- Guarded twice: the sum of stored action rows is only canonical when those rows
-      -- match the snapshot sums (never propagate action-grain corruption upward), and only
-      -- apps whose entire action set is inside this batch are eligible (a partial view
-      -- cannot prove the app row short). Ineligible drift stays an alert.
-      WITH batch_apps AS (
-        SELECT DISTINCT a.app_id
-        FROM public.action a
-        JOIN _batch b ON b.id = a.id
-      ),
-      expected_action2 AS (
-        SELECT n.action_id,
-               SUM(s.last_seen_uses)::bigint AS v,
-               COUNT(*)::bigint AS u
-        FROM public.nullifier n
-        JOIN _batch b ON b.id = n.action_id
-        JOIN public.nullifier_uses_seen s ON s.nullifier_hash = n.nullifier_hash
-        GROUP BY n.action_id
-      ),
-      stored_action2 AS (
-        SELECT t.action_id,
-               SUM(t.verifications)::bigint AS v,
-               SUM(t.unique_verifications)::bigint AS u
-        FROM public.action_verification_stats_total t
-        JOIN _batch b ON b.id = t.action_id
-        WHERE t.source = 'legacy'
-        GROUP BY t.action_id
-      ),
-      inconsistent_apps AS (
-        SELECT DISTINCT a.app_id
-        FROM public.action a
-        JOIN _batch b ON b.id = a.id
-        LEFT JOIN expected_action2 e ON e.action_id = a.id
-        LEFT JOIN stored_action2 st ON st.action_id = a.id
-        WHERE COALESCE(e.v, 0) <> COALESCE(st.v, 0)
-           OR COALESCE(e.u, 0) <> COALESCE(st.u, 0)
-      ),
-      eligible_apps AS (
-        SELECT ba.app_id
-        FROM batch_apps ba
-        WHERE ba.app_id NOT IN (SELECT app_id FROM inconsistent_apps)
-          AND NOT EXISTS (
-            SELECT 1
-            FROM public.action a2
-            WHERE a2.app_id = ba.app_id
-              AND a2.id NOT IN (SELECT id FROM _batch)
-          )
-      ),
-      canonical_app AS (
-        SELECT t.app_id, t.source, t.environment,
-               SUM(t.verifications)::bigint AS v,
-               SUM(t.unique_verifications)::bigint AS u
-        FROM public.action_verification_stats_total t
-        JOIN eligible_apps ba ON ba.app_id = t.app_id
-        GROUP BY t.app_id, t.source, t.environment
-      ),
-      stored_app AS (
-        SELECT s.app_id, s.source, s.environment,
-               s.verifications AS v,
-               s.unique_verifications AS u
-        FROM public.app_verification_stats_total s
-        JOIN batch_apps ba ON ba.app_id = s.app_id
-      ),
-      app_diffs AS (
-        SELECT c.app_id, c.source, c.environment,
-               (c.v - COALESCE(st.v, 0))::bigint AS dv,
-               (c.u - COALESCE(st.u, 0))::bigint AS du
-        FROM canonical_app c
-        LEFT JOIN stored_app st
-          ON st.app_id = c.app_id AND st.source = c.source AND st.environment = c.environment
-        WHERE (c.v - COALESCE(st.v, 0)) >= 0
-          AND (c.u - COALESCE(st.u, 0)) >= 0
-          AND (c.v - COALESCE(st.v, 0)) >= (c.u - COALESCE(st.u, 0))
-          AND ((c.v - COALESCE(st.v, 0)) > 0 OR (c.u - COALESCE(st.u, 0)) > 0)
-      ),
-      rep_app_total2 AS (
-        INSERT INTO public.app_verification_stats_total AS t
-          (app_id, source, environment, verifications, unique_verifications, repeated_verifications)
-        SELECT app_id, source, environment, dv, du, (dv - du)
-        FROM app_diffs
-        ON CONFLICT (app_id, source, environment) DO UPDATE SET
-          verifications = t.verifications + EXCLUDED.verifications,
-          unique_verifications = t.unique_verifications + EXCLUDED.unique_verifications,
-          repeated_verifications = t.repeated_verifications + EXCLUDED.repeated_verifications,
-          updated_at = now()
-      ),
-      rep_app_daily2 AS (
-        INSERT INTO public.app_verification_stats_daily AS t
-          (app_id, source, environment, date, verifications, unique_verifications, repeated_verifications)
-        SELECT app_id, source, environment, (now() AT TIME ZONE 'UTC')::date, dv, du, (dv - du)
-        FROM app_diffs
-        ON CONFLICT (app_id, source, environment, date) DO UPDATE SET
-          verifications = t.verifications + EXCLUDED.verifications,
-          unique_verifications = t.unique_verifications + EXCLUDED.unique_verifications,
-          repeated_verifications = t.repeated_verifications + EXCLUDED.repeated_verifications,
-          updated_at = now()
-      )
-      SELECT COUNT(*) INTO _repaired_apps FROM app_diffs;
-
-      -- Structural checks (alert only, never auto-decrement).
+      -- Structural checks, action grain (alert only, never auto-decrement).
       WITH expected_action AS (
         SELECT n.action_id,
                SUM(s.last_seen_uses)::bigint AS v,
@@ -791,34 +681,6 @@ BEGIN
         WHERE COALESCE(e.v, 0) <> COALESCE(st.v, 0)
            OR COALESCE(e.u, 0) <> COALESCE(st.u, 0)
       ),
-      batch_apps AS (
-        SELECT DISTINCT a.app_id
-        FROM public.action a
-        JOIN _batch b ON b.id = a.id
-      ),
-      expected_app AS (
-        SELECT t.app_id, t.source, t.environment,
-               SUM(t.verifications)::bigint AS v,
-               SUM(t.unique_verifications)::bigint AS u
-        FROM public.action_verification_stats_total t
-        JOIN batch_apps ba ON ba.app_id = t.app_id
-        GROUP BY t.app_id, t.source, t.environment
-      ),
-      stored_app AS (
-        SELECT s.app_id, s.source, s.environment,
-               s.verifications AS v,
-               s.unique_verifications AS u
-        FROM public.app_verification_stats_total s
-        JOIN batch_apps ba ON ba.app_id = s.app_id
-      ),
-      app_mismatch AS (
-        SELECT COALESCE(e.app_id, st.app_id) AS app_id
-        FROM expected_app e
-        FULL JOIN stored_app st
-          ON st.app_id = e.app_id AND st.source = e.source AND st.environment = e.environment
-        WHERE COALESCE(e.v, 0) <> COALESCE(st.v, 0)
-           OR COALESCE(e.u, 0) <> COALESCE(st.u, 0)
-      ),
       impossible AS (
         SELECT n.nullifier_hash
         FROM public.nullifier n
@@ -827,34 +689,26 @@ BEGIN
         WHERE n.uses < s.last_seen_uses
       )
       SELECT (SELECT COUNT(*) FROM action_mismatch),
-             (SELECT COUNT(*) FROM app_mismatch),
              (SELECT COUNT(*) FROM impossible)
-      INTO _action_mismatch, _app_mismatch, _impossible;
+      INTO _action_mismatch, _impossible;
     END IF;
 
     IF _exhausted THEN
-      IF _v4_enabled THEN
-        _next_source := 'v4';
-        _next_cursor := NULL;
-        _done := false;
-      ELSE
-        _next_source := 'legacy';
-        _next_cursor := NULL;
-        _done := true;
-      END IF;
+      _next_source := CASE WHEN _v4_enabled THEN 'v4' ELSE 'apps' END;
+      _next_cursor := NULL;
+      _done := false;
     ELSE
       _next_source := 'legacy';
       _next_cursor := _last_id;
       _done := false;
     END IF;
 
-  ELSE
-    -- v4 leg.
+  ELSIF _source = 'v4' THEN
     IF NOT _v4_enabled THEN
-      -- Defensive: cursor points at v4 but the seed marker is gone; close the cycle.
-      _next_source := 'legacy';
+      -- Defensive: cursor points at v4 but the seed marker is gone; hand off to the apps leg.
+      _next_source := 'apps';
       _next_cursor := NULL;
-      _done := true;
+      _done := false;
     ELSE
       CREATE TEMP TABLE _batch ON COMMIT DROP AS
       SELECT id
@@ -867,9 +721,10 @@ BEGIN
       _exhausted := _checked < _batch_size;
 
       IF _checked > 0 THEN
+        -- Repair pass 1: stranded positive deltas (flow-class; both grains, like the rollup).
         WITH stranded AS (
           SELECT n.id AS nullifier_v4_id,
-                 n.action_v4_id,
+                 n.action_v4_id AS action_id,
                  n.updated_at,
                  n.uses,
                  (n.uses - COALESCE(s.last_seen_uses, 0))::bigint AS delta,
@@ -882,7 +737,7 @@ BEGIN
         ),
         with_dims AS (
           SELECT st.nullifier_v4_id,
-                 st.action_v4_id,
+                 st.action_id,
                  st.updated_at,
                  st.uses,
                  st.delta,
@@ -891,11 +746,11 @@ BEGIN
                  a.environment::text AS environment,
                  (now() AT TIME ZONE 'UTC')::date AS day
           FROM stranded st
-          JOIN public.action_v4 a ON a.id = st.action_v4_id
+          JOIN public.action_v4 a ON a.id = st.action_id
           JOIN public.rp_registration r ON r.rp_id = a.rp_id
         ),
         grouped AS (
-          SELECT action_v4_id,
+          SELECT action_id,
                  app_id,
                  environment,
                  day,
@@ -904,12 +759,12 @@ BEGIN
                  SUM(CASE WHEN is_new THEN GREATEST(delta - 1, 0) ELSE delta END)::bigint AS repeats,
                  MAX(updated_at) AS latest
           FROM with_dims
-          GROUP BY action_v4_id, app_id, environment, day
+          GROUP BY action_id, app_id, environment, day
         ),
         up_action_daily AS (
           INSERT INTO public.action_verification_stats_daily AS t
             (action_id, app_id, source, environment, date, verifications, unique_verifications, repeated_verifications, latest_verification_at)
-          SELECT action_v4_id, app_id, 'v4', environment, day, verifications, uniques, repeats, latest
+          SELECT action_id, app_id, 'v4', environment, day, verifications, uniques, repeats, latest
           FROM grouped
           ON CONFLICT (action_id, source, environment, date) DO UPDATE SET
             verifications = t.verifications + EXCLUDED.verifications,
@@ -921,10 +776,10 @@ BEGIN
         up_action_total AS (
           INSERT INTO public.action_verification_stats_total AS t
             (action_id, app_id, source, environment, verifications, unique_verifications, repeated_verifications, latest_verification_at)
-          SELECT action_v4_id, app_id, 'v4', environment,
+          SELECT action_id, app_id, 'v4', environment,
                  SUM(verifications), SUM(uniques), SUM(repeats), MAX(latest)
           FROM grouped
-          GROUP BY action_v4_id, app_id, environment
+          GROUP BY action_id, app_id, environment
           ON CONFLICT (action_id, source, environment) DO UPDATE SET
             verifications = t.verifications + EXCLUDED.verifications,
             unique_verifications = t.unique_verifications + EXCLUDED.unique_verifications,
@@ -968,16 +823,20 @@ BEGIN
             last_seen_uses = EXCLUDED.last_seen_uses,
             last_seen_at   = EXCLUDED.last_seen_at
         )
-        SELECT COUNT(*) INTO _repaired FROM stranded;
+        SELECT COUNT(*) INTO _stranded FROM stranded;
 
-        -- Positive-missing repair, action grain (plan section 6), v4 source.
+        -- Repair pass 2, ACTION GRAIN ONLY: totals + latest from canonical snapshot sums.
+        -- No app-grain writes (apps leg owns app rows) and no daily writes (stock
+        -- reconstruction; see the legacy leg comment).
         WITH canonical AS (
           SELECT n.action_v4_id AS action_id,
                  SUM(s.last_seen_uses)::bigint AS v,
-                 COUNT(*)::bigint AS u
+                 COUNT(*)::bigint AS u,
+                 MAX(n.updated_at) AS latest
           FROM public.nullifier_v4 n
           JOIN _batch b ON b.id = n.action_v4_id
           JOIN public.nullifier_v4_uses_seen s ON s.nullifier_v4_id = n.id
+          WHERE n.uses > 0
           GROUP BY n.action_v4_id
         ),
         stored AS (
@@ -992,7 +851,8 @@ BEGIN
         diffs AS (
           SELECT c.action_id,
                  (c.v - COALESCE(st.v, 0))::bigint AS dv,
-                 (c.u - COALESCE(st.u, 0))::bigint AS du
+                 (c.u - COALESCE(st.u, 0))::bigint AS du,
+                 c.latest
           FROM canonical c
           LEFT JOIN stored st ON st.action_id = c.action_id
           WHERE (c.v - COALESCE(st.v, 0)) >= 0
@@ -1005,163 +865,42 @@ BEGIN
                  d.dv,
                  d.du,
                  (d.dv - d.du)::bigint AS dr,
+                 d.latest,
                  r.app_id,
-                 a.environment::text AS environment,
-                 (now() AT TIME ZONE 'UTC')::date AS day
+                 a.environment::text AS environment
           FROM diffs d
           JOIN public.action_v4 a ON a.id = d.action_id
           JOIN public.rp_registration r ON r.rp_id = a.rp_id
         ),
         rep_action_total AS (
           INSERT INTO public.action_verification_stats_total AS t
-            (action_id, app_id, source, environment, verifications, unique_verifications, repeated_verifications)
-          SELECT action_id, app_id, 'v4', environment, dv, du, dr
+            (action_id, app_id, source, environment, verifications, unique_verifications, repeated_verifications, latest_verification_at)
+          SELECT action_id, app_id, 'v4', environment, dv, du, dr, latest
           FROM with_dims
           ON CONFLICT (action_id, source, environment) DO UPDATE SET
             verifications = t.verifications + EXCLUDED.verifications,
             unique_verifications = t.unique_verifications + EXCLUDED.unique_verifications,
             repeated_verifications = t.repeated_verifications + EXCLUDED.repeated_verifications,
+            latest_verification_at = GREATEST(t.latest_verification_at, EXCLUDED.latest_verification_at),
             updated_at = now()
         ),
-        rep_action_daily AS (
-          INSERT INTO public.action_verification_stats_daily AS t
-            (action_id, app_id, source, environment, date, verifications, unique_verifications, repeated_verifications)
-          SELECT action_id, app_id, 'v4', environment, day, dv, du, dr
-          FROM with_dims
-          ON CONFLICT (action_id, source, environment, date) DO UPDATE SET
-            verifications = t.verifications + EXCLUDED.verifications,
-            unique_verifications = t.unique_verifications + EXCLUDED.unique_verifications,
-            repeated_verifications = t.repeated_verifications + EXCLUDED.repeated_verifications,
-            updated_at = now()
-        ),
-        rep_app_total AS (
-          INSERT INTO public.app_verification_stats_total AS t
-            (app_id, source, environment, verifications, unique_verifications, repeated_verifications)
-          SELECT app_id, 'v4', environment, SUM(dv), SUM(du), SUM(dr)
-          FROM with_dims
-          GROUP BY app_id, environment
-          ON CONFLICT (app_id, source, environment) DO UPDATE SET
-            verifications = t.verifications + EXCLUDED.verifications,
-            unique_verifications = t.unique_verifications + EXCLUDED.unique_verifications,
-            repeated_verifications = t.repeated_verifications + EXCLUDED.repeated_verifications,
-            updated_at = now()
-        ),
-        rep_app_daily AS (
-          INSERT INTO public.app_verification_stats_daily AS t
-            (app_id, source, environment, date, verifications, unique_verifications, repeated_verifications)
-          SELECT app_id, 'v4', environment, day, SUM(dv), SUM(du), SUM(dr)
-          FROM with_dims
-          GROUP BY app_id, environment, day
-          ON CONFLICT (app_id, source, environment, date) DO UPDATE SET
-            verifications = t.verifications + EXCLUDED.verifications,
-            unique_verifications = t.unique_verifications + EXCLUDED.unique_verifications,
-            repeated_verifications = t.repeated_verifications + EXCLUDED.repeated_verifications,
-            updated_at = now()
+        latest_rep AS (
+          UPDATE public.action_verification_stats_total t
+          SET latest_verification_at = c.latest,
+              updated_at = now()
+          FROM canonical c
+          WHERE t.action_id = c.action_id
+            AND t.source = 'v4'
+            AND c.latest IS NOT NULL
+            AND (t.latest_verification_at IS NULL OR t.latest_verification_at < c.latest)
+            AND c.action_id NOT IN (SELECT action_id FROM diffs)
+          RETURNING t.action_id
         )
-        SELECT COUNT(*) INTO _repaired_actions FROM diffs;
+        SELECT (SELECT COUNT(*) FROM diffs),
+               (SELECT COUNT(*) FROM latest_rep)
+        INTO _repaired_actions, _repaired_latest;
 
-        -- Positive-missing repair, app grain, v4 source. Same guards as the legacy leg:
-        -- only apps whose in-batch v4 actions match canonical and whose entire v4 action
-        -- set is inside this batch are eligible; everything else stays an alert.
-        WITH batch_apps AS (
-          SELECT DISTINCT r.app_id
-          FROM public.action_v4 a
-          JOIN _batch b ON b.id = a.id
-          JOIN public.rp_registration r ON r.rp_id = a.rp_id
-        ),
-        expected_action2 AS (
-          SELECT n.action_v4_id AS action_id,
-                 SUM(s.last_seen_uses)::bigint AS v,
-                 COUNT(*)::bigint AS u
-          FROM public.nullifier_v4 n
-          JOIN _batch b ON b.id = n.action_v4_id
-          JOIN public.nullifier_v4_uses_seen s ON s.nullifier_v4_id = n.id
-          GROUP BY n.action_v4_id
-        ),
-        stored_action2 AS (
-          SELECT t.action_id,
-                 SUM(t.verifications)::bigint AS v,
-                 SUM(t.unique_verifications)::bigint AS u
-          FROM public.action_verification_stats_total t
-          JOIN _batch b ON b.id = t.action_id
-          WHERE t.source = 'v4'
-          GROUP BY t.action_id
-        ),
-        inconsistent_apps AS (
-          SELECT DISTINCT r.app_id
-          FROM public.action_v4 a
-          JOIN _batch b ON b.id = a.id
-          JOIN public.rp_registration r ON r.rp_id = a.rp_id
-          LEFT JOIN expected_action2 e ON e.action_id = a.id
-          LEFT JOIN stored_action2 st ON st.action_id = a.id
-          WHERE COALESCE(e.v, 0) <> COALESCE(st.v, 0)
-             OR COALESCE(e.u, 0) <> COALESCE(st.u, 0)
-        ),
-        eligible_apps AS (
-          SELECT ba.app_id
-          FROM batch_apps ba
-          WHERE ba.app_id NOT IN (SELECT app_id FROM inconsistent_apps)
-            AND NOT EXISTS (
-              SELECT 1
-              FROM public.action_v4 a2
-              JOIN public.rp_registration r2 ON r2.rp_id = a2.rp_id
-              WHERE r2.app_id = ba.app_id
-                AND a2.id NOT IN (SELECT id FROM _batch)
-            )
-        ),
-        canonical_app AS (
-          SELECT t.app_id, t.source, t.environment,
-                 SUM(t.verifications)::bigint AS v,
-                 SUM(t.unique_verifications)::bigint AS u
-          FROM public.action_verification_stats_total t
-          JOIN eligible_apps ba ON ba.app_id = t.app_id
-          WHERE t.source = 'v4'
-          GROUP BY t.app_id, t.source, t.environment
-        ),
-        stored_app AS (
-          SELECT s.app_id, s.source, s.environment,
-                 s.verifications AS v,
-                 s.unique_verifications AS u
-          FROM public.app_verification_stats_total s
-          JOIN eligible_apps ba ON ba.app_id = s.app_id
-          WHERE s.source = 'v4'
-        ),
-        app_diffs AS (
-          SELECT c.app_id, c.source, c.environment,
-                 (c.v - COALESCE(st.v, 0))::bigint AS dv,
-                 (c.u - COALESCE(st.u, 0))::bigint AS du
-          FROM canonical_app c
-          LEFT JOIN stored_app st
-            ON st.app_id = c.app_id AND st.source = c.source AND st.environment = c.environment
-          WHERE (c.v - COALESCE(st.v, 0)) >= 0
-            AND (c.u - COALESCE(st.u, 0)) >= 0
-            AND (c.v - COALESCE(st.v, 0)) >= (c.u - COALESCE(st.u, 0))
-            AND ((c.v - COALESCE(st.v, 0)) > 0 OR (c.u - COALESCE(st.u, 0)) > 0)
-        ),
-        rep_app_total2 AS (
-          INSERT INTO public.app_verification_stats_total AS t
-            (app_id, source, environment, verifications, unique_verifications, repeated_verifications)
-          SELECT app_id, source, environment, dv, du, (dv - du)
-          FROM app_diffs
-          ON CONFLICT (app_id, source, environment) DO UPDATE SET
-            verifications = t.verifications + EXCLUDED.verifications,
-            unique_verifications = t.unique_verifications + EXCLUDED.unique_verifications,
-            repeated_verifications = t.repeated_verifications + EXCLUDED.repeated_verifications,
-            updated_at = now()
-        ),
-        rep_app_daily2 AS (
-          INSERT INTO public.app_verification_stats_daily AS t
-            (app_id, source, environment, date, verifications, unique_verifications, repeated_verifications)
-          SELECT app_id, source, environment, (now() AT TIME ZONE 'UTC')::date, dv, du, (dv - du)
-          FROM app_diffs
-          ON CONFLICT (app_id, source, environment, date) DO UPDATE SET
-            verifications = t.verifications + EXCLUDED.verifications,
-            unique_verifications = t.unique_verifications + EXCLUDED.unique_verifications,
-            repeated_verifications = t.repeated_verifications + EXCLUDED.repeated_verifications,
-            updated_at = now()
-        )
-        SELECT COUNT(*) INTO _repaired_apps FROM app_diffs;
-
+        -- Structural checks, action grain (alert only, never auto-decrement).
         WITH expected_action AS (
           SELECT n.action_v4_id AS action_id,
                  SUM(s.last_seen_uses)::bigint AS v,
@@ -1187,35 +926,6 @@ BEGIN
           WHERE COALESCE(e.v, 0) <> COALESCE(st.v, 0)
              OR COALESCE(e.u, 0) <> COALESCE(st.u, 0)
         ),
-        batch_apps AS (
-          SELECT DISTINCT r.app_id
-          FROM public.action_v4 a
-          JOIN _batch b ON b.id = a.id
-          JOIN public.rp_registration r ON r.rp_id = a.rp_id
-        ),
-        expected_app AS (
-          SELECT t.app_id, t.source, t.environment,
-                 SUM(t.verifications)::bigint AS v,
-                 SUM(t.unique_verifications)::bigint AS u
-          FROM public.action_verification_stats_total t
-          JOIN batch_apps ba ON ba.app_id = t.app_id
-          GROUP BY t.app_id, t.source, t.environment
-        ),
-        stored_app AS (
-          SELECT s.app_id, s.source, s.environment,
-                 s.verifications AS v,
-                 s.unique_verifications AS u
-          FROM public.app_verification_stats_total s
-          JOIN batch_apps ba ON ba.app_id = s.app_id
-        ),
-        app_mismatch AS (
-          SELECT COALESCE(e.app_id, st.app_id) AS app_id
-          FROM expected_app e
-          FULL JOIN stored_app st
-            ON st.app_id = e.app_id AND st.source = e.source AND st.environment = e.environment
-          WHERE COALESCE(e.v, 0) <> COALESCE(st.v, 0)
-             OR COALESCE(e.u, 0) <> COALESCE(st.u, 0)
-        ),
         impossible AS (
           SELECT n.id
           FROM public.nullifier_v4 n
@@ -1224,26 +934,124 @@ BEGIN
           WHERE n.uses < s.last_seen_uses
         )
         SELECT (SELECT COUNT(*) FROM action_mismatch),
-               (SELECT COUNT(*) FROM app_mismatch),
                (SELECT COUNT(*) FROM impossible)
-        INTO _action_mismatch, _app_mismatch, _impossible;
+        INTO _action_mismatch, _impossible;
       END IF;
 
       IF _exhausted THEN
-        _next_source := 'legacy';
+        _next_source := 'apps';
         _next_cursor := NULL;
-        _done := true;
+        _done := false;
       ELSE
         _next_source := 'v4';
         _next_cursor := _last_id;
         _done := false;
       END IF;
     END IF;
+
+  ELSE
+    -- Apps leg: reconcile app rows against the sum of retained action rows, per
+    -- (source, environment), in bounded app batches (per-app sums ride the app_id
+    -- index on action_verification_stats_total). Positive drift tops the app row up
+    -- (corrupt action rows keep alerting on the action legs each cycle and the app
+    -- realigns the cycle after they are fixed); negative drift only alerts.
+    CREATE TEMP TABLE _batch ON COMMIT DROP AS
+    SELECT id
+    FROM public.app
+    WHERE _cursor_action IS NULL OR id > _cursor_action
+    ORDER BY id
+    LIMIT _app_batch;
+
+    SELECT COUNT(*), MAX(id) INTO _checked, _last_id FROM _batch;
+    _exhausted := _checked < _app_batch;
+
+    IF _checked > 0 THEN
+      WITH sums AS (
+        SELECT t.app_id, t.source, t.environment,
+               SUM(t.verifications)::bigint AS v,
+               SUM(t.unique_verifications)::bigint AS u,
+               MAX(t.latest_verification_at) AS latest
+        FROM public.action_verification_stats_total t
+        JOIN _batch b ON b.id = t.app_id
+        GROUP BY t.app_id, t.source, t.environment
+      ),
+      stored AS (
+        SELECT s.app_id, s.source, s.environment,
+               s.verifications AS v,
+               s.unique_verifications AS u,
+               s.latest_verification_at AS latest
+        FROM public.app_verification_stats_total s
+        JOIN _batch b ON b.id = s.app_id
+      ),
+      pos AS (
+        SELECT c.app_id, c.source, c.environment,
+               (c.v - COALESCE(st.v, 0))::bigint AS dv,
+               (c.u - COALESCE(st.u, 0))::bigint AS du,
+               c.latest
+        FROM sums c
+        LEFT JOIN stored st
+          ON st.app_id = c.app_id AND st.source = c.source AND st.environment = c.environment
+        WHERE (c.v - COALESCE(st.v, 0)) >= 0
+          AND (c.u - COALESCE(st.u, 0)) >= 0
+          AND (c.v - COALESCE(st.v, 0)) >= (c.u - COALESCE(st.u, 0))
+          AND ((c.v - COALESCE(st.v, 0)) > 0 OR (c.u - COALESCE(st.u, 0)) > 0)
+      ),
+      rep_total AS (
+        INSERT INTO public.app_verification_stats_total AS t
+          (app_id, source, environment, verifications, unique_verifications, repeated_verifications, latest_verification_at)
+        SELECT app_id, source, environment, dv, du, (dv - du), latest
+        FROM pos
+        ON CONFLICT (app_id, source, environment) DO UPDATE SET
+          verifications = t.verifications + EXCLUDED.verifications,
+          unique_verifications = t.unique_verifications + EXCLUDED.unique_verifications,
+          repeated_verifications = t.repeated_verifications + EXCLUDED.repeated_verifications,
+          latest_verification_at = GREATEST(t.latest_verification_at, EXCLUDED.latest_verification_at),
+          updated_at = now()
+      ),
+      latest_rep AS (
+        UPDATE public.app_verification_stats_total t
+        SET latest_verification_at = c.latest,
+            updated_at = now()
+        FROM sums c
+        WHERE t.app_id = c.app_id
+          AND t.source = c.source
+          AND t.environment = c.environment
+          AND c.latest IS NOT NULL
+          AND (t.latest_verification_at IS NULL OR t.latest_verification_at < c.latest)
+          AND NOT EXISTS (
+            SELECT 1 FROM pos p
+            WHERE p.app_id = c.app_id AND p.source = c.source AND p.environment = c.environment
+          )
+        RETURNING t.app_id
+      ),
+      neg AS (
+        SELECT COALESCE(c.app_id, st.app_id) AS app_id
+        FROM sums c
+        FULL JOIN stored st
+          ON st.app_id = c.app_id AND st.source = c.source AND st.environment = c.environment
+        WHERE COALESCE(st.v, 0) > COALESCE(c.v, 0)
+           OR COALESCE(st.u, 0) > COALESCE(c.u, 0)
+      )
+      SELECT (SELECT COUNT(*) FROM pos),
+             (SELECT COUNT(*) FROM latest_rep),
+             (SELECT COUNT(*) FROM neg)
+      INTO _repaired_apps, _repaired_latest, _app_mismatch;
+    END IF;
+
+    IF _exhausted THEN
+      _next_source := 'legacy';
+      _next_cursor := NULL;
+      _done := true;
+    ELSE
+      _next_source := 'apps';
+      _next_cursor := _last_id;
+      _done := false;
+    END IF;
   END IF;
 
-  IF _repaired > 0 OR _repaired_actions > 0 OR _repaired_apps > 0 THEN
-    RAISE WARNING 'verification reconciliation repaired: stranded_deltas=% missing_action_totals=% missing_app_totals=% (source %, batch through %)',
-      _repaired, _repaired_actions, _repaired_apps, _source, _last_id;
+  IF _stranded > 0 OR _repaired_actions > 0 OR _repaired_apps > 0 OR _repaired_latest > 0 THEN
+    RAISE WARNING 'verification reconciliation repaired: stranded_deltas=% missing_action_totals=% missing_app_totals=% latest_timestamps=% (source %, batch through %)',
+      _stranded, _repaired_actions, _repaired_apps, _repaired_latest, _source, _last_id;
   END IF;
   IF _action_mismatch > 0 OR _app_mismatch > 0 OR _impossible > 0 THEN
     RAISE WARNING 'verification reconciliation drift: action_total_mismatches=% app_total_mismatches=% impossible_snapshots=% (source %, batch through %)',
@@ -1260,10 +1068,10 @@ BEGIN
   RETURN QUERY SELECT 'reconciliation'::text,
     (CASE WHEN _done THEN 'done' ELSE 'continue' END)::text,
     _checked,
-    (_repaired + _repaired_actions + _repaired_apps)::bigint,
+    (_stranded + _repaired_actions + _repaired_apps)::bigint,
     (_action_mismatch + _app_mismatch + _impossible)::bigint,
-    format('source=%s,stranded=%s,repaired_actions=%s,repaired_apps=%s,action_mismatch=%s,app_mismatch=%s,impossible=%s,last_action_id=%s',
-           _source, _repaired, _repaired_actions, _repaired_apps,
+    format('source=%s,stranded=%s,repaired_actions=%s,repaired_apps=%s,repaired_latest=%s,action_mismatch=%s,app_mismatch=%s,impossible=%s,last_action_id=%s',
+           _source, _stranded, _repaired_actions, _repaired_apps, _repaired_latest,
            _action_mismatch, _app_mismatch, _impossible, COALESCE(_last_id, ''))::text;
 END;
 $$;

@@ -831,9 +831,17 @@ describe("reconcile_verification_stats v4 source", () => {
     const v4Result = await runReconciliation(500);
     expectJob(v4Result, {
       job: "reconciliation",
-      status: "done",
+      status: "continue",
       items: 2,
       repaired: 1,
+      alerts: 0,
+    });
+
+    const appsLeg = await runReconciliation(500);
+    expectJob(appsLeg, {
+      job: "reconciliation",
+      status: "done",
+      repaired: 0,
       alerts: 0,
     });
     expect(v4Result.detail).toContain("source=v4");
@@ -877,6 +885,7 @@ describe("reconcile_verification_stats v4 source", () => {
     const fixture = await createReconciliationFixture();
     await runReconciliation(500);
     await runReconciliation(500);
+    await runReconciliation(500);
 
     await integrationDBExecuteQuery(`
       UPDATE action_verification_stats_total
@@ -900,18 +909,27 @@ describe("reconcile_verification_stats v4 source", () => {
       const v4Result = await runReconciliation(500);
       expectJob(v4Result, {
         job: "reconciliation",
-        status: "done",
+        status: "continue",
         items: 2,
         repaired: 0,
-        alerts: 2,
+        alerts: 1,
       });
       expect(v4Result.detail).toContain("source=v4");
 
       const corruptedActionTotal = await getProdActionTotal();
       expectMeasures(corruptedActionTotal, 17, 4, 13);
 
+      // Apps leg: the app row follows the (corrupt) action sum; the action-level
+      // mismatch keeps alerting every cycle until a human repairs it.
+      const appsLeg = await runReconciliation(500);
+      expectJob(appsLeg, {
+        job: "reconciliation",
+        status: "done",
+        repaired: 1,
+        alerts: 0,
+      });
       const storedAppTotal = await getProdAppTotal(fixture.appId);
-      expectMeasures(storedAppTotal, 7, 4, 3);
+      expectMeasures(storedAppTotal, 17, 4, 13);
     } finally {
       await integrationDBExecuteQuery(`
         BEGIN;
