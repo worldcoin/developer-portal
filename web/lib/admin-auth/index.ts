@@ -57,6 +57,7 @@ export const hasAdminAuthenticationEvidence = (
 
 const roleByAccessLevel = {
   [DashboardAccessLevel.Read]: AdminHasuraRole.Readonly,
+  [DashboardAccessLevel.Write]: AdminHasuraRole.Write,
 } satisfies Record<DashboardAccessLevel, AdminHasuraRole>;
 
 /**

@@ -1,1 +1,4 @@
-[]
+- role_name: internal_dashboard_write
+  role_set:
+    - internal_dashboard_readonly
+    - internal_dashboard_sandbox_writer

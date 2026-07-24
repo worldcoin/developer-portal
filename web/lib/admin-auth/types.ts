@@ -1,22 +1,14 @@
 export enum AdminHasuraRole {
   Readonly = "internal_dashboard_readonly",
+  Write = "internal_dashboard_write",
 }
 
 /**
  * Provider-neutral dashboard access levels.
- *
- * Add `Write` and `Manage` only when matching Hasura roles and permissions are
- * implemented.
- *
- * @example
- * enum DashboardAccessLevel {
- *   Read = "read",
- *   Write = "write",
- *   Manage = "manage",
- * }
  */
 export enum DashboardAccessLevel {
   Read = "read",
+  Write = "write",
 }
 
 export const isDashboardAccessLevel = (

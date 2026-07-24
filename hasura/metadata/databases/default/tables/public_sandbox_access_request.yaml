@@ -37,6 +37,13 @@ select_permissions:
         - processed_at
       filter: {}
 update_permissions:
+  - role: internal_dashboard_sandbox_writer
+    permission:
+      columns:
+        - accepted
+        - processed_at
+      filter: {}
+      check: {}
   - role: service
     permission:
       columns:

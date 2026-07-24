@@ -59,6 +59,12 @@ const validBody = {
   email: "tester@gmail.com",
 };
 
+const storedRequest = {
+  google_email: "tester@gmail.com",
+  accepted: false,
+  created_at: "2026-07-23T00:00:00Z",
+};
+
 const authedSession = {
   user: {
     email: "dev@example.com",
@@ -75,8 +81,13 @@ beforeEach(() => {
   InsertSandboxAccessRequest.mockResolvedValue({
     insert_sandbox_access_request_one: {
       id: "sbxreq_abc123",
+      google_email: storedRequest.google_email,
       accepted: false,
+      created_at: storedRequest.created_at,
     },
+  });
+  GetSandboxAccessRequest.mockResolvedValue({
+    sandbox_access_request: [storedRequest],
   });
 });
 
@@ -127,26 +138,46 @@ describe("/api/v2/sandbox-access-request", () => {
     const res = await POST(makeRequest(validBody));
 
     expect(res.status).toBe(200);
-    expect(await res.json()).toEqual({ success: true });
+    expect(await res.json()).toEqual({
+      success: true,
+      request: {
+        email: "tester@gmail.com",
+        accepted: false,
+        createdAt: "2026-07-23T00:00:00Z",
+      },
+    });
     expect(InsertSandboxAccessRequest).toHaveBeenCalledWith({
       google_email: "tester@gmail.com",
       user_id: USER_ID,
     });
   });
 
-  it("treats a repeat request as success (upsert resets accepted)", async () => {
+  it("returns the stored state without regressing a processed request", async () => {
     getSession.mockResolvedValue(authedSession);
     InsertSandboxAccessRequest.mockResolvedValue({
-      insert_sandbox_access_request_one: {
-        id: "sbxreq_existing",
-        accepted: false,
-      },
+      insert_sandbox_access_request_one: null,
+    });
+    GetSandboxAccessRequest.mockResolvedValue({
+      sandbox_access_request: [
+        {
+          google_email: "original@gmail.com",
+          accepted: true,
+          created_at: "2026-07-22T00:00:00Z",
+        },
+      ],
     });
 
     const res = await POST(makeRequest(validBody));
 
     expect(res.status).toBe(200);
-    expect(await res.json()).toEqual({ success: true });
+    expect(await res.json()).toEqual({
+      success: true,
+      request: {
+        email: "original@gmail.com",
+        accepted: true,
+        createdAt: "2026-07-22T00:00:00Z",
+      },
+    });
     expect(InsertSandboxAccessRequest).toHaveBeenCalledWith({
       google_email: "tester@gmail.com",
       user_id: USER_ID,

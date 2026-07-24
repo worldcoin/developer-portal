@@ -14,7 +14,9 @@ export type InsertSandboxAccessRequestMutation = {
   insert_sandbox_access_request_one?: {
     __typename?: "sandbox_access_request";
     id: string;
+    google_email: string;
     accepted: boolean;
+    created_at: string;
   } | null;
 };
 
@@ -24,19 +26,16 @@ export const InsertSandboxAccessRequestDocument = gql`
     $user_id: String!
   ) {
     insert_sandbox_access_request_one(
-      object: {
-        google_email: $google_email
-        user_id: $user_id
-        accepted: false
-        processed_at: null
-      }
+      object: { google_email: $google_email, user_id: $user_id }
       on_conflict: {
         constraint: unique_sandbox_access_request_user_id
-        update_columns: [google_email, accepted, processed_at]
+        update_columns: []
       }
     ) {
       id
+      google_email
       accepted
+      created_at
     }
   }
 `;

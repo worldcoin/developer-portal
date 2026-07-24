@@ -1,6 +1,6 @@
 /** @jest-environment jsdom */
 import "@testing-library/jest-dom";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import React from "react";
 
 // #region Mocks
@@ -39,9 +39,14 @@ jest.mock("@/components/DialogPanel", () => ({
 }));
 
 jest.mock("@/components/DecoratedButton", () => ({
-  DecoratedButton: ({ children, ...props }: { children: React.ReactNode }) => (
-    <button {...props}>{children}</button>
-  ),
+  DecoratedButton: ({
+    children,
+    loading: _loading,
+    ...props
+  }: {
+    children: React.ReactNode;
+    loading?: boolean;
+  }) => <button {...props}>{children}</button>,
 }));
 
 import { SandboxButton } from "@/scenes/PortalV3/layout/Shell/SandboxButton";
@@ -68,7 +73,7 @@ beforeEach(() => {
 
 // #region Persistent request confirmation
 describe("SandboxButton [android request confirmation]", () => {
-  it("shows a persistent pending confirmation instead of the request form", async () => {
+  it("keeps the submitted email visible in the persistent pending state", async () => {
     mockLookup({
       email: "tester@gmail.com",
       accepted: false,
@@ -78,15 +83,21 @@ describe("SandboxButton [android request confirmation]", () => {
     openAndroidSection();
 
     expect(
-      await screen.findByText(/Request sent — you'll get an email at/),
+      await screen.findByText(/We'll email you when the invite has been sent/),
     ).toBeInTheDocument();
     expect(
-      screen.queryByRole("button", { name: "Request access" }),
-    ).not.toBeInTheDocument();
+      screen.getByRole("textbox", { name: "Google account email" }),
+    ).toHaveValue("tester@gmail.com");
+    expect(
+      screen.getByRole("textbox", { name: "Google account email" }),
+    ).toBeDisabled();
+    expect(
+      screen.getByRole("button", { name: "Request submitted" }),
+    ).toBeDisabled();
     expect(global.fetch).toHaveBeenCalledWith("/api/v2/sandbox-access-request");
   });
 
-  it("shows approved copy once the request is accepted", async () => {
+  it("shows invite-sent copy once the backend accepts the request", async () => {
     mockLookup({
       email: "tester@gmail.com",
       accepted: true,
@@ -96,24 +107,63 @@ describe("SandboxButton [android request confirmation]", () => {
     openAndroidSection();
 
     expect(
-      await screen.findByText(/has been approved — scan the QR code/),
+      await screen.findByText(/An invite has been sent to tester@gmail.com/),
     ).toBeInTheDocument();
-    expect(
-      screen.queryByRole("button", { name: "Request access" }),
-    ).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Invite sent" })).toBeDisabled();
   });
 
-  it("offers the request form when no request exists yet", async () => {
+  it("offers an editable prefilled request form when no request exists", async () => {
     mockLookup(null);
 
     openAndroidSection();
 
+    const button = await screen.findByRole("button", {
+      name: "Request invite",
+    });
+    await waitFor(() => expect(button).toBeEnabled());
     expect(
-      await screen.findByRole("button", { name: "Request access" }),
-    ).toBeInTheDocument();
+      screen.getByRole("textbox", { name: "Google account email" }),
+    ).toHaveValue("dev@example.com");
+  });
+
+  it("switches to the stored submitted state after a successful request", async () => {
+    global.fetch = jest
+      .fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ success: true, request: null }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          success: true,
+          request: {
+            email: "dev@example.com",
+            accepted: false,
+            createdAt: "2026-07-23T00:00:00Z",
+          },
+        }),
+      }) as unknown as typeof fetch;
+
+    openAndroidSection();
+
+    const button = await screen.findByRole("button", {
+      name: "Request invite",
+    });
+    await waitFor(() => expect(button).toBeEnabled());
+    fireEvent.click(button);
+
     expect(
-      screen.queryByText(/Request sent — you'll get an email at/),
-    ).not.toBeInTheDocument();
+      await screen.findByRole("button", { name: "Request submitted" }),
+    ).toBeDisabled();
+    expect(global.fetch).toHaveBeenLastCalledWith(
+      "/api/v2/sandbox-access-request",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: "dev@example.com" }),
+      },
+    );
   });
 });
 // #endregion

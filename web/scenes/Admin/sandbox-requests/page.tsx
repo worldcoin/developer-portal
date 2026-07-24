@@ -5,6 +5,7 @@ import {
   SANDBOX_REQUESTS_LIMIT,
   fetchSandboxAccessRequests,
 } from "./server/fetch-sandbox-requests";
+import { MarkInviteSentButton } from "./MarkInviteSentButton";
 
 const formatDate = (isoDate: string) => isoDate.slice(0, 10);
 
@@ -17,17 +18,17 @@ const StatusBadge = ({ accepted }: { accepted: boolean }) => (
         : "bg-system-warning-50 text-system-warning-700",
     )}
   >
-    {accepted ? "accepted" : "pending"}
+    {accepted ? "invite sent" : "pending"}
   </span>
 );
 
 /**
- * Read-only queue of World ID sandbox Android tester requests. Processing
- * (Play Console allowlist + flipping `accepted`) happens outside the
- * dashboard; this page exists so the pending queue is visible without a
- * Hasura console.
+ * Queue of World ID sandbox Android tester requests. Dashboard users mark a
+ * request after its invite has been sent; accepted is never user-controlled.
  */
-export const AdminSandboxRequestsPage = async () => {
+export const AdminSandboxRequestsPage = async (props: {
+  canMarkInviteSent: boolean;
+}) => {
   const { requests, totalCount, pendingCount } =
     await fetchSandboxAccessRequests();
 
@@ -41,7 +42,7 @@ export const AdminSandboxRequestsPage = async () => {
             </h1>
             <p className="mt-2 max-w-2xl text-14 text-grey-500">
               Android tester access requests for the World ID sandbox build.
-              Worked manually against the Google Play internal-tester list.
+              Mark each request after its invite has been sent.
             </p>
           </div>
 
@@ -70,7 +71,7 @@ export const AdminSandboxRequestsPage = async () => {
           <EmptyState>No sandbox access requests yet</EmptyState>
         ) : (
           <table
-            className="w-full min-w-[720px] border-collapse text-left text-14"
+            className="w-full min-w-[860px] border-collapse text-left text-14"
             aria-label="Sandbox access requests"
           >
             <thead>
@@ -81,6 +82,7 @@ export const AdminSandboxRequestsPage = async () => {
                 <th className="px-3 py-2">Status</th>
                 <th className="px-3 py-2">Requested</th>
                 <th className="px-3 py-2">Processed</th>
+                <th className="px-3 py-2">Action</th>
               </tr>
             </thead>
             <tbody>
@@ -106,6 +108,15 @@ export const AdminSandboxRequestsPage = async () => {
                     {request.processedAt
                       ? formatDate(request.processedAt)
                       : "—"}
+                  </td>
+                  <td className="px-3 py-2.5">
+                    {request.accepted ? (
+                      <span className="text-grey-400">Invite sent</span>
+                    ) : props.canMarkInviteSent ? (
+                      <MarkInviteSentButton requestId={request.id} />
+                    ) : (
+                      <span className="text-grey-400">Read only</span>
+                    )}
                   </td>
                 </tr>
               ))}

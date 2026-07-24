@@ -402,7 +402,7 @@ describe("cloudflare-access provider", () => {
   it("returns no access for an unsupported configured access level", async () => {
     cloudflareEnv();
     process.env.CF_GROUP_TO_ACCESS_LEVEL = JSON.stringify({
-      "example-readers": "write",
+      "example-readers": "manage",
     });
     jwtVerify.mockResolvedValue({
       payload: {
@@ -419,7 +419,7 @@ describe("cloudflare-access provider", () => {
     expect(result).toMatchObject({ accessLevel: null });
     expect(logger.error).toHaveBeenCalledWith(
       "CF_GROUP_TO_ACCESS_LEVEL group must map to a valid access level",
-      { group: "example-readers", accessLevel: "write" },
+      { group: "example-readers", accessLevel: "manage" },
     );
   });
 
@@ -729,6 +729,21 @@ describe("authenticateAdminRequest", () => {
       email: "dev@example.com",
       subject: "dev:dev@example.com",
       role: AdminHasuraRole.Readonly,
+    });
+  });
+
+  it("maps write access to the dashboard write role", async () => {
+    process.env.ADMIN_AUTH_PROVIDER = "dev";
+    process.env.ADMIN_AUTH_DEV_ACCESS_LEVEL = "write";
+
+    const user = await authenticateAdminRequest(
+      new Headers({ "x-admin-auth-debug-user": "dev@example.com" }),
+    );
+
+    expect(user).toEqual({
+      email: "dev@example.com",
+      subject: "dev:dev@example.com",
+      role: AdminHasuraRole.Write,
     });
   });
 });
