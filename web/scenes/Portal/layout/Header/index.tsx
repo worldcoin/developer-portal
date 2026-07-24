@@ -10,6 +10,7 @@ import { useParams } from "next/navigation";
 import React, { useEffect } from "react";
 import { colorAtom } from "@/scenes/common/layout/color-atom";
 import { Color } from "@/scenes/common/Profile/types";
+import { SandboxButton } from "@/scenes/PortalV3/layout/Shell/SandboxButton";
 import { AppSelector } from "../AppSelector";
 import { CreateAppDialogV4 } from "../CreateAppDialog/index-v4";
 
@@ -41,7 +42,10 @@ export const Header = (props: { color: Color | null }) => {
           <AppSelector />
         </div>
 
-        <LoggedUserNav />
+        <div className="flex items-center gap-x-4">
+          <SandboxButton className="w-60 max-md:hidden" />
+          <LoggedUserNav />
+        </div>
       </SizingWrapper>
 
       <CreateAppDialogV4 open={open} onClose={setOpen} className={"mx-0"} />

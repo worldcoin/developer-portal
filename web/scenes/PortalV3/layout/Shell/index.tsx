@@ -1,8 +1,8 @@
 import { calculateColorFromString } from "@/lib/calculate-color-from-string";
 import { ReactNode } from "react";
 import { AppsDropdown } from "./AppsDropdown";
-import { SidebarNav } from "./SidebarNav";
 import { ShellFrame } from "./ShellFrame";
+import { SidebarNav } from "./SidebarNav";
 import { TeamsDropdown } from "./TeamsDropdown";
 import { UserPopup } from "./UserPopup";
 

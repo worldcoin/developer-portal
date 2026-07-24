@@ -13,6 +13,13 @@ array_relationships:
         table:
           name: membership
           schema: public
+  - name: sandbox_access_requests
+    using:
+      foreign_key_constraint_on:
+        column: user_id
+        table:
+          name: sandbox_access_request
+          schema: public
 insert_permissions:
   - role: qa
     permission:

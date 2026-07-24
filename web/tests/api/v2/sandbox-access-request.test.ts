@@ -1,0 +1,138 @@
+import { NextRequest } from "next/server";
+
+// #region Mocks
+const getSession = jest.fn();
+const InsertSandboxAccessRequest = jest.fn();
+
+jest.mock("server-only", () => ({}));
+
+jest.mock("@/lib/auth0", () => ({
+  auth0: { getSession: (...args: unknown[]) => getSession(...args) },
+}));
+
+jest.mock("@/api/helpers/graphql", () => ({
+  getAPIServiceGraphqlClient: jest.fn().mockResolvedValue({}),
+}));
+
+jest.mock(
+  "../../../api/v2/sandbox-access-request/graphql/insert-sandbox-access-request.generated",
+  () => ({
+    getSdk: () => ({ InsertSandboxAccessRequest }),
+  }),
+);
+
+jest.mock("@/lib/logger", () => ({
+  logger: { info: jest.fn(), warn: jest.fn(), error: jest.fn() },
+}));
+// #endregion
+
+import { POST } from "@/api/v2/sandbox-access-request";
+
+// #region Test Data
+const USER_ID = "usr_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+
+const makeRequest = (body: unknown) =>
+  new NextRequest("http://localhost/api/v2/sandbox-access-request", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+
+const validBody = {
+  email: "tester@gmail.com",
+};
+
+const authedSession = {
+  user: {
+    email: "dev@example.com",
+    hasura: {
+      id: USER_ID,
+    },
+  },
+};
+// #endregion
+
+beforeEach(() => {
+  jest.clearAllMocks();
+  InsertSandboxAccessRequest.mockResolvedValue({
+    insert_sandbox_access_request_one: {
+      id: "sbxreq_abc123",
+      accepted: false,
+    },
+  });
+});
+
+// #region /api/v2/sandbox-access-request
+describe("/api/v2/sandbox-access-request", () => {
+  it("returns 401 when unauthenticated", async () => {
+    getSession.mockResolvedValue(null);
+
+    const res = await POST(makeRequest(validBody));
+
+    expect(res.status).toBe(401);
+    expect(InsertSandboxAccessRequest).not.toHaveBeenCalled();
+  });
+
+  it("returns 401 when the session has no Hasura user id", async () => {
+    getSession.mockResolvedValue({
+      user: { email: "dev@example.com", hasura: {} },
+    });
+
+    const res = await POST(makeRequest(validBody));
+
+    expect(res.status).toBe(401);
+    expect(InsertSandboxAccessRequest).not.toHaveBeenCalled();
+  });
+
+  it("returns 400 for an invalid email", async () => {
+    getSession.mockResolvedValue(authedSession);
+
+    await expect(
+      POST(makeRequest({ email: "not-an-email" })),
+    ).resolves.toMatchObject({ status: 400 });
+    expect(InsertSandboxAccessRequest).not.toHaveBeenCalled();
+  });
+
+  it("records the request for the authenticated user", async () => {
+    getSession.mockResolvedValue(authedSession);
+
+    const res = await POST(makeRequest(validBody));
+
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({ success: true });
+    expect(InsertSandboxAccessRequest).toHaveBeenCalledWith({
+      google_email: "tester@gmail.com",
+      user_id: USER_ID,
+    });
+  });
+
+  it("treats a repeat request as success (upsert resets accepted)", async () => {
+    getSession.mockResolvedValue(authedSession);
+    InsertSandboxAccessRequest.mockResolvedValue({
+      insert_sandbox_access_request_one: {
+        id: "sbxreq_existing",
+        accepted: false,
+      },
+    });
+
+    const res = await POST(makeRequest(validBody));
+
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({ success: true });
+    expect(InsertSandboxAccessRequest).toHaveBeenCalledWith({
+      google_email: "tester@gmail.com",
+      user_id: USER_ID,
+    });
+  });
+
+  it("returns 500 when the insert fails", async () => {
+    getSession.mockResolvedValue(authedSession);
+    InsertSandboxAccessRequest.mockRejectedValue(new Error("hasura down"));
+
+    const res = await POST(makeRequest(validBody));
+
+    expect(res.status).toBe(500);
+    expect(await res.json()).toEqual({ success: false });
+  });
+});
+// #endregion

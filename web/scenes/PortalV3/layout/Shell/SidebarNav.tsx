@@ -12,6 +12,7 @@ import { useParams, usePathname } from "next/navigation";
 import { useCurrentAppId } from "./AppsDropdown";
 import { HelpCenterMenu } from "./HelpCenterMenu";
 import { NavItem } from "./NavItem";
+import { SandboxButton } from "./SandboxButton";
 
 const NavIcon = (props: { name: string; active?: boolean }) => (
   <Icon
@@ -171,6 +172,8 @@ export const SidebarNav = () => {
           />
         ) : null}
       </div>
+
+      <SandboxButton className="mt-6 w-full" />
     </nav>
   );
 };
