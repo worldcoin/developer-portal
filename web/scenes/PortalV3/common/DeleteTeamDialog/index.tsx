@@ -42,6 +42,7 @@ export const DeleteTeamDialog = (props: DeleteTeamDialogProps) => {
   const router = useRouter();
   const path = usePathname();
   const { user: auth0User } = useUser() as Auth0SessionUser;
+  const { invalidate } = useUser();
 
   const {
     register,
@@ -60,8 +61,7 @@ export const DeleteTeamDialog = (props: DeleteTeamDialogProps) => {
 
   const { refetch } = useMeQuery();
 
-  // Navigation runs here, not in an effect: the session update can unmount
-  // the dialog mid-flight (settings page drops it once canWrite flips)
+  // Post-delete flow lives here, not in an effect: the settings page unmounts this dialog when canWrite collapses, but an async handler keeps running.
   const submit = useCallback(async () => {
     if (!team?.id || !auth0User?.hasura?.id) {
       return toast.error("Error deleting team. Try again later");
@@ -74,23 +74,41 @@ export const DeleteTeamDialog = (props: DeleteTeamDialogProps) => {
         return toast.error(result.message || "Error deleting team");
       }
 
-      if (!result.sessionUpdated) {
-        // Fallback sync — the cookie must be correct before the refresh below
-        await fetch("/api/update-session", { method: "POST" }).catch(
-          () => null,
+      const refetched = await refetch();
+      const membershipsCount = refetched?.data?.user_by_pk?.memberships?.length;
+
+      // The action rewrites the cookie itself; this only covers its failure.
+      let sessionSynced = Boolean(result.sessionUpdated);
+
+      if (!sessionSynced) {
+        const response = await fetch("/api/update-session", {
+          method: "POST",
+        }).catch(() => null);
+
+        const data = response?.ok
+          ? await response.json().catch(() => null)
+          : null;
+
+        sessionSynced = Boolean(data?.success);
+      }
+
+      await invalidate();
+
+      if (sessionSynced) {
+        toast.success("Team deleted!");
+      } else {
+        // Navigate anyway — staying on the deleted team's page is the dead end
+        // this flow exists to avoid, and the next me-query pass heals the cookie.
+        toast.error(
+          "Team deleted, but your session may be briefly out of date",
         );
       }
 
-      const { data } = await refetch();
-      toast.success("Team deleted!");
-
-      const memberships = data?.user_by_pk?.memberships;
-      if (memberships && memberships.length === 0) {
+      if (typeof membershipsCount === "number" && membershipsCount === 0) {
         return router.push(urls.createTeam());
       }
 
-      // The action already rewrote the session cookie; re-render the
-      // session-fed sidebar from it
+      // A push inside the same layout won't re-render the session-fed sidebar.
       router.refresh();
 
       if (path !== urls.profileTeams()) {
@@ -102,7 +120,15 @@ export const DeleteTeamDialog = (props: DeleteTeamDialogProps) => {
       console.error("Delete Team Dialog: ", e);
       toast.error("Error deleting team");
     }
-  }, [team?.id, auth0User?.hasura?.id, refetch, router, path, onClose]);
+  }, [
+    team?.id,
+    auth0User?.hasura?.id,
+    refetch,
+    invalidate,
+    router,
+    path,
+    onClose,
+  ]);
 
   return (
     <Dialog {...props} onClose={onClose}>

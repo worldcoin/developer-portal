@@ -1,5 +1,6 @@
 "use client";
 
+import type { SandboxAccessRequestState } from "@/api/v2/sandbox-access-request/server/fetch-sandbox-access-request";
 import { LockIcon } from "@/components/Icons/LockIcon";
 import { SendIcon } from "@/components/Icons/SendIcon";
 import { TrashIcon } from "@/components/Icons/TrashIcon";
@@ -12,6 +13,7 @@ import { useParams, usePathname } from "next/navigation";
 import { useCurrentAppId } from "./AppsDropdown";
 import { HelpCenterMenu } from "./HelpCenterMenu";
 import { NavItem } from "./NavItem";
+import { SandboxButton } from "./SandboxButton";
 
 const NavIcon = (props: { name: string; active?: boolean }) => (
   <Icon
@@ -20,7 +22,9 @@ const NavIcon = (props: { name: string; active?: boolean }) => (
   />
 );
 
-export const SidebarNav = () => {
+export const SidebarNav = (props: {
+  initialSandboxRequest?: SandboxAccessRequestState | null;
+}) => {
   const pathname = usePathname() ?? "";
   const params = useParams<{ teamId?: string; appId?: string }>();
   const teamId = params?.teamId;
@@ -171,6 +175,11 @@ export const SidebarNav = () => {
           />
         ) : null}
       </div>
+
+      <SandboxButton
+        className="mt-6 w-full"
+        initialRequest={props.initialSandboxRequest}
+      />
     </nav>
   );
 };

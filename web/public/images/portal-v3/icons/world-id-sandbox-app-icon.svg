@@ -1,0 +1,10 @@
+<!-- Flat rendering of world-app-ios WorldID/AppIcons/WorldID-sandbox.icon
+     (Icon Composer bundle: white auto background, purple circle at group
+     scale 1.24, white Union glyph). Keep in sync if the app icon changes. -->
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1024" height="1024" rx="229" fill="#FFFFFF"/>
+  <circle cx="512" cy="512" r="383" fill="#9260F7"/>
+  <g transform="translate(316.73 297.48) scale(1.24)">
+    <path d="M314.542 115.718L187.515 199.4V345.388H128.688V200.506L0 115.718L32.9688 68.8311L157.268 148.92L281.566 68.8311L314.542 115.718ZM158.066 0C181.849 9.59062e-05 202.426 19.2837 202.426 43.0664C202.426 66.849 181.849 86.1327 158.066 86.1328C134.284 86.1328 113.707 66.8491 113.707 43.0664C113.707 19.2771 134.284 0 158.066 0Z" fill="#FFFFFF"/>
+  </g>
+</svg>

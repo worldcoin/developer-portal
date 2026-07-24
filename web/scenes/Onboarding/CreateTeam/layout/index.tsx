@@ -13,8 +13,6 @@ export const CreateTeamLayout = (props: { children: ReactNode }) => {
             <div className="flex items-center gap-x-3">
               <CloseButton />
 
-              <span className="text-grey-200">|</span>
-
               <Typography variant={TYPOGRAPHY.M4}>Create a new team</Typography>
             </div>
 

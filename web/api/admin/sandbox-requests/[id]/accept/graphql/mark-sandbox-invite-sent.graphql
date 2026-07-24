@@ -1,0 +1,8 @@
+mutation MarkSandboxInviteSent($id: String!, $processed_at: timestamptz!) {
+  update_sandbox_access_request(
+    where: { id: { _eq: $id }, accepted: { _eq: false } }
+    _set: { accepted: true, processed_at: $processed_at }
+  ) {
+    affected_rows
+  }
+}
