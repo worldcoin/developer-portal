@@ -47,13 +47,15 @@ describe("internal dashboard detail permissions", () => {
     expect(permission).not.toContain("- api_key");
   });
 
-  it("limits sandbox writes to invite processing fields", () => {
+  it("lets dashboard readers update only sandbox invite processing fields", () => {
     const metadata = readFileSync(
       path.join(tablesPath, "public_sandbox_access_request.yaml"),
       "utf8",
     );
+    const updatePermissionsStart = metadata.indexOf("update_permissions:");
     const start = metadata.indexOf(
-      "  - role: internal_dashboard_sandbox_writer",
+      "  - role: internal_dashboard_readonly",
+      updatePermissionsStart,
     );
     const end = metadata.indexOf("\n  - role:", start + 1);
     const permission = metadata.slice(start, end);
@@ -62,16 +64,15 @@ describe("internal dashboard detail permissions", () => {
     expect(permission).toContain("- processed_at");
     expect(permission).not.toContain("- google_email");
     expect(permission).not.toContain("- user_id");
+    expect(metadata).not.toContain("internal_dashboard_sandbox_writer");
   });
 
-  it("combines read and sandbox-write permissions for dashboard writers", () => {
+  it("does not define elevated internal dashboard roles", () => {
     const inheritedRoles = readFileSync(
       path.join(tablesPath, "../../../inherited_roles.yaml"),
       "utf8",
     );
 
-    expect(inheritedRoles).toContain("role_name: internal_dashboard_write");
-    expect(inheritedRoles).toContain("- internal_dashboard_readonly");
-    expect(inheritedRoles).toContain("- internal_dashboard_sandbox_writer");
+    expect(inheritedRoles.trim()).toBe("[]");
   });
 });

@@ -27,9 +27,7 @@ const StatusBadge = ({ accepted }: { accepted: boolean }) => (
  * request after granting access in Play Console; accepted is never
  * user-controlled.
  */
-export const AdminSandboxRequestsPage = async (props: {
-  canApproveRequests: boolean;
-}) => {
+export const AdminSandboxRequestsPage = async () => {
   const { requests, totalCount, pendingCount } =
     await fetchSandboxAccessRequests();
 
@@ -113,10 +111,8 @@ export const AdminSandboxRequestsPage = async (props: {
                   <td className="px-3 py-2.5">
                     {request.accepted ? (
                       <span className="text-grey-400">Approved</span>
-                    ) : props.canApproveRequests ? (
-                      <ApproveSandboxRequestButton requestId={request.id} />
                     ) : (
-                      <span className="text-grey-400">Read only</span>
+                      <ApproveSandboxRequestButton requestId={request.id} />
                     )}
                   </td>
                 </tr>

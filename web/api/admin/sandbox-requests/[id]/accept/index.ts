@@ -1,5 +1,5 @@
 import { getInternalDashboardGraphqlClientForUser } from "@/api/helpers/graphql";
-import { AdminHasuraRole, authenticateAdminRequest } from "@/lib/admin-auth";
+import { authenticateAdminRequest } from "@/lib/admin-auth";
 import { logger } from "@/lib/logger";
 import { NextRequest, NextResponse } from "next/server";
 import { getSdk } from "./graphql/mark-sandbox-invite-sent.generated";
@@ -11,7 +11,9 @@ const isSandboxRequestId = (id: string) =>
 /**
  * Approves a sandbox request after an authenticated dashboard user grants
  * access in Google Play Console. The mutation is one-way and idempotent:
- * accepted requests keep their original processed_at timestamp.
+ * accepted requests keep their original processed_at timestamp. This
+ * low-stakes acknowledgement is intentionally available to every authenticated
+ * dashboard user.
  */
 export async function POST(
   req: NextRequest,
@@ -20,9 +22,6 @@ export async function POST(
   const admin = await authenticateAdminRequest(req.headers);
   if (!admin) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-  if (admin.role !== AdminHasuraRole.Write) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   const { id } = await props.params;

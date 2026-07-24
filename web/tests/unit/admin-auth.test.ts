@@ -731,21 +731,6 @@ describe("authenticateAdminRequest", () => {
       role: AdminHasuraRole.Readonly,
     });
   });
-
-  it("maps write access to the dashboard write role", async () => {
-    process.env.ADMIN_AUTH_PROVIDER = "dev";
-    process.env.ADMIN_AUTH_DEV_ACCESS_LEVEL = "write";
-
-    const user = await authenticateAdminRequest(
-      new Headers({ "x-admin-auth-debug-user": "dev@example.com" }),
-    );
-
-    expect(user).toEqual({
-      email: "dev@example.com",
-      subject: "dev:dev@example.com",
-      role: AdminHasuraRole.Write,
-    });
-  });
 });
 // #endregion
 

@@ -1,4 +1,4 @@
-import { AdminHasuraRole, requireAdminUser } from "@/lib/admin-auth";
+import { requireAdminUser } from "@/lib/admin-auth";
 import { generateMetaTitle } from "@/lib/genarate-title";
 import { AdminSandboxRequestsPage } from "@/scenes/Admin/sandbox-requests/page";
 import { Metadata } from "next";
@@ -8,11 +8,7 @@ export const metadata: Metadata = {
 };
 
 export default async function Page() {
-  const admin = await requireAdminUser();
+  await requireAdminUser();
 
-  return (
-    <AdminSandboxRequestsPage
-      canApproveRequests={admin.role === AdminHasuraRole.Write}
-    />
-  );
+  return <AdminSandboxRequestsPage />;
 }
