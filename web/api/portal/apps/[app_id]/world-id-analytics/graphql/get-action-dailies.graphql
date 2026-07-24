@@ -1,0 +1,20 @@
+query GetWorldIdAnalyticsActionDailies(
+  $action_id: String!
+  $source: String!
+  $from: date!
+) {
+  action_verification_stats_daily(
+    where: {
+      action_id: { _eq: $action_id }
+      source: { _eq: $source }
+      environment: { _eq: "production" }
+      date: { _gte: $from }
+    }
+    order_by: [{ date: asc }]
+  ) {
+    date
+    verifications
+    unique_verifications
+    repeated_verifications
+  }
+}

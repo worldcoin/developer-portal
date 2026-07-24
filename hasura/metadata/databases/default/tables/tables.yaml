@@ -31,3 +31,4 @@
 - "!include public_team.yaml"
 - "!include public_user.yaml"
 - "!include public_verification_job_returning.yaml"
+- "!include public_verification_meta_returning.yaml"

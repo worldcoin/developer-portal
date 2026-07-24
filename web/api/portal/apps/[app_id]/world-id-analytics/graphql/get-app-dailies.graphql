@@ -1,0 +1,20 @@
+query GetWorldIdAnalyticsAppDailies(
+  $app_id: String!
+  $source: String!
+  $from: date!
+) {
+  app_verification_stats_daily(
+    where: {
+      app_id: { _eq: $app_id }
+      source: { _eq: $source }
+      environment: { _eq: "production" }
+      date: { _gte: $from }
+    }
+    order_by: [{ date: asc }]
+  ) {
+    date
+    verifications
+    unique_verifications
+    repeated_verifications
+  }
+}

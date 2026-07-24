@@ -1,0 +1,12 @@
+query GetWorldIdAnalyticsAppTotal($app_id: String!, $source: String!) {
+  app_verification_stats_total_by_pk(
+    app_id: $app_id
+    source: $source
+    environment: "production"
+  ) {
+    verifications
+    unique_verifications
+    repeated_verifications
+    latest_verification_at
+  }
+}

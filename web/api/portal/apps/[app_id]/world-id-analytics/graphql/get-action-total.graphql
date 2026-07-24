@@ -1,0 +1,12 @@
+query GetWorldIdAnalyticsActionTotal($action_id: String!, $source: String!) {
+  action_verification_stats_total_by_pk(
+    action_id: $action_id
+    source: $source
+    environment: "production"
+  ) {
+    verifications
+    unique_verifications
+    repeated_verifications
+    latest_verification_at
+  }
+}

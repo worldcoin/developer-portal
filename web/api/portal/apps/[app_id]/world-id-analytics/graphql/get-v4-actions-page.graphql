@@ -1,0 +1,22 @@
+query GetWorldIdAnalyticsV4ActionsPage(
+  $where: action_v4_bool_exp!
+  $limit: Int!
+  $offset: Int!
+) {
+  action_v4(
+    where: $where
+    order_by: [{ created_at: desc }, { id: desc }]
+    limit: $limit
+    offset: $offset
+  ) {
+    id
+    action
+    description
+    created_at
+  }
+  action_v4_aggregate(where: $where) {
+    aggregate {
+      count
+    }
+  }
+}

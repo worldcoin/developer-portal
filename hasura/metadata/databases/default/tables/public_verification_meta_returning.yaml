@@ -1,0 +1,11 @@
+table:
+  name: verification_meta_returning
+  schema: public
+select_permissions:
+  - role: service
+    permission:
+      columns:
+        - key
+        - timestamp_value
+      filter: {}
+    comment: Returning shape of verification_analytics_meta.

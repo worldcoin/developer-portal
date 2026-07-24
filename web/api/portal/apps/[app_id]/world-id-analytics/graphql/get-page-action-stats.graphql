@@ -1,0 +1,18 @@
+query GetWorldIdAnalyticsPageActionStats(
+  $action_ids: [String!]!
+  $source: String!
+) {
+  action_verification_stats_total(
+    where: {
+      action_id: { _in: $action_ids }
+      source: { _eq: $source }
+      environment: { _eq: "production" }
+    }
+  ) {
+    action_id
+    verifications
+    unique_verifications
+    repeated_verifications
+    latest_verification_at
+  }
+}
