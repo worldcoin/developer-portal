@@ -13,7 +13,7 @@ import { useMeQuery } from "@/scenes/common/me-query/client";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { usePathname, useRouter } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import * as yup from "yup";
@@ -42,7 +42,6 @@ export const DeleteTeamDialog = (props: DeleteTeamDialogProps) => {
   const router = useRouter();
   const path = usePathname();
   const { user: auth0User } = useUser() as Auth0SessionUser;
-  const [deleteFinished, setDeleteFinished] = useState(false);
 
   const {
     register,
@@ -56,12 +55,13 @@ export const DeleteTeamDialog = (props: DeleteTeamDialogProps) => {
 
   const onClose = useCallback(() => {
     reset();
-    setDeleteFinished(false);
     props.onClose(false);
-  }, [props, reset, setDeleteFinished]);
+  }, [props, reset]);
 
-  const { user, loading, refetch } = useMeQuery();
+  const { refetch } = useMeQuery();
 
+  // Navigation runs here, not in an effect: the session update can unmount
+  // the dialog mid-flight (settings page drops it once canWrite flips)
   const submit = useCallback(async () => {
     if (!team?.id || !auth0User?.hasura?.id) {
       return toast.error("Error deleting team. Try again later");
@@ -70,43 +70,39 @@ export const DeleteTeamDialog = (props: DeleteTeamDialogProps) => {
     try {
       const result = await deleteTeamServerSide(team.id);
 
-      if (result.success) {
-        await refetch();
-        toast.success("Team deleted!");
-        setDeleteFinished(true);
-      } else {
-        toast.error(result.message || "Error deleting team");
+      if (!result.success) {
+        return toast.error(result.message || "Error deleting team");
       }
+
+      if (!result.sessionUpdated) {
+        // Fallback sync — the cookie must be correct before the refresh below
+        await fetch("/api/update-session", { method: "POST" }).catch(
+          () => null,
+        );
+      }
+
+      const { data } = await refetch();
+      toast.success("Team deleted!");
+
+      const memberships = data?.user_by_pk?.memberships;
+      if (memberships && memberships.length === 0) {
+        return router.push(urls.createTeam());
+      }
+
+      // The action already rewrote the session cookie; re-render the
+      // session-fed sidebar from it
+      router.refresh();
+
+      if (path !== urls.profileTeams()) {
+        return router.push(urls.profileTeams());
+      }
+
+      onClose();
     } catch (e) {
       console.error("Delete Team Dialog: ", e);
       toast.error("Error deleting team");
     }
-  }, [team?.id, auth0User?.hasura?.id, refetch]);
-
-  useEffect(() => {
-    if (!deleteFinished || loading) {
-      return;
-    }
-
-    const membershipsCount = user.memberships?.length;
-
-    if (typeof membershipsCount === "number" && membershipsCount === 0) {
-      return router.push(urls.createTeam());
-    }
-
-    if (path !== urls.profileTeams()) {
-      return router.push(urls.profileTeams());
-    }
-
-    onClose();
-  }, [
-    deleteFinished,
-    loading,
-    onClose,
-    path,
-    router,
-    user.memberships?.length,
-  ]);
+  }, [team?.id, auth0User?.hasura?.id, refetch, router, path, onClose]);
 
   return (
     <Dialog {...props} onClose={onClose}>
