@@ -1,14 +1,13 @@
 export enum AdminHasuraRole {
   Readonly = "internal_dashboard_readonly",
-  Write = "internal_dashboard_write",
 }
 
 /**
- * Provider-neutral dashboard access levels.
+ * Provider-neutral dashboard access levels. The read-level role may perform
+ * the intentionally low-stakes sandbox invite acknowledgement.
  */
 export enum DashboardAccessLevel {
   Read = "read",
-  Write = "write",
 }
 
 export const isDashboardAccessLevel = (

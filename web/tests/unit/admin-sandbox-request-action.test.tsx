@@ -36,7 +36,6 @@ jest.mock("@/components/DecoratedButton", () => ({
 jest.mock(
   "@/scenes/Admin/sandbox-requests/server/fetch-sandbox-requests",
   () => ({
-    SANDBOX_REQUESTS_LIMIT: 200,
     fetchSandboxAccessRequests: (...args: unknown[]) =>
       fetchSandboxAccessRequests(...args),
   }),
@@ -101,12 +100,8 @@ describe("ApproveSandboxRequestButton", () => {
 
 // #region Admin request table
 describe("AdminSandboxRequestsPage", () => {
-  it("renders Approve in the pending request's Action column for writers", async () => {
-    render(
-      await AdminSandboxRequestsPage({
-        canApproveRequests: true,
-      }),
-    );
+  it("renders Approve in a pending request's Action column", async () => {
+    render(await AdminSandboxRequestsPage());
 
     const requestRow = screen.getByText("tester@example.com").closest("tr");
     expect(requestRow).not.toBeNull();
@@ -133,11 +128,7 @@ describe("AdminSandboxRequestsPage", () => {
       pendingCount: 0,
     });
 
-    render(
-      await AdminSandboxRequestsPage({
-        canApproveRequests: true,
-      }),
-    );
+    render(await AdminSandboxRequestsPage());
 
     const requestRow = screen.getByText("tester@example.com").closest("tr");
     expect(requestRow).not.toBeNull();

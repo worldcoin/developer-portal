@@ -1,10 +1,7 @@
 import { EmptyState } from "@/components/AdminDashboard/common/EmptyState";
 import { UIModule } from "@/components/AdminDashboard/UIModule";
 import clsx from "clsx";
-import {
-  SANDBOX_REQUESTS_LIMIT,
-  fetchSandboxAccessRequests,
-} from "./server/fetch-sandbox-requests";
+import { fetchSandboxAccessRequests } from "./server/fetch-sandbox-requests";
 import { ApproveSandboxRequestButton } from "./ApproveSandboxRequestButton";
 
 const formatDate = (isoDate: string) => isoDate.slice(0, 10);
@@ -27,9 +24,7 @@ const StatusBadge = ({ accepted }: { accepted: boolean }) => (
  * request after granting access in Play Console; accepted is never
  * user-controlled.
  */
-export const AdminSandboxRequestsPage = async (props: {
-  canApproveRequests: boolean;
-}) => {
+export const AdminSandboxRequestsPage = async () => {
   const { requests, totalCount, pendingCount } =
     await fetchSandboxAccessRequests();
 
@@ -113,10 +108,8 @@ export const AdminSandboxRequestsPage = async (props: {
                   <td className="px-3 py-2.5">
                     {request.accepted ? (
                       <span className="text-grey-400">Approved</span>
-                    ) : props.canApproveRequests ? (
-                      <ApproveSandboxRequestButton requestId={request.id} />
                     ) : (
-                      <span className="text-grey-400">Read only</span>
+                      <ApproveSandboxRequestButton requestId={request.id} />
                     )}
                   </td>
                 </tr>
@@ -124,12 +117,6 @@ export const AdminSandboxRequestsPage = async (props: {
             </tbody>
           </table>
         )}
-        {totalCount > SANDBOX_REQUESTS_LIMIT ? (
-          <p className="mt-3 text-12 text-grey-500">
-            Showing the {SANDBOX_REQUESTS_LIMIT} most recent of {totalCount}{" "}
-            requests.
-          </p>
-        ) : null}
       </UIModule>
     </div>
   );

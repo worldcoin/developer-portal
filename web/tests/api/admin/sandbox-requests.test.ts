@@ -5,10 +5,6 @@ const authenticateAdminRequest = jest.fn();
 const MarkSandboxInviteSent = jest.fn();
 
 jest.mock("@/lib/admin-auth", () => ({
-  AdminHasuraRole: {
-    Readonly: "internal_dashboard_readonly",
-    Write: "internal_dashboard_write",
-  },
   authenticateAdminRequest: (...args: unknown[]) =>
     authenticateAdminRequest(...args),
 }));
@@ -35,7 +31,7 @@ import { POST } from "@/api/admin/sandbox-requests/[id]/accept";
 const REQUEST_ID = "sbxreq_abc123";
 const admin = {
   email: "admin@example.com",
-  role: "internal_dashboard_write",
+  role: "internal_dashboard_readonly",
   subject: "admin-subject",
 };
 
@@ -79,19 +75,7 @@ describe("POST /api/admin/sandbox-requests/[id]/accept", () => {
     expect(MarkSandboxInviteSent).not.toHaveBeenCalled();
   });
 
-  it("returns 403 for a read-only dashboard user", async () => {
-    authenticateAdminRequest.mockResolvedValue({
-      ...admin,
-      role: "internal_dashboard_readonly",
-    });
-
-    const response = await POST(createRequest(), createContext());
-
-    expect(response.status).toBe(403);
-    expect(MarkSandboxInviteSent).not.toHaveBeenCalled();
-  });
-
-  it("approves a pending request", async () => {
+  it("allows an authenticated dashboard reader to approve a pending request", async () => {
     const response = await POST(createRequest(), createContext());
 
     expect(response.status).toBe(200);

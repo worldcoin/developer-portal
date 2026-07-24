@@ -1,5 +1,5 @@
-query FetchSandboxAccessRequests($limit: Int!) {
-  sandbox_access_request(order_by: { created_at: desc }, limit: $limit) {
+query FetchSandboxAccessRequests {
+  sandbox_access_request(order_by: { created_at: desc }) {
     id
     google_email
     user_id

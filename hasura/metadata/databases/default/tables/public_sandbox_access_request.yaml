@@ -37,7 +37,9 @@ select_permissions:
         - processed_at
       filter: {}
 update_permissions:
-  - role: internal_dashboard_sandbox_writer
+  # Marking a sandbox invite as sent is a low-stakes operational update, so
+  # every authenticated dashboard user may process these requests.
+  - role: internal_dashboard_readonly
     permission:
       columns:
         - accepted
