@@ -3,7 +3,7 @@ import { use } from "react";
 import { ErrorPage } from "@/components/ErrorPage";
 import { SizingWrapper } from "@/components/SizingWrapper";
 import { isLegacyActionsEditableForTeam } from "@/lib/feature-flags/world-id-4-0/common";
-import Skeleton from "react-loading-skeleton";
+import { SkeletonCard, SkeletonForm } from "@/components/Skeletons";
 import { useQuery } from "@apollo/client/react";
 import { TryAction } from "../TryAction";
 import { UpdateActionForm } from "../UpdateAction";
@@ -39,7 +39,7 @@ export const ActionIdSettingsPage = (props: ActionIdSettingsPageProps) => {
       <SizingWrapper gridClassName="pt-6 pb-6 md:pb-10">
         <div className="grid w-full grid-cols-1 items-start justify-between gap-x-32 gap-y-10 md:grid-cols-1fr/auto">
           {loading ? (
-            <Skeleton count={4} />
+            <SkeletonForm count={4} className="w-full max-w-[580px]" />
           ) : (
             // Only possible if action is defined
             <UpdateActionForm
@@ -50,7 +50,7 @@ export const ActionIdSettingsPage = (props: ActionIdSettingsPageProps) => {
           )}
 
           {loading ? (
-            <Skeleton className="md:w-[480px]" height={400} />
+            <SkeletonCard className="h-[400px] md:w-[480px]" lines={3} />
           ) : (
             <TryAction
               action={action!}

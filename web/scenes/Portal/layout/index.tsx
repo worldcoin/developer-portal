@@ -1,6 +1,6 @@
+import { auth0 } from "@/lib/auth0";
 import { calculateColorFromString } from "@/lib/calculate-color-from-string";
 import { Auth0SessionUser } from "@/lib/types";
-import { auth0 } from "@/lib/auth0";
 import { ReactNode } from "react";
 import { Header } from "./Header";
 

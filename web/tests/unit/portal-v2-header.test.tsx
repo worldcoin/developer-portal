@@ -25,6 +25,10 @@ jest.mock("@/scenes/Portal/layout/CreateAppDialog/index-v4", () => ({
   CreateAppDialogV4: () => null,
 }));
 
+jest.mock("@/scenes/PortalV3/layout/Shell/SandboxButton", () => ({
+  SandboxButton: () => <button>World ID Sandbox</button>,
+}));
+
 import { Header } from "@/scenes/Portal/layout/Header";
 // #endregion
 
@@ -54,6 +58,30 @@ describe("v2 Header [World logo routing]", () => {
       "href",
       "/",
     );
+  });
+});
+// #endregion
+
+// #region Sandbox button
+describe("v2 Header [sandbox button]", () => {
+  it("shows the sandbox button on a team route", () => {
+    useParams.mockReturnValue({ teamId: "team_1" });
+
+    render(<Header color={null} />);
+
+    expect(
+      screen.getByRole("button", { name: "World ID Sandbox" }),
+    ).toBeInTheDocument();
+  });
+
+  it("shows the sandbox button outside a team route", () => {
+    useParams.mockReturnValue({});
+
+    render(<Header color={null} />);
+
+    expect(
+      screen.getByRole("button", { name: "World ID Sandbox" }),
+    ).toBeInTheDocument();
   });
 });
 // #endregion

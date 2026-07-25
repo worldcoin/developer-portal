@@ -10,6 +10,10 @@ import { useMemo } from "react";
 import { FetchAppsQuery } from "@/scenes/common/Teams/TeamId/Team/page/Apps/graphql/client/fetch-apps.generated";
 import { AppLogo } from "./AppLogo";
 
+/** Card geometry, shared with the loading skeleton. */
+export const appCardFrameClassName =
+  "relative grid justify-center justify-items-center gap-y-4 rounded-20 border border-grey-200 px-8 pt-10 pb-6";
+
 export const App = (props: { app: FetchAppsQuery["app"][number] }) => {
   const { teamId } = useParams() as { teamId: string };
   const app = useMemo(() => props.app, [props.app]);
@@ -23,7 +27,7 @@ export const App = (props: { app: FetchAppsQuery["app"][number] }) => {
   return (
     <Button
       href={urls.app({ team_id: teamId, app_id: app.id })}
-      className="relative grid justify-center justify-items-center gap-y-4 rounded-20 border border-grey-200 px-8 pt-10 pb-6 transition-colors hover:border-blue-500"
+      className={`${appCardFrameClassName} transition-colors hover:border-blue-500`}
     >
       <AppStatus
         status={metadata.verification_status as StatusVariant}

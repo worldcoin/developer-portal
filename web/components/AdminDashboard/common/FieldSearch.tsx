@@ -181,7 +181,7 @@ export const FieldSearch = ({
         value={searchValue}
       />
       <div
-        className="fixed inset-auto [top:anchor(bottom)] [left:anchor(left)] m-0 mt-1 w-96 rounded-12 border border-grey-200 bg-grey-0 p-1 shadow-lg backdrop:bg-transparent"
+        className="fixed inset-auto top-[anchor(bottom)] left-[anchor(left)] m-0 mt-1 max-h-[min(24rem,calc(100dvh-anchor(bottom)-0.75rem))] w-80 max-w-[calc(100vw-1.5rem)] overflow-x-hidden overflow-y-auto rounded-12 border border-grey-200 bg-grey-0 p-1 shadow-lg backdrop:bg-transparent"
         id={popoverId}
         popover="manual"
         ref={popoverRef}
@@ -195,21 +195,29 @@ export const FieldSearch = ({
           {fields.map((field) => {
             const snippet =
               field.type === "string" ? `${field.field}:` : `${field.field}>=`;
+            const examples = field.examples.join(" · ");
 
             return (
               <button
-                className="grid grid-cols-[5rem_1fr] items-start gap-3 rounded-8 px-2.5 py-2 text-left transition-colors outline-none hover:bg-grey-100 focus-visible:ring-2 focus-visible:ring-blue-500"
+                aria-selected={false}
+                className="grid w-full min-w-0 grid-cols-[minmax(0,11rem)_minmax(0,1fr)] items-center gap-3 rounded-8 px-2.5 py-2 text-left transition-colors outline-none hover:bg-grey-100 focus-visible:ring-2 focus-visible:ring-blue-500"
                 key={field.field}
                 onClick={() => insertSnippet(snippet)}
                 onMouseDown={(event) => event.preventDefault()}
                 role="option"
                 type="button"
               >
-                <span className="font-mono text-12 font-medium text-grey-900">
+                <span
+                  className="truncate font-mono text-12 font-medium text-grey-900"
+                  title={field.field}
+                >
                   {field.field}
                 </span>
-                <span className="min-w-0 text-12 text-grey-500">
-                  {field.examples.join(" · ")}
+                <span
+                  className="min-w-0 truncate text-12 text-grey-500"
+                  title={examples}
+                >
+                  {examples}
                 </span>
               </button>
             );
