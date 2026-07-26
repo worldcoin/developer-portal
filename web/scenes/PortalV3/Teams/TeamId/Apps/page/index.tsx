@@ -1,4 +1,5 @@
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
+import { Role_Enum } from "@/graphql/graphql";
 import { auth0 } from "@/lib/auth0";
 import { Auth0SessionUser } from "@/lib/types";
 import { urls } from "@/lib/urls";
@@ -38,5 +39,13 @@ export const AppsPage = async (props: AppsPageProps) => {
     return redirect(`/teams/${teamId}/apps/${app[0].id}/world-id-4-0`);
   }
 
-  return <AppsPageClient teamId={teamId} />;
+  return (
+    <AppsPageClient
+      teamId={teamId}
+      initialIsOwner={memberships.some(
+        (membership) =>
+          membership.team?.id === teamId && membership.role === Role_Enum.Owner,
+      )}
+    />
+  );
 };
