@@ -1,6 +1,6 @@
 /** @jest-environment jsdom */
 import "@testing-library/jest-dom";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import { AppsPageClient } from "@/scenes/PortalV3/Teams/TeamId/Apps/page/AppsPageClient";
 import { Role_Enum } from "@/graphql/graphql";
 
@@ -79,6 +79,18 @@ jest.mock("next/navigation", () => ({
   usePathname: () => "/teams/team_1/apps",
   useParams: () => ({ teamId: "team_1" }),
 }));
+
+// The return-path app check. fetchAppsMock is module-level so every render
+// gets the same execute identity -- the component's effect depends on it.
+const fetchAppsMock = jest.fn();
+const useLazyQueryMock = jest.fn();
+jest.mock("@apollo/client/react", () => ({
+  useLazyQuery: (...args: unknown[]) => useLazyQueryMock(...args),
+}));
+jest.mock(
+  "@/scenes/common/layout/AppSelector/graphql/client/fetch-apps.generated",
+  () => ({ FetchAppsDocument: { __mockDoc: "fetchApps" } }),
+);
 // #endregion
 
 // #region Test Data
@@ -95,9 +107,30 @@ const createKeyButton = () =>
 const createKeyLink = () =>
   screen.queryByRole("link", { name: /create api key/i });
 
+const originalLocation = window.location;
+const locationReplace = jest.fn();
+
 beforeEach(() => {
   jest.clearAllMocks();
   mockSession = sessionWithRole(Role_Enum.Owner);
+  // Same array every render: a fresh tuple would re-run the return-path effect.
+  useLazyQueryMock.mockReturnValue([fetchAppsMock, { loading: false }]);
+  // A bare jest.fn() would hand checkForApp undefined to .catch and turn every
+  // key-dialog close in the older regions into an unhandled rejection.
+  fetchAppsMock.mockResolvedValue({ data: { app: [] } });
+  Object.defineProperty(window, "location", {
+    value: { replace: locationReplace },
+    writable: true,
+    configurable: true,
+  });
+});
+
+afterEach(() => {
+  Object.defineProperty(window, "location", {
+    value: originalLocation,
+    writable: true,
+    configurable: true,
+  });
 });
 // #endregion
 
@@ -243,5 +276,150 @@ describe("AppsPageClient MCP card [unresolved session]", () => {
       expect(screen.getByTestId("button-create-new-app")).toBeInTheDocument();
     },
   );
+});
+// #endregion
+
+// #region MCP return path
+// The first app can be created out-of-band (MCP) while the user sits on this
+// page, and the redirect to it lives server-side only -- these triggers are
+// the page's sole way to ever learn the app exists.
+describe("AppsPageClient [MCP return path]", () => {
+  const APP_RESULT = { data: { app: [{ id: "app_123" }] } };
+
+  beforeEach(() => {
+    // Modern fake timers patch Date.now, which drives the throttle.
+    jest.useFakeTimers();
+    Object.defineProperty(document, "visibilityState", {
+      value: "visible",
+      configurable: true,
+    });
+  });
+
+  afterEach(() => {
+    jest.clearAllTimers();
+    jest.useRealTimers();
+    jest.restoreAllMocks();
+  });
+
+  const tabReturn = async () => {
+    await act(async () => {
+      fireEvent(document, new Event("visibilitychange"));
+    });
+  };
+
+  it("configures the app check to bypass the cache", () => {
+    render(<AppsPageClient teamId="team_1" />);
+
+    // cache-first would re-serve this page's own zero-app answer forever --
+    // the exact silent staleness under test.
+    expect(useLazyQueryMock).toHaveBeenCalledWith(
+      { __mockDoc: "fetchApps" },
+      { fetchPolicy: "network-only" },
+    );
+    // Mount alone must not fire a check; the server just answered "zero".
+    expect(fetchAppsMock).not.toHaveBeenCalled();
+  });
+
+  it("stays put when the tab returns and the team still has no apps", async () => {
+    render(<AppsPageClient teamId="team_1" />);
+
+    await tabReturn();
+
+    expect(fetchAppsMock).toHaveBeenCalledTimes(1);
+    expect(fetchAppsMock).toHaveBeenCalledWith({
+      variables: { teamId: "team_1" },
+    });
+    expect(locationReplace).not.toHaveBeenCalled();
+    expect(createKeyButton()).toBeInTheDocument();
+  });
+
+  it("hard-navigates to an app created out-of-band when the tab returns", async () => {
+    fetchAppsMock.mockResolvedValue(APP_RESULT);
+    render(<AppsPageClient teamId="team_1" />);
+
+    await tabReturn();
+
+    expect(locationReplace).toHaveBeenCalledWith("/teams/team_1/apps/app_123");
+    // Hard nav by design: a router.push would keep the session-rendered shell
+    // (apps dropdown, sidebar) stale.
+    expect(push).not.toHaveBeenCalled();
+  });
+
+  it("collapses the visibilitychange+focus double-fire into one check", async () => {
+    render(<AppsPageClient teamId="team_1" />);
+
+    // Chrome fires both events on one tab return.
+    await act(async () => {
+      fireEvent(document, new Event("visibilitychange"));
+      fireEvent(window, new Event("focus"));
+    });
+    expect(fetchAppsMock).toHaveBeenCalledTimes(1);
+
+    // A later, genuine return checks again once the throttle lapses.
+    await act(async () => {
+      jest.advanceTimersByTime(1_001);
+    });
+    await act(async () => {
+      fireEvent(window, new Event("focus"));
+    });
+    expect(fetchAppsMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("suppresses checks while the key secret is on screen and checks on close", async () => {
+    fetchAppsMock.mockResolvedValue(APP_RESULT);
+    render(<AppsPageClient teamId="team_1" />);
+
+    fireEvent.click(createKeyButton()!);
+    await act(async () => {
+      fireEvent(window, new Event("focus"));
+      fireEvent(document, new Event("visibilitychange"));
+    });
+
+    // Navigating now would destroy the one-shot secret.
+    expect(fetchAppsMock).not.toHaveBeenCalled();
+    expect(locationReplace).not.toHaveBeenCalled();
+
+    // The likeliest MCP sequence ends here: the agent created the app while
+    // the secret was on screen, so the close is the last signal there is.
+    await act(async () => {
+      fireEvent.click(screen.getByTestId("close-key-dialog"));
+    });
+
+    expect(fetchAppsMock).toHaveBeenCalledTimes(1);
+    expect(locationReplace).toHaveBeenCalledWith("/teams/team_1/apps/app_123");
+  });
+
+  it("ignores a visibilitychange that fires while the tab is hidden", async () => {
+    render(<AppsPageClient teamId="team_1" />);
+
+    Object.defineProperty(document, "visibilityState", {
+      value: "hidden",
+      configurable: true,
+    });
+    await tabReturn();
+
+    expect(fetchAppsMock).not.toHaveBeenCalled();
+  });
+
+  it("removes both listeners on unmount", () => {
+    const docAdd = jest.spyOn(document, "addEventListener");
+    const docRemove = jest.spyOn(document, "removeEventListener");
+    const winAdd = jest.spyOn(window, "addEventListener");
+    const winRemove = jest.spyOn(window, "removeEventListener");
+
+    const view = render(<AppsPageClient teamId="team_1" />);
+
+    const visHandler = docAdd.mock.calls.find(
+      ([type]) => type === "visibilitychange",
+    )![1];
+    const focusHandler = winAdd.mock.calls.find(
+      ([type]) => type === "focus",
+    )![1];
+
+    view.unmount();
+
+    expect(docRemove).toHaveBeenCalledWith("visibilitychange", visHandler);
+    expect(winRemove).toHaveBeenCalledWith("focus", focusHandler);
+  });
 });
 // #endregion
