@@ -1,6 +1,7 @@
 "use client";
 
 import { urls } from "@/lib/urls";
+import { useCreateTeamDialog } from "@/scenes/Onboarding/CreateTeam/useCreateTeamDialog";
 import { Icon, opticalIconClassName } from "@/scenes/PortalV3/common/Icon";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { useParams, useRouter } from "next/navigation";
@@ -37,6 +38,7 @@ const TeamsDropdownRow = (props: {
 
 export const TeamsDropdown = (props: { teams: DropdownTeam[] }) => {
   const router = useRouter();
+  const { open: openCreateTeamDialog } = useCreateTeamDialog();
   const { teams } = props;
   const { teamId } = useParams<{ teamId?: string }>();
   const currentTeam = teams.find((t) => t.id === teamId);
@@ -89,7 +91,7 @@ export const TeamsDropdown = (props: { teams: DropdownTeam[] }) => {
               ))}
               <Icon name="generic-divider" className="h-2 w-full shrink-0" />
               <DropdownMenu.Item
-                onSelect={() => router.push(urls.createTeam())}
+                onSelect={openCreateTeamDialog}
                 className="flex h-12 w-full cursor-pointer items-center gap-2 rounded-8 bg-white px-4 py-2 font-world text-13 leading-[1.2] font-medium text-portal-text outline-hidden data-highlighted:bg-grey-50"
               >
                 <Icon
