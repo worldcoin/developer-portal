@@ -176,10 +176,12 @@ export const SidebarNav = (props: {
         ) : null}
       </div>
 
-      <SandboxButton
-        className="mt-6 w-full"
-        initialRequest={props.initialSandboxRequest}
-      />
+      <div className="mt-auto pt-6 pb-3">
+        <SandboxButton
+          className="-ml-1 w-[calc(100%_+_8px)]"
+          initialRequest={props.initialSandboxRequest}
+        />
+      </div>
     </nav>
   );
 };
