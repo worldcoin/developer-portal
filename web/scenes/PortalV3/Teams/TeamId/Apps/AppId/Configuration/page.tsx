@@ -13,6 +13,8 @@ import { checkUserPermissions } from "@/lib/utils";
 import { FetchAppMetadataQuery } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/graphql/client/fetch-app-metadata.generated";
 import { useRemoveFromReview } from "@/scenes/common/Teams/TeamId/Apps/common/hooks/use-remove-from-review";
 import { useUser } from "@auth0/nextjs-auth0/client";
+import { NetworkStatus } from "@apollo/client";
+import { useApolloClient, useQuery } from "@apollo/client/react";
 import clsx from "clsx";
 import { useAtom } from "jotai";
 import { useParams } from "next/navigation";
@@ -25,6 +27,7 @@ import {
   useState,
 } from "react";
 import Skeleton from "react-loading-skeleton";
+import { toast } from "react-toastify";
 import {
   AppStoreForm,
   AvailabilityFields,
@@ -40,7 +43,6 @@ import {
 import { BasicInformation, BasicInformationHandle } from "./BasicInformation";
 import { AppStoreActions } from "./AppStoreActions";
 import { MiniAppConfiguration } from "./MiniAppConfiguration";
-import { useQuery } from "@apollo/client/react";
 import { FetchAppMetadataDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/graphql/client/fetch-app-metadata.generated";
 import { FetchLocalisationsDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/AppStore/graphql/client/fetch-localisations.generated";
 import { AppIconBox } from "./PageComponents/AppIconBox";
@@ -56,7 +58,11 @@ import { NumberedSection } from "./PageComponents/NumberedSection";
 import { RejectionBanner } from "./RejectionBanner";
 import { ResolveModal } from "./ResolveModal";
 import { LivePreview } from "./LivePreview";
-import { SaveStatusIndicator, SaveStatusProvider } from "./SaveStatus";
+import {
+  SaveStatusIndicator,
+  SaveStatusProvider,
+  useSaveStatusActions,
+} from "./SaveStatus";
 import { useCreateNewDraft } from "./hook/use-create-new-draft";
 import { isMiniAppAtom, viewModeAtom } from "./layout/ImagesProvider";
 
@@ -72,6 +78,9 @@ type ConfigurationContentProps = {
   teamName: string;
   activeStep: AppStoreWizardStep;
   setActiveStep: (step: AppStoreWizardStep) => void;
+  prepareVersionSwitch: (
+    targetViewMode: "unverified" | "verified",
+  ) => Promise<void>;
 };
 
 const stepActionClassName =
@@ -133,6 +142,9 @@ const ActionsFooter = ({
   steps,
   activeStep,
   onStepChange,
+  prepareVersionSwitch,
+  isSwitchingVersion,
+  setIsSwitchingVersion,
 }: {
   app: FetchAppMetadataQuery["app"][0];
   appMetadata: ConfigurationContentProps["appMetadata"];
@@ -143,8 +155,12 @@ const ActionsFooter = ({
   steps: ReturnType<typeof getAppStoreWizardSteps>;
   activeStep: AppStoreWizardStep;
   onStepChange: (step: AppStoreWizardStep) => void;
+  prepareVersionSwitch: ConfigurationContentProps["prepareVersionSwitch"];
+  isSwitchingVersion: boolean;
+  setIsSwitchingVersion: (isSwitching: boolean) => void;
 }) => {
   const [viewMode, setViewMode] = useAtom(viewModeAtom);
+  const saveStatus = useSaveStatusActions();
   const { user } = useUser() as Auth0SessionUser;
   const hasDraft = app.app_metadata.length > 0;
   const hasVerified = app.verified_app_metadata.length > 0;
@@ -181,13 +197,46 @@ const ActionsFooter = ({
   // Verified view without a draft: only Owner/Admin may create one.
   const showVersionAction =
     hasVerified && (!isVerifiedView || hasDraft || canManageDraft);
+
+  const switchVersion = useCallback(
+    async (targetViewMode: "unverified" | "verified") => {
+      if (isSwitchingVersion) return;
+
+      setIsSwitchingVersion(true);
+      try {
+        if (!saveStatus) {
+          throw new Error("Save status is unavailable");
+        }
+        const flushed = await saveStatus.flushAll();
+        if (!flushed) {
+          toast.error(
+            "Some changes could not be saved. Fix any errors and try again.",
+          );
+          setIsSwitchingVersion(false);
+          return;
+        }
+
+        await prepareVersionSwitch(targetViewMode);
+        // This remounts the keyed form with the destination row that was just
+        // refreshed. The current footer unmounts, so no local loading reset is
+        // needed on the success path.
+        setViewMode(targetViewMode);
+      } catch (error) {
+        console.error("Failed to switch app version", error);
+        toast.error("Could not load that app version. Please try again.");
+        setIsSwitchingVersion(false);
+      }
+    },
+    [isSwitchingVersion, prepareVersionSwitch, saveStatus, setViewMode],
+  );
+
   return (
     // Three equal tracks so the version switch sits dead-center regardless
     // of how wide the Back or primary clusters are.
     <div className="grid shrink-0 grid-cols-[1fr_auto_1fr] items-center gap-3 py-3 lg:mr-6">
       <button
         type="button"
-        disabled={!previousStep}
+        disabled={!previousStep || isSwitchingVersion}
         className={clsx(secondaryStepActionClassName, "justify-self-start")}
         onClick={() => {
           if (previousStep) onStepChange(previousStep.id);
@@ -203,15 +252,15 @@ const ActionsFooter = ({
         {showVersionAction && (
           <button
             type="button"
-            disabled={isCreating}
+            disabled={isCreating || isSwitchingVersion}
             className={secondaryStepActionClassName}
             onClick={() => {
               if (!isVerifiedView) {
-                setViewMode("verified");
+                void switchVersion("verified");
                 return;
               }
               if (hasDraft) {
-                setViewMode("unverified");
+                void switchVersion("unverified");
               } else {
                 // The draft hook flips the view after the new row lands.
                 void createNewDraft();
@@ -250,6 +299,7 @@ const ActionsFooter = ({
             variant="secondary"
             className="ml-2 h-9 shrink-0 px-3 py-1.5"
             loading={isUnsubmitting}
+            disabled={isSwitchingVersion}
             onClick={removeFromReview}
           >
             <Typography variant={TYPOGRAPHY.M4} className="whitespace-nowrap">
@@ -269,6 +319,7 @@ const ActionsFooter = ({
           basicInfoRef={basicInfoRef}
           onValidationError={onValidationError}
           className={clsx(primaryStepActionClassName, "ml-2")}
+          disabled={isSwitchingVersion}
         />
       </div>
     </div>
@@ -285,9 +336,11 @@ const ConfigurationContent = ({
   teamName,
   activeStep,
   setActiveStep,
+  prepareVersionSwitch,
 }: ConfigurationContentProps) => {
   const basicInfoRef = useRef<BasicInformationHandle>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [isSwitchingVersion, setIsSwitchingVersion] = useState(false);
   const [optimisticIsMiniApp, setOptimisticIsMiniApp] = useAtom(isMiniAppAtom);
   const [modeMetadataId, setModeMetadataId] = useState<string | null>(null);
   const isMiniApp =
@@ -340,6 +393,9 @@ const ConfigurationContent = ({
       <div className="flex min-h-0 min-w-0 flex-col">
         <div
           ref={scrollContainerRef}
+          data-testid="configuration-form-content"
+          inert={isSwitchingVersion}
+          aria-busy={isSwitchingVersion}
           className="grid min-w-0 content-start gap-y-6 pt-6 pb-6 lg:min-h-0 lg:flex-1 lg:overflow-y-auto lg:pr-6"
         >
           <AppStoreWizard
@@ -441,6 +497,9 @@ const ConfigurationContent = ({
           steps={steps}
           activeStep={activeStep}
           onStepChange={handleStepChange}
+          prepareVersionSwitch={prepareVersionSwitch}
+          isSwitchingVersion={isSwitchingVersion}
+          setIsSwitchingVersion={setIsSwitchingVersion}
         />
       </div>
 
@@ -460,6 +519,7 @@ export const AppProfilePage = ({ params }: AppProfilePageProps) => {
   const appId = (params?.appId || routeParams?.appId) as `app_${string}`;
   const teamId = (params?.teamId || routeParams?.teamId) as `team_${string}`;
   const [viewMode, setViewMode] = useAtom(viewModeAtom);
+  const apolloClient = useApolloClient();
   // Lives here — ABOVE the keyed AppStoreFormProvider — so a provider remount
   // (metadata row change / view switch mid-autosave) can't yank the user back
   // to the first wizard step. Reset only when the route app changes; do not
@@ -476,6 +536,7 @@ export const AppProfilePage = ({ params }: AppProfilePageProps) => {
     data,
     loading: isMetadataLoading,
     error,
+    refetch: refetchMetadata,
   } = useQuery(FetchAppMetadataDocument, {
     variables: {
       id: appId,
@@ -508,23 +569,52 @@ export const AppProfilePage = ({ params }: AppProfilePageProps) => {
     }
   }, [app, setViewMode, viewMode]);
 
-  const { data: localisationsData, loading: isLocalisationsLoading } = useQuery(
-    FetchLocalisationsDocument,
-    {
-      variables: {
-        app_metadata_id: appMetadata?.id || "",
-      },
-      skip: !appMetadata?.id,
+  const {
+    data: localisationsData,
+    loading: isLocalisationsLoading,
+    networkStatus: localisationsNetworkStatus,
+  } = useQuery(FetchLocalisationsDocument, {
+    variables: {
+      app_metadata_id: appMetadata?.id || "",
     },
+    skip: !appMetadata?.id,
+  });
+
+  const prepareVersionSwitch = useCallback(
+    async (targetViewMode: "unverified" | "verified") => {
+      const refreshedResult = await refetchMetadata();
+      const refreshedApp = refreshedResult.data?.app[0] ?? app;
+      const targetMetadata =
+        targetViewMode === "verified"
+          ? refreshedApp?.verified_app_metadata[0]
+          : refreshedApp?.app_metadata[0];
+
+      if (!targetMetadata) {
+        throw new Error(`No ${targetViewMode} metadata row exists`);
+      }
+
+      // Populate the destination query's cache before changing viewMode. RHF
+      // consumes defaultValues only when its keyed provider mounts, so it must
+      // never mount with localisations from the row we are leaving.
+      await apolloClient.query({
+        query: FetchLocalisationsDocument,
+        variables: { app_metadata_id: targetMetadata.id },
+        fetchPolicy: "network-only",
+      });
+    },
+    [apolloClient, app, refetchMetadata],
   );
 
   const teamName = app?.team?.name ?? "";
   // A refetch keeps the previous Apollo data available. Reserve the full-page
   // skeleton for a cold load so background reconciliation does not unmount the
   // configuration form.
+  const isChangingLocalisationsRow =
+    localisationsNetworkStatus === NetworkStatus.setVariables;
   const isInitialLoading =
     (isMetadataLoading && !data) ||
-    (isLocalisationsLoading && !localisationsData);
+    (isLocalisationsLoading && !localisationsData) ||
+    isChangingLocalisationsRow;
   const [showResolveModal, setShowResolveModal] = useState(false);
 
   const isRejected = appMetadata?.verification_status === "changes_requested";
@@ -609,6 +699,7 @@ export const AppProfilePage = ({ params }: AppProfilePageProps) => {
             teamName={teamName}
             activeStep={activeStep}
             setActiveStep={setActiveStep}
+            prepareVersionSwitch={prepareVersionSwitch}
           />
         </SizingWrapper>
       </SaveStatusProvider>
