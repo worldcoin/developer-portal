@@ -1,6 +1,7 @@
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { Auth0SessionUser } from "@/lib/types";
 import { auth0 } from "@/lib/auth0";
+import { urls } from "@/lib/urls";
 import { redirect } from "next/navigation";
 import { AppsPageClient } from "./AppsPageClient";
 import { getSdk as getInitialAppSdk } from "./graphql/server/apps.generated";
@@ -28,8 +29,9 @@ export const AppsPage = async (props: AppPage) => {
   // If user tries to access another team's app, redirect to the their own.
   if (!memberships.find((m) => m.team?.id === teamId)) {
     const redirectTeamId = memberships[0]?.team?.id;
+    // No teams left (e.g. last one just deleted): send to onboarding instead of logging out.
     return redirect(
-      redirectTeamId ? `/teams/${redirectTeamId}/apps` : "/api/auth/logout",
+      redirectTeamId ? `/teams/${redirectTeamId}/apps` : urls.createTeam(),
     );
   }
 

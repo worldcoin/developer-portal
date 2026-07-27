@@ -17,6 +17,7 @@ import clsx from "clsx";
 import { useCallback, useMemo, useState } from "react";
 import { toast } from "react-toastify";
 import { ApiKeySecretModal } from "../../ApiKeySecretModal";
+import { RotateKeyModal } from "../RotateKeyModal";
 import { FetchKeysDocument } from "@/scenes/common/Teams/TeamId/Team/ApiKeys/page/graphql/client/fetch-keys.generated";
 import { Status } from "./Status";
 import { ResetApiKeyDocument } from "@/scenes/common/Teams/TeamId/Team/ApiKeys/page/ApiKeyTable/ApiKeyRow/graphql/client/reset-api-key.generated";
@@ -30,6 +31,7 @@ export const ApiKeyRow = (props: {
 }) => {
   const { apiKey, index, teamId, openViewDetails, openDeleteKeyModal } = props;
   const [resetKey, setResetKey] = useState<string | null>(null);
+  const [rotateOpen, setRotateOpen] = useState(false);
   const timeAgo = formatDistanceToNowStrict(new Date(apiKey.created_at), {
     addSuffix: true,
   });
@@ -45,9 +47,9 @@ export const ApiKeyRow = (props: {
   const [resetApiKeyMutation, { loading }] = useMutation(ResetApiKeyDocument);
 
   const resetAPIKey = useCallback(
-    async (apiKeyId: string) => {
+    async (apiKeyId: string): Promise<boolean> => {
       if (loading) {
-        return;
+        return false;
       }
 
       try {
@@ -63,15 +65,20 @@ export const ApiKeyRow = (props: {
           throw result;
         }
 
-        toast.success("API key was reset");
-
+        // The rotation already committed server-side and has no rollback, so a
+        // missing secret is not the same failure as the mutation not running.
         if (!result.data?.reset_api_key?.api_key) {
-          throw new Error("No API key returned");
+          throw new Error("ROTATED_WITHOUT_SECRET");
         }
 
+        toast.success("API key was reset");
         setResetKey(result.data.reset_api_key.api_key);
+        return true;
       } catch (error) {
-        let errorText = "Error occurred while resetting API key.";
+        let errorText =
+          error instanceof Error && error.message === "ROTATED_WITHOUT_SECRET"
+            ? "Key was rotated but the new secret could not be shown. Rotate again to get a new key."
+            : "Error occurred while resetting API key.";
 
         if (CombinedGraphQLErrors.is(error)) {
           for (let graphQLError of error.errors) {
@@ -85,6 +92,7 @@ export const ApiKeyRow = (props: {
         }
 
         toast.error(errorText);
+        return false;
       }
     },
     [loading, resetApiKeyMutation, teamId],
@@ -98,6 +106,16 @@ export const ApiKeyRow = (props: {
         onClose={() => setResetKey(null)}
         title="API Key"
         description="Your new API key is ready. Save it now because you won't be able to see it again."
+      />
+
+      <RotateKeyModal
+        isOpen={rotateOpen}
+        name={apiKey.name}
+        loading={loading}
+        setIsOpen={setRotateOpen}
+        onConfirm={async () => {
+          if (await resetAPIKey(apiKey.id)) setRotateOpen(false);
+        }}
       />
 
       <div
@@ -160,55 +178,53 @@ export const ApiKeyRow = (props: {
         </div>
 
         <div className="max-md:col-start-4 max-md:col-end-5 max-md:row-start-1 max-md:row-end-3 max-md:pl-2 md:table-cell md:border-b md:border-grey-200 md:pr-2 md:pl-4 md:align-middle">
-          <div
-            key={`api_key_${index}_5`}
-            className={clsx("flex w-full justify-end", {
-              hidden: !isEnoughPermissions,
-            })}
-          >
-            <Dropdown>
-              <Dropdown.Button>
-                <MoreVerticalIcon />
-              </Dropdown.Button>
+          {/* Every item here is OWNER-only in Hasura; don't ship dead DOM. */}
+          {isEnoughPermissions ? (
+            <div key={`api_key_${index}_5`} className="flex w-full justify-end">
+              <Dropdown>
+                <Dropdown.Button>
+                  <MoreVerticalIcon />
+                </Dropdown.Button>
 
-              <Dropdown.List align="end" heading={apiKey.name} hideBackButton>
-                <Dropdown.ListItem asChild>
-                  <button onClick={() => openViewDetails(apiKey)}>
-                    <Dropdown.ListItemIcon asChild>
-                      <EditIcon />
-                    </Dropdown.ListItemIcon>
+                <Dropdown.List align="end" heading={apiKey.name} hideBackButton>
+                  <Dropdown.ListItem asChild>
+                    <button onClick={() => openViewDetails(apiKey)}>
+                      <Dropdown.ListItemIcon asChild>
+                        <EditIcon />
+                      </Dropdown.ListItemIcon>
 
-                    <Dropdown.ListItemText>Edit Key</Dropdown.ListItemText>
-                  </button>
-                </Dropdown.ListItem>
+                      <Dropdown.ListItemText>Edit Key</Dropdown.ListItemText>
+                    </button>
+                  </Dropdown.ListItem>
 
-                <Dropdown.ListItem asChild>
-                  <button onClick={() => resetAPIKey(apiKey.id)}>
-                    <Dropdown.ListItemIcon asChild>
-                      <KeyIcon />
-                    </Dropdown.ListItemIcon>
+                  <Dropdown.ListItem asChild>
+                    <button onClick={() => setRotateOpen(true)}>
+                      <Dropdown.ListItemIcon asChild>
+                        <KeyIcon />
+                      </Dropdown.ListItemIcon>
 
-                    <Dropdown.ListItemText>Reset key</Dropdown.ListItemText>
-                  </button>
-                </Dropdown.ListItem>
+                      <Dropdown.ListItemText>Rotate key</Dropdown.ListItemText>
+                    </button>
+                  </Dropdown.ListItem>
 
-                <Dropdown.ListItem asChild>
-                  <button onClick={() => openDeleteKeyModal(apiKey)}>
-                    <Dropdown.ListItemIcon
-                      className="text-system-error-600"
-                      asChild
-                    >
-                      <TrashIcon />
-                    </Dropdown.ListItemIcon>
+                  <Dropdown.ListItem asChild>
+                    <button onClick={() => openDeleteKeyModal(apiKey)}>
+                      <Dropdown.ListItemIcon
+                        className="text-system-error-600"
+                        asChild
+                      >
+                        <TrashIcon />
+                      </Dropdown.ListItemIcon>
 
-                    <Dropdown.ListItemText className="text-system-error-600">
-                      Remove key
-                    </Dropdown.ListItemText>
-                  </button>
-                </Dropdown.ListItem>
-              </Dropdown.List>
-            </Dropdown>
-          </div>
+                      <Dropdown.ListItemText className="text-system-error-600">
+                        Remove key
+                      </Dropdown.ListItemText>
+                    </button>
+                  </Dropdown.ListItem>
+                </Dropdown.List>
+              </Dropdown>
+            </div>
+          ) : null}
         </div>
       </div>
     </>

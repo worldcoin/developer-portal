@@ -25,6 +25,9 @@ export const useMeQuery = () => {
   } = useQuery(FetchMeDocument, {
     variables: { userId: auth0User?.hasura?.id! },
     skip: !auth0User?.hasura?.id,
+    // Revalidate on mount: /create-team changes memberships outside Apollo
+    fetchPolicy: "cache-and-network",
+    nextFetchPolicy: "cache-first",
   });
 
   const updateSession = useCallback(async () => {

@@ -4,6 +4,7 @@ import { Button } from "@/components/Button";
 import { ErrorPage } from "@/components/ErrorPage";
 import { AlertIcon } from "@/components/Icons/AlertIcon";
 import { SizingWrapper } from "@/components/SizingWrapper";
+import { SkeletonForm } from "@/components/Skeletons";
 import { RpRegistrationStatus } from "@/lib/rp-registration-status";
 import { urls } from "@/lib/urls";
 import { BanMessageDialog } from "@/scenes/PortalV3/Teams/TeamId/Apps/common/BanMessageDialog";
@@ -22,8 +23,9 @@ import {
   useRef,
   useState,
 } from "react";
-import Skeleton from "react-loading-skeleton";
+import { ActionCardSkeleton } from "./ActionCard/Skeleton";
 import { ActionsGrid } from "./ActionsGrid";
+import { CreateActionTile } from "./ActionsGrid/CreateActionTile";
 import { RegisterRpEmptyState } from "./RegisterRpEmptyState";
 import { getSetupIntent } from "./setup-intent";
 import { WorldId40Pane } from "./WorldId40Pane";
@@ -67,6 +69,13 @@ export const WorldIdPage = (props: {
   const enableWorldId4Requested = searchParams.get("enableWorldId4") === "true";
   const createActionRequested = searchParams.get("createAction") === "true";
 
+  // Seeds useState below: the sync effect runs post-paint, so a deep link would
+  // otherwise paint Actions for one frame.
+  const requestedTab: WorldIdTab =
+    searchParams.get("tab") === "world-id-4-0" || enableWorldId4Requested
+      ? "world-id-4-0"
+      : "actions";
+
   const consumeSearchParams = useCallback(
     (...names: string[]) => {
       if (!names.some((name) => searchParams.has(name))) return;
@@ -81,11 +90,7 @@ export const WorldIdPage = (props: {
     [pathname, router, searchParams],
   );
 
-  const [tab, setTab] = useState<WorldIdTab>(
-    props.searchParams.tab === "world-id-4-0" || enableWorldId4Requested
-      ? "world-id-4-0"
-      : "actions",
-  );
+  const [tab, setTab] = useState<WorldIdTab>(requestedTab);
   const [createAfterSetup, setCreateAfterSetup] = useState(
     createActionRequested && props.canManageWorldId,
   );
@@ -93,6 +98,7 @@ export const WorldIdPage = (props: {
   const [reconciledRpStatus, setReconciledRpStatus] = useState<{
     rpId: string;
     status: RpRegistrationStatus;
+    serverStatus: unknown;
   } | null>(null);
 
   const selectTab = useCallback(
@@ -135,11 +141,6 @@ export const WorldIdPage = (props: {
     [selectTab],
   );
 
-  const requestedTab: WorldIdTab =
-    searchParams.get("tab") === "world-id-4-0" || enableWorldId4Requested
-      ? "world-id-4-0"
-      : "actions";
-
   useEffect(() => {
     setTab(requestedTab);
   }, [requestedTab]);
@@ -149,6 +150,8 @@ export const WorldIdPage = (props: {
     {
       variables: { app_id: appId },
       skip: !appId,
+      fetchPolicy: "cache-and-network",
+      nextFetchPolicy: "cache-first",
     },
   );
 
@@ -156,8 +159,11 @@ export const WorldIdPage = (props: {
   const rp = app?.rp_registration?.[0];
   const hasResolvedApp = Boolean(app);
   const hasRpRegistration = Boolean(rp);
+  // Optimistic status holds only until the server reports something new.
   const effectiveRpStatus =
-    reconciledRpStatus && reconciledRpStatus.rpId === rp?.rp_id
+    reconciledRpStatus &&
+    reconciledRpStatus.rpId === rp?.rp_id &&
+    reconciledRpStatus.serverStatus === rp?.status
       ? reconciledRpStatus.status
       : rp?.status;
   const hasActiveRp = effectiveRpStatus === RpRegistrationStatus.Registered;
@@ -210,19 +216,57 @@ export const WorldIdPage = (props: {
   const handleRpChanged = useCallback(
     (status?: RpRegistrationStatus) => {
       if (status && rp) {
-        setReconciledRpStatus({ rpId: rp.rp_id, status });
+        setReconciledRpStatus({
+          rpId: rp.rp_id,
+          status,
+          serverStatus: rp.status,
+        });
       }
       refetchOverview();
     },
     [refetchOverview, rp],
   );
 
-  if (loading) {
+  // RP/action changes land out-of-band (MCP, another tab); revalidate on return.
+  useEffect(() => {
+    if (!appId) return;
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState !== "visible") return;
+      refetchOverview();
+    };
+    const handleFocus = () => refetchOverview();
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    window.addEventListener("focus", handleFocus);
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("focus", handleFocus);
+    };
+  }, [appId, refetchOverview]);
+
+  // Skeletons are first-load only; a background refetch keeps `data`.
+  if (loading && !data) {
     return (
       <SizingWrapper className="flex flex-col gap-8 py-8">
-        <Skeleton height={76} className="rounded-[10px]" />
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          <Skeleton height={144} count={3} className="rounded-[10px]" />
+        <div className="flex flex-col gap-6">
+          <WorldIdTabs
+            tab={tab}
+            onTabChange={handleTabChange}
+            search={search}
+            onSearchChange={setSearch}
+          />
+
+          {tab === "actions" ? (
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {props.canManageWorldId ? <CreateActionTile /> : null}
+              <ActionCardSkeleton />
+              <ActionCardSkeleton />
+            </div>
+          ) : (
+            <SkeletonForm count={3} className="max-w-[580px] py-2" />
+          )}
         </div>
       </SizingWrapper>
     );
