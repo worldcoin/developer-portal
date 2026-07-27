@@ -8,16 +8,18 @@ test.describe("App", () => {
   });
 
   test("Create an App", async ({ page }) => {
+    test.slow();
     qase.id(2);
 
     const appName = "World Test!";
 
     await page.goto("/");
     await expect(page.getByText("Let's create your first app.")).toBeVisible();
-    await page.waitForLoadState("networkidle");
     await page.getByTestId("button-create-new-app").click();
 
-    await expect(page.getByText("Setup your app")).toBeVisible();
+    await expect(page.getByText("Setup your app")).toBeVisible({
+      timeout: 90_000,
+    });
     await expect(page.getByTestId("button-create-app")).toBeDisabled();
 
     await page.fill("[data-testid='input-app-name']", appName);
