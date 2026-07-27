@@ -13,7 +13,7 @@ export const CreateTeamAccountMenu = ({
     <DropdownMenu.Root>
       <DropdownMenu.Trigger
         aria-label="Open account menu"
-        className="grid size-10 cursor-pointer place-items-center bg-transparent p-0 text-[#171717] focus-visible:ring-2 focus-visible:ring-black/20 focus-visible:ring-offset-2 focus-visible:outline-hidden md:size-12"
+        className="grid size-10 cursor-pointer place-items-center bg-transparent p-0 text-[#171717] outline-hidden md:size-12"
       >
         <span
           aria-hidden="true"

@@ -15,6 +15,7 @@ describe("CreateTeamAccountMenu", () => {
     });
     expect(trigger).toHaveClass("bg-transparent");
     expect(trigger.className).not.toContain("border");
+    expect(trigger.className).not.toContain("focus-visible:ring");
     expect(trigger).toHaveTextContent("K");
 
     fireEvent.keyDown(trigger, { key: "ArrowDown" });
