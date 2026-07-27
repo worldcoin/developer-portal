@@ -14,6 +14,7 @@ test.describe("App", () => {
 
     await page.goto("/");
     await expect(page.getByText("Let's create your first app.")).toBeVisible();
+    await page.waitForLoadState("networkidle");
     await page.getByTestId("button-create-new-app").click();
 
     await expect(page.getByText("Setup your app")).toBeVisible();
@@ -26,7 +27,9 @@ test.describe("App", () => {
     await expect(page).toHaveURL(
       new RegExp(`/teams/${constants.teamId}/apps/app_[a-f0-9]+/world-id-4-0$`),
     );
-    await expect(page.getByText("Set up World ID")).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "Create action" }),
+    ).toBeVisible();
     await expect(page.getByText(appName)).toBeVisible();
   });
 });
