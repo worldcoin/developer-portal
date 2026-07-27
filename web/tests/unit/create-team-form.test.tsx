@@ -5,8 +5,9 @@ import React from "react";
 
 // #region Mocks
 const mockPush = jest.fn();
+const mockRefresh = jest.fn();
 jest.mock("next/navigation", () => ({
-  useRouter: () => ({ push: mockPush }),
+  useRouter: () => ({ push: mockPush, refresh: mockRefresh }),
 }));
 
 const mockInvalidate = jest.fn();
@@ -93,6 +94,7 @@ describe("CreateTeam form [first user]", () => {
     );
     expect(mockInvalidate).toHaveBeenCalledTimes(1);
     expect(mockPush).toHaveBeenCalledWith("/teams/team_new/apps");
+    expect(mockRefresh).not.toHaveBeenCalled();
   });
 });
 // #endregion
@@ -128,6 +130,13 @@ describe("CreateTeam form [existing user]", () => {
     );
     expect(mockInvalidate).toHaveBeenCalledTimes(1);
     expect(mockPush).toHaveBeenCalledWith("/teams/team_new");
+    expect(mockRefresh).toHaveBeenCalledTimes(1);
+    expect(mockInvalidate.mock.invocationCallOrder[0]).toBeLessThan(
+      mockPush.mock.invocationCallOrder[0],
+    );
+    expect(mockPush.mock.invocationCallOrder[0]).toBeLessThan(
+      mockRefresh.mock.invocationCallOrder[0],
+    );
   });
 
   it("navigates after creation even if the client session refresh fails", async () => {
@@ -149,6 +158,7 @@ describe("CreateTeam form [existing user]", () => {
     await waitFor(() =>
       expect(mockPush).toHaveBeenCalledWith("/teams/team_new"),
     );
+    expect(mockRefresh).toHaveBeenCalledTimes(1);
     expect(mockToastError).not.toHaveBeenCalled();
   });
 
@@ -174,6 +184,7 @@ describe("CreateTeam form [existing user]", () => {
     );
     expect(mockInvalidate).not.toHaveBeenCalled();
     expect(mockPush).not.toHaveBeenCalled();
+    expect(mockRefresh).not.toHaveBeenCalled();
   });
 });
 // #endregion

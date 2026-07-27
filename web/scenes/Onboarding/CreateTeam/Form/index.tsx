@@ -94,6 +94,11 @@ export const CreateTeamForm = ({
     // incorrectly report that team creation failed.
     await invalidate().catch(() => undefined);
     router.push(returnTo);
+
+    // The in-portal dialog preserves the session-fed portal layout.
+    if (presentation === "dialog") {
+      router.refresh();
+    }
   };
 
   return (
