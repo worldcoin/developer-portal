@@ -52,6 +52,9 @@ export const ShowcaseImagesField = (props: ShowcaseImagesFieldProps) => {
       team_id: teamId,
       locale: isLocalized ? locale : undefined,
     },
+    // Signed URLs expire and this query is also the remount-safe source of
+    // truth for previews. Render cached data immediately, then refresh it.
+    fetchPolicy: "cache-and-network",
   });
 
   const [upsertShowcaseImages] = useMutation(
@@ -71,7 +74,9 @@ export const ShowcaseImagesField = (props: ShowcaseImagesFieldProps) => {
 
   const handleAutosave = useCallback(
     async (urls: string[]) => {
-      if (!appMetadataId) return;
+      if (!appMetadataId) {
+        throw new Error("App metadata is unavailable");
+      }
 
       const newUrls = urls.map((url) =>
         extractImagePathWithExtensionFromActualUrl(url),
@@ -90,6 +95,7 @@ export const ShowcaseImagesField = (props: ShowcaseImagesFieldProps) => {
       } catch (error) {
         // error is already handled by the mutation's onError callback
         console.error("autosave error:", error);
+        throw error;
       }
     },
     [
@@ -130,8 +136,9 @@ export const ShowcaseImagesField = (props: ShowcaseImagesFieldProps) => {
 
   // extract unverified image URLs for base component
   const unverifiedImageUrls = useMemo(() => {
-    return unverifiedImagesData?.unverified_images?.showcase_img_urls || [];
-  }, [unverifiedImagesData?.unverified_images?.showcase_img_urls]);
+    if (!unverifiedImagesData) return undefined;
+    return unverifiedImagesData.unverified_images?.showcase_img_urls ?? [];
+  }, [unverifiedImagesData]);
 
   // image type namer for showcase images
   const imageTypeNamer = useCallback((currentCount: number) => {

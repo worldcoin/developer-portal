@@ -50,7 +50,6 @@ export const ContentCardImageUpload = (props: ContentCardImageUploadProps) => {
     contentCardImageFile,
   } = props;
   const [verifiedImageError, setVerifiedImageError] = useState(false);
-  const [isSecondUpload, setIsSecondUpload] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [disabled] = useState(false);
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
@@ -91,13 +90,6 @@ export const ContentCardImageUpload = (props: ContentCardImageUploadProps) => {
         refetchQueries: [FetchAppMetadataDocument],
       });
 
-      // TODO: This is a hotfix since the path names are fixed the browser caches the image and doesn't update it.
-      // Will be fixed after the dev-portal update is done to avoid large backend changes for now.
-      if (isSecondUpload) {
-        window.location.reload();
-      } else {
-        setIsSecondUpload(true);
-      }
       return true;
     } catch (error) {
       console.error("Content Card Image Upload Failed: ", error);

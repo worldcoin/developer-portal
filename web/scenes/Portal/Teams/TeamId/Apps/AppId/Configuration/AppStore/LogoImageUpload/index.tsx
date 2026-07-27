@@ -47,7 +47,6 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
     if (defaultOpen) setShowDialog(true);
   }, [defaultOpen]);
   const [verifiedImageError, setVerifiedImageError] = useState(false);
-  const [isSecondUpload, setIsSecondUpload] = useState(false);
   const [disabled] = useState(false);
   const [viewMode] = useAtom(viewModeAtom);
   const [unverifiedImages, setUnverifiedImages] = useAtom(unverifiedImageAtom);
@@ -106,13 +105,6 @@ export const LogoImageUpload = (props: LogoImageUploadProps) => {
           render: "Image uploaded and saved",
           autoClose: 5000,
         });
-        // TODO: This is a hotfix since the path names are fixed the browser caches the image and doesn't update it.
-        // Will be fixed after the dev-portal update is done to avoid large backend changes for now.
-        if (isSecondUpload) {
-          window.location.reload();
-        } else {
-          setIsSecondUpload(true);
-        }
         setShowDialog(false);
       } catch (error) {
         console.error("Logo Upload Failed: ", error);

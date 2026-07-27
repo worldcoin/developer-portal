@@ -52,6 +52,9 @@ export const MetaTagImageField = (props: MetaTagImageFieldProps) => {
       team_id: teamId,
       locale: isLocalized ? locale : undefined,
     },
+    // Signed URLs expire and this query is also the remount-safe source of
+    // truth for previews. Render cached data immediately, then refresh it.
+    fetchPolicy: "cache-and-network",
   });
 
   const [upsertLocalisedMetaTagImage] = useMutation(
@@ -71,7 +74,9 @@ export const MetaTagImageField = (props: MetaTagImageFieldProps) => {
 
   const handleAutosave = useCallback(
     async (urls: string[]) => {
-      if (!appMetadataId) return;
+      if (!appMetadataId) {
+        throw new Error("App metadata is unavailable");
+      }
 
       const newUrl = urls.length > 0 ? urls[0] : null;
       const extractedUrl = extractImagePathWithExtensionFromActualUrl(newUrl);
@@ -89,6 +94,7 @@ export const MetaTagImageField = (props: MetaTagImageFieldProps) => {
       } catch (error) {
         // error is already handled by the mutation's onError callback
         console.error("autosave error:", error);
+        throw error;
       }
     },
     [
@@ -142,10 +148,11 @@ export const MetaTagImageField = (props: MetaTagImageFieldProps) => {
 
   // extract unverified image URL for base component
   const unverifiedImageUrls = useMemo(() => {
+    if (!unverifiedImagesData) return undefined;
     const metaTagUrl =
-      unverifiedImagesData?.unverified_images?.meta_tag_image_url;
+      unverifiedImagesData.unverified_images?.meta_tag_image_url;
     return metaTagUrl ? [metaTagUrl] : [];
-  }, [unverifiedImagesData?.unverified_images?.meta_tag_image_url]);
+  }, [unverifiedImagesData]);
 
   return (
     <ImageUploadField

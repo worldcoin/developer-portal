@@ -1,10 +1,11 @@
 import { getSdk as checkUserInAppDocumentSDK } from "@/api/hasura/graphql/checkUserInApp.generated";
+import { createAppImageGetObjectCommand } from "@/api/helpers/app-image-storage";
 import { errorHasuraQuery } from "@/api/helpers/errors";
 import { getAPIServiceGraphqlClient } from "@/api/helpers/graphql";
 import { protectInternalEndpoint } from "@/api/helpers/utils";
 import { validateRequestSchema } from "@/api/helpers/validate-request-schema";
 import { logger } from "@/lib/logger";
-import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { S3Client } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
@@ -117,9 +118,9 @@ export const POST = async (req: NextRequest) => {
       content_type_ending === "jpeg" ? "jpg" : content_type_ending
     }`;
 
-    const command = new GetObjectCommand({
-      Bucket: bucketName,
-      Key: objectKey,
+    const command = createAppImageGetObjectCommand({
+      bucket: bucketName,
+      key: objectKey,
     });
 
     const signedUrl = await getSignedUrl(s3Client, command, {

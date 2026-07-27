@@ -1,5 +1,6 @@
 import {
   DeleteObjectCommand,
+  GetObjectCommand,
   PutObjectCommand,
   S3Client,
 } from "@aws-sdk/client-s3";
@@ -25,6 +26,25 @@ export const APP_IMAGE_BASENAMES = {
 } as const;
 
 export type AppImageBasename = keyof typeof APP_IMAGE_BASENAMES;
+
+// Draft images are written to stable object keys (for example logo_img.png).
+// Override caching on signed preview responses so replacements render
+// immediately. Do not store this policy on the S3 object: verification copies
+// draft objects into public, cacheable assets and would inherit the metadata.
+export const APP_IMAGE_CACHE_CONTROL = "private, no-store, max-age=0";
+
+export const createAppImageGetObjectCommand = ({
+  bucket,
+  key,
+}: {
+  bucket: string;
+  key: string;
+}) =>
+  new GetObjectCommand({
+    Bucket: bucket,
+    Key: key,
+    ResponseCacheControl: APP_IMAGE_CACHE_CONTROL,
+  });
 
 // MCP-facing alias map: short, human-friendly image_type values that map onto
 // the basenames + the app_metadata column the upload should patch.

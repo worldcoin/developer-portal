@@ -33,7 +33,6 @@ export const LogoImageUpload = ({
   open,
   onClose,
 }: LogoImageUploadProps) => {
-  const [isSecondUpload, setIsSecondUpload] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [unverifiedImages, setUnverifiedImages] = useAtom(unverifiedImageAtom);
   const [updateLogoMutation] = useMutation(UpdateLogoDocument);
@@ -66,13 +65,6 @@ export const LogoImageUpload = ({
         refetchQueries: [FetchAppMetadataDocument],
       });
 
-      // TODO: This is a hotfix since the path names are fixed the browser caches the image and doesn't update it.
-      // Will be fixed after the dev-portal update is done to avoid large backend changes for now.
-      if (isSecondUpload) {
-        window.location.reload();
-      } else {
-        setIsSecondUpload(true);
-      }
       return true;
     } catch (error) {
       console.error("Logo Upload Failed: ", error);

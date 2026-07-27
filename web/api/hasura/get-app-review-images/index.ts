@@ -1,4 +1,5 @@
 import { getSdk as getAppReviewImages } from "@/api/hasura/get-app-review-images/graphql/getAppReviewImages.generated";
+import { APP_IMAGE_CACHE_CONTROL } from "@/api/helpers/app-image-storage";
 import { errorHasuraQuery } from "@/api/helpers/errors";
 import { getAPIReviewerGraphqlClient } from "@/api/helpers/graphql";
 import { protectInternalEndpoint } from "@/api/helpers/utils";
@@ -102,15 +103,20 @@ export const POST = async (req: NextRequest) => {
   const bucketName = process.env.ASSETS_S3_BUCKET_NAME;
   const urlExpiration = 7200;
   const urlPromises = [];
+  const createS3ImageGetCommand = (key: string) =>
+    new GetObjectCommand({
+      Bucket: bucketName,
+      Key: key,
+      ...(s3Prefix === "unverified"
+        ? { ResponseCacheControl: APP_IMAGE_CACHE_CONTROL }
+        : {}),
+    });
 
   if (app.logo_img_url) {
     urlPromises.push(
       getSignedUrl(
         s3Client,
-        new GetObjectCommand({
-          Bucket: bucketName,
-          Key: `${objectKey}${app.logo_img_url}`,
-        }),
+        createS3ImageGetCommand(`${objectKey}${app.logo_img_url}`),
         { expiresIn: urlExpiration },
       ).then((url) => ({
         logo_img_url: url,
@@ -127,10 +133,9 @@ export const POST = async (req: NextRequest) => {
     urlPromises.push(
       getSignedUrl(
         s3Client,
-        new GetObjectCommand({
-          Bucket: bucketName,
-          Key: `${objectKey}${localisation ? `${locale}/` : ""}${metaTagImageUrl}`,
-        }),
+        createS3ImageGetCommand(
+          `${objectKey}${localisation ? `${locale}/` : ""}${metaTagImageUrl}`,
+        ),
         { expiresIn: urlExpiration },
       ).then((url) => ({ meta_tag_image_url: url })),
     );
@@ -144,10 +149,9 @@ export const POST = async (req: NextRequest) => {
     const showcaseUrlPromises = showcaseImgUrls.map((key: string) =>
       getSignedUrl(
         s3Client,
-        new GetObjectCommand({
-          Bucket: bucketName,
-          Key: `${objectKey}${localisation ? `${locale}/` : ""}${key}`,
-        }),
+        createS3ImageGetCommand(
+          `${objectKey}${localisation ? `${locale}/` : ""}${key}`,
+        ),
         { expiresIn: urlExpiration },
       ),
     );
@@ -161,10 +165,7 @@ export const POST = async (req: NextRequest) => {
     urlPromises.push(
       getSignedUrl(
         s3Client,
-        new GetObjectCommand({
-          Bucket: bucketName,
-          Key: `${objectKey}${app.content_card_image_url}`,
-        }),
+        createS3ImageGetCommand(`${objectKey}${app.content_card_image_url}`),
         { expiresIn: urlExpiration },
       ).then((url) => ({ content_card_image_url: url })),
     );

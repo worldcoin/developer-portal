@@ -52,7 +52,7 @@ interface ImageUploadFieldProps extends ImageUploadFieldConfig {
   teamId: string;
   locale?: string;
   isAppVerified: boolean;
-  unverifiedImageUrls: string[];
+  unverifiedImageUrls?: string[];
   isImagesLoading: boolean;
   onRefetchImages: () => Promise<void>;
   error?: string | null;
@@ -87,10 +87,49 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
   const isMountedRef = useRef(true);
   const abortControllerRef = useRef<AbortController | null>(null);
+  const lastSyncedServerPathsRef = useRef<string | null>(null);
   const isLocalized = locale !== "en";
 
   const { validateImageAspectRatio, uploadViaPresignedPost, getImage } =
     useImage();
+
+  // A form instance can unmount while autosave/refetch is in flight. Once the
+  // unverified-images query has data, use it as the canonical preview list so
+  // the successor instance does not depend on the old Controller's onChange.
+  // Until that query resolves, retain the form value to avoid flashing an
+  // already-saved image out of the UI.
+  const serverImagePaths = useMemo(() => {
+    if (unverifiedImageUrls === undefined) return undefined;
+    return unverifiedImageUrls
+      .map(extractImagePathWithExtensionFromActualUrl)
+      .filter((path) => path !== "");
+  }, [unverifiedImageUrls]);
+
+  const imagePaths =
+    isAppVerified || serverImagePaths === undefined ? value : serverImagePaths;
+
+  // Keep validation/submission state aligned too, not just the pixels on
+  // screen. The signature guard prevents an optimistic local delete from
+  // being overwritten while its mutation is still in flight.
+  useEffect(() => {
+    if (isAppVerified) {
+      lastSyncedServerPathsRef.current = null;
+      return;
+    }
+    if (serverImagePaths === undefined) return;
+
+    const serverSignature = JSON.stringify([
+      appId,
+      locale ?? "",
+      serverImagePaths,
+    ]);
+    if (lastSyncedServerPathsRef.current === serverSignature) return;
+    lastSyncedServerPathsRef.current = serverSignature;
+
+    if (JSON.stringify(value) !== JSON.stringify(serverImagePaths)) {
+      onChange(serverImagePaths);
+    }
+  }, [appId, isAppVerified, locale, onChange, serverImagePaths, value]);
 
   const uploadImage = useCallback(
     async (_imageType: string, file: File, height: number, width: number) => {
@@ -98,7 +137,7 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
         return;
       }
 
-      if (value.length >= maxImages) {
+      if (imagePaths.length >= maxImages) {
         toast.error(
           `maximum of ${maxImages} image${maxImages > 1 ? "s" : ""} allowed`,
         );
@@ -124,7 +163,7 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
 
         toast.dismiss(ImageValidationError.prototype.toastId);
 
-        const imageType = imageTypeNamer(value.length);
+        const imageType = imageTypeNamer(imagePaths.length);
 
         await uploadViaPresignedPost(
           file,
@@ -153,12 +192,16 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
         // autosave). Persistence is ownerless; only UI updates are gated.
         const extractedPath =
           extractImagePathWithExtensionFromActualUrl(imageUrl);
+        if (!extractedPath) {
+          throw new Error("Uploaded image URL has no supported image path");
+        }
         const newUrls =
-          maxImages === 1 ? [extractedPath] : [...value, extractedPath];
+          maxImages === 1 ? [extractedPath] : [...imagePaths, extractedPath];
 
         await onAutosave(newUrls);
-        // Writes into the shared Apollo cache, so a remounted successor
-        // instance watching the same query re-renders with the new image.
+        // This writes the canonical paths + signed URLs into Apollo's shared
+        // cache. A remounted successor renders from that result even if this
+        // Controller instance can no longer receive onChange.
         await onRefetchImages();
 
         if (isMountedRef.current) {
@@ -190,7 +233,7 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
       }
     },
     [
-      value,
+      imagePaths,
       maxImages,
       validateImageAspectRatio,
       onUploadStart,
@@ -211,15 +254,15 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
 
   const handleDelete = useCallback(
     async (imagePath: string) => {
-      const newUrls = value.filter((url) => !url.includes(imagePath));
+      const newUrls = imagePaths.filter((url) => !url.includes(imagePath));
       onChange(newUrls);
       await onAutosave(newUrls);
       await onRefetchImages();
     },
-    [value, onChange, onAutosave, onRefetchImages],
+    [imagePaths, onChange, onAutosave, onRefetchImages],
   );
 
-  const canUploadMore = value.length < maxImages;
+  const canUploadMore = imagePaths.length < maxImages;
 
   const previewStyle = {
     height: `${PREVIEW_HEIGHT_PX}px`,
@@ -228,13 +271,13 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
 
   const resolvedImageUrls = useMemo(() => {
     if (isAppVerified) {
-      return value.map((url: string) =>
+      return imagePaths.map((url: string) =>
         getCDNImageUrl(appId, url, true, locale),
       );
     } else {
-      return unverifiedImageUrls;
+      return unverifiedImageUrls ?? [];
     }
-  }, [isAppVerified, value, unverifiedImageUrls, appId, locale]);
+  }, [isAppVerified, imagePaths, unverifiedImageUrls, appId, locale]);
 
   useEffect(() => {
     return () => {
@@ -281,7 +324,7 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
   return (
     <div className="grid gap-y-4">
       {/* ── 0 images: full-width drop zone ── */}
-      {value.length === 0 && !isUploading && !isImagesLoading && (
+      {imagePaths.length === 0 && !isUploading && !isImagesLoading && (
         <ImageDropZone
           width={imageConstraints.width}
           height={imageConstraints.height}
@@ -296,19 +339,19 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
       )}
 
       {/* 0 images: skeleton */}
-      {value.length === 0 && !isUploading && isImagesLoading && (
+      {imagePaths.length === 0 && !isUploading && isImagesLoading && (
         <Skeleton height={168} className="rounded-lg" />
       )}
 
       {/* 0 images: uploading loader */}
-      {value.length === 0 && isUploading && (
+      {imagePaths.length === 0 && isUploading && (
         <ImageLoader name={imageTypeNamer(0)} className="h-[168px]" />
       )}
 
       {/* ── maxImages === 1: single image, full-width box ── */}
-      {value.length > 0 && maxImages === 1 && !isImagesLoading && (
+      {imagePaths.length > 0 && maxImages === 1 && !isImagesLoading && (
         <>
-          {value.map((url) => {
+          {imagePaths.map((url) => {
             const imagePath = extractImagePathWithExtensionFromActualUrl(url);
             const resolvedUrl =
               resolvedImageUrls?.find((imgUrl) => imgUrl.includes(imagePath)) ||
@@ -337,6 +380,7 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
                   type="button"
                   onClick={() => handleDelete(imagePath)}
                   disabled={disabled}
+                  aria-label={`Delete ${imagePath}`}
                   className="absolute top-4 right-4 flex size-8 items-center justify-center rounded-full border border-grey-200 bg-white shadow-xs transition-colors hover:bg-grey-100 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   <TrashIcon className="text-grey-500" />
@@ -347,7 +391,7 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
           {isUploading && (
             <div style={previewStyle}>
               <ImageLoader
-                name={imageTypeNamer(value.length)}
+                name={imageTypeNamer(imagePaths.length)}
                 className="size-full"
               />
             </div>
@@ -356,7 +400,7 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
       )}
 
       {/* maxImages === 1: skeleton */}
-      {value.length > 0 && maxImages === 1 && isImagesLoading && (
+      {imagePaths.length > 0 && maxImages === 1 && isImagesLoading && (
         <div
           className="animate-pulse rounded-xl bg-grey-100"
           style={previewStyle}
@@ -364,9 +408,9 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
       )}
 
       {/* ── maxImages > 1: thumbnails + drop zone inline ── */}
-      {value.length > 0 && maxImages > 1 && !isImagesLoading && (
+      {imagePaths.length > 0 && maxImages > 1 && !isImagesLoading && (
         <div className="flex flex-wrap gap-3">
-          {value.map((url) => {
+          {imagePaths.map((url) => {
             const imagePath = extractImagePathWithExtensionFromActualUrl(url);
             const resolvedUrl =
               resolvedImageUrls?.find((imgUrl) => imgUrl.includes(imagePath)) ||
@@ -395,6 +439,7 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
                   type="button"
                   onClick={() => handleDelete(imagePath)}
                   disabled={disabled}
+                  aria-label={`Delete ${imagePath}`}
                   className="absolute top-4 right-4 flex size-8 items-center justify-center rounded-full border border-grey-200 bg-white shadow-xs transition-colors hover:bg-grey-100 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   <TrashIcon className="text-grey-500" />
@@ -407,7 +452,7 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
           {isUploading && (
             <div style={previewStyle}>
               <ImageLoader
-                name={imageTypeNamer(value.length)}
+                name={imageTypeNamer(imagePaths.length)}
                 className="size-full"
               />
             </div>
@@ -421,7 +466,7 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
                 height={imageConstraints.height}
                 disabled={disabled || !canUploadMore}
                 uploadImage={uploadImage}
-                imageType={imageTypeNamer(value.length)}
+                imageType={imageTypeNamer(imagePaths.length)}
                 error={error}
                 className="h-full rounded-xl!"
               >
@@ -433,9 +478,9 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
       )}
 
       {/* maxImages > 1: skeleton */}
-      {value.length > 0 && maxImages > 1 && isImagesLoading && (
+      {imagePaths.length > 0 && maxImages > 1 && isImagesLoading && (
         <div className="flex flex-wrap gap-3">
-          {value.map((url, index) => (
+          {imagePaths.map((url, index) => (
             <div
               key={`${url}-${index}`}
               className="animate-pulse rounded-xl bg-grey-100"
