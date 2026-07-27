@@ -165,37 +165,27 @@ export const SandboxButton = (props: {
         onClick={openDialog}
         aria-haspopup="dialog"
         className={clsx(
-          "group relative flex shrink-0 cursor-pointer items-center gap-x-3 overflow-hidden rounded-[10px] bg-grey-900 p-3 text-left outline-hidden transition-shadow hover:shadow-portal-card focus-visible:ring-2 focus-visible:ring-grey-300 focus-visible:ring-offset-2 focus-visible:ring-offset-portal-canvas",
+          "group flex shrink-0 cursor-pointer items-center gap-x-3 rounded-[10px] border border-portal-border px-3 py-2 text-left outline-hidden transition-colors hover:bg-portal-border focus-visible:ring-2 focus-visible:ring-grey-300 focus-visible:ring-offset-2 focus-visible:ring-offset-portal-canvas",
           props.className,
         )}
       >
-        {/* Static halftone ground, echoing the landing hero mark. */}
-        <div
-          aria-hidden
-          className="absolute inset-0 [background-image:radial-gradient(circle,rgba(255,255,255,0.2)_1px,transparent_1.5px)] [background-size:10px_10px]"
-        />
-        {/* Soft glow in the sandbox icon's purple, anchoring it on the halftone. */}
-        <div
-          aria-hidden
-          className="absolute inset-0 [background-image:radial-gradient(circle_at_12%_50%,rgba(146,96,247,0.4),transparent_45%)]"
-        />
         {/* The sandbox build's actual app icon, so banner → TestFlight →
                 home screen all show the same mark. */}
         <Icon
           name="world-id-sandbox-app-icon"
-          className="relative size-10 shrink-0 drop-shadow-md"
+          className="size-9 shrink-0 drop-shadow-sm"
         />
-        <span className="relative grid min-w-0 flex-1 gap-y-0.5">
-          <span className="font-world text-13 font-medium text-white">
+        <span className="grid min-w-0 flex-1 gap-y-0.5">
+          <span className="font-world text-13 font-medium text-portal-text">
             World ID Sandbox
           </span>
-          <span className="font-world text-11 text-grey-400">
+          <span className="font-world text-11 text-portal-muted">
             Install the test build
           </span>
         </span>
         <span
           aria-hidden
-          className="relative pr-0.5 font-world text-13 text-grey-400 transition-transform duration-200 group-hover:translate-x-0.5"
+          className="-mr-[5px] font-world text-13 text-portal-subtle transition-transform duration-200 group-hover:translate-x-0.5"
         >
           →
         </span>
@@ -255,7 +245,7 @@ export const SandboxButton = (props: {
               <div className="rounded-12 bg-grey-50 px-4 py-3">
                 <Typography variant={TYPOGRAPHY.R4} className="text-grey-700">
                   The Android build is distributed as a Google Play internal
-                  test — your Google account email must be approved before the
+                  test. Your Google account email must be approved before the
                   link works.
                 </Typography>
 

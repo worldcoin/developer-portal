@@ -1,16 +1,33 @@
 "use client";
 
 import { Button } from "@/components/Button";
-import { urls } from "@/lib/urls";
+import { Role_Enum } from "@/graphql/graphql";
+import { Auth0SessionUser } from "@/lib/types";
+import { checkUserPermissions } from "@/lib/utils";
 import { Icon } from "@/scenes/PortalV3/common/Icon";
+import { FetchAppsDocument } from "@/scenes/common/layout/AppSelector/graphql/client/fetch-apps.generated";
+import { useLazyQuery } from "@apollo/client/react";
+import { useUser } from "@auth0/nextjs-auth0/client";
+import clsx from "clsx";
 import dynamic from "next/dynamic";
-import { ReactNode, useState } from "react";
+import { ReactNode, useEffect, useRef, useState } from "react";
 
 const CreateAppDialogV4 = dynamic(() =>
   import("@/scenes/PortalV3/layout/CreateAppDialog/index-v4").then(
     (module) => module.CreateAppDialogV4,
   ),
 );
+
+const CreateKeyModal = dynamic(
+  () =>
+    import(
+      "@/scenes/PortalV3/Teams/TeamId/Team/sections/ApiKeys/CreateKeyModal"
+    ).then((module) => module.CreateKeyModal),
+  { loading: () => null },
+);
+
+// Collapses Chrome's visibilitychange+focus double-fire on a tab return.
+const RETURN_CHECK_MIN_INTERVAL_MS = 1_000;
 
 const actionButtonClassName =
   "inline-flex h-10 items-center justify-center rounded-8 bg-portal-ink px-4 font-world text-13 font-medium leading-none text-white transition-colors hover:bg-portal-ink-hover focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-grey-300 focus-visible:ring-offset-2";
@@ -49,15 +66,88 @@ const ActionCard = (props: {
   </section>
 );
 
-export const AppsPageClient = (props: { teamId: string }) => {
+export const AppsPageClient = (props: {
+  teamId: string;
+  initialIsOwner?: boolean;
+}) => {
   const [createAppOpen, setCreateAppOpen] = useState(false);
   // Keep mounted after first open to preserve transitions and state.
   const [dialogMounted, setDialogMounted] = useState(false);
+  const [createKeyOpen, setCreateKeyOpen] = useState(false);
+  const [keyDialogMounted, setKeyDialogMounted] = useState(false);
+  const { user } = useUser() as Auth0SessionUser;
+
+  // useUser resolves client-side; fall back to the server's answer until it does.
+  const isOwner = user
+    ? checkUserPermissions(user, props.teamId, [Role_Enum.Owner])
+    : Boolean(props.initialIsOwner);
+
+  // The cache holds this page's zero-app answer; only the network can see one
+  // created out-of-band (MCP) while the user was in their terminal.
+  const [fetchApps] = useLazyQuery(FetchAppsDocument, {
+    fetchPolicy: "network-only",
+  });
+  const lastCheckAt = useRef(0);
+  const keyDialogWasOpen = useRef(false);
+
+  useEffect(() => {
+    // A navigation must never yank the one-shot key secret off screen.
+    if (createKeyOpen) {
+      keyDialogWasOpen.current = true;
+      return;
+    }
+
+    const checkForApp = async () => {
+      if (Date.now() - lastCheckAt.current < RETURN_CHECK_MIN_INTERVAL_MS) {
+        return;
+      }
+      lastCheckAt.current = Date.now();
+
+      const result = await fetchApps({
+        variables: { teamId: props.teamId },
+      }).catch(() => null);
+      const appId = result?.data?.app?.[0]?.id;
+      if (!appId) return;
+
+      // Hard nav on purpose (CreateAppDialogV4 precedent): re-renders the
+      // session-rendered shell and keeps routing server-owned.
+      window.location.replace(`/teams/${props.teamId}/apps/${appId}`);
+    };
+
+    // Likeliest MCP path: the app was created while the secret was on screen,
+    // so the dialog closing is the only signal left.
+    if (keyDialogWasOpen.current) {
+      keyDialogWasOpen.current = false;
+      void checkForApp();
+    }
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState !== "visible") return;
+      void checkForApp();
+    };
+    const handleFocus = () => void checkForApp();
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    window.addEventListener("focus", handleFocus);
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("focus", handleFocus);
+    };
+  }, [createKeyOpen, fetchApps, props.teamId]);
 
   return (
     <>
       {dialogMounted ? (
         <CreateAppDialogV4 open={createAppOpen} onClose={setCreateAppOpen} />
+      ) : null}
+
+      {keyDialogMounted ? (
+        <CreateKeyModal
+          teamId={props.teamId}
+          isOpen={createKeyOpen}
+          setIsOpen={setCreateKeyOpen}
+        />
       ) : null}
 
       <div className="px-6 py-10 lg:px-10">
@@ -70,7 +160,12 @@ export const AppsPageClient = (props: { teamId: string }) => {
           </p>
         </div>
 
-        <div className="mt-10 grid max-w-[1176px] gap-[22px] xl:grid-cols-2">
+        <div
+          className={clsx(
+            "mt-10 grid max-w-[1176px] gap-[22px]",
+            isOwner && "xl:grid-cols-2",
+          )}
+        >
           <ActionCard
             icon={<Icon name="card-toolkit" className="size-7" />}
             iconClassName="bg-portal-blue"
@@ -90,20 +185,26 @@ export const AppsPageClient = (props: { teamId: string }) => {
             </Button>
           </ActionCard>
 
-          <ActionCard
-            icon={<Icon name="card-wand" className="size-7" />}
-            iconClassName="bg-portal-purple"
-            title="Set up MCP via API key"
-            description="Connect Codex, Claude, or any MCP client to build and manage your app via natural language."
-            badge="New"
-          >
-            <Button
-              href={urls.teamSettings({ team_id: props.teamId })}
-              className={actionButtonClassName}
+          {isOwner ? (
+            <ActionCard
+              icon={<Icon name="card-wand" className="size-7" />}
+              iconClassName="bg-portal-purple"
+              title="Set up MCP via API key"
+              description="Connect Codex, Claude, or any MCP client to build and manage your app via natural language."
+              badge="New"
             >
-              Create API key
-            </Button>
-          </ActionCard>
+              <Button
+                type="button"
+                onClick={() => {
+                  setKeyDialogMounted(true);
+                  setCreateKeyOpen(true);
+                }}
+                className={actionButtonClassName}
+              >
+                Create API key
+              </Button>
+            </ActionCard>
+          ) : null}
         </div>
       </div>
     </>

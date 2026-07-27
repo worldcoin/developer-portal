@@ -8,6 +8,7 @@ import { useState } from "react";
 import Skeleton from "react-loading-skeleton";
 import { ApiKeysTable } from "./ApiKeyTable";
 import { CreateKeyModal } from "./CreateKeyModal";
+import { McpSetup } from "./McpSetup";
 import { FetchKeysDocument } from "@/scenes/common/Teams/TeamId/Team/ApiKeys/page/graphql/client/fetch-keys.generated";
 import { useQuery } from "@apollo/client/react";
 
@@ -51,7 +52,7 @@ export const ApiKeys = (props: { teamId?: string; canWrite: boolean }) => {
       ) : null}
 
       {!loading && apiKeys?.length === 0 ? (
-        <div className="grid grid-cols-1 justify-items-center gap-y-8 pt-12">
+        <div className="order-2 grid grid-cols-1 justify-items-center gap-y-8 pt-12">
           <div className="grid justify-items-center gap-y-5">
             <Typography variant={TYPOGRAPHY.H6}>No API keys found</Typography>
 
@@ -95,6 +96,8 @@ export const ApiKeys = (props: { teamId?: string; canWrite: boolean }) => {
           )}
         </div>
       )}
+
+      <McpSetup />
     </Section>
   );
 };
