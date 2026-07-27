@@ -243,5 +243,12 @@ describe("v3 SidebarNav [team-less pages]", () => {
     renderSidebar();
     expect(link("Team settings")).toHaveAttribute("href", "/teams");
   });
+
+  it("keeps the sandbox button visible without a teamId", () => {
+    renderSidebar();
+    expect(
+      screen.getByRole("button", { name: /World ID Sandbox/i }),
+    ).toBeInTheDocument();
+  });
 });
 // #endregion

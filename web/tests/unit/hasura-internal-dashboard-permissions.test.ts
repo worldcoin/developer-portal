@@ -46,4 +46,48 @@ describe("internal dashboard detail permissions", () => {
     expect(permission).toContain("- is_active");
     expect(permission).not.toContain("- api_key");
   });
+
+  it("allows RP registration reads without manager KMS key IDs", () => {
+    const permission = getReadonlyPermission("public_rp_registration.yaml");
+
+    expect(permission).toContain("- rp_id");
+    expect(permission).toContain("- app_id");
+    expect(permission).toContain("- mode");
+    expect(permission).toContain("- status");
+    expect(permission).toContain("- staging_status");
+    expect(permission).toContain("- signer_address");
+    expect(permission).toContain("- operation_hash");
+    expect(permission).toContain("- staging_operation_hash");
+    expect(permission).toContain("allow_aggregations: true");
+    expect(permission).not.toContain("- manager_kms_key_id");
+  });
+
+  it("lets dashboard readers update only sandbox invite processing fields", () => {
+    const metadata = readFileSync(
+      path.join(tablesPath, "public_sandbox_access_request.yaml"),
+      "utf8",
+    );
+    const updatePermissionsStart = metadata.indexOf("update_permissions:");
+    const start = metadata.indexOf(
+      "  - role: internal_dashboard_readonly",
+      updatePermissionsStart,
+    );
+    const end = metadata.indexOf("\n  - role:", start + 1);
+    const permission = metadata.slice(start, end);
+
+    expect(permission).toContain("- accepted");
+    expect(permission).toContain("- processed_at");
+    expect(permission).not.toContain("- google_email");
+    expect(permission).not.toContain("- user_id");
+    expect(metadata).not.toContain("internal_dashboard_sandbox_writer");
+  });
+
+  it("does not define elevated internal dashboard roles", () => {
+    const inheritedRoles = readFileSync(
+      path.join(tablesPath, "../../../inherited_roles.yaml"),
+      "utf8",
+    );
+
+    expect(inheritedRoles.trim()).toBe("[]");
+  });
 });
