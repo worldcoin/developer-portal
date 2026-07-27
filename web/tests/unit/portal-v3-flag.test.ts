@@ -18,6 +18,7 @@ describe("isPortalV3EnabledForEmail", () => {
     expect(isPortalV3EnabledForEmail("DEVELOPER@TOOLSFORHUMANITY.COM")).toBe(
       true,
     );
+    expect(isPortalV3EnabledForEmail("developer@example.com")).toBe(false);
     expect(isPortalV3EnabledForEmail("developer@nottoolsforhumanity.com")).toBe(
       false,
     );
