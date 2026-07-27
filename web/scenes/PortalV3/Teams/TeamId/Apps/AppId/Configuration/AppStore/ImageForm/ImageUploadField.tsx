@@ -197,10 +197,9 @@ export const ImageUploadField = (props: ImageUploadFieldProps) => {
       } catch (error) {
         const isAbort = error instanceof Error && error.name === "AbortError";
         if (isAbort) {
-          // Abort only comes from unmount cleanup. By then isMountedRef is
-          // false — never toast "cancelled" for remount-after-success. Only
-          // toast if we're somehow still mounted and S3 never got the file.
-          if (isMountedRef.current && !s3UploadCompleted) {
+          // Unmount can abort either the active S3 upload or post-upload
+          // bookkeeping. Only the former is a real cancellation.
+          if (!s3UploadCompleted) {
             toast.error("Upload was cancelled", { autoClose: 5000 });
           }
           return false;
