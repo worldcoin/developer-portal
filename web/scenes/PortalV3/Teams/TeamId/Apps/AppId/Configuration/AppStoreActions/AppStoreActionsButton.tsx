@@ -8,6 +8,7 @@ import {
   FetchAppMetadataDocument,
   FetchAppMetadataQuery,
 } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/graphql/client/fetch-app-metadata.generated";
+import { FetchLocalisationsDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/AppStore/graphql/client/fetch-localisations.generated";
 import clsx from "clsx";
 import { twMerge } from "tailwind-merge";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -59,6 +60,7 @@ type AppStoreActionsButtonProps = {
   basicInfoRef?: MutableRefObject<BasicInformationHandle | null>;
   onValidationError?: (fieldPath?: string) => void;
   className: string;
+  disabled?: boolean;
 };
 
 /** Persistent footer action that advances steps, then submits on the last one. */
@@ -73,6 +75,7 @@ export const AppStoreActionsButton = ({
   basicInfoRef,
   onValidationError,
   className,
+  disabled = false,
 }: AppStoreActionsButtonProps) => {
   const form = useFormContext<AppStoreFormValues>();
   const searchParams = useSearchParams();
@@ -158,16 +161,27 @@ export const AppStoreActionsButton = ({
         }
       }
 
+      // Reconcile Apollo with the backend after every pending form has saved.
+      // readQuery only returns the local cache and can validate an older
+      // snapshot after autosave, especially after a version switch.
+      const [freshMetadataResult] = await Promise.all([
+        client.query<FetchAppMetadataQuery>({
+          query: FetchAppMetadataDocument,
+          variables: { id: appId },
+          fetchPolicy: "network-only",
+        }),
+        client.query({
+          query: FetchLocalisationsDocument,
+          variables: { app_metadata_id: appMetadata.id },
+          fetchPolicy: "network-only",
+        }),
+      ]);
       const formValues = form.getValues();
       const enLocalization = formValues.localisations.find(
         (localisation) => localisation.language === "en",
       );
-      const freshData = client.readQuery<FetchAppMetadataQuery>({
-        query: FetchAppMetadataDocument,
-        variables: { id: appId },
-      });
       const freshAppMetadata =
-        freshData?.app?.[0]?.app_metadata?.[0] ?? appMetadata;
+        freshMetadataResult.data?.app?.[0]?.app_metadata?.[0] ?? appMetadata;
 
       if (!freshAppMetadata.logo_img_url?.trim()) {
         const message = "Upload an app icon before submitting for review";
@@ -330,7 +344,8 @@ export const AppStoreActionsButton = ({
         }),
       )}
       disabled={
-        isFinalStep && (viewMode === "verified" || isSubmittingForReview)
+        disabled ||
+        (isFinalStep && (viewMode === "verified" || isSubmittingForReview))
       }
       onClick={(event) => {
         if (isActionTransitioningRef.current) {
