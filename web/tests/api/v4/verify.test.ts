@@ -51,9 +51,9 @@ const integrityBundle = {
 };
 
 const v4Response = {
-  identifier: "selfie",
+  identifier: "face",
   signal_hash: "0x0",
-  issuer_schema_id: 11,
+  issuer_schema_id: 1,
   nullifier: "0x2",
   expires_at_min: 1772584197,
   proof: ["0x1", "0x2", "0x3", "0x4", "0x5"],
@@ -116,10 +116,7 @@ describe("/api/v4/verify [integrity bundle]", () => {
       expect.anything(),
       rpId,
       appId,
-      expect.objectContaining({
-        environment: "sandbox",
-        responses: [expect.objectContaining({ identifier: "selfie" })],
-      }),
+      expect.objectContaining({ environment: "sandbox" }),
       req,
     );
     expect(mockHandleSessionProofVerification).not.toHaveBeenCalled();

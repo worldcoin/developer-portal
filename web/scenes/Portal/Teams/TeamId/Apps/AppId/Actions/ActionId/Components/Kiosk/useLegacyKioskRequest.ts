@@ -1,7 +1,4 @@
-import {
-  isLegacyVerificationLevel,
-  LegacyVerificationLevel,
-} from "@/lib/idkit";
+import { LegacyVerificationLevel } from "@/lib/idkit";
 import { buildMockRpContext } from "@/lib/rp";
 import { KioskScreen } from "@/lib/types";
 import {
@@ -82,6 +79,14 @@ function mapErrorCodeToKioskScreen(
     default:
       return KioskScreen.VerificationError;
   }
+}
+
+function isLegacyVerificationLevel(
+  value: string,
+): value is LegacyVerificationLevel {
+  return Object.values(LegacyVerificationLevel).includes(
+    value as LegacyVerificationLevel,
+  );
 }
 
 function toLegacyVerifyPayload(result: IDKitResult): LegacyVerifyPayload {

@@ -5,14 +5,13 @@ import * as yup from "yup";
  * Schema for v4 verify request - supports both v3 (cloud) and v4 (on-chain) proofs.
  *
  * The version field at root level determines which proof format is expected.
- * V3 proofs include: identifier, merkle_root, nullifier, proof
+ * V3 proofs include: merkle_root, nullifier, proof, verification_level
  * V4 proofs include: identifier, issuer_schema_id, compressed_proof, nullifier, etc.
  */
 
 // V3 response item schema
 const v3ResponseItemSchema = yup.object({
-  // V3 clients historically returned verification-level identifiers. Accept
-  // both the legacy "face" value and IDKit's public "selfie" name.
+  // Identifier uses VerificationLevel values (legacy term for credential type: "orb", "device", "face")
   identifier: yup
     .string()
     .oneOf(Object.values(LegacyVerificationLevel))

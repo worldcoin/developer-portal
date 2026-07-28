@@ -21,14 +21,6 @@ export enum LegacyVerificationLevel {
   Selfie = "selfie",
 }
 
-export function isLegacyVerificationLevel(
-  value: string,
-): value is LegacyVerificationLevel {
-  return Object.values(LegacyVerificationLevel).includes(
-    value as LegacyVerificationLevel,
-  );
-}
-
 // Dropped support in IDKit 4.x
 export interface HashFunctionOutput {
   hash: bigint;

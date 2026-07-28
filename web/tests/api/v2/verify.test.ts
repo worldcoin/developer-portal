@@ -1,5 +1,5 @@
 import { POST } from "@/api/v2/verify";
-import { FACE_SEQUENCER_STAGING } from "@/lib/constants";
+import { FACE_SEQUENCER_STAGING, ORB_SEQUENCER_STAGING } from "@/lib/constants";
 import { LegacyVerificationLevel } from "@/lib/idkit";
 import { NextRequest } from "next/server";
 import { semaphoreProofParamsMock } from "../__mocks__/proof.mock";
@@ -125,8 +125,14 @@ afterEach(() => {
 
 // #region Success cases
 describe("/api/v2/verify", () => {
-  it("can verify proof", async () => {
-    const mockReq = createMockRequest(getUrl(stagingAppId), validBody);
+  it.each([
+    [LegacyVerificationLevel.Orb, ORB_SEQUENCER_STAGING],
+    [LegacyVerificationLevel.Selfie, FACE_SEQUENCER_STAGING],
+  ])("can verify %s proof", async (verificationLevel, sequencer) => {
+    const mockReq = createMockRequest(getUrl(stagingAppId), {
+      ...validBody,
+      verification_level: verificationLevel,
+    });
     const ctx = { params: Promise.resolve({ app_id: stagingAppId }) };
 
     const fetchAppResponse = {
@@ -162,6 +168,10 @@ describe("/api/v2/verify", () => {
 
     const response = await POST(mockReq, ctx);
     expect(response.status).toBe(200);
+    expect(fetch).toHaveBeenCalledWith(
+      `${sequencer}/v2/semaphore-proof/verify`,
+      expect.objectContaining({ method: "POST" }),
+    );
     const body = await response.json();
 
     expect(body).toEqual({
@@ -171,51 +181,9 @@ describe("/api/v2/verify", () => {
       action: validBody.action,
       created_at: validNullifier.created_at,
       max_uses: 0,
-      verification_level: LegacyVerificationLevel.Orb,
+      verification_level: verificationLevel,
       nullifier_hash: semaphoreProofParamsMock.nullifier_hash,
     });
-  });
-
-  it("accepts selfie as an alias for the legacy face verifier", async () => {
-    const mockReq = createMockRequest(getUrl(stagingAppId), {
-      ...validBody,
-      verification_level: LegacyVerificationLevel.Selfie,
-    });
-    const ctx = { params: Promise.resolve({ app_id: stagingAppId }) };
-
-    mockFetch({
-      body: { valid: true },
-      ok: true,
-      status: 200,
-    });
-    FetchAppAction.mockResolvedValue({
-      app: [{ ...validApp, actions: [{ ...validAction, nullifiers: [] }] }],
-    });
-    AtomicUpsertNullifier.mockResolvedValue({
-      update_nullifier: {
-        affected_rows: 1,
-        returning: [
-          {
-            nullifier_hash: semaphoreProofParamsMock.nullifier_hash,
-            created_at: validNullifier.created_at,
-            uses: 1,
-          },
-        ],
-      },
-    });
-
-    const response = await POST(mockReq, ctx);
-    expect(response.status).toBe(200);
-    expect(fetch).toHaveBeenCalledWith(
-      `${FACE_SEQUENCER_STAGING}/v2/semaphore-proof/verify`,
-      expect.objectContaining({ method: "POST" }),
-    );
-    expect(await response.json()).toEqual(
-      expect.objectContaining({
-        success: true,
-        verification_level: LegacyVerificationLevel.Selfie,
-      }),
-    );
   });
 
   it("stores the nullifier canonically so hex re-encodings collide on the unique constraint (#3771261)", async () => {
