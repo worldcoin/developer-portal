@@ -60,7 +60,6 @@ type AppStoreActionsButtonProps = {
   basicInfoRef?: MutableRefObject<BasicInformationHandle | null>;
   onValidationError?: (fieldPath?: string) => void;
   className: string;
-  disabled?: boolean;
 };
 
 /** Persistent footer action that advances steps, then submits on the last one. */
@@ -75,7 +74,6 @@ export const AppStoreActionsButton = ({
   basicInfoRef,
   onValidationError,
   className,
-  disabled = false,
 }: AppStoreActionsButtonProps) => {
   const form = useFormContext<AppStoreFormValues>();
   const searchParams = useSearchParams();
@@ -344,8 +342,7 @@ export const AppStoreActionsButton = ({
         }),
       )}
       disabled={
-        disabled ||
-        (isFinalStep && (viewMode === "verified" || isSubmittingForReview))
+        isFinalStep && (viewMode === "verified" || isSubmittingForReview)
       }
       onClick={(event) => {
         if (isActionTransitioningRef.current) {

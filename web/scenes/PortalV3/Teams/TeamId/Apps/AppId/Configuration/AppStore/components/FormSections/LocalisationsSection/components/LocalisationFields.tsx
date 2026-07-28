@@ -44,14 +44,9 @@ export const LocalisationFields = ({
         )}
       />
 
-      {/* The canonical English tagline lives in Basic information. Keep a
-          localized tagline next to Short Name for additional languages. */}
+      {/* The canonical English tagline lives in Basic information. */}
       {isMiniApp && (
-        <div
-          className={
-            selectedLanguage === "en" ? "grid" : "grid grid-cols-2 gap-x-5"
-          }
-        >
+        <div className="grid grid-cols-2 gap-x-5">
           <Controller
             control={control}
             name={`localisations.${selectedIndex}.short_name`}

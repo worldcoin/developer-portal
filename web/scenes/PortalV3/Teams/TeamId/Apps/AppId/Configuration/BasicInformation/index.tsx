@@ -120,11 +120,15 @@ export const BasicInformation = forwardRef<
 
   // Publish live values for the live preview.
   useEffect(() => {
-    setBasicInfoDraft(form.getValues());
+    const values = form.getValues();
+    setBasicInfoDraft({
+      name: values.name,
+      integration_url: values.integration_url,
+      app_website_url: values.app_website_url,
+    });
     const subscription = watch((values) => {
       setBasicInfoDraft({
         name: values.name,
-        world_app_description: values.world_app_description,
         integration_url: values.integration_url,
         app_website_url: values.app_website_url,
       });
@@ -254,17 +258,15 @@ export const BasicInformation = forwardRef<
   return (
     <div className="grid gap-y-6">
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <div className="min-w-0">
-          <FloatingInput
-            id="name"
-            register={register("name")}
-            errors={errors.name}
-            label="App name"
-            disabled={!isEditable || !isEnoughPermissions}
-            required
-            maxLength={50}
-          />
-        </div>
+        <FloatingInput
+          id="name"
+          register={register("name")}
+          errors={errors.name}
+          label="App name"
+          disabled={!isEditable || !isEnoughPermissions}
+          required
+          maxLength={50}
+        />
 
         {isMiniApp && (
           <FloatingInput
@@ -278,27 +280,23 @@ export const BasicInformation = forwardRef<
           />
         )}
 
-        <div className="sm:col-span-2">
-          <FloatingInput
-            id="integration_url"
-            label="App URL"
-            required
-            errors={errors.integration_url}
-            disabled={!isEditable || !isEnoughPermissions}
-            register={makeUrlRegister("integration_url")}
-          />
-        </div>
+        <FloatingInput
+          id="integration_url"
+          label="App URL"
+          required
+          errors={errors.integration_url}
+          disabled={!isEditable || !isEnoughPermissions}
+          register={makeUrlRegister("integration_url")}
+        />
 
-        <div className="sm:col-span-2">
-          <FloatingInput
-            id="app_website_url"
-            label="App Official Website"
-            required
-            errors={errors.app_website_url}
-            disabled={!isEditable || !isEnoughPermissions}
-            register={makeUrlRegister("app_website_url")}
-          />
-        </div>
+        <FloatingInput
+          id="app_website_url"
+          label="App Official Website"
+          required
+          errors={errors.app_website_url}
+          disabled={!isEditable || !isEnoughPermissions}
+          register={makeUrlRegister("app_website_url")}
+        />
       </div>
 
       {/* Publisher / ID meta line */}

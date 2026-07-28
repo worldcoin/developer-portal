@@ -26,7 +26,8 @@ export const getAppStoreWizardSteps = (
       id: AppStoreWizardStep.BASIC,
       number: "01",
       title: "Basic information",
-      description: "Set your app's icon, name, and links.",
+      description:
+        "Start with the details people need to recognize and open your app.",
     },
   ];
 
@@ -35,7 +36,8 @@ export const getAppStoreWizardSteps = (
       id: AppStoreWizardStep.STORE_LISTING,
       number: "02",
       title: "Store listing",
-      description: "Choose a category and add support and compliance details.",
+      description:
+        "Shape how your app appears when people discover it in the store.",
     });
   }
 
@@ -45,14 +47,14 @@ export const getAppStoreWizardSteps = (
       number: isMiniApp ? "03" : "02",
       title: "Availability",
       description:
-        "Choose the countries and languages where your app is available.",
+        "Choose the countries and languages where your app can launch.",
     },
     {
       id: AppStoreWizardStep.LOCALIZED_CONTENT,
       number: isMiniApp ? "04" : "03",
       title: "Localized content",
       description:
-        "Add a name, tag line, description, and images for each language.",
+        "Make your listing feel native in every language you support.",
     },
   );
 

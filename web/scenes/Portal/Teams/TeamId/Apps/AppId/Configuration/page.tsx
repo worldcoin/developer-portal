@@ -17,7 +17,6 @@ import {
   LocalisationData,
 } from "./AppStore/types/AppStoreFormTypes";
 import { BasicInformation, BasicInformationHandle } from "./BasicInformation";
-import { NetworkStatus } from "@apollo/client";
 import { useQuery } from "@apollo/client/react";
 import { FetchAppMetadataDocument } from "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/graphql/client/fetch-app-metadata.generated";
 import { viewModeAtom } from "./layout/ImagesProvider";
@@ -57,27 +56,18 @@ export const AppProfilePage = ({ params }: AppProfilePageProps) => {
     return app?.app_metadata?.[0] ?? app?.verified_app_metadata[0];
   }, [app, viewMode]);
 
-  const {
-    data: localisationsData,
-    loading: isLocalisationsLoading,
-    networkStatus: localisationsNetworkStatus,
-  } = useQuery(FetchLocalisationsDocument, {
-    variables: {
-      app_metadata_id: appMetadata?.id || "",
+  const { data: localisationsData, loading: isLocalisationsLoading } = useQuery(
+    FetchLocalisationsDocument,
+    {
+      variables: {
+        app_metadata_id: appMetadata?.id || "",
+      },
+      skip: !appMetadata?.id,
     },
-    skip: !appMetadata?.id,
-  });
+  );
 
   const teamName = app?.team?.name ?? "";
-  // A refetch keeps the previous Apollo data available. Reserve the full-page
-  // skeleton for a cold load so background reconciliation does not unmount the
-  // configuration form.
-  const isChangingLocalisationsRow =
-    localisationsNetworkStatus === NetworkStatus.setVariables;
-  const isInitialLoading =
-    (isMetadataLoading && !data) ||
-    (isLocalisationsLoading && !localisationsData) ||
-    isChangingLocalisationsRow;
+  const isLoading = isMetadataLoading || isLocalisationsLoading;
   const [showResolveModal, setShowResolveModal] = useState(false);
   const basicInfoRef = useRef<BasicInformationHandle>(null);
 
@@ -95,7 +85,7 @@ export const AppProfilePage = ({ params }: AppProfilePageProps) => {
     );
   }
 
-  if (isInitialLoading || !app || !appMetadata) {
+  if (isLoading || !app || !appMetadata) {
     return (
       <>
         <SizingWrapper variant="nav" gridClassName="order-1 pt-8">

@@ -54,8 +54,6 @@ jest.mock(
 
 const useFetchLocalisationsQuery = jest.fn();
 const apolloQueryMock = jest.fn();
-const apolloCacheModifyMock = jest.fn();
-const apolloCacheIdentifyMock = jest.fn();
 jest.mock(
   "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/AppStore/graphql/client/fetch-localisations.generated",
   () => ({
@@ -85,21 +83,12 @@ jest.mock("@/lib/use-refetch-queries", () => ({
 // AC4: the react hooks (useQuery/useLazyQuery/useMutation/useApolloClient)
 // moved to "@apollo/client/react". Route by the Document's __mockDoc tag.
 jest.mock("@apollo/client/react", () => ({
-  useQuery: (
-    doc: { __mockDoc?: string } | undefined,
-    options?: Record<string, unknown>,
-  ) => {
+  useQuery: (doc: { __mockDoc?: string } | undefined) => {
     switch (doc?.__mockDoc) {
       case "appMetadata":
-        return {
-          networkStatus: 7,
-          ...useFetchAppMetadataQuery(options),
-        };
+        return useFetchAppMetadataQuery();
       case "localisations":
-        return {
-          networkStatus: 7,
-          ...useFetchLocalisationsQuery(options),
-        };
+        return useFetchLocalisationsQuery();
       default:
         return {
           data: undefined,
@@ -123,10 +112,7 @@ jest.mock("@apollo/client/react", () => ({
     return [jest.fn().mockResolvedValue({ data: {} }), { loading: false }];
   },
   useApolloClient: () => ({
-    cache: {
-      modify: (...args: unknown[]) => apolloCacheModifyMock(...args),
-      identify: (...args: unknown[]) => apolloCacheIdentifyMock(...args),
-    },
+    cache: { modify: jest.fn(), identify: jest.fn() },
     query: (...args: unknown[]) => apolloQueryMock(...args),
     readQuery: () => null,
     writeQuery: jest.fn(),
@@ -307,20 +293,6 @@ const makeVersionedMetadataData = () => {
   };
 };
 
-const mockApolloNetworkQueries = (metadataData: unknown) => {
-  apolloQueryMock.mockImplementation(
-    ({ query }: { query?: { __mockDoc?: string } }) => {
-      if (query?.__mockDoc === "appMetadata") {
-        return Promise.resolve({ data: metadataData });
-      }
-      if (query?.__mockDoc === "localisations") {
-        return Promise.resolve({ data: { localisations: [] } });
-      }
-      return Promise.reject(new Error("Unexpected Apollo query"));
-    },
-  );
-};
-
 const renderPage = () => render(<AppProfilePage params={{ teamId, appId }} />);
 const renderDangerPage = () =>
   render(<AppDangerZonePage params={{ teamId, appId }} />);
@@ -428,62 +400,22 @@ beforeEach(() => {
     data: { localisations: [] },
     loading: false,
   });
-  mockApolloNetworkQueries(defaultMetadataData);
-  apolloCacheIdentifyMock.mockReturnValue("app_metadata:meta_1");
+  apolloQueryMock.mockImplementation(
+    ({ query }: { query?: { __mockDoc?: string } }) =>
+      Promise.resolve({
+        data:
+          query?.__mockDoc === "appMetadata"
+            ? defaultMetadataData
+            : { localisations: [] },
+      }),
+  );
 });
 
 // #region Configuration redesign layout
 describe("v3 Configuration redesign [layout]", () => {
-  it("shows the full skeleton while configuration data is cold-loading", () => {
-    useFetchAppMetadataQuery.mockReturnValue({
-      data: undefined,
-      loading: true,
-      error: undefined,
-    });
-    useFetchLocalisationsQuery.mockReturnValue({
-      data: undefined,
-      loading: true,
-    });
-
-    const { container } = renderPage();
-
-    expect(container.querySelector(".react-loading-skeleton")).not.toBeNull();
-    expect(
-      screen.queryByText("How does this app reach users?"),
-    ).not.toBeInTheDocument();
-  });
-
-  it("keeps cached configuration mounted during a metadata refetch", () => {
-    useFetchAppMetadataQuery.mockReturnValue({
-      data: { app: [makeApp(makeAppMetadata())] },
-      loading: true,
-      error: undefined,
-    });
-
-    const { container } = renderPage();
-
-    expect(container.querySelector(".react-loading-skeleton")).toBeNull();
-    expect(
-      screen.getByText("How does this app reach users?"),
-    ).toBeInTheDocument();
-    expect(screen.getByRole("radio", { name: "Mini App" })).toBeChecked();
-  });
-
   it("waits for localisations when the selected metadata row changes", () => {
     useFetchLocalisationsQuery.mockReturnValue({
-      data: {
-        localisations: [
-          {
-            locale: "fr",
-            name: "Previous version",
-            short_name: "",
-            world_app_description: "",
-            description: "",
-            meta_tag_image_url: "",
-            showcase_img_urls: [],
-          },
-        ],
-      },
+      data: { localisations: [] },
       loading: true,
       networkStatus: NetworkStatus.setVariables,
     });
@@ -496,68 +428,7 @@ describe("v3 Configuration redesign [layout]", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("places the canonical app tagline in Basic information", () => {
-    renderPage();
-
-    const basicSection = screen
-      .getByRole("heading", { name: "Basic information" })
-      .closest("section");
-    expect(basicSection).not.toBeNull();
-
-    const basicInputs = within(basicSection as HTMLElement)
-      .getAllByRole("textbox")
-      .map((input) => input.id);
-    expect(basicInputs).toEqual([
-      "name",
-      "world_app_description",
-      "integration_url",
-      "app_website_url",
-    ]);
-    expect(
-      within(basicSection as HTMLElement).getByLabelText(/App Tag Line/),
-    ).toHaveValue("A useful test app");
-
-    goToStep("Localized content");
-    const localizedSection = screen
-      .getByRole("heading", { name: "Localized content" })
-      .closest("section");
-    expect(localizedSection).not.toBeNull();
-    expect(
-      within(localizedSection as HTMLElement).queryByLabelText(/App Tag Line/),
-    ).not.toBeInTheDocument();
-  });
-
-  it("hides the Mini App tagline for external integrations", () => {
-    useFetchAppMetadataQuery.mockReturnValue({
-      data: {
-        app: [
-          makeApp(
-            makeAppMetadata({
-              app_mode: "external",
-              world_app_description: "Legacy mini app tagline",
-            }),
-          ),
-        ],
-      },
-      loading: false,
-      error: undefined,
-    });
-
-    renderPage();
-
-    expect(screen.queryByLabelText(/App Tag Line/)).not.toBeInTheDocument();
-
-    goToStep("Localized content");
-    const localizedSection = screen
-      .getByRole("heading", { name: "Localized content" })
-      .closest("section");
-    expect(localizedSection).not.toBeNull();
-    expect(
-      within(localizedSection as HTMLElement).getByLabelText("Description"),
-    ).toBeInTheDocument();
-  });
-
-  it("keeps the App name cell fixed while the Mini App tagline appears", () => {
+  it("preserves the canonical tagline when an External app becomes a Mini App", () => {
     useFetchAppMetadataQuery.mockReturnValue({
       data: {
         app: [
@@ -575,10 +446,6 @@ describe("v3 Configuration redesign [layout]", () => {
 
     renderPage();
 
-    const appNameCell =
-      screen.getByLabelText(/App name/).parentElement?.parentElement
-        ?.parentElement;
-    expect(appNameCell).toHaveClass("min-w-0");
     expect(screen.queryByLabelText(/App Tag Line/)).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("radio", { name: "Mini App" }));
@@ -586,10 +453,15 @@ describe("v3 Configuration redesign [layout]", () => {
     expect(screen.getByLabelText(/App Tag Line/)).toHaveValue(
       "Preserved tagline",
     );
+
+    goToStep("Localized content");
+    const localizedSection = screen
+      .getByRole("heading", { name: "Localized content" })
+      .closest("section");
+    expect(localizedSection).not.toBeNull();
     expect(
-      screen.getByLabelText(/App name/).parentElement?.parentElement
-        ?.parentElement,
-    ).toBe(appNameCell);
+      within(localizedSection as HTMLElement).queryByLabelText(/App Tag Line/),
+    ).not.toBeInTheDocument();
   });
 
   it("renders the app-mode radio cards with mini-app selected", () => {
@@ -794,11 +666,15 @@ describe("v3 Configuration redesign [footer and preview]", () => {
     expect(within(rail).getByText("Mini App")).toBeInTheDocument();
     // Static placeholders for the non-editable listing bits.
     expect(screen.getByText("Not yet rated")).toBeInTheDocument();
-    expect(screen.getByText("Counted after launch")).toBeInTheDocument();
-    expect(screen.getByText("Open Mini App")).toBeInTheDocument();
-    // Empty fields render as quiet empty states, not filler copy: no
-    // description paragraph, and two empty (imageless) showcase slots.
-    expect(within(rail).queryByText(/description/i)).not.toBeInTheDocument();
+    expect(screen.getByText("Available at launch")).toBeInTheDocument();
+    expect(screen.getByText("Open Mini App ↗")).toBeInTheDocument();
+    expect(
+      screen.queryByText("A one-line summary of your app"),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByText(/Your description appears here/),
+    ).toBeInTheDocument();
+    expect(screen.queryByText("Showcase image")).not.toBeInTheDocument();
     expect(
       within(rail).queryByAltText("Showcase preview"),
     ).not.toBeInTheDocument();
@@ -821,7 +697,6 @@ describe("v3 Configuration redesign [footer and preview]", () => {
       "src",
       "https://cdn.example/unverified/logo.png",
     );
-    // Exactly one slot has an image; the second stays an empty placeholder.
     expect(screen.getAllByAltText("Showcase preview")).toHaveLength(1);
     expect(screen.getByAltText("Showcase preview")).toHaveAttribute(
       "src",
@@ -863,7 +738,7 @@ describe("v3 Configuration redesign [footer and preview]", () => {
     renderPage();
 
     expect(
-      screen.getByText(/Editing is locked while your app is in review/),
+      screen.getByText(/In review — editing is locked/),
     ).toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: "Un-submit" }),
@@ -1028,54 +903,28 @@ describe("v3 Configuration redesign [footer and preview]", () => {
     expect(createEditableRowMock).not.toHaveBeenCalled();
   });
 
-  it("switches between the draft and the verified version without creating rows", async () => {
+  it("flushes draft edits and loads destination localisations before switching versions", async () => {
     const metadataData = makeVersionedMetadataData();
     useFetchAppMetadataQuery.mockReturnValue({
       data: metadataData,
       loading: false,
       error: undefined,
     });
-    mockApolloNetworkQueries(metadataData);
-
-    renderPage();
-
-    // Draft view: static "Draft" indicator top-right, "Verified" switch in
-    // the footer between Back and the primary action.
-    const indicator = screen.getByTestId("configuration-version-indicator");
-    expect(indicator).toHaveAccessibleName("Draft version");
-
-    fireEvent.click(screen.getByRole("button", { name: /Verified/ }));
-    const openDraftButton = await screen.findByRole("button", {
-      name: /New draft/,
-    });
-    expect(
-      screen.getByTestId("configuration-version-indicator"),
-    ).toHaveAccessibleName("Verified version");
-
-    // With a draft already in place, the footer button opens it instead of
-    // creating another row.
-    fireEvent.click(openDraftButton);
-    await screen.findByRole("button", { name: /Verified/ });
-    expect(
-      screen.getByTestId("configuration-version-indicator"),
-    ).toHaveAccessibleName("Draft version");
-    expect(createEditableRowMock).not.toHaveBeenCalled();
-  });
-
-  it("flushes draft edits and refreshes the destination before switching versions", async () => {
-    const metadataData = makeVersionedMetadataData();
-    useFetchAppMetadataQuery.mockReturnValue({
-      data: metadataData,
-      loading: false,
-      error: undefined,
-    });
-    mockApolloNetworkQueries(metadataData);
 
     let resolveSave!: (value: { success: true; message: string }) => void;
     validateAndSubmitServerSideMock.mockImplementation(
       () =>
         new Promise((resolve) => {
           resolveSave = resolve;
+        }),
+    );
+    let resolveLocalisations!: (value: {
+      data: { localisations: never[] };
+    }) => void;
+    apolloQueryMock.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          resolveLocalisations = resolve;
         }),
     );
 
@@ -1095,9 +944,9 @@ describe("v3 Configuration redesign [footer and preview]", () => {
       );
     });
     expect(switchButton).toBeDisabled();
-    expect(screen.getByTestId("configuration-form-content")).toHaveAttribute(
-      "inert",
-    );
+    expect(
+      screen.getByLabelText(/App name/).closest("[aria-busy]"),
+    ).toHaveAttribute("inert");
     expect(apolloQueryMock).not.toHaveBeenCalled();
     expect(
       screen.getByTestId("configuration-version-indicator"),
@@ -1108,34 +957,44 @@ describe("v3 Configuration redesign [footer and preview]", () => {
     });
 
     await waitFor(() => {
-      expect(
-        screen.getByTestId("configuration-version-indicator"),
-      ).toHaveAccessibleName("Verified version");
+      expect(apolloQueryMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          query: { __mockDoc: "localisations" },
+          variables: { app_metadata_id: "meta_verified" },
+          fetchPolicy: "network-only",
+        }),
+      );
     });
-    expect(apolloQueryMock).toHaveBeenCalledWith(
-      expect.objectContaining({
-        query: { __mockDoc: "appMetadata" },
-        variables: { id: appId },
-        fetchPolicy: "network-only",
-      }),
-    );
-    expect(apolloQueryMock).toHaveBeenCalledWith(
-      expect.objectContaining({
-        query: { __mockDoc: "localisations" },
-        variables: { app_metadata_id: "meta_verified" },
-        fetchPolicy: "network-only",
-      }),
-    );
+    expect(
+      screen.getByTestId("configuration-version-indicator"),
+    ).toHaveAccessibleName("Draft version");
+
+    await act(async () => {
+      resolveLocalisations({ data: { localisations: [] } });
+    });
+
+    const openDraftButton = await screen.findByRole("button", {
+      name: /New draft/,
+    });
+    expect(
+      screen.getByTestId("configuration-version-indicator"),
+    ).toHaveAccessibleName("Verified version");
+
+    fireEvent.click(openDraftButton);
+    await screen.findByRole("button", { name: /Verified/ });
+    expect(
+      screen.getByTestId("configuration-version-indicator"),
+    ).toHaveAccessibleName("Draft version");
+    expect(createEditableRowMock).not.toHaveBeenCalled();
   });
 
-  it("keeps the current version open when its switch-time refresh fails", async () => {
+  it("keeps the current version open when destination localisations fail to load", async () => {
     const metadataData = makeVersionedMetadataData();
     useFetchAppMetadataQuery.mockReturnValue({
       data: metadataData,
       loading: false,
       error: undefined,
     });
-    mockApolloNetworkQueries(metadataData);
     apolloQueryMock.mockRejectedValueOnce(new Error("Network unavailable"));
 
     renderPage();
@@ -1150,21 +1009,17 @@ describe("v3 Configuration redesign [footer and preview]", () => {
     expect(apolloQueryMock).toHaveBeenCalledTimes(1);
     expect(apolloQueryMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        query: { __mockDoc: "appMetadata" },
-        variables: { id: appId },
+        query: { __mockDoc: "localisations" },
+        variables: { app_metadata_id: "meta_verified" },
         fetchPolicy: "network-only",
       }),
     );
     expect(
       screen.getByTestId("configuration-version-indicator"),
     ).toHaveAccessibleName("Draft version");
-    expect(screen.getByLabelText(/App name/)).toHaveValue("Draft App");
-    expect(
-      screen.queryByRole("heading", { name: "App not found" }),
-    ).not.toBeInTheDocument();
     await waitFor(() => {
       expect(
-        screen.getByTestId("configuration-form-content"),
+        screen.getByLabelText(/App name/).closest("[aria-busy]"),
       ).not.toHaveAttribute("inert");
     });
   });
@@ -1176,7 +1031,6 @@ describe("v3 Configuration redesign [footer and preview]", () => {
       loading: false,
       error: undefined,
     });
-    mockApolloNetworkQueries(metadataData);
     validateAndSubmitServerSideMock.mockResolvedValue({
       success: false,
       message: "Save failed",

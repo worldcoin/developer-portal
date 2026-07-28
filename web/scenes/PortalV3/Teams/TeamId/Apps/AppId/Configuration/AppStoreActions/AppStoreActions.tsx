@@ -23,7 +23,6 @@ type AppStoreActionsProps = {
   basicInfoRef?: MutableRefObject<BasicInformationHandle | null>;
   onValidationError?: (fieldPath?: string) => void;
   className: string;
-  disabled?: boolean;
 };
 
 /**
@@ -39,7 +38,6 @@ export const AppStoreActions = ({
   basicInfoRef,
   onValidationError,
   className,
-  disabled = false,
 }: AppStoreActionsProps) => {
   const viewMode = useAtomValue(viewModeAtom);
   const { user } = useUser() as Auth0SessionUser;
@@ -82,7 +80,6 @@ export const AppStoreActions = ({
         basicInfoRef={basicInfoRef}
         onValidationError={onValidationError}
         className={clsx("shrink-0", className)}
-        disabled={disabled}
       />
     </>
   );

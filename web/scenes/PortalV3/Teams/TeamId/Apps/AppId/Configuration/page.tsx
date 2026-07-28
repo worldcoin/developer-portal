@@ -78,9 +78,6 @@ type ConfigurationContentProps = {
   teamName: string;
   activeStep: AppStoreWizardStep;
   setActiveStep: (step: AppStoreWizardStep) => void;
-  prepareVersionSwitch: (
-    targetViewMode: "unverified" | "verified",
-  ) => Promise<void>;
 };
 
 const stepActionClassName =
@@ -142,7 +139,6 @@ const ActionsFooter = ({
   steps,
   activeStep,
   onStepChange,
-  prepareVersionSwitch,
   isSwitchingVersion,
   setIsSwitchingVersion,
 }: {
@@ -155,11 +151,11 @@ const ActionsFooter = ({
   steps: ReturnType<typeof getAppStoreWizardSteps>;
   activeStep: AppStoreWizardStep;
   onStepChange: (step: AppStoreWizardStep) => void;
-  prepareVersionSwitch: ConfigurationContentProps["prepareVersionSwitch"];
   isSwitchingVersion: boolean;
   setIsSwitchingVersion: (isSwitching: boolean) => void;
 }) => {
   const [viewMode, setViewMode] = useAtom(viewModeAtom);
+  const apolloClient = useApolloClient();
   const saveStatus = useSaveStatusActions();
   const { user } = useUser() as Auth0SessionUser;
   const hasDraft = app.app_metadata.length > 0;
@@ -198,45 +194,47 @@ const ActionsFooter = ({
   const showVersionAction =
     hasVerified && (!isVerifiedView || hasDraft || canManageDraft);
 
-  const switchVersion = useCallback(
-    async (targetViewMode: "unverified" | "verified") => {
-      if (isSwitchingVersion) return;
+  const switchVersion = async (targetViewMode: "unverified" | "verified") => {
+    if (isSwitchingVersion) return;
 
-      setIsSwitchingVersion(true);
-      try {
-        if (!saveStatus) {
-          throw new Error("Save status is unavailable");
-        }
-        const flushed = await saveStatus.flushAll();
-        if (!flushed) {
-          toast.error(
-            "Some changes could not be saved. Fix any errors and try again.",
-          );
-          setIsSwitchingVersion(false);
-          return;
-        }
-
-        await prepareVersionSwitch(targetViewMode);
-        // This remounts the keyed form with the destination row that was just
-        // refreshed. The current footer unmounts, so no local loading reset is
-        // needed on the success path.
-        setViewMode(targetViewMode);
-      } catch (error) {
-        console.error("Failed to switch app version", error);
-        toast.error("Could not load that app version. Please try again.");
-        setIsSwitchingVersion(false);
+    setIsSwitchingVersion(true);
+    try {
+      if (!(await saveStatus?.flushAll())) {
+        toast.error(
+          "Some changes could not be saved. Fix any errors and try again.",
+        );
+        return;
       }
-    },
-    [isSwitchingVersion, prepareVersionSwitch, saveStatus, setViewMode],
-  );
+
+      const targetMetadataId =
+        targetViewMode === "verified"
+          ? app.verified_app_metadata[0].id
+          : app.app_metadata[0].id;
+
+      await apolloClient.query({
+        query: FetchLocalisationsDocument,
+        variables: { app_metadata_id: targetMetadataId },
+        fetchPolicy: "network-only",
+      });
+      setViewMode(targetViewMode);
+    } catch (error) {
+      console.error("Failed to switch app version", error);
+      toast.error("Could not load that app version. Please try again.");
+    } finally {
+      setIsSwitchingVersion(false);
+    }
+  };
 
   return (
     // Three equal tracks so the version switch sits dead-center regardless
     // of how wide the Back or primary clusters are.
-    <div className="grid shrink-0 grid-cols-[1fr_auto_1fr] items-center gap-3 py-3 lg:mr-6">
+    <fieldset
+      disabled={isSwitchingVersion}
+      className="grid shrink-0 grid-cols-[1fr_auto_1fr] items-center gap-3 py-3 lg:mr-6"
+    >
       <button
         type="button"
-        disabled={!previousStep || isSwitchingVersion}
+        disabled={!previousStep}
         className={clsx(secondaryStepActionClassName, "justify-self-start")}
         onClick={() => {
           if (previousStep) onStepChange(previousStep.id);
@@ -252,7 +250,7 @@ const ActionsFooter = ({
         {showVersionAction && (
           <button
             type="button"
-            disabled={isCreating || isSwitchingVersion}
+            disabled={isCreating}
             className={secondaryStepActionClassName}
             onClick={() => {
               if (!isVerifiedView) {
@@ -284,7 +282,7 @@ const ActionsFooter = ({
               variant={TYPOGRAPHY.R5}
               className="min-w-0 truncate text-grey-500"
             >
-              Editing is locked while your app is in review.
+              In review — editing is locked until review completes.
             </Typography>
           ) : isEditable ? (
             <SaveStatusIndicator />
@@ -299,7 +297,6 @@ const ActionsFooter = ({
             variant="secondary"
             className="ml-2 h-9 shrink-0 px-3 py-1.5"
             loading={isUnsubmitting}
-            disabled={isSwitchingVersion}
             onClick={removeFromReview}
           >
             <Typography variant={TYPOGRAPHY.M4} className="whitespace-nowrap">
@@ -319,10 +316,9 @@ const ActionsFooter = ({
           basicInfoRef={basicInfoRef}
           onValidationError={onValidationError}
           className={clsx(primaryStepActionClassName, "ml-2")}
-          disabled={isSwitchingVersion}
         />
       </div>
-    </div>
+    </fieldset>
   );
 };
 
@@ -336,7 +332,6 @@ const ConfigurationContent = ({
   teamName,
   activeStep,
   setActiveStep,
-  prepareVersionSwitch,
 }: ConfigurationContentProps) => {
   const basicInfoRef = useRef<BasicInformationHandle>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -393,7 +388,6 @@ const ConfigurationContent = ({
       <div className="flex min-h-0 min-w-0 flex-col">
         <div
           ref={scrollContainerRef}
-          data-testid="configuration-form-content"
           inert={isSwitchingVersion}
           aria-busy={isSwitchingVersion}
           className="grid min-w-0 content-start gap-y-6 pt-6 pb-6 lg:min-h-0 lg:flex-1 lg:overflow-y-auto lg:pr-6"
@@ -432,7 +426,8 @@ const ConfigurationContent = ({
                     App details
                   </Typography>
                   <Typography variant={TYPOGRAPHY.R4} className="text-grey-500">
-                    Add the name and links people use to open your app.
+                    Add the name and destinations people will use to find your
+                    app.
                   </Typography>
                 </div>
                 <BasicInformation
@@ -497,7 +492,6 @@ const ConfigurationContent = ({
           steps={steps}
           activeStep={activeStep}
           onStepChange={handleStepChange}
-          prepareVersionSwitch={prepareVersionSwitch}
           isSwitchingVersion={isSwitchingVersion}
           setIsSwitchingVersion={setIsSwitchingVersion}
         />
@@ -519,7 +513,6 @@ export const AppProfilePage = ({ params }: AppProfilePageProps) => {
   const appId = (params?.appId || routeParams?.appId) as `app_${string}`;
   const teamId = (params?.teamId || routeParams?.teamId) as `team_${string}`;
   const [viewMode, setViewMode] = useAtom(viewModeAtom);
-  const apolloClient = useApolloClient();
   // Lives here — ABOVE the keyed AppStoreFormProvider — so a provider remount
   // (metadata row change / view switch mid-autosave) can't yank the user back
   // to the first wizard step. Reset only when the route app changes; do not
@@ -579,47 +572,12 @@ export const AppProfilePage = ({ params }: AppProfilePageProps) => {
     skip: !appMetadata?.id,
   });
 
-  const prepareVersionSwitch = useCallback(
-    async (targetViewMode: "unverified" | "verified") => {
-      // Keep switch-time failures local. Refetching the page's observed query
-      // would set its `error` state and turn a transient failure into a 404.
-      const refreshedResult = await apolloClient.query<FetchAppMetadataQuery>({
-        query: FetchAppMetadataDocument,
-        variables: { id: appId },
-        fetchPolicy: "network-only",
-      });
-      const refreshedApp = refreshedResult.data?.app[0];
-      const targetMetadata =
-        targetViewMode === "verified"
-          ? refreshedApp?.verified_app_metadata[0]
-          : refreshedApp?.app_metadata[0];
-
-      if (!targetMetadata) {
-        throw new Error(`No ${targetViewMode} metadata row exists`);
-      }
-
-      // Populate the destination query's cache before changing viewMode. RHF
-      // consumes defaultValues only when its keyed provider mounts, so it must
-      // never mount with localisations from the row we are leaving.
-      await apolloClient.query({
-        query: FetchLocalisationsDocument,
-        variables: { app_metadata_id: targetMetadata.id },
-        fetchPolicy: "network-only",
-      });
-    },
-    [apolloClient, appId],
-  );
-
   const teamName = app?.team?.name ?? "";
-  // A refetch keeps the previous Apollo data available. Reserve the full-page
-  // skeleton for a cold load so background reconciliation does not unmount the
-  // configuration form.
-  const isChangingLocalisationsRow =
+  // Prevent a metadata row from mounting with retained localisations.
+  const isLoading =
+    isMetadataLoading ||
+    isLocalisationsLoading ||
     localisationsNetworkStatus === NetworkStatus.setVariables;
-  const isInitialLoading =
-    (isMetadataLoading && !data) ||
-    (isLocalisationsLoading && !localisationsData) ||
-    isChangingLocalisationsRow;
   const [showResolveModal, setShowResolveModal] = useState(false);
 
   const isRejected = appMetadata?.verification_status === "changes_requested";
@@ -636,7 +594,7 @@ export const AppProfilePage = ({ params }: AppProfilePageProps) => {
     );
   }
 
-  if (isInitialLoading || !app || !appMetadata) {
+  if (isLoading || !app || !appMetadata) {
     return (
       <>
         <SizingWrapper variant="nav" gridClassName="order-1 pt-8">
@@ -704,7 +662,6 @@ export const AppProfilePage = ({ params }: AppProfilePageProps) => {
             teamName={teamName}
             activeStep={activeStep}
             setActiveStep={setActiveStep}
-            prepareVersionSwitch={prepareVersionSwitch}
           />
         </SizingWrapper>
       </SaveStatusProvider>
