@@ -28,6 +28,43 @@ describe("v4 verify request schema", () => {
     expect(parsed.responses[0]?.signal_hash).toBe("0x0");
   });
 
+  it('accepts "selfie" as a v4 response identifier', async () => {
+    const parsed = await schema.validate({
+      protocol_version: "4.0",
+      nonce: "0x01",
+      action: "test-action",
+      responses: [
+        {
+          identifier: "selfie",
+          issuer_schema_id: 11,
+          nullifier: "0x02",
+          expires_at_min: 1772584197,
+          proof: ["0x1", "0x2", "0x3", "0x4", "0x5"],
+        },
+      ],
+    });
+
+    expect(parsed.responses[0]?.identifier).toBe("selfie");
+  });
+
+  it('accepts "selfie" as a v3 response identifier', async () => {
+    const parsed = await schema.validate({
+      protocol_version: "3.0",
+      nonce: "0x01",
+      action: "test-action",
+      responses: [
+        {
+          identifier: "selfie",
+          merkle_root: "0x01",
+          nullifier: "0x02",
+          proof: "0x03",
+        },
+      ],
+    });
+
+    expect(parsed.responses[0]?.identifier).toBe("selfie");
+  });
+
   it('preserves the "sandbox" environment after schema validation', async () => {
     const parsed = await schema.validate({
       protocol_version: "4.0",

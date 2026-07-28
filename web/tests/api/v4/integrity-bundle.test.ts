@@ -38,9 +38,9 @@ type AgKey = {
 };
 
 const response = {
-  identifier: "face",
+  identifier: "selfie",
   signal_hash: "0x0",
-  issuer_schema_id: "1",
+  issuer_schema_id: "11",
   nullifier: "0x2",
   expires_at_min: "1772584197",
   proof: ["0x1", "0x2", "0x3", "0x4", "0x5"] as [

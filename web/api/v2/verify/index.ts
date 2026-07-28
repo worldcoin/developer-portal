@@ -11,7 +11,11 @@ import {
   encodeNullifierForStorage,
   verifyProof,
 } from "@/api/helpers/verify";
-import { LegacyVerificationLevel } from "@/lib/idkit";
+import {
+  LegacyVerificationLevel,
+  SELFIE_IDENTIFIER,
+  toLegacyVerificationLevel,
+} from "@/lib/idkit";
 import { logger } from "@/lib/logger";
 import { captureEvent } from "@/services/posthogClient";
 import { NextRequest, NextResponse } from "next/server";
@@ -47,7 +51,7 @@ const schema = yup
     merkle_root: yup.string().strict().required("This attribute is required."),
     verification_level: yup
       .string()
-      .oneOf(Object.values(LegacyVerificationLevel))
+      .oneOf([...Object.values(LegacyVerificationLevel), SELFIE_IDENTIFIER])
       .required("This attribute is required."),
     max_age: yup
       .number()
@@ -109,6 +113,20 @@ export async function POST(
 
   if (!isValid) {
     return handleError(req);
+  }
+
+  const legacyVerificationLevel = toLegacyVerificationLevel(
+    parsedParams.verification_level,
+  );
+
+  if (!legacyVerificationLevel) {
+    return errorValidation(
+      "invalid_verification_level",
+      "Invalid verification_level.",
+      "verification_level",
+      req,
+      app_id,
+    );
   }
 
   const client = await getAPIServiceGraphqlClient();
@@ -210,7 +228,7 @@ export async function POST(
       },
       {
         is_staging: app.is_staging,
-        verification_level: parsedParams.verification_level,
+        verification_level: legacyVerificationLevel,
         max_age: parsedParams.max_age,
       },
     );

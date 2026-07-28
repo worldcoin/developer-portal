@@ -1,20 +1,21 @@
-import { LegacyVerificationLevel } from "@/lib/idkit";
+import { LegacyVerificationLevel, SELFIE_IDENTIFIER } from "@/lib/idkit";
 import * as yup from "yup";
 
 /**
  * Schema for v4 verify request - supports both v3 (cloud) and v4 (on-chain) proofs.
  *
  * The version field at root level determines which proof format is expected.
- * V3 proofs include: merkle_root, nullifier, proof, verification_level
+ * V3 proofs include: identifier, merkle_root, nullifier, proof
  * V4 proofs include: identifier, issuer_schema_id, compressed_proof, nullifier, etc.
  */
 
 // V3 response item schema
 const v3ResponseItemSchema = yup.object({
-  // Identifier uses VerificationLevel values (legacy term for credential type: "orb", "device", "face")
+  // V3 clients historically return verification-level identifiers. Also
+  // accept IDKit's public "selfie" name and translate it only at verification.
   identifier: yup
     .string()
-    .oneOf(Object.values(LegacyVerificationLevel))
+    .oneOf([...Object.values(LegacyVerificationLevel), SELFIE_IDENTIFIER])
     .required("identifier is required"),
   signal_hash: yup
     .string()

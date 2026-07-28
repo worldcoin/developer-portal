@@ -20,6 +20,31 @@ export enum LegacyVerificationLevel {
   Face = "face",
 }
 
+export const SELFIE_IDENTIFIER = "selfie";
+
+/**
+ * Maps public IDKit identifiers to the credential name expected by legacy
+ * verification endpoints. Selfie Check was historically called "face" by the
+ * legacy sequencer, so keep that translation at the verification boundary.
+ */
+export function toLegacyVerificationLevel(
+  identifier: string,
+): LegacyVerificationLevel | undefined {
+  if (identifier === SELFIE_IDENTIFIER) {
+    return LegacyVerificationLevel.Face;
+  }
+
+  if (
+    Object.values(LegacyVerificationLevel).includes(
+      identifier as LegacyVerificationLevel,
+    )
+  ) {
+    return identifier as LegacyVerificationLevel;
+  }
+
+  return undefined;
+}
+
 // Dropped support in IDKit 4.x
 export interface HashFunctionOutput {
   hash: bigint;

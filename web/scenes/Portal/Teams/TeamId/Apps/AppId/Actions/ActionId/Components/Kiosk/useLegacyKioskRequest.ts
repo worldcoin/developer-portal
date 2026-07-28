@@ -1,4 +1,7 @@
-import { LegacyVerificationLevel } from "@/lib/idkit";
+import {
+  LegacyVerificationLevel,
+  toLegacyVerificationLevel,
+} from "@/lib/idkit";
 import { buildMockRpContext } from "@/lib/rp";
 import { KioskScreen } from "@/lib/types";
 import {
@@ -80,14 +83,6 @@ function mapErrorCodeToKioskScreen(
   }
 }
 
-function isLegacyVerificationLevel(
-  value: string,
-): value is LegacyVerificationLevel {
-  return Object.values(LegacyVerificationLevel).includes(
-    value as LegacyVerificationLevel,
-  );
-}
-
 function toLegacyVerifyPayload(result: IDKitResult): LegacyVerifyPayload {
   if (result.protocol_version !== "3.0") {
     throw new Error("Kiosk only supports legacy uniqueness proofs.");
@@ -103,7 +98,8 @@ function toLegacyVerifyPayload(result: IDKitResult): LegacyVerifyPayload {
     throw new Error("Missing action in proof result.");
   }
 
-  if (!isLegacyVerificationLevel(response.identifier)) {
+  const verificationLevel = toLegacyVerificationLevel(response.identifier);
+  if (!verificationLevel) {
     throw new Error("Unsupported verification level.");
   }
 
@@ -115,7 +111,7 @@ function toLegacyVerifyPayload(result: IDKitResult): LegacyVerifyPayload {
     proof: response.proof,
     nullifier_hash: response.nullifier,
     merkle_root: response.merkle_root,
-    verification_level: response.identifier,
+    verification_level: verificationLevel,
   };
 }
 
