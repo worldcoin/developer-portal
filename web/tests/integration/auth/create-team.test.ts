@@ -184,6 +184,7 @@ describe("test /create-team", () => {
           id
           email
           name
+          avatar_color
           auth0Id
           posthog_id
           is_allow_tracking
@@ -206,6 +207,7 @@ describe("test /create-team", () => {
         id: string;
         email: string;
         name: string;
+        avatar_color: string | null;
         auth0Id: string;
         posthog_id: string;
         is_allow_tracking: boolean;
