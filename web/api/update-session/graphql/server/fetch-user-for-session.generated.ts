@@ -15,6 +15,7 @@ export type FetchUserForSessionQuery = {
     id: string;
     name: string;
     email?: string | null;
+    avatar_color?: string | null;
     world_id_nullifier?: string | null;
     posthog_id?: string | null;
     is_allow_tracking?: boolean | null;
@@ -32,6 +33,7 @@ export const FetchUserForSessionDocument = gql`
       id
       name
       email
+      avatar_color
       world_id_nullifier
       posthog_id
       is_allow_tracking

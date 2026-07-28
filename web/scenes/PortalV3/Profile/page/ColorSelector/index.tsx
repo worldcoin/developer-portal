@@ -1,10 +1,10 @@
 import { Option } from "@/scenes/PortalV3/Profile/page/ColorSelector/Option";
-import { Color, colors } from "@/scenes/common/Profile/types";
+import { ColorName, colors } from "@/scenes/common/Profile/types";
 
 type ColorSelectorProps = {
-  value: Color;
+  value: ColorName;
   name: string;
-  onChange: (value: Color) => void;
+  onChange: (value: ColorName) => void;
 };
 
 export const ColorSelector = (props: ColorSelectorProps) => {
@@ -12,15 +12,17 @@ export const ColorSelector = (props: ColorSelectorProps) => {
 
   return (
     <div className="flex flex-wrap gap-3" aria-label="Avatar color">
-      {Object.entries(colors).map(([colorName, colors]) => (
+      {(
+        Object.entries(colors) as [ColorName, (typeof colors)[ColorName]][]
+      ).map(([colorName, color]) => (
         <Option
           key={colorName}
           aria-label={`Use ${colorName} avatar color`}
-          aria-pressed={colors[100] === props.value[100]}
+          aria-pressed={colorName === props.value}
           initial={initial}
-          selected={colors[100] === props.value[100]}
-          value={colors}
-          onClick={() => props.onChange(colors as Color)}
+          selected={colorName === props.value}
+          value={color}
+          onClick={() => props.onChange(colorName)}
         />
       ))}
     </div>

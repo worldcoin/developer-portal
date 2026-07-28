@@ -1,12 +1,15 @@
 /** @jest-environment jsdom */
 
 import "@testing-library/jest-dom";
+import { colorAtom } from "@/scenes/common/layout/color-atom";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { getDefaultStore } from "jotai";
 import React from "react";
 
 // #region Mocks
 const mockUpdateUser = jest.fn();
 const mockRefetchMe = jest.fn();
+let mockAvatarColor: string | null = null;
 
 jest.mock("@auth0/nextjs-auth0/client", () => ({
   useUser: () => ({
@@ -23,6 +26,7 @@ jest.mock("@/scenes/common/me-query/client", () => ({
       name: "Ada Lovelace",
       nameToDisplay: "Ada Lovelace",
       email: "ada@example.com",
+      avatar_color: mockAvatarColor,
       is_allow_tracking: false,
       world_id_nullifier: null,
       memberships: [
@@ -58,6 +62,8 @@ import { ProfilePage } from "@/scenes/PortalV3/Profile/page";
 
 beforeEach(() => {
   jest.clearAllMocks();
+  getDefaultStore().set(colorAtom, null);
+  mockAvatarColor = null;
   mockUpdateUser.mockResolvedValue({});
 });
 
@@ -101,7 +107,7 @@ describe("PortalV3 profile settings", () => {
     await waitFor(() => expect(saveButtons[0]).toBeDisabled());
   });
 
-  it("updates the avatar preview immediately and opens the existing delete dialog", async () => {
+  it("saves the selected avatar color and opens the existing delete dialog", async () => {
     render(<ProfilePage />);
 
     const avatarPreview = screen.getByLabelText("Avatar preview");
@@ -118,8 +124,41 @@ describe("PortalV3 profile settings", () => {
     });
     await waitFor(() => expect(avatarSave).toBeEnabled());
 
+    fireEvent.click(avatarSave);
+
+    await waitFor(() =>
+      expect(mockUpdateUser).toHaveBeenCalledWith({
+        variables: {
+          user_id: "user_123",
+          input: {
+            avatar_color: "green",
+          },
+        },
+      }),
+    );
+    await waitFor(() => expect(avatarSave).toBeDisabled());
+
     fireEvent.click(screen.getByRole("button", { name: "Delete account" }));
     expect(screen.getByTestId("delete-account-dialog")).toBeInTheDocument();
+  });
+
+  it("hydrates a saved avatar color instead of deriving one from the name", async () => {
+    mockAvatarColor = "green";
+
+    render(<ProfilePage />);
+
+    const avatarPreview = screen.getByLabelText("Avatar preview");
+    const greenSwatch = screen.getByRole("button", {
+      name: "Use green avatar color",
+    });
+
+    await waitFor(() =>
+      expect(greenSwatch).toHaveAttribute("aria-pressed", "true"),
+    );
+    expect(avatarPreview).toHaveStyle({
+      backgroundColor: "#EBFAEC",
+      color: "#00C313",
+    });
   });
 });
 // #endregion

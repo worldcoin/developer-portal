@@ -9,7 +9,11 @@ export type UpdateUserMutationVariables = Types.Exact<{
 
 export type UpdateUserMutation = {
   __typename?: "mutation_root";
-  update_user_by_pk?: { __typename?: "user"; name: string } | null;
+  update_user_by_pk?: {
+    __typename?: "user";
+    name: string;
+    avatar_color?: string | null;
+  } | null;
 };
 
 export const UpdateUserDocument = {
@@ -83,6 +87,10 @@ export const UpdateUserDocument = {
               kind: "SelectionSet",
               selections: [
                 { kind: "Field", name: { kind: "Name", value: "name" } },
+                {
+                  kind: "Field",
+                  name: { kind: "Name", value: "avatar_color" },
+                },
               ],
             },
           },

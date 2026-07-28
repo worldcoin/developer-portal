@@ -12,7 +12,13 @@ import { ColorSelector } from "@/scenes/PortalV3/Profile/page/ColorSelector";
 import { CreateTeamDialog } from "@/scenes/PortalV3/Profile/page/CreateTeamDialog";
 import { WorldIdAccountMigration } from "@/scenes/common/Profile/page/WorldIdAccountMigration";
 import { UpdateUserDocument } from "@/scenes/common/Profile/page/graphql/client/update-user.generated";
-import { Color, colors } from "@/scenes/common/Profile/types";
+import {
+  Color,
+  ColorName,
+  colors,
+  getColorByName,
+  getColorName,
+} from "@/scenes/common/Profile/types";
 import { colorAtom } from "@/scenes/common/layout/color-atom";
 import { useMeQuery } from "@/scenes/common/me-query/client";
 import { FetchMeDocument } from "@/scenes/common/me-query/client/graphql/client/me-query.generated";
@@ -46,11 +52,9 @@ const displayNameSchema = yup
 const avatarSchema = yup
   .object({
     color: yup
-      .object<Color>({
-        "100": yup.string().required(),
-        "500": yup.string().required(),
-      })
-      .noUnknown(),
+      .mixed<ColorName>()
+      .oneOf(Object.keys(colors) as ColorName[])
+      .required(),
   })
   .noUnknown();
 
@@ -146,7 +150,7 @@ export const ProfilePage = () => {
     reset: resetAvatar,
   } = useForm<AvatarFormValues>({
     defaultValues: {
-      color: color ?? colors.pink,
+      color: getColorName(color) ?? "pink",
     },
     resolver: yupResolver(avatarSchema),
     mode: "onChange",
@@ -170,9 +174,13 @@ export const ProfilePage = () => {
     }
 
     const initialColor =
-      color ?? calculateColorFromString(user.nameToDisplay) ?? colors.pink;
+      getColorByName(user.avatar_color) ??
+      color ??
+      calculateColorFromString(user.nameToDisplay) ??
+      colors.pink;
+    const initialColorName = getColorName(initialColor) ?? "pink";
 
-    resetAvatar({ color: initialColor });
+    resetAvatar({ color: initialColorName });
     setColor(initialColor);
     hasInitializedAvatar.current = true;
   }, [color, loading, resetAvatar, setColor, user]);
@@ -215,7 +223,7 @@ export const ProfilePage = () => {
 
   const submitAvatar = useCallback(
     async (values: AvatarFormValues) => {
-      if (!auth0User?.hasura || !user) {
+      if (!auth0User?.hasura) {
         return;
       }
 
@@ -224,8 +232,7 @@ export const ProfilePage = () => {
           variables: {
             user_id: auth0User.hasura.id,
             input: {
-              name: user.name,
-              is_allow_tracking: user.is_allow_tracking,
+              avatar_color: values.color,
             },
           },
         });
@@ -237,7 +244,7 @@ export const ProfilePage = () => {
         toast.error("Error updating profile");
       }
     },
-    [auth0User?.hasura, resetAvatar, updateUser, user],
+    [auth0User?.hasura, resetAvatar, updateUser],
   );
 
   const nameForAvatar = displayName || user?.nameToDisplay || "Account";
@@ -337,16 +344,16 @@ export const ProfilePage = () => {
                     <ColorSelector
                       value={field.value}
                       name={nameForAvatar}
-                      onChange={(nextColor) => {
-                        field.onChange(nextColor);
-                        setColor(nextColor);
+                      onChange={(nextColorName) => {
+                        field.onChange(nextColorName);
+                        setColor(colors[nextColorName]);
                       }}
                     />
                   )}
                 />
 
                 <AvatarPreview
-                  color={selectedColor ?? colors.pink}
+                  color={colors[selectedColor ?? "pink"]}
                   name={nameForAvatar}
                 />
               </div>

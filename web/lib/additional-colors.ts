@@ -41,3 +41,25 @@ export const additionalColors = {
 } as const satisfies Record<string, Color>;
 
 export type ColorName = keyof typeof additionalColors;
+
+export const isColorName = (value: unknown): value is ColorName =>
+  typeof value === "string" &&
+  Object.prototype.hasOwnProperty.call(additionalColors, value);
+
+export const getColorByName = (value: unknown): Color | null =>
+  isColorName(value) ? additionalColors[value] : null;
+
+export const getColorName = (
+  color: Color | null | undefined,
+): ColorName | null => {
+  if (!color) {
+    return null;
+  }
+
+  const entry = (Object.entries(additionalColors) as [ColorName, Color][]).find(
+    ([, candidate]) =>
+      candidate[100] === color[100] && candidate[500] === color[500],
+  );
+
+  return entry?.[0] ?? null;
+};

@@ -25,6 +25,7 @@ insert_permissions:
     permission:
       check: {}
       columns:
+        - avatar_color
         - is_allow_tracking
         - is_subscribed
         - auth0Id
@@ -62,6 +63,7 @@ select_permissions:
   - role: qa
     permission:
       columns:
+        - avatar_color
         - is_allow_tracking
         - is_subscribed
         - auth0Id
@@ -85,6 +87,7 @@ select_permissions:
   - role: service
     permission:
       columns:
+        - avatar_color
         - auth0Id
         - created_at
         - email
@@ -100,6 +103,7 @@ select_permissions:
   - role: user
     permission:
       columns:
+        - avatar_color
         - auth0Id
         - created_at
         - email
@@ -122,6 +126,7 @@ update_permissions:
   - role: qa
     permission:
       columns:
+        - avatar_color
         - is_allow_tracking
         - is_subscribed
         - auth0Id
@@ -148,6 +153,7 @@ update_permissions:
   - role: user
     permission:
       columns:
+        - avatar_color
         - name
         - is_allow_tracking
       filter:
