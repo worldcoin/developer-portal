@@ -8,6 +8,7 @@ import {
   RpRegistrationStatus,
 } from "@/api/helpers/rp-utils";
 import { getRpFromContract } from "@/api/helpers/temporal-rpc";
+import { USER_OP_MAX_VALIDITY_MS } from "@/api/helpers/user-operation";
 import { logger } from "@/lib/logger";
 import { NextRequest, NextResponse } from "next/server";
 import { getSdk as getGetRpRegistrationSdk } from "./graphql/get-rp-registration.generated";
@@ -217,11 +218,18 @@ export async function GET(
 
   const ageMs = Date.now() - new Date(dbRecord.created_at).getTime();
   const isPastGracePeriod = ageMs > PENDING_TIMEOUT_MS;
-  // updated_at-based grace, for cases where a fresh retry or an in-flight signer
-  // rotation must reset the clock (both bump updated_at): the staging timeout and
-  // the untrusted-initialized production timeout below.
-  const isPastGracePeriodSinceUpdate =
-    Date.now() - new Date(dbRecord.updated_at).getTime() > PENDING_TIMEOUT_MS;
+  // updated_at-based grace windows. updated_at is bumped by a fresh retry or an
+  // in-flight signer rotation, so both restart these clocks.
+  const updatedAgeMs = Date.now() - new Date(dbRecord.updated_at).getTime();
+  //  - staging timeout: same short grace as production.
+  const isPastGracePeriodSinceUpdate = updatedAgeMs > PENDING_TIMEOUT_MS;
+  //  - untrusted-initialized production timeout: a managed registration/rotation
+  //    UserOp stays includable on-chain for USER_OP_MAX_VALIDITY_MS, so an
+  //    unsettled op is only provably dead once that window plus the settlement
+  //    margin has elapsed. Failing sooner would race a rotation that can still
+  //    land, then cache `failed` for an hour over a trusted `registered`.
+  const isPastUserOpValidityWindow =
+    updatedAgeMs > USER_OP_MAX_VALIDITY_MS + PENDING_TIMEOUT_MS;
 
   // Sync DB status based on production contract only (never for deleted apps —
   // see isAppDeleted above). Only when the on-chain reading is trusted (signer
@@ -314,15 +322,16 @@ export async function GET(
   // foreign party won the permissionless on-chain register() for this rp_id, or
   // a signer rotation never settled. The `!productionInitialized` guard above
   // can't catch this (it IS initialized), so without this the row is wedged in
-  // `pending` forever, polling endlessly and never exposing the retry path. Fail
-  // it once past grace. Use the updated_at clock so an in-flight rotation — which
-  // bumps updated_at and settles within seconds — is never prematurely failed.
+  // `pending` forever, polling endlessly and never exposing the retry path. Only
+  // fail it once the UserOp validity window has elapsed: before that an in-flight
+  // signer rotation could still land, and failing early would cache `failed` for
+  // an hour over what then becomes a trusted `registered`.
   if (
     !isAppDeleted &&
     productionInitialized &&
     !canTrustOnChainProduction &&
     currentDbStatus === RpRegistrationStatus.Pending &&
-    isPastGracePeriodSinceUpdate &&
+    isPastUserOpValidityWindow &&
     dbRecord.mode === "managed"
   ) {
     logger.warn(
