@@ -536,7 +536,6 @@ export const AppProfilePage = ({ params }: AppProfilePageProps) => {
     data,
     loading: isMetadataLoading,
     error,
-    refetch: refetchMetadata,
   } = useQuery(FetchAppMetadataDocument, {
     variables: {
       id: appId,
@@ -582,8 +581,14 @@ export const AppProfilePage = ({ params }: AppProfilePageProps) => {
 
   const prepareVersionSwitch = useCallback(
     async (targetViewMode: "unverified" | "verified") => {
-      const refreshedResult = await refetchMetadata();
-      const refreshedApp = refreshedResult.data?.app[0] ?? app;
+      // Keep switch-time failures local. Refetching the page's observed query
+      // would set its `error` state and turn a transient failure into a 404.
+      const refreshedResult = await apolloClient.query<FetchAppMetadataQuery>({
+        query: FetchAppMetadataDocument,
+        variables: { id: appId },
+        fetchPolicy: "network-only",
+      });
+      const refreshedApp = refreshedResult.data?.app[0];
       const targetMetadata =
         targetViewMode === "verified"
           ? refreshedApp?.verified_app_metadata[0]
@@ -602,7 +607,7 @@ export const AppProfilePage = ({ params }: AppProfilePageProps) => {
         fetchPolicy: "network-only",
       });
     },
-    [apolloClient, app, refetchMetadata],
+    [apolloClient, appId],
   );
 
   const teamName = app?.team?.name ?? "";

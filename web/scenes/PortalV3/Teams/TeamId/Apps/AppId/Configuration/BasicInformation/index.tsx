@@ -83,10 +83,7 @@ export const BasicInformation = forwardRef<
   const editableAppMetadata = useMemo(() => {
     return {
       name: appMetaData?.name,
-      world_app_description:
-        appMetaData?.app_mode === "mini-app"
-          ? appMetaData?.world_app_description ?? ""
-          : undefined,
+      world_app_description: appMetaData?.world_app_description ?? "",
       integration_url: appMetaData?.integration_url,
       app_website_url: appMetaData?.app_website_url ?? "",
     };

@@ -45,7 +45,6 @@ jest.mock("@/lib/utils", () => ({
 // react-hook mock below routes on; the data jest.fns stay and are configured
 // via .mockReturnValue in beforeEach.
 const useFetchAppMetadataQuery = jest.fn();
-const refetchAppMetadataMock = jest.fn();
 jest.mock(
   "@/scenes/common/Teams/TeamId/Apps/AppId/Configuration/graphql/client/fetch-app-metadata.generated",
   () => ({
@@ -93,7 +92,6 @@ jest.mock("@apollo/client/react", () => ({
     switch (doc?.__mockDoc) {
       case "appMetadata":
         return {
-          refetch: refetchAppMetadataMock,
           networkStatus: 7,
           ...useFetchAppMetadataQuery(options),
         };
@@ -286,6 +284,43 @@ const makeApp = (metadata: Record<string, unknown>) => ({
   verified_app_metadata: [] as unknown[],
 });
 
+const makeVersionedMetadataData = () => {
+  const draftMetadata = makeAppMetadata({
+    id: "meta_draft",
+    name: "Draft App",
+    app_website_url: "https://example.com",
+  });
+  const verifiedMetadata = makeAppMetadata({
+    id: "meta_verified",
+    name: "Verified App",
+    verification_status: "verified",
+    app_website_url: "https://example.com",
+  });
+
+  return {
+    app: [
+      {
+        ...makeApp(draftMetadata),
+        verified_app_metadata: [verifiedMetadata],
+      },
+    ],
+  };
+};
+
+const mockApolloNetworkQueries = (metadataData: unknown) => {
+  apolloQueryMock.mockImplementation(
+    ({ query }: { query?: { __mockDoc?: string } }) => {
+      if (query?.__mockDoc === "appMetadata") {
+        return Promise.resolve({ data: metadataData });
+      }
+      if (query?.__mockDoc === "localisations") {
+        return Promise.resolve({ data: { localisations: [] } });
+      }
+      return Promise.reject(new Error("Unexpected Apollo query"));
+    },
+  );
+};
+
 const renderPage = () => render(<AppProfilePage params={{ teamId, appId }} />);
 const renderDangerPage = () =>
   render(<AppDangerZonePage params={{ teamId, appId }} />);
@@ -389,12 +424,11 @@ beforeEach(() => {
     loading: false,
     error: undefined,
   });
-  refetchAppMetadataMock.mockResolvedValue({ data: defaultMetadataData });
   useFetchLocalisationsQuery.mockReturnValue({
     data: { localisations: [] },
     loading: false,
   });
-  apolloQueryMock.mockResolvedValue({ data: { localisations: [] } });
+  mockApolloNetworkQueries(defaultMetadataData);
   apolloCacheIdentifyMock.mockReturnValue("app_metadata:meta_1");
 });
 
@@ -530,7 +564,7 @@ describe("v3 Configuration redesign [layout]", () => {
           makeApp(
             makeAppMetadata({
               app_mode: "external",
-              world_app_description: "",
+              world_app_description: "Preserved tagline",
             }),
           ),
         ],
@@ -549,7 +583,9 @@ describe("v3 Configuration redesign [layout]", () => {
 
     fireEvent.click(screen.getByRole("radio", { name: "Mini App" }));
 
-    expect(screen.getByLabelText(/App Tag Line/)).toBeInTheDocument();
+    expect(screen.getByLabelText(/App Tag Line/)).toHaveValue(
+      "Preserved tagline",
+    );
     expect(
       screen.getByLabelText(/App name/).parentElement?.parentElement
         ?.parentElement,
@@ -993,32 +1029,13 @@ describe("v3 Configuration redesign [footer and preview]", () => {
   });
 
   it("switches between the draft and the verified version without creating rows", async () => {
-    const draftMetadata = makeAppMetadata({
-      id: "meta_draft",
-      name: "Draft App",
-      app_website_url: "https://example.com",
-    });
-    const verifiedMetadata = makeAppMetadata({
-      id: "meta_verified",
-      name: "Verified App",
-      verification_status: "verified",
-      app_website_url: "https://example.com",
-    });
-
-    const metadataData = {
-      app: [
-        {
-          ...makeApp(draftMetadata),
-          verified_app_metadata: [verifiedMetadata],
-        },
-      ],
-    };
+    const metadataData = makeVersionedMetadataData();
     useFetchAppMetadataQuery.mockReturnValue({
       data: metadataData,
       loading: false,
       error: undefined,
     });
-    refetchAppMetadataMock.mockResolvedValue({ data: metadataData });
+    mockApolloNetworkQueries(metadataData);
 
     renderPage();
 
@@ -1046,31 +1063,13 @@ describe("v3 Configuration redesign [footer and preview]", () => {
   });
 
   it("flushes draft edits and refreshes the destination before switching versions", async () => {
-    const draftMetadata = makeAppMetadata({
-      id: "meta_draft",
-      name: "Draft App",
-      app_website_url: "https://example.com",
-    });
-    const verifiedMetadata = makeAppMetadata({
-      id: "meta_verified",
-      name: "Verified App",
-      verification_status: "verified",
-      app_website_url: "https://example.com",
-    });
-    const metadataData = {
-      app: [
-        {
-          ...makeApp(draftMetadata),
-          verified_app_metadata: [verifiedMetadata],
-        },
-      ],
-    };
+    const metadataData = makeVersionedMetadataData();
     useFetchAppMetadataQuery.mockReturnValue({
       data: metadataData,
       loading: false,
       error: undefined,
     });
-    refetchAppMetadataMock.mockResolvedValue({ data: metadataData });
+    mockApolloNetworkQueries(metadataData);
 
     let resolveSave!: (value: { success: true; message: string }) => void;
     validateAndSubmitServerSideMock.mockImplementation(
@@ -1099,7 +1098,7 @@ describe("v3 Configuration redesign [footer and preview]", () => {
     expect(screen.getByTestId("configuration-form-content")).toHaveAttribute(
       "inert",
     );
-    expect(refetchAppMetadataMock).not.toHaveBeenCalled();
+    expect(apolloQueryMock).not.toHaveBeenCalled();
     expect(
       screen.getByTestId("configuration-version-indicator"),
     ).toHaveAccessibleName("Draft version");
@@ -1113,41 +1112,71 @@ describe("v3 Configuration redesign [footer and preview]", () => {
         screen.getByTestId("configuration-version-indicator"),
       ).toHaveAccessibleName("Verified version");
     });
-    expect(refetchAppMetadataMock).toHaveBeenCalledTimes(1);
     expect(apolloQueryMock).toHaveBeenCalledWith(
       expect.objectContaining({
+        query: { __mockDoc: "appMetadata" },
+        variables: { id: appId },
+        fetchPolicy: "network-only",
+      }),
+    );
+    expect(apolloQueryMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        query: { __mockDoc: "localisations" },
         variables: { app_metadata_id: "meta_verified" },
         fetchPolicy: "network-only",
       }),
     );
   });
 
-  it("keeps the draft open when pending edits fail to save", async () => {
-    const draftMetadata = makeAppMetadata({
-      id: "meta_draft",
-      name: "Draft App",
-      app_website_url: "https://example.com",
-    });
-    const verifiedMetadata = makeAppMetadata({
-      id: "meta_verified",
-      name: "Verified App",
-      verification_status: "verified",
-      app_website_url: "https://example.com",
-    });
-    const metadataData = {
-      app: [
-        {
-          ...makeApp(draftMetadata),
-          verified_app_metadata: [verifiedMetadata],
-        },
-      ],
-    };
+  it("keeps the current version open when its switch-time refresh fails", async () => {
+    const metadataData = makeVersionedMetadataData();
     useFetchAppMetadataQuery.mockReturnValue({
       data: metadataData,
       loading: false,
       error: undefined,
     });
-    refetchAppMetadataMock.mockResolvedValue({ data: metadataData });
+    mockApolloNetworkQueries(metadataData);
+    apolloQueryMock.mockRejectedValueOnce(new Error("Network unavailable"));
+
+    renderPage();
+
+    fireEvent.click(screen.getByRole("button", { name: /Verified/ }));
+
+    await waitFor(() => {
+      expect(mockToastError).toHaveBeenCalledWith(
+        "Could not load that app version. Please try again.",
+      );
+    });
+    expect(apolloQueryMock).toHaveBeenCalledTimes(1);
+    expect(apolloQueryMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        query: { __mockDoc: "appMetadata" },
+        variables: { id: appId },
+        fetchPolicy: "network-only",
+      }),
+    );
+    expect(
+      screen.getByTestId("configuration-version-indicator"),
+    ).toHaveAccessibleName("Draft version");
+    expect(screen.getByLabelText(/App name/)).toHaveValue("Draft App");
+    expect(
+      screen.queryByRole("heading", { name: "App not found" }),
+    ).not.toBeInTheDocument();
+    await waitFor(() => {
+      expect(
+        screen.getByTestId("configuration-form-content"),
+      ).not.toHaveAttribute("inert");
+    });
+  });
+
+  it("keeps the draft open when pending edits fail to save", async () => {
+    const metadataData = makeVersionedMetadataData();
+    useFetchAppMetadataQuery.mockReturnValue({
+      data: metadataData,
+      loading: false,
+      error: undefined,
+    });
+    mockApolloNetworkQueries(metadataData);
     validateAndSubmitServerSideMock.mockResolvedValue({
       success: false,
       message: "Save failed",
@@ -1169,7 +1198,6 @@ describe("v3 Configuration redesign [footer and preview]", () => {
       screen.getByTestId("configuration-version-indicator"),
     ).toHaveAccessibleName("Draft version");
     expect(screen.getByLabelText(/App name/)).toHaveValue("Edited Draft App");
-    expect(refetchAppMetadataMock).not.toHaveBeenCalled();
     expect(apolloQueryMock).not.toHaveBeenCalled();
   });
 
